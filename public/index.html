@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script>
-    (function redirectToCanonicalMain() {
-      var target = "/public/index.html";
-      try {
-        var loc = window.location;
-        if (!loc) return;
-        if (loc.pathname === target) return;
-        var nextUrl = target + (loc.search || "") + (loc.hash || "");
-        window.location.replace(nextUrl);
-      } catch (e) {}
-    })();
-  </script>
   <script src="js/kill-switch.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
@@ -402,9 +390,68 @@
   <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="css/entertain-system.css">
 </head>
 <body>
+
+<!-- 타로 자존감 모달 (body 직계 — z-index/containment 이슈 방지) -->
+<div id="tarotSelfEsteemOverlay" class="tarot-self-esteem-overlay" style="display:none;" data-action="closeTarotSelfEsteemModal" data-action-self-only="1">
+  <div class="tarot-self-esteem-particles" aria-hidden="true">
+    <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
+    <span class="particle p4"></span><span class="particle p5"></span><span class="particle p6"></span>
+    <span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span>
+  </div>
+  <div id="tarotSelfEsteemLevelUpBanner" class="tarot-self-esteem-levelup-banner" aria-hidden="true">
+    <span class="tarot-self-esteem-levelup-text">Level Up!</span>
+  </div>
+  <div id="tarotSelfEsteemConfetti" class="tarot-self-esteem-confetti" aria-hidden="true"></div>
+  <div class="tarot-self-esteem-shell">
+    <div class="tarot-self-esteem-panel">
+      <button class="tarot-self-esteem-close" type="button" data-action="closeTarotSelfEsteemModal" aria-label="자존감 레벨업 타로 닫기">×</button>
+
+      <section id="tarotSelfEsteemIntroStage" class="tarot-self-esteem-stage is-active">
+        <div class="tarot-self-esteem-hero">
+          <h1 class="tarot-self-esteem-title">타로로 성장하는 자존감!</h1>
+          <p class="tarot-self-esteem-subtitle">어두운 터널을 지나 빛을 만나는 여정. 5장의 카드로 과거의 디버프를 확인하고, 마인드 쉴드를 획득하며, 레벨업 마스터리에 도달하세요. RPG처럼 EXP 바가 차오르고, 모두 열면 Level Up! 축하가 기다립니다.</p>
+          <div class="tarot-self-esteem-invoke-wrap">
+            <button class="tarot-self-esteem-btn tarot-self-esteem-btn--invoke" type="button" data-action="startTarotSelfEsteemReading">✨ 자존감 레벨업 퀘스트 시작</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemDrawStage" class="tarot-self-esteem-stage">
+        <h3 class="tarot-self-esteem-draw-header">[타로 스프레드] 나는 왜 남의 눈치만 보며 살까? (5카드)</h3>
+        <div class="tarot-self-esteem-exp-wrap">
+          <div class="tarot-self-esteem-exp-label">
+            <span>EXP</span>
+            <span id="tarotSelfEsteemExpPercent">0%</span>
+          </div>
+          <div class="tarot-self-esteem-exp-track">
+            <div id="tarotSelfEsteemExpBar" class="tarot-self-esteem-exp-bar"></div>
+          </div>
+        </div>
+        <div class="tarot-self-esteem-spread-guide" id="tarotSelfEsteemSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+        <div id="tarotSelfEsteemCardGrid" class="tarot-self-esteem-card-grid"></div>
+        <div class="tarot-self-esteem-final-wrap">
+          <button type="button" class="tarot-self-esteem-final-btn" id="tarotSelfEsteemFinalBtn" data-action="showTarotSelfEsteemFinalReading" disabled>✨ 레벨업 해석 보기</button>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemResultStage" class="tarot-self-esteem-stage">
+        <header class="tarot-self-esteem-reading-header">
+          <h2 class="tarot-self-esteem-reading-title">✨ 자존감 레벨업 리딩 결과</h2>
+        </header>
+        <div id="tarotSelfEsteemReadingContent" class="tarot-self-esteem-reading-content"></div>
+        <div class="tarot-self-esteem-result-actions">
+          <button type="button" class="tarot-self-esteem-btn" data-action="shareTarotSelfEsteemResult">💬 카카오톡 공유하기</button>
+          <button type="button" class="tarot-self-esteem-btn tarot-self-esteem-btn--subtle" data-action="resetTarotSelfEsteemFlow">🔄 다시 리딩하기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
@@ -556,6 +603,19 @@
   <!-- ═══ 입력 페이지 (SEO: Main Content) ═══ -->
   <main id="inputPage" role="main">
     <header class="logo-area" role="banner">
+      <!-- Cosmic star particles -->
+      <div class="logo-cosmos" aria-hidden="true">
+        <span class="logo-star logo-star--1"></span>
+        <span class="logo-star logo-star--2"></span>
+        <span class="logo-star logo-star--3"></span>
+        <span class="logo-star logo-star--4"></span>
+        <span class="logo-star logo-star--5"></span>
+        <span class="logo-star logo-star--6"></span>
+        <span class="logo-star logo-star--7"></span>
+        <span class="logo-star logo-star--8"></span>
+        <div class="logo-nebula logo-nebula--1"></div>
+        <div class="logo-nebula logo-nebula--2"></div>
+      </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F338.svg"
@@ -573,9 +633,9 @@
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
-      <div class="auth-quick-links" style="display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <a href="/signup" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#f8fafc; font-weight:700; font-size:0.9rem; background:linear-gradient(135deg, rgba(124,58,237,.85), rgba(99,102,241,.78)); box-shadow:0 8px 20px rgba(76,29,149,.35);">✨ 회원가입</a>
-        <a href="/login" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#e2e8f0; font-weight:700; font-size:0.9rem; border:1px solid rgba(167,139,250,.55); background:rgba(15,23,42,.72); box-shadow:0 8px 20px rgba(15,23,42,.35);">🔐 로그인</a>
+      <div class="auth-quick-links">
+        <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
+        <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
 
     </header>
@@ -669,553 +729,498 @@
     <!-- ═══ 부가 기능 카드 그리드 ═══ -->
     <div class="feature-card-grid">
 
-        <!-- 1. AI 동물 관상 -->
-        <div class="feature-card feature-card--face">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/ai%20animal.webp"
-                 alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석 (Animal Physiognomy AI, 顔相AI, AI动物面相)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-            <span class="feature-card__badge">BETA</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🎭 AI 동물 관상</h3>
-            <p class="feature-card__desc">셀카 한 장으로 나와 닮은 동물을 AI가 찾아드립니다! 관상으로 보는 숨겨진 매력과 운세.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🎭 AI 관상 시작하기">
-              <span class="feature-card__cta-label">🎭 AI 관상 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">얼굴형·이목구비·전체 인상으로 가장 닮은 동물 토템을 분석합니다. 봉황·흑표범·사자 등 55가지 동물 중 나의 관상은? 관상 궁합도 가능해요.</p>
-                <button class="feature-card__launch" type="button" data-action="openPhysiognomyApp">🎭 지금 AI 동물 관상 시작하기 →</button>
+        <!-- ══════════════════════════════════════
+             GROUP: 동물 & 관상
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
+          <div class="fg-group__cards">
+
+            <div class="feat-collection feat-collection--animal" id="animalCollection">
+              <div class="feat-collection__cosmos" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. MBTI 동물 궁합 -->
-        <div class="feature-card feature-card--animal">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/ai%20face.webp"
-                 alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합 테스트 (MBTI Compatibility, MBTI動物相性, MBTI动物配对)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🦁 MBTI 동물 궁합</h3>
-            <p class="feature-card__desc">내 MBTI는 어떤 동물일까요? 16가지 토템으로 찰떡 궁합 파트너를 찾아보세요.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🦁 MBTI 궁합 시작하기">
-              <span class="feature-card__cta-label">🦁 MBTI 궁합 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">ENFP는 돌고래, INTJ는 외로운 늑대... 당신의 MBTI 동물 토템과 최고 궁합인 동물은 누구? 연인·친구·직장 동료와의 케미도 확인하세요.</p>
-                <button class="feature-card__launch" type="button" data-action="openMbtiModal">🦁 나의 MBTI 동물 궁합 확인하기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2.5 타로로 보는 우리 사이 (우선 노출) -->
-        <div class="feature-card feature-card--tarot-love">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/tarolove.webp"
-                 alt="타로로 보는 우리 사이 — 6장 스프레드로 관계의 진심을 읽다 (Tarot Love Reading, タロット恋愛占い)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-            <span class="feature-card__badge">NEW</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">💕 타로로 보는 우리 사이</h3>
-            <p class="feature-card__desc">우리 무슨 사이야? 6장의 타로 카드로 상대방의 시선, 관계 정의, 연애 의지까지 꿰뚫어 보는 심층 리딩.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="💕 우리 사이 타로 보기">
-              <span class="feature-card__cta-label">💕 우리 사이 타로 보기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">내담자의 시선, 상대방의 시선, 관계 정의, 연애 의지, 병목, 단기 미래—6개 포지션으로 '우리 무슨 사이야'에 대한 답을 찾습니다. 20년 경력 타로 마스터의 시선으로, 가스라이팅 없이 현실적인 통찰을 전해드립니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openTarotLoveModal">💕 우리 사이 타로 리딩 시작 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2.6 긍정 에너지 회복 타로 -->
-        <div class="feature-card feature-card--tarot-healing">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/healing.webp"
-                 alt="긍정 에너지 회복하기 — 힐링 4카드 타로 (Healing & Rising Tarot)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-            <span class="feature-card__badge">HEALING</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌅 긍정 에너지 회복하기</h3>
-            <p class="feature-card__desc">지친 마음을 다독이는 4카드 스프레드. 상처를 이해하고, 배움을 찾고, 다시 앞으로 나아갈 힘을 회복하세요.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌅 힐링 타로 시작하기">
-              <span class="feature-card__cta-label">🌅 힐링 타로 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">The Hidden Truth, Embrace the Pain, The Silver Lining, Step Forward의 4단계로 현재의 감정을 안전하게 해석하고, 오늘 실행 가능한 회복 행동까지 제시합니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openTarotHealingModal">🌅 긍정 에너지 회복 리딩 시작 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2.7 별 헤는 밤바다 재회운 타로 -->
-        <div class="feature-card feature-card--tarot-reunion">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/reunion.webp"
-                 alt="별 헤는 밤바다의 재회운 타로 — 5카드 스프레드"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-            <span class="feature-card__badge">REUNION</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌊 별 헤는 밤바다 재회운 타로</h3>
-            <p class="feature-card__desc">그 사람과의 인연은 끝났을까? 5장의 카드로 과거 인연, 현재 근황, 방해물, 속마음, 재회 가능성을 연결된 서사로 읽어드립니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌊 재회운 5카드 펼치기">
-              <span class="feature-card__cta-label">🌊 재회운 5카드 펼치기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">별빛과 등대가 비추는 밤바다 테마로, 1) 과거의 인연 2) 상대의 현재 3) 주변 상황 4) 속마음 5) 재회 가능성을 순차적으로 열어보는 몰입형 리딩입니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openTarotReunionModal">🌊 재회운 리딩 시작 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. 명리학 타로 -->
-        <div class="feature-card feature-card--tarot">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/ai%20tarrot.webp"
-                 alt="AI 타로카드 무료 운세 — 78장 유니버설 덱 (Free AI Tarot Reading, 無料AIタロット占い, 免费AI塔罗牌)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🔮 명리학 타로</h3>
-            <p class="feature-card__desc">명리학을 접목한 타로 상담입니다. 지금 무엇이 궁금하신가요? 78장의 카드 중 당신을 위한 카드가 기다립니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🔮 타로 카드 시작하기">
-              <span class="feature-card__cta-label">🔮 타로 카드 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">명리학을 접목한 타로 상담으로, 연애·재물·미래·현재 에너지를 살펴봅니다. 마음 속 질문을 품고 카드를 고르세요. Universal 덱 78장, 역방향 해석 포함. 오늘의 에너지를 타로가 알려드립니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openTarotModal">🔮 지금 타로 카드 뽑으러 가기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. 애니멀 토템 리딩 -->
-        <div class="feature-card feature-card--animal-totem">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/animaltotem.webp"
-                 alt="애니멀 토템 리딩 — 명상 후 타로 카드로 수호 동물 메시지 받기"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-            <span class="feature-card__badge">NEW</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🧸 애니멀 토템 리딩</h3>
-            <p class="feature-card__desc">10초 명상 후 다섯 장의 수호 동물 카드 중 한 장을 선택해, 오늘 당신을 지켜줄 수호 동물의 메시지를 만나보세요.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🧸 명상하고 수호 동물 카드 뽑기">
-              <span class="feature-card__cta-label">🧸 명상하고 수호 동물 카드 뽑기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">먼저 10초간 숨을 고르고 마음을 차분히 만든 다음, 다섯 장의 수호 동물 카드 중 한 장을 선택해보세요. 늑대·올빼미·돌고래·여우를 포함한 다양한 수호 동물 토템이 오늘의 맞춤 응원 메시지를 전해줍니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openAnimalTotemModal">🧸 명상하고 토템 카드 뽑기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. 타짜들의 화투점 -->
-        <div class="feature-card feature-card--tazza">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/tazza.webp"
-                 alt="화투점 — 한국 전통 화투패 12달 오늘의 운세 (Hwatu Korean Fortune Telling, 花札占い, 韩国花牌占卜)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🎴 타짜들의 화투점</h3>
-            <p class="feature-card__desc">열두 달의 화투패가 오늘의 운세를 속삭입니다. 어떤 패가 당신 앞에 놓일까요?</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🎴 화투점 시작하기">
-              <span class="feature-card__cta-label">🎴 화투점 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">정월 솔, 이월 매조... 12달의 화투패로 점치는 한국 전통 운세. 뒤집을 때마다 달라지는 결과, 오늘의 나를 위한 한 장을 골라보세요.</p>
-                <button class="feature-card__launch" type="button" data-action="openHwatuModal">🎴 화투패 뒤집으러 가기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 6. 이집트 신탁 운세 -->
-        <div class="feature-card feature-card--egypt">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/egypt.webp"
-                 alt="고대 이집트 케멧 신탁 — 오시리스 상형문자 오라클 운세 (Kemet Oracle, Ancient Egypt Divination, エジプト神託, 古埃及神谕)"
-                 class="feature-card__img" loading="lazy" width="400" height="300">
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">𓂀 고대 이집트 신탁</h3>
-            <p class="feature-card__desc">수천 년 전 이집트 파피루스에 새겨진 신탁이 당신에게 말을 건넵니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="𓂀 이집트 신탁 시작하기">
-              <span class="feature-card__cta-label">𓂀 이집트 신탁 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">오시리스의 저울 앞에 서보세요. 고대 상형문자와 케멧 신들의 지혜로 풀어내는 오늘의 메시지. 라·이시스·아누비스의 신탁을 받아보세요.</p>
-                <button class="feature-card__launch" type="button" data-action="openKemetModal">𓂀 이집트 신탁 받으러 가기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 7. 주역(周易) 64괘 -->
-        <div class="feature-card feature-card--juyuk">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/juyuk.webp"
-                 alt="주역 64괘 거북점 — 동양 전통 귀복(龜卜) 신탁 (I Ching 64 Hexagrams Oracle, 易経龜卜, 周易六十四卦龟卜)"
-                 class="feature-card__img" loading="lazy"
-                data-img-error-bg="linear-gradient(145deg,#2a1a00,#120800)">
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">☯️ 주역(周易) — 64괘의 지혜</h3>
-            <p class="feature-card__desc">하늘과 땅의 변화를 읽는 3,000년의 지혜. 지금 마음 속 질문을 가지고 거북점을 쳐보세요.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="☯️ 주역 거북점 시작하기">
-              <span class="feature-card__cta-label">☯️ 주역 거북점 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">음효(--)와 양효(—)의 조합으로 이루어진 64괘 중 오늘 당신의 괘는? 행동 지침까지 담긴 깊이 있는 해석으로 중요한 결정에 도움을 드립니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openJuyukModal">☯️ 거북점 지금 시작하기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 7. 숙요점 -->
-        <div class="feature-card feature-card--sukuyo">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/sukyo.webp"
-                 alt="숙요점 宿曜占 — 불교 밀교 27수 별자리 운명 분석 (Sukuyo Lunar Divination, 宿曜占)"
-                 class="feature-card__img" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#0a0c19,#1a0e3b)">
-            <span class="feature-card__badge">NEW</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">💫 숙요점(宿曜占)</h3>
-            <p class="feature-card__desc">불교 밀교 27수 별자리가 당신의 숨겨진 본성과 카르마를 읽어냅니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="💫 숙요점 시작하기">
-              <span class="feature-card__cta-label">💫 숙요점 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">태어난 날의 달이 어느 별자리에 있었는지로 보는 나의 숙(宿). 성격·재능·대인관계·운명의 흐름을 동양 점성술로 풀어드립니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openSukuyoModal">💫 내 숙요 별자리 확인하기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 8. 점성술 -->
-        <div class="feature-card feature-card--astro-fc">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/jumsung.webp"
-                 alt="점성술 코즈믹 차트 — 태양·달·상승궁 천체 배치 운세 (Astrology, Cosmic Chart)"
-                 class="feature-card__img" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#0a0a14,#12103a)">
-            <span class="feature-card__badge">FREE</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">✨ 점성술 코즈믹 차트</h3>
-            <p class="feature-card__desc">태양·달·상승궁의 배치로 펼쳐지는 나의 영혼 지도. 당신의 우주적 정체성은?</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="✨ 코즈믹 차트 시작하기">
-              <span class="feature-card__cta-label">✨ 코즈믹 차트 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">서양 점성술 12궁·10천체 기반의 코즈믹 차트. 태양(자아)·달(감정)·상승궁(외면) 삼각 분석으로 내면의 진짜 나를 발견하세요.</p>
-                <button class="feature-card__launch" type="button" data-action="openAstroModal">✨ 코즈믹 차트 펼쳐보기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 9. 자미두수 12궁 명반 -->
-        <div class="feature-card feature-card--ziwei">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/jami.webp"
-                 alt="자미두수 紫微斗數 12궁 명반 — 동양 별자리 운명 분석 (Ziwei Doushu, 紫微斗数命盤, 자미두수)"
-                 class="feature-card__img" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#0f0a2a,#1e0a45)">
-            <span class="feature-card__badge">NEW</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌌 자미두수(紫微斗數)</h3>
-            <p class="feature-card__desc">동양 최고의 명리 체계 자미두수가 12궁 명반으로 당신의 운명을 읽어냅니다.</p>
-                <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌌 자미두수 시작하기">
-              <span class="feature-card__cta-label">🌌 자미두수 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">명궁·재백궁·전택궁... 12개의 궁으로 이루어진 나만의 별자리 지도. 자미·탐랑·거문 등 주요 성계 배치로 평생 운명의 흐름을 봅니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openZiweiModal">🌌 자미두수 명반 펼쳐보기 →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 10. 운명의 꽃 -->
-        <div class="feature-card feature-card--destiny-flower">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/flower.webp"
-                 alt="운명의 꽃 - 오행과 계절 흐름으로 피어나는 개인 맞춤 꽃"
-                 class="feature-card__img destiny-flower-hero-image" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#fff3d9,#f8e8ff)">
-            <span class="feature-card__badge">BLOOM</span>
-            <span class="df-bud-icon" aria-hidden="true">❀</span>
-            <span id="dfHeroSourceSticker" class="destiny-flower-sticker" aria-hidden="true"><b>四柱</b><em>Native</em></span>
-            <div class="destiny-flower-glow" aria-hidden="true"></div>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌸 운명의 꽃</h3>
-            <p id="dfUnifiedCardDesc" class="feature-card__desc">사주·점성술·자미두수·숙요점을 한곳에서 전환하며, 지금 당신의 운명을 대표하는 꽃을 판정합니다.</p>
-            <button class="feature-card__launch df-bloom-btn" type="button" data-action="openDestinyFlowerStudio">🌸 운명의 꽃 아틀리에 열기 →</button>
-          </div>
-        </div>
-
-        <!-- 10-1. 점성술 운명의 꽃 -->
-        <div class="feature-card feature-card--astrology-flower">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/flower2.webp"
-                 alt="점성술 운명의 꽃 - 태양궁/달궁/상승궁으로 해석하는 네온 성운 꽃"
-                 class="feature-card__img astrology-flower-hero-image" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#0b1026,#26124f)">
-            <span class="feature-card__badge">NEBULA</span>
-            <span class="astrology-flower-sticker" aria-hidden="true">점성술로 보는 꽃</span>
-            <div class="astrology-card-glow" aria-hidden="true"></div>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">✨ 점성술 운명의 꽃</h3>
-            <p class="feature-card__desc">Sun·Rising·Moon 차트 데이터를 별의 언어로 해석해, 네온 성운의 꽃으로 당신의 기질을 시각화합니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="✨ 점성술 꽃 소환하기">
-              <span class="feature-card__cta-label">✨ 점성술 꽃 소환하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail" aria-hidden="true">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">태양궁은 꽃의 핵심 종을, 상승궁은 외형의 실루엣을, 달궁은 내부 글로우를 결정합니다. 별의 에너지가 지상의 꽃으로 변환되는 과정을 확인하세요.</p>
-                <div class="astrology-flower-stage" aria-live="polite">
-                  <svg class="astrology-zodiac-trace" viewBox="0 0 320 120" aria-hidden="true">
-                    <path d="M14 98 C54 26, 114 18, 160 64 S262 114, 306 36" />
-                  </svg>
-                  <div class="astrology-flower-nebula" aria-hidden="true"></div>
-                  <div class="astrology-flower-mask">
-                    <img class="astrology-flower-stage__image" src="/fuctionassets/flower2.webp" alt="점성술 운명꽃 프리뷰" loading="lazy" width="320" height="220">
-                  </div>
-                  <div class="astrology-stardust-field" aria-hidden="true"></div>
-                  <div class="astrology-flower-meta">
-                    <p id="afCardName" class="astrology-flower-meta__name">점성술 운명꽃 판독 대기 중</p>
-                    <p id="afCardSymbolism" class="astrology-flower-meta__symbolism">태양궁·상승궁·달궁을 결합한 점성술 매핑을 준비 중입니다.</p>
-                    <p id="afCardKeywords" class="astrology-flower-meta__keywords">zodiac • nebula • stardust</p>
-                    <div class="astrology-flower-meta__badges" aria-label="점성술 요약 배지">
-                      <span id="afCardSunBadge" class="astrology-flower-meta__badge">태양궁 미확인</span>
-                      <span id="afCardRisingBadge" class="astrology-flower-meta__badge">상승궁 미확인</span>
-                      <span id="afCardMoonBadge" class="astrology-flower-meta__badge">달궁 미확인</span>
-                    </div>
-                    <p id="afCardDataLine" class="astrology-flower-meta__detail">별의 궤적 데이터를 기다리는 중입니다.</p>
-                  </div>
+              <div class="feat-collection__header">
+                <div class="feat-collection__icon" aria-hidden="true">🦁</div>
+                <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
+                <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
+                <div class="feat-collection__divider" aria-hidden="true">
+                  <span class="fc-div-gem">✦</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">◈</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">✦</span>
                 </div>
-                <button class="feature-card__launch" type="button" data-action="openAstrologyFlowerStudio">✨ 점성술 운명꽃 아틀리에 열기 →</button>
               </div>
+
+              <div class="feat-collection__grid">
+
+                <!-- AI 동물 관상 -->
+                <button class="tarot-tile tarot-tile--physio" type="button"
+                        data-action="openPhysiognomyApp"
+                        aria-label="AI 동물 관상 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/ai%20animal.webp"
+                         alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--beta">BETA</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🎭 AI 동물 관상</span>
+                    <span class="tarot-tile__desc">셀카로 보는 관상 분석</span>
+                  </div>
+                </button>
+
+                <!-- MBTI 동물 궁합 -->
+                <button class="tarot-tile tarot-tile--mbti" type="button"
+                        data-action="openMbtiModal"
+                        aria-label="MBTI 동물 궁합 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/ai%20face.webp"
+                         alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합"
+                         loading="lazy" width="200" height="150">
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🦁 MBTI 동물 궁합</span>
+                    <span class="tarot-tile__desc">16가지 토템 궁합</span>
+                  </div>
+                </button>
+
+                <!-- 애니멀 토템 리딩 -->
+                <button class="tarot-tile tarot-tile--animal-totem" type="button"
+                        data-action="openAnimalTotemModal"
+                        aria-label="애니멀 토템 리딩 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/animaltotem.webp"
+                         alt="애니멀 토템 리딩 — 수호 동물 메시지"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🧸 애니멀 토템</span>
+                    <span class="tarot-tile__desc">수호 동물 카드 리딩</span>
+                  </div>
+                </button>
+
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--animal -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 타로 & 카드
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
+          <div class="fg-group__cards">
+
+        <!-- ═══ 타로 컬렉션 (Tarot Reading Collection Grid) ═══ -->
+        <div class="tarot-collection" id="tarotCollection">
+          <div class="tarot-collection__cosmos" aria-hidden="true">
+            <span class="tc-star tc-star--1"></span>
+            <span class="tc-star tc-star--2"></span>
+            <span class="tc-star tc-star--3"></span>
+            <span class="tc-star tc-star--4"></span>
+            <span class="tc-star tc-star--5"></span>
+            <span class="tc-star tc-star--6"></span>
+            <span class="tc-star tc-star--7"></span>
+            <span class="tc-star tc-star--8"></span>
+          </div>
+          <div class="tarot-collection__header">
+            <div class="tarot-collection__icon" aria-hidden="true">✦</div>
+            <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
+            <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
+            <div class="tarot-collection__divider" aria-hidden="true">
+              <span class="tc-divider-star">✦</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-gem">◈</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-star">✦</span>
             </div>
+          </div>
+
+          <div class="tarot-collection__grid">
+
+            <!-- [기능 연결부] 우리 사이 타로 → openTarotLoveModal() -->
+            <button class="tarot-tile tarot-tile--love" type="button"
+                    data-action="openTarotLoveModal"
+                    aria-label="우리 사이 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="/fuctionassets/tarolove.webp"
+                     alt="타로로 보는 우리 사이 — 6카드 관계 리딩"
+                     loading="lazy" width="200" height="150">
+                <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">💕 우리 사이 타로</span>
+                <span class="tarot-tile__desc">6카드 관계 심층 리딩</span>
+              </div>
+            </button>
+
+            <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
+            <button class="tarot-tile tarot-tile--healing" type="button"
+                    data-action="openTarotHealingModal"
+                    aria-label="긍정 에너지 회복 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="/fuctionassets/healing.webp"
+                     alt="긍정 에너지 회복 — 힐링 4카드 타로"
+                     loading="lazy" width="200" height="150">
+                <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🌅 긍정 에너지 회복</span>
+                <span class="tarot-tile__desc">4카드 힐링 스프레드</span>
+              </div>
+            </button>
+
+            <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
+            <button class="tarot-tile tarot-tile--self-esteem" type="button"
+                    data-action="openTarotSelfEsteemModal"
+                    aria-label="자존감 레벨업 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="/fuctionassets/jajongam.webp"
+                     alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로"
+                     loading="lazy" width="200" height="150">
+                <span class="tarot-tile__badge tarot-tile__badge--levelup">LEVEL UP</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">✨ 자존감 레벨업</span>
+                <span class="tarot-tile__desc">5카드 RPG 퀘스트</span>
+              </div>
+            </button>
+
+            <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
+            <button class="tarot-tile tarot-tile--reunion" type="button"
+                    data-action="openTarotReunionModal"
+                    aria-label="재회운 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="/fuctionassets/reunion.webp"
+                     alt="별 헤는 밤바다 재회운 타로 — 5카드 스프레드"
+                     loading="lazy" width="200" height="150">
+                <span class="tarot-tile__badge tarot-tile__badge--reunion">REUNION</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🌊 재회운 타로</span>
+                <span class="tarot-tile__desc">5카드 등대 스프레드</span>
+              </div>
+            </button>
+
+            <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
+            <button class="tarot-tile tarot-tile--year" type="button"
+                    data-action="openTarotYearFortuneModal"
+                    aria-label="십이지신 천운 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="/fuctionassets/12animals.webp"
+                     alt="십이지신 천운 타로 — 재물·연애·인간관계 월별 운세"
+                     loading="lazy" width="200" height="150">
+                <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">십이지신 천운(天運)</span>
+                <span class="tarot-tile__desc">12개월 연간 운세</span>
+              </div>
+            </button>
+
+            <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
+            <button class="tarot-tile tarot-tile--classic" type="button"
+                    data-action="openTarotModal"
+                    aria-label="명리학 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap">
+                <img class="tarot-tile__img" src="fuctionassets/ai%20tarrot.webp"
+                     alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩"
+                     loading="lazy" width="200" height="150">
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🔮 명리학 타로</span>
+                <span class="tarot-tile__desc">78장 유니버설 덱</span>
+              </div>
+            </button>
+
           </div>
         </div>
 
-        <!-- 10-2. 자미두수 운명의 꽃 -->
-        <div class="feature-card feature-card--jamidusu-flower">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/flower3.webp"
-                 alt="자미두수 운명의 꽃 - 명궁 주성과 별 밝기로 해석하는 제왕의 꽃"
-                 class="feature-card__img jamidusu-flower-hero-image" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#160b2d,#3c1450)">
-            <span class="feature-card__badge">ZIWEI</span>
-            <span class="jamidusu-flower-sticker" aria-hidden="true">자미두수로 보는 꽃</span>
-            <div class="jamidusu-card-glow" aria-hidden="true"></div>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌺 자미두수 운명의 꽃</h3>
-            <p class="feature-card__desc">명궁 주성과 별 밝기(묘·왕·평·함) 결을 해석해, 지금 당신의 제왕 에너지를 꽃으로 시각화합니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌺 자미두수 꽃 소환하기">
-              <span class="feature-card__cta-label">🌺 자미두수 꽃 소환하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail" aria-hidden="true">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">자미·천기·태음 등 명궁 주성이 꽃의 종을 결정하고, 별의 밝기가 글로우 강도와 안개 밀도를 조절합니다. 주성 키워드 팝업으로 오늘의 기운을 확인해보세요.</p>
-                <div class="jamidusu-flower-stage" aria-live="polite">
-                  <div class="jamidusu-mist" aria-hidden="true"></div>
-                  <div class="jamidusu-flower-mask">
-                    <img class="jamidusu-flower-stage__image" src="/fuctionassets/flower3.webp" alt="자미두수 운명꽃 프리뷰" loading="lazy" width="320" height="220">
-                  </div>
-                  <div class="jamidusu-petal-field" aria-hidden="true"></div>
-                  <div id="jfCardKeywordPopup" class="jamidusu-keyword-popup" aria-hidden="true">주성 키워드</div>
-                  <div class="jamidusu-flower-meta">
-                    <p id="jfCardName" class="jamidusu-flower-meta__name">자미두수 운명꽃 판독 대기 중</p>
-                    <p id="jfCardSymbolism" class="jamidusu-flower-meta__symbolism">명궁 주성과 밝기 정보를 결합한 자미두수 매핑을 준비 중입니다.</p>
-                    <p id="jfCardKeywords" class="jamidusu-flower-meta__keywords">ziwei • ming-gong • imperial bloom</p>
-                    <div class="jamidusu-flower-meta__badges" aria-label="자미두수 요약 배지">
-                      <span id="jfCardStarBadge" class="jamidusu-flower-meta__badge">명궁 주성 미확인</span>
-                      <span id="jfCardBrightnessBadge" class="jamidusu-flower-meta__badge">별 밝기 미확인</span>
-                      <span id="jfCardPalaceBadge" class="jamidusu-flower-meta__badge">궁위 미확인</span>
-                    </div>
-                    <p id="jfCardDataLine" class="jamidusu-flower-meta__detail">자미두수 데이터 시그널을 기다리는 중입니다.</p>
-                  </div>
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--tarot -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 신탁 & 점술
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
+          <div class="fg-group__cards">
+
+            <div class="feat-collection feat-collection--oracle" id="oracleCollection">
+              <div class="feat-collection__cosmos" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
+              </div>
+              <div class="feat-collection__header">
+                <div class="feat-collection__icon" aria-hidden="true">𓂀</div>
+                <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
+                <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
+                <div class="feat-collection__divider" aria-hidden="true">
+                  <span class="fc-div-gem">✦</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">◈</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">✦</span>
                 </div>
-                <button class="feature-card__launch" type="button" data-action="openJamidusuFlowerStudio">🌺 자미두수 운명꽃 아틀리에 열기 →</button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- 10-3. 숙요점 운명의 꽃 -->
-        <div class="feature-card feature-card--sukuyo-flower">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/flower4.webp"
-                 alt="숙요점 운명의 꽃 - 27숙과 달의 위상으로 피어나는 달빛 꽃"
-                 class="feature-card__img sukuyo-flower-hero-image" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#020617,#172554)">
-            <span class="feature-card__badge">SUKUYO</span>
-            <span class="sukuyo-flower-sticker" aria-hidden="true">숙요점으로 보는 꽃</span>
-            <div class="sukuyo-card-glow" aria-hidden="true"></div>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌙 숙요 운명의 꽃</h3>
-            <p class="feature-card__desc">27숙의 성정과 수호동물, 달의 위상을 겹쳐 당신의 영적 개화 패턴을 꽃으로 변환합니다.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌙 숙요 꽃 소환하기">
-              <span class="feature-card__cta-label">🌙 숙요 꽃 소환하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail" aria-hidden="true">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">초승/그믐에는 이클립스 실루엣, 보름에는 풀 글로우로 개화합니다. 숙요 별자리 선과 27개 달빛 오브 공전으로 생일 달의 감각을 복원합니다.</p>
-                <div class="sukuyo-flower-stage" aria-live="polite">
-                  <svg class="sukuyo-constellation" viewBox="0 0 320 120" aria-hidden="true">
-                    <path id="sfCardConstellationPath" d="M24 90 L66 30 L124 44 L180 20 L244 72 L300 36" />
-                  </svg>
-                  <div class="sukuyo-starfall-field" aria-hidden="true"></div>
-                  <div class="sukuyo-orbit-field" aria-hidden="true"></div>
-                  <div class="sukuyo-flower-mask">
-                    <img class="sukuyo-flower-stage__image" src="/fuctionassets/flower4.webp" alt="숙요 운명꽃 프리뷰" loading="lazy" width="320" height="220">
+              <div class="feat-collection__grid feat-collection__grid--2col">
+
+                <!-- 화투점 -->
+                <button class="tarot-tile tarot-tile--hwatu" type="button"
+                        data-action="openHwatuModal"
+                        aria-label="화투점 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/tazza.webp"
+                         alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세"
+                         loading="lazy" width="200" height="150">
                   </div>
-                  <div class="sukuyo-flower-meta">
-                    <p id="sfCardName" class="sukuyo-flower-meta__name">숙요 운명꽃 판독 대기 중</p>
-                    <p id="sfCardSymbolism" class="sukuyo-flower-meta__symbolism">27숙과 달의 위상을 결합한 숙요 매핑을 준비 중입니다.</p>
-                    <p id="sfCardKeywords" class="sukuyo-flower-meta__keywords">sukuyo • lunar mansion • moon bloom</p>
-                    <div class="sukuyo-flower-meta__badges" aria-label="숙요 요약 배지">
-                      <span id="sfCardMansionBadge" class="sukuyo-flower-meta__badge">숙 미확인</span>
-                      <span id="sfCardPhaseBadge" class="sukuyo-flower-meta__badge">달 위상 미확인</span>
-                      <span id="sfCardGuardianBadge" class="sukuyo-flower-meta__badge">수호동물 미확인</span>
-                    </div>
-                    <p id="sfCardDataLine" class="sukuyo-flower-meta__detail">숙요 시그널을 기다리는 중입니다.</p>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🎴 타짜들의 화투점</span>
+                    <span class="tarot-tile__desc">12달 화투패 운세</span>
                   </div>
+                </button>
+
+                <!-- 고대 이집트 신탁 -->
+                <button class="tarot-tile tarot-tile--egypt-fc" type="button"
+                        data-action="openKemetModal"
+                        aria-label="이집트 신탁 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/egypt.webp"
+                         alt="고대 이집트 신탁 — 케멧 오라클"
+                         loading="lazy" width="200" height="150">
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">𓂀 이집트 신탁</span>
+                    <span class="tarot-tile__desc">케멧 오라클 운세</span>
+                  </div>
+                </button>
+
+                <!-- 주역 64괘 -->
+                <button class="tarot-tile tarot-tile--juyuk-fc" type="button"
+                        data-action="openJuyukModal"
+                        aria-label="주역 거북점 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/juyuk.webp"
+                         alt="주역 64괘 거북점 — 3000년 지혜"
+                         loading="lazy" width="200" height="150">
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">☯️ 주역 거북점</span>
+                    <span class="tarot-tile__desc">64괘 · 3000년 지혜</span>
+                  </div>
+                </button>
+
+                <!-- 숙요점 -->
+                <button class="tarot-tile tarot-tile--sukuyo-fc" type="button"
+                        data-action="openSukuyoModal"
+                        aria-label="숙요점 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/sukyo.webp"
+                         alt="숙요점 — 불교 밀교 27수 별자리"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
+                    <span class="tarot-tile__desc">27수 별자리 운명</span>
+                  </div>
+                </button>
+
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--oracle -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--oracle -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 코즈믹 & 별자리
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
+          <div class="fg-group__cards">
+
+            <div class="feat-collection feat-collection--cosmic" id="cosmicCollection">
+              <div class="feat-collection__cosmos" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
+              </div>
+              <div class="feat-collection__header">
+                <div class="feat-collection__icon" aria-hidden="true">🌌</div>
+                <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
+                <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
+                <div class="feat-collection__divider" aria-hidden="true">
+                  <span class="fc-div-gem">✦</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">◈</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">✦</span>
                 </div>
-                <button class="feature-card__launch" type="button" data-action="openSukuyoFlowerStudio">🌙 숙요 운명꽃 아틀리에 열기 →</button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- 11. 드림 타로 해몽 리포트 -->
-        <div class="feature-card feature-card--dream">
-          <div class="feature-card__img-wrap">
-            <img src="/fuctionassets/heamong.webp"
-                 alt="드림 타로 해몽 리포트 - 꿈의 상징과 현실 메시지를 스토리로 해석하는 AI 꿈해몽"
-                 class="feature-card__img" loading="lazy" width="400" height="300"
-                data-img-error-bg="linear-gradient(145deg,#030711,#0b1f3a)">
-            <span class="feature-card__badge">NEW</span>
-          </div>
-          <div class="feature-card__body">
-            <h3 class="feature-card__title">🌙 드림 타로</h3>
-            <p class="feature-card__desc">흩어진 꿈의 조각을 모아 한 편의 운명 리포트로. 지금 밤의 기록을 해석해보세요.</p>
-            <button class="feature-card__cta" type="button" data-action="fcToggle" data-action-pass-self="1"
-                    aria-expanded="false" data-label="🌙 드림 타로 시작하기">
-              <span class="feature-card__cta-label">🌙 드림 타로 시작하기</span>
-              <i class="feature-card__cta-arrow" aria-hidden="true">▼</i>
-            </button>
-          </div>
-          <div class="feature-card__detail">
-            <div class="feature-card__detail-inner">
-              <div class="feature-card__detail-content">
-                <p class="feature-card__detail-text">반복되는 상징, 감정의 잔향, 관계의 암시를 [꿈의 풍경] - [운명의 상징] - [현실로의 메아리] 3단계로 해석합니다.</p>
-                <button class="feature-card__launch" type="button" data-action="openDreamModal">🌙 드림 타로 열기 →</button>
+              <div class="feat-collection__grid feat-collection__grid--2col">
+
+                <!-- 점성술 코즈믹 차트 -->
+                <button class="tarot-tile tarot-tile--astro-fc" type="button"
+                        data-action="openAstroModal"
+                        aria-label="점성술 코즈믹 차트 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/jumsung.webp"
+                         alt="점성술 코즈믹 차트 — 태양·달·상승궁"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--free">FREE</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
+                    <span class="tarot-tile__desc">태양 · 달 · 상승궁</span>
+                  </div>
+                </button>
+
+                <!-- 자미두수 12궁 명반 -->
+                <button class="tarot-tile tarot-tile--ziwei-fc" type="button"
+                        data-action="openZiweiModal"
+                        aria-label="자미두수 명반 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/jami.webp"
+                         alt="자미두수 — 12궁 명반 운명 분석"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
+                    <span class="tarot-tile__desc">12궁 명반 운명 지도</span>
+                  </div>
+                </button>
+
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--cosmic -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--cosmic -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 운명의 꽃 & 해몽
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower">
+          <div class="fg-group__cards">
+
+            <div class="feat-collection feat-collection--flower" id="flowerCollection">
+              <div class="feat-collection__cosmos" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
               </div>
-            </div>
-          </div>
-        </div>
+              <div class="feat-collection__header">
+                <div class="feat-collection__icon" aria-hidden="true">🌸</div>
+                <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
+                <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
+                <div class="feat-collection__divider" aria-hidden="true">
+                  <span class="fc-div-gem">✦</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">◈</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">✦</span>
+                </div>
+              </div>
+
+              <div class="feat-collection__grid">
+
+                <!-- 운명의 꽃 통합 아틀리에 -->
+                <button class="tarot-tile tarot-tile--bloom" type="button"
+                        data-action="openDestinyFlowerStudio"
+                        aria-label="운명의 꽃 아틀리에 열기">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/flower.webp"
+                         alt="운명의 꽃 — 사주·점성술·자미두수 통합"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌸 운명의 꽃</span>
+                    <span class="tarot-tile__desc">사주 · 점성술 통합</span>
+                  </div>
+                </button>
+
+                <!-- 점성술 운명의 꽃 -->
+                <button class="tarot-tile tarot-tile--astro-flower" type="button"
+                        data-action="openAstrologyFlowerStudio"
+                        aria-label="점성술 운명의 꽃 아틀리에 열기">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/flower2.webp"
+                         alt="점성술 운명의 꽃 — 네온 성운 꽃"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--nebula">NEBULA</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">✨ 점성술 꽃</span>
+                    <span class="tarot-tile__desc">Sun · Rising · Moon</span>
+                  </div>
+                </button>
+
+                <!-- 자미두수 운명의 꽃 -->
+                <button class="tarot-tile tarot-tile--jami-flower" type="button"
+                        data-action="openJamidusuFlowerStudio"
+                        aria-label="자미두수 운명의 꽃 아틀리에 열기">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/flower3.webp"
+                         alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--ziwei">ZIWEI</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌺 자미두수 꽃</span>
+                    <span class="tarot-tile__desc">명궁 주성 · 별 밝기</span>
+                  </div>
+                </button>
+
+                <!-- 숙요 운명의 꽃 -->
+                <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
+                        data-action="openSukuyoFlowerStudio"
+                        aria-label="숙요 운명의 꽃 아틀리에 열기">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/flower4.webp"
+                         alt="숙요 운명의 꽃 — 27숙 달빛 꽃"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--sukuyo">SUKUYO</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌙 숙요 꽃</span>
+                    <span class="tarot-tile__desc">27숙 · 달의 위상</span>
+                  </div>
+                </button>
+
+                <!-- 드림 타로 해몽 -->
+                <button class="tarot-tile tarot-tile--dream-tile" type="button"
+                        data-action="openDreamModal"
+                        aria-label="드림 타로 해몽 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/heamong.webp"
+                         alt="드림 타로 해몽 — AI 꿈 해석 리포트"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌙 드림 타로</span>
+                    <span class="tarot-tile__desc">꿈 · 운명 리포트</span>
+                  </div>
+                </button>
+
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--flower -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
@@ -1245,7 +1250,7 @@
           <div class="df-studio-main">
             <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
             <div class="df-studio-visual">
-              <img id="dfStudioImage" src="/fuctionassets/flower.webp" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" width="420" height="320">
+              <img id="dfStudioImage" src="fuctionassets/flower.webp" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" width="420" height="320">
             </div>
             <article class="df-studio-insight">
               <h3 id="dfStudioName">연꽃</h3>
@@ -1994,6 +1999,93 @@
         </div>
       </div>
 
+      <!-- 십이지신 천운(天運) 타로 모달 -->
+      <div id="tarotYearFortuneOverlay" class="tarot-year-overlay" style="display:none;" data-action="closeTarotYearFortuneModal" data-action-self-only="1">
+        <div class="ty-zodiac-silhouettes" aria-hidden="true">
+          <span class="ty-zodiac-sil ty-zodiac-sil--1" title="쥐">🐭</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--2" title="소">🐮</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--3" title="호랑이">🐅</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--4" title="토끼">🐇</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--5" title="용">🐉</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--6" title="뱀">🐍</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--7" title="말">🐴</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--8" title="양">🐐</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--9" title="원숭이">🐒</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--10" title="닭">🐓</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--11" title="개">🐕</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--12" title="돼지">🐷</span>
+        </div>
+        <div class="ty-bg-glow ty-bg-glow--1" aria-hidden="true"></div>
+        <div class="ty-bg-glow ty-bg-glow--2" aria-hidden="true"></div>
+        <div class="ty-particles" aria-hidden="true">
+          <span class="ty-particle p1"></span><span class="ty-particle p2"></span><span class="ty-particle p3"></span>
+          <span class="ty-particle p4"></span><span class="ty-particle p5"></span><span class="ty-particle p6"></span>
+        </div>
+        <div class="tarot-year-shell">
+          <div class="tarot-year-panel">
+            <button class="tarot-year-close" id="tarotYearCloseBtn" type="button" aria-label="닫기">×</button>
+
+            <section id="tarotYearFortuneIntroStage" class="tarot-year-stage is-active">
+              <div class="ty-hero">
+                <div class="ty-hero-badge">십이지신 천운</div>
+                <h1 class="ty-hero-title">운명의 수레바퀴를 열다</h1>
+                <p class="ty-hero-subtitle">천상의 열두 수호신이 지키는 한 해. 1月부터 12月까지 각 월의 카드를 뽑고, 재물·연애·인간관계·합격운을 확인하세요.</p>
+                <button type="button" class="ty-cta-btn" id="tarotYearCtaBtn">천운(天運) 카드 뽑기</button>
+              </div>
+            </section>
+
+            <section id="tarotYearFortuneDrawStage" class="tarot-year-stage">
+              <h3 class="ty-draw-title">12개월 운명의 카드를 뽑는 중...</h3>
+              <div id="tarotYearDrawCardGrid" class="ty-draw-grid"></div>
+            </section>
+
+            <section id="tarotYearFortuneResultStage" class="tarot-year-stage">
+              <header class="ty-result-header">
+                <h2 class="ty-result-title">십이지신 월운(月運) — 1月~12月 스프레드</h2>
+              </header>
+              <p class="ty-result-hint">월패(1月~12月)를 눌러 해당 월 타로 상담을 여세요</p>
+              <div class="ty-result-summary" id="tarotYearSummary" style="display:none;"></div>
+              <div id="tarotYearResultCards" class="ty-result-cards"></div>
+              <div id="tarotYearMonthDetailPanel" class="ty-month-detail-panel">
+                <h4 class="ty-month-detail-title" id="tarotYearMonthDetailTitle">1月 상세 운세</h4>
+                <div class="ty-month-oracle-hero">
+                  <div class="ty-month-oracle-card" id="tarotYearMonthDetailCardWrap">
+                    <img id="tarotYearMonthDetailCardImg" alt="이달의 타로 카드" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="ty-month-oracle-meta">
+                    <p class="ty-month-oracle-name" id="tarotYearMonthDetailCardName">이달의 카드</p>
+                    <p class="ty-month-oracle-consult">전문 타로 리딩</p>
+                  </div>
+                </div>
+                <div class="ty-month-spread-wrap">
+                  <h5 class="ty-month-spread-title">이달의 삼재(三才) 스프레드</h5>
+                  <div class="ty-month-spread-cards" id="tarotYearMonthSpreadCards"></div>
+                </div>
+                <div class="ty-month-category-tabs" id="tarotYearMonthCategoryTabs">
+                  <button type="button" class="ty-month-cat-btn is-active" data-cat="general">전반</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="money">재물</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="love">연애</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="relationship">인간관계</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="exam">합격</button>
+                </div>
+                <div class="ty-month-category-panel">
+                  <h6 class="ty-month-category-title" id="tarotYearMonthCategoryTitle">전반 운세 해석</h6>
+                  <p class="ty-month-category-text" id="tarotYearMonthCategoryText"></p>
+                </div>
+              </div>
+              <div class="ty-advice-section">
+                <h4 class="ty-advice-title">오라클의 총평</h4>
+                <p class="ty-advice-text" id="tarotYearFinalAdvice"></p>
+              </div>
+              <div class="ty-result-actions">
+                <button type="button" class="ty-result-btn" id="tarotYearShareBtn">천운 공유</button>
+                <button type="button" class="ty-result-btn ty-result-btn--outline" id="tarotYearResetBtn">다시 점치기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
       <!-- 애니멀 토템 리딩 모달 -->
       <div id="animalTotemOverlay" class="animal-totem-overlay" data-action="closeAnimalTotemModal" data-action-self-only="1">
         <div class="animal-totem-shell">
@@ -2709,7 +2801,9 @@
 <script src="js/animal-totem-experience.js" defer></script>
 <script src="js/tarot-love-experience.js?v=20260316-love-apifix3" defer></script>
 <script src="js/tarot-healing-experience.js?v=20260316-healing-apifix3" defer></script>
+<script src="js/tarot-self-esteem-experience.js?v=20260315-selfesteem-apifix2" defer></script>
 <script src="js/tarot-reunion-experience.js?v=20260316-reunion-apifix3" defer></script>
+<script src="js/tarot-year-fortune-experience.js?v=20260315-year-apifix2" defer></script>
 <div class="share-toast" id="shareToast"></div>
 
 <script src="js/share.js" defer></script>

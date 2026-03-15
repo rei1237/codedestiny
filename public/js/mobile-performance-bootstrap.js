@@ -165,7 +165,6 @@ function setupGpuSafety() {
     st.textContent = '' +
       '.mobile-safe-render .saju-book,.mobile-safe-render .saju-vortex,.mobile-safe-render .orb,.mobile-safe-render .feature-card,.mobile-safe-render .dw-item,.mobile-safe-render .ts-card,.mobile-safe-render .tarot-card,.mobile-safe-render .oracle-card-m{will-change:auto !important;}' +
       '.mobile-safe-render .feature-card:hover .feature-card__img{transform:none !important;}' +
-      '.mobile-safe-render .tarot-tile:hover .tarot-tile__img{transform:none !important;}' +
       '.mobile-safe-render .tarot-focus-overlay,.mobile-safe-render .astral-modal-overlay{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}' +
       '.mobile-gpu-lite .card,.mobile-gpu-lite .theme-switch-wrapper,.mobile-gpu-lite .astral-ritual-bar,.mobile-gpu-lite .dp-sheet,.mobile-gpu-lite .dp-toast,.mobile-gpu-lite .result-box{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}' +
       '.mobile-gpu-lite .smoke-layer,.mobile-gpu-lite .flickering-lamp,.mobile-gpu-lite .saju-vortex,.mobile-gpu-lite .saju-vortex::before,.mobile-gpu-lite .saju-vortex::after{animation:none !important;filter:none !important;}' +
