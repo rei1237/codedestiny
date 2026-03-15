@@ -136,21 +136,21 @@
       out.push(normalized);
     }
 
+    // Always try same-origin API first (Cloudflare Pages/OpenNext safe path).
+    add("");
+    if (typeof window !== "undefined") {
+      var sameOrigin = String(location.origin || "").replace(/\/+$/, "");
+      if (sameOrigin) add(sameOrigin);
+    }
+
     add(getRuntimeEnvApiBase());
     add(getTarotApiBase());
 
     if (typeof window !== "undefined") {
-      var origin = String(location.origin || "").replace(/\/+$/, "");
       var host = String(location.hostname || "").toLowerCase();
-      var sameOriginApiHosts = host === "localhost" || host === "127.0.0.1" || host === "api.code-destiny.com";
-      if (sameOriginApiHosts) {
-        add("");
-        if (origin) add(origin);
-      }
       if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
       if (host !== "api.code-destiny.com") add("https://api.code-destiny.com");
     } else {
-      add("");
       add("http://localhost:4000");
     }
 
