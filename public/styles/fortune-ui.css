@@ -12329,6 +12329,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 /* 2026-03 mobile and image-fit tuning for tarot/totem feature cards */
 .feature-card__img-wrap {
   aspect-ratio: 4 / 3;
+  min-height: 100px;
 }
 .feature-card__img {
   width: 100%;

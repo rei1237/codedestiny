@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+    (function redirectToCanonicalMain() {
+      try {
+        var loc = window.location;
+        if (!loc) return;
+        var host = (loc.hostname || '').toLowerCase();
+        if (host === 'code-destiny.com' || host === 'www.code-destiny.com' || host.endsWith('.pages.dev')) return;
+        var target = "/public/index.html";
+        if (loc.pathname === target || loc.pathname === '/' || loc.pathname === '/index.html') return;
+        var nextUrl = target + (loc.search || "") + (loc.hash || "");
+        window.location.replace(nextUrl);
+      } catch (e) {}
+    })();
+  </script>
   <script src="js/kill-switch.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>

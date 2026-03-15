@@ -3,11 +3,13 @@
 <head>
   <script>
     (function redirectToCanonicalMain() {
-      var target = "/public/index.html";
       try {
         var loc = window.location;
         if (!loc) return;
-        if (loc.pathname === target) return;
+        var host = (loc.hostname || '').toLowerCase();
+        if (host === 'code-destiny.com' || host === 'www.code-destiny.com' || host.endsWith('.pages.dev')) return;
+        var target = "/public/index.html";
+        if (loc.pathname === target || loc.pathname === '/' || loc.pathname === '/index.html') return;
         var nextUrl = target + (loc.search || "") + (loc.hash || "");
         window.location.replace(nextUrl);
       } catch (e) {}
