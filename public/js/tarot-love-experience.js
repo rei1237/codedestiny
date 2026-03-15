@@ -290,20 +290,22 @@
       var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
       var cardName = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
       var summary = card.orientation === "reversed"
-        ? "감정이 아직 정리되지 않아 오해가 쌓이기 쉽습니다. 서두르기보다 속도를 맞추는 대화가 필요합니다."
-        : "서로의 진심이 비교적 선명하게 보이는 흐름입니다. 작은 신호를 놓치지 않으면 관계가 빠르게 안정됩니다.";
+        ? "감정이 아직 정리되지 않아 오해가 쌓이기 쉬운 흐름입니다. 지금은 결론을 서두르기보다 사실 확인과 감정 정리를 우선해야 합니다. 상대의 말 한 줄을 단정으로 해석하기보다, 반응의 맥락과 반복 패턴을 함께 보세요."
+        : "서로의 진심이 비교적 선명하게 드러나는 흐름입니다. 작은 신호를 놓치지 않고 일관된 대화를 이어가면 관계는 빠르게 안정될 수 있습니다. 강한 확답보다 작은 약속의 지속성이 관계를 더 단단하게 만듭니다.";
       return { title: label, card: cardName, summary: summary };
     });
 
     return {
-      overallVibe: "지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는 과도기입니다. 감정의 결을 맞추면 흐름이 빠르게 부드러워질 수 있습니다.",
-      deepReading: "핵심은 확신의 부족이 아니라 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 감정을 간결하고 구체적으로 전달할 때 관계의 긴장이 풀립니다.",
-      realityAndFuture: "단기적으로는 속도 조절이 필요하지만, 중요한 포인트를 솔직하게 확인하면 관계의 방향은 분명해집니다. 불필요한 추측을 줄일수록 결과가 좋아집니다.",
+      overallVibe: "지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는 과도기입니다. 감정의 강도 자체보다 감정을 전달하는 방식이 관계의 만족도를 크게 바꾸는 시기예요. 이 흐름은 고정된 운명이 아니라, 대화의 태도와 경계 설정에 따라 충분히 더 따뜻한 방향으로 바뀔 수 있습니다.",
+      deepReading: "핵심은 확신의 부족이 아니라 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 감정을 간결하고 구체적으로 전달할 때 긴장이 풀리고 신뢰가 쌓입니다. 불안이 올라올수록 마음속 추측을 늘리기보다 '내가 확인한 사실'을 중심으로 대화를 이어가 보세요.",
+      realityAndFuture: "단기적으로는 속도 조절이 필요하지만, 중요한 포인트를 솔직하게 확인하면 관계의 방향은 분명해집니다. 불필요한 추측을 줄이고 작은 약속을 지키는 반복이 생기면 관계는 생각보다 빠르게 안정됩니다. 지금의 선택이 3개월 뒤의 관계 결을 바꾼다는 점을 기억해 주세요.",
       positionBreakdown: breakdown,
       advice: [
         "상대의 말보다 말투와 반응 속도 같은 비언어 신호를 함께 보세요.",
         "오늘 안에 결론 내리기보다 1~2번의 대화 텀을 두고 확인하세요.",
-        "확인 질문은 짧고 명확하게: '우리가 어떤 방향을 원해?'처럼 묻는 것이 효과적입니다.",
+        "질문은 추궁형보다 확인형으로 바꿔 보세요. 예: '왜 그래?' 대신 '내가 이렇게 이해했는데 맞아?'",
+        "불안한 날일수록 연락 빈도를 늘리기보다, 짧고 진심 있는 한 번의 대화를 목표로 하세요.",
+        "관계의 결과를 붙잡기 전에 내 컨디션(수면/식사/일상 루틴)을 먼저 안정시키세요. 마음이 안정될수록 선택이 정확해집니다.",
       ],
     };
   }
@@ -775,28 +777,28 @@
     var html = "";
 
     if (overallVibe) {
-      html += '<section class="tarot-love-section">';
+      html += '<section class="tarot-love-section tarot-love-section--vibe">';
       html += '<h4 class="tarot-love-section-title">🌙 타로 마스터의 시선</h4>';
-      html += '<p class="tarot-love-section-text">' + escapeHtml(overallVibe) + "</p>";
+      html += '<div class="tarot-love-section-text">' + formatReadingText(overallVibe) + "</div>";
       html += "</section>";
     }
 
     if (deepReading) {
-      html += '<section class="tarot-love-section">';
+      html += '<section class="tarot-love-section tarot-love-section--insight">';
       html += '<h4 class="tarot-love-section-title">🔍 마음의 해부학</h4>';
-      html += '<p class="tarot-love-section-text">' + escapeHtml(deepReading) + "</p>";
+      html += '<div class="tarot-love-section-text">' + formatReadingText(deepReading) + "</div>";
       html += "</section>";
     }
 
     if (realityAndFuture) {
-      html += '<section class="tarot-love-section">';
+      html += '<section class="tarot-love-section tarot-love-section--future">';
       html += '<h4 class="tarot-love-section-title">🚧 현실과 다가올 내일</h4>';
-      html += '<p class="tarot-love-section-text">' + escapeHtml(realityAndFuture) + "</p>";
+      html += '<div class="tarot-love-section-text">' + formatReadingText(realityAndFuture) + "</div>";
       html += "</section>";
     }
 
     if (positionBreakdown.length) {
-      html += '<section class="tarot-love-section">';
+      html += '<section class="tarot-love-section tarot-love-section--position">';
       html += '<h4 class="tarot-love-section-title">🃏 포지션별 타로 해석</h4>';
       html += '<div class="tarot-love-position-grid">';
       positionBreakdown.forEach(function (item) {
@@ -807,15 +809,25 @@
         html += '<article class="tarot-love-position-card">';
         html += '<p class="tarot-love-position-title">' + escapeHtml(title) + "</p>";
         if (card) html += '<p class="tarot-love-position-cardname">' + escapeHtml(card) + "</p>";
-        if (summary) html += '<p class="tarot-love-position-text">' + escapeHtml(summary) + "</p>";
+        if (summary) html += '<div class="tarot-love-position-text">' + formatReadingText(summary) + "</div>";
         html += "</article>";
       });
       html += "</div>";
       html += "</section>";
     }
 
+    if (adviceList.length && adviceList[0]) {
+      html += '<section class="tarot-love-section tarot-love-focus-section">';
+      html += '<h4 class="tarot-love-section-title">⚡ 지금 당장 할 1가지</h4>';
+      html += '<div class="tarot-love-focus-box">';
+      html += '<p class="tarot-love-focus-label">오늘의 즉시 실행 미션</p>';
+      html += '<p class="tarot-love-focus-text">' + escapeHtml(String(adviceList[0])) + "</p>";
+      html += "</div>";
+      html += "</section>";
+    }
+
     if (adviceList.length) {
-      html += '<section class="tarot-love-section">';
+      html += '<section class="tarot-love-section tarot-love-section--advice">';
       html += '<h4 class="tarot-love-section-title">💡 마스터의 조언</h4>';
       html += '<ul class="tarot-love-advice-list">';
       adviceList.forEach(function (item) {
@@ -834,6 +846,40 @@
     var div = document.createElement("div");
     div.textContent = String(s);
     return div.innerHTML;
+  }
+
+  function formatReadingText(input) {
+    var raw = String(input || "").replace(/\s+/g, " ").trim();
+    if (!raw) return "";
+
+    var blocks = raw
+      .split(/\n{2,}/)
+      .map(function (line) { return String(line || "").trim(); })
+      .filter(Boolean);
+
+    if (!blocks.length) blocks = [raw];
+
+    var out = [];
+    var paragraphIndex = 0;
+    blocks.forEach(function (block) {
+      var sentences = block
+        .split(/(?<=[.!?])\s+/)
+        .map(function (s) { return String(s || "").trim(); })
+        .filter(Boolean);
+
+      if (!sentences.length) sentences = [block];
+
+      for (var i = 0; i < sentences.length; i += 2) {
+        var paragraph = sentences.slice(i, i + 2).join(" ");
+        if (paragraph) {
+          var className = paragraphIndex === 0 ? "tarot-love-paragraph tarot-love-paragraph--lead" : "tarot-love-paragraph";
+          out.push('<p class="' + className + '">' + escapeHtml(paragraph) + "</p>");
+          paragraphIndex += 1;
+        }
+      }
+    });
+
+    return out.join("");
   }
 
   function shareTarotLoveResult() {
