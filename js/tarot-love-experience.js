@@ -20,6 +20,25 @@
   var refs = {};
   var state = { cards: [], revealedCount: 0, reading: null };
   var TAROT_API_TIMEOUT_MS = 12000;
+  var RELATIONSHIP_POSITIONS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
+  var LOCAL_RELATIONSHIP_DECK = [
+    { cardId: "M00", name: "The Fool", nameKr: "바보" },
+    { cardId: "M01", name: "The Magician", nameKr: "마법사" },
+    { cardId: "M02", name: "The High Priestess", nameKr: "여사제" },
+    { cardId: "M03", name: "The Empress", nameKr: "여황제" },
+    { cardId: "M04", name: "The Emperor", nameKr: "황제" },
+    { cardId: "M05", name: "The Hierophant", nameKr: "교황" },
+    { cardId: "M06", name: "The Lovers", nameKr: "연인" },
+    { cardId: "M07", name: "The Chariot", nameKr: "전차" },
+    { cardId: "M08", name: "Strength", nameKr: "힘" },
+    { cardId: "M09", name: "The Hermit", nameKr: "은둔자" },
+    { cardId: "M10", name: "Wheel of Fortune", nameKr: "운명의 수레바퀴" },
+    { cardId: "M11", name: "Justice", nameKr: "정의" },
+    { cardId: "M14", name: "Temperance", nameKr: "절제" },
+    { cardId: "M17", name: "The Star", nameKr: "별" },
+    { cardId: "M18", name: "The Moon", nameKr: "달" },
+    { cardId: "M19", name: "The Sun", nameKr: "태양" },
+  ];
 
   function byId(id) {
     return document.getElementById(id);
@@ -87,9 +106,9 @@
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
       if (host === "api.code-destiny.com") return location.origin || "";
-      if (host.endsWith(".pages.dev")) return "https://api.code-destiny.com";
+      if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
-    return "https://api.code-destiny.com";
+    return "https://code-destiny.com";
   }
 
   function buildTarotApiBaseCandidates() {
@@ -117,7 +136,7 @@
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
-      if (host !== "api.code-destiny.com") add("https://api.code-destiny.com");
+      if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
       add("http://localhost:4000");
     }
@@ -245,6 +264,48 @@
       }, error);
       throw error;
     });
+  }
+
+  function createLocalRelationshipCards() {
+    var deck = LOCAL_RELATIONSHIP_DECK.slice();
+    var out = [];
+    for (var i = 0; i < RELATIONSHIP_POSITIONS.length; i++) {
+      if (!deck.length) break;
+      var pickIndex = Math.floor(Math.random() * deck.length);
+      var picked = deck.splice(pickIndex, 1)[0];
+      out.push({
+        cardId: picked.cardId,
+        name: picked.name,
+        nameKr: picked.nameKr,
+        position: RELATIONSHIP_POSITIONS[i],
+        orientation: Math.random() < 0.5 ? "upright" : "reversed",
+      });
+    }
+    return out;
+  }
+
+  function createLocalRelationshipReading(cards) {
+    var safeCards = Array.isArray(cards) ? cards : [];
+    var breakdown = safeCards.map(function (card, idx) {
+      var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
+      var cardName = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
+      var summary = card.orientation === "reversed"
+        ? "감정이 아직 정리되지 않아 오해가 쌓이기 쉽습니다. 서두르기보다 속도를 맞추는 대화가 필요합니다."
+        : "서로의 진심이 비교적 선명하게 보이는 흐름입니다. 작은 신호를 놓치지 않으면 관계가 빠르게 안정됩니다.";
+      return { title: label, card: cardName, summary: summary };
+    });
+
+    return {
+      overallVibe: "지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는 과도기입니다. 감정의 결을 맞추면 흐름이 빠르게 부드러워질 수 있습니다.",
+      deepReading: "핵심은 확신의 부족이 아니라 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 감정을 간결하고 구체적으로 전달할 때 관계의 긴장이 풀립니다.",
+      realityAndFuture: "단기적으로는 속도 조절이 필요하지만, 중요한 포인트를 솔직하게 확인하면 관계의 방향은 분명해집니다. 불필요한 추측을 줄일수록 결과가 좋아집니다.",
+      positionBreakdown: breakdown,
+      advice: [
+        "상대의 말보다 말투와 반응 속도 같은 비언어 신호를 함께 보세요.",
+        "오늘 안에 결론 내리기보다 1~2번의 대화 텀을 두고 확인하세요.",
+        "확인 질문은 짧고 명확하게: '우리가 어떤 방향을 원해?'처럼 묻는 것이 효과적입니다.",
+      ],
+    };
   }
 
   var TAROT_LOCAL_BASES = ["/tarot-cards/", "/public/tarot-cards/", "tarot-cards/", "public/tarot-cards/"];
@@ -540,6 +601,18 @@
         console.error("Tarot Love draw error:", err);
         var p = document.querySelector(".tarot-love-panel");
         if (p) p.classList.remove("ritual-burst");
+        var fallbackCards = createLocalRelationshipCards();
+        if (fallbackCards.length === 6) {
+          state.cards = fallbackCards;
+          state.revealedCount = 0;
+          intro.classList.remove("is-active");
+          draw.classList.add("is-active");
+          renderTarotLoveCards();
+          updateTarotLoveSpreadGuide();
+          var btn = byId("tarotLoveFinalBtn");
+          if (btn) btn.disabled = true;
+          return;
+        }
         alert("카드를 뽑는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       });
   }
@@ -680,7 +753,12 @@
       })
       .catch(function (err) {
         console.error("Tarot Love reading error:", err);
-        alert("해석을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        state.reading = createLocalRelationshipReading(state.cards);
+        var draw = byId("tarotLoveDrawStage");
+        var result = byId("tarotLoveResultStage");
+        if (draw) draw.classList.remove("is-active");
+        if (result) result.classList.add("is-active");
+        renderTarotLoveResult();
       });
   }
 

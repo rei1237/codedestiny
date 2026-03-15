@@ -102,8 +102,10 @@
     window.addEventListener('error', function (e) {
       try {
         var src = e && e.target && e.target.src ? e.target.src : '';
+        var tag = e && e.target && e.target.tagName ? String(e.target.tagName).toUpperCase() : '';
         if (src) {
-          console.error('[runtime-stability] script load error:', src);
+          if (tag === 'IMG') console.warn('[runtime-stability] image load error:', src);
+          else console.error('[runtime-stability] script load error:', src);
         } else {
           console.error('[runtime-stability] global error:', e && e.message ? e.message : e);
         }

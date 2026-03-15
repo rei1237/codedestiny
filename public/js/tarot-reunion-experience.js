@@ -96,9 +96,9 @@
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
       if (host === "api.code-destiny.com") return location.origin || "";
-      if (host.endsWith(".pages.dev")) return "https://api.code-destiny.com";
+      if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
-    return "https://api.code-destiny.com";
+    return "https://code-destiny.com";
   }
 
   function buildTarotApiBaseCandidates() {
@@ -133,7 +133,7 @@
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
-      if (host !== "api.code-destiny.com") add("https://api.code-destiny.com");
+      if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
       add("http://localhost:4000");
     }

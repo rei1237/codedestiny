@@ -409,9 +409,14 @@
         }
 
         var host = String(location.hostname || "").toLowerCase();
-        if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith(".pages.dev")) {
-          window.CODE_DESTINY_API_BASE_URL = "https://api.code-destiny.com";
-          window.__CF_PAGES_API_BASE_URL = "https://api.code-destiny.com";
+        if (host === "code-destiny.com" || host === "www.code-destiny.com") {
+          window.CODE_DESTINY_API_BASE_URL = location.origin;
+          window.__CF_PAGES_API_BASE_URL = location.origin;
+          return;
+        }
+        if (host.endsWith(".pages.dev")) {
+          window.CODE_DESTINY_API_BASE_URL = "https://code-destiny.com";
+          window.__CF_PAGES_API_BASE_URL = "https://code-destiny.com";
         }
       } catch (e) {}
     })();
@@ -421,6 +426,7 @@
   <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="css/entertain-system.css">
+  <link rel="stylesheet" href="styles/browser-compat.css?v=20260316-browser-compat1">
 </head>
 <body>
 
@@ -2755,7 +2761,7 @@
       <span style="font-size:1.5rem">🔮</span>
       홈 화면에 부적 설치하기
     </div>
-    <p style="margin-bottom:16px;font-size:.85rem;color:#C8B96A">
+    <p id="pwa-guide-lead" style="margin-bottom:16px;font-size:.85rem;color:#C8B96A">
       이 브라우저는 자동 설치를 지원하지 않습니다.<br>
       아래 방법으로 직접 홈 화면에 추가하세요.
     </p>
@@ -2772,6 +2778,13 @@
       <div class="ios-modal-step"><div class="ios-step-num">1</div><div>브라우저 우측 상단 <strong style="color:#FFD700">⋮ 메뉴</strong>를 탭하세요</div></div>
       <div class="ios-modal-step"><div class="ios-step-num">2</div><div><strong style="color:#FFD700">'앱 설치'</strong> 또는 <strong style="color:#FFD700">'홈 화면에 추가'</strong>를 선택하세요</div></div>
       <div class="ios-modal-step"><div class="ios-step-num">3</div><div><strong style="color:#FFD700">'설치'</strong> 버튼을 탭하면 완료!</div></div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop-guide" style="display:none">
+      <div class="ios-modal-step"><div class="ios-step-num">1</div><div>주소창 우측의 <strong style="color:#FFD700">설치 아이콘</strong>이 보이면 눌러 설치하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">2</div><div>아이콘이 없으면 브라우저 메뉴에서 <strong style="color:#FFD700">'앱 설치'</strong> 또는 <strong style="color:#FFD700">'바로가기 만들기'</strong>를 선택하세요</div></div>
+      <div class="ios-modal-step"><div class="ios-step-num">3</div><div>지원되지 않는 브라우저는 <strong style="color:#FFD700">즐겨찾기/바탕화면 바로가기</strong>로 동일하게 사용할 수 있어요</div></div>
     </div>
 
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>

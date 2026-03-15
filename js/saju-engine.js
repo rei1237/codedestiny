@@ -2998,7 +2998,8 @@ function getFortuneApiBaseUrl(){
     var host = String(location.hostname || '').toLowerCase();
     if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:4000';
     if (host === 'api.code-destiny.com') return location.origin;
-    return 'https://api.code-destiny.com';
+    if (host.endsWith('.pages.dev')) return 'https://code-destiny.com';
+    return location.origin;
   }
   return 'http://localhost:4000';
 }

@@ -20,6 +20,7 @@ const nextConfig = {
       { source: '/api/admin/:path*', destination: apiTarget + '/api/admin/:path*' },
       { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
       { source: '/api/fortune/:path*', destination: apiTarget + '/api/fortune/:path*' },
+      { source: '/api/tarot/:path*', destination: apiTarget + '/api/tarot/:path*' },
       { source: '/api/kasi/:path*', destination: apiTarget + '/api/kasi/:path*' },
       { source: '/api/health', destination: apiTarget + '/api/health' },
     ];
