@@ -13763,3 +13763,74 @@ body.theme-neo .btn-favorite {
   .logo-area h1 { font-size: 1.3rem; }
   .post-saju-services-intro { margin-bottom: 14px !important; }
 }
+
+/* 2026-03-16 mobile layout safety layer */
+@media (max-width: 768px) {
+  .wrap,
+  #inputPage,
+  #resultPage {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .card,
+  .feature-card,
+  .fg-group,
+  .tarot-collection,
+  .feat-collection,
+  .modal-box,
+  .modal-content-inner-700,
+  .modal-content-inner-wide {
+    width: 100%;
+    max-width: 100% !important;
+    min-width: 0;
+  }
+
+  .feature-card-grid,
+  .fg-group__cards,
+  .fg-group__cards--2col,
+  .fg-group__cards--tile,
+  .fg-group__cards--tile-2,
+  .form-radio-row,
+  .auth-quick-links,
+  .privacy-btns,
+  .fortune-tab-wrap,
+  .mystic-tab-nav {
+    flex-wrap: wrap;
+  }
+
+  .lang-dropdown {
+    max-width: calc(100vw - 24px);
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  button,
+  .btn-main,
+  .btn-sub,
+  .feature-card__cta,
+  .feature-card__launch {
+    max-width: 100%;
+    white-space: normal;
+    word-break: keep-all;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
