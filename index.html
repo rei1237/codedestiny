@@ -3,14 +3,11 @@
 <head>
   <script>
     (function redirectToCanonicalMain() {
+      var target = "/public/index.html";
       try {
         var loc = window.location;
         if (!loc) return;
-        /* 프로덕션: /public 경로 없음, 리다이렉트 시 404 발생 방지 */
-        var host = (loc.hostname || '').toLowerCase();
-        if (host === 'code-destiny.com' || host === 'www.code-destiny.com' || host.endsWith('.pages.dev')) return;
-        var target = "/public/index.html";
-        if (loc.pathname === target || loc.pathname === '/' || loc.pathname === '/index.html') return;
+        if (loc.pathname === target) return;
         var nextUrl = target + (loc.search || "") + (loc.hash || "");
         window.location.replace(nextUrl);
       } catch (e) {}
