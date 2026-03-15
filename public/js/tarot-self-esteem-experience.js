@@ -57,20 +57,69 @@
     return document.getElementById(id);
   }
 
+  function normalizeApiBase(raw) {
+    return String(raw || "").trim().replace(/\/+$/, "");
+  }
+
+  function getRuntimeEnvApiBase() {
+    try {
+      if (typeof process !== "undefined" && process && process.env) {
+        var envBase = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.CLOUDFLARE_API_BASE_URL || process.env.API_BASE_URL;
+        if (envBase) return normalizeApiBase(envBase);
+      }
+    } catch (e) {}
+
+    if (typeof window !== "undefined") {
+      try {
+        if (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL) {
+          return normalizeApiBase(window.__ENV__.NEXT_PUBLIC_API_BASE_URL);
+        }
+        if (window.__CF_PAGES_API_BASE_URL) {
+          return normalizeApiBase(window.__CF_PAGES_API_BASE_URL);
+        }
+        var meta = document.querySelector('meta[name="code-destiny-api-base"]');
+        if (meta && meta.content) return normalizeApiBase(meta.content);
+      } catch (e2) {}
+    }
+
+    return "";
+  }
+
+  function createTarotApiError(message, details) {
+    var err = new Error(message);
+    if (details && typeof details === "object") {
+      Object.keys(details).forEach(function (key) {
+        err[key] = details[key];
+      });
+    }
+    return err;
+  }
+
+  function logTarotApiError(stage, details, error) {
+    var safeDetails = details || {};
+    console.error("[Tarot API Debug] " + stage, safeDetails, error);
+    if (error && error.responseBody) {
+      console.error("[Tarot API Debug] responseBody:", error.responseBody);
+    }
+  }
+
   function getTarotApiBase() {
+    var runtimeBase = getRuntimeEnvApiBase();
+    if (runtimeBase) return runtimeBase;
     if (typeof getFortuneApiBaseUrl === "function") {
       var base = getFortuneApiBaseUrl();
-      if (base) return String(base).replace(/\/+$/, "");
+      if (base) return normalizeApiBase(base);
     }
     if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, "");
+      if (window.CODE_DESTINY_API_BASE_URL) return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
       try {
         var custom = localStorage.getItem("fortune_api_base_url");
-        if (custom) return String(custom).replace(/\/+$/, "");
+        if (custom) return normalizeApiBase(custom);
       } catch (e) {}
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
       if (host === "api.code-destiny.com") return location.origin || "";
+      if (host.endsWith(".pages.dev")) return "https://api.code-destiny.com";
     }
     return "https://api.code-destiny.com";
   }
@@ -87,23 +136,21 @@
       out.push(normalized);
     }
 
-    if (typeof window !== "undefined") {
-      var host = String(location.hostname || "").toLowerCase();
-      if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith(".pages.dev")) {
-        add("");
-        add(location.origin || "");
-      }
-    }
+    add(getRuntimeEnvApiBase());
     add(getTarotApiBase());
-    add("");
 
     if (typeof window !== "undefined") {
       var origin = String(location.origin || "").replace(/\/+$/, "");
-      if (origin) add(origin);
       var host = String(location.hostname || "").toLowerCase();
+      var sameOriginApiHosts = host === "localhost" || host === "127.0.0.1" || host === "api.code-destiny.com";
+      if (sameOriginApiHosts) {
+        add("");
+        if (origin) add(origin);
+      }
       if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
       if (host !== "api.code-destiny.com") add("https://api.code-destiny.com");
     } else {
+      add("");
       add("http://localhost:4000");
     }
 
@@ -149,14 +196,49 @@
 
     function requestWithBase(base) {
       var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
+      var requestDebug = {
+        endpoint: endpoint,
+        base: base || "(relative)",
+        url: url,
+        payload: payload || {},
+      };
       return postJsonWithTimeout(url, body)
         .then(function (res) {
-          if (!res.ok) throw new Error("Tarot API error: " + res.status);
-          return res.json();
+          if (!res.ok) {
+            return res.text().catch(function () { return ""; }).then(function (rawBody) {
+              throw createTarotApiError("Tarot API HTTP error: " + res.status, {
+                status: res.status,
+                statusText: res.statusText,
+                endpoint: endpoint,
+                base: base || "",
+                url: url,
+                responseBody: String(rawBody || "").slice(0, 500),
+              });
+            });
+          }
+          return res.json().catch(function (parseError) {
+            throw createTarotApiError("Tarot API JSON parse error", {
+              endpoint: endpoint,
+              base: base || "",
+              url: url,
+              parseError: parseError && parseError.message ? parseError.message : String(parseError || ""),
+            });
+          });
         })
         .then(function (data) {
-          if (!data || data.ok === false) throw new Error("Invalid API response");
+          if (!data || data.ok === false) {
+            throw createTarotApiError("Invalid API response", {
+              endpoint: endpoint,
+              base: base || "",
+              url: url,
+              responseData: data,
+            });
+          }
           return data;
+        })
+        .catch(function (error) {
+          logTarotApiError("request_failed", requestDebug, error);
+          throw error;
         });
     }
 
@@ -167,11 +249,24 @@
       var base = bases[index++];
       return requestWithBase(base).catch(function (error) {
         lastError = error;
+        if (index < bases.length) {
+          console.error("[Tarot API Debug] retry_next_base", {
+            endpoint: endpoint,
+            failedBase: base || "(relative)",
+            nextBase: bases[index] || "(relative)",
+          });
+        }
         return tryNext();
       });
     }
 
-    return tryNext();
+    return tryNext().catch(function (error) {
+      logTarotApiError("all_candidates_failed", {
+        endpoint: endpoint,
+        baseCandidates: bases,
+      }, error);
+      throw error;
+    });
   }
 
   function normalizeTarotShortName(cardName) {

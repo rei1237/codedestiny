@@ -392,10 +392,26 @@
   <script>
     (function () {
       try {
-        if (window.CODE_DESTINY_API_BASE_URL) return;
+        var explicit = window.CODE_DESTINY_API_BASE_URL || window.__CF_PAGES_API_BASE_URL || "";
+        if (explicit) {
+          var normalized = String(explicit).replace(/\/+$/, "");
+          window.CODE_DESTINY_API_BASE_URL = normalized;
+          window.__CF_PAGES_API_BASE_URL = normalized;
+          return;
+        }
+
+        var meta = document.querySelector('meta[name="code-destiny-api-base"]');
+        if (meta && meta.content) {
+          var fromMeta = String(meta.content).replace(/\/+$/, "");
+          window.CODE_DESTINY_API_BASE_URL = fromMeta;
+          window.__CF_PAGES_API_BASE_URL = fromMeta;
+          return;
+        }
+
         var host = String(location.hostname || "").toLowerCase();
-        if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith("code-destiny.pages.dev")) {
+        if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith(".pages.dev")) {
           window.CODE_DESTINY_API_BASE_URL = "https://api.code-destiny.com";
+          window.__CF_PAGES_API_BASE_URL = "https://api.code-destiny.com";
         }
       } catch (e) {}
     })();
