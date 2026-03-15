@@ -12146,6 +12146,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 /* 2026-03 mobile and image-fit tuning for tarot/totem feature cards */
 .feature-card__img-wrap {
   aspect-ratio: 4 / 3;
+  min-height: 100px; /* 모바일 aspect-ratio 미지원 브라우저 폴백 */
 }
 .feature-card__img {
   width: 100%;
