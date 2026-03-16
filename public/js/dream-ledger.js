@@ -1042,17 +1042,24 @@
     var keywords = Array.isArray(reading.keywords)
       ? reading.keywords.slice(0, 3).filter(Boolean)
       : [];
-    var keyLine = keywords.length ? '핵심 키워드: ' + keywords.join(' · ') + '.' : '핵심 키워드: 지금의 감정, 관계, 선택의 방향.';
+    var keyLine = keywords.length ? '핵심 키워드: ' + keywords.join(' · ') : '핵심 키워드: 감정, 관계, 선택의 방향';
 
     return [
-      '최종 컨설팅 리포트 — ' + title,
+      '■ 꿈 해몽 종합 리포트 — ' + title,
       '',
-      summary || '지금의 꿈은 불안을 다독이며 방향을 정리하라는 신호입니다.',
+      '【해몽 요약】',
+      summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
+      '',
+      '【핵심 상징】',
       keyLine,
-      '실행 1) 오늘 안에 가장 걸리는 감정 한 가지를 문장으로 명확히 적고, 그 감정을 줄일 행동 1개를 바로 실행하세요.',
-      '실행 2) 72시간 안에 관계/일/건강 중 가장 중요한 축 하나를 골라 15분 루틴을 고정해 흐름을 안정화하세요.',
-      '실행 3) 이번 주에는 완벽한 정답보다, 반복 가능한 작은 승리를 최소 3회 만들며 자신감을 회복하세요.',
-      '마무리 주문: ' + finalSpell
+      '',
+      '【실천 권고사항】',
+      '① 감정 정리: 오늘 가장 마음을 흔든 감정을 한 문장으로 기록하고, 이를 완화할 수 있는 구체적 행동 1가지를 실행하세요.',
+      '② 루틴 고정: 72시간 이내 관계·업무·건강 중 우선순위 1개를 정해 15분 일일 루틴으로 안정화하세요.',
+      '③ 점진적 회복: 완벽한 해결보다 이번 주 반복 가능한 작은 성취를 3회 이상 달성하며 자기효능감을 회복하세요.',
+      '',
+      '【마무리 확언】',
+      finalSpell
     ].join('\n');
   }
 
@@ -1332,22 +1339,7 @@
 
       if (s < 3) {
         setInteractionLocked(false);
-        var next = s + 1;
-        window.setTimeout(function () {
-          if (!state.reading || state.typingStage || !state.stageDone[s]) return;
-          if (state.visibleStage !== s) return;
-          updateVisibleStage(next);
-          if (nextBtn) nextBtn.style.display = 'none';
-          if (next === 2) {
-            $('dreamStageTitle').textContent = '2단계 카드가 준비되었습니다. 카드를 열면 전언이 바로 이어집니다.';
-            $('dreamStageText').textContent = '';
-            setWizardLine('2단계 카드로 자연스럽게 이어집니다. 카드를 눌러 전언을 받아보세요.');
-          } else if (next === 3) {
-            $('dreamStageTitle').textContent = '3단계 카드가 준비되었습니다. 마지막 지침을 열어보세요.';
-            $('dreamStageText').textContent = '';
-            setWizardLine('3단계 카드가 이어집니다. 마지막 지침을 열면 황금 카드로 연결됩니다.');
-          }
-        }, 420);
+        setWizardLine('낭독이 완료되었습니다. 충분히 읽으신 후 "다음 카드 보기"를 눌러 진행해 주세요.');
       }
 
       if (s === 3) {
