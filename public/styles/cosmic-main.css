@@ -1,9 +1,9 @@
 /**
- * Cosmic main — 흰 배경 모드용 은은한 별·우주 장식 (선택)
- * main-glass.css에서 이미 밝은 테마가 기본이면 이 파일은 배경 장식만 추가
+ * Cosmic main — 흰 배경 고정 (배경 방해 요소 제거)
  */
 
 body .cosmic-bg {
+	display: none;
 	position: fixed;
 	inset: 0;
 	z-index: 0;
@@ -13,29 +13,83 @@ body .cosmic-bg {
 
 body:not(.neo-mode) {
 	background: #ffffff;
-	background-image:
-		radial-gradient(circle at 20% 20%, rgba(180, 210, 255, 0.12), transparent 40%),
-		radial-gradient(circle at 80% 30%, rgba(255, 200, 230, 0.08), transparent 38%);
-	background-attachment: fixed;
+	background-image: none;
 	background-color: #ffffff;
+}
+
+/* ─── 빛나는 별 애니메이션 (shine) ─── */
+@keyframes cosmic-twinkle {
+	from { opacity: 0.35; transform: scale(0.9); }
+	to   { opacity: 0.95; transform: scale(1.15); }
+}
+@keyframes cosmic-star-shine {
+	0%, 100% {
+		opacity: 0.5;
+		transform: scale(1);
+		box-shadow: 0 0 4px currentColor, 0 0 8px currentColor;
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.2);
+		box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+	}
+}
+@keyframes cosmic-star-flower-glow {
+	0%, 100% {
+		opacity: 0.75;
+		transform: translate(-50%, -50%) scale(1);
+		filter: drop-shadow(0 0 8px rgba(255, 220, 150, 0.6));
+	}
+	50% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1.08);
+		filter: drop-shadow(0 0 20px rgba(255, 230, 180, 0.9));
+	}
+}
+@keyframes logo-star-flower-pulse {
+	0%, 100% {
+		opacity: 0.85;
+		transform: translate(-50%, -50%) scale(1) rotate(0deg);
+		filter: drop-shadow(0 0 6px rgba(255, 220, 180, 0.5));
+	}
+	50% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1.06) rotate(3deg);
+		filter: drop-shadow(0 0 16px rgba(255, 235, 200, 0.8));
+	}
 }
 
 body:not(.neo-mode) .cosmic-star {
 	position: absolute;
-	width: 2px;
-	height: 2px;
+	width: 3px;
+	height: 3px;
 	background: #b8d2ff;
 	border-radius: 50%;
-	animation: cosmic-twinkle 3s ease-in-out infinite alternate;
-	opacity: 0.6;
+	animation: cosmic-star-shine 2.5s ease-in-out infinite;
+	opacity: 0.7;
+	box-shadow: 0 0 6px #b8d2ff;
 }
-body:not(.neo-mode) .cosmic-star--pink { background: #ffc8e0; }
-@keyframes cosmic-twinkle {
-	from { opacity: 0.35; }
-	to   { opacity: 0.85; }
+body:not(.neo-mode) .cosmic-star--pink {
+	background: #ffc8e0;
+	box-shadow: 0 0 6px #ffc8e0;
+	animation-delay: 0.5s;
+}
+body:not(.neo-mode) .cosmic-star--gold {
+	background: #ffecb8;
+	box-shadow: 0 0 8px #ffecb8;
+	animation-delay: 0.3s;
 }
 @media (prefers-reduced-motion: reduce) {
-	body:not(.neo-mode) .cosmic-star { animation: none; opacity: 0.6; }
+	body:not(.neo-mode) .cosmic-star {
+		animation: none;
+		opacity: 0.7;
+		transform: none;
+		box-shadow: 0 0 4px currentColor;
+	}
+	.cosmic-star-flower,
+	.logo-star-flower {
+		animation: none !important;
+	}
 }
 body:not(.neo-mode) .cosmic-star--1  { left: 5%;  top: 8%;  animation-delay: 0s; }
 body:not(.neo-mode) .cosmic-star--2  { left: 22%; top: 14%; animation-delay: 0.4s; }
@@ -52,5 +106,320 @@ body:not(.neo-mode) .cosmic-star--12 { left: 82%; top: 78%; animation-delay: 0.5
 body:not(.neo-mode) .cosmic-star--13 { left: 28%; top: 85%; animation-delay: 0.9s; }
 body:not(.neo-mode) .cosmic-star--14 { left: 58%; top: 18%; animation-delay: 1.3s; }
 body:not(.neo-mode) .cosmic-star--15 { left: 15%; top: 55%; animation-delay: 1.7s; }
+body:not(.neo-mode) .cosmic-star--16 { left: 35%; top: 25%; animation-delay: 0.2s; }
+body:not(.neo-mode) .cosmic-star--17 { left: 72%; top: 62%; animation-delay: 1.6s; }
+body:not(.neo-mode) .cosmic-star--18 { left: 18%; top: 78%; animation-delay: 0.8s; }
+
+/* ─── 별모양 꽃 (전체 배경) ─── */
+.cosmic-star-flower {
+	position: absolute;
+	width: 48px;
+	height: 48px;
+	left: 50%;
+	top: 18%;
+	transform: translate(-50%, -50%);
+	background: radial-gradient(circle at 50% 50%, #fff8e7 0%, #ffecb8 35%, rgba(255, 220, 150, 0.9) 100%);
+	clip-path: polygon(
+		50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%
+	);
+	animation: cosmic-star-flower-glow 4s ease-in-out infinite;
+	opacity: 0.85;
+	pointer-events: none;
+}
+.cosmic-star-flower--2 {
+	top: 72%;
+	left: 88%;
+	width: 32px;
+	height: 32px;
+	animation-delay: 1.5s;
+	background: radial-gradient(circle at 50% 50%, #ffe0f0 0%, #ffc8e0 40%, rgba(255, 180, 220, 0.85) 100%);
+}
+.cosmic-star-flower--3 {
+	top: 55%;
+	left: 12%;
+	width: 28px;
+	height: 28px;
+	animation-delay: 2.5s;
+	background: radial-gradient(circle at 50% 50%, #e7f0ff 0%, #b8d2ff 45%, rgba(180, 210, 255, 0.9) 100%);
+}
+
+/* ─── 로고 영역 별모양 꽃 ─── */
+.logo-star-flower {
+	position: absolute;
+	width: 36px;
+	height: 36px;
+	left: 50%;
+	top: 14%;
+	transform: translate(-50%, -50%);
+	background: radial-gradient(circle at 50% 50%, #fff8e7 0%, #ffecb8 40%, rgba(255, 220, 150, 0.95) 100%);
+	clip-path: polygon(
+		50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%
+	);
+	animation: logo-star-flower-pulse 3.5s ease-in-out infinite;
+	opacity: 0.9;
+	pointer-events: none;
+	z-index: 1;
+}
+/* 기본 모드: 참조 사이트와 동일하게 별꽃 장식 비노출 */
+body:not(.neo-mode) .cosmic-star-flower,
+body:not(.neo-mode) .logo-star-flower {
+	display: none;
+}
+body:not(.neo-mode) .logo-star-flower {
+	background: radial-gradient(circle at 50% 50%, #fffbf0 0%, #ffecb8 45%, rgba(255, 220, 150, 0.9) 100%);
+}
+body.neo-mode .logo-star-flower {
+	background: radial-gradient(circle at 50% 50%, #2a1a00 0%, #ffd54f 35%, rgba(255, 220, 120, 0.9) 100%);
+	filter: drop-shadow(0 0 10px rgba(255, 220, 120, 0.5));
+}
 
 body .wrap { position: relative; z-index: 1; }
+
+/* ═══════════════════════════════════════════════════════════════
+   메인 화면 우주 컨셉 — 별 반짝임 애니메이션 + 생년월일/정보 입력 영역
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 별 반짝임 애니메이션 (메인 히어로 전용, 더 선명하게) */
+@keyframes cosmic-logo-star-twinkle {
+	0%, 100% {
+		opacity: 0.45;
+		transform: scale(0.85);
+		box-shadow: 0 0 2px rgba(255,255,255,0.4);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.35);
+		box-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 14px rgba(200,180,255,0.5);
+	}
+}
+
+/* 별밭 레이어 반짝임 (여러 점이 동시에 깜빡임) */
+@keyframes cosmic-starfield-pulse {
+	0%, 100% { opacity: 0.5; }
+	50% { opacity: 1; }
+}
+
+/* ─── Zone 1: 로고/히어로 — 어두운 우주 배경 + 별 반짝임 (neo 모드 전용) ─── */
+body.neo-mode .logo-area {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	background:
+		radial-gradient(ellipse at 22% -5%,  rgba(180, 80, 255, 0.24) 0%, transparent 50%),
+		radial-gradient(ellipse at 78% 105%, rgba(100, 80, 255, 0.2) 0%, transparent 50%),
+		radial-gradient(ellipse at 50%  50%, rgba(100, 40, 180, 0.12) 0%, transparent 65%),
+		linear-gradient(180deg, rgba(14, 6, 38, 0.98) 0%, rgba(8, 4, 26, 0.99) 100%) !important;
+	border: 1px solid rgba(180, 100, 255, 0.25) !important;
+	box-shadow:
+		0 12px 40px rgba(80, 40, 160, 0.2),
+		0 0 0 1px rgba(200, 150, 255, 0.08) inset !important;
+}
+
+body.neo-mode .logo-area::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 8%;
+	right: 8%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(220, 120, 255, 0.75),
+		rgba(160, 110, 255, 0.6),
+		rgba(120, 150, 255, 0.7),
+		rgba(220, 120, 255, 0.75),
+		transparent
+	);
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* 메인 히어로 별밭 레이어 — 많은 작은 별들이 반짝이는 효과 (neo 모드 전용) */
+body.neo-mode .logo-cosmos::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,0.95), transparent),
+		radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(2px 2px at 42% 15%, rgba(255,240,220,0.9), transparent),
+		radial-gradient(1px 1px at 62% 6%, rgba(255,255,255,0.75), transparent),
+		radial-gradient(1.5px 1.5px at 85% 18%, rgba(220,200,255,0.9), transparent),
+		radial-gradient(1px 1px at 15% 45%, rgba(255,255,255,0.6), transparent),
+		radial-gradient(1px 1px at 55% 38%, rgba(255,230,200,0.7), transparent),
+		radial-gradient(2px 2px at 78% 48%, rgba(255,255,255,0.85), transparent),
+		radial-gradient(1px 1px at 10% 72%, rgba(255,255,255,0.5), transparent),
+		radial-gradient(1.5px 1.5px at 35% 82%, rgba(240,220,255,0.8), transparent),
+		radial-gradient(1px 1px at 68% 75%, rgba(255,255,255,0.65), transparent),
+		radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 5% 28%, rgba(255,255,255,0.55), transparent),
+		radial-gradient(1px 1px at 48% 58%, rgba(255,248,240,0.6), transparent),
+		radial-gradient(1px 1px at 88% 32%, rgba(255,255,255,0.5), transparent);
+	animation: cosmic-starfield-pulse 4s ease-in-out infinite;
+	opacity: 0.85;
+}
+
+/* 로고 영역 내 개별 별 — 반짝이는 애니메이션 적용 (neo 모드 전용) */
+body.neo-mode .logo-area .logo-star {
+	background: #fff !important;
+	box-shadow: 0 0 4px rgba(255,255,255,0.5);
+	animation: cosmic-logo-star-twinkle 2.8s ease-in-out infinite !important;
+}
+body.neo-mode .logo-area .logo-star--1 { animation-delay: 0s !important; }
+body.neo-mode .logo-area .logo-star--2 { animation-delay: 0.5s !important; }
+body.neo-mode .logo-area .logo-star--3 { animation-delay: 1s !important; }
+body.neo-mode .logo-area .logo-star--4 { animation-delay: 1.5s !important; }
+body.neo-mode .logo-area .logo-star--5 { animation-delay: 0.3s !important; }
+body.neo-mode .logo-area .logo-star--6 { animation-delay: 1.8s !important; }
+body.neo-mode .logo-area .logo-star--7 { animation-delay: 0.8s !important; }
+body.neo-mode .logo-area .logo-star--8 { animation-delay: 1.2s !important; }
+body.neo-mode .logo-area .logo-star--9 {
+	width: 2px; height: 2px; top: 18%; left: 72%;
+	animation-delay: 0.4s !important;
+}
+body.neo-mode .logo-area .logo-star--10 {
+	width: 1px; height: 1px; top: 52%; left: 18%;
+	animation-delay: 1.6s !important;
+}
+body.neo-mode .logo-area .logo-star--11 {
+	width: 2px; height: 2px; top: 68%; left: 58%;
+	animation-delay: 0.6s !important;
+}
+body.neo-mode .logo-area .logo-star--12 {
+	width: 1px; height: 1px; top: 35%; left: 42%;
+	animation-delay: 1.4s !important;
+}
+
+body.neo-mode .logo-area h1 {
+	color: #fff !important;
+	font-weight: 800 !important;
+	text-shadow: 0 0 20px rgba(180, 120, 255, 0.5) !important;
+	-webkit-text-fill-color: #fff !important;
+	background: none !important;
+}
+body.neo-mode .logo-area p {
+	color: rgba(200, 175, 255, 0.78) !important;
+}
+
+/* ─── Zone 2: 생년월일·정보 입력 섹션 — 우주 컨셉 (neo 모드 전용) ─── */
+body.neo-mode .card.input-section {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	background:
+		radial-gradient(ellipse at 10% 0%,   rgba(80, 50, 200, 0.18) 0%, transparent 50%),
+		radial-gradient(ellipse at 90% 100%, rgba(60, 80, 220, 0.14) 0%, transparent 50%),
+		linear-gradient(180deg, rgba(12, 8, 32, 0.96) 0%, rgba(7, 5, 22, 0.98) 100%) !important;
+	border: 1px solid rgba(120, 80, 255, 0.28) !important;
+	box-shadow:
+		0 12px 36px rgba(60, 40, 140, 0.25),
+		0 0 0 1px rgba(150, 100, 255, 0.1) inset !important;
+}
+
+body.neo-mode .card.input-section::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 10%;
+	right: 10%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(140, 100, 255, 0.5),
+		rgba(100, 140, 255, 0.4),
+		rgba(140, 100, 255, 0.5),
+		transparent
+	);
+	pointer-events: none;
+}
+
+/* 입력 섹션 내부 별빛 장식 (neo 모드 전용) */
+body.neo-mode .card.input-section::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.25), transparent),
+		radial-gradient(1px 1px at 88% 15%, rgba(255,255,255,0.2), transparent),
+		radial-gradient(1px 1px at 20% 80%, rgba(200,180,255,0.2), transparent),
+		radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.18), transparent);
+	opacity: 0.8;
+}
+
+body.neo-mode .card.input-section .form-label {
+	color: rgba(200, 180, 255, 0.92) !important;
+}
+
+body.neo-mode .card.input-section .inp,
+body.neo-mode .card.input-section .form-country-select {
+	background: rgba(255, 255, 255, 0.06) !important;
+	border: 1px solid rgba(130, 90, 255, 0.35) !important;
+	color: rgba(230, 218, 255, 0.95) !important;
+}
+body.neo-mode .card.input-section .inp:focus {
+	border-color: rgba(160, 120, 255, 0.6) !important;
+	box-shadow: 0 0 0 2px rgba(120, 80, 255, 0.2), 0 0 20px rgba(100, 60, 255, 0.15) !important;
+	background: rgba(255, 255, 255, 0.1) !important;
+}
+body.neo-mode .card.input-section .inp::placeholder {
+	color: rgba(160, 140, 220, 0.5) !important;
+}
+
+body.neo-mode .card.input-section .form-radio-row label {
+	color: rgba(190, 170, 255, 0.85) !important;
+}
+
+body.neo-mode .card.input-section .birth-time-tip {
+	color: rgba(180, 160, 255, 0.75) !important;
+	background: rgba(80, 60, 180, 0.15) !important;
+	border: 1px solid rgba(100, 80, 220, 0.2) !important;
+	border-radius: 10px !important;
+	padding: 8px 12px !important;
+}
+
+body.neo-mode .card.input-section .toggle-wrap {
+	background: rgba(255, 255, 255, 0.05) !important;
+	border: 1px solid rgba(110, 80, 255, 0.25) !important;
+}
+body.neo-mode .card.input-section .tog-btn {
+	color: rgba(170, 150, 255, 0.8) !important;
+}
+body.neo-mode .card.input-section .tog-btn.on {
+	background: linear-gradient(135deg, rgba(120, 70, 255, 0.35), rgba(90, 100, 255, 0.28)) !important;
+	border-color: rgba(160, 120, 255, 0.5) !important;
+	color: #f0e6ff !important;
+	box-shadow: 0 0 16px rgba(130, 80, 255, 0.25) !important;
+}
+
+body.neo-mode .card.input-section .dp-save-btn {
+	background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(251, 191, 36, 0.95) 100%) !important;
+	box-shadow: 0 4px 24px rgba(245, 158, 11, 0.4) !important;
+	border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+body.neo-mode .card.input-section .btn-main {
+	background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #8b5cf6 100%) !important;
+	box-shadow: 0 6px 24px rgba(124, 58, 237, 0.45) !important;
+}
+
+body.neo-mode .card.input-section .fortune-point-notice {
+	background: rgba(40, 25, 80, 0.4) !important;
+	border: 1px solid rgba(120, 80, 255, 0.2) !important;
+	color: rgba(210, 195, 255, 0.9) !important;
+}
+
+/* Reduced motion: 별 반짝임 완화 */
+@media (prefers-reduced-motion: reduce) {
+	body.neo-mode .logo-area .logo-star {
+		animation: none !important;
+		opacity: 0.85 !important;
+		transform: scale(1) !important;
+	}
+	body.neo-mode .logo-cosmos::before {
+		animation: none !important;
+		opacity: 0.75 !important;
+	}
+}
