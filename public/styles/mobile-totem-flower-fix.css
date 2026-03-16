@@ -118,6 +118,20 @@
   pointer-events: none;
 }
 
+/* 모바일: 오버레이 열림 시 확실한 표시 (iOS Safari 등) */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  .animal-totem-overlay.is-open,
+  .df-studio-overlay.is-show {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    min-height: 100dvh !important;
+    min-height: 100vh !important;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+}
+
 /* ─── 5. 애니멀 토템 오버레이 모바일 overflow 방지 ─── */
 @media (max-width: 768px) {
   .animal-totem-shell {
