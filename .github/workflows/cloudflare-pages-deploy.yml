@@ -35,5 +35,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and deploy (Cloudflare Pages)
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
         run: npm run deploy:cf:pages
