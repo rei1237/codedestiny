@@ -1,5 +1,5 @@
 /**
- * 타로로 보는 우리 사이 — 6-Card Relationship Spread Experience
+ * 우리는 무슨 사이? — 6-Card Relationship Spread Experience
  * API: POST /api/tarot/draw (spreadType: relationship_six_card)
  *      POST /api/tarot/reading (category: love, spreadType: relationship_six_card, cards)
  */
@@ -890,14 +890,14 @@
     var r = state.reading;
     if (!r) return;
 
-    var text = "💕 [타로로 보는 우리 사이] 💕\n\n";
+    var text = "💕 [우리는 무슨 사이?] 💕\n\n";
     if (r.overallVibe) text += "🌙 " + r.overallVibe + "\n\n";
     if (r.deepReading) text += "🔍 " + r.deepReading.substring(0, 200) + "...\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "💕 타로로 보는 우리 사이",
+        title: "💕 우리는 무슨 사이?",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

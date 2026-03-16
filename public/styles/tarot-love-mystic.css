@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   타로로 보는 우리 사이 — Romantic & Mystical Tarot Experience
+   우리는 무슨 사이? — Romantic & Mystical Tarot Experience
    ❤️ Romantic · 🔮 Mystical · 💓 Suspenseful · ✨ Magical
 ══════════════════════════════════════════════════════════════ */
 
@@ -727,20 +727,21 @@
 }
 
 /* ─── Result Stage (깔끔한 리딩 결과) ─── */
-.tarot-love-reading-header { margin-bottom: 20px; }
+.tarot-love-reading-header { margin-bottom: 24px; }
 .tarot-love-reading-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #ffd1f0;
   text-align: center;
   text-shadow: 0 0 20px rgba(255, 120, 200, 0.4);
   letter-spacing: -0.02em;
+  line-height: 1.4;
 }
 .tarot-love-reading-content {
   max-height: 52vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-right: 10px;
+  padding-right: 12px;
   scrollbar-width: thin;
 }
 .tarot-love-reading-content::-webkit-scrollbar { width: 6px; }
@@ -826,44 +827,45 @@
 }
 
 .tarot-love-section {
-  margin-bottom: 22px;
-  padding: 20px 20px 19px;
+  margin-bottom: 24px;
+  padding: 22px 22px 21px;
   border-radius: 14px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
   border: 1px solid rgba(255, 140, 200, 0.24);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(2px);
 }
 .tarot-love-section-title {
-  font-size: 1.02rem;
+  font-size: 1.08rem;
   font-weight: 700;
-  color: #ffe0f5;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 170, 210, 0.26);
+  color: #ffe8f8;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 170, 210, 0.3);
   text-shadow: 0 0 12px rgba(255, 120, 180, 0.25);
   letter-spacing: 0.02em;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 .tarot-love-section-text {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.94);
-  line-height: 2;
-  max-width: 56ch;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.97);
+  line-height: 1.9;
+  max-width: 52ch;
   margin: 0;
   word-break: keep-all;
   overflow-wrap: break-word;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .tarot-love-paragraph {
-  margin: 0 0 14px;
-  letter-spacing: 0.01em;
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
 }
 .tarot-love-paragraph--lead {
-  color: #ffeaf9;
+  color: #fff0fa;
   font-weight: 600;
-  padding-left: 12px;
-  border-left: 3px solid rgba(255, 180, 225, 0.65);
+  padding-left: 14px;
+  border-left: 3px solid rgba(255, 180, 225, 0.7);
 }
 .tarot-love-paragraph:last-child {
   margin-bottom: 0;
@@ -887,16 +889,17 @@
   margin: 0;
   padding-left: 0;
   list-style: none;
-  color: rgba(255, 255, 255, 0.94);
-  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.97);
+  font-size: 1.03rem;
   line-height: 1.9;
-  max-width: 56ch;
-  letter-spacing: 0.01em;
+  max-width: 52ch;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .tarot-love-advice-list li {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   position: relative;
-  padding-left: 24px;
+  padding-left: 26px;
 }
 .tarot-love-advice-list li::before {
   content: "❤";
@@ -916,31 +919,32 @@
   gap: 14px;
 }
 .tarot-love-position-card {
-  border: 1px solid rgba(255, 175, 220, 0.26);
+  border: 1px solid rgba(255, 175, 220, 0.28);
   border-radius: 12px;
-  padding: 14px 15px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  padding: 16px 17px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 .tarot-love-position-title {
-  margin: 0 0 6px;
-  font-size: 0.88rem;
-  color: rgba(255, 210, 235, 0.95);
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: rgba(255, 220, 240, 0.98);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 .tarot-love-position-cardname {
-  margin: 0 0 8px;
-  font-size: 0.8rem;
-  color: rgba(255, 170, 220, 0.95);
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: rgba(255, 185, 230, 0.98);
   font-weight: 600;
 }
 .tarot-love-position-text {
   margin: 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.85;
-  letter-spacing: 0.01em;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 .tarot-love-focus-section {
   border-color: rgba(255, 190, 230, 0.36);
@@ -953,23 +957,24 @@
   border: 1px solid rgba(255, 190, 230, 0.46);
   background: linear-gradient(145deg, rgba(255, 112, 183, 0.16), rgba(255, 255, 255, 0.06));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  padding: 13px 15px;
+  padding: 16px 18px;
 }
 .tarot-love-focus-label {
-  margin: 0 0 8px;
-  font-size: 0.75rem;
-  color: rgba(255, 220, 240, 0.92);
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: rgba(255, 230, 248, 0.95);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .tarot-love-focus-text {
   margin: 0;
-  font-size: 1rem;
-  color: #ffe8f8;
+  font-size: 1.05rem;
+  color: #fff0fa;
   font-weight: 700;
-  line-height: 1.85;
-  letter-spacing: 0.01em;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 @media (max-width: 520px) {
   .tarot-love-position-grid {
@@ -1028,7 +1033,14 @@
   }
   .tarot-love-reading-content {
     max-height: 58dvh;
-    padding-right: 2px;
+    padding-right: 6px;
+  }
+  .tarot-love-section {
+    padding: 18px 16px 17px;
+  }
+  .tarot-love-section-text,
+  .tarot-love-advice-list {
+    font-size: 1rem;
   }
   .tarot-love-result-actions {
     display: grid;
