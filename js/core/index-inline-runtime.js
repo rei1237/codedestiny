@@ -345,14 +345,33 @@ function _cdEnsureMainScreenOnLoad() {
   window.scrollTo(0, 0);
 }
 
+function _cdInitAfterSplash() {
+  var splash = document.getElementById('codeSplash');
+  if (splash && splash.parentNode) {
+    var obs = new MutationObserver(function(mutations, observer) {
+      if (!document.getElementById('codeSplash')) {
+        observer.disconnect();
+        _cdEnsureMainScreenOnLoad();
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    setTimeout(function() {
+      obs.disconnect();
+      _cdEnsureMainScreenOnLoad();
+    }, 3500);
+  } else {
+    _cdEnsureMainScreenOnLoad();
+  }
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
-    _cdEnsureMainScreenOnLoad();
+    _cdInitAfterSplash();
     __cdBindAnimalTotemTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
-  _cdEnsureMainScreenOnLoad();
+  _cdInitAfterSplash();
   __cdBindAnimalTotemTileDirect();
   setTimeout(__cdBindGlobalActionsFallback, 0);
 }
