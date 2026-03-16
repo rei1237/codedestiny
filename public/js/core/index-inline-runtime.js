@@ -303,6 +303,23 @@ function __cdBindAnimalTotemTileDirect() {
   var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
   var touchStart = null;
   var TAP_THRESH = 20;
+
+  function openTotemModal() {
+    var overlay = document.getElementById('animalTotemOverlay');
+    if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
+    if (typeof window.openAnimalTotemModal === 'function') {
+      window.openAnimalTotemModal();
+      return;
+    }
+    /* animal-totem-experience.js 미로드 시 폴백: 오버레이만 표시 */
+    if (overlay) {
+      overlay.classList.add('is-open');
+      overlay.style.display = 'block';
+      if (window._perf && window._perf.lockBody) window._perf.lockBody();
+      else document.body.style.overflow = 'hidden';
+    }
+  }
+
   function isTotemTile(el) {
     return el && el.closest && el.closest(sel);
   }
@@ -312,7 +329,7 @@ function __cdBindAnimalTotemTileDirect() {
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
-    if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+    openTotemModal();
   }
   function handleTouchStart(ev) {
     if (!ev.target || !isTotemTile(ev.target)) return;
@@ -329,11 +346,41 @@ function __cdBindAnimalTotemTileDirect() {
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
-    if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+    openTotemModal();
   }
   document.addEventListener('click', handleClick, { capture: true });
   document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+
+  /* 직접 바인딩: 위임이 실패하는 환경(오버레이/스택 컨텍스트) 대비 */
+  function bindDirectToTiles() {
+    var tiles = document.querySelectorAll(sel);
+    tiles.forEach(function(tile) {
+      if (tile._cdTotemDirectBound) return;
+      tile._cdTotemDirectBound = true;
+      tile.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openTotemModal();
+      });
+      tile.addEventListener('touchend', function(ev) {
+        if (ev.cancelable) ev.preventDefault();
+        openTotemModal();
+      }, { passive: false });
+    });
+  }
+  bindDirectToTiles();
+  /* 동적 삽입 대비: 스플래시 제거 후 재바인딩 */
+  var splash = document.getElementById('codeSplash');
+  if (splash && splash.parentNode) {
+    var obs = new MutationObserver(function() {
+      if (!document.getElementById('codeSplash')) {
+        obs.disconnect();
+        bindDirectToTiles();
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
 }
 
 function _cdEnsureMainScreenOnLoad() {
