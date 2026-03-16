@@ -380,6 +380,7 @@ var THEME_AUTO_LITE_LONGTASK_MAX = 120;
 var _themeToggleInFlight = false;
 var _themeToggleUnlockTimer = null;
 var _themeToggleApplyTextRaf = 0;
+var _themeToggleHideTimer = null;
 var _themePerfProbeInFlight = false;
 var _themeAutoLiteEnabled = false;
 
@@ -535,8 +536,12 @@ function setThemeToggleEnabled(enabled){
 }
 
 function scheduleThemeToggleAutoDisable(){
-  // Auto-hide disabled by request: keep the theme toggle always visible.
   setThemeToggleEnabled(true);
+  if(_themeToggleHideTimer) clearTimeout(_themeToggleHideTimer);
+  _themeToggleHideTimer = setTimeout(function(){
+    _themeToggleHideTimer = null;
+    setThemeToggleEnabled(false);
+  }, 30000); // 로딩 후 30초 지나면 꽃돼지/백사자 토글 숨김
 }
 
 function isHomePageVisible(){

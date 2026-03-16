@@ -302,6 +302,7 @@ function __cdBindGlobalActionsFallback() {
 function __cdBindAnimalTotemTileDirect() {
   var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
   var touchStart = null;
+  var lastTouchStart = null;
   /* 모바일: 스크롤 시 미세 움직임 허용 (36px ≈ 2.5mm, Apple HIG 권장 24px보다 여유) */
   var TAP_THRESH = 36;
 
@@ -333,24 +334,35 @@ function __cdBindAnimalTotemTileDirect() {
     openTotemModal();
   }
   function handleTouchStart(ev) {
-    if (!ev.target || !isTotemTile(ev.target)) return;
     var t = ev.touches && ev.touches[0];
+    if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
+    if (!ev.target || !isTotemTile(ev.target)) return;
     touchStart = t ? { x: t.clientX, y: t.clientY } : null;
   }
   function handleTouchCancel() {
     touchStart = null;
   }
   function handleTouchEnd(ev) {
-    if (!touchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
+    if (!ev.changedTouches || !ev.changedTouches[0]) return;
     var t = ev.changedTouches[0];
-    var dx = Math.abs(t.clientX - touchStart.x);
-    var dy = Math.abs(t.clientY - touchStart.y);
+    var x = t.clientX, y = t.clientY;
+    var start = touchStart || lastTouchStart;
     touchStart = null;
-    if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
-    openTotemModal();
+    if (start) {
+      var dx = Math.abs(x - start.x);
+      var dy = Math.abs(y - start.y);
+      if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+    }
+    /* touchStart로 시작했거나, elementFromPoint로 터치 해제 위치가 토템 타일인 경우 (모바일 event.target 부정확 대비) */
+    var fromStart = start && isTotemTile(ev.target);
+    var elAtPoint = document.elementFromPoint && document.elementFromPoint(x, y);
+    var fromPoint = elAtPoint && isTotemTile(elAtPoint);
+    if (fromStart || fromPoint) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      openTotemModal();
+    }
   }
   document.addEventListener('click', handleClick, { capture: true });
   document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });

@@ -7,6 +7,7 @@
   var GHOST_CLICK_BLOCK_MS = 500;
   var suppressClickUntil = 0;
   var touchCtx = null;
+  var lastTouchStart = null;
 
   var RULES = [
     {
@@ -103,6 +104,13 @@
       if (origin.closest(RULES[i].targetSelector)) return RULES[i];
     }
     return null;
+  }
+
+  /* 모바일: touchend 시 event.target이 부정확한 경우 elementFromPoint로 실제 터치 위치의 요소 확인 */
+  function findRuleFromPoint(x, y) {
+    if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    var el = document.elementFromPoint(x, y);
+    return el ? findRuleFromTarget(el) : null;
   }
 
   function findActionElement(origin, rule) {
@@ -226,11 +234,11 @@
     root.__cdTouchBridgeBound = true;
 
     root.addEventListener('touchstart', function (event) {
+      var pt = getPoint(event);
+      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
-
-      var pt = getPoint(event);
       if (!pt) return;
 
       touchCtx = {
@@ -252,23 +260,43 @@
     }, { passive: true, capture: true });
 
     root.addEventListener('touchend', function (event) {
-      if (!touchCtx) return;
+      var pt = getPoint(event);
+      if (!pt) return;
 
       var ctx = touchCtx;
       touchCtx = null;
 
-      var pt = getPoint(event);
-      if (!pt) return;
-      var dy = Math.abs(pt.y - ctx.startY);
-      var dx = Math.abs(pt.x - ctx.startX);
-      if (ctx.moved || dy >= TAP_MAX_DY || dx >= TAP_MAX_DX) return;
+      if (ctx) {
+        var dy = Math.abs(pt.y - ctx.startY);
+        var dx = Math.abs(pt.x - ctx.startX);
+        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
+          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          if (handled) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
+        }
+      }
 
-      var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-      if (!handled) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+      /* 모바일 폴백: touchCtx 없거나 처리 실패 시 elementFromPoint로 터치 위치의 요소를 확인 (애니멀 토템 등) */
+      if (lastTouchStart) {
+        var dx = Math.abs(pt.x - lastTouchStart.x);
+        var dy = Math.abs(pt.y - lastTouchStart.y);
+        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
+          var ruleFromPoint = findRuleFromPoint(pt.x, pt.y);
+          if (ruleFromPoint) {
+            var elAtPoint = document.elementFromPoint(pt.x, pt.y);
+            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint, event);
+            if (handled) {
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            }
+          }
+        }
+      }
     }, { passive: false, capture: true });
 
     root.addEventListener('click', function (event) {
