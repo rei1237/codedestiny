@@ -1,9 +1,9 @@
 (function () {
   'use strict';
 
-  /* 모바일 터치: 손가락 미세 움직임 허용 (24px = ~1.5mm, Apple HIG 권장) */
-  var TAP_MAX_DX = 24;
-  var TAP_MAX_DY = 24;
+  /* 모바일 터치: 손가락 미세 움직임 허용 (36px ≈ 2.5mm, 스크롤 시 탭 오인 방지) */
+  var TAP_MAX_DX = 36;
+  var TAP_MAX_DY = 36;
   var GHOST_CLICK_BLOCK_MS = 500;
   var suppressClickUntil = 0;
   var touchCtx = null;
@@ -108,6 +108,11 @@
       if (tile) return tile;
     }
 
+    if (rule.action === 'openTarotYearFortuneModal') {
+      var tile = origin.closest('.tarot-tile--year');
+      if (tile) return tile;
+    }
+
     return document.querySelector('[data-action="' + rule.action + '"]');
   }
 
@@ -152,13 +157,26 @@
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
-    if (typeof fn !== 'function') return false;
+    if (typeof fn === 'function') {
+      try {
+        fn();
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+      }
+      return false;
+    }
 
-    try {
-      fn();
-      return true;
-    } catch (err) {
-      console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+    /* openAnimalTotemModal: 스크립트 미로드 시 오버레이 직접 표시 */
+    if (rule.action === 'openAnimalTotemModal') {
+      var overlay = document.getElementById('animalTotemOverlay');
+      if (overlay) {
+        overlay.classList.add('is-open');
+        overlay.style.display = 'block';
+        if (window._perf && window._perf.lockBody) window._perf.lockBody();
+        else document.body.style.overflow = 'hidden';
+        return true;
+      }
     }
 
     return false;
@@ -169,14 +187,15 @@
 
     var css = [
       '.feature-card--face, .feature-card--tazza, .feature-card--animal-totem,',
-      '.tarot-tile--animal-totem,',
+      '.tarot-tile--animal-totem, .tarot-tile--year,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
       '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap, .feature-card--animal-totem .feature-card__img-wrap,',
       '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img, .feature-card--animal-totem .feature-card__img,',
       '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title, .feature-card--animal-totem .feature-card__title,',
       '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc, .feature-card--animal-totem .feature-card__desc,',
       '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openAnimalTotemModal"] {',
+      '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openAnimalTotemModal"], [data-action="openTarotYearFortuneModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',

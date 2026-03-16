@@ -302,7 +302,8 @@ function __cdBindGlobalActionsFallback() {
 function __cdBindAnimalTotemTileDirect() {
   var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
   var touchStart = null;
-  var TAP_THRESH = 20;
+  /* 모바일: 스크롤 시 미세 움직임 허용 (36px ≈ 2.5mm, Apple HIG 권장 24px보다 여유) */
+  var TAP_THRESH = 36;
 
   function openTotemModal() {
     var overlay = document.getElementById('animalTotemOverlay');
@@ -336,6 +337,9 @@ function __cdBindAnimalTotemTileDirect() {
     var t = ev.touches && ev.touches[0];
     touchStart = t ? { x: t.clientX, y: t.clientY } : null;
   }
+  function handleTouchCancel() {
+    touchStart = null;
+  }
   function handleTouchEnd(ev) {
     if (!touchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
     var t = ev.changedTouches[0];
@@ -350,6 +354,7 @@ function __cdBindAnimalTotemTileDirect() {
   }
   document.addEventListener('click', handleClick, { capture: true });
   document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+  document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
 
   /* 직접 바인딩: 위임이 실패하는 환경(오버레이/스택 컨텍스트) 대비 */
