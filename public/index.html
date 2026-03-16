@@ -1991,7 +1991,7 @@
                 <h1 class="tarot-reunion-title">그 사람과의 인연은 끝났을까?</h1>
                 <p class="tarot-reunion-subtitle">깊은 밤바다의 등대처럼, 당신의 그리움을 다정하게 비추는 재회운 5카드 스프레드입니다. 조급한 단정보다 따뜻한 통찰로 다음 길을 찾도록 도와드립니다.</p>
                 <div class="tarot-reunion-meditation-wrap">
-                  <button id="tarotReunionMeditationBtn" class="tarot-reunion-meditation-btn" type="button" data-action="toggleTarotReunionMeditation" aria-label="밤바다 명상">🧘 밤바다 명상 시작</button>
+                  <button id="tarotReunionMeditationBtn" class="tarot-reunion-meditation-btn" type="button" data-action="toggleTarotReunionMeditation" data-action-stop-propagation="1" aria-label="밤바다 명상">🧘 밤바다 명상 시작</button>
                   <div id="tarotReunionMeditationGuide" class="tarot-reunion-meditation-guide" aria-live="polite" hidden>
                     <div class="tarot-reunion-breath-circle" aria-hidden="true"></div>
                     <p id="tarotReunionBreathText" class="tarot-reunion-breath-text"></p>
@@ -2149,31 +2149,42 @@
               <div class="totem-canvas-wrap">
                 <canvas id="animalTotemStarCanvas" aria-hidden="true"></canvas>
                 <div id="animalTotemRuneField" class="totem-rune-field" aria-hidden="true"></div>
+                <div id="animalTotemAnimalFigures" class="totem-animal-figures" aria-hidden="true"></div>
               </div>
             </section>
 
-            <section id="animalTotemModeStage" class="animal-totem-stage">
-              <h3 class="totem-draw-header">리딩 방식 선택</h3>
+            <section id="animalTotemModeStage" class="animal-totem-stage totem-mode-stage">
+              <div class="totem-mode-header">
+                <span class="totem-mode-badge">🐾 ANIMAL TAROT</span>
+                <h3 class="totem-draw-header totem-mode-title">리딩 방식 선택</h3>
+                <p class="totem-mode-hint">마음이 이끄는 카드 수를 골라주세요</p>
+              </div>
               <div class="totem-mode-grid">
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
-                  <b>3카드 심층 리딩</b><br><small>과거 상처 · 현재 에너지 · 통합 방향</small>
+                  <span class="totem-mode-icon">🦉</span>
+                  <span class="totem-mode-content"><b>3카드 심층 리딩</b><br><small>과거 상처 · 현재 에너지 · 통합 방향</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
-                  <b>5카드 영성 상담</b><br><small>이성 · 감정 · 그림자 · 선물 · 다음 행동</small>
+                  <span class="totem-mode-icon">🦋</span>
+                  <span class="totem-mode-content"><b>5카드 영성 상담</b><br><small>이성 · 감정 · 그림자 · 선물 · 다음 행동</small></span>
                 </button>
               </div>
-              <div class="totem-result-actions">
-                <button type="button" class="totem-btn" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
+              <div class="totem-result-actions totem-mode-actions">
+                <button type="button" class="totem-btn totem-btn--spread" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
                 <button type="button" class="totem-btn totem-btn--subtle" data-action="resetAnimalTotemFlow">↺ 처음으로</button>
               </div>
             </section>
 
-            <section id="animalTotemDrawStage" class="animal-totem-stage">
-              <h3 class="totem-draw-header">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
+            <section id="animalTotemDrawStage" class="animal-totem-stage totem-draw-stage">
+              <div class="totem-draw-header-wrap">
+                <span class="totem-draw-badge">✨ TOTEM CARD</span>
+                <h3 class="totem-draw-header">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
+                <p class="totem-draw-hint">탭하여 뒤집기</p>
+              </div>
               <div id="animalTotemCardRail" class="totem-card-grid"></div>
             </section>
 
-            <section id="animalTotemResultStage" class="animal-totem-stage">
+            <section id="animalTotemResultStage" class="animal-totem-stage totem-result-stage">
               <header class="totem-reading-header">
                 <h2 class="totem-reading-title">Today's Animal Totem Message</h2>
                 <p class="totem-reading-subtitle">영적 흐름을 따라 과거의 상처, 현재의 에너지, 통합의 길을 받아들이세요.</p>
