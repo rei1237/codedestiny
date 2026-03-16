@@ -3,7 +3,7 @@
   "name": "code-destiny-web",
   "main": ".open-next/worker.js",
   "assets": {
-    "directory": "./dist"
+    "directory": ".open-next/assets"
   },
   "compatibility_date": "2026-03-14",
   "compatibility_flags": [
