@@ -749,8 +749,14 @@
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
-        if (typeof openTarotModal === 'function') openTarotModal();
-        else _toast('⚠️ 타로 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
+        var tarotCollection = document.getElementById('tarotCollection');
+        if (tarotCollection && typeof tarotCollection.scrollIntoView === 'function') {
+          setTimeout(function() {
+            tarotCollection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        } else {
+          _toast('타로 리딩 컬렉션으로 이동합니다.', 'info');
+        }
       } else if (type === 'flower') {
         var pFlower = DPStorage.current();
         if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
