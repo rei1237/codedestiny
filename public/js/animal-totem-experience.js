@@ -373,9 +373,13 @@
     refs.overlay.scrollTop = 0;
     lockBody();
     resetAnimalTotemFlow();
-    buildRuneField();
-    buildAnimalFigures();
-    startCanvas();
+    /* 모바일 터치 후 즉시 모달 표시, 무거운 초기화는 다음 프레임으로 지연 */
+    var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+    raf(function() {
+      buildRuneField();
+      buildAnimalFigures();
+      startCanvas();
+    });
   }
 
   function closeAnimalTotemModal() {
