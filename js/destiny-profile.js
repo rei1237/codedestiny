@@ -754,10 +754,12 @@
       } else if (type === 'flower') {
         var pFlower = DPStorage.current();
         if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
-        if (typeof openDestinyFlowerStudio === 'function') {
-          openDestinyFlowerStudio();
-        } else if (typeof openDestinyFlower === 'function') {
-          openDestinyFlower(false);
+        var openStudio = window.openDestinyFlowerStudio;
+        var openFlower = window.openDestinyFlower;
+        if (typeof openStudio === 'function') {
+          openStudio();
+        } else if (typeof openFlower === 'function') {
+          openFlower(false);
           var flowerCard = document.querySelector('.feature-card.feature-card--destiny-flower');
           if (flowerCard && typeof flowerCard.scrollIntoView === 'function') {
             setTimeout(function() {

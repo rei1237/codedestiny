@@ -2892,6 +2892,10 @@ function openDestinyFlowerStudio() {
   });
 }
 
+/* 프로필 카드 → 운명의 꽃 진입용: 정의 직후 window에 노출 (스크립트 후반 오류 시에도 사용 가능) */
+window.openDestinyFlowerStudio = openDestinyFlowerStudio;
+window.openDestinyFlower = openDestinyFlower;
+
 function setDestinyFlowerSourceTab(source) {
   var normalized = _dfSetActiveSource(source);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
