@@ -293,12 +293,12 @@
 
     window.addEventListener('orientationchange', function () {
       setTimeout(setDynamicVhVar, 80);
-      setTimeout(stopBlockingOverlays, 1200);
+      setTimeout(stopBlockingOverlays, 3000);
     }, { passive: true });
 
     window.addEventListener('pageshow', function () {
       patchCriticalFns();
-      setTimeout(stopBlockingOverlays, 250);
+      setTimeout(stopBlockingOverlays, 3000);
     });
   }
 

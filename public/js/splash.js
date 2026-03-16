@@ -137,9 +137,9 @@
     if (rafId) cancelAnimationFrame(rafId);
   }
 
-  /* 별똥별 감상을 위해 로딩 스플래시 노출 시간을 약 3초로 고정 */
+  /* 별똥별 감상을 위해 로딩 스플래시 최소 3초 노출 */
   setTimeout(hideSplash, SPLASH_DURATION_MS);
   window.addEventListener('pageshow', function() {
-    setTimeout(hideSplash, 120);
+    setTimeout(hideSplash, SPLASH_DURATION_MS);
   }, { once: true });
 })();
