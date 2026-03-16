@@ -585,16 +585,16 @@
     <header class="logo-area" role="banner">
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img src="https://raw.githubusercontent.com/Toss/tossface/main/dist/svg/u1F338.svg"
-               width="130" height="130" alt="벚꽃" loading="lazy" style="display:block; border-radius: 50%; box-shadow: 0 4px 12px rgba(255,139,167,0.3);">
+          <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
+               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img class="neo-logo-icon" src="icons/samba.svg"
-               width="130" height="130" alt="쌈바 백사자 로고" loading="lazy">
+          <img class="neo-logo-icon" src="/icons/samba-mode-icon.png"
+               width="130" height="130" alt="쌈바 모드 로고" loading="lazy">
         </div>
         <h1>쌈바의 팩폭 운세 플랫폼</h1>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -830,16 +830,16 @@
             <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
             <button class="tarot-tile tarot-tile--healing" type="button"
                     data-action="openTarotHealingModal"
-                    aria-label="긍정 에너지 회복 타로 리딩 시작">
+                    aria-label="긍정 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/healing.webp"
-                     alt="긍정 에너지 회복 — 힐링 4카드 타로"
+                     alt="긍정 태양 회복 — Sun & Light 4카드 타로"
                      loading="lazy" width="200" height="150">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
               </div>
               <div class="tarot-tile__body">
-                <span class="tarot-tile__title">🌅 긍정 에너지 회복</span>
-                <span class="tarot-tile__desc">4카드 힐링 스프레드</span>
+                <span class="tarot-tile__title">☀ 긍정 태양 회복</span>
+                <span class="tarot-tile__desc">4카드 회복 스프레드</span>
               </div>
             </button>
 
@@ -1832,6 +1832,12 @@
                 <div class="tarot-love-invoke-wrap">
                   <button class="tarot-love-btn tarot-love-btn--invoke" type="button" data-action="startTarotLoveReading">🔮 카드 뽑기</button>
                 </div>
+                <div class="tarot-love-hero-cards" aria-hidden="true">
+                  <span class="tarot-love-hero-card hc1">♥</span>
+                  <span class="tarot-love-hero-card hc2">☽</span>
+                  <span class="tarot-love-hero-card hc3">✦</span>
+                  <span class="tarot-love-hero-card hc4">♡</span>
+                </div>
               </div>
             </section>
 
@@ -1849,6 +1855,7 @@
                 <h2 class="tarot-love-reading-title">🌙 우리 사이 리딩 결과</h2>
               </header>
               <div id="tarotLoveReadingContent" class="tarot-love-reading-content"></div>
+              <div id="tarotLoveResultCardsStrip" class="tarot-love-result-cards-strip" aria-label="뽑은 카드 다시 보기"></div>
               <div class="tarot-love-result-actions">
                 <button type="button" class="tarot-love-btn" data-action="shareTarotLoveResult">💬 카카오톡 공유하기</button>
                 <button type="button" class="tarot-love-btn tarot-love-btn--subtle" data-action="resetTarotLoveFlow">🔄 다시 리딩하기</button>
@@ -1858,7 +1865,7 @@
         </div>
       </div>
 
-      <!-- 긍정 에너지 회복 타로 모달 -->
+      <!-- 긍정 태양 회복 타로 모달 (Sun & Light Healing) -->
       <div id="tarotHealingOverlay" class="tarot-healing-overlay" style="display:none;" data-action="closeTarotHealingModal" data-action-self-only="1">
         <div class="tarot-healing-particles" aria-hidden="true">
           <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span><span class="particle p5"></span>
@@ -1866,30 +1873,36 @@
         </div>
         <div class="tarot-healing-shell">
           <div class="tarot-healing-panel">
-            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="긍정 에너지 회복 타로 닫기">×</button>
+            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="긍정 태양 회복 타로 닫기">×</button>
 
             <section id="tarotHealingIntroStage" class="tarot-healing-stage is-active">
               <div class="tarot-healing-hero">
-                <h1 class="tarot-healing-title">긍정 에너지 회복하기</h1>
-                <p class="tarot-healing-subtitle">새벽의 빛처럼 부드럽게, 상처를 인정하고 다시 일어설 힘을 찾는 4카드 힐링 리딩입니다.</p>
+                <div class="tarot-healing-title-wrap">
+                  <svg class="tarot-healing-sun-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="5" fill="currentColor" stroke="#e6a020" stroke-width="1.5"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <h1 class="tarot-healing-title">긍정 태양 회복 타로</h1>
+                </div>
+                <p class="tarot-healing-subtitle">햇살처럼 따뜻한 빛으로 상처를 어루만지고, 다시 일어설 힘을 찾는 4카드 회복 리딩입니다. 타로는 미래를 점치는 것이 아니라, 당신 안의 빛을 찾는 도구입니다.</p>
                 <div class="tarot-healing-invoke-wrap">
-                  <button class="tarot-healing-btn tarot-healing-btn--invoke" type="button" data-action="startTarotHealingReading">🌅 새벽의 카드 펼치기</button>
+                  <button class="tarot-healing-btn tarot-healing-btn--invoke" type="button" data-action="startTarotHealingReading">☀ 햇살의 카드 펼치기</button>
                 </div>
               </div>
             </section>
 
             <section id="tarotHealingDrawStage" class="tarot-healing-stage">
-              <h3 class="tarot-healing-draw-header">천천히 심호흡하며 카드를 한 장씩 열어 보세요</h3>
+              <h3 class="tarot-healing-draw-header">천천히 심호흡하며, 한 장씩 카드를 열어 보세요</h3>
               <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
               <div id="tarotHealingCardGrid" class="tarot-healing-card-grid"></div>
               <div class="tarot-healing-final-wrap">
-                <button type="button" class="tarot-healing-final-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>✨ 치유 스토리 보기</button>
+                <button type="button" class="tarot-healing-final-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀ 회복 스토리 보기</button>
               </div>
             </section>
 
             <section id="tarotHealingResultStage" class="tarot-healing-stage">
               <header class="tarot-healing-reading-header">
-                <h2 class="tarot-healing-reading-title">🌤️ Healing & Rising 결과</h2>
+                <h2 class="tarot-healing-reading-title">☀ 긍정 태양 회복 결과</h2>
               </header>
               <div id="tarotHealingReadingContent" class="tarot-healing-reading-content"></div>
               <div class="tarot-healing-result-actions">
@@ -1921,11 +1934,13 @@
               <div class="tarot-reunion-hero">
                 <h1 class="tarot-reunion-title">그 사람과의 인연은 끝났을까?</h1>
                 <p class="tarot-reunion-subtitle">깊은 밤바다의 등대처럼, 당신의 그리움을 다정하게 비추는 재회운 5카드 스프레드입니다. 조급한 단정보다 따뜻한 통찰로 다음 길을 찾도록 도와드립니다.</p>
-                <div class="tarot-reunion-audio-wrap">
-                  <button id="tarotReunionSoundBtn" class="tarot-reunion-sound-btn" type="button" data-action="toggleTarotReunionAmbient">🌊 밤바다 사운드 켜기</button>
-                  <audio id="tarotReunionAmbient" preload="none" loop playsinline>
-                    <!-- src는 재생 시 JS에서 설정 (Pixabay 403 방지) -->
-                  </audio>
+                <div class="tarot-reunion-meditation-wrap">
+                  <button id="tarotReunionMeditationBtn" class="tarot-reunion-meditation-btn" type="button" data-action="toggleTarotReunionMeditation" aria-label="밤바다 명상">🧘 밤바다 명상 시작</button>
+                  <div id="tarotReunionMeditationGuide" class="tarot-reunion-meditation-guide" aria-live="polite" hidden>
+                    <div class="tarot-reunion-breath-circle" aria-hidden="true"></div>
+                    <p id="tarotReunionBreathText" class="tarot-reunion-breath-text"></p>
+                    <span id="tarotReunionBreathCount" class="tarot-reunion-breath-count"></span>
+                  </div>
                 </div>
                 <div class="tarot-reunion-invoke-wrap">
                   <button class="tarot-reunion-btn tarot-reunion-btn--invoke" type="button" data-action="startTarotReunionReading">🕯️ 재회의 등대 카드 펼치기</button>

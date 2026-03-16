@@ -21,7 +21,11 @@
 .animal-totem-overlay .totem-mode-btn,
 .animal-totem-overlay .totem-draw-card,
 .animal-totem-overlay .animal-totem-close {
-  touch-action: pan-y;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.animal-totem-overlay .totem-draw-card {
+  cursor: pointer;
 }
 .animal-totem-overlay::before {
   content: "";
@@ -64,13 +68,30 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.25);
   background: rgba(255,255,255,0.12);
   color: #fff;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  z-index: 2;
+  transition: background 0.2s, transform 0.15s;
+}
+.animal-totem-close:hover,
+.animal-totem-close:focus {
+  background: rgba(255,255,255,0.22);
+}
+.animal-totem-close:active {
+  transform: scale(0.92);
 }
 
 .animal-totem-stage { display: none; }
@@ -157,6 +178,13 @@
     0 12px 26px rgba(168,85,247,.4),
     0 0 0 1px rgba(255,255,255,.18) inset,
     0 0 22px rgba(244,114,182,.34);
+}
+.totem-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.totem-btn:focus-visible {
+  outline: 2px solid rgba(250, 204, 21, 0.8);
+  outline-offset: 2px;
 }
 .totem-btn--invoke {
   position: relative;
@@ -264,7 +292,15 @@
   background: rgba(255,255,255,.07);
   color: #f6edff;
   text-align: left;
-  padding: 12px;
+  padding: 14px 16px;
+  min-height: 56px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.totem-mode-btn:active {
+  transform: scale(0.98);
 }
 .totem-mode-btn.is-active {
   border-color: rgba(250,204,21,.7);
@@ -292,8 +328,22 @@
   perspective: 950px;
   transform-style: preserve-3d;
   cursor: pointer;
+  min-width: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.totem-draw-card.is-disabled { opacity: .45; }
+.totem-draw-card:focus {
+  outline: 2px solid rgba(250, 204, 21, 0.7);
+  outline-offset: 2px;
+}
+.totem-draw-card.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.totem-draw-card:not(.is-disabled):active {
+  transform: scale(0.98);
+  transition: transform 0.12s ease;
+}
 .totem-draw-card-inner {
   position: relative;
   display: block;
@@ -564,37 +614,39 @@
 
 @media (max-width: 768px) {
   .animal-totem-shell {
-    margin: 16px auto;
-    padding: 0 10px 20px;
+    margin: 12px auto;
+    padding: 0 12px max(20px, env(safe-area-inset-bottom));
   }
   .animal-totem-panel {
-    padding: 14px;
-    border-radius: 16px;
+    padding: 16px 14px;
+    border-radius: 20px;
   }
   .totem-canvas-wrap {
-    height: 220px;
+    height: 200px;
   }
   .totem-draw-header {
-    font-size: 0.96rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    padding-right: 8px;
   }
   .totem-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 12px;
   }
   .totem-draw-card {
-    min-height: 180px;
-    height: 180px;
+    min-height: 160px;
+    height: 160px;
   }
   .totem-card-face--back::before {
     background-size: 54%;
   }
   .totem-guidance-card {
-    padding: 16px;
-    border-radius: 14px;
+    padding: 18px;
+    border-radius: 16px;
   }
   .totem-guidance-name {
-    font-size: 18px;
+    font-size: 1.1rem;
   }
   .totem-guidance-section p,
   .totem-guidance-section li {
@@ -604,21 +656,57 @@
   .totem-result-actions {
     display: grid;
     grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 18px;
   }
   .totem-btn {
     width: 100%;
+    min-height: 48px;
+    padding: 14px 20px;
+  }
+  .totem-intro-hero {
+    padding: 18px 16px 20px;
+  }
+  .totem-intro-title {
+    font-size: 1.05rem;
+  }
+  .totem-intro-subtitle {
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+  .animal-totem-close {
+    top: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
 @media (max-width: 420px) {
   .totem-mode-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   .totem-card-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
   .totem-draw-card {
-    max-width: 220px;
+    max-width: 280px;
+    min-height: 180px;
+    height: 180px;
     margin: 0 auto;
+  }
+}
+
+/* 모바일 터치 반응 개선: 카드 탭 힌트 */
+@media (max-width: 768px) {
+  .animal-totem-overlay .totem-draw-header::after {
+    content: " (탭하여 뒤집기)";
+    font-size: 0.8em;
+    font-weight: 400;
+    opacity: 0.85;
   }
 }

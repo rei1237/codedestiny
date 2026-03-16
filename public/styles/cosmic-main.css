@@ -11,10 +11,12 @@ body .cosmic-bg {
 	overflow: hidden;
 }
 
+/* 꽃돼지 모드 — 페이지 배경은 흰색, 카드 안만 밤하늘 그라데이션 */
 body:not(.neo-mode) {
 	background: #ffffff;
 	background-image: none;
 	background-color: #ffffff;
+	color: #1f2937;
 }
 
 /* ─── 빛나는 별 애니메이션 (shine) ─── */
@@ -59,6 +61,7 @@ body:not(.neo-mode) {
 	}
 }
 
+/* 꽃돼지 모드: 참조 사이트처럼 부드러운 별빛 (핑크·골드·블루) */
 body:not(.neo-mode) .cosmic-star {
 	position: absolute;
 	width: 3px;
@@ -160,11 +163,7 @@ body:not(.neo-mode) .cosmic-star--18 { left: 18%; top: 78%; animation-delay: 0.8
 	pointer-events: none;
 	z-index: 1;
 }
-/* 기본 모드: 참조 사이트와 동일하게 별꽃 장식 비노출 */
-body:not(.neo-mode) .cosmic-star-flower,
-body:not(.neo-mode) .logo-star-flower {
-	display: none;
-}
+/* 꽃돼지 모드: 참조 사이트처럼 별꽃 노출 (골드·핑크·블루) */
 body:not(.neo-mode) .logo-star-flower {
 	background: radial-gradient(circle at 50% 50%, #fffbf0 0%, #ffecb8 45%, rgba(255, 220, 150, 0.9) 100%);
 }
@@ -199,20 +198,130 @@ body .wrap { position: relative; z-index: 1; }
 	50% { opacity: 1; }
 }
 
-/* ─── Zone 1: 로고/히어로 — 어두운 우주 배경 + 별 반짝임 (neo 모드 전용) ─── */
+/* 꽃돼지 카드 내부 — 별빛이 내리는 애니메이션 (한 패턴 높이만 이동해 무한 루프) */
+@keyframes starfall {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(33.333%); }
+}
+
+/* ─── 꽃돼지 모드: 로고 영역 — 참조 사이트처럼 밝은 글래스 + 꽃/벚꽃 포인트 ─── */
+/* 카드 안쪽만 그라데이션 밤하늘 + 핑크 포인트 */
+body:not(.neo-mode) .logo-area {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	background: linear-gradient(165deg,
+		#1e1a32 0%,
+		#252040 25%,
+		#2a2545 50%,
+		#1f1b35 75%,
+		#18142a 100%) !important;
+	border: 1px solid rgba(255, 182, 193, 0.45) !important;
+	box-shadow:
+		0 12px 40px rgba(30, 26, 48, 0.25),
+		0 0 0 1px rgba(255, 182, 193, 0.2) inset !important;
+}
+body:not(.neo-mode) .logo-area::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 8%;
+	right: 8%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 182, 193, 0.6),
+		rgba(255, 192, 203, 0.5),
+		rgba(255, 182, 193, 0.6),
+		transparent
+	);
+	pointer-events: none;
+	z-index: 2;
+}
+body:not(.neo-mode) .logo-cosmos::before {
+	display: none;
+}
+body:not(.neo-mode) .logo-area h1 {
+	color: #fce4ec !important;
+	font-weight: 800 !important;
+	text-shadow: 0 0 24px rgba(255, 182, 193, 0.5), 0 0 12px rgba(255, 192, 203, 0.4) !important;
+	-webkit-text-fill-color: #fce4ec !important;
+	background: none !important;
+}
+body:not(.neo-mode) .logo-area p {
+	color: rgba(255, 224, 235, 0.95) !important;
+	text-shadow: 0 0 12px rgba(255, 182, 193, 0.3);
+}
+body:not(.neo-mode) .logo-area .logo-star {
+	display: none;
+}
+
+/* 카드 내부 별빛 내리는 레이어 (꽃돼지 전용) */
+body:not(.neo-mode) .logo-area::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -100%;
+	width: 100%;
+	height: 300%;
+	pointer-events: none;
+	z-index: 0;
+	background-image:
+		radial-gradient(1.5px 1.5px at 8% 2%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1px 1px at 22% 8%, rgba(255,230,250,0.85), transparent),
+		radial-gradient(1.5px 1.5px at 38% 4%, rgba(255,240,255,0.8), transparent),
+		radial-gradient(1px 1px at 55% 12%, rgba(255,255,255,0.75), transparent),
+		radial-gradient(1.5px 1.5px at 72% 3%, rgba(255,220,245,0.9), transparent),
+		radial-gradient(1px 1px at 88% 10%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 15% 18%, rgba(255,240,250,0.7), transparent),
+		radial-gradient(1.5px 1.5px at 45% 22%, rgba(255,255,255,0.85), transparent),
+		radial-gradient(1px 1px at 68% 16%, rgba(255,228,248,0.75), transparent),
+		radial-gradient(1.5px 1.5px at 92% 24%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 5% 28%, rgba(255,235,252,0.7), transparent),
+		radial-gradient(1.5px 1.5px at 28% 32%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1px 1px at 58% 26%, rgba(255,230,250,0.8), transparent),
+		radial-gradient(1px 1px at 82% 30%, rgba(255,245,255,0.75), transparent),
+		radial-gradient(1.5px 1.5px at 12% 38%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 48% 42%, rgba(255,220,245,0.85), transparent),
+		radial-gradient(1px 1px at 75% 36%, rgba(255,255,255,0.75), transparent),
+		radial-gradient(1.5px 1.5px at 35% 48%, rgba(255,240,255,0.8), transparent),
+		radial-gradient(1px 1px at 65% 52%, rgba(255,255,255,0.85), transparent),
+		radial-gradient(1px 1px at 18% 58%, rgba(255,230,250,0.7), transparent),
+		radial-gradient(1.5px 1.5px at 52% 62%, rgba(255,245,255,0.8), transparent),
+		radial-gradient(1px 1px at 85% 56%, rgba(255,255,255,0.75), transparent);
+	background-size: 100% 33.333%;
+	background-repeat: repeat-y;
+	animation: starfall 12s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	body:not(.neo-mode) .logo-area::after {
+		animation: none;
+		opacity: 0.6;
+	}
+}
+body:not(.neo-mode) .logo-area .logo-cosmos,
+body:not(.neo-mode) .logo-area .normal-logo,
+body:not(.neo-mode) .logo-area .neo-logo,
+body:not(.neo-mode) .logo-area .auth-quick-links {
+	position: relative;
+	z-index: 1;
+}
+
+/* ─── Zone 1: 로고/히어로 — 백사자 스타일 다크+골드 (neo 전용) ─── */
 body.neo-mode .logo-area {
 	position: relative;
 	overflow: hidden;
 	isolation: isolate;
 	background:
-		radial-gradient(ellipse at 22% -5%,  rgba(180, 80, 255, 0.24) 0%, transparent 50%),
-		radial-gradient(ellipse at 78% 105%, rgba(100, 80, 255, 0.2) 0%, transparent 50%),
-		radial-gradient(ellipse at 50%  50%, rgba(100, 40, 180, 0.12) 0%, transparent 65%),
-		linear-gradient(180deg, rgba(14, 6, 38, 0.98) 0%, rgba(8, 4, 26, 0.99) 100%) !important;
-	border: 1px solid rgba(180, 100, 255, 0.25) !important;
+		radial-gradient(ellipse at 22% -5%,  rgba(255, 215, 0, 0.12) 0%, transparent 50%),
+		radial-gradient(ellipse at 78% 105%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
+		linear-gradient(180deg, rgba(10, 11, 16, 0.98) 0%, rgba(18, 14, 8, 0.99) 100%) !important;
+	border: 1px solid rgba(255, 215, 0, 0.25) !important;
 	box-shadow:
-		0 12px 40px rgba(80, 40, 160, 0.2),
-		0 0 0 1px rgba(200, 150, 255, 0.08) inset !important;
+		0 12px 40px rgba(0, 0, 0, 0.4),
+		0 0 0 1px rgba(255, 215, 0, 0.08) inset !important;
 }
 
 body.neo-mode .logo-area::before {
@@ -225,17 +334,16 @@ body.neo-mode .logo-area::before {
 	background: linear-gradient(
 		90deg,
 		transparent,
-		rgba(220, 120, 255, 0.75),
-		rgba(160, 110, 255, 0.6),
-		rgba(120, 150, 255, 0.7),
-		rgba(220, 120, 255, 0.75),
+		rgba(255, 235, 150, 0.6),
+		rgba(255, 215, 0, 0.5),
+		rgba(255, 235, 150, 0.6),
 		transparent
 	);
 	pointer-events: none;
 	z-index: 2;
 }
 
-/* 메인 히어로 별밭 레이어 — 많은 작은 별들이 반짝이는 효과 (neo 모드 전용) */
+/* 메인 히어로 별밭 레이어 — 골드/흰 별 반짝임 (neo 전용) */
 body.neo-mode .logo-cosmos::before {
 	content: '';
 	position: absolute;
@@ -246,12 +354,12 @@ body.neo-mode .logo-cosmos::before {
 		radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.8), transparent),
 		radial-gradient(2px 2px at 42% 15%, rgba(255,240,220,0.9), transparent),
 		radial-gradient(1px 1px at 62% 6%, rgba(255,255,255,0.75), transparent),
-		radial-gradient(1.5px 1.5px at 85% 18%, rgba(220,200,255,0.9), transparent),
-		radial-gradient(1px 1px at 15% 45%, rgba(255,255,255,0.6), transparent),
-		radial-gradient(1px 1px at 55% 38%, rgba(255,230,200,0.7), transparent),
-		radial-gradient(2px 2px at 78% 48%, rgba(255,255,255,0.85), transparent),
+	radial-gradient(1.5px 1.5px at 85% 18%, rgba(255,235,200,0.9), transparent),
+	radial-gradient(1px 1px at 15% 45%, rgba(255,255,255,0.6), transparent),
+	radial-gradient(1px 1px at 55% 38%, rgba(255,236,200,0.7), transparent),
+	radial-gradient(2px 2px at 78% 48%, rgba(255,248,220,0.85), transparent),
 		radial-gradient(1px 1px at 10% 72%, rgba(255,255,255,0.5), transparent),
-		radial-gradient(1.5px 1.5px at 35% 82%, rgba(240,220,255,0.8), transparent),
+		radial-gradient(1.5px 1.5px at 35% 82%, rgba(255,240,220,0.8), transparent),
 		radial-gradient(1px 1px at 68% 75%, rgba(255,255,255,0.65), transparent),
 		radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,0.7), transparent),
 		radial-gradient(1px 1px at 5% 28%, rgba(255,255,255,0.55), transparent),
@@ -261,10 +369,10 @@ body.neo-mode .logo-cosmos::before {
 	opacity: 0.85;
 }
 
-/* 로고 영역 내 개별 별 — 반짝이는 애니메이션 적용 (neo 모드 전용) */
+/* 로고 영역 내 개별 별 — 반짝이는 애니메이션 (neo 전용) */
 body.neo-mode .logo-area .logo-star {
 	background: #fff !important;
-	box-shadow: 0 0 4px rgba(255,255,255,0.5);
+	box-shadow: 0 0 4px rgba(255,255,255,0.5), 0 0 8px rgba(255, 215, 0, 0.3);
 	animation: cosmic-logo-star-twinkle 2.8s ease-in-out infinite !important;
 }
 body.neo-mode .logo-area .logo-star--1 { animation-delay: 0s !important; }
@@ -292,30 +400,123 @@ body.neo-mode .logo-area .logo-star--12 {
 	animation-delay: 1.4s !important;
 }
 
+/* 백사자 스타일: 로고 타이틀/부제 (neo 전용) */
 body.neo-mode .logo-area h1 {
-	color: #fff !important;
+	color: #FFD700 !important;
 	font-weight: 800 !important;
-	text-shadow: 0 0 20px rgba(180, 120, 255, 0.5) !important;
-	-webkit-text-fill-color: #fff !important;
+	text-shadow: 0 0 16px rgba(255, 215, 0, 0.4), 0 1px 2px rgba(0,0,0,0.3) !important;
+	-webkit-text-fill-color: #FFD700 !important;
 	background: none !important;
 }
 body.neo-mode .logo-area p {
-	color: rgba(200, 175, 255, 0.78) !important;
+	color: rgba(255, 224, 130, 0.85) !important;
 }
 
-/* ─── Zone 2: 생년월일·정보 입력 섹션 — 우주 컨셉 (neo 모드 전용) ─── */
+/* ─── 꽃돼지 모드: 입력 섹션 — 흰 배경 위 깔끔한 카드, 가독성 개선 ─── */
+body:not(.neo-mode) .card.input-section {
+	position: relative;
+	overflow: hidden;
+	isolation: isolate;
+	background: rgba(255, 250, 253, 0.98) !important;
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border: 1px solid rgba(255, 182, 193, 0.45) !important;
+	box-shadow:
+		0 10px 32px rgba(255, 182, 193, 0.08),
+		0 0 0 1px rgba(255, 255, 255, 0.9) inset !important;
+}
+body:not(.neo-mode) .card.input-section::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 10%;
+	right: 10%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 182, 193, 0.55),
+		rgba(255, 192, 203, 0.5),
+		rgba(255, 182, 193, 0.55),
+		transparent
+	);
+	pointer-events: none;
+}
+body:not(.neo-mode) .card.input-section::after {
+	display: none;
+}
+body:not(.neo-mode) .card.input-section .form-label {
+	color: #5c3d52 !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.02em;
+}
+body:not(.neo-mode) .card.input-section .inp,
+body:not(.neo-mode) .card.input-section .form-country-select {
+	background: rgba(255, 255, 255, 0.95) !important;
+	border: 1px solid rgba(200, 170, 195, 0.5) !important;
+	color: #2d2438 !important;
+	border-radius: 12px;
+}
+body:not(.neo-mode) .card.input-section .inp:focus {
+	border-color: rgba(255, 139, 167, 0.6) !important;
+	box-shadow: 0 0 0 2px rgba(255, 139, 167, 0.12) !important;
+	background: #fff !important;
+}
+body:not(.neo-mode) .card.input-section .inp::placeholder {
+	color: rgba(100, 80, 110, 0.45) !important;
+}
+body:not(.neo-mode) .card.input-section .form-radio-row label {
+	color: #5c3d52 !important;
+}
+body:not(.neo-mode) .card.input-section .birth-time-tip {
+	color: #6b4d5c !important;
+	background: rgba(255, 240, 248, 0.9) !important;
+	border: 1px solid rgba(255, 182, 193, 0.4) !important;
+	border-radius: 10px;
+	padding: 10px 14px;
+}
+body:not(.neo-mode) .card.input-section .toggle-wrap {
+	background: rgba(255, 252, 254, 0.9) !important;
+	border: 1px solid rgba(255, 182, 193, 0.35) !important;
+	border-radius: 12px;
+}
+body:not(.neo-mode) .card.input-section .tog-btn {
+	color: #6b4d5c !important;
+}
+body:not(.neo-mode) .card.input-section .tog-btn.on {
+	background: linear-gradient(135deg, rgba(255, 139, 167, 0.2), rgba(244, 114, 182, 0.15)) !important;
+	border-color: rgba(255, 139, 167, 0.5) !important;
+	color: #8b3a5c !important;
+	box-shadow: 0 0 12px rgba(255, 139, 167, 0.15) !important;
+}
+body:not(.neo-mode) .card.input-section .dp-save-btn {
+	background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%) !important;
+	box-shadow: 0 4px 20px rgba(244, 114, 182, 0.35) !important;
+	border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+body:not(.neo-mode) .card.input-section .btn-main {
+	background: linear-gradient(90deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%) !important;
+	box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35) !important;
+}
+body:not(.neo-mode) .card.input-section .fortune-point-notice {
+	background: rgba(255, 248, 252, 0.95) !important;
+	border: 1px solid rgba(255, 182, 193, 0.4) !important;
+	color: #4a3d45 !important;
+}
+
+/* ─── Zone 2: 생년월일·정보 입력 섹션 — 백사자 스타일 다크+골드 (neo 전용) ─── */
 body.neo-mode .card.input-section {
 	position: relative;
 	overflow: hidden;
 	isolation: isolate;
 	background:
-		radial-gradient(ellipse at 10% 0%,   rgba(80, 50, 200, 0.18) 0%, transparent 50%),
-		radial-gradient(ellipse at 90% 100%, rgba(60, 80, 220, 0.14) 0%, transparent 50%),
-		linear-gradient(180deg, rgba(12, 8, 32, 0.96) 0%, rgba(7, 5, 22, 0.98) 100%) !important;
-	border: 1px solid rgba(120, 80, 255, 0.28) !important;
+		radial-gradient(ellipse at 10% 0%,   rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+		radial-gradient(ellipse at 90% 100%, rgba(255, 193, 7, 0.06) 0%, transparent 50%),
+		linear-gradient(180deg, rgba(10, 11, 16, 0.96) 0%, rgba(18, 14, 8, 0.98) 100%) !important;
+	border: 1px solid rgba(255, 215, 0, 0.22) !important;
 	box-shadow:
-		0 12px 36px rgba(60, 40, 140, 0.25),
-		0 0 0 1px rgba(150, 100, 255, 0.1) inset !important;
+		0 12px 36px rgba(0, 0, 0, 0.35),
+		0 0 0 1px rgba(255, 215, 0, 0.06) inset !important;
 }
 
 body.neo-mode .card.input-section::before {
@@ -328,15 +529,15 @@ body.neo-mode .card.input-section::before {
 	background: linear-gradient(
 		90deg,
 		transparent,
-		rgba(140, 100, 255, 0.5),
-		rgba(100, 140, 255, 0.4),
-		rgba(140, 100, 255, 0.5),
+		rgba(255, 235, 150, 0.45),
+		rgba(255, 215, 0, 0.4),
+		rgba(255, 235, 150, 0.45),
 		transparent
 	);
 	pointer-events: none;
 }
 
-/* 입력 섹션 내부 별빛 장식 (neo 모드 전용) */
+/* 입력 섹션 내부 별빛 장식 (neo 전용) */
 body.neo-mode .card.input-section::after {
 	content: '';
 	position: absolute;
@@ -345,54 +546,54 @@ body.neo-mode .card.input-section::after {
 	background-image:
 		radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.25), transparent),
 		radial-gradient(1px 1px at 88% 15%, rgba(255,255,255,0.2), transparent),
-		radial-gradient(1px 1px at 20% 80%, rgba(200,180,255,0.2), transparent),
+		radial-gradient(1px 1px at 20% 80%, rgba(255,236,200,0.2), transparent),
 		radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,0.18), transparent);
 	opacity: 0.8;
 }
 
 body.neo-mode .card.input-section .form-label {
-	color: rgba(200, 180, 255, 0.92) !important;
+	color: rgba(255, 224, 130, 0.92) !important;
 }
 
 body.neo-mode .card.input-section .inp,
 body.neo-mode .card.input-section .form-country-select {
 	background: rgba(255, 255, 255, 0.06) !important;
-	border: 1px solid rgba(130, 90, 255, 0.35) !important;
-	color: rgba(230, 218, 255, 0.95) !important;
+	border: 1px solid rgba(255, 215, 0, 0.28) !important;
+	color: rgba(240, 232, 220, 0.95) !important;
 }
 body.neo-mode .card.input-section .inp:focus {
-	border-color: rgba(160, 120, 255, 0.6) !important;
-	box-shadow: 0 0 0 2px rgba(120, 80, 255, 0.2), 0 0 20px rgba(100, 60, 255, 0.15) !important;
+	border-color: rgba(255, 215, 0, 0.5) !important;
+	box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.15), 0 0 20px rgba(255, 193, 7, 0.1) !important;
 	background: rgba(255, 255, 255, 0.1) !important;
 }
 body.neo-mode .card.input-section .inp::placeholder {
-	color: rgba(160, 140, 220, 0.5) !important;
+	color: rgba(200, 180, 150, 0.5) !important;
 }
 
 body.neo-mode .card.input-section .form-radio-row label {
-	color: rgba(190, 170, 255, 0.85) !important;
+	color: rgba(255, 236, 200, 0.85) !important;
 }
 
 body.neo-mode .card.input-section .birth-time-tip {
-	color: rgba(180, 160, 255, 0.75) !important;
-	background: rgba(80, 60, 180, 0.15) !important;
-	border: 1px solid rgba(100, 80, 220, 0.2) !important;
+	color: rgba(255, 224, 130, 0.75) !important;
+	background: rgba(40, 35, 20, 0.4) !important;
+	border: 1px solid rgba(255, 215, 0, 0.2) !important;
 	border-radius: 10px !important;
 	padding: 8px 12px !important;
 }
 
 body.neo-mode .card.input-section .toggle-wrap {
 	background: rgba(255, 255, 255, 0.05) !important;
-	border: 1px solid rgba(110, 80, 255, 0.25) !important;
+	border: 1px solid rgba(255, 215, 0, 0.2) !important;
 }
 body.neo-mode .card.input-section .tog-btn {
-	color: rgba(170, 150, 255, 0.8) !important;
+	color: rgba(255, 236, 200, 0.75) !important;
 }
 body.neo-mode .card.input-section .tog-btn.on {
-	background: linear-gradient(135deg, rgba(120, 70, 255, 0.35), rgba(90, 100, 255, 0.28)) !important;
-	border-color: rgba(160, 120, 255, 0.5) !important;
-	color: #f0e6ff !important;
-	box-shadow: 0 0 16px rgba(130, 80, 255, 0.25) !important;
+	background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.15)) !important;
+	border-color: rgba(255, 215, 0, 0.45) !important;
+	color: #ffe082 !important;
+	box-shadow: 0 0 16px rgba(255, 215, 0, 0.2) !important;
 }
 
 body.neo-mode .card.input-section .dp-save-btn {
@@ -401,17 +602,17 @@ body.neo-mode .card.input-section .dp-save-btn {
 	border: 1px solid rgba(255, 255, 255, 0.35) !important;
 }
 body.neo-mode .card.input-section .btn-main {
-	background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #8b5cf6 100%) !important;
-	box-shadow: 0 6px 24px rgba(124, 58, 237, 0.45) !important;
+	background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #FFD700 100%) !important;
+	box-shadow: 0 6px 24px rgba(255, 215, 0, 0.35) !important;
 }
 
 body.neo-mode .card.input-section .fortune-point-notice {
-	background: rgba(40, 25, 80, 0.4) !important;
-	border: 1px solid rgba(120, 80, 255, 0.2) !important;
-	color: rgba(210, 195, 255, 0.9) !important;
+	background: rgba(30, 25, 15, 0.5) !important;
+	border: 1px solid rgba(255, 215, 0, 0.18) !important;
+	color: rgba(255, 236, 200, 0.9) !important;
 }
 
-/* Reduced motion: 별 반짝임 완화 */
+/* Reduced motion: 별 반짝임 완화 (neo 전용) */
 @media (prefers-reduced-motion: reduce) {
 	body.neo-mode .logo-area .logo-star {
 		animation: none !important;

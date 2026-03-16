@@ -8,6 +8,7 @@
   box-shadow: 0 0 14px rgba(116, 176, 232, 0.35);
 }
 
+/* 밤바다·별 우주 배경 */
 .tarot-reunion-overlay {
   position: fixed;
   inset: 0;
@@ -17,10 +18,33 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background:
-    radial-gradient(circle at 15% 22%, rgba(153, 215, 255, 0.22), transparent 45%),
-    radial-gradient(circle at 72% 16%, rgba(255, 227, 151, 0.12), transparent 40%),
-    linear-gradient(180deg, #0a1128 0%, #0c1a3b 42%, #0f2a4d 68%, #163a5b 100%);
-  backdrop-filter: blur(8px);
+    radial-gradient(ellipse 120% 100% at 50% 100%, rgba(15, 45, 85, 0.6), transparent 50%),
+    radial-gradient(circle at 15% 22%, rgba(100, 180, 255, 0.18), transparent 40%),
+    radial-gradient(circle at 72% 16%, rgba(255, 235, 180, 0.1), transparent 38%),
+    radial-gradient(circle at 50% 85%, rgba(30, 70, 120, 0.35), transparent 45%),
+    linear-gradient(180deg, #050a18 0%, #08122a 25%, #0c1a38 50%, #0f2245 75%, #132a52 100%);
+  backdrop-filter: blur(10px);
+}
+.tarot-reunion-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 15%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 40% 8%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 12%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 80% 18%, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 10% 40%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 90% 35%, rgba(255, 255, 255, 0.5), transparent);
+  background-size: 200% 200%;
+  opacity: 0.6;
+  animation: reunionStarsFloat 20s ease-in-out infinite;
+}
+@keyframes reunionStarsFloat {
+  0%, 100% { opacity: 0.5; transform: translateY(0); }
+  50% { opacity: 0.7; transform: translateY(-2px); }
 }
 .tarot-reunion-overlay.is-open { display: block; animation: reunionOverlayIn .5s ease; }
 @keyframes reunionOverlayIn {
@@ -37,26 +61,24 @@
 }
 .tarot-reunion-stars .star {
   position: absolute;
-  width: 3px;
-  height: 3px;
   border-radius: 50%;
   background: rgba(224, 244, 255, .95);
-  box-shadow: 0 0 14px rgba(200, 231, 255, .8);
+  box-shadow: 0 0 12px rgba(200, 231, 255, .85), 0 0 24px rgba(180, 220, 255, .4);
   animation: reunionStarTwinkle 4.2s ease-in-out infinite;
 }
-.tarot-reunion-stars .s1 { left: 9%; top: 13%; animation-delay: .1s; }
-.tarot-reunion-stars .s2 { left: 18%; top: 9%; animation-delay: 1.1s; }
-.tarot-reunion-stars .s3 { left: 34%; top: 16%; animation-delay: 1.8s; }
-.tarot-reunion-stars .s4 { left: 51%; top: 10%; animation-delay: .6s; }
-.tarot-reunion-stars .s5 { left: 68%; top: 14%; animation-delay: 2.2s; }
-.tarot-reunion-stars .s6 { left: 83%; top: 8%; animation-delay: .9s; }
-.tarot-reunion-stars .s7 { left: 76%; top: 28%; animation-delay: 2.8s; }
-.tarot-reunion-stars .s8 { left: 25%; top: 30%; animation-delay: 1.5s; }
-.tarot-reunion-stars .s9 { left: 42%; top: 24%; animation-delay: .3s; }
-.tarot-reunion-stars .s10 { left: 60%; top: 20%; animation-delay: 2.5s; }
+.tarot-reunion-stars .s1 { left: 9%; top: 13%; width: 3px; height: 3px; animation-delay: .1s; }
+.tarot-reunion-stars .s2 { left: 18%; top: 9%; width: 2px; height: 2px; animation-delay: 1.1s; }
+.tarot-reunion-stars .s3 { left: 34%; top: 16%; width: 4px; height: 4px; animation-delay: 1.8s; }
+.tarot-reunion-stars .s4 { left: 51%; top: 10%; width: 3px; height: 3px; animation-delay: .6s; }
+.tarot-reunion-stars .s5 { left: 68%; top: 14%; width: 2px; height: 2px; animation-delay: 2.2s; }
+.tarot-reunion-stars .s6 { left: 83%; top: 8%; width: 3px; height: 3px; animation-delay: .9s; }
+.tarot-reunion-stars .s7 { left: 76%; top: 28%; width: 2px; height: 2px; animation-delay: 2.8s; }
+.tarot-reunion-stars .s8 { left: 25%; top: 30%; width: 4px; height: 4px; animation-delay: 1.5s; }
+.tarot-reunion-stars .s9 { left: 42%; top: 24%; width: 3px; height: 3px; animation-delay: .3s; }
+.tarot-reunion-stars .s10 { left: 60%; top: 20%; width: 2px; height: 2px; animation-delay: 2.5s; }
 @keyframes reunionStarTwinkle {
-  0%, 100% { transform: translateY(0) scale(1); opacity: .45; }
-  50% { transform: translateY(-6px) scale(1.35); opacity: 1; }
+  0%, 100% { transform: translateY(0) scale(1); opacity: .5; }
+  50% { transform: translateY(-6px) scale(1.4); opacity: 1; }
 }
 
 .tarot-reunion-lighthouse {
@@ -121,6 +143,24 @@
   50% { transform: scaleX(1.08); opacity: .62; }
 }
 
+/* 밤바다 수평선·물결 느낌 (하단) */
+.tarot-reunion-overlay::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  z-index: 99998;
+  pointer-events: none;
+  background: linear-gradient(0deg,
+    rgba(8, 25, 50, .5) 0%,
+    rgba(15, 40, 75, .25) 25%,
+    transparent 100%);
+  mask-image: linear-gradient(0deg, black 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(0deg, black 0%, transparent 100%);
+}
+
 .tarot-reunion-shell {
   position: relative;
   max-width: 1040px;
@@ -131,11 +171,27 @@
 .tarot-reunion-panel {
   position: relative;
   border-radius: 24px;
-  border: 1px solid rgba(183, 221, 255, .35);
+  border: 1px solid rgba(160, 210, 255, .3);
   backdrop-filter: blur(16px);
-  background: linear-gradient(160deg, rgba(6, 25, 54, .7), rgba(9, 36, 67, .76));
-  box-shadow: 0 0 38px rgba(98, 172, 230, .2), 0 22px 70px rgba(4, 14, 32, .55);
+  background:
+    linear-gradient(160deg, rgba(6, 22, 48, .85), rgba(8, 32, 62, .82)),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(80, 150, 255, .08), transparent 50%);
+  box-shadow:
+    0 0 48px rgba(60, 140, 220, .15),
+    0 24px 72px rgba(2, 12, 28, .6),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
   padding: 32px;
+}
+.tarot-reunion-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  border-radius: 0 0 24px 24px;
+  background: linear-gradient(90deg, transparent, rgba(120, 180, 255, .2) 30%, rgba(120, 180, 255, .25) 50%, rgba(120, 180, 255, .2) 70%, transparent);
+  opacity: 0.8;
 }
 .tarot-reunion-panel.ritual-burst { animation: reunionBurst .9s ease; }
 @keyframes reunionBurst {
@@ -171,8 +227,10 @@
 .tarot-reunion-hero {
   border-radius: 18px;
   padding: 30px 26px 34px;
-  background: linear-gradient(160deg, rgba(132, 192, 241, .12), rgba(255, 228, 150, .08));
-  box-shadow: inset 0 0 0 1px rgba(189, 224, 255, .3);
+  background:
+    linear-gradient(160deg, rgba(20, 55, 100, .4), rgba(15, 40, 75, .35)),
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(100, 170, 255, .12), transparent 55%);
+  box-shadow: inset 0 0 0 1px rgba(160, 210, 255, .25), 0 4px 24px rgba(0, 20, 50, .2);
 }
 .tarot-reunion-title {
   margin: 0;
@@ -189,40 +247,112 @@
   line-height: 1.75;
   color: rgba(234, 246, 255, .94);
 }
-.tarot-reunion-audio-wrap {
-  margin-top: 16px;
+/* 밤바다 명상 — 톤앤매너: 등대·별·고요한 바다 */
+.tarot-reunion-meditation-wrap {
+  margin-top: 18px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
-.tarot-reunion-sound-btn {
-  border: 1px solid rgba(193, 226, 255, .55);
-  background: rgba(21, 63, 103, .58);
-  color: #eaf5ff;
-  border-radius: 12px;
-  padding: 8px 14px;
+.tarot-reunion-meditation-btn {
+  border: 1px solid rgba(180, 220, 255, .5);
+  background: linear-gradient(160deg, rgba(25, 65, 110, .7), rgba(15, 45, 85, .8));
+  color: #e8f4ff;
+  border-radius: 14px;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-family: "Noto Serif KR", "Georgia", serif;
   cursor: pointer;
-  transition: opacity .3s ease, background .3s ease;
+  transition: opacity .3s ease, background .3s ease, box-shadow .3s ease;
+  box-shadow: 0 4px 16px rgba(10, 40, 80, .4), inset 0 1px 0 rgba(255, 255, 255, .08);
 }
-.tarot-reunion-sound-btn:hover {
-  background: rgba(35, 85, 130, .7);
+.tarot-reunion-meditation-btn:hover {
+  background: linear-gradient(160deg, rgba(35, 85, 135, .75), rgba(22, 55, 95, .85));
+  box-shadow: 0 6px 22px rgba(80, 160, 255, .2), inset 0 1px 0 rgba(255, 255, 255, .1);
 }
-.tarot-reunion-meditation-tip {
-  margin: 12px 0 0;
-  font-size: .9rem;
-  color: rgba(200, 230, 255, .9);
-  font-style: italic;
+.tarot-reunion-meditation-guide {
+  width: 100%;
+  max-width: 320px;
+  padding: 20px 18px;
+  border-radius: 18px;
+  background: linear-gradient(165deg, rgba(15, 45, 85, .6), rgba(8, 28, 55, .7));
+  border: 1px solid rgba(160, 210, 255, .3);
+  box-shadow: 0 8px 32px rgba(0, 20, 50, .4), inset 0 1px 0 rgba(255, 255, 255, .06);
+  text-align: center;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity .6s ease, transform .6s ease;
+  transform: translateY(8px);
+  transition: opacity .4s ease, transform .4s ease;
 }
-.tarot-reunion-meditation-tip.is-visible {
+.tarot-reunion-meditation-guide.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
-.tarot-reunion-meditation-tip.is-fadeout {
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity .8s ease, transform .8s ease;
+.tarot-reunion-breath-circle {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(180, 220, 255, .5);
+  background: radial-gradient(circle at 30% 30%, rgba(120, 180, 255, .2), transparent 60%);
+  box-shadow: 0 0 24px rgba(100, 170, 255, .25);
+  transition: transform 0.4s ease, opacity 0.4s ease, border-color 0.4s ease;
+}
+.tarot-reunion-meditation-guide.breath-in .tarot-reunion-breath-circle {
+  animation: reunionBreathIn 4s ease-in-out forwards;
+}
+.tarot-reunion-meditation-guide.breath-hold .tarot-reunion-breath-circle {
+  transform: scale(1.35);
+  border-color: rgba(200, 230, 255, .6);
+  opacity: 0.95;
+}
+.tarot-reunion-meditation-guide.breath-out .tarot-reunion-breath-circle {
+  animation: reunionBreathOut 4s ease-in-out forwards;
+}
+@keyframes reunionBreathIn {
+  0% { transform: scale(0.75); opacity: 0.7; border-color: rgba(160, 210, 255, .4); }
+  100% { transform: scale(1.35); opacity: 0.95; border-color: rgba(200, 230, 255, .6); }
+}
+@keyframes reunionBreathOut {
+  0% { transform: scale(1.35); opacity: 0.95; border-color: rgba(200, 230, 255, .6); }
+  100% { transform: scale(0.75); opacity: 0.7; border-color: rgba(160, 210, 255, .4); }
+}
+/* 명상 가이드 문구 — 부드러운 화이트/실버, 그림자, 타이핑 커서 */
+.tarot-reunion-breath-text {
+  margin: 0 0 6px;
+  min-height: 2.8em;
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(248, 252, 255, 0.96);
+  font-style: italic;
+  text-shadow:
+    0 1px 2px rgba(0, 15, 35, 0.5),
+    0 0 20px rgba(200, 225, 255, 0.15),
+    0 2px 4px rgba(0, 20, 50, 0.35);
+  letter-spacing: 0.02em;
+}
+.tarot-reunion-breath-text::after {
+  content: "|";
+  display: inline;
+  margin-left: 2px;
+  color: rgba(220, 238, 255, 0.9);
+  font-style: normal;
+  animation: reunionTypingCursor 0.9s step-end infinite;
+}
+.tarot-reunion-breath-text.tarot-reunion-typing-done::after {
+  display: none;
+}
+@keyframes reunionTypingCursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.tarot-reunion-breath-count {
+  display: block;
+  font-size: 12px;
+  color: rgba(212, 228, 248, 0.88);
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 3px rgba(0, 15, 40, 0.4);
 }
 .tarot-reunion-invoke-wrap { margin-top: 20px; text-align: center; }
 .tarot-reunion-btn {
@@ -844,7 +974,7 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .tarot-reunion-sound-btn:hover,
+  .tarot-reunion-meditation-btn:hover,
   .tarot-reunion-btn:hover,
   .tarot-reunion-card:hover:not(.flipped),
   .tarot-reunion-result-card:hover {

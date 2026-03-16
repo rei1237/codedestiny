@@ -1,13 +1,23 @@
-/* Dawn of Healing — 긍정 에너지 회복 타로 */
+/* ═══════════════════════════════════════════════════════════════════════════
+   긍정 태양 회복 타로 — Sun & Light Healing Concept
+   비주얼: warm gold, bright yellow, soft orange, sky blue, clean white
+   목표: 밝고 따뜻한 치유감, 햇살이 비치는 듯한 그라데이션·광채
+   크로스 브라우저·모바일 safe area 대응
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-.feature-card--tarot-healing { border-bottom: 3px solid #ffaf9b; }
+/* ─── Feature card (메인 페이지 진입 카드) ─── */
+.feature-card--tarot-healing {
+  border-bottom: 3px solid #f5b042;
+  box-shadow: 0 4px 20px rgba(255, 193, 77, 0.2);
+}
 .feature-card--tarot-healing .feature-card__cta,
 .feature-card--tarot-healing .feature-card__launch {
-  background: linear-gradient(135deg, #ff9db6, #ffb87d);
-  color: #fff;
-  box-shadow: 0 0 14px rgba(255, 171, 123, 0.35);
+  background: linear-gradient(135deg, #ffc843, #ff9f43);
+  color: #2d1f0e;
+  box-shadow: 0 4px 20px rgba(255, 159, 67, 0.4), 0 0 30px rgba(255, 220, 130, 0.25);
 }
 
+/* ─── Overlay: 맑은 하늘·햇살 창가 배경 ─── */
 .tarot-healing-overlay {
   position: fixed;
   inset: 0;
@@ -16,19 +26,26 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  /* 밝은 하늘 + 햇살 그라데이션 (어두운 밤 제거) */
   background:
-    radial-gradient(circle at 15% 20%, rgba(185, 164, 255, 0.35), transparent 42%),
-    radial-gradient(circle at 80% 25%, rgba(255, 176, 158, 0.32), transparent 45%),
-    radial-gradient(circle at 60% 80%, rgba(255, 216, 145, 0.2), transparent 45%),
-    linear-gradient(145deg, #2a1b44 0%, #5c3d72 35%, #d98383 68%, #ffd08f 100%);
-  backdrop-filter: blur(8px);
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(255, 236, 179, 0.95) 0%, rgba(255, 218, 130, 0.6) 25%, rgba(135, 206, 250, 0.35) 55%, rgba(255, 255, 255, 0.9) 100%),
+    linear-gradient(180deg, #e8f4fc 0%, #fff9f0 40%, #fffef8 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   isolation: isolate;
+  /* safe area */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-.tarot-healing-overlay.is-open { display: block; animation: healingOverlayIn 0.5s ease; }
+.tarot-healing-overlay.is-open {
+  display: block;
+  animation: healingOverlayIn 0.5s ease;
+}
 @keyframes healingOverlayIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* 햇살 빛줄기 장식 (부드러운 광채) */
 .tarot-healing-overlay::before,
 .tarot-healing-overlay::after {
   content: "";
@@ -38,25 +55,27 @@
   z-index: 99998;
 }
 .tarot-healing-overlay::before {
-  background: radial-gradient(circle at 50% 45%, rgba(255, 236, 173, 0.22), transparent 52%);
-  filter: blur(20px);
+  background: radial-gradient(circle at 50% 20%, rgba(255, 248, 220, 0.5) 0%, rgba(255, 230, 160, 0.2) 35%, transparent 60%);
+  filter: blur(28px);
+  -webkit-filter: blur(28px);
   animation: dawnPulse 6s ease-in-out infinite;
 }
 .tarot-healing-overlay::after {
-  background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.16) 50%, transparent 75%);
-  transform: translateX(-65%) rotate(-4deg);
-  opacity: 0.45;
-  animation: dawnSweep 9s linear infinite;
+  background: linear-gradient(165deg, transparent 20%, rgba(255, 255, 255, 0.4) 45%, transparent 70%);
+  transform: translateX(-50%) rotate(-6deg);
+  opacity: 0.6;
+  animation: dawnSweep 10s linear infinite;
 }
 @keyframes dawnPulse {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.04); }
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
 }
 @keyframes dawnSweep {
-  0% { transform: translateX(-70%) rotate(-4deg); }
-  100% { transform: translateX(70%) rotate(-4deg); }
+  0% { transform: translateX(-60%) rotate(-6deg); }
+  100% { transform: translateX(60%) rotate(-6deg); }
 }
 
+/* ─── 파티클: 밝은 빛 알갱이 ─── */
 .tarot-healing-particles {
   position: fixed;
   inset: 0;
@@ -66,11 +85,11 @@
 }
 .tarot-healing-particles .particle {
   position: absolute;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(255, 246, 214, 0.9);
-  box-shadow: 0 0 14px rgba(255, 234, 171, 0.8);
+  background: rgba(255, 250, 230, 0.95);
+  box-shadow: 0 0 16px rgba(255, 235, 180, 0.9), 0 0 6px rgba(255, 255, 255, 0.8);
   animation: healingFloat 4.5s ease-in-out infinite;
 }
 .tarot-healing-particles .p1 { left: 10%; top: 16%; animation-delay: 0s; }
@@ -84,10 +103,11 @@
 .tarot-healing-particles .p9 { left: 58%; top: 78%; animation-delay: 0.3s; }
 .tarot-healing-particles .p10 { left: 84%; top: 70%; animation-delay: 2.3s; }
 @keyframes healingFloat {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.55; }
-  50% { transform: translateY(-11px) scale(1.25); opacity: 1; }
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50% { transform: translateY(-12px) scale(1.2); opacity: 1; }
 }
 
+/* ─── Shell & Panel: 밝은 유리 + 맑은 흰색 오버레이 ─── */
 .tarot-healing-shell {
   position: relative;
   max-width: 940px;
@@ -98,13 +118,15 @@
 .tarot-healing-panel {
   position: relative;
   border-radius: 24px;
-  border: 1px solid rgba(255, 248, 235, 0.35);
+  border: 1px solid rgba(255, 235, 200, 0.6);
   backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.11);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.75);
   box-shadow:
-    0 0 45px rgba(255, 182, 121, 0.23),
-    0 22px 70px rgba(38, 24, 56, 0.45),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+    0 0 50px rgba(255, 213, 120, 0.25),
+    0 20px 60px rgba(200, 180, 120, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 248, 230, 0.5);
   padding: 34px;
   overflow: hidden;
 }
@@ -113,17 +135,20 @@
   position: absolute;
   inset: -1px;
   border-radius: 24px;
-  border: 1px solid rgba(255, 245, 226, 0.42);
-  box-shadow: inset 0 0 36px rgba(255, 236, 183, 0.28);
+  border: 1px solid rgba(255, 245, 220, 0.5);
+  box-shadow: inset 0 0 40px rgba(255, 240, 200, 0.2);
   pointer-events: none;
 }
-.tarot-healing-panel.ritual-burst { animation: healingBurst 0.9s ease; }
+.tarot-healing-panel.ritual-burst {
+  animation: healingBurst 0.9s ease;
+}
 @keyframes healingBurst {
-  0% { box-shadow: 0 0 45px rgba(255, 182, 121, 0.23), 0 22px 70px rgba(38, 24, 56, 0.45); }
-  40% { box-shadow: 0 0 78px rgba(255, 214, 152, 0.7), 0 22px 70px rgba(38, 24, 56, 0.45); }
-  100% { box-shadow: 0 0 45px rgba(255, 182, 121, 0.23), 0 22px 70px rgba(38, 24, 56, 0.45); }
+  0% { box-shadow: 0 0 50px rgba(255, 213, 120, 0.25), 0 20px 60px rgba(200, 180, 120, 0.15), inset 0 1px 0 rgba(255,255,255,0.9); }
+  40% { box-shadow: 0 0 80px rgba(255, 220, 140, 0.55), 0 20px 60px rgba(200, 180, 120, 0.2), inset 0 1px 0 rgba(255,255,255,0.95); }
+  100% { box-shadow: 0 0 50px rgba(255, 213, 120, 0.25), 0 20px 60px rgba(200, 180, 120, 0.15), inset 0 1px 0 rgba(255,255,255,0.9); }
 }
 
+/* 닫기 버튼: 밝은 톤 */
 .tarot-healing-close {
   position: absolute;
   top: 14px;
@@ -131,66 +156,93 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(94, 64, 122, 0.55);
-  color: #fff9ef;
+  border: 1px solid rgba(230, 180, 80, 0.5);
+  background: rgba(255, 248, 230, 0.9);
+  color: #b8860b;
   font-size: 1.4rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 16px rgba(255, 200, 100, 0.2);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.tarot-healing-close:hover {
+  box-shadow: 0 0 20px rgba(255, 213, 120, 0.4);
+  transform: scale(1.05);
 }
 
+/* ─── 스테이지 전환 ─── */
 .tarot-healing-stage { display: none; }
-.tarot-healing-stage.is-active { display: block; animation: healingFadeUp 0.45s ease; }
+.tarot-healing-stage.is-active {
+  display: block;
+  animation: healingFadeUp 0.45s ease;
+}
 @keyframes healingFadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── 히어로: 타이틀 + 황금 빛줄기 구분선 ─── */
 .tarot-healing-hero {
   border-radius: 18px;
   padding: 30px 26px 34px;
   background:
-    radial-gradient(circle at 75% 28%, rgba(255, 214, 158, 0.36), transparent 48%),
-    linear-gradient(155deg, rgba(251, 235, 255, 0.27), rgba(255, 255, 255, 0.08));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+    radial-gradient(circle at 75% 20%, rgba(255, 230, 150, 0.35), transparent 50%),
+    linear-gradient(160deg, rgba(255, 250, 235, 0.9), rgba(255, 255, 255, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 24px rgba(255, 200, 100, 0.12);
   position: relative;
   overflow: hidden;
 }
+/* 황금 빛줄기 형태 구분선 */
 .tarot-healing-hero::after {
   content: "";
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.24), transparent 45%);
-  pointer-events: none;
-  animation: heroGlow 5.5s ease-in-out infinite;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(245, 176, 66, 0.8), rgba(255, 215, 100, 0.9), rgba(245, 176, 66, 0.8), transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(255, 220, 130, 0.6);
+  filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.4));
 }
-@keyframes heroGlow {
-  0%, 100% { opacity: 0.38; }
-  50% { opacity: 0.72; }
+.tarot-healing-hero .tarot-healing-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-
+.tarot-healing-hero .tarot-healing-sun-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: #e6a020;
+  fill: #f5b042;
+  filter: drop-shadow(0 0 8px rgba(255, 200, 80, 0.6));
+}
 .tarot-healing-title {
   margin: 0;
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 34px;
   line-height: 1.2;
-  letter-spacing: 0.01em;
-  color: #fff8ec;
-  text-shadow: 0 3px 18px rgba(93, 56, 128, 0.35);
+  letter-spacing: 0.02em;
+  color: #2d1f0e;
+  text-shadow: 0 2px 8px rgba(255, 235, 180, 0.5);
   animation: titleBreathe 5s ease-in-out infinite;
 }
 @keyframes titleBreathe {
-  0%, 100% { text-shadow: 0 3px 18px rgba(93, 56, 128, 0.35); }
-  50% { text-shadow: 0 0 28px rgba(255, 241, 187, 0.55), 0 3px 18px rgba(93, 56, 128, 0.35); }
+  0%, 100% { text-shadow: 0 2px 8px rgba(255, 235, 180, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(255, 220, 130, 0.4), 0 2px 8px rgba(255, 235, 180, 0.5); }
 }
 .tarot-healing-subtitle {
   margin-top: 14px;
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 15px;
   line-height: 1.7;
-  color: rgba(255, 249, 238, 0.92);
+  color: #4a3c28;
 }
 
 .tarot-healing-invoke-wrap { margin-top: 24px; text-align: center; }
@@ -198,18 +250,18 @@
   display: inline-block;
   border-radius: 14px;
   padding: 14px 26px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: linear-gradient(135deg, #ffb39d, #ffcb87);
-  color: #5a3456;
+  border: 1px solid rgba(230, 170, 60, 0.5);
+  background: linear-gradient(135deg, #ffc843, #ffb347);
+  color: #2d1f0e;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(102, 66, 128, 0.24);
+  box-shadow: 0 8px 24px rgba(255, 180, 80, 0.35), 0 0 20px rgba(255, 220, 140, 0.2);
   transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
 }
 .tarot-healing-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 20px rgba(255, 236, 173, 0.6), 0 10px 24px rgba(102, 66, 128, 0.24);
-  filter: saturate(1.06);
+  transform: translateY(-2px);
+  box-shadow: 0 0 28px rgba(255, 230, 150, 0.5), 0 10px 28px rgba(255, 180, 80, 0.35);
+  filter: saturate(1.08);
 }
 .tarot-healing-btn--invoke {
   font-size: 16px;
@@ -217,34 +269,37 @@
   animation: healingBtnPulse 2.8s ease-in-out infinite;
 }
 @keyframes healingBtnPulse {
-  0%, 100% { box-shadow: 0 10px 24px rgba(102, 66, 128, 0.24); }
-  50% { box-shadow: 0 0 24px rgba(255, 239, 173, 0.75), 0 10px 24px rgba(102, 66, 128, 0.24); }
+  0%, 100% { box-shadow: 0 8px 24px rgba(255, 180, 80, 0.35), 0 0 20px rgba(255, 220, 140, 0.2); }
+  50% { box-shadow: 0 0 32px rgba(255, 230, 150, 0.5), 0 8px 24px rgba(255, 180, 80, 0.35); }
 }
 .tarot-healing-btn--subtle {
-  background: rgba(255, 255, 255, 0.25);
-  color: #5a3456;
+  background: rgba(255, 248, 235, 0.9);
+  color: #8b6914;
+  border-color: rgba(245, 176, 66, 0.5);
 }
 
+/* ─── 드로우 스테이지: 가이드 텍스트 ─── */
 .tarot-healing-draw-header {
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 1.16rem;
-  color: #fffaf0;
+  color: #3d3225;
   text-align: center;
   margin-bottom: 10px;
 }
 .tarot-healing-spread-guide {
   text-align: center;
-  color: rgba(255, 248, 236, 0.95);
+  color: #5c4a35;
   font-size: 0.95rem;
   line-height: 1.55;
   margin-bottom: 20px;
   animation: guideBreath 3.8s ease-in-out infinite;
 }
 @keyframes guideBreath {
-  0%, 100% { opacity: 0.78; }
+  0%, 100% { opacity: 0.85; }
   50% { opacity: 1; }
 }
 
+/* ─── 카드 그리드 ─── */
 .tarot-healing-card-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(100px, 1fr));
@@ -272,25 +327,27 @@
   text-align: center;
   font-size: 0.82rem;
   line-height: 1.35;
-  color: rgba(255, 250, 238, 0.96);
+  color: #5c4a35;
   font-family: "Noto Serif KR", "Georgia", serif;
-  text-shadow: 0 1px 8px rgba(255, 230, 166, 0.25);
+  text-shadow: 0 1px 4px rgba(255, 240, 200, 0.4);
 }
 .tarot-healing-slot.guide-next::before {
-  content: "✧";
+  content: "☀";
   position: absolute;
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  color: rgba(255, 243, 182, 0.95);
-  text-shadow: 0 0 12px rgba(255, 232, 158, 0.9);
+  color: #e6a020;
+  text-shadow: 0 0 14px rgba(255, 200, 80, 0.8);
+  font-size: 1.1rem;
   animation: nextGlow 1.7s ease-in-out infinite;
 }
 @keyframes nextGlow {
-  0%, 100% { opacity: 0.5; transform: translateX(-50%) translateY(0); }
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
   50% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
 }
 
+/* ─── 카드: 앞면·뒷면 (밝은 톤) + 빛 퍼지는 플립 효과 ─── */
 .tarot-healing-card {
   width: 100%;
   max-width: 136px;
@@ -301,13 +358,14 @@
   cursor: pointer;
   transform-style: preserve-3d;
   transition: transform 1.05s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.45s ease;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 24px rgba(200, 160, 80, 0.15);
 }
 .tarot-healing-card::before {
   content: "";
   position: absolute;
-  inset: -22%;
-  background: radial-gradient(circle, rgba(255, 236, 177, 0.45), transparent 60%);
+  inset: -30%;
+  background: radial-gradient(circle, rgba(255, 240, 180, 0.6), transparent 55%);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.45s ease;
@@ -315,11 +373,15 @@
 .tarot-healing-card:hover::before,
 .tarot-healing-slot.guide-next .tarot-healing-card::before,
 .tarot-healing-card.flipped::before {
-  opacity: 0.85;
+  opacity: 0.9;
 }
+/* 플립 시 빛이 퍼져나가는 듯한 그림자 */
 .tarot-healing-card.flipped {
   transform: rotateY(180deg);
-  box-shadow: 0 0 28px rgba(255, 234, 166, 0.8), 0 10px 24px rgba(106, 70, 128, 0.25);
+  box-shadow:
+    0 0 35px rgba(255, 220, 130, 0.5),
+    0 12px 28px rgba(220, 180, 100, 0.2),
+    inset 0 0 20px rgba(255, 248, 220, 0.3);
 }
 
 .tarot-healing-card-back,
@@ -333,36 +395,40 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 252, 239, 0.5);
+  border: 1px solid rgba(255, 245, 220, 0.7);
 }
+/* 뒷면: 따뜻한 밝은 컬러 */
 .tarot-healing-card-back {
-  background: linear-gradient(150deg, rgba(92, 70, 132, 0.95), rgba(222, 138, 136, 0.92));
+  background: linear-gradient(155deg, #fff5e0 0%, #ffe4b8 50%, #ffd89a 100%);
   overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.4);
 }
 .tarot-healing-card-back::before {
-  content: "☼";
-  font-size: 1.9rem;
-  color: rgba(255, 238, 186, 0.9);
-  text-shadow: 0 0 18px rgba(255, 220, 120, 0.7);
+  content: "☀";
+  font-size: 2rem;
+  color: rgba(230, 160, 50, 0.9);
+  text-shadow: 0 0 20px rgba(255, 210, 120, 0.8), 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 .tarot-healing-card-back::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, transparent 25%, rgba(255,255,255,0.22) 50%, transparent 75%);
+  background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.4) 50%, transparent 75%);
   transform: translateX(-120%);
   animation: backShine 3.2s ease-in-out infinite;
 }
 @keyframes backShine {
-  0% { transform: translateX(-120%); opacity: 0.25; }
-  50% { transform: translateX(120%); opacity: 0.55; }
+  0% { transform: translateX(-120%); opacity: 0.3; }
+  50% { transform: translateX(120%); opacity: 0.6; }
   100% { transform: translateX(120%); opacity: 0.2; }
 }
+/* 앞면: 깨끗한 종이 느낌 */
 .tarot-healing-card-front {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
-  background: linear-gradient(160deg, rgba(255, 251, 243, 0.95), rgba(255, 235, 212, 0.96));
+  background: linear-gradient(165deg, #fffef9 0%, #fff8ed 50%, #fff5e6 100%);
   padding: 8px;
+  box-shadow: inset 0 0 20px rgba(255, 250, 235, 0.5);
 }
 .tarot-healing-card-front .tarot-face-img {
   width: 100%;
@@ -371,32 +437,32 @@
   min-height: 0;
   object-fit: contain;
   border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(61, 37, 77, 0.2);
-  background: rgba(255, 255, 255, 0.38);
+  box-shadow: 0 4px 16px rgba(180, 140, 80, 0.15);
+  background: rgba(255, 255, 255, 0.5);
   position: static;
   inset: auto;
   display: block;
   z-index: 1;
 }
-.tarot-healing-card-front.tarot-healing-image-fallback .tarot-face-img { opacity: 0.88; }
+.tarot-healing-card-front.tarot-healing-image-fallback .tarot-face-img { opacity: 0.9; }
 .tarot-healing-card-name {
   margin-top: 6px;
   font-size: 0.74rem;
-  color: #6f4969;
+  color: #6b5344;
   font-weight: 600;
   text-align: center;
   position: relative;
   z-index: 2;
   padding: 2px 6px;
   border-radius: 8px;
-  background: rgba(255, 248, 236, 0.76);
+  background: rgba(255, 248, 235, 0.9);
+  border: 1px solid rgba(245, 200, 120, 0.3);
 }
 
 .tarot-healing-card--forced-face {
   transform: none !important;
   overflow: hidden;
 }
-
 .tarot-healing-forced-face {
   position: absolute;
   inset: 0;
@@ -409,7 +475,6 @@
   background-repeat: no-repeat;
   border-radius: 12px;
 }
-
 .tarot-healing-forced-name {
   display: inline-block;
   max-width: 100%;
@@ -418,18 +483,20 @@
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.25;
-  color: #4f2f56;
+  color: #4a3828;
   text-align: center;
-  background: rgba(255, 246, 230, 0.86);
-  box-shadow: 0 4px 12px rgba(54, 30, 63, 0.22);
+  background: rgba(255, 250, 235, 0.95);
+  box-shadow: 0 2px 10px rgba(200, 160, 80, 0.15);
+  border: 1px solid rgba(245, 200, 120, 0.3);
 }
 
+/* ─── 리플: 빛 퍼짐 애니메이션 ─── */
 .ripple-wave {
   position: absolute;
   inset: 35% 35%;
   border-radius: 999px;
-  border: 2px solid rgba(255, 240, 181, 0.95);
-  box-shadow: 0 0 20px rgba(255, 226, 139, 0.8);
+  border: 2px solid rgba(255, 220, 120, 0.9);
+  box-shadow: 0 0 24px rgba(255, 200, 100, 0.7);
   pointer-events: none;
   animation: healingRipple 0.9s ease-out forwards;
 }
@@ -438,56 +505,73 @@
   to { transform: scale(3.3); opacity: 0; }
 }
 
+/* ─── 최종 버튼 wrap ─── */
 .tarot-healing-final-wrap { text-align: center; margin-top: 10px; }
 .tarot-healing-final-btn {
   border-radius: 14px;
   padding: 14px 32px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: linear-gradient(135deg, #ffb39d, #ffd796);
-  color: #5a3456;
+  border: 1px solid rgba(230, 170, 60, 0.5);
+  background: linear-gradient(135deg, #ffc843, #ffb347);
+  color: #2d1f0e;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 180, 80, 0.35), 0 0 20px rgba(255, 220, 140, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tarot-healing-final-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(255, 230, 150, 0.45), 0 10px 28px rgba(255, 180, 80, 0.35);
 }
 .tarot-healing-final-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
+/* ─── 결과 스테이지: 읽기 영역 ─── */
 .tarot-healing-reading-title {
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 1.3rem;
   text-align: center;
-  color: #fff8ef;
+  color: #2d1f0e;
+  text-shadow: 0 1px 4px rgba(255, 235, 180, 0.4);
 }
 .tarot-healing-reading-content {
   max-height: 56vh;
   overflow-y: auto;
   padding-right: 8px;
+  -webkit-overflow-scrolling: touch;
 }
+/* 섹션: 밝은 종이/카드 블록 */
 .tarot-healing-section {
   margin-bottom: 16px;
   padding: 16px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.44);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22), 0 8px 18px rgba(69, 40, 82, 0.13);
+  background: rgba(255, 252, 245, 0.95);
+  border: 1px solid rgba(255, 230, 180, 0.5);
+  box-shadow:
+    0 4px 16px rgba(255, 200, 100, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .tarot-healing-section-title {
   margin: 0 0 8px;
-  color: #5e3865;
+  color: #8b6914;
   font-weight: 700;
   font-family: "Noto Serif KR", "Georgia", serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .tarot-healing-section-text {
   margin: 0;
-  color: #4f3559;
-  line-height: 1.7;
+  color: #4a3c28;
+  line-height: 1.75;
 }
 .tarot-healing-advice-list {
   margin: 0;
   padding-left: 20px;
-  color: #4f3559;
-  line-height: 1.7;
+  color: #4a3c28;
+  line-height: 1.75;
 }
 .tarot-healing-result-actions {
   display: flex;
@@ -497,27 +581,20 @@
   margin-top: 22px;
 }
 
+/* ─── 반응형: 모바일 + safe area ─── */
 @media (max-width: 560px) {
   .tarot-healing-panel { padding: 24px 18px; }
   .tarot-healing-title { font-size: 27px; }
   .tarot-healing-card { max-width: 128px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tarot-healing-overlay::before,
-  .tarot-healing-overlay::after,
-  .tarot-healing-title,
-  .tarot-healing-spread-guide,
-  .tarot-healing-btn--invoke,
-  .tarot-healing-card-back::after {
-    animation: none !important;
-  }
-}
-
 @media (max-width: 768px) {
   .tarot-healing-shell {
     margin: 16px auto;
     padding: 14px 10px 22px;
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
   }
   .tarot-healing-panel {
     padding: 20px 14px;
@@ -550,6 +627,7 @@
   }
   .tarot-healing-reading-content {
     max-height: 58dvh;
+    max-height: min(58vh, 58dvh);
     padding-right: 2px;
   }
   .tarot-healing-result-actions {
@@ -562,6 +640,8 @@
 @media (max-width: 420px) {
   .tarot-healing-shell {
     padding: 10px 8px 18px;
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
   }
   .tarot-healing-panel {
     padding: 16px 12px;
@@ -575,6 +655,20 @@
   .tarot-healing-slot-label {
     font-size: 0.74rem;
     min-height: 2.2em;
+  }
+}
+
+/* 감동 축소 */
+@media (prefers-reduced-motion: reduce) {
+  .tarot-healing-overlay::before,
+  .tarot-healing-overlay::after,
+  .tarot-healing-title,
+  .tarot-healing-spread-guide,
+  .tarot-healing-btn--invoke,
+  .tarot-healing-card-back::after,
+  .tarot-healing-particles .particle,
+  .tarot-healing-slot.guide-next::before {
+    animation: none !important;
   }
 }
 

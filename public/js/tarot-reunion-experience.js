@@ -27,8 +27,19 @@
     revealedCount: 0,
     reading: null,
     soundEnabled: false,
+    meditationActive: false,
+    meditationPhaseTimer: null,
+    meditationCycleCount: 0,
   };
   var TAROT_API_TIMEOUT_MS = 12000;
+  var MEDITATION_PHASES = [
+    { key: "in", duration: 4000, text: "눈을 감고... 파도 소리에 집중해 보세요. 당신의 진심이 저 멀리 닿을 수 있도록, 숨을 들이쉬세요.", circleClass: "breath-in" },
+    { key: "hold", duration: 4000, text: "별빛이 고요히 머무는 동안, 잠시 참으세요. 그리움도 이 순간만은 잔잔합니다.", circleClass: "breath-hold" },
+    { key: "out", duration: 4000, text: "등대의 빛처럼 마음을 비우며 천천히 내쉬세요. 파도가 당신을 위로할 거예요.", circleClass: "breath-out" },
+  ];
+  var MEDITATION_MAX_CYCLES = 5;
+  var MEDITATION_TYPING_MS = 55;
+  var stateMeditationTypingId = null;
 
   function byId(id) {
     return document.getElementById(id);
@@ -423,111 +434,111 @@
     }
   }
 
-  var AMBIENT_URLS = [
-    "https://cdn.pixabay.com/audio/2022/03/15/audio_1f49f5f7f0.mp3",
-    "https://cdn.pixabay.com/audio/2022/03/10/audio_2b2b5d1b8b.mp3",
-    "https://cdn.pixabay.com/audio/2022/08/04/audio_345e0a5a9a.mp3",
-  ];
-  var ambientUrlIndex = 0;
-
-  function ensureAmbientPrepared() {
-    var sound = byId("tarotReunionAmbient");
-    var btn = byId("tarotReunionSoundBtn");
-    if (!sound || !btn) return;
-    sound.volume = 0;
-    sound.loop = true;
-    sound.preload = "none";
-    // src는 사용자가 '사운드 켜기' 클릭 시 toggleAmbientSound에서 설정 (페이지/모달 로드 시 403 방지)
-    btn.removeEventListener("click", boundToggleAmbient);
-    btn.addEventListener("click", boundToggleAmbient);
+  function ensureMeditationPrepared() {
+    var btn = byId("tarotReunionMeditationBtn");
+    if (!btn) return;
+    btn.removeEventListener("click", boundToggleMeditation);
+    btn.addEventListener("click", boundToggleMeditation);
   }
 
-  function boundToggleAmbient() {
-    toggleAmbientSound();
+  function boundToggleMeditation() {
+    toggleTarotReunionMeditation();
   }
 
-  function fadeInVolume(sound, targetVol, durationMs, cb) {
-    var start = performance.now();
-    sound.volume = 0;
-    function step(now) {
-      var elapsed = now - start;
-      var p = Math.min(1, elapsed / durationMs);
-      sound.volume = targetVol * (1 - Math.pow(1 - p, 2));
-      if (p < 1) requestAnimationFrame(step);
-      else if (typeof cb === "function") cb();
+  function clearMeditationTyping() {
+    if (stateMeditationTypingId) {
+      clearInterval(stateMeditationTypingId);
+      stateMeditationTypingId = null;
     }
-    requestAnimationFrame(step);
   }
 
-  function showMeditationPrompt() {
-    var wrap = document.querySelector(".tarot-reunion-audio-wrap");
-    if (!wrap) return;
-    var tip = document.getElementById("tarotReunionMeditationTip");
-    if (tip) {
-      tip.remove();
-      return;
-    }
-    tip = document.createElement("p");
-    tip.id = "tarotReunionMeditationTip";
-    tip.className = "tarot-reunion-meditation-tip";
-    tip.textContent = "잠깐 눈을 감고, 숨을 고르며 마음을 가라앉혀 보세요.";
-    wrap.appendChild(tip);
-    setTimeout(function () {
-      if (tip && tip.parentNode) tip.classList.add("is-visible");
-    }, 50);
-    setTimeout(function () {
-      if (tip && tip.parentNode) tip.classList.add("is-fadeout");
-    }, 4200);
-    setTimeout(function () {
-      if (tip && tip.parentNode) tip.parentNode.removeChild(tip);
-    }, 5500);
-  }
-
-  function tryNextAmbientUrl(sound, btn) {
-    ambientUrlIndex += 1;
-    if (ambientUrlIndex >= AMBIENT_URLS.length) {
-      if (typeof copyToClipboard === "function") {
-        copyToClipboard("밤바다 사운드를 불러오지 못했습니다. 네트워크를 확인해 주세요.", "안내");
-      } else {
-        alert("밤바다 사운드를 불러오지 못했습니다. 네트워크를 확인해 주세요.");
+  function typewriterMeditationText(el, fullText, speedMs, onComplete) {
+    if (!el) return;
+    clearMeditationTyping();
+    el.textContent = "";
+    el.classList.remove("tarot-reunion-typing-done");
+    var idx = 0;
+    var len = fullText.length;
+    stateMeditationTypingId = setInterval(function () {
+      if (idx >= len) {
+        clearMeditationTyping();
+        el.classList.add("tarot-reunion-typing-done");
+        if (typeof onComplete === "function") onComplete();
+        return;
       }
-      return;
-    }
-    sound.src = AMBIENT_URLS[ambientUrlIndex];
-    sound.load();
-    sound.play().then(function () {
-      state.soundEnabled = true;
-      btn.textContent = "🔇 밤바다 사운드 끄기";
-      fadeInVolume(sound, 0.22, 2400, function () {
-        showMeditationPrompt();
-      });
-    }).catch(function () {
-      tryNextAmbientUrl(sound, btn);
-    });
+      el.textContent += fullText.charAt(idx);
+      idx += 1;
+    }, speedMs);
   }
 
-  function toggleAmbientSound() {
-    var sound = byId("tarotReunionAmbient");
-    var btn = byId("tarotReunionSoundBtn");
-    if (!sound || !btn) return;
-    if (state.soundEnabled) {
-      sound.pause();
-      sound.currentTime = 0;
-      state.soundEnabled = false;
-      btn.textContent = "🌊 밤바다 사운드 켜기";
+  function stopMeditation() {
+    clearMeditationTyping();
+    if (state.meditationPhaseTimer) {
+      clearTimeout(state.meditationPhaseTimer);
+      state.meditationPhaseTimer = null;
+    }
+    state.meditationActive = false;
+    state.meditationCycleCount = 0;
+    var guide = byId("tarotReunionMeditationGuide");
+    var btn = byId("tarotReunionMeditationBtn");
+    if (guide) {
+      guide.hidden = true;
+      guide.classList.remove("is-visible");
+    }
+    if (btn) btn.textContent = "🧘 밤바다 명상 시작";
+  }
+
+  function runMeditationPhase(phaseIndex, cycleIndex) {
+    var guide = byId("tarotReunionMeditationGuide");
+    var breathText = byId("tarotReunionBreathText");
+    var breathCount = byId("tarotReunionBreathCount");
+    var circle = guide ? guide.querySelector(".tarot-reunion-breath-circle") : null;
+    if (!guide || !breathText) return;
+
+    clearMeditationTyping();
+    var phase = MEDITATION_PHASES[phaseIndex];
+    guide.classList.remove("breath-in", "breath-hold", "breath-out");
+    guide.classList.add(phase.circleClass);
+    if (circle) {
+      circle.className = "tarot-reunion-breath-circle " + phase.circleClass;
+    }
+    breathText.textContent = "";
+    breathText.classList.remove("tarot-reunion-typing-done");
+    if (breathCount) {
+      breathCount.textContent = cycleIndex < MEDITATION_MAX_CYCLES ? "제 " + (cycleIndex + 1) + "번째 호흡" : "마지막 호흡";
+    }
+    guide.hidden = false;
+    guide.classList.add("is-visible");
+
+    typewriterMeditationText(breathText, phase.text, MEDITATION_TYPING_MS);
+
+    var nextPhaseIndex = (phaseIndex + 1) % MEDITATION_PHASES.length;
+    var nextCycle = nextPhaseIndex === 0 ? cycleIndex + 1 : cycleIndex;
+    if (nextCycle >= MEDITATION_MAX_CYCLES && nextPhaseIndex === 0) {
+      state.meditationPhaseTimer = setTimeout(function () {
+        stopMeditation();
+      }, phase.duration);
       return;
     }
-    if (!sound.src && AMBIENT_URLS.length) sound.src = AMBIENT_URLS[0];
-    ambientUrlIndex = 0;
-    sound.play().then(function () {
-      state.soundEnabled = true;
-      btn.textContent = "🔇 밤바다 사운드 끄기";
-      fadeInVolume(sound, 0.22, 2400, function () {
-        showMeditationPrompt();
-      });
-    }).catch(function () {
-      tryNextAmbientUrl(sound, btn);
-    });
+    state.meditationPhaseTimer = setTimeout(function () {
+      if (!state.meditationActive) return;
+      runMeditationPhase(nextPhaseIndex, nextCycle);
+    }, phase.duration);
+  }
+
+  function startMeditation() {
+    state.meditationActive = true;
+    var btn = byId("tarotReunionMeditationBtn");
+    if (btn) btn.textContent = "✧ 명상 종료";
+    runMeditationPhase(0, 0);
+  }
+
+  function toggleTarotReunionMeditation() {
+    if (state.meditationActive) {
+      stopMeditation();
+      return;
+    }
+    startMeditation();
   }
 
   function openTarotReunionModal() {
@@ -537,7 +548,7 @@
     overlay.classList.add("is-open");
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
     else document.body.style.overflow = "hidden";
-    ensureAmbientPrepared();
+    ensureMeditationPrepared();
     bindTarotReunionStaticActions();
     resetTarotReunionFlow();
   }
@@ -558,8 +569,7 @@
 
   function closeTarotReunionModal() {
     var overlay = byId("tarotReunionOverlay");
-    var sound = byId("tarotReunionAmbient");
-    if (sound) sound.pause();
+    if (state.meditationActive) stopMeditation();
     if (!overlay) return;
     overlay.style.display = "none";
     overlay.classList.remove("is-open");
@@ -572,10 +582,9 @@
     state.revealedCount = 0;
     state.reading = null;
     state.soundEnabled = false;
-    var sound = byId("tarotReunionAmbient");
-    var btn = byId("tarotReunionSoundBtn");
-    if (sound) sound.pause();
-    if (btn) btn.textContent = "🌊 밤바다 사운드 켜기";
+    if (state.meditationActive) stopMeditation();
+    var btn = byId("tarotReunionMeditationBtn");
+    if (btn) btn.textContent = "🧘 밤바다 명상 시작";
     var intro = byId("tarotReunionIntroStage");
     var draw = byId("tarotReunionDrawStage");
     var result = byId("tarotReunionResultStage");
@@ -1027,7 +1036,7 @@
   window.flipTarotReunionCard = flipTarotReunionCard;
   window.showTarotReunionFinalReading = showTarotReunionFinalReading;
   window.shareTarotReunionResult = shareTarotReunionResult;
-  window.toggleTarotReunionAmbient = toggleAmbientSound;
+  window.toggleTarotReunionMeditation = toggleTarotReunionMeditation;
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", bindTarotReunionStaticActions, { once: true });
   } else {

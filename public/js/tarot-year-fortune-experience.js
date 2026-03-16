@@ -505,9 +505,16 @@
 
       var cardEl = document.createElement("div");
       cardEl.className = "ty-draw-card ty-draw-card--month";
+      cardEl.setAttribute("data-month-idx", idx);
       cardEl.onclick = (function (m) {
         return function () { selectMonthDetail(m); };
       })(idx + 1);
+
+      var inner = document.createElement("div");
+      inner.className = "ty-draw-card-inner";
+
+      var back = document.createElement("div");
+      back.className = "ty-draw-card-back";
 
       var front = document.createElement("div");
       front.className = "ty-draw-card-front";
@@ -525,10 +532,17 @@
       nameSpan.textContent = (card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "");
       front.appendChild(nameSpan);
 
-      cardEl.appendChild(front);
+      inner.appendChild(back);
+      inner.appendChild(front);
+      cardEl.appendChild(inner);
       slot.appendChild(label);
       slot.appendChild(cardEl);
       grid.appendChild(slot);
+    });
+
+    // 드로우 스테이지에서는 카드 바로 공개 (애니메이션은 결과 스테이지에서 월 클릭 시 적용)
+    grid.querySelectorAll(".ty-draw-card--month").forEach(function (el) {
+      el.classList.add("ty-draw-card--flipped");
     });
   }
 
@@ -718,9 +732,17 @@
     var token = ++state.monthRequestToken;
 
     panel.classList.add("is-visible");
+
+    var placeholder = byId("tarotYearMonthDetailPlaceholder");
+    var content = byId("tarotYearMonthDetailContent");
+    if (placeholder) placeholder.style.display = "none";
+    if (content) content.style.display = "block";
+
     var monthTiles = document.querySelectorAll(".ty-result-card-wrap--month");
     monthTiles.forEach(function (tile) {
-      tile.classList.toggle("is-active", String(tile.getAttribute("data-month")) === String(monthNum));
+      var isSelected = String(tile.getAttribute("data-month")) === String(monthNum);
+      tile.classList.toggle("is-active", isSelected);
+      tile.classList.toggle("ty-result-card-wrap--flipped", isSelected);
     });
 
     var titleEl = byId("tarotYearMonthDetailTitle");
@@ -758,6 +780,16 @@
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });
 
+    function showResultStage(data) {
+      var draw = byId("tarotYearFortuneDrawStage");
+      var result = byId("tarotYearFortuneResultStage");
+      if (!data.reading) return;
+      state.reading = data.reading;
+      if (draw) draw.classList.remove("is-active");
+      if (result) result.classList.add("is-active");
+      renderTarotYearResult();
+    }
+
     callTarotApi("reading", {
       category: "general",
       spreadType: "yearly_twelve_card",
@@ -765,21 +797,12 @@
     })
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
-        state.reading = data.reading;
-        var draw = byId("tarotYearFortuneDrawStage");
-        var result = byId("tarotYearFortuneResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        renderTarotYearResult();
+        showResultStage(data);
       })
       .catch(function (err) {
         console.error("Tarot Year reading error:", err);
         buildClientSideReading();
-        var draw = byId("tarotYearFortuneDrawStage");
-        var result = byId("tarotYearFortuneResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        renderTarotYearResult();
+        showResultStage({ reading: state.reading });
       });
   }
 
@@ -811,14 +834,14 @@
   function buildClientSideReading() {
     var zodiacTraits = ["지혜, 시작, 풍요", "근면, 우직함, 안정", "용기, 변화, 리더십", "성장, 평화, 직관", "비상, 큰 성취, 열정", "지성, 매력, 비밀", "활동력, 자유, 추진력", "예술성, 온화함, 조화", "재치, 임기응변, 다재다능", "결단력, 통찰, 화려함", "충직함, 책임감, 보호", "여유, 행운, 마무리"];
     var zodiacNames = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"];
-    var defMoney = "꾸준한 관리와 현명한 선택이 재물 흐름을 안정시킵니다.";
-    var defLove = "진심 어린 표현이 관계를 따뜻하게 만듭니다.";
-    var defRelation = "솔직한 소통이 관계를 풍요롭게 합니다.";
-    var defExam = "집중력과 꾸준한 노력이 좋은 결과로 이어집니다.";
+    var defMoney = "꾸준한 관리와 현명한 선택이 재물 흐름을 안정시킵니다. 불필요한 지출을 줄이고 저축의 씨앗을 뿌리면 후반에 결실이 보입니다.";
+    var defLove = "진심 어린 표현이 관계를 따뜻하게 만듭니다. 마음을 열고 대화할수록 인연이 깊어지는 달입니다.";
+    var defRelation = "솔직한 소통과 경계 존중이 인간관계를 풍요롭게 합니다. 주변과의 조화를 위해 한 걸음 양보해 보세요.";
+    var defExam = "집중력과 꾸준한 노력이 좋은 결과로 이어집니다. 짧은 시간이라도 매일 반복하는 습관이 합격운을 높입니다.";
 
     state.reading = {
-      summary: "12개월의 운명의 수레바퀴가 열렸습니다. 각 월의 카드를 눌러 재물·연애·인간관계·합격운을 확인하세요.",
-      finalAdvice: "올해는 12지신이 지키는 한 해입니다. 매월의 카드 메시지를 따라 작은 결심 하나하나가 큰 행운으로 이어질 것입니다.",
+      summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 자세히 확인하세요. 월별 카드와 삼재 스프레드가 당신의 한 해를 안내합니다.",
+      finalAdvice: "올해는 십이지신이 지키는 한 해입니다. 매월의 카드 메시지를 곁에 두고, 작은 결심 하나하나를 실천하면 운명의 수레바퀴가 유리하게 돌아갑니다. 급하지 않게, 그러나 꾸준히 나아가면 재물·인연·성취의 기운이 차분히 쌓일 것입니다.",
       monthlyReadings: state.cards.map(function (card, idx) {
         var id = card.cardId || card.id;
         var ori = card.orientation === "reversed" ? "r" : "u";
@@ -830,10 +853,11 @@
         var nameKr = card.nameKr || card.name || getCardNameKr(id);
         var traits = zodiacTraits[idx] || "";
         var zName = zodiacNames[idx] || "";
+        var flowFallback = zName + "의 달입니다. " + traits + "의 기운이 당신을 감쌉니다. " + nameKr + (card.orientation === "reversed" ? "(역방향)" : "(정방향)") + "의 메시지가 이 달의 흐름을 이끕니다. 월초에 다짐한 일을 차분히 실천하면 후반에 열매가 보일 수 있습니다.";
         return {
           month: idx + 1,
           zodiac: { name: zName, traits: traits },
-          flow: (g || (zName + "의 달입니다. " + traits + "의 기운이 당신을 감쌉니다. " + nameKr + "의 메시지가 이 달의 흐름을 이끕니다.")),
+          flow: (g || flowFallback),
           money: m,
           love: l,
           relationship: defRelation,
@@ -874,9 +898,14 @@
             }
           };
         })(idx + 1);
+        if (card.orientation === "reversed") wrap.setAttribute("data-reversed", "1");
+
+        var inner = document.createElement("div");
+        inner.className = "ty-result-card-inner";
+        var back = document.createElement("div");
+        back.className = "ty-result-card-back";
         var front = document.createElement("div");
         front.className = "ty-result-card-front";
-        if (card.orientation === "reversed") wrap.setAttribute("data-reversed", "1");
         var monthLabel = document.createElement("span");
         monthLabel.className = "ty-result-card-month";
         monthLabel.textContent = MONTH_LABELS_CJK[idx];
@@ -889,7 +918,9 @@
         guide.className = "ty-result-card-guide";
         guide.textContent = "월별 운세";
         front.appendChild(guide);
-        wrap.appendChild(front);
+        inner.appendChild(back);
+        inner.appendChild(front);
+        wrap.appendChild(inner);
         cardsEl.appendChild(wrap);
       });
     }
@@ -898,8 +929,11 @@
     if (adviceEl) adviceEl.textContent = r.finalAdvice || "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
 
     var panel = byId("tarotYearMonthDetailPanel");
-    if (panel) panel.classList.remove("is-visible");
-    selectMonthDetail(1, true);
+    var placeholder = byId("tarotYearMonthDetailPlaceholder");
+    var content = byId("tarotYearMonthDetailContent");
+    if (panel) panel.classList.add("is-visible");
+    if (placeholder) placeholder.style.display = "block";
+    if (content) content.style.display = "none";
   }
 
   function shareTarotYearFortuneResult() {

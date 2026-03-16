@@ -7,10 +7,12 @@
     consultation: null,
     revealedOrder: [],
     canvasLoop: null,
-    canvasStars: []
+    canvasStars: [],
+    touchStart: null
   };
 
   var refs = {};
+  var TAP_THRESHOLD = 12;
 
   function byId(id) { return document.getElementById(id); }
   var bodyLockState = {
@@ -176,9 +178,60 @@
     return map[slot] || slot;
   }
 
+  function getTouchPoint(e) {
+    if (e.changedTouches && e.changedTouches.length) {
+      var t = e.changedTouches[0];
+      return { x: t.clientX, y: t.clientY };
+    }
+    if (e.touches && e.touches.length) {
+      var t = e.touches[0];
+      return { x: t.clientX, y: t.clientY };
+    }
+    if (typeof e.clientX === "number") return { x: e.clientX, y: e.clientY };
+    return null;
+  }
+
+  function bindCardRailTouch() {
+    if (!refs.cardRail || refs.cardRail._totemTouchBound) return;
+    refs.cardRail._totemTouchBound = true;
+
+    refs.cardRail.addEventListener("touchstart", function(ev) {
+      var pt = getTouchPoint(ev);
+      if (pt) state.touchStart = { x: pt.x, y: pt.y };
+    }, { passive: true });
+
+    refs.cardRail.addEventListener("touchend", function(ev) {
+      if (!state.touchStart || !state.spread) return;
+      var pt = getTouchPoint(ev);
+      if (!pt) return;
+      var dx = Math.abs(pt.x - state.touchStart.x);
+      var dy = Math.abs(pt.y - state.touchStart.y);
+      if (dx > TAP_THRESHOLD || dy > TAP_THRESHOLD) {
+        state.touchStart = null;
+        return;
+      }
+      var target = ev.target && ev.target.closest && ev.target.closest(".totem-draw-card");
+      if (!target || target.classList.contains("is-disabled") || target.classList.contains("is-revealed")) {
+        state.touchStart = null;
+        return;
+      }
+      var idxAttr = target.getAttribute("data-action-args");
+      var idx = parseInt(idxAttr, 10);
+      if (idx !== state.revealedOrder.length) {
+        state.touchStart = null;
+        return;
+      }
+      ev.preventDefault();
+      ev.stopPropagation();
+      state.touchStart = null;
+      revealAnimalTotemCard(target, idx);
+    }, { passive: false });
+  }
+
   function renderDeck() {
     if (!refs.cardRail || !state.spread) return;
     refs.cardRail.innerHTML = "";
+    refs.cardRail._totemTouchBound = false;
     state.revealedOrder = [];
     state.spread.cards.forEach(function(entry, idx) {
       var btn = document.createElement("button");
@@ -198,6 +251,7 @@
         "</span></span>";
       refs.cardRail.appendChild(btn);
     });
+    bindCardRailTouch();
   }
 
   function parallaxCard(btn, active) {

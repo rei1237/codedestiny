@@ -27,6 +27,40 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+/* ─── 동양 문양 레이어 (신비로운 문양) ─── */
+.ty-eastern-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: 99996;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.08;
+}
+.ty-eastern-pattern::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.4' d='M0 40 Q20 20 40 40 Q60 60 80 40'/%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.3' d='M40 0 Q60 20 40 40 Q20 60 40 80'/%3E%3Ccircle cx='40' cy='40' r='4' fill='none' stroke='%23d4af37' stroke-width='0.25'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.35' d='M5 30 L30 5 L55 30 L30 55 Z'/%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.2' d='M30 15 L45 30 L30 45 L15 30 Z'/%3E%3C/svg%3E");
+  background-size: 80px 80px, 60px 60px;
+  background-position: 0 0, 40px 40px;
+  animation: tyPatternShift 60s linear infinite;
+}
+.ty-eastern-pattern::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23d4af37' stroke-width='0.2' opacity='0.6'%3E%3Cpath d='M50 10 L90 50 L50 90 L10 50 Z'/%3E%3Cpath d='M50 25 L75 50 L50 75 L25 50 Z'/%3E%3Cpath d='M50 35 L65 50 L50 65 L35 50 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100px 100px;
+  background-position: 0 0;
+  animation: tyPatternShift 80s linear infinite reverse;
+}
+@keyframes tyPatternShift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(80px, 80px); }
+}
+
 /* ─── Overlay: 천상의 붉은 궁전 배경 ─── */
 .tarot-year-overlay {
   position: fixed;
@@ -34,6 +68,9 @@
   z-index: 99999;
   display: none;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   background:
     radial-gradient(ellipse 160% 120% at 50% -30%, rgba(212, 175, 55, 0.12) 0%, transparent 45%),
     radial-gradient(ellipse 120% 100% at 20% 20%, rgba(139, 0, 0, 0.5), transparent 50%),
@@ -45,6 +82,7 @@
 }
 .tarot-year-overlay.is-open {
   display: block;
+  min-height: 100vh;
   animation: tyReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes tyReveal {
@@ -153,6 +191,7 @@
   margin: 36px auto;
   padding: 28px 24px 64px;
   z-index: 100001;
+  min-height: 0;
 }
 .tarot-year-panel {
   position: relative;
@@ -170,7 +209,7 @@
     rgba(92, 0, 0, 0.95) 70%,
     rgba(45, 5, 5, 0.98) 100%);
   padding: 44px 32px 52px;
-  overflow: hidden;
+  overflow: visible;
 }
 .tarot-year-panel::before {
   content: "";
@@ -204,12 +243,23 @@
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
 }
-.tarot-year-close:hover {
+.tarot-year-close:hover,
+.tarot-year-close:focus-visible {
   background: var(--ty-gold);
   color: var(--ty-red-dark);
   box-shadow: 0 0 36px rgba(212, 175, 55, 0.6);
   transform: scale(1.12) rotate(90deg);
   border-color: var(--ty-gold-bright);
+  outline: none;
+}
+.tarot-year-close:focus {
+  outline: none;
+}
+.ty-cta-btn:focus-visible,
+.ty-result-btn:focus-visible,
+.ty-month-cat-btn:focus-visible {
+  outline: 2px solid var(--ty-gold-bright);
+  outline-offset: 3px;
 }
 
 /* ─── 스테이지 전환 애니메이션 ─── */
@@ -364,6 +414,18 @@
   width: 72px;
   height: 120px;
   position: relative;
+  perspective: 400px;
+}
+.ty-draw-card--month .ty-draw-card-back::after {
+  content: "天運";
+  font-size: 0.55rem;
+  bottom: 6px;
+}
+.ty-draw-card--month .ty-draw-card-back::before {
+  font-size: 1.6rem;
+}
+.ty-draw-card--month .ty-draw-card-inner {
+  transition-duration: 0.55s;
 }
 .ty-draw-card--month .ty-draw-card-img {
   height: 88px;
@@ -383,6 +445,7 @@
   transform: scale(1.08);
   filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
 }
+/* 카드 3D 뒤집기: 뒤→앞 플립 */
 .ty-draw-card {
   position: relative;
   width: 130px;
@@ -395,22 +458,28 @@
     0 0 0 2px rgba(0, 0, 0, 0.4),
     0 12px 40px rgba(0, 0, 0, 0.6),
     0 0 36px rgba(212, 175, 55, 0.25);
-  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: box-shadow 0.45s ease, border-color 0.45s ease;
+  perspective: 680px;
 }
-.ty-draw-card:hover {
-  transform: translateY(-12px) scale(1.08);
+.ty-draw-card:hover:not(.ty-draw-card--flipped) {
   box-shadow:
     0 0 60px rgba(212, 175, 55, 0.5),
     0 24px 60px rgba(0, 0, 0, 0.6);
   border-color: var(--ty-gold-bright);
 }
-.ty-draw-card--flipped {
-  pointer-events: none;
-  animation: tyCardReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+.ty-draw-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-@keyframes tyCardReveal {
-  0% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+.ty-draw-card--flipped .ty-draw-card-inner {
+  transform: rotateY(180deg);
+}
+.ty-draw-card--flipped {
+  pointer-events: auto;
+  cursor: pointer;
 }
 .ty-draw-card-back,
 .ty-draw-card-front {
@@ -421,10 +490,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 14px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .ty-draw-card-back {
   background: linear-gradient(165deg, var(--ty-red-deep), var(--ty-red-dark));
   border: 3px solid var(--ty-gold);
+  transform: rotateY(0deg);
+  z-index: 2;
 }
 .ty-draw-card-back::before {
   content: "✦";
@@ -433,6 +506,14 @@
   text-shadow: 0 0 40px rgba(212, 175, 55, 0.7);
   animation: tyCardPulse 1.8s ease-in-out infinite;
 }
+.ty-draw-card-back::after {
+  content: "천운";
+  position: absolute;
+  bottom: 12px;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(255, 236, 139, 0.8);
+}
 @keyframes tyCardPulse {
   0%, 100% { opacity: 0.75; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.1); }
@@ -440,6 +521,8 @@
 .ty-draw-card-front {
   background: linear-gradient(180deg, #1a0808 0%, #0d0404 100%);
   padding: 10px;
+  transform: rotateY(180deg);
+  z-index: 1;
 }
 .ty-draw-card-front[data-reversed="1"] .ty-draw-card-img {
   transform: rotate(180deg);
@@ -592,14 +675,51 @@
   border-color: var(--ty-gold-bright);
   box-shadow: 0 0 38px rgba(212, 175, 55, 0.42);
 }
-.ty-result-card-wrap--month .ty-result-card-front {
+/* 결과 카드: 뒷면 → 클릭 시 앞면(월별 운세) 플립 */
+.ty-result-card-wrap--month {
+  perspective: 380px;
+}
+.ty-result-card-inner {
+  position: relative;
   width: 100%;
+  height: 100%;
   min-height: 98px;
-  padding: 8px 6px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-result-card-wrap--flipped .ty-result-card-inner {
+  transform: rotateY(180deg);
+}
+.ty-result-card-back,
+.ty-result-card-wrap--month .ty-result-card-front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: 12px;
-  border: 1px solid rgba(212, 175, 55, 0.24);
-  background: linear-gradient(180deg, rgba(126, 16, 16, 0.36) 0%, rgba(34, 6, 6, 0.25) 100%);
-  justify-content: space-between;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ty-result-card-back {
+  background: linear-gradient(165deg, var(--ty-red-deep), var(--ty-red-dark));
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+.ty-result-card-back::before {
+  content: "✦";
+  font-size: 1.5rem;
+  color: var(--ty-gold);
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  margin-bottom: 4px;
+}
+.ty-result-card-back::after {
+  content: "天運";
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(255, 236, 139, 0.85);
 }
 .ty-result-card-month {
   display: block;
@@ -634,6 +754,19 @@
   pointer-events: none;
 }
 /* ─── 월별 상세 패널 ─── */
+.ty-month-detail-placeholder {
+  display: block;
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255, 248, 220, 0.9);
+  letter-spacing: 0.04em;
+}
+.ty-month-detail-content {
+  display: block;
+}
 .ty-month-detail-panel {
   margin-bottom: 28px;
   padding: 26px 28px;
@@ -809,6 +942,21 @@
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  max-height: 280px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+.ty-month-category-text::-webkit-scrollbar {
+  width: 6px;
+}
+.ty-month-category-text::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+.ty-month-category-text::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 3px;
 }
 
 /* Keep tarot cards fully visible without cropping */
@@ -1030,6 +1178,9 @@
   .ty-bg-glow,
   .ty-particles {
     display: none;
+  }
+  .ty-eastern-pattern {
+    opacity: 0.05;
   }
   .tarot-year-shell {
     margin: 14px auto;

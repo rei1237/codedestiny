@@ -35,6 +35,26 @@
         '.feature-card--tazza .feature-card__cta',
         '.feature-card--tazza .feature-card__launch'
       ].join(',')
+    },
+    {
+      action: 'openAnimalTotemModal',
+      cardSelector: '.feature-card--animal-totem',
+      targetSelector: [
+        '[data-action="openAnimalTotemModal"]',
+        '.tarot-tile--animal-totem',
+        '.tarot-tile--animal-totem .tarot-tile__img-wrap',
+        '.tarot-tile--animal-totem .tarot-tile__img',
+        '.tarot-tile--animal-totem .tarot-tile__title',
+        '.tarot-tile--animal-totem .tarot-tile__desc',
+        '.tarot-tile--animal-totem .tarot-tile__body',
+        '.feature-card--animal-totem .feature-card__visual',
+        '.feature-card--animal-totem .feature-card__img-wrap',
+        '.feature-card--animal-totem .feature-card__img',
+        '.feature-card--animal-totem .feature-card__title',
+        '.feature-card--animal-totem .feature-card__desc',
+        '.feature-card--animal-totem .feature-card__cta',
+        '.feature-card--animal-totem .feature-card__launch'
+      ].join(',')
     }
   ];
 
@@ -80,6 +100,11 @@
     if (card && typeof card.querySelector === 'function') {
       var inCard = card.querySelector('[data-action="' + rule.action + '"]');
       if (inCard) return inCard;
+    }
+
+    if (rule.action === 'openAnimalTotemModal') {
+      var tile = origin.closest('.tarot-tile--animal-totem');
+      if (tile) return tile;
     }
 
     return document.querySelector('[data-action="' + rule.action + '"]');
@@ -142,13 +167,15 @@
     if (document.getElementById('cd-mobile-touch-bridge-style')) return;
 
     var css = [
-      '.feature-card--face, .feature-card--tazza,',
+      '.feature-card--face, .feature-card--tazza, .feature-card--animal-totem,',
+      '.tarot-tile--animal-totem,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
-      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
-      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
-      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
-      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"] {',
+      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap, .feature-card--animal-totem .feature-card__img-wrap,',
+      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img, .feature-card--animal-totem .feature-card__img,',
+      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title, .feature-card--animal-totem .feature-card__title,',
+      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc, .feature-card--animal-totem .feature-card__desc,',
+      '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openAnimalTotemModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',

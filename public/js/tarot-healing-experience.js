@@ -7,17 +7,17 @@
   "use strict";
 
   var POSITION_LABELS = {
-    hidden_truth: "1. The Hidden Truth",
-    embrace_pain: "2. Embrace the Pain",
-    silver_lining: "3. The Silver Lining",
-    step_forward: "4. Step Forward",
+    hidden_truth: "1. 숨겨진 진실",
+    embrace_pain: "2. 상처를 품기",
+    silver_lining: "3. 빛이 보이는 곳",
+    step_forward: "4. 한 걸음 나아가기",
   };
 
   var GUIDE_LABELS = [
-    "첫 번째 카드: 상황이 어긋난 진짜 이유를 마주해 보세요.",
-    "두 번째 카드: 내면의 상처를 인정하며 숨을 고르세요.",
-    "세 번째 카드: 이 경험이 남긴 교훈을 받아들이세요.",
-    "네 번째 카드: 긍정 에너지를 회복할 다음 행동을 확인하세요.",
+    "첫 번째 카드: 그동안 많이 힘드셨을 수 있어요. 이 카드는 상황이 어긋난 진짜 이유를 따뜻하게 비춰줄 거예요.",
+    "두 번째 카드: 내면의 상처를 인정하는 순간이에요. 숨을 고르며 카드를 열어보세요.",
+    "세 번째 카드: 이 경험이 당신에게 남긴 교훈을 받아들이는 시간이에요.",
+    "네 번째 카드: 햇살처럼 밝은 다음 행동을 확인해 보세요.",
   ];
 
   var state = { cards: [], revealedCount: 0, reading: null };
@@ -667,7 +667,7 @@
     if (!guide) return;
     var idx = state.revealedCount;
     if (idx >= 4) {
-      guide.textContent = "모든 카드를 열었습니다. 아래 버튼으로 치유 스토리를 확인하세요.";
+      guide.textContent = "모든 카드를 열었어요. 아래 버튼으로 회복 스토리를 확인해 보세요.";
     } else {
       guide.textContent = GUIDE_LABELS[idx] || "카드를 뒤집어 주세요.";
     }
@@ -749,25 +749,25 @@
     var html = "";
 
     if (r.opening) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">🌅 Dawn Message</h4><p class="tarot-healing-section-text">' + escapeHtml(r.opening) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 상담의 열기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.opening) + "</p></section>";
     }
     if (r.hiddenTruth) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">1) The Hidden Truth</h4><p class="tarot-healing-section-text">' + escapeHtml(r.hiddenTruth) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">1) 숨겨진 진실</h4><p class="tarot-healing-section-text">' + escapeHtml(r.hiddenTruth) + "</p></section>";
     }
     if (r.embracePain) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">2) Embrace the Pain</h4><p class="tarot-healing-section-text">' + escapeHtml(r.embracePain) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">2) 상처를 품기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.embracePain) + "</p></section>";
     }
     if (r.silverLining) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">3) The Silver Lining</h4><p class="tarot-healing-section-text">' + escapeHtml(r.silverLining) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">3) 빛이 보이는 곳</h4><p class="tarot-healing-section-text">' + escapeHtml(r.silverLining) + "</p></section>";
     }
     if (r.stepForward) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">4) Step Forward</h4><p class="tarot-healing-section-text">' + escapeHtml(r.stepForward) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">4) 한 걸음 나아가기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.stepForward) + "</p></section>";
     }
     if (r.integrationMessage) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">🌤 통합 메시지</h4><p class="tarot-healing-section-text">' + escapeHtml(r.integrationMessage) + "</p></section>";
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 따뜻한 마무리</h4><p class="tarot-healing-section-text">' + escapeHtml(r.integrationMessage) + "</p></section>";
     }
     if (Array.isArray(r.positionInsights) && r.positionInsights.length) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">🃏 포지션별 상세 해석</h4>';
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 포지션별 심리 통찰</h4>';
       r.positionInsights.forEach(function (item) {
         html += '<div style="margin:0 0 12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.18);">';
         html += '<div style="font-weight:700;color:#5e3865;margin-bottom:4px;">' + escapeHtml(item.title || item.position) + " - " + escapeHtml(item.cardLabel || "") + "</div>";
@@ -780,7 +780,7 @@
       html += "</section>";
     }
     if (Array.isArray(r.actionPlan)) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">✨ 오늘의 회복 행동</h4><ul class="tarot-healing-advice-list">';
+      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 오늘의 회복 미션 (행동 코칭)</h4><ul class="tarot-healing-advice-list">';
       r.actionPlan.forEach(function (item) {
         html += "<li>" + escapeHtml(item) + "</li>";
       });
@@ -800,14 +800,14 @@
   function shareTarotHealingResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "🌅 [긍정 에너지 회복 타로] 🌅\n\n";
-    if (r.opening) text += "🕊️ " + r.opening + "\n\n";
-    if (r.stepForward) text += "🚀 " + r.stepForward + "\n\n";
+    var text = "☀ [긍정 태양 회복 타로] ☀\n\n";
+    if (r.opening) text += "☀ " + r.opening + "\n\n";
+    if (r.stepForward) text += "☀ " + r.stepForward + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "🌅 긍정 에너지 회복 타로",
+        title: "☀ 긍정 태양 회복 타로",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

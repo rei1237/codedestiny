@@ -871,47 +871,50 @@ function createHealingRisingReading({ drawnCards }) {
   const reversedCount = cardReadings.filter((r) => r.orientation === "reversed").length;
   const groundingNeeded = reversedCount >= 2;
 
-  const opening = `이번 리딩은 ${
-    majorCount >= 2 ? "영혼의 전환점에 가까운 깊은 변화" : "일상 속에서 회복 가능한 균형의 신호"
-  }를 보여줍니다. 지금 필요한 것은 스스로를 평가하는 태도가 아니라, 내 마음의 상태를 정확히 관찰하는 태도입니다. 
-  감정은 문제를 일으키는 적이 아니라, 무엇을 돌봐야 하는지 알려주는 안내자입니다. 
-  오늘의 4장은 원인 파악 → 감정 수용 → 교훈 회수 → 실천 전환의 흐름으로 당신을 안전하게 다음 단계로 이끕니다.`;
+  /* 상담의 열기: 타로는 미래 예측이 아닌 자아 발견·회복의 도구임을 명시, 따뜻한 경청·공감 */
+  const opening = `그동안 많이 힘드셨을 수 있어요. 하지만 괜찮습니다. 
+  이 타로 리딩은 미래를 점치는 것이 아니라, 지금 당신 마음속에 있는 이야기를 따뜻하게 비춰보는 자리입니다. ${
+    majorCount >= 2 ? "오늘 뽑은 카드들은 깊은 전환의 시기에 있는 당신을 담담하게 지지해 줍니다." : "일상 속에서도 충분히 회복할 수 있는 흐름을 보여줍니다."
+  }
+  감정은 적이 아니라, 무엇을 돌봐야 하는지 알려주는 안내자예요. 아래 네 장의 카드는 원인 이해 → 감정 수용 → 교훈 → 실천의 순서로, 당신을 다음 단계로 부드럽게 이끕니다.`;
 
+  /* 심리적 통찰: 카드 의미를 심리학적 관점에서 해석, 부정 카드도 성장·회복 계기로 재해석 */
   const hiddenTruth = c1
-    ? `${c1.nameKr}${c1.orientation === "reversed" ? "(역)" : ""}는 상황이 어긋난 핵심 원인을 비춥니다. ${
-        c1.interpretation || "표면 아래의 원인을 먼저 정확히 바라볼수록 회복 속도가 빨라집니다."
-      } 지금은 '누가 틀렸는가'보다 '무엇이 반복되고 있는가'에 초점을 맞춰야 합니다. 
-      같은 패턴을 이름 붙이는 순간, 막연한 혼란은 구체적인 문제로 바뀌고 해결 가능한 상태가 됩니다.`
+    ? `이 카드는 지금 당신에게 '상황이 어긋난 진짜 이유'를 전하고 싶어 해요. ${c1.nameKr}${c1.orientation === "reversed" ? "(역)" : ""}의 메시지: ${
+        c1.interpretation || "표면 아래 원인을 정확히 바라볼수록 회복 속도가 빨라집니다."
+      }
+      '누가 틀렸는가'보다 '무엇이 반복되고 있는가'에 초점을 맞추세요. 같은 패턴에 이름을 붙이는 순간, 막연한 혼란은 구체적인 문제로 바뀌고 해결 가능해집니다.`
     : "";
 
   const embracePain = c2
-    ? `${c2.nameKr}${c2.orientation === "reversed" ? "(역)" : ""}는 당신이 실망했던 지점을 보여줍니다. ${
+    ? `그동안 많이 힘드셨군요. ${c2.nameKr}${c2.orientation === "reversed" ? "(역)" : ""}는 당신이 아팠던 지점을 보여줍니다. ${
         c2.interpretation || "지금의 감정은 약함이 아니라, 마음이 회복을 요청하는 신호입니다."
-      } 상처를 빠르게 지우려 하기보다, '내가 무엇 때문에 아팠는지'를 한 문장으로 말해보세요. 
-      감정이 언어가 되는 순간, 감정은 더 이상 나를 흔드는 파도가 아니라 내가 다룰 수 있는 정보가 됩니다.`
+      }
+      상처를 지우려 하기보다, '내가 무엇 때문에 아팠는지'를 한 문장으로 말해보세요. 감정이 언어가 되는 순간, 다룰 수 있는 정보가 됩니다.`
     : "";
 
   const silverLining = c3
-    ? `${c3.nameKr}${c3.orientation === "reversed" ? "(역)" : ""}는 이번 경험의 교훈을 말합니다. ${
-        c3.interpretation || "아픔을 통과하며 생기는 통찰은 다음 선택을 더 단단하게 만듭니다."
-      } 이 카드는 '왜 이런 일이 있었는가'에서 멈추지 말고, '그래서 나는 무엇을 배우는가'로 시선을 옮기라고 말합니다. 
-      같은 상황이 다시 오더라도 반응 방식이 달라지면, 인생의 질은 분명히 달라집니다.`
+    ? `이 카드는 이번 경험이 남긴 빛을 말해 줍니다. ${c3.nameKr}${c3.orientation === "reversed" ? "(역)" : ""}: ${
+        c3.interpretation || "아픔을 통과하며 생기는 통찰이 다음 선택을 더 단단하게 만듭니다."
+      }
+      '왜 이런 일이 있었는가'에서 멈추지 말고, '그래서 나는 무엇을 배우는가'로 시선을 옮기세요. 반응 방식이 달라지면 인생의 질이 달라집니다.`
     : "";
 
   const stepForward = c4
-    ? `${c4.nameKr}${c4.orientation === "reversed" ? "(역)" : ""}는 앞으로 나아가는 실천 방향입니다. ${
+    ? `당신 안에 잠든 밝은 빛을 찾을 수 있는 실천이에요. ${c4.nameKr}${c4.orientation === "reversed" ? "(역)" : ""}가 전하는 방향: ${
         c4.interpretation || "작지만 구체적인 행동이 에너지 회복의 스위치를 켭니다."
-      } 지금 필요한 것은 거대한 결심이 아니라, 오늘 바로 실행 가능한 아주 작은 행동입니다. 
-      당신이 스스로를 다시 신뢰하게 되는 순간은 '생각이 바뀌는 때'가 아니라 '작은 실행이 누적되는 때'입니다.`
+      }
+      거대한 결심보다 오늘 바로 할 수 있는 아주 작은 행동이 중요합니다. 스스로를 다시 신뢰하게 되는 순간은 '작은 실행이 누적되는 때'예요.`
     : "";
 
+  /* 행동 코칭: 1~3가지 구체적·실현 가능한 미션 (예: 매일 아침 햇살 5분 명상, 칭찬 일기) */
   const actionPlan = [
     groundingNeeded
-      ? "오늘은 큰 결정을 미루고 호흡 1분 + 물 한 잔 + 15분 산책으로 신경계를 먼저 안정시키세요."
-      : "지금 떠오르는 가장 작은 실행 1가지를 20분 안에 완료해 에너지의 흐름을 여세요.",
-    "내 감정을 한 문장으로 적고, 그 감정이 바라는 필요를 한 문장으로 적어보세요.",
-    "오늘 밤 자기 전, 내일의 첫 행동을 시간과 장소까지 정해 캘린더에 고정하세요.",
-    "이번 리딩에서 가장 마음에 남는 카드 한 장을 선택하고, 그 카드가 전한 문장을 메모로 저장해 하루에 3번 읽어보세요.",
+      ? "오늘은 큰 결정은 미루고, 호흡 1분·물 한 잔·15분 산책으로 신경계를 먼저 안정시키세요."
+      : "지금 떠오르는 가장 작은 실행 1가지를 20분 안에 완료해 보세요. 에너지의 흐름이 열립니다.",
+    "매일 아침 햇살 받으며 5분만 눈을 감고 숨 쉬기, 또는 자신을 칭찬하는 문장을 한 줄 적어 보세요.",
+    "오늘 밤 자기 전, 내일의 첫 행동을 '시간·장소'까지 정해 캘린더에 적어 두세요.",
+    "이번 리딩에서 가장 마음에 남는 카드 한 장의 문장을 메모해 두고, 하루에 세 번 읽어 보세요.",
   ];
 
   const positionInsights = cardReadings.map((card) => {
@@ -930,16 +933,17 @@ function createHealingRisingReading({ drawnCards }) {
     };
   });
 
-  const integrationMessage = `네 장의 카드를 함께 보면, 지금의 당신은 '감정 회피'가 아니라 '감정 통합'의 단계에 들어와 있습니다. 
-  원인을 직시하고 감정을 인정한 사람은 이미 절반을 회복한 상태입니다. 
+  /* 따뜻한 마무리: 잠재된 긍정 에너지를 믿고 격려하는 임파워링 메시지 */
+  const integrationMessage = `네 장의 카드를 함께 보면, 지금의 당신은 '감정 회피'가 아니라 '감정 통합'의 단계에 들어와 있어요. 
+  원인을 직시하고 감정을 인정한 순간, 이미 절반은 회복한 상태입니다. 
   오늘의 작은 실천 하나가 내일의 자존감을 되돌리고, 그 자존감이 다시 선택의 품질을 높여줍니다. 
-  당신은 이미 다시 일어설 준비가 되어 있고, 이 리딩은 그 출발점을 확인해 준 신호입니다.`;
+  당신 안에는 이미 다시 일어설 빛이 있어요. 이 리딩은 그 출발점을 확인해 준 신호입니다. 믿어 주세요.`;
 
   const promptEngineering = {
     system:
-      "You are a compassionate tarot master. Build a healing story from 4 cards. Tone: warm empathy for cards 1-3, then bright and decisive empowerment for card 4. Avoid fatalism, provide concrete actions.",
+      "You are an expert psychologist and coach (like Dr. Oh Eun-young): warm, clear, and empowering. Interpret tarot in a CBT/positive psychology frame. Even 'negative' cards are reframed as growth and recovery. Provide 1-3 concrete, doable missions. Tone: '그동안 많이 힘드셨군요. 하지만 괜찮습니다.' style—authoritative yet kind.",
     userTemplate:
-      "Spread: Healing & Rising (4 cards)\n1) Hidden Truth\n2) Embrace the Pain\n3) The Silver Lining\n4) Step Forward\nCards: {{cards}}\nWrite in Korean with emotional validation + practical next steps.",
+      "Spread: Sun & Light Healing (4 cards)\n1) Hidden Truth 2) Embrace the Pain 3) Silver Lining 4) Step Forward\nCards: {{cards}}\nWrite in Korean: emotional validation, psychological insight, then specific action steps. No jargon; empowering close.",
   };
 
   return {
@@ -1172,54 +1176,43 @@ function createSelfEsteemLevelupReading({ drawnCards }) {
 
   const counselorToneByPos = {
     past_debuff:
-      "과거의 반응은 당신의 결함이 아니라 당시의 생존 전략이었습니다. 이제는 그 전략을 존중하되, 현재의 나에게 맞는 방식으로 업데이트할 시점입니다.",
+      "과거의 그 반응은 당신의 결함이 아니라 당시의 생존 전략이었어요. 이제는 그 전략을 존중하되, 현재의 나에게 맞는 방식으로 바꿀 수 있는 시점입니다.",
     inner_monster:
-      "거절 불안은 대개 '관계 상실'에 대한 공포와 연결됩니다. 감정을 부정하지 않고 이름 붙이는 순간, 불안은 통제 가능한 정보로 바뀝니다.",
+      "거절 불안은 대개 관계가 끊어질까 봐의 공포와 연결돼요. 이 감정을 부정하지 않고 이름 붙이는 순간, 통제 가능한 정보로 바뀝니다.",
     current_damage:
-      "자존감 회복의 첫 단계는 더 잘하려는 압박이 아니라 회복할 권리를 인정하는 것입니다. 에너지를 회복해야 경계 설정도 오래 유지됩니다.",
+      "먼저 회복할 권리를 인정하는 것이 중요해요. 에너지가 돌아와야 경계 설정도 오래 유지됩니다.",
     mind_shield:
-      "타인의 감정과 내 책임을 분리하는 연습이 필요합니다. 설명은 충분히 하되, 나를 소진시키는 과잉 설득은 멈추는 것이 좋습니다.",
+      "타인의 감정과 내 책임을 분리하는 연습이 필요해요. 설명은 하되, 나를 소진시키는 과잉 설득은 멈추는 것이 좋습니다.",
     levelup_mastery:
-      "자존감은 사건이 아니라 습관입니다. 하루의 작은 선택에서 '내 마음을 우선 확인하는 루틴'을 반복하면 자신감이 구조적으로 안정됩니다.",
+      "자존감은 한 번에 완성되는 게 아니라, 작은 선택을 반복하는 습관으로 안정됩니다.",
   };
-  const positionWrapByPos = {
-    past_debuff: "과거에 당신이 타인의 시선에 갇혀 있던 진짜 이유를 비춥니다.",
-    inner_monster: "왜 당신이 거절을 두려워했는지, 극복해야 할 내면의 몬스터를 보여줍니다.",
-    current_damage: "눈치 보는 습관이 깎아먹은 현재의 정서적 에너지를 점검하게 합니다.",
-    mind_shield: "타인의 실망을 견디는 심리적 방어 스킬을 훈련하도록 안내합니다.",
-    levelup_mastery: "내 마음을 1순위로 챙기는 레벨업 마스터리의 정착을 의미합니다.",
-  };
+  const orientationToneByPos = (item) =>
+    item.orientation === "reversed"
+      ? "지금은 속도를 늦추고 경계를 재정비하는 편이 좋습니다."
+      : "지금 흐름을 일상 루틴에 연결하면 회복 속도가 빨라집니다.";
   const professionalPositionMessage = (item, key) => {
     if (!item) return "";
     const base = item.interpretation || "이 카드가 전하는 핵심 신호를 천천히 받아들이세요.";
-    const wrap = positionWrapByPos[key] || "현재 포지션의 과제를 보여줍니다.";
     const tone = counselorToneByPos[key] || "작은 실천을 통해 변화는 충분히 가능합니다.";
-    const orientationTone =
-      item.orientation === "reversed"
-        ? "역방향 신호이므로 지금은 속도를 늦추고 경계를 재정비하는 접근이 더 효과적입니다."
-        : "정방향 신호이므로 현재 흐름을 일상 루틴에 연결하면 회복 속도가 빨라집니다.";
-    return `${cardLabel(item)}는 ${wrap} ${base} ${tone} ${orientationTone}`;
+    const orientationTone = orientationToneByPos(item);
+    if (key === "past_debuff")
+      return `당신이 남의 눈치를 살피게 된 이유는 ${base} ${tone} ${orientationTone}`;
+    if (key === "inner_monster")
+      return `거절을 어려워하게 된 이유는 ${base} ${tone} ${orientationTone}`;
+    if (key === "current_damage")
+      return `눈치 보는 습관이 지금 당신에게 주는 피해는 ${base} ${tone} ${orientationTone}`;
+    if (key === "mind_shield")
+      return `타인의 실망을 견뎌내는 방법은 ${base} ${tone} ${orientationTone}`;
+    if (key === "levelup_mastery")
+      return `내 마음을 1순위로 챙기는 방법은 ${base} ${tone} ${orientationTone}`;
+    return `${cardLabel(item)}는 ${base} ${tone} ${orientationTone}`;
   };
 
-  const pastDebuff = c1
-    ? `${professionalPositionMessage(c1, "past_debuff")} 이 카드는 '왜 나는 그렇게 행동했을까'를 비난이 아니라 이해의 언어로 다시 보게 만듭니다.`
-    : "";
-
-  const innerMonster = c2
-    ? `${professionalPositionMessage(c2, "inner_monster")} 이 단계의 핵심은 '회피'가 아니라 '명료화'입니다.`
-    : "";
-
-  const currentDamage = c3
-    ? `${professionalPositionMessage(c3, "current_damage")} 회복이 선행될 때 변화는 오래 지속됩니다.`
-    : "";
-
-  const mindShield = c4
-    ? `${professionalPositionMessage(c4, "mind_shield")} '나를 먼저 돌보는 선택'은 이기심이 아니라 정서적 책임감에 가깝습니다.`
-    : "";
-
-  const levelupMastery = c5
-    ? `${professionalPositionMessage(c5, "levelup_mastery")} 이제 핵심은 감정의 진폭이 큰 날에도 이 기준을 유지하는 반복 훈련입니다.`
-    : "";
+  const pastDebuff = c1 ? professionalPositionMessage(c1, "past_debuff") : "";
+  const innerMonster = c2 ? professionalPositionMessage(c2, "inner_monster") : "";
+  const currentDamage = c3 ? professionalPositionMessage(c3, "current_damage") : "";
+  const mindShield = c4 ? professionalPositionMessage(c4, "mind_shield") : "";
+  const levelupMastery = c5 ? professionalPositionMessage(c5, "levelup_mastery") : "";
 
   const levelupGuidance = hopefulSignal
     ? "✨ Level Up! 5장의 카드를 모두 열었습니다. 당신의 자존감은 이미 한 단계 올라갔어요. 이제 이 통찰을 실천으로 옮겨, 매일 작은 레벨업을 누적해 보세요."

@@ -687,9 +687,7 @@
     if (state.revealedCount >= 5) {
       var btn = byId("tarotSelfEsteemFinalBtn");
       if (btn) btn.disabled = false;
-      var banner = byId("tarotSelfEsteemLevelUpBanner");
-      if (banner) banner.classList.add("is-visible");
-      triggerLevelUpConfetti();
+      // LEVEL UP 배너는 결과 화면에서 글을 다 읽고 스크롤 끝까지 내렸을 때 표시됨 (여기서는 표시하지 않음)
     }
   }
 
@@ -714,29 +712,22 @@
   }
 
   function buildProfessionalPositionMessage(pos, card, baseText) {
-    var label = POSITION_LABELS[pos] || "이 포지션";
     var cardName = (card && (card.nameKr || card.name)) || "해당 카드";
     var orientation = card && card.orientation === "reversed" ? "reversed" : "upright";
-    var tone = orientation === "reversed"
-      ? "지금은 속도를 조금 늦추고 경계를 다시 세우는 것이 핵심입니다."
-      : "지금의 흐름을 잘 활용하면 관계와 자기존중이 함께 안정됩니다.";
-    var coachingByPos = {
-      past_debuff: "과거의 패턴은 당신의 잘못이 아니라 생존 전략이었습니다. 이제는 같은 전략을 계속 쓸지, 새로운 전략으로 교체할지 선택할 시점입니다.",
-      inner_monster: "거절이 두렵다는 감정은 '관계 단절'에 대한 불안을 숨기고 있는 경우가 많습니다. 감정을 인정하는 순간 통제권이 다시 당신에게 돌아옵니다.",
-      current_damage: "지금 가장 중요한 것은 자신을 몰아붙이는 해석이 아니라, 에너지를 회복시키는 해석입니다. 회복이 먼저 되어야 변화가 오래갑니다.",
-      mind_shield: "타인의 실망을 모두 책임지지 않는 연습이 필요합니다. '설명은 하되, 설득은 하지 않는다'는 기준이 당신을 지켜줍니다.",
-      levelup_mastery: "자존감은 단번에 완성되는 성취가 아니라 반복 훈련으로 안정되는 근육입니다. 작은 경계 설정이 큰 전환을 만듭니다.",
-    };
     var base = String(baseText || "").trim();
-    if (!base) {
-      base = getClientInterpretation({ nameKr: cardName }, orientation, "general");
-    }
-    return (
-      cardName + (orientation === "reversed" ? " (역)" : "") + " 카드는 '" + label + "'에 대해 이렇게 말합니다. " +
-      base + " " +
-      (coachingByPos[pos] || "지금 필요한 것은 타인의 기대보다 자신의 감정 신호를 먼저 확인하는 습관입니다.") +
-      " " + tone
-    );
+    if (!base) base = getClientInterpretation({ nameKr: cardName }, orientation, "general");
+    var orientationTone = orientation === "reversed"
+      ? "지금은 속도를 늦추고 경계를 재정비하는 편이 좋습니다."
+      : "지금 흐름을 일상 루틴에 연결하면 회복 속도가 빨라집니다.";
+    // 질문에 직접 답하는 상담 톤: 이유/방법이 문맥상 매칭되도록
+    var answerByPos = {
+      past_debuff: "당신이 남의 눈치를 살피게 된 이유는 " + base + " 과거의 그 반응은 당신의 결함이 아니라 당시의 생존 전략이었어요. 이제는 그 전략을 존중하되, 현재의 나에게 맞는 방식으로 바꿀 수 있는 시점입니다. " + orientationTone,
+      inner_monster: "거절을 어려워하게 된 이유는 " + base + " 거절 불안은 대개 관계가 끊어질까 봐의 공포와 연결돼요. 이 감정을 부정하지 않고 이름 붙이는 순간, 통제 가능한 정보로 바뀝니다. " + orientationTone,
+      current_damage: "눈치 보는 습관이 지금 당신에게 주는 피해는 " + base + " 먼저 회복할 권리를 인정하는 것이 중요해요. 에너지가 돌아와야 경계 설정도 오래 유지됩니다. " + orientationTone,
+      mind_shield: "타인의 실망을 견뎌내는 방법은 " + base + " 타인의 감정과 내 책임을 분리하는 연습이 필요해요. 설명은 하되, 나를 소진시키는 과잉 설득은 멈추는 것이 좋습니다. " + orientationTone,
+      levelup_mastery: "내 마음을 1순위로 챙기는 방법은 " + base + " 자존감은 한 번에 완성되는 게 아니라, 작은 선택을 반복하는 습관으로 안정됩니다. " + orientationTone,
+    };
+    return (answerByPos[pos] || (cardName + (orientation === "reversed" ? " (역)" : "") + " 카드가 전하는 메시지: " + base + " " + orientationTone));
   }
 
   function buildFallbackReading() {
@@ -749,20 +740,11 @@
       levelupMastery: "",
       positionInsights: [],
     };
-    var posWrappers = {
-      past_debuff: { prefix: "과거에 당신이 타인의 시선에 갇혀 있던 진짜 이유를 비춥니다.", suffix: "이 카드는 '왜 나는 그렇게 행동했을까'에 대한 답을 담고 있으며, 비난이 아닌 이해의 시선으로 받아들이면 해제의 열쇠가 됩니다." },
-      inner_monster: { prefix: "왜 당신이 거절을 두려워했는지, 극복해야 할 내면의 몬스터를 보여줍니다.", suffix: "이 카드는 '나를 가로막는 것'의 정체를 드러내며, 이름을 붙이는 것만으로도 그 힘이 약해짐을 알려줍니다." },
-      current_damage: { prefix: "눈치 보는 습관이 깎아먹은 당신의 HP와 MP, 즉 현재 입고 있는 데미지를 말합니다.", suffix: "이 카드는 지금의 에너지 소모를 직시하라고 말하며, 무리하지 말고 회복할 시간을 갖는 것이 다음 레벨로 가는 필수 조건임을 전합니다." },
-      mind_shield: { prefix: "타인의 실망을 가볍게 튕겨내는 마인드 쉴드, 새로운 방어 스킬 획득을 상징합니다!", suffix: "이 카드는 '나를 1순위로 챙기는 것'이 이기적이 아니라 건강한 선택임을 확인해 줍니다." },
-      levelup_mastery: { prefix: "내 마음을 1순위로 챙기는 레벨업 마스터리, 최종 보상 및 각성을 의미합니다.", suffix: "이 카드는 5장의 여정을 마무리하며, 'Level Up!'의 축하 메시지를 전합니다. 당신은 이미 충분히 성장했고, 앞으로도 계속 성장할 준비가 되어 있습니다." },
-    };
     state.cards.forEach(function (c) {
       var label = POSITION_LABELS[c.position] || "";
       var cardLabel = (c.nameKr || c.name) + (c.orientation === "reversed" ? " (역)" : "");
       var interp = getClientInterpretation(c, c.orientation || "upright", "general");
-      var wrap = posWrappers[c.position];
       var msg = buildProfessionalPositionMessage(c.position, c, interp);
-      if (wrap) msg = cardLabel + "는 " + wrap.prefix + " " + msg + " " + wrap.suffix;
       r.positionInsights.push({ title: label, cardLabel: cardLabel, subtitle: label, message: msg, keywords: [] });
       if (c.position === "past_debuff") r.pastDebuff = msg;
       else if (c.position === "inner_monster") r.innerMonster = msg;
@@ -886,84 +868,138 @@
     return div.innerHTML;
   }
 
+  function typeWriter(el, text, options, callback) {
+    if (!el || text == null) {
+          if (typeof callback === "function") callback();
+          return;
+        }
+    var speed = (options && options.speed) != null ? options.speed : 22;
+    var idx = 0;
+    var str = String(text);
+    el.textContent = "";
+    function tick() {
+      if (idx >= str.length) {
+        if (typeof callback === "function") callback();
+        return;
+      }
+      idx += 1;
+      el.textContent = str.slice(0, idx);
+      setTimeout(tick, speed);
+    }
+    tick();
+  }
+
+  function runTypingSequence(container, sections, index, onComplete) {
+    if (!container || !Array.isArray(sections) || index >= sections.length) {
+      if (typeof onComplete === "function") onComplete();
+      return;
+    }
+    var item = sections[index];
+    var section = document.createElement("section");
+    section.className = item.highlight ? "tarot-self-esteem-section tarot-self-esteem-section--highlight" : "tarot-self-esteem-section";
+    var title = document.createElement("h4");
+    title.className = "tarot-self-esteem-section-title";
+    title.textContent = item.title;
+    section.appendChild(title);
+    if (item.listItems) {
+      var ul = document.createElement("ul");
+      ul.className = "tarot-self-esteem-advice-list";
+      section.appendChild(ul);
+      container.appendChild(section);
+      var listIdx = 0;
+      function addNextLi() {
+        if (listIdx >= item.listItems.length) {
+          var scrollEl = container;
+          if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
+            scrollEl.scrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
+          }
+          runTypingSequence(container, sections, index + 1, onComplete);
+          return;
+        }
+        var li = document.createElement("li");
+        li.textContent = "";
+        ul.appendChild(li);
+        typeWriter(li, item.listItems[listIdx], { speed: 18 }, function () {
+          listIdx += 1;
+          addNextLi();
+        });
+      }
+      addNextLi();
+    } else {
+      var p = document.createElement("p");
+      p.className = "tarot-self-esteem-section-text";
+      section.appendChild(p);
+      container.appendChild(section);
+      var scrollEl = container;
+      if (scrollEl && scrollEl.scrollHeight > scrollEl.clientHeight) {
+        scrollEl.scrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
+      }
+      typeWriter(p, item.text, { speed: 20 }, function () {
+        runTypingSequence(container, sections, index + 1, onComplete);
+      });
+    }
+  }
+
+  function attachLevelUpOnScroll(container) {
+    var banner = byId("tarotSelfEsteemLevelUpBanner");
+    var levelUpShown = false;
+    function checkScroll() {
+      if (levelUpShown || !container) return;
+      var st = container.scrollTop;
+      var ch = container.clientHeight;
+      var sh = container.scrollHeight;
+      if (sh <= ch || st + ch >= sh - 40) {
+        levelUpShown = true;
+        if (banner) {
+          banner.classList.add("is-visible");
+          banner.setAttribute("aria-hidden", "false");
+        }
+        triggerLevelUpConfetti();
+      }
+    }
+    container.addEventListener("scroll", checkScroll, { passive: true });
+    checkScroll();
+  }
+
+  function buildResultSections(r) {
+    var sections = [];
+    if (r.opening) {
+      sections.push({ title: "✨ 오프닝 메시지", text: r.opening });
+    }
+    if (r.pastDebuff) sections.push({ title: "1. " + POSITION_LABELS.past_debuff, text: r.pastDebuff });
+    if (r.innerMonster) sections.push({ title: "2. " + POSITION_LABELS.inner_monster, text: r.innerMonster });
+    if (r.currentDamage) sections.push({ title: "3. " + POSITION_LABELS.current_damage, text: r.currentDamage });
+    if (r.mindShield) sections.push({ title: "4. " + POSITION_LABELS.mind_shield, text: r.mindShield });
+    if (r.levelupMastery) sections.push({ title: "5. " + POSITION_LABELS.levelup_mastery, text: r.levelupMastery });
+    if (r.levelupGuidance) {
+      sections.push({ title: "🎮 Level Up 가이드", text: r.levelupGuidance, highlight: true });
+    }
+    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+      sections.push({ title: "⚔️ 오늘의 레벨업 퀘스트", listItems: r.actionPlan });
+    }
+    return sections;
+  }
+
   function renderTarotSelfEsteemResult() {
     var container = byId("tarotSelfEsteemReadingContent");
     if (!container || !state.reading) return;
     var r = state.reading;
-    var html = "";
 
-    if (r.opening) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">✨ 오프닝 메시지</h4><p class="tarot-self-esteem-section-text">' + escapeHtml(r.opening) + "</p></section>";
+    var sections = buildResultSections(r);
+    if (!sections.length && Array.isArray(state.cards) && state.cards.length) {
+      state.reading = buildFallbackReading();
+      r = state.reading;
+      sections = buildResultSections(r);
     }
-    if (r.pastDebuff) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">1. ' + escapeHtml(POSITION_LABELS.past_debuff) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.pastDebuff) + "</p></section>";
-    }
-    if (r.innerMonster) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">2. ' + escapeHtml(POSITION_LABELS.inner_monster) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.innerMonster) + "</p></section>";
-    }
-    if (r.currentDamage) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">3. ' + escapeHtml(POSITION_LABELS.current_damage) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.currentDamage) + "</p></section>";
-    }
-    if (r.mindShield) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">4. ' + escapeHtml(POSITION_LABELS.mind_shield) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.mindShield) + "</p></section>";
-    }
-    if (r.levelupMastery) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">5. ' + escapeHtml(POSITION_LABELS.levelup_mastery) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.levelupMastery) + "</p></section>";
-    }
-    if (r.levelupGuidance) {
-      html += '<section class="tarot-self-esteem-section tarot-self-esteem-section--highlight"><h4 class="tarot-self-esteem-section-title">🎮 Level Up 가이드</h4><p class="tarot-self-esteem-section-text">' + escapeHtml(r.levelupGuidance) + "</p></section>";
-    }
-    if (Array.isArray(r.positionInsights) && r.positionInsights.length) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">🃏 포지션별 상세 해석</h4>';
-      r.positionInsights.forEach(function (item) {
-        html += '<div class="tarot-self-esteem-insight-card">';
-        html += '<div class="tarot-self-esteem-insight-title">' + escapeHtml(item.title || item.position) + " — " + escapeHtml(item.cardLabel || "") + "</div>";
-        if (item.subtitle) html += '<div class="tarot-self-esteem-insight-subtitle">' + escapeHtml(item.subtitle) + "</div>";
-        html += '<div class="tarot-self-esteem-section-text">' + escapeHtml(item.message || "") + "</div>";
-        if (Array.isArray(item.keywords) && item.keywords.length) {
-          html += '<div class="tarot-self-esteem-keywords">키워드: ' + escapeHtml(item.keywords.join(", ")) + "</div>";
-        }
-        html += "</div>";
-      });
-      html += "</section>";
-    }
-    if (Array.isArray(r.actionPlan)) {
-      html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">⚔️ 오늘의 레벨업 퀘스트</h4><ul class="tarot-self-esteem-advice-list">';
-      r.actionPlan.forEach(function (item) {
-        html += "<li>" + escapeHtml(item) + "</li>";
-      });
-      html += "</ul></section>";
+    if (!sections.length) {
+      container.innerHTML = '<section class="tarot-self-esteem-section"><p class="tarot-self-esteem-section-text">해석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p></section>';
+      return;
     }
 
-    if (!html.trim()) {
-      // As a final safety net, always build a readable analysis from drawn cards.
-      if (Array.isArray(state.cards) && state.cards.length) {
-        state.reading = buildFallbackReading();
-        r = state.reading;
-        if (r.opening) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">✨ 오프닝 메시지</h4><p class="tarot-self-esteem-section-text">' + escapeHtml(r.opening) + "</p></section>";
-        }
-        if (r.pastDebuff) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">1. ' + escapeHtml(POSITION_LABELS.past_debuff) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.pastDebuff) + "</p></section>";
-        }
-        if (r.innerMonster) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">2. ' + escapeHtml(POSITION_LABELS.inner_monster) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.innerMonster) + "</p></section>";
-        }
-        if (r.currentDamage) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">3. ' + escapeHtml(POSITION_LABELS.current_damage) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.currentDamage) + "</p></section>";
-        }
-        if (r.mindShield) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">4. ' + escapeHtml(POSITION_LABELS.mind_shield) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.mindShield) + "</p></section>";
-        }
-        if (r.levelupMastery) {
-          html += '<section class="tarot-self-esteem-section"><h4 class="tarot-self-esteem-section-title">5. ' + escapeHtml(POSITION_LABELS.levelup_mastery) + "</h4><p class=\"tarot-self-esteem-section-text\">" + escapeHtml(r.levelupMastery) + "</p></section>";
-        }
-      }
-      if (!html.trim()) {
-        html = '<section class="tarot-self-esteem-section"><p class="tarot-self-esteem-section-text">해석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p></section>';
-      }
-    }
-    container.innerHTML = html;
+    container.innerHTML = "";
+    runTypingSequence(container, sections, 0, function () {
+      attachLevelUpOnScroll(container);
+    });
   }
 
   function shareTarotSelfEsteemResult() {
