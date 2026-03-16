@@ -46,7 +46,7 @@
   }, 200), { passive: true });
 
   /* ── 5. touchstart → is-touching 즉각 시각 피드백 (0ms) ── */
-  var TOUCH_SEL = 'button,.btn-main,.btn-sub,.tog-btn,.feature-card,' +
+  var TOUCH_SEL = 'button,.btn-main,.btn-sub,.tog-btn,.feature-card,.tarot-tile,' +
     '.dw-item,.ts-card,.celeb-tab-btn,.celeb-btn,.oracle-cat-btn-m,.ctg-btn,' +
     '.mystic-tab-btn,.fortune-tab,.iching-btn,.tarot-cat-btn,.og-cat-btn,' +
     '.saju-btn,.fate-btn,.tab-btn,.nav-btn,.menu-btn';

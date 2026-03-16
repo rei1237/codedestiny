@@ -1,8 +1,9 @@
 (function () {
   'use strict';
 
-  var TAP_MAX_DX = 14;
-  var TAP_MAX_DY = 10;
+  /* 모바일 터치: 손가락 미세 움직임 허용 (24px = ~1.5mm, Apple HIG 권장) */
+  var TAP_MAX_DX = 24;
+  var TAP_MAX_DY = 24;
   var GHOST_CLICK_BLOCK_MS = 500;
   var suppressClickUntil = 0;
   var touchCtx = null;
@@ -230,7 +231,6 @@
       var dx = Math.abs(pt.x - ctx.startX);
       if (ctx.moved || dy >= TAP_MAX_DY || dx >= TAP_MAX_DX) return;
 
-      probeTopNodeFromPoint(pt.x, pt.y, ctx.rule.action + ':touchend');
       var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
       if (!handled) return;
 

@@ -519,6 +519,8 @@ body.neo-mode .post-saju-services-intro span {
 .tarot-tile {
 	display: flex;
 	flex-direction: column;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
 	background: linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, rgba(60, 40, 100, 0.12) 100%);
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
@@ -744,7 +746,9 @@ body.neo-mode .post-saju-services-intro span {
 }
 
 /* ─── 우주·별 컨셉: 컬렉션 내 별 보이도록 크기·대비 강화 + 빛남 애니메이션 ─── */
-.feat-collection__cosmos {
+.feat-collection__cosmos,
+.tarot-collection__cosmos {
+	pointer-events: none;
 	z-index: 2;
 }
 @keyframes fc-star-shine {

@@ -255,6 +255,9 @@ body {
 	color: rgba(253, 230, 138, 0.9);
 	font-size: 0.7rem;
 }
+/* cosmos 오버레이가 터치를 가로채지 않도록 (모바일 클릭 보장) */
+.feat-collection__cosmos,
+.tarot-collection__cosmos { pointer-events: none; }
 .feat-collection--animal .feat-collection__title { color: #a7f3d0; }
 .feat-collection--oracle .feat-collection__title { color: #fde68a; }
 .feat-collection--cosmic .feat-collection__title { color: #c4b5fd; }
@@ -285,6 +288,8 @@ body {
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
 	min-height: 140px;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
 }
 .tarot-tile:hover {
 	transform: translateY(-4px);
