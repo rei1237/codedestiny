@@ -693,7 +693,7 @@
     ov.className = 'dp-fsel-overlay';
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<div class="dp-fsel-close-btn" onclick="window._dpCloseFortuneSel()" aria-label="닫기">✕</div>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="닫기">✕</button>'
       + '<div class="dp-fsel-profile">'
         + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
         + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
@@ -713,6 +713,18 @@
       + '</div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
+    var doClose = function(e) {
+      if (e) e.preventDefault();
+      if (typeof window._dpCloseFortuneSel === 'function') window._dpCloseFortuneSel();
+    };
+    var closeBtnEl = ov.querySelector('.dp-fsel-close-btn');
+    if (closeBtnEl) {
+      closeBtnEl.addEventListener('click', doClose);
+      closeBtnEl.addEventListener('touchend', doClose, { passive: false });
+    }
+    ov.addEventListener('click', function(e) {
+      if (e.target === ov) doClose(e);
+    });
     requestAnimationFrame(function() { ov.classList.add('dp-fsel-overlay--in'); });
   };
 

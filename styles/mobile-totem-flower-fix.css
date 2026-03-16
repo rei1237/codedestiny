@@ -69,24 +69,54 @@
   }
 }
 
-/* ─── 3. dp-fsel (운세 선택 모달) — 프로필 카드 모바일 ─── */
+/* ─── 3. dp-fsel (운세 선택 모달) — 프로필 카드 모바일 (한 칸에 2개씩) ─── */
 @media (max-width: 480px) {
   .dp-fsel-btns {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   .dp-fsel-btn {
-    min-height: 48px;
-    padding: 14px 18px;
+    min-height: 44px;
+    padding: 10px 12px;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+  }
+  .dp-fsel-btn-icon {
+    font-size: 1.4rem;
   }
   .dp-fsel-btn-label {
+    font-size: 0.75rem;
     white-space: normal;
     word-break: keep-all;
-    text-align: left;
+    text-align: center;
+    line-height: 1.2;
   }
   .dp-fsel-modal {
-    padding: 28px 18px 36px;
+    padding: 24px 16px max(36px, env(safe-area-inset-bottom, 36px));
     max-height: 85dvh;
+  }
+  .dp-fsel-profile {
+    margin-bottom: 14px;
+  }
+  .dp-fsel-zodiac {
+    font-size: 2.2rem;
+  }
+  .dp-fsel-pname {
+    font-size: 1rem;
+  }
+  .dp-fsel-ask {
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+  }
+  .dp-fsel-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
   }
 }
 
@@ -112,13 +142,15 @@
   }
 }
 
-/* feat-collection cosmos가 타일 위에 겹쳐도 터치 통과 */
+/* feat-collection cosmos가 타일 위에 겹쳐도 터치 통과 (애니멀 토템 클릭 보장) */
+.feat-collection__cosmos,
 .feat-collection__cosmos .fc-star,
+.tarot-collection__cosmos,
 .tarot-collection__cosmos .tc-star {
   pointer-events: none;
 }
 
-/* 모바일: 오버레이 열림 시 확실한 표시 (iOS Safari 등) */
+/* 모바일: 오버레이 열림 시 확실한 표시 및 스크롤 (iOS Safari 등) */
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
   .animal-totem-overlay.is-open,
   .df-studio-overlay.is-show,
@@ -131,12 +163,16 @@
     bottom: 0 !important;
     width: 100% !important;
     z-index: 99999 !important;
+    height: 100dvh !important;
     min-height: 100dvh !important;
     min-height: 100vh !important;
     min-height: -webkit-fill-available !important;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overflow-y: scroll !important;
     overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
     -webkit-tap-highlight-color: transparent;
   }
   /* 운명의 꽃 시트: 모바일 overflow 방지 */
@@ -170,6 +206,17 @@
     min-height: 120px;
   }
   .dp-fsel-btns {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .dp-fsel-btn {
+    padding: 8px 10px;
+    min-height: 42px;
+  }
+  .dp-fsel-btn-icon {
+    font-size: 1.2rem;
+  }
+  .dp-fsel-btn-label {
+    font-size: 0.7rem;
   }
 }
