@@ -32,10 +32,32 @@
     meditationCycleCount: 0,
   };
   var TAROT_API_TIMEOUT_MS = 12000;
+  var MEDITATION_INTRO_TEXTS = [
+    "🌊 밤바다로 떠나볼까요? 준비되면 호흡을 따라가 주세요.",
+    "🌙 별이 반짝이는 밤바다. 천천히 호흡을 따라가 주세요.",
+    "🕯️ 등대의 불빛을 따라, 마음을 잡아 주세요.",
+  ];
+  var MEDITATION_PHASE_TEXTS = {
+    in: [
+      "눈을 감고... 밤바다의 파도에 귀 기울여 보세요. 숨을 천천히 들이쉬세요.",
+      "저 멀리 등대의 빛이 보이나요? 그 빛을 향해 숨을 들이쉬세요.",
+      "별이 반짝이는 밤바다... 그 고요함을 들이마시세요.",
+    ],
+    hold: [
+      "별빛이 고요히 머무는 동안 잠시 참으세요. 그리움도 이 순간만은 잔잔합니다.",
+      "파도가 잠잠해진 순간. 그 침묵을 온몸으로 느껴 보세요.",
+      "등대의 불이 한 번 깜빡일 때까지... 숨을 가만히 유지하세요.",
+    ],
+    out: [
+      "등대의 빛처럼 마음을 비우며 천천히 내쉬세요. 파도가 당신을 위로할 거예요.",
+      "모든 생각을 파도에 실어 보내세요. 바닷바람이 당신을 감쌀 거예요.",
+      "별빛이 스며드는 밤바다... 천천히 내쉬며 마음을 비워 보세요.",
+    ],
+  };
   var MEDITATION_PHASES = [
-    { key: "in", duration: 3500, text: "눈을 감고... 밤바다의 파도에 귀 기울여 보세요. 숨을 천천히 들이쉬세요.", circleClass: "breath-in" },
-    { key: "hold", duration: 3000, text: "별빛이 고요히 머무는 동안 잠시 참으세요. 그리움도 이 순간만은 잔잔합니다.", circleClass: "breath-hold" },
-    { key: "out", duration: 3500, text: "등대의 빛처럼 마음을 비우며 천천히 내쉬세요. 파도가 당신을 위로할 거예요.", circleClass: "breath-out" },
+    { key: "in", duration: 3500, circleClass: "breath-in" },
+    { key: "hold", duration: 3000, circleClass: "breath-hold" },
+    { key: "out", duration: 3500, circleClass: "breath-out" },
   ];
   var MEDITATION_MAX_CYCLES = 3;
   var MEDITATION_TYPING_MS = 55;
@@ -496,7 +518,9 @@
     guide.hidden = false;
     guide.classList.add("is-visible");
 
-    typewriterMeditationText(breathText, phase.text, MEDITATION_TYPING_MS);
+    var phaseTexts = MEDITATION_PHASE_TEXTS[phase.key];
+    var text = phaseTexts && phaseTexts[cycleIndex % phaseTexts.length] ? phaseTexts[cycleIndex % phaseTexts.length] : "";
+    typewriterMeditationText(breathText, text, MEDITATION_TYPING_MS);
 
     var nextPhaseIndex = (phaseIndex + 1) % MEDITATION_PHASES.length;
     var nextCycle = nextPhaseIndex === 0 ? cycleIndex + 1 : cycleIndex;
@@ -526,7 +550,8 @@
       guide.classList.remove("breath-in", "breath-hold", "breath-out");
       if (circle) circle.className = "tarot-reunion-breath-circle";
       if (breathCount) breathCount.textContent = "";
-      typewriterMeditationText(breathText, "🌊 밤바다로 떠나볼까요? 준비되면 호흡을 따라가 주세요.", 40, function () {
+      var introIdx = Math.floor(Math.random() * MEDITATION_INTRO_TEXTS.length);
+      typewriterMeditationText(breathText, MEDITATION_INTRO_TEXTS[introIdx], 40, function () {
         setTimeout(function () {
           if (state.meditationActive) runMeditationPhase(0, 0);
         }, 800);
