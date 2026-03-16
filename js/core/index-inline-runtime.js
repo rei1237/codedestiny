@@ -309,16 +309,20 @@ function __cdBindAnimalTotemTileDirect() {
   function openTotemModal() {
     var overlay = document.getElementById('animalTotemOverlay');
     if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
+    /* 모바일: 동기 실행 시 터치 처리 중 UI 업데이트가 막혀 화면 멈춤. rAF로 지연 */
+    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     if (typeof window.openAnimalTotemModal === 'function') {
-      window.openAnimalTotemModal();
+      raf(function() { window.openAnimalTotemModal(); });
       return;
     }
     /* animal-totem-experience.js 미로드 시 폴백: 오버레이만 표시 */
     if (overlay) {
-      overlay.classList.add('is-open');
-      overlay.style.display = 'block';
-      if (window._perf && window._perf.lockBody) window._perf.lockBody();
-      else document.body.style.overflow = 'hidden';
+      raf(function() {
+        overlay.classList.add('is-open');
+        overlay.style.display = 'block';
+        if (window._perf && window._perf.lockBody) window._perf.lockBody();
+        else document.body.style.overflow = 'hidden';
+      });
     }
   }
 
@@ -353,9 +357,15 @@ function __cdBindAnimalTotemTileDirect() {
       var dy = Math.abs(y - start.y);
       if (dx > TAP_THRESH || dy > TAP_THRESH) return;
     }
-    /* touchStart로 시작했거나, elementFromPoint로 터치 해제 위치가 토템 타일인 경우 (모바일 event.target 부정확 대비) */
+    /* touchStart로 시작했거나, elementFromPoint로 터치 위치가 토템 타일인 경우 (모바일 event.target 부정확 대비) */
     var fromStart = start && isTotemTile(ev.target);
-    var elAtPoint = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
+    var elAtPoint = null;
+    if (typeof document.elementFromPoint === 'function') {
+      elAtPoint = document.elementFromPoint(x, y);
+      if ((!elAtPoint || !isTotemTile(elAtPoint)) && lastTouchStart) {
+        elAtPoint = document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+      }
+    }
     var fromPoint = elAtPoint && isTotemTile(elAtPoint);
     if (fromStart || fromPoint) {
       ev.preventDefault();

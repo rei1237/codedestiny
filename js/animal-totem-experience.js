@@ -95,10 +95,9 @@
 
   function activateStage(stageEl) {
     [refs.introStage, refs.modeStage, refs.drawStage, refs.resultStage].forEach(function(el) {
-      if (!el) return;
-      el.classList.remove("is-active");
+      if (el && el.classList) el.classList.remove("is-active");
     });
-    if (stageEl) stageEl.classList.add("is-active");
+    if (stageEl && stageEl.classList) stageEl.classList.add("is-active");
     if (refs.overlay) {
       refs.overlay.classList.toggle("is-result-view", stageEl === refs.resultStage);
     }
@@ -394,7 +393,7 @@
     refs.overlay.classList.remove("env-ground", "env-air", "env-water");
     refs.overlay.classList.add("is-open");
     refs.overlay.scrollTop = 0;
-    lockBody();
+    try { lockBody(); } catch (_) { document.body.style.overflow = "hidden"; }
     resetAnimalTotemFlow();
     /* 모바일 터치 후 즉시 모달 표시, 무거운 초기화는 다음 프레임으로 지연 */
     var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };

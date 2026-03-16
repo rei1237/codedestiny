@@ -179,6 +179,11 @@
       if (tile) return tile;
     }
 
+    if (rule.action === 'openAnimalTotemModal') {
+      var tile = origin.closest('.tarot-tile--animal-totem');
+      if (tile) return tile;
+    }
+
     return document.querySelector('[data-action="' + rule.action + '"]');
   }
 
@@ -223,17 +228,23 @@
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
-    if (typeof fn === 'function') {
-      try {
-        fn();
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-      }
+    if (typeof fn !== 'function') return false;
+
+    /* 모바일: 동기 실행 시 브라우저가 터치 처리 중 UI 업데이트를 막아 화면 멈춤 발생. rAF로 지연 */
+    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+    try {
+      raf(function() {
+        try {
+          fn();
+        } catch (err) {
+          console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+        }
+      });
+      return true;
+    } catch (err) {
+      console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
       return false;
     }
-
-    return false;
   }
 
   function injectTouchActionStyle() {
