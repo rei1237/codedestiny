@@ -99,6 +99,17 @@
   position: relative;
   z-index: 5;
   min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* feat-collection 그리드: 모바일 터치 즉시 반응 (스크롤 지연 방지) */
+@media (max-width: 768px) {
+  .feat-collection__grid,
+  .feat-collection--animal .feat-collection__grid,
+  .feat-collection--flower .feat-collection__grid {
+    touch-action: manipulation;
+  }
 }
 
 /* feat-collection cosmos가 타일 위에 겹쳐도 터치 통과 */

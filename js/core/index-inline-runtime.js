@@ -426,6 +426,7 @@ function __cdBindAnimalTotemTileDirect() {
 function __cdBindDestinyFlowerTileDirect() {
   var sel = '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl, [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"]';
   var touchStart = null;
+  var lastTouchStart = null;
   var lastOpenTime = 0;
   var TAP_THRESH = 36;
   var DEBOUNCE_MS = 400;
@@ -456,8 +457,9 @@ function __cdBindDestinyFlowerTileDirect() {
   }
 
   function handleTouchStart(ev) {
-    if (!ev.target || !isFlowerTile(ev.target)) return;
     var t = ev.touches && ev.touches[0];
+    if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
+    if (!ev.target || !isFlowerTile(ev.target)) return;
     touchStart = t ? { x: t.clientX, y: t.clientY } : null;
   }
 
@@ -466,20 +468,27 @@ function __cdBindDestinyFlowerTileDirect() {
   }
 
   function handleTouchEnd(ev) {
-    if (!touchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
-    var target = ev.target;
-    if (!isFlowerTile(target)) return;
-    var actionEl = target.closest(sel);
-    if (!actionEl) return;
+    if (!ev.changedTouches || !ev.changedTouches[0]) return;
     var t = ev.changedTouches[0];
-    var dx = Math.abs(t.clientX - touchStart.x);
-    var dy = Math.abs(t.clientY - touchStart.y);
+    var x = t.clientX, y = t.clientY;
+    var start = touchStart || lastTouchStart;
     touchStart = null;
-    if (dx > TAP_THRESH || dy > TAP_THRESH) return;
-    ev.preventDefault();
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
-    openFlowerStudio(actionEl);
+    if (start) {
+      var dx = Math.abs(x - start.x);
+      var dy = Math.abs(y - start.y);
+      if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+    }
+    /* touchStart로 시작했거나, elementFromPoint로 터치 해제 위치가 꽃 타일인 경우 (모바일 event.target 부정확 대비) */
+    var fromStart = start && isFlowerTile(ev.target);
+    var elAtPoint = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
+    var fromPoint = elAtPoint && isFlowerTile(elAtPoint);
+    var actionEl = (fromStart && ev.target.closest(sel)) || (fromPoint && elAtPoint.closest(sel));
+    if (actionEl) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      openFlowerStudio(actionEl);
+    }
   }
 
   document.addEventListener('click', handleClick, { capture: true });
@@ -488,11 +497,11 @@ function __cdBindDestinyFlowerTileDirect() {
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
 
   function bindDirectToTiles() {
-    var directTouchStart = null;
     var tiles = document.querySelectorAll(sel);
     tiles.forEach(function(tile) {
       if (tile._cdFlowerDirectBound) return;
       tile._cdFlowerDirectBound = true;
+      var tileTouchStart = null;
       tile.addEventListener('click', function(ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -500,15 +509,23 @@ function __cdBindDestinyFlowerTileDirect() {
       });
       tile.addEventListener('touchstart', function(ev) {
         var t = ev.touches && ev.touches[0];
-        directTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
+        tileTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
       }, { passive: true });
       tile.addEventListener('touchend', function(ev) {
-        if (!directTouchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
+        if (!ev.changedTouches || !ev.changedTouches[0]) return;
         var t = ev.changedTouches[0];
-        var dx = Math.abs(t.clientX - directTouchStart.x);
-        var dy = Math.abs(t.clientY - directTouchStart.y);
-        directTouchStart = null;
-        if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+        var x = t.clientX, y = t.clientY;
+        var start = tileTouchStart;
+        tileTouchStart = null;
+        if (start) {
+          var dx = Math.abs(x - start.x);
+          var dy = Math.abs(y - start.y);
+          if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+        } else {
+          /* touchstart 미수신 시 elementFromPoint로 터치 해제 위치 확인 (모바일 대응) */
+          var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
+          if (!elAt || !tile.contains(elAt)) return;
+        }
         if (ev.cancelable) ev.preventDefault();
         openFlowerStudio(tile);
       }, { passive: false });
@@ -1342,6 +1359,9 @@ function _afApplyCardVisual(card, selection) {
 
 function _jfResolveSelection() {
   var payload = _dfGetProfilePayload();
+  var birthCtx = _dfResolveBirthContext(payload || {});
+  if (!_dfHasBirthCore(birthCtx)) return null;
+
   var matched = null;
 
   try {
@@ -1499,6 +1519,9 @@ function _jfApplyCardVisual(card, selection) {
 
 function _sfResolveSelection() {
   var payload = _dfGetProfilePayload();
+  var birthCtx = _dfResolveBirthContext(payload || {});
+  if (!_dfHasBirthCore(birthCtx)) return null;
+
   var matched = null;
 
   try {
@@ -3021,7 +3044,7 @@ function openDestinyFlowerStudio() {
     if (main) main.style.display = 'none';
     if (panels) panels.style.display = 'none';
     if (historySection) historySection.style.display = 'none';
-    _dfSetStudioStatus('이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.');
+    _dfSetStudioStatus(_dfGetNoBirthMessage(_dfStudioState.activeSource || 'saju'));
   } else {
     _dfStudioState.selection = selection;
     _dfApplyStudioSelection(selection);
@@ -3051,6 +3074,13 @@ function openDestinyFlowerStudio() {
 window.openDestinyFlowerStudio = openDestinyFlowerStudio;
 window.openDestinyFlower = openDestinyFlower;
 
+function _dfGetNoBirthMessage(source) {
+  var normalized = _dfNormalizeSource(source);
+  if (normalized === 'jamidusu') return '자미두수 꽃을 보려면 생년월일을 입력해주세요.';
+  if (normalized === 'sukuyo') return '숙요점 꽃을 보려면 생년월일을 입력해주세요.';
+  return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
+}
+
 function setDestinyFlowerSourceTab(source) {
   var normalized = _dfSetActiveSource(source);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
@@ -3060,13 +3090,36 @@ function setDestinyFlowerSourceTab(source) {
   _dfStudioState.selection = selection;
 
   if (isStudioOpen) {
-    _dfApplyStudioSelection(selection);
-    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+    var main = document.querySelector('.df-studio-main');
+    var panels = document.querySelector('.df-studio-panels');
+    var historySection = document.querySelector('.df-studio-history');
+    if (!selection) {
+      if (main) main.style.display = 'none';
+      if (panels) panels.style.display = 'none';
+      if (historySection) historySection.style.display = 'none';
+      _dfSetStudioStatus(_dfGetNoBirthMessage(normalized));
+    } else {
+      _dfApplyStudioSelection(selection);
+      if (main) main.style.display = '';
+      if (panels) panels.style.display = '';
+      if (historySection) historySection.style.display = '';
+      _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+    }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
     if (card) {
       _dfEnsureCardOpen(card);
-      _dfAnimateUnifiedCardSwitch(card, selection);
+      if (selection) {
+        _dfAnimateUnifiedCardSwitch(card, selection);
+      } else {
+        var stage = card.querySelector('.destiny-flower-stage');
+        var nameEl = card.querySelector('.destiny-flower-stage__name');
+        var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
+        if (stage && nameEl && symbolismEl) {
+          nameEl.textContent = '생년월일 입력 대기';
+          symbolismEl.textContent = _dfGetNoBirthMessage(normalized);
+        }
+      }
       if (typeof syncFeatureCardHeight === 'function') {
         syncFeatureCardHeight(card);
         requestAnimationFrame(function() {
