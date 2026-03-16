@@ -575,9 +575,9 @@ input:checked + .slider .paw-pad {
 .compat-test-results{margin-top:12px;font-size:.9rem;color:#333}
 
 .modal-overlay-shell{display:none;width:100%}
-.modal-overlay-juyuk{background:#080401}
-.modal-overlay-sukuyo{background:#0a0c19}
-.modal-overlay-astro{background:#0a0a14}
+.modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow-y:auto}
+.modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow-y:auto}
+.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow-y:auto}
 .modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto}
 
 .modal-top-nav{
