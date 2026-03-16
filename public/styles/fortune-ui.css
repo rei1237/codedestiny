@@ -1173,7 +1173,16 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 
 /* ─── 편지 ─── */
 .letter-box{
-  background:linear-gradient(140deg,#FFFCFC,#FFF5F8);
+  /* 기본 그라디언트 + 종이 질감 레이어 */
+  background:
+    linear-gradient(140deg,#FFFCFC,#FFF5F8),
+    radial-gradient(circle at 0 0,rgba(255,255,255,.7) 0,transparent 55%),
+    radial-gradient(circle at 100% 100%,rgba(255,210,210,.5) 0,transparent 55%),
+    repeating-linear-gradient(0deg,
+      rgba(255,255,255,.45) 0,
+      rgba(255,255,255,.45) 1px,
+      rgba(255,255,255,0) 3px);
+  background-blend-mode:soft-light,normal,normal,normal;
   border:2px solid rgba(255,183,178,.25);
   border-radius:20px;
   padding:24px 22px;
@@ -1197,6 +1206,18 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   max-width: 70ch;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* 모바일에서 세로로 길게 보이도록 조정 */
+@media (max-width:768px){
+  .letter-box{
+    max-width:100%;
+    margin-left:12px;
+    margin-right:12px;
+    min-height:calc(100vh - 140px);
+    padding-top:28px;
+    padding-bottom:32px;
+  }
 }
 
 /* ─── 블로그 ─── */
@@ -2998,6 +3019,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   gap:12px;
   align-items:stretch;
   width:100%;
+  max-width:520px;
+  margin:0 auto;
 }
 .quick-action-stack{display:flex;flex-direction:column;align-items:center;gap:12px}
 .quick-action-stack .btn-install,.quick-action-stack .btn-favorite{width:min(92vw,460px)}
@@ -3016,7 +3039,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   justify-self: center;
 }
 .btn-kakao{
-  padding:10px 20px;
+  padding:10px 16px;
   min-height:44px;
   background:#FEE500;
   color:#3B1E08;
@@ -3075,7 +3098,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   --btn-return-text:#e879f9;
 }
 .btn-insta{
-  padding:10px 20px;
+  padding:10px 16px;
   min-height:44px;
   background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
   color:#fff;
@@ -5024,16 +5047,16 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .mystic-summon-btn {
     display: block;
-    margin: 24px auto 20px;
-    padding: 14px 28px;
-    font-size: 1.05rem;
-    font-weight: 700;
+    margin: 28px auto 24px;
+    padding: 18px 40px;
+    font-size: 1.15rem;
+    font-weight: 800;
     color: #fff;
     text-align: center;
     background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
     background-size: 200% 200%;
     border: 1px solid rgba(212, 175, 55, 0.6);
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -5041,8 +5064,8 @@ body.neo-mode .monthly-label { color: #64748b; }
     animation: mystic-breathe 3.5s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
     width: 100%;
-    max-width: 360px;
-    min-height: 48px;
+    max-width: 440px;
+    min-height: 60px;
     position: relative;
     overflow: hidden;
   }
@@ -11067,7 +11090,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .tc-home-btn {
           display: block;
           width: 100%;
-          margin-top: 10px;
+          margin-top: 40px;
           padding: 13px;
           background: transparent;
           border: 1px solid rgba(180,130,30,.3);

@@ -2610,24 +2610,24 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .mystic-summon-btn {
     display: block;
-    margin: 40px auto;
-    padding: 1.2rem 3rem;
-    font-size: 1.3rem;
+    margin: 32px auto;
+    padding: 1.4rem 3.5rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #fff;
     text-align: center;
     background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
     background-size: 200% 200%;
     border: 1px solid rgba(212, 175, 55, 0.6);
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     animation: mystic-breathe 3.5s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-    width: 85%;
-    max-width: 400px;
+    width: 90%;
+    max-width: 460px;
     position: relative;
     overflow: hidden;
   }
