@@ -133,6 +133,24 @@ a[href].btn,
     min-height: 100dvh;
     min-height: -webkit-fill-available;
   }
+
+  /* 숙요점: 상단 고정·스크롤 안됨 수정 — flex 레이아웃으로 시트를 스크롤 컨테이너로 분리 */
+  #sukuyoModalOverlay.modal-overlay-sukuyo {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    overflow: hidden;
+  }
+  #sukuyoModalOverlay .modal-top-nav {
+    flex-shrink: 0;
+  }
+  #sukuyoModalOverlay #sukuyoModalSheet {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* 페이지 끝 고무줄 효과 제한 (필요 시) */
