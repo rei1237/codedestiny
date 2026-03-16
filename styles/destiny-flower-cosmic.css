@@ -1,0 +1,566 @@
+/**
+ * 운명의 꽃 아뜰리에 — Cosmic Garden (꽃과 우주) 테마
+ * 모든 기존 기능·텍스트 유지, 시각적 개편
+ */
+
+/* ═══ Google Font: Cinzel (우아한 세리프) ═══ */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+
+/* ═══ Background: Deep Cosmic Nebula ═══ */
+.df-studio-overlay {
+  background:
+    radial-gradient(ellipse 120% 80% at 20% 10%, rgba(15, 23, 52, 0.98) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 100% at 80% 20%, rgba(30, 58, 95, 0.85) 0%, transparent 45%),
+    radial-gradient(ellipse 90% 70% at 50% 90%, rgba(59, 48, 98, 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 70% 70%, rgba(16, 94, 86, 0.6) 0%, transparent 45%),
+    linear-gradient(165deg,
+      #0a0e1a 0%,
+      #0f1729 18%,
+      #1e293b 35%,
+      #0f1729 55%,
+      #1e1b4b 75%,
+      #0f1729 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: dfCosmicNebulaShift 18s ease-in-out infinite;
+}
+
+/* 별 가루·성운 패턴 */
+.df-studio-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 28% 42%, rgba(200, 220, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 45% 25%, rgba(255, 240, 220, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 62% 68%, rgba(220, 200, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 78% 35%, rgba(180, 255, 240, 0.4), transparent),
+    radial-gradient(1.5px 1.5px at 88% 72%, rgba(255, 230, 200, 0.45), transparent);
+  background-size: 200px 200px, 180px 220px, 220px 180px, 190px 210px, 210px 190px, 200px 200px;
+  opacity: 0.7;
+  animation: dfStarDustTwinkle 8s ease-in-out infinite;
+}
+
+@keyframes dfCosmicNebulaShift {
+  0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+  50% { filter: hue-rotate(5deg) brightness(1.02); }
+}
+
+@keyframes dfStarDustTwinkle {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.85; }
+}
+
+/* ═══ Container: Glassmorphism ═══ */
+.df-studio-sheet {
+  background: linear-gradient(155deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.45),
+    0 0 80px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.df-studio-sheet::before {
+  background:
+    radial-gradient(ellipse at 15% 25%, rgba(99, 102, 241, 0.15), transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(16, 185, 129, 0.12), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.08), transparent 65%);
+  filter: blur(20px);
+}
+
+.df-studio-sheet::after {
+  background: radial-gradient(ellipse at 50% 100%, rgba(99, 102, 241, 0.1), transparent 60%);
+}
+
+/* ═══ Close (X) Icon ═══ */
+.df-studio-close {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.df-studio-close:hover,
+.df-studio-close:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.25);
+  color: #fff;
+}
+
+/* ═══ Header: Title — 톤앤매너 (꽃·우주·신비) ═══ */
+.df-studio-title,
+.df-studio-hero h2,
+#dfStudioTitle {
+  font-family: 'Cinzel', 'Noto Serif KR', Georgia, serif !important;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3.2vw, 2.25rem) !important;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  text-align: center;
+  position: relative;
+  background: linear-gradient(135deg,
+    #fff8e7 0%,
+    #f7e7ce 20%,
+    #e8d4b8 45%,
+    #d4a574 70%,
+    #c9a66b 90%,
+    #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 8px rgba(212, 165, 116, 0.4));
+}
+
+.df-title-emoji {
+  -webkit-text-fill-color: initial;
+  font-size: 1.15em;
+  display: inline-block;
+  animation: dfFlowerTitlePulse 3s ease-in-out infinite;
+}
+
+@keyframes dfFlowerTitlePulse {
+  0%, 100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+  50% { transform: scale(1.08) rotate(2deg); opacity: 0.95; }
+}
+
+.df-studio-kicker {
+  color: rgba(247, 231, 206, 0.85);
+  letter-spacing: 0.28em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.df-studio-hero::after {
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(247, 231, 206, 0.35),
+    rgba(212, 165, 116, 0.4),
+    rgba(247, 231, 206, 0.35),
+    transparent);
+}
+
+/* ═══ Source Tabs — 꽃 컨셉 버튼 (Petal Bloom) ═══ */
+.df-studio-source-tabs .df-source-tab {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 240, 245, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 16px 16px 20px 20px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s;
+}
+
+/* 꽃잎 형태 하단 둥근 곡선 */
+.df-studio-source-tabs .df-source-tab::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 6px;
+  background: radial-gradient(ellipse at center, rgba(255, 200, 220, 0.3), transparent);
+  border-radius: 0 0 50% 50%;
+  opacity: 0.6;
+}
+
+.df-tab-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1.05em;
+  vertical-align: middle;
+}
+
+.df-studio-source-tabs .df-source-tab:hover,
+.df-studio-source-tabs .df-source-tab:focus-visible {
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 240, 245, 0.08) 100%);
+  border-color: rgba(255, 182, 193, 0.5);
+  color: #f7e7ce;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 24px rgba(212, 165, 116, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.df-studio-source-tabs .df-source-tab.is-active {
+  background: linear-gradient(145deg,
+    rgba(255, 248, 240, 0.4) 0%,
+    rgba(255, 228, 225, 0.25) 50%,
+    rgba(255, 240, 245, 0.2) 100%);
+  border-color: rgba(255, 182, 193, 0.6);
+  color: #2d1f0f;
+  box-shadow:
+    0 6px 24px rgba(255, 182, 193, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.df-studio-source-tabs .df-source-tab.is-active::before {
+  background: radial-gradient(ellipse at center, rgba(255, 105, 180, 0.4), transparent);
+  opacity: 0.9;
+}
+
+.df-source-tab[data-df-source-tab='saju'].is-active {
+  background: linear-gradient(145deg, rgba(255, 248, 220, 0.45), rgba(255, 242, 189, 0.3)) !important;
+  border-color: rgba(255, 215, 0, 0.6) !important;
+  box-shadow: 0 6px 24px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+.df-source-tab[data-df-source-tab='astrology'].is-active {
+  background: linear-gradient(145deg, rgba(230, 230, 255, 0.4), rgba(208, 201, 255, 0.3)) !important;
+  border-color: rgba(147, 112, 219, 0.6) !important;
+  box-shadow: 0 6px 24px rgba(147, 112, 219, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+.df-source-tab[data-df-source-tab='jamidusu'].is-active {
+  background: linear-gradient(145deg, rgba(255, 240, 255, 0.4), rgba(245, 202, 255, 0.3)) !important;
+  border-color: rgba(186, 85, 211, 0.6) !important;
+  box-shadow: 0 6px 24px rgba(186, 85, 211, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+.df-source-tab[data-df-source-tab='sukuyo'].is-active {
+  background: linear-gradient(145deg, rgba(224, 255, 255, 0.35), rgba(204, 247, 245, 0.25)) !important;
+  border-color: rgba(32, 178, 170, 0.6) !important;
+  box-shadow: 0 6px 24px rgba(32, 178, 170, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 4-column layout for source tabs on wider screens */
+@media (min-width: 520px) {
+  .df-studio-source-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ═══ Tags (3x: 숙, 달 위상, 수호동물) ═══ */
+.df-saju-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.df-saju-badge b {
+  color: rgba(247, 231, 206, 0.95);
+}
+
+.df-saju-badge em {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.df-saju-badge.is-strength {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(255, 255, 255, 0.06));
+}
+.df-saju-badge.is-yongshin {
+  border-color: rgba(34, 211, 238, 0.4);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.12), rgba(255, 255, 255, 0.06));
+}
+.df-saju-badge.is-johu {
+  border-color: rgba(168, 85, 247, 0.4);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(255, 255, 255, 0.06));
+}
+
+/* ═══ Description (Narrative) ═══ */
+.df-studio-narrative {
+  color: rgba(255, 255, 255, 0.88) !important;
+  line-height: 1.75;
+}
+
+/* ═══ Main Card Area (Visual + Insight) ═══ */
+.df-studio-main {
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(99, 102, 241, 0.12), transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(16, 185, 129, 0.1), transparent 50%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.df-studio-main::before {
+  background: conic-gradient(from 140deg,
+    rgba(212, 165, 116, 0.35),
+    rgba(99, 102, 241, 0.25),
+    rgba(16, 185, 129, 0.25),
+    rgba(168, 85, 247, 0.25),
+    rgba(212, 165, 116, 0.35));
+  opacity: 0.6;
+}
+
+.df-studio-visual {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(150deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.df-studio-visual::after {
+  background: radial-gradient(circle, rgba(212, 165, 116, 0.25), transparent 68%);
+}
+
+.df-studio-visual img {
+  filter: saturate(1.12) contrast(1.04) brightness(1.08);
+}
+
+/* ═══ Card Data (Flower Name, Scientific Name, Class Tag) ═══ */
+.df-studio-insight h3,
+#dfStudioName {
+  color: #f7e7ce !important;
+  font-family: 'Cinzel', 'Noto Serif KR', serif !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.df-studio-latin {
+  color: rgba(200, 220, 255, 0.9) !important;
+  font-style: italic;
+}
+
+.df-studio-daymaster,
+#dfStudioDayMasterBadge {
+  color: rgba(247, 231, 206, 0.9) !important;
+  border-color: rgba(212, 165, 116, 0.4);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.2), transparent) !important;
+}
+
+.df-studio-symbolism {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.df-studio-keywords {
+  color: rgba(200, 220, 255, 0.8) !important;
+}
+
+/* ═══ Panels (Glassmorphism) ═══ */
+.df-panel {
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.df-panel h4 {
+  color: rgba(247, 231, 206, 0.95) !important;
+}
+
+.df-panel h4::before {
+  content: none; /* emojis in HTML */
+}
+
+.df-panel p,
+.df-panel-list li {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.df-panel:has(#dfStudioDataSummary),
+.df-studio-panels > .df-panel:nth-child(4) {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(145deg,
+    rgba(16, 185, 129, 0.08),
+    rgba(255, 255, 255, 0.03)) !important;
+}
+
+.df-panel:has(#dfStudioJournal),
+.df-studio-panels > .df-panel:nth-child(5) {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(145deg,
+    rgba(99, 102, 241, 0.06),
+    rgba(255, 255, 255, 0.02)) !important;
+}
+
+.df-panel:has(#dfStudioRecipe),
+.df-panel:has(#dfStudioFlowerLanguage),
+.df-panel:has(#dfStudioSynergy),
+.df-studio-panels > .df-panel:nth-child(6),
+.df-studio-panels > .df-panel:nth-child(7),
+.df-studio-panels > .df-panel:nth-child(8) {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: linear-gradient(145deg,
+    rgba(168, 85, 247, 0.06),
+    rgba(255, 255, 255, 0.02)) !important;
+}
+
+.df-panel--gardener {
+  border-color: rgba(34, 211, 238, 0.3);
+  background: linear-gradient(145deg,
+    rgba(34, 211, 238, 0.06),
+    rgba(255, 255, 255, 0.02)) !important;
+}
+
+/* ═══ History Section & Chips (External Link style) ═══ */
+.df-studio-history {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.df-studio-history-head h4 {
+  color: rgba(247, 231, 206, 0.95) !important;
+}
+
+.df-studio-chip {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 240, 250, 0.06));
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 12px 12px 14px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.df-studio-chip:hover,
+.df-studio-chip:focus-visible {
+  background: linear-gradient(145deg, rgba(255, 248, 250, 0.2), rgba(255, 228, 225, 0.12));
+  border-color: rgba(255, 182, 193, 0.5);
+  color: #f7e7ce;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.2);
+}
+
+.df-studio-chip--danger {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+}
+
+.df-studio-status {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* ═══ Buttons — 꽃잎 컨셉 (닫기, 홈화면으로) ═══ */
+.df-studio-btn {
+  border-radius: 14px 14px 18px 18px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.df-studio-btn::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  height: 4px;
+  background: radial-gradient(ellipse at center, rgba(255, 200, 220, 0.25), transparent);
+  border-radius: 0 0 50% 50%;
+}
+
+.df-studio-btn--secondary {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 248, 250, 0.06)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.df-studio-btn--secondary:hover,
+.df-studio-btn--secondary:focus-visible {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 240, 250, 0.1)) !important;
+  border-color: rgba(255, 182, 193, 0.5);
+  color: #f7e7ce !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 182, 193, 0.2);
+}
+
+.df-studio-btn--primary {
+  background: linear-gradient(145deg,
+    rgba(255, 248, 220, 0.7) 0%,
+    rgba(255, 228, 225, 0.6) 50%,
+    rgba(255, 182, 193, 0.5) 100%) !important;
+  border: 1px solid rgba(255, 182, 193, 0.6);
+  color: #2d1f0f !important;
+  font-weight: 700;
+}
+
+.df-studio-btn--primary::after {
+  background: radial-gradient(ellipse at center, rgba(255, 105, 180, 0.3), transparent);
+}
+
+.df-studio-btn--primary:hover,
+.df-studio-btn--primary:focus-visible {
+  background: linear-gradient(145deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 248, 240, 0.45) 50%,
+    rgba(255, 228, 225, 0.4) 100%) !important;
+  border-color: rgba(255, 182, 193, 0.5);
+  color: #2d1f0f !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 182, 193, 0.35);
+}
+
+/* ═══ Prompt Boxes & History Items ═══ */
+.df-studio-promptbox {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.df-studio-promptbox.is-negative {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.df-studio-prompt-label {
+  color: rgba(247, 231, 206, 0.9) !important;
+}
+
+.df-studio-prompt-guide {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.df-history-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.df-history-item-name,
+.df-history-item-keywords {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.df-history-item-time {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.df-history-btn {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.df-history-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f7e7ce;
+}
+
+/* ═══ Palette Dots ═══ */
+.df-palette-row p {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ═══ Aura (decorative glow) ═══ */
+.df-studio-aura {
+  background:
+    radial-gradient(circle at 22% 50%, rgba(212, 165, 116, 0.25), transparent 58%),
+    radial-gradient(circle at 74% 34%, rgba(99, 102, 241, 0.2), transparent 60%);
+}
