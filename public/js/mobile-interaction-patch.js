@@ -154,20 +154,6 @@
     var fn = window[rule.action];
     if (typeof fn !== 'function') return false;
 
-    /* openAnimalTotemModal: 모바일에서 동기 실행 시 터치 핸들러와 충돌하여 화면 멈춤 발생.
-       requestAnimationFrame으로 지연 실행하여 터치 이벤트 완료 후 모달 오픈 */
-    if (rule.action === 'openAnimalTotemModal') {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      raf(function() {
-        try {
-          fn();
-        } catch (err) {
-          console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-        }
-      });
-      return true;
-    }
-
     try {
       fn();
       return true;

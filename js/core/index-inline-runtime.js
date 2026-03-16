@@ -261,6 +261,20 @@ function __cdBindGlobalActionsFallback() {
     __cdInvokeAction(action, actionEl, event);
   });
 
+  /* 모바일: 숙요점/자미두수/점성술 모달 닫기 버튼 터치 반응성 보강 (touchend 폴백) */
+  root.addEventListener('touchend', function(event) {
+    var target = __cdResolveEventElement(event);
+    if (!target) return;
+    var actionEl = target.closest('[data-action]');
+    if (!actionEl) return;
+    if (!actionEl.closest('.modal-top-nav')) return;
+    var action = actionEl.getAttribute('data-action');
+    if (!action) return;
+    if (action !== 'closeCurrentPage' && action !== 'closeSukuyoModal' && action !== 'closeZiweiModal' && action !== 'closeAstroModal' && action !== 'closeJuyukModal') return;
+    event.preventDefault();
+    __cdInvokeAction(action, actionEl, event);
+  }, { passive: false });
+
   root.addEventListener('change', function(event) {
     var target = event.target;
     if (!(target instanceof Element)) return;
@@ -278,11 +292,50 @@ function __cdBindGlobalActionsFallback() {
   __cdBindActionEventFallback(root, 'touchcancel', 'data-touchcancel-action');
 }
 
+function __cdBindAnimalTotemTileDirect() {
+  var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
+  var touchStart = null;
+  var TAP_THRESH = 20;
+  function isTotemTile(el) {
+    return el && el.closest && el.closest(sel);
+  }
+  function handleClick(ev) {
+    var target = ev && ev.target;
+    if (!target || !isTotemTile(target)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+  }
+  function handleTouchStart(ev) {
+    if (!ev.target || !isTotemTile(ev.target)) return;
+    var t = ev.touches && ev.touches[0];
+    touchStart = t ? { x: t.clientX, y: t.clientY } : null;
+  }
+  function handleTouchEnd(ev) {
+    if (!touchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
+    var t = ev.changedTouches[0];
+    var dx = Math.abs(t.clientX - touchStart.x);
+    var dy = Math.abs(t.clientY - touchStart.y);
+    touchStart = null;
+    if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+  }
+  document.addEventListener('click', handleClick, { capture: true });
+  document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+  document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
+    __cdBindAnimalTotemTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
+  __cdBindAnimalTotemTileDirect();
   setTimeout(__cdBindGlobalActionsFallback, 0);
 }
 

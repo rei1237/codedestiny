@@ -425,6 +425,7 @@ function selectTotem(card, code) {
 
 function updateRitualBar() {
     const bar = document.getElementById('astralRitualBar');
+    const container = document.querySelector('.astral-container');
     const t1 = document.getElementById('token1');
     const t2 = document.getElementById('token2');
     const btn = bar.querySelector('.ritual-btn');
@@ -435,8 +436,10 @@ function updateRitualBar() {
         // Force reflow for transition
         void bar.offsetWidth;
         bar.classList.add('active');
+        if (container) container.classList.add('ritual-bar-visible');
     } else {
         bar.classList.remove('active');
+        if (container) container.classList.remove('ritual-bar-visible');
         // Wait for animation to finish before hiding (0.4s)
         setTimeout(() => {
             if (!bar.classList.contains('active')) {

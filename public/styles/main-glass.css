@@ -588,8 +588,12 @@ body {
 	.wrap { padding: 0 12px 24px; }
 	.feature-card-grid { gap: 22px; }
 	.feat-collection__grid,
-	.tarot-collection__grid { grid-template-columns: 1fr; gap: 12px; }
-	.feat-collection__grid--2col { grid-template-columns: 1fr; }
+	.tarot-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+	.feat-collection__grid--2col { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+	.tarot-tile { min-height: 110px; }
+	.tarot-tile__body { padding: 8px 10px 10px; }
+	.tarot-tile__title { font-size: 0.78rem; }
+	.tarot-tile__desc { font-size: 0.65rem; }
 	.feat-collection__title,
 	.tarot-collection__title { font-size: 1.15rem; }
 	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }

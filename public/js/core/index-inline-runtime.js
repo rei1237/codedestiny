@@ -261,6 +261,20 @@ function __cdBindGlobalActionsFallback() {
     __cdInvokeAction(action, actionEl, event);
   });
 
+  /* 모바일: 숙요점/자미두수/점성술 모달 닫기 버튼 터치 반응성 보강 (touchend 폴백) */
+  root.addEventListener('touchend', function(event) {
+    var target = __cdResolveEventElement(event);
+    if (!target) return;
+    var actionEl = target.closest('[data-action]');
+    if (!actionEl) return;
+    if (!actionEl.closest('.modal-top-nav')) return;
+    var action = actionEl.getAttribute('data-action');
+    if (!action) return;
+    if (action !== 'closeCurrentPage' && action !== 'closeSukuyoModal' && action !== 'closeZiweiModal' && action !== 'closeAstroModal' && action !== 'closeJuyukModal') return;
+    event.preventDefault();
+    __cdInvokeAction(action, actionEl, event);
+  }, { passive: false });
+
   root.addEventListener('change', function(event) {
     var target = event.target;
     if (!(target instanceof Element)) return;

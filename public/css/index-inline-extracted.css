@@ -5691,10 +5691,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   transform: translateY(-0.4px);
 }
 
-/* Ritual Bar - Refined */
+/* Ritual Bar - 화면 하단 고정 (2개 선택 시 사용자 화면에 맞춰 표시) */
 .astral-ritual-bar {
-    position: sticky;
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    position: relative;
     margin: 8px auto 0;
     transform: translateY(14px);
     width: min(92%, 560px);
@@ -5709,13 +5708,26 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 .astral-ritual-bar.active {
-    opacity: 1; transform: translateY(0); pointer-events: auto;
+    opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    width: min(calc(100vw - 40px), 460px);
+    margin: 0;
+}
+
+.astral-container.ritual-bar-visible {
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 640px) {
   .astral-container { max-width: 100%; border-left: 0; border-right: 0; }
   .astral-header { padding: 56px 16px 20px; }
   .astral-grid { gap: 10px; padding: 0 14px 14px; }
+  .astral-ritual-bar.active {
+    width: min(calc(100vw - 28px), 460px);
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
   .astral-ritual-bar {
     border-radius: 18px;
     padding: 8px 10px;
