@@ -294,23 +294,22 @@
       var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
       var cardName = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
       var summary = card.orientation === "reversed"
-        ? "이 포지션에 역방향 카드가 나온 것은, 감정이 아직 정리되지 않은 상태에서 오해가 쌓이기 쉬운 흐름이라는 뜻입니다. 상담사로서 말씀드리면, 지금은 결론을 서두르기보다 사실 확인과 감정 정리를 우선하시는 게 좋아요. 상대의 말 한 줄을 단정으로 해석하기보다, 반응의 맥락과 반복되는 패턴을 함께 보시면 훨씬 정확하게 읽을 수 있습니다. 역카드는 '안 된다'가 아니라 '지금은 속도 조절이 필요하다'는 메시지로 받아들이시면 됩니다."
-        : "정방향의 에너지가 나온 포지션이에요. 서로의 진심이 비교적 선명하게 드러나는 흐름이라고 볼 수 있습니다. 작은 신호를 놓치지 않고 일관된 대화를 이어가시면 관계는 생각보다 빠르게 안정될 수 있어요. 상담 현장에서도 자주 강조하는 부분인데, 강한 확답 한 번보다 작은 약속의 지속성이 관계를 더 단단하게 만듭니다. 지금 이 카드가 말해주는 것은 '가능성이 열려 있다'는 것이에요.";
+        ? "감정이 아직 정리되지 않아 오해가 쌓이기 쉬운 흐름입니다. 지금은 결론을 서두르기보다 사실 확인과 감정 정리를 우선해야 합니다. 상대의 말 한 줄을 단정으로 해석하기보다, 반응의 맥락과 반복 패턴을 함께 보세요."
+        : "서로의 진심이 비교적 선명하게 드러나는 흐름입니다. 작은 신호를 놓치지 않고 일관된 대화를 이어가면 관계는 빠르게 안정될 수 있습니다. 강한 확답보다 작은 약속의 지속성이 관계를 더 단단하게 만듭니다.";
       return { title: label, card: cardName, summary: summary };
     });
 
     return {
-      overallVibe: "안녕하세요. 오늘 뽑으신 여섯 장의 카드를 함께 살펴보면서, 두 분 사이에 어떤 에너지가 흐르고 있는지 정리해 드릴게요. 지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는, 말하자면 '과도기'에 있다고 볼 수 있습니다. 이 시기에는 감정의 강도 자체보다, 그 감정을 어떻게 전달하느냐가 관계의 만족도를 크게 바꿉니다. 중요한 점은 이 흐름이 고정된 운명이 아니라는 거예요. 대화의 태도, 경계 설정, 그리고 서로를 확인하는 방식을 조금만 바꿔도, 충분히 더 따뜻하고 안정적인 방향으로 움직일 수 있습니다. 타로는 예언이 아니라 '지금 이 순간의 에너지'를 비춰주는 거울이라고 생각해 주시면 좋겠어요.",
-      deepReading: "카드들이 말해주는 핵심은, '확신이 부족한 게 아니라 표현의 타이밍과 방식이 중요하다'는 거예요. 상대의 반응을 시험하거나 재촉하기보다, 내 감정을 간결하고 구체적으로 전달할 때 오히려 긴장이 풀리고 신뢰가 쌓입니다. 상담할 때마다 강조하는 부분인데, 불안이 올라올수록 마음속 추측을 늘리기보다 '내가 직접 확인한 사실'을 중심으로 대화를 이어가 보시길 권해 드려요. 상대도 지금 나름의 속도로 감정을 정리하고 있을 수 있으니, 한 번의 대화로 모든 걸 해결하려 하기보다 짧지만 진심이 담긴 대화를 여러 번 나누는 쪽이 더 효과적입니다.",
-      realityAndFuture: "단기적으로는 속도 조절이 필요하다고 읽혀요. 그렇다고 막막한 건 아니에요. 중요한 포인트만 솔직하게 확인하는 대화가 한두 번만 이어져도, 관계의 방향은 분명해집니다. 불필요한 추측을 줄이고, 작은 약속을 지키는 반복이 생기면 관계는 생각보다 빠르게 안정되는 경우가 많아요. 지금의 선택과 말 한 마디 한 마디가 3개월 뒤의 관계 결을 바꾼다는 걸 기억하시면, 조급함 대신 차분한 설계가 가능해집니다. 타로 상담사로서 드리는 말씀은, '언제 결론이 나느냐'보다 '어떤 방식으로 서로를 대하느냐'가 훨씬 중요하다는 거예요.",
+      overallVibe: "지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는 과도기입니다. 감정의 강도 자체보다 감정을 전달하는 방식이 관계의 만족도를 크게 바꾸는 시기예요. 이 흐름은 고정된 운명이 아니라, 대화의 태도와 경계 설정에 따라 충분히 더 따뜻한 방향으로 바뀔 수 있습니다.",
+      deepReading: "핵심은 확신의 부족이 아니라 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 감정을 간결하고 구체적으로 전달할 때 긴장이 풀리고 신뢰가 쌓입니다. 불안이 올라올수록 마음속 추측을 늘리기보다 '내가 확인한 사실'을 중심으로 대화를 이어가 보세요.",
+      realityAndFuture: "단기적으로는 속도 조절이 필요하지만, 중요한 포인트를 솔직하게 확인하면 관계의 방향은 분명해집니다. 불필요한 추측을 줄이고 작은 약속을 지키는 반복이 생기면 관계는 생각보다 빠르게 안정됩니다. 지금의 선택이 3개월 뒤의 관계 결을 바꾼다는 점을 기억해 주세요.",
       positionBreakdown: breakdown,
       advice: [
-        "상대의 말 내용보다 말투, 반응 속도, 행동의 일관성 같은 비언어 신호를 함께 보세요. 카드도 말보다 에너지로 읽히는 경우가 많아요.",
-        "오늘 안에 결론을 내리기보다 1~2번의 대화 텀을 두고 천천히 확인하시는 걸 추천해 드려요.",
-        "질문은 추궁형보다 확인형으로 바꿔 보세요. 예: '왜 그래?' 대신 '내가 이렇게 이해했는데 맞아?'라고 물어보면 대화가 훨씬 열려요.",
-        "불안한 날일수록 연락 빈도를 늘리기보다, 짧지만 진심이 담긴 한 번의 대화를 목표로 삼아 보세요.",
-        "관계의 결과를 붙잡기 전에, 내 컨디션(수면, 식사, 일상 루틴)을 먼저 안정시키세요. 마음이 안정될수록 선택이 정확해집니다.",
-        "이번 리딩의 핵심은 '빨리 확답을 받는 것'이 아니라 '건강한 방식으로 관계를 설계하는 것'이에요. 천천히, 그러나 분명하게 기준을 세워 보시길 바랍니다.",
+        "상대의 말보다 말투와 반응 속도 같은 비언어 신호를 함께 보세요.",
+        "오늘 안에 결론 내리기보다 1~2번의 대화 텀을 두고 확인하세요.",
+        "질문은 추궁형보다 확인형으로 바꿔 보세요. 예: '왜 그래?' 대신 '내가 이렇게 이해했는데 맞아?'",
+        "불안한 날일수록 연락 빈도를 늘리기보다, 짧고 진심 있는 한 번의 대화를 목표로 하세요.",
+        "관계의 결과를 붙잡기 전에 내 컨디션(수면/식사/일상 루틴)을 먼저 안정시키세요. 마음이 안정될수록 선택이 정확해집니다.",
       ],
     };
   }
@@ -783,28 +782,28 @@
 
     if (overallVibe) {
       html += '<section class="tarot-love-section tarot-love-section--vibe">';
-      html += '<h4 class="tarot-love-section-title">💕 상담사가 읽어 드리는, 두 분의 관계</h4>';
+      html += '<h4 class="tarot-love-section-title">🌙 타로 마스터의 시선</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(overallVibe) + "</div>";
       html += "</section>";
     }
 
     if (deepReading) {
       html += '<section class="tarot-love-section tarot-love-section--insight">';
-      html += '<h4 class="tarot-love-section-title">🔮 마음속 깊이 있는 이야기</h4>';
+      html += '<h4 class="tarot-love-section-title">🔍 마음의 해부학</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(deepReading) + "</div>";
       html += "</section>";
     }
 
     if (realityAndFuture) {
       html += '<section class="tarot-love-section tarot-love-section--future">';
-      html += '<h4 class="tarot-love-section-title">✨ 현실과 다가올 내일</h4>';
+      html += '<h4 class="tarot-love-section-title">🚧 현실과 다가올 내일</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(realityAndFuture) + "</div>";
       html += "</section>";
     }
 
     if (positionBreakdown.length) {
       html += '<section class="tarot-love-section tarot-love-section--position">';
-      html += '<h4 class="tarot-love-section-title">🃏 포지션별 상담 해석</h4>';
+      html += '<h4 class="tarot-love-section-title">🃏 포지션별 타로 해석</h4>';
       html += '<div class="tarot-love-position-grid">';
       positionBreakdown.forEach(function (item) {
         var title = item && item.title != null ? String(item.title) : "";
@@ -823,9 +822,9 @@
 
     if (adviceList.length && adviceList[0]) {
       html += '<section class="tarot-love-section tarot-love-focus-section">';
-      html += '<h4 class="tarot-love-section-title">💝 오늘만이라도 해 보시면 좋은 한 가지</h4>';
+      html += '<h4 class="tarot-love-section-title">⚡ 지금 당장 할 1가지</h4>';
       html += '<div class="tarot-love-focus-box">';
-      html += '<p class="tarot-love-focus-label">상담사가 추천하는 오늘의 미션</p>';
+      html += '<p class="tarot-love-focus-label">오늘의 즉시 실행 미션</p>';
       html += '<p class="tarot-love-focus-text">' + escapeHtml(String(adviceList[0])) + "</p>";
       html += "</div>";
       html += "</section>";
@@ -833,7 +832,7 @@
 
     if (adviceList.length) {
       html += '<section class="tarot-love-section tarot-love-section--advice">';
-      html += '<h4 class="tarot-love-section-title">💡 상담사가 전해 드리는 조언</h4>';
+      html += '<h4 class="tarot-love-section-title">💡 마스터의 조언</h4>';
       html += '<ul class="tarot-love-advice-list">';
       adviceList.forEach(function (item) {
         var text = item != null ? String(item) : "";
@@ -844,56 +843,6 @@
     }
 
     container.innerHTML = html;
-    renderTarotLoveResultCardsStrip();
-  }
-
-  function renderTarotLoveResultCardsStrip() {
-    var strip = byId("tarotLoveResultCardsStrip");
-    if (!strip || !state.cards || state.cards.length === 0) return;
-
-    strip.innerHTML = "";
-    strip.setAttribute("aria-label", "뽑은 6장의 카드 다시 보기");
-
-    var order = DISPLAY_ORDER || [0, 1, 2, 3, 4, 5];
-    order.forEach(function (idx) {
-      var card = state.cards[idx];
-      if (!card) return;
-      var posLabel = POSITION_LABELS[card.position] || "";
-      var cardName = (card.nameKr || card.name || "").trim();
-      if (card.orientation === "reversed") cardName += " (역)";
-
-      var wrap = document.createElement("div");
-      wrap.className = "tarot-love-result-card-wrap";
-      wrap.setAttribute("data-position", card.position || "");
-
-      var cardEl = document.createElement("div");
-      cardEl.className = "tarot-love-result-mini-card";
-      if (card.orientation === "reversed") cardEl.setAttribute("data-reversed", "1");
-
-      var front = document.createElement("div");
-      front.className = "tarot-love-result-mini-front";
-      var img = document.createElement("img");
-      img.className = "tarot-love-result-mini-img";
-      img.alt = cardName || "타로 카드";
-      img.loading = "lazy";
-      img.referrerPolicy = "no-referrer";
-      applyTarotImageWithFallback(img, front, card);
-      front.appendChild(img);
-      cardEl.appendChild(front);
-
-      var label = document.createElement("span");
-      label.className = "tarot-love-result-mini-label";
-      label.textContent = posLabel;
-
-      var nameSpan = document.createElement("span");
-      nameSpan.className = "tarot-love-result-mini-name";
-      nameSpan.textContent = cardName;
-
-      wrap.appendChild(cardEl);
-      wrap.appendChild(label);
-      wrap.appendChild(nameSpan);
-      strip.appendChild(wrap);
-    });
   }
 
   function escapeHtml(s) {

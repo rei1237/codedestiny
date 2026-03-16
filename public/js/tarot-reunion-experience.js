@@ -146,13 +146,6 @@
       out.push(normalized);
     }
 
-    if (typeof window !== "undefined") {
-      var host = String(location.hostname || "").toLowerCase();
-      if (host === "code-destiny.com" || host === "www.code-destiny.com" || host.endsWith(".pages.dev")) {
-        add("");
-        add(location.origin || "");
-      }
-    }
     // Always try same-origin API first (Cloudflare Pages/OpenNext safe path).
     add("");
     if (typeof window !== "undefined") {

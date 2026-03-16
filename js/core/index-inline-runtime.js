@@ -11,9 +11,18 @@ function syncFeatureCardHeight(card) {
   }
 }
 
-window.addEventListener('resize', function() {
-  document.querySelectorAll('.feature-card').forEach(syncFeatureCardHeight);
-}, { passive: true });
+(function() {
+  var resizeTicking = false;
+  function onResize() {
+    if (resizeTicking) return;
+    resizeTicking = true;
+    requestAnimationFrame(function() {
+      resizeTicking = false;
+      document.querySelectorAll('.feature-card').forEach(syncFeatureCardHeight);
+    });
+  }
+  window.addEventListener('resize', onResize, { passive: true });
+})();
 
 function fcToggle(btn) {
   var card = btn.closest('.feature-card');

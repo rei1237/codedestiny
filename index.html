@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <script src="js/inline/canonical-redirect.js"></script>
-  <script src="js/kill-switch.js"></script>
+  <script src="js/kill-switch.js" defer></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
   <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
@@ -358,7 +358,8 @@
   <link rel="stylesheet" href="styles/animations.css">
   <link rel="stylesheet" href="styles/fortune-ui.css">
   <link rel="stylesheet" href="styles/main-glass.css?v=20260316">
-  <script src="js/inline/api-base-init.js"></script>
+  <link rel="stylesheet" href="styles/cosmic-main.css?v=20260316">
+  <script src="js/inline/api-base-init.js" defer></script>
   <link rel="stylesheet" href="styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260316-mobile-opt2">
@@ -367,8 +368,93 @@
   <link rel="stylesheet" href="styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="css/entertain-system.css">
   <link rel="stylesheet" href="styles/browser-compat.css?v=20260316-browser-compat1">
+  <link rel="stylesheet" href="styles/mobile-ux.css?v=20260316">
 </head>
 <body>
+
+<!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
+<div class="cosmic-bg" aria-hidden="true">
+  <!-- 별모양 꽃 장식 -->
+  <span class="cosmic-star-flower" aria-hidden="true"></span>
+  <span class="cosmic-star-flower cosmic-star-flower--2" aria-hidden="true"></span>
+  <span class="cosmic-star-flower cosmic-star-flower--3" aria-hidden="true"></span>
+  <!-- 빛나는 별들 -->
+  <span class="cosmic-star cosmic-star--1"></span>
+  <span class="cosmic-star cosmic-star--2"></span>
+  <span class="cosmic-star cosmic-star--3"></span>
+  <span class="cosmic-star cosmic-star--4"></span>
+  <span class="cosmic-star cosmic-star--5 cosmic-star--gold"></span>
+  <span class="cosmic-star cosmic-star--6 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--7"></span>
+  <span class="cosmic-star cosmic-star--8"></span>
+  <span class="cosmic-star cosmic-star--9 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--10"></span>
+  <span class="cosmic-star cosmic-star--11 cosmic-star--gold"></span>
+  <span class="cosmic-star cosmic-star--12 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--13"></span>
+  <span class="cosmic-star cosmic-star--14"></span>
+  <span class="cosmic-star cosmic-star--15"></span>
+  <span class="cosmic-star cosmic-star--16"></span>
+  <span class="cosmic-star cosmic-star--17 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--18"></span>
+</div>
+
+<!-- 타로 자존감 모달 (body 직계 — z-index/containment 이슈 방지) -->
+<div id="tarotSelfEsteemOverlay" class="tarot-self-esteem-overlay" style="display:none;" data-action="closeTarotSelfEsteemModal" data-action-self-only="1">
+  <div class="tarot-self-esteem-particles" aria-hidden="true">
+    <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
+    <span class="particle p4"></span><span class="particle p5"></span><span class="particle p6"></span>
+    <span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span>
+  </div>
+  <div id="tarotSelfEsteemLevelUpBanner" class="tarot-self-esteem-levelup-banner" aria-hidden="true">
+    <span class="tarot-self-esteem-levelup-text">Level Up!</span>
+  </div>
+  <div id="tarotSelfEsteemConfetti" class="tarot-self-esteem-confetti" aria-hidden="true"></div>
+  <div class="tarot-self-esteem-shell">
+    <div class="tarot-self-esteem-panel">
+      <button class="tarot-self-esteem-close" type="button" data-action="closeTarotSelfEsteemModal" aria-label="자존감 레벨업 타로 닫기">×</button>
+
+      <section id="tarotSelfEsteemIntroStage" class="tarot-self-esteem-stage is-active">
+        <div class="tarot-self-esteem-hero">
+          <h1 class="tarot-self-esteem-title">타로로 성장하는 자존감!</h1>
+          <p class="tarot-self-esteem-subtitle">어두운 터널을 지나 빛을 만나는 여정. 5장의 카드로 과거의 디버프를 확인하고, 마인드 쉴드를 획득하며, 레벨업 마스터리에 도달하세요. RPG처럼 EXP 바가 차오르고, 모두 열면 Level Up! 축하가 기다립니다.</p>
+          <div class="tarot-self-esteem-invoke-wrap">
+            <button class="tarot-self-esteem-btn tarot-self-esteem-btn--invoke" type="button" data-action="startTarotSelfEsteemReading">✨ 자존감 레벨업 퀘스트 시작</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemDrawStage" class="tarot-self-esteem-stage">
+        <h3 class="tarot-self-esteem-draw-header">[타로 스프레드] 나는 왜 남의 눈치만 보며 살까? (5카드)</h3>
+        <div class="tarot-self-esteem-exp-wrap">
+          <div class="tarot-self-esteem-exp-label">
+            <span>EXP</span>
+            <span id="tarotSelfEsteemExpPercent">0%</span>
+          </div>
+          <div class="tarot-self-esteem-exp-track">
+            <div id="tarotSelfEsteemExpBar" class="tarot-self-esteem-exp-bar"></div>
+          </div>
+        </div>
+        <div class="tarot-self-esteem-spread-guide" id="tarotSelfEsteemSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+        <div id="tarotSelfEsteemCardGrid" class="tarot-self-esteem-card-grid"></div>
+        <div class="tarot-self-esteem-final-wrap">
+          <button type="button" class="tarot-self-esteem-final-btn" id="tarotSelfEsteemFinalBtn" data-action="showTarotSelfEsteemFinalReading" disabled>✨ 레벨업 해석 보기</button>
+        </div>
+      </section>
+
+      <section id="tarotSelfEsteemResultStage" class="tarot-self-esteem-stage">
+        <header class="tarot-self-esteem-reading-header">
+          <h2 class="tarot-self-esteem-reading-title">✨ 자존감 레벨업 리딩 결과</h2>
+        </header>
+        <div id="tarotSelfEsteemReadingContent" class="tarot-self-esteem-reading-content"></div>
+        <div class="tarot-self-esteem-result-actions">
+          <button type="button" class="tarot-self-esteem-btn" data-action="shareTarotSelfEsteemResult">💬 카카오톡 공유하기</button>
+          <button type="button" class="tarot-self-esteem-btn tarot-self-esteem-btn--subtle" data-action="resetTarotSelfEsteemFlow">🔄 다시 리딩하기</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      초기 로딩 스플래시 오버레이
@@ -520,6 +606,23 @@
   <!-- ═══ 입력 페이지 (SEO: Main Content) ═══ -->
   <main id="inputPage" role="main">
     <header class="logo-area" role="banner">
+      <!-- Cosmic star particles + 별모양 꽃 -->
+      <div class="logo-cosmos" aria-hidden="true">
+        <span class="logo-star logo-star--1"></span>
+        <span class="logo-star logo-star--2"></span>
+        <span class="logo-star logo-star--3"></span>
+        <span class="logo-star logo-star--4"></span>
+        <span class="logo-star logo-star--5"></span>
+        <span class="logo-star logo-star--6"></span>
+        <span class="logo-star logo-star--7"></span>
+        <span class="logo-star logo-star--8"></span>
+        <span class="logo-star logo-star--9"></span>
+        <span class="logo-star logo-star--10"></span>
+        <span class="logo-star logo-star--11"></span>
+        <span class="logo-star logo-star--12"></span>
+        <div class="logo-nebula logo-nebula--1"></div>
+        <div class="logo-nebula logo-nebula--2"></div>
+      </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
@@ -537,9 +640,9 @@
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
-      <div class="auth-quick-links" style="display:flex; justify-content:center; gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <a href="/signup" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#f8fafc; font-weight:700; font-size:0.9rem; background:linear-gradient(135deg, rgba(124,58,237,.85), rgba(99,102,241,.78)); box-shadow:0 8px 20px rgba(76,29,149,.35);">✨ 회원가입</a>
-        <a href="/login" style="display:inline-flex; align-items:center; justify-content:center; min-width:120px; padding:10px 14px; border-radius:999px; text-decoration:none; color:#e2e8f0; font-weight:700; font-size:0.9rem; border:1px solid rgba(167,139,250,.55); background:rgba(15,23,42,.72); box-shadow:0 8px 20px rgba(15,23,42,.35);">🔐 로그인</a>
+      <div class="auth-quick-links">
+        <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
+        <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
 
     </header>
@@ -1791,32 +1894,6 @@
                   <span class="tarot-love-hero-card hc3">✦</span>
                   <span class="tarot-love-hero-card hc4">♡</span>
                 </div>
-                <div class="tarot-love-hero-preview" aria-hidden="true">
-                  <figure class="tarot-love-hero-preview-card tl-preview-1">
-                    <img
-                      src="https://cdn.jsdelivr.net/gh/krates98/tarotcardapi@main/images/TheLovers.jpg"
-                      alt="The Lovers"
-                      loading="lazy"
-                    />
-                    <figcaption>연인의 카드</figcaption>
-                  </figure>
-                  <figure class="tarot-love-hero-preview-card tl-preview-2">
-                    <img
-                      src="https://cdn.jsdelivr.net/gh/krates98/tarotcardapi@main/images/thestar.jpeg"
-                      alt="The Star"
-                      loading="lazy"
-                    />
-                    <figcaption>희망의 카드</figcaption>
-                  </figure>
-                  <figure class="tarot-love-hero-preview-card tl-preview-3">
-                    <img
-                      src="https://cdn.jsdelivr.net/gh/krates98/tarotcardapi@main/images/thesun.jpeg"
-                      alt="The Sun"
-                      loading="lazy"
-                    />
-                    <figcaption>따뜻한 결말</figcaption>
-                  </figure>
-                </div>
               </div>
             </section>
 
@@ -1954,6 +2031,101 @@
               <div class="tarot-reunion-result-actions">
                 <button type="button" class="tarot-reunion-btn" data-action="shareTarotReunionResult">💬 카카오톡 공유하기</button>
                 <button type="button" class="tarot-reunion-btn tarot-reunion-btn--subtle" data-action="resetTarotReunionFlow">🔄 다시 리딩하기</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- 십이지신 천운(天運) 타로 모달 -->
+      <div id="tarotYearFortuneOverlay" class="tarot-year-overlay" style="display:none;" data-action="closeTarotYearFortuneModal" data-action-self-only="1">
+        <div class="ty-eastern-pattern" aria-hidden="true"></div>
+        <div class="ty-zodiac-silhouettes" aria-hidden="true">
+          <span class="ty-zodiac-sil ty-zodiac-sil--1" title="쥐">🐭</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--2" title="소">🐮</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--3" title="호랑이">🐅</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--4" title="토끼">🐇</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--5" title="용">🐉</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--6" title="뱀">🐍</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--7" title="말">🐴</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--8" title="양">🐐</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--9" title="원숭이">🐒</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--10" title="닭">🐓</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--11" title="개">🐕</span>
+          <span class="ty-zodiac-sil ty-zodiac-sil--12" title="돼지">🐷</span>
+        </div>
+        <div class="ty-bg-glow ty-bg-glow--1" aria-hidden="true"></div>
+        <div class="ty-bg-glow ty-bg-glow--2" aria-hidden="true"></div>
+        <div class="ty-particles" aria-hidden="true">
+          <span class="ty-particle p1"></span><span class="ty-particle p2"></span><span class="ty-particle p3"></span>
+          <span class="ty-particle p4"></span><span class="ty-particle p5"></span><span class="ty-particle p6"></span>
+        </div>
+        <div class="tarot-year-shell">
+          <div class="tarot-year-panel">
+            <button class="tarot-year-close" id="tarotYearCloseBtn" type="button" aria-label="닫기">×</button>
+
+            <section id="tarotYearFortuneIntroStage" class="tarot-year-stage is-active">
+              <div class="ty-hero">
+                <div class="ty-hero-badge">십이지신 천운</div>
+                <h1 class="ty-hero-title">운명의 수레바퀴를 열다</h1>
+                <p class="ty-hero-subtitle">천상의 열두 수호신이 지키는 한 해. 1月부터 12月까지 각 월의 카드를 뽑고, 재물·연애·인간관계·합격운을 확인하세요.</p>
+                <button type="button" class="ty-cta-btn" id="tarotYearCtaBtn">천운(天運) 카드 뽑기</button>
+              </div>
+            </section>
+
+            <section id="tarotYearFortuneDrawStage" class="tarot-year-stage">
+              <div class="ty-loading-block">
+                <h3 class="ty-draw-title">천운의 카드를 뽑는 중입니다</h3>
+                <p class="ty-loading-text">열두 수호신이 한 해의 문을 열고 있습니다. 잠시만 기다려 주세요.</p>
+                <div class="ty-loading-spinner" aria-hidden="true"></div>
+              </div>
+              <div id="tarotYearDrawCardGrid" class="ty-draw-grid" aria-hidden="true"></div>
+            </section>
+
+            <section id="tarotYearFortuneResultStage" class="tarot-year-stage">
+              <header class="ty-result-header">
+                <h2 class="ty-result-title">십이지신 월운(月運) — 1月~12月 스프레드</h2>
+              </header>
+              <p class="ty-result-hint">월패(1月~12月)를 눌러 해당 월 타로 상담을 여세요</p>
+              <div class="ty-result-summary" id="tarotYearSummary" style="display:none;"></div>
+              <div id="tarotYearResultCards" class="ty-result-cards"></div>
+              <div id="tarotYearMonthDetailPanel" class="ty-month-detail-panel">
+                <p class="ty-month-detail-placeholder" id="tarotYearMonthDetailPlaceholder">월패(1月~12月)를 눌러 해당 월의 운세를 확인하세요</p>
+                <div id="tarotYearMonthDetailContent" class="ty-month-detail-content" style="display:none;">
+                <h4 class="ty-month-detail-title" id="tarotYearMonthDetailTitle">1月 상세 운세</h4>
+                <div class="ty-month-oracle-hero">
+                  <div class="ty-month-oracle-card" id="tarotYearMonthDetailCardWrap">
+                    <img id="tarotYearMonthDetailCardImg" alt="이달의 타로 카드" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="ty-month-oracle-meta">
+                    <p class="ty-month-oracle-name" id="tarotYearMonthDetailCardName">이달의 카드</p>
+                    <p class="ty-month-oracle-consult">전문 타로 리딩</p>
+                  </div>
+                </div>
+                <div class="ty-month-spread-wrap">
+                  <h5 class="ty-month-spread-title">이달의 삼재(三才) 스프레드</h5>
+                  <div class="ty-month-spread-cards" id="tarotYearMonthSpreadCards"></div>
+                </div>
+                <div class="ty-month-category-tabs" id="tarotYearMonthCategoryTabs">
+                  <button type="button" class="ty-month-cat-btn is-active" data-cat="general">전반</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="money">재물</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="love">연애</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="relationship">인간관계</button>
+                  <button type="button" class="ty-month-cat-btn" data-cat="exam">합격</button>
+                </div>
+                <div class="ty-month-category-panel">
+                  <h6 class="ty-month-category-title" id="tarotYearMonthCategoryTitle">전반 운세 해석</h6>
+                  <p class="ty-month-category-text" id="tarotYearMonthCategoryText"></p>
+                </div>
+                </div>
+              </div>
+              <div class="ty-advice-section">
+                <h4 class="ty-advice-title">오라클의 총평</h4>
+                <p class="ty-advice-text" id="tarotYearFinalAdvice"></p>
+              </div>
+              <div class="ty-result-actions">
+                <button type="button" class="ty-result-btn" id="tarotYearShareBtn">천운 공유</button>
+                <button type="button" class="ty-result-btn ty-result-btn--outline" id="tarotYearResetBtn">다시 점치기</button>
               </div>
             </section>
           </div>
@@ -2624,10 +2796,10 @@
       <h3 id="shareTitle" class="share-title">📤 사주 결과 공유하기</h3>
       <div class="share-btns">
         <button class="btn-kakao" data-action="shareKakao">
-          <span style="font-size:1.2rem">💬</span> 카카오톡 공유
+          <span style="font-size:1rem">💬</span> 카카오톡 공유
         </button>
         <button class="btn-insta" data-action="shareInstagram">
-          <span style="font-size:1.2rem">📷</span> 인스타 DM
+          <span style="font-size:1rem">📷</span> 인스타 DM
         </button>
         <button class="btn-install" id="btnPwaInstall" data-action="handlePwaInstall">
           <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabel">꽃돼지 운세 서비스 앱 설치하기</span>
@@ -2687,7 +2859,9 @@
 <script src="js/animal-totem-experience.js" defer></script>
 <script src="js/tarot-love-experience.js?v=20260316-love-apifix3" defer></script>
 <script src="js/tarot-healing-experience.js?v=20260316-healing-apifix3" defer></script>
+<script src="js/tarot-self-esteem-experience.js?v=20260315-selfesteem-apifix2" defer></script>
 <script src="js/tarot-reunion-experience.js?v=20260316-reunion-apifix3" defer></script>
+<script src="js/tarot-year-fortune-experience.js?v=20260315-year-apifix2" defer></script>
 <div class="share-toast" id="shareToast"></div>
 
 <script src="js/share.js" defer></script>

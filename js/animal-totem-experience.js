@@ -76,6 +76,7 @@
     refs.modeButtons = document.querySelectorAll(".totem-mode-btn");
     refs.canvas = byId("animalTotemStarCanvas");
     refs.runeField = byId("animalTotemRuneField");
+    refs.animalFigures = byId("animalTotemAnimalFigures");
   }
 
   function takeSentences(text, maxSentences) {
@@ -111,6 +112,31 @@
       el.style.animationDuration = (8 + Math.random() * 10).toFixed(2) + "s";
       el.style.animationDelay = (Math.random() * 6).toFixed(2) + "s";
       refs.runeField.appendChild(el);
+    }
+  }
+
+  function buildAnimalFigures() {
+    if (!refs.animalFigures || refs.animalFigures.dataset.ready === "1") return;
+    refs.animalFigures.dataset.ready = "1";
+    var animals = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐦", "🦋", "🦉", "🐬", "🐢", "🐿️", "🦌", "🐺", "🦅"];
+    var staticPositions = ["tl", "tr", "bl", "br", "mt"];
+    staticPositions.forEach(function(pos, i) {
+      var el = document.createElement("span");
+      el.className = "totem-animal-figure totem-animal-figure--static totem-animal-figure--" + pos;
+      el.textContent = animals[i % animals.length];
+      el.setAttribute("aria-hidden", "true");
+      refs.animalFigures.appendChild(el);
+    });
+    for (var j = 0; j < 18; j += 1) {
+      var fl = document.createElement("span");
+      fl.className = "totem-animal-figure";
+      fl.textContent = animals[j % animals.length];
+      fl.style.left = Math.floor(Math.random() * 92) + "%";
+      fl.style.animationDuration = (10 + Math.random() * 12).toFixed(2) + "s";
+      fl.style.animationDelay = (Math.random() * 8).toFixed(2) + "s";
+      fl.style.fontSize = (16 + Math.floor(Math.random() * 10)) + "px";
+      fl.setAttribute("aria-hidden", "true");
+      refs.animalFigures.appendChild(fl);
     }
   }
 
@@ -331,10 +357,10 @@
           '<div class="totem-guidance-animal">' + entry.animal.emoji + "</div>" +
           '<div><p class="totem-guidance-slot">' + slotLabel(entry.slot) + '</p><h3 class="totem-guidance-name">' + entry.animal.name_ko + "</h3></div>" +
         "</div>" +
-        '<section class="totem-guidance-section"><h4>Essence</h4><p>' + essence + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>Oracle Message</h4><p>' + message + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>Today\'s Guidance</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
-        '<details class="totem-ritual-toggle"><summary>Reveal Ritual</summary><p>' + takeSentences(entry.layered_reading.ritual, 2) + "</p></details>";
+        '<section class="totem-guidance-section"><h4>오늘의 수호신</h4><p>' + essence + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>작은 친구의 속삭임</h4><p>' + message + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>오늘 해보면 좋을 것</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
+        '<details class="totem-ritual-toggle"><summary>5분 마음 정리</summary><p>' + takeSentences(entry.layered_reading.ritual, 2) + "</p></details>";
       refs.readingPanels.appendChild(p);
     });
   }
@@ -348,6 +374,7 @@
     lockBody();
     resetAnimalTotemFlow();
     buildRuneField();
+    buildAnimalFigures();
     startCanvas();
   }
 

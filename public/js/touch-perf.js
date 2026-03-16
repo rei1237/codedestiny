@@ -46,7 +46,7 @@
   }, 200), { passive: true });
 
   /* ── 5. touchstart → is-touching 즉각 시각 피드백 (0ms) ── */
-  var TOUCH_SEL = 'button,.btn-main,.btn-sub,.tog-btn,.feature-card,' +
+  var TOUCH_SEL = 'button,.btn-main,.btn-sub,.tog-btn,.feature-card,.tarot-tile,' +
     '.dw-item,.ts-card,.celeb-tab-btn,.celeb-btn,.oracle-cat-btn-m,.ctg-btn,' +
     '.mystic-tab-btn,.fortune-tab,.iching-btn,.tarot-cat-btn,.og-cat-btn,' +
     '.saju-btn,.fate-btn,.tab-btn,.nav-btn,.menu-btn';
@@ -66,39 +66,26 @@
     safeVibrate(8);
   }, { passive: true });
 
-  /* ── 6. Lazy Loading — Intersection Observer ── */
+  /* ── 6. data-src → src lazy load (이미지 loading/decoding은 mobile-performance-bootstrap에서 처리) ── */
   var imgObs = null;
   if ('IntersectionObserver' in window) {
-    var allImgs = document.querySelectorAll('img');
-    allImgs.forEach(function(img, idx) {
-      if (!img) return;
-      if (!img.getAttribute('loading')) {
-        // Keep the first few images eager for faster first paint.
-        img.setAttribute('loading', idx < 3 ? 'eager' : 'lazy');
-      }
-      if (!img.getAttribute('decoding')) {
-        img.setAttribute('decoding', 'async');
-      }
-    });
-    var lazyImgs = document.querySelectorAll('img[loading="lazy"]');
-    imgObs = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (!entry || !entry.target) return;
-        if (entry.isIntersecting) {
-          var img = entry.target;
-          if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
-          imgObs.unobserve(img);
-        }
-      });
-    }, { rootMargin: '200px 0px' });
-    lazyImgs.forEach(function(img) { if (img) imgObs.observe(img); });
-
-    window.addEventListener('pagehide', function() {
-      if (imgObs) {
-        imgObs.disconnect();
-        imgObs = null;
-      }
-    }, { once: true });
+    var lazyImgs = document.querySelectorAll('img[data-src]');
+    if (lazyImgs.length) {
+      imgObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (!entry || !entry.target) return;
+          if (entry.isIntersecting) {
+            var img = entry.target;
+            if (img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
+            imgObs.unobserve(img);
+          }
+        });
+      }, { rootMargin: '200px 0px' });
+      lazyImgs.forEach(function(img) { if (img) imgObs.observe(img); });
+      window.addEventListener('pagehide', function() {
+        if (imgObs) { imgObs.disconnect(); imgObs = null; }
+      }, { once: true });
+    }
   }
 
   /* ── 7. 전역 이벤트 위임 — 비활성화된 버튼 클릭 차단 ── */

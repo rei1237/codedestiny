@@ -1,10 +1,9 @@
-﻿/* ─── 주역 전체화면 페이지 ─── */
+/* ─── 주역 전체화면 페이지 ─── */
 function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
   overlay.style.display = 'block';
-  setTimeout(function(){ overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
   setTimeout(function() {
     var inp = document.getElementById('ichingQuestion');
     if (inp) inp.focus();

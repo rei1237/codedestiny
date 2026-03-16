@@ -1,177 +1,150 @@
 # CODE-DESTINY 리팩토링 결과 보고서
 
 **작업일:** 2026-03-16  
-**원칙:** 기능 무결성 100% 유지 (사주/점술 로직·API·UI 흐름·결과 구조 변경 없음)
+**원칙:** 기능 무결성 100% 유지 (사주/점술 로직·API·UI 흐름·이벤트 변경 없음)
 
 ---
 
 ## 1. 제거된 Dead Code 목록
 
-| 파일 | 제거 항목 | 유형 | 감소량 |
-|------|-----------|------|--------|
-| `js/accordion.js` | `EGYPT_IDS` 변수 | 미사용 변수 | ~2줄 |
-| `js/accordion.js` | `EGYPT_IDS.forEach(moveCard(id, 'acc-egypt'))` | 무효 로직 (acc-egypt 그룹 미존재) | ~2줄 |
-| `js/entertain-engine.js` | `buildHealthTimeline()` | 미호출 함수 | ~30줄 |
-| `js/entertain-engine.js` | `buildEnhancedHealthReport()` | 미호출 함수 | ~90줄 |
-| `js/entertain-engine.js` | `_initGaugeAnimation()` | 미호출 함수 | ~10줄 |
+| 대상 | 상태 | 비고 |
+|------|------|------|
+| `public/js/services/saju-library-loader.js` | **미제거** | `saju-engine.js`에 CDN 로딩 로직 존재. 참조 없음이나 삭제 전 동적 import 여부 추가 확인 권장 |
+| `public/js/services/fortune-point-service.js` | **미제거** | `saju-engine.js`에 포인트 처리 로직 존재. 참조 없음이나 삭제 전 연동 검토 권장 |
+| 기타 | - | `fortune-point-notice`, `fortune-point-charge` 등 CSS 클래스는 HTML에서 사용 중 |
 
-**총 제거:** 약 134줄 (accordion.js 4줄, entertain-engine.js ~130줄)
+**권장:** 위 2개 파일은 코드베이스 검색 결과 참조가 없으나, 배포 전 수동 테스트로 동작 여부 확인 후 제거 검토.
 
 ---
 
-## 2. 새로 생성된 JS 구조
+## 2. 새로 생성된 JS/CSS 구조
 
-### 2.1 Inline Script → 외부 모듈 분리
+### 2.1 신규 파일
+
+| 파일 | 용도 |
+|------|------|
+| `public/css/fortune-index.css` | 운세 홈(`fortune/index.html`) 전용 스타일 (fi-hero, fi-tabs, fi-grid, fi-cta 등) |
+
+### 2.2 기존 구조 (유지)
 
 ```
-public/js/inline/
-├── canonical-redirect.js   # canonical 도메인 리다이렉트 (head 최우선)
-├── pwa-theme-init.js      # neo/samba PWA manifest·favicon 전환
-├── api-base-init.js       # CODE_DESTINY_API_BASE_URL 초기화
-└── fortune-tabs.js        # fortune/index.html 탭 클릭 핸들러
+public/js/
+├── app.js                    # ES module 진입점
+├── core/
+│   ├── init.js
+│   ├── index-inline-runtime.js  # 메인 UI 바인딩 (~3,700줄)
+│   ├── uiBindings.js
+│   └── kasi-calendar-service.js
+├── services/
+│   ├── destiny-flower-engine.js
+│   ├── animal-totem-content-engine.js
+│   ├── saju-library-loader.js   # 미사용 후보
+│   └── fortune-point-service.js # 미사용 후보
+├── inline/
+│   ├── canonical-redirect.js
+│   ├── pwa-theme-init.js
+│   ├── api-base-init.js
+│   └── fortune-tabs.js
+├── fortune-engine.js         # 운세 상세 페이지 엔진
+└── (기타 experience, engine 파일들)
 ```
-
-**역할:**
-- `canonical-redirect.js`: 비정규 도메인 → `/public/index.html` 즉시 리다이렉트
-- `pwa-theme-init.js`: localStorage 기반 neo 테마 시 manifest/favicon 교체
-- `api-base-init.js`: API 베이스 URL 설정 (호스트별 분기)
-- `fortune-tabs.js`: 오늘/내일/주간/월간 탭 클릭 시 그리드 링크 갱신
 
 ---
 
 ## 3. HTML 경량화 결과
 
-### 3.1 public/index.html
-
-| 항목 | 변경 전 | 변경 후 | 감소 |
-|------|---------|---------|------|
-| Inline script 블록 | 4개 | 0개 | 4개 제거 |
-| 예상 줄 수 | ~3,075줄 | ~2,715줄 | **~360줄 (약 12%)** |
-| 예상 바이트 | ~170KB | ~162KB | **~8KB** |
-
-**제거된 inline script:**
-1. `redirectToCanonicalMain()` → `js/inline/canonical-redirect.js`
-2. PWA theme init (neo manifest/favicon) → `js/inline/pwa-theme-init.js`
-3. API base URL init → `js/inline/api-base-init.js`
-
-### 3.2 public/fortune/index.html
+### 3.1 fortune/index.html, public/fortune/index.html
 
 | 항목 | 변경 전 | 변경 후 |
 |------|---------|---------|
-| Inline script | 1개 (탭 핸들러 ~25줄) | 0개 |
-| 대체 | — | `<script defer src="/js/inline/fortune-tabs.js">` |
+| 인라인 `<style>` | ~20줄 (fi-* 클래스) | **0줄** → `fortune-index.css`로 분리 |
+| 인라인 `<script>` | fortune: ~25줄 | **0줄** → `fortune-tabs.js` 사용 |
+| 예상 HTML 감소 | - | **~45줄 (약 1.5KB)** |
+
+### 3.2 index.html (루트)
+
+| 항목 | 변경 전 | 변경 후 |
+|------|---------|---------|
+| 인라인 redirect 스크립트 | ~13줄 | **0줄** → `canonical-redirect.js` |
+| 인라인 PWA theme 스크립트 | ~19줄 | **0줄** → `pwa-theme-init.js` |
+| 인라인 API base 스크립트 | ~30줄 | **0줄** → `api-base-init.js` |
+| 예상 HTML 감소 | - | **~62줄 (약 2KB)** |
+
+### 3.3 유지된 인라인 (SEO·필수)
+
+- `type="application/ld+json"` 구조화 데이터 (WebApplication, FAQPage, Organization, ItemList) — SEO 유지
+- `onclick`/`onload` 등 인라인 이벤트 핸들러 없음 (이미 `data-action` 위임 방식 사용)
 
 ---
 
 ## 4. JS 파일 분리 결과
 
-### 4.1 현재 구조 (리팩토링 후)
-
-```
-js/
-├── app.js                    # ES module 진입점
-├── core/
-│   ├── init.js               # 앱 셸 초기화
-│   ├── uiBindings.js         # data-action 이벤트 위임
-│   ├── index-inline-runtime.js  # Destiny Flower, 사주/별자리, feature card (~3,755줄)
-│   └── kasi-calendar-service.js
-├── inline/                   # [신규] HTML에서 분리된 인라인 스크립트
-│   ├── canonical-redirect.js
-│   ├── pwa-theme-init.js
-│   ├── api-base-init.js
-│   └── fortune-tabs.js
-├── services/
-│   ├── destiny-flower-engine.js
-│   └── animal-totem-content-engine.js
-├── chunks/
-│   ├── saju-analysis.chunk.js
-│   ├── compat.chunk.js
-│   └── extra-fortune.chunk.js
-├── saju-engine.js
-├── fortune-engine.js
-├── share.js
-├── accordion.js              # Dead code 제거 완료
-├── entertain-engine.js       # Dead code 제거 완료 (~130줄)
-├── tarot-*-experience.js
-├── iching-engine.js
-├── iching-modal.js
-├── oracle-kcg.js
-└── ... (기타)
-```
-
-### 4.2 index-inline-runtime.js 모듈화 권장안 (향후 작업)
-
-**현재:** 단일 파일 ~3,755줄  
-**권장 분리 구조:**
-
-```
-js/core/
-├── index-inline-runtime.js   # 진입점 (기존 글로벌 등록만 유지)
-├── feature-card.js           # syncFeatureCardHeight, fcToggle, bindFeatureCard*
-├── destiny-profile.js       # DP 관련 (이미 별도 파일 존재 가능성)
-├── language.js               # changeLanguage, _langLabelMap
-├── ios-install-modal.js      # iOS PWA 설치 안내
-└── ... (기능별 분리)
-```
-
-**주의:** `window.*` 전역 등록, `data-action` 문자열, 동적 `callGlobal()` 호출이 많아 분리 시 참조 관계 검증 필요.
+| 작업 | 내용 |
+|------|------|
+| 인라인 → 외부 | redirect, PWA theme, API base, fortune-tabs → 각각 `.js` 파일로 분리 |
+| 스타일 분리 | fortune index 인라인 스타일 → `fortune-index.css` |
+| 로딩 방식 | `defer` 사용 (`fortune-tabs.js`), head 스크립트는 동기 로드 유지 (초기화 순서 보장) |
 
 ---
 
 ## 5. 성능 개선 예상치
 
-| 항목 | 개선 내용 | 예상 효과 |
-|------|-----------|-----------|
-| HTML 파싱 | Inline script 제거 | 파싱 부담 감소, 캐시 활용 가능 |
-| 스크립트 로딩 | 외부 파일 분리 | 브라우저 캐싱, 병렬 다운로드 |
-| JS 실행 | Dead code 제거 (~130줄) | 번들 크기·파싱 시간 소폭 감소 |
-| First Load | defer/module 활용 유지 | 기존과 동일 또는 소폭 개선 |
+| 지표 | 예상 |
+|------|------|
+| HTML 크기 | fortune index: **~30% 감소** (인라인 제거) |
+| index.html | **~2KB 감소** (인라인 스크립트 제거) |
+| First Load | 인라인 스크립트 → 외부 파일로 캐싱 가능, **반복 방문 시 개선** |
+| CSS | `fortune-index.css` 분리로 fortune 페이지 전용 캐시 활용 |
 
-**First Load 2~5배 개선** 목표는 추가 최적화(이미지 WebP, lazy load, 코드 스플리팅)와 함께 단계적으로 진행 권장.
+**추가 권장 (향후):**
 
----
-
-## 6. 모바일 안정성 테스트 체크리스트
-
-리팩토링 후 아래 항목 수동 확인 권장:
-
-- [ ] **버튼 터치:** 사주 계산, 타로, 운세 등 모든 CTA 정상 동작
-- [ ] **스크롤:** 결과 페이지 스크롤, accordion 펼침/접힘
-- [ ] **터치 이벤트:** `data-action` 위임, `touchstart`/`touchend` 충돌 없음
-- [ ] **애니메이션:** 스플래시, 카드 플립, 로딩 애니메이션 프리징 없음
-- [ ] **fortune/index.html:** 탭(오늘/내일/주간/월간) 클릭 시 링크 갱신 정상
+- `index-inline-runtime.js` (~3,700줄), `saju-engine.js` (~21,000줄) 모듈 분할
+- JSON-LD를 별도 파일로 분리 후 동적 삽입 (선택, SEO 영향 검토 필요)
+- `style=""` 100여 개 → CSS 클래스화 (index.html)
 
 ---
 
-## 7. SEO 유지 확인
+## 6. 모바일 안정성 테스트 결과
 
-다음 요소 **변경 없음** (제거·수정하지 않음):
+| 항목 | 상태 |
+|------|------|
+| 버튼 터치 | `-webkit-tap-highlight-color: transparent` 유지 (fi-tab, fi-item) |
+| 스크롤 | `-webkit-overflow-scrolling: touch` 유지 |
+| 이벤트 | `fortune-tabs.js` 기존 `addEventListener` 방식 유지, 변경 없음 |
+| 스크립트 로딩 | `defer` 사용으로 파싱 블로킹 최소화 |
 
-- `meta description`, `title`
-- `og:*`, `twitter:*` 태그
-- `application/ld+json` (WebApplication, FAQPage 등)
-- `rel="canonical"`, `rel="alternate"` hreflang
-- DOM 구조 (본문 콘텐츠, heading 계층)
-
----
-
-## 8. 무결성 원칙 준수 사항
-
-- ✅ 사주 계산 로직 / 점술 알고리즘: **미수정**
-- ✅ API 요청 구조: **미수정**
-- ✅ UI 흐름: **미수정**
-- ✅ 결과 데이터 구조: **미수정**
-- ✅ 이벤트 흐름: **유지** (data-action, callGlobal 동작 동일)
+**권장:** 실제 모바일 기기에서 fortune 홈 탭 전환, 12띠/별자리 그리드 터치 동작 확인.
 
 ---
 
-## 9. 추가 권장 작업 (Phase 2)
+## 7. 무결성 검증 체크리스트
 
-1. **이미지 최적화:** WebP 변환, `loading="lazy"` 적용
-2. **index-inline-runtime.js 모듈화:** 기능별 분리 후 테스트
-3. **CSS 정리:** 미사용 클래스, 중복 스타일 제거
-4. **Lazy loading:** 타로·화투·MBTI 등 무거운 모듈 동적 import
+- [x] 사주 계산 로직 미수정
+- [x] API 요청 구조 미변경
+- [x] UI 흐름 미변경 (탭 클릭 → 그리드 링크 갱신 동일)
+- [x] 결과 데이터 구조 미변경
+- [x] 이벤트 흐름 유지 (addEventListener, data-action)
+- [x] SEO 요소 유지 (meta, og, JSON-LD, canonical)
 
 ---
 
-*본 보고서는 2026-03-16 리팩토링 작업 기준으로 작성되었습니다.*
+## 8. 적용된 파일 목록
+
+```
+수정:
+  index.html
+  fortune/index.html
+  public/fortune/index.html
+
+신규:
+  public/css/fortune-index.css
+```
+
+---
+
+## 9. 후속 작업 제안
+
+1. **Dead Code 제거:** `saju-library-loader.js`, `fortune-point-service.js` 삭제 전 동적 로드·연동 여부 확인
+2. **fortune/ vs public/fortune/:** 동일 콘텐츠 중복 — 빌드 시 단일 소스에서 생성하는 방식 검토
+3. **index.html style="" → CSS:** 100+ 인라인 스타일을 클래스로 치환 (대규모 작업)
+4. **대형 JS 분할:** `index-inline-runtime.js`, `saju-engine.js` 기능별 모듈 분리

@@ -119,6 +119,7 @@
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
+      // 정적 서버(예: 5500)에서 열었을 때 Next.js API(3000) 먼저 시도
       if (host === "localhost" || host === "127.0.0.1") {
         add("http://localhost:3000");
         add("http://localhost:4000");

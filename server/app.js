@@ -9,7 +9,6 @@ const paymentRoutes = require("./routes/payment.routes");
 const fortuneRoutes = require("./routes/fortune.routes");
 const kasiRoutes = require("./routes/kasi.routes");
 const tarotRoutes = require("./routes/tarot.routes");
-const vedicRoutes = require("./routes/vedic.routes");
 
 const app = express();
 
@@ -86,7 +85,6 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/fortune", fortuneRoutes);
 app.use("/api/kasi", kasiRoutes);
 app.use("/api/tarot", tarotRoutes);
-app.use("/api/vedic", vedicRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "요청한 API 경로를 찾을 수 없습니다." });

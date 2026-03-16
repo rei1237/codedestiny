@@ -1,53 +1,211 @@
-/* Base styles - browser-compatible (no @tailwind; static HTML does not run PostCSS) */
-html {
-	scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
-	html { scroll-behavior: auto; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
+@layer base {
+	html {
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
+		-webkit-overflow-scrolling: touch;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+	body {
+		margin: 0;
+		padding: 0;
+		min-height: 100%;
+		min-height: 100dvh;
+		background: #020617;
+		color: #f8fafc;
+		font-family: "Inter", "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-y: none;
+		padding-left: env(safe-area-inset-left, 0);
+		padding-right: env(safe-area-inset-right, 0);
+		padding-bottom: env(safe-area-inset-bottom, 0);
+	}
+	* {
+		box-sizing: border-box;
+	}
+	/* 300ms 클릭 지연 제거 + 탭 하이라이트 제어 */
+	a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for], [tabindex]:not([tabindex="-1"]) {
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+	/* 터치 타겟 최소 44x44px (패딩 포함) */
+	button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+	/* 모바일에서 hover 고정 방지: 포인터 있는 기기에서만 hover 적용 */
+	@media (hover: hover) {
+		a:hover, button:hover, [role="button"]:hover {
+			opacity: 0.9;
+		}
+	}
+	/* 즉각적인 눌림 피드백 */
+	a:active, button:active, [role="button"]:active {
+		opacity: 0.85;
+	}
+	/* 모바일 input 줌 방지 (16px 이상 유지) */
+	input, select, textarea {
+		font-size: 16px;
+	}
+	@media (min-width: 768px) {
+		input, select, textarea {
+			font-size: inherit;
+		}
+	}
 }
 
-body {
-	margin: 0;
-	padding: 0;
-	min-height: 100%;
-	min-height: var(--cd-safe-viewport-height, 100vh);
-	font-family: "Noto Sans KR", "Inter", "Pretendard", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-	transition: background 0.5s ease, color 0.4s ease;
-	/* 배경은 main-glass.css에서 제어 (흰색 / neo 시 어두운 우주) */
-}
-/* 쌈바(neo) 모드일 때만 어두운 우주 배경 */
-body.neo-mode {
-	background: #0f0a1a;
-	background-image:
-		radial-gradient(ellipse 120% 80% at 50% 0%, rgba(88, 28, 135, 0.25) 0%, transparent 50%),
-		radial-gradient(ellipse 100% 60% at 80% 100%, rgba(30, 27, 75, 0.3) 0%, transparent 45%),
-		radial-gradient(1.5px 1.5px at 20px 30px, rgba(255,255,255,0.35), transparent),
-		radial-gradient(1px 1px at 80px 70px, rgba(255,255,255,0.2), transparent),
-		radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.28), transparent),
-		radial-gradient(1px 1px at 240px 50px, rgba(255,255,255,0.15), transparent),
-		radial-gradient(1.2px 1.2px at 60px 180px, rgba(255,255,255,0.22), transparent),
-		radial-gradient(1px 1px at 300px 200px, rgba(255,255,255,0.18), transparent),
-		radial-gradient(1px 1px at 120px 280px, rgba(255,255,255,0.12), transparent),
-		radial-gradient(1.2px 1.2px at 380px 90px, rgba(255,255,255,0.2), transparent),
-		linear-gradient(180deg, #0f0a1a 0%, #1a0f2e 40%, #120a1f 100%);
-	background-attachment: fixed;
-	background-size: 100% 100%;
-	color: #f8fafc;
+@keyframes cosmicStars {
+	0% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(-60px, -40px, 0); }
+	100% { transform: translate3d(0, 0, 0); }
 }
 
-* {
-	box-sizing: border-box;
-}
-
-/* Main content wrapper — padding for mobile, max-width for desktop, dvh 대응 */
-.wrap {
-	max-width: 960px;
-	margin: 0 auto;
-	padding: 0 16px 32px;
-	min-height: 100vh;
-	min-height: var(--cd-safe-viewport-height, 100vh);
-}
-@media (min-width: 768px) {
-	.wrap { padding: 0 24px 48px; }
+/* ─── Veda Nebula: Cosmic Orbit ─── */
+@layer components {
+	.veda-orbit-root {
+		position: relative;
+		width: 100%;
+		max-width: min(520px, 90vw);
+		aspect-ratio: 1;
+		margin-inline: auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.veda-orbit-core {
+		position: absolute;
+		width: 160px;
+		height: 160px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 30% 0%, rgba(248, 250, 252, 0.9), transparent 55%),
+			radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.9), transparent 60%);
+		box-shadow:
+			0 0 40px rgba(56, 189, 248, 0.9),
+			0 0 90px rgba(59, 130, 246, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.veda-orbit-core-inner {
+		width: 80px;
+		height: 80px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.9), transparent 60%),
+			radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.98), transparent 70%);
+		box-shadow:
+			0 0 15px rgba(15, 23, 42, 0.95),
+			inset 0 0 16px rgba(15, 23, 42, 0.95);
+	}
+	.veda-orbit-core-ring {
+		position: absolute;
+		border-radius: 9999px;
+		border: 1px solid rgba(148, 163, 184, 0.4);
+		mix-blend-mode: screen;
+	}
+	.veda-orbit-core-ring--1 {
+		width: 210px;
+		height: 210px;
+		border-color: rgba(56, 189, 248, 0.7);
+	}
+	.veda-orbit-core-ring--2 {
+		width: 260px;
+		height: 260px;
+		border-color: rgba(129, 140, 248, 0.6);
+		border-style: dashed;
+	}
+	.veda-orbit-ring {
+		position: absolute;
+		border-radius: 9999px;
+		border: 1px solid rgba(148, 163, 184, 0.45);
+		mix-blend-mode: screen;
+		opacity: 0.6;
+	}
+	.veda-orbit-ring--inner {
+		width: 260px;
+		height: 260px;
+	}
+	.veda-orbit-ring--mid {
+		width: 320px;
+		height: 320px;
+		border-style: dashed;
+	}
+	.veda-orbit-ring--outer {
+		width: 380px;
+		height: 380px;
+		border-color: rgba(51, 65, 85, 0.9);
+	}
+	.veda-orbit-orbs {
+		position: absolute;
+		inset: 0;
+	}
+	.veda-orbit-orb {
+		position: absolute;
+		transform-origin: center center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+	}
+	.veda-orbit-radius-inner {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-140px);
+	}
+	.veda-orbit-radius-mid {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-180px);
+	}
+	.veda-orbit-radius-outer {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-220px);
+	}
+	.veda-orbit-orb-glow {
+		width: 64px;
+		height: 64px;
+		border-radius: 9999px;
+		box-shadow:
+			0 0 20px rgba(248, 250, 252, 0.95),
+			0 0 45px rgba(56, 189, 248, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		overflow: hidden;
+	}
+	.veda-orbit-orb-core {
+		width: 40px;
+		height: 40px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 30% 0%, rgba(248, 250, 252, 0.95), transparent 60%),
+			radial-gradient(circle at 80% 100%, rgba(15, 23, 42, 0.9), transparent 65%);
+		box-shadow:
+			0 0 10px rgba(248, 250, 252, 0.9),
+			inset 0 0 8px rgba(148, 163, 184, 0.7);
+	}
+	.veda-orbit-orb-label {
+		margin-top: 6px;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		color: rgba(209, 213, 219, 0.85);
+		font-family: "Nanum Myeongjo", "Noto Serif KR", serif;
+		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
+	}
 }
 

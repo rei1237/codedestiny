@@ -51,7 +51,7 @@ export default async function RootLayout({ children }) {
     headerStore.get("x-pathname") || headerStore.get("next-url") || "/",
   );
   const canonicalHref = new URL(requestPath, CANONICAL_ORIGIN).toString();
-  const hideFooter = requestPath.startsWith("/vedic");
+  const hideFooter = false;
 
   return (
     <html lang="ko">

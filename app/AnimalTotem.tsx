@@ -235,8 +235,23 @@ export default function AnimalTotem() {
     setQuery(totem.name);
   };
 
+  const ANIMAL_FIGURES = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐦", "🦋", "🦉", "🐬", "🐢", "🐿️", "🦌", "🐺", "🦅"];
+  const animalPositions = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => ({
+        id: `animal-${i}`,
+        icon: ANIMAL_FIGURES[i % ANIMAL_FIGURES.length],
+        top: `${(i * 7 + 5) % 95}%`,
+        left: `${(i * 11 + 3) % 92}%`,
+        size: 18 + (i % 4) * 4,
+        delay: i * 0.3,
+        duration: 12 + (i % 5) * 2,
+      })),
+    []
+  );
+
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#1a1533] via-[#372d62] to-[#0e1f45] px-4 py-10 text-white sm:px-8">
+    <section className="relative min-h-[120vh] overflow-hidden bg-gradient-to-br from-[#1a1533] via-[#372d62] to-[#0e1f45] px-4 py-14 text-white sm:px-8 sm:py-16">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(244,114,182,0.28),transparent_30%),radial-gradient(circle_at_80%_80%,rgba(125,211,252,0.2),transparent_30%),radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.16),transparent_45%)]" />
 
       {STAR_FIELD.map((star) => (
@@ -253,6 +268,32 @@ export default function AnimalTotem() {
             ease: "easeInOut",
           }}
         />
+      ))}
+      {animalPositions.map((a) => (
+        <motion.span
+          key={a.id}
+          className="pointer-events-none absolute select-none"
+          style={{
+            top: a.top,
+            left: a.left,
+            fontSize: a.size,
+            filter: "drop-shadow(0 0 6px rgba(250,204,21,0.85)) drop-shadow(0 0 12px rgba(253,224,71,0.5))",
+          }}
+          initial={{ opacity: 0.4, y: 20 }}
+          animate={{
+            opacity: [0.4, 0.85, 0.5],
+            y: [20, -10, 20],
+          }}
+          transition={{
+            duration: a.duration,
+            repeat: Number.POSITIVE_INFINITY,
+            delay: a.delay,
+            ease: "easeInOut",
+          }}
+          aria-hidden
+        >
+          {a.icon}
+        </motion.span>
       ))}
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8">

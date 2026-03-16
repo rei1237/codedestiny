@@ -21816,10 +21816,19 @@ function toggleReportFeatureCard(btn) {
   }
 }
 
-window.addEventListener('resize', function() {
-  document.querySelectorAll('.rpt-v2-block.open').forEach(function(block) {
-    syncReportBlockHeight(block);
-  });
-}, { passive: true });
+(function(){
+  var resizeTicking = false;
+  function onResize() {
+    if (resizeTicking) return;
+    resizeTicking = true;
+    requestAnimationFrame(function() {
+      resizeTicking = false;
+      document.querySelectorAll('.rpt-v2-block.open').forEach(function(block) {
+        syncReportBlockHeight(block);
+      });
+    });
+  }
+  window.addEventListener('resize', onResize, { passive: true });
+})();
 
 
