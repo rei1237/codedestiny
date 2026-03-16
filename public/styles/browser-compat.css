@@ -1,6 +1,6 @@
 /* Cross-browser safety net loaded after main styles */
 
-/* Safe viewport fallback for browsers without dvh support */
+/* Safe viewport fallback for browsers without dvh support (모바일 주소창 대응) */
 :root {
   --cd-safe-viewport-height: 100vh;
 }
@@ -11,7 +11,12 @@
   }
 }
 
-html,
+html {
+  min-height: var(--cd-safe-viewport-height);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   min-height: var(--cd-safe-viewport-height);
 }
