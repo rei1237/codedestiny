@@ -526,6 +526,19 @@ input:checked + .slider .paw-pad {
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(255, 139, 167, 0.3);
 }
+.code-splash-logo{
+  margin-top:-36px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:center;
+}
+.code-splash-logo-img{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:contain;
+  box-shadow:0 4px 12px rgba(255,139,167,.3);
+}
 .logo-area h1{font-family:'Noto Serif KR',serif;color:var(--pink);font-size:1.9rem;font-weight:700;margin-top:8px}
 .logo-area p{color:#bbb;font-size:.85rem;margin-top:4px}
 .form-group{margin-bottom:18px}
@@ -1159,10 +1172,32 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
 
 /* ─── 편지 ─── */
-.letter-box{background:linear-gradient(140deg,#FFFCFC,#FFF5F8);border:2px solid rgba(255,183,178,.25);
-  border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(255,139,167,.08)}
-.letter-box h3{font-family:'Noto Serif KR',serif;color:var(--pink);text-align:center;margin-bottom:16px;font-size:1.1rem}
-.letter-para{font-size:.88rem;line-height:1.9;color:#555;margin-bottom:12px}
+.letter-box{
+  background:linear-gradient(140deg,#FFFCFC,#FFF5F8);
+  border:2px solid rgba(255,183,178,.25);
+  border-radius:20px;
+  padding:24px 22px;
+  box-shadow:0 4px 20px rgba(255,139,167,.08);
+  max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.letter-box h3{
+  font-family:'Noto Serif KR',serif;
+  color:var(--pink);
+  text-align:center;
+  margin-bottom:16px;
+  font-size:1.1rem;
+}
+.letter-para{
+  font-size:.9rem;
+  line-height:1.9;
+  color:#555;
+  margin-bottom:12px;
+  max-width: 70ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 /* ─── 블로그 ─── */
 .blog-item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;
@@ -2932,23 +2967,78 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 /* ─── 공유하기 ─── */
-.share-section{background:#fff;border-radius:20px;padding:20px;
-  box-shadow:0 2px 24px rgba(255,139,167,.1);border:1px solid rgba(255,183,178,.15);margin-bottom:16px}
-.share-title{color:var(--pink);font-weight:700;font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.share-section{
+  background:#fff;
+  border-radius:20px;
+  padding:20px 18px;
+  box-shadow:0 2px 24px rgba(255,139,167,.1);
+  border:1px solid rgba(255,183,178,.15);
+  margin:0 auto 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.share-title{
+  color:var(--pink);
+  font-weight:700;
+  font-size:1rem;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
 .share-title::before{content:'';display:block;width:4px;height:18px;background:linear-gradient(var(--pink),var(--pink-l));border-radius:2px}
-.share-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.share-btns{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  align-items:stretch;
+  width:100%;
+}
 .quick-action-stack{display:flex;flex-direction:column;align-items:center;gap:12px}
 .quick-action-stack .btn-install,.quick-action-stack .btn-favorite{width:min(92vw,460px)}
 /* Result page: keep install CTA comfortably clear and not visually clipped */
 #resultPage #shareSection{scroll-margin-top:calc(76px + env(safe-area-inset-top, 0px))}
 #resultPage .share-section{overflow:visible}
 #resultPage .share-btns{overflow:visible}
-#resultPage .share-btns .btn-install{margin-top:30px;margin-bottom:8px;position:relative;z-index:1}
-#resultPage .share-btns .btn-favorite{margin-top:6px;margin-bottom:8px;position:relative;z-index:1}
-#resultPage #btnPwaInstall{margin-top:30px}
-#resultPage #btnPwaInstallHome{margin-top:30px}
-.btn-kakao{padding:14px;background:#FEE500;color:#3B1E08;border:none;border-radius:13px;
-  font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
+#resultPage .share-btns .btn-install{margin-top:14px;margin-bottom:0;position:relative;z-index:1}
+#resultPage .share-btns .btn-favorite{margin-top:10px;margin-bottom:0;position:relative;z-index:1}
+#resultPage #btnPwaInstall{margin-top:14px}
+#resultPage #btnPwaInstallHome{margin-top:14px}
+.share-btns .btn-kakao,
+.share-btns .btn-insta{
+  width: 100%;
+  min-height: 44px;
+  justify-self: center;
+}
+.btn-kakao{
+  padding:10px 20px;
+  min-height:44px;
+  background:#FEE500;
+  color:#3B1E08;
+  border:none;
+  border-radius:999px;
+  font-size:.9rem;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-family:inherit;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.share-btns .btn-install,
+.share-btns .btn-favorite{
+  grid-column:1 / -1;
+  width:100%;
+  min-height: 46px;
+  justify-self:center;
+}
 .btn-kakao:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(254,229,0,.45)}
 .btn-kakao:active{transform:scale(.96);box-shadow:0 2px 8px rgba(254,229,0,.3)}
 .modal-result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}
@@ -2984,18 +3074,33 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   --btn-return-border:rgba(232,121,249,0.5);
   --btn-return-text:#e879f9;
 }
-.btn-insta{padding:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:13px;
-  font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
+.btn-insta{
+  padding:10px 20px;
+  min-height:44px;
+  background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);
+  color:#fff;
+  border:none;
+  border-radius:999px;
+  font-size:.9rem;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-family:inherit;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
 .btn-insta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(131,58,180,.4)}
 .btn-insta:active{transform:scale(.96);box-shadow:0 2px 8px rgba(131,58,180,.25)}
 /* ── PWA 설치 버튼 (홈 화면 부적 설치) ── */
 .btn-install{
-  padding:14px;
+  padding:12px 20px;
   background:linear-gradient(135deg,#1A1A1B 0%,#2D2A1E 50%,#1A1A1B 100%);
   color:#FFD700;
   border:2px solid #FFD70066;
-  border-radius:13px;
-  font-size:.92rem;
+  border-radius:12px;
+  font-size:.9rem;
   font-weight:700;
   cursor:pointer;
   display:flex;
@@ -3033,10 +3138,10 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 
 /* ── 즐겨찾기 버튼 (모드별 꽃/별 컨셉) ── */
 .btn-favorite{
-  padding:14px;
+  padding:12px 20px;
   border:2px solid rgba(255,201,186,.55);
-  border-radius:13px;
-  font-size:.92rem;
+  border-radius:12px;
+  font-size:.9rem;
   font-weight:700;
   cursor:pointer;
   display:flex;
@@ -4919,10 +5024,10 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .mystic-summon-btn {
     display: block;
-    margin: 40px auto;
-    padding: 1.2rem 3rem;
-    font-size: 1.3rem;
-    font-weight: 800;
+    margin: 24px auto 20px;
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    font-weight: 700;
     color: #fff;
     text-align: center;
     background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
@@ -4935,8 +5040,9 @@ body.neo-mode .monthly-label { color: #64748b; }
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     animation: mystic-breathe 3.5s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-    width: 85%;
-    max-width: 400px;
+    width: 100%;
+    max-width: 360px;
+    min-height: 48px;
     position: relative;
     overflow: hidden;
   }
@@ -4963,9 +5069,10 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   @media (max-width: 480px) {
     .mystic-summon-btn { 
-      padding: 1.1rem 2rem; 
-      font-size: 1.15rem; 
-      margin: 30px auto;
+      padding: 12px 20px; 
+      font-size: 0.98rem; 
+      margin: 20px auto 16px;
+      max-width: 100%;
     }
   }
 

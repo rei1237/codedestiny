@@ -1127,10 +1127,26 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
 
 /* ─── 편지 ─── */
-.letter-box{background:linear-gradient(140deg,#FFFCFC,#FFF5F8);border:2px solid rgba(255,183,178,.25);
-  border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(255,139,167,.08)}
+.letter-box{
+  background:linear-gradient(140deg,#FFFCFC,#FFF5F8);
+  border:2px solid rgba(255,183,178,.25);
+  border-radius:20px;
+  padding:24px 22px;
+  box-shadow:0 4px 20px rgba(255,139,167,.08);
+  max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
+}
 .letter-box h3{font-family:'Noto Serif KR',serif;color:var(--pink);text-align:center;margin-bottom:16px;font-size:1.1rem}
-.letter-para{font-size:.88rem;line-height:1.9;color:#555;margin-bottom:12px}
+.letter-para{
+  font-size:.9rem;
+  line-height:1.9;
+  color:#555;
+  margin-bottom:12px;
+  max-width: 70ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 /* ─── 블로그 ─── */
 .blog-item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;
@@ -2893,11 +2909,35 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 /* ─── 공유하기 ─── */
-.share-section{background:#fff;border-radius:20px;padding:20px;
-  box-shadow:0 2px 24px rgba(255,139,167,.1);border:1px solid rgba(255,183,178,.15);margin-bottom:16px}
-.share-title{color:var(--pink);font-weight:700;font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.share-section{
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 2px 24px rgba(255,139,167,.1);
+  border:1px solid rgba(255,183,178,.15);
+  margin:0 auto 16px;
+  max-width: 880px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.share-title{
+  color:var(--pink);
+  font-weight:700;
+  font-size:1rem;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
 .share-title::before{content:'';display:block;width:4px;height:18px;background:linear-gradient(var(--pink),var(--pink-l));border-radius:2px}
-.share-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.share-btns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  width:100%;
+}
 .quick-action-stack{display:flex;flex-direction:column;align-items:center;gap:12px}
 .quick-action-stack .btn-install,.quick-action-stack .btn-favorite{width:min(92vw,460px)}
 /* Result page: keep install CTA comfortably clear and not visually clipped */
