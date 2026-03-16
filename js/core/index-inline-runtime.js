@@ -400,6 +400,110 @@ function __cdBindAnimalTotemTileDirect() {
   }
 }
 
+/**
+ * 운명의 꽃 타일 — 모바일 터치 직접 바인딩
+ * click 이벤트가 스크롤/스와이프와 충돌해 모바일에서 미발동하는 문제 해결
+ */
+function __cdBindDestinyFlowerTileDirect() {
+  var sel = '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl, [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"]';
+  var touchStart = null;
+  var TAP_THRESH = 36;
+
+  function isFlowerTile(el) {
+    return el && el.closest && el.closest(sel);
+  }
+
+  function openFlowerStudio(actionEl) {
+    var action = actionEl && actionEl.getAttribute('data-action');
+    if (!action) return;
+    var fn = window[action];
+    if (typeof fn === 'function') fn();
+  }
+
+  function handleClick(ev) {
+    var target = ev && ev.target;
+    if (!target || !isFlowerTile(target)) return;
+    var actionEl = target.closest(sel);
+    if (!actionEl) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    openFlowerStudio(actionEl);
+  }
+
+  function handleTouchStart(ev) {
+    if (!ev.target || !isFlowerTile(ev.target)) return;
+    var t = ev.touches && ev.touches[0];
+    touchStart = t ? { x: t.clientX, y: t.clientY } : null;
+  }
+
+  function handleTouchCancel() {
+    touchStart = null;
+  }
+
+  function handleTouchEnd(ev) {
+    if (!touchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
+    var target = ev.target;
+    if (!isFlowerTile(target)) return;
+    var actionEl = target.closest(sel);
+    if (!actionEl) return;
+    var t = ev.changedTouches[0];
+    var dx = Math.abs(t.clientX - touchStart.x);
+    var dy = Math.abs(t.clientY - touchStart.y);
+    touchStart = null;
+    if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    openFlowerStudio(actionEl);
+  }
+
+  document.addEventListener('click', handleClick, { capture: true });
+  document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+  document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
+  document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+
+  function bindDirectToTiles() {
+    var directTouchStart = null;
+    var tiles = document.querySelectorAll(sel);
+    tiles.forEach(function(tile) {
+      if (tile._cdFlowerDirectBound) return;
+      tile._cdFlowerDirectBound = true;
+      tile.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openFlowerStudio(tile);
+      });
+      tile.addEventListener('touchstart', function(ev) {
+        var t = ev.touches && ev.touches[0];
+        directTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
+      }, { passive: true });
+      tile.addEventListener('touchend', function(ev) {
+        if (!directTouchStart || !ev.changedTouches || !ev.changedTouches[0]) return;
+        var t = ev.changedTouches[0];
+        var dx = Math.abs(t.clientX - directTouchStart.x);
+        var dy = Math.abs(t.clientY - directTouchStart.y);
+        directTouchStart = null;
+        if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+        if (ev.cancelable) ev.preventDefault();
+        openFlowerStudio(tile);
+      }, { passive: false });
+    });
+  }
+  bindDirectToTiles();
+
+  var splash = document.getElementById('codeSplash');
+  if (splash && splash.parentNode) {
+    var obs = new MutationObserver(function() {
+      if (!document.getElementById('codeSplash')) {
+        obs.disconnect();
+        bindDirectToTiles();
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
 function _cdEnsureMainScreenOnLoad() {
   var ids = ['juyukModalOverlay','sukuyoModalOverlay','astroModalOverlay','ziweiModalOverlay'];
   for (var i = 0; i < ids.length; i++) {
@@ -432,11 +536,13 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     _cdInitAfterSplash();
     __cdBindAnimalTotemTileDirect();
+    __cdBindDestinyFlowerTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
   _cdInitAfterSplash();
   __cdBindAnimalTotemTileDirect();
+  __cdBindDestinyFlowerTileDirect();
   setTimeout(__cdBindGlobalActionsFallback, 0);
 }
 
