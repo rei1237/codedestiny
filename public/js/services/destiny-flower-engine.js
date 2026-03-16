@@ -825,10 +825,22 @@ export function getJamidusuFlower(starData = {}) {
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
 
-  // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 ---
+  // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 (calcZiweiPalaces는 양력 기준) ---
   try {
     const birth = (profile.identity && profile.identity.birth) || profile.birth || profile.domains?.birth || userData.birth || {};
-    const year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
+    let year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
+    const calType = birth.calType || 'solar';
+    if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day &&
+        typeof window !== 'undefined' && window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
+      try {
+        const conv = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
+        if (conv && conv.year && conv.month && conv.day) {
+          year = Number(conv.year);
+          month = Number(conv.month);
+          day = Number(conv.day);
+        }
+      } catch (e) { /* fallback: use as-is */ }
+    }
     if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
       const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
       if (zw && zw.stars && zw.palacesByIndex) {

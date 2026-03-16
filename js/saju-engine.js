@@ -1450,6 +1450,17 @@ window.computeProfileForModal = function(profile) {
   if (!profile || !profile.birth) return false;
   var b = profile.birth, l = profile.location || {};
   var year = b.year, month = b.month, day = b.day;
+  var calType = b.calType || 'solar';
+  if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day && KasiEngine && typeof KasiEngine.lunarToSolar === 'function') {
+    try {
+      var conv = KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
+      if (conv && conv.year && conv.month && conv.day) {
+        year = Number(conv.year);
+        month = Number(conv.month);
+        day = Number(conv.day);
+      }
+    } catch (e) {}
+  }
   var hour   = (b.hour   != null) ? b.hour   : 12;
   var minute = (b.minute != null) ? b.minute : 0;
   var lat    = (l.lat    != null) ? l.lat    : 37.6;

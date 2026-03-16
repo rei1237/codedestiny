@@ -886,15 +886,40 @@ function _dfResolveBirthContext(payload) {
   var astroBirth = window._astroBirth || {};
   var ziweiBirth = window._ziweiBirth || {};
 
+  var year = _dfPickNumber([pBirth.year, iBirth.year, astroBirth.year, ziweiBirth.year], 0, true);
+  var month = _dfPickNumber([pBirth.month, iBirth.month, astroBirth.month, ziweiBirth.month], 0, true);
+  var day = _dfPickNumber([pBirth.day, iBirth.day, astroBirth.day, ziweiBirth.day], 0, true);
+  var hour = _dfPickNumber([pBirth.hour, iBirth.hour, astroBirth.hour, ziweiBirth.hour], 12, false);
+  var minute = _dfPickNumber([pBirth.minute, iBirth.minute, astroBirth.minute, ziweiBirth.minute], 0, false);
+  var lat = _dfPickNumber([pBirth.lat, pBirth.latitude, iBirth.lat, iBirth.latitude, astroBirth.lat, location.lat], 37.6, false);
+  var lon = _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, astroBirth.lon, location.lng, location.lon], 127, false);
+  var tz = _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, astroBirth.tz, location.tzOffset, location.baseTzOffset], 9, false);
+
+  // 자미두수·점성술 등은 양력 기준. 음력 입력 시 양력으로 변환하여 명궁 등이 정확히 계산되도록 함.
+  var calType = pBirth.calType || iBirth.calType || 'solar';
+  if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day &&
+      window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
+    try {
+      var conv = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
+      if (conv && conv.year && conv.month && conv.day) {
+        year = Number(conv.year);
+        month = Number(conv.month);
+        day = Number(conv.day);
+      }
+    } catch (e) {
+      console.warn('[DestinyFlower] 음력→양력 변환 실패, 원본 사용:', e);
+    }
+  }
+
   return {
-    year: _dfPickNumber([pBirth.year, iBirth.year, astroBirth.year, ziweiBirth.year], 0, true),
-    month: _dfPickNumber([pBirth.month, iBirth.month, astroBirth.month, ziweiBirth.month], 0, true),
-    day: _dfPickNumber([pBirth.day, iBirth.day, astroBirth.day, ziweiBirth.day], 0, true),
-    hour: _dfPickNumber([pBirth.hour, iBirth.hour, astroBirth.hour, ziweiBirth.hour], 12, false),
-    minute: _dfPickNumber([pBirth.minute, iBirth.minute, astroBirth.minute, ziweiBirth.minute], 0, false),
-    lat: _dfPickNumber([pBirth.lat, pBirth.latitude, iBirth.lat, iBirth.latitude, astroBirth.lat, location.lat], 37.6, false),
-    lon: _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, astroBirth.lon, location.lng, location.lon], 127, false),
-    tz: _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, astroBirth.tz, location.tzOffset, location.baseTzOffset], 9, false)
+    year: year,
+    month: month,
+    day: day,
+    hour: hour,
+    minute: minute,
+    lat: lat,
+    lon: lon,
+    tz: tz
   };
 }
 
