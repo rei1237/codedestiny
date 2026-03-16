@@ -9,7 +9,11 @@ function callGlobal(fnName, ...args) {
 const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
-  openMbtiModal: () => __loadScriptOnce('js/astral-soul.js')
+  openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
+  openAnimalTotemModal: () =>
+    __loadScriptOnce('js/services/animal-totem-content-engine.js').then(() =>
+      __loadScriptOnce('js/animal-totem-experience.js')
+    )
 };
 
 const __lazyActionState = {};
