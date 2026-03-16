@@ -203,46 +203,13 @@ body {
 	overflow: hidden;
 	position: relative;
 }
-/* 컬렉션별 배경·테두리 색상 (더 진한 톤으로 가시성 극대화) */
-.feat-collection--animal {
-	background: linear-gradient(160deg, rgba(6, 95, 70, 0.65), rgba(4, 60, 55, 0.7));
-	border-color: rgba(167, 243, 208, 0.65);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(34, 197, 94, 0.35) inset;
-}
-.feat-collection--oracle {
-	background: linear-gradient(160deg, rgba(120, 53, 15, 0.6), rgba(69, 26, 3, 0.7));
-	border-color: rgba(253, 224, 71, 0.7);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(245, 158, 11, 0.35) inset;
-}
-.feat-collection--cosmic {
-	background: linear-gradient(160deg, rgba(46, 16, 101, 0.7), rgba(30, 27, 75, 0.75));
-	border-color: rgba(167, 139, 250, 0.7);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.35) inset;
-}
-.feat-collection--flower {
-	background: linear-gradient(160deg, rgba(131, 24, 67, 0.6), rgba(80, 7, 36, 0.7));
-	border-color: rgba(251, 207, 232, 0.7);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(236, 72, 153, 0.35) inset;
-}
-.tarot-collection {
-	background: linear-gradient(160deg, rgba(46, 16, 101, 0.65), rgba(30, 27, 75, 0.75));
-	border-color: rgba(196, 181, 253, 0.65);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.35) inset;
-}
 .feat-collection__header,
 .tarot-collection__header {
 	text-align: center;
 	padding: 0 8px 20px;
 	position: relative;
 	z-index: 2;
-	border-bottom: 1px solid rgba(253, 230, 138, 0.2);
-	margin-bottom: 16px;
 }
-.feat-collection--animal .feat-collection__header { border-bottom-color: rgba(167, 243, 208, 0.75); }
-.feat-collection--oracle .feat-collection__header { border-bottom-color: rgba(253, 224, 71, 0.75); }
-.feat-collection--cosmic .feat-collection__header { border-bottom-color: rgba(167, 139, 250, 0.8); }
-.feat-collection--flower .feat-collection__header { border-bottom-color: rgba(251, 207, 232, 0.75); }
-.tarot-collection__header { border-bottom-color: rgba(196, 181, 253, 0.75); }
 .feat-collection__icon,
 .tarot-collection__icon {
 	display: block;
@@ -288,205 +255,14 @@ body {
 	color: rgba(253, 230, 138, 0.9);
 	font-size: 0.7rem;
 }
-.feat-collection--animal .fc-div-line { background: linear-gradient(90deg, transparent, rgba(167, 243, 208, 0.9), transparent); }
-.feat-collection--animal .fc-div-gem { color: #6ee7b7; }
-.feat-collection--oracle .fc-div-line { background: linear-gradient(90deg, transparent, rgba(253, 224, 71, 0.9), transparent); }
-.feat-collection--oracle .fc-div-gem { color: #fcd34d; }
-.feat-collection--cosmic .fc-div-line { background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.9), transparent); }
-.feat-collection--cosmic .fc-div-gem { color: #a78bfa; }
-.feat-collection--flower .fc-div-line { background: linear-gradient(90deg, transparent, rgba(251, 207, 232, 0.9), transparent); }
-.feat-collection--flower .fc-div-gem { color: #f472b6; }
-.tarot-collection .tc-divider-line { background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.9), transparent); }
-.tarot-collection .tc-divider-star,
-.tarot-collection .tc-divider-gem { color: #a78bfa; }
-/* ─── 별 효과 (cosmos overlay) ─── */
+/* cosmos 오버레이가 터치를 가로채지 않도록 (모바일 클릭 보장) */
 .feat-collection__cosmos,
-.tarot-collection__cosmos {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	z-index: 1;
-	overflow: hidden;
-	border-radius: inherit;
-}
-.fc-star {
-	position: absolute;
-	display: block;
-	width: 3px;
-	height: 3px;
-	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.9);
-	box-shadow:
-		0 0 6px 2px rgba(255, 255, 255, 0.5),
-		0 0 12px 4px rgba(255, 230, 138, 0.25);
-	animation: fc-starTwinkle 3s ease-in-out infinite;
-}
-.fc-star::before {
-	content: "";
-	position: absolute;
-	inset: -4px;
-	border-radius: 50%;
-	background: radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 65%);
-}
-.feat-collection__cosmos .fc-star--1 { top: 12%; left: 8%;  animation-delay: 0s; }
-.feat-collection__cosmos .fc-star--2 { top: 18%; right: 15%; left: auto; animation-delay: 0.4s; }
-.feat-collection__cosmos .fc-star--3 { top: 45%; left: 5%;  animation-delay: 0.8s; }
-.feat-collection__cosmos .fc-star--4 { top: 55%; right: 8%; left: auto; animation-delay: 1.2s; }
-.feat-collection__cosmos .fc-star--5 { top: 8%;  left: 45%; animation-delay: 1.6s; }
-.feat-collection__cosmos .fc-star--6 { top: 75%; left: 92%; animation-delay: 2s; }
-@keyframes fc-starTwinkle {
-	0%, 100% { opacity: 0.7; transform: scale(1); }
-	50% { opacity: 1; transform: scale(1.15); }
-}
-/* 컬렉션별 별 색상 (더 진하게) */
-.feat-collection--animal .fc-star {
-	background: #34d399;
-	box-shadow: 0 0 10px 4px rgba(167, 243, 208, 0.95), 0 0 22px 8px rgba(34, 197, 94, 0.5);
-}
-.feat-collection--oracle .fc-star {
-	background: #fbbf24;
-	box-shadow: 0 0 10px 4px rgba(253, 224, 71, 0.95), 0 0 22px 8px rgba(245, 158, 11, 0.55);
-}
-.feat-collection--cosmic .fc-star {
-	background: #8b5cf6;
-	box-shadow: 0 0 10px 4px rgba(167, 139, 250, 0.95), 0 0 22px 8px rgba(139, 92, 246, 0.55);
-}
-.feat-collection--flower .fc-star {
-	background: #ec4899;
-	box-shadow: 0 0 10px 4px rgba(251, 207, 232, 0.95), 0 0 22px 8px rgba(236, 72, 153, 0.5);
-}
-/* 타로 컬렉션 별 (tc-star) */
-.tarot-collection__cosmos .tc-star {
-	position: absolute;
-	display: block;
-	width: 3px;
-	height: 3px;
-	border-radius: 50%;
-	background: #8b5cf6;
-	box-shadow: 0 0 10px 4px rgba(196, 181, 253, 0.95), 0 0 22px 8px rgba(139, 92, 246, 0.55);
-	animation: fc-starTwinkle 3s ease-in-out infinite;
-}
-.tarot-collection__cosmos .tc-star::before {
-	content: "";
-	position: absolute;
-	inset: -4px;
-	border-radius: 50%;
-	background: radial-gradient(circle, rgba(196,181,253,0.35) 0%, transparent 65%);
-}
-.tarot-collection__cosmos .tc-star--1 { top: 12%; left: 8%;  animation-delay: 0s; }
-.tarot-collection__cosmos .tc-star--2 { top: 18%; right: 15%; left: auto; animation-delay: 0.5s; }
-.tarot-collection__cosmos .tc-star--3 { top: 45%; left: 5%;  animation-delay: 1s; }
-.tarot-collection__cosmos .tc-star--4 { top: 55%; right: 8%; left: auto; animation-delay: 1.5s; }
-.tarot-collection__cosmos .tc-star--5 { top: 8%;  left: 45%; animation-delay: 2s; }
-/* 배경 별 파티클 (::after) */
-.feat-collection::after,
-.tarot-collection::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	z-index: 0;
-	background-image:
-		radial-gradient(2px 2px at 15% 22%, rgba(255, 255, 255, 0.85), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(255, 255, 255, 0.7), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(255, 255, 255, 0.6), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(255, 255, 255, 0.75), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(255, 255, 255, 0.5), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(255, 255, 255, 0.55), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(255, 255, 255, 0.45), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(255, 255, 255, 0.5), transparent),
-		radial-gradient(1.5px 1.5px at 42% 8%, rgba(255, 255, 255, 0.4), transparent),
-		radial-gradient(1px 1px at 72% 92%, rgba(255, 255, 255, 0.45), transparent);
-	animation: fc-starfieldShimmer 6s ease-in-out infinite;
-	opacity: 0.9;
-}
-.feat-collection--animal::after {
-	background-image:
-		radial-gradient(2.5px 2.5px at 15% 22%, rgba(110, 231, 183, 0.95), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(167, 243, 208, 0.85), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(52, 211, 153, 0.75), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(34, 197, 94, 0.7), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(167, 243, 208, 0.6), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(110, 231, 183, 0.65), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(167, 243, 208, 0.55), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(52, 211, 153, 0.6), transparent);
-}
-.feat-collection--oracle::after {
-	background-image:
-		radial-gradient(2.5px 2.5px at 15% 22%, rgba(253, 224, 71, 0.95), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(254, 240, 138, 0.85), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(245, 158, 11, 0.75), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(251, 191, 36, 0.7), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(253, 230, 138, 0.6), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(253, 224, 71, 0.65), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(254, 240, 138, 0.55), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(245, 158, 11, 0.6), transparent);
-}
-.feat-collection--cosmic::after {
-	background-image:
-		radial-gradient(2.5px 2.5px at 15% 22%, rgba(167, 139, 250, 0.95), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(196, 181, 253, 0.85), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(139, 92, 246, 0.75), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(124, 58, 237, 0.7), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(196, 181, 253, 0.6), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(167, 139, 250, 0.65), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(139, 92, 246, 0.55), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(124, 58, 237, 0.6), transparent);
-}
-.feat-collection--flower::after {
-	background-image:
-		radial-gradient(2.5px 2.5px at 15% 22%, rgba(251, 207, 232, 0.95), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(244, 114, 182, 0.85), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(236, 72, 153, 0.75), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(219, 39, 119, 0.7), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(251, 207, 232, 0.6), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(244, 114, 182, 0.65), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(251, 207, 232, 0.55), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(236, 72, 153, 0.6), transparent);
-}
-.tarot-collection::after {
-	background-image:
-		radial-gradient(2.5px 2.5px at 15% 22%, rgba(167, 139, 250, 0.95), transparent),
-		radial-gradient(1.5px 1.5px at 88% 18%, rgba(196, 181, 253, 0.85), transparent),
-		radial-gradient(2px 2px at 38% 58%, rgba(139, 92, 246, 0.75), transparent),
-		radial-gradient(1px 1px at 68% 82%, rgba(124, 58, 237, 0.7), transparent),
-		radial-gradient(1.5px 1.5px at 22% 68%, rgba(196, 181, 253, 0.6), transparent),
-		radial-gradient(1px 1px at 52% 28%, rgba(167, 139, 250, 0.65), transparent),
-		radial-gradient(1.2px 1.2px at 6% 48%, rgba(139, 92, 246, 0.55), transparent),
-		radial-gradient(1px 1px at 94% 62%, rgba(124, 58, 237, 0.6), transparent);
-}
-@keyframes fc-starfieldShimmer {
-	0%, 100% { opacity: 0.85; }
-	50% { opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-	.fc-star,
-	.tarot-collection__cosmos .tc-star { animation: none; opacity: 0.9; }
-	.fc-star::before,
-	.tarot-collection__cosmos .tc-star::before { animation: none; }
-	.feat-collection::after,
-	.tarot-collection::after { animation: none; }
-}
-.feat-collection--animal .feat-collection__title {
-	color: #34d399;
-	text-shadow: 0 0 28px rgba(167, 243, 208, 0.8), 0 0 20px rgba(34, 197, 94, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-.feat-collection--oracle .feat-collection__title {
-	color: #fbbf24;
-	text-shadow: 0 0 28px rgba(253, 224, 71, 0.85), 0 0 20px rgba(245, 158, 11, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-.feat-collection--cosmic .feat-collection__title {
-	color: #8b5cf6;
-	text-shadow: 0 0 28px rgba(167, 139, 250, 0.85), 0 0 20px rgba(139, 92, 246, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-.feat-collection--flower .feat-collection__title {
-	color: #ec4899;
-	text-shadow: 0 0 28px rgba(249, 168, 212, 0.85), 0 0 20px rgba(236, 72, 153, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-.tarot-collection__title {
-	color: #c4b5fd;
-	text-shadow: 0 0 28px rgba(196, 181, 253, 0.85), 0 0 20px rgba(139, 92, 246, 0.55), 0 1px 3px rgba(0, 0, 0, 0.5);
-}
+.tarot-collection__cosmos { pointer-events: none; }
+.feat-collection--animal .feat-collection__title { color: #a7f3d0; }
+.feat-collection--oracle .feat-collection__title { color: #fde68a; }
+.feat-collection--cosmic .feat-collection__title { color: #c4b5fd; }
+.feat-collection--flower .feat-collection__title { color: #f9a8d4; }
+.tarot-collection__title { color: #e9d5ff; }
 
 .feat-collection__grid,
 .tarot-collection__grid {

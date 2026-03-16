@@ -664,6 +664,7 @@
   justify-items: center;
   width: 100%;
 }
+/* 3장: 1열 세로 | 4~5장: 2x2 그리드 */
 .totem-result-cards--3 {
   grid-template-columns: 1fr;
   max-width: 180px;

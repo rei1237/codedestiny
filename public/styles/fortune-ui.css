@@ -126,7 +126,7 @@ body::after{
 .sec-title::before{content:'';display:block;width:4px;height:18px;
   background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}
 
-/* Force content to respect container width */
+/* Force content to respect container width — CLS 방지 (width/height 또는 aspect-ratio 지정 권장) */
 img, canvas, svg, video {
   max-width: 100%;
   height: auto;

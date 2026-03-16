@@ -507,7 +507,6 @@ function __cdBindDestinyFlowerTileDirect() {
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
 
   function bindDirectToTiles() {
-    var directTouchStart = null;
     var tiles = document.querySelectorAll(sel);
     tiles.forEach(function(tile) {
       if (tile._cdFlowerDirectBound) return;

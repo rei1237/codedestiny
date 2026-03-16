@@ -1,11 +1,20 @@
 # CODE-DESTINY 리팩토링 결과 보고서
 
-**작업일:** 2026-03-16  
+**작업일:** 2026-03-16 (최종 갱신: 2026-03-17)  
 **원칙:** 기능 무결성 100% 유지 (사주/점술 로직·API·UI 흐름·이벤트 변경 없음)
 
 ---
 
 ## 1. 제거된 Dead Code 목록
+
+### 1.1 이번 세션에서 제거/확인된 항목
+
+| 대상 | 상태 | 비고 |
+|------|------|------|
+| **inline onclick 4건** | **제거 완료** | `closeCurrentPage` 버튼 4개 — `data-action` 위임으로 이미 처리되므로 onclick 제거 (거북점·숙요점·점성술·자미두수 모달) |
+| `js/accordion.js` | **미로드 확인** | index.html에 `<script>` 없음. `#iaAcc`, `.ia-item` CSS는 fortune-ui.css에 존재. 동적 로드 없음 → **미사용 후보** (삭제 전 수동 확인 권장) |
+
+### 1.2 기존 검토 대상 (유지)
 
 | 대상 | 상태 | 비고 |
 |------|------|------|
@@ -13,26 +22,34 @@
 | `public/js/services/fortune-point-service.js` | **미제거** | `saju-engine.js`에 포인트 처리 로직 존재. 참조 없음이나 삭제 전 연동 검토 권장 |
 | 기타 | - | `fortune-point-notice`, `fortune-point-charge` 등 CSS 클래스는 HTML에서 사용 중 |
 
-**권장:** 위 2개 파일은 코드베이스 검색 결과 참조가 없으나, 배포 전 수동 테스트로 동작 여부 확인 후 제거 검토.
+**권장:** 위 파일들은 배포 전 수동 테스트로 동작 여부 확인 후 제거 검토.
 
 ---
 
 ## 2. 새로 생성된 JS/CSS 구조
 
-### 2.1 신규 파일
+### 2.1 신규 파일 (이번 세션)
+
+| 파일 | 용도 |
+|------|------|
+| `js/utils/dom.js` | DOM 캐싱 유틸 (`$`, `$$`, `clearCache`) — 반복 `querySelector` 호출 최적화 |
+| `js/utils/date.js` | 날짜 유틸 (`toYMD`, `toHM`, `KST_OFFSET`) |
+| `js/utils/index.js` | utils 모듈 진입점 |
+
+### 2.2 기존 신규 파일
 
 | 파일 | 용도 |
 |------|------|
 | `public/css/fortune-index.css` | 운세 홈(`fortune/index.html`) 전용 스타일 (fi-hero, fi-tabs, fi-grid, fi-cta 등) |
 
-### 2.2 기존 구조 (유지)
+### 2.3 최종 JS 구조
 
 ```
-public/js/
+js/
 ├── app.js                    # ES module 진입점
 ├── core/
 │   ├── init.js
-│   ├── index-inline-runtime.js  # 메인 UI 바인딩 (~3,700줄)
+│   ├── index-inline-runtime.js  # 메인 UI 바인딩 (~4,100줄)
 │   ├── uiBindings.js
 │   └── kasi-calendar-service.js
 ├── services/
@@ -40,6 +57,10 @@ public/js/
 │   ├── animal-totem-content-engine.js
 │   ├── saju-library-loader.js   # 미사용 후보
 │   └── fortune-point-service.js # 미사용 후보
+├── utils/                     # ★ 신규
+│   ├── index.js
+│   ├── dom.js
+│   └── date.js
 ├── inline/
 │   ├── canonical-redirect.js
 │   ├── pwa-theme-init.js
@@ -70,10 +91,17 @@ public/js/
 | 인라인 API base 스크립트 | ~30줄 | **0줄** → `api-base-init.js` |
 | 예상 HTML 감소 | - | **~62줄 (약 2KB)** |
 
-### 3.3 유지된 인라인 (SEO·필수)
+### 3.3 이번 세션 HTML 경량화 (index.html)
+
+| 항목 | 변경 전 | 변경 후 |
+|------|---------|---------|
+| inline `onclick` | 4건 (거북점·숙요점·점성술·자미두수 모달 닫기 버튼) | **0건** → `data-action="closeCurrentPage"` 위임만 사용 |
+| 예상 감소 | - | **~200바이트** (onclick 문자열 제거) |
+
+### 3.4 유지된 인라인 (SEO·필수)
 
 - `type="application/ld+json"` 구조화 데이터 (WebApplication, FAQPage, Organization, ItemList) — SEO 유지
-- `onclick`/`onload` 등 인라인 이벤트 핸들러 없음 (이미 `data-action` 위임 방식 사용)
+- `onclick`/`onload` 등 인라인 이벤트 핸들러 **없음** (이미 `data-action` 위임 방식 사용)
 
 ---
 
@@ -131,14 +159,24 @@ public/js/
 ## 8. 적용된 파일 목록
 
 ```
-수정:
+수정 (이번 세션):
+  index.html              # inline onclick 4건 제거
+
+신규 (이번 세션):
+  js/utils/dom.js
+  js/utils/date.js
+  js/utils/index.js
+
+기존 수정:
   index.html
   fortune/index.html
   public/fortune/index.html
 
-신규:
+기존 신규:
   public/css/fortune-index.css
 ```
+
+**동기화:** `scripts/sync-legacy-static-to-public.mjs` 실행 시 `index.html`, `js/` 등이 `public/`으로 복사됨.
 
 ---
 
