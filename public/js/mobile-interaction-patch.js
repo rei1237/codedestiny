@@ -56,6 +56,19 @@
         '.feature-card--animal-totem .feature-card__cta',
         '.feature-card--animal-totem .feature-card__launch'
       ].join(',')
+    },
+    {
+      action: 'openTarotYearFortuneModal',
+      cardSelector: '.tarot-tile--year',
+      targetSelector: [
+        '[data-action="openTarotYearFortuneModal"]',
+        '.tarot-tile--year',
+        '.tarot-tile--year .tarot-tile__img-wrap',
+        '.tarot-tile--year .tarot-tile__img',
+        '.tarot-tile--year .tarot-tile__title',
+        '.tarot-tile--year .tarot-tile__desc',
+        '.tarot-tile--year .tarot-tile__body'
+      ].join(',')
     }
   ];
 
