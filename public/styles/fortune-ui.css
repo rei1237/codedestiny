@@ -580,10 +580,13 @@ input:checked + .slider .paw-pad {
 .modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow-y:auto}
 .modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto}
 
+/* iOS Safari: overflow:auto 부모에서 sticky 미동작 → fixed로 상단 고정 */
 .modal-top-nav{
-  position:sticky;
+  position:fixed;
   top:0;
-  z-index:10;
+  left:0;
+  right:0;
+  z-index:100;
   flex-shrink:0;
   width:100%;
   display:flex;
@@ -591,6 +594,10 @@ input:checked + .slider .paw-pad {
   justify-content:space-between;
   padding:0 16px;
   height:54px;
+  box-sizing:border-box;
+}
+.modal-overlay-shell .modal-sheet-base{
+  padding-top:calc(54px + env(safe-area-inset-top, 0px));
 }
 .modal-top-nav-juyuk{background:rgba(8,4,1,0.97);border-bottom:1px solid rgba(180,130,30,0.3)}
 .modal-top-nav-sukuyo{background:rgba(10,12,25,0.97);border-bottom:1px solid rgba(167,139,250,0.3)}
@@ -629,12 +636,16 @@ input:checked + .slider .paw-pad {
 .modal-nav-title-ziwei{color:rgba(232,121,249,0.65)}
 
 .modal-nav-close{
+  position:relative;
+  z-index:2;
   background:transparent;
   font-family:'Gowun Dodum',serif;
   font-size:.75rem;
   font-weight:700;
   cursor:pointer;
-  padding:6px 9px;
+  padding:10px 14px;
+  min-width:44px;
+  min-height:44px;
   border-radius:10px;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;

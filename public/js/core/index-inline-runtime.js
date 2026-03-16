@@ -261,13 +261,20 @@ function __cdBindGlobalActionsFallback() {
     __cdInvokeAction(action, actionEl, event);
   });
 
-  /* 모바일: 숙요점/자미두수/점성술 모달 닫기 버튼 터치 반응성 보강 (touchend 폴백) */
+  /* 모바일: modal-top-nav 닫기 버튼 touchend 폴백 (로딩 중 발동 방지: 해당 overlay가 실제 표시 중일 때만) */
+  var _cdPageLoadTime = Date.now();
   root.addEventListener('touchend', function(event) {
     var target = __cdResolveEventElement(event);
     if (!target) return;
     var actionEl = target.closest('[data-action]');
     if (!actionEl) return;
-    if (!actionEl.closest('.modal-top-nav')) return;
+    var nav = actionEl.closest('.modal-top-nav');
+    if (!nav) return;
+    var overlay = nav.closest('[id$="ModalOverlay"]');
+    if (!overlay) return;
+    var computed = window.getComputedStyle ? window.getComputedStyle(overlay) : null;
+    if (computed && computed.display === 'none') return;
+    if (Date.now() - _cdPageLoadTime < 600) return;
     var action = actionEl.getAttribute('data-action');
     if (!action) return;
     if (action !== 'closeCurrentPage' && action !== 'closeSukuyoModal' && action !== 'closeZiweiModal' && action !== 'closeAstroModal' && action !== 'closeJuyukModal') return;
@@ -329,12 +336,23 @@ function __cdBindAnimalTotemTileDirect() {
   document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
 }
 
+function _cdEnsureMainScreenOnLoad() {
+  var ids = ['juyukModalOverlay','sukuyoModalOverlay','astroModalOverlay','ziweiModalOverlay'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el) el.style.display = 'none';
+  }
+  window.scrollTo(0, 0);
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
+    _cdEnsureMainScreenOnLoad();
     __cdBindAnimalTotemTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
+  _cdEnsureMainScreenOnLoad();
   __cdBindAnimalTotemTileDirect();
   setTimeout(__cdBindGlobalActionsFallback, 0);
 }
@@ -3344,7 +3362,9 @@ function closeCurrentPage() {
     var item = overlayMap[i];
     var overlay = document.getElementById(item.id);
     if (!overlay) continue;
-    if (overlay.style.display === 'none') continue;
+    var computed = window.getComputedStyle ? window.getComputedStyle(overlay) : null;
+    var isHidden = overlay.style.display === 'none' || (computed && computed.display === 'none');
+    if (isHidden) continue;
 
     if (typeof window[item.closeFn] === 'function') {
       window[item.closeFn]();
