@@ -20,11 +20,21 @@
 .tarot-love-overlay {
   position: fixed;
   inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  min-height: 100vh;
   z-index: 99999;
   display: none;
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 120, 180, 0.25), transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(120, 0, 255, 0.2), transparent 50%),
@@ -389,6 +399,82 @@
   .tarot-love-hero-card { width: 40px; height: 54px; font-size: 1.2rem; }
 }
 
+/* ─── 인트로 하단 타로 카드 프리뷰 (3장) ─── */
+.tarot-love-hero-preview {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.tarot-love-hero-preview-card {
+  position: relative;
+  width: 86px;
+  height: 132px;
+  border-radius: 14px;
+  padding: 4px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 200, 230, 0.42), transparent 55%),
+    linear-gradient(150deg, rgba(46, 12, 52, 0.95), rgba(16, 4, 28, 0.98));
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 190, 230, 0.4);
+  overflow: hidden;
+}
+.tarot-love-hero-preview-card::before {
+  content: "❤";
+  position: absolute;
+  top: -10px;
+  right: -4px;
+  font-size: 0.9rem;
+  color: rgba(255, 190, 230, 0.98);
+  text-shadow: 0 0 12px rgba(255, 120, 190, 0.9);
+}
+.tarot-love-hero-preview-card img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+.tarot-love-hero-preview-card figcaption {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  border-radius: 10px;
+  padding: 4px 6px;
+  background: radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.6), transparent 70%), rgba(26, 12, 36, 0.85);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #ffe7f6;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+.tarot-love-hero-preview-card.tl-preview-1 {
+  transform: translateY(4px) rotate(-7deg);
+}
+.tarot-love-hero-preview-card.tl-preview-2 {
+  transform: translateY(-2px);
+}
+.tarot-love-hero-preview-card.tl-preview-3 {
+  transform: translateY(6px) rotate(7deg);
+}
+@media (max-width: 600px) {
+  .tarot-love-hero-preview {
+    margin-top: 20px;
+    gap: 12px;
+  }
+  .tarot-love-hero-preview-card {
+    width: 74px;
+    height: 116px;
+  }
+  .tarot-love-hero-preview-card figcaption {
+    font-size: 0.64rem;
+  }
+}
+
 @keyframes btnPulse {
   0%, 100% { box-shadow: 0 0 15px rgba(255, 70, 170, 0.5), 0 10px 25px rgba(0,0,0,0.4); }
   50% { box-shadow: 0 0 28px rgba(255, 80, 180, 0.9), 0 12px 30px rgba(0,0,0,0.5); }
@@ -683,6 +769,7 @@
 .tarot-love-reading-content {
   max-height: 52vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: 10px;
   scrollbar-width: thin;
 }
@@ -977,6 +1064,12 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+  /* 오버레이 스크롤 컨테이너 확실히 동작 */
+  .tarot-love-overlay.is-open {
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 

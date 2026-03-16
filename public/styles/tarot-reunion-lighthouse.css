@@ -821,6 +821,7 @@
 .tarot-reunion-reading-content {
   max-height: 52vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: 8px;
   margin-top: 0;
 }
