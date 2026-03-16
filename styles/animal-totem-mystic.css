@@ -1,3 +1,21 @@
+/* ═══ 메인 페이지 타일: 어디서든 클릭 보장 (CSS 터치/포인터 이슈 해결) ═══ */
+.tarot-tile--animal-totem,
+[data-action="openAnimalTotemModal"] {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+/* feat-collection 내부 그리드/타일이 cosmos·::after 위에 올라가도록 */
+.feat-collection--animal .feat-collection__grid,
+.feat-collection--animal .tarot-tile--animal-totem {
+  position: relative;
+  z-index: 5;
+  isolation: isolate;
+}
+
 .animal-totem-overlay {
   position: fixed;
   inset: 0;
