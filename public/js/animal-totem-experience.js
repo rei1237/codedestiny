@@ -29,12 +29,9 @@
 
   function lockBody() {
     if (bodyLockState.mode) return;
+    /* 모바일: body overflow:hidden 시 iOS Safari에서 오버레이 내부 스크롤이 막힘. overscroll-behavior로 대체 */
     if (useSoftBodyLock()) {
       bodyLockState.mode = "soft";
-      bodyLockState.bodyOverflow = document.body.style.overflow || "";
-      bodyLockState.htmlOverflow = document.documentElement.style.overflow || "";
-      document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
       return;
     }
     if (global._perf && global._perf.lockBody) {

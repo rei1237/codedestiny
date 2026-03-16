@@ -306,24 +306,41 @@ function __cdBindAnimalTotemTileDirect() {
   /* 모바일: 스크롤 시 미세 움직임 허용 (36px ≈ 2.5mm, Apple HIG 권장 24px보다 여유) */
   var TAP_THRESH = 36;
 
+  function loadScriptOnce(src) {
+    return new Promise(function(resolve, reject) {
+      var norm = (src || '').replace(/^\.\//, '');
+      var existing = document.querySelector('script[src*="' + norm.split('/').pop() + '"]');
+      if (existing && (existing.dataset.loaded === '1' || existing.readyState === 'complete')) {
+        resolve();
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = norm;
+      s.defer = true;
+      s.async = true;
+      s.onload = function() { resolve(); };
+      s.onerror = function() { reject(new Error('load failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
   function openTotemModal() {
     var overlay = document.getElementById('animalTotemOverlay');
     if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-    /* 모바일: 동기 실행 시 터치 처리 중 UI 업데이트가 막혀 화면 멈춤. rAF로 지연 */
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     if (typeof window.openAnimalTotemModal === 'function') {
       raf(function() { window.openAnimalTotemModal(); });
       return;
     }
-    /* animal-totem-experience.js 미로드 시 폴백: 오버레이만 표시 */
-    if (overlay) {
-      raf(function() {
-        overlay.classList.add('is-open');
-        overlay.style.display = 'block';
-        if (window._perf && window._perf.lockBody) window._perf.lockBody();
-        else document.body.style.overflow = 'hidden';
-      });
-    }
+    /* animal-totem-experience.js 미로드 시 lazy-load 후 호출 */
+    raf(function() {
+      loadScriptOnce('js/services/animal-totem-content-engine.js')
+        .then(function() { return loadScriptOnce('js/animal-totem-experience.js'); })
+        .then(function() {
+          if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+        })
+        .catch(function(err) { console.error('[totem] load failed:', err); });
+    });
   }
 
   function isTotemTile(el) {

@@ -222,12 +222,67 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
+  var LAZY_LOAD_ACTIONS = {
+    openAnimalTotemModal: [
+      'js/services/animal-totem-content-engine.js',
+      'js/animal-totem-experience.js'
+    ]
+  };
+
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      var norm = (src || '').replace(/^\.\//, '');
+      var all = document.querySelectorAll('script[src]');
+      var existing = null;
+      for (var i = 0; i < all.length; i++) {
+        var a = all[i].getAttribute('src') || '';
+        if (a === norm || a.indexOf(norm.split('/').pop()) !== -1) { existing = all[i]; break; }
+      }
+      if (existing) {
+        if (existing.readyState === 'complete' || existing.readyState === 'loaded') {
+          resolve();
+          return;
+        }
+        existing.addEventListener('load', function() { resolve(); }, { once: true });
+        existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = norm;
+      s.defer = true;
+      s.async = true;
+      s.onload = function() { resolve(); };
+      s.onerror = function() { reject(new Error('load failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
+    var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
+
+    /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
+    if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
+      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      raf(function() {
+        var chain = Promise.resolve();
+        lazyPaths.forEach(function(src) {
+          chain = chain.then(function() { return loadScript(src); });
+        });
+        chain.then(function() {
+          var f = window[rule.action];
+          if (typeof f === 'function') f();
+        }).catch(function(err) {
+          console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
+        });
+      });
+      return true;
+    }
+
     if (typeof fn !== 'function') return false;
 
     /* 모바일: 동기 실행 시 브라우저가 터치 처리 중 UI 업데이트를 막아 화면 멈춤 발생. rAF로 지연 */
