@@ -1,0 +1,135 @@
+/* ═══════════════════════════════════════════════════════════════
+   모바일 반응형 수정: 애니멀 토템 & 운명의 꽃
+   - Overflow/Width, Touch/Click, Absolute Positioning, Flex/Grid
+═══════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Overflow & Width 방지 ─── */
+@media (max-width: 768px) {
+  .feature-card-grid::before {
+    inset: -12px 0;
+    border-radius: 20px;
+  }
+  .feature-card-grid {
+    overflow-x: hidden;
+  }
+  .tarot-tile,
+  .feat-collection__grid > *,
+  .tarot-collection__grid > * {
+    min-width: 0;
+  }
+  .tarot-tile__body {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .tarot-tile__title,
+  .tarot-tile__desc {
+    overflow-wrap: break-word;
+    word-break: keep-all;
+  }
+  .feat-collection,
+  .tarot-collection {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-card-grid::before {
+    inset: -8px 0;
+  }
+}
+
+/* ─── 2. 운명의 꽃 카드 — absolute 요소가 터치를 가로채지 않도록 ─── */
+.feature-card--destiny-flower .df-bud-icon,
+.feature-card--destiny-flower .destiny-flower-glow,
+.feature-card--destiny-flower .destiny-flower-sticker,
+.feature-card--destiny-flower .df-garden-petal-field,
+.feature-card--destiny-flower .df-garden-petal-field span,
+.feature-card--destiny-flower .astrology-card-glow {
+  pointer-events: none;
+}
+
+/* 운명의 꽃 feature-card 모바일 overflow 방지 */
+@media (max-width: 768px) {
+  .feature-card--destiny-flower .feature-card__img-wrap {
+    min-height: 180px;
+  }
+  .feature-card--destiny-flower .feature-card__detail-content {
+    padding: 14px 16px 18px;
+  }
+  .feature-card--destiny-flower .destiny-flower-stage {
+    padding: 10px;
+  }
+  .feature-card--destiny-flower .df-source-tabs {
+    gap: 6px;
+  }
+  .feature-card--destiny-flower .df-source-tab {
+    min-height: 36px;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+}
+
+/* ─── 3. dp-fsel (운세 선택 모달) — 프로필 카드 모바일 ─── */
+@media (max-width: 480px) {
+  .dp-fsel-btns {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .dp-fsel-btn {
+    min-height: 48px;
+    padding: 14px 18px;
+  }
+  .dp-fsel-btn-label {
+    white-space: normal;
+    word-break: keep-all;
+    text-align: left;
+  }
+  .dp-fsel-modal {
+    padding: 28px 18px 36px;
+    max-height: 85dvh;
+  }
+}
+
+/* ─── 4. 터치 영역 확보 & Z-index ─── */
+.tarot-tile--animal-totem,
+.tarot-tile--bloom,
+.tarot-tile--astro-flower,
+.tarot-tile--jami-flower,
+.tarot-tile--sukuyo-fl {
+  position: relative;
+  z-index: 5;
+  min-height: 44px;
+}
+
+/* feat-collection cosmos가 타일 위에 겹쳐도 터치 통과 */
+.feat-collection__cosmos .fc-star,
+.tarot-collection__cosmos .tc-star {
+  pointer-events: none;
+}
+
+/* ─── 5. 애니멀 토템 오버레이 모바일 overflow 방지 ─── */
+@media (max-width: 768px) {
+  .animal-totem-shell {
+    padding: 0 12px max(24px, env(safe-area-inset-bottom, 0px));
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .animal-totem-overlay {
+    overflow-x: hidden;
+  }
+}
+
+/* ─── 6. 매우 좁은 화면 (360px 이하) ─── */
+@media (max-width: 360px) {
+  .feat-collection__grid,
+  .tarot-collection__grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .tarot-tile {
+    min-height: 120px;
+  }
+  .dp-fsel-btns {
+    grid-template-columns: 1fr;
+  }
+}
