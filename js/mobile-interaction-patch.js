@@ -38,26 +38,7 @@
         '.feature-card--tazza .feature-card__launch'
       ].join(',')
     },
-    {
-      action: 'openAnimalTotemModal',
-      cardSelector: '.feature-card--animal-totem',
-      targetSelector: [
-        '[data-action="openAnimalTotemModal"]',
-        '.tarot-tile--animal-totem',
-        '.tarot-tile--animal-totem .tarot-tile__img-wrap',
-        '.tarot-tile--animal-totem .tarot-tile__img',
-        '.tarot-tile--animal-totem .tarot-tile__title',
-        '.tarot-tile--animal-totem .tarot-tile__desc',
-        '.tarot-tile--animal-totem .tarot-tile__body',
-        '.feature-card--animal-totem .feature-card__visual',
-        '.feature-card--animal-totem .feature-card__img-wrap',
-        '.feature-card--animal-totem .feature-card__img',
-        '.feature-card--animal-totem .feature-card__title',
-        '.feature-card--animal-totem .feature-card__desc',
-        '.feature-card--animal-totem .feature-card__cta',
-        '.feature-card--animal-totem .feature-card__launch'
-      ].join(',')
-    },
+    /* openAnimalTotemModal: __cdBindAnimalTotemTileDirect에서 전담 (모바일 elementFromPoint 폴백 포함) */
     {
       action: 'openTarotYearFortuneModal',
       cardSelector: '.tarot-tile--year',
@@ -124,11 +105,6 @@
       if (inCard) return inCard;
     }
 
-    if (rule.action === 'openAnimalTotemModal') {
-      var tile = origin.closest('.tarot-tile--animal-totem');
-      if (tile) return tile;
-    }
-
     if (rule.action === 'openTarotYearFortuneModal') {
       var tile = origin.closest('.tarot-tile--year');
       if (tile) return tile;
@@ -188,18 +164,6 @@
       return false;
     }
 
-    /* openAnimalTotemModal: 스크립트 미로드 시 오버레이 직접 표시 */
-    if (rule.action === 'openAnimalTotemModal') {
-      var overlay = document.getElementById('animalTotemOverlay');
-      if (overlay) {
-        overlay.classList.add('is-open');
-        overlay.style.display = 'block';
-        if (window._perf && window._perf.lockBody) window._perf.lockBody();
-        else document.body.style.overflow = 'hidden';
-        return true;
-      }
-    }
-
     return false;
   }
 
@@ -207,16 +171,15 @@
     if (document.getElementById('cd-mobile-touch-bridge-style')) return;
 
     var css = [
-      '.feature-card--face, .feature-card--tazza, .feature-card--animal-totem,',
-      '.tarot-tile--animal-totem, .tarot-tile--year,',
+      '.feature-card--face, .feature-card--tazza,',
+      '.tarot-tile--year,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
-      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap, .feature-card--animal-totem .feature-card__img-wrap,',
-      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img, .feature-card--animal-totem .feature-card__img,',
-      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title, .feature-card--animal-totem .feature-card__title,',
-      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc, .feature-card--animal-totem .feature-card__desc,',
-      '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
+      '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
+      '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
+      '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
+      '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
       '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openAnimalTotemModal"], [data-action="openTarotYearFortuneModal"] {',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openTarotYearFortuneModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',

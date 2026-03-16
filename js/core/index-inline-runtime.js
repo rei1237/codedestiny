@@ -355,7 +355,7 @@ function __cdBindAnimalTotemTileDirect() {
     }
     /* touchStart로 시작했거나, elementFromPoint로 터치 해제 위치가 토템 타일인 경우 (모바일 event.target 부정확 대비) */
     var fromStart = start && isTotemTile(ev.target);
-    var elAtPoint = document.elementFromPoint && document.elementFromPoint(x, y);
+    var elAtPoint = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
     var fromPoint = elAtPoint && isTotemTile(elAtPoint);
     if (fromStart || fromPoint) {
       ev.preventDefault();
@@ -375,12 +375,31 @@ function __cdBindAnimalTotemTileDirect() {
     tiles.forEach(function(tile) {
       if (tile._cdTotemDirectBound) return;
       tile._cdTotemDirectBound = true;
+      var tileTouchStart = null;
       tile.addEventListener('click', function(ev) {
         ev.preventDefault();
         ev.stopPropagation();
         openTotemModal();
       });
+      tile.addEventListener('touchstart', function(ev) {
+        var t = ev.touches && ev.touches[0];
+        tileTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
+      }, { passive: true });
       tile.addEventListener('touchend', function(ev) {
+        if (!ev.changedTouches || !ev.changedTouches[0]) return;
+        var t = ev.changedTouches[0];
+        var x = t.clientX, y = t.clientY;
+        var start = tileTouchStart;
+        tileTouchStart = null;
+        if (start) {
+          var dx = Math.abs(x - start.x);
+          var dy = Math.abs(y - start.y);
+          if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+        } else {
+          /* touchstart 미수신 시 elementFromPoint로 터치 해제 위치 확인 (모바일 대응) */
+          var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
+          if (!elAt || !tile.contains(elAt)) return;
+        }
         if (ev.cancelable) ev.preventDefault();
         openTotemModal();
       }, { passive: false });
