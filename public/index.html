@@ -1,20 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script>
-    (function redirectToCanonicalMain() {
-      try {
-        var loc = window.location;
-        if (!loc) return;
-        var host = (loc.hostname || '').toLowerCase();
-        if (host === 'code-destiny.com' || host === 'www.code-destiny.com' || host.endsWith('.pages.dev')) return;
-        var target = "/public/index.html";
-        if (loc.pathname === target || loc.pathname === '/' || loc.pathname === '/index.html') return;
-        var nextUrl = target + (loc.search || "") + (loc.hash || "");
-        window.location.replace(nextUrl);
-      } catch (e) {}
-    })();
-  </script>
+  <script src="js/inline/canonical-redirect.js"></script>
   <script src="js/kill-switch.js"></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
@@ -352,26 +339,7 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="icons/honeypig-180.png">
-<script>
-  (function () {
-    try {
-      var isNeo = localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
-      window.__INITIAL_THEME_NEO__ = isNeo;
-      if (!isNeo) return;
-      var manifestLink = document.getElementById('pwa-manifest');
-      if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
-      var faviconLink = document.getElementById('pwa-favicon');
-      if (faviconLink) {
-        faviconLink.setAttribute('href', '/icons/samba.svg');
-        faviconLink.setAttribute('type', 'image/svg+xml');
-      }
-      var appleIconLink = document.getElementById('pwa-apple-icon');
-      if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.svg');
-    } catch (_) {
-      window.__INITIAL_THEME_NEO__ = false;
-    }
-  })();
-</script>
+<script src="js/inline/pwa-theme-init.js"></script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -391,38 +359,7 @@
   <link rel="stylesheet" href="styles/fortune-ui.css">
   <link rel="stylesheet" href="styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="styles/cosmic-main.css?v=20260316">
-  <script>
-    (function () {
-      try {
-        var explicit = window.CODE_DESTINY_API_BASE_URL || window.__CF_PAGES_API_BASE_URL || "";
-        if (explicit) {
-          var normalized = String(explicit).replace(/\/+$/, "");
-          window.CODE_DESTINY_API_BASE_URL = normalized;
-          window.__CF_PAGES_API_BASE_URL = normalized;
-          return;
-        }
-
-        var meta = document.querySelector('meta[name="code-destiny-api-base"]');
-        if (meta && meta.content) {
-          var fromMeta = String(meta.content).replace(/\/+$/, "");
-          window.CODE_DESTINY_API_BASE_URL = fromMeta;
-          window.__CF_PAGES_API_BASE_URL = fromMeta;
-          return;
-        }
-
-        var host = String(location.hostname || "").toLowerCase();
-        if (host === "code-destiny.com" || host === "www.code-destiny.com") {
-          window.CODE_DESTINY_API_BASE_URL = location.origin;
-          window.__CF_PAGES_API_BASE_URL = location.origin;
-          return;
-        }
-        if (host.endsWith(".pages.dev")) {
-          window.CODE_DESTINY_API_BASE_URL = "https://code-destiny.com";
-          window.__CF_PAGES_API_BASE_URL = "https://code-destiny.com";
-        }
-      } catch (e) {}
-    })();
-  </script>
+  <script src="js/inline/api-base-init.js"></script>
   <link rel="stylesheet" href="styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260316-mobile-opt2">

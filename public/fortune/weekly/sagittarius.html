@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="/css/fortune.css">
 </head>
-<body>
+<body data-fortune-type="sign" data-fortune-id="sagittarius" data-fortune-period="weekly">
 <nav class="fe-gnb" role="navigation" aria-label="사이트 탐색">
   <a href="/" class="fe-gnb-logo">🐷 연이의 꿀꿀 만세력</a>
   <a href="/fortune/">📅 운세 홈</a>
@@ -26,18 +26,10 @@
 <main class="fe-wrap">
   <div id="fortuneApp"><div id="feLoading"><div class="fe-spinner"></div><p>운세를 불러오는 중입니다...</p></div></div>
 </main>
-<footer style="text-align:center;padding:20px;font-size:.75rem;color:rgba(255,255,255,0.35);">
-  © 2026 연이의 꿀꿀 만세력 · <a href="/" style="color:inherit;">홈으로</a>
+<footer class="fe-footer-detail">
+  © 2026 연이의 꿀꿀 만세력 · <a href="/">홈으로</a>
 </footer>
-<script>
-window.FORTUNE_CONFIG = { type: 'sign', id: 'sagittarius', period: 'weekly' };
-</script>
-<script src="/js/fortune-engine.js"></script>
-<script>
-if (typeof FortuneEngine !== 'undefined') {
-  FortuneEngine.initFromConfig(window.FORTUNE_CONFIG);
-}
-</script>
+<script defer src="/js/fortune-engine.js"></script>
 </body>
 </html>
 

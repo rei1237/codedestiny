@@ -21,7 +21,6 @@
   var FUN_IDS   = ['villainCard','skillTreeCard','energyCoordCard','healthReportCard','hormone-vibe-section','tTestCard'];
   var LOTTO_IDS = ['lottoCard'];
   var SUKUYO_IDS = ['sukuyoCard'];
-  var EGYPT_IDS = ['egyptCard'];
 
   function toRgba(hex, a) {
     var r = parseInt(hex.slice(1,3),16);
@@ -198,7 +197,6 @@
 
     LOTTO_IDS.forEach(function(id) { moveCard(id, 'acc-lotto'); });
     SUKUYO_IDS.forEach(function(id) { moveCard(id, 'acc-sukuyo'); });
-    EGYPT_IDS.forEach(function(id) { moveCard(id, 'acc-egypt'); });
 
     var tabZiwei  = document.getElementById('tabZiwei');
     var tabAstro  = document.getElementById('tabAstro');

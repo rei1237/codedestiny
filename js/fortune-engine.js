@@ -41,7 +41,6 @@
   };
 
   var PERIOD_KO = { today:'오늘', tomorrow:'내일', weekly:'이번 주', monthly:'이달' };
-  var PERIOD_NOUN = { today:'일운', tomorrow:'내일 운세', weekly:'주간 운세', monthly:'월간 운세' };
 
   var LUCKY_COLORS = ['빨강','주황','노랑','초록','파랑','남색','보라','분홍','흰색','검정','금색','은색','하늘색','민트','산호색','라벤더'];
   var LUCKY_NUMS   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,33,44,55,66,77,88,99];
@@ -109,10 +108,6 @@
     seed = (seed * 1664525 + 1013904223) & 0xFFFFFFFF;
     return (seed >>> 0) / 4294967295;
   }
-  function pickArr(arr, seed) {
-    return arr[seed % arr.length];
-  }
-
   /* ── 날짜 문자열 생성 ── */
   function getDateStr(period) {
     var d = new Date();
@@ -236,7 +231,7 @@
   }
 
   /* ── 내부 링크 생성 ── */
-  function buildLinks(cfg, info, allData) {
+  function buildLinks(cfg, info) {
     var html = '';
     var PERIOD_LABEL = { today: '오늘', tomorrow: '내일', weekly: '주간', monthly: '월간' };
 
@@ -353,15 +348,24 @@
         { q: subjectLabel + '의 행운의 숫자와 색은 무엇인가요?', a: '행운의 숫자는 ' + fortune.luckyNum + '이고, 행운의 색은 ' + fortune.luckyColor + '입니다.' }
       ];
       html += '<section class="fe-faq"><h2 class="fe-faq-title">❓ 자주 묻는 질문</h2>';
-      faqs.forEach(function(f, i) {
-        html += '<div class="fe-faq-item"><button class="fe-faq-q" aria-expanded="false" onclick="var a=this.nextElementSibling;var open=this.getAttribute(\'aria-expanded\')===\'true\';this.setAttribute(\'aria-expanded\',open?\'false\':\'true\');"><span>' + f.q + '</span><span class="fe-faq-arrow">▼</span></button><div class="fe-faq-a">' + f.a + '</div></div>';
+      faqs.forEach(function(f) {
+        html += '<div class="fe-faq-item"><button type="button" class="fe-faq-q" aria-expanded="false"><span>' + f.q + '</span><span class="fe-faq-arrow">▼</span></button><div class="fe-faq-a">' + f.a + '</div></div>';
       });
       html += '</section>';
 
       // 내부 링크
-      html += buildLinks(cfg, info, null);
+      html += buildLinks(cfg, info);
 
       container.innerHTML = html;
+
+      // FAQ 토글 (이벤트 위임, inline onclick 제거)
+      container.addEventListener('click', function faqClick(e) {
+        var btn = e.target.closest('.fe-faq-q');
+        if (!btn) return;
+        e.preventDefault();
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      });
     } catch (e) {
       container.innerHTML = '<div id="feError"><p>운세 정보를 불러오는 데 문제가 생겼습니다.</p><p style="margin-top:12px;"><a href="/fortune/">운세 홈으로 돌아가기</a></p></div>';
     }
@@ -390,19 +394,37 @@
     footer.setAttribute('data-policy-links', '1');
   }
 
-  /* ── 공개 API ── */
+  function getConfig() {
+    if (window.FORTUNE_CONFIG) return window.FORTUNE_CONFIG;
+    var d = document.body.dataset;
+    if (d.fortuneType && d.fortuneId && d.fortunePeriod) {
+      return { type: d.fortuneType, id: d.fortuneId, period: d.fortunePeriod };
+    }
+    return null;
+  }
+
+  function doInit(cfg) {
+    render(cfg);
+    appendPolicyLinksToFooter();
+  }
+
   global.FortuneEngine = {
     initFromConfig: function(cfg) {
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-          render(cfg);
-          appendPolicyLinksToFooter();
-        });
+        document.addEventListener('DOMContentLoaded', function() { doInit(cfg); });
       } else {
-        render(cfg);
-        appendPolicyLinksToFooter();
+        doInit(cfg);
       }
     }
   };
+
+  var cfg = getConfig();
+  if (cfg) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { doInit(cfg); });
+    } else {
+      doInit(cfg);
+    }
+  }
 
 })(window);
