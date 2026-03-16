@@ -827,24 +827,27 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
 
   // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 ---
   try {
-    // saju-engine이 window.calcZiweiPalaces로 등록되어 있다고 가정
-    const birth = (profile.birth || profile.domains.birth || userData.birth || {});
+    const birth = (profile.identity && profile.identity.birth) || profile.birth || profile.domains?.birth || userData.birth || {};
     const year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
     if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
       const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
       if (zw && zw.stars && zw.palacesByIndex) {
-        // 명궁 위치 추출
         const mingIdx = zw.palacesByIndex.indexOf('명궁');
-        let mainStar = '', stars = [];
+        let mainStar = '', stars = [], brightness = '';
         if (mingIdx >= 0 && zw.stars[mingIdx]) {
-          stars = (zw.stars[mingIdx].main || []).concat(zw.stars[mingIdx].aux || []);
-          mainStar = stars[0] || '';
+          const mainList = zw.stars[mingIdx].main || [];
+          const auxList = zw.stars[mingIdx].aux || [];
+          stars = mainList.concat(auxList);
+          mainStar = mainList[0] || stars[0] || '';
         }
-        // profile.domains.ziwei에 동기화
+        if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
+          brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
+        }
         if (profile.domains && profile.domains.ziwei) {
           profile.domains.ziwei.main_star = mainStar;
           profile.domains.ziwei.stars = stars;
           profile.domains.ziwei.palace = '명궁';
+          if (brightness) profile.domains.ziwei.brightness = brightness;
         }
       }
     }

@@ -906,9 +906,8 @@ function _dfExtractAstroLiveData(birthCtx) {
 }
 
 function _dfExtractZiweiLiveRaw(birthCtx) {
-  if (window._currentZiweiData && typeof window._currentZiweiData === 'object') {
-    return window._currentZiweiData;
-  }
+  // 생년월일이 있으면 항상 해당 데이터로 재계산. _currentZiweiData는 이전 사용자/모달 조회 캐시이므로
+  // 운명의 꽃 아틀리에에서는 사용하지 않음(잘못된 명궁 결과 방지).
   if (!_dfHasBirthCore(birthCtx) || typeof window.calcZiweiPalaces !== 'function') return null;
   try {
     return window.calcZiweiPalaces(
