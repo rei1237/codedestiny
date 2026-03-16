@@ -19586,7 +19586,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
         @media (max-width: 768px) {
-          .sy-container { padding:22px 16px; }
+          .sy-container { padding:22px 16px; touch-action:manipulation; }
           .sy-header h3 { font-size:1.35rem; }
           .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
           .sy-ritual-grid { grid-template-columns:1fr; }
