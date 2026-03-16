@@ -397,13 +397,18 @@ function __cdBindAnimalTotemTileDirect() {
 function __cdBindDestinyFlowerTileDirect() {
   var sel = '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl, [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"]';
   var touchStart = null;
+  var lastOpenTime = 0;
   var TAP_THRESH = 36;
+  var DEBOUNCE_MS = 400;
 
   function isFlowerTile(el) {
     return el && el.closest && el.closest(sel);
   }
 
   function openFlowerStudio(actionEl) {
+    var now = Date.now();
+    if (now - lastOpenTime < DEBOUNCE_MS) return;
+    lastOpenTime = now;
     var action = actionEl && actionEl.getAttribute('data-action');
     if (!action) return;
     var fn = window[action];
@@ -2936,12 +2941,15 @@ function openDestinyFlower(forceRefreshData) {
 
 function openDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  if (!overlay) return;
+  if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) return;
+
   var sheet = document.getElementById('destinyFlowerStudioSheet');
   var main = document.querySelector('.df-studio-main');
   var panels = document.querySelector('.df-studio-panels');
   var historySection = document.querySelector('.df-studio-history');
-  if (!overlay) return;
 
+  try {
   if (!overlay.__dfCloseBridgeBound) {
     overlay.__dfCloseBridgeBound = '1';
     overlay.addEventListener('click', function(e) {
@@ -3003,6 +3011,11 @@ function openDestinyFlowerStudio() {
   requestAnimationFrame(function() {
     overlay.classList.add('is-show');
   });
+  } catch (err) {
+    if (typeof console !== 'undefined' && console.error) console.error('[DestinyFlower]', err);
+    overlay.style.display = 'none';
+    _dfSetBodyLock(false);
+  }
 }
 
 /* 프로필 카드 → 운명의 꽃 진입용: 정의 직후 window에 노출 (스크립트 후반 오류 시에도 사용 가능) */
