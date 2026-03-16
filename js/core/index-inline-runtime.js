@@ -325,22 +325,27 @@ function __cdBindAnimalTotemTileDirect() {
   }
 
   function openTotemModal() {
-    var overlay = document.getElementById('animalTotemOverlay');
-    if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-    if (typeof window.openAnimalTotemModal === 'function') {
-      raf(function() { window.openAnimalTotemModal(); });
-      return;
-    }
-    /* animal-totem-experience.js 미로드 시 lazy-load 후 호출 */
-    raf(function() {
-      loadScriptOnce('js/services/animal-totem-content-engine.js')
-        .then(function() { return loadScriptOnce('js/animal-totem-experience.js'); })
-        .then(function() {
-          if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
-        })
-        .catch(function(err) { console.error('[totem] load failed:', err); });
-    });
+    try {
+      var overlay = document.getElementById('animalTotemOverlay');
+      if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
+      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      if (typeof window.openAnimalTotemModal === 'function') {
+        raf(function() {
+          try { window.openAnimalTotemModal(); } catch (e) { console.error('[totem] open error:', e); }
+        });
+        return;
+      }
+      raf(function() {
+        loadScriptOnce('js/services/animal-totem-content-engine.js')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js'); })
+          .then(function() {
+            try {
+              if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+            } catch (e) { console.error('[totem] open error:', e); }
+          })
+          .catch(function(err) { console.error('[totem] load failed:', err); });
+      });
+    } catch (err) { console.error('[totem] openTotemModal error:', err); }
   }
 
   function isTotemTile(el) {

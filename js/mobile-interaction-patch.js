@@ -275,7 +275,11 @@
         });
         chain.then(function() {
           var f = window[rule.action];
-          if (typeof f === 'function') f();
+          if (typeof f === 'function') {
+            try { f(); } catch (err) {
+              console.error('[mobile-interaction-patch] post-load action failed:', rule.action, err);
+            }
+          }
         }).catch(function(err) {
           console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
         });

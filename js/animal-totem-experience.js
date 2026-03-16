@@ -385,20 +385,31 @@
   }
 
   function openAnimalTotemModal() {
-    ensureRefs();
-    if (!refs.overlay) return;
-    refs.overlay.classList.remove("env-ground", "env-air", "env-water");
-    refs.overlay.classList.add("is-open");
-    refs.overlay.scrollTop = 0;
-    try { lockBody(); } catch (_) { document.body.style.overflow = "hidden"; }
-    resetAnimalTotemFlow();
-    /* 모바일 터치 후 즉시 모달 표시, 무거운 초기화는 다음 프레임으로 지연 */
-    var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-    raf(function() {
-      buildRuneField();
-      buildAnimalFigures();
-      startCanvas();
-    });
+    try {
+      ensureRefs();
+      if (!refs.overlay) return;
+      refs.overlay.classList.remove("env-ground", "env-air", "env-water");
+      refs.overlay.classList.add("is-open");
+      refs.overlay.scrollTop = 0;
+      lockBody();
+      resetAnimalTotemFlow();
+      var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      raf(function() {
+        try {
+          buildRuneField();
+          buildAnimalFigures();
+          startCanvas();
+        } catch (err) {
+          console.error("[animal-totem] init error:", err);
+        }
+      });
+    } catch (err) {
+      console.error("[animal-totem] openAnimalTotemModal error:", err);
+      try {
+        if (refs.overlay) refs.overlay.classList.remove("is-open");
+        unlockBody();
+      } catch (_) {}
+    }
   }
 
   function closeAnimalTotemModal() {
