@@ -905,7 +905,7 @@ input:checked + .slider .paw-pad {
 }
 @keyframes heroDustFloat{
   from{transform:translate3d(0,0,0)}
-  to{transform:translate3d(-22px,18px,0)}
+  to{transform:translate3d(-12px,10px,0)}
 }
 @media (max-width: 640px){
   .top-hero{padding:24px 16px 16px;border-radius:20px;margin-bottom:22px}
@@ -1248,7 +1248,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .destiny-card-scene{
-  perspective:800px;width:100%;display:flex;justify-content:center;margin-bottom:20px;
+  perspective:1100px;width:100%;display:flex;justify-content:center;margin-bottom:20px;
 }
 .destiny-card{
   width:200px;height:340px;position:relative;
@@ -1293,7 +1293,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   filter: drop-shadow(0 28px 42px rgba(6, 10, 24, 0.48));
 }
 .dream-ledger-shell .perspective-deep {
-  perspective: 1700px;
+  perspective: 2400px;
   perspective-origin: 50% 44%;
 }
 
@@ -2017,7 +2017,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   padding: 0;
   position: relative;
   cursor: pointer;
-  perspective: 1300px;
+  perspective: 1800px;
   animation: dreamCardFloat 3.2s ease-in-out infinite;
 }
 
@@ -5104,7 +5104,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 }
 @keyframes q-star-drift {
   0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(-70px, 56px, 0) scale(1.08); }
+  100% { transform: translate3d(-42px, 34px, 0) scale(1.04); }
 }
 @keyframes q-nebula-breathe {
   0% { opacity: 0.55; transform: translateY(0); }
@@ -5143,7 +5143,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   width: 196px;
   height: 292px;
   margin: 0 auto;
-  perspective: 1300px;
+  perspective: 1800px;
   z-index: 2;
   position: relative;
 }
@@ -6239,7 +6239,7 @@ body.destiny-flower-focus .feature-card--destiny-flower {
   opacity: 0.62;
 }
 .feature-card--destiny-flower:hover {
-  transform: perspective(980px) rotateX(var(--df-tilt-x, 0deg)) rotateY(var(--df-tilt-y, 0deg)) translateY(-4px) scale(1.01);
+  transform: perspective(1400px) rotateX(var(--df-tilt-x, 0deg)) rotateY(var(--df-tilt-y, 0deg)) translateY(-2px) scale(1.005);
   filter: drop-shadow(0 20px 34px rgba(152, 128, 196, 0.24));
 }
 .feature-card--destiny-flower .feature-card__title {
@@ -8470,7 +8470,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
   /* 중앙 책(만세력) 3D 컨테이너 */
   .saju-book-wrapper {
-    position: relative; width: 220px; height: 150px; perspective: 1500px;
+    position: relative; width: 220px; height: 150px; perspective: 2000px;
     margin-bottom: 60px;
   }
   .saju-book {
@@ -9573,7 +9573,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
 
             .oracle-scene-m {
-              height: 340px; perspective: 1000px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;
+              height: 340px; perspective: 1400px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;
             }
             .oracle-card-m {
               width: 200px; height: 310px; position: relative; transform-style: preserve-3d;
@@ -9625,7 +9625,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .tarot-spread-cards {
               display: flex; justify-content: center; align-items: flex-end; gap: 12px;
-              perspective: 1200px; flex-wrap: wrap; padding: 0 8px;
+              perspective: 1600px; flex-wrap: wrap; padding: 0 8px;
             }
             .tarot-slot {
               display: flex; flex-direction: column; align-items: center; flex: 0 0 auto;
@@ -10207,7 +10207,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         overflow: hidden;
         color: #e2e8f0 !important;
         transform-style: preserve-3d;
-        perspective: 1000px;
+        perspective: 1400px;
         transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s ease !important;
       }
 
@@ -12476,7 +12476,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   background: transparent;
   padding: 0;
   cursor: pointer;
-  perspective: 900px;
+  perspective: 1200px;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 .animal-totem-card:hover { transform: translateY(-3px); }
