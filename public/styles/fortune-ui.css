@@ -10,6 +10,26 @@ button, [role="button"], input[type="button"], input[type="submit"], label[for] 
 button[onclick*="close"], button[aria-label*="닫"] {
   min-width: 44px; min-height: 44px;
 }
+/* 터치 타겟: 버튼형은 44x44, 카드/탭은 최소 높이 44px (패딩으로 확보) */
+.ia-hd, .fate-btn, .tab-btn, .nav-btn, .ctg-btn, .btn-kakao, .btn-insta,
+.fortune-tab, .mystic-tab-btn, .lang-btn, .tog-btn, .oracle-cat-btn-m, .oracle-card-m,
+.iching-btn, .celeb-tab-btn, .celeb-btn, .tarot-cat-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+.feature-card, .dw-item {
+  min-height: 44px;
+}
+/* Sticky hover 방지: 포인터 있는 기기에서만 hover 스타일 적용 */
+@media (hover: hover) {
+  .ia-hd:hover, .theme-switch-wrapper:hover, .theme-switch-wrapper:focus-within { filter: brightness(0.96); }
+}
+/* 유틸: 스크롤 가능한 영역에 iOS 모멘텀 + 터치 스크롤 적용 (클래스만 추가하면 됨) */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
 
 /* ─── 변수 & 리셋 ─── */
 :root{
@@ -48,12 +68,15 @@ button[onclick*="close"], button[aria-label*="닫"] {
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
 /* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
    body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;
+  -webkit-overflow-scrolling:touch;
+}
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
   min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
   overscroll-behavior-y:none;
   -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
 }
 body::before{
   content:'';
@@ -78,6 +101,12 @@ body::after{
 }
 @media (max-width: 480px) {
   html { font-size: 14px; }
+}
+/* 모바일 input 포커스 시 줌인 방지 (16px 이상 유지) */
+@media (max-width: 768px) {
+  input, select, textarea, [contenteditable="true"] {
+    font-size: 16px !important;
+  }
 }
 .wrap{
   width:100%;
@@ -195,6 +224,7 @@ img.img-fallback-broken {
   border-radius: 30px;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   margin-bottom: 0;
   transition: transform 0.25s ease, background 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
   border: 1px solid var(--border-color, rgba(255,183,178,.3));
@@ -375,6 +405,7 @@ input:checked + .slider .paw-pad {
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -568,7 +599,8 @@ input:checked + .slider .paw-pad {
 .modal-overlay-juyuk{background:#080401}
 .modal-overlay-sukuyo{background:#0a0c19}
 .modal-overlay-astro{background:#0a0a14}
-.modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto}
+.modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
 
 .modal-top-nav{
   width:100%;
@@ -1133,10 +1165,12 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 
 /* ─── 모달 ─── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
-  align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+  align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
 .modal.show{display:flex}
 .modal-box{background:#fff;border-radius:20px;padding:28px;max-width:520px;width:100%;
-  max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative}
+  max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;}
 .modal-close{position:absolute;top:16px;right:18px;font-size:1.4rem;cursor:pointer;
   color:#CCC;background:none;border:none;transition:color .2s;font-family:inherit}
 .modal-close:hover{color:var(--pink)}
@@ -1711,6 +1745,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   max-height: 300px;
   overflow-y: auto;
   padding-right: 2px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .dream-library-item {
@@ -2279,6 +2316,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   overscroll-behavior: contain;
   scroll-behavior: smooth;
   padding: clamp(16px, 2vw, 24px);
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .dream-story-bubble {
@@ -3554,6 +3593,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(255, 139, 167, 0.25);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   font-size: 0.8rem;
   font-weight: 700;
@@ -3586,6 +3626,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   padding: 8px;
   box-shadow: 0 8px 32px rgba(255, 139, 167, 0.25);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px) scale(0.95);
@@ -9019,6 +9060,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-list-scroll {
         flex: 1; overflow-y: auto;
         overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
         padding: 12px 14px 30px;
       }

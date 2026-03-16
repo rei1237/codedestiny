@@ -1,0 +1,367 @@
+/**
+ * Main page glassmorphism & collection UI
+ * 참조 이미지 기준: 어두운 코즈믹 배경, 황금 타이틀, 구분선, 반응형 그리드
+ */
+
+/* ─── Page & wrap (fallback if globals not loaded) ─── */
+body {
+	background-color: #0f0a1a;
+}
+.wrap {
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 0 16px 32px;
+}
+@media (min-width: 768px) {
+	.wrap { padding: 0 24px 48px; }
+}
+
+/* ─── Hero / Logo area ─── */
+.logo-area {
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-radius: 24px;
+	margin-bottom: 16px;
+	padding: 40px 16px 36px;
+}
+.logo-area h1 {
+	font-size: clamp(1.35rem, 4.5vw, 1.9rem);
+	font-weight: 800;
+	color: #f4eeff;
+}
+.logo-area p {
+	color: rgba(200, 170, 255, 0.7);
+	font-size: 0.9rem;
+	margin-top: 6px;
+}
+.auth-quick-links {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 20px;
+	flex-wrap: wrap;
+}
+.auth-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 120px;
+	padding: 12px 22px;
+	border-radius: 999px;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 0.9rem;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.auth-btn--signup {
+	color: #fff;
+	background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(99, 102, 241, 0.85));
+	border: 1px solid rgba(180, 120, 255, 0.35);
+}
+.auth-btn--login {
+	color: #e2e8f0;
+	background: rgba(15, 23, 42, 0.8);
+	border: 1px solid rgba(234, 179, 8, 0.5);
+}
+
+/* ─── Destiny card (MY DESTINY CARD) ─── */
+.dp-master-card {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 20px;
+	border: 1px solid rgba(255, 215, 0, 0.25);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+	margin-bottom: 20px;
+	padding: 20px 16px;
+	background: linear-gradient(160deg, rgba(20, 8, 45, 0.92), rgba(12, 4, 32, 0.95));
+}
+.dp-master-card--active {
+	border-color: rgba(255, 215, 0, 0.45);
+	box-shadow: 0 0 24px rgba(255, 200, 80, 0.15);
+}
+
+/* ─── Input section (form card) ─── */
+.card.input-section {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 22px;
+	padding: 24px 16px;
+	margin-bottom: 20px;
+	border: 1px solid rgba(120, 80, 255, 0.25);
+	background: linear-gradient(180deg, rgba(14, 6, 32, 0.94), rgba(8, 4, 22, 0.97));
+}
+.form-label {
+	color: rgba(220, 210, 255, 0.9);
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+.inp, .form-country-select {
+	background: rgba(20, 12, 45, 0.7);
+	border: 1px solid rgba(140, 100, 255, 0.3);
+	border-radius: 12px;
+	color: #f4eeff;
+	padding: 10px 14px;
+	font-size: 0.95rem;
+}
+.birth-time-tip {
+	color: rgba(200, 180, 255, 0.65);
+	font-size: 0.8rem;
+	margin-top: 8px;
+}
+.dp-save-btn {
+	width: 100%;
+	padding: 14px;
+	border-radius: 14px;
+	background: linear-gradient(90deg, rgba(80, 40, 160, 0.6), rgba(100, 60, 200, 0.5));
+	border: 1px solid rgba(180, 140, 255, 0.35);
+	color: #fde68a;
+	font-weight: 700;
+	font-size: 0.95rem;
+	margin-top: 16px;
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+}
+.btn-main {
+	width: 100%;
+	padding: 16px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, rgba(100, 50, 200, 0.85), rgba(80, 40, 180, 0.9));
+	border: 1px solid rgba(180, 120, 255, 0.4);
+	color: #fff;
+	font-weight: 700;
+	font-size: 1rem;
+	margin-top: 12px;
+	cursor: pointer;
+	transition: opacity 0.2s ease;
+}
+.fortune-point-notice {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 16px;
+	padding: 12px 14px;
+	background: rgba(20, 12, 45, 0.5);
+	border-radius: 12px;
+	font-size: 0.85rem;
+	color: rgba(200, 180, 255, 0.85);
+}
+.fortune-point-charge {
+	padding: 8px 16px;
+	background: rgba(240, 230, 255, 0.95);
+	color: #2e1065;
+	border-radius: 10px;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 0.85rem;
+}
+
+/* ─── Post-saju intro ─── */
+.post-saju-services-intro {
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-radius: 22px;
+	padding: 28px 20px 24px;
+	margin-top: 32px;
+	margin-bottom: 28px;
+	text-align: center;
+	border: 1px solid rgba(150, 95, 255, 0.35);
+	background: linear-gradient(160deg, rgba(18, 6, 42, 0.95), rgba(10, 4, 28, 0.97));
+}
+.post-saju-services-intro strong {
+	display: block;
+	font-size: 1.1rem;
+	color: #fde68a;
+	margin-bottom: 10px;
+}
+.post-saju-services-intro span {
+	display: block;
+	font-size: 0.88rem;
+	color: rgba(210, 190, 255, 0.8);
+	line-height: 1.55;
+}
+
+/* ─── Feature card grid ─── */
+.feature-card-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+	margin-top: 8px;
+}
+.fg-group { margin-bottom: 28px; }
+.fg-group:last-child { margin-bottom: 0; }
+
+/* ─── Collection boxes ─── */
+.feat-collection,
+.tarot-collection {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 22px;
+	padding: 24px 16px 22px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	overflow: hidden;
+	position: relative;
+}
+.feat-collection__header,
+.tarot-collection__header {
+	text-align: center;
+	padding: 0 8px 20px;
+	position: relative;
+	z-index: 2;
+}
+.feat-collection__icon,
+.tarot-collection__icon {
+	display: block;
+	font-size: 1.6rem;
+	margin-bottom: 10px;
+	line-height: 1;
+}
+.feat-collection__title,
+.tarot-collection__title {
+	font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+	font-weight: 800;
+	margin: 0 0 8px;
+	letter-spacing: 0.02em;
+	color: #fde68a;
+	text-shadow: 0 0 20px rgba(253, 230, 138, 0.3);
+}
+.feat-collection__subtitle,
+.tarot-collection__subtitle {
+	font-size: 0.85rem;
+	color: rgba(220, 200, 255, 0.75);
+	margin: 0 0 14px;
+	line-height: 1.45;
+}
+.feat-collection__divider,
+.tarot-collection__divider {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 4px;
+}
+.fc-div-line,
+.tc-divider-line {
+	flex: 1;
+	max-width: 64px;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(253, 230, 138, 0.65), transparent);
+	border-radius: 1px;
+}
+.fc-div-gem,
+.tc-divider-star,
+.tc-divider-gem {
+	color: rgba(253, 230, 138, 0.9);
+	font-size: 0.7rem;
+}
+.feat-collection--animal .feat-collection__title { color: #a7f3d0; }
+.feat-collection--oracle .feat-collection__title { color: #fde68a; }
+.feat-collection--cosmic .feat-collection__title { color: #c4b5fd; }
+.feat-collection--flower .feat-collection__title { color: #f9a8d4; }
+.tarot-collection__title { color: #e9d5ff; }
+
+.feat-collection__grid,
+.tarot-collection__grid {
+	display: grid;
+	gap: 12px;
+	position: relative;
+	z-index: 2;
+}
+.feat-collection__grid { grid-template-columns: repeat(3, 1fr); }
+.feat-collection__grid--2col { grid-template-columns: repeat(2, 1fr); }
+.tarot-collection__grid { grid-template-columns: repeat(3, 1fr); }
+
+/* ─── Tiles ─── */
+.tarot-tile {
+	display: flex;
+	flex-direction: column;
+	background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(60, 30, 120, 0.08));
+	border: 1px solid rgba(148, 80, 255, 0.28);
+	border-radius: 16px;
+	overflow: hidden;
+	cursor: pointer;
+	transition: transform 0.22s ease, box-shadow 0.22s ease;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	min-height: 140px;
+}
+.tarot-tile:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 12px 28px rgba(100, 60, 200, 0.25);
+}
+.tarot-tile__img-wrap { position: relative; width: 100%; overflow: hidden; }
+.tarot-tile__img {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	display: block;
+}
+.tarot-tile__badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	font-size: 0.6rem;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	padding: 4px 8px;
+	border-radius: 8px;
+	text-transform: uppercase;
+	z-index: 3;
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+}
+.tarot-tile__badge--new    { background: rgba(128, 55, 235, 0.95); }
+.tarot-tile__badge--beta   { background: rgba(16, 185, 129, 0.95); }
+.tarot-tile__badge--totem  { background: rgba(180, 100, 40, 0.95); }
+.tarot-tile__badge--healing{ background: rgba(240, 125, 45, 0.95); }
+.tarot-tile__badge--levelup{ background: rgba(35, 175, 250, 0.95); }
+.tarot-tile__badge--reunion{ background: rgba(45, 95, 235, 0.95); }
+.tarot-tile__badge--bloom  { background: rgba(236, 72, 153, 0.95); }
+.tarot-tile__badge--nebula { background: rgba(99, 60, 219, 0.95); }
+.tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
+.tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
+.tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
+.tarot-tile__body {
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex: 1;
+	background: rgba(15, 10, 35, 0.5);
+}
+.tarot-tile__title {
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: #f4eeff;
+	line-height: 1.3;
+}
+.tarot-tile__desc {
+	font-size: 0.75rem;
+	color: rgba(200, 175, 255, 0.7);
+	line-height: 1.35;
+}
+
+@media (max-width: 768px) {
+	.logo-area { padding: 32px 12px 28px; }
+	.card.input-section { padding: 20px 14px; }
+	.post-saju-services-intro { padding: 24px 16px 20px; margin-top: 24px; margin-bottom: 24px; }
+	.feat-collection,
+	.tarot-collection { padding: 20px 14px 18px; }
+	.feat-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+	.tarot-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+	.tarot-tile { min-height: 130px; }
+	.tarot-tile__body { padding: 10px 12px 12px; }
+	.tarot-tile__title { font-size: 0.85rem; }
+	.tarot-tile__desc { font-size: 0.7rem; }
+}
+@media (max-width: 480px) {
+	.wrap { padding: 0 12px 24px; }
+	.feature-card-grid { gap: 22px; }
+	.feat-collection__grid,
+	.tarot-collection__grid { grid-template-columns: 1fr; gap: 12px; }
+	.feat-collection__grid--2col { grid-template-columns: 1fr; }
+	.feat-collection__title,
+	.tarot-collection__title { font-size: 1.15rem; }
+	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }
+}

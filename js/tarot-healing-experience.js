@@ -87,7 +87,8 @@
         if (custom) return normalizeApiBase(custom);
       } catch (e) {}
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
+      // Next.js 기본 포트 3000 사용 (정적 서버 5500 등에서 열었을 때 API 연동)
+      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
       if (host === "api.code-destiny.com") return location.origin || "";
       if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
@@ -118,9 +119,14 @@
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
+      // 정적 서버(예: 5500)에서 열었을 때 Next.js API(3000) 먼저 시도
+      if (host === "localhost" || host === "127.0.0.1") {
+        add("http://localhost:3000");
+        add("http://localhost:4000");
+      }
       if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
+      add("http://localhost:3000");
       add("http://localhost:4000");
     }
 

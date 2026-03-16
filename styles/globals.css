@@ -1,20 +1,67 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
 @layer base {
-	html,
+	html {
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
+		-webkit-overflow-scrolling: touch;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
 	body {
 		margin: 0;
 		padding: 0;
 		min-height: 100%;
+		min-height: 100dvh;
 		background: #020617;
 		color: #f8fafc;
 		font-family: "Inter", "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-y: none;
+		padding-left: env(safe-area-inset-left, 0);
+		padding-right: env(safe-area-inset-right, 0);
+		padding-bottom: env(safe-area-inset-bottom, 0);
 	}
-
 	* {
 		box-sizing: border-box;
+	}
+	/* 300ms 클릭 지연 제거 + 탭 하이라이트 제어 */
+	a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for], [tabindex]:not([tabindex="-1"]) {
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+	/* 터치 타겟 최소 44x44px (패딩 포함) */
+	button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+	/* 모바일에서 hover 고정 방지: 포인터 있는 기기에서만 hover 적용 */
+	@media (hover: hover) {
+		a:hover, button:hover, [role="button"]:hover {
+			opacity: 0.9;
+		}
+	}
+	/* 즉각적인 눌림 피드백 */
+	a:active, button:active, [role="button"]:active {
+		opacity: 0.85;
+	}
+	/* 모바일 input 줌 방지 (16px 이상 유지) */
+	input, select, textarea {
+		font-size: 16px;
+	}
+	@media (min-width: 768px) {
+		input, select, textarea {
+			font-size: inherit;
+		}
 	}
 }
 

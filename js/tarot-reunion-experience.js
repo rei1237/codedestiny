@@ -94,7 +94,7 @@
         if (custom) return normalizeApiBase(custom);
       } catch (e) {}
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
+      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
       if (host === "api.code-destiny.com") return location.origin || "";
       if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
@@ -125,9 +125,13 @@
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
+      if (host === "localhost" || host === "127.0.0.1") {
+        add("http://localhost:3000");
+        add("http://localhost:4000");
+      }
       if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
+      add("http://localhost:3000");
       add("http://localhost:4000");
     }
 
@@ -425,10 +429,8 @@
     if (!sound || !btn) return;
     sound.volume = 0;
     sound.loop = true;
-    sound.preload = "auto";
-    if (!sound.src && AMBIENT_URLS.length) {
-      sound.src = AMBIENT_URLS[0];
-    }
+    sound.preload = "none";
+    // src는 사용자가 '사운드 켜기' 클릭 시 toggleAmbientSound에서 설정 (페이지/모달 로드 시 403 방지)
     btn.removeEventListener("click", boundToggleAmbient);
     btn.addEventListener("click", boundToggleAmbient);
   }

@@ -1,0 +1,797 @@
+/**
+ * Main page glassmorphism & collection UI
+ * 참조 이미지 기준: 어두운 코즈믹 배경, 황금 타이틀, 구분선, 반응형 그리드
+ */
+
+/* ─── Page & wrap ─── */
+/* 배경: 기본은 흰색 (globals 배경 제거 후 여기서 제어) */
+body {
+	background: #ffffff;
+	background-image: none;
+	color: #1f2937;
+}
+body.neo-mode {
+	background-color: #0f0a1a;
+}
+.wrap {
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 0 16px 32px;
+}
+@media (min-width: 768px) {
+	.wrap { padding: 0 24px 48px; }
+}
+
+/* ─── Hero / Logo area — 기본: 깔끔한 밝은 글래스 (흰 배경 모드) ─── */
+.logo-area {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 22px;
+	margin-bottom: 16px;
+	padding: 40px 16px 36px;
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+	border: 1px solid rgba(200, 220, 255, 0.45);
+	background: rgba(255, 255, 255, 0.88);
+	box-shadow: 0 10px 36px rgba(120, 160, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+.logo-area:hover {
+	box-shadow: 0 16px 44px rgba(120, 160, 255, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+	border-color: rgba(200, 220, 255, 0.6);
+}
+.logo-area h1 {
+	font-size: clamp(1.35rem, 4.5vw, 1.9rem);
+	font-weight: 800;
+	color: #3d3560;
+	text-shadow: none;
+}
+.logo-area p {
+	color: rgba(70, 55, 95, 0.9);
+	font-size: 0.9rem;
+	margin-top: 6px;
+}
+.auth-quick-links {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 20px;
+	flex-wrap: wrap;
+}
+.auth-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-width: 128px;
+	padding: 14px 26px;
+	border-radius: 14px;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 0.95rem;
+	transition: transform 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease, border-color 0.25s ease;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	position: relative;
+	overflow: hidden;
+}
+.auth-btn::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	pointer-events: none;
+	border-radius: inherit;
+}
+.auth-btn:hover {
+	transform: translateY(-3px);
+}
+.auth-btn:hover::before {
+	opacity: 1;
+}
+.auth-btn--signup {
+	color: #fff;
+	background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #8b5cf6 100%);
+	border: 1px solid rgba(255, 255, 255, 0.35);
+	box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+.auth-btn--signup:hover {
+	box-shadow: 0 12px 32px rgba(124, 58, 237, 0.5);
+	border-color: rgba(255, 255, 255, 0.5);
+}
+.auth-btn--login {
+	color: #fef3c7;
+	background: rgba(30, 27, 75, 0.85);
+	border: 1px solid rgba(253, 230, 138, 0.45);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.auth-btn--login:hover {
+	background: rgba(45, 35, 95, 0.9);
+	border-color: rgba(253, 230, 138, 0.6);
+	box-shadow: 0 8px 24px rgba(253, 230, 138, 0.2);
+}
+.auth-btn--login:hover::before {
+	background: linear-gradient(135deg, rgba(253, 230, 138, 0.12) 0%, transparent 50%);
+}
+
+/* ─── Destiny card (MY DESTINY CARD) — 기본: 밝은 글래스 카드 ─── */
+.dp-master-card {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 22px;
+	border: 1px solid rgba(200, 220, 255, 0.45);
+	box-shadow: 0 10px 34px rgba(120, 160, 255, 0.12);
+	margin-bottom: 20px;
+	padding: 20px 16px;
+	background: rgba(255, 255, 255, 0.88);
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.dp-master-card:hover {
+	box-shadow: 0 18px 44px rgba(120, 160, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+	border-color: rgba(200, 220, 255, 0.55);
+}
+.dp-master-card--active {
+	border-color: rgba(253, 230, 138, 0.5);
+	box-shadow: 0 0 24px rgba(253, 200, 80, 0.12);
+}
+.dp-master-card--active:hover {
+	box-shadow: 0 0 28px rgba(253, 200, 80, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+/* ─── Input section (form card) — 기본: 밝은 글래스 폼 ─── */
+.card.input-section {
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border-radius: 22px;
+	padding: 24px 16px;
+	margin-bottom: 20px;
+	border: 1px solid rgba(200, 220, 255, 0.4);
+	background: rgba(255, 255, 255, 0.88);
+	box-shadow: 0 10px 32px rgba(120, 160, 255, 0.1);
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.card.input-section:hover {
+	box-shadow: 0 16px 40px rgba(120, 160, 255, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+	border-color: rgba(200, 220, 255, 0.55);
+}
+.form-label {
+	color: #4a3560;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+.inp, .form-country-select {
+	background: rgba(255, 255, 255, 0.98);
+	border: 1px solid rgba(180, 140, 220, 0.4);
+	border-radius: 12px;
+	color: #2d2438;
+	padding: 10px 14px;
+	font-size: 0.95rem;
+}
+.inp::placeholder {
+	color: rgba(80, 60, 100, 0.5);
+}
+.birth-time-tip {
+	color: rgba(80, 60, 100, 0.8);
+	font-size: 0.8rem;
+	margin-top: 8px;
+}
+.dp-save-btn {
+	width: 100%;
+	padding: 15px 18px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(251, 191, 36, 0.95) 100%);
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	color: #1f2937;
+	font-weight: 700;
+	font-size: 0.95rem;
+	margin-top: 16px;
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+}
+.dp-save-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 28px rgba(245, 158, 11, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+.dp-save-btn:active {
+	transform: translateY(0);
+}
+.btn-main {
+	width: 100%;
+	padding: 16px 18px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #8b5cf6 100%);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: #fff;
+	font-weight: 700;
+	font-size: 1rem;
+	margin-top: 12px;
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+.btn-main:hover:not(:disabled) {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 28px rgba(124, 58, 237, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+.btn-main:active:not(:disabled) {
+	transform: translateY(0);
+}
+.btn-main:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+.fortune-point-notice {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 16px;
+	padding: 12px 14px;
+	background: rgba(20, 12, 45, 0.5);
+	border-radius: 12px;
+	font-size: 0.85rem;
+	color: rgba(200, 180, 255, 0.85);
+}
+.fortune-point-charge {
+	padding: 8px 16px;
+	background: rgba(240, 230, 255, 0.95);
+	color: #2e1065;
+	border-radius: 10px;
+	text-decoration: none;
+	font-weight: 700;
+	font-size: 0.85rem;
+}
+
+/* ─── Post-saju intro (사주 팔자 이외의 신비한 운세 서비스) — 기본: 밝은 배너 ─── */
+.post-saju-services-intro {
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-radius: 22px;
+	padding: 28px 20px 24px;
+	margin-top: 32px;
+	margin-bottom: 28px;
+	text-align: center;
+	border: 1px solid rgba(200, 220, 255, 0.45);
+	background: rgba(255, 255, 255, 0.9);
+	box-shadow: 0 10px 34px rgba(120, 160, 255, 0.1);
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.post-saju-services-intro:hover {
+	box-shadow: 0 16px 42px rgba(120, 160, 255, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+	border-color: rgba(200, 220, 255, 0.55);
+}
+.post-saju-services-intro strong {
+	display: block;
+	font-size: 1.1rem;
+	color: #4a3d75;
+	margin-bottom: 10px;
+}
+.post-saju-services-intro span {
+	display: block;
+	font-size: 0.88rem;
+	color: rgba(70, 55, 90, 0.9);
+	line-height: 1.55;
+}
+
+/* ─── Feature card grid container (섹션 간 여백, 묶인 요소 분리) ─── */
+.feature-card-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+	margin-top: 12px;
+}
+
+/* ─── Section groups (fg-group, 묶인 섹션 간격) ─── */
+.fg-group {
+	margin-bottom: 36px;
+}
+.fg-group:last-child {
+	margin-bottom: 0;
+}
+.fg-group__cards {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+/* ─── Collection boxes — 그룹화 UI: 글래스모피즘 + 황금 타이틀 (흰 배경 모드) ─── */
+.feat-collection,
+.tarot-collection {
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border-radius: 22px;
+	padding: 28px 22px 26px;
+	border: 1px solid rgba(253, 230, 138, 0.35);
+	overflow: hidden;
+	position: relative;
+	transition: box-shadow 0.3s ease, border-color 0.3s ease;
+	background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 252, 245, 0.94) 100%);
+	box-shadow: 0 12px 40px rgba(120, 160, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.7) inset, 0 0 30px rgba(253, 230, 138, 0.06);
+}
+.feat-collection--animal::after,
+.feat-collection--oracle::after,
+.feat-collection--cosmic::after,
+.feat-collection--flower::after,
+.tarot-collection::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background-image:
+		radial-gradient(1.5px 1.5px at 15% 20%, rgba(180, 200, 255, 0.35), transparent),
+		radial-gradient(1px 1px at 80% 25%, rgba(200, 210, 255, 0.25), transparent),
+		radial-gradient(1px 1px at 45% 60%, rgba(190, 205, 255, 0.2), transparent),
+		radial-gradient(1.2px 1.2px at 70% 80%, rgba(200, 220, 255, 0.3), transparent);
+	pointer-events: none;
+	z-index: 0;
+	opacity: 0.5;
+}
+.feat-collection::before,
+.tarot-collection::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(180, 200, 255, 0.5), transparent);
+	opacity: 0.8;
+	z-index: 1;
+	pointer-events: none;
+}
+.feat-collection:hover,
+.tarot-collection:hover {
+	box-shadow: 0 20px 50px rgba(120, 160, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+	border-color: rgba(200, 220, 255, 0.55);
+}
+.feat-collection__header,
+.tarot-collection__header {
+	text-align: center;
+	padding: 0 8px 22px 20px;
+	position: relative;
+	z-index: 2;
+	border-bottom: 1px solid rgba(253, 230, 138, 0.35);
+	margin-bottom: 24px;
+}
+.feat-collection__icon,
+.tarot-collection__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.85rem;
+	margin-bottom: 12px;
+	line-height: 1;
+	width: 2.75rem;
+	height: 2.75rem;
+	border-radius: 12px;
+	border: 1px solid rgba(245, 158, 11, 0.5);
+	background: linear-gradient(145deg, rgba(255, 248, 230, 0.95) 0%, rgba(254, 243, 199, 0.85) 100%);
+	box-shadow: 0 2px 12px rgba(245, 158, 11, 0.15), 0 0 0 1px rgba(253, 230, 138, 0.2) inset;
+}
+.feat-collection__title,
+.tarot-collection__title {
+	font-size: clamp(1.15rem, 3.5vw, 1.4rem);
+	font-weight: 800;
+	margin: 0 0 8px;
+	letter-spacing: 0.03em;
+	color: #b45309;
+	text-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.feat-collection__subtitle,
+.tarot-collection__subtitle {
+	font-size: 0.88rem;
+	color: rgba(70, 55, 90, 0.88);
+	margin: 0 0 14px;
+	line-height: 1.5;
+}
+.feat-collection__divider,
+.tarot-collection__divider {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 8px;
+}
+.fc-div-line,
+.tc-divider-line {
+	flex: 1;
+	max-width: 100px;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(253, 230, 138, 0.45), rgba(245, 158, 11, 0.6), rgba(253, 230, 138, 0.45), transparent);
+	border-radius: 1px;
+}
+.fc-div-gem,
+.tc-divider-star,
+.tc-divider-gem {
+	color: #b45309;
+	font-size: 0.75rem;
+	text-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+}
+.feat-collection--animal .feat-collection__title,
+.feat-collection--oracle .feat-collection__title,
+.feat-collection--cosmic .feat-collection__title,
+.feat-collection--flower .feat-collection__title,
+.tarot-collection__title {
+	color: #b45309;
+	text-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Card grids (간격 정돈, 카드끼리 떨어뜨림) ─── */
+.feat-collection__grid,
+.tarot-collection__grid {
+	display: grid;
+	gap: 22px;
+	position: relative;
+	z-index: 2;
+}
+.feat-collection__grid {
+	grid-template-columns: repeat(3, 1fr);
+}
+.feat-collection__grid--2col {
+	grid-template-columns: repeat(2, 1fr);
+}
+.tarot-collection__grid {
+	grid-template-columns: repeat(3, 1fr);
+}
+
+/* ─── Tarot / feature tiles — 기본: 밝은 글래스 카드 ─── */
+.tarot-tile {
+	display: flex;
+	flex-direction: column;
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(200, 220, 255, 0.4);
+	border-radius: 20px;
+	overflow: hidden;
+	cursor: pointer;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+	min-height: 148px;
+	box-shadow: 0 8px 28px rgba(120, 160, 255, 0.1);
+}
+.tarot-tile:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 18px 40px rgba(120, 160, 255, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+.tarot-tile__img-wrap {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	margin-bottom: 0;
+}
+.tarot-tile__img {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	display: block;
+	vertical-align: middle;
+}
+.tarot-tile__badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	font-size: 0.6rem;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	padding: 4px 8px;
+	border-radius: 8px;
+	text-transform: uppercase;
+	z-index: 3;
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+}
+.tarot-tile__badge--new    { background: rgba(128, 55, 235, 0.95); }
+.tarot-tile__badge--beta   { background: rgba(16, 185, 129, 0.95); }
+.tarot-tile__badge--totem  { background: rgba(180, 100, 40, 0.95); }
+.tarot-tile__badge--healing{ background: rgba(240, 125, 45, 0.95); }
+.tarot-tile__badge--levelup{ background: rgba(35, 175, 250, 0.95); }
+.tarot-tile__badge--reunion{ background: rgba(45, 95, 235, 0.95); }
+.tarot-tile__badge--bloom  { background: rgba(236, 72, 153, 0.95); }
+.tarot-tile__badge--nebula { background: rgba(99, 60, 219, 0.95); }
+.tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
+.tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
+.tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
+/* 카드 하단 텍스트 영역 — 기본: 밝은 배경 */
+.tarot-tile__body {
+	padding: 16px 18px 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 1;
+	background: linear-gradient(180deg, rgba(252, 251, 255, 0.98) 0%, rgba(248, 250, 255, 0.98) 100%);
+	border-top: 1px solid rgba(200, 220, 255, 0.25);
+	box-shadow: 0 -2px 10px rgba(120, 160, 255, 0.06);
+}
+.tarot-tile__title {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #3d3560;
+	line-height: 1.35;
+	margin: 0;
+}
+.tarot-tile__desc {
+	font-size: 0.78rem;
+	color: rgba(70, 60, 100, 0.82);
+	line-height: 1.4;
+	margin: 0;
+}
+
+/* ─── 타로 리딩 카드별 우주·별 컨셉 (각각 다르게) ─── */
+.tarot-tile {
+	position: relative;
+}
+.tarot-tile__img-wrap::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.35;
+	border-radius: inherit;
+}
+/* 우리 사이 타로 — 로맨틱 별·달 우주 */
+.tarot-tile--love .tarot-tile__img-wrap::after {
+	background: radial-gradient(ellipse 80% 50% at 50% 100%, transparent 40%, rgba(236, 72, 153, 0.25) 100%),
+		radial-gradient(1.5px 1.5px at 15% 20%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 50% 15%, rgba(253, 230, 138, 0.8), transparent);
+	box-shadow: inset 0 0 40px rgba(251, 113, 133, 0.15);
+}
+.tarot-tile--love {
+	border-color: rgba(236, 72, 153, 0.35);
+	box-shadow: 0 8px 28px rgba(240, 140, 180, 0.12);
+}
+.tarot-tile--love:hover {
+	box-shadow: 0 18px 40px rgba(240, 140, 180, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+/* 긍정 에너지 회복 — 힐링·샛별 우주 */
+.tarot-tile--healing .tarot-tile__img-wrap::after {
+	background: radial-gradient(ellipse 60% 80% at 50% 0%, rgba(56, 189, 248, 0.2) 0%, transparent 50%),
+		radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.95), transparent),
+		radial-gradient(1.2px 1.2px at 80% 20%, rgba(253, 230, 138, 0.9), transparent),
+		radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.6), transparent),
+		radial-gradient(1px 1px at 70% 70%, rgba(255,255,255,0.5), transparent);
+	box-shadow: inset 0 0 35px rgba(56, 189, 248, 0.08);
+}
+.tarot-tile--healing {
+	border-color: rgba(56, 189, 248, 0.4);
+	box-shadow: 0 8px 28px rgba(56, 189, 248, 0.12);
+}
+.tarot-tile--healing:hover {
+	box-shadow: 0 18px 40px rgba(56, 189, 248, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+/* 자존감 레벨업 — 골드·스파클 우주 */
+.tarot-tile--self-esteem .tarot-tile__img-wrap::after {
+	background: radial-gradient(1.5px 1.5px at 10% 15%, rgba(253, 230, 138, 1), transparent),
+		radial-gradient(1px 1px at 30% 25%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1.2px 1.2px at 60% 20%, rgba(253, 224, 71, 0.95), transparent),
+		radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 25% 55%, rgba(253, 230, 138, 0.85), transparent),
+		radial-gradient(1.5px 1.5px at 75% 65%, rgba(255,255,255,0.7), transparent);
+	box-shadow: inset 0 0 45px rgba(253, 224, 71, 0.12);
+}
+.tarot-tile--self-esteem {
+	border-color: rgba(253, 224, 71, 0.5);
+	box-shadow: 0 8px 28px rgba(253, 200, 80, 0.14);
+}
+.tarot-tile--self-esteem:hover {
+	box-shadow: 0 18px 40px rgba(253, 200, 80, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+/* 재회운 타로 — 밤바다·등대별 우주 */
+.tarot-tile--reunion .tarot-tile__img-wrap::after {
+	background: radial-gradient(ellipse 100% 60% at 50% 100%, rgba(30, 64, 175, 0.2) 0%, transparent 55%),
+		radial-gradient(1px 1px at 15% 18%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1.2px 1.2px at 88% 22%, rgba(255,255,255,0.85), transparent),
+		radial-gradient(1px 1px at 50% 12%, rgba(147, 197, 253, 0.9), transparent),
+		radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.5), transparent),
+		radial-gradient(1px 1px at 72% 50%, rgba(255,255,255,0.45), transparent);
+	box-shadow: inset 0 0 40px rgba(30, 64, 175, 0.12);
+}
+.tarot-tile--reunion {
+	border-color: rgba(59, 130, 246, 0.45);
+	box-shadow: 0 8px 28px rgba(59, 130, 246, 0.12);
+}
+.tarot-tile--reunion:hover {
+	box-shadow: 0 18px 40px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+/* 십이지신 천운 — 황금·별자리 우주 */
+.tarot-tile--year .tarot-tile__img-wrap::after {
+	background: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(245, 158, 11, 0.15) 0%, transparent 50%),
+		radial-gradient(1.2px 1.2px at 12% 25%, rgba(253, 230, 138, 1), transparent),
+		radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1.5px 1.5px at 78% 28%, rgba(253, 230, 138, 0.9), transparent),
+		radial-gradient(1px 1px at 22% 55%, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 90% 60%, rgba(253, 224, 71, 0.8), transparent);
+	box-shadow: inset 0 0 38px rgba(245, 158, 11, 0.1);
+}
+.tarot-tile--year {
+	border-color: rgba(245, 158, 11, 0.5);
+	box-shadow: 0 8px 28px rgba(245, 158, 11, 0.12);
+}
+.tarot-tile--year:hover {
+	box-shadow: 0 18px 40px rgba(245, 158, 11, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+/* 명리학 타로 — 네뷸라·행성 우주 */
+.tarot-tile--classic .tarot-tile__img-wrap::after {
+	background: radial-gradient(ellipse 90% 80% at 50% 50%, rgba(139, 92, 246, 0.18) 0%, transparent 55%),
+		radial-gradient(1px 1px at 18% 22%, rgba(255,255,255,0.95), transparent),
+		radial-gradient(1.2px 1.2px at 82% 18%, rgba(196, 181, 253, 0.9), transparent),
+		radial-gradient(1px 1px at 50% 35%, rgba(255,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 35% 65%, rgba(233, 213, 255, 0.75), transparent),
+		radial-gradient(1.5px 1.5px at 68% 72%, rgba(255,255,255,0.7), transparent);
+	box-shadow: inset 0 0 50px rgba(139, 92, 246, 0.15);
+}
+.tarot-tile--classic {
+	border-color: rgba(139, 92, 246, 0.45);
+	box-shadow: 0 8px 28px rgba(139, 92, 246, 0.12);
+}
+.tarot-tile--classic:hover {
+	box-shadow: 0 18px 40px rgba(139, 92, 246, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+/* ─── Mobile: single column grids, larger touch targets ─── */
+@media (max-width: 768px) {
+	.logo-area { padding: 32px 12px 28px; }
+	.card.input-section { padding: 20px 14px; }
+	.post-saju-services-intro { padding: 24px 16px 20px; margin-top: 24px; margin-bottom: 24px; }
+	.feat-collection,
+	.tarot-collection { padding: 22px 16px 20px; }
+	.feat-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+	.tarot-collection__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+	.tarot-tile { min-height: 130px; }
+	.tarot-tile__body { padding: 10px 12px 12px; }
+	.tarot-tile__title { font-size: 0.85rem; }
+	.tarot-tile__desc { font-size: 0.7rem; }
+}
+@media (max-width: 480px) {
+	.wrap { padding: 0 12px 24px; }
+	.feature-card-grid { gap: 32px; }
+	.feat-collection__grid,
+	.tarot-collection__grid { grid-template-columns: 1fr; gap: 18px; }
+	.feat-collection__grid--2col { grid-template-columns: 1fr; }
+	.feat-collection__title,
+	.tarot-collection__title { font-size: 1.15rem; }
+	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }
+}
+
+/* ─── 우주·별 컨셉: 컬렉션 내 별 강조 ─── */
+.feat-collection__cosmos .fc-star,
+.tarot-collection__cosmos .tc-star {
+	background: rgba(255, 255, 255, 0.75);
+	box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+.feat-collection--animal .feat-collection__cosmos .fc-star { background: rgba(253, 230, 138, 0.8); box-shadow: 0 0 10px rgba(253, 230, 138, 0.4); }
+.tarot-collection__cosmos .tc-star { background: rgba(233, 213, 255, 0.75); box-shadow: 0 0 8px rgba(200, 180, 255, 0.35); }
+
+/* ─── 기본(흰 배경): body 배경 확정 ─── */
+body {
+	background: #ffffff;
+	background-image: none;
+	color: #1f2937;
+}
+
+/* ─── 네오 모드(어두운 우주): body.neo-mode일 때만 어두운 테마 ─── */
+body.neo-mode {
+	background: #0f0a1a;
+	background-image:
+		radial-gradient(ellipse 120% 80% at 50% 0%, rgba(88, 28, 135, 0.25) 0%, transparent 50%),
+		radial-gradient(ellipse 100% 60% at 80% 100%, rgba(30, 27, 75, 0.3) 0%, transparent 45%),
+		linear-gradient(180deg, #0f0a1a 0%, #1a0f2e 40%, #120a1f 100%);
+	background-attachment: fixed;
+	color: #f8fafc;
+}
+body.neo-mode .logo-area {
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+body.neo-mode .logo-area:hover {
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+body.neo-mode .logo-area h1 { color: #f4eeff; text-shadow: none; }
+body.neo-mode .logo-area p { color: rgba(200, 170, 255, 0.7); }
+body.neo-mode .dp-master-card {
+	background: linear-gradient(160deg, rgba(20, 8, 45, 0.92), rgba(12, 4, 32, 0.95));
+	border-color: rgba(255, 215, 0, 0.25);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+body.neo-mode .dp-master-card:hover {
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+	border-color: rgba(255, 215, 0, 0.4);
+}
+body.neo-mode .card.input-section {
+	background: linear-gradient(180deg, rgba(14, 6, 32, 0.94), rgba(8, 4, 22, 0.97));
+	border-color: rgba(120, 80, 255, 0.25);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+body.neo-mode .card.input-section:hover {
+	border-color: rgba(140, 100, 255, 0.4);
+}
+body.neo-mode .form-label { color: rgba(220, 210, 255, 0.9); }
+body.neo-mode .inp,
+body.neo-mode .form-country-select {
+	background: rgba(20, 12, 45, 0.7);
+	border-color: rgba(140, 100, 255, 0.3);
+	color: #f4eeff;
+}
+body.neo-mode .inp::placeholder { color: rgba(180, 170, 255, 0.5); }
+body.neo-mode .birth-time-tip { color: rgba(200, 180, 255, 0.65); }
+body.neo-mode .post-saju-services-intro {
+	background: linear-gradient(160deg, rgba(18, 6, 42, 0.95), rgba(10, 4, 28, 0.97));
+	border-color: rgba(150, 95, 255, 0.35);
+	box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+body.neo-mode .post-saju-services-intro strong { color: #fde68a; }
+body.neo-mode .post-saju-services-intro span { color: rgba(210, 190, 255, 0.8); }
+body.neo-mode .feat-collection--animal,
+body.neo-mode .feat-collection--oracle,
+body.neo-mode .feat-collection--cosmic,
+body.neo-mode .feat-collection--flower,
+body.neo-mode .tarot-collection {
+	background: linear-gradient(165deg, rgba(30, 25, 55, 0.94) 0%, rgba(20, 18, 45, 0.92) 100%);
+	border: 1px solid rgba(253, 230, 138, 0.22);
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+body.neo-mode .feat-collection--animal {
+	background: linear-gradient(165deg, rgba(35, 42, 35, 0.94) 0%, rgba(28, 38, 30, 0.92) 100%);
+}
+body.neo-mode .feat-collection--animal::after,
+body.neo-mode .tarot-collection::after { opacity: 1; }
+body.neo-mode .feat-collection::before,
+body.neo-mode .tarot-collection::before {
+	background: linear-gradient(90deg, transparent, rgba(253, 230, 138, 0.45), transparent);
+}
+body.neo-mode .feat-collection:hover,
+body.neo-mode .tarot-collection:hover {
+	box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.12) inset, 0 0 40px rgba(253, 230, 138, 0.08);
+	border-color: rgba(253, 230, 138, 0.38);
+}
+body.neo-mode .feat-collection__header,
+body.neo-mode .tarot-collection__header { border-bottom-color: rgba(253, 230, 138, 0.2); }
+body.neo-mode .feat-collection__icon,
+body.neo-mode .tarot-collection__icon {
+	border-color: rgba(245, 158, 11, 0.55);
+	background: linear-gradient(145deg, rgba(253, 230, 138, 0.25) 0%, rgba(245, 158, 11, 0.12) 100%);
+	box-shadow: 0 0 18px rgba(253, 230, 138, 0.25), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+body.neo-mode .feat-collection__title,
+body.neo-mode .tarot-collection__title {
+	color: #fde68a;
+	text-shadow: 0 0 20px rgba(253, 230, 138, 0.35);
+}
+body.neo-mode .feat-collection__subtitle,
+body.neo-mode .tarot-collection__subtitle { color: rgba(226, 232, 240, 0.85); }
+body.neo-mode .fc-div-line,
+body.neo-mode .tc-divider-line {
+	background: linear-gradient(90deg, transparent, rgba(253, 230, 138, 0.5), rgba(253, 230, 138, 0.75), rgba(253, 230, 138, 0.5), transparent);
+}
+body.neo-mode .fc-div-gem,
+body.neo-mode .tc-divider-star,
+body.neo-mode .tc-divider-gem {
+	color: #fde68a;
+	text-shadow: 0 0 10px rgba(253, 230, 138, 0.5);
+}
+body.neo-mode .tarot-tile {
+	background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(60, 30, 120, 0.08));
+	border-color: rgba(148, 80, 255, 0.28);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+body.neo-mode .tarot-tile:hover {
+	box-shadow: 0 12px 28px rgba(100, 60, 200, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+body.neo-mode .tarot-tile__body {
+	background: linear-gradient(180deg, rgba(55, 48, 42, 0.98) 0%, rgba(45, 40, 36, 0.98) 100%);
+	border-top-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+}
+body.neo-mode .tarot-tile__title { color: #f5f0e8; }
+body.neo-mode .tarot-tile__desc { color: rgba(200, 190, 180, 0.9); }
+body.neo-mode .feat-collection__cosmos .fc-star,
+body.neo-mode .tarot-collection__cosmos .tc-star {
+	background: rgba(253, 230, 138, 0.8);
+	box-shadow: 0 0 10px rgba(253, 230, 138, 0.4);
+}

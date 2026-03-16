@@ -1,0 +1,56 @@
+/**
+ * Cosmic main — 흰 배경 모드용 은은한 별·우주 장식 (선택)
+ * main-glass.css에서 이미 밝은 테마가 기본이면 이 파일은 배경 장식만 추가
+ */
+
+body .cosmic-bg {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+body:not(.neo-mode) {
+	background: #ffffff;
+	background-image:
+		radial-gradient(circle at 20% 20%, rgba(180, 210, 255, 0.12), transparent 40%),
+		radial-gradient(circle at 80% 30%, rgba(255, 200, 230, 0.08), transparent 38%);
+	background-attachment: fixed;
+	background-color: #ffffff;
+}
+
+body:not(.neo-mode) .cosmic-star {
+	position: absolute;
+	width: 2px;
+	height: 2px;
+	background: #b8d2ff;
+	border-radius: 50%;
+	animation: cosmic-twinkle 3s ease-in-out infinite alternate;
+	opacity: 0.6;
+}
+body:not(.neo-mode) .cosmic-star--pink { background: #ffc8e0; }
+@keyframes cosmic-twinkle {
+	from { opacity: 0.35; }
+	to   { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+	body:not(.neo-mode) .cosmic-star { animation: none; opacity: 0.6; }
+}
+body:not(.neo-mode) .cosmic-star--1  { left: 5%;  top: 8%;  animation-delay: 0s; }
+body:not(.neo-mode) .cosmic-star--2  { left: 22%; top: 14%; animation-delay: 0.4s; }
+body:not(.neo-mode) .cosmic-star--3  { left: 45%; top: 6%;  animation-delay: 0.8s; }
+body:not(.neo-mode) .cosmic-star--4  { left: 78%; top: 12%; animation-delay: 1.2s; }
+body:not(.neo-mode) .cosmic-star--5  { left: 92%; top: 22%; animation-delay: 1.6s; }
+body:not(.neo-mode) .cosmic-star--6  { left: 12%; top: 42%; animation-delay: 2s; }
+body:not(.neo-mode) .cosmic-star--7  { left: 38%; top: 38%; animation-delay: 0.3s; }
+body:not(.neo-mode) .cosmic-star--8  { left: 68%; top: 35%; animation-delay: 0.7s; }
+body:not(.neo-mode) .cosmic-star--9  { left: 88%; top: 48%; animation-delay: 1.1s; }
+body:not(.neo-mode) .cosmic-star--10 { left: 8%;  top: 68%; animation-delay: 1.5s; }
+body:not(.neo-mode) .cosmic-star--11 { left: 52%; top: 72%; animation-delay: 1.9s; }
+body:not(.neo-mode) .cosmic-star--12 { left: 82%; top: 78%; animation-delay: 0.5s; }
+body:not(.neo-mode) .cosmic-star--13 { left: 28%; top: 85%; animation-delay: 0.9s; }
+body:not(.neo-mode) .cosmic-star--14 { left: 58%; top: 18%; animation-delay: 1.3s; }
+body:not(.neo-mode) .cosmic-star--15 { left: 15%; top: 55%; animation-delay: 1.7s; }
+
+body .wrap { position: relative; z-index: 1; }

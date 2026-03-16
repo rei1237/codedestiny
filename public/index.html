@@ -389,6 +389,8 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/animations.css">
   <link rel="stylesheet" href="styles/fortune-ui.css">
+  <link rel="stylesheet" href="styles/main-glass.css?v=20260316">
+  <link rel="stylesheet" href="styles/cosmic-main.css?v=20260316">
   <script>
     (function () {
       try {
@@ -431,6 +433,25 @@
   <link rel="stylesheet" href="styles/browser-compat.css?v=20260316-browser-compat1">
 </head>
 <body>
+
+<!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
+<div class="cosmic-bg" aria-hidden="true">
+  <span class="cosmic-star cosmic-star--1"></span>
+  <span class="cosmic-star cosmic-star--2"></span>
+  <span class="cosmic-star cosmic-star--3"></span>
+  <span class="cosmic-star cosmic-star--4"></span>
+  <span class="cosmic-star cosmic-star--5"></span>
+  <span class="cosmic-star cosmic-star--6 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--7"></span>
+  <span class="cosmic-star cosmic-star--8"></span>
+  <span class="cosmic-star cosmic-star--9 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--10"></span>
+  <span class="cosmic-star cosmic-star--11"></span>
+  <span class="cosmic-star cosmic-star--12 cosmic-star--pink"></span>
+  <span class="cosmic-star cosmic-star--13"></span>
+  <span class="cosmic-star cosmic-star--14"></span>
+  <span class="cosmic-star cosmic-star--15"></span>
+</div>
 
 <!-- 타로 자존감 모달 (body 직계 — z-index/containment 이슈 방지) -->
 <div id="tarotSelfEsteemOverlay" class="tarot-self-esteem-overlay" style="display:none;" data-action="closeTarotSelfEsteemModal" data-action-self-only="1">
@@ -1992,8 +2013,8 @@
                 <p class="tarot-reunion-subtitle">깊은 밤바다의 등대처럼, 당신의 그리움을 다정하게 비추는 재회운 5카드 스프레드입니다. 조급한 단정보다 따뜻한 통찰로 다음 길을 찾도록 도와드립니다.</p>
                 <div class="tarot-reunion-audio-wrap">
                   <button id="tarotReunionSoundBtn" class="tarot-reunion-sound-btn" type="button" data-action="toggleTarotReunionAmbient">🌊 밤바다 사운드 켜기</button>
-                  <audio id="tarotReunionAmbient" preload="metadata" loop playsinline>
-                    <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_1f49f5f7f0.mp3" type="audio/mpeg">
+                  <audio id="tarotReunionAmbient" preload="none" loop playsinline>
+                    <!-- src는 재생 시 JS에서 설정 (Pixabay 403 방지) -->
                   </audio>
                 </div>
                 <div class="tarot-reunion-invoke-wrap">

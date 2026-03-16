@@ -85,7 +85,7 @@
         if (custom) return normalizeApiBase(custom);
       } catch (e) {}
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000";
+      if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
       if (host === "api.code-destiny.com") return location.origin || "";
       if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
@@ -116,9 +116,13 @@
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") add("http://localhost:4000");
+      if (host === "localhost" || host === "127.0.0.1") {
+        add("http://localhost:3000");
+        add("http://localhost:4000");
+      }
       if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
+      add("http://localhost:3000");
       add("http://localhost:4000");
     }
 

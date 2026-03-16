@@ -9,6 +9,9 @@
     "dev": "next dev",
     "api": "node server/server.js",
     "build": "next build",
+    "clean:cf": "node scripts/clean-cloudflare-build.mjs",
+    "build:cf": "npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
+    "deploy:cf:pages": "wrangler pages deploy .next",
     "deploy": "next build && npx @opennextjs/cloudflare build",
     "start": "next start",
     "lint": "next lint"

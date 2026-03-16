@@ -1,0 +1,275 @@
+/* fortune.css — 운세 페이지 전용 스타일시트
+   모바일 최우선, 접근성, SEO 친화 */
+
+/* ── 리셋 & 기본 ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{
+  font-family:'Gowun Dodum','Noto Sans KR',sans-serif;
+  background:#0f0e1a;
+  color:#e8e0f0;
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-overflow-scrolling:touch;
+  overflow-x:hidden;
+}
+
+/* ── GNB (Global Nav Bar) ── */
+.fe-gnb{
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:12px 16px;
+  background:rgba(15,14,26,0.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(232,121,249,0.15);
+  font-size:.88rem;
+}
+.fe-gnb a{color:#c084fc;text-decoration:none;font-weight:700;}
+.fe-gnb-logo{font-size:.95rem;}
+.fe-gnb a:hover{color:#e879f9;}
+
+/* ── 메인 래퍼 ── */
+.fe-wrap{
+  max-width:700px;
+  margin:0 auto;
+  padding:16px 14px calc(40px + env(safe-area-inset-bottom,0px));
+}
+
+/* ── 로딩 스피너 ── */
+#feLoading{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:60px 20px;gap:16px;color:#c084fc;
+  font-size:.95rem;
+}
+.fe-spinner{
+  width:40px;height:40px;border:3px solid rgba(192,132,252,.2);
+  border-top-color:#c084fc;border-radius:50%;
+  animation:feSpin .8s linear infinite;
+}
+@keyframes feSpin{to{transform:rotate(360deg);}}
+
+/* ── 브레드크럼 ── */
+.fe-breadcrumb{
+  display:flex;flex-wrap:wrap;gap:4px;align-items:center;
+  font-size:.78rem;color:rgba(232,224,240,.45);
+  margin-bottom:18px;line-height:1.5;
+}
+.fe-breadcrumb a{color:rgba(192,132,252,.7);text-decoration:none;}
+.fe-breadcrumb a:hover{color:#e879f9;}
+.fe-breadcrumb-sep{padding:0 2px;}
+
+/* ── 영웅 헤더 ── */
+.fe-hero{
+  text-align:center;
+  padding:28px 16px 20px;
+  background:linear-gradient(160deg,rgba(88,28,135,.35),rgba(15,14,26,.8));
+  border-radius:20px;
+  border:1px solid rgba(232,121,249,.15);
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.fe-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(232,121,249,.12),transparent 65%);
+  pointer-events:none;
+}
+.fe-hero-icon{font-size:3.5rem;line-height:1;display:block;margin-bottom:8px;}
+.fe-hero-title{
+  font-size:1.55rem;font-weight:900;
+  color:#f0e6ff;
+  text-shadow:0 0 20px rgba(232,121,249,.4);
+  margin-bottom:6px;
+  word-break:keep-all;
+}
+.fe-hero-subtitle{
+  font-size:.85rem;color:rgba(232,224,240,.6);
+  word-break:keep-all;
+}
+.fe-hero-date{
+  display:inline-block;margin-top:10px;font-size:.8rem;
+  background:rgba(232,121,249,.12);
+  border:1px solid rgba(232,121,249,.25);
+  padding:4px 12px;border-radius:20px;color:#e879f9;
+}
+
+/* ── 점수 바 ── */
+.fe-scores{
+  display:grid;grid-template-columns:1fr;gap:10px;
+  margin-bottom:20px;
+}
+.fe-score-row{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:12px 14px;
+}
+.fe-score-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.82rem;color:rgba(232,224,240,.7);
+  margin-bottom:7px;
+}
+.fe-score-name{font-weight:700;}
+.fe-score-val{color:#e879f9;font-weight:900;font-size:.9rem;}
+.fe-score-bar{
+  height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;
+}
+.fe-score-fill{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#7c3aed,#e879f9);
+  transition:width .8s cubic-bezier(.22,1,.36,1);
+}
+.fe-score-fill.love{background:linear-gradient(90deg,#be185d,#f472b6);}
+.fe-score-fill.wealth{background:linear-gradient(90deg,#b45309,#fbbf24);}
+.fe-score-fill.health{background:linear-gradient(90deg,#065f46,#34d399);}
+
+/* ── 콘텐츠 카드 ── */
+.fe-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:18px 16px;
+  margin-bottom:14px;
+}
+.fe-card-title{
+  font-size:.95rem;font-weight:900;
+  color:#c084fc;
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.fe-card-body{
+  font-size:.9rem;line-height:1.85;
+  color:rgba(232,224,240,.85);
+  word-break:keep-all;
+}
+
+/* ── 행운 아이템 ── */
+.fe-lucky{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-bottom:14px;
+}
+.fe-lucky-item{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;padding:14px 12px;text-align:center;
+}
+.fe-lucky-label{font-size:.72rem;color:rgba(232,224,240,.45);margin-bottom:4px;}
+.fe-lucky-val{font-size:1.1rem;font-weight:900;color:#f0e6ff;}
+
+/* ── 조언 박스 ── */
+.fe-advice{
+  background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(232,121,249,.08));
+  border:1px solid rgba(232,121,249,.2);
+  border-radius:16px;padding:18px 16px;margin-bottom:20px;
+}
+.fe-advice-title{
+  font-size:.88rem;font-weight:900;color:#e879f9;
+  display:flex;align-items:center;gap:6px;margin-bottom:10px;
+}
+.fe-advice-body{
+  font-size:.88rem;line-height:1.9;
+  color:rgba(232,224,240,.8);font-style:italic;word-break:keep-all;
+}
+
+/* ── FAQ 섹션 ── */
+.fe-faq{margin-bottom:20px;}
+.fe-faq-title{
+  font-size:1rem;font-weight:900;color:#c084fc;
+  margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.fe-faq-item{margin-bottom:10px;}
+.fe-faq-q{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:12px 14px;
+  font-size:.85rem;font-weight:700;color:rgba(232,224,240,.8);
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.fe-faq-q[aria-expanded="true"]{
+  background:rgba(124,58,237,.12);border-color:rgba(124,58,237,.35);
+  border-radius:10px 10px 0 0;
+}
+.fe-faq-arrow{transition:transform .25s;}
+.fe-faq-q[aria-expanded="true"] .fe-faq-arrow{transform:rotate(180deg);}
+.fe-faq-a{
+  display:none;
+  background:rgba(124,58,237,.06);
+  border:1px solid rgba(124,58,237,.2);border-top:none;
+  border-radius:0 0 10px 10px;
+  padding:12px 14px;
+  font-size:.83rem;line-height:1.8;color:rgba(232,224,240,.7);
+  word-break:keep-all;
+}
+.fe-faq-q[aria-expanded="true"] + .fe-faq-a{display:block;}
+
+/* ── 내부 링크 그리드 ── */
+.fe-links{margin-bottom:20px;}
+.fe-links-title{
+  font-size:.88rem;color:rgba(232,224,240,.45);
+  margin-bottom:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;font-size:.75rem;
+}
+.fe-link-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+}
+@media(min-width:400px){.fe-link-grid{grid-template-columns:repeat(3,1fr);}}
+.fe-link-card{
+  display:block;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;
+  padding:10px 10px;
+  text-align:center;
+  text-decoration:none;
+  color:rgba(232,224,240,.75);
+  font-size:.78rem;font-weight:700;
+  transition:background .2s,border-color .2s,color .2s;
+  -webkit-tap-highlight-color:transparent;
+  line-height:1.4;
+}
+.fe-link-card:hover,.fe-link-card:focus{
+  background:rgba(124,58,237,.15);
+  border-color:rgba(124,58,237,.4);
+  color:#e879f9;
+}
+.fe-link-card span{display:block;font-size:1.1rem;margin-bottom:4px;}
+
+/* ── 광고 영역 ── */
+.fe-ad{
+  margin:20px 0;padding:0;
+  min-height:90px;
+  border-radius:12px;overflow:hidden;
+}
+.fe-ad-label{
+  font-size:.72rem;color:rgba(232,224,240,.3);
+  text-align:center;margin-bottom:6px;
+}
+
+/* ── 에러 폴백 ── */
+#feError{
+  text-align:center;padding:40px 20px;color:rgba(232,224,240,.5);
+  font-size:.88rem;line-height:1.8;
+}
+#feError a{color:#c084fc;text-decoration:none;}
+
+/* ── 반응형: 큰 화면 ── */
+@media(min-width:500px){
+  .fe-scores{grid-template-columns:1fr 1fr;}
+  .fe-hero-title{font-size:1.8rem;}
+}
+
+/* ── 하단 안전 영역 ── */
+.fe-footer{
+  text-align:center;padding:20px 0;
+  font-size:.72rem;color:rgba(232,224,240,.25);
+}
+.fe-footer a{color:rgba(192,132,252,.5);text-decoration:none;}

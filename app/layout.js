@@ -55,6 +55,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="ko">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="canonical" href={canonicalHref} />
         <meta name="adsense-script-slot" content="ADSENSE_APPROVAL_SCRIPT_SLOT" />
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
