@@ -70,6 +70,7 @@
     refs.resultStage = byId("animalTotemResultStage");
     refs.cardRail = byId("animalTotemCardRail");
     refs.readingPanels = byId("animalTotemReadingPanels");
+    refs.resultCards = byId("animalTotemResultCards");
     refs.openingText = byId("animalTotemOpeningText");
     refs.closingText = byId("animalTotemClosingText");
     refs.flowStrip = byId("animalTotemFlowStrip");
@@ -98,6 +99,9 @@
       el.classList.remove("is-active");
     });
     if (stageEl) stageEl.classList.add("is-active");
+    if (refs.overlay) {
+      refs.overlay.classList.toggle("is-result-view", stageEl === refs.resultStage);
+    }
   }
 
   function buildRuneField() {
@@ -328,8 +332,27 @@
     else refs.overlay.classList.add("env-water");
   }
 
+  function renderResultCards() {
+    if (!refs.resultCards || !state.spread) return;
+    refs.resultCards.innerHTML = "";
+    refs.resultCards.className = "totem-result-cards totem-result-cards--" + state.spread.cards.length;
+    state.spread.cards.forEach(function(entry, idx) {
+      var card = document.createElement("div");
+      card.className = "totem-result-card totem-result-card--" + (idx + 1);
+      card.setAttribute("aria-label", slotLabel(entry.slot) + " — " + entry.card.name_ko);
+      card.innerHTML =
+        '<div class="totem-result-card-inner">' +
+        '<span class="totem-result-card-emoji">' + entry.card.emoji + "</span>" +
+        '<span class="totem-result-card-name">' + entry.card.name_ko + "</span>" +
+        '<small class="totem-result-card-slot">' + slotLabel(entry.slot) + "</small>" +
+        '</div>';
+      refs.resultCards.appendChild(card);
+    });
+  }
+
   function renderConsultation() {
     if (!refs.readingPanels || !state.consultation) return;
+    renderResultCards();
     refs.readingPanels.innerHTML = "";
     if (refs.openingText) refs.openingText.textContent = takeSentences(state.consultation.opening_message || "", 2);
     if (refs.closingText) refs.closingText.textContent = takeSentences(state.consultation.closing_guidance || "", 2);
@@ -397,6 +420,7 @@
     state.revealedOrder = [];
     activateStage(refs.introStage);
     if (refs.cardRail) refs.cardRail.innerHTML = "";
+    if (refs.resultCards) refs.resultCards.innerHTML = "";
     if (refs.readingPanels) refs.readingPanels.innerHTML = "";
     if (refs.openingText) refs.openingText.textContent = "";
     if (refs.closingText) refs.closingText.textContent = "";

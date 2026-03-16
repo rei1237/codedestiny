@@ -859,11 +859,63 @@
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
         var menuBtn = targetEl.closest('.dp-mc-list-btn');
-        if (!menuBtn) return;
-        e.preventDefault();
-        dpOpenList();
+        if (menuBtn) {
+          e.preventDefault();
+          dpOpenList();
+          return;
+        }
+        var loadBtn = targetEl.closest('.dp-mc-load-btn');
+        if (loadBtn) {
+          e.preventDefault();
+          dpLoadProfile();
+          return;
+        }
       }, { passive: false });
     }
+
+    /* 운세 유형 선택 모달(dp-fsel) — 모바일 터치 위임 (onclick 유실 방지) */
+    var _dpFselTouchX = 0, _dpFselTouchY = 0;
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches && e.touches[0]) {
+        var t = _resolveEventElement(e.target);
+        if (t && t.closest && t.closest('.dp-fsel-overlay')) {
+          _dpFselTouchX = e.touches[0].clientX;
+          _dpFselTouchY = e.touches[0].clientY;
+        }
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', function(e) {
+      var targetEl = _resolveEventElement(e.target);
+      if (!targetEl || !targetEl.closest) return;
+      var closeBtn = targetEl.closest('.dp-fsel-overlay .dp-fsel-close-btn');
+      if (closeBtn) {
+        var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
+        var dx = Math.abs(pt.clientX - _dpFselTouchX);
+        var dy = Math.abs(pt.clientY - _dpFselTouchY);
+        if (dx < 10 && dy < 16 && typeof window._dpCloseFortuneSel === 'function') {
+          e.preventDefault();
+          window._dpCloseFortuneSel();
+        }
+        return;
+      }
+      var btn = targetEl.closest('.dp-fsel-overlay .dp-fsel-btn');
+      if (!btn) return;
+      var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
+      var dx = Math.abs(pt.clientX - _dpFselTouchX);
+      var dy = Math.abs(pt.clientY - _dpFselTouchY);
+      if (dx >= 10 || dy >= 16) return; /* 스크롤로 간주 */
+      e.preventDefault();
+      var type = '';
+      if (btn.classList.contains('dp-fsel-btn--saju')) type = 'saju';
+      else if (btn.classList.contains('dp-fsel-btn--sukuyo')) type = 'sukuyo';
+      else if (btn.classList.contains('dp-fsel-btn--ziwei')) type = 'ziwei';
+      else if (btn.classList.contains('dp-fsel-btn--astro')) type = 'astro';
+      else if (btn.classList.contains('dp-fsel-btn--tarot')) type = 'tarot';
+      else if (btn.classList.contains('dp-fsel-btn--flower')) type = 'flower';
+      if (type && typeof window._dpOpenFortuneType === 'function') {
+        window._dpOpenFortuneType(type);
+      }
+    }, { passive: false });
 
     /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');

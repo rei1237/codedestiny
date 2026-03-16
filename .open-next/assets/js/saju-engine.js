@@ -11472,7 +11472,6 @@ function renderZiwei(p, natal, targetId) {
             '<li><b>주도 주성:</b> ' + stHtml + '</li>' +
             '<li><b>차성 적용 여부:</b> ' + (borrowedMain.length ? ('적용 ('+borrowedMain.join(' · ')+')') : '미적용 (원성 중심)') + '</li>' +
             '<li><b>길성/흉성 분포:</b> ' + auxJoin + ' / ' + badJoin + '</li>' +
-            '<li><b>계산식 기준:</b> ' + (pd.calcMeta ? ('음력 '+pd.calcMeta.lunarMonth+'월 '+pd.calcMeta.lunarDay+'일 · 시지 '+pd.calcMeta.hourBranch+' · '+pd.calcMeta.lifeFormula) : '기본 계산식 적용') + '</li>' +
           '</ul>' +
         '</div>';
 

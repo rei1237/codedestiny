@@ -551,6 +551,28 @@ body {
 .tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
 .tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
 .tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
+/* 공사 중 스티커 (베다점 등) */
+.tarot-tile__sticker {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 4;
+	pointer-events: none;
+}
+.tarot-tile__sticker--construction {
+	display: inline-block;
+	font-size: 1.4rem;
+	font-weight: 900;
+	letter-spacing: 0.15em;
+	color: #fff;
+	text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+	background: linear-gradient(135deg, rgba(234, 88, 12, 0.92), rgba(194, 65, 12, 0.95));
+	border: 3px solid rgba(255, 255, 255, 0.6);
+	border-radius: 12px;
+	padding: 12px 20px;
+	box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
 .tarot-tile__body {
 	padding: 12px 14px 14px;
 	display: flex;
@@ -583,6 +605,7 @@ body {
 	.tarot-tile__body { padding: 10px 12px 12px; }
 	.tarot-tile__title { font-size: 0.85rem; }
 	.tarot-tile__desc { font-size: 0.7rem; }
+	.tarot-tile__sticker--construction { font-size: 1.1rem; padding: 10px 16px; }
 }
 @media (max-width: 480px) {
 	.wrap { padding: 0 12px 24px; }
@@ -594,6 +617,7 @@ body {
 	.tarot-tile__body { padding: 8px 10px 10px; }
 	.tarot-tile__title { font-size: 0.78rem; }
 	.tarot-tile__desc { font-size: 0.65rem; }
+	.tarot-tile__sticker--construction { font-size: 0.95rem; padding: 8px 12px; letter-spacing: 0.1em; }
 	.feat-collection__title,
 	.tarot-collection__title { font-size: 1.15rem; }
 	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }

@@ -608,7 +608,6 @@
 
       var front = document.createElement("div");
       front.className = "tarot-self-esteem-card-front";
-      front.style.display = "none";
       if (card.orientation === "reversed") front.setAttribute("data-reversed", "1");
 
       var img = document.createElement("img");
@@ -673,12 +672,12 @@
     emitRipple(cardEl);
     cardEl.setAttribute("data-revealed", "1");
     cardEl.classList.add("flipped");
+    cardEl.style.pointerEvents = "none";
 
-    var back = cardEl.querySelector(".tarot-self-esteem-card-back");
-    var front = cardEl.querySelector(".tarot-self-esteem-card-front");
+    var slot = cardEl.closest(".tarot-self-esteem-slot");
+    if (slot) slot.classList.add("has-flipped");
+
     ensureSelfEsteemFrontImage(cardEl, state.cards[idx]);
-    if (back) back.style.display = "none";
-    if (front) front.style.display = "flex";
 
     state.revealedCount += 1;
     updateExpBar((state.revealedCount / 5) * 100);
@@ -943,6 +942,7 @@
   function attachLevelUpOnScroll(container) {
     var banner = byId("tarotSelfEsteemLevelUpBanner");
     var levelUpShown = false;
+    var ticking = false;
     function checkScroll() {
       if (levelUpShown || !container) return;
       var st = container.scrollTop;
@@ -957,7 +957,15 @@
         triggerLevelUpConfetti();
       }
     }
-    container.addEventListener("scroll", checkScroll, { passive: true });
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        checkScroll();
+      });
+    }
+    container.addEventListener("scroll", onScroll, { passive: true });
     checkScroll();
   }
 

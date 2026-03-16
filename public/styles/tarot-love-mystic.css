@@ -399,6 +399,67 @@
   .tarot-love-hero-card { width: 40px; height: 54px; font-size: 1.2rem; }
 }
 
+/* ─── 핑크빛 네온 사인 하트 카드 (메인 화면 하단) ─── */
+.tarot-love-neon-heart-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 28px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: linear-gradient(165deg, rgba(20, 4, 28, 0.85), rgba(12, 2, 18, 0.9));
+  border: 1px solid rgba(255, 100, 180, 0.35);
+  box-shadow:
+    0 0 20px rgba(255, 77, 166, 0.25),
+    0 0 40px rgba(255, 105, 180, 0.15),
+    inset 0 0 30px rgba(255, 77, 166, 0.08);
+}
+.tarot-love-neon-heart-card .tl-neon-heart {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ff4da6;
+  text-shadow:
+    0 0 8px #ff4da6,
+    0 0 16px #ff4da6,
+    0 0 24px #ff85c2,
+    0 0 32px rgba(255, 133, 194, 0.9),
+    0 0 48px rgba(255, 77, 166, 0.7),
+    0 0 64px rgba(255, 105, 180, 0.5);
+  filter: drop-shadow(0 0 12px rgba(255, 77, 166, 0.8));
+  animation: neonHeartGlow 2.5s ease-in-out infinite;
+}
+@keyframes neonHeartGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 8px #ff4da6,
+      0 0 16px #ff4da6,
+      0 0 24px #ff85c2,
+      0 0 32px rgba(255, 133, 194, 0.9),
+      0 0 48px rgba(255, 77, 166, 0.7),
+      0 0 64px rgba(255, 105, 180, 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow:
+      0 0 12px #ff4da6,
+      0 0 24px #ff4da6,
+      0 0 36px #ff85c2,
+      0 0 48px rgba(255, 133, 194, 1),
+      0 0 64px rgba(255, 77, 166, 0.9),
+      0 0 80px rgba(255, 105, 180, 0.7);
+    opacity: 1;
+  }
+}
+@media (max-width: 480px) {
+  .tarot-love-neon-heart-card {
+    margin-top: 20px;
+    padding: 16px 20px;
+  }
+  .tarot-love-neon-heart-card .tl-neon-heart {
+    font-size: 2.4rem;
+  }
+}
+
 /* ─── 히어로 영역 3장 프리뷰 카드 (4d24627 스타일) ─── */
 .tarot-love-hero-preview {
   display: flex;

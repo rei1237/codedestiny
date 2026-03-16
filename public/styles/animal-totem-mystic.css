@@ -55,6 +55,8 @@
   min-height: 100%;
   padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
 }
+/* 결과 화면 전용 슬림 레이아웃 */
+.animal-totem-overlay.is-result-view .animal-totem-shell { max-width: 600px; }
 .animal-totem-panel {
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -588,66 +590,178 @@
   to { transform: translate(var(--tx), var(--ty)) scale(.1); opacity: 0; }
 }
 
-/* ═══ 결과 화면 (신비롭고 깔끔한 톤앤매너) ═══ */
+/* ═══ 결과 화면 (모바일 퍼스트 · 바이브 코딩) ═══ */
 .totem-result-stage.is-active { animation: resultStageIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 @keyframes resultStageIn {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.totem-consult-grid {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+/* Container: max-width 600px, 중앙 정렬 */
+.totem-result-container {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
+
+/* Header: 동물 토템 이름 + 핵심 키워드 */
+.totem-result-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.totem-result-title {
+  margin: 0 0 16px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #f7f3ff;
+  text-shadow: 0 0 40px rgba(250,204,21,.2);
+  line-height: 1.3;
+}
+.totem-flow-strip--compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* Card Section: 플로팅 카드 (3:5 비율, 그림자·테두리) */
+.totem-result-card-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+.totem-result-cards {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  width: 100%;
+}
+.totem-result-cards--3 {
+  grid-template-columns: 1fr;
+  max-width: 180px;
+  margin: 0 auto;
+}
+.totem-result-cards--4,
+.totem-result-cards--5 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 320px;
+  margin: 0 auto;
+}
+.totem-result-card {
+  width: 100%;
+  max-width: 140px;
+  aspect-ratio: 3 / 5;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.2);
+  background: linear-gradient(165deg, rgba(255,248,235,.98), rgba(240,230,255,.95));
+  box-shadow:
+    0 12px 32px rgba(0,0,0,.35),
+    0 0 0 1px rgba(250,204,21,.25),
+    inset 0 1px 0 rgba(255,255,255,.5);
+  animation: totemResultCardUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+  transform: translateY(24px);
+}
+.totem-result-card--1 { animation-delay: 0.05s; }
+.totem-result-card--2 { animation-delay: 0.12s; }
+.totem-result-card--3 { animation-delay: 0.19s; }
+.totem-result-card--4 { animation-delay: 0.26s; }
+.totem-result-card--5 { animation-delay: 0.33s; }
+@keyframes totemResultCardUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+.totem-result-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 16px;
+  color: #3f1d64;
+}
+.totem-result-card-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.12));
+}
+.totem-result-card-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.2;
+}
+.totem-result-card-slot {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: rgba(63,29,100,.7);
+  letter-spacing: 0.06em;
+}
+
+/* Content Section: 해석 텍스트 (16px+, 행간 가독성) */
+.totem-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Glassmorphism 패널 */
 .totem-panel-float {
   border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.1);
-  background: linear-gradient(165deg, rgba(30,41,68,.95), rgba(17,24,39,.98));
-  box-shadow: 0 16px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
-  padding: 20px;
-  color: rgba(255,255,255,.9);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(30,41,68,.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.08);
+  padding: 22px;
+  color: rgba(255,255,255,.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .totem-panel-float h4 {
   color: #fde68a;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.12em;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-transform: uppercase;
 }
 .totem-panel-float p, .totem-panel-float li {
-  color: rgba(255,255,255,.88);
-  font-size: 0.95rem;
-  line-height: 1.7;
+  color: rgba(255,255,255,.9);
+  font-size: 1rem;
+  line-height: 1.8;
 }
 .totem-panel-float ul {
-  margin: 6px 0 0 18px;
+  margin: 8px 0 0 20px;
   padding: 0;
+}
+
+/* 세로형 리스트 (가로 스크롤 대신) */
+.totem-consult-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 .totem-result-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 24px;
+  justify-content: center;
 }
-.totem-reading-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-.totem-reading-title {
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #f7f3ff;
-  text-shadow: 0 0 30px rgba(250,204,21,.15);
-}
-.totem-reading-subtitle {
-  margin: 10px 0 0;
-  font-size: 0.9rem;
-  color: rgba(255,255,255,.75);
-  line-height: 1.7;
-}
+
+/* 레거시 호환 */
+.totem-reading-header { margin-bottom: 20px; text-align: center; }
+.totem-reading-title { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.06em; color: #f7f3ff; }
+.totem-reading-subtitle { margin: 10px 0 0; font-size: 0.9rem; color: rgba(255,255,255,.75); line-height: 1.7; }
 .totem-flow-strip {
   display: flex;
   align-items: center;
@@ -683,14 +797,15 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.06);
-  background: linear-gradient(165deg, rgba(30,41,68,.95), rgba(17,24,39,.98));
-  box-shadow: 0 16px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
-  padding: 24px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(30,41,68,.45);
+  box-shadow: 0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  padding: 22px;
   animation: totemCardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
-  transform: translateY(24px);
-  backdrop-filter: blur(8px);
+  transform: translateY(20px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 @keyframes totemCardIn {
   to { opacity: 1; transform: translateY(0); }
@@ -755,9 +870,9 @@
 }
 .totem-guidance-section p, .totem-guidance-section li {
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.75;
-  color: rgba(255,255,255,.88);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255,255,255,.9);
 }
 .totem-guidance-section ul { margin: 0; padding-left: 20px; }
 .totem-ritual-toggle {
@@ -789,12 +904,9 @@
 @media (max-width: 680px) {
   .totem-result-actions { flex-direction: column; }
   .totem-reading-title { font-size: 22px; }
-  .totem-consult-grid { grid-template-columns: 1fr; }
+  .totem-result-title { font-size: 1.5rem; }
   .totem-intro-subtitle { max-width: 100%; }
   .totem-intro-hero::before { width: 90px; height: 90px; right: 12px; top: 12px; opacity: .68; }
-}
-@media (max-width: 980px) {
-  .totem-consult-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .animal-totem-stage,
@@ -806,7 +918,9 @@
   .totem-card-face--back,
   .totem-mode-badge,
   .totem-btn--spread,
-  .totem-mode-btn.is-active .totem-mode-icon { animation: none !important; transition: none !important; }
+  .totem-mode-btn.is-active .totem-mode-icon,
+  .totem-result-card,
+  .totem-guidance-card { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
 }
 
 @media (max-width: 768px) {
@@ -818,6 +932,10 @@
     padding: 16px 14px;
     border-radius: 20px;
   }
+  .totem-result-title { font-size: 1.45rem; }
+  .totem-result-card { max-width: 120px; }
+  .totem-result-cards--3 { max-width: 150px; }
+  .totem-result-cards--4, .totem-result-cards--5 { max-width: 280px; }
   .totem-canvas-wrap {
     height: 280px;
   }
@@ -841,8 +959,8 @@
   }
   .totem-guidance-section p,
   .totem-guidance-section li {
-    font-size: 14px;
-    line-height: 1.65;
+    font-size: 15px;
+    line-height: 1.75;
   }
   .totem-result-actions {
     display: grid;

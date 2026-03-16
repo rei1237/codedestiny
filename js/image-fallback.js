@@ -43,6 +43,9 @@
     if (!img || img.dataset.fallbackBound === '1') return;
 
     img.dataset.fallbackBound = '1';
+    /* 스크롤 성능: 동적 이미지에 lazy/async 기본 적용 (CLS·메인스레드 차단 방지) */
+    if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
+    if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
     img.addEventListener('error', function () {
       handleImageError(img);
     }, { passive: true });

@@ -266,6 +266,14 @@
 }
 
 /* Card 3D Flip */
+.tarot-self-esteem-slot {
+  isolation: isolate;
+  z-index: 1;
+}
+.tarot-self-esteem-slot:has(.tarot-self-esteem-card.flipped),
+.tarot-self-esteem-slot.has-flipped {
+  z-index: 10;
+}
 .tarot-self-esteem-card {
   position: relative;
   width: 110px;
@@ -289,7 +297,13 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tarot-self-esteem-card-back {
+  z-index: 1;
+}
+.tarot-self-esteem-card-front {
+  z-index: 2;
 }
 .tarot-self-esteem-card-back {
   background: #fff;
@@ -501,6 +515,9 @@
 .tarot-self-esteem-result-actions .tarot-self-esteem-btn--subtle {
   background: rgba(251, 191, 36, 0.2);
   color: #fbbf24;
+}
+.tarot-self-esteem-result-actions .tarot-self-esteem-btn--home {
+  flex: 1 1 100%;
 }
 
 @media (max-width: 768px) {

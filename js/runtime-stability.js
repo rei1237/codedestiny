@@ -279,14 +279,13 @@
       showFallback();
     } finally {
       clearTimeout(hardTimeout);
-      hideLoadingScreen('init-finally');
+      /* 스플래시는 splash.js가 3초 후 제거 — init 완료 시 즉시 숨기지 않음 */
       ensureMainUiVisible();
     }
 
-    // Multi-phase cleanup to ensure stale overlays never survive.
-    setTimeout(stopBlockingOverlays, 2500);
+    /* 스플래시 3초 노출 후 정리 (splash.js와 동기화) */
+    setTimeout(stopBlockingOverlays, 4000);
     setTimeout(stopBlockingOverlays, 7000);
-    setTimeout(stopBlockingOverlays, 14000);
 
     window.addEventListener('resize', function () {
       setDynamicVhVar();
