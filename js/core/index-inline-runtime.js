@@ -837,6 +837,14 @@ function _dfGetProfilePayload() {
 
 function _dfResolveSelection() {
   var payload = _dfGetProfilePayload();
+  var birthCtx = _dfResolveBirthContext(payload || {});
+
+  // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
+  // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
+  if (!_dfHasBirthCore(birthCtx)) {
+    return null;
+  }
+
   var matched = null;
   var theme = null;
 
@@ -2670,6 +2678,9 @@ function openDestinyFlower(forceRefreshData) {
 function openDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var sheet = document.getElementById('destinyFlowerStudioSheet');
+  var main = document.querySelector('.df-studio-main');
+  var panels = document.querySelector('.df-studio-panels');
+  var historySection = document.querySelector('.df-studio-history');
   if (!overlay) return;
 
   if (!overlay.__dfCloseBridgeBound) {
@@ -2707,11 +2718,24 @@ function openDestinyFlowerStudio() {
   }
 
   var selection = openDestinyFlower(true) || _dfGetUnifiedSelection(_dfStudioState.activeSource || 'saju', true);
-  _dfStudioState.selection = selection;
-  _dfApplyStudioSelection(selection);
-  _dfLoadHistory();
-  _dfRenderHistoryList();
-  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+
+  if (!selection) {
+    // 생년월일 정보가 없어 운명의 꽃을 계산할 수 없는 상태
+    _dfStudioState.selection = null;
+    if (main) main.style.display = 'none';
+    if (panels) panels.style.display = 'none';
+    if (historySection) historySection.style.display = 'none';
+    _dfSetStudioStatus('이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.');
+  } else {
+    _dfStudioState.selection = selection;
+    _dfApplyStudioSelection(selection);
+    _dfLoadHistory();
+    _dfRenderHistoryList();
+    _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+    if (main) main.style.display = '';
+    if (panels) panels.style.display = '';
+    if (historySection) historySection.style.display = '';
+  }
 
   overlay.style.display = 'block';
   overlay.scrollTop = 0;

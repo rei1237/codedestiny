@@ -1172,6 +1172,22 @@
                   </div>
                 </button>
 
+                <!-- 베다점(조티시) 출생 차트 -->
+                <a class="tarot-tile tarot-tile--vedic-fc"
+                   href="/vedic"
+                   aria-label="베다점(조티시) 출생 차트로 이동">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/veda.webp"
+                         alt="베다점(조티시) — 출생 차트와 다샤 분석"
+                         loading="lazy" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🕉 베다점 조티시</span>
+                    <span class="tarot-tile__desc">출생 차트 · 다샤 · 요가</span>
+                  </div>
+                </a>
+
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--cosmic -->
 
@@ -2121,8 +2137,12 @@
             </section>
 
             <section id="tarotYearFortuneDrawStage" class="tarot-year-stage">
-              <h3 class="ty-draw-title">12개월 운명의 카드를 뽑는 중...</h3>
-              <div id="tarotYearDrawCardGrid" class="ty-draw-grid"></div>
+              <div class="ty-loading-block">
+                <h3 class="ty-draw-title">천운의 카드를 뽑는 중입니다</h3>
+                <p class="ty-loading-text">열두 수호신이 한 해의 문을 열고 있습니다. 잠시만 기다려 주세요.</p>
+                <div class="ty-loading-spinner" aria-hidden="true"></div>
+              </div>
+              <div id="tarotYearDrawCardGrid" class="ty-draw-grid" aria-hidden="true"></div>
             </section>
 
             <section id="tarotYearFortuneResultStage" class="tarot-year-stage">

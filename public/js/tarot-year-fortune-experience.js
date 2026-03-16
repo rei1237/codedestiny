@@ -19,7 +19,7 @@
     monthCategoryCache: {},
     monthRequestToken: 0
   };
-  var TAROT_API_TIMEOUT_MS = 12000;
+  var TAROT_API_TIMEOUT_MS = 9000;
 
   function byId(id) {
     return document.getElementById(id);
@@ -449,7 +449,9 @@
   function startTarotYearFortuneReading() {
     var intro = byId("tarotYearFortuneIntroStage");
     var draw = byId("tarotYearFortuneDrawStage");
-    if (!intro || !draw) return;
+    var result = byId("tarotYearFortuneResultStage");
+    var ctaBtn = byId("tarotYearCtaBtn");
+    if (!intro || !result) return;
 
     intro.classList.remove("is-active");
     draw.classList.add("is-active");
@@ -458,7 +460,6 @@
       .then(function (drawData) {
         if (!drawData.cards || drawData.cards.length !== 12) throw new Error("Invalid draw");
         state.cards = drawData.cards;
-        renderTarotYearDrawCards();
         showTarotYearFinalReading();
       })
       .catch(function (err) {
@@ -484,7 +485,6 @@
         localImageUrl: fn ? TAROT_LOCAL_BASE + fn : ""
       };
     });
-    renderTarotYearDrawCards();
     showTarotYearFinalReading();
   }
 
@@ -504,7 +504,9 @@
       label.textContent = ZODIAC_EMOJI[idx] + " " + MONTH_LABELS_CJK[idx];
 
       var cardEl = document.createElement("div");
-      cardEl.className = "ty-draw-card ty-draw-card--month";
+      // 드로우 스테이지에서는 처음부터 앞면이 보이도록 플립 상태를 기본값으로 둔다.
+      // 이렇게 하면 중간에 뒤집히는 애니메이션 없이 바로 카드 앞면만 노출된다.
+      cardEl.className = "ty-draw-card ty-draw-card--month ty-draw-card--flipped";
       cardEl.setAttribute("data-month-idx", idx);
       cardEl.onclick = (function (m) {
         return function () { selectMonthDetail(m); };
@@ -538,11 +540,6 @@
       slot.appendChild(label);
       slot.appendChild(cardEl);
       grid.appendChild(slot);
-    });
-
-    // 드로우 스테이지에서는 카드 바로 공개 (애니메이션은 결과 스테이지에서 월 클릭 시 적용)
-    grid.querySelectorAll(".ty-draw-card--month").forEach(function (el) {
-      el.classList.add("ty-draw-card--flipped");
     });
   }
 
@@ -621,12 +618,42 @@
     });
   }
 
-  function updateMonthCategoryPanel(text, cat) {
-    var titleEl = byId("tarotYearMonthCategoryTitle");
-    var textEl = byId("tarotYearMonthCategoryText");
-    if (titleEl) titleEl.textContent = getCategoryTitle(cat);
-    if (textEl) textEl.textContent = text;
+function typewriterText(el, text, speedMs) {
+  if (!el) return;
+  var full = String(text || "").trim();
+  if (!full) {
+    el.textContent = "";
+    return;
   }
+  if (el.__tyTimer) {
+    clearInterval(el.__tyTimer);
+    el.__tyTimer = null;
+  }
+  var idx = 0;
+  var len = full.length;
+  el.textContent = "";
+  el.classList.add("ty-text-typing");
+  el.classList.remove("ty-text-typed");
+  el.__tyTimer = setInterval(function () {
+    if (idx >= len) {
+      clearInterval(el.__tyTimer);
+      el.__tyTimer = null;
+      el.classList.remove("ty-text-typing");
+      el.classList.add("ty-text-typed");
+      return;
+    }
+    el.textContent += full.charAt(idx++);
+  }, speedMs || 26);
+}
+
+function updateMonthCategoryPanel(text, cat) {
+  var titleEl = byId("tarotYearMonthCategoryTitle");
+  var textEl = byId("tarotYearMonthCategoryText");
+  if (titleEl) titleEl.textContent = getCategoryTitle(cat);
+  if (textEl) {
+    typewriterText(textEl, text, 22);
+  }
+}
 
   function bindMonthCategoryTabs() {
     var tabs = byId("tarotYearMonthCategoryTabs");
@@ -732,6 +759,7 @@
     var token = ++state.monthRequestToken;
 
     panel.classList.add("is-visible");
+    panel.classList.remove("ty-month-detail-panel--flip-start", "ty-month-detail-panel--flip-end");
 
     var placeholder = byId("tarotYearMonthDetailPlaceholder");
     var content = byId("tarotYearMonthDetailContent");
@@ -742,7 +770,6 @@
     monthTiles.forEach(function (tile) {
       var isSelected = String(tile.getAttribute("data-month")) === String(monthNum);
       tile.classList.toggle("is-active", isSelected);
-      tile.classList.toggle("ty-result-card-wrap--flipped", isSelected);
     });
 
     var titleEl = byId("tarotYearMonthDetailTitle");
@@ -769,6 +796,17 @@
       if (token !== state.monthRequestToken) return;
       renderMonthSpreadCards(spreadCards);
       loadMonthCategoryConsultation(monthNum, state.activeCategory || "general");
+
+      // 월 상세 카드 및 삼재 스프레드 카드에 부드러운 플립 애니메이션 적용
+      if (panel) {
+        panel.classList.remove("ty-month-detail-panel--flip-start", "ty-month-detail-panel--flip-end");
+        // 강제 리플로우로 애니메이션 초기 상태를 확실히 적용
+        void panel.offsetWidth;
+        panel.classList.add("ty-month-detail-panel--flip-start");
+        requestAnimationFrame(function () {
+          panel.classList.add("ty-month-detail-panel--flip-end");
+        });
+      }
     });
 
     if (!skipScroll) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -781,10 +819,12 @@
     });
 
     function showResultStage(data) {
+      var intro = byId("tarotYearFortuneIntroStage");
       var draw = byId("tarotYearFortuneDrawStage");
       var result = byId("tarotYearFortuneResultStage");
       if (!data.reading) return;
       state.reading = data.reading;
+      if (intro) intro.classList.remove("is-active");
       if (draw) draw.classList.remove("is-active");
       if (result) result.classList.add("is-active");
       renderTarotYearResult();
@@ -873,8 +913,13 @@
 
     var summaryEl = byId("tarotYearSummary");
     if (summaryEl) {
-      summaryEl.textContent = "";
-      summaryEl.style.display = "none";
+    summaryEl.style.display = "block";
+    typewriterText(
+      summaryEl,
+      r.summary ||
+        "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 천천히 따라가 보세요.",
+      24
+    );
     }
 
     var cardsEl = byId("tarotYearResultCards");
@@ -923,10 +968,25 @@
         wrap.appendChild(inner);
         cardsEl.appendChild(wrap);
       });
+
+      cardsEl.classList.add("ty-result-cards--flip-ready");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          var wraps = cardsEl.querySelectorAll(".ty-result-card-wrap--month");
+          wraps.forEach(function (w) { w.classList.add("ty-result-card-wrap--flipped"); });
+        });
+      });
     }
 
     var adviceEl = byId("tarotYearFinalAdvice");
-    if (adviceEl) adviceEl.textContent = r.finalAdvice || "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
+  if (adviceEl) {
+    typewriterText(
+      adviceEl,
+      r.finalAdvice ||
+        "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.",
+      26
+    );
+  }
 
     var panel = byId("tarotYearMonthDetailPanel");
     var placeholder = byId("tarotYearMonthDetailPlaceholder");

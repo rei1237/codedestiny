@@ -1,3 +1,8 @@
+/**
+ * Deploy static assets to Cloudflare Pages.
+ * For API routes (e.g. /api/tarot/draw) to work, use deploy:cf:worker instead:
+ *   npm run deploy:cf:worker
+ */
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";

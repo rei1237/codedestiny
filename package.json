@@ -12,6 +12,7 @@
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "build:cf": "npm run clean:cf && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
+    "deploy:cf:worker": "node scripts/deploy-worker.mjs",
     "deploy": "next build && npx @opennextjs/cloudflare build",
     "start": "next start",
     "lint": "next lint"
