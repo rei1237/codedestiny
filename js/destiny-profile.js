@@ -846,12 +846,30 @@
     if (overlay) overlay.addEventListener('click', dpCloseList);
     var sheet = document.getElementById('dpListSheet');
     if (sheet) {
+      /* 시트 내부 클릭: data-action 요소는 버블링 허용, 나머지는 stopPropagation */
       sheet.addEventListener('click', function(e) {
-        // Keep non-action clicks inside the sheet from bubbling unexpectedly.
         var targetEl = _resolveEventElement(e.target);
         if (targetEl && targetEl.closest('[data-action]')) return;
         e.stopPropagation();
       });
+      /* 닫기 버튼: 시트 위임으로 처리 (직접 바인딩 실패·모바일 터치 대응) */
+      sheet.addEventListener('click', function(e) {
+        var targetEl = _resolveEventElement(e.target);
+        if (targetEl && targetEl.closest('.dp-sheet-close')) {
+          e.preventDefault();
+          e.stopPropagation();
+          dpCloseList();
+        }
+      }, true);
+      sheet.addEventListener('touchend', function(e) {
+        var targetEl = _resolveEventElement(e.target);
+        if (!targetEl || !targetEl.closest) return;
+        if (targetEl.closest('.dp-sheet-close')) {
+          e.preventDefault();
+          e.stopPropagation();
+          dpCloseList();
+        }
+      }, { capture: true, passive: false });
     }
 
     var closeBtn = document.querySelector('#dpListSheet .dp-sheet-close');
@@ -865,6 +883,33 @@
         dpCloseList();
       }, { passive: false });
     }
+
+    /* 모바일: document 터치 위임 — dp-sheet 닫기 버튼 (iOS Safari onclick 유실 방지) */
+    var _dpSheetTouchX = 0, _dpSheetTouchY = 0;
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches && e.touches[0]) {
+        var t = _resolveEventElement(e.target);
+        if (t && t.closest && t.closest('#dpListSheet .dp-sheet-close')) {
+          _dpSheetTouchX = e.touches[0].clientX;
+          _dpSheetTouchY = e.touches[0].clientY;
+        }
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', function(e) {
+      var targetEl = _resolveEventElement(e.target);
+      if (!targetEl || !targetEl.closest) return;
+      var closeBtnEl = targetEl.closest('#dpListSheet .dp-sheet-close');
+      if (!closeBtnEl) return;
+      var sheetEl = document.getElementById('dpListSheet');
+      if (!sheetEl || !sheetEl.classList.contains('dp-sheet--open')) return;
+      var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
+      var dx = Math.abs(pt.clientX - _dpSheetTouchX);
+      var dy = Math.abs(pt.clientY - _dpSheetTouchY);
+      if (dx < 36 && dy < 36) {
+        e.preventDefault();
+        dpCloseList();
+      }
+    }, { passive: false });
 
     var card = document.getElementById('dpMasterCard');
     if (card) {
