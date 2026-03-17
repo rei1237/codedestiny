@@ -401,6 +401,15 @@
         resetTarotYearFortuneFlow();
       });
     }
+
+    var homeBtn = byId("tarotYearHomeBtn");
+    if (homeBtn && !homeBtn.__tyHomeBound) {
+      homeBtn.__tyHomeBound = true;
+      homeBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        closeTarotYearFortuneModal();
+      });
+    }
   }
 
   function openTarotYearFortuneModal() {

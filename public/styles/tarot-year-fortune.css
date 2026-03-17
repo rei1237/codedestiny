@@ -71,6 +71,8 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  /* 터치 스크롤 허용 (모바일에서 스크롤 막힘 방지) */
+  touch-action: pan-y pan-x;
   /* iOS/Android safe area (노치·홈 인디케이터) */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background:
@@ -84,9 +86,13 @@
 }
 .tarot-year-overlay.is-open {
   display: block;
-  /* iOS/Android: 100dvh로 주소창 제외한 실제 뷰포트 사용, fallback 100vh */
-  min-height: 100dvh;
+  /* 뷰포트 고정 높이로 스크롤 컨테이너 역할 확실히 (스크롤 안 되는 문제 해결) */
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
   animation: tyReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes tyReveal {
@@ -1219,6 +1225,16 @@
 .ty-result-btn--outline:hover {
   background: rgba(212, 175, 55, 0.18);
   box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+.ty-result-btn--home {
+  border-width: 2px;
+  border-color: rgba(212, 175, 55, 0.5);
+  color: rgba(255, 248, 220, 0.9);
+}
+.ty-result-btn--home:hover {
+  border-color: rgba(212, 175, 55, 0.75);
+  background: rgba(212, 175, 55, 0.12);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
 }
 
 /* ─── 반응형 ─── */
