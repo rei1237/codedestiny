@@ -6,18 +6,11 @@
 (function () {
   "use strict";
 
-  var POSITION_LABELS = {
-    hidden_truth: "1. 숨겨진 진실",
-    embrace_pain: "2. 상처를 품기",
-    silver_lining: "3. 빛이 보이는 곳",
-    step_forward: "4. 한 걸음 나아가기",
-  };
-
   var GUIDE_LABELS = [
-    "첫 번째 카드: 그동안 많이 힘드셨을 수 있어요. 이 카드는 상황이 어긋난 진짜 이유를 따뜻하게 비춰줄 거예요.",
-    "두 번째 카드: 내면의 상처를 인정하는 순간이에요. 숨을 고르며 카드를 열어보세요.",
-    "세 번째 카드: 이 경험이 당신에게 남긴 교훈을 받아들이는 시간이에요.",
-    "네 번째 카드: 햇살처럼 밝은 다음 행동을 확인해 보세요.",
+    "🌱 첫 번째 카드: 조금 지쳤을 수도 있겠어요. 이 카드가 그 마음을 조금씩 풀어줄 거예요.",
+    "💫 두 번째 카드: 깊게 숨 쉬어 보세요. 내면의 빛이 당신을 감싸줄 거예요.",
+    "🌅 세 번째 카드: 거의 다 왔어요! 이 경험이 선물한 것을 따뜻하게 받아보세요.",
+    "☀️ 네 번째 카드: 마지막이에요! 햇살처럼 밝은 다음 걸음을 확인해 보세요. ✨",
   ];
 
   var state = { cards: [], revealedCount: 0, reading: null };
@@ -624,7 +617,7 @@
       .catch(function (err) {
         console.error("Tarot Healing draw error:", err);
         if (panel) panel.classList.remove("ritual-burst");
-        alert("카드를 뽑는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        alert("카드를 뽑는 중에 잠깐 문제가 생겼어요. 조금 있다가 다시 시도해 주세요. ☀️");
       });
   }
 
@@ -637,10 +630,6 @@
       var slot = document.createElement("div");
       slot.className = "tarot-healing-slot";
       slot.setAttribute("data-slot-index", idx);
-
-      var label = document.createElement("span");
-      label.className = "tarot-healing-slot-label";
-      label.textContent = POSITION_LABELS[card.position] || ("Card " + (idx + 1));
 
       var cardEl = document.createElement("div");
       cardEl.className = "tarot-healing-card";
@@ -689,7 +678,6 @@
 
       cardEl.appendChild(back);
       cardEl.appendChild(front);
-      slot.appendChild(label);
       slot.appendChild(cardEl);
       grid.appendChild(slot);
     });
@@ -700,9 +688,9 @@
     if (!guide) return;
     var idx = state.revealedCount;
     if (idx >= 4) {
-      guide.textContent = "모든 카드를 열었어요. 아래 버튼으로 회복 스토리를 확인해 보세요.";
+      guide.textContent = "🌟 네 카드 모두 열었어요! 아래 버튼을 눌러 따뜻한 이야기를 만나보세요.";
     } else {
-      guide.textContent = GUIDE_LABELS[idx] || "카드를 뒤집어 주세요.";
+      guide.textContent = GUIDE_LABELS[idx] || "✨ 카드를 열어 보세요.";
     }
 
     var grid = byId("tarotHealingCardGrid");
@@ -742,10 +730,14 @@
 
     emitRipple(cardEl);
     cardEl.setAttribute("data-revealed", "1");
-    cardEl.classList.add("flipped");
     forceHealingFrontImage(cardEl, state.cards[idx]);
     ensureHealingFrontImage(cardEl, state.cards[idx]);
-    renderHealingForcedFace(cardEl, state.cards[idx], idx);
+    var front = cardEl.querySelector(".tarot-healing-card-front");
+    if (front) front.style.display = "";
+    cardEl.classList.add("flipped");
+    setTimeout(function () {
+      renderHealingForcedFace(cardEl, state.cards[idx], idx);
+    }, 1050);
 
     state.revealedCount += 1;
     updateTarotHealingGuide();
@@ -780,11 +772,11 @@
           gaugeFill.offsetHeight;
           gaugeFill.classList.add("is-filled");
         }
-        renderTarotHealingResult();
+        showTarotHealingTapToReveal();
       })
       .catch(function (err) {
         console.error("Tarot Healing reading error:", err);
-        alert("해석을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        alert("해석을 불러오는 중에 잠깐 문제가 생겼어요. 조금 있다가 다시 시도해 주세요. ☀️");
       });
   }
 
@@ -841,13 +833,41 @@
     next();
   }
 
+  function showTarotHealingTapToReveal() {
+    var container = byId("tarotHealingReadingContent");
+    if (!container || !state.reading) return;
+    container.innerHTML = "";
+    var wrap = document.createElement("button");
+    wrap.type = "button";
+    wrap.className = "tarot-healing-tap-to-reveal";
+    wrap.setAttribute("aria-label", "탭하면 따뜻한 이야기가 열립니다");
+    wrap.innerHTML =
+      "<span class=\"tarot-healing-tap-to-reveal-icon\">✨</span>" +
+      "<span class=\"tarot-healing-tap-to-reveal-text\">화면을 탭하면<br>당신의 따뜻한 이야기가 열려요</span>" +
+      "<span class=\"tarot-healing-tap-to-reveal-hint\">아무 곳이나 눌러 주세요</span>";
+    container.appendChild(wrap);
+    function onReveal() {
+      wrap.removeEventListener("click", onReveal);
+      wrap.removeEventListener("keydown", onRevealKey);
+      renderTarotHealingResult();
+    }
+    function onRevealKey(e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onReveal();
+      }
+    }
+    wrap.addEventListener("click", onReveal);
+    wrap.addEventListener("keydown", onRevealKey);
+  }
+
   function renderTarotHealingResult() {
     var container = byId("tarotHealingReadingContent");
     if (!container || !state.reading) return;
     var r = state.reading;
     container.innerHTML = "";
 
-    var sectionClass = "tarot-healing-section";
+    var sectionClass = "tarot-healing-section tarot-healing-fade-slide-up";
     var titleClass = "tarot-healing-section-title";
     var textClass = "tarot-healing-section-text";
 
@@ -877,38 +897,15 @@
       queue.push({ el: p, text: text });
     }
 
-    if (r.opening) addBlock("☀ 상담의 열기", r.opening);
-    if (r.hiddenTruth) addBlock("1) 숨겨진 진실", r.hiddenTruth);
-    if (r.embracePain) addBlock("2) 상처를 품기", r.embracePain);
-    if (r.silverLining) addBlock("3) 빛이 보이는 곳", r.silverLining);
-    if (r.stepForward) addBlock("4) 한 걸음 나아가기", r.stepForward);
-    if (r.integrationMessage) addBlock("☀ 따뜻한 마무리", r.integrationMessage);
-
-    if (Array.isArray(r.positionInsights) && r.positionInsights.length) {
-      ensureSection("☀ 포지션별 심리 통찰");
-      r.positionInsights.forEach(function (item) {
-        var wrap = document.createElement("div");
-        wrap.className = "tarot-healing-position-insight";
-        var subTitle = document.createElement("div");
-        subTitle.className = "tarot-healing-position-insight__title";
-        subTitle.textContent = (item.title || item.position) + " - " + (item.cardLabel || "");
-        wrap.appendChild(subTitle);
-        var msgEl = document.createElement("div");
-        msgEl.className = textClass;
-        wrap.appendChild(msgEl);
-        if (item.message) queue.push({ el: msgEl, text: item.message });
-        if (Array.isArray(item.keywords) && item.keywords.length) {
-          var kw = document.createElement("div");
-          kw.className = "tarot-healing-position-insight__keywords";
-          kw.textContent = "키워드: " + item.keywords.join(", ");
-          wrap.appendChild(kw);
-        }
-        sectionEl.appendChild(wrap);
-      });
-    }
+    if (r.opening) addBlock("☀️ 따뜻한 인사 ✨", r.opening);
+    if (r.hiddenTruth) addBlock("🔮 1. 마음 깊은 곳의 이야기", r.hiddenTruth);
+    if (r.embracePain) addBlock("💫 2. 괜찮아, 그 마음 품어주기", r.embracePain);
+    if (r.silverLining) addBlock("🌅 3. 빛이 비치는 곳", r.silverLining);
+    if (r.stepForward) addBlock("🚀 4. 한 걸음 나아가기", r.stepForward);
+    if (r.integrationMessage) addBlock("☀️ 따뜻한 마무리 🌟", r.integrationMessage);
 
     if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
-      ensureSection("☀ 오늘의 회복 미션 (행동 코칭)");
+      ensureSection("🌱 오늘 해볼 만한 것 ✨");
       var ul = document.createElement("ul");
       ul.className = "tarot-healing-advice-list";
       r.actionPlan.forEach(function (item) {
@@ -933,14 +930,14 @@
   function shareTarotHealingResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "☀ [긍정 태양 회복 타로점] ☀\n\n";
+    var text = "☀ 따뜻한 태양 회복 타로 ☀\n\n";
     if (r.opening) text += "☀ " + r.opening + "\n\n";
     if (r.stepForward) text += "☀ " + r.stepForward + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "☀ 긍정 태양 회복 타로점",
+        title: "☀ 따뜻한 태양 회복 타로",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

@@ -347,7 +347,7 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -364,7 +364,7 @@
   <link rel="stylesheet" href="styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
   <link rel="stylesheet" href="styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260317-sun-theme">
+  <link rel="stylesheet" href="styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
@@ -991,15 +991,15 @@
             <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
             <button class="tarot-tile tarot-tile--healing" type="button"
                     data-action="openTarotHealingModal"
-                    aria-label="긍정 태양 회복 타로점 리딩 시작">
+                    aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/healing.webp"
-                     alt="긍정 태양 회복 타로점 — Sun & Light 4카드 타로"
+                     alt="따뜻한 태양 회복 타로 — Sun & Light 4카드 타로"
                      loading="lazy" decoding="async" width="200" height="150">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
               </div>
               <div class="tarot-tile__body">
-                <span class="tarot-tile__title">☀ 긍정 태양 회복 타로점</span>
+                <span class="tarot-tile__title">☀ 따뜻한 태양 회복 타로</span>
                 <span class="tarot-tile__desc">4카드 회복 스프레드</span>
               </div>
             </button>
@@ -1229,21 +1229,6 @@
                     <span class="tarot-tile__desc">12궁 명반 운명 지도</span>
                   </div>
                 </button>
-
-                <!-- 베다점(조티시) 출생 차트 -->
-                <a class="tarot-tile tarot-tile--vedic-fc"
-                   href="/vedic"
-                   aria-label="베다점(조티시) 출생 차트로 이동">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="fuctionassets/veda.webp"
-                         alt="베다점(조티시) — 출생 차트와 다샤 분석"
-                         loading="lazy" decoding="async" width="200" height="150">
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🕉 베다점 조티시</span>
-                    <span class="tarot-tile__desc">출생 차트 · 다샤 · 요가</span>
-                  </div>
-                </a>
 
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--cosmic -->
@@ -1920,58 +1905,87 @@
         </div>
       </div>
 
-      <!-- 긍정 태양 회복 타로점 모달 (Warm & Glow) -->
+      <!-- 따뜻한 태양 회복 타로 모달 — 살아있는 빛의 공간 -->
       <div id="tarotHealingOverlay" class="tarot-healing-overlay" style="display:none;" data-action="closeTarotHealingModal" data-action-self-only="1">
+        <div class="tarot-healing-pulsing-glow" aria-hidden="true"></div>
         <div class="tarot-healing-sunburst" aria-hidden="true"></div>
         <div class="tarot-healing-particles" aria-hidden="true">
           <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span><span class="particle p5"></span>
           <span class="particle p6"></span><span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span><span class="particle p10"></span>
           <span class="particle p11"></span>
         </div>
+        <div class="tarot-healing-rising-seeds" aria-hidden="true">
+          <span class="seed s1"></span><span class="seed s2"></span><span class="seed s3"></span><span class="seed s4"></span><span class="seed s5"></span>
+          <span class="seed s6"></span><span class="seed s7"></span><span class="seed s8"></span><span class="seed s9"></span><span class="seed s10"></span>
+        </div>
         <div class="tarot-healing-shell">
           <div class="tarot-healing-panel">
-            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="긍정 태양 회복 타로점 닫기">×</button>
+            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="따뜻한 태양 회복 타로 닫기">×</button>
 
             <section id="tarotHealingIntroStage" class="tarot-healing-stage is-active">
-              <div class="tarot-healing-hero">
-                <div class="tarot-healing-title-wrap">
-                  <svg class="tarot-healing-sun-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="12" cy="12" r="5" fill="currentColor" stroke="#EAB308" stroke-width="1.5"/>
-                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <div class="tarot-healing-hero tarot-healing-hero--luxury">
+                <div class="tarot-healing-sun-motif" aria-hidden="true">
+                  <span class="sun-aura sun-aura-1"></span>
+                  <span class="sun-aura sun-aura-2"></span>
+                  <span class="sun-aura sun-aura-3"></span>
+                  <svg class="tarot-healing-sun-icon tarot-healing-sun-icon--artistic" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="tarotHealingSunCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FDE68A"/>
+                        <stop offset="50%" stop-color="#FBBF24"/>
+                        <stop offset="100%" stop-color="#EAB308"/>
+                      </linearGradient>
+                      <filter id="tarotHealingSunGlow">
+                        <feGaussianBlur stdDeviation="0.5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <circle cx="32" cy="32" r="12" fill="url(#tarotHealingSunCoreGrad)" filter="url(#tarotHealingSunGlow)"/>
+                    <circle cx="32" cy="32" r="8" fill="#FEF3C7" opacity="0.9"/>
+                    <path d="M32 4c0-2 4 4 4 4s-2 2-2 2l-2 2M32 60c0 2-4-4-4-4s2-2 2-2l2-2M4 32c2 0-4 4-4 4s2 2 2 2l2 2M60 32c-2 0 4-4 4-4s-2-2-2-2l-2-2M16 16l2 2M46 46l2 2M46 18l2-2M16 48l-2 2" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+                    <path d="M32 8v4M32 52v4M8 32h4M52 32h4M20 20l2.8 2.8M41.2 41.2l2.8 2.8M41.2 22.8l2.8-2.8M20 44l-2.8 2.8" stroke="#FBBF24" stroke-width="1.2" stroke-linecap="round"/>
                   </svg>
-                  <h1 class="tarot-healing-title">긍정 태양 회복 타로점</h1>
                 </div>
-                <p class="tarot-healing-subtitle">햇살처럼 따뜻한 빛으로 상처를 어루만지고, 다시 일어설 힘을 찾는 4카드 회복 리딩입니다. 타로는 미래를 점치는 것이 아니라, 당신 안의 빛을 찾는 도구입니다.</p>
+                <h1 class="tarot-healing-title tarot-healing-title--luxury">따뜻한 태양 회복 타로</h1>
+                <p class="tarot-healing-subtitle tarot-healing-subtitle--luxury">
+                  햇살처럼 포근한 빛으로 마음을 어루만지고, 다시 일어설 힘을 찾아가는 4카드 리딩이에요. 타로는 미래를 점치는 게 아니라, <span class="tarot-healing-highlight">당신 안의 빛</span>을 찾아주는 친구예요.
+                </p>
                 <div class="tarot-healing-invoke-wrap">
-                  <button class="tarot-healing-btn tarot-healing-btn--invoke" type="button" data-action="startTarotHealingReading">☀ 햇살의 카드 펼치기</button>
+                  <button class="tarot-healing-btn tarot-healing-btn--invoke tarot-healing-btn--luxury tarot-healing-solar-btn" type="button" data-action="startTarotHealingReading">
+                    <svg class="tarot-healing-btn-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>햇살의 카드 펼치기</span>
+                  </button>
                 </div>
               </div>
             </section>
 
             <section id="tarotHealingDrawStage" class="tarot-healing-stage">
-              <h3 class="tarot-healing-draw-header">천천히 심호흡하며, 한 장씩 카드를 열어 보세요</h3>
-              <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
+              <h3 class="tarot-healing-draw-header tarot-healing-glow-text">🌱 천천히 심호흡하며, 한 장씩 카드를 열어 보세요 ✨</h3>
+              <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 열어 보세요.</div>
               <div id="tarotHealingCardGrid" class="tarot-healing-card-grid"></div>
               <div class="tarot-healing-final-wrap">
-                <button type="button" class="tarot-healing-final-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀ 회복 스토리 보기</button>
+                <button type="button" class="tarot-healing-final-btn tarot-healing-solar-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀️ 따뜻한 이야기 보기 🌟</button>
               </div>
             </section>
 
             <section id="tarotHealingResultStage" class="tarot-healing-stage">
               <header class="tarot-healing-reading-header">
-                <h2 class="tarot-healing-reading-title">☀ 긍정 태양 회복 타로점 결과</h2>
+                <h2 class="tarot-healing-reading-title tarot-healing-glow-text">☀️ 따뜻한 태양 회복 타로 결과 ✨</h2>
               </header>
               <div id="tarotHealingRecoveryGauge" class="tarot-healing-recovery-gauge" aria-hidden="true">
                 <div class="tarot-healing-recovery-gauge__track">
                   <div id="tarotHealingRecoveryGaugeFill" class="tarot-healing-recovery-gauge__fill"></div>
                 </div>
-                <p class="tarot-healing-recovery-gauge__label">긍정 에너지</p>
+                <p class="tarot-healing-recovery-gauge__label">☀️ 따뜻한 에너지 🌱</p>
               </div>
               <div id="tarotHealingReadingContent" class="tarot-healing-reading-content"></div>
               <div class="tarot-healing-result-actions">
-                <button type="button" class="tarot-healing-btn tarot-healing-btn--share" data-action="shareTarotHealingResult">💬 카카오톡 공유하기</button>
-                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle" data-action="resetTarotHealingFlow">🔄 다시 리딩하기</button>
-                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle" data-action="closeTarotHealingModal">🏠 홈화면 바로 가기</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--share tarot-healing-solar-btn" data-action="shareTarotHealingResult">💬 카카오톡 공유하기 ✨</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="resetTarotHealingFlow">🔄 다시 리딩하기 🌟</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="closeTarotHealingModal">🏠 홈화면 바로 가기 ☀️</button>
               </div>
             </section>
           </div>
