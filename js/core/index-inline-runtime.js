@@ -2913,6 +2913,7 @@ function _dfApplyStudioSelection(selection) {
   var nameEl = document.getElementById('dfStudioName');
   var latinEl = document.getElementById('dfStudioLatin');
   var dayMasterEl = document.getElementById('dfStudioDayMasterBadge');
+  var sourceDescEl = document.getElementById('dfStudioSourceDesc');
   var symbolismEl = document.getElementById('dfStudioSymbolism');
   var keywordsEl = document.getElementById('dfStudioKeywords');
   var narrativeEl = document.getElementById('dfStudioNarrative');
@@ -2937,6 +2938,10 @@ function _dfApplyStudioSelection(selection) {
   if (nameEl) nameEl.textContent = flower.name;
   _dfRenderSajuBadges(selection);
   if (latinEl) latinEl.textContent = flower.scientific_name || 'Unknown species';
+  if (sourceDescEl) {
+    var meta = _DF_SOURCE_META[_dfNormalizeSource(selection.source || 'saju')] || _DF_SOURCE_META.saju;
+    sourceDescEl.textContent = meta.description || '';
+  }
   if (dayMasterEl) {
     dayMasterEl.textContent = flowerData.day_master_badge || (selection.source === 'jamidusu' ? '주성 판독 대기' : (selection.source === 'sukuyo' ? '숙요 판독 대기' : '일간 판독 대기'));
   }

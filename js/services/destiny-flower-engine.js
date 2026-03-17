@@ -706,8 +706,19 @@ function parseJamidusuPrimaryStars(starData) {
     starData.primaryStar ||
     starData.primary_star ||
     '';
+  // NOTE: ziwei star strings can contain embedded HTML (e.g. 四化 <span> badges) from the chart renderer.
+  // Strip tags before splitting to prevent artifacts like `화과<·span>` leaking into user-visible text.
   const list = normalizeSignalList(rawStars)
+    .map((item) =>
+      String(item || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\(차성\)/g, ' ')
+        .replace(/화록|화권|화과|화기/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    )
     .flatMap((item) => item.split(/[\/|·+]/g).map((x) => x.trim()))
+    .map((x) => String(x || '').replace(/\s+/g, ' ').trim().split(' ')[0])
     .filter(Boolean);
   return list.length ? list.slice(0, 2) : ['자미'];
 }
