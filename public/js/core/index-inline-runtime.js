@@ -1421,6 +1421,37 @@ function _jfResolveSelection() {
   var matched = null;
 
   try {
+    // NOTE: 자미두수 운명의 꽃은 "명궁(main)" 데이터만 반영하도록 입력을 고정한다.
+    // (렌더/재계산 타이밍에 aux/기타 궁 데이터가 섞여 결과가 변하는 문제 방지)
+    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
+      try {
+        var zw = window.calcZiweiPalaces(
+          Number(birthCtx.year),
+          Number(birthCtx.month),
+          Number(birthCtx.day),
+          Number(birthCtx.hour),
+          Number(birthCtx.minute)
+        );
+        if (zw && zw.palacesByIndex && zw.stars) {
+          var mingIdx = zw.palacesByIndex.indexOf('명궁');
+          var mainStar = '';
+          var brightness = '';
+          if (mingIdx >= 0 && zw.stars[mingIdx] && zw.stars[mingIdx].main && zw.stars[mingIdx].main.length) {
+            mainStar = zw.stars[mingIdx].main[0] || '';
+          }
+          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
+            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
+          }
+          payload = payload && typeof payload === 'object' ? payload : {};
+          payload.ziwei = { mainStar: mainStar, palace: '명궁', brightness: brightness, stars: mainStar ? [mainStar] : [] };
+          payload.domains = payload.domains && typeof payload.domains === 'object' ? payload.domains : {};
+          payload.domains.ziwei = { main_star: mainStar, palace: '명궁', brightness: brightness, stars: mainStar ? [mainStar] : [] };
+        }
+      } catch (eFix) {
+        // ignore
+      }
+    }
+
     if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchJamidusuFlower === 'function') {
       matched = window.DestinyFlowerEngine.matchJamidusuFlower(payload, { source: 'jamidusu' });
     } else if (typeof window.matchJamidusuFlower === 'function') {

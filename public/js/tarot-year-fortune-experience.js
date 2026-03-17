@@ -566,6 +566,56 @@
     });
   }
 
+  function normalizeYearlyReadingPayload(data) {
+    if (!data) return null;
+    var reading = data.reading;
+    if (reading && reading.reading && (reading.reading.monthlyReadings || reading.reading.summary)) {
+      reading = reading.reading;
+    }
+    if (!reading || typeof reading !== "object") return null;
+
+    var mr = reading.monthlyReadings;
+    if (!mr) return reading;
+
+    // Some deployments may serialize monthlyReadings as an object keyed by month / month_1...
+    if (!Array.isArray(mr) && typeof mr === "object") {
+      var arr = [];
+      Object.keys(mr).forEach(function (k) {
+        var v = mr[k];
+        if (!v || typeof v !== "object") return;
+        var monthNum = v.month || (function () {
+          var m = String(k || "").match(/(\d{1,2})/);
+          return m ? parseInt(m[1], 10) : null;
+        })();
+        if (monthNum && !isNaN(monthNum)) v.month = monthNum;
+        arr.push(v);
+      });
+      reading.monthlyReadings = arr;
+      mr = arr;
+    }
+
+    if (Array.isArray(mr)) {
+      reading.monthlyReadings = mr
+        .filter(Boolean)
+        .slice()
+        .sort(function (a, b) {
+          return (a && a.month ? a.month : 0) - (b && b.month ? b.month : 0);
+        });
+    }
+    return reading;
+  }
+
+  function getMonthlyReadingByMonth(reading, monthNum) {
+    if (!reading || !reading.monthlyReadings) return null;
+    var mr = reading.monthlyReadings;
+    if (!Array.isArray(mr)) return null;
+    for (var i = 0; i < mr.length; i++) {
+      if (mr[i] && Number(mr[i].month) === Number(monthNum)) return mr[i];
+    }
+    // fallback to index if month field is missing
+    return mr[monthNum - 1] || null;
+  }
+
   function toReadableText(value, fallback) {
     var text = String(value || "").trim();
     return text || fallback;
@@ -710,7 +760,7 @@ function updateMonthCategoryPanel(text, cat) {
   }
 
   function loadMonthCategoryConsultation(monthNum, cat) {
-    var monthly = state.reading && state.reading.monthlyReadings ? state.reading.monthlyReadings[monthNum - 1] : null;
+    var monthly = getMonthlyReadingByMonth(state.reading, monthNum);
     var monthKey = String(monthNum);
     if (!state.monthCategoryCache[monthKey]) state.monthCategoryCache[monthKey] = {};
     if (state.monthCategoryCache[monthKey][cat]) {
@@ -776,7 +826,7 @@ function updateMonthCategoryPanel(text, cat) {
     if (!panel) return;
     var r = state.reading;
     if (!r || !r.monthlyReadings) return;
-    var m = r.monthlyReadings[monthNum - 1];
+    var m = getMonthlyReadingByMonth(r, monthNum);
     if (!m) return;
     var pickedCard = state.cards[monthNum - 1] || {};
     var token = ++state.monthRequestToken;
@@ -845,8 +895,9 @@ function updateMonthCategoryPanel(text, cat) {
       var intro = byId("tarotYearFortuneIntroStage");
       var draw = byId("tarotYearFortuneDrawStage");
       var result = byId("tarotYearFortuneResultStage");
-      if (!data.reading) return;
-      state.reading = data.reading;
+      var normalized = normalizeYearlyReadingPayload(data);
+      if (!normalized) return;
+      state.reading = normalized;
       if (intro) intro.classList.remove("is-active");
       if (draw) draw.classList.remove("is-active");
       if (result) result.classList.add("is-active");
@@ -859,7 +910,8 @@ function updateMonthCategoryPanel(text, cat) {
       cards: drawnForApi,
     })
       .then(function (data) {
-        if (!data.reading) throw new Error("No reading data");
+        var normalized = normalizeYearlyReadingPayload(data);
+        if (!normalized) throw new Error("No reading data");
         showResultStage(data);
       })
       .catch(function (err) {

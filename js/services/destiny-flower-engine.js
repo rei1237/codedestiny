@@ -464,33 +464,38 @@ function pickAstroFlowerIdsByElement(element, sunSign) {
   return [primary, secondary];
 }
 
-function buildAstroNarrative(chart, flower, sunElement, risingElement, moonElement) {
+function buildAstroNarrative(chart, flower, sunElement) {
   const sunKo = chart.sunSign || '태양궁 미확인';
-  const risingKo = chart.risingSign || '상승궁 미확인';
-  const moonKo = chart.moonSign || '달궁 미확인';
   const sunElementKo = ASTRO_ELEMENT_LABEL_KO[sunElement] || '별';
-  const risingMood = ASTRO_RISING_MOODS[risingElement] || ASTRO_RISING_MOODS.Air;
-
-  return [
-    '당신의 태양궁은 ' + sunKo + '이고, ' + flower.name + '처럼 ' + sunElementKo + ' 기운이 또렷한 타입이에요.',
-    '상승궁 ' + risingKo + '은 겉으로 보이는 분위기를 ' + risingMood + ' 느낌으로 만들어주고,',
-    '달궁 ' + moonKo + '은 속마음의 온도를 조절해 감정 표현을 부드럽게 완성해줍니다.'
-  ].join(' ');
+  const risingKo = chart.risingSign || '';
+  const moonKo = chart.moonSign || '';
+  const extra = [risingKo ? ('상승궁 ' + risingKo) : '', moonKo ? ('달궁 ' + moonKo) : ''].filter(Boolean).join(' · ');
+  return (
+    '당신의 태양궁은 ' +
+    sunKo +
+    '이고, ' +
+    flower.name +
+    '처럼 ' +
+    sunElementKo +
+    ' 기운이 또렷한 타입이에요.' +
+    (extra ? (' (' + extra + ')') : '')
+  );
 }
 
 export function getAstrologyFlower(chartData = {}) {
   const chart = resolveAstroChart(chartData);
   const sunElement = resolveAstroElement(chart.sunSign) || 'Air';
-  const risingElement = resolveAstroElement(chart.risingSign) || sunElement;
-  const moonElement = resolveAstroElement(chart.moonSign) || sunElement;
+  // NOTE: 꽃 매핑은 태양궁(대표 별자리) 기준으로 유지하되,
+  // UI 표시용으로 상승궁/달궁 값은 함께 반환합니다.
   const ids = pickAstroFlowerIdsByElement(sunElement, chart.sunSign);
   const primaryFlower = ASTRO_FLOWER_LIBRARY[ids[0]] || ASTRO_FLOWER_LIBRARY.astro_lavender;
   const secondaryFlower = ASTRO_FLOWER_LIBRARY[ids[1]] || primaryFlower;
+  const moonElement = resolveAstroElement(chart.moonSign) || sunElement;
   const moonGlow = ASTRO_MOON_GLOW[moonElement] || ASTRO_MOON_GLOW.Air;
 
   const astroVerdict =
     '점성술 기준으로 지금 당신과 가장 잘 맞는 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
-  const narrative = buildAstroNarrative(chart, primaryFlower, sunElement, risingElement, moonElement);
+  const narrative = buildAstroNarrative(chart, primaryFlower, sunElement);
 
   return {
     source: 'astrology',
@@ -500,7 +505,7 @@ export function getAstrologyFlower(chartData = {}) {
       rising_sign: chart.risingSign,
       sun_element: sunElement,
       moon_element: moonElement,
-      rising_element: risingElement
+      rising_element: resolveAstroElement(chart.risingSign) || sunElement
     },
     flower: primaryFlower,
     flower_options: [primaryFlower, secondaryFlower],
@@ -525,15 +530,15 @@ export function getAstrologyFlower(chartData = {}) {
       day_master_badge: chart.sunSign ? ('태양궁 ' + chart.sunSign) : '태양궁 미확인',
       season_label: chart.risingSign ? ('상승궁 ' + chart.risingSign) : '상승궁 미확인',
       environment_label: chart.moonSign ? ('달궁 ' + chart.moonSign) : '달궁 미확인',
-      scenario_title: '태양·상승·달궁 통합 개화 시나리오',
+      scenario_title: '태양궁 중심(상승·달궁 보조) 개화 시나리오',
       scenario_reason: narrative,
       motion_preset: sunElement === 'Water' ? 'water-flow' : (sunElement === 'Fire' ? 'fire-bloom' : 'wood-grow'),
       focus_signal: [chart.sunSign, chart.risingSign, chart.moonSign].filter(Boolean).join(' · ') || '차트 데이터 대기',
       ritual_tip: '오늘 밤 3분간 호흡을 고르고 별자리 하나를 바라보며 의도를 고정해보세요.',
-      relationship_theme: '태양궁의 주도성과 달궁의 감수성을 균형 잡을 때 관계가 가장 아름답게 개화합니다.',
-      career_theme: '상승궁이 만든 페르소나를 업무 스타일에 반영하면 실행력과 표현력이 동시에 상승합니다.',
+      relationship_theme: '대표 별자리(태양궁)의 성향을 기준으로 관계의 리듬을 맞추면 갈등이 줄어듭니다.',
+      career_theme: '태양궁이 가진 핵심 동력을 업무 루틴에 반영하면 추진력이 안정됩니다.',
       growth_cycle: '별의 호출 → 궤적 형성 → 성운 개화 → 광휘 확산',
-      fallback_note: chart.sunSign ? '' : '태양궁 데이터가 없어 상승/달궁 중심으로 보정했습니다.'
+      fallback_note: chart.sunSign ? '' : '태양궁 데이터가 없어 기본(공기) 원소로 보정했습니다.'
     }
   };
 }
@@ -568,7 +573,7 @@ export function matchAstrologyFlower(userData = {}, options = {}) {
       : { enabled: false },
     algorithm: {
       version: '1.0.0-astrology-flower',
-      note: 'Sun(핵심 꽃) + Rising(실루엣) + Moon(글로우) 통합 매핑 엔진',
+      note: '태양궁 중심 매핑 + 상승/달궁 표시',
       source: options.source || 'astrology'
     }
   };
@@ -856,19 +861,19 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
       const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
       if (zw && zw.stars && zw.palacesByIndex) {
         const mingIdx = zw.palacesByIndex.indexOf('명궁');
-        let mainStar = '', stars = [], brightness = '';
+        let mainStar = '', brightness = '';
         if (mingIdx >= 0 && zw.stars[mingIdx]) {
           const mainList = zw.stars[mingIdx].main || [];
-          const auxList = zw.stars[mingIdx].aux || [];
-          stars = mainList.concat(auxList);
-          mainStar = mainList[0] || stars[0] || '';
+          mainStar = mainList[0] || '';
         }
         if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
           brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
         }
         if (profile.domains && profile.domains.ziwei) {
+          // NOTE: 운명의 꽃(자미두수)은 "명궁(main)"만 반영하도록 고정합니다.
+          // aux/기타 궁 데이터가 섞이면 UI가 열릴 때마다 결과가 변동하는 문제가 발생할 수 있습니다.
           profile.domains.ziwei.main_star = mainStar;
-          profile.domains.ziwei.stars = stars;
+          profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
           profile.domains.ziwei.palace = '명궁';
           if (brightness) profile.domains.ziwei.brightness = brightness;
         }

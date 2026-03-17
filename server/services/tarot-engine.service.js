@@ -402,6 +402,22 @@ function selectInterpretation(card, orientation, category) {
     : "";
   const sanitized = sanitizeInterpretation(picked);
   if (sanitized) return sanitized;
+
+  // If the DB text is noisy/empty (scraped glossary/ad blocks), prefer a keyword-based meaning
+  // instead of a generic placeholder. This prevents different cards from collapsing into the
+  // same repeated sentence in multi-card readings.
+  const kw = card.keywords || {};
+  const keywordList = Array.isArray(kw)
+    ? kw
+    : (orientation === "upright" ? kw.upright : kw.reversed) || [];
+  const keywordMeaning = buildKeywordMeaning(keywordList, orientation, "");
+  if (keywordMeaning) return keywordMeaning;
+
+  if (category === "general") {
+    const structuredGeneral = buildStructuredGeneralMeaning(card, orientation);
+    if (structuredGeneral) return structuredGeneral;
+  }
+
   const nameKr = card.nameKr || card.name || "해당 카드";
   const placeholders = createPlaceholderInterpretations(nameKr);
   const fallback = placeholders[orientation]?.[category] || placeholders[orientation]?.general || placeholders.upright?.general || "";
@@ -440,6 +456,54 @@ function buildKeywordMeaning(keywords, orientation, fallback) {
       ? "속도를 늦추고 감정의 오해를 정리하는 것이 중요합니다."
       : "서로의 리듬을 맞추면 관계가 한 단계 진전될 수 있습니다.";
   return `${list.join(", ")} 키워드가 핵심입니다. ${tail}`;
+}
+
+const SUIT_GENERAL_MEANING = {
+  Wands: "의욕과 실행, 추진력",
+  Cups: "감정 흐름과 공감, 관계의 온도",
+  Swords: "생각 정리, 소통 방식, 판단과 결단",
+  Pentacles: "현실 조건, 돈/자원, 지속 가능성",
+  완드: "의욕과 실행, 추진력",
+  컵: "감정 흐름과 공감, 관계의 온도",
+  소드: "생각 정리, 소통 방식, 판단과 결단",
+  펜타클: "현실 조건, 돈/자원, 지속 가능성",
+};
+
+const RANK_GENERAL_MEANING = {
+  Ace: "새 출발의 씨앗",
+  Two: "선택과 균형",
+  Three: "확장과 상호작용",
+  Four: "안정 혹은 정체",
+  Five: "마찰과 조정",
+  Six: "회복과 전진",
+  Seven: "점검과 재평가",
+  Eight: "집중과 실행",
+  Nine: "성숙과 마무리 직전",
+  Ten: "완성과 부담/책임",
+  Page: "탐색과 학습",
+  Knight: "추진과 돌파",
+  Queen: "내면의 성숙과 보살핌",
+  King: "외부의 통솔과 책임",
+};
+
+function buildStructuredGeneralMeaning(card, orientation) {
+  if (!card) return "";
+  const tail =
+    orientation === "reversed"
+      ? "다만 지금은 속도를 늦추고 오해가 생길 지점을 먼저 점검하는 편이 안전합니다."
+      : "지금은 방향을 정하고 한 걸음씩 실행하면 흐름이 자연스럽게 풀릴 수 있습니다.";
+
+  // Prefer built-in major meanings when available (clean, non-scraped).
+  if (card.id && MAJOR_ARCANA_YEARLY[card.id] && MAJOR_ARCANA_YEARLY[card.id][orientation]?.general) {
+    return `${MAJOR_ARCANA_YEARLY[card.id][orientation].general} ${tail}`;
+  }
+
+  if (card.suit || card.rank) {
+    const suitText = SUIT_GENERAL_MEANING[card.suit] || "핵심 테마";
+    const rankText = RANK_GENERAL_MEANING[card.rank] || "현재 단계의 과제";
+    return `${suitText} 영역에서 '${rankText}'가 중심입니다. ${tail}`;
+  }
+  return "";
 }
 
 function cardLabel(item) {
