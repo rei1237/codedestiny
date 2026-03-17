@@ -284,6 +284,35 @@
     return String(text || '').replace(/\s+/g, ' ').trim();
   }
 
+  function getDreamLibraryEntry(dreamText, keyword) {
+    try {
+      var lib = typeof window !== 'undefined' && window.DREAM_MEANING_LIBRARY;
+      if (!lib || !Array.isArray(lib)) return null;
+      var k = safeText(keyword);
+      var text = safeText(dreamText || '');
+      var lower = (text + ' ' + k).toLowerCase();
+      for (var i = 0; i < lib.length; i += 1) {
+        var e = lib[i];
+        var kw = safeText(e.keyword || '');
+        if (!kw) continue;
+        if (kw === k) return e;
+        if (lower.indexOf(kw) >= 0) return e;
+        var tags = e.tags || [];
+        for (var t = 0; t < tags.length; t += 1) {
+          if (String(tags[t]).toLowerCase() === k.toLowerCase()) return e;
+          if (lower.indexOf(String(tags[t]).toLowerCase()) >= 0) return e;
+        }
+      }
+      for (var j = 0; j < lib.length; j += 1) {
+        var ent = lib[j];
+        var kw2 = safeText(ent.keyword || '');
+        if (kw2.length < 2) continue;
+        if (text.indexOf(kw2) >= 0 || lower.indexOf(kw2) >= 0) return ent;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   function includesAny(text, aliases) {
     for (var i = 0; i < aliases.length; i += 1) {
       if (text.indexOf(aliases[i]) >= 0) return true;
@@ -844,7 +873,6 @@
       pattern: picked.pattern,
       intervention: picked.intervention,
       boundaryScript: picked.boundaryScript,
-      routine: picked.routine,
       journalPrompt: '저널 권고: 오늘 가장 마음을 흔든 장면 1가지와, 선택할 다음 행동 1가지를 기록하세요.'
     };
   }
@@ -864,7 +892,6 @@
         '실행 권고: "' + parsed.action.key + '"를 기준으로 25분 집중 작업 1회를 수행하고 완료를 기록하세요.',
         scaffold.intervention,
         scaffold.boundaryScript,
-        scaffold.routine,
         scaffold.journalPrompt,
         toneInfo.ending
       ];
@@ -877,7 +904,6 @@
         '실행 프로토콜: 목표 1개, 제한시간 20분, 완료 기준 1줄을 확정한 뒤 "' + parsed.action.key + '"에 착수하세요.',
         scaffold.intervention,
         scaffold.boundaryScript,
-        scaffold.routine,
         '점검: 완료 1가지와 개선 1가지를 기록하여 내일의 판단 부담을 감소시키세요.',
         toneInfo.ending
       ];
@@ -890,7 +916,6 @@
         '오늘은 "' + parsed.action.key + '"를 완벽히 완수하기보다 20분 내 완료 가능한 소규모 행동 1가지로 리듬을 회복하세요.',
         scaffold.intervention,
         scaffold.boundaryScript,
-        scaffold.routine,
         scaffold.journalPrompt,
         toneInfo.ending
       ];
@@ -919,6 +944,9 @@
 
     var parsed = classifyInput(clean);
     var contextKeywords = extractDreamContextKeywords(clean, parsed);
+    var subjectDreamEntry = getDreamLibraryEntry(clean, parsed.subject.key);
+    var actionDreamEntry = getDreamLibraryEntry(clean, parsed.action.key);
+    var emotionDreamEntry = getDreamLibraryEntry(clean, parsed.emotion.key);
     var hintBoost = deriveTarotHintBoost(clean, contextKeywords);
     var autoTuneBoost = deriveAutoTuneBoost(parsed, hintBoost.scenarioTags || []);
     var deck = getDeck();
@@ -949,31 +977,43 @@
 
     var chemistry = randomStory(parsed.subject.key, parsed.action.key, parsed.emotion.key);
 
+    var meaning1Base = '제1장 <' + rootName + '>는 키워드 "' + parsed.subject.key + '"와 1:1 대응하여, 현재 마음이 무엇을 지키려 하는지 가장 먼저 제시합니다. 장면의 본질은 ' + (parsed.subject.energy || '핵심 본능') + '이며, 감정 억압보다 원인에 명확히 이름을 붙일수록 흐름이 안정됩니다. ' + counseling.validation + ' ' + chemistry;
+    if (subjectDreamEntry && subjectDreamEntry.meaning) {
+      meaning1Base = '【꿈 해몽】 ' + subjectDreamEntry.meaning + ' 【타로와 마음】 ' + meaning1Base;
+    }
     var step1 = {
       step: 1,
       title: '🌫️ 제1장 · 안개 아래의 근원 카드',
       card_id: rootCard.id || 'root-card',
       card_name: rootCard.name_kr || rootCard.name || '카드',
-      meaning: '제1장 <' + rootName + '>는 키워드 "' + parsed.subject.key + '"와 1:1 대응하여, 현재 마음이 무엇을 지키려 하는지 가장 먼저 제시합니다. 장면의 본질은 ' + (parsed.subject.energy || '핵심 본능') + '이며, 감정 억압보다 원인에 명확히 이름을 붙일수록 흐름이 안정됩니다. ' + counseling.validation + ' ' + chemistry,
-      warning_or_healing: '【치유 루틴】 ' + counseling.routine + ' 장면 기록 [대상-행동-감정] 3줄을 남겨 오늘의 경계 1가지를 확정하세요.'
+      meaning: meaning1Base,
+      warning_or_healing: (subjectDreamEntry && subjectDreamEntry.tip ? '【해몽 팁】 ' + subjectDreamEntry.tip + ' ' : '') + '장면 기록 [대상-행동-감정] 3줄을 남겨 오늘의 경계 1가지를 확정하세요.'
     };
 
+    var meaning2Base = '제2장 <' + messageName + '>는 키워드 "' + parsed.action.key + '" 행동과 정확히 대응하며, 현재는 속도보다 순서 정리가 우선임을 시사합니다. 흐름이 ' + parsed.action.vibe + ' 구간이므로 즉흥 반응보다 관찰→선택→행동의 리듬이 효과적입니다. 행동을 단계로 나누면 마찰이 감소하고 결과가 선명해집니다. ' + counseling.pattern;
+    if (actionDreamEntry && actionDreamEntry.meaning) {
+      meaning2Base = '【꿈 해몽】 ' + actionDreamEntry.meaning + (actionDreamEntry.fortune ? ' ' + actionDreamEntry.fortune : '') + ' 【타로와 마음】 ' + meaning2Base;
+    }
     var step2 = {
       step: 2,
       title: '🕯️ 제2장 · 현재를 여는 전언 카드',
       card_id: messageCard.id || 'message-card',
       card_name: messageCard.name_kr || messageCard.name || '카드',
-      meaning: '제2장 <' + messageName + '>는 키워드 "' + parsed.action.key + '" 행동과 정확히 대응하며, 현재는 속도보다 순서 정리가 우선임을 시사합니다. 흐름이 ' + parsed.action.vibe + ' 구간이므로 즉흥 반응보다 관찰→선택→행동의 리듬이 효과적입니다. 행동을 단계로 나누면 마찰이 감소하고 결과가 선명해집니다. ' + counseling.pattern,
-      action_item: parsed.action.actionItem + ' ' + counseling.intervention
+      meaning: meaning2Base,
+      action_item: (actionDreamEntry && actionDreamEntry.tip ? actionDreamEntry.tip + ' ' : '') + parsed.action.actionItem + ' ' + counseling.intervention
     };
 
+    var meaning3Base = '제3장 <' + guidanceName + '>는 키워드 "' + parsed.emotion.key + '" 감정과 1:1 대응하여, 이 느낌이 ' + parsed.emotion.tone + ' 신호임을 제시합니다. 감정은 실패의 증거가 아니라 속도 조절 장치이므로, 오늘 리듬을 정리하면 내일의 선택이 공고해집니다. 감정 해석을 행동 우선순위로 전환하는 것이 이번 장의 핵심입니다. ' + counseling.boundaryScript;
+    if (emotionDreamEntry && emotionDreamEntry.meaning) {
+      meaning3Base = '【꿈 해몽】 ' + emotionDreamEntry.meaning + ' 【타로와 마음】 ' + meaning3Base;
+    }
     var step3 = {
       step: 3,
       title: '🌌 제3장 · 내일을 비추는 지침 카드',
       card_id: guidanceCard.id || 'guidance-card',
       card_name: guidanceCard.name_kr || guidanceCard.name || '카드',
-      meaning: '제3장 <' + guidanceName + '>는 키워드 "' + parsed.emotion.key + '" 감정과 1:1 대응하여, 이 느낌이 ' + parsed.emotion.tone + ' 신호임을 제시합니다. 감정은 실패의 증거가 아니라 속도 조절 장치이므로, 오늘 리듬을 정리하면 내일의 선택이 공고해집니다. 감정 해석을 행동 우선순위로 전환하는 것이 이번 장의 핵심입니다. ' + counseling.boundaryScript,
-      final_comfort: '【마무리 문장】 ' + parsed.emotion.comfort + ' ' + counseling.journalPrompt
+      meaning: meaning3Base,
+      final_comfort: (emotionDreamEntry && emotionDreamEntry.tip ? '【해몽 팁】 ' + emotionDreamEntry.tip + ' ' : '') + '【마무리 문장】 ' + parsed.emotion.comfort + ' ' + counseling.journalPrompt
     };
 
     var luck = luckMultiplier(parsed.subject, parsed.action, parsed.emotion);
@@ -1000,7 +1040,7 @@
           validation: counseling.validation,
           intervention: counseling.intervention,
           boundary_script: counseling.boundaryScript,
-          routine: counseling.routine
+          routine: ''
         },
         steps: [step1, step2, step3],
         golden_card: {
