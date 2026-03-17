@@ -12,10 +12,10 @@
     </clipPath>
   </defs>
 
-  <!-- Use the existing PNG artwork and crop it to a circle.
-       The PNG must live next to this SVG as samba-mode-icon.png -->
+  <!-- Use the existing WebP artwork and crop it to a circle.
+       The WebP must live next to this SVG as samba.webp -->
   <g clip-path="url(#sambaCircleClip)">
-    <image href="samba-mode-icon.png"
+    <image href="samba.webp"
            x="0" y="0" width="512" height="512"
            preserveAspectRatio="xMidYMid slice" />
   </g>

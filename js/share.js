@@ -165,8 +165,8 @@ function applyPwaThemeAssets(isNeo) {
   var faviconLink = document.getElementById('pwa-favicon');
   var appleIconLink = document.getElementById('pwa-apple-icon');
   if (isNeo) {
-    if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba-mode-icon.png'); faviconLink.setAttribute('type', 'image/png'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba-mode-icon.png');
+    if (faviconLink) { faviconLink.setAttribute('href', '/icons/samba.webp'); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
   } else {
     if (faviconLink) { faviconLink.setAttribute('href', '/icons/honeypig-192.png'); faviconLink.setAttribute('type', 'image/png'); }
     if (appleIconLink) appleIconLink.setAttribute('href', '/icons/honeypig-180.png');
