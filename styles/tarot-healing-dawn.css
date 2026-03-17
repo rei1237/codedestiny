@@ -586,6 +586,18 @@
   margin-top: 22px;
 }
 
+/* 타이핑 효과 커서 */
+.tarot-healing-typing-cursor {
+  display: inline-block;
+  color: #b45309;
+  font-weight: 700;
+  animation: tarotHealingCursorBlink 0.85s step-end infinite;
+}
+@keyframes tarotHealingCursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 /* ─── 반응형: 모바일 + safe area ─── */
 @media (max-width: 560px) {
   .tarot-healing-panel { padding: 24px 18px; }

@@ -757,52 +757,139 @@
       });
   }
 
+  var TYPING_CHAR_DELAY_MS = 32;
+  var TYPING_CURSOR_CLASS = "tarot-healing-typing-cursor";
+
+  function addTypingCursor(el) {
+    if (!el) return;
+    var cursor = document.createElement("span");
+    cursor.setAttribute("aria-hidden", "true");
+    cursor.className = TYPING_CURSOR_CLASS;
+    cursor.textContent = "|";
+    el.appendChild(cursor);
+  }
+
+  function removeTypingCursor(el) {
+    if (!el) return;
+    var cursor = el.querySelector("." + TYPING_CURSOR_CLASS);
+    if (cursor && cursor.parentNode) cursor.parentNode.removeChild(cursor);
+  }
+
+  function typeWriter(element, text, charDelayMs, callback) {
+    if (!element || text == null) {
+        if (typeof callback === "function") callback();
+        return;
+    }
+    addTypingCursor(element);
+    var index = 0;
+    var len = String(text).length;
+    function tick() {
+      if (index >= len) {
+        removeTypingCursor(element);
+        if (typeof callback === "function") callback();
+        return;
+      }
+      element.insertBefore(document.createTextNode(text.charAt(index)), element.lastChild);
+      index += 1;
+      setTimeout(tick, charDelayMs);
+    }
+    tick();
+  }
+
+  function runTypingQueue(queue, charDelayMs, done) {
+    var i = 0;
+    function next() {
+      if (i >= queue.length) {
+        if (typeof done === "function") done();
+        return;
+      }
+      var item = queue[i];
+      i += 1;
+      typeWriter(item.el, item.text, charDelayMs, next);
+    }
+    next();
+  }
+
   function renderTarotHealingResult() {
     var container = byId("tarotHealingReadingContent");
     if (!container || !state.reading) return;
     var r = state.reading;
-    var html = "";
+    container.innerHTML = "";
 
-    if (r.opening) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 상담의 열기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.opening) + "</p></section>";
+    var sectionClass = "tarot-healing-section rounded-2xl p-5 md:p-6 bg-gradient-to-br from-amber-50/95 to-yellow-50/90 border border-amber-200/60 shadow-lg shadow-amber-200/20";
+    var titleClass = "tarot-healing-section-title text-amber-800 font-bold font-serif text-base md:text-lg mb-2 flex items-center gap-2";
+    var textClass = "tarot-healing-section-text text-amber-900/90 leading-relaxed";
+
+    var queue = [];
+    var currentSection = null;
+    var sectionEl = null;
+
+    function ensureSection(title) {
+      if (currentSection === title && sectionEl) return sectionEl;
+      currentSection = title;
+      sectionEl = document.createElement("section");
+      sectionEl.className = sectionClass;
+      var h4 = document.createElement("h4");
+      h4.className = titleClass;
+      h4.textContent = title;
+      sectionEl.appendChild(h4);
+      container.appendChild(sectionEl);
+      return sectionEl;
     }
-    if (r.hiddenTruth) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">1) 숨겨진 진실</h4><p class="tarot-healing-section-text">' + escapeHtml(r.hiddenTruth) + "</p></section>";
+
+    function addBlock(sectionTitle, text) {
+      if (!text) return;
+      var sec = ensureSection(sectionTitle);
+      var p = document.createElement("p");
+      p.className = textClass;
+      sec.appendChild(p);
+      queue.push({ el: p, text: text });
     }
-    if (r.embracePain) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">2) 상처를 품기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.embracePain) + "</p></section>";
-    }
-    if (r.silverLining) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">3) 빛이 보이는 곳</h4><p class="tarot-healing-section-text">' + escapeHtml(r.silverLining) + "</p></section>";
-    }
-    if (r.stepForward) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">4) 한 걸음 나아가기</h4><p class="tarot-healing-section-text">' + escapeHtml(r.stepForward) + "</p></section>";
-    }
-    if (r.integrationMessage) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 따뜻한 마무리</h4><p class="tarot-healing-section-text">' + escapeHtml(r.integrationMessage) + "</p></section>";
-    }
+
+    if (r.opening) addBlock("☀ 상담의 열기", r.opening);
+    if (r.hiddenTruth) addBlock("1) 숨겨진 진실", r.hiddenTruth);
+    if (r.embracePain) addBlock("2) 상처를 품기", r.embracePain);
+    if (r.silverLining) addBlock("3) 빛이 보이는 곳", r.silverLining);
+    if (r.stepForward) addBlock("4) 한 걸음 나아가기", r.stepForward);
+    if (r.integrationMessage) addBlock("☀ 따뜻한 마무리", r.integrationMessage);
+
     if (Array.isArray(r.positionInsights) && r.positionInsights.length) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 포지션별 심리 통찰</h4>';
+      ensureSection("☀ 포지션별 심리 통찰");
       r.positionInsights.forEach(function (item) {
-        html += '<div style="margin:0 0 12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.18);">';
-        html += '<div style="font-weight:700;color:#5e3865;margin-bottom:4px;">' + escapeHtml(item.title || item.position) + " - " + escapeHtml(item.cardLabel || "") + "</div>";
-        html += '<div class="tarot-healing-section-text">' + escapeHtml(item.message || "") + "</div>";
+        var wrap = document.createElement("div");
+        wrap.className = "mb-4 p-4 rounded-xl bg-white/70 border border-amber-200/50 shadow-sm";
+        var subTitle = document.createElement("div");
+        subTitle.className = "font-bold text-amber-800 mb-2 text-sm md:text-base";
+        subTitle.textContent = (item.title || item.position) + " - " + (item.cardLabel || "");
+        wrap.appendChild(subTitle);
+        var msgEl = document.createElement("div");
+        msgEl.className = textClass;
+        wrap.appendChild(msgEl);
+        if (item.message) queue.push({ el: msgEl, text: item.message });
         if (Array.isArray(item.keywords) && item.keywords.length) {
-          html += '<div style="margin-top:6px;font-size:.85rem;color:#6f4969;">키워드: ' + escapeHtml(item.keywords.join(", ")) + "</div>";
+          var kw = document.createElement("div");
+          kw.className = "mt-2 text-sm text-amber-700/90";
+          kw.textContent = "키워드: " + item.keywords.join(", ");
+          wrap.appendChild(kw);
         }
-        html += "</div>";
+        sectionEl.appendChild(wrap);
       });
-      html += "</section>";
-    }
-    if (Array.isArray(r.actionPlan)) {
-      html += '<section class="tarot-healing-section"><h4 class="tarot-healing-section-title">☀ 오늘의 회복 미션 (행동 코칭)</h4><ul class="tarot-healing-advice-list">';
-      r.actionPlan.forEach(function (item) {
-        html += "<li>" + escapeHtml(item) + "</li>";
-      });
-      html += "</ul></section>";
     }
 
-    container.innerHTML = html;
+    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+      ensureSection("☀ 오늘의 회복 미션 (행동 코칭)");
+      var ul = document.createElement("ul");
+      ul.className = "tarot-healing-advice-list list-disc pl-6 space-y-2 text-amber-900/90";
+      r.actionPlan.forEach(function (item) {
+        var li = document.createElement("li");
+        li.className = textClass;
+        ul.appendChild(li);
+        queue.push({ el: li, text: item });
+      });
+      sectionEl.appendChild(ul);
+    }
+
+    runTypingQueue(queue, TYPING_CHAR_DELAY_MS);
   }
 
   function escapeHtml(s) {
@@ -815,14 +902,14 @@
   function shareTarotHealingResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "☀ [긍정 태양 회복 타로] ☀\n\n";
+    var text = "☀ [긍정 태양 회복 타로점] ☀\n\n";
     if (r.opening) text += "☀ " + r.opening + "\n\n";
     if (r.stepForward) text += "☀ " + r.stepForward + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "☀ 긍정 태양 회복 타로",
+        title: "☀ 긍정 태양 회복 타로점",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});
