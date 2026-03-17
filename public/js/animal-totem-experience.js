@@ -190,7 +190,7 @@
   }
 
   function setMode(mode) {
-    state.mode = mode === "five" ? "five" : "three";
+    state.mode = (mode === "five" ? "five" : mode === "one" ? "one" : "three");
     refs.modeButtons.forEach(function(btn) {
       btn.classList.toggle("is-active", btn.getAttribute("data-mode") === state.mode);
     });
@@ -198,6 +198,7 @@
 
   function slotLabel(slot) {
     var map = {
+      today_guide: "오늘의 수호 메시지",
       past_wound: "과거 상처",
       present_energy: "현재 에너지",
       integration_path: "통합 방향",
@@ -369,13 +370,14 @@
       }).join("");
     }
 
+    var maxSentences = state.mode === "one" ? 4 : 2;
     state.consultation.cards.forEach(function(entry, idx) {
       var p = document.createElement("article");
       p.className = "totem-guidance-card";
       p.style.animationDelay = (idx * 0.12).toFixed(2) + "s";
-      var essence = takeSentences(entry.layered_reading.essence, 2);
-      var message = takeSentences(entry.layered_reading.direct_message, 2);
-      var advices = shortenAdvice(entry.layered_reading.daily_actions);
+      var essence = takeSentences(entry.layered_reading.essence, maxSentences);
+      var message = takeSentences(entry.layered_reading.direct_message, maxSentences);
+      var advices = state.mode === "one" ? (entry.layered_reading.daily_actions || []).slice(0, 5).map(function(v) { return takeSentences(v, 1); }) : shortenAdvice(entry.layered_reading.daily_actions);
       p.innerHTML =
         '<div class="totem-guidance-aura" style="--aura-color:' + (entry.animal.color_theme.glow || "#facc15") + ';"></div>' +
         '<div class="totem-guidance-head">' +
@@ -385,7 +387,7 @@
         '<section class="totem-guidance-section"><h4>오늘의 수호신</h4><p>' + essence + "</p></section>" +
         '<section class="totem-guidance-section"><h4>작은 친구의 속삭임</h4><p>' + message + "</p></section>" +
         '<section class="totem-guidance-section"><h4>오늘 해보면 좋을 것</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
-        '<details class="totem-ritual-toggle"><summary>5분 마음 정리</summary><p>' + takeSentences(entry.layered_reading.ritual, 2) + "</p></details>";
+        '<details class="totem-ritual-toggle"><summary>5분 마음 정리</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
       refs.readingPanels.appendChild(p);
     });
   }

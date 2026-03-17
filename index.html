@@ -2144,11 +2144,11 @@
             <button class="animal-totem-close" type="button" data-action="closeAnimalTotemModal" aria-label="애니멀 토템 닫기">×</button>
 
             <section id="animalTotemIntroStage" class="animal-totem-stage is-active">
-              <div class="totem-intro-hero">
-                <div class="totem-intro-title">ANIMAL TOTEM RITUAL</div>
-                <p class="totem-intro-subtitle">별빛의 문을 열고 오늘의 영적 메시지를 받으세요. 심층 리딩은 3장 또는 5장 스프레드로 진행됩니다.</p>
-                <div style="margin-top:14px;">
-                  <button class="totem-btn totem-btn--invoke" type="button" data-action="startAnimalTotemRitual">INVOKE MY GUIDE</button>
+              <div class="totem-intro-hero rounded-2xl shadow-xl overflow-hidden">
+                <div class="totem-intro-title tracking-widest">ANIMAL TOTEM RITUAL</div>
+                <p class="totem-intro-subtitle leading-relaxed text-white/95">별빛의 문을 열고 오늘의 영적 메시지를 받으세요. 원카드·3장·5장 중 마음이 이끄는 방식으로 심층 리딩을 진행할 수 있습니다.</p>
+                <div class="mt-5">
+                  <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">INVOKE MY GUIDE</button>
                 </div>
               </div>
               <div class="totem-canvas-wrap">
@@ -2159,12 +2159,16 @@
             </section>
 
             <section id="animalTotemModeStage" class="animal-totem-stage totem-mode-stage">
-              <div class="totem-mode-header">
-                <span class="totem-mode-badge">🐾 ANIMAL TAROT</span>
-                <h3 class="totem-draw-header totem-mode-title">리딩 방식 선택</h3>
-                <p class="totem-mode-hint">마음이 이끄는 카드 수를 골라주세요</p>
+              <div class="totem-mode-header text-center">
+                <span class="totem-mode-badge inline-block">🐾 ANIMAL TAROT</span>
+                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">리딩 방식 선택</h3>
+                <p class="totem-mode-hint mt-1">마음이 이끄는 카드 수를 골라주세요</p>
               </div>
-              <div class="totem-mode-grid">
+              <div class="totem-mode-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                <button type="button" class="totem-mode-btn" data-mode="one" data-action="setAnimalTotemSpreadMode" data-action-args="one">
+                  <span class="totem-mode-icon">✨</span>
+                  <span class="totem-mode-content"><b>원카드 오늘의 메시지</b><br><small>한 장으로 전해지는 수호 동물의 속삭임</small></span>
+                </button>
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
                   <span class="totem-mode-icon">🦉</span>
                   <span class="totem-mode-content"><b>3카드 심층 리딩</b><br><small>과거 상처 · 현재 에너지 · 통합 방향</small></span>
@@ -2174,45 +2178,45 @@
                   <span class="totem-mode-content"><b>5카드 영성 상담</b><br><small>이성 · 감정 · 그림자 · 선물 · 다음 행동</small></span>
                 </button>
               </div>
-              <div class="totem-result-actions totem-mode-actions">
-                <button type="button" class="totem-btn totem-btn--spread" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
-                <button type="button" class="totem-btn totem-btn--subtle" data-action="resetAnimalTotemFlow">↺ 처음으로</button>
+              <div class="totem-result-actions totem-mode-actions flex flex-wrap justify-center gap-3 mt-6">
+                <button type="button" class="totem-btn totem-btn--spread px-6 py-3 rounded-xl" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
+                <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="resetAnimalTotemFlow">↺ 처음으로</button>
               </div>
             </section>
 
             <section id="animalTotemDrawStage" class="animal-totem-stage totem-draw-stage">
-              <div class="totem-draw-header-wrap">
+              <div class="totem-draw-header-wrap text-center mb-6">
                 <span class="totem-draw-badge">✨ TOTEM CARD</span>
-                <h3 class="totem-draw-header">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
-                <p class="totem-draw-hint">탭하여 뒤집기</p>
+                <h3 class="totem-draw-header text-lg font-semibold mt-2">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
+                <p class="totem-draw-hint mt-1 text-white/70">탭하여 뒤집기</p>
               </div>
-              <div id="animalTotemCardRail" class="totem-card-grid"></div>
+              <div id="animalTotemCardRail" class="totem-card-grid gap-4 md:gap-6"></div>
             </section>
 
             <section id="animalTotemResultStage" class="animal-totem-stage totem-result-stage">
-              <div class="totem-result-container">
+              <div class="totem-result-container max-w-2xl mx-auto flex flex-col gap-6">
                 <header class="totem-result-header">
-                  <h2 class="totem-result-title">Today's Animal Totem Message</h2>
-                  <div id="animalTotemFlowStrip" class="totem-flow-strip totem-flow-strip--compact" aria-live="polite"></div>
+                  <h2 class="totem-result-title text-2xl md:text-3xl font-extrabold tracking-wide">Today's Animal Totem Message</h2>
+                  <div id="animalTotemFlowStrip" class="totem-flow-strip totem-flow-strip--compact mt-4 rounded-2xl" aria-live="polite"></div>
                 </header>
-                <div class="totem-result-card-section">
-                  <div id="animalTotemResultCards" class="totem-result-cards" aria-label="뽑은 토템 카드"></div>
+                <div class="totem-result-card-section flex justify-center">
+                  <div id="animalTotemResultCards" class="totem-result-cards gap-5" aria-label="뽑은 토템 카드"></div>
                 </div>
-                <div class="totem-result-content">
-                  <article class="totem-panel-float totem-panel-float--opening">
-                    <h4>오라클 서문</h4>
-                    <p id="animalTotemOpeningText"></p>
+                <div class="totem-result-content space-y-5">
+                  <article class="totem-panel-float totem-panel-float--opening rounded-2xl p-6 shadow-lg">
+                    <h4 class="text-amber-200 font-semibold tracking-wider uppercase text-sm mb-3">오라클 서문</h4>
+                    <p id="animalTotemOpeningText" class="leading-relaxed text-white/95"></p>
                   </article>
-                  <div id="animalTotemReadingPanels" class="totem-consult-list"></div>
-                  <article class="totem-panel-float totem-panel-float--closing">
-                    <h4>마무리 인도문</h4>
-                    <p id="animalTotemClosingText"></p>
+                  <div id="animalTotemReadingPanels" class="totem-consult-list space-y-5"></div>
+                  <article class="totem-panel-float totem-panel-float--closing rounded-2xl p-6 shadow-lg">
+                    <h4 class="text-amber-200 font-semibold tracking-wider uppercase text-sm mb-3">마무리 인도문</h4>
+                    <p id="animalTotemClosingText" class="leading-relaxed text-white/95"></p>
                   </article>
                 </div>
-                <div class="totem-result-actions">
-                  <button type="button" class="totem-btn" data-action="shareAnimalTotemResult">💬 카카오톡 공유하기</button>
-                  <button type="button" class="totem-btn totem-btn--subtle" data-action="resetAnimalTotemFlow">🔄 다시 리딩하기</button>
-                  <button type="button" class="totem-btn totem-btn--subtle" data-action="closeAnimalTotemModal">🏠 홈화면 바로가기</button>
+                <div class="totem-result-actions flex flex-wrap justify-center gap-3 mt-6">
+                  <button type="button" class="totem-btn px-6 py-3 rounded-xl" data-action="shareAnimalTotemResult">💬 카카오톡 공유하기</button>
+                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="resetAnimalTotemFlow">🔄 다시 리딩하기</button>
+                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="closeAnimalTotemModal">🏠 홈화면 바로가기</button>
                 </div>
               </div>
             </section>
