@@ -3656,7 +3656,7 @@ function navigateToVedic() {
       localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
     } catch (e) {}
   }
-  window.location.href = '/vedic';
+  window.location.href = '/vedic-astrology.html';
 }
 
 function openZiweiModal() {

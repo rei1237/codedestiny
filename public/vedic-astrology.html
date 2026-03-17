@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>베다 점성술 — 별들의 지도</title>
 <link id="gfont" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" onerror="this.remove()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
    Cinzel 폰트가 없으면 Georgia → Times New Roman → serif 순으로 대체
@@ -13,19 +14,53 @@
 
 :root {
   --font-display: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
-  --font-body: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'NanumGothic', '나눔고딕', '맑은 고딕', Helvetica, Arial, sans-serif;
+  --font-body: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'NanumGothic', '나눔고딕', '맑은 고딕', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --gold:#D4AF37;--gold2:#F5D06A;--purple:#7C3AED;--purple2:#A78BFA;--cyan:#06B6D4;--pink:#EC4899;
   --red:#FF4444;--green:#22C55E;--orange:#F59E0B;
-  --bg:#050010;--bg2:#0a001f;--bg3:#12002e;
-  --glass:rgba(255,255,255,0.05);--glassdark:rgba(0,0,0,0.3);
+  /* "심연의 우주" 네뷸라 베이스 */
+  --bg:#030208;--bg2:#0b0824;--bg3:#1a0b33; /* black → indigo-950 → purple-900 */
+  --neb1:rgba(124,58,237,0.18);
+  --neb2:rgba(30,64,175,0.18);
+  --neb3:rgba(236,72,153,0.10);
+  /* Glassmorphism */
+  --glass:rgba(255,255,255,0.085);--glassdark:rgba(0,0,0,0.3);
   --border:rgba(139,92,246,0.25);--bordergold:rgba(212,175,55,0.3);
   --text:#F0E8FF;--text2:rgba(240,232,255,0.65);--text3:rgba(240,232,255,0.4);
 }
 html,body{height:100%;overflow-x:hidden}
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(1100px 650px at 12% 18%, var(--neb2), transparent 60%),
+    radial-gradient(900px 520px at 82% 22%, var(--neb1), transparent 62%),
+    radial-gradient(720px 520px at 70% 86%, var(--neb3), transparent 60%),
+    linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 35%, var(--bg) 100%);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.6;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:-2;
+  background:
+    radial-gradient(1200px 700px at 50% 10%, rgba(255,255,255,0.06), transparent 60%),
+    radial-gradient(900px 520px at 20% 70%, rgba(255,255,255,0.035), transparent 62%),
+    radial-gradient(760px 460px at 85% 78%, rgba(255,255,255,0.03), transparent 62%);
+  filter:blur(0.5px);
+}
+body::after{
+  content:"";
+  position:fixed;inset:-40px;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(closest-side at 50% 50%, transparent 68%, rgba(0,0,0,0.55) 100%);
+}
 h1,h2,h3,.cinzel{font-family:var(--font-display);letter-spacing:0.05em}
 input,select,textarea{
   background:rgba(255,255,255,0.06);border:1px solid rgba(139,92,246,0.35);border-radius:10px;
@@ -35,7 +70,14 @@ input,select,textarea{
 input:focus,select:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(167,139,250,0.15)}
 select option{background:#1a0040;color:#fff}
 input::placeholder{color:var(--text3)}
-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block}
+label{
+  font-size:12px;
+  color:rgba(240,232,255,0.78);
+  margin-bottom:6px;
+  display:block;
+  font-weight:600;
+  letter-spacing:0.02em;
+}
 button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .btn-primary{
   background:linear-gradient(135deg,var(--purple),#4C1D95);color:#fff;
@@ -43,10 +85,20 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   border:1px solid rgba(167,139,250,0.4);transition:all 0.2s;width:100%;
   text-align:center;
 }
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,0,0,0.35),0 0 0 1px rgba(212,175,55,0.15),0 0 24px rgba(245,208,106,0.14)}
 .btn-primary:active{transform:scale(0.97)}
 .btn-sm{padding:7px 16px;border-radius:8px;font-size:12px;background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid var(--border);transition:all 0.2s}
+.btn-sm:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(0,0,0,0.3),0 0 18px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
 .btn-sm:active{transform:scale(0.95)}
-.glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:16px}
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(245,208,106,0.22);
+  border-radius:16px;
+  box-shadow:0 18px 60px rgba(0,0,0,0.34);
+}
+.glass:hover{box-shadow:0 20px 70px rgba(0,0,0,0.40),0 0 0 1px rgba(245,208,106,0.16),0 0 28px rgba(245,208,106,0.12)}
 .card-gold{background:rgba(212,175,55,0.06);border:1px solid var(--bordergold);border-radius:16px;padding:16px}
 .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;gap:4px}
 .tag-purple{background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid rgba(139,92,246,0.3)}
@@ -160,8 +212,40 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .hero-name{font-family:var(--font-display);font-size:clamp(20px,5vw,28px);color:var(--gold);line-height:1.2}
 .hero-sub{font-size:clamp(11px,2.5vw,13px);color:var(--text2)}
 .section-head{font-family:var(--font-display);font-size:clamp(13px,3vw,15px);color:var(--gold);letter-spacing:0.08em;margin-bottom:4px}
+.section-head{
+  font-variation-settings:"wght" 650;
+  text-shadow:0 0 16px rgba(245,208,106,0.14);
+}
+.section-head-kr{
+  font-family:var(--font-body);
+  font-weight:800;
+  letter-spacing:0.02em;
+  text-shadow:none;
+}
+.form-subhead{
+  font-family:var(--font-display);
+  font-variation-settings:"wght" 700;
+  letter-spacing:0.12em;
+  text-transform:none;
+}
+.module-title,.mod-title{
+  font-variation-settings:"wght" 650;
+  letter-spacing:0.06em;
+  text-shadow:0 0 14px rgba(245,208,106,0.10);
+}
 .body-text{font-size:clamp(13px,3.2vw,14px);line-height:1.75;color:var(--text2)}
-.sage-text{font-size:clamp(13px,3.2vw,14px);line-height:1.85;color:var(--text2);font-style:italic;border-left:2px solid var(--gold);padding:10px 14px;background:rgba(212,175,55,0.05);border-radius:0 10px 10px 0;margin:10px 0}
+.sage-text{
+  font-size:clamp(13px,3.2vw,14px);
+  line-height:1.85;
+  color:var(--text2);
+  font-style:italic;
+  padding:12px 14px;
+  background:rgba(212,175,55,0.06);
+  border:1px solid rgba(245,208,106,0.14);
+  border-radius:14px;
+  margin:10px 0;
+  box-shadow:0 14px 40px rgba(0,0,0,0.24);
+}
 .keyword{display:inline;background:rgba(212,175,55,0.15);color:var(--gold2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;padding:1px 6px;font-size:0.92em;font-weight:500}
 
 /* 탭 시스템 */
@@ -169,6 +253,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .tab-bar::-webkit-scrollbar{display:none}
 .tab-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap}
 .tab-btn.active{background:rgba(139,92,246,0.25);color:#fff;border-color:rgba(139,92,246,0.5)}
+.tab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(0,0,0,0.28),0 0 18px rgba(245,208,106,0.10);border-color:rgba(245,208,106,0.20)}
 .tab-btn:active{transform:scale(0.95)}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
@@ -201,6 +286,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
 /* 모듈 카드 (개편) */
 .mod-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.22s;user-select:none;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mod-card:hover{transform:translateY(-2px);box-shadow:0 16px 44px rgba(0,0,0,0.38),0 0 24px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
 .mod-card:active{transform:scale(0.97)}
 .mod-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .mod-texts{flex:1;min-width:0}
@@ -222,6 +308,65 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .chakra-list{display:flex;flex-direction:column;gap:10px}
 .chakra-item{display:flex;align-items:center;gap:10px}
 .chakra-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
+.chakra-circle{position:relative;isolation:isolate}
+.chakra-circle::after{
+  content:"";
+  position:absolute;inset:-6px;
+  border-radius:999px;
+  border:1px solid rgba(245,208,106,0.22);
+  opacity:0;
+  transform:scale(0.92);
+  animation:chakraPulse 2.1s ease-in-out infinite;
+}
+@keyframes chakraPulse{
+  0%,100%{opacity:0;transform:scale(0.92)}
+  40%{opacity:0.6;transform:scale(1.08)}
+  70%{opacity:0.12;transform:scale(1.22)}
+}
+
+/* 차크라 에너지 바: 무지개 흐름 */
+.chakra-energy{
+  height:8px;
+  background:rgba(255,255,255,0.08);
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid rgba(245,208,106,0.14);
+}
+.chakra-energy > .chakra-energy-fill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#ff3b30,#ff9500,#ffd60a,#34c759,#32ade6,#0a84ff,#bf5af2);
+  box-shadow:0 0 22px rgba(245,208,106,0.16);
+  position:relative;
+  transition:width 1.1s cubic-bezier(.4,0,.2,1);
+}
+.chakra-energy > .chakra-energy-fill::after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
+  transform:translateX(-60%);
+  animation:energyFlow 1.8s ease-in-out infinite;
+  mix-blend-mode:screen;
+}
+@keyframes energyFlow{to{transform:translateX(60%)}}
+
+/* 별자리 연결선 드로잉 */
+.constellation-path{width:100%;height:64px;display:block;opacity:0.9}
+.constellation-path path{
+  stroke:rgba(245,208,106,0.75);
+  stroke-width:1.25;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:420;
+  stroke-dashoffset:420;
+  animation:constellationDraw 1.6s ease forwards;
+  animation-play-state:paused;
+  filter:drop-shadow(0 0 10px rgba(245,208,106,0.18));
+}
+.reveal.visible .constellation-path path{animation-play-state:running}
+@keyframes constellationDraw{to{stroke-dashoffset:0}}
 .chakra-info{flex:1}
 .chakra-label{font-size:12px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px}
 .chakra-desc{font-size:11px;color:var(--text3);line-height:1.5}
@@ -233,14 +378,101 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .compat-num{font-size:11px;text-align:right;font-weight:600}
 
 /* 디테일 헤더 */
-.detail-topbar{display:flex;align-items:center;gap:10px;padding:14px 0 18px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:16px}
+.detail-topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 10px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  margin:0 -10px 16px;
+  border-radius:16px;
+  overflow:hidden;
+  border-bottom:1px solid rgba(245,208,106,0.12);
+  background:
+    linear-gradient(180deg, rgba(3,2,8,0.85) 0%, rgba(3,2,8,0.55) 100%);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.detail-topbar::before{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(520px 120px at 30% 0%, rgba(124,58,237,0.18), transparent 70%),
+    radial-gradient(420px 120px at 80% 0%, rgba(30,64,175,0.16), transparent 70%);
+  opacity:0.9;
+}
+.detail-topbar::after{
+  content:"";
+  position:absolute;left:12px;right:12px;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent, rgba(245,208,106,0.35), transparent);
+  pointer-events:none;
+}
+.detail-topbar-inner{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  width:100%;
+}
+.detail-title{
+  font-family:var(--font-display);
+  font-variation-settings:"wght" 700;
+  letter-spacing:0.10em;
+  text-shadow:0 0 18px rgba(245,208,106,0.16);
+  text-align:center;
+}
+.detail-sub{font-size:11px;color:rgba(240,232,255,0.5);letter-spacing:0.08em;text-align:center}
+.detail-spacer{width:84px}
+
+/* 뒤로 버튼: 우주 컨셉 글래스 칩 */
+.back-btn{
+  position:relative;
+  border:1px solid rgba(245,208,106,0.22);
+  background:rgba(255,255,255,0.06);
+  color:rgba(240,232,255,0.85);
+  border-radius:999px;
+  padding:8px 12px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.32);
+}
+.back-btn::before{
+  content:"";
+  position:absolute;inset:-1px;
+  border-radius:999px;
+  background:linear-gradient(90deg, rgba(245,208,106,0.10), rgba(124,58,237,0.12), rgba(30,64,175,0.10));
+  opacity:0.35;
+  filter:blur(8px);
+  z-index:-1;
+}
+.back-btn:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,0,0,0.36),0 0 22px rgba(245,208,106,0.14)}
+.back-btn:active{transform:scale(0.97)}
+
+/* 디테일 카드 공통: 더 깔끔한 글래스 */
+.acc-item{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(245,208,106,0.14);
+  box-shadow:0 16px 50px rgba(0,0,0,0.30);
+}
+.acc-header{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00))}
+.acc-header:hover{background:rgba(255,255,255,0.04)}
 
 /* 요가 카드 */
 .yoga-item{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.18);border-radius:12px;padding:14px;margin-bottom:10px}
 .yoga-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.yoga-title{font-weight:700;font-size:14px;color:var(--cyan)}
+.yoga-title{font-family:var(--font-body);font-weight:800;font-size:14px;color:var(--cyan);letter-spacing:0.01em}
 .yoga-dur{font-size:11px;color:var(--text3)}
-.yoga-benefit{font-size:12px;color:var(--text2);line-height:1.6}
+.yoga-benefit{font-family:var(--font-body);font-size:12.5px;color:rgba(240,232,255,0.72);line-height:1.75}
+.yoga-kr .section-head{font-family:var(--font-body);font-weight:800;letter-spacing:0.02em;text-shadow:none}
+.yoga-kr .detail-sub{font-family:var(--font-body);letter-spacing:0.02em}
+.yoga-method{background:rgba(255,255,255,0.04);border:1px solid rgba(245,208,106,0.14);border-radius:14px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,0.22)}
+.yoga-steps{margin:10px 0 0;padding-left:16px;color:rgba(240,232,255,0.72);line-height:1.75}
+.yoga-steps li{margin:6px 0}
 </style>
 </head>
 <body>
@@ -248,17 +480,77 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 <div style="position:fixed;top:-20%;left:-20%;width:140%;height:140%;background:radial-gradient(ellipse at 30% 25%,rgba(88,28,135,0.4) 0%,transparent 55%),radial-gradient(ellipse at 70% 75%,rgba(6,182,212,0.15) 0%,transparent 50%);pointer-events:none;z-index:0"></div>
 
 <div id="app" style="position:relative;z-index:1">
-  <!-- PAGE: NO PROFILE (입력 없음, 프로필 필요) -->
-  <div id="page-noprofile" class="page active">
-    <div style="padding-top:48px;text-align:center;margin-bottom:28px">
-      <div style="font-size:40px;margin-bottom:8px">🌌</div>
+  <!-- PAGE: INPUT (프로필 없이 직접 입력) -->
+  <div id="page-input" class="page active">
+    <div style="padding-top:40px;text-align:center;margin-bottom:18px">
+      <div style="font-size:40px;margin-bottom:8px">🪐</div>
       <h1 style="font-size:22px;color:var(--gold);margin-bottom:6px">베다 점성술</h1>
       <p style="font-size:12px;color:var(--text3)">Jyotish · 별들의 지혜</p>
     </div>
-    <div class="glass" style="padding:24px;text-align:center">
-      <p style="font-size:14px;color:var(--text2);margin-bottom:16px;line-height:1.7">나의 운명 카드에서 생년월일·시간 정보를 먼저 입력해 주세요.<br>같은 프로필로 베다점을 볼 수 있습니다.</p>
-      <a href="/" class="btn-primary" style="display:inline-block;text-decoration:none;color:#fff">← 메인으로 돌아가기</a>
+    <div class="glass" style="padding:18px 16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_year">연도</label>
+          <input id="v_year" inputmode="numeric" placeholder="예: 1994">
+        </div>
+        <div>
+          <label for="v_month">월</label>
+          <input id="v_month" inputmode="numeric" placeholder="1~12">
+        </div>
+        <div>
+          <label for="v_day">일</label>
+          <input id="v_day" inputmode="numeric" placeholder="1~31">
+        </div>
+        <div>
+          <label for="v_gender">성별</label>
+          <select id="v_gender">
+            <option value="M">남성</option>
+            <option value="F">여성</option>
+          </select>
+        </div>
+        <div>
+          <label for="v_hour">시</label>
+          <input id="v_hour" inputmode="numeric" placeholder="0~23">
+        </div>
+        <div>
+          <label for="v_minute">분</label>
+          <input id="v_minute" inputmode="numeric" placeholder="0~59">
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="section-head" style="margin-bottom:10px">장소 · 시간대</div>
+      <div style="margin-bottom:10px">
+        <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
+        <select id="v_place" style="width:100%">
+          <option value="" selected>장소를 선택하세요</option>
+          <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
+        </select>
+        <div style="margin-top:6px;color:var(--text3);font-size:12px;line-height:1.5">
+          메인과 동일한 장소 목록이 로드되면 자동으로 확장됩니다.
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_lat">위도 (lat)</label>
+          <input id="v_lat" inputmode="decimal" placeholder="예: 37.5665">
+        </div>
+        <div>
+          <label for="v_lon">경도 (lon)</label>
+          <input id="v_lon" inputmode="decimal" placeholder="예: 126.9780">
+        </div>
+        <div style="grid-column:1 / -1">
+          <label for="v_tz">타임존 오프셋 (UTC 기준, 시간 단위)</label>
+          <input id="v_tz" inputmode="decimal" placeholder="예: 9 (한국), -5 (뉴욕)">
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
+      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
+        프로필 카드 없이도 바로 계산합니다. (API가 실패하면 로컬 계산으로 자동 전환됩니다.)
+      </div>
     </div>
+    <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
   </div>
 
   <!-- PAGE: LOADING -->
@@ -284,14 +576,73 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 (function(){
   if(typeof Math!=='object'||typeof Date!=='function'||typeof JSON!=='object'){
     document.addEventListener('DOMContentLoaded',function(){
-      var el=document.getElementById('page-noprofile')||document.body;
-      var msg=el.querySelector&&el.querySelector('.glass p');
-      if(msg)msg.textContent='이 페이지를 실행하려면 Math, Date, JSON 등 기본 기능이 필요합니다. 보안 환경(SES)에서 차단된 경우 관리자에게 문의하세요.';
+      var el=document.getElementById('page-input')||document.body;
+      var msg=el.querySelector&&el.querySelector('.glass .section-head');
+      if(msg)msg.textContent='기본 기능이 차단되어 실행할 수 없습니다';
     });
     return;
   }
   document.addEventListener('DOMContentLoaded',function(){ initVedicPage(); });
 })();
+
+function vedicInitBirthPlaceSelect(){
+  var sel=document.getElementById('v_place');
+  if(!sel) return;
+  if(!(typeof window!=='undefined' && Array.isArray(window.BIRTH_PLACE_GROUPS) && window.BIRTH_PLACE_GROUPS.length)){
+    try{
+      var existing=document.getElementById('birthPlaceGroupsScript');
+      if(!existing){
+        var s=document.createElement('script');
+        s.id='birthPlaceGroupsScript';
+        s.src='/js/birth-place-groups.js';
+        s.onload=function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} };
+        s.onerror=function(){};
+        document.head.appendChild(s);
+      }
+    }catch(_){}
+    return;
+  }
+  // If main engine exposed grouped places, reuse it.
+  try{
+    var groups = (typeof window!=='undefined') ? window.BIRTH_PLACE_GROUPS : null;
+    if(Array.isArray(groups) && groups.length){
+      sel.innerHTML = '<option value=\"\" selected>장소를 선택하세요</option>';
+      groups.forEach(function(g){
+        if(!g || !Array.isArray(g.places) || !g.places.length) return;
+        var og=document.createElement('optgroup');
+        og.label = g.label || '장소';
+        g.places.forEach(function(p){
+          if(!p) return;
+          var opt=document.createElement('option');
+          opt.value = p.tz || '';
+          opt.textContent = p.label || (p.tz || '장소');
+          opt.setAttribute('data-long', String(p.lon));
+          opt.setAttribute('data-lat', String(p.lat));
+          opt.setAttribute('data-tz', String(p.tzOff));
+          opt.setAttribute('data-base-tz', String(p.tzOff));
+          if(p.def) opt.selected = true;
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      });
+      // if a default place is marked, reflect lat/lon/tz immediately
+      try{ vedicApplySelectedPlace(); }catch(_){}
+    }
+  }catch(e){}
+}
+
+function vedicApplySelectedPlace(){
+  var sel=document.getElementById('v_place');
+  if(!sel) return;
+  var opt=sel.options[sel.selectedIndex];
+  if(!opt) return;
+  var lat=parseFloat(opt.getAttribute('data-lat')||'');
+  var lon=parseFloat(opt.getAttribute('data-long')||'');
+  var tz=parseFloat(opt.getAttribute('data-tz')||opt.getAttribute('data-base-tz')||'');
+  if(!isNaN(lat)) { var latEl=document.getElementById('v_lat'); if(latEl) latEl.value=String(lat); }
+  if(!isNaN(lon)) { var lonEl=document.getElementById('v_lon'); if(lonEl) lonEl.value=String(lon); }
+  if(!isNaN(tz)) { var tzEl=document.getElementById('v_tz'); if(tzEl) tzEl.value=String(tz); }
+}
 
 // ─── STAR CANVAS ───────────────────────────────────────────
 (function(){
@@ -647,7 +998,58 @@ function analyze(chart){
   const h7tr=STRN[h7.sign]||STRN.Aries;const ktr=STRN[kp.signName]||STRN.Aries;
   const romanticStyle=`${h7tr.el} 원소 에너지: ${h7tr.kw.join(", ")}을 통해 파트너를 끌어당김`;
   const h7M=dashas.find(d=>d.p===h7l);const kM=dashas.find(d=>d.p===karaka);
-  const marriageTiming=h7M?`${PKR[h7l]} 대운(${h7M.start.getFullYear()}–${h7M.end.getFullYear()}) 또는 ${PKR[karaka]} 대운(${kM?kM.start.getFullYear():"?"}–${kM?kM.end.getFullYear():"?"}) 시기`:"대운 데이터 분석 필요";
+  function _formatMarriageTiming(){
+    const by = (chart && chart.f && chart.f.year) ? chart.f.year : null;
+    const minAge = 20, maxAge = 49; // "늦어도 40대 안" (만 49세까지)
+    const minY = (by != null) ? (by + minAge) : null;
+    const maxY = (by != null) ? (by + maxAge) : null;
+
+    function _clampPeriod(d){
+      if(!d || !d.start || !d.end) return null;
+      if(minY == null || maxY == null) return { s: d.start.getFullYear(), e: d.end.getFullYear() };
+      const s = Math.max(d.start.getFullYear(), minY);
+      const e = Math.min(d.end.getFullYear(), maxY);
+      if(s > e) return null;
+      return { s, e };
+    }
+
+    // 후보(7H lord, karaka) 중복 제거 + 40대 이내로 클램프
+    const rawCandidates = [];
+    if(h7M) rawCandidates.push({ p: h7l, d: h7M });
+    if(kM) rawCandidates.push({ p: karaka, d: kM });
+
+    const seen = new Set();
+    const picked = [];
+    rawCandidates.forEach(c=>{
+      if(!c || !c.d) return;
+      const pr = _clampPeriod(c.d);
+      if(!pr) return;
+      const key = `${c.p}:${pr.s}-${pr.e}`;
+      if(seen.has(key)) return;
+      seen.add(key);
+      picked.push({ p: c.p, s: pr.s, e: pr.e });
+    });
+
+    // 후보가 없으면(둘 다 40대 이후로 밀리면) 연령 기반 윈도우로 폴백
+    if(!picked.length && by != null){
+      let aS = 28, aE = 42;
+      if(h7 && h7.planets && h7.planets.includes("Saturn")) { aS = 35; aE = 49; }
+      if(h7 && h7.planets && (h7.planets.includes("Rahu") || h7.planets.includes("Ketu"))) { aS = Math.max(aS, 32); }
+      const ys = by + aS;
+      const ye = by + aE;
+      return `${aS}–${aE}세 전후 (약 ${ys}–${ye}년)`;
+    }
+
+    if(!picked.length) return "대운 데이터 분석 필요";
+
+    // 출력: 중복 없는 고급 문구
+    if(picked.length === 1){
+      const x = picked[0];
+      return `${PKR[x.p]} 대운 (${x.s}–${x.e})`;
+    }
+    return picked.map(x=>`${PKR[x.p]} 대운 (${x.s}–${x.e})`).join(" · ");
+  }
+  const marriageTiming=_formatMarriageTiming();
   const rChallenges=[];
   if(kp.retro)rChallenges.push(`${PKR[karaka]} 역행: 연애에서 과거 패턴 반복 주의`);
   if(kp.dignity==="Debilitated")rChallenges.push(`${PKR[karaka]} 약화: 이상형과 현실의 괴리`);
@@ -707,15 +1109,45 @@ function calcCompatibility(nak1,nak2){
   // Nadi (8)
   const nadi=NKNADI[nak1]!==NKNADI[nak2]?8:0;
   const total=Math.round(varna+vashya+taraScore+yoni+gm+gana+bhakoot+nadi);
+  const why={
+    varna: varna===1
+      ? `Varna 점수 1점: 두 낙샤트라의 Varna(계층) 흐름이 상호 수용 가능한 방향입니다. 관계에서 역할·기대치가 자연스럽게 정렬되기 쉬워요.`
+      : `Varna 점수 0점: Varna(계층) 관점에서 기대치/역할 인식 차이가 커질 수 있습니다. 현실적 기준(가치관·생활방식)을 명확히 맞추는 것이 중요합니다.`,
+    vashya: vashya===2
+      ? `Vashya 2점: 두 낙샤트라의 거리(상호 끌림/영향권)가 가까운 편으로, 주도권 싸움 없이 리듬을 맞추기 쉽습니다.`
+      : `Vashya 1점: 상호 영향권이 다소 분리되어 각자 고집이 살아날 수 있습니다. 중요한 의사결정은 “원칙 합의 → 역할 분담” 순서가 유리합니다.`,
+    tara: taraScore===3
+      ? `Tara 3점: Tara(행운/보호) 패턴이 상호 길(吉) 쪽으로 맞물립니다. 함께 있을 때 컨디션·운의 흐름이 안정적입니다.`
+      : taraScore>0
+        ? `Tara ${taraScore}점: 한쪽은 길(吉) 흐름인데 다른 한쪽이 약할 수 있습니다. 컨디션/시기운이 엇갈릴 때 서로 “휴식·배려”를 우선하면 균형이 잡힙니다.`
+        : `Tara 0점: Tara 관점에서 시기운이 충돌할 수 있습니다. 큰 결정(동거/결혼/투자)은 “타이밍”을 더 보수적으로 잡는 것이 좋습니다.`,
+    yoni: yoni===4
+      ? `Yoni 4점: 동일한 Yoni(본능/친밀감 원형)로 신체적·정서적 친밀감이 자연스럽습니다.`
+      : yoni===0
+        ? `Yoni 0점: Yoni(본능 원형)가 상극 패턴으로, 자극/갈등이 강하게 느껴질 수 있습니다. 갈등이 생기면 “즉시 해결”보다 “쿨다운 후 대화”가 필요합니다.`
+        : `Yoni 2점: 기본 친밀감은 형성되지만 리듬(애정표현/거리감)이 다를 수 있습니다. 서로의 애정 언어를 구체화하면 점수가 체감상 올라갑니다.`,
+    gm: `Graha Maitri ${gm}점: 두 낙샤트라의 지배 행성(${l1} ↔ ${l2}) 우정 관계가 ${r1}/${r2}로 계산되었습니다. 정신적 코드(대화/판단 기준)가 잘 맞을수록 장기 안정성이 커집니다.`,
+    gana: gana===6
+      ? `Gana 6점: 동일 Gana(${g1}) — 기질의 기본 파형이 유사해 “사소한 생활 리듬”까지 잘 맞는 편입니다.`
+      : gana===0
+        ? `Gana 0점: 기질(${g1} ↔ ${g2}) 충돌 가능성이 큽니다. 갈등의 핵심은 ‘사랑’이 아니라 ‘표현 방식’일 때가 많으니 규칙을 만들어 두세요.`
+        : `Gana ${gana}점: 기질이 부분적으로 달라 보완이 가능하지만, 스트레스 상황에서 반응 패턴이 다를 수 있습니다.`,
+    bhakoot: bhakoot===7
+      ? `Bhakoot 7점: Bhakoot(관계/번영) 축이 안정적입니다. 함께 살수록 재정·생활 기반이 정돈되는 흐름이 기대됩니다.`
+      : `Bhakoot 0점: Bhakoot Dosha 가능성 — 관계의 ‘번영/재정/가정 운영’에서 마찰이 생기기 쉽습니다. 돈·가족·거주 같은 현실 의제를 초기에 합의하면 완화됩니다.`,
+    nadi: nadi===8
+      ? `Nadi 8점: Nadi(체질/혈통) 타입이 달라 건강·자녀운 측면에서 유리한 조합으로 봅니다.`
+      : `Nadi 0점: Nadi Dosha 가능성 — 체질/건강·자녀 이슈를 더 신중히 보라는 신호입니다. 생활 습관/건강검진/출산 계획을 현실적으로 잡는 것이 좋아요.`
+  };
   const breakdown=[
-    {n:"Varna (카스트 호환성)",max:1,sc:Math.round(varna),desc:"사회적 적합성"},
-    {n:"Vashya (지배 관계)",max:2,sc:Math.round(vashya),desc:"상호 영향력"},
-    {n:"Tara (별자리 궁합)",max:3,sc:Math.round(taraScore),desc:"건강·운"},
-    {n:"Yoni (본능 호환)",max:4,sc:Math.round(yoni),desc:"신체적 친밀감"},
-    {n:"Graha Maitri (행성우정)",max:5,sc:Math.round(gm),desc:"정신적 호환"},
-    {n:"Gana (기질 호환)",max:6,sc:Math.round(gana),desc:"기질적 조화"},
-    {n:"Bhakoot (관계 조화)",max:7,sc:Math.round(bhakoot),desc:"관계 번영"},
-    {n:"Nadi (체질 호환)",max:8,sc:Math.round(nadi),desc:"자녀 건강·건강"}
+    {n:"Varna (카스트 호환성)",max:1,sc:Math.round(varna),desc:"사회적 적합성",why:why.varna},
+    {n:"Vashya (지배 관계)",max:2,sc:Math.round(vashya),desc:"상호 영향력",why:why.vashya},
+    {n:"Tara (별자리 궁합)",max:3,sc:Math.round(taraScore),desc:"건강·운",why:why.tara},
+    {n:"Yoni (본능 호환)",max:4,sc:Math.round(yoni),desc:"신체적 친밀감",why:why.yoni},
+    {n:"Graha Maitri (행성우정)",max:5,sc:Math.round(gm),desc:"정신적 호환",why:why.gm},
+    {n:"Gana (기질 호환)",max:6,sc:Math.round(gana),desc:"기질적 조화",why:why.gana},
+    {n:"Bhakoot (관계 조화)",max:7,sc:Math.round(bhakoot),desc:"관계 번영",why:why.bhakoot},
+    {n:"Nadi (체질 호환)",max:8,sc:Math.round(nadi),desc:"자녀·건강",why:why.nadi}
   ];
   const pct=Math.round(total/36*100);
   const verdict=pct>=75?"매우 좋은 궁합 — 강력히 추천":pct>=65?"좋은 궁합 — 추천":pct>=50?"보통 궁합 — 노력 필요":"신중한 접근 권장";
@@ -726,7 +1158,18 @@ function calcCompatibility(nak1,nak2){
   if(nadi===0)challenges.push("Nadi Dosha: 자녀·건강 주의");
   if(gana===0)challenges.push("기질 충돌 주의 필요");
   if(bhakoot===0)challenges.push("Bhakoot Dosha: 재물·번영 주의");
-  return{total,pct,verdict,breakdown,strengths,challenges,advice:pct>=65?"두 사람의 별자리 에너지가 조화를 이룹니다. 상호 존중과 이해로 깊은 관계를 만들어가세요.":"차이점을 인정하고 서로를 보완하는 노력이 관계의 핵심입니다."};
+  const overallReason=
+    `낙샤트라 기준: <span class="keyword">${nak1}</span> × <span class="keyword">${nak2}</span>.<br>`+
+    `총점 <span class="keyword">${total}/36</span>은 ‘감정’보다 <span class="keyword">생활 궁합(기질·의사결정·건강/가정 운영)</span>을 얼마나 안정적으로 굴릴 수 있는지에 초점을 둔 값입니다.<br>`+
+    `${(bhakoot===0||nadi===0)?'특히 <span class="keyword">Bhakoot/Nadi</span>는 결혼 생활의 현실(재정·가정·건강)과 연결되므로, 낮게 나오면 “룰/합의/생활 설계”로 보완하는 게 핵심입니다.':'핵심 항목에서 큰 도샤 신호가 없어서, 관계의 안정성을 끌어올리기 좋은 조합입니다.'}`;
+
+  return{
+    total,pct,verdict,breakdown,strengths,challenges,
+    overallReason,
+    advice:pct>=65
+      ?"두 사람의 별자리 에너지가 조화를 이룹니다. 장점은 키우고, 약점은 ‘규칙’으로 보완하면 장기적으로 매우 안정적입니다."
+      :"차이점을 인정하고 서로를 보완하는 노력이 관계의 핵심입니다. 특히 낮게 나온 항목을 중심으로 대화 규칙과 생활 합의를 만드는 것이 효과적입니다."
+  };
 }
 
 // ─── STATE ────────────────────────────────────────────────
@@ -934,33 +1377,38 @@ function doCalculateFromProfile(profile){
   }
 
   var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
-  fetch(apiBase+'/api/vedic/planets',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      year:f.year,month:f.month,day:f.day,
-      hour:f.hour,minute:f.minute,timezone:f.timezone
+  var url=apiBase+'/api/vedic/planets';
+  var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone };
+  var timeoutMs=2500;
+  var reqPromise;
+  if(typeof AbortController==='function'){
+    var ac=new AbortController();
+    var t=setTimeout(function(){ try{ ac.abort(); }catch(_){} }, timeoutMs);
+    reqPromise=fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ac.signal})
+      .then(function(r){ return r.json(); })
+      .finally(function(){ clearTimeout(t); });
+  } else {
+    reqPromise=Promise.race([
+      fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){return r.json();}),
+      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, timeoutMs); })
+    ]);
+  }
+  reqPromise
+    .then(function(res){
+      if(res&&res.ok&&res.planets){ runWithPlanets(res.planets); }
+      else { runLocal(); }
     })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(res){
-    if(res&&res.ok&&res.planets){
-      runWithPlanets(res.planets);
-    } else {
+    .catch(function(err){
+      console.warn('Vedic API unavailable, using local calculation:', err&&err.message?err.message:'');
       runLocal();
-    }
-  })
-  .catch(function(err){
-    console.warn('Vedic API unavailable, using local calculation:', err&&err.message?err.message:'');
-    runLocal();
-  });
+    });
 }
 
 // ─── INIT: 프로필 있으면 API 호출 후 결과, 없으면 noprofile ─
 function _hasValidBirth(p){
   if(!p||!p.birth)return false;
   const b=p.birth;
-  const numOrStr=function(v){ return v!==undefined&&v!==null&&v!===''&&(typeof v==='number'?!isNaN(v):String(v).trim()!==''); };
+  const numOrStr=function(v){ return v!==undefined&&v!==null&&v!==''&&(typeof v==='number'?!isNaN(v):String(v).trim()!==''); };
   return numOrStr(b.year)&&numOrStr(b.month)&&numOrStr(b.day);
 }
 function _hasAnyBirth(p){
@@ -1031,10 +1479,85 @@ function _readProfileFromStorage(){
 function initVedicPage(){
   let profile=null;
   try{ profile=_readProfileFromStorage(); }catch(e){}
-  if(!profile){ showPage('noprofile'); return; }
+  if(!profile){ showPage('input'); _prefillVedicInput(); return; }
   profile=normalizeProfileForVedic(profile)||profile;
-  if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('noprofile'); return; }
+  if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); _prefillVedicInput(); return; }
   doCalculateFromProfile(profile);
+}
+
+// ensure handlers are bound even if inline attributes fail
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var runBtn=document.getElementById('v_run_btn');
+    if(runBtn){
+      runBtn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        runVedicFromInput();
+      });
+    }
+    var placeSel=document.getElementById('v_place');
+    if(placeSel){
+      placeSel.addEventListener('change', function(){
+        try{ vedicApplySelectedPlace(); }catch(_){}
+      });
+    }
+    // If the place list script is slow, try again shortly
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 0);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 300);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 1200);
+  }catch(_){}
+});
+
+// explicit global exposure (safety for some bundlers/strict modes)
+try{ window.vedicInitBirthPlaceSelect = vedicInitBirthPlaceSelect; }catch(_){}
+try{ window.vedicApplySelectedPlace = vedicApplySelectedPlace; }catch(_){}
+try{ window.runVedicFromInput = runVedicFromInput; }catch(_){}
+
+function _prefillVedicInput(){
+  try{
+    vedicInitBirthPlaceSelect();
+    var now=new Date();
+    var yEl=document.getElementById('v_year'); if(yEl&&!yEl.value) yEl.value=String(now.getFullYear());
+    var mEl=document.getElementById('v_month'); if(mEl&&!mEl.value) mEl.value=String(now.getMonth()+1);
+    var dEl=document.getElementById('v_day'); if(dEl&&!dEl.value) dEl.value=String(now.getDate());
+    var hEl=document.getElementById('v_hour'); if(hEl&&!hEl.value) hEl.value='12';
+    var minEl=document.getElementById('v_minute'); if(minEl&&!minEl.value) minEl.value='0';
+    var latEl=document.getElementById('v_lat'); if(latEl&&!latEl.value) latEl.value='37.5665';
+    var lonEl=document.getElementById('v_lon'); if(lonEl&&!lonEl.value) lonEl.value='126.9780';
+    var tzEl=document.getElementById('v_tz'); if(tzEl&&!tzEl.value) tzEl.value='9';
+  }catch(_){}
+}
+
+function runVedicFromInput(){
+  try{
+    var y=parseInt((document.getElementById('v_year')||{}).value,10);
+    var m=parseInt((document.getElementById('v_month')||{}).value,10);
+    var d=parseInt((document.getElementById('v_day')||{}).value,10);
+    var hr=parseInt((document.getElementById('v_hour')||{}).value,10);
+    var min=parseInt((document.getElementById('v_minute')||{}).value,10);
+    var lat=parseFloat((document.getElementById('v_lat')||{}).value);
+    var lon=parseFloat((document.getElementById('v_lon')||{}).value);
+    var tz=parseFloat((document.getElementById('v_tz')||{}).value);
+    var gender=(document.getElementById('v_gender')||{}).value||'M';
+
+    if(isNaN(y)||isNaN(m)||isNaN(d)){ alert('생년월일을 확인해 주세요.'); return; }
+    if(isNaN(hr))hr=12;
+    if(isNaN(min))min=0;
+    if(isNaN(lat)||isNaN(lon)){ alert('위도/경도를 확인해 주세요.'); return; }
+    if(isNaN(tz))tz=9;
+
+    var profile={
+      id:'vedic_manual',
+      name:'(직접 입력)',
+      gender:gender,
+      birth:{ year:y,month:m,day:d,hour:hr,minute:min },
+      location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:'(직접 입력)', tz:'' }
+    };
+    doCalculateFromProfile(profile);
+  }catch(e){
+    console.error(e);
+    alert('입력값 처리 중 오류가 발생했습니다.');
+  }
 }
 
 // ─── CHART RENDERERS ──────────────────────────────────────
@@ -1171,7 +1694,7 @@ function renderResult(){
   </div>
 
   <div class="reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:16px;margin-bottom:14px">
-    <div class="section-head" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 열쇳말</div>
+    <div class="section-head section-head-kr" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 키워드</div>
     <div class="body-text" style="margin-bottom:10px">${insights.personalityInsight}</div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
       ${(report.personality.coreTraits||[]).map(t=>`<span class="tag tag-gold">${t}</span>`).join('')}
@@ -1179,7 +1702,7 @@ function renderResult(){
     </div>
   </div>
 
-  <div class="section-head reveal reveal-delay-3" style="margin-bottom:10px">✦ 7대 운명 분석</div>
+  <div class="section-head section-head-kr reveal reveal-delay-3" style="margin-bottom:10px">✦ 7대 운명 분석</div>
   ${[
     {id:'personality',icon:'🌟',col:'#FFD700',title:'타고난 성향',score:null,sub:`${rasi.ascSignKr} · ${nak.name}`},
     {id:'wealth',icon:'💰',col:'#22C55E',title:'재물운',score:report.wealth.score,sub:report.wealth.yogas&&!report.wealth.yogas[0].includes('없음')?report.wealth.yogas[0].split(':')[0]:'안정적 축적형'},
@@ -1213,7 +1736,10 @@ function renderResult(){
     </div>
   </div>
   <div class="reveal reveal-delay-1">
-    <div class="section-head" style="margin-bottom:10px">행성 위치 · Sidereal Lahiri</div>
+    <div class="section-head" style="margin-bottom:10px">✨ 행성 위치 · Sidereal Lahiri</div>
+    <svg class="constellation-path" viewBox="0 0 360 64" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M12,44 C42,18 74,20 102,40 S166,58 194,34 S256,8 292,28 S332,56 350,24"/>
+    </svg>
     ${renderPlanetGrid(rasi)}
   </div>
   <div class="reveal reveal-delay-2" style="margin-top:14px">
@@ -1235,7 +1761,9 @@ function renderResult(){
         const isActive=now>=d.start&&now<=d.end;
         const ins=insights.dashaInsights[d.p]||'';
         const dp=rasi.planets[d.p];
-        const dc=dp?{Exalted:'#FFD700',Own:'#22C55E',Debilitated:'#FF5555',Neutral:'rgba(139,92,246,0.8)'}[dp.dignity]:'rgba(139,92,246,0.8)':'rgba(139,92,246,0.8)';
+        const dc=(dp && dp.dignity)
+          ? ({Exalted:'#FFD700',Own:'#22C55E',Debilitated:'#FF5555',Neutral:'rgba(139,92,246,0.8)'}[dp.dignity] || 'rgba(139,92,246,0.8)')
+          : 'rgba(139,92,246,0.8)';
         return`<div class="dasha-node">
           <div class="dasha-dot ${isActive?'active-dot':''}" style="${!isActive?`border-color:${dc}`:''}"></div>
           <div style="${isActive?'background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;':''}">
@@ -1307,10 +1835,10 @@ function renderResult(){
 
   <!-- TABS -->
   <div class="tab-bar">
-    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">✦ 종합 운세</button>
-    <button class="tab-btn" id="tbtn-chart" onclick="switchTab('chart')">☽ 출생 차트</button>
-    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰 대운 흐름</button>
-    <button class="tab-btn" id="tbtn-antar" onclick="switchTab('antar')">◎ 세운 분석</button>
+    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">🌌 종합운</button>
+    <button class="tab-btn" id="tbtn-chart" onclick="switchTab('chart')">🗺️ 차트</button>
+    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 대운</button>
+    <button class="tab-btn" id="tbtn-antar" onclick="switchTab('antar')">✨ 세운</button>
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
@@ -1327,10 +1855,13 @@ function renderResult(){
 function detailHeader(icon,title,sub){
   if(sub===undefined)sub='';
   return`<div class="detail-topbar">
-    <button class="btn-sm back-btn" onclick="goBack()">← 뒤로</button>
-    <div style="flex:1">
-      <div class="section-head">${icon} ${title}</div>
-      ${sub?`<div style="font-size:11px;color:var(--text3)">${sub}</div>`:''}
+    <div class="detail-topbar-inner">
+      <button class="btn-sm back-btn" onclick="goBack()"><span aria-hidden="true">←</span> <span>뒤로</span></button>
+      <div style="flex:1;min-width:0">
+        <div class="detail-title">${icon} ${title}</div>
+        ${sub?`<div class="detail-sub">${sub}</div>`:''}
+      </div>
+      <div class="detail-spacer" aria-hidden="true"></div>
     </div>
   </div>`;
 }
@@ -1548,7 +2079,7 @@ function renderChakra(ch,ins){
             <span style="font-size:9px;padding:1px 7px;border-radius:8px;background:${stCol[ck.status]}18;color:${stCol[ck.status]};border:1px solid ${stCol[ck.status]}33">${stKr[ck.status]||ck.status}</span>
             <span style="font-size:11px;color:var(--text3);margin-left:auto">${ck.score||0}</span>
           </div>
-          <div class="bar-wrap" style="margin-bottom:4px"><div class="bar-fill" style="width:${ck.score||0}%;background:${ck.col}"></div></div>
+          <div class="chakra-energy" style="margin-bottom:6px"><div class="chakra-energy-fill" style="width:${ck.score||0}%"></div></div>
           <div class="chakra-desc">${ck.desc||''}</div>
         </div>
       </div>`).join('')}
@@ -1632,7 +2163,7 @@ function renderCompatInput(){
   return detailHeader('👫','궁합 계산기','Ashtakoot Milan · 8 Koota')+`
   <div class="sage-text reveal" style="margin-bottom:16px">아쉬타쿠타 밀란(Ashtakoot Milan)은 두 영혼의 달 낙샤트라를 8가지 기준으로 분석하여 36점 만점으로 궁합을 측정하는 베다 점성술의 핵심 결혼 궁합 시스템입니다.</div>
   <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
-    <div class="section-head" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
+    <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div><label>이름</label><input id="c-name" placeholder="이영희" value="이영희"></div>
       <div><label>성별</label><select id="c-gender"><option value="F">여성 ♀</option><option value="M">남성 ♂</option></select></div>
@@ -1683,13 +2214,23 @@ function doCompatCalc(){
       <div style="font-size:14px;color:var(--text);font-weight:500">${compat.verdict}</div>
     </div>
     <div class="glass" style="padding:16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:10px">🌌 종합 해석</div>
+      <div class="body-text" style="line-height:1.85">${compat.overallReason||''}</div>
+    </div>
+    <div class="glass" style="padding:16px;margin-bottom:12px">
       <div class="section-head" style="margin-bottom:12px">8 항목 상세 점수</div>
       ${compat.breakdown.map(b=>{
         const bc=b.sc/b.max>=0.75?'#22C55E':b.sc/b.max>=0.4?'#F59E0B':'#FF5555';
-        return`<div class="compat-item">
-          <div class="compat-label">${b.n}</div>
-          <div class="bar-wrap"><div class="bar-fill" style="width:${b.sc/b.max*100}%;background:${bc}"></div></div>
-          <div class="compat-num" style="color:${bc}">${b.sc}/${b.max}</div>
+        return`<div style="margin-bottom:12px">
+          <div class="compat-item" style="margin-bottom:6px">
+            <div class="compat-label">${b.n}</div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${b.sc/b.max*100}%;background:${bc}"></div></div>
+            <div class="compat-num" style="color:${bc}">${b.sc}/${b.max}</div>
+          </div>
+          <div style="font-size:12px;color:rgba(240,232,255,0.62);line-height:1.75;padding-left:2px">
+            <span class="keyword">${b.desc}</span><br>
+            ${b.why||''}
+          </div>
         </div>`;
       }).join('')}
     </div>
@@ -1706,7 +2247,27 @@ function doCompatCalc(){
 function renderYoga(y){
   const elIcons={Fire:"🔥",Earth:"🌍",Air:"💨",Water:"💧"};
   const elCols={Fire:"#FF9500",Earth:"#A16207",Air:"#06B6D4",Water:"#3B82F6"};
+  const primary=(y.practices&&y.practices[0])?y.practices[0]:null;
+  const secondary=(y.practices&&y.practices[1])?y.practices[1]:null;
+  const methodText=`
+    <div class="yoga-method reveal reveal-delay-2">
+      <div class="section-head" style="margin-bottom:10px">🪷 수련 방법 (가이드)</div>
+      <div class="body-text" style="line-height:1.85">
+        이 추천은 <span class="keyword">${y.dominantEl||''}</span> 원소의 과잉을 부드럽게 낮추고, <span class="keyword">${y.deficientEl||''}</span> 원소를 보완해 에너지 균형을 맞추는 흐름으로 구성됩니다.
+        ${(primary&&primary.n)?`핵심 루틴은 <span class="keyword">${primary.n}</span>`:''}${(secondary&&secondary.n)?` + <span class="keyword">${secondary.n}</span>`:''} 중심으로 진행하세요.
+      </div>
+      <ol class="yoga-steps">
+        <li><span class="keyword">준비 2–3분</span>: 코로 들이마시고 길게 내쉬며(4초 들숨 / 6초 날숨) 심박을 안정시킵니다. 어깨·턱 힘을 먼저 빼세요.</li>
+        <li><span class="keyword">메인 10–20분</span>: 오늘 추천 1번 루틴을 “무리 없이” 진행합니다. 자극이 강하면 동작 강도를 낮추고, 호흡이 끊기면 즉시 휴식합니다.</li>
+        <li><span class="keyword">차크라 집중 3–5분</span>: 타깃 차크라(<span class="keyword">${(primary&&primary.ch)||''}</span>)에 의식을 두고, 필요하면 씨드 만트라를 마음속으로 7–21회 반복합니다.</li>
+        <li><span class="keyword">마무리 2–5분</span>: 누워서(또는 앉아서) 몸의 감각을 스캔하며 긴장을 풀어줍니다. 오늘 느낀 감정/몸의 반응을 한 줄로 기록하면 효과가 누적됩니다.</li>
+        <li><span class="keyword">빈도</span>: 주 4–6회가 가장 효율적입니다. 바쁜 날은 10분만 해도 “연결”이 유지됩니다. ${(y.bestTime)?`추천 시간대는 <span class="keyword">${y.bestTime}</span>입니다.`:''}</li>
+      </ol>
+      ${(y.avoid&&y.avoid.length)?`<div style="margin-top:10px;font-size:12px;color:rgba(240,232,255,0.62);line-height:1.7"><span class="keyword">주의</span>: ${y.avoid.map(a=>`<span class="keyword">${a}</span>`).join(' · ')}</div>`:''}
+    </div>`;
+
   return detailHeader('🧘','맞는 요가','Suitable Yoga Practice')+`
+  <div class="yoga-kr">
   <div class="reveal" style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);border-radius:14px;padding:16px;margin-bottom:14px">
     <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:10px;letter-spacing:0.1em">원소 에너지 균형</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:14px">
@@ -1736,6 +2297,7 @@ function renderYoga(y){
     <div style="font-size:11px;color:var(--text3);margin-bottom:5px">차크라 타깃: <span class="keyword">${pr.ch||''}</span></div>
     <div class="yoga-benefit">${pr.b||''}</div>
   </div>`).join('')}
+  ${methodText}
   <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('yg1')">
       <span style="font-size:16px">⏰</span><span class="acc-title">최적 수련 시간 & 주의사항</span>
@@ -1747,6 +2309,7 @@ function renderYoga(y){
         ${(y.avoid||[]).map(a=>`<div style="font-size:13px;color:var(--text2);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">🚫 ${a}</div>`).join('')}
       </div>
     </div>
+  </div>
   </div>`;
 }
 

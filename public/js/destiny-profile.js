@@ -824,7 +824,7 @@
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        window.location.href = '/vedic';
+        window.location.href = '/vedic-astrology.html';
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
