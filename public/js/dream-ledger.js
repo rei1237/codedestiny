@@ -33,6 +33,7 @@
     goldenTone: 'comfort',
     typingTimer: null,
     typingStage: 0,
+    typingContext: null,
     uiLocked: false,
     goldenTimer: null,
     audioCtx: null,
@@ -259,7 +260,8 @@
     var shell = document.querySelector('.dream-ledger-shell');
     if (shell) shell.classList.toggle('dream-ui-locked', state.uiLocked);
 
-    var controls = document.querySelectorAll('[data-action="startDreamReading"], .dream-speed-btn, .dream-tone-btn, .dream-library-chip, .dream-library-btn, .dream-library-suggest-item, #dreamLibraryQuery, #dreamLibraryMoreBtn, #dreamNextStageBtn, .dream-ritual-card[data-action="revealDreamStage"]');
+    // 낭독 중에도 배속 변경은 허용한다.
+    var controls = document.querySelectorAll('[data-action="startDreamReading"], .dream-tone-btn, .dream-library-chip, .dream-library-btn, .dream-library-suggest-item, #dreamLibraryQuery, #dreamLibraryMoreBtn, #dreamNextStageBtn, .dream-ritual-card[data-action="revealDreamStage"]');
     controls.forEach(function (el) {
       el.disabled = state.uiLocked;
     });
@@ -337,6 +339,7 @@
       state.typingTimer = null;
     }
     state.typingStage = 0;
+    state.typingContext = null;
   }
 
   function scrollStoryToLatest(includePanel) {
@@ -414,20 +417,39 @@
       clearInterval(state.typingTimer);
       state.typingTimer = null;
     }
-    var i = 0;
     var source = String(text || '');
     var baseSpeed = Number(speed) || 32;
-    var speedMult = Number(state.textSpeed) || 1;
-    var interval = Math.max(12, Math.round((baseSpeed * 5) / speedMult));
     targetEl.textContent = '';
+    state.typingContext = {
+      targetEl: targetEl,
+      source: source,
+      baseSpeed: baseSpeed,
+      index: 0,
+      done: typeof done === 'function' ? done : null
+    };
+    restartTypingTimer();
+  }
+
+  function restartTypingTimer() {
+    if (!state.typingContext) return;
+    if (state.typingTimer) {
+      clearInterval(state.typingTimer);
+      state.typingTimer = null;
+    }
+    var ctx = state.typingContext;
+    var speedMult = Number(state.textSpeed) || 1;
+    var interval = Math.max(12, Math.round((ctx.baseSpeed * 5) / speedMult));
     state.typingTimer = setInterval(function () {
-      i += 1;
-      targetEl.textContent = source.slice(0, i);
+      if (!state.typingContext) return;
+      var current = state.typingContext;
+      current.index += 1;
+      current.targetEl.textContent = current.source.slice(0, current.index);
       scrollStoryToLatest();
-      if (i >= source.length) {
+      if (current.index >= current.source.length) {
         clearInterval(state.typingTimer);
         state.typingTimer = null;
-        if (typeof done === 'function') done();
+        state.typingContext = null;
+        if (current.done) current.done();
       }
     }, interval);
   }
@@ -1383,12 +1405,12 @@
   };
 
   window.dreamSetTextSpeed = function dreamSetTextSpeed(multiplier) {
-    if (state.uiLocked) return;
     var value = Number(multiplier);
     if (!isFinite(value)) value = 1;
     value = Math.max(0.5, Math.min(2.5, value));
     state.textSpeed = value;
     renderSpeedButtons();
+    if (state.typingTimer && state.typingContext) restartTypingTimer();
     setWizardLine('낭독 배속을 ' + speedLabel(value) + 'x로 조정했습니다.');
   };
 
