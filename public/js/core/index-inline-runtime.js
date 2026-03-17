@@ -3630,6 +3630,31 @@ function closeSukuyoModal() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function navigateToVedic() {
+  var profile = typeof window.dpGetDataForVedic === 'function' ? window.dpGetDataForVedic() : null;
+  if (!profile) {
+    try {
+      var listRaw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
+      var currentId = localStorage.getItem('FORTUNE_APP_USER_PROFILES.current');
+      if (listRaw) {
+        var arr = JSON.parse(listRaw);
+        if (Array.isArray(arr) && arr.length) {
+          profile = currentId ? arr.find(function(p) { return p.id === currentId; }) : null;
+          if (!profile) profile = arr[0];
+        }
+      }
+    } catch (e) {}
+  }
+  if (profile) {
+    var toSend = (typeof window.dpNormalizeProfileForVedic === 'function') ? window.dpNormalizeProfileForVedic(profile) : profile;
+    try {
+      sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(toSend));
+      localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(toSend));
+    } catch (e) {}
+  }
+  window.location.href = '/vedic';
+}
+
 function openZiweiModal() {
   var overlay = document.getElementById('ziweiModalOverlay');
   if (!overlay) return;
@@ -4096,7 +4121,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   resetLangCollapseTimer();
+  updateLangWrapVisibility();
 });
+
+/* 기능(로더/모달/오버레이) 동작 중에는 언어 버튼 자동 숨김, 종료 시 다시 표시 */
+var _langWrapFeatureOverlayIds = [
+  'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
+  'tarotModalOverlay', 'tarotFocusOverlay', 'tarotSelfEsteemOverlay',
+  'tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
+  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader',
+  'juyukModalOverlay', 'sukuyoModalOverlay', 'astroModalOverlay', 'ziweiModalOverlay',
+  'dpSwitchConfirmOverlay', 'dpListOverlay', 'kemetOracleOverlay', 'kemetLoader',
+  'astralModal'
+];
+function isAnyFeatureOverlayVisible() {
+  for (var i = 0; i < _langWrapFeatureOverlayIds.length; i++) {
+    var el = document.getElementById(_langWrapFeatureOverlayIds[i]);
+    if (!el) continue;
+    var cs = window.getComputedStyle(el);
+    if (cs.display !== 'none' && cs.visibility !== 'hidden') return true;
+    if (el.id === 'sajuLoaderOverlay' && el.classList.contains('show')) return true;
+  }
+  return false;
+}
+function updateLangWrapVisibility() {
+  var wrap = document.getElementById('langWrap');
+  if (!wrap) return;
+  if (isAnyFeatureOverlayVisible()) {
+    wrap.classList.add('lang-wrap--hidden');
+    wrap.classList.remove('open');
+  } else {
+    wrap.classList.remove('lang-wrap--hidden');
+  }
+}
+setInterval(updateLangWrapVisibility, 350);
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
 

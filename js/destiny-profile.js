@@ -354,12 +354,46 @@
      3-A. Data Injection & Execution Pipeline
           프로필 → 폼 → 비동기 계산 실행
   ────────────────────────────────────────── */
+  /** 베다점 등 외부로 넘길 때 location/birth null 보정 (서울 기본값) */
+  function _normalizeProfileForVedic(profile) {
+    if (!profile || !profile.birth) return profile;
+    var b = profile.birth;
+    var l = profile.location || {};
+    var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : 37.5665;
+    var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : 126.978);
+    var tzHours = (typeof l.baseTzOffset === 'number' && !isNaN(l.baseTzOffset)) ? l.baseTzOffset
+      : ((typeof l.tzOffset === 'number' && !isNaN(l.tzOffset)) ? (Math.abs(l.tzOffset) <= 24 ? l.tzOffset : l.tzOffset / 60) : 9);
+    return {
+      id: profile.id,
+      name: profile.name,
+      gender: profile.gender,
+      birth: {
+        year: b.year,
+        month: b.month,
+        day: b.day,
+        hour: b.hour != null ? b.hour : 12,
+        minute: b.minute != null ? b.minute : 0,
+        calType: b.calType || 'solar'
+      },
+      location: {
+        label: l.label || '대한민국 (서울)',
+        tz: l.tz || 'Asia/Seoul',
+        lat: lat,
+        lng: lng,
+        tzOffset: tzHours,
+        baseTzOffset: tzHours,
+        dstMinutes: l.dstMinutes
+      }
+    };
+  }
+
   function _fortuneStartMessage(profileName, type) {
     var safeName = _esc(profileName || '');
     if (type === 'saju')   return '✦ ' + safeName + ' · 사주 풀이를 시작합니다';
     if (type === 'sukuyo') return '✦ ' + safeName + ' · 숙요점 분석을 준비합니다';
     if (type === 'ziwei')  return '✦ ' + safeName + ' · 자미두수 명반을 여는 중입니다';
     if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
+    if (type === 'vedic')  return '✦ ' + safeName + ' · 베다 점성술로 이동합니다';
     if (type === 'flower') return '✦ ' + safeName + ' · 운명의 꽃 탭으로 이동합니다';
     if (type === 'tarot')  return '✦ ' + safeName + ' · 타로 카드를 뽑습니다';
     return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
@@ -643,6 +677,13 @@
     broadcastProfileChange(DPStorage.current());
   };
 
+  /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
+  window.dpGetDataForVedic = function() {
+    var p = DPStorage.current();
+    if (p && p.birth) return p;
+    return readFormData();
+  };
+
   window.dpLoadProfile = function() {
     var p = DPStorage.current();
     if (!p) { _toast('⚠️ 불러올 프로필이 없습니다', 'warn'); return; }
@@ -693,7 +734,7 @@
     ov.className = 'dp-fsel-overlay';
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<button type="button" class="dp-fsel-close-btn" aria-label="닫기">✕</button>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="닫기" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
       + '<div class="dp-fsel-profile">'
         + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
         + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
@@ -707,6 +748,7 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei"  onclick="window._dpOpenFortuneType(\'ziwei\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro"  onclick="window._dpOpenFortuneType(\'astro\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--vedic"  onclick="window._dpOpenFortuneType(\'vedic\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--flower" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌸</span><span class="dp-fsel-btn-label">운명의 꽃</span></button>'
       + '</div>'
@@ -719,8 +761,16 @@
     };
     var closeBtnEl = ov.querySelector('.dp-fsel-close-btn');
     if (closeBtnEl) {
-      closeBtnEl.addEventListener('click', doClose);
-      closeBtnEl.addEventListener('touchend', doClose, { passive: false });
+      closeBtnEl.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        doClose(e);
+      });
+      closeBtnEl.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        doClose(e);
+      }, { passive: false });
     }
     ov.addEventListener('click', function(e) {
       if (e.target === ov) doClose(e);
@@ -758,6 +808,19 @@
         var pAstro = DPStorage.current();
         if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
+      } else if (type === 'vedic') {
+        var pVedic = DPStorage.current();
+        if (!pVedic || !pVedic.birth) {
+          _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
+          return;
+        }
+        var forVedic = _normalizeProfileForVedic(pVedic);
+        try {
+          sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+          localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+        } catch (e) {}
+        if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
+        window.location.href = '/vedic';
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
@@ -951,8 +1014,9 @@
         var pt = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
         var dx = Math.abs(pt.clientX - _dpFselTouchX);
         var dy = Math.abs(pt.clientY - _dpFselTouchY);
-        if (dx < 10 && dy < 16 && typeof window._dpCloseFortuneSel === 'function') {
+        if (dx < 24 && dy < 24 && typeof window._dpCloseFortuneSel === 'function') {
           e.preventDefault();
+          e.stopPropagation();
           window._dpCloseFortuneSel();
         }
         return;

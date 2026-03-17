@@ -3765,6 +3765,14 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
+/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
+.lang-toggle-wrap.lang-wrap--hidden {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
 /* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
@@ -9179,6 +9187,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-fsel-close-btn {
         position:absolute; top:16px; right:18px;
+        z-index:10;
         min-width:44px; min-height:44px;
         width:44px; height:44px; padding:0;
         border:none; border-radius:50%;
@@ -9187,6 +9196,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         display:flex; align-items:center; justify-content:center;
         cursor:pointer; touch-action:manipulation;
         -webkit-tap-highlight-color:transparent;
+        pointer-events:auto;
       }
       .dp-fsel-close-btn:active { background:rgba(255,255,255,0.14); }
       .dp-fsel-profile {

@@ -16,6 +16,7 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   async rewrites() {
     const rewrites = [
+      { source: '/vedic', destination: '/vedic-astrology.html' },
       { source: '/api/auth/:path*', destination: apiTarget + '/api/auth/:path*' },
       { source: '/api/admin/:path*', destination: apiTarget + '/api/admin/:path*' },
       { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
