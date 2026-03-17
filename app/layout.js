@@ -2,6 +2,29 @@ import "../styles/globals.css";
 import { headers } from "next/headers";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
+const LOCALES = [
+  { key: "ko-KR", slug: "", htmlLang: "ko", label: "Korean" },
+  { key: "en-US", slug: "/en-us", htmlLang: "en", label: "English (US)" },
+  { key: "en-CA", slug: "/en-ca", htmlLang: "en-CA", label: "English (Canada)" },
+  { key: "en-SG", slug: "/en-sg", htmlLang: "en-SG", label: "English (Singapore)" },
+  { key: "en-GB", slug: "/en-gb", htmlLang: "en-GB", label: "English (United Kingdom)" },
+  { key: "en-AU", slug: "/en-au", htmlLang: "en-AU", label: "English (Australia)" },
+  { key: "en-PH", slug: "/en-ph", htmlLang: "en-PH", label: "English (Philippines)" },
+  { key: "en-IN", slug: "/en-in", htmlLang: "en-IN", label: "English (India)" },
+  { key: "hi-IN", slug: "/hi-in", htmlLang: "hi", label: "हिन्दी (भारत)" },
+  { key: "en-ZA", slug: "/en-za", htmlLang: "en-ZA", label: "English (South Africa)" },
+  { key: "fr-FR", slug: "/fr-fr", htmlLang: "fr", label: "Français (France)" },
+  { key: "fr-CA", slug: "/fr-ca", htmlLang: "fr-CA", label: "Français (Canada)" },
+  { key: "de-DE", slug: "/de-de", htmlLang: "de", label: "Deutsch (Deutschland)" },
+  { key: "it-IT", slug: "/it-it", htmlLang: "it", label: "Italiano (Italia)" },
+  { key: "hu-HU", slug: "/hu-hu", htmlLang: "hu", label: "Magyar (Magyarország)" },
+  { key: "nl-NL", slug: "/nl-nl", htmlLang: "nl", label: "Nederlands (Nederland)" },
+  { key: "ja-JP", slug: "/ja-jp", htmlLang: "ja", label: "日本語 (日本)" },
+  { key: "zh-CN", slug: "/zh-cn", htmlLang: "zh-CN", label: "简体中文 (中国)" },
+  { key: "zh-TW", slug: "/zh-tw", htmlLang: "zh-Hant", label: "繁體中文 (台灣)" },
+  { key: "th-TH", slug: "/th-th", htmlLang: "th", label: "ไทย (ประเทศไทย)" },
+  { key: "vi-VN", slug: "/vi-vn", htmlLang: "vi", label: "Tiếng Việt (Việt Nam)" },
+];
 
 function normalizePathname(input) {
   if (!input) return "/";
@@ -16,6 +39,91 @@ function normalizePathname(input) {
 
   const pathname = input.startsWith("/") ? input : `/${input}`;
   return pathname || "/";
+}
+
+function detectLocaleFromPath(pathname) {
+  const normalized = normalizePathname(pathname).toLowerCase();
+  const match = LOCALES.find(
+    (locale) => locale.slug && (normalized === locale.slug || normalized.startsWith(`${locale.slug}/`)),
+  );
+  return match || LOCALES[0];
+}
+
+function stripLocalePrefix(pathname) {
+  const normalized = normalizePathname(pathname).toLowerCase();
+  for (const locale of LOCALES) {
+    if (!locale.slug) continue;
+    if (normalized === locale.slug) return "/";
+    if (normalized.startsWith(`${locale.slug}/`)) return normalized.slice(locale.slug.length) || "/";
+  }
+  return normalized || "/";
+}
+
+function buildHreflangAlternates(currentPathname) {
+  let basePath = stripLocalePrefix(currentPathname);
+  const supported = new Set([
+    "/",
+    "/tarot/healing",
+    "/points",
+    "/login",
+    "/signup",
+    "/privacy-policy",
+    "/terms-of-service",
+    "/contact-us",
+  ]);
+  if (!supported.has(basePath)) {
+    basePath = "/";
+  }
+  const alternates = [];
+
+  for (const locale of LOCALES) {
+    const hrefPath = locale.slug ? `${locale.slug}${basePath === "/" ? "" : basePath}` : basePath;
+    alternates.push({
+      hrefLang: locale.key,
+      href: new URL(hrefPath, CANONICAL_ORIGIN).toString(),
+    });
+  }
+
+  alternates.push({
+    hrefLang: "x-default",
+    href: new URL(basePath, CANONICAL_ORIGIN).toString(),
+  });
+
+  return alternates;
+}
+
+function buildJsonLd({ locale, canonicalHref }) {
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Code Destiny",
+    url: CANONICAL_ORIGIN,
+    inLanguage: locale.key,
+  };
+
+  const organization = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Code Destiny",
+    url: CANONICAL_ORIGIN,
+  };
+
+  const webpage = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url: canonicalHref,
+    inLanguage: locale.key,
+    name: "Code Destiny",
+    isPartOf: { "@id": CANONICAL_ORIGIN },
+  };
+
+  if (locale.key === "zh-CN") {
+    website.name = "Code Destiny（命运代码）";
+    organization.name = "Code Destiny（命运代码）";
+    webpage.name = "Code Destiny（命运代码）";
+  }
+
+  return JSON.stringify([website, organization, webpage]);
 }
 
 export const metadata = {
@@ -39,6 +147,15 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,
+    yandex: process.env.NEXT_PUBLIC_SITE_VERIFY_YANDEX || undefined,
+    other: {
+      "naver-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_NAVER || undefined,
+      "msvalidate.01": process.env.NEXT_PUBLIC_SITE_VERIFY_BING || undefined,
+      "baidu-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_BAIDU || undefined,
+    },
+  },
   robots: {
     index: true,
     follow: true,
@@ -52,12 +169,30 @@ export default async function RootLayout({ children }) {
   );
   const canonicalHref = new URL(requestPath, CANONICAL_ORIGIN).toString();
   const hideFooter = false;
+  const locale = detectLocaleFromPath(requestPath);
+  const hreflangLinks = buildHreflangAlternates(requestPath);
+  const jsonLd = buildJsonLd({ locale, canonicalHref });
 
   return (
-    <html lang="ko">
+    <html lang={locale.htmlLang}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="canonical" href={canonicalHref} />
+        {hreflangLinks.map((link) => (
+          <link key={link.hrefLang} rel="alternate" hrefLang={link.hrefLang} href={link.href} />
+        ))}
+        <meta property="og:site_name" content="Code Destiny" />
+        <meta property="og:locale" content={locale.key.replace("-", "_")} />
+        {LOCALES.filter((l) => l.key !== locale.key).map((l) => (
+          <meta key={l.key} property="og:locale:alternate" content={l.key.replace("-", "_")} />
+        ))}
+        {locale.key === "zh-CN" ? (
+          <>
+            <meta name="renderer" content="webkit" />
+            <meta name="applicable-device" content="pc,mobile" />
+          </>
+        ) : null}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <meta name="adsense-script-slot" content="ADSENSE_APPROVAL_SCRIPT_SLOT" />
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>

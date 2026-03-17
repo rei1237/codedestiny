@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type TarotCardProps = {
   frontImageUrl?: string;
@@ -11,6 +11,35 @@ type TarotCardProps = {
   initiallyFlipped?: boolean;
 };
 
+const CARD_CONTAINER_CLASSNAME = "w-[220px] h-[340px] perspective-[1000px]";
+const CARD_INNER_CLASSNAME =
+  "relative h-full w-full rounded-2xl cursor-pointer [transform-style:preserve-3d]";
+
+const CARD_SPRING_TRANSITION = {
+  type: "spring",
+  stiffness: 220,
+  damping: 20,
+  mass: 0.8,
+} as const;
+
+const FLIPPED_SHADOW =
+  "0 28px 48px rgba(124, 58, 237, 0.35), 0 10px 24px rgba(0,0,0,0.22)";
+const DEFAULT_SHADOW = "0 16px 30px rgba(0,0,0,0.18)";
+const HOVER_SHADOW = "0 22px 40px rgba(124, 58, 237, 0.28)";
+
+function getCardAnimate(isFlipped: boolean) {
+  return {
+    rotateY: isFlipped ? 180 : 0,
+    y: isFlipped ? -6 : 0,
+    scale: isFlipped ? 1.02 : 1,
+    boxShadow: isFlipped ? FLIPPED_SHADOW : DEFAULT_SHADOW,
+  };
+}
+
+function isToggleKey(key: string) {
+  return key === "Enter" || key === " ";
+}
+
 export default function TarotCard({
   frontImageUrl,
   frontTitle = "The Star",
@@ -19,40 +48,37 @@ export default function TarotCard({
   initiallyFlipped = false,
 }: TarotCardProps) {
   const [isFlipped, setIsFlipped] = useState(initiallyFlipped);
+  const toggleFlipped = useCallback(() => {
+    setIsFlipped((v) => !v);
+  }, []);
+
+  const ariaLabel = useMemo(
+    () => (isFlipped ? "타로 카드 앞면" : "타로 카드 뒷면"),
+    [isFlipped],
+  );
+  const animate = useMemo(() => getCardAnimate(isFlipped), [isFlipped]);
 
   return (
-    <div className={`w-[220px] h-[340px] perspective-[1000px] ${className}`}>
+    <div className={`${CARD_CONTAINER_CLASSNAME} ${className}`}>
       <motion.div
         role="button"
         tabIndex={0}
-        aria-label={isFlipped ? "타로 카드 앞면" : "타로 카드 뒷면"}
-        onClick={() => setIsFlipped((v) => !v)}
+        aria-label={ariaLabel}
+        onClick={toggleFlipped}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+          if (isToggleKey(e.key)) {
             e.preventDefault();
-            setIsFlipped((v) => !v);
+            toggleFlipped();
           }
         }}
-        animate={{
-          rotateY: isFlipped ? 180 : 0,
-          y: isFlipped ? -6 : 0,
-          scale: isFlipped ? 1.02 : 1,
-          boxShadow: isFlipped
-            ? "0 28px 48px rgba(124, 58, 237, 0.35), 0 10px 24px rgba(0,0,0,0.22)"
-            : "0 16px 30px rgba(0,0,0,0.18)",
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 220,
-          damping: 20,
-          mass: 0.8,
-        }}
+        animate={animate}
+        transition={CARD_SPRING_TRANSITION}
         whileHover={{
           y: -4,
           scale: 1.015,
-          boxShadow: "0 22px 40px rgba(124, 58, 237, 0.28)",
+          boxShadow: HOVER_SHADOW,
         }}
-        className="relative h-full w-full rounded-2xl cursor-pointer [transform-style:preserve-3d]"
+        className={CARD_INNER_CLASSNAME}
       >
         {/* Back Face */}
         <div className="absolute inset-0 rounded-2xl border border-violet-200/40 bg-gradient-to-br from-violet-900 via-purple-700 to-fuchsia-500 [backface-visibility:hidden] overflow-hidden">

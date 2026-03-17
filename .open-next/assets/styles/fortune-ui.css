@@ -1,4 +1,4 @@
-﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
 /* ─── 전역 버튼 터치 반응성 ─── */
@@ -4119,7 +4119,7 @@ body.neo-mode .neo-logo{display:flex!important}
   position: relative;
 }
 .villain-fact-bomb::before {
-  content: 'Neo의 팩폭';
+  content: '쌈바의 팩폭';
   position: absolute;
   top: -10px;
   left: 15px;

@@ -655,7 +655,11 @@
       var img = document.createElement("img");
       img.className = "tarot-face-img";
       img.alt = (card.nameKr || card.name || "").trim() || "타로 카드";
-      img.loading = "eager";
+      img.loading = "lazy";
+      img.decoding = "async";
+      try {
+        img.fetchPriority = idx === state.revealedCount ? "high" : "low";
+      } catch (e) {}
       img.referrerPolicy = "no-referrer";
       applyTarotImageWithFallback(img, front, card);
       front.appendChild(img);

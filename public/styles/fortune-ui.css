@@ -4342,7 +4342,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   position: relative;
 }
 .villain-fact-bomb::before {
-  content: 'Neo의 팩폭';
+  content: '쌈바의 팩폭';
   position: absolute;
   top: -10px;
   left: 15px;
@@ -9709,6 +9709,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             .tarot-face-img {
               width: 100%; height: 100%; object-fit: cover; display: block;
               border-radius: inherit; background: #1a1530; position: absolute; inset: 0;
+              transform: translate3d(0, 0, 0);
+              -webkit-transform: translate3d(0, 0, 0);
+              will-change: transform;
             }
 
             /* 타로 모드 토글 */

@@ -614,7 +614,11 @@
       var img = document.createElement("img");
       img.className = "tarot-self-esteem-face-img";
       img.alt = card.nameKr || card.name;
-      img.loading = "eager";
+      img.loading = "lazy";
+      img.decoding = "async";
+      try {
+        img.fetchPriority = idx === state.revealedCount ? "high" : "low";
+      } catch (e) {}
       applyTarotImageWithFallback(img, front, card);
       front.appendChild(img);
 

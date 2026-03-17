@@ -670,38 +670,63 @@ function createSynergySectionGrid(synergy) {
 }
 
 function showSynergyResult() {
+    const resLayer = document.getElementById('astralResult');
+    const resContent = document.getElementById('astralResultContent');
+    if (!resLayer || !resContent) {
+        console.error('[astral-soul] missing result layer elements');
+        return;
+    }
+
+    // Guard against race conditions where state is reset mid-ritual.
+    if (!Array.isArray(selectedTotems) || selectedTotems.length !== 2) {
+        resLayer.style.display = 'none';
+        resetSelection();
+        return;
+    }
+
     const c1 = ASTRAL_DATA[selectedTotems[0]];
     const c2 = ASTRAL_DATA[selectedTotems[1]];
-    
-    const resLayer = document.getElementById('astralResult');
-    
-    // Set Back Button to Home
-    const backBtn = resLayer.querySelector('.back-btn');
-    backBtn.removeEventListener('click', closeMbtiModal);
-    backBtn.addEventListener('click', closeMbtiModal);
-    backBtn.innerHTML = "🏠 메인화면";
-
-    const resContent = document.getElementById('astralResultContent');
-    const synergy = getSynergyText(c1, c2);
-
-    resContent.replaceChildren();
-
-    const fragment = document.createDocumentFragment();
-    fragment.appendChild(createSynergyResultHeader(c1, c2));
-    fragment.appendChild(createSynergyKeywordBox(synergy.title));
-    fragment.appendChild(createSynergySectionGrid(synergy));
-
-    const resetBtn = createNode('button', 'ritual-btn ritual-btn--reset', '↻ Realign Totems');
-    resetBtn.type = 'button';
-    fragment.appendChild(resetBtn);
-    fragment.appendChild(createNode('div', 'res-spacer'));
-    resContent.appendChild(fragment);
-
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetSelection);
+    if (!c1 || !c2) {
+        console.error('[astral-soul] invalid totem selection:', selectedTotems);
+        resLayer.style.display = 'none';
+        resetSelection();
+        return;
     }
-    
-    resLayer.style.display = 'block';
+
+    try {
+        // Set Back Button to Home
+        const backBtn = resLayer.querySelector('.back-btn');
+        if (backBtn) {
+            backBtn.removeEventListener('click', closeMbtiModal);
+            backBtn.addEventListener('click', closeMbtiModal);
+            backBtn.innerHTML = "🏠 메인화면";
+        }
+
+        const synergy = getSynergyText(c1, c2);
+        resContent.replaceChildren();
+
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(createSynergyResultHeader(c1, c2));
+        fragment.appendChild(createSynergyKeywordBox(synergy.title));
+        fragment.appendChild(createSynergySectionGrid(synergy));
+
+        const resetBtn = createNode('button', 'ritual-btn ritual-btn--reset', '↻ Realign Totems');
+        resetBtn.type = 'button';
+        fragment.appendChild(resetBtn);
+        fragment.appendChild(createNode('div', 'res-spacer'));
+        resContent.appendChild(fragment);
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetSelection);
+        }
+
+        resLayer.style.display = 'block';
+    } catch (err) {
+        console.error('[astral-soul] failed to render synergy result:', err);
+        resContent.innerHTML =
+            '<div class="res-section-card"><div class="res-section-head"><span class="res-section-icon">⚠️</span><span>결과를 표시하지 못했습니다</span></div><div class="res-section-body">잠시 후 다시 시도해 주세요.</div></div>';
+        resLayer.style.display = 'block';
+    }
 }
 
 function getMbtiColor(id) {

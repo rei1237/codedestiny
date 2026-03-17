@@ -181,6 +181,52 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
+var __cdLazyActionState = {};
+var __cdLazyActionLoaders = {
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('js/tarot-healing-experience.js', { module: true }); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('js/tarot-love-experience.js'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('js/tarot-self-esteem-experience.js'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('js/tarot-reunion-experience.js'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('js/tarot-year-fortune-experience.js'); },
+  openAnimalTotemModal: function() {
+    return __cdLoadScriptOnce('js/services/animal-totem-content-engine.js').then(function() {
+      return __cdLoadScriptOnce('js/animal-totem-experience.js');
+    });
+  }
+};
+
+function __cdLoadScriptOnce(src, opts) {
+  opts = opts || {};
+  if (!src) return Promise.reject(new Error('missing src'));
+  var norm = String(src).replace(/^\.\//, '');
+  var all = Array.prototype.slice.call(document.querySelectorAll('script[src]'));
+  var existing = all.find(function(s) {
+    var cur = (s.getAttribute('src') || '').replace(/^\.\//, '');
+    return cur === norm || cur.indexOf(norm + '?') === 0 || cur.endsWith('/' + norm) || cur.indexOf('/' + norm + '?') !== -1;
+  });
+  if (existing) {
+    if (existing.dataset.loaded === '1' || existing.readyState === 'complete') return Promise.resolve();
+    return new Promise(function(resolve, reject) {
+      existing.addEventListener('load', function() { resolve(); }, { once: true });
+      existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
+    });
+  }
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = norm;
+    if (opts.module) {
+      s.type = 'module';
+    } else {
+      s.defer = true;
+      s.async = true;
+    }
+    s.dataset.loading = '1';
+    s.onload = function() { s.dataset.loading = '0'; s.dataset.loaded = '1'; resolve(); };
+    s.onerror = function() { reject(new Error('load failed: ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
 
@@ -189,26 +235,59 @@ function __cdInvokeAction(action, actionEl, event) {
   var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
 
   if (passSelfMode === 'append') {
-    __cdCallGlobal.apply(null, [action].concat(args, [actionEl]));
+    var outAppend = __cdCallGlobal.apply(null, [action].concat(args, [actionEl]));
+    if (outAppend === undefined) __cdLazyInvoke(action, actionEl, event, args, 'append');
     return;
   }
 
   if (passSelfMode === '1' || passSelfMode === 'prepend') {
-    __cdCallGlobal.apply(null, [action, actionEl].concat(args));
+    var outPrepend = __cdCallGlobal.apply(null, [action, actionEl].concat(args));
+    if (outPrepend === undefined) __cdLazyInvoke(action, actionEl, event, args, 'prepend');
     return;
   }
 
   if (passEvent) {
-    __cdCallGlobal(action, event);
+    var outEvent = __cdCallGlobal(action, event);
+    if (outEvent === undefined) __cdLazyInvoke(action, actionEl, event, args, 'event');
     return;
   }
 
   if (args.length) {
-    __cdCallGlobal.apply(null, [action].concat(args));
+    var outArgs = __cdCallGlobal.apply(null, [action].concat(args));
+    if (outArgs === undefined) __cdLazyInvoke(action, actionEl, event, args, 'args');
     return;
   }
 
-  __cdCallGlobal(action);
+  var out = __cdCallGlobal(action);
+  if (out === undefined) __cdLazyInvoke(action, actionEl, event, args, 'none');
+}
+
+function __cdLazyInvoke(action, actionEl, event, args, mode) {
+  var loader = __cdLazyActionLoaders[action];
+  if (!loader) return;
+  if (!__cdLazyActionState[action]) {
+    __cdLazyActionState[action] = loader().catch(function(err) {
+      console.error('[index-inline-runtime] lazy action load failed:', action, err);
+    });
+  }
+  __cdLazyActionState[action].then(function() {
+    var attempt = 0;
+    var maxAttempts = 14;
+    var retryMs = 60;
+    function tryInvoke() {
+      var result;
+      if (mode === 'append') result = __cdCallGlobal.apply(null, [action].concat(args || [], [actionEl]));
+      else if (mode === 'prepend') result = __cdCallGlobal.apply(null, [action, actionEl].concat(args || []));
+      else if (mode === 'event') result = __cdCallGlobal(action, event);
+      else if (mode === 'args') result = __cdCallGlobal.apply(null, [action].concat(args || []));
+      else result = __cdCallGlobal(action);
+      if (result !== undefined) return;
+      if (attempt >= maxAttempts) return;
+      attempt += 1;
+      setTimeout(tryInvoke, retryMs);
+    }
+    tryInvoke();
+  });
 }
 
 function __cdBindActionEventFallback(root, eventName, attrName) {

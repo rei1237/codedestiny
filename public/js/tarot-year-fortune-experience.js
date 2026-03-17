@@ -548,7 +548,11 @@
       var img = document.createElement("img");
       img.className = "ty-draw-card-img";
       img.alt = (card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "");
-      img.loading = "eager";
+      img.loading = "lazy";
+      img.decoding = "async";
+      try {
+        img.fetchPriority = idx === 0 ? "high" : "low";
+      } catch (e) {}
       applyTarotImageToCard(img, front, card);
       front.appendChild(img);
 

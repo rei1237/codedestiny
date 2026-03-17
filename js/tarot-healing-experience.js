@@ -1,24 +1,4 @@
-/**
- * 긍정 에너지 회복하기 (Healing & Rising) — 4-Card Spread
- * API: POST /api/tarot/draw (spreadType: healing_rising_four_card)
- *      POST /api/tarot/reading (category: healing, spreadType: healing_rising_four_card, cards)
- */
-(function () {
-  "use strict";
-
-  var GUIDE_LABELS = [
-    "🌱 첫 번째 카드: 조금 지쳤을 수도 있겠어요. 이 카드가 그 마음을 조금씩 풀어줄 거예요.",
-    "💫 두 번째 카드: 깊게 숨 쉬어 보세요. 내면의 빛이 당신을 감싸줄 거예요.",
-    "🌅 세 번째 카드: 거의 다 왔어요! 이 경험이 선물한 것을 따뜻하게 받아보세요.",
-    "☀️ 네 번째 카드: 마지막이에요! 햇살처럼 밝은 다음 걸음을 확인해 보세요. ✨",
-  ];
-
-  var state = { cards: [], revealedCount: 0, reading: null };
-  var TAROT_API_TIMEOUT_MS = 12000;
-
-  function byId(id) {
-    return document.getElementById(id);
-  }
+export * from "../public/js/tarot-healing-experience.js";
 
   function getHealingPanel() {
     return document.querySelector("#tarotHealingOverlay .tarot-healing-panel");
@@ -683,7 +663,13 @@
       var img = document.createElement("img");
       img.className = "tarot-face-img";
       img.alt = card.nameKr || card.name;
-      img.loading = "eager";
+      // Avoid mobile decode/network burst; prefetch runs separately.
+      // Raise priority only for the next reveal target.
+      img.loading = "lazy";
+      img.decoding = "async";
+      try {
+        img.fetchPriority = idx === state.revealedCount ? "high" : "low";
+      } catch (e) {}
       applyTarotImageWithFallback(img, front, card);
       front.appendChild(img);
 
@@ -963,14 +949,14 @@
   function shareTarotHealingResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "☀ 따뜻한 태양 회복 타로 ☀\n\n";
+    var text = "☀ 따뜻한 태양 행복 타로 ☀\n\n";
     if (r.opening) text += "☀ " + r.opening + "\n\n";
     if (r.stepForward) text += "☀ " + r.stepForward + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "☀ 따뜻한 태양 회복 타로",
+        title: "☀ 따뜻한 태양 행복 타로",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});
