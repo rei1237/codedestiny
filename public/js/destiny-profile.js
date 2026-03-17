@@ -1041,6 +1041,7 @@
       else if (btn.classList.contains('dp-fsel-btn--sukuyo')) type = 'sukuyo';
       else if (btn.classList.contains('dp-fsel-btn--ziwei')) type = 'ziwei';
       else if (btn.classList.contains('dp-fsel-btn--astro')) type = 'astro';
+      else if (btn.classList.contains('dp-fsel-btn--vedic')) type = 'vedic';
       else if (btn.classList.contains('dp-fsel-btn--tarot')) type = 'tarot';
       else if (btn.classList.contains('dp-fsel-btn--flower')) type = 'flower';
       if (type && typeof window._dpOpenFortuneType === 'function') {
