@@ -244,10 +244,6 @@
   margin-top: 24px;
   text-align: center;
 }
-.tarot-healing-reading-header {
-  text-align: center;
-  margin-bottom: 16px;
-}
 .tarot-healing-btn {
   display: inline-block;
   border-radius: 14px;
@@ -523,25 +519,37 @@
   transform: none;
 }
 
-/* ─── 결과 스테이지: 회복 게이지 + 읽기 영역 ─── */
+/* ─── 결과 스테이지: 회복 게이지(태양 테마) + 읽기 영역 ─── */
+.tarot-healing-result-stage-wrap {
+  background: rgba(255, 247, 237, 0.6);
+  border: 1px solid var(--sun-border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px -12px var(--sun-shadow), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
 .tarot-healing-recovery-gauge {
   width: 100%;
   margin-bottom: 20px;
-  padding: 0 4px;
+  padding: 12px 16px;
+  background: rgba(255, 247, 237, 0.85);
+  border: 1px solid var(--sun-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px -8px var(--sun-shadow);
 }
 .tarot-healing-recovery-gauge__track {
-  height: 8px;
+  height: 12px;
   border-radius: 999px;
-  background: rgba(254, 243, 199, 0.8);
+  background: linear-gradient(90deg, rgba(254, 243, 199, 0.9), rgba(253, 186, 116, 0.3));
   border: 1px solid var(--sun-border);
   overflow: hidden;
+  box-shadow: 0 0 8px rgba(var(--sun-gold-rgb), 0.2) inset;
 }
 .tarot-healing-recovery-gauge__fill {
   height: 100%;
   width: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--sun-soft-orange), var(--sun-gold));
-  box-shadow: 0 0 12px rgba(var(--sun-gold-rgb), 0.5);
+  box-shadow: 0 0 16px rgba(var(--sun-gold-rgb), 0.6);
   will-change: transform;
   transform-origin: left;
   transform: scaleX(0);
@@ -555,19 +563,37 @@
   to { transform: scaleX(1); }
 }
 .tarot-healing-recovery-gauge__label {
-  font-family: var(--sun-font-sans);
-  font-size: clamp(0.75rem, 1.5vw + 0.25rem, 0.85rem);
+  font-family: var(--sun-font-serif);
+  font-size: clamp(0.8rem, 1.5vw + 0.3rem, 0.9rem);
   color: var(--sun-text-muted);
-  margin-top: 6px;
+  margin-top: 8px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tarot-healing-recovery-gauge__label::before {
+  content: "☀";
+  font-size: 1em;
+  opacity: 0.9;
 }
 
+.tarot-healing-reading-header {
+  padding: 16px 20px;
+  background: rgba(255, 247, 237, 0.7);
+  border: 1px solid var(--sun-border);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px -12px var(--sun-shadow), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  margin-bottom: 20px;
+}
 .tarot-healing-reading-title {
   font-family: var(--sun-font-serif);
-  font-size: clamp(1.1rem, 3vw + 0.5rem, 1.4rem);
+  font-size: clamp(1.15rem, 3vw + 0.6rem, 1.5rem);
   text-align: center;
   color: var(--sun-text);
-  margin-bottom: 12px;
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 .tarot-healing-reading-content {
   max-height: min(56dvh, 56vh);
@@ -575,26 +601,51 @@
   -webkit-overflow-scrolling: touch;
   padding-right: 8px;
 }
+/* 글래스모피즘 섹션 카드: 황금 테두리 + 부드러운 그림자 */
 .tarot-healing-section {
-  margin-bottom: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(255, 247, 237, 0.9);
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 247, 237, 0.85);
   border: 1px solid var(--sun-border);
-  box-shadow: 0 4px 12px -4px var(--sun-shadow);
+  box-shadow: 0 8px 24px -8px var(--sun-shadow), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .tarot-healing-section-title {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: var(--sun-font-serif);
-  font-size: clamp(0.9rem, 2vw + 0.4rem, 1rem);
+  font-size: clamp(0.95rem, 2vw + 0.45rem, 1.05rem);
   font-weight: 700;
   color: var(--sun-text);
+  letter-spacing: 0.01em;
 }
 .tarot-healing-section-text {
   margin: 0;
   font-family: var(--sun-font-sans);
-  font-size: clamp(0.8rem, 2vw + 0.35rem, 0.95rem);
-  line-height: 1.7;
+  font-size: clamp(0.82rem, 2vw + 0.38rem, 0.95rem);
+  line-height: 1.75;
+  color: var(--sun-text-muted);
+}
+.tarot-healing-position-insight {
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 247, 237, 0.9);
+  border: 1px solid var(--sun-border);
+  box-shadow: 0 4px 12px -6px var(--sun-shadow);
+}
+.tarot-healing-position-insight__title {
+  font-family: var(--sun-font-serif);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw + 0.35rem, 0.95rem);
+  color: var(--sun-text);
+  margin-bottom: 8px;
+}
+.tarot-healing-position-insight__keywords {
+  margin-top: 8px;
+  font-family: var(--sun-font-sans);
+  font-size: clamp(0.78rem, 1.5vw + 0.3rem, 0.88rem);
   color: var(--sun-text-muted);
 }
 .tarot-healing-advice-list {
@@ -605,23 +656,43 @@
   line-height: 1.7;
   color: var(--sun-text-muted);
 }
+/* ─── 결과 액션 버튼: 동일 너비, 세로 정렬, UI/UX 정돈 ─── */
 .tarot-healing-result-actions {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-}
-.tarot-healing-result-buttons-group {
-  display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  max-width: 280px;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--sun-border);
 }
-@media (min-width: 640px) {
-  .tarot-healing-result-buttons-group { width: auto; }
+.tarot-healing-result-actions .tarot-healing-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  min-height: 48px;
+  font-size: clamp(0.875rem, 2vw + 0.4rem, 0.95rem);
+}
+.tarot-healing-result-actions .tarot-healing-btn--share {
+  background: linear-gradient(135deg, var(--sun-soft-orange), var(--sun-gold));
+  color: var(--sun-text);
+  border-color: var(--sun-border);
+  box-shadow: 0 6px 20px var(--sun-shadow);
+}
+@media (min-width: 480px) {
+  .tarot-healing-result-actions {
+    max-width: 360px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .tarot-healing-result-actions .tarot-healing-btn {
+    max-width: 100%;
+  }
 }
 
 /* 타이핑 커서 */
@@ -664,11 +735,6 @@
   }
   .tarot-healing-reading-content {
     max-height: min(52dvh, 52vh);
-  }
-  .tarot-healing-result-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
   }
 }
 

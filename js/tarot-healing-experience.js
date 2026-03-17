@@ -847,9 +847,9 @@
     var r = state.reading;
     container.innerHTML = "";
 
-    var sectionClass = "tarot-healing-section rounded-2xl p-5 md:p-6 bg-gradient-to-br from-amber-50/95 to-yellow-50/90 border border-amber-200/60 shadow-lg shadow-amber-200/20";
-    var titleClass = "tarot-healing-section-title text-amber-800 font-bold font-serif text-base md:text-lg mb-2 flex items-center gap-2";
-    var textClass = "tarot-healing-section-text text-amber-900/90 leading-relaxed";
+    var sectionClass = "tarot-healing-section";
+    var titleClass = "tarot-healing-section-title";
+    var textClass = "tarot-healing-section-text";
 
     var queue = [];
     var currentSection = null;
@@ -888,9 +888,9 @@
       ensureSection("☀ 포지션별 심리 통찰");
       r.positionInsights.forEach(function (item) {
         var wrap = document.createElement("div");
-        wrap.className = "mb-4 p-4 rounded-xl bg-white/70 border border-amber-200/50 shadow-sm";
+        wrap.className = "tarot-healing-position-insight";
         var subTitle = document.createElement("div");
-        subTitle.className = "font-bold text-amber-800 mb-2 text-sm md:text-base";
+        subTitle.className = "tarot-healing-position-insight__title";
         subTitle.textContent = (item.title || item.position) + " - " + (item.cardLabel || "");
         wrap.appendChild(subTitle);
         var msgEl = document.createElement("div");
@@ -899,7 +899,7 @@
         if (item.message) queue.push({ el: msgEl, text: item.message });
         if (Array.isArray(item.keywords) && item.keywords.length) {
           var kw = document.createElement("div");
-          kw.className = "mt-2 text-sm text-amber-700/90";
+          kw.className = "tarot-healing-position-insight__keywords";
           kw.textContent = "키워드: " + item.keywords.join(", ");
           wrap.appendChild(kw);
         }
@@ -910,7 +910,7 @@
     if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
       ensureSection("☀ 오늘의 회복 미션 (행동 코칭)");
       var ul = document.createElement("ul");
-      ul.className = "tarot-healing-advice-list list-disc pl-6 space-y-2 text-amber-900/90";
+      ul.className = "tarot-healing-advice-list";
       r.actionPlan.forEach(function (item) {
         var li = document.createElement("li");
         li.className = textClass;
