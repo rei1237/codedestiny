@@ -408,10 +408,11 @@
         return;
       }
       var url = candidates[idx++];
+      /* img만 사용 — backgroundImage와 중복 설정 시 카드가 겹쳐 보이는 현상 방지 */
       if (frontEl) {
-        frontEl.style.backgroundImage = "url('" + url + "')";
-        frontEl.style.backgroundSize = "cover";
-        frontEl.style.backgroundPosition = "center";
+        frontEl.style.backgroundImage = "";
+        frontEl.style.backgroundSize = "";
+        frontEl.style.backgroundPosition = "";
       }
       imgEl.onerror = tryNext;
       imgEl.src = url;
