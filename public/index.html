@@ -1238,7 +1238,6 @@
                     <img class="tarot-tile__img" src="fuctionassets/veda.webp"
                          alt="베다점(조티시) — 출생 차트와 다샤 분석"
                          loading="lazy" decoding="async" width="200" height="150">
-                    <span class="tarot-tile__sticker tarot-tile__sticker--construction">공사 중</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🕉 베다점 조티시</span>
@@ -1921,13 +1920,18 @@
         </div>
       </div>
 
-      <!-- 긍정 태양 회복 타로점 모달 (Warm & Glow) -->
+      <!-- 긍정 태양 회복 타로점 모달 — 살아있는 빛의 공간 -->
       <div id="tarotHealingOverlay" class="tarot-healing-overlay" style="display:none;" data-action="closeTarotHealingModal" data-action-self-only="1">
+        <div class="tarot-healing-pulsing-glow" aria-hidden="true"></div>
         <div class="tarot-healing-sunburst" aria-hidden="true"></div>
         <div class="tarot-healing-particles" aria-hidden="true">
           <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span><span class="particle p5"></span>
           <span class="particle p6"></span><span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span><span class="particle p10"></span>
           <span class="particle p11"></span>
+        </div>
+        <div class="tarot-healing-rising-seeds" aria-hidden="true">
+          <span class="seed s1"></span><span class="seed s2"></span><span class="seed s3"></span><span class="seed s4"></span><span class="seed s5"></span>
+          <span class="seed s6"></span><span class="seed s7"></span><span class="seed s8"></span><span class="seed s9"></span><span class="seed s10"></span>
         </div>
         <div class="tarot-healing-shell max-w-4xl mx-auto px-4 py-6 md:py-10">
           <div class="tarot-healing-panel relative rounded-3xl overflow-hidden">
@@ -1944,7 +1948,7 @@
                 </div>
                 <p class="tarot-healing-subtitle mt-4 max-w-xl mx-auto">햇살처럼 따뜻한 빛으로 상처를 어루만지고, 다시 일어설 힘을 찾는 4카드 회복 리딩입니다. 타로는 미래를 점치는 것이 아니라, 당신 안의 빛을 찾는 도구입니다.</p>
                 <div class="tarot-healing-invoke-wrap mt-8 text-center">
-                  <button class="tarot-healing-btn tarot-healing-btn--invoke" type="button" data-action="startTarotHealingReading">☀ 햇살의 카드 펼치기</button>
+                  <button class="tarot-healing-btn tarot-healing-btn--invoke tarot-healing-solar-btn" type="button" data-action="startTarotHealingReading">☀️ 햇살의 카드 펼치기 ✨</button>
                 </div>
               </div>
             </section>
@@ -1954,27 +1958,25 @@
               <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 뒤집어 주세요.</div>
               <div id="tarotHealingCardGrid" class="tarot-healing-card-grid"></div>
               <div class="tarot-healing-final-wrap">
-                <button type="button" class="tarot-healing-final-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀ 회복 스토리 보기</button>
+                <button type="button" class="tarot-healing-final-btn tarot-healing-solar-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀️ 회복 스토리 보기 🌟</button>
               </div>
             </section>
 
             <section id="tarotHealingResultStage" class="tarot-healing-stage">
               <header class="tarot-healing-reading-header text-center mb-4">
-                <h2 class="tarot-healing-reading-title">☀ 긍정 태양 회복 타로점 결과</h2>
+                <h2 class="tarot-healing-reading-title tarot-healing-glow-text">☀️ 긍정 태양 회복 타로점 결과 ✨</h2>
               </header>
               <div id="tarotHealingRecoveryGauge" class="tarot-healing-recovery-gauge" aria-hidden="true">
                 <div class="tarot-healing-recovery-gauge__track">
                   <div id="tarotHealingRecoveryGaugeFill" class="tarot-healing-recovery-gauge__fill"></div>
                 </div>
-                <p class="tarot-healing-recovery-gauge__label">긍정 에너지</p>
+                <p class="tarot-healing-recovery-gauge__label">☀️ 긍정 에너지 🌱</p>
               </div>
               <div id="tarotHealingReadingContent" class="tarot-healing-reading-content pr-2 space-y-5"></div>
               <div class="tarot-healing-result-actions">
-                <button type="button" class="tarot-healing-btn" data-action="shareTarotHealingResult">💬 카카오톡 공유하기</button>
-                <div class="tarot-healing-result-buttons-group">
-                  <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle" data-action="resetTarotHealingFlow">🔄 다시 리딩하기</button>
-                  <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle" data-action="closeTarotHealingModal">🏠 홈화면 바로 가기</button>
-                </div>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--share tarot-healing-solar-btn" data-action="shareTarotHealingResult">💬 카카오톡 공유하기 ✨</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="resetTarotHealingFlow">🔄 다시 리딩하기 🌟</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="closeTarotHealingModal">🏠 홈화면 바로 가기 ☀️</button>
               </div>
             </section>
           </div>
@@ -2194,11 +2196,13 @@
 
             <section id="animalTotemDrawStage" class="animal-totem-stage totem-draw-stage">
               <div class="totem-draw-header-wrap text-center mb-6">
-                <span class="totem-draw-badge">✨ TOTEM CARD</span>
+                <span class="totem-draw-badge">🌿 TOTEM CARD</span>
                 <h3 class="totem-draw-header text-lg font-semibold mt-2">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
                 <p class="totem-draw-hint mt-1 text-white/70">탭하여 뒤집기</p>
               </div>
-              <div id="animalTotemCardRail" class="totem-card-grid gap-4 md:gap-6"></div>
+              <div class="totem-stump-wrap" aria-hidden="true">
+                <div id="animalTotemCardRail" class="totem-card-grid totem-card-grid--organic gap-4 md:gap-6"></div>
+              </div>
             </section>
 
             <section id="animalTotemResultStage" class="animal-totem-stage totem-result-stage">
@@ -2212,13 +2216,13 @@
                 </div>
                 <div class="totem-result-content space-y-5">
                   <article class="totem-panel-float totem-panel-float--opening rounded-2xl p-6 shadow-lg">
-                    <h4 class="text-amber-200 font-semibold tracking-wider uppercase text-sm mb-3">오라클 서문</h4>
-                    <p id="animalTotemOpeningText" class="leading-relaxed text-white/95"></p>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">오라클 서문</h4>
+                    <p id="animalTotemOpeningText" class="leading-relaxed"></p>
                   </article>
                   <div id="animalTotemReadingPanels" class="totem-consult-list space-y-5"></div>
                   <article class="totem-panel-float totem-panel-float--closing rounded-2xl p-6 shadow-lg">
-                    <h4 class="text-amber-200 font-semibold tracking-wider uppercase text-sm mb-3">마무리 인도문</h4>
-                    <p id="animalTotemClosingText" class="leading-relaxed text-white/95"></p>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">마무리 인도문</h4>
+                    <p id="animalTotemClosingText" class="leading-relaxed"></p>
                   </article>
                 </div>
                 <div class="totem-result-actions flex flex-wrap justify-center gap-3 mt-6">

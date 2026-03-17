@@ -1,4 +1,26 @@
-/* ═══ 메인 페이지 타일: 어디서든 클릭 보장 (CSS 터치/포인터 이슈 해결) ═══ */
+/* ═══════════════════════════════════════════════════════════════════════════
+   애니멀 토템 · 신비로운 숲속 동물 (1단계 스타일 가이드)
+   컨셉: 비밀스러운 신비함 + 숲속 동물의 귀여움 · 수채화풍 · 둥근 핸드드로잉
+   컬러: 딥 모스 그린, 따뜻한 흙색, 부드러운 베이지, 달빛 화이트, 라벤더 퍼플
+   ═══════════════════════════════════════════════════════════════════════════ */
+.animal-totem-overlay {
+  --forest-moss: #2d5016;
+  --forest-moss-soft: rgba(45, 80, 22, 0.35);
+  --forest-earth: #5c4033;
+  --forest-earth-warm: #6b4423;
+  --forest-beige: #e8dcc8;
+  --forest-beige-soft: rgba(232, 220, 200, 0.98);
+  --forest-moonlight: #f5f0e6;
+  --forest-lavender: #b8a9c9;
+  --forest-lavender-glow: rgba(184, 169, 201, 0.3);
+  --forest-firefly: rgba(200, 255, 180, 0.85);
+  --forest-bark: #3d2914;
+  --forest-bark-light: #4a3520;
+  --totem-radius: 16px;
+  --totem-radius-lg: 20px;
+  --totem-radius-pill: 999px;
+}
+
 .tarot-tile--animal-totem,
 [data-action="openAnimalTotemModal"] {
   position: relative;
@@ -8,7 +30,6 @@
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
-/* feat-collection 내부 그리드/타일이 cosmos·::after 위에 올라가도록 */
 .feat-collection--animal .feat-collection__grid,
 .feat-collection--animal .tarot-tile--animal-totem {
   position: relative;
@@ -16,6 +37,7 @@
   isolation: isolate;
 }
 
+/* 오버레이: 신비로운 숲 (너무 어둡지 않게, 은은한 마법) */
 .animal-totem-overlay {
   position: fixed;
   top: 0;
@@ -33,15 +55,14 @@
   overscroll-behavior-y: contain;
   touch-action: pan-y;
   background:
-    radial-gradient(ellipse 120% 80% at 15% 20%, rgba(88, 28, 135, 0.45), transparent 50%),
-    radial-gradient(ellipse 100% 70% at 85% 75%, rgba(30, 58, 138, 0.38), transparent 48%),
-    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(67, 56, 202, 0.22), transparent 55%),
-    linear-gradient(180deg, #0f0a1e 0%, #1a0f2e 35%, #0d1424 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+    radial-gradient(ellipse 100% 70% at 85% 15%, var(--forest-lavender-glow), transparent 45%),
+    radial-gradient(ellipse 90% 60% at 10% 90%, var(--forest-moss-soft), transparent 45%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(245, 240, 230, 0.06), transparent 55%),
+    linear-gradient(180deg, #1e2618 0%, #2a3520 30%, #252a1c 65%, #1f1e18 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .animal-totem-overlay.is-open { display: block; }
-/* 모바일: overlay 열림 시 언어 선택 등 상단 UI 숨김 (스크린샷에서 globe 노출·겹침 방지) */
 body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-events: none; z-index: -1; }
 .animal-totem-overlay .totem-btn,
 .animal-totem-overlay .totem-mode-btn,
@@ -50,27 +71,23 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.animal-totem-overlay .totem-draw-card {
-  cursor: pointer;
-}
+.animal-totem-overlay .totem-draw-card { cursor: pointer; }
 .animal-totem-overlay::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.42) 0.6px, transparent 0.6px);
-  background-size: 3px 3px;
-  opacity: 0.12;
+  background-image: radial-gradient(rgba(255,255,255,0.3) 0.5px, transparent 0.5px);
+  background-size: 4px 4px;
+  opacity: 0.08;
 }
 .animal-totem-overlay::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image:
-    linear-gradient(135deg, transparent 48%, rgba(250,204,21,.06) 50%, transparent 52%),
-    linear-gradient(225deg, transparent 48%, rgba(250,204,21,.05) 50%, transparent 52%);
-  background-size: 60px 60px;
+  background: linear-gradient(135deg, transparent 48%, rgba(184,169,201,0.03) 50%, transparent 52%);
+  background-size: 48px 48px;
   opacity: 0.5;
 }
 
@@ -81,15 +98,14 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   min-height: 100%;
   padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
 }
-/* 결과 화면 전용 슬림 레이아웃 */
 .animal-totem-overlay.is-result-view .animal-totem-shell { max-width: 600px; }
 .animal-totem-panel {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 28px;
-  background: linear-gradient(145deg, rgba(231, 215, 255, 0.2), rgba(172, 191, 255, 0.14));
-  box-shadow: 0 20px 46px rgba(2, 6, 23, 0.55);
-  backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 220, 200, 0.18);
+  border-radius: var(--totem-radius-lg);
+  background: linear-gradient(165deg, rgba(45, 80, 22, 0.08), rgba(92, 64, 51, 0.06), rgba(232, 220, 200, 0.04));
+  box-shadow: 0 18px 44px rgba(30, 38, 24, 0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
   padding: 20px;
 }
 .animal-totem-close {
@@ -100,10 +116,10 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   height: 48px;
   min-width: 48px;
   min-height: 48px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.12);
-  color: #fff;
+  border-radius: var(--totem-radius-pill);
+  border: 1px solid rgba(232, 220, 200, 0.25);
+  background: rgba(45, 80, 22, 0.2);
+  color: var(--forest-moonlight);
   font-size: 1.5rem;
   display: flex;
   align-items: center;
@@ -116,7 +132,7 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 }
 .animal-totem-close:hover,
 .animal-totem-close:focus {
-  background: rgba(255,255,255,0.22);
+  background: rgba(92, 64, 51, 0.35);
 }
 .animal-totem-close:active {
   transform: scale(0.92);
@@ -132,27 +148,26 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-intro-hero {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 22px;
+  border: 1px solid rgba(232, 220, 200, 0.2);
+  border-radius: var(--totem-radius-lg);
   padding: 22px 20px 24px;
   background:
-    radial-gradient(circle at 78% 24%, rgba(250, 204, 21, 0.14), transparent 24%),
-    radial-gradient(circle at 15% 95%, rgba(16, 185, 129, 0.14), transparent 34%),
-    linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 14px 34px rgba(2,6,23,0.4);
+    radial-gradient(circle at 80% 20%, var(--forest-lavender-glow), transparent 28%),
+    radial-gradient(circle at 15% 95%, var(--forest-moss-soft), transparent 32%),
+    linear-gradient(165deg, rgba(232,220,200,0.08), rgba(45,80,22,0.04));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 12px 32px rgba(30,38,24,0.35);
 }
 .totem-intro-hero::before {
   content: "";
   position: absolute;
-  width: 120px;
-  height: 120px;
-  right: 22px;
-  top: 14px;
+  width: 100px;
+  height: 100px;
+  right: 20px;
+  top: 16px;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(255,255,240,0.88), rgba(255,225,157,0.46) 44%, rgba(255,200,80,0.08) 70%, transparent 72%);
-  filter: blur(0.4px) drop-shadow(0 0 14px rgba(255,222,134,0.4));
-  opacity: 0.78;
+  background: radial-gradient(circle at 40% 40%, rgba(245,240,230,0.6), rgba(184,169,201,0.2) 50%, transparent 70%);
+  filter: drop-shadow(0 0 10px rgba(245,240,230,0.25));
+  opacity: 0.9;
   pointer-events: none;
 }
 .totem-intro-hero::after {
@@ -160,58 +175,50 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(rgba(255,255,255,.42) 0.6px, transparent 0.6px);
+  background: radial-gradient(rgba(255,255,255,.35) 0.5px, transparent 0.5px);
   background-size: 3px 3px;
-  opacity: 0.14;
+  opacity: 0.08;
 }
 .totem-intro-title {
   position: relative;
   z-index: 1;
   display: inline-block;
-  color: #fde68a;
+  color: var(--forest-moonlight);
   font-family: "Cinzel", serif;
   letter-spacing: .1em;
   font-size: 1.15rem;
-  text-shadow: 0 0 8px rgba(250,204,21,.24);
+  text-shadow: 0 0 12px var(--forest-lavender-glow);
 }
 .totem-intro-subtitle {
   position: relative;
   z-index: 1;
   margin-top: 8px;
-  color: #f8f0ff;
+  color: var(--forest-beige);
   font-size: .95rem;
   line-height: 1.75;
-  max-width: 80%;
+  max-width: 85%;
 }
 .totem-btn {
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--totem-radius);
   padding: 12px 16px;
-  color: #fff;
+  color: var(--forest-moonlight);
   font-weight: 700;
   letter-spacing: .02em;
-  background:
-    linear-gradient(135deg, rgba(168,85,247,.95), rgba(236,72,153,.86));
-  box-shadow:
-    0 8px 22px rgba(168,85,247,.35),
-    0 0 0 1px rgba(255,255,255,.14) inset,
-    0 0 16px rgba(244,114,182,.28);
+  background: linear-gradient(135deg, var(--forest-moss) 0%, var(--forest-earth-warm) 100%);
+  box-shadow: 0 4px 16px rgba(45,80,22,.35), 0 0 0 1px rgba(245,240,230,.1) inset;
   transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
 }
 .totem-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
-  box-shadow:
-    0 12px 26px rgba(168,85,247,.4),
-    0 0 0 1px rgba(255,255,255,.18) inset,
-    0 0 22px rgba(244,114,182,.34);
+  box-shadow: 0 6px 20px rgba(45,80,22,.45), 0 0 0 1px rgba(245,240,230,.15) inset;
 }
 .totem-btn:active {
   transform: translateY(0) scale(0.98);
 }
 .totem-btn:focus-visible {
-  outline: 2px solid rgba(250, 204, 21, 0.8);
+  outline: 2px solid var(--forest-lavender);
   outline-offset: 2px;
 }
 .totem-btn--invoke {
@@ -221,44 +228,39 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   text-transform: uppercase;
   font-size: .82rem;
   padding-left: 42px;
-  background: linear-gradient(145deg, rgba(250,204,21,.35), rgba(217,119,6,.28));
-  box-shadow:
-    0 0 0 1px rgba(250,204,21,.5) inset,
-    0 0 24px rgba(250,204,21,.25),
-    0 6px 20px rgba(0,0,0,.35);
+  background: linear-gradient(145deg, rgba(45,80,22,.9), var(--forest-earth-warm));
+  box-shadow: 0 0 0 1px rgba(245,240,230,.25) inset, 0 4px 18px rgba(0,0,0,.3);
 }
 .totem-btn--invoke::before {
-  content: "🐾";
+  content: "🌿";
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 1rem;
-  opacity: .9;
+  opacity: .95;
 }
 .totem-btn--invoke:hover {
-  box-shadow:
-    0 0 0 1px rgba(250,204,21,.6) inset,
-    0 0 32px rgba(250,204,21,.35),
-    0 8px 24px rgba(0,0,0,.4);
+  box-shadow: 0 0 0 1px rgba(245,240,230,.35) inset, 0 6px 22px rgba(0,0,0,.35);
 }
 .totem-btn--subtle {
-  border: 1px solid rgba(255,255,255,.35);
-  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(232,220,200,.35);
+  background: rgba(92,64,51,.2);
+  color: var(--forest-beige);
 }
 
 .totem-canvas-wrap {
   position: relative;
   height: 420px;
   margin-top: 14px;
-  border-radius: 16px;
+  border-radius: var(--totem-radius);
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.22);
+  border: 1px solid rgba(232,220,200,.18);
   background:
-    radial-gradient(circle at 82% 22%, rgba(255,238,170,.14), transparent 24%),
-    radial-gradient(circle at 10% 88%, rgba(16,185,129,.12), transparent 34%),
-    linear-gradient(145deg, rgba(15,23,42,.76), rgba(76,29,149,.46));
-  box-shadow: 0 18px 36px rgba(2,6,23,.44), inset 0 0 0 1px rgba(255,255,255,.08);
+    radial-gradient(circle at 82% 22%, var(--forest-lavender-glow), transparent 26%),
+    radial-gradient(circle at 10% 88%, var(--forest-moss-soft), transparent 34%),
+    linear-gradient(150deg, rgba(30,38,24,.85), rgba(45,55,35,.7));
+  box-shadow: 0 14px 32px rgba(20,28,18,.4), inset 0 0 0 1px rgba(232,220,200,.06);
 }
 .totem-canvas-wrap canvas {
   width: 100%;
@@ -297,13 +299,13 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 }
 .totem-rune {
   position: absolute;
-  color: rgba(253, 224, 71, 0.55);
+  color: rgba(232, 220, 200, 0.5);
   font-size: 13px;
-  text-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
+  text-shadow: 0 0 8px var(--forest-lavender-glow);
   animation: runeFloat linear infinite;
 }
 
-/* 금빛 귀여운 동물 형상 */
+/* 숲속 동물 형상 (둥근 핸드드로잉) */
 .totem-animal-figures {
   position: absolute;
   inset: 0;
@@ -313,8 +315,8 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-animal-figure {
   position: absolute;
   font-size: 20px;
-  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.85)) drop-shadow(0 0 12px rgba(253, 224, 71, 0.5));
-  opacity: 0.75;
+  filter: drop-shadow(0 0 5px var(--forest-firefly)) drop-shadow(0 0 10px var(--forest-lavender-glow));
+  opacity: 0.7;
   animation: animalFloat linear infinite;
 }
 .totem-animal-figure.totem-animal-figure--static {
@@ -351,26 +353,27 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-mode-badge {
   display: inline-block;
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: var(--totem-radius-pill);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.18em;
-  color: #fde68a;
-  background: linear-gradient(135deg, rgba(250,204,21,.25), rgba(217,119,6,.18));
-  border: 1px solid rgba(250,204,21,.5);
-  box-shadow: 0 0 20px rgba(250,204,21,.2);
+  color: var(--forest-beige);
+  background: linear-gradient(135deg, var(--forest-moss-soft), rgba(92,64,51,.25));
+  border: 1px solid rgba(232,220,200,.35);
+  box-shadow: 0 0 16px var(--forest-lavender-glow);
   margin-bottom: 12px;
   animation: badgeGlow 2.5s ease-in-out infinite;
 }
 @keyframes badgeGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(250,204,21,.2); opacity: 1; }
-  50% { box-shadow: 0 0 28px rgba(250,204,21,.35); opacity: 0.95; }
+  0%, 100% { box-shadow: 0 0 16px var(--forest-lavender-glow); opacity: 1; }
+  50% { box-shadow: 0 0 24px rgba(184,169,201,.35); opacity: 0.95; }
 }
-.totem-mode-title { margin: 0 0 6px !important; }
+.totem-mode-title { margin: 0 0 6px !important; color: var(--forest-moonlight); }
 .totem-mode-hint {
   margin: 0;
   font-size: 0.85rem;
-  color: rgba(255,255,255,.7);
+  color: var(--forest-beige);
+  opacity: 0.9;
 }
 .totem-mode-grid {
   display: grid;
@@ -379,17 +382,17 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 }
 .totem-mode-btn {
   position: relative;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.2);
-  background: linear-gradient(150deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  color: #f6edff;
+  border-radius: var(--totem-radius);
+  border: 1px solid rgba(232,220,200,.22);
+  background: linear-gradient(150deg, rgba(45,80,22,.1), rgba(92,64,51,.06));
+  color: var(--forest-beige);
   text-align: left;
   padding: 18px 18px 18px 56px;
   min-height: 72px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s; border-color 0.25s;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, border-color 0.25s;
   overflow: hidden;
 }
 .totem-mode-btn::before {
@@ -397,23 +400,23 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(168,85,247,.08), transparent 50%);
+  background: linear-gradient(135deg, var(--forest-lavender-glow), transparent 50%);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
 }
 .totem-mode-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  box-shadow: 0 10px 26px rgba(0,0,0,.28);
 }
 .totem-mode-btn:hover::before { opacity: 1; }
 .totem-mode-btn:active {
   transform: scale(0.98);
 }
 .totem-mode-btn.is-active {
-  border-color: rgba(250,204,21,.7);
-  box-shadow: 0 0 0 1px rgba(250,204,21,.4) inset, 0 0 24px rgba(250,204,21,.15);
-  background: linear-gradient(150deg, rgba(168,85,247,.2), rgba(59,130,246,.15));
+  border-color: rgba(184,169,201,.5);
+  box-shadow: 0 0 0 1px rgba(184,169,201,.3) inset, 0 0 20px var(--forest-lavender-glow);
+  background: linear-gradient(150deg, rgba(45,80,22,.2), rgba(92,64,51,.15));
   animation: modeBtnActive 0.4s ease-out;
 }
 .totem-mode-btn.is-active::before { opacity: 1; }
@@ -427,7 +430,7 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   top: 50%;
   transform: translateY(-50%);
   font-size: 1.8rem;
-  filter: drop-shadow(0 0 8px rgba(250,204,21,.4));
+  filter: drop-shadow(0 0 6px var(--forest-lavender-glow));
   transition: transform 0.3s;
 }
 .totem-mode-btn.is-active .totem-mode-icon {
@@ -436,20 +439,20 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 }
 @keyframes iconFloat {
   0%, 100% { transform: translateY(-50%) scale(1.1); }
-  50% { transform: translateY(-50%) scale(1.15); }
+  50% { transform: translateY(-50%) scale(1.12); }
 }
 .totem-mode-content { display: block; }
 .totem-mode-content b { font-size: 1rem; }
 .totem-mode-content small { font-size: 0.8rem; opacity: 0.9; }
 .totem-mode-actions { margin-top: 20px; }
 .totem-btn--spread {
-  background: linear-gradient(135deg, rgba(168,85,247,.95), rgba(236,72,153,.9)) !important;
-  box-shadow: 0 8px 24px rgba(168,85,247,.4), 0 0 0 1px rgba(255,255,255,.2) inset !important;
+  background: linear-gradient(135deg, var(--forest-moss), var(--forest-earth-warm)) !important;
+  box-shadow: 0 4px 18px rgba(45,80,22,.4), 0 0 0 1px rgba(245,240,230,.15) inset !important;
   animation: spreadBtnPulse 3s ease-in-out infinite;
 }
 @keyframes spreadBtnPulse {
-  0%, 100% { box-shadow: 0 8px 24px rgba(168,85,247,.4), 0 0 0 1px rgba(255,255,255,.2) inset; }
-  50% { box-shadow: 0 10px 32px rgba(168,85,247,.5), 0 0 0 1px rgba(255,255,255,.25) inset; }
+  0%, 100% { box-shadow: 0 4px 18px rgba(45,80,22,.4), 0 0 0 1px rgba(245,240,230,.15) inset; }
+  50% { box-shadow: 0 6px 24px rgba(45,80,22,.5), 0 0 0 1px rgba(245,240,230,.22) inset; }
 }
 
 /* ═══ 카드 뒤집기 스테이지 (타로 비율 2:3) ═══ */
@@ -465,32 +468,101 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-draw-badge {
   display: inline-block;
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: var(--totem-radius-pill);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #fde68a;
-  background: rgba(250,204,21,.15);
-  border: 1px solid rgba(250,204,21,.4);
+  color: var(--forest-beige);
+  background: rgba(45,80,22,.3);
+  border: 1px solid rgba(232,220,200,.35);
   margin-bottom: 10px;
 }
 .totem-draw-header {
-  color: #f6e7ff;
+  color: var(--forest-moonlight);
   margin: 0 0 6px !important;
   font-size: 1.05rem;
 }
 .totem-draw-hint {
   margin: 0;
   font-size: 0.82rem;
-  color: rgba(255,255,255,.65);
+  color: var(--forest-beige);
+  opacity: 0.85;
 }
+
+/* 2단계: 그루터기 위 유기적 카드 배치 (보물 찾기 UX) */
+.totem-stump-wrap {
+  position: relative;
+  min-height: 180px;
+  padding: 24px 14px 28px;
+  margin: 0 auto;
+  max-width: 480px;
+  background:
+    radial-gradient(ellipse 92% 80% at 50% 100%, var(--forest-earth) 0%, var(--forest-bark) 40%, #2a1e12 100%);
+  border-radius: 48% 48% 46% 46% / 16% 16% 10% 10%;
+  box-shadow:
+    inset 0 3px 16px rgba(0,0,0,.3),
+    inset 0 -1px 8px rgba(255,255,255,.03),
+    0 10px 36px rgba(0,0,0,.35);
+  border: 1px solid rgba(92, 64, 51, 0.5);
+}
+.totem-stump-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 75% 55% at 50% 95%, rgba(0,0,0,.12), transparent);
+  pointer-events: none;
+}
+
 .totem-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 16px;
+  gap: 14px;
   justify-items: center;
+  align-items: center;
 }
-/* 타로 카드 표준 비율 2:3 (width : height) */
+.totem-card-grid--organic {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 0 6px;
+}
+.totem-card-grid--organic .totem-draw-card {
+  flex-shrink: 0;
+}
+.totem-card-grid--organic .totem-draw-card:nth-child(1) { transform: rotate(-2deg); }
+.totem-card-grid--organic .totem-draw-card:nth-child(2) { transform: rotate(1deg); }
+.totem-card-grid--organic .totem-draw-card:nth-child(3) { transform: rotate(2deg); }
+.totem-card-grid--organic .totem-draw-card:nth-child(4) { transform: rotate(-1deg); }
+.totem-card-grid--organic .totem-draw-card:nth-child(5) { transform: rotate(1.5deg); }
+.totem-card-grid--organic .totem-draw-card.is-revealed { transform: rotate(0deg); }
+
+/* 선택된 카드: 이끼/반딧불이 빛나는 효과 */
+.totem-draw-card.is-revealed {
+  box-shadow:
+    0 0 0 3px rgba(45, 80, 22, 0.45),
+    0 0 20px var(--forest-firefly),
+    0 0 36px rgba(200, 255, 180, 0.15);
+  border-radius: var(--totem-radius);
+}
+.totem-draw-card.is-revealed::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: radial-gradient(circle at 35% 35%, rgba(200,255,180,.12), transparent 50%),
+              radial-gradient(circle at 65% 65%, rgba(200,255,180,.08), transparent 45%);
+  animation: fireflyGlow 2.5s ease-in-out infinite;
+}
+@keyframes fireflyGlow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* 타로 카드 2:3 · GPU 가속 (4단계) */
 .totem-draw-card {
   position: relative;
   border: 0;
@@ -505,10 +577,11 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   min-width: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.3s ease;
+  will-change: transform;
 }
 .totem-draw-card:focus {
-  outline: 2px solid rgba(250, 204, 21, 0.7);
+  outline: 2px solid var(--forest-lavender);
   outline-offset: 2px;
 }
 .totem-draw-card.is-disabled {
@@ -533,56 +606,71 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-card-face {
   position: absolute;
   inset: 0;
-  border-radius: 12px;
+  border-radius: var(--totem-radius);
   backface-visibility: hidden;
-  border: 1px solid rgba(255,255,255,.25);
+  border: 1px solid rgba(232, 220, 200, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   padding: 12px;
 }
+/* 3단계: 카드 뒷면 — 숲 문양 + 달빛 */
 .totem-card-face--back {
   position: relative;
   background:
-    radial-gradient(circle at 50% 20%, rgba(250, 204, 21, 0.25), transparent 40%),
-    linear-gradient(160deg, #2e2765, #1a1a3e, #10254f);
-  color: #fde68a;
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.5), inset 0 0 0 1px rgba(250, 204, 21, 0.3);
+    radial-gradient(circle at 50% 12%, var(--forest-moonlight) 0%, rgba(245,240,230,.35) 16%, transparent 42%),
+    linear-gradient(175deg, var(--forest-moss) 0%, var(--forest-bark) 38%, #1e1a14 100%);
+  color: var(--forest-beige);
+  box-shadow: 0 6px 24px rgba(0,0,0,.4), inset 0 0 0 1px rgba(245,240,230,.2);
   animation: totemCardPulse 2.4s ease-in-out infinite;
+}
+.totem-card-face--back::before {
+  content: "✦ ✧ ✦";
+  position: absolute;
+  top: 20%;
+  left: 0;
+  right: 0;
+  font-size: 0.55rem;
+  letter-spacing: 0.45em;
+  color: rgba(245,240,230,.45);
+  text-align: center;
+  pointer-events: none;
 }
 .totem-card-face--back::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: url("../fuctionassets/animaltotem.webp") center/60% no-repeat;
-  opacity: .28;
+  background: url("../fuctionassets/animaltotem.webp") center/52% no-repeat;
+  opacity: 0.2;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
 .totem-card-face--back .totem-card-emoji {
   font-size: 1.8rem;
-  filter: drop-shadow(0 0 8px rgba(250,204,21,.5));
+  filter: drop-shadow(0 0 8px rgba(245,240,230,.45));
   position: relative;
   z-index: 1;
 }
-.totem-card-face--back .totem-card-slot { margin-top: auto; position: relative; z-index: 1; }
-.totem-card-face--back .totem-card-mark { position: relative; z-index: 1; }
+.totem-card-face--back .totem-card-slot { margin-top: auto; position: relative; z-index: 1; color: var(--forest-beige); }
+.totem-card-face--back .totem-card-mark { position: relative; z-index: 1; color: rgba(232,220,200,.75); }
 @keyframes totemCardPulse {
-  0%, 100% { box-shadow: 0 8px 24px rgba(2,6,23,.5), inset 0 0 0 1px rgba(250,204,21,.3), 0 0 10px rgba(250,204,21,.12); }
-  50% { box-shadow: 0 8px 24px rgba(2,6,23,.5), inset 0 0 0 1px rgba(250,204,21,.5), 0 0 18px rgba(250,204,21,.25); }
+  0%, 100% { box-shadow: 0 6px 24px rgba(0,0,0,.4), inset 0 0 0 1px rgba(245,240,230,.2), 0 0 10px rgba(245,240,230,.08); }
+  50% { box-shadow: 0 6px 24px rgba(0,0,0,.4), inset 0 0 0 1px rgba(245,240,230,.4), 0 0 16px rgba(245,240,230,.14); }
 }
+/* 3단계: 카드 앞면 — 귀엽고 영험한 동물 토템 */
 .totem-card-face--front {
   transform: rotateY(180deg);
-  background: linear-gradient(165deg, rgba(255,248,235,.98), rgba(240,230,255,.95));
-  color: #3f1d64;
-  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  background: linear-gradient(165deg, var(--forest-beige-soft) 0%, rgba(245,240,230,.98) 48%, rgba(232,220,200,.96) 100%);
+  color: var(--forest-bark);
+  box-shadow: 0 4px 20px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.55);
+  border: 1px solid rgba(92, 64, 51, 0.18);
 }
 .totem-card-face--front .totem-card-emoji {
   font-size: 2.5rem;
   margin-bottom: 4px;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,.15));
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.1)) drop-shadow(0 0 10px var(--forest-lavender-glow));
   animation: emojiReveal 0.5s ease-out 0.3s both;
 }
 @keyframes emojiReveal {
@@ -590,13 +678,13 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   to { opacity: 1; transform: scale(1); }
 }
 .totem-card-emoji { font-size: 1.8rem; }
-.totem-card-name { margin-top: 2px; font-weight: 700; font-size: 0.9rem; }
-.totem-card-slot { margin-top: 4px; font-size: .7rem; color: #f5f3ff; letter-spacing: .05em; }
+.totem-card-name { margin-top: 2px; font-weight: 700; font-size: 0.9rem; color: var(--forest-bark); }
+.totem-card-slot { margin-top: 4px; font-size: .7rem; color: var(--forest-earth); letter-spacing: .05em; }
 .totem-card-mark {
   margin-top: 6px;
   font-size: 0.65rem;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--forest-earth);
 }
 
 .totem-parallax-zone {
@@ -615,14 +703,13 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   to { transform: translate(var(--tx), var(--ty)) scale(.1); opacity: 0; }
 }
 
-/* ═══ 결과 화면 (모바일 퍼스트 · 바이브 코딩) ═══ */
+/* 3단계: 결과 화면 — 고대 나무껍질에 새겨진 예언 */
 .totem-result-stage.is-active { animation: resultStageIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 @keyframes resultStageIn {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Container: max-width 600px, 중앙 정렬 */
 .totem-result-container {
   max-width: 600px;
   margin: 0 auto;
@@ -631,7 +718,6 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   gap: 0;
 }
 
-/* Header: 동물 토템 이름 + 핵심 키워드 */
 .totem-result-header {
   text-align: center;
   margin-bottom: 24px;
@@ -641,8 +727,8 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #f7f3ff;
-  text-shadow: 0 0 40px rgba(250,204,21,.2);
+  color: var(--forest-moonlight);
+  text-shadow: 0 0 28px var(--forest-lavender-glow);
   line-height: 1.3;
 }
 .totem-flow-strip--compact {
@@ -652,11 +738,10 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   flex-wrap: wrap;
   gap: 8px 12px;
   padding: 12px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.04);
-  backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  border-radius: var(--totem-radius);
+  border: 1px solid rgba(92,64,51,.45);
+  background: rgba(61,41,20,.3);
+  box-shadow: inset 0 1px 0 rgba(232,220,200,.06);
 }
 
 /* Card Section: 플로팅 카드 (3:5 비율, 그림자·테두리) */
@@ -687,13 +772,13 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   width: 100%;
   max-width: 140px;
   aspect-ratio: 3 / 5;
-  border-radius: 14px;
+  border-radius: var(--totem-radius);
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.2);
-  background: linear-gradient(165deg, rgba(255,248,235,.98), rgba(240,230,255,.95));
+  border: 1px solid rgba(92,64,51,.3);
+  background: linear-gradient(165deg, var(--forest-beige-soft), rgba(245,240,230,.98));
   box-shadow:
-    0 12px 32px rgba(0,0,0,.35),
-    0 0 0 1px rgba(250,204,21,.25),
+    0 8px 24px rgba(0,0,0,.28),
+    0 0 0 1px rgba(232,220,200,.35),
     inset 0 1px 0 rgba(255,255,255,.5);
   animation: totemResultCardUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
@@ -714,23 +799,24 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   justify-content: center;
   height: 100%;
   padding: 16px;
-  color: #3f1d64;
+  color: var(--forest-bark);
 }
 .totem-result-card-emoji {
   font-size: 2.5rem;
   margin-bottom: 6px;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,.12));
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.1)) drop-shadow(0 0 8px var(--forest-lavender-glow));
 }
 .totem-result-card-name {
   font-weight: 700;
   font-size: 0.95rem;
   text-align: center;
   line-height: 1.2;
+  color: var(--forest-bark);
 }
 .totem-result-card-slot {
   margin-top: 6px;
   font-size: 0.7rem;
-  color: rgba(63,29,100,.7);
+  color: var(--forest-earth);
   letter-spacing: 0.06em;
 }
 
@@ -741,27 +827,47 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   gap: 18px;
 }
 
-/* Glassmorphism 패널 */
+/* 고대 나무껍질 예언 프레임 (나뭇가지·glowing 식물) */
 .totem-panel-float {
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(30,41,68,.4);
-  box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.08);
-  padding: 22px;
-  color: rgba(255,255,255,.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--totem-radius-lg);
+  border: 2px solid var(--forest-earth);
+  background: linear-gradient(180deg, rgba(61,41,20,.7) 0%, rgba(74,53,32,.8) 100%);
+  box-shadow:
+    0 6px 28px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(232,220,200,.1),
+    inset 0 0 0 1px rgba(0,0,0,.15);
+  padding: 22px 20px 24px 26px;
+  color: var(--forest-beige);
+  position: relative;
+}
+.totem-panel-float::before {
+  content: "🌿";
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  font-size: 1rem;
+  opacity: 0.65;
+  filter: drop-shadow(0 0 5px var(--forest-firefly));
+}
+.totem-panel-float::after {
+  content: "✨";
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 0.9rem;
+  opacity: 0.55;
 }
 .totem-panel-float h4 {
-  color: #fde68a;
+  color: var(--forest-moonlight);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   margin-bottom: 12px;
+  padding-left: 26px;
   text-transform: uppercase;
 }
 .totem-panel-float p, .totem-panel-float li {
-  color: rgba(255,255,255,.9);
+  color: var(--forest-beige);
   font-size: 1rem;
   line-height: 1.8;
 }
@@ -786,52 +892,50 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 
 /* 레거시 호환 */
 .totem-reading-header { margin-bottom: 20px; text-align: center; }
-.totem-reading-title { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.06em; color: #f7f3ff; }
-.totem-reading-subtitle { margin: 10px 0 0; font-size: 0.9rem; color: rgba(255,255,255,.75); line-height: 1.7; }
+.totem-reading-title { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: 0.06em; color: var(--forest-moonlight); }
+.totem-reading-subtitle { margin: 10px 0 0; font-size: 0.9rem; color: var(--forest-beige); line-height: 1.7; opacity: .9; }
 .totem-flow-strip {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
   padding: 14px 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border-radius: var(--totem-radius-lg);
+  border: 1px solid rgba(92,64,51,.4);
+  background: rgba(61,41,20,.25);
   margin-bottom: 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  box-shadow: inset 0 1px 0 rgba(232,220,200,.05);
 }
 .totem-flow-node {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(15,23,42,.6);
+  border-radius: var(--totem-radius-pill);
+  border: 1px solid rgba(92,64,51,.35);
+  background: rgba(61,41,20,.45);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .totem-flow-node:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,.28);
 }
-.totem-flow-icon { font-size: 1.1rem; filter: drop-shadow(0 0 10px rgba(255,217,142,.5)); }
-.totem-flow-label { font-size: .72rem; color: rgba(255,255,255,.85); letter-spacing: .04em; }
-.totem-flow-name { font-size: .85rem; color: #fde68a; font-weight: 700; }
-.totem-flow-arrow { color: rgba(255,217,142,.6); font-size: .85rem; margin: 0 2px; }
+.totem-flow-icon { font-size: 1.1rem; filter: drop-shadow(0 0 6px var(--forest-firefly)); }
+.totem-flow-label { font-size: .72rem; color: var(--forest-beige); letter-spacing: .04em; opacity: .9; }
+.totem-flow-name { font-size: .85rem; color: var(--forest-moonlight); font-weight: 700; }
+.totem-flow-arrow { color: var(--forest-lavender); font-size: .85rem; margin: 0 2px; opacity: .75; }
 
 .totem-guidance-card {
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(30,41,68,.45);
-  box-shadow: 0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  border-radius: var(--totem-radius-lg);
+  border: 1px solid rgba(92,64,51,.4);
+  background: linear-gradient(180deg, rgba(61,41,20,.55) 0%, rgba(74,53,32,.65) 100%);
+  box-shadow: 0 6px 24px rgba(0,0,0,.3), inset 0 1px 0 rgba(232,220,200,.07);
   padding: 22px;
   animation: totemCardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(20px);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 @keyframes totemCardIn {
   to { opacity: 1; transform: translateY(0); }
@@ -844,13 +948,13 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   top: -50px;
   right: -40px;
   background: radial-gradient(circle at center, var(--aura-color), transparent 65%);
-  opacity: .18;
+  opacity: .12;
   pointer-events: none;
   animation: auraPulse 4s ease-in-out infinite;
 }
 @keyframes auraPulse {
-  0%, 100% { transform: scale(1); opacity: .15; }
-  50% { transform: scale(1.1); opacity: .25; }
+  0%, 100% { transform: scale(1); opacity: .1; }
+  50% { transform: scale(1.1); opacity: .18; }
 }
 .totem-guidance-head {
   display: flex;
@@ -858,7 +962,7 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   gap: 14px;
   margin-bottom: 18px;
   padding-bottom: 14px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(92,64,51,.4);
 }
 .totem-guidance-animal {
   width: 52px;
@@ -868,27 +972,28 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 0 20px rgba(255,217,142,.2), inset 0 0 0 1px rgba(255,255,255,.04);
+  background: rgba(45,80,22,.22);
+  border: 1px solid rgba(232,220,200,.28);
+  box-shadow: 0 0 14px var(--forest-lavender-glow), inset 0 1px 0 rgba(255,255,255,.05);
 }
 .totem-guidance-slot {
   margin: 0;
   font-size: .7rem;
   letter-spacing: .1em;
-  color: rgba(255,255,255,.7);
+  color: var(--forest-beige);
   text-transform: uppercase;
+  opacity: .9;
 }
 .totem-guidance-name {
   margin: 4px 0 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #fde68a;
+  color: var(--forest-moonlight);
 }
 .totem-guidance-section { margin-top: 14px; }
 .totem-guidance-section h4 {
   margin: 0 0 8px;
-  color: #fde68a;
+  color: var(--forest-moonlight);
   font-size: .8rem;
   font-weight: 600;
   letter-spacing: .08em;
@@ -898,33 +1003,34 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   margin: 0;
   font-size: 1rem;
   line-height: 1.8;
-  color: rgba(255,255,255,.9);
+  color: var(--forest-beige);
 }
 .totem-guidance-section ul { margin: 0; padding-left: 20px; }
 .totem-ritual-toggle {
   margin-top: 12px;
-  border-top: 1px dashed rgba(255,255,255,.18);
+  border-top: 1px dashed rgba(232,220,200,.22);
   padding-top: 10px;
 }
 .totem-ritual-toggle summary {
   cursor: pointer;
-  color: #FFD98E;
+  color: var(--forest-moonlight);
   font-weight: 700;
 }
 .totem-ritual-toggle p {
   margin-top: 8px;
-  color: rgba(255,255,255,.84);
+  color: var(--forest-beige);
   line-height: 1.7;
+  opacity: .95;
 }
 
 .animal-totem-overlay.env-ground .animal-totem-panel {
-  background: linear-gradient(155deg, rgba(120,53,15,.2), rgba(34,197,94,.08));
+  background: linear-gradient(165deg, rgba(45,80,22,.14), rgba(92,64,51,.1));
 }
 .animal-totem-overlay.env-air .animal-totem-panel {
-  background: linear-gradient(155deg, rgba(30,64,175,.18), rgba(56,189,248,.08));
+  background: linear-gradient(165deg, rgba(74,53,32,.18), var(--forest-lavender-glow));
 }
 .animal-totem-overlay.env-water .animal-totem-panel {
-  background: linear-gradient(155deg, rgba(15,118,110,.2), rgba(14,165,233,.08));
+  background: linear-gradient(165deg, rgba(45,80,22,.12), rgba(92,64,51,.12));
 }
 
 @media (max-width: 680px) {
@@ -949,15 +1055,15 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   .totem-guidance-card { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
 }
 
-/* 모바일: backdrop-filter 제거 — iOS Safari 등에서 Main Thread 차단·화면 멈춤 방지 */
+/* 4단계: 모바일 — backdrop-filter 제거 (iOS Safari 성능) */
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .animal-totem-overlay {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background:
-      radial-gradient(ellipse 120% 80% at 15% 20%, rgba(88, 28, 135, 0.55), transparent 50%),
-      radial-gradient(ellipse 100% 70% at 85% 75%, rgba(30, 58, 138, 0.48), transparent 48%),
-      linear-gradient(180deg, #0f0a1e 0%, #1a0f2e 35%, #0d1424 100%);
+      radial-gradient(ellipse 100% 70% at 85% 15%, rgba(184,169,201,0.25), transparent 45%),
+      radial-gradient(ellipse 90% 60% at 10% 90%, rgba(45,80,22,0.3), transparent 45%),
+      linear-gradient(180deg, #1e2618 0%, #2a3520 30%, #252a1c 65%, #1f1e18 100%);
   }
 }
 
@@ -968,7 +1074,7 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   }
   .animal-totem-panel {
     padding: 16px 14px;
-    border-radius: 20px;
+    border-radius: var(--totem-radius-lg);
   }
   .totem-result-title { font-size: 1.45rem; }
   .totem-result-card { max-width: 120px; }
@@ -981,12 +1087,26 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
     font-size: 0.95rem;
     line-height: 1.55;
   }
+  .totem-stump-wrap {
+    padding: 18px 10px 22px;
+    min-height: 150px;
+  }
+  .totem-card-grid--organic {
+    gap: 10px 12px;
+  }
+  .totem-card-grid--organic .totem-draw-card:nth-child(n) {
+    transform: none;
+  }
+  .totem-card-grid--organic .totem-draw-card.is-revealed {
+    transform: none;
+  }
   .totem-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .totem-draw-card {
     max-width: 120px;
+    will-change: transform;
   }
   .totem-guidance-card {
     padding: 18px;
