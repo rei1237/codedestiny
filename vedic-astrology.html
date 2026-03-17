@@ -685,41 +685,103 @@ function ayanamsa(jd){
   return nd(22.460148+1.396468*T+0.000308*T*T);
 }
 function calcPlanets(jd){
-  const T=(jd-2451545.0)/36525;
+  // Local fallback ephemeris:
+  // - Uses simple Keplerian orbital elements (good "ballpark" accuracy) for Sun+planets
+  // - Keeps current fast Moon approximation (Moon is the most sensitive; API remains the gold standard)
   const ay=ayanamsa(jd);
-  // Mean longitudes
-  const L={
-    Sun:nd(280.46646+36000.76983*T),
-    Moon:nd(218.3164591+481267.88134236*T),
-    Mercury:nd(252.250906+149472.6746358*T),
-    Venus:nd(181.979801+58517.8156760*T),
-    Mars:nd(355.433275+19140.2993313*T),
-    Jupiter:nd(34.351519+3034.9056606*T),
-    Saturn:nd(50.077444+1222.1138488*T),
-    Rahu:nd(125.044555-1934.1361849*T)
+  const d = jd - 2451543.5; // days since J2000 (matches common low-precision element sets)
+
+  function _deg(x){ return x*180/Math.PI; }
+  function _rad(x){ return x*Math.PI/180; }
+  function _fix(a){ return nd(a); }
+  function _sin(x){ return Math.sin(x); }
+  function _cos(x){ return Math.cos(x); }
+
+  function _kepler(M,e){
+    // solve E - e sin E = M (radians)
+    let E=M,delta=1,iter=0;
+    while(Math.abs(delta) > 1e-6 && iter < 20){
+      delta = (E - e*_sin(E) - M) / (1 - e*_cos(E));
+      E = E - delta;
+      iter++;
+    }
+    return E;
+  }
+
+  // Paul Schlyter-style low-precision elements (degrees, AU). Accurate enough for fallback UI.
+  function _elements(name){
+    const el = {
+      Sun:     { N:0,      i:0,        w:282.9404+4.70935e-5*d, a:1.000000, e:0.016709-1.151e-9*d, M:356.0470+0.9856002585*d },
+      Mercury: { N:48.3313+3.24587e-5*d, i:7.0047+5.00e-8*d,  w:29.1241+1.01444e-5*d, a:0.387098, e:0.205635+5.59e-10*d, M:168.6562+4.0923344368*d },
+      Venus:   { N:76.6799+2.46590e-5*d, i:3.3946+2.75e-8*d,  w:54.8910+1.38374e-5*d, a:0.723330, e:0.006773-1.302e-9*d, M:48.0052+1.6021302244*d },
+      Mars:    { N:49.5574+2.11081e-5*d, i:1.8497-1.78e-8*d,  w:286.5016+2.92961e-5*d, a:1.523688, e:0.093405+2.516e-9*d, M:18.6021+0.5240207766*d },
+      Jupiter: { N:100.4542+2.76854e-5*d,i:1.3030-1.557e-7*d, w:273.8777+1.64505e-5*d, a:5.202560, e:0.048498+4.469e-9*d, M:19.8950+0.0830853001*d },
+      Saturn:  { N:113.6634+2.38980e-5*d,i:2.4886-1.081e-7*d, w:339.3939+2.97661e-5*d, a:9.554750, e:0.055546-9.499e-9*d, M:316.9670+0.0334442282*d }
+    };
+    return el[name];
+  }
+
+  function _helioEcl(name){
+    const e=_elements(name);
+    const N=_rad(_fix(e.N||0));
+    const i=_rad(_fix(e.i||0));
+    const w=_rad(_fix(e.w||0));
+    const a=e.a, ecc=e.e;
+    const M=_rad(_fix(e.M||0));
+
+    const E=_kepler(M,ecc);
+    const xv=a*(_cos(E)-ecc);
+    const yv=a*(Math.sqrt(1-ecc*ecc)*_sin(E));
+    const v=Math.atan2(yv,xv);
+    const r=Math.sqrt(xv*xv+yv*yv);
+
+    const xh=r*(_cos(N)*_cos(v+w) - _sin(N)*_sin(v+w)*_cos(i));
+    const yh=r*(_sin(N)*_cos(v+w) + _cos(N)*_sin(v+w)*_cos(i));
+    const zh=r*(_sin(v+w)*_sin(i));
+    return {x:xh,y:yh,z:zh,r:r};
+  }
+
+  // Earth heliocentric position via "Sun" elements
+  const earth=_helioEcl("Sun");
+
+  function _geoLon(name){
+    const p=_helioEcl(name);
+    const xg=p.x - earth.x;
+    const yg=p.y - earth.y;
+    const lon=_fix(_deg(Math.atan2(yg,xg)));
+    return lon;
+  }
+
+  // Sun geocentric longitude is Earth heliocentric + 180
+  const sunLon = _fix(_deg(Math.atan2(earth.y, earth.x)) + 180);
+
+  // Moon (fast approximation, computed from jd consistently)
+  const T=(jd-2451545.0)/36525;
+  let moonLon=_fix(218.3164591+481267.88134236*T);
+  const D=_fix(297.85036+445267.11480*T);
+  const Mm=_fix(134.96298+477198.867398*T);
+  moonLon=_fix(moonLon
+    +6.289*_sin(_rad(Mm))
+    -1.274*_sin(_rad(2*D-Mm))
+    +0.658*_sin(_rad(2*D))
+    -0.214*_sin(_rad(2*Mm))
+    -0.110*_sin(_rad(D))
+  );
+
+  // Mean node fallback
+  const rahuT=_fix(125.044555 - 1934.1361849*T);
+
+  const sid = {
+    Sun: _fix(sunLon - ay),
+    Moon: _fix(moonLon - ay),
+    Mercury: _fix(_geoLon("Mercury") - ay),
+    Venus: _fix(_geoLon("Venus") - ay),
+    Mars: _fix(_geoLon("Mars") - ay),
+    Jupiter: _fix(_geoLon("Jupiter") - ay),
+    Saturn: _fix(_geoLon("Saturn") - ay),
+    Rahu: _fix(rahuT - ay)
   };
-  // Sun equation of center
-  const Ms=nd(357.52911+35999.05029*T);
-  const Csun=(1.914602-0.004817*T)*Math.sin(r2d(Ms))+(0.019993-0.000101*T)*Math.sin(2*r2d(Ms))+0.000289*Math.sin(3*r2d(Ms));
-  L.Sun=nd(L.Sun+Csun);
-  // Moon corrections
-  const D=nd(297.85036+445267.11480*T);
-  const Mm=nd(134.96298+477198.867398*T);
-  const F=nd(93.27191+483202.017538*T);
-  L.Moon=nd(L.Moon+6.289*Math.sin(r2d(Mm))-1.274*Math.sin(r2d(2*D-Mm))+0.658*Math.sin(r2d(2*D))-0.214*Math.sin(r2d(2*Mm))-0.110*Math.sin(r2d(D)));
-  // Mars correction
-  const Mm2=nd(319.9294+19139.8585*T);
-  L.Mars=nd(L.Mars+(10.691+0.623*T)*Math.sin(r2d(Mm2))+0.623*Math.sin(2*r2d(Mm2)));
-  // Jupiter correction
-  const Mj=nd(20.9367+3034.906*T);
-  L.Jupiter=nd(L.Jupiter+5.555*Math.sin(r2d(Mj))+0.168*Math.sin(2*r2d(Mj)));
-  // Saturn correction
-  const Ms2=nd(317.821+1222.114*T);
-  L.Saturn=nd(L.Saturn+6.406*Math.sin(r2d(Ms2))+0.317*Math.sin(2*r2d(Ms2)));
-  // Apply Ayanamsa → Sidereal
-  const sid={};
-  for(const[p,v]of Object.entries(L))sid[p]=nd(v-ay);
-  sid.Ketu=nd(sid.Rahu+180);
+  sid.Ketu=_fix(sid.Rahu+180);
   return sid;
 }
 function calcAscendant(jd,lat,lon){

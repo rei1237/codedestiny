@@ -20,6 +20,22 @@
     return document.getElementById(id);
   }
 
+  function getHealingPanel() {
+    return document.querySelector("#tarotHealingOverlay .tarot-healing-panel");
+  }
+
+  function triggerHealingSunFlash() {
+    var panel = getHealingPanel();
+    if (!panel) return;
+    panel.classList.remove("is-sun-flash");
+    // reflow to restart animation reliably
+    panel.offsetHeight;
+    panel.classList.add("is-sun-flash");
+    setTimeout(function () {
+      try { panel.classList.remove("is-sun-flash"); } catch (e) {}
+    }, 650);
+  }
+
   function normalizeApiBase(raw) {
     return String(raw || "").trim().replace(/\/+$/, "");
   }
@@ -599,6 +615,7 @@
 
     var panel = document.querySelector(".tarot-healing-panel");
     if (panel) panel.classList.add("ritual-burst");
+    triggerHealingSunFlash();
 
     callTarotApi("draw", { spreadType: "healing_rising_four_card" })
       .then(function (data) {
@@ -729,6 +746,7 @@
     healingFlipCooldownUntil = now + HEALING_FLIP_DEBOUNCE_MS;
 
     emitRipple(cardEl);
+    triggerHealingSunFlash();
     cardEl.setAttribute("data-revealed", "1");
     forceHealingFrontImage(cardEl, state.cards[idx]);
     ensureHealingFrontImage(cardEl, state.cards[idx]);
@@ -782,6 +800,7 @@
 
   var TYPING_CHAR_DELAY_MS = 32;
   var TYPING_CURSOR_CLASS = "tarot-healing-typing-cursor";
+  var SECTION_BREATH_PAUSE_MS = 3400;
 
   function addTypingCursor(el) {
     if (!el) return;
@@ -821,6 +840,7 @@
 
   function runTypingQueue(queue, charDelayMs, done) {
     var i = 0;
+    var prevSection = null;
     function next() {
       if (i >= queue.length) {
         if (typeof done === "function") done();
@@ -828,7 +848,17 @@
       }
       var item = queue[i];
       i += 1;
-      typeWriter(item.el, item.text, charDelayMs, next);
+      var section = item && item.section ? String(item.section) : "";
+      var needsBreath = prevSection && section && section !== prevSection;
+      prevSection = section || prevSection;
+      var startTyping = function () {
+        typeWriter(item.el, item.text, charDelayMs, next);
+      };
+      if (needsBreath) {
+        setTimeout(startTyping, SECTION_BREATH_PAUSE_MS);
+      } else {
+        startTyping();
+      }
     }
     next();
   }
@@ -849,7 +879,10 @@
     function onReveal() {
       wrap.removeEventListener("click", onReveal);
       wrap.removeEventListener("keydown", onRevealKey);
-      renderTarotHealingResult();
+      triggerHealingSunFlash();
+      setTimeout(function () {
+        renderTarotHealingResult();
+      }, 120);
     }
     function onRevealKey(e) {
       if (e.key === "Enter" || e.key === " ") {
@@ -894,7 +927,7 @@
       var p = document.createElement("p");
       p.className = textClass;
       sec.appendChild(p);
-      queue.push({ el: p, text: text });
+      queue.push({ el: p, text: text, section: sectionTitle });
     }
 
     if (r.opening) addBlock("☀️ 따뜻한 인사 ✨", r.opening);
@@ -912,7 +945,7 @@
         var li = document.createElement("li");
         li.className = textClass;
         ul.appendChild(li);
-        queue.push({ el: li, text: item });
+        queue.push({ el: li, text: item, section: "🌱 오늘 해볼 만한 것 ✨" });
       });
       sectionEl.appendChild(ul);
     }
