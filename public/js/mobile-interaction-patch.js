@@ -109,6 +109,19 @@
       ].join(',')
     },
     {
+      action: 'openTarotHealingModal',
+      cardSelector: '.tarot-tile--healing',
+      targetSelector: [
+        '[data-action="openTarotHealingModal"]',
+        '.tarot-tile--healing',
+        '.tarot-tile--healing .tarot-tile__img-wrap',
+        '.tarot-tile--healing .tarot-tile__img',
+        '.tarot-tile--healing .tarot-tile__title',
+        '.tarot-tile--healing .tarot-tile__desc',
+        '.tarot-tile--healing .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'openTarotYearFortuneModal',
       cardSelector: '.tarot-tile--year',
       targetSelector: [
@@ -179,6 +192,11 @@
       if (tile) return tile;
     }
 
+    if (rule.action === 'openTarotHealingModal') {
+      var tile = origin.closest('.tarot-tile--healing');
+      if (tile) return tile;
+    }
+
     if (rule.action === 'openAnimalTotemModal') {
       var tile = origin.closest('.tarot-tile--animal-totem');
       if (tile) return tile;
@@ -226,7 +244,9 @@
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
-    ]
+    ],
+    openTarotHealingModal: ['js/tarot-healing-experience.js'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js']
   };
 
   function loadScript(src) {
@@ -318,13 +338,14 @@
       '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
       '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
       '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
+      '.tarot-tile--healing .tarot-tile__img-wrap, .tarot-tile--healing .tarot-tile__img, .tarot-tile--healing .tarot-tile__body, .tarot-tile--healing .tarot-tile__title, .tarot-tile--healing .tarot-tile__desc,',
       '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
       '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__badge, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
       '.tarot-tile--bloom .tarot-tile__img-wrap, .tarot-tile--bloom .tarot-tile__img, .tarot-tile--bloom .tarot-tile__badge, .tarot-tile--bloom .tarot-tile__body, .tarot-tile--bloom .tarot-tile__title, .tarot-tile--bloom .tarot-tile__desc,',
       '.tarot-tile--astro-flower .tarot-tile__img-wrap, .tarot-tile--astro-flower .tarot-tile__img, .tarot-tile--astro-flower .tarot-tile__badge, .tarot-tile--astro-flower .tarot-tile__body, .tarot-tile--astro-flower .tarot-tile__title, .tarot-tile--astro-flower .tarot-tile__desc,',
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openTarotYearFortuneModal"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"],',
       '[data-action="openAnimalTotemModal"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',

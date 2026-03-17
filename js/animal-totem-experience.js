@@ -29,6 +29,9 @@
 
   function lockBody() {
     if (bodyLockState.mode) return;
+    /* 현재 overflow 상태 저장 (unlock 시 복원용) */
+    bodyLockState.bodyOverflow = document.body.style.overflow || "";
+    bodyLockState.htmlOverflow = (document.documentElement && document.documentElement.style.overflow) || "";
     /* 모바일: body overflow:hidden 시 iOS Safari에서 오버레이 내부 스크롤이 막힘. overscroll-behavior로 대체 */
     if (useSoftBodyLock()) {
       bodyLockState.mode = "soft";
@@ -40,7 +43,6 @@
       return;
     }
     bodyLockState.mode = "fallback";
-    bodyLockState.bodyOverflow = document.body.style.overflow || "";
     document.body.style.overflow = "hidden";
   }
 
@@ -104,7 +106,8 @@
     if (!refs.runeField || refs.runeField.dataset.ready === "1") return;
     refs.runeField.dataset.ready = "1";
     var runes = ["ᚠ", "ᚨ", "ᚱ", "ᛟ", "ᛞ", "ᚲ", "✶", "✧", "☾"];
-    for (var i = 0; i < 26; i += 1) {
+    var count = useSoftBodyLock() ? 12 : 26;
+    for (var i = 0; i < count; i += 1) {
       var el = document.createElement("span");
       el.className = "totem-rune";
       el.textContent = runes[i % runes.length];
@@ -119,6 +122,7 @@
     if (!refs.animalFigures || refs.animalFigures.dataset.ready === "1") return;
     refs.animalFigures.dataset.ready = "1";
     var animals = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐦", "🦋", "🦉", "🐬", "🐢", "🐿️", "🦌", "🐺", "🦅"];
+    var isMobile = useSoftBodyLock();
     var staticPositions = ["tl", "tr", "bl", "br", "mt"];
     staticPositions.forEach(function(pos, i) {
       var el = document.createElement("span");
@@ -127,7 +131,8 @@
       el.setAttribute("aria-hidden", "true");
       refs.animalFigures.appendChild(el);
     });
-    for (var j = 0; j < 18; j += 1) {
+    var floatCount = isMobile ? 6 : 18;
+    for (var j = 0; j < floatCount; j += 1) {
       var fl = document.createElement("span");
       fl.className = "totem-animal-figure";
       fl.textContent = animals[j % animals.length];
@@ -147,7 +152,8 @@
     c.width = Math.max(240, Math.floor(rect.width));
     c.height = Math.max(120, Math.floor(rect.height));
     var ctx = c.getContext("2d");
-    state.canvasStars = Array.from({ length: 48 }, function() {
+    var starCount = useSoftBodyLock() ? 20 : 48;
+    state.canvasStars = Array.from({ length: starCount }, function() {
       return {
         x: Math.random() * c.width,
         y: Math.random() * c.height,
@@ -388,17 +394,37 @@
     try {
       ensureRefs();
       if (!refs.overlay) return;
+      /* 이미 열려 있으면 중복 호출 방지 (이중 핸들러/더블탭 시 화면 멈춤 방지) */
+      if (refs.overlay.classList.contains("is-open")) return;
+      /* 모바일: overlay가 main 내부에 있으면 transform/overflow 조상으로 viewport 전체 미덮음 → body로 이동 */
+      if (refs.overlay.parentNode && refs.overlay.parentNode !== document.body) {
+        document.body.appendChild(refs.overlay);
+      }
       refs.overlay.classList.remove("env-ground", "env-air", "env-water");
       refs.overlay.classList.add("is-open");
       refs.overlay.scrollTop = 0;
+      /* 모바일: 언어 선택 등 상단 UI가 overlay 위에 보이지 않도록 (z-index·겹침 방지) */
+      document.body.classList.add("animal-totem-modal-open");
       lockBody();
       resetAnimalTotemFlow();
+      /* 모바일: 애니메이션 과부하로 Main Thread 차단 방지 — 지연·분산 실행 */
       var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      var isMobile = useSoftBodyLock();
+      var idle = global.requestIdleCallback || function(cb, opts) { return setTimeout(cb, (opts && opts.timeout) || 50); };
       raf(function() {
         try {
-          buildRuneField();
-          buildAnimalFigures();
-          startCanvas();
+          if (isMobile) {
+            /* 모바일: rune·figures·canvas를 단계별로 분산 (화면 멈춤 방지) */
+            buildRuneField();
+            idle(function() {
+              buildAnimalFigures();
+              idle(function() { startCanvas(); }, { timeout: 100 });
+            }, { timeout: 80 });
+          } else {
+            buildRuneField();
+            buildAnimalFigures();
+            startCanvas();
+          }
         } catch (err) {
           console.error("[animal-totem] init error:", err);
         }
@@ -407,6 +433,7 @@
       console.error("[animal-totem] openAnimalTotemModal error:", err);
       try {
         if (refs.overlay) refs.overlay.classList.remove("is-open");
+        document.body.classList.remove("animal-totem-modal-open");
         unlockBody();
       } catch (_) {}
     }
@@ -416,8 +443,15 @@
     ensureRefs();
     if (!refs.overlay) return;
     refs.overlay.classList.remove("is-open");
+    document.body.classList.remove("animal-totem-modal-open");
     unlockBody();
     stopCanvas();
+    /* 모바일: body overflow 복원 보장 (다른 경로로 닫혀도 스크롤 잠금 해제) */
+    try {
+      if (document.body && document.body.style.overflow === "hidden" && !bodyLockState.mode) {
+        document.body.style.overflow = bodyLockState.bodyOverflow || "";
+      }
+    } catch (_) {}
   }
 
   function resetAnimalTotemFlow() {

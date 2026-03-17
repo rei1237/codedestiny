@@ -71,6 +71,8 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  /* iOS/Android safe area (노치·홈 인디케이터) */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background:
     radial-gradient(ellipse 160% 120% at 50% -30%, rgba(212, 175, 55, 0.12) 0%, transparent 45%),
     radial-gradient(ellipse 120% 100% at 20% 20%, rgba(139, 0, 0, 0.5), transparent 50%),
@@ -82,6 +84,8 @@
 }
 .tarot-year-overlay.is-open {
   display: block;
+  /* iOS/Android: 100dvh로 주소창 제외한 실제 뷰포트 사용, fallback 100vh */
+  min-height: 100dvh;
   min-height: 100vh;
   animation: tyReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1244,6 +1248,11 @@
 }
 
 @media (max-width: 768px) {
+  .tarot-year-shell {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(26px, env(safe-area-inset-bottom));
+  }
   .ty-zodiac-silhouettes,
   .ty-bg-glow,
   .ty-particles {

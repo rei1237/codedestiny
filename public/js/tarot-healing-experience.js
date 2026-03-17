@@ -536,22 +536,36 @@
   }
 
   function openTarotHealingModal() {
-    var overlay = byId("tarotHealingOverlay");
-    if (!overlay) return;
-    overlay.style.display = "block";
-    overlay.classList.add("is-open");
-    if (window._perf && window._perf.lockBody) window._perf.lockBody();
-    else document.body.style.overflow = "hidden";
-    resetTarotHealingFlow();
+    try {
+      var overlay = byId("tarotHealingOverlay");
+      if (!overlay) return;
+      overlay.style.display = "block";
+      overlay.classList.add("is-open");
+      if (window._perf && window._perf.lockBody) window._perf.lockBody();
+      else document.body.style.overflow = "hidden";
+      resetTarotHealingFlow();
+    } catch (err) {
+      console.error("[Tarot Healing] openTarotHealingModal error:", err);
+      try {
+        document.body.style.overflow = "";
+        var ov = byId("tarotHealingOverlay");
+        if (ov) { ov.style.display = "none"; ov.classList.remove("is-open"); }
+      } catch (e2) {}
+    }
   }
 
   function closeTarotHealingModal() {
-    var overlay = byId("tarotHealingOverlay");
-    if (!overlay) return;
-    overlay.style.display = "none";
-    overlay.classList.remove("is-open");
-    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-    else document.body.style.overflow = "";
+    try {
+      var overlay = byId("tarotHealingOverlay");
+      if (!overlay) return;
+      overlay.style.display = "none";
+      overlay.classList.remove("is-open");
+      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+      else document.body.style.overflow = "";
+    } catch (err) {
+      console.error("[Tarot Healing] closeTarotHealingModal error:", err);
+      try { document.body.style.overflow = ""; } catch (e2) {}
+    }
   }
 
   function resetTarotHealingFlow() {

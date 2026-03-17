@@ -18,7 +18,12 @@
 
 .animal-totem-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  min-width: 100%;
   height: 100dvh;
   max-height: 100dvh;
   z-index: 99999;
@@ -33,8 +38,11 @@
     radial-gradient(ellipse 80% 60% at 50% 50%, rgba(67, 56, 202, 0.22), transparent 55%),
     linear-gradient(180deg, #0f0a1e 0%, #1a0f2e 35%, #0d1424 100%);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .animal-totem-overlay.is-open { display: block; }
+/* 모바일: overlay 열림 시 언어 선택 등 상단 UI 숨김 (스크린샷에서 globe 노출·겹침 방지) */
+body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-events: none; z-index: -1; }
 .animal-totem-overlay .totem-btn,
 .animal-totem-overlay .totem-mode-btn,
 .animal-totem-overlay .totem-draw-card,
@@ -940,6 +948,18 @@
   .totem-mode-btn.is-active .totem-mode-icon,
   .totem-result-card,
   .totem-guidance-card { animation: none !important; transition: none !important; opacity: 1 !important; transform: none !important; }
+}
+
+/* 모바일: backdrop-filter 제거 — iOS Safari 등에서 Main Thread 차단·화면 멈춤 방지 */
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .animal-totem-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background:
+      radial-gradient(ellipse 120% 80% at 15% 20%, rgba(88, 28, 135, 0.55), transparent 50%),
+      radial-gradient(ellipse 100% 70% at 85% 75%, rgba(30, 58, 138, 0.48), transparent 48%),
+      linear-gradient(180deg, #0f0a1e 0%, #1a0f2e 35%, #0d1424 100%);
+  }
 }
 
 @media (max-width: 768px) {

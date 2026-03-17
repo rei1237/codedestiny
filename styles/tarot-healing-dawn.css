@@ -38,6 +38,9 @@
 }
 .tarot-healing-overlay.is-open {
   display: block;
+  /* iOS/Android: 100dvh로 주소창 제외한 실제 뷰포트 사용 */
+  min-height: 100dvh;
+  min-height: 100vh;
   animation: healingOverlayIn 0.5s ease;
 }
 @keyframes healingOverlayIn {
@@ -148,23 +151,25 @@
   100% { box-shadow: 0 0 50px rgba(255, 213, 120, 0.25), 0 20px 60px rgba(200, 180, 120, 0.15), inset 0 1px 0 rgba(255,255,255,0.9); }
 }
 
-/* 닫기 버튼: 밝은 톤 */
+/* 닫기 버튼: 밝은 톤, 히어로 섹션 위에 항상 노출 */
 .tarot-healing-close {
   position: absolute;
   top: 14px;
   right: 14px;
   width: 42px;
   height: 42px;
+  z-index: 100;
   border-radius: 50%;
-  border: 1px solid rgba(230, 180, 80, 0.5);
-  background: rgba(255, 248, 230, 0.9);
-  color: #b8860b;
-  font-size: 1.4rem;
+  border: 2px solid rgba(184, 134, 11, 0.6);
+  background: rgba(255, 250, 235, 0.98);
+  color: #8b6914;
+  font-size: 1.5rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(255, 200, 100, 0.2);
+  box-shadow: 0 4px 16px rgba(200, 160, 80, 0.35);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .tarot-healing-close:hover {
@@ -599,6 +604,10 @@
   .tarot-healing-panel {
     padding: 20px 14px;
     border-radius: 16px;
+  }
+  .tarot-healing-close {
+    top: max(14px, env(safe-area-inset-top, 14px));
+    right: max(14px, env(safe-area-inset-right, 14px));
   }
   .tarot-healing-hero {
     padding: 20px 14px 22px;

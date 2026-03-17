@@ -404,23 +404,37 @@
   }
 
   function openTarotYearFortuneModal() {
-    var overlay = byId("tarotYearFortuneOverlay");
-    if (!overlay) return;
-    overlay.style.display = "block";
-    overlay.classList.add("is-open");
-    if (window._perf && window._perf.lockBody) window._perf.lockBody();
-    else document.body.style.overflow = "hidden";
-    resetTarotYearFortuneFlow();
-    bindTarotYearStaticActions();
+    try {
+      var overlay = byId("tarotYearFortuneOverlay");
+      if (!overlay) return;
+      overlay.style.display = "block";
+      overlay.classList.add("is-open");
+      if (window._perf && window._perf.lockBody) window._perf.lockBody();
+      else document.body.style.overflow = "hidden";
+      resetTarotYearFortuneFlow();
+      bindTarotYearStaticActions();
+    } catch (err) {
+      console.error("[Tarot Year Fortune] openTarotYearFortuneModal error:", err);
+      try {
+        document.body.style.overflow = "";
+        var ov = byId("tarotYearFortuneOverlay");
+        if (ov) { ov.style.display = "none"; ov.classList.remove("is-open"); }
+      } catch (e2) {}
+    }
   }
 
   function closeTarotYearFortuneModal() {
-    var overlay = byId("tarotYearFortuneOverlay");
-    if (!overlay) return;
-    overlay.style.display = "none";
-    overlay.classList.remove("is-open");
-    if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
-    else document.body.style.overflow = "";
+    try {
+      var overlay = byId("tarotYearFortuneOverlay");
+      if (!overlay) return;
+      overlay.style.display = "none";
+      overlay.classList.remove("is-open");
+      if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+      else document.body.style.overflow = "";
+    } catch (err) {
+      console.error("[Tarot Year Fortune] closeTarotYearFortuneModal error:", err);
+      try { document.body.style.overflow = ""; } catch (e2) {}
+    }
   }
 
   function resetTarotYearFortuneFlow() {
