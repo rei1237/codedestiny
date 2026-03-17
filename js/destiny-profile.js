@@ -395,7 +395,7 @@
     if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
     if (type === 'vedic')  return '✦ ' + safeName + ' · 베다 점성술로 이동합니다';
     if (type === 'flower') return '✦ ' + safeName + ' · 운명의 꽃 탭으로 이동합니다';
-    if (type === 'tarot')  return '✦ ' + safeName + ' · 타로 카드를 뽑습니다';
+    if (type === 'tarot')  return '✦ ' + safeName + ' · 타로 컬렉션으로 이동합니다';
     return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
   }
 
@@ -824,8 +824,12 @@
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
-        if (typeof openTarotModal === 'function') openTarotModal();
-        else _toast('⚠️ 타로 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
+        var tarotEl = document.getElementById('tarotCollection');
+        if (tarotEl && typeof tarotEl.scrollIntoView === 'function') {
+          tarotEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.location.href = (window.location.pathname === '/' ? '#' : '/#') + 'tarotCollection';
+        }
       } else if (type === 'flower') {
         var pFlower = DPStorage.current();
         if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
