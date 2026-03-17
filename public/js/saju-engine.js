@@ -17611,7 +17611,9 @@ function streamRitualText(text, targetId, callback) {
   el.textContent = '';
   var chars = Array.from(raw);
   var i = 0;
-  var speed = 20; // ms
+  // THE MYSTIC TAROT(명리학 타로) 결과 텍스트만: 신비감을 위해 타이핑 속도를 낮춘다.
+  // 다른 기능(다른 targetId)에는 기존 속도를 유지한다.
+  var speed = (targetId === 'destinyFortune') ? 45 : 20; // ms
   var renderedTail = '';
 
   function type() {
@@ -17663,7 +17665,8 @@ function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
 
   if (!textEntries.length) { if (onComplete) onComplete(); return; }
 
-  var SPEED = 14; // ms per character
+  // THE MYSTIC TAROT(명리학 타로) 결과 텍스트만: 신비감을 위해 천천히 타이핑한다.
+  var SPEED = (targetId === 'destinyFortune') ? 45 : 14; // ms per character
   var ti = 0, ci = 0;
 
   function type() {
