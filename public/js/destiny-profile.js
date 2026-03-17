@@ -810,12 +810,15 @@
         if (typeof openAstroModal === 'function') openAstroModal();
       } else if (type === 'vedic') {
         var pVedic = DPStorage.current();
-        if (!pVedic || !pVedic.birth) {
-          _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
+        if (!pVedic) {
+          _toast('⚠️ 베다점을 보려면 나의 운명 카드에서 프로필을 저장한 뒤 선택해 주세요.', 'warn');
           return;
         }
-        /* 베다점으로 넘기기 전 지역 정보 등 null 보정 (서울 기본값). localStorage 사용해 페이지 이동 후에도 확실히 전달 */
-        var forVedic = window.dpNormalizeProfileForVedic(pVedic);
+        if (!pVedic.birth || (pVedic.birth.year == null && pVedic.birth.month == null && pVedic.birth.day == null)) {
+          _toast('⚠️ 선택한 프로필에 생년월일이 없습니다. 프로필을 수정·저장한 뒤 다시 시도해 주세요.', 'warn');
+          return;
+        }
+        var forVedic = (typeof window.dpNormalizeProfileForVedic === 'function') ? (window.dpNormalizeProfileForVedic(pVedic) || pVedic) : pVedic;
         try {
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));

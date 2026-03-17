@@ -11,11 +11,12 @@
     if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
     var faviconLink = document.getElementById('pwa-favicon');
     if (faviconLink) {
-      faviconLink.setAttribute('href', '/icons/samba.svg');
-      faviconLink.setAttribute('type', 'image/svg+xml');
+      faviconLink.setAttribute('href', '/icons/samba-mode-icon.png');
+      faviconLink.setAttribute('type', 'image/png');
+      faviconLink.setAttribute('sizes', '192x192');
     }
     var appleIconLink = document.getElementById('pwa-apple-icon');
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.svg');
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba-mode-icon.png');
   } catch (_) {
     window.__INITIAL_THEME_NEO__ = false;
   }
