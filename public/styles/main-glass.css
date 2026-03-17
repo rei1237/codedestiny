@@ -193,6 +193,7 @@ body {
 .fg-group:last-child { margin-bottom: 0; }
 
 /* ─── Collection boxes ─── */
+/* overflow-x: hidden만 유지 (가로 넘침 방지), overflow-y: visible로 메인 페이지 스크롤 방해 방지 */
 .feat-collection,
 .tarot-collection {
 	backdrop-filter: blur(14px);
@@ -200,7 +201,8 @@ body {
 	border-radius: 22px;
 	padding: 24px 16px 22px;
 	border: 1px solid rgba(255, 255, 255, 0.08);
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: visible;
 	position: relative;
 }
 /* 컬렉션별 배경·테두리 색상 (배포 사이트와 동일 - muted teal / deep purple) */

@@ -28,8 +28,19 @@
   }
   .feat-collection,
   .tarot-collection {
-    overflow: hidden;
+    overflow-x: hidden; /* overflow-y는 메인 스크롤용으로 visible 유지 */
   }
+}
+
+/* ─── 메인 화면 스크롤: 컬렉션/카드 내부 스크롤바 제거 → 페이지 스크롤만 동작 ─── */
+#inputPage .feat-collection,
+#inputPage .tarot-collection,
+#inputPage .feature-card-grid,
+#inputPage .feat-collection__grid,
+#inputPage .tarot-collection__grid {
+  overflow-y: visible !important;
+  overflow-x: hidden;
+  max-height: none !important;
 }
 
 @media (max-width: 480px) {
