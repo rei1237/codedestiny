@@ -421,19 +421,33 @@
     var idx = 0;
     imgEl.referrerPolicy = "no-referrer";
     imgEl.decoding = "async";
+    function applySunPlaceholder() {
+      if (frontEl) {
+        frontEl.setAttribute("data-healing-placeholder", "true");
+        frontEl.style.backgroundImage = "linear-gradient(165deg, #FEF3C7 0%, #FDE68A 50%, #FDBA74 100%)";
+        frontEl.style.backgroundSize = "cover";
+        frontEl.style.backgroundPosition = "center";
+        frontEl.classList.add("tarot-healing-image-fallback");
+      }
+      if (imgEl) imgEl.style.display = "none";
+    }
     function applyUrl(url) {
       if (!url) return;
       if (frontEl) {
+        frontEl.removeAttribute("data-healing-placeholder");
         frontEl.style.backgroundImage = "url('" + url + "')";
         frontEl.style.backgroundSize = "cover";
         frontEl.style.backgroundPosition = "center";
       }
       imgEl.src = url;
     }
+    imgEl.onerror = function () {
+      applySunPlaceholder();
+    };
     if (candidates.length) applyUrl(candidates[0]);
     function probeNext() {
       if (idx >= candidates.length) {
-        if (frontEl) frontEl.classList.add("tarot-healing-image-fallback");
+        applySunPlaceholder();
         return;
       }
       var url = candidates[idx++];
@@ -449,6 +463,7 @@
         done = true;
         clearTimeout(timer);
         if (frontEl) frontEl.classList.remove("tarot-healing-image-fallback");
+        frontEl.removeAttribute("data-healing-placeholder");
         applyUrl(url);
       };
       probe.onerror = function () {
@@ -572,6 +587,7 @@
     state.cards = [];
     state.revealedCount = 0;
     state.reading = null;
+    healingFlipCooldownUntil = 0;
 
     var intro = byId("tarotHealingIntroStage");
     var draw = byId("tarotHealingDrawStage");
@@ -579,6 +595,8 @@
     if (intro) intro.classList.add("is-active");
     if (draw) draw.classList.remove("is-active");
     if (result) result.classList.remove("is-active");
+    var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
+    if (gaugeFill) gaugeFill.classList.remove("is-filled");
   }
 
   function startTarotHealingReading() {
@@ -696,6 +714,9 @@
     });
   }
 
+  var healingFlipCooldownUntil = 0;
+  var HEALING_FLIP_DEBOUNCE_MS = 400;
+
   function emitRipple(cardEl) {
     if (!cardEl) return;
     var wave = document.createElement("span");
@@ -703,7 +724,7 @@
     cardEl.appendChild(wave);
     setTimeout(function () {
       if (wave && wave.parentNode) wave.parentNode.removeChild(wave);
-    }, 900);
+    }, 850);
   }
 
   function flipTarotHealingCard(idx) {
@@ -714,6 +735,10 @@
     var grid = byId("tarotHealingCardGrid");
     var cardEl = grid ? grid.querySelector('.tarot-healing-slot[data-slot-index="' + idx + '"] .tarot-healing-card') : null;
     if (!cardEl || cardEl.getAttribute("data-revealed") === "1") return;
+
+    var now = Date.now();
+    if (now < healingFlipCooldownUntil) return;
+    healingFlipCooldownUntil = now + HEALING_FLIP_DEBOUNCE_MS;
 
     emitRipple(cardEl);
     cardEl.setAttribute("data-revealed", "1");
@@ -749,6 +774,12 @@
         var result = byId("tarotHealingResultStage");
         if (draw) draw.classList.remove("is-active");
         if (result) result.classList.add("is-active");
+        var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
+        if (gaugeFill) {
+          gaugeFill.classList.remove("is-filled");
+          gaugeFill.offsetHeight;
+          gaugeFill.classList.add("is-filled");
+        }
         renderTarotHealingResult();
       })
       .catch(function (err) {
