@@ -1060,6 +1060,17 @@
         if (dx < 10 && dy < 16) {
           var targetEl = _resolveEventElement(e.target);
           if (!targetEl) return;
+          var delBtn = targetEl.closest('.dp-li-del');
+          if (delBtn) {
+            var delItem = targetEl.closest('[data-profile-id]');
+            var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
+            if (delPid) {
+              e.preventDefault();
+              e.stopPropagation();
+              dpDeleteProfile(delPid);
+            }
+            return;
+          }
           var item = targetEl.closest('[data-profile-id]');
           if (item && !targetEl.closest('.dp-li-del')) {
             var pid = item.getAttribute('data-profile-id');

@@ -4342,7 +4342,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   position: relative;
 }
 .villain-fact-bomb::before {
-  content: 'Neo의 팩폭';
+  content: '쌈바의 팩폭';
   position: absolute;
   top: -10px;
   left: 15px;
@@ -9134,6 +9134,11 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         padding: 12px 14px 30px;
       }
       @media (max-width: 768px) {
+        /* iOS/WebKit: fixed + backdrop-filter 조합이 프리즈/화이트스크린을 유발하는 케이스 방지 */
+        .dp-sheet-overlay {
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+        }
         .dp-sheet {
           left: 10px;
           right: 10px;
