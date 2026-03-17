@@ -29,7 +29,7 @@
     stageDone: { 1: false, 2: false, 3: false, 4: false },
     nextStage: 1,
     visibleStage: 1,
-    textSpeed: 0.35,
+    textSpeed: 1,
     goldenTone: 'comfort',
     typingTimer: null,
     typingStage: 0,
@@ -417,7 +417,8 @@
     var i = 0;
     var source = String(text || '');
     var baseSpeed = Number(speed) || 32;
-    var interval = Math.max(12, Math.round(baseSpeed / (Number(state.textSpeed) || 1)));
+    var speedMult = Number(state.textSpeed) || 1;
+    var interval = Math.max(12, Math.round((baseSpeed * 5) / speedMult));
     targetEl.textContent = '';
     state.typingTimer = setInterval(function () {
       i += 1;
@@ -1385,7 +1386,7 @@
     if (state.uiLocked) return;
     var value = Number(multiplier);
     if (!isFinite(value)) value = 1;
-    value = Math.max(0.35, Math.min(2.5, value));
+    value = Math.max(0.5, Math.min(2.5, value));
     state.textSpeed = value;
     renderSpeedButtons();
     setWizardLine('낭독 배속을 ' + speedLabel(value) + 'x로 조정했습니다.');

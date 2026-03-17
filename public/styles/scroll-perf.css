@@ -1,36 +1,86 @@
 /* ═══════════════════════════════════════════════════════════════
-   스크롤 성능: 이미지 많은 구간 지연 방지
+   스크롤 성능 + GPU 가속: 카드 컬렉션 구간 지연 제거
    - content-visibility: 뷰포트 밖 영역 레이아웃/페인트 생략
    - contain: 리플로우 범위 제한 (그리드는 layout 제외 → 메인 스크롤 방해 방지)
-   - will-change 최소화로 GPU 레이어만 필요한 곳에만 적용
+   - transform: translateZ(0): 컴포지터 레이어로 GPU 가속
+   - isolation: backdrop-filter 비용 격리
 ═══════════════════════════════════════════════════════════════ */
 
-/* 컬렉션 블록: 스크롤 시 브라우저가 영역 단위로 작업 생략 가능, 메인 페이지 스크롤은 통과 */
+/* 컬렉션 블록: 스크롤 생략 + GPU 레이어, 메인 페이지 스크롤 통과 */
 .feat-collection,
 .tarot-collection {
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
   overflow-y: visible !important;
   overflow-x: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
 }
 
-/* 그리드: 내부 스크롤 없음 → 중간 컬렉션 구간에서도 문서 스크롤만 동작 */
+/* 그리드: 문서 스크롤만 동작 + GPU 레이어 */
 .feat-collection__grid,
 .tarot-collection__grid {
   overflow-y: visible !important;
   overflow-x: hidden;
   contain: style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-/* 개별 타일: 뷰포트 밖 타일은 레이아웃/페인트 지연 */
+/* 개별 타일: 뷰포트 생략 + GPU 레이어 (호버/터치 반응 원활) */
 .tarot-tile {
   content-visibility: auto;
   contain-intrinsic-size: auto 140px;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
 }
 
-/* 이미지 디코딩 비용 분산: 페인트 containment */
+/* 타일 이미지 래퍼: 페인트 격리 + GPU (별빛 shimmer 부드럽게) */
 .tarot-tile__img-wrap {
   contain: paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 타일 내부 이미지: 스케일/호버 시 GPU에서 처리 */
+.tarot-tile__img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Feature Card Grid (기능 카드 묶음): GPU 가속 */
+.feature-card-grid {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
+}
+
+.feature-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  isolation: isolate;
+}
+
+.feature-card__img-wrap,
+.feature-card__img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 컬렉션 코스모스(별 파티클): 애니메이션 GPU 레이어에서만 처리 */
+.feat-collection__cosmos,
+.tarot-collection__cosmos {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+.feat-collection__cosmos .fc-star,
+.tarot-collection__cosmos .tc-star {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* @supports로 content-visibility 미지원 브라우저는 기존 동작 유지 */

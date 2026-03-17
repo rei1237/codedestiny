@@ -583,8 +583,8 @@ function toggleNeoMode(){
     if(manifestLink) manifestLink.setAttribute('href', 'manifest-samba.json');
     var faviconLink = document.getElementById('pwa-favicon');
     var appleIconLink = document.getElementById('pwa-apple-icon');
-    if(faviconLink){ faviconLink.setAttribute('href','icons/samba-192.png'); faviconLink.setAttribute('type','image/png'); }
-    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba-180.png');
+    if(faviconLink){ faviconLink.setAttribute('href','icons/samba-mode-icon.png'); faviconLink.setAttribute('type','image/png'); faviconLink.setAttribute('sizes','192x192'); }
+    if(appleIconLink) appleIconLink.setAttribute('href','icons/samba-mode-icon.png');
     /* PWA 설치 텍스트 변경 */
     var pwaLabel = document.getElementById('pwaInstallLabel');
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
