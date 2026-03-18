@@ -4197,48 +4197,6 @@ function googleTranslateElementInit() {
   }, 'google_translate_element');
 }
 
-var _langCollapseTimer = null;
-function toggleLangDropdown() {
-  var wrap = document.getElementById('langWrap');
-  wrap.classList.toggle('open');
-  wrap.classList.remove('collapsed');
-  resetLangCollapseTimer();
-}
-function closeLangDropdown() {
-  var wrap = document.getElementById('langWrap');
-  wrap.classList.remove('open');
-}
-function resetLangCollapseTimer() {
-  clearTimeout(_langCollapseTimer);
-  var wrap = document.getElementById('langWrap');
-  wrap.classList.remove('collapsed');
-  _langCollapseTimer = setTimeout(function() {
-    if (!wrap.classList.contains('open')) {
-      wrap.classList.add('collapsed');
-    }
-  }, 4000);
-}
-document.addEventListener('click', function(e) {
-  var wrap = document.getElementById('langWrap');
-  if (wrap && !wrap.contains(e.target)) {
-    closeLangDropdown();
-  }
-});
-document.addEventListener('DOMContentLoaded', function() {
-  var wrap = document.getElementById('langWrap');
-  if (wrap) {
-    wrap.addEventListener('mouseenter', function() {
-      wrap.classList.remove('collapsed');
-      clearTimeout(_langCollapseTimer);
-    });
-    wrap.addEventListener('mouseleave', function() {
-      resetLangCollapseTimer();
-    });
-  }
-  resetLangCollapseTimer();
-  updateLangWrapVisibility();
-});
-
 /* 기능(로더/모달/오버레이) 동작 중에는 언어 버튼 자동 숨김, 종료 시 다시 표시 */
 var _langWrapFeatureOverlayIds = [
   'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
@@ -4249,27 +4207,6 @@ var _langWrapFeatureOverlayIds = [
   'dpSwitchConfirmOverlay', 'dpListOverlay', 'kemetOracleOverlay', 'kemetLoader',
   'astralModal'
 ];
-function isAnyFeatureOverlayVisible() {
-  for (var i = 0; i < _langWrapFeatureOverlayIds.length; i++) {
-    var el = document.getElementById(_langWrapFeatureOverlayIds[i]);
-    if (!el) continue;
-    var cs = window.getComputedStyle(el);
-    if (cs.display !== 'none' && cs.visibility !== 'hidden') return true;
-    if (el.id === 'sajuLoaderOverlay' && el.classList.contains('show')) return true;
-  }
-  return false;
-}
-function updateLangWrapVisibility() {
-  var wrap = document.getElementById('langWrap');
-  if (!wrap) return;
-  if (isAnyFeatureOverlayVisible()) {
-    wrap.classList.add('lang-wrap--hidden');
-    wrap.classList.remove('open');
-  } else {
-    wrap.classList.remove('lang-wrap--hidden');
-  }
-}
-setInterval(updateLangWrapVisibility, 350);
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
 
