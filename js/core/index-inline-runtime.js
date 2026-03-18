@@ -1,11 +1,17 @@
-// 구글 번역 언어 선택 카드 토글 기능
-(function() {
+// 구글 번역 언어 선택 카드 토글 기능 (DOM 로드 대기)
+function initTranslateLangUI() {
   var langWrap = document.querySelector('.translate-lang-wrap');
   var langBtn = document.getElementById('translateLangToggleBtn');
   var langCard = document.getElementById('translateLangCard');
   var langLabel = document.getElementById('translateLangLabel');
   var hideTimer = null;
   var HIDE_DELAY = 60000; // 1분
+  
+  // 요소가 없으면 재시도
+  if (!langBtn || !langCard || !langWrap) {
+    setTimeout(initTranslateLangUI, 100);
+    return;
+  }
   
   // 자동 숨김 시작
   function startHideTimer() {
@@ -26,20 +32,18 @@
   }
   
   // 버튼 클릭 시 카드 토글
-  if (langBtn && langCard && langWrap) {
-    langBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      langCard.classList.toggle('active');
-      showTranslateButton();
-    });
-    
-    // 바깥 클릭 시 카드 닫기
-    document.addEventListener('click', function(e) {
-      if (!langWrap.contains(e.target)) {
-        langCard.classList.remove('active');
-      }
-    });
-  }
+  langBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    langCard.classList.toggle('active');
+    showTranslateButton();
+  });
+  
+  // 바깥 클릭 시 카드 닫기
+  document.addEventListener('click', function(e) {
+    if (langWrap && !langWrap.contains(e.target)) {
+      langCard.classList.remove('active');
+    }
+  });
   
   // 언어 변경 카드 버튼 핸들러
   var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
@@ -82,7 +86,14 @@
       if (langCard) langCard.classList.remove('active');
     });
   });
-})();
+}
+
+// DOM 준비 완료 시 초기화
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTranslateLangUI);
+} else {
+  initTranslateLangUI();
+}
 function syncFeatureCardHeight(card) {
   if (!card) return;
   var detail = card.querySelector('.feature-card__detail');
