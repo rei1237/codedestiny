@@ -529,24 +529,9 @@
 
 
 <!-- Google Translate Widget (Top-right fixed) -->
-<div class="planet-widget-wrapper" id="planetLangWidget">
+<div class="planet-widget-wrapper">
   <div class="planet-aurora"></div>
-  <div class="planet-lang-list">
-    <button class="planet-lang-btn" data-lang="ko" aria-label="한국어"><span class="flag">🇰🇷</span><span class="lang-label">한국어</span></button>
-    <button class="planet-lang-btn" data-lang="en" aria-label="English"><span class="flag">🇺🇸</span><span class="lang-label">English</span></button>
-    <button class="planet-lang-btn" data-lang="ja" aria-label="日本語"><span class="flag">🇯🇵</span><span class="lang-label">日本語</span></button>
-    <button class="planet-lang-btn" data-lang="zh-CN" aria-label="简体中文"><span class="flag">🇨🇳</span><span class="lang-label">简体中文</span></button>
-    <button class="planet-lang-btn" data-lang="zh-TW" aria-label="繁體中文"><span class="flag">🇹🇼</span><span class="lang-label">繁體中文</span></button>
-    <button class="planet-lang-btn" data-lang="fr" aria-label="Français"><span class="flag">🇫🇷</span><span class="lang-label">Français</span></button>
-    <button class="planet-lang-btn" data-lang="es" aria-label="Español"><span class="flag">🇪🇸</span><span class="lang-label">Español</span></button>
-    <button class="planet-lang-btn" data-lang="vi" aria-label="Tiếng Việt"><span class="flag">🇻🇳</span><span class="lang-label">Tiếng Việt</span></button>
-    <button class="planet-lang-btn" data-lang="nl" aria-label="Nederlands"><span class="flag">🇳🇱</span><span class="lang-label">Nederlands</span></button>
-    <button class="planet-lang-btn" data-lang="de" aria-label="Deutsch"><span class="flag">🇩🇪</span><span class="lang-label">Deutsch</span></button>
-    <button class="planet-lang-btn" data-lang="hi" aria-label="हिन्दी"><span class="flag">🇮🇳</span><span class="lang-label">हिन्दी</span></button>
-    <button class="planet-lang-btn" data-lang="he" aria-label="עברית"><span class="flag">🇮🇱</span><span class="lang-label">עברית</span></button>
-    <button class="planet-lang-btn" data-lang="ms" aria-label="Melayu"><span class="flag">🇲🇾</span><span class="lang-label">Melayu</span></button>
-  </div>
-  <div id="google_translate_element" class="notranslate planet-widget" aria-label="Google Translate" style="display:none;"></div>
+  <div id="google_translate_element" class="notranslate planet-widget" aria-label="Google Translate"></div>
 </div>
 
 <!-- 글리치 전환 오버레이 -->
@@ -2829,9 +2814,7 @@
 <!-- 구글 번역 스크립트 -->
 
 <script type="text/javascript" defer src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-</script>
 <script>
-// 구글 번역 위젯은 숨기고, planet-style 언어 버튼 클릭 시 select를 트리거
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
@@ -2840,28 +2823,34 @@ function googleTranslateElementInit() {
     autoDisplay: false
   }, 'google_translate_element');
 }
-
-// 버튼 클릭 시 구글 번역 select를 변경
-function setGoogleLanguage(lang) {
+function patchGoogleSelectLabels() {
   var sel = document.querySelector('#google_translate_element select.goog-te-combo');
   if (!sel) return;
-  sel.value = lang;
-  sel.dispatchEvent(new Event('change'));
+  var labelMap = {
+    'ko': 'kr',
+    'en': 'en',
+    'ja': 'jp',
+    'zh-TW': 'zh-tw',
+    'zh-CN': 'zh-cn',
+    'ms': 'ms',
+    'fr': 'fr',
+    'es': 'es',
+    'vi': 'vi',
+    'nl': 'nl',
+    'de': 'de',
+    'hi': 'hi',
+    'iw': 'he'
+  };
+  for (var i = 0; i < sel.options.length; i++) {
+    var opt = sel.options[i];
+    if (labelMap[opt.value]) opt.text = labelMap[opt.value];
+  }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.planet-lang-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      setGoogleLanguage(btn.getAttribute('data-lang'));
-    });
-  });
+document.addEventListener('DOMNodeInserted', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('goog-te-combo')) {
+    setTimeout(patchGoogleSelectLabels, 10);
+  }
 });
-
-// 구글 로고/문구 숨기기
-const style = document.createElement('style');
-style.innerHTML = '.goog-logo-link, .goog-te-gadget span, .goog-te-banner-frame, .goog-te-balloon-frame, .goog-te-gadget-simple { display: none !important; }';
-document.head.appendChild(style);
-</script>
 </script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
