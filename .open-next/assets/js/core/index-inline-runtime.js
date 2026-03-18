@@ -3445,63 +3445,6 @@ document.addEventListener('DOMContentLoaded', function() {
   resetLangCollapseTimer();
 });
 
-var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
-
-function changeLanguage(langCode, btn) {
-  var btns = document.querySelectorAll('.lang-btn');
-  btns.forEach(function(b) { b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-
-  var label = document.getElementById('langLabel');
-  if (label) label.textContent = _langLabelMap[langCode] || langCode.toUpperCase();
-
-  closeLangDropdown();
-  resetLangCollapseTimer();
-
-  var selectField = document.querySelector('.goog-te-combo');
-  if (selectField) {
-    selectField.value = langCode;
-    selectField.dispatchEvent(new Event('change'));
-  } else {
-    setTimeout(function() {
-      var sel = document.querySelector('.goog-te-combo');
-      if (sel) {
-        sel.value = langCode;
-        sel.dispatchEvent(new Event('change'));
-      }
-    }, 800);
-  }
-
-  if (langCode === 'ko') {
-    var domain = window.location.hostname;
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + domain + '; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
-
-    setTimeout(function() {
-      window.location.reload();
-    }, 100);
-  }
-}
-
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    var googCookie = document.cookie.match(/(^|;\s*)googtrans=([^;]*)/);
-    var lang = 'ko';
-    if (googCookie && googCookie[2]) {
-      lang = googCookie[2].split('/').pop();
-    }
-
-    var btns = document.querySelectorAll('.lang-btn');
-    btns.forEach(function(b) {
-      b.classList.remove('active');
-      if (b.getAttribute('data-lang') === lang) b.classList.add('active');
-    });
-    var label = document.getElementById('langLabel');
-    if (label) label.textContent = _langLabelMap[lang] || 'KR';
-  }, 1000);
-});
-
 (function() {
   var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
   var modal = document.getElementById('ios-install-modal');
