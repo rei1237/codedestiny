@@ -1641,8 +1641,8 @@ body.neo-mode .lang-btn:hover:not(.active) {
 
 /* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
-.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
-#google_translate_element { display: none !important; }
+.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goop-te-gadget-simple { display: none !important; }
+/* #google_translate_element { display: none !important; } */
 body { top: 0px !important; }
 
 /* ── 글리치 전환 오버레이 ── */
