@@ -4286,13 +4286,16 @@ var compatTypeEl = document.getElementById('compatType');
 if (compatTypeEl) compatTypeEl.addEventListener('change', updateCompatUI);
 if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(updateCompatUI, 50);
 
-function googleTranslateElementInit() {
+window.googleTranslateElementInit = window.googleTranslateElementInit || function googleTranslateElementInit() {
+  if (!window.google || !google.translate || !google.translate.TranslateElement) return;
+  if (window.__cdGoogleTranslateInited) return;
+  window.__cdGoogleTranslateInited = true;
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
     includedLanguages: 'ko,en,ja,zh-CN,hi,es,fr',
     autoDisplay: false
   }, 'google_translate_element');
-}
+};
 
 /* 기능(로더/모달/오버레이) 동작 중에는 언어 버튼 자동 숨김, 종료 시 다시 표시 */
 var _langWrapFeatureOverlayIds = [

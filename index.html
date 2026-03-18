@@ -528,28 +528,8 @@
 </div>
 
 
-<!-- 구글 번역 토글 버튼 (우측 상단 고정) + 언어 선택 -->
-<div class="translate-lang-wrap" id="translateLangWrap">
-  <!-- 현재 언어 표시 행성 버튼 -->
-  <button class="translate-lang-btn" id="translateLangToggleBtn" aria-label="언어 선택" type="button" title="언어 선택">
-    <span class="translate-lang-label" id="translateLangLabel">KR</span>
-  </button>
-  <!-- 언어 선택 카드 -->
-  <div class="translate-lang-card" id="translateLangCard">
-    <div class="translate-lang-grid">
-      <button class="translate-lang-code active" data-lang="ko"><span class="code">KR</span></button>
-      <button class="translate-lang-code" data-lang="en"><span class="code">EN</span></button>
-      <button class="translate-lang-code" data-lang="ja"><span class="code">JP</span></button>
-      <button class="translate-lang-code" data-lang="zh-CN"><span class="code">CN</span></button>
-      <button class="translate-lang-code" data-lang="hi"><span class="code">HI</span></button>
-      <button class="translate-lang-code" data-lang="es"><span class="code">ES</span></button>
-      <button class="translate-lang-code" data-lang="fr"><span class="code">FR</span></button>
-    </div>
-  </div>
-</div>
-
-<!-- 구글 번역 요소 (숨김) -->
-<div id="google_translate_element" style="display:none;"></div>
+<!-- Google Translate Widget (Top-right fixed) -->
+<div id="google_translate_element" class="notranslate" aria-label="Google Translate"></div>
 
 <!-- 글리치 전환 오버레이 -->
 <div class="neo-glitch-wrap" id="neoGlitchWrap">
@@ -2829,7 +2809,7 @@
 <script src="js/iching-modal.js" defer></script>
 
 <!-- 구글 번역 스크립트 -->
-<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script type="text/javascript" defer src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
