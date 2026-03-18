@@ -4289,6 +4289,81 @@ function cdTranslateContentWithApi(langCode) {
     .catch(function() {});
 }
 
+function changeLanguage(langCode, btn) {
+  var btns = document.querySelectorAll('.lang-btn');
+  btns.forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+
+  var label = document.getElementById('langLabel');
+  if (label) label.textContent = _langLabelMap[langCode] || langCode.toUpperCase();
+
+  var selectField = document.querySelector('.goog-te-combo');
+  if (selectField) {
+    selectField.value = langCode;
+    selectField.dispatchEvent(new Event('change', { bubbles: true }));
+  } else {
+    setTimeout(function() {
+      var sel = document.querySelector('.goog-te-combo');
+      if (sel) {
+        sel.value = langCode;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, 800);
+  }
+
+  setTimeout(function() { cdTranslateContentWithApi(langCode); }, 900);
+
+  if (langCode === 'ko') {
+    var domain = window.location.hostname;
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + domain + '; path=/;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
+
+    setTimeout(function() {
+      window.location.reload();
+    }, 100);
+  }
+}
+
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var googCookie = document.cookie.match(/(^|;\\s*)googtrans=([^;]*)/);
+    var lang = 'ko';
+    if (googCookie && googCookie[2]) {
+      lang = googCookie[2].split('/').pop();
+    }
+
+    var btns = document.querySelectorAll('.lang-btn');
+    btns.forEach(function(b) {
+      b.classList.remove('active');
+      if (b.getAttribute('data-lang') === lang) b.classList.add('active');
+    });
+    var label = document.getElementById('langLabel');
+    if (label) label.textContent = _langLabelMap[lang] || 'KR';
+  }, 1000);
+});
+
+// Auto-select language by IP/region on first visit (no saved preference)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) return;
+    } catch (_) {}
+
+    fetch('/api/geo', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(p) {
+        if (!p || !p.widgetLang) return;
+        var nextLang = String(p.widgetLang);
+        if (!nextLang || nextLang === 'ko') return;
+        try { localStorage.setItem('cd_lang', nextLang); } catch (_) {}
+        changeLanguage(nextLang);
+      })
+      .catch(function() {});
+  }, 1200);
+});
+
 (function() {
   var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
   var modal = document.getElementById('ios-install-modal');
