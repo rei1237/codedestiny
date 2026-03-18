@@ -3777,7 +3777,7 @@ body.neo-mode .lang-btn:hover:not(.active) {
 /* 구글 번역 위젯 기본 숨김 해제 (2026-03-18) */
 /* .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; } */
 /* .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; } */
-/* #google_translate_element { display: none !important; } */
+#google_translate_element { display: none !important; }
 body { top: 0px !important; }
 
 /* ── 글리치 전환 오버레이 ── */
