@@ -118,22 +118,88 @@
       wrapper.appendChild(select);
     }
 
-    // 국기 + 모국어 텍스트로 옵션 업데이트
+    // 국기 + 모국어 + 영어설명 툴팁까지 옵션 업데이트
+    const langDesc = {
+      'ko': 'Korean', 'en': 'English', 'ja': 'Japanese', 'zh-CN': 'Chinese (Simplified)', 'zh-TW': 'Chinese (Traditional)',
+      'fr': 'French', 'es': 'Spanish', 'de': 'German', 'it': 'Italian', 'pt': 'Portuguese',
+      'ru': 'Russian', 'ar': 'Arabic', 'hi': 'Hindi', 'nl': 'Dutch', 'ms': 'Malay'
+    };
     function updateOptions() {
       Array.from(select.options).forEach(opt => {
         if (cosmicLangMap[opt.value]) {
           opt.textContent = cosmicLangMap[opt.value];
+          opt.setAttribute('data-desc', langDesc[opt.value] || '');
         }
       });
     }
     updateOptions();
+
+    // 툴팁 생성 및 스타일
+    let tooltip = document.getElementById('planetLangTooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'planetLangTooltip';
+      tooltip.style.position = 'absolute';
+      tooltip.style.display = 'none';
+      tooltip.style.background = 'rgba(30,30,40,0.98)';
+      tooltip.style.color = '#fff';
+      tooltip.style.fontSize = '13px';
+      tooltip.style.fontWeight = 'bold';
+      tooltip.style.padding = '7px 16px';
+      tooltip.style.borderRadius = '12px';
+      tooltip.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
+      tooltip.style.zIndex = '99999';
+      tooltip.style.pointerEvents = 'none';
+      tooltip.style.transition = 'opacity 0.18s';
+      tooltip.style.opacity = '0';
+      tooltip.style.left = '50%';
+      tooltip.style.top = '110%';
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.style.whiteSpace = 'nowrap';
+      select.parentNode.appendChild(tooltip);
+    }
 
     // 언어 전환 시 구글 스크립트가 텍스트를 덮어씌우는 것 방지
     select.addEventListener('change', () => {
       setTimeout(updateOptions, 50);
     });
 
-    // 4. 30초 후 위젯이 우주 저 멀리 사라지는 애니메이션 (Fade out & Fly up)
+    // 툴팁 이벤트 (마우스/터치)
+    select.addEventListener('mousemove', function() {
+      const opt = select.options[select.selectedIndex];
+      const code = select.value;
+      const desc = opt ? opt.getAttribute('data-desc') : '';
+      if (desc) {
+        tooltip.textContent = code.toUpperCase() + ' — ' + desc;
+        tooltip.style.display = 'block';
+        tooltip.style.opacity = '1';
+      } else {
+        tooltip.style.display = 'none';
+        tooltip.style.opacity = '0';
+      }
+    });
+    select.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+      tooltip.style.opacity = '0';
+    });
+    select.addEventListener('touchstart', function() {
+      const opt = select.options[select.selectedIndex];
+      const code = select.value;
+      const desc = opt ? opt.getAttribute('data-desc') : '';
+      if (desc) {
+        tooltip.textContent = code.toUpperCase() + ' — ' + desc;
+        tooltip.style.display = 'block';
+        tooltip.style.opacity = '1';
+      }
+    });
+    select.addEventListener('touchend', function() {
+      setTimeout(function() {
+        tooltip.style.display = 'none';
+        tooltip.style.opacity = '0';
+      }, 400);
+    });
+
+    // 30초 후 위젯이 우주 저 멀리 사라지는 애니메이션 (Fade out & Fly up)
     setTimeout(() => {
       widget.style.opacity = '0';
       widget.style.transform = 'translateY(-100px) scale(0.5)';
