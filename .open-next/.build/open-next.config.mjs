@@ -211,7 +211,10 @@ function resolveCdnInvalidation(value = "dummy") {
 }
 
 // open-next.config.ts
-var open_next_config_default = defineCloudflareConfig({});
+var open_next_config_default = defineCloudflareConfig({
+  nextBuild: false
+  // 필요시 추가 최적화 옵션 삽입 가능
+});
 export {
   open_next_config_default as default
 };

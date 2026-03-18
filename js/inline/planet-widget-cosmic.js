@@ -104,14 +104,35 @@
   const maxWatch = 30; // 100ms * 30 = 3초
 
   function initCosmicWidget() {
-    const select = widget.querySelector('select.goog-te-combo');
-    if (!select) {
+
+    // 중복 select.goog-te-combo가 있으면 첫 번째만 남기고 모두 제거
+    const selects = widget.querySelectorAll('select.goog-te-combo');
+    if (!selects.length) {
       if (++watchCount < maxWatch) setTimeout(initCosmicWidget, 100);
       return;
     }
+    if (selects.length > 1) {
+      for (let i = 1; i < selects.length; i++) {
+        selects[i].remove();
+      }
+    }
+    const select = selects[0];
 
-    // Select 요소를 래퍼로 감싸서 우주 테마 UI 적용
-    if (!select.parentNode.classList.contains('cosmic-wrapper')) {
+
+    // 기존에 중복된 cosmic-wrapper가 있으면 모두 제거 (중복 방지)
+    const parent = select.parentNode;
+    if (parent && parent.classList.contains('cosmic-wrapper')) {
+      // 이미 감싸져 있으면, 기존 툴팁도 정리
+      const oldTooltip = parent.querySelector('#planetLangTooltip');
+      if (oldTooltip) oldTooltip.remove();
+    } else {
+      // 기존 cosmic-wrapper가 여러 개 있으면 모두 해제
+      const wrappers = widget.querySelectorAll('.cosmic-wrapper');
+      wrappers.forEach(w => {
+        while (w.firstChild) w.parentNode.insertBefore(w.firstChild, w);
+        w.remove();
+      });
+      // 새로 감싸기
       const wrapper = document.createElement('div');
       wrapper.className = 'cosmic-wrapper';
       select.parentNode.insertBefore(wrapper, select);

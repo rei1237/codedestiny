@@ -2816,43 +2816,15 @@
 
 <script type="text/javascript" defer src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script>
-// 3017f88 구글 번역 planet 위젯 UI/UX 1:1 복원
+// 구글 번역 위젯만 생성 (코스믹 테마는 planet-widget-cosmic.js에서 전담)
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-TW,zh-CN,ms,fr,es,vi,nl,de,hi,iw', // ms, nl, de 포함
+    includedLanguages: 'ko,en,ja,zh-TW,zh-CN,ms,fr,es,vi,nl,de,hi,iw',
     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
     autoDisplay: false
   }, 'google_translate_element');
 }
-function patchGoogleSelectLabels() {
-  var sel = document.querySelector('#google_translate_element select.goog-te-combo');
-  if (!sel) return;
-  var labelMap = {
-    'ko': 'kr',
-    'en': 'en',
-    'ja': 'jp',
-    'zh-TW': 'zh-tw',
-    'zh-CN': 'zh-cn',
-    'ms': 'ms',
-    'fr': 'fr',
-    'es': 'es',
-    'vi': 'vi',
-    'nl': 'nl',
-    'de': 'de',
-    'hi': 'hi',
-    'iw': 'he'
-  };
-  for (var i = 0; i < sel.options.length; i++) {
-    var opt = sel.options[i];
-    if (labelMap[opt.value]) opt.text = labelMap[opt.value];
-  }
-}
-document.addEventListener('DOMNodeInserted', function(e) {
-  if (e.target && e.target.classList && e.target.classList.contains('goog-te-combo')) {
-    setTimeout(patchGoogleSelectLabels, 10);
-  }
-});
 </script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
