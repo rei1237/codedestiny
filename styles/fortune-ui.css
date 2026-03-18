@@ -11,121 +11,123 @@ button[onclick*="close"], button[aria-label*="닫"] {
   min-width: 44px; min-height: 44px;
 }
 
-/* ─── 변수 & 리셋 ─── */
-:root{
-  /* 공통 레이아웃 수치 */
-  --radius-lg: 20px;
-  --spacing-md: 16px;
-  --card-shadow: 0 8px 30px rgba(0,0,0,0.05);
 
-  --pink:#FF8BA7;--pink-l:#FFB7B2;--peach:#FFDAC1;
-  --wood-bg:#E8F5E9;--wood-tx:#2E7D32;
-  --fire-bg:#FFEBEE;--fire-tx:#C62828;
-  --earth-bg:#FFF8E1;--earth-tx:#E65100;
-  --metal-bg:#F5F5F5;--metal-tx:#546E7A;
-  --water-bg:#E3F2FD;--water-tx:#1565C0;
-  --radius:16px;--shadow:0 4px 20px rgba(255,139,167,.13);
-}
 
-.theme-pig {
-  --bg-color: #FFF9F9;
-  --card-bg: #FFFFFF;
-  --card-glass: rgba(255,255,255,0.86);
-  --text-main: #4A4A4A;
-  --point-color: #FF85A2;
-  --border-color: #FFE0E6;
+.planet-widget-wrapper {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
 }
-
-.theme-neo {
-  --bg-color: #1A1A1B;
-  --card-bg: #2D2D30;
-  --card-glass: rgba(45,45,48,0.82);
-  --text-main: #E1E1E1;
-  --point-color: #FFD700;
-  --border-color: #3F3F42;
+.planet-aurora {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 60% 40%, #ffe6f7 0%, #ffb7e6 40%, #b7e6ff 100%);
+  opacity: 0.55;
+  filter: blur(18px) saturate(1.2);
+  pointer-events: none;
+  animation: planetAuroraPulse 5s ease-in-out infinite;
 }
-
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
-/* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
-   body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-  min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
-  overscroll-behavior-y:none;
-  -webkit-overflow-scrolling:touch;
-  touch-action: pan-y;
+@keyframes planetAuroraPulse {
+  0%, 100% { opacity: 0.55; filter: blur(18px) saturate(1.2); }
+  50% { opacity: 0.85; filter: blur(28px) saturate(1.5); }
 }
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(255,139,167,.14), transparent 35%),
-    radial-gradient(circle at 85% 78%, rgba(124,58,237,.14), transparent 38%),
-    radial-gradient(circle at 50% 12%, rgba(255,215,0,.09), transparent 32%);
-}
-body::after{
-  content:'';
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  opacity:.18;
-  background-image:radial-gradient(rgba(255,255,255,.5) .6px, transparent .6px);
-  background-size:3px 3px;
-}
-@media (max-width: 480px) {
-  html { font-size: 14px; }
-}
-.wrap{
-  width:100%;
-  max-width:960px;
-  margin:0 auto;
+#google_translate_element.planet-widget {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
+  box-shadow:
+    0 0 0 6px rgba(255,255,255,0.12),
+    0 8px 20px rgba(255, 107, 157, 0.35),
+    0 12px 32px rgba(139, 58, 58, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
   position: relative;
-  overflow-x: hidden;
-  padding:0 8px calc(22px + env(safe-area-inset-bottom));
-  padding-bottom:max(22px, calc(22px + env(safe-area-inset-bottom)));
-  display:flex;
-  flex-direction:column;
-  z-index:1;
-  isolation:isolate;
-  touch-action: pan-y;
+  overflow: hidden;
+  animation: planetFloat 4s ease-in-out infinite;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-
-
-/* ─── 로딩 오버레이 ─── */
-#lib-overlay{position:fixed;inset:0;background:var(--bg-color, linear-gradient(135deg,#FFF5F8,#FFF0FA));
-  z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-#lib-overlay.done{display:none}
-.pig-float{font-size:4rem;animation:float 1.8s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
-.dots{display:flex;gap:7px}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--point-color, var(--pink-l));animation:pulse 1.2s ease-in-out infinite}
-.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-#lib-msg{font-size:1rem;font-weight:700;color:var(--point-color, var(--pink))}
-#lib-sub{font-size:.8rem;color:#bbb}
-
-/* ─── 공통 카드 ─── */
-.card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
-  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%);}
-/* 마우스 기기에서만 풀 블러 적용 (터치 기기 GPU 절약) */
-@media (pointer: fine) { .card { backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); } }
-@media (min-width: 768px){
-  .card{padding:18px}
+#google_translate_element.planet-widget::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
+  border-radius: 50%;
+  animation: planetShine 4s ease-in-out infinite;
+  pointer-events: none;
 }
-@media (max-width: 480px){
-  .card{padding:16px}
+#google_translate_element.planet-widget:hover {
+  box-shadow:
+    0 0 0 10px rgba(255,255,255,0.18),
+    0 16px 40px rgba(255, 107, 157, 0.45),
+    0 24px 64px rgba(139, 58, 58, 0.35),
+    0 0 40px rgba(255, 139, 167, 0.4);
+  transform: scale(1.08) translateY(-4px);
 }
-.sec-title{color:var(--point-color, var(--pink));font-weight:700;font-size:1.05rem;
-  margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.sec-title::before{content:'';display:block;width:4px;height:18px;
-  background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}
-
+#google_translate_element.planet-widget select.goog-te-combo {
+  width: 60px;
+  height: 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.85);
+  color: #E04567;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(255,139,167,0.08);
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+#google_translate_element.planet-widget .goog-te-gadget {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  color: #fff !important;
+  text-align: center;
+  width: 100%;
+  padding: 0;
+}
+#google_translate_element.planet-widget .goog-te-gadget span,
+#google_translate_element.planet-widget .goog-te-gadget a {
+  display: none !important;
+}
+@media (max-width: 600px) {
+  .planet-widget-wrapper {
+    top: 8px;
+    right: 8px;
+    width: 64px;
+    height: 64px;
+  }
+  #google_translate_element.planet-widget {
+    width: 48px;
+    height: 48px;
+  }
+  #google_translate_element.planet-widget select.goog-te-combo {
+    width: 40px;
+    height: 24px;
+    font-size: 11px;
+  }
+}
 /* Force content to respect container width — CLS 방지 (width/height 또는 aspect-ratio 지정 권장) */
 img, canvas, svg, video {
   max-width: 100%;
@@ -3780,18 +3782,130 @@ body.neo-mode .lang-btn:hover:not(.active) {
 #google_translate_element { display: block !important; }
 
 /* ── Google Translate Widget (Top-right fixed) ── */
-#google_translate_element {
+
+.planet-widget-wrapper {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 2147483647;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 139, 167, 0.25);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.planet-aurora {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 60% 40%, #ffe6f7 0%, #ffb7e6 40%, #b7e6ff 100%);
+  opacity: 0.55;
+  filter: blur(18px) saturate(1.2);
+  pointer-events: none;
+  animation: planetAuroraPulse 5s ease-in-out infinite;
+}
+
+@keyframes planetAuroraPulse {
+  0%, 100% { opacity: 0.55; filter: blur(18px) saturate(1.2); }
+  50% { opacity: 0.85; filter: blur(28px) saturate(1.5); }
+}
+
+#google_translate_element.planet-widget {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
+  box-shadow:
+    0 0 0 6px rgba(255,255,255,0.12),
+    0 8px 20px rgba(255, 107, 157, 0.35),
+    0 12px 32px rgba(139, 58, 58, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  animation: planetFloat 4s ease-in-out infinite;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#google_translate_element.planet-widget::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
+  border-radius: 50%;
+  animation: planetShine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+#google_translate_element.planet-widget:hover {
+  box-shadow:
+    0 0 0 10px rgba(255,255,255,0.18),
+    0 16px 40px rgba(255, 107, 157, 0.45),
+    0 24px 64px rgba(139, 58, 58, 0.35),
+    0 0 40px rgba(255, 139, 167, 0.4);
+  transform: scale(1.08) translateY(-4px);
+}
+
+#google_translate_element.planet-widget select.goog-te-combo {
+  width: 60px;
+  height: 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.85);
+  color: #E04567;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(255,139,167,0.08);
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+#google_translate_element.planet-widget .goog-te-gadget {
+  font-family: inherit !important;
+  font-size: 13px !important;
+  color: #fff !important;
+  text-align: center;
+  width: 100%;
+  padding: 0;
+}
+
+#google_translate_element.planet-widget .goog-te-gadget span,
+#google_translate_element.planet-widget .goog-te-gadget a {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .planet-widget-wrapper {
+    top: 8px;
+    right: 8px;
+    width: 64px;
+    height: 64px;
+  }
+  #google_translate_element.planet-widget {
+    width: 48px;
+    height: 48px;
+  }
+  #google_translate_element.planet-widget select.goog-te-combo {
+    width: 40px;
+    height: 24px;
+    font-size: 11px;
+  }
 }
 
 #google_translate_element .goog-te-gadget {
