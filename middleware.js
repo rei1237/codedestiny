@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny-web.pages.dev"]);
+const BOT_UA_RE =
+  /(googlebot|bingbot|baiduspider|yandexbot|duckduckbot|slurp|facebot|ia_archiver|sogou|360spider|bytespider|semrushbot|ahrefsbot)/i;
 
 function isLocalHost(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
@@ -20,6 +22,27 @@ function shouldRedirectToCanonical(host) {
 }
 
 export function middleware(request) {
+  const { pathname, search } = request.nextUrl;
+
+  // Keep legacy/static pages referencing an icon path without 404ing.
+  if (pathname === "/icons/icon-192x192.png") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/icons/samba-mode-icon.png";
+    url.search = search;
+    return NextResponse.rewrite(url);
+  }
+
+  // Prevent SEO split: let bots index "/" instead of "/index.html".
+  if (pathname === "/index.html") {
+    const ua = request.headers.get("user-agent") || "";
+    if (BOT_UA_RE.test(ua)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.search = search;
+      return NextResponse.redirect(url, 301);
+    }
+  }
+
   const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
   const host = rawHost.toLowerCase().split(":")[0];
 

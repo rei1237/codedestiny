@@ -4273,6 +4273,71 @@ setInterval(updateLangWrapVisibility, 350);
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
 
+function cdWidgetLangToApiTarget(langCode) {
+  if (!langCode) return null;
+  if (langCode === 'ko') return 'KO';
+  if (langCode === 'en') return 'EN';
+  if (langCode === 'ja') return 'JA';
+  if (langCode === 'zh-CN') return 'ZH';
+  if (langCode === 'hi') return 'HI';
+  if (langCode === 'es') return 'ES';
+  if (langCode === 'fr') return 'FR';
+  return null;
+}
+
+function cdGetContentTranslateTargets() {
+  return Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="deepl"]'));
+}
+
+function cdAllowGoogleTranslateForContent() {
+  var nodes = cdGetContentTranslateTargets();
+  nodes.forEach(function(el) {
+    if (!el) return;
+    el.classList.remove('notranslate');
+    try { el.removeAttribute('data-cd-translate'); } catch (_) {}
+  });
+}
+
+function cdTranslateContentWithApi(langCode) {
+  var target = cdWidgetLangToApiTarget(langCode);
+  if (!target || target === 'KO') return;
+
+  var nodes = cdGetContentTranslateTargets();
+  if (!nodes.length) return;
+
+  var texts = nodes.map(function(el) {
+    var t = (el && (el.textContent || '')).trim();
+    return t;
+  });
+
+  // If content isn't ready yet, skip
+  if (!texts.some(function(t) { return t && t.length; })) return;
+
+  fetch('/api/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texts: texts, sourceLang: 'KO', targetLang: target }),
+    cache: 'no-store'
+  })
+    .then(function(r) {
+      if (!r.ok) {
+        // Free cap reached (429) or not configured (501) => fallback to Google Translate
+        if (r.status === 429 || r.status === 501) {
+          cdAllowGoogleTranslateForContent();
+        }
+        throw new Error('translate_failed_' + r.status);
+      }
+      return r.json();
+    })
+    .then(function(p) {
+      var arr = (p && p.translations) || [];
+      for (var i = 0; i < nodes.length; i++) {
+        if (typeof arr[i] === 'string' && arr[i]) nodes[i].textContent = arr[i];
+      }
+    })
+    .catch(function() {});
+}
+
 function changeLanguage(langCode, btn) {
   var btns = document.querySelectorAll('.lang-btn');
   btns.forEach(function(b) { b.classList.remove('active'); });
@@ -4297,6 +4362,10 @@ function changeLanguage(langCode, btn) {
       }
     }, 800);
   }
+
+  // Try high-quality API translation for content-only areas.
+  // If capped, those areas are unlocked for Google translate automatically.
+  setTimeout(function() { cdTranslateContentWithApi(langCode); }, 900);
 
   if (langCode === 'ko') {
     var domain = window.location.hostname;
@@ -4326,6 +4395,28 @@ window.addEventListener('load', function() {
     var label = document.getElementById('langLabel');
     if (label) label.textContent = _langLabelMap[lang] || 'KR';
   }, 1000);
+});
+
+// Auto-select language by IP/region on first visit (no saved preference)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) return;
+    } catch (_) {}
+
+    fetch('/api/geo', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(p) {
+        if (!p || !p.widgetLang) return;
+        var nextLang = String(p.widgetLang);
+        if (!nextLang || nextLang === 'ko') return;
+        try { localStorage.setItem('cd_lang', nextLang); } catch (_) {}
+        // trigger translation selection
+        changeLanguage(nextLang);
+      })
+      .catch(function() {});
+  }, 1200);
 });
 
 (function() {

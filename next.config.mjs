@@ -21,6 +21,7 @@ const nextConfig = {
       { source: '/api/admin/:path*', destination: apiTarget + '/api/admin/:path*' },
       { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
       { source: '/api/fortune/:path*', destination: apiTarget + '/api/fortune/:path*' },
+      { source: '/api/translate', destination: apiTarget + '/api/translate' },
       // /api/tarot is handled by Next.js route handlers (app/api/tarot/*) so they work when deployed with the Worker
       { source: '/api/kasi/:path*', destination: apiTarget + '/api/kasi/:path*' },
       { source: '/api/health', destination: apiTarget + '/api/health' },
