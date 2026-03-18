@@ -4211,7 +4211,7 @@ window.googleTranslateElementInit = window.googleTranslateElementInit || functio
   window.__cdGoogleTranslateInited = true;
   new google.translate.TranslateElement({
     pageLanguage: 'ko',
-    includedLanguages: 'ko,en,ja,zh-CN,hi,es,fr',
+    includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
     autoDisplay: false
   }, 'google_translate_element');
 };
