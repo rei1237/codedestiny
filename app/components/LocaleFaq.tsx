@@ -39,6 +39,15 @@ function getFaq(locale: string): { heading: string; items: FaqItem[] } {
           { q: "Dois-je créer un compte ?", a: "La plupart des contenus sont accessibles sans inscription. Les fonctions liées aux points peuvent demander une connexion." },
         ],
       };
+    case "es-ES":
+      return {
+        heading: "Preguntas frecuentes (FAQ)",
+        items: [
+          { q: "Es gratis?", a: "Si. Code Destiny ofrece experiencias de tarot y fortuna gratis (algunas funciones pueden requerir puntos)." },
+          { q: "Que es Tarot Healing?", a: "Es una experiencia guiada de 4 cartas para aclarar tu situacion actual y tu siguiente paso." },
+          { q: "Necesito registrarme?", a: "La mayor parte del contenido se puede usar sin registro. Las funciones de puntos/cuenta pueden requerir inicio de sesion." },
+        ],
+      };
     case "de-DE":
       return {
         heading: "FAQ",
@@ -82,6 +91,15 @@ function getFaq(locale: string): { heading: string; items: FaqItem[] } {
           { q: "क्या यह मुफ़्त है?", a: "हाँ। Code Destiny मुफ़्त टैरो/भाग्य अनुभव देता है (कुछ फीचर्स के लिए पॉइंट्स लग सकते हैं)।" },
           { q: "Tarot Healing क्या है?", a: "4 कार्ड का गाइडेड अनुभव जो वर्तमान स्थिति और अगले कदम को स्पष्ट करने में मदद करता है।" },
           { q: "क्या रजिस्ट्रेशन ज़रूरी है?", a: "कई कंटेंट बिना रजिस्ट्रेशन के उपलब्ध हैं। पॉइंट्स/अकाउंट फीचर्स के लिए लॉगिन लग सकता है।" },
+        ],
+      };
+    case "ms-MY":
+      return {
+        heading: "Soalan lazim (FAQ)",
+        items: [
+          { q: "Adakah ia percuma?", a: "Ya. Code Destiny menawarkan pengalaman tarot dan nasib secara percuma (sesetengah ciri mungkin perlukan mata)." },
+          { q: "Apa itu Tarot Healing?", a: "Pengalaman berpandu 4 kad untuk membantu anda memahami keadaan semasa dan langkah seterusnya." },
+          { q: "Perlu daftar akaun?", a: "Kebanyakan kandungan boleh diakses tanpa daftar. Ciri mata/akaun mungkin memerlukan log masuk." },
         ],
       };
     default:

@@ -5,7 +5,7 @@ function initTranslateLangUI() {
   var langCard = document.getElementById('translateLangCard');
   var langLabel = document.getElementById('translateLangLabel');
   var hideTimer = null;
-  var HIDE_DELAY = 60000; // 1분
+  var HIDE_DELAY = 30000; // 30초
   window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
   
   // 요소가 없으면 제한적으로 재시도 (무한 루프 방지)
@@ -4273,6 +4273,30 @@ var _langWrapFeatureOverlayIds = [
 
 var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
 
+// 언어 선택(구글 번역 서비스 사용) 후 일정 시간 뒤 위젯 자동 숨김
+var __cdLangWrapHideTimer = null;
+var __cdLangWrapHideDelayMs = 30000; // 30초
+
+function __cdCancelLangWrapHide() {
+  if (__cdLangWrapHideTimer) clearTimeout(__cdLangWrapHideTimer);
+  __cdLangWrapHideTimer = null;
+  var wrap = document.getElementById('langWrap');
+  if (wrap) wrap.classList.remove('lang-wrap--hidden');
+}
+
+function __cdScheduleLangWrapHide() {
+  if (__cdLangWrapHideTimer) clearTimeout(__cdLangWrapHideTimer);
+  __cdLangWrapHideTimer = setTimeout(function() {
+    var wrap = document.getElementById('langWrap');
+    if (wrap) {
+      wrap.classList.add('lang-wrap--hidden');
+      wrap.classList.remove('open');
+    }
+    var trigger = document.getElementById('langTrigger');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }, __cdLangWrapHideDelayMs);
+}
+
 function cdGetContentTranslateTargets() {
   return Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="deepl"]'));
 }
@@ -4287,6 +4311,8 @@ function cdAllowGoogleTranslateForContent() {
 }
 
 function changeLanguage(langCode, btn) {
+  __cdCancelLangWrapHide();
+
   var btns = document.querySelectorAll('.lang-btn');
   btns.forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -4315,14 +4341,31 @@ function changeLanguage(langCode, btn) {
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + domain + '; path=/;';
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
   }
+
+  // 번역 선택 직후 드롭다운 닫고, 30초 후 위젯을 자동 숨김
+  var wrap = document.getElementById('langWrap');
+  if (wrap) {
+    wrap.classList.remove('open');
+  }
+  var trigger = document.getElementById('langTrigger');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+  __cdScheduleLangWrapHide();
 }
 
 function toggleLangDropdown() {
   var wrap = document.getElementById('langWrap');
   if (!wrap) return;
+
   var isOpen = wrap.classList.contains('open');
-  if (isOpen) wrap.classList.remove('open');
-  else wrap.classList.add('open');
+  if (isOpen) {
+    wrap.classList.remove('open');
+  } else {
+    // 위젯을 다시 사용하려는 시점이므로 숨김/타이머를 해제하고, 다시 30초 후 숨김 예약
+    __cdCancelLangWrapHide();
+    wrap.classList.add('open');
+    __cdScheduleLangWrapHide();
+  }
 
   var trigger = document.getElementById('langTrigger');
   if (trigger) trigger.setAttribute('aria-expanded', String(!isOpen));
@@ -4347,6 +4390,10 @@ function toggleLangDropdown() {
 }
 
 window.addEventListener('load', function() {
+  if (!window.__cdLangWrapAutoHideScheduled) {
+    window.__cdLangWrapAutoHideScheduled = true;
+    __cdScheduleLangWrapHide();
+  }
   setTimeout(function() {
     var googCookie = document.cookie.match(/(^|;\\s*)googtrans=([^;]*)/);
     var lang = 'ko';

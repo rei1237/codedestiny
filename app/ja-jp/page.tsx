@@ -1,20 +1,49 @@
 export const metadata = {
-  title: "Code Destiny｜無料タロット＆運勢（日本）",
+  title: "無料四柱推命・紫微斗数・タロット占い | CODE DESTINY",
   description:
-    "Code Destiny は無料のタロット体験と運勢コンテンツを提供します。このページは日本（ja-JP）向けに最適化され、地域SEOシグナルを強化します。",
+    "四柱推命、紫微斗数、タロット、相性診断を一つのサイトで無料体験。今日の運勢と恋愛運を今すぐチェック。",
+  keywords: [
+    "無料占い",
+    "四柱推命 無料",
+    "紫微斗数 無料",
+    "タロット占い 無料",
+    "恋愛運 占い",
+    "復縁タロット",
+    "相性診断",
+    "生年月日 占い",
+    "今日の運勢",
+    "東洋占星術",
+    "韓国占い",
+    "命盤 作成",
+    "当たる占い",
+    "宿曜占星術",
+    "ベーダ占星術",
+  ],
   alternates: {
     canonical: "/ja-jp",
   },
   openGraph: {
-    title: "Code Destiny｜無料タロット＆運勢（日本）",
-    description: "日本（ja-JP）向けの無料タロット体験と運勢コンテンツ。",
+    title: "無料で本格占い｜四柱推命・紫微斗数・タロット",
+    description: "東洋占術の命盤分析とタロットを統合。恋愛・仕事・相性を無料で詳しく鑑定。",
     url: "https://code-destiny.com/ja-jp",
-    siteName: "Code Destiny",
+    siteName: "CODE DESTINY",
+    locale: "ja_JP",
     type: "website",
+    images: [
+      {
+        url: "https://code-destiny.com/icons/honeypig-512.png",
+        width: 512,
+        height: 512,
+        alt: "四柱推命と紫微斗数の無料鑑定ページ",
+      },
+    ],
   },
 };
 
+import Link from "next/link";
 import { LocaleFaq } from "../components/LocaleFaq";
+import { LocaleSeoLinks } from "../components/LocaleSeoLinks";
+import { SeoStructuredData } from "../components/SeoStructuredData";
 
 export default function JaJpLanding() {
   return (
@@ -28,9 +57,10 @@ export default function JaJpLanding() {
       <p style={{ opacity: 0.86, lineHeight: 1.75, marginBottom: "18px" }}>
         まずはガイド付きのタロット体験から始めて、次に Destiny Points やポリシーページを確認してください。
       </p>
+      <LocaleSeoLinks />
 
       <section style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
-        <a
+        <Link
           href="/tarot/healing"
           style={{
             display: "block",
@@ -44,8 +74,8 @@ export default function JaJpLanding() {
           }}
         >
           Tarot Healing を始める
-        </a>
-        <a
+        </Link>
+        <Link
           href="/points"
           style={{
             display: "block",
@@ -59,7 +89,7 @@ export default function JaJpLanding() {
           }}
         >
           Destiny Points
-        </a>
+        </Link>
       </section>
 
       <section
@@ -72,19 +102,25 @@ export default function JaJpLanding() {
       >
         <h2 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "8px" }}>ポリシー & サポート</h2>
         <nav style={{ display: "flex", gap: "12px", flexWrap: "wrap" }} aria-label="ポリシーと連絡先">
-          <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             プライバシーポリシー
-          </a>
-          <a href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             利用規約
-          </a>
-          <a href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             お問い合わせ
-          </a>
+          </Link>
         </nav>
       </section>
 
       <LocaleFaq locale="ja-JP" canonicalUrl="https://code-destiny.com/ja-jp" />
+      <SeoStructuredData
+        locale="ja-JP"
+        pagePath="/ja-jp"
+        pageName="無料四柱推命・紫微斗数・タロット占い"
+        description="四柱推命、紫微斗数、タロット、相性診断を無料で提供する日本語向けページ。"
+      />
     </main>
   );
 }

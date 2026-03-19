@@ -14,11 +14,11 @@ const __lazyActionLoaders = {
     __loadScriptOnce('js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('js/animal-totem-experience.js')
     ),
-  openTarotLoveModal: () => __loadScriptOnce('js/tarot-love-experience.js'),
-  openTarotReunionModal: () => __loadScriptOnce('js/tarot-reunion-experience.js'),
-  openTarotHealingModal: () => __loadScriptOnce('js/tarot-healing-experience.js'),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('js/tarot-self-esteem-experience.js'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('js/tarot-year-fortune-experience.js')
+  openTarotLoveModal: () => __loadScriptOnce('js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
+  openTarotReunionModal: () => __loadScriptOnce('js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
+  openTarotHealingModal: () => __loadScriptOnce('js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2')
 };
 
 const __lazyActionState = {};

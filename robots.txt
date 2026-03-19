@@ -4,4 +4,7 @@
 User-agent: *
 Allow: /
 
+Disallow: /admin
+Disallow: /api/admin
+
 Sitemap: https://code-destiny.com/sitemap.xml

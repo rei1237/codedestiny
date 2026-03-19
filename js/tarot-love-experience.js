@@ -573,9 +573,11 @@
     var intro = byId("tarotLoveIntroStage");
     var draw = byId("tarotLoveDrawStage");
     var result = byId("tarotLoveResultStage");
+    var strip = byId("tarotLoveResultCardsStrip");
     if (intro) intro.classList.add("is-active");
     if (draw) draw.classList.remove("is-active");
     if (result) result.classList.remove("is-active");
+    if (strip) strip.innerHTML = "";
   }
 
   function startTarotLoveReading() {
@@ -847,6 +849,56 @@
     }
 
     container.innerHTML = html;
+
+    // 결과 하단의 6장 미니 카드 스트립도 함께 렌더링
+    renderTarotLoveResultCardsStrip();
+  }
+
+  function renderTarotLoveResultCardsStrip() {
+    var strip = byId("tarotLoveResultCardsStrip");
+    if (!strip) return;
+
+    strip.innerHTML = "";
+    if (!Array.isArray(state.cards) || !state.cards.length) return;
+
+    (DISPLAY_ORDER || [0, 1, 2, 3, 4, 5]).forEach(function (idx) {
+      var card = state.cards[idx];
+      if (!card) return;
+
+      var wrap = document.createElement("div");
+      wrap.className = "tarot-love-result-card-wrap";
+
+      var miniCard = document.createElement("div");
+      miniCard.className = "tarot-love-result-mini-card";
+      if (card.orientation === "reversed") miniCard.setAttribute("data-reversed", "1");
+
+      var miniFront = document.createElement("div");
+      miniFront.className = "tarot-love-result-mini-front";
+
+      var img = document.createElement("img");
+      img.className = "tarot-love-result-mini-img";
+      img.alt = (card.nameKr || card.name || "").trim() || "타로 카드";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer";
+
+      applyTarotImageWithFallback(img, miniFront, card);
+      miniFront.appendChild(img);
+      miniCard.appendChild(miniFront);
+
+      var label = document.createElement("span");
+      label.className = "tarot-love-result-mini-label";
+      label.textContent = POSITION_LABELS[card.position] || card.position || "";
+
+      var name = document.createElement("span");
+      name.className = "tarot-love-result-mini-name";
+      name.textContent = (card.nameKr || card.name || "").trim();
+
+      wrap.appendChild(miniCard);
+      wrap.appendChild(label);
+      wrap.appendChild(name);
+      strip.appendChild(wrap);
+    });
   }
 
   function escapeHtml(s) {

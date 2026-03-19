@@ -1,6 +1,27 @@
 const mongoose = require("mongoose");
+const path = require("path");
+const fs = require("fs");
+const dotenv = require("dotenv");
+
+let __cdTriedServerEnvFallback = false;
+
+function loadServerEnvFallbackIfNeeded() {
+  if (__cdTriedServerEnvFallback) return;
+  __cdTriedServerEnvFallback = true;
+
+  // Next.js API route에서는 server/server.js의 dotenv 로딩이 실행되지 않으므로,
+  // MONGO_URI가 비어있을 때만 server/.env를 한 번 시도해 기존 타로 설정을 재사용합니다.
+  if (process.env.MONGO_URI) return;
+
+  const serverEnvPath = path.resolve(__dirname, "..", ".env");
+  if (!fs.existsSync(serverEnvPath)) return;
+
+  dotenv.config({ path: serverEnvPath });
+}
 
 async function connectDB() {
+  loadServerEnvFallbackIfNeeded();
+
   const mongoUri = process.env.MONGO_URI;
 
   if (!mongoUri) {

@@ -1,7 +1,0 @@
-# robots.txt for code-destiny.com
-# Updated: 2026-03-14
-
-User-agent: *
-Allow: /
-
-Sitemap: https://code-destiny.com/sitemap.xml

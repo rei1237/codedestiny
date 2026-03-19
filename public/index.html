@@ -1365,6 +1365,22 @@
                   </div>
                 </button>
 
+                <!-- 정신분석 해몽 (Freud's Study) -->
+                <button class="tarot-tile tarot-tile--psycho-freud-tile" type="button"
+                        data-action="openPsychoDreamModal"
+                        aria-label="정신분석 해몽 시작">
+                  <div class="tarot-tile__img-wrap">
+                    <img class="tarot-tile__img" src="fuctionassets/phydream.webp"
+                         alt="정신분석 해몽 — 프로이트 관점의 보고서"
+                         loading="lazy" decoding="async" width="200" height="150">
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🕯️ 정신분석 해몽</span>
+                    <span class="tarot-tile__desc">Freud · British Study</span>
+                  </div>
+                </button>
+
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--flower -->
 
@@ -1582,6 +1598,122 @@
         </div>
       </div>
 
+
+      <!-- 정신분석 해몽 모달 (Freud's Study) -->
+      <div id="psychoDreamModalOverlay" class="ps-overlay" style="display:none;">
+        <div class="ps-dialog" role="dialog" aria-modal="true" aria-labelledby="psychoDreamLedgerTitle">
+          <button class="ps-close" data-action="closePsychoDreamModal" aria-label="정신분석 해몽 닫기" type="button">✕</button>
+
+          <div class="ps-bg-ornament" aria-hidden="true">
+            <!-- Inkwell -->
+            <svg class="ps-decor-inkwell" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+              <path d="M44 18h32l6 18H38l6-18Z" fill="rgba(212,175,37,.25)"/>
+              <rect x="32" y="36" width="56" height="64" rx="14" fill="rgba(0,0,0,.10)" stroke="rgba(212,175,37,.55)" stroke-width="3"/>
+              <path d="M46 48h28v36H46z" fill="rgba(212,175,37,.10)"/>
+              <path d="M40 100c10 6 30 6 40 0" fill="none" stroke="rgba(212,175,37,.45)" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+
+            <!-- Pipe -->
+            <svg class="ps-decor-pipe" viewBox="0 0 240 180" aria-hidden="true" focusable="false">
+              <path d="M132 62c0-20 18-36 40-36s40 16 40 36c0 18-14 33-33 35l-6 18h-20l5-16c-18-4-26-18-26-37Z"
+                    fill="rgba(212,175,37,.12)" stroke="rgba(212,175,37,.55)" stroke-width="3" />
+              <path d="M160 105c0 0-26 28-72 44 0 0 10-20 28-38-16-6-26-22-26-42 0-28 23-50 52-50"
+                    fill="none" stroke="rgba(212,175,37,.45)" stroke-width="4" stroke-linecap="round"/>
+              <path d="M105 150l-16 20" stroke="rgba(212,175,37,.38)" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="105" cy="150" r="6" fill="rgba(212,175,37,.22)"/>
+            </svg>
+
+            <!-- Antique Bookshelf -->
+            <svg class="ps-decor-books" viewBox="0 0 260 180" aria-hidden="true" focusable="false">
+              <rect x="24" y="34" width="212" height="132" rx="16" fill="rgba(0,0,0,.08)" stroke="rgba(212,175,37,.40)" stroke-width="3"/>
+              <path d="M40 64h180M40 94h180M40 124h180" stroke="rgba(212,175,37,.30)" stroke-width="2" stroke-linecap="round"/>
+              <rect x="56" y="50" width="28" height="30" rx="6" fill="rgba(212,175,37,.12)"/>
+              <rect x="92" y="56" width="36" height="24" rx="6" fill="rgba(165,42,42,.10)"/>
+              <rect x="138" y="50" width="26" height="30" rx="6" fill="rgba(212,175,37,.10)"/>
+              <rect x="170" y="60" width="36" height="20" rx="6" fill="rgba(212,175,37,.10)"/>
+            </svg>
+          </div>
+
+          <header class="ps-header">
+            <div class="ps-badge">Freud's Study</div>
+            <h2 id="psychoDreamLedgerTitle">정신분석 해몽 보고서</h2>
+            <p class="ps-sub">런던의 유서 깊은 상담실에서, 당신의 무의식을 정식으로 정리합니다.</p>
+          </header>
+
+          <section class="ps-wizard" aria-live="polite">
+            <div class="ps-wizard-medallion" aria-hidden="true">
+              <svg viewBox="0 0 100 100" role="img" aria-hidden="true" focusable="false">
+                <circle cx="50" cy="50" r="44" fill="rgba(212,175,37,0.08)" stroke="rgba(212,175,37,0.45)" stroke-width="2" />
+                <path d="M50 18c-12 0-22 10-22 22 0 10 6 16 14 19v7c0 3 2 5 5 5h6c3 0 5-2 5-5v-7c8-3 14-9 14-19 0-12-10-22-22-22z" fill="rgba(253,253,253,0.14)"/>
+                <path d="M42 43c2-2 4-3 8-3s6 1 8 3" stroke="rgba(212,175,37,0.55)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M42 53c4 2 12 2 16 0" stroke="rgba(253,253,253,0.34)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="ps-wizard-text">
+              <p id="psychoDreamWizardLine">프로이트 박사의 소견을 받을 준비가 되셨나요?</p>
+              <p id="psychoDreamEntrancePrompt" class="ps-wizard-prompt">당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다.</p>
+            </div>
+          </section>
+
+          <!-- The Dream Journal (Input) -->
+          <section id="psychoDreamInputScreen" class="ps-screen">
+            <div class="ps-journal" role="group" aria-label="The Dream Journal">
+              <div class="ps-journal-title"><span class="ps-journal-ink">✒</span> The Dream Journal</div>
+              <div class="ps-journal-paper">
+                <div id="psychoDreamInkLayer" class="ps-ink-layer" aria-hidden="true"></div>
+                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다."></textarea>
+              </div>
+
+              <div class="ps-input-footer">
+                <p id="psychoDreamError" class="ps-error" aria-live="polite"></p>
+                <button id="psychoDreamAnalyzeBtn" class="ps-btn ps-btn-primary" type="button" data-action="psychoDreamStartAnalysis">
+                  정신분석 해몽 시작
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Analyzing the Unconscious (Loading) -->
+          <section id="psychoDreamLoadingScreen" class="ps-screen ps-loading" style="display:none;">
+            <div class="ps-ink-scene" aria-hidden="true">
+              <div class="ps-paper-circle"></div>
+              <div class="ps-ink-blob"></div>
+              <div class="ps-profile-lens">
+                <div class="ps-lens-ring"></div>
+                <div class="ps-lens-symbols"></div>
+              </div>
+            </div>
+            <p id="psychoDreamLoaderText" class="ps-loading-text">무의식의 방을 탐색 중입니다...</p>
+          </section>
+
+          <!-- The Analysis Report (Result) -->
+          <section id="psychoDreamResultScreen" class="ps-screen" style="display:none;">
+            <article class="ps-report" aria-label="Analysis Report">
+              <div class="ps-report-head">
+                <div class="ps-report-title">정신분석 공식 보고서</div>
+                <div class="ps-report-meta" id="psychoDreamReportMeta"></div>
+              </div>
+              <div id="psychoDreamResultMarkdown" class="ps-report-body"></div>
+
+              <div class="ps-stamp" aria-hidden="true">
+                <svg viewBox="0 0 600 240" focusable="false" aria-hidden="true">
+                  <path d="M60 140c20-70 105-110 190-80 40 14 70 55 75 100 7-45 40-84 85-98 82-26 168 20 190 78"
+                        fill="none" stroke="rgba(212,175,37,0.55)" stroke-width="6" stroke-linecap="round"/>
+                  <circle cx="290" cy="108" r="76" fill="rgba(212,175,37,0.07)" stroke="rgba(212,175,37,0.7)" stroke-width="6"/>
+                  <text x="290" y="102" text-anchor="middle" fill="rgba(212,175,37,0.95)" font-size="34" font-family="Georgia,serif" font-weight="700">FREUD</text>
+                  <text x="290" y="140" text-anchor="middle" fill="rgba(253,253,253,0.70)" font-size="18" font-family="Georgia,serif">LONDON</text>
+                </svg>
+              </div>
+            </article>
+
+            <div class="ps-result-actions">
+              <button class="ps-btn ps-btn-primary" type="button" data-action="psychoDreamShareText">분석 텍스트 공유</button>
+              <button class="ps-btn" type="button" data-action="psychoDreamReset">다른 꿈 해석</button>
+              <button class="ps-btn" type="button" data-action="closePsychoDreamModal">닫기</button>
+            </div>
+          </section>
+        </div>
+      </div>
 
       <!-- 주역(周易) 64괘 전체화면 — 거북점 UI -->
       <!-- 네비바: position:absolute (스크롤 밖) / 콘텐츠: 별도 overflow:auto 영역 — iOS 스크롤 간섭 없음 -->
@@ -2923,6 +3055,7 @@
 <script src="js/services/sajuService.js" defer></script>
 <script src="js/core/saju/modalProfileState.js" defer></script>
 <script defer src="js/core/index-inline-runtime.js?v=20260315-image-link-fix2"></script>
+<script src="js/admin-flower.js" defer></script>
 <script src="js/services/animal-totem-content-engine.js" defer></script>
 <script src="js/animal-totem-experience.js" defer></script>
 <div class="share-toast" id="shareToast"></div>
@@ -3071,6 +3204,7 @@
 <script src="js/dream-meaning-library.js" defer></script>
 <script src="lib/ai-engine.js" defer></script>
 <script src="js/dream-ledger.js" defer></script>
+<script src="js/psycho-dream-analyzer-freuds-study.js" defer></script>
 <script src="js/entertain-engine.js" defer></script>
 <script type="module" src="js/app.js"></script>
 

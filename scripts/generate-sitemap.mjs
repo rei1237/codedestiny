@@ -5,7 +5,6 @@ const rootDir = process.cwd();
 const appDir = resolve(rootDir, "app");
 const publicDir = resolve(rootDir, "public");
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
-const sitemapPublicPath = resolve(publicDir, "sitemap.xml");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const today = new Date().toISOString().slice(0, 10);
 
@@ -185,9 +184,8 @@ function main() {
 
   const xml = buildSitemapXml(routeSet);
   writeFileSync(sitemapRootPath, xml, "utf8");
-  writeFileSync(sitemapPublicPath, xml, "utf8");
 
-  console.log(`[sitemap] Generated ${routeSet.size} routes -> sitemap.xml and public/sitemap.xml`);
+  console.log(`[sitemap] Generated ${routeSet.size} routes -> sitemap.xml`);
 }
 
 main();

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type AdminUser = {
   _id: string;
@@ -31,6 +32,46 @@ function formatDate(value?: string) {
 }
 
 export default function AdminPage() {
+  // 위장 목적: 외부에서 `/admin` 경로를 발견했을 때 관리자 기능을 노출하지 않는다.
+  // - 관리자 UI/기능/문구("ADMIN MODE")를 렌더링하지 않는다.
+  // - 대신 일반적인 404/미존재 화면처럼 보이도록 구성한다.
+  return (
+    <main
+      className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4 py-10 text-slate-100"
+      role="main"
+      aria-label="미존재 페이지"
+    >
+      <div
+        className="w-full max-w-xl rounded-2xl border border-slate-700/60 bg-slate-950/60 p-6 shadow-[0_18px_50px_rgba(0,0,0,.45)]"
+      >
+        <div className="flex items-center gap-3 mb-2">
+          <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#f472b6] shadow-[0_0_0_6px_rgba(244,114,182,.18)]" />
+          <h1 className="text-2xl font-extrabold">페이지를 찾을 수 없습니다.</h1>
+        </div>
+        <p className="text-slate-400 leading-7 mt-2">
+          요청하신 경로는 존재하지 않거나 처리할 수 없습니다.
+          <br />
+          잠시 후 다시 시도해 주세요.
+        </p>
+        <div className="mt-5 flex gap-3 flex-wrap">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-600/60 bg-slate-800/40 px-4 py-2 font-semibold"
+          >
+            홈으로
+          </Link>
+          <button
+            type="button"
+            onClick={() => (typeof window !== "undefined" ? window.history.back() : null)}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-600/60 bg-slate-800/20 px-4 py-2 font-semibold"
+          >
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+
   const router = useRouter();
 
   const [token, setToken] = useState("");

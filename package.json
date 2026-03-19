@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "api": "node server/server.js",
+    "cron:daily-content": "node server/jobs/daily-content-cron.js",
+    "seo:check": "node scripts/check-seo-health.mjs",
     "build": "next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
@@ -33,6 +35,10 @@
     "lunar-javascript": "^1.7.7",
     "mongoose": "^9.3.0",
     "next": "^15.0.0",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.3",
+    "otplib": "^13.4.0",
+    "qrcode": "^1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },

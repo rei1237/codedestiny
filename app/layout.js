@@ -4,6 +4,15 @@ import { headers } from "next/headers";
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
   { key: "ko-KR", slug: "", htmlLang: "ko", label: "Korean" },
+  { key: "en-US", slug: "/en-us", htmlLang: "en", label: "English" },
+  { key: "ja-JP", slug: "/ja-jp", htmlLang: "ja", label: "Japanese" },
+  { key: "zh-CN", slug: "/zh-cn", htmlLang: "zh-CN", label: "Chinese (Simplified)" },
+  { key: "hi-IN", slug: "/hi-in", htmlLang: "hi", label: "Hindi" },
+  { key: "es-ES", slug: "/es-es", htmlLang: "es", label: "Spanish" },
+  { key: "fr-FR", slug: "/fr-fr", htmlLang: "fr", label: "French" },
+  { key: "de-DE", slug: "/de-de", htmlLang: "de", label: "German" },
+  { key: "nl-NL", slug: "/nl-nl", htmlLang: "nl", label: "Dutch" },
+  { key: "ms-MY", slug: "/ms-my", htmlLang: "ms", label: "Malay" },
 ];
 
 function normalizePathname(input) {
@@ -76,16 +85,39 @@ function buildJsonLd({ locale, canonicalHref }) {
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Code Destiny",
+    name: "CODE DESTINY",
+    alternateName: "연이의 꿀꿀 만세력",
     url: CANONICAL_ORIGIN,
-    inLanguage: locale.key,
+    inLanguage: LOCALES.map((l) => l.key),
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${CANONICAL_ORIGIN}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Code Destiny",
+    name: "CODE DESTINY",
     url: CANONICAL_ORIGIN,
+  };
+
+  const webApplication = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "CODE DESTINY",
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "Web",
+    url: CANONICAL_ORIGIN,
+    inLanguage: LOCALES.map((l) => l.key),
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    description:
+      "Multilingual fortune and astrology service for Saju, Zi Wei Dou Shu, Tarot, compatibility, and daily destiny guidance.",
   };
 
   const webpage = {
@@ -93,33 +125,68 @@ function buildJsonLd({ locale, canonicalHref }) {
     "@type": "WebPage",
     url: canonicalHref,
     inLanguage: locale.key,
-    name: "Code Destiny",
+    name: "CODE DESTINY",
     isPartOf: { "@id": CANONICAL_ORIGIN },
   };
 
-  return JSON.stringify([website, organization, webpage]);
+  return JSON.stringify([website, organization, webApplication, webpage]);
 }
 
 export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: {
-    default: "Code Destiny | 무료 사주 타로 운세",
-    template: "%s | Code Destiny",
+    default: "무료 사주·자미두수·타로 운세 | 연이의 꿀꿀 만세력",
+    template: "%s | CODE DESTINY",
   },
   description:
-    "Code Destiny는 무료 사주, 타로, 운세, 궁합 콘텐츠를 제공하는 서비스입니다. 개인정보처리방침, 이용약관, 문의 채널을 투명하게 제공합니다.",
+    "사주, 자미두수, 타로, 궁합, 점성술을 한곳에서 무료로 확인하세요. 오늘의 운세부터 관계 해석까지 지금 바로 시작해보세요.",
   keywords: [
-    "Code Destiny",
+    "연이의 꿀꿀 만세력",
+    "CODE DESTINY",
     "사주",
+    "무료사주",
+    "사주풀이",
+    "만세력",
+    "자미두수",
+    "자미두수 무료",
     "타로",
+    "무료타로",
     "운세",
+    "오늘의운세",
+    "궁합",
+    "점성술",
+    "숙요점",
+    "주역점",
+    "운명의꽃",
+    "동양점성술",
     "개인정보처리방침",
     "이용약관",
-    "문의하기",
-    "무료 운세",
+    "문의하기"
   ],
   alternates: {
     canonical: "/",
+  },
+  openGraph: {
+    title: "무료 사주·자미두수·타로 운세 | CODE DESTINY",
+    description: "사주·타로·자미두수·점성술 통합 운세 플랫폼. 무료로 시작하고, 나만의 운명 지도를 확인하세요.",
+    url: CANONICAL_ORIGIN,
+    siteName: "CODE DESTINY",
+    locale: "ko_KR",
+    type: "website",
+    images: [
+      {
+        url: `${CANONICAL_ORIGIN}/icons/honeypig-512.png`,
+        width: 512,
+        height: 512,
+        alt: "연이의 꿀꿀 만세력 메인 화면 - 사주 자미두수 타로 통합 운세",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "무료 사주·자미두수·타로 운세 | CODE DESTINY",
+    description: "사주, 자미두수, 타로, 궁합, 점성술을 한곳에서 무료로 확인하세요.",
+    images: [`${CANONICAL_ORIGIN}/icons/honeypig-512.png`],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,
@@ -141,9 +208,12 @@ export default async function RootLayout({ children }) {
   const requestPath = normalizePathname(
     headerStore.get("x-pathname") || headerStore.get("next-url") || "/",
   );
-  const canonicalHref = new URL(requestPath, CANONICAL_ORIGIN).toString();
-  const hideFooter = false;
   const locale = detectLocaleFromPath(requestPath);
+  const normalizedPath = normalizePathname(requestPath);
+  const routeBasePath = stripLocalePrefix(normalizedPath);
+  const canonicalLocalePath = locale.slug ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}` : routeBasePath;
+  const canonicalHref = new URL(canonicalLocalePath, CANONICAL_ORIGIN).toString();
+  const hideFooter = false;
   const hreflangLinks = buildHreflangAlternates(requestPath);
   const jsonLd = buildJsonLd({ locale, canonicalHref });
 

@@ -14,8 +14,6 @@ const staticTargets = [
   "HwatuFortune.js",
   "index.html",
   "ads.txt",
-  "robots.txt",
-  "sitemap.xml",
   "manifest.json",
   "manifest-samba.json",
   "service-worker.js",
