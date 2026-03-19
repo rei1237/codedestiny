@@ -1,6 +1,5 @@
 // Mystic modals (Sukuyo / Ziwei / Astro) profile-to-render bridge
 // NOTE: compute/render functions live in `js/saju-engine*.js` + `js/core/saju/reportDashboard.js` (리포트 그리드).
-
 var _ModalProfileState = (function () {
   var _subs = {};
 
@@ -142,4 +141,6 @@ function _renderAstroSection() {
     if (typeof renderAstroInsight === 'function') renderAstroInsight();
   }, 0);
 }
+
+window._ModalProfileState = _ModalProfileState;
 

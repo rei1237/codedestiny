@@ -89,7 +89,7 @@ function _renderSukuyoSection(profile) {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\\'Gowun Dodum\\',serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
+    '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   var b = profile.birth;
   var lunarObj = null;
@@ -114,7 +114,7 @@ function _renderZiweiSection() {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\\'Gowun Dodum\\',serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
+    '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   setTimeout(function () {
     if (typeof renderZiwei === 'function') {
@@ -136,7 +136,7 @@ function _renderAstroSection() {
   if (noP) noP.style.display = 'none';
   wrap.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#d1c4e9;font-family:\\'Gowun Dodum\\',serif;letter-spacing:1px;">✦ 코즈믹 차트를 계산하는 중...</div>';
+    '<div style="text-align:center;padding:50px 20px;color:#d1c4e9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 코즈믹 차트를 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   setTimeout(function () {
     if (typeof renderAstroInsight === 'function') renderAstroInsight();
