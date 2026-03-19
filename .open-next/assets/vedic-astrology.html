@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>베다 점성술 — 별들의 지도</title>
+<link id="gfont" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" onerror="this.remove()">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
+<style>
+/* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
+   Cinzel 폰트가 없으면 Georgia → Times New Roman → serif 순으로 대체
+   한글은 Apple SD Gothic Neo → Malgun Gothic → NanumGothic → 시스템 기본 */
+/* 온라인이면 Google Fonts 로드, 오프라인이면 아래 --font-display/--font-body 폴백 사용 */
+
+:root {
+  --font-display: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+  --font-body: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'NanumGothic', '나눔고딕', '맑은 고딕', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --gold:#D4AF37;--gold2:#F5D06A;--purple:#7C3AED;--purple2:#A78BFA;--cyan:#06B6D4;--pink:#EC4899;
+  --red:#FF4444;--green:#22C55E;--orange:#F59E0B;
+  /* "심연의 우주" 네뷸라 베이스 */
+  --bg:#030208;--bg2:#0b0824;--bg3:#1a0b33; /* black → indigo-950 → purple-900 */
+  --neb1:rgba(124,58,237,0.18);
+  --neb2:rgba(30,64,175,0.18);
+  --neb3:rgba(236,72,153,0.10);
+  /* Glassmorphism */
+  --glass:rgba(255,255,255,0.085);--glassdark:rgba(0,0,0,0.3);
+  --border:rgba(139,92,246,0.25);--bordergold:rgba(212,175,55,0.3);
+  --text:#F0E8FF;--text2:rgba(240,232,255,0.65);--text3:rgba(240,232,255,0.4);
+}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(1100px 650px at 12% 18%, var(--neb2), transparent 60%),
+    radial-gradient(900px 520px at 82% 22%, var(--neb1), transparent 62%),
+    radial-gradient(720px 520px at 70% 86%, var(--neb3), transparent 60%),
+    linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 35%, var(--bg) 100%);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.6;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:-2;
+  background:
+    radial-gradient(1200px 700px at 50% 10%, rgba(255,255,255,0.06), transparent 60%),
+    radial-gradient(900px 520px at 20% 70%, rgba(255,255,255,0.035), transparent 62%),
+    radial-gradient(760px 460px at 85% 78%, rgba(255,255,255,0.03), transparent 62%);
+  filter:blur(0.5px);
+}
+body::after{
+  content:"";
+  position:fixed;inset:-40px;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(closest-side at 50% 50%, transparent 68%, rgba(0,0,0,0.55) 100%);
+}
+h1,h2,h3,.cinzel{font-family:var(--font-display);letter-spacing:0.05em}
+input,select,textarea{
+  background:rgba(255,255,255,0.06);border:1px solid rgba(139,92,246,0.35);border-radius:10px;
+  padding:10px 14px;color:#fff;font-size:14px;outline:none;width:100%;
+  font-family:var(--font-body);transition:border-color 0.2s;
+}
+input:focus,select:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(167,139,250,0.15)}
+select option{background:#1a0040;color:#fff}
+input::placeholder{color:var(--text3)}
+label{
+  font-size:12px;
+  color:rgba(240,232,255,0.78);
+  margin-bottom:6px;
+  display:block;
+  font-weight:600;
+  letter-spacing:0.02em;
+}
+button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
+.btn-primary{
+  background:linear-gradient(135deg,var(--purple),#4C1D95);color:#fff;
+  padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;
+  border:1px solid rgba(167,139,250,0.4);transition:all 0.2s;width:100%;
+  text-align:center;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,0,0,0.35),0 0 0 1px rgba(212,175,55,0.15),0 0 24px rgba(245,208,106,0.14)}
+.btn-primary:active{transform:scale(0.97)}
+.btn-sm{padding:7px 16px;border-radius:8px;font-size:12px;background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid var(--border);transition:all 0.2s}
+.btn-sm:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(0,0,0,0.3),0 0 18px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
+.btn-sm:active{transform:scale(0.95)}
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(245,208,106,0.22);
+  border-radius:16px;
+  box-shadow:0 18px 60px rgba(0,0,0,0.34);
+}
+.glass:hover{box-shadow:0 20px 70px rgba(0,0,0,0.40),0 0 0 1px rgba(245,208,106,0.16),0 0 28px rgba(245,208,106,0.12)}
+.card-gold{background:rgba(212,175,55,0.06);border:1px solid var(--bordergold);border-radius:16px;padding:16px}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;gap:4px}
+.tag-purple{background:rgba(139,92,246,0.2);color:var(--purple2);border:1px solid rgba(139,92,246,0.3)}
+.tag-gold{background:rgba(212,175,55,0.15);color:var(--gold2);border:1px solid rgba(212,175,55,0.3)}
+.tag-cyan{background:rgba(6,182,212,0.15);color:var(--cyan);border:1px solid rgba(6,182,212,0.3)}
+.tag-pink{background:rgba(236,72,153,0.15);color:var(--pink);border:1px solid rgba(236,72,153,0.3)}
+.tag-red{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
+.tag-green{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.section{padding:0 0 24px}
+.section-title{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-left:2px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:16px 0}
+.bar-wrap{height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.bar-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:12px}
+.score-ring{display:flex;flex-direction:column;align-items:center;gap:4px}
+.planet-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.planet-row:last-child{border-bottom:none}
+.p-sym{font-size:18px;width:28px;text-align:center}
+.p-name{font-weight:600;font-size:13px;min-width:54px}
+.p-sign{color:var(--text2);font-size:12px;flex:1}
+.p-badge{font-size:10px;padding:2px 8px;border-radius:10px}
+.house-cell{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:10px;text-align:center;position:relative;min-height:50px;padding:4px;
+  border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.04);
+}
+.house-num{font-size:9px;color:var(--text3);position:absolute;top:2px;left:3px}
+.house-sign{font-size:9px;color:var(--gold);margin-bottom:2px}
+.house-planets{font-size:10px;color:var(--cyan);line-height:1.3}
+.module-card{
+  background:var(--glass);border:1px solid var(--border);border-radius:16px;
+  padding:16px;cursor:pointer;transition:all 0.25s;user-select:none;
+  display:flex;align-items:center;gap:14px;
+}
+.module-card:active{transform:scale(0.97);border-color:var(--purple2)}
+.module-icon{font-size:28px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0}
+.module-title{font-family:var(--font-display);font-size:14px;font-weight:600;margin-bottom:3px}
+.module-sub{font-size:11px;color:var(--text2)}
+.detail-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.back-btn{background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text2);font-size:13px;display:flex;align-items:center;gap:6px}
+.back-btn:active{transform:scale(0.95)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.stat-value{font-size:13px;font-weight:500;color:var(--text)}
+.chakra-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.chakra-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chakra-name{font-size:12px;min-width:100px;color:var(--text2)}
+.chakra-score{font-size:11px;color:var(--text3);min-width:30px;text-align:right}
+.compat-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.compat-name{font-size:12px;color:var(--text2);min-width:120px}
+.compat-score{font-size:11px;min-width:32px;text-align:right;color:var(--text3)}
+.dasha-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.dasha-planet{font-size:13px;font-weight:600;min-width:70px}
+.dasha-years{font-size:11px;color:var(--text3);flex:1}
+.dasha-active{background:rgba(212,175,55,0.1);border-radius:8px;padding:2px 8px;color:var(--gold);font-size:10px}
+.page{display:none;padding:16px;max-width:480px;margin:0 auto}
+.page.active{display:block}
+#app{min-height:100vh;position:relative}
+.lagna-asc{
+  width:100%;height:36px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,0.15),transparent);
+  font-family:var(--font-display);font-size:11px;color:var(--gold);letter-spacing:0.15em;
+  border-top:1px solid var(--bordergold);border-bottom:1px solid var(--bordergold);
+  margin-bottom:12px;
+}
+.result-hero{
+  background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(6,182,212,0.15));
+  border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:20px;
+  text-align:center;margin-bottom:20px;
+}
+.result-hero-name{font-family:var(--font-display);font-size:22px;color:var(--gold);margin-bottom:6px}
+.result-hero-sub{font-size:12px;color:var(--text2)}
+.info-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:var(--text2)}
+.info-box strong{color:var(--text)}
+.tips{font-size:11px;color:var(--text3);background:rgba(212,175,55,0.07);border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 8px 8px 0;margin-top:10px}
+.yoga-card{background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.2);border-radius:12px;padding:14px;margin-bottom:10px}
+.yoga-name{font-weight:700;font-size:14px;color:var(--cyan);margin-bottom:4px}
+.yoga-type{font-size:11px;color:var(--text3)}
+.yoga-benefit{font-size:12px;color:var(--text2);margin-top:6px}
+.compat-header{background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(124,58,237,0.2));border:1px solid rgba(236,72,153,0.3);border-radius:16px;padding:16px;text-align:center;margin-bottom:16px}
+.compat-total{font-size:32px;font-family:var(--font-display);color:var(--gold)}
+.nabisco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin:0 0 16px}
+.south-chart{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid rgba(139,92,246,0.3);border-radius:4px;overflow:hidden;background:rgba(139,92,246,0.1)}
+.north-chart svg{width:100%;height:auto}
+.chart-toggle{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.chart-toggle-btn{flex:1;padding:8px;text-align:center;font-size:12px;color:var(--text2);background:transparent;border:none;cursor:pointer;transition:all 0.2s}
+.chart-toggle-btn.active{background:rgba(139,92,246,0.25);color:#fff}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(212,175,55,0.3)}50%{box-shadow:0 0 20px rgba(212,175,55,0.6)}}
+@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:1}}
+@keyframes spinRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.fade-up{animation:fadeUp 0.4s ease forwards}
+.active-dasha{animation:glow 2s ease-in-out infinite}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:20px}
+.loading-ring{width:60px;height:60px;border:3px solid rgba(139,92,246,0.2);border-top-color:var(--purple2);border-radius:50%;animation:spinRing 0.8s linear infinite}
+.loading-text{color:var(--text2);font-size:13px;animation:pulse 1.5s ease-in-out infinite}
+.error-box{background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:12px;padding:16px;color:#ff9999;font-size:13px;text-align:center}
+
+/* ── 개편 추가 스타일 ───────────────────────────────────── */
+
+/* 스크롤 페이드인 */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity 0.55s ease,transform 0.55s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.08s}
+.reveal-delay-2{transition-delay:0.16s}
+.reveal-delay-3{transition-delay:0.24s}
+.reveal-delay-4{transition-delay:0.32s}
+
+/* 반응형 타이포 */
+.hero-name{font-family:var(--font-display);font-size:clamp(20px,5vw,28px);color:var(--gold);line-height:1.2}
+.hero-sub{font-size:clamp(11px,2.5vw,13px);color:var(--text2)}
+.section-head{font-family:var(--font-display);font-size:clamp(13px,3vw,15px);color:var(--gold);letter-spacing:0.08em;margin-bottom:4px}
+.section-head{
+  font-variation-settings:"wght" 650;
+  text-shadow:0 0 16px rgba(245,208,106,0.14);
+}
+.section-head-kr{
+  font-family:var(--font-body);
+  font-weight:800;
+  letter-spacing:0.02em;
+  text-shadow:none;
+}
+.form-subhead{
+  font-family:var(--font-display);
+  font-variation-settings:"wght" 700;
+  letter-spacing:0.12em;
+  text-transform:none;
+}
+.module-title,.mod-title{
+  font-variation-settings:"wght" 650;
+  letter-spacing:0.06em;
+  text-shadow:0 0 14px rgba(245,208,106,0.10);
+}
+.body-text{font-size:clamp(13px,3.2vw,14px);line-height:1.75;color:var(--text2)}
+.sage-text{
+  font-size:clamp(13px,3.2vw,14px);
+  line-height:1.85;
+  color:var(--text2);
+  font-style:italic;
+  padding:12px 14px;
+  background:rgba(212,175,55,0.06);
+  border:1px solid rgba(245,208,106,0.14);
+  border-radius:14px;
+  margin:10px 0;
+  box-shadow:0 14px 40px rgba(0,0,0,0.24);
+}
+.keyword{display:inline;background:rgba(212,175,55,0.15);color:var(--gold2);border:1px solid rgba(212,175,55,0.3);border-radius:4px;padding:1px 6px;font-size:0.92em;font-weight:500}
+
+/* 탭 시스템 */
+.tab-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.tab-btn.active{background:rgba(139,92,246,0.25);color:#fff;border-color:rgba(139,92,246,0.5)}
+.tab-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(0,0,0,0.28),0 0 18px rgba(245,208,106,0.10);border-color:rgba(245,208,106,0.20)}
+.tab-btn:active{transform:scale(0.95)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* 아코디언 */
+.acc-item{border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.acc-header{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background 0.2s}
+.acc-header:active{background:rgba(255,255,255,0.04)}
+.acc-title{font-size:13px;font-weight:600;flex:1}
+.acc-arrow{font-size:12px;color:var(--text3);transition:transform 0.25s;flex-shrink:0}
+.acc-body{max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(.4,0,.2,1)}
+.acc-body.open{max-height:600px}
+.acc-inner{padding:0 14px 14px}
+
+/* 행성 테이블 개편 */
+.planet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.planet-cell{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 6px;text-align:center;position:relative;overflow:hidden}
+.planet-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.planet-sym-big{font-size:20px;display:block;margin-bottom:2px}
+.planet-nm{font-size:11px;font-weight:700;margin-bottom:2px}
+.planet-pos{font-size:10px;color:var(--text3);line-height:1.3}
+.planet-dig{font-size:9px;padding:1px 6px;border-radius:8px;margin-top:3px;display:inline-block}
+
+/* 요약 카드 그리드 */
+.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.sum-card{background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.07);position:relative;overflow:hidden}
+.sum-card-label{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+.sum-card-val{font-size:clamp(12px,3vw,14px);font-weight:700;line-height:1.3}
+.sum-card-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* 모듈 카드 (개편) */
+.mod-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.22s;user-select:none;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.mod-card:hover{transform:translateY(-2px);box-shadow:0 16px 44px rgba(0,0,0,0.38),0 0 24px rgba(245,208,106,0.12);border-color:rgba(245,208,106,0.22)}
+.mod-card:active{transform:scale(0.97)}
+.mod-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mod-texts{flex:1;min-width:0}
+.mod-title{font-family:var(--font-display);font-size:13px;font-weight:600;margin-bottom:2px}
+.mod-preview{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mod-score{font-size:18px;font-family:var(--font-display);font-weight:700;flex-shrink:0}
+
+/* 다샤 타임라인 */
+.dasha-timeline{position:relative;padding-left:20px}
+.dasha-timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--purple2),transparent)}
+.dasha-node{position:relative;margin-bottom:14px}
+.dasha-dot{position:absolute;left:-17px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--purple2);background:var(--bg)}
+.dasha-dot.active-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(212,175,55,0.6)}
+.dasha-period{font-size:12px;font-weight:600;margin-bottom:2px}
+.dasha-range{font-size:11px;color:var(--text3)}
+.dasha-insight{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6}
+
+/* 차크라 링 */
+.chakra-list{display:flex;flex-direction:column;gap:10px}
+.chakra-item{display:flex;align-items:center;gap:10px}
+.chakra-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:#fff}
+.chakra-circle{position:relative;isolation:isolate}
+.chakra-circle::after{
+  content:"";
+  position:absolute;inset:-6px;
+  border-radius:999px;
+  border:1px solid rgba(245,208,106,0.22);
+  opacity:0;
+  transform:scale(0.92);
+  animation:chakraPulse 2.1s ease-in-out infinite;
+}
+@keyframes chakraPulse{
+  0%,100%{opacity:0;transform:scale(0.92)}
+  40%{opacity:0.6;transform:scale(1.08)}
+  70%{opacity:0.12;transform:scale(1.22)}
+}
+
+/* 차크라 에너지 바: 무지개 흐름 */
+.chakra-energy{
+  height:8px;
+  background:rgba(255,255,255,0.08);
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid rgba(245,208,106,0.14);
+}
+.chakra-energy > .chakra-energy-fill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#ff3b30,#ff9500,#ffd60a,#34c759,#32ade6,#0a84ff,#bf5af2);
+  box-shadow:0 0 22px rgba(245,208,106,0.16);
+  position:relative;
+  transition:width 1.1s cubic-bezier(.4,0,.2,1);
+}
+.chakra-energy > .chakra-energy-fill::after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
+  transform:translateX(-60%);
+  animation:energyFlow 1.8s ease-in-out infinite;
+  mix-blend-mode:screen;
+}
+@keyframes energyFlow{to{transform:translateX(60%)}}
+
+/* 별자리 연결선 드로잉 */
+.constellation-path{width:100%;height:64px;display:block;opacity:0.9}
+.constellation-path path{
+  stroke:rgba(245,208,106,0.75);
+  stroke-width:1.25;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:420;
+  stroke-dashoffset:420;
+  animation:constellationDraw 1.6s ease forwards;
+  animation-play-state:paused;
+  filter:drop-shadow(0 0 10px rgba(245,208,106,0.18));
+}
+.reveal.visible .constellation-path path{animation-play-state:running}
+@keyframes constellationDraw{to{stroke-dashoffset:0}}
+.chakra-info{flex:1}
+.chakra-label{font-size:12px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.chakra-desc{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* 궁합 */
+.compat-score-big{font-family:var(--font-display);font-size:clamp(42px,10vw,56px);font-weight:700;line-height:1}
+.compat-item{display:grid;grid-template-columns:130px 1fr 36px;align-items:center;gap:8px;margin-bottom:9px}
+.compat-label{font-size:11px;color:var(--text2)}
+.compat-num{font-size:11px;text-align:right;font-weight:600}
+
+/* 디테일 헤더 */
+.detail-topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 10px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  margin:0 -10px 16px;
+  border-radius:16px;
+  overflow:hidden;
+  border-bottom:1px solid rgba(245,208,106,0.12);
+  background:
+    linear-gradient(180deg, rgba(3,2,8,0.85) 0%, rgba(3,2,8,0.55) 100%);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.detail-topbar::before{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(520px 120px at 30% 0%, rgba(124,58,237,0.18), transparent 70%),
+    radial-gradient(420px 120px at 80% 0%, rgba(30,64,175,0.16), transparent 70%);
+  opacity:0.9;
+}
+.detail-topbar::after{
+  content:"";
+  position:absolute;left:12px;right:12px;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent, rgba(245,208,106,0.35), transparent);
+  pointer-events:none;
+}
+.detail-topbar-inner{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  width:100%;
+}
+.detail-title{
+  font-family:var(--font-display);
+  font-variation-settings:"wght" 700;
+  letter-spacing:0.10em;
+  text-shadow:0 0 18px rgba(245,208,106,0.16);
+  text-align:center;
+}
+.detail-sub{font-size:11px;color:rgba(240,232,255,0.5);letter-spacing:0.08em;text-align:center}
+.detail-spacer{width:84px}
+
+/* 뒤로 버튼: 우주 컨셉 글래스 칩 */
+.back-btn{
+  position:relative;
+  border:1px solid rgba(245,208,106,0.22);
+  background:rgba(255,255,255,0.06);
+  color:rgba(240,232,255,0.85);
+  border-radius:999px;
+  padding:8px 12px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 10px 28px rgba(0,0,0,0.32);
+}
+.back-btn::before{
+  content:"";
+  position:absolute;inset:-1px;
+  border-radius:999px;
+  background:linear-gradient(90deg, rgba(245,208,106,0.10), rgba(124,58,237,0.12), rgba(30,64,175,0.10));
+  opacity:0.35;
+  filter:blur(8px);
+  z-index:-1;
+}
+.back-btn:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,0,0,0.36),0 0 22px rgba(245,208,106,0.14)}
+.back-btn:active{transform:scale(0.97)}
+
+/* 디테일 카드 공통: 더 깔끔한 글래스 */
+.acc-item{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(245,208,106,0.14);
+  box-shadow:0 16px 50px rgba(0,0,0,0.30);
+}
+.acc-header{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00))}
+.acc-header:hover{background:rgba(255,255,255,0.04)}
+
+/* 요가 카드 */
+.yoga-item{background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.18);border-radius:12px;padding:14px;margin-bottom:10px}
+.yoga-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.yoga-title{font-family:var(--font-body);font-weight:800;font-size:14px;color:var(--cyan);letter-spacing:0.01em}
+.yoga-dur{font-size:11px;color:var(--text3)}
+.yoga-benefit{font-family:var(--font-body);font-size:12.5px;color:rgba(240,232,255,0.72);line-height:1.75}
+.yoga-kr .section-head{font-family:var(--font-body);font-weight:800;letter-spacing:0.02em;text-shadow:none}
+.yoga-kr .detail-sub{font-family:var(--font-body);letter-spacing:0.02em}
+.yoga-method{background:rgba(255,255,255,0.04);border:1px solid rgba(245,208,106,0.14);border-radius:14px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,0.22)}
+.yoga-steps{margin:10px 0 0;padding-left:16px;color:rgba(240,232,255,0.72);line-height:1.75}
+.yoga-steps li{margin:6px 0}
+</style>
+</head>
+<body>
+<canvas id="starCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0"></canvas>
+<div style="position:fixed;top:-20%;left:-20%;width:140%;height:140%;background:radial-gradient(ellipse at 30% 25%,rgba(88,28,135,0.4) 0%,transparent 55%),radial-gradient(ellipse at 70% 75%,rgba(6,182,212,0.15) 0%,transparent 50%);pointer-events:none;z-index:0"></div>
+
+<div id="app" style="position:relative;z-index:1">
+  <!-- PAGE: INPUT (프로필 없이 직접 입력) -->
+  <div id="page-input" class="page active">
+    <div style="padding-top:40px;text-align:center;margin-bottom:18px">
+      <div style="font-size:40px;margin-bottom:8px">🪐</div>
+      <h1 style="font-size:22px;color:var(--gold);margin-bottom:6px">베다 점성술</h1>
+      <p style="font-size:12px;color:var(--text3)">Jyotish · 별들의 지혜</p>
+    </div>
+    <div class="glass" style="padding:18px 16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_year">연도</label>
+          <input id="v_year" inputmode="numeric" placeholder="예: 1994">
+        </div>
+        <div>
+          <label for="v_month">월</label>
+          <input id="v_month" inputmode="numeric" placeholder="1~12">
+        </div>
+        <div>
+          <label for="v_day">일</label>
+          <input id="v_day" inputmode="numeric" placeholder="1~31">
+        </div>
+        <div>
+          <label for="v_gender">성별</label>
+          <select id="v_gender">
+            <option value="M">남성</option>
+            <option value="F">여성</option>
+          </select>
+        </div>
+        <div>
+          <label for="v_hour">시</label>
+          <input id="v_hour" inputmode="numeric" placeholder="0~23">
+        </div>
+        <div>
+          <label for="v_minute">분</label>
+          <input id="v_minute" inputmode="numeric" placeholder="0~59">
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="section-head" style="margin-bottom:10px">장소 · 시간대</div>
+      <div style="margin-bottom:10px">
+        <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
+        <select id="v_place" style="width:100%">
+          <option value="" selected>장소를 선택하세요</option>
+          <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
+        </select>
+        <div style="margin-top:6px;color:var(--text3);font-size:12px;line-height:1.5">
+          메인과 동일한 장소 목록이 로드되면 자동으로 확장됩니다.
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_lat">위도 (lat)</label>
+          <input id="v_lat" inputmode="decimal" placeholder="예: 37.5665">
+        </div>
+        <div>
+          <label for="v_lon">경도 (lon)</label>
+          <input id="v_lon" inputmode="decimal" placeholder="예: 126.9780">
+        </div>
+        <div style="grid-column:1 / -1">
+          <label for="v_tz">타임존 오프셋 (UTC 기준, 시간 단위)</label>
+          <input id="v_tz" inputmode="decimal" placeholder="예: 9 (한국), -5 (뉴욕)">
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
+      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
+        프로필 카드 없이도 바로 계산합니다. (API가 실패하면 로컬 계산으로 자동 전환됩니다.)
+      </div>
+    </div>
+    <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
+  </div>
+
+  <!-- PAGE: LOADING -->
+  <div id="page-loading" class="page">
+    <div class="loading" style="padding-top:80px">
+      <div class="loading-ring"></div>
+      <div class="loading-text">우주의 기운을 읽는 중…</div>
+    </div>
+  </div>
+
+  <!-- PAGE: RESULT -->
+  <div id="page-result" class="page">
+    <div id="result-content"></div>
+  </div>
+
+  <!-- PAGE: DETAIL -->
+  <div id="page-detail" class="page">
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if(typeof Math!=='object'||typeof Date!=='function'||typeof JSON!=='object'){
+    document.addEventListener('DOMContentLoaded',function(){
+      var el=document.getElementById('page-input')||document.body;
+      var msg=el.querySelector&&el.querySelector('.glass .section-head');
+      if(msg)msg.textContent='기본 기능이 차단되어 실행할 수 없습니다';
+    });
+    return;
+  }
+  document.addEventListener('DOMContentLoaded',function(){ initVedicPage(); });
+})();
+
+function vedicInitBirthPlaceSelect(){
+  var sel=document.getElementById('v_place');
+  if(!sel) return;
+  if(!(typeof window!=='undefined' && Array.isArray(window.BIRTH_PLACE_GROUPS) && window.BIRTH_PLACE_GROUPS.length)){
+    try{
+      var existing=document.getElementById('birthPlaceGroupsScript');
+      if(!existing){
+        var s=document.createElement('script');
+        s.id='birthPlaceGroupsScript';
+        s.src='/js/birth-place-groups.js';
+        s.onload=function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} };
+        s.onerror=function(){};
+        document.head.appendChild(s);
+      }
+    }catch(_){}
+    return;
+  }
+  // If main engine exposed grouped places, reuse it.
+  try{
+    var groups = (typeof window!=='undefined') ? window.BIRTH_PLACE_GROUPS : null;
+    if(Array.isArray(groups) && groups.length){
+      sel.innerHTML = '<option value=\"\" selected>장소를 선택하세요</option>';
+      groups.forEach(function(g){
+        if(!g || !Array.isArray(g.places) || !g.places.length) return;
+        var og=document.createElement('optgroup');
+        og.label = g.label || '장소';
+        g.places.forEach(function(p){
+          if(!p) return;
+          var opt=document.createElement('option');
+          opt.value = p.tz || '';
+          opt.textContent = p.label || (p.tz || '장소');
+          opt.setAttribute('data-long', String(p.lon));
+          opt.setAttribute('data-lat', String(p.lat));
+          opt.setAttribute('data-tz', String(p.tzOff));
+          opt.setAttribute('data-base-tz', String(p.tzOff));
+          if(p.def) opt.selected = true;
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      });
+      // if a default place is marked, reflect lat/lon/tz immediately
+      try{ vedicApplySelectedPlace(); }catch(_){}
+    }
+  }catch(e){}
+}
+
+function vedicApplySelectedPlace(){
+  var sel=document.getElementById('v_place');
+  if(!sel) return;
+  var opt=sel.options[sel.selectedIndex];
+  if(!opt) return;
+  var lat=parseFloat(opt.getAttribute('data-lat')||'');
+  var lon=parseFloat(opt.getAttribute('data-long')||'');
+  var tz=parseFloat(opt.getAttribute('data-tz')||opt.getAttribute('data-base-tz')||'');
+  if(!isNaN(lat)) { var latEl=document.getElementById('v_lat'); if(latEl) latEl.value=String(lat); }
+  if(!isNaN(lon)) { var lonEl=document.getElementById('v_lon'); if(lonEl) lonEl.value=String(lon); }
+  if(!isNaN(tz)) { var tzEl=document.getElementById('v_tz'); if(tzEl) tzEl.value=String(tz); }
+}
+
+// ─── STAR CANVAS ───────────────────────────────────────────
+(function(){
+  const c=document.getElementById('starCanvas'),ctx=c.getContext('2d'),stars=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;stars.length=0;
+    for(let i=0;i<150;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.5+.3,t:Math.random()*6.28,s:Math.random()*.04+.005});}
+  window.addEventListener('resize',resize);resize();
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.t+=s.s;const a=0.4+0.5*Math.sin(s.t);ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.28);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill();});requestAnimationFrame(draw);}
+  draw();
+})();
+
+// ─── CONSTANTS ────────────────────────────────────────────
+const SIGNS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const SIGNKR=["양자리","황소자리","쌍둥이자리","게자리","사자자리","처녀자리","천칭자리","전갈자리","사수자리","염소자리","물병자리","물고기자리"];
+const SIGNSYM=["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+const PSYM={Sun:"☉",Moon:"☽",Mars:"♂",Mercury:"☿",Jupiter:"♃",Venus:"♀",Saturn:"♄",Rahu:"☊",Ketu:"☋"};
+const PKR={Sun:"태양",Moon:"달",Mars:"화성",Mercury:"수성",Jupiter:"목성",Venus:"금성",Saturn:"토성",Rahu:"라후",Ketu:"케투"};
+const PCOL={Sun:"#FF9500",Moon:"#B0C4DE",Mars:"#FF5555",Mercury:"#44FF88",Jupiter:"#FFD700",Venus:"#FFB6C1",Saturn:"#9B8EC4",Rahu:"#88BBFF",Ketu:"#BBAA55"};
+const SLORDS=["Mars","Venus","Mercury","Moon","Sun","Mercury","Venus","Mars","Jupiter","Saturn","Saturn","Jupiter"];
+const EXALT={Sun:0,Moon:1,Mars:9,Mercury:5,Jupiter:3,Venus:11,Saturn:6,Rahu:2,Ketu:8};
+const DEBIL={Sun:6,Moon:7,Mars:3,Mercury:11,Jupiter:9,Venus:5,Saturn:0,Rahu:8,Ketu:2};
+const OWNSIGNS={Sun:[4],Moon:[3],Mars:[0,7],Mercury:[2,5],Jupiter:[8,11],Venus:[1,6],Saturn:[9,10],Rahu:[],Ketu:[]};
+const STRN={
+  Aries:{el:"Fire",mod:"Cardinal",tr:["용감함","주도적","충동적","독립적"],kw:["개척","열정","경쟁"]},
+  Taurus:{el:"Earth",mod:"Fixed",tr:["안정적","실용적","고집스러움","감각적"],kw:["재물","안정","인내"]},
+  Gemini:{el:"Air",mod:"Mutable",tr:["지적","변덕스러움","소통력","호기심"],kw:["소통","정보","다재다능"]},
+  Cancer:{el:"Water",mod:"Cardinal",tr:["감성적","보호본능","직관적","가정적"],kw:["가족","감정","돌봄"]},
+  Leo:{el:"Fire",mod:"Fixed",tr:["카리스마","창의적","자존심강함","리더십"],kw:["리더십","창조","명예"]},
+  Virgo:{el:"Earth",mod:"Mutable",tr:["분석적","완벽주의","섬세함","봉사"],kw:["분석","건강","완벽"]},
+  Libra:{el:"Air",mod:"Cardinal",tr:["조화로움","외교적","우유부단","심미적"],kw:["균형","관계","아름다움"]},
+  Scorpio:{el:"Water",mod:"Fixed",tr:["강렬함","탐구적","집착적","변혁적"],kw:["변혁","심층","권력"]},
+  Sagittarius:{el:"Fire",mod:"Mutable",tr:["자유로움","낙관적","철학적","모험적"],kw:["자유","철학","여행"]},
+  Capricorn:{el:"Earth",mod:"Cardinal",tr:["야망있음","책임감","현실적","절제력"],kw:["야망","성취","절제"]},
+  Aquarius:{el:"Air",mod:"Fixed",tr:["혁신적","인도주의","독창적","반항적"],kw:["혁신","인류애","독립"]},
+  Pisces:{el:"Water",mod:"Mutable",tr:["영적","공감능력","직관적","희생적"],kw:["영성","예술","연민"]}
+};
+const NAKS=[
+  {n:"Ashwini",l:"Ketu"},{n:"Bharani",l:"Venus"},{n:"Krittika",l:"Sun"},
+  {n:"Rohini",l:"Moon"},{n:"Mrigashira",l:"Mars"},{n:"Ardra",l:"Rahu"},
+  {n:"Punarvasu",l:"Jupiter"},{n:"Pushya",l:"Saturn"},{n:"Ashlesha",l:"Mercury"},
+  {n:"Magha",l:"Ketu"},{n:"Purva Phalguni",l:"Venus"},{n:"Uttara Phalguni",l:"Sun"},
+  {n:"Hasta",l:"Moon"},{n:"Chitra",l:"Mars"},{n:"Swati",l:"Rahu"},
+  {n:"Vishakha",l:"Jupiter"},{n:"Anuradha",l:"Saturn"},{n:"Jyeshtha",l:"Mercury"},
+  {n:"Mula",l:"Ketu"},{n:"Purva Ashadha",l:"Venus"},{n:"Uttara Ashadha",l:"Sun"},
+  {n:"Shravana",l:"Moon"},{n:"Dhanishtha",l:"Mars"},{n:"Shatabhisha",l:"Rahu"},
+  {n:"Purva Bhadrapada",l:"Jupiter"},{n:"Uttara Bhadrapada",l:"Saturn"},{n:"Revati",l:"Mercury"}
+];
+const NAKTR={
+  "Ashwini":{sym:"🐎",tr:["치유력","빠름","선구자"],sh:["성급함","무모함"],pur:"빠른 변화와 치유"},
+  "Bharani":{sym:"⚖️",tr:["창조력","변혁","강인함"],sh:["집착","제어욕"],pur:"죽음과 재생의 주관"},
+  "Krittika":{sym:"🔥",tr:["날카로움","비판력","정화"],sh:["공격성","냉혹함"],pur:"불필요한 것을 잘라냄"},
+  "Rohini":{sym:"🌹",tr:["미적감각","풍요","매력"],sh:["탐욕","소유욕"],pur:"물질적 풍요 실현"},
+  "Mrigashira":{sym:"🌿",tr:["탐구심","감수성","여행욕"],sh:["불안","우유부단"],pur:"진리 탐구"},
+  "Ardra":{sym:"💧",tr:["지적","변혁","공감"],sh:["분노","혼란"],pur:"폭풍 후 정화"},
+  "Punarvasu":{sym:"🏹",tr:["재기","낙관","지혜"],sh:["방황","집중력부족"],pur:"복원과 귀환"},
+  "Pushya":{sym:"🌸",tr:["양육","보호","정신적풍요"],sh:["과보호","보수성"],pur:"최고의 영양 공급"},
+  "Ashlesha":{sym:"🐍",tr:["직관","통찰","변혁"],sh:["조작","독성"],pur:"무의식의 탐구"},
+  "Magha":{sym:"👑",tr:["권위","리더십","선조연결"],sh:["오만","권력욕"],pur:"왕족적 품위 실현"},
+  "Purva Phalguni":{sym:"✨",tr:["창의성","즐거움","매력"],sh:["게으름","탐닉"],pur:"기쁨과 창조"},
+  "Uttara Phalguni":{sym:"⭐",tr:["관대함","신뢰","성공"],sh:["자기중심","의존"],pur:"지속적 번영"},
+  "Hasta":{sym:"✋",tr:["재능","교묘함","치유"],sh:["교활함","사기"],pur:"손으로 실현하는 창조"},
+  "Chitra":{sym:"💎",tr:["아름다움","창의","기술"],sh:["허영","외모집착"],pur:"아름다운 창조물 제작"},
+  "Swati":{sym:"🌬️",tr:["독립","유연성","무역"],sh:["우유부단","정체성혼란"],pur:"자아 실현"},
+  "Vishakha":{sym:"🏛️",tr:["목적의식","야망","인내"],sh:["질투","집착"],pur:"목표 달성"},
+  "Anuradha":{sym:"🪷",tr:["헌신","우정","탐구"],sh:["의심","불안"],pur:"사랑을 통한 성장"},
+  "Jyeshtha":{sym:"🛡️",tr:["보호","용기","리더십"],sh:["오만","지배욕"],pur:"약자 보호"},
+  "Mula":{sym:"🌑",tr:["진실탐구","강한에너지","직설"],sh:["뿌리없음","파괴"],pur:"근본까지 파헤침"},
+  "Purva Ashadha":{sym:"🪭",tr:["설득력","승리","열정"],sh:["자만","비타협"],pur:"무적의 승리"},
+  "Uttara Ashadha":{sym:"🐘",tr:["덕망","인내","진리"],sh:["완고함","고립"],pur:"영원한 승리"},
+  "Shravana":{sym:"👂",tr:["경청","학습","지식전파"],sh:["소문","험담"],pur:"지식 연결"},
+  "Dhanishtha":{sym:"🥁",tr:["음악성","재물","관대함"],sh:["탐욕","이기심"],pur:"풍요의 실현"},
+  "Shatabhisha":{sym:"⭕",tr:["치유","신비","독립"],sh:["고독","비밀주의"],pur:"숨겨진 것의 치유"},
+  "Purva Bhadrapada":{sym:"⚡",tr:["영적불꽃","변혁","헌신"],sh:["파괴성","양극성"],pur:"영적 각성"},
+  "Uttara Bhadrapada":{sym:"🌊",tr:["지혜","인내","통찰"],sh:["게으름","무기력"],pur:"심오한 지혜 실현"},
+  "Revati":{sym:"🐟",tr:["양육","풍요","완성"],sh:["물질집착","결말거부"],pur:"한 사이클의 완성"}
+};
+const DSEQ=[{p:"Ketu",y:7},{p:"Venus",y:20},{p:"Sun",y:6},{p:"Moon",y:10},{p:"Mars",y:7},{p:"Rahu",y:18},{p:"Jupiter",y:16},{p:"Saturn",y:19},{p:"Mercury",y:17}];
+const PSIG={
+  Sun:{kar:["자아","아버지","권위","건강"],car:["정부직","리더십","의학","금융"],gem:"루비"},
+  Moon:{kar:["마음","어머니","감정","대중"],car:["간호","농업","무역","요식업"],gem:"진주"},
+  Mars:{kar:["용기","형제","에너지","부동산"],car:["군인","운동선수","공학","외과의"],gem:"산호"},
+  Mercury:{kar:["지성","소통","무역","분석"],car:["작가","교사","IT","회계사"],gem:"에메랄드"},
+  Jupiter:{kar:["지혜","자녀","신앙","스승"],car:["교육","법률","철학","은행"],gem:"황수정"},
+  Venus:{kar:["아름다움","연애","예술","사치"],car:["예술","패션","외교","엔터테인먼트"],gem:"다이아몬드"},
+  Saturn:{kar:["업보","장수","제한","봉사"],car:["광업","부동산","법","사회사업"],gem:"사파이어"},
+  Rahu:{kar:["외부","혁신","집착","물질욕"],car:["기술","정치","국제무역","미디어"],gem:"고멧"},
+  Ketu:{kar:["해방","영성","분리","과거생"],car:["영성","연구","의학","신비학"],gem:"고양이눈"}
+};
+const CHKMAP={Muladhara:"Saturn",Svadhisthana:"Jupiter",Manipura:"Mars",Anahata:"Venus",Vishuddha:"Mercury",Ajna:"Sun",Sahasrara:"Moon"};
+const CHKINFO={
+  Muladhara:{kr:"뿌리 차크라",col:"#DC2626",seed:"LAM",bal:["안전","안정","신체건강"],imbal:["불안","공포","재물걱정"]},
+  Svadhisthana:{kr:"천골 차크라",col:"#EA580C",seed:"VAM",bal:["창의력","기쁨","풍요"],imbal:["감정기복","집착","과의존"]},
+  Manipura:{kr:"태양신경총",col:"#CA8A04",seed:"RAM",bal:["의지력","자신감","행동력"],imbal:["분노","통제욕","무기력"]},
+  Anahata:{kr:"심장 차크라",col:"#16A34A",seed:"YAM",bal:["사랑","공감","연민"],imbal:["질투","고독","자기혐오"]},
+  Vishuddha:{kr:"목 차크라",col:"#0284C7",seed:"HAM",bal:["소통","표현","진실"],imbal:["거짓말","소통장애","수줍음"]},
+  Ajna:{kr:"제3의 눈",col:"#7C3AED",seed:"OM",bal:["직관","통찰","명확한판단"],imbal:["망상","우유부단","과신"]},
+  Sahasrara:{kr:"크라운 차크라",col:"#A21CAF",seed:"AH",bal:["영적연결","의식확장","해방"],imbal:["무감각","우울","영적단절"]}
+};
+const YOGADAT=[
+  {n:"Hatha Yoga",t:"물리적",el:"Earth",ch:"Muladhara",b:"신체 안정화, 뿌리 에너지 강화",dur:"45분/일"},
+  {n:"Vinyasa Flow",t:"동적",el:"Fire",ch:"Manipura",b:"의지력·에너지 활성화",dur:"60분/일"},
+  {n:"Kundalini",t:"에너지",el:"Fire",ch:"Sahasrara",b:"잠재 에너지 각성, 영적 성장",dur:"60분/일"},
+  {n:"Yin Yoga",t:"수동적",el:"Water",ch:"Svadhisthana",b:"감정 해방, 유연성 증가",dur:"60분/일"},
+  {n:"Restorative",t:"회복",el:"Water",ch:"Anahata",b:"깊은 이완, 심장 치유",dur:"75분/일"},
+  {n:"Pranayama",t:"호흡",el:"Air",ch:"Vishuddha",b:"프라나 에너지 균형",dur:"30분/일"},
+  {n:"Karma Yoga",t:"봉사",el:"Earth",ch:"Muladhara",b:"에고 소멸, 업보 정화",dur:"일상 실천"},
+  {n:"Bhakti Yoga",t:"헌신",el:"Water",ch:"Anahata",b:"무조건적 사랑, 감정 고양",dur:"일상 실천"},
+  {n:"Jnana Yoga",t:"지혜",el:"Air",ch:"Ajna",b:"자아 인식, 지적 해방",dur:"일상 실천"},
+  {n:"Mantra Yoga",t:"소리",el:"Air",ch:"Vishuddha",b:"진동 치유, 목 차크라 활성화",dur:"30분/일"}
+];
+const NKGANA={"Ashwini":"Deva","Bharani":"Manushya","Krittika":"Rakshasa","Rohini":"Manushya","Mrigashira":"Deva","Ardra":"Manushya","Punarvasu":"Deva","Pushya":"Deva","Ashlesha":"Rakshasa","Magha":"Rakshasa","Purva Phalguni":"Manushya","Uttara Phalguni":"Manushya","Hasta":"Deva","Chitra":"Rakshasa","Swati":"Deva","Vishakha":"Rakshasa","Anuradha":"Deva","Jyeshtha":"Rakshasa","Mula":"Rakshasa","Purva Ashadha":"Manushya","Uttara Ashadha":"Manushya","Shravana":"Deva","Dhanishtha":"Rakshasa","Shatabhisha":"Rakshasa","Purva Bhadrapada":"Manushya","Uttara Bhadrapada":"Manushya","Revati":"Deva"};
+const NKYONI={"Ashwini":"Horse","Bharani":"Elephant","Krittika":"Goat","Rohini":"Serpent","Mrigashira":"Serpent","Ardra":"Dog","Punarvasu":"Cat","Pushya":"Goat","Ashlesha":"Cat","Magha":"Rat","Purva Phalguni":"Rat","Uttara Phalguni":"Cow","Hasta":"Buffalo","Chitra":"Tiger","Swati":"Buffalo","Vishakha":"Tiger","Anuradha":"Deer","Jyeshtha":"Deer","Mula":"Dog","Purva Ashadha":"Monkey","Uttara Ashadha":"Mongoose","Shravana":"Monkey","Dhanishtha":"Lion","Shatabhisha":"Horse","Purva Bhadrapada":"Lion","Uttara Bhadrapada":"Cow","Revati":"Elephant"};
+const NKNADI={"Ashwini":"Vata","Bharani":"Pitta","Krittika":"Kapha","Rohini":"Vata","Mrigashira":"Pitta","Ardra":"Kapha","Punarvasu":"Vata","Pushya":"Pitta","Ashlesha":"Kapha","Magha":"Vata","Purva Phalguni":"Pitta","Uttara Phalguni":"Kapha","Hasta":"Vata","Chitra":"Pitta","Swati":"Kapha","Vishakha":"Vata","Anuradha":"Pitta","Jyeshtha":"Kapha","Mula":"Vata","Purva Ashadha":"Pitta","Uttara Ashadha":"Kapha","Shravana":"Vata","Dhanishtha":"Pitta","Shatabhisha":"Kapha","Purva Bhadrapada":"Vata","Uttara Bhadrapada":"Pitta","Revati":"Kapha"};
+const PFRIEND={
+  Sun:{Moon:"Friend",Mars:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Enemy",Saturn:"Enemy",Rahu:"Enemy",Ketu:"Enemy"},
+  Moon:{Sun:"Friend",Mars:"Neutral",Mercury:"Friend",Jupiter:"Friend",Venus:"Neutral",Saturn:"Neutral",Rahu:"Enemy",Ketu:"Enemy"},
+  Mars:{Sun:"Friend",Moon:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Neutral",Saturn:"Enemy",Rahu:"Enemy",Ketu:"Neutral"},
+  Mercury:{Sun:"Friend",Moon:"Neutral",Mars:"Neutral",Jupiter:"Neutral",Venus:"Friend",Saturn:"Neutral",Rahu:"Neutral",Ketu:"Enemy"},
+  Jupiter:{Sun:"Friend",Moon:"Friend",Mars:"Friend",Mercury:"Enemy",Venus:"Enemy",Saturn:"Neutral",Rahu:"Enemy",Ketu:"Friend"},
+  Venus:{Sun:"Enemy",Moon:"Neutral",Mars:"Neutral",Mercury:"Friend",Jupiter:"Neutral",Saturn:"Friend",Rahu:"Neutral",Ketu:"Neutral"},
+  Saturn:{Sun:"Enemy",Moon:"Enemy",Mars:"Enemy",Mercury:"Neutral",Jupiter:"Neutral",Venus:"Friend",Rahu:"Friend",Ketu:"Neutral"},
+  Rahu:{Sun:"Enemy",Moon:"Enemy",Mars:"Neutral",Mercury:"Friend",Jupiter:"Enemy",Venus:"Friend",Saturn:"Friend",Ketu:"Neutral"},
+  Ketu:{Sun:"Neutral",Moon:"Neutral",Mars:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Neutral",Saturn:"Neutral",Rahu:"Neutral"}
+};
+
+// ─── ASTRONOMY ENGINE ─────────────────────────────────────
+const nd=d=>((d%360)+360)%360;
+const r2d=d=>d*Math.PI/180;
+
+function julianDay(yr,mo,dy,hr){
+  let y=yr,m=mo;if(m<=2){y--;m+=12;}
+  const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+dy+B-1524.5+hr/24;
+}
+function ayanamsa(jd){
+  const T=(jd-2415020.0)/36524.2198782;
+  return nd(22.460148+1.396468*T+0.000308*T*T);
+}
+function calcPlanets(jd){
+  // Local fallback ephemeris:
+  // - Uses simple Keplerian orbital elements (good "ballpark" accuracy) for Sun+planets
+  // - Keeps current fast Moon approximation (Moon is the most sensitive; API remains the gold standard)
+  const ay=ayanamsa(jd);
+  const d = jd - 2451543.5; // days since J2000 (matches common low-precision element sets)
+
+  function _deg(x){ return x*180/Math.PI; }
+  function _rad(x){ return x*Math.PI/180; }
+  function _fix(a){ return nd(a); }
+  function _sin(x){ return Math.sin(x); }
+  function _cos(x){ return Math.cos(x); }
+
+  function _kepler(M,e){
+    // solve E - e sin E = M (radians)
+    let E=M,delta=1,iter=0;
+    while(Math.abs(delta) > 1e-6 && iter < 20){
+      delta = (E - e*_sin(E) - M) / (1 - e*_cos(E));
+      E = E - delta;
+      iter++;
+    }
+    return E;
+  }
+
+  // Paul Schlyter-style low-precision elements (degrees, AU). Accurate enough for fallback UI.
+  // Source idea: "Computing planetary positions" (commonly used in hobby ephemeris).
+  function _elements(name){
+    const el = {
+      Sun:     { N:0,      i:0,        w:282.9404+4.70935e-5*d, a:1.000000, e:0.016709-1.151e-9*d, M:356.0470+0.9856002585*d },
+      Mercury: { N:48.3313+3.24587e-5*d, i:7.0047+5.00e-8*d,  w:29.1241+1.01444e-5*d, a:0.387098, e:0.205635+5.59e-10*d, M:168.6562+4.0923344368*d },
+      Venus:   { N:76.6799+2.46590e-5*d, i:3.3946+2.75e-8*d,  w:54.8910+1.38374e-5*d, a:0.723330, e:0.006773-1.302e-9*d, M:48.0052+1.6021302244*d },
+      Mars:    { N:49.5574+2.11081e-5*d, i:1.8497-1.78e-8*d,  w:286.5016+2.92961e-5*d, a:1.523688, e:0.093405+2.516e-9*d, M:18.6021+0.5240207766*d },
+      Jupiter: { N:100.4542+2.76854e-5*d,i:1.3030-1.557e-7*d, w:273.8777+1.64505e-5*d, a:5.202560, e:0.048498+4.469e-9*d, M:19.8950+0.0830853001*d },
+      Saturn:  { N:113.6634+2.38980e-5*d,i:2.4886-1.081e-7*d, w:339.3939+2.97661e-5*d, a:9.554750, e:0.055546-9.499e-9*d, M:316.9670+0.0334442282*d }
+    };
+    return el[name];
+  }
+
+  function _helioEcl(name){
+    const e=_elements(name);
+    const N=_rad(_fix(e.N||0));
+    const i=_rad(_fix(e.i||0));
+    const w=_rad(_fix(e.w||0));
+    const a=e.a, ecc=e.e;
+    const M=_rad(_fix(e.M||0));
+
+    const E=_kepler(M,ecc);
+    const xv=a*(_cos(E)-ecc);
+    const yv=a*(Math.sqrt(1-ecc*ecc)*_sin(E));
+    const v=Math.atan2(yv,xv);
+    const r=Math.sqrt(xv*xv+yv*yv);
+
+    const xh=r*(_cos(N)*_cos(v+w) - _sin(N)*_sin(v+w)*_cos(i));
+    const yh=r*(_sin(N)*_cos(v+w) + _cos(N)*_sin(v+w)*_cos(i));
+    const zh=r*(_sin(v+w)*_sin(i));
+    return {x:xh,y:yh,z:zh,r:r};
+  }
+
+  // Earth heliocentric position via "Sun" elements (Sun's orbit == Earth's heliocentric)
+  const earth=_helioEcl("Sun");
+
+  function _geoLon(name){
+    const p=_helioEcl(name);
+    const xg=p.x - earth.x;
+    const yg=p.y - earth.y;
+    const lon=_fix(_deg(Math.atan2(yg,xg)));
+    return lon;
+  }
+
+  // Sun geocentric longitude is Earth heliocentric + 180
+  const sunLon = _fix(_deg(Math.atan2(earth.y, earth.x)) + 180);
+
+  // Moon (keep existing fast approximation, but compute from jd consistently)
+  const T=(jd-2451545.0)/36525;
+  let moonLon=_fix(218.3164591+481267.88134236*T);
+  const D=_fix(297.85036+445267.11480*T);
+  const Mm=_fix(134.96298+477198.867398*T);
+  moonLon=_fix(moonLon
+    +6.289*_sin(_rad(Mm))
+    -1.274*_sin(_rad(2*D-Mm))
+    +0.658*_sin(_rad(2*D))
+    -0.214*_sin(_rad(2*Mm))
+    -0.110*_sin(_rad(D))
+  );
+
+  // Mean node (fallback); true node differs and can be off versus some sites.
+  const rahuT=_fix(125.044555 - 1934.1361849*T);
+
+  const sid = {
+    Sun: _fix(sunLon - ay),
+    Moon: _fix(moonLon - ay),
+    Mercury: _fix(_geoLon("Mercury") - ay),
+    Venus: _fix(_geoLon("Venus") - ay),
+    Mars: _fix(_geoLon("Mars") - ay),
+    Jupiter: _fix(_geoLon("Jupiter") - ay),
+    Saturn: _fix(_geoLon("Saturn") - ay),
+    Rahu: _fix(rahuT - ay)
+  };
+  sid.Ketu=_fix(sid.Rahu+180);
+  return sid;
+}
+function calcAscendant(jd,lat,lon){
+  const T=(jd-2451545.0)/36525;
+  const GMST=nd(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T);
+  const LST=nd(GMST+lon);
+  const eps=23.439292-0.013004*T;
+  const asc=nd(Math.atan2(-Math.cos(r2d(LST)),Math.sin(r2d(LST))*Math.cos(r2d(eps))+Math.tan(r2d(lat))*Math.sin(r2d(eps)))*180/Math.PI);
+  return nd(asc-ayanamsa(jd));
+}
+function isRetrograde(planet,jd){
+  if(["Sun","Moon"].includes(planet))return false;
+  if(["Rahu","Ketu"].includes(planet))return true;
+  const l1=calcPlanets(jd-0.5)[planet];
+  const l2=calcPlanets(jd+0.5)[planet];
+  const diff=nd(l2-l1);return diff>180;
+}
+function dignity(planet,sign){
+  if(EXALT[planet]===sign)return"Exalted";
+  if(DEBIL[planet]===sign)return"Debilitated";
+  if(OWNSIGNS[planet]&&OWNSIGNS[planet].includes(sign))return"Own";
+  return"Neutral";
+}
+function planetStrength(rasi,planet){
+  const d=rasi.planets[planet].dignity;
+  return d==="Exalted"?90:d==="Own"?75:d==="Debilitated"?15:50;
+}
+function planetHouse(rasi,planet){
+  const i=rasi.houses.findIndex(h=>h.planets.includes(planet));
+  return i<0?0:i+1;
+}
+
+// ─── CHART BUILDER (f.timezone = UTC 오프셋 시간, 예: 9 = UTC+9) ─
+function buildChart(f,lonsOverride){
+  const utcH=f.hour+(f.minute||0)/60-f.timezone;
+  const jd=julianDay(f.year,f.month,f.day,utcH);
+  const lons=lonsOverride||calcPlanets(jd);
+  const asc=calcAscendant(jd,f.lat,f.lon);
+  const ps={};
+  const allP=["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Rahu","Ketu"];
+  for(const p of allP){
+    const lon=lons[p];const sign=Math.floor(nd(lon)/30);
+    ps[p]={lon,sign,signName:SIGNS[sign],deg:nd(lon)%30,retro:isRetrograde(p,jd),dignity:dignity(p,sign)};
+  }
+  const lagnaSign=Math.floor(nd(asc)/30);
+  const houses=Array.from({length:12},(_,h)=>{
+    const si=(lagnaSign+h)%12;
+    return{num:h+1,sign:SIGNS[si],signKr:SIGNKR[si],si,lord:SLORDS[si],planets:allP.filter(p=>ps[p].sign===si)};
+  });
+  const rasi={asc,ascSign:SIGNS[lagnaSign],ascSignKr:SIGNKR[lagnaSign],planets:ps,houses};
+  // Nakshatra
+  const SPAN=360/27;const ml=nd(ps.Moon.lon);
+  const ni=Math.floor(ml/SPAN);const din=ml-ni*SPAN;
+  const nak={idx:ni,name:NAKS[ni].n,lord:NAKS[ni].l,pada:Math.floor(din/(SPAN/4))+1,din};
+  // Vimshottari Dasha
+  const firstIdx=DSEQ.findIndex(d=>d.p===nak.lord);
+  const bal=DSEQ[firstIdx].y*(1-din/SPAN);
+  const bd=new Date(f.year,f.month-1,f.day,f.hour,(f.minute||0));
+  const dashas=[];let dt=new Date(bd);
+  for(let i=0;i<9;i++){
+    const info=DSEQ[(firstIdx+i)%9];const dur=i===0?bal:info.y;
+    const start=new Date(dt);const end=new Date(dt.getTime()+dur*365.25*86400000);
+    const ants=[];let ad=new Date(start);
+    for(let j=0;j<9;j++){
+      const ai=DSEQ[(firstIdx+i+j)%9];const ay=dur*ai.y/120;
+      const ae=new Date(ad.getTime()+ay*365.25*86400000);
+      ants.push({p:ai.p,start:new Date(ad),end:new Date(ae)});ad=new Date(ae);
+    }
+    dashas.push({p:info.p,start,end,dur,ants});dt=new Date(end);
+  }
+  const now=new Date();
+  const maha=dashas.find(d=>now>=d.start&&now<=d.end)||dashas[dashas.length-1];
+  const anta=maha.ants.find(a=>now>=a.start&&now<=a.end)||maha.ants[0];
+  // D9 Navamsa
+  const d9={};const NAVS=30/9;
+  const navStart={0:0,1:9,2:6,3:3,4:0,5:9,6:6,7:3,8:0,9:9,10:6,11:3};
+  for(const p of allP){
+    const pos=ps[p];const ni2=Math.floor(pos.deg/NAVS);const ss=navStart[pos.sign];
+    const ns=(ss+ni2)%12;d9[p]={sign:ns,signName:SIGNS[ns]};
+  }
+  // D10 Dasamsa
+  const d10={};
+  for(const p of allP){
+    const pos=ps[p];const di=Math.floor(pos.deg/3);
+    const ss=pos.sign%2===0?pos.sign:(pos.sign+8)%12;
+    const ds=(ss+di)%12;d10[p]={sign:ds,signName:SIGNS[ds]};
+  }
+  return{f,rasi,nak,dashas,maha,anta,d9,d10};
+}
+
+// ─── ANALYSIS ENGINE ──────────────────────────────────────
+function analyze(chart){
+  const{rasi,nak,dashas,maha,anta,d9,d10}=chart;
+  const lagna=rasi.ascSign;const ll=rasi.houses[0].lord;
+  const tr=STRN[lagna]||STRN.Aries;
+  const nktr=NAKTR[nak.name]||{sym:"⭐",tr:["지혜","인내"],sh:["집착"],pur:"성장"};
+  const el={Fire:0,Earth:0,Air:0,Water:0};const mo={Cardinal:0,Fixed:0,Mutable:0};
+  ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"].forEach(p=>{
+    const t=STRN[rasi.planets[p].signName]||tr;el[t.el]++;mo[t.mod]++;
+  });
+  const sortEl=Object.entries(el).sort((a,b)=>b[1]-a[1]);
+  const domEl=sortEl[0][0];const defEl=sortEl[sortEl.length-1][0];
+
+  // 1. Personality
+  const llPos=rasi.planets[ll];const llHouse=planetHouse(rasi,ll);
+  const personality={
+    lagnaSign:lagna,lagnaSignKr:rasi.ascSignKr,lagnaLord:ll,
+    lagnaLordPos:`${PKR[ll]} in ${llPos.signName} (${llHouse}하우스, ${llPos.dignity})`,
+    moonNak:nak.name,moonNakSym:nktr.sym,moonNakLord:nak.lord,moonNakPada:nak.pada,
+    coreTraits:[...tr.tr.slice(0,2),...nktr.tr.slice(0,2)],
+    subconscious:nktr.sh,lifeTheme:`${tr.kw.join(" · ")} / ${nktr.pur}`,
+    elementBalance:el,modalityBalance:mo,dominantEl:domEl,deficientEl:defEl
+  };
+
+  // 2. Wealth
+  const h2=rasi.houses[1];const h11=rasi.houses[10];
+  let ws=50;
+  const h2d=rasi.planets[h2.lord].dignity;const h11d=rasi.planets[h11.lord].dignity;
+  if(h2d==="Exalted")ws+=15;else if(h2d==="Own")ws+=10;else if(h2d==="Debilitated")ws-=12;
+  if(h11d==="Exalted")ws+=15;else if(h11d==="Own")ws+=10;else if(h11d==="Debilitated")ws-=12;
+  if(h2.planets.length>0)ws+=5;if(h11.planets.length>0)ws+=5;
+  const jp=planetStrength(rasi,"Jupiter");ws+=Math.round((jp-50)/6);
+  ws=Math.min(100,Math.max(0,ws));
+  const wealthYogas=[];
+  const h2lh=planetHouse(rasi,h2.lord);const h11lh=planetHouse(rasi,h11.lord);
+  if(h2lh===h11lh)wealthYogas.push(`Dhana Yoga: ${PKR[h2.lord]}와 ${PKR[h11.lord]}가 ${h2lh}하우스에서 결합`);
+  if(rasi.planets.Venus.dignity==="Exalted"||rasi.planets.Venus.dignity==="Own")wealthYogas.push("Lakshmi Yoga: 금성 강세 — 예술·미를 통한 재물 유입");
+  const moonH=planetHouse(rasi,"Moon");const jupH=planetHouse(rasi,"Jupiter");
+  if([1,4,7,10].includes(moonH)&&[1,4,7,10].includes(jupH))wealthYogas.push("Gaja Kesari Yoga: 달-목성 Kendra 배치 — 명성과 재물");
+  const jupM=dashas.find(d=>d.p==="Jupiter");const venM=dashas.find(d=>d.p==="Venus");
+  const wealthPeak=[];
+  if(jupM)wealthPeak.push(`목성 대운 ${jupM.start.getFullYear()}–${jupM.end.getFullYear()}`);
+  if(venM)wealthPeak.push(`금성 대운 ${venM.start.getFullYear()}–${venM.end.getFullYear()}`);
+  const wealth={score:ws,h2:`${h2.sign} — ${PKR[h2.lord]} 지배, ${h2d}`,h11:`${h11.sign} — ${PKR[h11.lord]} 지배, ${h11d}`,jupStr:jp,yogas:wealthYogas.length?wealthYogas:["특별 재물 요가 없음 — 꾸준한 노력으로 축적"],peak:wealthPeak,src:PSIG[h11.lord].car.slice(0,3).join(", "),advice:ws>=70?"재물 그릇이 크며 적극적 투자·확장 권장":ws>=50?"안정적 재물 흐름 — 저축과 계획적 지출 중요":"2·11하우스 강화 필요 — 기술 습득과 네트워크 확장에 집중"};
+
+  // 3. Career
+  const h10=rasi.houses[9];const h10l=h10.lord;
+  const carYogas=[];
+  const h1lh=planetHouse(rasi,rasi.houses[0].lord);const h9lh=planetHouse(rasi,rasi.houses[8].lord);
+  if(h1lh===h9lh)carYogas.push(`Raja Yoga: ${PKR[rasi.houses[0].lord]}와 ${PKR[rasi.houses[8].lord]}의 결합 — 탁월한 리더십`);
+  if(rasi.planets.Sun.dignity==="Exalted"||rasi.planets.Sun.dignity==="Own")carYogas.push("Surya Yoga: 태양 강세 — 정부·권위·리더십 분야 성공");
+  if(h10.planets.includes("Saturn"))carYogas.push("Shasha Yoga: 토성 10하우스 — 꾸준한 노력으로 장기 성공");
+  const d10TenthSi=(Math.floor(nd(rasi.asc)/30)+9)%12;
+  const d10P=Object.entries(d10).filter(([,v])=>v.sign===d10TenthSi).map(([k])=>PKR[k]);
+  const bestM=dashas.find(d=>d.p===h10l);
+  const career={
+    h10lord:h10l,primary:PSIG[h10l].car.slice(0,3),
+    secondary:[...h10.planets.flatMap(p=>PSIG[p].car.slice(0,2))].filter((v,i,a)=>a.indexOf(v)===i).slice(0,3),
+    yogas:carYogas.length?carYogas:["일반 직업 구조 — 꾸준함이 성공 열쇠"],
+    d10:d10P.length?`D-10 10H에 ${d10P.join(", ")} — 강한 직업 활성화`:"D-10 10H 비어 있음 — 지배 행성의 힘이 중요",
+    best:bestM?`${PKR[h10l]} 대운 ${bestM.start.getFullYear()}–${bestM.end.getFullYear()}`:"현재 진행 중인 대운 분석 필요",
+    advice:`${PKR[h10l]}의 카르마(${PSIG[h10l].kar.slice(0,2).join(", ")})에 맞는 직업에서 최고 성과 달성 가능`
+  };
+
+  // 4. Chakra
+  const chakraNames=["Muladhara","Svadhisthana","Manipura","Anahata","Vishuddha","Ajna","Sahasrara"];
+  const chakras=chakraNames.map(cn=>{
+    const pl=CHKMAP[cn];const str=planetStrength(rasi,pl);
+    const ci=CHKINFO[cn];
+    let status=str>=80?"Overactive":str>=55?"Balanced":str>=30?"Underactive":"Blocked";
+    const ph=planetHouse(rasi,pl);
+    const desc=status==="Overactive"?`${ci.bal.slice(0,2).join(", ")} 에너지 과활성. ${PKR[pl]}(${rasi.planets[pl].signName}, ${ph}H) 강세.`:
+      status==="Blocked"?`${ci.imbal.slice(0,2).join(", ")} 경향. ${PKR[pl]}(${rasi.planets[pl].signName}) 약화로 차단.`:
+      `${ci.bal.slice(0,2).join(", ")} 방면에서 균형 잡힌 에너지 흐름.`;
+    return{name:cn,kr:ci.kr,col:ci.col,planet:pl,score:str,status,desc,seed:ci.seed};
+  });
+  const sortedC=[...chakras].sort((a,b)=>b.score-a.score);
+  const domCh=sortedC[0].name;const blkCh=sortedC[sortedC.length-1].name;
+  const overallBal=Math.round(chakras.reduce((s,c)=>s+c.score,0)/7);
+  const blkInfo=CHKINFO[blkCh];
+  const chakra={chakras,dominant:domCh,blocked:blkCh,overall:overallBal,
+    advice:[`${blkInfo.kr}(${blkCh}) 활성화 집중 권장`,`씨드 만트라 "${blkInfo.seed}" 명상 실천`,`${PKR[CHKMAP[blkCh]]}의 보석 착용: ${PSIG[CHKMAP[blkCh]].gem} 권장`]
+  };
+
+  // 5. Romance
+  const h7=rasi.houses[6];const h7l=h7.lord;
+  const karaka=chart.f.gender==="M"?"Venus":"Jupiter";
+  const kp=rasi.planets[karaka];
+  const h7tr=STRN[h7.sign]||STRN.Aries;const ktr=STRN[kp.signName]||STRN.Aries;
+  const romanticStyle=`${h7tr.el} 원소 에너지: ${h7tr.kw.join(", ")}을 통해 파트너를 끌어당김`;
+  const h7M=dashas.find(d=>d.p===h7l);const kM=dashas.find(d=>d.p===karaka);
+  function _formatMarriageTiming(){
+    const by = (chart && chart.f && chart.f.year) ? chart.f.year : null;
+    const minAge = 20, maxAge = 49; // "늦어도 40대 안" (만 49세까지)
+    const minY = (by != null) ? (by + minAge) : null;
+    const maxY = (by != null) ? (by + maxAge) : null;
+
+    function _clampPeriod(d){
+      if(!d || !d.start || !d.end) return null;
+      if(minY == null || maxY == null) return { s: d.start.getFullYear(), e: d.end.getFullYear() };
+      const s = Math.max(d.start.getFullYear(), minY);
+      const e = Math.min(d.end.getFullYear(), maxY);
+      if(s > e) return null;
+      return { s, e };
+    }
+
+    // 후보(7H lord, karaka) 중복 제거 + 40대 이내로 클램프
+    const rawCandidates = [];
+    if(h7M) rawCandidates.push({ p: h7l, d: h7M });
+    if(kM) rawCandidates.push({ p: karaka, d: kM });
+
+    const seen = new Set();
+    const picked = [];
+    rawCandidates.forEach(c=>{
+      if(!c || !c.d) return;
+      const pr = _clampPeriod(c.d);
+      if(!pr) return;
+      const key = `${c.p}:${pr.s}-${pr.e}`;
+      if(seen.has(key)) return;
+      seen.add(key);
+      picked.push({ p: c.p, s: pr.s, e: pr.e });
+    });
+
+    // 후보가 없으면(둘 다 40대 이후로 밀리면) 연령 기반 윈도우로 폴백
+    if(!picked.length && by != null){
+      let aS = 28, aE = 42;
+      if(h7 && h7.planets && h7.planets.includes("Saturn")) { aS = 35; aE = 49; }
+      if(h7 && h7.planets && (h7.planets.includes("Rahu") || h7.planets.includes("Ketu"))) { aS = Math.max(aS, 32); }
+      const ys = by + aS;
+      const ye = by + aE;
+      return `${aS}–${aE}세 전후 (약 ${ys}–${ye}년)`;
+    }
+
+    if(!picked.length) return "대운 데이터 분석 필요";
+
+    // 출력: 중복 없는 고급 문구
+    if(picked.length === 1){
+      const x = picked[0];
+      return `${PKR[x.p]} 대운 (${x.s}–${x.e})`;
+    }
+    return picked.map(x=>`${PKR[x.p]} 대운 (${x.s}–${x.e})`).join(" · ");
+  }
+  const marriageTiming=_formatMarriageTiming();
+  const rChallenges=[];
+  if(kp.retro)rChallenges.push(`${PKR[karaka]} 역행: 연애에서 과거 패턴 반복 주의`);
+  if(kp.dignity==="Debilitated")rChallenges.push(`${PKR[karaka]} 약화: 이상형과 현실의 괴리`);
+  if(h7.planets.includes("Saturn"))rChallenges.push("토성의 7하우스: 결혼 지연 또는 책임감 있는 파트너");
+  if(h7.planets.includes("Rahu")||h7.planets.includes("Ketu"))rChallenges.push("Rahu/Ketu의 7하우스: 인연의 업보적 만남");
+  const d9partner=d9[karaka];
+  const romance={
+    h7sign:h7.sign,h7lord:h7l,karakaSign:kp.signName,karaka,
+    partnerTraits:[...h7tr.tr.slice(0,2),...ktr.tr.slice(0,2)].slice(0,4),
+    romanticStyle,marriageTiming,challenges:rChallenges.length?rChallenges:["특별한 연애 장애 없음 — 자연스러운 인연 기대"],
+    navamsaInsight:`Navamsa에서 ${PKR[karaka]}가 ${d9partner.signName}에 위치 — ${(STRN[d9partner.signName]||STRN.Aries).tr.slice(0,2).join(", ")} 적인 파트너와 깊은 인연`,
+    advice:`${PKR[h7l]}(${PKR[h7l]}의 특성 : ${PSIG[h7l].kar.slice(0,2).join(", ")})가 이상적 파트너상의 핵심`
+  };
+
+  // 6. Yoga
+  const yogaEl=defEl;const yogaChakra=blkCh;
+  const primary=YOGADAT.find(y=>y.el===yogaEl)||YOGADAT[0];
+  const secondary=YOGADAT.find(y=>y.ch===yogaChakra&&y!==primary)||YOGADAT[5];
+  const sunEl=(STRN[rasi.planets.Sun.signName]||STRN.Aries).el;
+  const bestTime=sunEl==="Fire"?"일출 직후 브라마무후르타 (04:00–06:00)":sunEl==="Water"?"황혼 무렵 (18:00–20:00)":sunEl==="Earth"?"이른 아침 (06:00–08:00)":"정오 (11:00–13:00)";
+  const avoidYoga=[];
+  if(domEl==="Fire")avoidYoga.push("Bikram/Hot Yoga (열 원소 과잉 주의)");
+  if(domEl==="Air")avoidYoga.push("과도한 Pranayama (공기 원소 과잉 주의)");
+  const yoga={dominantEl:domEl,deficientEl:defEl,primary,secondary,bestTime,avoid:avoidYoga.length?avoidYoga:["특별한 제한 없음"],practices:[primary,secondary,YOGADAT[5]]};
+
+  return{personality,wealth,career,chakra,romance,yoga};
+}
+
+// Ashtakoot Milan (Compatibility)
+function calcCompatibility(nak1,nak2){
+  const i1=NAKS.findIndex(n=>n.n===nak1);const i2=NAKS.findIndex(n=>n.n===nak2);
+  // Varna (1)
+  const varnaMap={"Ashwini":3,"Bharani":0,"Krittika":1,"Rohini":3,"Mrigashira":2,"Ardra":0,"Punarvasu":3,"Pushya":1,"Ashlesha":0,"Magha":0,"Purva Phalguni":3,"Uttara Phalguni":3,"Hasta":2,"Chitra":3,"Swati":2,"Vishakha":3,"Anuradha":2,"Jyeshtha":0,"Mula":1,"Purva Ashadha":3,"Uttara Ashadha":1,"Shravana":2,"Dhanishtha":3,"Shatabhisha":2,"Purva Bhadrapada":1,"Uttara Bhadrapada":3,"Revati":3};
+  const varna=varnaMap[nak1]>=varnaMap[nak2]?1:0;
+  // Vashya (2) — simplified
+  const vashya=Math.abs(i1-i2)<=4?2:1;
+  // Tara (3)
+  const t1=(i2-i1+27)%27%9+1;const t2=(i1-i2+27)%27%9+1;
+  const taraScore=[1,3,5,7].includes(t1)&&[1,3,5,7].includes(t2)?3:[1,3,5,7].includes(t1)||[1,3,5,7].includes(t2)?1.5:0;
+  // Yoni (4)
+  const y1=NKYONI[nak1],y2=NKYONI[nak2];
+  const hostile=[["Dog","Deer"],["Cat","Rat"],["Horse","Buffalo"],["Elephant","Lion"],["Goat","Mongoose"],["Cow","Tiger"],["Serpent","Mongoose"]];
+  const yoni=y1===y2?4:hostile.some(h=>(y1===h[0]&&y2===h[1])||(y1===h[1]&&y2===h[0]))?0:2;
+  // Graha Maitri (5)
+  const l1=NAKS[i1].l,l2=NAKS[i2].l;
+  const r1=l1===l2?"Neutral":(PFRIEND[l1]&&PFRIEND[l1][l2])||"Neutral";
+  const r2=l1===l2?"Neutral":(PFRIEND[l2]&&PFRIEND[l2][l1])||"Neutral";
+  const gmScores={"Friend-Friend":5,"Friend-Neutral":4,"Neutral-Friend":4,"Neutral-Neutral":3,"Friend-Enemy":1,"Enemy-Friend":1,"Enemy-Neutral":0.5,"Neutral-Enemy":0.5,"Enemy-Enemy":0};
+  const gm=gmScores[`${r1}-${r2}`]||3;
+  // Gana (6)
+  const g1=NKGANA[nak1],g2=NKGANA[nak2];
+  const gana=g1===g2?6:g1==="Deva"&&g2==="Manushya"||g1==="Manushya"&&g2==="Deva"?5:g1==="Deva"&&g2==="Rakshasa"||g1==="Rakshasa"&&g2==="Deva"?0:3;
+  // Bhakoot (7)
+  const s1=Math.floor(i1/2.25),s2=Math.floor(i2/2.25);
+  const diff=Math.abs(s1-s2);
+  const bhakoot=[6,8,5,9].includes(diff+1)||[6,8,5,9].includes(12-diff)?0:7;
+  // Nadi (8)
+  const nadi=NKNADI[nak1]!==NKNADI[nak2]?8:0;
+  const total=Math.round(varna+vashya+taraScore+yoni+gm+gana+bhakoot+nadi);
+  const why={
+    varna: varna===1
+      ? `Varna 점수 1점: 두 낙샤트라의 Varna(계층) 흐름이 상호 수용 가능한 방향입니다. 관계에서 역할·기대치가 자연스럽게 정렬되기 쉬워요.`
+      : `Varna 점수 0점: Varna(계층) 관점에서 기대치/역할 인식 차이가 커질 수 있습니다. 현실적 기준(가치관·생활방식)을 명확히 맞추는 것이 중요합니다.`,
+    vashya: vashya===2
+      ? `Vashya 2점: 두 낙샤트라의 거리(상호 끌림/영향권)가 가까운 편으로, 주도권 싸움 없이 리듬을 맞추기 쉽습니다.`
+      : `Vashya 1점: 상호 영향권이 다소 분리되어 각자 고집이 살아날 수 있습니다. 중요한 의사결정은 “원칙 합의 → 역할 분담” 순서가 유리합니다.`,
+    tara: taraScore===3
+      ? `Tara 3점: Tara(행운/보호) 패턴이 상호 길(吉) 쪽으로 맞물립니다. 함께 있을 때 컨디션·운의 흐름이 안정적입니다.`
+      : taraScore>0
+        ? `Tara ${taraScore}점: 한쪽은 길(吉) 흐름인데 다른 한쪽이 약할 수 있습니다. 컨디션/시기운이 엇갈릴 때 서로 “휴식·배려”를 우선하면 균형이 잡힙니다.`
+        : `Tara 0점: Tara 관점에서 시기운이 충돌할 수 있습니다. 큰 결정(동거/결혼/투자)은 “타이밍”을 더 보수적으로 잡는 것이 좋습니다.`,
+    yoni: yoni===4
+      ? `Yoni 4점: 동일한 Yoni(본능/친밀감 원형)로 신체적·정서적 친밀감이 자연스럽습니다.`
+      : yoni===0
+        ? `Yoni 0점: Yoni(본능 원형)가 상극 패턴으로, 자극/갈등이 강하게 느껴질 수 있습니다. 갈등이 생기면 “즉시 해결”보다 “쿨다운 후 대화”가 필요합니다.`
+        : `Yoni 2점: 기본 친밀감은 형성되지만 리듬(애정표현/거리감)이 다를 수 있습니다. 서로의 애정 언어를 구체화하면 점수가 체감상 올라갑니다.`,
+    gm: `Graha Maitri ${gm}점: 두 낙샤트라의 지배 행성(${l1} ↔ ${l2}) 우정 관계가 ${r1}/${r2}로 계산되었습니다. 정신적 코드(대화/판단 기준)가 잘 맞을수록 장기 안정성이 커집니다.`,
+    gana: gana===6
+      ? `Gana 6점: 동일 Gana(${g1}) — 기질의 기본 파형이 유사해 “사소한 생활 리듬”까지 잘 맞는 편입니다.`
+      : gana===0
+        ? `Gana 0점: 기질(${g1} ↔ ${g2}) 충돌 가능성이 큽니다. 갈등의 핵심은 ‘사랑’이 아니라 ‘표현 방식’일 때가 많으니 규칙을 만들어 두세요.`
+        : `Gana ${gana}점: 기질이 부분적으로 달라 보완이 가능하지만, 스트레스 상황에서 반응 패턴이 다를 수 있습니다.`,
+    bhakoot: bhakoot===7
+      ? `Bhakoot 7점: Bhakoot(관계/번영) 축이 안정적입니다. 함께 살수록 재정·생활 기반이 정돈되는 흐름이 기대됩니다.`
+      : `Bhakoot 0점: Bhakoot Dosha 가능성 — 관계의 ‘번영/재정/가정 운영’에서 마찰이 생기기 쉽습니다. 돈·가족·거주 같은 현실 의제를 초기에 합의하면 완화됩니다.`,
+    nadi: nadi===8
+      ? `Nadi 8점: Nadi(체질/혈통) 타입이 달라 건강·자녀운 측면에서 유리한 조합으로 봅니다.`
+      : `Nadi 0점: Nadi Dosha 가능성 — 체질/건강·자녀 이슈를 더 신중히 보라는 신호입니다. 생활 습관/건강검진/출산 계획을 현실적으로 잡는 것이 좋아요.`
+  };
+  const breakdown=[
+    {n:"Varna (카스트 호환성)",max:1,sc:Math.round(varna),desc:"사회적 적합성",why:why.varna},
+    {n:"Vashya (지배 관계)",max:2,sc:Math.round(vashya),desc:"상호 영향력",why:why.vashya},
+    {n:"Tara (별자리 궁합)",max:3,sc:Math.round(taraScore),desc:"건강·운",why:why.tara},
+    {n:"Yoni (본능 호환)",max:4,sc:Math.round(yoni),desc:"신체적 친밀감",why:why.yoni},
+    {n:"Graha Maitri (행성우정)",max:5,sc:Math.round(gm),desc:"정신적 호환",why:why.gm},
+    {n:"Gana (기질 호환)",max:6,sc:Math.round(gana),desc:"기질적 조화",why:why.gana},
+    {n:"Bhakoot (관계 조화)",max:7,sc:Math.round(bhakoot),desc:"관계 번영",why:why.bhakoot},
+    {n:"Nadi (체질 호환)",max:8,sc:Math.round(nadi),desc:"자녀·건강",why:why.nadi}
+  ];
+  const pct=Math.round(total/36*100);
+  const verdict=pct>=75?"매우 좋은 궁합 — 강력히 추천":pct>=65?"좋은 궁합 — 추천":pct>=50?"보통 궁합 — 노력 필요":"신중한 접근 권장";
+  const strengths=[];const challenges=[];
+  if(nadi===8)strengths.push("완벽한 체질 호환");
+  if(gana===6)strengths.push("동일 기질 — 자연스러운 조화");
+  if(yoni===4)strengths.push("강한 신체적 끌림");
+  if(nadi===0)challenges.push("Nadi Dosha: 자녀·건강 주의");
+  if(gana===0)challenges.push("기질 충돌 주의 필요");
+  if(bhakoot===0)challenges.push("Bhakoot Dosha: 재물·번영 주의");
+  const overallReason=
+    `낙샤트라 기준: <span class="keyword">${nak1}</span> × <span class="keyword">${nak2}</span>.<br>`+
+    `총점 <span class="keyword">${total}/36</span>은 ‘감정’보다 <span class="keyword">생활 궁합(기질·의사결정·건강/가정 운영)</span>을 얼마나 안정적으로 굴릴 수 있는지에 초점을 둔 값입니다.<br>`+
+    `${(bhakoot===0||nadi===0)?'특히 <span class="keyword">Bhakoot/Nadi</span>는 결혼 생활의 현실(재정·가정·건강)과 연결되므로, 낮게 나오면 “룰/합의/생활 설계”로 보완하는 게 핵심입니다.':'핵심 항목에서 큰 도샤 신호가 없어서, 관계의 안정성을 끌어올리기 좋은 조합입니다.'}`;
+
+  return{
+    total,pct,verdict,breakdown,strengths,challenges,
+    overallReason,
+    advice:pct>=65
+      ?"두 사람의 별자리 에너지가 조화를 이룹니다. 장점은 키우고, 약점은 ‘규칙’으로 보완하면 장기적으로 매우 안정적입니다."
+      :"차이점을 인정하고 서로를 보완하는 노력이 관계의 핵심입니다. 특히 낮게 나온 항목을 중심으로 대화 규칙과 생활 합의를 만드는 것이 효과적입니다."
+  };
+}
+
+// ─── STATE ────────────────────────────────────────────────
+let G={chart:null,report:null,chartStyle:"south",activeTab:"overview"};
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id!=='input') setTimeout(initReveal,80);
+}
+function goBack(){showPage(G.detailBack||'result');}
+
+// ─── SCROLL REVEAL ────────────────────────────────────────
+function initReveal(){
+  const els=document.querySelectorAll('.reveal');
+  if(!els.length)return;
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+  },{threshold:0.08});
+  els.forEach(el=>obs.observe(el));
+}
+
+// ─── ACCORDION ────────────────────────────────────────────
+function toggleAcc(id){
+  const body=document.getElementById('acc-'+id);
+  const arrow=document.getElementById('arr-'+id);
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(arrow)arrow.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';
+}
+
+// ─── TABS ─────────────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const btn=document.getElementById('tbtn-'+id);
+  const panel=document.getElementById('tpanel-'+id);
+  if(btn)btn.classList.add('active');
+  if(panel){panel.classList.add('active');setTimeout(initReveal,60);}
+  G.activeTab=id;
+}
+
+// ─── DEEP INSIGHT GENERATOR ───────────────────────────────
+function generateInsights(chart,report){
+  const{rasi,nak,maha,anta,dashas}=chart;
+  const p=report.personality;const w=report.wealth;const c=report.career;
+  const ch=report.chakra;const rom=report.romance;const y=report.yoga;
+  const nktr=NAKTR[nak.name]||{sym:"⭐",tr:["지혜"],sh:["집착"],pur:"성장"};
+  const lagnaLordPos=rasi.planets[p.lagnaLord];
+  const moonPos=rasi.planets['Moon'];
+  const sunPos=rasi.planets['Sun'];
+  const now=new Date();
+  const mahaRem=Math.round((maha.end-now)/(1000*60*60*24*365.25)*10)/10;
+  const antaRem=Math.round((anta.end-now)/(1000*60*60*24*30));
+
+  // ── 1. 종합 운세 요약 (오늘의 기운) ──────────────────────
+  const dashaPower=PSIG[maha.p]?PSIG[maha.p].kar[0]:'변화';
+  const antaPower=PSIG[anta.p]?PSIG[anta.p].kar[0]:'흐름';
+  const mahaQuality=rasi.planets[maha.p]?rasi.planets[maha.p].dignity:'Neutral';
+  const mahaInsightMap={
+    Exalted:`${PKR[maha.p]} 대운이 최고 강세(항진)로 작동 중입니다. 이 시기는 당신 생애에서 가장 강력한 상승 에너지가 흐르는 황금기입니다.`,
+    Own:`${PKR[maha.p]} 대운이 자기 별자리에서 운행됩니다. 안정된 토대 위에서 내면의 힘이 자연스럽게 발현되는 시기입니다.`,
+    Debilitated:`${PKR[maha.p]} 대운이 약화 상태로 운행됩니다. 성급한 확장보다 내면 정화와 지혜 축적에 집중할 시기입니다.`,
+    Neutral:`${PKR[maha.p]} 대운이 균형 상태로 흐릅니다. ${dashaPower}의 카르마를 의식적으로 실천할 때 풍성한 결실을 맺습니다.`
+  };
+  const todayVibe=`현재 당신은 <span class="keyword">${PKR[maha.p]} 대운</span> / <span class="keyword">${PKR[anta.p]} 세운</span>의 교차점에 서 있습니다. ${mahaInsightMap[mahaQuality]||mahaInsightMap.Neutral} 세운 ${PKR[anta.p]}는 ${antaPower}의 에너지를 주입하며, 앞으로 약 ${antaRem}개월간 이 파동이 지속됩니다.`;
+
+  // ── 2. 라그나 + 낙샤트라 심층 성향 ──────────────────────
+  const lagnaEl=(STRN[p.lagnaSign]||STRN.Aries).el;
+  const elDesc={Fire:"불꽃처럼 타오르는 영혼으로, 한번 정한 방향을 향해 강렬하게 돌진하는 선천적 에너지를 지닙니다",Earth:"대지처럼 묵직하고 신뢰할 수 있는 토대를 구축하며, 현실에 뿌리내린 지혜로 주변을 안정시킵니다",Air:"바람처럼 자유롭고 지적인 영혼으로, 정보와 아이디어를 연결하며 세상을 변화시키는 소통의 달인입니다",Water:"깊은 바다처럼 감성과 직관이 풍부하며, 타인의 마음을 읽어내는 탁월한 공감 능력을 타고났습니다"};
+  const personalityInsight=`당신의 라그나(상승궁) <span class="keyword">${p.lagnaSignKr}</span>는 ${elDesc[lagnaEl]||''}.
+달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식의 언어입니다. ${nktr.pur}를 삶의 목적으로 품고 태어난 당신은, ${nktr.tr.join('·')}의 자질이 외적으로 드러날 때 진정한 본성에 가까워집니다.
+그러나 그림자 속에는 ${nktr.sh.join('과 ')}의 패턴이 숨어 있습니다. 이것은 결함이 아닌, 당신이 이번 생에서 통합해야 할 카르마의 씨앗입니다.`;
+
+  // ── 3. 재물 심층 분석 ─────────────────────────────────
+  const wScore=w.score||50;
+  const wealthNarrative=wScore>=70?
+    `당신의 재물 차트는 <span class="keyword">${wScore}점</span>의 강한 활성 상태입니다. 재물을 끌어당기는 선천적 자력이 있으며, 특히 ${w.src} 분야에서 풍성한 흐름이 형성됩니다.`:
+    wScore>=50?
+    `재물 지수 <span class="keyword">${wScore}점</span> — 안정적인 중간 강도의 재물 에너지입니다. 꾸준한 적립과 전략적 선택이 재물을 빚는 주 도구가 됩니다.`:
+    `재물 지수 <span class="keyword">${wScore}점</span> — 이번 생에서 재물은 '노력으로 쌓는 카르마'로 설정되어 있습니다. 물질보다 기술과 인간 관계 자본에 집중하면 장기적 풍요가 따릅니다.`;
+  const yogaText=w.yogas&&w.yogas[0]&&!w.yogas[0].includes('없음')?`차트에서 <span class="keyword">${w.yogas[0].split(':')[0]}</span>이 발견됩니다. 이 요가는 ${w.yogas[0].split('—')[1]||'재물의 특별한 통로'}를 활성화합니다.`:'특별 재물 요가보다 일상의 꾸준함이 당신의 재물을 쌓는 가장 강력한 수단입니다.';
+
+  // ── 4. 천직 심층 분석 ─────────────────────────────────
+  const careerNarrative=`10하우스의 지배 행성 <span class="keyword">${PKR[c.h10lord]}</span>는 당신의 사회적 사명을 상징합니다. ${PSIG[c.h10lord]?PSIG[c.h10lord].kar.slice(0,2).join('과 '):'지혜와 행동'}의 카르마를 세상에 펼칠 때 진정한 직업적 성취가 찾아옵니다.
+추천 직군 <span class="keyword">${(c.primary||[]).join(' · ')}</span>은 단순한 직업 목록이 아니라, 당신의 영혼이 이번 생에서 가장 자연스럽게 기여할 수 있는 영역입니다.
+${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 될 것입니다.`:'현재 진행 중인 대운에서 커리어의 씨앗을 심을 때입니다.'}`;
+
+  // ── 5. 다샤 심층 해석 ─────────────────────────────────
+  const dashaInsights={};
+  for(const d of dashas){
+    const dp=rasi.planets[d.p];
+    const str=dp?planetStrength(rasi,d.p):50;
+    const dq=dp?dp.dignity:'Neutral';
+    const karWords=PSIG[d.p]?PSIG[d.p].kar.slice(0,2).join('·'):'성장';
+    const carWords=PSIG[d.p]?PSIG[d.p].car.slice(0,2).join('·'):'다양한 분야';
+    const insightByDignity={
+      Exalted:`${PKR[d.p]}의 에너지가 최고조로 빛나는 시기. ${karWords}의 영역이 활짝 열리며, ${carWords} 분야에서 눈에 띄는 성취가 나타납니다.`,
+      Own:`${PKR[d.p]}가 자신의 집에서 안정적으로 운행하는 시기. 내면의 힘을 기반으로 ${karWords}을 자연스럽게 확장할 수 있습니다.`,
+      Debilitated:`${PKR[d.p]}가 도전받는 시기입니다. ${karWords} 영역에서 시련이 찾아오지만, 이는 영혼을 단련시키는 황금 같은 교훈입니다.`,
+      Neutral:`${PKR[d.p]}의 균형 잡힌 운행. ${karWords}의 카르마를 의식적으로 실천할 때 이 시기의 잠재력이 온전히 실현됩니다.`
+    };
+    dashaInsights[d.p]=insightByDignity[dq]||insightByDignity.Neutral;
+  }
+
+  // ── 6. 차크라 심층 해석 ───────────────────────────────
+  const blkCh=ch.blocked||'Muladhara';
+  const blkInfo=CHKINFO[blkCh]||{kr:'뿌리 차크라',seed:'LAM',col:'#DC2626'};
+  const chakraNarrative=`에너지체를 살펴보면, <span class="keyword">${CHKINFO[ch.dominant]?CHKINFO[ch.dominant].kr:ch.dominant}</span>가 가장 강렬하게 빛나고 있습니다. 이 에너지는 삶의 원동력이 되지만, 과잉 활성 시 소진을 유발할 수 있습니다.
+반면 <span class="keyword">${blkInfo.kr}</span>는 현재 에너지 흐름이 제한되어 있습니다. 이 차크라에 의식을 집중하고, 씨드 만트라 "<span class="keyword">${blkInfo.seed}</span>"를 일상 명상에 통합하는 것이 에너지 균형 회복의 핵심 열쇠입니다.`;
+
+  // ── 7. 연애 심층 해석 ─────────────────────────────────
+  const h7tr=STRN[rom.h7sign]||STRN.Aries;
+  const romanceNarrative=`당신의 7하우스(배우자·파트너의 집)에는 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.h7sign)]||rom.h7sign}</span>의 에너지가 흐릅니다. 이상적인 파트너는 ${h7tr.tr.slice(0,2).join('·')}한 특질을 지닌 사람입니다.
+${chart.f.gender==='M'?'금성(Venus)':'목성(Jupiter)'}이 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.karakaSign)]||rom.karakaSign}</span>에 위치해, ${(STRN[rom.karakaSign]||STRN.Aries).tr.slice(0,2).join('과 ')}의 에너지를 지닌 파트너와 깊은 영적 계약이 맺어져 있습니다.
+${rom.challenges&&rom.challenges.length&&!rom.challenges[0].includes('없음')?`특히 <span class="keyword">${rom.challenges[0].split(':')[0]}</span>에 주의가 필요합니다.`:'연애의 에너지 흐름은 전반적으로 건강합니다.'}`;
+
+  return{todayVibe,personalityInsight,wealthNarrative,yogaText,careerNarrative,dashaInsights,chakraNarrative,romanceNarrative};
+}
+
+// ─── PROFILE 정규화 (지역/생일 null 시 서울·기본값 적용, tz = 시간 단위 UTC 오프셋) ─
+function normalizeProfileForVedic(profile){
+  if(!profile||!profile.birth)return profile;
+  const b=profile.birth;
+  const l=profile.location||{};
+  const lat=typeof l.lat==='number'&&!isNaN(l.lat)?l.lat:(parseFloat(l.lat)||37.5665);
+  const lng=typeof l.lng==='number'&&!isNaN(l.lng)?l.lng:(typeof l.lon==='number'&&!isNaN(l.lon)?l.lon:(parseFloat(l.lng)||parseFloat(l.lon)||126.978));
+  let tz=9;
+  if(typeof l.baseTzOffset==='number'&&!isNaN(l.baseTzOffset))tz=l.baseTzOffset;
+  else if(typeof l.tzOffset==='number'&&!isNaN(l.tzOffset))tz=Math.abs(l.tzOffset)<=24?l.tzOffset:l.tzOffset/60;
+  return{
+    id:profile.id,
+    name:profile.name,
+    gender:profile.gender,
+    birth:{
+      year:b.year,
+      month:b.month,
+      day:b.day,
+      hour:b.hour!=null?b.hour:12,
+      minute:b.minute!=null?b.minute:0,
+      calType:b.calType||'solar'
+    },
+    location:{
+      label:l.label||'대한민국 (서울)',
+      tz:l.tz||'Asia/Seoul',
+      lat, lng,
+      tzOffset:tz,
+      baseTzOffset:tz,
+      dstMinutes:l.dstMinutes
+    }
+  };
+}
+
+// ─── PROFILE → FORM (f.timezone = UTC 오프셋 시간 단위, 예: 9 = UTC+9) ─
+function profileToForm(profile){
+  const p=normalizeProfileForVedic(profile)||profile;
+  const birth=p.birth||{};
+  const loc=p.location||{};
+  let tz=9;
+  if(typeof loc.baseTzOffset==='number'&&!isNaN(loc.baseTzOffset))tz=loc.baseTzOffset;
+  else if(typeof loc.tzOffset==='number'&&!isNaN(loc.tzOffset))tz=Math.abs(loc.tzOffset)<=24?loc.tzOffset:loc.tzOffset/60;
+  const lat=parseFloat(loc.lat);
+  const lon=parseFloat(loc.lng)||parseFloat(loc.lon);
+  return{
+    name:(p.name||'').trim()||'이름없음',
+    gender:p.gender||'M',
+    year:parseInt(birth.year,10)||1990,
+    month:parseInt(birth.month,10)||1,
+    day:parseInt(birth.day,10)||1,
+    hour:parseInt(birth.hour,10)||12,
+    minute:parseInt(birth.minute,10)||0,
+    lat:(typeof lat==='number'&&!isNaN(lat))?lat:37.5665,
+    lon:(typeof lon==='number'&&!isNaN(lon))?lon:126.978,
+    timezone:tz
+  };
+}
+
+// ─── CALCULATE FROM PROFILE (API 우선, 실패 시 로컬) ───────
+function doCalculateFromProfile(profile){
+  const f=profileToForm(profile);
+  if(isNaN(f.year)||isNaN(f.lat)||isNaN(f.lon)){alert('프로필 정보가 부족합니다.');return;}
+  showPage('loading');
+
+  function runWithPlanets(planetsFromApi){
+    try{
+      var chart=buildChart(f,planetsFromApi);
+      var report=analyze(chart);
+      var insights=generateInsights(chart,report);
+      G.chart=chart;G.report=report;G.insights=insights;G.activeTab='overview';
+      G.usedLocalCalc=!planetsFromApi;
+      renderResult();
+      showPage('result');
+    }catch(err){
+      console.error(err);
+      document.getElementById('result-content').innerHTML='<div class="error-box">계산 중 오류가 발생했습니다. 생년월일·시간·장소를 확인해 주세요.<br><a href="/" style="color:var(--gold);margin-top:12px;display:inline-block">← 메인으로</a></div>';
+      showPage('result');
+    }
+  }
+
+  function runLocal(){
+    runWithPlanets(undefined);
+  }
+
+  var apiBase=typeof window!=='undefined'&&window.location&&window.location.origin?window.location.origin:'';
+  var url=apiBase+'/api/vedic/planets';
+  var payload={ year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute,timezone:f.timezone };
+  var timeoutMs=2500;
+  var reqPromise;
+  if(typeof AbortController==='function'){
+    var ac=new AbortController();
+    var t=setTimeout(function(){ try{ ac.abort(); }catch(_){} }, timeoutMs);
+    reqPromise=fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ac.signal})
+      .then(function(r){ return r.json(); })
+      .finally(function(){ clearTimeout(t); });
+  } else {
+    reqPromise=Promise.race([
+      fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(function(r){return r.json();}),
+      new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, timeoutMs); })
+    ]);
+  }
+  reqPromise
+    .then(function(res){
+      if(res&&res.ok&&res.planets){ runWithPlanets(res.planets); }
+      else { runLocal(); }
+    })
+    .catch(function(err){
+      console.warn('Vedic API unavailable, using local calculation:', err&&err.message?err.message:'');
+      runLocal();
+    });
+}
+
+// ─── INIT: 프로필 있으면 API 호출 후 결과, 없으면 noprofile ─
+function _hasValidBirth(p){
+  if(!p||!p.birth)return false;
+  const b=p.birth;
+  const numOrStr=function(v){ return v!==undefined&&v!==null&&v!==''&&(typeof v==='number'?!isNaN(v):String(v).trim()!==''); };
+  return numOrStr(b.year)&&numOrStr(b.month)&&numOrStr(b.day);
+}
+function _hasAnyBirth(p){
+  if(!p||!p.birth)return false;
+  const b=p.birth;
+  return (b.year!=null&&b.year!=='')||(b.month!=null&&b.month!=='')||(b.day!=null&&b.day!=='');
+}
+function _repairProfile(profile){
+  if(!profile)return null;
+  if(!profile.birth&&(profile.birthYear!=null||profile.birthMonth!=null||profile.birthDay!=null)){
+    profile={ id:profile.id,name:profile.name,gender:profile.gender,location:profile.location,birth:{ year:profile.birthYear,month:profile.birthMonth,day:profile.birthDay,hour:profile.birthHour,minute:profile.birthMinute } };
+  }
+  if(!profile.birth&&(profile.birthDate||profile.birthTime)){
+    var y=1990,m=1,d=1,hr=12,min=0;
+    if(typeof profile.birthDate==='string'){
+      var parts=profile.birthDate.split(/[-/]/);
+      if(parts.length>=3){ y=parseInt(parts[0],10)||y; m=parseInt(parts[1],10)||m; d=parseInt(parts[2],10)||d; }
+      else if(parts.length===1&&parts[0].length>=8){ y=parseInt(parts[0].slice(0,4),10)||y; m=parseInt(parts[0].slice(4,6),10)||m; d=parseInt(parts[0].slice(6,8),10)||d; }
+    }
+    if(typeof profile.birthTime==='string'){
+      var tparts=profile.birthTime.split(/[:]/);
+      if(tparts.length>=2){ hr=parseInt(tparts[0],10); min=parseInt(tparts[1],10); if(isNaN(hr))hr=12; if(isNaN(min))min=0; }
+    }
+    profile.birth=profile.birth||{ year:y,month:m,day:d,hour:hr,minute:min };
+  }
+  const b=profile.birth||{};
+  if(b.year==null||b.year==='')b.year=1990;
+  if(b.month==null||b.month==='')b.month=1;
+  if(b.day==null||b.day==='')b.day=1;
+  if(b.hour==null&&b.hour!==0)b.hour=12;
+  if(b.minute==null&&b.minute!==0)b.minute=0;
+  profile.birth=b;
+  return profile;
+}
+function _readProfileFromStorage(){
+  let profile=null;
+  var raw;
+  if(typeof localStorage!=='undefined'){
+    raw=localStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD');
+    if(raw){ try{ profile=JSON.parse(raw); }catch(_){}
+      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){ localStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); return _repairProfile(profile); }
+    }
+  }
+  if(typeof sessionStorage!=='undefined'){
+    raw=sessionStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD');
+    if(raw){ try{ profile=JSON.parse(raw); }catch(_){}
+      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){ sessionStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); return _repairProfile(profile); }
+    }
+  }
+  if(typeof window!=='undefined'&&window.FORTUNE_APP_VEDIC_PAYLOAD)return _repairProfile(window.FORTUNE_APP_VEDIC_PAYLOAD);
+  if(typeof localStorage!=='undefined'){
+    const listRaw=localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
+    const currentId=localStorage.getItem('FORTUNE_APP_USER_PROFILES.current');
+    if(listRaw){
+      let arr=[]; try{ arr=JSON.parse(listRaw); }catch(_){}
+      if(Array.isArray(arr)&&arr.length){
+        profile=currentId?arr.find(p=>p.id===currentId):null;
+        if(!profile)profile=arr[0];
+        if(profile&&!_hasValidBirth(profile))profile=arr.find(_hasValidBirth)||arr.find(_hasAnyBirth)||arr[0];
+        if(profile)return _repairProfile(profile);
+      }
+    }
+    const legacy=localStorage.getItem('FORTUNE_APP_USER_PROFILES');
+    if(legacy){ try{ const a=JSON.parse(legacy); if(Array.isArray(a)&&a.length){ profile=a.find(_hasValidBirth)||a.find(_hasAnyBirth)||a[0]; if(profile)return _repairProfile(profile); } }catch(_){ } }
+  }
+  return null;
+}
+function initVedicPage(){
+  let profile=null;
+  try{ profile=_readProfileFromStorage(); }catch(e){}
+  if(!profile){ showPage('input'); _prefillVedicInput(); return; }
+  profile=normalizeProfileForVedic(profile)||profile;
+  if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); _prefillVedicInput(); return; }
+  doCalculateFromProfile(profile);
+}
+
+// ensure handlers are bound even if inline attributes fail
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    var runBtn=document.getElementById('v_run_btn');
+    if(runBtn){
+      runBtn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        runVedicFromInput();
+      });
+    }
+    var placeSel=document.getElementById('v_place');
+    if(placeSel){
+      placeSel.addEventListener('change', function(){
+        try{ vedicApplySelectedPlace(); }catch(_){}
+      });
+    }
+    // If the place list script is slow, try again shortly
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 0);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 300);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 1200);
+  }catch(_){}
+});
+
+// explicit global exposure (safety for some bundlers/strict modes)
+try{ window.vedicInitBirthPlaceSelect = vedicInitBirthPlaceSelect; }catch(_){}
+try{ window.vedicApplySelectedPlace = vedicApplySelectedPlace; }catch(_){}
+try{ window.runVedicFromInput = runVedicFromInput; }catch(_){}
+
+function _prefillVedicInput(){
+  try{
+    vedicInitBirthPlaceSelect();
+    var now=new Date();
+    var yEl=document.getElementById('v_year'); if(yEl&&!yEl.value) yEl.value=String(now.getFullYear());
+    var mEl=document.getElementById('v_month'); if(mEl&&!mEl.value) mEl.value=String(now.getMonth()+1);
+    var dEl=document.getElementById('v_day'); if(dEl&&!dEl.value) dEl.value=String(now.getDate());
+    var hEl=document.getElementById('v_hour'); if(hEl&&!hEl.value) hEl.value='12';
+    var minEl=document.getElementById('v_minute'); if(minEl&&!minEl.value) minEl.value='0';
+    var latEl=document.getElementById('v_lat'); if(latEl&&!latEl.value) latEl.value='37.5665';
+    var lonEl=document.getElementById('v_lon'); if(lonEl&&!lonEl.value) lonEl.value='126.9780';
+    var tzEl=document.getElementById('v_tz'); if(tzEl&&!tzEl.value) tzEl.value='9';
+  }catch(_){}
+}
+
+function runVedicFromInput(){
+  try{
+    var y=parseInt((document.getElementById('v_year')||{}).value,10);
+    var m=parseInt((document.getElementById('v_month')||{}).value,10);
+    var d=parseInt((document.getElementById('v_day')||{}).value,10);
+    var hr=parseInt((document.getElementById('v_hour')||{}).value,10);
+    var min=parseInt((document.getElementById('v_minute')||{}).value,10);
+    var lat=parseFloat((document.getElementById('v_lat')||{}).value);
+    var lon=parseFloat((document.getElementById('v_lon')||{}).value);
+    var tz=parseFloat((document.getElementById('v_tz')||{}).value);
+    var gender=(document.getElementById('v_gender')||{}).value||'M';
+
+    if(isNaN(y)||isNaN(m)||isNaN(d)){ alert('생년월일을 확인해 주세요.'); return; }
+    if(isNaN(hr))hr=12;
+    if(isNaN(min))min=0;
+    if(isNaN(lat)||isNaN(lon)){ alert('위도/경도를 확인해 주세요.'); return; }
+    if(isNaN(tz))tz=9;
+
+    var profile={
+      id:'vedic_manual',
+      name:'(직접 입력)',
+      gender:gender,
+      birth:{ year:y,month:m,day:d,hour:hr,minute:min },
+      location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:'(직접 입력)', tz:'' }
+    };
+    doCalculateFromProfile(profile);
+  }catch(e){
+    console.error(e);
+    alert('입력값 처리 중 오류가 발생했습니다.');
+  }
+}
+
+// ─── CHART RENDERERS ──────────────────────────────────────
+function renderSouthChart(rasi){
+  const SOUTH_POS={0:[0,1],1:[0,2],2:[0,3],3:[1,3],4:[2,3],5:[3,3],6:[3,2],7:[3,1],8:[3,0],9:[2,0],10:[1,0],11:[0,0]};
+  const lagnaSign=Math.floor(nd(rasi.asc)/30);
+  const grid=Array.from({length:4},()=>Array.from({length:4},()=>null));
+  for(let si=0;si<12;si++){
+    const[r,c]=SOUTH_POS[si];
+    const house=rasi.houses.find(h=>h.si===si);
+    grid[r][c]={si,signKr:SIGNKR[si],hnum:house?house.num:null,isLagna:si===lagnaSign,planets:house?house.planets:[]};
+  }
+  let html='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;border:1px solid rgba(139,92,246,0.3);border-radius:8px;overflow:hidden;background:rgba(5,0,16,0.6)">';
+  for(let r=0;r<4;r++){for(let c=0;c<4;c++){
+    if((r===0||r===3)&&(c===0||c===3)){html+='<div style="background:#050010;min-height:60px"></div>';continue;}
+    const cell=grid[r][c];
+    if(!cell){html+='<div></div>';continue;}
+    const pSyms=cell.planets.slice(0,3).map(p=>`<div style="color:${PCOL[p]};font-size:9px;line-height:1.4">${PSYM[p]}<span style="color:rgba(255,255,255,0.6)">${PKR[p]}</span></div>`).join('');
+    html+=`<div style="min-height:60px;padding:5px 4px;position:relative;border:1px solid ${cell.isLagna?'rgba(212,175,55,0.5)':'rgba(139,92,246,0.15)'};background:${cell.isLagna?'rgba(212,175,55,0.07)':'rgba(139,92,246,0.04)'};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+      <span style="position:absolute;top:2px;left:3px;font-size:8px;color:var(--text3)">${cell.hnum||''}</span>
+      <span style="font-size:9px;color:var(--gold);margin-bottom:2px">${SIGNSYM[cell.si]}${cell.signKr.replace('자리','')}</span>
+      <div>${pSyms}</div>
+      ${cell.isLagna?'<span style="position:absolute;bottom:2px;right:3px;font-size:7px;color:var(--gold);font-weight:700">Lg</span>':''}
+    </div>`;
+  }}
+  html+='</div>';
+  return html;
+}
+function renderNorthChart(rasi){
+  const lagnaSign=Math.floor(nd(rasi.asc)/30);
+  const W=280,H=280,cx=140,cy=140;
+  const HP=[
+    {d:`M${cx},${cy} L${cx},0 L0,0 Z`,tx:50,ty:32},
+    {d:`M${cx},${cy} L0,0 L0,${cy} Z`,tx:22,ty:cy*0.72},
+    {d:`M${cx},${cy} L0,${cy} L0,${H} Z`,tx:22,ty:cy+cy*0.55},
+    {d:`M${cx},${cy} L0,${H} L${cx},${H} Z`,tx:50,ty:H-28},
+    {d:`M${cx},${cy} L${cx},${H} L${W},${H} Z`,tx:cx+42,ty:H-28},
+    {d:`M${cx},${cy} L${W},${H} L${W},${cy} Z`,tx:W-22,ty:cy+cy*0.55},
+    {d:`M${cx},${cy} L${W},${cy} L${W},0 Z`,tx:W-22,ty:cy*0.72},
+    {d:`M${cx},${cy} L${W},0 L${cx},0 Z`,tx:cx+42,ty:32},
+    {d:`M${cx},${cy} L${cx},0 L${cx+50},${cy-50} Z`,tx:cx+28,ty:cy-42},
+    {d:`M${cx},${cy} L${cx-50},${cy-50} L${cx},0 Z`,tx:cx-28,ty:cy-42},
+    {d:`M${cx},${cy} L0,0 L${cx-50},${cy-50} Z`,tx:50,ty:cy-22},
+    {d:`M${cx},${cy} L${cx+50},${cy-50} L${W},0 Z`,tx:cx+52,ty:cy-22}
+  ];
+  let svg='';
+  for(let hi=0;hi<12;hi++){
+    const hp=HP[hi];const house=rasi.houses[hi];
+    const si=house.si;const isLagna=si===lagnaSign;
+    const ps=house.planets.slice(0,2);
+    svg+=`<path d="${hp.d}" fill="${isLagna?'rgba(212,175,55,0.1)':'rgba(139,92,246,0.04)'}" stroke="rgba(139,92,246,0.35)" stroke-width="0.8"/>`;
+    svg+=`<text x="${hp.tx}" y="${hp.ty}" text-anchor="middle" font-size="9" fill="rgba(212,175,55,0.8)">${SIGNSYM[si]}</text>`;
+    svg+=`<text x="${hp.tx}" y="${hp.ty+11}" text-anchor="middle" font-size="7" fill="rgba(240,232,255,0.4)">${hi+1}H</text>`;
+    if(ps.length)svg+=`<text x="${hp.tx}" y="${hp.ty+22}" text-anchor="middle" font-size="8" fill="#06B6D4">${ps.map(p=>PSYM[p]).join(' ')}</text>`;
+    if(isLagna)svg+=`<text x="${hp.tx}" y="${hp.ty-10}" text-anchor="middle" font-size="7" fill="#D4AF37" font-weight="bold">Lg</text>`;
+  }
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;border:1px solid rgba(139,92,246,0.2);border-radius:8px;background:rgba(5,0,16,0.6)">${svg}</svg>`;
+}
+function toggleChart(style){
+  G.chartStyle=style;
+  ['south','north'].forEach(s=>{
+    const el=document.getElementById('chart-'+s);
+    const btn=document.getElementById('btn-'+s);
+    if(el)el.style.display=s===style?'block':'none';
+    if(btn)btn.classList.toggle('active',s===style);
+  });
+}
+
+// ─── PLANET GRID ──────────────────────────────────────────
+function renderPlanetGrid(rasi){
+  const digCol={Exalted:'#FFD700',Own:'#22C55E',Debilitated:'#FF5555',Neutral:'rgba(255,255,255,0.4)'};
+  const digKr={Exalted:'항진',Own:'자기궁',Debilitated:'약화',Neutral:'중립'};
+  return`<div class="planet-grid">${["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu","Ketu"].map(p=>{
+    const pos=rasi.planets[p];const dc=digCol[pos.dignity];
+    return`<div class="planet-cell" style="border-color:${dc}22">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${dc}88"></div>
+      <span class="planet-sym-big" style="color:${PCOL[p]}">${PSYM[p]}</span>
+      <div class="planet-nm" style="color:${PCOL[p]}">${PKR[p]}</div>
+      <div class="planet-pos">${SIGNKR[pos.sign]}<br>${pos.deg.toFixed(1)}°${pos.retro?' ℞':''}</div>
+      <span class="planet-dig" style="background:${dc}18;color:${dc};border:1px solid ${dc}33">${digKr[pos.dignity]}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ─── ELEMENT BAR ──────────────────────────────────────────
+function renderElementBars(elBal){
+  const elIcons={Fire:"🔥",Earth:"🌍",Air:"💨",Water:"💧"};
+  const elCols={Fire:"#FF9500",Earth:"#A16207",Air:"#06B6D4",Water:"#3B82F6"};
+  return Object.entries(elBal||{}).map(([el,cnt])=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <span style="width:18px;font-size:13px">${elIcons[el]||''}</span>
+      <span style="font-size:12px;color:${elCols[el]};min-width:38px;font-weight:600">${el}</span>
+      <div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(cnt||0)/7*100}%;background:${elCols[el]}"></div></div>
+      <span style="font-size:11px;color:var(--text3);min-width:24px;text-align:right">${cnt||0}/7</span>
+    </div>`).join('');
+}
+
+// ─── MAIN RESULT RENDER ───────────────────────────────────
+function renderResult(){
+  const{chart,report,insights}=G;
+  const{rasi,nak,maha,anta,dashas}=chart;
+  const now=new Date();
+  const fmtDate=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+  const nkData=NAKTR[nak.name]||{sym:"⭐"};
+  const scoreColor=s=>s>=70?"#22C55E":s>=50?"#F59E0B":"#FF5555";
+
+  // ── 탭 1: 개요 (Overview) ─────────────────────────────
+  const tabOverview=`
+  <div class="reveal">
+    <div class="sage-text">${insights.todayVibe}</div>
+  </div>
+
+  <div class="summary-grid reveal reveal-delay-1">
+    <div class="sum-card" style="border-color:rgba(212,175,55,0.2)">
+      <div class="sum-card-label">라그나 (상승궁)</div>
+      <div class="sum-card-val" style="color:var(--gold)">${rasi.ascSignKr}</div>
+      <div class="sum-card-sub">지배: ${PKR[rasi.houses[0].lord]}</div>
+    </div>
+    <div class="sum-card" style="border-color:rgba(6,182,212,0.2)">
+      <div class="sum-card-label">달의 낙샤트라</div>
+      <div class="sum-card-val" style="color:var(--cyan)">${nkData.sym} ${nak.name}</div>
+      <div class="sum-card-sub">Pada ${nak.pada} · ${PKR[nak.lord]} 지배</div>
+    </div>
+    <div class="sum-card" style="border-color:rgba(167,139,250,0.2)">
+      <div class="sum-card-label">현재 대운</div>
+      <div class="sum-card-val" style="color:var(--purple2)">${PSYM[maha.p]} ${PKR[maha.p]}</div>
+      <div class="sum-card-sub">~ ${maha.end.getFullYear()}년까지</div>
+    </div>
+    <div class="sum-card" style="border-color:rgba(236,72,153,0.2)">
+      <div class="sum-card-label">현재 세운</div>
+      <div class="sum-card-val" style="color:var(--pink)">${PSYM[anta.p]} ${PKR[anta.p]}</div>
+      <div class="sum-card-sub">${fmtDate(anta.end)}까지</div>
+    </div>
+  </div>
+
+  <div class="reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:16px;margin-bottom:14px">
+    <div class="section-head section-head-kr" style="margin-bottom:10px">☽ 타고난 성향 · 핵심 키워드</div>
+    <div class="body-text" style="margin-bottom:10px">${insights.personalityInsight}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+      ${(report.personality.coreTraits||[]).map(t=>`<span class="tag tag-gold">${t}</span>`).join('')}
+      ${(report.personality.subconscious||[]).map(t=>`<span class="tag tag-purple">${t}</span>`).join('')}
+    </div>
+  </div>
+
+  <div class="section-head section-head-kr reveal reveal-delay-3" style="margin-bottom:10px">✦ 7대 운명 분석</div>
+  ${[
+    {id:'personality',icon:'🌟',col:'#FFD700',title:'타고난 성향',score:null,sub:`${rasi.ascSignKr} · ${nak.name}`},
+    {id:'wealth',icon:'💰',col:'#22C55E',title:'재물운',score:report.wealth.score,sub:report.wealth.yogas&&!report.wealth.yogas[0].includes('없음')?report.wealth.yogas[0].split(':')[0]:'안정적 축적형'},
+    {id:'career',icon:'⚡',col:'#06B6D4',title:'천직',score:null,sub:(report.career.primary||[]).slice(0,2).join(' · ')},
+    {id:'chakra',icon:'🔮',col:'#A78BFA',title:'차크라 에너지',score:report.chakra.overall,sub:`${CHKINFO[report.chakra.dominant]?CHKINFO[report.chakra.dominant].kr:''} 주도`},
+    {id:'romance',icon:'💫',col:'#EC4899',title:'연애운',score:null,sub:`7H: ${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}`},
+    {id:'compat',icon:'👫',col:'#F59E0B',title:'궁합 계산기',score:null,sub:'Ashtakoot Milan · 36점 만점'},
+    {id:'yoga',icon:'🧘',col:'#34D399',title:'맞는 요가',score:null,sub:report.yoga.primary?report.yoga.primary.n:'Hatha Yoga 권장'}
+  ].map((m,i)=>`<div class="mod-card reveal reveal-delay-${Math.min(i+1,4)}" onclick="showDetail('${m.id}')">
+    <div class="mod-icon" style="background:${m.col}18;border:1px solid ${m.col}33">${m.icon}</div>
+    <div class="mod-texts">
+      <div class="mod-title">${m.title}</div>
+      <div class="mod-preview">${m.sub||''}</div>
+    </div>
+    ${m.score!=null?`<div class="mod-score" style="color:${scoreColor(m.score)}">${m.score}</div>`:'<div style="color:var(--text3);font-size:18px">›</div>'}
+  </div>`).join('')}`;
+
+  // ── 탭 2: 출생 차트 ───────────────────────────────────
+  const southHTML=renderSouthChart(rasi);
+  const northHTML=renderNorthChart(rasi);
+  const tabChart=`
+  <div class="reveal">
+    <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <button class="chart-toggle-btn active" id="btn-south" onclick="toggleChart('south')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:rgba(139,92,246,0.2);border:none;cursor:pointer">남인도식 □</button>
+      <button class="chart-toggle-btn" id="btn-north" onclick="toggleChart('north')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:transparent;border:none;cursor:pointer">북인도식 ◇</button>
+    </div>
+    <div id="chart-south">${southHTML}</div>
+    <div id="chart-north" style="display:none">${northHTML}</div>
+    <div style="text-align:center;font-family:var(--font-display);font-size:10px;color:var(--gold);letter-spacing:0.12em;padding:8px 0;border-top:1px solid var(--bordergold);border-bottom:1px solid var(--bordergold);margin:10px 0">
+      ↑ Lagna · ${rasi.ascSignKr} ${(nd(rasi.asc)%30).toFixed(2)}°
+    </div>
+  </div>
+  <div class="reveal reveal-delay-1">
+    <div class="section-head" style="margin-bottom:10px">✨ 행성 위치 · Sidereal Lahiri</div>
+    <svg class="constellation-path" viewBox="0 0 360 64" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M12,44 C42,18 74,20 102,40 S166,58 194,34 S256,8 292,28 S332,56 350,24"/>
+    </svg>
+    ${renderPlanetGrid(rasi)}
+  </div>
+  <div class="reveal reveal-delay-2" style="margin-top:14px">
+    <div class="section-head" style="margin-bottom:10px">4원소 분포</div>
+    ${renderElementBars(report.personality.elementBalance)}
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.6">
+      주도 원소 <span class="keyword">${report.personality.dominantEl||''}</span> · 보완 필요 <span class="keyword">${report.personality.deficientEl||''}</span>
+    </div>
+  </div>`;
+
+  // ── 탭 3: 다샤 타임라인 ───────────────────────────────
+  const tabDasha=`
+  <div class="reveal">
+    <div class="sage-text" style="margin-bottom:16px">
+      달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>를 기준으로, <span class="keyword">Vimshottari Dasha</span>(빔쇼타리 다샤) 120년 주기가 시작됩니다. 각 행성은 정해진 기간 동안 당신의 삶 전반에 그 카르마적 속성을 투영합니다.
+    </div>
+    <div class="dasha-timeline">
+      ${dashas.map(d=>{
+        const isActive=now>=d.start&&now<=d.end;
+        const ins=insights.dashaInsights[d.p]||'';
+        const dp=rasi.planets[d.p];
+        const dc=(dp && dp.dignity)
+          ? ({Exalted:'#FFD700',Own:'#22C55E',Debilitated:'#FF5555',Neutral:'rgba(139,92,246,0.8)'}[dp.dignity] || 'rgba(139,92,246,0.8)')
+          : 'rgba(139,92,246,0.8)';
+        return`<div class="dasha-node">
+          <div class="dasha-dot ${isActive?'active-dot':''}" style="${!isActive?`border-color:${dc}`:''}"></div>
+          <div style="${isActive?'background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;':''}">
+            <div class="dasha-period" style="color:${isActive?'var(--gold)':PCOL[d.p]||'var(--text)'}">
+              ${PSYM[d.p]} ${PKR[d.p]} 대운 ${isActive?'<span class="tag tag-gold" style="font-size:10px;vertical-align:middle">현재</span>':''}
+            </div>
+            <div class="dasha-range">${d.start.getFullYear()} – ${d.end.getFullYear()} · ${d.dur.toFixed(1)}년</div>
+            ${isActive||d.start>now?`<div class="dasha-insight">${ins}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // ── 탭 4: 세운 (현재 대운 하위 세운) ─────────────────
+  const tabAntar=`
+  <div class="reveal">
+    <div class="sage-text" style="margin-bottom:14px">
+      <span class="keyword">${PKR[maha.p]} 대운</span> 안에서 9개의 세운(부크티)이 순환합니다. 세운은 대운의 큰 파동 위에서 더 섬세한 일상의 결을 만들어냅니다.
+    </div>
+    ${maha.ants.map(a=>{
+      const isActive=now>=a.start&&now<=a.end;
+      const dp=rasi.planets[a.p];
+      const dq=dp?dp.dignity:'Neutral';
+      const qKr={Exalted:'항진 ✦',Own:'자기궁 ◆',Debilitated:'약화 ▲',Neutral:'중립'}[dq]||'중립';
+      const qCol={Exalted:'#FFD700',Own:'#22C55E',Debilitated:'#FF5555',Neutral:'var(--text3)'}[dq];
+      const kar=PSIG[a.p]?PSIG[a.p].kar.slice(0,2).join('·'):'성장';
+      return`<div class="acc-item" style="${isActive?'border-color:rgba(212,175,55,0.3)':''}">
+        <div class="acc-header" onclick="toggleAcc('a-${a.p}-${a.start.getFullYear()}')">
+          <span style="font-size:16px;color:${PCOL[a.p]||'#fff'}">${PSYM[a.p]}</span>
+          <div class="acc-title" style="color:${isActive?'var(--gold)':'var(--text)'}">
+            ${PKR[a.p]} 세운 ${isActive?'<span class="tag tag-gold" style="font-size:9px;vertical-align:middle">현재</span>':''}
+          </div>
+          <span style="font-size:10px;color:${qCol};margin-right:6px">${qKr}</span>
+          <span class="acc-arrow" id="arr-a-${a.p}-${a.start.getFullYear()}" style="color:var(--text3)">▾</span>
+        </div>
+        <div class="acc-body ${isActive?'open':''}" id="acc-a-${a.p}-${a.start.getFullYear()}">
+          <div class="acc-inner">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${fmtDate(a.start)} ~ ${fmtDate(a.end)}</div>
+            <div class="body-text">${PKR[a.p]}의 카르마 영역인 <span class="keyword">${kar}</span>가 ${PKR[maha.p]} 대운의 큰 흐름 안에서 구체적으로 펼쳐지는 시기입니다. ${dq==='Exalted'?'행성 에너지가 최고조이므로 적극적인 행동이 빠른 결실을 만듭니다.':dq==='Debilitated'?'도전이 있을 수 있으나, 이 시련은 당신의 내면을 깊게 단련시킵니다.':'의식적인 노력과 인내가 이 시기의 잠재력을 열어냅니다.'}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  // ── 최종 결과 페이지 HTML ─────────────────────────────
+  document.getElementById('result-content').innerHTML=`
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px">
+    <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit">← 메인으로</a>
+    <span style="font-size:10px;color:var(--text3);letter-spacing:0.1em">JYOTISH · 빛의 지식</span>
+  </div>
+
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,rgba(124,58,237,0.25),rgba(6,182,212,0.12));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center" class="reveal">
+    <div class="hero-name">${chart.f.name}</div>
+    <div class="hero-sub" style="margin:6px 0">
+      ${chart.f.year}.${String(chart.f.month).padStart(2,'0')}.${String(chart.f.day).padStart(2,'0')} ${String(chart.f.hour).padStart(2,'0')}:${String(chart.f.minute||0).padStart(2,'0')} · ${chart.f.gender==='M'?'남성 ♂':'여성 ♀'}
+    </div>
+    ${G.usedLocalCalc?'<div style="font-size:10px;color:var(--text3);margin-top:6px">로컬 계산으로 표시됨 (API 미사용)</div>':''}
+    <div style="width:40px;height:1px;background:var(--bordergold);margin:10px auto"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center">
+      <span class="tag tag-gold">🌅 ${rasi.ascSignKr} 라그나</span>
+      <span class="tag tag-cyan">${nkData.sym} ${nak.name}</span>
+      <span class="tag tag-purple">Pada ${nak.pada}</span>
+      <span class="tag tag-pink">🕰 ${PKR[maha.p]} 대운</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tbtn-overview" onclick="switchTab('overview')">🌌 종합운</button>
+    <button class="tab-btn" id="tbtn-chart" onclick="switchTab('chart')">🗺️ 차트</button>
+    <button class="tab-btn" id="tbtn-dasha" onclick="switchTab('dasha')">🕰️ 대운</button>
+    <button class="tab-btn" id="tbtn-antar" onclick="switchTab('antar')">✨ 세운</button>
+  </div>
+
+  <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
+  <div id="tpanel-chart" class="tab-panel">${tabChart}</div>
+  <div id="tpanel-dasha" class="tab-panel">${tabDasha}</div>
+  <div id="tpanel-antar" class="tab-panel">${tabAntar}</div>
+
+  <div style="height:36px"></div>`;
+
+  setTimeout(initReveal,100);
+}
+
+// ─── DETAIL HEADER ────────────────────────────────────────
+function detailHeader(icon,title,sub){
+  if(sub===undefined)sub='';
+  return`<div class="detail-topbar">
+    <div class="detail-topbar-inner">
+      <button class="btn-sm back-btn" onclick="goBack()"><span aria-hidden="true">←</span> <span>뒤로</span></button>
+      <div style="flex:1;min-width:0">
+        <div class="detail-title">${icon} ${title}</div>
+        ${sub?`<div class="detail-sub">${sub}</div>`:''}
+      </div>
+      <div class="detail-spacer" aria-hidden="true"></div>
+    </div>
+  </div>`;
+}
+
+// ─── SHOW DETAIL ──────────────────────────────────────────
+function showDetail(id){
+  G.detailBack='result';
+  const r=G.report;const c=G.chart;const ins=G.insights||{};
+  let html='';
+  if(id==='personality')html=renderPersonality(r.personality,c,ins);
+  else if(id==='wealth')html=renderWealth(r.wealth,ins);
+  else if(id==='career')html=renderCareer(r.career,ins);
+  else if(id==='chakra')html=renderChakra(r.chakra,ins);
+  else if(id==='romance')html=renderRomance(r.romance,c,ins);
+  else if(id==='compat')html=renderCompatInput();
+  else if(id==='yoga')html=renderYoga(r.yoga);
+  document.getElementById('detail-content').innerHTML=html;
+  showPage('detail');
+}
+
+// ─── DETAIL: PERSONALITY ─────────────────────────────────
+function renderPersonality(p,chart,ins){
+  const nkData=NAKTR[p.moonNak]||{sym:"⭐"};
+  return detailHeader('🌟','타고난 성향','Innate Personality & Karma')+`
+  <div class="reveal">
+    <div style="text-align:center;padding:16px 0 20px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:16px;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:8px">${nkData.sym}</div>
+      <div class="section-head" style="font-size:clamp(16px,4vw,18px)">${p.lagnaSignKr} 라그나</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">${p.moonNak} · Pada ${chart.nak.pada}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;padding:0 20px;line-height:1.6">${(NAKTR[p.moonNak]||{pur:'성장'}).pur}</div>
+    </div>
+  </div>
+  <div class="reveal reveal-delay-1">
+    <div class="sage-text">${ins.personalityInsight||''}</div>
+  </div>
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('pers1')">
+      <span style="font-size:16px">✦</span>
+      <span class="acc-title">핵심 자질 & 그림자</span>
+      <span class="acc-arrow" id="arr-pers1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-pers1">
+      <div class="acc-inner">
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:0.08em">빛의 자질</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${(p.coreTraits||[]).map(t=>`<span class="tag tag-gold">${t}</span>`).join('')}</div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:0.08em">통합해야 할 그림자</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${(p.subconscious||[]).map(t=>`<span class="tag tag-purple">${t}</span>`).join('')}</div>
+        </div>
+        <div class="body-text" style="color:var(--text3);font-size:12px">삶의 주제: ${p.lifeTheme||''}</div>
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('pers2')">
+      <span style="font-size:16px">⚡</span>
+      <span class="acc-title">원소 & 양식 분포</span>
+      <span class="acc-arrow" id="arr-pers2">▾</span>
+    </div>
+    <div class="acc-body" id="acc-pers2">
+      <div class="acc-inner">
+        ${renderElementBars(p.elementBalance)}
+        <div style="height:1px;background:rgba(255,255,255,0.06);margin:10px 0"></div>
+        ${Object.entries(p.modalityBalance||{}).map(([m,cnt])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:12px;color:var(--text2);min-width:60px">${m}</span>
+            <div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${cnt/7*100}%;background:var(--purple2)"></div></div>
+            <span style="font-size:11px;color:var(--text3)">${cnt}/7</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('pers3')">
+      <span style="font-size:16px">☽</span>
+      <span class="acc-title">라그나 지배 행성 위치</span>
+      <span class="acc-arrow" id="arr-pers3">▾</span>
+    </div>
+    <div class="acc-body" id="acc-pers3">
+      <div class="acc-inner">
+        <div class="body-text">${p.lagnaLordPos||''}</div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text3)">지배 행성의 위치는 당신이 이번 생에서 라그나(외적 자아)의 에너지를 어느 삶의 영역에서 표현하는지를 나타냅니다.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: WEALTH ──────────────────────────────────────
+function renderWealth(w,ins){
+  const sc=w.score||0;const sc_col=sc>=70?"#22C55E":sc>=50?"#F59E0B":"#FF5555";
+  return detailHeader('💰','재물운','Wealth & Dhana Yoga')+`
+  <div class="reveal" style="text-align:center;padding:20px 0 16px">
+    <div style="font-size:clamp(48px,12vw,64px);font-family:var(--font-display);font-weight:700;color:${sc_col};line-height:1">${sc}</div>
+    <div style="font-size:12px;color:var(--text3);margin:4px 0">재물 지수 / 100</div>
+    <div class="bar-wrap" style="max-width:180px;margin:10px auto"><div class="bar-fill" style="width:${sc}%;background:linear-gradient(90deg,${sc_col}88,${sc_col})"></div></div>
+  </div>
+  <div class="sage-text reveal reveal-delay-1">${ins.wealthNarrative||''}</div>
+  <div class="sage-text reveal reveal-delay-2" style="margin-top:10px">${ins.yogaText||''}</div>
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('w1')">
+      <span style="font-size:16px">🏠</span><span class="acc-title">하우스 구조 분석</span>
+      <span class="acc-arrow" id="arr-w1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-w1">
+      <div class="acc-inner">
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">2하우스 · 재물 축적</div>
+          <div class="body-text">${w.h2||''}</div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">11하우스 · 수익·소득</div>
+          <div class="body-text">${w.h11||''}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:0.1em">목성 강도</div>
+          <div class="body-text">${w.jupStr||50}/100 — 목성은 재물과 확장의 제1 카라카입니다</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('w2')">
+      <span style="font-size:16px">✦</span><span class="acc-title">재물 요가 & 절정 기간</span>
+      <span class="acc-arrow" id="arr-w2">▾</span>
+    </div>
+    <div class="acc-body" id="acc-w2">
+      <div class="acc-inner">
+        ${(w.yogas||['특별 재물 요가 없음']).map(yg=>`<div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.6"><span class="keyword">${yg.split(':')[0]}</span>${yg.includes(':')?': '+yg.split(':').slice(1).join(':'):''}</div>`).join('')}
+        ${w.peak&&w.peak.length?`<div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px">재물 절정 대운</div>${w.peak.map(pk=>`<span class="tag tag-gold" style="margin:0 4px 4px 0;display:inline-flex">${pk}</span>`).join('')}</div>`:''}
+        <div style="margin-top:12px;padding:10px;background:rgba(212,175,55,0.05);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;font-size:13px;color:var(--text2)">${w.advice||''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: CAREER ──────────────────────────────────────
+function renderCareer(c,ins){
+  return detailHeader('⚡','천직 & 커리어','Vocation & Dasamsa')+`
+  <div class="sage-text reveal">${ins.careerNarrative||''}</div>
+  <div class="acc-item reveal reveal-delay-1">
+    <div class="acc-header" onclick="toggleAcc('c1')">
+      <span style="font-size:16px">🎯</span><span class="acc-title">추천 직군</span>
+      <span class="acc-arrow" id="arr-c1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-c1">
+      <div class="acc-inner">
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">1순위 — 10하우스 지배 행성 기반</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${(c.primary||[]).map(j=>`<span class="tag tag-cyan">${j}</span>`).join('')}</div>
+        </div>
+        ${c.secondary&&c.secondary.length?`<div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">2순위 — 10하우스 내 행성 기반</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${c.secondary.map(j=>`<span class="tag tag-purple">${j}</span>`).join('')}</div>
+        </div>`:''}
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('c2')">
+      <span style="font-size:16px">♃</span><span class="acc-title">직업 요가 & D-10 분석</span>
+      <span class="acc-arrow" id="arr-c2">▾</span>
+    </div>
+    <div class="acc-body" id="acc-c2">
+      <div class="acc-inner">
+        ${(c.yogas||[]).map(yg=>`<div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.6"><span class="keyword">${yg.split(':')[0]}</span>${yg.includes(':')?': '+yg.split(':').slice(1).join(':'):''}</div>`).join('')}
+        <div style="margin-top:10px;padding:10px;background:rgba(6,182,212,0.05);border-radius:8px;font-size:12px;color:var(--text2)">${c.d10||''}</div>
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('c3')">
+      <span style="font-size:16px">🌟</span><span class="acc-title">최적 활동 시기</span>
+      <span class="acc-arrow" id="arr-c3">▾</span>
+    </div>
+    <div class="acc-body" id="acc-c3">
+      <div class="acc-inner">
+        <div style="padding:12px;background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);border-radius:10px;font-size:13px;color:var(--gold);text-align:center">${c.best||''}</div>
+        <div style="margin-top:10px;font-size:13px;color:var(--text2);line-height:1.7">${c.advice||''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: CHAKRA ──────────────────────────────────────
+function renderChakra(ch,ins){
+  const stKr={Overactive:"과활성",Balanced:"균형",Underactive:"저활성",Blocked:"차단"};
+  const stCol={Overactive:"#FF9500",Balanced:"#22C55E",Underactive:"#F59E0B",Blocked:"#FF5555"};
+  // SVG Chakra ring
+  const rings=ch.chakras.map((ck,i)=>{
+    const R=12+i*8;const circ=2*Math.PI*R;const dash=circ*(ck.score/100);
+    return`<circle cx="70" cy="70" r="${R}" fill="none" stroke="${ck.col}22" stroke-width="6"/>
+    <circle cx="70" cy="70" r="${R}" fill="none" stroke="${ck.col}" stroke-width="5" stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round" transform="rotate(-90 70 70)"/>`;
+  }).join('');
+  return detailHeader('🔮','차크라 에너지','Chakra Energy Map')+`
+  <div class="reveal" style="display:flex;justify-content:center;margin-bottom:16px">
+    <svg viewBox="0 0 140 140" style="width:140px;height:140px">
+      ${rings}
+      <text x="70" y="65" text-anchor="middle" font-size="18" fill="#F0E8FF" font-family="Georgia,serif" font-weight="bold">${ch.overall||50}</text>
+      <text x="70" y="78" text-anchor="middle" font-size="8" fill="rgba(240,232,255,0.4)">균형 점수</text>
+    </svg>
+  </div>
+  <div class="sage-text reveal reveal-delay-1">${ins.chakraNarrative||''}</div>
+  <div class="reveal reveal-delay-2">
+    <div class="section-head" style="margin-bottom:10px">7 차크라 에너지 상태</div>
+    <div class="chakra-list">
+      ${(ch.chakras||[]).map(ck=>`<div class="chakra-item">
+        <div class="chakra-circle" style="background:${ck.col}33;border:2px solid ${ck.col}66">
+          <span style="color:${ck.col};font-size:11px;font-weight:800">${ck.seed||''}</span>
+        </div>
+        <div class="chakra-info">
+          <div class="chakra-label">
+            <span style="font-size:13px;font-weight:700">${ck.kr||ck.name}</span>
+            <span style="font-size:9px;padding:1px 7px;border-radius:8px;background:${stCol[ck.status]}18;color:${stCol[ck.status]};border:1px solid ${stCol[ck.status]}33">${stKr[ck.status]||ck.status}</span>
+            <span style="font-size:11px;color:var(--text3);margin-left:auto">${ck.score||0}</span>
+          </div>
+          <div class="chakra-energy" style="margin-bottom:6px"><div class="chakra-energy-fill" style="width:${ck.score||0}%"></div></div>
+          <div class="chakra-desc">${ck.desc||''}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-3" style="margin-top:14px">
+    <div class="acc-header" onclick="toggleAcc('chk1')">
+      <span style="font-size:16px">✦</span><span class="acc-title">치유 & 활성화 조언</span>
+      <span class="acc-arrow" id="arr-chk1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-chk1">
+      <div class="acc-inner">
+        ${(ch.advice||[]).map(a=>`<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text2);line-height:1.6"><span style="color:var(--gold)">✦</span>${a}</div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: ROMANCE ─────────────────────────────────────
+function renderRomance(r,chart,ins){
+  const h7kr=SIGNKR[SIGNS.indexOf(r.h7sign)]||r.h7sign;
+  const karKr=SIGNKR[SIGNS.indexOf(r.karakaSign)]||r.karakaSign;
+  return detailHeader('💫','연애운','Romance & Partnership')+`
+  <div class="sage-text reveal">${ins.romanceNarrative||''}</div>
+  <div class="acc-item reveal reveal-delay-1">
+    <div class="acc-header" onclick="toggleAcc('rom1')">
+      <span style="font-size:16px">💑</span><span class="acc-title">파트너 특성 & 연애 스타일</span>
+      <span class="acc-arrow" id="arr-rom1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-rom1">
+      <div class="acc-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="background:rgba(236,72,153,0.07);border:1px solid rgba(236,72,153,0.2);border-radius:10px;padding:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">7하우스</div>
+            <div style="font-size:13px;font-weight:700;color:var(--pink)">${h7kr}</div>
+            <div style="font-size:11px;color:var(--text3)">지배: ${PKR[r.h7lord]||''}</div>
+          </div>
+          <div style="background:rgba(236,72,153,0.07);border:1px solid rgba(236,72,153,0.2);border-radius:10px;padding:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${PKR[r.karaka]||''} (카라카)</div>
+            <div style="font-size:13px;font-weight:700;color:var(--pink)">${karKr}</div>
+            <div style="font-size:11px;color:var(--text3)">파트너 원형</div>
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px">파트너 특성</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${(r.partnerTraits||[]).map(t=>`<span class="tag tag-pink">${t}</span>`).join('')}</div>
+        </div>
+        <div class="body-text" style="margin-top:8px">${r.romanticStyle||''}</div>
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('rom2')">
+      <span style="font-size:16px">💍</span><span class="acc-title">결혼 시기 & Navamsa 통찰</span>
+      <span class="acc-arrow" id="arr-rom2">▾</span>
+    </div>
+    <div class="acc-body" id="acc-rom2">
+      <div class="acc-inner">
+        <div style="padding:12px;background:rgba(236,72,153,0.06);border:1px solid rgba(236,72,153,0.15);border-radius:10px;margin-bottom:10px;font-size:13px;color:var(--text2)">${r.marriageTiming||''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:0.08em">D-9 Navamsa 통찰</div>
+        <div class="body-text">${r.navamsaInsight||''}</div>
+      </div>
+    </div>
+  </div>
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('rom3')">
+      <span style="font-size:16px">⚠️</span><span class="acc-title">주의 영역 & 조언</span>
+      <span class="acc-arrow" id="arr-rom3">▾</span>
+    </div>
+    <div class="acc-body" id="acc-rom3">
+      <div class="acc-inner">
+        ${(r.challenges||[]).map(c2=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text2)">${c2}</div>`).join('')}
+        <div style="margin-top:10px;padding:10px;background:rgba(212,175,55,0.05);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;font-size:13px;color:var(--text2)">${r.advice||''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: COMPAT ──────────────────────────────────────
+function renderCompatInput(){
+  return detailHeader('👫','궁합 계산기','Ashtakoot Milan · 8 Koota')+`
+  <div class="sage-text reveal" style="margin-bottom:16px">아쉬타쿠타 밀란(Ashtakoot Milan)은 두 영혼의 달 낙샤트라를 8가지 기준으로 분석하여 36점 만점으로 궁합을 측정하는 베다 점성술의 핵심 결혼 궁합 시스템입니다.</div>
+  <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
+    <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label>이름</label><input id="c-name" placeholder="이영희" value="이영희"></div>
+      <div><label>성별</label><select id="c-gender"><option value="F">여성 ♀</option><option value="M">남성 ♂</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label>연도</label><input id="c-year" type="number" value="1992"></div>
+      <div><label>월</label><input id="c-month" type="number" value="3" min="1" max="12"></div>
+      <div><label>일</label><input id="c-day" type="number" value="15" min="1" max="31"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label>시</label><input id="c-hour" type="number" value="12" min="0" max="23"></div>
+      <div><label>분</label><input id="c-min" type="number" value="30" min="0" max="59"></div>
+      <div><label>UTC+</label><input id="c-tz" type="number" value="9" min="-12" max="14"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div><label>위도</label><input id="c-lat" value="37.5665"></div>
+      <div><label>경도</label><input id="c-lon" value="126.978"></div>
+    </div>
+    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기</button>
+  </div>
+  <div id="compat-result"></div>`;
+}
+
+function doCompatCalc(){
+  const f2={
+    name:document.getElementById('c-name').value||'이름없음',
+    gender:document.getElementById('c-gender').value,
+    year:parseInt(document.getElementById('c-year').value)||1992,
+    month:parseInt(document.getElementById('c-month').value)||3,
+    day:parseInt(document.getElementById('c-day').value)||15,
+    hour:parseInt(document.getElementById('c-hour').value)||12,
+    minute:parseInt(document.getElementById('c-min').value)||30,
+    lat:parseFloat(document.getElementById('c-lat').value)||37.5665,
+    lon:parseFloat(document.getElementById('c-lon').value)||126.978,
+    timezone:parseInt(document.getElementById('c-tz').value)||9
+  };
+  try{
+    const chart2=buildChart(f2);
+    const nak1=G.chart.nak.name;const nak2=chart2.nak.name;
+    const compat=calcCompatibility(nak1,nak2);
+    const pc=compat.pct;const pcCol=pc>=75?"#22C55E":pc>=65?"#F59E0B":"#FF5555";
+    document.getElementById('compat-result').innerHTML=`
+    <div style="text-align:center;background:linear-gradient(135deg,rgba(236,72,153,0.15),rgba(124,58,237,0.15));border:1px solid rgba(236,72,153,0.25);border-radius:16px;padding:20px;margin-bottom:14px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">${G.chart.f.name} <span style="color:var(--text3)">×</span> ${f2.name}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${nak1} — ${nak2}</div>
+      <div class="compat-score-big" style="color:${pcCol}">${compat.total}<span style="font-size:clamp(16px,4vw,20px);color:var(--text3)">/36</span></div>
+      <div style="font-size:clamp(12px,3vw,14px);color:${pcCol};margin:6px 0;font-weight:600">${pc}%</div>
+      <div style="font-size:14px;color:var(--text);font-weight:500">${compat.verdict}</div>
+    </div>
+    <div class="glass" style="padding:16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:10px">🌌 종합 해석</div>
+      <div class="body-text" style="line-height:1.85">${compat.overallReason||''}</div>
+    </div>
+    <div class="glass" style="padding:16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:12px">8 항목 상세 점수</div>
+      ${compat.breakdown.map(b=>{
+        const bc=b.sc/b.max>=0.75?'#22C55E':b.sc/b.max>=0.4?'#F59E0B':'#FF5555';
+        return`<div style="margin-bottom:12px">
+          <div class="compat-item" style="margin-bottom:6px">
+            <div class="compat-label">${b.n}</div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${b.sc/b.max*100}%;background:${bc}"></div></div>
+            <div class="compat-num" style="color:${bc}">${b.sc}/${b.max}</div>
+          </div>
+          <div style="font-size:12px;color:rgba(240,232,255,0.62);line-height:1.75;padding-left:2px">
+            <span class="keyword">${b.desc}</span><br>
+            ${b.why||''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${compat.strengths.length?`<div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:14px;margin-bottom:10px"><div class="section-head" style="color:#22C55E;margin-bottom:8px">✦ 강점</div>${compat.strengths.map(s=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${s}</div>`).join('')}</div>`:''}
+    ${compat.challenges.length?`<div style="background:rgba(255,68,68,0.05);border:1px solid rgba(255,68,68,0.18);border-radius:12px;padding:14px;margin-bottom:10px"><div class="section-head" style="color:#FF5555;margin-bottom:8px">⚠ 주의 사항</div>${compat.challenges.map(cc=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${cc}</div>`).join('')}</div>`:''}
+    <div style="padding:14px;background:rgba(212,175,55,0.05);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;font-size:13px;color:var(--text2);line-height:1.75">${compat.advice}</div>`;
+    setTimeout(initReveal,60);
+  }catch(e){
+    document.getElementById('compat-result').innerHTML=`<div class="error-box">계산 오류: ${e.message}</div>`;
+  }
+}
+
+// ─── DETAIL: YOGA ────────────────────────────────────────
+function renderYoga(y){
+  const elIcons={Fire:"🔥",Earth:"🌍",Air:"💨",Water:"💧"};
+  const elCols={Fire:"#FF9500",Earth:"#A16207",Air:"#06B6D4",Water:"#3B82F6"};
+  const primary=(y.practices&&y.practices[0])?y.practices[0]:null;
+  const secondary=(y.practices&&y.practices[1])?y.practices[1]:null;
+  const methodText=`
+    <div class="yoga-method reveal reveal-delay-2">
+      <div class="section-head" style="margin-bottom:10px">🪷 수련 방법 (가이드)</div>
+      <div class="body-text" style="line-height:1.85">
+        이 추천은 <span class="keyword">${y.dominantEl||''}</span> 원소의 과잉을 부드럽게 낮추고, <span class="keyword">${y.deficientEl||''}</span> 원소를 보완해 에너지 균형을 맞추는 흐름으로 구성됩니다.
+        ${(primary&&primary.n)?`핵심 루틴은 <span class="keyword">${primary.n}</span>`:''}${(secondary&&secondary.n)?` + <span class="keyword">${secondary.n}</span>`:''} 중심으로 진행하세요.
+      </div>
+      <ol class="yoga-steps">
+        <li><span class="keyword">준비 2–3분</span>: 코로 들이마시고 길게 내쉬며(4초 들숨 / 6초 날숨) 심박을 안정시킵니다. 어깨·턱 힘을 먼저 빼세요.</li>
+        <li><span class="keyword">메인 10–20분</span>: 오늘 추천 1번 루틴을 “무리 없이” 진행합니다. 자극이 강하면 동작 강도를 낮추고, 호흡이 끊기면 즉시 휴식합니다.</li>
+        <li><span class="keyword">차크라 집중 3–5분</span>: 타깃 차크라(<span class="keyword">${(primary&&primary.ch)||''}</span>)에 의식을 두고, 필요하면 씨드 만트라를 마음속으로 7–21회 반복합니다.</li>
+        <li><span class="keyword">마무리 2–5분</span>: 누워서(또는 앉아서) 몸의 감각을 스캔하며 긴장을 풀어줍니다. 오늘 느낀 감정/몸의 반응을 한 줄로 기록하면 효과가 누적됩니다.</li>
+        <li><span class="keyword">빈도</span>: 주 4–6회가 가장 효율적입니다. 바쁜 날은 10분만 해도 “연결”이 유지됩니다. ${(y.bestTime)?`추천 시간대는 <span class="keyword">${y.bestTime}</span>입니다.`:''}</li>
+      </ol>
+      ${(y.avoid&&y.avoid.length)?`<div style="margin-top:10px;font-size:12px;color:rgba(240,232,255,0.62);line-height:1.7"><span class="keyword">주의</span>: ${y.avoid.map(a=>`<span class="keyword">${a}</span>`).join(' · ')}</div>`:''}
+    </div>`;
+
+  return detailHeader('🧘','맞는 요가','Suitable Yoga Practice')+`
+  <div class="yoga-kr">
+  <div class="reveal" style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);border-radius:14px;padding:16px;margin-bottom:14px">
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:10px;letter-spacing:0.1em">원소 에너지 균형</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px">
+      <div style="text-align:center">
+        <div style="font-size:28px">${elIcons[y.dominantEl]||''}</div>
+        <div style="font-size:11px;color:var(--text3)">주도 원소</div>
+        <div style="font-size:13px;font-weight:700;color:${elCols[y.dominantEl]||'#fff'}">${y.dominantEl||''}</div>
+      </div>
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,${elCols[y.dominantEl]||'#fff'}88,${elCols[y.deficientEl]||'#fff'}88)"></div>
+      <div style="text-align:center">
+        <div style="font-size:28px">${elIcons[y.deficientEl]||''}</div>
+        <div style="font-size:11px;color:var(--text3)">보완 필요</div>
+        <div style="font-size:13px;font-weight:700;color:${elCols[y.deficientEl]||'#fff'}">${y.deficientEl||''}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text2);text-align:center;line-height:1.6">주도 원소인 <span class="keyword">${y.dominantEl||''}</span>이 과잉 상태일 수 있습니다. <span class="keyword">${y.deficientEl||''}</span> 원소를 보충하는 수련을 중심으로 균형을 회복하세요.</div>
+  </div>
+  <div class="section-head reveal reveal-delay-1" style="margin-bottom:10px">추천 수련 프로그램</div>
+  ${(y.practices||[]).map((pr,i)=>`<div class="yoga-item reveal reveal-delay-${i+2}">
+    <div class="yoga-header">
+      <span class="yoga-title">${pr.n||''}</span>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="tag tag-cyan" style="font-size:10px">${pr.t||''}</span>
+        <span class="yoga-dur">${pr.dur||''}</span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:5px">차크라 타깃: <span class="keyword">${pr.ch||''}</span></div>
+    <div class="yoga-benefit">${pr.b||''}</div>
+  </div>`).join('')}
+  ${methodText}
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('yg1')">
+      <span style="font-size:16px">⏰</span><span class="acc-title">최적 수련 시간 & 주의사항</span>
+      <span class="acc-arrow" id="arr-yg1">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-yg1">
+      <div class="acc-inner">
+        <div style="padding:10px;background:rgba(212,175,55,0.07);border-radius:8px;font-size:13px;color:var(--gold);margin-bottom:10px">${y.bestTime||''}</div>
+        ${(y.avoid||[]).map(a=>`<div style="font-size:13px;color:var(--text2);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">🚫 ${a}</div>`).join('')}
+      </div>
+    </div>
+  </div>
+  </div>`;
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "name": "code-destiny-web",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "api": "node server/server.js",
+    "build": "next build",
+    "clean:cf": "node scripts/clean-cloudflare-build.mjs",
+    "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
+    "build:cf": "npm run clean:cf && npm run sync:public && node scripts/build-cloudflare.mjs && node scripts/prepare-cloudflare-dist.mjs",
+    "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
+    "deploy:cf:worker": "node scripts/deploy-worker.mjs",
+    "deploy": "next build && npx @opennextjs/cloudflare build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "astronomy-engine": "^2.1.19",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "framer-motion": "^11.15.0",
+    "helmet": "^8.1.0",
+    "html2canvas": "^1.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.577.0",
+    "lunar-javascript": "^1.7.7",
+    "mongoose": "^9.3.0",
+    "next": "^15.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.17.1",
+    "@types/node": "^20.14.8",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.12",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.5.2",
+    "wrangler": "^4.73.0"
+  }
+}
