@@ -96,6 +96,22 @@ For local `npm run deploy:cf` you should use a token instead of interactive OAut
 
 `scripts/deploy-pages.mjs` loads `.env.cloudflare.local`, `.env.cloudflare`, then `.env`.
 
+### Cloudflare Pages Secrets Sync (Recommended)
+
+To avoid file-based secret usage at runtime, sync secrets into Cloudflare Pages:
+
+- Preview (no write): `npm run secrets:cf:pages:dry`
+- Apply (writes secrets): `npm run secrets:cf:pages`
+
+The sync script reads values from:
+- `.env.cloudflare.local`
+- `.env.cloudflare`
+- `.env.local`
+- `.env`
+
+and pushes only existing keys using:
+- `wrangler pages secret put <KEY> --project-name <CF_PAGES_PROJECT_NAME>`
+
 If token is missing, deploy exits early with a clear error instead of opening OAuth login.
 
 ## Required Environment Variables

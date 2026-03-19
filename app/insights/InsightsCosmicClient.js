@@ -128,6 +128,9 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
         <section className="ins-hero ins-reveal-a">
           <div className="ins-hero-nebula" aria-hidden="true" />
           <div className="ins-hero-inner">
+            <Link href="/" className="ins-home-pill">
+              <span aria-hidden="true">⌂</span> 홈으로
+            </Link>
             <div className="ins-sigil" aria-hidden="true">
               <svg viewBox="0 0 100 100" fill="none">
                 <circle cx="50" cy="50" r="41" stroke="rgba(240,208,128,.75)" strokeWidth="1.3" />
@@ -138,7 +141,11 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
                 <circle cx="50" cy="50" r="41" stroke="rgba(240,208,128,.42)" strokeWidth="1" className="ins-orbit-ring" />
               </svg>
             </div>
-            <h1 className="ins-title">운세 인사이트 허브</h1>
+            <h1 className="ins-title">
+              <span className="ins-title-deco">「</span>
+              운세 인사이트 허브
+              <span className="ins-title-deco">」</span>
+            </h1>
             <p className="ins-subtitle-en">어렵지 않게 읽는 운세 지식 · 3분 인사이트</p>
             <div className="ins-hero-line" aria-hidden="true" />
             <p className="ins-desc">
@@ -184,10 +191,12 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
                 </span>
               </div>
               <h2>
-                <span className="ins-label">제목</span> {featuredArticle.title}
+                <span className="ins-label">제목</span>
+                <span className="ins-value">{featuredArticle.title}</span>
               </h2>
               <p>
-                <span className="ins-label">설명</span> {featuredArticle.description}
+                <span className="ins-label">설명</span>
+                <span className="ins-value">{featuredArticle.description}</span>
               </p>
               <div className="ins-featured-read">읽기 →</div>
             </Link>
@@ -201,10 +210,12 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
                   <span className="ins-badge">{article.category}</span>
                 </div>
                 <h2>
-                  <span className="ins-label">제목</span> {article.title}
+                  <span className="ins-label">제목</span>
+                  <span className="ins-value">{article.title}</span>
                 </h2>
                 <p>
-                  <span className="ins-label">설명</span> {article.description}
+                  <span className="ins-label">설명</span>
+                  <span className="ins-value">{article.description}</span>
                 </p>
               </Link>
             );
@@ -287,6 +298,31 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
           text-align: center;
           padding: 22px 22px 20px;
         }
+        .ins-home-pill {
+          position: absolute;
+          top: 12px;
+          left: 14px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(232, 228, 255, 0.92);
+          text-decoration: none;
+          font-family: "Noto Sans KR", sans-serif;
+          font-size: 12px;
+          letter-spacing: 0.02em;
+          padding: 6px 11px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition: all 0.22s ease;
+        }
+        .ins-home-pill:hover {
+          border-color: rgba(201, 168, 76, 0.55);
+          color: #fff7d6;
+          box-shadow: 0 0 14px rgba(201, 168, 76, 0.2);
+        }
         .ins-sigil {
           width: 72px;
           height: 72px;
@@ -308,16 +344,26 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
         }
         .ins-title {
           margin: 0;
-          font-family: "Cinzel", serif;
-          font-size: clamp(1.36rem, 2.8vw, 1.82rem);
-          line-height: 1.35;
-          letter-spacing: 0.045em;
-          font-weight: 700;
-          background: linear-gradient(96deg, #c9a84c 10%, #fff7d6 46%, #f0d080 90%);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 2px;
+          font-family: "Noto Serif KR", serif;
+          font-size: clamp(1.42rem, 2.9vw, 1.95rem);
+          line-height: 1.42;
+          letter-spacing: 0.012em;
+          font-weight: 800;
+          background: linear-gradient(96deg, #f2dd99 8%, #f8f2dd 44%, #c9a84c 95%);
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
-          text-shadow: 0 0 11px rgba(201, 168, 76, 0.2);
+          text-shadow: 0 0 14px rgba(201, 168, 76, 0.18);
+        }
+        .ins-title-deco {
+          color: #f0d080;
+          opacity: 0.8;
+          margin: 0 1px;
         }
         .ins-subtitle-en {
           margin: 7px 0 0;
@@ -341,6 +387,7 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
           line-height: 1.9;
           color: rgba(196, 192, 224, 0.8);
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
         .ins-hero-stats {
           margin-top: 14px;
@@ -377,6 +424,7 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
           overflow-x: auto;
           gap: 8px;
           scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
         }
         .ins-filters::-webkit-scrollbar {
           display: none;
@@ -469,12 +517,25 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
           overflow: hidden;
         }
         .ins-label {
-          color: rgba(240, 208, 128, 0.9);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 34px;
+          height: 20px;
+          margin-right: 7px;
+          border-radius: 999px;
+          border: 1px solid rgba(240, 208, 128, 0.3);
+          background: rgba(240, 208, 128, 0.09);
+          color: rgba(240, 208, 128, 0.95);
           font-weight: 700;
-          margin-right: 6px;
-          letter-spacing: 0.01em;
+          letter-spacing: 0.02em;
           font-family: "Noto Sans KR", sans-serif;
-          font-size: 12px;
+          font-size: 11px;
+          flex-shrink: 0;
+        }
+        .ins-value {
+          display: inline;
+          vertical-align: baseline;
         }
         .ins-featured-read {
           margin-top: 8px;
@@ -557,29 +618,147 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
           .ins-wrap {
             width: min(940px, calc(100% - 20px));
             margin-top: 16px;
+            margin-bottom: 36px;
+            gap: 10px;
           }
           .ins-sticky-filter {
             padding: 10px 12px;
+            border-radius: 12px;
+            top: 6px;
+          }
+          .ins-filters {
+            gap: 6px;
+            padding-bottom: 2px;
           }
           .ins-pill {
             font-size: 11px;
-            padding: 7px 10px;
+            padding: 8px 10px;
+            min-height: 34px;
           }
           .ins-hero {
-            min-height: 300px;
+            min-height: 320px;
+          }
+          .ins-hero-inner {
+            min-height: 320px;
+            padding: 18px 12px 16px;
+          }
+          .ins-home-pill {
+            top: 10px;
+            left: 10px;
+            font-size: 11px;
+            padding: 5px 10px;
+          }
+          .ins-sigil {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 8px;
+          }
+          .ins-sigil :global(svg) {
+            width: 54px;
+            height: 54px;
           }
           .ins-title {
-            font-size: 22px;
+            font-size: clamp(1.24rem, 6.2vw, 1.45rem);
+            line-height: 1.36;
+            padding-inline: 4px;
+          }
+          .ins-subtitle-en {
+            margin-top: 6px;
+            font-size: 11px;
+            letter-spacing: 0.07em;
+          }
+          .ins-hero-line {
+            margin-top: 8px;
+          }
+          .ins-desc {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.72;
+            max-width: 100%;
+            padding-inline: 6px;
+          }
+          .ins-hero-stats {
+            margin-top: 12px;
+            gap: 6px;
+          }
+          .ins-hero-stats span {
+            font-size: 10px;
+            padding: 4px 9px;
+            white-space: nowrap;
           }
           .ins-featured-card {
             min-height: 148px;
             padding: 16px 14px;
+            border-radius: 12px;
           }
           .ins-featured-card h2 {
-            font-size: 18px;
+            font-size: 16px;
+            line-height: 1.45;
+          }
+          .ins-featured-card p {
+            font-size: 12px;
+            line-height: 1.7;
+          }
+          .ins-featured-label {
+            top: 9px;
+            right: 10px;
+            font-size: 8px;
+          }
+          .ins-label {
+            min-width: 30px;
+            height: 18px;
+            margin-right: 6px;
+            font-size: 10px;
           }
           .ins-card {
             padding: 18px 14px;
+            border-radius: 11px;
+          }
+          .ins-card h2 {
+            font-size: 15px;
+            line-height: 1.46;
+          }
+          .ins-card p {
+            font-size: 12px;
+            line-height: 1.7;
+          }
+          .ins-badge {
+            font-size: 9px;
+            padding: 3px 8px;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .ins-wrap {
+            width: calc(100% - 16px);
+            margin-top: 12px;
+            gap: 8px;
+          }
+          .ins-hero {
+            border-radius: 14px;
+          }
+          .ins-hero-inner {
+            padding: 16px 10px 14px;
+          }
+          .ins-home-pill {
+            top: 8px;
+            left: 8px;
+          }
+          .ins-desc {
+            padding-inline: 4px;
+          }
+          .ins-sticky-filter {
+            padding: 9px 10px;
+          }
+          .ins-pill {
+            padding: 7px 9px;
+            gap: 5px;
+          }
+          .ins-featured-card {
+            padding: 14px 12px;
+          }
+          .ins-card {
+            padding: 15px 12px;
           }
         }
       `}</style>

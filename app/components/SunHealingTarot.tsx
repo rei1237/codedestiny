@@ -13,6 +13,7 @@ import {
   Share2,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type TarotOrientation = "upright" | "reversed";
@@ -353,6 +354,7 @@ function TimelineSection({
 }
 
 export default function SunHealingTarot() {
+  const router = useRouter();
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -381,6 +383,10 @@ export default function SunHealingTarot() {
     setTyped({});
     setTypingSection(null);
   }, []);
+
+  const goHome = useCallback(() => {
+    router.push("/");
+  }, [router]);
 
   const start = useCallback(async () => {
     trigger();
@@ -586,11 +592,11 @@ export default function SunHealingTarot() {
 
               <button
                 type="button"
-                onClick={reset}
+                onClick={goHome}
                 className="inline-flex shrink-0 items-center gap-2 rounded-2xl border border-amber-200/55 bg-white/55 px-3 py-2 text-sm font-semibold text-orange-950/70 shadow-[inset_6px_6px_14px_rgba(0,0,0,0.04),inset_-6px_-6px_14px_rgba(255,255,255,0.7)] backdrop-blur transition hover:scale-[1.02]"
               >
                 <RotateCcw className="h-4 w-4" />
-                Reset
+                홈페이지
               </button>
             </div>
 
@@ -851,11 +857,11 @@ export default function SunHealingTarot() {
 
                     <button
                       type="button"
-                      onClick={reset}
+                      onClick={goHome}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200/60 bg-white/55 px-5 py-4 font-semibold text-orange-950/75 shadow-[inset_6px_6px_14px_rgba(0,0,0,0.04),inset_-6px_-6px_14px_rgba(255,255,255,0.7)] backdrop-blur transition hover:scale-[1.02]"
                     >
                       <RotateCcw className="h-5 w-5" />
-                      Draw Again
+                      홈페이지로 이동
                     </button>
                   </div>
                 </motion.section>

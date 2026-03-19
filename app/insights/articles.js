@@ -1,9 +1,9 @@
 const RAW_INSIGHT_ARTICLES = [
   {
     slug: "saju-four-pillars-basics",
-    title: "사주명리학 기초: 사주팔자(四柱八字)란 무엇인가",
+    title: "사주 명리학 기초",
     description:
-      "사주명리학의 핵심 개념인 사주팔자, 천간·지지, 음양오행의 관계를 초심자 관점에서 정리한 입문 가이드입니다.",
+      "사주명리학의 핵심인 사주팔자, 천간·지지, 음양오행의 관계를 한 번에 이해하는 입문 가이드입니다.",
     category: "사주 기초",
     updatedAt: "2026-03-20",
     sections: [

@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.open-next/
 out/
 dist/
 build-cache/
@@ -19,7 +20,13 @@ Thumbs.db
 # Environment (secrets - never commit)
 .env
 .env.local
+.env.*
+!.env.example
+!.env.*.example
 server/.env
+server/.env.local
+server/.env.*
+!server/.env.example
 
 # Cloudflare local deploy secrets
 .env.cloudflare

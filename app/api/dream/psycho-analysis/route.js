@@ -89,9 +89,11 @@ async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model
 
 async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   // Gemini 키는 반드시 환경변수로만 관리합니다.
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw Object.assign(new Error("GEMINI_API_KEY 환경변수가 필요합니다."), { status: 500 });
+    throw Object.assign(new Error("GEMINI_API_KEY(또는 GOOGLE_API_KEY) 환경변수가 필요합니다."), {
+      status: 500,
+    });
   }
 
   // Gemini REST API
@@ -188,7 +190,7 @@ export async function POST(request) {
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
     // Gemini 우선. (GEMINI_API_KEY가 있으면 Gemini로 실행)
-    const useGemini = Boolean(process.env.GEMINI_API_KEY);
+    const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
     const provider = useGemini ? "gemini" : "anthropic";
 
     const modelForKey = useGemini

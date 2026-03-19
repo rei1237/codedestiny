@@ -1,3 +1,3 @@
-export const production = {"ADMIN_SECURITY_LEVEL":"relaxed","ADMIN_SECRET_HASH":"3f9c7a12d8b44e6f9a20c5e1b7d4a8f2","JWT_SECRET":"cd_relaxed_jwt_2026_03_20_7a4f2d9c3b1e6f8a5c0d2b4e9f1a7c6","ADMIN_ALLOWED_IPS":"127.0.0.1,::1,::ffff:127.0.0.1,66.249.68.34","GEMINI_API_KEY":"AIzaSyAx4RYQF2YxA3bBROy1rmEoygS18WGErBM","PSYCHO_ANALYSIS_GEMINI_MODEL":"gemini-2.5-flash","PSYCHO_ANALYSIS_MAX_TOKENS":"2400"};
-export const development = {"ADMIN_SECURITY_LEVEL":"relaxed","ADMIN_SECRET_HASH":"3f9c7a12d8b44e6f9a20c5e1b7d4a8f2","JWT_SECRET":"cd_relaxed_jwt_2026_03_20_7a4f2d9c3b1e6f8a5c0d2b4e9f1a7c6","ADMIN_ALLOWED_IPS":"127.0.0.1,::1,::ffff:127.0.0.1,66.249.68.34","GEMINI_API_KEY":"AIzaSyAx4RYQF2YxA3bBROy1rmEoygS18WGErBM","PSYCHO_ANALYSIS_GEMINI_MODEL":"gemini-2.5-flash","PSYCHO_ANALYSIS_MAX_TOKENS":"2400"};
-export const test = {"ADMIN_SECURITY_LEVEL":"relaxed","ADMIN_SECRET_HASH":"3f9c7a12d8b44e6f9a20c5e1b7d4a8f2","JWT_SECRET":"cd_relaxed_jwt_2026_03_20_7a4f2d9c3b1e6f8a5c0d2b4e9f1a7c6","ADMIN_ALLOWED_IPS":"127.0.0.1,::1,::ffff:127.0.0.1,66.249.68.34"};
+export const production = {"PSYCHO_ANALYSIS_GEMINI_MODEL":"gemini-2.5-flash","PSYCHO_ANALYSIS_MAX_TOKENS":"2400"};
+export const development = {"PSYCHO_ANALYSIS_GEMINI_MODEL":"gemini-2.5-flash","PSYCHO_ANALYSIS_MAX_TOKENS":"2400"};
+export const test = {};
