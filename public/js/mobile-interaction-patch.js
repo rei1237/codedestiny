@@ -10,6 +10,7 @@
   var touchCtx = null;
   var lastTouchStart = null;
   var lastActionAt = Object.create(null);
+  var bridgeClickDepth = 0;
 
   var RULES = [
     {
@@ -340,15 +341,20 @@
 
   function invokeViaActionElement(rule, origin, sourceEvent) {
     if (!rule || !origin) return false;
+    if (sourceEvent && sourceEvent.type === 'click') return false;
+    if (bridgeClickDepth > 0) return false;
     var actionEl = findActionElement(origin, rule);
     if (!actionEl || typeof actionEl.click !== 'function') return false;
     try {
+      bridgeClickDepth += 1;
       actionEl.click();
       dispatchFeatureTapEvent(rule, origin, sourceEvent);
       return true;
     } catch (err) {
       console.error('[mobile-interaction-patch] action element click failed:', rule.action, err);
       return false;
+    } finally {
+      bridgeClickDepth = Math.max(0, bridgeClickDepth - 1);
     }
   }
 
@@ -858,6 +864,7 @@
     }, { passive: false, capture: true });
 
     root.addEventListener('click', function (event) {
+      if (bridgeClickDepth > 0) return;
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
