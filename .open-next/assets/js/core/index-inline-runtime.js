@@ -1807,14 +1807,14 @@ function _jfApplyCardVisual(card, selection) {
   stage.style.setProperty('--jf-saturation', String(intensity.saturation || 0.8));
 
   nameEl.textContent = selection.flower.name + ' · ' + (selection.flower.scientific_name || 'Unknown species');
-  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '명궁 주성 기반 운명꽃을 판독 중입니다.';
+  symbolismEl.textContent = matched.jamidusu_verdict || matched.narrative || '오늘의 강한 별 기반 운명꽃을 판독 중입니다.';
   keywordsEl.textContent = 'ziwei flower keywords · ' + selection.keywords.join(' • ');
   if (starBadgeEl) {
     var starLine = Array.isArray(ziwei.primary_stars) ? ziwei.primary_stars.join('·') : '주성 미확인';
-    starBadgeEl.textContent = '명궁 ' + starLine;
+    starBadgeEl.textContent = '오늘의 강한 별 ' + starLine;
   }
   if (brightBadgeEl) brightBadgeEl.textContent = '별 밝기 ' + (ziwei.brightness || intensity.brightness_label || '평(平)');
-  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '명궁';
+  if (palaceBadgeEl) palaceBadgeEl.textContent = ziwei.palace || '미확인';
   if (dataLineEl) {
     dataLineEl.textContent = (flowerData.focus_signal || '주성 시그널 대기') + ' · ' + (flowerData.ritual_tip || '별의 기운을 정렬 중입니다.');
   }
@@ -2483,7 +2483,7 @@ function _dfGetUnifiedStageContent(selection) {
 
   if (source === 'jamidusu') {
     return {
-      badge1: '명궁 주성 ' + (badges.star || '미확인'),
+      badge1: '오늘의 강한 별 ' + (badges.star || '미확인'),
       badge2: '별 밝기 ' + (badges.brightness || '미확인'),
       badge3: '궁위 ' + (badges.palace || '미확인'),
       scenarioTitle: matched.jamidusu_verdict || matched.narrative || '자미두수 주성 개화 시나리오를 계산 중입니다.',
@@ -2615,7 +2615,7 @@ function _dfRenderSajuBadges(selection) {
     ]
     : (badges.mode === 'jamidusu'
       ? [
-        { cls: 'is-strength', label: '명궁 주성', value: badges.star },
+        { cls: 'is-strength', label: '오늘의 강한 별', value: badges.star },
         { cls: 'is-yongshin', label: '별 밝기', value: badges.brightness },
         { cls: 'is-johu', label: '궁위', value: badges.palace }
       ]
@@ -2909,7 +2909,7 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
   } else if (source === 'jamidusu') {
     var star = badges.star || '미확인';
     var brightness = badges.brightness || '미확인';
-    var palace = badges.palace || '명궁';
+    var palace = badges.palace || '미확인';
     var structure = /자미|zi ?wei/i.test(star)
       ? '자미성 계열의 황실 기품이 깃든 단단한 꽃대'
       : (/칠살|파군|qisha|pogun/i.test(star)
@@ -2928,7 +2928,7 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
       '🦋 나비와 벌: ' + social,
       '🌵 수호의 가시: ' + thorns
     ];
-    observationLog = '정원사의 관찰 일지: 명궁 주성 ' + star + '이 줄기 중심을 곧게 세우고, 별 밝기 ' + brightness + '가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.';
+    observationLog = '정원사의 관찰 일지: 오늘의 강한 별 ' + star + '이 줄기 중심을 곧게 세우고, 별 밝기 ' + brightness + '가 꽃잎의 윤기를 조정합니다. 지금은 화려함보다 구조적 완성도가 성과를 키우는 시기입니다.';
     secretRecipe = '비밀 레시피: 책상 왼쪽에 메탈 계열 오브제를 하나 두고, 오늘의 기준 1개와 양보선 1개를 동시에 기록하세요. 경계가 선명해질수록 꽃은 더 우아하게 핍니다.';
     flowerLanguage = '운명의 꽃말: 품격은 단단한 구조에서 피어나는 가장 조용한 광채.';
     gardenerWord = '이 꽃을 위한 가드너의 한 마디: 화려함을 서두르지 마세요. 기준을 지킨 하루가 결국 가장 오래가는 꽃대를 만듭니다.';
@@ -3016,7 +3016,7 @@ function _dfBuildPromptBadgeLine(selection) {
     return '숙요 배지: ' + _dfOneLineText(badges.mansion, '미확인') + ' / 달 위상 ' + _dfOneLineText(badges.phase, '미확인') + ' / 수호동물 ' + _dfOneLineText(badges.guardian, '미확인');
   }
   if (badges.mode === 'jamidusu') {
-    return '자미두수 배지: 명궁 주성 ' + _dfOneLineText(badges.star, '미확인') + ' / 별 밝기 ' + _dfOneLineText(badges.brightness, '미확인') + ' / 궁위 ' + _dfOneLineText(badges.palace, '미확인');
+    return '자미두수 배지: 오늘의 강한 별 ' + _dfOneLineText(badges.star, '미확인') + ' / 별 밝기 ' + _dfOneLineText(badges.brightness, '미확인') + ' / 궁위 ' + _dfOneLineText(badges.palace, '미확인');
   }
   if (badges.mode === 'astrology') {
     return '점성술 배지: 태양궁 ' + _dfOneLineText(badges.sun, '미확인') + ' / 상승궁 ' + _dfOneLineText(badges.rising, '미확인') + ' / 달궁 ' + _dfOneLineText(badges.moon, '미확인');
@@ -3659,117 +3659,6 @@ function _dpZodiac(y) {
   return ['🐀', '🐂', '🐅', '🐇', '🐉', '🐍', '🐎', '🐑', '🐒', '🐓', '🐕', '🐖'][(y - 4 + 120) % 12];
 }
 
-var _ModalProfileState = (function() {
-  var _subs = {};
-
-  function _syncGlobals(profile) {
-    var b = profile.birth, l = profile.location || {};
-    var corrH = b.hour != null ? b.hour : 12;
-    var corrM = b.minute != null ? b.minute : 0;
-
-    try {
-      if (window.DestinyProfileManager && window.DestinyProfileManager.calcTrueSolarOffset) {
-        var lng = l.lng != null ? l.lng : 127.0;
-        var tz = l.tzOffset != null ? l.tzOffset : 9;
-        var offMin = window.DestinyProfileManager.calcTrueSolarOffset(lng, tz);
-        var total = ((corrH * 60 + corrM - offMin) % 1440 + 1440) % 1440;
-        corrH = Math.floor(total / 60);
-        corrM = total % 60;
-      }
-    } catch (e) {}
-
-    window._ziweiBirth = {
-      year: b.year,
-      month: b.month,
-      day: b.day,
-      hour: corrH,
-      minute: corrM,
-      lat: l.lat != null ? l.lat : 37.6,
-      lon: l.lng != null ? l.lng : 127.0,
-      tz: l.tzOffset != null ? l.tzOffset : 9
-    };
-
-    if (typeof setGender === 'function') { try { setGender(profile.gender || 'F'); } catch (e2) {} }
-    if (typeof GENDER !== 'undefined') { try { GENDER = profile.gender || 'F'; } catch (e3) {} }
-
-    if (typeof window.computeProfileForModal === 'function') {
-      try { window.computeProfileForModal(profile); } catch (e4) {
-        console.warn('[ModalProfileState] computeProfileForModal 실패 — _ziweiBirth 직접 주입으로 대체:', e4);
-      }
-    }
-  }
-
-  return {
-    subscribe: function(type, fn) { _subs[type] = fn; },
-    unsubscribe: function(type) { delete _subs[type]; },
-    dispatch: function(profile, targetType) {
-      if (!profile || !profile.birth) return;
-      _syncGlobals(profile);
-      var types = targetType ? [targetType] : Object.keys(_subs);
-      types.forEach(function(t) {
-        if (_subs[t]) {
-          try { _subs[t](profile); }
-          catch (e) { console.error('[ModalProfileState] 렌더 오류 (' + t + '):', e); }
-        }
-      });
-    }
-  };
-})();
-
-function _renderSukuyoSection(profile) {
-  var card = document.getElementById('sukuyoCard');
-  var noP = document.getElementById('sukuyoNoProfile');
-  var area = document.getElementById('sukuyoSection');
-  var sheet = document.getElementById('sukuyoModalSheet');
-  if (!area || !card) return;
-  if (noP) noP.style.display = 'none';
-  card.style.display = 'block';
-  area.innerHTML = '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\'Gowun Dodum\',serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
-  if (sheet) sheet.scrollTop = 0;
-  var b = profile.birth;
-  var lunarObj = null;
-  try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar)
-      lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
-  } catch (e) { console.warn('[Sukuyo] lunarObj 계산 오류:', e); }
-  setTimeout(function() {
-    if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
-  }, 0);
-}
-
-function _renderZiweiSection(profile) {
-  var card = document.getElementById('ziweiModalCard');
-  var noP = document.getElementById('ziweiNoProfile');
-  var area = document.getElementById('ziweiModalSection');
-  var sheet = document.getElementById('ziweiModalSheet');
-  if (!area || !card) return;
-  if (noP) noP.style.display = 'none';
-  card.style.display = 'block';
-  area.innerHTML = '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\'Gowun Dodum\',serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
-  if (sheet) sheet.scrollTop = 0;
-  setTimeout(function() {
-    if (typeof renderZiwei === 'function') {
-      try { renderZiwei(null, null, 'ziweiModalSection'); }
-      catch (e) { console.warn('[Ziwei] 렌더 오류:', e); }
-    }
-  }, 0);
-}
-
-function _renderAstroSection(profile) {
-  var wrap = document.getElementById('astroCardWrap');
-  var noP = document.getElementById('astroNoProfile');
-  var area = document.getElementById('astroResult');
-  var sheet = document.getElementById('astroModalSheet');
-  if (!area || !wrap) return;
-  if (noP) noP.style.display = 'none';
-  wrap.style.display = 'block';
-  area.innerHTML = '<div style="text-align:center;padding:50px 20px;color:#d1c4e9;font-family:\'Gowun Dodum\',serif;letter-spacing:1px;">✦ 코즈믹 차트를 계산하는 중...</div>';
-  if (sheet) sheet.scrollTop = 0;
-  setTimeout(function() {
-    if (typeof renderAstroInsight === 'function') renderAstroInsight();
-  }, 0);
-}
-
 var _dpSwitchPending = null;
 
 function _dpShowSwitchConfirm(profile, onYes) {
@@ -4307,6 +4196,9 @@ function closeTarotModal() {
     _resetTarotUI();
   }
 }
+// Ensure uiBindings `data-action` routing can always find these handlers on `window`.
+window.openTarotModal = openTarotModal;
+window.closeTarotModal = closeTarotModal;
 (function() {
   function onFsChange() {
     var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
@@ -4373,7 +4265,7 @@ var _langWrapFeatureOverlayIds = [
   'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
   'tarotModalOverlay', 'tarotFocusOverlay', 'tarotSelfEsteemOverlay',
   'tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
-  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader',
+  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader', 'psychoDreamModalOverlay',
   'juyukModalOverlay', 'sukuyoModalOverlay', 'astroModalOverlay', 'ziweiModalOverlay',
   'dpSwitchConfirmOverlay', 'dpListOverlay', 'kemetOracleOverlay', 'kemetLoader',
   'astralModal'

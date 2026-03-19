@@ -1881,6 +1881,17 @@ function renderEnergyCoord(natal){
   card.style.display='block';
 }
 
+// Export tarot handlers to `window` so `uiBindings` can route `data-action` safely
+// even if the script execution context is wrapped by the build pipeline.
+if (typeof window !== 'undefined') {
+  if (typeof setTarotMode === 'function') window.setTarotMode = setTarotMode;
+  if (typeof selectTarotCategory === 'function') window.selectTarotCategory = selectTarotCategory;
+  if (typeof startTarotReading === 'function') window.startTarotReading = startTarotReading;
+  if (typeof startThreeCardFlow === 'function') window.startThreeCardFlow = startThreeCardFlow;
+  if (typeof flipTarotSpreadCard === 'function') window.flipTarotSpreadCard = flipTarotSpreadCard;
+  if (typeof showTarotFinalInterpretation === 'function') window.showTarotFinalInterpretation = showTarotFinalInterpretation;
+}
+
 /* ── renderTTest: 극T 테스트 ── */
 function renderTTest(p, natal, johu, pw) {
   var area = document.getElementById('tTestResult');

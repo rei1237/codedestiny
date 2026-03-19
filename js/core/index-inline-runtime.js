@@ -4196,6 +4196,9 @@ function closeTarotModal() {
     _resetTarotUI();
   }
 }
+// Ensure uiBindings `data-action` routing can always find these handlers on `window`.
+window.openTarotModal = openTarotModal;
+window.closeTarotModal = closeTarotModal;
 (function() {
   function onFsChange() {
     var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
@@ -4262,7 +4265,7 @@ var _langWrapFeatureOverlayIds = [
   'sajuLoaderOverlay', 'privacy-modal-overlay', 'destinyFlowerStudioOverlay',
   'tarotModalOverlay', 'tarotFocusOverlay', 'tarotSelfEsteemOverlay',
   'tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
-  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader',
+  'animalTotemOverlay', 'dreamModalOverlay', 'dreamLoader', 'psychoDreamModalOverlay',
   'juyukModalOverlay', 'sukuyoModalOverlay', 'astroModalOverlay', 'ziweiModalOverlay',
   'dpSwitchConfirmOverlay', 'dpListOverlay', 'kemetOracleOverlay', 'kemetLoader',
   'astralModal'
