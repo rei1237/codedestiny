@@ -42,7 +42,7 @@ window.addEventListener('resize', requestProgressUpdate, { passive: true });
 | 파일 | 적용 내용 |
 |------|----------|
 | `js/core/index-inline-runtime.js` | `syncFeatureCardHeight` resize 호출에 RAF 쓰로틀링 적용 |
-| `js/saju-engine.js` | `syncReportBlockHeight` resize 호출에 RAF 쓰로틀링 적용 |
+| `js/core/saju/reportDashboard.js` | `syncReportBlockHeight` resize 호출에 RAF 쓰로틀링 적용 (기존 `saju-engine` 내 코드 이동) |
 
 ---
 
@@ -73,7 +73,7 @@ window.addEventListener('resize', requestProgressUpdate, { passive: true });
 | `js/fsn-navbar.js` | RAF 무한 루프 제거, 스크롤/리사이즈 이벤트 기반으로 전환 |
 | `js/touch-perf.js` | 이미지 loading/decoding 중복 제거, data-src lazy load만 유지 |
 | `js/core/index-inline-runtime.js` | resize 핸들러 RAF 쓰로틀링 |
-| `js/saju-engine.js` | resize 핸들러 RAF 쓰로틀링 |
+| `js/core/saju/reportDashboard.js` | resize 핸들러 RAF 쓰로틀링 |
 | `js/inline/canonical-redirect.js` | 리다이렉트 대상 경로 수정 |
 | `index.html` | kill-switch, api-base-init에 defer 추가 |
 

@@ -4590,7 +4590,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
   box-shadow: 0 10px 46px rgba(0,0,0,0.45);
 }
 
-/* 이미지: 회색 빈 공간 없이 꽉 채움 */
+/* 이미지: 고정 비율로 카드 폭에 깔끔하게 맞춤 */
 #reportDashboardCard .rpt-v2-img-row{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
@@ -4608,7 +4608,9 @@ body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
   justify-content: center;
   line-height: 0;
 }
-body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{ background: transparent; }
+body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{
+  background: transparent;
+}
 #reportDashboardCard .rpt-v2-img{
   width: 100%;
   height: 100%;
@@ -4641,11 +4643,23 @@ body.neo-mode #reportDashboardCard .rpt-v2-title{ color: #f8fafc; }
 body.neo-mode #reportDashboardCard .rpt-v2-preview{ color: rgba(226,232,240,0.86); }
 body.neo-mode #reportDashboardCard .rpt-v2-note{ color: rgba(226,232,240,0.68); }
 
-/* 꽃돼지 모드(라이트): 카드 리스트(썸네일 아래) 제목을 핑크로 */
+/* CTA 버튼: 밝은 카드에서도 대비 확보 (이 카드 내부만) */
+#reportDashboardCard .rpt-v2-toggle-btn{
+  border: 1px solid rgba(124,58,237,0.22);
+  box-shadow: 0 8px 20px rgba(124,58,237,0.18);
+}
+
+@media (max-width: 768px){
+  #reportDashboardCard .rpt-v2-img-wrap{ min-height: 120px; }
+}
+
+/* 꽃돼지 모드(라이트)에서: 펼쳐진 기능 카드 텍스트 대비 보강 (이 카드 내부만) */
 body:not(.neo-mode) #reportDashboardCard{
   --rpt-pink-strong: #ec4899;
   --rpt-pink: #f472b6;
 }
+
+/* 꽃돼지 모드(라이트): '재미있는 사주 콘텐츠' 카드 리스트(썸네일 아래) 텍스트 가독성 */
 body:not(.neo-mode) #reportDashboardCard .rpt-v2-title{
   color: #db2777 !important; /* pink-600 */
 }
@@ -4663,8 +4677,40 @@ body:not(.neo-mode) #reportDashboardCard .rpt-v2-note{
   margin-right: auto;
 }
 @media (max-width: 768px){
-  #reportDashboardCard .rpt-v2-img-wrap{ min-height: 120px; }
   #reportDashboardCard .rpt-v2-block{ max-width: 100%; }
+}
+
+/* 빌런 블랙리스트 */
+body:not(.neo-mode) #reportDashboardCard .villain-grade,
+body:not(.neo-mode) #reportDashboardCard .villain-name,
+body:not(.neo-mode) #reportDashboardCard .villain-section-title,
+body:not(.neo-mode) #reportDashboardCard .villain-quote strong{
+  color: var(--rpt-pink-strong);
+}
+
+/* 퀀텀 로또 리포트 */
+body:not(.neo-mode) #reportDashboardCard .lc-title-wrap h3,
+body:not(.neo-mode) #reportDashboardCard .lc-resonance,
+body:not(.neo-mode) #reportDashboardCard .lc-reason-title,
+body:not(.neo-mode) #reportDashboardCard .lc-game-tag{
+  color: var(--rpt-pink-strong);
+}
+
+/* 테토 vs 에겐 */
+body:not(.neo-mode) #reportDashboardCard .hv-teto-badge,
+body:not(.neo-mode) #reportDashboardCard .hv-egen-badge,
+body:not(.neo-mode) #reportDashboardCard .hv-teto-title,
+body:not(.neo-mode) #reportDashboardCard .hv-egen-title,
+body:not(.neo-mode) #reportDashboardCard .hv-neutral-title{
+  color: var(--rpt-pink-strong);
+  text-shadow: 0 0 14px rgba(236,72,153,0.28), 0 2px 4px rgba(0,0,0,0.35);
+}
+
+/* 극T 테스트 */
+body:not(.neo-mode) #reportDashboardCard .t-test-card #tTestTitle,
+body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-title,
+body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
+  color: var(--rpt-pink-strong);
 }
 .fortune-sec-title {
   font-weight: 700;
@@ -5613,7 +5659,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   margin-bottom: 0;
   z-index: 1;
 }
-.feature-card:hover { transform: translateY(-3px) translateZ(0); box-shadow: 0 14px 36px rgba(255, 108, 166, 0.19), 0 8px 24px rgba(30, 123, 165, 0.16); }
+.feature-card:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(255, 108, 166, 0.19), 0 8px 24px rgba(30, 123, 165, 0.16); }
 .feature-card:active { transform: scale(0.98); }
 
 .feature-card__img-wrap {
@@ -5632,7 +5678,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   display: block;
   transition: transform 0.4s ease;
 }
-.feature-card:hover .feature-card__img { transform: scale(1.03) translateZ(0); }
+.feature-card:hover .feature-card__img { transform: scale(1.03); }
 
 .feature-card__badge {
   position: absolute;

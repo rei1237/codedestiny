@@ -245,8 +245,8 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
     ],
-    openTarotHealingModal: ['js/tarot-healing-experience.js'],
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js']
+    openTarotHealingModal: ['public/js/tarot-healing-experience.js'],
+    openTarotYearFortuneModal: ['public/js/tarot-year-fortune-experience.js']
   };
 
   function loadScript(src) {
@@ -331,7 +331,7 @@
 
     var css = [
       '.feature-card--face, .feature-card--tazza,',
-      '.tarot-tile--year, .tarot-tile--animal-totem,',
+      '.tarot-tile--healing, .tarot-tile--year, .tarot-tile--animal-totem,',
       '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
       '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',

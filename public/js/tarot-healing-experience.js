@@ -949,7 +949,7 @@
     if (r.integrationMessage) addBlock("☀️ 따뜻한 마무리 🌟", r.integrationMessage);
 
     if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
-      var actionSec = ensureSection("🌱 오늘 해볼 만한 것 ✨");
+      ensureSection("🌱 오늘 해볼 만한 것 ✨");
       var ul = document.createElement("ul");
       ul.className = "tarot-healing-advice-list";
       r.actionPlan.forEach(function (item) {
@@ -958,7 +958,7 @@
         ul.appendChild(li);
         queue.push({ el: li, text: item, section: "🌱 오늘 해볼 만한 것 ✨" });
       });
-      actionSec.appendChild(ul);
+      sectionEl.appendChild(ul);
     }
 
     runTypingQueue(queue, TYPING_CHAR_DELAY_MS);
@@ -974,14 +974,14 @@
   function shareTarotHealingResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "☀ 따뜻한 태양 회복 타로 ☀\n\n";
+    var text = "☀ 따뜻한 태양 행복 타로 ☀\n\n";
     if (r.opening) text += "☀ " + r.opening + "\n\n";
     if (r.stepForward) text += "☀ " + r.stepForward + "\n\n";
     text += "👉 무료 타로 보러가기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "☀ 따뜻한 태양 회복 타로",
+        title: "☀ 따뜻한 태양 행복 타로",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

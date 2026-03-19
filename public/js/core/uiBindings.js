@@ -14,6 +14,8 @@ const __lazyActionLoaders = {
     __loadScriptOnce('js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('js/animal-totem-experience.js')
     ),
+  openTarotLoveModal: () => __loadScriptOnce('js/tarot-love-experience.js'),
+  openTarotReunionModal: () => __loadScriptOnce('js/tarot-reunion-experience.js'),
   openTarotHealingModal: () => __loadScriptOnce('js/tarot-healing-experience.js'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('js/tarot-self-esteem-experience.js'),
   openTarotYearFortuneModal: () => __loadScriptOnce('js/tarot-year-fortune-experience.js')
@@ -88,29 +90,43 @@ function __callActionWithConfig(action, actionEl, event, args) {
 function __invokeAction(action, actionEl, event) {
   const args = parseArgs(actionEl.getAttribute('data-action-args'));
   const out = __callActionWithConfig(action, actionEl, event, args);
-  if (out !== undefined) return;
 
   const loader = __lazyActionLoaders[action];
   if (!loader) return;
+
+  const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
+
+  // If the function already exists, avoid redundant lazy-loading + retry loops.
+  // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before
+  // their full experience scripts load, so we keep the previous behavior there.
+  if (action !== 'openAnimalTotemModal' && hadFunction) return;
+  if (out !== undefined) return;
+
   if (!__lazyActionState[action]) {
     __lazyActionState[action] = loader().catch((err) => {
       console.error('[uiBindings] lazy action load failed:', action, err);
     });
   }
+
   __lazyActionState[action].then(() => {
     let attempt = 0;
     const maxAttempts = 12;
     const retryMs = 50;
 
-    const tryInvoke = () => {
-      const result = __callActionWithConfig(action, actionEl, event, args);
-      if (result !== undefined) return;
-      if (attempt >= maxAttempts) return;
-      attempt += 1;
-      setTimeout(tryInvoke, retryMs);
+    const tryInvokeOnceWhenReady = () => {
+      if (typeof window[action] !== 'function') {
+        if (attempt >= maxAttempts) return;
+        attempt += 1;
+        setTimeout(tryInvokeOnceWhenReady, retryMs);
+        return;
+      }
+
+      // Many UI open handlers intentionally return `undefined` after DOM side-effects.
+      // Do not retry based on return value; just call once when the function appears.
+      __callActionWithConfig(action, actionEl, event, args);
     };
 
-    tryInvoke();
+    tryInvokeOnceWhenReady();
   });
 }
 

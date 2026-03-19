@@ -1,9 +1,11 @@
 # saju-engine.js 모듈 분석 - 빠른 참조
 
+> **로드 구조 (2026-03):** 동일 순서로 네 스크립트 — `js/saju-engine.js`(코어) → `js/saju-engine-tarot-sukuyo-quantum.js`(타로 DB·숙요·퀀텀 UI 등) → `js/core/saju/reportDashboard.js`(리포트 대시보드 그리드·토글) → `js/saju-engine-continuation.js`(모달·부팅·`destinyProfileChanged`). 아래 맵의 라인·그룹은 **원본 단일 파일 기준 논리 구역**입니다.
+
 ## 📊 모듈 위치 맵
 
 ```
-saju-engine.js (21,710 lines)
+saju-engine.js (코어 + 중간 청크 + continuation, 논리 단일 맵 기준)
 │
 ├─ Group A: KASI 음양력 (L1-800)
 │  ├─ 함수: _kasiPad2, getActualSolarDate, parseKasiGanjiPair

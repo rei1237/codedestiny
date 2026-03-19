@@ -1639,6 +1639,14 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
+/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
+.lang-toggle-wrap.lang-wrap--hidden {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
 /* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }

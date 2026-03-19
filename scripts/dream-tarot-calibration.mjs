@@ -57,8 +57,8 @@ function mdEscape(text) {
   return String(text || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 }
 
-const sajuSource = fs.readFileSync('js/saju-engine.js', 'utf8');
-const tarotData = extractTarotData(sajuSource);
+const tarotSource = fs.readFileSync('js/saju-engine-tarot-sukuyo-quantum.js', 'utf8');
+const tarotData = extractTarotData(tarotSource);
 
 const sandbox = {
   window: { TAROT_DATA: tarotData },

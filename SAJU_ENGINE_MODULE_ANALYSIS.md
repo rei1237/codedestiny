@@ -1,7 +1,9 @@
 # saju-engine.js Module 분석 결과
 
+> **2026-03:** 런타임 로드 순서는 `js/saju-engine.js` → `js/saju-engine-tarot-sukuyo-quantum.js` → `js/core/saju/reportDashboard.js` → `js/saju-engine-continuation.js` 입니다. 아래 라인·용량은 **과거 단일 파일 스냅샷** 기준 설명입니다.
+
 ## 파일 기본 정보
-- **경로**: js/saju-engine.js
+- **경로**: js/saju-engine.js (코어; 타로/숙요 청크·리포트 UI·continuation은 별도 파일)
 - **총 라인수**: ~21,710 라인
 - **파일 크기**: ~2.5 MB
 - **접근 방식**: 단일 대형 자바스크립트 파일 (6개 논리 모듈 혼재)

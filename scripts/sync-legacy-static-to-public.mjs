@@ -1,3 +1,7 @@
+/**
+ * Copies root static assets → public/ (Cloudflare / static hosting).
+ * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
+ */
 import { cpSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 

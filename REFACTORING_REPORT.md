@@ -126,7 +126,7 @@ js/
 
 **추가 권장 (향후):**
 
-- `index-inline-runtime.js` (~3,700줄), `saju-engine.js` (~21,000줄) 모듈 분할
+- `index-inline-runtime.js` (~3,700줄), `saju-engine` 계열(코어·타로/숙요 청크·`reportDashboard.js`·continuation) 모듈 분할
 - JSON-LD를 별도 파일로 분리 후 동적 삽입 (선택, SEO 영향 검토 필요)
 - `style=""` 100여 개 → CSS 클래스화 (index.html)
 

@@ -71,6 +71,7 @@
         @keyframes starGlow { 0%, 100% { box-shadow: 0 0 10px #4c1d95, 0 0 20px #1e3a8a; } }
       }
 
+      /* 위젯 컨테이너 */
       #google_translate_element {
         position: fixed !important;
         top: max(20px, env(safe-area-inset-top));
@@ -87,6 +88,7 @@
         contain: layout paint style;
       }
 
+      /* 모바일 landscape */
       @media (max-height: 500px) {
         #google_translate_element {
           top: max(10px, env(safe-area-inset-top));
@@ -94,6 +96,7 @@
         }
       }
 
+      /* Select 요소 스타일 */
       #google_translate_element select.goog-te-combo {
         appearance: none;
         -webkit-appearance: none;
@@ -157,6 +160,7 @@
         box-shadow: inset 0 2px 6px rgba(34, 18, 64, 0.44);
       }
 
+      /* 드롭다운 화살표/글로브 아이콘 wrapper */
       .cosmic-wrapper {
         position: relative;
         display: inline-block;
@@ -249,6 +253,7 @@
 
       .cosmic-wrapper::selection { background: transparent; }
 
+      /* 툴팁 */
       .cosmic-tooltip {
         position: absolute;
         display: none;
@@ -291,7 +296,9 @@
         backdrop-filter: blur(10px);
       }
 
-      .cd-gt-custom-menu.cd-gt-open { display: block; }
+      .cd-gt-custom-menu.cd-gt-open {
+        display: block;
+      }
 
       .cd-gt-menu-item {
         appearance: none;
@@ -309,8 +316,11 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      .cd-gt-menu-item:hover { background: rgba(255, 255, 255, 0.10); }
+      .cd-gt-menu-item:hover {
+        background: rgba(255, 255, 255, 0.10);
+      }
 
+      /* 구글 번역 기본 요소 숨김 */
       .goog-logo-link,
       .goog-te-gadget span,
       .goog-te-gadget img { display: none !important; }
@@ -318,6 +328,7 @@
       .goog-te-gadget { color: transparent !important; font-size: 0; line-height: 0 !important; }
       .goog-te-gadget * { -webkit-touch-callout: none; }
 
+      /* 로딩 placeholder(스켈레톤) - 실제 버튼이 올라오기 전 깜빡임 방지 */
       #google_translate_element.cd-gt-loading {
         background: linear-gradient(90deg, rgba(49,46,129,.6), rgba(91,33,182,.65), rgba(49,46,129,.6));
         background-size: 200% 100%;
@@ -342,6 +353,7 @@
     widget.appendChild(label);
 
     // 초기 로딩 전에도 즉시 클릭 가능한 🌐 버튼을 먼저 구성
+    // (번역 콤보/래퍼가 늦게 생성되는 경우를 대비)
     if (!widget.querySelector('.cosmic-toggle')) {
       var toggle = document.createElement('button');
       toggle.type = 'button';
@@ -510,6 +522,8 @@
     widget.classList.remove('cd-gt-loading');
     widget.classList.add('cd-gt-ready');
 
+    // Google Translate 콤보를 기존 코스믹 버튼 래퍼 구조로 감싸서
+    // (이모지/애니메이션/툴팁) UI를 이전 디자인과 동일하게 복원합니다.
     var parent = combo.parentNode;
     var wrapper = parent;
     if (!wrapper || !wrapper.classList || !wrapper.classList.contains('cosmic-wrapper')) {
@@ -519,6 +533,7 @@
       wrapper.appendChild(combo);
     }
 
+    // 언어 옵션 텍스트(드롭다운 표시) 커스터마이즈
     function updateOptions() {
       var hasPlaceholder = false;
       Array.from(combo.options).forEach(function(option) {
@@ -543,8 +558,10 @@
 
     updateOptions();
 
+    // 중앙 LANG 라벨
     var overlay = wrapper.querySelector('.cosmic-lang-label');
     if (!overlay) {
+      // placeholder가 widget 안에 있다면 wrapper로 이동
       overlay = widget.querySelector('.cosmic-lang-label');
       if (overlay && overlay.parentNode !== wrapper) overlay.parentNode.removeChild(overlay);
       if (!overlay) overlay = document.createElement('div');
@@ -553,6 +570,7 @@
       wrapper.appendChild(overlay);
     }
 
+    // 툴팁
     var tooltip = wrapper.querySelector('.cosmic-tooltip');
     if (!tooltip) {
       tooltip = document.createElement('div');
@@ -560,7 +578,7 @@
       wrapper.appendChild(tooltip);
     }
 
-    // 🌐 클릭 시 select 드롭다운 대신 커스텀 언어 메뉴 열기
+    // 🌐 클릭 타겟(초기 단계에서 widget에 생성될 수도 있음)
     var toggle = wrapper.querySelector('.cosmic-toggle') || widget.querySelector('.cosmic-toggle');
     if (!toggle) {
       toggle = document.createElement('button');
@@ -572,6 +590,7 @@
       wrapper.appendChild(toggle);
     }
 
+    // 커스텀 메뉴 컨테이너(초기 단계에서 widget에 생성될 수도 있음)
     var menu = wrapper.querySelector('.cd-gt-custom-menu') || widget.querySelector('.cd-gt-custom-menu');
     if (!menu) {
       menu = document.createElement('div');
@@ -647,7 +666,7 @@
       menu.classList.add('cd-gt-open');
       toggle.setAttribute('aria-expanded', 'true');
       var openedAt = Date.now();
-
+      // 외부 클릭 시 닫기
       window.addEventListener('click', function onWinClick(e) {
         if (!menuOpen) return;
         if (Date.now() - openedAt < 250) return;
@@ -681,6 +700,7 @@
     // 외부(초기 클릭)에서 열기 호출용 핸들러
     try { window.__cdOpenTranslateMenu = openMenu; } catch (_) {}
 
+    // 툴팁 표시(마우스/포인터 오버)
     function updateTooltip() {
       var code = combo.value || 'ko';
       var desc = langDesc[code] || '';
@@ -689,12 +709,15 @@
       tooltip.classList.add('visible');
     }
 
-    function hideTooltip() { tooltip.classList.remove('visible'); }
+    function hideTooltip() {
+      tooltip.classList.remove('visible');
+    }
 
     combo.addEventListener('mousemove', updateTooltip, { passive: true });
     combo.addEventListener('mouseleave', hideTooltip, { passive: true });
     combo.addEventListener('focus', hideTooltip, { passive: true });
 
+    // 사용자 선택 시 옵션 텍스트/툴팁 정보를 갱신
     combo.addEventListener('change', function() {
       updateOptions();
       try {
@@ -703,6 +726,7 @@
       hideTooltip();
     }, { passive: true });
 
+    // 초기 클릭에서 pendingOpenMenu가 켜져있었다면, 콤보 준비 즉시 메뉴 오픈
     if (pendingOpenMenu) {
       pendingOpenMenu = false;
       openMenu();
