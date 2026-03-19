@@ -418,6 +418,7 @@
           chain = chain.then(function() { return loadScript(src); });
         });
         chain.then(function() {
+          if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
           var f = window[rule.action];
           if (typeof f === 'function') {
             try { f(); } catch (err) {
@@ -437,6 +438,7 @@
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     try {
       raf(function() {
+        if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
         try {
           fn();
         } catch (err) {
@@ -510,10 +512,11 @@
       '@supports (height: 100dvh) {',
       '  :root { --cd-safe-vh: 100dvh; }',
       '}',
-      '#kemetOracleOverlay, #psychoDreamModalOverlay, #tarotHealingOverlay {',
+      '#kemetOracleOverlay, #psychoDreamModalOverlay, #tarotHealingOverlay, #tarotLoveOverlay, #tarotReunionOverlay, #tarotYearFortuneOverlay, #dreamModalOverlay {',
       '  min-height: var(--cd-safe-vh);',
       '  max-height: var(--cd-safe-vh);',
       '  overflow-x: hidden;',
+      '  -webkit-overflow-scrolling: touch;',
       '}'
     ].join('\n');
 

@@ -125,7 +125,20 @@
     }
   }
 
+  /** 닫기 버튼이 .ps-header/.ps-wizard(z-index:1) 아래로 깔려 모바일에서 먹통이 되는 문제 방지 */
+  function ensurePsychoCloseZFix() {
+    var FIX_ID = "ps-freuds-close-z-fix";
+    if (document.getElementById(FIX_ID)) return;
+    var st = document.createElement("style");
+    st.id = FIX_ID;
+    st.textContent =
+      "#" + OVERLAY_ID + " .ps-close{z-index:50!important;position:absolute!important;" +
+      "touch-action:manipulation;-webkit-tap-highlight-color:transparent;}";
+    document.head.appendChild(st);
+  }
+
   function injectFreudsStudyStyles() {
+    ensurePsychoCloseZFix();
     var STYLE_ID = "ps-freuds-study-style";
     if (document.getElementById(STYLE_ID)) return;
 
@@ -141,8 +154,8 @@
       "#".concat(OVERLAY_ID, ".ps-overlay--show{display:block;}\n") +
       "#".concat(OVERLAY_ID, " .ps-dialog{max-width:980px;margin:44px auto calc(26px + env(safe-area-inset-bottom));position:relative;padding:24px 22px 26px;border-radius:18px;background:rgba(0,0,0,.12);\n" +
       "box-shadow:0 22px 60px rgba(0,0,0,.35);border:1px solid rgba(212,175,37,.28);}\n") +
-      "#".concat(OVERLAY_ID, " .ps-close{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:12px;border:1px solid rgba(212,175,37,.34);\n" +
-      "background:rgba(15,20,27,.45);color:rgba(253,253,253,.95);font-size:18px;cursor:pointer;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-close{position:absolute;top:16px;right:16px;z-index:50;width:42px;height:42px;border-radius:12px;border:1px solid rgba(212,175,37,.34);\n" +
+      "background:rgba(15,20,27,.45);color:rgba(253,253,253,.95);font-size:18px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}\n") +
       "#".concat(OVERLAY_ID, " .ps-close:hover{border-color:rgba(212,175,37,.70);transform:translateY(-1px);}\n") +
       "#".concat(OVERLAY_ID, " .ps-bg-ornament{position:absolute;inset:0;border-radius:18px;pointer-events:none;opacity:.9;\n" +
       "background:\n" +
@@ -261,6 +274,7 @@
     if (screen === "result") {
       if (resultScreen) resultScreen.style.display = "block";
       if (wizard) wizard.style.display = "none";
+      ensureResultHomeButton();
     }
   }
 
@@ -580,6 +594,18 @@
     setOverlayVisible(false);
   };
 
+  /** 결과 화면에서 모달 닫고 메인 화면 상단으로 이동 */
+  window.psychoDreamGoHome = function psychoDreamGoHome() {
+    if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (_) {
+      try {
+        window.scrollTo(0, 0);
+      } catch (e2) {}
+    }
+  };
+
   window.psychoDreamStartAnalysis = function psychoDreamStartAnalysis() {
     analyzeDream();
   };
@@ -637,6 +663,8 @@
   }
 
   injectFreudsStudyStyles();
+  ensureResultHomeButton();
+  attachPsychoCloseGuards();
   attachJournalMicroInteractions();
 
   // Safety: data-action binding이 누락되는 환경도 대비해 직접 클릭을 보강합니다.
@@ -645,6 +673,46 @@
     analyzeBtn.addEventListener("click", function () {
       analyzeDream();
     });
+  }
+
+  /** 결과 영역에 홈 버튼이 없으면 추가 (HTML 수정 없이도 동작) */
+  function ensureResultHomeButton() {
+    var actions = document.querySelector("#" + RESULT_SCREEN_ID + " .ps-result-actions");
+    if (!actions || actions.querySelector('[data-action="psychoDreamGoHome"]')) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ps-btn ps-btn-primary";
+    btn.setAttribute("data-action", "psychoDreamGoHome");
+    btn.setAttribute("aria-label", "홈 화면으로 바로가기");
+    btn.textContent = "🏠 홈으로 바로가기";
+    if (actions.firstChild) actions.insertBefore(btn, actions.firstChild);
+    else actions.appendChild(btn);
+  }
+
+  /** 닫기 버튼: 캡처 단계에서 먼저 처리 (헤더/마법사 레이어가 터치 가로채는 경우 방지) */
+  function attachPsychoCloseGuards() {
+    var ov = $(OVERLAY_ID);
+    if (!ov || ov.dataset.cdPsychoCloseGuard === "1") return;
+    ov.dataset.cdPsychoCloseGuard = "1";
+    function tryClose(ev) {
+      var closeBtn = ev.target && ev.target.closest && ev.target.closest(".ps-close");
+      if (!closeBtn || !ov.contains(closeBtn)) return;
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopPropagation();
+      if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+    }
+    ov.addEventListener("click", tryClose, true);
+    ov.addEventListener(
+      "touchend",
+      function (e) {
+        var closeBtn = e.target && e.target.closest && e.target.closest(".ps-close");
+        if (!closeBtn || !ov.contains(closeBtn)) return;
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+      },
+      { passive: false, capture: true }
+    );
   }
 
   function bindDirectTapAction(selector, handler) {
@@ -674,8 +742,12 @@
   bindDirectTapAction('[data-action="openPsychoDreamModal"]', function () {
     if (typeof window.openPsychoDreamModal === "function") window.openPsychoDreamModal();
   });
-  bindDirectTapAction('#' + OVERLAY_ID + ' .ps-close, #' + OVERLAY_ID + ' [data-action="closePsychoDreamModal"]', function () {
+  /* .ps-close 는 attachPsychoCloseGuards(캡처)에서 처리 — 이중 호출 방지 */
+  bindDirectTapAction('#' + OVERLAY_ID + ' [data-action="closePsychoDreamModal"]:not(.ps-close)', function () {
     if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+  });
+  bindDirectTapAction('#' + OVERLAY_ID + ' [data-action="psychoDreamGoHome"]', function () {
+    if (typeof window.psychoDreamGoHome === "function") window.psychoDreamGoHome();
   });
   bindDirectTapAction('#' + OVERLAY_ID + ' #psychoDreamAnalyzeBtn, #' + OVERLAY_ID + ' [data-action="psychoDreamStartAnalysis"]', function () {
     if (typeof window.psychoDreamStartAnalysis === "function") window.psychoDreamStartAnalysis();

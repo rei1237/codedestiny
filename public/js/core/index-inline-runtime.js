@@ -924,14 +924,30 @@ function _cdInitAfterSplash() {
   }
 }
 
+/* 모바일 containment 해결: transform:translateZ(0) 부모 내 fixed가 뷰포트 대신 부모 기준으로 배치되는 이슈.
+   이 오버레이들은 body 직계가 아니면 모바일에서 화면에 안 보임 → body로 이동 */
+function __cdEnsureModalOverlaysInBody() {
+  var ids = ['tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
+    'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el && el.parentNode !== document.body) {
+      try { document.body.appendChild(el); } catch (e) { /* ignore */ }
+    }
+  }
+}
+window.__cdEnsureModalOverlaysInBody = __cdEnsureModalOverlaysInBody;
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
+    __cdEnsureModalOverlaysInBody();
     _cdInitAfterSplash();
     __cdBindAnimalTotemTileDirect();
     __cdBindDestinyFlowerTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
+  __cdEnsureModalOverlaysInBody();
   _cdInitAfterSplash();
   __cdBindAnimalTotemTileDirect();
   __cdBindDestinyFlowerTileDirect();
