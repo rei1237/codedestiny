@@ -3986,6 +3986,18 @@ body.neo-mode .lang-btn:hover:not(.active) {
   box-shadow: 0 2px 8px rgba(255,139,167,0.08);
   outline: none;
   transition: border 0.2s, box-shadow 0.2s;
+  padding: 0 6px 0 24px;
+  position: relative;
+}
+
+#google_translate_element.planet-widget select.goog-te-combo::before {
+  content: '🌐';
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
 }
 
 #google_translate_element.planet-widget .goog-te-gadget {
@@ -8759,6 +8771,140 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   }
   .df-studio-source-tabs {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 초소형 모바일 화면 최적화 (480px 이하) */
+@media (max-width: 480px) {
+  .df-studio-overlay {
+    padding: max(4px, env(safe-area-inset-top, 0px)) max(4px, env(safe-area-inset-right, 0px)) max(4px, env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px));
+  }
+  .df-studio-sheet {
+    border-radius: 16px;
+    padding: 12px;
+    max-height: calc(100vh - 8px);
+    max-height: calc(100dvh - 8px);
+    max-height: calc(100svh - 8px);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: calc(100vw - 8px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .df-studio-close {
+    width: 32px;
+    height: 32px;
+    top: 10px;
+    right: 10px;
+    font-size: 0.9rem;
+  }
+  .df-studio-hero {
+    margin-bottom: 12px;
+    padding-right: 40px;
+    padding-bottom: 8px;
+  }
+  .df-studio-kicker {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+  }
+  .df-studio-hero h2 {
+    margin: 4px 0 2px;
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+  .df-studio-badges {
+    margin: 8px 0 6px;
+    gap: 5px;
+  }
+  .df-saju-badge {
+    min-height: 26px;
+    padding: 4px 8px;
+    font-size: 0.65rem;
+    gap: 4px;
+  }
+  .df-saju-badge b {
+    font-size: 0.65rem;
+  }
+  .df-saju-badge em {
+    font-size: 0.62rem;
+  }
+  .df-studio-source-tabs {
+    margin: 8px 0 6px;
+    gap: 6px;
+  }
+  .df-studio-source-tabs .df-source-tab {
+    min-height: 36px;
+    font-size: 0.7rem;
+    padding: 8px 10px;
+  }
+  .df-studio-narrative {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  .df-studio-main {
+    padding: 12px;
+  }
+  .df-studio-btn {
+    font-size: 0.74rem;
+    padding: 10px 12px;
+    min-height: 36px;
+  }
+  /* df-studio-main 초소형 모바일 최적화 */
+  .df-studio-main {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .df-studio-visual {
+    border-radius: 14px;
+    max-height: 220px;
+  }
+  .df-studio-insight h3 {
+    font-size: 1rem;
+    text-shadow: 0 2px 6px rgba(195, 143, 255, 0.15);
+  }
+  .df-studio-latin {
+    font-size: 0.78rem;
+  }
+  .df-studio-symbolism {
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  .df-studio-keywords {
+    font-size: 0.65rem;
+  }
+  /* 패널 레이아웃 최적화 */
+  .df-studio-panels {
+    margin-top: 12px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .df-panel {
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .df-panel h4 {
+    margin: 0 0 7px;
+    font-size: 0.73rem;
+    gap: 4px;
+  }
+  .df-panel h4::before {
+    font-size: 0.7rem;
+  }
+  .df-panel p {
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+  .df-panel-list {
+    margin: 6px 0 0;
+    gap: 5px;
+  }
+  .df-panel-list li {
+    font-size: 0.72rem;
+    line-height: 1.55;
+  }
+  /* 텍스트 노드가 컨테이너를 넘지 않도록 위드로우 처리 */
+  .df-studio-sheet * {
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 }
 

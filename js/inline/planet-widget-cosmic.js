@@ -131,15 +131,27 @@
       animation: cosmicFloat 4s ease-in-out infinite;
     }
 
+    .cosmic-wrapper::before {
+      content: '🌐';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 18px;
+      filter: drop-shadow(0 0 4px #fff);
+    }
+
     .cosmic-wrapper::after {
-      content: '✨';
+      content: '▼';
       position: absolute;
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
-      font-size: 16px;
+      font-size: 11px;
       filter: drop-shadow(0 0 4px #fff);
+      color: #a855f7;
     }
 
     /* 툴팁 */
