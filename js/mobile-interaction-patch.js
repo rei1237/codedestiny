@@ -245,8 +245,10 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
     ],
-    openTarotHealingModal: ['public/js/tarot-healing-experience.js'],
-    openTarotYearFortuneModal: ['public/js/tarot-year-fortune-experience.js']
+    // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
+    // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
+    openTarotHealingModal: ['js/tarot-healing-experience.js'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js']
   };
 
   function loadScript(src) {
