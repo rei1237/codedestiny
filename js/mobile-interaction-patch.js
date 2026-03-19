@@ -5,12 +5,9 @@
   var TAP_MAX_DX = 36;
   var TAP_MAX_DY = 36;
   var GHOST_CLICK_BLOCK_MS = 500;
-  var ACTION_DEDUP_MS = 650;
   var suppressClickUntil = 0;
   var touchCtx = null;
   var lastTouchStart = null;
-  var lastActionAt = Object.create(null);
-  var bridgeClickDepth = 0;
 
   var RULES = [
     {
@@ -339,25 +336,6 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
-  function invokeViaActionElement(rule, origin, sourceEvent) {
-    if (!rule || !origin) return false;
-    if (sourceEvent && sourceEvent.type === 'click') return false;
-    if (bridgeClickDepth > 0) return false;
-    var actionEl = findActionElement(origin, rule);
-    if (!actionEl || typeof actionEl.click !== 'function') return false;
-    try {
-      bridgeClickDepth += 1;
-      actionEl.click();
-      dispatchFeatureTapEvent(rule, origin, sourceEvent);
-      return true;
-    } catch (err) {
-      console.error('[mobile-interaction-patch] action element click failed:', rule.action, err);
-      return false;
-    } finally {
-      bridgeClickDepth = Math.max(0, bridgeClickDepth - 1);
-    }
-  }
-
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
@@ -374,106 +352,6 @@
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js']
   };
-
-  // open 액션별 대표 오버레이 ID (다른 잔존 오버레이 정리 시 예외 처리용)
-  var OPEN_ACTION_OVERLAY_MAP = {
-    openTarotLoveModal: 'tarotLoveOverlay',
-    openTarotHealingModal: 'tarotHealingOverlay',
-    openTarotSelfEsteemModal: 'tarotSelfEsteemOverlay',
-    openTarotReunionModal: 'tarotReunionOverlay',
-    openTarotYearFortuneModal: 'tarotYearFortuneOverlay',
-    openAnimalTotemModal: 'animalTotemOverlay',
-    openDreamModal: 'dreamModalOverlay',
-    openPsychoDreamModal: 'psychoDreamModalOverlay',
-    openKemetModal: 'kemetOracleOverlay'
-  };
-  var OPEN_ACTION_OVERLAY_CLASS_MAP = {
-    openTarotLoveModal: 'is-open',
-    openTarotHealingModal: 'is-open',
-    openTarotSelfEsteemModal: 'is-open',
-    openTarotReunionModal: 'is-open',
-    openTarotYearFortuneModal: 'is-open',
-    openAnimalTotemModal: 'is-open',
-    openDreamModal: 'dream-ledger-overlay--show',
-    openPsychoDreamModal: 'ps-overlay--show'
-  };
-
-  // Esc에서 닫히지 않던 케이스까지 포함해, "보이진 않지만 클릭을 막는" 오버레이를 정리
-  var OVERLAY_CLOSE_MAP = [
-    { id: 'tarotLoveOverlay', closeFn: 'closeTarotLoveModal' },
-    { id: 'tarotHealingOverlay', closeFn: 'closeTarotHealingModal' },
-    { id: 'tarotSelfEsteemOverlay', closeFn: 'closeTarotSelfEsteemModal' },
-    { id: 'tarotReunionOverlay', closeFn: 'closeTarotReunionModal' },
-    { id: 'tarotYearFortuneOverlay', closeFn: 'closeTarotYearFortuneModal' },
-    { id: 'animalTotemOverlay', closeFn: 'closeAnimalTotemModal' },
-    { id: 'dreamModalOverlay', closeFn: 'closeDreamModal' },
-    { id: 'psychoDreamModalOverlay', closeFn: 'closePsychoDreamModal' },
-    { id: 'kemetOracleOverlay', closeFn: 'closeKemetModal' },
-    { id: 'tarotModalOverlay', closeFn: 'closeTarotModal' },
-    { id: 'destinyFlowerStudioOverlay', closeFn: 'closeDestinyFlowerStudio' },
-    { id: 'juyukModalOverlay', closeFn: 'closeJuyukModal' },
-    { id: 'sukuyoModalOverlay', closeFn: 'closeSukuyoModal' },
-    { id: 'astroModalOverlay', closeFn: 'closeAstroModal' },
-    { id: 'ziweiModalOverlay', closeFn: 'closeZiweiModal' },
-    { id: 'dpSwitchConfirmOverlay', closeFn: 'dpSwitchConfirmNo' },
-    { id: 'dpListOverlay', closeFn: '' },
-    { id: 'tarotFocusOverlay', closeFn: 'exitDivineFocus' }
-  ];
-
-  function isOverlayVisible(el) {
-    if (!el) return false;
-    var computed = window.getComputedStyle ? window.getComputedStyle(el) : null;
-    if (el.style.display === 'none') return false;
-    if (computed && computed.display === 'none') return false;
-    if (computed && computed.visibility === 'hidden') return false;
-    return true;
-  }
-
-  function cleanupBlockingOverlays(exceptOverlayId) {
-    var cleaned = false;
-    for (var i = 0; i < OVERLAY_CLOSE_MAP.length; i += 1) {
-      var item = OVERLAY_CLOSE_MAP[i];
-      if (!item || !item.id || item.id === exceptOverlayId) continue;
-      var overlay = document.getElementById(item.id);
-      if (!isOverlayVisible(overlay)) continue;
-      try {
-        if (item.closeFn && typeof window[item.closeFn] === 'function') {
-          window[item.closeFn]();
-        } else if (overlay) {
-          overlay.style.display = 'none';
-        }
-        cleaned = true;
-      } catch (err) {
-        console.warn('[mobile-interaction-patch] overlay cleanup failed:', item.id, err);
-      }
-    }
-    return cleaned;
-  }
-
-  function shouldSkipDuplicateAction(actionName) {
-    if (!actionName) return false;
-    var now = Date.now();
-    var last = Number(lastActionAt[actionName] || 0);
-    if (last > 0 && now - last < ACTION_DEDUP_MS) return true;
-    lastActionAt[actionName] = now;
-    return false;
-  }
-
-  function ensureOverlayOpen(actionName) {
-    var overlayId = OPEN_ACTION_OVERLAY_MAP[actionName];
-    if (!overlayId) return;
-    var overlay = document.getElementById(overlayId);
-    if (!overlay) return;
-    overlay.style.display = 'block';
-    var className = OPEN_ACTION_OVERLAY_CLASS_MAP[actionName];
-    if (className && overlay.classList) overlay.classList.add(className);
-  }
-
-  function scheduleOverlayOpenGuard(actionName) {
-    if (!/^open[A-Z]/.test(String(actionName || ''))) return;
-    setTimeout(function() { ensureOverlayOpen(actionName); }, 90);
-    setTimeout(function() { ensureOverlayOpen(actionName); }, 240);
-  }
 
   function normalizeScriptSrc(src) {
     var raw = String(src || '').trim().replace(/^\.\//, '');
@@ -523,47 +401,8 @@
     });
   }
 
-  function invokeActionWithRetry(actionName, maxAttempts, retryMs) {
-    var attempts = 0;
-    var max = Number(maxAttempts) > 0 ? Number(maxAttempts) : 10;
-    var delay = Number(retryMs) > 0 ? Number(retryMs) : 50;
-    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-
-    function tryInvoke() {
-      var fn = window[actionName];
-      if (typeof fn === 'function') {
-        try {
-          raf(function() {
-            try { fn(); } catch (err) {
-              console.error('[mobile-interaction-patch] action execution failed:', actionName, err);
-            }
-          });
-          return;
-        } catch (err) {
-          console.error('[mobile-interaction-patch] action execution failed:', actionName, err);
-          return;
-        }
-      }
-
-      if (attempts >= max) return;
-      attempts += 1;
-      setTimeout(tryInvoke, delay);
-    }
-
-    tryInvoke();
-  }
-
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
-    if (shouldSkipDuplicateAction(rule.action)) return true;
-
-    // 모바일 회귀: 이전 오버레이가 잔존하면 새 모달이 안 열린 것처럼 보일 수 있음.
-    // open 액션 직전에 현재 액션 대상 외 오버레이를 먼저 정리한다.
-    if (/^open[A-Z]/.test(rule.action)) {
-      var keepOverlayId = OPEN_ACTION_OVERLAY_MAP[rule.action] || '';
-      cleanupBlockingOverlays(keepOverlayId);
-      scheduleOverlayOpenGuard(rule.action);
-    }
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
@@ -579,8 +418,12 @@
           chain = chain.then(function() { return loadScript(src); });
         });
         chain.then(function() {
-          // 모바일 저사양/느린 환경에서는 onload 직후에도 전역 함수 노출이 늦을 수 있어 재시도 보강
-          invokeActionWithRetry(rule.action, 12, 60);
+          var f = window[rule.action];
+          if (typeof f === 'function') {
+            try { f(); } catch (err) {
+              console.error('[mobile-interaction-patch] post-load action failed:', rule.action, err);
+            }
+          }
         }).catch(function(err) {
           console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
         });
@@ -617,39 +460,12 @@
     var action = actionEl.getAttribute('data-action');
     if (!action) return false;
 
-    // 모바일에서 가장 빈번한 회귀는 "모든 data-action을 터치 브리지가 가로채는" 경우입니다.
-    // 카드 진입(open...) 액션은 브리지가 보완 처리해도 안전하지만,
-    // 모달 내부 액션(분석/공유/닫기/시작)은 원래 클릭 흐름을 보존해야
-    // iOS Safari/Android Chrome에서 사용자 제스처 컨텍스트가 유지되어 안정적으로 동작합니다.
-    var isOpenAction = /^open[A-Z]/.test(action);
-    if (isOpenAction && invokeBusinessAction({ action: action }, actionEl, sourceEvent)) return true;
+    if (invokeBusinessAction({ action: action }, actionEl, sourceEvent)) return true;
 
-    // 중요: 모달 내부 액션(분석/공유/닫기/시작 등)은 모바일 브리지가 가로채지 않고
-    // 기존 click/data-action 바인딩 체인에서 처리되도록 그대로 통과시킨다.
-    // (iOS/Android에서 사용자 제스처 컨텍스트 보존)
-    if (action === 'changeLanguage') {
-      var fn = window[action];
-      if (typeof fn === 'function') {
-        try {
-          var lang = actionEl.getAttribute('data-lang');
-          if (lang) {
-            fn(lang, actionEl);
-            return true;
-          }
-        } catch (err) {
-          console.error('[mobile-interaction-patch] changeLanguage execution failed:', err);
-        }
-      }
-    }
-
-    // 모달 내부 액션 포함 일반 data-action은 원래 전역 바인딩 체인으로 위임한다.
+    // Let the global data-action binder handle generic actions.
     if (typeof actionEl.click === 'function') {
-      try {
-        actionEl.click();
-        return true;
-      } catch (err) {
-        console.error('[mobile-interaction-patch] data-action click fallback failed:', action, err);
-      }
+      actionEl.click();
+      return true;
     }
     return false;
   }
@@ -748,7 +564,7 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeViaActionElement(ctx.rule, ctx.target, event) || invokeBusinessAction(ctx.rule, ctx.target, event);
+          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
             event.stopPropagation();
@@ -766,7 +582,7 @@
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeViaActionElement(ruleFromPoint, elAtPoint || document.body, event) || invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
+            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
             if (handled) {
               event.preventDefault();
               event.stopPropagation();
@@ -825,7 +641,7 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeViaActionElement(ctx.rule, ctx.target, event) || invokeBusinessAction(ctx.rule, ctx.target, event);
+          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
             event.stopPropagation();
@@ -841,7 +657,7 @@
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeViaActionElement(ruleFromPoint, elAtPoint || document.body, event) || invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
+            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
             if (handled) {
               event.preventDefault();
               event.stopPropagation();
@@ -864,7 +680,6 @@
     }, { passive: false, capture: true });
 
     root.addEventListener('click', function (event) {
-      if (bridgeClickDepth > 0) return;
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
@@ -875,7 +690,7 @@
         return;
       }
 
-      var handled = invokeViaActionElement(rule, event.target, event) || invokeBusinessAction(rule, event.target, event);
+      var handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;
 
       event.preventDefault();
