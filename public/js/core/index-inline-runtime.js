@@ -432,7 +432,7 @@ function __cdCallGlobal(fnName) {
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/public/js/psycho-dream-analyzer-freuds-study.js'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -3952,7 +3952,13 @@ function closeCurrentPage() {
   var overlayMap = [
     { id: 'tarotLoveOverlay', closeFn: 'closeTarotLoveModal' },
     { id: 'tarotHealingOverlay', closeFn: 'closeTarotHealingModal' },
+    { id: 'tarotReunionOverlay', closeFn: 'closeTarotReunionModal' },
+    { id: 'tarotSelfEsteemOverlay', closeFn: 'closeTarotSelfEsteemModal' },
+    { id: 'tarotYearFortuneOverlay', closeFn: 'closeTarotYearFortuneModal' },
     { id: 'animalTotemOverlay', closeFn: 'closeAnimalTotemModal' },
+    { id: 'dreamModalOverlay', closeFn: 'closeDreamModal' },
+    { id: 'psychoDreamModalOverlay', closeFn: 'closePsychoDreamModal' },
+    { id: 'kemetOracleOverlay', closeFn: 'closeKemetModal' },
     { id: 'destinyFlowerStudioOverlay', closeFn: 'closeDestinyFlowerStudio' },
     { id: 'juyukModalOverlay', closeFn: 'closeJuyukModal' },
     { id: 'sukuyoModalOverlay', closeFn: 'closeSukuyoModal' },
@@ -4202,6 +4208,7 @@ function openAnimalTotemModal() {
   var overlay = document.getElementById('animalTotemOverlay');
   if (!overlay) return;
   overlay.style.display = 'block';
+  if (overlay.classList) overlay.classList.add('is-open');
   resetAnimalTotemFlow();
   if (window._perf && window._perf.lockBody) window._perf.lockBody();
   else document.body.style.overflow = 'hidden';
@@ -4212,6 +4219,7 @@ function closeAnimalTotemModal() {
   var overlay = document.getElementById('animalTotemOverlay');
   if (!overlay) return;
   overlay.style.display = 'none';
+  if (overlay.classList) overlay.classList.remove('is-open');
   _clearAnimalTotemTimer();
   if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
   else document.body.style.overflow = '';
