@@ -3986,18 +3986,8 @@ body.neo-mode .lang-btn:hover:not(.active) {
   box-shadow: 0 2px 8px rgba(255,139,167,0.08);
   outline: none;
   transition: border 0.2s, box-shadow 0.2s;
-  padding: 0 6px 0 24px;
+  padding: 0 6px;
   position: relative;
-}
-
-#google_translate_element.planet-widget select.goog-te-combo::before {
-  content: '🌐';
-  position: absolute;
-  left: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  pointer-events: none;
 }
 
 #google_translate_element.planet-widget .goog-te-gadget {

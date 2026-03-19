@@ -134,24 +134,26 @@
     .cosmic-wrapper::before {
       content: '🌐';
       position: absolute;
-      left: 12px;
+      left: 4px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
-      font-size: 18px;
+      font-size: 16px;
       filter: drop-shadow(0 0 4px #fff);
+      z-index: 10;
     }
 
     .cosmic-wrapper::after {
       content: '▼';
       position: absolute;
-      right: 12px;
+      right: 8px;
       top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
-      font-size: 11px;
+      font-size: 10px;
       filter: drop-shadow(0 0 4px #fff);
       color: #a855f7;
+      z-index: 10;
     }
 
     /* 툴팁 */
