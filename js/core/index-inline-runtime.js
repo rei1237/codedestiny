@@ -429,34 +429,105 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
+var __cdLazyActionLoaders = {
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); }
+};
+var __cdLazyActionState = {};
+
+function __cdNormalizeScriptSrc(src) {
+  var raw = String(src || '').trim().replace(/^\.\//, '');
+  if (!raw) return '';
+  if (/^(?:[a-z]+:)?\/\//i.test(raw) || raw.indexOf('data:') === 0 || raw.indexOf('blob:') === 0) return raw;
+  if (raw.charAt(0) === '/') return raw;
+  return '/' + raw;
+}
+
+function __cdLoadScriptOnce(src) {
+  return new Promise(function(resolve, reject) {
+    var norm = __cdNormalizeScriptSrc(src);
+    if (!norm) {
+      reject(new Error('missing src'));
+      return;
+    }
+
+    var all = document.querySelectorAll('script[src]');
+    var fileName = norm.split('?')[0].split('/').pop();
+    var existing = null;
+    for (var i = 0; i < all.length; i += 1) {
+      var cur = all[i].getAttribute('src') || '';
+      var curBase = cur.split('?')[0];
+      if (cur === norm || curBase === norm.split('?')[0] || (fileName && curBase.indexOf('/' + fileName) !== -1)) {
+        existing = all[i];
+        break;
+      }
+    }
+
+    if (existing) {
+      if (existing.dataset.loaded === '1' || existing.readyState === 'complete' || existing.readyState === 'loaded') {
+        resolve();
+        return;
+      }
+      if (existing.dataset.loading !== '1') {
+        resolve();
+        return;
+      }
+      existing.addEventListener('load', function() { resolve(); }, { once: true });
+      existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
+      return;
+    }
+
+    var s = document.createElement('script');
+    s.src = norm;
+    s.defer = true;
+    s.async = true;
+    s.dataset.loading = '1';
+    s.onload = function() {
+      s.dataset.loading = '0';
+      s.dataset.loaded = '1';
+      resolve();
+    };
+    s.onerror = function() { reject(new Error('load failed: ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+
+function __cdInvokeActionWithConfig(action, actionEl, event, args) {
+  var passSelfMode = actionEl.getAttribute('data-action-pass-self');
+  var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
+  if (passSelfMode === 'append') return __cdCallGlobal.apply(null, [action].concat(args, [actionEl]));
+  if (passSelfMode === '1' || passSelfMode === 'prepend') return __cdCallGlobal.apply(null, [action, actionEl].concat(args));
+  if (passEvent) return __cdCallGlobal(action, event);
+  if (args.length) return __cdCallGlobal.apply(null, [action].concat(args));
+  return __cdCallGlobal(action);
+}
+
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
-  var passSelfMode = actionEl.getAttribute('data-action-pass-self');
-  var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
+  var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
 
-  if (passSelfMode === 'append') {
-    __cdCallGlobal.apply(null, [action].concat(args, [actionEl]));
-    return;
+  var loader = __cdLazyActionLoaders[action];
+  var hasFn = typeof window[action] === 'function';
+  if (!loader || hasFn || out !== undefined) return;
+
+  if (!__cdLazyActionState[action]) {
+    __cdLazyActionState[action] = loader().catch(function(err) {
+      console.error('[index-inline-runtime] lazy action load failed:', action, err);
+    });
   }
 
-  if (passSelfMode === '1' || passSelfMode === 'prepend') {
-    __cdCallGlobal.apply(null, [action, actionEl].concat(args));
-    return;
-  }
-
-  if (passEvent) {
-    __cdCallGlobal(action, event);
-    return;
-  }
-
-  if (args.length) {
-    __cdCallGlobal.apply(null, [action].concat(args));
-    return;
-  }
-
-  __cdCallGlobal(action);
+  __cdLazyActionState[action].then(function() {
+    if (typeof window[action] !== 'function') return;
+    __cdInvokeActionWithConfig(action, actionEl, event, args);
+  });
 }
 
 function __cdBindActionEventFallback(root, eventName, attrName) {

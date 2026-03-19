@@ -1521,6 +1521,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   display: flex;
   gap: 10px;
   margin-top: 10px;
+  justify-content: center;
 }
 
 .dream-story-speed-control {

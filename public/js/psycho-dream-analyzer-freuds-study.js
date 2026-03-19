@@ -178,8 +178,8 @@
       "background:radial-gradient(closest-side, rgba(212,175,37,.14), transparent 62%);\n" +
       "animation:psNibGlow .55s ease-out;pointer-events:none;}\n") +
       "@keyframes psNibGlow{0%{opacity:0;transform:scale(.98)}100%{opacity:1;transform:scale(1.01)}}\n" +
-      "#".concat(OVERLAY_ID, " .ps-input-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:10px;padding:0 4px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-error{min-height:20px;color:rgba(165,42,42,.95);font-family:'Lato',sans-serif;font-weight:700;font-size:.92rem;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-input-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:10px;padding:0 4px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-error{width:100%;text-align:center;min-height:20px;color:rgba(165,42,42,.95);font-family:'Lato',sans-serif;font-weight:700;font-size:.92rem;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn{appearance:none;border-radius:14px;border:1px solid rgba(212,175,37,.42);background:rgba(255,255,255,.06);color:rgba(253,253,253,.95);\n" +
       "padding:12px 16px;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn:hover{border-color:rgba(212,175,37,.75);transform:translateY(-1px)}\n") +
@@ -621,6 +621,49 @@
   if (analyzeBtn) {
     analyzeBtn.addEventListener("click", function () {
       analyzeDream();
+    });
+  }
+
+  function bindDirectTapAction(selector, handler) {
+    var nodes = document.querySelectorAll(selector);
+    if (!nodes || !nodes.length) return;
+    nodes.forEach(function (node) {
+      if (!node || node.dataset.cdTapBound === "1") return;
+      node.dataset.cdTapBound = "1";
+      var firedAt = 0;
+      function fire(ev) {
+        var now = Date.now();
+        if (now - firedAt < 260) return;
+        firedAt = now;
+        if (ev && ev.cancelable) ev.preventDefault();
+        if (ev) ev.stopPropagation();
+        handler(ev);
+      }
+      node.addEventListener("click", fire, { passive: false });
+      node.addEventListener("touchend", fire, { passive: false });
+      node.addEventListener("pointerup", function (ev) {
+        if (ev.pointerType && ev.pointerType !== "touch") return;
+        fire(ev);
+      }, { passive: false });
+    });
+  }
+
+  bindDirectTapAction('[data-action="openPsychoDreamModal"]', function () {
+    if (typeof window.openPsychoDreamModal === "function") window.openPsychoDreamModal();
+  });
+  bindDirectTapAction('#' + OVERLAY_ID + ' .ps-close, #' + OVERLAY_ID + ' [data-action="closePsychoDreamModal"]', function () {
+    if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+  });
+  bindDirectTapAction('#' + OVERLAY_ID + ' #psychoDreamAnalyzeBtn, #' + OVERLAY_ID + ' [data-action="psychoDreamStartAnalysis"]', function () {
+    if (typeof window.psychoDreamStartAnalysis === "function") window.psychoDreamStartAnalysis();
+  });
+
+  var overlay = $(OVERLAY_ID);
+  if (overlay && !overlay.dataset.cdBackdropCloseBound) {
+    overlay.dataset.cdBackdropCloseBound = "1";
+    overlay.addEventListener("click", function (ev) {
+      if (ev.target !== overlay) return;
+      if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
     });
   }
   setScreen("input");

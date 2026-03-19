@@ -1631,6 +1631,37 @@
     hideDreamLibrarySuggestions();
   });
 
+  function bindDirectTapAction(selector, handler) {
+    var nodes = document.querySelectorAll(selector);
+    if (!nodes || !nodes.length) return;
+    nodes.forEach(function (node) {
+      if (!node || node.dataset.cdTapBound === '1') return;
+      node.dataset.cdTapBound = '1';
+      var firedAt = 0;
+      function fire(ev) {
+        var now = Date.now();
+        if (now - firedAt < 260) return;
+        firedAt = now;
+        if (ev && ev.cancelable) ev.preventDefault();
+        if (ev) ev.stopPropagation();
+        handler();
+      }
+      node.addEventListener('click', fire, { passive: false });
+      node.addEventListener('touchend', fire, { passive: false });
+      node.addEventListener('pointerup', function (ev) {
+        if (ev.pointerType && ev.pointerType !== 'touch') return;
+        fire(ev);
+      }, { passive: false });
+    });
+  }
+
+  bindDirectTapAction('#dreamModalOverlay .dream-ledger-close, #dreamModalOverlay [data-action="closeDreamModal"]', function () {
+    window.closeDreamModal();
+  });
+  bindDirectTapAction('#dreamModalOverlay [data-action="startDreamReading"]', function () {
+    window.startDreamReading();
+  });
+
   renderSpeedButtons();
   renderToneButtons();
   renderDreamLibraryCategoryButtons();

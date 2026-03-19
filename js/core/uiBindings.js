@@ -10,22 +10,31 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'),
   openAnimalTotemModal: () =>
-    __loadScriptOnce('js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('js/animal-totem-experience.js')
+    __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
+      __loadScriptOnce('/js/animal-totem-experience.js')
     ),
-  openTarotLoveModal: () => __loadScriptOnce('js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
-  openTarotReunionModal: () => __loadScriptOnce('js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
-  openTarotHealingModal: () => __loadScriptOnce('js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2')
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
+  openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2')
 };
 
 const __lazyActionState = {};
 
 function __loadScriptOnce(src) {
   if (!src) return Promise.reject(new Error('missing src'));
-  const normSrc = src.replace(/^\.\//, '');
+  const normSrcRaw = src.replace(/^\.\//, '');
+  const normSrc =
+    /^(?:[a-z]+:)?\/\//i.test(normSrcRaw) || normSrcRaw.startsWith('data:') || normSrcRaw.startsWith('blob:')
+      ? normSrcRaw
+      : normSrcRaw.startsWith('/')
+        ? normSrcRaw
+        : '/' + normSrcRaw;
   const allScripts = Array.from(document.querySelectorAll('script[src]'));
   const existingBySrc = allScripts.find((s) => {
     const cur = (s.getAttribute('src') || '').replace(/^\.\//, '');
