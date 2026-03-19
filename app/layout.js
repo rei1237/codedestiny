@@ -56,6 +56,8 @@ function buildHreflangAlternates(currentPathname) {
     "/points",
     "/login",
     "/signup",
+    "/about",
+    "/insights",
     "/privacy-policy",
     "/terms-of-service",
     "/contact-us",
@@ -253,6 +255,18 @@ export default async function RootLayout({ children }) {
               aria-label="정책 페이지 바로가기"
               style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}
             >
+              <a
+                href="https://code-destiny.com/about"
+                style={{ color: "#e2e8f0", textDecoration: "underline" }}
+              >
+                About
+              </a>
+              <a
+                href="https://code-destiny.com/insights"
+                style={{ color: "#e2e8f0", textDecoration: "underline" }}
+              >
+                Insights
+              </a>
               <a
                 href="https://code-destiny.com/privacy-policy"
                 style={{ color: "#e2e8f0", textDecoration: "underline" }}

@@ -1,0 +1,153 @@
+/* fortune-index.css — 운세 홈(index) 페이지 전용 스타일
+   fi-* 클래스: hero, tabs, grid, cta */
+
+.fi-hero {
+  text-align: center;
+  padding: 40px 16px 28px;
+  background: linear-gradient(160deg, rgba(88, 28, 135, .4), rgba(15, 14, 26, .9));
+  border-radius: 0 0 24px 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(232, 121, 249, .15);
+}
+
+.fi-hero-title {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #f0e6ff;
+  text-shadow: 0 0 20px rgba(232, 121, 249, .4);
+  margin-bottom: 8px;
+  word-break: keep-all;
+}
+
+.fi-hero-sub {
+  font-size: .88rem;
+  color: rgba(232, 224, 240, .55);
+  word-break: keep-all;
+  line-height: 1.7;
+}
+
+.fi-section {
+  margin-bottom: 28px;
+}
+
+.fi-section-title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #e879f9;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.fi-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.fi-tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .04);
+  color: rgba(232, 224, 240, .6);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .2s;
+}
+
+.fi-tab.active,
+.fi-tab:hover {
+  background: rgba(124, 58, 237, .2);
+  border-color: rgba(124, 58, 237, .5);
+  color: #e879f9;
+}
+
+.fi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 400px) {
+  .fi-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 560px) {
+  .fi-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.fi-item {
+  display: block;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  text-decoration: none;
+  color: rgba(232, 224, 240, .75);
+  font-size: .78rem;
+  font-weight: 700;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fi-item:hover,
+.fi-item:focus {
+  background: rgba(124, 58, 237, .15);
+  border-color: rgba(124, 58, 237, .4);
+  color: #e879f9;
+}
+
+.fi-item span {
+  display: block;
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.fi-cta {
+  background: linear-gradient(135deg, rgba(88, 28, 135, .3), rgba(15, 14, 26, .8));
+  border: 1px solid rgba(232, 121, 249, .2);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.fi-cta-title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #f0e6ff;
+  margin-bottom: 8px;
+}
+
+.fi-cta-desc {
+  font-size: .82rem;
+  color: rgba(232, 224, 240, .5);
+  line-height: 1.7;
+  margin-bottom: 14px;
+  word-break: keep-all;
+}
+
+.fi-cta-btn {
+  display: inline-block;
+  background: linear-gradient(90deg, #7c3aed, #e879f9);
+  color: #fff;
+  font-weight: 900;
+  font-size: .9rem;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}

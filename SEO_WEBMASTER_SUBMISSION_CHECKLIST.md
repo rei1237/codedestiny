@@ -22,7 +22,7 @@ Invoke-WebRequest https://code-destiny.com/zh-cn -UseBasicParsing | Select-Objec
 
 ---
 
-## 1) Google Search Console (priority 1)
+## 1) Google Search Console (priority 1, required)
 
 Property:
 - Use **Domain property**: `code-destiny.com` (recommended)
@@ -33,12 +33,13 @@ Submit:
 
 After submit:
 - [ ] URL Inspection for `/`, `/en-us`, `/ja-jp`, `/zh-cn`
+- [ ] URL Inspection for `/es-es`, `/ms-my`
 - [ ] Request indexing for top landing pages
 - [ ] Check International Targeting signals via hreflang report (if available in your account tools)
 
 ---
 
-## 2) Bing Webmaster Tools (priority 2)
+## 2) Bing Webmaster Tools (priority 2, Yahoo included)
 
 - [Bing Webmaster Tools](https://www.bing.com/webmasters)
 - Add site `https://code-destiny.com`
@@ -47,7 +48,20 @@ After submit:
 - [ ] Check crawl errors and blocked URLs
 
 Note:
-- Bing feeds Yahoo global search partnerships in several regions, so this is high-value.
+- Bing submission is also the practical submission route for Yahoo Search distribution.
+
+---
+
+## 2-1) Yahoo (Global + Japan) handling
+
+- [Yahoo Help: submit your website](https://help.yahoo.com/kb/SLN2217.html)
+- [ ] Treat Yahoo as covered by Google + Bing submissions
+- [ ] Keep `robots.txt` sitemap declaration always valid
+- [ ] Keep Japanese landing (`/ja-jp`) and English landing (`/en-us`) both indexable for Yahoo users
+
+Practical rule:
+- Yahoo global visibility follows Bing index.
+- Yahoo Japan query demand is best served by strong Google indexation plus Japanese content quality.
 
 ---
 
@@ -77,6 +91,12 @@ Note:
 - Day 2: re-check crawl status + 4xx/5xx
 - Day 7: re-submit sitemap once after first content updates
 - Weekly: monitor indexed pages, Core Web Vitals, crawl anomalies
+
+## 5-1) 1/2/3 execution snapshot
+
+1. Re-submit sitemap now (Google + Bing)
+2. Request indexing for Tier 1 URLs
+3. Re-run `npm run seo:check` after 48 hours and compare status/index counts
 
 ---
 

@@ -7,10 +7,16 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/admin</loc>
-    <lastmod>2026-03-14</lastmod>
+    <loc>https://code-destiny.com/about</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights</loc>
+    <lastmod>2026-03-20</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/contact-us</loc>
@@ -605,12 +611,6 @@
     <lastmod>2026-03-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/page.js</loc>
-    <lastmod>2026-03-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/points</loc>

@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "source": {
+    "name": "themaintarot",
+    "url": "https://themaintarot.com/tarot-card-meaning/",
+    "lastSyncedAt": "2026-03-15T00:00:00.000Z"
+  },
+  "cards": [
+    {
+      "id": "M00",
+      "name": "The Fool",
+      "nameKr": "바보",
+      "arcanaType": "Major",
+      "suit": null,
+      "rank": "0",
+      "number": 0,
+      "imageKey": "major-the-fool",
+      "keywords": {
+        "upright": ["새로운 시작", "자유", "모험", "순수함"],
+        "reversed": ["무모함", "준비 부족", "충동", "회피"]
+      },
+      "interpretations": {
+        "upright": {
+          "general": "새로운 출발이 열리는 시점입니다. 계산보다 신뢰가 더 큰 기회를 만듭니다.",
+          "love": "관계에서 솔직함과 가벼운 용기가 흐름을 바꿉니다.",
+          "money": "새로운 수입 경로를 실험할 수 있지만 기본 안전장치는 먼저 확보하세요.",
+          "career": "익숙한 틀을 벗어난 제안이 성장 기회로 연결됩니다."
+        },
+        "reversed": {
+          "general": "성급한 판단이 손실로 이어질 수 있으니 속도를 낮추세요.",
+          "love": "감정의 즉흥성이 오해를 만들 수 있어 의도 확인이 필요합니다.",
+          "money": "검증되지 않은 투자는 피하고 지출 통제를 먼저 하세요.",
+          "career": "준비 없는 도전보다 역량 보강 후 실행이 유리합니다."
+        }
+      },
+      "symbols": ["절벽", "작은 배낭", "흰 장미", "강아지"]
+    },
+    {
+      "id": "M03",
+      "name": "The Empress",
+      "nameKr": "여황제",
+      "arcanaType": "Major",
+      "suit": null,
+      "rank": "3",
+      "number": 3,
+      "imageKey": "major-the-empress",
+      "keywords": {
+        "upright": ["풍요", "창조성", "성장", "돌봄"],
+        "reversed": ["과보호", "정체", "의존", "소모"]
+      },
+      "interpretations": {
+        "upright": {
+          "general": "자연스럽게 성과가 자라나는 국면입니다. 돌봄과 지속성이 핵심입니다.",
+          "love": "관계가 따뜻하게 성장하기 좋은 시기이며 안정감이 강화됩니다.",
+          "money": "씨앗형 투자와 장기 플랜이 수익으로 연결될 가능성이 높습니다.",
+          "career": "팀 케어와 크리에이티브 역량이 성과를 크게 끌어올립니다."
+        },
+        "reversed": {
+          "general": "에너지 고갈이나 과몰입을 점검해야 합니다. 균형 회복이 먼저입니다.",
+          "love": "지나친 간섭이 친밀감을 약화시킬 수 있어 경계가 필요합니다.",
+          "money": "과소비를 줄이고 현금흐름을 안정화해야 합니다.",
+          "career": "성과 압박보다 업무 구조를 재정비하는 것이 우선입니다."
+        }
+      },
+      "symbols": ["왕관", "밀밭", "베개", "비너스 문양"]
+    },
+    {
+      "id": "C01",
+      "name": "Ace of Cups",
+      "nameKr": "컵 에이스",
+      "arcanaType": "Minor",
+      "suit": "Cups",
+      "rank": "Ace",
+      "number": 1,
+      "imageKey": "cups-ace",
+      "keywords": {
+        "upright": ["감정의 시작", "치유", "공감", "연결"],
+        "reversed": ["감정 억압", "거리감", "소통 단절", "정서 고갈"]
+      },
+      "interpretations": {
+        "upright": {
+          "general": "감정적 회복과 새로운 정서적 연결이 시작됩니다.",
+          "love": "관계에서 진심이 열린다면 빠르게 친밀도가 높아집니다.",
+          "money": "감정 소비보다 가치 중심 소비가 재정 안정에 도움이 됩니다.",
+          "career": "협업 신뢰가 강화되며 인간관계 기반 성과가 좋아집니다."
+        },
+        "reversed": {
+          "general": "감정을 밀어두면 판단력이 흐려질 수 있습니다.",
+          "love": "서운함이 누적되기 쉬워 먼저 감정 언어를 꺼내야 합니다.",
+          "money": "정서 불안정으로 인한 충동 소비를 주의하세요.",
+          "career": "팀 내 감정 마찰이 생산성을 떨어뜨릴 수 있습니다."
+        }
+      },
+      "symbols": ["성배", "물줄기", "비둘기", "연꽃"]
+    },
+    {
+      "id": "P03",
+      "name": "Three of Pentacles",
+      "nameKr": "펜타클 3",
+      "arcanaType": "Minor",
+      "suit": "Pentacles",
+      "rank": "3",
+      "number": 3,
+      "imageKey": "pentacles-three",
+      "keywords": {
+        "upright": ["협업", "숙련", "실무 성과", "평판"],
+        "reversed": ["협업 실패", "품질 저하", "역할 혼선", "소통 부족"]
+      },
+      "interpretations": {
+        "upright": {
+          "general": "역할 분담과 전문성이 합쳐져 결과가 안정적으로 나옵니다.",
+          "love": "관계 유지에는 말보다 실제 행동과 책임감이 중요합니다.",
+          "money": "실무 기반 수익화가 유리하며 장기 신뢰가 자산이 됩니다.",
+          "career": "팀 프로젝트와 포트폴리오 성과가 커리어에 직접적인 도움이 됩니다."
+        },
+        "reversed": {
+          "general": "협업 구조가 깨져 성과가 분산될 수 있으니 기준 재정의가 필요합니다.",
+          "love": "관계에서 실천 없는 약속이 불신을 키울 수 있습니다.",
+          "money": "계약이나 업무 분배가 모호하면 금전 손실이 발생할 수 있습니다.",
+          "career": "커뮤니케이션 프로세스를 먼저 정리해야 프로젝트가 회복됩니다."
+        }
+      },
+      "symbols": ["성당", "장인", "설계도", "협업 인물"]
+    }
+  ]
+}

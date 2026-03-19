@@ -1,21 +1,43 @@
 export const metadata = {
-  title: "Code Destiny | Tarot, fortune et astrologie gratuits",
+  title: "Tarot, Saju et astrologie gratuits | CODE DESTINY",
   description:
-    "Code Destiny propose des expériences de tarot et des contenus d’astrologie et de fortune gratuits. Découvrez le tarot healing, les points Destiny et nos politiques transparentes.",
+    "Découvrez gratuitement le Saju, Zi Wei Dou Shu, tarot, compatibilité et astrologie orientale sur une plateforme multilingue.",
+  keywords: [
+    "tarot gratuit",
+    "saju gratuit",
+    "astrologie orientale",
+    "zi wei dou shu",
+    "compatibilite amoureuse",
+    "horoscope gratuit",
+    "voyance gratuite",
+    "code destiny",
+  ],
   alternates: {
     canonical: "/fr-fr",
   },
   openGraph: {
-    title: "Code Destiny | Tarot, fortune et astrologie gratuits",
+    title: "CODE DESTINY | Saju, tarot et horoscope gratuits",
     description:
-      "Expériences de tarot et contenus de fortune gratuits. Découvrez le tarot healing et les points Destiny.",
+      "Plateforme multilingue de divination gratuite: saju, zi wei dou shu, tarot, compatibilite et astrologie.",
     url: "https://code-destiny.com/fr-fr",
-    siteName: "Code Destiny",
+    siteName: "CODE DESTINY",
+    locale: "fr_FR",
     type: "website",
+    images: [
+      {
+        url: "https://code-destiny.com/icons/honeypig-512.png",
+        width: 512,
+        height: 512,
+        alt: "Plateforme CODE DESTINY de tarot et astrologie orientale",
+      },
+    ],
   },
 };
 
+import Link from "next/link";
 import { LocaleFaq } from "../components/LocaleFaq";
+import { LocaleSeoLinks } from "../components/LocaleSeoLinks";
+import { SeoStructuredData } from "../components/SeoStructuredData";
 
 export default function FrFrLanding() {
   return (
@@ -31,9 +53,10 @@ export default function FrFrLanding() {
         Commencez par une expérience de tarot guidée, puis explorez les points Destiny. Nos pages de politiques et le
         support restent accessibles en un clic.
       </p>
+      <LocaleSeoLinks />
 
       <section style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
-        <a
+        <Link
           href="/tarot/healing"
           style={{
             display: "block",
@@ -47,8 +70,8 @@ export default function FrFrLanding() {
           }}
         >
           Démarrer l’expérience Tarot Healing
-        </a>
-        <a
+        </Link>
+        <Link
           href="/points"
           style={{
             display: "block",
@@ -62,7 +85,7 @@ export default function FrFrLanding() {
           }}
         >
           Points Destiny
-        </a>
+        </Link>
       </section>
 
       <section
@@ -78,19 +101,25 @@ export default function FrFrLanding() {
           Nous proposons des pages de politique claires et un canal de contact.
         </p>
         <nav style={{ display: "flex", gap: "12px", flexWrap: "wrap" }} aria-label="Politiques et contact">
-          <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Politique de confidentialité
-          </a>
-          <a href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Conditions d’utilisation
-          </a>
-          <a href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Nous contacter
-          </a>
+          </Link>
         </nav>
       </section>
 
       <LocaleFaq locale="fr-FR" canonicalUrl="https://code-destiny.com/fr-fr" />
+      <SeoStructuredData
+        locale="fr-FR"
+        pagePath="/fr-fr"
+        pageName="Tarot, Saju et astrologie gratuits"
+        description="Services gratuits de saju, zi wei dou shu, tarot et astrologie pour les utilisateurs francophones."
+      />
     </main>
   );
 }

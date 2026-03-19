@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
+@layer base {
+	html {
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
+		-webkit-overflow-scrolling: touch;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+	body {
+		margin: 0;
+		padding: 0;
+		min-height: 100%;
+		min-height: 100dvh;
+		background: #020617;
+		color: #f8fafc;
+		font-family: "Inter", "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-y: none;
+		touch-action: pan-y;
+		padding-left: env(safe-area-inset-left, 0);
+		padding-right: env(safe-area-inset-right, 0);
+		padding-bottom: env(safe-area-inset-bottom, 0);
+	}
+	* {
+		box-sizing: border-box;
+	}
+	/* 300ms 클릭 지연 제거 + 탭 하이라이트 제어 */
+	a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for], [tabindex]:not([tabindex="-1"]) {
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+	/* 터치 타겟 최소 44x44px (패딩 포함) */
+	button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+	label[for] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+	/* 모바일에서 hover 고정 방지: 포인터 있는 기기에서만 hover 적용 */
+	@media (hover: hover) {
+		a:hover, button:hover, [role="button"]:hover {
+			opacity: 0.9;
+		}
+	}
+	/* 즉각적인 눌림 피드백 */
+	a:active, button:active, [role="button"]:active {
+		opacity: 0.85;
+	}
+	/* 모바일 input 줌 방지 (16px 이상 유지) */
+	input, select, textarea {
+		font-size: 16px;
+	}
+	@media (min-width: 768px) {
+		input, select, textarea {
+			font-size: inherit;
+		}
+	}
+}
+
+@keyframes cosmicStars {
+	0% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(-60px, -40px, 0); }
+	100% { transform: translate3d(0, 0, 0); }
+}
+
+/* ─── Veda Nebula: Cosmic Orbit ─── */
+@layer components {
+	.veda-orbit-root {
+		position: relative;
+		width: 100%;
+		max-width: min(520px, 90vw);
+		aspect-ratio: 1;
+		margin-inline: auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.veda-orbit-core {
+		position: absolute;
+		width: 160px;
+		height: 160px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 30% 0%, rgba(248, 250, 252, 0.9), transparent 55%),
+			radial-gradient(circle at 80% 80%, rgba(56, 189, 248, 0.9), transparent 60%);
+		box-shadow:
+			0 0 40px rgba(56, 189, 248, 0.9),
+			0 0 90px rgba(59, 130, 246, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.veda-orbit-core-inner {
+		width: 80px;
+		height: 80px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.9), transparent 60%),
+			radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.98), transparent 70%);
+		box-shadow:
+			0 0 15px rgba(15, 23, 42, 0.95),
+			inset 0 0 16px rgba(15, 23, 42, 0.95);
+	}
+	.veda-orbit-core-ring {
+		position: absolute;
+		border-radius: 9999px;
+		border: 1px solid rgba(148, 163, 184, 0.4);
+		mix-blend-mode: screen;
+	}
+	.veda-orbit-core-ring--1 {
+		width: 210px;
+		height: 210px;
+		border-color: rgba(56, 189, 248, 0.7);
+	}
+	.veda-orbit-core-ring--2 {
+		width: 260px;
+		height: 260px;
+		border-color: rgba(129, 140, 248, 0.6);
+		border-style: dashed;
+	}
+	.veda-orbit-ring {
+		position: absolute;
+		border-radius: 9999px;
+		border: 1px solid rgba(148, 163, 184, 0.45);
+		mix-blend-mode: screen;
+		opacity: 0.6;
+	}
+	.veda-orbit-ring--inner {
+		width: 260px;
+		height: 260px;
+	}
+	.veda-orbit-ring--mid {
+		width: 320px;
+		height: 320px;
+		border-style: dashed;
+	}
+	.veda-orbit-ring--outer {
+		width: 380px;
+		height: 380px;
+		border-color: rgba(51, 65, 85, 0.9);
+	}
+	.veda-orbit-orbs {
+		position: absolute;
+		inset: 0;
+	}
+	.veda-orbit-orb {
+		position: absolute;
+		transform-origin: center center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+	}
+	.veda-orbit-radius-inner {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-140px);
+	}
+	.veda-orbit-radius-mid {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-180px);
+	}
+	.veda-orbit-radius-outer {
+		inset: 50%;
+		transform: translate(-50%, -50%) rotate(var(--vedic-angle, 0deg)) translateY(-220px);
+	}
+	.veda-orbit-orb-glow {
+		width: 64px;
+		height: 64px;
+		border-radius: 9999px;
+		box-shadow:
+			0 0 20px rgba(248, 250, 252, 0.95),
+			0 0 45px rgba(56, 189, 248, 0.9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		overflow: hidden;
+	}
+	.veda-orbit-orb-core {
+		width: 40px;
+		height: 40px;
+		border-radius: 9999px;
+		background:
+			radial-gradient(circle at 30% 0%, rgba(248, 250, 252, 0.95), transparent 60%),
+			radial-gradient(circle at 80% 100%, rgba(15, 23, 42, 0.9), transparent 65%);
+		box-shadow:
+			0 0 10px rgba(248, 250, 252, 0.9),
+			inset 0 0 8px rgba(148, 163, 184, 0.7);
+	}
+	.veda-orbit-orb-label {
+		margin-top: 6px;
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		color: rgba(209, 213, 219, 0.85);
+		font-family: "Nanum Myeongjo", "Noto Serif KR", serif;
+		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
+	}
+}
+

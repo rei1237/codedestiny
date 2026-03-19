@@ -23,6 +23,15 @@ Submit these first in Google/Bing/Naver/Baidu after deployment health check pass
 1. `https://code-destiny.com/privacy-policy`
 2. `https://code-destiny.com/terms-of-service`
 3. `https://code-destiny.com/contact-us`
+4. `https://code-destiny.com/about`
+5. `https://code-destiny.com/insights`
+
+## Tier 4 (high-value information posts)
+
+1. `https://code-destiny.com/insights/saju-four-pillars-basics`
+2. `https://code-destiny.com/insights/tarot-major-arcana-symbols`
+3. `https://code-destiny.com/insights/compatibility-reading-ethics`
+4. `https://code-destiny.com/insights/adsense-ready-content-checklist`
 
 ## Submit sequence
 
@@ -30,4 +39,5 @@ Submit these first in Google/Bing/Naver/Baidu after deployment health check pass
 2. Inspect Tier 1 and request indexing
 3. Inspect Tier 2 and request indexing
 4. Inspect Tier 3 and request indexing
-5. Re-check indexing status after 48 hours
+5. Inspect Tier 4 and request indexing
+6. Re-check indexing status after 48 hours

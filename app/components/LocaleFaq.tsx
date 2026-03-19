@@ -57,6 +57,15 @@ function getFaq(locale: string): { heading: string; items: FaqItem[] } {
           { q: "Brauche ich ein Konto?", a: "Viele Inhalte sind ohne Registrierung verfügbar. Für Punkte/Account-Funktionen kann Login nötig sein." },
         ],
       };
+    case "nl-NL":
+      return {
+        heading: "Veelgestelde vragen (FAQ)",
+        items: [
+          { q: "Is dit gratis?", a: "Ja. Code Destiny biedt gratis tarot- en fortune-ervaringen (sommige functies kunnen punten vereisen)." },
+          { q: "Wat is Tarot Healing?", a: "Een begeleide ervaring met 4 kaarten om je huidige situatie en volgende stap duidelijk te maken." },
+          { q: "Heb ik een account nodig?", a: "De meeste inhoud is beschikbaar zonder registratie. Voor punten/accountfuncties kan inloggen nodig zijn." },
+        ],
+      };
     case "it-IT":
       return {
         heading: "FAQ",

@@ -9,17 +9,41 @@ export const metadata = {
 };
 
 const sectionStyle = {
-  background: "rgba(15, 23, 42, 0.8)",
-  border: "1px solid rgba(148, 163, 184, 0.25)",
-  borderRadius: "14px",
+  background:
+    "linear-gradient(145deg, rgba(12, 18, 48, 0.88), rgba(22, 11, 44, 0.76))",
+  border: "1px solid rgba(167, 139, 250, 0.24)",
+  borderRadius: "16px",
   padding: "18px",
+  boxShadow: "0 14px 34px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03)",
+  backdropFilter: "blur(8px)",
 };
 
 export default function PrivacyPolicyPage() {
   return (
-    <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 42px", color: "#e2e8f0" }}>
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>개인정보처리방침 (Privacy Policy)</h1>
-      <p style={{ opacity: 0.86, lineHeight: 1.7, marginBottom: "20px" }}>
+    <main
+      style={{
+        maxWidth: "920px",
+        margin: "0 auto",
+        padding: "28px 16px 42px",
+        color: "#e2e8f0",
+        background:
+          "radial-gradient(640px 280px at 12% 2%, rgba(124,58,237,.2), transparent 60%), radial-gradient(520px 260px at 86% 8%, rgba(78,205,196,.16), transparent 64%)",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "clamp(1.8rem, 4vw, 2.2rem)",
+          fontWeight: 800,
+          marginBottom: "8px",
+          lineHeight: 1.28,
+          letterSpacing: "0.01em",
+          color: "#f8fafc",
+          textShadow: "0 0 18px rgba(244, 206, 120, 0.2)",
+        }}
+      >
+        개인정보처리방침 (Privacy Policy)
+      </h1>
+      <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
         시행일: 2026-03-16 / Effective Date: 2026-03-16
       </p>
 

@@ -1,18 +1,42 @@
 export const metadata = {
-  title: "Code Destiny | Gratis tarot & fortune (Nederland)",
+  title: "Gratis tarot, saju en astrologie | CODE DESTINY",
   description:
-    "Code Destiny biedt gratis tarot-ervaringen en fortune-inzichten. Deze pagina is gericht op Nederland (nl-NL) om regionale SEO-signalen te versterken.",
+    "Ontdek gratis Saju, Zi Wei Dou Shu, tarot, compatibiliteit en oosterse astrologie op een meertalig platform.",
+  keywords: [
+    "gratis tarot",
+    "saju reading",
+    "oosterse astrologie",
+    "zi wei dou shu",
+    "liefdescompatibiliteit",
+    "gratis horoscoop",
+    "spirituele reading",
+    "code destiny",
+  ],
   alternates: {
     canonical: "/nl-nl",
   },
   openGraph: {
-    title: "Code Destiny | Gratis tarot & fortune (Nederland)",
-    description: "Gratis tarot-ervaringen en fortune-inzichten voor Nederland (nl-NL).",
+    title: "CODE DESTINY | Gratis saju, tarot en horoscoop",
+    description: "Meertalige gratis readings voor saju, zi wei dou shu, tarot, compatibiliteit en astrologie.",
     url: "https://code-destiny.com/nl-nl",
-    siteName: "Code Destiny",
+    siteName: "CODE DESTINY",
+    locale: "nl_NL",
     type: "website",
+    images: [
+      {
+        url: "https://code-destiny.com/icons/honeypig-512.png",
+        width: 512,
+        height: 512,
+        alt: "CODE DESTINY platform voor gratis tarot en oosterse astrologie",
+      },
+    ],
   },
 };
+
+import Link from "next/link";
+import { LocaleFaq } from "../components/LocaleFaq";
+import { LocaleSeoLinks } from "../components/LocaleSeoLinks";
+import { SeoStructuredData } from "../components/SeoStructuredData";
 
 export default function NlNlLanding() {
   return (
@@ -24,9 +48,10 @@ export default function NlNlLanding() {
         Ontdek tarot healing-ervaringen en fortune-inzichten. Deze pagina is gericht op Nederland (nl-NL) om zoekmachines
         te helpen taal- en regiovoorkeuren beter te begrijpen.
       </p>
+      <LocaleSeoLinks />
 
       <section style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
-        <a
+        <Link
           href="/tarot/healing"
           style={{
             display: "block",
@@ -40,8 +65,8 @@ export default function NlNlLanding() {
           }}
         >
           Start Tarot Healing Experience
-        </a>
-        <a
+        </Link>
+        <Link
           href="/points"
           style={{
             display: "block",
@@ -55,7 +80,7 @@ export default function NlNlLanding() {
           }}
         >
           Destiny Points
-        </a>
+        </Link>
       </section>
 
       <section
@@ -68,17 +93,24 @@ export default function NlNlLanding() {
       >
         <h2 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "8px" }}>Beleid & Support</h2>
         <nav style={{ display: "flex", gap: "12px", flexWrap: "wrap" }} aria-label="Beleid en contact">
-          <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Privacybeleid
-          </a>
-          <a href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Gebruiksvoorwaarden
-          </a>
-          <a href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          </Link>
+          <Link href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             Contact
-          </a>
+          </Link>
         </nav>
       </section>
+      <LocaleFaq locale="nl-NL" canonicalUrl="https://code-destiny.com/nl-nl" />
+      <SeoStructuredData
+        locale="nl-NL"
+        pagePath="/nl-nl"
+        pageName="Gratis tarot, saju en astrologie"
+        description="Gratis saju, zi wei dou shu, tarot en astrologie voor Nederlandstalige gebruikers."
+      />
     </main>
   );
 }

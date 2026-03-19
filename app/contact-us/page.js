@@ -8,10 +8,13 @@ export const metadata = {
 };
 
 const cardStyle = {
-  background: "rgba(15, 23, 42, 0.8)",
-  border: "1px solid rgba(148, 163, 184, 0.25)",
-  borderRadius: "14px",
+  background:
+    "linear-gradient(145deg, rgba(12, 18, 48, 0.88), rgba(22, 11, 44, 0.76))",
+  border: "1px solid rgba(167, 139, 250, 0.24)",
+  borderRadius: "16px",
   padding: "18px",
+  boxShadow: "0 14px 34px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03)",
+  backdropFilter: "blur(8px)",
 };
 
 const inputStyle = {
@@ -25,15 +28,36 @@ const inputStyle = {
 
 export default function ContactUsPage() {
   return (
-    <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 42px", color: "#e2e8f0" }}>
-      <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>문의하기 (Contact Us)</h1>
-      <p style={{ opacity: 0.86, lineHeight: 1.7, marginBottom: "20px" }}>
+    <main
+      style={{
+        maxWidth: "920px",
+        margin: "0 auto",
+        padding: "28px 16px 42px",
+        color: "#e2e8f0",
+        background:
+          "radial-gradient(640px 280px at 12% 2%, rgba(124,58,237,.2), transparent 60%), radial-gradient(520px 260px at 86% 8%, rgba(78,205,196,.16), transparent 64%)",
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "clamp(1.8rem, 4vw, 2.2rem)",
+          fontWeight: 800,
+          marginBottom: "8px",
+          lineHeight: 1.28,
+          letterSpacing: "0.01em",
+          color: "#f8fafc",
+          textShadow: "0 0 18px rgba(244, 206, 120, 0.2)",
+        }}
+      >
+        문의하기 (Contact Us)
+      </h1>
+      <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
         Code Destiny 서비스 관련 일반 문의, 오류 신고, 개인정보 권리행사 요청, 제휴 문의를 아래 채널로 접수할 수 있습니다.
       </p>
 
       <section style={{ ...cardStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>이메일 문의 / Email Contact</h2>
-        <p style={{ lineHeight: 1.75, marginBottom: "8px" }}>
+        <p style={{ lineHeight: 1.82, marginBottom: "8px", color: "#dbe5ff", wordBreak: "keep-all" }}>
           서비스명: Code Destiny
           <br />
           운영 이메일:{" "}
@@ -41,14 +65,14 @@ export default function ContactUsPage() {
             seongbae555@gmail.com
           </a>
         </p>
-        <p style={{ lineHeight: 1.75 }}>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           평균 회신 시간: 영업일 기준 1~3일 / Typical response time: 1-3 business days.
         </p>
       </section>
 
       <section style={{ ...cardStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>문의 유형 / Inquiry Categories</h2>
-        <p style={{ lineHeight: 1.75 }}>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           일반 문의(서비스 이용/오류), 개인정보 요청(열람/정정/삭제/처리정지/동의철회), 권리침해 신고, 제휴 및 비즈니스 문의를 접수합니다.
           Please include your request type in the subject line for faster handling.
         </p>
@@ -56,7 +80,7 @@ export default function ContactUsPage() {
 
       <section style={{ ...cardStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>개인정보 요청 안내 / Privacy Request Guide</h2>
-        <p style={{ lineHeight: 1.75 }}>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           개인정보 관련 요청 시 본인 확인을 위해 최소한의 추가 정보를 요청할 수 있습니다. 법령상 보존 의무가 있는 데이터는 즉시 삭제가
           제한될 수 있으며, 처리 결과를 회신 메일로 안내합니다. We will process valid requests as promptly as reasonably possible.
         </p>

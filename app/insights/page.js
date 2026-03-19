@@ -1,0 +1,15 @@
+import InsightsCosmicClient from "./InsightsCosmicClient";
+
+export const metadata = {
+  title: "운세 인사이트 허브 | CODE DESTINY",
+  description:
+    "사주, 타로, 숙요점, 베다점, 점성술, 자미두수 카테고리별로 양질의 정보성 콘텐츠를 열람할 수 있는 인사이트 허브입니다.",
+  alternates: {
+    canonical: "/insights",
+  },
+};
+
+export default function InsightsIndexPage({ searchParams }) {
+  const requestedTopic = typeof searchParams?.topic === "string" ? searchParams.topic : "all";
+  return <InsightsCosmicClient initialTopic={requestedTopic} />;
+}

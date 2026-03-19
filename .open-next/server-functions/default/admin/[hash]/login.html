@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>인증</title>
+    <link rel="stylesheet" href="./assets/admin.css" />
+    <style>
+      /* 로그인 화면은 노출 최소화(로고/브랜드 제거)
+         - 요청하신 “심플하고 노출 최소화” 요구 반영
+      */
+      .cd-qr{
+        display:grid;
+        grid-template-columns: 220px 1fr;
+        gap:16px;
+        align-items:start;
+      }
+      .cd-qr img{
+        width:220px;
+        height:220px;
+        border-radius:14px;
+        border:1px solid rgba(148,163,184,.25);
+        background: rgba(15,23,42,.35);
+      }
+      @media (max-width: 620px){
+        .cd-qr{ grid-template-columns: 1fr; }
+        .cd-qr img{ margin: 0 auto; }
+      }
+      .cd-small{
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .cd-list{
+        margin: 8px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+    </style>
+  </head>
+  <body data-page="login">
+    <main class="cd-login">
+      <div class="cd-login-box" role="main" aria-label="인증 화면">
+        <div class="top">
+          <div class="tag">SECURE FLOW</div>
+          <h1>두 단계 인증</h1>
+          <div class="hint">비밀번호와 인증코드(또는 백업코드)로 접근합니다.</div>
+        </div>
+
+        <div id="cdLoginError" class="cd-error" role="alert"></div>
+
+        <section id="step1">
+          <form id="cdLoginForm" class="form" autocomplete="off">
+            <label>
+              <div class="cd-small" style="margin-bottom:6px; color:#e5e7eb; font-weight:800;">이메일</div>
+              <input class="cd-input" id="cdEmail" type="email" inputmode="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              <div class="cd-small" style="margin-bottom:6px; color:#e5e7eb; font-weight:800;">비밀번호</div>
+              <input class="cd-input" id="cdPassword" type="password" placeholder="비밀번호" required minlength="8" />
+            </label>
+            <button class="cd-btn purple" type="submit" style="border-radius:14px; border:1px solid rgba(244,114,182,.35);">
+              1단계 인증
+            </button>
+
+            <div style="margin-top:10px; padding-top:12px; border-top:1px solid rgba(148,163,184,.20);">
+              <div class="cd-small" style="margin-bottom:8px; font-weight:900; color:#e5e7eb;">
+                잠금 해제(이메일 인증)
+              </div>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button id="btnUnlockRequest" class="cd-btn ghost" type="button" style="padding:10px 12px;">
+                  메일로 요청
+                </button>
+                <input id="cdUnlockCode" class="cd-input" type="text" placeholder="코드 입력(예: 123456)" style="flex:1; min-width:220px;" />
+                <button id="btnUnlockVerify" class="cd-btn" type="button" style="padding:10px 12px;">
+                  코드 확인
+                </button>
+              </div>
+              <div class="cd-footnote">
+                로그인 실패 횟수가 누적되면 잠금이 발생할 수 있습니다. 잠금 해제는 이메일로 받은 코드를 입력해 진행합니다.
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section id="step2" style="display:none;">
+          <div class="cd-small" style="margin-bottom:10px;">
+            인증 앱에서 생성된 6자리 코드를 입력하세요. (백업코드 사용 가능)
+          </div>
+          <form id="cdVerifyForm" class="form" autocomplete="off">
+            <label>
+              <div class="cd-small" style="margin-bottom:6px; color:#e5e7eb; font-weight:800;">OTP 코드</div>
+              <input class="cd-input" id="cdOtp" inputmode="numeric" placeholder="123456" required />
+            </label>
+            <label>
+              <div class="cd-small" style="margin-bottom:6px; color:#e5e7eb; font-weight:800;">백업 코드(선택)</div>
+              <input class="cd-input" id="cdBackupCode" placeholder="백업코드" />
+            </label>
+            <button class="cd-btn" type="submit">2단계 완료</button>
+            <div class="cd-footnote">
+              코드가 맞지 않으면 다시 시도해 주세요. 잠금 정책이 적용될 수 있습니다.
+            </div>
+          </form>
+        </section>
+
+        <section id="stepSetup" style="display:none;">
+          <div class="cd-small" style="margin-bottom:10px;">
+            인증 앱 설정을 진행합니다. QR을 스캔 후, 아래 OTP로 확인합니다.
+          </div>
+
+          <div class="cd-qr">
+            <div>
+              <img id="cdQrImg" alt="QR 코드" />
+              <div class="cd-small" style="margin-top:8px;">백업 코드는 “한 번만” 표시됩니다.</div>
+              <button id="cdDownloadBackup" class="cd-btn ghost" type="button" style="margin-top:10px; width:100%;">
+                백업 코드 다운로드
+              </button>
+            </div>
+            <div>
+              <div class="cd-small" style="margin-bottom:10px;">백업 코드(한 번만 노출)</div>
+              <textarea id="cdBackupText" readonly placeholder="여기에 백업 코드가 표시됩니다." class="cd-input" style="min-height:140px;"></textarea>
+              <ul class="cd-list">
+                <li>백업 코드는 유출되면 즉시 교체가 필요합니다.</li>
+                <li>한 번 사용된 백업 코드는 재사용할 수 없습니다.</li>
+              </ul>
+            </div>
+          </div>
+
+          <form id="cdSetupVerifyForm" class="form" style="margin-top:14px;">
+            <label>
+              <div class="cd-small" style="margin-bottom:6px; color:#e5e7eb; font-weight:800;">설정 확인 OTP</div>
+              <input class="cd-input" id="cdSetupOtp" inputmode="numeric" placeholder="123456" required />
+            </label>
+            <button class="cd-btn purple" type="submit" style="width:100%;">설정 완료</button>
+          </form>
+        </section>
+
+        <div class="cd-footnote">
+          이 화면은 비밀 경로에서만 접근 가능합니다.
+        </div>
+      </div>
+    </main>
+
+    <div id="cdToast" class="cd-toast" aria-live="polite"></div>
+
+    <!-- admin 공통 스크립트 -->
+    <script type="module" src="./assets/admin.js"></script>
+
+    <script type="module">
+      import {
+        apiCsrfInit,
+        apiAdminLogin,
+        apiVerify2FA,
+        api2FASetupFetch,
+        api2FASetupVerify,
+        apiUnlockRequest,
+        apiUnlockVerify
+      } from "./api/auth.js";
+
+      const elError = document.getElementById("cdLoginError");
+      const step1 = document.getElementById("step1");
+      const step2 = document.getElementById("step2");
+      const stepSetup = document.getElementById("stepSetup");
+
+      function showError(text){
+        elError.textContent = text || "요청을 처리할 수 없습니다.";
+        elError.classList.add("show");
+      }
+      function hideError(){
+        elError.textContent = "";
+        elError.classList.remove("show");
+      }
+      function showToast(text){
+        const toast = document.getElementById("cdToast");
+        if(!toast) return;
+        toast.textContent = text;
+        toast.classList.add("show");
+        setTimeout(()=>toast.classList.remove("show"), 2200);
+      }
+
+      function showStep(which){
+        step1.style.display = which === "step1" ? "block" : "none";
+        step2.style.display = which === "step2" ? "block" : "none";
+        stepSetup.style.display = which === "setup" ? "block" : "none";
+      }
+
+      let backupCodesOnce = [];
+
+      async function init(){
+        hideError();
+        await apiCsrfInit(); // CSRF 쿠키 세팅
+      }
+      await init();
+
+      document.getElementById("cdLoginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideError();
+        const email = document.getElementById("cdEmail").value.trim();
+        const password = document.getElementById("cdPassword").value;
+        try{
+          const res = await apiAdminLogin({ email, password });
+          if(!res?.ok){
+            showError(res?.payload?.message || "로그인에 실패했습니다.");
+            return;
+          }
+
+          // 서버 플로우 가정:
+          // - { requires2fa: true, flow: "2fa" } or { flow: "setup" }
+          const flow = res.payload?.flow || "2fa";
+          if(flow === "done"){
+            const base = `/${window.location.pathname.split("/").filter(Boolean)[0] || ""}`;
+            window.location.href = `${base}/dashboard`;
+            return;
+          } else if(flow === "setup"){
+            showStep("setup");
+            const setup = await api2FASetupFetch();
+            if(setup?.qrcodeDataUrl){
+              document.getElementById("cdQrImg").src = setup.qrcodeDataUrl;
+            }
+            backupCodesOnce = Array.isArray(setup?.backupCodes) ? setup.backupCodes : [];
+            const backupText = Array.isArray(backupCodesOnce) ? backupCodesOnce.join("\n") : "";
+            document.getElementById("cdBackupText").value = backupText;
+          }else{
+            showStep("step2");
+          }
+        }catch(err){
+          showError("요청을 처리할 수 없습니다.");
+        }
+      });
+
+      document.getElementById("btnUnlockRequest").addEventListener("click", async () => {
+        hideError();
+        const email = document.getElementById("cdEmail").value.trim();
+        if(!email){
+          showError("이메일을 먼저 입력하세요.");
+          return;
+        }
+        try{
+          const res = await apiUnlockRequest({ email });
+          if(!res?.ok){
+            showError("요청을 처리할 수 없습니다.");
+            return;
+          }
+          showToast("✅ 이메일 요청을 보냈습니다. 코드를 확인하세요.");
+        }catch{
+          showError("요청을 처리할 수 없습니다.");
+        }
+      });
+
+      document.getElementById("btnUnlockVerify").addEventListener("click", async () => {
+        hideError();
+        const email = document.getElementById("cdEmail").value.trim();
+        const code = document.getElementById("cdUnlockCode").value.trim();
+        if(!email || !code){
+          showError("이메일과 코드를 모두 입력하세요.");
+          return;
+        }
+        try{
+          const res = await apiUnlockVerify({ email, code });
+          if(!res?.ok){
+            showError("코드가 올바르지 않거나 만료되었습니다.");
+            return;
+          }
+          showToast("✅ 잠금 해제 완료! 다시 로그인하세요.");
+        }catch{
+          showError("요청을 처리할 수 없습니다.");
+        }
+      });
+
+      document.getElementById("cdVerifyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideError();
+        const otp = document.getElementById("cdOtp").value.trim();
+        const backupCode = document.getElementById("cdBackupCode").value.trim() || null;
+        try{
+          const res = await apiVerify2FA({ otp, backupCode });
+          if(!res?.ok){
+            showError(res?.payload?.message || "코드가 올바르지 않습니다.");
+            return;
+          }
+          // 성공 시 대시보드로 이동
+          const base = `/${window.location.pathname.split("/").filter(Boolean)[0] || ""}`;
+          window.location.href = `${base}/dashboard`;
+        }catch{
+          showError("요청을 처리할 수 없습니다.");
+        }
+      });
+
+      document.getElementById("cdDownloadBackup").addEventListener("click", () => {
+        const text = document.getElementById("cdBackupText").value || "";
+        if(!text.trim()){
+          showToast("백업 코드가 없습니다.");
+          return;
+        }
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "backup-codes.txt";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("✅ 백업 코드 다운로드 완료");
+      });
+
+      document.getElementById("cdSetupVerifyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideError();
+        const otp = document.getElementById("cdSetupOtp").value.trim();
+        try{
+          const res = await api2FASetupVerify({ otp });
+          if(!res?.ok){
+            showError(res?.payload?.message || "설정 확인이 실패했습니다.");
+            return;
+          }
+          const base = `/${window.location.pathname.split("/").filter(Boolean)[0] || ""}`;
+          window.location.href = `${base}/dashboard`;
+        }catch{
+          showError("요청을 처리할 수 없습니다.");
+        }
+      });
+    </script>
+  </body>
+</html>
+

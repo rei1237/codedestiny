@@ -450,6 +450,26 @@
     }
   }
 
+  function findDataActionElement(origin) {
+    if (!origin || typeof origin.closest !== 'function') return null;
+    return origin.closest('[data-action]');
+  }
+
+  function invokeDataActionFallback(actionEl, sourceEvent) {
+    if (!actionEl) return false;
+    var action = actionEl.getAttribute('data-action');
+    if (!action) return false;
+
+    if (invokeBusinessAction({ action: action }, actionEl, sourceEvent)) return true;
+
+    // Let the global data-action binder handle generic actions.
+    if (typeof actionEl.click === 'function') {
+      actionEl.click();
+      return true;
+    }
+    return false;
+  }
+
   function injectTouchActionStyle() {
     if (document.getElementById('cd-mobile-touch-bridge-style')) return;
 
@@ -483,6 +503,17 @@
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
+      '}',
+      ':root {',
+      '  --cd-safe-vh: 100vh;',
+      '}',
+      '@supports (height: 100dvh) {',
+      '  :root { --cd-safe-vh: 100dvh; }',
+      '}',
+      '#kemetOracleOverlay, #psychoDreamModalOverlay, #tarotHealingOverlay {',
+      '  min-height: var(--cd-safe-vh);',
+      '  max-height: var(--cd-safe-vh);',
+      '  overflow-x: hidden;',
       '}'
     ].join('\n');
 
@@ -558,6 +589,17 @@
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             }
           }
+          if (!ruleFromPoint) {
+            var actionFromTarget = findDataActionElement(event.target);
+            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+            var actionFromPoint = findDataActionElement(actionFromPointEl);
+            var actionEl = actionFromTarget || actionFromPoint;
+            if (invokeDataActionFallback(actionEl, event)) {
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            }
+          }
         }
       }
     }, { passive: false, capture: true });
@@ -622,6 +664,17 @@
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             }
           }
+          if (!ruleFromPoint) {
+            var actionFromTarget = findDataActionElement(event.target);
+            var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+            var actionFromPoint = findDataActionElement(actionFromPointEl);
+            var actionEl = actionFromTarget || actionFromPoint;
+            if (invokeDataActionFallback(actionEl, event)) {
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            }
+          }
         }
       }
     }, { passive: false, capture: true });
@@ -646,6 +699,27 @@
   }
 
   function init() {
+    (function syncViewportHeight() {
+      var root = document.documentElement;
+      if (!root) return;
+      function update() {
+        var h = 0;
+        if (window.visualViewport && Number(window.visualViewport.height) > 0) {
+          h = window.visualViewport.height;
+        } else if (Number(window.innerHeight) > 0) {
+          h = window.innerHeight;
+        }
+        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
+      }
+      update();
+      window.addEventListener('resize', update, { passive: true });
+      window.addEventListener('orientationchange', update, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', update, { passive: true });
+        window.visualViewport.addEventListener('scroll', update, { passive: true });
+      }
+    })();
+
     injectTouchActionStyle();
     createBulletproofDelegator(document);
   }

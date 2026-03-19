@@ -660,11 +660,7 @@
       cardEl.setAttribute("data-revealed", "0");
       cardEl.setAttribute("role", "button");
       cardEl.setAttribute("tabindex", "0");
-      cardEl.addEventListener("click", function (e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
+      bindFastTap(cardEl, function () {
         flipTarotHealingCard(idx);
       });
       cardEl.addEventListener("keydown", function (e) {
@@ -732,6 +728,25 @@
 
   var healingFlipCooldownUntil = 0;
   var HEALING_FLIP_DEBOUNCE_MS = 400;
+
+  function bindFastTap(el, handler) {
+    if (!el || typeof handler !== "function") return;
+    var lastAt = 0;
+    function fire(e) {
+      var now = Date.now();
+      if (now - lastAt < 260) return;
+      lastAt = now;
+      if (e && e.cancelable) e.preventDefault();
+      if (e) e.stopPropagation();
+      handler(e);
+    }
+    el.addEventListener("click", fire, { passive: false });
+    el.addEventListener("touchend", fire, { passive: false });
+    el.addEventListener("pointerup", function (e) {
+      if (e.pointerType && e.pointerType !== "touch") return;
+      fire(e);
+    }, { passive: false });
+  }
 
   function emitRipple(cardEl) {
     if (!cardEl) return;
@@ -901,7 +916,7 @@
         onReveal();
       }
     }
-    wrap.addEventListener("click", onReveal);
+    bindFastTap(wrap, onReveal);
     wrap.addEventListener("keydown", onRevealKey);
   }
 
