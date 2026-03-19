@@ -25,3 +25,12 @@ if (!existsSync(resolve(distDir, "index.html"))) {
 }
 
 console.log(`[prepare-cloudflare-dist] Copied ${sourceDir} -> ${distDir}`);
+
+// 로컬 js/inline 파일들을 dist에 복사 (예: planet-widget-cosmic.js)
+const inlineSourceDir = resolve(rootDir, "js", "inline");
+if (existsSync(inlineSourceDir)) {
+  const inlineDistDir = resolve(distDir, "js", "inline");
+  mkdirSync(inlineDistDir, { recursive: true });
+  cpSync(inlineSourceDir, inlineDistDir, { recursive: true, force: true });
+  console.log(`[prepare-cloudflare-dist] Copied ${inlineSourceDir} -> ${inlineDistDir}`);
+}
