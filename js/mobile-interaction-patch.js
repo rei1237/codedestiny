@@ -338,6 +338,20 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
+  function invokeViaActionElement(rule, origin, sourceEvent) {
+    if (!rule || !origin) return false;
+    var actionEl = findActionElement(origin, rule);
+    if (!actionEl || typeof actionEl.click !== 'function') return false;
+    try {
+      actionEl.click();
+      dispatchFeatureTapEvent(rule, origin, sourceEvent);
+      return true;
+    } catch (err) {
+      console.error('[mobile-interaction-patch] action element click failed:', rule.action, err);
+      return false;
+    }
+  }
+
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
@@ -621,6 +635,16 @@
         }
       }
     }
+
+    // 모달 내부 액션 포함 일반 data-action은 원래 전역 바인딩 체인으로 위임한다.
+    if (typeof actionEl.click === 'function') {
+      try {
+        actionEl.click();
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] data-action click fallback failed:', action, err);
+      }
+    }
     return false;
   }
 
@@ -718,7 +742,7 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          var handled = invokeViaActionElement(ctx.rule, ctx.target, event) || invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
             event.stopPropagation();
@@ -736,7 +760,7 @@
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
+            var handled = invokeViaActionElement(ruleFromPoint, elAtPoint || document.body, event) || invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
             if (handled) {
               event.preventDefault();
               event.stopPropagation();
@@ -795,7 +819,7 @@
         var dy = Math.abs(pt.y - ctx.startY);
         var dx = Math.abs(pt.x - ctx.startX);
         if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+          var handled = invokeViaActionElement(ctx.rule, ctx.target, event) || invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
             event.stopPropagation();
@@ -811,7 +835,7 @@
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
+            var handled = invokeViaActionElement(ruleFromPoint, elAtPoint || document.body, event) || invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
             if (handled) {
               event.preventDefault();
               event.stopPropagation();
@@ -844,7 +868,7 @@
         return;
       }
 
-      var handled = invokeBusinessAction(rule, event.target, event);
+      var handled = invokeViaActionElement(rule, event.target, event) || invokeBusinessAction(rule, event.target, event);
       if (!handled) return;
 
       event.preventDefault();
