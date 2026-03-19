@@ -4,26 +4,6 @@ import { headers } from "next/headers";
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
   { key: "ko-KR", slug: "", htmlLang: "ko", label: "Korean" },
-  { key: "en-US", slug: "/en-us", htmlLang: "en", label: "English (US)" },
-  { key: "en-CA", slug: "/en-ca", htmlLang: "en-CA", label: "English (Canada)" },
-  { key: "en-SG", slug: "/en-sg", htmlLang: "en-SG", label: "English (Singapore)" },
-  { key: "en-GB", slug: "/en-gb", htmlLang: "en-GB", label: "English (United Kingdom)" },
-  { key: "en-AU", slug: "/en-au", htmlLang: "en-AU", label: "English (Australia)" },
-  { key: "en-PH", slug: "/en-ph", htmlLang: "en-PH", label: "English (Philippines)" },
-  { key: "en-IN", slug: "/en-in", htmlLang: "en-IN", label: "English (India)" },
-  { key: "hi-IN", slug: "/hi-in", htmlLang: "hi", label: "हिन्दी (भारत)" },
-  { key: "en-ZA", slug: "/en-za", htmlLang: "en-ZA", label: "English (South Africa)" },
-  { key: "fr-FR", slug: "/fr-fr", htmlLang: "fr", label: "Français (France)" },
-  { key: "fr-CA", slug: "/fr-ca", htmlLang: "fr-CA", label: "Français (Canada)" },
-  { key: "de-DE", slug: "/de-de", htmlLang: "de", label: "Deutsch (Deutschland)" },
-  { key: "it-IT", slug: "/it-it", htmlLang: "it", label: "Italiano (Italia)" },
-  { key: "hu-HU", slug: "/hu-hu", htmlLang: "hu", label: "Magyar (Magyarország)" },
-  { key: "nl-NL", slug: "/nl-nl", htmlLang: "nl", label: "Nederlands (Nederland)" },
-  { key: "ja-JP", slug: "/ja-jp", htmlLang: "ja", label: "日本語 (日本)" },
-  { key: "zh-CN", slug: "/zh-cn", htmlLang: "zh-CN", label: "简体中文 (中国)" },
-  { key: "zh-TW", slug: "/zh-tw", htmlLang: "zh-Hant", label: "繁體中文 (台灣)" },
-  { key: "th-TH", slug: "/th-th", htmlLang: "th", label: "ไทย (ประเทศไทย)" },
-  { key: "vi-VN", slug: "/vi-vn", htmlLang: "vi", label: "Tiếng Việt (Việt Nam)" },
 ];
 
 function normalizePathname(input) {
@@ -117,12 +97,6 @@ function buildJsonLd({ locale, canonicalHref }) {
     isPartOf: { "@id": CANONICAL_ORIGIN },
   };
 
-  if (locale.key === "zh-CN") {
-    website.name = "Code Destiny（命运代码）";
-    organization.name = "Code Destiny（命运代码）";
-    webpage.name = "Code Destiny（命运代码）";
-  }
-
   return JSON.stringify([website, organization, webpage]);
 }
 
@@ -186,12 +160,6 @@ export default async function RootLayout({ children }) {
         {LOCALES.filter((l) => l.key !== locale.key).map((l) => (
           <meta key={l.key} property="og:locale:alternate" content={l.key.replace("-", "_")} />
         ))}
-        {locale.key === "zh-CN" ? (
-          <>
-            <meta name="renderer" content="webkit" />
-            <meta name="applicable-device" content="pc,mobile" />
-          </>
-        ) : null}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <meta name="adsense-script-slot" content="ADSENSE_APPROVAL_SCRIPT_SLOT" />
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />

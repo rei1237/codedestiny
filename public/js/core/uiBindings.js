@@ -15,6 +15,7 @@ const __lazyActionLoaders = {
       __loadScriptOnce('js/animal-totem-experience.js')
     ),
   openTarotHealingModal: () => __loadScriptOnce('js/tarot-healing-experience.js'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('js/tarot-self-esteem-experience.js'),
   openTarotYearFortuneModal: () => __loadScriptOnce('js/tarot-year-fortune-experience.js')
 };
 

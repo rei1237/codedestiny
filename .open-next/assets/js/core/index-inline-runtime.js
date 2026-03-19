@@ -6,10 +6,13 @@ function initTranslateLangUI() {
   var langLabel = document.getElementById('translateLangLabel');
   var hideTimer = null;
   var HIDE_DELAY = 60000; // 1분
+  window.__cdTranslateInitAttempts = (window.__cdTranslateInitAttempts || 0) + 1;
   
-  // 요소가 없으면 재시도
+  // 요소가 없으면 제한적으로 재시도 (무한 루프 방지)
   if (!langBtn || !langCard || !langWrap) {
-    setTimeout(initTranslateLangUI, 100);
+    if (window.__cdTranslateInitAttempts < 120) {
+      setTimeout(initTranslateLangUI, 100);
+    }
     return;
   }
   
@@ -46,10 +49,10 @@ function initTranslateLangUI() {
   });
   
   // 언어 변경 카드 버튼 핸들러
-  var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
+  // NOTE: Google Translate includedLanguages와 라벨 매핑을 맞춘다.
+  var langCodeMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
   var langCodeBtns = document.querySelectorAll('.translate-lang-code');
-  
-  langCodeBtns.forEach(function(btn) {
+  Array.prototype.forEach.call(langCodeBtns, function(btn) {
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -58,28 +61,18 @@ function initTranslateLangUI() {
       if (!lang) return;
       
       // 활성 상태 업데이트
-      langCodeBtns.forEach(function(b) { b.classList.remove('active'); });
+      Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       
       // 버튼 레이블 업데이트
       if (langLabel) langLabel.textContent = langCodeMap[lang] || lang.toUpperCase();
       
-      // Google Translate 드롭다운 찾아서 값 변경
-      var attempts = 0;
-      var maxAttempts = 10;
-      
-      function tryChangeLanguage() {
-        var translateCombo = document.querySelector('.goog-te-combo');
-        if (translateCombo) {
-          translateCombo.value = lang;
-          translateCombo.dispatchEvent(new Event('change', { bubbles: true }));
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(tryChangeLanguage, 200);
-        }
-      }
-      
-      tryChangeLanguage();
+      // Google Translate 드롭다운 변경 (로딩 지연/중복 인스턴스 대응)
+      cdSetGoogleTranslateLanguage(lang, {
+        maxAttempts: 60,
+        retryDelay: 200,
+        fallbackToCookieReload: true
+      });
       startHideTimer();
       
       // 카드 닫기
@@ -88,11 +81,170 @@ function initTranslateLangUI() {
   });
 }
 
+function cdDispatchNativeChangeEvent(el) {
+  if (!el) return;
+  try {
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  } catch (_) {}
+  try {
+    var legacyEvt = document.createEvent('HTMLEvents');
+    legacyEvt.initEvent('change', true, false);
+    el.dispatchEvent(legacyEvt);
+  } catch (_) {}
+}
+
+function cdEnsureGoogleTranslateBootstrap() {
+  if (typeof window.googleTranslateElementInit === 'function') {
+    try { window.googleTranslateElementInit(); } catch (_) {}
+    return;
+  }
+
+  if (window.__cdGoogleTranslateScriptRequested) return;
+  window.__cdGoogleTranslateScriptRequested = true;
+
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.async = true;
+  script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  script.onerror = function() {
+    window.__cdGoogleTranslateScriptRequested = false;
+  };
+  document.head.appendChild(script);
+}
+
+function cdSetGoogleTranslateLanguage(langCode, options) {
+  if (!langCode) return Promise.resolve(false);
+
+  var opts = options || {};
+  var attempts = 0;
+  var maxAttempts = typeof opts.maxAttempts === 'number' ? opts.maxAttempts : 60;
+  var retryDelay = typeof opts.retryDelay === 'number' ? opts.retryDelay : 80;
+  var useCookieFallback = opts.fallbackToCookieReload === true;
+
+  function pickGoogleTranslateSelect() {
+    var scope = document.getElementById('google_translate_element') || document;
+    var selects = scope.querySelectorAll('.goog-te-combo');
+    if (selects && selects.length) return selects[0];
+    return null;
+  }
+
+  function fallbackByCookieOnly() {
+    if (!useCookieFallback || !langCode || langCode === 'ko') return;
+    var host = window.location.hostname;
+    var cookieValue = '/ko/' + langCode;
+    var expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
+    document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+
+  // language change가 실제 DOM 번역으로 반영되지 않는 케이스를 대비해,
+  // select 변경 전에 cookie를 먼저 세팅한다.
+  function setCookieForLang(code) {
+    if (!code || code === 'ko') return;
+    var host = window.location.hostname;
+    var cookieValue = '/ko/' + code;
+    var expires = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
+    document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + cookieValue + '; ' + expires + '; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+
+  function clearCookieForKo() {
+    var host = window.location.hostname;
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax;';
+  }
+
+  if (langCode === 'ko') clearCookieForKo();
+  else setCookieForLang(langCode);
+
+  return new Promise(function(resolve) {
+    function apply() {
+      cdEnsureGoogleTranslateBootstrap();
+      var selectField = pickGoogleTranslateSelect();
+      if (selectField) {
+        selectField.value = langCode;
+        // 추가 트리거: 내부 동작 타이밍에 따라 'change'만으로 늦게 반영되는 경우가 있다.
+        try { selectField.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+        cdDispatchNativeChangeEvent(selectField);
+        resolve(true);
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        fallbackByCookieOnly();
+        resolve(false);
+        return;
+      }
+      attempts++;
+      setTimeout(apply, retryDelay);
+    }
+
+    apply();
+  });
+}
+
+function cdForceHideGoogleTranslateBanner() {
+  try {
+    var styleId = 'cd-hide-google-translate-banner-style';
+    if (!document.getElementById(styleId)) {
+      var st = document.createElement('style');
+      st.id = styleId;
+      st.textContent = ''
+        + '.goog-te-banner-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
+        + '.skiptranslate iframe{display:none !important;}'
+        + 'body{top:0 !important;position:static !important;}'
+        + 'html{margin-top:0 !important;}';
+      document.head.appendChild(st);
+    }
+  } catch (_) {}
+
+  try {
+    var frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
+    for (var i = 0; i < frames.length; i++) {
+      frames[i].style.setProperty('display', 'none', 'important');
+      frames[i].style.setProperty('visibility', 'hidden', 'important');
+      frames[i].style.setProperty('height', '0', 'important');
+    }
+    document.body.style.setProperty('top', '0px', 'important');
+    document.body.style.setProperty('position', 'static', 'important');
+    document.documentElement.style.setProperty('margin-top', '0px', 'important');
+  } catch (_) {}
+}
+
+function cdInstallGoogleTranslateBannerGuard() {
+  cdForceHideGoogleTranslateBanner();
+  setTimeout(cdForceHideGoogleTranslateBanner, 120);
+  setTimeout(cdForceHideGoogleTranslateBanner, 600);
+  setTimeout(cdForceHideGoogleTranslateBanner, 1600);
+  if (window.__cdGtBannerGuardInstalled) return;
+  window.__cdGtBannerGuardInstalled = true;
+
+  if (typeof MutationObserver === 'function' && document.documentElement) {
+    try {
+      var obs = new MutationObserver(function() {
+        cdForceHideGoogleTranslateBanner();
+      });
+      obs.observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+    } catch (_) {}
+  }
+}
+
 // DOM 준비 완료 시 초기화
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initTranslateLangUI);
+  document.addEventListener('DOMContentLoaded', function() {
+    cdInstallGoogleTranslateBannerGuard();
+    try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
+  });
 } else {
-  initTranslateLangUI();
+  cdInstallGoogleTranslateBannerGuard();
+  try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
 }
 function syncFeatureCardHeight(card) {
   if (!card) return;
@@ -2005,28 +2157,28 @@ var _DF_SOURCE_META = {
     labelKo: '사주',
     stickerMain: '四柱',
     stickerSub: 'Native',
-    description: '사주의 일간·월령·오행 균형을 바탕으로, 지금 당신의 기운과 가장 공명하는 개화 결을 보여줍니다.',
+    description: '',
     fallbackKeyword: 'saju • bloom • destiny'
   },
   astrology: {
     labelKo: '점성술',
     stickerMain: 'Zodiac',
     stickerSub: 'Star',
-    description: '태양궁·상승궁·달궁을 바탕으로 내 분위기와 성향을 쉽고 재미있게 읽어, 어울리는 운명꽃으로 보여줍니다.',
+    description: '',
     fallbackKeyword: 'zodiac • nebula • stardust'
   },
   jamidusu: {
     labelKo: '자미두수',
     stickerMain: '紫微',
     stickerSub: 'Purple Star',
-    description: '명궁·신궁의 주성과 사화 흐름을 해석해, 운세의 위계를 꽃 무드로 정밀하게 시각화합니다.',
+    description: '',
     fallbackKeyword: 'ziwei • ming-gong • imperial bloom'
   },
   sukuyo: {
     labelKo: '숙요점',
     stickerMain: '27-Suk',
     stickerSub: '宿曜',
-    description: '27숙 본명성과 당일 달 위상, 숙요 관계성을 결합해 오늘의 달빛 개화 패턴을 한 송이로 펼쳐냅니다.',
+    description: '',
     fallbackKeyword: 'sukuyo • lunar mansion • moon bloom'
   }
 };
@@ -4227,19 +4379,7 @@ var _langWrapFeatureOverlayIds = [
   'astralModal'
 ];
 
-var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR' };
-
-function cdWidgetLangToApiTarget(langCode) {
-  if (!langCode) return null;
-  if (langCode === 'ko') return 'KO';
-  if (langCode === 'en') return 'EN';
-  if (langCode === 'ja') return 'JA';
-  if (langCode === 'zh-CN') return 'ZH';
-  if (langCode === 'hi') return 'HI';
-  if (langCode === 'es') return 'ES';
-  if (langCode === 'fr') return 'FR';
-  return null;
-}
+var _langLabelMap = { 'ko': 'KR', 'en': 'EN', 'ja': 'JP', 'zh-CN': 'CN', 'hi': 'HI', 'es': 'ES', 'fr': 'FR', 'de': 'DE', 'nl': 'NL', 'ms': 'MS' };
 
 function cdGetContentTranslateTargets() {
   return Array.prototype.slice.call(document.querySelectorAll('[data-cd-translate="deepl"]'));
@@ -4254,44 +4394,6 @@ function cdAllowGoogleTranslateForContent() {
   });
 }
 
-function cdTranslateContentWithApi(langCode) {
-  var target = cdWidgetLangToApiTarget(langCode);
-  if (!target || target === 'KO') return;
-
-  var nodes = cdGetContentTranslateTargets();
-  if (!nodes.length) return;
-
-  var texts = nodes.map(function(el) {
-    var t = (el && (el.textContent || '')).trim();
-    return t;
-  });
-
-  if (!texts.some(function(t) { return t && t.length; })) return;
-
-  fetch('/api/translate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ texts: texts, sourceLang: 'KO', targetLang: target }),
-    cache: 'no-store'
-  })
-    .then(function(r) {
-      if (!r.ok) {
-        if (r.status === 429 || r.status === 501) {
-          cdAllowGoogleTranslateForContent();
-        }
-        throw new Error('translate_failed_' + r.status);
-      }
-      return r.json();
-    })
-    .then(function(p) {
-      var arr = (p && p.translations) || [];
-      for (var i = 0; i < nodes.length; i++) {
-        if (typeof arr[i] === 'string' && arr[i]) nodes[i].textContent = arr[i];
-      }
-    })
-    .catch(function() {});
-}
-
 function changeLanguage(langCode, btn) {
   var btns = document.querySelectorAll('.lang-btn');
   btns.forEach(function(b) { b.classList.remove('active'); });
@@ -4300,31 +4402,55 @@ function changeLanguage(langCode, btn) {
   var label = document.getElementById('langLabel');
   if (label) label.textContent = _langLabelMap[langCode] || langCode.toUpperCase();
 
-  var selectField = document.querySelector('.goog-te-combo');
-  if (selectField) {
-    selectField.value = langCode;
-    selectField.dispatchEvent(new Event('change', { bubbles: true }));
-  } else {
-    setTimeout(function() {
-      var sel = document.querySelector('.goog-te-combo');
-      if (sel) {
-        sel.value = langCode;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    }, 800);
-  }
+  try { localStorage.setItem('cd_lang', langCode); } catch (_) {}
 
-  setTimeout(function() { cdTranslateContentWithApi(langCode); }, 900);
+  var applyPromise = cdSetGoogleTranslateLanguage(langCode, {
+    maxAttempts: 60,
+    retryDelay: 80,
+    fallbackToCookieReload: true
+  });
+  if (applyPromise && typeof applyPromise.then === 'function') {
+    applyPromise.then(function() {
+      cdAllowGoogleTranslateForContent();
+    });
+  } else {
+    cdAllowGoogleTranslateForContent();
+  }
 
   if (langCode === 'ko') {
     var domain = window.location.hostname;
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + domain + '; path=/;';
     document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + domain + '; path=/;';
+  }
+}
 
-    setTimeout(function() {
-      window.location.reload();
-    }, 100);
+function toggleLangDropdown() {
+  var wrap = document.getElementById('langWrap');
+  if (!wrap) return;
+  var isOpen = wrap.classList.contains('open');
+  if (isOpen) wrap.classList.remove('open');
+  else wrap.classList.add('open');
+
+  var trigger = document.getElementById('langTrigger');
+  if (trigger) trigger.setAttribute('aria-expanded', String(!isOpen));
+
+  if (!window.__cdLangDropdownOutsideBound) {
+    window.__cdLangDropdownOutsideBound = true;
+    document.addEventListener('click', function(e) {
+      if (!wrap.classList.contains('open')) return;
+      if (wrap.contains(e.target)) return;
+      wrap.classList.remove('open');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }, true);
+
+    document.addEventListener('keydown', function(e) {
+      if (!wrap.classList.contains('open')) return;
+      if (e && (e.key === 'Escape' || e.key === 'Esc')) {
+        wrap.classList.remove('open');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+      }
+    }, true);
   }
 }
 

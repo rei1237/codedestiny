@@ -1,13 +1,11 @@
 (function () {
   'use strict';
 
-  /* 모바일 터치: 손가락 미세 움직임 허용 (36px ≈ 2.5mm, 스크롤 시 탭 오인 방지) */
-  var TAP_MAX_DX = 36;
-  var TAP_MAX_DY = 36;
+  var TAP_MAX_DX = 14;
+  var TAP_MAX_DY = 10;
   var GHOST_CLICK_BLOCK_MS = 500;
   var suppressClickUntil = 0;
   var touchCtx = null;
-  var lastTouchStart = null;
 
   var RULES = [
     {
@@ -36,102 +34,6 @@
         '.feature-card--tazza .feature-card__desc',
         '.feature-card--tazza .feature-card__cta',
         '.feature-card--tazza .feature-card__launch'
-      ].join(',')
-    },
-    {
-      action: 'openAnimalTotemModal',
-      cardSelector: '.tarot-tile--animal-totem',
-      targetSelector: [
-        '[data-action="openAnimalTotemModal"]',
-        '.tarot-tile--animal-totem',
-        '.tarot-tile--animal-totem .tarot-tile__img-wrap',
-        '.tarot-tile--animal-totem .tarot-tile__img',
-        '.tarot-tile--animal-totem .tarot-tile__badge',
-        '.tarot-tile--animal-totem .tarot-tile__title',
-        '.tarot-tile--animal-totem .tarot-tile__desc',
-        '.tarot-tile--animal-totem .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openDestinyFlowerStudio',
-      cardSelector: '.tarot-tile--bloom',
-      targetSelector: [
-        '[data-action="openDestinyFlowerStudio"]',
-        '.tarot-tile--bloom',
-        '.tarot-tile--bloom .tarot-tile__img-wrap',
-        '.tarot-tile--bloom .tarot-tile__img',
-        '.tarot-tile--bloom .tarot-tile__badge',
-        '.tarot-tile--bloom .tarot-tile__title',
-        '.tarot-tile--bloom .tarot-tile__desc',
-        '.tarot-tile--bloom .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openAstrologyFlowerStudio',
-      cardSelector: '.tarot-tile--astro-flower',
-      targetSelector: [
-        '[data-action="openAstrologyFlowerStudio"]',
-        '.tarot-tile--astro-flower',
-        '.tarot-tile--astro-flower .tarot-tile__img-wrap',
-        '.tarot-tile--astro-flower .tarot-tile__img',
-        '.tarot-tile--astro-flower .tarot-tile__badge',
-        '.tarot-tile--astro-flower .tarot-tile__title',
-        '.tarot-tile--astro-flower .tarot-tile__desc',
-        '.tarot-tile--astro-flower .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openJamidusuFlowerStudio',
-      cardSelector: '.tarot-tile--jami-flower',
-      targetSelector: [
-        '[data-action="openJamidusuFlowerStudio"]',
-        '.tarot-tile--jami-flower',
-        '.tarot-tile--jami-flower .tarot-tile__img-wrap',
-        '.tarot-tile--jami-flower .tarot-tile__img',
-        '.tarot-tile--jami-flower .tarot-tile__badge',
-        '.tarot-tile--jami-flower .tarot-tile__title',
-        '.tarot-tile--jami-flower .tarot-tile__desc',
-        '.tarot-tile--jami-flower .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openSukuyoFlowerStudio',
-      cardSelector: '.tarot-tile--sukuyo-fl',
-      targetSelector: [
-        '[data-action="openSukuyoFlowerStudio"]',
-        '.tarot-tile--sukuyo-fl',
-        '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap',
-        '.tarot-tile--sukuyo-fl .tarot-tile__img',
-        '.tarot-tile--sukuyo-fl .tarot-tile__badge',
-        '.tarot-tile--sukuyo-fl .tarot-tile__title',
-        '.tarot-tile--sukuyo-fl .tarot-tile__desc',
-        '.tarot-tile--sukuyo-fl .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotHealingModal',
-      cardSelector: '.tarot-tile--healing',
-      targetSelector: [
-        '[data-action="openTarotHealingModal"]',
-        '.tarot-tile--healing',
-        '.tarot-tile--healing .tarot-tile__img-wrap',
-        '.tarot-tile--healing .tarot-tile__img',
-        '.tarot-tile--healing .tarot-tile__title',
-        '.tarot-tile--healing .tarot-tile__desc',
-        '.tarot-tile--healing .tarot-tile__body'
-      ].join(',')
-    },
-    {
-      action: 'openTarotYearFortuneModal',
-      cardSelector: '.tarot-tile--year',
-      targetSelector: [
-        '[data-action="openTarotYearFortuneModal"]',
-        '.tarot-tile--year',
-        '.tarot-tile--year .tarot-tile__img-wrap',
-        '.tarot-tile--year .tarot-tile__img',
-        '.tarot-tile--year .tarot-tile__title',
-        '.tarot-tile--year .tarot-tile__desc',
-        '.tarot-tile--year .tarot-tile__body'
       ].join(',')
     }
   ];
@@ -169,13 +71,6 @@
     return null;
   }
 
-  /* 모바일: touchend 시 event.target이 부정확한 경우 elementFromPoint로 실제 터치 위치의 요소 확인 */
-  function findRuleFromPoint(x, y) {
-    if (!document.elementFromPoint || !Number.isFinite(x) || !Number.isFinite(y)) return null;
-    var el = document.elementFromPoint(x, y);
-    return el ? findRuleFromTarget(el) : null;
-  }
-
   function findActionElement(origin, rule) {
     if (!origin || !rule) return null;
     var direct = origin.closest('[data-action="' + rule.action + '"]');
@@ -185,21 +80,6 @@
     if (card && typeof card.querySelector === 'function') {
       var inCard = card.querySelector('[data-action="' + rule.action + '"]');
       if (inCard) return inCard;
-    }
-
-    if (rule.action === 'openTarotYearFortuneModal') {
-      var tile = origin.closest('.tarot-tile--year');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openTarotHealingModal') {
-      var tile = origin.closest('.tarot-tile--healing');
-      if (tile) return tile;
-    }
-
-    if (rule.action === 'openAnimalTotemModal') {
-      var tile = origin.closest('.tarot-tile--animal-totem');
-      if (tile) return tile;
     }
 
     return document.querySelector('[data-action="' + rule.action + '"]');
@@ -240,90 +120,22 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
-  var LAZY_LOAD_ACTIONS = {
-    openAnimalTotemModal: [
-      'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js'
-    ],
-    openTarotHealingModal: ['js/tarot-healing-experience.js'],
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js']
-  };
-
-  function loadScript(src) {
-    return new Promise(function(resolve, reject) {
-      var norm = (src || '').replace(/^\.\//, '');
-      var all = document.querySelectorAll('script[src]');
-      var existing = null;
-      for (var i = 0; i < all.length; i++) {
-        var a = all[i].getAttribute('src') || '';
-        if (a === norm || a.indexOf(norm.split('/').pop()) !== -1) { existing = all[i]; break; }
-      }
-      if (existing) {
-        if (existing.readyState === 'complete' || existing.readyState === 'loaded') {
-          resolve();
-          return;
-        }
-        existing.addEventListener('load', function() { resolve(); }, { once: true });
-        existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
-        return;
-      }
-      var s = document.createElement('script');
-      s.src = norm;
-      s.defer = true;
-      s.async = true;
-      s.onload = function() { resolve(); };
-      s.onerror = function() { reject(new Error('load failed: ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
-    var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
-
-    /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
-    if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      raf(function() {
-        var chain = Promise.resolve();
-        lazyPaths.forEach(function(src) {
-          chain = chain.then(function() { return loadScript(src); });
-        });
-        chain.then(function() {
-          var f = window[rule.action];
-          if (typeof f === 'function') {
-            try { f(); } catch (err) {
-              console.error('[mobile-interaction-patch] post-load action failed:', rule.action, err);
-            }
-          }
-        }).catch(function(err) {
-          console.error('[mobile-interaction-patch] lazy load failed:', rule.action, err);
-        });
-      });
-      return true;
+    if (typeof fn === 'function') {
+      try {
+        fn();
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
+      }
     }
 
-    if (typeof fn !== 'function') return false;
-
-    /* 모바일: 동기 실행 시 브라우저가 터치 처리 중 UI 업데이트를 막아 화면 멈춤 발생. rAF로 지연 */
-    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-    try {
-      raf(function() {
-        try {
-          fn();
-        } catch (err) {
-          console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-        }
-      });
-      return true;
-    } catch (err) {
-      console.error('[mobile-interaction-patch] action execution failed:', rule.action, err);
-      return false;
-    }
+    return false;
   }
 
   function injectTouchActionStyle() {
@@ -331,22 +143,12 @@
 
     var css = [
       '.feature-card--face, .feature-card--tazza,',
-      '.tarot-tile--healing, .tarot-tile--year, .tarot-tile--animal-totem,',
-      '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
       '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
       '.feature-card--face .feature-card__img, .feature-card--tazza .feature-card__img,',
       '.feature-card--face .feature-card__title, .feature-card--tazza .feature-card__title,',
       '.feature-card--face .feature-card__desc, .feature-card--tazza .feature-card__desc,',
-      '.tarot-tile--healing .tarot-tile__img-wrap, .tarot-tile--healing .tarot-tile__img, .tarot-tile--healing .tarot-tile__body, .tarot-tile--healing .tarot-tile__title, .tarot-tile--healing .tarot-tile__desc,',
-      '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
-      '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__badge, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
-      '.tarot-tile--bloom .tarot-tile__img-wrap, .tarot-tile--bloom .tarot-tile__img, .tarot-tile--bloom .tarot-tile__badge, .tarot-tile--bloom .tarot-tile__body, .tarot-tile--bloom .tarot-tile__title, .tarot-tile--bloom .tarot-tile__desc,',
-      '.tarot-tile--astro-flower .tarot-tile__img-wrap, .tarot-tile--astro-flower .tarot-tile__img, .tarot-tile--astro-flower .tarot-tile__badge, .tarot-tile--astro-flower .tarot-tile__body, .tarot-tile--astro-flower .tarot-tile__title, .tarot-tile--astro-flower .tarot-tile__desc,',
-      '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
-      '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"],',
-      '[data-action="openAnimalTotemModal"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"] {',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
@@ -364,11 +166,11 @@
     root.__cdTouchBridgeBound = true;
 
     root.addEventListener('touchstart', function (event) {
-      var pt = getPoint(event);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
+
+      var pt = getPoint(event);
       if (!pt) return;
 
       touchCtx = {
@@ -390,107 +192,24 @@
     }, { passive: true, capture: true });
 
     root.addEventListener('touchend', function (event) {
-      var pt = getPoint(event);
-      if (!pt) return;
+      if (!touchCtx) return;
 
       var ctx = touchCtx;
       touchCtx = null;
 
-      if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        }
-      }
-
-      /* 모바일 폴백: touchCtx 없거나 처리 실패 시 elementFromPoint로 터치 위치의 요소를 확인 (애니멀 토템 등) */
-      if (lastTouchStart) {
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-          if (ruleFromPoint) {
-            var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          }
-        }
-      }
-    }, { passive: false, capture: true });
-
-    /* pointer 이벤트 폴백: 일부 모바일 브라우저에서 touch 대신 pointer 사용 */
-    root.addEventListener('pointerdown', function (event) {
-      if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
-      if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-      if (!pt) return;
-      touchCtx = {
-        rule: rule,
-        startX: pt.x,
-        startY: pt.y,
-        target: event.target,
-        moved: false
-      };
-    }, { passive: true, capture: true });
-
-    root.addEventListener('pointermove', function (event) {
-      if (event.pointerType !== 'touch' || !touchCtx) return;
       var pt = getPoint(event);
       if (!pt) return;
-      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
-        touchCtx.moved = true;
-      }
-    }, { passive: true, capture: true });
+      var dy = Math.abs(pt.y - ctx.startY);
+      var dx = Math.abs(pt.x - ctx.startX);
+      if (ctx.moved || dy >= TAP_MAX_DY || dx >= TAP_MAX_DX) return;
 
-    root.addEventListener('pointerup', function (event) {
-      if (event.pointerType !== 'touch') return;
-      var pt = getPoint(event);
-      if (!pt) return;
-      var ctx = touchCtx;
-      touchCtx = null;
-      if (ctx) {
-        var dy = Math.abs(pt.y - ctx.startY);
-        var dx = Math.abs(pt.x - ctx.startX);
-        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
-          var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
-          if (handled) {
-            event.preventDefault();
-            event.stopPropagation();
-            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            return;
-          }
-        }
-      }
-      if (lastTouchStart) {
-        var dx = Math.abs(pt.x - lastTouchStart.x);
-        var dy = Math.abs(pt.y - lastTouchStart.y);
-        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-          if (ruleFromPoint) {
-            var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          }
-        }
-      }
+      probeTopNodeFromPoint(pt.x, pt.y, ctx.rule.action + ':touchend');
+      var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
+      if (!handled) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
     }, { passive: false, capture: true });
 
     root.addEventListener('click', function (event) {

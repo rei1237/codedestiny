@@ -1,4 +1,4 @@
-/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
 /* ─── 전역 버튼 터치 반응성 ─── */
@@ -11,124 +11,120 @@ button[onclick*="close"], button[aria-label*="닫"] {
   min-width: 44px; min-height: 44px;
 }
 
+/* ─── 변수 & 리셋 ─── */
+:root{
+  /* 공통 레이아웃 수치 */
+  --radius-lg: 20px;
+  --spacing-md: 16px;
+  --card-shadow: 0 8px 30px rgba(0,0,0,0.05);
 
+  --pink:#FF8BA7;--pink-l:#FFB7B2;--peach:#FFDAC1;
+  --wood-bg:#E8F5E9;--wood-tx:#2E7D32;
+  --fire-bg:#FFEBEE;--fire-tx:#C62828;
+  --earth-bg:#FFF8E1;--earth-tx:#E65100;
+  --metal-bg:#F5F5F5;--metal-tx:#546E7A;
+  --water-bg:#E3F2FD;--water-tx:#1565C0;
+  --radius:16px;--shadow:0 4px 20px rgba(255,139,167,.13);
+}
 
-.planet-widget-wrapper {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2147483647;
-  width: 88px;
-  height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
+.theme-pig {
+  --bg-color: #FFF9F9;
+  --card-bg: #FFFFFF;
+  --card-glass: rgba(255,255,255,0.86);
+  --text-main: #4A4A4A;
+  --point-color: #FF85A2;
+  --border-color: #FFE0E6;
 }
-.planet-aurora {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 60% 40%, #ffe6f7 0%, #ffb7e6 40%, #b7e6ff 100%);
-  opacity: 0.55;
-  filter: blur(18px) saturate(1.2);
-  pointer-events: none;
-  animation: planetAuroraPulse 5s ease-in-out infinite;
+
+.theme-neo {
+  --bg-color: #1A1A1B;
+  --card-bg: #2D2D30;
+  --card-glass: rgba(45,45,48,0.82);
+  --text-main: #E1E1E1;
+  --point-color: #FFD700;
+  --border-color: #3F3F42;
 }
-@keyframes planetAuroraPulse {
-  0%, 100% { opacity: 0.55; filter: blur(18px) saturate(1.2); }
-  50% { opacity: 0.85; filter: blur(28px) saturate(1.5); }
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
+/* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
+   body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
+  min-height:100dvh;color:var(--text-main, #3D3D3D);padding:0;overflow-x:hidden; transition: background 0.4s ease, color 0.4s ease;position:relative;
+  overscroll-behavior-y:none;
+  -webkit-overflow-scrolling:touch;
 }
-#google_translate_element.planet-widget {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
-  box-shadow:
-    0 0 0 6px rgba(255,255,255,0.12),
-    0 8px 20px rgba(255, 107, 157, 0.35),
-    0 12px 32px rgba(139, 58, 58, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,139,167,.14), transparent 35%),
+    radial-gradient(circle at 85% 78%, rgba(124,58,237,.14), transparent 38%),
+    radial-gradient(circle at 50% 12%, rgba(255,215,0,.09), transparent 32%);
+}
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:.18;
+  background-image:radial-gradient(rgba(255,255,255,.5) .6px, transparent .6px);
+  background-size:3px 3px;
+}
+@media (max-width: 480px) {
+  html { font-size: 14px; }
+}
+.wrap{
+  width:100%;
+  max-width:700px;
+  margin:0 auto;
   position: relative;
-  overflow: hidden;
-  animation: planetFloat 4s ease-in-out infinite;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow-x: hidden;
+  padding:0 10px calc(22px + env(safe-area-inset-bottom));
+  padding-bottom:max(22px, calc(22px + env(safe-area-inset-bottom)));
+  display:flex;
+  flex-direction:column;
+  z-index:1;
+  isolation:isolate;
 }
-#google_translate_element.planet-widget::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: -100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
-  border-radius: 50%;
-  animation: planetShine 4s ease-in-out infinite;
-  pointer-events: none;
+
+
+
+/* ─── 로딩 오버레이 ─── */
+#lib-overlay{position:fixed;inset:0;background:var(--bg-color, linear-gradient(135deg,#FFF5F8,#FFF0FA));
+  z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#lib-overlay.done{display:none}
+.pig-float{font-size:4rem;animation:float 1.8s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.dots{display:flex;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--point-color, var(--pink-l));animation:pulse 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+#lib-msg{font-size:1rem;font-weight:700;color:var(--point-color, var(--pink))}
+#lib-sub{font-size:.8rem;color:#bbb}
+
+/* ─── 공통 카드 ─── */
+.card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
+  box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%);}
+/* 마우스 기기에서만 풀 블러 적용 (터치 기기 GPU 절약) */
+@media (pointer: fine) { .card { backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); } }
+@media (min-width: 768px){
+  .card{padding:18px}
 }
-#google_translate_element.planet-widget:hover {
-  box-shadow:
-    0 0 0 10px rgba(255,255,255,0.18),
-    0 16px 40px rgba(255, 107, 157, 0.45),
-    0 24px 64px rgba(139, 58, 58, 0.35),
-    0 0 40px rgba(255, 139, 167, 0.4);
-  transform: scale(1.08) translateY(-4px);
+@media (max-width: 480px){
+  .card{padding:16px}
 }
-#google_translate_element.planet-widget select.goog-te-combo {
-  width: 60px;
-  height: 32px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.85);
-  color: #E04567;
-  font-weight: 700;
-  font-size: 13px;
-  text-align: center;
-  margin: 0 auto;
-  box-shadow: 0 2px 8px rgba(255,139,167,0.08);
-  outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-#google_translate_element.planet-widget .goog-te-gadget {
-  font-family: inherit !important;
-  font-size: 13px !important;
-  color: #fff !important;
-  text-align: center;
-  width: 100%;
-  padding: 0;
-}
-#google_translate_element.planet-widget .goog-te-gadget span,
-#google_translate_element.planet-widget .goog-te-gadget a {
-  display: none !important;
-}
-@media (max-width: 600px) {
-  .planet-widget-wrapper {
-    top: 8px;
-    right: 8px;
-    width: 64px;
-    height: 64px;
-  }
-  #google_translate_element.planet-widget {
-    width: 48px;
-    height: 48px;
-  }
-  #google_translate_element.planet-widget select.goog-te-combo {
-    width: 40px;
-    height: 24px;
-    font-size: 11px;
-  }
-}
-/* Force content to respect container width — CLS 방지 (width/height 또는 aspect-ratio 지정 권장) */
+.sec-title{color:var(--point-color, var(--pink));font-weight:700;font-size:1.05rem;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';display:block;width:4px;height:18px;
+  background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}
+
+/* Force content to respect container width */
 img, canvas, svg, video {
   max-width: 100%;
   height: auto;
@@ -151,7 +147,7 @@ img.img-fallback-broken {
 /* Ensure result page does not break layout */
 #resultPage {
   width: 100%;
-  max-width: 760px;
+  max-width: 700px;
   box-sizing: border-box;
   overflow-x: hidden;
   margin: 0 auto;
@@ -162,19 +158,11 @@ img.img-fallback-broken {
   width: 100%;
   max-width: 100%;
 }
-/* content-visibility: 뷰포트 밖 섹션 렌더링 차단 → 스크롤 성능 향상 */
-#resultPage .card,
-#resultPage .destiny-section,
-#resultPage .letter-box,
-#resultPage .share-section,
-#resultPage .rpt-v2-block {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 200px;
-}
 #inputPage,
+#resultPage,
 .wrap > footer {
   width: 100%;
-  max-width: 960px;
+  max-width: 700px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -491,22 +479,6 @@ input:checked + .slider .paw-pad {
 .logo-area{text-align:center;padding:20px 0 28px}
 .pig-big{font-size:3.8rem;display:block;animation:float 2.5s ease-in-out infinite}
 .pig-svg-wrap{animation:float 2.5s ease-in-out infinite;margin-bottom:6px;display:flex;justify-content:center;}
-.neo-logo-icon{
-  display:block;
-  border-radius:50%;
-  box-shadow:0 4px 12px rgba(255,215,0,.3);
-  background:#0f1118;
-}
-/* 메인(꽃돼지) 모드: 원 안에 honeypig 이미지 배치 */
-.honeypig-logo-icon,
-.normal-logo .pig-svg-wrap img {
-  display: block;
-  width: 130px;
-  height: 130px;
-  object-fit: contain;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(255, 139, 167, 0.3);
-}
 .logo-area h1{font-family:'Noto Serif KR',serif;color:var(--pink);font-size:1.9rem;font-weight:700;margin-top:8px}
 .logo-area p{color:#bbb;font-size:.85rem;margin-top:4px}
 .form-group{margin-bottom:18px}
@@ -587,9 +559,9 @@ input:checked + .slider .paw-pad {
 .compat-test-results{margin-top:12px;font-size:.9rem;color:#333}
 
 .modal-overlay-shell{display:none;width:100%}
-.modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow-y:auto}
-.modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow-y:auto}
-.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow-y:auto}
+.modal-overlay-juyuk{background:#080401}
+.modal-overlay-sukuyo{background:#0a0c19}
+.modal-overlay-astro{background:#0a0a14}
 .modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto}
 
 .modal-top-nav{
@@ -637,16 +609,12 @@ input:checked + .slider .paw-pad {
 .modal-nav-title-ziwei{color:rgba(232,121,249,0.65)}
 
 .modal-nav-close{
-  position:relative;
-  z-index:2;
   background:transparent;
   font-family:'Gowun Dodum',serif;
   font-size:.75rem;
   font-weight:700;
   cursor:pointer;
-  padding:10px 14px;
-  min-width:44px;
-  min-height:44px;
+  padding:6px 9px;
   border-radius:10px;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
@@ -657,9 +625,7 @@ input:checked + .slider .paw-pad {
 .modal-nav-close-ziwei{border:1px solid rgba(232,121,249,0.45);color:rgba(232,121,249,0.9)}
 
 .modal-sheet-base{width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
-.modal-content-inner-700{width:100%;max-width:820px;margin:0 auto;box-sizing:border-box}
-/* Wider reading width for analysis-heavy cards (including compat). */
-#juyukModalSheet .modal-content-inner-700{max-width:980px}
+.modal-content-inner-700{width:100%;max-width:700px;margin:0 auto;box-sizing:border-box}
 .modal-content-enter-juyuk{animation:tcPageIn .35s cubic-bezier(0.22,1,0.36,1);padding-bottom:env(safe-area-inset-bottom,0px)}
 .modal-content-pad-juyuk{padding:20px 16px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
 .modal-content-inner-wide{width:1200px;max-width:95%;margin:0 auto;padding:20px 16px calc(120px + env(safe-area-inset-bottom));box-sizing:border-box}
@@ -906,7 +872,7 @@ input:checked + .slider .paw-pad {
 }
 @keyframes heroDustFloat{
   from{transform:translate3d(0,0,0)}
-  to{transform:translate3d(-12px,10px,0)}
+  to{transform:translate3d(-22px,18px,0)}
 }
 @media (max-width: 640px){
   .top-hero{padding:24px 16px 16px;border-radius:20px;margin-bottom:22px}
@@ -1129,61 +1095,15 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .year-top{display:flex;justify-content:space-between;align-items:center}
 .year-title{font-weight:700;color:var(--pink);font-size:.92rem}
 .year-sub{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(0.4,0,0.2,1)}
-.year-list, #yearList {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
-}
-#yearList .year-row,
-#yearList .year-top {
-  touch-action: pan-y;
-}
 .yr-section{margin-top:10px;padding-top:10px;border-top:1px dashed #FFE0D6}
 .yr-label{font-weight:700;color:var(--pink);font-size:.82rem;margin-bottom:5px}
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
 
 /* ─── 편지 ─── */
-.letter-box{
-  /* 기본 그라디언트 + 종이 질감 레이어 */
-  background:
-    linear-gradient(140deg,#FFFCFC,#FFF5F8),
-    radial-gradient(circle at 0 0,rgba(255,255,255,.7) 0,transparent 55%),
-    radial-gradient(circle at 100% 100%,rgba(255,210,210,.5) 0,transparent 55%),
-    repeating-linear-gradient(0deg,
-      rgba(255,255,255,.45) 0,
-      rgba(255,255,255,.45) 1px,
-      rgba(255,255,255,0) 3px);
-  background-blend-mode:soft-light,normal,normal,normal;
-  border:2px solid rgba(255,183,178,.25);
-  border-radius:20px;
-  padding:24px 22px;
-  box-shadow:0 4px 20px rgba(255,139,167,.08);
-  max-width: 880px;
-  margin-left: auto;
-  margin-right: auto;
-}
+.letter-box{background:linear-gradient(140deg,#FFFCFC,#FFF5F8);border:2px solid rgba(255,183,178,.25);
+  border-radius:20px;padding:24px;box-shadow:0 4px 20px rgba(255,139,167,.08)}
 .letter-box h3{font-family:'Noto Serif KR',serif;color:var(--pink);text-align:center;margin-bottom:16px;font-size:1.1rem}
-.letter-para{
-  font-size:.9rem;
-  line-height:1.9;
-  color:#555;
-  margin-bottom:12px;
-  max-width: 70ch;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* 모바일에서 세로로 길게 보이도록 조정 */
-@media (max-width:768px){
-  .letter-box{
-    max-width:100%;
-    margin-left:12px;
-    margin-right:12px;
-    min-height:calc(100vh - 140px);
-    padding-top:28px;
-    padding-bottom:32px;
-  }
-}
+.letter-para{font-size:.88rem;line-height:1.9;color:#555;margin-bottom:12px}
 
 /* ─── 블로그 ─── */
 .blog-item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;
@@ -1249,7 +1169,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .destiny-card-scene{
-  perspective:1100px;width:100%;display:flex;justify-content:center;margin-bottom:20px;
+  perspective:800px;width:100%;display:flex;justify-content:center;margin-bottom:20px;
 }
 .destiny-card{
   width:200px;height:340px;position:relative;
@@ -1294,7 +1214,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   filter: drop-shadow(0 28px 42px rgba(6, 10, 24, 0.48));
 }
 .dream-ledger-shell .perspective-deep {
-  perspective: 2400px;
+  perspective: 1700px;
   perspective-origin: 50% 44%;
 }
 
@@ -1774,13 +1694,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   max-height: 300px;
   overflow-y: auto;
   padding-right: 2px;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
 }
 
 .dream-library-item {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 120px;
   border: 1px solid rgba(255, 219, 165, 0.2);
   border-radius: 12px;
   background: linear-gradient(150deg, rgba(19, 27, 47, 0.9), rgba(26, 21, 42, 0.9));
@@ -2018,7 +1934,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   padding: 0;
   position: relative;
   cursor: pointer;
-  perspective: 1800px;
+  perspective: 1300px;
   animation: dreamCardFloat 3.2s ease-in-out infinite;
 }
 
@@ -2242,15 +2158,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
     0 24px 52px rgba(8, 10, 20, 0.5);
 }
 
-.dream-ritual-card--gold.is-crowning .dream-ritual-card-front {
-  box-shadow:
-    inset 0 0 0 2px rgba(189, 125, 38, 0.24),
-    inset 0 0 38px rgba(255, 253, 242, 0.74),
-    0 0 0 2px rgba(255, 226, 157, 0.34),
-    0 28px 64px rgba(68, 37, 5, 0.62);
-  animation: dreamGoldenCrownPulse 1.35s ease-in-out infinite;
-}
-
 .dream-card-illustration--gold {
   background:
     radial-gradient(circle at 24% 20%, rgba(255, 255, 240, 0.58), transparent 36%),
@@ -2340,8 +2247,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   background:
     linear-gradient(168deg, rgba(15, 22, 40, 0.92), rgba(28, 24, 43, 0.9));
   box-shadow: inset 0 0 0 1px rgba(255, 226, 180, 0.08);
-  max-height: clamp(420px, 66vh, 860px);
-  min-height: 360px;
+  max-height: clamp(320px, 54vh, 680px);
+  min-height: 300px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-behavior: smooth;
@@ -2414,28 +2321,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   pointer-events: none;
 }
 
-.dream-story-bubble--consult {
-  margin-top: 12px;
-  border-color: rgba(156, 214, 255, 0.48);
-  background:
-    radial-gradient(circle at 12% 10%, rgba(174, 230, 255, 0.14), transparent 46%),
-    radial-gradient(circle at 88% 85%, rgba(178, 197, 255, 0.16), transparent 42%),
-    linear-gradient(145deg, rgba(24, 44, 72, 0.92), rgba(28, 34, 66, 0.9));
-  box-shadow:
-    inset 0 0 0 1px rgba(170, 226, 255, 0.14),
-    0 14px 30px rgba(8, 19, 38, 0.35);
-}
-
-.dream-story-bubble--consult::before {
-  content: '🧭 최종 컨설팅';
-  display: inline-block;
-  margin-bottom: 10px;
-  color: rgba(216, 243, 255, 0.96);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-}
-
 .dream-stage-next {
   display: block;
   width: min(320px, 100%);
@@ -2474,7 +2359,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   white-space: pre-wrap;
   word-break: keep-all;
   text-wrap: pretty;
-  min-height: 300px;
+  min-height: 260px;
   text-shadow: 0 1px 0 rgba(9, 13, 24, 0.35);
 }
 
@@ -2496,17 +2381,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   white-space: pre-wrap;
   text-wrap: pretty;
   text-shadow: 0 1px 0 rgba(20, 13, 6, 0.42);
-}
-
-.dream-final-consult {
-  margin: 0;
-  color: #e7f6ff;
-  font-size: clamp(1.01rem, 1.12vw, 1.14rem);
-  line-height: 1.95;
-  letter-spacing: 0.014em;
-  white-space: pre-wrap;
-  text-wrap: pretty;
-  text-shadow: 0 1px 0 rgba(10, 16, 28, 0.4);
 }
 
 .dream-ledger-shell.dream-ui-locked .dream-ledger-controls,
@@ -2550,17 +2424,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 @keyframes dreamRunePulse {
   0%, 100% { opacity: 0.5; transform: scale(0.95); }
   50% { opacity: 0.92; transform: scale(1.05); }
-}
-
-@keyframes dreamGoldenCrownPulse {
-  0%, 100% {
-    filter: saturate(1);
-    transform: translateY(0);
-  }
-  50% {
-    filter: saturate(1.16) brightness(1.05);
-    transform: translateY(-2px);
-  }
 }
 
 @keyframes dreamArtReveal {
@@ -2684,8 +2547,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-archive-item {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 80px;
   border: 1px solid rgba(255, 218, 168, 0.24);
   border-radius: 10px;
   background: rgba(24, 33, 57, 0.76);
@@ -2743,14 +2604,14 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   }
 
   .dream-story-scroll {
-    min-height: 280px;
-    max-height: 65vh;
+    min-height: 220px;
+    max-height: 58vh;
     padding: 14px;
   }
 
   .dream-block-text {
     font-size: 1rem;
-    min-height: 220px;
+    min-height: 180px;
   }
 
   .dream-ledger-actions {
@@ -2952,37 +2813,11 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 /* ─── 공유하기 ─── */
-.share-section{
-  background:#fff;
-  border-radius:20px;
-  padding:20px;
-  box-shadow:0 2px 24px rgba(255,139,167,.1);
-  border:1px solid rgba(255,183,178,.15);
-  margin:0 auto 16px;
-  max-width: 880px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-.share-title{
-  color:var(--pink);
-  font-weight:700;
-  font-size:1rem;
-  margin-bottom:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-}
+.share-section{background:#fff;border-radius:20px;padding:20px;
+  box-shadow:0 2px 24px rgba(255,139,167,.1);border:1px solid rgba(255,183,178,.15);margin-bottom:16px}
+.share-title{color:var(--pink);font-weight:700;font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .share-title::before{content:'';display:block;width:4px;height:18px;background:linear-gradient(var(--pink),var(--pink-l));border-radius:2px}
-.share-btns{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  width:100%;
-  max-width:520px;
-  margin:0 auto;
-}
+.share-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .quick-action-stack{display:flex;flex-direction:column;align-items:center;gap:12px}
 .quick-action-stack .btn-install,.quick-action-stack .btn-favorite{width:min(92vw,460px)}
 /* Result page: keep install CTA comfortably clear and not visually clipped */
@@ -2993,8 +2828,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 #resultPage .share-btns .btn-favorite{margin-top:6px;margin-bottom:8px;position:relative;z-index:1}
 #resultPage #btnPwaInstall{margin-top:30px}
 #resultPage #btnPwaInstallHome{margin-top:30px}
-.btn-kakao{padding:12px 14px;background:#FEE500;color:#3B1E08;border:none;border-radius:13px;
-  font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
+.btn-kakao{padding:14px;background:#FEE500;color:#3B1E08;border:none;border-radius:13px;
+  font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-kakao:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(254,229,0,.45)}
 .btn-kakao:active{transform:scale(.96);box-shadow:0 2px 8px rgba(254,229,0,.3)}
 .modal-result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}
@@ -3030,8 +2865,8 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   --btn-return-border:rgba(232,121,249,0.5);
   --btn-return-text:#e879f9;
 }
-.btn-insta{padding:12px 14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:13px;
-  font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
+.btn-insta{padding:14px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:13px;
+  font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-insta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(131,58,180,.4)}
 .btn-insta:active{transform:scale(.96);box-shadow:0 2px 8px rgba(131,58,180,.25)}
 /* ── PWA 설치 버튼 (홈 화면 부적 설치) ── */
@@ -3557,14 +3392,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .neo-mode .sim-score-bar-fill { background: linear-gradient(90deg, #d4af37, #fcd34d); }
 
 /* ═══ 궁합 결과 새 디자인 ═══ */
-.compat-wrap{
-  font-family:'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
-  font-size:clamp(.95rem,.9rem + .22vw,1.03rem);
-  line-height:1.82;
-  letter-spacing:.005em;
-  word-break:keep-all;
-  overflow-wrap:anywhere;
-}
+.compat-wrap{font-size:.84rem}
 .compat-grade-area{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FFF5FB,#F3EBF9);border:1.5px solid #F0C8E8;border-radius:16px;padding:16px 18px;margin-bottom:12px}
 .compat-grade-icon{font-size:2.8rem;flex-shrink:0}
 .compat-grade-badge{display:inline-block;padding:4px 14px;border-radius:999px;font-size:1.05rem;font-weight:900;letter-spacing:.05em;margin-bottom:4px}
@@ -3574,20 +3402,19 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .grade-c{background:linear-gradient(135deg,#69C782,#45B363);color:#fff}
 .grade-d{background:linear-gradient(135deg,#FFB848,#FF8C00);color:#fff}
 .grade-f{background:linear-gradient(135deg,#9E9E9E,#757575);color:#fff}
-.compat-grade-label{font-size:1.03rem;font-weight:800;color:#3f3f46;margin-bottom:4px;line-height:1.5}
-.compat-grade-desc{font-size:.92rem;color:#5f6368;line-height:1.74}
-.compat-section{background:#fff;border:1px solid #F2E0EC;border-radius:13px;padding:16px 17px;margin-bottom:12px}
-.compat-section-title{font-size:.98rem;font-weight:800;color:#4b5563;margin-bottom:10px;display:flex;align-items:center;gap:7px;line-height:1.42}
-.compat-check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #FAF0F5;font-size:.94rem;color:#4b5563;line-height:1.78}
+.compat-grade-label{font-size:.96rem;font-weight:700;color:#444;margin-bottom:3px}
+.compat-grade-desc{font-size:.78rem;color:#777;line-height:1.55}
+.compat-section{background:#fff;border:1px solid #F2E0EC;border-radius:13px;padding:13px 15px;margin-bottom:10px}
+.compat-section-title{font-size:.84rem;font-weight:800;color:#555;margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.compat-check-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #FAF0F5;font-size:.8rem;color:#555;line-height:1.6}
 .compat-check-item:last-child{border-bottom:none;padding-bottom:0}
-.compat-check-icon{font-size:1.02rem;flex-shrink:0;margin-top:2px}
-.compat-check-item span:last-child{flex:1;min-width:0}
-.compat-fact-box{background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid #FFD54F;border-radius:13px;padding:16px 17px;margin-bottom:12px}
-.compat-fact-title{font-size:.98rem;font-weight:800;color:#E65100;margin-bottom:9px;display:flex;align-items:center;gap:7px;line-height:1.42}
-.compat-fact-body{font-size:.94rem;color:#5D4037;line-height:1.82}
-.compat-advice-box{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:13px;padding:16px 17px;margin-bottom:12px}
-.compat-advice-title{font-size:.98rem;font-weight:800;color:#2E7D32;margin-bottom:9px;display:flex;align-items:center;gap:7px;line-height:1.42}
-.compat-advice-body{font-size:.94rem;color:#33691E;line-height:1.82}
+.compat-check-icon{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.compat-fact-box{background:linear-gradient(135deg,#FFF8E1,#FFF3CD);border:1.5px solid #FFD54F;border-radius:13px;padding:13px 15px;margin-bottom:10px}
+.compat-fact-title{font-size:.84rem;font-weight:800;color:#E65100;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.compat-fact-body{font-size:.8rem;color:#5D4037;line-height:1.75}
+.compat-advice-box{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:13px;padding:13px 15px;margin-bottom:10px}
+.compat-advice-title{font-size:.84rem;font-weight:800;color:#2E7D32;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.compat-advice-body{font-size:.8rem;color:#33691E;line-height:1.75}
 /* ═══ 전생 인연 카드 ═══ */
 .pastlife-card{background:linear-gradient(160deg,#1A0533,#2D0B5E,#1A0A3B);border:1.5px solid rgba(186,104,200,.35);border-radius:18px;padding:20px 18px;margin-top:10px;position:relative;overflow:hidden}
 .pastlife-card::before{content:'';position:absolute;top:-30px;right:-20px;width:180px;height:180px;background:radial-gradient(circle,rgba(186,104,200,.2),transparent 70%);pointer-events:none}
@@ -3621,12 +3448,6 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   .share-btns{grid-template-columns:1fr}
   .lucky-brand-items{grid-template-columns:1fr}
   .dw-grid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:6px}
-  #juyukModalSheet .modal-content-inner-700{max-width:100%}
-  .compat-grade-area{display:grid;grid-template-columns:1fr;gap:8px;padding:14px}
-  .compat-grade-icon{font-size:2.2rem}
-  .compat-grade-label{font-size:.98rem}
-  .compat-grade-desc,.compat-check-item,.compat-fact-body,.compat-advice-body{font-size:.92rem}
-  .compat-section,.compat-fact-box,.compat-advice-box{padding:13px 14px}
 }
 
 /* ═══════════ NEO MODE — 백사자 쌈바 다크 모드 ═══════════ */
@@ -3766,576 +3587,10 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
-/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
-.lang-toggle-wrap.lang-wrap--hidden {
-  visibility: hidden;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
-}
-
-
-/* 3017f88 구글 번역 planet 위젯 UI/UX 1:1 복원 */
-#google_translate_element { display: block !important; }
-.planet-widget-wrapper {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2147483647;
-  width: 88px;
-  height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-}
-.planet-aurora {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 60% 40%, #ffe6f7 0%, #ffb7e6 40%, #b7e6ff 100%);
-  opacity: 0.55;
-  filter: blur(18px) saturate(1.2);
-  pointer-events: none;
-  animation: planetAuroraPulse 5s ease-in-out infinite;
-}
-@keyframes planetAuroraPulse {
-  0%, 100% { opacity: 0.55; filter: blur(18px) saturate(1.2); }
-  50% { opacity: 0.85; filter: blur(28px) saturate(1.5); }
-}
-#google_translate_element.planet-widget {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
-  box-shadow:
-    0 0 0 6px rgba(255,255,255,0.12),
-    0 8px 20px rgba(255, 107, 157, 0.35),
-    0 12px 32px rgba(139, 58, 58, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  animation: planetFloat 4s ease-in-out infinite;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-#google_translate_element.planet-widget::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: -100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
-  border-radius: 50%;
-  animation: planetShine 4s ease-in-out infinite;
-  pointer-events: none;
-}
-#google_translate_element.planet-widget:hover {
-  box-shadow:
-    0 0 0 10px rgba(255,255,255,0.18),
-    0 16px 40px rgba(255, 107, 157, 0.45),
-    0 24px 64px rgba(139, 58, 58, 0.35),
-    0 0 40px rgba(255, 139, 167, 0.4);
-  transform: scale(1.08) translateY(-4px);
-}
-#google_translate_element.planet-widget select.goog-te-combo {
-  width: 60px;
-  height: 32px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.85);
-  color: #E04567;
-  font-weight: 700;
-  font-size: 13px;
-  text-align: center;
-  margin: 0 auto;
-  box-shadow: 0 2px 8px rgba(255,139,167,0.08);
-  outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-#google_translate_element.planet-widget .goog-te-gadget {
-  font-family: inherit !important;
-  font-size: 13px !important;
-  color: #fff !important;
-  text-align: center;
-  width: 100%;
-  padding: 0;
-}
-#google_translate_element.planet-widget .goog-te-gadget span,
-#google_translate_element.planet-widget .goog-te-gadget a {
-  display: none !important;
-}
-@media (max-width: 600px) {
-  .planet-widget-wrapper {
-    top: 8px;
-    right: 8px;
-    width: 64px;
-    height: 64px;
-  }
-  #google_translate_element.planet-widget {
-    width: 48px;
-    height: 48px;
-  }
-  #google_translate_element.planet-widget select.goog-te-combo {
-    width: 40px;
-    height: 24px;
-    font-size: 11px;
-  }
-}
-
-/* ── Google Translate Widget (Top-right fixed) ── */
-
-.planet-widget-wrapper {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 2147483647;
-  width: 88px;
-  height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-}
-
-.planet-aurora {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 60% 40%, #ffe6f7 0%, #ffb7e6 40%, #b7e6ff 100%);
-  opacity: 0.55;
-  filter: blur(18px) saturate(1.2);
-  pointer-events: none;
-  animation: planetAuroraPulse 5s ease-in-out infinite;
-}
-
-@keyframes planetAuroraPulse {
-  0%, 100% { opacity: 0.55; filter: blur(18px) saturate(1.2); }
-  50% { opacity: 0.85; filter: blur(28px) saturate(1.5); }
-}
-
-#google_translate_element.planet-widget {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
-  box-shadow:
-    0 0 0 6px rgba(255,255,255,0.12),
-    0 8px 20px rgba(255, 107, 157, 0.35),
-    0 12px 32px rgba(139, 58, 58, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  animation: planetFloat 4s ease-in-out infinite;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-#google_translate_element.planet-widget::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: -100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%);
-  border-radius: 50%;
-  animation: planetShine 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-#google_translate_element.planet-widget:hover {
-  box-shadow:
-    0 0 0 10px rgba(255,255,255,0.18),
-    0 16px 40px rgba(255, 107, 157, 0.45),
-    0 24px 64px rgba(139, 58, 58, 0.35),
-    0 0 40px rgba(255, 139, 167, 0.4);
-  transform: scale(1.08) translateY(-4px);
-}
-
-#google_translate_element.planet-widget select.goog-te-combo {
-  width: 60px;
-  height: 32px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.85);
-  color: #E04567;
-  font-weight: 700;
-  font-size: 13px;
-  text-align: center;
-  margin: 0 auto;
-  box-shadow: 0 2px 8px rgba(255,139,167,0.08);
-  outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
-  padding: 0 6px;
-  position: relative;
-}
-
-#google_translate_element.planet-widget .goog-te-gadget {
-  font-family: inherit !important;
-  font-size: 13px !important;
-  color: #fff !important;
-  text-align: center;
-  width: 100%;
-  padding: 0;
-}
-
-#google_translate_element.planet-widget .goog-te-gadget span,
-#google_translate_element.planet-widget .goog-te-gadget a {
-  display: none !important;
-}
-
-@media (max-width: 600px) {
-  .planet-widget-wrapper {
-    top: 8px;
-    right: 8px;
-    width: 64px;
-    height: 64px;
-  }
-  #google_translate_element.planet-widget {
-    width: 48px;
-    height: 48px;
-  }
-  #google_translate_element.planet-widget select.goog-te-combo {
-    width: 40px;
-    height: 24px;
-    font-size: 11px;
-  }
-}
-
-#google_translate_element .goog-te-gadget {
-  font-family: inherit !important;
-  font-size: 12px !important;
-  color: inherit !important;
-}
-
-#google_translate_element .goog-te-gadget span,
-#google_translate_element .goog-te-gadget a {
-  display: none !important;
-}
-
-#google_translate_element select.goog-te-combo {
-  width: 160px;
-  max-width: 42vw;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  color: #1a1a20;
-  padding: 0 10px;
-  outline: none;
-}
-
-body.neo-mode #google_translate_element {
-  background: rgba(26, 26, 32, 0.9);
-  border-color: rgba(255, 215, 0, 0.22);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-}
-
-body.neo-mode #google_translate_element select.goog-te-combo {
-  background: rgba(26, 26, 32, 0.7);
-  border-color: rgba(255, 215, 0, 0.22);
-  color: #f3f3f7;
-}
-
-@media (max-width: 600px) {
-  #google_translate_element {
-    top: 12px;
-    right: 12px;
-    padding: 8px 10px;
-  }
-  #google_translate_element select.goog-te-combo {
-    width: 140px;
-    height: 32px;
-  }
-}
-
-/* ── 구글 번역 언어 선택 UI (깔끔 미니멀 카드) ── */
-.translate-lang-wrap {
-  position: fixed;
-  top: 20px;
-  right: 16px;
-  z-index: 2147483647;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  pointer-events: auto;
-}
-
-/* 행성 스타일 언어 버튼 */
-.translate-lang-btn {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  user-select: none;
-  position: relative;
-  overflow: hidden;
-  
-  /* 행성 기본 배경 - 다중 그라데이션으로 3D 구면 효과 */
-  background: radial-gradient(circle at 35% 35%, #FFB7B2 0%, #FF8BA7 25%, #FF6B9D 50%, #E04567 85%, #8B3A3A 100%);
-  
-  /* 다층 그림자로 행성 입체감 */
-  box-shadow: 
-    inset -2px -2px 8px rgba(0, 0, 0, 0.25),
-    inset 2px 2px 8px rgba(255, 255, 255, 0.3),
-    0 8px 20px rgba(255, 107, 157, 0.35),
-    0 12px 32px rgba(139, 58, 58, 0.25);
-  
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: planetFloat 4s ease-in-out infinite;
-}
-
-/* 부드러운 둥둥 떠있는 애니메이션 */
-@keyframes planetFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-/* 행성 반사 효과 (::before) */
-.translate-lang-btn::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: -100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.25) 50%, 
-    transparent 100%);
-  border-radius: 50%;
-  animation: planetShine 4s ease-in-out infinite;
-}
-
-@keyframes planetShine {
-  0% {
-    left: -100%;
-  }
-  50% {
-    left: 100%;
-  }
-  100% {
-    left: -100%;
-  }
-}
-
-.translate-lang-btn:hover {
-  transform: scale(1.15) translateY(-4px);
-  box-shadow: 
-    inset -2px -2px 8px rgba(0, 0, 0, 0.3),
-    inset 2px 2px 10px rgba(255, 255, 255, 0.4),
-    0 12px 28px rgba(255, 107, 157, 0.45),
-    0 20px 48px rgba(139, 58, 58, 0.35),
-    0 0 30px rgba(255, 139, 167, 0.4);
-}
-
-.translate-lang-btn:active {
-  transform: scale(0.98);
-  box-shadow: 
-    inset -2px -2px 8px rgba(0, 0, 0, 0.25),
-    inset 2px 2px 8px rgba(255, 255, 255, 0.3),
-    0 4px 12px rgba(255, 107, 157, 0.3),
-    0 8px 24px rgba(139, 58, 58, 0.2);
-}
-
-.translate-lang-label {
-  letter-spacing: 0.08em;
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* 언어 선택 카드 */
-.translate-lang-card {
-  display: none;
-  position: absolute;
-  top: 68px;
-  right: 0;
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  padding: 20px;
-  min-width: 240px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 139, 167, 0.15);
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 번역 버튼 숨김 상태 */
-.translate-lang-wrap--hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.6s ease, visibility 0.6s ease;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.translate-lang-card.active {
-  display: block;
-}
-
-.translate-lang-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.translate-lang-code {
-  padding: 14px 16px;
-  background: #f8f8f8;
-  border: 2px solid transparent;
-  border-radius: 16px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #999;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  outline: none;
-  user-select: none;
-  font-family: 'Gowun Dodum', sans-serif;
-}
-
-.translate-lang-code:hover {
-  background: #f0f0f0;
-  border-color: rgba(255, 139, 167, 0.3);
-}
-
-.translate-lang-code.active {
-  background: linear-gradient(135deg, #FF8BA7 0%, #FFB7B2 100%);
-  color: #fff;
-  border-color: #FF8BA7;
-  box-shadow: 0 4px 12px rgba(255, 139, 167, 0.25);
-}
-
-.translate-lang-code .code {
-  letter-spacing: 0.03em;
-}
-
-/* NEO 모드 - 황금 행성 스타일 */
-body.neo-mode .translate-lang-btn {
-  background: radial-gradient(circle at 35% 35%, #FFE082 0%, #FFD700 25%, #FFA500 50%, #FF8C00 85%, #B8860B 100%);
-  color: #1a1a20;
-  box-shadow: 
-    inset -2px -2px 8px rgba(0, 0, 0, 0.3),
-    inset 2px 2px 8px rgba(255, 255, 255, 0.2),
-    0 8px 20px rgba(255, 215, 0, 0.4),
-    0 12px 32px rgba(188, 134, 11, 0.3);
-}
-
-body.neo-mode .translate-lang-btn:hover {
-  box-shadow: 
-    inset -2px -2px 8px rgba(0, 0, 0, 0.35),
-    inset 2px 2px 10px rgba(255, 255, 255, 0.25),
-    0 12px 28px rgba(255, 215, 0, 0.5),
-    0 20px 48px rgba(188, 134, 11, 0.4),
-    0 0 30px rgba(255, 165, 0, 0.45);
-}
-
-body.neo-mode .translate-lang-card {
-  background: rgba(26, 26, 32, 0.95);
-  border-color: rgba(255, 215, 0, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-body.neo-mode .translate-lang-code {
-  background: rgba(255, 255, 255, 0.08);
-  color: #888;
-}
-
-body.neo-mode .translate-lang-code:hover {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.3);
-  color: #FFD700;
-}
-
-body.neo-mode .translate-lang-code.active {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #1a1a20;
-  border-color: #FFD700;
-}
-
-/* 모바일 반응형 */
-@media (max-width: 600px) {
-  .translate-lang-wrap {
-    top: 12px;
-    right: 12px;
-  }
-  
-  .translate-lang-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 0.85rem;
-    box-shadow: 
-      inset -2px -2px 6px rgba(0, 0, 0, 0.25),
-      inset 2px 2px 6px rgba(255, 255, 255, 0.3),
-      0 6px 16px rgba(255, 107, 157, 0.3),
-      0 10px 24px rgba(139, 58, 58, 0.2);
-  }
-  
-  .translate-lang-btn:hover {
-    transform: scale(1.12) translateY(-3px);
-  }
-  
-  .translate-lang-card {
-    top: 64px;
-    right: -8px;
-    min-width: 220px;
-    padding: 16px;
-  }
-  
-  .translate-lang-code {
-    padding: 12px 14px;
-    font-size: 0.88rem;
-  }
-  
-  .translate-lang-grid {
-    gap: 10px;
-  }
-}
+/* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
+.VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
+.goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
+#google_translate_element { display: none !important; }
 body { top: 0px !important; }
 
 /* ── 글리치 전환 오버레이 ── */
@@ -4497,44 +3752,6 @@ body.neo-mode .logo-area p{color:#444!important}
 /* 쌈바 로고 전환 */
 body.neo-mode .normal-logo{display:none!important}
 body.neo-mode .neo-logo{display:flex!important}
-/* 백사자 모드: 로고 위 별·네뷸라 제거 */
-body.neo-mode .logo-cosmos{display:none}
-/* 백사자 모드: 원 크기에 맞게 백사자 이미지만 표시 */
-body.neo-mode .pig-svg-wrap {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  margin-right: auto;
-  overflow: hidden;
-}
-body.neo-mode .pig-svg-wrap::after {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 230, 160, 0.35) 0%, rgba(255, 200, 100, 0.15) 40%, transparent 68%);
-  pointer-events: none;
-}
-body.neo-mode .pig-svg-wrap .neo-logo-icon {
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  object-fit: cover;
-  position: relative;
-  z-index: 2;
-  border-radius: 50%;
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.35);
-  background: transparent;
-  display: block;
-}
 
 .neo-logo{display:none;flex-direction:column;align-items:center;padding:20px 0 28px}
 .normal-logo{display:flex;flex-direction:column;align-items:center}
@@ -4902,7 +4119,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   position: relative;
 }
 .villain-fact-bomb::before {
-  content: '쌈바의 팩폭';
+  content: 'Neo의 팩폭';
   position: absolute;
   top: -10px;
   left: 15px;
@@ -5131,146 +4348,6 @@ body.neo-mode .fortune-oneliner { color: #f1f5f9; }
 body.neo-mode .fortune-section {
   background: rgba(255,255,255,0.05);
   color: #cbd5e1;
-}
-
-/* ─── 리포트 대시보드 v2 (사주 분석 > 재미있는 사주 콘텐츠) ───
-   NOTE: fortune-section(밝은 배경) 위에서 돌아가므로,
-   이 카드 내부에서만 썸네일 비율/타이포/색을 재정의한다. */
-#reportDashboardCard .rpt-v2-block.fortune-section{
-  padding: 0;
-  overflow: hidden;
-  background: rgba(255,255,255,0.78);
-  border-radius: 22px;
-  border: 1px solid rgba(148,163,184,0.28);
-  box-shadow: 0 10px 40px rgba(15,23,42,0.16);
-}
-body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
-  background: rgba(15, 23, 42, 0.55);
-  border-color: rgba(255,255,255,0.12);
-  box-shadow: 0 10px 46px rgba(0,0,0,0.45);
-}
-
-/* 이미지: 고정 비율로 카드 폭에 깔끔하게 맞춤 */
-#reportDashboardCard .rpt-v2-img-row{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  width: 100%;
-  background: transparent;
-}
-#reportDashboardCard .rpt-v2-img-wrap{
-  aspect-ratio: 16 / 9;
-  min-height: 160px;
-  max-height: none;
-  overflow: hidden;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-}
-body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{
-  background: transparent;
-}
-#reportDashboardCard .rpt-v2-img{
-  width: 100%;
-  height: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  max-height: none;
-  object-fit: cover !important;
-  object-position: center;
-  display: block;
-}
-
-/* 텍스트: 카드 내부 요소만 가독성 개선 */
-#reportDashboardCard .rpt-v2-head{
-  padding: 14px 16px 14px;
-  font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-}
-#reportDashboardCard .rpt-v2-title{
-  color: #0f172a;
-  font-weight: 900;
-  letter-spacing: -0.2px;
-}
-#reportDashboardCard .rpt-v2-preview{
-  color: rgba(15,23,42,0.78);
-  font-weight: 600;
-}
-#reportDashboardCard .rpt-v2-note{
-  color: rgba(15,23,42,0.62);
-}
-body.neo-mode #reportDashboardCard .rpt-v2-title{ color: #f8fafc; }
-body.neo-mode #reportDashboardCard .rpt-v2-preview{ color: rgba(226,232,240,0.86); }
-body.neo-mode #reportDashboardCard .rpt-v2-note{ color: rgba(226,232,240,0.68); }
-
-/* CTA 버튼: 밝은 카드에서도 대비 확보 (이 카드 내부만) */
-#reportDashboardCard .rpt-v2-toggle-btn{
-  border: 1px solid rgba(124,58,237,0.22);
-  box-shadow: 0 8px 20px rgba(124,58,237,0.18);
-}
-
-@media (max-width: 768px){
-  #reportDashboardCard .rpt-v2-img-wrap{ min-height: 120px; }
-}
-
-/* 꽃돼지 모드(라이트)에서: 펼쳐진 기능 카드 텍스트 대비 보강 (이 카드 내부만) */
-body:not(.neo-mode) #reportDashboardCard{
-  --rpt-pink-strong: #ec4899;
-  --rpt-pink: #f472b6;
-}
-
-/* 꽃돼지 모드(라이트): '재미있는 사주 콘텐츠' 카드 리스트(썸네일 아래) 텍스트 가독성 */
-body:not(.neo-mode) #reportDashboardCard .rpt-v2-title{
-  color: #db2777 !important; /* pink-600 */
-}
-body:not(.neo-mode) #reportDashboardCard .rpt-v2-preview{
-  color: rgba(15,23,42,0.88);
-}
-body:not(.neo-mode) #reportDashboardCard .rpt-v2-note{
-  color: rgba(15,23,42,0.74);
-}
-
-/* 카드(썸네일+텍스트) 가로 폭을 조금 더 슬림하게 */
-#reportDashboardCard .rpt-v2-block{
-  max-width: 680px;
-  margin-left: auto;
-  margin-right: auto;
-}
-@media (max-width: 768px){
-  #reportDashboardCard .rpt-v2-block{ max-width: 100%; }
-}
-
-/* 빌런 블랙리스트 */
-body:not(.neo-mode) #reportDashboardCard .villain-grade,
-body:not(.neo-mode) #reportDashboardCard .villain-name,
-body:not(.neo-mode) #reportDashboardCard .villain-section-title,
-body:not(.neo-mode) #reportDashboardCard .villain-quote strong{
-  color: var(--rpt-pink-strong);
-}
-
-/* 퀀텀 로또 리포트 */
-body:not(.neo-mode) #reportDashboardCard .lc-title-wrap h3,
-body:not(.neo-mode) #reportDashboardCard .lc-resonance,
-body:not(.neo-mode) #reportDashboardCard .lc-reason-title,
-body:not(.neo-mode) #reportDashboardCard .lc-game-tag{
-  color: var(--rpt-pink-strong);
-}
-
-/* 테토 vs 에겐 */
-body:not(.neo-mode) #reportDashboardCard .hv-teto-badge,
-body:not(.neo-mode) #reportDashboardCard .hv-egen-badge,
-body:not(.neo-mode) #reportDashboardCard .hv-teto-title,
-body:not(.neo-mode) #reportDashboardCard .hv-egen-title,
-body:not(.neo-mode) #reportDashboardCard .hv-neutral-title{
-  color: var(--rpt-pink-strong);
-  text-shadow: 0 0 14px rgba(236,72,153,0.28), 0 2px 4px rgba(0,0,0,0.35);
-}
-
-/* 극T 테스트 */
-body:not(.neo-mode) #reportDashboardCard .t-test-card #tTestTitle,
-body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-title,
-body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
-  color: var(--rpt-pink-strong);
 }
 .fortune-sec-title {
   font-weight: 700;
@@ -5511,22 +4588,20 @@ body.neo-mode .monthly-label { color: #64748b; }
   ══════════════════════════════════════════ */
   .fate-scroll-section-hidden {
     opacity: 0;
-    transform: translate3d(0, 36px, 0);
-    will-change: transform;
+    transform: translateY(36px);
     transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
                 transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .fate-scroll-section-visible {
     opacity: 1 !important;
-    transform: translate3d(0, 0, 0) !important;
-    will-change: auto;
+    transform: translateY(0) !important;
   }
-  /* 다음 섹션 인디케이터 컨테이너 — GPU 가속 */
+  /* 다음 섹션 인디케이터 컨테이너 */
   .fate-scroll-next-indicator {
     position: fixed;
     bottom: 86px;
     left: 50%;
-    transform: translate3d(-50%, 0, 0);
+    transform: translateX(-50%);
     z-index: 490;
     display: flex;
     flex-direction: column;
@@ -5703,24 +4778,24 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .mystic-summon-btn {
     display: block;
-    margin: 32px auto;
-    padding: 1.4rem 3.5rem;
-    font-size: 1.35rem;
+    margin: 40px auto;
+    padding: 1.2rem 3rem;
+    font-size: 1.3rem;
     font-weight: 800;
     color: #fff;
     text-align: center;
     background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
     background-size: 200% 200%;
     border: 1px solid rgba(212, 175, 55, 0.6);
-    border-radius: 14px;
+    border-radius: 12px;
     cursor: pointer;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     animation: mystic-breathe 3.5s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-    width: 90%;
-    max-width: 460px;
+    width: 85%;
+    max-width: 400px;
     position: relative;
     overflow: hidden;
   }
@@ -5811,7 +4886,7 @@ body.neo-mode .monthly-label { color: #64748b; }
 }
 @keyframes q-star-drift {
   0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(-42px, 34px, 0) scale(1.04); }
+  100% { transform: translate3d(-70px, 56px, 0) scale(1.08); }
 }
 @keyframes q-nebula-breathe {
   0% { opacity: 0.55; transform: translateY(0); }
@@ -5850,7 +4925,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   width: 196px;
   height: 292px;
   margin: 0 auto;
-  perspective: 1800px;
+  perspective: 1300px;
   z-index: 2;
   position: relative;
 }
@@ -6185,9 +5260,9 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card-grid {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  margin-top: 24px;
-  margin-bottom: 48px;
+  gap: 150px;
+  margin-top: 120px;
+  margin-bottom: 120px;
   position: relative;
 }
 .feature-card-grid::before {
@@ -6302,8 +5377,6 @@ body.neo-mode .monthly-label { color: #64748b; }
 .feature-card--tarot { border-bottom: 3px solid #8b5cf6; }
 .feature-card--tazza .feature-card__cta { background: linear-gradient(135deg, #16a34a, #15803d); }
 .feature-card--tazza { border-bottom: 3px solid #16a34a; }
-.feature-card--animal-totem { border-bottom: 3px solid #c0844a; }
-.feature-card--animal-totem .feature-card__cta { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
 .feature-card--egypt { border-bottom: 3px solid #d4af37; }
 .feature-card--egypt .feature-card__cta { background: linear-gradient(135deg, #d4af37, #b8860b); }
 .feature-card--juyuk { border-bottom: 3px solid #b8860b; }
@@ -6405,7 +5478,7 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 
 .post-saju-services-intro {
   margin-top: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 120px;
   padding: 16px 18px;
   border-radius: 14px;
   border: 1px solid rgba(255,183,178,.35);
@@ -6480,7 +5553,6 @@ body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1
 .feature-card--animal .feature-card__launch  { background: linear-gradient(135deg, #eab308, #d97706); }
 .feature-card--tarot .feature-card__launch   { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 .feature-card--tazza .feature-card__launch   { background: linear-gradient(135deg, #16a34a, #15803d); }
-.feature-card--animal-totem .feature-card__launch { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
 .feature-card--egypt .feature-card__launch   { background: linear-gradient(135deg, #d4af37, #b8860b); }
 .feature-card--juyuk .feature-card__launch   { background: linear-gradient(135deg, #7c5c10, #b8860b); }
 .feature-card--sukuyo .feature-card__launch  { background: linear-gradient(135deg, #3b1f7a, #9333ea); }
@@ -6946,7 +6018,7 @@ body.destiny-flower-focus .feature-card--destiny-flower {
   opacity: 0.62;
 }
 .feature-card--destiny-flower:hover {
-  transform: perspective(1400px) rotateX(var(--df-tilt-x, 0deg)) rotateY(var(--df-tilt-y, 0deg)) translateY(-2px) scale(1.005);
+  transform: perspective(980px) rotateX(var(--df-tilt-x, 0deg)) rotateY(var(--df-tilt-y, 0deg)) translateY(-4px) scale(1.01);
   filter: drop-shadow(0 20px 34px rgba(152, 128, 196, 0.24));
 }
 .feature-card--destiny-flower .feature-card__title {
@@ -8963,22 +8035,15 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.7;
+  opacity: 0.45;
   pointer-events: none;
 }
 
-/* 별똥별 — 모바일 전용 (데스크탑은 비표시, 모바일에서 3개만) */
-.meteor-1 { top:3%;  left:18%; --delay:0s;   --dur:2.3s; --h:110px; --w:2px;   --hc:rgba(200,220,255,0.95); --gc1:rgba(170,200,255,0.6); --gc2:rgba(140,175,255,0.35); }
-.meteor-2 { top:8%;  left:55%; --delay:1.0s; --dur:2.0s; --h:90px;  --w:2px;   --hc:rgba(255,255,255,1);    --gc1:rgba(200,220,255,0.7); --gc2:rgba(175,205,255,0.4);  }
-.meteor-3 { top:1%;  left:78%; --delay:1.8s; --dur:2.7s; --h:130px; --w:2px;   --hc:rgba(255,238,195,0.95); --gc1:rgba(255,215,140,0.65);--gc2:rgba(255,195,95,0.38);  }
-.meteor-4 { top:18%; left:5%;  --delay:0.5s; --dur:2.9s; --h:80px;  --w:1.5px; --hc:rgba(205,220,255,0.9);  --gc1:rgba(175,205,255,0.55);--gc2:rgba(155,190,255,0.32); }
-.meteor-5 { top:0%;  left:38%; --delay:2.4s; --dur:1.9s; --h:105px; --w:2px;   --hc:rgba(238,210,255,0.95); --gc1:rgba(208,168,255,0.65);--gc2:rgba(178,128,255,0.38); }
-.meteor-6 { top:5%;  left:88%; --delay:0.7s; --dur:2.2s; --h:120px; --w:2px;   --hc:rgba(195,238,255,0.95); --gc1:rgba(155,220,255,0.65);--gc2:rgba(115,205,255,0.38); }
-
-/* 데스크탑: 별똥별 비표시 (모바일에서만 노출) */
-@media (min-width: 769px) {
-  .code-splash .meteor { display: none !important; }
-}
+.meteor-1 { top: 4%; left: 15%; --delay: 0s; --dur: 2s; }
+.meteor-2 { top: 10%; left: 48%; --delay: 0.7s; --dur: 1.8s; }
+.meteor-3 { top: 2%; left: 72%; --delay: 1.5s; --dur: 2.3s; }
+.meteor-4 { top: 20%; left: 6%; --delay: 0.3s; --dur: 2.6s; }
+.meteor-5 { top: 1%; left: 36%; --delay: 2.1s; --dur: 1.7s; }
 
 .code-splash-content {
   position: relative;
@@ -9057,49 +8122,24 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     0 0 55px rgba(165,180,252,0.22),
     0 0 110px rgba(108,99,255,0.10);
 }
-/* 별똥별 CSS 애니메이션 — 경량화: box-shadow 최소화, ::after 2단 글로우 */
+/* 별똥별 CSS 애니메이션 */
 .meteor {
-  position: absolute;
-  width: var(--w, 2px);
-  height: var(--h, 100px);
-  border-radius: 999px;
-  background: linear-gradient(
-    to bottom,
+  position:absolute;
+  width:2px;
+  height:80px;
+  background:linear-gradient(to bottom,
     transparent 0%,
-    transparent 12%,
-    var(--gc2, rgba(155,185,255,0.22)) 35%,
-    var(--gc1, rgba(195,218,255,0.62)) 65%,
-    var(--hc, rgba(255,255,255,0.95)) 90%,
-    var(--hc, #fff) 100%
-  );
-  /* 꼬리 측면 발광 — 1레이어만 */
-  box-shadow: 0 0 5px 1px var(--gc1, rgba(195,218,255,0.28));
-  transform-origin: top center;
-  transform: rotate(-42deg) translateY(-220px);
-  opacity: 0;
-  animation: meteorFall var(--dur, 2s) ease-in var(--delay, 0s) infinite;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-/* 빛나는 별똥별 머리 — 2단 글로우 (4단 → 2단으로 경량화) */
-.meteor::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    #fff 0%,
-    var(--hc, rgba(215,228,255,0.92)) 45%,
+    rgba(200,220,255,0.9) 45%,
+    rgba(255,255,255,0.55) 65%,
     transparent 100%
   );
-  box-shadow:
-    0 0 7px  3px var(--hc,  rgba(218,232,255,0.95)),
-    0 0 20px 7px var(--gc1, rgba(175,208,255,0.55));
+  border-radius:999px;
+  transform-origin:top center;
+  transform:rotate(-42deg) translateY(-200px);
+  opacity:0;
+  animation:meteorFall var(--dur,2s) linear var(--delay,0s) infinite;
+  pointer-events:none;
+  will-change:transform,opacity;
 }
 
 .privacy-content-note {
@@ -9114,18 +8154,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 @keyframes meteorFall {
-  0%   { transform: rotate(-42deg) translateY(-220px); opacity: 0; }
-  4%   { opacity: 1; }
-  15%  { opacity: 0.95; }
-  65%  { opacity: 0.7; }
-  85%  { opacity: 0.3; }
-  100% { transform: rotate(-42deg) translateY(115vh);  opacity: 0; }
-}
-
-/* 접근성: 모션 감소 선호 시 별똥별/캔버스 비활성 */
-@media (prefers-reduced-motion: reduce) {
-  .meteor { display: none !important; }
-  .code-splash-canvas { display: none !important; }
+  0%   { transform:rotate(-42deg) translateY(-200px); opacity:0; }
+  6%   { opacity:0.95; }
+  70%  { opacity:0.65; }
+  100% { transform:rotate(-42deg) translateY(110vh);  opacity:0; }
 }
 /* ────────────────────────────────────────────────────
    모바일 성능 최적화 (pointer:coarse = 터치 스크린)
@@ -9141,12 +8173,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   /* 0-1. wrap CSS containment → repaint 범위 제한 */
   .wrap { contain: layout; }
 
-  /* 1. 모바일 스플래시: 별똥별 3개만 표시 (4,5,6 숨김), 캔버스·오브 제거 */
-  .code-splash .meteor-4,
-  .code-splash .meteor-5,
-  .code-splash .meteor-6 { display: none !important; }
-  .code-splash-canvas { display: none !important; }
-  .code-splash .splash-orb { display: none !important; }
+  /* 1. 별똥별 5개 will-change compositor layer 완전 제거 (모바일 렌더링 보호) */
+  .meteor { display: none !important; }
 
   /* 2. 진행바 shimmer 스캔 제거 (translateX pseudo-element) */
   .cs-bar-fill::after,
@@ -9177,7 +8205,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
   /* 중앙 책(만세력) 3D 컨테이너 */
   .saju-book-wrapper {
-    position: relative; width: 220px; height: 150px; perspective: 2000px;
+    position: relative; width: 220px; height: 150px; perspective: 1500px;
     margin-bottom: 60px;
   }
   .saju-book {
@@ -9344,7 +8372,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-master-card--active::after {
         content: '';
-        position: absolute; inset: 0; border-radius: 20px;
+        position: absolute; inset: -2px; border-radius: 22px;
         border: 1px solid rgba(255,215,0,0.62);
         opacity: 0.38;
         animation: dpAuraPulse 3s ease-in-out infinite;
@@ -9507,114 +8535,57 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
 
       /* ══════════════════════════════════════════
-         저장 버튼 — Starlight Cosmos ✦
+         저장 버튼 — Cosmic Blossom Bloom
       ══════════════════════════════════════════ */
       .dp-save-btn {
         display: block; width: 100%;
         padding: 15px 16px;
-        background: linear-gradient(
-          135deg,
-          #020010 0%, #08042A 22%, #100835 45%, #08042A 68%, #020010 100%
-        );
-        border: 1px solid rgba(255,215,0,0.72);
+        background: linear-gradient(135deg, #0A081C 0%, #12103A 50%, #0A081C 100%);
+        border: 1px solid rgba(255,215,0,0.42);
         border-radius: 14px;
-        color: #FFF6B0;
+        color: #FFE566;
         font-family: 'Gowun Dodum', serif;
         font-size: 0.96rem; font-weight: 700; letter-spacing: 1.8px;
         cursor: pointer; margin-top: 14px;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         transition: box-shadow 0.3s, border-color 0.3s, transform 0.15s;
         position: relative; overflow: hidden;
-        box-shadow:
-          0 0 18px rgba(255,215,0,0.42),
-          0 0 38px rgba(180,100,255,0.22),
-          0 0 70px rgba(255,215,0,0.1),
-          inset 0 1px 0 rgba(255,255,255,0.18),
-          inset 0 -1px 0 rgba(255,215,0,0.1),
-          0 4px 28px rgba(0,0,0,0.7);
-        text-shadow: 0 0 8px rgba(255,220,0,1), 0 0 22px rgba(255,215,0,0.75), 0 0 48px rgba(255,200,0,0.38);
-        animation: dpSaveStarPulse 2.2s ease-in-out infinite;
-      }
-      .dp-save-btn:hover {
-        transform: translateY(-2px) scale(1.012);
-        box-shadow:
-          0 0 28px rgba(255,215,0,0.72),
-          0 0 55px rgba(180,100,255,0.4),
-          0 0 90px rgba(255,215,0,0.25),
-          inset 0 1px 0 rgba(255,255,255,0.22),
-          0 6px 32px rgba(0,0,0,0.72);
-        border-color: rgba(255,215,0,0.95);
-        color: #FFFAC0;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,215,0,0.14);
+        text-shadow: 0 0 18px rgba(255,215,0,0.5);
       }
       .dp-save-btn:active {
         transform: scale(0.985);
-        box-shadow:
-          0 0 40px rgba(255,215,0,0.55),
-          inset 0 0 22px rgba(255,215,0,0.1),
-          0 2px 12px rgba(0,0,0,0.6);
+        box-shadow: 0 0 35px rgba(255,215,0,0.38), inset 0 0 20px rgba(255,215,0,0.08);
         border-color: rgba(255,215,0,0.8);
       }
-      @keyframes dpSaveStarPulse {
-        0%, 100% {
-          box-shadow:
-            0 0 18px rgba(255,215,0,0.42),
-            0 0 38px rgba(180,100,255,0.22),
-            0 0 70px rgba(255,215,0,0.1),
-            inset 0 1px 0 rgba(255,255,255,0.18),
-            0 4px 28px rgba(0,0,0,0.7);
-          border-color: rgba(255,215,0,0.72);
-        }
-        50% {
-          box-shadow:
-            0 0 30px rgba(255,215,0,0.72),
-            0 0 60px rgba(180,100,255,0.42),
-            0 0 100px rgba(255,215,0,0.22),
-            inset 0 1px 0 rgba(255,255,255,0.22),
-            0 4px 28px rgba(0,0,0,0.7);
-          border-color: rgba(255,215,0,0.95);
-        }
-      }
-      /* 별빛 광택 스위프 효과 */
+      /* 광택 효과 */
       .dp-save-btn::before {
         content: '';
-        position: absolute; top: -50%; left: -70%;
-        width: 35%; height: 200%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255,255,255,0.06),
-          rgba(255,245,180,0.22),
-          rgba(255,255,255,0.06),
-          transparent
-        );
+        position: absolute; top: -50%; left: -60%;
+        width: 22%; height: 200%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
         transform: skewX(-20deg);
-        animation: dpShimmer 2.8s ease-in-out infinite;
-        pointer-events: none;
+        animation: dpShimmer 3.5s infinite;
       }
-      /* 별빛 코어 오라 */
+      /* 중심 오라 (꽃잎 맥동) */
       .dp-save-btn::after {
         content: '';
         position: absolute; top: 50%; left: 50%;
-        width: 130%; height: 340%;
-        background: radial-gradient(
-          ellipse at 50% 50%,
-          rgba(255,220,0,0.18) 0%,
-          rgba(200,130,255,0.1) 35%,
-          transparent 65%
-        );
+        width: 120%; height: 320%;
+        background: radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.08) 0%, transparent 65%);
         transform: translate(-50%, -50%);
         pointer-events: none;
-        animation: dpSavePulse 2.5s ease-in-out infinite;
+        animation: dpSavePulse 3s ease-in-out infinite;
       }
       @keyframes dpSavePulse {
-        0%,100% { opacity: 0.55; transform: translate(-50%,-50%) scale(0.85); }
-        50%     { opacity: 1;    transform: translate(-50%,-50%) scale(1.15); }
+        0%,100% { opacity: 0.5; transform: translate(-50%,-50%) scale(0.88); }
+        50%     { opacity: 1;   transform: translate(-50%,-50%) scale(1.12); }
       }
       @keyframes dpShimmer {
-        0%   { left: -70%; opacity: 0; }
-        15%  { opacity: 0.8; }
-        65%  { left: 135%; opacity: 0.8; }
-        100% { left: 135%; opacity: 0; }
+        0%   { left: -60%; opacity: 0; }
+        30%  { opacity: 1; }
+        70%  { left: 130%; opacity: 1; }
+        100% { left: 130%; opacity: 0; }
       }
 
       /* ── Bottom Sheet — Profile Constellation List ── */
@@ -9672,13 +8643,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         color: var(--dp-gold); letter-spacing: 1px;
       }
       .dp-sheet-close {
-        position: relative; z-index: 2;
         background: rgba(255,215,0,0.08);
         border: 1px solid rgba(255,215,0,0.2);
         color: var(--dp-gold-dim);
-        width: 32px; height: 32px; padding: 6px;
-        box-sizing: content-box;
-        border-radius: 50%;
+        width: 32px; height: 32px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer; font-size: 1rem;
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
@@ -9689,16 +8657,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-list-scroll {
         flex: 1; overflow-y: auto;
         overscroll-behavior-y: contain;
-        touch-action: pan-y;
         -webkit-overflow-scrolling: touch;
         padding: 12px 14px 30px;
       }
       @media (max-width: 768px) {
-        /* iOS/WebKit: fixed + backdrop-filter 조합이 프리즈/화이트스크린을 유발하는 케이스 방지 */
-        .dp-sheet-overlay {
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
-        }
         .dp-sheet {
           left: 10px;
           right: 10px;
@@ -9724,8 +8686,6 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         to   { opacity: 1; transform: scale(1)    translateY(0); }
       }
       .dp-list-item {
-        content-visibility: auto;
-        contain-intrinsic-size: auto 72px;
         display: flex; align-items: center; justify-content: space-between;
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,215,0,0.1);
@@ -9891,16 +8851,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-fsel-close-btn {
         position:absolute; top:16px; right:18px;
-        z-index:10;
-        min-width:44px; min-height:44px;
-        width:44px; height:44px; padding:0;
-        border:none; border-radius:50%;
+        width:30px; height:30px; border-radius:50%;
         background:rgba(255,255,255,0.07);
         color:rgba(255,255,255,0.4); font-size:0.85rem;
         display:flex; align-items:center; justify-content:center;
         cursor:pointer; touch-action:manipulation;
         -webkit-tap-highlight-color:transparent;
-        pointer-events:auto;
       }
       .dp-fsel-close-btn:active { background:rgba(255,255,255,0.14); }
       .dp-fsel-profile {
@@ -9957,10 +8913,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-fsel-btn--ziwei:hover  { background:rgba(232,121,249,0.1); border-color:rgba(232,121,249,0.5); }
       .dp-fsel-btn--astro  { border-color:rgba(167,209,255,0.3); }
       .dp-fsel-btn--astro:hover  { background:rgba(167,209,255,0.1); border-color:rgba(167,209,255,0.5); }
-      .dp-fsel-btn--tarot  { border-color:rgba(139,92,246,0.35); }
-      .dp-fsel-btn--tarot:hover  { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.55); }
       .dp-fsel-btn--flower { border-color:rgba(244,114,182,0.32); }
       .dp-fsel-btn--flower:hover { background:rgba(244,114,182,0.11); border-color:rgba(244,114,182,0.55); }
+      .dp-fsel-btn--flower { grid-column:1 / -1; justify-content:center; }
 
       .dp-save-overlay {
         position:fixed; inset:0; z-index:2000000;
@@ -10292,7 +9247,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
 
             .oracle-scene-m {
-              height: 340px; perspective: 1400px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;
+              height: 340px; perspective: 1000px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; margin-bottom: 20px;
             }
             .oracle-card-m {
               width: 200px; height: 310px; position: relative; transform-style: preserve-3d;
@@ -10300,12 +9255,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-card-m.flipped { transform: rotateY(180deg); }
             .oracle-face-m {
-              position: absolute; width: 100%; height: 100%;
-              -webkit-backface-visibility: hidden; backface-visibility: hidden;
+              position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
               border-radius: 14px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             }
             .oracle-back-m {
-              z-index: 0;
               background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
               border: 2px solid #6366f1; display: flex; justify-content: center; align-items: center;
               font-size: 3.5rem;
@@ -10314,104 +9267,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-back-m::after { content: '⚛'; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
             .oracle-front-m {
-              z-index: 1; transform: rotateY(180deg); background-size: cover; background-position: center;
+              transform: rotateY(180deg); background-size: cover; background-position: center;
               border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
-            }
-            .tarot-face-img {
-              width: 100%; height: 100%; object-fit: cover; display: block;
-              border-radius: inherit; background: #1a1530; position: absolute; inset: 0;
-              transform: translate3d(0, 0, 0);
-              -webkit-transform: translate3d(0, 0, 0);
-              will-change: transform;
-            }
-
-            /* 타로 모드 토글 */
-            .tarot-mode-toggle {
-              display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;
-            }
-            .tarot-mode-btn {
-              padding: 8px 18px; border-radius: 999px; font-size: 0.88rem; font-weight: 700;
-              background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
-              color: #a5b4fc; cursor: pointer; transition: all 0.3s; touch-action: manipulation;
-            }
-            .tarot-mode-btn:hover { background: rgba(255,255,255,0.12); color: #c4b5fd; }
-            .tarot-mode-btn.active {
-              background: rgba(139,92,246,0.35); border-color: #a78bfa; color: #fff;
-              box-shadow: 0 0 12px rgba(167,139,250,0.4);
-            }
-            /* 쓰리카드 스프레드 */
-            .oracle-scene-three { flex-direction: column; min-height: 380px; }
-            .tarot-spread-guide {
-              text-align: center; color: #c4b5fd; font-size: 0.95rem; margin-bottom: 16px;
-              font-style: italic; min-height: 24px; transition: opacity 0.3s;
-            }
-            .tarot-spread-cards {
-              display: flex; justify-content: center; align-items: flex-end; gap: 12px;
-              perspective: 1600px; flex-wrap: wrap; padding: 0 8px;
-            }
-            .tarot-slot {
-              display: flex; flex-direction: column; align-items: center; flex: 0 0 auto;
-              -webkit-transform-style: preserve-3d; transform-style: preserve-3d;
-            }
-            .tarot-slot-label {
-              font-size: 0.8rem; font-weight: 700; color: #ffd700; margin-bottom: 8px;
-              letter-spacing: 0.05em; text-shadow: 0 0 8px rgba(255,215,0,0.5);
-            }
-            .tarot-slot-center .tarot-slot-label { font-size: 0.9rem; color: #fde68a; }
-            .tarot-spread-card {
-              width: 90px; height: 140px; cursor: pointer;
-              position: relative; border-radius: 14px;
-              -webkit-transform-style: preserve-3d; transform-style: preserve-3d;
-              transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-            }
-            .tarot-spread-card.flipped { transform: rotateY(180deg); }
-            .tarot-slot-center .tarot-spread-card {
-              width: 110px; height: 170px; transform: scale(1.08);
-            }
-            .tarot-slot-center .tarot-spread-card.flipped { transform: rotateY(180deg) scale(1.08); }
-            .tarot-spread-card.is-revealing {
-              box-shadow: 0 0 0 2px #facc15, 0 0 36px rgba(250,204,21,0.55), 0 0 70px rgba(139,92,246,0.45) !important;
-            }
-            .tarot-spread-card .oracle-face-m {
-              -webkit-backface-visibility: hidden; backface-visibility: hidden;
-            }
-            .tarot-spread-card .oracle-back-m {
-              transform: rotateY(0deg);
-            }
-            .tarot-spread-card .oracle-front-m {
-              transform: rotateY(180deg);
-            }
-            .tarot-placeholder-back {
-              background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-              background-image: radial-gradient(#6366f1 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px);
-              background-size: 16px 16px; background-position: 0 0, 8px 8px;
-              border: 2px solid rgba(99,102,241,0.6);
-              box-shadow: inset 0 0 30px rgba(99,102,241,0.15), 0 0 20px rgba(0,0,0,0.4);
-            }
-            .tarot-placeholder-back::before {
-              content: '✦'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-              font-size: 2rem; color: rgba(255,255,255,0.2); animation: tarotPlaceholderPulse 3s ease-in-out infinite;
-            }
-            @keyframes tarotPlaceholderPulse { 0%,100%{opacity:0.3} 50%{opacity:0.6} }
-            .tarot-final-btn {
-              margin-top: 20px; padding: 12px 28px; border-radius: 999px; font-size: 0.95rem; font-weight: 700;
-              background: rgba(139,92,246,0.25); border: 1px solid rgba(167,139,250,0.5);
-              color: #c4b5fd; cursor: pointer; transition: all 0.3s; align-self: center;
-            }
-            .tarot-final-btn:hover:not(:disabled) {
-              background: rgba(139,92,246,0.45); color: #fff;
-              box-shadow: 0 0 20px rgba(167,139,250,0.5); transform: translateY(-2px);
-            }
-            .tarot-final-btn:disabled {
-              opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5);
-            }
-            @media (max-width: 480px) {
-              .tarot-spread-cards { gap: 8px; overflow-x: auto; overflow-y: visible; padding-bottom: 8px;
-                -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; justify-content: flex-start;
-              }
-              .tarot-slot { scroll-snap-align: center; min-width: 100px; }
-              .tarot-spread-card { width: 85px; height: 130px; }
-              .tarot-slot-center .tarot-spread-card { width: 95px; height: 145px; transform: scale(1.05); }
             }
 
             .oracle-result-box-m {
@@ -10421,64 +9278,13 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             }
             .oracle-text-m {
               font-family: 'Gowun Batang', serif; color: #e2e8f0; font-size: 1.05rem;
-              line-height: 1.85; text-align: left; word-break: keep-all; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+              line-height: 1.85; text-align: justify; word-break: keep-all; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
             }
             .ritual-text-m { text-align: center; color: #cbd5e1; font-size: 0.95rem; min-height: 28px; margin-top: 15px; font-family: 'Gowun Batang', serif; }
 
 /* --- block 8 --- */
         #tarotModalOverlay:-webkit-full-screen #tarotInnerContainer { max-width: 640px !important; }
         #tarotModalOverlay:fullscreen #tarotInnerContainer { max-width: 640px !important; }
-
-/* 타로 모달 스크롤·가독성 개선 */
-#tarotModalOverlay {
-          height: 100vh;
-          height: 100dvh;
-          max-height: 100vh;
-          max-height: 100dvh;
-          overflow-y: auto !important;
-          overflow-x: hidden;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior-y: contain;
-          touch-action: pan-y;
-        }
-#tarotInnerContainer {
-          padding-bottom: max(80px, env(safe-area-inset-bottom, 40px));
-        }
-#tarotModalOverlay #tarotCardName,
-        #tarotModalOverlay .tarot-card-name {
-          font-family: 'Cinzel', 'Georgia', serif;
-          font-size: 1.35rem;
-          letter-spacing: 0.04em;
-          line-height: 1.4;
-          -webkit-font-smoothing: antialiased;
-          text-rendering: optimizeLegibility;
-        }
-#tarotModalOverlay .oracle-text-m {
-          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-          font-size: 1.05rem;
-          line-height: 1.8;
-          letter-spacing: 0.02em;
-          color: #e2e8f0;
-          text-align: left;
-          word-break: keep-all;
-          overflow-wrap: break-word;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-          -webkit-font-smoothing: antialiased;
-        }
-#tarotModalOverlay #tarotResultContainer .oracle-text-m { margin-bottom: 0; }
-#tarotModalOverlay .ritual-text-m {
-          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-          font-size: 0.95rem;
-          letter-spacing: 0.02em;
-          -webkit-font-smoothing: antialiased;
-        }
-#tarotModalOverlay #tarotOracleText {
-          font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-          font-size: 0.92rem;
-          line-height: 1.65;
-          letter-spacing: 0.02em;
-          -webkit-font-smoothing: antialiased;
-        }
 
 /* --- block 9 --- */
       .kemet-oracle-container {
@@ -10929,7 +9735,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         overflow: hidden;
         color: #e2e8f0 !important;
         transform-style: preserve-3d;
-        perspective: 1400px;
+        perspective: 1000px;
         transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s ease !important;
       }
 
@@ -11586,7 +10392,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .tc-home-btn {
           display: block;
           width: 100%;
-          margin-top: 40px;
+          margin-top: 10px;
           padding: 13px;
           background: transparent;
           border: 1px solid rgba(180,130,30,.3);
@@ -11768,9 +10574,6 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 0 50px rgba(0,0,0,0.8);
 }
-@media (min-width: 901px) {
-  .astral-container { max-width: 920px; }
-}
 
 /* Animations */
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -11800,47 +10603,27 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     color: rgba(255,255,255,0.5); margin-top: 10px; letter-spacing: 1px;
 }
 
-/* Grid System — 카드 크기 우선, 반응형 열 수 */
+/* Grid System */
 .astral-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  padding: 0 16px 20px;
-}
-@media (max-width: 480px) {
-  .astral-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 12px 16px; }
-}
-@media (min-width: 481px) and (max-width: 640px) {
-  .astral-grid { gap: 14px; padding: 0 14px 18px; }
-}
-@media (min-width: 901px) {
-  .astral-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 0 24px 24px; max-width: 880px; margin: 0 auto; }
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  padding: 0 20px 16px;
 }
 
-/* New Card Design — 카드 크기 확대, 터치 영역 확보 */
+/* New Card Design */
 .totem-card {
-  position: relative;
-  aspect-ratio: 0.82;
-  min-height: 100px;
+    position: relative; aspect-ratio: 0.8; 
   background:
     radial-gradient(120% 120% at 14% 8%, rgba(212,175,55,0.16) 0%, rgba(212,175,55,0.02) 36%, rgba(255,255,255,0.01) 60%),
     linear-gradient(160deg, rgba(16,22,42,0.92) 0%, rgba(12,20,36,0.96) 48%, rgba(9,14,30,0.98) 100%);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 16px;
-  overflow: hidden;
+    border-radius: 16px; overflow: hidden;
   cursor: pointer;
   transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.28s ease, box-shadow 0.28s ease, background-color 0.28s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
-  padding: 12px 10px 10px;
-  touch-action: manipulation;
-}
-@media (max-width: 480px) {
-  .totem-card { min-height: 112px; padding: 14px 10px 12px; aspect-ratio: 0.85; }
+  padding: 10px 8px 8px;
+  touch-action: pan-y;
 }
 
 .totem-card::before {
@@ -11868,28 +10651,24 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   box-shadow: 0 0 22px rgba(212, 175, 55, 0.28), inset 0 0 0 1px rgba(212,175,55,0.22);
 }
 
-/* Card Content Layout — 아이콘·텍스트 크기 확대 */
-.totem-card .totem-icon {
-  font-size: 2.75rem;
-  margin-bottom: 8px;
-  line-height: 1;
+/* Card Content Layout */
+.totem-card .totem-icon { 
+  font-size: 2.25rem;
+  margin-bottom: 7px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   z-index: 2;
 }
-@media (max-width: 480px) {
-  .totem-card .totem-icon { font-size: 3rem; margin-bottom: 10px; }
-}
-.totem-card:hover .totem-icon { transform: scale(1.12) rotate(5deg); }
+.totem-card:hover .totem-icon { transform: scale(1.15) rotate(5deg); }
 
 .totem-card .totem-icon::before {
   content: '';
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   transform: translate(-50%, -50%) rotate(0deg);
   border-radius: 50%;
   border: 1px solid rgba(255,225,160,0.22);
@@ -11932,61 +10711,53 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 .totem-card .totem-code {
-  font-size: 0.8rem;
+  font-size: 0.73rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.9);
   margin-bottom: 4px;
   text-shadow: 0 1px 8px rgba(255,255,255,0.12);
-}
-@media (max-width: 480px) {
-  .totem-card .totem-code { font-size: 0.85rem; }
 }
 
 .totem-card .totem-title {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   font-weight: 500;
-  line-height: 1.35;
-  color: rgba(255,255,255,0.65);
+  line-height: 1.3;
+  color: rgba(255,255,255,0.62);
   text-align: center;
   padding: 0 6px;
-  word-break: keep-all;
-}
-@media (max-width: 480px) {
-  .totem-card .totem-title { font-size: 0.72rem; }
 }
 .totem-card.selected .totem-title { color: rgba(255,255,255,0.95); }
 
 /* Checkmark Badge for Selected State */
 .totem-card::after {
-  content: '✓';
-  position: absolute; top: 8px; right: 8px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--gold); color: #000;
-  font-size: 0.85rem; font-weight: bold;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transform: scale(0); transition: all 0.3s ease;
+    content: '✓';
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--gold); color: #000;
+    font-size: 0.8rem; font-weight: bold;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transform: scale(0); transition: all 0.3s ease;
 }
 .totem-card.selected::after { opacity: 1; transform: scale(1); }
 
-/* Info Button on Card — 터치 영역 44px 이상 */
+/* Info Button on Card */
 .totem-info-btn {
-  position: absolute; bottom: 8px; right: 8px;
+    position: absolute; bottom: 7px; right: 7px;
   background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.3) 0%, rgba(212,175,55,0.18) 32%, rgba(80,56,20,0.5) 100%);
   border: 1px solid rgba(212,175,55,0.45);
   color: rgba(255,230,165,0.95);
-  width: 32px; height: 32px; min-width: 32px; min-height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background-color 0.22s ease;
-  z-index: 5; padding: 0; line-height: 1;
+  z-index: 5; padding: 0;
+    line-height: 1;
   box-shadow: 0 0 0 1px rgba(255,214,120,0.15) inset, 0 4px 10px rgba(0,0,0,0.35);
-}
-@media (max-width: 480px) {
-  .totem-info-btn { width: 36px; height: 36px; min-width: 36px; min-height: 36px; bottom: 10px; right: 10px; font-size: 0.85rem; }
 }
 
 .totem-info-btn::before {
@@ -12008,92 +10779,49 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   transform: translateY(-0.4px);
 }
 
-/* Ritual Bar - 화면 하단 고정 (2개 선택 시 사용자 화면에 맞춰 표시) */
+/* Ritual Bar - Refined */
 .astral-ritual-bar {
   position: relative;
   bottom: auto;
   margin: 0 20px 18px;
-  transform: translateY(14px);
+    transform: translateY(14px);
   width: calc(100% - 40px);
-  min-width: 0;
-  background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
-  padding: 8px 12px 8px 20px;
-  display: flex; align-items: center; justify-content: space-between; gap: 15px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.5); z-index: 1000;
-  opacity: 0; pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-width: 0;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
+    padding: 8px 12px 8px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 15px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5); z-index: 1000;
+    opacity: 0; pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .astral-ritual-bar.active {
-  opacity: 1; transform: translateY(0); pointer-events: auto;
-}
-
-/* 2개 선택 시 화면 하단에 고정하여 항상 보이도록 */
-.astral-ritual-bar.active {
-  position: fixed;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translate(-50%, 0);
-  width: min(calc(100vw - 40px), 460px);
-  margin: 0;
-  max-width: calc(100vw - 40px);
-}
-
-.astral-container.ritual-bar-visible {
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    opacity: 1; transform: translateY(0); pointer-events: auto;
 }
 
 @media (max-width: 640px) {
   .astral-container { max-width: 100%; border-left: 0; border-right: 0; }
   .astral-header { padding: 56px 16px 20px; }
   .astral-grid { gap: 16px; padding: 0 14px 16px; }
-  .astral-ritual-bar.active {
-    width: min(calc(100vw - 28px), 460px);
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translate(-50%, 0);
-  }
   .astral-ritual-bar {
+    margin: 0 14px 16px;
+    width: calc(100% - 28px);
     border-radius: 18px;
-    padding: 12px 14px;
-    gap: 12px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    padding: 8px 10px;
+    gap: 10px;
   }
-  .astral-ritual-bar .selected-tokens {
-    order: 1;
-  }
-  .astral-ritual-bar .ritual-btn {
-    order: 2;
-    width: 100%;
-    max-width: 100%;
-    padding: 16px 24px;
-    font-size: 1.1rem;
-    min-height: 56px;
-    margin-top: 4px;
-  }
+  .ritual-btn { padding: 10px 14px; font-size: 0.84rem; min-height: 44px; }
 }
 
-.selected-tokens { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.token-cross {
-  color: rgba(255,255,255,0.35);
-  font-size: 0.9rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.mini-token {
-  width: 40px; height: 40px; min-width: 40px; min-height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; color: rgba(255,255,255,0.3);
-  transition: all 0.3s ease;
-}
-@media (max-width: 480px) {
-  .mini-token { width: 36px; height: 36px; min-width: 36px; min-height: 36px; font-size: 1.1rem; }
+.selected-tokens { display: flex; align-items: center; gap: 8px; }
+.mini-token { 
+    width: 36px; height: 36px; border-radius: 50%; 
+    background: rgba(255,255,255,0.05); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 1.1rem; color: rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
 }
 .mini-token.filled {
     background: rgba(212, 175, 55, 0.1);
@@ -12103,17 +10831,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 .ritual-btn {
-  background: #fff; color: #000; border: none;
-  padding: 12px 20px;
-  font-family: 'Noto Sans KR', sans-serif; font-weight: 800; font-size: 0.9rem;
-  min-height: 48px; min-width: 0;
-  border-radius: 40px; cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255,255,255,0.15);
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-@media (max-width: 380px) {
-  .ritual-btn { font-size: 0.82rem; padding: 10px 14px; white-space: normal; text-align: center; line-height: 1.3; }
+    background: #fff; color: #000; border: none; 
+    padding: 10px 24px; font-family: 'Noto Sans KR', sans-serif; font-weight: 800; font-size: 0.9rem;
+  min-height: 44px;
+    border-radius: 40px; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,255,255,0.15);
+    transition: all 0.2s ease;
 }
 .ritual-btn:disabled {
     background: rgba(255,255,255,0.1);
@@ -12127,62 +10850,42 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 /* Result Modal */
 .astral-result-layer {
-  position: absolute; inset: 0;
-  background: #0f172a; overflow-y: auto; z-index: 2000;
-  padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  animation: fadeIn 0.5s ease-out;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  box-sizing: border-box;
-}
-@media (min-width: 600px) {
-  .astral-result-layer { padding: 20px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+    position: absolute; inset: 0; 
+    background: #0f172a; overflow-y: auto; z-index: 2000;
+    padding: 20px; animation: fadeIn 0.5s ease-out;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
-.result-content {
-  max-width: 100%; margin: 0 auto; color: #fff;
-  padding-bottom: calc(50px + env(safe-area-inset-bottom, 0px));
-  padding-left: env(safe-area-inset-left, 0);
-  padding-right: env(safe-area-inset-right, 0);
-  box-sizing: border-box;
-}
+.result-content { max-width: 100%; margin: 0 auto; color: #fff; padding-bottom: 50px; }
 .back-btn {
-  background: none; border: none; color: rgba(255,255,255,0.65);
-  font-size: 0.95rem; font-weight: 600; margin-bottom: 16px; cursor: pointer;
-  display: flex; align-items: center; gap: 6px; padding: 8px 0;
+    background: none; border: none; color: rgba(255,255,255,0.6);
+    font-size: 0.9rem; margin-bottom: 20px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
 }
 .back-btn:hover { color: var(--gold); }
 
-/* Typography for Content — 계층 정리 */
-.res-header { text-align: center; margin-bottom: 32px; padding-top: 16px; }
-@media (max-width: 640px) {
-  .res-header { margin-bottom: 20px; padding-top: 10px; }
-  .res-header--compact { margin-bottom: 12px; }
-  .res-title--bright { font-size: 1.35rem; letter-spacing: 2px; }
-  .res-token-row { gap: 10px; margin-bottom: 8px; }
-  .res-token-animal { font-size: 2.25rem; }
-  .res-token-code { font-size: 0.75rem; padding: 3px 8px; }
-}
+/* Typography for Content */
+.res-header { text-align: center; margin-bottom: 40px; padding-top: 20px; }
 .res-icon { font-size: 4rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
-.res-title { font-family: 'Cinzel', serif; font-size: 1.9rem; color: var(--gold); margin-bottom: 4px; }
-.res-mbti { font-size: 0.95rem; color: rgba(255,255,255,0.45); letter-spacing: 1.5px; }
-.res-header--compact { margin-bottom: 18px; }
-.res-title--bright { font-size: 1.65rem; letter-spacing: 2.5px; color: #fff; text-shadow: 0 2px 10px rgba(255,215,0,0.5); font-weight: 700; }
-.res-mbti--badge { font-size: 0.82rem; margin-top: 8px; opacity: 0.88; letter-spacing: 1px; background: rgba(0,0,0,0.35); display: inline-block; padding: 6px 14px; border-radius: 20px; word-break: keep-all; }
-.res-and { opacity: 0.5; font-size: 0.75em; }
+.res-title { font-family: 'Cinzel', serif; font-size: 2rem; color: var(--gold); margin-bottom: 5px; }
+.res-mbti { font-size: 1rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
+.res-header--compact { margin-bottom: 20px; }
+.res-title--bright { font-size: 1.8rem; letter-spacing: 3px; color: #fff; text-shadow: 0 2px 10px rgba(255,215,0,0.5); }
+.res-mbti--badge { font-size: 0.85rem; margin-top: 8px; opacity: 0.8; letter-spacing: 1px; background: rgba(0,0,0,0.3); display: inline-block; padding: 5px 15px; border-radius: 20px; }
+.res-and { opacity: .5; }
 
-.res-token-row { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.res-token-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 15px; }
 .res-token-col { text-align: center; }
-.res-token-animal { font-size: 2.75rem; margin-bottom: 4px; line-height: 1; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
-.res-token-code { font-size: 0.8rem; font-weight: 700; color: var(--gold); border: 1px solid rgba(212,175,55,0.6); padding: 4px 10px; border-radius: 12px; }
-.res-token-vs { font-size: 1.4rem; opacity: 0.5; color: #FFD700; line-height: 1; }
+.res-token-animal { font-size: 2.8rem; margin-bottom: 5px; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
+.res-token-code { font-size: 0.8rem; font-weight: 700; color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 12px; }
+.res-token-vs { font-size: 1.5rem; opacity: 0.5; padding-bottom: 15px; color: #FFD700; }
 
-.res-section { margin-bottom: 28px; position: relative; padding-left: 18px; border-left: 2px solid var(--gold-dim); }
-.res-label { font-size: 0.8rem; color: var(--gold); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.2px; }
-.res-text { font-size: 0.98rem; line-height: 1.72; color: rgba(255,255,255,0.9); text-align: justify; word-break: break-word; overflow-wrap: break-word; }
-.res-label--center { text-align: center; color: rgba(255,215,0,0.85); font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: 700; }
-.res-text--keyword { text-align: center; font-weight: 800; font-family: 'Cinzel', serif; font-size: 1.35rem; color: #fff; line-height: 1.45; text-shadow: 0 0 12px rgba(255,255,255,0.25); word-break: keep-all; }
+.res-section { margin-bottom: 35px; position: relative; padding-left: 20px; border-left: 1px solid var(--gold-dim); }
+.res-label { font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.res-text { font-size: 1rem; line-height: 1.7; color: rgba(255,255,255,0.9); text-align: justify; }
+.res-label--center { text-align: center; color: rgba(255,215,0,0.8); font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 12px; font-weight: 700; }
+.res-text--keyword { text-align: center; font-weight: 900; font-family: 'Cinzel', serif; font-size: 1.5rem; color: #fff; line-height: 1.4; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
 .synergy-box { 
     background: linear-gradient(135deg, rgba(212,175,55,0.1), transparent);
@@ -12197,59 +10900,25 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     margin-top: 0;
     border-radius: 15px;
 }
-@media (max-width: 640px) {
-  .synergy-box--premium { padding: 14px 16px; margin-bottom: 16px; }
-  .res-text--keyword { font-size: 1.15rem; }
-  .result-content { padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)); }
-}
 
-/* 궁합 결과 그리드: 넓은 화면에서 2열로 세로 길이 감소 */
-.res-grid-stack {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  text-align: left;
-}
-@media (min-width: 600px) {
-  .res-grid-stack {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-  }
-}
-@media (min-width: 900px) {
-  .res-grid-stack { gap: 20px; max-width: 820px; margin: 0 auto; }
-}
+.res-grid-stack { display: grid; gap: 20px; text-align: left; }
 .res-section-card {
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 18px;
+  padding: 20px;
   border-radius: 12px;
   margin: 0;
   position: relative;
   overflow: hidden;
 }
-@media (max-width: 640px) {
-  .res-section-card { padding: 14px; }
-  .res-section-head { margin-bottom: 8px; font-size: 0.92rem; }
-  .res-section-body { font-size: 0.9rem; line-height: 1.68; }
-}
 .res-section-head {
-  font-size: 0.98rem;
-  font-weight: 800;
-  margin-bottom: 10px;
+  font-weight: 900;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  letter-spacing: -0.02em;
 }
-.res-section-icon { font-size: 1.15rem; flex-shrink: 0; }
-.res-section-body {
-  font-size: 0.93rem;
-  opacity: 0.96;
-  line-height: 1.72;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-.res-section-body b { font-weight: 700; }
+.res-section-icon { font-size: 1.2rem; }
+.res-section-body { font-size: 0.95rem; opacity: 0.95; line-height: 1.7; }
 
 .res-section-card--stats { background: rgba(0,0,0,0.2); }
 .res-section-card--stats .res-section-head { color: #a0f0ff; }
@@ -12285,16 +10954,11 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   pointer-events: none;
 }
 
-.synergy-stats { display: flex; flex-direction: column; gap: 6px; }
-.synergy-stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 10px; }
+.synergy-stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
 .synergy-stat-row:last-child { margin-bottom: 0; }
-.synergy-stat-label { color: #b0c4de; font-size: 0.82rem; flex-shrink: 1; min-width: 0; word-break: keep-all; }
-.synergy-stat-value { color: #FFD700; font-size: 0.9rem; flex-shrink: 0; }
-.synergy-stat-value--match { color: #00e676; font-weight: 700; font-family: monospace; }
-@media (min-width: 400px) {
-  .res-section-card--stats .synergy-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
-  .res-section-card--stats .synergy-stat-row { margin-bottom: 0; }
-}
+.synergy-stat-label { color: #b0c4de; font-size: 0.85rem; }
+.synergy-stat-value { color: #FFD700; font-size: 0.9rem; }
+.synergy-stat-value--match { color: #00ff41; font-weight: 700; font-family: monospace; }
 
 .ritual-btn--reset {
   width: 100%;
@@ -12420,27 +11084,23 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 /* ── Individual MBTI Detail Sheet ── */
 .mbti-detail-sheet {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, #0a0a1a 0%, #100825 100%);
-  z-index: 2100; overflow-y: auto;
-  padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px));
-  animation: slideUpSheet 0.4s cubic-bezier(0.22,1,0.36,1);
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  box-sizing: border-box;
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, #0a0a1a 0%, #100825 100%);
+    z-index: 2100; overflow-y: auto;
+    padding: 0 0 40px;
+    animation: slideUpSheet 0.4s cubic-bezier(0.22,1,0.36,1);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: auto;
 }
 
 @keyframes slideUpSheet {
-  from { transform: translateY(30px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 
 .mbti-sheet-hero {
-  position: relative; padding: 50px 20px 24px;
-  text-align: center; overflow: hidden;
-}
-@media (max-width: 480px) {
-  .mbti-sheet-hero { padding: 44px 16px 20px; }
+    position: relative; padding: 60px 24px 30px;
+    text-align: center; overflow: hidden;
 }
 
 .mbti-sheet-hero--aurora {
@@ -12448,91 +11108,78 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 .mbti-sheet-hero-bg {
-  position: absolute; inset: 0;
-  opacity: 0.12;
-  background-size: cover; background-position: center;
+    position: absolute; inset: 0;
+    opacity: 0.12;
+    background-size: cover; background-position: center;
 }
 
 .mbti-sheet-close {
-  position: absolute; top: 16px; left: 16px;
-  background: rgba(255,255,255,0.08); border: none;
-  color: #fff; width: 44px; height: 44px; min-width: 44px; min-height: 44px;
-  border-radius: 50%; font-size: 1.1rem; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-@media (max-width: 480px) {
-  .mbti-sheet-close { top: max(12px, env(safe-area-inset-top)); left: 16px; }
+    position: absolute; top: 20px; left: 20px;
+    background: rgba(255,255,255,0.08); border: none; 
+    color: #fff; width: 44px; height: 44px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
 }
 
-.mbti-sheet-icon {
-  font-size: 4.5rem; line-height: 1; margin-bottom: 10px; display: block;
-  filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+.mbti-sheet-icon { font-size: 5rem; line-height: 1; margin-bottom: 12px; display: block;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
 }
-@media (max-width: 480px) { .mbti-sheet-icon { font-size: 4rem; } }
 
 .mbti-sheet-code {
-  display: inline-block; background: rgba(212,175,55,0.15);
-  border: 1px solid rgba(212,175,55,0.4); color: var(--gold);
-  font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 700;
-  letter-spacing: 2.5px; padding: 5px 14px; border-radius: 20px; margin-bottom: 8px;
+    display: inline-block; background: rgba(212,175,55,0.15);
+    border: 1px solid rgba(212,175,55,0.4); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700;
+    letter-spacing: 3px; padding: 4px 14px; border-radius: 20px;
+    margin-bottom: 10px;
 }
 
 .mbti-sheet-title {
-  font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -0.02em;
+    font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 6px;
 }
-@media (max-width: 480px) { .mbti-sheet-title { font-size: 1.2rem; } }
 
 .mbti-sheet-desc {
-  font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.4;
+    font-size: 0.85rem; color: rgba(255,255,255,0.5);
 }
 
 .mbti-sheet-tabs {
-  display: flex; border-bottom: 1px solid rgba(255,255,255,0.08);
-  padding: 0 16px; gap: 0;
+    display: flex; border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 0 24px; gap: 0;
 }
-@media (max-width: 480px) { .mbti-sheet-tabs { padding: 0 12px; } }
 
 .mbti-sheet-tab {
-  flex: 1; min-height: 48px; padding: 12px 6px; text-align: center;
-  font-size: 0.8rem; color: rgba(255,255,255,0.45); cursor: pointer;
-  border-bottom: 2px solid transparent; transition: all 0.2s;
-  font-weight: 600; letter-spacing: 0.3px;
+  flex: 1; min-height: 44px; padding: 10px 0; text-align: center;
+    font-size: 0.8rem; color: rgba(255,255,255,0.4); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+    font-weight: 600; letter-spacing: 0.5px;
   display: flex; align-items: center; justify-content: center;
-  touch-action: manipulation;
+  touch-action: pan-y;
 }
 
 .mbti-sheet-tab.active {
-  color: var(--gold); border-bottom-color: var(--gold);
+    color: var(--gold); border-bottom-color: var(--gold);
 }
 
 .mbti-sheet-panel {
-  display: none; padding: 20px 20px 24px;
-  font-size: 0.93rem; line-height: 1.78; color: rgba(255,255,255,0.88);
-  word-break: break-word; overflow-wrap: break-word; letter-spacing: -0.02em;
-}
-@media (max-width: 480px) {
-  .mbti-sheet-panel { padding: 16px 16px 20px; font-size: 0.9rem; line-height: 1.75; }
+    display: none; padding: 24px;
+    font-size: 0.95rem; line-height: 1.8; color: rgba(255,255,255,0.85);
+    word-break: keep-all; letter-spacing: -0.2px;
 }
 
 .mbti-sheet-panel.active { display: block; animation: fadeIn 0.3s; }
 
 .mbti-select-btn {
-  display: block; margin: 16px 20px 0;
-  background: linear-gradient(90deg, #D4AF37, #FDB931);
-  color: #000; border: none; padding: 14px 16px; font-weight: 800;
-  font-size: 0.98rem; border-radius: 14px; cursor: pointer;
-  min-height: 48px; width: calc(100% - 40px); max-width: 360px;
-  margin-left: auto; margin-right: auto;
-  box-shadow: 0 4px 20px rgba(212,175,55,0.3); transition: transform 0.2s;
-  box-sizing: border-box;
-}
-@media (max-width: 480px) {
-  .mbti-select-btn { margin: 14px 16px 0; width: calc(100% - 32px); min-height: 48px; }
+    display: block; margin: 20px 24px 0;
+    background: linear-gradient(90deg, #D4AF37, #FDB931);
+    color: #000; border: none; padding: 14px; font-weight: 800;
+    font-size: 1rem; border-radius: 14px; cursor: pointer;
+  min-height: 44px;
+    width: calc(100% - 48px); box-shadow: 0 4px 20px rgba(212,175,55,0.3);
+    transition: transform 0.2s;
 }
 .mbti-select-btn:hover { transform: scale(1.02); }
 .mbti-select-btn.already {
-  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45);
-  box-shadow: none; cursor: default;
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);
+    box-shadow: none; cursor: default;
 }
 
 @keyframes pulseMirror { 0% { box-shadow: 0 0 30px rgba(212,175,55,0.3); } 100% { box-shadow: 0 0 60px rgba(212,175,55,0.8); } }
@@ -12847,96 +11494,24 @@ select.inp { min-height: 48px; cursor: pointer; }
     font-size: 0.74rem;
   }
 
-  .feature-card-grid { gap: 24px; }
+  .feature-card-grid { gap: 150px; }
   .feature-card__title { font-size: 0.9rem; }
   .feature-card__desc { font-size: 0.75rem; }
 }
 
 @media (max-width: 768px) {
   .feature-card-grid {
-    gap: 24px;
-    margin-top: 16px;
-    margin-bottom: 36px;
+    gap: 150px;
+    margin-top: 120px;
+    margin-bottom: 120px;
   }
   .feature-card {
     margin-bottom: 0;
   }
   .post-saju-services-intro {
-    margin-top: 16px;
-    margin-bottom: 16px;
+    margin-top: 20px;
+    margin-bottom: 120px;
     padding: 16px;
-  }
-}
-
-
-/* 2026-03-16 mobile layout safety layer */
-@media (max-width: 768px) {
-  .wrap,
-  #inputPage,
-  #resultPage {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  .wrap {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .card,
-  .feature-card,
-  .fg-group,
-  .tarot-collection,
-  .feat-collection,
-  .modal-box,
-  .modal-content-inner-700,
-  .modal-content-inner-wide {
-    width: 100%;
-    max-width: 100% !important;
-    min-width: 0;
-  }
-
-  .feature-card-grid,
-  .fg-group__cards,
-  .fg-group__cards--2col,
-  .fg-group__cards--tile,
-  .fg-group__cards--tile-2,
-  .form-radio-row,
-  .auth-quick-links,
-  .privacy-btns,
-  .fortune-tab-wrap,
-  .mystic-tab-nav {
-    flex-wrap: wrap;
-  }
-
-  .lang-dropdown {
-    max-width: calc(100vw - 24px);
-  }
-
-  img,
-  video,
-  canvas,
-  svg {
-    max-width: 100%;
-    height: auto;
-  }
-
-  button,
-  .btn-main,
-  .btn-sub,
-  .feature-card__cta,
-  .feature-card__launch {
-    max-width: 100%;
-    white-space: normal;
-    word-break: keep-all;
-  }
-
-  table {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -13187,99 +11762,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 .celeb-name-area,#szCelebBtns,.dw-grid {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-}
-
-/* Animal Totem tarot cards */
-.animal-totem-card {
-  position: relative;
-  width: 100%;
-  height: 118px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  perspective: 1200px;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-.animal-totem-card:hover { transform: translateY(-3px); }
-.animal-totem-card.is-muted { opacity: 0.45; }
-.animal-totem-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: block;
-  transform-style: preserve-3d;
-  transition: transform 0.72s ease;
-}
-.animal-totem-card.is-flipped .animal-totem-card-inner { transform: rotateY(180deg); }
-.animal-totem-face {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.3);
-  backface-visibility: hidden;
-}
-.animal-totem-face--back {
-  background: linear-gradient(145deg, #37245f, #1f2f65);
-  color: #fde68a;
-  font-size: 1.25rem;
-  text-shadow: 0 0 10px rgba(250,204,21,0.55);
-}
-.animal-totem-face--front {
-  transform: rotateY(180deg);
-  background: linear-gradient(155deg, rgba(255,240,220,0.95), rgba(232,220,255,0.92));
-  color: #3f1d64;
-}
-.animal-totem-face--front b { font-size: 1.35rem; line-height: 1; }
-.animal-totem-face--front small {
-  margin-top: 5px;
-  font-size: 0.67rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-/* 2026-03 mobile and image-fit tuning for tarot/totem feature cards */
-.feature-card__img-wrap {
-  aspect-ratio: 4 / 3;
-  min-height: 100px;
-}
-.feature-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-.feature-card--tarot-love .feature-card__img { object-position: 50% 42%; }
-.feature-card--tarot-healing .feature-card__img { object-position: 50% 44%; }
-.feature-card--tarot-self-esteem .feature-card__img { object-position: 50% 38%; }
-.feature-card--tarot-reunion .feature-card__img { object-position: 50% 42%; }
-.feature-card--tarot-year .feature-card__img { object-position: 50% 44%; }
-.feature-card--animal-totem .feature-card__img { object-position: 50% 40%; }
-
-@media (max-width: 768px) {
-  .feature-card-grid {
-    gap: 24px;
-    margin-top: 16px;
-    margin-bottom: 36px;
-  }
-  .feature-card {
-    border-radius: 16px;
-  }
-  .feature-card__body {
-    padding: 14px 14px 16px;
-  }
-  .feature-card__title {
-    font-size: 1rem;
-  }
-  .feature-card__desc {
-    font-size: 0.82rem;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-  }
 }
 
 

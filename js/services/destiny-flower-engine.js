@@ -467,18 +467,17 @@ function pickAstroFlowerIdsByElement(element, sunSign) {
 function buildAstroNarrative(chart, flower, sunElement) {
   const sunKo = chart.sunSign || '태양궁 미확인';
   const sunElementKo = ASTRO_ELEMENT_LABEL_KO[sunElement] || '별';
-  const risingKo = chart.risingSign || '';
-  const moonKo = chart.moonSign || '';
-  const extra = [risingKo ? ('상승궁 ' + risingKo) : '', moonKo ? ('달궁 ' + moonKo) : ''].filter(Boolean).join(' · ');
+  const risingKo = chart.risingSign || '미확인';
+  const moonKo = chart.moonSign || '미확인';
+  const risingElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.risingSign)] || sunElementKo;
+  const moonElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.moonSign)] || sunElementKo;
+  const flowerSymbolism = String(flower.symbolism || '균형').split(',')[0].trim();
+  const keyword = (flower.keywords && flower.keywords[0]) || flowerSymbolism;
   return (
-    '당신의 태양궁은 ' +
-    sunKo +
-    '이고, ' +
-    flower.name +
-    '처럼 ' +
-    sunElementKo +
-    ' 기운이 또렷한 타입이에요.' +
-    (extra ? (' (' + extra + ')') : '')
+    '태양궁 ' + sunKo + '에서 올라온 ' + sunElementKo + ' 원소의 불씨가 꽃 선택의 중심축을 세웁니다. ' +
+    '상승궁 ' + risingKo + '(' + risingElementKo + ')은 꽃잎의 결처럼 바깥으로 드러나는 톤을 빚고, 달궁 ' + moonKo + '(' + moonElementKo + ')' +
+    '은 밤이슬 같은 감정의 습도를 맞춰 ' + flower.name + '의 "' + flowerSymbolism + '" 상징을 가장 맑게 피워냅니다. ' +
+    '그래서 지금 차트에서는 "' + keyword + '" 키워드가 이 운명꽃을 부르는 별빛 신호가 됩니다.'
   );
 }
 
@@ -494,7 +493,8 @@ export function getAstrologyFlower(chartData = {}) {
   const moonGlow = ASTRO_MOON_GLOW[moonElement] || ASTRO_MOON_GLOW.Air;
 
   const astroVerdict =
-    '점성술 기준으로 지금 당신과 가장 잘 맞는 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
+    '점성술의 별자리 결로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
+    '태양궁·상승궁·달궁 3축에서 흐르는 원소의 파동을 겹쳐보면, 이 꽃의 상징이 지금의 당신과 가장 정밀하게 공명합니다.';
   const narrative = buildAstroNarrative(chart, primaryFlower, sunElement);
 
   return {
@@ -647,39 +647,67 @@ const JAMIDUSU_STAR_RULES = Object.freeze([
     keys: ['자미', 'zi wei', 'ziwei'],
     flowerId: 'peony_ziwei',
     title: '제왕의 모란',
-    keyword: '제왕의 기품'
+    keyword: '제왕의 기품',
+    personality: '중심을 세우고 주변의 질서를 정돈하는 리더형'
   },
   {
-    keys: ['칠살', 'seven killings', 'qisha', '파군', 'the breaker', 'pogun'],
+    keys: ['칠살', 'seven killings', 'qisha'],
     flowerId: 'thorny_rose',
     title: '장군의 붉은 장미',
-    keyword: '돌파의 결단'
+    keyword: '돌파의 결단',
+    personality: '압박 속에서도 전선을 밀어붙이는 결단형'
   },
   {
-    keys: ['천기', 'tian ji', 'tianji'],
+    keys: ['파군', 'the breaker', 'pogun', '렴정', 'lian zhen', 'lianzhen'],
+    flowerId: 'thorny_rose',
+    title: '개척자의 붉은 장미',
+    keyword: '판을 바꾸는 추진력',
+    personality: '기존 틀을 깨고 새 질서를 여는 혁신형'
+  },
+  {
+    keys: ['천기', 'tian ji', 'tianji', '천동', 'tian tong', 'tiantong', '천량', 'tian liang', 'tianliang'],
     flowerId: 'delicate_willow',
     title: '책사의 버드나무꽃',
-    keyword: '부드러운 지략'
+    keyword: '부드러운 지략',
+    personality: '상황을 유연하게 읽고 최적 해법을 찾는 전략형'
   },
   {
-    keys: ['태양', 'tai yang', 'taiyang'],
+    keys: ['태양', 'tai yang', 'taiyang', '무곡', 'wu qu', 'wuqu', '화성', 'huo xing', 'huoxing', '영성', 'ling xing', 'lingxing'],
     flowerId: 'sunflower_ziwei',
     title: '태양의 해바라기',
-    keyword: '빛의 확장'
+    keyword: '빛의 확장',
+    personality: '목표를 향해 에너지를 집중해 성과를 끌어내는 실행형'
   },
   {
-    keys: ['태음', 'tai yin', 'taiyin'],
+    keys: ['태음', 'tai yin', 'taiyin', '거문', 'ju men', 'jumen', '천상', 'tian xiang', 'tianxiang', '천부', 'tian fu', 'tianfu'],
     flowerId: 'night_cereus',
     title: '달빛의 월하미인',
-    keyword: '야간 개화의 신비'
+    keyword: '야간 개화의 신비',
+    personality: '깊은 내면 통찰로 보이지 않는 흐름을 읽는 성찰형'
   },
   {
-    keys: ['탐랑', 'tan lang', 'tanlang'],
+    keys: ['탐랑', 'tan lang', 'tanlang', '문창', 'wen chang', 'wenchang', '문곡', 'wen qu', 'wenqu', '좌보', 'zuo fu', 'zuofu', '우필', 'you bi', 'youbi'],
     flowerId: 'orchid_tanlang',
     title: '도화의 난초',
-    keyword: '관능적 매혹'
+    keyword: '관능적 매혹',
+    personality: '관계와 표현의 미감을 살려 사람을 이끄는 매력형'
   }
 ]);
+
+const JAMIDUSU_PALACE_FLOWER_HINTS = Object.freeze({
+  명궁: { flowerId: 'peony_ziwei', trait: '자아의 중심성과 존재감' },
+  형제궁: { flowerId: 'delicate_willow', trait: '협력과 조율 감각' },
+  부처궁: { flowerId: 'orchid_tanlang', trait: '관계의 미감과 친밀한 소통' },
+  자녀궁: { flowerId: 'sunflower_ziwei', trait: '창조성과 표현 욕구' },
+  재백궁: { flowerId: 'peony_ziwei', trait: '자원 운용과 풍요의 확장력' },
+  질액궁: { flowerId: 'night_cereus', trait: '회복력과 내면 균형 감각' },
+  천이궁: { flowerId: 'delicate_willow', trait: '환경 적응력과 현장 판단력' },
+  노복궁: { flowerId: 'orchid_tanlang', trait: '네트워크 운영과 팀 케어' },
+  관록궁: { flowerId: 'sunflower_ziwei', trait: '사회적 추진력과 성취 지향성' },
+  전택궁: { flowerId: 'peony_ziwei', trait: '기반 구축과 안정적 축적력' },
+  복덕궁: { flowerId: 'night_cereus', trait: '정서적 충전과 정신적 통찰' },
+  부모궁: { flowerId: 'night_cereus', trait: '보호 본능과 전통의식' }
+});
 
 const JAMIDUSU_BRIGHTNESS_INTENSITY = Object.freeze({
   miao: { glow: 1, saturation: 1, mist: 0.08, label: '묘(廟)' },
@@ -728,12 +756,20 @@ function parseJamidusuPrimaryStars(starData) {
   return list.length ? list.slice(0, 2) : ['자미'];
 }
 
-function findJamidusuRule(starName) {
+function findJamidusuRule(starName, palace = '') {
   const normalized = String(starName || '').trim().toLowerCase();
-  if (!normalized) return JAMIDUSU_STAR_RULES[0];
-  return JAMIDUSU_STAR_RULES.find((rule) =>
+  const directRule = normalized
+    ? JAMIDUSU_STAR_RULES.find((rule) =>
     rule.keys.some((key) => normalized.includes(String(key).toLowerCase()))
-  ) || JAMIDUSU_STAR_RULES[0];
+    )
+    : null;
+  if (directRule) return directRule;
+
+  const palaceHint = JAMIDUSU_PALACE_FLOWER_HINTS[String(palace || '').trim()];
+  if (palaceHint) {
+    return JAMIDUSU_STAR_RULES.find((rule) => rule.flowerId === palaceHint.flowerId) || JAMIDUSU_STAR_RULES[0];
+  }
+  return JAMIDUSU_STAR_RULES[0];
 }
 
 function getJamidusuFlowerById(id) {
@@ -759,11 +795,12 @@ function blendJamidusuPalette(primaryHex, secondaryHex, ratio = 0.5) {
 
 export function getJamidusuFlower(starData = {}) {
   const stars = parseJamidusuPrimaryStars(starData);
-  const primaryRule = findJamidusuRule(stars[0]);
-  const secondaryRule = stars[1] ? findJamidusuRule(stars[1]) : null;
+  const palace = starData.palace || starData.mainPalace || starData.ming_gong || '명궁';
+  const palaceHint = JAMIDUSU_PALACE_FLOWER_HINTS[String(palace).trim()] || null;
+  const primaryRule = findJamidusuRule(stars[0], palace);
+  const secondaryRule = stars[1] ? findJamidusuRule(stars[1], palace) : null;
   const primaryFlower = getJamidusuFlowerById(primaryRule.flowerId);
   const secondaryFlower = secondaryRule ? getJamidusuFlowerById(secondaryRule.flowerId) : null;
-  const palace = starData.palace || starData.mainPalace || starData.ming_gong || '명궁';
   const brightnessCode = normalizeJamidusuBrightness(
     starData.brightness || starData.starBrightness || starData.main_star_brightness || starData.star_brightness
   );
@@ -777,10 +814,23 @@ export function getJamidusuFlower(starData = {}) {
     : primaryFlower.secondary_color;
 
   const jamidusuVerdict =
-    '자미두수로 볼 때 당신의 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
+    '자미두수에서 오늘 가장 강하게 떠오른 별로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
+    palace + '의 성격 "' + (palaceHint ? palaceHint.trait : '핵심 운세 흐름') + '" 위에서 ' + stars.join('·') +
+    '의 별기질 "' + primaryRule.keyword + '"이(가) 별 밝기 ' + intensity.label + '와 겹쳐 가장 선명하게 살아납니다.';
   const narrative = secondaryRule
-    ? ('명궁 주성 ' + stars.join('·') + ' 조합으로 ' + primaryRule.title + '을 중심으로 하되, ' + secondaryRule.keyword + ' 파티클을 블렌딩했습니다.')
-    : ('명궁 주성 ' + stars[0] + '의 성질을 따라 ' + primaryRule.title + '으로 개화합니다.');
+    ? (
+      palace + '은(는) "' + (palaceHint ? palaceHint.trait : '핵심 에너지의 발현') + '"을 관장하는 자리입니다. ' +
+      '여기에서 ' + stars.join('·') + ' 조합이 떠올라 ' + primaryRule.title + '을 중심꽃으로 세웠고, ' +
+      '주성의 성격인 "' + primaryRule.personality + '"에 보조 주성의 "' + secondaryRule.keyword + '" 결이 더해졌습니다. ' +
+      '별 밝기 ' + intensity.label + '의 광휘가 이를 안정적으로 받쳐주기 때문에, ' +
+      primaryFlower.name + '이 지금 운세 구조의 결을 가장 또렷하게 꽃으로 번역합니다.'
+    )
+    : (
+      palace + '은(는) "' + (palaceHint ? palaceHint.trait : '핵심 에너지의 발현') + '"을 다루는 자리이며, ' +
+      '오늘의 강한 별 ' + stars[0] + '은(는) "' + primaryRule.keyword + '" 기질과 "' + primaryRule.personality + '" 성격을 꽃심처럼 세웁니다. ' +
+      '별 밝기 ' + intensity.label + '가 그 기질의 빛을 흔들림 없이 지탱합니다. ' +
+      '그 결과 이번 흐름에서는 ' + primaryFlower.name + '이 당신의 중심 에너지와 가장 깊은 공명을 이룹니다.'
+    );
 
   return {
     source: 'jamidusu',
@@ -822,26 +872,81 @@ export function getJamidusuFlower(starData = {}) {
     },
     flower_data: {
       sticker_label: '자미두수로 보는 꽃',
-      day_master_badge: '명궁 ' + stars.join('·'),
+      day_master_badge: '오늘의 강한 별 ' + stars.join('·'),
       season_label: '별 밝기 ' + intensity.label,
       environment_label: palace,
-      scenario_title: '명궁 주성 개화 시나리오',
+      scenario_title: '오늘의 강한 별 개화 시나리오',
       scenario_reason: narrative,
       motion_preset: (stars.some((s) => /천기|태음/i.test(String(s))) ? 'water-flow' : 'wood-grow'),
       focus_signal: stars.join(' · '),
       ritual_tip: '오늘의 핵심 키워드: ' + primaryRule.keyword,
-      relationship_theme: '명궁 주성의 성향을 관계의 기준으로 삼으면 갈등이 줄고 합이 선명해집니다.',
+      relationship_theme: '오늘의 강한 별 성향을 관계의 기준으로 삼으면 갈등이 줄고 합이 선명해집니다.',
       career_theme: '주성의 강점을 전면에 배치할수록 실행력과 포지셔닝이 안정됩니다.',
       growth_cycle: '별 정렬 → 기운 응집 → 씨앗 점화 → 개화',
-      fallback_note: secondaryRule ? ('복합 주성 보정: ' + stars[0] + ' 중심 + ' + stars[1] + ' 향기 블렌드') : ''
+      fallback_note: secondaryRule
+        ? ('복합 주성 보정: ' + stars[0] + ' 중심 + ' + stars[1] + ' 향기 블렌드')
+        : (palaceHint ? ('궁 특성 보정: ' + palace + ' · ' + palaceHint.trait) : '')
     }
   };
+}
+
+function chooseJamidusuStrongStar(zw) {
+  const scoreMap = Object.freeze({ miao: 7, wang: 6, li: 5, de: 4, ping: 3, han: 2, xian: 1 });
+  const cleanStarName = (raw) =>
+    String(raw || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\(차성\)/g, ' ')
+      .replace(/화록|화권|화과|화기/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')[0];
+  const getEntryName = (entry) => cleanStarName(entry && (entry.name || entry.star || entry.starName || entry.title || entry.label));
+
+  const palaces = Array.isArray(zw && zw.palacesByIndex) ? zw.palacesByIndex : [];
+  const starsByIdx = Array.isArray(zw && zw.stars) ? zw.stars : [];
+  const palaceStarData = Array.isArray(zw && zw.palaceStarData) ? zw.palaceStarData : [];
+
+  let best = { score: -1, star: '', palace: '', brightness: '' };
+
+  for (let idx = 0; idx < palaces.length; idx++) {
+    const palaceName = String(palaces[idx] || '').trim();
+    const mainListRaw = (starsByIdx[idx] && Array.isArray(starsByIdx[idx].main)) ? starsByIdx[idx].main : [];
+    const mainList = mainListRaw.map(cleanStarName).filter(Boolean);
+    const mainSet = new Set(mainList);
+
+    const entries = (palaceStarData[idx] && Array.isArray(palaceStarData[idx].stars)) ? palaceStarData[idx].stars : [];
+    if (entries.length) {
+      for (let j = 0; j < entries.length; j++) {
+        const entry = entries[j];
+        const starName = getEntryName(entry);
+        if (!starName) continue;
+        const strengthRaw = entry && (entry.strength || entry.brightness || entry.level || entry.rank || '');
+        const code = normalizeJamidusuBrightness(strengthRaw);
+        let score = scoreMap[code] || scoreMap.ping;
+        if (mainSet.has(starName)) score += 0.35;
+        if (score > best.score) {
+          best = { score, star: starName, palace: palaceName, brightness: String(strengthRaw || '') };
+        }
+      }
+      continue;
+    }
+
+    if (mainList.length) {
+      const fallbackStar = mainList[0];
+      const score = scoreMap.ping + 0.1;
+      if (score > best.score) {
+        best = { score, star: fallbackStar, palace: palaceName, brightness: '' };
+      }
+    }
+  }
+
+  return best.star ? { star: best.star, palace: best.palace || '', brightness: best.brightness || '' } : null;
 }
 
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
 
-  // --- 자미두수 명궁 주성 최신화: saju-engine에서 직접 산출 (calcZiweiPalaces는 양력 기준) ---
+  // --- 자미두수 "오늘의 강한 별" 최신화: saju-engine에서 직접 산출 (calcZiweiPalaces는 양력 기준) ---
   try {
     const birth = (profile.identity && profile.identity.birth) || profile.birth || profile.domains?.birth || userData.birth || {};
     let year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
@@ -860,21 +965,26 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
     if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
       const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
       if (zw && zw.stars && zw.palacesByIndex) {
-        const mingIdx = zw.palacesByIndex.indexOf('명궁');
-        let mainStar = '', brightness = '';
-        if (mingIdx >= 0 && zw.stars[mingIdx]) {
-          const mainList = zw.stars[mingIdx].main || [];
-          mainStar = mainList[0] || '';
-        }
-        if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-          brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
+        const picked = chooseJamidusuStrongStar(zw);
+        let mainStar = picked && picked.star ? picked.star : '';
+        let palace = picked && picked.palace ? picked.palace : '';
+        let brightness = picked && picked.brightness ? picked.brightness : '';
+
+        if (!mainStar) {
+          const mingIdx = zw.palacesByIndex.indexOf('명궁');
+          if (mingIdx >= 0 && zw.stars && zw.stars[mingIdx]) {
+            const mainList = zw.stars[mingIdx].main || [];
+            mainStar = mainList[0] || '';
+            palace = '명궁';
+          }
+          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
+            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
+          }
         }
         if (profile.domains && profile.domains.ziwei) {
-          // NOTE: 운명의 꽃(자미두수)은 "명궁(main)"만 반영하도록 고정합니다.
-          // aux/기타 궁 데이터가 섞이면 UI가 열릴 때마다 결과가 변동하는 문제가 발생할 수 있습니다.
           profile.domains.ziwei.main_star = mainStar;
           profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
-          profile.domains.ziwei.palace = '명궁';
+          profile.domains.ziwei.palace = palace || profile.domains.ziwei.palace || '명궁';
           if (brightness) profile.domains.ziwei.brightness = brightness;
         }
       }
@@ -900,8 +1010,8 @@ export function matchJamidusuFlower(userData = {}, options = {}) {
         : ''
     },
     algorithm: {
-      version: '1.0.0-jamidusu-flower',
-      note: '명궁 주성 + 밝기(묘왕평함) 기반 자미두수 꽃 매칭 엔진',
+      version: '1.1.0-jamidusu-flower',
+      note: '오늘의 강한 별 + 궁 성격 + 밝기(묘왕이득평한함) 기반 자미두수 꽃 매칭 엔진',
       source: options.source || 'jamidusu'
     }
   };
@@ -1207,7 +1317,9 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const constellation = buildSukuyoConstellation(idx);
   const guardianParticle = SUKUYO_GUARDIAN_PARTICLE[mansion.guardian] || 'lunar_dust';
   const narrativeCopy =
-    '달이 차오르는 밤, ' + mansion.guardian + '의 영험함을 품은 ' + mansion.name + '의 기운이 당신을 한 송이 ' + flower.name + '으로 피워냈습니다.';
+    mansion.name + '(' + mansion.group + ')의 인연 결, 달 위상 ' + moonStyle.label + '의 조수, 수호동물 ' + mansion.guardian +
+    '의 보호 문양이 한밤의 정원에서 맞물리며 "' + flower.symbolism + '" 성향을 짙게 피워냅니다. ' +
+    '이 세 갈래 달빛 신호를 겹쳐 읽으면 지금의 당신에게 가장 정확한 운명꽃은 ' + flower.name + '입니다.';
 
   return {
     source: 'sukuyo',
@@ -1221,7 +1333,9 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
       constellation_points: constellation
     },
     flower,
-    sukuyo_verdict: '숙요점으로 볼 때 당신의 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ') 입니다.',
+    sukuyo_verdict:
+      '숙요점의 달빛 결로 읽은 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ')입니다. ' +
+      mansion.name + '·' + moonStyle.label + '·' + mansion.guardian + '의 조합이 지금 인연·감정·행동의 리듬과 가장 섬세하게 맞물립니다.',
     narrative: narrativeCopy,
     visual_intensity: {
       glow: moonStyle.glow,

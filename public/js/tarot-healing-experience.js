@@ -1,4 +1,29 @@
-export * from "../public/js/tarot-healing-experience.js";
+/**
+ * 따뜻한 태양 행복 타로 — 4-Card Healing Rising Spread
+ * API: POST /api/tarot/draw (spreadType: healing_rising_four_card)
+ *      POST /api/tarot/reading (category: healing, spreadType: healing_rising_four_card, cards)
+ */
+(function () {
+  "use strict";
+
+  var GUIDE_LABELS = [
+    "첫 번째 카드: 상황의 숨은 진실을 마주해 보세요.",
+    "두 번째 카드: 내 감정을 있는 그대로 안아 주세요.",
+    "세 번째 카드: 이 경험의 배움과 빛을 확인해 보세요.",
+    "네 번째 카드: 앞으로의 작은 실천을 찾아보세요.",
+  ];
+
+  var state = {
+    cards: [],
+    revealedCount: 0,
+    reading: null,
+  };
+
+  var TAROT_API_TIMEOUT_MS = 12000;
+
+  function byId(id) {
+    return document.getElementById(id);
+  }
 
   function getHealingPanel() {
     return document.querySelector("#tarotHealingOverlay .tarot-healing-panel");

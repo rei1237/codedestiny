@@ -1,5 +1,3 @@
-export * from "../public/js/tarot-healing-experience.js";
-
   function getHealingPanel() {
     return document.querySelector("#tarotHealingOverlay .tarot-healing-panel");
   }

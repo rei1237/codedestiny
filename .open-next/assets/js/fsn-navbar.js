@@ -9,6 +9,7 @@
   var progressEl = null;
   var decoEls    = [];
   var secObs     = null;
+  var rafId      = null;
   var isNeo      = false;
 
   /* ─ 모드 동기화 ─ */
@@ -63,32 +64,21 @@
     getSections().forEach(function (el) { secObs.observe(el); });
   }
 
-  /* ─ 스크롤 진행률 리본 (스크롤 이벤트 기반, RAF 무한루프 제거로 스크롤 반응 개선) ─ */
-  var progressTicking = false;
-  function updateProgress () {
-    if (!progressEl) return;
-    var st  = window.pageYOffset || document.documentElement.scrollTop;
-    var dh  = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    var pct = dh > 0 ? Math.min(100, (st / dh) * 100) : 0;
-    progressEl.style.width = pct + '%';
-  }
-  function requestProgressUpdate () {
-    if (progressTicking) return;
-    progressTicking = true;
-    requestAnimationFrame(function () {
-      progressTicking = false;
-      updateProgress();
-    });
-  }
+  /* ─ 스크롤 진행률 리본 ─ */
   function startProgress () {
-    updateProgress();
-    window.addEventListener('scroll', requestProgressUpdate, { passive: true });
-    window.addEventListener('resize', requestProgressUpdate, { passive: true });
+    if (rafId) cancelAnimationFrame(rafId);
+    function tick () {
+      var st  = window.pageYOffset || document.documentElement.scrollTop;
+      var dh  = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var pct = dh > 0 ? Math.min(100, (st / dh) * 100) : 0;
+      if (progressEl) progressEl.style.width = pct + '%';
+      rafId = requestAnimationFrame(tick);
+    }
+    tick();
   }
 
   function stopProgress () {
-    window.removeEventListener('scroll', requestProgressUpdate);
-    window.removeEventListener('resize', requestProgressUpdate);
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (progressEl) progressEl.style.width = '0%';
   }
 

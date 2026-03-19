@@ -1,4 +1,4 @@
-/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
 /* ─── 전역 버튼 터치 반응성 ─── */
@@ -1639,18 +1639,10 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
-/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
-.lang-toggle-wrap.lang-wrap--hidden {
-  visibility: hidden;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
-}
-
 /* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
-#google_translate_element { display: block !important; }
+#google_translate_element { display: none !important; }
 body { top: 0px !important; }
 
 /* ── 글리치 전환 오버레이 ── */
@@ -2618,24 +2610,24 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .mystic-summon-btn {
     display: block;
-    margin: 32px auto;
-    padding: 1.4rem 3.5rem;
-    font-size: 1.35rem;
+    margin: 40px auto;
+    padding: 1.2rem 3rem;
+    font-size: 1.3rem;
     font-weight: 800;
     color: #fff;
     text-align: center;
     background: linear-gradient(135deg, #2c3e50, #000000, #1a1a2e);
     background-size: 200% 200%;
     border: 1px solid rgba(212, 175, 55, 0.6);
-    border-radius: 14px;
+    border-radius: 12px;
     cursor: pointer;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     animation: mystic-breathe 3.5s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-    width: 90%;
-    max-width: 460px;
+    width: 85%;
+    max-width: 400px;
     position: relative;
     overflow: hidden;
   }
@@ -5320,7 +5312,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .tc-home-btn {
           display: block;
           width: 100%;
-          margin-top: 40px;
+          margin-top: 10px;
           padding: 13px;
           background: transparent;
           border: 1px solid rgba(180,130,30,.3);
@@ -5699,9 +5691,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   transform: translateY(-0.4px);
 }
 
-/* Ritual Bar - 화면 하단 고정 (2개 선택 시 사용자 화면에 맞춰 표시) */
+/* Ritual Bar - Refined */
 .astral-ritual-bar {
-    position: relative;
+    position: sticky;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     margin: 8px auto 0;
     transform: translateY(14px);
     width: min(92%, 560px);
@@ -5716,26 +5709,13 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 
 .astral-ritual-bar.active {
-    opacity: 1; transform: translate(-50%, 0); pointer-events: auto;
-    position: fixed;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    width: min(calc(100vw - 40px), 460px);
-    margin: 0;
-}
-
-.astral-container.ritual-bar-visible {
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    opacity: 1; transform: translateY(0); pointer-events: auto;
 }
 
 @media (max-width: 640px) {
   .astral-container { max-width: 100%; border-left: 0; border-right: 0; }
   .astral-header { padding: 56px 16px 20px; }
   .astral-grid { gap: 10px; padding: 0 14px 14px; }
-  .astral-ritual-bar.active {
-    width: min(calc(100vw - 28px), 460px);
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  }
   .astral-ritual-bar {
     border-radius: 18px;
     padding: 8px 10px;

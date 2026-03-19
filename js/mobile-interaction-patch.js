@@ -245,8 +245,8 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
     ],
-    openTarotHealingModal: ['js/tarot-healing-experience.js'],
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js']
+    openTarotHealingModal: ['public/js/tarot-healing-experience.js'],
+    openTarotYearFortuneModal: ['public/js/tarot-year-fortune-experience.js']
   };
 
   function loadScript(src) {

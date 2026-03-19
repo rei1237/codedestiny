@@ -4,6 +4,28 @@ const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny-web.pages.dev"]);
 const BOT_UA_RE =
   /(googlebot|bingbot|baiduspider|yandexbot|duckduckbot|slurp|facebot|ia_archiver|sogou|360spider|bytespider|semrushbot|ahrefsbot)/i;
+const SEO_LANDING_PATHS = new Set([
+  "/en-us",
+  "/en-ca",
+  "/en-sg",
+  "/en-gb",
+  "/en-au",
+  "/en-ph",
+  "/en-in",
+  "/en-za",
+  "/fr-fr",
+  "/fr-ca",
+  "/de-de",
+  "/it-it",
+  "/hu-hu",
+  "/nl-nl",
+  "/ja-jp",
+  "/zh-cn",
+  "/zh-tw",
+  "/th-th",
+  "/vi-vn",
+  "/hi-in",
+]);
 
 function isLocalHost(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
@@ -23,6 +45,14 @@ function shouldRedirectToCanonical(host) {
 
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
+
+  // Keep SEO locale landings out of user-facing navigation.
+  if (SEO_LANDING_PATHS.has(pathname.toLowerCase())) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/index.html";
+    url.search = search;
+    return NextResponse.redirect(url, 307);
+  }
 
   // Keep legacy/static pages referencing an icon path without 404ing.
   if (pathname === "/icons/icon-192x192.png") {

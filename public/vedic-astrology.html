@@ -1237,6 +1237,354 @@ function calcCompatibility(nak1,nak2){
 
 // ─── STATE ────────────────────────────────────────────────
 let G={chart:null,report:null,chartStyle:"south",activeTab:"overview"};
+let VEDIC_LANG_STATE={
+  current:'ko',
+  token:0,
+  translating:false,
+  googleReadyPromise:null
+};
+const VEDIC_LANG_TARGET_MAP={
+  ko:'KO',
+  en:'EN',
+  ja:'JA',
+  'zh-CN':'ZH',
+  zh:'ZH',
+  hi:'HI',
+  es:'ES',
+  fr:'FR'
+};
+
+function vedicNormalizeLang(langCode){
+  var l=String(langCode||'ko');
+  if(l==='jp') return 'ja';
+  if(l.toLowerCase()==='zh-cn') return 'zh-CN';
+  return l;
+}
+
+function vedicResolveInitialLang(){
+  try{
+    var q=new URLSearchParams(window.location.search||'');
+    var fromQuery=q.get('lang');
+    if(fromQuery) return vedicNormalizeLang(fromQuery);
+  }catch(_){}
+  try{
+    var saved=localStorage.getItem('cd_lang');
+    if(saved) return vedicNormalizeLang(saved);
+  }catch(_){}
+  return 'ko';
+}
+
+function vedicGetTranslatableNodes(){
+  var all=document.querySelectorAll('body *');
+  var list=[];
+  for(var i=0;i<all.length;i++){
+    var el=all[i];
+    if(!el||!el.tagName) continue;
+    var tag=String(el.tagName).toUpperCase();
+    if(tag==='SCRIPT'||tag==='STYLE'||tag==='NOSCRIPT'||tag==='CANVAS') continue;
+    if(el.children&&el.children.length) continue;
+    var txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+    if(!txt||txt.length<2) continue;
+    if(/^[\d\s.,:%+\-_/()]+$/.test(txt)) continue;
+    if(txt.length>1200) continue;
+    if(!el.dataset.vedicSrcText){
+      el.dataset.vedicSrcText=txt;
+    }
+    list.push(el);
+  }
+  return list;
+}
+
+function vedicChunkTexts(nodes, maxItems, maxChars){
+  var chunks=[];
+  var curNodes=[];
+  var curTexts=[];
+  var curChars=0;
+  for(var i=0;i<nodes.length;i++){
+    var t=(nodes[i] && nodes[i].dataset && nodes[i].dataset.vedicSrcText) || '';
+    var ln=t.length;
+    if(!ln) continue;
+    if(curNodes.length>=maxItems || (curChars+ln)>maxChars){
+      if(curNodes.length){
+        chunks.push({ nodes:curNodes, texts:curTexts });
+      }
+      curNodes=[];
+      curTexts=[];
+      curChars=0;
+    }
+    curNodes.push(nodes[i]);
+    curTexts.push(t);
+    curChars+=ln;
+  }
+  if(curNodes.length){
+    chunks.push({ nodes:curNodes, texts:curTexts });
+  }
+  return chunks;
+}
+
+function vedicSetLangStatus(text, isError){
+  return;
+}
+
+function vedicWaitForGoogleCombo(timeoutMs){
+  var started=Date.now();
+  return new Promise(function(resolve,reject){
+    (function poll(){
+      var combo=document.querySelector('#vedicGoogleTranslateHost .goog-te-combo')||document.querySelector('.goog-te-combo');
+      if(combo) return resolve(combo);
+      if(Date.now()-started>(timeoutMs||7000)) return reject(new Error('google_translate_combo_timeout'));
+      setTimeout(poll,120);
+    })();
+  });
+}
+
+function vedicSetGoogTransCookie(targetLang){
+  var value='/ko/'+targetLang;
+  var host=window.location.hostname||'';
+  var bare=host.replace(/^www\./,'');
+  document.cookie='googtrans='+value+'; path=/;';
+  if(bare){
+    document.cookie='googtrans='+value+'; domain='+bare+'; path=/;';
+    document.cookie='googtrans='+value+'; domain=.'+bare+'; path=/;';
+  }
+}
+
+function vedicApplyGoogleCookieFallback(targetLang){
+  if(!targetLang) return Promise.reject(new Error('google_cookie_lang_missing'));
+  try{
+    var key='vedic_google_cookie_fallback_'+targetLang;
+    if(sessionStorage.getItem(key)==='1'){
+      return Promise.reject(new Error('google_translate_combo_missing_after_reload'));
+    }
+    sessionStorage.setItem(key,'1');
+  }catch(_){}
+  vedicSetGoogTransCookie(targetLang);
+  setTimeout(function(){ window.location.reload(); }, 80);
+  return Promise.resolve();
+}
+
+function vedicInstallGoogleBannerGuard(){
+  try{
+    var styleId='vedic-hide-google-banner-style';
+    if(!document.getElementById(styleId)){
+      var st=document.createElement('style');
+      st.id=styleId;
+      st.textContent='.goog-te-banner-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
+        +'.skiptranslate iframe{display:none !important;}'
+        +'body{top:0 !important;position:static !important;}'
+        +'html{margin-top:0 !important;}';
+      document.head.appendChild(st);
+    }
+  }catch(_){}
+
+  function hideNow(){
+    try{
+      var frames=document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
+      for(var i=0;i<frames.length;i++){
+        frames[i].style.setProperty('display','none','important');
+        frames[i].style.setProperty('visibility','hidden','important');
+        frames[i].style.setProperty('height','0','important');
+      }
+      document.body.style.setProperty('top','0px','important');
+      document.body.style.setProperty('position','static','important');
+      document.documentElement.style.setProperty('margin-top','0px','important');
+    }catch(_){}
+  }
+  hideNow();
+  setTimeout(hideNow, 120);
+  setTimeout(hideNow, 600);
+  if(window.__vedicBannerGuardInstalled) return;
+  window.__vedicBannerGuardInstalled=true;
+  if(typeof MutationObserver==='function'&&document.documentElement){
+    try{
+      var obs=new MutationObserver(hideNow);
+      obs.observe(document.documentElement,{childList:true,subtree:true,attributes:true});
+    }catch(_){}
+  }
+}
+
+function vedicEnsureGoogleTranslateLoaded(){
+  if(VEDIC_LANG_STATE.googleReadyPromise) return VEDIC_LANG_STATE.googleReadyPromise;
+  VEDIC_LANG_STATE.googleReadyPromise=new Promise(function(resolve,reject){
+    var host=document.getElementById('vedicGoogleTranslateHost');
+    if(!host){
+      host=document.createElement('div');
+      host.id='vedicGoogleTranslateHost';
+      host.style.display='inline-block';
+      host.style.marginLeft='6px';
+      var dock=document.getElementById('vedicLangDock');
+      (dock||document.body).appendChild(host);
+    }
+
+    function onReady(){
+      vedicWaitForGoogleCombo(7000).then(function(){ resolve(); }).catch(reject);
+    }
+
+    try{
+      if(window.google&&window.google.translate&&window.google.translate.TranslateElement){
+        if(!window.__vedicGoogleWidgetMounted){
+          new window.google.translate.TranslateElement({
+            pageLanguage:'ko',
+            includedLanguages:'en,ja,zh-CN,hi,es,fr',
+            autoDisplay:false,
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+          }, 'vedicGoogleTranslateHost');
+          window.__vedicGoogleWidgetMounted=true;
+        }
+        return onReady();
+      }
+    }catch(err){
+      return reject(err);
+    }
+
+    window.__vedicGoogleTranslateInit=function(){
+      try{
+        if(!window.google||!window.google.translate||!window.google.translate.TranslateElement){
+          return reject(new Error('google_translate_not_available'));
+        }
+        if(!window.__vedicGoogleWidgetMounted){
+          new window.google.translate.TranslateElement({
+            pageLanguage:'ko',
+            includedLanguages:'en,ja,zh-CN,hi,es,fr',
+            autoDisplay:false,
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+          }, 'vedicGoogleTranslateHost');
+          window.__vedicGoogleWidgetMounted=true;
+        }
+        onReady();
+      }catch(err){
+        reject(err);
+      }
+    };
+
+    var script=document.querySelector('script[data-vedic-google-translate="1"]');
+    if(!script){
+      script=document.createElement('script');
+      script.src='https://translate.google.com/translate_a/element.js?cb=__vedicGoogleTranslateInit';
+      script.async=true;
+      script.defer=true;
+      script.setAttribute('data-vedic-google-translate','1');
+      script.onerror=function(){ reject(new Error('google_translate_script_failed')); };
+      document.head.appendChild(script);
+    }
+  });
+  return VEDIC_LANG_STATE.googleReadyPromise;
+}
+
+function vedicApplyGoogleLanguage(normalized){
+  var googleLangMap={
+    en:'en',
+    ja:'ja',
+    'zh-CN':'zh-CN',
+    zh:'zh-CN',
+    hi:'hi',
+    es:'es',
+    fr:'fr'
+  };
+  var target=googleLangMap[normalized];
+  if(!target) return Promise.reject(new Error('unsupported_google_lang_'+normalized));
+  return vedicEnsureGoogleTranslateLoaded()
+    .then(function(){
+      return vedicWaitForGoogleCombo(2600).catch(function(){
+        return null;
+      });
+    })
+    .then(function(combo){
+      if(!combo){
+        return vedicApplyGoogleCookieFallback(target);
+      }
+      combo.value=target;
+      combo.dispatchEvent(new Event('change',{bubbles:true}));
+      try{
+        sessionStorage.removeItem('vedic_google_cookie_fallback_'+target);
+      }catch(_){}
+    });
+}
+
+function vedicApplyTranslatedText(langCode){
+  var normalized=vedicNormalizeLang(langCode);
+  VEDIC_LANG_STATE.current=normalized;
+  try{ localStorage.setItem('cd_lang', normalized); }catch(_){}
+  var nodes=vedicGetTranslatableNodes();
+  if(!nodes.length) return Promise.resolve();
+  if(normalized==='ko'){
+    nodes.forEach(function(el){
+      if(el&&typeof el.dataset.vedicSrcText==='string'){
+        el.textContent=el.dataset.vedicSrcText;
+      }
+    });
+    document.documentElement.setAttribute('lang','ko');
+    try{
+      var host=window.location.hostname||'';
+      var bare=host.replace(/^www\./,'');
+      document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      if(bare){
+        document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain='+bare+'; path=/;';
+        document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.'+bare+'; path=/;';
+      }
+    }catch(_){}
+    vedicSetLangStatus('Korean applied', false);
+    return Promise.resolve();
+  }
+  var token=Date.now()+Math.random();
+  VEDIC_LANG_STATE.token=token;
+  VEDIC_LANG_STATE.translating=true;
+  vedicSetLangStatus('Translating with Google...', false);
+  return vedicApplyGoogleLanguage(normalized)
+    .then(function(){
+      if(VEDIC_LANG_STATE.token!==token) return;
+      document.documentElement.setAttribute('lang', normalized);
+      vedicSetLangStatus('Language applied (Google)', false);
+    })
+    .catch(function(err){
+      console.warn('[vedic] translation failed:', err && err.message ? err.message : err);
+      vedicSetLangStatus('Google translation failed. Check network/script load.', true);
+    })
+    .finally(function(){
+      if(VEDIC_LANG_STATE.token===token) VEDIC_LANG_STATE.translating=false;
+    });
+}
+
+function vedicApplyLanguage(langCode){
+  VEDIC_LANG_STATE.current=vedicNormalizeLang(langCode||VEDIC_LANG_STATE.current||'ko');
+  try{ localStorage.setItem('cd_lang', VEDIC_LANG_STATE.current); }catch(_){}
+  return Promise.resolve();
+}
+
+function vedicEnsureLanguageToggle(){
+  if(document.getElementById('vedicLangDock')) return;
+  var dock=document.createElement('div');
+  dock.id='vedicLangDock';
+  dock.style.position='fixed';
+  dock.style.top='10px';
+  dock.style.right='10px';
+  dock.style.zIndex='99999';
+  dock.style.background='rgba(5,0,16,0.82)';
+  dock.style.border='1px solid rgba(255,255,255,0.14)';
+  dock.style.borderRadius='10px';
+  dock.style.padding='6px 8px';
+  dock.style.backdropFilter='blur(8px)';
+  dock.style.webkitBackdropFilter='blur(8px)';
+  dock.style.display='flex';
+  dock.style.alignItems='center';
+  dock.style.gap='6px';
+  var label=document.createElement('span');
+  label.textContent='Language';
+  label.style.fontSize='11px';
+  label.style.color='rgba(240,232,255,0.75)';
+  var host=document.createElement('div');
+  host.id='vedicGoogleTranslateHost';
+  dock.appendChild(label);
+  dock.appendChild(host);
+  document.body.appendChild(dock);
+}
+
+function vedicInitLanguageBridge(){
+  VEDIC_LANG_STATE.current=vedicResolveInitialLang();
+  vedicEnsureLanguageToggle();
+  vedicInstallGoogleBannerGuard();
+  setTimeout(function(){ vedicEnsureGoogleTranslateLoaded(); }, 0);
+}
 
 // ─── NAVIGATION ───────────────────────────────────────────
 function showPage(id){
@@ -1540,6 +1888,7 @@ function _readProfileFromStorage(){
   return null;
 }
 function initVedicPage(){
+  vedicInitLanguageBridge();
   let profile=null;
   try{ profile=_readProfileFromStorage(); }catch(e){}
   if(!profile){ showPage('input'); _prefillVedicInput(); return; }

@@ -467,18 +467,17 @@ function pickAstroFlowerIdsByElement(element, sunSign) {
 function buildAstroNarrative(chart, flower, sunElement) {
   const sunKo = chart.sunSign || '태양궁 미확인';
   const sunElementKo = ASTRO_ELEMENT_LABEL_KO[sunElement] || '별';
-  const risingKo = chart.risingSign || '';
-  const moonKo = chart.moonSign || '';
-  const extra = [risingKo ? ('상승궁 ' + risingKo) : '', moonKo ? ('달궁 ' + moonKo) : ''].filter(Boolean).join(' · ');
+  const risingKo = chart.risingSign || '미확인';
+  const moonKo = chart.moonSign || '미확인';
+  const risingElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.risingSign)] || sunElementKo;
+  const moonElementKo = ASTRO_ELEMENT_LABEL_KO[resolveAstroElement(chart.moonSign)] || sunElementKo;
+  const flowerSymbolism = String(flower.symbolism || '균형').split(',')[0].trim();
+  const keyword = (flower.keywords && flower.keywords[0]) || flowerSymbolism;
   return (
-    '당신의 태양궁은 ' +
-    sunKo +
-    '이고, ' +
-    flower.name +
-    '처럼 ' +
-    sunElementKo +
-    ' 기운이 또렷한 타입이에요.' +
-    (extra ? (' (' + extra + ')') : '')
+    '태양궁 ' + sunKo + '에서 올라온 ' + sunElementKo + ' 원소의 불씨가 꽃 선택의 중심축을 세웁니다. ' +
+    '상승궁 ' + risingKo + '(' + risingElementKo + ')은 꽃잎의 결처럼 바깥으로 드러나는 톤을 빚고, 달궁 ' + moonKo + '(' + moonElementKo + ')' +
+    '은 밤이슬 같은 감정의 습도를 맞춰 ' + flower.name + '의 "' + flowerSymbolism + '" 상징을 가장 맑게 피워냅니다. ' +
+    '그래서 지금 차트에서는 "' + keyword + '" 키워드가 이 운명꽃을 부르는 별빛 신호가 됩니다.'
   );
 }
 
@@ -494,7 +493,8 @@ export function getAstrologyFlower(chartData = {}) {
   const moonGlow = ASTRO_MOON_GLOW[moonElement] || ASTRO_MOON_GLOW.Air;
 
   const astroVerdict =
-    '점성술 기준으로 지금 당신과 가장 잘 맞는 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
+    '점성술의 별자리 결로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
+    '태양궁·상승궁·달궁 3축에서 흐르는 원소의 파동을 겹쳐보면, 이 꽃의 상징이 지금의 당신과 가장 정밀하게 공명합니다.';
   const narrative = buildAstroNarrative(chart, primaryFlower, sunElement);
 
   return {
@@ -777,10 +777,19 @@ export function getJamidusuFlower(starData = {}) {
     : primaryFlower.secondary_color;
 
   const jamidusuVerdict =
-    '자미두수로 볼 때 당신의 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ') 입니다.';
+    '자미두수의 명궁 결로 읽은 운명꽃은 ' + primaryFlower.name + ' (' + primaryFlower.scientific_name + ')입니다. ' +
+    palace + '의 주성 ' + stars.join('·') + '과 별 밝기 ' + intensity.label + '가 겹쳐지며 "' + primaryRule.keyword + '" 패턴이 가장 선명하게 살아납니다.';
   const narrative = secondaryRule
-    ? ('명궁 주성 ' + stars.join('·') + ' 조합으로 ' + primaryRule.title + '을 중심으로 하되, ' + secondaryRule.keyword + ' 파티클을 블렌딩했습니다.')
-    : ('명궁 주성 ' + stars[0] + '의 성질을 따라 ' + primaryRule.title + '으로 개화합니다.');
+    ? (
+      '명궁 ' + palace + '의 하늘판에서 주성 ' + stars.join('·') + ' 조합이 떠올라 ' + primaryRule.title + '을 중심꽃으로 세웠습니다. ' +
+      '여기에 별 밝기 ' + intensity.label + '의 광휘와 보조 주성의 "' + secondaryRule.keyword + '" 향을 겹겹이 포개니, ' +
+      primaryFlower.name + '이 지금 운세 구조의 결을 가장 또렷하게 꽃으로 번역합니다.'
+    )
+    : (
+      '명궁 ' + palace + '의 주성 ' + stars[0] + '이 "' + primaryRule.keyword + '" 기질을 꽃심처럼 단단히 세우고, ' +
+      '별 밝기 ' + intensity.label + '가 그 기질의 빛을 흔들림 없이 지탱합니다. ' +
+      '그 결과 이번 흐름에서는 ' + primaryFlower.name + '이 당신의 중심 에너지와 가장 깊은 공명을 이룹니다.'
+    );
 
   return {
     source: 'jamidusu',
@@ -1207,7 +1216,9 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const constellation = buildSukuyoConstellation(idx);
   const guardianParticle = SUKUYO_GUARDIAN_PARTICLE[mansion.guardian] || 'lunar_dust';
   const narrativeCopy =
-    '달이 차오르는 밤, ' + mansion.guardian + '의 영험함을 품은 ' + mansion.name + '의 기운이 당신을 한 송이 ' + flower.name + '으로 피워냈습니다.';
+    mansion.name + '(' + mansion.group + ')의 인연 결, 달 위상 ' + moonStyle.label + '의 조수, 수호동물 ' + mansion.guardian +
+    '의 보호 문양이 한밤의 정원에서 맞물리며 "' + flower.symbolism + '" 성향을 짙게 피워냅니다. ' +
+    '이 세 갈래 달빛 신호를 겹쳐 읽으면 지금의 당신에게 가장 정확한 운명꽃은 ' + flower.name + '입니다.';
 
   return {
     source: 'sukuyo',
@@ -1221,7 +1232,9 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
       constellation_points: constellation
     },
     flower,
-    sukuyo_verdict: '숙요점으로 볼 때 당신의 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ') 입니다.',
+    sukuyo_verdict:
+      '숙요점의 달빛 결로 읽은 운명꽃은 ' + flower.name + ' (' + flower.scientific_name + ')입니다. ' +
+      mansion.name + '·' + moonStyle.label + '·' + mansion.guardian + '의 조합이 지금 인연·감정·행동의 리듬과 가장 섬세하게 맞물립니다.',
     narrative: narrativeCopy,
     visual_intensity: {
       glow: moonStyle.glow,
