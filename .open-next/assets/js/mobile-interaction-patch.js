@@ -349,7 +349,7 @@
     openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
     openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
     openDreamModal: ['js/dream-ledger.js'],
-    openPsychoDreamModal: ['public/js/psycho-dream-analyzer-freuds-study.js'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js']
   };
 
@@ -418,6 +418,7 @@
           chain = chain.then(function() { return loadScript(src); });
         });
         chain.then(function() {
+          if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
           var f = window[rule.action];
           if (typeof f === 'function') {
             try { f(); } catch (err) {
@@ -437,6 +438,7 @@
     var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
     try {
       raf(function() {
+        if (typeof window.__cdEnsureModalOverlaysInBody === 'function') window.__cdEnsureModalOverlaysInBody();
         try {
           fn();
         } catch (err) {
@@ -503,6 +505,18 @@
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
+      '}',
+      ':root {',
+      '  --cd-safe-vh: 100vh;',
+      '}',
+      '@supports (height: 100dvh) {',
+      '  :root { --cd-safe-vh: 100dvh; }',
+      '}',
+      '#kemetOracleOverlay, #psychoDreamModalOverlay, #tarotHealingOverlay, #tarotLoveOverlay, #tarotReunionOverlay, #tarotYearFortuneOverlay, #dreamModalOverlay {',
+      '  min-height: var(--cd-safe-vh);',
+      '  max-height: var(--cd-safe-vh);',
+      '  overflow-x: hidden;',
+      '  -webkit-overflow-scrolling: touch;',
       '}'
     ].join('\n');
 
@@ -688,6 +702,27 @@
   }
 
   function init() {
+    (function syncViewportHeight() {
+      var root = document.documentElement;
+      if (!root) return;
+      function update() {
+        var h = 0;
+        if (window.visualViewport && Number(window.visualViewport.height) > 0) {
+          h = window.visualViewport.height;
+        } else if (Number(window.innerHeight) > 0) {
+          h = window.innerHeight;
+        }
+        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
+      }
+      update();
+      window.addEventListener('resize', update, { passive: true });
+      window.addEventListener('orientationchange', update, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', update, { passive: true });
+        window.visualViewport.addEventListener('scroll', update, { passive: true });
+      }
+    })();
+
     injectTouchActionStyle();
     createBulletproofDelegator(document);
   }

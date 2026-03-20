@@ -30,6 +30,41 @@
     typingActive: false,
   };
 
+  function syncPsychoViewportHeight() {
+    var root = document.documentElement;
+    if (!root) return;
+    var h = 0;
+    if (window.visualViewport && Number(window.visualViewport.height) > 0) h = window.visualViewport.height;
+    else if (Number(window.innerHeight) > 0) h = window.innerHeight;
+    if (h > 0) root.style.setProperty("--ps-safe-vh", h + "px");
+  }
+
+  /** pages.dev·별도 호스트에서도 프로덕션 API로 붙도록 (api-base-init.js / 타로 모듈과 동일 패턴) */
+  function getPsychoApiBase() {
+    try {
+      if (typeof window !== "undefined" && window.CODE_DESTINY_API_BASE_URL) {
+        return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, "");
+      }
+    } catch (_) {}
+    var host = "";
+    try {
+      host = String(location.hostname || "").toLowerCase();
+    } catch (_) {}
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:3000";
+    }
+    if (host.endsWith(".pages.dev")) {
+      return "https://code-destiny.com";
+    }
+    return "";
+  }
+
+  function getPsychoAnalysisUrl() {
+    var base = getPsychoApiBase();
+    var path = "/api/dream/psycho-analysis";
+    return base ? base + path : path;
+  }
+
   function $(id) {
     return document.getElementById(id);
   }
@@ -116,24 +151,39 @@
     }
   }
 
+  /** 닫기 버튼이 .ps-header/.ps-wizard(z-index:1) 아래로 깔려 모바일에서 먹통이 되는 문제 방지 */
+  function ensurePsychoCloseZFix() {
+    var FIX_ID = "ps-freuds-close-z-fix";
+    if (document.getElementById(FIX_ID)) return;
+    var st = document.createElement("style");
+    st.id = FIX_ID;
+    st.textContent =
+      "#" + OVERLAY_ID + " .ps-close{z-index:50!important;position:absolute!important;" +
+      "touch-action:manipulation;-webkit-tap-highlight-color:transparent;}";
+    document.head.appendChild(st);
+  }
+
   function injectFreudsStudyStyles() {
-    var STYLE_ID = "ps-freuds-study-style";
+    ensurePsychoCloseZFix();
+    var STYLE_ID = "ps-freuds-study-style-v3";
     if (document.getElementById(STYLE_ID)) return;
 
     var style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent =
-      "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');\n" +
-      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);}\n" +
-      "#".concat(OVERLAY_ID, "{position:fixed;inset:0;display:none;z-index:9999;overflow:auto;background:\n" +
+      "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;600;700&family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');\n" +
+      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);--ps-font-sans:'Noto Sans KR','Lato',-apple-system,BlinkMacSystemFont,sans-serif;--ps-font-display:'Noto Serif KR','Playfair Display',Georgia,serif;}\n" +
+      "#".concat(OVERLAY_ID, "{position:fixed;inset:0;display:none;z-index:9999;overflow:auto;overflow-x:hidden;min-height:100vh;min-height:100dvh;max-height:none;-webkit-overflow-scrolling:touch;background:\n" +
       "radial-gradient(1000px 600px at 15% 10%, rgba(212,175,37,.10), transparent 55%),\n" +
       "radial-gradient(900px 540px at 85% 25%, rgba(165,42,42,.10), transparent 60%),\n" +
       "linear-gradient(180deg,var(--ps-bg1),var(--ps-bg2));}\n") +
+      "#".concat(OVERLAY_ID, '::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.92;background:radial-gradient(ellipse 130% 85% at 50% 115%,rgba(0,0,0,.55),transparent 58%);}\n') +
       "#".concat(OVERLAY_ID, ".ps-overlay--show{display:block;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-dialog{max-width:980px;margin:44px auto;position:relative;padding:24px 22px 26px;border-radius:18px;background:rgba(0,0,0,.12);\n" +
+      "#".concat(OVERLAY_ID, ".ps-overlay--keyboard-open::before{opacity:1;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-dialog{max-width:980px;margin:44px auto calc(26px + env(safe-area-inset-bottom));position:relative;z-index:2;padding:24px 22px 26px;border-radius:18px;background:rgba(0,0,0,.12);\n" +
       "box-shadow:0 22px 60px rgba(0,0,0,.35);border:1px solid rgba(212,175,37,.28);}\n") +
-      "#".concat(OVERLAY_ID, " .ps-close{position:absolute;top:16px;right:16px;width:42px;height:42px;border-radius:12px;border:1px solid rgba(212,175,37,.34);\n" +
-      "background:rgba(15,20,27,.45);color:rgba(253,253,253,.95);font-size:18px;cursor:pointer;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-close{position:absolute;top:16px;right:16px;z-index:50;width:42px;height:42px;border-radius:12px;border:1px solid rgba(212,175,37,.34);\n" +
+      "background:rgba(15,20,27,.45);color:rgba(253,253,253,.95);font-size:18px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}\n") +
       "#".concat(OVERLAY_ID, " .ps-close:hover{border-color:rgba(212,175,37,.70);transform:translateY(-1px);}\n") +
       "#".concat(OVERLAY_ID, " .ps-bg-ornament{position:absolute;inset:0;border-radius:18px;pointer-events:none;opacity:.9;\n" +
       "background:\n" +
@@ -147,9 +197,9 @@
       "#".concat(OVERLAY_ID, " .ps-decor-books{top:66px;right:14px;width:240px;height:auto;transform:rotate(3deg);}\n") +
       "#".concat(OVERLAY_ID, " .ps-header{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px;margin-top:6px;padding:8px 4px 12px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-badge{display:inline-flex;align-items:center;gap:10px;letter-spacing:.12em;text-transform:uppercase;\n" +
-      "font-size:.78rem;color:rgba(212,175,37,.95);font-family:'Lato',sans-serif;font-weight:700;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-header h2{font-family:'Playfair Display',serif;font-weight:700;color:var(--ps-text);font-size:2.1rem;line-height:1.14;margin:0;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-sub{font-family:'Lato',sans-serif;color:var(--ps-muted);font-size:1rem;margin:0;}\n") +
+      "font-size:.78rem;color:rgba(212,175,37,.95);font-family:var(--ps-font-sans);font-weight:700;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-header h2{font-family:var(--ps-font-display);font-weight:700;color:var(--ps-text);font-size:2.1rem;line-height:1.14;margin:0;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-sub{font-family:var(--ps-font-sans);color:var(--ps-muted);font-size:1rem;margin:0;}\n") +
       "#".concat(OVERLAY_ID, " .ps-wizard{position:relative;z-index:1;display:flex;align-items:flex-start;gap:18px;padding:16px 8px 8px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-wizard-medallion{width:92px;height:92px;border-radius:50%;border:1px solid rgba(212,175,37,.45);\n" +
       "background:rgba(212,175,37,.06);display:flex;align-items:center;justify-content:center;}\n") +
@@ -157,7 +207,7 @@
       "#".concat(OVERLAY_ID, " #psychoDreamEntrancePrompt.ps-wizard-prompt{margin-top:6px;color:rgba(253,253,253,.82);font-size:.98rem;line-height:1.55;}\n") +
       "#".concat(OVERLAY_ID, " .ps-screen{position:relative;z-index:1;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal{margin:10px auto 0;max-width:860px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-journal-title{display:flex;align-items:center;gap:12px;color:rgba(253,253,253,.93);font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;\n") +
+      "#".concat(OVERLAY_ID, " .ps-journal-title{display:flex;align-items:center;gap:12px;color:rgba(253,253,253,.93);font-family:var(--ps-font-display);font-weight:700;font-size:1.25rem;\n") +
       "padding:10px 6px 12px;}\n" +
       "#".concat(OVERLAY_ID, " .ps-journal-ink{color:rgba(212,175,37,.95);font-size:1.05rem;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal-paper{position:relative;background:linear-gradient(180deg,rgba(253,244,216,.98),rgba(244,233,199,.94));\n" +
@@ -169,8 +219,9 @@
       "background:radial-gradient(circle at 30% 30%, rgba(25,25,30,.18), rgba(10,10,12,.35), rgba(0,0,0,0) 65%);\n" +
       "filter:blur(.3px);transform:translate(-50%,-50%) scale(.7);opacity:.95;animation:psInkPulse .85s ease-out forwards;}\n") +
       "@keyframes psInkPulse{0%{opacity:.95;transform:translate(-50%,-50%) scale(.55)}60%{opacity:.55;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.55)}}\n" +
-      "#".concat(OVERLAY_ID, " .ps-textarea{position:relative;width:100%;min-height:190px;resize:vertical;background:transparent;border:none;outline:none;\n" +
-      "font-family:'Lato',sans-serif;font-size:1.05rem;line-height:1.8;color:#1d232a;padding:8px 2px 6px;caret-color:rgba(90,44,18,.85);\n" +
+      "#".concat(OVERLAY_ID, " .ps-textarea{position:relative;width:100%;min-height:190px;max-height:min(52dvh,calc(var(--ps-safe-vh,100vh) * 0.48));resize:vertical;background:transparent;border:none;outline:none;\n" +
+      "font-family:var(--ps-font-sans);font-size:1.06rem;line-height:1.85;letter-spacing:-0.01em;color:#141a22;padding:10px 4px 8px;caret-color:rgba(90,44,18,.85);\n" +
+      "-webkit-font-smoothing:antialiased;\n" +
       "}\n") +
       "#".concat(OVERLAY_ID, " .ps-textarea::placeholder{color:rgba(28,33,40,.44);}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal-paper.ps-journal--writing{box-shadow:0 22px 48px rgba(0,0,0,.26);}\n") +
@@ -179,9 +230,9 @@
       "animation:psNibGlow .55s ease-out;pointer-events:none;}\n") +
       "@keyframes psNibGlow{0%{opacity:0;transform:scale(.98)}100%{opacity:1;transform:scale(1.01)}}\n" +
       "#".concat(OVERLAY_ID, " .ps-input-footer{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:10px;padding:0 4px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-error{width:100%;text-align:center;min-height:20px;color:rgba(165,42,42,.95);font-family:'Lato',sans-serif;font-weight:700;font-size:.92rem;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-error{width:100%;text-align:center;min-height:20px;color:rgba(165,42,42,.95);font-family:var(--ps-font-sans);font-weight:700;font-size:.92rem;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn{appearance:none;border-radius:14px;border:1px solid rgba(212,175,37,.42);background:rgba(255,255,255,.06);color:rgba(253,253,253,.95);\n" +
-      "padding:12px 16px;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;}\n") +
+      "padding:12px 16px;font-family:var(--ps-font-sans);font-weight:700;cursor:pointer;}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn:hover{border-color:rgba(212,175,37,.75);transform:translateY(-1px)}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn-primary{background:linear-gradient(135deg, rgba(212,175,37,.22), rgba(165,42,42,.14));border-color:rgba(212,175,37,.60)}\n") +
       "#".concat(OVERLAY_ID, " .ps-btn-mini{padding:8px 12px;border-radius:12px;font-size:.9rem}\n") +
@@ -203,22 +254,32 @@
       "conic-gradient(from 30deg, rgba(212,175,37,.35), rgba(253,253,253,.0), rgba(212,175,37,.35));\n" +
       "filter:blur(.2px);opacity:.55;animation:psSymbols 1.55s ease-in-out infinite;}\n") +
       "@keyframes psSymbols{0%{transform:rotate(0deg) scale(.98)}50%{transform:rotate(20deg) scale(1.02)}100%{transform:rotate(0deg) scale(.98)}}\n" +
-      "#".concat(OVERLAY_ID, " .ps-loading-text{margin:18px auto 0;text-align:center;font-family:'Playfair Display',serif;color:rgba(253,253,253,.92);font-weight:700;font-size:1.08rem;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-result-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0 8px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report{margin:8px auto 0;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-head{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding:0 6px;}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:rgba(253,253,253,.96)}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-meta{font-family:'Lato',sans-serif;color:rgba(253,253,253,.74);font-size:.95rem}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-body{background:linear-gradient(180deg,rgba(253,244,216,.95),rgba(244,233,199,.92));border:1px solid rgba(212,175,37,.35);border-radius:16px;padding:16px 16px 12px;box-shadow:0 22px 48px rgba(0,0,0,.22);}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-section{margin:14px 0;padding:10px 12px;border:1px solid rgba(212,175,37,.50);border-radius:14px;background:rgba(253,250,236,.70)}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-section-title{font-family:'Playfair Display',serif;font-weight:700;color:rgba(142,105,28,.95);font-size:1.02rem;margin-bottom:8px;display:flex;align-items:center;gap:10px}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-section-title:before{content:'';display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid rgba(212,175,37,.85);box-shadow:0 0 0 4px rgba(212,175,37,.14)}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-section-body{font-family:'Lato',sans-serif;color:rgba(28,33,40,.95);line-height:1.95}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-section-body p{margin:.25rem 0 .85rem}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-list{margin:.1rem 0 .8rem 1.05rem;padding:0}\n") +
-      "#".concat(OVERLAY_ID, " .ps-report-list li{margin:.18rem 0}\n") +
+      "#".concat(OVERLAY_ID, " .ps-loading-text{margin:18px auto 0;text-align:center;font-family:var(--ps-font-display);color:rgba(253,253,253,.92);font-weight:700;font-size:1.08rem;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-result-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:22px 0 10px;padding-top:4px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report{margin:8px auto 0;max-width:860px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-head{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:4px 8px 14px;border-bottom:1px solid rgba(212,175,37,.22);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-title{font-family:var(--ps-font-display);font-size:1.55rem;font-weight:700;color:rgba(253,253,253,.96);letter-spacing:-0.02em;line-height:1.25;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-meta{font-family:var(--ps-font-sans);color:rgba(253,253,253,.68);font-size:.86rem;line-height:1.55;padding:8px 12px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(212,175,37,.28);max-width:100%;word-break:keep-all;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body{position:relative;background:linear-gradient(180deg,rgba(255,250,240,.98),rgba(244,233,199,.94));border:1px solid rgba(212,175,37,.42);border-radius:18px;padding:0;box-shadow:0 24px 52px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.45);max-height:min(68vh,640px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;counter-reset:ps-sec;scrollbar-width:thin;scrollbar-color:rgba(212,175,37,.55) rgba(212,175,37,.10);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body::-webkit-scrollbar{width:9px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body::-webkit-scrollbar-track{background:rgba(212,175,37,.08);border-radius:0 18px 18px 0;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(212,175,37,.55),rgba(165,42,42,.35));border-radius:8px;border:2px solid rgba(253,244,216,.5);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body:before{content:'';position:sticky;top:0;left:0;right:0;height:3px;z-index:1;display:block;background:linear-gradient(90deg,transparent,rgba(212,175,37,.55),rgba(165,42,42,.35),rgba(212,175,37,.55),transparent);pointer-events:none;border-radius:18px 18px 0 0;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body .ps-report-section{padding:16px 18px 14px;margin:0;border-bottom:1px solid rgba(212,175,37,.22);background:linear-gradient(180deg,rgba(255,252,245,.15),transparent);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body .ps-report-section:last-child{border-bottom:none;border-radius:0 0 16px 16px;padding-bottom:18px;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-body .ps-report-section:nth-child(even){background:linear-gradient(180deg,rgba(212,175,37,.06),rgba(253,250,236,.25));}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section{counter-increment:ps-sec;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section-title{font-family:var(--ps-font-display);font-weight:700;color:rgba(88,62,18,.98);font-size:1.06rem;margin:0 0 12px;padding-bottom:10px;display:flex;align-items:flex-start;gap:12px;line-height:1.35;letter-spacing:-0.02em;border-bottom:1px solid rgba(212,175,37,.28);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section-title:before{content:counter(ps-sec,decimal-leading-zero);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;min-width:2.1rem;padding:5px 9px;border-radius:10px;font-size:.78rem;font-weight:700;font-family:var(--ps-font-sans);letter-spacing:.08em;color:rgba(212,175,37,.98);background:linear-gradient(145deg,rgba(212,175,37,.20),rgba(26,32,40,.12));border:1px solid rgba(212,175,37,.45);box-shadow:0 2px 8px rgba(0,0,0,.08);}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section-body{font-family:var(--ps-font-sans);color:rgba(18,24,32,.96);line-height:2.08;font-size:1.03rem;letter-spacing:-0.015em;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section-body p{margin:0 0 1rem}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-section-body p:last-child{margin-bottom:0}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-list{margin:.35rem 0 1rem 0;padding:0 0 0 1.15rem;list-style-position:outside;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-list li{margin:.45rem 0;padding-left:.2rem;line-height:1.85;position:relative;}\n") +
+      "#".concat(OVERLAY_ID, " .ps-report-list li::marker{color:rgba(165,90,42,.88);font-weight:700;}\n") +
       "#".concat(OVERLAY_ID, " .ps-result-actions .ps-btn{min-width:220px}\n") +
-      "#".concat(OVERLAY_ID, " .ps-stamp{margin:16px auto 0;display:flex;justify-content:center;}\n");
+      "#".concat(OVERLAY_ID, " .ps-stamp{margin:16px auto 0;display:flex;justify-content:center;}\n") +
+      "@media (max-width: 768px){#" + OVERLAY_ID + " .ps-dialog{margin:10px 10px calc(14px + env(safe-area-inset-bottom));padding:16px 14px 18px;border-radius:14px;position:relative;z-index:1;}#" + OVERLAY_ID + " .ps-header h2{font-size:1.4rem;}#" + OVERLAY_ID + " .ps-wizard{gap:10px;padding:10px 4px 6px;}#" + OVERLAY_ID + " .ps-wizard-medallion{width:64px;height:64px;}#" + OVERLAY_ID + " .ps-textarea{min-height:148px;max-height:min(46dvh,calc(var(--ps-safe-vh,100vh) * 0.42));font-size:1.04rem;line-height:1.82;}#" + OVERLAY_ID + " .ps-result-actions .ps-btn{min-width:100%;}#" + OVERLAY_ID + " .ps-report-title{font-size:1.35rem;}#" + OVERLAY_ID + " .ps-report-meta{font-size:.82rem;padding:8px 10px;}#" + OVERLAY_ID + " .ps-report-body{max-height:min(52vh,520px);border-radius:16px;}#" + OVERLAY_ID + " .ps-report-body .ps-report-section{padding:14px 14px 12px;}#" + OVERLAY_ID + " .ps-report-section-body{font-size:1rem;line-height:2.02;}#" + OVERLAY_ID + " .ps-report-section-title{font-size:1rem;gap:10px;}}\n";
 
     document.head.appendChild(style);
   }
@@ -251,6 +312,7 @@
     if (screen === "result") {
       if (resultScreen) resultScreen.style.display = "block";
       if (wizard) wizard.style.display = "none";
+      ensureResultHomeButton();
     }
   }
 
@@ -312,16 +374,32 @@
     }, 920);
   }
 
+  function setPsychoKeyboardVeil(active) {
+    var ov = $(OVERLAY_ID);
+    if (!ov) return;
+    if (active) ov.classList.add("ps-overlay--keyboard-open");
+    else ov.classList.remove("ps-overlay--keyboard-open");
+  }
+
   function attachJournalMicroInteractions() {
     var ta = $(TEXTAREA_ID);
     if (!ta) return;
 
     var journalPaper = ta.closest(".ps-journal-paper") || null;
+    var mqMobile =
+      typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 768px)") : null;
+
     ta.addEventListener("focus", function () {
       if (journalPaper) journalPaper.classList.add("ps-journal--writing");
+      syncPsychoViewportHeight();
+      if (mqMobile && mqMobile.matches) setPsychoKeyboardVeil(true);
+      window.setTimeout(function () {
+        try { ta.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" }); } catch (_) {}
+      }, 120);
     });
     ta.addEventListener("blur", function () {
       if (journalPaper) journalPaper.classList.remove("ps-journal--writing");
+      setPsychoKeyboardVeil(false);
     });
     ta.addEventListener("input", function () {
       if (journalPaper) {
@@ -476,16 +554,34 @@
       };
       if (token) headers["Authorization"] = "Bearer " + token;
 
-      var res = await fetch("/api/dream/psycho-analysis", {
+      var res = await fetch(getPsychoAnalysisUrl(), {
         method: "POST",
         headers: headers,
         body: JSON.stringify({ dreamText: dreamText }),
       });
-      var data = await res.json().catch(function () {
-        return {};
-      });
+      var data = null;
+      try {
+        var ct = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
+        if (ct.indexOf("application/json") === -1) {
+          throw new Error("non-json");
+        }
+        data = await res.json();
+      } catch (_) {
+        data = null;
+      }
 
-      if (!res.ok || !data || !data.ok) {
+      if (!data || typeof data !== "object") {
+        stopTyping();
+        var hint =
+          res.status === 404
+            ? "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요."
+            : "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.";
+        setError(hint);
+        setScreen("input");
+        return;
+      }
+
+      if (!res.ok || !data.ok) {
         var msg = (data && data.message) || "분석에 실패했습니다.";
         stopTyping();
         setError(msg);
@@ -505,6 +601,7 @@
         var bits = [dateStr];
         if (src) bits.push("출처: " + src);
         if (mdl) bits.push("모델: " + mdl);
+        if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
         metaEl.textContent = bits.join(" · ") + cachedTag;
       }
 
@@ -555,6 +652,7 @@
     resetUI();
     setOverlayVisible(true);
     setBodyLock(true);
+    syncPsychoViewportHeight();
     setWizardHint("프로이트 박사의 소견을 받을 준비가 되셨나요?");
   };
 
@@ -563,6 +661,18 @@
     stopTyping();
     setBodyLock(false);
     setOverlayVisible(false);
+  };
+
+  /** 결과 화면에서 모달 닫고 메인 화면 상단으로 이동 */
+  window.psychoDreamGoHome = function psychoDreamGoHome() {
+    if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+    try {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (_) {
+      try {
+        window.scrollTo(0, 0);
+      } catch (e2) {}
+    }
   };
 
   window.psychoDreamStartAnalysis = function psychoDreamStartAnalysis() {
@@ -613,7 +723,17 @@
   };
 
   // Initial UX
+  syncPsychoViewportHeight();
+  window.addEventListener("resize", syncPsychoViewportHeight, { passive: true });
+  window.addEventListener("orientationchange", syncPsychoViewportHeight, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncPsychoViewportHeight, { passive: true });
+    window.visualViewport.addEventListener("scroll", syncPsychoViewportHeight, { passive: true });
+  }
+
   injectFreudsStudyStyles();
+  ensureResultHomeButton();
+  attachPsychoCloseGuards();
   attachJournalMicroInteractions();
 
   // Safety: data-action binding이 누락되는 환경도 대비해 직접 클릭을 보강합니다.
@@ -622,6 +742,46 @@
     analyzeBtn.addEventListener("click", function () {
       analyzeDream();
     });
+  }
+
+  /** 결과 영역에 홈 버튼이 없으면 추가 (HTML 수정 없이도 동작) */
+  function ensureResultHomeButton() {
+    var actions = document.querySelector("#" + RESULT_SCREEN_ID + " .ps-result-actions");
+    if (!actions || actions.querySelector('[data-action="psychoDreamGoHome"]')) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ps-btn ps-btn-primary";
+    btn.setAttribute("data-action", "psychoDreamGoHome");
+    btn.setAttribute("aria-label", "홈 화면으로 바로가기");
+    btn.textContent = "🏠 홈으로 바로가기";
+    if (actions.firstChild) actions.insertBefore(btn, actions.firstChild);
+    else actions.appendChild(btn);
+  }
+
+  /** 닫기 버튼: 캡처 단계에서 먼저 처리 (헤더/마법사 레이어가 터치 가로채는 경우 방지) */
+  function attachPsychoCloseGuards() {
+    var ov = $(OVERLAY_ID);
+    if (!ov || ov.dataset.cdPsychoCloseGuard === "1") return;
+    ov.dataset.cdPsychoCloseGuard = "1";
+    function tryClose(ev) {
+      var closeBtn = ev.target && ev.target.closest && ev.target.closest(".ps-close");
+      if (!closeBtn || !ov.contains(closeBtn)) return;
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopPropagation();
+      if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+    }
+    ov.addEventListener("click", tryClose, true);
+    ov.addEventListener(
+      "touchend",
+      function (e) {
+        var closeBtn = e.target && e.target.closest && e.target.closest(".ps-close");
+        if (!closeBtn || !ov.contains(closeBtn)) return;
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+      },
+      { passive: false, capture: true }
+    );
   }
 
   function bindDirectTapAction(selector, handler) {
@@ -651,8 +811,12 @@
   bindDirectTapAction('[data-action="openPsychoDreamModal"]', function () {
     if (typeof window.openPsychoDreamModal === "function") window.openPsychoDreamModal();
   });
-  bindDirectTapAction('#' + OVERLAY_ID + ' .ps-close, #' + OVERLAY_ID + ' [data-action="closePsychoDreamModal"]', function () {
+  /* .ps-close 는 attachPsychoCloseGuards(캡처)에서 처리 — 이중 호출 방지 */
+  bindDirectTapAction('#' + OVERLAY_ID + ' [data-action="closePsychoDreamModal"]:not(.ps-close)', function () {
     if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
+  });
+  bindDirectTapAction('#' + OVERLAY_ID + ' [data-action="psychoDreamGoHome"]', function () {
+    if (typeof window.psychoDreamGoHome === "function") window.psychoDreamGoHome();
   });
   bindDirectTapAction('#' + OVERLAY_ID + ' #psychoDreamAnalyzeBtn, #' + OVERLAY_ID + ' [data-action="psychoDreamStartAnalysis"]', function () {
     if (typeof window.psychoDreamStartAnalysis === "function") window.psychoDreamStartAnalysis();

@@ -432,7 +432,7 @@ function __cdCallGlobal(fnName) {
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/public/js/psycho-dream-analyzer-freuds-study.js'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -924,14 +924,30 @@ function _cdInitAfterSplash() {
   }
 }
 
+/* 모바일 containment 해결: transform:translateZ(0) 부모 내 fixed가 뷰포트 대신 부모 기준으로 배치되는 이슈.
+   이 오버레이들은 body 직계가 아니면 모바일에서 화면에 안 보임 → body로 이동 */
+function __cdEnsureModalOverlaysInBody() {
+  var ids = ['tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
+    'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el && el.parentNode !== document.body) {
+      try { document.body.appendChild(el); } catch (e) { /* ignore */ }
+    }
+  }
+}
+window.__cdEnsureModalOverlaysInBody = __cdEnsureModalOverlaysInBody;
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
+    __cdEnsureModalOverlaysInBody();
     _cdInitAfterSplash();
     __cdBindAnimalTotemTileDirect();
     __cdBindDestinyFlowerTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
 } else {
+  __cdEnsureModalOverlaysInBody();
   _cdInitAfterSplash();
   __cdBindAnimalTotemTileDirect();
   __cdBindDestinyFlowerTileDirect();
@@ -3952,7 +3968,13 @@ function closeCurrentPage() {
   var overlayMap = [
     { id: 'tarotLoveOverlay', closeFn: 'closeTarotLoveModal' },
     { id: 'tarotHealingOverlay', closeFn: 'closeTarotHealingModal' },
+    { id: 'tarotReunionOverlay', closeFn: 'closeTarotReunionModal' },
+    { id: 'tarotSelfEsteemOverlay', closeFn: 'closeTarotSelfEsteemModal' },
+    { id: 'tarotYearFortuneOverlay', closeFn: 'closeTarotYearFortuneModal' },
     { id: 'animalTotemOverlay', closeFn: 'closeAnimalTotemModal' },
+    { id: 'dreamModalOverlay', closeFn: 'closeDreamModal' },
+    { id: 'psychoDreamModalOverlay', closeFn: 'closePsychoDreamModal' },
+    { id: 'kemetOracleOverlay', closeFn: 'closeKemetModal' },
     { id: 'destinyFlowerStudioOverlay', closeFn: 'closeDestinyFlowerStudio' },
     { id: 'juyukModalOverlay', closeFn: 'closeJuyukModal' },
     { id: 'sukuyoModalOverlay', closeFn: 'closeSukuyoModal' },
@@ -4202,6 +4224,7 @@ function openAnimalTotemModal() {
   var overlay = document.getElementById('animalTotemOverlay');
   if (!overlay) return;
   overlay.style.display = 'block';
+  if (overlay.classList) overlay.classList.add('is-open');
   resetAnimalTotemFlow();
   if (window._perf && window._perf.lockBody) window._perf.lockBody();
   else document.body.style.overflow = 'hidden';
@@ -4212,6 +4235,7 @@ function closeAnimalTotemModal() {
   var overlay = document.getElementById('animalTotemOverlay');
   if (!overlay) return;
   overlay.style.display = 'none';
+  if (overlay.classList) overlay.classList.remove('is-open');
   _clearAnimalTotemTimer();
   if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
   else document.body.style.overflow = '';

@@ -280,6 +280,7 @@ function handleFavoriteAdd() {
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
+  // Chrome/Android 설치 배너를 즉시 띄우지 않고 사용자 버튼에서 직접 띄우기 위해 보관합니다.
   e.preventDefault();
   _pwaPrompt = e;
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE);
@@ -325,14 +326,22 @@ async function handlePwaInstall() {
   }
 
   if (_pwaPrompt) {
-    _pwaPrompt.prompt();
-    var result = await _pwaPrompt.userChoice;
-    if (result.outcome === 'accepted') {
-      _pwaInstalled = true;
-      _pwaPrompt = null;
-      showToast('🔮 홈 화면에 부적이 설치됩니다!');
-    } else {
-      showToast('설치를 취소했어요. 언제든 다시 설치할 수 있어요 ✨');
+    // beforeinstallprompt 이벤트는 1회성입니다.
+    // prompt() 호출 전에 참조를 분리해 재진입/중복 호출 문제를 방지합니다.
+    var deferredPrompt = _pwaPrompt;
+    _pwaPrompt = null;
+
+    try {
+      deferredPrompt.prompt();
+      var result = await deferredPrompt.userChoice;
+      if (result && result.outcome === 'accepted') {
+        _pwaInstalled = true;
+        showToast('🔮 홈 화면에 부적이 설치됩니다!');
+      } else {
+        showToast('설치를 취소했어요. 언제든 다시 설치할 수 있어요 ✨');
+      }
+    } catch (_) {
+      showToast('설치 창을 열지 못했어요. 잠시 후 다시 시도해 주세요.');
     }
     return;
   }
@@ -344,6 +353,19 @@ async function handlePwaInstall() {
 function closeIosModal() {
   var modal = document.getElementById('ios-install-modal');
   if (modal) modal.classList.remove('open');
+}
+
+// data-action 경로 문제로 설치 버튼이 누락되는 환경을 대비한 직접 바인딩.
+function bindPwaInstallButtons() {
+  ['btnPwaInstall', 'btnPwaInstallHome'].forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (!btn || btn.dataset.pwaInstallBound === '1') return;
+    btn.dataset.pwaInstallBound = '1';
+    btn.addEventListener('click', function(ev) {
+      if (ev && ev.cancelable) ev.preventDefault();
+      handlePwaInstall();
+    }, { passive: false });
+  });
 }
 
 if ('serviceWorker' in navigator) {
@@ -799,6 +821,7 @@ window.addEventListener('load',function(){
   else scheduleThemeToggleAutoDisable();
 
   enforceThemeToggleSticky();
+  bindPwaInstallButtons();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('orientationchange', function() {

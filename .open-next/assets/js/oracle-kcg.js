@@ -15,6 +15,64 @@
   var kcgCards     = [];       // DOM 요소 배열
   var kcgAnimating = false;
 
+  function _kcgGetLayout() {
+    var arena = document.getElementById('kcgArena');
+    var wrap = arena ? arena.parentElement : null;
+    var containerW = wrap ? wrap.clientWidth : 360;
+    var arenaW = Math.max(280, Math.min(340, containerW - 8));
+    var scale = arenaW / 340;
+    var cardW = Math.max(56, Math.round(70 * scale));
+    var cardH = Math.max(80, Math.round(100 * scale));
+    var gapX = Math.max(6, Math.round(10 * scale));
+    var gapY = Math.max(12, Math.round(23 * scale));
+    var cols = 4;
+    var rows = 3;
+    var gridW = cols * cardW + (cols - 1) * gapX;
+    var startX = Math.max(0, Math.floor((arenaW - gridW) / 2));
+    var startY = Math.max(10, Math.round(15 * scale));
+    var arenaH = Math.max(300, startY + rows * cardH + (rows - 1) * gapY + Math.round(14 * scale));
+    return {
+      arenaW: arenaW,
+      arenaH: arenaH,
+      cardW: cardW,
+      cardH: cardH,
+      gapX: gapX,
+      gapY: gapY,
+      startX: startX,
+      startY: startY,
+      cx: arenaW / 2 - cardW / 2,
+      cy: Math.max(48, Math.round(arenaH * 0.35) - cardH / 2),
+      circleR: Math.max(90, Math.round(Math.min(arenaW, arenaH) * 0.35))
+    };
+  }
+
+  function _kcgApplyArenaLayout() {
+    var arena = document.getElementById('kcgArena');
+    if (!arena) return _kcgGetLayout();
+    var layout = _kcgGetLayout();
+    arena.style.width = layout.arenaW + 'px';
+    arena.style.height = layout.arenaH + 'px';
+    return layout;
+  }
+
+  function _kcgBindFastTap(card, idx) {
+    var firedAt = 0;
+    function fire(ev) {
+      var now = Date.now();
+      if (now - firedAt < 260) return;
+      firedAt = now;
+      if (ev && ev.cancelable) ev.preventDefault();
+      if (ev) ev.stopPropagation();
+      _kcgOnCardClick(parseInt(idx, 10));
+    }
+    card.addEventListener('click', fire, { passive: false });
+    card.addEventListener('touchend', fire, { passive: false });
+    card.addEventListener('pointerup', function(ev) {
+      if (ev.pointerType && ev.pointerType !== 'touch') return;
+      fire(ev);
+    }, { passive: false });
+  }
+
   /* ── 아레나 초기화 ── */
   window.kcgInitCircle = function() {
     kcgPhase = 'init';
@@ -25,7 +83,8 @@
     arena.innerHTML = '';
     kcgCards = [];
 
-    var cx = 160, cy = 160, R = 130;
+    var layout = _kcgApplyArenaLayout();
+    var cx = layout.cx, cy = layout.cy, R = layout.circleR;
     for(var i = 0; i < KCG_TOTAL; i++) {
       var card = _kcgMakeCard(i);
       arena.appendChild(card);
@@ -71,9 +130,7 @@
       if(card.classList.contains('selected') || card.classList.contains('dissolving')) return;
       _kcgTweenCard(card, null, null, null, 1, '', 180);
     });
-    card.addEventListener('click', function() {
-      _kcgOnCardClick(parseInt(card.dataset.idx));
-    });
+    _kcgBindFastTap(card, idx);
     return card;
   }
 
@@ -120,7 +177,8 @@
     if(navigator.vibrate) navigator.vibrate([30,50,30,50,30]);
 
     // Phase B: 중앙으로 모음
-    var cx = 145, cy = 120;
+    var layout = _kcgApplyArenaLayout();
+    var cx = layout.cx, cy = layout.cy;
     kcgCards.forEach(function(card, i) {
       var offX = (Math.random() - .5) * 14;
       var offY = (Math.random() - .5) * 14;
@@ -158,9 +216,9 @@
       // Phase C: 그리드 배치 (4열 × 3행 — 모든 카드가 아레나 안에 표시)
       setTimeout(function() {
         kcgPhase = 'shuffled';
-        var cols = 4, cardW = 70, cardH = 100, gapX = 10, gapY = 23;
-        var startX = Math.floor((340 - cols * cardW - (cols - 1) * gapX) / 2); // 15
-        var startY = 15;
+        var cols = 4, cardW = layout.cardW, cardH = layout.cardH, gapX = layout.gapX, gapY = layout.gapY;
+        var startX = layout.startX;
+        var startY = layout.startY;
 
         kcgCards.forEach(function(card, i) {
           var col = i % cols;
@@ -216,14 +274,15 @@
     card.style.zIndex = '100';
 
     // 그리드 위치 기준에서 위로 올려 선택 강조
-    var cols = 4, cardW = 70, cardH = 100, gapX = 10, gapY = 23;
-    var startX = Math.floor((340 - cols * cardW - (cols - 1) * gapX) / 2);
-    var startY = 15;
+    var layout = _kcgGetLayout();
+    var cols = 4, cardW = layout.cardW, cardH = layout.cardH, gapX = layout.gapX, gapY = layout.gapY;
+    var startX = layout.startX;
+    var startY = layout.startY;
     var col = idx % cols;
     var row = Math.floor(idx / cols);
     var x = startX + col * (cardW + gapX);
     var y = startY + row * (cardH + gapY) - 28; // 28px 위로 올려 선택 강조
-    card.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(0deg) scale(1.08)';
+    card.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) rotate(0deg) scale(1.06)';
 
     var cnt = kcgSelected.length;
     if(cnt < KCG_PICK) {
@@ -239,9 +298,10 @@
 
   function _kcgFanPosition(card, idx, total) {
     // 이름은 유지, 실제로는 그리드 복귀
-    var cols = 4, cardW = 70, cardH = 100, gapX = 10, gapY = 23;
-    var startX = Math.floor((340 - cols * cardW - (cols - 1) * gapX) / 2);
-    var startY = 15;
+    var layout = _kcgGetLayout();
+    var cols = 4, cardW = layout.cardW, cardH = layout.cardH, gapX = layout.gapX, gapY = layout.gapY;
+    var startX = layout.startX;
+    var startY = layout.startY;
     var col = idx % cols;
     var row = Math.floor(idx / cols);
     var x = startX + col * (cardW + gapX);
