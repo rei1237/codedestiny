@@ -18,6 +18,14 @@
     "박사의 소견을 정리하고 있습니다...",
     "상징을 디코딩 중입니다...",
   ];
+  var FREUD_QUOTES = [
+    "꿈은 무의식으로 가는 왕도입니다.",
+    "억압된 감정은 사라지지 않고 다른 형태로 되돌아옵니다.",
+    "자아는 자신의 집에서도 주인이 아닙니다.",
+    "사랑하고 일하는 능력은 성숙함의 표지입니다.",
+    "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
+    "말해지지 못한 감정은 증상으로 말하려 합니다."
+  ];
 
   var state = {
     uiLocked: false,
@@ -127,15 +135,21 @@
     state.loadingTimer = null;
   }
 
+  function composeLoadingLine(idx) {
+    var msg = LOADING_MESSAGES[idx % LOADING_MESSAGES.length] || "";
+    var quote = FREUD_QUOTES[idx % FREUD_QUOTES.length] || "";
+    return quote ? msg + " " + quote : msg;
+  }
+
   function startLoading() {
     var el = $(LOADER_TEXT_ID);
-    if (el) el.textContent = LOADING_MESSAGES[0] || "";
+    if (el) el.textContent = composeLoadingLine(0);
     state.loadingIdx = 0;
     clearLoadingTimer();
     state.loadingTimer = setInterval(function () {
       state.loadingIdx = (state.loadingIdx + 1) % LOADING_MESSAGES.length;
       var lt = $(LOADER_TEXT_ID);
-      if (lt) lt.textContent = LOADING_MESSAGES[state.loadingIdx];
+      if (lt) lt.textContent = composeLoadingLine(state.loadingIdx);
     }, 1400);
   }
 

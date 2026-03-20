@@ -606,6 +606,173 @@ function relationshipMeaning(item, fallback) {
   return buildKeywordMeaning(item.keywords, item.orientation, fallback);
 }
 
+function toSentence(text, limit = 150) {
+  const cleaned = String(text || "").replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+  const firstSentence = cleaned.split(/(?<=[.!?。]|다\.)\s+/)[0] || cleaned;
+  return firstSentence.slice(0, limit).trim();
+}
+
+function buildReunionPositionMeaning(card, position) {
+  if (!card) return "";
+  const base = toSentence(
+    relationshipMeaning(card, `${cardLabel(card)}가 이 포지션의 핵심 메시지를 전합니다.`),
+    180,
+  );
+  const keywords = Array.isArray(card.keywords) ? card.keywords.slice(0, 3).filter(Boolean) : [];
+  const keywordLine = keywords.length ? `핵심 키워드는 ${keywords.join(", ")}입니다.` : "";
+  const isReversed = card.orientation === "reversed";
+  const suit = String(card.suit || "").trim();
+  const isMajor = String(card.arcanaType || "").toLowerCase() === "major";
+
+  function positionSuitHint(pos, s, reversed) {
+    const map = {
+      past_bond: {
+        Cups: reversed
+          ? "감정의 추억은 남아 있지만 서운함과 미련이 섞여 해석 충돌이 생기기 쉽습니다."
+          : "감정적 유대의 기억이 선명하게 남아 있어 관계의 정서적 기반이 살아 있습니다.",
+        Wands: reversed
+          ? "뜨거웠던 에너지가 소진되어 당시의 열정과 현재 온도 차이가 크게 느껴질 수 있습니다."
+          : "빠르고 강한 끌림이 있었던 관계로, 시작 동력이 분명했던 인연입니다.",
+        Swords: reversed
+          ? "과거 대화의 상처나 오해가 정리되지 않아 기억이 왜곡되기 쉬운 흐름입니다."
+          : "관계를 규정하던 생각과 판단이 뚜렷했던 시기로, 말의 무게가 컸던 인연입니다.",
+        Pentacles: reversed
+          ? "현실 조건 문제(거리/시간/상황)로 안정이 깨졌던 기억이 재회 판단에 남아 있습니다."
+          : "신뢰와 일상적 루틴이 쌓였던 관계로, 현실 기반 연결감이 강했습니다.",
+      },
+      their_now: {
+        Cups: reversed
+          ? "감정 기복이 커져 표현이 들쭉날쭉할 수 있어 반응 해석에 주의가 필요합니다."
+          : "감정을 완전히 닫지는 않았고, 정서적 여유가 생기면 반응이 살아날 가능성이 있습니다.",
+        Wands: reversed
+          ? "생활 에너지가 분산되어 관계 이슈에 집중할 여력이 떨어진 상태일 수 있습니다."
+          : "일·생활 리듬이 빠르게 돌아가며, 타이밍이 맞으면 행동 반응은 비교적 빠른 편입니다.",
+        Swords: reversed
+          ? "머릿속 정리가 덜 되어 말수가 줄거나 방어적 답변이 늘 수 있습니다."
+          : "이성적 판단이 우선인 상태라 감정보다 현실 타당성을 먼저 확인하려는 흐름입니다.",
+        Pentacles: reversed
+          ? "현실 부담이 커져 감정 표현을 뒤로 미루는 상태일 가능성이 큽니다."
+          : "생활 안정과 실질적 조건을 먼저 보며 관계를 신중히 판단하는 시기입니다.",
+      },
+      outside_factor: {
+        Cups: reversed
+          ? "주변 감정 소문이나 정서적 간섭이 사실보다 크게 느껴질 수 있습니다."
+          : "정서적 영향 요인이 있지만 대화의 온도를 안정시키면 충분히 완화 가능합니다.",
+        Wands: reversed
+          ? "외부 변수의 속도와 자극이 커서 관계 흐름이 쉽게 흔들릴 수 있습니다."
+          : "타이밍 변수는 있지만 실행 순서를 정하면 통제 가능한 범위입니다.",
+        Swords: reversed
+          ? "오해·추측·불완전 정보가 장애물로 작동할 수 있어 팩트 체크가 핵심입니다."
+          : "제3자 의견과 현실 판단이 영향을 주니, 기준을 분명히 하면 혼선을 줄일 수 있습니다.",
+        Pentacles: reversed
+          ? "거리·돈·시간 같은 현실 조건이 병목으로 크게 작동하는 구간입니다."
+          : "현실 제약은 존재하지만 조정 가능한 항목부터 손대면 체감 난이도를 낮출 수 있습니다.",
+      },
+      their_heart: {
+        Cups: reversed
+          ? "감정은 남아도 상처 방어가 먼저 올라와 표현이 쉽게 끊길 수 있습니다."
+          : "정서적 호감과 그리움의 결이 비교적 선명하게 살아 있는 신호입니다.",
+        Wands: reversed
+          ? "끌림은 있어도 확신 부족으로 뜨거움이 오래 유지되지 않을 수 있습니다."
+          : "호감 에너지가 살아 있어 계기만 맞으면 반응이 분명해질 수 있습니다.",
+        Swords: reversed
+          ? "마음보다 경계가 먼저 작동해 차갑게 보이는 표현이 나올 수 있습니다."
+          : "감정을 판단으로 검증하는 타입이라 표현은 절제돼도 관심 자체가 사라진 것은 아닙니다.",
+        Pentacles: reversed
+          ? "안정에 대한 불안이 커서 감정을 확인해도 쉽게 실행으로 옮기지 못할 수 있습니다."
+          : "가볍게 흔들리기보다 신뢰가 쌓이면 천천히 깊어지는 속마음 패턴입니다.",
+      },
+      reunion_outcome: {
+        Cups: reversed
+          ? "감정선은 있으나 감정 정리가 선행되지 않으면 재회 후 반복 갈등 위험이 큽니다."
+          : "감정적 재접속 가능성이 높아, 관계 복원 대화가 실제 재회로 이어질 확률이 있습니다.",
+        Wands: reversed
+          ? "재회 시도는 빠를 수 있지만 지속성이 약해 재결합 후 유지 설계가 필요합니다."
+          : "재회 추진력은 충분하며, 타이밍을 맞추면 빠른 전환이 가능한 카드 흐름입니다.",
+        Swords: reversed
+          ? "결과가 지연되거나 번복될 수 있어 합의 없는 감정 돌진은 피해야 합니다."
+          : "조건·기준을 명확히 합의하면 재회 가능성을 현실적으로 끌어올릴 수 있습니다.",
+        Pentacles: reversed
+          ? "현실 조건 미정리가 재회 성사율을 낮출 수 있어 구조 조정이 우선입니다."
+          : "느리지만 안정형 재회 흐름으로, 생활 조건을 맞추면 장기 유지 가능성이 커집니다.",
+      },
+    };
+    return map[pos]?.[s] || "";
+  }
+
+  const suitHint = suit ? positionSuitHint(position, suit, isReversed) : "";
+  const arcanaHint = isMajor
+    ? isReversed
+      ? "메이저 아르카나 역방향이라 이 포지션의 과제가 크게 체감될 수 있어, 섣부른 결론보다 패턴 교정이 중요합니다."
+      : "메이저 아르카나 정방향이라 이 포지션의 영향력이 크고, 올바른 대응 시 흐름 전환 효과도 큽니다."
+    : "";
+
+  function compactParts(parts) {
+    return parts
+      .map((p) => String(p || "").trim())
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  if (position === "past_bond") {
+    return compactParts([
+      base,
+      isReversed
+        ? "과거의 미해결 감정이나 엇갈린 기억이 아직 남아 있을 수 있어, 당시의 오해를 먼저 정리하는 접근이 필요합니다."
+        : "과거에 쌓인 정서적 연결 자산이 남아 있어, 좋은 기억을 건강하게 복원하면 관계 회복의 토대가 됩니다.",
+      suitHint,
+      arcanaHint,
+      keywordLine,
+    ]);
+  }
+  if (position === "their_now") {
+    return compactParts([
+      base,
+      isReversed
+        ? "상대는 현재 여유가 부족하거나 감정 표현이 닫혀 있을 가능성이 커, 반응 속도만으로 마음을 단정하지 않는 것이 좋습니다."
+        : "상대는 현재 자신의 리듬 안에서 감정을 조심스럽게 정리하는 흐름으로 보여, 부담 없는 소통이 효과적입니다.",
+      suitHint,
+      arcanaHint,
+      keywordLine,
+    ]);
+  }
+  if (position === "outside_factor") {
+    return compactParts([
+      base,
+      isReversed
+        ? "주변 변수(타이밍, 거리, 일정, 제3자 시선)가 실제보다 크게 작동할 수 있어 감정적 추측보다 사실 확인이 우선입니다."
+        : "관계를 둘러싼 현실 조건이 영향을 주지만, 조율 가능한 영역을 분리하면 충분히 완화할 수 있는 흐름입니다.",
+      suitHint,
+      arcanaHint,
+      keywordLine,
+    ]);
+  }
+  if (position === "their_heart") {
+    return compactParts([
+      base,
+      isReversed
+        ? "속마음은 있어도 방어적 태도나 두려움 때문에 표현이 늦어질 수 있어, 압박보다 안전한 대화 환경이 필요합니다."
+        : "감정의 잔향이 살아 있고 당신을 의식하는 기류가 있어, 차분한 진심 전달이 관계 온도를 올릴 수 있습니다.",
+      suitHint,
+      arcanaHint,
+      keywordLine,
+    ]);
+  }
+  if (position === "reunion_outcome") {
+    return compactParts([
+      base,
+      isReversed
+        ? "단기적으로는 재회 속도가 느리거나 보류될 가능성이 있으니, 서두르기보다 관계 패턴을 재정비하는 편이 결과를 개선합니다."
+        : "재회 가능성은 열려 있으며, 과거 문제를 같은 방식으로 반복하지 않을 때 실제 성사 확률이 높아집니다.",
+      suitHint,
+      arcanaHint,
+      keywordLine,
+    ]);
+  }
+  return compactParts([base, suitHint, arcanaHint, keywordLine]);
+}
+
 function buildTransition(position, spreadType) {
   if (spreadType === "one_card") return "지금의 핵심 메시지는";
   if (spreadType === "yearly_twelve_card") {
@@ -1079,39 +1246,19 @@ function createReunionLighthouseReading({ drawnCards }) {
       : "일상적 선택과 소통의 변화로도 흐름을 충분히 바꿀 수 있는 구간입니다."
   } 지금 필요한 것은 조급한 확답이 아니라, 마음의 진실과 현실의 간격을 동시에 보는 시선입니다.`;
 
-  const pastBond = c1
-    ? `${cardLabel(c1)}는 과거의 인연이 얼마나 진심이었는지를 보여줍니다. ${
-        relationshipMeaning(c1, "함께했던 시간의 정서적 자산은 아직 마음 한편에 남아 있습니다.")
-      } 이 카드는 '그때가 진짜였는가'라는 질문에 대해, 관계의 온도와 배움을 함께 돌아보라고 말합니다.`
-    : "";
+  const pastBond = c1 ? `${cardLabel(c1)} 카드가 과거 인연 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c1, "past_bond")}` : "";
 
-  const theirNow = c2
-    ? `${cardLabel(c2)}는 그 사람이 현재 어떤 리듬으로 살아가는지 알려줍니다. ${
-        relationshipMeaning(c2, "상대는 감정과 현실 사이에서 자신의 균형을 찾는 중입니다.")
-      } 당장의 반응만으로 모든 마음을 단정하기보다, 지금의 생활 리듬과 심리적 여유를 함께 고려해야 합니다.`
-    : "";
+  const theirNow = c2 ? `${cardLabel(c2)} 카드가 현재 근황 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c2, "their_now")}` : "";
 
-  const outsideFactor = c3
-    ? `${cardLabel(c3)}는 관계 주변의 방해물 또는 상황을 비춥니다. ${
-        relationshipMeaning(c3, "제3자 이슈, 타이밍, 거리감, 현실 조건이 관계의 속도에 영향을 주고 있습니다.")
-      } 문제를 감정만으로 해석하면 소모가 커질 수 있으니, 해결 가능한 요소와 기다려야 할 요소를 분리해 보세요.`
-    : "";
+  const outsideFactor = c3 ? `${cardLabel(c3)} 카드가 방해물/상황 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c3, "outside_factor")}` : "";
 
-  const theirHeart = c4
-    ? `${cardLabel(c4)}는 지금 당신을 향한 속마음의 결을 보여줍니다. ${
-        relationshipMeaning(c4, "표현 방식이 서툴 수는 있어도, 감정의 잔향은 남아 있을 가능성이 있습니다.")
-      } 마음이 있다고 해서 즉시 재회가 성사되는 것은 아니지만, 대화의 문이 열릴 여지는 충분히 확인됩니다.`
-    : "";
+  const theirHeart = c4 ? `${cardLabel(c4)} 카드가 속마음 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c4, "their_heart")}` : "";
 
-  const reunionOutcome = c5
-    ? `${cardLabel(c5)}는 재회의 가능성과 결과를 말합니다. ${
-        relationshipMeaning(c5, "재회는 감정의 강도보다 관계를 다시 설계하는 성숙함에 의해 결정됩니다.")
-      } 이번 흐름의 핵심은 '다시 만나는가' 자체보다, 다시 만나도 건강한 관계를 유지할 준비가 되었는가입니다.`
-    : "";
+  const reunionOutcome = c5 ? `${cardLabel(c5)} 카드가 재회 결과 자리에서 말하는 메시지는, ${buildReunionPositionMeaning(c5, "reunion_outcome")}` : "";
 
   const lighthouseGuidance = hopefulSignal
-    ? "등대의 빛은 아직 꺼지지 않았습니다. 다만 감정의 파도를 잠재우고, 천천히 신뢰를 회복하는 항로를 선택할 때 재회의 가능성은 더 선명해집니다."
-    : "지금의 바다는 다소 거칠지만, 등대는 방향을 잃지 않게 도와줍니다. 잠시 거리를 두고 자신을 회복하는 과정이 오히려 다음 인연의 문을 더 건강하게 엽니다.";
+    ? `등대의 빛은 아직 유효합니다. 특히 결과 카드(${cardLabel(c5)})가 보여준 흐름상, 감정 확인보다 신뢰 회복 순서(사실 확인 → 짧은 소통 → 일관성 점검)로 접근할 때 재회 가능성이 현실화되기 쉽습니다.`
+    : `지금은 파도가 높은 구간입니다. 결과 카드(${cardLabel(c5)}) 기준으로는 속도를 늦추고 자기 회복을 우선할수록 향후 선택의 질이 높아집니다. 재회 여부를 서두르기보다 관계 패턴을 먼저 바로잡아 주세요.`;
 
   const actionPlan = [
     "메시지를 보내기 전, 내가 전하고 싶은 핵심을 2문장으로 정리하세요. 감정 폭발이 아닌 명료한 진심이 중요합니다.",

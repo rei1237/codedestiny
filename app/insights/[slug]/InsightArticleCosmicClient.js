@@ -9,6 +9,12 @@ function getSectionAccent(index) {
   return SECTION_ACCENTS[index % SECTION_ACCENTS.length];
 }
 
+function buildTarotImageUrl(cardId) {
+  const safeId = String(cardId || "").trim();
+  if (!safeId) return "";
+  return `/api/tarot/card-image/${encodeURIComponent(safeId)}`;
+}
+
 export default function InsightArticleCosmicClient({ article, topic, relatedArticles }) {
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -142,6 +148,41 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
                   </div>
                   <div className="ins-section-divider" />
                   <p className="ins-article-body">{section.body}</p>
+                  {Array.isArray(section.cards) && section.cards.length > 0 && (
+                    <div className="ins-tarot-card-grid">
+                      {section.cards.map((card) => (
+                        <article key={card.id} className="ins-tarot-card-item">
+                          <img
+                            src={buildTarotImageUrl(card.id)}
+                            alt={`${card.name} 카드 이미지`}
+                            loading="lazy"
+                            className="ins-tarot-card-image"
+                          />
+                          <h3 className="ins-tarot-card-title">
+                            {card.id} · {card.name}
+                          </h3>
+                          <p className="ins-tarot-card-meaning">{card.meaning}</p>
+                          <p className="ins-tarot-card-reading">{card.reading}</p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                  {Array.isArray(section.animalCards) && section.animalCards.length > 0 && (
+                    <div className="ins-animal-card-grid">
+                      {section.animalCards.map((item) => (
+                        <article key={`${item.star}-${item.animalName}`} className="ins-animal-card-item">
+                          <div className="ins-animal-card-head">
+                            <span className="ins-animal-emoji" aria-hidden="true">{item.animalEmoji}</span>
+                            <div className="ins-animal-title-wrap">
+                              <h3 className="ins-animal-star">{item.star}</h3>
+                              <p className="ins-animal-name">{item.animalName}</p>
+                            </div>
+                          </div>
+                          <p className="ins-animal-trait">{item.trait}</p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
                 </section>
                 {index < article.sections.length - 1 && <div className="ins-section-sep" aria-hidden="true">─ ✦ ─ ─ ─ ─ ─ ─ ─ ✦ ─</div>}
               </div>

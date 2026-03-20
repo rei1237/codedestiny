@@ -648,17 +648,22 @@
 /* 5카드 리딩 결과 — 카드 그리드 (결과 스테이지) */
 .tarot-reunion-result-cards {
   display: none;
-  gap: 10px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 40px;
-  padding: 20px 12px;
-  border-radius: 18px;
+  padding: 22px 16px 18px;
+  border-radius: 20px;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(180, 220, 255, .18), transparent 55%),
-    linear-gradient(180deg, rgba(15, 45, 85, .4), rgba(8, 28, 55, .35));
-  border: 1px solid rgba(160, 210, 255, .25);
-  box-shadow: 0 4px 24px rgba(0, 20, 50, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(145, 205, 255, .2), transparent 58%),
+    radial-gradient(circle at 12% 18%, rgba(210, 236, 255, .12), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(255, 232, 188, .11), transparent 34%),
+    linear-gradient(180deg, rgba(10, 34, 65, .55), rgba(7, 25, 50, .46));
+  border: 1px solid rgba(168, 216, 255, .3);
+  box-shadow:
+    0 10px 30px rgba(0, 18, 44, .4),
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    inset 0 -1px 0 rgba(120, 180, 235, .14);
 }
 .tarot-reunion-result-cards--visible {
   display: flex;
@@ -670,19 +675,37 @@
 }
 .tarot-reunion-result-card-wrap {
   flex: 0 0 auto;
+  position: relative;
+}
+.tarot-reunion-result-card-wrap::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 72%;
+  height: 76%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(140, 205, 255, .25), rgba(140, 205, 255, 0) 68%);
+  filter: blur(9px);
+  pointer-events: none;
+  opacity: .65;
 }
 .tarot-reunion-result-card {
-  width: 64px;
+  width: 72px;
   aspect-ratio: 3 / 4;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(200, 230, 255, .4);
-  box-shadow: 0 4px 16px rgba(5, 25, 55, .4);
-  transition: transform .25s ease, box-shadow .25s ease;
+  border: 1px solid rgba(212, 236, 255, .54);
+  box-shadow:
+    0 8px 20px rgba(4, 20, 44, .45),
+    0 0 0 1px rgba(255, 255, 255, .06) inset;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  backdrop-filter: blur(2px);
 }
 .tarot-reunion-result-card:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(100, 180, 255, .25);
+  transform: translateY(-4px) scale(1.04);
+  border-color: rgba(235, 246, 255, .8);
+  box-shadow: 0 12px 26px rgba(95, 180, 255, .26), 0 6px 18px rgba(5, 24, 52, .38);
 }
 .tarot-reunion-result-card-front {
   width: 100%;
@@ -701,16 +724,16 @@
   width: 100%;
   height: auto;
   flex: 1;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 6px;
 }
 .tarot-reunion-result-card-name {
-  font-size: .58rem;
-  color: #345476;
+  font-size: .56rem;
+  color: #31506f;
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
-  margin-top: 2px;
+  margin-top: 3px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -856,18 +879,176 @@
 }
 .tarot-reunion-section-title {
   margin: 0 0 12px;
-  color: #d8efff;
+  color: #dcefff;
   font-weight: 700;
   font-family: "Noto Serif KR", "Georgia", serif;
   font-size: 1rem;
   text-shadow: 0 1px 4px rgba(0, 20, 50, .3);
 }
+.tarot-reunion-section-title::before {
+  content: "✦ ";
+  color: rgba(255, 222, 145, .92);
+  text-shadow: 0 0 10px rgba(255, 214, 120, .55);
+}
+.tarot-reunion-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.tarot-reunion-section-head .tarot-reunion-section-title {
+  margin: 0;
+}
+.tarot-reunion-inline-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 221, 166, .5);
+  background:
+    radial-gradient(circle at 16% 28%, rgba(255, 228, 170, .2), transparent 45%),
+    linear-gradient(160deg, rgba(22, 52, 88, .52), rgba(15, 40, 70, .36));
+  box-shadow:
+    0 0 0 1px rgba(255, 244, 214, .06) inset,
+    0 4px 14px rgba(255, 201, 102, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .08);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.tarot-reunion-inline-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 232, 185, .8);
+  box-shadow:
+    0 6px 16px rgba(255, 198, 92, .2),
+    0 0 20px rgba(255, 214, 126, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+.tarot-reunion-inline-card:focus-visible {
+  outline: 2px solid rgba(255, 223, 158, .9);
+  outline-offset: 2px;
+}
+.tarot-reunion-inline-card-thumb {
+  width: 32px;
+  height: 42px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 230, 184, .65);
+  background: linear-gradient(160deg, rgba(244, 250, 255, .97), rgba(223, 240, 255, .95));
+  flex: 0 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 16, 38, .35);
+}
+.tarot-reunion-inline-card-front {
+  width: 100%;
+  height: 100%;
+}
+.tarot-reunion-inline-card-front .tarot-reunion-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tarot-reunion-inline-card-front[data-reversed="1"] .tarot-reunion-face-img {
+  transform: rotate(180deg);
+}
+.tarot-reunion-inline-card-name {
+  font-size: .74rem;
+  color: #ffe1a8;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(255, 201, 98, .2);
+}
+.tarot-reunion-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100010;
+  display: none;
+}
+.tarot-reunion-lightbox.is-open {
+  display: block;
+}
+.tarot-reunion-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(120, 190, 255, .2), transparent 40%),
+    rgba(2, 9, 22, .78);
+  backdrop-filter: blur(4px);
+}
+.tarot-reunion-lightbox-panel {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(88vw, 380px);
+  border-radius: 18px;
+  border: 1px solid rgba(180, 220, 255, .4);
+  background: linear-gradient(165deg, rgba(8, 30, 58, .93), rgba(10, 38, 70, .9));
+  box-shadow: 0 24px 56px rgba(0, 10, 28, .6), 0 0 26px rgba(115, 190, 255, .2);
+  padding: 18px 16px 16px;
+  animation: reunionLightboxIn .22s ease;
+}
+@keyframes reunionLightboxIn {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.tarot-reunion-lightbox-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(210, 232, 255, .45);
+  background: rgba(22, 54, 92, .7);
+  color: #eaf6ff;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tarot-reunion-lightbox-card {
+  width: 100%;
+  max-width: 260px;
+  margin: 10px auto 12px;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(210, 232, 255, .5);
+  background: linear-gradient(160deg, rgba(248, 253, 255, .98), rgba(225, 241, 255, .96));
+}
+.tarot-reunion-lightbox-card-front {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+.tarot-reunion-lightbox-card-front .tarot-reunion-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tarot-reunion-lightbox-card-front[data-reversed="1"] .tarot-reunion-face-img {
+  transform: rotate(180deg);
+}
+.tarot-reunion-lightbox-name {
+  margin: 0;
+  text-align: center;
+  color: #e5f4ff;
+  font-family: "Noto Serif KR", "Georgia", serif;
+  font-size: .95rem;
+}
 .tarot-reunion-section-text {
   margin: 0;
-  color: #e9f7ff;
+  color: #dfedf9;
   line-height: 1.78;
   font-size: .95rem;
   min-height: 1.4em;
+}
+.tarot-reunion-section-text::first-line {
+  color: #fff2ce;
 }
 .tarot-reunion-typing-text {
   display: inline;
@@ -919,11 +1100,12 @@
   .tarot-reunion-card { max-width: 126px; }
   .tarot-reunion-lighthouse { right: 3%; bottom: 24%; transform: scale(.85); }
   .tarot-reunion-reading-header { margin-bottom: 28px; }
-  .tarot-reunion-result-cards { margin-bottom: 32px; padding: 16px 8px; gap: 8px; }
+  .tarot-reunion-result-cards { margin-bottom: 32px; padding: 14px 8px 12px; gap: 9px; }
   .tarot-reunion-result-divider { height: 44px; margin-bottom: 22px; }
-  .tarot-reunion-result-card { width: 56px; }
+  .tarot-reunion-result-card { width: 60px; }
   .tarot-reunion-result-card-name { font-size: .52rem; }
   .tarot-reunion-section { padding: 14px 16px; margin-bottom: 14px; }
+  .tarot-reunion-inline-card-name { max-width: 94px; }
 }
 
 @media (max-width: 768px) {
@@ -976,6 +1158,23 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+  .tarot-reunion-section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .tarot-reunion-inline-card {
+    align-self: flex-start;
+  }
+  .tarot-reunion-inline-card:hover {
+    transform: none;
+  }
+  .tarot-reunion-lightbox-panel {
+    width: min(92vw, 360px);
+    padding: 16px 12px 14px;
+  }
+  .tarot-reunion-lightbox-card {
+    max-width: 240px;
   }
 }
 
