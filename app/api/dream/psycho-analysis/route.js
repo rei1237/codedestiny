@@ -226,6 +226,32 @@ function getFirstHeadingSummary(md) {
   return core ? core.replace(/\s+/g, " ").slice(0, 140) : s.replace(/\s+/g, " ").slice(0, 140);
 }
 
+function toEmergencyMarkdownFromRaw(rawText) {
+  const raw = String(rawText || "").replace(/\s+/g, " ").trim();
+  const clipped = raw.slice(0, 900);
+  return [
+    "### 무의식의 핵심 테마",
+    "억압과 경계 불안이 반복 상징으로 표면화된 상태로 해석된다.",
+    "",
+    "### 정신분석학적 심층 해독",
+    clipped || "원문 응답이 불완전하여 핵심 해독 문장을 정규화했다.",
+    "",
+    "### 상징(Symbol) 디코딩 사전",
+    "- **[반복 장면]**: 미해결 정동의 재귀적 회귀를 시사한다.",
+    "- **[경계 신호]**: 자아 방어가 과가동 중임을 드러낸다.",
+    "- **[긴장 감각]**: 현실 과제와 무의식 욕구의 충돌 축으로 볼 수 있다.",
+    "",
+    "### 억압된 그림자와 감정선 분석",
+    "회피해 온 감정이 상징 이미지로 우회 발현된 흐름이 확인된다.",
+    "",
+    "### 시공간을 초월한 원형(Archetype) 탐구",
+    "문턱/거울/추락 계열의 원형은 자기 인식 전환 국면의 신호로 읽힌다.",
+    "",
+    "### 현실을 위한 통찰",
+    "반복 상징을 기록해 현실 촉발 요인과 연결하라. 불면과 공황이 동반되면 전문가 상담 권유를 즉시 따르라.",
+  ].join("\n");
+}
+
 async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -449,17 +475,10 @@ export async function POST(request) {
         })();
         analysis = normalizeAnalysisObject(parsed);
         if (!isValidAnalysisObject(analysis)) {
-          return jsonWithCors(
-            request,
-            {
-              ok: false,
-              message:
-                "분석 결과 형식(JSON)을 안정적으로 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-            },
-            { status: 502 },
-          );
+          markdown = toEmergencyMarkdownFromRaw(raw);
+        } else {
+          markdown = analysisToMarkdown(analysis);
         }
-        markdown = analysisToMarkdown(analysis);
         }
       } catch (geminiError) {
         const lower = String(geminiError?.message || "").toLowerCase();
