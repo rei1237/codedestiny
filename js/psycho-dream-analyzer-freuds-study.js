@@ -218,7 +218,7 @@
       "#".concat(OVERLAY_ID, " .ps-wizard-medallion{width:92px;height:92px;border-radius:50%;border:1px solid rgba(212,175,37,.45);\n" +
       "background:rgba(212,175,37,.06);display:flex;align-items:center;justify-content:center;}\n") +
       "#".concat(OVERLAY_ID, " .ps-wizard-text p{margin:0;}\n") +
-      "#".concat(OVERLAY_ID, " #psychoDreamEntrancePrompt.ps-wizard-prompt{margin-top:6px;color:rgba(253,253,253,.82);font-size:.98rem;line-height:1.55;}\n") +
+      "#".concat(OVERLAY_ID, " #psychoDreamEntrancePrompt.ps-wizard-prompt{margin-top:8px;color:rgba(255,252,238,.98);font-size:1.01rem;line-height:1.62;font-weight:600;letter-spacing:-0.01em;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(212,175,37,.16),rgba(255,255,255,.06));border:1px solid rgba(212,175,37,.45);box-shadow:0 8px 20px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.24);text-shadow:0 1px 2px rgba(0,0,0,.42);}\n") +
       "#".concat(OVERLAY_ID, " .ps-screen{position:relative;z-index:1;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal{margin:10px auto 0;max-width:860px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal-title{display:flex;align-items:center;gap:12px;color:rgba(253,253,253,.93);font-family:var(--ps-font-display);font-weight:700;font-size:1.25rem;\n") +

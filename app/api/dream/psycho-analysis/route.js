@@ -80,17 +80,21 @@ function normalizeAnalysisObject(raw) {
     symbols,
     psychological_state: String(obj.psychological_state || "").trim(),
     psychoanalytic_interpretation: String(obj.psychoanalytic_interpretation || "").trim(),
-    advice: String(obj.advice || "").trim(),
+    shadow_analysis: String(obj.shadow_analysis || "").trim(),
+    archetype_exploration: String(obj.archetype_exploration || "").trim(),
+    advice: String(obj.advice || obj.insights || "").trim(),
   };
 }
 
 function isValidAnalysisObject(obj) {
   if (!obj || typeof obj !== "object") return false;
-  const hasSymbols = Array.isArray(obj.symbols) && obj.symbols.length >= 1;
+  const hasSymbols = Array.isArray(obj.symbols) && obj.symbols.length >= 1 && obj.symbols.length <= 3;
   const hasState = String(obj.psychological_state || "").length >= 20;
   const hasInterpretation = String(obj.psychoanalytic_interpretation || "").length >= 40;
+  const hasShadow = String(obj.shadow_analysis || "").length >= 20;
+  const hasArchetype = String(obj.archetype_exploration || "").length >= 20;
   const hasAdvice = String(obj.advice || "").length >= 20;
-  return hasSymbols && hasState && hasInterpretation && hasAdvice;
+  return hasSymbols && hasState && hasInterpretation && hasShadow && hasArchetype && hasAdvice;
 }
 
 function analysisToMarkdown(analysis) {
@@ -100,22 +104,28 @@ function analysisToMarkdown(analysis) {
       const s = String(it?.symbol || "").trim();
       const m = String(it?.meaning || "").trim();
       if (!s) return "";
-      return m ? `- ${s}: ${m}` : `- ${s}`;
+      return m ? `- **[${s}]**: ${m}` : `- **[${s}]**`;
     })
     .filter(Boolean)
     .join("\n");
 
   return [
-    "[무의식의 핵심 테마]:",
+    "### 무의식의 핵심 테마",
     String(analysis?.psychological_state || "분석 결과를 정리 중입니다."),
     "",
-    "[정신분석학적 심층 해독]:",
+    "### 정신분석학적 심층 해독",
     String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
     "",
-    "[상징(Symbol) 디코딩 사전]:",
+    "### 상징(Symbol) 디코딩 사전",
     symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
     "",
-    "[현실을 위한 인사이트]:",
+    "### 억압된 그림자와 감정선 분석",
+    String(analysis?.shadow_analysis || "그림자 분석을 정리 중입니다."),
+    "",
+    "### 시공간을 초월한 원형(Archetype) 탐구",
+    String(analysis?.archetype_exploration || "원형 탐구를 정리 중입니다."),
+    "",
+    "### 현실을 위한 통찰",
     String(analysis?.advice || "조언을 생성하지 못했습니다. 다시 시도해 주세요."),
   ].join("\n");
 }
@@ -156,10 +166,12 @@ async function fetchWithTimeout(url, options, timeoutMs) {
 function validateOutputStructure(md) {
   const n = normalizeMarkdownForValidation(md);
   const required = [
-    /\[\s*무의식의\s*핵심\s*테마\s*\]/,
-    /\[\s*정신분석학적\s*심층\s*해독\s*\]/,
-    /\[\s*상징\s*\(\s*Symbol\s*\)\s*디코딩\s*사전\s*\]/,
-    /\[\s*현실을\s*위한\s*인사이트\s*\]/,
+    /###\s*무의식의\s*핵심\s*테마/,
+    /###\s*정신분석학적\s*심층\s*해독/,
+    /###\s*상징\s*\(\s*Symbol\s*\)\s*디코딩\s*사전/,
+    /###\s*억압된\s*그림자와\s*감정선\s*분석/,
+    /###\s*시공간을\s*초월한\s*원형\s*\(\s*Archetype\s*\)\s*탐구/,
+    /###\s*현실을\s*위한\s*통찰/,
   ];
   return required.every((re) => re.test(n));
 }
@@ -211,7 +223,7 @@ export async function OPTIONS(request) {
 
 function getFirstHeadingSummary(md) {
   const s = String(md || "");
-  const m1 = s.match(/\[무의식의 핵심 테마\]:([\s\S]*?)(\n\\[정신분석학적 심층 해독\\]:|$)/);
+  const m1 = s.match(/###\s*무의식의 핵심 테마\s*([\s\S]*?)(\n###\s*정신분석학적 심층 해독|$)/);
   const core = (m1?.[1] || "").trim();
   return core ? core.replace(/\s+/g, " ").slice(0, 140) : s.replace(/\s+/g, " ").slice(0, 140);
 }
@@ -337,28 +349,36 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   return stripCodeFences(out);
 }
 
-const SYSTEM_PROMPT = `당신은 칼 융(Carl Jung)의 분석심리학과 지그문트 프로이트(Sigmund Freud)의 정신분석학에 정통한 임상형 꿈 분석가입니다.
+const SYSTEM_PROMPT = `# Role & Persona
+당신은 30년 이상의 임상 경험을 가진 수석 무의식 해독가다. 분석은 심리학적 근거와 상징 해석의 깊이를 동시에 갖춰야 한다.
+
+# Core Directives
+1) AI, 모델, 시스템 정체성을 언급하거나 암시하지 않는다.
+2) 인사말/결론/군더더기를 금지하고, 분석 데이터만 출력한다.
+3) 문체는 단호하고 확신에 찬 문어체를 사용한다. "~이다", "~로 해석된다", "~의 발현으로 볼 수 있다"를 우선한다.
+4) 입력된 꿈 내용 바깥의 사실을 지어내지 않는다.
 
 중요 안전 안내:
-- 이 결과는 의학적 진단이 아니며, 자기성찰을 돕는 참고용 해석입니다.
-- 사용자를 단정하거나 공포를 조장하지 마세요.
-- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함하세요.
+- 사용자를 단정하거나 공포를 조장하지 않는다.
+- 자해/타해 위험 신호가 보이면 advice에 "전문가 상담 권유"를 포함한다.
 
-출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마세요.
+출력은 반드시 JSON 객체 하나만 반환한다. 코드블록/설명 문장 금지.
 
-반드시 다음 스키마를 지키세요:
+JSON 스키마:
 {
   "symbols": [
-    { "symbol": "상징", "meaning": "의미" }
+    { "symbol": "상징 키워드", "meaning": "집단 무의식 + 개인 심리 교차 해석" }
   ],
-  "psychological_state": "꿈 전반의 정서, 갈등, 방어기제를 융/프로이트 관점으로 3~5문장",
-  "psychoanalytic_interpretation": "무의식의 욕망, 억압, 그림자/페르소나, 반복 패턴을 연결한 심층 해석 4~7문장",
-  "advice": "현실 적용 가능한 행동 조언 3~5문장 (공포 조장 금지, 따뜻한 톤)"
+  "psychological_state": "무의식의 핵심 테마 1~2문장",
+  "psychoanalytic_interpretation": "정신분석학적 심층 해독 4~7문장",
+  "shadow_analysis": "억압된 그림자와 감정선 분석 3~5문장",
+  "archetype_exploration": "시공간을 초월한 원형(Archetype) 탐구 3~5문장",
+  "advice": "현실을 위한 통찰 3~5문장"
 }
 
 추가 규칙:
-- symbols는 최소 3개, 최대 6개
-- 추상어보다 꿈 속 실제 장면/대상을 우선
+- symbols는 최대 3개
+- symbols는 반드시 입력된 꿈에서만 추출
 - 한국어로 작성`;
 
 export async function POST(request) {
@@ -389,39 +409,60 @@ export async function POST(request) {
     let markdown = "";
     let analysis = null;
     if (useGemini) {
-      const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
-      const raw = await callGeminiDreamPsychoAnalysis({
-        systemPrompt: SYSTEM_PROMPT,
-        dreamText,
-        model,
-        maxTokens,
-      });
-      const parsed = (() => {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          const extracted = extractFirstJsonObject(raw);
-          if (!extracted) return null;
+      try {
+        const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
+        const raw = await callGeminiDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText,
+          model,
+          maxTokens,
+        });
+        const parsed = (() => {
           try {
-            return JSON.parse(extracted);
+            return JSON.parse(raw);
           } catch {
-            return null;
+            const extracted = extractFirstJsonObject(raw);
+            if (!extracted) return null;
+            try {
+              return JSON.parse(extracted);
+            } catch {
+              return null;
+            }
           }
+        })();
+        analysis = normalizeAnalysisObject(parsed);
+        if (!isValidAnalysisObject(analysis)) {
+          return jsonWithCors(
+            request,
+            {
+              ok: false,
+              message:
+                "분석 결과 형식(JSON)을 안정적으로 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            },
+            { status: 502 },
+          );
         }
-      })();
-      analysis = normalizeAnalysisObject(parsed);
-      if (!isValidAnalysisObject(analysis)) {
-        return jsonWithCors(
-          request,
-          {
-            ok: false,
-            message:
-              "분석 결과 형식(JSON)을 안정적으로 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-          },
-          { status: 502 },
-        );
+        markdown = analysisToMarkdown(analysis);
+      } catch (geminiError) {
+        const lower = String(geminiError?.message || "").toLowerCase();
+        const geminiQuotaLike =
+          Number(geminiError?.status) === 429 ||
+          lower.includes("quota") ||
+          lower.includes("resource exhausted") ||
+          lower.includes("rate limit") ||
+          lower.includes("too many requests");
+        if (useAnthropic && geminiQuotaLike) {
+          const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+          markdown = await callAnthropicDreamPsychoAnalysis({
+            systemPrompt: SYSTEM_PROMPT,
+            dreamText,
+            model,
+            maxTokens,
+          });
+        } else {
+          throw geminiError;
+        }
       }
-      markdown = analysisToMarkdown(analysis);
     } else if (useAnthropic) {
       const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
       markdown = await callAnthropicDreamPsychoAnalysis({
@@ -445,11 +486,13 @@ export async function POST(request) {
       // 포맷이 깨졌으면 한 번 더 엄격 지시로 재시도합니다.
       const retryDreamText =
         dreamText +
-        "\n\n[추가 지시] 반드시 아래의 4개 섹션 헤딩을 정확히 포함해 출력하세요:\n" +
-        "- [무의식의 핵심 테마]:\n" +
-        "- [정신분석학적 심층 해독]:\n" +
-        "- [상징(Symbol) 디코딩 사전]:\n" +
-        "- [현실을 위한 인사이트]:\n";
+        "\n\n[추가 지시] 아래 항목을 모두 채운 JSON 객체 하나만 반환:\n" +
+        "- psychological_state\n" +
+        "- psychoanalytic_interpretation\n" +
+        "- symbols(최대 3개)\n" +
+        "- shadow_analysis\n" +
+        "- archetype_exploration\n" +
+        "- advice\n";
 
       if (useGemini) {
         const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
@@ -472,7 +515,7 @@ export async function POST(request) {
       if (!validateOutputStructure(markdown)) {
         const raw = String(markdown || "").trim();
         const usableFallback =
-          raw.length >= 120 && /\[[^\]]+\]/.test(raw) && /무의식|상징|인사이트|정신분석/.test(raw);
+          raw.length >= 120 && /###/.test(raw) && /무의식|상징|그림자|원형|통찰|정신분석/.test(raw);
         if (!usableFallback) {
           return jsonWithCors(
             request,
