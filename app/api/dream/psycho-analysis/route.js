@@ -276,12 +276,25 @@ async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model
 
 async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   // Gemini 키는 반드시 환경변수로만 관리합니다.
-  // 배포 환경에서는 GOOGLE_API_KEY를 우선 사용하고, 기존 GEMINI_API_KEY도 호환 지원합니다.
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw Object.assign(new Error("API Key not found: GEMINI_API_KEY 환경변수가 필요합니다."), {
-      status: 500,
-    });
+  // 배포 환경에서는 여러 키를 순차 사용해 quota/rate limit에 대한 내성을 높입니다.
+  const keyCandidates = [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  const apiKeys = [...new Set(keyCandidates)];
+  if (!apiKeys.length) {
+    throw Object.assign(
+      new Error(
+        "API Key not found: GEMINI_API_KEY/GOOGLE_API_KEY(+_2,+_3) 환경변수가 필요합니다."
+      ),
+      { status: 500 }
+    );
   }
 
   // Gemini REST API
@@ -289,42 +302,49 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   const endpointModel = encodeURIComponent(model || "gemini-2.5-flash");
   const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", endpointModel);
 
-  const resp = await fetchWithTimeout(
-    endpoint + "?key=" + encodeURIComponent(apiKey),
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          role: "system",
-          parts: [{ text: String(systemPrompt || "") }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+  let lastError = null;
+  for (const apiKey of apiKeys) {
+    const resp = await fetchWithTimeout(
+      endpoint + "?key=" + encodeURIComponent(apiKey),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: {
+            role: "system",
+            parts: [{ text: String(systemPrompt || "") }],
           },
-        ],
-        generationConfig: {
-          maxOutputTokens: Number(maxTokens || 1200),
-          temperature: 0.5,
-          topP: 0.95,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-    getProviderTimeoutMs()
-  );
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: Number(maxTokens || 1200),
+            temperature: 0.5,
+            topP: 0.95,
+            responseMimeType: "application/json",
+          },
+        }),
+      },
+      getProviderTimeoutMs()
+    );
 
-  const payload = await resp.json().catch(() => null);
-  if (!resp.ok) {
-    const rawMessage =
-      payload?.error?.message ||
-      payload?.message ||
-      `Gemini 호출 실패(${resp.status})`;
+    const payload = await resp.json().catch(() => null);
+    if (resp.ok) {
+      const out =
+        payload?.candidates?.[0]?.content?.parts
+          ?.map((p) => p?.text)
+          ?.filter(Boolean)
+          ?.join("") ||
+        payload?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "";
+      return stripCodeFences(out);
+    }
+
+    const rawMessage = payload?.error?.message || payload?.message || `Gemini 호출 실패(${resp.status})`;
     const lower = String(rawMessage || "").toLowerCase();
-
-    // 무료/사용량 한도 초과(429, quota/resource exhausted)는 톤앤매너 메시지로 변환
     const isQuotaLike =
       resp.status === 429 ||
       lower.includes("quota") ||
@@ -332,21 +352,17 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
       lower.includes("rate limit") ||
       lower.includes("too many requests");
 
-    const message = isQuotaLike ? toFreudQuotaMessage() : rawMessage;
-    const err = new Error(message);
-    err.status = resp.status;
-    throw err;
+    lastError = Object.assign(new Error(isQuotaLike ? toFreudQuotaMessage() : rawMessage), {
+      status: resp.status,
+      quotaLike: isQuotaLike,
+    });
+
+    // quota/rate limit 계열이면 다음 키로 즉시 재시도
+    if (isQuotaLike) continue;
+    throw lastError;
   }
 
-  const out =
-    payload?.candidates?.[0]?.content?.parts
-      ?.map((p) => p?.text)
-      ?.filter(Boolean)
-      ?.join("") ||
-    payload?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    "";
-
-  return stripCodeFences(out);
+  throw lastError || Object.assign(new Error("Gemini 호출 실패"), { status: 502 });
 }
 
 const SYSTEM_PROMPT = `# Role & Persona
