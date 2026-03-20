@@ -24,6 +24,13 @@ function shouldRedirectToCanonical(host) {
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const ua = request.headers.get("user-agent") || "";
+  const method = (request.method || "GET").toUpperCase();
+
+  // API routes and non-idempotent requests must not be canonical-redirected.
+  // Redirecting these can break POST flows and trigger cross-origin CORS failures.
+  if (pathname.startsWith("/api/") || !["GET", "HEAD", "OPTIONS"].includes(method)) {
+    return NextResponse.next();
+  }
 
   // Keep legacy/static pages referencing an icon path without 404ing.
   if (pathname === "/icons/icon-192x192.png") {
