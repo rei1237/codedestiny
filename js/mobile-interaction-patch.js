@@ -233,6 +233,10 @@
       ].join(',')
     }
   ];
+  var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
+    if (rule && rule.action) acc[rule.action] = true;
+    return acc;
+  }, {});
 
   function nodeLabel(el) {
     if (!el || !el.tagName) return '(null)';
@@ -504,7 +508,11 @@
 
   function findDataActionElement(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
-    return origin.closest('[data-action]');
+    var el = origin.closest('[data-action]');
+    if (!el) return null;
+    var action = el.getAttribute('data-action');
+    if (!action || !FEATURE_ACTION_SET[action]) return null;
+    return el;
   }
 
   function invokeDataActionFallback(actionEl, sourceEvent) {
@@ -745,15 +753,13 @@
 
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
-      var dataActionEl = findDataActionElement(event.target);
-
-      if (Date.now() < suppressClickUntil && (findRuleFromTarget(event.target) || dataActionEl)) {
+      var rule = findRuleFromTarget(event.target);
+      if (Date.now() < suppressClickUntil && rule) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
 
-      var rule = findRuleFromTarget(event.target);
       if (!rule) return;
 
       var handled = invokeBusinessAction(rule, event.target, event);
