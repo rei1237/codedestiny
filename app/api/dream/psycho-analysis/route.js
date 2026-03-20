@@ -433,6 +433,9 @@ export async function POST(request) {
           model,
           maxTokens,
         });
+        if (validateOutputStructure(raw)) {
+          markdown = String(raw || "").trim();
+        } else {
         const parsed = (() => {
           try {
             return JSON.parse(raw);
@@ -459,6 +462,7 @@ export async function POST(request) {
           );
         }
         markdown = analysisToMarkdown(analysis);
+        }
       } catch (geminiError) {
         const lower = String(geminiError?.message || "").toLowerCase();
         const geminiQuotaLike =
