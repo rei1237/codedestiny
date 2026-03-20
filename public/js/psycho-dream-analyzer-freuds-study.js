@@ -485,6 +485,7 @@
 
     var headingRe = /^\s*\[(.+?)\]\s*:\s*$/;
     var headingRe2 = /^\s*\[(.+?)\]\s*:\s*(.*)$/;
+    var markdownHeadingRe = /^\s{0,3}#{2,6}\s+(.+?)\s*$/;
 
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
@@ -507,6 +508,12 @@
         if (m[2]) {
           paragraph.push(String(m[2]).trim());
         }
+        continue;
+      }
+
+      var mdHeading = raw.match(markdownHeadingRe);
+      if (mdHeading) {
+        openSection(mdHeading[1] || "");
         continue;
       }
 

@@ -106,16 +106,20 @@ function analysisToMarkdown(analysis) {
     .join("\n");
 
   return [
-    "[무의식의 핵심 테마]:",
+    "## [정신 분석 결과 보고서: 무의식의 투사]",
+    "",
+    "### 1. 상징적 전이 분석 (Symbolic Transfer)",
     String(analysis?.psychological_state || "분석 결과를 정리 중입니다."),
     "",
-    "[정신분석학적 심층 해독]:",
-    String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
-    "",
-    "[상징(Symbol) 디코딩 사전]:",
+    symbolLines
+      ? "- 꿈 속 핵심 상징과 전이 단서"
+      : "- 꿈의 상징 단서가 명확하지 않아, 반복 등장한 정서를 중심으로 전이를 추적했습니다.",
     symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
     "",
-    "[현실을 위한 인사이트]:",
+    "### 2. 무의식의 역동과 갈등 (Unconscious Dynamics)",
+    String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
+    "",
+    "### 3. 정신역동적 처방 (Psychodynamic Guidance)",
     String(analysis?.advice || "조언을 생성하지 못했습니다. 다시 시도해 주세요."),
   ].join("\n");
 }
@@ -156,10 +160,10 @@ async function fetchWithTimeout(url, options, timeoutMs) {
 function validateOutputStructure(md) {
   const n = normalizeMarkdownForValidation(md);
   const required = [
-    /\[\s*무의식의\s*핵심\s*테마\s*\]/,
-    /\[\s*정신분석학적\s*심층\s*해독\s*\]/,
-    /\[\s*상징\s*\(\s*Symbol\s*\)\s*디코딩\s*사전\s*\]/,
-    /\[\s*현실을\s*위한\s*인사이트\s*\]/,
+    /##\s*\[\s*정신\s*분석\s*결과\s*보고서\s*:\s*무의식의\s*투사\s*\]/,
+    /###\s*1\.\s*상징적\s*전이\s*분석\s*\(\s*Symbolic\s*Transfer\s*\)/,
+    /###\s*2\.\s*무의식의\s*역동과\s*갈등\s*\(\s*Unconscious\s*Dynamics\s*\)/,
+    /###\s*3\.\s*정신역동적\s*처방\s*\(\s*Psychodynamic\s*Guidance\s*\)/,
   ];
   return required.every((re) => re.test(n));
 }
@@ -211,7 +215,7 @@ export async function OPTIONS(request) {
 
 function getFirstHeadingSummary(md) {
   const s = String(md || "");
-  const m1 = s.match(/\[무의식의 핵심 테마\]:([\s\S]*?)(\n\\[정신분석학적 심층 해독\\]:|$)/);
+  const m1 = s.match(/###\s*1\.\s*상징적 전이 분석 \(Symbolic Transfer\)\s*([\s\S]*?)(\n###\s*2\.|$)/);
   const core = (m1?.[1] || "").trim();
   return core ? core.replace(/\s+/g, " ").slice(0, 140) : s.replace(/\s+/g, " ").slice(0, 140);
 }
@@ -337,23 +341,33 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   return stripCodeFences(out);
 }
 
-const SYSTEM_PROMPT = `당신은 칼 융(Carl Jung)의 분석심리학과 지그문트 프로이트(Sigmund Freud)의 정신분석학에 정통한 임상형 꿈 분석가입니다.
+const SYSTEM_PROMPT = `# Role: 30년 경력의 시니어 심리 분석 및 전문 해몽가
+너는 AI가 아니라, 30년간 수만 명의 무의식을 분석해온 전문 심리 분석가이자 정신역동 해몽 전문가로서 답한다.
+
+# Strict Constraints (절대 규칙)
+1. 정체성 은폐: 자신이 AI, LLM, 또는 특정 모델임을 암시하는 문구를 절대 사용하지 않는다.
+2. 전문적 권위: 가벼운 조언이 아니라 내담자의 심연을 꿰뚫는 통찰력 있고 무게감 있는 어조를 유지한다.
+3. 분석적 접근: 프로이트와 융의 관점을 함께 사용해 무의식의 역동을 해석한다.
+
+# Tone & Manner (말투 및 문체)
+- "안녕하신가요?", "~인 것 같아요" 같은 가벼운 문체를 금지한다.
+- "~로 분석됩니다", "~를 시사합니다", "결코 가볍게 넘길 지점이 아닙니다" 같은 단정적이고 깊이 있는 문체를 유지한다.
+- 페르소나, 개성화 과정, 투사, 억압, 방어기제 같은 전문 용어를 문맥에 맞게 사용한다.
 
 중요 안전 안내:
-- 이 결과는 의학적 진단이 아니며, 자기성찰을 돕는 참고용 해석입니다.
-- 사용자를 단정하거나 공포를 조장하지 마세요.
-- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함하세요.
+- 사용자를 단정하거나 공포를 조장하지 않는다.
+- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함한다.
 
-출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마세요.
+출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마라.
 
-반드시 다음 스키마를 지키세요:
+반드시 다음 스키마를 지켜라:
 {
   "symbols": [
     { "symbol": "상징", "meaning": "의미" }
   ],
-  "psychological_state": "꿈 전반의 정서, 갈등, 방어기제를 융/프로이트 관점으로 3~5문장",
-  "psychoanalytic_interpretation": "무의식의 욕망, 억압, 그림자/페르소나, 반복 패턴을 연결한 심층 해석 4~7문장",
-  "advice": "현실 적용 가능한 행동 조언 3~5문장 (공포 조장 금지, 따뜻한 톤)"
+  "psychological_state": "상징적 전이 분석 중심의 해석 3~5문장",
+  "psychoanalytic_interpretation": "무의식의 역동과 갈등을 프로이트/융 관점으로 심층 해석 4~7문장",
+  "advice": "정신역동적 처방 및 실천 태도 제언 3~5문장"
 }
 
 추가 규칙:
@@ -434,11 +448,10 @@ export async function POST(request) {
       // 포맷이 깨졌으면 한 번 더 엄격 지시로 재시도합니다.
       const retryDreamText =
         dreamText +
-        "\n\n[추가 지시] 반드시 아래의 4개 섹션 헤딩을 정확히 포함해 출력하세요:\n" +
-        "- [무의식의 핵심 테마]:\n" +
-        "- [정신분석학적 심층 해독]:\n" +
-        "- [상징(Symbol) 디코딩 사전]:\n" +
-        "- [현실을 위한 인사이트]:\n";
+        "\n\n[추가 지시] 반드시 아래의 보고서 헤딩을 정확히 포함한 내용을 생성 가능한 JSON으로 반환하세요:\n" +
+        "- psychological_state: 1) 상징적 전이 분석\n" +
+        "- psychoanalytic_interpretation: 2) 무의식의 역동과 갈등\n" +
+        "- advice: 3) 정신역동적 처방\n";
 
       if (useGemini) {
         const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
