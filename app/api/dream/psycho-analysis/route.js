@@ -37,6 +37,38 @@ function normalizeMarkdownForValidation(md) {
     .replace(/\u3000/g, " ");
 }
 
+function getProviderTimeoutMs() {
+  const ms = Number(process.env.PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS || 45000);
+  return Number.isFinite(ms) && ms > 0 ? ms : 45000;
+}
+
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const ms = getProviderTimeoutMs();
+  const t = Number(timeoutMs || ms);
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timeoutId = setTimeout(function () {
+    try {
+      if (controller) controller.abort();
+    } catch (_) {}
+  }, t);
+
+  try {
+    if (controller) {
+      return await fetch(url, { ...(options || {}), signal: controller.signal });
+    }
+    return await fetch(url, options);
+  } catch (error) {
+    if (controller && (error?.name === "AbortError" || String(error?.code || "").toUpperCase() === "ABORT_ERR")) {
+      const err = new Error(`psycho analysis provider timeout (${t}ms)`);
+      err.status = 504;
+      throw err;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 /** LLM이 전각 괄호·띄어쓰기·콜론 위치를 살짝 바꿔도 통과하도록 완화 */
 function validateOutputStructure(md) {
   const n = normalizeMarkdownForValidation(md);
@@ -103,20 +135,24 @@ async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model
     dreamText,
   ].join("\n");
 
-  const resp = await fetch(ANTHROPIC_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  const resp = await fetchWithTimeout(
+    ANTHROPIC_ENDPOINT,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: model || "claude-sonnet-4-20250514",
+        max_tokens: maxTokens || 1200,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMsg }],
+      }),
     },
-    body: JSON.stringify({
-      model: model || "claude-sonnet-4-20250514",
-      max_tokens: maxTokens || 1200,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMsg }],
-    }),
-  });
+    getProviderTimeoutMs()
+  );
 
   const payload = await resp.json().catch(() => null);
   if (!resp.ok) {
@@ -149,27 +185,31 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   const endpointModel = encodeURIComponent(model || "gemini-2.5-flash");
   const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", endpointModel);
 
-  const resp = await fetch(endpoint + "?key=" + encodeURIComponent(apiKey), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: String(systemPrompt || "") }],
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+  const resp = await fetchWithTimeout(
+    endpoint + "?key=" + encodeURIComponent(apiKey),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: {
+          role: "system",
+          parts: [{ text: String(systemPrompt || "") }],
         },
-      ],
-      generationConfig: {
-        maxOutputTokens: Number(maxTokens || 1200),
-        temperature: 0.6,
-        topP: 0.95,
-      },
-    }),
-  });
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: Number(maxTokens || 1200),
+          temperature: 0.6,
+          topP: 0.95,
+        },
+      }),
+    },
+    getProviderTimeoutMs()
+  );
 
   const payload = await resp.json().catch(() => null);
   if (!resp.ok) {
@@ -347,7 +387,11 @@ export async function POST(request) {
       request,
       {
         ok: false,
-        message: isQuotaLike ? toFreudQuotaMessage() : error?.message || "psycho analysis failed",
+        message: isQuotaLike
+          ? toFreudQuotaMessage()
+          : lower.includes("timeout")
+            ? "분석 제공자 응답이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요."
+            : error?.message || "psycho analysis failed",
       },
       { status: error?.status || 500 },
     );
