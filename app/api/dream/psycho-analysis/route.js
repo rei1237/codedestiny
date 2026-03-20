@@ -28,14 +28,61 @@ function stripCodeFences(text) {
   return t;
 }
 
+function normalizeMarkdownForValidation(md) {
+  return String(md || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/［/g, "[")
+    .replace(/］/g, "]")
+    .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/\u3000/g, " ");
+}
+
+/** LLM이 전각 괄호·띄어쓰기·콜론 위치를 살짝 바꿔도 통과하도록 완화 */
 function validateOutputStructure(md) {
+  const n = normalizeMarkdownForValidation(md);
   const required = [
-    "\\[\\s*무의식의\\s*핵심\\s*테마\\s*\\]",
-    "\\[\\s*정신분석학적\\s*심층\\s*해독\\s*\\]",
-    "\\[\\s*상징\\s*\\(\\s*Symbol\\s*\\)\\s*디코딩\\s*사전\\s*\\]",
-    "\\[\\s*현실을\\s*위한\\s*인사이트\\s*\\]",
+    /\[\s*무의식의\s*핵심\s*테마\s*\]/,
+    /\[\s*정신분석학적\s*심층\s*해독\s*\]/,
+    /\[\s*상징\s*\(\s*Symbol\s*\)\s*디코딩\s*사전\s*\]/,
+    /\[\s*현실을\s*위한\s*인사이트\s*\]/,
   ];
-  return required.every((p) => new RegExp(p).test(md));
+  return required.every((re) => re.test(n));
+}
+
+function corsHeaders(request) {
+  const origin = request.headers.get("origin");
+  if (!origin) return {};
+  const ok =
+    origin === "https://code-destiny.com" ||
+    origin === "https://www.code-destiny.com" ||
+    (() => {
+      try {
+        const h = new URL(origin).hostname.toLowerCase();
+        return h.endsWith(".pages.dev") || h === "localhost" || h === "127.0.0.1";
+      } catch {
+        return false;
+      }
+    })();
+  if (!ok) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-cd-anon-key",
+    Vary: "Origin",
+  };
+}
+
+function jsonWithCors(request, data, init) {
+  const status = init?.status ?? 200;
+  const extra = init?.headers && typeof init.headers === "object" ? init.headers : {};
+  return NextResponse.json(data, {
+    status,
+    headers: { ...extra, ...corsHeaders(request) },
+  });
+}
+
+export async function OPTIONS(request) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(request) });
 }
 
 function getFirstHeadingSummary(md) {
@@ -89,7 +136,8 @@ async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model
 
 async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   // Gemini 키는 반드시 환경변수로만 관리합니다.
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  // 배포 환경에서는 GOOGLE_API_KEY를 우선 사용하고, 기존 GEMINI_API_KEY도 호환 지원합니다.
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw Object.assign(new Error("GEMINI_API_KEY(또는 GOOGLE_API_KEY) 환경변수가 필요합니다."), {
       status: 500,
@@ -184,13 +232,17 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const dreamText = String(body?.dreamText || "").trim();
     if (!dreamText || dreamText.length < 8) {
-      return NextResponse.json({ ok: false, message: "꿈 내용을 입력해 주세요." }, { status: 400 });
+      return jsonWithCors(
+        request,
+        { ok: false, message: "꿈 내용을 입력해 주세요." },
+        { status: 400 },
+      );
     }
 
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
-    // Gemini 우선. (GEMINI_API_KEY가 있으면 Gemini로 실행)
-    const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+    // Gemini 우선. (GOOGLE_API_KEY 또는 GEMINI_API_KEY가 있으면 Gemini로 실행)
+    const useGemini = Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY);
     const provider = useGemini ? "gemini" : "anthropic";
 
     const modelForKey = useGemini
@@ -245,21 +297,30 @@ export async function POST(request) {
       }
 
       if (!validateOutputStructure(markdown)) {
-        return NextResponse.json(
-          {
-            ok: false,
-            message: "LLM 출력 형식이 기대한 구조와 일치하지 않았습니다. (재시도 후에도 실패)",
-          },
-          { status: 502 },
-        );
+        const raw = String(markdown || "").trim();
+        const usableFallback =
+          raw.length >= 120 && /\[[^\]]+\]/.test(raw) && /무의식|상징|인사이트|정신분석/.test(raw);
+        if (!usableFallback) {
+          return jsonWithCors(
+            request,
+            {
+              ok: false,
+              message:
+                "분석 결과 형식을 안정적으로 맞추지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            },
+            { status: 502 },
+          );
+        }
       }
     }
 
     const title = "정신분석 해몽";
     const summary = getFirstHeadingSummary(markdown);
+    const formatWarning = !validateOutputStructure(markdown);
 
-    return NextResponse.json({
+    return jsonWithCors(request, {
       ok: true,
+      formatWarning,
       record: {
         id: "temp-no-db",
         createdAt: new Date().toISOString(),
@@ -282,7 +343,8 @@ export async function POST(request) {
       lower.includes("rate limit") ||
       lower.includes("too many requests");
 
-    return NextResponse.json(
+    return jsonWithCors(
+      request,
       {
         ok: false,
         message: isQuotaLike ? toFreudQuotaMessage() : error?.message || "psycho analysis failed",
