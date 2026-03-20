@@ -572,6 +572,7 @@
       overlay.classList.add("is-open");
       if (window._perf && window._perf.lockBody) window._perf.lockBody();
       else document.body.style.overflow = "hidden";
+      bindTarotHealingStaticActions();
       resetTarotHealingFlow();
     } catch (err) {
       console.error("[Tarot Healing] openTarotHealingModal error:", err);
@@ -728,6 +729,16 @@
 
   var healingFlipCooldownUntil = 0;
   var HEALING_FLIP_DEBOUNCE_MS = 400;
+
+  function bindTarotHealingStaticActions() {
+    var invokeBtn = document.querySelector(".tarot-healing-btn--invoke");
+    if (invokeBtn && !invokeBtn.__healingInvokeBound) {
+      invokeBtn.__healingInvokeBound = true;
+      bindFastTap(invokeBtn, function () {
+        startTarotHealingReading();
+      });
+    }
+  }
 
   function bindFastTap(el, handler) {
     if (!el || typeof handler !== "function") return;

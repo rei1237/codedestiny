@@ -5,9 +5,11 @@
   var TAP_MAX_DX = 36;
   var TAP_MAX_DY = 36;
   var GHOST_CLICK_BLOCK_MS = 500;
+  var ACTION_DEDUPE_MS = 650;
   var suppressClickUntil = 0;
   var touchCtx = null;
   var lastTouchStart = null;
+  var lastActionInvoke = { action: '', at: 0 };
 
   var RULES = [
     {
@@ -231,6 +233,10 @@
       ].join(',')
     }
   ];
+  var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
+    if (rule && rule.action) acc[rule.action] = true;
+    return acc;
+  }, {});
 
   function nodeLabel(el) {
     if (!el || !el.tagName) return '(null)';
@@ -336,6 +342,53 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
+  function shouldSkipDuplicateAction(action) {
+    if (!action) return false;
+    var now = Date.now();
+    if (lastActionInvoke.action === action && (now - lastActionInvoke.at) < ACTION_DEDUPE_MS) {
+      return true;
+    }
+    lastActionInvoke = { action: action, at: now };
+    return false;
+  }
+
+  function parseActionArgs(raw) {
+    if (!raw) return [];
+    return String(raw)
+      .split(',')
+      .map(function(v) { return v.trim(); })
+      .filter(function(v) { return v.length > 0; });
+  }
+
+  function invokeConfiguredDataAction(actionEl, sourceEvent) {
+    if (!actionEl) return false;
+    var action = actionEl.getAttribute('data-action');
+    if (!action) return false;
+    var fn = window[action];
+    if (typeof fn !== 'function') return false;
+
+    var args = parseActionArgs(actionEl.getAttribute('data-action-args'));
+    var passSelfMode = actionEl.getAttribute('data-action-pass-self');
+    var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
+    try {
+      if (passSelfMode === 'append') {
+        fn.apply(window, args.concat([actionEl]));
+      } else if (passSelfMode === '1' || passSelfMode === 'prepend') {
+        fn.apply(window, [actionEl].concat(args));
+      } else if (passEvent) {
+        fn.call(window, sourceEvent);
+      } else if (args.length) {
+        fn.apply(window, args);
+      } else {
+        fn.call(window);
+      }
+      return true;
+    } catch (err) {
+      console.error('[mobile-interaction-patch] data-action invoke failed:', action, err);
+      return false;
+    }
+  }
+
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
@@ -403,6 +456,7 @@
 
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
+    if (shouldSkipDuplicateAction(rule.action)) return true;
 
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
@@ -454,15 +508,30 @@
 
   function findDataActionElement(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
-    return origin.closest('[data-action]');
+    var el = origin.closest('[data-action]');
+    if (!el) return null;
+    var action = el.getAttribute('data-action');
+    if (!action || !FEATURE_ACTION_SET[action]) return null;
+    return el;
   }
 
   function invokeDataActionFallback(actionEl, sourceEvent) {
     if (!actionEl) return false;
     var action = actionEl.getAttribute('data-action');
     if (!action) return false;
+    var actionArgsRaw = actionEl.getAttribute('data-action-args') || '';
+    if (shouldSkipDuplicateAction(action + '::' + actionArgsRaw)) return true;
 
-    if (invokeBusinessAction({ action: action }, actionEl, sourceEvent)) return true;
+    var hasActionConfig = !!actionArgsRaw
+      || !!actionEl.getAttribute('data-action-pass-self')
+      || actionEl.getAttribute('data-action-pass-event') === '1';
+
+    // Generic data-action route must preserve args/self/event config.
+    if (hasActionConfig) {
+      if (invokeConfiguredDataAction(actionEl, sourceEvent)) return true;
+    } else if (invokeBusinessAction({ action: action }, actionEl, sourceEvent)) {
+      return true;
+    }
 
     // Let the global data-action binder handle generic actions.
     if (typeof actionEl.click === 'function') {
@@ -685,13 +754,13 @@
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
-      if (!rule) return;
-
-      if (Date.now() < suppressClickUntil) {
+      if (Date.now() < suppressClickUntil && rule) {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
+
+      if (!rule) return;
 
       var handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;

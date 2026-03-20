@@ -554,11 +554,31 @@
       };
       if (token) headers["Authorization"] = "Bearer " + token;
 
-      var res = await fetch(getPsychoAnalysisUrl(), {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify({ dreamText: dreamText }),
-      });
+      // External provider 응답이 지연될 때 “무한 로딩”처럼 보이지 않도록
+      // 프론트에서도 Abort 기반 타임아웃을 둡니다.
+      var controller = typeof AbortController === "function" ? new AbortController() : null;
+      var timeoutMs = 45000;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          try {
+            controller.abort();
+          } catch (_) {}
+        }, timeoutMs);
+      }
+
+      var res = null;
+      try {
+        res = await fetch(getPsychoAnalysisUrl(), {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({ dreamText: dreamText }),
+          signal: controller ? controller.signal : undefined,
+        });
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+
       var data = null;
       try {
         var ct = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
@@ -639,7 +659,11 @@
     } catch (e) {
       stopLoading();
       stopTyping();
-      setError((e && e.message) || "네트워크 오류로 분석에 실패했습니다.");
+      var msg = (e && e.message) || "네트워크 오류로 분석에 실패했습니다.";
+      if (e && (e.name === "AbortError" || String(msg || "").toLowerCase().includes("abort"))) {
+        msg = "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+      }
+      setError(msg);
       setScreen("input");
     } finally {
       state.uiLocked = false;

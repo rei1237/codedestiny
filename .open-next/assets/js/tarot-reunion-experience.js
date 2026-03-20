@@ -311,6 +311,7 @@
   var TAROT_LOCAL_BASES = ["/tarot-cards/", "/public/tarot-cards/", "tarot-cards/", "public/tarot-cards/"];
   var TAROT_LOCAL_BASE = TAROT_LOCAL_BASES[0];
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
+  var REUNION_FAST_TAP_DEBOUNCE_MS = 260;
   function getLocalTarotImageUrl(card) {
     if (!card) return "";
     if (card.localImageUrl) return card.localImageUrl;
@@ -585,11 +586,7 @@
     var invokeBtn = document.querySelector(".tarot-reunion-btn--invoke");
     if (invokeBtn && !invokeBtn.__reunionInvokeBound) {
       invokeBtn.__reunionInvokeBound = true;
-      invokeBtn.addEventListener("click", function (e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
+      bindReunionFastTap(invokeBtn, function () {
         startTarotReunionReading();
       });
     }
@@ -604,6 +601,25 @@
         toggleTarotReunionMeditation();
       });
     }
+  }
+
+  function bindReunionFastTap(el, handler) {
+    if (!el || typeof handler !== "function") return;
+    var lastAt = 0;
+    function fire(e) {
+      var now = Date.now();
+      if (now - lastAt < REUNION_FAST_TAP_DEBOUNCE_MS) return;
+      lastAt = now;
+      if (e && e.cancelable) e.preventDefault();
+      if (e) e.stopPropagation();
+      handler(e);
+    }
+    el.addEventListener("click", fire, { passive: false });
+    el.addEventListener("touchend", fire, { passive: false });
+    el.addEventListener("pointerup", function (e) {
+      if (e.pointerType && e.pointerType !== "touch") return;
+      fire(e);
+    }, { passive: false });
   }
 
   function closeTarotReunionModal() {
@@ -693,11 +709,7 @@
       cardEl.setAttribute("data-revealed", "0");
       cardEl.setAttribute("role", "button");
       cardEl.setAttribute("tabindex", "0");
-      cardEl.addEventListener("click", function (e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
+      bindReunionFastTap(cardEl, function () {
         flipTarotReunionCard(idx);
       });
       cardEl.addEventListener("keydown", function (e) {
