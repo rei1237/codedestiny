@@ -28,6 +28,15 @@ function stripCodeFences(text) {
   return t;
 }
 
+function parseAllowedOriginsFromEnv() {
+  const raw = String(process.env.PSYCHO_ANALYSIS_ALLOWED_ORIGINS || "").trim();
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
 function normalizeMarkdownForValidation(md) {
   return String(md || "")
     .replace(/\r\n/g, "\n")
@@ -35,6 +44,80 @@ function normalizeMarkdownForValidation(md) {
     .replace(/］/g, "]")
     .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
     .replace(/\u3000/g, " ");
+}
+
+function sanitizeDreamText(input) {
+  const t = String(input || "").replace(/\r\n/g, "\n").trim();
+  // 과도한 토큰 사용 방지 (배포 환경 안정성)
+  return t.length > 4000 ? t.slice(0, 4000) : t;
+}
+
+function extractFirstJsonObject(text) {
+  const s = String(text || "").trim();
+  if (!s) return "";
+  const direct = s.match(/\{[\s\S]*\}/);
+  return direct ? direct[0] : "";
+}
+
+function normalizeAnalysisObject(raw) {
+  const obj = raw && typeof raw === "object" ? raw : {};
+  const symbolsRaw = Array.isArray(obj.symbols) ? obj.symbols : [];
+  const symbols = symbolsRaw
+    .map((it) => {
+      if (typeof it === "string") return { symbol: it.trim(), meaning: "" };
+      if (it && typeof it === "object") {
+        return {
+          symbol: String(it.symbol || "").trim(),
+          meaning: String(it.meaning || "").trim(),
+        };
+      }
+      return { symbol: "", meaning: "" };
+    })
+    .filter((it) => it.symbol)
+    .slice(0, 6);
+
+  return {
+    symbols,
+    psychological_state: String(obj.psychological_state || "").trim(),
+    psychoanalytic_interpretation: String(obj.psychoanalytic_interpretation || "").trim(),
+    advice: String(obj.advice || "").trim(),
+  };
+}
+
+function isValidAnalysisObject(obj) {
+  if (!obj || typeof obj !== "object") return false;
+  const hasSymbols = Array.isArray(obj.symbols) && obj.symbols.length >= 1;
+  const hasState = String(obj.psychological_state || "").length >= 20;
+  const hasInterpretation = String(obj.psychoanalytic_interpretation || "").length >= 40;
+  const hasAdvice = String(obj.advice || "").length >= 20;
+  return hasSymbols && hasState && hasInterpretation && hasAdvice;
+}
+
+function analysisToMarkdown(analysis) {
+  const symbols = Array.isArray(analysis?.symbols) ? analysis.symbols : [];
+  const symbolLines = symbols
+    .map((it) => {
+      const s = String(it?.symbol || "").trim();
+      const m = String(it?.meaning || "").trim();
+      if (!s) return "";
+      return m ? `- ${s}: ${m}` : `- ${s}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+
+  return [
+    "[무의식의 핵심 테마]:",
+    String(analysis?.psychological_state || "분석 결과를 정리 중입니다."),
+    "",
+    "[정신분석학적 심층 해독]:",
+    String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
+    "",
+    "[상징(Symbol) 디코딩 사전]:",
+    symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
+    "",
+    "[현실을 위한 인사이트]:",
+    String(analysis?.advice || "조언을 생성하지 못했습니다. 다시 시도해 주세요."),
+  ].join("\n");
 }
 
 function getProviderTimeoutMs() {
@@ -84,6 +167,15 @@ function validateOutputStructure(md) {
 function corsHeaders(request) {
   const origin = request.headers.get("origin");
   if (!origin) return {};
+  const allowlist = parseAllowedOriginsFromEnv();
+  if (allowlist.length > 0 && allowlist.includes(origin)) {
+    return {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-cd-anon-key",
+      Vary: "Origin",
+    };
+  }
   const ok =
     origin === "https://code-destiny.com" ||
     origin === "https://www.code-destiny.com" ||
@@ -173,9 +265,9 @@ async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model
 async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   // Gemini 키는 반드시 환경변수로만 관리합니다.
   // 배포 환경에서는 GOOGLE_API_KEY를 우선 사용하고, 기존 GEMINI_API_KEY도 호환 지원합니다.
-  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw Object.assign(new Error("GEMINI_API_KEY(또는 GOOGLE_API_KEY) 환경변수가 필요합니다."), {
+    throw Object.assign(new Error("API Key not found: GEMINI_API_KEY 환경변수가 필요합니다."), {
       status: 500,
     });
   }
@@ -203,8 +295,9 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
         ],
         generationConfig: {
           maxOutputTokens: Number(maxTokens || 1200),
-          temperature: 0.6,
+          temperature: 0.5,
           topP: 0.95,
+          responseMimeType: "application/json",
         },
       }),
     },
@@ -244,33 +337,34 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   return stripCodeFences(out);
 }
 
-const SYSTEM_PROMPT = `당신은 칼 융(Carl Jung)의 분석심리학과 지그문트 프로이트(Sigmund Freud)의 정신분석학, 그리고 인류 보편적 상징주의에 통달한 세계 최고의 무의식 분석가입니다.
+const SYSTEM_PROMPT = `당신은 칼 융(Carl Jung)의 분석심리학과 지그문트 프로이트(Sigmund Freud)의 정신분석학에 정통한 임상형 꿈 분석가입니다.
 
 중요 안전 안내:
 - 이 결과는 의학적 진단이 아니며, 자기성찰을 돕는 참고용 해석입니다.
 - 사용자를 단정하거나 공포를 조장하지 마세요.
-- 개인의 위험(자해/타인해) 가능성을 암시하는 표현이 꿈에 있더라도, 즉시 전문가 상담을 권하는 완충 메시지를 '현실을 위한 인사이트'에 자연스럽게 포함하세요.
+- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함하세요.
 
-분석 프로세스 및 출력 포맷 (반드시 아래 마크다운 구조를 따를 것):
+출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마세요.
 
-[무의식의 핵심 테마]: 꿈의 기저에 깔린 지배적인 감정과 무의식이 말하고자 하는 핵심 메시지를 2~3줄로 강력하게 요약합니다.
-
-[정신분석학적 심층 해독]: 자아(Ego), 그림자(Shadow), 페르소나(Persona), 억압된 욕망 등의 심리학적 개념을 동원하여 꿈에 나타난 사건의 인과관계를 내면의 심리 상태와 연결하여 해석합니다.
-
-[상징(Symbol) 디코딩 사전]: 꿈에 등장한 주요 사물, 인물, 배경 3~4가지를 추출하여, 각각이 상징하는 원형적 의미를 목록 형태로 상세히 풀이합니다.
-- 목록은 반드시 '-'로 시작하는 불릿으로 작성합니다.
-
-[현실을 위한 인사이트]: 이 꿈이 현재 깨어있는 삶(인간관계, 커리어, 심리적 갈등 등)에 어떤 영향을 미치는지, 그리고 앞으로 어떤 마음가짐을 가져야 하는지 실질적이고 따뜻한 조언을 제공합니다.
+반드시 다음 스키마를 지키세요:
+{
+  "symbols": [
+    { "symbol": "상징", "meaning": "의미" }
+  ],
+  "psychological_state": "꿈 전반의 정서, 갈등, 방어기제를 융/프로이트 관점으로 3~5문장",
+  "psychoanalytic_interpretation": "무의식의 욕망, 억압, 그림자/페르소나, 반복 패턴을 연결한 심층 해석 4~7문장",
+  "advice": "현실 적용 가능한 행동 조언 3~5문장 (공포 조장 금지, 따뜻한 톤)"
+}
 
 추가 규칙:
-- 출력은 위 4개 섹션만 사용하세요.
-- 섹션 사이에는 빈 줄을 1줄 유지하세요.
-- 마크다운은 일반 텍스트 그대로 출력하세요. 백틱이나 코드블록 금지.`;
+- symbols는 최소 3개, 최대 6개
+- 추상어보다 꿈 속 실제 장면/대상을 우선
+- 한국어로 작성`;
 
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const dreamText = String(body?.dreamText || "").trim();
+    const dreamText = sanitizeDreamText(body?.dreamText);
     if (!dreamText || dreamText.length < 8) {
       return jsonWithCors(
         request,
@@ -281,8 +375,8 @@ export async function POST(request) {
 
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
-    // Gemini 우선. (GOOGLE_API_KEY 또는 GEMINI_API_KEY가 있으면 Gemini로 실행)
-    const useGemini = Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY);
+    // Gemini API 서버사이드 전용 키 사용 (클라이언트 노출 금지)
+    const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
     const provider = useGemini ? "gemini" : "anthropic";
 
     const modelForKey = useGemini
@@ -290,22 +384,50 @@ export async function POST(request) {
       : process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "default";
 
     let markdown = "";
+    let analysis = null;
     if (useGemini) {
       const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
-      markdown = await callGeminiDreamPsychoAnalysis({
+      const raw = await callGeminiDreamPsychoAnalysis({
         systemPrompt: SYSTEM_PROMPT,
         dreamText,
         model,
         maxTokens,
       });
+      const parsed = (() => {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          const extracted = extractFirstJsonObject(raw);
+          if (!extracted) return null;
+          try {
+            return JSON.parse(extracted);
+          } catch {
+            return null;
+          }
+        }
+      })();
+      analysis = normalizeAnalysisObject(parsed);
+      if (!isValidAnalysisObject(analysis)) {
+        return jsonWithCors(
+          request,
+          {
+            ok: false,
+            message:
+              "분석 결과 형식(JSON)을 안정적으로 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+          },
+          { status: 502 },
+        );
+      }
+      markdown = analysisToMarkdown(analysis);
     } else {
-      const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || undefined;
-      markdown = await callAnthropicDreamPsychoAnalysis({
-        systemPrompt: SYSTEM_PROMPT,
-        dreamText,
-        model,
-        maxTokens,
-      });
+      return jsonWithCors(
+        request,
+        {
+          ok: false,
+          message: "API Key not found: GEMINI_API_KEY 환경변수가 필요합니다.",
+        },
+        { status: 500 },
+      );
     }
 
     if (!validateOutputStructure(markdown)) {
@@ -361,6 +483,7 @@ export async function POST(request) {
     return jsonWithCors(request, {
       ok: true,
       formatWarning,
+      analysis: analysis || null,
       record: {
         id: "temp-no-db",
         createdAt: new Date().toISOString(),

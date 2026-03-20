@@ -334,6 +334,7 @@ var tarotSpreadMode = 'one'; // 'one' | 'three'
 var tarotThreeCardState = { cards: [], revealedIndex: -1 };
 var tarotReadingTimer = null;
 var tarotLifecycleToken = 0;
+var lastTarotMissingCategoryAlertAt = 0;
 
 function invalidateTarotFlow() {
   tarotLifecycleToken += 1;
@@ -434,7 +435,7 @@ function selectTarotCategory(cat, btn) {
   var card = document.getElementById('tarotCardEl');
   if (card) {
     card.classList.remove('flipped');
-    card.onclick = startTarotReading;
+    card.setAttribute('data-action', 'startTarotReading');
     card.style.cursor = 'pointer';
     card.classList.remove('divine-focus');
     card.classList.add('tarot-card-container'); 
@@ -1034,6 +1035,9 @@ function showTarotFinalInterpretation() {
 
 function startTarotReading() {
   if(!curTarotCat) {
+    var now = Date.now();
+    if ((now - lastTarotMissingCategoryAlertAt) < 900) return;
+    lastTarotMissingCategoryAlertAt = now;
     alert("먼저 고민 카테고리를 선택해. 너의 파동을 읽어야 하니까.");
     return;
   }
@@ -1118,10 +1122,7 @@ function startTarotReading() {
         if (advice) oracleEl.classList.add('show');
       }
       isReading = false;
-      card.onclick = function(e) {
-        e.stopPropagation();
-        enterDivineFocus(this);
-      };
+      card.setAttribute('data-action', 'enterDivineFocusFromCard');
       card.style.cursor = 'zoom-in';
       msgEl.innerHTML = '🌟 카드를 탭하면 더 깊은 에너지를 느낄 수 있습니다.';
     });
@@ -1140,6 +1141,11 @@ function exitDivineFocus() {
     if(card) card.classList.remove('divine-focus');
     var overlay = document.getElementById('tarotFocusOverlay');
     if (overlay) overlay.classList.remove('active');
+}
+
+function enterDivineFocusFromCard(cardEl) {
+    if (!cardEl) return;
+    enterDivineFocus(cardEl);
 }
 
 function streamRitualText(text, targetId, callback) {
@@ -1887,6 +1893,7 @@ if (typeof window !== 'undefined') {
   if (typeof setTarotMode === 'function') window.setTarotMode = setTarotMode;
   if (typeof selectTarotCategory === 'function') window.selectTarotCategory = selectTarotCategory;
   if (typeof startTarotReading === 'function') window.startTarotReading = startTarotReading;
+  if (typeof enterDivineFocusFromCard === 'function') window.enterDivineFocusFromCard = enterDivineFocusFromCard;
   if (typeof startThreeCardFlow === 'function') window.startThreeCardFlow = startThreeCardFlow;
   if (typeof flipTarotSpreadCard === 'function') window.flipTarotSpreadCard = flipTarotSpreadCard;
   if (typeof showTarotFinalInterpretation === 'function') window.showTarotFinalInterpretation = showTarotFinalInterpretation;
