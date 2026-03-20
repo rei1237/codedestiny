@@ -80,8 +80,8 @@ function normalizeAnalysisObject(raw) {
     symbols,
     psychological_state: String(obj.psychological_state || "").trim(),
     psychoanalytic_interpretation: String(obj.psychoanalytic_interpretation || "").trim(),
-    shadow_analysis: String(obj.shadow_analysis || "").trim(),
-    archetype_exploration: String(obj.archetype_exploration || "").trim(),
+    shadow_analysis: String(obj.shadow_analysis || obj.psychoanalytic_interpretation || "").trim(),
+    archetype_exploration: String(obj.archetype_exploration || obj.psychological_state || "").trim(),
     advice: String(obj.advice || obj.insights || "").trim(),
   };
 }
@@ -91,10 +91,8 @@ function isValidAnalysisObject(obj) {
   const hasSymbols = Array.isArray(obj.symbols) && obj.symbols.length >= 1 && obj.symbols.length <= 3;
   const hasState = String(obj.psychological_state || "").length >= 20;
   const hasInterpretation = String(obj.psychoanalytic_interpretation || "").length >= 40;
-  const hasShadow = String(obj.shadow_analysis || "").length >= 20;
-  const hasArchetype = String(obj.archetype_exploration || "").length >= 20;
   const hasAdvice = String(obj.advice || "").length >= 20;
-  return hasSymbols && hasState && hasInterpretation && hasShadow && hasArchetype && hasAdvice;
+  return hasSymbols && hasState && hasInterpretation && hasAdvice;
 }
 
 function analysisToMarkdown(analysis) {
