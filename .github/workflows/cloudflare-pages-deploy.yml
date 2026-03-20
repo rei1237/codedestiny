@@ -20,6 +20,9 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME || 'code-destiny-web' }}
       CF_PAGES_BRANCH: main
     steps:
@@ -34,6 +37,18 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Sync Worker AI secrets
+        run: |
+          if [ -n "${GOOGLE_API_KEY}" ]; then
+            printf '%s\n' "${GOOGLE_API_KEY}" | npx wrangler secret put GOOGLE_API_KEY --config wrangler.worker.jsonc
+          fi
+          if [ -n "${GEMINI_API_KEY}" ]; then
+            printf '%s\n' "${GEMINI_API_KEY}" | npx wrangler secret put GEMINI_API_KEY --config wrangler.worker.jsonc
+          fi
+          if [ -n "${ANTHROPIC_API_KEY}" ]; then
+            printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.worker.jsonc
+          fi
 
       - name: Build & deploy via OpenNext Worker
         run: npm run deploy:cf:worker

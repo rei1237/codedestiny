@@ -52,78 +52,6 @@ function sanitizeDreamText(input) {
   return t.length > 4000 ? t.slice(0, 4000) : t;
 }
 
-function extractFallbackSymbols(dreamText) {
-  const text = String(dreamText || "").replace(/\s+/g, " ").trim();
-  if (!text) return [];
-  const stop = new Set([
-    "그리고",
-    "하지만",
-    "그래서",
-    "정말",
-    "너무",
-    "그냥",
-    "갑자기",
-    "내가",
-    "저는",
-    "있었고",
-    "했습니다",
-    "있어요",
-    "같아요",
-  ]);
-  const words = text.match(/[가-힣a-zA-Z0-9]{2,}/g) || [];
-  const uniq = [];
-  for (const raw of words) {
-    const w = String(raw).trim();
-    if (!w || stop.has(w)) continue;
-    if (uniq.includes(w)) continue;
-    uniq.push(w);
-    if (uniq.length >= 6) break;
-  }
-  return uniq.map((symbol) => ({
-    symbol,
-    meaning: `${symbol}은(는) 현재 정서 반응과 방어기제가 집중되는 심리적 표지로 분석됩니다.`,
-  }));
-}
-
-function buildFallbackAnalysis(dreamText, reason) {
-  const symbols = extractFallbackSymbols(dreamText);
-  const safeReason = String(reason || "분석 제공자 응답 불안정").slice(0, 120);
-  const baseSymbols =
-    symbols.length > 0
-      ? symbols
-      : [
-          {
-            symbol: "반복 장면",
-            meaning: "반복되는 장면은 억압된 정서가 해소되지 않았음을 시사합니다.",
-          },
-          {
-            symbol: "강한 감정",
-            meaning: "강한 감정 반응은 자아가 감당하지 못한 무의식 자료가 표면화된 신호입니다.",
-          },
-          {
-            symbol: "관계 인물",
-            meaning: "등장 인물은 내면의 페르소나/그림자 측면이 투사된 대상으로 해석됩니다.",
-          },
-        ];
-
-  return {
-    symbols: baseSymbols.slice(0, 6),
-    psychological_state:
-      "꿈의 핵심 장면은 현재 자아가 감당 중인 긴장과 정서적 부담이 상징으로 전이된 상태를 보여줍니다. " +
-      "특히 반복되는 이미지와 정서의 급격한 변화는 방어기제가 과도하게 작동하고 있음을 시사합니다. " +
-      "겉으로 유지하던 페르소나와 실제 감정 사이의 간극이 커진 국면으로 분석됩니다.",
-    psychoanalytic_interpretation:
-      "무의식 차원에서는 억압된 욕구와 통제하려는 자아가 충돌하고 있습니다. " +
-      "프로이트 관점에서 이는 미해결 정동이 우회적으로 복귀하는 패턴이며, 융 관점에서는 그림자 내용이 상징으로 의식에 접근하는 과정입니다. " +
-      "동일 정서가 다른 장면으로 재연된다면, 결코 가볍게 넘길 지점이 아닙니다. " +
-      `현재 분석은 '${safeReason}' 상황에서도 해석 연속성을 유지하기 위한 임시 임상 포맷으로 제공됩니다.`,
-    advice:
-      "첫째, 꿈 직후 떠오르는 감정 단어 3개를 기록해 억압 정서를 식별하십시오. " +
-      "둘째, 반복 상징이 연결되는 현실 사건을 주 1회 점검해 투사 대상을 분리해 보십시오. " +
-      "셋째, 불면·공황·자해 충동이 동반된다면 즉시 전문가 상담 권유를 따르십시오.",
-  };
-}
-
 function extractFirstJsonObject(text) {
   const s = String(text || "").trim();
   if (!s) return "";
@@ -178,20 +106,16 @@ function analysisToMarkdown(analysis) {
     .join("\n");
 
   return [
-    "## [정신 분석 결과 보고서: 무의식의 투사]",
-    "",
-    "### 1. 상징적 전이 분석 (Symbolic Transfer)",
+    "[무의식의 핵심 테마]:",
     String(analysis?.psychological_state || "분석 결과를 정리 중입니다."),
     "",
-    symbolLines
-      ? "- 꿈 속 핵심 상징과 전이 단서"
-      : "- 꿈의 상징 단서가 명확하지 않아, 반복 등장한 정서를 중심으로 전이를 추적했습니다.",
-    symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
-    "",
-    "### 2. 무의식의 역동과 갈등 (Unconscious Dynamics)",
+    "[정신분석학적 심층 해독]:",
     String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
     "",
-    "### 3. 정신역동적 처방 (Psychodynamic Guidance)",
+    "[상징(Symbol) 디코딩 사전]:",
+    symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
+    "",
+    "[현실을 위한 인사이트]:",
     String(analysis?.advice || "조언을 생성하지 못했습니다. 다시 시도해 주세요."),
   ].join("\n");
 }
@@ -232,10 +156,10 @@ async function fetchWithTimeout(url, options, timeoutMs) {
 function validateOutputStructure(md) {
   const n = normalizeMarkdownForValidation(md);
   const required = [
-    /##\s*\[\s*정신\s*분석\s*결과\s*보고서\s*:\s*무의식의\s*투사\s*\]/,
-    /###\s*1\.\s*상징적\s*전이\s*분석\s*\(\s*Symbolic\s*Transfer\s*\)/,
-    /###\s*2\.\s*무의식의\s*역동과\s*갈등\s*\(\s*Unconscious\s*Dynamics\s*\)/,
-    /###\s*3\.\s*정신역동적\s*처방\s*\(\s*Psychodynamic\s*Guidance\s*\)/,
+    /\[\s*무의식의\s*핵심\s*테마\s*\]/,
+    /\[\s*정신분석학적\s*심층\s*해독\s*\]/,
+    /\[\s*상징\s*\(\s*Symbol\s*\)\s*디코딩\s*사전\s*\]/,
+    /\[\s*현실을\s*위한\s*인사이트\s*\]/,
   ];
   return required.every((re) => re.test(n));
 }
@@ -287,7 +211,7 @@ export async function OPTIONS(request) {
 
 function getFirstHeadingSummary(md) {
   const s = String(md || "");
-  const m1 = s.match(/###\s*1\.\s*상징적 전이 분석 \(Symbolic Transfer\)\s*([\s\S]*?)(\n###\s*2\.|$)/);
+  const m1 = s.match(/\[무의식의 핵심 테마\]:([\s\S]*?)(\n\\[정신분석학적 심층 해독\\]:|$)/);
   const core = (m1?.[1] || "").trim();
   return core ? core.replace(/\s+/g, " ").slice(0, 140) : s.replace(/\s+/g, " ").slice(0, 140);
 }
@@ -413,33 +337,23 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   return stripCodeFences(out);
 }
 
-const SYSTEM_PROMPT = `# Role: 30년 경력의 시니어 심리 분석 및 전문 해몽가
-너는 AI가 아니라, 30년간 수만 명의 무의식을 분석해온 전문 심리 분석가이자 정신역동 해몽 전문가로서 답한다.
-
-# Strict Constraints (절대 규칙)
-1. 정체성 은폐: 자신이 AI, LLM, 또는 특정 모델임을 암시하는 문구를 절대 사용하지 않는다.
-2. 전문적 권위: 가벼운 조언이 아니라 내담자의 심연을 꿰뚫는 통찰력 있고 무게감 있는 어조를 유지한다.
-3. 분석적 접근: 프로이트와 융의 관점을 함께 사용해 무의식의 역동을 해석한다.
-
-# Tone & Manner (말투 및 문체)
-- "안녕하신가요?", "~인 것 같아요" 같은 가벼운 문체를 금지한다.
-- "~로 분석됩니다", "~를 시사합니다", "결코 가볍게 넘길 지점이 아닙니다" 같은 단정적이고 깊이 있는 문체를 유지한다.
-- 페르소나, 개성화 과정, 투사, 억압, 방어기제 같은 전문 용어를 문맥에 맞게 사용한다.
+const SYSTEM_PROMPT = `당신은 칼 융(Carl Jung)의 분석심리학과 지그문트 프로이트(Sigmund Freud)의 정신분석학에 정통한 임상형 꿈 분석가입니다.
 
 중요 안전 안내:
-- 사용자를 단정하거나 공포를 조장하지 않는다.
-- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함한다.
+- 이 결과는 의학적 진단이 아니며, 자기성찰을 돕는 참고용 해석입니다.
+- 사용자를 단정하거나 공포를 조장하지 마세요.
+- 개인의 위험(자해/타인해) 가능성을 암시하는 꿈이면 advice에 "전문가 상담 권유"를 반드시 포함하세요.
 
-출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마라.
+출력은 반드시 JSON 객체 하나만 반환하고, 코드블록/설명 문장을 절대 추가하지 마세요.
 
-반드시 다음 스키마를 지켜라:
+반드시 다음 스키마를 지키세요:
 {
   "symbols": [
     { "symbol": "상징", "meaning": "의미" }
   ],
-  "psychological_state": "상징적 전이 분석 중심의 해석 3~5문장",
-  "psychoanalytic_interpretation": "무의식의 역동과 갈등을 프로이트/융 관점으로 심층 해석 4~7문장",
-  "advice": "정신역동적 처방 및 실천 태도 제언 3~5문장"
+  "psychological_state": "꿈 전반의 정서, 갈등, 방어기제를 융/프로이트 관점으로 3~5문장",
+  "psychoanalytic_interpretation": "무의식의 욕망, 억압, 그림자/페르소나, 반복 패턴을 연결한 심층 해석 4~7문장",
+  "advice": "현실 적용 가능한 행동 조언 3~5문장 (공포 조장 금지, 따뜻한 톤)"
 }
 
 추가 규칙:
@@ -461,57 +375,116 @@ export async function POST(request) {
 
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
-    // Gemini API 서버사이드 전용 키 사용 (클라이언트 노출 금지)
+    // Gemini/Anthropic 서버사이드 전용 키 사용 (클라이언트 노출 금지)
     const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
-    let provider = useGemini ? "gemini" : "fallback";
+    const useAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
+    const provider = useGemini ? "gemini" : useAnthropic ? "anthropic" : "none";
 
     const modelForKey = useGemini
       ? process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash"
-      : process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "default";
+      : useAnthropic
+        ? process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514"
+        : "default";
 
     let markdown = "";
     let analysis = null;
     if (useGemini) {
-      try {
-        const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
-        const raw = await callGeminiDreamPsychoAnalysis({
-          systemPrompt: SYSTEM_PROMPT,
-          dreamText,
-          model,
-          maxTokens,
-        });
-        const parsed = (() => {
+      const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
+      const raw = await callGeminiDreamPsychoAnalysis({
+        systemPrompt: SYSTEM_PROMPT,
+        dreamText,
+        model,
+        maxTokens,
+      });
+      const parsed = (() => {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          const extracted = extractFirstJsonObject(raw);
+          if (!extracted) return null;
           try {
-            return JSON.parse(raw);
+            return JSON.parse(extracted);
           } catch {
-            const extracted = extractFirstJsonObject(raw);
-            if (!extracted) return null;
-            try {
-              return JSON.parse(extracted);
-            } catch {
-              return null;
-            }
+            return null;
           }
-        })();
-        analysis = normalizeAnalysisObject(parsed);
-        if (!isValidAnalysisObject(analysis)) {
-          analysis = buildFallbackAnalysis(dreamText, "응답 JSON 형식 불안정");
-          provider = "fallback";
         }
-      } catch (providerError) {
-        analysis = buildFallbackAnalysis(dreamText, providerError?.message || "제공자 호출 실패");
-        provider = "fallback";
+      })();
+      analysis = normalizeAnalysisObject(parsed);
+      if (!isValidAnalysisObject(analysis)) {
+        return jsonWithCors(
+          request,
+          {
+            ok: false,
+            message:
+              "분석 결과 형식(JSON)을 안정적으로 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+          },
+          { status: 502 },
+        );
       }
       markdown = analysisToMarkdown(analysis);
+    } else if (useAnthropic) {
+      const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+      markdown = await callAnthropicDreamPsychoAnalysis({
+        systemPrompt: SYSTEM_PROMPT,
+        dreamText,
+        model,
+        maxTokens,
+      });
     } else {
-      analysis = buildFallbackAnalysis(dreamText, "API Key 미설정");
-      markdown = analysisToMarkdown(analysis);
+      return jsonWithCors(
+        request,
+        {
+          ok: false,
+          message: "API Key not found: GOOGLE_API_KEY/GEMINI_API_KEY 또는 ANTHROPIC_API_KEY 환경변수가 필요합니다.",
+        },
+        { status: 500 },
+      );
     }
 
     if (!validateOutputStructure(markdown)) {
-      analysis = buildFallbackAnalysis(dreamText, "결과 포맷 자동 보정");
-      markdown = analysisToMarkdown(analysis);
-      provider = "fallback";
+      // 포맷이 깨졌으면 한 번 더 엄격 지시로 재시도합니다.
+      const retryDreamText =
+        dreamText +
+        "\n\n[추가 지시] 반드시 아래의 4개 섹션 헤딩을 정확히 포함해 출력하세요:\n" +
+        "- [무의식의 핵심 테마]:\n" +
+        "- [정신분석학적 심층 해독]:\n" +
+        "- [상징(Symbol) 디코딩 사전]:\n" +
+        "- [현실을 위한 인사이트]:\n";
+
+      if (useGemini) {
+        const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
+        markdown = await callGeminiDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText: retryDreamText,
+          model,
+          maxTokens,
+        });
+      } else {
+        const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || undefined;
+        markdown = await callAnthropicDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText: retryDreamText,
+          model,
+          maxTokens,
+        });
+      }
+
+      if (!validateOutputStructure(markdown)) {
+        const raw = String(markdown || "").trim();
+        const usableFallback =
+          raw.length >= 120 && /\[[^\]]+\]/.test(raw) && /무의식|상징|인사이트|정신분석/.test(raw);
+        if (!usableFallback) {
+          return jsonWithCors(
+            request,
+            {
+              ok: false,
+              message:
+                "분석 결과 형식을 안정적으로 맞추지 못했습니다. 잠시 후 다시 시도해 주세요.",
+            },
+            { status: 502 },
+          );
+        }
+      }
     }
 
     const title = "정신분석 해몽";
