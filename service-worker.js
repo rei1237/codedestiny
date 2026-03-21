@@ -2,7 +2,7 @@
   Cache version: v12 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v13';
+const CACHE_NAME = 'kkul-mansaeryeok-v14';
 
 const PRECACHE_URLS = [
   '/',
@@ -55,6 +55,21 @@ self.addEventListener('fetch', event => {
     (
       requestUrl.pathname.includes('/js/tarot-') ||
       requestUrl.pathname.includes('/styles/tarot-')
+    )
+  ) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
+
+  // Saju core calculations and birth input UI must avoid stale cache.
+  if (
+    requestUrl.origin === self.location.origin &&
+    (
+      requestUrl.pathname === '/js/saju-engine.js' ||
+      requestUrl.pathname === '/js/saju-engine-continuation.js' ||
+      requestUrl.pathname === '/js/core/index-inline-runtime.js' ||
+      requestUrl.pathname === '/styles/fortune-ui.css' ||
+      requestUrl.pathname === '/css/index-inline-extracted.css'
     )
   ) {
     event.respondWith(fetch(event.request, { cache: 'no-store' }));
