@@ -57,16 +57,80 @@ function resetApp(){
 /* ═══════════════════════════════════════
    STEP 10: 초기화
 ═══════════════════════════════════════ */
+function bindBirthInputFallbackHandlers(){
+  var btnM = document.getElementById('btnM');
+  var btnF = document.getElementById('btnF');
+
+  if (btnM && !btnM.dataset.directGenderBound) {
+    btnM.dataset.directGenderBound = '1';
+    btnM.addEventListener('click', function(e){
+      e.preventDefault();
+      if (typeof setGender === 'function') setGender('M');
+    });
+  }
+  if (btnF && !btnF.dataset.directGenderBound) {
+    btnF.dataset.directGenderBound = '1';
+    btnF.addEventListener('click', function(e){
+      e.preventDefault();
+      if (typeof setGender === 'function') setGender('F');
+    });
+  }
+
+  var hookIds = ['birthHour', 'birthMinute', 'birthCountry', 'birthDate'];
+  for (var i = 0; i < hookIds.length; i++) {
+    var el = document.getElementById(hookIds[i]);
+    if (!el || el.dataset.directCorrectionBound === '1') continue;
+    el.dataset.directCorrectionBound = '1';
+    el.addEventListener('change', function(){
+      if (typeof updateCorrectedTimePreview === 'function') {
+        try { updateCorrectedTimePreview(); } catch (_) {}
+      }
+    });
+  }
+}
+
+function ensureBirthInputsInteractive(){
+  var hourSel = document.getElementById('birthHour');
+  var minSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+
+  var needSelectorInit = !!(
+    (hourSel && (!hourSel.options || hourSel.options.length === 0)) ||
+    (minSel && (!minSel.options || minSel.options.length === 0)) ||
+    (countrySel && (!countrySel.options || countrySel.options.length <= 1))
+  );
+
+  if (needSelectorInit && typeof initSelectors === 'function') {
+    try { initSelectors(); } catch (_) {}
+  }
+
+  bindBirthInputFallbackHandlers();
+}
+
+function initSajuCoreBoot(){
+  if (window.__cdSajuCoreBootDone) return;
+  window.__cdSajuCoreBootDone = true;
+
+  if (typeof initSelectors === 'function') {
+    try { initSelectors(); } catch (_) {}
+  }
+  ensureBirthInputsInteractive();
+
+  if (typeof populateCelebList === 'function') {
+    try { populateCelebList(); } catch (_) {}
+  }
+  if (typeof loadNext === 'function') {
+    try { loadNext(); } catch (_) {}
+  }
+
+  setTimeout(ensureBirthInputsInteractive, 300);
+  setTimeout(ensureBirthInputsInteractive, 1000);
+}
+
 if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',function(){
-  initSelectors();
-  populateCelebList();
-  loadNext();
-});
+  document.addEventListener('DOMContentLoaded', initSajuCoreBoot, { once: true });
 }else{
-  initSelectors();
-  populateCelebList();
-  loadNext();
+  initSajuCoreBoot();
 }
 
 /* ═══════════════════════════════════════
