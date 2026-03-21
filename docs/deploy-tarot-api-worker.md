@@ -94,7 +94,7 @@ npm run deploy:cf:worker
    - 없으면: 자동으로 `npm run build:cf` 실행 후 다시 확인
 
 3. **Worker 배포**
-   - `npx wrangler deploy --config wrangler.worker.jsonc` 실행
+   - `npx wrangler deploy --config wrangler.json` 실행
    - 설정 내용:
      - **main**: `.open-next/worker.js` (API 라우트 포함 서버 로직)
      - **assets.directory**: `./dist` (정적 파일)

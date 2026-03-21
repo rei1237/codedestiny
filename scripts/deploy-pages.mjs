@@ -26,7 +26,7 @@ const projectName =
   process.env.CF_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PROJECT_NAME ||
-  "code-destiny";
+  "code-destiny-web";
 
 const branchArgIndex = process.argv.findIndex((arg) => arg === "--branch");
 const branch =
@@ -37,11 +37,15 @@ const branch =
 const isWindows = process.platform === "win32";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const outputDir = resolve(process.cwd(), "dist");
+// Use Pages-only wrangler.jsonc so Wrangler does not pick wrangler.json (Worker) and warn about missing pages_build_output_dir.
+const pagesWranglerConfig = resolve(rootDir, "wrangler.jsonc");
 const args = [
   "wrangler",
   "pages",
   "deploy",
   "dist",
+  "--config",
+  pagesWranglerConfig,
   "--project-name",
   projectName,
   "--branch",
@@ -52,7 +56,7 @@ console.log(`[deploy-pages] project=${projectName} branch=${branch}`);
 
 function runDeploy(env) {
   const result = isWindows
-    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx wrangler pages deploy dist --project-name ${projectName} --branch ${branch}`], {
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx wrangler pages deploy dist --config wrangler.jsonc --project-name ${projectName} --branch ${branch}`], {
         stdio: "inherit",
         shell: false,
         env,

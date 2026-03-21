@@ -1,4 +1,4 @@
-name = "code-destiny"
+name = "code-destiny-web"
 pages_build_output_dir = "./dist"
 compatibility_date = "2026-03-14"
 compatibility_flags = ["nodejs_compat"]

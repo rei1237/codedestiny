@@ -24,7 +24,7 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
 
 const openNextDir = resolve(rootDir, ".open-next");
 const workerAssetsDir = resolve(openNextDir, "assets");
-const workerConfig = resolve(rootDir, "wrangler.worker.jsonc");
+const workerConfig = resolve(rootDir, "wrangler.json");
 
 const isWindows = process.platform === "win32";
 const npmCmd = isWindows ? "npm.cmd" : "npm";
@@ -54,7 +54,7 @@ if (needsBuild) {
 }
 
 if (!existsSync(workerConfig)) {
-  console.error("[deploy-worker] wrangler.worker.jsonc not found.");
+  console.error("[deploy-worker] wrangler.json not found.");
   process.exit(1);
 }
 

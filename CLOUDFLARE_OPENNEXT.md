@@ -18,7 +18,7 @@ Use this project with OpenNext on Cloudflare Workers.
 
 ## Workers: `run_worker_first` + locale URLs
 
-- **`wrangler.worker.jsonc`** (used by `npm run deploy:cf:worker`) sets `assets.binding: "ASSETS"` and **`run_worker_first: true`** so the OpenNext Worker runs before static asset matching (avoids edge 404s that skip the Worker).
+- **`wrangler.json`** (used by `npm run deploy:cf:worker`) sets `assets.binding: "ASSETS"` and **`run_worker_first: true`** so the OpenNext Worker runs before static asset matching (avoids edge 404s that skip the Worker).
 - **Locale roots** (`/en-us`, `/ja-jp`, …) are implemented as **static App Router segments** — `app/en-us/page.js`, etc. — which take **routing precedence** over `app/[adminHash]`. Previously, `/en-us` was handled as `[adminHash]` and returned **404 JSON** (`requireAdminSecret`) when the hash did not match `ADMIN_SECRET_HASH`.
 - **`next.config.mjs`** `rewrites.beforeFiles` only maps `/{locale}/:path+` → `/:path+` for nested paths (e.g. `/en-us/about` → `/about`).
 - **`public/{locale}/index.html`** copies (from `sync-legacy-static-to-public`) remain a **static fallback** for pure static / Pages-style hosts.
@@ -26,7 +26,7 @@ Use this project with OpenNext on Cloudflare Workers.
 ## Final File Layout
 
 - `wrangler.jsonc`: unified config for Pages/Workers fallback (`main` + `assets.directory` + `pages_build_output_dir`)
-- `wrangler.worker.jsonc`: explicit Worker deploy config (used by worker-target deploy scripts)
+- `wrangler.json`: explicit Worker deploy config (used by worker-target deploy scripts; default Wrangler config so `npx wrangler versions upload` works without `--config`)
 - `wrangler.toml`: fallback config for environments that call `wrangler deploy` without `--config`
 - `next.config.mjs`: normal Next.js config (no special ASSETS binding)
 
@@ -135,7 +135,7 @@ If token is missing, deploy exits early with a clear error instead of opening OA
 - `open-next.config.ts` and `wrangler.jsonc` must exist in repo root to avoid interactive prompts in CI.
 - `wrangler.jsonc`/`wrangler.toml` must point assets to `./dist`.
 - `wrangler.jsonc` (Pages) must not define `assets.binding: "ASSETS"`.
-- Use `wrangler.worker.jsonc` for Worker deploy path only.
+- Use `wrangler.json` for Worker deploy path only.
 - Commit a lock file (`package-lock.json`) to improve reproducibility and caching.
 
 ## Deployment Checklist

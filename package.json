@@ -25,7 +25,7 @@
     "build:cf": "npm run clean:cf && npm run sync:public && node scripts/build-cloudflare.mjs && npm run sanitize:cf-env && npm run verify:no-secret-leak && node scripts/prepare-cloudflare-dist.mjs && npm run verify:no-secret-leak",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
     "deploy:cf:worker": "node scripts/deploy-worker.mjs",
-    "deploy:cf:versions": "npx wrangler versions upload --config wrangler.worker.jsonc",
+    "deploy:cf:versions": "npx wrangler versions upload",
     "deploy:cf:all": "npm run build:cf && node scripts/deploy-worker.mjs && node scripts/deploy-pages.mjs",
     "deploy": "next build && npx @opennextjs/cloudflare build",
     "start": "next start",
