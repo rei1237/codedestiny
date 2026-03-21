@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <!-- ✅ PERF: canonical-redirect 인라인 (네트워크 요청 제거) -->
+  <!--   ♥ PERF: canonical-redirect 인라인 (네트워크 요청 제거) -->
   <script>(function redirectToCanonicalMain(){try{var loc=window.location;if(!loc)return;var path=loc.pathname||'';if(path.indexOf('/static/')===0)return;var host=(loc.hostname||'').toLowerCase();if(host==='code-destiny.com'||host==='www.code-destiny.com'||host.endsWith('.pages.dev'))return;var target='/';if(path===target||path==='/index.html')return;window.location.replace(target+(loc.search||'')+(loc.hash||''));}catch(e){}})()</script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
@@ -76,6 +76,10 @@
 <meta property="og:locale:alternate" content="hi_IN">
 <meta property="og:locale:alternate" content="es_ES">
 <meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="zh_TW">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="nl_NL">
+<meta property="og:locale:alternate" content="ms_MY">
 
 <!-- ═══ Twitter Card ═══ -->
 <meta name="twitter:card" content="summary_large_image">
@@ -83,6 +87,7 @@
 <meta name="twitter:description" content="AI-powered destiny analysis in 7 languages. 무료 사주·타로·궁합·운세 — Saju, Tarot, Zodiac, Compatibility & more.">
 <meta name="twitter:image" content="https://code-destiny.com/icons/honeypig.webp">
 <meta name="twitter:image:alt" content="Code Destiny — Free AI Fortune Telling: Saju, Tarot, Horoscope, I Ching in 7 Languages">
+<meta name="twitter:site" content="@code_destiny">
 
 <!-- OG 이미지 (SNS 공유·Naver/KakaoTalk 썸네일·Google 이미지 색인) -->
 <meta property="og:image" content="https://code-destiny.com/icons/honeypig.webp">
@@ -121,8 +126,7 @@
     "@type": "Organization",
     "name": "Code Destiny",
     "url": "https://code-destiny.com/"
-  },
-  
+  }
 }
 </script>
 <script type="application/ld+json">
@@ -416,10 +420,10 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   </style>
   <!-- ✅ PERF: Critical CSS (블로킹) — 초기 렌더에 필수 -->
   <link rel="stylesheet" href="/styles/globals.css">
-  <!-- ✅ PERF: fortune-ui.css 비동기 로드 — 크리티컬 CSS가 인라인이므로 FOUC 없음. 스플래시가 커버하는 동안 비동기 로드 -->
+  <!-- ✅ PERF: fortune-ui.css 비동기 로드 — 크리티컈 CSS가 인라인이므로 FOUC 없음. 스플래시가 커버하는 동안 비동기 로드 -->
   <link rel="preload" href="/styles/fortune-ui.css?v=20260322-astro-scroll-fix3" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260322-astro-scroll-fix3"></noscript>
-  <!-- ✅ PERF: Tailwind CDN 제거 → purged 로컬 빌드 CSS (65KB ↓ CDN 300KB+ 비교) -->
+  <!-- ✅ PERF: Tailwind CDN 제거 → purged 로컈 빌드 CSS (65KB ↓ CDN 300KB+ 비교) -->
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
@@ -451,6 +455,27 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
     <link rel="stylesheet" href="/css/entertain-system.css">
     <link rel="stylesheet" href="/styles/scroll-perf.css">
   </noscript>
+<!-- SEO: WebSite schema with SearchAction (추가용 — 기존 태그 미수정) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Code Destiny — 연이의 꽀꽀 만세력",
+  "url": "https://code-destiny.com/",
+  "description": "Free Saju (Four Pillars of Destiny), Tarot, Horoscope, Zi Wei Dou Shu, and Vedic Astrology platform available in 10 languages.",
+  "inLanguage": ["ko","en","ja","zh-CN","zh-TW","hi","es","fr","de","nl","ms"],
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://code-destiny.com/insights?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+  <!-- ✅ A11Y: WCAG 2.1 AA 접근성 보완 패치 — 기존 스타일 최후 로드 -->
+  <link rel="stylesheet" href="/css/accessibility-patch.css">
 </head>
 <body>
 <script>
@@ -762,7 +787,9 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
-  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown">
+  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown"
+       role="button" tabindex="0" aria-haspopup="listbox"
+       aria-expanded="false" aria-label="언어 선택. 현재 언어: KR">
     <span class="lang-icon">🌐</span>
     <span class="lang-label" id="langLabel">KR</span>
     <span class="lang-arrow">▼</span>
@@ -841,8 +868,10 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline">
-      <input type="checkbox" id="themeCheckbox" />
+    <label class="theme-switch theme-switch-inline" for="themeCheckbox">
+      <input type="checkbox" id="themeCheckbox"
+             aria-label="테마 전환 (꽃돼지 연이 모드 / 쌈바 모드)"
+             role="switch" aria-checked="false" />
       <div class="slider">
         <span class="nose-hole hole-left"></span>
         <span class="nose-hole hole-right"></span>
@@ -928,7 +957,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <div class="form-group">
         <label class="form-label">생년월일</label>
         <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
-          autocomplete="bday" inputmode="numeric">
+          autocomplete="bday" inputmode="numeric" aria-label="생년월일">
         <div class="form-radio-row">
           <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
           <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
@@ -939,7 +968,9 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <div class="form-group">
         <label class="form-label">출생 시간</label>
         <div class="row2">
+          <label class="sr-only" for="birthHour">출생 시간</label>
           <select class="inp" id="birthHour"></select>
+          <label class="sr-only" for="birthMinute">출생 분</label>
           <select class="inp" id="birthMinute"></select>
         </div>
       </div>
@@ -947,6 +978,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
         <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <label class="sr-only" for="birthCountry">출생 국가 / 출생지</label>
         <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
@@ -1007,7 +1039,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🦁</div>
-                <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleAnimal">동물 &amp; 관상 컬렉션</h2>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1092,7 +1124,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
           </div>
           <div class="tarot-collection__header">
             <div class="tarot-collection__icon" aria-hidden="true">✦</div>
-            <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
+            <h2 class="tarot-collection__title" id="fgTitleTarot">타로 리딩 컬렉션</h2>
             <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
             <div class="tarot-collection__divider" aria-hidden="true">
               <span class="tc-divider-star">✦</span>
@@ -1222,7 +1254,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">𓂀</div>
-                <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleOracle">신탁 &amp; 점술 컬렉션</h2>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1318,7 +1350,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🌌</div>
-                <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleCosmic">코즈믹 &amp; 별자리 컬렉션</h2>
                 <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1401,7 +1433,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🌸</div>
-                <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleFlower">운명의 꽃 &amp; 해몽 컬렉션</h2>
                 <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -3238,25 +3270,49 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
     </nav>
   </footer>
 
-<script src="/js/destiny-profile.js" defer></script>
+<!-- ═══ Phase 2 리팩토링 모듈 + 기본 엔진 로드 (의존성 순서) ═══ -->
+
+<!-- 독립 모듈 (병렬 로드) -->
 <script type="module" src="/js/swisseph-loader.js"></script>
+
+<!-- Data Layer (Phase 2: 무의존성) -->
+<script src="/js/data/chinese-astrology.js" defer></script>
+
+<!-- Calendar Layer (Phase 2: 데이터 계층 다음) -->
+<script src="/js/core/kasi/calendar.js" defer></script>
+
+<!-- Profile & LLM Prompts -->
+<script src="/js/destiny-profile.js" defer></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
+
+<!-- Service Layer (Phase 2: 분석 서비스) -->
+<script src="/js/services/sajuAnalyzer.js" defer></script>
+
+<!-- Engine Layer (Phase 2: 자미두수 계산) -->
 <script src="/js/engines/ziwei-doushu.js" defer></script>
+
+<!-- Core Engines (기존 호환) -->
 <script src="/js/saju-engine.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
 <script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
+
+<!-- UI & Interaction -->
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260321-sukuyo-llm-prompt1"></script>
 <script src="/js/admin-flower.js" defer></script>
+
 <div class="share-toast" id="shareToast"></div>
 
+<!-- Share & Social -->
 <script src="/js/share.js" defer></script>
 
-<!-- 구글 번역 스크립트 -->
-<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<!-- Visual Scroll Effects -->
+<script src="/js/fate-scroll-reveal.js" defer></script>
+<script src="/js/fate-scroll-top.js" defer></script>
+<script src="/js/fsn-navbar.js" defer></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3361,13 +3417,126 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
+<!-- Performance & Stability -->
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
 <script src="/js/entertain-engine.js" defer></script>
+
+<!-- 3rd Party (Deferred) -->
+<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<!-- App Entry Points (최종) -->
 <script type="module" src="/js/app.js"></script>
 <script type="module" src="/js/web-vitals-console.js"></script>
+
+<!-- ═══ SEO: 다국어 동적 메타 업데이트 (PHASE 1-2 + PHASE 2-1 + 2-2) ═══
+     기존 JS 로직을 수정하지 않고, localStorage cd_lang 키 감지로만 동작합니다.
+     크롤러(Googlebot)는 초기 렌더링 시점의 값을 읽습니다. -->
+<script>
+(function () {
+  // ── 언어 코드 → BCP-47 HTML lang 값 매핑 ──────────────────────────────
+  var HTML_LANG_MAP = {
+    'ko': 'ko', 'en': 'en', 'ja': 'ja',
+    'zh-CN': 'zh-CN', 'hi': 'hi', 'es': 'es',
+    'fr': 'fr', 'de': 'de', 'nl': 'nl', 'ms': 'ms'
+  };
+
+  // ── 언어별 <title> ──────────────────────────────────────────────────────
+  var SEO_TITLES = {
+    'ko': '🌸 연이의 꿀꿀 만세력 | 무료 사주·타로·운세·궁합·점성술·자미두수',
+    'en': 'Free Tarot Reading & Saju Birth Chart | Code Destiny — Korean Fortune Platform',
+    'ja': '無料タロット・四柱推命・紫微斗数 | Code Destiny — 韓国占いプラットフォーム',
+    'zh-CN': '免費塔羅牌·八字·紫微斗數 | Code Destiny — 命理占卜平台',
+    'hi': 'मुफ़्त टैरो रीडिंग और जन्म कुंडली | Code Destiny — कोरियाई भाग्य मंच',
+    'es': 'Lectura de Tarot Gratis y Carta Natal | Code Destiny — Plataforma de Fortuna Coreana',
+    'fr': 'Tirage de Tarot Gratuit & Thème Natal | Code Destiny — Plateforme de Divination Coréenne',
+    'de': 'Kostenloses Tarot & Geburtshoroskop | Code Destiny — Koreanische Wahrsageplattform',
+    'nl': 'Gratis Tarot & Geboortegrafiek | Code Destiny — Koreaans Fortuin Platform',
+    'ms': 'Bacaan Tarot Percuma & Carta Kelahiran | Code Destiny — Platform Ramalan Korea'
+  };
+
+  // ── 언어별 <meta name="description"> ───────────────────────────────────
+  var SEO_DESCRIPTIONS = {
+    'ko': '무료 사주팔자, 타로, 운세, 자미두수, 베다점성술, 꿈해몽 서비스. AI 기반 정밀 운세 분석.',
+    'en': 'Get free Korean Saju (Four Pillars), Tarot reading, birth chart, Zi Wei Dou Shu, Vedic Astrology and dream interpretation. AI-powered. No signup required.',
+    'ja': '無料で四柱推命、タロット占い、紫微斗数、夢占い、占星術を体験。AIが導く運命の地図。登録不要。',
+    'zh-CN': '免費體驗八字命理、塔羅牌、紫微斗數、占星術、夢境解析。AI智能解命，無需註冊。',
+    'hi': 'मुफ़्त में सजू, टैरो, राशिफल, ज़ी वेई डू शू, वैदिक ज्योतिष और सपने की व्याख्या। AI-संचालित।',
+    'es': 'Obtén tu lectura gratuita de Saju coreano, Tarot, carta natal, Zi Wei Dou Shu y astrología védica.',
+    'fr': 'Obtenez votre lecture gratuite de Saju coréen, Tarot, thème natal, Zi Wei Dou Shu et astrologie védique.',
+    'de': 'Kostenlose koreanische Saju-Lesung, Tarot, Geburtshoroskop, Zi Wei Dou Shu und Vedische Astrologie.',
+    'nl': 'Gratis Koreaanse Saju-lezing, Tarot, geboortegrafiek, Zi Wei Dou Shu en Vedische astrologie.',
+    'ms': 'Dapatkan bacaan Saju Korea, Tarot, carta kelahiran, Zi Wei Dou Shu dan astrologi Vedic secara percuma.'
+  };
+
+  // ── 언어별 <meta name="keywords"> ──────────────────────────────────────
+  var SEO_KEYWORDS = {
+    'en': 'free tarot reading, saju, four pillars of destiny, free birth chart, zi wei dou shu, vedic astrology, korean fortune telling, dream interpretation tarot, animal totem reading, free horoscope',
+    'ja': '無料タロット, 四柱推命 無料, 紫微斗数 無料, 占い, 夢占い, 運勢, 相性占い',
+    'zh-CN': '免費塔羅牌, 八字命理, 紫微斗數, 免費算命, 占星術, 夢境解析',
+    'ko': '무료사주, 타로, 운세, 자미두수, 베다점성술, 꿈해몽, 점성술, 궁합, 사주팔자, 만세력',
+    'hi': 'free tarot reading, free vedic astrology, kundli calculator, nakshatra, jyotish',
+    'es': 'tarot gratis, saju, carta natal gratis, astrología védica, horóscopo, compatibilidad',
+    'fr': 'tarot gratuit, saju, thème natal gratuit, astrologie védique, horoscope, compatibilité',
+    'de': 'kostenloses tarot, saju, geburtshoroskop kostenlos, vedische astrologie, horoskop',
+    'nl': 'gratis tarot, saju, geboortegrafiek gratis, vedische astrologie, horoscoop',
+    'ms': 'tarot percuma, saju, carta kelahiran percuma, astrologi vedic, horoskop'
+  };
+
+  // ── 핵심: SEO 메타 동기화 ───────────────────────────────────────────────
+  function syncSEOMeta(langCode) {
+    if (!langCode) return;
+
+    // 1. <html lang=""> 업데이트
+    var htmlLang = HTML_LANG_MAP[langCode] || 'ko';
+    if (document.documentElement.lang !== htmlLang) {
+      document.documentElement.lang = htmlLang;
+    }
+
+    // 2. <title> 업데이트
+    var title = SEO_TITLES[langCode] || SEO_TITLES['en'];
+    if (document.title !== title) document.title = title;
+
+    // 3. <meta name="description"> 업데이트 (있는 것만, 생성 안 함)
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      var desc = SEO_DESCRIPTIONS[langCode] || SEO_DESCRIPTIONS['en'];
+      metaDesc.setAttribute('content', desc);
+    }
+
+    // 4. <meta name="keywords"> 업데이트 (있는 것만, 생성 안 함)
+    var metaKw = document.querySelector('meta[name="keywords"]');
+    if (metaKw && SEO_KEYWORDS[langCode]) {
+      metaKw.setAttribute('content', SEO_KEYWORDS[langCode]);
+    }
+
+    // 5. OG title/description 업데이트 (있는 것만)
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    var ogDesc  = document.querySelector('meta[property="og:description"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDesc && SEO_DESCRIPTIONS[langCode]) {
+      ogDesc.setAttribute('content', SEO_DESCRIPTIONS[langCode]);
+    }
+  }
+
+  // ── 초기 lang 감지 (localStorage) ──────────────────────────────────────
+  var initialLang = 'ko';
+  try { initialLang = localStorage.getItem('cd_lang') || 'ko'; } catch (_) {}
+  syncSEOMeta(initialLang);
+
+  // ── localStorage.setItem 후크: 언어 전환 시 SEO 메타 자동 갱신 ─────────
+  // 기존 changeLanguage() 함수를 수정하지 않고 스토리지 레이어에서 감지합니다.
+  var _origSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (key, value) {
+    _origSetItem.apply(this, arguments);
+    if (key === 'cd_lang') {
+      try { syncSEOMeta(String(value)); } catch (_) {}
+    }
+  };
+})();
+</script>
 
 <!-- ✅ PHASE 6-7: Runtime Validation & Performance Measurement -->
 <!-- 실행 방법: ?validate=phase6-7 쿼리 파라미터 추가 또는 콘솔에서 수동 호출 -->
@@ -3464,6 +3633,102 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   } else {
     setTimeout(handleActionParam, 500);
   }
+})();
+</script>
+
+<!-- ✅ A11Y: WCAG 2.1 AA 접근성 보조 스크립트 — 기존 로직 수정 없이 ARIA 상태 동기화 -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── 1. lang-trigger: aria-expanded 동기화 + 키보드 접근성 ── */
+  var langTrigger = document.getElementById('langTrigger');
+  var langDropdown = document.getElementById('langDropdown');
+
+  if (langTrigger && langDropdown) {
+    // 드롭다운 class/style 변경 → aria-expanded 자동 반영
+    var langObserver = new MutationObserver(function () {
+      var isOpen = langDropdown.classList.contains('open') ||
+                   (langDropdown.style.display !== '' && langDropdown.style.display !== 'none');
+      langTrigger.setAttribute('aria-expanded', String(isOpen));
+    });
+    langObserver.observe(langDropdown, { attributes: true, attributeFilter: ['class', 'style'] });
+
+    // Enter / Space 키로 버튼 활성화 (기존 click 핸들러 재사용)
+    langTrigger.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        langTrigger.click();
+      }
+    });
+  }
+
+  // 언어 변경 시 aria-label의 현재 언어명 업데이트 (외부 호출용)
+  window.updateLangTriggerLabel = function (langCode) {
+    if (!langTrigger) return;
+    var labelMap = {
+      ko: 'KR', en: 'EN', ja: 'JP', 'zh-CN': 'CN',
+      hi: 'HI', es: 'ES', fr: 'FR', de: 'DE', nl: 'NL', ms: 'MS'
+    };
+    var name = labelMap[langCode] || langCode.toUpperCase();
+    langTrigger.setAttribute('aria-label', '언어 선택. 현재 언어: ' + name);
+  };
+
+  /* ── 2. themeCheckbox: aria-checked 동기화 ── */
+  var themeCb = document.getElementById('themeCheckbox');
+  if (themeCb) {
+    themeCb.setAttribute('aria-checked', String(themeCb.checked));
+    themeCb.addEventListener('change', function () {
+      themeCb.setAttribute('aria-checked', String(themeCb.checked));
+    });
+  }
+
+  /* ── 3. 다국어 전환 시 폼 ARIA 라벨 업데이트 ── */
+  var BIRTH_DATE_LABELS = {
+    ko: '생년월일', en: 'Date of Birth', ja: '生年月日',
+    'zh-CN': '出生日期', hi: 'जन्म तिथि', es: 'Fecha de nacimiento',
+    fr: 'Date de naissance', de: 'Geburtsdatum',
+    nl: 'Geboortedatum', ms: 'Tarikh Lahir'
+  };
+
+  var SELECT_LABELS = {
+    birthHour: {
+      ko: '출생 시간', en: 'Birth Hour', ja: '出生時刻',
+      'zh-CN': '出生时间', hi: 'जन्म समय', es: 'Hora de nacimiento',
+      fr: 'Heure de naissance', de: 'Geburtsstunde',
+      nl: 'Geboorteuur', ms: 'Jam Lahir'
+    },
+    birthMinute: {
+      ko: '출생 분', en: 'Birth Minute', ja: '出生分',
+      'zh-CN': '出生分钟', hi: 'जन्म मिनट', es: 'Minuto de nacimiento',
+      fr: 'Minute de naissance', de: 'Geburtsminute',
+      nl: 'Geboorteminuut', ms: 'Minit Lahir'
+    },
+    birthCountry: {
+      ko: '출생 국가 / 출생지', en: 'Birth Country', ja: '出生国',
+      'zh-CN': '出生国家', hi: 'जन्म देश', es: 'País de nacimiento',
+      fr: 'Pays de naissance', de: 'Geburtsland',
+      nl: 'Geboorteland', ms: 'Negara Lahir'
+    }
+  };
+
+  window.updateA11yFormLabels = function (lang) {
+    // birthDate aria-label
+    var bd = document.getElementById('birthDate');
+    if (bd) {
+      bd.setAttribute('aria-label', BIRTH_DATE_LABELS[lang] || BIRTH_DATE_LABELS['en']);
+    }
+    // select sr-only 라벨 텍스트
+    ['birthHour', 'birthMinute', 'birthCountry'].forEach(function (id) {
+      var lbl = document.querySelector('label[for="' + id + '"].sr-only');
+      if (lbl && SELECT_LABELS[id][lang]) {
+        lbl.textContent = SELECT_LABELS[id][lang];
+      }
+    });
+    // lang-trigger aria-label
+    window.updateLangTriggerLabel(lang);
+  };
+
 })();
 </script>
 

@@ -94,7 +94,18 @@ function _renderSukuyoSection(profile) {
   var b = profile.birth;
   var lunarObj = null;
   try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+    var currentCtx = null;
+    if (window.KasiCalendarService && typeof window.KasiCalendarService.getCurrentContext === 'function') {
+      currentCtx = window.KasiCalendarService.getCurrentContext();
+    }
+    if (currentCtx && currentCtx.lunar && currentCtx.lunar.year && currentCtx.lunar.month && currentCtx.lunar.day) {
+      lunarObj = {
+        year: currentCtx.lunar.year,
+        month: currentCtx.lunar.month,
+        day: currentCtx.lunar.day,
+        isLeap: !!currentCtx.lunar.isLeap
+      };
+    } else if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
       lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
     }
   } catch (e) {

@@ -544,12 +544,7 @@ async function resolvePrimaryCalendarContext(input, options) {
     return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
   };
 
-  var localOnly = (options.localOnly === true);
-  var localCtx = buildFallbackDateContext(norm, localOnly ? 'local-only mode' : 'kasi fallback');
-
-  if (localOnly && hasCompleteCalendar(localCtx)) {
-    return localCtx;
-  }
+  var localCtx = buildFallbackDateContext(norm, 'kasi fallback');
 
   var ctx = await resolveKasiDateContextSafe(norm, options || {});
   var isValid = hasCompleteCalendar(ctx);
