@@ -1,0 +1,50 @@
+# ✅ PERF: Cloudflare Pages Cache-Control 헤더 설정
+# 정적 자산: 버전 해시/쿼리스트링 포함 — 1년 불변 캐시
+# HTML: revalidate 단기 캐시
+
+# ─── 불변 정적 자산 (JS, CSS — 버전 쿼리 포함) ──────────────
+/js/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/styles/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# ─── 이미지 & 폰트 ────────────────────────────────────────────
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fuctionassets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/tarot-cards/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ─── 서비스 워커 — 항상 재검증 ────────────────────────────────
+/service-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# ─── PWA 매니페스트 — 단기 캐시 ──────────────────────────────
+/manifest.json
+  Cache-Control: public, max-age=3600
+
+/manifest-samba.json
+  Cache-Control: public, max-age=3600
+
+# ─── HTML 페이지 — revalidate (SEO 필수) ─────────────────────
+/
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# ─── API 응답 — 캐시 없음 ─────────────────────────────────────
+/api/*
+  Cache-Control: no-store

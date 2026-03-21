@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script src="/js/inline/canonical-redirect.js"></script>
+  <!-- ✅ PERF: canonical-redirect 인라인 (네트워크 요청 제거) -->
+  <script>(function redirectToCanonicalMain(){try{var loc=window.location;if(!loc)return;var path=loc.pathname||'';if(path.indexOf('/static/')===0)return;var host=(loc.hostname||'').toLowerCase();if(host==='code-destiny.com'||host==='www.code-destiny.com'||host.endsWith('.pages.dev'))return;var target='/';if(path===target||path==='/index.html')return;window.location.replace(target+(loc.search||'')+(loc.hash||''));}catch(e){}})()</script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
@@ -12,8 +13,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>연이의 꿀꿀 만세력 | 무료 사주·타로·운세·궁합 서비스</title>
-<!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/_next/image?url=%2Ficons%2Fsamba.webp&w=256&q=75">
+<!-- ✅ PERF: LCP 기본 로고(honeypig.webp) 프리로드 — 기본 테마 우선 -->
+<link rel="preload" as="image" href="/_next/image?url=%2Ficons%2Fhoneypig.webp&w=256&q=75" fetchpriority="high">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="연이의 꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -332,39 +333,58 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js"></script>
+<!-- ✅ PERF: pwa-theme-init 인라인 (네트워크 요청 제거) -->
+<script>(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp');}catch(_){window.__INITIAL_THEME_NEO__=false;}})()</script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
+<!-- ✅ PERF: preconnect 추가 (DNS 조기 해결) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" rel="stylesheet">
+<link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+<!-- ✅ PERF: display=swap → 텍스트 즉시 표시 후 폰트 교체 (LCP 개선) -->
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
+  <!-- ✅ PERF: Critical CSS (블로킹) — 초기 렌더에 필수 -->
   <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/animations.css">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
-  <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/css/entertain-system.css">
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260316">
+  <script src="/js/inline/api-base-init.js" defer></script>
+  <!-- ✅ PERF: Tailwind CDN defer — 스플래시 화면이 FOUC 커버 -->
+  <script defer src="https://cdn.tailwindcss.com"></script>
+  <!-- ✅ PERF: Non-critical CSS 비동기 로드 (모달 전용 — 클릭 시에만 필요) -->
+  <link rel="preload" href="/styles/destiny-flower-cosmic.css?v=20260317" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="/css/entertain-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <!-- noscript 폴백 -->
+  <noscript>
+    <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+    <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
+    <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
+    <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
+    <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
+    <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
+    <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+    <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
+    <link rel="stylesheet" href="/css/entertain-system.css">
+  </noscript>
 </head>
 <body>
 <script>
@@ -671,8 +691,8 @@
   <div class="fsn-progress" id="fsnProgress"></div>
 </div>
 
-<!-- 구글 번역 요소 -->
-<div id="google_translate_element"></div>
+<!-- ✅ PERF: Google Translate — CLS 방지 위해 min-height 예약 -->
+<div id="google_translate_element" style="min-height:0;overflow:hidden;"></div>
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
@@ -790,8 +810,9 @@
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
+          <!-- ✅ PERF: LCP 이미지 — lazy 제거, fetchpriority=high 추가 (CLS 방지 w/h 유지) -->
           <img class="honeypig-logo-icon" src="/_next/image?url=%2Ficons%2Fhoneypig.webp&w=256&q=75"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+               width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="sync">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
