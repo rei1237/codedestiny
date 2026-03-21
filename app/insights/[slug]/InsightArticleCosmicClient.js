@@ -229,7 +229,7 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
           </section>
         )}
 
-        {article.relatedService && <ServiceCTA slug={article.relatedService} />
+        {article.relatedService && <ServiceCTA slug={article.relatedService} />}
       </div>
     </main>
     </div>
