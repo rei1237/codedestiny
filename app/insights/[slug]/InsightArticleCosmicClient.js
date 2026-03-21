@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 const SECTION_ACCENTS = ["#c9a84c", "#4ecdc4", "#a78bfa", "#ff6b9d", "#60a5fa"];
@@ -152,12 +153,15 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
                     <div className="ins-tarot-card-grid">
                       {section.cards.map((card) => (
                         <article key={card.id} className="ins-tarot-card-item">
-                          <img
-                            src={buildTarotImageUrl(card.id)}
-                            alt={`${card.name} 카드 이미지`}
-                            loading="lazy"
-                            className="ins-tarot-card-image"
-                          />
+                          <div className="ins-tarot-card-thumb">
+                            <Image
+                              src={buildTarotImageUrl(card.id)}
+                              alt={`${card.name} 카드 이미지`}
+                              fill
+                              sizes="(max-width: 640px) 42vw, 220px"
+                              className="ins-tarot-card-image"
+                            />
+                          </div>
                           <h3 className="ins-tarot-card-title">
                             {card.id} · {card.name}
                           </h3>
