@@ -646,10 +646,6 @@ function __cdBindGlobalActionsFallback() {
     var action = actionEl.getAttribute('data-action');
     if (!action) return;
 
-    if (action === 'closeDestinyFlowerStudio') {
-      if (__cdIsInsideDestinyFlowerSheet(event, target)) return;
-    }
-
     if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
       return;
     }
@@ -3573,7 +3569,13 @@ function openDestinyFlowerStudio() {
       var btn = el.closest && el.closest('[data-action]');
       if (!btn || !sheet.contains(btn)) return;
       var act = btn.getAttribute('data-action');
-      if (!act || act === 'closeDestinyFlowerStudio') return;
+      if (!act) return;
+      if (act === 'closeDestinyFlowerStudio') {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        closeDestinyFlowerStudio();
+        return;
+      }
       if (btn.classList && btn.classList.contains('df-source-tab')) return;
       if (e.cancelable) e.preventDefault();
       e.stopPropagation();
@@ -3584,6 +3586,7 @@ function openDestinyFlowerStudio() {
       if (Date.now() - (window.__dfStudioLastTouchActionAt || 0) > 520) return;
       var t = __cdResolveEventElement(e);
       if (!t || !sheet.contains(t)) return;
+      if (t.closest && t.closest('[data-action="closeDestinyFlowerStudio"]')) return;
       e.preventDefault();
       e.stopPropagation();
       if (e.stopImmediatePropagation) e.stopImmediatePropagation();
