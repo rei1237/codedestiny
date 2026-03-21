@@ -1,363 +1,447 @@
 /**
- * Ziwei Doushu Engine - 자미두수 계산 엔진
- * 의존성: js/data/chinese-astrology.js, js/core/kasi/calendar.js
- * 
- * 주요 기능:
- * 1. 12궁(宮) 계산 - 명궁, 형제궁, 부모궁, ... , 자녀궁
- * 2. 14대성(十四主星) - 紫微, 天機, 太陽, 武曲, 天同, ...
- * 3. 사화(四化) - 化祿, 化權, 化科, 化忌
- * 4. 대한(大限) 추산 - 10年주기 운세
+ * Ziwei Doushu Engine - saju-engine 호환 출력 스키마 제공
+ *
+ * 핵심 목표:
+ * 1) Solar/KASI 기반으로 음력/간지 산출
+ * 2) saju-engine이 기대하는 구조(palacesByIndex, stars, juInfo, daHanList...)를 반환
+ * 3) 레거시 호출 방식(calcZiweiPalaces(lunarDate, hour))도 하위 호환
  */
 
-/**
- * 12궁 이름 매핑
- */
-var PALACE_NAMES = {
-  1: '명궁(命宮)', 2: '형제궁(兄弟宮)', 3: '부모궁(父母宮)', 4: '재부궁(財帛宮)',
-  5: '자녀궁(子女宮)', 6: '노복궁(奴僕宮)', 7: '부부궁(夫妻宮)', 8: '질병궁(疾厄宮)',
-  9: '여행궁(遷移宮)', 10: '관로궁(官祿宮)', 11: '교양궁(交友宮)', 12: '재복궁(財福宮)'
+var ZW_ZHI_LIST = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+var ZW_GAN_LIST = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+var ZW_PALACE_ORDER = ['명궁', '형제궁', '부처궁', '자녀궁', '재백궁', '질액궁', '천이궁', '노복궁', '관록궁', '전택궁', '복덕궁', '부모궁'];
+
+var FOURTEEN_STARS = {
+  '紫微': { quality: '길함' }, '天機': { quality: '길함' }, '太陽': { quality: '길함' },
+  '武曲': { quality: '길함' }, '天同': { quality: '길함' }, '廉貞': { quality: '중등' },
+  '天府': { quality: '길함' }, '太陰': { quality: '길함' }, '貪狼': { quality: '중등' },
+  '巨門': { quality: '중등' }, '天相': { quality: '길함' }, '天梁': { quality: '길함' },
+  '七殺': { quality: '중등' }, '破軍': { quality: '불리' }
 };
 
-/**
- * 28숙(二十八宿)을 12궁으로 맵핑하는 함수
- * 각 숙은 특정 궁에 대응됩니다.
- * 
- * @param {number} mansionIdx - 숙 인덱스 (0~27)
- * @returns {number} 궁 번호 (1~12)
- */
 function getMansionPalace(mansionIdx) {
-  if (typeof mansionIdx !== 'number' || mansionIdx < 0 || mansionIdx > 27) {
-    return 1;
-  }
-  
-  var mansionPalaceMap = [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-    1, 2, 3, 4
-  ];
-  
+  if (typeof mansionIdx !== 'number' || mansionIdx < 0 || mansionIdx > 27) return 1;
+  var mansionPalaceMap = [1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4,5,6,7,8,9,10,11,12,1,2,3,4];
   return mansionPalaceMap[mansionIdx] || 1;
 }
 
-/**
- * 14대성 정의와 특성
- */
-var FOURTEEN_STARS = {
-  '紫微': {
-    emoji: '👑', desc: '자미성', meaning: '제왕의 기운, 지도력', quality: '길함'
-  },
-  '天機': {
-    emoji: '🧠', desc: '천기성', meaning: '지혜와 변화', quality: '길함'
-  },
-  '太陽': {
-    emoji: '☀️', desc: '태양성', meaning: '밝음과 희망', quality: '길함'
-  },
-  '武曲': {
-    emoji: '⚔️', desc: '무곡성', meaning: '결단력과 추진력', quality: '길함'
-  },
-  '天同': {
-    emoji: '😊', desc: '천동성', meaning: '즐거움과 복락', quality: '길함'
-  },
-  '廉貞': {
-    emoji: '🔥', desc: '염정성', meaning: '열정과 격정', quality: '중등'
-  },
-  '天府': {
-    emoji: '💰', desc: '천부성', meaning: '풍요로움', quality: '길함'
-  },
-  '太陰': {
-    emoji: '🌙', desc: '태음성', meaning: '부드러움과 배려', quality: '길함'
-  },
-  '貪狼': {
-    emoji: '🐺', desc: '탐랑성', meaning: '욕심과 활동성', quality: '중등'
-  },
-  '巨門': {
-    emoji: '🗣️', desc: '거문성', meaning: '말과 소통', quality: '중등'
-  },
-  '天相': {
-    emoji: '🤝', desc: '천상성', meaning: '보필과 도움', quality: '길함'
-  },
-  '天梁': {
-    emoji: '🏛️', desc: '천량성', meaning: '도움과 보호', quality: '길함'
-  },
-  '七殺': {
-    emoji: '⚡', desc: '칠살성', meaning: '추진력과 도전', quality: '중등'
-  },
-  '破軍': {
-    emoji: '💥', desc: '파군성', meaning: '변화와 파괴', quality: '불리'
-  }
-};
-
-/**
- * 자미두수 명궁 계산
- * 음력 생월과 시간으로부터 명궁을 계산합니다.
- * 수프 체계: 자평(子平) 기준
- *
- * 호출 방식:
- *   calcZiweiPalaces(year, month, day, hour, minute)  ← saju-engine 호환
- *   calcZiweiPalaces(lunarDate, hour)                 ← 레거시 호환
- *
- * @returns {Object} { mingGong, mingXing, sihua, palaces }
- */
-function calcZiweiPalaces(yearOrLunarDate, monthOrHour, day, hour, minute) {
-  // 두 가지 호출 방식 정규화
-  var lunarDate, actualHour;
+function _zwNormalizeInput(yearOrLunarDate, monthOrHour, day, hour, minute) {
   if (typeof yearOrLunarDate === 'number') {
-    // 5인수 형식: (year, month, day, hour, minute)
-    lunarDate = { year: yearOrLunarDate, month: monthOrHour, day: day || 1 };
-    actualHour = typeof hour === 'number' ? hour : 0;
-  } else {
-    // 레거시 2인수 형식: (lunarDate, hour)
-    lunarDate = yearOrLunarDate;
-    actualHour = typeof monthOrHour === 'number' ? monthOrHour : 0;
-  }
-
-  if (!lunarDate || typeof lunarDate.month !== 'number') {
     return {
-      mingGong: 1,
-      mingXing: [],
-      sihua: {},
-      palaces: initPalaces()
+      year: Number(yearOrLunarDate),
+      month: Number(monthOrHour),
+      day: Number(day || 1),
+      hour: Number(hour || 0),
+      minute: Number(minute || 0)
     };
   }
 
-  // 음력월과 시간으로부터 명궁 계산
-  // 기본 공식: (음력월 + 시간대) mod 12
-  var hourBucket = Math.floor(actualHour / 2);
-  var mingGongIndex = (lunarDate.month - 1 + hourBucket) % 12;
-  var mingGong = mingGongIndex + 1;
-
-  // 12개 궁 초기화
-  var palaces = initPalaces();
-
-  // 명궁에 紫微를 배치 (기본 동의 계산 생략, 단순화)
-  // 실제로는 더 복잡한 '斗數盤' 계산 필요
-  var starOrder = [
-    '紫微', '天機', '太陽', '武曲', '天同', '廉貞',
-    '天府', '太陰', '貪狼', '巨門', '天相', '天梁', '七殺', '破軍'
-  ];
-
-  // 紫微를 명궁에 배치
-  var ziweiPos = mingGong;
-  palaces[ziweiPos - 1].stars.push('紫微');
-
-  // 다른 주성들을 순서대로 배치
-  for (var i = 1; i < starOrder.length; i++) {
-    var pos = (ziweiPos - 1 + i * 2) % 12; // 2칸씩 이동
-    palaces[pos].stars.push(starOrder[i]);
-  }
-
-  // 사화(四化) 계산
-  var sihua = calcSihua(lunarDate, actualHour);
-
+  var ld = yearOrLunarDate || {};
   return {
-    mingGong: mingGong,
-    mingXing: palaces[mingGong - 1].stars,
-    sihua: sihua,
-    palaces: palaces
+    year: Number(ld.year || new Date().getFullYear()),
+    month: Number(ld.month || 1),
+    day: Number(ld.day || 1),
+    hour: Number(monthOrHour || 0),
+    minute: Number(minute || 0)
   };
 }
 
-/**
- * 12궁 초기화
- * 
- * @returns {Array} [
- *   {name, number, stars: [], sihua: {}},
- *   ...
- * ]
- */
-function initPalaces() {
-  var palaces = [];
-  for (var i = 1; i <= 12; i++) {
-    palaces.push({
-      name: PALACE_NAMES[i],
-      number: i,
-      stars: [],
-      sihua: {}
-    });
-  }
-  return palaces;
-}
+function _zwBuildFallbackResult(input) {
+  var stars = {};
+  for (var i = 0; i < 12; i++) stars[i] = { main: [], aux: [], bad: [] };
 
-/**
- * 사화(四化) 계산
- * 음력 월간과 시간대로부터 화祿, 化權, 化科, 化忌를 계산합니다.
- * 
- * @param {Object} lunarDate - {year, month, day}
- * @param {number} hour
- * @returns {Object} {
- *   lulu: {star, palace},        // 化祿 (재물과 복)
- *   huaquan: {star, palace},    // 化權 (권력과 통제)
- *   huake: {star, palace},      // 化科 (명성과 영예)
- *   huaji: {star, palace}       // 化忌 (손실과 고민)
- * }
- */
-function calcSihua(lunarDate, hour) {
-  if (!lunarDate) {
-    return {
-      lulu: { star: '?', palace: 1 },
-      huaquan: { star: '?', palace: 2 },
-      huake: { star: '?', palace: 3 },
-      huaji: { star: '?', palace: 4 }
-    };
+  var palaces = {};
+  var palacesByIndex = [];
+  for (var p = 0; p < 12; p++) {
+    palaces[ZW_PALACE_ORDER[p]] = ZW_ZHI_LIST[p];
+    palacesByIndex[p] = ZW_PALACE_ORDER[p];
   }
-
-  // 월간(月干) 기반 사화 배치 (단순화된 알고리즘)
-  var monthNum = (lunarDate.month || 1) - 1;
-  var hourBucket = Math.floor(hour / 2);
-  
-  var luluPalace = (monthNum + 1) % 12;
-  var huaquanPalace = (monthNum + 3) % 12;
-  var huakePalace = (monthNum + 6) % 12;
-  var huajiPalace = (monthNum + 9) % 12;
 
   return {
-    lulu: {
-      star: '化祿',
-      palace: luluPalace + 1,
-      meaning: '재물, 복락, 성취감'
-    },
-    huaquan: {
-      star: '化權',
-      palace: huaquanPalace + 1,
-      meaning: '권력, 통제, 추진력'
-    },
-    huake: {
-      star: '化科',
-      palace: huakePalace + 1,
-      meaning: '명성, 영예, 평판'
-    },
-    huaji: {
-      star: '化忌',
-      palace: huajiPalace + 1,
-      meaning: '손실, 고민, 장애물'
+    lunarMonth: input.month,
+    lunarDay: input.day,
+    isLeap: false,
+    yearGan: '甲',
+    meng: '子',
+    shen: '午',
+    palaces: palaces,
+    gongGan: {},
+    palacesByIndex: palacesByIndex,
+    stars: stars,
+    juInfo: '금4국(金四局)',
+    daHan: {},
+    daHanList: [],
+    sihuaData: {},
+    direction: 1,
+    ju: 4,
+    palaceStarData: [],
+    calcMeta: {
+      lunarMonth: input.month,
+      lunarDay: input.day,
+      hourBranch: ZW_ZHI_LIST[0],
+      hourIndex: 0,
+      lifeFormula: 'fallback',
+      bodyFormula: 'fallback'
     }
   };
 }
 
-/**
- * 별의 성격 판정
- * 해당 궁(宮)에 있을 때 별의 길흉을 평가합니다.
- * 
- * @param {string} star - 별 이름 (예: '紫微')
- * @param {number} palace - 궁 번호 (1~12)
- * @returns {Object} {
- *   quality: 'good'|'neutral'|'bad',
- *   meaning: string,
- *   tips: Array
- * }
- */
-function evalStar(star, palace) {
-  if (!FOURTEEN_STARS[star]) {
-    return { quality: 'neutral', meaning: '?', tips: [] };
-  }
-
-  var s = FOURTEEN_STARS[star];
-  var quality = s.quality === '길함' ? 'good' : s.quality === '불리' ? 'bad' : 'neutral';
-
-  // 궁별 길흉 판정 (단순화된 규칙)
-  var paladceGood = [1, 4, 7, 10];  // 명, 재, 부부, 관로궁
-  var palaceNeutral = [2, 3, 5, 6, 9, 11, 12];
-  var mutable = false;
-
-  if (paladceGood.indexOf(palace) >= 0 && quality !== 'bad') {
-    mutable = true;  // 길궁에 있으면 더 길해짐
-  } else if (palaceNeutral.indexOf(palace) >= 0 && quality === 'bad') {
-    mutable = true;  // 중립궁에 있으면 약화됨
-  }
-
-  return {
-    quality: quality,
-    meaning: s.desc + ' - ' + s.meaning,
-    tips: [
-      '이 별이 ' + PALACE_NAMES[palace] + '에 있습니다.',
-      (quality === 'good' ? '길한 상징입니다.' : quality === 'bad' ? '주의가 필요합니다.' : '중성적 영향입니다.')
-    ]
-  };
+function _zwToSymbol(strength) {
+  if (typeof zwStrengthToSymbol === 'function') return zwStrengthToSymbol(strength);
+  var m = { '묘': '◎', '왕': '○', '평': '▲', '리': '△', '함': 'X' };
+  return m[strength] || '▲';
 }
 
-/**
- * 대한(大限) 추산
- * 10年주기의 운세를 추산합니다.
- * 
- * @param {Object} lunarDate - {year, month, day}
- * @returns {Array} [
- *   {age: 10, startYear, decade: {...}},
- *   {age: 20, startYear, decade: {...}},
- *   ...
- * ]
- */
-function calcDahuan(lunarDate) {
-  if (!lunarDate || !lunarDate.year) {
-    return [];
+function _zwComputeStrength(starName, gZhi, borrowed, ctx) {
+  if (typeof zwComputeStarStrength === 'function') {
+    return zwComputeStarStrength(starName, gZhi, borrowed, ctx) || '평';
+  }
+  return borrowed ? '리' : '평';
+}
+
+function _zwParseRows(list, gZhi, borrowedByTag, ctx) {
+  return (list || []).map(function(raw) {
+    var hasHwaGi = /化忌/.test(raw || '');
+    var plain = String(raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    var borrowedFlag = borrowedByTag ? /\(차성\)|\b차성\b/.test(plain) : false;
+    var starName = plain
+      .replace(/\(차성\)/g, '')
+      .replace(/化祿|化權|化科|化忌/g, '')
+      .replace(/[◎○▲△X]/g, '')
+      .trim()
+      .split(' ')[0];
+    if (!starName) return null;
+
+    var strength = _zwComputeStrength(starName, gZhi, borrowedFlag, ctx);
+    if (hasHwaGi && strength === '묘') strength = '왕';
+    return {
+      name: starName,
+      strength: strength,
+      symbol: _zwToSymbol(strength),
+      borrowed: !!borrowedFlag
+    };
+  }).filter(function(v) { return !!v; });
+}
+
+function calcZiweiPalaces(yearOrLunarDate, monthOrHour, day, hour, minute) {
+  var input = _zwNormalizeInput(yearOrLunarDate, monthOrHour, day, hour, minute);
+
+  if (!input.year || !input.month || !input.day) {
+    return _zwBuildFallbackResult(input);
   }
 
-  var dahuans = [];
-  for (var i = 1; i <= 10; i++) {
-    var age = i * 10;
-    var startYear = lunarDate.year + age;
-    
-    dahuans.push({
-      age: age,
-      startYear: startYear,
-      decade: '제' + i + '대한 (만' + age + '~' + (age + 9) + '세)',
-      meaning: (age < 30 ? '초년기' : age < 60 ? '중년기' : '노년기') + '의 10年 운세'
+  var solar = null;
+  var lunar = null;
+  try {
+    if (typeof Solar !== 'undefined' && Solar && typeof Solar.fromYmdHms === 'function') {
+      solar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0);
+      lunar = solar.getLunar();
+    }
+  } catch (e) {}
+
+  if (!lunar) {
+    return _zwBuildFallbackResult(input);
+  }
+
+  var baseDate = new Date(input.year, input.month - 1, input.day, input.hour || 0, input.minute || 0, 0);
+  var kasiLunar = null;
+  try {
+    if (typeof KasiEngine !== 'undefined' && KasiEngine && typeof KasiEngine.solarToLunar === 'function') {
+      kasiLunar = KasiEngine.solarToLunar(baseDate);
+    }
+  } catch (e) {}
+
+  var lmonth = (kasiLunar && kasiLunar.month) ? Math.abs(Number(kasiLunar.month)) : Math.abs(lunar.getMonth());
+  var lday = (kasiLunar && kasiLunar.day) ? Number(kasiLunar.day) : lunar.getDay();
+  var isLeap = (kasiLunar && kasiLunar.isLeap != null)
+    ? !!kasiLunar.isLeap
+    : (typeof lunar.isLeap === 'function' ? lunar.isLeap() : (lunar.getIsLeap ? lunar.getIsLeap() : false));
+
+  var yearGan = lunar.getYearGan();
+  var yearZhi = lunar.getYearZhi();
+  try {
+    if (typeof KasiEngine !== 'undefined' && KasiEngine && typeof KasiEngine.getGanji === 'function') {
+      var kGanji = KasiEngine.getGanji(baseDate);
+      if (kGanji && kGanji.secha && String(kGanji.secha).length >= 2) {
+        yearGan = String(kGanji.secha).charAt(0) || yearGan;
+        yearZhi = String(kGanji.secha).charAt(1) || yearZhi;
+      }
+    }
+  } catch (e) {}
+
+  var hourIdx = (input.hour === 23 || input.hour === 0) ? 0 : Math.floor((input.hour + 1) / 2);
+  var hourBranch = ZW_ZHI_LIST[hourIdx];
+
+  var mengBaseIdx = (2 + lmonth - 1) % 12;
+  var mengIdx = (mengBaseIdx - hourIdx + 12) % 12;
+  var shenIdx = (mengBaseIdx + hourIdx) % 12;
+
+  var palaces = {};
+  var palacesByIndex = [];
+  for (var i = 0; i < 12; i++) {
+    var bIdx = (mengIdx - i + 120) % 12;
+    palaces[ZW_PALACE_ORDER[i]] = ZW_ZHI_LIST[bIdx];
+    palacesByIndex[bIdx] = ZW_PALACE_ORDER[i];
+  }
+
+  var yg = ZW_GAN_LIST.indexOf(yearGan);
+  if (yg < 0) yg = 0;
+  var inStart = [2, 4, 6, 8, 0][((yg % 5) + 5) % 5];
+  var gongGan = {};
+  for (var z = 0; z < 12; z++) gongGan[ZW_ZHI_LIST[z]] = ZW_GAN_LIST[(inStart + (z - 2 + 12) % 12) % 10];
+
+  var mgGan = gongGan[ZW_ZHI_LIST[mengIdx]];
+  var sMap = { '甲': 1, '乙': 1, '丙': 2, '丁': 2, '戊': 3, '己': 3, '庚': 4, '辛': 4, '壬': 5, '癸': 5 };
+  var bMap = { 0: 1, 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 1, 7: 1, 8: 2, 9: 2, 10: 3, 11: 3 };
+  var wVal = (sMap[mgGan] || 2) + bMap[mengIdx];
+  if (wVal > 5) wVal -= 5;
+
+  var juMap = { 1: 3, 2: 4, 3: 2, 4: 6, 5: 5 };
+  var ju = juMap[wVal] || 4;
+  var juNames = {
+    2: '수2국(水二局)',
+    3: '목3국(木三局)',
+    4: '금4국(金四局)',
+    5: '토5국(土五局)',
+    6: '화6국(火六局)'
+  };
+
+  var q = Math.floor(lday / ju);
+  var r = lday % ju;
+  var add = 0;
+  if (r !== 0) {
+    add = ju - r;
+    q = Math.floor((lday + add) / ju);
+  }
+  var pos = q;
+  if (add > 0) pos = (add % 2 === 1) ? (q - add) : (q + add);
+  while (pos <= 0) pos += 12;
+  while (pos > 12) pos -= 12;
+
+  var zPos = (pos + 1) % 12;
+  var fPos = (16 - zPos) % 12;
+
+  var stars = {};
+  for (i = 0; i < 12; i++) stars[i] = { main: [], aux: [], bad: [] };
+
+  stars[zPos].main.push('紫微');
+  stars[(zPos + 11) % 12].main.push('天機');
+  stars[(zPos + 9) % 12].main.push('太陽');
+  stars[(zPos + 8) % 12].main.push('武曲');
+  stars[(zPos + 7) % 12].main.push('天同');
+  stars[(zPos + 4) % 12].main.push('廉貞');
+
+  stars[fPos].main.push('天府');
+  stars[(fPos + 1) % 12].main.push('太陰');
+  stars[(fPos + 2) % 12].main.push('貪狼');
+  stars[(fPos + 3) % 12].main.push('巨門');
+  stars[(fPos + 4) % 12].main.push('天相');
+  stars[(fPos + 5) % 12].main.push('天梁');
+  stars[(fPos + 6) % 12].main.push('七殺');
+  stars[(fPos + 10) % 12].main.push('破軍');
+
+  stars[(10 - hourIdx + 12) % 12].aux.push('文昌');
+  stars[(4 + hourIdx) % 12].aux.push('文曲');
+  stars[(4 + lmonth - 1) % 12].aux.push('左輔');
+  stars[(10 - (lmonth - 1) + 12) % 12].aux.push('右弼');
+
+  var yangMap = { '甲': 3, '乙': 4, '丙': 6, '丁': 7, '戊': 6, '己': 7, '庚': 9, '辛': 10, '壬': 0, '癸': 1 };
+  var tuoMap = { '甲': 1, '乙': 2, '丙': 4, '丁': 5, '戊': 4, '己': 5, '庚': 7, '辛': 8, '壬': 10, '癸': 11 };
+  if (yearGan in yangMap) {
+    stars[yangMap[yearGan]].bad.push('擎羊');
+    stars[tuoMap[yearGan]].bad.push('陀羅');
+  }
+  stars[(11 - hourIdx + 12) % 12].bad.push('地空');
+  stars[(11 + hourIdx) % 12].bad.push('地劫');
+
+  var maMap = { '申': 2, '子': 2, '辰': 2, '寅': 5, '午': 5, '戌': 5, '亥': 8, '卯': 8, '未': 8, '巳': 11, '酉': 11, '丑': 11 };
+  if (maMap[yearZhi] !== undefined) stars[maMap[yearZhi]].aux.push('天馬');
+
+  var luCunMap = { '甲': 2, '乙': 3, '丙': 5, '丁': 6, '戊': 5, '己': 6, '庚': 8, '辛': 9, '壬': 11, '癸': 0 };
+  var luCunZhi = luCunMap[yearGan];
+  if (luCunZhi !== undefined) stars[luCunZhi].aux.push('祿存');
+
+  var sihuaMap = {
+    '甲': { '廉貞': '化祿', '破軍': '化權', '武曲': '化科', '太陽': '化忌' },
+    '乙': { '天機': '化祿', '天梁': '化權', '紫微': '化科', '太陰': '化忌' },
+    '丙': { '天同': '化祿', '天機': '化權', '文昌': '化科', '廉貞': '化忌' },
+    '丁': { '太陰': '化祿', '天同': '化權', '天機': '化科', '巨門': '化忌' },
+    '戊': { '貪狼': '化祿', '太陰': '化權', '右弼': '化科', '天機': '化忌' },
+    '己': { '武曲': '化祿', '貪狼': '化權', '天梁': '化科', '文曲': '化忌' },
+    '庚': { '太陽': '化祿', '武曲': '化權', '太陰': '化科', '天同': '化忌' },
+    '辛': { '巨門': '化祿', '太陽': '化權', '文曲': '化科', '文昌': '化忌' },
+    '壬': { '天梁': '化祿', '紫微': '化權', '左輔': '化科', '武曲': '化忌' },
+    '癸': { '破軍': '化祿', '巨門': '化權', '太陰': '化科', '貪狼': '化忌' }
+  };
+
+  var curSihua = sihuaMap[yearGan] || null;
+  var sihuaData = {};
+  if (curSihua) {
+    for (var sName in curSihua) {
+      for (var si = 0; si < 12; si++) {
+        if (stars[si].main.indexOf(sName) >= 0 || stars[si].aux.indexOf(sName) >= 0) {
+          sihuaData[sName] = { type: curSihua[sName], palaceIdx: si, palaceName: palacesByIndex[si] || '' };
+          break;
+        }
+      }
+    }
+
+    for (i = 0; i < 12; i++) {
+      for (var j = 0; j < stars[i].main.length; j++) {
+        var sMain = stars[i].main[j];
+        if (curSihua[sMain]) stars[i].main[j] = sMain + ' <span style="color:' + (curSihua[sMain] === '化忌' ? '#FF5252' : '#3399FF') + ';font-weight:900;font-size:0.75rem;margin-left:3px;">' + curSihua[sMain] + '</span>';
+      }
+      for (j = 0; j < stars[i].aux.length; j++) {
+        var sAux = stars[i].aux[j];
+        if (curSihua[sAux]) stars[i].aux[j] = sAux + ' <span style="color:' + (curSihua[sAux] === '化忌' ? '#FF5252' : '#3399FF') + ';font-weight:900;font-size:0.7rem;margin-left:3px;">' + curSihua[sAux] + '</span>';
+      }
+    }
+  }
+
+  var borrowed = [];
+  for (i = 0; i < 12; i++) {
+    if (stars[i].main.length === 0) {
+      var opp = (i + 6) % 12;
+      borrowed[i] = stars[opp].main.map(function(s) {
+        return s + '<span style="font-size:0.5rem;opacity:0.6;margin-left:3px;font-weight:600;color:#a1a1aa">(차성)</span>';
+      });
+    }
+  }
+  for (i = 0; i < 12; i++) {
+    if (borrowed[i]) stars[i].borrowedMain = [].concat(borrowed[i]);
+  }
+
+  var isYangYear = ({ '甲': 1, '乙': -1, '丙': 1, '丁': -1, '戊': 1, '己': -1, '庚': 1, '辛': -1, '壬': 1, '癸': -1 }[yearGan] || 1) > 0;
+  var isMale = (typeof GENDER !== 'undefined') ? (GENDER === 'M') : true;
+  var direction = (isYangYear === isMale) ? 1 : -1;
+
+  var daHan = {};
+  var daHanList = [];
+  for (var k = 0; k < 12; k++) {
+    var currBIdx = (mengIdx + k * direction + 120) % 12;
+    var startAge = ju + k * 10;
+    var endAge = startAge + 9;
+    daHan[currBIdx] = startAge + '~' + endAge;
+    daHanList.push({
+      order: k,
+      idx: currBIdx,
+      palaceName: palacesByIndex[currBIdx] || ('제' + (k + 1) + '궁'),
+      startAge: startAge,
+      endAge: endAge,
+      zhi: ZW_ZHI_LIST[currBIdx]
     });
   }
 
-  return dahuans;
-}
+  var palaceStarData = [];
+  for (var pi = 0; pi < 12; pi++) {
+    var gName = palacesByIndex[pi] || '';
+    var gZhi = ZW_ZHI_LIST[pi];
+    var mainSource = (stars[pi] && stars[pi].main && stars[pi].main.length) ? stars[pi].main : ((stars[pi] && stars[pi].borrowedMain) || []);
 
-/**
- * 자미두수 전체 차트 생성
- * 
- * @param {Object} opts - {
- *   lunarDate: {year, month, day},
- *   hour: number,
- *   minute: number
- * }
- * @returns {Object}
- */
-function buildZiweiChart(opts) {
-  if (!opts || !opts.lunarDate) {
-    return null;
+    var ctx = {
+      hourIndex: hourIdx,
+      lunarMonth: lmonth,
+      yearGan: yearGan,
+      luCunZhiIdx: (luCunZhi !== undefined ? luCunZhi : -1)
+    };
+
+    palaceStarData.push({
+      palace: gName,
+      branch: gZhi,
+      stars: _zwParseRows(mainSource, gZhi, true, ctx),
+      auxStars: _zwParseRows((stars[pi] && stars[pi].aux) ? stars[pi].aux : [], gZhi, false, ctx),
+      badStars: _zwParseRows((stars[pi] && stars[pi].bad) ? stars[pi].bad : [], gZhi, false, ctx)
+    });
   }
 
-  var palaces = calcZiweiPalaces(opts.lunarDate, opts.hour || 0);
-  var dahuans = calcDahuan(opts.lunarDate);
-
   return {
-    lunarDate: opts.lunarDate,
+    lunarMonth: lmonth,
+    lunarDay: lday,
+    isLeap: isLeap,
+    yearGan: yearGan,
+    meng: ZW_ZHI_LIST[mengIdx],
+    shen: ZW_ZHI_LIST[shenIdx],
+    palaces: palaces,
+    gongGan: gongGan,
+    palacesByIndex: palacesByIndex,
+    stars: stars,
+    juInfo: juNames[ju] || juNames[4],
+    daHan: daHan,
+    daHanList: daHanList,
+    sihuaData: sihuaData,
+    direction: direction,
+    ju: ju,
+    palaceStarData: palaceStarData,
+    calcMeta: {
+      lunarMonth: lmonth,
+      lunarDay: lday,
+      hourBranch: hourBranch,
+      hourIndex: hourIdx,
+      lifeFormula: '명궁 = (寅궁기점 - 시지index) mod 12',
+      bodyFormula: '신궁 = (寅궁기점 + 시지index) mod 12'
+    }
+  };
+}
+
+function evalStar(star, palace) {
+  var key = (typeof star === 'string') ? star.replace(/<[^>]*>/g, '').trim() : '';
+  var info = FOURTEEN_STARS[key] || null;
+  if (!info) return { quality: 'neutral', meaning: key || '?', tips: [] };
+  var quality = info.quality === '길함' ? 'good' : (info.quality === '불리' ? 'bad' : 'neutral');
+  return {
+    quality: quality,
+    meaning: key,
+    tips: ['자미두수 주성의 성향을 함께 해석하세요.']
+  };
+}
+
+function calcDahuan(lunarDate) {
+  if (!lunarDate || !lunarDate.year) return [];
+  var out = [];
+  for (var i = 1; i <= 10; i++) {
+    var age = i * 10;
+    out.push({
+      age: age,
+      startYear: lunarDate.year + age,
+      decade: '제' + i + '대한 (만' + age + '~' + (age + 9) + '세)',
+      meaning: (age < 30 ? '초년기' : age < 60 ? '중년기' : '노년기') + ' 운세 흐름'
+    });
+  }
+  return out;
+}
+
+function buildZiweiChart(opts) {
+  if (!opts) return null;
+  var ld = opts.lunarDate || { year: opts.year, month: opts.month, day: opts.day };
+  var p = calcZiweiPalaces(ld.year, ld.month, ld.day, opts.hour || 0, opts.minute || 0);
+  return {
+    lunarDate: ld,
     hour: opts.hour || 0,
     minute: opts.minute || 0,
-    mingGong: palaces.mingGong,
-    mingXing: palaces.mingXing,
-    palaces: palaces.palaces,
-    sihua: palaces.sihua,
-    dahuans: dahuans,
+    mingGong: p && p.meng,
+    mingXing: p && p.stars ? p.stars : [],
+    palaces: p && p.palaces,
+    sihua: p && p.sihuaData,
+    dahuans: p && p.daHanList ? p.daHanList : calcDahuan(ld),
     timestamp: Date.now()
   };
 }
 
-// 전역 등록
 try {
   window.calcZiweiPalaces = calcZiweiPalaces;
   window.evalStar = evalStar;
   window.calcDahuan = calcDahuan;
   window.buildZiweiChart = buildZiweiChart;
-  window.initPalaces = initPalaces;
   window.getMansionPalace = getMansionPalace;
 } catch (e) {}
 
-// 모듈 내보내기
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    calcZiweiPalaces,
-    evalStar,
-    calcDahuan,
-    buildZiweiChart,
-    initPalaces,
-    getMansionPalace,
-    FOURTEEN_STARS,
-    PALACE_NAMES
+    calcZiweiPalaces: calcZiweiPalaces,
+    evalStar: evalStar,
+    calcDahuan: calcDahuan,
+    buildZiweiChart: buildZiweiChart,
+    getMansionPalace: getMansionPalace,
+    FOURTEEN_STARS: FOURTEEN_STARS
   };
 }
