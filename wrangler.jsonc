@@ -1,6 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "code-destiny",
+  "main": ".open-next/worker.js",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-03-14",
   "compatibility_flags": [

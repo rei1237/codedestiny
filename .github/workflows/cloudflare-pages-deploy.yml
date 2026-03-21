@@ -41,13 +41,13 @@ jobs:
       - name: Sync Worker AI secrets
         run: |
           if [ -n "${GOOGLE_API_KEY}" ]; then
-            printf '%s\n' "${GOOGLE_API_KEY}" | npx wrangler secret put GOOGLE_API_KEY --config wrangler.worker.jsonc
+            printf '%s\n' "${GOOGLE_API_KEY}" | npx wrangler secret put GOOGLE_API_KEY --config wrangler.jsonc
           fi
           if [ -n "${GEMINI_API_KEY}" ]; then
-            printf '%s\n' "${GEMINI_API_KEY}" | npx wrangler secret put GEMINI_API_KEY --config wrangler.worker.jsonc
+            printf '%s\n' "${GEMINI_API_KEY}" | npx wrangler secret put GEMINI_API_KEY --config wrangler.jsonc
           fi
           if [ -n "${ANTHROPIC_API_KEY}" ]; then
-            printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.worker.jsonc
+            printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.jsonc
           fi
 
       # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
