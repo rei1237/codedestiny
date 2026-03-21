@@ -3,6 +3,11 @@ module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./saju_report_v3.jsx",
+    // ✅ PERF: 정적 HTML/JS 파일도 스캔 — CDN 대신 purged CSS 빌드용
+    "./index.html",
+    "./public/**/*.html",
+    "./public/js/**/*.js",
+    "./js/**/*.js",
   ],
   theme: {
     extend: {

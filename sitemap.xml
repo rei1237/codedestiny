@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://code-destiny.com/</loc>
-    <lastmod>2026-03-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko"      href="https://code-destiny.com/"/>
+    <xhtml:link rel="alternate" hreflang="en"      href="https://code-destiny.com/en-us"/>
+    <xhtml:link rel="alternate" hreflang="ja"      href="https://code-destiny.com/ja-jp"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN"   href="https://code-destiny.com/zh-cn"/>
+    <xhtml:link rel="alternate" hreflang="hi"      href="https://code-destiny.com/hi-in"/>
+    <xhtml:link rel="alternate" hreflang="es"      href="https://code-destiny.com/es-es"/>
+    <xhtml:link rel="alternate" hreflang="fr"      href="https://code-destiny.com/fr-fr"/>
+    <xhtml:link rel="alternate" hreflang="de"      href="https://code-destiny.com/de-de"/>
+    <xhtml:link rel="alternate" hreflang="nl"      href="https://code-destiny.com/nl-nl"/>
+    <xhtml:link rel="alternate" hreflang="ms"      href="https://code-destiny.com/ms-my"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/"/>
+    <lastmod>2026-03-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>

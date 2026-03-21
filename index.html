@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <!-- ✅ PERF: canonical-redirect 인라인 (네트워크 요청 제거) -->
+  <!--   ♥ PERF: canonical-redirect 인라인 (네트워크 요청 제거) -->
   <script>(function redirectToCanonicalMain(){try{var loc=window.location;if(!loc)return;var path=loc.pathname||'';if(path.indexOf('/static/')===0)return;var host=(loc.hostname||'').toLowerCase();if(host==='code-destiny.com'||host==='www.code-destiny.com'||host.endsWith('.pages.dev'))return;var target='/';if(path===target||path==='/index.html')return;window.location.replace(target+(loc.search||'')+(loc.hash||''));}catch(e){}})()</script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
-     crossorigin="anonymous"></script>
-  <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
-  <!-- ADSENSE_AD_UNIT_SLOT: 승인 후 광고 단위(ins class="adsbygoogle") 코드를 본문 원하는 위치에 추가하세요. -->
+  <!-- ✅ PERF: AdSense 지연 로드 — TBT 감소. 페이지 로드 후 3초 또는 첫 사용자 인터랙션 시 로드 -->
+  <script>
+  (function(){
+    var loaded=false;
+    function loadAdsense(){
+      if(loaded)return;loaded=true;
+      var s=document.createElement('script');
+      s.async=true;
+      s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+      s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    }
+    if(document.readyState==='complete'){setTimeout(loadAdsense,3000);}
+    else{window.addEventListener('load',function(){setTimeout(loadAdsense,3000);});}
+    ['scroll','click','touchstart'].forEach(function(e){
+      window.addEventListener(e,loadAdsense,{once:true,passive:true});
+    });
+  })();
+  </script>
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -61,6 +76,10 @@
 <meta property="og:locale:alternate" content="hi_IN">
 <meta property="og:locale:alternate" content="es_ES">
 <meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="zh_TW">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="nl_NL">
+<meta property="og:locale:alternate" content="ms_MY">
 
 <!-- ═══ Twitter Card ═══ -->
 <meta name="twitter:card" content="summary_large_image">
@@ -68,6 +87,7 @@
 <meta name="twitter:description" content="AI-powered destiny analysis in 7 languages. 무료 사주·타로·궁합·운세 — Saju, Tarot, Zodiac, Compatibility & more.">
 <meta name="twitter:image" content="https://code-destiny.com/icons/honeypig.webp">
 <meta name="twitter:image:alt" content="Code Destiny — Free AI Fortune Telling: Saju, Tarot, Horoscope, I Ching in 7 Languages">
+<meta name="twitter:site" content="@code_destiny">
 
 <!-- OG 이미지 (SNS 공유·Naver/KakaoTalk 썸네일·Google 이미지 색인) -->
 <meta property="og:image" content="https://code-destiny.com/icons/honeypig.webp">
@@ -106,8 +126,7 @@
     "@type": "Organization",
     "name": "Code Destiny",
     "url": "https://code-destiny.com/"
-  },
-  
+  }
 }
 </script>
 <script type="application/ld+json">
@@ -353,9 +372,59 @@
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
+  <!-- ✅ PERF: Critical CSS 인라인 — 변수/리셋/body/wrap/스플래시 (블로킹 CSS 없이 즉시 렌더) -->
+  <style id="critical-css">
+:root{--radius-lg:20px;--spacing-md:16px;--card-shadow:0 8px 30px rgba(0,0,0,0.05);--pink:#FF8BA7;--pink-l:#FFB7B2;--peach:#FFDAC1;--wood-bg:#E8F5E9;--wood-tx:#2E7D32;--fire-bg:#FFEBEE;--fire-tx:#C62828;--earth-bg:#FFF8E1;--earth-tx:#E65100;--metal-bg:#F5F5F5;--metal-tx:#546E7A;--water-bg:#E3F2FD;--water-tx:#1565C0;--radius:16px;--shadow:0 4px 20px rgba(255,139,167,.13)}
+.theme-pig{--bg-color:#FFF9F9;--card-bg:#FFFFFF;--card-glass:rgba(255,255,255,0.86);--text-main:#4A4A4A;--point-color:#FF85A2;--border-color:#FFE0E6}
+.theme-neo{--bg-color:#1A1A1B;--card-bg:#2D2D30;--card-glass:rgba(45,45,48,0.82);--text-main:#E1E1E1;--point-color:#FFD700;--border-color:#3F3F42}
+button,[role=button],input[type=button],input[type=submit],label[for]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+@media(max-width:480px){html{font-size:14px}}
+body{background-color:#FFF5F8;background:var(--bg-color,linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));min-height:100dvh;color:var(--text-main,#3D3D3D);padding:0;overflow-x:hidden;transition:background .4s ease,color .4s ease;position:relative;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 15% 20%,rgba(255,139,167,.14),transparent 35%),radial-gradient(circle at 85% 78%,rgba(124,58,237,.14),transparent 38%),radial-gradient(circle at 50% 12%,rgba(255,215,0,.09),transparent 32%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.18;background-image:radial-gradient(rgba(255,255,255,.5) .6px,transparent .6px);background-size:3px 3px}
+@media(pointer:coarse){body::before,body::after{display:none!important}}
+.wrap{width:100%;max-width:960px;margin:0 auto;position:relative;overflow-x:hidden;padding:0 8px calc(22px + env(safe-area-inset-bottom));padding-bottom:max(22px,calc(22px + env(safe-area-inset-bottom)));display:flex;flex-direction:column;z-index:1;isolation:isolate;touch-action:pan-y;min-height:100dvh}
+@media(pointer:coarse){.wrap{contain:layout}}
+.card{background:var(--card-glass,var(--card-bg,#fff));border-radius:var(--radius-lg,20px);padding:22px;box-shadow:var(--card-shadow,0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color,rgba(255,183,178,.15));margin-bottom:var(--spacing-md,16px);transition:background .4s ease,border-color .4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%)}
+img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
+#privacy-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
+#privacy-modal-overlay.show{opacity:1;visibility:visible}
+.theme-switch-wrapper{position:fixed!important;left:auto;right:max(12px,env(safe-area-inset-right,0px));top:auto;bottom:max(10px,env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;align-items:center;gap:8px;max-width:min(300px,calc(100vw - 20px));pointer-events:auto;isolation:isolate;background:color-mix(in srgb,var(--card-bg,#fff) 90%,transparent);padding:6px 10px;border-radius:30px;box-shadow:0 6px 18px rgba(15,23,42,.16);backdrop-filter:blur(8px);border:1px solid var(--border-color,rgba(255,183,178,.3));transition:transform .25s ease,background .4s ease,box-shadow .3s ease}
+/* 스플래시 스크린 */
+.code-splash{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 30% 60%,#0d1225 0%,#060810 60%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;transition:opacity .7s ease,visibility .7s ease;overflow:hidden}
+.code-splash-canvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.7;pointer-events:none}
+.code-splash-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px}
+.code-splash-title{text-align:center}
+.code-splash-brand{font-size:1.05rem;color:#818cf8;letter-spacing:3px;font-weight:600;text-transform:uppercase;margin-bottom:6px}
+.code-splash-heading{font-size:1.55rem;font-weight:900;color:#fff;letter-spacing:1px;line-height:1.3}
+.code-splash-subtitle{font-size:.78rem;color:#64748b;margin-top:5px;letter-spacing:.5px}
+.code-splash-message{font-size:.88rem;color:#a5b4fc;text-align:center;min-height:1.4em;letter-spacing:.5px;text-shadow:0 0 12px rgba(165,180,252,.5)}
+.code-splash-progress-track{width:220px;height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.code-splash-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,#f472b6,#fbbf24);border-radius:99px;transition:width .4s ease;box-shadow:0 0 8px rgba(108,99,255,.8)}
+.splash-orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 42% 42%,rgba(200,210,255,.16) 0%,rgba(120,80,255,.09) 45%,transparent 72%);box-shadow:0 0 55px rgba(165,180,252,.22),0 0 110px rgba(108,99,255,.10)}
+.meteor-1{top:3%;left:18%;--delay:0s;--dur:2.3s;--h:110px;--w:2px;--hc:rgba(200,220,255,.95);--gc1:rgba(170,200,255,.6);--gc2:rgba(140,175,255,.35)}
+.meteor-2{top:8%;left:55%;--delay:1s;--dur:2s;--h:90px;--w:2px;--hc:rgba(255,255,255,1);--gc1:rgba(200,220,255,.7);--gc2:rgba(175,205,255,.4)}
+.meteor-3{top:1%;left:78%;--delay:1.8s;--dur:2.7s;--h:130px;--w:2px;--hc:rgba(255,238,195,.95);--gc1:rgba(255,215,140,.65);--gc2:rgba(255,195,95,.38)}
+.meteor-4{top:18%;left:5%;--delay:.5s;--dur:2.9s;--h:80px;--w:1.5px;--hc:rgba(205,220,255,.9);--gc1:rgba(175,205,255,.55);--gc2:rgba(155,190,255,.32)}
+.meteor-5{top:0%;left:38%;--delay:2.4s;--dur:1.9s;--h:105px;--w:2px;--hc:rgba(238,210,255,.95);--gc1:rgba(208,168,255,.65);--gc2:rgba(178,128,255,.38)}
+.meteor-6{top:5%;left:88%;--delay:.7s;--dur:2.2s;--h:120px;--w:2px;--hc:rgba(195,238,255,.95);--gc1:rgba(155,220,255,.65);--gc2:rgba(115,205,255,.38)}
+@media(min-width:769px){.code-splash .meteor{display:none!important}}
+.meteor{position:absolute;width:var(--w,2px);height:var(--h,100px);border-radius:999px;background:linear-gradient(to bottom,transparent 0%,transparent 12%,var(--gc2,rgba(155,185,255,.22)) 35%,var(--gc1,rgba(195,218,255,.62)) 65%,var(--hc,rgba(255,255,255,.95)) 90%,var(--hc,#fff) 100%);box-shadow:0 0 5px 1px var(--gc1,rgba(195,218,255,.28));transform-origin:top center;transform:rotate(-42deg) translateY(-220px);opacity:0;animation:meteorFall var(--dur,2s) ease-in var(--delay,0s) infinite;pointer-events:none;will-change:transform,opacity}
+.meteor::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--hc,rgba(215,228,255,.92)) 45%,transparent 100%);box-shadow:0 0 7px 3px var(--hc,rgba(218,232,255,.95)),0 0 20px 7px var(--gc1,rgba(175,208,255,.55))}
+@keyframes meteorFall{0%{transform:rotate(-42deg) translateY(-220px);opacity:0}4%{opacity:1}15%{opacity:.95}65%{opacity:.7}85%{opacity:.3}100%{transform:rotate(-42deg) translateY(115vh);opacity:0}}
+@media(prefers-reduced-motion:reduce){.meteor{display:none!important}.code-splash-canvas{display:none!important}}
+@media(pointer:coarse){.code-splash .meteor-4,.code-splash .meteor-5,.code-splash .meteor-6{display:none!important}.code-splash-canvas{display:none!important}.code-splash .splash-orb{display:none!important}}
+  </style>
   <!-- ✅ PERF: Critical CSS (블로킹) — 초기 렌더에 필수 -->
   <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3">
+  <!-- ✅ PERF: fortune-ui.css 비동기 로드 — 크리티컈 CSS가 인라인이므로 FOUC 없음. 스플래시가 커버하는 동안 비동기 로드 -->
+  <link rel="preload" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3"></noscript>
+  <!-- ✅ PERF: Tailwind CDN 제거 → purged 로컈 빌드 CSS (65KB ↓ CDN 300KB+ 비교) -->
+  <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
@@ -388,6 +457,25 @@
     <link rel="stylesheet" href="/css/entertain-system.css">
     <link rel="stylesheet" href="/styles/scroll-perf.css">
   </noscript>
+<!-- SEO: WebSite schema with SearchAction (추가용 — 기존 태그 미수정) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Code Destiny — 연이의 꽀꽀 만세력",
+  "url": "https://code-destiny.com/",
+  "description": "Free Saju (Four Pillars of Destiny), Tarot, Horoscope, Zi Wei Dou Shu, and Vedic Astrology platform available in 10 languages.",
+  "inLanguage": ["ko","en","ja","zh-CN","zh-TW","hi","es","fr","de","nl","ms"],
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://code-destiny.com/insights?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 </head>
 <body>
 <script>
@@ -3335,6 +3423,113 @@
 <!-- App Entry Points (최종) -->
 <script type="module" src="/js/app.js"></script>
 <script type="module" src="/js/web-vitals-console.js"></script>
+
+<!-- ═══ SEO: 다국어 동적 메타 업데이트 (PHASE 1-2 + PHASE 2-1 + 2-2) ═══
+     기존 JS 로직을 수정하지 않고, localStorage cd_lang 키 감지로만 동작합니다.
+     크롤러(Googlebot)는 초기 렌더링 시점의 값을 읽습니다. -->
+<script>
+(function () {
+  // ── 언어 코드 → BCP-47 HTML lang 값 매핑 ──────────────────────────────
+  var HTML_LANG_MAP = {
+    'ko': 'ko', 'en': 'en', 'ja': 'ja',
+    'zh-CN': 'zh-CN', 'hi': 'hi', 'es': 'es',
+    'fr': 'fr', 'de': 'de', 'nl': 'nl', 'ms': 'ms'
+  };
+
+  // ── 언어별 <title> ──────────────────────────────────────────────────────
+  var SEO_TITLES = {
+    'ko': '🌸 연이의 꿀꿀 만세력 | 무료 사주·타로·운세·궁합·점성술·자미두수',
+    'en': 'Free Tarot Reading & Saju Birth Chart | Code Destiny — Korean Fortune Platform',
+    'ja': '無料タロット・四柱推命・紫微斗数 | Code Destiny — 韓国占いプラットフォーム',
+    'zh-CN': '免費塔羅牌·八字·紫微斗數 | Code Destiny — 命理占卜平台',
+    'hi': 'मुफ़्त टैरो रीडिंग और जन्म कुंडली | Code Destiny — कोरियाई भाग्य मंच',
+    'es': 'Lectura de Tarot Gratis y Carta Natal | Code Destiny — Plataforma de Fortuna Coreana',
+    'fr': 'Tirage de Tarot Gratuit & Thème Natal | Code Destiny — Plateforme de Divination Coréenne',
+    'de': 'Kostenloses Tarot & Geburtshoroskop | Code Destiny — Koreanische Wahrsageplattform',
+    'nl': 'Gratis Tarot & Geboortegrafiek | Code Destiny — Koreaans Fortuin Platform',
+    'ms': 'Bacaan Tarot Percuma & Carta Kelahiran | Code Destiny — Platform Ramalan Korea'
+  };
+
+  // ── 언어별 <meta name="description"> ───────────────────────────────────
+  var SEO_DESCRIPTIONS = {
+    'ko': '무료 사주팔자, 타로, 운세, 자미두수, 베다점성술, 꿈해몽 서비스. AI 기반 정밀 운세 분석.',
+    'en': 'Get free Korean Saju (Four Pillars), Tarot reading, birth chart, Zi Wei Dou Shu, Vedic Astrology and dream interpretation. AI-powered. No signup required.',
+    'ja': '無料で四柱推命、タロット占い、紫微斗数、夢占い、占星術を体験。AIが導く運命の地図。登録不要。',
+    'zh-CN': '免費體驗八字命理、塔羅牌、紫微斗數、占星術、夢境解析。AI智能解命，無需註冊。',
+    'hi': 'मुफ़्त में सजू, टैरो, राशिफल, ज़ी वेई डू शू, वैदिक ज्योतिष और सपने की व्याख्या। AI-संचालित।',
+    'es': 'Obtén tu lectura gratuita de Saju coreano, Tarot, carta natal, Zi Wei Dou Shu y astrología védica.',
+    'fr': 'Obtenez votre lecture gratuite de Saju coréen, Tarot, thème natal, Zi Wei Dou Shu et astrologie védique.',
+    'de': 'Kostenlose koreanische Saju-Lesung, Tarot, Geburtshoroskop, Zi Wei Dou Shu und Vedische Astrologie.',
+    'nl': 'Gratis Koreaanse Saju-lezing, Tarot, geboortegrafiek, Zi Wei Dou Shu en Vedische astrologie.',
+    'ms': 'Dapatkan bacaan Saju Korea, Tarot, carta kelahiran, Zi Wei Dou Shu dan astrologi Vedic secara percuma.'
+  };
+
+  // ── 언어별 <meta name="keywords"> ──────────────────────────────────────
+  var SEO_KEYWORDS = {
+    'en': 'free tarot reading, saju, four pillars of destiny, free birth chart, zi wei dou shu, vedic astrology, korean fortune telling, dream interpretation tarot, animal totem reading, free horoscope',
+    'ja': '無料タロット, 四柱推命 無料, 紫微斗数 無料, 占い, 夢占い, 運勢, 相性占い',
+    'zh-CN': '免費塔羅牌, 八字命理, 紫微斗數, 免費算命, 占星術, 夢境解析',
+    'ko': '무료사주, 타로, 운세, 자미두수, 베다점성술, 꿈해몽, 점성술, 궁합, 사주팔자, 만세력',
+    'hi': 'free tarot reading, free vedic astrology, kundli calculator, nakshatra, jyotish',
+    'es': 'tarot gratis, saju, carta natal gratis, astrología védica, horóscopo, compatibilidad',
+    'fr': 'tarot gratuit, saju, thème natal gratuit, astrologie védique, horoscope, compatibilité',
+    'de': 'kostenloses tarot, saju, geburtshoroskop kostenlos, vedische astrologie, horoskop',
+    'nl': 'gratis tarot, saju, geboortegrafiek gratis, vedische astrologie, horoscoop',
+    'ms': 'tarot percuma, saju, carta kelahiran percuma, astrologi vedic, horoskop'
+  };
+
+  // ── 핵심: SEO 메타 동기화 ───────────────────────────────────────────────
+  function syncSEOMeta(langCode) {
+    if (!langCode) return;
+
+    // 1. <html lang=""> 업데이트
+    var htmlLang = HTML_LANG_MAP[langCode] || 'ko';
+    if (document.documentElement.lang !== htmlLang) {
+      document.documentElement.lang = htmlLang;
+    }
+
+    // 2. <title> 업데이트
+    var title = SEO_TITLES[langCode] || SEO_TITLES['en'];
+    if (document.title !== title) document.title = title;
+
+    // 3. <meta name="description"> 업데이트 (있는 것만, 생성 안 함)
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      var desc = SEO_DESCRIPTIONS[langCode] || SEO_DESCRIPTIONS['en'];
+      metaDesc.setAttribute('content', desc);
+    }
+
+    // 4. <meta name="keywords"> 업데이트 (있는 것만, 생성 안 함)
+    var metaKw = document.querySelector('meta[name="keywords"]');
+    if (metaKw && SEO_KEYWORDS[langCode]) {
+      metaKw.setAttribute('content', SEO_KEYWORDS[langCode]);
+    }
+
+    // 5. OG title/description 업데이트 (있는 것만)
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    var ogDesc  = document.querySelector('meta[property="og:description"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDesc && SEO_DESCRIPTIONS[langCode]) {
+      ogDesc.setAttribute('content', SEO_DESCRIPTIONS[langCode]);
+    }
+  }
+
+  // ── 초기 lang 감지 (localStorage) ──────────────────────────────────────
+  var initialLang = 'ko';
+  try { initialLang = localStorage.getItem('cd_lang') || 'ko'; } catch (_) {}
+  syncSEOMeta(initialLang);
+
+  // ── localStorage.setItem 후크: 언어 전환 시 SEO 메타 자동 갱신 ─────────
+  // 기존 changeLanguage() 함수를 수정하지 않고 스토리지 레이어에서 감지합니다.
+  var _origSetItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (key, value) {
+    _origSetItem.apply(this, arguments);
+    if (key === 'cd_lang') {
+      try { syncSEOMeta(String(value)); } catch (_) {}
+    }
+  };
+})();
+</script>
 
 </body>
 </html>
