@@ -58,7 +58,16 @@ if (!existsSync(workerConfig)) {
   process.exit(1);
 }
 
+const workerName =
+  process.env.CF_WORKER_NAME ||
+  process.env.CLOUDFLARE_WORKER_NAME ||
+  "";
+
 const args = ["wrangler", "deploy", "--config", workerConfig];
+if (workerName.trim()) {
+  args.push("--name", workerName.trim());
+  console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
+}
 const result = isWindows
   ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
       stdio: "inherit",
