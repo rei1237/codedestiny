@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
@@ -48,8 +49,14 @@ export async function requireAdminSecret(request, params, options = {}) {
   const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
   const allowedIps = parseAllowedIps(process.env.ADMIN_ALLOWED_IPS);
 
+  // 관리자 URL을 쓰지 않는 배포(해시 미설정)에서는 이 동적 라우트가 단일 세그먼트 경로를 잡아
+  // 모든 요청에 JSON {"message":"Not found"}를 뿌리는 문제가 생긴다 → HTML 404(notFound)로 통일.
+  if (!expected) {
+    notFound();
+  }
+
   // 1) 비밀 해시 경로 검증 (실제 해시 값은 env에만 존재)
-  if (!expected || !adminHash || String(adminHash) !== expected) {
+  if (!adminHash || String(adminHash) !== expected) {
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   }
 
