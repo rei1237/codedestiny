@@ -3082,12 +3082,12 @@ function updateFortunePointNotice(points){
 }
 
 function redirectToLoginForFortune(){
-  var nextPath = encodeURIComponent('/index.html');
+  var nextPath = encodeURIComponent('/');
   window.location.href = '/login?next=' + nextPath;
 }
 
 function redirectToPointRecharge(){
-  var nextPath = encodeURIComponent('/index.html');
+  var nextPath = encodeURIComponent('/');
   window.location.href = '/points?next=' + nextPath;
 }
 

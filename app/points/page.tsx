@@ -551,7 +551,7 @@ export default function PointsPage() {
               <p className="mt-1 text-sm text-violet-100/80">포트원 통합 결제로 포인트를 충전하고 운세를 이어보세요.</p>
             </div>
             <Link
-              href="/index.html"
+              href="/"
               className="inline-flex items-center justify-center rounded-xl border border-violet-300/40 bg-violet-500/15 px-4 py-2 text-sm font-semibold text-violet-100 hover:bg-violet-500/25"
             >
               운세 화면으로 돌아가기

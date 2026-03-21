@@ -63,12 +63,12 @@
   }
 
   function redirectToLoginForFortune() {
-    var nextPath = encodeURIComponent('/index.html');
+    var nextPath = encodeURIComponent('/');
     w.location.href = '/login?next=' + nextPath;
   }
 
   function redirectToPointRecharge() {
-    var nextPath = encodeURIComponent('/index.html');
+    var nextPath = encodeURIComponent('/');
     w.location.href = '/points?next=' + nextPath;
   }
 

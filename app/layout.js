@@ -61,6 +61,7 @@ function buildHreflangAlternates(currentPathname) {
     "/insights",
     "/privacy-policy",
     "/terms-of-service",
+    "/faq",
     "/contact-us",
   ]);
   if (!supported.has(basePath)) {
@@ -310,6 +311,12 @@ export default async function RootLayout({ children }) {
                 style={{ color: "#e2e8f0", textDecoration: "underline" }}
               >
                 Terms of Service
+              </a>
+              <a
+                href="https://code-destiny.com/faq"
+                style={{ color: "#e2e8f0", textDecoration: "underline" }}
+              >
+                FAQ
               </a>
               <a
                 href="https://code-destiny.com/contact-us"

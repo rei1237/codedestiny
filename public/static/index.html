@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js"></script>
+  <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
@@ -18,20 +19,20 @@
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
 <link rel="sitemap" type="application/xml" title="Sitemap" href="https://code-destiny.com/sitemap.xml">
 
-<!-- ═══ SEO: Canonical & Hreflang (다국어 검색엔진 최적화) ═══ -->
+<!-- ═══ SEO: Canonical & Hreflang ═══
+     공개 URL은 https://code-destiny.com/ (next.config에서 / → 레거시 HTML rewrite).
+     /static/index.html 직접 접근은 미들웨어에서 / 로 308. -->
 <link rel="canonical" href="https://code-destiny.com/">
 <link rel="alternate" hreflang="ko" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="en" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="ja" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="hi" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="es" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="fr" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="en-GB" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="de" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="en-IN" href="https://code-destiny.com/">
-<link rel="alternate" hreflang="hi-IN" href="https://code-destiny.com/">
+<link rel="alternate" hreflang="en" href="https://code-destiny.com/en-us">
+<link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja-jp">
+<link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh-cn">
+<link rel="alternate" hreflang="hi" href="https://code-destiny.com/hi-in">
+<link rel="alternate" hreflang="es" href="https://code-destiny.com/es-es">
+<link rel="alternate" hreflang="fr" href="https://code-destiny.com/fr-fr">
+<link rel="alternate" hreflang="de" href="https://code-destiny.com/de-de">
+<link rel="alternate" hreflang="nl" href="https://code-destiny.com/nl-nl">
+<link rel="alternate" hreflang="ms" href="https://code-destiny.com/ms-my">
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
@@ -893,6 +894,11 @@
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
       <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
+      <div style="margin-top:8px;text-align:right;">
+        <a href="/saju/basic" style="font-size:12px;color:#475569;text-decoration:underline;">
+          사주 만세력 서비스 소개 페이지
+        </a>
+      </div>
       <div id="fortunePointNotice" class="fortune-point-notice">
         <div class="fortune-point-notice-meta">
           <span>🔮 운세 1회 이용: <strong id="fortuneCostLabel">1,000P</strong></span>
@@ -941,9 +947,10 @@
               <div class="feat-collection__grid">
 
                 <!-- AI 동물 관상 -->
-                <button class="tarot-tile tarot-tile--physio" type="button"
-                        data-action="openPhysiognomyApp"
-                        aria-label="AI 동물 관상 시작">
+                <a class="tarot-tile tarot-tile--physio" href="/animal/physio"
+                   data-action="openPhysiognomyApp"
+                   onclick="event.preventDefault(); if (typeof openPhysiognomyApp === 'function') openPhysiognomyApp();"
+                   aria-label="AI 동물 관상 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/ai%20animal.webp"
                          alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석"
@@ -954,12 +961,13 @@
                     <span class="tarot-tile__title">🎭 AI 동물 관상</span>
                     <span class="tarot-tile__desc">셀카로 보는 관상 분석</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- MBTI 동물 궁합 -->
-                <button class="tarot-tile tarot-tile--mbti" type="button"
-                        data-action="openMbtiModal"
-                        aria-label="MBTI 동물 궁합 시작">
+                <a class="tarot-tile tarot-tile--mbti" href="/animal/mbti"
+                   data-action="openMbtiModal"
+                   onclick="event.preventDefault(); if (typeof openMbtiModal === 'function') openMbtiModal();"
+                   aria-label="MBTI 동물 궁합 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/ai%20face.webp"
                          alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합"
@@ -969,12 +977,13 @@
                     <span class="tarot-tile__title">🦁 MBTI 동물 궁합</span>
                     <span class="tarot-tile__desc">16가지 토템 궁합</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 애니멀 토템 리딩 -->
-                <button class="tarot-tile tarot-tile--animal-totem" type="button"
-                        data-action="openAnimalTotemModal"
-                        aria-label="애니멀 토템 리딩 시작">
+                <a class="tarot-tile tarot-tile--animal-totem" href="/animal/totem"
+                   data-action="openAnimalTotemModal"
+                   onclick="event.preventDefault(); if (typeof openAnimalTotemModal === 'function') openAnimalTotemModal();"
+                   aria-label="애니멀 토템 리딩 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/animaltotem.webp"
                          alt="애니멀 토템 리딩 — 수호 동물 메시지"
@@ -985,7 +994,7 @@
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
                     <span class="tarot-tile__desc">수호 동물 카드 리딩</span>
                   </div>
-                </button>
+                </a>
 
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
@@ -1026,9 +1035,10 @@
           <div class="tarot-collection__grid">
 
             <!-- [기능 연결부] 우리는 무슨 사이? → openTarotLoveModal() -->
-            <button class="tarot-tile tarot-tile--love" type="button"
-                    data-action="openTarotLoveModal"
-                    aria-label="우리는 무슨 사이? 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--love" href="/tarot/love"
+               data-action="openTarotLoveModal"
+               onclick="event.preventDefault(); if (typeof openTarotLoveModal === 'function') openTarotLoveModal();"
+               aria-label="우리는 무슨 사이? 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/tarolove.webp"
                      alt="우리는 무슨 사이? — 6카드 관계 리딩"
@@ -1039,12 +1049,13 @@
                 <span class="tarot-tile__title">💕 우리는 무슨 사이?</span>
                 <span class="tarot-tile__desc">6카드 관계 심층 리딩</span>
               </div>
-            </button>
+            </a>
 
             <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
-            <button class="tarot-tile tarot-tile--healing" type="button"
-                    data-action="openTarotHealingModal"
-                    aria-label="따뜻한 태양 회복 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--healing" href="/tarot/healing"
+               data-action="openTarotHealingModal"
+               onclick="event.preventDefault(); if (typeof openTarotHealingModal === 'function') openTarotHealingModal();"
+               aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/healing.webp"
                      alt="따뜻한 태양 회복 타로 — Sun & Light 4카드 타로"
@@ -1055,12 +1066,13 @@
                 <span class="tarot-tile__title">☀ 따뜻한 태양 회복 타로</span>
                 <span class="tarot-tile__desc">4카드 회복 스프레드</span>
               </div>
-            </button>
+            </a>
 
             <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
-            <button class="tarot-tile tarot-tile--self-esteem" type="button"
-                    data-action="openTarotSelfEsteemModal"
-                    aria-label="자존감 레벨업 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--self-esteem" href="/tarot/self-esteem"
+               data-action="openTarotSelfEsteemModal"
+               onclick="event.preventDefault(); if (typeof openTarotSelfEsteemModal === 'function') openTarotSelfEsteemModal();"
+               aria-label="자존감 레벨업 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/jajongam.webp"
                      alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로"
@@ -1071,12 +1083,13 @@
                 <span class="tarot-tile__title">✨ 자존감 레벨업</span>
                 <span class="tarot-tile__desc">5카드 RPG 퀘스트</span>
               </div>
-            </button>
+            </a>
 
             <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
-            <button class="tarot-tile tarot-tile--reunion" type="button"
-                    data-action="openTarotReunionModal"
-                    aria-label="재회운 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--reunion" href="/tarot/reunion"
+               data-action="openTarotReunionModal"
+               onclick="event.preventDefault(); if (typeof openTarotReunionModal === 'function') openTarotReunionModal();"
+               aria-label="재회운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/reunion.webp"
                      alt="별 헤는 밤바다 재회운 타로 — 5카드 스프레드"
@@ -1087,12 +1100,13 @@
                 <span class="tarot-tile__title">🌊 재회운 타로</span>
                 <span class="tarot-tile__desc">5카드 등대 스프레드</span>
               </div>
-            </button>
+            </a>
 
             <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
-            <button class="tarot-tile tarot-tile--year" type="button"
-                    data-action="openTarotYearFortuneModal"
-                    aria-label="십이지신 천운 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--year" href="/tarot/year"
+               data-action="openTarotYearFortuneModal"
+               onclick="event.preventDefault(); if (typeof openTarotYearFortuneModal === 'function') openTarotYearFortuneModal();"
+               aria-label="십이지신 천운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/12animals.webp"
                      alt="십이지신 천운 타로 — 재물·연애·인간관계 월별 운세"
@@ -1103,12 +1117,13 @@
                 <span class="tarot-tile__title">십이지신 천운(天運)</span>
                 <span class="tarot-tile__desc">12개월 연간 운세</span>
               </div>
-            </button>
+            </a>
 
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
-            <button class="tarot-tile tarot-tile--classic" type="button"
-                    data-action="openTarotModal"
-                    aria-label="명리학 타로 리딩 시작">
+            <a class="tarot-tile tarot-tile--classic" href="/tarot/mingri"
+               data-action="openTarotModal"
+               onclick="event.preventDefault(); if (typeof openTarotModal === 'function') openTarotModal();"
+               aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/ai%20tarrot.webp"
                      alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩"
@@ -1118,7 +1133,7 @@
                 <span class="tarot-tile__title">🔮 명리학 타로</span>
                 <span class="tarot-tile__desc">78장 유니버설 덱</span>
               </div>
-            </button>
+            </a>
 
           </div>
         </div>
@@ -1156,9 +1171,10 @@
               <div class="feat-collection__grid feat-collection__grid--2col">
 
                 <!-- 화투점 -->
-                <button class="tarot-tile tarot-tile--hwatu" type="button"
-                        data-action="openHwatuModal"
-                        aria-label="화투점 시작">
+                <a class="tarot-tile tarot-tile--hwatu" href="/oracle/hwatu"
+                   data-action="openHwatuModal"
+                   onclick="event.preventDefault(); if (typeof openHwatuModal === 'function') openHwatuModal();"
+                   aria-label="화투점 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/tazza.webp"
                          alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세"
@@ -1168,12 +1184,13 @@
                     <span class="tarot-tile__title">🎴 타짜들의 화투점</span>
                     <span class="tarot-tile__desc">12달 화투패 운세</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 고대 이집트 신탁 -->
-                <button class="tarot-tile tarot-tile--egypt-fc" type="button"
-                        data-action="openKemetModal"
-                        aria-label="이집트 신탁 시작">
+                <a class="tarot-tile tarot-tile--egypt-fc" href="/oracle/kemet"
+                   data-action="openKemetModal"
+                   onclick="event.preventDefault(); if (typeof openKemetModal === 'function') openKemetModal();"
+                   aria-label="이집트 신탁 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/egypt.webp"
                          alt="고대 이집트 신탁 — 케멧 오라클"
@@ -1183,12 +1200,13 @@
                     <span class="tarot-tile__title">𓂀 이집트 신탁</span>
                     <span class="tarot-tile__desc">케멧 오라클 운세</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 주역 64괘 -->
-                <button class="tarot-tile tarot-tile--juyuk-fc" type="button"
-                        data-action="openJuyukModal"
-                        aria-label="주역 거북점 시작">
+                <a class="tarot-tile tarot-tile--juyuk-fc" href="/oracle/juyuk"
+                   data-action="openJuyukModal"
+                   onclick="event.preventDefault(); if (typeof openJuyukModal === 'function') openJuyukModal();"
+                   aria-label="주역 거북점 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/juyuk.webp"
                          alt="주역 64괘 거북점 — 3000년 지혜"
@@ -1198,12 +1216,13 @@
                     <span class="tarot-tile__title">☯️ 주역 거북점</span>
                     <span class="tarot-tile__desc">64괘 · 3000년 지혜</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 숙요점 -->
-                <button class="tarot-tile tarot-tile--sukuyo-fc" type="button"
-                        data-action="openSukuyoModal"
-                        aria-label="숙요점 시작">
+                <a class="tarot-tile tarot-tile--sukuyo-fc" href="/oracle/sukuyo"
+                   data-action="openSukuyoModal"
+                   onclick="event.preventDefault(); if (typeof openSukuyoModal === 'function') openSukuyoModal();"
+                   aria-label="숙요점 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/sukyo.webp"
                          alt="숙요점 — 불교 밀교 27수 별자리"
@@ -1214,7 +1233,7 @@
                     <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
                     <span class="tarot-tile__desc">27수 별자리 운명</span>
                   </div>
-                </button>
+                </a>
 
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--oracle -->
@@ -1252,9 +1271,10 @@
               <div class="feat-collection__grid feat-collection__grid--2col">
 
                 <!-- 점성술 코즈믹 차트 -->
-                <button class="tarot-tile tarot-tile--astro-fc" type="button"
-                        data-action="openAstroModal"
-                        aria-label="점성술 코즈믹 차트 시작">
+                <a class="tarot-tile tarot-tile--astro-fc" href="/astrology/cosmic"
+                   data-action="openAstroModal"
+                   onclick="event.preventDefault(); if (typeof openAstroModal === 'function') openAstroModal();"
+                   aria-label="점성술 코즈믹 차트 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/jumsung.webp"
                          alt="점성술 코즈믹 차트 — 태양·달·상승궁"
@@ -1265,12 +1285,13 @@
                     <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
                     <span class="tarot-tile__desc">태양 · 달 · 상승궁</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 자미두수 12궁 명반 -->
-                <button class="tarot-tile tarot-tile--ziwei-fc" type="button"
-                        data-action="openZiweiModal"
-                        aria-label="자미두수 명반 시작">
+                <a class="tarot-tile tarot-tile--ziwei-fc" href="/ziwei/chart"
+                   data-action="openZiweiModal"
+                   onclick="event.preventDefault(); if (typeof openZiweiModal === 'function') openZiweiModal();"
+                   aria-label="자미두수 명반 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/jami.webp"
                          alt="자미두수 — 12궁 명반 운명 분석"
@@ -1281,12 +1302,13 @@
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
                     <span class="tarot-tile__desc">12궁 명반 운명 지도</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 베다 점성술 (Jyotish) -->
-                <button class="tarot-tile tarot-tile--vedic-fc" type="button"
-                        data-action="navigateToVedic"
-                        aria-label="베다 점성술 보기">
+                <a class="tarot-tile tarot-tile--vedic-fc" href="/vedic/jyotish"
+                   data-action="navigateToVedic"
+                   onclick="event.preventDefault(); if (typeof navigateToVedic === 'function') navigateToVedic();"
+                   aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/veda.webp"
                          alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤"
@@ -1297,7 +1319,7 @@
                     <span class="tarot-tile__title">🪐 베다 점성술</span>
                     <span class="tarot-tile__desc">Jyotish · 낙샤트라·다샤</span>
                   </div>
-                </button>
+                </a>
 
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--cosmic -->
@@ -1335,9 +1357,10 @@
               <div class="feat-collection__grid">
 
                 <!-- 운명의 꽃 통합 아틀리에 -->
-                <button class="tarot-tile tarot-tile--bloom" type="button"
-                        data-action="openDestinyFlowerStudio"
-                        aria-label="운명의 꽃 아틀리에 열기">
+                <a class="tarot-tile tarot-tile--bloom" href="/flower/destiny"
+                   data-action="openDestinyFlowerStudio"
+                   onclick="event.preventDefault(); if (typeof openDestinyFlowerStudio === 'function') openDestinyFlowerStudio();"
+                   aria-label="운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/flower.webp"
                          alt="운명의 꽃 — 사주·점성술·자미두수 통합"
@@ -1348,12 +1371,13 @@
                     <span class="tarot-tile__title">🌸 운명의 꽃</span>
                     <span class="tarot-tile__desc">사주 · 점성술 통합</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 점성술 운명의 꽃 -->
-                <button class="tarot-tile tarot-tile--astro-flower" type="button"
-                        data-action="openAstrologyFlowerStudio"
-                        aria-label="점성술 운명의 꽃 아틀리에 열기">
+                <a class="tarot-tile tarot-tile--astro-flower" href="/flower/astrology"
+                   data-action="openAstrologyFlowerStudio"
+                   onclick="event.preventDefault(); if (typeof openAstrologyFlowerStudio === 'function') openAstrologyFlowerStudio();"
+                   aria-label="점성술 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/flower2.webp"
                          alt="점성술 운명의 꽃 — 네온 성운 꽃"
@@ -1364,12 +1388,13 @@
                     <span class="tarot-tile__title">✨ 점성술 꽃</span>
                     <span class="tarot-tile__desc">Sun · Rising · Moon</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 자미두수 운명의 꽃 -->
-                <button class="tarot-tile tarot-tile--jami-flower" type="button"
-                        data-action="openJamidusuFlowerStudio"
-                        aria-label="자미두수 운명의 꽃 아틀리에 열기">
+                <a class="tarot-tile tarot-tile--jami-flower" href="/flower/jamidusu"
+                   data-action="openJamidusuFlowerStudio"
+                   onclick="event.preventDefault(); if (typeof openJamidusuFlowerStudio === 'function') openJamidusuFlowerStudio();"
+                   aria-label="자미두수 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/flower3.webp"
                          alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃"
@@ -1380,12 +1405,13 @@
                     <span class="tarot-tile__title">🌺 자미두수 꽃</span>
                     <span class="tarot-tile__desc">명궁 주성 · 별 밝기</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 숙요 운명의 꽃 -->
-                <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
-                        data-action="openSukuyoFlowerStudio"
-                        aria-label="숙요 운명의 꽃 아틀리에 열기">
+                <a class="tarot-tile tarot-tile--sukuyo-fl" href="/flower/sukuyo"
+                   data-action="openSukuyoFlowerStudio"
+                   onclick="event.preventDefault(); if (typeof openSukuyoFlowerStudio === 'function') openSukuyoFlowerStudio();"
+                   aria-label="숙요 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/flower4.webp"
                          alt="숙요 운명의 꽃 — 27숙 달빛 꽃"
@@ -1396,12 +1422,13 @@
                     <span class="tarot-tile__title">🌙 숙요 꽃</span>
                     <span class="tarot-tile__desc">27숙 · 달의 위상</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 드림 타로 해몽 -->
-                <button class="tarot-tile tarot-tile--dream-tile" type="button"
-                        data-action="openDreamModal"
-                        aria-label="드림 타로 해몽 시작">
+                <a class="tarot-tile tarot-tile--dream-tile" href="/dream/tarot"
+                   data-action="openDreamModal"
+                   onclick="event.preventDefault(); if (typeof openDreamModal === 'function') openDreamModal();"
+                   aria-label="드림 타로 해몽 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/heamong.webp"
                          alt="드림 타로 해몽 — AI 꿈 해석 리포트"
@@ -1412,12 +1439,13 @@
                     <span class="tarot-tile__title">🌙 드림 타로</span>
                     <span class="tarot-tile__desc">꿈 · 운명 리포트</span>
                   </div>
-                </button>
+                </a>
 
                 <!-- 정신분석 해몽 (Freud's Study) -->
-                <button class="tarot-tile tarot-tile--psycho-freud-tile" type="button"
-                        data-action="openPsychoDreamModal"
-                        aria-label="정신분석 해몽 시작">
+                <a class="tarot-tile tarot-tile--psycho-freud-tile" href="/dream/psycho"
+                   data-action="openPsychoDreamModal"
+                   onclick="event.preventDefault(); if (typeof openPsychoDreamModal === 'function') openPsychoDreamModal();"
+                   aria-label="정신분석 해몽 시작">
                   <div class="tarot-tile__img-wrap">
                     <img class="tarot-tile__img" src="/fuctionassets/phydream.webp"
                          alt="정신분석 해몽 — 프로이트 관점의 보고서"
@@ -1428,7 +1456,7 @@
                     <span class="tarot-tile__title">🕯️ 정신분석 해몽</span>
                     <span class="tarot-tile__desc">Freud · British Study</span>
                   </div>
-                </button>
+                </a>
 
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--flower -->
@@ -3147,84 +3175,6 @@
 
   </article><!-- /#resultPage -->
 
-  <section id="faq" aria-label="자주 묻는 질문" style="max-width: 920px; margin: 24px auto 16px; padding: 0 16px;">
-    <h2>자주 묻는 질문</h2>
-
-    <details>
-      <summary>Code Destiny는 무료인가요?</summary>
-      <p>사주팔자·타로·운명의 꽃·점성술 등 대부분의 서비스는 무료로 이용할 수 있습니다. 일부 심층 분석 리포트는 포인트를 통해 이용하실 수 있습니다.</p>
-    </details>
-
-    <details>
-      <summary>사주팔자란 무엇인가요?</summary>
-      <p>사주팔자는 태어난 연·월·일·시간의 네 기둥(四柱)으로 이루어진 여덟 글자(八字)를 의미합니다. 이 여덟 글자를 통해 개인의 타고난 기질, 재능, 인생 흐름을 분석하는 동아시아의 전통 명리학입니다.</p>
-    </details>
-
-    <details>
-      <summary>사주와 타로는 어떻게 다른가요?</summary>
-      <p>사주는 생년월일시를 바탕으로 오행과 십성을 분석하는 동양 명리학입니다. 타로는 78장의 카드와 직관을 활용해 현재 상황과 에너지 흐름을 읽는 서양 점술입니다. Code Destiny에서는 두 가지를 함께 활용해 더 입체적인 운세를 제공합니다.</p>
-    </details>
-
-    <details>
-      <summary>자미두수와 사주의 차이는 무엇인가요?</summary>
-      <p>사주명리학이 천간·지지와 오행 균형을 중심으로 분석한다면, 자미두수(紫微斗數)는 14개의 주성과 12궁 명반을 기반으로 보다 세분화된 성격·재물·관계를 분석합니다.</p>
-    </details>
-
-    <details>
-      <summary>개인정보는 어떻게 처리되나요?</summary>
-      <p>입력하신 생년월일·출생시간·성별은 운세 결과 계산에만 사용되며 서버에 저장되지 않습니다. 페이지를 새로고침하거나 닫으면 즉시 파기됩니다.</p>
-    </details>
-  </section>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Code Destiny는 무료인가요?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "사주팔자·타로·운명의 꽃·점성술 등 대부분의 서비스는 무료로 이용할 수 있습니다. 일부 심층 분석 리포트는 포인트를 통해 이용하실 수 있습니다."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "사주팔자란 무엇인가요?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "사주팔자는 태어난 연·월·일·시간의 네 기둥(四柱)으로 이루어진 여덟 글자(八字)를 의미합니다."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "사주와 타로는 어떻게 다른가요?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "사주는 생년월일시를 바탕으로 오행과 십성을 분석하는 동양 명리학입니다. 타로는 78장의 카드와 직관을 활용해 현재 상황과 에너지 흐름을 읽는 서양 점술입니다."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "자미두수와 사주의 차이는 무엇인가요?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "사주명리학이 천간·지지와 오행 균형을 중심으로 분석한다면, 자미두수(紫微斗數)는 14개의 주성과 12궁 명반을 기반으로 보다 세분화된 성격·재물·관계를 분석합니다."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "개인정보는 어떻게 처리되나요?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "입력하신 생년월일·출생시간·성별은 운세 결과 계산에만 사용되며 서버에 저장되지 않습니다."
-        }
-      }
-    ]
-  }
-  </script>
-
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
@@ -3232,6 +3182,7 @@
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
       <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관 Terms of Service</a>
+      <a href="/faq" style="color:#b7f0ff;text-decoration:underline;">자주 묻는 질문 FAQ</a>
       <a href="/contact-us" style="color:#b7f0ff;text-decoration:underline;">문의하기 Contact Us</a>
     </nav>
   </footer>

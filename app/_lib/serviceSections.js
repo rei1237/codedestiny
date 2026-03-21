@@ -1,0 +1,50 @@
+export const SERVICE_SECTIONS = [
+  {
+    id: "core",
+    title: "핵심 운세",
+    items: [
+      { href: "/saju/basic", title: "사주 만세력", desc: "오행·십성 기반 명식 해석" },
+      { href: "/ziwei/chart", title: "자미두수 명반", desc: "12궁 운명 지도 분석" },
+      { href: "/astrology/cosmic", title: "점성술 코즈믹", desc: "태양·달·상승궁 해석" },
+      { href: "/vedic/jyotish", title: "베다 점성술", desc: "낙샤트라·다샤 흐름" },
+    ],
+  },
+  {
+    id: "tarot",
+    title: "타로 리딩",
+    items: [
+      { href: "/tarot/mingri", title: "명리학 AI 타로", desc: "원카드·3카드 리딩" },
+      { href: "/tarot/love", title: "우리는 무슨 사이", desc: "6카드 관계 스프레드" },
+      { href: "/tarot/healing", title: "따뜻한 태양 회복", desc: "4카드 힐링 리딩" },
+      { href: "/tarot/self-esteem", title: "자존감 레벨업", desc: "5카드 성장 퀘스트" },
+      { href: "/tarot/reunion", title: "재회운 타로", desc: "5카드 재회 흐름" },
+      { href: "/tarot/year", title: "십이지신 천운", desc: "12개월 연간 운세" },
+    ],
+  },
+  {
+    id: "oracle",
+    title: "신탁 & 해몽",
+    items: [
+      { href: "/oracle/hwatu", title: "타짜들의 화투점", desc: "12달 화투패 운세" },
+      { href: "/oracle/kemet", title: "고대 이집트 신탁", desc: "케멧 오라클 리딩" },
+      { href: "/oracle/juyuk", title: "주역 거북점", desc: "64괘 상징 해석" },
+      { href: "/oracle/sukuyo", title: "숙요점", desc: "27수 별자리 운명" },
+      { href: "/dream/tarot", title: "드림 타로", desc: "AI 꿈 해석 리포트" },
+      { href: "/dream/psycho", title: "정신분석 해몽", desc: "프로이트 관점 해석" },
+    ],
+  },
+  {
+    id: "special",
+    title: "특별 콘텐츠",
+    items: [
+      { href: "/animal/physio", title: "AI 동물 관상", desc: "셀카 얼굴형 분석" },
+      { href: "/animal/mbti", title: "MBTI 동물 궁합", desc: "16유형 케미 분석" },
+      { href: "/animal/totem", title: "애니멀 토템", desc: "수호 동물 메시지" },
+      { href: "/flower/destiny", title: "운명의 꽃", desc: "통합 아틀리에" },
+      { href: "/flower/astrology", title: "점성술 꽃", desc: "성운 테마 시각화" },
+      { href: "/flower/jamidusu", title: "자미두수 꽃", desc: "명궁 테마 리포트" },
+      { href: "/flower/sukuyo", title: "숙요 꽃", desc: "달 위상 기반 꽃" },
+    ],
+  },
+];
+

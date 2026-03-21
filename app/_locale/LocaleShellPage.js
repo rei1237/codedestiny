@@ -1,13 +1,21 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 /**
- * Locale landing: static segment (e.g. app/en-us) wins over app/[adminHash].
- * Shell loads the SPA from /static/index.html (middleware also rewrites /index.html -> /static/index.html).
+ * Locale roots (/en-us, …) are rewritten to legacy HTML (URL stays /{locale}).
  */
 export default function LocaleShellPage() {
+  const pathname = usePathname() || "/";
   return (
-    <iframe
-      src="/static/index.html"
-      title="CODE DESTINY"
-      style={{ border: "none", width: "100%", minHeight: "100vh", display: "block" }}
-    />
+    <main className="min-h-[40vh] bg-slate-950 px-4 py-10 text-center text-slate-300">
+      <p className="text-sm">
+        서비스 화면은{" "}
+        <a href={pathname} className="text-amber-300 underline">
+          {pathname}
+        </a>
+        입니다.
+      </p>
+    </main>
   );
 }

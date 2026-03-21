@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js"></script>
+  <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
      crossorigin="anonymous"></script>
@@ -18,8 +19,18 @@
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
 <link rel="sitemap" type="application/xml" title="Sitemap" href="https://code-destiny.com/sitemap.xml">
 
-<!-- ═══ SEO: Canonical & Hreflang (다국어 검색엔진 최적화) ═══ -->
+<!-- ═══ SEO: Canonical & Hreflang (public/static/index.html 과 동일 — sync 시 복사됨) ═══ -->
 <link rel="canonical" href="https://code-destiny.com/">
+<link rel="alternate" hreflang="ko" href="https://code-destiny.com/">
+<link rel="alternate" hreflang="en" href="https://code-destiny.com/en-us">
+<link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja-jp">
+<link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh-cn">
+<link rel="alternate" hreflang="hi" href="https://code-destiny.com/hi-in">
+<link rel="alternate" hreflang="es" href="https://code-destiny.com/es-es">
+<link rel="alternate" hreflang="fr" href="https://code-destiny.com/fr-fr">
+<link rel="alternate" hreflang="de" href="https://code-destiny.com/de-de">
+<link rel="alternate" hreflang="nl" href="https://code-destiny.com/nl-nl">
+<link rel="alternate" hreflang="ms" href="https://code-destiny.com/ms-my">
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
@@ -3136,6 +3147,7 @@
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
       <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관 Terms of Service</a>
+      <a href="/faq" style="color:#b7f0ff;text-decoration:underline;">자주 묻는 질문 FAQ</a>
       <a href="/contact-us" style="color:#b7f0ff;text-decoration:underline;">문의하기 Contact Us</a>
     </nav>
   </footer>

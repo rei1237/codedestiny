@@ -32,13 +32,20 @@ const nextConfig = {
   },
   productionBrowserSourceMaps: false,
   async rewrites() {
+    /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
+    const legacyHomeRewrites = [
+      { source: '/', destination: '/static/index.html' },
+      ...LOCALE_PATH_SLUGS.map((slug) => ({
+        source: `/${slug}`,
+        destination: '/static/index.html',
+      })),
+    ];
     const localeBeforeFiles = [];
     for (const slug of LOCALE_PATH_SLUGS) {
       localeBeforeFiles.push({ source: `/${slug}/:path+`, destination: '/:path+' });
     }
     return {
-      // Single-segment /index.html is captured by app/[adminHash] (404 JSON). Serve public/static/index.html.
-      beforeFiles: [{ source: '/index.html', destination: '/static/index.html' }, ...localeBeforeFiles],
+      beforeFiles: [...legacyHomeRewrites, ...localeBeforeFiles],
       afterFiles: [
         { source: '/vedic', destination: '/vedic-astrology.html' },
         { source: '/api/auth/:path*', destination: apiTarget + '/api/auth/:path*' },

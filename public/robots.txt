@@ -3,7 +3,6 @@
 
 User-agent: *
 Allow: /
-Allow: /static/index.html
 
 Disallow: /api/
 Disallow: /admin/

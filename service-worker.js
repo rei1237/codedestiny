@@ -2,11 +2,10 @@
   Cache version: v12 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v12';
+const CACHE_NAME = 'kkul-mansaeryeok-v13';
 
 const PRECACHE_URLS = [
   '/',
-  '/index.html',
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap'
 ];
@@ -71,7 +70,7 @@ self.addEventListener('fetch', event => {
     }).catch(() =>
       caches.match(event.request).then(cached => {
         if (cached) return cached;
-        if (event.request.mode === 'navigate') return caches.match('/index.html');
+        if (event.request.mode === 'navigate') return caches.match('/');
       })
     )
   );

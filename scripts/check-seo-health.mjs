@@ -2,10 +2,13 @@
 const BASE = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 
 const targets = [
-  // Home: LocaleShell + iframe SPA; preview hosts may 308 to canonical (middleware).
-  { path: "/", allowRedirect: true },
+  // "/" and locale roots → 200 (rewrite serves legacy HTML; URL unchanged).
+  { path: "/", allowRedirect: false },
+  // Direct /static/index.html → 308 to / (canonical).
+  { path: "/static/index.html", allowRedirect: true },
   { path: "/sitemap.xml", allowRedirect: false },
   { path: "/robots.txt", allowRedirect: false },
+  { path: "/faq", allowRedirect: false },
   { path: "/en-us", allowRedirect: false },
   { path: "/ja-jp", allowRedirect: false },
   { path: "/zh-cn", allowRedirect: false },

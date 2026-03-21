@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny-web.pages.dev"]);
-const BOT_UA_RE =
-  /(googlebot|bingbot|baiduspider|yandexbot|duckduckbot|slurp|facebot|ia_archiver|sogou|360spider|bytespider|semrushbot|ahrefsbot)/i;
-
 function isLocalHost(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
@@ -32,27 +29,29 @@ export function middleware(request) {
     return NextResponse.next();
   }
 
+  /**
+   * Address bar stays https://code-destiny.com/ (rewrite serves legacy in next.config).
+   * If someone opens /static/index.html directly, normalize to / for one canonical URL.
+   */
+  if (pathname === "/static/index.html") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = search;
+    return NextResponse.redirect(url, 308);
+  }
+  if (pathname === "/index.html") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = search;
+    return NextResponse.redirect(url, 301);
+  }
+
   // Keep legacy/static pages referencing an icon path without 404ing.
   if (pathname === "/icons/icon-192x192.png") {
     const url = request.nextUrl.clone();
     url.pathname = "/icons/samba-mode-icon.png";
     url.search = search;
     return NextResponse.rewrite(url);
-  }
-
-  // Prevent SEO split: let bots index "/" instead of "/index.html".
-  // Non-bots: rewrite to /static/index.html so app/[adminHash] does not treat "index.html" as the hash (404 JSON).
-  if (pathname === "/index.html") {
-    if (BOT_UA_RE.test(ua)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      url.search = search;
-      return NextResponse.redirect(url, 301);
-    }
-    const toStatic = request.nextUrl.clone();
-    toStatic.pathname = "/static/index.html";
-    toStatic.search = search;
-    return NextResponse.rewrite(toStatic);
   }
 
   const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
