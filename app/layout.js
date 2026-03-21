@@ -204,6 +204,30 @@ export default async function RootLayout({ children }) {
   const hideFooter = false;
   const hreflangLinks = buildHreflangAlternates(requestPath);
   const jsonLd = buildJsonLd({ locale, canonicalHref });
+  const websiteSchemaJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://code-destiny.com/#website",
+    name: "Code Destiny — 연이의 꿀꿀 만세력",
+    alternateName: ["꿀꿀 만세력", "Code Destiny"],
+    url: "https://code-destiny.com",
+    description: "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합 서비스. 10개 언어 지원.",
+    inLanguage: ["ko", "en", "ja", "zh", "hi", "es", "fr", "de", "nl", "ms"],
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: "https://code-destiny.com/insights?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
+    },
+    publisher: {
+      "@type": "Organization",
+      "@id": "https://code-destiny.com/#organization",
+      name: "Code Destiny",
+      url: "https://code-destiny.com",
+    },
+  });
 
   return (
     <html lang={locale.htmlLang}>
@@ -220,6 +244,7 @@ export default async function RootLayout({ children }) {
         ))}
         <meta name="yandex-verification" content="98b1cd43eb1188de" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: websiteSchemaJsonLd }} />
         <meta name="adsense-script-slot" content="ADSENSE_APPROVAL_SCRIPT_SLOT" />
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>
