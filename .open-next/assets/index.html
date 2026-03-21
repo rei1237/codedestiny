@@ -403,7 +403,7 @@
 </div>
 
 <!-- 운명의 꽃 아틀리에 모달 (body 직계 — 모바일 z-index/containment 이슈 방지) -->
-<div id="destinyFlowerStudioOverlay" class="df-studio-overlay" style="display:none;" data-action="closeDestinyFlowerStudio" data-action-self-only="1">
+<div id="destinyFlowerStudioOverlay" class="df-studio-overlay" style="display:none;">
   <section id="destinyFlowerStudioSheet" class="df-studio-sheet" role="dialog" aria-modal="true" aria-labelledby="dfStudioTitle">
     <button class="df-studio-close" type="button" data-action="closeDestinyFlowerStudio" aria-label="운명의 꽃 아틀리에 닫기">✕</button>
     <header class="df-studio-hero">
@@ -498,6 +498,7 @@
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerArtPrompt">메인 프롬프트 복사</button>
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerPromptPack">프롬프트 세트 복사</button>
         </div>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower">🤖 AI에게 물어보러 가기</button>
       </article>
     </section>
     <section class="df-studio-history" aria-label="운명의 꽃 기록 보관함">

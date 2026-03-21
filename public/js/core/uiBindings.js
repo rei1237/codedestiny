@@ -171,6 +171,15 @@ export function bindGlobalActions(root) {
     const action = actionEl.getAttribute('data-action');
     if (!action) return;
 
+    if (action === 'closeDestinyFlowerStudio') {
+      if (typeof window !== 'undefined' && typeof window.__cdIsInsideDestinyFlowerSheet === 'function') {
+        if (window.__cdIsInsideDestinyFlowerSheet(event, target)) return;
+      } else {
+        const sheet = document.getElementById('destinyFlowerStudioSheet');
+        if (sheet && target && sheet.contains(target)) return;
+      }
+    }
+
     if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
       return;
     }

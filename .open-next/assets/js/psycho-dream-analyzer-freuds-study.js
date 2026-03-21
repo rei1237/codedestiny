@@ -18,6 +18,14 @@
     "박사의 소견을 정리하고 있습니다...",
     "상징을 디코딩 중입니다...",
   ];
+  var FREUD_QUOTES = [
+    "꿈은 무의식으로 가는 왕도입니다.",
+    "억압된 감정은 사라지지 않고 다른 형태로 되돌아옵니다.",
+    "자아는 자신의 집에서도 주인이 아닙니다.",
+    "사랑하고 일하는 능력은 성숙함의 표지입니다.",
+    "우리는 고통을 기억보다 반복으로 더 분명히 드러냅니다.",
+    "말해지지 못한 감정은 증상으로 말하려 합니다."
+  ];
 
   var state = {
     uiLocked: false,
@@ -127,15 +135,21 @@
     state.loadingTimer = null;
   }
 
+  function composeLoadingLine(idx) {
+    var msg = LOADING_MESSAGES[idx % LOADING_MESSAGES.length] || "";
+    var quote = FREUD_QUOTES[idx % FREUD_QUOTES.length] || "";
+    return quote ? msg + " " + quote : msg;
+  }
+
   function startLoading() {
     var el = $(LOADER_TEXT_ID);
-    if (el) el.textContent = LOADING_MESSAGES[0] || "";
+    if (el) el.textContent = composeLoadingLine(0);
     state.loadingIdx = 0;
     clearLoadingTimer();
     state.loadingTimer = setInterval(function () {
       state.loadingIdx = (state.loadingIdx + 1) % LOADING_MESSAGES.length;
       var lt = $(LOADER_TEXT_ID);
-      if (lt) lt.textContent = LOADING_MESSAGES[state.loadingIdx];
+      if (lt) lt.textContent = composeLoadingLine(state.loadingIdx);
     }, 1400);
   }
 
@@ -204,7 +218,8 @@
       "#".concat(OVERLAY_ID, " .ps-wizard-medallion{width:92px;height:92px;border-radius:50%;border:1px solid rgba(212,175,37,.45);\n" +
       "background:rgba(212,175,37,.06);display:flex;align-items:center;justify-content:center;}\n") +
       "#".concat(OVERLAY_ID, " .ps-wizard-text p{margin:0;}\n") +
-      "#".concat(OVERLAY_ID, " #psychoDreamEntrancePrompt.ps-wizard-prompt{margin-top:6px;color:rgba(253,253,253,.82);font-size:.98rem;line-height:1.55;}\n") +
+      "#".concat(OVERLAY_ID, " #psychoDreamWizardLine{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(253,244,216,.24),rgba(212,175,37,.14));border:1px solid rgba(255,230,171,.52);color:rgba(255,250,236,.99);font-size:1.06rem;line-height:1.46;font-weight:700;letter-spacing:-0.01em;text-shadow:0 1px 2px rgba(20,26,34,.22),0 0 16px rgba(255,232,180,.22);box-shadow:0 10px 24px rgba(8,12,18,.22),inset 0 1px 0 rgba(255,255,255,.24);}\n") +
+      "#".concat(OVERLAY_ID, " #psychoDreamEntrancePrompt.ps-wizard-prompt{margin-top:8px;color:rgba(255,252,238,.98);font-size:1.01rem;line-height:1.62;font-weight:600;letter-spacing:-0.01em;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(212,175,37,.16),rgba(255,255,255,.06));border:1px solid rgba(212,175,37,.45);box-shadow:0 8px 20px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.24);text-shadow:0 1px 2px rgba(0,0,0,.42);}\n") +
       "#".concat(OVERLAY_ID, " .ps-screen{position:relative;z-index:1;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal{margin:10px auto 0;max-width:860px;}\n") +
       "#".concat(OVERLAY_ID, " .ps-journal-title{display:flex;align-items:center;gap:12px;color:rgba(253,253,253,.93);font-family:var(--ps-font-display);font-weight:700;font-size:1.25rem;\n") +
@@ -471,6 +486,7 @@
 
     var headingRe = /^\s*\[(.+?)\]\s*:\s*$/;
     var headingRe2 = /^\s*\[(.+?)\]\s*:\s*(.*)$/;
+    var markdownHeadingRe = /^\s{0,3}#{2,6}\s+(.+?)\s*$/;
 
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
@@ -493,6 +509,12 @@
         if (m[2]) {
           paragraph.push(String(m[2]).trim());
         }
+        continue;
+      }
+
+      var mdHeading = raw.match(markdownHeadingRe);
+      if (mdHeading) {
+        openSection(mdHeading[1] || "");
         continue;
       }
 

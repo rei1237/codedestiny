@@ -2,13 +2,18 @@
 const BASE = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 
 const targets = [
-  { path: "/", allowRedirect: false },
+  // App Router home redirects to /index.html (SPA shell); 307/308 is expected.
+  { path: "/", allowRedirect: true },
   { path: "/sitemap.xml", allowRedirect: false },
   { path: "/robots.txt", allowRedirect: false },
   { path: "/en-us", allowRedirect: false },
   { path: "/ja-jp", allowRedirect: false },
   { path: "/zh-cn", allowRedirect: false },
+  { path: "/hi-in", allowRedirect: false },
   { path: "/es-es", allowRedirect: false },
+  { path: "/fr-fr", allowRedirect: false },
+  { path: "/de-de", allowRedirect: false },
+  { path: "/nl-nl", allowRedirect: false },
   { path: "/ms-my", allowRedirect: false },
 ];
 

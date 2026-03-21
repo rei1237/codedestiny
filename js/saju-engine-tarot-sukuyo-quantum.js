@@ -3172,7 +3172,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
         @media (max-width: 768px) {
-          .sy-container { padding:22px 16px; touch-action:manipulation; }
+          .sy-container { padding:22px 16px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
           .sy-header h3 { font-size:1.35rem; }
           .sy-natal-text,.sy-mantra,.sy-insight,.sy-guardian-main-desc,.sy-guardian-detail-item p { font-size:0.92rem; line-height:1.82; }
           .sy-ritual-grid { grid-template-columns:1fr; }
@@ -3189,11 +3189,21 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
     if (!lunarObj) {
-        area.innerHTML = html + `<p style="text-align:center;">음력/숙요 정보가 부족합니다.</p></div>`;
-        return;
+        try {
+            const b = window._ziweiBirth;
+            if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+                lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
+            }
+        } catch (e) {}
+    }
+    if (!lunarObj) {
+        html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
+          <h4 style="margin:0 0 6px 0; color:#fcd34d;">⚠️ 숙요 본성 데이터 임시 지연</h4>
+          <p style="margin:0; font-size:0.9rem; line-height:1.8; color:#fde68a;">별 본성 카드는 잠시 후 다시 계산됩니다. 아래 &lsquo;인연의 끈&rsquo; 카르마 궁합 분석은 그대로 이용할 수 있습니다.</p>
+        </div>`;
     }
 
-    let sData = calcSukuyoData(lunarObj);
+    let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
 
     if (sData) {
         let tr = sData.traits;
@@ -4602,7 +4612,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
               <div class="sy-sec" style="background:rgba(180,160,255,0.08); border:1px solid rgba(180,160,255,0.3);">
                 <div class="sy-sec-title" style="color:#c4b5fd;">🤖 AI 심층 궁합 프롬프트</div>
-                <div style="font-size:0.86rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">아래 프롬프트는 지금 계산된 숙요 궁합 결과를 자동 반영합니다. 복사해서 원하는 AI에 붙여 넣으면 상세 관계 리포트를 받을 수 있습니다.</div>
+                <div style="font-size:0.86rem;color:#d8d0ee;line-height:1.72;margin-bottom:10px;">아래 프롬프트는 지금 계산된 숙요 궁합 결과를 자동 반영합니다. 복사하여 원하는 AI에 붙여 넣으면 세부 관계 리포트를 받을 수 있습니다.</div>
                 <textarea id="sy3AiPromptText" readonly style="width:100%;min-height:260px;border-radius:10px;border:1px solid rgba(196,181,253,0.45);background:rgba(10,15,30,0.72);color:#e9e5ff;padding:12px;font-size:0.8rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
                   <button id="sy3AiPromptCopyBtn" type="button" style="background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
@@ -4626,7 +4636,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
             promptCopyBtn.addEventListener('click', function() {
               syCopyText(promptBox.value || aiPromptText).then(function() {
                 if (promptStatus) {
-                  promptStatus.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 상세 궁합 리포트를 받아보세요.';
+                  promptStatus.textContent = '프롬프트가 복사되었습니다. 원하는 AI에 붙여 넣어 세부 궁합 리포트를 받아보세요.';
                 }
               }).catch(function() {
                 if (promptStatus) {

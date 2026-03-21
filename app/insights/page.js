@@ -9,7 +9,8 @@ export const metadata = {
   },
 };
 
-export default function InsightsIndexPage({ searchParams }) {
-  const requestedTopic = typeof searchParams?.topic === "string" ? searchParams.topic : "all";
+export default async function InsightsIndexPage({ searchParams }) {
+  const sp = await searchParams;
+  const requestedTopic = typeof sp?.topic === "string" ? sp.topic : "all";
   return <InsightsCosmicClient initialTopic={requestedTopic} />;
 }

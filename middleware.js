@@ -60,6 +60,8 @@ export function middleware(request) {
     return NextResponse.redirect(redirectUrl, 308);
   }
 
+  // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
 

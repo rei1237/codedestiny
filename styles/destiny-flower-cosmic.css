@@ -428,6 +428,18 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.df-studio-ai-cta {
+  color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(167, 139, 250, 0.4);
+  background: linear-gradient(145deg, rgba(99, 102, 241, 0.28), rgba(236, 72, 153, 0.14));
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+.df-studio-ai-cta:hover,
+.df-studio-ai-cta:focus-visible {
+  border-color: rgba(196, 181, 253, 0.55);
+  color: #fef3c7;
+}
+
 .df-studio-chip:hover,
 .df-studio-chip:focus-visible {
   background: linear-gradient(145deg, rgba(255, 248, 250, 0.2), rgba(255, 228, 225, 0.12));

@@ -572,6 +572,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   </div>
 </div>
 
+<script src="js/compat-llm-prompts.js?v=20260321-llm4"></script>
 <script>
 (function(){
   if(typeof Math!=='object'||typeof Date!=='function'||typeof JSON!=='object'){
@@ -2648,8 +2649,54 @@ function doCompatCalc(){
     </div>
     ${compat.strengths.length?`<div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:14px;margin-bottom:10px"><div class="section-head" style="color:#22C55E;margin-bottom:8px">✦ 강점</div>${compat.strengths.map(s=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${s}</div>`).join('')}</div>`:''}
     ${compat.challenges.length?`<div style="background:rgba(255,68,68,0.05);border:1px solid rgba(255,68,68,0.18);border-radius:12px;padding:14px;margin-bottom:10px"><div class="section-head" style="color:#FF5555;margin-bottom:8px">⚠ 주의 사항</div>${compat.challenges.map(cc=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${cc}</div>`).join('')}</div>`:''}
-    <div style="padding:14px;background:rgba(212,175,55,0.05);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;font-size:13px;color:var(--text2);line-height:1.75">${compat.advice}</div>`;
+    <div style="padding:14px;background:rgba(212,175,55,0.05);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;font-size:13px;color:var(--text2);line-height:1.75">${compat.advice}</div>
+    <div id="vedicCompatLlmHost" style="margin-top:14px;"></div>`;
     setTimeout(initReveal,60);
+    try{
+      var vh=document.getElementById('vedicCompatLlmHost');
+      if(vh){
+        vh.innerHTML='';
+        if(typeof window.cdEnsureCompatLlmReady!=='function'){
+          vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+        } else {
+          window.cdEnsureCompatLlmReady(function(){
+            if(!window.CompatLlm||typeof window.CompatLlm.mountVedicFromPayload!=='function'){
+              vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+              return;
+            }
+            var moon1=G.chart&&G.chart.rasi&&G.chart.rasi.planets&&G.chart.rasi.planets.Moon;
+            var moon2=chart2.rasi&&chart2.rasi.planets&&chart2.rasi.planets.Moon;
+            window.CompatLlm.mountVedicFromPayload(vh,{
+              engine:'vedic_ashtakoot',
+              names:{ a:G.chart.f.name, b:f2.name },
+              partnerInput:{
+                name:f2.name,
+                year:f2.year,
+                month:f2.month,
+                day:f2.day,
+                hour:f2.hour,
+                minute:f2.minute,
+                lat:f2.lat,
+                lon:f2.lon,
+                timezone:f2.timezone
+              },
+              nakshatra:{ a:nak1, b:nak2, pada:{ a:G.chart.nak.pada, b:chart2.nak.pada }, lord:{ a:G.chart.nak.lord, b:chart2.nak.lord } },
+              moon:{
+                a:moon1?{ sign:moon1.signName, lonDeg:moon1.lon }:null,
+                b:moon2?{ sign:moon2.signName, lonDeg:moon2.lon }:null
+              },
+              kutaBreakdown:(compat.breakdown||[]).map(function(b){
+                return { name:b.n, score:b.sc, max:b.max, label:b.desc };
+              }),
+              total:compat.total,
+              totalMax:36,
+              pct:compat.pct,
+              verdict:compat.verdict
+            });
+          });
+        }
+      }
+    }catch(e3){ console.warn('[vedic CompatLlm]',e3); }
   }catch(e){
     document.getElementById('compat-result').innerHTML=`<div class="error-box">계산 오류: ${e.message}</div>`;
   }

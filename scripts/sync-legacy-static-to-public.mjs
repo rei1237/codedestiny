@@ -42,4 +42,29 @@ for (const target of staticTargets) {
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
 }
 
+// Locale landing paths (same slugs as middleware.js LOCALE_SLUGS / app/layout.js).
+// Ensures Cloudflare Pages / asset-first hosts return 200 for /en-us etc., not 404.
+const localeLandingDirs = [
+  "en-us",
+  "ja-jp",
+  "zh-cn",
+  "hi-in",
+  "es-es",
+  "fr-fr",
+  "de-de",
+  "nl-nl",
+  "ms-my",
+];
+const publicIndex = resolve(publicDir, "index.html");
+if (existsSync(publicIndex)) {
+  for (const loc of localeLandingDirs) {
+    const locDir = resolve(publicDir, loc);
+    mkdirSync(locDir, { recursive: true });
+    cpSync(publicIndex, resolve(locDir, "index.html"), { force: true });
+  }
+  console.log(
+    `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
+  );
+}
+
 console.log("[sync-legacy-static-to-public] Completed static asset sync.");

@@ -30,6 +30,7 @@
     meditationActive: false,
     meditationPhaseTimer: null,
     meditationCycleCount: 0,
+    lightbox: null,
   };
   var TAROT_API_TIMEOUT_MS = 12000;
   var MEDITATION_INTRO_TEXTS = [
@@ -129,7 +130,7 @@
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
       if (host === "api.code-destiny.com") return location.origin || "";
-      if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
+      if (host.endsWith(".pages.dev")) return "https://api.code-destiny.com";
     }
     return "https://code-destiny.com";
   }
@@ -162,6 +163,7 @@
         add("http://localhost:3000");
         add("http://localhost:4000");
       }
+      if (host.endsWith(".pages.dev")) add("https://api.code-destiny.com");
       if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
       add("http://localhost:3000");
@@ -430,9 +432,7 @@
       }
       var url = candidates[idx++];
       if (frontEl) {
-        frontEl.style.backgroundImage = "url('" + url + "')";
-        frontEl.style.backgroundSize = "cover";
-        frontEl.style.backgroundPosition = "center";
+        frontEl.style.backgroundImage = "";
       }
       imgEl.onerror = tryNext;
       imgEl.src = url;
@@ -974,13 +974,21 @@
 
     renderTarotReunionResultCards();
 
+    function getCardByPosition(positionKey) {
+      if (!Array.isArray(state.cards) || !state.cards.length) return null;
+      for (var i = 0; i < state.cards.length; i += 1) {
+        if (state.cards[i] && state.cards[i].position === positionKey) return state.cards[i];
+      }
+      return null;
+    }
+
     var sections = [];
     if (r.opening) sections.push({ title: "🌌 밤바다의 서문", text: r.opening });
-    if (r.pastBond) sections.push({ title: "1) 과거의 인연", text: r.pastBond });
-    if (r.theirNow) sections.push({ title: "2) 상대의 현재 근황", text: r.theirNow });
-    if (r.outsideFactor) sections.push({ title: "3) 주변의 방해물 또는 상황", text: r.outsideFactor });
-    if (r.theirHeart) sections.push({ title: "4) 나를 향한 속마음", text: r.theirHeart });
-    if (r.reunionOutcome) sections.push({ title: "5) 재회의 가능성과 결과", text: r.reunionOutcome });
+    if (r.pastBond) sections.push({ title: "1) 과거의 인연", text: r.pastBond, card: getCardByPosition("past_bond") });
+    if (r.theirNow) sections.push({ title: "2) 상대의 현재 근황", text: r.theirNow, card: getCardByPosition("their_now") });
+    if (r.outsideFactor) sections.push({ title: "3) 주변의 방해물 또는 상황", text: r.outsideFactor, card: getCardByPosition("outside_factor") });
+    if (r.theirHeart) sections.push({ title: "4) 나를 향한 속마음", text: r.theirHeart, card: getCardByPosition("their_heart") });
+    if (r.reunionOutcome) sections.push({ title: "5) 재회의 가능성과 결과", text: r.reunionOutcome, card: getCardByPosition("reunion_outcome") });
     if (r.lighthouseGuidance) sections.push({ title: "🕯️ 등대의 조언", text: r.lighthouseGuidance, isGuidance: true });
 
     var encouraging = pickRandom(getEncouragingMessage(r));
@@ -993,7 +1001,64 @@
     function addSection(section, isLast, onDone) {
       var sec = document.createElement("section");
       sec.className = "tarot-reunion-section" + (section.isGuidance ? " tarot-reunion-section--guidance" : "") + " tarot-reunion-section--star-sea";
-      sec.innerHTML = '<h4 class="tarot-reunion-section-title">' + escapeHtml(section.title) + '</h4><p class="tarot-reunion-section-text"><span class="tarot-reunion-typing-text"></span><span class="tarot-reunion-typing-cursor"></span></p>';
+
+      var head = document.createElement("div");
+      head.className = "tarot-reunion-section-head";
+
+      var title = document.createElement("h4");
+      title.className = "tarot-reunion-section-title";
+      title.textContent = section.title || "";
+      head.appendChild(title);
+
+      if (section.card) {
+        var cardMeta = document.createElement("div");
+        cardMeta.className = "tarot-reunion-inline-card";
+
+        var thumb = document.createElement("div");
+        thumb.className = "tarot-reunion-inline-card-thumb";
+
+        var thumbFront = document.createElement("div");
+        thumbFront.className = "tarot-reunion-inline-card-front";
+        if (section.card.orientation === "reversed") thumbFront.setAttribute("data-reversed", "1");
+
+        var thumbImg = document.createElement("img");
+        thumbImg.className = "tarot-reunion-face-img";
+        thumbImg.alt = section.card.nameKr || section.card.name || "타로 카드";
+        thumbImg.loading = "lazy";
+        thumbImg.decoding = "async";
+        applyTarotImageWithFallback(thumbImg, thumbFront, section.card);
+        thumbFront.appendChild(thumbImg);
+        thumb.appendChild(thumbFront);
+
+        var cardName = document.createElement("span");
+        cardName.className = "tarot-reunion-inline-card-name";
+        cardName.textContent = (section.card.nameKr || section.card.name || "") + (section.card.orientation === "reversed" ? " (역)" : "");
+
+        cardMeta.appendChild(thumb);
+        cardMeta.appendChild(cardName);
+        cardMeta.setAttribute("role", "button");
+        cardMeta.setAttribute("tabindex", "0");
+        cardMeta.setAttribute("aria-label", (section.card.nameKr || section.card.name || "타로 카드") + " 확대 보기");
+        bindReunionFastTap(cardMeta, function () {
+          openTarotReunionCardLightbox(section.card);
+        });
+        cardMeta.addEventListener("keydown", function (e) {
+          if (!e) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            openTarotReunionCardLightbox(section.card);
+          }
+        });
+        head.appendChild(cardMeta);
+      }
+
+      var textP = document.createElement("p");
+      textP.className = "tarot-reunion-section-text";
+      textP.innerHTML = '<span class="tarot-reunion-typing-text"></span><span class="tarot-reunion-typing-cursor"></span>';
+
+      sec.appendChild(head);
+      sec.appendChild(textP);
       container.appendChild(sec);
 
       var textEl = sec.querySelector(".tarot-reunion-typing-text");
@@ -1050,6 +1115,77 @@
     next();
   }
 
+  function ensureTarotReunionLightbox() {
+    if (state.lightbox && state.lightbox.overlay && state.lightbox.overlay.parentNode) return state.lightbox;
+
+    var overlay = document.createElement("div");
+    overlay.className = "tarot-reunion-lightbox";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", "타로 카드 확대 보기");
+    overlay.innerHTML =
+      '<div class="tarot-reunion-lightbox-backdrop"></div>' +
+      '<div class="tarot-reunion-lightbox-panel" role="document">' +
+      '  <button type="button" class="tarot-reunion-lightbox-close" aria-label="확대 보기 닫기">×</button>' +
+      '  <div class="tarot-reunion-lightbox-card">' +
+      '    <div class="tarot-reunion-lightbox-card-front">' +
+      '      <img class="tarot-reunion-face-img" alt="타로 카드 이미지">' +
+      "    </div>" +
+      '  </div>' +
+      '  <p class="tarot-reunion-lightbox-name"></p>' +
+      "</div>";
+
+    var shell = document.querySelector(".tarot-reunion-shell");
+    var host = shell || document.body;
+    host.appendChild(overlay);
+
+    var closeBtn = overlay.querySelector(".tarot-reunion-lightbox-close");
+    var backdrop = overlay.querySelector(".tarot-reunion-lightbox-backdrop");
+
+    function closeFromUi(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      closeTarotReunionCardLightbox();
+    }
+
+    if (closeBtn) closeBtn.addEventListener("click", closeFromUi, { passive: false });
+    if (backdrop) backdrop.addEventListener("click", closeFromUi, { passive: false });
+    overlay.addEventListener("click", function (e) {
+      if (e && e.target === overlay) closeFromUi(e);
+    });
+
+    state.lightbox = { overlay: overlay };
+    return state.lightbox;
+  }
+
+  function openTarotReunionCardLightbox(card) {
+    if (!card) return;
+    var lb = ensureTarotReunionLightbox();
+    if (!lb || !lb.overlay) return;
+    var overlay = lb.overlay;
+    var front = overlay.querySelector(".tarot-reunion-lightbox-card-front");
+    var img = overlay.querySelector(".tarot-reunion-face-img");
+    var name = overlay.querySelector(".tarot-reunion-lightbox-name");
+    if (!img || !front || !name) return;
+
+    front.removeAttribute("data-reversed");
+    if (card.orientation === "reversed") front.setAttribute("data-reversed", "1");
+    img.alt = card.nameKr || card.name || "타로 카드";
+    applyTarotImageWithFallback(img, front, card);
+    name.textContent = (card.nameKr || card.name || "") + (card.orientation === "reversed" ? " (역방향)" : "");
+
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+  }
+
+  function closeTarotReunionCardLightbox() {
+    if (!state.lightbox || !state.lightbox.overlay) return;
+    state.lightbox.overlay.classList.remove("is-open");
+    state.lightbox.overlay.setAttribute("aria-hidden", "true");
+  }
+
   function escapeHtml(s) {
     if (!s) return "";
     var div = document.createElement("div");
@@ -1093,8 +1229,16 @@
   window.showTarotReunionFinalReading = showTarotReunionFinalReading;
   window.shareTarotReunionResult = shareTarotReunionResult;
   window.toggleTarotReunionMeditation = toggleTarotReunionMeditation;
+  window.openTarotReunionCardLightbox = openTarotReunionCardLightbox;
+  window.closeTarotReunionCardLightbox = closeTarotReunionCardLightbox;
   function initTarotReunionBindings() {
     bindTarotReunionStaticActions();
+    if (!window.__tarotReunionLightboxEscBound) {
+      window.__tarotReunionLightboxEscBound = true;
+      document.addEventListener("keydown", function (e) {
+        if (e && e.key === "Escape") closeTarotReunionCardLightbox();
+      });
+    }
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initTarotReunionBindings, { once: true });

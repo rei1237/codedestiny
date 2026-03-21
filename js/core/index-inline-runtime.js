@@ -414,6 +414,55 @@ function __cdResolveEventElement(event) {
   return null;
 }
 
+/**
+ * 오버레이 루트에 data-action이 있으면 모바일에서 event.target이 오버레이로만 잡힐 때
+ * closest가 닫기로 처리한다. 히트 스택으로 시트 내부 실제 요소를 복구한다.
+ */
+function __cdDestinyFlowerPickHitFromElementsStack(event) {
+  var sheet = document.getElementById('destinyFlowerStudioSheet');
+  var ov = document.getElementById('destinyFlowerStudioOverlay');
+  if (!sheet) return null;
+  var x = event && event.clientX;
+  var y = event && event.clientY;
+  if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  try {
+    if (typeof document.elementsFromPoint === 'function') {
+      var stack = document.elementsFromPoint(x, y);
+      for (var i = 0; i < stack.length && i < 28; i++) {
+        var el = stack[i];
+        if (!el) continue;
+        if (ov && (el === ov || el.id === 'destinyFlowerStudioOverlay')) break;
+        if (el === sheet || sheet.contains(el)) return el;
+      }
+    }
+    if (typeof document.elementFromPoint === 'function') {
+      var one = document.elementFromPoint(x, y);
+      if (one && sheet.contains(one)) return one;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function __cdResolveDestinyFlowerClickTarget(event) {
+  var t = __cdResolveEventElement(event);
+  var picked = __cdDestinyFlowerPickHitFromElementsStack(event);
+  if (picked) return picked;
+  return t;
+}
+
+function __cdIsInsideDestinyFlowerSheet(event, el) {
+  var sheet = document.getElementById('destinyFlowerStudioSheet');
+  if (!sheet) return false;
+  if (el && sheet.contains(el)) return true;
+  var picked = __cdDestinyFlowerPickHitFromElementsStack(event);
+  return !!(picked && sheet.contains(picked));
+}
+
+if (typeof window !== 'undefined') {
+  window.__cdIsInsideDestinyFlowerSheet = __cdIsInsideDestinyFlowerSheet;
+  window.__cdResolveDestinyFlowerClickTarget = __cdResolveDestinyFlowerClickTarget;
+}
+
 function __cdParseActionArgs(raw) {
   if (!raw) return [];
   return raw
@@ -557,8 +606,7 @@ function __cdBindGlobalActionsFallback() {
     if (!action) return;
 
     if (action === 'closeDestinyFlowerStudio') {
-      var sheet = document.getElementById('destinyFlowerStudioSheet');
-      if (sheet && target && sheet.contains(target)) return;
+      if (__cdIsInsideDestinyFlowerSheet(event, target)) return;
     }
 
     if (actionEl.getAttribute('data-action-self-only') === '1' && target !== actionEl) {
@@ -3432,7 +3480,8 @@ function openDestinyFlowerStudio() {
   if (!overlay.__dfCloseBridgeBound) {
     overlay.__dfCloseBridgeBound = '1';
     overlay.addEventListener('click', function(e) {
-      var clickTarget = __cdResolveEventElement(e);
+      var rawTarget = __cdResolveEventElement(e);
+      var clickTarget = __cdResolveDestinyFlowerClickTarget(e);
       if (!clickTarget) return;
       var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
       if (closeTrigger) {
@@ -3441,7 +3490,7 @@ function openDestinyFlowerStudio() {
         closeDestinyFlowerStudio();
         return;
       }
-      if (sheet && sheet.contains(clickTarget)) return;
+      if (sheet && __cdIsInsideDestinyFlowerSheet(e, rawTarget)) return;
       if (clickTarget === overlay) {
         e.preventDefault();
         e.stopPropagation();
@@ -3460,6 +3509,43 @@ function openDestinyFlowerStudio() {
       e.preventDefault();
       e.stopPropagation();
       setDestinyFlowerSourceTab(source);
+    }, true);
+  }
+
+  if (sheet && !sheet.__dfTouchActionBound) {
+    sheet.__dfTouchActionBound = true;
+    sheet.addEventListener('touchend', function(e) {
+      var ov = document.getElementById('destinyFlowerStudioOverlay');
+      if (!ov || ov.style.display === 'none') return;
+      var touch = e.changedTouches && e.changedTouches[0];
+      if (!touch) return;
+      var x = touch.clientX;
+      var y = touch.clientY;
+      if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return;
+      var el = null;
+      try {
+        el = document.elementFromPoint(x, y);
+      } catch (err) {
+        return;
+      }
+      if (!el || !sheet.contains(el)) return;
+      var btn = el.closest && el.closest('[data-action]');
+      if (!btn || !sheet.contains(btn)) return;
+      var act = btn.getAttribute('data-action');
+      if (!act || act === 'closeDestinyFlowerStudio') return;
+      if (btn.classList && btn.classList.contains('df-source-tab')) return;
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      window.__dfStudioLastTouchActionAt = Date.now();
+      __cdInvokeAction(act, btn, e);
+    }, { passive: false, capture: true });
+    sheet.addEventListener('click', function(e) {
+      if (Date.now() - (window.__dfStudioLastTouchActionAt || 0) > 520) return;
+      var t = __cdResolveEventElement(e);
+      if (!t || !sheet.contains(t)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
     }, true);
   }
 
@@ -3574,6 +3660,26 @@ function closeDestinyFlowerStudio() {
 function goHomeFromDestinyFlower() {
   closeDestinyFlowerStudio();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goAskAIFromDestinyFlower() {
+  closeDestinyFlowerStudio();
+  _dfSetStudioStatus('ChatGPT를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.');
+  setTimeout(function() {
+    var url = 'https://chatgpt.com/';
+    var w = null;
+    try {
+      w = window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      w = null;
+    }
+    if (!w || (typeof w.closed !== 'undefined' && w.closed)) {
+      try {
+        window.open(url, '_blank', 'noopener');
+      } catch (e2) {}
+      _dfSetStudioStatus('새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 주소창에 chatgpt.com 을 입력해 주세요.');
+    }
+  }, 100);
 }
 
 function saveDestinyFlowerSnapshot() {
@@ -3702,6 +3808,7 @@ window.openSukuyoFlowerStudio = openSukuyoFlowerStudio;
 window.setDestinyFlowerSourceTab = setDestinyFlowerSourceTab;
 window.closeDestinyFlowerStudio = closeDestinyFlowerStudio;
 window.goHomeFromDestinyFlower = goHomeFromDestinyFlower;
+window.goAskAIFromDestinyFlower = goAskAIFromDestinyFlower;
 window.saveDestinyFlowerSnapshot = saveDestinyFlowerSnapshot;
 window.restoreDestinyFlowerSnapshot = restoreDestinyFlowerSnapshot;
 window.deleteDestinyFlowerSnapshot = deleteDestinyFlowerSnapshot;
@@ -3868,11 +3975,25 @@ function _dpEmptyHTML(theme) {
 function openSukuyoModal() {
   var overlay = document.getElementById('sukuyoModalOverlay');
   if (!overlay) return;
+  try {
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+      window._perf.unlockBody();
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    }
+  } catch (e) {}
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('sukuyoModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -3920,8 +4041,12 @@ function openZiweiModal() {
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('ziweiModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -3945,8 +4070,12 @@ function openAstroModal() {
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('astroModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };

@@ -5,9 +5,116 @@
  * - 띠(animal) / 별자리(zodiac) 지원
  * - today / tomorrow / weekly / monthly 기간 지원
  * - 구조화 데이터(Article + FAQ + BreadcrumbList) 자동 삽입
+ * - /fortune/data/daily-YYYY-MM-DD.json (오늘 기간) 시 다국어·CTA·직장운 오버레이
  */
 (function(global) {
   'use strict';
+
+  /* ── i18n 키 (프롬프트 v3: kr en jp cn fr nl vi ms) ── */
+  function resolveLangKey() {
+    try {
+      var q = new URLSearchParams(global.location.search || '').get('lang');
+      if (q) {
+        q = String(q).toLowerCase().replace(/_/g, '-');
+        if (q === 'ko' || q === 'kr') return 'kr';
+        if (q === 'en' || q === 'en-us' || q === 'en-gb') return 'en';
+        if (q === 'ja' || q === 'jp') return 'jp';
+        if (q === 'zh' || q === 'zh-cn' || q === 'cn') return 'cn';
+        if (q === 'fr' || q === 'fr-fr') return 'fr';
+        if (q === 'nl' || q === 'nl-nl') return 'nl';
+        if (q === 'vi' || q === 'vi-vn') return 'vi';
+        if (q === 'ms' || q === 'ms-my') return 'ms';
+      }
+      var htmlLang = (document.documentElement && document.documentElement.lang) || '';
+      htmlLang = String(htmlLang).toLowerCase();
+      if (htmlLang.indexOf('ko') === 0) return 'kr';
+      if (htmlLang.indexOf('en') === 0) return 'en';
+      if (htmlLang.indexOf('ja') === 0) return 'jp';
+      if (htmlLang.indexOf('zh') === 0) return 'cn';
+      if (htmlLang.indexOf('fr') === 0) return 'fr';
+      if (htmlLang.indexOf('nl') === 0) return 'nl';
+      if (htmlLang.indexOf('vi') === 0) return 'vi';
+      if (htmlLang.indexOf('ms') === 0) return 'ms';
+      var nav = (navigator.language || 'ko').toLowerCase();
+      if (nav.indexOf('ko') === 0) return 'kr';
+      if (nav.indexOf('en') === 0) return 'en';
+      if (nav.indexOf('ja') === 0) return 'jp';
+      if (nav.indexOf('zh') === 0) return 'cn';
+      if (nav.indexOf('fr') === 0) return 'fr';
+      if (nav.indexOf('nl') === 0) return 'nl';
+      if (nav.indexOf('vi') === 0) return 'vi';
+      if (nav.indexOf('ms') === 0) return 'ms';
+    } catch (e) {}
+    return 'kr';
+  }
+
+  function pickI18n(obj, langKey) {
+    if (!obj || typeof obj !== 'object') return '';
+    return obj[langKey] || obj.en || obj.kr || '';
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  var UI = {
+    kr: {
+      period: { today: '오늘', tomorrow: '내일', weekly: '이번 주', monthly: '이달' },
+      total: '총운', love: '연애운', wealth: '재물운', health: '건강운', work: '직장·사업운',
+      luckyColor: '행운의 색', luckyNum: '행운의 숫자', advice: '의 조언', faq: '자주 묻는 질문',
+      home: '홈', fortune: '운세', other: '다른', animal: '띠', zodiac: '별자리',
+      periodLinks: '기간별 운세', saju: '사주 분석', compat: '궁합 보기', insight: '명리 인사이트',
+      sky: '오늘의 하늘', langHint: '다국어: URL에 ?lang=en · ja · zh · fr · nl · vi · ms',
+      ctaTitle: '추천 서비스'
+    },
+    en: {
+      period: { today: 'Today', tomorrow: 'Tomorrow', weekly: 'This week', monthly: 'This month' },
+      total: 'Overall', love: 'Love', wealth: 'Money', health: 'Health', work: 'Work & career',
+      luckyColor: 'Lucky color', luckyNum: 'Lucky number', advice: ' guidance', faq: 'FAQ',
+      home: 'Home', fortune: 'Fortune', other: 'Other', animal: 'zodiac animal', zodiac: 'sign',
+      periodLinks: 'Other periods', saju: 'Four Pillars', compat: 'Compatibility', insight: 'Saju insight',
+      sky: 'Sky today', langHint: 'Languages: add ?lang=en, ja, zh, fr, nl, vi, ms',
+      ctaTitle: 'Recommended'
+    }
+  };
+
+  function labels(langKey) {
+    return UI[langKey === 'kr' ? 'kr' : 'en'];
+  }
+
+  var ZODIAC_EN = {
+    aries: 'Aries', taurus: 'Taurus', gemini: 'Gemini', cancer: 'Cancer', leo: 'Leo', virgo: 'Virgo',
+    libra: 'Libra', scorpio: 'Scorpio', sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius', pisces: 'Pisces'
+  };
+
+  var ZIWEI_EN = {
+    mingong: 'Life Palace', jaeback: 'Wealth', gwanllok: 'Career', bubu: 'Spouse', chunyi: 'Travel',
+    bokdeok: 'Fortune', janyeo: 'Children', noebok: 'Friends', jilaek: 'Health', jeonaek: 'Property',
+    hyeongje: 'Siblings', bumo: 'Parents'
+  };
+  var VEDIC_EN = {
+    mesha: 'Mesha (Aries)', vrishabha: 'Vrishabha (Taurus)', mithuna: 'Mithuna (Gemini)', karka: 'Karka (Cancer)',
+    simha: 'Simha (Leo)', kanya: 'Kanya (Virgo)', tula: 'Tula (Libra)', vrishchika: 'Vrishchika (Scorpio)',
+    dhanu: 'Dhanu (Sagittarius)', makara: 'Makara (Capricorn)', kumbha: 'Kumbha (Aquarius)', meena: 'Meena (Pisces)'
+  };
+
+  function subjectTitle(cfg, info, langKey) {
+    if (langKey === 'kr') return subjectLabelKr(cfg, info);
+    if (cfg.type === 'animal') {
+      var map = { rat: 'Rat', ox: 'Ox', tiger: 'Tiger', rabbit: 'Rabbit', dragon: 'Dragon', snake: 'Snake',
+        horse: 'Horse', goat: 'Goat', monkey: 'Monkey', rooster: 'Rooster', dog: 'Dog', pig: 'Pig' };
+      return (map[cfg.id] || info.ko) + ' (Chinese zodiac)';
+    }
+    if (cfg.type === 'sign') return ZODIAC_EN[cfg.id] || info.ko;
+    if (cfg.type === 'ziwei') return 'Zi Wei · ' + (ZIWEI_EN[cfg.id] || cfg.id);
+    if (cfg.type === 'sukuyo') return 'Sukuyo · ' + (info.ko || cfg.id);
+    if (cfg.type === 'vedic') return VEDIC_EN[cfg.id] || info.ko;
+    return info.ko;
+  }
 
   /* ── 데이터 사전 ── */
   var ANIMALS = {
@@ -38,6 +145,44 @@
     capricorn:   { ko:'염소자리', emoji:'♑', trait:'야망·실용주의·지구력',   period:'12.22~1.19' },
     aquarius:    { ko:'물병자리', emoji:'♒', trait:'혁신·독립·인도주의',       period:'1.20~2.18' },
     pisces:      { ko:'물고기자리', emoji:'♓', trait:'감수성·공감·창의력',    period:'2.19~3.20' }
+  };
+
+  /* ── PROMPT 3~5: 자미두수 궁위형 · 숙요 27숙 · 베다 12라시 ── */
+  var ZIWEI = {
+    mingong:  { ko: '명궁형', emoji: '✨', trait: '자기 정체·삶의 주제' },
+    jaeback:  { ko: '재백궁형', emoji: '💰', trait: '재물·자원·가치' },
+    gwanllok: { ko: '관록궁형', emoji: '🏆', trait: '커리어·사명·성취' },
+    bubu:     { ko: '부부궁형', emoji: '💕', trait: '관계·동반자·조화' },
+    chunyi:   { ko: '천이궁형', emoji: '✈️', trait: '이동·변화·확장' },
+    bokdeok:  { ko: '복덕궁형', emoji: '🍀', trait: '복·은혜·내면 자원' },
+    janyeo:   { ko: '자녀궁형', emoji: '🌱', trait: '창조·후손·표현' },
+    noebok:   { ko: '노복궁형', emoji: '🤝', trait: '동료·협력·네트워크' },
+    jilaek:   { ko: '질액궁형', emoji: '🩺', trait: '건강·회복·리듬' },
+    jeonaek:  { ko: '전택궁형', emoji: '🏠', trait: '기반·자산·안식' },
+    hyeongje: { ko: '형제궁형', emoji: '👥', trait: '동료·경쟁·동반' },
+    bumo:     { ko: '부모궁형', emoji: '🌳', trait: '뿌리·전통·보호' }
+  };
+
+  var SUKUYO_NAMES_KR = [
+    '각수(角宿)', '항수(亢宿)', '저수(氐宿)', '방수(房宿)', '심수(心宿)', '미수(尾宿)', '기수(箕宿)',
+    '두수(斗宿)', '우수(牛宿)', '여수(女宿)', '허수(虛宿)', '위수(危宿)', '실수(室宿)', '벽수(壁宿)',
+    '규수(奎宿)', '루수(婁宿)', '위수(胃宿)', '묘수(昴宿)', '필수(畢宿)', '자수(觜宿)', '삼수(參宿)',
+    '정수(井宿)', '귀수(鬼宿)', '유수(柳宿)', '성수(星宿)', '장수(張宿)', '익수(翼宿)'
+  ];
+
+  var VEDIC = {
+    mesha:       { ko: '메샤 (양자리)', emoji: '♈', trait: '불·용기·새 출발' },
+    vrishabha:   { ko: '브리샤바 (황소자리)', emoji: '♉', trait: '땅·안정·감각' },
+    mithuna:     { ko: '미투나 (쌍둥이자리)', emoji: '♊', trait: '바람·소통·다양성' },
+    karka:       { ko: '카르카 (게자리)', emoji: '♋', trait: '물·감정·보호' },
+    simha:       { ko: '심하 (사자자리)', emoji: '♌', trait: '불·창조·자존' },
+    kanya:       { ko: '칸야 (처녀자리)', emoji: '♍', trait: '땅·분석·정돈' },
+    tula:        { ko: '툴라 (천칭자리)', emoji: '♎', trait: '바람·균형·관계' },
+    vrishchika:  { ko: '브리쉬치카 (전갈자리)', emoji: '♏', trait: '물·변환·집중' },
+    dhanu:       { ko: '다누 (사수자리)', emoji: '♐', trait: '불·탐험·신념' },
+    makara:      { ko: '마카라 (염소자리)', emoji: '♑', trait: '땅·구조·책임' },
+    kumbha:      { ko: '쿰바 (물병자리)', emoji: '♒', trait: '바람·혁신·공동체' },
+    meena:       { ko: '미나 (물고기자리)', emoji: '♓', trait: '물·영성·공감' }
   };
 
   var PERIOD_KO = { today:'오늘', tomorrow:'내일', weekly:'이번 주', monthly:'이달' };
@@ -133,7 +278,7 @@
   /* ── 운세 점수 및 텍스트 생성 ── */
   function genFortune(cfg) {
     var dateStr = getDateStr(cfg.period);
-    var baseSeed = strHash(dateStr + '-' + cfg.id + '-' + cfg.period);
+    var baseSeed = strHash(dateStr + '-' + (cfg.type || 'animal') + '-' + cfg.id + '-' + cfg.period);
 
     function score(offset) {
       var s = lcg(baseSeed + offset);
@@ -159,22 +304,133 @@
       love:    love,
       wealth:  wealth,
       health:  health,
+      work:    null,
       totalText:  pick(TOTAL_TEXTS, total, 10),
       loveText:   pick(LOVE_TEXTS, love, 20),
       wealthText: pick(WEALTH_TEXTS, wealth, 30),
       healthText: pick(HEALTH_TEXTS, health, 40),
+      workText:   '',
       luckyColor: LUCKY_COLORS[colorIdx],
       luckyNum:   LUCKY_NUMS[numIdx],
-      advice:     ADVICE_TEXTS[adviceIdx]
+      advice:     ADVICE_TEXTS[adviceIdx],
+      keyword:    '',
+      cta:        [],
+      sajuInsight: '',
+      planetNote: '',
+      ziweiTip: '',
+      sukuyoDeity: '',
+      vedicNakshatra: '',
+      vedicMantra: '',
+      vedicBridge: ''
     };
   }
 
+  function getDailyEntry(daily, cfg) {
+    if (!daily) return null;
+    if (cfg.type === 'animal') return daily.animals && daily.animals[cfg.id];
+    if (cfg.type === 'sign') return (daily.zodiacs || daily.signs) && (daily.zodiacs || daily.signs)[cfg.id];
+    if (cfg.type === 'ziwei') return daily.ziwei && daily.ziwei[cfg.id];
+    if (cfg.type === 'sukuyo') return daily.sukuyo && daily.sukuyo[cfg.id];
+    if (cfg.type === 'vedic') return daily.vedic && daily.vedic[cfg.id];
+    return null;
+  }
+
+  function mapEntryToFortune(entry, cfg, langKey) {
+    if (!entry) return null;
+    var sec = entry.sections || {};
+    var score = entry.score || {};
+    function t(key) {
+      return pickI18n(sec[key] || {}, langKey);
+    }
+    var lucky = entry.lucky || {};
+    var color = langKey === 'kr' ? (lucky.color_kr || lucky.color_en) : (lucky.color_en || lucky.color_kr);
+    var num = lucky.number != null ? lucky.number : null;
+    return {
+      total: score.overall != null ? score.overall : 5,
+      love: score.love != null ? score.love : 5,
+      wealth: score.money != null ? score.money : (score.wealth != null ? score.wealth : 5),
+      health: score.health != null ? score.health : 5,
+      work: score.work !== undefined && score.work !== null ? score.work : null,
+      totalText: t('overall'),
+      loveText: t('love'),
+      wealthText: t('money') || t('wealth'),
+      healthText: t('health'),
+      workText: t('work'),
+      luckyColor: color || '',
+      luckyNum: num != null ? num : LUCKY_NUMS[strHash(String(cfg.id) + 'n') % LUCKY_NUMS.length],
+      advice: t('advice'),
+      keyword: pickI18n(entry.keyword || {}, langKey),
+      cta: Array.isArray(entry.cta) ? entry.cta : [],
+      sajuInsight: entry.saju_insight || '',
+      planetNote: typeof entry.planet_message === 'object' && entry.planet_message
+        ? pickI18n(entry.planet_message, langKey)
+        : (entry.planet_message || ''),
+      ziweiTip: pickI18n(entry.star_tip || {}, langKey) || entry.star_tip_kr || '',
+      sukuyoDeity: pickI18n(entry.deity_message || {}, langKey) || entry.deity_message_kr || '',
+      vedicNakshatra: pickI18n(entry.nakshatra_tip || {}, langKey) || entry.nakshatra_tip_kr || '',
+      vedicMantra: pickI18n(entry.mantra_tip || {}, langKey) || entry.mantra_tip_kr || '',
+      vedicBridge: entry.saju_bridge_kr || ''
+    };
+  }
+
+  function fortuneFromDaily(daily, cfg, langKey) {
+    var entry = getDailyEntry(daily, cfg);
+    if (!entry) return null;
+    return mapEntryToFortune(entry, cfg, langKey);
+  }
+
+  function getSubjectInfo(cfg) {
+    if (cfg.type === 'animal') return ANIMALS[cfg.id];
+    if (cfg.type === 'sign') return ZODIACS[cfg.id];
+    if (cfg.type === 'ziwei') return ZIWEI[cfg.id];
+    if (cfg.type === 'vedic') return VEDIC[cfg.id];
+    if (cfg.type === 'sukuyo') {
+      var n = parseInt(cfg.id, 10);
+      if (n >= 1 && n <= 27) {
+        return { ko: SUKUYO_NAMES_KR[n - 1], emoji: '🌙', trait: '숙요 점 27숙 · 달빛의 리듬' };
+      }
+      return { ko: String(cfg.id), emoji: '🌙', trait: '숙요 점' };
+    }
+    return null;
+  }
+
+  function subjectLabelKr(cfg, info) {
+    if (!info) return '';
+    if (cfg.type === 'animal') return info.ko + '띠';
+    if (cfg.type === 'sukuyo') return info.ko;
+    return info.ko;
+  }
+
+  function fortunePath(cfg) {
+    var p = cfg.period;
+    var id = cfg.id;
+    if (cfg.type === 'animal' || cfg.type === 'sign') return '/fortune/' + p + '/' + id + '.html';
+    if (cfg.type === 'ziwei') return '/fortune/' + p + '/ziwei/' + id + '.html';
+    if (cfg.type === 'sukuyo') return '/fortune/' + p + '/sukuyo/' + id + '.html';
+    if (cfg.type === 'vedic') return '/fortune/' + p + '/vedic/' + id + '.html';
+    return '/fortune/' + p + '/';
+  }
+
+  function canonicalUrl(cfg) {
+    return 'https://code-destiny.com' + fortunePath(cfg);
+  }
+
+  function extendFortuneExtras(fortune) {
+    if (!fortune.ziweiTip) fortune.ziweiTip = '';
+    if (!fortune.sukuyoDeity) fortune.sukuyoDeity = '';
+    if (!fortune.vedicNakshatra) fortune.vedicNakshatra = '';
+    if (!fortune.vedicMantra) fortune.vedicMantra = '';
+    if (!fortune.vedicBridge) fortune.vedicBridge = '';
+    return fortune;
+  }
+
   /* ── JSON-LD 구조화 데이터 ── */
-  function buildJsonLd(cfg, info, fortune, dateLabel) {
-    var koName = info.ko;
+  function buildJsonLd(cfg, info, fortune, dateLabel, langKey, L) {
     var period = cfg.period;
-    var title  = PERIOD_KO[period] + '의 ' + koName + (cfg.type === 'animal' ? '띠' : '') + ' 운세';
-    var url    = 'https://code-destiny.com/fortune/' + period + '/' + cfg.id + '.html';
+    var periodWord = (L && L.period && L.period[period]) ? L.period[period] : PERIOD_KO[period];
+    var sl = subjectLabelKr(cfg, info);
+    var title  = periodWord + '의 ' + sl + ' 운세';
+    var url    = canonicalUrl(cfg);
     var now    = new Date().toISOString();
 
     var article = {
@@ -183,7 +439,8 @@
         {
           '@type': 'Article',
           headline: title,
-          description: koName + (cfg.type === 'animal' ? '띠' : '') + ' ' + PERIOD_KO[period] + ' 운세 — 총운, 연애운, 재물운, 건강운, 행운 숫자 · 색 제공.',
+          inLanguage: langKey === 'kr' ? 'ko' : 'en',
+          description: sl + ' ' + periodWord + ' 운세 — 총운, 연애운, 재물운, 건강운, 행운 숫자 · 색 제공.',
           datePublished: now,
           dateModified: now,
           author: { '@type': 'Organization', name: '연이의 꿀꿀 만세력', url: 'https://code-destiny.com' },
@@ -196,7 +453,7 @@
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: '홈', item: 'https://code-destiny.com/' },
             { '@type': 'ListItem', position: 2, name: '운세', item: 'https://code-destiny.com/fortune/' },
-            { '@type': 'ListItem', position: 3, name: PERIOD_KO[period] + ' 운세', item: 'https://code-destiny.com/fortune/' + period + '/' },
+            { '@type': 'ListItem', position: 3, name: periodWord + ' 운세', item: 'https://code-destiny.com/fortune/' + period + '/' },
             { '@type': 'ListItem', position: 4, name: title, item: url }
           ]
         },
@@ -205,22 +462,22 @@
           mainEntity: [
             {
               '@type': 'Question',
-              name: koName + (cfg.type === 'animal' ? '띠는' : '자리는') + ' ' + PERIOD_KO[period] + ' 총운이 어떤가요?',
+              name: sl + '의 ' + periodWord + ' 총운은 어떤가요?',
               acceptedAnswer: { '@type': 'Answer', text: fortune.totalText }
             },
             {
               '@type': 'Question',
-              name: koName + (cfg.type === 'animal' ? '띠' : '') + ' ' + PERIOD_KO[period] + ' 연애운은?',
+              name: sl + '의 ' + periodWord + ' 연애운은?',
               acceptedAnswer: { '@type': 'Answer', text: fortune.loveText }
             },
             {
               '@type': 'Question',
-              name: koName + (cfg.type === 'animal' ? '띠' : '') + ' ' + PERIOD_KO[period] + ' 재물운은?',
+              name: sl + '의 ' + periodWord + ' 재물운은?',
               acceptedAnswer: { '@type': 'Answer', text: fortune.wealthText }
             },
             {
               '@type': 'Question',
-              name: koName + (cfg.type === 'animal' ? '띠' : '') + ' ' + PERIOD_KO[period] + ' 행운의 숫자는?',
+              name: sl + '의 ' + periodWord + ' 행운의 숫자는?',
               acceptedAnswer: { '@type': 'Answer', text: fortune.luckyNum + '이 행운의 숫자입니다.' }
             }
           ]
@@ -230,32 +487,95 @@
     return article;
   }
 
-  /* ── 내부 링크 생성 ── */
-  function buildLinks(cfg, info) {
-    var html = '';
-    var PERIOD_LABEL = { today: '오늘', tomorrow: '내일', weekly: '주간', monthly: '월간' };
-
-    // 같은 기간, 다른 대상
-    html += '<div class="fe-links"><div class="fe-links-title">다른 ' + (cfg.type === 'animal' ? '띠' : '별자리') + ' 운세</div><div class="fe-link-grid">';
-    var pool = cfg.type === 'animal' ? ANIMALS : ZODIACS;
-    Object.keys(pool).forEach(function(k) {
-      if (k === cfg.id) return;
-      var i = pool[k];
-      html += '<a class="fe-link-card" href="/fortune/' + cfg.period + '/' + k + '.html"><span>' + i.emoji + '</span>' + i.ko + (cfg.type==='animal'?'띠':'') + '</a>';
+  function buildSystemTabs(cfg, L) {
+    var p = cfg.period;
+    var base = '/fortune/' + p + '/';
+    var tabs = [
+      { href: base + 'rat.html', label: '12띠', t: 'animal' },
+      { href: base + 'aries.html', label: '별자리', t: 'sign' },
+      { href: base + 'ziwei/mingong.html', label: '자미', t: 'ziwei' },
+      { href: base + 'sukuyo/1.html', label: '숙요', t: 'sukuyo' },
+      { href: base + 'vedic/mesha.html', label: '베다', t: 'vedic' }
+    ];
+    var html = '<nav class="fe-sys-tabs" aria-label="운세 체계">';
+    tabs.forEach(function(tab) {
+      var active = cfg.type === tab.t ? ' fe-sys-tab--active' : '';
+      html += '<a class="fe-sys-tab' + active + '" href="' + escapeHtml(tab.href) + '">' + escapeHtml(tab.label) + '</a>';
     });
+    html += '</nav>';
+    return html;
+  }
+
+  function siblingHref(cfg, sid) {
+    if (cfg.type === 'animal' || cfg.type === 'sign') return '/fortune/' + cfg.period + '/' + sid + '.html';
+    if (cfg.type === 'ziwei') return '/fortune/' + cfg.period + '/ziwei/' + sid + '.html';
+    if (cfg.type === 'vedic') return '/fortune/' + cfg.period + '/vedic/' + sid + '.html';
+    if (cfg.type === 'sukuyo') return '/fortune/' + cfg.period + '/sukuyo/' + sid + '.html';
+    return '/fortune/';
+  }
+
+  /* ── 내부 링크 생성 ── */
+  function buildLinks(cfg, info, L) {
+    var html = '';
+    var PERIOD_LABEL = L && L.period ? L.period : { today: '오늘', tomorrow: '내일', weekly: '이번 주', monthly: '이달' };
+    var otherKr = '다른 ';
+    if (cfg.type === 'animal') otherKr += '띠';
+    else if (cfg.type === 'sign') otherKr += '별자리';
+    else if (cfg.type === 'ziwei') otherKr += '궁위형';
+    else if (cfg.type === 'sukuyo') otherKr += '숙';
+    else if (cfg.type === 'vedic') otherKr += '라시';
+
+    html += '<div class="fe-links"><div class="fe-links-title">' + escapeHtml(otherKr) + ' 운세</div><div class="fe-link-grid">';
+    if (cfg.type === 'animal') {
+      Object.keys(ANIMALS).forEach(function(k) {
+        if (k === cfg.id) return;
+        var i = ANIMALS[k];
+        html += '<a class="fe-link-card" href="' + siblingHref(cfg, k) + '"><span>' + i.emoji + '</span>' + i.ko + '띠</a>';
+      });
+    } else if (cfg.type === 'sign') {
+      Object.keys(ZODIACS).forEach(function(k) {
+        if (k === cfg.id) return;
+        var i = ZODIACS[k];
+        html += '<a class="fe-link-card" href="' + siblingHref(cfg, k) + '"><span>' + i.emoji + '</span>' + i.ko + '</a>';
+      });
+    } else if (cfg.type === 'ziwei') {
+      Object.keys(ZIWEI).forEach(function(k) {
+        if (k === cfg.id) return;
+        var i = ZIWEI[k];
+        html += '<a class="fe-link-card" href="' + siblingHref(cfg, k) + '"><span>' + i.emoji + '</span>' + i.ko + '</a>';
+      });
+    } else if (cfg.type === 'vedic') {
+      Object.keys(VEDIC).forEach(function(k) {
+        if (k === cfg.id) return;
+        var i = VEDIC[k];
+        html += '<a class="fe-link-card" href="' + siblingHref(cfg, k) + '"><span>' + i.emoji + '</span>' + i.ko + '</a>';
+      });
+    } else if (cfg.type === 'sukuyo') {
+      var cur = parseInt(cfg.id, 10);
+      for (var n = 1; n <= 27; n++) {
+        if (n === cur) continue;
+        var nm = SUKUYO_NAMES_KR[n - 1];
+        html += '<a class="fe-link-card" href="' + siblingHref(cfg, String(n)) + '"><span>🌙</span>' + escapeHtml(nm) + '</a>';
+      }
+    }
     html += '</div></div>';
 
-    // 같은 대상, 다른 기간
-    html += '<div class="fe-links"><div class="fe-links-title">기간별 운세</div><div class="fe-link-grid">';
+    html += '<div class="fe-links"><div class="fe-links-title">' + escapeHtml(L && L.periodLinks ? L.periodLinks : '기간별 운세') + '</div><div class="fe-link-grid">';
     ['today','tomorrow','weekly','monthly'].forEach(function(p) {
       if (p === cfg.period) return;
-      html += '<a class="fe-link-card" href="/fortune/' + p + '/' + cfg.id + '.html"><span>' + {today:'📅',tomorrow:'📆',weekly:'🗓️',monthly:'📜'}[p] + '</span>' + PERIOD_LABEL[p] + ' 운세</a>';
+      html += '<a class="fe-link-card" href="' + fortunePath({ type: cfg.type, id: cfg.id, period: p }) + '"><span>' + {today:'📅',tomorrow:'📆',weekly:'🗓️',monthly:'📜'}[p] + '</span>' + PERIOD_LABEL[p] + ' 운세</a>';
     });
-    html += '<a class="fe-link-card" href="https://code-destiny.com/#saju"><span>🎴</span>사주 분석</a>';
-    html += '<a class="fe-link-card" href="https://code-destiny.com/#compat"><span>💞</span>궁합 보기</a>';
+    html += '<a class="fe-link-card" href="https://code-destiny.com/#saju"><span>🎴</span>' + escapeHtml(L && L.saju ? L.saju : '사주 분석') + '</a>';
+    html += '<a class="fe-link-card" href="https://code-destiny.com/#compat"><span>💞</span>' + escapeHtml(L && L.compat ? L.compat : '궁합 보기') + '</a>';
     html += '</div></div>';
 
     return html;
+  }
+
+  function ctaPickLabel(cta, langKey) {
+    var m = { kr: 'label_kr', en: 'label_en', jp: 'label_jp', cn: 'label_cn', fr: 'label_fr', nl: 'label_nl', vi: 'label_vi', ms: 'label_ms' };
+    var k = m[langKey] || 'label_en';
+    return cta[k] || cta.label_en || cta.label_kr || '';
   }
 
   /* ── HTML 렌더 ── */
@@ -263,109 +583,222 @@
     var container = document.getElementById('fortuneApp');
     if (!container) return;
 
-    try {
-      var info = (cfg.type === 'animal' ? ANIMALS : ZODIACS)[cfg.id];
-      if (!info) throw new Error('Unknown subject: ' + cfg.id);
+    var langKey = resolveLangKey();
+    var L = labels(langKey);
 
-      var period  = cfg.period;
-      var fortune = genFortune(cfg);
-      var dateLabel = getDateLabel(period);
-      var subjectLabel = info.ko + (cfg.type === 'animal' ? '띠' : '');
-      var pageTitle = PERIOD_KO[period] + '의 ' + subjectLabel + ' 운세';
+    function pct(s) { return (s / 10 * 100).toFixed(0) + '%'; }
+    function stars(s) { var st = ''; for (var i=0;i<5;i++) st += s/10*5 > i ? '⭐' : '☆'; return st; }
 
-      // JSON-LD
-      var ld = document.getElementById('jsonLd');
-      if (ld) ld.textContent = JSON.stringify(buildJsonLd(cfg, info, fortune, dateLabel));
+    function paint(fortune, dailyBundle) {
+      try {
+        fortune = extendFortuneExtras(fortune || {});
+        var info = getSubjectInfo(cfg);
+        if (!info) throw new Error('Unknown subject: ' + cfg.type + '/' + cfg.id);
 
-      // OG tags (동적 업데이트)
-      document.title = pageTitle + ' | 연이의 꿀꿀 만세력';
-      var metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute('content', subjectLabel + ' ' + PERIOD_KO[period] + ' 운세 무료 확인. 총운 ' + fortune.total + '점, 연애운, 재물운, 건강운, 행운 숫자 ' + fortune.luckyNum + ' 제공.');
-      var metaKeywords = document.querySelector('meta[name="keywords"]');
-      var keywordText = subjectLabel + ', ' + PERIOD_KO[period] + ' 운세, 띠별 운세, 별자리 운세, 무료 운세, Code Destiny';
-      if (metaKeywords) {
-        metaKeywords.setAttribute('content', keywordText);
-      } else {
-        metaKeywords = document.createElement('meta');
-        metaKeywords.setAttribute('name', 'keywords');
-        metaKeywords.setAttribute('content', keywordText);
-        document.head.appendChild(metaKeywords);
+        var period = cfg.period;
+        var dateLabel = getDateLabel(period);
+        var subjectLabel = subjectLabelKr(cfg, info);
+        var pageTitle = langKey === 'kr'
+          ? PERIOD_KO[period] + '의 ' + subjectLabel + ' 운세'
+          : L.period[period] + ' · ' + subjectTitle(cfg, info, langKey) + ' fortune';
+
+        var ld = document.getElementById('jsonLd');
+        if (ld) ld.textContent = JSON.stringify(buildJsonLd(cfg, info, fortune, dateLabel, langKey, L));
+
+        document.title = pageTitle + ' | 연이의 꿀꿀 만세력';
+        var metaDesc = document.querySelector('meta[name="description"]');
+        var descKo = subjectLabel + ' ' + PERIOD_KO[period] + ' 운세 무료 확인. 총운 ' + fortune.total + '점, 연애운, 재물운, 건강운, 행운 숫자 ' + fortune.luckyNum + ' 제공.';
+        var descEn = 'Free ' + L.period[period].toLowerCase() + ' horoscope for ' + subjectTitle(cfg, info, langKey) + '. Scores & lucky number ' + fortune.luckyNum + '.';
+        if (metaDesc) metaDesc.setAttribute('content', langKey === 'kr' ? descKo : descEn);
+        var metaKeywords = document.querySelector('meta[name="keywords"]');
+        var keywordText = subjectLabel + ', ' + PERIOD_KO[period] + ' 운세, 띠별 운세, 별자리 운세, 무료 운세, Code Destiny';
+        if (metaKeywords) {
+          metaKeywords.setAttribute('content', keywordText);
+        } else {
+          metaKeywords = document.createElement('meta');
+          metaKeywords.setAttribute('name', 'keywords');
+          metaKeywords.setAttribute('content', keywordText);
+          document.head.appendChild(metaKeywords);
+        }
+
+        var html = '';
+        var homeLabel = L.home || '홈';
+        var fortuneLabel = L.fortune || '운세';
+
+        html += '<nav class="fe-breadcrumb" aria-label="breadcrumb">';
+        html += '<a href="/">' + escapeHtml(homeLabel) + '</a><span class="fe-breadcrumb-sep">›</span>';
+        html += '<a href="/fortune/">' + escapeHtml(fortuneLabel) + '</a><span class="fe-breadcrumb-sep">›</span>';
+        html += '<a href="/fortune/' + period + '/rat.html">' + escapeHtml(L.period[period]) + ' 운세</a>';
+        html += '<span class="fe-breadcrumb-sep">›</span>';
+        html += '<span>' + escapeHtml(subjectLabel) + '</span>';
+        html += '</nav>';
+
+        html += buildSystemTabs(cfg, L);
+
+        if (dailyBundle && dailyBundle.calendar && langKey === 'kr') {
+          var cal = dailyBundle.calendar;
+          html += '<div class="fe-card" style="margin-bottom:12px;background:rgba(255,240,245,.35);">';
+          html += '<div class="fe-card-title">📿 일운 맥락 (사주)</div>';
+          html += '<p class="fe-card-body" style="font-size:.9rem;line-height:1.6;">';
+          html += '양력 <strong>' + escapeHtml(cal.solar_date || '') + '</strong>';
+          if (cal.lunar_date) html += ' · ' + escapeHtml(cal.lunar_date);
+          if (cal.ilchin) html += ' · 일진 <strong>' + escapeHtml(cal.ilchin) + '</strong>';
+          if (cal.wolgeon) html += ' · ' + escapeHtml(cal.wolgeon);
+          if (cal.current_jeolgi) html += ' · ' + escapeHtml(cal.current_jeolgi);
+          html += '</p></div>';
+        }
+
+        if (dailyBundle && dailyBundle.sky_today && cfg.type === 'sign') {
+          var sky = dailyBundle.sky_today;
+          html += '<div class="fe-card" style="margin-bottom:12px;background:rgba(230,240,255,.35);">';
+          html += '<div class="fe-card-title">✨ ' + escapeHtml(L.sky || 'Sky today') + '</div>';
+          html += '<p class="fe-card-body" style="font-size:.9rem;line-height:1.6;">';
+          html += escapeHtml(sky.moon_phase || '') + (sky.moon_sign ? ' · Moon in ' + escapeHtml(sky.moon_sign) : '');
+          if (sky.key_transits && sky.key_transits.length) html += '<br>' + escapeHtml(sky.key_transits.slice(0, 3).join(' · '));
+          html += '</p></div>';
+        }
+
+        if (dailyBundle && dailyBundle.ziwei_today && langKey === 'kr' && cfg.type === 'ziwei') {
+          var zw = dailyBundle.ziwei_today;
+          html += '<div class="fe-card" style="margin-bottom:12px;background:rgba(40,30,60,.4);">';
+          html += '<div class="fe-card-title">🌌 오늘의 자미두수 맥락</div>';
+          html += '<p class="fe-card-body" style="font-size:.9rem;line-height:1.6;">';
+          if (zw.active_palace_today) html += '활성 궁: <strong>' + escapeHtml(zw.active_palace_today) + '</strong><br>';
+          if (zw.sihua_today) html += escapeHtml(zw.sihua_today);
+          html += '</p></div>';
+        }
+
+        if (dailyBundle && dailyBundle.sukuyo_meta && langKey === 'kr' && cfg.type === 'sukuyo') {
+          var sk = dailyBundle.sukuyo_meta;
+          html += '<div class="fe-card" style="margin-bottom:12px;background:rgba(30,40,55,.45);">';
+          html += '<div class="fe-card-title">🌙 숙요 오늘의 달</div>';
+          html += '<p class="fe-card-body" style="font-size:.9rem;line-height:1.6;">';
+          if (sk.today_mansion && sk.today_mansion.name_kr) html += '<strong>' + escapeHtml(sk.today_mansion.name_kr) + '</strong>';
+          if (sk.today_mansion && sk.today_mansion.energy_kr) html += '<br>' + escapeHtml(sk.today_mansion.energy_kr);
+          html += '</p></div>';
+        }
+
+        if (dailyBundle && dailyBundle.panchanga_today && cfg.type === 'vedic') {
+          var pan = dailyBundle.panchanga_today;
+          html += '<div class="fe-card" style="margin-bottom:12px;background:rgba(55,40,25,.45);">';
+          html += '<div class="fe-card-title">🪐 판차앙가 (베다)</div>';
+          html += '<p class="fe-card-body" style="font-size:.9rem;line-height:1.6;">';
+          html += [pan.tithi, pan.vara, pan.nakshatra, pan.yoga, pan.karana].filter(Boolean).map(function(x) { return escapeHtml(x); }).join(' · ');
+          if (pan.summary_kr && langKey === 'kr') html += '<br>' + escapeHtml(pan.summary_kr);
+          if (pan.summary_en && langKey !== 'kr') html += '<br>' + escapeHtml(pan.summary_en);
+          html += '</p></div>';
+        }
+
+        html += '<div class="fe-hero">';
+        html += '<span class="fe-hero-icon" role="img" aria-label="' + escapeHtml(subjectLabel) + '">' + info.emoji + '</span>';
+        html += '<h1 class="fe-hero-title">' + escapeHtml(pageTitle) + '</h1>';
+        if (fortune.keyword) html += '<p class="fe-hero-subtitle" style="font-weight:700;color:#6b4a7a;">✦ ' + escapeHtml(fortune.keyword) + '</p>';
+        html += '<p class="fe-hero-subtitle">' + escapeHtml(info.trait) + '</p>';
+        if (cfg.type === 'animal') html += '<p class="fe-hero-subtitle" style="margin-top:4px;font-size:.75rem;">출생년도: ' + escapeHtml(info.born) + '</p>';
+        else if (cfg.type === 'sign') html += '<p class="fe-hero-subtitle" style="margin-top:4px;font-size:.75rem;">생일: ' + escapeHtml(info.period) + '</p>';
+        html += '<div class="fe-hero-date">' + escapeHtml(dateLabel) + '</div>';
+        if (langKey !== 'kr') html += '<p class="fe-hero-subtitle" style="margin-top:8px;font-size:.75rem;opacity:.85;">' + escapeHtml(L.langHint || '') + '</p>';
+        html += '</div>';
+
+        html += '<div class="fe-scores">';
+        html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">⭐ ' + escapeHtml(L.total) + '</span><span class="fe-score-val">' + fortune.total + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill" style="width:' + pct(fortune.total) + '"></div></div></div>';
+        html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">💕 ' + escapeHtml(L.love) + '</span><span class="fe-score-val">' + fortune.love + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill love" style="width:' + pct(fortune.love) + '"></div></div></div>';
+        html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">💰 ' + escapeHtml(L.wealth) + '</span><span class="fe-score-val">' + fortune.wealth + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill wealth" style="width:' + pct(fortune.wealth) + '"></div></div></div>';
+        html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">🌿 ' + escapeHtml(L.health) + '</span><span class="fe-score-val">' + fortune.health + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill health" style="width:' + pct(fortune.health) + '"></div></div></div>';
+        if (fortune.work != null) {
+          html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">💼 ' + escapeHtml(L.work) + '</span><span class="fe-score-val">' + fortune.work + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill" style="width:' + pct(fortune.work) + '"></div></div></div>';
+        }
+        html += '</div>';
+
+        var pWord = L.period[period];
+        html += '<div class="fe-card"><div class="fe-card-title">⭐ ' + escapeHtml(pWord) + (langKey === 'kr' ? '의 총운' : ' — overall') + '</div><p class="fe-card-body">' + escapeHtml(fortune.totalText) + '</p></div>';
+        if (fortune.planetNote && cfg.type === 'sign') {
+          html += '<div class="fe-card"><div class="fe-card-title">🪐 Planet note</div><p class="fe-card-body">' + escapeHtml(fortune.planetNote) + '</p></div>';
+        }
+        if (fortune.sajuInsight && cfg.type === 'animal' && langKey === 'kr') {
+          html += '<div class="fe-card"><div class="fe-card-title">📿 ' + escapeHtml(L.insight || '명리 인사이트') + '</div><p class="fe-card-body">' + escapeHtml(fortune.sajuInsight) + '</p></div>';
+        }
+        if (fortune.ziweiTip && cfg.type === 'ziwei') {
+          html += '<div class="fe-card"><div class="fe-card-title">✨ 주성 힌트 (자미)</div><p class="fe-card-body">' + escapeHtml(fortune.ziweiTip) + '</p></div>';
+        }
+        if (fortune.sukuyoDeity && cfg.type === 'sukuyo') {
+          html += '<div class="fe-card"><div class="fe-card-title">🌙 수호 메시지 (숙요)</div><p class="fe-card-body">' + escapeHtml(fortune.sukuyoDeity) + '</p></div>';
+        }
+        if (cfg.type === 'vedic') {
+          if (fortune.vedicNakshatra) html += '<div class="fe-card"><div class="fe-card-title">⭐ 낙샤트라 힌트</div><p class="fe-card-body">' + escapeHtml(fortune.vedicNakshatra) + '</p></div>';
+          if (fortune.vedicMantra) html += '<div class="fe-card"><div class="fe-card-title">🔔 만트라·색 조언</div><p class="fe-card-body">' + escapeHtml(fortune.vedicMantra) + '</p></div>';
+          if (fortune.vedicBridge && langKey === 'kr') html += '<div class="fe-card"><div class="fe-card-title">📿 사주 연결</div><p class="fe-card-body">' + escapeHtml(fortune.vedicBridge) + '</p></div>';
+        }
+        html += '<div class="fe-card"><div class="fe-card-title">💕 ' + escapeHtml(L.love) + ' ' + stars(fortune.love) + '</div><p class="fe-card-body">' + escapeHtml(fortune.loveText) + '</p></div>';
+        html += '<div class="fe-card"><div class="fe-card-title">💰 ' + escapeHtml(L.wealth) + ' ' + stars(fortune.wealth) + '</div><p class="fe-card-body">' + escapeHtml(fortune.wealthText) + '</p></div>';
+        html += '<div class="fe-card"><div class="fe-card-title">🌿 ' + escapeHtml(L.health) + ' ' + stars(fortune.health) + '</div><p class="fe-card-body">' + escapeHtml(fortune.healthText) + '</p></div>';
+        if (fortune.workText) {
+          html += '<div class="fe-card"><div class="fe-card-title">💼 ' + escapeHtml(L.work) + '</div><p class="fe-card-body">' + escapeHtml(fortune.workText) + '</p></div>';
+        }
+
+        html += '<div class="fe-lucky">';
+        html += '<div class="fe-lucky-item"><div class="fe-lucky-label">🎨 ' + escapeHtml(L.luckyColor) + '</div><div class="fe-lucky-val">' + escapeHtml(fortune.luckyColor) + '</div></div>';
+        html += '<div class="fe-lucky-item"><div class="fe-lucky-label">🔢 ' + escapeHtml(L.luckyNum) + '</div><div class="fe-lucky-val">' + escapeHtml(fortune.luckyNum) + '</div></div>';
+        html += '</div>';
+
+        html += '<div class="fe-advice"><div class="fe-advice-title">✨ ' + escapeHtml(langKey === 'kr' ? pWord + '의 조언' : pWord + ' guidance') + '</div><p class="fe-advice-body">&ldquo;' + escapeHtml(fortune.advice) + '&rdquo;</p></div>';
+
+        if (fortune.cta && fortune.cta.length) {
+          html += '<div class="fe-links"><div class="fe-links-title">' + escapeHtml(L.ctaTitle || '추천') + '</div><div class="fe-link-grid">';
+          fortune.cta.forEach(function(ct) {
+            var lab = ctaPickLabel(ct, langKey);
+            var u = ct.url || '';
+            if (!lab || !u) return;
+            html += '<a class="fe-link-card" href="' + escapeHtml(u) + '"><span>' + escapeHtml(ct.icon || '✨') + '</span>' + escapeHtml(lab) + '</a>';
+          });
+          html += '</div></div>';
+        }
+
+        var faqs = [
+          { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 총운은 어떤가요?', a: fortune.totalText },
+          { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 연애운은 어떤가요?', a: fortune.loveText },
+          { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 재물운은 어떤가요?', a: fortune.wealthText },
+          { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 건강운은 어떤가요?', a: fortune.healthText },
+          { q: subjectLabel + '의 행운의 숫자와 색은 무엇인가요?', a: '행운의 숫자는 ' + fortune.luckyNum + '이고, 행운의 색은 ' + fortune.luckyColor + '입니다.' }
+        ];
+        html += '<section class="fe-faq"><h2 class="fe-faq-title">❓ ' + escapeHtml(L.faq || '자주 묻는 질문') + '</h2>';
+        faqs.forEach(function(f) {
+          html += '<div class="fe-faq-item"><button type="button" class="fe-faq-q" aria-expanded="false"><span>' + escapeHtml(f.q) + '</span><span class="fe-faq-arrow">▼</span></button><div class="fe-faq-a">' + escapeHtml(f.a) + '</div></div>';
+        });
+        html += '</section>';
+
+        html += buildLinks(cfg, info, L);
+
+        container.innerHTML = html;
+
+        if (!container.getAttribute('data-faq-bound')) {
+          container.setAttribute('data-faq-bound', '1');
+          container.addEventListener('click', function faqClick(e) {
+            var btn = e.target.closest('.fe-faq-q');
+            if (!btn) return;
+            e.preventDefault();
+            var open = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+          });
+        }
+      } catch (e) {
+        container.innerHTML = '<div id="feError"><p>운세 정보를 불러오는 데 문제가 생겼습니다.</p><p style="margin-top:12px;"><a href="/fortune/">운세 홈으로 돌아가기</a></p></div>';
       }
+    }
 
-      function pct(s) { return (s / 10 * 100).toFixed(0) + '%'; }
-      function stars(s) { var st = ''; for (var i=0;i<5;i++) st += s/10*5 > i ? '⭐' : '☆'; return st; }
-
-      var html = '';
-
-      // 브레드크럼
-      html += '<nav class="fe-breadcrumb" aria-label="breadcrumb">';
-      html += '<a href="/">홈</a><span class="fe-breadcrumb-sep">›</span>';
-      html += '<a href="/fortune/">운세</a><span class="fe-breadcrumb-sep">›</span>';
-      html += '<a href="/fortune/' + period + '/' + Object.keys(cfg.type==='animal'?ANIMALS:ZODIACS)[0] + '.html">' + PERIOD_KO[period] + ' 운세</a>';
-      html += '<span class="fe-breadcrumb-sep">›</span>';
-      html += '<span>' + subjectLabel + '</span>';
-      html += '</nav>';
-
-      // 영웅 헤더
-      html += '<div class="fe-hero">';
-      html += '<span class="fe-hero-icon" role="img" aria-label="' + subjectLabel + '">' + info.emoji + '</span>';
-      html += '<h1 class="fe-hero-title">' + pageTitle + '</h1>';
-      html += '<p class="fe-hero-subtitle">' + info.trait + '</p>';
-      if (cfg.type === 'animal') html += '<p class="fe-hero-subtitle" style="margin-top:4px;font-size:.75rem;">출생년도: ' + info.born + '</p>';
-      else html += '<p class="fe-hero-subtitle" style="margin-top:4px;font-size:.75rem;">생일: ' + info.period + '</p>';
-      html += '<div class="fe-hero-date">' + dateLabel + '</div>';
-      html += '</div>';
-
-      // 운세 점수
-      html += '<div class="fe-scores">';
-      html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">⭐ 총운</span><span class="fe-score-val">' + fortune.total + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill" style="width:' + pct(fortune.total) + '"></div></div></div>';
-      html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">💕 연애운</span><span class="fe-score-val">' + fortune.love + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill love" style="width:' + pct(fortune.love) + '"></div></div></div>';
-      html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">💰 재물운</span><span class="fe-score-val">' + fortune.wealth + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill wealth" style="width:' + pct(fortune.wealth) + '"></div></div></div>';
-      html += '<div class="fe-score-row"><div class="fe-score-label"><span class="fe-score-name">🌿 건강운</span><span class="fe-score-val">' + fortune.health + '/10</span></div><div class="fe-score-bar"><div class="fe-score-fill health" style="width:' + pct(fortune.health) + '"></div></div></div>';
-      html += '</div>';
-
-      // 총운 카드
-      html += '<div class="fe-card"><div class="fe-card-title">⭐ ' + PERIOD_KO[period] + '의 총운</div><p class="fe-card-body">' + fortune.totalText + '</p></div>';
-      html += '<div class="fe-card"><div class="fe-card-title">💕 연애운 ' + stars(fortune.love) + '</div><p class="fe-card-body">' + fortune.loveText + '</p></div>';
-      html += '<div class="fe-card"><div class="fe-card-title">💰 재물운 ' + stars(fortune.wealth) + '</div><p class="fe-card-body">' + fortune.wealthText + '</p></div>';
-      html += '<div class="fe-card"><div class="fe-card-title">🌿 건강운 ' + stars(fortune.health) + '</div><p class="fe-card-body">' + fortune.healthText + '</p></div>';
-
-      // 행운 아이템
-      html += '<div class="fe-lucky">';
-      html += '<div class="fe-lucky-item"><div class="fe-lucky-label">🎨 행운의 색</div><div class="fe-lucky-val">' + fortune.luckyColor + '</div></div>';
-      html += '<div class="fe-lucky-item"><div class="fe-lucky-label">🔢 행운의 숫자</div><div class="fe-lucky-val">' + fortune.luckyNum + '</div></div>';
-      html += '</div>';
-
-      // 조언
-      html += '<div class="fe-advice"><div class="fe-advice-title">✨ ' + PERIOD_KO[period] + '의 조언</div><p class="fe-advice-body">&ldquo;' + fortune.advice + '&rdquo;</p></div>';
-
-      // FAQ
-      var faqs = [
-        { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 총운은 어떤가요?', a: fortune.totalText },
-        { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 연애운은 어떤가요?', a: fortune.loveText },
-        { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 재물운은 어떤가요?', a: fortune.wealthText },
-        { q: subjectLabel + '의 ' + PERIOD_KO[period] + ' 건강운은 어떤가요?', a: fortune.healthText },
-        { q: subjectLabel + '의 행운의 숫자와 색은 무엇인가요?', a: '행운의 숫자는 ' + fortune.luckyNum + '이고, 행운의 색은 ' + fortune.luckyColor + '입니다.' }
-      ];
-      html += '<section class="fe-faq"><h2 class="fe-faq-title">❓ 자주 묻는 질문</h2>';
-      faqs.forEach(function(f) {
-        html += '<div class="fe-faq-item"><button type="button" class="fe-faq-q" aria-expanded="false"><span>' + f.q + '</span><span class="fe-faq-arrow">▼</span></button><div class="fe-faq-a">' + f.a + '</div></div>';
-      });
-      html += '</section>';
-
-      // 내부 링크
-      html += buildLinks(cfg, info);
-
-      container.innerHTML = html;
-
-      // FAQ 토글 (이벤트 위임, inline onclick 제거)
-      container.addEventListener('click', function faqClick(e) {
-        var btn = e.target.closest('.fe-faq-q');
-        if (!btn) return;
-        e.preventDefault();
-        var open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
-      });
+    try {
+      container.innerHTML = '<div id="feLoading"><div class="fe-spinner"></div><p>운세를 불러오는 중입니다...</p></div>';
+      var ds = getDateStr(cfg.period);
+      fetch('/fortune/data/daily-' + ds + '.json', { cache: 'no-store' })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(daily) {
+          var fd = fortuneFromDaily(daily, cfg, langKey);
+          if (fd) paint(fd, daily);
+          else paint(genFortune(cfg), null);
+        })
+        .catch(function() {
+          paint(genFortune(cfg), null);
+        });
     } catch (e) {
       container.innerHTML = '<div id="feError"><p>운세 정보를 불러오는 데 문제가 생겼습니다.</p><p style="margin-top:12px;"><a href="/fortune/">운세 홈으로 돌아가기</a></p></div>';
     }
@@ -394,13 +827,29 @@
     footer.setAttribute('data-policy-links', '1');
   }
 
+  function getConfigFromPath() {
+    try {
+      var path = (global.location && global.location.pathname) ? global.location.pathname.replace(/\/+$/, '') : '';
+      var m1 = path.match(/^\/fortune\/(today|tomorrow|weekly|monthly)\/ziwei\/([a-z0-9_-]+)\.html$/);
+      if (m1) return { period: m1[1], type: 'ziwei', id: m1[2] };
+      var m2 = path.match(/^\/fortune\/(today|tomorrow|weekly|monthly)\/sukuyo\/(\d+)\.html$/);
+      if (m2) return { period: m2[1], type: 'sukuyo', id: m2[2] };
+      var m3 = path.match(/^\/fortune\/(today|tomorrow|weekly|monthly)\/vedic\/([a-z]+)\.html$/);
+      if (m3) return { period: m3[1], type: 'vedic', id: m3[2] };
+      var m0 = path.match(/^\/fortune\/(today|tomorrow|weekly|monthly)\/([a-z0-9_-]+)\.html$/);
+      if (m0 && ANIMALS[m0[2]]) return { period: m0[1], type: 'animal', id: m0[2] };
+      if (m0 && ZODIACS[m0[2]]) return { period: m0[1], type: 'sign', id: m0[2] };
+    } catch (e) {}
+    return null;
+  }
+
   function getConfig() {
     if (window.FORTUNE_CONFIG) return window.FORTUNE_CONFIG;
     var d = document.body.dataset;
     if (d.fortuneType && d.fortuneId && d.fortunePeriod) {
       return { type: d.fortuneType, id: d.fortuneId, period: d.fortunePeriod };
     }
-    return null;
+    return getConfigFromPath();
   }
 
   function doInit(cfg) {

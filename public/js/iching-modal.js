@@ -3,7 +3,7 @@ function openJuyukModal() {
   var overlay = document.getElementById('juyukModalOverlay');
   if (!overlay) return;
   if (typeof tcReset === 'function') tcReset();
-  overlay.style.display = 'block';
+  overlay.style.display = 'flex';
   setTimeout(function() {
     var inp = document.getElementById('ichingQuestion');
     if (inp) inp.focus();

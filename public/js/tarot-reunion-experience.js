@@ -130,7 +130,7 @@
       var host = String(location.hostname || "").toLowerCase();
       if (host === "localhost" || host === "127.0.0.1") return "http://localhost:3000";
       if (host === "api.code-destiny.com") return location.origin || "";
-      if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
+      if (host.endsWith(".pages.dev")) return "https://api.code-destiny.com";
     }
     return "https://code-destiny.com";
   }
@@ -163,6 +163,7 @@
         add("http://localhost:3000");
         add("http://localhost:4000");
       }
+      if (host.endsWith(".pages.dev")) add("https://api.code-destiny.com");
       if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
     } else {
       add("http://localhost:3000");
@@ -431,9 +432,7 @@
       }
       var url = candidates[idx++];
       if (frontEl) {
-        frontEl.style.backgroundImage = "url('" + url + "')";
-        frontEl.style.backgroundSize = "cover";
-        frontEl.style.backgroundPosition = "center";
+        frontEl.style.backgroundImage = "";
       }
       imgEl.onerror = tryNext;
       imgEl.src = url;

@@ -16,6 +16,13 @@ Use this project with OpenNext on Cloudflare Workers.
 - If `wrangler.jsonc` contains a Worker-style `assets.binding: "ASSETS"`, Pages deploy can fail with:
 	- `The name 'ASSETS' is reserved in Pages projects.`
 
+## Workers: `run_worker_first` + locale URLs
+
+- **`wrangler.worker.jsonc`** (used by `npm run deploy:cf:worker`) sets `assets.binding: "ASSETS"` and **`run_worker_first: true`** so the OpenNext Worker runs before static asset matching (avoids edge 404s that skip the Worker).
+- **Locale roots** (`/en-us`, `/ja-jp`, …) are implemented as **static App Router segments** — `app/en-us/page.js`, etc. — which take **routing precedence** over `app/[adminHash]`. Previously, `/en-us` was handled as `[adminHash]` and returned **404 JSON** (`requireAdminSecret`) when the hash did not match `ADMIN_SECRET_HASH`.
+- **`next.config.mjs`** `rewrites.beforeFiles` only maps `/{locale}/:path+` → `/:path+` for nested paths (e.g. `/en-us/about` → `/about`).
+- **`public/{locale}/index.html`** copies (from `sync-legacy-static-to-public`) remain a **static fallback** for pure static / Pages-style hosts.
+
 ## Final File Layout
 
 - `wrangler.jsonc`: unified config for Pages/Workers fallback (`main` + `assets.directory` + `pages_build_output_dir`)

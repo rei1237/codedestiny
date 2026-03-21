@@ -356,7 +356,7 @@
   <link rel="stylesheet" href="styles/globals.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/animations.css">
-  <link rel="stylesheet" href="styles/fortune-ui.css?v=20a81cd">
+  <link rel="stylesheet" href="styles/fortune-ui.css?v=20260321-sukuyo-scroll3">
   <link rel="stylesheet" href="styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="styles/cosmic-main.css?v=20260316">
   <link rel="stylesheet" href="styles/destiny-flower-cosmic.css?v=20260317">
@@ -403,7 +403,7 @@
 </div>
 
 <!-- 운명의 꽃 아틀리에 모달 (body 직계 — 모바일 z-index/containment 이슈 방지) -->
-<div id="destinyFlowerStudioOverlay" class="df-studio-overlay" style="display:none;" data-action="closeDestinyFlowerStudio" data-action-self-only="1">
+<div id="destinyFlowerStudioOverlay" class="df-studio-overlay" style="display:none;">
   <section id="destinyFlowerStudioSheet" class="df-studio-sheet" role="dialog" aria-modal="true" aria-labelledby="dfStudioTitle">
     <button class="df-studio-close" type="button" data-action="closeDestinyFlowerStudio" aria-label="운명의 꽃 아틀리에 닫기">✕</button>
     <header class="df-studio-hero">
@@ -498,6 +498,7 @@
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerArtPrompt">메인 프롬프트 복사</button>
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerPromptPack">프롬프트 세트 복사</button>
         </div>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower">🤖 AI에게 물어보러 가기</button>
       </article>
     </section>
     <section class="df-studio-history" aria-label="운명의 꽃 기록 보관함">
@@ -1800,7 +1801,7 @@
       </div><!-- /#juyukModalOverlay -->
       <!-- / 주역(周易) 64괘 전체화면 -->
 
-      <!-- 💫 숙요점(宿曜占) 전체화면 모달 -->
+      <!-- 💫 숙요점(宿曜占) 전체화면 모달 — 네비 고정 / #sukuyoModalSheet만 스크롤 (iOS) -->
       <div id="sukuyoModalOverlay" class="modal-overlay-shell modal-overlay-sukuyo">
         <div id="sukuyoNavBar" class="modal-top-nav modal-top-nav-sukuyo">
           <button data-action="closeSukuyoModal" aria-label="홈으로" class="modal-nav-home modal-nav-home-sukuyo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>홈으로</button>
@@ -2859,6 +2860,7 @@
         </div>
         <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
         <div id="compatResult" class="compat-result-wrap"></div>
+        <div id="compatLlmHost" class="compat-llm-root"></div>
         <div id="compatTestResults" class="compat-test-results"></div>
       </div>
     </section>
@@ -3089,14 +3091,15 @@
 
 <script src="js/destiny-profile.js" defer></script>
 <script type="module" src="js/swisseph-loader.js"></script>
+<script src="js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
 <script src="js/saju-engine.js?v=20260320-saju-rpt1" defer></script>
-<script src="js/saju-engine-tarot-sukuyo-quantum.js?v=20260320-saju-rpt1" defer></script>
+<script src="js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
 <script src="js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="js/mobile-interaction-patch.js" defer></script>
 <script src="js/services/sajuService.js" defer></script>
 <script src="js/core/saju/modalProfileState.js" defer></script>
-<script defer src="js/core/index-inline-runtime.js?v=20260315-image-link-fix2"></script>
+<script defer src="js/core/index-inline-runtime.js?v=20260321-sukuyo-llm-prompt1"></script>
 <script src="js/admin-flower.js" defer></script>
 <script src="js/services/animal-totem-content-engine.js" defer></script>
 <script src="js/animal-totem-experience.js" defer></script>
@@ -3106,7 +3109,7 @@
 
 <script src="js/iching-engine.js" defer></script>
 
-<script src="js/iching-modal.js" defer></script>
+<script src="js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
 
 <!-- 구글 번역 스크립트 -->
 <script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
@@ -3156,35 +3159,10 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-
-
-
-<!-- ════════════════════════════════════════════
-     fate-scroll-section │ 스크롤 등장 + 다음 섹션 인디케이터
-     Intersection Observer API 기반 · IIFE 캡슐화
-     외부 라이브러리 없음 · 전역 변수 오염 없음
-════════════════════════════════════════════ -->
 <script src="js/fate-scroll-reveal.js" defer></script>
-
-<!-- ════════════════════════════════════════════
-     fate-scroll-top │ 결과 하단 도달 시 맨 위로 이동
-     기존 next-indicator 디자인 재사용
-════════════════════════════════════════════ -->
 <script src="js/fate-scroll-top.js" defer></script>
-
-<!-- ════════════════════════════════════════════
-     fsn-navbar JS │ 섹션 네비게이션 바 로직
-     Intersection Observer 기반 · IIFE 켜슬화
-     외부 의존 없음 · 전역 오염 없음
-════════════════════════════════════════════ -->
 <script src="js/fsn-navbar.js" defer></script>
 
-
-
-<!-- =================================================================================== 
-     ASTRAL TOTEM : SUPREME MBTI INTERFACE 
-     Designed by: Meta-Psychologist AI 
-     =================================================================================== -->
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->

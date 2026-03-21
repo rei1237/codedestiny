@@ -585,10 +585,12 @@ input:checked + .slider .paw-pad {
 .compat-test-results{margin-top:12px;font-size:.9rem;color:#333}
 
 .modal-overlay-shell{display:none;width:100%}
-.modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow-y:auto}
-.modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow-y:auto}
-.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow-y:auto}
-.modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow-y:auto}
+/* 전체화면 미스틱 모달: 오버레이는 고정·비스크롤, #*ModalSheet만 세로 스크롤 (iOS fixed+overflow 간섭 방지).
+   display는 JS에서 flex로 열 때만 적용 — .modal-overlay-shell의 display:none과 충돌하지 않게 여기서는 지정하지 않음 */
+.modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
+.modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
+.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
+.modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 
 .modal-top-nav{
   width:100%;
@@ -597,6 +599,7 @@ input:checked + .slider .paw-pad {
   justify-content:space-between;
   padding:0 16px;
   height:54px;
+  flex-shrink:0;
 }
 .modal-top-nav-juyuk{background:rgba(8,4,1,0.97);border-bottom:1px solid rgba(180,130,30,0.3)}
 .modal-top-nav-sukuyo{background:rgba(10,12,25,0.97);border-bottom:1px solid rgba(167,139,250,0.3)}
@@ -7941,6 +7944,8 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   flex-wrap: wrap;
 }
 .df-studio-chip {
+  position: relative;
+  z-index: 5;
   min-height: 32px;
   border-radius: 999px;
   border: 1px solid rgba(147, 116, 194, 0.3);
@@ -7950,7 +7955,74 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   font-weight: 700;
   padding: 6px 10px;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.df-studio-ai-cta {
+  margin-top: 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(124, 58, 237, 0.32);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.07));
+  color: #3b2f5a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.df-studio-ai-cta:hover,
+.df-studio-ai-cta:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.48);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.14);
+}
+
+.df-studio-toast {
+  position: fixed;
+  bottom: max(28px, env(safe-area-inset-bottom, 28px));
+  left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  z-index: 100000;
+  max-width: min(92vw, 420px);
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+.df-studio-toast--show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.df-studio-toast--success {
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #d1fae5;
+}
+.df-studio-toast--warn {
+  border-color: rgba(251, 146, 60, 0.5);
+  color: #ffedd5;
+}
+.df-studio-toast--info {
+  border-color: rgba(147, 197, 253, 0.4);
+  color: #e0f2fe;
 }
 .df-studio-chip:hover,
 .df-studio-chip:focus-visible {
@@ -8372,6 +8444,13 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   /* 모달 시트 — 브라우저 네이티브 스크롤바 사용, 레이아웃 점프 방지 */
   #ziweiModalSheet, #sukuyoModalSheet, #astroModalSheet, #juyukModalSheet {
     scrollbar-gutter: stable;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
   }
   /* 결과 화면이 잘리지 않도록 하단 여백 */
   #ziweiModalSheet > div,
