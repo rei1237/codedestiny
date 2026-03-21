@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 
 type TarotCardProps = {
@@ -95,12 +96,17 @@ export default function TarotCard({
         {/* Front Face */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden border border-amber-100/60 bg-gradient-to-br from-rose-100 via-amber-50 to-fuchsia-100 [transform:rotateY(180deg)] [backface-visibility:hidden]">
           {frontImageUrl ? (
-            <img
-              src={frontImageUrl}
-              alt={frontTitle}
-              className="absolute inset-0 h-full w-full object-cover"
-              loading="eager"
-            />
+            isFlipped ? (
+              <Image
+                src={frontImageUrl}
+                alt={frontTitle}
+                fill
+                sizes="220px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.32),transparent_45%),linear-gradient(145deg,#f5d0fe_0%,#fde68a_50%,#fed7aa_100%)]" />
+            )
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.32),transparent_45%),linear-gradient(145deg,#f5d0fe_0%,#fde68a_50%,#fed7aa_100%)]" />
           )}

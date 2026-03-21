@@ -706,13 +706,17 @@ export default function SunHealingTarot() {
                             {/* Front */}
                             <div className="absolute inset-0 overflow-hidden rounded-2xl border border-amber-200/60 bg-white/70 [transform:rotateY(180deg)] [backface-visibility:hidden]">
                               {card?.cardId ? (
-                                <Image
-                                  src={cardImageUrl(card.cardId)}
-                                  alt={safeCardTitle(card, idx)}
-                                  fill
-                                  sizes="(max-width: 768px) 45vw, 260px"
-                                  className="object-cover"
-                                />
+                                isFlipped ? (
+                                  <Image
+                                    src={cardImageUrl(card.cardId)}
+                                    alt={safeCardTitle(card, idx)}
+                                    fill
+                                    sizes="(max-width: 768px) 45vw, 272px"
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.32),transparent_45%),linear-gradient(145deg,#fff7ed_0%,#fde68a_48%,#fed7aa_100%)]" />
+                                )
                               ) : (
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.32),transparent_45%),linear-gradient(145deg,#fff7ed_0%,#fde68a_48%,#fed7aa_100%)]" />
                               )}
