@@ -1,11 +1,35 @@
-import SolarOracleTarot from "../components/SolarOracleTarot";
-import MingriTarot from "../components/MingriTarot";
-import LoveRelationshipTarot from "../components/LoveRelationshipTarot";
+import { createElement } from "react";
+import dynamic from "next/dynamic";
 import SajuBasicPage from "../components/SajuBasicPage";
 import ZiweiChartPage from "../components/ZiweiChartPage";
 import AstrologyCosmicPage from "../components/AstrologyCosmicPage";
 import FeatureLandingPage from "../components/FeatureLandingPage";
-import SunHealingTarot from "../components/SunHealingTarot";
+
+function tarotRouteLoading() {
+  return createElement(
+    "div",
+    {
+      className:
+        "flex min-h-[50vh] items-center justify-center bg-slate-950 px-4 text-sm text-slate-400",
+      role: "status",
+    },
+    "타로 화면을 불러오는 중…",
+  );
+}
+
+/** Code-split heavy client tarot UIs (framer-motion, lucide, next/image). */
+const SunHealingTarot = dynamic(() => import("../components/SunHealingTarot"), {
+  loading: tarotRouteLoading,
+});
+const MingriTarot = dynamic(() => import("../components/MingriTarot"), {
+  loading: tarotRouteLoading,
+});
+const LoveRelationshipTarot = dynamic(() => import("../components/LoveRelationshipTarot"), {
+  loading: tarotRouteLoading,
+});
+const SolarOracleTarot = dynamic(() => import("../components/SolarOracleTarot"), {
+  loading: tarotRouteLoading,
+});
 
 export const SERVICE_MAP = {
   "tarot/healing": {
