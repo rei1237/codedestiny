@@ -68,6 +68,19 @@
     return document.getElementById(id);
   }
 
+  function reunionReadingSkeletonHtml() {
+    return (
+      '<div class="tarot-reading-skeleton tarot-reading-skeleton--reunion" role="status" aria-live="polite">' +
+      '<span class="tarot-skel-line tarot-skel-line--title"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      '<span class="tarot-skel-line tarot-skel-line--short"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line tarot-skel-line--short"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      "</div>"
+    );
+  }
+
   function normalizeApiBase(raw) {
     return String(raw || "").trim().replace(/\/+$/, "");
   }
@@ -649,6 +662,16 @@
     if (result) result.classList.remove("is-active");
     if (finalBtn) finalBtn.disabled = true;
     updateTarotReunionGuide();
+    var rc = byId("tarotReunionReadingContent");
+    if (rc) {
+      rc.innerHTML = "";
+      rc.removeAttribute("aria-busy");
+    }
+    var cardsB = byId("tarotReunionResultCards");
+    if (cardsB) {
+      cardsB.innerHTML = "";
+      cardsB.classList.remove("tarot-reunion-result-cards--visible");
+    }
   }
 
   function startTarotReunionReading() {
@@ -845,6 +868,21 @@
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });
 
+    var draw = byId("tarotReunionDrawStage");
+    var result = byId("tarotReunionResultStage");
+    var rc = byId("tarotReunionReadingContent");
+    var cardsContainer = byId("tarotReunionResultCards");
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.add("is-active");
+    if (rc) {
+      rc.innerHTML = reunionReadingSkeletonHtml();
+      rc.setAttribute("aria-busy", "true");
+    }
+    if (cardsContainer) {
+      cardsContainer.innerHTML = "";
+      cardsContainer.classList.remove("tarot-reunion-result-cards--visible");
+    }
+
     callTarotApi("reading", {
       category: "reunion",
       spreadType: "reunion_lighthouse_five_card",
@@ -853,14 +891,17 @@
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
         state.reading = data.reading;
-        var draw = byId("tarotReunionDrawStage");
-        var result = byId("tarotReunionResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
+        if (rc) rc.removeAttribute("aria-busy");
         renderTarotReunionResult();
       })
       .catch(function (err) {
         console.error("Tarot Reunion reading error:", err);
+        if (draw) draw.classList.add("is-active");
+        if (result) result.classList.remove("is-active");
+        if (rc) {
+          rc.innerHTML = "";
+          rc.removeAttribute("aria-busy");
+        }
         alert("해석을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       });
   }
@@ -971,6 +1012,7 @@
     var cardsContainer = byId("tarotReunionResultCards");
     if (!container || !state.reading) return;
     var r = state.reading;
+    container.removeAttribute("aria-busy");
 
     renderTarotReunionResultCards();
 

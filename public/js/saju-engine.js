@@ -770,24 +770,28 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
     var rBtns = document.getElementsByName(radioName);
     var typeVal = 'solar';
     for(var i=0; i<rBtns.length; i++) { if(rBtns[i].checked) { typeVal = rBtns[i].value; break; } }
-    if(!dVal || typeVal === 'solar') { pEl.style.display = 'none'; return; }
+    if(!dVal || typeVal === 'solar') { pEl.classList.remove('form-lunar-preview--active'); pEl.style.display = 'none'; return; }
 
     var reqSeq = ++_lunarPreviewRequestSeq;
+    pEl.classList.add('form-lunar-preview--active');
     pEl.style.display = 'block';
-    pEl.innerHTML = '계산 중...';
+    pEl.innerHTML = '<span class="input-section-skeleton input-section-skeleton--lunar" aria-hidden="true"></span>';
 
     getActualSolarDateWithContext(dVal, typeVal, { setCurrent: false }).then(function(actualDates) {
       if (reqSeq !== _lunarPreviewRequestSeq) return;
       if(actualDates) {
         var isLeapStr = typeVal === 'lunar_leap' ? '(윤달)' : '(평달)';
+        pEl.classList.add('form-lunar-preview--active');
         pEl.style.display = 'block';
         pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`;
       } else {
+        pEl.classList.remove('form-lunar-preview--active');
         pEl.style.display = 'none';
       }
     }).catch(function(err) {
       if (reqSeq !== _lunarPreviewRequestSeq) return;
       console.warn('[KASI] lunar preview fallback:', err);
+      pEl.classList.remove('form-lunar-preview--active');
       pEl.style.display = 'none';
     });
 };
@@ -846,7 +850,8 @@ function onLibReady(){
   if (btn) {
     btn.disabled=false;
     btn.textContent='🐷 사주 분석하기';
-    btn.onclick = checkPrivacyAndCalculate;
+    /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
+    btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
   }
 }
 
@@ -2058,8 +2063,8 @@ function populateBirthCountrySelector() {
     ? [prev.value, prev.getAttribute('data-long'), prev.getAttribute('data-lat')].join('|')
     : '';
 
-  sel.innerHTML = '';
   var defaultKey = '';
+  var frag = document.createDocumentFragment();
 
   BIRTH_PLACE_GROUPS.forEach(function(group) {
     var og = document.createElement('optgroup');
@@ -2076,8 +2081,11 @@ function populateBirthCountrySelector() {
       if (p.def) defaultKey = key;
       og.appendChild(opt);
     });
-    sel.appendChild(og);
+    frag.appendChild(og);
   });
+
+  sel.innerHTML = '';
+  sel.appendChild(frag);
 
   var targetKey = prevKey || defaultKey;
   var found = false;
@@ -2097,19 +2105,33 @@ function initSelectors(){
   populateBirthCountrySelector();
 
   var hSel=document.getElementById('birthHour'),mSel=document.getElementById('birthMinute');
-  for(var h=0;h<24;h++)hSel.innerHTML+='<option value="'+h+'">'+(h<10?'0':'')+h+'시</option>';
-  hSel.value='12';
-  for(var m=0;m<60;m++)mSel.innerHTML+='<option value="'+m+'">'+(m<10?'0':'')+m+'분</option>';
-  mSel.value='0';
+  if (hSel && mSel) {
+    var hBuf = '';
+    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
+    hSel.innerHTML = hBuf;
+    hSel.value = '12';
+    var mBuf = '';
+    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
+    mSel.innerHTML = mBuf;
+    mSel.value = '0';
+  }
 
   var ch=document.getElementById('compatBirthHour');
   var cm=document.getElementById('compatBirthMinute');
   if(ch&&cm){
-    for(var h2=0;h2<24;h2++)ch.innerHTML+='<option value="'+h2+'">'+(h2<10?'0':'')+h2+'시</option>';
+    var chBuf = '';
+    for(var h2=0;h2<24;h2++) chBuf += '<option value="'+h2+'">'+(h2<10?'0':'')+h2+'시</option>';
+    ch.innerHTML = chBuf;
     ch.value='12';
-    for(var m2=0;m2<60;m2++)cm.innerHTML+='<option value="'+m2+'">'+(m2<10?'0':'')+m2+'분</option>';
+    var cmBuf = '';
+    for(var m2=0;m2<60;m2++) cmBuf += '<option value="'+m2+'">'+(m2<10?'0':'')+m2+'분</option>';
+    cm.innerHTML = cmBuf;
     cm.value='0';
   }
+
+  try {
+    if (typeof updateCorrectedTimePreview === 'function') updateCorrectedTimePreview();
+  } catch (e) {}
 }
 
 function updateCorrectedTimePreview(){
@@ -2151,6 +2173,8 @@ function updateCorrectedTimePreview(){
     : 'DST 미적용';
 
   infoDiv.style.display = 'block';
+  infoDiv.classList.remove('time-correction-info--loading');
+  infoDiv.setAttribute('aria-busy', 'false');
   infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br>'
     + '<span style="font-size:0.75rem;">기준 UTC' + (effTz >= 0 ? '+' : '') + effTz
     + ' (표준 UTC' + (resolved.baseOffsetHours >= 0 ? '+' : '') + resolved.baseOffsetHours + ', ' + dstText + ')<br>'
@@ -4255,6 +4279,10 @@ function renderManse(p){
       '</div>';
   });
   document.getElementById('manseGrid').innerHTML=h;
+  var manseSlot = document.querySelector('#sajuCard .saju-manse-slot');
+  var manseSk = document.getElementById('sajuManseSkeleton');
+  if (manseSlot) manseSlot.classList.add('saju-manse-slot--ready');
+  if (manseSk) manseSk.setAttribute('hidden', '');
 }
 
 function renderTenshin(p){

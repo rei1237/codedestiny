@@ -770,24 +770,28 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
     var rBtns = document.getElementsByName(radioName);
     var typeVal = 'solar';
     for(var i=0; i<rBtns.length; i++) { if(rBtns[i].checked) { typeVal = rBtns[i].value; break; } }
-    if(!dVal || typeVal === 'solar') { pEl.style.display = 'none'; return; }
+    if(!dVal || typeVal === 'solar') { pEl.classList.remove('form-lunar-preview--active'); pEl.style.display = 'none'; return; }
 
     var reqSeq = ++_lunarPreviewRequestSeq;
+    pEl.classList.add('form-lunar-preview--active');
     pEl.style.display = 'block';
-    pEl.innerHTML = '계산 중...';
+    pEl.innerHTML = '<span class="input-section-skeleton input-section-skeleton--lunar" aria-hidden="true"></span>';
 
     getActualSolarDateWithContext(dVal, typeVal, { setCurrent: false }).then(function(actualDates) {
       if (reqSeq !== _lunarPreviewRequestSeq) return;
       if(actualDates) {
         var isLeapStr = typeVal === 'lunar_leap' ? '(윤달)' : '(평달)';
+        pEl.classList.add('form-lunar-preview--active');
         pEl.style.display = 'block';
         pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`;
       } else {
+        pEl.classList.remove('form-lunar-preview--active');
         pEl.style.display = 'none';
       }
     }).catch(function(err) {
       if (reqSeq !== _lunarPreviewRequestSeq) return;
       console.warn('[KASI] lunar preview fallback:', err);
+      pEl.classList.remove('form-lunar-preview--active');
       pEl.style.display = 'none';
     });
 };
@@ -846,7 +850,8 @@ function onLibReady(){
   if (btn) {
     btn.disabled=false;
     btn.textContent='🐷 사주 분석하기';
-    btn.onclick = checkPrivacyAndCalculate;
+    /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
+    btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
   }
 }
 
@@ -2058,8 +2063,8 @@ function populateBirthCountrySelector() {
     ? [prev.value, prev.getAttribute('data-long'), prev.getAttribute('data-lat')].join('|')
     : '';
 
-  sel.innerHTML = '';
   var defaultKey = '';
+  var frag = document.createDocumentFragment();
 
   BIRTH_PLACE_GROUPS.forEach(function(group) {
     var og = document.createElement('optgroup');
@@ -2076,8 +2081,11 @@ function populateBirthCountrySelector() {
       if (p.def) defaultKey = key;
       og.appendChild(opt);
     });
-    sel.appendChild(og);
+    frag.appendChild(og);
   });
+
+  sel.innerHTML = '';
+  sel.appendChild(frag);
 
   var targetKey = prevKey || defaultKey;
   var found = false;
@@ -2097,19 +2105,33 @@ function initSelectors(){
   populateBirthCountrySelector();
 
   var hSel=document.getElementById('birthHour'),mSel=document.getElementById('birthMinute');
-  for(var h=0;h<24;h++)hSel.innerHTML+='<option value="'+h+'">'+(h<10?'0':'')+h+'시</option>';
-  hSel.value='12';
-  for(var m=0;m<60;m++)mSel.innerHTML+='<option value="'+m+'">'+(m<10?'0':'')+m+'분</option>';
-  mSel.value='0';
+  if (hSel && mSel) {
+    var hBuf = '';
+    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
+    hSel.innerHTML = hBuf;
+    hSel.value = '12';
+    var mBuf = '';
+    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
+    mSel.innerHTML = mBuf;
+    mSel.value = '0';
+  }
 
   var ch=document.getElementById('compatBirthHour');
   var cm=document.getElementById('compatBirthMinute');
   if(ch&&cm){
-    for(var h2=0;h2<24;h2++)ch.innerHTML+='<option value="'+h2+'">'+(h2<10?'0':'')+h2+'시</option>';
+    var chBuf = '';
+    for(var h2=0;h2<24;h2++) chBuf += '<option value="'+h2+'">'+(h2<10?'0':'')+h2+'시</option>';
+    ch.innerHTML = chBuf;
     ch.value='12';
-    for(var m2=0;m2<60;m2++)cm.innerHTML+='<option value="'+m2+'">'+(m2<10?'0':'')+m2+'분</option>';
+    var cmBuf = '';
+    for(var m2=0;m2<60;m2++) cmBuf += '<option value="'+m2+'">'+(m2<10?'0':'')+m2+'분</option>';
+    cm.innerHTML = cmBuf;
     cm.value='0';
   }
+
+  try {
+    if (typeof updateCorrectedTimePreview === 'function') updateCorrectedTimePreview();
+  } catch (e) {}
 }
 
 function updateCorrectedTimePreview(){
@@ -2151,6 +2173,8 @@ function updateCorrectedTimePreview(){
     : 'DST 미적용';
 
   infoDiv.style.display = 'block';
+  infoDiv.classList.remove('time-correction-info--loading');
+  infoDiv.setAttribute('aria-busy', 'false');
   infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br>'
     + '<span style="font-size:0.75rem;">기준 UTC' + (effTz >= 0 ? '+' : '') + effTz
     + ' (표준 UTC' + (resolved.baseOffsetHours >= 0 ? '+' : '') + resolved.baseOffsetHours + ', ' + dstText + ')<br>'
@@ -4255,6 +4279,10 @@ function renderManse(p){
       '</div>';
   });
   document.getElementById('manseGrid').innerHTML=h;
+  var manseSlot = document.querySelector('#sajuCard .saju-manse-slot');
+  var manseSk = document.getElementById('sajuManseSkeleton');
+  if (manseSlot) manseSlot.classList.add('saju-manse-slot--ready');
+  if (manseSk) manseSk.setAttribute('hidden', '');
 }
 
 function renderTenshin(p){
@@ -7226,6 +7254,10 @@ function renderAstroInsight() {
                 var pVenusIdx2 = _sySignIdx(partnerChart, 'Venus');
                 var ovMyVenusToPartner = _syWsHouseOf(myVenusIdx2, pAscIdx2);
                 var ovPartnerVenusToMy = _syWsHouseOf(pVenusIdx2, myAscIdx2);
+                var myMarsIdx2 = _sySignIdx(chart, 'Mars');
+                var pMarsIdx2 = _sySignIdx(partnerChart, 'Mars');
+                var ovMyMarsToPartner = _syWsHouseOf(myMarsIdx2, pAscIdx2);
+                var ovPartnerMarsToMy = _syWsHouseOf(pMarsIdx2, myAscIdx2);
                 var synRaw2 = synRes2.rawScore || 0;
                 var synMax2 = synRes2.maxAbs || 0;
                 var overlayScore2 = synRes2.overlayScore || 0;
@@ -7236,6 +7268,16 @@ function renderAstroInsight() {
                 var bestChallenge2 = _syTopAspectText(aspectRows2, false);
                 var topSupportRow2 = _syTopAspect(aspectRows2, true);
                 var topChallengeRow2 = _syTopAspect(aspectRows2, false);
+                var softAspSample2 = (aspectRows2 || []).filter(function (r) { return r.weighted > 0; })
+                  .sort(function (a, b) { return Math.abs(b.weighted) - Math.abs(a.weighted); }).slice(0, 5)
+                  .map(function (r) {
+                    return { pair: r.pair, aspect: r.asp && r.asp.name, symbol: r.asp && r.asp.symbol, orbDeg: r.asp && r.asp.orb != null ? r.asp.orb : null, weighted: r.weighted };
+                  });
+                var hardAspSample2 = (aspectRows2 || []).filter(function (r) { return r.weighted < 0; })
+                  .sort(function (a, b) { return Math.abs(b.weighted) - Math.abs(a.weighted); }).slice(0, 5)
+                  .map(function (r) {
+                    return { pair: r.pair, aspect: r.asp && r.asp.name, symbol: r.asp && r.asp.symbol, orbDeg: r.asp && r.asp.orb != null ? r.asp.orb : null, weighted: r.weighted };
+                  });
                 var synNarr2 = _syBuildNarrative({
                   score: synScore2,
                   support: topSupportRow2,
@@ -7345,6 +7387,95 @@ function renderAstroInsight() {
 
                 resultDiv.innerHTML = h;
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                try {
+                  var wHost = document.createElement('div');
+                  resultDiv.appendChild(wHost);
+                  cdEnsureCompatLlmReady(function () {
+                    if (!window.CompatLlm || typeof window.CompatLlm.mountWesternFromPayload !== 'function') {
+                      wHost.innerHTML = '<div style="color:#fda4af;font-size:0.85rem;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+                      return;
+                    }
+                    var mySunN = _sySignName(chart, 'Sun');
+                    var myMoonN = _sySignName(chart, 'Moon');
+                    var myVenN = _sySignName(chart, 'Venus');
+                    var myMarN = _sySignName(chart, 'Mars');
+                    var cityLabelWest = '';
+                    if (cityEl && cityEl.selectedIndex > 0 && cityEl.options[cityEl.selectedIndex]) {
+                      cityLabelWest = (cityEl.options[cityEl.selectedIndex].textContent || '').trim();
+                    }
+                    window.CompatLlm.mountWesternFromPayload(wHost, {
+                      engine: 'western_synastry',
+                      calculationNotes: {
+                        houseSystem: (window.ASTRO_HOUSE_SYSTEM || 'P') + ' (Swiss/API; 하우스 오버레이는 상대·본인 상승궁 기준 Whole Sign 스타일 투사)',
+                        overlayBasis: '상대 본인 ascendant idx가 있을 때만 하우스 번호 산출; asc 미상이면 일부 오버레이가 비거나 부정확할 수 있음'
+                      },
+                      partnerName: nameVal,
+                      partnerInput: {
+                        birthDate: dateVal,
+                        birthTimeLocal: timeVal,
+                        cityLabel: cityLabelWest,
+                        latitude: latVal,
+                        longitude: lonVal,
+                        tzOffsetHours: tzVal
+                      },
+                      synastryScore: synScore2,
+                      personA: { label: '나', sun: mySunN, moon: myMoonN, venus: myVenN, mars: myMarN },
+                      personB: { label: nameVal, sun: pSunSign, moon: pMoonSign, venus: pVSign, mars: pMSign },
+                      sunElementPair: { a: myElem2, b: theirElem2 },
+                      narrativeFromEngine: {
+                        relationType: relType2,
+                        loveSynopsis: loveDesc2,
+                        workSynopsis: busDesc2,
+                        spiritSynopsis: spiritDesc2,
+                        shadowLight: shadowInfo2.light,
+                        shadowTension: shadowInfo2.shadow,
+                        shadowRemedy: shadowInfo2.remedy,
+                        strongestHarmonyLine: bestSupport2,
+                        strongestTensionLine: bestChallenge2
+                      },
+                      majorAspects: (aspectRows2 || []).slice(0, 16).map(function (r) {
+                        return {
+                          pair: r.pair,
+                          aspect: r.asp && r.asp.name,
+                          symbol: r.asp && r.asp.symbol,
+                          orbDeg: r.asp && r.asp.orb != null ? r.asp.orb : null,
+                          weighted: r.weighted
+                        };
+                      }),
+                      aspectHighlights: { softTop: softAspSample2, hardTop: hardAspSample2 },
+                      houseOverlay: {
+                        mySunInPartnerHouse: ovMySunToPartner,
+                        partnerSunInMyHouse: ovPartnerSunToMy,
+                        myMoonInPartnerHouse: ovMyMoonToPartner,
+                        partnerMoonInMyHouse: ovPartnerMoonToMy,
+                        myVenusInPartnerHouse: ovMyVenusToPartner,
+                        partnerVenusInMyHouse: ovPartnerVenusToMy,
+                        myMarsInPartnerHouse: ovMyMarsToPartner,
+                        partnerMarsInMyHouse: ovPartnerMarsToMy
+                      },
+                      houseOverlayThemes: {
+                        mySunInPartnerHouse: ovMySunToPartner ? ovMySunToPartner + 'H — ' + _syHouseTheme(ovMySunToPartner) : null,
+                        partnerSunInMyHouse: ovPartnerSunToMy ? ovPartnerSunToMy + 'H — ' + _syHouseTheme(ovPartnerSunToMy) : null,
+                        myMoonInPartnerHouse: ovMyMoonToPartner ? ovMyMoonToPartner + 'H — ' + _syHouseTheme(ovMyMoonToPartner) : null,
+                        partnerMoonInMyHouse: ovPartnerMoonToMy ? ovPartnerMoonToMy + 'H — ' + _syHouseTheme(ovPartnerMoonToMy) : null,
+                        myVenusInPartnerHouse: ovMyVenusToPartner ? ovMyVenusToPartner + 'H — ' + _syHouseTheme(ovMyVenusToPartner) : null,
+                        partnerVenusInMyHouse: ovPartnerVenusToMy ? ovPartnerVenusToMy + 'H — ' + _syHouseTheme(ovPartnerVenusToMy) : null,
+                        myMarsInPartnerHouse: ovMyMarsToPartner ? ovMyMarsToPartner + 'H — ' + _syHouseTheme(ovMyMarsToPartner) : null,
+                        partnerMarsInMyHouse: ovPartnerMarsToMy ? ovPartnerMarsToMy + 'H — ' + _syHouseTheme(ovPartnerMarsToMy) : null
+                      },
+                      metrics: {
+                        synRaw: synRaw2,
+                        synMax: synMax2,
+                        overlayScore: overlayScore2,
+                        overlayNorm: overlayNorm2,
+                        overlayMode: overlayMode2,
+                        angleDataConfidencePct: synConfidence2
+                      }
+                    });
+                  });
+                } catch (llmW) {
+                  console.warn('[CompatLlm western]', llmW);
+                }
             } catch(e) {
                 resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</p>';
             }
@@ -8355,6 +8486,8 @@ function renderZiwei(p, natal, targetId) {
       max-width: 100%;
       margin-left: 0;
       margin-right: 0;
+      /* 하단 AI 프롬프트 블록이 카드 박스에 잘리지 않도록 */
+      overflow: visible !important;
     }
     .zw-compat-ref-details {
       background: rgba(40,20,58,0.55);
@@ -11285,6 +11418,43 @@ function renderZiwei(p, natal, targetId) {
         + '</div>'
         + '</div>';
 
+      try {
+        var zwLlm = document.createElement('div');
+        zwLlm.setAttribute('data-cd-zw-compat-llm', '1');
+        outEl.appendChild(zwLlm);
+        cdEnsureCompatLlmReady(function () {
+          if (!window.CompatLlm || typeof window.CompatLlm.mountZiweiFromPayload !== 'function') {
+            zwLlm.innerHTML = '<div style="color:#fda4af;font-size:0.85rem;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);margin-top:10px;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 <b>궁합 보기</b>를 다시 눌러 주세요.</div>';
+            return;
+          }
+          window.CompatLlm.mountZiweiFromPayload(zwLlm, {
+            engine: 'ziwei',
+            userLabel: userLabel,
+            partnerLabel: partnerLabel,
+            partnerInput: {
+              birthDate: bDate,
+              birthTimeLocal: bTime,
+              birthTimeCorrectedSolar: z2(correctedHour) + ':' + z2(correctedMinute),
+              cityLabel: cityLabel,
+              correctionNote: correctionMsg
+            },
+            overallScore: overallScore,
+            categoryScores: catRows.map(function (c) { return { key: c.key, val: c.val }; }),
+            mingPalace: {
+              me: { main: mePal.meng.main, aux: mePal.meng.aux },
+              partner: { main: youPal.meng.main, aux: youPal.meng.aux }
+            },
+            spousePalace: {
+              me: { main: mePal.spouse.main, aux: mePal.spouse.aux },
+              partner: { main: youPal.spouse.main, aux: youPal.spouse.aux }
+            },
+            scores: { love: loveScore, marriage: marriageScore, friend: friendScore, work: workScore, business: businessScore, pastLife: pastLifeScore }
+          });
+        });
+      } catch (llmErr) {
+        console.warn('[CompatLlm ziwei]', llmErr);
+      }
+
       } catch (e) {
         console.error('[Ziwei compat] run error:', e);
         outEl.innerHTML = '<div style="color:#fda4af;font-size:0.9rem;">궁합 계산 중 오류가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.</div>';
@@ -13882,6 +14052,22 @@ function setCeleb(c){
   runCompat();
 }
 
+/** 궁합 LLM 카드 마운트: #compatLlmHost 없으면 compatResult 뒤에 생성 */
+function cdEnsureCompatLlmHost() {
+  var h = document.getElementById('compatLlmHost');
+  if (h) return h;
+  var cr = document.getElementById('compatResult');
+  if (!cr || !cr.parentNode) return null;
+  h = document.createElement('div');
+  h.id = 'compatLlmHost';
+  h.className = 'compat-llm-root';
+  h.style.marginTop = '14px';
+  cr.parentNode.insertBefore(h, cr.nextSibling);
+  return h;
+}
+
+/** compat-llm-prompts.js의 window.cdEnsureCompatLlmReady 사용 (콜백 큐·폴링) */
+
 async function runCompat(){
   if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
     alert('먼저 내 사주를 계산한 뒤에 궁합을 볼 수 있어요 🐷');return;
@@ -14078,10 +14264,33 @@ async function runCompat(){
     };
 
     var resultArea=document.getElementById('compatResult');
+    var llmHost=cdEnsureCompatLlmHost();
+    if(llmHost) llmHost.innerHTML='';
     var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name,blendInfo);
     if(resultArea) resultArea.innerHTML=compat.html;
     var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name);
     if(resultArea) resultArea.insertAdjacentHTML('beforeend',pastHtml);
+    cdEnsureCompatLlmReady(function(){
+      var host = cdEnsureCompatLlmHost();
+      if (!host) return;
+      if (!window.CompatLlm || typeof window.CompatLlm.mountSaju !== 'function') {
+        host.innerHTML = '<div style="color:#fda4af;font-size:0.85rem;padding:10px;border-radius:10px;border:1px solid rgba(251,113,133,0.35);">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+        return;
+      }
+      try{
+        window.CompatLlm.mountSaju(host,G_PILLARS,p2,G_NATAL,natal2,type,typeof USER_NAME==='string'?USER_NAME:'나',name,{
+          birthDate: bd,
+          calendarType: compatCalType,
+          hour: hour,
+          minute: minute
+        },{
+          selfJong: G_JONG,
+          selfPower: G_POWER,
+          partnerJong: jong2,
+          partnerPower: power2
+        });
+      }catch(llmE){ console.warn('[CompatLlm saju]',llmE); }
+    });
     if(resultArea) setTimeout(function(){ resultArea.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
   }catch(e){
     console.error('compat error',e);

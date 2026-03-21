@@ -490,6 +490,38 @@ var __cdLazyActionLoaders = {
 };
 var __cdLazyActionState = {};
 
+/**
+ * INP: 클릭 직후 메인 스레드에서 동기 실행되던 무거운 핸들러(사주/궁합/리딩 등)를
+ * setTimeout(0)으로 한 틱 미뤄 다음 페인트·입력 응답을 먼저 처리하게 한다.
+ * (uiBindings.js 의 __CD_DEFER_INP_ACTIONS 와 동일 목록 유지)
+ */
+var __CD_DEFER_INP_ACTIONS = {
+  checkPrivacyAndCalculate: 1,
+  agreeAndCalculate: 1,
+  calculate: 1,
+  runCompat: 1,
+  startTarotReading: 1,
+  startTarotLoveReading: 1,
+  startTarotHealingReading: 1,
+  startTarotReunionReading: 1,
+  startTarotSelfEsteemReading: 1,
+  startDreamReading: 1,
+  startKemetOracle: 1,
+  startQuantumAnalysis: 1,
+  startAnimalTotemRitual: 1,
+  psychoDreamStartAnalysis: 1,
+  showTarotFinalInterpretation: 1,
+  showTarotLoveFinalReading: 1,
+  showTarotHealingFinalReading: 1,
+  showTarotReunionFinalReading: 1,
+  showTarotSelfEsteemFinalReading: 1,
+  dreamLibrarySearch: 1,
+  dreamLibrarySearchByDream: 1,
+  dreamLibraryLoadMore: 1,
+  revealDreamStage: 1,
+  nextDreamStage: 1
+};
+
 function __cdNormalizeScriptSrc(src) {
   var raw = String(src || '').trim().replace(/^\.\//, '');
   if (!raw) return '';
@@ -561,22 +593,31 @@ function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
-  var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
 
-  var loader = __cdLazyActionLoaders[action];
-  var hasFn = typeof window[action] === 'function';
-  if (!loader || hasFn || out !== undefined) return;
+  function runInvoke() {
+    var out = __cdInvokeActionWithConfig(action, actionEl, event, args);
 
-  if (!__cdLazyActionState[action]) {
-    __cdLazyActionState[action] = loader().catch(function(err) {
-      console.error('[index-inline-runtime] lazy action load failed:', action, err);
+    var loader = __cdLazyActionLoaders[action];
+    var hasFn = typeof window[action] === 'function';
+    if (!loader || hasFn || out !== undefined) return;
+
+    if (!__cdLazyActionState[action]) {
+      __cdLazyActionState[action] = loader().catch(function(err) {
+        console.error('[index-inline-runtime] lazy action load failed:', action, err);
+      });
+    }
+
+    __cdLazyActionState[action].then(function() {
+      if (typeof window[action] !== 'function') return;
+      __cdInvokeActionWithConfig(action, actionEl, event, args);
     });
   }
 
-  __cdLazyActionState[action].then(function() {
-    if (typeof window[action] !== 'function') return;
-    __cdInvokeActionWithConfig(action, actionEl, event, args);
-  });
+  if (__CD_DEFER_INP_ACTIONS[action]) {
+    setTimeout(runInvoke, 0);
+    return;
+  }
+  runInvoke();
 }
 
 function __cdBindActionEventFallback(root, eventName, attrName) {
@@ -3975,11 +4016,25 @@ function _dpEmptyHTML(theme) {
 function openSukuyoModal() {
   var overlay = document.getElementById('sukuyoModalOverlay');
   if (!overlay) return;
+  try {
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+      window._perf.unlockBody();
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    }
+  } catch (e) {}
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('sukuyoModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -4027,8 +4082,12 @@ function openZiweiModal() {
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('ziweiModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -4052,8 +4111,12 @@ function openAstroModal() {
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
-  overlay.style.display = 'block';
-  setTimeout(function() { overlay.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  overlay.style.display = 'flex';
+  setTimeout(function() {
+    var sh = document.getElementById('astroModalSheet');
+    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -4352,7 +4415,7 @@ window.closeAnimalTotemModal = closeAnimalTotemModal;
 function _resetTarotUI() {
   if (typeof window.invalidateTarotFlow === 'function') window.invalidateTarotFlow();
   var tarotResultEl = document.getElementById('tarotResultContainer');
-  if (tarotResultEl) tarotResultEl.style.display = 'none';
+  if (tarotResultEl) tarotResultEl.classList.add('is-empty');
   var cardEl = document.getElementById('tarotCardEl');
   if (cardEl) cardEl.classList.remove('flipped');
   var ritualMsgEl = document.getElementById('tarotRitualMsg');

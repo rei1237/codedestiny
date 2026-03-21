@@ -20,6 +20,10 @@ const LOCALE_PATH_SLUGS = [
 
 const nextConfig = {
   reactStrictMode: true,
+  /** lucide / framer: barrel import 시 전체 평가 방지 → 클라이언트 번들 축소 */
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -33,7 +37,8 @@ const nextConfig = {
       localeBeforeFiles.push({ source: `/${slug}/:path+`, destination: '/:path+' });
     }
     return {
-      beforeFiles: localeBeforeFiles,
+      // Single-segment /index.html is captured by app/[adminHash] (404 JSON). Serve public/static/index.html.
+      beforeFiles: [{ source: '/index.html', destination: '/static/index.html' }, ...localeBeforeFiles],
       afterFiles: [
         { source: '/vedic', destination: '/vedic-astrology.html' },
         { source: '/api/auth/:path*', destination: apiTarget + '/api/auth/:path*' },

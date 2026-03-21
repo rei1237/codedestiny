@@ -11,6 +11,34 @@
   var lastTouchStart = null;
   var lastActionInvoke = { action: '', at: 0 };
 
+  /* INP: index-inline-runtime / uiBindings 과 동일 — 무거운 data-action 동기 호출을 다음 태스크로 */
+  var __CD_DEFER_INP_ACTIONS = {
+    checkPrivacyAndCalculate: 1,
+    agreeAndCalculate: 1,
+    calculate: 1,
+    runCompat: 1,
+    startTarotReading: 1,
+    startTarotLoveReading: 1,
+    startTarotHealingReading: 1,
+    startTarotReunionReading: 1,
+    startTarotSelfEsteemReading: 1,
+    startDreamReading: 1,
+    startKemetOracle: 1,
+    startQuantumAnalysis: 1,
+    startAnimalTotemRitual: 1,
+    psychoDreamStartAnalysis: 1,
+    showTarotFinalInterpretation: 1,
+    showTarotLoveFinalReading: 1,
+    showTarotHealingFinalReading: 1,
+    showTarotReunionFinalReading: 1,
+    showTarotSelfEsteemFinalReading: 1,
+    dreamLibrarySearch: 1,
+    dreamLibrarySearchByDream: 1,
+    dreamLibraryLoadMore: 1,
+    revealDreamStage: 1,
+    nextDreamStage: 1
+  };
+
   var RULES = [
     {
       action: 'openPhysiognomyApp',
@@ -231,6 +259,19 @@
         '.feature-card--egypt .feature-card__cta',
         '.feature-card--egypt .feature-card__launch'
       ].join(',')
+    },
+    {
+      action: 'navigateToVedic',
+      cardSelector: '.tarot-tile--vedic-fc',
+      targetSelector: [
+        '[data-action="navigateToVedic"]',
+        '.tarot-tile--vedic-fc',
+        '.tarot-tile--vedic-fc .tarot-tile__img-wrap',
+        '.tarot-tile--vedic-fc .tarot-tile__img',
+        '.tarot-tile--vedic-fc .tarot-tile__title',
+        '.tarot-tile--vedic-fc .tarot-tile__desc',
+        '.tarot-tile--vedic-fc .tarot-tile__body'
+      ].join(',')
     }
   ];
   var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
@@ -370,23 +411,32 @@
     var args = parseActionArgs(actionEl.getAttribute('data-action-args'));
     var passSelfMode = actionEl.getAttribute('data-action-pass-self');
     var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
-    try {
-      if (passSelfMode === 'append') {
-        fn.apply(window, args.concat([actionEl]));
-      } else if (passSelfMode === '1' || passSelfMode === 'prepend') {
-        fn.apply(window, [actionEl].concat(args));
-      } else if (passEvent) {
-        fn.call(window, sourceEvent);
-      } else if (args.length) {
-        fn.apply(window, args);
-      } else {
-        fn.call(window);
+
+    function runInvoke() {
+      try {
+        if (passSelfMode === 'append') {
+          fn.apply(window, args.concat([actionEl]));
+        } else if (passSelfMode === '1' || passSelfMode === 'prepend') {
+          fn.apply(window, [actionEl].concat(args));
+        } else if (passEvent) {
+          fn.call(window, sourceEvent);
+        } else if (args.length) {
+          fn.apply(window, args);
+        } else {
+          fn.call(window);
+        }
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] data-action invoke failed:', action, err);
+        return false;
       }
-      return true;
-    } catch (err) {
-      console.error('[mobile-interaction-patch] data-action invoke failed:', action, err);
-      return false;
     }
+
+    if (__CD_DEFER_INP_ACTIONS[action]) {
+      setTimeout(runInvoke, 0);
+      return true;
+    }
+    return runInvoke();
   }
 
   var LAZY_LOAD_ACTIONS = {
@@ -548,7 +598,7 @@
       '.feature-card--face, .feature-card--tazza,',
       '.tarot-tile--healing, .tarot-tile--year, .tarot-tile--love, .tarot-tile--reunion, .tarot-tile--self-esteem, .tarot-tile--animal-totem,',
       '.tarot-tile--dream-tile, .tarot-tile--psycho-freud-tile,',
-      '.tarot-tile--hwatu, .tarot-tile--egypt-fc,',
+      '.tarot-tile--hwatu, .tarot-tile--egypt-fc, .tarot-tile--vedic-fc,',
       '.tarot-tile--bloom, .tarot-tile--astro-flower, .tarot-tile--jami-flower, .tarot-tile--sukuyo-fl,',
       '.feature-card--face .feature-card__visual, .feature-card--tazza .feature-card__visual,',
       '.feature-card--face .feature-card__img-wrap, .feature-card--tazza .feature-card__img-wrap,',
@@ -564,13 +614,14 @@
       '.tarot-tile--year .tarot-tile__img-wrap, .tarot-tile--year .tarot-tile__img, .tarot-tile--year .tarot-tile__body, .tarot-tile--year .tarot-tile__title, .tarot-tile--year .tarot-tile__desc,',
       '.tarot-tile--hwatu .tarot-tile__img-wrap, .tarot-tile--hwatu .tarot-tile__img, .tarot-tile--hwatu .tarot-tile__body, .tarot-tile--hwatu .tarot-tile__title, .tarot-tile--hwatu .tarot-tile__desc,',
       '.tarot-tile--egypt-fc .tarot-tile__img-wrap, .tarot-tile--egypt-fc .tarot-tile__img, .tarot-tile--egypt-fc .tarot-tile__body, .tarot-tile--egypt-fc .tarot-tile__title, .tarot-tile--egypt-fc .tarot-tile__desc,',
+      '.tarot-tile--vedic-fc .tarot-tile__img-wrap, .tarot-tile--vedic-fc .tarot-tile__img, .tarot-tile--vedic-fc .tarot-tile__body, .tarot-tile--vedic-fc .tarot-tile__title, .tarot-tile--vedic-fc .tarot-tile__desc,',
       '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__badge, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
       '.tarot-tile--bloom .tarot-tile__img-wrap, .tarot-tile--bloom .tarot-tile__img, .tarot-tile--bloom .tarot-tile__badge, .tarot-tile--bloom .tarot-tile__body, .tarot-tile--bloom .tarot-tile__title, .tarot-tile--bloom .tarot-tile__desc,',
       '.tarot-tile--astro-flower .tarot-tile__img-wrap, .tarot-tile--astro-flower .tarot-tile__img, .tarot-tile--astro-flower .tarot-tile__badge, .tarot-tile--astro-flower .tarot-tile__body, .tarot-tile--astro-flower .tarot-tile__title, .tarot-tile--astro-flower .tarot-tile__desc,',
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"],',
-      '[data-action="openAnimalTotemModal"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"] {',
+      '[data-action="openAnimalTotemModal"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="navigateToVedic"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',

@@ -2,7 +2,7 @@
 const BASE = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 
 const targets = [
-  // App Router home redirects to /index.html (SPA shell); 307/308 is expected.
+  // Home: LocaleShell + iframe SPA; preview hosts may 308 to canonical (middleware).
   { path: "/", allowRedirect: true },
   { path: "/sitemap.xml", allowRedirect: false },
   { path: "/robots.txt", allowRedirect: false },

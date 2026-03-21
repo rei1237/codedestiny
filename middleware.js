@@ -41,6 +41,7 @@ export function middleware(request) {
   }
 
   // Prevent SEO split: let bots index "/" instead of "/index.html".
+  // Non-bots: rewrite to /static/index.html so app/[adminHash] does not treat "index.html" as the hash (404 JSON).
   if (pathname === "/index.html") {
     if (BOT_UA_RE.test(ua)) {
       const url = request.nextUrl.clone();
@@ -48,6 +49,10 @@ export function middleware(request) {
       url.search = search;
       return NextResponse.redirect(url, 301);
     }
+    const toStatic = request.nextUrl.clone();
+    toStatic.pathname = "/static/index.html";
+    toStatic.search = search;
+    return NextResponse.rewrite(toStatic);
   }
 
   const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";

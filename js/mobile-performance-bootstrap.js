@@ -140,6 +140,7 @@ function setupImageOptimization() {
 function setupGpuSafety() {
   if (!__isMobile()) return;
 
+  /* 클래스·스타일은 index.html 본문 최상단 인라인 스크립트에서 선적용(첫 페인트·CLS 완화). 여기서는 동일 로직으로 보정·메타만 설정. */
   document.documentElement.classList.add('mobile-safe-render');
 
   var lowGpu = __isLikelyLowGpuDevice();

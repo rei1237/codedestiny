@@ -21,6 +21,7 @@
     "secrets:cf:pages": "node scripts/sync-cloudflare-pages-secrets.mjs",
     "sanitize:cf-env": "node scripts/sanitize-open-next-env.mjs",
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
+    "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
     "build:cf": "npm run clean:cf && npm run sync:public && node scripts/build-cloudflare.mjs && npm run sanitize:cf-env && npm run verify:no-secret-leak && node scripts/prepare-cloudflare-dist.mjs && npm run verify:no-secret-leak",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
     "deploy:cf:worker": "node scripts/deploy-worker.mjs",
@@ -48,7 +49,8 @@
     "otplib": "^13.4.0",
     "qrcode": "^1.5.4",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "web-vitals": "^4.2.4"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.17.1",

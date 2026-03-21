@@ -57,6 +57,11 @@ const localeLandingDirs = [
 ];
 const publicIndex = resolve(publicDir, "index.html");
 if (existsSync(publicIndex)) {
+  const staticDir = resolve(publicDir, "static");
+  mkdirSync(staticDir, { recursive: true });
+  cpSync(publicIndex, resolve(staticDir, "index.html"), { force: true });
+  console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
+
   for (const loc of localeLandingDirs) {
     const locDir = resolve(publicDir, loc);
     mkdirSync(locDir, { recursive: true });

@@ -1084,6 +1084,42 @@
   max-height: none;
   overflow: visible;
   padding-right: 8px;
+  position: relative;
+  min-height: 320px;
+  box-sizing: border-box;
+}
+#tarotHealingReadingContent[aria-busy="true"] {
+  min-height: 320px;
+}
+.tarot-reading-skeleton--healing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+  width: 100%;
+}
+.tarot-reading-skeleton--healing .tarot-skel-line {
+  display: block;
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.08), rgba(251, 191, 36, 0.2), rgba(234, 179, 8, 0.08));
+  background-size: 200% 100%;
+  animation: cls-skel-shimmer 1.1s ease-in-out infinite;
+}
+.tarot-reading-skeleton--healing .tarot-skel-line--title {
+  height: 20px;
+  width: 55%;
+}
+.tarot-reading-skeleton--healing .tarot-skel-line--short {
+  width: 72%;
+}
+@keyframes cls-skel-shimmer {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 .tarot-healing-tap-to-reveal {
   display: flex;

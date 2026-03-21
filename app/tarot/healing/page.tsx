@@ -1,4 +1,4 @@
-import SunHealingTarot from "../../components/SunHealingTarot";
+import TarotHealingClient from "./TarotHealingClient";
 
 export default function SunHealingTarotPage() {
   const jsonLd = JSON.stringify({
@@ -13,8 +13,7 @@ export default function SunHealingTarotPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <SunHealingTarot />
+      <TarotHealingClient />
     </>
   );
 }
-

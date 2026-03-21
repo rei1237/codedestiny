@@ -25,6 +25,19 @@
     return document.getElementById(id);
   }
 
+  function healingReadingSkeletonHtml() {
+    return (
+      '<div class="tarot-reading-skeleton tarot-reading-skeleton--healing" role="status" aria-live="polite">' +
+      '<span class="tarot-skel-line tarot-skel-line--title"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      '<span class="tarot-skel-line tarot-skel-line--short"></span>' +
+      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      '<span class="tarot-skel-line tarot-skel-line--short"></span>' +
+      '<span class="tarot-skel-line"></span>' +
+      "</div>"
+    );
+  }
+
   function getHealingPanel() {
     return document.querySelector("#tarotHealingOverlay .tarot-healing-panel");
   }
@@ -612,6 +625,11 @@
     if (result) result.classList.remove("is-active");
     var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
     if (gaugeFill) gaugeFill.classList.remove("is-filled");
+    var rc = byId("tarotHealingReadingContent");
+    if (rc) {
+      rc.innerHTML = "";
+      rc.removeAttribute("aria-busy");
+    }
   }
 
   function startTarotHealingReading() {
@@ -809,6 +827,22 @@
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });
 
+    var draw = byId("tarotHealingDrawStage");
+    var result = byId("tarotHealingResultStage");
+    var rc = byId("tarotHealingReadingContent");
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.add("is-active");
+    if (rc) {
+      rc.innerHTML = healingReadingSkeletonHtml();
+      rc.setAttribute("aria-busy", "true");
+    }
+    var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
+    if (gaugeFill) {
+      gaugeFill.classList.remove("is-filled");
+      gaugeFill.offsetHeight;
+      gaugeFill.classList.add("is-filled");
+    }
+
     callTarotApi("reading", {
       category: "healing",
       spreadType: "healing_rising_four_card",
@@ -817,20 +851,17 @@
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
         state.reading = data.reading;
-        var draw = byId("tarotHealingDrawStage");
-        var result = byId("tarotHealingResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
-        if (gaugeFill) {
-          gaugeFill.classList.remove("is-filled");
-          gaugeFill.offsetHeight;
-          gaugeFill.classList.add("is-filled");
-        }
+        if (rc) rc.removeAttribute("aria-busy");
         showTarotHealingTapToReveal();
       })
       .catch(function (err) {
         console.error("Tarot Healing reading error:", err);
+        if (draw) draw.classList.add("is-active");
+        if (result) result.classList.remove("is-active");
+        if (rc) {
+          rc.innerHTML = "";
+          rc.removeAttribute("aria-busy");
+        }
         alert("해석을 불러오는 중에 잠깐 문제가 생겼어요. 조금 있다가 다시 시도해 주세요. ☀️");
       });
   }
@@ -936,6 +967,7 @@
     if (!container || !state.reading) return;
     var r = state.reading;
     container.innerHTML = "";
+    container.removeAttribute("aria-busy");
 
     var sectionClass = "tarot-healing-section tarot-healing-fade-slide-up";
     var titleClass = "tarot-healing-section-title";

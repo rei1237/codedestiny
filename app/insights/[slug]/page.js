@@ -1,6 +1,14 @@
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getArticleBySlug, getTopicKey } from "../articles";
-import InsightArticleCosmicClient from "./InsightArticleCosmicClient";
+
+const InsightArticleCosmicClient = dynamic(() => import("./InsightArticleCosmicClient"), {
+  loading: () => (
+    <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-400">
+      글을 불러오는 중…
+    </div>
+  ),
+});
 
 export function generateStaticParams() {
   return INSIGHT_ARTICLES.map((article) => ({ slug: article.slug }));

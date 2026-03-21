@@ -26,6 +26,34 @@ const __lazyActionLoaders = {
 
 const __lazyActionState = {};
 
+/** INP: 무거운 data-action 핸들러를 다음 태스크로 미룸 (index-inline-runtime 의 __CD_DEFER_INP_ACTIONS 와 동일) */
+const __CD_DEFER_INP_ACTIONS = new Set([
+  'checkPrivacyAndCalculate',
+  'agreeAndCalculate',
+  'calculate',
+  'runCompat',
+  'startTarotReading',
+  'startTarotLoveReading',
+  'startTarotHealingReading',
+  'startTarotReunionReading',
+  'startTarotSelfEsteemReading',
+  'startDreamReading',
+  'startKemetOracle',
+  'startQuantumAnalysis',
+  'startAnimalTotemRitual',
+  'psychoDreamStartAnalysis',
+  'showTarotFinalInterpretation',
+  'showTarotLoveFinalReading',
+  'showTarotHealingFinalReading',
+  'showTarotReunionFinalReading',
+  'showTarotSelfEsteemFinalReading',
+  'dreamLibrarySearch',
+  'dreamLibrarySearchByDream',
+  'dreamLibraryLoadMore',
+  'revealDreamStage',
+  'nextDreamStage'
+]);
+
 function __loadScriptOnce(src) {
   if (!src) return Promise.reject(new Error('missing src'));
   const normSrcRaw = src.replace(/^\.\//, '');
@@ -98,45 +126,54 @@ function __callActionWithConfig(action, actionEl, event, args) {
 
 function __invokeAction(action, actionEl, event) {
   const args = parseArgs(actionEl.getAttribute('data-action-args'));
-  const out = __callActionWithConfig(action, actionEl, event, args);
 
-  const loader = __lazyActionLoaders[action];
-  if (!loader) return;
+  const run = () => {
+    const out = __callActionWithConfig(action, actionEl, event, args);
 
-  const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
+    const loader = __lazyActionLoaders[action];
+    if (!loader) return;
 
-  // If the function already exists, avoid redundant lazy-loading + retry loops.
-  // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before
-  // their full experience scripts load, so we keep the previous behavior there.
-  if (action !== 'openAnimalTotemModal' && hadFunction) return;
-  if (out !== undefined) return;
+    const hadFunction = typeof window !== 'undefined' && typeof window[action] === 'function';
 
-  if (!__lazyActionState[action]) {
-    __lazyActionState[action] = loader().catch((err) => {
-      console.error('[uiBindings] lazy action load failed:', action, err);
+    // If the function already exists, avoid redundant lazy-loading + retry loops.
+    // Note: some actions (e.g. `openAnimalTotemModal`) might exist as stubs before
+    // their full experience scripts load, so we keep the previous behavior there.
+    if (action !== 'openAnimalTotemModal' && hadFunction) return;
+    if (out !== undefined) return;
+
+    if (!__lazyActionState[action]) {
+      __lazyActionState[action] = loader().catch((err) => {
+        console.error('[uiBindings] lazy action load failed:', action, err);
+      });
+    }
+
+    __lazyActionState[action].then(() => {
+      let attempt = 0;
+      const maxAttempts = 12;
+      const retryMs = 50;
+
+      const tryInvokeOnceWhenReady = () => {
+        if (typeof window[action] !== 'function') {
+          if (attempt >= maxAttempts) return;
+          attempt += 1;
+          setTimeout(tryInvokeOnceWhenReady, retryMs);
+          return;
+        }
+
+        // Many UI open handlers intentionally return `undefined` after DOM side-effects.
+        // Do not retry based on return value; just call once when the function appears.
+        __callActionWithConfig(action, actionEl, event, args);
+      };
+
+      tryInvokeOnceWhenReady();
     });
+  };
+
+  if (__CD_DEFER_INP_ACTIONS.has(action)) {
+    setTimeout(run, 0);
+    return;
   }
-
-  __lazyActionState[action].then(() => {
-    let attempt = 0;
-    const maxAttempts = 12;
-    const retryMs = 50;
-
-    const tryInvokeOnceWhenReady = () => {
-      if (typeof window[action] !== 'function') {
-        if (attempt >= maxAttempts) return;
-        attempt += 1;
-        setTimeout(tryInvokeOnceWhenReady, retryMs);
-        return;
-      }
-
-      // Many UI open handlers intentionally return `undefined` after DOM side-effects.
-      // Do not retry based on return value; just call once when the function appears.
-      __callActionWithConfig(action, actionEl, event, args);
-    };
-
-    tryInvokeOnceWhenReady();
-  });
+  run();
 }
 
 function bindEventAction(root, eventName, attrName) {

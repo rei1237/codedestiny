@@ -390,7 +390,7 @@ function setTarotMode(mode) {
   // 리셋 쓰리카드 상태
   tarotThreeCardState = { cards: [], revealedIndex: -1 };
   var resultEl = document.getElementById('tarotResultContainer');
-  if (resultEl) resultEl.style.display = 'none';
+  if (resultEl) resultEl.classList.add('is-empty');
   // 모드 전환 시 이미 카테고리가 선택되어 있으면 즉시 덱 준비
   if (mode === 'three' && curTarotCat && isTarotModalActive()) {
     startThreeCardFlow();
@@ -423,7 +423,7 @@ function selectTarotCategory(cat, btn) {
   
   // 결과창 초기화
   var resultEl = document.getElementById('tarotResultContainer');
-  if (resultEl) resultEl.style.display='none';
+  if (resultEl) resultEl.classList.add('is-empty');
   var oracleEl = document.getElementById('tarotOracleText');
   if (oracleEl) {
     oracleEl.classList.remove('show');
@@ -1018,7 +1018,7 @@ function showTarotFinalInterpretation() {
   var resultEl = document.getElementById('tarotResultContainer');
   var fortuneEl = document.getElementById('destinyFortune');
   if (fortuneEl) fortuneEl.innerHTML = '';
-  if (resultEl) resultEl.style.display = 'block';
+  if (resultEl) resultEl.classList.remove('is-empty');
   setTimeout(function() {
     if (resultEl && typeof resultEl.scrollIntoView === 'function') {
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1106,7 +1106,7 @@ function startTarotReading() {
         '</div>';
     }
     var resultEl = document.getElementById('tarotResultContainer');
-    if (resultEl) resultEl.style.display = 'block';
+    if (resultEl) resultEl.classList.remove('is-empty');
     var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 원카드 리딩</b><br>' +
       '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 의미와 질문 카테고리를 결합한 맞춤 상담입니다.</span><br><br>' +
       buildTarotCardCounselHtml(picked, isReversed, curTarotCat, '오늘');

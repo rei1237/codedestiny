@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import { headers } from "next/headers";
+import WebVitalsConsole from "./components/WebVitalsConsole";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
@@ -237,6 +238,7 @@ export default async function RootLayout({ children }) {
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>
       <body>
+        <WebVitalsConsole />
         <div>{children}</div>
         {!hideFooter && (
           <footer

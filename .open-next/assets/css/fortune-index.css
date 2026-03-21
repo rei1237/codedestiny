@@ -116,6 +116,32 @@
   margin-bottom: 6px;
 }
 
+.fi-item--compact {
+  padding: 10px 6px;
+  font-size: .72rem;
+}
+
+.fi-item--compact span {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.fi-grid--sukuyo {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (min-width: 400px) {
+  .fi-grid--sukuyo {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 560px) {
+  .fi-grid--sukuyo {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
 .fi-cta {
   background: linear-gradient(135deg, rgba(88, 28, 135, .3), rgba(15, 14, 26, .8));
   border: 1px solid rgba(232, 121, 249, .2);

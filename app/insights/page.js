@@ -1,4 +1,12 @@
-import InsightsCosmicClient from "./InsightsCosmicClient";
+import dynamic from "next/dynamic";
+
+const InsightsCosmicClient = dynamic(() => import("./InsightsCosmicClient"), {
+  loading: () => (
+    <div className="flex min-h-[32vh] items-center justify-center text-sm text-slate-400">
+      인사이트 허브를 불러오는 중…
+    </div>
+  ),
+});
 
 export const metadata = {
   title: "운세 인사이트 허브 | CODE DESTINY",
