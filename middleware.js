@@ -68,7 +68,12 @@ export function middleware(request) {
   // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  const rawPath = request.nextUrl.pathname || "/";
+  const pathForLocale = rawPath === "" ? "/" : rawPath;
+  // Only pass document path to layout: RSC / _next /api must not overwrite x-pathname (breaks / on Workers).
+  if (!rawPath.startsWith("/_next") && !rawPath.startsWith("/api")) {
+    requestHeaders.set("x-pathname", pathForLocale);
+  }
 
   return NextResponse.next({
     request: {
@@ -78,5 +83,8 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: [
+    "/",
+    "/((?!_next|api|favicon.ico).*)",
+  ],
 };
