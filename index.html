@@ -430,8 +430,6 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260316">
   <script src="/js/inline/api-base-init.js" defer></script>
-  <!-- ✅ PERF: Tailwind CDN defer — 스플래시 화면이 FOUC 커버 -->
-  <script defer src="https://cdn.tailwindcss.com"></script>
   <!-- ✅ PERF: Non-critical CSS 비동기 로드 (모달 전용 — 클릭 시에만 필요) -->
   <link rel="preload" href="/styles/destiny-flower-cosmic.css?v=20260317" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" as="style" onload="this.onload=null;this.rel='stylesheet'">
