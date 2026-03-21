@@ -513,9 +513,11 @@
       if (i > state.revealedOrder.length) refs.cardRail.children[i].classList.add("is-disabled");
       else refs.cardRail.children[i].classList.remove("is-disabled");
     }
-    if (state.revealedOrder.length === state.spread.cards.length) {
-      renderConsultation();
-      setTimeout(function() { activateStage(refs.resultStage); }, 250);
+    if (state.revealedOrder.length === state.mode) {
+      /* 모든 카드 오픈 완료 → 결과 표시 */
+      setTimeout(function() {
+        activateStage(refs.resultStage);
+      }, 300);
     }
   }
 
@@ -538,6 +540,9 @@
     }, 800);
   }
 
+  /* ============================================ 
+   * Global Exports
+   * ============================================ */
   global.openAnimalTotemModal = openAnimalTotemModal;
   global.closeAnimalTotemModal = closeAnimalTotemModal;
   global.startAnimalTotemRitual = startAnimalTotemRitual;
@@ -548,4 +553,6 @@
   global.shareAnimalTotemResult = shareAnimalTotemResult;
   global.startAnimalTotemMeditation = startAnimalTotemRitual;
   global.drawAnimalTotemCard = revealAnimalTotemCard;
+
+})(typeof window !== 'undefined' ? window : global);
 })(window);
