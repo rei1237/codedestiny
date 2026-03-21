@@ -93,6 +93,15 @@ function ensureBirthInputsInteractive(){
   var hourSel = document.getElementById('birthHour');
   var minSel = document.getElementById('birthMinute');
   var countrySel = document.getElementById('birthCountry');
+  var btnM = document.getElementById('btnM');
+  var btnF = document.getElementById('btnF');
+
+  // 일부 배포/복구 상황에서 disabled 상태가 남는 문제를 방지한다.
+  [hourSel, minSel, countrySel, btnM, btnF].forEach(function(el){
+    if (!el) return;
+    if (el.disabled) el.disabled = false;
+    if (el.style && el.style.pointerEvents === 'none') el.style.pointerEvents = 'auto';
+  });
 
   var needSelectorInit = !!(
     (hourSel && (!hourSel.options || hourSel.options.length === 0)) ||

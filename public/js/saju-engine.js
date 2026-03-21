@@ -3011,16 +3011,41 @@ async function calculate(){
   var calType = 'solar';
   for(var i=0; i<calTypeBtns.length; i++) { if(calTypeBtns[i].checked) { calType = calTypeBtns[i].value; break; } }
 
-  var hour=parseInt(document.getElementById('birthHour').value)||12;
-  var minute=parseInt(document.getElementById('birthMinute').value)||0;
+  var hourEl = document.getElementById('birthHour');
+  var minuteEl = document.getElementById('birthMinute');
+  var rawHour = String((hourEl && hourEl.value) || '').trim();
+  var rawMinute = String((minuteEl && minuteEl.value) || '').trim();
+  var hasBirthTime = rawHour !== '' && rawMinute !== '';
+  var hour = hasBirthTime ? parseInt(rawHour, 10) : 12;
+  var minute = hasBirthTime ? parseInt(rawMinute, 10) : 0;
+  if (!isFinite(hour) || hour < 0 || hour > 23) { hour = 12; hasBirthTime = false; }
+  if (!isFinite(minute) || minute < 0 || minute > 59) { minute = 0; hasBirthTime = false; }
 
   var countrySel = document.getElementById('birthCountry');
   var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
-  var bLong = opt ? parseFloat(opt.getAttribute('data-long')) : 127.0;
-  var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
-  var bBaseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
+  var isFallbackLocation = !opt || /불러오는 중/.test(String(opt.text || ''));
+  var bLong = isFallbackLocation ? 127.0 : parseFloat(opt.getAttribute('data-long'));
+  var bLat  = isFallbackLocation ? 37.6 : parseFloat(opt.getAttribute('data-lat'));
+  var bBaseTzOff = isFallbackLocation ? 9 : parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9');
+  if (!isFinite(bLong)) bLong = 127.0;
+  if (!isFinite(bLat)) bLat = 37.6;
+  if (!isFinite(bBaseTzOff)) bBaseTzOff = 9;
 
-  var actualDateInfo = await getActualSolarDateWithContext(bd, calType, {
+  var normalizedGender = (GENDER === 'M' || GENDER === 'F') ? GENDER : null;
+  var missingFields = [];
+  if (!hasBirthTime) missingFields.push('birthTime');
+  if (isFallbackLocation) missingFields.push('birthCountry');
+  if (!normalizedGender) missingFields.push('gender');
+  var inputStatus = {
+    isPartial: missingFields.length > 0,
+    missingFields: missingFields,
+    hasBirthTime: hasBirthTime,
+    hasBirthCountry: !isFallbackLocation,
+    hasGender: !!normalizedGender
+  };
+  window._analysisInputStatus = inputStatus;
+
+  var calendarReq = {
     hour: hour,
     minute: minute,
     second: 0,
@@ -3028,14 +3053,23 @@ async function calculate(){
     longitude: bLong,
     tzOffsetHours: bBaseTzOff,
     setCurrent: true
-  });
+  };
+  var actualDateInfo = null;
+  try {
+    actualDateInfo = await getActualSolarDateWithContext(bd, calType, calendarReq);
+  } catch (calendarErr) {
+    console.error('[saju] date conversion failed', {
+      message: calendarErr && calendarErr.message,
+      request: { birthDate: bd, calType: calType, options: calendarReq }
+    });
+  }
   if(!actualDateInfo) { alert('날짜 변환에 실패했습니다. 다시 확인해주세요.'); return; }
 
   var primaryDateCtx = actualDateInfo.context || null;
   var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
   var inputTimeStr = String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':00';
 
-  var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
+  var bTz = (countrySel && countrySel.value && !isFallbackLocation) ? countrySel.value : 'Asia/Seoul';
   var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
   var bTzOff = tzResolved.tzOffsetHours;
   var stdLong = bTzOff * 15;
@@ -3072,6 +3106,8 @@ async function calculate(){
   window._ziweiBirth={year:year,month:month,day:day,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff};
   window._ziweiInputMeta={
     calType: calType,
+    isPartial: inputStatus.isPartial,
+    missingFields: inputStatus.missingFields.slice(),
     kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',
     kasiDiagnostics: (primaryDateCtx && primaryDateCtx.meta && Array.isArray(primaryDateCtx.meta.diagnostics)) ? primaryDateCtx.meta.diagnostics.slice() : [],
     inputDate: { year: year, month: month, day: day, hour: hour, minute: minute },
@@ -3194,12 +3230,19 @@ async function calculate(){
       ? birthCountryEl.options[birthCountryEl.selectedIndex]
       : null;
     var countryText = selectedCountryOpt ? selectedCountryOpt.text : '';
+    var birthTimeText = hasBirthTime ? (hour+'시 '+minute+'분') : '출생시간 미입력 (삼주 기준: 12시 대체)';
+    var genderText = normalizedGender === 'M' ? '남성' : (normalizedGender === 'F' ? '여성' : '성별 미선택');
+    var partialNotice = inputStatus.isPartial
+      ? ('<div class="hero-partial-note">부분 분석 모드: '+inputStatus.missingFields.join(', ')+' 값이 없어 기본값/보수 규칙으로 해석했습니다.</div>')
+      : '';
+
     document.getElementById('heroSub').innerHTML=
       '<div class="hero-sub-grid">'
-      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 <span class="hero-meta-place">(' + countryText + ')</span></div>'
+      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+birthTimeText+' <span class="hero-meta-place">(' + (countryText || '기본값: 서울') + ')</span></div>'
       + (lunarInfo ? ('<div class="hero-divider"></div><div class="hero-lunar-wrap">'+lunarInfo+'</div>') : '')
       + '<div class="hero-divider"></div>'
-      + '<div class="hero-meta-row hero-meta-row--identity">'+(GENDER==='M'?'남성':'여성')+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세</div>'
+      + '<div class="hero-meta-row hero-meta-row--identity">'+genderText+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세</div>'
+      + partialNotice
       + '</div>'
       + timeCorrectionStr;
 
@@ -3218,7 +3261,11 @@ async function calculate(){
     try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); }
     try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); }
     try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); }
-    try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
+    if (normalizedGender) {
+      try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
+    } else {
+      console.warn('[saju] skipping daewun render: gender missing');
+    }
     try {
       var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
       if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
@@ -3240,7 +3287,8 @@ async function calculate(){
       (G_JONG&&G_JONG.isJong&&G_JONG.isGaJong?'<b style="color:#7B1FA2">가종격(假從格) 사주</b> <span style="font-size:.75rem;color:#9C27B0">('+G_JONG.name+')</span> — 지배 오행 중심 판단':
        G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격(眞從格) 사주</b> — 지배 오행 중심 판단':
         G_POWER&&G_POWER.isStrong?'<b style="color:#FF8BA7">신강 사주</b> — 억부+조후 통합 판단':
-        '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
+        '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단')
+      + (inputStatus.isPartial ? '<br><span style="font-size:.82rem;color:#6b7280">부분 분석: '+inputStatus.missingFields.join(', ')+' 값이 없어 기본값으로 계산했습니다.</span>' : '');
 
   }catch(err){
     console.error(err);
