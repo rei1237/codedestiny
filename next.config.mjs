@@ -31,6 +31,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   productionBrowserSourceMaps: false,
+  images: {
+    formats:
+      process.env.NODE_ENV === 'production'
+        ? ['image/avif', 'image/webp']
+        : ['image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 365,
+  },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
     const legacyHomeRewrites = [
