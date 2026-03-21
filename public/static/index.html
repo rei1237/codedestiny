@@ -1037,7 +1037,7 @@
             <!-- [기능 연결부] 우리는 무슨 사이? → openTarotLoveModal() -->
             <a class="tarot-tile tarot-tile--love" href="/tarot/love"
                data-action="openTarotLoveModal"
-               onclick="event.preventDefault(); if (typeof openTarotLoveModal === 'function') openTarotLoveModal();"
+               onclick="if (typeof openTarotLoveModal === 'function') { event.preventDefault(); openTarotLoveModal(); }"
                aria-label="우리는 무슨 사이? 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/tarolove.webp"
@@ -1054,7 +1054,7 @@
             <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
             <a class="tarot-tile tarot-tile--healing" href="/tarot/healing"
                data-action="openTarotHealingModal"
-               onclick="event.preventDefault(); if (typeof openTarotHealingModal === 'function') openTarotHealingModal();"
+               onclick="if (typeof openTarotHealingModal === 'function') { event.preventDefault(); openTarotHealingModal(); }"
                aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/healing.webp"
@@ -1071,7 +1071,7 @@
             <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
             <a class="tarot-tile tarot-tile--self-esteem" href="/tarot/self-esteem"
                data-action="openTarotSelfEsteemModal"
-               onclick="event.preventDefault(); if (typeof openTarotSelfEsteemModal === 'function') openTarotSelfEsteemModal();"
+               onclick="if (typeof openTarotSelfEsteemModal === 'function') { event.preventDefault(); openTarotSelfEsteemModal(); }"
                aria-label="자존감 레벨업 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/jajongam.webp"
@@ -1088,7 +1088,7 @@
             <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
             <a class="tarot-tile tarot-tile--reunion" href="/tarot/reunion"
                data-action="openTarotReunionModal"
-               onclick="event.preventDefault(); if (typeof openTarotReunionModal === 'function') openTarotReunionModal();"
+               onclick="if (typeof openTarotReunionModal === 'function') { event.preventDefault(); openTarotReunionModal(); }"
                aria-label="재회운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/reunion.webp"
@@ -1105,7 +1105,7 @@
             <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
             <a class="tarot-tile tarot-tile--year" href="/tarot/year"
                data-action="openTarotYearFortuneModal"
-               onclick="event.preventDefault(); if (typeof openTarotYearFortuneModal === 'function') openTarotYearFortuneModal();"
+               onclick="if (typeof openTarotYearFortuneModal === 'function') { event.preventDefault(); openTarotYearFortuneModal(); }"
                aria-label="십이지신 천운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/12animals.webp"
@@ -1122,7 +1122,7 @@
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <a class="tarot-tile tarot-tile--classic" href="/tarot/mingri"
                data-action="openTarotModal"
-               onclick="event.preventDefault(); if (typeof openTarotModal === 'function') openTarotModal();"
+               onclick="if (typeof openTarotModal === 'function') { event.preventDefault(); openTarotModal(); }"
                aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap">
                 <img class="tarot-tile__img" src="/fuctionassets/ai%20tarrot.webp"
