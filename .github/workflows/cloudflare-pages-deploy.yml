@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # 00:05 KST daily (UTC 15:05) - ensure daily deploy even without new push
+    - cron: "5 15 * * *"
   workflow_dispatch:
 
 concurrency:
