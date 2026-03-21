@@ -19,5 +19,23 @@ export const metadata = {
 export default async function InsightsIndexPage({ searchParams }) {
   const sp = await searchParams;
   const requestedTopic = typeof sp?.topic === "string" ? sp.topic : "all";
-  return <InsightsCosmicClient initialTopic={requestedTopic} />;
+  const insightsHubJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": "https://code-destiny.com/insights#webpage",
+    url: "https://code-destiny.com/insights",
+    name: "운세 인사이트 허브 — 사주·타로·자미두수 지식 아카이브 | Code Destiny",
+    description: "사주명리학·타로·자미두수·숙요점·베다점성술의 핵심 원리를 읽는 운세 지식 아카이브.",
+    inLanguage: "ko",
+    isPartOf: {
+      "@id": "https://code-destiny.com/#website",
+    },
+  });
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: insightsHubJsonLd }} />
+      <InsightsCosmicClient initialTopic={requestedTopic} />
+    </>
+  );
 }
