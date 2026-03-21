@@ -53,10 +53,37 @@ export default function InsightArticlePage({ params }) {
     inLanguage: "ko",
     mainEntityOfPage: `https://code-destiny.com/insights/${article.slug}`,
   });
+  const articleRichJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.description,
+    url: `https://code-destiny.com/insights/${article.slug}`,
+    author: {
+      "@type": "Person",
+      name: "연이",
+      url: "https://code-destiny.com/about",
+      jobTitle: "명리학 연구자 & Code Destiny 운영자",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Code Destiny",
+      "@id": "https://code-destiny.com/#organization",
+    },
+    datePublished: article.updatedAt,
+    dateModified: article.updatedAt,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://code-destiny.com/insights/${article.slug}`,
+    },
+    inLanguage: "ko",
+    articleSection: article.category,
+  });
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleRichJsonLd }} />
       <InsightArticleCosmicClient article={article} topic={topic} relatedArticles={relatedArticles} />
     </>
   );
