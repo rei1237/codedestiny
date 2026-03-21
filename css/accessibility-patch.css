@@ -1,0 +1,85 @@
+/* accessibility-patch.css
+   목적: WCAG 2.1 AA 기준 충족 - 색상 대비 보완 + 스크린 리더 유틸리티
+   주의: 시각 디자인 변경 최소화 — 색상 값만 조정
+   생성일: 2026-03-22
+*/
+
+/* ─────────────────────────────────────────
+   스크린 리더 전용 숨김 유틸리티 (sr-only)
+   화면에는 보이지 않지만 보조 기술이 읽을 수 있음
+──────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─────────────────────────────────────────
+   theme-pig 테마 색상 대비 보완
+   배경색 기준 4.5:1 이상 확보 (WCAG AA)
+──────────────────────────────────────────── */
+
+/* 개인정보 동의 본문 */
+body.theme-pig .privacy-text,
+body.theme-pig .consent-text,
+body.theme-pig font[dir="auto"] {
+  color: #2d1a2e !important;
+}
+
+/* 하단 링크 (개인정보처리방침, 서비스약관, FAQ, 문의) */
+body.theme-pig .footer-links a,
+body.theme-pig a[href*="privacy"],
+body.theme-pig a[href*="terms"],
+body.theme-pig a[href*="contact"],
+body.theme-pig a[href*="faq"] {
+  color: #6b21a8 !important;
+  text-decoration: underline;
+}
+
+/* 🌸 테마 모드 전환 텍스트 */
+body.theme-pig .theme-switch-wrapper,
+body.theme-pig .theme-label-text,
+body.theme-pig .theme-toggle-label {
+  color: #4a1942 !important;
+}
+
+/* 생년월일 입력 필드 */
+body.theme-pig input#birthDate,
+body.theme-pig input.inp[type="date"] {
+  color: #1a0a1a !important;
+  background-color: #fff9fe !important;
+}
+
+/* 사주 입력 섹션 전체 본문 */
+body.theme-pig section.card.input-section,
+body.theme-pig section.card.input-section p,
+body.theme-pig section.card.input-section span {
+  color: #2d1a2e !important;
+}
+
+/* ─────────────────────────────────────────
+   placeholder 텍스트 대비 보완
+──────────────────────────────────────────── */
+body.theme-pig input::placeholder,
+body.theme-pig select.inp {
+  color: #6b4c6b !important;
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────
+   h2.feat-collection__title — h3 시각 스타일 유지
+   (태그를 h2로 변경해도 기존 h3 스타일이 깨지지 않도록 보완)
+──────────────────────────────────────────── */
+h2.feat-collection__title {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  margin: 0;
+  padding: 0;
+}

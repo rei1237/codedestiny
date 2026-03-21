@@ -474,6 +474,8 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   }
 }
 </script>
+  <!-- ✅ A11Y: WCAG 2.1 AA 접근성 보완 패치 — 기존 스타일 최후 로드 -->
+  <link rel="stylesheet" href="/css/accessibility-patch.css">
 </head>
 <body>
 <script>
@@ -785,7 +787,9 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
-  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown">
+  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown"
+       role="button" tabindex="0" aria-haspopup="listbox"
+       aria-expanded="false" aria-label="언어 선택. 현재 언어: KR">
     <span class="lang-icon">🌐</span>
     <span class="lang-label" id="langLabel">KR</span>
     <span class="lang-arrow">▼</span>
@@ -864,8 +868,10 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline">
-      <input type="checkbox" id="themeCheckbox" />
+    <label class="theme-switch theme-switch-inline" for="themeCheckbox">
+      <input type="checkbox" id="themeCheckbox"
+             aria-label="테마 전환 (꽃돼지 연이 모드 / 쌈바 모드)"
+             role="switch" aria-checked="false" />
       <div class="slider">
         <span class="nose-hole hole-left"></span>
         <span class="nose-hole hole-right"></span>
@@ -951,7 +957,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <div class="form-group">
         <label class="form-label">생년월일</label>
         <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
-          autocomplete="bday" inputmode="numeric">
+          autocomplete="bday" inputmode="numeric" aria-label="생년월일">
         <div class="form-radio-row">
           <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
           <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
@@ -962,7 +968,9 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <div class="form-group">
         <label class="form-label">출생 시간</label>
         <div class="row2">
+          <label class="sr-only" for="birthHour">출생 시간</label>
           <select class="inp" id="birthHour"></select>
+          <label class="sr-only" for="birthMinute">출생 분</label>
           <select class="inp" id="birthMinute"></select>
         </div>
       </div>
@@ -970,6 +978,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
         <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <label class="sr-only" for="birthCountry">출생 국가 / 출생지</label>
         <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
@@ -1030,7 +1039,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🦁</div>
-                <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleAnimal">동물 &amp; 관상 컬렉션</h2>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1115,7 +1124,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
           </div>
           <div class="tarot-collection__header">
             <div class="tarot-collection__icon" aria-hidden="true">✦</div>
-            <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
+            <h2 class="tarot-collection__title" id="fgTitleTarot">타로 리딩 컬렉션</h2>
             <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
             <div class="tarot-collection__divider" aria-hidden="true">
               <span class="tc-divider-star">✦</span>
@@ -1245,7 +1254,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">𓂀</div>
-                <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleOracle">신탁 &amp; 점술 컬렉션</h2>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1341,7 +1350,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🌌</div>
-                <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleCosmic">코즈믹 &amp; 별자리 컬렉션</h2>
                 <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -1424,7 +1433,7 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
               </div>
               <div class="feat-collection__header">
                 <div class="feat-collection__icon" aria-hidden="true">🌸</div>
-                <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
+                <h2 class="feat-collection__title" id="fgTitleFlower">운명의 꽃 &amp; 해몽 컬렉션</h2>
                 <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
@@ -3563,6 +3572,102 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   script.src = '/validate-phase6-7-integrated.js';
   script.async = true;
   document.head.appendChild(script);
+})();
+</script>
+
+<!-- ✅ A11Y: WCAG 2.1 AA 접근성 보조 스크립트 — 기존 로직 수정 없이 ARIA 상태 동기화 -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── 1. lang-trigger: aria-expanded 동기화 + 키보드 접근성 ── */
+  var langTrigger = document.getElementById('langTrigger');
+  var langDropdown = document.getElementById('langDropdown');
+
+  if (langTrigger && langDropdown) {
+    // 드롭다운 class/style 변경 → aria-expanded 자동 반영
+    var langObserver = new MutationObserver(function () {
+      var isOpen = langDropdown.classList.contains('open') ||
+                   (langDropdown.style.display !== '' && langDropdown.style.display !== 'none');
+      langTrigger.setAttribute('aria-expanded', String(isOpen));
+    });
+    langObserver.observe(langDropdown, { attributes: true, attributeFilter: ['class', 'style'] });
+
+    // Enter / Space 키로 버튼 활성화 (기존 click 핸들러 재사용)
+    langTrigger.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        langTrigger.click();
+      }
+    });
+  }
+
+  // 언어 변경 시 aria-label의 현재 언어명 업데이트 (외부 호출용)
+  window.updateLangTriggerLabel = function (langCode) {
+    if (!langTrigger) return;
+    var labelMap = {
+      ko: 'KR', en: 'EN', ja: 'JP', 'zh-CN': 'CN',
+      hi: 'HI', es: 'ES', fr: 'FR', de: 'DE', nl: 'NL', ms: 'MS'
+    };
+    var name = labelMap[langCode] || langCode.toUpperCase();
+    langTrigger.setAttribute('aria-label', '언어 선택. 현재 언어: ' + name);
+  };
+
+  /* ── 2. themeCheckbox: aria-checked 동기화 ── */
+  var themeCb = document.getElementById('themeCheckbox');
+  if (themeCb) {
+    themeCb.setAttribute('aria-checked', String(themeCb.checked));
+    themeCb.addEventListener('change', function () {
+      themeCb.setAttribute('aria-checked', String(themeCb.checked));
+    });
+  }
+
+  /* ── 3. 다국어 전환 시 폼 ARIA 라벨 업데이트 ── */
+  var BIRTH_DATE_LABELS = {
+    ko: '생년월일', en: 'Date of Birth', ja: '生年月日',
+    'zh-CN': '出生日期', hi: 'जन्म तिथि', es: 'Fecha de nacimiento',
+    fr: 'Date de naissance', de: 'Geburtsdatum',
+    nl: 'Geboortedatum', ms: 'Tarikh Lahir'
+  };
+
+  var SELECT_LABELS = {
+    birthHour: {
+      ko: '출생 시간', en: 'Birth Hour', ja: '出生時刻',
+      'zh-CN': '出生时间', hi: 'जन्म समय', es: 'Hora de nacimiento',
+      fr: 'Heure de naissance', de: 'Geburtsstunde',
+      nl: 'Geboorteuur', ms: 'Jam Lahir'
+    },
+    birthMinute: {
+      ko: '출생 분', en: 'Birth Minute', ja: '出生分',
+      'zh-CN': '出生分钟', hi: 'जन्म मिनट', es: 'Minuto de nacimiento',
+      fr: 'Minute de naissance', de: 'Geburtsminute',
+      nl: 'Geboorteminuut', ms: 'Minit Lahir'
+    },
+    birthCountry: {
+      ko: '출생 국가 / 출생지', en: 'Birth Country', ja: '出生国',
+      'zh-CN': '出生国家', hi: 'जन्म देश', es: 'País de nacimiento',
+      fr: 'Pays de naissance', de: 'Geburtsland',
+      nl: 'Geboorteland', ms: 'Negara Lahir'
+    }
+  };
+
+  window.updateA11yFormLabels = function (lang) {
+    // birthDate aria-label
+    var bd = document.getElementById('birthDate');
+    if (bd) {
+      bd.setAttribute('aria-label', BIRTH_DATE_LABELS[lang] || BIRTH_DATE_LABELS['en']);
+    }
+    // select sr-only 라벨 텍스트
+    ['birthHour', 'birthMinute', 'birthCountry'].forEach(function (id) {
+      var lbl = document.querySelector('label[for="' + id + '"].sr-only');
+      if (lbl && SELECT_LABELS[id][lang]) {
+        lbl.textContent = SELECT_LABELS[id][lang];
+      }
+    });
+    // lang-trigger aria-label
+    window.updateLangTriggerLabel(lang);
+  };
+
 })();
 </script>
 
