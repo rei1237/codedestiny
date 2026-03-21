@@ -3529,6 +3529,43 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 })();
 </script>
 
+<!-- ✅ PHASE 6-7: Runtime Validation & Performance Measurement -->
+<!-- 실행 방법: ?validate=phase6-7 쿼리 파라미터 추가 또는 콘솔에서 수동 호출 -->
+<script>
+(function initPhase6_7(){
+  var params = new URLSearchParams((window.location.search || '?').slice(1));
+  var shouldRun = params.has('validate') && (params.get('validate') === 'phase6-7' || params.get('validate') === 'all');
+  
+  if(!shouldRun && typeof window.FORCE_PHASE_6_7 === 'undefined'){
+    // 개발자가 콘솔에서 수동으로 호출할 수 있도록 전역 시작 함수 노출
+    window.runPhase6_7 = function(){
+      var script = document.createElement('script');
+      script.src = '/validate-phase6-7-integrated.js';
+      script.onload = function(){
+        if(window.Phase6_7_Validator){
+          var validator = new window.Phase6_7_Validator();
+          validator.run().then(function(results){
+            console.log('\n✅ Phase 6-7 Validation Complete');
+            console.log('Results:', results);
+          }).catch(function(err){
+            console.error('❌ Phase 6-7 Validation Failed:', err);
+          });
+        }
+      };
+      document.head.appendChild(script);
+    };
+    console.log('💡 Phase 6-7 Validation ready. Run: window.runPhase6_7()');
+    return;
+  }
+
+  // 자동 실행 모드
+  var script = document.createElement('script');
+  script.src = '/validate-phase6-7-integrated.js';
+  script.async = true;
+  document.head.appendChild(script);
+})();
+</script>
+
 </body>
 </html>
 
