@@ -222,6 +222,10 @@
   align-items: center;
   gap: 6px;
 }
+.ins-pill--lang {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--accent) 36%, rgba(255, 255, 255, 0.2));
+}
 .ins-pill-symbol {
   opacity: 0.9;
   color: color-mix(in oklab, var(--accent) 82%, #ffffff 10%);

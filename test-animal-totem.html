@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>애니멀 토템 테스트</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px 5px 5px 0;
+    }
+    .test-btn:hover {
+      background: #45a049;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    h1 { color: #333; }
+    h2 { color: #666; font-size: 16px; }
+    code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧸 애니멀 토템 기능 테스트</h1>
+  
+  <div class="test-section">
+    <h2>직접 호출 테스트</h2>
+    <p>이 테스트는 메인 페이지에서 <code>openAnimalTotemModal()</code> 함수를 직접 호출합니다.</p>
+    <button class="test-btn" onclick="testDirectCall()">메인 페이지 새 탭에서 열기</button>
+    <div id="status-direct" class="status" style="display:none;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>URL 쿼리 파라미터 테스트</h2>
+    <p>이 테스트는 <code>/?action=openAnimalTotemModal</code> 쿼리 파라미터로 메인 페이지를 로드합니다.</p>
+    <button class="test-btn" onclick="testUrlParam()">쿼리 파라미터로 메인 페이지 열기</button>
+    <div id="status-url" class="status" style="display:none;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>콘솔에서 수동 테스트</h2>
+    <p>브라우저 DevTools 콘솔에서 다음을 입력하세요:</p>
+    <code>window.openAnimalTotemModal()</code>
+    <p style="margin-top: 10px; color: #666; font-size: 13px;">
+      이 명령어가 작동하면 애니멀 토템 모달이 열려야 합니다.
+    </p>
+  </div>
+
+  <div class="test-section">
+    <h2>체크리스트</h2>
+    <ul style="color: #666; font-size: 14px;">
+      <li>✅ 메인 페이지에서 애니멀 토템 타일 클릭 → 모달 열림</li>
+      <li>✅ <code>/?action=openAnimalTotemModal</code> URL 접속 → 모달 자동 열림</li>
+      <li>✅ 랜딩 페이지(<code>/animal/totem</code>)의 "기능 바로 실행" 버튼 → 모달 열림</li>
+      <li>✅ 모달 내에서 카드 뽑기 → 카드 렌더링 및 상호작용 정상</li>
+      <li>✅ 모달 닫기 버튼 → 모달 정상 닫힘</li>
+    </ul>
+  </div>
+
+  <script>
+    function testDirectCall(){
+      const statusEl = document.getElementById('status-direct');
+      statusEl.style.display = 'block';
+      
+      // 메인 페이지를 새 탭에서 열기
+      const mainPageUrl = window.location.origin + '/';
+      const newTab = window.open(mainPageUrl, '_blank');
+      
+      if(newTab){
+        statusEl.className = 'status info';
+        statusEl.innerHTML = '✅ 메인 페이지가 새 탭에서 열렸습니다. 애니멀 토템 타일을 클릭해 기능을 테스트해주세요.';
+      } else {
+        statusEl.className = 'status error';
+        statusEl.innerHTML = '❌ 팝업 차단됨. 팝업 차단을 해제하고 다시 시도해주세요.';
+      }
+    }
+
+    function testUrlParam(){
+      const statusEl = document.getElementById('status-url');
+      statusEl.style.display = 'block';
+      
+      // 쿼리 파라미터로 메인 페이지 열기
+      const urlWithParam = window.location.origin + '/?action=openAnimalTotemModal';
+      const newTab = window.open(urlWithParam, '_blank');
+      
+      if(newTab){
+        statusEl.className = 'status info';
+        statusEl.innerHTML = '✅ 쿼리 파라미터로 메인 페이지가 열렸습니다. 애니멀 토템 모달이 자동으로 열려야 합니다.';
+      } else {
+        statusEl.className = 'status error';
+        statusEl.innerHTML = '❌ 팝업 차단됨. 팝업 차단을 해제하고 다시 시도해주세요.';
+      }
+    }
+
+    // 페이지 로드 시 정보 표시
+    window.addEventListener('load', function(){
+      console.log('🧸 애니멀 토템 테스트 페이지 로드됨');
+      console.log('메인 페이지 URL:', window.location.origin + '/');
+      console.log('쿼리 파라미터 테스트 URL:', window.location.origin + '/?action=openAnimalTotemModal');
+    });
+  </script>
+</body>
+</html>

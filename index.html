@@ -3575,6 +3575,67 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
 })();
 </script>
 
+<!-- ✅ URL 쿼리 파라미터 액션 처리 (/?action=openAnimalTotemModal 등) -->
+<script>
+(function initActionParamHandler(){
+  function handleActionParam(){
+    try {
+      var params = new URLSearchParams((window.location.search || '?').slice(1));
+      var action = params.get('action');
+      
+      if(!action) return;
+      
+      // 필요한 스크립트가 로드될 때까지 대기하는 재시도 로직
+      var retries = 0;
+      var maxRetries = 30; // 최대 3초 (100ms * 30)
+      
+      function tryInvokeAction(){
+        if(typeof window[action] === 'function'){
+          try {
+            console.log('[action-param] Invoking: ' + action);
+            window[action]();
+            // 성공하면 clean-up (주소창에서 파라미터 제거)
+            if(window.history && window.history.replaceState){
+              window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+            }
+            return;
+          } catch(e){
+            console.error('[action-param] Invocation error: ' + action, e);
+            return;
+          }
+        }
+        
+        if(retries < maxRetries){
+          retries += 1;
+          setTimeout(tryInvokeAction, 100);
+          return;
+        }
+        
+        console.warn('[action-param] Function not found after retries: ' + action);
+      }
+      
+      // document.readyState 확인 후 시작
+      if(document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', tryInvokeAction, { once: true });
+      } else {
+        tryInvokeAction();
+      }
+    } catch(err){
+      console.error('[action-param] Handler error:', err);
+    }
+  }
+  
+  // 페이지 로드 후 실행 (스크립트들이 로드될 시간 확보)
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(handleActionParam, 500);
+    }, { once: true });
+  } else {
+    setTimeout(handleActionParam, 500);
+  }
+})();
+</script>
+
 <!-- ✅ A11Y: WCAG 2.1 AA 접근성 보조 스크립트 — 기존 로직 수정 없이 ARIA 상태 동기화 -->
 <script>
 (function () {

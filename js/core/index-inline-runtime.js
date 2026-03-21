@@ -431,8 +431,9 @@ function __cdDestinyFlowerPickHitFromElementsStack(event) {
       for (var i = 0; i < stack.length && i < 28; i++) {
         var el = stack[i];
         if (!el) continue;
-        if (ov && (el === ov || el.id === 'destinyFlowerStudioOverlay')) break;
+        /* sheet 내부 요소가 있으면 overlay를 만나도 계속 진행 — close 버튼 히트 대응 */
         if (el === sheet || sheet.contains(el)) return el;
+        if (ov && (el === ov || el.id === 'destinyFlowerStudioOverlay')) break;
       }
     }
     if (typeof document.elementFromPoint === 'function') {
@@ -3528,8 +3529,10 @@ function openDestinyFlowerStudio() {
     overlay.addEventListener('click', function(e) {
       var rawTarget = __cdResolveEventElement(e);
       var clickTarget = __cdResolveDestinyFlowerClickTarget(e);
-      if (!clickTarget) return;
-      var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
+      /* clickTarget이 null이면 rawTarget으로 폴백 — overlay.contains 검사와 close 버튼 인식 대응 */
+      var resolvedTarget = clickTarget || rawTarget;
+      if (!resolvedTarget) return;
+      var closeTrigger = resolvedTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
       if (closeTrigger) {
         e.preventDefault();
         e.stopPropagation();
@@ -3537,7 +3540,7 @@ function openDestinyFlowerStudio() {
         return;
       }
       if (sheet && __cdIsInsideDestinyFlowerSheet(e, rawTarget)) return;
-      if (clickTarget === overlay) {
+      if (resolvedTarget === overlay) {
         e.preventDefault();
         e.stopPropagation();
         closeDestinyFlowerStudio();
