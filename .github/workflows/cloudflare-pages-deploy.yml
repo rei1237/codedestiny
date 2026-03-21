@@ -62,3 +62,8 @@ jobs:
 
       - name: Deploy Cloudflare Pages (pages.dev parity, same build)
         run: node scripts/deploy-pages.mjs
+
+      # 403 until Bing Webmaster site verification completes; does not fail the deploy.
+      - name: IndexNow (notify search engines)
+        continue-on-error: true
+        run: npm run seo:indexnow

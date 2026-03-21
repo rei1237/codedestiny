@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { getService } from "../../_lib/serviceMap";
+import { getService, SECTION_LABELS } from "../../_lib/serviceMap";
+import RelatedServices from "../../components/RelatedServices";
+import Breadcrumb from "../../components/Breadcrumb";
 
 const SITE_ORIGIN = "https://code-destiny.com";
 
@@ -105,9 +107,21 @@ export default function ServicePage({ params }) {
   const ServiceComponent = service.component;
   const jsonLd = JSON.stringify(buildServiceJsonLd(slug, service));
 
+  // Breadcrumb items
+  const slugParts = slug.split('/');
+  const breadcrumbItems = [
+    { label: '홈', href: '/' },
+    { 
+      label: SECTION_LABELS[slugParts[0]] ?? slugParts[0], 
+      href: `/` 
+    },
+    { label: service.cardTitle || service.title, href: `/${slug}` },
+  ];
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <Breadcrumb items={breadcrumbItems} />
       <div
         aria-hidden="true"
         style={{
@@ -124,6 +138,7 @@ export default function ServicePage({ params }) {
       </div>
 
       <ServiceComponent service={service} />
+      <RelatedServices currentSlug={slug} />
     </>
   );
 }

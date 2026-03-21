@@ -1,0 +1,83 @@
+
+> code-destiny-web@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.12
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.5s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/88) ...
+   Generating static pages (22/88) 
+   Generating static pages (44/88) 
+   Generating static pages (66/88) 
+ ✓ Generating static pages (88/88)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                             Size  First Load JS
+┌ ƒ /                                                  203 B         103 kB
+├ ƒ /_not-found                                        203 B         103 kB
+├ ƒ /[adminHash]                                       203 B         103 kB
+├ ƒ /[adminHash]/[mode]                              53.3 kB         164 kB
+├ ƒ /[adminHash]/api/[...path]                         203 B         103 kB
+├ ƒ /[adminHash]/assets/[...path]                      203 B         103 kB
+├ ƒ /[adminHash]/content                               203 B         103 kB
+├ ƒ /[adminHash]/dashboard                             203 B         103 kB
+├ ƒ /[adminHash]/login                                 203 B         103 kB
+├ ƒ /[adminHash]/members                               203 B         103 kB
+├ ƒ /[adminHash]/revenue                               203 B         103 kB
+├ ƒ /[adminHash]/security                              203 B         103 kB
+├ ƒ /[adminHash]/settings                              203 B         103 kB
+├ ƒ /about                                             203 B         103 kB
+├ ƒ /admin                                             942 B         107 kB
+├ ƒ /api/dev/status                                    203 B         103 kB
+├ ƒ /api/dream/psycho-analysis                         203 B         103 kB
+├ ƒ /api/geo                                           203 B         103 kB
+├ ƒ /api/tarot/card-image/[cardId]                     203 B         103 kB
+├ ƒ /api/tarot/draw                                    203 B         103 kB
+├ ƒ /api/tarot/meta                                    203 B         103 kB
+├ ƒ /api/tarot/reading                                 203 B         103 kB
+├ ƒ /api/vedic/planets                                 203 B         103 kB
+├ ƒ /contact-us                                        203 B         103 kB
+├ ƒ /de-de                                             504 B         103 kB
+├ ƒ /dev-status                                      1.72 kB         104 kB
+├ ƒ /en-us                                             504 B         103 kB
+├ ƒ /es-es                                             504 B         103 kB
+├ ƒ /faq                                               203 B         103 kB
+├ ƒ /fr-fr                                             504 B         103 kB
+├ ƒ /hi-in                                             504 B         103 kB
+├ ƒ /insights                                        37.5 kB         143 kB
+├ ● /insights/[slug]                                 2.74 kB         114 kB
+├   ├ /insights/saju-four-pillars-basics
+├   ├ /insights/ten-heavenly-stems-practical
+├   ├ /insights/twelve-earthly-branches-and-seasons
+├   └ [+51 more paths]
+├ ƒ /ja-jp                                             504 B         103 kB
+├ ƒ /login                                           2.59 kB         108 kB
+├ ƒ /ms-my                                             504 B         103 kB
+├ ƒ /nl-nl                                             504 B         103 kB
+├ ƒ /points                                          6.23 kB         112 kB
+├ ƒ /privacy-policy                                    203 B         103 kB
+├ ○ /robots.txt                                        203 B         103 kB
+├ ƒ /signup                                          2.91 kB         109 kB
+├ ○ /sitemap.xml                                       203 B         103 kB
+├ ƒ /tarot/healing                                   1.52 kB         104 kB
+├ ƒ /terms-of-service                                  203 B         103 kB
+└ ƒ /zh-cn                                             504 B         103 kB
++ First Load JS shared by all                         102 kB
+  ├ chunks/1255-a390e12b70b4a9fb.js                    46 kB
+  ├ chunks/4bd1b696-f785427dddbba9fb.js              54.2 kB
+  └ other shared chunks (total)                       2.1 kB
+
+
+ƒ Middleware                                         34.3 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

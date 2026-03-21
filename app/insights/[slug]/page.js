@@ -23,11 +23,46 @@ export function generateMetadata({ params }) {
     };
   }
 
+  // 포스트 언어 → OG locale 코드 변환 맵
+  const OG_LOCALE_MAP = {
+    ko: 'ko_KR', en: 'en_US', ja: 'ja_JP',
+    'zh-Hans': 'zh_CN', hi: 'hi_IN',
+    es: 'es_ES', fr: 'fr_FR', de: 'de_DE',
+    nl: 'nl_NL', ms: 'ms_MY',
+  };
+  const postLang = article.lang ?? 'ko';
+  const ogLocale = OG_LOCALE_MAP[postLang] ?? 'ko_KR';
+
   return {
     title: `${article.title} | CODE DESTINY`,
-    description: article.description,
+    description: article.description ?? article.sections?.[0]?.body,
+    keywords: article.keywords,
     alternates: {
-      canonical: `/insights/${article.slug}`,
+      canonical: `https://code-destiny.com/insights/${article.slug}`,
+      languages: postLang !== 'ko'
+        ? {
+            [postLang]: `https://code-destiny.com/insights/${article.slug}`,
+            'x-default': 'https://code-destiny.com/insights',
+          }
+        : undefined,
+    },
+    openGraph: {
+      type: 'article',
+      locale: ogLocale,
+      title: article.title,
+      description: article.description ?? article.sections?.[0]?.body,
+      url: `https://code-destiny.com/insights/${article.slug}`,
+      publishedTime: article.publishedAt ?? article.updatedAt,
+      modifiedTime: article.updatedAt,
+      authors: ['https://code-destiny.com/about'],
+      images: article.coverImage
+        ? [{ url: article.coverImage, width: 1200, height: 630 }]
+        : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.description ?? article.sections?.[0]?.body,
     },
   };
 }

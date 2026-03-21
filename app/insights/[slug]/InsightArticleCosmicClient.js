@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import ServiceCTA from "../../components/ServiceCTA";
+import Breadcrumb from "../../components/Breadcrumb";
 
 const SECTION_ACCENTS = ["#c9a84c", "#4ecdc4", "#a78bfa", "#ff6b9d", "#60a5fa"];
 
@@ -102,8 +104,16 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
     return `${article.category}${topicLabel} · 업데이트 ${article.updatedAt}`;
   }, [article.category, article.updatedAt, topic?.label]);
 
+  const breadcrumbItems = useMemo(() => [
+    { label: '홈', href: '/' },
+    { label: 'Insights', href: '/insights' },
+    { label: article.category, href: `/insights?topic=${article.category}` },
+    { label: article.title, href: `/insights/${article.slug}` },
+  ], [article.category, article.slug, article.title]);
+
   return (
     <div className="ins-detail-root">
+    <Breadcrumb items={breadcrumbItems} />
     <main className="ins-article-cosmic">
       <div className="ins-scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <canvas className="ins-article-star-canvas" aria-hidden="true" />
@@ -218,6 +228,8 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
             </div>
           </section>
         )}
+
+        {article.relatedService && <ServiceCTA slug={article.relatedService} />
       </div>
     </main>
     </div>

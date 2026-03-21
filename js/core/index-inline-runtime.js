@@ -480,8 +480,17 @@ function __cdCallGlobal(fnName) {
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
+  openDreamModal: function() {
+    return __cdLoadScriptOnce('/js/dream-meaning-library.js')
+      .then(function() { return __cdLoadScriptOnce('/lib/ai-engine.js'); })
+      .then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); });
+  },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
+  openJuyukModal: function() {
+    return __cdLoadScriptOnce('/js/iching-engine.js').then(function() {
+      return __cdLoadScriptOnce('/js/iching-modal.js?v=20260321-sukuyo-scroll2');
+    });
+  },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },

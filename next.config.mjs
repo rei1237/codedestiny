@@ -31,14 +31,23 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   productionBrowserSourceMaps: false,
+  /** gzip (next start); Pages/Workers may apply their own compression */
+  compress: true,
   images: {
     formats:
       process.env.NODE_ENV === 'production'
         ? ['image/avif', 'image/webp']
         : ['image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    deviceSizes: [640, 750, 1080],
     imageSizes: [16, 32, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 365,
+  },
+  async headers() {
+    const immutable = 'public, max-age=31536000, immutable';
+    return [
+      { source: '/icons/:path*', headers: [{ key: 'Cache-Control', value: immutable }] },
+      { source: '/fuctionassets/:path*', headers: [{ key: 'Cache-Control', value: immutable }] },
+    ];
   },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */

@@ -5,6 +5,7 @@ const RAW_INSIGHT_ARTICLES = [
     description:
       "사주명리학의 핵심인 사주팔자, 천간·지지, 음양오행의 관계를 한 번에 이해하는 입문 가이드입니다.",
     category: "사주 기초",
+    relatedService: "saju/basic",
     updatedAt: "2026-03-20",
     sections: [
       {
@@ -29,6 +30,7 @@ const RAW_INSIGHT_ARTICLES = [
     title: "십천간(十天干) 실전 해석 포인트",
     description: "갑을병정무기경신임계의 기질과 대인관계/일 방식에서 나타나는 실전 해석 기준을 설명합니다.",
     category: "사주 기초",
+    relatedService: "tarot/mingri",
     updatedAt: "2026-03-20",
     sections: [
       {
@@ -1316,6 +1318,518 @@ const RAW_INSIGHT_ARTICLES = [
         heading: "실전 체크: 내 수호 동물을 일상에 적용하기",
         body:
           "1) 내 동물의 강점 한 줄 쓰기. 2) 과열될 때 나타나는 습관 한 줄 쓰기. 3) 이번 주 보완 행동 1개 정하기. 이 3단계만 해도 숙요점이 점괘가 아니라 생활 가이드로 바뀝니다.",
+      },
+    ],
+  },
+  {
+    slug: "saju-palmistry-complete-guide",
+    title: "사주팔자란 무엇인가 — 생년월일로 보는 나의 운명 지도 완전 가이드",
+    description:
+      "사주팔자의 4개 기둥(연·월·일·시)과 8개 글자의 의미, 오행 균형 분석법, 내 사주를 해석하는 방법을 단계별로 설명합니다.",
+    category: "사주 기초",
+    updatedAt: "2026-03-22",
+    keywords: ["사주팔자", "사주보는법", "사주 무료", "사주 생년월일"],
+    coverImage: "/fuctionassets/saju-palmistry.webp",
+    sections: [
+      {
+        heading: "사주팔자란 무엇인가",
+        body:
+          "사주팔자는 태어난 연(年), 월(月), 일(日), 시(時)를 천간지지로 표현해 총 8개의 글자(팔자)로 읽는 동양 명리학의 핵심 기초입니다. 각 기둥이 의미하는 바를 이해하면 자신의 기질, 환경, 선택 패턴을 더 명확하게 인식할 수 있습니다.",
+      },
+      {
+        heading: "사주팔자의 4개 기둥 이해하기",
+        body: "사주의 각 기둥은 인생의 다른 영역을 담당합니다.",
+      },
+      {
+        heading: "년주(年柱) — 조상과 유년기",
+        body:
+          "년주는 조상이 남긴 영향과 유년기의 가정 환경을 나타냅니다. 개인의 기본 기질과 대외 이미지가 형성되는 시기입니다.",
+      },
+      {
+        heading: "월주(月柱) — 부모와 청년기",
+        body:
+          "월주는 부모의 영향력과 청년기~중년기의 활동 무대를 나타냅니다. 월지는 특히 계절성과 신체적 기초를 보여주는 중요한 포인트입니다.",
+      },
+      {
+        heading: "일주(日柱) — 나 자신과 배우자",
+        body:
+          "일주는 사주 해석의 중심축입니다. 일간은 내 자신을 나타내고, 일지는 배우자나 가까운 파트너와의 관계를 암시합니다.",
+      },
+      {
+        heading: "시주(時柱) — 자녀와 노년기",
+        body:
+          "시주는 자녀 관계와 노년기의 흐름을 보여줍니다. 시간이 흐르며 실현되는 잠재력과 후기 인생의 방향성을 읽는 데 중요합니다.",
+      },
+      {
+        heading: "오행(五行)과 십성(十星)의 핵심 개념",
+        body:
+          "목·화·토·금·수 5가지 오행과 10개의 십성(비겁·식상·재성·관성·인성)이 조합되어 각 기둥의 의미가 만들어집니다. 단순 키워드보다 오행의 상극·상생 관계와 십성의 역할을 이해하면 사주 해석의 정확도가 크게 올라갑니다.",
+      },
+      {
+        heading: "사주팔자 무료로 보는 방법",
+        body:
+          "사주는 생년월일과 출생 시간만 있으면 만들 수 있습니다. Code Destiny에서 제공하는 무료 사주 생성 도구를 사용하면 당신의 사주 차트를 즉시 확인할 수 있습니다. 차트를 받은 후 이 가이드의 해석 방법을 적용하면 나만의 운명 지도가 그려집니다.",
+      },
+      {
+        heading: "자주 묻는 질문 (FAQ)",
+        body: "사주팔자에 대한 자주 묻는 질문을 정리했습니다.",
+      },
+      {
+        heading: "사주팔자는 정말 맞나요?",
+        body:
+          "사주는 예정된 운명을 고정하는 것이 아니라, 반복되는 패턴과 강점을 인식하는 도구입니다. 자신의 기질을 이해하면 더 나은 선택을 할 가능성이 높아집니다.",
+      },
+      {
+        heading: "사주와 타로의 차이는?",
+        body:
+          "사주는 출생 시간을 기반으로 평생의 큰 흐름을 본다면, 타로는 현재 상황의 선택 포인트를 봅니다. 둘 다 활용하면 장기 방향과 즉시 행동이 더욱 명확해집니다.",
+      },
+      {
+        heading: "시간을 모를 때 사주를 볼 수 있나요?",
+        body:
+          "시간이 없으면 시주를 정확히 읽을 수 없어 해석 정확도가 낮아집니다. 가능한 한 어릴 때의 기억이나 가족에게 물어 출생 시간을 확인하는 것이 좋습니다.",
+      },
+    ],
+  },
+  {
+    slug: "tarot-card-complete-guide",
+    title: "78장 타로 카드 완전 가이드 — 메이저·마이너 아르카나 의미와 리딩법",
+    description:
+      "타로 카드 78장의 구조와 의미, 원카드·쓰리카드 스프레드 리딩 방법, AI 타로와 전통 타로의 차이를 설명합니다.",
+    category: "타로 이론",
+    updatedAt: "2026-03-22",
+    keywords: ["타로카드", "타로 무료", "타로 의미", "78장 타로"],
+    coverImage: "/fuctionassets/tarot-card-guide.webp",
+    sections: [
+      {
+        heading: "타로 카드란 무엇인가",
+        body:
+          "타로는 78장의 카드로 현재 상황과 심리 상태, 가능한 선택지를 읽는 직관 도구입니다. 미래 예언이라기보다는 자신의 의식과 무의식을 대면하는 거울에 가깝습니다.",
+      },
+      {
+        heading: "22장 메이저 아르카나 — 인생의 큰 흐름",
+        body:
+          "메이저 아르카나는 0번 바보부터 21번 세계까지 인생의 큰 변화와 성장을 보여줍니다. 바보의 새로운 시작에서 세계의 완성까지 하나의 서사를 이루고 있습니다.",
+      },
+      {
+        heading: "0번 바보(The Fool)부터 21번 세계(The World)까지",
+        body:
+          "각 카드는 영웅의 여정의 한 단계를 상징합니다. 어려움과 변화는 관계를 깊게 만들고, 우리를 성숙하게 합니다. 카드를 읽을 때는 번호의 순서가 아니라 현재 상황과의 연결고리를 찾는 것이 중요합니다.",
+      },
+      {
+        heading: "56장 마이너 아르카나 — 일상의 에너지",
+        body:
+          "마이너 아르카나는 일상 속의 감정, 행동, 상황을 세부적으로 보여줍니다.",
+      },
+      {
+        heading: "완드(Wands) — 열정과 행동",
+        body: "불의 에너지로 열정, 추진력, 창조성을 나타냅니다.",
+      },
+      {
+        heading: "컵(Cups) — 감정과 관계",
+        body: "물의 에너지로 감정, 사랑, 관계의 흐름을 나타냅니다.",
+      },
+      {
+        heading: "소드(Swords) — 이성과 갈등",
+        body: "바람의 에너지로 생각, 갈등, 명확한 판단을 나타냅니다.",
+      },
+      {
+        heading: "펜타클(Pentacles) — 물질과 현실",
+        body: "흙의 에너지로 돈, 일, 현실적 성과를 나타냅니다.",
+      },
+      {
+        heading: "스프레드 종류와 리딩 방법",
+        body:
+          "스프레드는 카드를 펼치는 방식을 말합니다. 단순할수록 명확하고, 질문이 구체적일수록 답이 정확합니다.",
+      },
+      {
+        heading: "원카드 스프레드",
+        body: "하루의 에너지나 한 달의 주제를 보는 가장 빠른 방법입니다.",
+      },
+      {
+        heading: "쓰리카드 스프레드",
+        body: "과거-현재-미래, 또는 상황-행동-결과를 읽습니다. 가장 자주 쓰이는 형식입니다.",
+      },
+      {
+        heading: "AI 타로와 전통 타로의 차이",
+        body:
+          "전통 타로는 개인의 직관과 느낌을 중시하고, AI 타로는 데이터 기반의 일관된 해석을 제공합니다. 둘 다 도구이며, 상황에 따라 선택하면 됩니다.",
+      },
+      {
+        heading: "자주 묻는 질문",
+        body: "타로에 대한 자주 묻는 질문입니다.",
+      },
+    ],
+  },
+  {
+    slug: "ziwei-doushu-beginner-guide",
+    title: "자미두수(紫微斗數) 입문 — 12궁 명반과 14주성으로 보는 나의 운명 지도",
+    description:
+      "중국 전통 명리학 자미두수의 기초. 12궁 명반 구조, 14주성의 특성, 사주명리학과의 차이점을 알기 쉽게 설명합니다.",
+    category: "자미두수",
+    updatedAt: "2026-03-22",
+    keywords: ["자미두수", "자미두수 보는법", "紫微斗數", "자미두수 무료"],
+    coverImage: "/fuctionassets/ziwei-doushu-guide.webp",
+    sections: [
+      {
+        heading: "자미두수란 무엇인가",
+        body:
+          "자미두수는 중국 전통 명리학 중 하나로, 출생 연월일을 기반으로 12궁 명반을 그려 운명을 읽는 방식입니다. 사주명리학과 달리 궁위(위치)를 중심으로 읽으므로 진로, 재정, 관계를 영역별로 분석하기 좋습니다.",
+      },
+      {
+        heading: "12궁 명반 구조 이해하기",
+        body:
+          "자미두수의 명반은 시계 방향으로 12개의 궁을 가지며, 각 궁은 인생의 다른 영역을 담당합니다. 명궁(정체성), 부모궁, 복덕궁, 전택궁, 관록궁, 재백궁, 질액궁, 이궁, 자녀궁, 부처궁, 노복궁, 신궁 순서입니다.",
+      },
+      {
+        heading: "14주성의 특성",
+        body:
+          "14주성(자미, 천기, 태양, 무곡, 천동, 염정, 천부, 태음, 탐랑, 거문, 천상, 천량, 칠살, 파군)은 각각 고유한 에너지를 가집니다. 각 궁에 들어간 주성의 조합에 따라 그 궁의 성질이 결정됩니다.",
+      },
+      {
+        heading: "사주명리학과의 차이점",
+        body:
+          "사주는 음양오행과 십성을 중심으로 읽지만, 자미두수는 궁위와 달의 위치를 중심으로 읽습니다. 사주는 개인의 기질을 보는 데 강하고, 자미두수는 인생 각 영역의 구체적 흐름을 보는 데 강합니다.",
+      },
+      {
+        heading: "명궁을 읽는 방법",
+        body:
+          "명궁은 자미두수 해석의 출발점입니다. 명궁에 어떤 별이 있는지에 따라 개인의 기본 성향, 사회적 이미지, 인생관이 결정됩니다.",
+      },
+      {
+        heading: "관록궁과 재백궁으로 보는 삶",
+        body:
+          "관록궁은 직업 구조와 공적 역할을, 재백궁은 금전 관리와 물질 관계를 나타냅니다. 이 두 궁의 흐름을 이해하면 경력 설계와 재무 전략을 세우기 쉬워집니다.",
+      },
+      {
+        heading: "자미두수 무료로 보는 방법",
+        body:
+          "Code Destiny의 자미두수 도구를 사용하면 생년월일만으로 명반을 자동 생성할 수 있습니다. 생성된 명반을 이 가이드와 함께 보면 자신의 운명 지도가 명확하게 그려집니다.",
+      },
+      {
+        heading: "자주 묻는 질문",
+        body: "자미두수 입문자가 자주 묻는 질문입니다.",
+      },
+    ],
+  },
+  {
+    slug: "free-tarot-reading-guide",
+    title: "Free Tarot Card Reading Guide — How to Interpret Your Cards Online",
+    description:
+      "Complete beginner's guide to tarot card reading. Learn major arcana meanings, common spreads, and how to do a free AI-powered tarot reading.",
+    category: "Tarot Theory",
+    lang: "en",
+    updatedAt: "2026-03-22",
+    keywords: ["free tarot reading", "tarot card meanings", "online tarot", "how to read tarot"],
+    coverImage: "/fuctionassets/tarot-reading-guide-en.webp",
+    sections: [
+      {
+        heading: "What is Tarot Card Reading?",
+        body:
+          "Tarot is a tool for self-reflection and intuition using 78 cards. It is not about predicting the future with 100% certainty, but rather exploring your current situation, hidden feelings, and possible choices.",
+      },
+      {
+        heading: "The 22 Major Arcana: The Hero's Journey",
+        body:
+          "The Major Arcana (cards 0-21) tell the story of human growth from The Fool (beginning) to The World (completion). Each card represents a major life lesson or transformation.",
+      },
+      {
+        heading: "The 56 Minor Arcana: Daily Life Energy",
+        body:
+          "The Minor Arcana are divided into four suits: Wands (action and creativity), Cups (emotions and relationships), Swords (thoughts and conflicts), and Pentacles (material and career).",
+      },
+      {
+        heading: "Common Tarot Spreads for Beginners",
+        body: "Spreads are the layout patterns for reading cards.",
+      },
+      {
+        heading: "One Card Spread",
+        body: "Perfect for daily guidance. Draw one card to understand the day's energy or theme.",
+      },
+      {
+        heading: "Three Card Spread",
+        body:
+          "The most popular spread. Read three cards as Past-Present-Future, Situation-Action-Outcome, or Me-You-Us in relationships.",
+      },
+      {
+        heading: "Five Card Spread",
+        body:
+          "A deeper exploration using five positions. Common layouts include Situation-Challenge-Action-Guidance-Outcome.",
+      },
+      {
+        heading: "How to Do a Free AI-Powered Tarot Reading",
+        body:
+          "Code Destiny offers a free online tarot reading tool powered by AI. Simply ask your question, click 'Draw Cards,' and receive instant interpretations. AI-generated readings provide consistent, data-backed insights without personal bias.",
+      },
+      {
+        heading: "Tips for Accurate Tarot Reading",
+        body: "Make your question specific rather than vague. Focus on one life area at a time. Record your readings and results to track patterns over time.",
+      },
+      {
+        heading: "Frequently Asked Questions",
+        body: "Common questions about tarot reading.",
+      },
+    ],
+  },
+  {
+    slug: "tarot-uranai-muryou-jp",
+    title: "タロットカード無料占い完全ガイド — AIタロットで今日の運勢を見る",
+    description:
+      "78枚のタロットカードの意味と読み方。AIタロット・四柱推命・紫微斗数を無料で体験できます。",
+    category: "タロット理論",
+    lang: "ja",
+    updatedAt: "2026-03-22",
+    keywords: ["タロット 無料", "タロット占い", "四柱推命", "タロットカード"],
+    coverImage: "/fuctionassets/tarot-uranai-jp.webp",
+    sections: [
+      {
+        heading: "タロット占いとは何か",
+        body:
+          "タロット占いは78枚のカードを使って、現在の状況、心理状態、選択肢を読む直感ツールです。未来を100%予言するのではなく、自分の意識と無意識に直面する鏡に近いものです。",
+      },
+      {
+        heading: "22枚のメジャーアルカナ — 人生の大きな流れ",
+        body:
+          "メジャーアルカナは0番の愚者から21番の世界まで、人生の大きな変化と成長を示します。愚者の新しい始まりから世界の完成まで、ひとつの物語を形成しています。",
+      },
+      {
+        heading: "56枚のマイナーアルカナ — 日常のエネルギー",
+        body:
+          "マイナーアルカナは日常の感情、行動、状況を詳細に示します。",
+      },
+      {
+        heading: "ワンド(棒) — 情熱と行動",
+        body: "炎のエネルギーで情熱、推進力、創造性を表します。",
+      },
+      {
+        heading: "カップ(杯) — 感情と関係",
+        body: "水のエネルギーで感情、愛、関係の流れを表します。",
+      },
+      {
+        heading: "ソード(剣) — 理性と葛藤",
+        body: "風のエネルギーで思考、葛藤、明確な判断を表します。",
+      },
+      {
+        heading: "ペンタクル(金貨) — 物質と現実",
+        body: "土のエネルギーでお金、仕事、現実的な成果を表します。",
+      },
+      {
+        heading: "AIタロット占いの利点",
+        body:
+          "Code Destinyのウェブサイトでは、AI駆動のタロット占いツールを無料で提供しています。生年月日を入力するだけで、即座にタロット結果と詳細な解釈が得られます。",
+      },
+      {
+        heading: "四柱推命とタロット占いの違い",
+        body:
+          "四柱推命は生年月日から長期的な運勢を読むのに対し、タロット占いは現在の選択肢に焦点を当てます。両方を活用することで、長期的な方向性と即座の行動がより明確になります。",
+      },
+      {
+        heading: "無料タロット占いの始め方",
+        body:
+          "Code Destinyのタロット占いページにアクセスし、質問を入力して、カードを引くだけです。AIが生成した解釈は、あなたの現在の状況と心理状態に基づいています。",
+      },
+    ],
+  },
+  {
+    slug: "ziweidoushu-mianfei-cn",
+    title: "紫微斗數免費排盤 — 十二宮命盤與十四主星完全解析",
+    description:
+      "免費紫微斗數命盤分析。輸入生辰八字，即時查看十二宮、十四主星、大限流年運勢。",
+    category: "紫微斗數",
+    lang: "zh-Hans",
+    updatedAt: "2026-03-22",
+    keywords: ["紫微斗數 免費", "紫微斗數排盘", "塔罗牌免费"],
+    coverImage: "/fuctionassets/ziwei-doushu-cn.webp",
+    sections: [
+      {
+        heading: "紫微斗數是什麼",
+        body:
+          "紫微斗數是中國傳統命理學之一，根據出生年月日繪製十二宮命盤，來解讀人生運勢。與四柱推命不同，紫微斗數以宮位（位置）為中心進行解析，擅長於分析事業、財務、人際關係等人生各領域。",
+      },
+      {
+        heading: "十二宮命盤結構",
+        body:
+          "紫微斗數的命盤有十二個宮位，按順時針方向排列。每個宮位代表人生的不同領域，包括命宮（身份認同）、父母宮、福德宮、田宅宮、官祿宮、財帛宮、疾厄宮、遷移宮、子女宮、夫妻宮、奴僕宮和身宮。",
+      },
+      {
+        heading: "十四主星的特性",
+        body:
+          "十四主星（紫微、天機、太陽、武曲、天同、廉貞、天府、太陰、貪狼、巨門、天相、天梁、七殺、破軍）各具獨特的能量。每個宮位中主星的組合決定了該宮位的性質。",
+      },
+      {
+        heading: "命宮的解讀",
+        body:
+          "命宮是紫微斗數解析的起點。命宮中的主星決定了個人的基本傾向、社會形象和人生觀。",
+      },
+      {
+        heading: "官祿宮和財帛宮的意義",
+        body:
+          "官祿宮代表職業結構和公共角色，財帛宮代表財務管理和物質關係。理解這兩個宮位的流向，可以更輕鬆地制定職業和財務策略。",
+      },
+      {
+        heading: "四柱推命與紫微斗數的區別",
+        body:
+          "四柱推命focused on陰陽五行和十神，紫微斗數focused on宮位和月亮位置。四柱在揭示個人氣質上較強，紫微斗數在展示人生各個領域的具體流向上更勝一籌。",
+      },
+      {
+        heading: "免費紫微斗數排盤方式",
+        body:
+          "Code Destiny提供的紫微斗數工具，只需輸入出生年月日，即可自動生成命盤。結合本指南，您的命運地圖將清晰呈現。",
+      },
+      {
+        heading: "大限流年分析",
+        body:
+          "大限（十年）和流年（每年）的推運可以幫助您了解特定時期的機會和挑戰。定期檢查大限流年，能幫助您做出更適時的人生決策。",
+      },
+    ],
+  },
+  {
+    slug: "tirage-tarot-gratuit-guide-fr",
+    title: "Tirage de Tarot Gratuit en Ligne — Guide Complet des 78 Cartes",
+    description:
+      "Découvrez la signification des 78 cartes de tarot (Arcanes Majeurs et Mineurs), les types de tirages et comment faire une lecture gratuite avec l'IA.",
+    category: "Théorie du Tarot",
+    lang: "fr",
+    updatedAt: "2026-03-22",
+    keywords: ["tirage tarot gratuit", "tarot en ligne gratuit", "signification cartes tarot"],
+    coverImage: "/fuctionassets/tarot-gratuit-fr.webp",
+    sections: [
+      {
+        heading: "Qu'est-ce que le tarot ?",
+        body:
+          "Le tarot est un outil d'auto-réflexion utilisant 78 cartes pour explorer votre situation actuelle, vos émotions cachées et les choix possibles. Ce n'est pas une prédiction certaine du futur, mais plutôt un miroir de votre inconscient.",
+      },
+      {
+        heading: "Les 22 Arcanes Majeurs — Le voyage du héros",
+        body:
+          "Les Arcanes Majeurs (cartes 0 à 21) racontent l'histoire de la croissance humaine du Mat (commencement) au Monde (accomplissement). Chaque carte représente une leçon de vie majeure ou une transformation.",
+      },
+      {
+        heading: "Le Mat (0) jusqu'au Monde (XXI)",
+        body:
+          "Cette progression suit le chemin du développement spirituel et psychologique, de l'innocence à la sagesse acquise.",
+      },
+      {
+        heading: "Les 56 Arcanes Mineurs — Les énergies du quotidien",
+        body:
+          "Les Arcanes Mineurs sont divisés en quatre couleurs (dénominés suits) qui représentent différents domaines de la vie quotidienne.",
+      },
+      {
+        heading: "Bâtons — Action et passion",
+        body: "L'énergie du feu représentant l'action, la passion et la créativité.",
+      },
+      {
+        heading: "Coupes — Émotions et relations",
+        body: "L'énergie de l'eau représentant les émotions, l'amour et les relations.",
+      },
+      {
+        heading: "Épées — Intellect et conflits",
+        body: "L'énergie de l'air représentant la pensée, les conflits et la clarté mentale.",
+      },
+      {
+        heading: "Pentacles — Matière et réalité",
+        body: "L'énergie de la terre représentant l'argent, le travail et les réalisations matérielles.",
+      },
+      {
+        heading: "Types de tirages et comment les interpréter",
+        body: "Les différentes façons de disposer les cartes influencent la profondeur et la spécificité de votre lecture.",
+      },
+      {
+        heading: "Tirage en croix (5 cartes)",
+        body:
+          "Quatre cartes aux points cardinaux avec une au centre. Chaque position représente un aspect différent de votre question.",
+      },
+      {
+        heading: "Tirage passé-présent-futur (3 cartes)",
+        body:
+          "Le tirage le plus populaire, idéal pour comprendre l'évolution d'une situation dans le temps.",
+      },
+      {
+        heading: "Tirage oui/non (1 carte)",
+        body: "Une seule carte pour répondre rapidement à des questions simples.",
+      },
+      {
+        heading: "Tarot IA vs tarot traditionnel — quelle différence ?",
+        body:
+          "Le tarot traditionnel dépend de votre intuition personnelle, tandis que le tarot IA fournit des interprétations cohérentes basées sur les données. Les deux sont des outils valides selon votre besoin.",
+      },
+      {
+        heading: "Comment faire un tirage gratuit en ligne",
+        body:
+          "Code Destiny offre un outil de tirage de tarot gratuit en ligne. Posez simplement votre question et laissez l'IA tirer et interpréter vos cartes.",
+      },
+      {
+        heading: "Questions fréquentes (FAQ)",
+        body: "Réponses aux questions les plus courantes sur le tarot.",
+      },
+    ],
+  },
+  {
+    slug: "astrologie-gratuite-signe-ascendant-fr",
+    title: "Astrologie Gratuite — Calculez Votre Signe Solaire, Lunaire et Ascendant",
+    description:
+      "Découvrez votre thème astral complet gratuitement. Calculez votre signe solaire, lunaire et ascendant et obtenez une analyse personnalisée de votre carte du ciel.",
+    category: "Astrologie",
+    lang: "fr",
+    updatedAt: "2026-03-22",
+    keywords: ["astrologie gratuite", "signe ascendant gratuit", "thème astral gratuit", "horoscope gratuit"],
+    coverImage: "/fuctionassets/astrologie-fr.webp",
+    sections: [
+      {
+        heading: "Les trois piliers de votre personnalité astrologique",
+        body:
+          "Votre thème astral complet se compose de trois éléments clés : le signe solaire (votre identité consciente), le signe lunaire (vos émotions profondes) et l'ascendant (votre apparence sociale).",
+      },
+      {
+        heading: "Signe solaire — votre identité consciente",
+        body:
+          "Le signe solaire est votre signe du zodiaque basé sur votre date de naissance. Il représente votre volonté, votre essentiel et la manière dont vous vous présentez au monde.",
+      },
+      {
+        heading: "Signe lunaire — vos émotions profondes",
+        body:
+          "Le signe lunaire révèle votre monde émotionnel intérieur, vos besoins affectifs et votre nature intimiste. Il explique comment vous traitez vos sentiments.",
+      },
+      {
+        heading: "Ascendant — votre masque social",
+        body:
+          "L'ascendant est le signe qui se levait à l'horizon au moment exact de votre naissance. Il représente l'impression que vous laissez aux autres et votre apparence.",
+      },
+      {
+        heading: "Comment calculer votre ascendant gratuitement",
+        body:
+          "Vous avez besoin de trois informations : votre date de naissance, l'heure exacte et le lieu. Code Destiny offre un calculateur gratuit qui génère votre thème astral complet en quelques secondes.",
+      },
+      {
+        heading: "Étapes du calcul",
+        body:
+          "1) Entrez votre date et heure de naissance. 2) Sélectionnez votre lieu de naissance. 3) Cliquez sur 'Calculer'. Votre thème astral apparaîtra immédiatement.",
+      },
+      {
+        heading: "Les 12 signes du zodiaque et leurs caractéristiques",
+        body:
+          "Chaque signe a ses propres traits, forces et défis. Comprendre votre signe et celui de vos proches enrichit votre compréhension des dynamiques relationnelles.",
+      },
+      {
+        heading: "Bélier — Audace et initiative",
+        body: "Courageux, spontané, toujours prêt à relever de nouveaux défis.",
+      },
+      {
+        heading: "Taureau — Stabilité et constance",
+        body: "Fiable, sensuel, attaché aux plaisirs et à la sécurité matérielle.",
+      },
+      {
+        heading: "Gémeaux — Communication et flexibilité",
+        body: "Curieux, bavard, adaptable et toujours à la recherche de nouvelles informations.",
+      },
+      {
+        heading: "Astrologie occidentale vs astrologie védique",
+        body:
+          "L'astrologie occidentale utilise le système des 12 signes du zodiaque tropical, tandis que l'astrologie védique (indienne) utilise le zodiaque sidéral. Les deux systèmes offrent des perspectives complémentaires.",
+      },
+      {
+        heading: "Questions fréquentes",
+        body: "Réponses aux questions les plus posées sur l'astrologie gratuite.",
       },
     ],
   },

@@ -10,13 +10,18 @@
   /** @type {Record<string, string>} */
   var ACTION_SCRIPT_URL = {
     openKemetModal: "/js/oracle-kcg.js",
-    openDreamModal: "/js/dream-ledger.js",
     openPsychoDreamModal: "/js/psycho-dream-analyzer-freuds-study.js",
     openTarotLoveModal: "/js/tarot-love-experience.js?v=20260320-tarot-uifix2",
     openTarotReunionModal: "/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2",
     openTarotHealingModal: "/js/tarot-healing-experience.js?v=20260320-tarot-uifix2",
     openTarotSelfEsteemModal: "/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2",
     openTarotYearFortuneModal: "/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2",
+  };
+
+  /** Multi-file actions (order matters) — mirrors js/core/uiBindings __lazyActionLoaders */
+  var ACTION_SCRIPT_CHAINS = {
+    openDreamModal: ["/js/dream-meaning-library.js", "/lib/ai-engine.js", "/js/dream-ledger.js"],
+    openJuyukModal: ["/js/iching-engine.js", "/js/iching-modal.js?v=20260321-sukuyo-scroll2"],
   };
 
   function loadScriptOnce(src) {
@@ -75,7 +80,7 @@
       if (!/^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action)) return;
 
       var attempts = 0;
-      var maxAttempts = 200; // ~20s (slow mobile / cold cache)
+      var maxAttempts = 200;
       var scriptUrl = ACTION_SCRIPT_URL[action];
 
       function runWhenReady() {
@@ -99,7 +104,22 @@
         }, 100);
       }
 
-      if (scriptUrl) {
+      var chain = ACTION_SCRIPT_CHAINS[action];
+      function loadScriptChain(urls) {
+        return urls.reduce(function (p, src) {
+          return p.then(function () {
+            return loadScriptOnce(src);
+          });
+        }, Promise.resolve());
+      }
+
+      if (chain && chain.length) {
+        loadScriptChain(chain)
+          .then(runWhenReady)
+          .catch(function (err) {
+            console.error("[legacy-action-launcher] script chain load failed:", action, err);
+          });
+      } else if (scriptUrl) {
         loadScriptOnce(scriptUrl)
           .then(runWhenReady)
           .catch(function (err) {
