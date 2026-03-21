@@ -417,14 +417,14 @@ img,canvas,svg,video{max-width:100%;height:auto}img{background-color:#e5e5e5}
   <!-- ✅ PERF: Critical CSS (블로킹) — 초기 렌더에 필수 -->
   <link rel="stylesheet" href="/styles/globals.css">
   <!-- ✅ PERF: fortune-ui.css 비동기 로드 — 크리티컬 CSS가 인라인이므로 FOUC 없음. 스플래시가 커버하는 동안 비동기 로드 -->
-  <link rel="preload" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260321-sukuyo-scroll3"></noscript>
+  <link rel="preload" href="/styles/fortune-ui.css?v=20260322-astro-scroll-fix" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260322-astro-scroll-fix"></noscript>
   <!-- ✅ PERF: Tailwind CDN 제거 → purged 로컬 빌드 CSS (65KB ↓ CDN 300KB+ 비교) -->
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
   <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260316">
+  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260322-astro-scroll-fix">
   <script src="/js/inline/api-base-init.js" defer></script>
   <!-- ✅ PERF: Non-critical CSS 비동기 로드 (모달 전용 — 클릭 시에만 필요) -->
   <link rel="preload" href="/styles/destiny-flower-cosmic.css?v=20260317" as="style" onload="this.onload=null;this.rel='stylesheet'">

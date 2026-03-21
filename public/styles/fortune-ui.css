@@ -8573,7 +8573,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
     touch-action: pan-y;
   }
   /* 결과 화면이 잘리지 않도록 하단 여백 */
