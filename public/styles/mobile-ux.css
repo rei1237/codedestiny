@@ -154,8 +154,7 @@ a[href].btn,
 
   /* 점성술·자미두수·거북점 모달: 숙요점과 동일한 flex 레이아웃으로 분리
      overscroll-behavior-y: contain + touch-action: pan-y 조합이 iOS Safari에서
-     일정 구간 아래로 스크롤 시 스크롤이 멈추는 버그 → overflow:hidden + flex 명시로 수정
-     주의: overscroll-behavior-y: auto는 astro/ziwei/juyuk에만 적용 (sukuyo 제외) */
+     일정 구간 아래로 스크롤 시 스크롤이 멈추는 버그 → overflow:hidden + flex 명시로 수정 */
   #astroModalOverlay.modal-overlay-astro,
   #ziweiModalOverlay.modal-overlay-ziwei,
   #juyukModalOverlay.modal-overlay-juyuk {
@@ -175,9 +174,18 @@ a[href].btn,
   #juyukModalOverlay #juyukModalSheet {
     flex: 1;
     min-height: 0;
+    max-height: none !important;
+    height: auto !important;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
+  }
+  /* 추가 override: 모달 시트 내부 콘텐츠에 높이 제약이 없도록 보장 */
+  #astroModalSheet > div,
+  #ziweiModalSheet > div,
+  #juyukModalSheet > div {
+    min-height: auto !important;
+    max-height: none !important;
   }
 }
 
