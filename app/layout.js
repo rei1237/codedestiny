@@ -165,26 +165,16 @@ export const metadata = {
   },
   openGraph: {
     title: "무료 사주 타로 운세 | 연이의 꿀꿀 만세력",
-    description:
-      "생년월일로 보는 무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합. 나만의 운명 지도를 확인하세요.",
+    description: "생년월일로 보는 무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합.",
     url: CANONICAL_ORIGIN,
     siteName: "Code Destiny — 연이의 꿀꿀 만세력",
     locale: "ko_KR",
     type: "website",
-    images: [
-      {
-        url: `${CANONICAL_ORIGIN}/og/og-home-ko.jpg`,
-        width: 1200,
-        height: 630,
-        alt: "Code Destiny 연이의 꿀꿀 만세력 — 무료 사주 타로 운세 플랫폼",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "무료 사주 타로 운세 | 연이의 꿀꿀 만세력",
     description: "생년월일로 보는 무료 사주·AI 타로·자미두수·점성술·궁합",
-    images: [`${CANONICAL_ORIGIN}/og/og-home-ko.jpg`],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,

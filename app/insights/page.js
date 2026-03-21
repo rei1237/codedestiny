@@ -9,9 +9,8 @@ const InsightsCosmicClient = dynamic(() => import("./InsightsCosmicClient"), {
 });
 
 export const metadata = {
-  title: "운세 인사이트 허브 | CODE DESTINY",
-  description:
-    "사주, 타로, 숙요점, 베다점, 점성술, 자미두수 카테고리별로 양질의 정보성 콘텐츠를 열람할 수 있는 인사이트 허브입니다.",
+  title: "운세 인사이트 허브 — 사주·타로·자미두수 지식 아카이브 | Code Destiny",
+  description: "사주명리학·타로·자미두수·숙요점·베다점성술의 핵심 원리를 읽는 운세 지식 아카이브.",
   alternates: {
     canonical: "/insights",
   },
