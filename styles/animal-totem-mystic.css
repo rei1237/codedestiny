@@ -97,6 +97,17 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   margin: 40px auto;
   min-height: 100%;
   padding: 0 16px max(24px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+/* 모바일 최적화: 최대 높이 제한 및 오버플로우 처리 */
+@media (max-width: 768px) {
+  .animal-totem-shell {
+    margin: 20px auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom, 0px));
+  }
 }
 .animal-totem-overlay.is-result-view .animal-totem-shell { max-width: 600px; }
 .animal-totem-panel {
@@ -107,6 +118,20 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   box-shadow: 0 18px 44px rgba(30, 38, 24, 0.45), inset 0 1px 0 rgba(255,255,255,0.05);
   backdrop-filter: blur(14px);
   padding: 20px;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+}
+/* 모바일: 패딩 축소 및 폰트 크기 조정 */
+@media (max-width: 768px) {
+  .animal-totem-panel {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .animal-totem-panel * {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
 }
 .animal-totem-close {
   position: absolute;
@@ -129,6 +154,18 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
   touch-action: manipulation;
   z-index: 2;
   transition: background 0.2s, transform 0.15s;
+}
+/* 모바일: 닫기 버튼 더 크게 (터치 타겟) */
+@media (max-width: 768px) {
+  .animal-totem-close {
+    top: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.3rem;
+  }
 }
 .animal-totem-close:hover,
 .animal-totem-close:focus {
@@ -243,6 +280,26 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-btn--invoke:hover {
   box-shadow: 0 0 0 1px rgba(245,240,230,.35) inset, 0 6px 22px rgba(0,0,0,.35);
 }
+
+/* 로딩 상태: 버튼 피드백 */
+.totem-btn.is-loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+  animation: totemBtnPulse 0.8s ease-in-out infinite;
+}
+@keyframes totemBtnPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(245,240,230,.25) inset, 0 4px 18px rgba(0,0,0,.3); }
+  50% { box-shadow: 0 0 0 1px rgba(184,169,201,.4) inset, 0 6px 24px rgba(184,169,201,.25); }
+}
+.totem-btn--invoke.is-loading::before {
+  animation: totemIconSpin 1s linear infinite;
+}
+@keyframes totemIconSpin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+
 .totem-btn--subtle {
   border: 1px solid rgba(232,220,200,.35);
   background: rgba(92,64,51,.2);

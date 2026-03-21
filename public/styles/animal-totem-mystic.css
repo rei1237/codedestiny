@@ -243,6 +243,26 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
 .totem-btn--invoke:hover {
   box-shadow: 0 0 0 1px rgba(245,240,230,.35) inset, 0 6px 22px rgba(0,0,0,.35);
 }
+
+/* 로딩 상태: 버튼 피드백 */
+.totem-btn.is-loading {
+  opacity: 0.85;
+  cursor: not-allowed;
+  animation: totemBtnPulse 0.8s ease-in-out infinite;
+}
+@keyframes totemBtnPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(245,240,230,.25) inset, 0 4px 18px rgba(0,0,0,.3); }
+  50% { box-shadow: 0 0 0 1px rgba(184,169,201,.4) inset, 0 6px 24px rgba(184,169,201,.25); }
+}
+.totem-btn--invoke.is-loading::before {
+  animation: totemIconSpin 1s linear infinite;
+}
+@keyframes totemIconSpin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+
 .totem-btn--subtle {
   border: 1px solid rgba(232,220,200,.35);
   background: rgba(92,64,51,.2);
