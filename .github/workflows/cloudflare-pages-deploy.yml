@@ -50,5 +50,9 @@ jobs:
             printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.worker.jsonc
           fi
 
-      - name: Build & deploy via OpenNext Worker
+      # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
+      - name: Build OpenNext (Next + Worker bundle + dist)
+        run: npm run build:cf
+
+      - name: Deploy OpenNext Worker
         run: npm run deploy:cf:worker

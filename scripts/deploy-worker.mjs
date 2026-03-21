@@ -31,20 +31,24 @@ const npmCmd = isWindows ? "npm.cmd" : "npm";
 
 console.log("[deploy-worker] Full stack deploy (Worker + assets) for API routes support.");
 
-if (!existsSync(openNextDir)) {
-  console.error("[deploy-worker] .open-next not found. Run: npm run build:cf");
-  process.exit(1);
-}
+const workerBundle = resolve(openNextDir, "worker.js");
+const needsBuild =
+  !existsSync(openNextDir) ||
+  !existsSync(workerBundle) ||
+  !existsSync(distDir) ||
+  !existsSync(resolve(distDir, "index.html"));
 
-if (!existsSync(distDir)) {
-  console.log("[deploy-worker] dist not found. Running npm run build:cf...");
+if (needsBuild) {
+  console.log(
+    "[deploy-worker] OpenNext output missing or incomplete (.open-next/worker.js, dist/index.html). Running npm run build:cf...",
+  );
   const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
     stdio: "inherit",
     shell: false,
     env: process.env,
   });
-  if (buildResult.status !== 0 || !existsSync(distDir)) {
-    console.error("[deploy-worker] build:cf failed or dist still missing.");
+  if (buildResult.status !== 0 || !existsSync(workerBundle) || !existsSync(resolve(distDir, "index.html"))) {
+    console.error("[deploy-worker] build:cf failed or expected outputs still missing.");
     process.exit(1);
   }
 }
