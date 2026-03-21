@@ -26,11 +26,19 @@ if (!existsSync(resolve(distDir, "index.html"))) {
 
 console.log(`[prepare-cloudflare-dist] Copied ${sourceDir} -> ${distDir}`);
 
-// 로컬 js/inline 파일들을 dist에 복사 (예: planet-widget-cosmic.js)
+// 로컬 js/inline 파일들을 dist + .open-next/assets에 복사 (Pages는 dist, Workers wrangler는 .open-next/assets)
 const inlineSourceDir = resolve(rootDir, "js", "inline");
 if (existsSync(inlineSourceDir)) {
   const inlineDistDir = resolve(distDir, "js", "inline");
   mkdirSync(inlineDistDir, { recursive: true });
   cpSync(inlineSourceDir, inlineDistDir, { recursive: true, force: true });
   console.log(`[prepare-cloudflare-dist] Copied ${inlineSourceDir} -> ${inlineDistDir}`);
+
+  const assetsRoot = resolve(rootDir, ".open-next", "assets");
+  if (existsSync(assetsRoot)) {
+    const inlineAssetsDir = resolve(assetsRoot, "js", "inline");
+    mkdirSync(inlineAssetsDir, { recursive: true });
+    cpSync(inlineSourceDir, inlineAssetsDir, { recursive: true, force: true });
+    console.log(`[prepare-cloudflare-dist] Copied ${inlineSourceDir} -> ${inlineAssetsDir}`);
+  }
 }

@@ -22,8 +22,8 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
   process.env.CLOUDFLARE_API_TOKEN = process.env.CF_API_TOKEN;
 }
 
-const distDir = resolve(rootDir, "dist");
 const openNextDir = resolve(rootDir, ".open-next");
+const workerAssetsDir = resolve(openNextDir, "assets");
 const workerConfig = resolve(rootDir, "wrangler.worker.jsonc");
 
 const isWindows = process.platform === "win32";
@@ -35,19 +35,19 @@ const workerBundle = resolve(openNextDir, "worker.js");
 const needsBuild =
   !existsSync(openNextDir) ||
   !existsSync(workerBundle) ||
-  !existsSync(distDir) ||
-  !existsSync(resolve(distDir, "index.html"));
+  !existsSync(workerAssetsDir) ||
+  !existsSync(resolve(workerAssetsDir, "index.html"));
 
 if (needsBuild) {
   console.log(
-    "[deploy-worker] OpenNext output missing or incomplete (.open-next/worker.js, dist/index.html). Running npm run build:cf...",
+    "[deploy-worker] OpenNext output missing (.open-next/worker.js or .open-next/assets/index.html). Running npm run build:cf...",
   );
   const buildResult = spawnSync(npmCmd, ["run", "build:cf"], {
     stdio: "inherit",
     shell: false,
     env: process.env,
   });
-  if (buildResult.status !== 0 || !existsSync(workerBundle) || !existsSync(resolve(distDir, "index.html"))) {
+  if (buildResult.status !== 0 || !existsSync(workerBundle) || !existsSync(resolve(workerAssetsDir, "index.html"))) {
     console.error("[deploy-worker] build:cf failed or expected outputs still missing.");
     process.exit(1);
   }
