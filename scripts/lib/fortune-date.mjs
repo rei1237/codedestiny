@@ -16,17 +16,31 @@ function isValidYmd(s) {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
-export function kstYmdToday() {
+function formatKstYmdFromDate(d) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Seoul',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   })
-    .formatToParts(new Date())
+    .formatToParts(d)
     .filter((x) => x.type !== 'literal');
   const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
   return `${p.year}-${p.month}-${p.day}`;
+}
+
+/** KST 달력 기준 오늘 */
+export function kstYmdToday() {
+  return formatKstYmdFromDate(new Date());
+}
+
+/** KST 달력 기준 내일 (자정이 지난 ‘다음 날’ 파일을 미리 만들 때 등) */
+export function kstYmdTomorrow() {
+  const t = kstYmdToday();
+  const [y, m, d] = t.split('-').map(Number);
+  const base = new Date(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T12:00:00+09:00`);
+  base.setDate(base.getDate() + 1);
+  return formatKstYmdFromDate(base);
 }
 
 export function parseFortuneDate(argv) {

@@ -16,6 +16,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 
 const dateStr = parseFortuneDate(process.argv);
+
+const outDir = path.join(root, 'fortune', 'data');
+const outFile = path.join(outDir, `daily-${dateStr}.json`);
+fs.mkdirSync(outDir, { recursive: true });
+
+if (process.env.FORTUNE_IDEMPOTENT === '1' && fs.existsSync(outFile)) {
+  try {
+    const j = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    if (j && j.date === dateStr) {
+      console.log('[gen-daily] Skip (idempotent, same date):', outFile);
+      process.exit(0);
+    }
+  } catch {
+    console.warn('[gen-daily] Existing file invalid, will regenerate:', outFile);
+  }
+}
+
 const [y, m, d] = dateStr.split('-').map(Number);
 const solar = Solar.fromYmd(y, m, d);
 const lunar = solar.getLunar();
@@ -50,9 +67,6 @@ const panchTithi = hashPick(dateStr + '|tith', [
 ]);
 const panchYoga = hashPick(dateStr + '|yoga', ['Siddha', 'Vaidhriti', 'Shubha', 'Vriddhi', 'Dhruva']);
 const panchKarana = hashPick(dateStr + '|kar', ['Bava', 'Balava', 'Kaulava', 'Taitila', 'Gara']);
-
-const outDir = path.join(root, 'fortune', 'data');
-const outFile = path.join(outDir, `daily-${dateStr}.json`);
 
 const L = ['kr', 'en', 'jp', 'cn', 'fr', 'nl', 'vi', 'ms'];
 
@@ -568,6 +582,5 @@ const payload = {
   vedic: mkVedic(),
 };
 
-fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(outFile, JSON.stringify(payload, null, 2), 'utf8');
 console.log('Wrote', outFile);

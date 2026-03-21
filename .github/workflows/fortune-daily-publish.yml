@@ -1,11 +1,11 @@
-# KST 자정(UTC 15:00)에만 일일 운세 JSON 생성 → 커밋·푸시 → main 푸시로 Cloudflare 배포 워크플로가 1회 트리거됨.
-# 일반 코드 배포(build:cf)에서는 fortune:generate 를 돌리지 않음(동일 파일 반복 생성 방지).
+# KST 자정(UTC 15:00) 직후에만 “그날”(KST 달력) daily-YYYY-MM-DD.json 1건 생성 → 커밋·푸시 → main 푸시로 배포 1회.
+# 코드 배포(build:cf)와 무관 — 중복 생성 방지(FORTUNE_SCHEDULED + fortune-daily-once 스킵 + gen-daily 멱등).
 
 name: Fortune daily package (once per day)
 
 on:
   schedule:
-    # 00:00 KST (한국 표준시)
+    # 00:00 KST (한국 표준시) — 이 시점의 KST ‘오늘’ 날짜로 패키지 생성
     - cron: "0 15 * * *"
   workflow_dispatch:
 
@@ -15,6 +15,9 @@ concurrency:
 
 permissions:
   contents: write
+
+env:
+  FORTUNE_SCHEDULED: "1"
 
 jobs:
   daily-fortune:
