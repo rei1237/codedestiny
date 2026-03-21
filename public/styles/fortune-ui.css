@@ -511,7 +511,7 @@ input:checked + .slider .paw-pad {
 .form-group{margin-bottom:18px}
 .form-label{display:block;font-weight:700;font-size:.9rem;color:#555;margin-bottom:8px}
 .inp{width:100%;padding:13px 15px;border:2px solid #F0EEF0;border-radius:12px;
-  font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;transition:all .25s;font-family:inherit;
+  font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;color:#111827;transition:all .25s;font-family:inherit;
   -webkit-appearance:none;appearance:none;min-height:48px;}
 .inp:focus{outline:none;border-color:var(--pink-l);background:#fff;box-shadow:0 0 0 4px rgba(255,183,178,.15)}
 /* iOS 줌 방지: 모든 input/select/textarea 16px 이상 유지 */
@@ -538,7 +538,10 @@ input:checked + .slider .paw-pad {
 .form-label-compact{margin-bottom:6px}
 .form-label-hint{font-size:.75rem;color:#64748b;font-weight:normal}
 
-.form-country-select{margin-bottom:10px;background:#fff}
+select.inp{color:#111827;-webkit-text-fill-color:#111827;color-scheme:light}
+select.inp option{color:#111827;background:#fff}
+.form-country-select{margin-bottom:10px;background:#fff;color:#111827;-webkit-text-fill-color:#111827;color-scheme:light}
+.form-country-select option{color:#111827;background:#fff}
 .time-correction-info{font-size:.85rem;color:#475569;line-height:1.4;display:none}
 
 /* CLS: #inputPage .card.input-section — 동적 영역 높이·스켈레톤 */

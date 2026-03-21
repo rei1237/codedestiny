@@ -2898,7 +2898,11 @@ async function calculate(){
                + `<div class="hero-lunar-row"><span class="hero-lunar-label">음력</span><span class="hero-lunar-value">${lunarDateObj.year}년 ${lunarDateObj.month}월 ${lunarDateObj.day}일 ${leapStr}</span></div>`;
     } catch(e) {}
 
-    var countryText = document.getElementById('birthCountry').options[document.getElementById('birthCountry').selectedIndex].text;
+    var birthCountryEl = document.getElementById('birthCountry');
+    var selectedCountryOpt = birthCountryEl && birthCountryEl.options && birthCountryEl.selectedIndex >= 0
+      ? birthCountryEl.options[birthCountryEl.selectedIndex]
+      : null;
+    var countryText = selectedCountryOpt ? selectedCountryOpt.text : '';
     document.getElementById('heroSub').innerHTML=
       '<div class="hero-sub-grid">'
       + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 <span class="hero-meta-place">(' + countryText + ')</span></div>'
