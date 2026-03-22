@@ -9991,7 +9991,7 @@ function renderZiwei(p, natal, targetId) {
   .zwp-wrap {
     border-radius: 16px;
     padding: 10px;
-    overflow: visible;
+    overflow: hidden;
   }
   .zwp-cta {
     margin-bottom: 8px;
@@ -10018,7 +10018,8 @@ function renderZiwei(p, natal, targetId) {
     gap: 3px;
   }
   .zwp-modal-overlay {
-    --zwp-sheet-top-gap: clamp(88px, 14vh, 136px);
+    --zwp-nav-h: 52px;
+    --zwp-sheet-top-gap: max(calc(var(--zwp-nav-h) + env(safe-area-inset-top, 0px)), 56px);
     align-items: flex-end;
     justify-content: center;
     padding: var(--zwp-sheet-top-gap) 0 0;
@@ -10337,11 +10338,10 @@ function renderZiwei(p, natal, targetId) {
     window._zwPortfolioStore = window._zwPortfolioStore || {};
 
     window._closeZwPortfolioModal = function(targetId) {
-      var mount = document.getElementById(targetId);
-      if (!mount) return;
-      var overlay = mount.querySelector('.zwp-modal-overlay');
+      var overlay = document.querySelector('.zwp-modal-overlay[data-zwp-id="' + targetId + '"]');
       if (overlay) overlay.classList.remove('is-open');
-      mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
+      var mount = document.getElementById(targetId);
+      if (mount) mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
     };
 
     window._openZwPortfolioModal = function(targetId, idx) {
@@ -10350,10 +10350,21 @@ function renderZiwei(p, natal, targetId) {
       var store = window._zwPortfolioStore && window._zwPortfolioStore[targetId];
       if (!store || !store.rows || !store.rows.length) return;
       var row = store.rows.find(function(it){ return it.idx === idx; }) || store.rows[0];
-      var overlay = mount.querySelector('.zwp-modal-overlay');
-      var body = mount.querySelector('.zwp-modal-body');
-      var title = mount.querySelector('.zwp-modal-title');
-      if (!overlay || !body || !title) return;
+
+      // body에 텔레포트된 오버레이를 먼저 찾고, 없으면 mount 내부에서 찾아 이동
+      var overlay = document.querySelector('.zwp-modal-overlay[data-zwp-id="' + targetId + '"]');
+      if (!overlay) {
+        overlay = mount.querySelector('.zwp-modal-overlay');
+        if (overlay) {
+          overlay.setAttribute('data-zwp-id', targetId);
+          document.body.appendChild(overlay);
+        }
+      }
+      if (!overlay) return;
+
+      var body = overlay.querySelector('.zwp-modal-body');
+      var title = overlay.querySelector('.zwp-modal-title');
+      if (!body || !title) return;
 
       title.textContent = row.palaceDisplay + ' | ' + row.profile.persona;
       body.innerHTML = _zwPortfolioBuildModalHtml(row, store.summary);
@@ -10362,7 +10373,7 @@ function renderZiwei(p, natal, targetId) {
       var activeCell = mount.querySelector('.zwp-cell-' + idx);
       if (activeCell) activeCell.classList.add('zwp-active');
       overlay.classList.add('is-open');
-      var sheet = mount.querySelector('.zwp-modal');
+      var sheet = overlay.querySelector('.zwp-modal');
       if (sheet) sheet.scrollTop = 0;
     };
 
@@ -10438,11 +10449,14 @@ function renderZiwei(p, natal, targetId) {
         + '  </div>'
         + '</section>';
 
+      // 오버레이를 body로 이동 후 이벤트 바인딩 (position:fixed 포함 블록 이슈 해소)
       var overlay = mount.querySelector('.zwp-modal-overlay');
       if (overlay) {
+        overlay.setAttribute('data-zwp-id', targetId);
+        document.body.appendChild(overlay);
         overlay.addEventListener('click', function(){ window._closeZwPortfolioModal(targetId); });
       }
-      var sheet = mount.querySelector('.zwp-modal');
+      var sheet = overlay && overlay.querySelector('.zwp-modal');
       if (sheet) {
         var touchStartY = 0;
         sheet.addEventListener('touchstart', function(e) {
@@ -10462,9 +10476,7 @@ function renderZiwei(p, natal, targetId) {
           if (!e || e.key !== 'Escape') return;
           var ids = Object.keys(window._zwPortfolioStore || {});
           ids.forEach(function(id){
-            var m = document.getElementById(id);
-            if (!m) return;
-            var ov = m.querySelector('.zwp-modal-overlay');
+            var ov = document.querySelector('.zwp-modal-overlay[data-zwp-id="' + id + '"]');
             if (ov && ov.classList.contains('is-open')) {
               window._closeZwPortfolioModal(id);
             }
