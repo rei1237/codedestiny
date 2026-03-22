@@ -132,12 +132,6 @@ export function LocaleSwitcher() {
     zIndex: 100,
   };
 
-  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = LOCALES.find((l) => l.key === e.target.value);
-    if (!next) return;
-    goLocale(next.key);
-  };
-
   return (
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
       <button

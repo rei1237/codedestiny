@@ -260,17 +260,54 @@
 
   function buildFallbackImageDataUrl(totemData) {
     var a = totemData && totemData.primary ? totemData.primary : { name: '가디언', keyword: '에너지 시그니처' };
+    var el = (totemData && totemData.element) || 'wood';
     var title = String(a.name || '가디언').replace(/[<>&"]/g, '');
     var subtitle = String(a.keyword || '에너지 시그니처').replace(/[<>&"]/g, '');
+    var palette = {
+      wood: { bg1: '#d9f99d', bg2: '#86efac', face: '#fefce8', ear: '#bbf7d0', accent: '#14532d', chip: '#166534' },
+      fire: { bg1: '#fed7aa', bg2: '#fca5a5', face: '#fff7ed', ear: '#fdba74', accent: '#9a3412', chip: '#c2410c' },
+      earth:{ bg1: '#fde68a', bg2: '#fcd34d', face: '#fffbeb', ear: '#facc15', accent: '#713f12', chip: '#a16207' },
+      metal:{ bg1: '#e2e8f0', bg2: '#cbd5e1', face: '#f8fafc', ear: '#e5e7eb', accent: '#334155', chip: '#475569' },
+      water:{ bg1: '#bfdbfe', bg2: '#93c5fd', face: '#eff6ff', ear: '#93c5fd', accent: '#1e3a8a', chip: '#1d4ed8' }
+    };
+    var p = palette[el] || palette.wood;
+    var emoji = '🐾';
+    if (/토끼|bunny/i.test(title)) emoji = '🐰';
+    else if (/고양이|kitten/i.test(title)) emoji = '🐱';
+    else if (/강아지|puppy/i.test(title)) emoji = '🐶';
+    else if (/호랑이|tiger/i.test(title)) emoji = '🐯';
+    else if (/곰|bear|panda/i.test(title)) emoji = '🐻';
+    else if (/여우|fox/i.test(title)) emoji = '🦊';
+    else if (/용|dragon/i.test(title)) emoji = '🐲';
+    else if (/돌고래|dolphin/i.test(title)) emoji = '🐬';
+
     var svg = '' +
       '<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">' +
-      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient></defs>' +
-      '<rect width="1024" height="1024" fill="url(#g)"/>' +
-      '<circle cx="512" cy="400" r="180" fill="#ffffff" opacity="0.75"/>' +
-      '<text x="512" y="390" text-anchor="middle" font-size="84">✨</text>' +
-      '<text x="512" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#1e293b">' + title + '</text>' +
-      '<text x="512" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#475569">' + subtitle + '</text>' +
-      '<text x="512" y="710" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#64748b">AI 이미지를 불러오지 못해 임시 카드를 표시했습니다</text>' +
+      '<defs>' +
+      '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="' + p.bg1 + '"/><stop offset="100%" stop-color="' + p.bg2 + '"/></linearGradient>' +
+      '<radialGradient id="halo" cx="50%" cy="35%" r="45%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>' +
+      '<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>' +
+      '</defs>' +
+      '<rect width="1024" height="1024" fill="url(#bg)"/>' +
+      '<circle cx="512" cy="340" r="300" fill="url(#halo)"/>' +
+      '<g opacity="0.65" fill="#ffffff" filter="url(#soft)"><circle cx="180" cy="170" r="10"/><circle cx="860" cy="220" r="14"/><circle cx="790" cy="120" r="7"/><circle cx="250" cy="820" r="12"/><circle cx="820" cy="760" r="10"/></g>' +
+      '<g>' +
+      '<circle cx="420" cy="390" r="72" fill="' + p.ear + '"/>' +
+      '<circle cx="604" cy="390" r="72" fill="' + p.ear + '"/>' +
+      '<circle cx="512" cy="465" r="205" fill="' + p.face + '"/>' +
+      '<circle cx="448" cy="452" r="12" fill="' + p.accent + '"/>' +
+      '<circle cx="576" cy="452" r="12" fill="' + p.accent + '"/>' +
+      '<ellipse cx="512" cy="520" rx="26" ry="18" fill="' + p.accent + '" opacity="0.8"/>' +
+      '<path d="M470 560 Q512 590 554 560" stroke="' + p.accent + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
+      '<text x="512" y="495" text-anchor="middle" font-size="112">' + emoji + '</text>' +
+      '</g>' +
+      '<g>' +
+      '<rect x="232" y="680" width="560" height="210" rx="34" fill="#ffffff" fill-opacity="0.82"/>' +
+      '<rect x="420" y="708" width="184" height="42" rx="21" fill="' + p.chip + '"/>' +
+      '<text x="512" y="736" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" fill="#ffffff">OFFLINE BEAUTY CARD</text>' +
+      '<text x="512" y="794" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" fill="#0f172a">' + title + '</text>' +
+      '<text x="512" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="31" fill="#334155">' + subtitle + '</text>' +
+      '</g>' +
       '</svg>';
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
   }

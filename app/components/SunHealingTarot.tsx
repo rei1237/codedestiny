@@ -5,9 +5,8 @@ import {
   HeartHandshake,
   Lightbulb,
   Loader2,
-  RotateCcw,
   Sparkles,
-  Sun,
+  RotateCcw,
   Telescope,
   Footprints,
   Share2,
@@ -370,19 +369,6 @@ export default function SunHealingTarot() {
     () => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100),
     [revealedCount],
   );
-
-  const reset = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setStage("intro");
-    setCards([]);
-    setRevealedCount(0);
-    setLoading(false);
-    setReading(null);
-    setTapToReveal(true);
-    setTyped({});
-    setTypingSection(null);
-  }, []);
 
   const goHome = useCallback(() => {
     router.push("/");

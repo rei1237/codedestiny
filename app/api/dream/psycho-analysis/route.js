@@ -140,7 +140,7 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   const timeoutId = setTimeout(function () {
     try {
       if (controller) controller.abort();
-    } catch (_) {}
+    } catch {}
   }, t);
 
   try {

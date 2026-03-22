@@ -137,7 +137,7 @@ export default function SignupPage() {
 
       setSuccess(payload.message || "회원가입이 완료되었습니다.");
       setForm(INITIAL_FORM);
-    } catch (requestError) {
+    } catch {
       setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
     } finally {
       setLoading(false);
