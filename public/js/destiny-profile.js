@@ -748,7 +748,6 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei"  onclick="window._dpOpenFortuneType(\'ziwei\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro"  onclick="window._dpOpenFortuneType(\'astro\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--olympus" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">⚡</span><span class="dp-fsel-btn-label">올림푸스 신탁</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic"  onclick="window._dpOpenFortuneType(\'vedic\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--flower" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌸</span><span class="dp-fsel-btn-label">운명의 꽃</span></button>'
@@ -1115,7 +1114,6 @@
       else if (btn.classList.contains('dp-fsel-btn--sukuyo')) type = 'sukuyo';
       else if (btn.classList.contains('dp-fsel-btn--ziwei')) type = 'ziwei';
       else if (btn.classList.contains('dp-fsel-btn--astro')) type = 'astro';
-      else if (btn.classList.contains('dp-fsel-btn--olympus')) type = 'olympus';
       else if (btn.classList.contains('dp-fsel-btn--vedic')) type = 'vedic';
       else if (btn.classList.contains('dp-fsel-btn--tarot')) type = 'tarot';
       else if (btn.classList.contains('dp-fsel-btn--flower')) type = 'flower';
