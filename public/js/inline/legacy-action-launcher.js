@@ -14,7 +14,7 @@
       if (!/^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action)) return;
 
       var attempts = 0;
-      var maxAttempts = 200; // ~20s (slow mobile / cold cache)
+      var maxAttempts = 200;
       var timer = setInterval(function () {
         attempts += 1;
         var fn = window[action];
