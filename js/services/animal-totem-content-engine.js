@@ -1,9 +1,23 @@
 (function(global) {
   "use strict";
 
-  var GEMINI_API_KEY = "AIzaSyDDZywWhXALRYhgqRPNZtwbqzZ-GbsV4pA";
   var GEMINI_MODEL = "gemini-1.5-flash";
-  var GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent?key=" + GEMINI_API_KEY;
+
+  function resolveGeminiApiKey() {
+    try {
+      if (global.__ENV__ && global.__ENV__.GEMINI_API_KEY) return String(global.__ENV__.GEMINI_API_KEY);
+      if (global.CODE_DESTINY_GEMINI_API_KEY) return String(global.CODE_DESTINY_GEMINI_API_KEY);
+      var meta = document.querySelector('meta[name="code-destiny-gemini-key"]');
+      if (meta && meta.content) return String(meta.content);
+      return "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function buildGeminiUrl(apiKey) {
+    return "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent?key=" + encodeURIComponent(apiKey || "");
+  }
 
   var MODE_SLOTS = {
     one: ["today_guide"],
@@ -235,11 +249,15 @@
 
   async function generateConsultation(mode, userContext) {
     var spreadMode = normalizeMode(mode);
+    var apiKey = resolveGeminiApiKey();
+    if (!apiKey) {
+      return buildFallback(spreadMode, "missing GEMINI_API_KEY", userContext);
+    }
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = controller ? setTimeout(function() { controller.abort(); }, 18000) : null;
 
     try {
-      var response = await fetch(GEMINI_URL, {
+      var response = await fetch(buildGeminiUrl(apiKey), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: controller ? controller.signal : undefined,

@@ -1,4 +1,7 @@
 const __perfCleanups = [];
+let __imgOptimizationQueued = false;
+let __textCollapseQueued = false;
+let __lazyHydrationQueued = false;
 
 function __addCleanup(fn) {
   if (typeof fn === 'function') __perfCleanups.push(fn);
@@ -113,8 +116,36 @@ function __loadScriptOnce(src) {
 }
 
 function setupImageOptimization() {
-  const imgs = document.querySelectorAll('img');
+  const imgs = document.querySelectorAll('img:not([data-mobile-opt-ready="1"])');
   if (!imgs.length) return;
+
+  const viewportH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 640);
+  let highAssigned = 0;
+
+  function isLikelyHeroImage(img) {
+    if (!img) return false;
+    try {
+      const rect = img.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+
+      const area = rect.width * rect.height;
+      const inOrNearFirstViewport = rect.top < (viewportH * 1.1) && rect.bottom > -20;
+      const meaningfulSize = area >= 160 * 120;
+      return inOrNearFirstViewport && meaningfulSize;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function isFarBelowFold(img) {
+    if (!img) return false;
+    try {
+      const rect = img.getBoundingClientRect();
+      return rect.top > (viewportH * 1.8);
+    } catch (e) {
+      return false;
+    }
+  }
 
   const styleId = 'mobileImgOptStyle';
   if (!document.getElementById(styleId)) {
@@ -128,9 +159,18 @@ function setupImageOptimization() {
   }
 
   __runChunked(imgs, (img, idx) => {
-    if (!img.getAttribute('loading')) img.setAttribute('loading', idx < 2 ? 'eager' : 'lazy');
+    img.dataset.mobileOptReady = '1';
+    const likelyHero = isLikelyHeroImage(img);
+    if (!img.getAttribute('loading')) img.setAttribute('loading', likelyHero ? 'eager' : 'lazy');
     if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
-    if (!img.getAttribute('fetchpriority')) img.setAttribute('fetchpriority', idx < 2 ? 'high' : 'low');
+    if (!img.getAttribute('fetchpriority')) {
+      if (likelyHero && highAssigned < 2) {
+        img.setAttribute('fetchpriority', 'high');
+        highAssigned += 1;
+      } else if (isFarBelowFold(img)) {
+        img.setAttribute('fetchpriority', 'low');
+      }
+    }
     if (!img.classList.contains('img-ph') && !img.complete) img.classList.add('img-ph');
     img.addEventListener('load', () => img.classList.remove('img-ph'), { passive: true, once: true });
     img.addEventListener('error', () => img.classList.remove('img-ph'), { passive: true, once: true });
@@ -205,6 +245,47 @@ function setupTextCollapse() {
 
     el.insertAdjacentElement('afterend', btn);
   }, 20);
+}
+
+function __canWarmupHeavyFeature() {
+  try {
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const et = (conn && conn.effectiveType) ? String(conn.effectiveType).toLowerCase() : '';
+    if (conn && conn.saveData) return false;
+    if (et === 'slow-2g' || et === '2g') return false;
+    if (__isLikelyLowGpuDevice()) return false;
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+function __queuePostPaintOptimizations() {
+  if (!__isMobile()) return;
+
+  if (!__imgOptimizationQueued) {
+    __imgOptimizationQueued = true;
+    __scheduleIdle(() => {
+      setupImageOptimization();
+      __imgOptimizationQueued = false;
+    }, 1400);
+  }
+
+  if (!__textCollapseQueued) {
+    __textCollapseQueued = true;
+    __scheduleIdle(() => {
+      setupTextCollapse();
+      __textCollapseQueued = false;
+    }, 1800);
+  }
+
+  if (__isMobile() && !__lazyHydrationQueued) {
+    __lazyHydrationQueued = true;
+    __scheduleIdle(() => {
+      setupLazySectionHydration();
+      __lazyHydrationQueued = false;
+    }, 2100);
+  }
 }
 
 function setupLazySectionHydration() {
@@ -367,8 +448,9 @@ function setupFeatureCodeSplit() {
   };
 
   __scheduleIdle(() => {
+    if (!__canWarmupHeavyFeature()) return;
     ensure('physiognomy').catch(() => {});
-  }, 1600);
+  }, 4500);
 }
 
 function setupCoreCodeSplitHooks() {
@@ -406,8 +488,7 @@ function setupCoreCodeSplitHooks() {
         sajuChunk.afterCoreCalculate();
       }
       setupLazySectionHydration();
-      setupTextCollapse();
-      setupImageOptimization();
+      __queuePostPaintOptimizations();
     }
   });
 
@@ -431,11 +512,9 @@ function setupCoreCodeSplitHooks() {
 
 function init() {
   setupGpuSafety();
-  setupImageOptimization();
-  setupTextCollapse();
   setupFeatureCodeSplit();
   setupCoreCodeSplitHooks();
-  setupLazySectionHydration();
+  __queuePostPaintOptimizations();
 
   window.addEventListener('pagehide', () => {
     __perfCleanups.splice(0).forEach((fn) => {
