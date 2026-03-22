@@ -482,6 +482,7 @@ var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
+  openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
