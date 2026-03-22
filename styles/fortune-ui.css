@@ -660,6 +660,8 @@ input:checked + .slider .paw-pad {
   display:flex;
   align-items:center;
   justify-content:space-between;
+  position:relative;
+  z-index:3;
   padding:env(safe-area-inset-top,0px) 16px 0;
   height:calc(54px + env(safe-area-inset-top,0px));
   flex-shrink:0;
@@ -721,7 +723,7 @@ input:checked + .slider .paw-pad {
 .modal-nav-close-astro{border:1px solid rgba(160,130,255,0.4);color:rgba(160,130,255,0.9)}
 .modal-nav-close-ziwei{border:1px solid rgba(232,121,249,0.45);color:rgba(232,121,249,0.9)}
 
-.modal-sheet-base{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
+.modal-sheet-base{flex:1;min-height:0;position:relative;z-index:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior-y:contain;width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
 .modal-content-inner-700{width:100%;max-width:820px;margin:0 auto;box-sizing:border-box}
 /* Wider reading width for analysis-heavy cards (including compat). */
 #juyukModalSheet .modal-content-inner-700{max-width:980px}

@@ -210,8 +210,8 @@ a[href].btn,
 
   /* 자미두수/점성술: 숙요점과 동일하게 nav를 absolute 고정해
      렌더링 중 flex 재계산으로 버튼이 사라지는 현상을 방지 */
-  #ziweiNavBar.modal-top-nav,
-  #astroNavBar.modal-top-nav {
+  #ziweiModalOverlay .modal-top-nav,
+  #astroModalOverlay .modal-top-nav {
     position: absolute;
     top: 0;
     left: 0;
@@ -223,27 +223,27 @@ a[href].btn,
     padding-left: 10px;
     padding-right: 10px;
   }
-  #ziweiNavBar .modal-nav-home,
-  #ziweiNavBar .modal-nav-close,
-  #astroNavBar .modal-nav-home,
-  #astroNavBar .modal-nav-close {
+  #ziweiModalOverlay .modal-nav-home,
+  #ziweiModalOverlay .modal-nav-close,
+  #astroModalOverlay .modal-nav-home,
+  #astroModalOverlay .modal-nav-close {
     white-space: nowrap;
   }
-  #ziweiNavBar .modal-nav-home,
-  #astroNavBar .modal-nav-home {
+  #ziweiModalOverlay .modal-nav-home,
+  #astroModalOverlay .modal-nav-home {
     justify-self: start;
     font-size: 0.78rem;
     padding: 8px 2px;
     gap: 3px;
   }
-  #ziweiNavBar .modal-nav-close,
-  #astroNavBar .modal-nav-close {
+  #ziweiModalOverlay .modal-nav-close,
+  #astroModalOverlay .modal-nav-close {
     justify-self: end;
     font-size: 0.66rem;
     padding: 8px 8px;
   }
-  #ziweiNavBar .modal-nav-title,
-  #astroNavBar .modal-nav-title {
+  #ziweiModalOverlay .modal-nav-title,
+  #astroModalOverlay .modal-nav-title {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -278,25 +278,25 @@ a[href].btn,
   }
 
   @media (max-width: 360px) {
-    #ziweiNavBar.modal-top-nav,
-    #astroNavBar.modal-top-nav {
+    #ziweiModalOverlay .modal-top-nav,
+    #astroModalOverlay .modal-top-nav {
       column-gap: 2px;
       padding-left: 8px;
       padding-right: 8px;
     }
-    #ziweiNavBar .modal-nav-home,
-    #astroNavBar .modal-nav-home {
+    #ziweiModalOverlay .modal-nav-home,
+    #astroModalOverlay .modal-nav-home {
       font-size: 0.72rem;
       padding: 8px 0;
       gap: 2px;
     }
-    #ziweiNavBar .modal-nav-close,
-    #astroNavBar .modal-nav-close {
+    #ziweiModalOverlay .modal-nav-close,
+    #astroModalOverlay .modal-nav-close {
       font-size: 0.62rem;
       padding: 8px 6px;
     }
-    #ziweiNavBar .modal-nav-title,
-    #astroNavBar .modal-nav-title {
+    #ziweiModalOverlay .modal-nav-title,
+    #astroModalOverlay .modal-nav-title {
       font-size: 0.62rem;
       letter-spacing: 0.7px;
     }
