@@ -320,6 +320,7 @@
           + '</div>'
         + '</div>'
         + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
+        + '<button class="dp-mc-load-btn" onclick="if(window._dpOpenFortuneType){window._dpOpenFortuneType(\'olympus\');}" style="touch-action:manipulation;margin-top:8px">⚡ 올림푸스 신탁 바로가기</button>'
       + '</div>';
   }
 
