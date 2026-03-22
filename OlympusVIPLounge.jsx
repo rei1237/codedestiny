@@ -635,9 +635,33 @@ const CSS=`
    COSMOS BACKGROUND
 ════════════════════════════════════════════════════════ */
 function Cosmos(){
-  const stars=Array.from({length:75},(_,i)=>({id:i,x:Math.random()*100,y:Math.random()*100,sz:Math.random()*2.2+.3,d:(Math.random()*4+2).toFixed(1),bright:i<18}));
-  const embers=Array.from({length:10},(_,i)=>({id:i,x:Math.random()*100,rd:(Math.random()*4+4).toFixed(1),rx:`${(Math.random()*40-20).toFixed(0)}px`,delay:`${(i*.7).toFixed(1)}s`,bot:Math.random()*20}));
-  const shoots=Array.from({length:3},(_,i)=>({id:i,sx:`${Math.random()*60+10}vw`,sy:`${Math.random()*30}vh`,sd:`${(Math.random()*12+10).toFixed(1)}s`,delay:`${i*4}s`}));
+  const pr=(i,s=0)=>{
+    const x=Math.sin((i+1)*12.9898+(s+1)*78.233)*43758.5453;
+    return x-Math.floor(x);
+  };
+  const stars=Array.from({length:75},(_,i)=>({
+    id:i,
+    x:pr(i,1)*100,
+    y:pr(i,2)*100,
+    sz:pr(i,3)*2.2+.3,
+    d:(pr(i,4)*4+2).toFixed(1),
+    bright:i<18
+  }));
+  const embers=Array.from({length:10},(_,i)=>({
+    id:i,
+    x:pr(i,5)*100,
+    rd:(pr(i,6)*4+4).toFixed(1),
+    rx:`${(pr(i,7)*40-20).toFixed(0)}px`,
+    delay:`${(i*.7).toFixed(1)}s`,
+    bot:pr(i,8)*20
+  }));
+  const shoots=Array.from({length:3},(_,i)=>({
+    id:i,
+    sx:`${pr(i,9)*60+10}vw`,
+    sy:`${pr(i,10)*30}vh`,
+    sd:`${(pr(i,11)*12+10).toFixed(1)}s`,
+    delay:`${i*4}s`
+  }));
   return(
     <div className="cosmos">
       <div className="lb"/>
@@ -1604,7 +1628,7 @@ export default function OlympusVIPLounge(){
   return(
     <div className="ov">
       <style>{CSS}</style>
-      <a className="ov-home" href="/" aria-label="홈으로 이동">← 올림푸스 신탁</a>
+      <a className="ov-home" href="/" aria-label="홈으로 이동">← 홈으로</a>
       <Cosmos/>
       {screen==='intro'        && <Intro onStart={()=>setScreen('input')} onOracle={()=>setScreen('oracle-input')}/>}
       {screen==='input'        && <Input onSubmit={handleInput} onBack={()=>setScreen('intro')}/>}
