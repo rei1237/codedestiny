@@ -7,6 +7,13 @@ export default function Breadcrumb({ items }) {
   // 마지막 항목은 현재 페이지 (링크 없음)
   if (!items || items.length === 0) return null;
 
+  function toAbsoluteUrl(href) {
+    if (!href) return 'https://code-destiny.com/';
+    if (/^https?:\/\//i.test(href)) return href;
+    var clean = String(href).startsWith('/') ? href : '/' + String(href);
+    return 'https://code-destiny.com' + clean;
+  }
+
   return (
     <nav 
       aria-label="브레드크럼"
@@ -25,11 +32,11 @@ export default function Breadcrumb({ items }) {
             itemScope
             itemType="https://schema.org/ListItem"
           >
+            <meta itemProp="item" content={toAbsoluteUrl(item.href)} />
             {index < items.length - 1 ? (
               <>
                 <Link 
                   href={item.href} 
-                  itemProp="item"
                   className="text-amber-300 hover:text-amber-200 transition-colors"
                 >
                   <span itemProp="name">{item.label}</span>
