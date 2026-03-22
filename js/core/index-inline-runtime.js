@@ -4016,19 +4016,24 @@ function _dpEmptyHTML(theme) {
     + '</div>';
 }
 
-function openSukuyoModal() {
-  var overlay = document.getElementById('sukuyoModalOverlay');
-  if (!overlay) return;
+function __cdForceUnlockBodyScroll() {
   try {
     if (window._perf && typeof window._perf.unlockBody === 'function') {
       window._perf.unlockBody();
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
     }
   } catch (e) {}
+  try {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+  } catch (e) {}
+}
+
+function openSukuyoModal() {
+  var overlay = document.getElementById('sukuyoModalOverlay');
+  if (!overlay) return;
+  __cdForceUnlockBodyScroll();
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
@@ -4080,16 +4085,7 @@ function navigateToVedic() {
 function openZiweiModal() {
   var overlay = document.getElementById('ziweiModalOverlay');
   if (!overlay) return;
-  try {
-    if (window._perf && typeof window._perf.unlockBody === 'function') {
-      window._perf.unlockBody();
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-    }
-  } catch (e) {}
+  __cdForceUnlockBodyScroll();
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
@@ -4117,16 +4113,7 @@ function closeZiweiModal() {
 function openAstroModal() {
   var overlay = document.getElementById('astroModalOverlay');
   if (!overlay) return;
-  try {
-    if (window._perf && typeof window._perf.unlockBody === 'function') {
-      window._perf.unlockBody();
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-    }
-  } catch (e) {}
+  __cdForceUnlockBodyScroll();
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;

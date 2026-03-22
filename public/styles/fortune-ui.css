@@ -660,8 +660,9 @@ input:checked + .slider .paw-pad {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  position:relative;
-  z-index:8;
+  position:sticky;
+  top:0;
+  z-index:99999;
   padding:env(safe-area-inset-top,0px) 16px 0;
   height:calc(54px + env(safe-area-inset-top,0px));
   flex-shrink:0;

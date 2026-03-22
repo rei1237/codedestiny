@@ -117,6 +117,22 @@ a[href].btn,
   touch-action: pan-y;
 }
 
+/* 자미두수/점성술/숙요점: 스크롤 freeze 방지를 위해 오버레이/시트 축 스크롤 허용을 명시 */
+#ziweiModalOverlay,
+#astroModalOverlay,
+#sukuyoModalOverlay {
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: none;
+}
+#ziweiModalSheet,
+#astroModalSheet,
+#sukuyoModalSheet {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: none;
+}
+
 /* 자미두수·숙요점·점성술·거북점(주역) 모달: 모바일 스크롤 막힘 수정
    overscroll-behavior: contain + touch-action: pan-y 조합이 iOS Safari에서
    일정 구간 아래로 스크롤 시 스크롤이 멈추는 버그 유발 → 모바일에서 완화 */

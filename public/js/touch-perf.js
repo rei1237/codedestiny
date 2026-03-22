@@ -109,13 +109,13 @@
     document.body.style.width = '100%';
   }
   function unlockBody() {
-    if (!_isBodyLocked) return;
+    var wasLocked = _isBodyLocked;
     _isBodyLocked = false;
     document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
-    window.scrollTo(0, _scrollY);
+    if (wasLocked) window.scrollTo(0, _scrollY);
   }
 
   window._perf = { throttle: throttle, debounce: debounce, lockBody: lockBody, unlockBody: unlockBody };
