@@ -10028,8 +10028,7 @@ function renderZiwei(p, natal, targetId) {
   .zwp-modal {
     width: 100%;
     max-width: 100%;
-    max-height: calc(100dvh - 120px);
-    min-height: min(60dvh, 560px);
+    /* max-height / min-height 은 JS의 position:absolute top+bottom 으로 제어 */
     border-radius: 20px 20px 0 0;
     border-bottom: none;
     padding: 0;
@@ -10374,17 +10373,44 @@ function renderZiwei(p, natal, targetId) {
       var activeCell = mount.querySelector('.zwp-cell-' + idx);
       if (activeCell) activeCell.classList.add('zwp-active');
 
-      // 네비바 하단 좌표를 실측해 overlay.top을 직접 잘라냄 — padding 방식 완전 폐기
-      // overlay 자체가 nav 영역에 존재하지 않으므로 z-index 전쟁 불필요
       var navEl = document.getElementById('ziweiModalNavBar');
       var navBottom = navEl ? Math.round(navEl.getBoundingClientRect().bottom) : 56;
       navBottom = Math.max(navBottom, 56);
-      overlay.style.top = navBottom + 'px';
+
+      // overlay는 항상 전체 화면(top:0) — dim 배경이 nav 포함 전체를 덮음
+      overlay.style.top = '0';
       overlay.style.paddingTop = '0';
+
       var sheet = overlay.querySelector('.zwp-modal');
-      if (sheet) {
-        sheet.style.maxHeight = Math.max(window.innerHeight - navBottom - 8, 300) + 'px';
-        sheet.style.minHeight = '';
+      if (window.innerWidth <= 900) {
+        // 모바일/태블릿: position:absolute로 시트를 navBottom~화면하단에 직접 고정
+        // flex-end + window.innerHeight 불일치 문제 없이 항상 정확한 위치 보장
+        if (sheet) {
+          sheet.style.position = 'absolute';
+          sheet.style.top = navBottom + 'px';
+          sheet.style.left = '0';
+          sheet.style.right = '0';
+          sheet.style.bottom = '0';
+          sheet.style.maxHeight = 'none';
+          sheet.style.minHeight = '0';
+          sheet.style.width = '100%';
+          sheet.style.maxWidth = '100%';
+          sheet.style.margin = '0';
+        }
+      } else {
+        // 데스크탑: 인라인 스타일 초기화, CSS 기본값 사용
+        if (sheet) {
+          sheet.style.position = '';
+          sheet.style.top = '';
+          sheet.style.bottom = '';
+          sheet.style.left = '';
+          sheet.style.right = '';
+          sheet.style.maxHeight = '';
+          sheet.style.minHeight = '';
+          sheet.style.width = '';
+          sheet.style.maxWidth = '';
+          sheet.style.margin = '';
+        }
       }
 
       overlay.classList.add('is-open');
