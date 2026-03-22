@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -471,7 +471,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 background:"linear-gradient(135deg,#be185d 0%,#d97706 100%)",
                 WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
                 lineHeight:1.2,
-              }}>연이의 꿀꿀 만세력</span>
+              }}>꿀꿀 만세력</span>
               <span style={{
                 display:"block",
                 fontSize:"0.73rem", color:"rgba(120,60,60,0.68)",
@@ -525,4 +525,5 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     </main>
   );
 }
+
 

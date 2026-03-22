@@ -1,12 +1,12 @@
-# Engine-Ready SEO Copy (KR + Global)
+﻿# Engine-Ready SEO Copy (KR + Global)
 
 Use this as a copy bank for webmaster tools or manual overrides.
 
 ## Korean root (`/`)
 
-- Naver title (<=40): `연이의 꿀꿀 만세력 | 무료 사주·타로·자미두수`
+- Naver title (<=40): `꿀꿀 만세력 | 무료 사주·타로·자미두수`
 - Naver description (<=80): `사주·자미두수·타로·궁합·점성술을 무료로 보는 다국어 운세 서비스`
-- Google/Bing title: `연이의 꿀꿀 만세력 | 무료 사주·타로·자미두수`
+- Google/Bing title: `꿀꿀 만세력 | 무료 사주·타로·자미두수`
 - Google/Bing description: `사주·자미두수·타로·궁합·점성술을 한곳에서 무료로 확인하세요. 다국어 운세 서비스 CODE DESTINY.`
 
 ## English (`/en-us`)
@@ -33,3 +33,4 @@ Use this as a copy bank for webmaster tools or manual overrides.
 
 - title: `Gratis tarot, saju en astrologie | CODE DESTINY`
 - description: `Gratis Saju, Zi Wei Dou Shu, tarot, compatibiliteit en oosterse astrologie op een meertalig platform.`
+

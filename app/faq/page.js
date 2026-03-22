@@ -1,8 +1,8 @@
-export const metadata = {
+﻿export const metadata = {
   title: "FAQ | 자주 묻는 질문",
   description:
-    "Code Destiny(연이의 꿀꿀 만세력) 서비스 이용, 무료 여부, 개인정보, 문의 방법 등 자주 묻는 질문을 안내합니다.",
-  keywords: ["FAQ", "자주 묻는 질문", "Code Destiny", "연이의 꿀꿀 만세력", "고객지원"],
+    "Code Destiny(꿀꿀 만세력) 서비스 이용, 무료 여부, 개인정보, 문의 방법 등 자주 묻는 질문을 안내합니다.",
+  keywords: ["FAQ", "자주 묻는 질문", "Code Destiny", "꿀꿀 만세력", "고객지원"],
   alternates: {
     canonical: "/faq",
   },
@@ -85,7 +85,7 @@ export default function FaqPage() {
         자주 묻는 질문 (FAQ)
       </h1>
       <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-        Code Destiny(연이의 꿀꿀 만세력) 이용에 관해 자주 받는 질문을 정리했습니다. 더 자세한 내용은 개인정보처리방침·이용약관을 참고하시거나
+        Code Destiny(꿀꿀 만세력) 이용에 관해 자주 받는 질문을 정리했습니다. 더 자세한 내용은 개인정보처리방침·이용약관을 참고하시거나
         문의하기로 연락해 주세요.
       </p>
       <p style={{ opacity: 0.88, lineHeight: 1.82, marginBottom: "22px", color: "#dbe5ff", wordBreak: "keep-all" }}>
@@ -119,3 +119,4 @@ export default function FaqPage() {
     </main>
   );
 }
+

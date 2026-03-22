@@ -1,6 +1,7 @@
-import "../styles/globals.css";
+﻿import "../styles/globals.css";
 import { headers } from "next/headers";
 import WebVitalsConsole from "./components/WebVitalsConsole";
+import AppVersionGuard from "./components/AppVersionGuard";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
@@ -90,7 +91,7 @@ function buildJsonLd({ locale, canonicalHref }) {
     "@type": "WebSite",
     "@id": "https://code-destiny.com/#website",
     name: "CODE DESTINY",
-    alternateName: "연이의 꿀꿀 만세력",
+    alternateName: "꿀꿀 만세력",
     url: CANONICAL_ORIGIN,
     description: "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합 서비스. 10개 언어 지원.",
     inLanguage: LOCALES.map((l) => l.key),
@@ -123,7 +124,7 @@ function buildJsonLd({ locale, canonicalHref }) {
     "@id": `${canonicalHref}#webpage`,
     url: canonicalHref,
     inLanguage: locale.key,
-    name: "무료 사주 타로 운세 | 연이의 꿀꿀 만세력",
+    name: "무료 사주 타로 운세 | 꿀꿀 만세력",
     description: "생년월일로 보는 무료 사주팔자·AI 타로·자미두수·점성술·궁합",
     isPartOf: { "@id": "https://code-destiny.com/#website" },
     potentialAction: {
@@ -141,8 +142,8 @@ function buildJsonLd({ locale, canonicalHref }) {
 export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: {
-    default: "연이의 꿀꿀 만세력 | 무료 사주 타로 운세 점성술 궁합",
-    template: "%s | 연이의 꿀꿀 만세력",
+    default: "꿀꿀 만세력 | 무료 사주 타로 운세 점성술 궁합",
+    template: "%s | 꿀꿀 만세력",
   },
   description:
     "무료 사주 타로 운세 플랫폼. AI 타로, 자미두수, 점성술, 주역, 숙요점, 동물 관상 등 20가지 이상의 운세 서비스를 한 곳에서. Free Saju Tarot Horoscope Fortune.",
@@ -173,21 +174,21 @@ export const metadata = {
     locale: "ko_KR",
     alternateLocale: ["en_US", "ja_JP", "zh_CN"],
     url: "https://code-destiny.com",
-    siteName: "연이의 꿀꿀 만세력",
-    title: "연이의 꿀꿀 만세력 | 무료 사주 타로 운세",
+    siteName: "꿀꿀 만세력",
+    title: "꿀꿀 만세력 | 무료 사주 타로 운세",
     description: "생년월일로 보는 무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합.",
     images: [
       {
         url: "https://code-destiny.com/icons/honeypig.webp",
         width: 1200,
         height: 630,
-        alt: "연이의 꿀꿀 만세력 — 무료 사주 타로 운세 플랫폼",
+        alt: "꿀꿀 만세력 — 무료 사주 타로 운세 플랫폼",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "연이의 꿀꿀 만세력 | 무료 사주 타로 운세",
+    title: "꿀꿀 만세력 | 무료 사주 타로 운세",
     description: "AI 타로·점성술·자미두수 등 20+ 운세 서비스 무료 제공",
     images: ["https://code-destiny.com/icons/honeypig.webp"],
   },
@@ -228,7 +229,7 @@ export default async function RootLayout({ children }) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": "https://code-destiny.com/#website",
-    name: "Code Destiny — 연이의 꿀꿀 만세력",
+    name: "Code Destiny — 꿀꿀 만세력",
     alternateName: ["꿀꿀 만세력", "Code Destiny"],
     url: "https://code-destiny.com",
     description: "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합 서비스. 10개 언어 지원.",
@@ -270,6 +271,7 @@ export default async function RootLayout({ children }) {
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>
       <body>
+        <AppVersionGuard />
         <WebVitalsConsole />
         <div>{children}</div>
         {!hideFooter && (
@@ -332,3 +334,4 @@ export default async function RootLayout({ children }) {
     </html>
   );
 }
+

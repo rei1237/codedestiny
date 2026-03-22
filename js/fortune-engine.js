@@ -1,4 +1,4 @@
-/**
+﻿/**
  * fortune-engine.js
  * 운세 페이지 콘텐츠 생성 엔진
  * - 날짜 + 대상 기반 결정론적 운세 생성 (새로고침해도 동일)
@@ -443,8 +443,8 @@
           description: sl + ' ' + periodWord + ' 운세 — 총운, 연애운, 재물운, 건강운, 행운 숫자 · 색 제공.',
           datePublished: now,
           dateModified: now,
-          author: { '@type': 'Organization', name: '연이의 꿀꿀 만세력', url: 'https://code-destiny.com' },
-          publisher: { '@type': 'Organization', name: '연이의 꿀꿀 만세력', logo: { '@type': 'ImageObject', url: 'https://code-destiny.com/icons/icon-512x512.png' } },
+          author: { '@type': 'Organization', name: '꿀꿀 만세력', url: 'https://code-destiny.com' },
+          publisher: { '@type': 'Organization', name: '꿀꿀 만세력', logo: { '@type': 'ImageObject', url: 'https://code-destiny.com/icons/icon-512x512.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': url },
           image: 'https://code-destiny.com/icons/icon-512x512.png'
         },
@@ -605,7 +605,7 @@
         var ld = document.getElementById('jsonLd');
         if (ld) ld.textContent = JSON.stringify(buildJsonLd(cfg, info, fortune, dateLabel, langKey, L));
 
-        document.title = pageTitle + ' | 연이의 꿀꿀 만세력';
+        document.title = pageTitle + ' | 꿀꿀 만세력';
         var metaDesc = document.querySelector('meta[name="description"]');
         var descKo = subjectLabel + ' ' + PERIOD_KO[period] + ' 운세 무료 확인. 총운 ' + fortune.total + '점, 연애운, 재물운, 건강운, 행운 숫자 ' + fortune.luckyNum + ' 제공.';
         var descEn = 'Free ' + L.period[period].toLowerCase() + ' horoscope for ' + subjectTitle(cfg, info, langKey) + '. Scores & lucky number ' + fortune.luckyNum + '.';
@@ -877,3 +877,4 @@
   }
 
 })(window);
+

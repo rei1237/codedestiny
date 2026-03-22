@@ -35,14 +35,20 @@
 
 # ─── HTML 페이지 — revalidate (SEO 필수) ─────────────────────
 /
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
 
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/static/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /*.html
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache, no-store, must-revalidate
   X-Content-Type-Options: nosniff
 
 # ─── API 응답 — 캐시 없음 ─────────────────────────────────────

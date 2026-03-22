@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { SERVICE_SECTIONS } from "../_lib/serviceSections";
 
 type Props = {
@@ -16,7 +16,7 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
     <section className="mx-auto max-w-6xl px-4 py-8" aria-labelledby="home-hub-title">
       <header className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 text-slate-100">
         <h1 id="home-hub-title" className="text-2xl font-semibold">
-          연이의 꿀꿀 만세력
+          꿀꿀 만세력
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
           {belowLegacy
@@ -60,3 +60,4 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
     </section>
   );
 }
+

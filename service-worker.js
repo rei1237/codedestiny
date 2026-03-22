@@ -30,10 +30,27 @@ self.addEventListener('activate', event => {
   );
 });
 
+self.addEventListener('message', event => {
+  if (!event || !event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
+    event.waitUntil(
+      Promise.resolve(self.skipWaiting()).then(() => self.clients.claim())
+    );
+  }
+});
+
 /* Network-First: always try network, fall back to cache */
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const requestUrl = new URL(event.request.url);
+
+  // HTML 문서는 항상 네트워크 우선(no-store)로 받아 구버전 셸 고착을 방지한다.
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch(() => caches.match('/'))
+    );
+    return;
+  }
 
   // Kill-switch heartbeat must always hit network and never use cache fallback.
   if (requestUrl.origin === self.location.origin && requestUrl.pathname === '/status.json') {
@@ -64,8 +81,11 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request).then(response => {
       if (!response || response.status !== 200 || response.type === 'opaque') return response;
-      const toCache = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+      const shouldCache = !event.request.url.includes('.html');
+      if (shouldCache) {
+        const toCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+      }
       return response;
     }).catch(() =>
       caches.match(event.request).then(cached => {

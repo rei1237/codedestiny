@@ -89,6 +89,20 @@
       ].join(',')
     },
     {
+      action: 'openSajuTotemModal',
+      cardSelector: '.tarot-tile--saju-totem',
+      targetSelector: [
+        '[data-action="openSajuTotemModal"]',
+        '.tarot-tile--saju-totem',
+        '.tarot-tile--saju-totem .tarot-tile__img-wrap',
+        '.tarot-tile--saju-totem .tarot-tile__img',
+        '.tarot-tile--saju-totem .tarot-tile__badge',
+        '.tarot-tile--saju-totem .tarot-tile__title',
+        '.tarot-tile--saju-totem .tarot-tile__desc',
+        '.tarot-tile--saju-totem .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'openDestinyFlowerStudio',
       cardSelector: '.tarot-tile--bloom',
       targetSelector: [

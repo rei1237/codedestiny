@@ -1,8 +1,43 @@
-/* ─── 공유하기 함수 ─── */
+﻿/* ─── 공유하기 함수 ─── */
+var APP_VERSION = '2026-03-23-v1';
+var APP_VERSION_KEY = 'app_version';
+
+function runNuclearVersionGuard() {
+  var saved = '';
+  try {
+    saved = localStorage.getItem(APP_VERSION_KEY) || '';
+  } catch (e) {
+    saved = '';
+  }
+  if (saved === APP_VERSION) return;
+
+  try { localStorage.clear(); } catch (e) {}
+  try { sessionStorage.clear(); } catch (e) {}
+
+  var swTask = Promise.resolve();
+  try {
+    if ('serviceWorker' in navigator) {
+      swTask = navigator.serviceWorker.getRegistrations().then(function(regs) {
+        return Promise.all(regs.map(function(reg) {
+          try { return reg.unregister(); } catch (err) { return Promise.resolve(false); }
+        }));
+      });
+    }
+  } catch (e) {}
+
+  swTask.finally(function() {
+    try { localStorage.setItem(APP_VERSION_KEY, APP_VERSION); } catch (e) {}
+    try { window.location.reload(true); }
+    catch (e) { window.location.reload(); }
+  });
+}
+
+runNuclearVersionGuard();
+
 function getShareText(){
   var name=USER_NAME||'사용자';
   var base=window.location.href.split('?')[0];
-  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n연이의 꿀꿀 만세력\n'+base;
+  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀 만세력\n'+base;
 }
 function showToast(msg){
   var t=document.getElementById('shareToast');
@@ -12,7 +47,7 @@ function showToast(msg){
 function shareKakao(){
   var text=getShareText();
   if(navigator.share){
-    navigator.share({title:'🐷 연이의 꿀꿀 만세력',text:text,url:window.location.href})
+    navigator.share({title:'🐷 꿀꿀 만세력',text:text,url:window.location.href})
       .catch(function(){});
     return;
   }
@@ -370,8 +405,33 @@ function bindPwaInstallButtons() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/service-worker.js?v=11')
-      .then(function(reg) {  })
+    navigator.serviceWorker.register('/service-worker.js?v=' + encodeURIComponent(APP_VERSION))
+      .then(function(reg) {
+        function activateWaitingWorker(waiting) {
+          if (!waiting) return;
+          try {
+            waiting.postMessage({ type: 'SKIP_WAITING' });
+          } catch (e) {}
+        }
+
+        if (reg.waiting) activateWaitingWorker(reg.waiting);
+
+        reg.addEventListener('updatefound', function() {
+          var installing = reg.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', function() {
+            if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+              activateWaitingWorker(reg.waiting || installing);
+            }
+          });
+        });
+
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (window.__SW_RELOADED__) return;
+          window.__SW_RELOADED__ = true;
+          window.location.reload();
+        });
+      })
       .catch(function(err) {  });
   });
 }

@@ -1,0 +1,425 @@
+/* ============================================================
+   Saju Totem Generator — "Who am I with Saju?"
+   전체 UI 스타일시트
+   ============================================================ */
+
+/* ── 오버레이 ── */
+#sajuTotemOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99900;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 28, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 16px;
+}
+
+/* ── 쉘 ── */
+.stg-shell {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #1a1533 0%, #241b4a 55%, #0e1f45 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 28px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.05);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+.stg-shell::-webkit-scrollbar { width: 4px; }
+.stg-shell::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 4px; }
+
+/* ── 헤더 ── */
+.stg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.stg-header__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stg-header__badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(253, 224, 71, 0.9);
+  background: rgba(253,224,71,0.1);
+  border: 1px solid rgba(253,224,71,0.3);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.stg-header__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fdf4ff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.stg-header__free {
+  font-size: 0.65rem;
+  color: rgba(167,243,208,0.9);
+  background: rgba(52,211,153,0.1);
+  border: 1px solid rgba(52,211,153,0.3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.stg-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+.stg-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+/* ── 본문 ── */
+.stg-body { padding: 20px; }
+
+/* ── 사주 없음 상태 ── */
+.stg-no-saju {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  text-align: center;
+}
+.stg-no-saju__icon { font-size: 3rem; }
+.stg-no-saju__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fdf4ff;
+  margin: 0;
+}
+.stg-no-saju__desc {
+  font-size: 0.85rem;
+  color: rgba(216,180,254,0.85);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── 버튼 공통 ── */
+.stg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+  padding: 13px 20px;
+  width: 100%;
+  letter-spacing: 0.01em;
+}
+.stg-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+.stg-btn:active { transform: translateY(0) scale(0.97); }
+.stg-btn__icon { font-size: 1.05rem; }
+
+.stg-btn--primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(124,58,237,0.45);
+}
+.stg-btn--save {
+  background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(14,165,233,0.38);
+}
+.stg-btn--share {
+  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(245,158,11,0.35);
+}
+.stg-btn--regen {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.85);
+}
+.stg-btn--regen:hover { background: rgba(255,255,255,0.12); }
+
+/* ── 로딩 상태 ── */
+@keyframes stg-orb-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.35); opacity: 1; }
+}
+@keyframes stg-orb-orbit {
+  0% { transform: rotate(0deg) translateX(28px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(28px) rotate(-360deg); }
+}
+@keyframes stg-pb-bounce {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  40% { transform: translateY(-10px) rotate(8deg); }
+}
+@keyframes stg-dust-float {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateY(-36px) scale(1.2); opacity: 0; }
+}
+@keyframes stg-bar-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(167,139,250,0.5); }
+  50% { box-shadow: 0 0 18px rgba(244,114,182,0.8); }
+}
+@keyframes stg-fade-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes stg-img-reveal {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes stg-card-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+
+.stg-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 16px 20px;
+  animation: stg-fade-in 0.4s ease both;
+}
+.stg-loading__orbs {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.stg-orb {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.stg-orb--1 {
+  background: #f472b6;
+  animation: stg-orb-orbit 2.0s linear infinite, stg-orb-pulse 2s ease-in-out infinite;
+}
+.stg-orb--2 {
+  background: #818cf8;
+  animation: stg-orb-orbit 2.6s linear 0.5s infinite, stg-orb-pulse 2.6s ease-in-out 0.3s infinite;
+}
+.stg-orb--3 {
+  background: #34d399;
+  animation: stg-orb-orbit 3.2s linear 1s infinite, stg-orb-pulse 3.2s ease-in-out 0.6s infinite;
+}
+
+.stg-loading__paintbrush {
+  position: relative;
+  text-align: center;
+}
+.stg-pb-char {
+  font-size: 2.8rem;
+  animation: stg-pb-bounce 1.5s ease-in-out infinite;
+  display: inline-block;
+}
+.stg-pb-dust {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+}
+.stg-pb-dust span {
+  font-size: 0.9rem;
+  animation: stg-dust-float 2s ease-in-out infinite;
+}
+.stg-pb-dust span:nth-child(1) { animation-delay: 0s; }
+.stg-pb-dust span:nth-child(2) { animation-delay: 0.3s; }
+.stg-pb-dust span:nth-child(3) { animation-delay: 0.6s; }
+.stg-pb-dust span:nth-child(4) { animation-delay: 0.9s; }
+.stg-pb-dust span:nth-child(5) { animation-delay: 1.2s; }
+
+.stg-loading__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fdf4ff;
+  margin: 0;
+  background: linear-gradient(135deg, #f0abfc, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stg-loading__subtitle {
+  font-size: 0.82rem;
+  color: rgba(216,180,254,0.8);
+  margin: 0;
+}
+.stg-loading__bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.stg-loading__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #818cf8, #f472b6, #fbbf24);
+  border-radius: 99px;
+  transition: width 0.5s ease;
+  animation: stg-bar-glow 1.8s ease-in-out infinite;
+}
+
+/* ── 결과 상태 ── */
+.stg-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: stg-fade-in 0.5s ease both;
+}
+
+/* 이미지 카드 */
+.stg-card {
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: var(--stg-bg, linear-gradient(135deg,#e8f5e9,#f1f8e9));
+  padding: 20px;
+  text-align: center;
+  overflow: hidden;
+}
+.stg-card__glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 50% 50%, var(--stg-glow, #4caf50), transparent 65%);
+  opacity: 0.18;
+  pointer-events: none;
+  animation: stg-card-glow-pulse 3s ease-in-out infinite;
+}
+.stg-card__badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--stg-text, #1b5e20);
+  opacity: 0.6;
+  margin-bottom: 12px;
+}
+.stg-card__img-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 14px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.15);
+}
+.stg-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: stg-img-reveal 0.6s ease both;
+}
+.stg-card__img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 50%);
+  pointer-events: none;
+}
+.stg-card__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--stg-text, #1b5e20);
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.stg-card__title span {
+  background: linear-gradient(135deg, var(--stg-glow, #4caf50), var(--stg-text, #1b5e20));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stg-card__keyword {
+  font-size: 0.78rem;
+  color: var(--stg-text, #1b5e20);
+  opacity: 0.65;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* 설명 카드 */
+.stg-desc-card {
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+  padding: 16px 18px;
+}
+.stg-desc-card__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(253,224,71,0.7);
+  margin-bottom: 10px;
+}
+.stg-desc-card__text {
+  font-size: 0.9rem;
+  line-height: 1.85;
+  color: rgba(241,245,249,0.92);
+  word-break: keep-all;
+}
+
+/* 버튼 영역 */
+.stg-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── 타일 버튼 (동물 컬렉션 내) ── */
+.tarot-tile--saju-totem {
+  position: relative;
+  overflow: hidden;
+}
+.tarot-tile--saju-totem::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(244,114,182,0.05), rgba(129,140,248,0.05));
+  pointer-events: none;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.tarot-tile--saju-totem:hover::before { opacity: 1; }
+
+/* ── 반응형 ── */
+@media (min-width: 420px) {
+  .stg-card__img-wrap { width: 260px; height: 260px; }
+}
+@media (max-width: 360px) {
+  .stg-shell { border-radius: 20px; }
+  .stg-card__img-wrap { width: 180px; height: 180px; }
+  .stg-card__title { font-size: 1rem; }
+}
