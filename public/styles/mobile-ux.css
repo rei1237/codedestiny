@@ -133,15 +133,16 @@ a[href].btn,
     min-height: -webkit-fill-available;
   }
 
-  /* 숙요점: 네비바 absolute 고정 → flex 레이아웃 의존 제거
-     콘텐츠 대량 삽입(innerHTML) 후에도 버튼이 항상 화면 최상단에 노출됨.
-     Android Chrome의 flex 재계산 중 네비바 소멸 버그 원천 차단. */
-  #sukuyoNavBar.modal-top-nav {
-    position: absolute;
+  /* 숙요점/자미두수/점성술: 동일한 상단 네비 동작 통일
+     네비는 항상 상단에 보이고, 시트만 끝까지 세로 스크롤되도록 고정 */
+  #sukuyoNavBar.modal-top-nav,
+  #ziweiModalNavBar.modal-top-nav,
+  #astroNavBar.modal-top-nav {
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: 30;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     column-gap: 6px;
@@ -149,21 +150,31 @@ a[href].btn,
     padding-right: 10px;
   }
   #sukuyoNavBar .modal-nav-home,
-  #sukuyoNavBar .modal-nav-close {
+  #sukuyoNavBar .modal-nav-close,
+  #ziweiModalNavBar .modal-nav-home,
+  #ziweiModalNavBar .modal-nav-close,
+  #astroNavBar .modal-nav-home,
+  #astroNavBar .modal-nav-close {
     white-space: nowrap;
   }
-  #sukuyoNavBar .modal-nav-home {
+  #sukuyoNavBar .modal-nav-home,
+  #ziweiModalNavBar .modal-nav-home,
+  #astroNavBar .modal-nav-home {
     justify-self: start;
     font-size: 0.78rem;
     padding: 8px 2px;
     gap: 3px;
   }
-  #sukuyoNavBar .modal-nav-close {
+  #sukuyoNavBar .modal-nav-close,
+  #ziweiModalNavBar .modal-nav-close,
+  #astroNavBar .modal-nav-close {
     justify-self: end;
     font-size: 0.66rem;
     padding: 8px 8px;
   }
-  #sukuyoNavBar .modal-nav-title {
+  #sukuyoNavBar .modal-nav-title,
+  #ziweiModalNavBar .modal-nav-title,
+  #astroNavBar .modal-nav-title {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -172,14 +183,16 @@ a[href].btn,
     font-size: 0.68rem;
     letter-spacing: 1.1px;
   }
-  /* 시트: 네비바 높이 아래서 시작, 화면 하단까지 채움 → 독립 스크롤 */
-  #sukuyoModalOverlay #sukuyoModalSheet {
-    position: absolute;
-    top: calc(54px + env(safe-area-inset-top, 0px));
-    left: 0;
-    right: 0;
-    bottom: 0;
-    flex: none;
+  /* 시트: absolute 분리 대신 flex 스크롤로 통일 (iOS/Android 스크롤 중단 방지) */
+  #sukuyoModalOverlay #sukuyoModalSheet,
+  #ziweiModalOverlay #ziweiModalSheet,
+  #astroModalOverlay #astroModalSheet {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -188,87 +201,32 @@ a[href].btn,
     overscroll-behavior-x: none;
   }
   @media (max-width: 360px) {
-    #sukuyoNavBar.modal-top-nav {
+    #sukuyoNavBar.modal-top-nav,
+    #ziweiModalNavBar.modal-top-nav,
+    #astroNavBar.modal-top-nav {
       column-gap: 2px;
       padding-left: 8px;
       padding-right: 8px;
     }
-    #sukuyoNavBar .modal-nav-home {
+    #sukuyoNavBar .modal-nav-home,
+    #ziweiModalNavBar .modal-nav-home,
+    #astroNavBar .modal-nav-home {
       font-size: 0.72rem;
       padding: 8px 0;
       gap: 2px;
     }
-    #sukuyoNavBar .modal-nav-close {
+    #sukuyoNavBar .modal-nav-close,
+    #ziweiModalNavBar .modal-nav-close,
+    #astroNavBar .modal-nav-close {
       font-size: 0.62rem;
       padding: 8px 6px;
     }
-    #sukuyoNavBar .modal-nav-title {
+    #sukuyoNavBar .modal-nav-title,
+    #ziweiModalNavBar .modal-nav-title,
+    #astroNavBar .modal-nav-title {
       font-size: 0.62rem;
       letter-spacing: 0.7px;
     }
-  }
-
-  /* 자미두수/점성술: 숙요점과 동일하게 nav를 absolute 고정해
-     렌더링 중 flex 재계산으로 버튼이 사라지는 현상을 방지 */
-  #ziweiModalOverlay .modal-top-nav,
-  #astroModalOverlay .modal-top-nav {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    column-gap: 6px;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-  #ziweiModalOverlay .modal-nav-home,
-  #ziweiModalOverlay .modal-nav-close,
-  #astroModalOverlay .modal-nav-home,
-  #astroModalOverlay .modal-nav-close {
-    white-space: nowrap;
-  }
-  #ziweiModalOverlay .modal-nav-home,
-  #astroModalOverlay .modal-nav-home {
-    justify-self: start;
-    font-size: 0.78rem;
-    padding: 8px 2px;
-    gap: 3px;
-  }
-  #ziweiModalOverlay .modal-nav-close,
-  #astroModalOverlay .modal-nav-close {
-    justify-self: end;
-    font-size: 0.66rem;
-    padding: 8px 8px;
-  }
-  #ziweiModalOverlay .modal-nav-title,
-  #astroModalOverlay .modal-nav-title {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: center;
-    font-size: 0.68rem;
-    letter-spacing: 1.1px;
-  }
-
-  /* sheet를 nav 아래 절대 배치해 스크롤 컨테이너를 고정
-     overscroll 체이닝을 막아 Android pull-to-refresh 재로딩 방지 */
-  #ziweiModalOverlay #ziweiModalSheet,
-  #astroModalOverlay #astroModalSheet {
-    position: absolute;
-    top: calc(54px + env(safe-area-inset-top, 0px));
-    left: 0;
-    right: 0;
-    bottom: 0;
-    flex: none;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y;
-    overscroll-behavior-y: contain;
-    overscroll-behavior-x: none;
   }
 
   #juyukModalOverlay #juyukModalSheet {
@@ -278,27 +236,11 @@ a[href].btn,
   }
 
   @media (max-width: 360px) {
-    #ziweiModalOverlay .modal-top-nav,
-    #astroModalOverlay .modal-top-nav {
+    #ziweiModalNavBar.modal-top-nav,
+    #astroNavBar.modal-top-nav {
       column-gap: 2px;
       padding-left: 8px;
       padding-right: 8px;
-    }
-    #ziweiModalOverlay .modal-nav-home,
-    #astroModalOverlay .modal-nav-home {
-      font-size: 0.72rem;
-      padding: 8px 0;
-      gap: 2px;
-    }
-    #ziweiModalOverlay .modal-nav-close,
-    #astroModalOverlay .modal-nav-close {
-      font-size: 0.62rem;
-      padding: 8px 6px;
-    }
-    #ziweiModalOverlay .modal-nav-title,
-    #astroModalOverlay .modal-nav-title {
-      font-size: 0.62rem;
-      letter-spacing: 0.7px;
     }
   }
 }
@@ -334,6 +276,7 @@ body {
 .lang-dropdown,
 [class*="backdrop-blur"] {
   -webkit-backdrop-filter: inherit;
+  backdrop-filter: inherit;
 }
 
 /* 이미지/아이콘 비율 유지 (찌그러짐 방지) */
