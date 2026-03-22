@@ -541,13 +541,18 @@ function getCompat(ea,eb){
    CSS
 ════════════════════════════════════════════════════════ */
 const CSS=`
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Noto+Serif+KR:wght@300;400;600&family=Share+Tech+Mono&display=swap');
-.ov{font-family:'Noto Serif KR',serif;background:#04021A;min-height:100vh;color:#EFE4C0;overflow-x:hidden;position:relative;}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Share+Tech+Mono&display=swap');
+.ov{font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif;background:#04021A;min-height:100vh;color:#EFE4C0;overflow-x:hidden;position:relative;}
 .ov *{box-sizing:border-box;margin:0;padding:0;}
-.ov-home{position:fixed;top:18px;left:18px;z-index:6;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(201,168,76,.45);background:rgba(6,4,18,.7);color:#F0D060;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .25s;}
+.ov-home{position:fixed;top:18px;left:18px;z-index:6;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid rgba(201,168,76,.45);background:rgba(6,4,18,.7);color:#F0D060;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:11px;font-weight:600;letter-spacing:.05em;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:all .25s;}
 .ov-home:hover{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.7);transform:translateY(-1px);box-shadow:0 10px 24px rgba(201,168,76,.18);}
 .ov-home:active{transform:translateY(0);}
 .cin{font-family:'Cinzel',serif;} .cind{font-family:'Cinzel Decorative',serif;} .mono{font-family:'Share Tech Mono',monospace;}
+.ov-stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(24px,4vw,44px) clamp(14px,2.6vw,26px);}
+.ov-shell{width:min(100%,560px);}
+.ov-wide{width:min(100%,960px);margin:0 auto;padding:clamp(16px,2.2vw,28px) clamp(14px,2vw,22px) clamp(56px,6vw,76px);}
+.ov-main-title{font-size:clamp(28px,3.2vw,40px)!important;}
+.ov-main-subtitle{font-size:clamp(15px,1.7vw,22px)!important;}
 .cosmos{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
 .star{position:absolute;border-radius:50%;animation:tw var(--d) ease-in-out infinite alternate;}
 @keyframes tw{from{opacity:.05;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
@@ -567,17 +572,17 @@ const CSS=`
 .gbx{border:1px solid rgba(201,168,76,.75);box-shadow:0 0 60px rgba(201,168,76,.12),inset 0 0 40px rgba(201,168,76,.03);}
 .glow{text-shadow:0 0 30px rgba(240,208,80,.5),0 0 60px rgba(240,208,80,.18);color:#F5DC70;}
 .glow2{text-shadow:0 0 20px rgba(240,208,80,.35);color:#F0D060;}
-.scard{background:rgba(4,2,26,.95);border-radius:16px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden;}
+.scard{background:rgba(4,2,26,.95);border-radius:16px;padding:clamp(16px,2.1vw,24px);margin-bottom:12px;position:relative;overflow:hidden;}
 .scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#C9A84C 30%,#F5DC70 50%,#C9A84C 70%,transparent);}
 .pc{background:rgba(255,255,255,.03);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .3s;border:1px solid rgba(201,168,76,.15);}
 .pc:hover,.pc.act{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.55);transform:translateY(-2px);}
-.btn-g{background:linear-gradient(135deg,#C9A84C 0%,#8B6914 100%);color:#04021A;border:none;border-radius:8px;padding:13px 28px;font-family:'Cinzel',serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .3s;width:100%;position:relative;overflow:hidden;}
+.btn-g{background:linear-gradient(135deg,#C9A84C 0%,#8B6914 100%);color:#04021A;border:none;border-radius:8px;padding:13px 28px;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:all .3s;width:100%;position:relative;overflow:hidden;}
 .btn-g:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.4);}
-.btn-o{background:transparent;color:#C9A84C;border:1px solid rgba(201,168,76,.45);border-radius:8px;padding:10px 18px;font-family:'Cinzel',serif;font-size:11px;cursor:pointer;transition:all .3s;letter-spacing:1px;}
+.btn-o{background:transparent;color:#C9A84C;border:1px solid rgba(201,168,76,.45);border-radius:8px;padding:10px 18px;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:.02em;}
 .btn-o:hover{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.7);}
-.btn-tab{background:transparent;border:1px solid rgba(201,168,76,.22);border-radius:8px;padding:8px 14px;font-family:'Cinzel',serif;font-size:11px;cursor:pointer;transition:all .3s;letter-spacing:1px;color:rgba(240,228,192,.45);}
+.btn-tab{background:transparent;border:1px solid rgba(201,168,76,.22);border-radius:8px;padding:8px 14px;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:.02em;color:rgba(240,228,192,.55);}
 .btn-tab.act{background:rgba(201,168,76,.14);border-color:rgba(201,168,76,.6);color:#C9A84C;}
-.inp{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:11px 14px;color:#EFE4C0;font-family:'Noto Serif KR',serif;font-size:14px;width:100%;outline:none;transition:all .3s;-webkit-appearance:none;color-scheme:dark;}
+.inp{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:11px 14px;color:#EFE4C0;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;width:100%;outline:none;transition:all .3s;-webkit-appearance:none;color-scheme:dark;}
 .inp:focus{border-color:rgba(201,168,76,.7);box-shadow:0 0 0 3px rgba(201,168,76,.07);}
 .inp::placeholder{color:rgba(239,228,192,.2);}
 .sbar{background:rgba(255,255,255,.07);border-radius:4px;height:5px;overflow:hidden;}
@@ -626,6 +631,17 @@ const CSS=`
 .ticket-dash{border-top:2px dashed rgba(201,168,76,.25);}
 .spot-card{background:rgba(255,255,255,.03);border-radius:10px;padding:12px;border:1px solid rgba(201,168,76,.15);cursor:pointer;transition:all .3s;}
 .spot-card:hover{background:rgba(201,168,76,.07);border-color:rgba(201,168,76,.4);}
+@media (min-width: 1024px){
+  .ov-shell{width:min(100%,640px);}
+  .ov-wide{width:min(100%,1120px);}
+  .ov-home{top:22px;left:22px;font-size:12px;padding:10px 16px;}
+}
+@media (max-width: 768px){
+  .ov-home{top:10px;left:10px;font-size:10px;padding:7px 11px;}
+  .ov-wide{padding:12px 10px 48px;}
+  .planet-grid{grid-template-columns:repeat(3,1fr)!important;gap:6px!important;}
+  .scard{border-radius:14px;}
+}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25);border-radius:2px;}
 .rel{position:relative;z-index:1;}
@@ -689,13 +705,13 @@ function Divider(){
 ════════════════════════════════════════════════════════ */
 function Intro({onStart,onOracle}){
   return(
-    <div className="rel fi" style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 20px',textAlign:'center'}}>
+    <div className="rel fi ov-stage" style={{textAlign:'center'}}>
       <p className="cin" style={{fontSize:9,letterSpacing:8,color:'rgba(201,168,76,.45)',marginBottom:10}}>CODE : DESTINY</p>
       <div style={{fontSize:18,margin:'8px 0',letterSpacing:16,color:'rgba(201,168,76,.5)'}}>⊹ ✦ ⊹</div>
-      <h1 className="cind glow" style={{fontSize:26,fontWeight:700,letterSpacing:4,lineHeight:1.2,marginBottom:6}}>OLYMPUS</h1>
-      <h2 className="cin" style={{fontSize:14,fontWeight:400,color:'#C9A84C',letterSpacing:6,marginBottom:4}}>VIP LOUNGE</h2>
+      <h1 className="cind glow ov-main-title" style={{fontWeight:700,letterSpacing:4,lineHeight:1.2,marginBottom:6}}>OLYMPUS</h1>
+      <h2 className="cin ov-main-subtitle" style={{fontWeight:400,color:'#C9A84C',letterSpacing:6,marginBottom:4}}>VIP LOUNGE</h2>
       <p style={{fontSize:11,color:'rgba(239,228,192,.32)',letterSpacing:4,marginBottom:30}}>별로 보는 인생 스포일러</p>
-      <div className="gbx" style={{borderRadius:20,padding:'26px 22px',maxWidth:360,width:'100%',background:'rgba(4,2,26,.98)',marginBottom:22}}>
+      <div className="gbx ov-shell" style={{borderRadius:20,padding:'26px 22px',background:'rgba(4,2,26,.98)',marginBottom:22}}>
         <p className="cin" style={{fontSize:9,color:'rgba(201,168,76,.45)',letterSpacing:4,marginBottom:14}}>8대 행성 완전 분석</p>
         <div style={{marginBottom:18}}>
           {[["☀️","태양/달/상승","나의 본질"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🏢","오피스","직장 생존기"],["🗾","아스트로맵","일본 여행 스팟"]].map(([e,t,s],i,a)=>(
@@ -738,8 +754,8 @@ function Input({onSubmit,onBack}){
     transition:'border-color .3s',
   };
   return(
-    <div className="rel fi" style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 20px'}}>
-      <div className="gbx" style={{borderRadius:20,padding:'30px 22px',maxWidth:380,width:'100%',background:'rgba(4,2,26,.98)'}}>
+    <div className="rel fi ov-stage">
+      <div className="gbx ov-shell" style={{borderRadius:20,padding:'30px 22px',background:'rgba(4,2,26,.98)'}}>
         <button className="btn-o" onClick={onBack} style={{padding:'6px 12px',fontSize:10,marginBottom:16}}>← 돌아가기</button>
         <div style={{textAlign:'center',marginBottom:22}}>
           <p className="cin" style={{fontSize:9,letterSpacing:5,color:'rgba(201,168,76,.5)',marginBottom:8}}>ORACLE INPUT</p>
@@ -782,8 +798,8 @@ function OracleInput({onSubmit,onBack}){
     onSubmit({signInfo,oracle,elemKey:signInfo.elem,element:ELEMENTS[signInfo.elem]});
   };
   return(
-    <div className="rel fi" style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 20px'}}>
-      <div className="gbx" style={{borderRadius:20,padding:'30px 22px',maxWidth:360,width:'100%',background:'rgba(4,2,26,.98)'}}>
+    <div className="rel fi ov-stage">
+      <div className="gbx ov-shell" style={{borderRadius:20,padding:'30px 22px',background:'rgba(4,2,26,.98)'}}>
         <button className="btn-o" onClick={onBack} style={{padding:'6px 12px',fontSize:10,marginBottom:16}}>← 돌아가기</button>
         <div style={{textAlign:'center',marginBottom:22}}>
           <div style={{fontSize:30,marginBottom:8}}>🔮</div>
@@ -808,7 +824,7 @@ function Loading(){
   const ps=["제우스가 올림포스 회의 소집 중...","아폴론이 태양 에너지 스캔 중...","헤르메스가 우주 좌표 계산 중...","타짜 패 분류 중...","악마 계약서 작성 중...","신탁 완성 — 피티아가 입을 열다"];
   useEffect(()=>{const t=setInterval(()=>setPh(p=>Math.min(p+1,ps.length-1)),560);return()=>clearInterval(t);},[]);
   return(
-    <div className="rel" style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,textAlign:'center'}}>
+    <div className="rel ov-stage" style={{textAlign:'center',padding:24}}>
       <div style={{position:'relative',width:92,height:92,margin:'0 auto 28px'}}>
         <div className="ring2"/><div className="ring" style={{position:'absolute',top:8,left:8}}/>
         <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:26}}>⚡</div>
@@ -827,7 +843,7 @@ function DailyOracleResult({data,onBack}){
   const ec={fire:'#E85D1B',earth:'#7AB540',air:'#5BA3C9',water:'#4A8FD4'};
   const today=new Date(),ds=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
   return(
-    <div className="rel" style={{maxWidth:460,margin:'0 auto',padding:'22px 14px 56px'}}>
+    <div className="rel ov-wide">
       <div className="fi" style={{textAlign:'center',padding:'24px 0 18px'}}>
         <p className="cin" style={{fontSize:8,letterSpacing:6,color:'rgba(201,168,76,.4)',marginBottom:10}}>{ds} 신탁</p>
         <div style={{fontSize:44,marginBottom:8}}>{signInfo.sym}</div>
@@ -877,7 +893,7 @@ function TabResult({result,onReset}){
   const [tab,setTab]=useState('profile');
   const tabs=[{k:'profile',l:'내 신탁'},{k:'compat',l:'궁합'},{k:'oracle',l:'오늘 운세'}];
   return(
-    <div className="rel" style={{maxWidth:480,margin:'0 auto',padding:'16px 13px 56px'}}>
+    <div className="rel ov-wide">
       <div className="fi" style={{textAlign:'center',padding:'18px 0 14px'}}>
         <p className="cin" style={{fontSize:8,letterSpacing:6,color:'rgba(201,168,76,.38)',marginBottom:7}}>ORACLE COMPLETE</p>
         <div style={{fontSize:38,marginBottom:6}}>{result.sun.sym}</div>
@@ -913,7 +929,7 @@ function ProfileTab({result}){
     <div>
       {/* 5행성 */}
       <p className="cin" style={{fontSize:8,letterSpacing:3,color:'rgba(201,168,76,.38)',textAlign:'center',marginBottom:8}}>5대 행성 배치</p>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:8}}>
+      <div className="planet-grid" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:8}}>
         {planets.map((p,i)=>(
           <div key={i} className={`pc${ap===i?' act':''}`} onClick={()=>setAp(i)}>
             <div style={{fontSize:14,marginBottom:2}}>{p.emoji}</div>

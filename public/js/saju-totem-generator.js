@@ -1,6 +1,6 @@
 /**
- * Saju Totem Generator — "Who am I with Saju?"
- * AI가 사주를 분석해 귀여운 수호 동물을 Pollinations.ai로 생성합니다.
+ * Saju Totem Generator
+ * 생년월일 기반 에너지로 가디언 아바타를 생성합니다.
  */
 
 (function () {
@@ -239,19 +239,78 @@
     var sentParts = parts.length > 0 ? parts.join('과 ') : (elDesc[el] || 'star energy');
 
     return [
-      '사주에 ' + sentParts + '에 의해서,',
-      '사주로 볼 때 당신은 <strong>' + traitStr + ' ' + animalName + '</strong>입니다.',
-      '<small style="color:var(--sg-text-muted,rgba(0,0,0,0.5))">✦ ' + (a.keyword || '') + ' · ' + (elKr[el] || '') + ' 기반</small>'
+      '생년월일 에너지에서 읽힌 핵심은 ' + sentParts + '입니다.',
+      '당신의 가디언 아바타는 <strong>' + traitStr + ' ' + animalName + '</strong> 타입입니다.',
+      '<small style="color:var(--sg-text-muted,rgba(0,0,0,0.5))">✦ ' + (a.keyword || '') + ' · ' + (elKr[el] || '') + ' 시그니처</small>'
     ].join('<br>');
   }
 
   /* ─────────────────────────────────────
      5. 이미지 URL / 다운로드
   ───────────────────────────────────── */
-  function buildImageUrl(prompt) {
+  function buildImageUrls(prompt) {
     var seed = Math.floor(Math.random() * 999999);
-    return 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) +
-      '?width=512&height=512&nologo=true&seed=' + seed + '&enhance=true';
+    var encoded = encodeURIComponent(prompt);
+    return [
+      'https://image.pollinations.ai/prompt/' + encoded + '?width=512&height=512&nologo=true&seed=' + seed + '&enhance=true',
+      'https://image.pollinations.ai/prompt/' + encoded + '?width=768&height=768&nologo=true&seed=' + seed + '&model=flux&enhance=true',
+      'https://image.pollinations.ai/prompt/' + encoded + '?width=512&height=512&seed=' + seed
+    ];
+  }
+
+  function buildFallbackImageDataUrl(totemData) {
+    var a = totemData && totemData.primary ? totemData.primary : { name: '가디언', keyword: '에너지 시그니처' };
+    var title = String(a.name || '가디언').replace(/[<>&"]/g, '');
+    var subtitle = String(a.keyword || '에너지 시그니처').replace(/[<>&"]/g, '');
+    var svg = '' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient></defs>' +
+      '<rect width="1024" height="1024" fill="url(#g)"/>' +
+      '<circle cx="512" cy="400" r="180" fill="#ffffff" opacity="0.75"/>' +
+      '<text x="512" y="390" text-anchor="middle" font-size="84">✨</text>' +
+      '<text x="512" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#1e293b">' + title + '</text>' +
+      '<text x="512" y="630" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#475569">' + subtitle + '</text>' +
+      '<text x="512" y="710" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#64748b">AI 이미지를 불러오지 못해 임시 카드를 표시했습니다</text>' +
+      '</svg>';
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
+  function tryLoadImageCandidates(urls, timeoutMs, onDone) {
+    var idx = 0;
+
+    function next() {
+      if (idx >= urls.length) {
+        onDone({ ok: false, url: '' });
+        return;
+      }
+
+      var url = urls[idx++];
+      var img = new Image();
+      var settled = false;
+      var timer = setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        next();
+      }, timeoutMs);
+
+      img.onload = function () {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        onDone({ ok: true, url: url });
+      };
+
+      img.onerror = function () {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        next();
+      };
+
+      img.src = url;
+    }
+
+    next();
   }
 
   function downloadImage(url, filename) {
@@ -284,13 +343,13 @@
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: '내 사주 수호신: ' + a.name,
-        description: a.traits + ' ' + a.name + '의 기운을 가진 당신의 수호신을 확인해보세요!',
+        title: '내 가디언 아바타: ' + a.name,
+        description: a.traits + ' ' + a.name + ' 타입의 가디언 에너지를 확인해보세요!',
         imageUrl: imgUrl,
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       },
       buttons: [{
-        title: '나도 수호신 소환하기',
+        title: '나도 가디언 아바타 보기',
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       }]
     });
@@ -300,8 +359,8 @@
     var a = totemData.primary;
     if (navigator.share) {
       navigator.share({
-        title: '내 사주 수호신: ' + a.name,
-        text: a.traits + '한 ' + a.name + '! 사주로 보는 당신의 수호신을 Code Destiny에서 확인해보세요.',
+        title: '내 가디언 아바타: ' + a.name,
+        text: a.traits + '한 ' + a.name + '! 당신의 가디언 아바타를 Code Destiny에서 확인해보세요.',
         url: 'https://code-destiny.com'
       }).catch(function () {});
     } else {
@@ -323,10 +382,10 @@
     if (!overlay) return;
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    /* State 결정: 사주 계산 완료 여부 */
-    var hasSaju = !!(window.G_PILLARS && window.G_PILLARS.d);
+    var contextState = ensureSajuContext();
+    var hasSaju = !!contextState.ready;
     if (hasSaju) {
-      renderStateB();
+      renderStateB(contextState.source);
     } else {
       renderStateNoSaju();
     }
@@ -344,13 +403,13 @@
     if (!body) return;
     body.innerHTML = '<div class="stg-no-saju">' +
       '<div class="stg-no-saju__icon">🔮</div>' +
-      '<p class="stg-no-saju__title">먼저 사주 분석을 완료해주세요</p>' +
-      '<p class="stg-no-saju__desc">생년월일시를 입력하고 사주 분석하기 버튼을 눌러주세요.<br>분석 완료 후 나만의 수호신을 소환할 수 있어요!</p>' +
-      '<button class="stg-btn stg-btn--primary" onclick="document.getElementById(\'sajuTotemOverlay\').style.display=\'none\';document.body.style.overflow=\'\';window.scrollTo({top:0,behavior:\'smooth\'})">사주 분석하러 가기 ✨</button>' +
+      '<p class="stg-no-saju__title">생년월일 정보가 필요해요</p>' +
+      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 가디언 아바타를 바로 소환할 수 있습니다.</p>' +
+      '<button class="stg-btn stg-btn--primary" onclick="window.closeSajuTotemModal();window.scrollTo({top:0,behavior:\'smooth\'})">생년월일 입력하러 가기 ✨</button>' +
     '</div>';
   }
 
-  function renderStateB() {
+  function renderStateB(contextSource) {
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
 
@@ -371,8 +430,8 @@
             '<span>✨</span><span>⭐</span><span>💫</span><span>🌟</span><span>✦</span>' +
           '</div>' +
         '</div>' +
-        '<p class="stg-loading__title">AI가 당신의 사주 기운을 읽고</p>' +
-        '<p class="stg-loading__subtitle">수호신을 소환 중입니다...</p>' +
+        '<p class="stg-loading__title">AI가 생년월일 에너지를 읽고</p>' +
+        '<p class="stg-loading__subtitle">가디언 아바타를 그리는 중입니다...</p>' +
         '<div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>' +
       '</div>';
 
@@ -385,33 +444,41 @@
     }, 600);
 
     var prompt = buildPrompt(totemData);
-    var imgUrl = buildImageUrl(prompt);
-    var img = new Image();
+    var imgCandidates = buildImageUrls(prompt);
     var revealed = false;
+    var fallbackUrl = buildFallbackImageDataUrl(totemData);
 
-    function doReveal() {
+    function doReveal(resolvedUrl, aiGenerated) {
       if (revealed) return;
       revealed = true;
       clearInterval(barTimer);
       if (bar) bar.style.width = '100%';
-      setTimeout(function () { renderStateC(totemData, imgUrl, theme); }, 300);
+      setTimeout(function () {
+        renderStateC(totemData, resolvedUrl || fallbackUrl, theme, contextSource, aiGenerated !== false);
+      }, 300);
     }
 
-    img.onload = doReveal;
-    img.onerror = doReveal; /* 실패해도 UI 진행 */
-    img.src = imgUrl;
+    tryLoadImageCandidates(imgCandidates, 9000, function (result) {
+      if (result && result.ok) {
+        doReveal(result.url, true);
+      } else {
+        doReveal(fallbackUrl, false);
+      }
+    });
 
-    /* 최대 18초 fallback */
-    setTimeout(function () { doReveal(); }, 18000);
+    /* 최대 22초 fallback */
+    setTimeout(function () { doReveal(fallbackUrl, false); }, 22000);
   }
 
-  function renderStateC(totemData, imgUrl, theme) {
+  function renderStateC(totemData, imgUrl, theme, contextSource, aiGenerated) {
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
     var a = totemData.primary;
     var el = totemData.element;
     var elIcons = { wood: '🌿', fire: '🔥', earth: '🌏', metal: '✨', water: '💧' };
     var desc = buildDescription(totemData);
+    var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
+    var imageStatusHtml = aiGenerated ? '' : '<div class="stg-desc-card__label" style="margin-top:8px;color:#b45309;">안내: AI 이미지 응답이 지연되어 임시 카드를 표시 중입니다. 다시 소환하면 새로 시도합니다.</div>';
 
     body.innerHTML =
       '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
@@ -424,14 +491,15 @@
             '<img class="stg-card__img" src="' + imgUrl + '" alt="' + a.name + '" id="sajuTotemImg" loading="lazy">' +
             '<div class="stg-card__img-overlay"></div>' +
           '</div>' +
-          '<h2 class="stg-card__title">당신의 수호신: <span>' + a.name + '</span></h2>' +
+          '<h2 class="stg-card__title">당신의 가디언 아바타: <span>' + a.name + '</span></h2>' +
           '<p class="stg-card__keyword">' + (a.keyword || '') + '</p>' +
         '</div>' +
 
         /* 설명 카드 */
         '<div class="stg-desc-card">' +
-          '<div class="stg-desc-card__label">✦ 사주 분석 리포트</div>' +
+          '<div class="stg-desc-card__label">✦ ' + sourceLabel + '</div>' +
           '<div class="stg-desc-card__text">' + desc + '</div>' +
+          imageStatusHtml +
         '</div>' +
 
         /* 버튼 영역 */
@@ -440,7 +508,7 @@
             '<span class="stg-btn__icon">⬇</span> 이미지 저장하기' +
           '</button>' +
           '<button class="stg-btn stg-btn--share" id="sajuTotemShareBtn" type="button">' +
-            '<span class="stg-btn__icon">💬</span> 내 수호신 공유하기' +
+            '<span class="stg-btn__icon">💬</span> 내 가디언 공유하기' +
           '</button>' +
           '<button class="stg-btn stg-btn--regen" id="sajuTotemRegenBtn" type="button">' +
             '<span class="stg-btn__icon">🔄</span> 다시 소환하기' +
@@ -461,14 +529,105 @@
     }
     if (shareBtn) {
       shareBtn.addEventListener('click', function () {
-        shareKakao(totemData, imgUrl);
+        var safeShareImage = /^https?:\/\//.test(imgUrl) ? imgUrl : 'https://code-destiny.com/icons/honeypig.webp';
+        shareKakao(totemData, safeShareImage);
       });
     }
     if (regenBtn) {
       regenBtn.addEventListener('click', function () {
-        renderStateB();
+        renderStateB(contextSource || 'analysis');
       });
     }
+  }
+
+  function getProfileFromManager() {
+    try {
+      if (!window.DestinyProfileManager || !window.DestinyProfileManager.storage || typeof window.DestinyProfileManager.storage.current !== 'function') {
+        return null;
+      }
+      var profile = window.DestinyProfileManager.storage.current();
+      if (profile && profile.birth && profile.birth.year && profile.birth.month && profile.birth.day) {
+        return profile;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function buildProfileFromInputs() {
+    var birthDateEl = document.getElementById('birthDate');
+    var rawDate = birthDateEl && birthDateEl.value ? String(birthDateEl.value) : '';
+    if (!rawDate || rawDate.indexOf('-') < 0) return null;
+
+    var parts = rawDate.split('-');
+    if (parts.length < 3) return null;
+
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    if (!year || !month || !day) return null;
+
+    var hourEl = document.getElementById('birthHour');
+    var minuteEl = document.getElementById('birthMinute');
+    var calTypeEl = document.getElementById('calType');
+    var countrySel = document.getElementById('birthCountry');
+    var selectedOpt = countrySel && countrySel.options ? countrySel.options[countrySel.selectedIndex] : null;
+
+    var latRaw = selectedOpt && (selectedOpt.getAttribute('data-lat') || (selectedOpt.dataset && selectedOpt.dataset.lat));
+    var lonRaw = selectedOpt && (selectedOpt.getAttribute('data-lon') || (selectedOpt.dataset && selectedOpt.dataset.lon));
+    var tzRaw = selectedOpt && (selectedOpt.getAttribute('data-tz') || (selectedOpt.dataset && selectedOpt.dataset.tz));
+    var tzOffRaw = selectedOpt && (
+      selectedOpt.getAttribute('data-tz-offset') ||
+      selectedOpt.getAttribute('data-tzoffset') ||
+      selectedOpt.getAttribute('data-utc-offset') ||
+      (selectedOpt.dataset && (selectedOpt.dataset.tzOffset || selectedOpt.dataset.tzoffset || selectedOpt.dataset.utcOffset))
+    );
+
+    return {
+      name: (document.getElementById('name') || {}).value || '나',
+      gender: window._gender || 'F',
+      birth: {
+        year: year,
+        month: month,
+        day: day,
+        hour: Number(hourEl && hourEl.value != null ? hourEl.value : 12) || 12,
+        minute: Number(minuteEl && minuteEl.value != null ? minuteEl.value : 0) || 0,
+        calType: (calTypeEl && calTypeEl.value) || 'solar'
+      },
+      location: {
+        lat: (latRaw != null && latRaw !== '') ? Number(latRaw) : 37.5665,
+        lng: (lonRaw != null && lonRaw !== '') ? Number(lonRaw) : 126.9780,
+        tz: tzRaw || 'Asia/Seoul',
+        baseTzOffset: (tzOffRaw != null && tzOffRaw !== '') ? Number(tzOffRaw) : 9
+      }
+    };
+  }
+
+  function ensureSajuContext() {
+    if (window.G_PILLARS && window.G_PILLARS.d) {
+      return { ready: true, source: 'analysis' };
+    }
+
+    if (typeof window.computeProfileForModal === 'function') {
+      var profile = getProfileFromManager();
+      if (profile) {
+        var fromProfile = window.computeProfileForModal(profile);
+        if (fromProfile && window.G_PILLARS && window.G_PILLARS.d) {
+          return { ready: true, source: 'profile' };
+        }
+      }
+
+      var inputProfile = buildProfileFromInputs();
+      if (inputProfile) {
+        var fromInput = window.computeProfileForModal(inputProfile);
+        if (fromInput && window.G_PILLARS && window.G_PILLARS.d) {
+          return { ready: true, source: 'input' };
+        }
+      }
+    }
+
+    return { ready: false, source: 'none' };
   }
 
   /* ─────────────────────────────────────
