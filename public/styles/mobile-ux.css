@@ -133,19 +133,15 @@ a[href].btn,
     min-height: -webkit-fill-available;
   }
 
-  /* 숙요점: 모달이 열릴 때만 JS가 display:flex를 설정하므로 여기서 display를 강제하지 않음 */
-  #sukuyoModalOverlay.modal-overlay-sukuyo {
-    flex-direction: column;
-    height: 100dvh;
-    height: -webkit-fill-available;
-    overflow: hidden;
-  }
-  #sukuyoModalOverlay .modal-top-nav {
-    flex-shrink: 0;
-  }
+  /* 숙요점: 네비바 absolute 고정 → flex 레이아웃 의존 제거
+     콘텐츠 대량 삽입(innerHTML) 후에도 버튼이 항상 화면 최상단에 노출됨.
+     Android Chrome의 flex 재계산 중 네비바 소멸 버그 원천 차단. */
   #sukuyoNavBar.modal-top-nav {
-    position: relative;
-    z-index: 4;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     column-gap: 6px;
@@ -154,8 +150,6 @@ a[href].btn,
   }
   #sukuyoNavBar .modal-nav-home,
   #sukuyoNavBar .modal-nav-close {
-    position: relative;
-    z-index: 5;
     white-space: nowrap;
   }
   #sukuyoNavBar .modal-nav-home {
@@ -178,14 +172,20 @@ a[href].btn,
     font-size: 0.68rem;
     letter-spacing: 1.1px;
   }
+  /* 시트: 네비바 높이 아래서 시작, 화면 하단까지 채움 → 독립 스크롤 */
   #sukuyoModalOverlay #sukuyoModalSheet {
-    flex: 1;
+    position: absolute;
+    top: calc(54px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex: none;
     min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     overscroll-behavior-y: auto;
     overscroll-behavior-x: none;
-    -webkit-overflow-scrolling: touch;
   }
   @media (max-width: 360px) {
     #sukuyoNavBar.modal-top-nav {

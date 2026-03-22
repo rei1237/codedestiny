@@ -4033,8 +4033,9 @@ function openSukuyoModal() {
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
+  overlay.style.overflow = 'hidden';
   var sh = document.getElementById('sukuyoModalSheet');
-  if (sh) sh.scrollTop = 0;
+  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };

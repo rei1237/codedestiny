@@ -2,7 +2,7 @@
   Cache version: v12 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v13';
+const CACHE_NAME = 'kkul-mansaeryeok-v14';
 
 const PRECACHE_URLS = [
   '/',
