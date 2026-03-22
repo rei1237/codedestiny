@@ -539,7 +539,7 @@ async function resolvePrimaryCalendarContext(input, options) {
   options = options || {};
   var norm = Object.assign({}, input || {});
   norm.calendarType = normalizeCalendarTypeInput(norm.calendarType || norm.calType || 'solar');
-  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : true;
+  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : false;
 
   var hasCompleteCalendar = function(ctx) {
     return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
@@ -603,7 +603,7 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
   var parts = String(dateStr).split('-').map(function(v) { return parseInt(v, 10); });
   if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
   var opts = options || {};
-  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : true;
+  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : false;
   var ctx = await resolvePrimaryCalendarContext({
     calendarType: normalizeCalendarTypeInput(typeStr || 'solar'),
     year: parts[0],
@@ -5199,7 +5199,7 @@ var AstroEngine = (function(){
 
     function calcAll(year,mon,day,localHour,lat,lon,tzOff,options){
       var opts=options||{};
-      var strictPrecision = (window.ASTRO_STRICT_PRECISION !== undefined) ? !!window.ASTRO_STRICT_PRECISION : true;
+      var strictPrecision = (window.ASTRO_STRICT_PRECISION !== undefined) ? !!window.ASTRO_STRICT_PRECISION : false;
       var n=normalizeLocalToUTC(year,mon,day,localHour,tzOff||0);
       var jdUT=calcJulianDayUTC(n.year,n.month,n.day,n.utcHour);
       var dt=calcDeltaTSeconds(year + (mon-0.5)/12);

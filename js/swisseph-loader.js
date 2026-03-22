@@ -8,7 +8,7 @@
 		source: null,
 		attempts: []
 	};
-	window.ASTRO_STRICT_PRECISION = true;
+	window.ASTRO_STRICT_PRECISION = false;
 
 	function getSwissEphModuleCandidates() {
 		var candidates = [];
@@ -123,7 +123,7 @@
 		window.__swissephBridge.ready = false;
 		window.__swissephBridge.precision = 'unavailable';
 		window.__swissephBridge.error = String((err && err.message) || err || 'SwissEph init failed');
-		window.ASTRO_STRICT_PRECISION = true;
+		window.ASTRO_STRICT_PRECISION = false;
 		try {
 			window.dispatchEvent(new CustomEvent('swisseph:error', {
 				detail: { error: window.__swissephBridge.error }
