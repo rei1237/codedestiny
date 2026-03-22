@@ -1,13 +1,52 @@
-import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js';
-
 (function initSwissEphBridge() {
 	if (typeof window === 'undefined') return;
 
 	window.__swissephBridge = {
 		ready: false,
-		precision: 'legacy',
-		error: null
+		precision: 'loading',
+		error: null,
+		source: null,
+		attempts: []
 	};
+	window.ASTRO_STRICT_PRECISION = true;
+
+	function getSwissEphModuleCandidates() {
+		var candidates = [];
+		var custom = String(window.SWISSEPH_WASM_URL || '').trim();
+		if (custom) candidates.push(custom);
+		candidates.push('/js/vendor/swisseph.js');
+		candidates.push('https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js');
+		candidates.push('https://unpkg.com/swisseph-wasm@latest/src/swisseph.js');
+		// Deduplicate while preserving order.
+		var seen = {};
+		return candidates.filter(function(url) {
+			if (!url || seen[url]) return false;
+			seen[url] = true;
+			return true;
+		});
+	}
+
+	async function loadSwissEphCtor() {
+		var urls = getSwissEphModuleCandidates();
+		var errors = [];
+		for (var i = 0; i < urls.length; i++) {
+			var url = urls[i];
+			try {
+				var mod = await import(/* @vite-ignore */ url);
+				var Ctor = (mod && (mod.default || mod.SwissEph || mod)) || null;
+				if (typeof Ctor === 'function') {
+					window.__swissephBridge.attempts = errors.slice();
+					window.__swissephBridge.source = url;
+					return Ctor;
+				}
+				errors.push({ url: url, message: 'module loaded but constructor missing' });
+			} catch (e) {
+				errors.push({ url: url, message: String((e && e.message) || e || 'import failed') });
+			}
+		}
+		window.__swissephBridge.attempts = errors;
+		throw new Error('SwissEph module load failed from all candidates');
+	}
 
 	function toArray(v) {
 		if (!v) return null;
@@ -63,7 +102,8 @@ import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src
 	}
 
 	(async function start() {
-		var swe = new SwissEph();
+		var SwissEphCtor = await loadSwissEphCtor();
+		var swe = new SwissEphCtor();
 		await swe.initSwissEph();
 
 		var bridge = buildBridge(swe);
@@ -81,9 +121,14 @@ import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src
 		}));
 	})().catch(function onError(err) {
 		window.__swissephBridge.ready = false;
-		window.__swissephBridge.precision = 'legacy';
+		window.__swissephBridge.precision = 'unavailable';
 		window.__swissephBridge.error = String((err && err.message) || err || 'SwissEph init failed');
-		window.ASTRO_STRICT_PRECISION = false;
-		console.warn('[SwissEph] init failed; legacy fallback remains active.', err);
+		window.ASTRO_STRICT_PRECISION = true;
+		try {
+			window.dispatchEvent(new CustomEvent('swisseph:error', {
+				detail: { error: window.__swissephBridge.error }
+			}));
+		} catch (_e) {}
+		console.error('[SwissEph] init failed; strict precision keeps service-loading state.', err);
 	});
 })();

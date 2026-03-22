@@ -539,6 +539,7 @@ async function resolvePrimaryCalendarContext(input, options) {
   options = options || {};
   var norm = Object.assign({}, input || {});
   norm.calendarType = normalizeCalendarTypeInput(norm.calendarType || norm.calType || 'solar');
+  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : true;
 
   var hasCompleteCalendar = function(ctx) {
     return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
@@ -577,6 +578,10 @@ async function resolvePrimaryCalendarContext(input, options) {
     return ctx;
   }
 
+  if (strictKasi && !localOnly) {
+    return null;
+  }
+
   if (hasCompleteCalendar(localCtx)) {
     try {
       if (ctx && ctx.meta && Array.isArray(ctx.meta.diagnostics)) {
@@ -598,6 +603,7 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
   var parts = String(dateStr).split('-').map(function(v) { return parseInt(v, 10); });
   if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
   var opts = options || {};
+  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : true;
   var ctx = await resolvePrimaryCalendarContext({
     calendarType: normalizeCalendarTypeInput(typeStr || 'solar'),
     year: parts[0],
@@ -622,6 +628,7 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
     };
   }
 
+  if (strictKasi) return null;
   return getActualSolarDate(dateStr, normalizeCalendarTypeInput(typeStr || 'solar'));
 }
 
@@ -4901,7 +4908,7 @@ var AstroEngine = (function(){
 
     function calcAll(year,mon,day,localHour,lat,lon,tzOff,options){
       var opts=options||{};
-      var strictPrecision = (window.ASTRO_STRICT_PRECISION !== undefined) ? !!window.ASTRO_STRICT_PRECISION : false;
+      var strictPrecision = (window.ASTRO_STRICT_PRECISION !== undefined) ? !!window.ASTRO_STRICT_PRECISION : true;
       var n=normalizeLocalToUTC(year,mon,day,localHour,tzOff||0);
       var jdUT=calcJulianDayUTC(n.year,n.month,n.day,n.utcHour);
       var dt=calcDeltaTSeconds(year + (mon-0.5)/12);
@@ -4971,8 +4978,24 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
 function renderAstroApiUnavailable(reason) {
   var area = document.getElementById('astroResult');
   if (!area) return;
+  var bridge = (typeof window !== 'undefined' && window.__swissephBridge) ? window.__swissephBridge : null;
+  var source = bridge && bridge.source ? String(bridge.source) : '';
+  var attemptHint = '';
+  try {
+    if (bridge && Array.isArray(bridge.attempts) && bridge.attempts.length) {
+      attemptHint = bridge.attempts.map(function(a){
+        return (a && a.url ? a.url : 'unknown') + ' -> ' + (a && a.message ? a.message : 'failed');
+      }).slice(0, 2).join(' / ');
+    }
+  } catch (_e) {}
   var msg = String(reason || 'SwissEph API 초기화 실패')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  var sourceMsg = source
+    ? ('<p style="margin:6px 0 0 0;color:#94a3b8;">로드 소스: ' + source.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>')
+    : '';
+  var attemptMsg = attemptHint
+    ? ('<p style="margin:6px 0 0 0;color:#94a3b8;">시도 로그: ' + attemptHint.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>')
+    : '';
   area.innerHTML = ''
     + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
     + '<div class="astro-section" style="border-left:4px solid #ef4444;background:rgba(15,23,42,0.7);">'
@@ -4980,6 +5003,8 @@ function renderAstroApiUnavailable(reason) {
     + '<div class="astro-desc" style="line-height:1.7;">'
     + '<p style="margin:0;">점성술은 SwissEph API 기반 계산만 표시하도록 설정되어 있습니다.</p>'
     + '<p style="margin:8px 0 0 0;color:#cbd5e1;">원인: ' + msg + '</p>'
+    + sourceMsg
+    + attemptMsg
     + '</div></div></div>';
 }
 

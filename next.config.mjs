@@ -42,6 +42,12 @@ const nextConfig = {
     imageSizes: [16, 32, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 365,
   },
+  // Keep native SwissEph package resolution stable in server runtimes.
+  serverExternalPackages: ['swisseph'],
+  // Include ephemeris data paths in traced server bundle when native swisseph is used.
+  outputFileTracingIncludes: {
+    '/*': ['./public/ephe/**/*', './node_modules/swisseph/**/*'],
+  },
   async headers() {
     const immutable = 'public, max-age=31536000, immutable';
     return [
