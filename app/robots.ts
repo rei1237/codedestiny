@@ -9,7 +9,10 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/api", "/*?utm_*", "/*?fbclid=*", "/*?gclid=*"],
       },
     ],
-    sitemap: "https://code-destiny.com/sitemap.xml",
+    sitemap: [
+      "https://code-destiny.com/sitemap.xml",
+      "https://code-destiny.com/rss.xml",
+    ],
     host: "https://code-destiny.com",
   };
 }

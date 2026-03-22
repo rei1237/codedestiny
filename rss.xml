@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Code Destiny Insights RSS</title>
+    <link>https://code-destiny.com/insights</link>
+    <description>사주·타로·자미두수·점성술 인사이트 업데이트 피드</description>
+    <language>ko</language>
+    <lastBuildDate>Sun, 22 Mar 2026 16:16:46 GMT</lastBuildDate>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <generator>Code Destiny RSS Generator</generator>
+    <ttl>60</ttl>
+    <atom:link href="https://code-destiny.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>사주 명리학 기초</title>
+      <link>https://code-destiny.com/insights/saju-four-pillars-basics</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/saju-four-pillars-basics</guid>
+      <description>사주명리학의 핵심인 사주팔자, 천간·지지, 음양오행의 관계를 한 번에 이해하는 입문 가이드입니다.</description>
+      <category>사주 기초</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>십천간(十天干) 실전 해석 포인트</title>
+      <link>https://code-destiny.com/insights/ten-heavenly-stems-practical</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ten-heavenly-stems-practical</guid>
+      <description>갑을병정무기경신임계의 기질과 대인관계/일 방식에서 나타나는 실전 해석 기준을 설명합니다.</description>
+      <category>사주 기초</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>십이지지(十二地支)와 계절성 해석</title>
+      <link>https://code-destiny.com/insights/twelve-earthly-branches-and-seasons</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/twelve-earthly-branches-and-seasons</guid>
+      <description>지지의 계절성과 지장간, 충·합 관계가 실제 운세 문장에서 어떻게 쓰이는지 설명합니다.</description>
+      <category>사주 기초</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>십성(十星) 입문 지도: 비겁·식상·재성·관성·인성</title>
+      <link>https://code-destiny.com/insights/ten-gods-beginner-map</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ten-gods-beginner-map</guid>
+      <description>십성의 개념을 관계/일/학습/재무 관점으로 풀어낸 초보자용 가이드입니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>용신(用神) 사고법: 단정 대신 조건으로 읽기</title>
+      <link>https://code-destiny.com/insights/yongshin-how-to-think</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/yongshin-how-to-think</guid>
+      <description>용신 해석의 기본과 흔한 오해, 콘텐츠에 안전하게 적용하는 방법을 다룹니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>병오년(丙午年) 핵심 해석: 드러남과 질서 재정립</title>
+      <link>https://code-destiny.com/insights/byeongo-year-reorder-signals</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/byeongo-year-reorder-signals</guid>
+      <description>병오년의 불(火) 기운이 개인의 관계·일·학습에서 어떤 방식으로 &apos;드러남&apos;과 &apos;위계 재정립&apos;을 만들 수 있는지 설명합니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>타로 메이저 아르카나 22장 상징 읽기</title>
+      <link>https://code-destiny.com/insights/tarot-major-arcana-symbols</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-major-arcana-symbols</guid>
+      <description>메이저 아르카나의 상징 체계를 스토리 흐름으로 정리한 학습형 콘텐츠입니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>타로 0번부터 21번까지: 이미지로 배우는 메이저 아르카나</title>
+      <link>https://code-destiny.com/insights/tarot-major-arcana-0-to-21-with-images</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-major-arcana-0-to-21-with-images</guid>
+      <description>0번 바보부터 21번 세계까지, 카드 이미지를 보며 핵심 의미와 해석 접근법을 단계적으로 익히는 입문 가이드입니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>역방향 카드 해석 프레임워크</title>
+      <link>https://code-destiny.com/insights/tarot-reversed-card-framework</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-reversed-card-framework</guid>
+      <description>역방향 카드를 부정으로 단정하지 않고 해석하는 안전한 프레임워크를 제시합니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>타로 스프레드 설계 원칙</title>
+      <link>https://code-destiny.com/insights/tarot-spread-design-principles</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-spread-design-principles</guid>
+      <description>3카드, 4카드, 관계 스프레드 등 질문 목적에 맞는 스프레드 설계법을 설명합니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>서양 점성술과 사주명리학의 차이</title>
+      <link>https://code-destiny.com/insights/astrology-vs-saju-differences</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/astrology-vs-saju-differences</guid>
+      <description>별자리 점성술과 사주명리학이 무엇을 중심으로 읽는지 비교해 설명합니다.</description>
+      <category>비교 가이드</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>운세 질문을 깊게 만드는 질문 설계법</title>
+      <link>https://code-destiny.com/insights/structured-data-for-fortune-sites</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/structured-data-for-fortune-sites</guid>
+      <description>사주·타로 상담 전 질문을 정리해 더 정확한 해석을 끌어내는 방법을 소개합니다.</description>
+      <category>점성술</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>초보자를 위한 타로 카드 학습 체크리스트</title>
+      <link>https://code-destiny.com/insights/adsense-ready-content-checklist</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/adsense-ready-content-checklist</guid>
+      <description>타로를 처음 배우는 고객이 기본기를 빠르게 익히도록 돕는 학습 체크리스트입니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>사주와 타로를 함께 보는 통합 해석 입문</title>
+      <link>https://code-destiny.com/insights/copyright-safe-writing-for-fortune</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/copyright-safe-writing-for-fortune</guid>
+      <description>사주와 타로를 서로 보완적으로 읽어 현실적인 조언을 만드는 기본법을 설명합니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점(宿曜占) 입문: 27수로 읽는 관계와 리듬</title>
+      <link>https://code-destiny.com/insights/sukuyo-lunar-mansion-primer</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-lunar-mansion-primer</guid>
+      <description>숙요점의 27수 체계와 관계 해석 기본, 현대적으로 안전하게 활용하는 방법을 정리합니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>베다점(Jyotish) 기초: 라시와 나밤샤를 함께 읽는 법</title>
+      <link>https://code-destiny.com/insights/vedic-astrology-navamsa-basics</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/vedic-astrology-navamsa-basics</guid>
+      <description>베다점성술의 기본 차트 구조와 해석 순서를 초보자 눈높이로 설명합니다.</description>
+      <category>베다점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미두수(紫微斗數) 핵심성 입문 가이드</title>
+      <link>https://code-destiny.com/insights/ziwei-doushu-stars-intro</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-doushu-stars-intro</guid>
+      <description>자미두수의 주성/보성 구조와 해석 순서를 간결하게 정리한 입문 콘텐츠입니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>점성술 하우스 12영역 빠른 이해</title>
+      <link>https://code-destiny.com/insights/astrology-houses-quick-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/astrology-houses-quick-guide</guid>
+      <description>서양 점성술 하우스 12영역을 삶의 질문으로 연결해 설명하는 실전 가이드입니다.</description>
+      <category>점성술</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>천동성(天同)은 무엇인가: 궁위별 특징 한눈에 보기</title>
+      <link>https://code-destiny.com/insights/ziwei-tiandong-meaning-and-palaces</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-tiandong-meaning-and-palaces</guid>
+      <description>천동성의 기본 성향과 명궁·재백궁·관록궁·부처궁에 있을 때의 해석 포인트를 고객 눈높이로 설명합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>무곡성(武曲)은 무엇인가: 돈·일·책임 해석법</title>
+      <link>https://code-destiny.com/insights/ziwei-wugok-meaning-and-palaces</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-wugok-meaning-and-palaces</guid>
+      <description>무곡성의 핵심 성향과 궁위별 작동 방식, 특히 관록궁/재백궁에서의 실전 해석 포인트를 다룹니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미성(紫微)은 무엇인가: 리더십과 중심축 해석</title>
+      <link>https://code-destiny.com/insights/ziwei-ziwei-star-beginner-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-ziwei-star-beginner-guide</guid>
+      <description>자미성이 명궁·관록궁·천이궁에 위치할 때 나타나는 리더십과 책임 구조를 초보자용으로 설명합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>천부성(天府) 해석: 안정, 자산, 신뢰의 별</title>
+      <link>https://code-destiny.com/insights/ziwei-tianfu-star-wealth-and-stability</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-tianfu-star-wealth-and-stability</guid>
+      <description>천부성의 안정적 성향과 재백궁/복덕궁/관록궁에서의 작동 원리를 고객 관점으로 풀어냅니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>태양성·태음성 차이: 자미두수 음양 밸런스 읽기</title>
+      <link>https://code-destiny.com/insights/ziwei-sun-moon-balance</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-sun-moon-balance</guid>
+      <description>태양성과 태음성의 성향 차이와 궁위별 해석 포인트를 통해 관계·커리어에서의 균형을 설명합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미두수 12궁 핵심: 관록궁·재백궁·부처궁 빠른 해석</title>
+      <link>https://code-destiny.com/insights/ziwei-palaces-career-finance-love</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-palaces-career-finance-love</guid>
+      <description>자미두수에서 고객이 가장 궁금해하는 일·돈·연애 영역 중심으로 12궁 해석의 핵심을 정리합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>록존·화기 실전 해석: 기회와 과열 신호 구분하기</title>
+      <link>https://code-destiny.com/insights/ziwei-lucun-and-huaji-practical</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-lucun-and-huaji-practical</guid>
+      <description>자미두수에서 자주 궁금해하는 록존/화기 성향을 일상 의사결정에 적용하는 방법을 안내합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미두수 별 조합 입문: 천동·무곡·태음 함께 읽는 법</title>
+      <link>https://code-destiny.com/insights/ziwei-star-combinations-for-beginners</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-star-combinations-for-beginners</guid>
+      <description>별 하나가 아닌 조합으로 읽어야 정확해지는 이유와 고객이 바로 적용할 수 있는 조합 해석법을 제공합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>명궁 자가분석 체크리스트: 자미두수를 일상에 쓰는 법</title>
+      <link>https://code-destiny.com/insights/ziwei-minggong-self-analysis-checklist</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-minggong-self-analysis-checklist</guid>
+      <description>명궁 중심으로 성향을 점검하고 일·돈·관계 행동전략으로 바꾸는 고객용 체크리스트입니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미두수 14주성 완전정리: 모든 별의 뜻과 궁위별 해석</title>
+      <link>https://code-destiny.com/insights/ziwei-14-main-stars-complete-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-14-main-stars-complete-guide</guid>
+      <description>자미두수의 14주성(자미·천기·태양·무곡·천동·염정·천부·태음·탐랑·거문·천상·천량·칠살·파군)을 고객 관점으로 구체적으로 설명합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>사주 12운성 완전입문: 장생부터 양까지 쉽게 읽는 법</title>
+      <link>https://code-destiny.com/insights/saju-12-unseong-complete-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/saju-12-unseong-complete-guide</guid>
+      <description>12운성(장생·목욕·관대·건록·제왕·쇠·병·사·묘·절·태·양)의 의미를 고객 눈높이로 정리하고 실생활 해석 포인트를 안내합니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>십성으로 보는 직업·적성: 내 일머리 캐릭터 찾기</title>
+      <link>https://code-destiny.com/insights/ten-gods-career-aptitude-fun-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ten-gods-career-aptitude-fun-guide</guid>
+      <description>비겁·식상·재성·관성·인성 십성을 직업 성향과 일 스타일로 재미있게 풀어낸 고객용 가이드입니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>사주 궁합 보는 법: 오행 밸런스로 재미있게 읽기</title>
+      <link>https://code-destiny.com/insights/saju-compatibility-fun-method</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/saju-compatibility-fun-method</guid>
+      <description>사주 궁합을 일간·오행·십성 관점으로 쉽게 읽는 고객용 가이드입니다. 서로 맞는 포인트와 부딪히는 포인트를 실전적으로 정리합니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>타로 궁합 리딩 게임: 3카드로 서로의 마음 읽기</title>
+      <link>https://code-destiny.com/insights/tarot-compatibility-reading-game</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-compatibility-reading-game</guid>
+      <description>타로로 궁합을 볼 때 바로 써먹을 수 있는 3카드/5카드 스프레드와 질문 템플릿을 제공합니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 궁합 보는 법: 27수 리듬 맞추기</title>
+      <link>https://code-destiny.com/insights/sukuyo-compatibility-rhythm-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-compatibility-rhythm-guide</guid>
+      <description>숙요점 궁합을 관계 리듬과 소통 속도로 읽는 고객용 실전 가이드입니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>베다점 궁합 입문: 구나매칭과 생활 궁합 읽기</title>
+      <link>https://code-destiny.com/insights/vedic-compatibility-synastry-basics</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/vedic-compatibility-synastry-basics</guid>
+      <description>베다점성술 궁합에서 자주 쓰는 구나 매칭 관점과 실생활 적용법을 고객 눈높이로 설명합니다.</description>
+      <category>베다점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>점성술 궁합 보는 법: 시너스트리로 케미 읽기</title>
+      <link>https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide</guid>
+      <description>태양·달·금성·화성 시너스트리 관점으로 연애/우정 궁합을 재밌게 이해하는 가이드입니다.</description>
+      <category>점성술</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>자미두수 궁합 보는 법: 부처궁·명궁 중심 실전 가이드</title>
+      <link>https://code-destiny.com/insights/ziwei-compatibility-palace-method</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/ziwei-compatibility-palace-method</guid>
+      <description>자미두수에서 궁합을 볼 때 꼭 확인할 부처궁·명궁·복덕궁 포인트를 재미있게 정리합니다.</description>
+      <category>자미두수</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>오행별 성격 완전정리: 목화토금수 성향을 깊게 읽는 법</title>
+      <link>https://code-destiny.com/insights/five-elements-personality-deep-dive</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/five-elements-personality-deep-dive</guid>
+      <description>사주 오행(木火土金水)별 성격 특징을 강점·약점·관계 스타일·일 방식까지 자세히 설명하는 고객용 가이드입니다.</description>
+      <category>사주 심화</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 27수란 무엇인가: 처음 보는 사람도 이해하는 설명</title>
+      <link>https://code-destiny.com/insights/sukuyo-what-is-27-lunar-mansions</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-what-is-27-lunar-mansions</guid>
+      <description>숙요점의 핵심인 27수 개념을 아주 쉽게 설명합니다. 번역기로 읽어도 의미가 잘 전달되도록 짧고 직관적으로 구성했습니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 3분류 이해: 근거리·중거리·원거리 감각 잡기</title>
+      <link>https://code-destiny.com/insights/sukuyo-three-group-types-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-three-group-types-guide</guid>
+      <description>숙요점에서 자주 나오는 거리감 개념을 쉽게 정리합니다. 관계에서 왜 속도 차이가 나는지 직관적으로 이해할 수 있습니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 궁합 체크리스트 7가지: 오늘 바로 써먹기</title>
+      <link>https://code-destiny.com/insights/sukuyo-compatibility-simple-checklist</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-compatibility-simple-checklist</guid>
+      <description>숙요 궁합을 점수 대신 행동으로 확인하는 쉬운 체크리스트입니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 연애 소통법: 싸움 줄이는 간단 규칙</title>
+      <link>https://code-destiny.com/insights/sukuyo-love-communication-rules</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-love-communication-rules</guid>
+      <description>숙요 궁합을 연애에 적용할 때 가장 효과적인 소통 규칙을 쉽고 짧게 정리했습니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점으로 보는 친구·팀워크: 같이 일할 때 궁합 읽기</title>
+      <link>https://code-destiny.com/insights/sukuyo-friendship-teamwork-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-friendship-teamwork-guide</guid>
+      <description>연애뿐 아니라 친구 관계, 팀 프로젝트에도 숙요점을 적용하는 쉬운 방법입니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 일상 활용법: 하루 리듬을 읽는 간단 루틴</title>
+      <link>https://code-destiny.com/insights/sukuyo-day-by-day-rhythm-usage</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-day-by-day-rhythm-usage</guid>
+      <description>숙요점을 매일 가볍게 활용하는 방법을 안내합니다. 복잡한 계산 없이 실천 중심으로 구성했습니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 초보 용어 사전: 어려운 말 쉽게 바꾸기</title>
+      <link>https://code-destiny.com/insights/sukuyo-beginner-terms-easy-dictionary</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-beginner-terms-easy-dictionary</guid>
+      <description>숙요점에서 자주 나오는 용어를 쉬운 표현으로 바꾼 고객용 사전입니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 자주 묻는 질문 10선: 헷갈리는 포인트 정리</title>
+      <link>https://code-destiny.com/insights/sukuyo-qa-most-asked-questions</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-qa-most-asked-questions</guid>
+      <description>숙요점 입문자가 가장 많이 묻는 질문을 짧고 분명하게 답한 Q&amp;A형 콘텐츠입니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>숙요점 27숙 수호 동물 대백과: 특징과 유래를 쉽게 읽기</title>
+      <link>https://code-destiny.com/insights/sukuyo-27-guardian-animals-origin-guide</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/sukuyo-27-guardian-animals-origin-guide</guid>
+      <description>숙요점 27숙별 수호 동물의 대표 해석과 유래를 쉽고 직관적으로 정리했습니다. 번역기로 읽어도 이해되도록 짧은 문장 중심으로 구성했습니다.</description>
+      <category>숙요점</category>
+      <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

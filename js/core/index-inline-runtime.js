@@ -3983,7 +3983,7 @@ function _dpPickerHTML(profiles, type, theme, backFn) {
     h += '<div data-action="_dpSelect" data-action-args="' + p.id + ',' + type + '" '
       + 'style="display:flex;align-items:center;gap:13px;padding:13px 15px;cursor:pointer;'
       + 'background:rgba(255,255,255,0.03);border:1px solid rgba(' + theme.br + ',0.22);'
-      + 'border-radius:14px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">'
+      + 'border-radius:14px;touch-action:pan-y;-webkit-tap-highlight-color:transparent;">'
       + '<div style="font-size:1.9rem;flex-shrink:0;">' + zodiac + '</div>'
       + '<div style="flex:1;min-width:0;">'
       + '<div style="font-family:\'Gowun Dodum\',serif;font-size:0.92rem;color:rgba(255,255,255,0.88);font-weight:700;margin-bottom:3px;">'

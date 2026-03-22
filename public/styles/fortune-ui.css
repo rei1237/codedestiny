@@ -657,9 +657,10 @@ input:checked + .slider .paw-pad {
 
 .modal-top-nav{
   width:100%;
-  display:flex;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
   align-items:center;
-  justify-content:space-between;
+  column-gap:8px;
   padding:env(safe-area-inset-top,0px) 16px 0;
   height:calc(54px + env(safe-area-inset-top,0px));
   flex-shrink:0;
@@ -673,6 +674,7 @@ input:checked + .slider .paw-pad {
 .modal-nav-home{
   display:flex;
   align-items:center;
+  justify-self:start;
   gap:5px;
   background:transparent;
   border:none;
@@ -684,6 +686,11 @@ input:checked + .slider .paw-pad {
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
   letter-spacing:.5px;
+  white-space:nowrap;
+  min-width:44px;
+  min-height:44px;
+  position:relative;
+  z-index:2;
 }
 .modal-nav-home-juyuk{color:rgba(220,185,80,0.9)}
 .modal-nav-home-sukuyo{color:rgba(180,150,255,0.9)}
@@ -695,6 +702,11 @@ input:checked + .slider .paw-pad {
   font-size:.82rem;
   letter-spacing:2.5px;
   pointer-events:none;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-align:center;
 }
 .modal-nav-title-juyuk{color:rgba(255,200,70,0.65)}
 .modal-nav-title-sukuyo{color:rgba(167,139,250,0.65)}
@@ -702,6 +714,7 @@ input:checked + .slider .paw-pad {
 .modal-nav-title-ziwei{color:rgba(232,121,249,0.65)}
 
 .modal-nav-close{
+  justify-self:end;
   position:relative;
   z-index:2;
   background:transparent;
@@ -715,6 +728,22 @@ input:checked + .slider .paw-pad {
   border-radius:10px;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
+}
+
+@media (max-width:768px){
+  .modal-top-nav{padding:env(safe-area-inset-top,0px) 10px 0;column-gap:4px}
+  .modal-nav-home{font-size:.78rem;padding:8px 2px;gap:3px}
+  .modal-nav-home svg{width:14px;height:14px}
+  .modal-nav-title{font-size:.68rem;letter-spacing:1.1px}
+  .modal-nav-close{font-size:.66rem;padding:8px 8px}
+}
+
+@media (max-width:360px){
+  .modal-top-nav{padding:env(safe-area-inset-top,0px) 8px 0;column-gap:2px}
+  .modal-nav-home{font-size:.72rem;padding:8px 0;gap:2px}
+  .modal-nav-close{font-size:.62rem;padding:8px 6px}
+  .modal-nav-title{font-size:.62rem;letter-spacing:.7px}
 }
 .modal-nav-close-juyuk{border:1px solid rgba(220,185,80,0.45);color:rgba(220,185,80,0.9)}
 .modal-nav-close-sukuyo{border:1px solid rgba(180,150,255,0.4);color:rgba(180,150,255,0.9)}

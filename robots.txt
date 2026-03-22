@@ -13,3 +13,4 @@ Disallow: /*?gclid=*
 Host: https://code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
+Sitemap: https://code-destiny.com/rss.xml

@@ -23,6 +23,9 @@ export async function GET(request: Request, { params }: { params: { adminHash: s
   if (lower === "sitemap.xml") {
     return NextResponse.rewrite(new URL("/sitemap.xml", request.url));
   }
+  if (lower === "rss.xml") {
+    return NextResponse.rewrite(new URL("/rss.xml", request.url));
+  }
   if (lower === "manifest.json") {
     return NextResponse.rewrite(new URL("/manifest.json", request.url));
   }
