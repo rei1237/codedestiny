@@ -9876,7 +9876,7 @@ function renderZiwei(p, natal, targetId) {
   background: rgba(2, 6, 23, 0.8);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 100020;
+  z-index: 2147483000;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease;
@@ -10018,14 +10018,16 @@ function renderZiwei(p, natal, targetId) {
     gap: 3px;
   }
   .zwp-modal-overlay {
+    --zwp-sheet-top-gap: clamp(88px, 14vh, 136px);
     align-items: flex-end;
     justify-content: center;
-    padding: max(72px, env(safe-area-inset-top, 0px)) 0 0;
+    padding: var(--zwp-sheet-top-gap) 0 0;
   }
   .zwp-modal {
     width: 100%;
     max-width: 100%;
-    max-height: calc(74dvh - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - var(--zwp-sheet-top-gap) - env(safe-area-inset-bottom, 0px));
+    min-height: min(60dvh, 560px);
     border-radius: 20px 20px 0 0;
     border-bottom: none;
     padding: 0;
@@ -10045,6 +10047,8 @@ function renderZiwei(p, natal, targetId) {
     margin: 0 auto 8px;
   }
   .zwp-modal-body {
+    font-size: 0.95rem;
+    line-height: 1.8;
     padding: 10px 14px max(24px, env(safe-area-inset-bottom, 24px));
   }
 }
