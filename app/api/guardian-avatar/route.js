@@ -1,0 +1,301 @@
+import { NextResponse } from "next/server";
+
+const GEMINI_ENDPOINT_TEMPLATE =
+  "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+function pickGeminiApiKeys() {
+  const keys = [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  return [...new Set(keys)];
+}
+
+function modelName() {
+  return String(process.env.GUARDIAN_AVATAR_GEMINI_MODEL || process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash");
+}
+
+function safeInt(v, d) {
+  const n = Number.parseInt(v, 10);
+  return Number.isNaN(n) ? d : n;
+}
+
+function analyzeSajuVisual(profile) {
+  const birth = (profile && profile.birth) || {};
+  const year = safeInt(birth.year, 2000);
+  const month = safeInt(birth.month, 1);
+  const day = safeInt(birth.day, 1);
+  const hour = safeInt(birth.hour, 12);
+
+  const stemElements = ["wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water"];
+  const branchElements = ["water", "earth", "wood", "wood", "earth", "fire", "fire", "earth", "metal", "metal", "earth", "water"];
+
+  const weights = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 };
+  const stemIdx = ((year - 4) % 10 + 10) % 10;
+  const yearBranchIdx = ((year - 4) % 12 + 12) % 12;
+  const hourBranchIdx = Math.floor((((hour + 1) % 24) / 2));
+  const seasonElement = month >= 3 && month <= 5 ? "wood" : month >= 6 && month <= 8 ? "fire" : month >= 9 && month <= 11 ? "metal" : "water";
+  const dayElement = ["wood", "fire", "earth", "metal", "water"][Math.abs(year + month + day) % 5];
+
+  weights[stemElements[stemIdx]] += 3;
+  weights[branchElements[yearBranchIdx]] += 2;
+  weights[branchElements[hourBranchIdx]] += 1;
+  weights[seasonElement] += 2;
+  weights[dayElement] += 2;
+
+  let dominant = "earth";
+  ["wood", "fire", "earth", "metal", "water"].forEach((k) => {
+    if (weights[k] > weights[dominant]) dominant = k;
+  });
+
+  const exprMap = {
+    wood: "호기심 가득한 생기 있는 미소",
+    fire: "열정적이고 활기찬 밝은 미소",
+    earth: "포근하고 안정적인 따뜻한 미소",
+    metal: "또렷하고 결의 있는 자신감 표정",
+    water: "차분하고 신비로운 깊은 미소",
+  };
+
+  const bgMap = {
+    wood: "연두빛 숲과 덩굴, 바람결",
+    fire: "따뜻한 노을, 빛 입자, 황금 광채",
+    earth: "파스텔 언덕, 꽃밭, 흙빛 오브제",
+    metal: "은빛 수정, 별가루, 금속성 하이라이트",
+    water: "달빛 물결, 안개, 구름",
+  };
+
+  return {
+    dominantElement: dominant,
+    fiveElements: weights,
+    facialExpression: exprMap[dominant] || "부드러운 미소",
+    backgroundMotif: bgMap[dominant] || "파스텔 자연 배경",
+    summary:
+      "오행 중심: " +
+      dominant +
+      " (wood " +
+      weights.wood +
+      ", fire " +
+      weights.fire +
+      ", earth " +
+      weights.earth +
+      ", metal " +
+      weights.metal +
+      ", water " +
+      weights.water +
+      ")",
+  };
+}
+
+function fallbackSvg(profileName, visual) {
+  const name = String(profileName || "My Guardian").slice(0, 24);
+  const emoji = { wood: "🦊", fire: "🦁", earth: "🐻", metal: "🦉", water: "🐬" }[visual.dominantElement] || "🦊";
+  const tone = {
+    wood: ["#bbf7d0", "#86efac", "#4ade80"],
+    fire: ["#fed7aa", "#fdba74", "#fb923c"],
+    earth: ["#fde68a", "#fcd34d", "#f59e0b"],
+    metal: ["#e2e8f0", "#cbd5e1", "#94a3b8"],
+    water: ["#bfdbfe", "#93c5fd", "#60a5fa"],
+  }[visual.dominantElement] || ["#ddd6fe", "#c4b5fd", "#a78bfa"];
+
+  const esc = (s) =>
+    String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">',
+    '<defs><radialGradient id="g" cx="50%" cy="35%" r="70%">',
+    '<stop offset="0%" stop-color="' + tone[0] + '"/>',
+    '<stop offset="65%" stop-color="' + tone[1] + '"/>',
+    '<stop offset="100%" stop-color="' + tone[2] + '"/>',
+    '</radialGradient></defs>',
+    '<rect width="512" height="512" rx="40" fill="url(#g)"/>',
+    '<circle cx="256" cy="245" r="130" fill="#fff" fill-opacity="0.82"/>',
+    '<text x="256" y="275" text-anchor="middle" font-size="120">' + esc(emoji) + '</text>',
+    '<text x="256" y="405" text-anchor="middle" font-size="28" font-family="Arial" font-weight="700" fill="#1f2937">' + esc(name) + '</text>',
+    '<text x="256" y="438" text-anchor="middle" font-size="18" font-family="Arial" fill="#334155">Guardian Avatar</text>',
+    '</svg>',
+  ].join("");
+}
+
+function normalizeSvg(raw, profileName, visual) {
+  const text = String(raw || "").trim();
+  const m = text.match(/<svg[\s\S]*<\/svg>/i);
+  if (m && m[0]) return m[0];
+  return fallbackSvg(profileName, visual);
+}
+
+function toDataUri(svg) {
+  const b64 = Buffer.from(String(svg || ""), "utf8").toString("base64");
+  return "data:image/svg+xml;base64," + b64;
+}
+
+function buildPrompt(profile, visual) {
+  const name = (profile && profile.name) || "사용자";
+  const birth = (profile && profile.birth) || {};
+  const loc = (profile && profile.location) || {};
+  return [
+    "너는 사주 기반 캐릭터 디렉터다.",
+    "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
+    "SVG는 512x512, 귀여운 파스텔 톤, 동화풍, 저작권 문제 없는 오리지널로 생성하라.",
+    "사주 성향 기반 표정과 오행 기반 배경을 반드시 반영하라.",
+    "사용자 프로필:",
+    JSON.stringify({
+      name,
+      birth: {
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute,
+        calType: birth.calType,
+      },
+      location: {
+        label: loc.label,
+        tz: loc.tz,
+        lat: loc.lat,
+        lng: loc.lng,
+      },
+      sajuVisual: visual,
+    }),
+    "출력 스키마:",
+    "{",
+    '  "title": "string",',
+    '  "summary": "string",',
+    '  "facial_expression": "string",',
+    '  "background_motif": "string",',
+    '  "illustration_prompt": "string",',
+    '  "svg": "<svg ...>...</svg>"',
+    "}",
+  ].join("\n");
+}
+
+function parseGeminiText(payload) {
+  const parts = (((payload || {}).candidates || [])[0] || {}).content?.parts || [];
+  return parts.map((p) => (p && p.text ? p.text : "")).join("\n").trim();
+}
+
+function parseJson(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const m = String(text || "").match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try {
+      return JSON.parse(m[0]);
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function callGemini(profile, visual) {
+  const keys = pickGeminiApiKeys();
+  if (!keys.length) {
+    throw Object.assign(new Error("GEMINI_API_KEY 또는 GOOGLE_API_KEY가 필요합니다."), { status: 500 });
+  }
+
+  const model = modelName();
+  const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
+  const prompt = buildPrompt(profile, visual);
+
+  let lastError = null;
+  for (const key of keys) {
+    try {
+      const res = await fetch(endpoint + "?key=" + encodeURIComponent(key), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.85,
+            topP: 0.95,
+            maxOutputTokens: 2800,
+            responseMimeType: "application/json",
+          },
+        }),
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        lastError = new Error(payload?.error?.message || payload?.message || "Gemini call failed");
+        continue;
+      }
+
+      const rawText = parseGeminiText(payload);
+      const obj = parseJson(rawText);
+      if (!obj) {
+        lastError = new Error("Gemini JSON parse failed");
+        continue;
+      }
+
+      return {
+        title: String(obj.title || "나의 가디언 아바타").trim(),
+        summary: String(obj.summary || visual.summary || "사주 기반 가디언 아바타").trim(),
+        facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
+        backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
+        illustrationPrompt: String(
+          obj.illustration_prompt ||
+            "귀여운 파스텔톤 동물 가디언, 표정: " + (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif)
+        ).trim(),
+        svg: normalizeSvg(obj.svg, profile?.name, visual),
+      };
+    } catch (e) {
+      lastError = e;
+    }
+  }
+
+  throw lastError || new Error("Gemini 요청에 실패했습니다.");
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const profile = body?.profile || null;
+    if (!profile || !profile.birth) {
+      return NextResponse.json({ ok: false, message: "profile.birth가 필요합니다." }, { status: 400 });
+    }
+
+    const visual = analyzeSajuVisual(profile);
+    let guardian;
+    try {
+      guardian = await callGemini(profile, visual);
+    } catch (_) {
+      const svg = fallbackSvg(profile?.name, visual);
+      guardian = {
+        title: "나의 가디언 아바타",
+        summary: visual.summary,
+        facialExpression: visual.facialExpression,
+        backgroundMotif: visual.backgroundMotif,
+        illustrationPrompt:
+          "귀여운 파스텔톤 동물 가디언, 표정: " + visual.facialExpression + ", 배경: " + visual.backgroundMotif,
+        svg,
+      };
+    }
+
+    return NextResponse.json({
+      ok: true,
+      guardian: {
+        title: guardian.title,
+        summary: guardian.summary,
+        facial_expression: guardian.facialExpression,
+        background_motif: guardian.backgroundMotif,
+        illustration_prompt: guardian.illustrationPrompt,
+        svg_data_uri: toDataUri(guardian.svg),
+        created_at: new Date().toISOString(),
+      },
+      saju_visual: visual,
+    });
+  } catch (error) {
+    console.error("[api/guardian-avatar]", error);
+    return NextResponse.json({ ok: false, message: error?.message || "Unknown error" }, { status: 500 });
+  }
+}

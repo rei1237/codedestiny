@@ -319,8 +319,30 @@
             + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
+        + '<div class="dp-mc-guardian" style="margin-top:12px;padding:10px;border:1px solid rgba(255,215,0,0.22);border-radius:12px;background:rgba(12,18,42,0.45);">'
+          + '<div style="display:flex;align-items:center;gap:10px;">'
+            + '<div style="width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;">'
+              + '<img id="dpGuardianAvatarImg" alt="가디언 아바타" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
+            + '</div>'
+            + '<div style="flex:1;min-width:0;">'
+              + '<div style="font-size:0.82rem;font-weight:800;color:#fef3c7;letter-spacing:0.3px;">나의 가디언 아바타</div>'
+              + '<div id="dpGuardianAvatarMeta" style="margin-top:4px;font-size:0.72rem;line-height:1.35;color:#dbeafe;opacity:0.9;">'
+                + _esc((profile.guardianAvatar && profile.guardianAvatar.summary) || '생년월일 기반 사주 분석으로 표정/배경이 달라지는 아바타를 생성합니다.')
+              + '</div>'
+            + '</div>'
+          + '</div>'
+          + '<button class="dp-mc-guardian-btn" onclick="dpGenerateGuardianAvatar()" style="margin-top:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.45);background:linear-gradient(135deg, rgba(59,130,246,0.22), rgba(56,189,248,0.16));color:#dbeafe;font-weight:700;font-size:0.82rem;touch-action:manipulation;">🖼️ 사주 가디언 아바타 생성</button>'
+        + '</div>'
         + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
+
+    var imgEl = document.getElementById('dpGuardianAvatarImg');
+    if (imgEl) {
+      var uri = profile.guardianAvatar && profile.guardianAvatar.svg_data_uri
+        ? String(profile.guardianAvatar.svg_data_uri)
+        : 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#bfdbfe"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="72" height="72" rx="12" fill="url(#g)"/><text x="36" y="45" text-anchor="middle" font-size="28">' + zodiacEmoji + '</text></svg>');
+      imgEl.src = uri;
+    }
   }
 
   function _emptyCard() {
@@ -682,6 +704,58 @@
     var p = DPStorage.current();
     if (p && p.birth) return p;
     return readFormData();
+  };
+
+  window.dpGenerateGuardianAvatar = async function() {
+    var p = DPStorage.current();
+    if (!p || !p.birth) {
+      _toast('⚠️ 프로필을 먼저 저장해 주세요.', 'warn');
+      return;
+    }
+
+    var btn = document.querySelector('.dp-mc-guardian-btn');
+    var oldText = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '✨ 생성 중...';
+      btn.style.opacity = '0.75';
+    }
+
+    try {
+      var resp = await fetch('/api/guardian-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile: p })
+      });
+      var data = await resp.json().catch(function() { return null; });
+      if (!resp.ok || !data || !data.ok || !data.guardian || !data.guardian.svg_data_uri) {
+        throw new Error((data && data.message) || ('아바타 생성 실패 (' + resp.status + ')'));
+      }
+
+      DPStorage.update(p.id, {
+        guardianAvatar: {
+          svg_data_uri: data.guardian.svg_data_uri,
+          summary: data.guardian.summary || '',
+          facial_expression: data.guardian.facial_expression || '',
+          background_motif: data.guardian.background_motif || '',
+          illustration_prompt: data.guardian.illustration_prompt || '',
+          created_at: data.guardian.created_at || new Date().toISOString()
+        }
+      });
+
+      var updated = DPStorage.current() || p;
+      renderMasterCard(updated);
+      broadcastProfileChange(updated);
+      _toast('🪄 나의 가디언 아바타가 완성되었습니다!', 'success');
+    } catch (err) {
+      _toast('⚠️ 아바타 생성 실패: ' + _esc((err && err.message) || 'unknown error'), 'warn');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = oldText || '🖼️ 사주 가디언 아바타 생성';
+        btn.style.opacity = '';
+      }
+    }
   };
 
   window.dpLoadProfile = function() {
@@ -1074,6 +1148,12 @@
           dpLoadProfile();
           return;
         }
+        var guardianBtn = targetEl.closest('.dp-mc-guardian-btn');
+        if (guardianBtn) {
+          e.preventDefault();
+          if (typeof window.dpGenerateGuardianAvatar === 'function') window.dpGenerateGuardianAvatar();
+          return;
+        }
       }, { passive: false });
     }
 
@@ -1186,5 +1266,7 @@
     resolveTimezoneOffset: resolveTimezoneOffset,
     getTimeZoneOffsetHoursForDate: getTimeZoneOffsetHoursForDate
   };
+
+  window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;
 
 })();
