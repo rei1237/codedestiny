@@ -92,45 +92,10 @@ function analyzeSajuVisual(profile) {
   };
 }
 
-function fallbackSvg(profileName, visual) {
-  const name = String(profileName || "My Guardian").slice(0, 24);
-  const emoji = { wood: "🦊", fire: "🦁", earth: "🐻", metal: "🦉", water: "🐬" }[visual.dominantElement] || "🦊";
-  const tone = {
-    wood: ["#bbf7d0", "#86efac", "#4ade80"],
-    fire: ["#fed7aa", "#fdba74", "#fb923c"],
-    earth: ["#fde68a", "#fcd34d", "#f59e0b"],
-    metal: ["#e2e8f0", "#cbd5e1", "#94a3b8"],
-    water: ["#bfdbfe", "#93c5fd", "#60a5fa"],
-  }[visual.dominantElement] || ["#ddd6fe", "#c4b5fd", "#a78bfa"];
-
-  const esc = (s) =>
-    String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-
-  return [
-    '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">',
-    '<defs><radialGradient id="g" cx="50%" cy="35%" r="70%">',
-    '<stop offset="0%" stop-color="' + tone[0] + '"/>',
-    '<stop offset="65%" stop-color="' + tone[1] + '"/>',
-    '<stop offset="100%" stop-color="' + tone[2] + '"/>',
-    '</radialGradient></defs>',
-    '<rect width="512" height="512" rx="40" fill="url(#g)"/>',
-    '<circle cx="256" cy="245" r="130" fill="#fff" fill-opacity="0.82"/>',
-    '<text x="256" y="275" text-anchor="middle" font-size="120">' + esc(emoji) + '</text>',
-    '<text x="256" y="405" text-anchor="middle" font-size="28" font-family="Arial" font-weight="700" fill="#1f2937">' + esc(name) + '</text>',
-    '<text x="256" y="438" text-anchor="middle" font-size="18" font-family="Arial" fill="#334155">Guardian Avatar</text>',
-    '</svg>',
-  ].join("");
-}
-
-function normalizeSvg(raw, profileName, visual) {
+function normalizeSvg(raw) {
   const text = String(raw || "").trim();
   const m = text.match(/<svg[\s\S]*<\/svg>/i);
-  if (m && m[0]) return m[0];
-  return fallbackSvg(profileName, visual);
+  return m && m[0] ? m[0] : "";
 }
 
 function toDataUri(svg) {
@@ -146,6 +111,8 @@ function buildPrompt(profile, visual) {
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
     "SVG는 512x512, 귀여운 파스텔 톤, 동화풍, 저작권 문제 없는 오리지널로 생성하라.",
+    "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 헤어/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
+    "결과는 완성 일러스트 품질이어야 하며, 스케치나 아이콘 수준이 아니어야 한다.",
     "사주 성향 기반 표정과 오행 기반 배경을 반드시 반영하라.",
     "사용자 프로필:",
     JSON.stringify({
@@ -237,8 +204,14 @@ async function callGemini(profile, visual) {
         continue;
       }
 
+      const svg = normalizeSvg(obj.svg);
+      if (!svg) {
+        lastError = new Error("Gemini SVG parse failed");
+        continue;
+      }
+
       return {
-        title: String(obj.title || "나의 가디언 아바타").trim(),
+        title: String(obj.title || "사주로 보는 내 모습은?").trim(),
         summary: String(obj.summary || visual.summary || "사주 기반 가디언 아바타").trim(),
         facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
         backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
@@ -246,7 +219,7 @@ async function callGemini(profile, visual) {
           obj.illustration_prompt ||
             "귀여운 파스텔톤 동물 가디언, 표정: " + (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif)
         ).trim(),
-        svg: normalizeSvg(obj.svg, profile?.name, visual),
+        svg,
       };
     } catch (e) {
       lastError = e;
@@ -265,21 +238,7 @@ export async function POST(request) {
     }
 
     const visual = analyzeSajuVisual(profile);
-    let guardian;
-    try {
-      guardian = await callGemini(profile, visual);
-    } catch (_) {
-      const svg = fallbackSvg(profile?.name, visual);
-      guardian = {
-        title: "나의 가디언 아바타",
-        summary: visual.summary,
-        facialExpression: visual.facialExpression,
-        backgroundMotif: visual.backgroundMotif,
-        illustrationPrompt:
-          "귀여운 파스텔톤 동물 가디언, 표정: " + visual.facialExpression + ", 배경: " + visual.backgroundMotif,
-        svg,
-      };
-    }
+    const guardian = await callGemini(profile, visual);
 
     return NextResponse.json({
       ok: true,
@@ -296,6 +255,12 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("[api/guardian-avatar]", error);
-    return NextResponse.json({ ok: false, message: error?.message || "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "이용자가 많아서 실패했습니다. 잠시 후 다시 시도해주세요.",
+      },
+      { status: 503 }
+    );
   }
 }

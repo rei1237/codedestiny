@@ -325,13 +325,13 @@
               + '<img id="dpGuardianAvatarImg" alt="가디언 아바타" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
             + '</div>'
             + '<div style="flex:1;min-width:0;">'
-              + '<div style="font-size:0.82rem;font-weight:800;color:#fef3c7;letter-spacing:0.3px;">나의 가디언 아바타</div>'
+              + '<div style="font-size:0.82rem;font-weight:800;color:#fef3c7;letter-spacing:0.3px;">사주로 보는 내 모습은?</div>'
               + '<div id="dpGuardianAvatarMeta" style="margin-top:4px;font-size:0.72rem;line-height:1.35;color:#dbeafe;opacity:0.9;">'
-                + _esc((profile.guardianAvatar && profile.guardianAvatar.summary) || '생년월일 기반 사주 분석으로 표정/배경이 달라지는 아바타를 생성합니다.')
+                + _esc((profile.guardianAvatar && profile.guardianAvatar.summary) || '생년월일 기반 사주 분석으로 표정과 오행 배경이 달라지는 이미지를 생성합니다.')
               + '</div>'
             + '</div>'
           + '</div>'
-          + '<button class="dp-mc-guardian-btn" onclick="dpGenerateGuardianAvatar()" style="margin-top:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.45);background:linear-gradient(135deg, rgba(59,130,246,0.22), rgba(56,189,248,0.16));color:#dbeafe;font-weight:700;font-size:0.82rem;touch-action:manipulation;">🖼️ 사주 가디언 아바타 생성</button>'
+          + '<button class="dp-mc-guardian-btn" onclick="dpGenerateGuardianAvatar()" style="margin-top:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.45);background:linear-gradient(135deg, rgba(59,130,246,0.22), rgba(56,189,248,0.16));color:#dbeafe;font-weight:700;font-size:0.82rem;touch-action:manipulation;">🖼️ 사주로 보는 내 모습은? 생성</button>'
         + '</div>'
         + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
@@ -746,13 +746,13 @@
       var updated = DPStorage.current() || p;
       renderMasterCard(updated);
       broadcastProfileChange(updated);
-      _toast('🪄 나의 가디언 아바타가 완성되었습니다!', 'success');
+      _toast('🪄 사주로 보는 내 모습은? 이미지가 완성되었습니다!', 'success');
     } catch (err) {
-      _toast('⚠️ 아바타 생성 실패: ' + _esc((err && err.message) || 'unknown error'), 'warn');
+      _toast('⚠️ 이용자가 많아서 실패했습니다. 잠시 후 다시 시도해주세요.', 'warn');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = oldText || '🖼️ 사주 가디언 아바타 생성';
+        btn.textContent = oldText || '🖼️ 사주로 보는 내 모습은? 생성';
         btn.style.opacity = '';
       }
     }
