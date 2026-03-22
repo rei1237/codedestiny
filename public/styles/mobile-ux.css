@@ -143,6 +143,41 @@ a[href].btn,
   #sukuyoModalOverlay .modal-top-nav {
     flex-shrink: 0;
   }
+  #sukuyoNavBar.modal-top-nav {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  #sukuyoNavBar .modal-nav-home,
+  #sukuyoNavBar .modal-nav-close {
+    position: relative;
+    z-index: 5;
+    white-space: nowrap;
+  }
+  #sukuyoNavBar .modal-nav-home {
+    justify-self: start;
+    font-size: 0.78rem;
+    padding: 8px 2px;
+    gap: 3px;
+  }
+  #sukuyoNavBar .modal-nav-close {
+    justify-self: end;
+    font-size: 0.66rem;
+    padding: 8px 8px;
+  }
+  #sukuyoNavBar .modal-nav-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.68rem;
+    letter-spacing: 1.1px;
+  }
   #sukuyoModalOverlay #sukuyoModalSheet {
     flex: 1;
     min-height: 0;
@@ -151,6 +186,26 @@ a[href].btn,
     overscroll-behavior-y: auto;
     overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
+  }
+  @media (max-width: 360px) {
+    #sukuyoNavBar.modal-top-nav {
+      column-gap: 2px;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+    #sukuyoNavBar .modal-nav-home {
+      font-size: 0.72rem;
+      padding: 8px 0;
+      gap: 2px;
+    }
+    #sukuyoNavBar .modal-nav-close {
+      font-size: 0.62rem;
+      padding: 8px 6px;
+    }
+    #sukuyoNavBar .modal-nav-title {
+      font-size: 0.62rem;
+      letter-spacing: 0.7px;
+    }
   }
 
   #ziweiModalOverlay #ziweiModalSheet,
