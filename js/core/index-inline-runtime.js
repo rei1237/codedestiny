@@ -4094,8 +4094,9 @@ function openZiweiModal() {
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
+  overlay.style.overflow = 'hidden';
   var sh = document.getElementById('ziweiModalSheet');
-  if (sh) sh.scrollTop = 0;
+  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -4130,8 +4131,9 @@ function openAstroModal() {
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
+  overlay.style.overflow = 'hidden';
   var sh = document.getElementById('astroModalSheet');
-  if (sh) sh.scrollTop = 0;
+  if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
