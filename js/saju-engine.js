@@ -10021,14 +10021,17 @@ function renderZiwei(p, natal, targetId) {
     gap: 3px;
   }
   .zwp-modal-overlay {
-    align-items: flex-end;
+    /* overlay는 JS가 top=navBottom으로 설정 → dim이 nav를 덮지 않음 */
+    align-items: stretch;     /* sheet를 overlay 높이에 맞춰 stretch */
     justify-content: center;
     padding: 0;
   }
   .zwp-modal {
     width: 100%;
     max-width: 100%;
-    /* max-height / min-height 은 JS의 position:absolute top+bottom 으로 제어 */
+    max-height: 100%;         /* overlay(= 화면 - nav)를 가득 채움 */
+    min-height: 0;
+    flex: 1 1 auto;
     border-radius: 20px 20px 0 0;
     border-bottom: none;
     padding: 0;
@@ -10377,28 +10380,35 @@ function renderZiwei(p, natal, targetId) {
       var navBottom = navEl ? Math.round(navEl.getBoundingClientRect().bottom) : 56;
       navBottom = Math.max(navBottom, 56);
 
-      // overlay는 항상 전체 화면(top:0) — dim 배경이 nav 포함 전체를 덮음
-      overlay.style.top = '0';
-      overlay.style.paddingTop = '0';
-
       var sheet = overlay.querySelector('.zwp-modal');
       if (window.innerWidth <= 900) {
-        // 모바일/태블릿: position:absolute로 시트를 navBottom~화면하단에 직접 고정
-        // flex-end + window.innerHeight 불일치 문제 없이 항상 정확한 위치 보장
+        // 모바일: overlay를 네비바 바로 아래에서 시작
+        // dim이 nav 영역을 전혀 덮지 않으므로 z-index 충돌 원천 제거
+        // sheet는 overlay를 stretch로 100% 채움 → header가 항상 overlay 최상단에 표시
+        overlay.style.top = navBottom + 'px';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.paddingTop = '0';
         if (sheet) {
-          sheet.style.position = 'absolute';
-          sheet.style.top = navBottom + 'px';
-          sheet.style.left = '0';
-          sheet.style.right = '0';
-          sheet.style.bottom = '0';
-          sheet.style.maxHeight = 'none';
-          sheet.style.minHeight = '0';
+          sheet.style.position = '';
+          sheet.style.top = '';
+          sheet.style.bottom = '';
+          sheet.style.left = '';
+          sheet.style.right = '';
+          sheet.style.maxHeight = '100%';
           sheet.style.width = '100%';
           sheet.style.maxWidth = '100%';
           sheet.style.margin = '0';
+          sheet.style.minHeight = '0';
         }
       } else {
-        // 데스크탑: 인라인 스타일 초기화, CSS 기본값 사용
+        // 데스크탑: overlay 전체 화면, CSS 기본값 사용
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.bottom = '0';
+        overlay.style.paddingTop = '0';
         if (sheet) {
           sheet.style.position = '';
           sheet.style.top = '';
@@ -10406,15 +10416,17 @@ function renderZiwei(p, natal, targetId) {
           sheet.style.left = '';
           sheet.style.right = '';
           sheet.style.maxHeight = '';
-          sheet.style.minHeight = '';
           sheet.style.width = '';
           sheet.style.maxWidth = '';
           sheet.style.margin = '';
+          sheet.style.minHeight = '';
         }
       }
 
       overlay.classList.add('is-open');
-      if (sheet) sheet.scrollTop = 0;
+      // 본문 스크롤 초기화 (.zwp-modal-body가 실제 스크롤 요소)
+      var bodyEl = overlay.querySelector('.zwp-modal-body');
+      if (bodyEl) bodyEl.scrollTop = 0;
     };
 
     window._renderZwDestinyPortfolio = function(targetId, pd) {
