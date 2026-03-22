@@ -10371,8 +10371,22 @@ function renderZiwei(p, natal, targetId) {
       mount.querySelectorAll('.zwp-cell.zwp-active').forEach(function(el){ el.classList.remove('zwp-active'); });
       var activeCell = mount.querySelector('.zwp-cell-' + idx);
       if (activeCell) activeCell.classList.add('zwp-active');
-      overlay.classList.add('is-open');
+
+      // 실제 네비바 하단 좌표로 시트 시작 위치를 픽셀 단위로 정확히 조정
+      var navEl = document.getElementById('ziweiModalNavBar');
+      var topGap = navEl ? (navEl.getBoundingClientRect().bottom + 4) : 60;
+      topGap = Math.max(topGap, 56);
+      overlay.style.setProperty('--zwp-sheet-top-gap', topGap + 'px');
+      overlay.style.paddingTop = topGap + 'px';
       var sheet = overlay.querySelector('.zwp-modal');
+      if (sheet) {
+        var safeBot = 0;
+        try { safeBot = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom')) || 0; } catch(e){}
+        var maxH = window.innerHeight - topGap - safeBot;
+        sheet.style.maxHeight = Math.max(maxH, 300) + 'px';
+      }
+
+      overlay.classList.add('is-open');
       if (sheet) sheet.scrollTop = 0;
     };
 
