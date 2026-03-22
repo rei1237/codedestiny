@@ -1,0 +1,1172 @@
+/* ═══════════════════════════════════════════════════════════════
+   우리는 무슨 사이? — Romantic & Mystical Tarot Experience
+   ❤️ Romantic · 🔮 Mystical · 💓 Suspenseful · ✨ Magical
+══════════════════════════════════════════════════════════════ */
+
+/* ─── Feature Card (메인 화면) ─── */
+.feature-card--tarot-love { border-bottom: 3px solid #ff4da6; }
+.feature-card--tarot-love .feature-card__cta {
+  background: linear-gradient(135deg, #ff4da6, #ff85c2);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255, 70, 170, 0.35);
+}
+.feature-card--tarot-love .feature-card__launch {
+  background: linear-gradient(135deg, #ff4da6, #ff85c2);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255, 70, 170, 0.35);
+}
+
+/* ─── 1. Background Atmosphere ─── */
+.tarot-love-overlay {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  min-height: 100vh;
+  z-index: 99999;
+  display: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 120, 180, 0.25), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(120, 0, 255, 0.2), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(180, 50, 120, 0.12), transparent 55%),
+    linear-gradient(135deg, #120018 0%, #2a0036 35%, #1a001f 70%, #0d0015 100%);
+  backdrop-filter: blur(8px);
+}
+.tarot-love-overlay.is-open { display: block; animation: tarotLoveReveal 0.5s ease; }
+@keyframes tarotLoveReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── 7. Dark Vignette (Suspense) ─── */
+.tarot-love-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.75);
+  z-index: 99998;
+}
+
+/* ─── Sparkle Particles ─── */
+.tarot-love-sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99997;
+  overflow: hidden;
+}
+.tarot-love-sparkles .sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 200, 230, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 150, 200, 0.8);
+  animation: sparkle 4s ease-in-out infinite;
+}
+.tarot-love-sparkles .s1 { left: 12%; top: 18%; animation-delay: 0s; }
+.tarot-love-sparkles .s2 { left: 28%; top: 8%; animation-delay: 0.5s; }
+.tarot-love-sparkles .s3 { left: 45%; top: 22%; animation-delay: 1s; }
+.tarot-love-sparkles .s4 { left: 72%; top: 12%; animation-delay: 1.5s; }
+.tarot-love-sparkles .s5 { left: 88%; top: 25%; animation-delay: 2s; }
+.tarot-love-sparkles .s6 { left: 15%; top: 65%; animation-delay: 0.3s; }
+.tarot-love-sparkles .s7 { left: 55%; top: 78%; animation-delay: 1.2s; }
+.tarot-love-sparkles .s8 { left: 85%; top: 70%; animation-delay: 0.8s; }
+.tarot-love-sparkles .s9 { left: 35%; top: 45%; animation-delay: 2.2s; }
+@keyframes sparkle {
+  0% { transform: translateY(0) scale(1); opacity: 0.45; }
+  50% { transform: translateY(-12px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 0.45; }
+}
+
+/* ─── 6. Tarot Symbol Decorations ─── */
+.tarot-love-symbols {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99996;
+}
+.tarot-love-symbols .tl-sym {
+  position: absolute;
+  font-size: 1.8rem;
+  opacity: 0.12;
+  color: rgba(255, 200, 230, 0.9);
+  text-shadow: 0 0 20px rgba(255, 120, 180, 0.3);
+  animation: symbolFloat 8s ease-in-out infinite;
+}
+.tarot-love-symbols .tl-heart { left: 8%; top: 15%; animation-delay: 0s; }
+.tarot-love-symbols .tl-moon { right: 10%; top: 20%; animation-delay: 2s; }
+.tarot-love-symbols .tl-star { left: 50%; bottom: 15%; animation-delay: 4s; }
+@keyframes symbolFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+  50% { transform: translateY(-8px) rotate(5deg); opacity: 0.18; }
+}
+
+/* ─── Floating Tarot Cards (하단 여백 장식) ─── */
+.tarot-love-floating-cards {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 2vh;
+  height: 42vh;
+  min-height: 220px;
+  pointer-events: none;
+  z-index: 99995;
+}
+.tarot-love-floating-cards .tl-card {
+  position: absolute;
+  width: 74px;
+  height: 112px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 170, 230, 0.2);
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 205, 240, 0.34), transparent 45%),
+    linear-gradient(155deg, rgba(52, 12, 70, 0.58), rgba(24, 6, 36, 0.62));
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  opacity: 0.42;
+  backdrop-filter: blur(1px);
+}
+.tarot-love-floating-cards .tl-card::before {
+  content: "✦";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  color: rgba(255, 190, 235, 0.55);
+  text-shadow: 0 0 12px rgba(255, 130, 210, 0.4);
+}
+.tarot-love-floating-cards .tl-card-1 {
+  left: 18%;
+  bottom: 4%;
+  transform: rotate(-16deg);
+  animation: tarotFloatA 7.6s ease-in-out infinite;
+}
+.tarot-love-floating-cards .tl-card-2 {
+  left: 33%;
+  bottom: 16%;
+  transform: rotate(10deg);
+  animation: tarotFloatB 8.4s ease-in-out infinite;
+}
+.tarot-love-floating-cards .tl-card-3 {
+  right: 30%;
+  bottom: 10%;
+  transform: rotate(-8deg);
+  animation: tarotFloatC 9s ease-in-out infinite;
+}
+.tarot-love-floating-cards .tl-card-4 {
+  right: 15%;
+  bottom: 3%;
+  transform: rotate(13deg);
+  animation: tarotFloatD 8s ease-in-out infinite;
+}
+@keyframes tarotFloatA {
+  0%, 100% { transform: translateY(0) rotate(-16deg); opacity: 0.35; }
+  50% { transform: translateY(-14px) rotate(-12deg); opacity: 0.52; }
+}
+@keyframes tarotFloatB {
+  0%, 100% { transform: translateY(0) rotate(10deg); opacity: 0.33; }
+  50% { transform: translateY(-18px) rotate(13deg); opacity: 0.5; }
+}
+@keyframes tarotFloatC {
+  0%, 100% { transform: translateY(0) rotate(-8deg); opacity: 0.3; }
+  50% { transform: translateY(-12px) rotate(-4deg); opacity: 0.48; }
+}
+@keyframes tarotFloatD {
+  0%, 100% { transform: translateY(0) rotate(13deg); opacity: 0.34; }
+  50% { transform: translateY(-16px) rotate(9deg); opacity: 0.5; }
+}
+@media (max-width: 600px) {
+  .tarot-love-floating-cards {
+    bottom: 1vh;
+    height: 36vh;
+  }
+  .tarot-love-floating-cards .tl-card {
+    width: 60px;
+    height: 90px;
+    opacity: 0.34;
+  }
+}
+
+/* ─── 2. Tarot Altar Container ─── */
+.tarot-love-shell {
+  position: relative;
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 24px 16px 40px;
+  z-index: 99999;
+}
+@media (max-width: 480px) {
+  .tarot-love-shell { padding: 24px 16px 32px; }
+}
+
+.tarot-love-panel {
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 0 40px rgba(255, 50, 150, 0.25),
+    0 20px 80px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  padding: 36px;
+  transition: box-shadow 0.4s ease;
+}
+.tarot-love-panel:hover {
+  box-shadow:
+    0 0 50px rgba(255, 80, 180, 0.35),
+    0 25px 90px rgba(0, 0, 0, 0.65);
+}
+.tarot-love-panel.ritual-burst {
+  animation: ritualBurst 0.8s ease;
+}
+@keyframes ritualBurst {
+  0% { box-shadow: 0 0 40px rgba(255, 50, 150, 0.25), 0 20px 80px rgba(0,0,0,0.6); }
+  30% { box-shadow: 0 0 80px rgba(255, 120, 200, 0.7), 0 0 120px rgba(255, 80, 180, 0.4), 0 20px 80px rgba(0,0,0,0.6); }
+  100% { box-shadow: 0 0 40px rgba(255, 50, 150, 0.25), 0 20px 80px rgba(0,0,0,0.6); }
+}
+@media (max-width: 480px) {
+  .tarot-love-panel { padding: 24px 20px; }
+}
+
+/* Close button */
+.tarot-love-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(80, 0, 40, 0.4);
+  color: rgba(255, 220, 240, 0.95);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s ease;
+}
+.tarot-love-close:hover {
+  background: rgba(255, 80, 150, 0.25);
+  box-shadow: 0 0 15px rgba(255, 100, 180, 0.4);
+}
+
+/* ─── Stage transitions ─── */
+.tarot-love-stage { display: none; }
+.tarot-love-stage.is-active {
+  display: block;
+  animation: tarotLoveFadeUp 0.5s ease;
+}
+@keyframes tarotLoveFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 3. Romantic Tarot Title ─── */
+.tarot-love-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  padding: 32px 28px 36px;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(255, 80, 150, 0.15), transparent 45%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+@media (max-width: 480px) {
+  .tarot-love-hero { padding: 24px 20px 28px; }
+}
+
+.tarot-love-title {
+  font-family: "Cinzel", "Georgia", serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  background: linear-gradient(90deg, #ff7ac6, #ffd1f0, #ff9ed4);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(255, 120, 200, 0.4));
+  animation: titleShimmer 4s ease-in-out infinite;
+}
+@media (max-width: 480px) {
+  .tarot-love-title { font-size: 26px; }
+}
+@keyframes titleShimmer {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+/* ─── 4. Suspense Subtitle (Typewriter feel) ─── */
+.tarot-love-subtitle {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  opacity: 0.9;
+  animation: subtitleFadeIn 1.2s ease 0.3s both;
+}
+@keyframes subtitleFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 0.9; transform: translateY(0); }
+}
+
+/* ─── 5. Draw Card Button (Ritual) ─── */
+.tarot-love-invoke-wrap {
+  margin-top: 24px;
+  text-align: center;
+}
+.tarot-love-btn--invoke {
+  display: inline-block;
+  padding: 16px 36px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff4da6, #ff85c2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 0 15px rgba(255, 70, 170, 0.6),
+    0 10px 25px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  animation: btnPulse 2.5s ease-in-out infinite;
+}
+.tarot-love-btn--invoke:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow:
+    0 0 25px rgba(255, 100, 200, 0.8),
+    0 15px 40px rgba(0, 0, 0, 0.6);
+  animation: none;
+}
+.tarot-love-btn--invoke:active {
+  transform: scale(0.98);
+}
+
+/* ─── 메인(인트로) 화면 하단 카드 장식 ─── */
+.tarot-love-hero-cards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px 20px;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 180, 220, 0.2);
+  flex-wrap: wrap;
+}
+.tarot-love-hero-card {
+  width: 48px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  color: rgba(255, 200, 230, 0.55);
+  background: linear-gradient(155deg, rgba(80, 20, 60, 0.4), rgba(40, 10, 35, 0.5));
+  border: 1px solid rgba(255, 170, 220, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  animation: heroCardFloat 5s ease-in-out infinite;
+}
+.tarot-love-hero-card.hc1 { animation-delay: 0s; }
+.tarot-love-hero-card.hc2 { animation-delay: 0.6s; }
+.tarot-love-hero-card.hc3 { animation-delay: 1.2s; }
+.tarot-love-hero-card.hc4 { animation-delay: 1.8s; }
+@keyframes heroCardFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-6px); opacity: 1; }
+}
+@media (max-width: 480px) {
+  .tarot-love-hero-cards { margin-top: 20px; padding-top: 16px; gap: 10px 14px; }
+  .tarot-love-hero-card { width: 40px; height: 54px; font-size: 1.2rem; }
+}
+
+/* ─── 핑크빛 네온 사인 하트 카드 (메인 화면 하단) ─── */
+.tarot-love-neon-heart-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 28px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  background: linear-gradient(165deg, rgba(20, 4, 28, 0.85), rgba(12, 2, 18, 0.9));
+  border: 1px solid rgba(255, 100, 180, 0.35);
+  box-shadow:
+    0 0 20px rgba(255, 77, 166, 0.25),
+    0 0 40px rgba(255, 105, 180, 0.15),
+    inset 0 0 30px rgba(255, 77, 166, 0.08);
+}
+.tarot-love-neon-heart-card .tl-neon-heart {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ff4da6;
+  text-shadow:
+    0 0 8px #ff4da6,
+    0 0 16px #ff4da6,
+    0 0 24px #ff85c2,
+    0 0 32px rgba(255, 133, 194, 0.9),
+    0 0 48px rgba(255, 77, 166, 0.7),
+    0 0 64px rgba(255, 105, 180, 0.5);
+  filter: drop-shadow(0 0 12px rgba(255, 77, 166, 0.8));
+  animation: neonHeartGlow 2.5s ease-in-out infinite;
+}
+@keyframes neonHeartGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 8px #ff4da6,
+      0 0 16px #ff4da6,
+      0 0 24px #ff85c2,
+      0 0 32px rgba(255, 133, 194, 0.9),
+      0 0 48px rgba(255, 77, 166, 0.7),
+      0 0 64px rgba(255, 105, 180, 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow:
+      0 0 12px #ff4da6,
+      0 0 24px #ff4da6,
+      0 0 36px #ff85c2,
+      0 0 48px rgba(255, 133, 194, 1),
+      0 0 64px rgba(255, 77, 166, 0.9),
+      0 0 80px rgba(255, 105, 180, 0.7);
+    opacity: 1;
+  }
+}
+@media (max-width: 480px) {
+  .tarot-love-neon-heart-card {
+    margin-top: 20px;
+    padding: 16px 20px;
+  }
+  .tarot-love-neon-heart-card .tl-neon-heart {
+    font-size: 2.4rem;
+  }
+}
+
+/* ─── 히어로 영역 3장 프리뷰 카드 (4d24627 스타일) ─── */
+.tarot-love-hero-preview {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 0 16px;
+}
+.tarot-love-hero-preview-card {
+  margin: 0;
+  width: 80px;
+  flex-shrink: 0;
+}
+.tarot-love-hero-preview-card img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 190, 230, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.tarot-love-hero-preview-card:hover img {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 200, 240, 0.4);
+}
+.tarot-love-hero-preview-card.tl-preview-1 { transform: rotate(-6deg); }
+.tarot-love-hero-preview-card.tl-preview-1:hover { transform: rotate(-4deg) translateY(-4px); }
+.tarot-love-hero-preview-card.tl-preview-2 { transform: translateY(4px); }
+.tarot-love-hero-preview-card.tl-preview-3 { transform: rotate(6deg); }
+.tarot-love-hero-preview-card.tl-preview-3:hover { transform: rotate(4deg) translateY(-4px); }
+.tarot-love-hero-preview-card figcaption {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 220, 240, 0.9);
+  text-align: center;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+@media (max-width: 480px) {
+  .tarot-love-hero-preview { gap: 12px; margin-top: 18px; }
+  .tarot-love-hero-preview-card { width: 64px; }
+  .tarot-love-hero-preview-card.tl-preview-1 { transform: rotate(-5deg); }
+  .tarot-love-hero-preview-card.tl-preview-3 { transform: rotate(5deg); }
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(255, 70, 170, 0.5), 0 10px 25px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 28px rgba(255, 80, 180, 0.9), 0 12px 30px rgba(0,0,0,0.5); }
+}
+
+/* General buttons */
+.tarot-love-btn {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff4da6, #ff85c2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 70, 170, 0.4);
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tarot-love-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(255, 100, 200, 0.6);
+}
+.tarot-love-btn--subtle {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: none;
+}
+.tarot-love-btn--subtle:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ─── Draw Stage ─── */
+.tarot-love-draw-header {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: rgba(255, 220, 240, 0.95);
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 15px rgba(255, 120, 180, 0.3);
+}
+.tarot-love-spread-guide {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.78);
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* ─── 8. Card Draw Ritual (재미있는 스프레드 배치) ─── */
+.tarot-love-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 12px 16px;
+  margin-bottom: 24px;
+  justify-items: center;
+  align-items: center;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tarot-love-slot:nth-child(1) { transform: rotate(-4deg); }
+.tarot-love-slot:nth-child(2) { transform: rotate(0deg); }
+.tarot-love-slot:nth-child(3) { transform: rotate(4deg); }
+.tarot-love-slot:nth-child(4) { transform: rotate(2deg); }
+.tarot-love-slot:nth-child(5) { transform: rotate(-2deg); }
+.tarot-love-slot:nth-child(6) { transform: rotate(3deg); }
+.tarot-love-slot.guide-next { transform: rotate(var(--slot-rotate, 0deg)) scale(1.02); }
+.tarot-love-slot.guide-next:nth-child(1) { --slot-rotate: -4deg; }
+.tarot-love-slot.guide-next:nth-child(2) { --slot-rotate: 0deg; }
+.tarot-love-slot.guide-next:nth-child(3) { --slot-rotate: 4deg; }
+.tarot-love-slot.guide-next:nth-child(4) { --slot-rotate: 2deg; }
+.tarot-love-slot.guide-next:nth-child(5) { --slot-rotate: -2deg; }
+.tarot-love-slot.guide-next:nth-child(6) { --slot-rotate: 3deg; }
+@media (max-width: 480px) {
+  .tarot-love-card-grid { gap: 10px 12px; max-width: 260px; }
+}
+
+.tarot-love-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  perspective: 700px;
+  position: relative;
+  width: 92px;
+}
+.tarot-love-slot.guide-next {
+  animation: slotGuidePulse 2s ease-in-out infinite;
+}
+.tarot-love-slot.guide-next::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 14px;
+  background: transparent;
+  pointer-events: none;
+  animation: guideSparkleRing 1.8s ease-in-out infinite;
+}
+.tarot-love-slot.guide-next::after {
+  content: "✦";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1rem;
+  color: rgba(255, 220, 240, 0.95);
+  text-shadow: 0 0 12px rgba(255, 150, 200, 0.9);
+  animation: guideSparkleFloat 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes slotGuidePulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.15); }
+}
+@keyframes guideSparkleRing {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 150, 200, 0.4);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(255, 150, 200, 0.6);
+    opacity: 0.8;
+  }
+}
+@keyframes guideSparkleFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.9; }
+  50% { transform: translateX(-50%) translateY(-4px); opacity: 1; }
+}
+.tarot-love-slot-label {
+  font-size: 0.78rem;
+  color: rgba(255, 220, 240, 0.8);
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+}
+
+.tarot-love-card {
+  width: 92px;
+  height: 124px;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.tarot-love-card:hover:not(.flipped) {
+  box-shadow: 0 0 25px rgba(255, 100, 180, 0.5);
+}
+.tarot-love-slot:not(.guide-next) .tarot-love-card:not(.flipped) {
+  pointer-events: none;
+  opacity: 0.75;
+  cursor: default;
+}
+.tarot-love-card.flipped {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 0 30px rgba(255, 120, 200, 0.6);
+}
+@media (max-width: 480px) {
+  .tarot-love-slot { width: 78px; }
+  .tarot-love-card { width: 78px; height: 104px; }
+}
+
+.tarot-love-card-back,
+.tarot-love-card-front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 180, 220, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+.tarot-love-card-back {
+  background: linear-gradient(160deg, #2a0a2e 0%, #1a051d 50%, #120316 100%);
+  box-shadow: inset 0 0 40px rgba(255, 80, 150, 0.08);
+  opacity: 1;
+  visibility: visible;
+}
+.tarot-love-card-back::before {
+  content: "✦";
+  font-size: 1.75rem;
+  color: rgba(255, 180, 220, 0.35);
+  animation: cardBackGlow 2s ease-in-out infinite;
+}
+.tarot-love-card-back::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 150, 200, 0.15);
+  pointer-events: none;
+}
+@keyframes cardBackGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.tarot-love-card-front {
+  transform: none;
+  -webkit-transform: none;
+  background: linear-gradient(145deg, rgba(25, 12, 38, 0.98), rgba(12, 4, 22, 0.99));
+  padding: 4px;
+  box-shadow: 0 0 20px rgba(255, 80, 150, 0.25);
+  opacity: 0;
+  visibility: hidden;
+}
+.tarot-love-card.flipped .tarot-love-card-back {
+  opacity: 0;
+  visibility: hidden;
+}
+.tarot-love-card.flipped .tarot-love-card-front {
+  opacity: 1;
+  visibility: visible;
+}
+.tarot-love-card-front .tarot-face-img {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 4px;
+  position: static;
+  inset: auto;
+  display: block;
+}
+.tarot-love-card-front[data-reversed="1"] .tarot-face-img {
+  transform: rotate(180deg);
+}
+.tarot-love-card-front .tarot-love-card-name {
+  font-size: 0.65rem;
+  color: #ffd1f0;
+  margin-top: 4px;
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Final button */
+.tarot-love-final-wrap {
+  text-align: center;
+  margin-top: 8px;
+}
+.tarot-love-final-btn {
+  display: inline-block;
+  padding: 16px 40px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff4da6, #ff85c2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(255, 70, 170, 0.5);
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.tarot-love-final-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(255, 100, 200, 0.7);
+}
+.tarot-love-final-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Result Stage (깔끔한 리딩 결과) ─── */
+.tarot-love-reading-header { margin-bottom: 24px; }
+.tarot-love-reading-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffd1f0;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(255, 120, 200, 0.4);
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+.tarot-love-reading-content {
+  max-height: 52vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 12px;
+  scrollbar-width: thin;
+}
+.tarot-love-reading-content::-webkit-scrollbar { width: 6px; }
+.tarot-love-reading-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 3px; }
+.tarot-love-reading-content::-webkit-scrollbar-thumb { background: rgba(255, 100, 180, 0.4); border-radius: 3px; }
+
+/* ─── 결과 하단 6장 카드 스트립 ─── */
+.tarot-love-result-cards-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+  margin-top: 20px;
+  margin-bottom: 4px;
+  padding: 14px 10px 16px;
+  border-radius: 14px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 150, 200, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.tarot-love-result-card-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.tarot-love-result-mini-card {
+  position: relative;
+  width: 52px;
+  height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 180, 220, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+.tarot-love-result-mini-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(25, 12, 38, 0.98), rgba(12, 4, 22, 0.99));
+  background-size: cover;
+  background-position: center;
+}
+.tarot-love-result-mini-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tarot-love-result-mini-card[data-reversed="1"] .tarot-love-result-mini-img {
+  transform: rotate(180deg);
+}
+.tarot-love-result-mini-label {
+  font-size: 0.68rem;
+  color: rgba(255, 210, 240, 0.9);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tarot-love-result-mini-name {
+  font-size: 0.64rem;
+  color: rgba(255, 180, 220, 0.85);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .tarot-love-result-cards-strip { gap: 8px 10px; padding: 12px 8px 14px; }
+  .tarot-love-result-mini-card { width: 46px; height: 64px; }
+  .tarot-love-result-mini-label { font-size: 0.62rem; max-width: 58px; }
+  .tarot-love-result-mini-name { font-size: 0.6rem; max-width: 58px; }
+}
+
+.tarot-love-section {
+  margin-bottom: 24px;
+  padding: 22px 22px 21px;
+  border-radius: 14px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 140, 200, 0.24);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(2px);
+}
+.tarot-love-section-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #ffe8f8;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 170, 210, 0.3);
+  text-shadow: 0 0 12px rgba(255, 120, 180, 0.25);
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+}
+.tarot-love-section-text {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.97);
+  line-height: 1.9;
+  max-width: 52ch;
+  margin: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.tarot-love-paragraph {
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+.tarot-love-paragraph--lead {
+  color: #fff0fa;
+  font-weight: 600;
+  padding-left: 14px;
+  border-left: 3px solid rgba(255, 180, 225, 0.7);
+}
+.tarot-love-paragraph:last-child {
+  margin-bottom: 0;
+}
+.tarot-love-section--vibe {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255, 150, 210, 0.18), transparent 46%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+}
+.tarot-love-section--insight {
+  background:
+    radial-gradient(circle at 85% 8%, rgba(200, 155, 255, 0.18), transparent 42%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+}
+.tarot-love-section--future {
+  background:
+    radial-gradient(circle at 70% 85%, rgba(255, 170, 200, 0.14), transparent 45%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+}
+.tarot-love-advice-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.97);
+  font-size: 1.03rem;
+  line-height: 1.9;
+  max-width: 52ch;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.tarot-love-advice-list li {
+  margin-bottom: 14px;
+  position: relative;
+  padding-left: 26px;
+}
+.tarot-love-advice-list li::before {
+  content: "❤";
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  color: rgba(255, 170, 220, 0.95);
+  font-size: 0.8rem;
+  line-height: 1.9;
+}
+.tarot-love-advice-list li:last-child {
+  margin-bottom: 0;
+}
+.tarot-love-position-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.tarot-love-position-card {
+  border: 1px solid rgba(255, 175, 220, 0.28);
+  border-radius: 12px;
+  padding: 16px 17px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.tarot-love-position-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: rgba(255, 220, 240, 0.98);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.tarot-love-position-cardname {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: rgba(255, 185, 230, 0.98);
+  font-weight: 600;
+}
+.tarot-love-position-text {
+  margin: 0;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.tarot-love-focus-section {
+  border-color: rgba(255, 190, 230, 0.36);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 165, 215, 0.14), transparent 50%),
+    rgba(255, 255, 255, 0.06);
+}
+.tarot-love-focus-box {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 190, 230, 0.46);
+  background: linear-gradient(145deg, rgba(255, 112, 183, 0.16), rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 16px 18px;
+}
+.tarot-love-focus-label {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: rgba(255, 230, 248, 0.95);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.tarot-love-focus-text {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #fff0fa;
+  font-weight: 700;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+@media (max-width: 520px) {
+  .tarot-love-position-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.tarot-love-result-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .tarot-love-floating-cards {
+    display: none;
+  }
+  .tarot-love-shell {
+    margin: 16px auto;
+    padding: 14px 10px 24px;
+  }
+  .tarot-love-panel {
+    border-radius: 16px;
+    padding: 18px 14px 20px;
+  }
+  .tarot-love-hero {
+    padding: 20px 14px 22px;
+  }
+  .tarot-love-title {
+    font-size: 24px;
+  }
+  .tarot-love-subtitle {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .tarot-love-card-grid {
+    max-width: 320px;
+    gap: 8px 10px;
+  }
+  .tarot-love-slot {
+    width: 90px;
+  }
+  .tarot-love-card {
+    width: 90px;
+    height: 122px;
+  }
+  .tarot-love-slot-label {
+    font-size: 0.72rem;
+    min-height: 2.4em;
+  }
+  .tarot-love-btn--invoke,
+  .tarot-love-final-btn,
+  .tarot-love-btn {
+    width: 100%;
+  }
+  .tarot-love-reading-content {
+    max-height: 58dvh;
+    padding-right: 6px;
+  }
+  .tarot-love-section {
+    padding: 18px 16px 17px;
+  }
+  .tarot-love-section-text,
+  .tarot-love-advice-list {
+    font-size: 1rem;
+  }
+  .tarot-love-result-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  /* 오버레이 스크롤 컨테이너 확실히 동작 */
+  .tarot-love-overlay.is-open {
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+}
+
+@media (max-width: 480px) {
+  .tarot-love-card-grid {
+    max-width: 292px;
+  }
+  .tarot-love-slot {
+    width: 84px;
+  }
+  .tarot-love-card {
+    width: 84px;
+    height: 114px;
+  }
+}
+
+@media (max-width: 420px) {
+  .tarot-love-shell {
+    padding: 10px 8px 18px;
+  }
+  .tarot-love-panel {
+    padding: 16px 12px 18px;
+  }
+  .tarot-love-card-grid {
+    max-width: 270px;
+    gap: 8px;
+  }
+  .tarot-love-slot {
+    width: 78px;
+  }
+  .tarot-love-card {
+    width: 78px;
+    height: 106px;
+  }
+  .tarot-love-slot-label {
+    font-size: 0.68rem;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tarot-love-panel:hover,
+  .tarot-love-btn--invoke:hover,
+  .tarot-love-btn:hover,
+  .tarot-love-final-btn:hover:not(:disabled),
+  .tarot-love-card:hover:not(.flipped) {
+    transform: none;
+    box-shadow: inherit;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .tarot-love-sparkles,
+  .tarot-love-symbols,
+  .tarot-love-vignette {
+    display: none;
+  }
+}

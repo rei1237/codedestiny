@@ -7,6 +7,13 @@ import AstrologyCosmicPage from "../components/AstrologyCosmicPage";
 import FeatureLandingPage from "../components/FeatureLandingPage";
 import SunHealingTarot from "../components/SunHealingTarot";
 
+export const SECTION_LABELS = {
+  tarot: "타로",
+  saju: "사주",
+  astrology: "점성술",
+  ziwei: "자미두수",
+};
+
 export const SERVICE_MAP = {
   "tarot/healing": {
     component: SunHealingTarot,

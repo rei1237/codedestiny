@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const APP_VERSION = "2026-03-23-v1";
+const APP_VERSION = "2026-03-23-v2-cachefix1";
 const VERSION_KEY = "app_version";
 
 export default function AppVersionGuard() {

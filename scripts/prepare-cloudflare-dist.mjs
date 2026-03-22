@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
+const publicDir = resolve(rootDir, "public");
 const candidates = [resolve(rootDir, ".open-next", "assets"), resolve(rootDir, "out")];
 
 const sourceDir = candidates.find((dirPath) => existsSync(dirPath));
@@ -18,6 +19,12 @@ if (existsSync(distDir)) {
 
 mkdirSync(distDir, { recursive: true });
 cpSync(sourceDir, distDir, { recursive: true, force: true });
+
+// Safety net: merge committed public assets so Pages deploy never misses legacy static files.
+if (existsSync(publicDir)) {
+  cpSync(publicDir, distDir, { recursive: true, force: true });
+  console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${distDir}`);
+}
 
 if (!existsSync(resolve(distDir, "index.html"))) {
   console.error("[prepare-cloudflare-dist] dist/index.html is missing after copy.");
@@ -36,6 +43,11 @@ if (existsSync(inlineSourceDir)) {
 
   const assetsRoot = resolve(rootDir, ".open-next", "assets");
   if (existsSync(assetsRoot)) {
+    if (existsSync(publicDir)) {
+      cpSync(publicDir, assetsRoot, { recursive: true, force: true });
+      console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${assetsRoot}`);
+    }
+
     const inlineAssetsDir = resolve(assetsRoot, "js", "inline");
     mkdirSync(inlineAssetsDir, { recursive: true });
     cpSync(inlineSourceDir, inlineAssetsDir, { recursive: true, force: true });
