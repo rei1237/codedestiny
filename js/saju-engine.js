@@ -9991,6 +9991,7 @@ function renderZiwei(p, natal, targetId) {
   .zwp-wrap {
     border-radius: 16px;
     padding: 10px;
+    overflow: visible;
   }
   .zwp-cta {
     margin-bottom: 8px;
@@ -10019,12 +10020,12 @@ function renderZiwei(p, natal, targetId) {
   .zwp-modal-overlay {
     align-items: flex-end;
     justify-content: center;
-    padding: max(56px, env(safe-area-inset-top, 0px)) 0 0;
+    padding: max(72px, env(safe-area-inset-top, 0px)) 0 0;
   }
   .zwp-modal {
     width: 100%;
     max-width: 100%;
-    max-height: calc(82dvh - env(safe-area-inset-bottom, 0px));
+    max-height: calc(74dvh - env(safe-area-inset-bottom, 0px));
     border-radius: 20px 20px 0 0;
     border-bottom: none;
     padding: 0;
