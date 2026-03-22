@@ -9,63 +9,518 @@ type ServiceLike = {
   h1?: string;
   description?: string;
   landingPoints?: string[];
+  seoText?: string;
+  ogImage?: string;
 };
 
+/* ═══════════════════════════════════════════
+   Per-slug icon / badge / decoration config
+═══════════════════════════════════════════ */
+interface SlugCfg {
+  icon: string;
+  badge: string;
+  tag?: string;
+  particles: string[];
+  extraBlock?: React.ReactNode;
+}
+const SLUG_CFG: Record<string, SlugCfg> = {
+  "/flower/destiny":    { icon:"🌺", badge:"ATELIER",      tag:"통합 꽃 아틀리에",      particles:["🌸","✦","💮","🌼","🌺"] },
+  "/flower/astrology":  { icon:"🌟", badge:"ASTROLOGY",    tag:"점성술 꽃 리포트",       particles:["⭐","✦","🌸","💫","🌟"] },
+  "/flower/jamidusu":   { icon:"🪷", badge:"ZIWEI FLOWER", tag:"자미두수 꽃 리포트",     particles:["🌸","✦","💐","🪷","⭐"] },
+  "/flower/sukuyo":     { icon:"🌙", badge:"LUNAR FLOWER", tag:"달 위상 꽃 리포트",      particles:["🌙","🌸","✦","🌠","💮"] },
+  "/tarot/self-esteem": { icon:"⚔️", badge:"RPG QUEST",    tag:"5카드 성장 퀘스트",      particles:["✦","⚔️","✨","⭐","✦"] },
+  "/tarot/reunion":     { icon:"🕯️", badge:"REUNION",      tag:"5카드 등대 스프레드",    particles:["🕯️","✦","💌","🌊","✦"] },
+  "/tarot/year":        { icon:"🐉", badge:"12 ZODIAC",    tag:"12개월 운세 타로",       particles:["🐉","⭐","✨","🌙","✦"] },
+  "/oracle/hwatu":      { icon:"🎴", badge:"TRADITIONAL",  tag:"전통 화투 운세",          particles:["🌸","🌺","🎴","🍁","🌊"] },
+  "/oracle/kemet":      { icon:"𓂀", badge:"KEMET ORACLE", tag:"이집트 신탁 오라클",     particles:["✦","𓂀","🌙","⭐","✦"] },
+  "/oracle/juyuk":      { icon:"☯",  badge:"I CHING",      tag:"64괘 거북점",             particles:["☯","☰","☲","☵","☴"] },
+  "/oracle/sukuyo":     { icon:"🌑", badge:"27 LUNAR",     tag:"27수 별자리 운세",        particles:["🌑","🌒","🌓","🌔","🌕"] },
+  "/vedic/jyotish":     { icon:"🕉️", badge:"JYOTISH",      tag:"베다 점성술",             particles:["🕉️","✦","⭐","🌟","✦"] },
+  "/animal/physio":     { icon:"🦁", badge:"AI FACE",       tag:"셀카 얼굴 관상 분석",    particles:["🦁","🐯","🦊","🐻","🐼"] },
+  "/animal/mbti":       { icon:"🦊", badge:"MBTI TOTEM",   tag:"16가지 토템 케미",        particles:["🦊","🦁","🐺","🦅","🐬"] },
+  "/animal/totem":      { icon:"🦅", badge:"TOTEM CARD",   tag:"수호 동물 카드 리딩",     particles:["🦅","🦉","🐺","🦁","🐉"] },
+  "/dream/tarot":       { icon:"💭", badge:"DREAM AI",      tag:"AI 꿈 해석 리포트",      particles:["💭","🌙","✨","⭐","💫"] },
+  "/dream/psycho":      { icon:"🧠", badge:"FREUD STUDY",  tag:"정신분석 해몽",           particles:["🧠","🌀","💭","🔮","✦"] },
+};
+
+/* ═══════════════════════════════════════════
+   Category themes
+═══════════════════════════════════════════ */
+interface Theme {
+  bg: string;
+  orb1: string; orb2: string;
+  glow: string; border: string;
+  accent: string; titleGrad: string;
+  ptBg: string; ptBorder: string; ptDot: string;
+  btnPrimary: string; btnGlow: string;
+  btnSec: string; btnSecBorder: string;
+  badge: string; seo: string; divider: string;
+}
+const THEMES: Record<string, Theme> = {
+  flower: {
+    bg: "linear-gradient(155deg,#0f0a1e 0%,#1e0f34 45%,#0d1825 100%)",
+    orb1:"rgba(255,182,220,0.28)", orb2:"rgba(192,132,252,0.22)",
+    glow:"rgba(244,114,182,0.2)", border:"rgba(244,114,182,0.3)",
+    accent:"#f9a8d4", titleGrad:"linear-gradient(135deg,#fce7f3 0%,#e879f9 55%,#f9a8d4 100%)",
+    ptBg:"rgba(244,114,182,0.08)", ptBorder:"rgba(244,114,182,0.22)", ptDot:"#f472b6",
+    btnPrimary:"linear-gradient(135deg,#be185d 0%,#9333ea 100%)",
+    btnGlow:"0 14px 36px rgba(190,24,93,0.48),0 0 0 1px rgba(244,114,182,0.22)",
+    btnSec:"rgba(244,114,182,0.09)", btnSecBorder:"rgba(244,114,182,0.34)",
+    badge:"rgba(244,114,182,0.88)", seo:"rgba(249,168,212,0.46)", divider:"rgba(244,114,182,0.16)",
+  },
+  tarot: {
+    bg: "linear-gradient(155deg,#0a0514 0%,#140832 45%,#0f0c22 100%)",
+    orb1:"rgba(124,58,237,0.24)", orb2:"rgba(255,215,0,0.1)",
+    glow:"rgba(167,139,250,0.18)", border:"rgba(167,139,250,0.3)",
+    accent:"#c4b5fd", titleGrad:"linear-gradient(135deg,#f5f3ff 0%,#a78bfa 55%,#fbbf24 100%)",
+    ptBg:"rgba(124,58,237,0.1)", ptBorder:"rgba(167,139,250,0.24)", ptDot:"#a78bfa",
+    btnPrimary:"linear-gradient(135deg,#7c3aed 0%,#c026d3 100%)",
+    btnGlow:"0 14px 36px rgba(124,58,237,0.48),0 0 0 1px rgba(167,139,250,0.22)",
+    btnSec:"rgba(167,139,250,0.09)", btnSecBorder:"rgba(167,139,250,0.3)",
+    badge:"rgba(196,181,253,0.88)", seo:"rgba(167,139,250,0.46)", divider:"rgba(167,139,250,0.14)",
+  },
+  oracle: {
+    bg: "linear-gradient(155deg,#0c0a04 0%,#201606 45%,#120e05 100%)",
+    orb1:"rgba(217,119,6,0.22)", orb2:"rgba(180,83,9,0.14)",
+    glow:"rgba(251,191,36,0.15)", border:"rgba(220,185,80,0.3)",
+    accent:"#fbbf24", titleGrad:"linear-gradient(135deg,#fef3c7 0%,#f59e0b 55%,#fde68a 100%)",
+    ptBg:"rgba(217,119,6,0.09)", ptBorder:"rgba(220,185,80,0.24)", ptDot:"#d97706",
+    btnPrimary:"linear-gradient(135deg,#92400e 0%,#d97706 100%)",
+    btnGlow:"0 14px 36px rgba(146,64,14,0.48),0 0 0 1px rgba(251,191,36,0.22)",
+    btnSec:"rgba(251,191,36,0.08)", btnSecBorder:"rgba(251,191,36,0.3)",
+    badge:"rgba(251,191,36,0.88)", seo:"rgba(251,191,36,0.44)", divider:"rgba(220,185,80,0.14)",
+  },
+  animal: {
+    bg: "linear-gradient(155deg,#060e04 0%,#0e1e0a 45%,#080f06 100%)",
+    orb1:"rgba(251,146,60,0.2)", orb2:"rgba(34,197,94,0.14)",
+    glow:"rgba(251,146,60,0.16)", border:"rgba(251,146,60,0.3)",
+    accent:"#fb923c", titleGrad:"linear-gradient(135deg,#fff7ed 0%,#fb923c 55%,#4ade80 100%)",
+    ptBg:"rgba(251,146,60,0.09)", ptBorder:"rgba(251,146,60,0.24)", ptDot:"#f97316",
+    btnPrimary:"linear-gradient(135deg,#ea580c 0%,#16a34a 100%)",
+    btnGlow:"0 14px 36px rgba(234,88,12,0.42),0 0 0 1px rgba(251,146,60,0.22)",
+    btnSec:"rgba(251,146,60,0.08)", btnSecBorder:"rgba(251,146,60,0.3)",
+    badge:"rgba(251,146,60,0.88)", seo:"rgba(251,146,60,0.44)", divider:"rgba(251,146,60,0.14)",
+  },
+  dream: {
+    bg: "linear-gradient(155deg,#06091c 0%,#0d1032 45%,#090c22 100%)",
+    orb1:"rgba(99,102,241,0.24)", orb2:"rgba(168,85,247,0.18)",
+    glow:"rgba(165,180,252,0.15)", border:"rgba(165,180,252,0.28)",
+    accent:"#a5b4fc", titleGrad:"linear-gradient(135deg,#eef2ff 0%,#818cf8 55%,#c084fc 100%)",
+    ptBg:"rgba(99,102,241,0.1)", ptBorder:"rgba(165,180,252,0.22)", ptDot:"#818cf8",
+    btnPrimary:"linear-gradient(135deg,#4338ca 0%,#7c3aed 100%)",
+    btnGlow:"0 14px 36px rgba(67,56,202,0.48),0 0 0 1px rgba(165,180,252,0.22)",
+    btnSec:"rgba(165,180,252,0.08)", btnSecBorder:"rgba(165,180,252,0.28)",
+    badge:"rgba(165,180,252,0.88)", seo:"rgba(165,180,252,0.44)", divider:"rgba(165,180,252,0.14)",
+  },
+  vedic: {
+    bg: "linear-gradient(155deg,#0d0904 0%,#201408 45%,#160f06 100%)",
+    orb1:"rgba(245,158,11,0.24)", orb2:"rgba(239,68,68,0.12)",
+    glow:"rgba(252,211,77,0.15)", border:"rgba(252,211,77,0.28)",
+    accent:"#fcd34d", titleGrad:"linear-gradient(135deg,#fffbeb 0%,#f59e0b 55%,#fde68a 100%)",
+    ptBg:"rgba(245,158,11,0.09)", ptBorder:"rgba(252,211,77,0.22)", ptDot:"#f59e0b",
+    btnPrimary:"linear-gradient(135deg,#b45309 0%,#d97706 100%)",
+    btnGlow:"0 14px 36px rgba(180,83,9,0.48),0 0 0 1px rgba(252,211,77,0.22)",
+    btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
+    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
+  },
+};
+
+/* Per-slug theme overrides (e.g. sukuyo oracle → lunar indigo) */
+const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
+  "/oracle/sukuyo": {
+    bg:"linear-gradient(155deg,#08091e 0%,#10143a 45%,#090c20 100%)",
+    orb1:"rgba(99,102,241,0.22)", orb2:"rgba(168,85,247,0.16)",
+    glow:"rgba(165,180,252,0.14)", border:"rgba(165,180,252,0.28)",
+    accent:"#a5b4fc", titleGrad:"linear-gradient(135deg,#eef2ff 0%,#818cf8 55%,#c084fc 100%)",
+    ptDot:"#818cf8", badge:"rgba(165,180,252,0.88)",
+    btnPrimary:"linear-gradient(135deg,#312e81 0%,#7c3aed 100%)",
+    btnGlow:"0 14px 36px rgba(49,46,129,0.48),0 0 0 1px rgba(165,180,252,0.22)",
+  },
+  "/oracle/hwatu": {
+    bg:"linear-gradient(155deg,#1c0202 0%,#300808 45%,#1c0505 100%)",
+    orb1:"rgba(220,38,38,0.22)", orb2:"rgba(0,0,0,0.5)",
+    glow:"rgba(220,38,38,0.16)", border:"rgba(220,38,38,0.32)",
+    accent:"#fca5a5", titleGrad:"linear-gradient(135deg,#fff1f2 0%,#f87171 55%,#fbbf24 100%)",
+    ptDot:"#f87171", badge:"rgba(252,165,165,0.88)",
+    btnPrimary:"linear-gradient(135deg,#991b1b 0%,#dc2626 100%)",
+    btnGlow:"0 14px 36px rgba(153,27,27,0.48),0 0 0 1px rgba(220,38,38,0.22)",
+  },
+};
+
+/* Action map */
+const ACTION_MAP: Record<string, string> = {
+  "/animal/physio":"openPhysiognomyApp", "/animal/mbti":"openMbtiModal",
+  "/animal/totem":"openAnimalTotemModal", "/tarot/self-esteem":"openTarotSelfEsteemModal",
+  "/tarot/reunion":"openTarotReunionModal", "/tarot/year":"openTarotYearFortuneModal",
+  "/oracle/hwatu":"openHwatuModal", "/oracle/kemet":"openKemetModal",
+  "/oracle/juyuk":"openJuyukModal", "/oracle/sukuyo":"openSukuyoModal",
+  "/vedic/jyotish":"navigateToVedic",
+  "/flower/destiny":"openDestinyFlowerStudio", "/flower/astrology":"openAstrologyFlowerStudio",
+  "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
+  "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
+};
+
+/* Particle positions for the 5 floating items */
+const PARTICLE_POS = [
+  { top:"6%",  left:"4%"   },
+  { top:"14%", right:"5%"  },
+  { top:"42%", left:"2%"   },
+  { top:"62%", right:"3%"  },
+  { top:"82%", left:"6%"   },
+];
+
+/* ═══════════════════════════════════════════
+   Component
+═══════════════════════════════════════════ */
 export default function FeatureLandingPage({ service }: { service?: ServiceLike }) {
   const pathname = usePathname() || "/";
   const basePath = stripLocalePrefix(pathname);
-  const actionMap: Record<string, string> = {
-    "/animal/physio": "openPhysiognomyApp",
-    "/animal/mbti": "openMbtiModal",
-    "/animal/totem": "openAnimalTotemModal",
-    "/tarot/self-esteem": "openTarotSelfEsteemModal",
-    "/tarot/reunion": "openTarotReunionModal",
-    "/tarot/year": "openTarotYearFortuneModal",
-    "/oracle/hwatu": "openHwatuModal",
-    "/oracle/kemet": "openKemetModal",
-    "/oracle/juyuk": "openJuyukModal",
-    "/oracle/sukuyo": "openSukuyoModal",
-    "/vedic/jyotish": "navigateToVedic",
-    "/flower/destiny": "openDestinyFlowerStudio",
-    "/flower/astrology": "openAstrologyFlowerStudio",
-    "/flower/jamidusu": "openJamidusuFlowerStudio",
-    "/flower/sukuyo": "openSukuyoFlowerStudio",
-    "/dream/tarot": "openDreamModal",
-    "/dream/psycho": "openPsychoDreamModal",
+
+  const action = ACTION_MAP[basePath];
+  const runHref = action ? `/?action=${encodeURIComponent(action)}` : "/";
+
+  const category = basePath.split("/")[1] ?? "tarot";
+  const baseTheme = THEMES[category] ?? THEMES.tarot;
+  const override = SLUG_THEME_OVERRIDE[basePath] ?? {};
+  const t: Theme = { ...baseTheme, ...override };
+  const cfg: SlugCfg = SLUG_CFG[basePath] ?? {
+    icon:"✨", badge:"SERVICE", particles:["✦","⭐","✨","💫","✦"],
   };
-  const action = actionMap[basePath];
-  const runHref = action
-    ? `/?action=${encodeURIComponent(action)}`
-    : "/";
 
   const title = service?.h1 || service?.title || "운세 서비스";
-  const description =
-    service?.description || "Code Destiny 메인 기능으로 연결되는 SEO 랜딩 페이지입니다.";
+  const description = service?.description || "Code Destiny 메인 기능으로 연결되는 서비스입니다.";
   const points = Array.isArray(service?.landingPoints) ? service!.landingPoints! : [];
+  const isFlower = category === "flower";
 
   return (
-    <main className="min-h-[100dvh] bg-slate-950 px-4 py-10 text-slate-100">
-      <div className="mx-auto max-w-3xl rounded-2xl border border-slate-700 bg-slate-900/55 p-6">
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-300">{description}</p>
+    <main style={{ minHeight:"100dvh", background:t.bg, color:"#f1f5f9", position:"relative", overflow:"hidden" }}>
 
-        {points.length ? (
-          <section className="mt-5 space-y-2 text-sm leading-7 text-slate-200">
-            <h2 className="text-lg font-semibold">핵심 포인트</h2>
-            {points.map((p, idx) => (
-              <p key={idx}>- {p}</p>
-            ))}
-          </section>
-        ) : null}
+      {/* CSS animations */}
+      <style>{`
+        @keyframes flp-orb { 0%,100%{opacity:.85;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+        @keyframes flp-float {
+          0%,100%{transform:translateY(0) rotate(0deg);opacity:.55}
+          40%{transform:translateY(-14px) rotate(6deg);opacity:.85}
+          70%{transform:translateY(-7px) rotate(-4deg);opacity:.7}
+        }
+        @keyframes flp-petal {
+          0%,100%{transform:translateY(0) scale(1) rotate(0deg)}
+          50%{transform:translateY(-18px) scale(1.06) rotate(12deg)}
+        }
+        @keyframes flp-in {
+          from{opacity:0;transform:translateY(22px)}
+          to{opacity:1;transform:translateY(0)}
+        }
+        @keyframes flp-shine {
+          0%{transform:translateX(-120%) skewX(-12deg)}
+          100%{transform:translateX(120%) skewX(-12deg)}
+        }
+        @keyframes flp-pig-bounce {
+          0%,100%{transform:translateY(0) scale(1) rotate(-4deg)}
+          40%{transform:translateY(-7px) scale(1.08) rotate(4deg)}
+          70%{transform:translateY(-3px) scale(1.04) rotate(-2deg)}
+        }
+        @keyframes flp-manse-pulse {
+          0%,100%{box-shadow:0 0 0 0 rgba(255,183,178,0.55),0 12px 32px rgba(255,139,167,0.28)}
+          50%{box-shadow:0 0 0 8px rgba(255,183,178,0),0 16px 40px rgba(255,139,167,0.42)}
+        }
+        @keyframes flp-manse-shine {
+          0%{transform:translateX(-130%) skewX(-14deg);opacity:0}
+          20%{opacity:0.5}
+          80%{opacity:0.5}
+          100%{transform:translateX(130%) skewX(-14deg);opacity:0}
+        }
+        .flp-in { animation: flp-in .65s cubic-bezier(.22,1,.36,1) both; }
+        .flp-d1 { animation-delay:.08s; }
+        .flp-d2 { animation-delay:.18s; }
+        .flp-d3 { animation-delay:.28s; }
+        .flp-d4 { animation-delay:.4s; }
+        .flp-btn-p { transition: transform .18s ease, filter .18s ease, box-shadow .18s ease; }
+        .flp-btn-p:hover { transform:translateY(-3px); filter:brightness(1.1); }
+        .flp-btn-p:active { transform:translateY(0) scale(.97); }
+        .flp-btn-s { transition: transform .18s ease, background .18s ease; }
+        .flp-btn-s:hover { transform:translateY(-2px); }
+        .flp-img-wrap::after {
+          content:''; position:absolute; inset:0;
+          background:linear-gradient(125deg,transparent 35%,rgba(255,255,255,.12) 55%,transparent 75%);
+          transform:translateX(-120%) skewX(-12deg);
+          pointer-events:none;
+        }
+        .flp-img-wrap:hover::after { animation: flp-shine .7s ease forwards; }
+      `}</style>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={runHref} className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-900">
-            기능 바로 실행
+      {/* Ambient orbs */}
+      <div aria-hidden="true" style={{
+        position:"absolute", top:"-18%", left:"-12%", width:"58%", height:"58%",
+        borderRadius:"50%", background:`radial-gradient(circle,${t.orb1} 0%,transparent 70%)`,
+        filter:"blur(52px)", pointerEvents:"none",
+        animation:"flp-orb 9s ease-in-out infinite",
+      }}/>
+      <div aria-hidden="true" style={{
+        position:"absolute", bottom:"2%", right:"-14%", width:"65%", height:"65%",
+        borderRadius:"50%", background:`radial-gradient(circle,${t.orb2} 0%,transparent 70%)`,
+        filter:"blur(64px)", pointerEvents:"none",
+        animation:"flp-orb 11s ease-in-out 4s infinite",
+      }}/>
+
+      {/* Floating particle decorations */}
+      {cfg.particles.map((p, i) => (
+        <div key={i} aria-hidden="true" style={{
+          position:"absolute",
+          fontSize:`${0.85 + (i % 3) * 0.38}rem`,
+          opacity: 0.08 + i * 0.035,
+          pointerEvents:"none",
+          ...PARTICLE_POS[i],
+          animation:`flp-float ${4.2 + i * 0.9}s ease-in-out ${i * 0.55}s infinite`,
+          userSelect:"none",
+        }}>{p}</div>
+      ))}
+
+      {/* ── Flower category: extra petal orbs ── */}
+      {isFlower && (
+        <>
+          <div aria-hidden="true" style={{
+            position:"absolute", top:"28%", left:"50%",
+            width:"320px", height:"320px", borderRadius:"50%",
+            background:"radial-gradient(circle,rgba(236,72,153,.08) 0%,transparent 70%)",
+            filter:"blur(40px)", pointerEvents:"none", transform:"translateX(-50%)",
+          }}/>
+          {["TL","TR","BL","BR"].map((pos,i) => (
+            <div key={pos} aria-hidden="true" style={{
+              position:"absolute",
+              top: i < 2 ? "18%" : "70%",
+              left: i % 2 === 0 ? "12%" : undefined,
+              right: i % 2 !== 0 ? "12%" : undefined,
+              width:"44px", height:"44px", borderRadius:"50%",
+              background:`radial-gradient(circle,${["rgba(244,114,182,.18)","rgba(216,180,254,.14)","rgba(251,207,232,.12)","rgba(196,132,252,.16)"][i]} 0%,transparent 70%)`,
+              filter:"blur(12px)", pointerEvents:"none",
+              animation:`flp-petal ${3.5 + i * 0.7}s ease-in-out ${i * 0.4}s infinite`,
+            }}/>
+          ))}
+        </>
+      )}
+
+      {/* Content */}
+      <div style={{
+        position:"relative", zIndex:1,
+        maxWidth:"680px", margin:"0 auto",
+        padding:"clamp(36px,8vw,68px) clamp(16px,5vw,32px) 56px",
+      }}>
+
+        {/* Badge */}
+        <div className="flp-in" style={{ textAlign:"center", marginBottom:"18px" }}>
+          <span style={{
+            display:"inline-block", fontSize:"0.63rem", fontWeight:800,
+            letterSpacing:"0.24em", color:t.badge,
+            background:"rgba(255,255,255,0.05)", border:`1px solid ${t.border}`,
+            padding:"5px 18px", borderRadius:"999px", textTransform:"uppercase",
+            backdropFilter:"blur(6px)",
+          }}>{cfg.badge}</span>
+        </div>
+
+        {/* Icon + Title */}
+        <header className="flp-in flp-d1" style={{ textAlign:"center", marginBottom:"30px" }}>
+          <div style={{
+            fontSize:"clamp(2.8rem,10vw,4.2rem)", lineHeight:1, marginBottom:"16px",
+            filter:`drop-shadow(0 0 22px ${t.orb1})`,
+            animation:`flp-float 4s ease-in-out infinite`,
+          }}>{cfg.icon}</div>
+          <h1 style={{
+            fontFamily:"'Noto Serif KR','Noto Serif',serif",
+            fontSize:"clamp(1.6rem,5vw,2.35rem)", fontWeight:800,
+            lineHeight:1.22, letterSpacing:"-0.02em",
+            background:t.titleGrad,
+            WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
+            margin:"0 0 8px", wordBreak:"keep-all",
+          }}>{title}</h1>
+          {cfg.tag && (
+            <p style={{ fontSize:"0.78rem", color:t.accent, opacity:.68, letterSpacing:"0.1em", margin:0 }}>
+              {cfg.tag}
+            </p>
+          )}
+        </header>
+
+        {/* OG Image */}
+        {service?.ogImage && (
+          <div className="flp-in flp-d2 flp-img-wrap" style={{
+            borderRadius:"20px", overflow:"hidden", marginBottom:"26px",
+            border:`1px solid ${t.border}`,
+            boxShadow:`0 20px 60px ${t.glow},0 0 0 1px rgba(255,255,255,0.04)`,
+            position:"relative", height:"220px",
+          }}>
+            <img
+              src={service.ogImage} alt={title} loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+            />
+            <div style={{
+              position:"absolute", inset:0,
+              background:`linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 55%)`,
+            }}/>
+            {/* Title overlay on image */}
+            <div style={{
+              position:"absolute", bottom:"14px", left:"16px",
+              fontSize:"0.72rem", fontWeight:800, letterSpacing:"0.16em",
+              color:"rgba(255,255,255,0.7)", textTransform:"uppercase",
+            }}>{cfg.badge}</div>
+          </div>
+        )}
+
+        {/* Description */}
+        <div className="flp-in flp-d2" style={{
+          background:"rgba(255,255,255,0.04)", border:`1px solid ${t.border}`,
+          borderRadius:"16px", padding:"20px 22px", marginBottom:"20px",
+          backdropFilter:"blur(10px)", boxShadow:`0 6px 28px ${t.glow}`,
+        }}>
+          <p style={{
+            fontSize:"clamp(0.88rem,2.2vw,0.97rem)", lineHeight:1.92,
+            color:"rgba(241,245,249,0.88)", margin:0, wordBreak:"keep-all",
+          }}>{description}</p>
+        </div>
+
+        {/* Feature points */}
+        {points.length > 0 && (
+          <div className="flp-in flp-d3" style={{ marginBottom:"28px" }}>
+            <h2 style={{
+              fontSize:"0.66rem", fontWeight:800, letterSpacing:"0.22em",
+              textTransform:"uppercase", color:t.accent, opacity:.72,
+              marginBottom:"10px", marginTop:0,
+            }}>핵심 포인트</h2>
+            <div style={{
+              display:"grid",
+              gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",
+              gap:"8px",
+            }}>
+              {points.map((pt, i) => (
+                <div key={i} style={{
+                  background:t.ptBg, border:`1px solid ${t.ptBorder}`,
+                  borderRadius:"12px", padding:"11px 14px",
+                  display:"flex", alignItems:"flex-start", gap:"9px",
+                  backdropFilter:"blur(4px)",
+                }}>
+                  <span style={{
+                    width:"6px", height:"6px", borderRadius:"50%", background:t.ptDot,
+                    flexShrink:0, marginTop:"7px", boxShadow:`0 0 8px ${t.ptDot}`,
+                  }}/>
+                  <span style={{
+                    fontSize:"0.84rem", color:"rgba(241,245,249,0.9)",
+                    lineHeight:1.62, wordBreak:"keep-all",
+                  }}>{pt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div style={{
+          height:"1px",
+          background:`linear-gradient(90deg,transparent,${t.divider},transparent)`,
+          marginBottom:"24px",
+        }}/>
+
+        {/* ── 꿀꿀 만세력 바로가기 ── */}
+        <div className="flp-in flp-d4" style={{ marginBottom:"12px" }}>
+          <Link
+            href="/"
+            style={{
+              display:"flex", alignItems:"center", gap:"12px",
+              padding:"15px 20px",
+              background:"linear-gradient(135deg,#ffe4ec 0%,#fff5dc 50%,#fce4ff 100%)",
+              borderRadius:"16px",
+              border:"1.5px solid rgba(255,183,178,0.7)",
+              textDecoration:"none",
+              position:"relative", overflow:"hidden",
+              animation:"flp-manse-pulse 2.4s ease-in-out infinite",
+            }}
+          >
+            {/* shine sweep */}
+            <span aria-hidden="true" style={{
+              position:"absolute", inset:0, pointerEvents:"none",
+              background:"linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.55) 55%,transparent 75%)",
+              animation:"flp-manse-shine 3.6s ease-in-out 1.2s infinite",
+            }}/>
+
+            {/* 꽃돼지 이미지 */}
+            <span style={{
+              flexShrink:0, width:"46px", height:"46px",
+              borderRadius:"50%", overflow:"hidden",
+              border:"2px solid rgba(255,139,167,0.45)",
+              boxShadow:"0 4px 12px rgba(255,139,167,0.28)",
+              animation:"flp-pig-bounce 3.2s ease-in-out infinite",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              background:"#fff",
+            }}>
+              <img
+                src="https://code-destiny.com/icons/honeypig.webp"
+                alt="꿀꿀"
+                width={46} height={46}
+                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+              />
+            </span>
+
+            <span style={{ flex:1, minWidth:0 }}>
+              <span style={{
+                display:"block",
+                fontSize:"0.65rem", fontWeight:800, letterSpacing:"0.18em",
+                color:"rgba(213,63,90,0.72)", textTransform:"uppercase",
+                marginBottom:"2px",
+              }}>FREE · 무료 메인 서비스</span>
+              <span style={{
+                display:"block",
+                fontSize:"1rem", fontWeight:900,
+                background:"linear-gradient(135deg,#be185d 0%,#d97706 100%)",
+                WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text",
+                lineHeight:1.2,
+              }}>연이의 꿀꿀 만세력</span>
+              <span style={{
+                display:"block",
+                fontSize:"0.73rem", color:"rgba(120,60,60,0.68)",
+                marginTop:"3px", lineHeight:1.4,
+              }}>사주·타로·점성술·자미두수 무료 통합 플랫폼</span>
+            </span>
+
+            <span style={{
+              flexShrink:0, width:"28px", height:"28px",
+              borderRadius:"50%",
+              background:"linear-gradient(135deg,rgba(255,139,167,0.18),rgba(255,183,178,0.28))",
+              border:"1px solid rgba(255,139,167,0.4)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:"0.75rem", color:"rgba(190,24,93,0.8)",
+            }}>→</span>
           </Link>
-          <Link href="/insights" className="rounded-lg border border-slate-600 px-4 py-2 text-sm">
+        </div>
+
+        {/* CTA Buttons */}
+        <div className="flp-in flp-d4" style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
+          <Link href={runHref} className="flp-btn-p" style={{
+            display:"flex", alignItems:"center", justifyContent:"center",
+            gap:"10px", padding:"16px 24px", background:t.btnPrimary,
+            color:"#fff", borderRadius:"14px", fontWeight:800, fontSize:"1rem",
+            textDecoration:"none", boxShadow:t.btnGlow, letterSpacing:"0.03em",
+            fontFamily:"'Noto Sans KR',sans-serif",
+          }}>
+            <span style={{ fontSize:"1.1rem" }}>{cfg.icon}</span>
+            <span>기능 바로 실행</span>
+          </Link>
+          <Link href="/insights" className="flp-btn-s" style={{
+            display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"13px 24px", background:t.btnSec,
+            border:`1px solid ${t.btnSecBorder}`,
+            color:t.accent, borderRadius:"14px",
+            fontWeight:700, fontSize:"0.9rem",
+            textDecoration:"none", letterSpacing:"0.02em",
+          }}>
             관련 인사이트 보기
           </Link>
         </div>
+
+        {/* SEO text */}
+        {service?.seoText && (
+          <p style={{
+            marginTop:"36px", fontSize:"0.73rem", lineHeight:1.75,
+            color:t.seo, textAlign:"center", padding:"0 4px", wordBreak:"keep-all",
+          }}>{service.seoText}</p>
+        )}
       </div>
     </main>
   );

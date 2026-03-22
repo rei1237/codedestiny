@@ -539,7 +539,6 @@ async function resolvePrimaryCalendarContext(input, options) {
   options = options || {};
   var norm = Object.assign({}, input || {});
   norm.calendarType = normalizeCalendarTypeInput(norm.calendarType || norm.calType || 'solar');
-  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : false;
 
   var hasCompleteCalendar = function(ctx) {
     return !!(ctx && ctx.solar && ctx.lunar && ctx.solar.year && ctx.solar.month && ctx.solar.day && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day);
@@ -578,10 +577,6 @@ async function resolvePrimaryCalendarContext(input, options) {
     return ctx;
   }
 
-  if (strictKasi && !localOnly) {
-    return null;
-  }
-
   if (hasCompleteCalendar(localCtx)) {
     try {
       if (ctx && ctx.meta && Array.isArray(ctx.meta.diagnostics)) {
@@ -603,7 +598,6 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
   var parts = String(dateStr).split('-').map(function(v) { return parseInt(v, 10); });
   if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
   var opts = options || {};
-  var strictKasi = (window.KASI_STRICT_API !== undefined) ? !!window.KASI_STRICT_API : false;
   var ctx = await resolvePrimaryCalendarContext({
     calendarType: normalizeCalendarTypeInput(typeStr || 'solar'),
     year: parts[0],
@@ -628,7 +622,6 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
     };
   }
 
-  if (strictKasi) return null;
   return getActualSolarDate(dateStr, normalizeCalendarTypeInput(typeStr || 'solar'));
 }
 
@@ -1563,7 +1556,312 @@ function zwDisplayPalaceName(name){
   return name === '부처궁' ? '부부궁' : name;
 }
 
-// calcZiweiPalaces는 ziwei-doushu.js에서 제공합니다
+function calcZiweiPalaces(year, month, day, hour, minute) {
+  var solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+  var lunar = solar.getLunar();
+  var baseDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0);
+  var kasiLunar = null;
+  try {
+    if (KasiEngine && typeof KasiEngine.solarToLunar === 'function') {
+      kasiLunar = KasiEngine.solarToLunar(baseDate);
+    }
+  } catch (_kasiLunarErr) {}
+
+  var lmonth = (kasiLunar && kasiLunar.month) ? Math.abs(Number(kasiLunar.month)) : Math.abs(lunar.getMonth());
+  var lday = (kasiLunar && kasiLunar.day) ? Number(kasiLunar.day) : lunar.getDay();
+  var isLeap = (kasiLunar && kasiLunar.isLeap != null)
+    ? !!kasiLunar.isLeap
+    : (typeof lunar.isLeap === 'function' ? lunar.isLeap() : (lunar.getIsLeap ? lunar.getIsLeap() : false));
+  var yearGan = lunar.getYearGan();
+  var yearZhi = lunar.getYearZhi();
+  try {
+    if (KasiEngine && typeof KasiEngine.getGanji === 'function') {
+      var _kasiGanji = KasiEngine.getGanji(baseDate);
+      if (_kasiGanji && _kasiGanji.secha && String(_kasiGanji.secha).length >= 2) {
+        yearGan = String(_kasiGanji.secha).charAt(0) || yearGan;
+        yearZhi = String(_kasiGanji.secha).charAt(1) || yearZhi;
+      }
+    }
+  } catch (_kasiGanjiErr) {}
+  
+  var h = hour;
+  var hourIdx = (h === 23 || h === 0) ? 0 : Math.floor((h + 1) / 2);
+  var hourBranch = ZHI_LIST[hourIdx];
+  
+  var mengBaseIdx = (2 + lmonth - 1) % 12;
+  // 명궁: 월궁 기점에서 시지를 역행 반영 (전통 자미두수 배궁)
+  var mengIdx = (mengBaseIdx - hourIdx + 12) % 12;
+  // 신궁: 월궁 기점에서 시지를 순행 반영
+  var shenIdx = (mengBaseIdx + hourIdx) % 12;
+
+  var PALACE_NAMES = ['명궁','형제궁','부처궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
+  var palaces = {};
+    var palacesByIndex = [];
+  for(var i=0; i<12; i++) {
+    var bIdx = (mengIdx - i + 120) % 12;
+    palaces[PALACE_NAMES[i]] = ZHI_LIST[bIdx];
+    palacesByIndex[bIdx] = PALACE_NAMES[i];
+  }
+
+  var GAN_LIST_ZW = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var yg = GAN_LIST_ZW.indexOf(yearGan);
+  var inStart = [2, 4, 6, 8, 0][((yg % 5) + 5) % 5];
+  var gongGan = {};
+  for(var z=0; z<12; z++) gongGan[ZHI_LIST[z]] = GAN_LIST_ZW[(inStart + (z - 2 + 12) % 12) % 10];
+
+  var mgGan = gongGan[ZHI_LIST[mengIdx]];
+  var mgZhiIdx = mengIdx;
+  var sMap = {'甲':1,'乙':1,'丙':2,'丁':2,'戊':3,'己':3,'庚':4,'辛':4,'壬':5,'癸':5};
+  var bMap = {0:1,1:1,2:2,3:2,4:3,5:3,6:1,7:1,8:2,9:2,10:3,11:3};
+  var wVal = sMap[mgGan] + bMap[mgZhiIdx];
+  if(wVal > 5) wVal -= 5;
+  var juMap = {1:3, 2:4, 3:2, 4:6, 5:5};
+  var ju = juMap[wVal] || 4;
+  var juNames = {2:'수2국(水二局)', 3:'목3국(木三局)', 4:'금4국(金四局)', 5:'토5국(土五局)', 6:'화6국(火六局)'};
+  var q = Math.floor(lday / ju);
+  var r = lday % ju;
+  var add = 0;
+  if (r !== 0) {
+      add = ju - r;
+      q = Math.floor((lday + add) / ju);
+  }
+  var pos = q; 
+  if (add > 0) {
+      if (add % 2 === 1) pos = q - add;
+      else pos = q + add;
+  }
+  while(pos <= 0) pos += 12;
+  while(pos > 12) pos -= 12;
+  var zPos = (pos + 1) % 12;
+
+  var fPos = (16 - zPos) % 12;
+
+  var stars = {};
+  for(var i=0; i<12; i++) stars[i] = { main:[], aux:[], bad:[] };
+
+  stars[zPos].main.push('자미');
+  stars[(zPos + 11) % 12].main.push('천기');
+  stars[(zPos + 9) % 12].main.push('태양');
+  stars[(zPos + 8) % 12].main.push('무곡');
+  stars[(zPos + 7) % 12].main.push('천동');
+  stars[(zPos + 4) % 12].main.push('염정');
+
+  stars[fPos].main.push('천부');
+  stars[(fPos + 1) % 12].main.push('태음');
+  stars[(fPos + 2) % 12].main.push('탐랑');
+  stars[(fPos + 3) % 12].main.push('거문');
+  stars[(fPos + 4) % 12].main.push('천상');
+  stars[(fPos + 5) % 12].main.push('천량');
+  stars[(fPos + 6) % 12].main.push('칠살');
+  stars[(fPos + 10) % 12].main.push('파군');
+
+  stars[(10 - hourIdx + 12) % 12].aux.push('문창');
+  stars[(4 + hourIdx) % 12].aux.push('문곡');
+  stars[(4 + lmonth - 1) % 12].aux.push('좌보');
+  stars[(10 - (lmonth - 1) + 12) % 12].aux.push('우필');
+  
+  var yangMap = {'甲':3,'乙':4,'丙':6,'丁':7,'戊':6,'己':7,'庚':9,'辛':10,'壬':0,'癸':1};
+  var tuoMap = {'甲':1,'乙':2,'丙':4,'丁':5,'戊':4,'己':5,'庚':7,'辛':8,'壬':10,'癸':11};
+  if(yearGan in yangMap) {
+    stars[yangMap[yearGan]].bad.push('경양');
+    stars[tuoMap[yearGan]].bad.push('타라');
+  }
+  
+  stars[(11 - hourIdx + 12) % 12].bad.push('지공');
+  stars[(11 + hourIdx) % 12].bad.push('지겁');
+
+  var maMap = {'申':2,'子':2,'辰':2, '亥':5,'卯':5,'未':5, '寅':8,'午':8,'戌':8, '巳':11,'酉':11,'丑':11};
+  var tianMaZhi = maMap[yearZhi];
+  if (tianMaZhi !== undefined) stars[tianMaZhi].aux.push('천마');
+
+  var luCunMap = {'甲':2,'乙':3,'丙':5,'丁':6,'戊':5,'己':6,'庚':8,'辛':9,'壬':11,'癸':0};
+  var luCunZhi = luCunMap[yearGan];
+  if (luCunZhi !== undefined) stars[luCunZhi].aux.push('녹존');
+
+  // 천괴/천월은 연간 규칙표를 따르며, 辛년은 寅(천괴)·午(천월)로 배치한다.
+  var kuiMap = {'甲':1,'乙':0,'丙':11,'丁':11,'戊':1,'己':0,'庚':1,'辛':2,'壬':3,'癸':3};
+  var yueMap = {'甲':7,'乙':8,'丙':9,'丁':9,'戊':7,'己':8,'庚':7,'辛':6,'壬':5,'癸':5};
+  var kuiZhi = kuiMap[yearGan];
+  var yueZhi = yueMap[yearGan];
+  if(kuiZhi !== undefined) stars[kuiZhi].aux.push('천괴');
+  if(yueZhi !== undefined) stars[yueZhi].aux.push('천월');
+
+  var hlStart = {
+      '寅':{h:1, l:3}, '午':{h:1, l:3}, '戌':{h:1, l:3},
+      '申':{h:2, l:10}, '子':{h:2, l:10}, '辰':{h:2, l:10},
+      '巳':{h:3, l:10}, '酉':{h:3, l:10}, '丑':{h:3, l:10},
+      '亥':{h:9, l:10}, '卯':{h:9, l:10}, '未':{h:9, l:10}
+  };
+  if (hlStart[yearZhi]) {
+      var huoZhi = (hlStart[yearZhi].h + hourIdx) % 12;
+      var lingZhi = (hlStart[yearZhi].l + hourIdx) % 12;
+      stars[huoZhi].bad.push('화성');
+      stars[lingZhi].bad.push('영성');
+  }
+
+  var sihuaMap = {
+    '甲': { '염정': '화록', '파군': '화권', '무곡': '화과', '태양': '화기' },
+    '乙': { '천기': '화록', '천량': '화권', '자미': '화과', '태음': '화기' },
+    '丙': { '천동': '화록', '천기': '화권', '문창': '화과', '염정': '화기' },
+    '丁': { '태음': '화록', '천동': '화권', '천기': '화과', '거문': '화기' },
+    '戊': { '탐랑': '화록', '태음': '화권', '우필': '화과', '천기': '화기' },
+    '己': { '무곡': '화록', '탐랑': '화권', '천량': '화과', '문곡': '화기' },
+    '庚': { '태양': '화록', '무곡': '화권', '태음': '화과', '천동': '화기' },
+    '辛': { '거문': '화록', '태양': '화권', '문곡': '화과', '문창': '화기' },
+    '壬': { '천량': '화록', '자미': '화권', '좌보': '화과', '무곡': '화기' },
+    '癸': { '파군': '화록', '거문': '화권', '태음': '화과', '탐랑': '화기' }
+  };
+  var curSihua = sihuaMap[yearGan];
+  // 화사(四化) 독립 데이터 추출 — HTML 임베드 전에 stars 원본에서 계산
+  var sihuaData = {};
+  if (curSihua) {
+    for (var sName in curSihua) {
+      for (var si = 0; si < 12; si++) {
+        if (stars[si].main.indexOf(sName) >= 0 || stars[si].aux.indexOf(sName) >= 0) {
+          sihuaData[sName] = { type: curSihua[sName], palaceIdx: si, palaceName: palacesByIndex[si] || '' };
+          break;
+        }
+      }
+    }
+  }
+  if (curSihua) {
+    for (var i = 0; i < 12; i++) {
+        for (var j = 0; j < stars[i].main.length; j++) {
+            var sn = stars[i].main[j];
+            if (curSihua[sn]) {
+                var sh = curSihua[sn];
+                var col = (sh === '화기') ? '#FF5252' : '#3399FF';
+                stars[i].main[j] = sn + ' <span style="color:'+col+';font-weight:900;font-size:0.75rem;margin-left:3px;">' + sh + '</span>';
+            }
+        }
+        for (var j = 0; j < stars[i].aux.length; j++) {
+            var sn = stars[i].aux[j];
+            if (curSihua[sn]) {
+                var sh = curSihua[sn];
+                var col = (sh === '화기') ? '#FF5252' : '#3399FF';
+                stars[i].aux[j] = sn + ' <span style="color:'+col+';font-weight:900;font-size:0.7rem;margin-left:3px;">' + sh + '</span>';
+            }
+        }
+    }
+  }
+
+  var borrowed = [];
+  for(var i=0; i<12; i++) {
+    if(stars[i].main.length === 0) {
+      var opp = (i + 6) % 12;
+      borrowed[i] = stars[opp].main.map(function(s) { 
+        return s + '<span style="font-size:0.5rem;opacity:0.6;margin-left:3px;font-weight:600;color:#a1a1aa">(차성)</span>'; 
+      });
+    }
+  }
+  for(var i=0; i<12; i++) {
+    if(borrowed[i]) {
+        // 원성(main)을 덮어쓰지 않고 차성 전용 슬롯에 분리 저장
+        stars[i].borrowedMain = [].concat(borrowed[i]);
+    }
+  }
+
+  var isYangYear = {'甲':1,'乙':-1,'丙':1,'丁':-1,'戊':1,'己':-1,'庚':1,'辛':-1,'壬':1,'癸':-1}[yearGan] > 0;
+  var isMale = typeof GENDER !== 'undefined' ? (GENDER === 'M') : true;
+  var direction = (isYangYear === isMale) ? 1 : -1;
+  var daHan = {};
+  var daHanList = [];
+  for(var k=0; k<12; k++) {
+    var currBIdx = (mengIdx + k * direction + 120) % 12;
+    var startAge = ju + k * 10;
+    var endAge = startAge + 9;
+    daHan[currBIdx] = startAge + '~' + endAge;
+    daHanList.push({
+      order: k,
+      idx: currBIdx,
+      palaceName: palacesByIndex[currBIdx] || ('제'+(k+1)+'대한'),
+      startAge: startAge,
+      endAge: endAge,
+      zhi: ZHI_LIST[currBIdx]
+    });
+  }
+
+  var palaceStarData = [];
+  for (var pi = 0; pi < 12; pi++) {
+    var gName = palacesByIndex[pi] || '';
+    var gZhi = ZHI_LIST[pi];
+    function parseStarRows(list, borrowedByTag){
+      return (list || []).map(function(raw){
+        var hasHwaGi = /화기/.test(raw || '');
+        var plain = (raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        var borrowedFlag = borrowedByTag ? /\(차성\)|\b차성\b/.test(plain) : false;
+        var starName = plain
+          .replace(/\(차성\)/g,'')
+          .replace(/화록|화권|화과|화기/g,'')
+          .replace(/◎|△|▲/g,'')
+          .replace(/(^|\s)[O○X](?=\s|$)/g,' ')
+          .trim()
+          .split(' ')[0];
+        if(!starName) return null;
+        var strength = zwComputeStarStrength(starName, gZhi, borrowedFlag, {
+          hourIndex: hourIdx,
+          lunarMonth: lmonth,
+          yearGan: yearGan,
+          luCunZhiIdx: (luCunZhi !== undefined ? luCunZhi : -1)
+        }) || '평';
+        if (hasHwaGi) {
+          var normalized = zwNormalizeStrength(strength);
+          if (starName === '거문') {
+            // 거문 화기는 현실 리스크를 동반하되, 본래 광휘(묘/왕)는 즉시 붕괴시키지 않는다.
+            var downGeomun = {'묘':'묘','왕':'왕','평':'리','리':'함','함':'함'};
+            strength = downGeomun[normalized] || normalized;
+          } else {
+            var down = {'묘':'평','왕':'리','평':'함','리':'함','함':'함'};
+            strength = down[normalized] || normalized;
+          }
+        }
+        return {
+          name: starName,
+          strength: strength,
+          symbol: zwStrengthToSymbol(strength),
+          borrowed: !!borrowedFlag
+        };
+      }).filter(function(v){ return !!v; });
+    }
+    var mainSource = [];
+    if(stars[pi] && stars[pi].main && stars[pi].main.length) mainSource = stars[pi].main;
+    else if(stars[pi] && stars[pi].borrowedMain && stars[pi].borrowedMain.length) mainSource = stars[pi].borrowedMain;
+    var mainRows = parseStarRows(mainSource, true);
+    var auxRows = parseStarRows(stars[pi] && stars[pi].aux ? stars[pi].aux : [], false);
+    var badRows = parseStarRows(stars[pi] && stars[pi].bad ? stars[pi].bad : [], false);
+
+    palaceStarData.push({
+      palace: gName,
+      branch: gZhi,
+      stars: mainRows,
+      auxStars: auxRows,
+      badStars: badRows
+    });
+  }
+
+  return {
+    lunarMonth: lmonth, lunarDay: lday, isLeap: isLeap, yearGan: yearGan,
+    meng: ZHI_LIST[mengIdx], shen: ZHI_LIST[shenIdx],
+    palaces: palaces, gongGan: gongGan,
+    palacesByIndex: palacesByIndex,
+    stars: stars,
+    juInfo: juNames[ju] || juNames[4],
+    daHan: daHan,
+    daHanList: daHanList,
+    sihuaData: sihuaData,
+    direction: direction,
+    ju: ju,
+    palaceStarData: palaceStarData,
+    calcMeta: {
+      lunarMonth: lmonth,
+      lunarDay: lday,
+      hourBranch: hourBranch,
+      hourIndex: hourIdx,
+      lifeFormula: '명궁 = (월궁기점 - 시지index) mod 12',
+      bodyFormula: '신궁 = (월궁기점 + 시지index) mod 12'
+    }
+  };
+}
 
 /* ═══════════════════════════════════════
    STEP 4: 유틸 함수
@@ -1574,7 +1872,14 @@ function setGender(g){
   document.getElementById('btnM').classList.toggle('on',g==='M');
   document.getElementById('btnF').classList.toggle('on',g==='F');
 }
-// getTenGod는 sajuAnalyzer.js에서 제공합니다
+function getTenGod(dayGan,target){
+  var gOrJ=GAN[target]||JI[target];
+  if(!GAN[dayGan]||!gOrJ)return'?';
+  var els=['wood','fire','earth','metal','water'];
+  var diff=(els.indexOf(gOrJ.e)-els.indexOf(GAN[dayGan].e)+5)%5;
+  var samePol=GAN[dayGan].y===gOrJ.y;
+  return({0:samePol?'비견':'겁재',1:samePol?'식신':'상관',2:samePol?'편재':'정재',3:samePol?'편관':'정관',4:samePol?'편인':'정인'})[diff]||'?';
+}
 
 function parseTimeZoneOffsetName(name) {
   if (!name) return null;
@@ -1881,7 +2186,291 @@ function updateCorrectedTimePreview(){
    STEP 5: 명리학 분석 엔진
 ═══════════════════════════════════════ */
 
-// analyzeJohu, calcPower, detectJong은 sajuAnalyzer.js에서 제공합니다
+/* ─ 조후 분석 ─ */
+function analyzeJohu(p){
+  var yg=p.y.g,yz=p.y.j,mg=p.m.g,mz=p.m.j,dg=p.d.g,dz=p.d.j,hg=p.h.g,hz=p.h.j;
+  var score=0;
+  var seasonMap={'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
+  var season=seasonMap[mz]||'봄';
+  if(season==='여름')score+=4;else if(season==='봄')score+=2;else if(season==='가을')score-=2;else score-=4;
+  var fc=0,wc=0,wdc=0,mc=0;
+  var moistCnt=0,dryCnt=0;
+  [yg,yz,mg,mz,dg,dz,hg,hz].forEach(function(c){
+    var g=GAN[c],j=JI[c];
+    var e=(g||j||{}).e;
+    if(e==='fire'){score+=1.5;fc++;dryCnt++;}else if(e==='water'){score-=1.5;wc++;moistCnt++;}
+    else if(e==='wood'){score+=0.5;wdc++;moistCnt++;}
+    else if(e==='metal'){score-=0.5;mc++;dryCnt++;}
+    if(j){
+      if(c==='辰'||c==='丑')moistCnt++;
+      if(c==='戌'||c==='未')dryCnt++;
+    }
+  });
+  var type,advice,badgeCls,badgeTxt;
+  if(score>=5){type='hot';advice='사주가 매우 뜨겁습니다. 水·金 기운이 절실히 필요합니다.';badgeCls='jb-hot';badgeTxt='🔥 뜨거운 사주';}
+  else if(score>=2){type='warm';advice='사주가 따뜻한 편입니다. 水 기운으로 조절하면 좋습니다.';badgeCls='jb-warm';badgeTxt='🌞 따뜻한 사주';}
+  else if(score>=-2){type='neutral';advice='사주의 온도가 시원하게 균형잡혀 있습니다. 계절 변화에 맞춰 음양을 조절하세요.';badgeCls='jb-neutral';badgeTxt='🌤️ 시원한 사주';}
+  else if(score>=-5){type='cool';advice='사주가 서늘한 편입니다. 火·木 기운으로 온기를 보충하면 좋습니다.';badgeCls='jb-cool';badgeTxt='🍃 서늘한 사주';}
+  else{type='cold';advice='사주가 매우 차갑습니다. 火·木 기운이 절실히 필요합니다.';badgeCls='jb-cold';badgeTxt='❄️ 차가운 사주';}
+  var moistType,moistAdvice;
+  var diff=moistCnt-dryCnt;
+  if(diff>=3){moistType='wet';moistAdvice='사주에 습기가 많은 편입니다. 건조한 환경, 금(金)·불(火) 기운을 적절히 써주면 균형이 좋아집니다.';}
+  else if(diff<=-3){moistType='dry';moistAdvice='사주가 건조한 편입니다. 물(水)·나무(木) 기운과 실제 수분(물·목욕·자연)을 통해 촉촉함을 채워주는 것이 좋습니다.';}
+  else{moistType='balanced';moistAdvice='습조(濕燥)는 비교적 균형잡힌 편입니다. 한난만 잘 맞춰주면 좋습니다.';}
+  var improve=(type==='hot'||type==='warm')
+    ?'시원하고 차가운 기운 필요. 북쪽 방향, 파란색·검은색 컬러, 수영·물가 활동.'
+    :(type==='cold'||type==='cool')
+    ?'따뜻하고 밝은 기운 필요. 남쪽 방향, 빨간색·주황색 컬러, 캠핑·BBQ 활동.'
+    :'균형잡힌 사주입니다. 다양한 오행을 골고루 활용하세요.';
+  return{
+    score:score,
+    type:type,
+    advice:advice,
+    badgeCls:badgeCls,
+    badgeTxt:badgeTxt,
+    improve:improve,
+    season:season,
+    fc:fc,wc:wc,wdc:wdc,mc:mc,
+    moistType:moistType,
+    moistAdvice:moistAdvice,
+    moistCnt:moistCnt,
+    dryCnt:dryCnt
+  };
+}
+
+/* ─ 억부(신강/신약) 계산 ─ */
+function calcPower(p){
+  var dg=p.d.g,dayEl=GAN[dg]&&GAN[dg].e;
+  if(!dayEl)return null;
+  var parEl=parentOf(dayEl);
+  var score=0;
+  var mjEl=JI[p.m.j]&&JI[p.m.j].e;
+  if(mjEl){
+    if(mjEl===dayEl)score+=40;
+    else if(mjEl===parEl)score+=27;
+    else if(KE[mjEl]===dayEl)score-=27;
+    else if(SHENG[dayEl]===mjEl)score-=10;
+  }
+  var djEl=JI[p.d.j]&&JI[p.d.j].e;
+  if(djEl){
+    if(djEl===dayEl||djEl===parEl)score+=13;
+    else if(KE[djEl]===dayEl)score-=9;
+  }
+  [p.y.g,p.y.j,p.m.g,p.h.g,p.h.j].forEach(function(c){
+    if(!c)return;
+    var ce=(GAN[c]&&GAN[c].e)||(JI[c]&&JI[c].e);if(!ce)return;
+    if(ce===dayEl||ce===parEl)score+=7;
+    else if(KE[ce]===dayEl)score-=7;
+  });
+  var isStrong=score>=30;
+  var yongshin,kijishin;
+  if(isStrong){
+    var drain=SHENG[dayEl];
+    var reEl=drain?SHENG[drain]:null;
+    var ctrlEl=whoControls(dayEl);
+    yongshin=[drain,reEl,ctrlEl].filter(Boolean);
+    kijishin=[dayEl,parEl].filter(Boolean);
+  }else{
+    yongshin=[dayEl,parEl].filter(Boolean);
+    kijishin=[SHENG[dayEl],whoControls(dayEl)].filter(Boolean);
+  }
+  return{isStrong:isStrong,score:score,yongshin:yongshin,kijishin:kijishin,dayEl:dayEl,parEl:parEl};
+}
+
+/* ─ 종격(從格) 감지 — 천간합/충·지지합/충 반영, 70% 기준 ─ */
+function detectJong(p){
+  var GANHE={
+    '甲':{'己':'earth'},'己':{'甲':'earth'},
+    '乙':{'庚':'metal'},'庚':{'乙':'metal'},
+    '丙':{'辛':'water'},'辛':{'丙':'water'},
+    '丁':{'壬':'wood'},'壬':{'丁':'wood'},
+    '戊':{'癸':'fire'},'癸':{'戊':'fire'}
+  };
+  var GANCHONG=[['甲','庚'],['乙','辛'],['丙','壬'],['丁','癸']];
+  var JIHE={
+    '子':{'丑':'earth'},'丑':{'子':'earth'},
+    '寅':{'亥':'wood'},'亥':{'寅':'wood'},
+    '卯':{'戌':'fire'},'戌':{'卯':'fire'},
+    '辰':{'酉':'metal'},'酉':{'辰':'metal'},
+    '巳':{'申':'water'},'申':{'巳':'water'},
+    '午':{'未':'fire'},'未':{'午':'fire'}
+  };
+  var JICHONG=[['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
+
+  var gans=[p.y.g,p.m.g,p.d.g,p.h.g];
+  var zhis=[p.y.j,p.m.j,p.d.j,p.h.j];
+
+  var ganChongSet={};
+  GANCHONG.forEach(function(pr){
+    if(gans.indexOf(pr[0])>=0&&gans.indexOf(pr[1])>=0){
+      ganChongSet[pr[0]]=true; ganChongSet[pr[1]]=true;
+    }
+  });
+  var jiChongSet={};
+  JICHONG.forEach(function(pr){
+    if(zhis.indexOf(pr[0])>=0&&zhis.indexOf(pr[1])>=0){
+      jiChongSet[pr[0]]=true; jiChongSet[pr[1]]=true;
+    }
+  });
+
+  // ── 원국 원칙: 합의 힘이 충보다 강하다 ──────────────────────────
+  // 천간합이 성립하면 충을 제압하여 합화된 오행으로 변환한다.
+  // 합화된 천간은 ganChongSet에서 제거 → 이미 합으로 묶인 천간에 대한 충은 무효.
+  var ganElMap={};
+  gans.forEach(function(g){if(g&&GAN[g])ganElMap[g]=GAN[g].e;});
+  var ganHeMerged={};
+  for(var gi=0;gi<gans.length;gi++){
+    for(var gj=gi+1;gj<gans.length;gj++){
+      var g1=gans[gi],g2=gans[gj];
+      if(!g1||!g2)continue;
+      if(GANHE[g1]&&GANHE[g1][g2]){
+        // 원국 천간합 우선 원칙: 충 여부 관계없이 합화 무조건 적용
+        ganElMap[g1]=GANHE[g1][g2]; ganElMap[g2]=GANHE[g1][g2];
+        ganHeMerged[g1]=true; ganHeMerged[g2]=true;
+        // 합화된 천간은 충 대상에서 제외 (합이 충을 제압)
+        delete ganChongSet[g1]; delete ganChongSet[g2];
+      }
+    }
+  }
+  var jiElMap={};
+  zhis.forEach(function(z){if(z&&JI[z])jiElMap[z]=JI[z].e;});
+  var jiHeMerged={}; // 지지합은 충 우선 원칙 미적용 — jiChongSet 가드 유지
+  for(var zi=0;zi<zhis.length;zi++){
+    for(var zj=zi+1;zj<zhis.length;zj++){
+      var z1=zhis[zi],z2=zhis[zj];
+      if(!z1||!z2)continue;
+      if(JIHE[z1]&&JIHE[z1][z2]){
+        if(!jiChongSet[z1] && !jiChongSet[z2]){
+          jiElMap[z1]=JIHE[z1][z2]; jiElMap[z2]=JIHE[z1][z2];
+          jiHeMerged[z1]=true; jiHeMerged[z2]=true;
+        }
+      }
+    }
+  }
+
+  var cnt={wood:0,fire:0,earth:0,metal:0,water:0};
+  gans.forEach(function(g){var e=ganElMap[g];if(e&&cnt[e]!==undefined)cnt[e]++;});
+  zhis.forEach(function(z){var e=jiElMap[z];if(e&&cnt[e]!==undefined)cnt[e]++;});
+  if(p.m.j){var mje=jiElMap[p.m.j];if(mje&&cnt[mje]!==undefined)cnt[mje]++;}
+
+  var total=9;
+  var dom1='wood',max1=0;
+  Object.keys(cnt).forEach(function(e){if(cnt[e]>max1){max1=cnt[e];dom1=e;}});
+  var dom2='wood',max2=0;
+  Object.keys(cnt).forEach(function(e){
+    var par=parentOf(e);
+    var c2=cnt[e]+(par?cnt[par]:0);
+    if(c2>max2){max2=c2;dom2=e;}
+  });
+  var pct1=max1/total*100, pct2=max2/total*100;
+  var dayEl=GAN[p.d.g]&&GAN[p.d.g].e;
+
+  // ── 종격 판정 임계값: 80%+ 진종격 / 70~80% 가종격 ──────────────
+  var JONG_TRUE_THRESHOLD = 80;
+  var JONG_GA_THRESHOLD   = 70;
+  var HWA_GA_THRESHOLD    = 75; // 합화格: 75%+ 성립 (가화格 시작)
+  var HWA_TRUE_THRESHOLD  = 80; // 합화格: 80%+ 진화格 / 75~80% 가화格
+
+  // ── 합화格(化格) 특별 판별: 일간이 천간합화에 참여한 경우 ──────────
+  // 예) 戊癸합화火: 癸 일간이 합화 → 합화된 오행+모(母)오행 기준으로 화格 판별
+  var dayGanChar = p.d.g;
+  if(ganHeMerged[dayGanChar]) {
+    var hwaDom = ganElMap[dayGanChar]; // 합화된 오행
+    var hwaPar = parentOf(hwaDom);    // 합화오행을 생하는 부모 오행
+    var hwaCnt = (cnt[hwaDom]||0) + (hwaPar ? (cnt[hwaPar]||0) : 0);
+    var hwaPct = hwaCnt / total * 100;
+    if(hwaPct >= HWA_GA_THRESHOLD) {
+      var hwaIsGaJong = (hwaPct < HWA_TRUE_THRESHOLD); // 75~80% = 가화格
+      var hwaName = (hwaIsGaJong ? '가' : '') + '화格(化格)';
+      return {
+        isJong: true,
+        isGaJong: hwaIsGaJong,
+        dominant: hwaDom,
+        parEl: hwaPar,
+        pct: hwaPct.toFixed(0),
+        name: hwaName,
+        dayEl: dayEl,
+        heHaPriority: true,
+        ganHeMerged: ganHeMerged,
+        jiHeMerged: jiHeMerged
+      };
+    }
+  }
+
+  var maxPct = Math.max(pct1, pct2);
+  // ── 단일 오행이 70% 미만이면 절대 종격 판별 모달을 띄우지 않음 ──
+  if(pct1 < JONG_GA_THRESHOLD) return{isJong:false};
+  if(maxPct >= JONG_GA_THRESHOLD) {
+    var dominant = pct1>=pct2 ? dom1 : dom2;
+    var pct = maxPct;
+    var parEl = parentOf(dominant);
+    var isGaJong = (pct < JONG_TRUE_THRESHOLD); // 70~80% = 가종격
+
+    var jongName;
+    if(dominant === dayEl) {
+      var J_MAP = {'wood':'곡직격(曲直格)','fire':'염상격(炎上格)','earth':'가색격(稼穡格)','metal':'종혁격(從革格)','water':'윤하격(潤下格)'};
+      jongName = (isGaJong ? '가(假)' : '') + (J_MAP[dayEl] || '종왕격(從旺格)');
+    } else if(parEl === dayEl) {
+      jongName = (isGaJong ? '가' : '') + '종아격(從兒格)';
+    } else if(dominant === parentOf(dayEl)) {
+      jongName = (isGaJong ? '가' : '') + '종강격(從强格)';
+    } else if(KE[dayEl] === dominant) {
+      jongName = (isGaJong ? '가' : '') + '종재격(從財格)';
+    } else if(KE[dominant] === dayEl) {
+      jongName = (isGaJong ? '가' : '') + '종살격(從殺格)';
+    } else {
+      jongName = (isGaJong ? '가' : '') + '화격(化格)';
+    }
+
+    // 합화 우선 여부
+    var hadChongOverride = (Object.keys(ganHeMerged).length > 0 || Object.keys(jiHeMerged).length > 0) &&
+      (GANCHONG.some(function(pr){return gans.indexOf(pr[0])>=0&&gans.indexOf(pr[1])>=0;}) ||
+       JICHONG.some(function(pr){return zhis.indexOf(pr[0])>=0&&zhis.indexOf(pr[1])>=0;}));
+
+    var jongResult = {
+      isJong: true,          // 가종격도 isJong=true — 대운/세운 평가에 동일 적용
+      isGaJong: isGaJong,    // 가종격 여부 (60~70%)
+      dominant: dominant, parEl: parEl, pct: pct.toFixed(0), name: jongName, dayEl: dayEl,
+      heHaPriority: hadChongOverride,
+      ganHeMerged: ganHeMerged,
+      jiHeMerged: jiHeMerged
+    };
+
+    // ── 가종격은 대운 조건에 따라 진종격으로 전환될 수 있음 ──────────
+    // 진종격(70%+) 이상도 반대세력 뿌리 검증
+    var myForceCount = (cnt[dayEl]||0) + (cnt[parentOf(dayEl)]||0);
+    var myForcePct   = (myForceCount / total) * 100;
+    var isFollowingOthers = (jongName.indexOf('종아격')>=0 || jongName.indexOf('종재격')>=0 || jongName.indexOf('종살격')>=0 || jongName.indexOf('화격')>=0);
+    var JANGGAN_DB = {
+      '子':['壬','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'],
+      '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
+    };
+    var rootElements = [dayEl, parentOf(dayEl)];
+    var hasRootInJanggan = false;
+    [p.y.j, p.m.j, p.d.j, p.h.j].forEach(function(z){
+      if(!z) return;
+      (JANGGAN_DB[z]||[]).forEach(function(jgGan){
+        if(GAN[jgGan] && rootElements.indexOf(GAN[jgGan].e)>=0) hasRootInJanggan = true;
+      });
+    });
+
+    // 가종격은 별도 'pending' 없이 바로 isGaJong=true로 처리
+    // 진종격이라도 반대세력이 뚜렷하면 가종격으로 격하
+    if(!isGaJong) {
+      var opposingPct = ((total - myForceCount) / total) * 100;
+      if (isFollowingOthers && (myForcePct >= 21 || hasRootInJanggan)) {
+        jongResult.isGaJong = true;
+        jongResult.name = '가(假)' + jongName;
+      } else if (!isFollowingOthers && opposingPct >= 21) {
+        jongResult.isGaJong = true;
+        jongResult.name = '가(假)' + jongName;
+      }
+    }
+
+    return jongResult;
+  }
+  return{isJong:false};
+}
 
 /* ─ 오행 분포 ─ */
 function calcNatalElement(p){
@@ -2727,41 +3316,16 @@ async function calculate(){
   var calType = 'solar';
   for(var i=0; i<calTypeBtns.length; i++) { if(calTypeBtns[i].checked) { calType = calTypeBtns[i].value; break; } }
 
-  var hourEl = document.getElementById('birthHour');
-  var minuteEl = document.getElementById('birthMinute');
-  var rawHour = String((hourEl && hourEl.value) || '').trim();
-  var rawMinute = String((minuteEl && minuteEl.value) || '').trim();
-  var hasBirthTime = rawHour !== '' && rawMinute !== '';
-  var hour = hasBirthTime ? parseInt(rawHour, 10) : 12;
-  var minute = hasBirthTime ? parseInt(rawMinute, 10) : 0;
-  if (!isFinite(hour) || hour < 0 || hour > 23) { hour = 12; hasBirthTime = false; }
-  if (!isFinite(minute) || minute < 0 || minute > 59) { minute = 0; hasBirthTime = false; }
+  var hour=parseInt(document.getElementById('birthHour').value)||12;
+  var minute=parseInt(document.getElementById('birthMinute').value)||0;
 
   var countrySel = document.getElementById('birthCountry');
   var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
-  var isFallbackLocation = !opt || /불러오는 중/.test(String(opt.text || ''));
-  var bLong = isFallbackLocation ? 127.0 : parseFloat(opt.getAttribute('data-long'));
-  var bLat  = isFallbackLocation ? 37.6 : parseFloat(opt.getAttribute('data-lat'));
-  var bBaseTzOff = isFallbackLocation ? 9 : parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9');
-  if (!isFinite(bLong)) bLong = 127.0;
-  if (!isFinite(bLat)) bLat = 37.6;
-  if (!isFinite(bBaseTzOff)) bBaseTzOff = 9;
+  var bLong = opt ? parseFloat(opt.getAttribute('data-long')) : 127.0;
+  var bLat  = opt ? parseFloat(opt.getAttribute('data-lat'))  : 37.6;
+  var bBaseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
 
-  var normalizedGender = (GENDER === 'M' || GENDER === 'F') ? GENDER : null;
-  var missingFields = [];
-  if (!hasBirthTime) missingFields.push('birthTime');
-  if (isFallbackLocation) missingFields.push('birthCountry');
-  if (!normalizedGender) missingFields.push('gender');
-  var inputStatus = {
-    isPartial: missingFields.length > 0,
-    missingFields: missingFields,
-    hasBirthTime: hasBirthTime,
-    hasBirthCountry: !isFallbackLocation,
-    hasGender: !!normalizedGender
-  };
-  window._analysisInputStatus = inputStatus;
-
-  var calendarReq = {
+  var actualDateInfo = await getActualSolarDateWithContext(bd, calType, {
     hour: hour,
     minute: minute,
     second: 0,
@@ -2769,23 +3333,14 @@ async function calculate(){
     longitude: bLong,
     tzOffsetHours: bBaseTzOff,
     setCurrent: true
-  };
-  var actualDateInfo = null;
-  try {
-    actualDateInfo = await getActualSolarDateWithContext(bd, calType, calendarReq);
-  } catch (calendarErr) {
-    console.error('[saju] date conversion failed', {
-      message: calendarErr && calendarErr.message,
-      request: { birthDate: bd, calType: calType, options: calendarReq }
-    });
-  }
+  });
   if(!actualDateInfo) { alert('날짜 변환에 실패했습니다. 다시 확인해주세요.'); return; }
 
   var primaryDateCtx = actualDateInfo.context || null;
   var year=actualDateInfo.y, month=actualDateInfo.m, day=actualDateInfo.d;
   var inputTimeStr = String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')+':00';
 
-  var bTz = (countrySel && countrySel.value && !isFallbackLocation) ? countrySel.value : 'Asia/Seoul';
+  var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
   var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
   var bTzOff = tzResolved.tzOffsetHours;
   var stdLong = bTzOff * 15;
@@ -2822,8 +3377,6 @@ async function calculate(){
   window._ziweiBirth={year:year,month:month,day:day,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff};
   window._ziweiInputMeta={
     calType: calType,
-    isPartial: inputStatus.isPartial,
-    missingFields: inputStatus.missingFields.slice(),
     kasiSource: primaryDateCtx && primaryDateCtx.source ? primaryDateCtx.source : 'unknown',
     kasiDiagnostics: (primaryDateCtx && primaryDateCtx.meta && Array.isArray(primaryDateCtx.meta.diagnostics)) ? primaryDateCtx.meta.diagnostics.slice() : [],
     inputDate: { year: year, month: month, day: day, hour: hour, minute: minute },
@@ -2941,24 +3494,13 @@ async function calculate(){
                + `<div class="hero-lunar-row"><span class="hero-lunar-label">음력</span><span class="hero-lunar-value">${lunarDateObj.year}년 ${lunarDateObj.month}월 ${lunarDateObj.day}일 ${leapStr}</span></div>`;
     } catch(e) {}
 
-    var birthCountryEl = document.getElementById('birthCountry');
-    var selectedCountryOpt = birthCountryEl && birthCountryEl.options && birthCountryEl.selectedIndex >= 0
-      ? birthCountryEl.options[birthCountryEl.selectedIndex]
-      : null;
-    var countryText = selectedCountryOpt ? selectedCountryOpt.text : '';
-    var birthTimeText = hasBirthTime ? (hour+'시 '+minute+'분') : '출생시간 미입력 (삼주 기준: 12시 대체)';
-    var genderText = normalizedGender === 'M' ? '남성' : (normalizedGender === 'F' ? '여성' : '성별 미선택');
-    var partialNotice = inputStatus.isPartial
-      ? ('<div class="hero-partial-note">부분 분석 모드: '+inputStatus.missingFields.join(', ')+' 값이 없어 기본값/보수 규칙으로 해석했습니다.</div>')
-      : '';
-
+    var countryText = document.getElementById('birthCountry').options[document.getElementById('birthCountry').selectedIndex].text;
     document.getElementById('heroSub').innerHTML=
       '<div class="hero-sub-grid">'
-      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+birthTimeText+' <span class="hero-meta-place">(' + (countryText || '기본값: 서울') + ')</span></div>'
+      + '<div class="hero-meta-row hero-meta-row--birth">'+year+'년 '+month+'월 '+day+'일 '+hour+'시 '+minute+'분 <span class="hero-meta-place">(' + countryText + ')</span></div>'
       + (lunarInfo ? ('<div class="hero-divider"></div><div class="hero-lunar-wrap">'+lunarInfo+'</div>') : '')
       + '<div class="hero-divider"></div>'
-      + '<div class="hero-meta-row hero-meta-row--identity">'+genderText+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세</div>'
-      + partialNotice
+      + '<div class="hero-meta-row hero-meta-row--identity">'+(GENDER==='M'?'남성':'여성')+' · '+animal+'띠 · 일지 '+dz+'('+dayAnimal+') · 만 '+(CURRENT_AGE-1)+'세</div>'
       + '</div>'
       + timeCorrectionStr;
 
@@ -2977,11 +3519,7 @@ async function calculate(){
     try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); }
     try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); }
     try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); }
-    if (normalizedGender) {
-      try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
-    } else {
-      console.warn('[saju] skipping daewun render: gender missing');
-    }
+    try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
     try {
       var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
       if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
@@ -3003,8 +3541,7 @@ async function calculate(){
       (G_JONG&&G_JONG.isJong&&G_JONG.isGaJong?'<b style="color:#7B1FA2">가종격(假從格) 사주</b> <span style="font-size:.75rem;color:#9C27B0">('+G_JONG.name+')</span> — 지배 오행 중심 판단':
        G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격(眞從格) 사주</b> — 지배 오행 중심 판단':
         G_POWER&&G_POWER.isStrong?'<b style="color:#FF8BA7">신강 사주</b> — 억부+조후 통합 판단':
-        '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단')
-      + (inputStatus.isPartial ? '<br><span style="font-size:.82rem;color:#6b7280">부분 분석: '+inputStatus.missingFields.join(', ')+' 값이 없어 기본값으로 계산했습니다.</span>' : '');
+        '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
 
   }catch(err){
     console.error(err);
@@ -4978,24 +5515,8 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
 function renderAstroApiUnavailable(reason) {
   var area = document.getElementById('astroResult');
   if (!area) return;
-  var bridge = (typeof window !== 'undefined' && window.__swissephBridge) ? window.__swissephBridge : null;
-  var source = bridge && bridge.source ? String(bridge.source) : '';
-  var attemptHint = '';
-  try {
-    if (bridge && Array.isArray(bridge.attempts) && bridge.attempts.length) {
-      attemptHint = bridge.attempts.map(function(a){
-        return (a && a.url ? a.url : 'unknown') + ' -> ' + (a && a.message ? a.message : 'failed');
-      }).slice(0, 2).join(' / ');
-    }
-  } catch (_e) {}
   var msg = String(reason || 'SwissEph API 초기화 실패')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  var sourceMsg = source
-    ? ('<p style="margin:6px 0 0 0;color:#94a3b8;">로드 소스: ' + source.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>')
-    : '';
-  var attemptMsg = attemptHint
-    ? ('<p style="margin:6px 0 0 0;color:#94a3b8;">시도 로그: ' + attemptHint.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>')
-    : '';
   area.innerHTML = ''
     + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
     + '<div class="astro-section" style="border-left:4px solid #ef4444;background:rgba(15,23,42,0.7);">'
@@ -5003,8 +5524,6 @@ function renderAstroApiUnavailable(reason) {
     + '<div class="astro-desc" style="line-height:1.7;">'
     + '<p style="margin:0;">점성술은 SwissEph API 기반 계산만 표시하도록 설정되어 있습니다.</p>'
     + '<p style="margin:8px 0 0 0;color:#cbd5e1;">원인: ' + msg + '</p>'
-    + sourceMsg
-    + attemptMsg
     + '</div></div></div>';
 }
 

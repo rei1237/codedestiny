@@ -1,22 +1,16 @@
 /* Service Worker - kkul-mansaeryeok
-  Cache version: v15 (Network-First strategy)
+  Cache version: v12 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v15';
-const IS_LOCALHOST = /^(localhost|127\.0\.0\.1|::1)$/i.test(self.location.hostname || '');
+const CACHE_NAME = 'kkul-mansaeryeok-v13';
 
 const PRECACHE_URLS = [
   '/',
-  '/index.html',
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap'
 ];
 
 self.addEventListener('install', event => {
-  if (IS_LOCALHOST) {
-    event.waitUntil(self.skipWaiting());
-    return;
-  }
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(PRECACHE_URLS).catch(() => {});
@@ -25,14 +19,6 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  if (IS_LOCALHOST) {
-    event.waitUntil(
-      caches.keys().then(cacheNames =>
-        Promise.all(cacheNames.map(name => caches.delete(name)))
-      ).then(() => self.registration.unregister())
-    );
-    return;
-  }
   event.waitUntil(
     caches.keys().then(cacheNames =>
       Promise.all(
@@ -46,10 +32,6 @@ self.addEventListener('activate', event => {
 
 /* Network-First: always try network, fall back to cache */
 self.addEventListener('fetch', event => {
-  if (IS_LOCALHOST) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
-    return;
-  }
   if (event.request.method !== 'GET') return;
   const requestUrl = new URL(event.request.url);
 
@@ -79,23 +61,6 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Birth/profile-driven engines must not use stale cache, otherwise input bindings can break.
-  if (
-    requestUrl.origin === self.location.origin &&
-    (
-      requestUrl.pathname === '/js/saju-engine.js' ||
-      requestUrl.pathname === '/js/saju-engine-continuation.js' ||
-      requestUrl.pathname === '/js/destiny-profile.js' ||
-      requestUrl.pathname === '/js/core/index-inline-runtime.js' ||
-      requestUrl.pathname === '/js/core/saju/modalProfileState.js' ||
-      requestUrl.pathname === '/styles/fortune-ui.css' ||
-      requestUrl.pathname === '/css/index-inline-extracted.css'
-    )
-  ) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
-    return;
-  }
-
   event.respondWith(
     fetch(event.request).then(response => {
       if (!response || response.status !== 200 || response.type === 'opaque') return response;
@@ -105,7 +70,7 @@ self.addEventListener('fetch', event => {
     }).catch(() =>
       caches.match(event.request).then(cached => {
         if (cached) return cached;
-        if (event.request.mode === 'navigate') return caches.match('/index.html');
+        if (event.request.mode === 'navigate') return caches.match('/');
       })
     )
   );

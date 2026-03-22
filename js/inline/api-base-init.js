@@ -27,9 +27,8 @@
       return;
     }
     if (host.endsWith(".pages.dev")) {
-      // Keep API calls on the current Pages deployment origin.
-      window.CODE_DESTINY_API_BASE_URL = location.origin;
-      window.__CF_PAGES_API_BASE_URL = location.origin;
+      window.CODE_DESTINY_API_BASE_URL = "https://code-destiny.com";
+      window.__CF_PAGES_API_BASE_URL = "https://code-destiny.com";
     }
   } catch (e) {}
 })();

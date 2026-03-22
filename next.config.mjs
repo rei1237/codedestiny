@@ -31,30 +31,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   productionBrowserSourceMaps: false,
-  /** gzip (next start); Pages/Workers may apply their own compression */
-  compress: true,
-  images: {
-    formats:
-      process.env.NODE_ENV === 'production'
-        ? ['image/avif', 'image/webp']
-        : ['image/webp'],
-    deviceSizes: [640, 750, 1080],
-    imageSizes: [16, 32, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 365,
-  },
-  // Keep native SwissEph package resolution stable in server runtimes.
-  serverExternalPackages: ['swisseph'],
-  // Include ephemeris data paths in traced server bundle when native swisseph is used.
-  outputFileTracingIncludes: {
-    '/*': ['./public/ephe/**/*', './node_modules/swisseph/**/*'],
-  },
-  async headers() {
-    const immutable = 'public, max-age=31536000, immutable';
-    return [
-      { source: '/icons/:path*', headers: [{ key: 'Cache-Control', value: immutable }] },
-      { source: '/fuctionassets/:path*', headers: [{ key: 'Cache-Control', value: immutable }] },
-    ];
-  },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
     const legacyHomeRewrites = [

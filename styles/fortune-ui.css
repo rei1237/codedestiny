@@ -511,7 +511,7 @@ input:checked + .slider .paw-pad {
 .form-group{margin-bottom:18px}
 .form-label{display:block;font-weight:700;font-size:.9rem;color:#555;margin-bottom:8px}
 .inp{width:100%;padding:13px 15px;border:2px solid #F0EEF0;border-radius:12px;
-  font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;color:#111827;transition:all .25s;font-family:inherit;
+  font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;transition:all .25s;font-family:inherit;
   -webkit-appearance:none;appearance:none;min-height:48px;}
 .inp:focus{outline:none;border-color:var(--pink-l);background:#fff;box-shadow:0 0 0 4px rgba(255,183,178,.15)}
 /* iOS 줌 방지: 모든 input/select/textarea 16px 이상 유지 */
@@ -538,10 +538,7 @@ input:checked + .slider .paw-pad {
 .form-label-compact{margin-bottom:6px}
 .form-label-hint{font-size:.75rem;color:#64748b;font-weight:normal}
 
-select.inp{color:#111827;-webkit-text-fill-color:#111827;color-scheme:light}
-select.inp option{color:#111827;background:#fff}
-.form-country-select{margin-bottom:10px;background:#fff;color:#111827;-webkit-text-fill-color:#111827;color-scheme:light}
-.form-country-select option{color:#111827;background:#fff}
+.form-country-select{margin-bottom:10px;background:#fff}
 .time-correction-info{font-size:.85rem;color:#475569;line-height:1.4;display:none}
 
 /* CLS: #inputPage .card.input-section — 동적 영역 높이·스켈레톤 */
@@ -663,9 +660,10 @@ select.inp option{color:#111827;background:#fff}
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 16px;
-  height:54px;
+  padding:env(safe-area-inset-top,0px) 16px 0;
+  height:calc(54px + env(safe-area-inset-top,0px));
   flex-shrink:0;
+  box-sizing:border-box;
 }
 .modal-top-nav-juyuk{background:rgba(8,4,1,0.97);border-bottom:1px solid rgba(180,130,30,0.3)}
 .modal-top-nav-sukuyo{background:rgba(10,12,25,0.97);border-bottom:1px solid rgba(167,139,250,0.3)}
@@ -723,7 +721,7 @@ select.inp option{color:#111827;background:#fff}
 .modal-nav-close-astro{border:1px solid rgba(160,130,255,0.4);color:rgba(160,130,255,0.9)}
 .modal-nav-close-ziwei{border:1px solid rgba(232,121,249,0.45);color:rgba(232,121,249,0.9)}
 
-.modal-sheet-base{width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
+.modal-sheet-base{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
 .modal-content-inner-700{width:100%;max-width:820px;margin:0 auto;box-sizing:border-box}
 /* Wider reading width for analysis-heavy cards (including compat). */
 #juyukModalSheet .modal-content-inner-700{max-width:980px}
@@ -8576,7 +8574,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: auto;
+    overscroll-behavior-y: contain;
     touch-action: pan-y;
   }
   /* 결과 화면이 잘리지 않도록 하단 여백 */

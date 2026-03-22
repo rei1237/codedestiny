@@ -10,7 +10,6 @@
     "api": "node server/server.js",
     "cron:daily-content": "node server/jobs/daily-content-cron.js",
     "seo:check": "node scripts/check-seo-health.mjs",
-    "seo:indexnow": "tsx scripts/indexnow-submit.ts",
     "build": "next build",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
@@ -22,7 +21,6 @@
     "secrets:cf:pages": "node scripts/sync-cloudflare-pages-secrets.mjs",
     "sanitize:cf-env": "node scripts/sanitize-open-next-env.mjs",
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
-    "build:tailwind": "tailwindcss -i ./styles/globals.css -o ./public/css/tailwind.css --minify && tailwindcss -i ./styles/globals.css -o ./css/tailwind.css --minify",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
     "build:cf": "npm run clean:cf && npm run sync:public && node scripts/build-cloudflare.mjs && npm run sanitize:cf-env && npm run verify:no-secret-leak && node scripts/prepare-cloudflare-dist.mjs && npm run verify:no-secret-leak",
     "deploy:cf:pages": "npm run build:cf && node scripts/deploy-pages.mjs",
@@ -63,12 +61,10 @@
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "cross-env": "^7.0.3",
-    "cssnano": "^7.1.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.12",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
-    "tsx": "^4.21.0",
     "typescript": "^5.5.2",
     "wrangler": "^4.73.0"
   }

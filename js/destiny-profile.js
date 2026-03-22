@@ -186,13 +186,9 @@
     var name    = (document.getElementById('nameInput') || {}).value || '';
     var bdEl    = document.getElementById('birthDate');
     var bd      = bdEl ? bdEl.value : '';
-    var rawHour = String(((document.getElementById('birthHour') || {}).value) || '').trim();
-    var rawMinute = String(((document.getElementById('birthMinute') || {}).value) || '').trim();
-    var hasBirthTime = rawHour !== '' && rawMinute !== '';
-    var hour    = hasBirthTime ? parseInt(rawHour, 10) : 12;
-    var minute  = hasBirthTime ? parseInt(rawMinute, 10) : 0;
-    var genderRaw  = window._gender;
-    var gender  = (genderRaw === 'M' || genderRaw === 'F') ? genderRaw : null;
+    var hour    = parseInt((document.getElementById('birthHour') || {}).value) || 12;
+    var minute  = parseInt((document.getElementById('birthMinute') || {}).value) || 0;
+    var gender  = window._gender || 'F';
 
     /* calType */
     var calType = 'solar';
@@ -211,15 +207,7 @@
     var baseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || String(tzOff)) : tzOff;
     var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
-    if (!bd) return null;
-    if (!isFinite(hour) || hour < 0 || hour > 23) { hour = 12; hasBirthTime = false; }
-    if (!isFinite(minute) || minute < 0 || minute > 59) { minute = 0; hasBirthTime = false; }
-
-    var isFallbackLocation = !opt || /불러오는 중/.test(String(opt.text || ''));
-    var missingFields = [];
-    if (!hasBirthTime) missingFields.push('birthTime');
-    if (isFallbackLocation) missingFields.push('birthCountry');
-    if (!gender) missingFields.push('gender');
+    if (!name || !bd) return null;
 
     var parts  = bd.split('-');
     var year   = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
@@ -230,7 +218,7 @@
     );
 
     return {
-      name: (name || '').trim() || '사용자',
+      name: name,
       gender: gender,
       birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: calType },
       location: {
@@ -241,13 +229,6 @@
         tzOffset: resolvedTz.tzOffsetHours,
         baseTzOffset: resolvedTz.baseOffsetHours,
         dstMinutes: resolvedTz.dstMinutes
-      },
-      inputStatus: {
-        isPartial: missingFields.length > 0,
-        missingFields: missingFields,
-        hasBirthTime: hasBirthTime,
-        hasBirthCountry: !isFallbackLocation,
-        hasGender: !!gender
       }
     };
   }

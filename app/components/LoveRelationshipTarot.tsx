@@ -154,7 +154,7 @@ export default function LoveRelationshipTarot() {
                           src={cardImageUrl(card.cardId)}
                           alt={safeCardName(card, idx)}
                           fill
-                          sizes="(max-width: 639px) 92vw, (max-width: 1023px) 45vw, 300px"
+                          sizes="(max-width: 1024px) 45vw, 240px"
                           className="object-cover"
                         />
                         <div className="absolute inset-x-2 bottom-2 rounded-md bg-black/60 px-2 py-1 text-xs">

@@ -1,20 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://code-destiny.com/</loc>
-    <xhtml:link rel="alternate" hreflang="ko"      href="https://code-destiny.com/"/>
-    <xhtml:link rel="alternate" hreflang="en"      href="https://code-destiny.com/en-us"/>
-    <xhtml:link rel="alternate" hreflang="ja"      href="https://code-destiny.com/ja-jp"/>
-    <xhtml:link rel="alternate" hreflang="zh-CN"   href="https://code-destiny.com/zh-cn"/>
-    <xhtml:link rel="alternate" hreflang="hi"      href="https://code-destiny.com/hi-in"/>
-    <xhtml:link rel="alternate" hreflang="es"      href="https://code-destiny.com/es-es"/>
-    <xhtml:link rel="alternate" hreflang="fr"      href="https://code-destiny.com/fr-fr"/>
-    <xhtml:link rel="alternate" hreflang="de"      href="https://code-destiny.com/de-de"/>
-    <xhtml:link rel="alternate" hreflang="nl"      href="https://code-destiny.com/nl-nl"/>
-    <xhtml:link rel="alternate" hreflang="ms"      href="https://code-destiny.com/ms-my"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/"/>
-    <lastmod>2026-03-22</lastmod>
+    <lastmod>2026-03-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -647,111 +635,5 @@
     <lastmod>2026-03-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <!-- ===== Language Landing Pages ===== -->
-  <url>
-    <loc>https://code-destiny.com/en/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/tarot/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/saju/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/astrology/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/zi-wei/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/vedic/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/dream/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- ===== English Blog Articles ===== -->
-  <url>
-    <loc>https://code-destiny.com/en/blog/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/what-is-saju-korean-four-pillars/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/vedic-astrology-nakshatra-guide/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/zi-wei-dou-shu-vs-western-astrology/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/dream-interpretation-tarot-jung-freud/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/animal-totem-reading-spirit-animal/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/egyptian-oracle-kemet-divination-guide/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en/blog/korean-fortune-telling-saju-tarot-i-ching/</loc>
-    <lastmod>2026-03-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
 </urlset>

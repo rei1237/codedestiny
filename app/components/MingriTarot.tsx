@@ -181,10 +181,6 @@ export default function MingriTarot() {
               {cards.map((card, idx) => {
                 const isRevealed = idx < revealedCount;
                 const canReveal = idx === revealedCount && revealedCount < requiredRevealCount;
-                const imageSizes =
-                  mode === "three"
-                    ? "(max-width: 767px) 92vw, 260px"
-                    : "(max-width: 767px) 92vw, 736px";
                 return (
                   <button
                     key={`${card.cardId}-${idx}`}
@@ -199,7 +195,7 @@ export default function MingriTarot() {
                           src={cardImageUrl(card.cardId)}
                           alt={card.nameKr || card.name || `tarot-${idx + 1}`}
                           fill
-                          sizes={imageSizes}
+                          sizes="(max-width: 768px) 90vw, 300px"
                           className="object-cover"
                         />
                         <div className="absolute inset-x-2 bottom-2 rounded-md bg-black/60 px-2 py-1 text-xs">

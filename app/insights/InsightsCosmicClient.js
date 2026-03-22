@@ -14,15 +14,6 @@ const TOPIC_META = {
   ziwei: { color: "#c084fc", symbol: "✵", label: "자미두수" },
 };
 
-const LANGUAGE_FILTERS = [
-  { key: "all", label: "언어 전체", symbol: "✦", color: "#c9a84c" },
-  { key: "ko", label: "한국어", symbol: "가", color: "#f0d080" },
-  { key: "en", label: "English", symbol: "EN", color: "#93c5fd" },
-  { key: "ja", label: "日本語", symbol: "日", color: "#a7f3d0" },
-  { key: "zh-Hans", label: "中文", symbol: "中", color: "#fca5a5" },
-  { key: "fr", label: "Français", symbol: "FR", color: "#ddd6fe" },
-];
-
 const CATEGORY_META = {
   "사주 기초": { color: "#ff6b9d", symbol: "☽" },
   "사주 심화": { color: "#ff8c42", symbol: "☀" },
@@ -41,13 +32,8 @@ function getCardMeta(article) {
   return CATEGORY_META[article?.category] || { color: "#6b7280", symbol: "✦" };
 }
 
-function getArticleLang(article) {
-  return typeof article?.lang === "string" && article.lang ? article.lang : "ko";
-}
-
 export default function InsightsCosmicClient({ initialTopic = "all" }) {
   const [topic, setTopic] = useState(safeTopic(initialTopic));
-  const [language, setLanguage] = useState("all");
   const starCanvasRef = useRef(null);
 
   useEffect(() => {
@@ -55,12 +41,9 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
   }, [initialTopic]);
 
   const filteredArticles = useMemo(() => {
-    return INSIGHT_ARTICLES.filter((article) => {
-      const matchTopic = topic === "all" || getTopicKey(article) === topic;
-      const matchLanguage = language === "all" || getArticleLang(article) === language;
-      return matchTopic && matchLanguage;
-    });
-  }, [topic, language]);
+    if (topic === "all") return INSIGHT_ARTICLES;
+    return INSIGHT_ARTICLES.filter((article) => getTopicKey(article) === topic);
+  }, [topic]);
 
   const featuredArticle = filteredArticles[0] || null;
   const normalArticles = featuredArticle ? filteredArticles.slice(1) : filteredArticles;
@@ -179,37 +162,6 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
         <section className="ins-sticky-filter ins-reveal-b">
           <nav className="ins-filters" aria-label="인사이트 카테고리 필터">
             {INSIGHT_TOPICS.map((item) => {
-              if (item.key !== "all") return null;
-              const meta = TOPIC_META.all;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`ins-pill ${topic === "all" ? "is-active" : ""}`}
-                  style={{ "--accent": meta.color }}
-                  onClick={() => setTopic("all")}
-                >
-                  <span className="ins-pill-symbol">{meta.symbol}</span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-
-            {LANGUAGE_FILTERS.map((item) => (
-              <button
-                key={`lang-${item.key}`}
-                type="button"
-                className={`ins-pill ins-pill--lang ${language === item.key ? "is-active" : ""}`}
-                style={{ "--accent": item.color }}
-                onClick={() => setLanguage(item.key)}
-              >
-                <span className="ins-pill-symbol">{item.symbol}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-
-            {INSIGHT_TOPICS.map((item) => {
-              if (item.key === "all") return null;
               const active = topic === item.key;
               const meta = TOPIC_META[item.key] || TOPIC_META.all;
               return (

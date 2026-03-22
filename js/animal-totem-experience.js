@@ -471,33 +471,8 @@
   }
 
   function startAnimalTotemRitual() {
-    try {
-      console.log("[animal-totem] Ritual started");
-      ensureRefs();
-      
-      /* 버튼 피드백 — 로딩 상태 표시 */
-      var btn = document.querySelector('[data-action="startAnimalTotemRitual"]');
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = '✨ 소환 중...';
-        btn.classList.add('is-loading');
-      }
-      
-      /* 모드 선택 화면으로 전환 */
-      activateStage(refs.modeStage);
-      
-      /* 피드백 복원 (500ms 후) */
-      setTimeout(function() {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = 'INVOKE MY GUIDE';
-          btn.classList.remove('is-loading');
-        }
-      }, 500);
-    } catch (err) {
-      console.error("[animal-totem] startAnimalTotemRitual failed:", err);
-      alert('애니멀 토템을 소환할 수 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
-    }
+    ensureRefs();
+    activateStage(refs.modeStage);
   }
 
   function setAnimalTotemSpreadMode(mode) {
@@ -506,60 +481,16 @@
   }
 
   function drawAnimalTotemSpread() {
-    try {
-      console.log("[animal-totem] Drawing spread, mode:", state.mode);
-      
-      ensureRefs();
-      
-      /* 엔진 확인 */
-      if (!global.AnimalTotemContentEngine) {
-        console.error("[animal-totem] ContentEngine not loaded - loading now...");
-        /* Fallback: 엔진이 로드되지 않았으면 동적 로드 시도 */
-        if (typeof __loadScriptOnce === 'function') {
-          __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() {
-            console.log("[animal-totem] ContentEngine loaded via fallback");
-            drawAnimalTotemSpread(); /* 재귀 호출 */
-          }).catch(function(err) {
-            console.error("[animal-totem] Failed to load ContentEngine:", err);
-            alert('애니멀 토템 데이터를 불러올 수 없습니다. 페이지를 새로고침해주세요.');
-          });
-          return;
-        }
-        throw new Error('AnimalTotemContentEngine not available');
-      }
-      
-      /* 로딩 표시 */
-      var spreadBtn = document.querySelector('[data-action="drawAnimalTotemSpread"]');
-      if (spreadBtn) {
-        spreadBtn.disabled = true;
-        spreadBtn.textContent = '🔮 펼치는 중...';
-      }
-      
-      try {
-        state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
-        state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
-        
-        if (!state.spread || !state.consultation) {
-          throw new Error('Spread composition failed');
-        }
-      } finally {
-        if (spreadBtn) {
-          spreadBtn.disabled = false;
-          spreadBtn.textContent = '🃏 카드 펼치기';
-        }
-      }
-      
-      renderDeck();
-      applyAmbientClass();
-      activateStage(refs.drawStage);
-      
-      console.log("[animal-totem] Spread drawn successfully:", state.spread.cards.length, "cards");
-    } catch (err) {
-      console.error("[animal-totem] drawAnimalTotemSpread error:", err);
-      alert('카드를 펼칠 수 없습니다: ' + (err.message || '알 수 없는 오류'));
-      /* 오류 발생 시 이전 단계로 (ritual) */
-      activateStage(refs.modeStage);
+    ensureRefs();
+    if (!global.AnimalTotemContentEngine) {
+      alert("애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
+      return;
     }
+    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+    state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
+    renderDeck();
+    applyAmbientClass();
+    activateStage(refs.drawStage);
   }
 
   function revealAnimalTotemCard(btn, idxRaw) {
@@ -582,11 +513,9 @@
       if (i > state.revealedOrder.length) refs.cardRail.children[i].classList.add("is-disabled");
       else refs.cardRail.children[i].classList.remove("is-disabled");
     }
-    if (state.revealedOrder.length === state.mode) {
-      /* 모든 카드 오픈 완료 → 결과 표시 */
-      setTimeout(function() {
-        activateStage(refs.resultStage);
-      }, 300);
+    if (state.revealedOrder.length === state.spread.cards.length) {
+      renderConsultation();
+      setTimeout(function() { activateStage(refs.resultStage); }, 250);
     }
   }
 
@@ -609,9 +538,6 @@
     }, 800);
   }
 
-  /* ============================================ 
-   * Global Exports
-   * ============================================ */
   global.openAnimalTotemModal = openAnimalTotemModal;
   global.closeAnimalTotemModal = closeAnimalTotemModal;
   global.startAnimalTotemRitual = startAnimalTotemRitual;
@@ -622,6 +548,4 @@
   global.shareAnimalTotemResult = shareAnimalTotemResult;
   global.startAnimalTotemMeditation = startAnimalTotemRitual;
   global.drawAnimalTotemCard = revealAnimalTotemCard;
-
-})(typeof window !== 'undefined' ? window : global);
 })(window);

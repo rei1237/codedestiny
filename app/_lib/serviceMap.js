@@ -1,47 +1,11 @@
-import { createElement } from "react";
-import dynamic from "next/dynamic";
+import SolarOracleTarot from "../components/SolarOracleTarot";
+import MingriTarot from "../components/MingriTarot";
+import LoveRelationshipTarot from "../components/LoveRelationshipTarot";
 import SajuBasicPage from "../components/SajuBasicPage";
 import ZiweiChartPage from "../components/ZiweiChartPage";
 import AstrologyCosmicPage from "../components/AstrologyCosmicPage";
 import FeatureLandingPage from "../components/FeatureLandingPage";
-
-function tarotRouteLoading() {
-  return createElement(
-    "div",
-    {
-      className:
-        "flex min-h-[50vh] items-center justify-center bg-slate-950 px-4 text-sm text-slate-400",
-      role: "status",
-    },
-    "타로 화면을 불러오는 중…",
-  );
-}
-
-/** Code-split heavy client tarot UIs (framer-motion, lucide, next/image). */
-const SunHealingTarot = dynamic(() => import("../components/SunHealingTarot"), {
-  loading: tarotRouteLoading,
-});
-const MingriTarot = dynamic(() => import("../components/MingriTarot"), {
-  loading: tarotRouteLoading,
-});
-const LoveRelationshipTarot = dynamic(() => import("../components/LoveRelationshipTarot"), {
-  loading: tarotRouteLoading,
-});
-const SolarOracleTarot = dynamic(() => import("../components/SolarOracleTarot"), {
-  loading: tarotRouteLoading,
-});
-
-export const SECTION_LABELS = {
-  tarot: '타로 리딩',
-  oracle: '신탁 & 점술',
-  astrology: '점성술',
-  ziwei: '자미두수',
-  animal: '동물 & 관상',
-  saju: '사주',
-  vedic: '베다',
-  flower: '운명의 꽃',
-  dream: '해몽',
-};
+import SunHealingTarot from "../components/SunHealingTarot";
 
 export const SERVICE_MAP = {
   "tarot/healing": {
@@ -98,7 +62,6 @@ export const SERVICE_MAP = {
       "AI 타로",
       "mingri tarot",
     ],
-    related: ["tarot/love", "tarot/year", "saju/basic"],
   },
   "tarot/love": {
     component: LoveRelationshipTarot,
@@ -117,7 +80,6 @@ export const SERVICE_MAP = {
       "relationship six card",
       "연애 궁합",
     ],
-    related: ["tarot/healing", "tarot/mingri", "animal/mbti"],
   },
   "saju/basic": {
     component: SajuBasicPage,
@@ -128,7 +90,6 @@ export const SERVICE_MAP = {
     seoText:
       "사주 서비스는 년월일시와 출생지 정보를 바탕으로 오행 균형, 십성 관계, 해석 포인트를 제공하는 개인 맞춤 운세 분석 기능입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/saju.webp",
-    related: ["tarot/mingri", "ziwei/chart", "flower/destiny"],
   },
   "astrology/cosmic": {
     component: AstrologyCosmicPage,
@@ -149,7 +110,6 @@ export const SERVICE_MAP = {
       "natal chart",
       "astrology chart",
     ],
-    related: ["ziwei/chart", "vedic/jyotish", "oracle/sukuyo"],
   },
   "ziwei/chart": {
     component: ZiweiChartPage,
@@ -168,7 +128,6 @@ export const SERVICE_MAP = {
       "Zi Wei Dou Shu",
       "ziwei chart",
     ],
-    related: ["astrology/cosmic", "vedic/jyotish", "flower/jamidusu"],
   },
   "animal/physio": {
     component: FeatureLandingPage,
@@ -186,7 +145,6 @@ export const SERVICE_MAP = {
       "동물상",
       "physiognomy",
     ],
-    related: ["animal/mbti", "animal/totem", "tarot/year"],
   },
   "animal/mbti": {
     component: FeatureLandingPage,
@@ -203,7 +161,6 @@ export const SERVICE_MAP = {
       "연애 궁합",
       "MBTI compatibility",
     ],
-    related: ["animal/physio", "tarot/love", "animal/totem"],
   },
   "animal/totem": {
     component: FeatureLandingPage,
@@ -220,7 +177,6 @@ export const SERVICE_MAP = {
       "animal totem",
       "토템 리딩",
     ],
-    related: ["animal/physio", "animal/mbti", "dream/tarot"],
   },
   "tarot/self-esteem": {
     component: FeatureLandingPage,

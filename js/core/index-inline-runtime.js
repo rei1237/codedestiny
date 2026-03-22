@@ -431,9 +431,8 @@ function __cdDestinyFlowerPickHitFromElementsStack(event) {
       for (var i = 0; i < stack.length && i < 28; i++) {
         var el = stack[i];
         if (!el) continue;
-        /* sheet 내부 요소가 있으면 overlay를 만나도 계속 진행 — close 버튼 히트 대응 */
-        if (el === sheet || sheet.contains(el)) return el;
         if (ov && (el === ov || el.id === 'destinyFlowerStudioOverlay')) break;
+        if (el === sheet || sheet.contains(el)) return el;
       }
     }
     if (typeof document.elementFromPoint === 'function') {
@@ -481,17 +480,8 @@ function __cdCallGlobal(fnName) {
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
-  openDreamModal: function() {
-    return __cdLoadScriptOnce('/js/dream-meaning-library.js')
-      .then(function() { return __cdLoadScriptOnce('/lib/ai-engine.js'); })
-      .then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); });
-  },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
-  openJuyukModal: function() {
-    return __cdLoadScriptOnce('/js/iching-engine.js').then(function() {
-      return __cdLoadScriptOnce('/js/iching-modal.js?v=20260321-sukuyo-scroll2');
-    });
-  },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -3529,10 +3519,8 @@ function openDestinyFlowerStudio() {
     overlay.addEventListener('click', function(e) {
       var rawTarget = __cdResolveEventElement(e);
       var clickTarget = __cdResolveDestinyFlowerClickTarget(e);
-      /* clickTarget이 null이면 rawTarget으로 폴백 — overlay.contains 검사와 close 버튼 인식 대응 */
-      var resolvedTarget = clickTarget || rawTarget;
-      if (!resolvedTarget) return;
-      var closeTrigger = resolvedTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
+      if (!clickTarget) return;
+      var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
       if (closeTrigger) {
         e.preventDefault();
         e.stopPropagation();
@@ -3540,7 +3528,7 @@ function openDestinyFlowerStudio() {
         return;
       }
       if (sheet && __cdIsInsideDestinyFlowerSheet(e, rawTarget)) return;
-      if (resolvedTarget === overlay) {
+      if (clickTarget === overlay) {
         e.preventDefault();
         e.stopPropagation();
         closeDestinyFlowerStudio();
@@ -4045,11 +4033,8 @@ function openSukuyoModal() {
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
-  setTimeout(function() {
-    var sh = document.getElementById('sukuyoModalSheet');
-    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+  var sh = document.getElementById('sukuyoModalSheet');
+  if (sh) sh.scrollTop = 0;
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -4094,15 +4079,22 @@ function navigateToVedic() {
 function openZiweiModal() {
   var overlay = document.getElementById('ziweiModalOverlay');
   if (!overlay) return;
+  try {
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+      window._perf.unlockBody();
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    }
+  } catch (e) {}
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
-  setTimeout(function() {
-    var sh = document.getElementById('ziweiModalSheet');
-    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+  var sh = document.getElementById('ziweiModalSheet');
+  if (sh) sh.scrollTop = 0;
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -4123,15 +4115,22 @@ function closeZiweiModal() {
 function openAstroModal() {
   var overlay = document.getElementById('astroModalOverlay');
   if (!overlay) return;
+  try {
+    if (window._perf && typeof window._perf.unlockBody === 'function') {
+      window._perf.unlockBody();
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    }
+  } catch (e) {}
   var s = _dpStorage();
   var profiles = s ? s.list() : [];
   var profile = s ? s.current() : null;
   overlay.style.display = 'flex';
-  setTimeout(function() {
-    var sh = document.getElementById('astroModalSheet');
-    if (sh) sh.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+  var sh = document.getElementById('astroModalSheet');
+  if (sh) sh.scrollTop = 0;
   var noProfile = document.getElementById('astroNoProfile');
   var cardWrap = document.getElementById('astroCardWrap');
   var theme = { icon: '✨', ac: '#d1c4e9', br: '125,42,232', bb: 'linear-gradient(135deg,#1e003b,#300063)', title: '✨ Cosmic Chart · 점성술', desc: '점성술 분석을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -4187,6 +4186,245 @@ function closeCurrentPage() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 window.closeCurrentPage = closeCurrentPage;
+
+var _animalTotemPool = [
+  { category: '기본', name: '고양이', icon: '🐱', keyword: '독립심과 직관', advice: '당신만의 페이스로 걸어가도 괜찮아요. 야옹!' },
+  { category: '기본', name: '다람쥐', icon: '🐿️', keyword: '준비와 활기', advice: '작은 노력이 큰 결실이 될 거예요. 도토리를 모으듯 차근차근!' },
+  { category: '기본', name: '파랑새', icon: '🐦', keyword: '희망과 소식', advice: '행운은 멀리 있지 않아요. 바로 당신의 어깨 위에 있죠.' },
+  { category: '기본', name: '강아지', icon: '🐶', keyword: '충성심과 사랑', advice: '당신은 혼자가 아니에요. 곁에 있는 소중한 인연을 믿으세요.' },
+  { category: '기본', name: '토끼', icon: '🐰', keyword: '도약과 풍요', advice: '겁내지 말고 폴짝 뛰어보세요. 새로운 세상이 기다려요!' },
+  { category: '지상', name: '늑대', icon: '🐺', keyword: '직관, 자유', advice: '자신의 본능을 믿으세요. 공동체와 함께하되 개성을 잃지 마세요.' },
+  { category: '지상', name: '곰', icon: '🐻', keyword: '성찰, 치유', advice: '지금은 내면으로 들어갈 시간입니다. 휴식을 통해 힘을 회복하세요.' },
+  { category: '지상', name: '사슴', icon: '🦌', keyword: '부드러움, 민감', advice: '강함보다 부드러움이 필요한 때입니다. 주변의 변화를 예민하게 살피세요.' },
+  { category: '지상', name: '호랑이', icon: '🐯', keyword: '용기, 의지력', advice: '당신은 충분한 힘을 가졌습니다. 목표를 향해 집중하고 돌진하세요.' },
+  { category: '공중', name: '올빼미', icon: '🦉', keyword: '지혜, 통찰', advice: '겉모습 너머의 진실을 보세요. 밤의 어둠 속에서도 길을 찾을 수 있습니다.' },
+  { category: '공중', name: '독수리', icon: '🦅', keyword: '고결, 시야', advice: '사소한 문제에서 벗어나 더 넓은 시야로 인생의 큰 그림을 그리세요.' },
+  { category: '공중', name: '나비', icon: '🦋', keyword: '변화, 가벼움', advice: '변화는 아름다운 것입니다. 과거의 허물을 벗고 새로운 모습으로 날아오르세요.' },
+  { category: '공중', name: '까마귀', icon: '🐦‍⬛', keyword: '마법, 창조', advice: '우연한 일들에 주목하세요. 지금 당신 주변에는 변화의 마법이 일어나고 있습니다.' },
+  { category: '물/기타', name: '돌고래', icon: '🐬', keyword: '조화, 유희', advice: '삶을 너무 심각하게 생각하지 마세요. 호흡하고, 즐기고, 소통하세요.' },
+  { category: '물/기타', name: '거북이', icon: '🐢', keyword: '인내, 보호', advice: '천천히 가도 괜찮습니다. 자신의 속도를 유지하며 꾸준히 나아가세요.' },
+  { category: '물/기타', name: '뱀', icon: '🐍', keyword: '재생, 생명력', advice: '낡은 감정을 벗어던질 때입니다. 생명 에너지를 회복하고 다시 태어나세요.' },
+  { category: '물/기타', name: '여우', icon: '🦊', keyword: '기지, 적응', advice: '상황에 맞춰 유연하게 대처하세요. 지혜로운 관찰이 문제를 해결해 줄 것입니다.' }
+];
+var _animalTotemDeck = [];
+var _animalTotemMeditationTimer = null;
+var _animalTotemMeditationRunning = false;
+var _animalTotemReadLocked = false;
+var _animalTotemSelected = null;
+var _animalTotemCategoryWeights = {
+  '기본': 0.2,
+  '지상': 0.33,
+  '공중': 0.27,
+  '물/기타': 0.2
+};
+
+function _pickAnimalTotemDeck(size) {
+  var grouped = {};
+  _animalTotemPool.forEach(function(item) {
+    var cat = item.category || '기본';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
+  });
+
+  Object.keys(grouped).forEach(function(cat) {
+    var list = grouped[cat];
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = list[i];
+      list[i] = list[j];
+      list[j] = tmp;
+    }
+  });
+
+  var picked = [];
+  var guard = 0;
+  while (picked.length < size && guard < 120) {
+    guard += 1;
+    var candidates = [];
+    var total = 0;
+    Object.keys(grouped).forEach(function(cat) {
+      if (!grouped[cat] || grouped[cat].length === 0) return;
+      var w = _animalTotemCategoryWeights[cat];
+      var weight = typeof w === 'number' && w > 0 ? w : 0.1;
+      candidates.push({ cat: cat, weight: weight });
+      total += weight;
+    });
+    if (!candidates.length) break;
+    var r = Math.random() * total;
+    var selectedCat = candidates[0].cat;
+    var acc = 0;
+    for (var c = 0; c < candidates.length; c++) {
+      acc += candidates[c].weight;
+      if (r <= acc) {
+        selectedCat = candidates[c].cat;
+        break;
+      }
+    }
+    var card = grouped[selectedCat].pop();
+    if (card) picked.push(card);
+  }
+  return picked;
+}
+
+function _clearAnimalTotemTimer() {
+  if (_animalTotemMeditationTimer) {
+    clearInterval(_animalTotemMeditationTimer);
+    _animalTotemMeditationTimer = null;
+  }
+  _animalTotemMeditationRunning = false;
+}
+
+function _renderAnimalTotemDeck() {
+  _animalTotemDeck = _pickAnimalTotemDeck(5);
+  for (var i = 0; i < 5; i++) {
+    var iconEl = document.querySelector('[data-animal-totem-icon="' + i + '"]');
+    var nameEl = document.querySelector('[data-animal-totem-name="' + i + '"]');
+    var item = _animalTotemDeck[i] || _animalTotemPool[i];
+    if (iconEl) iconEl.textContent = item.icon;
+    if (nameEl) nameEl.textContent = item.name;
+  }
+}
+
+function _setAnimalTotemMeditationStatus(text) {
+  var statusEl = document.getElementById('animalTotemMeditationStatus');
+  if (statusEl) statusEl.textContent = text;
+}
+
+function resetAnimalTotemFlow() {
+  _clearAnimalTotemTimer();
+  _animalTotemReadLocked = false;
+  _animalTotemSelected = null;
+  var meditationStage = document.getElementById('animalTotemMeditationStage');
+  var drawStage = document.getElementById('animalTotemDrawStage');
+  var result = document.getElementById('animalTotemResult');
+  var btn = document.getElementById('animalTotemMeditationBtn');
+  if (meditationStage) meditationStage.style.display = 'block';
+  if (drawStage) drawStage.style.display = 'none';
+  if (result) result.style.display = 'none';
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🧘 10초 명상 시작하기';
+  }
+  _setAnimalTotemMeditationStatus('아직 명상을 시작하지 않았어요.');
+  document.querySelectorAll('.animal-totem-card').forEach(function(card) {
+    card.classList.remove('is-flipped');
+    card.classList.remove('is-muted');
+    card.disabled = false;
+  });
+  _renderAnimalTotemDeck();
+}
+window.resetAnimalTotemFlow = resetAnimalTotemFlow;
+
+function startAnimalTotemMeditation() {
+  if (_animalTotemMeditationRunning) return;
+  var btn = document.getElementById('animalTotemMeditationBtn');
+  var drawStage = document.getElementById('animalTotemDrawStage');
+  var meditationStage = document.getElementById('animalTotemMeditationStage');
+  if (!btn || !drawStage || !meditationStage) return;
+
+  _animalTotemMeditationRunning = true;
+  btn.disabled = true;
+  var remain = 10;
+  _setAnimalTotemMeditationStatus('명상 진행 중... ' + remain + '초');
+  btn.textContent = '호흡 유지 중...';
+
+  _animalTotemMeditationTimer = setInterval(function() {
+    remain -= 1;
+    if (remain > 0) {
+      _setAnimalTotemMeditationStatus('명상 진행 중... ' + remain + '초');
+      return;
+    }
+    _clearAnimalTotemTimer();
+    _setAnimalTotemMeditationStatus('명상 완료! 이제 타로 카드를 선택해 주세요.');
+    meditationStage.style.display = 'none';
+    drawStage.style.display = 'block';
+  }, 1000);
+}
+window.startAnimalTotemMeditation = startAnimalTotemMeditation;
+
+function drawAnimalTotemCard(btn, idxRaw) {
+  var idx = parseInt(idxRaw, 10);
+  if (_animalTotemReadLocked || Number.isNaN(idx)) return;
+  var drawStage = document.getElementById('animalTotemDrawStage');
+  var result = document.getElementById('animalTotemResult');
+  if (!drawStage || drawStage.style.display === 'none' || !result) return;
+
+  var picked = _animalTotemDeck[idx];
+  if (!picked) return;
+  _animalTotemReadLocked = true;
+  _animalTotemSelected = picked;
+  if (btn) btn.classList.add('is-flipped');
+
+  document.querySelectorAll('.animal-totem-card').forEach(function(card) {
+    if (card !== btn) {
+      card.classList.add('is-muted');
+      card.disabled = true;
+    }
+  });
+
+  setTimeout(function() {
+    var nameEl = document.getElementById('animalTotemName');
+    var keywordEl = document.getElementById('animalTotemKeyword');
+    var adviceEl = document.getElementById('animalTotemAdvice');
+    if (nameEl) nameEl.textContent = picked.icon + ' ' + picked.name;
+    if (keywordEl) keywordEl.textContent = (picked.category || '토템') + ' · ' + picked.keyword;
+    if (adviceEl) adviceEl.textContent = '“' + picked.advice + '”';
+    result.style.display = 'block';
+  }, 450);
+}
+window.drawAnimalTotemCard = drawAnimalTotemCard;
+
+function shareAnimalTotemResult() {
+  if (!_animalTotemSelected) return;
+  var picked = _animalTotemSelected;
+  var text =
+    '🧸 오늘의 애니멀 토템\n\n' +
+    picked.icon + ' ' + picked.name + '\n' +
+    '분류: ' + (picked.category || '토템') + '\n' +
+    '키워드: ' + picked.keyword + '\n' +
+    '메시지: "' + picked.advice + '"\n\n' +
+    'https://code-destiny.com';
+
+  if (navigator.share) {
+    navigator.share({
+      title: '애니멀 토템 리딩 결과',
+      text: text
+    }).catch(function() {});
+    return;
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function() { alert('토템 결과 문구를 복사했어요!'); })
+      .catch(function() { alert(text); });
+    return;
+  }
+
+  alert(text);
+}
+window.shareAnimalTotemResult = shareAnimalTotemResult;
+
+function openAnimalTotemModal() {
+  var overlay = document.getElementById('animalTotemOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'block';
+  if (overlay.classList) overlay.classList.add('is-open');
+  resetAnimalTotemFlow();
+  if (window._perf && window._perf.lockBody) window._perf.lockBody();
+  else document.body.style.overflow = 'hidden';
+}
+window.openAnimalTotemModal = openAnimalTotemModal;
+
+function closeAnimalTotemModal() {
+  var overlay = document.getElementById('animalTotemOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  if (overlay.classList) overlay.classList.remove('is-open');
+  _clearAnimalTotemTimer();
+  if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
+  else document.body.style.overflow = '';
+}
+window.closeAnimalTotemModal = closeAnimalTotemModal;
 
 function _resetTarotUI() {
   if (typeof window.invalidateTarotFlow === 'function') window.invalidateTarotFlow();

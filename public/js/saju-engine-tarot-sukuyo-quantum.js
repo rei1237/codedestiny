@@ -3191,19 +3191,8 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     if (!lunarObj) {
         try {
             const b = window._ziweiBirth;
-        var currentCtx = null;
-        if (window.KasiCalendarService && typeof window.KasiCalendarService.getCurrentContext === 'function') {
-          currentCtx = window.KasiCalendarService.getCurrentContext();
-        }
-        if (currentCtx && currentCtx.lunar && currentCtx.lunar.year && currentCtx.lunar.month && currentCtx.lunar.day) {
-          lunarObj = {
-            year: currentCtx.lunar.year,
-            month: currentCtx.lunar.month,
-            day: currentCtx.lunar.day,
-            isLeap: !!currentCtx.lunar.isLeap
-          };
-        } else if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-          lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
+            if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+                lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
             }
         } catch (e) {}
     }
@@ -4395,7 +4384,7 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
                     latitude: syLat,
                     longitude: syLon,
                     tzOffsetHours: syTz
-                  }, { setCurrent: false });
+                  }, { setCurrent: false, localOnly: true });
                   if (syCtx && syCtx.lunar && syCtx.lunar.year && syCtx.lunar.month && syCtx.lunar.day) {
                     lunarObj = {
                       year: syCtx.lunar.year,

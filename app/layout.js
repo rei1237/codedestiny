@@ -1,6 +1,5 @@
 import "../styles/globals.css";
 import { headers } from "next/headers";
-import KakaoSdk from "./components/KakaoSdk";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
@@ -270,7 +269,6 @@ export default async function RootLayout({ children }) {
         <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>
       <body>
-        <KakaoSdk />
         <WebVitalsConsole />
         <div>{children}</div>
         {!hideFooter && (

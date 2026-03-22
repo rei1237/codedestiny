@@ -222,34 +222,3 @@
 	}
 }
 
-/* =====================================================
-   ✅ PERF: CLS 방지 — 웹폰트 로드 전후 레이아웃 이동 최소화
-   fallback 폰트 크기/자간을 웹폰트와 매칭
-   ===================================================== */
-@font-face {
-  font-family: 'Noto Sans KR';
-  src: local('Apple SD Gothic Neo'), local('Malgun Gothic'), local('sans-serif');
-  size-adjust: 107%;
-  ascent-override: 88%;
-  descent-override: 22%;
-  line-gap-override: 0%;
-  font-weight: 400;
-}
-@font-face {
-  font-family: 'Noto Serif KR';
-  src: local('Apple SD Gothic Neo'), local('Batang'), local('serif');
-  size-adjust: 105%;
-  ascent-override: 90%;
-  descent-override: 20%;
-  line-gap-override: 0%;
-  font-weight: 400;
-}
-@font-face {
-  font-family: 'Gowun Batang';
-  src: local('Batang'), local('Malgun Gothic'), local('serif');
-  size-adjust: 103%;
-  ascent-override: 90%;
-  descent-override: 20%;
-  line-gap-override: 0%;
-  font-weight: 400;
-}

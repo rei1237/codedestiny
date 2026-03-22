@@ -94,18 +94,7 @@ function _renderSukuyoSection(profile) {
   var b = profile.birth;
   var lunarObj = null;
   try {
-    var currentCtx = null;
-    if (window.KasiCalendarService && typeof window.KasiCalendarService.getCurrentContext === 'function') {
-      currentCtx = window.KasiCalendarService.getCurrentContext();
-    }
-    if (currentCtx && currentCtx.lunar && currentCtx.lunar.year && currentCtx.lunar.month && currentCtx.lunar.day) {
-      lunarObj = {
-        year: currentCtx.lunar.year,
-        month: currentCtx.lunar.month,
-        day: currentCtx.lunar.day,
-        isLeap: !!currentCtx.lunar.isLeap
-      };
-    } else if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
       lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
     }
   } catch (e) {
@@ -114,37 +103,6 @@ function _renderSukuyoSection(profile) {
   setTimeout(function () {
     if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
   }, 0);
-}
-
-function _ensureZiweiEngineReady() {
-  if (typeof window.calcZiweiPalaces === 'function') {
-    return Promise.resolve(true);
-  }
-
-  return new Promise(function (resolve) {
-    var existing = document.querySelector('script[data-ziwei-engine="1"]');
-    if (existing) {
-      existing.addEventListener('load', function () {
-        resolve(typeof window.calcZiweiPalaces === 'function');
-      }, { once: true });
-      existing.addEventListener('error', function () {
-        resolve(false);
-      }, { once: true });
-      return;
-    }
-
-    var s = document.createElement('script');
-    s.src = '/js/engines/ziwei-doushu.js?v=20260322-ziwei-hotfix2';
-    s.defer = true;
-    s.dataset.ziweiEngine = '1';
-    s.onload = function () {
-      resolve(typeof window.calcZiweiPalaces === 'function');
-    };
-    s.onerror = function () {
-      resolve(false);
-    };
-    document.head.appendChild(s);
-  });
 }
 
 function _renderZiweiSection() {
@@ -159,27 +117,13 @@ function _renderZiweiSection() {
     '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   setTimeout(function () {
-    _ensureZiweiEngineReady().then(function (ok) {
-      if (!ok) {
-        area.innerHTML =
-          '<div style="text-align:center;padding:42px 20px;color:#fda4af;font-family:\"Gowun Dodum\",serif;line-height:1.7;">자미두수 엔진 로드에 실패했습니다.<br>잠시 후 다시 시도해 주세요.</div>';
-        return;
-      }
-
-      if (typeof renderZiwei !== 'function') {
-        area.innerHTML =
-          '<div style="text-align:center;padding:42px 20px;color:#fda4af;font-family:\"Gowun Dodum\",serif;line-height:1.7;">자미두수 렌더러를 찾지 못했습니다.<br>페이지를 새로고침 후 다시 시도해 주세요.</div>';
-        return;
-      }
-
+    if (typeof renderZiwei === 'function') {
       try {
         renderZiwei(null, null, 'ziweiModalSection');
       } catch (e) {
         console.warn('[Ziwei] 렌더 오류:', e);
-        area.innerHTML =
-          '<div style="text-align:center;padding:42px 20px;color:#fda4af;font-family:\"Gowun Dodum\",serif;line-height:1.7;">자미두수 계산 중 오류가 발생했습니다.<br>입력 정보를 확인 후 다시 시도해 주세요.</div>';
       }
-    });
+    }
   }, 0);
 }
 

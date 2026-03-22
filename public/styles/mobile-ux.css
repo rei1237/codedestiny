@@ -151,42 +151,6 @@ a[href].btn,
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-
-  /* 점성술·자미두수·거북점 모달: 숙요점과 동일한 flex 레이아웃으로 분리
-     overscroll-behavior-y: contain + touch-action: pan-y 조합이 iOS Safari에서
-     일정 구간 아래로 스크롤 시 스크롤이 멈추는 버그 → overflow:hidden + flex 명시로 수정 */
-  #astroModalOverlay.modal-overlay-astro,
-  #ziweiModalOverlay.modal-overlay-ziwei,
-  #juyukModalOverlay.modal-overlay-juyuk {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    height: -webkit-fill-available;
-    overflow: hidden;
-  }
-  #astroModalOverlay .modal-top-nav,
-  #ziweiModalOverlay .modal-top-nav,
-  #juyukModalOverlay .modal-top-nav {
-    flex-shrink: 0;
-  }
-  #astroModalOverlay #astroModalSheet,
-  #ziweiModalOverlay #ziweiModalSheet,
-  #juyukModalOverlay #juyukModalSheet {
-    flex: 1;
-    min-height: 0;
-    max-height: none !important;
-    height: auto !important;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: auto;
-  }
-  /* 추가 override: 모달 시트 내부 콘텐츠에 높이 제약이 없도록 보장 */
-  #astroModalSheet > div,
-  #ziweiModalSheet > div,
-  #juyukModalSheet > div {
-    min-height: auto !important;
-    max-height: none !important;
-  }
 }
 
 /* 페이지 끝 고무줄 효과 제한 (필요 시) */
