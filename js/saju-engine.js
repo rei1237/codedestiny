@@ -10018,8 +10018,7 @@ function renderZiwei(p, natal, targetId) {
     gap: 3px;
   }
   .zwp-modal-overlay {
-    --zwp-nav-h: 52px;
-    --zwp-sheet-top-gap: max(calc(var(--zwp-nav-h) + env(safe-area-inset-top, 0px)), 56px);
+    --zwp-sheet-top-gap: clamp(80px, 12dvh, 112px);
     align-items: flex-end;
     justify-content: center;
     padding: var(--zwp-sheet-top-gap) 0 0;
