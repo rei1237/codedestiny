@@ -9884,6 +9884,7 @@ function renderZiwei(p, natal, targetId) {
   align-items: center;
   justify-content: center;
   padding: 12px;
+  box-sizing: border-box;
 }
 .zwp-modal-overlay.is-open {
   opacity: 1;
@@ -9891,10 +9892,12 @@ function renderZiwei(p, natal, targetId) {
 }
 .zwp-modal {
   width: min(760px, 94vw);
-  max-height: 86vh;
-  overflow: auto;
+  max-height: min(86vh, calc(100dvh - 32px));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border-radius: 16px;
-  padding: 16px;
+  padding: 0;
   border: 1px solid rgba(125, 211, 252, 0.42);
   background:
     radial-gradient(circle at 18% 16%, rgba(56, 189, 248, 0.16), transparent 34%),
@@ -9908,11 +9911,14 @@ function renderZiwei(p, natal, targetId) {
   transform: translateY(0) scale(1);
 }
 .zwp-modal-head {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.18);
+  background: inherit;
 }
 .zwp-modal-title {
   color: #f0f9ff;
@@ -9920,6 +9926,7 @@ function renderZiwei(p, natal, targetId) {
   font-weight: 900;
 }
 .zwp-modal-close {
+  flex-shrink: 0;
   appearance: none;
   border: 1px solid rgba(251, 191, 36, 0.5);
   background: rgba(30, 41, 59, 0.7);
@@ -9929,8 +9936,14 @@ function renderZiwei(p, natal, targetId) {
   height: 34px;
   font-size: 1rem;
   cursor: pointer;
+  line-height: 1;
 }
 .zwp-modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 14px 16px 20px;
   color: #e2e8f0;
   font-size: 0.92rem;
   line-height: 1.75;
@@ -10003,16 +10016,35 @@ function renderZiwei(p, natal, targetId) {
     padding: 12px 10px;
     gap: 3px;
   }
-  .zwp-modal {
-    width: min(760px, calc(100vw - 12px));
-    max-height: calc(100dvh - 18px);
-    padding: 13px;
-    margin-top: max(env(safe-area-inset-top), 6px);
-  }
   .zwp-modal-overlay {
-    align-items: flex-start;
+    align-items: flex-end;
     justify-content: center;
-    padding: 8px 6px 10px;
+    padding: 0;
+  }
+  .zwp-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(90dvh - env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    padding: 0;
+    margin: 0;
+  }
+  .zwp-modal-head {
+    padding: 10px 14px 8px;
+    position: relative;
+  }
+  .zwp-modal-head::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(148,163,184,0.45);
+    border-radius: 2px;
+    margin: 0 auto 8px;
+  }
+  .zwp-modal-body {
+    padding: 10px 14px max(20px, env(safe-area-inset-bottom, 20px));
   }
 }
 
