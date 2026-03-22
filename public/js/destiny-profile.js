@@ -748,6 +748,7 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei"  onclick="window._dpOpenFortuneType(\'ziwei\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro"  onclick="window._dpOpenFortuneType(\'astro\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--olympus" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">⚡</span><span class="dp-fsel-btn-label">올림푸스</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic"  onclick="window._dpOpenFortuneType(\'vedic\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--flower" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌸</span><span class="dp-fsel-btn-label">운명의 꽃</span></button>'
@@ -793,6 +794,41 @@
     window._dpFortuneSelEl = null;
 
     function _openTarget() {
+      function _olympusSunSignFromDate(month, day) {
+        if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'aries';
+        if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'taurus';
+        if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'gemini';
+        if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'cancer';
+        if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'leo';
+        if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'virgo';
+        if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'libra';
+        if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'scorpio';
+        if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'sagittarius';
+        if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'capricorn';
+        if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
+        return 'pisces';
+      }
+      function _olympusTimezoneOffset() {
+        var offset = -new Date().getTimezoneOffset() / 60;
+        return Number.isFinite(offset) ? offset : 9;
+      }
+      function _olympusToDateString(birth) {
+        var mm = String(birth.month).padStart(2, '0');
+        var dd = String(birth.day).padStart(2, '0');
+        return birth.year + '-' + mm + '-' + dd;
+      }
+      function _olympusToTimeString(birth) {
+        var hh = String(birth.hour != null ? birth.hour : 12).padStart(2, '0');
+        var mm = String(birth.minute != null ? birth.minute : 0).padStart(2, '0');
+        return hh + ':' + mm;
+      }
+      function _olympusCommitProfile(payload) {
+        try {
+          sessionStorage.setItem('OLYMPUS_ORACLE_PROFILE', JSON.stringify(payload));
+        } catch (e) {}
+        window.location.href = '/olympus';
+      }
+
       if (type === 'saju') {
         var p = DPStorage.current();
         if (p) _injectAndRun(p, 'saju');
@@ -808,6 +844,48 @@
         var pAstro = DPStorage.current();
         if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
+      } else if (type === 'olympus') {
+        var pOlympus = DPStorage.current();
+        if (!pOlympus || !pOlympus.birth) {
+          _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필이 필요합니다.', 'warn');
+          return;
+        }
+        var b = pOlympus.birth;
+        var payload = {
+          name: pOlympus.name,
+          date: _olympusToDateString(b),
+          time: _olympusToTimeString(b)
+        };
+        var fallbackKey = _olympusSunSignFromDate(b.month, b.day);
+        fetch('/api/vedic/planets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            year: b.year,
+            month: b.month,
+            day: b.day,
+            hour: b.hour != null ? b.hour : 12,
+            minute: b.minute != null ? b.minute : 0,
+            timezone: _olympusTimezoneOffset()
+          })
+        })
+          .then(function(res) { return res.ok ? res.json() : null; })
+          .then(function(data) {
+            if (data && data.ok && data.planets && typeof data.planets.Sun === 'number') {
+              var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
+              var tropical = (data.planets.Sun + ayanamsa) % 360;
+              var idx = Math.floor(((tropical % 360) + 360) % 360 / 30);
+              var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
+              payload.sunKey = signs[idx];
+            } else {
+              payload.sunKey = fallbackKey;
+            }
+            _olympusCommitProfile(payload);
+          })
+          .catch(function() {
+            payload.sunKey = fallbackKey;
+            _olympusCommitProfile(payload);
+          });
       } else if (type === 'vedic') {
         var pVedic = DPStorage.current();
         if (!pVedic || !pVedic.birth) {

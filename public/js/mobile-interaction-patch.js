@@ -261,6 +261,20 @@
       ].join(',')
     },
     {
+      action: 'openOlympusOracleModal',
+      cardSelector: '.tarot-tile--olympus-oracle',
+      targetSelector: [
+        '[data-action="openOlympusOracleModal"]',
+        '.tarot-tile--olympus-oracle',
+        '.tarot-tile--olympus-oracle .tarot-tile__img-wrap',
+        '.tarot-tile--olympus-oracle .tarot-tile__img',
+        '.tarot-tile--olympus-oracle .tarot-tile__badge',
+        '.tarot-tile--olympus-oracle .tarot-tile__title',
+        '.tarot-tile--olympus-oracle .tarot-tile__desc',
+        '.tarot-tile--olympus-oracle .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'navigateToVedic',
       cardSelector: '.tarot-tile--vedic-fc',
       targetSelector: [

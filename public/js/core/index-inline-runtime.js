@@ -4152,6 +4152,7 @@ function closeCurrentPage() {
     { id: 'destinyFlowerStudioOverlay', closeFn: 'closeDestinyFlowerStudio' },
     { id: 'juyukModalOverlay', closeFn: 'closeJuyukModal' },
     { id: 'sukuyoModalOverlay', closeFn: 'closeSukuyoModal' },
+    { id: 'olympusOracleOverlay', closeFn: 'closeOlympusOracleModal' },
     { id: 'astroModalOverlay', closeFn: 'closeAstroModal' },
     { id: 'ziweiModalOverlay', closeFn: 'closeZiweiModal' }
   ];
