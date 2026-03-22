@@ -389,7 +389,7 @@ if ('serviceWorker' in navigator) {
       return;
     }
 
-    navigator.serviceWorker.register('/service-worker.js?v=11')
+    navigator.serviceWorker.register('/service-worker.js?v=12')
       .then(function(reg) {  })
       .catch(function(err) {  });
   });

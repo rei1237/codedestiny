@@ -1,8 +1,8 @@
 /* Service Worker - kkul-mansaeryeok
-  Cache version: v12 (Network-First strategy)
+  Cache version: v15 (Network-First strategy)
 */
 
-const CACHE_NAME = 'kkul-mansaeryeok-v12';
+const CACHE_NAME = 'kkul-mansaeryeok-v15';
 const IS_LOCALHOST = /^(localhost|127\.0\.0\.1|::1)$/i.test(self.location.hostname || '');
 
 const PRECACHE_URLS = [
@@ -73,6 +73,23 @@ self.addEventListener('fetch', event => {
     (
       requestUrl.pathname.includes('/js/tarot-') ||
       requestUrl.pathname.includes('/styles/tarot-')
+    )
+  ) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
+
+  // Birth/profile-driven engines must not use stale cache, otherwise input bindings can break.
+  if (
+    requestUrl.origin === self.location.origin &&
+    (
+      requestUrl.pathname === '/js/saju-engine.js' ||
+      requestUrl.pathname === '/js/saju-engine-continuation.js' ||
+      requestUrl.pathname === '/js/destiny-profile.js' ||
+      requestUrl.pathname === '/js/core/index-inline-runtime.js' ||
+      requestUrl.pathname === '/js/core/saju/modalProfileState.js' ||
+      requestUrl.pathname === '/styles/fortune-ui.css' ||
+      requestUrl.pathname === '/css/index-inline-extracted.css'
     )
   ) {
     event.respondWith(fetch(event.request, { cache: 'no-store' }));
