@@ -128,15 +128,14 @@ a[href].btn,
   #juyukModalOverlay.modal-overlay-juyuk {
     overscroll-behavior-y: auto;
     overscroll-behavior-x: none;
-    touch-action: manipulation;
+    touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     min-height: 100dvh;
     min-height: -webkit-fill-available;
   }
 
-  /* 숙요점: 상단 고정·스크롤 안됨 수정 — flex 레이아웃으로 시트를 스크롤 컨테이너로 분리 */
+  /* 숙요점: 모달이 열릴 때만 JS가 display:flex를 설정하므로 여기서 display를 강제하지 않음 */
   #sukuyoModalOverlay.modal-overlay-sukuyo {
-    display: flex;
     flex-direction: column;
     height: 100dvh;
     height: -webkit-fill-available;
@@ -149,7 +148,18 @@ a[href].btn,
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    touch-action: pan-y;
+    overscroll-behavior-y: auto;
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  #ziweiModalOverlay #ziweiModalSheet,
+  #astroModalOverlay #astroModalSheet,
+  #juyukModalOverlay #juyukModalSheet {
+    touch-action: pan-y;
+    overscroll-behavior-y: auto;
+    overscroll-behavior-x: none;
   }
 }
 
@@ -168,9 +178,8 @@ body {
 
 /* 고정 상단/하단 바 safe area */
 .fsn-bar,
-[class*="modal-top-nav"],
 [class*="fixed"].bottom {
-  padding-top: max(0px, env(safe-area-inset-top, 0));
+  padding-top: 0;
   padding-bottom: max(0px, env(safe-area-inset-bottom, 0));
 }
 
