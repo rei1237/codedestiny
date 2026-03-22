@@ -368,8 +368,27 @@ function bindPwaInstallButtons() {
   });
 }
 
+var _isLocalDevHost = /^(localhost|127\.0\.0\.1|::1)$/i.test(window.location.hostname || '');
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
+    if (_isLocalDevHost) {
+      navigator.serviceWorker.getRegistrations()
+        .then(function(regs) {
+          return Promise.all((regs || []).map(function(reg) { return reg.unregister(); }));
+        })
+        .catch(function() {});
+
+      if ('caches' in window && typeof caches.keys === 'function') {
+        caches.keys()
+          .then(function(names) {
+            return Promise.all((names || []).map(function(name) { return caches.delete(name); }));
+          })
+          .catch(function() {});
+      }
+      return;
+    }
+
     navigator.serviceWorker.register('/service-worker.js?v=11')
       .then(function(reg) {  })
       .catch(function(err) {  });
