@@ -9872,7 +9872,10 @@ function renderZiwei(p, natal, targetId) {
 }
 .zwp-modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(2, 6, 23, 0.8);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -9881,9 +9884,9 @@ function renderZiwei(p, natal, targetId) {
   pointer-events: none;
   transition: opacity 0.22s ease;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 12px;
+  padding: 0;
   box-sizing: border-box;
 }
 .zwp-modal-overlay.is-open {
@@ -10018,15 +10021,14 @@ function renderZiwei(p, natal, targetId) {
     gap: 3px;
   }
   .zwp-modal-overlay {
-    --zwp-sheet-top-gap: clamp(80px, 12dvh, 112px);
     align-items: flex-end;
     justify-content: center;
-    padding: var(--zwp-sheet-top-gap) 0 0;
+    padding: 0;
   }
   .zwp-modal {
     width: 100%;
     max-width: 100%;
-    max-height: calc(100dvh - var(--zwp-sheet-top-gap) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 120px);
     min-height: min(60dvh, 560px);
     border-radius: 20px 20px 0 0;
     border-bottom: none;
@@ -10372,18 +10374,17 @@ function renderZiwei(p, natal, targetId) {
       var activeCell = mount.querySelector('.zwp-cell-' + idx);
       if (activeCell) activeCell.classList.add('zwp-active');
 
-      // 실제 네비바 하단 좌표로 시트 시작 위치를 픽셀 단위로 정확히 조정
+      // 네비바 하단 좌표를 실측해 overlay.top을 직접 잘라냄 — padding 방식 완전 폐기
+      // overlay 자체가 nav 영역에 존재하지 않으므로 z-index 전쟁 불필요
       var navEl = document.getElementById('ziweiModalNavBar');
-      var topGap = navEl ? (navEl.getBoundingClientRect().bottom + 4) : 60;
-      topGap = Math.max(topGap, 56);
-      overlay.style.setProperty('--zwp-sheet-top-gap', topGap + 'px');
-      overlay.style.paddingTop = topGap + 'px';
+      var navBottom = navEl ? Math.round(navEl.getBoundingClientRect().bottom) : 56;
+      navBottom = Math.max(navBottom, 56);
+      overlay.style.top = navBottom + 'px';
+      overlay.style.paddingTop = '0';
       var sheet = overlay.querySelector('.zwp-modal');
       if (sheet) {
-        var safeBot = 0;
-        try { safeBot = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom')) || 0; } catch(e){}
-        var maxH = window.innerHeight - topGap - safeBot;
-        sheet.style.maxHeight = Math.max(maxH, 300) + 'px';
+        sheet.style.maxHeight = Math.max(window.innerHeight - navBottom - 8, 300) + 'px';
+        sheet.style.minHeight = '';
       }
 
       overlay.classList.add('is-open');
