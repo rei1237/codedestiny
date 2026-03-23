@@ -702,7 +702,10 @@ function injectHwatuHTML() {
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                         <span style="color:#94a3b8;font-size:0.85rem;">남은 패: <strong id="tradRemaining" style="color:#d4af37;">48</strong>장</span>
                         <span style="color:#94a3b8;font-size:0.85rem;">제거: <strong id="tradRemoved" style="color:#4ade80;">0</strong>장</span>
-                        <button onclick="endTraditionalGame()" style="background:rgba(185,28,28,0.7);border:1px solid #ef4444;color:#fca5a5;padding:8px 16px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.85rem;min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">즉시 결과 보기</button>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <button onclick="startTraditionalGame()" style="background:linear-gradient(135deg,#3a2a0f,#9a6a1d);border:1px solid #d4af37;color:#fef3c7;padding:8px 14px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:700;min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">운수 떼기 시작하기</button>
+                            <button onclick="endTraditionalGame()" style="background:rgba(185,28,28,0.7);border:1px solid #ef4444;color:#fca5a5;padding:8px 16px;border-radius:15px;cursor:pointer;font-family:inherit;font-size:0.85rem;min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">즉시 결과 보기</button>
+                        </div>
                     </div>
                     <div id="tradStackGrid"></div>
                     <div id="tradSelectionHint" style="color:#d4af37;text-align:center;margin-top:10px;font-size:0.9rem;min-height:20px;"></div>
