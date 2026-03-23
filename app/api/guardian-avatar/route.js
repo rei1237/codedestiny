@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-const GEMINI_ENDPOINT_TEMPLATES = [
-  "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-  "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent",
-];
+const GEMINI_ENDPOINT_TEMPLATE =
+  "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
 function pickGeminiApiKeys() {
   const keys = [
@@ -35,9 +33,11 @@ function modelCandidates() {
   const candidates = [
     preferred,
     "gemini-2.5-flash",
+    "gemini-flash-latest",
     "gemini-2.0-flash",
+    "gemini-2.0-flash-001",
     "gemini-2.0-flash-lite",
-    "gemini-1.5-flash",
+    "gemini-2.0-flash-lite-001",
   ]
     .map((v) => normalizeModelId(v))
     .filter(Boolean);
@@ -577,95 +577,90 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   const normalizedStyle = normalizeStyleIntensity(styleIntensity);
   const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle);
   const models = modelCandidates();
-  const endpoints = GEMINI_ENDPOINT_TEMPLATES;
-
   let lastError = null;
-  for (const endpointTemplate of endpoints) {
-    for (const model of models) {
-      const endpoint = endpointTemplate.replace("{model}", encodeURIComponent(model));
-      for (const key of keys) {
-        for (let attempt = 0; attempt < 2; attempt += 1) {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort("guardian-avatar-timeout"), 30000);
-            const res = await fetch(endpoint + "?key=" + encodeURIComponent(key), {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
-                  topP: 0.95,
-                  maxOutputTokens: normalizedMode === "profile-mini" ? 700 : 3600,
-                  responseMimeType: "application/json",
-                },
-              }),
-              signal: controller.signal,
-            });
-            clearTimeout(timeoutId);
+  for (const model of models) {
+    const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
+    for (const key of keys) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort("guardian-avatar-timeout"), 30000);
+          const res = await fetch(endpoint + "?key=" + encodeURIComponent(key), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
+                topP: 0.95,
+                maxOutputTokens: normalizedMode === "profile-mini" ? 700 : 3600,
+              },
+            }),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
 
-            const payload = await res.json().catch(() => null);
-            if (!res.ok) {
-              const retryable = res.status === 429 || res.status >= 500;
-              lastError = Object.assign(new Error(payload?.error?.message || payload?.message || "Gemini call failed"), {
-                status: res.status,
-                retryable,
-                model,
-              });
-              if (retryable && attempt === 0) {
-                await wait(450);
-                continue;
-              }
-              break;
-            }
-
-            const rawText = parseGeminiText(payload);
-            const obj = parseJson(rawText);
-            if (!obj) {
-              lastError = Object.assign(new Error("Gemini JSON parse failed"), { status: 502, model });
-              break;
-            }
-
-            const svg = normalizeSvg(obj.svg || obj.guardian?.svg || obj.result?.svg || obj.data?.svg);
-            if (!svg) {
-              lastError = Object.assign(new Error("Gemini SVG parse failed"), { status: 502, model });
-              break;
-            }
-
-            return {
-              title: String(
-                obj.title ||
-                  (normalizedMode === "profile-mini"
-                    ? "미니 가디언"
-                    : totemAnimal && totemAnimal.name
-                      ? totemAnimal.name + " 가디언"
-                      : "사주 동물 아트")
-              ).trim(),
-              summary: String(
-                obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 동물 아트")
-              ).trim(),
-              facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
-              backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
-              illustrationPrompt: String(
-                obj.illustration_prompt ||
-                  (normalizedMode === "profile-mini"
-                    ? "프로필 카드용 미니 만화풍 가디언 아이콘"
-                    : "귀여운 파스텔톤 동물 가디언(" + ((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby animal") + "), 표정: " +
-                      (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif))
-              ).trim(),
-              styleIntensity: normalizedStyle,
-              svg,
-              source: "gemini",
+          const payload = await res.json().catch(() => null);
+          if (!res.ok) {
+            const retryable = res.status === 429 || res.status >= 500;
+            lastError = Object.assign(new Error(payload?.error?.message || payload?.message || "Gemini call failed"), {
+              status: res.status,
+              retryable,
               model,
-            };
-          } catch (e) {
-            lastError = e;
-            if (attempt === 0) {
-              await wait(350);
+            });
+            if (retryable && attempt === 0) {
+              await wait(450);
               continue;
             }
             break;
           }
+
+          const rawText = parseGeminiText(payload);
+          const obj = parseJson(rawText);
+          if (!obj) {
+            lastError = Object.assign(new Error("Gemini JSON parse failed"), { status: 502, model });
+            break;
+          }
+
+          const svg = normalizeSvg(obj.svg || obj.guardian?.svg || obj.result?.svg || obj.data?.svg);
+          if (!svg) {
+            lastError = Object.assign(new Error("Gemini SVG parse failed"), { status: 502, model });
+            break;
+          }
+
+          return {
+            title: String(
+              obj.title ||
+                (normalizedMode === "profile-mini"
+                  ? "미니 가디언"
+                  : totemAnimal && totemAnimal.name
+                    ? totemAnimal.name + " 가디언"
+                    : "사주 동물 아트")
+            ).trim(),
+            summary: String(
+              obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 동물 아트")
+            ).trim(),
+            facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
+            backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
+            illustrationPrompt: String(
+              obj.illustration_prompt ||
+                (normalizedMode === "profile-mini"
+                  ? "프로필 카드용 미니 만화풍 가디언 아이콘"
+                  : "귀여운 파스텔톤 동물 가디언(" + ((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby animal") + "), 표정: " +
+                    (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif))
+            ).trim(),
+            styleIntensity: normalizedStyle,
+            svg,
+            source: "gemini",
+            model,
+          };
+        } catch (e) {
+          lastError = e;
+          if (attempt === 0) {
+            await wait(350);
+            continue;
+          }
+          break;
         }
       }
     }
