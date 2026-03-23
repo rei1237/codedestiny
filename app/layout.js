@@ -2,6 +2,7 @@
 import { headers } from "next/headers";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
+import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
@@ -152,6 +153,7 @@ export const metadata = {
     "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
     "free tarot", "saju", "horoscope", "astrology", "fortune telling",
     "zi wei dou shu", "vedic astrology", "jyotish", "I Ching",
+    ...SEO_CORE_KEYWORDS,
   ],
   alternates: {
     canonical: "https://code-destiny.com",
@@ -212,6 +214,12 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default async function RootLayout({ children }) {
   const headerStore = await headers();
   const requestPath = normalizePathname(
@@ -253,7 +261,6 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         {hreflangLinks.map((link) => (
@@ -287,6 +294,18 @@ export default async function RootLayout({ children }) {
             }}
           >
             <p style={{ marginBottom: "8px" }}>© 2026 Code Destiny. All rights reserved.</p>
+            <p
+              style={{
+                margin: "0 auto 10px",
+                maxWidth: "860px",
+                lineHeight: 1.68,
+                color: "#dbeafe",
+                wordBreak: "keep-all",
+              }}
+            >
+              Code: Destiny의 꽃돼지 연이는 백사자 쌈바의 실행력을 더해 사주, 운세, 타로, 명리학 해석을
+              꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로 제공합니다.
+            </p>
             <nav
               aria-label="정책 페이지 바로가기"
               style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}

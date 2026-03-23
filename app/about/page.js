@@ -81,6 +81,18 @@ export default function AboutPage() {
           Contact: seongbae555@gmail.com
         </p>
       </section>
+
+      <section style={{ ...sectionStyle, marginTop: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "#f8fafc" }}>
+          5. 저자 전문성 (E-E-A-T)
+        </h2>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
+          꽃돼지 연이는 감성적 통찰을 존중하면서도, 백사자 쌈바의 실행력으로 결과를 현실 전략으로 전환합니다.
+          Code: Destiny의 사주·운세·타로·명리학 콘텐츠는 단순한 분위기형 문구가 아니라, 데이터 구조와 해석 프레임을
+          결합한 실천형 가이드를 지향합니다. 꿀꿀 사주, 꿀꿀 운세, 꿀꿀 만세력 문맥에서 사용자 상황에 맞는 선택지를
+          제시하고, 이해하기 쉬운 언어로 행동 포인트를 정리하는 것이 핵심 운영 원칙입니다.
+        </p>
+      </section>
     </main>
   );
 }

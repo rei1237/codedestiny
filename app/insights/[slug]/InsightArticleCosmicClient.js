@@ -214,6 +214,27 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
           </Link>
         </div>
 
+        <section
+          aria-label="저자 전문성 소개"
+          style={{
+            marginTop: "22px",
+            marginBottom: "8px",
+            borderRadius: "18px",
+            padding: "18px 16px",
+            border: "1px solid rgba(201, 168, 76, 0.36)",
+            background:
+              "linear-gradient(135deg, rgba(20, 23, 44, 0.88), rgba(32, 15, 48, 0.82))",
+            boxShadow: "0 14px 28px rgba(4, 10, 28, 0.36)",
+          }}
+        >
+          <p style={{ margin: 0, lineHeight: 1.78, color: "#e2e8f0", wordBreak: "keep-all" }}>
+            꽃돼지 연이는 감성의 결을 깊게 읽지만, 동시에 백사자 쌈바의 추진력으로 해석을 행동으로 바꾸는
+            작성자입니다. Code: Destiny에서는 사주, 운세, 타로, 명리학 데이터를 바탕으로 지금 필요한 선택지를
+            선명하게 제시합니다. 꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력의 흐름을 통해 신비로운 통찰을 현실적인 계획으로
+            연결합니다.
+          </p>
+        </section>
+
         {relatedArticles.length > 0 && (
           <section className="ins-related">
             <h3>같은 카테고리 추천 글</h3>

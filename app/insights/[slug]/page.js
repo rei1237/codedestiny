@@ -1,6 +1,8 @@
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getArticleBySlug, getTopicKey } from "../articles";
+import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "../../../lib/seo-metadata";
+import { ArticleJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
 
 const InsightArticleCosmicClient = dynamic(() => import("./InsightArticleCosmicClient"), {
   loading: () => (
@@ -23,6 +25,8 @@ export function generateMetadata({ params }) {
     };
   }
 
+  const canonicalUrl = toAbsoluteUrl(`/insights/${article.slug}`);
+
   // 포스트 언어 → OG locale 코드 변환 맵
   const OG_LOCALE_MAP = {
     ko: 'ko_KR', en: 'en_US', ja: 'ja_JP',
@@ -36,12 +40,12 @@ export function generateMetadata({ params }) {
   return {
     title: `${article.title} | CODE DESTINY`,
     description: article.description ?? article.sections?.[0]?.body,
-    keywords: article.keywords,
+    keywords: mergeKeywords(article.keywords, SEO_CORE_KEYWORDS),
     alternates: {
-      canonical: `https://code-destiny.com/insights/${article.slug}`,
+      canonical: canonicalUrl,
       languages: postLang !== 'ko'
         ? {
-            [postLang]: `https://code-destiny.com/insights/${article.slug}`,
+            [postLang]: canonicalUrl,
             'x-default': 'https://code-destiny.com/insights',
           }
         : undefined,
@@ -51,7 +55,7 @@ export function generateMetadata({ params }) {
       locale: ogLocale,
       title: article.title,
       description: article.description ?? article.sections?.[0]?.body,
-      url: `https://code-destiny.com/insights/${article.slug}`,
+      url: canonicalUrl,
       publishedTime: article.publishedAt ?? article.updatedAt,
       modifiedTime: article.updatedAt,
       authors: ['https://code-destiny.com/about'],
@@ -75,50 +79,35 @@ export default function InsightArticlePage({ params }) {
   const relatedArticles = INSIGHT_ARTICLES.filter(
     (candidate) => candidate.slug !== article.slug && getTopicKey(candidate) === topicKey,
   ).slice(0, 3);
+  const canonicalUrl = toAbsoluteUrl(`/insights/${article.slug}`);
 
-  const jsonLd = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.description,
-    dateModified: article.updatedAt,
-    datePublished: article.updatedAt,
-    author: { "@type": "Organization", name: "CODE DESTINY" },
-    publisher: { "@type": "Organization", name: "CODE DESTINY" },
-    inLanguage: "ko",
-    mainEntityOfPage: `https://code-destiny.com/insights/${article.slug}`,
-  });
-  const articleRichJsonLd = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.description,
-    url: `https://code-destiny.com/insights/${article.slug}`,
-    author: {
-      "@type": "Person",
-      name: "연이",
-      url: "https://code-destiny.com/about",
-      jobTitle: "명리학 연구자 & Code Destiny 운영자",
+  const sajuFaqItems = [
+    {
+      question: "올해 운세는 어떤가요?",
+      answer:
+        "올해 운세는 사주 원국과 대운·세운의 상호작용으로 해석합니다. Code: Destiny는 월별 흐름과 실천 포인트를 함께 제시해 현실적인 판단에 도움을 줍니다.",
     },
-    publisher: {
-      "@type": "Organization",
-      name: "Code Destiny",
-      "@id": "https://code-destiny.com/#organization",
+    {
+      question: "사주 풀이 결과는 얼마나 자주 확인하면 좋나요?",
+      answer:
+        "핵심 흐름은 분기 또는 월 단위로 점검하는 것이 좋습니다. 같은 질문을 짧은 간격으로 반복하기보다, 변화한 상황을 반영해 재해석하는 방식이 정확도를 높입니다.",
     },
-    datePublished: article.updatedAt,
-    dateModified: article.updatedAt,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `https://code-destiny.com/insights/${article.slug}`,
-    },
-    inLanguage: "ko",
-    articleSection: article.category,
-  });
+  ];
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: articleRichJsonLd }} />
+      <ArticleJsonLd
+        url={canonicalUrl}
+        title={article.title}
+        description={article.description}
+        datePublished={article.publishedAt ?? article.updatedAt}
+        dateModified={article.updatedAt}
+        image={article.coverImage}
+        keywords={mergeKeywords(article.keywords, SEO_CORE_KEYWORDS)}
+        articleSection={article.category}
+        inLanguage="ko-KR"
+      />
+      {topicKey === "saju" ? <FaqJsonLd faqs={sajuFaqItems} /> : null}
       <InsightArticleCosmicClient article={article} topic={topic} relatedArticles={relatedArticles} />
     </>
   );

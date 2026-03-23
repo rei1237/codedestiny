@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { INSIGHT_ARTICLES } from "./insights/articles";
 import { BASE_URL, LOCALE_PREFIXES, ROUTES } from "../lib/seo-site-urls";
+import { SERVICE_MAP } from "./_lib/serviceMap";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -47,11 +48,32 @@ function addLocalizedEntries(
   }
 }
 
+function getAutoIndexedSajuAndPsychRoutes() {
+  const keys = Object.keys(SERVICE_MAP || {});
+  return keys
+    .filter((slug) => {
+      const value = String(slug || "").toLowerCase();
+      return (
+        value.startsWith("saju/") ||
+        value.includes("/psycho") ||
+        value.includes("/mbti") ||
+        value.includes("/physio")
+      );
+    })
+    .map((slug) => ({
+      path: `/${slug}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.82,
+    }));
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const entriesByUrl = new Map<string, SitemapEntry>();
 
-  for (const route of ROUTES) {
+  const mergedRoutes = [...ROUTES, ...getAutoIndexedSajuAndPsychRoutes()];
+
+  for (const route of mergedRoutes) {
     addLocalizedEntries(
       entriesByUrl,
       route.path,
