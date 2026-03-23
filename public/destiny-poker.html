@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>데스티니 포커 : 심판의 카지노</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #05000c;
@@ -24,7 +24,7 @@ html,body{height:100%;overflow:hidden;}
 body{
   background:var(--bg);
   color:var(--text);
-  font-family:'Crimson Text',serif;
+  font-family:'Noto Serif KR','Crimson Text',serif;
   min-height:100vh;
   overflow:hidden;
 }
@@ -86,8 +86,8 @@ body::before{
 @keyframes shimmerGold{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
 .intro-sub{font-family:'Cinzel',serif;font-size:.85rem;color:var(--text-dim);
   letter-spacing:.45em;text-transform:uppercase;text-align:center;}
-.intro-lore{max-width:480px;text-align:center;font-size:1.05rem;line-height:1.9;
-  color:var(--text-dim);font-style:italic;}
+.intro-lore{max-width:480px;text-align:center;font-size:1rem;line-height:2;
+  color:var(--text-dim);font-style:italic;font-family:'Noto Serif KR',serif;word-break:keep-all;}
 .name-group{display:flex;flex-direction:column;align-items:center;gap:.9rem;width:100%;max-width:380px;}
 .name-label{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.35em;
   color:var(--gold);text-transform:uppercase;}
@@ -118,7 +118,7 @@ body::before{
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   text-align:center;
 }
-.greeting{color:var(--text-dim);font-style:italic;text-align:center;font-size:1rem;}
+.greeting{color:var(--text-dim);font-style:italic;text-align:center;font-size:1rem;font-family:'Noto Serif KR',serif;}
 .dealers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));
   gap:1.2rem;width:100%;max-width:880px;}
 .dealer-card{
@@ -139,7 +139,7 @@ body::before{
 .d-icon{font-size:2.8rem;margin-bottom:.8rem;display:block;filter:drop-shadow(0 0 10px currentColor);}
 .d-name{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;margin-bottom:.35rem;}
 .d-theme{font-size:.75rem;color:var(--text-dim);letter-spacing:.22em;text-transform:uppercase;margin-bottom:.85rem;}
-.d-quote{font-style:italic;font-size:.88rem;line-height:1.55;color:var(--text-dim);}
+.d-quote{font-family:'Noto Serif KR',serif;font-style:italic;font-size:.88rem;line-height:1.65;color:var(--text-dim);word-break:keep-all;}
 
 /* ── GAME SCREEN ── */
 #screen-game{justify-content:flex-start;padding:0;overflow-y:auto;}
@@ -166,8 +166,8 @@ body::before{
   padding:1rem;background:rgba(10,32,20,.35);
   border:1px solid rgba(255,255,255,.05);border-radius:3px;
 }
-.zone-label{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.28em;
-  color:var(--text-dim);text-transform:uppercase;margin-bottom:.7rem;}
+.zone-label{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.3em;
+  color:rgba(158,142,120,.75);text-transform:uppercase;margin-bottom:.6rem;}
 .cards-row{display:flex;gap:.45rem;flex-wrap:wrap;min-height:95px;align-items:flex-end;}
 .hand-hint{font-family:'Cinzel',serif;font-size:.85rem;color:var(--text-dim);
   margin-top:.5rem;min-height:1.3em;transition:color .4s;}
@@ -211,14 +211,35 @@ body::before{
 
 /* Dialogue */
 .dialogue-box{
-  padding:1.3rem 1.5rem;background:rgba(0,0,0,.45);
-  border:1px solid rgba(201,148,15,.14);position:relative;flex-shrink:0;
+  display:flex;gap:1rem;align-items:flex-start;
+  padding:1rem 1.2rem;background:rgba(0,0,0,.55);
+  border:1px solid rgba(201,148,15,.18);position:relative;flex-shrink:0;
+  border-radius:2px;
 }
 .dialogue-box::after{content:'';position:absolute;top:0;left:10%;right:10%;
   height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.d-speaker{font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.22em;
-  margin-bottom:.5rem;text-transform:uppercase;}
-.d-text{font-size:1rem;line-height:1.75;font-style:italic;min-height:3em;transition:opacity .3s;}
+/* 딜러 초상화 */
+.d-portrait-wrap{
+  flex-shrink:0;width:64px;height:88px;
+  border-radius:3px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 14px rgba(0,0,0,.5);
+}
+.d-portrait{
+  width:100%;height:100%;object-fit:cover;object-position:top center;
+  display:block;filter:saturate(1.1) brightness(.92);
+}
+.d-content{flex:1;min-width:0;}
+.d-speaker-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem;}
+.d-speaker-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  box-shadow:0 0 8px currentColor;}
+.d-speaker{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.2em;
+  text-transform:uppercase;margin:0;}
+.d-text{
+  font-family:'Noto Serif KR',serif;font-size:.96rem;line-height:1.9;
+  font-style:italic;min-height:3em;transition:opacity .3s;
+  color:var(--text);word-break:keep-all;letter-spacing:-.01em;
+}
 .d-text.fade{opacity:0;}
 
 /* Actions */
@@ -583,8 +604,16 @@ body{font-size:15px;}
       </div>
 
       <div class="dialogue-box">
-        <div class="d-speaker" id="d-speaker">탐욕의 아몬</div>
-        <div class="d-text" id="d-text">운명의 카드가 펼쳐집니다…</div>
+        <div class="d-portrait-wrap">
+          <img class="d-portrait" id="d-portrait" src="/fuctionassets/destinyporker/greedyman.webp" alt="딜러">
+        </div>
+        <div class="d-content">
+          <div class="d-speaker-row">
+            <span class="d-speaker-dot" id="d-speaker-dot" style="color:#d4a017;background:#d4a017;"></span>
+            <div class="d-speaker" id="d-speaker">탐욕의 아몬</div>
+          </div>
+          <div class="d-text" id="d-text">운명의 카드가 펼쳐집니다…</div>
+        </div>
       </div>
 
       <div class="player-zone">
@@ -621,85 +650,139 @@ body{font-size:15px;}
 const DEALER_DATA = {
   amon:{
     name:'탐욕의 아몬', color:'#d4a017', theme:'재물과 권력',
+    portrait:'/fuctionassets/destinyporker/greedyman.webp',
     dialogues:[
-      ['"크흐흐… {n}. 카드가 펼쳐졌다. 황금의 냄새가 나는군. 네 운명은 부로 가득 찰 것인가, 빈털터리인가?"',
-       '"재물의 신이 오늘 누구의 편인지 흥미롭군. {n}, 너의 야망의 크기를 보여주거라."',
-       '"프로비던스 홀의 거래는 단순하다, {n}. 승자가 전부를 가진다. 그것이 세상의 법칙이지."'],
-      ['"오호… 네 번째 카드가 드러났군. {n}, 행운의 무게가 느껴지는가?"',
-       '"황금은 용감한 자에게만 미소짓는 법. {n}, 베팅을 올릴 것인가?"',
-       '"흥미로워지는군. {n}의 패가… 볼 만하군. 하지만 아직 내 것이 더 강하지."'],
-      ['"탐욕의 불꽃을 타올려라, {n}. 다섯 번째 카드가 운명의 축을 흔든다."',
-       '"흔들리는군, {n}. 위기에서 진짜 인간이 드러나는 법이지. 보여주거라."',
-       '"재물에 대한 욕망, 참으로 인간적이야, {n}. 그 욕망을 먹고 나는 더 강해진다."'],
-      ['"여섯 번째 카드가 심판의 칼날을 갈고 있다. {n}, 두려운가?"',
-       '"재물의 물결이 흘러가고 있어, {n}. 잡아라, 아니면 영원히 놓치거라."',
-       '"이제 거의 다 왔다, {n}. 네 운명이 결정되는 순간이 임박했다… 크흐흐."'],
-      ['"마지막 카드가 뒤집혔다. {n}… 결전의 시간이다. 준비는 되었는가?"',
-       '"운명의 마지막 조각. {n}의 탐욕이 마침내 보답받을 것인가, 아니면 재로 돌아갈 것인가?"',
-       '"이제 더 이상 숨겨진 것은 없다. {n}, 너의 운명과 정면으로 마주하라."']
+      /* Third Street — 첫 세 장 */
+      ['"크흐흐… {n}. 황금의 냄새가 진동한다. 네 운명이 재물로 빛날 것인가, 아니면 빈손으로 끝날 것인가."',
+       '"탐욕은 죄가 아니라, 인간의 가장 솔직한 본능이다. {n}, 그 욕망을 숨기지 마라."',
+       '"프로비던스 홀에서 유일한 진리는 하나다 — 더 가진 자가 승자다. {n}, 너의 야망을 보여주거라."',
+       '"재물의 신 아몬이 이 홀의 주인이다. {n}, 겸손한 자에겐 동전 한 닢도 내어주지 않지."',
+       '"황금은 용감한 자를 선택한다. {n}, 지금 이 순간 네 심장이 욕망으로 뛰고 있느냐?"'],
+      /* Fourth Street */
+      ['"흥미롭군. {n}의 패에서 금빛 기운이 흐른다… 아니, 아직 판단하기 이르다."',
+       '"네 번째 카드가 드러났다. {n}, 베팅을 아끼는 자는 결코 황금을 손에 넣지 못한다."',
+       '"권력이란 의지하는 자에게서 흘러나온다. {n}, 지금 네 의지를 레이즈로 증명하라."',
+       '"탐욕은 불꽃과 같다. {n}, 키우지 않으면 꺼진다. 이 순간이 바로 그 분기점이다."'],
+      /* Fifth Street */
+      ['"다섯 번째 카드가 내려졌다. {n}, 이제 중반이다 — 돌이킬 수 없는 지점을 넘었어."',
+       '"아몬의 눈에는 인간의 진짜 욕망이 보인다. {n}, 지금 네 손이 떨리고 있지 않느냐?"',
+       '"황금을 원하면서 두려움에 숨는 것은 모순이다. {n}, 그 모순을 어떻게 해결할 것인가?"',
+       '"부(富)는 결단하는 자의 것이다. {n}, 머뭇거리는 매 초가 기회를 갉아먹고 있다."'],
+      /* Sixth Street */
+      ['"여섯 번째 카드. {n}, 이제 운명의 윤곽이 선명해지고 있다. 아름답도록 가혹하군."',
+       '"최후의 결전이 가까워졌다. {n}, 지금까지 건 모든 것을 후회하고 있느냐? 아니면 더 걸고 싶으냐?"',
+       '"탐욕의 신은 두 가지만 본다 — 얼마나 원하는가, 그리고 얼마나 위험을 감수하는가. {n}, 답해라."',
+       '"권력의 향기가 코를 찌르는군. {n}의 야망과 나의 의지가 마지막 대결을 앞두고 있다."'],
+      /* Seventh Street — 마지막 */
+      ['"마지막 카드가 뒤집혔다. {n}… 이 홀에서 보낸 시간이 진짜 황금이었는지, 지금 밝혀진다."',
+       '"운명의 장부가 결산된다. {n}의 탐욕은 마침내 보상받을 것인가 — 아니면 청산될 것인가?"',
+       '"아몬은 항상 최후에 웃는다. 하지만 오늘… {n}, 너 때문에 그 결말이 불확실해졌다."',
+       '"이제 더 이상 숨겨진 것은 없다. {n}, 네 운명과 나의 욕망이 정면으로 충돌하는 순간이다."',
+       '"황금의 판결이 내려진다. {n}, 준비가 됐든 아니든 — 이것이 프로비던스 홀의 법칙이다."']
     ]
   },
   ishtar:{
     name:'매혹의 이슈타르', color:'#ff5a96', theme:'인연과 사랑',
+    portrait:'/fuctionassets/destinyporker/pokergirl.webp',
     dialogues:[
-      ['"어서와요, {n}. 이슈타르의 카드에는 당신의 사랑 이야기가 담겨있답니다. 떨리지 않나요?"',
-       '"{n}… 운명의 실이 엉켜있군요. 이 카드들이 당신의 마음을 비춰줄 거예요."',
-       '"달콤한 독이 준비되어 있어요, {n}. 사랑과 집착의 경계, 어디에 서 있나요?"'],
-      ['"오, 흥미로운 패로군요. {n}, 당신 마음속에 그 누군가가 있나요?"',
-       '"카드가 속삭여요, {n}… 당신의 감정은 복잡하게 얽혀있답니다. 괜찮아요?"',
-       '"사랑은 도박과 같죠, {n}. 전부를 걸어야만 비로소 이길 수 있답니다."'],
-      ['"운명의 실이 팽팽하게 당겨지고 있어요, {n}. 느껴지나요?"',
-       '"{n}… 마음이 흔들리고 있군요. 감정에 솔직해지는 용기가 필요한 순간이에요."',
-       '"이슈타르는 거짓된 사랑을 꿰뚫어본답니다, {n}. 진심을 카드에 담아주세요."'],
-      ['"{n}, 여섯 번째 카드에서 인연의 빛이 반짝이고 있어요. 아니면 꺼져가거나…"',
-       '"사랑의 여신이 판단을 내릴 시간이 가까워졌어요, {n}. 준비가 되었나요?"',
-       '"매혹적인 순간이군요, {n}. 이 긴장감, 사랑의 전율과 닮지 않았나요?"'],
-      ['"마지막 카드예요, {n}. 운명의 사랑이 확정되는 순간이 왔어요."',
-       '"{n}, 이슈타르의 마지막 선물을 받으세요. 달콤할지, 쓸지는… 당신의 운명이 답해주겠죠."',
-       '"이제 모든 것이 드러날 거예요, {n}. 당신의 인연은 어디로 흘러가고 있을까요?"']
+      /* Third Street */
+      ['"어서 와요, {n}. 이슈타르의 카드는 당신의 심장이 원하는 것을 알고 있답니다."',
+       '"사랑이라는 독배를 마실 준비가 됐나요, {n}? 한 번 입술을 적시면… 돌아오긴 어려워요."',
+       '"{n}… 운명의 붉은 실이 당신의 손목에 감겨 있어요. 그 끝이 어디인지 보고 싶지 않아요?"',
+       '"인연이란 우연처럼 보이지만, 사실 모든 건 이미 정해져 있답니다. {n}, 지금 떠오르는 얼굴이 있죠?"',
+       '"사랑의 여신 이슈타르가 이 자리에서 진심을 꿰뚫어봐요. {n}, 마음을 숨기지 않아도 돼요."'],
+      /* Fourth Street */
+      ['"네 번째 카드가 당신의 감정을 건드리고 있어요. {n}, 가슴 한켠이 두근거리지 않나요?"',
+       '"{n}, 이 카드들이 속삭여요 — 당신 곁에 진심이 담긴 누군가가 있다고요."',
+       '"사랑은 도박과 닮았어요. 조심하다가 아무것도 못 얻는 것보다, 전부를 건 쪽이 이기죠, {n}."',
+       '"인연의 물결이 흐르고 있어요. {n}, 지금 그 흐름을 거스를 건가요, 아니면 몸을 맡길 건가요?"'],
+      /* Fifth Street */
+      ['"다섯 번째 카드. {n}의 감정이 카드에 배어 나오고 있어요. 이슈타르의 눈에는 보인답니다."',
+       '"{n}… 마음이 흔들리고 있죠? 그 흔들림이 바로 살아있다는 증거예요."',
+       '"사랑의 축이 기울어지고 있어요. {n}, 이 순간 가장 솔직한 감정이 패를 지배한다는 걸 알아요?"',
+       '"이슈타르는 거짓된 인연을 꿰뚫어봐요. {n}, 지금 이 자리에선 진심만이 통해요."'],
+      /* Sixth Street */
+      ['"여섯 번째 카드에서 인연의 빛이… 반짝이고 있어요. 아니면 꺼져가거나."',
+       '"{n}, 이제 거의 다 왔어요. 가장 소중한 연결이 이 순간 시험받고 있답니다."',
+       '"사랑은 달콤하고, 이별은 쓰죠. 지금 이 카드들이 당신의 어느 쪽을 가리키고 있을까요, {n}?"',
+       '"매혹의 여신이 마지막 심판을 준비하고 있어요. {n}, 두근거리는 심장 소리가 들려요?"'],
+      /* Seventh Street */
+      ['"마지막 카드예요, {n}. 운명의 사랑이 선고되는 순간이 왔어요."',
+       '"{n}, 이슈타르의 마지막 선물을 받아요. 달콤할지 쓸지는… 당신의 인연이 결정하겠죠."',
+       '"모든 것이 드러나요. {n}, 당신이 마음속 깊이 원하는 인연은 어디로 흘러가고 있을까요?"',
+       '"{n}… 사랑이라는 이름의 게임의 결말이에요. 이슈타르는 승패보다 당신의 진심이 더 궁금해요."',
+       '"붉은 실의 끝이 보여요, {n}. 그 실이 이어준 곳이 행복이기를… 이슈타르도 바라고 있어요."']
     ]
   },
   thanatos:{
     name:'침묵의 타나토스', color:'#50aaff', theme:'건강과 생명',
+    portrait:'/fuctionassets/destinyporker/pokerwarrior.webp',
     dialogues:[
-      ['"…… {n}. 모래시계가 흐르기 시작했다. 처음 세 장의 카드가 놓였다."',
-       '"타나토스는 말이 없다. 하지만 카드는 말한다, {n}. 귀를 기울여라."',
-       '"삶과 죽음의 경계에서 게임이 시작되었다. {n}, 그대의 육체는 오늘 어떠한가."'],
-      ['"시간이 흐른다, {n}. 네 번째 카드가 육체의 진실을 속삭인다."',
-       '"침묵 속에서 카드가 말한다. {n}의 생명력이 느껴지는군. 강한가, 약한가."',
-       '"카드가 놓였다. {n}… 네 수명의 불꽃, 얼마나 남았는지 보이는군."'],
-      ['"다섯 번째 계단. {n}, 운명의 중간 지점을 넘었다. 돌이킬 수 없다."',
-       '"타나토스는 기다린다. 시간은 언제나 그의 편이다, {n}. 서두르지 않아도 된다."',
-       '"건강이란 가장 소중한 행운. {n}, 너는 그것의 가치를 알고 있는가."'],
-      ['"여섯 번째 카드. {n}의 시계바늘이 흔들린다. 침착하게 받아들여라."',
-       '"죽음의 신은 서두르지 않는다. {n}, 하지만 운명의 시간은 다르다."',
-       '"마지막 결전에 가까워졌다. {n}… 준비가 되었는가. 타나토스는 이미 기다리고 있다."'],
-      ['"마지막 카드. 침묵. 판결. {n}. 이제 운명을 받아들여라."',
-       '"타나토스의 시간이 왔다. {n}의 운명이 드러난다. 외면하지 마라."',
-       '"시간의 강이 멈추었다. {n}, 네 생명의 카드들이 말하는 것을 들어라."']
+      /* Third Street */
+      ['"{n}. 모래시계의 첫 알갱이가 떨어졌다. 이 홀에서 시간은 멈추지 않는다."',
+       '"……카드가 놓였다. {n}, 그대의 육체는 오늘 얼마나 건강한가. 삶의 불꽃은 아직 타오르고 있는가."',
+       '"타나토스는 서두르지 않는다. 하지만 {n}의 시간은 지금 이 순간도 흐르고 있다."',
+       '"삶과 죽음의 경계에서 첫 패가 펼쳐졌다. {n}, 이 자리에서 그대의 생명력이 시험받고 있다."',
+       '"세 장의 카드. 아직 이르다. {n}, 건강이란 빼앗기기 전까지는 그 무게를 느끼지 못하는 법이다."'],
+      /* Fourth Street */
+      ['"{n}. 네 번째 카드가 육체의 진실을 건드린다. 그대의 몸이 보내는 신호를 외면하지 마라."',
+       '"침묵은 언제나 가장 정직하다. {n}, 이 카드들은 그대의 수명에 대해 말하고 있다."',
+       '"{n}의 생명력… 느껴진다. 강한 곳도 있고, 약한 곳도 있군. 어느 쪽이 더 솔직한 것인지."',
+       '"시간은 기회를 주지 않는다. {n}, 지금 이 순간 건강을 소홀히 하고 있는 것은 없는가."'],
+      /* Fifth Street */
+      ['"다섯 번째 계단을 넘었다. {n}, 이제 돌이킬 수 없다. 운명의 중점을 지났어."',
+       '"타나토스는 기다린다…… {n}, 그러나 육체는 기다려주지 않는다. 그것이 삶의 이치다."',
+       '"{n}. 건강이란 가장 소중한 행운이다. 그것을 깨닫는 데 너무 늦어서는 안 된다."',
+       '"수명의 불꽃이 흔들리고 있다. {n}, 몸이 보내는 경고를 이미 알아채고 있지는 않은가?"'],
+      /* Sixth Street */
+      ['"{n}의 시계바늘이 흔들린다. 여섯 번째 카드가 침묵 속에서 진실을 드러내고 있다."',
+       '"죽음의 신은 서두르지 않는다. {n}, 하지만 이 게임의 시간은 다르다 — 이제 거의 끝이다."',
+       '"……{n}. 생명과 건강, 그것이 이 판의 진짜 배팅이었다. 그대는 어떻게 살아왔는가."',
+       '"마지막 결전이 가까워졌다. {n}이여, 타나토스는 이미 그대의 결말을 보고 있다."'],
+      /* Seventh Street */
+      ['"마지막 카드. 침묵. 판결. {n} — 이제 운명을 받아들여라."',
+       '"타나토스의 시간이 왔다. {n}의 생명과 건강의 카드들이 최후의 진실을 말한다."',
+       '"시간의 강이 잠시 멈추었다. {n}, 지금 그 강이 흘러가는 방향을 들어라."',
+       '"……모든 것이 드러났다. {n}, 삶을 어떻게 돌볼 것인지 이 판결이 알려줄 것이다."',
+       '"{n}. 살아있다는 것 자체가 이기고 있다는 의미다. 그것만큼은 기억해라."']
     ]
   },
   metatron:{
     name:'공허의 메타트론', color:'#9b30ff', theme:'명예와 지혜',
+    portrait:'/fuctionassets/destinyporker/pokergod.webp',
     dialogues:[
-      ['"진리를 원하는가, {n}? 아니면 그저 환상 속에 머물기를 원하는가. 카드가 너를 시험한다."',
-       '"{n}. 지혜란 오직 고통을 통해서만 얻어지는 것. 오늘 그 시험이 시작되었다."',
-       '"공허 속에서 모든 것이 드러난다. {n}, 너의 진정한 가치를 이 자리에서 증명하라."'],
-      ['"네 번째 카드가 새로운 진실의 빛을 가져온다. {n}, 볼 눈이 있는가?"',
-       '"{n}. 명예란 쉽게 얻어지지 않는다. 이 카드들이 그것을 여지없이 증명하리라."',
-       '"지식은 양날의 검이다. {n}, 현명하게 사용하는 자만이 이 홀에서 살아남는다."'],
-      ['"다섯 번째 계시가 열린다. {n}, 진리에 가까워지고 있는가, 멀어지고 있는가?"',
-       '"{n}. 거짓된 명성은 사상누각. 진정한 지혜로만 이 판을 뒤집을 수 있다."',
-       '"메타트론의 눈은 모든 것을 꿰뚫어본다. {n}, 이 자리에 숨길 것이 있는가?"'],
-      ['"여섯 번째. {n}, 공허의 심판이 가까워지고 있다. 마음을 비워라."',
-       '"진리와 거짓의 경계에서 {n}은 어느 편을 택하는가. 카드가 증언하리라."',
-       '"공허 속에서도 빛은 존재한다. {n}, 그 빛을 붙잡을 용기가 있는가."'],
-      ['"마지막 계시. {n}의 운명이 결정된다. 진리를 받아들여라."',
-       '"{n}. 이 순간, 공허의 판결이 내려진다. 두렵더라도 외면하지 마라."',
-       '"모든 베일이 걷힌다. {n}, 너의 진정한 명예와 지혜의 수준을 지금 보여주어라."']
+      /* Third Street */
+      ['"진리를 원하는가, {n}? 아니면 그저 거짓 명성의 그늘 아래 머물기를 원하는가."',
+       '"{n}. 지혜는 고통을 통해서만 얻어진다. 오늘 그 첫 번째 시험이 시작되었다."',
+       '"공허 속에서 모든 것이 드러난다. {n}, 너의 진정한 가치가 이 세 장으로 서서히 밝혀지고 있다."',
+       '"명예는 남이 붙여주는 것이 아니다. {n}, 그것은 오직 행동으로만 증명된다."',
+       '"메타트론은 거짓을 용납하지 않는다. {n}, 이 홀에서 위선은 카드보다 먼저 패배한다."'],
+      /* Fourth Street */
+      ['"네 번째 카드가 새로운 진실의 층위를 드러낸다. {n}, 볼 눈이 준비되어 있는가?"',
+       '"{n}. 지식과 명예는 다르다. 아는 것은 힘이지만, 그것을 올바르게 쓰는 것이 지혜다."',
+       '"공허의 빛이 이 카드들을 비추고 있다. {n}, 거짓된 자존심은 이미 그 빛 앞에서 녹아내리고 있다."',
+       '"진리는 불편하다. {n}, 지금 이 순간이 바로 그 불편함을 직면하는 시간이다."'],
+      /* Fifth Street */
+      ['"다섯 번째 계시가 열린다. {n}, 진리에 가까워지고 있는가 — 아니면 멀어지고 있는가?"',
+       '"{n}. 거짓된 명성은 사상누각(沙上樓閣)이다. 진정한 지혜만이 이 판의 흐름을 바꿀 수 있다."',
+       '"메타트론의 눈은 표면을 보지 않는다. {n}, 지금 패 너머에 있는 너의 본질을 보고 있다."',
+       '"지혜로운 자는 패색이 짙을 때도 포기를 모른다. {n}, 그 경지에 도달해 있는가?"'],
+      /* Sixth Street */
+      ['"여섯 번째. {n}, 공허의 심판이 가까워지고 있다. 마음을 비워야 진리가 들어온다."',
+       '"진리와 거짓의 경계에서 {n}은 어느 편을 택하는가. 이 카드들이 이미 증언하고 있다."',
+       '"명예는 결과가 아니라 과정에서 증명된다. {n}, 지금까지의 선택들이 그 증거다."',
+       '"공허 속에서도 빛은 존재한다. {n}, 그 빛을 붙잡을 용기가 너에게 있는가."'],
+      /* Seventh Street */
+      ['"마지막 계시. {n}의 운명이 결정되는 순간이다. 두렵더라도 진리를 받아들여라."',
+       '"{n}. 공허의 최후 판결이 내려진다. 명예와 지혜의 수준이 이제 드러난다."',
+       '"모든 베일이 걷혔다. {n}, 진정한 지혜는 승패를 초월한다 — 그러나 이 홀은 결과를 요구한다."',
+       '"메타트론이 마지막으로 묻는다. {n}, 이 게임에서 얻은 것이 있다면… 그것이 진정한 승리다."',
+       '"{n}이여, 지혜로운 자는 패배에서도 배운다. 이 순간의 결말을, 기억해두어라."']
     ]
   }
 };
+
+
 
 const SUITS = {
   '♠':{name:'스페이드',desc:'심판',theme:'권력과 갈등',col:'k'},
@@ -993,6 +1076,11 @@ function startGame(){
   document.getElementById('lbl-player').textContent=G.name;
   document.getElementById('d-speaker').textContent=D.name;
   document.getElementById('d-speaker').style.color=D.color;
+  // 딜러 초상화 + 상태 도트 업데이트
+  const portrait=document.getElementById('d-portrait');
+  if(portrait&&D.portrait){portrait.src=D.portrait;portrait.alt=D.name;}
+  const dot=document.getElementById('d-speaker-dot');
+  if(dot){dot.style.color=D.color;dot.style.background=D.color;}
 
   showScreen('screen-game');
 
