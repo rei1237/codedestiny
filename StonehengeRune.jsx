@@ -94,9 +94,409 @@ const SPREAD_LABELS = {
   ],
 };
 
+const RUNE_GUIDE = {
+  fehu: {
+    axis: "가치와 자원 순환",
+    coreUpright: "들어오는 자원보다 흐르게 만드는 운용 능력이 성패를 가르는 시기입니다.",
+    coreReversed: "수입보다 누수와 집착이 커지기 쉬워 자원 흐름 점검이 우선입니다.",
+    relationshipUpright: "관계에서 먼저 베풀되 경계를 분명히 하면 신뢰가 커집니다.",
+    relationshipReversed: "물질·조건 중심 대화가 감정적 거리감을 만들 수 있습니다.",
+    workUpright: "성과 보상, 협상, 가격 재정의에 유리한 흐름입니다.",
+    workReversed: "계약·결제·지출 항목을 세부적으로 재검토해야 손실을 막을 수 있습니다.",
+    cautionUpright: "단기 성과에 취해 장기 구조를 놓치지 마세요.",
+    cautionReversed: "불안 때문에 기회를 과소평가하거나, 반대로 무리수 투자에 치우치지 마세요.",
+    actionUpright: ["현금흐름표 업데이트", "우선순위 지출 3개만 유지", "협상 조건 문서화"],
+    actionReversed: ["고정비 정리", "미수금·미납금 정리", "소비 트리거 기록"],
+    mantra: "나는 가치를 모으는 사람을 넘어, 가치를 순환시키는 사람이 된다.",
+  },
+  uruz: {
+    axis: "생명력과 회복 탄성",
+    coreUpright: "내면의 원초적 추진력이 올라오며 몸과 의지가 동시에 회복됩니다.",
+    coreReversed: "과부하 누적으로 체력·집중력이 끊기기 쉬운 구간입니다.",
+    relationshipUpright: "솔직하고 단단한 태도가 관계의 신뢰를 끌어올립니다.",
+    relationshipReversed: "피곤함이 예민함으로 나타나 말이 날카롭게 들릴 수 있습니다.",
+    workUpright: "초기 돌파, 재시작, 체력 기반 프로젝트 추진에 강합니다.",
+    workReversed: "무리한 일정은 결과보다 번아웃을 먼저 부를 가능성이 큽니다.",
+    cautionUpright: "힘이 붙을수록 페이스 조절을 의식하세요.",
+    cautionReversed: "의욕 저하를 의지력 부족으로 오해하지 말고 회복부터 설계하세요.",
+    actionUpright: ["수면 리듬 고정", "핵심 과제 오전 배치", "가벼운 근력 루틴"],
+    actionReversed: ["일정 20% 감축", "회복 시간 블록", "카페인·야근 제한"],
+    mantra: "내 힘은 속도가 아니라 지속성에서 완성된다.",
+  },
+  thurisaz: {
+    axis: "경계와 방어 지혜",
+    coreUpright: "지금은 밀어붙임보다 방어선 설정이 더 큰 성과를 만듭니다.",
+    coreReversed: "충동 반응이 갈등을 키울 수 있어 반 박자 멈춤이 필요합니다.",
+    relationshipUpright: "관계의 기준을 분명히 할수록 건강한 거리감이 생깁니다.",
+    relationshipReversed: "작은 자극에도 과잉 방어 혹은 공격 반응이 나올 수 있습니다.",
+    workUpright: "리스크 차단, 권한 경계 정리, 승인 체계 재설계에 유리합니다.",
+    workReversed: "성급한 의사결정으로 불필요한 대립을 만들 가능성이 있습니다.",
+    cautionUpright: "방어는 고립이 아니라 전략적 선택이어야 합니다.",
+    cautionReversed: "자존심을 원칙으로 착각하지 마세요.",
+    actionUpright: ["거절 문장 미리 준비", "요청 대응 기준표 작성", "갈등 기록 후 대응"],
+    actionReversed: ["즉답 금지 10분 규칙", "감정 메모 후 회신", "권한 밖 일 위임"],
+    mantra: "나는 필요한 경계를 세우고, 불필요한 전쟁을 멈춘다.",
+  },
+  ansuz: {
+    axis: "메시지와 통찰",
+    coreUpright: "중요한 신호가 말, 문서, 우연한 대화 형태로 들어오는 시기입니다.",
+    coreReversed: "정보 왜곡과 오해가 늘어 의도 확인이 필수입니다.",
+    relationshipUpright: "듣는 태도가 관계의 방향을 바꿉니다.",
+    relationshipReversed: "추측성 해석이 불신을 키울 수 있습니다.",
+    workUpright: "프레젠테이션, 협업 문서, 인터뷰 등 커뮤니케이션 업무에 강합니다.",
+    workReversed: "핵심 메시지가 분산되어 전달력이 떨어질 수 있습니다.",
+    cautionUpright: "정보량보다 맥락 정리가 우선입니다.",
+    cautionReversed: "애매한 표현을 방치하면 손실이 커집니다.",
+    actionUpright: ["핵심 문장 1개로 요약", "회의 후 합의사항 기록", "질문으로 의도 확인"],
+    actionReversed: ["메신저 대신 통화", "오해 가능 문장 수정", "증빙 링크 첨부"],
+    mantra: "나는 진실한 말과 명료한 구조로 길을 연다.",
+  },
+  raidho: {
+    axis: "이동과 정렬",
+    coreUpright: "외부 이동과 내부 리듬이 맞을 때 일이 빠르게 정렬됩니다.",
+    coreReversed: "방향은 있는데 리듬이 깨져 일정 지연이 반복될 수 있습니다.",
+    relationshipUpright: "같은 목적지를 공유하면 관계 속도도 안정됩니다.",
+    relationshipReversed: "속도 차이로 인한 피로감이 생길 수 있습니다.",
+    workUpright: "출장, 전환, 이직 탐색, 프로젝트 전개에 좋은 신호입니다.",
+    workReversed: "계획 대비 실행 불일치가 누적되기 쉽습니다.",
+    cautionUpright: "빠름보다 정확한 경로를 우선하세요.",
+    cautionReversed: "지연의 원인을 외부 탓으로만 두지 마세요.",
+    actionUpright: ["주간 동선 최적화", "일정 버퍼 15%", "이동 중 정리 루틴"],
+    actionReversed: ["우선순위 재배치", "중단 과제 정리", "필수 일정만 확정"],
+    mantra: "나는 내 길의 속도와 방향을 스스로 조율한다.",
+  },
+  kenaz: {
+    axis: "통찰의 불꽃",
+    coreUpright: "막혔던 문제에 해법의 빛이 들어오는 구간입니다.",
+    coreReversed: "영감 고갈로 시야가 좁아질 수 있으나, 휴식 후 재점화가 가능합니다.",
+    relationshipUpright: "솔직한 표현이 관계의 온기를 회복합니다.",
+    relationshipReversed: "냉소적 말투가 의도보다 크게 상처를 줄 수 있습니다.",
+    workUpright: "기획, 콘텐츠, 디자인, 문제해결 업무에서 성과가 납니다.",
+    workReversed: "완벽주의가 시작 자체를 늦출 수 있습니다.",
+    cautionUpright: "영감이 왔을 때 즉시 기록하세요.",
+    cautionReversed: "스스로를 무능하다고 단정하지 마세요.",
+    actionUpright: ["아이디어 10분 스케치", "프로토타입 우선", "피드백 1회 반영"],
+    actionReversed: ["작업 범위 축소", "영감 입력 시간 확보", "완성 기준 낮추기"],
+    mantra: "작은 불꽃도 지키면 길을 밝히는 횃불이 된다.",
+  },
+  gebo: {
+    axis: "교환과 상호성",
+    coreUpright: "주고받는 균형이 맞을 때 운이 빠르게 열립니다.",
+    coreReversed: "비대칭 교환을 오래 두면 피로가 누적됩니다.",
+    relationshipUpright: "감정·시간·에너지의 균형이 관계를 깊게 만듭니다.",
+    relationshipReversed: "보상 없는 헌신이 번아웃을 부를 수 있습니다.",
+    workUpright: "협업, 제휴, 계약의 윈윈 구조를 설계하기 좋습니다.",
+    workReversed: "역할·보상 정의가 불명확하면 분쟁이 생깁니다.",
+    cautionUpright: "호의와 책임의 경계를 명확히 하세요.",
+    cautionReversed: "불균형을 미덕으로 포장하지 마세요.",
+    actionUpright: ["역할표 합의", "보상 기준 명시", "상호 피드백"],
+    actionReversed: ["일방 헌신 중단", "조건 재협상", "도움 요청 연습"],
+    mantra: "균형 있는 교환이 오래 가는 풍요를 만든다.",
+  },
+  wunjo: {
+    axis: "기쁨과 조화",
+    coreUpright: "긴장 완화와 관계 회복이 시작되는 밝은 흐름입니다.",
+    coreReversed: "기대와 현실 차이로 실망이 커질 수 있습니다.",
+    relationshipUpright: "감사 표현이 친밀도를 크게 높입니다.",
+    relationshipReversed: "비교와 서운함이 대화를 무겁게 만들 수 있습니다.",
+    workUpright: "팀 분위기 개선과 성과 공유가 동기 부여를 만듭니다.",
+    workReversed: "표면적 낙관으로 문제를 덮지 않도록 주의가 필요합니다.",
+    cautionUpright: "기쁨은 소비가 아니라 회복 에너지로 쓰세요.",
+    cautionReversed: "감정 저점을 방치하지 말고 언어화하세요.",
+    actionUpright: ["감사 메시지 1건", "작은 성취 축하", "휴식 일정 고정"],
+    actionReversed: ["비교 줄이기", "감정 일기", "관계 오해 바로잡기"],
+    mantra: "나는 기쁨을 허락하고, 조화를 선택한다.",
+  },
+  hagalaz: {
+    axis: "파열과 재구성",
+    coreUpright: "예상치 못한 변화가 낡은 구조를 걷어내는 전환점입니다.",
+    coreReversed: "변화를 통제하려는 저항이 피로를 키울 수 있습니다.",
+    relationshipUpright: "불편한 진실을 마주해야 관계가 새 틀로 재편됩니다.",
+    relationshipReversed: "감정 폭발 후 후속 수습이 늦어질 수 있습니다.",
+    workUpright: "리셋, 구조조정, 우선순위 재설계에 좋은 시기입니다.",
+    workReversed: "혼란 속 즉흥 대응이 연쇄 문제를 만들 수 있습니다.",
+    cautionUpright: "무너짐을 실패로만 해석하지 마세요.",
+    cautionReversed: "변화 회피가 더 큰 비용으로 돌아올 수 있습니다.",
+    actionUpright: ["버릴 항목 3개 결정", "핵심 시스템 재구축", "백업 플랜 수립"],
+    actionReversed: ["감정적 결정 보류", "리스크 우선 차단", "재정비 기간 확보"],
+    mantra: "무너진 자리 위에 더 단단한 질서를 세운다.",
+  },
+  nauthiz: {
+    axis: "결핍을 통한 정련",
+    coreUpright: "지금의 제약은 핵심 욕구를 분별하게 하는 훈련입니다.",
+    coreReversed: "강박적 통제가 오히려 에너지 누수를 키울 수 있습니다.",
+    relationshipUpright: "요구보다 필요를 솔직히 말하면 갈등이 줄어듭니다.",
+    relationshipReversed: "결핍 불안이 상대에게 투사될 수 있습니다.",
+    workUpright: "제약 조건 하에서 효율 설계 능력이 빛납니다.",
+    workReversed: "자원 부족 핑계로 실행을 멈추지 않도록 주의하세요.",
+    cautionUpright: "절약은 축소가 아니라 선택입니다.",
+    cautionReversed: "불안 완화용 과소비를 경계하세요.",
+    actionUpright: ["필수·선택 분리", "시간 블록 최소화", "작은 실행 유지"],
+    actionReversed: ["강박 루틴 완화", "호흡·휴식 루틴", "욕구 기록"],
+    mantra: "결핍은 나를 약하게 하지 않고, 선명하게 만든다.",
+  },
+  isa: {
+    axis: "정지와 응시",
+    coreUpright: "멈춤은 지연이 아니라 오판을 막는 전략적 정지입니다.",
+    coreReversed: "정체를 자기부정으로 해석하면 회복이 늦어집니다.",
+    relationshipUpright: "거리두기가 필요한 시점이며 감정 해동이 선행되어야 합니다.",
+    relationshipReversed: "침묵이 단절로 오해받기 쉬우니 최소 소통이 필요합니다.",
+    workUpright: "검토, 감사, 정리, 문서화 작업에서 성과가 납니다.",
+    workReversed: "결정 회피가 기회비용을 키울 수 있습니다.",
+    cautionUpright: "정지 기간의 종료 시점을 미리 정하세요.",
+    cautionReversed: "냉소로 감정을 얼리지 마세요.",
+    actionUpright: ["의사결정 기준 정리", "중간점검", "침착한 보류"],
+    actionReversed: ["작은 결정 1개 실행", "상담·피드백 수집", "고립 해제"],
+    mantra: "멈춤 속에서 나는 다음 방향을 더 정확히 본다.",
+  },
+  jera: {
+    axis: "순환과 수확",
+    coreUpright: "시간을 들인 것이 순서대로 결실로 돌아오는 흐름입니다.",
+    coreReversed: "성과 지연이 있어도 씨앗이 사라진 것은 아닙니다.",
+    relationshipUpright: "꾸준한 태도가 신뢰의 복리 효과를 만듭니다.",
+    relationshipReversed: "즉각적 반응 요구가 관계 피로를 키울 수 있습니다.",
+    workUpright: "장기 프로젝트, 반복 개선, 축적형 업무에 매우 유리합니다.",
+    workReversed: "성급한 결과 집착이 품질을 떨어뜨릴 수 있습니다.",
+    cautionUpright: "수확기의 교만을 경계하세요.",
+    cautionReversed: "늦는 것을 실패로 오해하지 마세요.",
+    actionUpright: ["진행률 기록", "반복 루틴 유지", "작은 성과 축적"],
+    actionReversed: ["기한 재설정", "성장 지표 분리", "조급함 관리"],
+    mantra: "나는 때를 믿고, 오늘의 노력을 놓치지 않는다.",
+  },
+  eihwaz: {
+    axis: "전환 통로와 인내",
+    coreUpright: "끝과 시작 사이를 건너는 과도기적 통로에 들어왔습니다.",
+    coreReversed: "불확실성 공포가 선택을 지연시킬 수 있습니다.",
+    relationshipUpright: "관계의 낡은 패턴을 벗기고 새 합의를 만들 시기입니다.",
+    relationshipReversed: "미해결 상처가 현재 갈등에 덧씌워질 수 있습니다.",
+    workUpright: "커리어 전환, 직무 변경, 전략 피벗에 강한 보호 신호입니다.",
+    workReversed: "중간 포기 유혹이 강해질 수 있어 버티는 기술이 필요합니다.",
+    cautionUpright: "성급한 결론보다 과정의 정직함을 지키세요.",
+    cautionReversed: "불안을 이유로 무기한 미루지 마세요.",
+    actionUpright: ["전환 로드맵 작성", "리스크 분산", "주간 체크포인트"],
+    actionReversed: ["결정 마감일 설정", "미련 정리", "외부 멘토 상담"],
+    mantra: "나는 과도기를 통과하며 더 넓은 형태로 다시 선다.",
+  },
+  perthro: {
+    axis: "운명 변수와 잠재성",
+    coreUpright: "보이지 않던 정보가 드러나며 선택지가 다시 열립니다.",
+    coreReversed: "우연에 과도하게 기대면 주도권이 약해질 수 있습니다.",
+    relationshipUpright: "관계의 숨은 욕구를 인정할 때 진짜 대화가 시작됩니다.",
+    relationshipReversed: "비밀·회피·애매함이 신뢰를 깎을 수 있습니다.",
+    workUpright: "탐색형 프로젝트, 리서치, 실험 전략에 유리합니다.",
+    workReversed: "확률 게임식 결정이 손실을 키울 수 있습니다.",
+    cautionUpright: "기회는 준비된 구조 위에서만 성과가 됩니다.",
+    cautionReversed: "도박적 선택을 직감이라 부르지 마세요.",
+    actionUpright: ["가설 2개 실험", "정보 비대칭 해소", "옵션 비교표 작성"],
+    actionReversed: ["근거 없는 베팅 중단", "검증 루프 구축", "리스크 한도 설정"],
+    mantra: "나는 우연을 기다리지 않고 가능성을 설계한다.",
+  },
+  algiz: {
+    axis: "보호와 고감도 직감",
+    coreUpright: "외부 위험을 감지하고 회피하는 감각이 강해집니다.",
+    coreReversed: "경계 붕괴 혹은 과민 경계가 모두 문제를 만들 수 있습니다.",
+    relationshipUpright: "안전감 있는 관계에서 감정 회복이 빠르게 일어납니다.",
+    relationshipReversed: "의심이 커져 가까운 사람까지 거리 둘 수 있습니다.",
+    workUpright: "리스크 관리, 보안, 품질 점검, 백업 전략에 강합니다.",
+    workReversed: "보호 장치 미비로 작은 이슈가 크게 번질 수 있습니다.",
+    cautionUpright: "모든 신호에 반응하지 말고 핵심만 선택하세요.",
+    cautionReversed: "안전장치를 귀찮다고 생략하지 마세요.",
+    actionUpright: ["데이터 백업", "경계 시간 확보", "정보 접근권 정리"],
+    actionReversed: ["보안 점검", "신뢰 범위 재설정", "소진 관계 정리"],
+    mantra: "나는 나를 지키는 선택으로 더 멀리 간다.",
+  },
+  sowilo: {
+    axis: "승리와 선명한 방향",
+    coreUpright: "핵심 목표에 에너지가 모이며 추진력이 크게 상승합니다.",
+    coreReversed: "과열된 자신감이 주변 협업을 약화시킬 수 있습니다.",
+    relationshipUpright: "당당한 진심이 매력으로 작동합니다.",
+    relationshipReversed: "자기 확신이 타인 배려 부족으로 보일 수 있습니다.",
+    workUpright: "리더십, 발표, 결단, 마무리 단계에서 강력한 성과 운입니다.",
+    workReversed: "속도전에 치우치면 디테일 누락이 생깁니다.",
+    cautionUpright: "빛이 강할수록 그림자 관리가 필요합니다.",
+    cautionReversed: "성과 조급함이 팀 리듬을 깨지 않게 하세요.",
+    actionUpright: ["핵심 목표 1개 집중", "마감 선언", "성과 공유"],
+    actionReversed: ["검토 단계 추가", "협업 체크인", "과속 방지"],
+    mantra: "나는 빛을 좇는 것이 아니라, 빛을 운용한다.",
+  },
+  tiwaz: {
+    axis: "정의와 원칙적 전진",
+    coreUpright: "원칙을 지키는 선택이 장기적으로 가장 큰 이익이 됩니다.",
+    coreReversed: "불공정감이 분노로 번지면 판단력이 흐려질 수 있습니다.",
+    relationshipUpright: "약속을 지키는 태도가 신뢰의 핵심 지표가 됩니다.",
+    relationshipReversed: "한쪽의 희생이 누적되면 관계 균형이 무너집니다.",
+    workUpright: "법적·제도적 기준이 중요한 업무에서 강한 보호를 받습니다.",
+    workReversed: "승부욕이 전략보다 앞서면 손실 가능성이 커집니다.",
+    cautionUpright: "정의감과 완고함을 구분하세요.",
+    cautionReversed: "억울함을 즉시 보복으로 연결하지 마세요.",
+    actionUpright: ["원칙 문서화", "약속 이행률 점검", "공정 기준 합의"],
+    actionReversed: ["감정 냉각", "증거 기반 대응", "장기전 전략"],
+    mantra: "나는 원칙을 통해 승리하고, 승리로 원칙을 증명한다.",
+  },
+  berkano: {
+    axis: "성장과 돌봄의 탄생",
+    coreUpright: "새 프로젝트와 관계가 부드럽게 싹트는 출발점입니다.",
+    coreReversed: "성장 속도를 재촉하면 뿌리가 약해질 수 있습니다.",
+    relationshipUpright: "돌봄과 배려의 언어가 관계를 회복시킵니다.",
+    relationshipReversed: "과잉보호 또는 통제가 갈등 원인이 될 수 있습니다.",
+    workUpright: "신규 기획, 브랜딩, 교육, 양성형 업무에 적합합니다.",
+    workReversed: "초기 셋업 부족이 반복 시행착오를 만들 수 있습니다.",
+    cautionUpright: "성장은 속도보다 환경이 결정합니다.",
+    cautionReversed: "나를 돌보지 않은 채 타인만 돌보지 마세요.",
+    actionUpright: ["성장 환경 정비", "주 1회 점검", "작은 성취 기록"],
+    actionReversed: ["기초 재정비", "경계 설정", "회복 우선"],
+    mantra: "나는 나와 세계를 돌보며 건강한 성장을 선택한다.",
+  },
+  ehwaz: {
+    axis: "협력과 동행",
+    coreUpright: "신뢰 기반 파트너십이 성과를 배가시키는 시기입니다.",
+    coreReversed: "호흡 불일치가 진행을 늦추므로 역할 재조정이 필요합니다.",
+    relationshipUpright: "함께 움직일수록 감정 안정과 유대감이 커집니다.",
+    relationshipReversed: "약속 미이행이 신뢰 균열로 이어질 수 있습니다.",
+    workUpright: "공동 프로젝트, 팀 빌딩, 협업 체계 개선에 강합니다.",
+    workReversed: "혼자 해결하려는 태도가 더 큰 지연을 부를 수 있습니다.",
+    cautionUpright: "좋은 파트너십은 명확한 합의에서 시작됩니다.",
+    cautionReversed: "침묵 속 불만을 장기 방치하지 마세요.",
+    actionUpright: ["역할 명문화", "주간 싱크", "의사결정 창구 단일화"],
+    actionReversed: ["협업 규칙 재정의", "마감 재합의", "기대치 맞추기"],
+    mantra: "함께 가는 힘은 혼자 빠른 힘보다 멀리 간다.",
+  },
+  mannaz: {
+    axis: "자아와 사회적 거울",
+    coreUpright: "타인과의 상호작용 속에서 자신의 본질이 더 선명해집니다.",
+    coreReversed: "자기방어적 태도가 고립감을 키울 수 있습니다.",
+    relationshipUpright: "서로의 다름을 인정할 때 건강한 연결이 됩니다.",
+    relationshipReversed: "자존심 경쟁이 공감 능력을 떨어뜨릴 수 있습니다.",
+    workUpright: "네트워킹, 조율, 리더 보좌, 코칭 역할에 적합합니다.",
+    workReversed: "평판 불안으로 과잉 눈치 보기 패턴이 나타날 수 있습니다.",
+    cautionUpright: "타인의 시선과 자기 기준을 분리하세요.",
+    cautionReversed: "고립이 안정이라고 착각하지 마세요.",
+    actionUpright: ["피드백 1건 수집", "자기 기준 3개 작성", "협업 맥락 이해"],
+    actionReversed: ["방어적 반응 멈춤", "자기비난 줄이기", "지원 요청"],
+    mantra: "나는 관계 속에서 흔들리지 않는 나를 세운다.",
+  },
+  laguz: {
+    axis: "감정 흐름과 직감",
+    coreUpright: "감정과 무의식의 신호가 판단을 보조하는 시기입니다.",
+    coreReversed: "감정 과잉이나 회피로 현실 판단이 흔들릴 수 있습니다.",
+    relationshipUpright: "감정을 숨기지 않을수록 관계가 깊어집니다.",
+    relationshipReversed: "감정 파동이 큰 날에는 결론보다 안정이 먼저입니다.",
+    workUpright: "브랜딩, 예술, 상담, 사용자 감성 이해 업무에 강합니다.",
+    workReversed: "기분 기반 의사결정이 품질 편차를 만들 수 있습니다.",
+    cautionUpright: "직감은 기록하고 검증하세요.",
+    cautionReversed: "감정 억압과 감정 폭발 사이 균형을 찾으세요.",
+    actionUpright: ["감정 로그 기록", "직감 근거 확인", "수분·휴식 관리"],
+    actionReversed: ["충동 결정 보류", "호흡 루틴", "현실 체크리스트"],
+    mantra: "나는 감정을 두려워하지 않고 흐름으로 다룬다.",
+  },
+  ingwaz: {
+    axis: "내적 응축과 잠복 성장",
+    coreUpright: "겉으로 조용해 보여도 내부에서는 중요한 성장이 진행 중입니다.",
+    coreReversed: "결과가 보이지 않는 기간의 초조함이 커질 수 있습니다.",
+    relationshipUpright: "서두르지 않는 신뢰가 관계를 단단히 만듭니다.",
+    relationshipReversed: "확답 압박이 오히려 관계의 잠재성을 줄입니다.",
+    workUpright: "준비기·연구기·내실 다지기 프로젝트에 최적입니다.",
+    workReversed: "출시·발표 타이밍을 지나치게 늦추지 마세요.",
+    cautionUpright: "보이지 않는 성장도 성장입니다.",
+    cautionReversed: "완벽한 타이밍만 기다리다 기회를 놓치지 마세요.",
+    actionUpright: ["내실 작업 집중", "초안 완성", "핵심 지표 축적"],
+    actionReversed: ["출시 기준 설정", "작은 공개", "결정 지연 중단"],
+    mantra: "나는 보이지 않는 시간에도 확실히 자라고 있다.",
+  },
+  dagaz: {
+    axis: "각성과 전환점",
+    coreUpright: "긴 정체를 깨고 새 국면으로 넘어가는 문이 열립니다.",
+    coreReversed: "변화 직전 불안이 커져 스스로 브레이크를 걸 수 있습니다.",
+    relationshipUpright: "오해가 풀리고 관계가 새 단계로 진입합니다.",
+    relationshipReversed: "변화 속도를 맞추지 못하면 혼선이 생길 수 있습니다.",
+    workUpright: "피벗, 런칭, 전환 발표, 리브랜딩에 강한 신호입니다.",
+    workReversed: "변화 관리 계획이 없으면 반작용이 커질 수 있습니다.",
+    cautionUpright: "기회는 짧게 열릴 수 있으니 즉시 실행하세요.",
+    cautionReversed: "과거 방식에 집착하면 전환 비용이 증가합니다.",
+    actionUpright: ["결정 즉시 실행", "전환 커뮤니케이션", "실험 결과 반영"],
+    actionReversed: ["변화 계획 문서화", "리스크 공지", "지원 체계 확보"],
+    mantra: "나는 새벽의 문턱을 넘어 새로운 질서로 들어간다.",
+  },
+  othalan: {
+    axis: "뿌리와 유산",
+    coreUpright: "자신의 기반, 가문, 전통, 축적 자산이 힘이 되는 시기입니다.",
+    coreReversed: "과거 집착이나 소유 갈등이 현재 선택을 묶을 수 있습니다.",
+    relationshipUpright: "가치관 공유가 관계 안정의 핵심이 됩니다.",
+    relationshipReversed: "가족·배경 이슈가 감정 갈등으로 번질 수 있습니다.",
+    workUpright: "브랜드 자산, 장기 포트폴리오, 레거시 정비에 유리합니다.",
+    workReversed: "낡은 방식 고수로 혁신 타이밍을 놓칠 수 있습니다.",
+    cautionUpright: "전통은 방향, 족쇄가 아닙니다.",
+    cautionReversed: "소유 불안으로 관계를 통제하지 마세요.",
+    actionUpright: ["핵심 자산 목록화", "기반 강화", "장기 전략 수립"],
+    actionReversed: ["불필요한 집착 정리", "가치관 대화", "새 규칙 도입"],
+    mantra: "나는 뿌리를 존중하되, 뿌리에 묶이지 않는다.",
+  },
+  wyrd: {
+    axis: "미정의 가능성",
+    coreUpright: "아직 결정되지 않은 영역이 커서 자유와 책임이 동시에 열립니다.",
+    coreReversed: "불확실성 회피로 타이밍을 놓칠 수 있습니다.",
+    relationshipUpright: "관계를 규정하기보다 관찰하면 진짜 방향이 보입니다.",
+    relationshipReversed: "애매함 방치가 오해를 키울 수 있습니다.",
+    workUpright: "정해진 답이 없는 문제에서 창의적 해법이 나옵니다.",
+    workReversed: "결정 유예가 누적되면 기회 창이 닫힐 수 있습니다.",
+    cautionUpright: "미정은 혼란이 아니라 설계 여백입니다.",
+    cautionReversed: "운명 탓으로 선택 책임을 회피하지 마세요.",
+    actionUpright: ["가설 중심 실행", "선택 기준 정의", "짧은 실험 반복"],
+    actionReversed: ["결정 기한 설정", "불확실성 공개", "우선순위 확정"],
+    mantra: "비어 있는 칸은 두려움이 아니라 창조의 자리다.",
+  },
+};
+
+const DEFAULT_RUNE_GUIDE = {
+  axis: "룬 상징 해석",
+  coreUpright: "상징의 흐름을 따라 현재 상황을 재정렬할 시기입니다.",
+  coreReversed: "해석의 속도를 늦추고 핵심 리스크를 점검해야 합니다.",
+  relationshipUpright: "진심과 경계를 함께 지키면 관계가 안정됩니다.",
+  relationshipReversed: "오해 가능성이 높아 명료한 소통이 필요합니다.",
+  workUpright: "우선순위가 명확할수록 성과가 커집니다.",
+  workReversed: "세부 계획 보완이 필요합니다.",
+  cautionUpright: "기회와 과열을 구분하세요.",
+  cautionReversed: "불안이 결정을 대신하지 않도록 하세요.",
+  actionUpright: ["핵심 과제 정리", "리듬 유지", "의도 확인"],
+  actionReversed: ["속도 조절", "리스크 점검", "우선순위 재설정"],
+  mantra: "나는 상징을 읽고 현실에서 실천으로 옮긴다.",
+};
+
 function getMeaningText(rune) {
   if (rune.isReversed && rune.meaning_reversed) return rune.meaning_reversed;
   return rune.meaning_upright;
+}
+
+function getRuneGuide(runeId) {
+  return RUNE_GUIDE[runeId] || DEFAULT_RUNE_GUIDE;
+}
+
+function getDetailedReading(rune, positionLabel) {
+  const guide = getRuneGuide(rune.id);
+  const isReversed = rune.isReversed && !rune.isSymmetric;
+  const actionItems = isReversed ? guide.actionReversed : guide.actionUpright;
+
+  return {
+    axis: guide.axis,
+    summary: getMeaningText(rune),
+    sections: [
+      { title: "핵심 흐름", text: isReversed ? guide.coreReversed : guide.coreUpright },
+      { title: "관계 · 감정", text: isReversed ? guide.relationshipReversed : guide.relationshipUpright },
+      { title: "일 · 재물", text: isReversed ? guide.workReversed : guide.workUpright },
+      { title: "주의 신호", text: isReversed ? guide.cautionReversed : guide.cautionUpright },
+    ],
+    actionItems,
+    mantra: guide.mantra,
+    positionNote: positionLabel ? `${positionLabel} 자리의 의미를 함께 읽으면 정확도가 높아집니다.` : null,
+  };
+}
+
+function getQuarterTone(score) {
+  if (score >= 2) return "강한 확장";
+  if (score === 1) return "완만한 전진";
+  if (score === 0) return "균형 조율";
+  if (score === -1) return "신중한 점검";
+  return "리스크 관리";
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
@@ -132,44 +532,94 @@ export default function StonehengeRune() {
     drawRunes(spread);
   };
 
-  const getMeaning = (rune) => {
-    return getMeaningText(rune);
-  };
-
   const getSpreadInsight = () => {
     if (!drawnRunes.length) return null;
 
+    const describeRuneInContext = (rune, label) => {
+      const guide = getRuneGuide(rune.id);
+      const isReversed = rune.isReversed && !rune.isSymmetric;
+      const tone = isReversed ? "역방향" : "정방향";
+      const summary = isReversed ? guide.coreReversed : guide.coreUpright;
+      return `${label}: ${rune.name} (${tone}) · ${summary}`;
+    };
+
+    const reversedCount = drawnRunes.filter((rune) => rune.isReversed && !rune.isSymmetric).length;
+    const uprightCount = drawnRunes.length - reversedCount;
+
+    if (spread === 1 && drawnRunes.length === 1) {
+      const rune = drawnRunes[0];
+      const guide = getRuneGuide(rune.id);
+      const isReversed = rune.isReversed && !rune.isSymmetric;
+      const actions = isReversed ? guide.actionReversed : guide.actionUpright;
+
+      return {
+        title: "1-룬 정밀 해석",
+        points: [
+          `핵심 축: ${guide.axis}`,
+          describeRuneInContext(rune, "오늘의 중심 메시지"),
+          `실천 포인트: ${actions.join(" · ")}`,
+          `주의 신호: ${isReversed ? guide.cautionReversed : guide.cautionUpright}`,
+        ],
+      };
+    }
+
+    if (spread === 3 && drawnRunes.length === 3) {
+      const axisFlow = drawnRunes
+        .map((rune) => getRuneGuide(rune.id).axis)
+        .filter((axis, idx, arr) => arr.indexOf(axis) === idx)
+        .slice(0, 3)
+        .join(" → ");
+
+      return {
+        title: "3-룬 노른의 흐름 해석",
+        points: [
+          describeRuneInContext(drawnRunes[0], "과거 · Urd"),
+          describeRuneInContext(drawnRunes[1], "현재 · Verdandi"),
+          describeRuneInContext(drawnRunes[2], "미래 · Skuld"),
+          `흐름 구조: ${axisFlow}`,
+          `균형 지표: 정방향 ${uprightCount} / 역방향 ${reversedCount}`,
+        ],
+      };
+    }
+
     if (spread === 5 && drawnRunes.length === 5) {
+      const flowLabels = ["과거의 흐름", "현재의 상태", "다가올 미래", "타고난 성향", "조심해야 할 부분"];
+      const flowPoints = drawnRunes.map((rune, idx) => describeRuneInContext(rune, flowLabels[idx]));
+
       return {
         title: "5-룬 심층 운세 풀이",
         points: [
-          `과거의 흐름: ${getMeaningText(drawnRunes[0])}`,
-          `현재의 상태: ${getMeaningText(drawnRunes[1])}`,
-          `다가올 미래: ${getMeaningText(drawnRunes[2])}`,
-          `타고난 성향: ${getMeaningText(drawnRunes[3])}`,
-          `조심해야 할 부분: ${getMeaningText(drawnRunes[4])}`,
+          ...flowPoints,
+          `전체 균형: 정방향 ${uprightCount} / 역방향 ${reversedCount}`,
         ],
       };
     }
 
     if (spread === 12 && drawnRunes.length === 12) {
-      const reversedCount = drawnRunes.filter((rune) => rune.isReversed).length;
       const quarterLabels = ["1분기", "2분기", "3분기", "4분기"];
       const quarterSummary = [0, 1, 2, 3].map((idx) => {
         const start = idx * 3;
         const chunk = drawnRunes.slice(start, start + 3);
-        const brightCount = chunk.filter((rune) => !rune.isReversed).length;
-        const tone = brightCount >= 2 ? "확장과 기회" : "점검과 조율";
-        return `${quarterLabels[idx]}: ${tone} 흐름`;
+        const quarterScore = chunk.reduce((acc, rune) => acc + ((rune.isReversed && !rune.isSymmetric) ? -1 : 1), 0);
+        const representative = chunk[1] || chunk[0];
+        return `${quarterLabels[idx]}: ${getQuarterTone(quarterScore)} · 중심 룬 ${representative.name}`;
+      });
+
+      const monthlyHighlights = drawnRunes.slice(0, 12).map((rune, idx) => {
+        const label = SPREAD_LABELS[12][idx];
+        const guide = getRuneGuide(rune.id);
+        const monthlyCore = (rune.isReversed && !rune.isSymmetric) ? guide.cautionReversed : guide.coreUpright;
+        return `${label}: ${rune.name} · ${monthlyCore}`;
       });
 
       return {
         title: "12-룬 연간 총운",
         points: [
-          `연간 키워드: ${drawnRunes.slice(0, 3).map((rune) => rune.name).join(" · ")}`,
-          `전체 균형: 정방향 ${12 - reversedCount}개 / 역방향 ${reversedCount}개`,
+          `연간 키워드: ${drawnRunes.slice(0, 3).map((rune) => getRuneGuide(rune.id).axis).join(" · ")}`,
+          `전체 균형: 정방향 ${uprightCount} / 역방향 ${reversedCount}`,
           ...quarterSummary,
-          "핵심 조언: 월별 카드의 강점은 밀고, 역방향 카드가 뜬 달은 일정·재정·관계 리스크를 미리 줄이세요.",
+          ...monthlyHighlights,
+          "핵심 조언: 정방향 달에는 확장, 역방향 달에는 점검을 배치해 연간 리듬을 운용하세요.",
         ],
       };
     }
@@ -237,6 +687,10 @@ export default function StonehengeRune() {
     };
   }, []);
 
+  const selectedPositionLabel = selectedRune && SPREAD_LABELS[drawnRunes.length]
+    ? SPREAD_LABELS[drawnRunes.length][selectedRune.index]
+    : null;
+  const selectedReading = selectedRune ? getDetailedReading(selectedRune, selectedPositionLabel) : null;
   const spreadInsight = getSpreadInsight();
 
   return (
@@ -771,6 +1225,102 @@ export default function StonehengeRune() {
           border-radius: 2px;
         }
 
+        .sr-detail-axis {
+          margin-top: 14px;
+          margin-bottom: 14px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #a5b4fc;
+          letter-spacing: 0.04em;
+        }
+
+        .sr-detail-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .sr-detail-block {
+          background: rgba(30, 41, 59, 0.55);
+          border: 1px solid rgba(99,102,241,0.22);
+          border-radius: 12px;
+          padding: 12px;
+        }
+
+        .sr-detail-block h3 {
+          font-size: 12px;
+          color: #c4b5fd;
+          margin-bottom: 6px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .sr-detail-block p {
+          font-size: 13px;
+          color: #dbeafe;
+          line-height: 1.6;
+        }
+
+        .sr-detail-position {
+          margin-bottom: 12px;
+          font-size: 12px;
+          color: #93c5fd;
+        }
+
+        .sr-detail-actions {
+          border: 1px solid rgba(56, 189, 248, 0.25);
+          border-radius: 12px;
+          padding: 12px;
+          background: rgba(15, 23, 42, 0.45);
+          margin-bottom: 12px;
+        }
+
+        .sr-detail-actions h3 {
+          font-size: 12px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #7dd3fc;
+          margin-bottom: 8px;
+        }
+
+        .sr-detail-actions ul {
+          list-style: none;
+          display: grid;
+          gap: 6px;
+        }
+
+        .sr-detail-actions li {
+          font-size: 13px;
+          color: #e0f2fe;
+          position: relative;
+          padding-left: 12px;
+        }
+
+        .sr-detail-actions li::before {
+          content: '•';
+          position: absolute;
+          left: 0;
+          top: 0;
+          color: #7dd3fc;
+        }
+
+        .sr-detail-mantra {
+          margin-top: 8px;
+          font-size: 13px;
+          color: #c7d2fe;
+          font-style: italic;
+          line-height: 1.7;
+          border-top: 1px dashed rgba(129, 140, 248, 0.35);
+          padding-top: 10px;
+        }
+
+        @media (max-width: 640px) {
+          .sr-detail-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
         .sr-spread-insight {
           background: linear-gradient(140deg, rgba(11,20,48,0.92), rgba(29,20,58,0.82));
           border: 1px solid rgba(125, 211, 252, 0.3);
@@ -1047,12 +1597,39 @@ export default function StonehengeRune() {
                       <p className={`sr-detail-dir ${selectedRune.isReversed ? "rev" : "up"}`}>
                         {selectedRune.isReversed ? "↓ REVERSED · 역방향" : "↑ UPRIGHT · 정방향"}
                       </p>
-                      {SPREAD_LABELS[drawnRunes.length] && (
-                        <p className="sr-detail-symbol-text">{SPREAD_LABELS[drawnRunes.length][selectedRune.index]}</p>
+                      {selectedPositionLabel && (
+                        <p className="sr-detail-symbol-text">{selectedPositionLabel}</p>
                       )}
                     </div>
                   </div>
-                  <p className="sr-detail-meaning">{getMeaning(selectedRune)}</p>
+
+                  <p className="sr-detail-meaning">{selectedReading?.summary}</p>
+
+                  <div className="sr-detail-axis">해석 축: {selectedReading?.axis}</div>
+
+                  <div className="sr-detail-grid">
+                    {selectedReading?.sections.map((section) => (
+                      <article key={section.title} className="sr-detail-block">
+                        <h3>{section.title}</h3>
+                        <p>{section.text}</p>
+                      </article>
+                    ))}
+                  </div>
+
+                  {selectedReading?.positionNote && (
+                    <p className="sr-detail-position">{selectedReading.positionNote}</p>
+                  )}
+
+                  <div className="sr-detail-actions">
+                    <h3>실천 조언</h3>
+                    <ul>
+                      {selectedReading?.actionItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
                 </div>
               )}
 
