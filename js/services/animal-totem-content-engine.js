@@ -79,30 +79,10 @@
     };
   }
 
-  function elementToDescriptor(element) {
-    var map = {
-      wood: "WOOD GUARDIAN",
-      fire: "FIRE GUARDIAN",
-      earth: "EARTH GUARDIAN",
-      metal: "METAL GUARDIAN",
-      water: "WATER GUARDIAN"
-    };
-    return map[element] || "FIVE-ELEMENT GUARDIAN";
-  }
-
-  function buildPremiumIllustrationPrompt(animalName, descriptor) {
-    return "An ultra-high-definition, masterfully detailed digital portrait of a mythical " + animalName + ", rendered in a premium, stylized blend of cute character design and intricate traditional Korean folk art (Minhwa). The creature is centered within a minimalist, rounded UI card with a subtle pearl-like finish and a soft, warm-to-cool gradient edge glow.\n\n" +
-      "The creature itself is incredibly detailed. Its form is adorned with complex, micro-patterned embroidery-style motifs inspired by traditional textiles and cloud formations, using gold and silver thread textures. The fur/feathers/scales have layered, tangible textures. Its eyes are large, soulfully expressive, with deep pupils and detailed highlights, conveying wisdom and calm. The colors are rich and symbolic (e.g., if a White Tiger, pure white with subtle, patterned gold-and-black stripes).\n\n" +
-      "The environment is a stylized, atmospheric, and mystical interpretation of the animal's natural habitat. Instead of simple elements, include deep gorges, towering textured peaks with deep traditional brushwork, partially veiled by swirling, layered mist. Integrate incredibly detailed elements: gnarled ancient pine or bonsai trees with individual needles, mossy rocks, and glowing flora. The lighting is soft, diffused, and volumetric from an unseen celestial source, creating a profound aura. Include intensely glowing golden particle effects (cosmic dust).\n\n" +
-      "Subtly integrate stylized, glowing Korean characters (Hanja) representing relevant elements (like 水 for water, 金 for metal, 土 for earth) into the background mist or the animal's patterns. The text at the top, \"SAJU ANIMAL PORTRAIT - THE " + descriptor + "\", is rendered in a premium gold calligraphy font with a 3D embossed effect.\n\n" +
-      "Composition is perfectly balanced. Full 8k resolution, photorealistic textures mixed with art, volumetric lighting, epic composition, masterpiece.";
-  }
-
   function buildFallback(mode, reason, userContext) {
     var spreadMode = normalizeMode(mode);
     var slots = MODE_SLOTS[spreadMode];
     var visual = resolveSajuVisualContext(userContext);
-    var descriptor = elementToDescriptor(visual.dominant_element);
     var cards = slots.map(function(slot, idx) {
       var color = PASTEL_PALETTE[idx % PASTEL_PALETTE.length];
       var expression = visual.expression_seed;
@@ -115,7 +95,7 @@
         color_theme: color,
         facial_expression: expression,
         background_motif: background,
-        illustration_prompt: buildPremiumIllustrationPrompt(FALLBACK_NAMES[idx % FALLBACK_NAMES.length], descriptor)
+        illustration_prompt: "귀여운 동물 캐릭터, 파스텔톤, 둥근 형태, 부드러운 명암, 동화풍 일러스트, 표정: " + expression + ", 배경: " + background
       };
       return {
         slot: slot,
@@ -191,10 +171,7 @@
         background_motif: (base.animal && base.animal.background_motif) || base.background_motif || visual.background_seed,
         illustration_prompt: (base.animal && base.animal.illustration_prompt) ||
           base.illustration_prompt ||
-          buildPremiumIllustrationPrompt(
-            (base.animal && base.animal.name_ko) || base.name_ko || FALLBACK_NAMES[idx % FALLBACK_NAMES.length],
-            elementToDescriptor(visual.dominant_element)
-          )
+          ("귀여운 동물 캐릭터, 파스텔톤, 둥근 형태, 부드러운 명암, 동화풍 일러스트, 표정: " + visual.expression_seed + ", 배경: " + visual.background_seed)
       },
       layered_reading: {
         essence: layered.essence || base.essence || "오늘의 감정에 맞는 따뜻한 메시지를 받아보세요.",
@@ -252,12 +229,8 @@
       "사주 시각 컨텍스트(JSON): " + visualJson,
       "각 카드에는 animal.name_ko, animal.emoji, animal.category, animal.color_theme(primary/glow/particle), animal.facial_expression, animal.background_motif, animal.illustration_prompt를 포함하세요.",
       "표정은 사주 성향(성격 결)으로 다르게, 배경은 오행 분포(목/화/토/금/수) 강약으로 다르게 구성하세요.",
-      "illustration_prompt는 아래 영어 프롬프트 문장을 그대로 사용하고, [INSERT ANIMAL NAME HERE]에는 animal.name_ko를, [INSERT ANIMAL'S ELEMENT/DESCRIPTOR]에는 오행 기반 descriptor를 치환하세요.",
-      "An ultra-high-definition, masterfully detailed digital portrait of a mythical [INSERT ANIMAL NAME HERE], rendered in a premium, stylized blend of cute character design and intricate traditional Korean folk art (Minhwa). The creature is centered within a minimalist, rounded UI card with a subtle pearl-like finish and a soft, warm-to-cool gradient edge glow.",
-      "The creature itself is incredibly detailed. Its form is adorned with complex, micro-patterned embroidery-style motifs inspired by traditional textiles and cloud formations, using gold and silver thread textures. The fur/feathers/scales have layered, tangible textures. Its eyes are large, soulfully expressive, with deep pupils and detailed highlights, conveying wisdom and calm. The colors are rich and symbolic (e.g., if a White Tiger, pure white with subtle, patterned gold-and-black stripes).",
-      "The environment is a stylized, atmospheric, and mystical interpretation of the animal's natural habitat. Instead of simple elements, include deep gorges, towering textured peaks with deep traditional brushwork, partially veiled by swirling, layered mist. Integrate incredibly detailed elements: gnarled ancient pine or bonsai trees with individual needles, mossy rocks, and glowing flora. The lighting is soft, diffused, and volumetric from an unseen celestial source, creating a profound aura. Include intensely glowing golden particle effects (cosmic dust).",
-      "Subtly integrate stylized, glowing Korean characters (Hanja) representing relevant elements (like 水 for water, 金 for metal, 土 for earth) into the background mist or the animal's patterns. The text at the top, \"SAJU ANIMAL PORTRAIT - THE [INSERT ANIMAL'S ELEMENT/DESCRIPTOR]\", is rendered in a premium gold calligraphy font with a 3D embossed effect.",
-      "Composition is perfectly balanced. Full 8k resolution, photorealistic textures mixed with art, volumetric lighting, epic composition, masterpiece.",
+      "illustration_prompt에는 다음 스타일을 반드시 포함하세요: '귀여운 동물, 파스텔톤, 둥근 형태, 부드러운 명암, 동화풍'.",
+      "illustration_prompt에 표정(facial_expression)과 배경(background_motif)을 반드시 자연어로 포함하세요.",
       "layered_reading에는 essence, direct_message, daily_actions(3~5개), ritual, journaling(0~3개), shadow_warning, affirmation를 넣으세요.",
       "출력 스키마:",
       "{",
