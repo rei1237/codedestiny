@@ -106,6 +106,56 @@
     } catch (e) { return ''; }
   }
 
+  function captureSajuAnalysisSnapshot() {
+    var natal = window.G_NATAL || {};
+    var ratios = natal.ratios || {};
+    var counts = natal.counts || {};
+    var dominant = natal.dominant || '';
+    var toNum = function (v) {
+      var n = Number(v);
+      return isFinite(n) ? n : 0;
+    };
+    var normalizedRatios = {
+      wood: toNum(ratios.wood),
+      fire: toNum(ratios.fire),
+      earth: toNum(ratios.earth),
+      metal: toNum(ratios.metal),
+      water: toNum(ratios.water)
+    };
+    var normalizedCounts = {
+      wood: toNum(counts.wood),
+      fire: toNum(counts.fire),
+      earth: toNum(counts.earth),
+      metal: toNum(counts.metal),
+      water: toNum(counts.water)
+    };
+    var totalCounts = normalizedCounts.wood + normalizedCounts.fire + normalizedCounts.earth + normalizedCounts.metal + normalizedCounts.water;
+    var totalRatios = normalizedRatios.wood + normalizedRatios.fire + normalizedRatios.earth + normalizedRatios.metal + normalizedRatios.water;
+
+    if (totalCounts <= 0 && totalRatios <= 0) return null;
+
+    if (totalCounts <= 0 && totalRatios > 0) {
+      normalizedCounts.wood = Math.round(normalizedRatios.wood / 10);
+      normalizedCounts.fire = Math.round(normalizedRatios.fire / 10);
+      normalizedCounts.earth = Math.round(normalizedRatios.earth / 10);
+      normalizedCounts.metal = Math.round(normalizedRatios.metal / 10);
+      normalizedCounts.water = Math.round(normalizedRatios.water / 10);
+    }
+    if (totalRatios <= 0 && totalCounts > 0) {
+      normalizedRatios.wood = Number(((normalizedCounts.wood / totalCounts) * 100).toFixed(1));
+      normalizedRatios.fire = Number(((normalizedCounts.fire / totalCounts) * 100).toFixed(1));
+      normalizedRatios.earth = Number(((normalizedCounts.earth / totalCounts) * 100).toFixed(1));
+      normalizedRatios.metal = Number(((normalizedCounts.metal / totalCounts) * 100).toFixed(1));
+      normalizedRatios.water = Number(((normalizedCounts.water / totalCounts) * 100).toFixed(1));
+    }
+
+    return {
+      dominant_element: dominant || getDominantElement(),
+      five_elements_count: normalizedCounts,
+      five_elements_ratio: normalizedRatios
+    };
+  }
+
   function getSipseong() {
     try {
       var pillars = window.G_PILLARS;
@@ -240,7 +290,7 @@
 
     return [
       '생년월일 에너지에서 읽힌 핵심은 ' + sentParts + '입니다.',
-      '사주로 보는 내 모습은? 결과에서 <strong>' + traitStr + ' ' + animalName + '</strong> 타입으로 해석됩니다.',
+      '가디언 토템 결과에서 <strong>' + traitStr + ' ' + animalName + '</strong> 타입으로 해석됩니다.',
       '<small style="color:var(--sg-text-muted,rgba(0,0,0,0.5))">✦ ' + (a.keyword || '') + ' · ' + (elKr[el] || '') + ' 시그니처</small>'
     ].join('<br>');
   }
@@ -380,13 +430,13 @@
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: '사주로 보는 내 모습은?: ' + a.name,
+        title: '가디언 토템: ' + a.name,
         description: a.traits + ' ' + a.name + ' 타입의 가디언 에너지를 확인해보세요!',
         imageUrl: imgUrl,
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       },
       buttons: [{
-        title: '나도 사주로 보는 내 모습은? 보기',
+        title: '나도 가디언 토템 보기',
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       }]
     });
@@ -396,8 +446,8 @@
     var a = totemData.primary;
     if (navigator.share) {
       navigator.share({
-        title: '사주로 보는 내 모습은?: ' + a.name,
-        text: a.traits + '한 ' + a.name + '! 사주로 보는 내 모습은?을 Code Destiny에서 확인해보세요.',
+        title: '가디언 토템: ' + a.name,
+        text: a.traits + '한 ' + a.name + '! 가디언 토템을 Code Destiny에서 확인해보세요.',
         url: 'https://code-destiny.com'
       }).catch(function () {});
     } else {
@@ -441,7 +491,7 @@
     body.innerHTML = '<div class="stg-no-saju">' +
       '<div class="stg-no-saju__icon">🔮</div>' +
       '<p class="stg-no-saju__title">생년월일 정보가 필요해요</p>' +
-      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 사주로 보는 내 모습은? 이미지를 바로 생성할 수 있습니다.</p>' +
+      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 가디언 토템 이미지를 바로 생성할 수 있습니다.</p>' +
       '<button class="stg-btn stg-btn--primary" onclick="window.closeSajuTotemModal();window.scrollTo({top:0,behavior:\'smooth\'})">생년월일 입력하러 가기 ✨</button>' +
     '</div>';
   }
@@ -468,7 +518,7 @@
           '</div>' +
         '</div>' +
         '<p class="stg-loading__title">AI가 사주 분석을 바탕으로</p>' +
-        '<p class="stg-loading__subtitle">사주로 보는 내 모습은? 이미지를 그리는 중입니다...</p>' +
+        '<p class="stg-loading__subtitle">가디언 토템 이미지를 그리는 중입니다...</p>' +
         '<div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>' +
       '</div>';
 
@@ -504,10 +554,11 @@
       renderStateFailure(contextSource);
     }
 
+    var sajuAnalysis = captureSajuAnalysisSnapshot();
     fetch('/api/guardian-avatar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile: requestProfile })
+      body: JSON.stringify({ profile: requestProfile, sajuAnalysis: sajuAnalysis })
     })
       .then(function (resp) {
         return resp.json().catch(function () { return null; }).then(function (data) {
@@ -554,7 +605,7 @@
     var desc = buildDescription(totemData);
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
     var imgUrl = guardian && guardian.svg_data_uri ? guardian.svg_data_uri : '';
-    var guardianTitle = (guardian && guardian.title) ? guardian.title : '사주로 보는 내 모습은?';
+    var guardianTitle = (guardian && guardian.title) ? guardian.title : '가디언 토템';
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';

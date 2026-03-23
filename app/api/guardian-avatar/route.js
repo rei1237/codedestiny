@@ -26,7 +26,62 @@ function safeInt(v, d) {
   return Number.isNaN(n) ? d : n;
 }
 
-function analyzeSajuVisual(profile) {
+function toSafeElementMap(src, fallback = 0) {
+  const out = { wood: fallback, fire: fallback, earth: fallback, metal: fallback, water: fallback };
+  if (!src || typeof src !== "object") return out;
+  Object.keys(out).forEach((k) => {
+    const v = Number(src[k]);
+    out[k] = Number.isFinite(v) ? v : fallback;
+  });
+  return out;
+}
+
+function normalizeSajuAnalysis(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const rawCounts =
+    payload.five_elements_count ||
+    payload.fiveElementsCount ||
+    payload.element_counts ||
+    payload.elementCounts ||
+    payload.natal_counts ||
+    payload.natalCounts ||
+    payload.counts ||
+    null;
+  const rawRatios =
+    payload.five_elements_ratio ||
+    payload.fiveElementsRatio ||
+    payload.element_ratios ||
+    payload.elementRatios ||
+    payload.natal_ratios ||
+    payload.natalRatios ||
+    payload.ratios ||
+    null;
+
+  const counts = toSafeElementMap(rawCounts, 0);
+  const ratios = toSafeElementMap(rawRatios, 0);
+  const countTotal = Object.values(counts).reduce((a, b) => a + b, 0);
+  const ratioTotal = Object.values(ratios).reduce((a, b) => a + b, 0);
+  if (countTotal <= 0 && ratioTotal <= 0) return null;
+
+  if (ratioTotal <= 0 && countTotal > 0) {
+    Object.keys(ratios).forEach((k) => {
+      ratios[k] = Number(((counts[k] / countTotal) * 100).toFixed(1));
+    });
+  }
+  if (countTotal <= 0 && ratioTotal > 0) {
+    Object.keys(counts).forEach((k) => {
+      counts[k] = Math.max(0, Math.round((ratios[k] / 100) * 10));
+    });
+  }
+
+  return {
+    counts,
+    ratios,
+    dominantElement: String(payload.dominant_element || payload.dominantElement || "").trim() || null,
+  };
+}
+
+function analyzeSajuVisual(profile, sajuAnalysis) {
   const birth = (profile && profile.birth) || {};
   const year = safeInt(birth.year, 2000);
   const month = safeInt(birth.month, 1);
@@ -36,20 +91,33 @@ function analyzeSajuVisual(profile) {
   const stemElements = ["wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water"];
   const branchElements = ["water", "earth", "wood", "wood", "earth", "fire", "fire", "earth", "metal", "metal", "earth", "water"];
 
+  const normalized = normalizeSajuAnalysis(sajuAnalysis);
   const weights = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 };
+  if (normalized) {
+    weights.wood = normalized.counts.wood;
+    weights.fire = normalized.counts.fire;
+    weights.earth = normalized.counts.earth;
+    weights.metal = normalized.counts.metal;
+    weights.water = normalized.counts.water;
+  }
   const stemIdx = ((year - 4) % 10 + 10) % 10;
   const yearBranchIdx = ((year - 4) % 12 + 12) % 12;
   const hourBranchIdx = Math.floor((((hour + 1) % 24) / 2));
   const seasonElement = month >= 3 && month <= 5 ? "wood" : month >= 6 && month <= 8 ? "fire" : month >= 9 && month <= 11 ? "metal" : "water";
   const dayElement = ["wood", "fire", "earth", "metal", "water"][Math.abs(year + month + day) % 5];
 
-  weights[stemElements[stemIdx]] += 3;
-  weights[branchElements[yearBranchIdx]] += 2;
-  weights[branchElements[hourBranchIdx]] += 1;
-  weights[seasonElement] += 2;
-  weights[dayElement] += 2;
+  if (!normalized) {
+    weights[stemElements[stemIdx]] += 3;
+    weights[branchElements[yearBranchIdx]] += 2;
+    weights[branchElements[hourBranchIdx]] += 1;
+    weights[seasonElement] += 2;
+    weights[dayElement] += 2;
+  }
 
   let dominant = "earth";
+  if (normalized && normalized.dominantElement && Object.prototype.hasOwnProperty.call(weights, normalized.dominantElement)) {
+    dominant = normalized.dominantElement;
+  }
   ["wood", "fire", "earth", "metal", "water"].forEach((k) => {
     if (weights[k] > weights[dominant]) dominant = k;
   });
@@ -73,6 +141,7 @@ function analyzeSajuVisual(profile) {
   return {
     dominantElement: dominant,
     fiveElements: weights,
+    fiveElementRatios: normalized ? normalized.ratios : null,
     facialExpression: exprMap[dominant] || "부드러운 미소",
     backgroundMotif: bgMap[dominant] || "파스텔 자연 배경",
     summary:
@@ -104,19 +173,19 @@ function toDataUri(svg) {
 }
 
 function buildPrompt(profile, visual) {
-  const name = (profile && profile.name) || "사용자";
   const birth = (profile && profile.birth) || {};
   const loc = (profile && profile.location) || {};
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-    "SVG는 512x512, 귀여운 파스텔 톤, 동화풍, 저작권 문제 없는 오리지널로 생성하라.",
-    "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 헤어/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
+    "SVG는 512x512, 초귀여운 만화 캐릭터 스타일(SD/chibi), 두꺼운 라인과 부드러운 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
     "결과는 완성 일러스트 품질이어야 하며, 스케치나 아이콘 수준이 아니어야 한다.",
+    "캐릭터 비율은 2.5등신 내외의 마스코트형으로 만들고, 얼굴 비중을 크게 해서 사랑스럽게 보이게 하라.",
+    "이미지 안에 문자, 로고, 워터마크, 이름을 절대 넣지 마라.",
     "사주 성향 기반 표정과 오행 기반 배경을 반드시 반영하라.",
     "사용자 프로필:",
     JSON.stringify({
-      name,
       birth: {
         year: birth.year,
         month: birth.month,
@@ -211,7 +280,7 @@ async function callGemini(profile, visual) {
       }
 
       return {
-        title: String(obj.title || "사주로 보는 내 모습은?").trim(),
+        title: String(obj.title || "가디언 토템").trim(),
         summary: String(obj.summary || visual.summary || "사주 기반 가디언 아바타").trim(),
         facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
         backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
@@ -233,11 +302,12 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const profile = body?.profile || null;
+    const sajuAnalysis = body?.sajuAnalysis || null;
     if (!profile || !profile.birth) {
       return NextResponse.json({ ok: false, message: "profile.birth가 필요합니다." }, { status: 400 });
     }
 
-    const visual = analyzeSajuVisual(profile);
+    const visual = analyzeSajuVisual(profile, sajuAnalysis);
     const guardian = await callGemini(profile, visual);
 
     return NextResponse.json({

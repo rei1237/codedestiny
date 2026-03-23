@@ -325,13 +325,13 @@
               + '<img id="dpGuardianAvatarImg" alt="가디언 아바타" style="width:100%;height:100%;object-fit:cover;display:block;"/>'
             + '</div>'
             + '<div style="flex:1;min-width:0;">'
-              + '<div style="font-size:0.82rem;font-weight:800;color:#fef3c7;letter-spacing:0.3px;">사주로 보는 내 모습은?</div>'
+              + '<div style="font-size:0.82rem;font-weight:800;color:#fef3c7;letter-spacing:0.3px;">가디언 토템</div>'
               + '<div id="dpGuardianAvatarMeta" style="margin-top:4px;font-size:0.72rem;line-height:1.35;color:#dbeafe;opacity:0.9;">'
                 + _esc((profile.guardianAvatar && profile.guardianAvatar.summary) || '생년월일 기반 사주 분석으로 표정과 오행 배경이 달라지는 이미지를 생성합니다.')
               + '</div>'
             + '</div>'
           + '</div>'
-          + '<button class="dp-mc-guardian-btn" onclick="dpGenerateGuardianAvatar()" style="margin-top:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.45);background:linear-gradient(135deg, rgba(59,130,246,0.22), rgba(56,189,248,0.16));color:#dbeafe;font-weight:700;font-size:0.82rem;touch-action:manipulation;">🖼️ 사주로 보는 내 모습은? 생성</button>'
+          + '<button class="dp-mc-guardian-btn" onclick="dpGenerateGuardianAvatar()" style="margin-top:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.45);background:linear-gradient(135deg, rgba(59,130,246,0.22), rgba(56,189,248,0.16));color:#dbeafe;font-weight:700;font-size:0.82rem;touch-action:manipulation;">🖼️ 가디언 토템 생성</button>'
         + '</div>'
         + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
@@ -706,6 +706,54 @@
     return readFormData();
   };
 
+  function _dpBuildSajuAnalysisSnapshot() {
+    var natal = window.G_NATAL || {};
+    var ratios = natal.ratios || {};
+    var counts = natal.counts || {};
+    var toNum = function(v) {
+      var n = Number(v);
+      return isFinite(n) ? n : 0;
+    };
+    var normalizedRatios = {
+      wood: toNum(ratios.wood),
+      fire: toNum(ratios.fire),
+      earth: toNum(ratios.earth),
+      metal: toNum(ratios.metal),
+      water: toNum(ratios.water)
+    };
+    var normalizedCounts = {
+      wood: toNum(counts.wood),
+      fire: toNum(counts.fire),
+      earth: toNum(counts.earth),
+      metal: toNum(counts.metal),
+      water: toNum(counts.water)
+    };
+    var totalCounts = normalizedCounts.wood + normalizedCounts.fire + normalizedCounts.earth + normalizedCounts.metal + normalizedCounts.water;
+    var totalRatios = normalizedRatios.wood + normalizedRatios.fire + normalizedRatios.earth + normalizedRatios.metal + normalizedRatios.water;
+    if (totalCounts <= 0 && totalRatios <= 0) return null;
+
+    if (totalCounts <= 0 && totalRatios > 0) {
+      normalizedCounts.wood = Math.round(normalizedRatios.wood / 10);
+      normalizedCounts.fire = Math.round(normalizedRatios.fire / 10);
+      normalizedCounts.earth = Math.round(normalizedRatios.earth / 10);
+      normalizedCounts.metal = Math.round(normalizedRatios.metal / 10);
+      normalizedCounts.water = Math.round(normalizedRatios.water / 10);
+    }
+    if (totalRatios <= 0 && totalCounts > 0) {
+      normalizedRatios.wood = Number(((normalizedCounts.wood / totalCounts) * 100).toFixed(1));
+      normalizedRatios.fire = Number(((normalizedCounts.fire / totalCounts) * 100).toFixed(1));
+      normalizedRatios.earth = Number(((normalizedCounts.earth / totalCounts) * 100).toFixed(1));
+      normalizedRatios.metal = Number(((normalizedCounts.metal / totalCounts) * 100).toFixed(1));
+      normalizedRatios.water = Number(((normalizedCounts.water / totalCounts) * 100).toFixed(1));
+    }
+
+    return {
+      dominant_element: natal.dominant || '',
+      five_elements_count: normalizedCounts,
+      five_elements_ratio: normalizedRatios
+    };
+  }
+
   window.dpGenerateGuardianAvatar = async function() {
     var p = DPStorage.current();
     if (!p || !p.birth) {
@@ -725,7 +773,7 @@
       var resp = await fetch('/api/guardian-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile: p })
+        body: JSON.stringify({ profile: p, sajuAnalysis: _dpBuildSajuAnalysisSnapshot() })
       });
       var data = await resp.json().catch(function() { return null; });
       if (!resp.ok || !data || !data.ok || !data.guardian || !data.guardian.svg_data_uri) {
@@ -746,13 +794,13 @@
       var updated = DPStorage.current() || p;
       renderMasterCard(updated);
       broadcastProfileChange(updated);
-      _toast('🪄 사주로 보는 내 모습은? 이미지가 완성되었습니다!', 'success');
+      _toast('🪄 가디언 토템 이미지가 완성되었습니다!', 'success');
     } catch (err) {
       _toast('⚠️ 이용자가 많아서 실패했습니다. 잠시 후 다시 시도해주세요.', 'warn');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = oldText || '🖼️ 사주로 보는 내 모습은? 생성';
+        btn.textContent = oldText || '🖼️ 가디언 토템 생성';
         btn.style.opacity = '';
       }
     }
