@@ -564,6 +564,28 @@ const hwatuStyles = `
     margin-bottom: 14px;
     word-break: keep-all;
 }
+.life-detail-box {
+    background: linear-gradient(135deg, rgba(12,18,30,0.86), rgba(52,8,8,0.58));
+    border: 1px solid rgba(212,175,55,0.42);
+    border-radius: 10px;
+    padding: 12px;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    line-height: 1.72;
+    margin-bottom: 14px;
+    word-break: keep-all;
+}
+.life-detail-title {
+    color: #facc15;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+}
+.life-detail-point {
+    display: block;
+    margin-bottom: 4px;
+    color: #dbeafe;
+}
 
 @media(max-width: 480px) {
     .life-intro-box, .life-question-box, .life-result-box { padding: 14px; }
@@ -713,7 +735,8 @@ function injectHwatuHTML() {
                     <div class="life-result-desc" id="lifeResultDesc"></div>
                     <div class="life-result-chip-row" id="lifeResultTraits"></div>
                     <div class="life-monthly-box" id="lifeMonthlySummary"></div>
-                    <button class="btn-hwatu" style="width:100%;font-size:1.04rem;margin-bottom:10px;" onclick="switchHwatuMode('seotda', false)">상세 운세 보기</button>
+                    <div class="life-detail-box" id="lifeDetailNarrative" style="display:none;"></div>
+                    <button class="btn-hwatu" id="lifeDetailToggleBtn" style="width:100%;font-size:1.04rem;margin-bottom:10px;" onclick="toggleLifeCardDetail()">상세 운세 보기</button>
                     <button class="btn-hwatu" style="width:100%;font-size:1.03rem;background:linear-gradient(to right,#3b2f18,#7c5a17);margin-bottom:10px;" onclick="shareHwatuLifeCard()">💬 카카오톡 공유하기</button>
                     <button class="btn-hwatu" style="width:100%;font-size:1.02rem;background:linear-gradient(to right,#1f2937,#0f172a);" onclick="closeHwatuModal()">홈 화면으로 돌아가기</button>
                 </div>
@@ -1462,6 +1485,69 @@ function _resolveLifeResultCard(arc, scores) {
     };
 }
 
+function _buildLifeDetailNarrative(arc, scores, resolvedCard) {
+    const focusMap = {
+        samgwang: {
+            flow: '이번 판은 네가 먼저 판을 여는 순간부터 흐름이 붙는다. 시선이 몰리는 자리에서 망설임 없이 선언해야 먹는다.',
+            caution: '다만 세게 들어간 뒤 회수 타이밍을 놓치면 체력만 빠진다. 화끈함 다음엔 반드시 정리 수를 붙이쇼.',
+            move: '오늘의 실전 수: 중요한 대화에서 첫 문장을 네가 깔고, 결정은 24시간 안에 마무리.'
+        },
+        godori: {
+            flow: '기회는 길게 열리지 않는다. 작은 신호를 먼저 잡아채는 순발력이 오늘 수익을 만든다.',
+            caution: '속도만 믿고 근거를 놓치면 뒷수습이 커진다. 판단 전에 핵심 숫자 1개는 반드시 확인하쇼.',
+            move: '오늘의 실전 수: 들어온 제안은 세 갈래(수익/리스크/회수)로 10분 내 분해 후 움직이기.'
+        },
+        cheongdan: {
+            flow: '네 장점은 디테일에서 나온다. 문서, 일정, 계약에서 빈칸을 메우는 순간 승부가 네 쪽으로 기운다.',
+            caution: '완벽을 기다리다 타이밍을 놓치면 좋은 패도 죽는다. 80% 완성에서 먼저 출발하고 보완하쇼.',
+            move: '오늘의 실전 수: 체크리스트 3개(마감, 비용, 책임자)만 고정하고 바로 실행.'
+        },
+        hongdan: {
+            flow: '사람의 기류를 읽는 감각이 날카롭다. 관계의 온도를 맞추면 막힌 대화도 열린다.',
+            caution: '분위기에만 기대면 결론이 흐려진다. 공감 다음에는 반드시 한 줄 결론으로 못 박으쇼.',
+            move: '오늘의 실전 수: 메시지/대화 끝에 다음 액션 시간까지 명시해서 흐름 고정.'
+        },
+        chodan: {
+            flow: '반복과 루틴이 네 무기다. 흔들리는 판에서도 규칙을 지키는 사람이 결국 이긴다.',
+            caution: '세부 조정에 오래 묶이면 전체 속도가 죽는다. 우선순위 1개를 먼저 끝내고 다음으로 넘기쇼.',
+            move: '오늘의 실전 수: 오전에 가장 무거운 일 1개를 완결해 흐름 선점.'
+        },
+        bipung: {
+            flow: '버릴 패를 먼저 고르는 냉정함이 강점이다. 선택과 집중이 오늘 손실을 줄이고 실속을 만든다.',
+            caution: '과한 손절은 기회까지 버린다. 끊을 것과 보유할 것을 기준표로 나눠서 판단하쇼.',
+            move: '오늘의 실전 수: 돈/시간/관계에서 불필요한 1개를 정리하고 핵심 1개에 몰빵.'
+        },
+        ddonggwang: {
+            flow: '초반이 답답해도 후반 역전력이 강하다. 버티는 동안 힘이 쌓이고 마지막에 판이 뒤집힌다.',
+            caution: '버틴다는 명분으로 대응을 늦추면 기회를 놓친다. 대기와 준비를 동시에 가져가쇼.',
+            move: '오늘의 실전 수: 보류 중인 일 하나에 마감 시점을 박아두고 소폭 전진.'
+        },
+        bigwang: {
+            flow: '변수 많은 날일수록 네 감각이 빛난다. 포지션 전환을 과감히 하면 오히려 이익이 커진다.',
+            caution: '배짱만 앞서면 리스크가 과열된다. 크게 들어가기 전 최소 안전장치 한 줄은 걸어두쇼.',
+            move: '오늘의 실전 수: 플랜 B를 먼저 만든 뒤 플랜 A를 공격적으로 실행.'
+        }
+    };
+    const guide = focusMap[arc.id] || {
+        flow: '오늘은 네 기본기를 지키는 쪽이 유리하다. 급한 결정보다 흐름 읽기가 우선이다.',
+        caution: '감정으로 베팅하지 말고, 기준을 세운 뒤 실행하쇼.',
+        move: '오늘의 실전 수: 하나를 고르고 끝까지 밀기.'
+    };
+
+    const heat = (scores.charisma || 0) + (scores.leadership || 0);
+    const frame = (scores.strategy || 0) + (scores.composure || 0);
+    const grip = (scores.endurance || 0) + (scores.pragmatism || 0);
+
+    return `
+        <div class="life-detail-title">🎴 상세 타짜 풀이 (${resolvedCard.comboLabel})</div>
+        <span class="life-detail-point">• 판세 흐름: ${guide.flow}</span>
+        <span class="life-detail-point">• 경계 포인트: ${guide.caution}</span>
+        <span class="life-detail-point">• 실행 수법: ${guide.move}</span>
+        <span class="life-detail-point">• 기질 지수: 배짱 ${heat} / 설계 ${frame} / 버팀 ${grip}</span>
+        <span class="life-detail-point">• 오늘 한 줄: "패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다."</span>
+    `;
+}
+
 function _renderLifeQuestion() {
     if(!_lifeCardState) return;
     const panel = document.getElementById('lifeCardQuestionPanel');
@@ -1513,10 +1599,14 @@ window.resetLifeCardTest = function() {
     const panel = document.getElementById('lifeCardQuestionPanel');
     const result = document.getElementById('lifeCardResultBox');
     const fill = document.getElementById('lifeProgressFill');
+    const detail = document.getElementById('lifeDetailNarrative');
+    const detailBtn = document.getElementById('lifeDetailToggleBtn');
     if(intro) intro.style.display = 'block';
     if(panel) panel.style.display = 'none';
     if(result) result.style.display = 'none';
     if(fill) fill.style.width = '0%';
+    if(detail) { detail.style.display = 'none'; detail.innerHTML = ''; }
+    if(detailBtn) detailBtn.innerText = '상세 운세 보기';
 };
 
 window.chooseLifeCardOption = function(choiceIndex) {
@@ -1568,6 +1658,13 @@ function _showLifeCardResult() {
     document.getElementById('lifeResultDesc').innerText = result.tagline + ' (해석 기준: ' + resolvedCard.comboLabel + ')';
     document.getElementById('lifeResultTraits').innerHTML = result.traits.map((t) => '<span class="life-result-chip">' + t + '</span>').join('');
     document.getElementById('lifeMonthlySummary').innerText = _buildLifeMonthlySummary(result);
+    const detail = document.getElementById('lifeDetailNarrative');
+    const detailBtn = document.getElementById('lifeDetailToggleBtn');
+    if(detail) {
+        detail.innerHTML = _buildLifeDetailNarrative(result, _lifeCardState.scores, resolvedCard);
+        detail.style.display = 'none';
+    }
+    if(detailBtn) detailBtn.innerText = '상세 운세 보기';
 
     window._lastLifeCardResult = result;
     window._lastLifeCardResolved = resolvedCard;
@@ -1582,6 +1679,33 @@ function _showLifeCardResult() {
         gsap.fromTo(resultBox, { opacity: 0, y: 18, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power2.out' });
     }
 }
+
+window.toggleLifeCardDetail = function() {
+    const detail = document.getElementById('lifeDetailNarrative');
+    const btn = document.getElementById('lifeDetailToggleBtn');
+    if(!detail || !btn) return;
+
+    const willShow = detail.style.display === 'none' || !detail.style.display;
+    if(willShow) {
+        detail.style.display = 'block';
+        btn.innerText = '상세 운세 접기';
+        if(window.gsap) {
+            gsap.fromTo(detail, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.24, ease: 'power2.out' });
+        }
+    } else {
+        if(window.gsap) {
+            gsap.to(detail, {
+                opacity: 0,
+                y: -8,
+                duration: 0.2,
+                onComplete: function() { detail.style.display = 'none'; }
+            });
+        } else {
+            detail.style.display = 'none';
+        }
+        btn.innerText = '상세 운세 보기';
+    }
+};
 
 window.shareHwatuLifeCard = function() {
     const result = window._lastLifeCardResult;

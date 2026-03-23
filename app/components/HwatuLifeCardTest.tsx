@@ -75,11 +75,58 @@ export default function HwatuLifeCardTest() {
   const [index, setIndex] = useState(0);
   const [scores, setScores] = useState<TraitScores>(emptyScores());
   const [result, setResult] = useState<LifeArchetype | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
 
   const progress = Math.round((index / LIFE_QUESTIONS.length) * 100);
   const question = LIFE_QUESTIONS[index];
 
   const resultText = useMemo(() => (result ? monthlySummary(result) : ""), [result]);
+  const detailText = useMemo(() => {
+    if (!result) return [] as string[];
+    const detailById: Record<string, string[]> = {
+      samgwang: [
+        "판세 흐름: 시선이 모이는 자리에서 먼저 선언할수록 유리한 패다.",
+        "경계 포인트: 강하게 밀어붙인 뒤 회수 타이밍을 놓치면 체력 손실이 크다.",
+        "실전 수법: 오늘 중요한 대화는 네가 첫 문장으로 판을 열고 24시간 내 결론을 찍어라.",
+      ],
+      godori: [
+        "판세 흐름: 짧게 열리는 기회를 빨리 잡는 사람이 먹는다.",
+        "경계 포인트: 속도만 믿고 근거를 놓치면 후반 리스크가 커진다.",
+        "실전 수법: 제안이 오면 수익/리스크/회수 3축으로 10분 내 분해하라.",
+      ],
+      cheongdan: [
+        "판세 흐름: 문서와 일정의 작은 빈칸을 메우는 순간 승부가 기운다.",
+        "경계 포인트: 완벽을 기다리다 타이밍을 놓치지 말아야 한다.",
+        "실전 수법: 체크리스트 3개(마감, 비용, 책임자)만 고정하고 바로 실행하라.",
+      ],
+      hongdan: [
+        "판세 흐름: 관계 온도를 맞추면 막힌 대화가 열린다.",
+        "경계 포인트: 공감만 하고 결론을 흐리면 다시 꼬인다.",
+        "실전 수법: 대화 마지막에 다음 액션 시간까지 명시해 판을 고정하라.",
+      ],
+      chodan: [
+        "판세 흐름: 루틴과 반복이 흔들리는 판에서 방패가 된다.",
+        "경계 포인트: 세부 조정에 오래 묶이면 전체 속도가 죽는다.",
+        "실전 수법: 오전에 가장 무거운 일 1개를 완결해 흐름을 선점하라.",
+      ],
+      bipung: [
+        "판세 흐름: 버릴 패를 먼저 고르는 냉정함이 수익률을 만든다.",
+        "경계 포인트: 과한 손절은 기회까지 버릴 수 있다.",
+        "실전 수법: 돈/시간/관계에서 불필요한 1개를 정리하고 핵심 1개에 집중하라.",
+      ],
+      ddonggwang: [
+        "판세 흐름: 초반 답답함 뒤에 후반 역전력이 붙는 구조다.",
+        "경계 포인트: 기다림을 핑계로 대응을 미루면 기회를 잃는다.",
+        "실전 수법: 보류 중인 일 하나에 마감 시점을 박아두고 소폭 전진하라.",
+      ],
+      bigwang: [
+        "판세 흐름: 변수가 많은 날일수록 포지션 전환이 빛난다.",
+        "경계 포인트: 배짱만 앞세우면 리스크 과열로 번질 수 있다.",
+        "실전 수법: 플랜 B를 먼저 만든 뒤 플랜 A를 공격적으로 실행하라.",
+      ],
+    };
+    return detailById[result.id] ?? ["패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다."];
+  }, [result]);
 
   const onSelect = (choiceIndex: number) => {
     if (!question) return;
@@ -91,6 +138,7 @@ export default function HwatuLifeCardTest() {
 
     if (index >= LIFE_QUESTIONS.length - 1) {
       setResult(pickArchetype(nextScores));
+      setShowDetail(false);
       return;
     }
 
@@ -102,6 +150,7 @@ export default function HwatuLifeCardTest() {
     setIndex(0);
     setScores(emptyScores());
     setResult(null);
+    setShowDetail(false);
   };
 
   const shareResult = async () => {
@@ -252,12 +301,31 @@ export default function HwatuLifeCardTest() {
               {resultText}
             </p>
             <div className="space-y-2.5">
-              <Link
-                href="/?action=openHwatuModal"
-                className="block w-full rounded-xl border border-amber-400 bg-gradient-to-r from-red-900 to-amber-800 px-4 py-3 text-center font-semibold text-amber-100 transition hover:brightness-110"
+              <button
+                type="button"
+                onClick={() => setShowDetail((v) => !v)}
+                className="w-full rounded-xl border border-amber-400 bg-gradient-to-r from-red-900 to-amber-800 px-4 py-3 text-center font-semibold text-amber-100 transition hover:brightness-110"
               >
-                상세 운세 보기
-              </Link>
+                {showDetail ? "상세 운세 접기" : "상세 운세 보기"}
+              </button>
+              <AnimatePresence>
+                {showDetail && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="rounded-xl border border-amber-500/40 bg-gradient-to-br from-slate-950/80 to-red-950/50 p-4 text-sm leading-relaxed text-zinc-100"
+                  >
+                    <div className="mb-2 text-amber-300">상세 타짜 풀이</div>
+                    <div className="space-y-1.5">
+                      {detailText.map((line) => (
+                        <p key={line}>• {line}</p>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-amber-100/90">"패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다."</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <button
                 type="button"
                 onClick={shareResult}
