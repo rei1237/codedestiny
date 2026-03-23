@@ -31,6 +31,7 @@ export const SERVICE_SECTIONS = [
       { href: "/oracle/juyuk", title: "주역 거북점", desc: "64괘 상징 해석" },
       { href: "/oracle/sukuyo", title: "숙요점", desc: "27수 별자리 운명" },
       { href: "/oracle/rune", title: "스톤헨지 룬 오라클", desc: "고대 룬 상징 리딩" },
+      { href: "/destiny-poker.html", title: "데스티니 포커", desc: "신들과 벌이는 운명의 카드 대결" },
       { href: "/dream/tarot", title: "드림 타로", desc: "AI 꿈 해석 리포트" },
       { href: "/dream/psycho", title: "정신분석 해몽", desc: "프로이트 관점 해석" },
     ],

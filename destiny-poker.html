@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>데스티니 포커 : 심판의 카지노</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05000c;
+  --bg2: #0c0020;
+  --gold: #c9940f;
+  --gold-l: #f0c040;
+  --purple: #7b2fff;
+  --purple-g: #9b30ff;
+  --crimson: #7a1515;
+  --crimson-b: #cc2222;
+  --text: #ede0c8;
+  --text-dim: #9e8e78;
+  --felt: #0a2014;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Crimson Text',serif;
+  min-height:100vh;
+  overflow:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(123,47,255,.13) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 35% at 15% 110%, rgba(139,21,21,.1) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 55% at 85% 55%, rgba(201,148,15,.06) 0%, transparent 50%);
+  pointer-events:none;z-index:0;
+}
+#particles-canvas{position:fixed;inset:0;pointer-events:none;z-index:1;}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:10;
+  transition:opacity .5s,transform .5s;overflow-y:auto;
+}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(16px);}
+.fade-in{animation:fadeInUp .5s ease forwards;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── INTRO ── */
+#screen-intro{gap:1.6rem;padding:2rem;}
+.intro-sigil{font-size:4.5rem;animation:floatSigil 4s ease-in-out infinite;
+  filter:drop-shadow(0 0 28px rgba(201,148,15,.65));}
+@keyframes floatSigil{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-14px) rotate(3deg);}}
+.intro-title{
+  font-family:'Cinzel Decorative',cursive;font-size:clamp(2rem,5.5vw,3.8rem);
+  font-weight:900;text-align:center;line-height:1.15;
+  background:linear-gradient(130deg,#9b6c00,#f0c040,#d4a017,#8b5e00,#f0c040);
+  background-size:300% 300%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmerGold 3.5s ease infinite;
+}
+@keyframes shimmerGold{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.intro-sub{font-family:'Cinzel',serif;font-size:.85rem;color:var(--text-dim);
+  letter-spacing:.45em;text-transform:uppercase;text-align:center;}
+.intro-lore{max-width:480px;text-align:center;font-size:1.05rem;line-height:1.9;
+  color:var(--text-dim);font-style:italic;}
+.name-group{display:flex;flex-direction:column;align-items:center;gap:.9rem;width:100%;max-width:380px;}
+.name-label{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.35em;
+  color:var(--gold);text-transform:uppercase;}
+.name-input{
+  width:100%;padding:.9rem 1.4rem;
+  background:rgba(255,255,255,.025);border:1px solid rgba(201,148,15,.3);border-radius:2px;
+  color:var(--text);font-family:'Cinzel',serif;font-size:1.15rem;text-align:center;outline:none;
+  transition:border-color .3s,box-shadow .3s;
+}
+.name-input:focus{border-color:var(--gold);box-shadow:0 0 18px rgba(201,148,15,.2),inset 0 0 8px rgba(201,148,15,.04);}
+.name-input::placeholder{color:rgba(158,142,120,.4);}
+.btn-fate{
+  padding:.9rem 2.4rem;background:transparent;
+  border:2px solid var(--gold);color:var(--gold);
+  font-family:'Cinzel',serif;font-size:.95rem;letter-spacing:.3em;text-transform:uppercase;
+  cursor:pointer;position:relative;overflow:hidden;transition:all .35s;
+}
+.btn-fate::before{content:'';position:absolute;inset:0;background:var(--gold);
+  transform:translateX(-100%);transition:transform .35s;z-index:-1;}
+.btn-fate:hover::before{transform:translateX(0);}
+.btn-fate:hover{color:var(--bg);box-shadow:0 0 28px rgba(201,148,15,.5);}
+
+/* ── DEALER SELECT ── */
+#screen-dealer{gap:1.8rem;padding:2rem;}
+.section-title{
+  font-family:'Cinzel Decorative',cursive;font-size:clamp(1.3rem,3vw,2.2rem);
+  background:linear-gradient(130deg,#d4a017,#f0c040);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center;
+}
+.greeting{color:var(--text-dim);font-style:italic;text-align:center;font-size:1rem;}
+.dealers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));
+  gap:1.2rem;width:100%;max-width:880px;}
+.dealer-card{
+  background:rgba(255,255,255,.018);border:1px solid rgba(255,255,255,.08);
+  padding:1.8rem 1.3rem;cursor:pointer;position:relative;overflow:hidden;
+  transition:all .4s;text-align:center;
+}
+.dealer-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s;}
+.dealer-card:hover::before,.dealer-card.sel::before{opacity:1;}
+.dealer-card[data-d="amon"]::before{background:radial-gradient(circle at 50% -10%,rgba(201,148,15,.18),transparent 65%);}
+.dealer-card[data-d="amon"]:hover,.dealer-card[data-d="amon"].sel{border-color:#d4a017;box-shadow:0 0 28px rgba(212,160,23,.32);}
+.dealer-card[data-d="ishtar"]::before{background:radial-gradient(circle at 50% -10%,rgba(255,90,150,.18),transparent 65%);}
+.dealer-card[data-d="ishtar"]:hover,.dealer-card[data-d="ishtar"].sel{border-color:#ff5a96;box-shadow:0 0 28px rgba(255,90,150,.32);}
+.dealer-card[data-d="thanatos"]::before{background:radial-gradient(circle at 50% -10%,rgba(80,170,255,.18),transparent 65%);}
+.dealer-card[data-d="thanatos"]:hover,.dealer-card[data-d="thanatos"].sel{border-color:#50aaff;box-shadow:0 0 28px rgba(80,170,255,.32);}
+.dealer-card[data-d="metatron"]::before{background:radial-gradient(circle at 50% -10%,rgba(155,48,255,.18),transparent 65%);}
+.dealer-card[data-d="metatron"]:hover,.dealer-card[data-d="metatron"].sel{border-color:#9b30ff;box-shadow:0 0 28px rgba(155,48,255,.32);}
+.d-icon{font-size:2.8rem;margin-bottom:.8rem;display:block;filter:drop-shadow(0 0 10px currentColor);}
+.d-name{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;margin-bottom:.35rem;}
+.d-theme{font-size:.75rem;color:var(--text-dim);letter-spacing:.22em;text-transform:uppercase;margin-bottom:.85rem;}
+.d-quote{font-style:italic;font-size:.88rem;line-height:1.55;color:var(--text-dim);}
+
+/* ── GAME SCREEN ── */
+#screen-game{justify-content:flex-start;padding:0;overflow-y:auto;}
+.game-wrap{
+  display:flex;flex-direction:column;min-height:100vh;width:100%;
+  max-width:980px;margin:0 auto;padding:1.2rem;gap:.9rem;
+}
+.game-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.8rem 1rem;border-bottom:1px solid rgba(201,148,15,.2);flex-shrink:0;
+}
+.hud-block{display:flex;flex-direction:column;}
+.hud-label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.32em;color:var(--text-dim);text-transform:uppercase;}
+.hud-val{font-family:'Cinzel',serif;font-size:1.4rem;}
+.hud-val.gold{color:var(--gold);}
+.hud-val.red{color:var(--crimson-b);}
+.hud-center{text-align:center;}
+.street-label{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;display:block;}
+.street-progress{color:var(--text-dim);font-size:.8rem;}
+
+/* Cards */
+.cards-zone{display:flex;flex-direction:column;gap:.8rem;flex:1;}
+.player-zone{
+  padding:1rem;background:rgba(10,32,20,.35);
+  border:1px solid rgba(255,255,255,.05);border-radius:3px;
+}
+.zone-label{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.28em;
+  color:var(--text-dim);text-transform:uppercase;margin-bottom:.7rem;}
+.cards-row{display:flex;gap:.45rem;flex-wrap:wrap;min-height:95px;align-items:flex-end;}
+.hand-hint{font-family:'Cinzel',serif;font-size:.85rem;color:var(--text-dim);
+  margin-top:.5rem;min-height:1.3em;transition:color .4s;}
+.hand-hint.strong{color:var(--gold);}
+
+/* Playing card */
+.card{width:62px;height:90px;perspective:600px;flex-shrink:0;}
+.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;
+  transition:transform .65s cubic-bezier(.4,0,.2,1);}
+.card.up .card-inner{transform:rotateY(180deg);}
+.card-f,.card-b{position:absolute;inset:0;backface-visibility:hidden;border-radius:5px;}
+.card-f{
+  background:#f4eedd;transform:rotateY(180deg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:1px solid rgba(0,0,0,.18);padding:3px;
+}
+.card-f.r{color:#c01818;}
+.card-f.k{color:#111;}
+.card-top{position:absolute;top:3px;left:5px;font-family:'Cinzel',serif;font-size:.7rem;font-weight:700;line-height:1.1;text-align:left;}
+.card-mid{font-size:1.75rem;line-height:1;}
+.card-bot{position:absolute;bottom:3px;right:5px;font-family:'Cinzel',serif;font-size:.7rem;font-weight:700;line-height:1.1;transform:rotate(180deg);}
+.card-b{
+  background:linear-gradient(140deg,#160030,#2a0050);
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(155,48,255,.22);overflow:hidden;
+}
+.card-b-inner{
+  position:absolute;inset:3px;border:1px solid rgba(155,48,255,.3);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+}
+.card-b-inner::after{content:'✦';font-size:1.3rem;color:rgba(155,48,255,.4);}
+.card.best .card-f{
+  border-color:var(--gold);
+  box-shadow:0 0 14px rgba(201,148,15,.6);
+}
+.card.best{transform:translateY(-7px);}
+.card.new-card .card-inner{animation:dealIn .4s cubic-bezier(.17,.67,.35,1.2) both;}
+@keyframes dealIn{from{transform:rotateY(180deg) scale(.7);}to{transform:rotateY(180deg) scale(1);}}
+.card.flip-reveal .card-inner{animation:flipReveal .7s cubic-bezier(.4,0,.2,1) forwards;}
+@keyframes flipReveal{0%{transform:rotateY(0);}100%{transform:rotateY(180deg);}}
+
+/* Dialogue */
+.dialogue-box{
+  padding:1.3rem 1.5rem;background:rgba(0,0,0,.45);
+  border:1px solid rgba(201,148,15,.14);position:relative;flex-shrink:0;
+}
+.dialogue-box::after{content:'';position:absolute;top:0;left:10%;right:10%;
+  height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.d-speaker{font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.22em;
+  margin-bottom:.5rem;text-transform:uppercase;}
+.d-text{font-size:1rem;line-height:1.75;font-style:italic;min-height:3em;transition:opacity .3s;}
+.d-text.fade{opacity:0;}
+
+/* Actions */
+.action-bar{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;padding:.5rem 0;flex-shrink:0;}
+.btn-act{
+  padding:.7rem 1.6rem;border:2px solid;font-family:'Cinzel',serif;
+  font-size:.85rem;letter-spacing:.2em;cursor:pointer;background:transparent;
+  transition:all .3s;
+}
+.btn-act.check{border-color:rgba(237,224,200,.35);color:var(--text);}
+.btn-act.check:hover{background:rgba(237,224,200,.08);border-color:rgba(237,224,200,.7);}
+.btn-act.raise{border-color:var(--gold);color:var(--gold);}
+.btn-act.raise:hover{background:rgba(201,148,15,.12);box-shadow:0 0 18px rgba(201,148,15,.3);}
+.btn-act.fold{border-color:rgba(204,34,34,.45);color:rgba(204,34,34,.55);cursor:pointer;}
+.btn-act.next{border-color:var(--purple-g);color:var(--purple-g);}
+.btn-act.next:hover{background:rgba(155,48,255,.12);box-shadow:0 0 18px rgba(155,48,255,.35);}
+.spinning{text-align:center;font-family:'Cinzel',serif;font-size:.85rem;
+  color:var(--gold);letter-spacing:.22em;animation:pulse 1.5s ease infinite;padding:.5rem;}
+@keyframes pulse{0%,100%{opacity:.35;}50%{opacity:1;}}
+
+/* ── REPORT ── */
+#screen-report{padding:2rem;justify-content:flex-start;}
+.report-scroll{
+  width:100%;max-width:680px;margin:1.5rem auto;
+  background:rgba(0,0,0,.55);border:1px solid rgba(201,148,15,.28);
+  padding:2.5rem 2rem;position:relative;
+}
+.report-scroll::before{content:'';position:absolute;top:-1px;left:-1px;
+  width:22px;height:22px;border:2px solid var(--gold);border-right:none;border-bottom:none;}
+.report-scroll::after{content:'';position:absolute;bottom:-1px;right:-1px;
+  width:22px;height:22px;border:2px solid var(--gold);border-left:none;border-top:none;}
+.r-title{font-family:'Cinzel Decorative',cursive;font-size:1.4rem;text-align:center;
+  background:linear-gradient(130deg,#d4a017,#f0c040);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:1.8rem;}
+.r-divider{width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:1.3rem 0;}
+.r-row{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:.8rem;gap:1rem;}
+.r-label{font-family:'Cinzel',serif;font-size:.74rem;letter-spacing:.2em;
+  color:var(--text-dim);white-space:nowrap;}
+.r-val{font-size:.97rem;color:var(--text);text-align:right;flex:1;}
+.r-result{text-align:center;padding:1.2rem;font-family:'Cinzel Decorative',cursive;font-size:2.2rem;}
+.r-result.win{color:var(--gold);text-shadow:0 0 28px rgba(201,148,15,.65);}
+.r-result.lose{color:var(--crimson-b);text-shadow:0 0 28px rgba(204,34,34,.55);}
+.oracle-box{
+  font-size:1.02rem;line-height:1.9;font-style:italic;text-align:center;
+  padding:.8rem 1rem;border-left:2px solid var(--gold);color:var(--text);margin:1rem 0;
+}
+.guide-box{font-size:.97rem;line-height:1.75;color:var(--text-dim);text-align:center;padding:.8rem;}
+.meter-block{text-align:center;}
+.meter-num{font-family:'Cinzel Decorative',cursive;font-size:2.8rem;}
+.meter-num.pos{color:var(--gold);}
+.meter-num.neg{color:var(--crimson-b);}
+.btn-restart{
+  display:block;margin:1rem auto 3rem;padding:.85rem 2.2rem;
+  border:2px solid var(--gold);color:var(--gold);background:transparent;
+  font-family:'Cinzel',serif;font-size:.9rem;letter-spacing:.28em;cursor:pointer;transition:all .35s;
+}
+.btn-restart:hover{background:rgba(201,148,15,.12);box-shadow:0 0 22px rgba(201,148,15,.35);}
+
+/* ── FOLD WARNING ── */
+#fold-modal{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:200;background:rgba(0,0,0,.7);display:none;
+}
+#fold-modal.show{display:flex;}
+.fold-box{
+  background:#100008;border:2px solid var(--crimson-b);padding:2.2rem 2.8rem;
+  text-align:center;max-width:420px;animation:warnPop .45s ease;
+}
+@keyframes warnPop{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.fold-title{font-family:'Cinzel',serif;font-size:1.4rem;color:var(--crimson-b);margin-bottom:1rem;}
+.fold-text{font-style:italic;line-height:1.7;color:var(--text);margin-bottom:1.5rem;}
+.fold-close{
+  padding:.55rem 1.6rem;border:1px solid var(--text-dim);background:transparent;
+  color:var(--text);cursor:pointer;font-family:'Cinzel',serif;transition:all .3s;
+}
+.fold-close:hover{background:rgba(255,255,255,.08);}
+
+@media(max-width:600px){
+  .card{width:48px;height:70px;}
+  .card-mid{font-size:1.35rem;}
+  .card-top,.card-bot{font-size:.62rem;}
+  .dealers-grid{grid-template-columns:1fr 1fr;}
+  .report-scroll{padding:1.5rem 1rem;}
+  .game-hud{padding:.6rem .8rem;}
+}
+
+/* ══════════════ ENHANCEMENTS ══════════════ */
+
+/* Dealer Images */
+.dealer-card{padding:0!important;display:flex;flex-direction:column;overflow:hidden;}
+.d-img-wrap{
+  width:100%;height:130px;overflow:hidden;position:relative;
+  background:rgba(0,0,0,.4);
+}
+.d-img{
+  width:100%;height:100%;object-fit:cover;object-position:top center;
+  display:block;transition:transform .5s ease,filter .5s;
+  filter:saturate(1.1) brightness(.9);
+}
+.dealer-card:hover .d-img,.dealer-card.sel .d-img{
+  transform:scale(1.07);filter:saturate(1.5) brightness(1.08);
+}
+.d-body{padding:1rem 1.1rem 1.2rem;text-align:center;flex:1;}
+.d-icon{display:none!important;}
+
+/* Trump Card Back (Classic Playing Card Style) */
+.card-b{
+  background:linear-gradient(155deg,#0c1550,#0f1e7a);
+  border:1px solid rgba(140,170,255,.2);overflow:hidden;
+}
+.card-b::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,
+      transparent 1px,transparent 7px),
+    repeating-linear-gradient(-45deg,
+      rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,
+      transparent 1px,transparent 7px);
+}
+.card-b-inner{
+  position:absolute;inset:5px;border:1.5px solid rgba(210,225,255,.28);
+  border-radius:2px;display:flex;align-items:center;justify-content:center;z-index:1;
+}
+.card-b-inner::after{content:'◆';font-size:.8rem;color:rgba(200,215,255,.22);}
+
+/* Card Face Enhancement */
+.card-f{
+  font-family:'Georgia',serif;
+  background:#fefaf2;
+}
+.card-f.r{color:#c01212;}
+.card-f.k{color:#0d0d0d;}
+.card-top,.card-bot{
+  font-family:'Georgia',serif;font-weight:800;font-size:.72rem;
+}
+.card-mid{font-size:1.9rem;}
+
+/* Typography & Spacing */
+body{font-size:15px;}
+.intro-lore{font-size:1.08rem;max-width:500px;}
+.d-text{font-size:1.05rem;line-height:1.85;}
+.d-quote{font-size:.92rem;line-height:1.65;}
+.d-name{font-size:1.08rem;margin-bottom:.3rem;}
+.d-theme{font-size:.76rem;margin-bottom:.75rem;}
+
+/* HUD */
+.hud-val{font-size:1.35rem;}
+.street-label{font-size:1.05rem;}
+
+/* Oracle box */
+.oracle-box{
+  border-left:3px solid var(--gold);border-radius:0 4px 4px 0;
+  padding:1rem 1.3rem;font-size:1rem;line-height:1.9;
+}
+
+/* Result Screen Buttons */
+.report-actions{
+  display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;
+  margin:1.6rem 0 .6rem;
+}
+.btn-share-kakao{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.78rem 1.6rem;background:#FAE100;border:none;
+  color:#181500;font-family:'Cinzel',serif;font-size:.86rem;
+  font-weight:700;letter-spacing:.05em;cursor:pointer;
+  border-radius:3px;transition:all .3s;
+  box-shadow:0 3px 14px rgba(250,225,0,.25);
+}
+.btn-share-kakao:hover{
+  background:#ffe000;box-shadow:0 4px 22px rgba(250,225,0,.5);
+  transform:translateY(-2px);
+}
+.btn-home{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.78rem 1.6rem;background:transparent;
+  border:1.5px solid rgba(201,148,15,.45);color:var(--gold);
+  font-family:'Cinzel',serif;font-size:.86rem;letter-spacing:.12em;
+  cursor:pointer;border-radius:3px;transition:all .3s;text-decoration:none;
+}
+.btn-home:hover{
+  background:rgba(201,148,15,.1);border-color:var(--gold);
+  box-shadow:0 0 16px rgba(201,148,15,.3);transform:translateY(-2px);
+}
+
+/* Section title */
+.section-title{letter-spacing:.06em;}
+
+/* Scrollbar */
+.screen::-webkit-scrollbar{width:4px;}
+.screen::-webkit-scrollbar-track{background:transparent;}
+.screen::-webkit-scrollbar-thumb{background:rgba(201,148,15,.28);border-radius:2px;}
+
+/* Report r-title larger */
+.r-title{font-size:1.5rem;}
+
+/* dealer section greeting */
+.greeting{font-size:1.05rem;}
+
+/* Mobile dealer img */
+@media(max-width:600px){
+  .d-img-wrap{height:105px;}
+  .d-body{padding:.8rem .9rem 1rem;}
+}
+</style>
+</head>
+<body>
+<canvas id="particles-canvas"></canvas>
+
+<!-- FOLD WARNING MODAL -->
+<div id="fold-modal">
+  <div class="fold-box">
+    <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
+    <div class="fold-text" id="fold-text"></div>
+    <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
+  </div>
+</div>
+
+<!-- SCREEN 1: INTRO -->
+<div class="screen" id="screen-intro">
+  <div class="intro-sigil">�</div>
+  <h1 class="intro-title">DESTINY POKER</h1>
+  <div class="intro-sub">심판의 카지노 &nbsp;·&nbsp; Providence Hall</div>
+  <p class="intro-lore">현실의 차원을 넘어선 틈새, 운명의 카지노.<br>이곳에서는 칩이 아닌 <em>당신 남은 생의 행운(Vital Luck)</em>을 걸고 대결한다.<br>그대, 준비가 되었는가?</p>
+  <div class="name-group">
+    <span class="name-label">당신의 이름을 밝혀라</span>
+    <input class="name-input" id="name-input" type="text" placeholder="이름을 입력하시오…" maxlength="10" autocomplete="off">
+    <button class="btn-fate" onclick="goToDealer()">운명의 문을 열어라</button>
+  </div>
+</div>
+
+<!-- SCREEN 2: DEALER SELECT -->
+<div class="screen hidden" id="screen-dealer">
+  <h2 class="section-title">대결할 운명의 딜러를 선택하라</h2>
+  <p class="greeting"><span id="greet-name"></span>, 프로비던스 홀에 오신 것을 환영한다.</p>
+  <div class="dealers-grid">
+    <div class="dealer-card" data-d="amon" onclick="pickDealer('amon')">
+      <div class="d-img-wrap">
+        <img class="d-img" src="/fuctionassets/destinyporker/greedyman.webp" alt="탐욕의 아몬" loading="lazy">
+      </div>
+      <div class="d-body">
+        <div class="d-name" style="color:#d4a017;">탐욕의 아몬</div>
+        <div class="d-theme">재물 · 권력</div>
+        <div class="d-quote">"너의 금전적 야망, 그 무게를 감당할 수 있겠나?"</div>
+      </div>
+    </div>
+    <div class="dealer-card" data-d="ishtar" onclick="pickDealer('ishtar')">
+      <div class="d-img-wrap">
+        <img class="d-img" src="/fuctionassets/destinyporker/pokergirl.webp" alt="매혹의 이슈타르" loading="lazy">
+      </div>
+      <div class="d-body">
+        <div class="d-name" style="color:#ff5a96;">매혹의 이슈타르</div>
+        <div class="d-theme">인연 · 애정</div>
+        <div class="d-quote" id="ishtar-q">"사랑이라는 독배를 마실 준비가 되었니?"</div>
+      </div>
+    </div>
+    <div class="dealer-card" data-d="thanatos" onclick="pickDealer('thanatos')">
+      <div class="d-img-wrap">
+        <img class="d-img" src="/fuctionassets/destinyporker/pokerwarrior.webp" alt="침묵의 타나토스" loading="lazy">
+      </div>
+      <div class="d-body">
+        <div class="d-name" style="color:#50aaff;">침묵의 타나토스</div>
+        <div class="d-theme">건강 · 수명</div>
+        <div class="d-quote">"너의 시간은 흐르고 있다. 육체의 불꽃을 지켜보지."</div>
+      </div>
+    </div>
+    <div class="dealer-card" data-d="metatron" onclick="pickDealer('metatron')">
+      <div class="d-img-wrap">
+        <img class="d-img" src="/fuctionassets/destinyporker/pokergod.webp" alt="공허의 메타트론" loading="lazy">
+      </div>
+      <div class="d-body">
+        <div class="d-name" style="color:#9b30ff;">공허의 메타트론</div>
+        <div class="d-theme">명예 · 지혜</div>
+        <div class="d-quote">"진리를 갈구하는가? 아니면 거짓 명성에 취할 것인가?"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: GAME -->
+<div class="screen hidden" id="screen-game">
+  <div class="game-wrap">
+    <div class="game-hud">
+      <div class="hud-block">
+        <span class="hud-label">Vital Luck</span>
+        <span class="hud-val gold" id="hud-luck">100</span>
+      </div>
+      <div class="hud-block hud-center">
+        <span class="street-label" id="hud-street">Third Street</span>
+        <span class="street-progress" id="hud-prog">베팅 라운드 1 / 5</span>
+      </div>
+      <div class="hud-block" style="align-items:flex-end;">
+        <span class="hud-label">POT</span>
+        <span class="hud-val red" id="hud-pot">0</span>
+      </div>
+    </div>
+
+    <div class="cards-zone">
+      <div class="player-zone">
+        <div class="zone-label">🃏 <span id="lbl-dealer">딜러</span>의 패</div>
+        <div class="cards-row" id="dealer-row"></div>
+        <div class="hand-hint" id="dealer-hint"></div>
+      </div>
+
+      <div class="dialogue-box">
+        <div class="d-speaker" id="d-speaker">탐욕의 아몬</div>
+        <div class="d-text" id="d-text">운명의 카드가 펼쳐집니다…</div>
+      </div>
+
+      <div class="player-zone">
+        <div class="zone-label">� <span id="lbl-player">당신</span>의 패</div>
+        <div class="cards-row" id="player-row"></div>
+        <div class="hand-hint" id="player-hint"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="action-bar" id="action-bar"></div>
+      <div class="spinning" id="spinning" style="display:none;">운명의 톱니바퀴가 돌아갑니다…</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: REPORT -->
+<div class="screen hidden" id="screen-report">
+  <div class="report-scroll" id="report-content"></div>
+  <button class="btn-restart" onclick="restartGame()">다시 운명에 도전하라</button>
+</div>
+
+<script>
+// =============================================
+//  DATA
+// =============================================
+const DEALER_DATA = {
+  amon:{
+    name:'탐욕의 아몬', color:'#d4a017', theme:'재물과 권력',
+    dialogues:[
+      ['"크흐흐… {n}. 카드가 펼쳐졌다. 황금의 냄새가 나는군. 네 운명은 부로 가득 찰 것인가, 빈털터리인가?"',
+       '"재물의 신이 오늘 누구의 편인지 흥미롭군. {n}, 너의 야망의 크기를 보여주거라."',
+       '"프로비던스 홀의 거래는 단순하다, {n}. 승자가 전부를 가진다. 그것이 세상의 법칙이지."'],
+      ['"오호… 네 번째 카드가 드러났군. {n}, 행운의 무게가 느껴지는가?"',
+       '"황금은 용감한 자에게만 미소짓는 법. {n}, 베팅을 올릴 것인가?"',
+       '"흥미로워지는군. {n}의 패가… 볼 만하군. 하지만 아직 내 것이 더 강하지."'],
+      ['"탐욕의 불꽃을 타올려라, {n}. 다섯 번째 카드가 운명의 축을 흔든다."',
+       '"흔들리는군, {n}. 위기에서 진짜 인간이 드러나는 법이지. 보여주거라."',
+       '"재물에 대한 욕망, 참으로 인간적이야, {n}. 그 욕망을 먹고 나는 더 강해진다."'],
+      ['"여섯 번째 카드가 심판의 칼날을 갈고 있다. {n}, 두려운가?"',
+       '"재물의 물결이 흘러가고 있어, {n}. 잡아라, 아니면 영원히 놓치거라."',
+       '"이제 거의 다 왔다, {n}. 네 운명이 결정되는 순간이 임박했다… 크흐흐."'],
+      ['"마지막 카드가 뒤집혔다. {n}… 결전의 시간이다. 준비는 되었는가?"',
+       '"운명의 마지막 조각. {n}의 탐욕이 마침내 보답받을 것인가, 아니면 재로 돌아갈 것인가?"',
+       '"이제 더 이상 숨겨진 것은 없다. {n}, 너의 운명과 정면으로 마주하라."']
+    ]
+  },
+  ishtar:{
+    name:'매혹의 이슈타르', color:'#ff5a96', theme:'인연과 사랑',
+    dialogues:[
+      ['"어서와요, {n}. 이슈타르의 카드에는 당신의 사랑 이야기가 담겨있답니다. 떨리지 않나요?"',
+       '"{n}… 운명의 실이 엉켜있군요. 이 카드들이 당신의 마음을 비춰줄 거예요."',
+       '"달콤한 독이 준비되어 있어요, {n}. 사랑과 집착의 경계, 어디에 서 있나요?"'],
+      ['"오, 흥미로운 패로군요. {n}, 당신 마음속에 그 누군가가 있나요?"',
+       '"카드가 속삭여요, {n}… 당신의 감정은 복잡하게 얽혀있답니다. 괜찮아요?"',
+       '"사랑은 도박과 같죠, {n}. 전부를 걸어야만 비로소 이길 수 있답니다."'],
+      ['"운명의 실이 팽팽하게 당겨지고 있어요, {n}. 느껴지나요?"',
+       '"{n}… 마음이 흔들리고 있군요. 감정에 솔직해지는 용기가 필요한 순간이에요."',
+       '"이슈타르는 거짓된 사랑을 꿰뚫어본답니다, {n}. 진심을 카드에 담아주세요."'],
+      ['"{n}, 여섯 번째 카드에서 인연의 빛이 반짝이고 있어요. 아니면 꺼져가거나…"',
+       '"사랑의 여신이 판단을 내릴 시간이 가까워졌어요, {n}. 준비가 되었나요?"',
+       '"매혹적인 순간이군요, {n}. 이 긴장감, 사랑의 전율과 닮지 않았나요?"'],
+      ['"마지막 카드예요, {n}. 운명의 사랑이 확정되는 순간이 왔어요."',
+       '"{n}, 이슈타르의 마지막 선물을 받으세요. 달콤할지, 쓸지는… 당신의 운명이 답해주겠죠."',
+       '"이제 모든 것이 드러날 거예요, {n}. 당신의 인연은 어디로 흘러가고 있을까요?"']
+    ]
+  },
+  thanatos:{
+    name:'침묵의 타나토스', color:'#50aaff', theme:'건강과 생명',
+    dialogues:[
+      ['"…… {n}. 모래시계가 흐르기 시작했다. 처음 세 장의 카드가 놓였다."',
+       '"타나토스는 말이 없다. 하지만 카드는 말한다, {n}. 귀를 기울여라."',
+       '"삶과 죽음의 경계에서 게임이 시작되었다. {n}, 그대의 육체는 오늘 어떠한가."'],
+      ['"시간이 흐른다, {n}. 네 번째 카드가 육체의 진실을 속삭인다."',
+       '"침묵 속에서 카드가 말한다. {n}의 생명력이 느껴지는군. 강한가, 약한가."',
+       '"카드가 놓였다. {n}… 네 수명의 불꽃, 얼마나 남았는지 보이는군."'],
+      ['"다섯 번째 계단. {n}, 운명의 중간 지점을 넘었다. 돌이킬 수 없다."',
+       '"타나토스는 기다린다. 시간은 언제나 그의 편이다, {n}. 서두르지 않아도 된다."',
+       '"건강이란 가장 소중한 행운. {n}, 너는 그것의 가치를 알고 있는가."'],
+      ['"여섯 번째 카드. {n}의 시계바늘이 흔들린다. 침착하게 받아들여라."',
+       '"죽음의 신은 서두르지 않는다. {n}, 하지만 운명의 시간은 다르다."',
+       '"마지막 결전에 가까워졌다. {n}… 준비가 되었는가. 타나토스는 이미 기다리고 있다."'],
+      ['"마지막 카드. 침묵. 판결. {n}. 이제 운명을 받아들여라."',
+       '"타나토스의 시간이 왔다. {n}의 운명이 드러난다. 외면하지 마라."',
+       '"시간의 강이 멈추었다. {n}, 네 생명의 카드들이 말하는 것을 들어라."']
+    ]
+  },
+  metatron:{
+    name:'공허의 메타트론', color:'#9b30ff', theme:'명예와 지혜',
+    dialogues:[
+      ['"진리를 원하는가, {n}? 아니면 그저 환상 속에 머물기를 원하는가. 카드가 너를 시험한다."',
+       '"{n}. 지혜란 오직 고통을 통해서만 얻어지는 것. 오늘 그 시험이 시작되었다."',
+       '"공허 속에서 모든 것이 드러난다. {n}, 너의 진정한 가치를 이 자리에서 증명하라."'],
+      ['"네 번째 카드가 새로운 진실의 빛을 가져온다. {n}, 볼 눈이 있는가?"',
+       '"{n}. 명예란 쉽게 얻어지지 않는다. 이 카드들이 그것을 여지없이 증명하리라."',
+       '"지식은 양날의 검이다. {n}, 현명하게 사용하는 자만이 이 홀에서 살아남는다."'],
+      ['"다섯 번째 계시가 열린다. {n}, 진리에 가까워지고 있는가, 멀어지고 있는가?"',
+       '"{n}. 거짓된 명성은 사상누각. 진정한 지혜로만 이 판을 뒤집을 수 있다."',
+       '"메타트론의 눈은 모든 것을 꿰뚫어본다. {n}, 이 자리에 숨길 것이 있는가?"'],
+      ['"여섯 번째. {n}, 공허의 심판이 가까워지고 있다. 마음을 비워라."',
+       '"진리와 거짓의 경계에서 {n}은 어느 편을 택하는가. 카드가 증언하리라."',
+       '"공허 속에서도 빛은 존재한다. {n}, 그 빛을 붙잡을 용기가 있는가."'],
+      ['"마지막 계시. {n}의 운명이 결정된다. 진리를 받아들여라."',
+       '"{n}. 이 순간, 공허의 판결이 내려진다. 두렵더라도 외면하지 마라."',
+       '"모든 베일이 걷힌다. {n}, 너의 진정한 명예와 지혜의 수준을 지금 보여주어라."']
+    ]
+  }
+};
+
+const SUITS = {
+  '♠':{name:'스페이드',desc:'심판',theme:'권력과 갈등',col:'k'},
+  '♦':{name:'다이아몬드',desc:'결실',theme:'재물과 비즈니스',col:'r'},
+  '♥':{name:'하트',desc:'유혹',theme:'감정과 사랑',col:'r'},
+  '♣':{name:'클로버',desc:'섭리',theme:'건강과 지혜',col:'k'}
+};
+
+const HAND_FORTUNES = {
+  10:{name:'로열 플러시',
+    win:'로열 플러시의 극강 기운이 왕좌처럼 내려앉았습니다. 이 시대 최고의 행운이 만개합니다.',
+    lose:'로열 플러시조차 운명의 칼날을 피하지 못했습니다. 극도의 조심이 필요한 시기입니다.'},
+  9:{name:'스트레이트 플러시',
+    win:'스트레이트 플러시의 완벽한 흐름이 모든 것을 하나로 꿰뚫었습니다. 연속적인 행운의 물결이 찾아옵니다.',
+    lose:'완벽한 흐름이 끊겼습니다. 연속되던 계획이 틀어질 수 있으니 각별히 유의하세요.'},
+  8:{name:'포카드',
+    win:'포카드의 완벽한 균형이 사방에서 행운을 불러들이고 있습니다. 막힌 것들이 뚫립니다.',
+    lose:'포카드의 기운이 역으로 작용합니다. 과신이 화를 부르는 시기입니다. 겸손하세요.'},
+  7:{name:'풀하우스',
+    win:'풀하우스의 충만함으로 내면과 외면이 모두 풍요로워집니다. 충족감이 찾아올 것입니다.',
+    lose:'풀하우스의 무게가 오히려 짐이 됩니다. 과부하 상태인지 스스로를 점검하세요.'},
+  6:{name:'플러시',
+    win:'플러시의 조화로운 기운이 당신 주변을 따뜻하게 감쌉니다. 인간관계가 빛납니다.',
+    lose:'플러시의 흐름이 역류합니다. 방향을 재점검하고 잠시 멈추어 돌아보세요.'},
+  5:{name:'스트레이트',
+    win:'스트레이트의 직선적인 힘이 목표를 향해 힘차게 질주합니다. 추진력이 생깁니다.',
+    lose:'스트레이트가 꺾였습니다. 직진보다는 우회를, 고집보다는 유연함을 택하세요.'},
+  4:{name:'트리플',
+    win:'트리플의 삼위일체 기운이 강력한 돌파구를 열어줍니다. 집중력이 폭발합니다.',
+    lose:'트리플의 기운이 흩어집니다. 한 곳에 집중하지 못하고 분산되는 상황을 조심하세요.'},
+  3:{name:'투페어',
+    win:'투페어의 이중 기운이 균형 잡힌 행운을 선사합니다. 양면이 모두 좋아집니다.',
+    lose:'투페어가 엇갈립니다. 이중적이고 모호한 상황이 펼쳐질 수 있으니 명확함을 추구하세요.'},
+  2:{name:'원페어',
+    win:'원페어의 소박하지만 진실한 기운이 당신을 든든하게 지켜줍니다.',
+    lose:'원페어의 작은 기운이 무너집니다. 기초부터 다시 세울 용기가 필요한 시점입니다.'},
+  1:{name:'노페어',
+    win:'노페어의 자유로운 기운이 예측불허의 황금 기회를 불러옵니다. 변화를 두려워 말라!',
+    lose:'노페어의 불안정함이 혼돈을 가져옵니다. 안정과 기반을 먼저 찾아야 할 때입니다.'}
+};
+
+const SUIT_GUIDES = {
+  '♠':{win:'권력과 갈등 분야에서 결단력 있는 행동을 취하라. 지금이 결정의 최적 타이밍이다.',
+       lose:'갈등과 법적·직업적 문제에 신중하라. 칼을 먼저 꺼내지 마라.'},
+  '♦':{win:'재물과 비즈니스 관련 투자·사업 결정을 과감히 추진하라. 물질적 기회가 열린다.',
+       lose:'재물 관련 지출이나 계약을 잠시 보류하라. 손실의 위험이 잠복해 있다.'},
+  '♥':{win:'감정과 사랑에 마음을 활짝 열고 소중한 인연과의 연결을 더욱 강화하라.',
+       lose:'감정적 결정을 미루고 냉정함을 유지하라. 사랑에 속지 않도록 경계하라.'},
+  '♣':{win:'건강과 지혜에 아낌없이 투자하라. 몸과 마음의 균형이 최고의 자산이다.',
+       lose:'건강과 지혜를 소홀히 하지 마라. 몸의 신호를 무시하면 반드시 대가가 온다.'}
+};
+
+const STREETS = ['Third Street','Fourth Street','Fifth Street','Sixth Street','Seventh Street'];
+
+// =============================================
+//  GAME STATE
+// =============================================
+let G = {
+  name:'', dealer:null,
+  deck:[], pCards:[], dCards:[],
+  street:0, luck:100, pot:0,
+  pHand:null, dHand:null, winner:null
+};
+
+// =============================================
+//  DECK
+// =============================================
+function makeDeck(){
+  const suits = ['♠','♦','♥','♣'];
+  const vals  = [2,3,4,5,6,7,8,9,10,11,12,13,14];
+  const d = [];
+  for(const s of suits) for(const v of vals) d.push({s,v});
+  return d;
+}
+function shuffle(d){
+  const a=[...d];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function vLabel(v){return v===11?'J':v===12?'Q':v===13?'K':v===14?'A':String(v);}
+
+// =============================================
+//  HAND EVALUATION
+// =============================================
+function combos(arr,k){
+  if(k===0)return[[]];
+  if(arr.length<k)return[];
+  const[f,...r]=arr;
+  return [...combos(r,k-1).map(c=>[f,...c]),...combos(r,k)];
+}
+
+function isStraight(vals){
+  const s=[...vals].sort((a,b)=>b-a);
+  let ok=true;
+  for(let i=0;i<4;i++) if(s[i]-s[i+1]!==1){ok=false;break;}
+  if(ok) return true;
+  const set=new Set(vals);
+  return[14,2,3,4,5].every(v=>set.has(v));
+}
+
+function eval5(cards){
+  const vs=cards.map(c=>c.v).sort((a,b)=>b-a);
+  const ss=cards.map(c=>c.s);
+  const fl=ss.every(s=>s===ss[0]);
+  const st=isStraight(vs);
+  const cnt={};
+  for(const v of vs) cnt[v]=(cnt[v]||0)+1;
+  const freqs=Object.values(cnt).sort((a,b)=>b-a);
+  const byF=Object.entries(cnt).sort((a,b)=>b[1]-a[1]||b[0]-a[0]).map(([v])=>+v);
+
+  let rank,name;
+  if(fl&&st&&vs[0]===14&&vs[1]===13){rank=10;name='로열 플러시';}
+  else if(fl&&st){rank=9;name='스트레이트 플러시';}
+  else if(freqs[0]===4){rank=8;name='포카드';}
+  else if(freqs[0]===3&&freqs[1]===2){rank=7;name='풀하우스';}
+  else if(fl){rank=6;name='플러시';}
+  else if(st){rank=5;name='스트레이트';}
+  else if(freqs[0]===3){rank=4;name='트리플';}
+  else if(freqs[0]===2&&freqs[1]===2){rank=3;name='투페어';}
+  else if(freqs[0]===2){rank=2;name='원페어';}
+  else{rank=1;name='노페어';}
+  return{rank,name,tb:byF,cards:[...cards],suits:[...ss]};
+}
+
+function bestHand(cards){
+  let best=null;
+  for(const combo of combos(cards,5)){
+    const r=eval5(combo);
+    if(!best||r.rank>best.rank||(r.rank===best.rank&&cmpTB(r.tb,best.tb)>0)) best=r;
+  }
+  return best;
+}
+
+function cmpTB(a,b){
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const d=(a[i]||0)-(b[i]||0);
+    if(d!==0) return d;
+  }
+  return 0;
+}
+
+function cmpHands(h1,h2){
+  if(h1.rank!==h2.rank) return h1.rank-h2.rank;
+  return cmpTB(h1.tb,h2.tb);
+}
+
+function dominantSuit(cards){
+  const cnt={};
+  for(const c of cards) cnt[c.s]=(cnt[c.s]||0)+1;
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+// =============================================
+//  CARD RENDERING
+// =============================================
+function buildCard(card, faceDown, isNew, isBest){
+  const div=document.createElement('div');
+  const col=card.s==='♦'||card.s==='♥'?'r':'k';
+  let cls='card'+(faceDown?'':' up')+(isNew?' new-card':'')+(isBest?' best':'');
+  div.className=cls;
+  div.innerHTML=`<div class="card-inner">
+    <div class="card-b"><div class="card-b-inner"></div></div>
+    <div class="card-f ${col}">
+      <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
+      <div class="card-mid">${card.s}</div>
+      <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+    </div>
+  </div>`;
+  return div;
+}
+
+function renderRow(rowId, cards, showAll, bestSet){
+  const row=document.getElementById(rowId);
+  row.innerHTML='';
+  cards.forEach(card=>{
+    const key=card.s+card.v;
+    const faceDown=!showAll&&card.fd;
+    const isBest=!!bestSet&&bestSet.has(key);
+    row.appendChild(buildCard(card,faceDown,false,isBest&&showAll));
+  });
+}
+
+function renderNewCard(rowId, card){
+  const row=document.getElementById(rowId);
+  const el=buildCard(card, card.fd, true, false);
+  row.appendChild(el);
+}
+
+// =============================================
+//  UI HELPERS
+// =============================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  const s=document.getElementById(id);
+  s.classList.remove('hidden');
+  s.classList.add('fade-in');
+  setTimeout(()=>s.classList.remove('fade-in'),600);
+}
+
+function setDialogue(text){
+  const el=document.getElementById('d-text');
+  el.classList.add('fade');
+  setTimeout(()=>{
+    el.innerHTML=text.replace(/{n}/g,G.name);
+    el.classList.remove('fade');
+  },220);
+}
+
+function updateHUD(){
+  document.getElementById('hud-luck').textContent=G.luck;
+  document.getElementById('hud-pot').textContent=G.pot;
+  const si=Math.min(G.street,4);
+  document.getElementById('hud-street').textContent=STREETS[si];
+  document.getElementById('hud-prog').textContent=`베팅 라운드 ${G.street+1} / 5`;
+}
+
+function setHint(id, hand){
+  const el=document.getElementById(id);
+  if(!hand){el.textContent='';el.className='hand-hint';return;}
+  el.textContent=hand.name;
+  el.className='hand-hint'+(hand.rank>=5?' strong':'');
+}
+
+function setButtons(btns){
+  const bar=document.getElementById('action-bar');
+  bar.innerHTML='';
+  btns.forEach(b=>{
+    const el=document.createElement('button');
+    el.className='btn-act '+b.type;
+    el.textContent=b.label;
+    el.onclick=b.fn;
+    bar.appendChild(el);
+  });
+}
+
+function setSpinning(on){
+  document.getElementById('spinning').style.display=on?'block':'none';
+  document.getElementById('action-bar').style.display=on?'none':'flex';
+}
+
+// =============================================
+//  FOLD WARNING
+// =============================================
+const FOLD_MSGS=[
+  '"운명으로부터는 도망칠 수 없다! {n}, 이 홀에서 포기란 존재하지 않노라!"',
+  '"겁쟁이! {n}… 폴드란 프로비던스 홀에서 금지된 단어다. 맞서야 할 운명이 있는 법!"',
+  '"{n}. 이 카지노의 유일한 규칙, 끝까지 싸워라. 도망이란 선택지는 없다!"'
+];
+function showFoldWarning(){
+  const msg=FOLD_MSGS[Math.floor(Math.random()*3)].replace(/{n}/g,G.name);
+  document.getElementById('fold-text').innerHTML=msg;
+  document.getElementById('fold-modal').classList.add('show');
+}
+function closeFoldModal(){
+  document.getElementById('fold-modal').classList.remove('show');
+}
+
+// =============================================
+//  GAME FLOW
+// =============================================
+function goToDealer(){
+  const v=document.getElementById('name-input').value.trim();
+  if(!v){
+    const inp=document.getElementById('name-input');
+    inp.style.borderColor='var(--crimson-b)';
+    inp.focus();
+    setTimeout(()=>inp.style.borderColor='',1500);
+    return;
+  }
+  G.name=v;
+  document.getElementById('greet-name').textContent=v;
+  document.getElementById('ishtar-q').textContent=`"사랑이라는 독배를 마실 준비가 되었니, ${v}?"`;
+  showScreen('screen-dealer');
+}
+
+function pickDealer(id){
+  G.dealer=id;
+  document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
+  document.querySelector(`[data-d="${id}"]`).classList.add('sel');
+  setTimeout(()=>startGame(),500);
+}
+
+function startGame(){
+  const D=DEALER_DATA[G.dealer];
+  G.deck=shuffle(makeDeck());
+  G.pCards=[];G.dCards=[];
+  G.street=0;G.luck=100;G.pot=0;
+  G.pHand=null;G.dHand=null;G.winner=null;
+
+  document.getElementById('lbl-dealer').textContent=D.name;
+  document.getElementById('lbl-player').textContent=G.name;
+  document.getElementById('d-speaker').textContent=D.name;
+  document.getElementById('d-speaker').style.color=D.color;
+
+  showScreen('screen-game');
+
+  // Deal 3 cards each: p1 fd, p2 fd, p3 open
+  for(let i=0;i<3;i++){
+    G.pCards.push({...G.deck.pop(), fd:i<2});
+    G.dCards.push({...G.deck.pop(), fd:i<2});
+  }
+
+  renderRow('player-row',G.pCards,false,null);
+  renderRow('dealer-row',G.dCards,false,null);
+  updateHUD();
+
+  const dlg=pickLine(D.dialogues[0]);
+  setDialogue(dlg);
+  setHint('player-hint',null);
+  setHint('dealer-hint',null);
+
+  setBettingButtons();
+}
+
+function pickLine(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function setBettingButtons(){
+  setButtons([
+    {type:'check',label:'체크 (Check)',fn:()=>doAction('check')},
+    {type:'raise',label:'레이즈 +10',fn:()=>doAction('raise')},
+    {type:'fold', label:'폴드 (Fold)', fn:showFoldWarning},
+  ]);
+}
+
+function doAction(act){
+  if(act==='raise'&&G.luck>=10){
+    G.luck-=10;
+    G.pot+=20;
+  }
+  G.street++;
+  updateHUD();
+
+  if(G.street<=4){
+    dealStreet();
+  } else {
+    runShowdown();
+  }
+}
+
+function dealStreet(){
+  setSpinning(true);
+  setTimeout(()=>{
+    const D=DEALER_DATA[G.dealer];
+    const faceDown = G.street===4; // 7th card face-down
+    const pc={...G.deck.pop(), fd:faceDown};
+    const dc={...G.deck.pop(), fd:faceDown};
+    G.pCards.push(pc);
+    G.dCards.push(dc);
+
+    renderRow('player-row',G.pCards,false,null);
+    renderRow('dealer-row',G.dCards,false,null);
+
+    // Show current best from visible cards
+    const visPCards=G.pCards.filter(c=>!c.fd);
+    if(visPCards.length>=5) setHint('player-hint',bestHand(visPCards));
+    else setHint('player-hint',null);
+
+    updateHUD();
+    setDialogue(pickLine(D.dialogues[G.street]));
+    setSpinning(false);
+
+    if(G.street===4){
+      // Offer final bet + showdown
+      setButtons([
+        {type:'check',label:'체크 후 쇼다운',fn:runShowdown},
+        {type:'raise',label:'라스트 레이즈 +10',fn:()=>{if(G.luck>=10){G.luck-=10;G.pot+=20;updateHUD();}runShowdown();}},
+        {type:'fold', label:'폴드 (Fold)', fn:showFoldWarning},
+      ]);
+    } else {
+      setBettingButtons();
+    }
+  },1400);
+}
+
+function runShowdown(){
+  setSpinning(true);
+  setDialogue('"운명의 톱니바퀴가 멈춘다… 모든 베일이 걷히는 순간이다!"');
+
+  setTimeout(()=>{
+    // Reveal all
+    G.pCards.forEach(c=>c.fd=false);
+    G.dCards.forEach(c=>c.fd=false);
+
+    G.pHand=bestHand(G.pCards);
+    G.dHand=bestHand(G.dCards);
+
+    const cmp=cmpHands(G.pHand,G.dHand);
+    G.winner=cmp>=0?'player':'dealer';
+
+    const pBestSet=new Set(G.pHand.cards.map(c=>c.s+c.v));
+    const dBestSet=new Set(G.dHand.cards.map(c=>c.s+c.v));
+
+    renderRow('player-row',G.pCards,true,pBestSet);
+    renderRow('dealer-row',G.dCards,true,dBestSet);
+
+    setHint('player-hint',G.pHand);
+    setHint('dealer-hint',G.dHand);
+
+    setSpinning(false);
+
+    const D=DEALER_DATA[G.dealer];
+    const winMsg= G.winner==='player'
+      ? `"${G.name}… 너의 ${G.pHand.name}이(가) 나의 어둠을 꿰뚫었다! 운명은 오늘 너의 편이군."`
+      : `"${G.name}… 나의 ${G.dHand.name} 앞에 너의 ${G.pHand.name}이(가) 무너졌다. 이것이 운명이다."`;
+    setDialogue(winMsg);
+
+    setButtons([{type:'next',label:'📜 운명 판결서 받기',fn:buildReport}]);
+  },2200);
+}
+
+// =============================================
+//  BET TIER SYSTEM
+// =============================================
+// pot is incremented by 20 per raise, max ~120 (6 raises across all streets)
+// Tiers: 0=소극, 20-40=신중, 60-80=대담, 100+=전력투구
+function getBetTier(pot){
+  if(pot===0)    return 0;
+  if(pot<=40)    return 1;
+  if(pot<=80)    return 2;
+  return 3;
+}
+
+const BET_TIER_DATA = [
+  {
+    label:'소극적 운명',
+    icon:'🕯️',
+    color:'#9e8e78',
+    winPrefix: [
+      '조심스럽게 베팅했음에도 운명이 미소 지었다. 작은 용기가 씨앗이 되어,',
+      '소극적으로 임했으나 하늘의 뜻이 함께하였다. 이 작은 승리가 암시하는 것은,',
+      '행운의 여신은 과감함보다 진심에 더 크게 반응한다. 그대의 겸손한 배팅에도 불구하고,'
+    ],
+    losePrefix: [
+      '베팅도 소극적이었고, 결과도 차갑게 등을 돌렸다. 삶에서의 소극적 태도가 기회를 놓치게 하고 있으니,',
+      '작은 베팅, 작은 상처. 하지만 이것이 반복된다면 결코 작지 않다.',
+      '소극적으로 임한 것이 결과로 드러났다. 이제는 더 이상 뒤로 물러서지 마라,'
+    ],
+    winBonus:0, losePenalty:0,
+    timingWin:['한 달 내로','한 달 안에'],
+    timingLose:['이번 달은','당분간']
+  },
+  {
+    label:'신중한 베팅',
+    icon:'⚖️',
+    color:'#80c0ff',
+    winPrefix:[
+      '신중하게 베팅하고 승리를 거머쥐었다. 균형 잡힌 판단이 운명을 열어젖혔으니,',
+      '적당한 용기와 절제로 운명에 맞섰다. 그 균형이 행운을 끌어당겼고,',
+      '과하지도, 부족하지도 않은 베팅 — 바로 그 절제가 오라클을 움직였다.'
+    ],
+    losePrefix:[
+      '신중하게 임했으나 운명의 조류가 역방향으로 흘렀다. 베팅이 아닌 삶의 방향 자체를 재점검해야 한다,',
+      '조심스러운 베팅조차 패배를 막지 못했다. 신중함만으로는 부족한 시기임을 알라,',
+      '균형 잡힌 판단으로 임했으나 운명이 냉정했다. 지금 당장은'
+    ],
+    winBonus:12, losePenalty:12,
+    timingWin:['14일 이내에','보름 안에'],
+    timingLose:['3주간','보름간']
+  },
+  {
+    label:'대담한 베팅',
+    icon:'🔥',
+    color:'#f0a030',
+    winPrefix:[
+      '대담하게 Vital Luck을 쏟아부으며 운명에 맞섰고, 그 패기가 오라클을 뒤흔들었다!',
+      '두려움 없는 베팅이 하늘을 감동시켰다. 이만한 배포가 있는 자에게 운명은 아낌없이 보답하니,',
+      '거침없이 내던진 그 Vital Luck이 운명의 방향을 완전히 바꾸었다!'
+    ],
+    losePrefix:[
+      '대담하게 베팅했으나 운명의 칼날이 더 날카로웠다. 그 배포에 걸맞은 대가가 찾아오니, 각별히 조심하라.',
+      '큰 베팅만큼 큰 경고가 울린다. 운명이 그대의 과감함을 시험했고, 이번엔 냉혹하게 벌했다.',
+      '두려움 없이 임했으나 패배를 맛보았다. 그 손실만큼 강력한 역풍이 일고 있으니,'
+    ],
+    winBonus:25, losePenalty:25,
+    timingWin:['7일 이내에','10일 안에'],
+    timingLose:['한 달간','이번 달 내내']
+  },
+  {
+    label:'전력투구 — 영혼의 베팅',
+    icon:'💀',
+    color:'#cc44ff',
+    winPrefix:[
+      '💀→✨ 영혼까지 걸었고, 우주가 응답했다!! 전력투구한 자에게만 오라클이 최고의 계시를 내린다.',
+      '모든 것을 걸었기에 모든 것을 얻었다. 그대의 배짱이 운명의 신을 압도했다!',
+      '🔱 Vital Luck의 전부를 쏟아부은 그 순간, 운명은 그대 앞에 무릎을 꿇었다!!!'
+    ],
+    losePrefix:[
+      '💀 영혼까지 베팅했으나 운명이 배신했다. 이 패배의 무게는 결코 가볍지 않다 — 지금 그대에게 드리워진 그림자는 짙고 깊다.',
+      '모든 것을 걸고 모든 것을 잃었다. 오라클이 엄중히 경고한다:',
+      '전력투구한 용기 자체는 칭찬한다. 하지만 운명은 그 패기를 박살냈다. 지금 이 순간,'
+    ],
+    winBonus:40, losePenalty:40,
+    timingWin:['3일 이내에','72시간 안에','일주일 이내에'],
+    timingLose:['두 달간','앞으로 50일간','한동안']
+  }
+];
+
+// =============================================
+//  FORTUNE REPORT
+// =============================================
+function buildReport(){
+  const win=G.winner==='player';
+  const D=DEALER_DATA[G.dealer];
+  const pSuit=dominantSuit(G.pCards);
+  const sd=SUITS[pSuit];
+  const hf=HAND_FORTUNES[G.pHand.rank];
+  const sg=SUIT_GUIDES[pSuit];
+
+  // ── Bet tier
+  const tier=getBetTier(G.pot);
+  const td=BET_TIER_DATA[tier];
+  const raises=G.pot/20; // how many times player raised
+
+  // ── Intensity: hand rank (1-10) contributes base, pot amplifies strongly
+  // Win: base 35 + handRank*4 + pot*0.55  (max ~35+40+66=141 → capped 99)
+  // Lose: base 55 - handRank*3 - pot*0.55 (min ~55-30-66=-41 → floored 3)
+  const rawWin  = 30 + G.pHand.rank*4 + Math.round(G.pot * 0.55);
+  const rawLose = 60 - G.pHand.rank*3 - Math.round(G.pot * 0.55);
+  const intensity = win
+    ? Math.min(99, rawWin  + td.winBonus)
+    : Math.max(3,  rawLose - td.losePenalty);
+
+  // ── Timing (higher tier = sooner reward / longer curse)
+  const tArr = td[win?'timingWin':'timingLose'];
+  const timing = tArr[Math.floor(Math.random()*tArr.length)];
+
+  // ── Oracle prefix from tier
+  const prefixes = td[win?'winPrefix':'losePrefix'];
+  const prefix = prefixes[Math.floor(Math.random()*prefixes.length)];
+
+  // ── Bet impact descriptor for oracle
+  const betImpactWin = [
+    '','',
+    `<br><em style="color:${td.color};font-size:.9rem;">— 그대가 건 ${raises}번의 레이즈가 운명의 기운을 ${td.winBonus}% 증폭시켰다. —</em>`,
+    `<br><em style="color:${td.color};font-size:.9rem;">— 그대가 건 ${raises}번의 레이즈가 운명의 기운을 ${td.winBonus}% 증폭시켰다. —</em>`
+  ];
+  const betImpactLose = [
+    '','',
+    `<br><em style="color:${td.color};font-size:.9rem;">— 그대가 건 ${raises}번의 레이즈가 재앙의 강도를 ${td.losePenalty}% 심화시켰다. —</em>`,
+    `<br><em style="color:${td.color};font-size:.9rem;">— 그대가 건 ${raises}번의 레이즈가 재앙의 강도를 ${td.losePenalty}% 심화시켰다. —</em>`
+  ];
+  const betImpact = win ? betImpactWin[tier] : betImpactLose[tier];
+
+  let oracle;
+  if(win){
+    oracle=`${prefix}<br><br>
+${G.name}의 <strong style="color:var(--gold)">${G.pHand.name}</strong>이(가) ${D.name}의 어둠을 걷어냈다.<br>
+${sd.desc}의 기운이 강하게 요동치니, <strong style="color:var(--gold)">${sd.theme}</strong>과 관련된 행운이 <strong style="color:var(--gold-l)">${timing}</strong> 찾아올 것이다.<br><br>
+${hf.win}${betImpact}`;
+  } else {
+    oracle=`${prefix}<br><br>
+${G.name}, ${D.name}의 <strong style="color:var(--crimson-b)">${G.dHand.name}</strong> 앞에 너의 운명이 무너졌다.<br>
+${sd.desc}의 칼날이 너를 향하고 있으니, ${timing} <strong style="color:var(--crimson-b)">${sd.theme}</strong>에 대한 욕망을 내려놓고 침묵하라.<br><br>
+${hf.lose}${betImpact}`;
+  }
+
+  // ── Gauge bar (visual representation of intensity)
+  const gaugeColor = win
+    ? (intensity>=80?'#f0c040':intensity>=55?'#c9940f':'#9e7010')
+    : (intensity<=20?'#cc2222':intensity<=40?'#aa2222':'#7a1515');
+
+  document.getElementById('report-content').innerHTML=`
+    <h2 class="r-title">📜 ${G.name}의 운명 판결서</h2>
+    <div class="r-divider"></div>
+    <div class="r-row"><span class="r-label">대결 상대</span><span class="r-val" style="color:${D.color}">${D.name}</span></div>
+    <div class="r-row"><span class="r-label">나의 결정적 족보</span><span class="r-val">${G.pHand.name}</span></div>
+    <div class="r-row"><span class="r-label">딜러의 족보</span><span class="r-val">${G.dHand.name}</span></div>
+    <div class="r-row"><span class="r-label">지배 문양</span><span class="r-val">${sd.name} ${pSuit} — ${sd.theme}</span></div>
+    <div class="r-row">
+      <span class="r-label">베팅 등급</span>
+      <span class="r-val" style="color:${td.color}">${td.icon} ${td.label} (${raises}회 레이즈 / ${G.pot} Vital Luck)</span>
+    </div>
+    <div class="r-divider"></div>
+    <div class="r-result ${win?'win':'lose'}">${win?'✨ 승리 · VICTORY ✨':'💀 패배 · DEFEAT 💀'}</div>
+    <div class="r-divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);letter-spacing:.35em;text-align:center;margin-bottom:.9rem;">⚡ 오라클의 신탁 ⚡</div>
+    <div class="oracle-box">${oracle}</div>
+    <div class="r-divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--text-dim);letter-spacing:.28em;text-align:center;margin-bottom:.6rem;">운명 가이드</div>
+    <div class="guide-box">${sg[win?'win':'lose']}</div>
+    <div class="r-divider"></div>
+    <div class="meter-block">
+      <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
+        운명의 ${win?'증폭':'감쇄'} 수치
+        <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
+          (족보 기여 + 베팅 등급 가중치 포함)
+        </span>
+      </div>
+      <div class="meter-num ${win?'pos':'neg'}">${win?'+':'-'}${intensity}%</div>
+      <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
+        <div style="width:${intensity}%;height:100%;background:${gaugeColor};border-radius:5px;
+          box-shadow:0 0 10px ${gaugeColor};transition:width 1s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
+        font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
+        <span>0%</span><span>50%</span><span>100%</span>
+      </div>
+    </div>
+    <div class="r-divider"></div>
+    <div class="report-actions">
+      <button class="btn-share-kakao" onclick="sharePokerKakao()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
+        카카오톡 공유하기
+      </button>
+      <a class="btn-home" href="/">🏠 메인으로 바로가기</a>
+    </div>
+  `;
+  showScreen('screen-report');
+
+  // animate gauge after render
+  setTimeout(()=>{
+    const bar=document.querySelector('#report-content .meter-block div div');
+    if(bar) bar.style.width=intensity+'%';
+  },200);
+}
+
+function restartGame(){
+  G={name:G.name,dealer:null,deck:[],pCards:[],dCards:[],street:0,luck:100,pot:0,pHand:null,dHand:null,winner:null};
+  document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
+  showScreen('screen-dealer');
+}
+
+// =============================================
+//  KAKAO SHARE
+// =============================================
+function sharePokerKakao(){
+  const win=G.winner==='player';
+  const D=DEALER_DATA[G.dealer]||{name:'딜러'};
+  const pName=G.pHand?G.pHand.name:'?';
+  const dName=G.dHand?G.dHand.name:'?';
+  const meterEl=document.querySelector('#report-content .meter-num');
+  const meter=meterEl?meterEl.textContent:'';
+
+  const text=`🃏 [데스티니 포커 — 심판의 카지노]\n\n`
+    +`👤 도전자: ${G.name}\n`
+    +`⚔ 대결 딜러: ${D.name}\n`
+    +`🏆 결과: ${win?'✨ 승리 · VICTORY':'💀 패배 · DEFEAT'}\n`
+    +`나의 패: ${pName}   딜러의 패: ${dName}\n`
+    +`운명 수치: ${meter}\n\n`
+    +`🎴 나도 운명에 도전하기 👇\nhttps://code-destiny.com/destiny-poker.html`;
+
+  if(navigator.share){
+    navigator.share({
+      title:'🃏 데스티니 포커 — 심판의 카지노',
+      text,
+      url:'https://code-destiny.com/destiny-poker.html'
+    }).catch(()=>{});
+    return;
+  }
+  const encoded=encodeURIComponent(text);
+  const a=document.createElement('a');
+  a.href='kakaotalk://send?text='+encoded;
+  a.click();
+  setTimeout(()=>{
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(()=>{
+        alert('카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요!\n카카오톡에 붙여넣기 하세요 💬');
+      }).catch(()=>{});
+    }
+  },800);
+}
+
+// =============================================
+//  PARTICLES
+// =============================================
+(function(){
+  const cv=document.getElementById('particles-canvas');
+  const cx=cv.getContext('2d');
+  let pts=[];
+
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+  window.addEventListener('resize',resize);
+  resize();
+
+  function mkP(){
+    return{
+      x:Math.random()*cv.width,y:Math.random()*cv.height+cv.height*.1,
+      r:Math.random()*1.6+.3,
+      vx:(Math.random()-.5)*.25,vy:-(Math.random()*.45+.1),
+      op:Math.random()*.4+.1,life:1,
+      color:Math.random()>.55?'#c9940f':Math.random()>.45?'#9b30ff':'#ffffff'
+    };
+  }
+  for(let i=0;i<60;i++) pts.push(mkP());
+
+  function frame(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    pts.forEach((p,i)=>{
+      p.x+=p.vx;p.y+=p.vy;p.life-=.0025;
+      if(p.life<=0||p.y<-10){pts[i]=mkP();pts[i].y=cv.height+5;}
+      cx.save();
+      cx.globalAlpha=p.op*p.life;
+      cx.fillStyle=p.color;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fill();
+      cx.restore();
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+// ── Enter key ──
+document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')goToDealer();});
+</script>
+</body>
+</html>

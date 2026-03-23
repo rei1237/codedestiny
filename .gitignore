@@ -39,3 +39,15 @@ ziwei_autotune_report.utf8.json
 # temp/generated scripts
 _fix*.cjs
 _temp*.js
+
+# build artifacts & temp logs
+build_output.txt
+build_last.log
+latest_build.log
+latest_cf_build.log
+deploy_cf_pages.log
+deploy_pages_only.log
+tmp_brand_replace_log.txt
+olympus_diff_review.txt
+removed-duplicates.txt
+audit_phase1/
