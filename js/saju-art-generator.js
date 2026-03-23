@@ -23,46 +23,46 @@
   ───────────────────────────────────── */
   var ELEMENT_ANIMALS = {
     wood: [
-      { name: '아기 용', nameEn: 'baby dragon', keyword: '창조·성장', traits: '창의적이고 성장하는', color: 'green' },
-      { name: '아기 사슴', nameEn: 'baby deer', keyword: '유연·섬세', traits: '섬세하고 맑은', color: 'green' },
-      { name: '아기 고양이', nameEn: 'kitten', keyword: '독립·직관', traits: '자유롭고 독립적인', color: 'green' }
+      { name: '청룡', nameEn: 'azure dragon spirit', keyword: '창조·성장', traits: '창의적이고 성장하는', color: 'green' },
+      { name: '숲사슴', nameEn: 'graceful forest deer', keyword: '유연·섬세', traits: '섬세하고 맑은', color: 'green' },
+      { name: '민트 고양이', nameEn: 'mystic cat guardian', keyword: '독립·직관', traits: '자유롭고 독립적인', color: 'green' }
     ],
     fire: [
-      { name: '아기 사자', nameEn: 'baby lion cub', keyword: '열정·용기', traits: '용맹하고 밝은', color: 'orange' },
-      { name: '아기 봉황', nameEn: 'baby phoenix', keyword: '재생·열정', traits: '불꽃처럼 빛나는', color: 'red' },
-      { name: '아기 여우', nameEn: 'baby fox', keyword: '직관·기지', traits: '재치 있고 빛나는', color: 'orange' }
+      { name: '태양 사자', nameEn: 'radiant lion guardian', keyword: '열정·용기', traits: '용맹하고 밝은', color: 'orange' },
+      { name: '봉황', nameEn: 'celestial phoenix', keyword: '재생·열정', traits: '불꽃처럼 빛나는', color: 'red' },
+      { name: '불꽃 여우', nameEn: 'ember fox spirit', keyword: '직관·기지', traits: '재치 있고 빛나는', color: 'orange' }
     ],
     earth: [
-      { name: '아기 곰', nameEn: 'baby bear', keyword: '안정·치유', traits: '든든하고 포근한', color: 'yellow' },
-      { name: '아기 팬더', nameEn: 'baby panda', keyword: '균형·여유', traits: '느긋하고 균형 잡힌', color: 'yellow' },
-      { name: '아기 고슴도치', nameEn: 'baby hedgehog', keyword: '배려·성실', traits: '알뜰하고 성실한', color: 'brown' }
+      { name: '산곰', nameEn: 'gentle mountain bear', keyword: '안정·치유', traits: '든든하고 포근한', color: 'yellow' },
+      { name: '팬더 도인', nameEn: 'tranquil panda sage', keyword: '균형·여유', traits: '느긋하고 균형 잡힌', color: 'yellow' },
+      { name: '별 고슴도치', nameEn: 'starlit hedgehog', keyword: '배려·성실', traits: '알뜰하고 성실한', color: 'brown' }
     ],
     metal: [
-      { name: '아기 독수리', nameEn: 'baby eagle', keyword: '결단·고결', traits: '날카롭고 고결한', color: 'silver' },
-      { name: '아기 늑대', nameEn: 'baby wolf', keyword: '의지·충절', traits: '충직하고 의지 있는', color: 'white' },
-      { name: '아기 유니콘', nameEn: 'baby unicorn', keyword: '순수·정밀', traits: '순수하고 빛나는', color: 'silver' }
+      { name: '은빛 독수리', nameEn: 'silver eagle sentinel', keyword: '결단·고결', traits: '날카롭고 고결한', color: 'silver' },
+      { name: '설원 늑대', nameEn: 'moonlit snow wolf', keyword: '의지·충절', traits: '충직하고 의지 있는', color: 'white' },
+      { name: '유니콘', nameEn: 'prismatic unicorn', keyword: '순수·정밀', traits: '순수하고 빛나는', color: 'silver' }
     ],
     water: [
-      { name: '아기 거북이', nameEn: 'baby turtle', keyword: '지혜·인내', traits: '지혜롭고 깊은', color: 'blue' },
-      { name: '아기 돌고래', nameEn: 'baby dolphin', keyword: '조화·직관', traits: '유쾌하고 현명한', color: 'blue' },
-      { name: '아기 물범', nameEn: 'baby seal', keyword: '감성·치유', traits: '부드럽고 감성적인', color: 'indigo' }
+      { name: '청해 거북', nameEn: 'ancient sea turtle', keyword: '지혜·인내', traits: '지혜롭고 깊은', color: 'blue' },
+      { name: '돌고래', nameEn: 'dreamwave dolphin', keyword: '조화·직관', traits: '유쾌하고 현명한', color: 'blue' },
+      { name: '달빛 물범', nameEn: 'moonlight seal spirit', keyword: '감성·치유', traits: '부드럽고 감성적인', color: 'indigo' }
     ]
   };
 
   /* 일지(日支) 십이지 동물 */
   var DIZHI_ANIMALS = {
-    '子': { name: '아기 쥐', nameEn: 'cute baby rat', keyword: '영리·적응', traits: '영리하고 빠른' },
-    '丑': { name: '아기 소', nameEn: 'cute baby ox calf', keyword: '인내·성실', traits: '성실하고 든든한' },
-    '寅': { name: '아기 호랑이', nameEn: 'cute baby tiger cub', keyword: '용기·의지', traits: '용맹하지만 장난기 넘치는' },
-    '卯': { name: '아기 토끼', nameEn: 'cute baby bunny', keyword: '도약·풍요', traits: '사랑스럽고 도약하는' },
-    '辰': { name: '아기 용', nameEn: 'cute baby dragon', keyword: '창조·권위', traits: '신비롭고 창의적인' },
-    '巳': { name: '아기 뱀', nameEn: 'cute baby snake', keyword: '재생·지혜', traits: '지혜롭고 신비로운' },
-    '午': { name: '아기 말', nameEn: 'cute baby horse foal', keyword: '자유·열정', traits: '자유롭고 활달한' },
-    '未': { name: '아기 양', nameEn: 'cute baby lamb', keyword: '온화·예술', traits: '온화하고 예술적인' },
-    '申': { name: '아기 원숭이', nameEn: 'cute baby monkey', keyword: '기지·변통', traits: '재치 있고 영특한' },
-    '酉': { name: '아기 닭', nameEn: 'cute baby chick', keyword: '성실·직관', traits: '부지런하고 직관적인' },
-    '戌': { name: '아기 강아지', nameEn: 'cute baby puppy', keyword: '충성·보호', traits: '충직하고 사랑스러운' },
-    '亥': { name: '아기 돼지', nameEn: 'cute baby piglet', keyword: '풍요·행운', traits: '복스럽고 따뜻한' }
+    '子': { name: '월광 쥐', nameEn: 'moonlit zodiac rat', keyword: '영리·적응', traits: '영리하고 빠른' },
+    '丑': { name: '수호 황소', nameEn: 'steadfast ox guardian', keyword: '인내·성실', traits: '성실하고 든든한' },
+    '寅': { name: '호랑이', nameEn: 'noble tiger spirit', keyword: '용기·의지', traits: '용맹하지만 장난기 넘치는' },
+    '卯': { name: '토끼', nameEn: 'graceful rabbit guardian', keyword: '도약·풍요', traits: '사랑스럽고 도약하는' },
+    '辰': { name: '용', nameEn: 'celestial dragon', keyword: '창조·권위', traits: '신비롭고 창의적인' },
+    '巳': { name: '비단 뱀', nameEn: 'silken serpent spirit', keyword: '재생·지혜', traits: '지혜롭고 신비로운' },
+    '午': { name: '질풍마', nameEn: 'windrunner horse', keyword: '자유·열정', traits: '자유롭고 활달한' },
+    '未': { name: '양', nameEn: 'pastel sheep muse', keyword: '온화·예술', traits: '온화하고 예술적인' },
+    '申': { name: '원숭이', nameEn: 'clever monkey trickster', keyword: '기지·변통', traits: '재치 있고 영특한' },
+    '酉': { name: '황금 닭', nameEn: 'golden dawn rooster', keyword: '성실·직관', traits: '부지런하고 직관적인' },
+    '戌': { name: '수호견', nameEn: 'loyal guardian dog', keyword: '충성·보호', traits: '충직하고 사랑스러운' },
+    '亥': { name: '복돼지', nameEn: 'fortune boar spirit', keyword: '풍요·행운', traits: '복스럽고 따뜻한' }
   };
 
   /* 오행 배경 테마 */
@@ -219,44 +219,78 @@
      3. 프롬프트 빌드
   ───────────────────────────────────── */
   function buildPrompt(totemData) {
-    var a = totemData.primary;
-    var el = totemData.element;
+    var a = totemData.primary || {};
+    var el = totemData.element || 'wood';
+    var dayZhi = totemData.dayZhi || '';
+    var power = totemData.powerLabel || '';
+    var tenGod = totemData.sipseong || '';
+    var animal = normalizeAnimalLabel(a.nameEn || a.name || 'spirit animal') || 'spirit animal';
+
+    var zhiMotif = {
+      '子': 'moonlit waters, tiny lantern reflections, agile wind swirls',
+      '丑': 'ancient stone path, calm mountain breeze, protective talisman ribbons',
+      '寅': 'misty pine forest, warm sunrise rim light, dynamic brushstroke aura',
+      '卯': 'sun-dappled ancient garden, cherry blossoms, lotus pond and wooden bridge',
+      '辰': 'celestial clouds, jade ornaments, mythical spiral energy',
+      '巳': 'silk smoke trails, moonlit bamboo, elegant geometric motifs',
+      '午': 'golden grassland, flowing ribbons, horizon glow and dust sparkles',
+      '未': 'pastel meadow, soft floating petals, gentle prayer flags',
+      '申': 'floating paper charms, playful light streaks, layered temple roofs',
+      '酉': 'dawn courtyard, lacquered wood details, radiant halo feathers',
+      '戌': 'guardian gate, warm lanterns, subtle protective sigils',
+      '亥': 'dreamy mist, jeweled waterdrops, tranquil moon garden'
+    };
     var bgMap = {
-      wood: 'enchanted forest with glowing green fireflies and cherry blossom petals',
-      fire: 'magical sunset sky with warm orange and pink pastel clouds and sparkling embers',
-      earth: 'cozy golden wheat field with soft sunlight and floating dandelion seeds',
-      metal: 'ethereal silver moonlit crystal cave with sparkling gems',
-      water: 'serene magical ocean with soft blue bioluminescent waves and bubbles'
+      wood: 'enchanted forest with cherry blossoms, mint glow and soft volumetric light',
+      fire: 'warm sunset sanctuary with peach clouds, ember particles and cinematic rays',
+      earth: 'cozy ancient garden with creamy stone textures and floating dandelion light',
+      metal: 'ethereal moonlit pavilion with silver reflections and crystalline sparkles',
+      water: 'serene lotus waterscape with sky-blue haze and bioluminescent ripples'
     };
-    var bg = bgMap[el] || bgMap.wood;
+    var costumeMap = {
+      wood: 'flowing hanbok-inspired robe in mint and cream, subtle leaf embroidery with gold accents',
+      fire: 'layered silk attire in coral and rose, elegant gold thread flame motifs',
+      earth: 'soft draped garment in honey and ivory, handcrafted earth-pattern trim',
+      metal: 'refined ceremonial outfit in pearl and silver, delicate metallic embroidery',
+      water: 'graceful pastel costume in sky blue and lavender, wave-pattern silk details'
+    };
     var colorMap = {
-      wood: 'soft pastel green and mint',
-      fire: 'warm peach, coral, and gold',
-      earth: 'soft yellow, honey, and warm brown',
-      metal: 'soft silver, lavender, and pearl white',
-      water: 'soft sky blue, indigo, and aqua'
+      wood: 'creamy white, mint green, powder pink, light sage',
+      fire: 'cream, peach, powder pink, warm coral, soft gold',
+      earth: 'cream, honey beige, butter yellow, muted apricot',
+      metal: 'pearl white, lavender mist, silver blue, cool gray',
+      water: 'sky blue, powder pink, lavender, mint green, aqua'
     };
-    var colorPalette = colorMap[el] || colorMap.wood;
 
-    var prompt = [
-      'ultra cute chibi ' + a.nameEn,
-      'kawaii style character art',
-      'vibrant pastel colors in ' + colorPalette,
-      'clean smooth line art',
-      'big sparkling eyes with starry highlights',
-      'round chubby adorable body',
-      'magical glowing aura',
-      'tiny sparkles and stars floating around',
-      'magical background: ' + bg,
-      'soft pastel gradient background',
-      'studio ghibli inspired character design',
-      'children book illustration style',
-      'high quality digital art',
-      'square format',
-      'no text no typography no words no letters'
+    return [
+      'A breathtaking, high-definition anime illustration of a beautiful ' + animal + ' character inspired by Saju and Eastern zodiac symbolism.',
+      'Style direction: warm, sentimental, emotionally resonant, modern fantasy animation quality with delicate linework and painterly shading.',
+      'Color palette: soft ethereal pastels (' + (colorMap[el] || colorMap.wood) + ').',
+      'Character design: expressive sparkling eyes, elegant silhouette, velvety fur or refined scales, graceful pose, symbolic accessories tied to Saju energy (' + (a.keyword || 'balanced destiny energy') + ').',
+      'Costume: ' + (costumeMap[el] || costumeMap.wood) + '.',
+      'Background: ' + (bgMap[el] || bgMap.wood) + ', plus zodiac motifs: ' + (zhiMotif[dayZhi] || 'ancient oriental garden, floating petals, mystical stardust') + '.',
+      'Mood: peaceful, mystical, heartwarming; soft diffused cinematic lighting, glowing particles, depth of field, premium illustration finish.',
+      'Saju context tags: dominant element ' + el + ', day branch ' + (dayZhi || 'unknown') + ', strength ' + (power || 'balanced') + ', ten-god ' + (tenGod || 'harmonized') + '.',
+      'Composition: centered character portrait, rich scenic details, no text, no logo, no watermark, no typography, ultra clean render, 4k quality.'
+    ].join(' ');
+  }
+
+  function buildNegativePrompt() {
+    return [
+      'lowres',
+      'blurry',
+      'pixelated',
+      'distorted anatomy',
+      'extra limbs',
+      'deformed face',
+      'mutated hands',
+      'flat shading',
+      'washed colors',
+      'dull composition',
+      'text',
+      'logo',
+      'watermark'
     ].join(', ');
-
-    return prompt;
   }
 
   /* ─────────────────────────────────────
@@ -576,6 +610,8 @@
       dayZhi: totemData.dayZhi || '',
       element: totemData.element || ''
     } : null;
+    var qualityPrompt = buildPrompt(totemData);
+    var negativePrompt = buildNegativePrompt();
     fetch('/api/guardian-avatar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -584,7 +620,16 @@
         sajuAnalysis: sajuAnalysis,
         totemAnimal: totemAnimal,
         renderMode: 'saju-animal',
-        styleIntensity: styleIntensity
+        styleIntensity: styleIntensity,
+        prompt: qualityPrompt,
+        negativePrompt: negativePrompt,
+        renderOptions: {
+          canvasSize: 1024,
+          quality: 'ultra',
+          style: 'anime-pastel-cinematic',
+          preferApiOnly: true,
+          aspectRatio: '1:1'
+        }
       })
     })
       .then(function (resp) {
@@ -707,48 +752,19 @@
     }
   }
 
-  function drawFallbackCanvasPlaceholder(canvas, totemData, guardian) {
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    var cssSize = Math.max(180, canvas.clientWidth || 300);
-    var dpr = Math.max(2, Math.min(3, window.devicePixelRatio || 2));
-    canvas.width = Math.round(cssSize * dpr);
-    canvas.height = Math.round(cssSize * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, cssSize, cssSize);
-
-    var element = (totemData && totemData.element) || 'wood';
-    drawCanvasBackdrop(ctx, cssSize, element);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
-    ctx.beginPath();
-    ctx.arc(cssSize / 2, cssSize / 2, cssSize * 0.33, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.font = 'bold ' + Math.round(cssSize * 0.18) + 'px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#1f2937';
-    ctx.fillText(resolveTotemEmoji(totemData, guardian), cssSize / 2, cssSize / 2 - cssSize * 0.03);
-  }
-
-  function drawGuardianOnCanvas(imageUrl, totemData, guardian) {
+  function drawGuardianOnCanvas(imageUrl, totemData, onFail) {
     var canvas = document.getElementById('sajuTotemCanvas');
     if (!canvas) return;
 
     if (!imageUrl) {
-      drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+      if (typeof onFail === 'function') onFail();
       return;
     }
 
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    var cssSize = Math.max(180, canvas.clientWidth || 300);
+    var cssSize = Math.max(320, canvas.clientWidth || 560);
     var dpr = Math.max(2, Math.min(3, window.devicePixelRatio || 2));
     canvas.width = Math.round(cssSize * dpr);
     canvas.height = Math.round(cssSize * dpr);
@@ -773,11 +789,11 @@
       drawCanvasBackdrop(ctx, cssSize, (totemData && totemData.element) || 'wood');
       ctx.drawImage(img, dx, dy, dw, dh);
       if (isFlatRenderedCanvas(ctx, cssSize)) {
-        drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+        if (typeof onFail === 'function') onFail();
       }
     };
     img.onerror = function () {
-      drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+      if (typeof onFail === 'function') onFail();
     };
     img.src = imageUrl;
   }
@@ -791,6 +807,10 @@
     var desc = buildDescription(totemData);
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
     var imgUrl = guardian && guardian.svg_data_uri ? guardian.svg_data_uri : '';
+    if (!imgUrl) {
+      renderStateFailure(contextSource);
+      return;
+    }
     var cleanAnimalName = normalizeAnimalLabel(a.name || '수호 동물') || '수호 동물';
     var guardianTitle = (guardian && guardian.title) ? guardian.title : (cleanAnimalName + ' 수호 캐릭터');
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
@@ -806,7 +826,7 @@
           '<div class="stg-card__glow"></div>' +
           '<div class="stg-card__badge">' + (elIcons[el] || '✨') + ' SAJU PORTRAIT</div>' +
           '<div class="stg-card__img-wrap">' +
-            '<canvas class="stg-card__canvas" id="sajuTotemCanvas" aria-label="사주 동물 아트 결과 캔버스"></canvas>' +
+            '<canvas class="stg-card__canvas" id="sajuTotemCanvas" style="width:min(92vw,640px);height:min(92vw,640px);" aria-label="사주 동물 아트 결과 캔버스"></canvas>' +
             '<div class="stg-card__img-overlay"></div>' +
           '</div>' +
         '</div>' +
@@ -847,7 +867,9 @@
 
       '</div>';
 
-    drawGuardianOnCanvas(imgUrl, totemData, guardian);
+    drawGuardianOnCanvas(imgUrl, totemData, function () {
+      renderStateFailure(contextSource);
+    });
 
     /* 버튼 이벤트 바인딩 */
     var saveBtn = document.getElementById('sajuTotemSaveBtn');
