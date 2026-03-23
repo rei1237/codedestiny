@@ -111,7 +111,7 @@ body::before{
 .btn-fate:hover{color:var(--bg);box-shadow:0 0 28px rgba(201,148,15,.5);}
 
 /* ── DEALER SELECT ── */
-#screen-dealer{gap:1.8rem;padding:2rem;}
+#screen-dealer{gap:1rem;padding:1.2rem 1rem 2.5rem;justify-content:flex-start;}
 .section-title{
   font-family:'Cinzel Decorative',cursive;font-size:clamp(1.3rem,3vw,2.2rem);
   background:linear-gradient(130deg,#d4a017,#f0c040);
@@ -2089,11 +2089,14 @@ ${closingLine}`;
     : (intensity<=200?'#cc2222':intensity<=400?'#aa2222':'#7a1515');
   const gaugePct = Math.round(intensity/999*100);
 
-  // ── 999% 달성 시 all4 해금 저장
-  if(intensity>=999){
+  // ── 누적 intensity 저장 및 all4 해금 체크
+  const prevTotal = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
+  const newTotal = Math.min(9999, prevTotal + intensity);
+  localStorage.setItem('destiny_poker_intensity', String(newTotal));
+  if(newTotal >= 999){
     localStorage.setItem('destiny_poker_all4_unlocked','1');
-    updateAll4Button();
   }
+  updateAll4Button();
 
   document.getElementById('report-content').innerHTML=`
     <h2 class="r-title">📜 ${G.name}의 운명 판결서</h2>
@@ -2180,6 +2183,8 @@ function updateAll4Button(){
   const icon=document.getElementById('all4-lock-icon');
   const hint=document.getElementById('all4-hint');
   if(!btn) return;
+  const cumTotal = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
+  const dispVal = Math.min(999, cumTotal);
   if(isAll4Unlocked()){
     btn.className='btn-all4 unlocked';
     if(icon) icon.textContent='🔱';
@@ -2192,7 +2197,8 @@ function updateAll4Button(){
     if(icon) icon.textContent='🔒';
     if(hint){
       hint.className='all4-hint';
-      hint.innerHTML='🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)';
+      const barPct=Math.round(dispVal/999*100);
+      hint.innerHTML=`🔒 누적 운명 수치: <strong style="color:#cc44ff">${dispVal}</strong> / 999%<div style="width:180px;height:5px;background:rgba(255,255,255,.1);margin:.4rem auto 0;border-radius:3px;overflow:hidden;"><div style="width:${barPct}%;height:100%;background:#9b30ff;border-radius:3px;transition:width .8s;"></div></div>`;
     }
   }
 }
@@ -2612,10 +2618,14 @@ function buildReport4(){
     : '#cc2222';
   const gaugePct=Math.round(avgIntensity/999*100);
 
-  // 999% 달성 체크
-  if(avgIntensity>=999){
+  // ── 누적 avgIntensity 저장 및 all4 해금 체크
+  const prevTotal4 = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
+  const newTotal4 = Math.min(9999, prevTotal4 + avgIntensity);
+  localStorage.setItem('destiny_poker_intensity', String(newTotal4));
+  if(newTotal4 >= 999){
     localStorage.setItem('destiny_poker_all4_unlocked','1');
   }
+  updateAll4Button();
 
   document.getElementById('report-content').innerHTML=`
     <h2 class="r-title">🔱 ${G4.name}의 4신 운명 판결서</h2>
