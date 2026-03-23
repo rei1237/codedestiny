@@ -410,6 +410,167 @@ const hwatuStyles = `
 }
 .trad-char-box img { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #d4af37; object-fit: cover; flex-shrink:0; }
 
+/* 인생 패 심리 테스트 */
+.life-intro-box,
+.life-question-box,
+.life-result-box {
+    margin: 0 auto 14px;
+    max-width: 620px;
+    background: linear-gradient(145deg, rgba(8,8,10,0.92), rgba(36,8,8,0.75));
+    border: 1px solid rgba(212,175,55,0.42);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 12px 26px rgba(0,0,0,0.5);
+}
+.life-intro-line {
+    color: #facc15;
+    font-size: 1.06rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+.life-sub-line {
+    color: #e2e8f0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    word-break: keep-all;
+}
+.life-progress {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(212,175,55,0.35);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 12px 0 14px;
+}
+.life-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #991b1b, #dc2626, #f59e0b);
+    box-shadow: 0 0 12px rgba(245,158,11,0.55);
+    transition: width 0.28s ease;
+}
+.life-q-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: #fbbf24;
+    border: 1px solid rgba(251,191,36,0.5);
+    background: rgba(180,83,9,0.22);
+    margin-bottom: 10px;
+}
+.life-q-title {
+    font-size: 1.08rem;
+    color: #f8fafc;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    font-weight: bold;
+    word-break: keep-all;
+}
+.life-q-sub {
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    margin-bottom: 14px;
+    word-break: keep-all;
+}
+.life-choice {
+    width: 100%;
+    display: block;
+    text-align: left;
+    margin-bottom: 10px;
+    padding: 12px 13px;
+    border-radius: 11px;
+    border: 1px solid rgba(212,175,55,0.35);
+    background: linear-gradient(135deg, rgba(15,23,42,0.75), rgba(56,9,9,0.66));
+    color: #f1f5f9;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    transition: transform 0.16s, border-color 0.16s, box-shadow 0.16s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.life-choice:hover {
+    transform: translateY(-2px);
+    border-color: rgba(251,191,36,0.72);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.42);
+}
+.life-choice-key {
+    display: inline-block;
+    margin-right: 8px;
+    min-width: 22px;
+    text-align: center;
+    color: #fbbf24;
+    font-weight: bold;
+}
+.life-result-card {
+    width: 152px;
+    aspect-ratio: 2/3;
+    margin: 0 auto 14px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #d4af37;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(251,191,36,0.2);
+    background: #fff;
+}
+.life-result-card img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.life-result-name {
+    font-size: 1.36rem;
+    font-weight: bold;
+    color: #facc15;
+    text-align: center;
+    margin-bottom: 7px;
+}
+.life-result-tagline {
+    text-align: center;
+    color: #fca5a5;
+    margin-bottom: 12px;
+    font-size: 0.94rem;
+    line-height: 1.55;
+}
+.life-result-desc {
+    color: #e2e8f0;
+    line-height: 1.75;
+    font-size: 0.94rem;
+    margin-bottom: 12px;
+    word-break: keep-all;
+}
+.life-result-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.life-result-chip {
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(251,191,36,0.5);
+    background: rgba(180,83,9,0.24);
+    color: #fde68a;
+    font-size: 0.78rem;
+}
+.life-monthly-box {
+    background: rgba(15,23,42,0.52);
+    border: 1px solid rgba(212,175,55,0.36);
+    border-radius: 10px;
+    padding: 11px;
+    color: #dbeafe;
+    font-size: 0.9rem;
+    line-height: 1.66;
+    margin-bottom: 14px;
+    word-break: keep-all;
+}
+
+@media(max-width: 480px) {
+    .life-intro-box, .life-question-box, .life-result-box { padding: 14px; }
+    .life-result-card { width: 136px; }
+    .life-q-title { font-size: 1rem; }
+}
+
 `;
 
 function loadGSAP(callback) {
@@ -448,6 +609,7 @@ function injectHwatuHTML() {
             <div id="hwatuModeToggle" style="display:flex;justify-content:center;gap:0;margin-bottom:22px;border-radius:30px;overflow:hidden;border:2px solid #d4af37;width:fit-content;margin-left:auto;margin-right:auto;">
                 <button id="modeBtnSeotda" onclick="switchHwatuMode('seotda')" style="padding:10px 22px;background:#d4af37;color:#1a202c;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🃏 섯다 운세</button>
                 <button id="modeBtnTraditional" onclick="switchHwatuMode('traditional')" style="padding:10px 22px;background:transparent;color:#d4af37;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🎴 운수 떼기</button>
+                <button id="modeBtnLifeCard" onclick="switchHwatuMode('lifecard')" style="padding:10px 22px;background:transparent;color:#d4af37;font-weight:bold;font-family:inherit;font-size:0.95rem;border:none;cursor:pointer;transition:0.3s;">🂡 인생 패 테스트</button>
             </div>
 
             <!-- 섯다 모드 -->
@@ -530,6 +692,32 @@ function injectHwatuHTML() {
                     <button class="btn-hwatu" style="width:100%;margin-top:16px;font-size:1.05rem;" onclick="startTraditionalGame()">다시 운수 보기</button>
                 </div>
             </div><!-- /traditionalModeContainer -->
+
+            <!-- 화투 인생 패 테스트 모드 -->
+            <div id="lifeCardModeContainer" style="display:none;">
+                <div class="life-intro-box" id="lifeCardIntro">
+                    <div class="life-intro-line">"쫄리면 판에서 손 떼라... 대신, 끝까지 가면 네 패가 보인다."</div>
+                    <div class="life-sub-line">돈, 사랑, 위기 앞에서 네가 어떤 선택을 하는지 7문항으로 읽어보는 화투 인생 패 심리 테스트요. 패를 숨기지 말고, 네 본능대로 고르쇼.</div>
+                    <button class="btn-hwatu" style="width:100%;margin-top:14px;font-size:1.05rem;" onclick="startLifeCardTest()">판에 참여하기</button>
+                </div>
+
+                <div class="life-question-box" id="lifeCardQuestionPanel" style="display:none;">
+                    <div class="life-progress"><div class="life-progress-fill" id="lifeProgressFill"></div></div>
+                    <div id="lifeQuestionCard"></div>
+                </div>
+
+                <div class="life-result-box" id="lifeCardResultBox" style="display:none;">
+                    <div class="life-result-card"><img id="lifeResultImg" src="" alt="인생 패"></div>
+                    <div class="life-result-name" id="lifeResultName"></div>
+                    <div class="life-result-tagline" id="lifeResultTagline"></div>
+                    <div class="life-result-desc" id="lifeResultDesc"></div>
+                    <div class="life-result-chip-row" id="lifeResultTraits"></div>
+                    <div class="life-monthly-box" id="lifeMonthlySummary"></div>
+                    <button class="btn-hwatu" style="width:100%;font-size:1.04rem;margin-bottom:10px;" onclick="switchHwatuMode('seotda', false)">상세 운세 보기</button>
+                    <button class="btn-hwatu" style="width:100%;font-size:1.03rem;background:linear-gradient(to right,#3b2f18,#7c5a17);margin-bottom:10px;" onclick="shareHwatuLifeCard()">💬 카카오톡 공유하기</button>
+                    <button class="btn-hwatu" style="width:100%;font-size:1.02rem;background:linear-gradient(to right,#1f2937,#0f172a);" onclick="closeHwatuModal()">홈 화면으로 돌아가기</button>
+                </div>
+            </div><!-- /lifeCardModeContainer -->
 
             <div id="hwatuWarnMsg" style="color:#d4af37; margin-top:20px; font-weight:bold; display:none; font-size:1.1rem; text-shadow: 0 2px 4px #000;"></div>
 
@@ -768,8 +956,9 @@ window.openHwatuModal = function(initialMode) {
     if(document.getElementById('tradResultBox'))  document.getElementById('tradResultBox').style.display  = 'none';
     if(document.getElementById('tradStartBtn'))   document.getElementById('tradStartBtn').style.display   = 'block';
     _tradState = null;
+    if(typeof window.resetLifeCardTest === 'function') window.resetLifeCardTest();
     // 모드 초기화 (기본: 섯다, 요청 시 운수 떼기)
-    var nextMode = (initialMode === 'traditional') ? 'traditional' : 'seotda';
+    var nextMode = (initialMode === 'traditional') ? 'traditional' : ((initialMode === 'lifecard') ? 'lifecard' : 'seotda');
     window._hwatuMode = nextMode;
     if(document.getElementById('seotdaModeContainer')) switchHwatuMode(nextMode);
     document.getElementById('hCard1').classList.remove('flipped');
@@ -1005,41 +1194,527 @@ window.shareHwatu = function() {
 };
 
 // ═══════════════════════════════════════════════════════════════
+//  화투 인생 패 심리 테스트
+// ═══════════════════════════════════════════════════════════════
+const LIFE_TRAITS = [
+    'leadership',
+    'opportunism',
+    'strategy',
+    'pragmatism',
+    'endurance',
+    'charisma',
+    'intuition',
+    'composure'
+];
+
+const LIFE_CARD_TEST_DATA = {
+    archetypes: [
+        {
+            id: 'samgwang',
+            name: '삼광',
+            cardTitle: '태생적 주인공',
+            tagline: '어디서든 판의 중심을 가져오는 광채형 리더.',
+            image: hwatuImg(3, 1),
+            traits: ['리더십', '존재감', '승부욕'],
+            quote: '판이 조용하면 네가 불을 붙여라. 중심은 만들면 된다.',
+            profile: { leadership: 5, opportunism: 3, strategy: 3, pragmatism: 2, endurance: 3, charisma: 5, intuition: 3, composure: 3 }
+        },
+        {
+            id: 'godori',
+            name: '고도리',
+            cardTitle: '기회 포착의 화신',
+            tagline: '세 마리 새처럼 찰나를 낚아채는 속전속결 승부사.',
+            image: hwatuImg(2, 1),
+            traits: ['민첩성', '결단력', '순발력'],
+            quote: '기회는 두 번 안 온다. 왔을 때 뜯어먹는 게 실력이다.',
+            profile: { leadership: 3, opportunism: 5, strategy: 2, pragmatism: 3, endurance: 2, charisma: 4, intuition: 4, composure: 2 }
+        },
+        {
+            id: 'cheongdan',
+            name: '청단',
+            cardTitle: '완벽주의 전략가',
+            tagline: '줄 맞추는 디테일로 큰 판을 설계하는 냉정한 브레인.',
+            image: hwatuImg(4, 2),
+            traits: ['계획성', '분석력', '정확성'],
+            quote: '운은 준비된 설계도 위에만 앉는다.',
+            profile: { leadership: 3, opportunism: 2, strategy: 5, pragmatism: 4, endurance: 3, charisma: 2, intuition: 2, composure: 5 }
+        },
+        {
+            id: 'hongdan',
+            name: '홍단',
+            cardTitle: '감정 조율의 달인',
+            tagline: '사람의 온도를 읽고 관계의 흐름을 붙잡는 협상가.',
+            image: hwatuImg(1, 2),
+            traits: ['공감력', '관계력', '표현력'],
+            quote: '말 한 장이 패 열 장을 이길 때가 있다.',
+            profile: { leadership: 3, opportunism: 3, strategy: 3, pragmatism: 2, endurance: 3, charisma: 5, intuition: 4, composure: 3 }
+        },
+        {
+            id: 'chodan',
+            name: '초단',
+            cardTitle: '정밀 컨트롤러',
+            tagline: '작은 오차도 허용하지 않는 루틴 설계형 플레이어.',
+            image: hwatuImg(6, 2),
+            traits: ['체계성', '관리력', '성실함'],
+            quote: '큰 승부는 대충이 아니라 루틴에서 갈린다.',
+            profile: { leadership: 2, opportunism: 2, strategy: 5, pragmatism: 4, endurance: 4, charisma: 2, intuition: 2, composure: 4 }
+        },
+        {
+            id: 'bipung',
+            name: '비풍초똥팔삼',
+            cardTitle: '쿨한 현실주의자',
+            tagline: '버릴 건 버리고 챙길 건 챙기는 실속형 생존자.',
+            image: hwatuImg(12, 3),
+            traits: ['효율성', '멘탈', '손절력'],
+            quote: '모든 패를 들고 가려는 순간, 이미 진 거다.',
+            profile: { leadership: 2, opportunism: 4, strategy: 3, pragmatism: 5, endurance: 4, charisma: 2, intuition: 3, composure: 4 }
+        },
+        {
+            id: 'ddonggwang',
+            name: '똥광',
+            cardTitle: '대기만성형 거물',
+            tagline: '남들이 버린 구석에서 기회를 길어올리는 역전형.',
+            image: hwatuImg(11, 4),
+            traits: ['인내심', '복원력', '끈기'],
+            quote: '지금 지는 척하는 게, 마지막에 먹는 기술이다.',
+            profile: { leadership: 2, opportunism: 2, strategy: 3, pragmatism: 4, endurance: 5, charisma: 2, intuition: 3, composure: 5 }
+        },
+        {
+            id: 'bigwang',
+            name: '비광',
+            cardTitle: '폭풍 돌파형 승부꾼',
+            tagline: '비바람 속에서도 길을 내는 하이리스크 혁신가.',
+            image: hwatuImg(12, 1),
+            traits: ['돌파력', '배짱', '반전력'],
+            quote: '비 오는 판일수록, 진짜 실력이 드러난다.',
+            profile: { leadership: 4, opportunism: 3, strategy: 2, pragmatism: 2, endurance: 4, charisma: 4, intuition: 4, composure: 2 }
+        }
+    ],
+    questions: [
+        {
+            id: 'q1',
+            title: '판돈이 예상보다 두 배로 커졌다. 네 첫 반응은?',
+            sub: '돈 앞에서 너의 기본 자세를 본다.',
+            choices: [
+                { key: 'A', text: '판이 커졌다면 내가 흐름을 잡는다. 콜.', scores: { leadership: 2, opportunism: 1, charisma: 1 } },
+                { key: 'B', text: '상대 표정을 읽고 한 박자 늦게 들어간다.', scores: { strategy: 2, composure: 2 } },
+                { key: 'C', text: '손절 기준부터 세우고 리스크를 먼저 자른다.', scores: { pragmatism: 2, endurance: 1, composure: 1 } }
+            ]
+        },
+        {
+            id: 'q2',
+            title: '좋아하는 사람과 감정이 엇갈렸다. 어떻게 움직일까?',
+            sub: '사랑 앞에서 네 승부법을 본다.',
+            choices: [
+                { key: 'A', text: '오늘 바로 직구. 마음은 타이밍이다.', scores: { charisma: 2, leadership: 1, intuition: 1 } },
+                { key: 'B', text: '상대의 리듬을 보고 말의 순서를 다시 짠다.', scores: { strategy: 2, composure: 1, pragmatism: 1 } },
+                { key: 'C', text: '잠깐 물러나 감정 정리 후 다시 들어간다.', scores: { endurance: 2, composure: 2 } }
+            ]
+        },
+        {
+            id: 'q3',
+            title: '팀 프로젝트가 뒤집어졌다. 네 역할은?',
+            sub: '위기 상황의 포지션 선택.',
+            choices: [
+                { key: 'A', text: '내가 앞에서 책임지고 판을 다시 세운다.', scores: { leadership: 2, endurance: 1, charisma: 1 } },
+                { key: 'B', text: '문제 원인을 분해해 재배치표부터 만든다.', scores: { strategy: 2, composure: 2 } },
+                { key: 'C', text: '당장 살릴 수 있는 라인만 추려 빠르게 복구한다.', scores: { pragmatism: 2, opportunism: 1, endurance: 1 } }
+            ]
+        },
+        {
+            id: 'q4',
+            title: '갑자기 빈자리가 생겼다. 승진 기회가 열렸다.',
+            sub: '기회 앞에서 망설임이 있는가.',
+            choices: [
+                { key: 'A', text: '내 이름부터 올린다. 자리는 선점이다.', scores: { leadership: 2, opportunism: 2 } },
+                { key: 'B', text: '요건과 리스크를 따져 확률부터 계산한다.', scores: { strategy: 2, composure: 1, pragmatism: 1 } },
+                { key: 'C', text: '지금은 실속이 우선. 때를 보고 들어간다.', scores: { pragmatism: 2, endurance: 1, intuition: 1 } }
+            ]
+        },
+        {
+            id: 'q5',
+            title: '친구가 무리한 투자 제안을 한다. 너의 한마디는?',
+            sub: '신뢰와 계산 사이의 선택.',
+            choices: [
+                { key: 'A', text: '가능성 있으면 소액으로 먼저 찍어본다.', scores: { opportunism: 2, intuition: 1, pragmatism: 1 } },
+                { key: 'B', text: '근거 없으면 안 간다. 숫자부터 가져오라 한다.', scores: { strategy: 2, pragmatism: 2 } },
+                { key: 'C', text: '관계는 지키되 돈은 지킨다. 단호히 거절한다.', scores: { composure: 2, endurance: 1, pragmatism: 1 } }
+            ]
+        },
+        {
+            id: 'q6',
+            title: '중요한 발표 10분 전, 돌발 변수가 생겼다.',
+            sub: '순간 대응 능력 체크.',
+            choices: [
+                { key: 'A', text: '즉석에서 흐름을 재구성하고 밀어붙인다.', scores: { charisma: 2, leadership: 1, intuition: 1 } },
+                { key: 'B', text: '핵심 3가지만 남겨 안정적으로 간다.', scores: { strategy: 1, pragmatism: 2, composure: 1 } },
+                { key: 'C', text: '속도 늦추고 실수 없는 운영으로 버틴다.', scores: { endurance: 2, composure: 2 } }
+            ]
+        },
+        {
+            id: 'q7',
+            title: '네가 생각하는 진짜 승부는 무엇인가?',
+            sub: '마지막 질문. 네 본능을 택하라.',
+            choices: [
+                { key: 'A', text: '사람들의 시선을 내 쪽으로 돌리는 순간.', scores: { charisma: 2, leadership: 1, opportunism: 1 } },
+                { key: 'B', text: '계획이 완벽하게 맞아떨어지는 순간.', scores: { strategy: 2, composure: 1, endurance: 1 } },
+                { key: 'C', text: '끝까지 살아남아 뒤집는 마지막 한 수.', scores: { endurance: 2, intuition: 1, pragmatism: 1 } }
+            ]
+        }
+    ]
+};
+
+let _lifeCardState = null;
+
+const LIFE_CARD_COMBO_MAP = {
+    samgwang: {
+        cards: [hwatuImg(1, 1), hwatuImg(3, 1), hwatuImg(8, 1)],
+        label: '광 중심 삼광 조합'
+    },
+    godori: {
+        cards: [hwatuImg(2, 1), hwatuImg(4, 1), hwatuImg(8, 2)],
+        label: '열끗 기회 포착 조합'
+    },
+    cheongdan: {
+        cards: [hwatuImg(4, 2), hwatuImg(5, 2), hwatuImg(6, 2)],
+        label: '청단 전략 조합'
+    },
+    hongdan: {
+        cards: [hwatuImg(1, 2), hwatuImg(2, 2), hwatuImg(7, 2)],
+        label: '홍단 관계 조합'
+    },
+    chodan: {
+        cards: [hwatuImg(9, 2), hwatuImg(10, 2), hwatuImg(6, 2)],
+        label: '정밀 루틴 조합'
+    },
+    bipung: {
+        cards: [hwatuImg(12, 3), hwatuImg(9, 4), hwatuImg(4, 4)],
+        label: '실속 파투 조합'
+    },
+    ddonggwang: {
+        cards: [hwatuImg(11, 4), hwatuImg(11, 1), hwatuImg(12, 4)],
+        label: '역전 내공 조합'
+    },
+    bigwang: {
+        cards: [hwatuImg(12, 1), hwatuImg(10, 1), hwatuImg(8, 1)],
+        label: '비광 반전 조합'
+    }
+};
+
+function _createTraitScores() {
+    const scores = {};
+    LIFE_TRAITS.forEach((t) => { scores[t] = 0; });
+    return scores;
+}
+
+function _addTraitScores(base, delta) {
+    Object.keys(delta || {}).forEach((k) => {
+        if (typeof base[k] === 'number') {
+            base[k] += delta[k];
+        }
+    });
+}
+
+function _pickLifeArchetype(scores) {
+    let best = LIFE_CARD_TEST_DATA.archetypes[0];
+    let bestValue = -Infinity;
+    LIFE_CARD_TEST_DATA.archetypes.forEach((arc) => {
+        let dot = 0;
+        LIFE_TRAITS.forEach((k) => {
+            dot += (scores[k] || 0) * (arc.profile[k] || 0);
+        });
+        if (dot > bestValue) {
+            bestValue = dot;
+            best = arc;
+        }
+    });
+    return best;
+}
+
+function _buildLifeMonthlySummary(arc) {
+    const month = new Date().getMonth() + 1;
+    const monthNames = {
+        1: '송학', 2: '매조', 3: '벚꽃', 4: '흑싸리', 5: '난초', 6: '모란',
+        7: '홍싸리', 8: '공산명월', 9: '국화', 10: '단풍', 11: '오동', 12: '비'
+    };
+    const monthLabel = month + '월 ' + (monthNames[month] || '월령');
+    const perArc = {
+        samgwang: '이번 달은 네 존재감이 결정권을 만든다. 회의, 면접, 협상처럼 무대가 있는 자리에서 먼저 선언하라.',
+        godori: '이번 달은 속도가 돈이다. 정보가 들어오면 하루 안에 판단해 움직일수록 이득이 커진다.',
+        cheongdan: '이번 달은 디테일이 승부를 가른다. 문서, 계약, 스케줄의 작은 구멍을 막으면 큰 손실을 피한다.',
+        hongdan: '이번 달은 관계가 자산이다. 누군가의 마음을 제대로 읽어낸 한 번의 대화가 다음 기회를 연다.',
+        chodan: '이번 달은 루틴이 네 방패다. 반복되는 습관을 정리하면 체력과 성과가 동시에 올라온다.',
+        bipung: '이번 달은 선택과 집중이 답이다. 버릴 카드부터 정리하면 남은 판이 훨씬 선명해진다.',
+        ddonggwang: '이번 달은 느리지만 강하다. 당장 티 나지 않아도 꾸준히 버티는 사람이 마지막 패를 가져간다.',
+        bigwang: '이번 달은 변수가 곧 기회다. 예상 밖 상황에서 과감히 포지션을 바꾸면 판을 뒤집을 수 있다.'
+    };
+    const baseText = perArc[arc.id] || '이번 달은 자기 리듬을 지키는 사람이 끝내 웃는다.';
+    return '이 패를 가진 당신의 이번 달 운세는? [' + monthLabel + '] ' + baseText;
+}
+
+function _resolveLifeResultCard(arc, scores) {
+    const combo = LIFE_CARD_COMBO_MAP[arc.id] || { cards: [arc.image], label: '기본 상징 조합' };
+    const selectorSeed = (scores.leadership || 0) + (scores.strategy || 0) + (scores.intuition || 0);
+    const idx = combo.cards.length ? (selectorSeed % combo.cards.length) : 0;
+    return {
+        image: combo.cards[idx] || arc.image,
+        comboLabel: combo.label
+    };
+}
+
+function _renderLifeQuestion() {
+    if(!_lifeCardState) return;
+    const panel = document.getElementById('lifeCardQuestionPanel');
+    const holder = document.getElementById('lifeQuestionCard');
+    const fill = document.getElementById('lifeProgressFill');
+    if(!panel || !holder || !fill) return;
+
+    const idx = _lifeCardState.index;
+    const total = LIFE_CARD_TEST_DATA.questions.length;
+    const question = LIFE_CARD_TEST_DATA.questions[idx];
+    if(!question) return;
+
+    fill.style.width = Math.round((idx / total) * 100) + '%';
+
+    holder.innerHTML = `
+        <div class="life-q-tag">문항 ${idx + 1} / ${total}</div>
+        <div class="life-q-title">${question.title}</div>
+        <div class="life-q-sub">${question.sub}</div>
+        ${question.choices.map((choice, cIdx) => `
+            <button class="life-choice" type="button" onclick="chooseLifeCardOption(${cIdx})">
+                <span class="life-choice-key">${choice.key}</span>${choice.text}
+            </button>
+        `).join('')}
+    `;
+
+    if(window.gsap) {
+        gsap.fromTo(holder, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.34, ease: 'power2.out' });
+    }
+}
+
+window.startLifeCardTest = function() {
+    _lifeCardState = {
+        index: 0,
+        scores: _createTraitScores()
+    };
+    const intro = document.getElementById('lifeCardIntro');
+    const panel = document.getElementById('lifeCardQuestionPanel');
+    const result = document.getElementById('lifeCardResultBox');
+    if(intro) intro.style.display = 'none';
+    if(result) result.style.display = 'none';
+    if(panel) panel.style.display = 'block';
+    playClackSound(190);
+    _renderLifeQuestion();
+};
+
+window.resetLifeCardTest = function() {
+    _lifeCardState = null;
+    const intro = document.getElementById('lifeCardIntro');
+    const panel = document.getElementById('lifeCardQuestionPanel');
+    const result = document.getElementById('lifeCardResultBox');
+    const fill = document.getElementById('lifeProgressFill');
+    if(intro) intro.style.display = 'block';
+    if(panel) panel.style.display = 'none';
+    if(result) result.style.display = 'none';
+    if(fill) fill.style.width = '0%';
+};
+
+window.chooseLifeCardOption = function(choiceIndex) {
+    if(!_lifeCardState) return;
+    const question = LIFE_CARD_TEST_DATA.questions[_lifeCardState.index];
+    if(!question) return;
+    const choice = question.choices[choiceIndex];
+    if(!choice) return;
+
+    _addTraitScores(_lifeCardState.scores, choice.scores);
+    playClackSound(250);
+
+    const holder = document.getElementById('lifeQuestionCard');
+    if(window.gsap && holder) {
+        gsap.to(holder, {
+            opacity: 0,
+            y: -10,
+            duration: 0.17,
+            onComplete: () => {
+                _lifeCardState.index += 1;
+                if(_lifeCardState.index >= LIFE_CARD_TEST_DATA.questions.length) {
+                    _showLifeCardResult();
+                } else {
+                    _renderLifeQuestion();
+                }
+            }
+        });
+    } else {
+        _lifeCardState.index += 1;
+        if(_lifeCardState.index >= LIFE_CARD_TEST_DATA.questions.length) {
+            _showLifeCardResult();
+        } else {
+            _renderLifeQuestion();
+        }
+    }
+};
+
+function _showLifeCardResult() {
+    if(!_lifeCardState) return;
+
+    const result = _pickLifeArchetype(_lifeCardState.scores);
+    const resolvedCard = _resolveLifeResultCard(result, _lifeCardState.scores);
+    const panel = document.getElementById('lifeCardQuestionPanel');
+    const resultBox = document.getElementById('lifeCardResultBox');
+
+    document.getElementById('lifeResultImg').src = resolvedCard.image;
+    document.getElementById('lifeResultName').innerText = '당신의 인생 패: [' + result.name + '] - ' + result.cardTitle;
+    document.getElementById('lifeResultTagline').innerText = '"' + result.quote + '"';
+    document.getElementById('lifeResultDesc').innerText = result.tagline + ' (해석 기준: ' + resolvedCard.comboLabel + ')';
+    document.getElementById('lifeResultTraits').innerHTML = result.traits.map((t) => '<span class="life-result-chip">' + t + '</span>').join('');
+    document.getElementById('lifeMonthlySummary').innerText = _buildLifeMonthlySummary(result);
+
+    window._lastLifeCardResult = result;
+    window._lastLifeCardResolved = resolvedCard;
+
+    if(panel) panel.style.display = 'none';
+    if(resultBox) resultBox.style.display = 'block';
+
+    const fill = document.getElementById('lifeProgressFill');
+    if(fill) fill.style.width = '100%';
+
+    if(window.gsap && resultBox) {
+        gsap.fromTo(resultBox, { opacity: 0, y: 18, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.38, ease: 'power2.out' });
+    }
+}
+
+window.shareHwatuLifeCard = function() {
+    const result = window._lastLifeCardResult;
+    const resolved = window._lastLifeCardResolved;
+    if(!result) {
+        alert('먼저 테스트 결과를 확인해주쇼.');
+        return;
+    }
+
+    const text = [
+        '[🎴 화투 인생 패 테스트]',
+        '나의 인생 패: [' + result.name + '] ' + result.cardTitle,
+        result.tagline,
+        resolved && resolved.comboLabel ? ('핵심 조합: ' + resolved.comboLabel) : '',
+        _buildLifeMonthlySummary(result),
+        '👉 지금 확인: ' + window.location.href
+    ].filter(Boolean).join('\n');
+
+    var Kakao = window.Kakao;
+    if (
+        Kakao &&
+        typeof Kakao.isInitialized === 'function' &&
+        Kakao.isInitialized() &&
+        Kakao.Share &&
+        typeof Kakao.Share.sendDefault === 'function'
+    ) {
+        try {
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: '화투 인생 패: ' + result.name,
+                    description: result.cardTitle + ' | ' + result.tagline,
+                    imageUrl: window.location.origin + '/' + ((resolved && resolved.image) ? resolved.image : result.image),
+                    link: {
+                        mobileWebUrl: window.location.href,
+                        webUrl: window.location.href
+                    }
+                },
+                buttons: [
+                    {
+                        title: '결과 보러 가기',
+                        link: {
+                            mobileWebUrl: window.location.href,
+                            webUrl: window.location.href
+                        }
+                    }
+                ]
+            });
+            return;
+        } catch (e) {
+            console.warn('[hwatu-life] Kakao.Share.sendDefault failed', e);
+        }
+    }
+
+    if(navigator.share) {
+        navigator.share({ title: '화투 인생 패 테스트', text: text }).catch(function() {});
+        return;
+    }
+
+    const encoded = encodeURIComponent(text);
+    const kakaoUrl = 'kakaotalk://send?text=' + encoded;
+    const anchor = document.createElement('a');
+    anchor.href = kakaoUrl;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    setTimeout(function() {
+        if(anchor && anchor.parentNode) anchor.parentNode.removeChild(anchor);
+        alert('카카오 공유를 시도했습니다. 실행되지 않으면 아래 메시지를 복사해서 공유해주쇼.\n\n' + text);
+    }, 380);
+};
+
+// ═══════════════════════════════════════════════════════════════
 //  모드 토글
 // ═══════════════════════════════════════════════════════════════
-window._hwatuMode = 'seotda'; // 'seotda' | 'traditional'
+window._hwatuMode = 'seotda'; // 'seotda' | 'traditional' | 'lifecard'
 
 window.switchHwatuMode = function(mode, autoStartTraditional) {
     if (typeof autoStartTraditional === 'undefined') autoStartTraditional = true;
     window._hwatuMode = mode;
     const isSeotda = mode === 'seotda';
+    const isTraditional = mode === 'traditional';
+    const isLifeCard = mode === 'lifecard';
     const seotdaBox = document.getElementById('seotdaModeContainer');
     const traditionalBox = document.getElementById('traditionalModeContainer');
+    const lifeCardBox = document.getElementById('lifeCardModeContainer');
     seotdaBox.style.display = isSeotda ? '' : 'none';
-    traditionalBox.style.display = isSeotda ? 'none' : '';
+    traditionalBox.style.display = isTraditional ? '' : 'none';
+    if(lifeCardBox) lifeCardBox.style.display = isLifeCard ? '' : 'none';
     // 섯다 고유 요소들
-    document.getElementById('shuffleArea').style.display    = isSeotda ? 'block' : 'none';
-    document.getElementById('revealArea').style.display     = isSeotda ? (document.getElementById('revealArea').dataset.vis||'none') : 'none';
-    document.getElementById('hwatuResultBox').style.display = isSeotda ? (document.getElementById('hwatuResultBox').dataset.vis||'none') : 'none';
+    const shuffleArea = document.getElementById('shuffleArea');
+    const revealArea = document.getElementById('revealArea');
+    const seotdaResult = document.getElementById('hwatuResultBox');
+    if(shuffleArea) shuffleArea.style.display = isSeotda ? 'block' : 'none';
+    if(revealArea) revealArea.style.display = isSeotda ? (revealArea.dataset.vis || revealArea.style.display || 'none') : 'none';
+    if(seotdaResult) seotdaResult.style.display = isSeotda ? (seotdaResult.dataset.vis || seotdaResult.style.display || 'none') : 'none';
     // 토글 버튼 스타일
-    document.getElementById('modeBtnSeotda').style.background      = isSeotda ? '#d4af37' : 'transparent';
-    document.getElementById('modeBtnSeotda').style.color           = isSeotda ? '#1a202c'  : '#d4af37';
-    document.getElementById('modeBtnTraditional').style.background = isSeotda ? 'transparent' : '#d4af37';
-    document.getElementById('modeBtnTraditional').style.color      = isSeotda ? '#d4af37'  : '#1a202c';
+    const modeBtnSeotda = document.getElementById('modeBtnSeotda');
+    const modeBtnTraditional = document.getElementById('modeBtnTraditional');
+    const modeBtnLifeCard = document.getElementById('modeBtnLifeCard');
+    if(modeBtnSeotda) {
+        modeBtnSeotda.style.background = isSeotda ? '#d4af37' : 'transparent';
+        modeBtnSeotda.style.color = isSeotda ? '#1a202c' : '#d4af37';
+    }
+    if(modeBtnTraditional) {
+        modeBtnTraditional.style.background = isTraditional ? '#d4af37' : 'transparent';
+        modeBtnTraditional.style.color = isTraditional ? '#1a202c' : '#d4af37';
+    }
+    if(modeBtnLifeCard) {
+        modeBtnLifeCard.style.background = isLifeCard ? '#d4af37' : 'transparent';
+        modeBtnLifeCard.style.color = isLifeCard ? '#1a202c' : '#d4af37';
+    }
 
-    if(!isSeotda && traditionalBox && typeof traditionalBox.scrollIntoView === 'function') {
+    if((isTraditional || isLifeCard) && typeof traditionalBox?.scrollIntoView === 'function') {
         setTimeout(function() {
-            traditionalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if(isTraditional) traditionalBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if(isLifeCard && lifeCardBox && typeof lifeCardBox.scrollIntoView === 'function') {
+                lifeCardBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }, 30);
     }
 
     // 운수 떼기를 선택하면 안내 단계가 아니라 즉시 짝 맞추기 판으로 진입
-    if (!isSeotda && autoStartTraditional && !_tradState) {
+    if (isTraditional && autoStartTraditional && !_tradState) {
         setTimeout(function() {
             if (window._hwatuMode === 'traditional' && !_tradState) {
                 startTraditionalGame();
             }
         }, 40);
+    }
+
+    if (isLifeCard && typeof window.resetLifeCardTest === 'function') {
+        window.resetLifeCardTest();
     }
 };
 

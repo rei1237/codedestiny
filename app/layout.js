@@ -56,6 +56,7 @@ function buildHreflangAlternates(currentPathname) {
   const supported = new Set([
     "/",
     "/tarot/healing",
+    "/oracle/hwatu-life",
     "/points",
     "/login",
     "/signup",

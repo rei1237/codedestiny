@@ -10,6 +10,14 @@
     return 'strong';
   }
 
+  function normalizeAnimalLabel(value) {
+    return String(value || '')
+      .replace(/^\s*아기\s*/g, '')
+      .replace(/\b(cute|baby|little|tiny)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   /* ─────────────────────────────────────
      1. 오행 → 동물 매핑 테이블
   ───────────────────────────────────── */
@@ -288,7 +296,7 @@
     }
 
     var traitStr = a.traits || '귀엽고 신비로운';
-    var animalName = a.name || '수호신';
+    var animalName = normalizeAnimalLabel(a.name || '수호신') || '수호신';
 
     var sentParts = parts.length > 0 ? parts.join('과 ') : (elDesc[el] || 'star energy');
 
@@ -561,8 +569,8 @@
 
     var sajuAnalysis = captureSajuAnalysisSnapshot();
     var totemAnimal = totemData && totemData.primary ? {
-      name: totemData.primary.name || '',
-      nameEn: totemData.primary.nameEn || '',
+      name: normalizeAnimalLabel(totemData.primary.name || ''),
+      nameEn: normalizeAnimalLabel(totemData.primary.nameEn || ''),
       keyword: totemData.primary.keyword || '',
       traits: totemData.primary.traits || '',
       dayZhi: totemData.dayZhi || '',
@@ -624,10 +632,12 @@
     var desc = buildDescription(totemData);
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
     var imgUrl = guardian && guardian.svg_data_uri ? guardian.svg_data_uri : '';
-    var guardianTitle = (guardian && guardian.title) ? guardian.title : '사주 동물 아트';
+    var cleanAnimalName = normalizeAnimalLabel(a.name || '수호 동물') || '수호 동물';
+    var guardianTitle = (guardian && guardian.title) ? guardian.title : (cleanAnimalName + ' 수호 캐릭터');
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';
+    var cardKeyword = summary || (a.keyword || '사주 에너지 기반 수호 캐릭터');
     body.innerHTML =
       '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
 
@@ -639,8 +649,8 @@
             '<img class="stg-card__img" src="' + imgUrl + '" alt="' + a.name + '" id="sajuTotemImg" loading="lazy">' +
             '<div class="stg-card__img-overlay"></div>' +
           '</div>' +
-          '<h2 class="stg-card__title">' + guardianTitle + ': <span>' + a.name + '</span></h2>' +
-          '<p class="stg-card__keyword">' + (a.keyword || '') + '</p>' +
+          '<h2 class="stg-card__title">' + guardianTitle + '</h2>' +
+          '<p class="stg-card__keyword">' + cardKeyword + '</p>' +
         '</div>' +
 
         /* 설명 카드 */

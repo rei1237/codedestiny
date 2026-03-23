@@ -26,6 +26,7 @@ export const SERVICE_SECTIONS = [
     title: "신탁 & 해몽",
     items: [
       { href: "/oracle/hwatu", title: "타짜들의 화투점", desc: "12달 화투패 운세" },
+      { href: "/oracle/hwatu-life", title: "화투 인생 패 테스트", desc: "타짜 컨셉 7문항 심리테스트" },
       { href: "/oracle/kemet", title: "고대 이집트 신탁", desc: "케멧 오라클 리딩" },
       { href: "/oracle/juyuk", title: "주역 거북점", desc: "64괘 상징 해석" },
       { href: "/oracle/sukuyo", title: "숙요점", desc: "27수 별자리 운명" },

@@ -197,8 +197,8 @@ function toDataUri(svg) {
 
 function normalizeTotemAnimal(payload) {
   if (!payload || typeof payload !== "object") return null;
-  const name = String(payload.name || "").trim();
-  const nameEn = String(payload.nameEn || "").trim();
+  const name = sanitizeAnimalNameKr(String(payload.name || "").trim());
+  const nameEn = sanitizeAnimalNameEn(String(payload.nameEn || "").trim());
   const keyword = String(payload.keyword || "").trim();
   const traits = String(payload.traits || "").trim();
   const dayZhi = String(payload.dayZhi || "").trim();
@@ -216,6 +216,37 @@ function normalizeRenderMode(mode) {
 function normalizeStyleIntensity(intensity) {
   const v = String(intensity || "").trim().toLowerCase();
   return v === "strong" ? "strong" : "soft";
+}
+
+function sanitizeAnimalNameKr(value) {
+  return String(value || "")
+    .replace(/^\s*아기\s*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sanitizeAnimalNameEn(value) {
+  return String(value || "")
+    .replace(/\b(cute|baby|little|tiny)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeProfileGender(value) {
+  const v = String(value || "").trim().toUpperCase();
+  if (v === "F" || v.includes("FEMALE") || v.includes("WOMAN") || v.includes("여")) return "F";
+  if (v === "M" || v.includes("MALE") || v.includes("MAN") || v.includes("남")) return "M";
+  return "U";
+}
+
+function genderStyleHint(gender) {
+  if (gender === "F") {
+    return "여성형 무드를 반영해 부드러운 곡선 라인, 섬세한 속눈썹, 은은한 하이라이트를 사용하되 과장된 장식은 피하라.";
+  }
+  if (gender === "M") {
+    return "남성형 무드를 반영해 또렷한 이목구비, 선명한 라인, 안정적인 광원 대비를 사용하되 강압적 느낌은 피하라.";
+  }
+  return "중성형 무드로 균형감 있는 이목구비와 부드러운 라인, 자연스러운 명암을 사용하라.";
 }
 
 function normalizeAnimalSpeciesToken(value) {
@@ -246,11 +277,11 @@ function normalizeAnimalSpeciesToken(value) {
 
 function fallbackAnimalByElement(element) {
   const map = {
-    wood: { name: "아기 사슴", nameEn: "baby deer" },
-    fire: { name: "아기 사자", nameEn: "baby lion cub" },
-    earth: { name: "아기 곰", nameEn: "baby bear" },
-    metal: { name: "아기 늑대", nameEn: "baby wolf" },
-    water: { name: "아기 거북이", nameEn: "baby turtle" },
+    wood: { name: "사슴", nameEn: "deer" },
+    fire: { name: "사자", nameEn: "lion" },
+    earth: { name: "곰", nameEn: "bear" },
+    metal: { name: "늑대", nameEn: "wolf" },
+    water: { name: "거북이", nameEn: "turtle" },
   };
   return map[element] || map.wood;
 }
@@ -258,6 +289,7 @@ function fallbackAnimalByElement(element) {
 function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
   const birth = (profile && profile.birth) || {};
   const loc = (profile && profile.location) || {};
+  const gender = normalizeProfileGender(profile && profile.gender);
 
   if (renderMode === "profile-mini") {
     return [
@@ -300,22 +332,26 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
 
   const fallbackAnimal = fallbackAnimalByElement(visual?.dominantElement || "wood");
   const animal = totemAnimal || fallbackAnimal;
-  const animalName = String(animal?.name || fallbackAnimal.name || "아기 사슴").trim();
-  const animalNameEn = String(animal?.nameEn || fallbackAnimal.nameEn || "baby deer").trim();
+  const animalName = sanitizeAnimalNameKr(String(animal?.name || fallbackAnimal.name || "사슴").trim()) || "사슴";
+  const animalNameEn = sanitizeAnimalNameEn(String(animal?.nameEn || fallbackAnimal.nameEn || "deer").trim()) || "deer";
   const animalKeyword = String(animal?.keyword || "").trim();
   const animalTraits = String(animal?.traits || "").trim();
-  const styleGuide = "선명하고 귀여운 만화풍(굵은 윤곽선, 명확한 명암, 파스텔 중심 색감)";
+  const styleGuide = "고해상도 귀여운 만화풍(굵고 깔끔한 윤곽선, 세밀한 눈/털 표현, 선명한 명암, 파스텔 기반 색감)";
   const targetSpecies = normalizeAnimalSpeciesToken(animalNameEn || animalName);
 
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-    "SVG는 512x512, 따뜻한 파스텔 만화풍 캐릭터 스타일(SD/chibi), 두꺼운 라인과 부드러운 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
-    "스타일은 동화풍이 아니라 분명한 만화풍으로, 명확한 윤곽선과 선명한 실루엣을 유지하라.",
+    "SVG는 512x512, 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "스타일은 동화풍 스케치가 아니라 완성된 만화풍 일러스트로, 명확한 윤곽선과 디테일한 눈동자/헤어(털) 결을 표현하라.",
     "만화풍 강도 지시: " + styleGuide,
     "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
     "다른 종으로 치환하지 말고, 목표 동물의 얼굴/귀/코/입/체형 특징을 분명히 드러내라.",
-    "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
+    "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 전경 소품, 배경 레이어, 광원, 색조 대비.",
+    "구도 지시: 얼굴+상반신이 캔버스 60~70%를 차지하고, 배경은 30~40% 영역에서 명확히 보이게 하라.",
+    "배경 지시: 단색 배경 금지. 최소 2개 이상의 레이어(원거리/중거리)를 사용해 깊이감 있는 배경을 구성하라.",
+    "배경은 흐릿한 장식이 아니라 동물과 어울리는 자연/판타지 요소를 식별 가능하게 포함하라.",
+    "성별 반영 지시: " + genderStyleHint(gender),
     "결과는 완성 일러스트 품질이어야 하며, 스케치나 아이콘 수준이 아니어야 한다.",
     "캐릭터 비율은 2.5등신 내외의 마스코트형으로 만들고, 얼굴 비중을 크게 해서 사랑스럽게 보이게 하라.",
     "색감은 파스텔톤 중심(저채도, 부드러운 명도 대비)으로 통일하고 공격적/다크 톤은 금지한다.",
@@ -344,6 +380,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
         keyword: animalKeyword,
         traits: animalTraits,
       },
+      profileGender: gender,
     }),
     '반드시 "' + animalNameEn + '" (' + animalName + ') 동물을 주인공으로 표현하라.',
     '동물 종 식별자(animal_species_en)는 반드시 "' + (targetSpecies || animalNameEn) + '" 로 출력하라.',
@@ -363,6 +400,21 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
 function parseGeminiText(payload) {
   const parts = (((payload || {}).candidates || [])[0] || {}).content?.parts || [];
   return parts.map((p) => (p && p.text ? p.text : "")).join("\n").trim();
+}
+
+function toGuardianLabel(name) {
+  const kr = sanitizeAnimalNameKr(name);
+  const en = sanitizeAnimalNameEn(name);
+  return kr || en || "수호 동물";
+}
+
+function sanitizeOutputCopy(value) {
+  return String(value || "")
+    .replace(/아기\s*/g, "")
+    .replace(/\b(cute|baby|little|tiny)\b/gi, "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function parseJson(text) {
@@ -670,17 +722,17 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
           }
 
           return {
-            title: String(
+            title: sanitizeOutputCopy(
               obj.title ||
                 (normalizedMode === "profile-mini"
                   ? "미니 가디언"
                   : totemAnimal && totemAnimal.name
-                    ? totemAnimal.name + " 가디언"
+                    ? toGuardianLabel(totemAnimal.name) + " 수호 캐릭터"
                     : "사주 동물 아트")
-            ).trim(),
-            summary: String(
-              obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 동물 아트")
-            ).trim(),
+            ),
+            summary: sanitizeOutputCopy(
+              obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 수호 캐릭터 아트")
+            ),
             facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
             backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
             illustrationPrompt: String(
