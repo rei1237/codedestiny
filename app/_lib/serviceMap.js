@@ -6,12 +6,14 @@ import ZiweiChartPage from "../components/ZiweiChartPage";
 import AstrologyCosmicPage from "../components/AstrologyCosmicPage";
 import FeatureLandingPage from "../components/FeatureLandingPage";
 import SunHealingTarot from "../components/SunHealingTarot";
+import StonehengeRune from "../../StonehengeRune";
 
 export const SECTION_LABELS = {
   tarot: "타로",
   saju: "사주",
   astrology: "점성술",
   ziwei: "자미두수",
+  oracle: "신탁",
 };
 
 export const SERVICE_MAP = {
@@ -295,6 +297,22 @@ export const SERVICE_MAP = {
       "27수",
       "숙요도",
       "Sukuyo",
+    ],
+  },
+  "oracle/rune": {
+    component: StonehengeRune,
+    title: "스톤헨지 룬 오라클 - Stonehenge Rune",
+    h1: "스톤헨지 룬 오라클",
+    description: "고대 룬 상징으로 현재 흐름과 연간 운세를 읽는 스톤헨지 룬 신탁 서비스입니다.",
+    seoText: "스톤헨지 룬 오라클은 1/3/5/12 룬 스프레드를 통해 상황별 통찰과 실행 힌트를 제공합니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/rune.webp",
+    landingPoints: ["1/3/5/12 룬 스프레드", "정·역방향 룬 해석", "연간 흐름 리딩"],
+    keywords: [
+      "룬 점",
+      "스톤헨지 룬",
+      "Rune Oracle",
+      "북유럽 룬",
+      "rune reading",
     ],
   },
   "vedic/jyotish": {

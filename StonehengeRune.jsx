@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useEffect } from "react";
 
 const GOOGLE_FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap');`;
@@ -948,7 +950,7 @@ export default function StonehengeRune() {
           <section className="sr-collection-card">
             <img
               className="sr-collection-img"
-              src="/fuctionassets/StonehengeRune.webp"
+              src="/fuctionassets/rune.webp"
               alt="스톤헨지 룬 오라클"
               loading="lazy"
             />
