@@ -505,7 +505,6 @@ export default function StonehengeRune() {
   const [spread, setSpread] = useState(null);
   const [selectedRune, setSelectedRune] = useState(null);
   const [visibleCards, setVisibleCards] = useState([]);
-  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
 
   useEffect(() => {
     if (phase === "revealed" && drawnRunes.length > 0) {
@@ -531,6 +530,25 @@ export default function StonehengeRune() {
     setSelectedRune(null);
     drawRunes(spread);
   };
+
+  const openRuneAt = useCallback((index) => {
+    if (index < 0 || index >= drawnRunes.length) return;
+    setSelectedRune({ ...drawnRunes[index], index });
+  }, [drawnRunes]);
+
+  const closeRuneDetail = useCallback(() => {
+    setSelectedRune(null);
+  }, []);
+
+  const showPrevRune = useCallback(() => {
+    if (!selectedRune) return;
+    openRuneAt(selectedRune.index - 1);
+  }, [selectedRune, openRuneAt]);
+
+  const showNextRune = useCallback(() => {
+    if (!selectedRune) return;
+    openRuneAt(selectedRune.index + 1);
+  }, [selectedRune, openRuneAt]);
 
   const getSpreadInsight = () => {
     if (!drawnRunes.length) return null;
@@ -650,42 +668,24 @@ export default function StonehengeRune() {
     }
   };
 
-  const handleAddToHome = async () => {
-    if (deferredInstallPrompt) {
-      deferredInstallPrompt.prompt();
-      try {
-        await deferredInstallPrompt.userChoice;
-      } catch {
-        // install prompt might be dismissed; no-op
-      }
-      setDeferredInstallPrompt(null);
-      return;
-    }
-
-    const ua = (typeof navigator !== "undefined" ? navigator.userAgent : "").toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(ua);
-    const isAndroid = /android/.test(ua);
-    if (isIOS) {
-      window.alert("iPhone/iPad: 브라우저 하단 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택하세요.");
-      return;
-    }
-    if (isAndroid) {
-      window.alert("Android: 브라우저 메뉴(⋮)에서 '홈 화면에 추가' 또는 '앱 설치'를 선택하세요.");
-      return;
-    }
-    window.alert("브라우저 메뉴에서 '홈 화면에 추가' 또는 '앱 설치'를 선택해 주세요.");
+  const handleGoMain = () => {
+    window.location.href = "/";
   };
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      setDeferredInstallPrompt(event);
+    if (!selectedRune) return;
+
+    const handleKeydown = (event) => {
+      if (event.key === "Escape") closeRuneDetail();
+      if (event.key === "ArrowLeft") showPrevRune();
+      if (event.key === "ArrowRight") showNextRune();
     };
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    window.addEventListener("keydown", handleKeydown);
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("keydown", handleKeydown);
     };
-  }, []);
+  }, [selectedRune, closeRuneDetail, showPrevRune, showNextRune]);
 
   const selectedPositionLabel = selectedRune && SPREAD_LABELS[drawnRunes.length]
     ? SPREAD_LABELS[drawnRunes.length][selectedRune.index]
@@ -1315,9 +1315,103 @@ export default function StonehengeRune() {
           padding-top: 10px;
         }
 
+        .sr-detail-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(2, 6, 23, 0.72);
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+          z-index: 50;
+          display: grid;
+          place-items: center;
+          padding: 20px;
+        }
+
+        .sr-detail-modal {
+          width: min(820px, 100%);
+          max-height: calc(100vh - 40px);
+          overflow: auto;
+          position: relative;
+          margin-bottom: 0;
+          box-shadow: 0 24px 52px rgba(2, 6, 23, 0.55);
+        }
+
+        .sr-detail-close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 34px;
+          height: 34px;
+          border-radius: 999px;
+          border: 1px solid rgba(148, 163, 184, 0.45);
+          background: rgba(15, 23, 42, 0.85);
+          color: #dbeafe;
+          font-size: 16px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .sr-detail-close:hover {
+          border-color: rgba(167, 139, 250, 0.85);
+          color: #ede9fe;
+        }
+
+        .sr-detail-nav {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 12px;
+        }
+
+        .sr-detail-nav-btn {
+          border-radius: 10px;
+          border: 1px solid rgba(99, 102, 241, 0.35);
+          background: rgba(30, 41, 59, 0.65);
+          color: #c7d2fe;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          padding: 10px;
+          cursor: pointer;
+        }
+
+        .sr-detail-nav-btn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .sr-detail-nav-btn:hover:not(:disabled) {
+          border-color: rgba(167, 139, 250, 0.75);
+          background: rgba(49, 46, 129, 0.7);
+        }
+
+        .sr-detail-ux-note {
+          font-size: 12px;
+          color: #93c5fd;
+          margin-top: 8px;
+          text-align: center;
+        }
+
         @media (max-width: 640px) {
           .sr-detail-grid {
             grid-template-columns: 1fr;
+          }
+
+          .sr-detail-overlay {
+            padding: 0;
+            align-items: end;
+          }
+
+          .sr-detail-modal {
+            width: 100%;
+            max-height: 86vh;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+
+          .sr-detail-close {
+            top: 8px;
+            right: 8px;
           }
         }
 
@@ -1567,7 +1661,7 @@ export default function StonehengeRune() {
                   <div
                     key={rune.id}
                     className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.id === rune.id && selectedRune?.index === i ? "selected" : ""}`}
-                    onClick={() => setSelectedRune(selectedRune?.index === i ? null : { ...rune, index: i })}
+                    onClick={() => (selectedRune?.index === i ? closeRuneDetail() : openRuneAt(i))}
                   >
                     {SPREAD_LABELS[drawnRunes.length] && (
                       <p className="sr-card-position">{SPREAD_LABELS[drawnRunes.length][i]}</p>
@@ -1583,53 +1677,62 @@ export default function StonehengeRune() {
                 ))}
               </div>
 
-              {/* Detail panel */}
               {selectedRune && (
-                <div className="sr-detail">
-                  <div className="sr-detail-header">
-                    <div className={`sr-detail-stone ${selectedRune.isReversed ? "rev" : ""}`}>
-                      <span className="sr-detail-symbol">
-                        {selectedRune.id === "wyrd" ? "○" : selectedRune.symbol}
-                      </span>
+                <div className="sr-detail-overlay" onClick={closeRuneDetail} role="presentation">
+                  <div className="sr-detail sr-detail-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="룬 상세 해석">
+                    <button className="sr-detail-close" onClick={closeRuneDetail} aria-label="상세 해석 닫기">✕</button>
+
+                    <div className="sr-detail-header">
+                      <div className={`sr-detail-stone ${selectedRune.isReversed ? "rev" : ""}`}>
+                        <span className="sr-detail-symbol">
+                          {selectedRune.id === "wyrd" ? "○" : selectedRune.symbol}
+                        </span>
+                      </div>
+                      <div className="sr-detail-info">
+                        <h2 className="sr-detail-name">{selectedRune.name}</h2>
+                        <p className={`sr-detail-dir ${selectedRune.isReversed ? "rev" : "up"}`}>
+                          {selectedRune.isReversed ? "↓ REVERSED · 역방향" : "↑ UPRIGHT · 정방향"}
+                        </p>
+                        {selectedPositionLabel && (
+                          <p className="sr-detail-symbol-text">{selectedPositionLabel}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="sr-detail-info">
-                      <h2 className="sr-detail-name">{selectedRune.name}</h2>
-                      <p className={`sr-detail-dir ${selectedRune.isReversed ? "rev" : "up"}`}>
-                        {selectedRune.isReversed ? "↓ REVERSED · 역방향" : "↑ UPRIGHT · 정방향"}
-                      </p>
-                      {selectedPositionLabel && (
-                        <p className="sr-detail-symbol-text">{selectedPositionLabel}</p>
-                      )}
-                    </div>
-                  </div>
 
-                  <p className="sr-detail-meaning">{selectedReading?.summary}</p>
+                    <p className="sr-detail-meaning">{selectedReading?.summary}</p>
 
-                  <div className="sr-detail-axis">해석 축: {selectedReading?.axis}</div>
+                    <div className="sr-detail-axis">해석 축: {selectedReading?.axis}</div>
 
-                  <div className="sr-detail-grid">
-                    {selectedReading?.sections.map((section) => (
-                      <article key={section.title} className="sr-detail-block">
-                        <h3>{section.title}</h3>
-                        <p>{section.text}</p>
-                      </article>
-                    ))}
-                  </div>
-
-                  {selectedReading?.positionNote && (
-                    <p className="sr-detail-position">{selectedReading.positionNote}</p>
-                  )}
-
-                  <div className="sr-detail-actions">
-                    <h3>실천 조언</h3>
-                    <ul>
-                      {selectedReading?.actionItems.map((item) => (
-                        <li key={item}>{item}</li>
+                    <div className="sr-detail-grid">
+                      {selectedReading?.sections.map((section) => (
+                        <article key={section.title} className="sr-detail-block">
+                          <h3>{section.title}</h3>
+                          <p>{section.text}</p>
+                        </article>
                       ))}
-                    </ul>
-                  </div>
+                    </div>
 
-                  <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
+                    {selectedReading?.positionNote && (
+                      <p className="sr-detail-position">{selectedReading.positionNote}</p>
+                    )}
+
+                    <div className="sr-detail-actions">
+                      <h3>실천 조언</h3>
+                      <ul>
+                        {selectedReading?.actionItems.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
+
+                    <div className="sr-detail-nav">
+                      <button className="sr-detail-nav-btn" onClick={showPrevRune} disabled={!selectedRune || selectedRune.index <= 0}>← 이전 룬</button>
+                      <button className="sr-detail-nav-btn" onClick={showNextRune} disabled={!selectedRune || selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
+                    </div>
+                    <p className="sr-detail-ux-note">카드를 연속으로 비교해 보고 싶다면 좌우 화살표 키를 사용하세요.</p>
+                  </div>
                 </div>
               )}
 
@@ -1646,17 +1749,17 @@ export default function StonehengeRune() {
 
               {!selectedRune && (
                 <p className="sr-hint-text" style={{ marginTop: 8 }}>
-                  룬 카드를 클릭하면 상세 해석을 볼 수 있습니다
+                  룬 카드를 클릭하면 상세 해석이 즉시 팝업으로 열립니다
                 </p>
               )}
 
               {/* CTA */}
               <div className="sr-cta-wrap">
                 <p className="sr-cta-title">함께 나누고 바로 만나기</p>
-                <p className="sr-cta-desc">룬 결과를 카카오톡으로 공유하거나 홈화면에 바로가기를 추가해 빠르게 다시 열어보세요.</p>
+                <p className="sr-cta-desc">룬 결과를 카카오톡으로 공유하거나 메인 화면으로 이동해 다른 점술도 이어서 확인해보세요.</p>
                 <div className="sr-cta-btns">
                   <button className="sr-cta-btn primary" onClick={handleShareKakao}>카카오톡 공유하기</button>
-                  <button className="sr-cta-btn" onClick={handleAddToHome}>홈화면 바로가기</button>
+                  <button className="sr-cta-btn" onClick={handleGoMain}>메인 화면 바로가기</button>
                 </div>
               </div>
 
