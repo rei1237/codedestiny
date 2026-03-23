@@ -1787,7 +1787,7 @@ window.shareHwatuLifeCard = function() {
 window._hwatuMode = 'seotda'; // 'seotda' | 'traditional' | 'lifecard'
 
 window.switchHwatuMode = function(mode, autoStartTraditional) {
-    if (typeof autoStartTraditional === 'undefined') autoStartTraditional = true;
+    if (typeof autoStartTraditional === 'undefined') autoStartTraditional = false;
     window._hwatuMode = mode;
     const isSeotda = mode === 'seotda';
     const isTraditional = mode === 'traditional';
@@ -1831,7 +1831,7 @@ window.switchHwatuMode = function(mode, autoStartTraditional) {
         }, 30);
     }
 
-    // 운수 떼기를 선택하면 안내 단계가 아니라 즉시 짝 맞추기 판으로 진입
+    // 기본 동작은 수동 시작(버튼 클릭)이며, 명시적으로 true를 넘긴 경우에만 자동 시작
     if (isTraditional && autoStartTraditional && !_tradState) {
         setTimeout(function() {
             if (window._hwatuMode === 'traditional' && !_tradState) {
