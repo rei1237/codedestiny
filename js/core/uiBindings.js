@@ -155,7 +155,12 @@ function __invokeAction(action, actionEl, event) {
 
       const tryInvokeOnceWhenReady = () => {
         if (typeof window[action] !== 'function') {
-          if (attempt >= maxAttempts) return;
+          if (attempt >= maxAttempts) {
+            if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+              window._dpOpenFortuneType('olympus');
+            }
+            return;
+          }
           attempt += 1;
           setTimeout(tryInvokeOnceWhenReady, retryMs);
           return;
@@ -163,7 +168,15 @@ function __invokeAction(action, actionEl, event) {
 
         // Many UI open handlers intentionally return `undefined` after DOM side-effects.
         // Do not retry based on return value; just call once when the function appears.
-        __callActionWithConfig(action, actionEl, event, args);
+        try {
+          __callActionWithConfig(action, actionEl, event, args);
+        } catch (err) {
+          if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+            window._dpOpenFortuneType('olympus');
+          } else {
+            throw err;
+          }
+        }
       };
 
       tryInvokeOnceWhenReady();

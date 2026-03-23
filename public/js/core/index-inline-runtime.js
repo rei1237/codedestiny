@@ -609,8 +609,21 @@ function __cdInvokeAction(action, actionEl, event) {
     }
 
     __cdLazyActionState[action].then(function() {
-      if (typeof window[action] !== 'function') return;
-      __cdInvokeActionWithConfig(action, actionEl, event, args);
+      if (typeof window[action] !== 'function') {
+        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
+        }
+        return;
+      }
+      try {
+        __cdInvokeActionWithConfig(action, actionEl, event, args);
+      } catch (err) {
+        if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
+          window._dpOpenFortuneType('olympus');
+          return;
+        }
+        throw err;
+      }
     });
   }
 

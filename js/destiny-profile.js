@@ -773,7 +773,7 @@
       var resp = await fetch('/api/guardian-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile: p, sajuAnalysis: _dpBuildSajuAnalysisSnapshot() })
+        body: JSON.stringify({ profile: p, sajuAnalysis: _dpBuildSajuAnalysisSnapshot(), renderMode: 'profile-mini' })
       });
       var data = await resp.json().catch(function() { return null; });
       if (!resp.ok || !data || !data.ok || !data.guardian || !data.guardian.svg_data_uri) {

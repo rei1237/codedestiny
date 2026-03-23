@@ -6,6 +6,29 @@
 (function () {
   'use strict';
 
+  var SAJU_ANIMAL_STYLE_KEY = 'cd:saju-animal-style-intensity';
+
+  function getSajuAnimalStyleIntensity() {
+    try {
+      var v = String(localStorage.getItem(SAJU_ANIMAL_STYLE_KEY) || '').trim().toLowerCase();
+      return v === 'strong' ? 'strong' : 'soft';
+    } catch (e) {
+      return 'soft';
+    }
+  }
+
+  function setSajuAnimalStyleIntensity(v) {
+    var normalized = v === 'strong' ? 'strong' : 'soft';
+    try {
+      localStorage.setItem(SAJU_ANIMAL_STYLE_KEY, normalized);
+    } catch (e) {}
+    return normalized;
+  }
+
+  function styleIntensityLabel(v) {
+    return v === 'strong' ? '선명하게' : '부드럽게';
+  }
+
   /* ─────────────────────────────────────
      1. 오행 → 동물 매핑 테이블
   ───────────────────────────────────── */
@@ -290,7 +313,7 @@
 
     return [
       '생년월일 에너지에서 읽힌 핵심은 ' + sentParts + '입니다.',
-      '가디언 토템 결과에서 <strong>' + traitStr + ' ' + animalName + '</strong> 타입으로 해석됩니다.',
+      '사주 동물 아트 결과에서 <strong>' + traitStr + ' ' + animalName + '</strong> 타입으로 해석됩니다.',
       '<small style="color:var(--sg-text-muted,rgba(0,0,0,0.5))">✦ ' + (a.keyword || '') + ' · ' + (elKr[el] || '') + ' 시그니처</small>'
     ].join('<br>');
   }
@@ -430,13 +453,13 @@
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: '가디언 토템: ' + a.name,
-        description: a.traits + ' ' + a.name + ' 타입의 가디언 에너지를 확인해보세요!',
+        title: '사주 동물 아트: ' + a.name,
+        description: a.traits + ' ' + a.name + ' 타입의 사주 동물 아트를 확인해보세요!',
         imageUrl: imgUrl,
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       },
       buttons: [{
-        title: '나도 가디언 토템 보기',
+        title: '나도 사주 동물 아트 보기',
         link: { mobileWebUrl: 'https://code-destiny.com', webUrl: 'https://code-destiny.com' }
       }]
     });
@@ -446,8 +469,8 @@
     var a = totemData.primary;
     if (navigator.share) {
       navigator.share({
-        title: '가디언 토템: ' + a.name,
-        text: a.traits + '한 ' + a.name + '! 가디언 토템을 Code Destiny에서 확인해보세요.',
+        title: '사주 동물 아트: ' + a.name,
+        text: a.traits + '한 ' + a.name + '! 사주 동물 아트를 Code Destiny에서 확인해보세요.',
         url: 'https://code-destiny.com'
       }).catch(function () {});
     } else {
@@ -491,7 +514,7 @@
     body.innerHTML = '<div class="stg-no-saju">' +
       '<div class="stg-no-saju__icon">🔮</div>' +
       '<p class="stg-no-saju__title">생년월일 정보가 필요해요</p>' +
-      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 가디언 토템 이미지를 바로 생성할 수 있습니다.</p>' +
+      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 사주 동물 아트를 바로 생성할 수 있습니다.</p>' +
       '<button class="stg-btn stg-btn--primary" onclick="window.closeSajuTotemModal();window.scrollTo({top:0,behavior:\'smooth\'})">생년월일 입력하러 가기 ✨</button>' +
     '</div>';
   }
@@ -503,6 +526,8 @@
     var totemData = selectTotem();
     var el = totemData.element;
     var theme = ELEMENT_BG[el] || ELEMENT_BG.wood;
+    var styleIntensity = getSajuAnimalStyleIntensity();
+    var styleLabel = styleIntensityLabel(styleIntensity);
 
     body.innerHTML =
       '<div class="stg-loading" id="sajuTotemLoading">' +
@@ -517,8 +542,8 @@
             '<span>✨</span><span>⭐</span><span>💫</span><span>🌟</span><span>✦</span>' +
           '</div>' +
         '</div>' +
-        '<p class="stg-loading__title">AI가 사주 분석을 바탕으로</p>' +
-        '<p class="stg-loading__subtitle">가디언 토템 이미지를 그리는 중입니다...</p>' +
+        '<p class="stg-loading__title">사주 기운을 읽어 동물 캐릭터를 스케치 중이에요</p>' +
+        '<p class="stg-loading__subtitle">파스텔 만화풍(' + styleLabel + ')으로 당신의 동물 아트를 채색하고 있어요...</p>' +
         '<div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>' +
       '</div>';
 
@@ -555,15 +580,29 @@
     }
 
     var sajuAnalysis = captureSajuAnalysisSnapshot();
+    var totemAnimal = totemData && totemData.primary ? {
+      name: totemData.primary.name || '',
+      nameEn: totemData.primary.nameEn || '',
+      keyword: totemData.primary.keyword || '',
+      traits: totemData.primary.traits || '',
+      dayZhi: totemData.dayZhi || '',
+      element: totemData.element || ''
+    } : null;
     fetch('/api/guardian-avatar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profile: requestProfile, sajuAnalysis: sajuAnalysis })
+      body: JSON.stringify({
+        profile: requestProfile,
+        sajuAnalysis: sajuAnalysis,
+        totemAnimal: totemAnimal,
+        renderMode: 'saju-animal',
+        styleIntensity: styleIntensity
+      })
     })
       .then(function (resp) {
         return resp.json().catch(function () { return null; }).then(function (data) {
           if (!resp.ok || !data || !data.ok || !data.guardian || !data.guardian.svg_data_uri) {
-            throw new Error((data && data.message) || ('guardian-avatar-api-failed-' + resp.status));
+            throw new Error((data && data.message) || ('saju-animal-api-failed-' + resp.status));
           }
           return data.guardian;
         });
@@ -605,10 +644,12 @@
     var desc = buildDescription(totemData);
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
     var imgUrl = guardian && guardian.svg_data_uri ? guardian.svg_data_uri : '';
-    var guardianTitle = (guardian && guardian.title) ? guardian.title : '가디언 토템';
+    var guardianTitle = (guardian && guardian.title) ? guardian.title : '사주 동물 아트';
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';
+    var currentStyle = guardian && guardian.style_intensity ? guardian.style_intensity : getSajuAnimalStyleIntensity();
+    var currentStyleLabel = styleIntensityLabel(currentStyle);
 
     body.innerHTML =
       '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
@@ -633,12 +674,17 @@
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (face || '사주 성향에 맞춘 부드러운 표정') + '</div>' +
           '<div class="stg-desc-card__label">배경 모티프</div>' +
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (bg || '오행 중심 파스텔 배경') + '</div>' +
+          '<div class="stg-desc-card__label">만화풍 강도</div>' +
+          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + currentStyleLabel + '</div>' +
           '<div class="stg-desc-card__label">동물 해석</div>' +
           '<div class="stg-desc-card__text">' + desc + '</div>' +
         '</div>' +
 
         /* 버튼 영역 */
         '<div class="stg-actions">' +
+          '<button class="stg-btn stg-btn--regen" id="sajuTotemStyleBtn" type="button">' +
+            '<span class="stg-btn__icon">🎛</span> 만화풍: ' + currentStyleLabel +
+          '</button>' +
           '<button class="stg-btn stg-btn--save" id="sajuTotemSaveBtn" type="button">' +
             '<span class="stg-btn__icon">⬇</span> 이미지 저장하기' +
           '</button>' +
@@ -656,6 +702,15 @@
     var saveBtn = document.getElementById('sajuTotemSaveBtn');
     var shareBtn = document.getElementById('sajuTotemShareBtn');
     var regenBtn = document.getElementById('sajuTotemRegenBtn');
+    var styleBtn = document.getElementById('sajuTotemStyleBtn');
+
+    if (styleBtn) {
+      styleBtn.addEventListener('click', function () {
+        var nextStyle = currentStyle === 'strong' ? 'soft' : 'strong';
+        setSajuAnimalStyleIntensity(nextStyle);
+        renderStateB(contextSource || 'analysis');
+      });
+    }
 
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {

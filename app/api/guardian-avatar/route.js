@@ -172,16 +172,105 @@ function toDataUri(svg) {
   return "data:image/svg+xml;base64," + b64;
 }
 
-function buildPrompt(profile, visual) {
+function normalizeTotemAnimal(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const name = String(payload.name || "").trim();
+  const nameEn = String(payload.nameEn || "").trim();
+  const keyword = String(payload.keyword || "").trim();
+  const traits = String(payload.traits || "").trim();
+  const dayZhi = String(payload.dayZhi || "").trim();
+  const element = String(payload.element || "").trim();
+  if (!name && !nameEn) return null;
+  return { name, nameEn, keyword, traits, dayZhi, element };
+}
+
+function normalizeRenderMode(mode) {
+  const v = String(mode || "").trim().toLowerCase();
+  if (v === "profile-mini" || v === "profile" || v === "mini") return "profile-mini";
+  return "saju-animal";
+}
+
+function normalizeStyleIntensity(intensity) {
+  const v = String(intensity || "").trim().toLowerCase();
+  return v === "strong" ? "strong" : "soft";
+}
+
+function fallbackAnimalByElement(element) {
+  const map = {
+    wood: { name: "아기 사슴", nameEn: "baby deer" },
+    fire: { name: "아기 사자", nameEn: "baby lion cub" },
+    earth: { name: "아기 곰", nameEn: "baby bear" },
+    metal: { name: "아기 늑대", nameEn: "baby wolf" },
+    water: { name: "아기 거북이", nameEn: "baby turtle" },
+  };
+  return map[element] || map.wood;
+}
+
+function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
   const birth = (profile && profile.birth) || {};
   const loc = (profile && profile.location) || {};
+
+  if (renderMode === "profile-mini") {
+    return [
+      "너는 프로필 카드용 미니 가디언 아이콘 디자이너다.",
+      "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
+      "SVG는 정확히 160x160, 정사각형, 작은 썸네일에서도 식별 가능한 단순 만화풍 아이콘으로 생성하라.",
+      "얼굴 중심(머리 위주) 클로즈업만 그리고, 배경은 완전 단색 하나만 사용하라.",
+      "디테일 과잉, 복잡한 레이어, 미세 텍스처를 금지한다.",
+      "소품/장식 요소를 넣지 말고, 한눈에 인지되는 얼굴 실루엣만 남겨라.",
+      "텍스트/로고/워터마크를 절대 넣지 마라.",
+      "사용자 프로필:",
+      JSON.stringify({
+        birth: {
+          year: birth.year,
+          month: birth.month,
+          day: birth.day,
+          hour: birth.hour,
+          minute: birth.minute,
+          calType: birth.calType,
+        },
+        location: {
+          label: loc.label,
+          tz: loc.tz,
+          lat: loc.lat,
+          lng: loc.lng,
+        },
+        sajuVisual: visual,
+      }),
+      "출력 스키마:",
+      "{",
+      '  "title": "string",',
+      '  "summary": "string",',
+      '  "facial_expression": "string",',
+      '  "background_motif": "string",',
+      '  "illustration_prompt": "string",',
+      '  "svg": "<svg ...>...</svg>"',
+      "}",
+    ].join("\n");
+  }
+
+  const fallbackAnimal = fallbackAnimalByElement(visual?.dominantElement || "wood");
+  const animal = totemAnimal || fallbackAnimal;
+  const animalName = String(animal?.name || fallbackAnimal.name || "아기 사슴").trim();
+  const animalNameEn = String(animal?.nameEn || fallbackAnimal.nameEn || "baby deer").trim();
+  const animalKeyword = String(animal?.keyword || "").trim();
+  const animalTraits = String(animal?.traits || "").trim();
+  const styleGuide =
+    styleIntensity === "strong"
+      ? "선명한 만화풍(굵은 윤곽선, 명확한 명암, 중간 이상 채도)"
+      : "부드러운 만화풍(유연한 윤곽선, 은은한 명암, 파스텔 중심)";
+
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-    "SVG는 512x512, 초귀여운 만화 캐릭터 스타일(SD/chibi), 두꺼운 라인과 부드러운 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "SVG는 512x512, 따뜻한 파스텔 만화풍 캐릭터 스타일(SD/chibi), 두꺼운 라인과 부드러운 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "스타일은 동화풍이 아니라 분명한 만화풍으로, 명확한 윤곽선과 선명한 실루엣을 유지하라.",
+    "만화풍 강도 지시: " + styleGuide,
+    "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
     "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
     "결과는 완성 일러스트 품질이어야 하며, 스케치나 아이콘 수준이 아니어야 한다.",
     "캐릭터 비율은 2.5등신 내외의 마스코트형으로 만들고, 얼굴 비중을 크게 해서 사랑스럽게 보이게 하라.",
+    "색감은 파스텔톤 중심(저채도, 부드러운 명도 대비)으로 통일하고 공격적/다크 톤은 금지한다.",
     "이미지 안에 문자, 로고, 워터마크, 이름을 절대 넣지 마라.",
     "사주 성향 기반 표정과 오행 기반 배경을 반드시 반영하라.",
     "사용자 프로필:",
@@ -201,7 +290,14 @@ function buildPrompt(profile, visual) {
         lng: loc.lng,
       },
       sajuVisual: visual,
+      totemAnimalHint: {
+        name: animalName,
+        nameEn: animalNameEn,
+        keyword: animalKeyword,
+        traits: animalTraits,
+      },
     }),
+    '반드시 "' + animalNameEn + '" (' + animalName + ') 동물을 주인공으로 표현하라.',
     "출력 스키마:",
     "{",
     '  "title": "string",',
@@ -233,15 +329,17 @@ function parseJson(text) {
   }
 }
 
-async function callGemini(profile, visual) {
+async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensity) {
   const keys = pickGeminiApiKeys();
   if (!keys.length) {
     throw Object.assign(new Error("GEMINI_API_KEY 또는 GOOGLE_API_KEY가 필요합니다."), { status: 500 });
   }
 
+  const normalizedMode = normalizeRenderMode(renderMode);
+  const normalizedStyle = normalizeStyleIntensity(styleIntensity);
   const model = modelName();
   const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
-  const prompt = buildPrompt(profile, visual);
+  const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle);
 
   let lastError = null;
   for (const key of keys) {
@@ -252,9 +350,9 @@ async function callGemini(profile, visual) {
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.85,
+            temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
             topP: 0.95,
-            maxOutputTokens: 2800,
+            maxOutputTokens: normalizedMode === "profile-mini" ? 480 : 2800,
             responseMimeType: "application/json",
           },
         }),
@@ -280,14 +378,27 @@ async function callGemini(profile, visual) {
       }
 
       return {
-        title: String(obj.title || "가디언 토템").trim(),
-        summary: String(obj.summary || visual.summary || "사주 기반 가디언 아바타").trim(),
+        title: String(
+          obj.title ||
+            (normalizedMode === "profile-mini"
+              ? "미니 가디언"
+              : totemAnimal && totemAnimal.name
+                ? totemAnimal.name + " 가디언"
+                : "사주 동물 아트")
+        ).trim(),
+        summary: String(
+          obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 동물 아트")
+        ).trim(),
         facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
         backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
         illustrationPrompt: String(
           obj.illustration_prompt ||
-            "귀여운 파스텔톤 동물 가디언, 표정: " + (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif)
+            (normalizedMode === "profile-mini"
+              ? "프로필 카드용 미니 만화풍 가디언 아이콘"
+              : "귀여운 파스텔톤 동물 가디언(" + ((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby animal") + "), 표정: " +
+                (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif))
         ).trim(),
+        styleIntensity: normalizedStyle,
         svg,
       };
     } catch (e) {
@@ -303,12 +414,15 @@ export async function POST(request) {
     const body = await request.json();
     const profile = body?.profile || null;
     const sajuAnalysis = body?.sajuAnalysis || null;
+    const totemAnimal = normalizeTotemAnimal(body?.totemAnimal || null);
+    const renderMode = normalizeRenderMode(body?.renderMode || null);
+    const styleIntensity = normalizeStyleIntensity(body?.styleIntensity || null);
     if (!profile || !profile.birth) {
       return NextResponse.json({ ok: false, message: "profile.birth가 필요합니다." }, { status: 400 });
     }
 
     const visual = analyzeSajuVisual(profile, sajuAnalysis);
-    const guardian = await callGemini(profile, visual);
+    const guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity);
 
     return NextResponse.json({
       ok: true,
@@ -320,6 +434,8 @@ export async function POST(request) {
         illustration_prompt: guardian.illustrationPrompt,
         svg_data_uri: toDataUri(guardian.svg),
         created_at: new Date().toISOString(),
+        render_mode: renderMode,
+        style_intensity: guardian.styleIntensity,
       },
       saju_visual: visual,
     });
