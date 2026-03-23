@@ -13,11 +13,6 @@
 
   var refs = {};
   var TAP_THRESHOLD = 12;
-  var COMING_SOON_EMOJIS = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐦", "🦋", "🦉", "🐬", "🐢", "🐿️", "🦌", "🐺", "🦅"];
-  var COMING_SOON_NAMES = ["고양이", "강아지", "토끼", "여우", "곰", "파랑새", "나비", "올빼미", "돌고래", "거북이", "다람쥐", "사슴", "늑대", "독수리"];
-  var DP_NS = "FORTUNE_APP_USER_PROFILES";
-  var STEM_ELEMENTS = ["wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water"];
-  var BRANCH_ELEMENTS = ["water", "earth", "wood", "wood", "earth", "fire", "fire", "earth", "metal", "metal", "earth", "water"];
 
   function byId(id) { return document.getElementById(id); }
   var bodyLockState = {
@@ -216,170 +211,6 @@
     return map[slot] || slot;
   }
 
-  function getSlotsByMode(mode) {
-    if (mode === "five") return ["mind", "heart", "shadow", "gift", "next_action"];
-    if (mode === "one") return ["today_guide"];
-    return ["past_wound", "present_energy", "integration_path"];
-  }
-
-  function buildPlaceholderSpread(mode) {
-    var spreadMode = mode === "five" ? "five" : mode === "one" ? "one" : "three";
-    var slots = getSlotsByMode(spreadMode);
-    var cards = slots.map(function(slot, idx) {
-      var icon = COMING_SOON_EMOJIS[(idx + Math.floor(Math.random() * COMING_SOON_EMOJIS.length)) % COMING_SOON_EMOJIS.length];
-      var name = COMING_SOON_NAMES[idx % COMING_SOON_NAMES.length];
-      return {
-        slot: slot,
-        card: {
-          id: "emoji-placeholder-" + idx,
-          name_ko: name,
-          emoji: icon,
-          category: "준비중",
-          color_theme: { primary: "#f59e0b", glow: "#fcd34d", particle: "#fef3c7" }
-        }
-      };
-    });
-    return { mode: spreadMode, cards: cards, created_at: new Date().toISOString() };
-  }
-
-  function buildComingSoonConsultation(spread) {
-    return {
-      mode: spread.mode,
-      opening_message: "AI 동물 가이드를 불러오지 못해 기본 리딩을 표시합니다.",
-      cards: spread.cards.map(function(item) {
-        return {
-          slot: item.slot,
-          animal: item.card,
-          layered_reading: {
-            essence: "오늘은 감정의 결을 부드럽게 정리해보세요.",
-            direct_message: "가볍게 시작해도 충분히 의미 있는 하루를 만들 수 있어요.",
-            daily_actions: [
-              "마음에 드는 이모지 하나를 오늘의 키워드로 정해보세요.",
-              "호흡을 가다듬고 지금 감정을 한 줄로 적어보세요.",
-              "오늘 실천할 작은 행동 하나를 바로 시작해보세요."
-            ],
-            ritual: "5분 동안 조용히 호흡하며 오늘의 방향을 정리해보세요.",
-            journaling: [],
-            shadow_warning: "비교가 깊어지면 에너지가 빠질 수 있어요.",
-            affirmation: "나는 오늘도 나를 다정하게 돌본다."
-          }
-        };
-      }),
-      closing_guidance: "기본 리딩으로 표시되었어요. 잠시 후 다시 시도해보세요."
-    };
-  }
-
-  function _safeNum(v, fallback) {
-    var n = parseInt(v, 10);
-    return Number.isNaN(n) ? fallback : n;
-  }
-
-  function getCurrentDestinyProfile() {
-    try {
-      var list = JSON.parse(localStorage.getItem(DP_NS + ".list") || "[]");
-      var currentId = localStorage.getItem(DP_NS + ".current") || "";
-      if (!Array.isArray(list) || !list.length) return null;
-      var current = null;
-      for (var i = 0; i < list.length; i += 1) {
-        if (list[i] && list[i].id === currentId) {
-          current = list[i];
-          break;
-        }
-      }
-      return current || list[0] || null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function elementKo(key) {
-    var map = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" };
-    return map[key] || "토";
-  }
-
-  function dominantElement(weights) {
-    var best = "earth";
-    ["wood", "fire", "earth", "metal", "water"].forEach(function(k) {
-      if ((weights[k] || 0) > (weights[best] || 0)) best = k;
-    });
-    return best;
-  }
-
-  function expressionByElement(el) {
-    var map = {
-      wood: "호기심이 가득한 장난기 있는 미소",
-      fire: "활기차고 생동감 있는 밝은 미소",
-      earth: "안정적이고 포근한 편안한 미소",
-      metal: "또렷하고 단정한 자신감 있는 표정",
-      water: "차분하고 깊이감 있는 신비로운 미소"
-    };
-    return map[el] || "부드러운 미소";
-  }
-
-  function backgroundByElement(el) {
-    var map = {
-      wood: "파스텔 숲과 새싹, 바람결",
-      fire: "파스텔 노을과 빛 입자",
-      earth: "파스텔 언덕과 꽃밭",
-      metal: "은은한 수정과 별가루",
-      water: "물결과 달빛이 비치는 하늘"
-    };
-    return map[el] || "파스텔 자연 배경";
-  }
-
-  function buildSajuVisualContext() {
-    var profile = getCurrentDestinyProfile();
-    if (!profile || !profile.birth) {
-      return {
-        focus: "오늘의 감정 흐름",
-        saju_visual: {
-          dominant_element: "earth",
-          five_elements: { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 },
-          expression_seed: expressionByElement("earth"),
-          background_seed: backgroundByElement("earth"),
-          summary: "프로필 기반 사주 정보 없음"
-        }
-      };
-    }
-
-    var b = profile.birth || {};
-    var year = _safeNum(b.year, 2000);
-    var month = _safeNum(b.month, 1);
-    var day = _safeNum(b.day, 1);
-    var hour = _safeNum(b.hour, 12);
-
-    var weights = { wood: 1, fire: 1, earth: 1, metal: 1, water: 1 };
-    var stemIdx = ((year - 4) % 10 + 10) % 10;
-    var yearBranchIdx = ((year - 4) % 12 + 12) % 12;
-    var hourBranchIdx = Math.floor((((hour + 1) % 24) / 2));
-    var seasonElement = (month >= 3 && month <= 5) ? "wood" :
-      (month >= 6 && month <= 8) ? "fire" :
-      (month >= 9 && month <= 11) ? "metal" : "water";
-    var dayElement = ["wood", "fire", "earth", "metal", "water"][Math.abs(year + month + day) % 5];
-
-    weights[STEM_ELEMENTS[stemIdx]] += 3;
-    weights[BRANCH_ELEMENTS[yearBranchIdx]] += 2;
-    weights[BRANCH_ELEMENTS[hourBranchIdx]] += 1;
-    weights[seasonElement] += 2;
-    weights[dayElement] += 2;
-
-    var dom = dominantElement(weights);
-    var summary = "사주 추정 오행 중심: " + elementKo(dom) + " / 목" + weights.wood + " 화" + weights.fire + " 토" + weights.earth + " 금" + weights.metal + " 수" + weights.water;
-
-    return {
-      focus: summary,
-      profile_name: profile.name || "사용자",
-      birth: { year: year, month: month, day: day, hour: hour, minute: _safeNum(b.minute, 0), calType: b.calType || "solar" },
-      saju_visual: {
-        dominant_element: dom,
-        five_elements: weights,
-        expression_seed: expressionByElement(dom),
-        background_seed: backgroundByElement(dom),
-        summary: summary
-      }
-    };
-  }
-
   function getTouchPoint(e) {
     if (e.changedTouches && e.changedTouches.length) {
       var t = e.changedTouches[0];
@@ -547,13 +378,6 @@
       var essence = takeSentences(entry.layered_reading.essence, maxSentences);
       var message = takeSentences(entry.layered_reading.direct_message, maxSentences);
       var advices = state.mode === "one" ? (entry.layered_reading.daily_actions || []).slice(0, 5).map(function(v) { return takeSentences(v, 1); }) : shortenAdvice(entry.layered_reading.daily_actions);
-      var expression = entry.animal && entry.animal.facial_expression ? takeSentences(entry.animal.facial_expression, 1) : "";
-      var background = entry.animal && entry.animal.background_motif ? takeSentences(entry.animal.background_motif, 1) : "";
-      var styleGuide = entry.animal && entry.animal.illustration_prompt ? takeSentences(entry.animal.illustration_prompt, 2) : "";
-      var styleMeta = (expression || background)
-        ? ('<p><b>표정:</b> ' + (expression || "부드러운 미소") + '<br/><b>배경:</b> ' + (background || "파스텔 자연") + '</p>')
-        : "";
-      var styleSection = styleGuide ? ('<section class="totem-guidance-section"><h4>일러스트 가이드</h4>' + styleMeta + '<p>' + styleGuide + "</p></section>") : "";
       p.innerHTML =
         '<div class="totem-guidance-aura" style="--aura-color:' + (entry.animal.color_theme.glow || "#facc15") + ';"></div>' +
         '<div class="totem-guidance-head">' +
@@ -562,7 +386,6 @@
         "</div>" +
         '<section class="totem-guidance-section"><h4>오늘의 수호신</h4><p>' + essence + "</p></section>" +
         '<section class="totem-guidance-section"><h4>작은 친구의 속삭임</h4><p>' + message + "</p></section>" +
-        styleSection +
         '<section class="totem-guidance-section"><h4>오늘 해보면 좋을 것</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
         '<details class="totem-ritual-toggle"><summary>5분 마음 정리</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
       refs.readingPanels.appendChild(p);
@@ -659,40 +482,15 @@
 
   function drawAnimalTotemSpread() {
     ensureRefs();
-    var sajuContext = buildSajuVisualContext();
-    if (refs.cardRail) refs.cardRail.innerHTML = '<div class="totem-loading">AI 동물 가이드를 불러오는 중...</div>';
-    if (refs.openingText) refs.openingText.textContent = "사주 기반 동물 리딩을 준비하고 있어요. " + (sajuContext.saju_visual.summary || "");
-    if (refs.closingText) refs.closingText.textContent = "";
-    activateStage(refs.drawStage);
-
-    var engine = global.AnimalTotemContentEngine;
-    var fallbackSpread = buildPlaceholderSpread(state.mode);
-    var fallbackConsultation = buildComingSoonConsultation(fallbackSpread);
-
-    function applyResult(result) {
-      if (result && result.spread && result.consultation) {
-        state.spread = result.spread;
-        state.consultation = result.consultation;
-      } else {
-        state.spread = fallbackSpread;
-        state.consultation = fallbackConsultation;
-      }
-      renderDeck();
-      applyAmbientClass();
-      activateStage(refs.drawStage);
-    }
-
-    if (!engine || typeof engine.generateConsultation !== "function") {
-      applyResult(null);
+    if (!global.AnimalTotemContentEngine) {
+      alert("애니멀 토템 엔진을 불러오지 못했습니다. 페이지를 새로고침해 주세요.");
       return;
     }
-
-    Promise.resolve(engine.generateConsultation(state.mode, sajuContext))
-      .then(function(result) { applyResult(result); })
-      .catch(function(err) {
-        console.error("[animal-totem] generateConsultation failed:", err);
-        applyResult(null);
-      });
+    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+    state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
+    renderDeck();
+    applyAmbientClass();
+    activateStage(refs.drawStage);
   }
 
   function revealAnimalTotemCard(btn, idxRaw) {
@@ -724,7 +522,7 @@
   function shareAnimalTotemResult() {
     if (!state.consultation) return;
     var titles = state.consultation.cards.map(function(c) { return c.animal.emoji + " " + c.animal.name_ko; }).join(" · ");
-    var text = "🧸 애니멀 토템 AI 리딩\n" + titles + "\n\n" + (state.consultation.opening_message || "") + "\n\n🎨 동물 스타일: 파스텔톤 귀여운 일러스트\n\n👉 무료 리딩 보러가기: https://code-destiny.com";
+    var text = "🧸 애니멀 토템 심층 리딩\n" + titles + "\n\n" + (state.consultation.opening_message || "") + "\n\n👉 무료 리딩 보러가기: https://code-destiny.com";
     var encoded = encodeURIComponent(text);
     var a = document.createElement("a");
     a.href = "kakaotalk://send?text=" + encoded;
