@@ -661,7 +661,7 @@
     ensureRefs();
     var sajuContext = buildSajuVisualContext();
     if (refs.cardRail) refs.cardRail.innerHTML = '<div class="totem-loading">AI 동물 가이드를 불러오는 중...</div>';
-    if (refs.openingText) refs.openingText.textContent = "Gemini로 맞춤 동물 리딩을 생성하고 있어요. " + (sajuContext.saju_visual.summary || "");
+    if (refs.openingText) refs.openingText.textContent = "사주 기반 동물 리딩을 준비하고 있어요. " + (sajuContext.saju_visual.summary || "");
     if (refs.closingText) refs.closingText.textContent = "";
     activateStage(refs.drawStage);
 
@@ -690,7 +690,7 @@
     Promise.resolve(engine.generateConsultation(state.mode, sajuContext))
       .then(function(result) { applyResult(result); })
       .catch(function(err) {
-        console.error("[animal-totem] Gemini generateConsultation failed:", err);
+        console.error("[animal-totem] generateConsultation failed:", err);
         applyResult(null);
       });
   }
