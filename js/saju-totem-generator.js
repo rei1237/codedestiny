@@ -610,7 +610,7 @@
     body.innerHTML =
       '<div class="stg-no-saju">' +
         '<div class="stg-no-saju__icon">⏳</div>' +
-        '<p class="stg-no-saju__title">이용자가 많아서 실패했습니다. 잠시 후 다시 시도해주세요.</p>' +
+        '<p class="stg-no-saju__title">현재 API 이용자가 많아 실패했습니다. 잠시 후 다시 시도해주세요.</p>' +
         '<p class="stg-no-saju__desc">' + sourceLabel + '를 바탕으로 재시도하면 더 선명한 결과를 받을 수 있어요.</p>' +
         '<button class="stg-btn stg-btn--primary" id="sajuTotemRetryBtn" type="button">다시 시도하기 ✨</button>' +
       '</div>';
@@ -621,6 +621,165 @@
         renderStateB(contextSource || 'analysis');
       });
     }
+  }
+
+  function resolveTotemEmoji(totemData, guardian) {
+    var raw = '';
+    if (totemData && totemData.primary && totemData.primary.name) raw += ' ' + totemData.primary.name;
+    if (totemData && totemData.primary && totemData.primary.nameEn) raw += ' ' + totemData.primary.nameEn;
+    if (guardian && guardian.title) raw += ' ' + guardian.title;
+    var name = String(raw || '').toLowerCase();
+    if (/닭|chick|chicken|rooster/.test(name)) return '🐥';
+    if (/토끼|rabbit|bunny/.test(name)) return '🐰';
+    if (/고양이|cat|kitten/.test(name)) return '🐱';
+    if (/강아지|dog|puppy/.test(name)) return '🐶';
+    if (/호랑이|tiger/.test(name)) return '🐯';
+    if (/사자|lion/.test(name)) return '🦁';
+    if (/곰|bear|panda/.test(name)) return '🐻';
+    if (/여우|fox/.test(name)) return '🦊';
+    if (/늑대|wolf/.test(name)) return '🐺';
+    if (/용|dragon/.test(name)) return '🐲';
+    if (/독수리|eagle/.test(name)) return '🦅';
+    if (/말|horse/.test(name)) return '🐴';
+    if (/양|lamb|sheep/.test(name)) return '🐑';
+    if (/원숭이|monkey/.test(name)) return '🐵';
+    if (/돼지|pig/.test(name)) return '🐷';
+    if (/거북|turtle/.test(name)) return '🐢';
+    if (/돌고래|dolphin/.test(name)) return '🐬';
+    return '🐾';
+  }
+
+  function drawCanvasBackdrop(ctx, size, element) {
+    var palettes = {
+      wood: ['#d9f99d', '#86efac', '#bbf7d0'],
+      fire: ['#fed7aa', '#fca5a5', '#fdba74'],
+      earth: ['#fde68a', '#fcd34d', '#fef3c7'],
+      metal: ['#e2e8f0', '#cbd5e1', '#bfdbfe'],
+      water: ['#bfdbfe', '#93c5fd', '#c4b5fd']
+    };
+    var p = palettes[element] || palettes.wood;
+    var bg = ctx.createLinearGradient(0, 0, size, size);
+    bg.addColorStop(0, p[0]);
+    bg.addColorStop(0.55, p[1]);
+    bg.addColorStop(1, p[2]);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size, size);
+
+    var glow = ctx.createRadialGradient(size * 0.5, size * 0.36, size * 0.06, size * 0.5, size * 0.36, size * 0.42);
+    glow.addColorStop(0, 'rgba(255,255,255,0.85)');
+    glow.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    var i;
+    for (i = 0; i < 24; i += 1) {
+      var x = Math.random() * size;
+      var y = Math.random() * size * 0.75;
+      var r = Math.random() * (size * 0.009) + 1;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function isFlatRenderedCanvas(ctx, size) {
+    try {
+      var data = ctx.getImageData(0, 0, size, size).data;
+      var minL = 255;
+      var maxL = 0;
+      var alphaPixels = 0;
+      var step = Math.max(16, Math.floor((size * size) / 1800)) * 4;
+      var i;
+      for (i = 0; i < data.length; i += step) {
+        var a = data[i + 3];
+        if (a > 20) {
+          alphaPixels += 1;
+          var lum = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+          if (lum < minL) minL = lum;
+          if (lum > maxL) maxL = lum;
+        }
+      }
+      if (alphaPixels < 40) return true;
+      return (maxL - minL) < 16;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function drawFallbackCanvasPlaceholder(canvas, totemData, guardian) {
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    var cssSize = Math.max(180, canvas.clientWidth || 300);
+    var dpr = Math.max(2, Math.min(3, window.devicePixelRatio || 2));
+    canvas.width = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, cssSize, cssSize);
+
+    var element = (totemData && totemData.element) || 'wood';
+    drawCanvasBackdrop(ctx, cssSize, element);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.beginPath();
+    ctx.arc(cssSize / 2, cssSize / 2, cssSize * 0.33, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = 'bold ' + Math.round(cssSize * 0.18) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#1f2937';
+    ctx.fillText(resolveTotemEmoji(totemData, guardian), cssSize / 2, cssSize / 2 - cssSize * 0.03);
+  }
+
+  function drawGuardianOnCanvas(imageUrl, totemData, guardian) {
+    var canvas = document.getElementById('sajuTotemCanvas');
+    if (!canvas) return;
+
+    if (!imageUrl) {
+      drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+      return;
+    }
+
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    var cssSize = Math.max(180, canvas.clientWidth || 300);
+    var dpr = Math.max(2, Math.min(3, window.devicePixelRatio || 2));
+    canvas.width = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, cssSize, cssSize);
+    drawCanvasBackdrop(ctx, cssSize, (totemData && totemData.element) || 'wood');
+
+    var img = new Image();
+    if (/^https?:\/\//.test(imageUrl)) img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      var iw = img.naturalWidth || cssSize;
+      var ih = img.naturalHeight || cssSize;
+      var scale = Math.max(cssSize / iw, cssSize / ih);
+      var dw = iw * scale;
+      var dh = ih * scale;
+      var dx = (cssSize - dw) / 2;
+      var dy = (cssSize - dh) / 2;
+
+      ctx.clearRect(0, 0, cssSize, cssSize);
+      drawCanvasBackdrop(ctx, cssSize, (totemData && totemData.element) || 'wood');
+      ctx.drawImage(img, dx, dy, dw, dh);
+      if (isFlatRenderedCanvas(ctx, cssSize)) {
+        drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+      }
+    };
+    img.onerror = function () {
+      drawFallbackCanvasPlaceholder(canvas, totemData, guardian);
+    };
+    img.src = imageUrl;
   }
 
   function renderStateC(totemData, guardian, theme, contextSource) {
@@ -637,6 +796,7 @@
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';
+    var apiWarning = guardian && guardian.warning_message ? guardian.warning_message : '';
     var cardKeyword = summary || (a.keyword || '사주 에너지 기반 수호 캐릭터');
     body.innerHTML =
       '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
@@ -646,16 +806,23 @@
           '<div class="stg-card__glow"></div>' +
           '<div class="stg-card__badge">' + (elIcons[el] || '✨') + ' SAJU PORTRAIT</div>' +
           '<div class="stg-card__img-wrap">' +
-            '<img class="stg-card__img" src="' + imgUrl + '" alt="' + a.name + '" id="sajuTotemImg" loading="lazy">' +
+            '<canvas class="stg-card__canvas" id="sajuTotemCanvas" aria-label="사주 동물 아트 결과 캔버스"></canvas>' +
             '<div class="stg-card__img-overlay"></div>' +
           '</div>' +
-          '<h2 class="stg-card__title">' + guardianTitle + '</h2>' +
-          '<p class="stg-card__keyword">' + cardKeyword + '</p>' +
         '</div>' +
 
         /* 설명 카드 */
         '<div class="stg-desc-card">' +
+          (apiWarning
+            ? '<div class="stg-api-warning-row">' +
+                '<div class="stg-api-warning">⚠ ' + apiWarning + '</div>' +
+                '<button class="stg-api-retry-inline" id="sajuTotemAiRetryBtn" type="button">AI 원본 다시 생성</button>' +
+              '</div>'
+            : '') +
           '<div class="stg-desc-card__label">✦ ' + sourceLabel + '</div>' +
+          '<div class="stg-desc-card__title">' + guardianTitle + '</div>' +
+          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + cardKeyword + '</div>' +
+          '<div class="stg-desc-card__label">요약</div>' +
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (summary || '사주 중심 기운에 맞는 얼굴과 배경으로 완성된 이미지입니다.') + '</div>' +
           '<div class="stg-desc-card__label">표정</div>' +
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (face || '사주 성향에 맞춘 부드러운 표정') + '</div>' +
@@ -680,10 +847,13 @@
 
       '</div>';
 
+    drawGuardianOnCanvas(imgUrl, totemData, guardian);
+
     /* 버튼 이벤트 바인딩 */
     var saveBtn = document.getElementById('sajuTotemSaveBtn');
     var shareBtn = document.getElementById('sajuTotemShareBtn');
     var regenBtn = document.getElementById('sajuTotemRegenBtn');
+    var aiRetryBtn = document.getElementById('sajuTotemAiRetryBtn');
 
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {
@@ -698,6 +868,11 @@
     }
     if (regenBtn) {
       regenBtn.addEventListener('click', function () {
+        renderStateB(contextSource || 'analysis');
+      });
+    }
+    if (aiRetryBtn) {
+      aiRetryBtn.addEventListener('click', function () {
         renderStateB(contextSource || 'analysis');
       });
     }

@@ -342,7 +342,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-    "SVG는 512x512, 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "SVG는 1024x1024, 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
     "스타일은 동화풍 스케치가 아니라 완성된 만화풍 일러스트로, 명확한 윤곽선과 디테일한 눈동자/헤어(털) 결을 표현하라.",
     "만화풍 강도 지시: " + styleGuide,
     "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
@@ -775,7 +775,20 @@ export async function POST(request) {
     }
 
     const visual = analyzeSajuVisual(profile, sajuAnalysis);
-    const guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity);
+    let guardian;
+    try {
+      guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity);
+    } catch (geminiError) {
+      console.warn("[api/guardian-avatar] Gemini failed, using fallback guardian", geminiError);
+      guardian = buildFallbackGuardian(
+        profile,
+        visual,
+        totemAnimal,
+        renderMode,
+        styleIntensity,
+        geminiError?.message || "gemini-call-failed"
+      );
+    }
 
     return NextResponse.json({
       ok: true,
@@ -790,6 +803,11 @@ export async function POST(request) {
         render_mode: renderMode,
         style_intensity: guardian.styleIntensity,
         generation_source: guardian.source || "unknown",
+        fallback_reason: guardian.fallbackReason || null,
+        warning_message:
+          guardian.source === "fallback"
+            ? "현재 API 이용자가 많아 임시 고화질 폴백 이미지로 표시했어요. 잠시 후 다시 시도하면 AI 원본 결과를 받을 수 있어요."
+            : null,
       },
       saju_visual: visual,
     });
