@@ -6,27 +6,8 @@
 (function () {
   'use strict';
 
-  var SAJU_ANIMAL_STYLE_KEY = 'cd:saju-animal-style-intensity';
-
   function getSajuAnimalStyleIntensity() {
-    try {
-      var v = String(localStorage.getItem(SAJU_ANIMAL_STYLE_KEY) || '').trim().toLowerCase();
-      return v === 'strong' ? 'strong' : 'soft';
-    } catch (e) {
-      return 'soft';
-    }
-  }
-
-  function setSajuAnimalStyleIntensity(v) {
-    var normalized = v === 'strong' ? 'strong' : 'soft';
-    try {
-      localStorage.setItem(SAJU_ANIMAL_STYLE_KEY, normalized);
-    } catch (e) {}
-    return normalized;
-  }
-
-  function styleIntensityLabel(v) {
-    return v === 'strong' ? '선명하게' : '부드럽게';
+    return 'strong';
   }
 
   /* ─────────────────────────────────────
@@ -527,7 +508,6 @@
     var el = totemData.element;
     var theme = ELEMENT_BG[el] || ELEMENT_BG.wood;
     var styleIntensity = getSajuAnimalStyleIntensity();
-    var styleLabel = styleIntensityLabel(styleIntensity);
 
     body.innerHTML =
       '<div class="stg-loading" id="sajuTotemLoading">' +
@@ -543,7 +523,7 @@
           '</div>' +
         '</div>' +
         '<p class="stg-loading__title">사주 기운을 읽어 동물 캐릭터를 스케치 중이에요</p>' +
-        '<p class="stg-loading__subtitle">파스텔 만화풍(' + styleLabel + ')으로 당신의 동물 아트를 채색하고 있어요...</p>' +
+        '<p class="stg-loading__subtitle">파스텔 만화풍으로 당신의 동물 아트를 채색하고 있어요...</p>' +
         '<div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>' +
       '</div>';
 
@@ -648,9 +628,6 @@
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';
-    var currentStyle = guardian && guardian.style_intensity ? guardian.style_intensity : getSajuAnimalStyleIntensity();
-    var currentStyleLabel = styleIntensityLabel(currentStyle);
-
     body.innerHTML =
       '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
 
@@ -674,17 +651,12 @@
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (face || '사주 성향에 맞춘 부드러운 표정') + '</div>' +
           '<div class="stg-desc-card__label">배경 모티프</div>' +
           '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (bg || '오행 중심 파스텔 배경') + '</div>' +
-          '<div class="stg-desc-card__label">만화풍 강도</div>' +
-          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + currentStyleLabel + '</div>' +
           '<div class="stg-desc-card__label">동물 해석</div>' +
           '<div class="stg-desc-card__text">' + desc + '</div>' +
         '</div>' +
 
         /* 버튼 영역 */
         '<div class="stg-actions">' +
-          '<button class="stg-btn stg-btn--regen" id="sajuTotemStyleBtn" type="button">' +
-            '<span class="stg-btn__icon">🎛</span> 만화풍: ' + currentStyleLabel +
-          '</button>' +
           '<button class="stg-btn stg-btn--save" id="sajuTotemSaveBtn" type="button">' +
             '<span class="stg-btn__icon">⬇</span> 이미지 저장하기' +
           '</button>' +
@@ -702,15 +674,6 @@
     var saveBtn = document.getElementById('sajuTotemSaveBtn');
     var shareBtn = document.getElementById('sajuTotemShareBtn');
     var regenBtn = document.getElementById('sajuTotemRegenBtn');
-    var styleBtn = document.getElementById('sajuTotemStyleBtn');
-
-    if (styleBtn) {
-      styleBtn.addEventListener('click', function () {
-        var nextStyle = currentStyle === 'strong' ? 'soft' : 'strong';
-        setSajuAnimalStyleIntensity(nextStyle);
-        renderStateB(contextSource || 'analysis');
-      });
-    }
 
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {

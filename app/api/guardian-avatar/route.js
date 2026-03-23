@@ -218,6 +218,32 @@ function normalizeStyleIntensity(intensity) {
   return v === "strong" ? "strong" : "soft";
 }
 
+function normalizeAnimalSpeciesToken(value) {
+  const v = String(value || "").toLowerCase();
+  if (!v) return "";
+  if (v.includes("chick") || v.includes("chicken") || v.includes("hen") || v.includes("rooster")) return "chick";
+  if (v.includes("puppy") || v.includes("dog")) return "dog";
+  if (v.includes("kitty") || v.includes("kitten") || v.includes("cat")) return "cat";
+  if (v.includes("bunny") || v.includes("rabbit") || v.includes("hare")) return "rabbit";
+  if (v.includes("deer") || v.includes("fawn") || v.includes("stag")) return "deer";
+  if (v.includes("bear") || v.includes("panda")) return "bear";
+  if (v.includes("fox")) return "fox";
+  if (v.includes("wolf")) return "wolf";
+  if (v.includes("tiger")) return "tiger";
+  if (v.includes("lion")) return "lion";
+  if (v.includes("dragon")) return "dragon";
+  if (v.includes("snake")) return "snake";
+  if (v.includes("horse") || v.includes("foal")) return "horse";
+  if (v.includes("sheep") || v.includes("lamb")) return "lamb";
+  if (v.includes("monkey")) return "monkey";
+  if (v.includes("pig") || v.includes("piglet")) return "pig";
+  if (v.includes("eagle")) return "eagle";
+  if (v.includes("turtle") || v.includes("tortoise")) return "turtle";
+  if (v.includes("dolphin")) return "dolphin";
+  if (v.includes("seal")) return "seal";
+  return "";
+}
+
 function fallbackAnimalByElement(element) {
   const map = {
     wood: { name: "아기 사슴", nameEn: "baby deer" },
@@ -278,10 +304,8 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
   const animalNameEn = String(animal?.nameEn || fallbackAnimal.nameEn || "baby deer").trim();
   const animalKeyword = String(animal?.keyword || "").trim();
   const animalTraits = String(animal?.traits || "").trim();
-  const styleGuide =
-    styleIntensity === "strong"
-      ? "선명한 만화풍(굵은 윤곽선, 명확한 명암, 중간 이상 채도)"
-      : "부드러운 만화풍(유연한 윤곽선, 은은한 명암, 파스텔 중심)";
+  const styleGuide = "선명하고 귀여운 만화풍(굵은 윤곽선, 명확한 명암, 파스텔 중심 색감)";
+  const targetSpecies = normalizeAnimalSpeciesToken(animalNameEn || animalName);
 
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
@@ -290,6 +314,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
     "스타일은 동화풍이 아니라 분명한 만화풍으로, 명확한 윤곽선과 선명한 실루엣을 유지하라.",
     "만화풍 강도 지시: " + styleGuide,
     "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
+    "다른 종으로 치환하지 말고, 목표 동물의 얼굴/귀/코/입/체형 특징을 분명히 드러내라.",
     "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 의상 포인트, 전경 소품, 배경 레이어, 광원, 색조 대비.",
     "결과는 완성 일러스트 품질이어야 하며, 스케치나 아이콘 수준이 아니어야 한다.",
     "캐릭터 비율은 2.5등신 내외의 마스코트형으로 만들고, 얼굴 비중을 크게 해서 사랑스럽게 보이게 하라.",
@@ -321,6 +346,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
       },
     }),
     '반드시 "' + animalNameEn + '" (' + animalName + ') 동물을 주인공으로 표현하라.',
+    '동물 종 식별자(animal_species_en)는 반드시 "' + (targetSpecies || animalNameEn) + '" 로 출력하라.',
     "출력 스키마:",
     "{",
     '  "title": "string",',
@@ -328,6 +354,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
     '  "facial_expression": "string",',
     '  "background_motif": "string",',
     '  "illustration_prompt": "string",',
+    '  "animal_species_en": "string",',
     '  "svg": "<svg ...>...</svg>"',
     "}",
   ].join("\n");
@@ -574,9 +601,10 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   }
 
   const normalizedMode = normalizeRenderMode(renderMode);
-  const normalizedStyle = normalizeStyleIntensity(styleIntensity);
+  const normalizedStyle = "strong";
   const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle);
   const models = modelCandidates();
+  const expectedSpecies = normalizeAnimalSpeciesToken((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "");
   let lastError = null;
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
@@ -626,6 +654,19 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
           if (!svg) {
             lastError = Object.assign(new Error("Gemini SVG parse failed"), { status: 502, model });
             break;
+          }
+
+          if (expectedSpecies) {
+            const receivedSpecies = normalizeAnimalSpeciesToken(
+              obj.animal_species_en || obj.animal || obj.species || obj.title || obj.summary || obj.illustration_prompt
+            );
+            if (receivedSpecies && receivedSpecies !== expectedSpecies) {
+              lastError = Object.assign(
+                new Error("Gemini animal species mismatch: expected " + expectedSpecies + ", got " + receivedSpecies),
+                { status: 502, model }
+              );
+              break;
+            }
           }
 
           return {
