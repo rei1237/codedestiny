@@ -503,17 +503,203 @@ body{font-size:15px;}
 /* Section title glow */
 @keyframes titleGlow{0%,100%{filter:none;}50%{filter:drop-shadow(0 0 8px rgba(240,192,64,.4));}}
 .section-title{animation:titleGlow 4s ease infinite;}
+
+/* ── ALL-4 CHALLENGE BUTTON ── */
+.all4-wrap{
+  width:100%;max-width:880px;padding:.6rem 0 .2rem;
+  display:flex;flex-direction:column;align-items:center;gap:.6rem;
+}
+.btn-all4{
+  display:inline-flex;align-items:center;gap:.75rem;
+  padding:1rem 2.4rem;border:2px solid;font-family:'Cinzel Decorative',cursive;
+  font-size:1rem;letter-spacing:.12em;cursor:pointer;background:transparent;
+  transition:all .4s;position:relative;overflow:hidden;
+}
+.btn-all4.locked{
+  border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.22);cursor:not-allowed;
+}
+.btn-all4.unlocked{
+  border-color:#cc44ff;color:#cc44ff;
+  box-shadow:0 0 22px rgba(204,68,255,.3);
+  animation:all4Pulse 2.5s ease infinite;
+}
+.btn-all4.unlocked:hover{
+  background:rgba(204,68,255,.12);box-shadow:0 0 40px rgba(204,68,255,.6);
+  transform:translateY(-2px);
+}
+@keyframes all4Pulse{
+  0%,100%{box-shadow:0 0 22px rgba(204,68,255,.3);}
+  50%{box-shadow:0 0 50px rgba(204,68,255,.75),0 0 90px rgba(204,68,255,.3);}
+}
+.all4-lock-icon{font-size:1.2rem;}
+.all4-hint{
+  font-family:'Noto Serif KR',serif;font-size:.8rem;
+  color:var(--text-dim);letter-spacing:.05em;text-align:center;
+}
+.all4-hint.unlocked-hint{color:#cc44ff;font-weight:500;}
+
+/* ── 4-WAY GAME SCREEN ── */
+#screen-game4{justify-content:flex-start;padding:0;overflow-y:auto;}
+.game4-wrap{
+  display:flex;flex-direction:column;min-height:100vh;width:100%;
+  max-width:1100px;margin:0 auto;padding:1rem;gap:.8rem;
+}
+.game4-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.7rem 1rem;border-bottom:1px solid rgba(204,68,255,.3);flex-shrink:0;
+}
+.game4-hud .hud-label{font-size:.62rem;}
+.game4-hud .hud-val{font-size:1.25rem;}
+.hud-val.purple{color:#cc44ff;animation:purpleGlow 3s ease infinite;}
+@keyframes purpleGlow{0%,100%{text-shadow:none;}50%{text-shadow:0 0 18px rgba(204,68,255,.9);}}
+.game4-title{
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(.95rem,2.5vw,1.5rem);
+  background:linear-gradient(130deg,#cc44ff,#f0c040,#cc44ff);
+  background-size:300% 300%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmerGold 3s ease infinite;
+  text-align:center;
+}
+/* fold hint banner */
+.fold-allowed-banner{
+  text-align:center;font-family:'Cinzel',serif;font-size:.72rem;
+  letter-spacing:.18em;color:#cc44ff;
+  padding:.3rem .8rem;border:1px solid rgba(204,68,255,.3);
+  border-radius:2px;background:rgba(204,68,255,.06);
+  flex-shrink:0;margin:0 auto;
+}
+
+/* 4-dealer rows */
+.dealers4-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.6rem;
+  flex-shrink:0;
+}
+@media(min-width:900px){.dealers4-grid{grid-template-columns:repeat(4,1fr);}}
+.d4-zone{
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);
+  border-radius:3px;padding:.65rem .75rem;
+  transition:border-color .4s;
+}
+.d4-zone.active{border-color:rgba(204,68,255,.5);}
+.d4-zone.folded{opacity:.38;border-color:rgba(204,34,34,.3);}
+.d4-zone.winner-zone{border-color:var(--gold);box-shadow:0 0 18px rgba(201,148,15,.3);}
+.d4-zone-header{
+  display:flex;align-items:center;gap:.45rem;margin-bottom:.45rem;
+}
+.d4-zone-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.d4-zone-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;}
+.d4-zone-tag{font-family:'Noto Serif KR',serif;font-size:.62rem;margin-left:auto;color:var(--text-dim);}
+.d4-cards-row{display:flex;gap:.3rem;flex-wrap:wrap;min-height:72px;align-items:flex-end;}
+.d4-hint{font-family:'Cinzel',serif;font-size:.7rem;color:var(--text-dim);margin-top:.3rem;min-height:1em;}
+.d4-hint.folded-badge{color:var(--crimson-b);}
+
+/* player zone in 4-way */
+.player4-zone{
+  padding:.8rem;background:rgba(10,32,20,.4);
+  border:2px solid rgba(201,148,15,.4);border-radius:3px;flex-shrink:0;
+}
+.player4-zone .zone-label{font-size:.7rem;margin-bottom:.5rem;}
+
+/* 4-way dialogue box — compact */
+.dialogue4-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+  flex-shrink:0;
+}
+@media(min-width:900px){.dialogue4-grid{grid-template-columns:repeat(4,1fr);}}
+.dlg4-box{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);
+  border-radius:2px;padding:.6rem .7rem;transition:border-color .4s;min-height:70px;
+}
+.dlg4-box.active-dlg{border-color:rgba(204,68,255,.35);}
+.dlg4-speaker{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.15em;margin-bottom:.3rem;}
+.dlg4-text{font-family:'Noto Serif KR',serif;font-size:.8rem;line-height:1.7;font-style:italic;
+  color:var(--text-dim);word-break:keep-all;}
+.dlg4-box.folded-dlg{opacity:.4;}
+
+/* 4-way action bar */
+.action4-bar{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;padding:.4rem 0;flex-shrink:0;}
+
+/* ── 4-WAY FOLD MODAL ── */
+#fold4-modal{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:300;background:rgba(0,0,0,.75);
+}
+#fold4-modal.show{display:flex;}
+.fold4-box{
+  background:#0d0018;border:2px solid #cc44ff;padding:2rem 2.2rem;
+  text-align:center;max-width:500px;width:92%;animation:warnPop .45s ease;
+  position:relative;
+}
+.fold4-title{font-family:'Cinzel Decorative',cursive;font-size:1.25rem;color:#cc44ff;margin-bottom:1rem;}
+.fold4-reactions{display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.4rem;}
+.fold4-reaction{
+  display:flex;align-items:flex-start;gap:.65rem;
+  padding:.6rem .8rem;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:2px;text-align:left;
+}
+.fold4-reaction-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:.3rem;box-shadow:0 0 6px currentColor;}
+.fold4-reaction-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.15em;margin-bottom:.2rem;}
+.fold4-reaction-text{font-family:'Noto Serif KR',serif;font-size:.84rem;line-height:1.65;font-style:italic;color:var(--text-dim);}
+.fold4-buttons{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;}
+.fold4-confirm{
+  padding:.7rem 1.8rem;border:2px solid var(--crimson-b);background:transparent;
+  color:var(--crimson-b);font-family:'Cinzel',serif;font-size:.85rem;
+  letter-spacing:.18em;cursor:pointer;transition:all .3s;
+}
+.fold4-confirm:hover{background:rgba(204,34,34,.15);}
+.fold4-cancel{
+  padding:.7rem 1.8rem;border:2px solid rgba(255,255,255,.2);background:transparent;
+  color:var(--text);font-family:'Cinzel',serif;font-size:.85rem;
+  letter-spacing:.18em;cursor:pointer;transition:all .3s;
+}
+.fold4-cancel:hover{background:rgba(255,255,255,.06);}
+
+/* ── small cards for 4-way ── */
+.d4-cards-row .card{width:44px;height:64px;}
+.d4-cards-row .card-mid{font-size:1.35rem;}
+.d4-cards-row .card-top,.d4-cards-row .card-bot{font-size:.55rem;}
+
+/* ── 4-WAY REPORT extras ── */
+.r4-dealer-results{display:flex;flex-direction:column;gap:.5rem;margin:.8rem 0;}
+.r4-dealer-row{
+  display:flex;align-items:center;gap:.8rem;padding:.55rem .8rem;
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
+  border-radius:2px;
+}
+.r4-dealer-row.win4{border-color:var(--gold);background:rgba(201,148,15,.06);}
+.r4-dealer-row.lose4{border-color:rgba(204,34,34,.3);background:rgba(204,34,34,.04);}
+.r4-dealer-row.fold4-row{opacity:.45;}
+.r4-d-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.r4-d-name{font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.12em;flex:0 0 auto;min-width:90px;}
+.r4-d-hand{font-size:.85rem;color:var(--text);flex:1;}
+.r4-d-badge{font-family:'Cinzel',serif;font-size:.72rem;padding:.2rem .55rem;border-radius:2px;flex-shrink:0;}
+.badge-win{background:rgba(201,148,15,.18);color:var(--gold);border:1px solid rgba(201,148,15,.4);}
+.badge-lose{background:rgba(204,34,34,.15);color:var(--crimson-b);border:1px solid rgba(204,34,34,.3);}
+.badge-fold{background:rgba(100,100,100,.15);color:#888;border:1px solid rgba(100,100,100,.25);}
 </style>
 </head>
 <body>
 <canvas id="particles-canvas"></canvas>
 
-<!-- FOLD WARNING MODAL -->
+<!-- FOLD WARNING MODAL (single game) -->
 <div id="fold-modal">
   <div class="fold-box">
     <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
     <div class="fold-text" id="fold-text"></div>
     <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
+  </div>
+</div>
+
+<!-- 4-WAY FOLD MODAL -->
+<div id="fold4-modal">
+  <div class="fold4-box">
+    <div class="fold4-title">🃏 포기하려는가?</div>
+    <div class="fold4-reactions" id="fold4-reactions"></div>
+    <div class="fold4-buttons">
+      <button class="fold4-confirm" onclick="confirmFold4()">⚔️ 폴드하겠습니다</button>
+      <button class="fold4-cancel" onclick="closeFold4Modal()">계속 싸우겠습니다</button>
+    </div>
   </div>
 </div>
 
@@ -574,6 +760,17 @@ body{font-size:15px;}
         <div class="d-theme">명예 · 지혜</div>
         <div class="d-quote">"진리를 갈구하는가? 아니면 거짓 명성에 취할 것인가?"</div>
       </div>
+    </div>
+  </div>
+
+  <!-- 4-WAY CHALLENGE BUTTON -->
+  <div class="all4-wrap">
+    <button class="btn-all4 locked" id="btn-all4" onclick="tryStartAll4()">
+      <span class="all4-lock-icon" id="all4-lock-icon">🔒</span>
+      <span id="all4-btn-label">4신 동시 대결 — 운명의 최후 심판</span>
+    </button>
+    <div class="all4-hint" id="all4-hint">
+      🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)
     </div>
   </div>
 </div>
@@ -637,7 +834,59 @@ body{font-size:15px;}
   </div>
 </div>
 
-<!-- SCREEN 4: REPORT -->
+<!-- SCREEN 4: 4-WAY BATTLE -->
+<div class="screen hidden" id="screen-game4">
+  <div class="game4-wrap">
+    <!-- HUD -->
+    <div class="game4-hud">
+      <div class="hud-block">
+        <span class="hud-label">Vital Luck</span>
+        <span class="hud-val gold" id="hud4-luck">100</span>
+      </div>
+      <div class="hud-block hud-center">
+        <div class="game4-title">🔱 4신 동시 대결 🔱</div>
+        <span class="street-label" id="hud4-street" style="font-size:.85rem;">Third Street</span>
+        <span class="street-progress" id="hud4-prog">베팅 라운드 1 / 5</span>
+      </div>
+      <div class="hud-block" style="align-items:flex-end;">
+        <span class="hud-label">POT</span>
+        <span class="hud-val red" id="hud4-pot">0</span>
+      </div>
+    </div>
+    <!-- Fold allowed notice -->
+    <div class="fold-allowed-banner">
+      ⚔️ 이 대결에서는 <strong>폴드(Fold)가 허용</strong>됩니다 — 하지만 신들은 포기를 경멸한다
+    </div>
+
+    <!-- 4 dealer zones -->
+    <div class="dealers4-grid" id="dealers4-grid"></div>
+
+    <!-- Dealer dialogues -->
+    <div class="dialogue4-grid" id="dialogue4-grid"></div>
+
+    <!-- Player zone -->
+    <div class="player4-zone">
+      <div class="zone-label">♥ <span id="lbl4-player">당신</span>의 패</div>
+      <div class="cards-row" id="player4-row"></div>
+      <div class="hand-hint" id="player4-hint"></div>
+    </div>
+
+    <!-- Actions -->
+    <div>
+      <div class="action4-bar" id="action4-bar"></div>
+      <div class="spinning" id="spinning4" style="display:none;">
+        <div class="wheel-rings">
+          <div class="wheel-outer"></div>
+          <div class="wheel-inner"></div>
+          <div class="wheel-hub">☸</div>
+        </div>
+        <span class="spinning-text">4신의 운명이 뒤엉킵니다…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: REPORT -->
 <div class="screen hidden" id="screen-report">
   <div class="report-scroll" id="report-content"></div>
   <button class="btn-restart" onclick="restartGame()">다시 운명에 도전하라</button>
@@ -833,6 +1082,276 @@ const SUIT_GUIDES = {
        lose:'감정적 결정을 미루고 냉정함을 유지하라. 사랑에 속지 않도록 경계하라.'},
   '♣':{win:'건강과 지혜에 아낌없이 투자하라. 몸과 마음의 균형이 최고의 자산이다.',
        lose:'건강과 지혜를 소홀히 하지 마라. 몸의 신호를 무시하면 반드시 대가가 온다.'}
+};
+
+// =============================================
+//  DEALER × SUIT COMBINATION ANALYSIS
+// =============================================
+// [dealer][suit][win/lose] = { overture, analysis, closingLine }
+const DEALER_SUIT_REPORT = {
+  amon:{
+    '♠':{
+      win:{
+        overture:'⚔️ 권력의 군주 아몬의 눈앞에서 당신은 스페이드 카드를 뽑아냈군요. 냉철한 지성의 날카로움이 탐욕의 신조차 압도했습니다.',
+        analysis:'💨 공기(Air)의 기운과 아몬의 재물 에너지가 충돌하며 강렬한 결단력의 불꽃이 튀었습니다. 사회적 권력 다툼에서 이성과 전략으로 승기를 잡을 강한 암시가 흐릅니다. 직업적 장애물을 과감히 꿰뚫는 결단이 당신 앞의 황금 문을 열어젖힐 것입니다. 🔑',
+        closingLine:'⚡ "칼과 황금은 같은 씨앗에서 자란다 — 지금 그 씨앗을 심어라."'
+      },
+      lose:{
+        overture:'💀 탐욕의 군주 아몬의 앞에서 스페이드의 날이 꺾였습니다. 충돌이 너무 이른 시기에 찾아왔군요.',
+        analysis:'⚠️ 공기(Air)의 분쟁 기운과 아몬의 권력 영역이 역방향으로 얽혔습니다. 직업적·재정적 갈등이 이미 수면 아래서 끓고 있을 수 있으니, 충동적인 결정을 내리지 마십시오. 이 패배는 경고입니다. 🛑',
+        closingLine:'🌑 "칼을 쥔 손이 떨리는 자에게 황금은 오지 않는다."'
+      }
+    },
+    '♦':{
+      win:{
+        overture:'💛 욕망의 군주 아몬의 눈앞에서 당신은 다이아몬드 카드를 뽑아냈군요. 흙의 땅에서 황금이 솟아오릅니다.',
+        analysis:'🌍 흙(Earth)의 물질 에너지와 아몬의 재물 영역이 완벽하게 공명했습니다. 이 조합은 역대 가장 강력한 금전 운의 배열 중 하나입니다. 투자, 사업, 승진 — 모든 물질적 행보에 초록불이 켜졌습니다. 𝕮 부의 흐름이 당신에게로 수렴하고 있습니다. 💰',
+        closingLine:'✨ "황금은 욕망하는 자의 손을 스스로 찾아온다."'
+      },
+      lose:{
+        overture:'⚠️ 탐욕의 군주 아몬에게 다이아몬드까지 내어주었군요. 재물의 신이 등을 돌렸습니다.',
+        analysis:'🌑 흙(Earth)의 물질 기운이 아몬의 재물 영역과 역류하며 금전적 위기의 전조를 드리웁니다. 충동 구매, 보증, 투자 실패의 위험이 잠복해 있으니 지금 당장 지갑과 계좌를 점검하십시오. 💸',
+        closingLine:'🔔 "탐욕이 운명을 먼저 집어삼키기 전에, 손을 거두어라."'
+      }
+    },
+    '♥':{
+      win:{
+        overture:'💛 재물의 군주 아몬 앞에서 하트의 물결이 황금을 씻어냈습니다. 감정이 권력을 이겼군요.',
+        analysis:'💧 물(Water)의 치유와 아몬의 권력 드라이브가 충돌했지만, 당신의 진심이 승리했습니다. 인간적인 유대와 따뜻한 관계망이 재물보다 강한 힘을 발휘할 것입니다. 진정성 있는 연결이 오히려 더 큰 부와 지위를 불러올 역설적 운명입니다. 🌊',
+        closingLine:'💫 "황금보다 무거운 것이 있다 — 그것은 진심이다."'
+      },
+      lose:{
+        overture:'😔 아몬의 탐욕 앞에 하트의 온기가 식어버렸습니다. 감정의 취약함이 드러났군요.',
+        analysis:'🌊 물의 감성이 아몬의 차가운 재물 계산에 부딪히며 침식되었습니다. 감정적인 결정으로 인한 금전 손실이나 대인관계에서의 이용당함을 경계하십시오. 마음과 돈을 모두 지켜내야 할 시기입니다. 🛡️',
+        closingLine:'⚠️ "따뜻한 마음을 차가운 세계에 무방비로 내밀지 마라."'
+      }
+    },
+    '♣':{
+      win:{
+        overture:'🔥 아몬의 황금 테이블에서 클로버의 불꽃이 타올랐습니다. 열정이 재물을 점화시켰군요.',
+        analysis:'🔥 불(Fire)의 창의적 열정과 아몬의 야망 에너지가 합쳐져 폭발적인 상승 기운을 만들었습니다. 새로운 사업 아이디어, 행운의 인연, 소셜 네트워크를 통한 재물 창출의 강력한 신호가 흐릅니다. 지금 당장 행동으로 옮기십시오! 🚀',
+        closingLine:'⚡ "불꽃을 두려워하는 자는 빛도 얻지 못한다."'
+      },
+      lose:{
+        overture:'💥 아몬의 차가운 계산 앞에 클로버의 불꽃이 꺼졌습니다. 섣부른 행동이 화를 불렀군요.',
+        analysis:'🌬️ 불의 충동적 에너지가 아몬의 영역에서 역풍을 맞았습니다. 충동적인 투자나 과잉 행동으로 인한 손실이 우려됩니다. 잠시 멈추고 냉각기를 가지십시오. 불꽃이 다시 안정되면 그 때가 진정한 기회입니다. 🧯',
+        closingLine:'🌑 "통제되지 않은 열정은 자신을 태운다."'
+      }
+    }
+  },
+  ishtar:{
+    '♠':{
+      win:{
+        overture:'💕 매혹의 이슈타르 앞에서 스페이드의 지성이 사랑의 미로를 꿰뚫었습니다. 이성과 감성의 절묘한 균형이군요.',
+        analysis:'💨 공기(Air)의 냉철한 이성이 이슈타르의 감정 영역과 교차하며 독특한 화학반응을 일으켰습니다. 감정에 휩쓸리지 않으면서도 관계의 본질을 꿰뚫어보는 능력이 주변 사람들을 깊이 매혹시킬 것입니다. 진심 어린 대화와 지적 교감이 운명적 인연을 불러옵니다. 💫',
+        closingLine:'💘 "이성으로 사랑을 선택하는 자가 가장 깊이 사랑하는 자다."'
+      },
+      lose:{
+        overture:'💔 이슈타르의 붉은 실 앞에서 스페이드의 날이 무뎌졌습니다. 이성이 감정의 미로에서 길을 잃었군요.',
+        analysis:'🌀 이성(Air)과 감정(Water)의 충돌이 관계에서의 혼란을 예고합니다. 너무 논리적으로 감정을 재단하거나, 반대로 감정에 완전히 잠식당하는 극단을 경계하십시오. 지금은 판단보다 경청이 필요한 시기입니다. 🌊',
+        closingLine:'🍂 "사랑은 지도가 없는 여행이다. 지금은 나침반을 내려놓아라."'
+      }
+    },
+    '♦':{
+      win:{
+        overture:'💖 사랑의 여신 이슈타르 앞에서 다이아몬드의 빛이 인연을 비추었습니다. 감정과 물질이 아름답게 융합되는군요.',
+        analysis:'🌍 흙(Earth)의 실용적 에너지와 이슈타르의 감정 영역이 만나 안정적이고 풍요로운 사랑의 결실을 암시합니다. 결혼, 동거, 사랑하는 이와의 실질적인 미래 계획이 구체화될 강한 시기입니다. 마음과 현실이 함께 풍요로워집니다. 💍',
+        closingLine:'💛 "진정한 사랑은 꿈이 아니라 현실에 뿌리를 내린다."'
+      },
+      lose:{
+        overture:'😢 이슈타르의 눈물이 다이아몬드 위에 떨어졌습니다. 사랑의 대가가 너무 현실적으로 다가오는군요.',
+        analysis:'💸 흙의 물질 기운이 이슈타르의 감정 영역에서 역류하며 감정적 결정으로 인한 재정 손실이나 관계의 대가를 치르게 될 암시가 흐릅니다. 사랑에 눈이 멀어 중요한 현실적 판단을 놓치지 마십시오. 🛑',
+        closingLine:'🌑 "사랑이라는 이름의 빚은 가장 무겁게 상환된다."'
+      }
+    },
+    '♥':{
+      win:{
+        overture:'🌊 매혹의 이슈타르 앞에서 하트의 물결이 가득 차올랐습니다. 운명적인 감정의 만개입니다.',
+        analysis:'💧 물(Water)의 감성과 이슈타르의 사랑 영역이 완벽하게 공명했습니다. 이 조합은 사랑과 인간관계에서 가장 강력한 행운의 배열입니다. 운명적 재회, 새로운 깊은 인연, 치유의 사랑이 찾아올 것이며 주변의 모든 관계가 따뜻하게 빛날 것입니다. 💞',
+        closingLine:'✨ "물은 낮은 곳을 흘러 결국 바다에 이른다 — 진심은 반드시 닿는다."'
+      },
+      lose:{
+        overture:'💧 이슈타르의 달콤한 독배가 하트의 심연을 채웠습니다. 감정이 너무 깊어 위험합니다.',
+        analysis:'🌊 물(Water) 과잉의 에너지가 이슈타르의 영역에서 넘쳐흘러 감정적 익사 상태를 경고합니다. 집착, 과몰입, 이별의 고통 등 감정적 시련이 예고됩니다. 잠시 거리두기를 통해 자신을 되찾을 때입니다. 🛟',
+        closingLine:'🌑 "물은 담겨야 빛나고 넘쳐흐르면 모든 것을 삼킨다."'
+      }
+    },
+    '♣':{
+      win:{
+        overture:'🔥 이슈타르의 붉은 실이 클로버의 불꽃에 타올랐습니다. 열정적인 사랑의 서막이 열리는군요.',
+        analysis:'🔥 불(Fire)의 열정과 이슈타르의 감정 에너지가 결합해 뜨겁고 역동적인 인연의 시작을 알립니다. 새로운 만남, 강렬한 첫인상, 설레는 감정의 불꽃이 곧 당신의 삶에 뛰어들 것입니다. 사교 활동과 새로운 공간에서의 만남에 적극적으로 임하십시오. 💘',
+        closingLine:'🌹 "불꽃 같은 만남은 단 한 순간에 운명을 바꾼다."'
+      },
+      lose:{
+        overture:'💔 이슈타르의 감정 미로에서 클로버의 불꽃이 방향을 잃었습니다. 성급한 감정이 화를 불렀군요.',
+        analysis:'🔥🌀 불의 충동성이 이슈타르의 감정 영역과 부딪히며 관계에서의 성급한 행동, 말실수, 충동적 고백이나 결별 등을 경계해야 합니다. 열정의 온도를 낮추고 상대의 마음을 먼저 헤아리는 시간이 필요합니다. 🌬️',
+        closingLine:'🍂 "불꽃이 너무 뜨거우면 상대를 대신 태운다."'
+      }
+    }
+  },
+  thanatos:{
+    '♠':{
+      win:{
+        overture:'⚔️ 침묵의 타나토스 앞에서 스페이드의 결단이 삶의 균형을 회복했습니다. 이성이 죽음의 신을 이겼군요.',
+        analysis:'💨 공기(Air)의 명석한 판단력이 타나토스의 삶과 죽음 영역과 만나 건강 문제나 삶의 고비에서 올바른 결단을 내릴 능력을 강화합니다. 오래 고민하던 건강 습관의 변화나 과거의 악습 청산이 이제 본격적으로 결실을 맺을 때입니다. 🌿',
+        closingLine:'🌙 "죽음을 직시한 자만이 삶의 진짜 가치를 안다."'
+      },
+      lose:{
+        overture:'💀 타나토스의 침묵이 스페이드의 날을 삼켜버렸습니다. 판단이 흐려진 위험한 시기입니다.',
+        analysis:'⚠️ 공기(Air)의 이성이 타나토스의 죽음 영역에서 혼미해졌습니다. 건강에 관한 중요한 신호를 무시하거나 피로를 방치하지 마십시오. 몸과 마음의 경고등이 이미 켜져 있을 수 있습니다. 지금이 검진과 휴식의 적기입니다. 🏥',
+        closingLine:'🌑 "몸의 언어를 외면하는 이성은 가장 어리석은 판단이다."'
+      }
+    },
+    '♦':{
+      win:{
+        overture:'💛 타나토스 앞에서 다이아몬드의 빛이 생명력을 증명했습니다. 육체적 건강이 물질적 풍요를 뒷받침하는군요.',
+        analysis:'🌍 흙(Earth)의 탄탄한 에너지가 타나토스의 건강 영역과 조화를 이루며 몸의 회복력과 생명력이 강화됩니다. 건강에 투자하는 것이 가장 확실한 재물임을 깨닫게 될 시기이며, 오랜 신체의 불편함이 해소되거나 활력이 되살아나는 전환점이 찾아옵니다. 🌱',
+        closingLine:'✨ "건강한 육체가 모든 황금의 토대다."'
+      },
+      lose:{
+        overture:'😔 타나토스의 모래시계 앞에 다이아몬드가 빛을 잃었습니다. 건강을 돈으로 살 수 없음을 경고합니다.',
+        analysis:'💸 흙의 물질 기운이 타나토스의 영역에서 역류하며 건강을 소홀히 한 대가가 현실적으로 다가올 수 있음을 경고합니다. 과로, 스트레스로 인한 신체 이상이나 의료비 지출에 대비하십시오. 지금 몸이 보내는 신호에 귀를 기울이십시오. 🔔',
+        closingLine:'🌑 "황금보다 먼저 잃는 것이 있다 — 그것은 건강이다."'
+      }
+    },
+    '♥':{
+      win:{
+        overture:'💕 침묵의 타나토스 앞에서 하트의 생명수가 죽음의 그림자를 밀어냈습니다. 사랑이 삶을 치유했군요.',
+        analysis:'💧 물(Water)의 치유 에너지가 타나토스의 생명 영역과 공명하여 강력한 회복의 기운을 만들어냅니다. 오래된 마음의 상처가 아물고, 몸과 정신 모두 깊은 휴식과 치유를 경험할 것입니다. 가족의 사랑이나 소중한 인연이 삶의 활력을 되살립니다. 🌊',
+        closingLine:'💫 "삶을 이어주는 가장 강력한 힘은 사랑에서 흘러나온다."'
+      },
+      lose:{
+        overture:'😢 타나토스의 시계 바늘이 하트의 온기를 식혔습니다. 감정적 소진이 몸에도 깊은 그림자를 드리웁니다.',
+        analysis:'🌊 물의 감성과 타나토스의 영역이 역류하며 감정적 고통이 신체 건강에까지 영향을 미치는 심신의 연결을 경고합니다. 슬픔, 우울, 무기력감을 방치하면 신체 면역까지 약해질 수 있습니다. 자신을 먼저 돌보십시오. 🛟',
+        closingLine:'🌑 "마음이 아프면 몸도 반드시 반응한다. 두 곳을 동시에 돌보아라."'
+      }
+    },
+    '♣':{
+      win:{
+        overture:'🔥 타나토스의 침묵 속에서 클로버의 불꽃이 생명의 열기를 되살렸습니다. 용기가 죽음의 신을 물러서게 했군요.',
+        analysis:'🔥 불(Fire)의 생명력과 타나토스의 삶과 죽음 영역이 만나 강력한 재생과 활력의 기운을 만들어냅니다. 오래 방치한 건강 문제를 적극적으로 해결하거나, 과거의 부정적 습관을 끊어낼 용기가 생겨납니다. 굿바이 과거, 웰컴 새로운 삶! 🌅',
+        closingLine:'✨ "살아있는 불꽃은 죽음의 그림자를 태운다."'
+      },
+      lose:{
+        overture:'💥 타나토스 앞에서 클로버의 불꽃이 소진되었습니다. 과도한 열정이 오히려 몸을 갉아먹었군요.',
+        analysis:'🔥⚠️ 불의 과잉 에너지가 타나토스의 영역에서 역풍을 맞았습니다. 과로, 번아웃, 무리한 운동이나 활동으로 인한 건강 저하가 경고됩니다. 지금은 가속 페달이 아니라 브레이크를 밟을 때입니다. 충분한 수면과 휴식이 무엇보다 중요합니다. 🛑',
+        closingLine:'🌑 "영원히 타오르는 불꽃은 없다. 이제 쉬어라."'
+      }
+    }
+  },
+  metatron:{
+    '♠':{
+      win:{
+        overture:'⚡ 공허의 메타트론 앞에서 스페이드의 지성이 진리를 꿰뚫었습니다. 지혜가 신의 기록을 이겼군요.',
+        analysis:'💨 공기(Air)의 날카로운 지성과 메타트론의 명예·지혜 영역이 완벽하게 공명했습니다. 이 조합은 학업, 연구, 창작 활동에서 비범한 성취를 예고합니다. 오래 준비해온 시험이나 프로젝트에서 빛나는 결과가 나타날 강력한 암시가 흐릅니다. 🏆',
+        closingLine:'✨ "진리에 가장 가까이 다가선 자에게 우주는 길을 열어준다."'
+      },
+      lose:{
+        overture:'🌑 메타트론의 공허 앞에서 스페이드의 이성이 흔들렸습니다. 진리를 마주할 준비가 아직 부족했군요.',
+        analysis:'⚠️ 공기(Air)의 지성이 메타트론의 진리 영역에서 굴절되었습니다. 지식의 오만함이나 섣부른 판단이 명예에 금을 낼 수 있습니다. 아는 것과 지혜로운 것은 다릅니다. 이 패배를 반성의 기회로 삼으십시오. 📚',
+        closingLine:'🌑 "가장 위험한 무지는 자신이 알고 있다고 믿는 것이다."'
+      }
+    },
+    '♦':{
+      win:{
+        overture:'💛 메타트론의 신성한 기록 앞에서 다이아몬드의 빛이 명예를 증명했습니다. 성취가 물질로 구현됩니다.',
+        analysis:'🌍 흙(Earth)의 실용 에너지와 메타트론의 명예 영역이 결합해 공적 성취가 현실적인 보상으로 이어지는 강한 흐름을 만듭니다. 커리어에서의 승진, 상금, 공모전 입상, 학위 취득 등 노력의 결실이 물질적 형태로 나타날 것입니다. 📜',
+        closingLine:'🏆 "기록된 명예는 황금보다 오래 빛난다."'
+      },
+      lose:{
+        overture:'😔 메타트론의 엄중한 시선 아래 다이아몬드가 색을 잃었습니다. 명예와 물질 모두 위태로운 신호입니다.',
+        analysis:'💸 흙의 물질 에너지가 메타트론의 지혜 영역에서 역류하며 명예를 물질로 사거나 성취를 속임수로 얻으려는 시도가 반드시 대가를 치르게 됨을 경고합니다. 단기적 이득보다 장기적 신뢰를 선택하십시오. 🛡️',
+        closingLine:'🌑 "가짜 명예는 가장 빠르게 무너지는 성채다."'
+      }
+    },
+    '♥':{
+      win:{
+        overture:'💜 메타트론의 공허 속에서 하트의 온기가 지혜를 깨웠습니다. 진심이 가장 위대한 학문이군요.',
+        analysis:'💧 물(Water)의 공감 에너지와 메타트론의 지혜 영역이 융합되어 감성적 지혜, 즉 공감 능력과 정서적 통찰이 극대화됩니다. 학문적 성취뿐 아니라 인간관계에서의 깊은 이해와 외교적 능력이 빛을 발하여 많은 이들의 신뢰와 존경을 얻게 됩니다. 💫',
+        closingLine:'✨ "가장 높은 지혜는 타인의 마음을 이해하는 것이다."'
+      },
+      lose:{
+        overture:'💔 메타트론의 빛 앞에서 하트의 감성이 판단을 흐렸습니다. 감정이 지혜를 가리는 순간이군요.',
+        analysis:'🌊 물의 감성이 메타트론의 지혜 영역을 침범하며 감정에 치우친 결정이 명예나 학업, 공적 영역에서 실수를 낳을 수 있음을 경고합니다. 중요한 발표나 시험 전에 감정을 먼저 정돈하십시오. 🧘',
+        closingLine:'🌑 "감정이 이성의 왕좌에 앉으면 왕국이 흔들린다."'
+      }
+    },
+    '♣':{
+      win:{
+        overture:'🔥 메타트론의 성스러운 기록 앞에서 클로버의 불꽃이 지혜를 점화했습니다. 열정적 행동이 명예를 만들었군요.',
+        analysis:'🔥 불(Fire)의 창의적 열정과 메타트론의 명예·성취 영역이 폭발적으로 결합했습니다. 창의적 프로젝트, 공개 발표, 사회적 활동에서 뛰어난 성과를 낼 강력한 운이 흐릅니다. 지금이 바로 세상 앞에 당신의 능력을 드러낼 최고의 순간입니다. ⭐',
+        closingLine:'💥 "열정적으로 타오르는 정신이 지혜의 가장 밝은 불꽃이다."'
+      },
+      lose:{
+        overture:'💀 메타트론의 엄중함 앞에서 클로버의 불꽃이 오만함으로 번졌습니다. 성급한 행동이 명예에 흠집을 냈군요.',
+        analysis:'⚠️ 불의 충동성이 메타트론의 엄격한 명예 영역에서 역풍을 맞았습니다. 검증되지 않은 지식을 공개적으로 주장하거나, 성급한 결정이 평판에 상처를 낼 위험이 있습니다. 말하기 전에 한 번 더 생각하십시오. 🤐',
+        closingLine:'🌑 "빛을 내기 전에 충분히 연소되어야 한다."'
+      }
+    }
+  }
+};
+
+// 카드 문양 심볼 → 딜러·문양 결합 분석 키 매핑
+const SUIT_KEY_MAP = {'♠':'♠','♦':'♦','♥':'♥','♣':'♣'};
+
+// 카드 숫자(rank) 기반 행동 지침
+const RANK_ACTION = {
+  1: {// Ace
+    win: '♠️ A(에이스)의 기운이 솟구쳤습니다. 새로운 시작을 알리는 가장 강력한 씨앗 — 오늘 당장 새로운 계획을 문서로 적어 첫 발을 내디디십시오.',
+    lose:'⚠️ A(에이스)의 양날검 — 새 시작의 에너지가 역설적으로 불안정을 의미합니다. 지금은 새 프로젝트를 시작하기보다 현재를 정비하십시오.'
+  },
+  2:{
+    win: '🕯️ 2의 조용한 파트너십 에너지가 작동합니다. 신뢰할 수 있는 단 한 사람과의 협력을 강화하십시오. 둘의 힘이 하나보다 압도적입니다.',
+    lose:'💭 2의 불안정한 양면성이 드러났습니다. 선택의 기로에서 더 이상 망설이지 말고 한 방향을 확실히 결정하십시오.'
+  },
+  3:{
+    win: '🌱 3의 창의적 성장 에너지가 열립니다. 세 가지 주요 분야에 고르게 에너지를 나눠 씨앗을 심으십시오. 복수의 기회가 열립니다.',
+    lose:'🌀 3의 분산된 에너지가 집중력을 빼앗습니다. 지금 당장 가장 중요한 한 가지에만 에너지를 집중하고 나머지는 내려놓으십시오.'
+  },
+  4:{
+    win: '🏛️ 4의 안정과 기초 에너지가 충만합니다. 장기적 계획의 토대를 지금 쌓으십시오. 루틴과 구조가 행운을 만드는 시기입니다.',
+    lose:'🔒 4의 경직된 에너지가 변화를 막고 있습니다. 고집스럽게 같은 방법을 반복하지 말고 유연하게 방향을 전환하십시오.'
+  },
+  5:{
+    win: '⚡ 5의 모험과 변화 에너지가 강렬합니다. 두려움 없이 새로운 변화를 받아들이고 익숙함을 박차고 나서십시오. 변화가 곧 행운입니다.',
+    lose:'🌪️ 5의 변동성이 불안정을 키우고 있습니다. 지금 당장 더 이상의 변화를 멈추고 안정을 최우선으로 삼으십시오.'
+  },
+  6:{
+    win: '⚖️ 6의 조화와 균형 에너지가 넘칩니다. 일과 삶, 주는 것과 받는 것의 균형을 회복하십시오. 관계의 회복이 최고의 행운을 불러옵니다.',
+    lose:'🌀 6의 불균형이 드러났습니다. 너무 많이 주거나 너무 많이 빼앗기고 있지는 않은지 관계의 균형표를 점검하십시오.'
+  },
+  7:{
+    win: '🔮 7의 신비롭고 깊은 에너지가 각성됩니다. 내면의 직관을 신뢰하십시오. 분석보다 직감이 더 정확한 시기입니다.',
+    lose:'🌑 7의 은둔 에너지가 고립을 부릅니다. 혼자만의 세계에 갇히지 말고 신뢰하는 사람과의 대화로 새로운 관점을 열어야 합니다.'
+  },
+  8:{
+    win: '💎 8의 무한한 풍요 에너지가 폭발합니다. 재물, 권력, 회복력 모두 최고조입니다. 이 에너지가 흐르는 동안 대담하게 결정을 내리십시오.',
+    lose:'⚠️ 8의 과잉 에너지가 탐욕의 함정을 파고 있습니다. 너무 많은 것을 한꺼번에 잡으려다 모두 놓치지 마십시오. 선택과 집중이 답입니다.'
+  },
+  9:{
+    win: '🌟 9의 완성 직전 에너지가 강렬합니다. 마지막 한 걸음이 남았습니다 — 지금 당장 오래 미루어온 그 일을 완수하십시오. 완성이 곧 새 시작입니다.',
+    lose:'😔 9의 미완의 에너지가 발목을 잡습니다. 끝내지 못한 일들이 당신의 전진을 막고 있습니다. 하나씩 결론을 내십시오.'
+  },
+  10:{
+    win: '🏆 10의 완전한 성취 에너지가 절정에 달했습니다. 오늘 이 순간, 가장 원하는 것을 명확히 선언하십시오. 우주가 목격자입니다.',
+    lose:'💀 10의 극단적 에너지가 역방향으로 작용합니다. 완벽주의나 극단적 사고방식이 스스로를 파멸로 이끌 수 있습니다. 내려놓는 용기가 필요합니다.'
+  },
+  11:{ // J
+    win: '🃏 J(잭)의 젊고 역동적인 에너지가 깨어났습니다. 새로운 뉴스, 메시지, 만남이 기회로 찾아올 것입니다. 소통 채널을 활짝 여십시오.',
+    lose:'🌀 J(잭)의 미성숙한 에너지가 충동을 자극합니다. 즉흥적 결정과 경솔한 말을 주의하십시오. 신중함이 보호막이 됩니다.'
+  },
+  12:{ // Q
+    win: '👑 Q(퀸)의 성숙하고 지혜로운 에너지가 빛납니다. 당신의 직관과 포용력이 주변을 이끌 것입니다. 리더십을 발휘하십시오.',
+    lose:'💭 Q(퀸)의 통제 에너지가 과잉 작동하고 있습니다. 너무 많은 것을 혼자 짊어지거나 통제하려 하지 마십시오. 위임과 신뢰가 필요합니다.'
+  },
+  13:{ // K
+    win: '🔱 K(킹)의 절대적인 권위 에너지가 강림했습니다. 지금이 가장 중요한 결정을 내릴 최고의 순간입니다. 두려움 없이 왕의 결단을 내리십시오.',
+    lose:'⚠️ K(킹)의 과도한 지배 에너지가 역풍을 부릅니다. 권위주의적 태도나 독단적 결정이 관계와 기회를 파괴할 수 있습니다. 경청하십시오.'
+  },
+  14:{ // A (value 14 in deck)
+    win: '🌟 A(에이스)의 최강 에너지가 정점에 달했습니다. 가장 높은 곳을 향해 지금 당장 도전하십시오. 이 운은 오래 머물지 않습니다.',
+    lose:'💀 A(에이스)의 양날검이 역방향입니다. 최고를 노리는 욕심이 오히려 전체를 무너뜨릴 수 있습니다. 한 발짝 내려서 기반을 점검하십시오.'
+  }
 };
 
 const STREETS = ['Third Street','Fourth Street','Fifth Street','Sixth Street','Seventh Street'];
@@ -1055,6 +1574,7 @@ function goToDealer(){
   G.name=v;
   document.getElementById('greet-name').textContent=v;
   document.getElementById('ishtar-q').textContent=`"사랑이라는 독배를 마실 준비가 되었니, ${v}?"`;
+  updateAll4Button();
   showScreen('screen-dealer');
 }
 
@@ -1243,7 +1763,7 @@ const BET_TIER_DATA = [
       '조심스러운 베팅조차 패배를 막지 못했다. 신중함만으로는 부족한 시기임을 알라,',
       '균형 잡힌 판단으로 임했으나 운명이 냉정했다. 지금 당장은'
     ],
-    winBonus:12, losePenalty:12,
+    winBonus:80, losePenalty:80,
     timingWin:['14일 이내에','보름 안에'],
     timingLose:['3주간','보름간']
   },
@@ -1261,7 +1781,7 @@ const BET_TIER_DATA = [
       '큰 베팅만큼 큰 경고가 울린다. 운명이 그대의 과감함을 시험했고, 이번엔 냉혹하게 벌했다.',
       '두려움 없이 임했으나 패배를 맛보았다. 그 손실만큼 강력한 역풍이 일고 있으니,'
     ],
-    winBonus:25, losePenalty:25,
+    winBonus:200, losePenalty:200,
     timingWin:['7일 이내에','10일 안에'],
     timingLose:['한 달간','이번 달 내내']
   },
@@ -1279,7 +1799,7 @@ const BET_TIER_DATA = [
       '모든 것을 걸고 모든 것을 잃었다. 오라클이 엄중히 경고한다:',
       '전력투구한 용기 자체는 칭찬한다. 하지만 운명은 그 패기를 박살냈다. 지금 이 순간,'
     ],
-    winBonus:40, losePenalty:40,
+    winBonus:400, losePenalty:400,
     timingWin:['3일 이내에','72시간 안에','일주일 이내에'],
     timingLose:['두 달간','앞으로 50일간','한동안']
   }
@@ -1296,19 +1816,31 @@ function buildReport(){
   const hf=HAND_FORTUNES[G.pHand.rank];
   const sg=SUIT_GUIDES[pSuit];
 
+  // ── Dealer × Suit combination report
+  const dsReport = (DEALER_SUIT_REPORT[G.dealer] || {})[pSuit] || null;
+  const dsEntry  = dsReport ? dsReport[win?'win':'lose'] : null;
+
+  // ── Card rank label for display
+  const rankLabel = G.pHand.cards.length>0
+    ? vLabel(G.pHand.cards.sort((a,b)=>b.v-a.v)[0].v)
+    : '?';
+  // dominant rank for action guide: top card value from bestHand cards
+  const topCardVal = G.pHand.cards.reduce((mx,c)=>c.v>mx?c.v:mx,0);
+  const rankAction = RANK_ACTION[topCardVal] || RANK_ACTION[10];
+
   // ── Bet tier
   const tier=getBetTier(G.pot);
   const td=BET_TIER_DATA[tier];
   const raises=G.pot/20; // how many times player raised
 
-  // ── Intensity: hand rank (1-10) contributes base, pot amplifies strongly
-  // Win: base 35 + handRank*4 + pot*0.55  (max ~35+40+66=141 → capped 99)
-  // Lose: base 55 - handRank*3 - pot*0.55 (min ~55-30-66=-41 → floored 3)
-  const rawWin  = 30 + G.pHand.rank*4 + Math.round(G.pot * 0.55);
-  const rawLose = 60 - G.pHand.rank*3 - Math.round(G.pot * 0.55);
+  // ── Intensity: 99~999% 범위
+  // Win:  base 99 + handRank*30 + pot*3.5 + winBonus   (max 999)
+  // Lose: base 99 + handRank*15 + pot*1.5              (max 999)
+  const rawWin  = 99 + G.pHand.rank*30 + Math.round(G.pot * 3.5) + td.winBonus;
+  const rawLose = 99 + G.pHand.rank*15 + Math.round(G.pot * 1.5) + td.losePenalty;
   const intensity = win
-    ? Math.min(99, rawWin  + td.winBonus)
-    : Math.max(3,  rawLose - td.losePenalty);
+    ? Math.min(999, rawWin)
+    : Math.min(999, rawLose);
 
   // ── Timing (higher tier = sooner reward / longer curse)
   const tArr = td[win?'timingWin':'timingLose'];
@@ -1331,28 +1863,50 @@ function buildReport(){
   ];
   const betImpact = win ? betImpactWin[tier] : betImpactLose[tier];
 
-  let oracle;
-  if(win){
-    oracle=`${prefix}<br><br>
-${G.name}의 <strong style="color:var(--gold)">${G.pHand.name}</strong>이(가) ${D.name}의 어둠을 걷어냈다.<br>
-${sd.desc}의 기운이 강하게 요동치니, <strong style="color:var(--gold)">${sd.theme}</strong>과 관련된 행운이 <strong style="color:var(--gold-l)">${timing}</strong> 찾아올 것이다.<br><br>
-${hf.win}${betImpact}`;
-  } else {
-    oracle=`${prefix}<br><br>
-${G.name}, ${D.name}의 <strong style="color:var(--crimson-b)">${G.dHand.name}</strong> 앞에 너의 운명이 무너졌다.<br>
-${sd.desc}의 칼날이 너를 향하고 있으니, ${timing} <strong style="color:var(--crimson-b)">${sd.theme}</strong>에 대한 욕망을 내려놓고 침묵하라.<br><br>
-${hf.lose}${betImpact}`;
-  }
+  // ── Build oracle section
+  // [운명의 서막] — from DEALER_SUIT_REPORT overture
+  const overture = dsEntry
+    ? `<p style="margin-bottom:.9rem;font-style:italic;color:var(--text-dim);">${dsEntry.overture}</p>`
+    : '';
+  // [결합 분석] — dealer × suit combined
+  const analysisText = dsEntry
+    ? dsEntry.analysis
+    : (win
+        ? `${G.name}의 <strong style="color:var(--gold)">${G.pHand.name}</strong>이(가) ${D.name}의 어둠을 걷어냈다.<br>${sd.desc}의 기운이 강하게 요동치니, <strong style="color:var(--gold)">${sd.theme}</strong>과 관련된 행운이 <strong style="color:var(--gold-l)">${timing}</strong> 찾아올 것이다.`
+        : `${G.name}, ${D.name}의 <strong style="color:var(--crimson-b)">${G.dHand.name}</strong> 앞에 너의 운명이 무너졌다.<br>${sd.desc}의 칼날이 너를 향하고 있으니, ${timing} <strong style="color:var(--crimson-b)">${sd.theme}</strong>에 대한 욕망을 내려놓고 침묵하라.`
+      );
+  // [행동 지침] — rank-based action
+  const actionText = rankAction[win?'win':'lose'];
+  // [운명의 한마디] — from DEALER_SUIT_REPORT closingLine
+  const closingLine = dsEntry
+    ? `<p style="margin-top:.9rem;font-family:'Cinzel',serif;font-size:.95rem;text-align:center;color:${D.color};letter-spacing:.05em;">${dsEntry.closingLine}</p>`
+    : '';
 
-  // ── Gauge bar (visual representation of intensity)
+  let oracle=`${overture}
+<strong style="font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.25em;color:${D.color};">[ 결합 분석 ]</strong><br>
+${analysisText}<br><br>
+<strong style="font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.25em;color:var(--gold);">[ 행동 지침 ]</strong><br>
+${actionText}<br><br>
+${prefix}${betImpact}
+${closingLine}`;
+
+  // ── Gauge bar (visual representation of intensity, out of 999)
   const gaugeColor = win
-    ? (intensity>=80?'#f0c040':intensity>=55?'#c9940f':'#9e7010')
-    : (intensity<=20?'#cc2222':intensity<=40?'#aa2222':'#7a1515');
+    ? (intensity>=800?'#f0c040':intensity>=500?'#c9940f':'#9e7010')
+    : (intensity<=200?'#cc2222':intensity<=400?'#aa2222':'#7a1515');
+  const gaugePct = Math.round(intensity/999*100);
+
+  // ── 999% 달성 시 all4 해금 저장
+  if(intensity>=999){
+    localStorage.setItem('destiny_poker_all4_unlocked','1');
+    updateAll4Button();
+  }
 
   document.getElementById('report-content').innerHTML=`
     <h2 class="r-title">📜 ${G.name}의 운명 판결서</h2>
     <div class="r-divider"></div>
     <div class="r-row"><span class="r-label">대결 상대</span><span class="r-val" style="color:${D.color}">${D.name}</span></div>
+    <div class="r-row"><span class="r-label">딜러 영역</span><span class="r-val" style="color:${D.color};font-size:.88rem;">${D.theme}</span></div>
     <div class="r-row"><span class="r-label">나의 결정적 족보</span><span class="r-val">${G.pHand.name}</span></div>
     <div class="r-row"><span class="r-label">딜러의 족보</span><span class="r-val">${G.dHand.name}</span></div>
     <div class="r-row"><span class="r-label">지배 문양</span><span class="r-val">${sd.name} ${pSuit} — ${sd.theme}</span></div>
@@ -1363,7 +1917,7 @@ ${hf.lose}${betImpact}`;
     <div class="r-divider"></div>
     <div class="r-result ${win?'win':'lose'}">${win?'✨ 승리 · VICTORY ✨':'💀 패배 · DEFEAT 💀'}</div>
     <div class="r-divider"></div>
-    <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);letter-spacing:.35em;text-align:center;margin-bottom:.9rem;">⚡ 오라클의 신탁 ⚡</div>
+    <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);letter-spacing:.35em;text-align:center;margin-bottom:.9rem;">⚡ 운명의 레포트 ⚡</div>
     <div class="oracle-box">${oracle}</div>
     <div class="r-divider"></div>
     <div style="font-family:'Cinzel',serif;font-size:.75rem;color:var(--text-dim);letter-spacing:.28em;text-align:center;margin-bottom:.6rem;">운명 가이드</div>
@@ -1371,19 +1925,20 @@ ${hf.lose}${betImpact}`;
     <div class="r-divider"></div>
     <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
-        운명의 ${win?'증폭':'감쇄'} 수치
+        운명의 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
-          (족보 기여 + 베팅 등급 가중치 포함)
+          (족보 기여 + 베팅 등급 가중치 포함 · 최대 999%)
         </span>
       </div>
-      <div class="meter-num ${win?'pos':'neg'}">${win?'+':'-'}${intensity}%</div>
+      <div class="meter-num pos">${intensity}%</div>
+      ${intensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;animation:purpleGlow 2s ease infinite;">🔱 999% 달성 — 4신 동시 대결이 해금되었습니다! 🔱</div>`:''}
       <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
-        <div style="width:${intensity}%;height:100%;background:${gaugeColor};border-radius:5px;
-          box-shadow:0 0 10px ${gaugeColor};transition:width 1s ease;"></div>
+        <div id="intensity-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
+          box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
       </div>
       <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
         font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
-        <span>0%</span><span>50%</span><span>100%</span>
+        <span>99%</span><span>500%</span><span>999%</span>
       </div>
     </div>
     <div class="r-divider"></div>
@@ -1399,19 +1954,536 @@ ${hf.lose}${betImpact}`;
 
   // animate gauge after render
   setTimeout(()=>{
-    const bar=document.querySelector('#report-content .meter-block div div');
-    if(bar) bar.style.width=intensity+'%';
+    const bar=document.getElementById('intensity-bar');
+    if(bar) bar.style.width=gaugePct+'%';
   },200);
 }
 
 function restartGame(){
   G={name:G.name,dealer:null,deck:[],pCards:[],dCards:[],street:0,luck:100,pot:0,pHand:null,dHand:null,winner:null};
   document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
+  updateAll4Button();
   showScreen('screen-dealer');
 }
 
 // =============================================
-//  KAKAO SHARE
+//  ALL-4 BUTTON LOCK/UNLOCK
+// =============================================
+function isAll4Unlocked(){
+  return localStorage.getItem('destiny_poker_all4_unlocked')==='1';
+}
+
+function updateAll4Button(){
+  const btn=document.getElementById('btn-all4');
+  const icon=document.getElementById('all4-lock-icon');
+  const hint=document.getElementById('all4-hint');
+  if(!btn) return;
+  if(isAll4Unlocked()){
+    btn.className='btn-all4 unlocked';
+    if(icon) icon.textContent='🔱';
+    if(hint){
+      hint.className='all4-hint unlocked-hint';
+      hint.innerHTML='🔱 해금됨 — 4신 동시 대결 가능 (폴드 허용)';
+    }
+  } else {
+    btn.className='btn-all4 locked';
+    if(icon) icon.textContent='🔒';
+    if(hint){
+      hint.className='all4-hint';
+      hint.innerHTML='🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)';
+    }
+  }
+}
+
+function tryStartAll4(){
+  if(!isAll4Unlocked()){
+    // locked shake
+    const btn=document.getElementById('btn-all4');
+    btn.style.animation='warnPop .4s ease';
+    setTimeout(()=>btn.style.animation='',450);
+    return;
+  }
+  startAll4Game();
+}
+
+// =============================================
+//  4-WAY GAME STATE & DATA
+// =============================================
+const ALL4_DEALER_ORDER = ['amon','ishtar','thanatos','metatron'];
+
+// 폴드 시 캐릭터별 반응 대사 (성격 반영)
+const FOLD_REACTIONS = {
+  amon:[
+    `"포기라고? 크흐… ${'{n}'}, 겁쟁이는 황금을 손에 넣을 자격이 없다. 정말 도망치겠느냐?"`,
+    `"포기? 탐욕의 신 아몬 앞에서? 수치스럽군. 하지만… 그게 진심이라면 막을 수는 없지."`,
+    `"황금과 권력을 버리겠다고? ${'{n}'}… 그 결정이 평생 후회로 남을 것이다."`,
+  ],
+  ishtar:[
+    `"어머, 포기하려고요, ${'{n}'}? 이슈타르의 사랑을 뿌리치다니… 가슴이 아프네요."`,
+    `"포기예요? 설마… 우리의 대결이 그토록 두려웠나요? 붉은 실이 끊어질 것 같아 슬퍼요."`,
+    `"${'{n}'}… 진심으로 도망치겠다는 거예요? 사랑보다 두려움을 택한 건가요?"`,
+  ],
+  thanatos:[
+    `"……폴드. 그렇군. ${'{n}'}, 선택은 너의 것이다. 하지만 한번 물러선 자는 평생 물러선다."`,
+    `"……도망이라는 길은 결코 끝이 없다. 그것이 죽음의 신이 너에게 건네는 마지막 경고다."`,
+    `"……${'{n}'}. 시간이 멈추지 않듯, 포기도 결코 그대를 자유롭게 하지 않는다."`,
+  ],
+  metatron:[
+    `"포기를 택하겠다고, ${'{n}'}? 지혜로운 자는 물러날 때를 알지 — 하지만 이것은 지혜가 아닌 두려움이다."`,
+    `"거짓 명성보다 솔직한 포기가 낫다고 생각하나? 틀렸다. 도망치는 순간 기록에서 지워진다."`,
+    `"${'{n}'}… 공허의 기록 속에서 포기한 자의 이름은 영원히 빛바랜다. 그래도 괜찮은가?"`,
+  ]
+};
+
+let G4 = {
+  name:'', street:0, luck:100, pot:0,
+  deck:[],
+  pCards:[],
+  dealers:{}, // {amon:{cards:[], hand:null, folded:false}, ...}
+  winner:null // 'player' or 'dealer' or 'mixed'
+};
+
+function startAll4Game(){
+  G4.name = G.name;
+  G4.street = 0;
+  G4.luck = 100;
+  G4.pot = 0;
+  G4.deck = shuffle(makeDeck());
+  G4.pCards = [];
+  G4.winner = null;
+  G4.dealers = {};
+
+  ALL4_DEALER_ORDER.forEach(id=>{
+    G4.dealers[id]={cards:[], hand:null, folded:false};
+  });
+
+  document.getElementById('lbl4-player').textContent = G4.name;
+
+  // Deal 3 cards to each dealer and player (third card face-up)
+  for(let i=0;i<3;i++){
+    ALL4_DEALER_ORDER.forEach(id=>{
+      G4.dealers[id].cards.push({...G4.deck.pop(), fd:i<2});
+    });
+    G4.pCards.push({...G4.deck.pop(), fd:i<2});
+  }
+
+  render4DealerZones(false);
+  render4Dialogues(0, null);
+  render4PlayerRow();
+  update4HUD();
+  set4BettingButtons();
+
+  showScreen('screen-game4');
+}
+
+function render4DealerZones(showAll, winnerSet){
+  const grid = document.getElementById('dealers4-grid');
+  grid.innerHTML = '';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    let zoneClass='d4-zone';
+    if(ds.folded) zoneClass+=' folded';
+    else if(winnerSet&&winnerSet.has(id)) zoneClass+=' winner-zone';
+
+    const bestSet = (showAll&&ds.hand&&!ds.folded)
+      ? new Set(ds.hand.cards.map(c=>c.s+c.v)) : null;
+
+    const cardsHtml = ds.cards.map(card=>{
+      const faceDown=!showAll&&card.fd;
+      const col=card.s==='♦'||card.s==='♥'?'r':'k';
+      const isBest=!!bestSet&&bestSet.has(card.s+card.v);
+      return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
+        <div class="card-inner">
+          <div class="card-b"><div class="card-b-inner"></div></div>
+          <div class="card-f ${col}">
+            <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
+            <div class="card-mid">${card.s}</div>
+            <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    let hintText = '';
+    if(ds.folded) hintText='<span class="d4-hint folded-badge">FOLD</span>';
+    else if(showAll&&ds.hand) hintText=`<span class="d4-hint ${ds.hand.rank>=5?'strong':''}">${ds.hand.name}</span>`;
+
+    grid.innerHTML+=`
+      <div class="${zoneClass}">
+        <div class="d4-zone-header">
+          <span class="d4-zone-dot" style="color:${D.color};background:${D.color};"></span>
+          <span class="d4-zone-name" style="color:${D.color};">${D.name}</span>
+          <span class="d4-zone-tag">${D.theme}</span>
+        </div>
+        <div class="d4-cards-row">${cardsHtml}</div>
+        ${hintText}
+      </div>`;
+  });
+}
+
+function render4Dialogues(streetIdx, highlightId){
+  const grid = document.getElementById('dialogue4-grid');
+  grid.innerHTML = '';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    const isActive = id===highlightId;
+    const isFolded = ds.folded;
+    const dlg=pickLine(D.dialogues[Math.min(streetIdx,4)]);
+    grid.innerHTML+=`
+      <div class="dlg4-box${isActive?' active-dlg':''}${isFolded?' folded-dlg':''}">
+        <div class="dlg4-speaker" style="color:${D.color};">${D.name}</div>
+        <div class="dlg4-text">${isFolded?'…(침묵)…':dlg.replace(/{n}/g,G4.name)}</div>
+      </div>`;
+  });
+}
+
+function render4PlayerRow(){
+  const row = document.getElementById('player4-row');
+  row.innerHTML='';
+  G4.pCards.forEach(card=>{
+    row.appendChild(buildCard(card, card.fd, false, false));
+  });
+  const visPCards=G4.pCards.filter(c=>!c.fd);
+  const hint=document.getElementById('player4-hint');
+  if(visPCards.length>=5){
+    const h=bestHand(visPCards);
+    hint.textContent=h.name;
+    hint.className='hand-hint'+(h.rank>=5?' strong':'');
+  } else {
+    hint.textContent='';
+    hint.className='hand-hint';
+  }
+}
+
+function update4HUD(){
+  document.getElementById('hud4-luck').textContent=G4.luck;
+  document.getElementById('hud4-pot').textContent=G4.pot;
+  const si=Math.min(G4.street,4);
+  document.getElementById('hud4-street').textContent=STREETS[si];
+  document.getElementById('hud4-prog').textContent=`베팅 라운드 ${G4.street+1} / 5`;
+}
+
+function set4BettingButtons(){
+  const bar=document.getElementById('action4-bar');
+  bar.innerHTML='';
+  const btns=[
+    {type:'check',label:'체크 (Check)',fn:()=>doAction4('check')},
+    {type:'raise',label:'레이즈 +10',fn:()=>doAction4('raise')},
+    {type:'fold', label:'⚔️ 폴드 (Fold)',fn:showFold4Warning},
+  ];
+  btns.forEach(b=>{
+    const el=document.createElement('button');
+    el.className='btn-act '+b.type;
+    el.textContent=b.label;
+    el.onclick=b.fn;
+    bar.appendChild(el);
+  });
+}
+
+function setSpinning4(on){
+  document.getElementById('spinning4').style.display=on?'block':'none';
+  document.getElementById('action4-bar').style.display=on?'none':'flex';
+}
+
+function doAction4(act){
+  if(act==='raise'&&G4.luck>=10){
+    G4.luck-=10;
+    G4.pot+=20;
+  }
+  G4.street++;
+  update4HUD();
+  if(G4.street<=4) dealStreet4();
+  else runShowdown4();
+}
+
+function dealStreet4(){
+  setSpinning4(true);
+  setTimeout(()=>{
+    const faceDown = G4.street===4;
+    ALL4_DEALER_ORDER.forEach(id=>{
+      if(!G4.dealers[id].folded){
+        G4.dealers[id].cards.push({...G4.deck.pop(), fd:faceDown});
+      }
+    });
+    G4.pCards.push({...G4.deck.pop(), fd:faceDown});
+
+    render4DealerZones(false, null);
+    render4PlayerRow();
+    update4HUD();
+
+    // Random dealer speaks
+    const activeDealers=ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded);
+    const speaker=activeDealers[Math.floor(Math.random()*activeDealers.length)]||ALL4_DEALER_ORDER[0];
+    render4Dialogues(G4.street, speaker);
+    setSpinning4(false);
+
+    if(G4.street===4){
+      const bar=document.getElementById('action4-bar');
+      bar.innerHTML='';
+      const finalBtns=[
+        {type:'check',label:'체크 후 쇼다운',fn:runShowdown4},
+        {type:'raise',label:'라스트 레이즈 +10',fn:()=>{if(G4.luck>=10){G4.luck-=10;G4.pot+=20;update4HUD();}runShowdown4();}},
+        {type:'fold', label:'⚔️ 폴드 (Fold)',fn:showFold4Warning},
+      ];
+      finalBtns.forEach(b=>{
+        const el=document.createElement('button');
+        el.className='btn-act '+b.type;
+        el.textContent=b.label;
+        el.onclick=b.fn;
+        bar.appendChild(el);
+      });
+    } else {
+      set4BettingButtons();
+    }
+  },1400);
+}
+
+function runShowdown4(){
+  setSpinning4(true);
+  render4Dialogues(4, null);
+
+  setTimeout(()=>{
+    G4.pCards.forEach(c=>c.fd=false);
+    const pHand4 = bestHand(G4.pCards);
+
+    let playerWins=0, playerLoses=0;
+
+    ALL4_DEALER_ORDER.forEach(id=>{
+      const ds=G4.dealers[id];
+      if(ds.folded){
+        ds.hand=null;
+        return;
+      }
+      ds.cards.forEach(c=>c.fd=false);
+      ds.hand=bestHand(ds.cards);
+      const cmp=cmpHands(pHand4,ds.hand);
+      if(cmp>=0) playerWins++; else playerLoses++;
+    });
+
+    G4.winner = playerLoses===0?'player':(playerWins===0?'dealer':'mixed');
+    G4.pHand4 = pHand4;
+
+    const winnerSet=new Set(
+      ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded&&cmpHands(pHand4,G4.dealers[id].hand)<0)
+    );
+
+    render4DealerZones(true, null);
+    render4PlayerRow();
+    setSpinning4(false);
+
+    const bar=document.getElementById('action4-bar');
+    bar.innerHTML='';
+    const el=document.createElement('button');
+    el.className='btn-act next';
+    el.textContent='📜 4신 운명 판결서 받기';
+    el.onclick=buildReport4;
+    bar.appendChild(el);
+  },2200);
+}
+
+// ── 4-WAY FOLD ──
+function showFold4Warning(){
+  const reactions=document.getElementById('fold4-reactions');
+  reactions.innerHTML='';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    if(ds.folded) return;
+    const lines=FOLD_REACTIONS[id];
+    const line=lines[Math.floor(Math.random()*lines.length)].replace(/\{n\}/g,G4.name);
+    reactions.innerHTML+=`
+      <div class="fold4-reaction">
+        <div>
+          <div class="fold4-reaction-dot" style="color:${D.color};background:${D.color};"></div>
+        </div>
+        <div>
+          <div class="fold4-reaction-name" style="color:${D.color};">${D.name}</div>
+          <div class="fold4-reaction-text">${line}</div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('fold4-modal').classList.add('show');
+}
+
+function closeFold4Modal(){
+  document.getElementById('fold4-modal').classList.remove('show');
+}
+
+function confirmFold4(){
+  closeFold4Modal();
+  // Player folds = instant lose to all remaining dealers
+  G4.winner='dealer_fold';
+
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const ds=G4.dealers[id];
+    if(!ds.folded){
+      // Reveal remaining cards
+      ds.cards.forEach(c=>c.fd=false);
+      if(ds.cards.length>=5) ds.hand=bestHand(ds.cards);
+      else ds.hand=null;
+    }
+  });
+  G4.pCards.forEach(c=>c.fd=false);
+  G4.pHand4=G4.pCards.length>=5?bestHand(G4.pCards):null;
+
+  render4DealerZones(true, null);
+  render4PlayerRow();
+
+  // Show fold result buttons
+  const bar=document.getElementById('action4-bar');
+  bar.innerHTML='';
+  const el=document.createElement('button');
+  el.className='btn-act next';
+  el.textContent='📜 4신 운명 판결서 받기 (폴드)';
+  el.onclick=buildReport4;
+  bar.appendChild(el);
+}
+
+// ── 4-WAY REPORT ──
+function buildReport4(){
+  const isFoldFinish = G4.winner==='dealer_fold';
+  const pHand4 = G4.pHand4;
+  const pSuit = dominantSuit(G4.pCards);
+  const sd = SUITS[pSuit];
+
+  const tier=getBetTier(G4.pot);
+  const td=BET_TIER_DATA[tier];
+  const raises=G4.pot/20;
+
+  // Intensity per dealer matchup
+  let totalScore=0, dealerCount=0;
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const ds=G4.dealers[id];
+    if(ds.folded) return;
+    dealerCount++;
+    if(isFoldFinish){
+      totalScore+=99;
+      return;
+    }
+    const win=pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
+    const raw = win
+      ? 99 + (pHand4?pHand4.rank:1)*30 + Math.round(G4.pot*3.5) + td.winBonus
+      : 99 + (pHand4?pHand4.rank:1)*15 + Math.round(G4.pot*1.5) + td.losePenalty;
+    totalScore += Math.min(999, raw);
+  });
+  const avgIntensity = dealerCount>0 ? Math.round(totalScore/dealerCount) : 99;
+
+  // dealer result rows
+  const dealerRowsHtml = ALL4_DEALER_ORDER.map(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    if(ds.folded) return `
+      <div class="r4-dealer-row fold4-row">
+        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
+        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
+        <span class="r4-d-hand">— (기권)</span>
+        <span class="r4-d-badge badge-fold">FOLD</span>
+      </div>`;
+    const win=!isFoldFinish&&pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
+    const handName=ds.hand?ds.hand.name:'?';
+    return `
+      <div class="r4-dealer-row ${isFoldFinish?'lose4':(win?'win4':'lose4')}">
+        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
+        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
+        <span class="r4-d-hand">${handName}</span>
+        <span class="r4-d-badge ${isFoldFinish?'badge-lose':(win?'badge-win':'badge-lose')}">${isFoldFinish?'DEFEAT':win?'WIN':'LOSE'}</span>
+      </div>`;
+  }).join('');
+
+  const overallResult = isFoldFinish ? 'fold'
+    : G4.winner==='player' ? 'win'
+    : G4.winner==='mixed' ? 'mixed' : 'lose';
+
+  const resultLabel={
+    win:'✨ 전원 격파 · TOTAL VICTORY ✨',
+    mixed:'⚡ 혼전 · MIXED RESULTS ⚡',
+    lose:'💀 전원 패배 · TOTAL DEFEAT 💀',
+    fold:'🏳️ 폴드 · FORFEIT 🏳️'
+  }[overallResult];
+
+  const resultClass={win:'win',mixed:'',lose:'lose',fold:'lose'}[overallResult];
+
+  const gaugeColor = (overallResult==='win'||overallResult==='mixed')
+    ? (avgIntensity>=800?'#f0c040':avgIntensity>=500?'#c9940f':'#9e7010')
+    : '#cc2222';
+  const gaugePct=Math.round(avgIntensity/999*100);
+
+  // 999% 달성 체크
+  if(avgIntensity>=999){
+    localStorage.setItem('destiny_poker_all4_unlocked','1');
+  }
+
+  document.getElementById('report-content').innerHTML=`
+    <h2 class="r-title">🔱 ${G4.name}의 4신 운명 판결서</h2>
+    <div class="r-divider"></div>
+    <div class="r-row"><span class="r-label">대결 유형</span><span class="r-val" style="color:#cc44ff;">4신 동시 대결</span></div>
+    <div class="r-row"><span class="r-label">나의 패</span><span class="r-val">${pHand4?pHand4.name:'(폴드)'}</span></div>
+    <div class="r-row"><span class="r-label">지배 문양</span><span class="r-val">${sd.name} ${pSuit} — ${sd.theme}</span></div>
+    <div class="r-row"><span class="r-label">베팅 등급</span>
+      <span class="r-val" style="color:${td.color}">${td.icon} ${td.label} (${raises}회 레이즈)</span></div>
+    <div class="r-divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">각 딜러 대결 결과</div>
+    <div class="r4-dealer-results">${dealerRowsHtml}</div>
+    <div class="r-divider"></div>
+    <div class="r-result ${resultClass}" style="font-size:1.6rem;">${resultLabel}</div>
+    <div class="r-divider"></div>
+    <div class="meter-block">
+      <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
+        평균 운명 증폭 수치
+        <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">(최대 999%)</span>
+      </div>
+      <div class="meter-num pos">${avgIntensity}%</div>
+      ${avgIntensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;">🔱 999% — 최고의 운명에 도달했습니다! 🔱</div>`:''}
+      <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
+        <div id="intensity4-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
+          box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
+        font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
+        <span>99%</span><span>500%</span><span>999%</span>
+      </div>
+    </div>
+    <div class="r-divider"></div>
+    <div class="report-actions">
+      <button class="btn-share-kakao" onclick="shareAll4Kakao()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
+        카카오톡 공유하기
+      </button>
+      <a class="btn-home" href="/">🏠 메인으로 바로가기</a>
+    </div>
+  `;
+  showScreen('screen-report');
+  setTimeout(()=>{
+    const bar=document.getElementById('intensity4-bar');
+    if(bar) bar.style.width=gaugePct+'%';
+  },200);
+  updateAll4Button();
+}
+
+function shareAll4Kakao(){
+  const resultEl=document.querySelector('#report-content .r-result');
+  const result=resultEl?resultEl.textContent:'?';
+  const meterEl=document.querySelector('#report-content .meter-num');
+  const meter=meterEl?meterEl.textContent:'';
+  const text=`🔱 [데스티니 포커 — 4신 동시 대결]\n\n`
+    +`👤 도전자: ${G4.name}\n`
+    +`⚔ 대결: 아몬 · 이슈타르 · 타나토스 · 메타트론\n`
+    +`🏆 결과: ${result}\n`
+    +`운명 수치: ${meter}\n\n`
+    +`🎴 나도 운명에 도전하기 👇\nhttps://code-destiny.com/destiny-poker.html`;
+  if(navigator.share){
+    navigator.share({title:'🔱 데스티니 포커 — 4신 동시 대결',text,url:'https://code-destiny.com/destiny-poker.html'}).catch(()=>{});
+    return;
+  }
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>{
+    alert('클립보드에 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+  }).catch(()=>{});
+}
+
+// =============================================
+//  KAKAO SHARE (single game)
 // =============================================
 function sharePokerKakao(){
   const win=G.winner==='player';
@@ -1423,7 +2495,7 @@ function sharePokerKakao(){
 
   const text=`🃏 [데스티니 포커 — 심판의 카지노]\n\n`
     +`👤 도전자: ${G.name}\n`
-    +`⚔ 대결 딜러: ${D.name}\n`
+    +`⚔ 대결 딜러: ${D.name} (${D.theme})\n`
     +`🏆 결과: ${win?'✨ 승리 · VICTORY':'💀 패배 · DEFEAT'}\n`
     +`나의 패: ${pName}   딜러의 패: ${dName}\n`
     +`운명 수치: ${meter}\n\n`

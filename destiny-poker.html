@@ -503,17 +503,203 @@ body{font-size:15px;}
 /* Section title glow */
 @keyframes titleGlow{0%,100%{filter:none;}50%{filter:drop-shadow(0 0 8px rgba(240,192,64,.4));}}
 .section-title{animation:titleGlow 4s ease infinite;}
+
+/* ── ALL-4 CHALLENGE BUTTON ── */
+.all4-wrap{
+  width:100%;max-width:880px;padding:.6rem 0 .2rem;
+  display:flex;flex-direction:column;align-items:center;gap:.6rem;
+}
+.btn-all4{
+  display:inline-flex;align-items:center;gap:.75rem;
+  padding:1rem 2.4rem;border:2px solid;font-family:'Cinzel Decorative',cursive;
+  font-size:1rem;letter-spacing:.12em;cursor:pointer;background:transparent;
+  transition:all .4s;position:relative;overflow:hidden;
+}
+.btn-all4.locked{
+  border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.22);cursor:not-allowed;
+}
+.btn-all4.unlocked{
+  border-color:#cc44ff;color:#cc44ff;
+  box-shadow:0 0 22px rgba(204,68,255,.3);
+  animation:all4Pulse 2.5s ease infinite;
+}
+.btn-all4.unlocked:hover{
+  background:rgba(204,68,255,.12);box-shadow:0 0 40px rgba(204,68,255,.6);
+  transform:translateY(-2px);
+}
+@keyframes all4Pulse{
+  0%,100%{box-shadow:0 0 22px rgba(204,68,255,.3);}
+  50%{box-shadow:0 0 50px rgba(204,68,255,.75),0 0 90px rgba(204,68,255,.3);}
+}
+.all4-lock-icon{font-size:1.2rem;}
+.all4-hint{
+  font-family:'Noto Serif KR',serif;font-size:.8rem;
+  color:var(--text-dim);letter-spacing:.05em;text-align:center;
+}
+.all4-hint.unlocked-hint{color:#cc44ff;font-weight:500;}
+
+/* ── 4-WAY GAME SCREEN ── */
+#screen-game4{justify-content:flex-start;padding:0;overflow-y:auto;}
+.game4-wrap{
+  display:flex;flex-direction:column;min-height:100vh;width:100%;
+  max-width:1100px;margin:0 auto;padding:1rem;gap:.8rem;
+}
+.game4-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.7rem 1rem;border-bottom:1px solid rgba(204,68,255,.3);flex-shrink:0;
+}
+.game4-hud .hud-label{font-size:.62rem;}
+.game4-hud .hud-val{font-size:1.25rem;}
+.hud-val.purple{color:#cc44ff;animation:purpleGlow 3s ease infinite;}
+@keyframes purpleGlow{0%,100%{text-shadow:none;}50%{text-shadow:0 0 18px rgba(204,68,255,.9);}}
+.game4-title{
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(.95rem,2.5vw,1.5rem);
+  background:linear-gradient(130deg,#cc44ff,#f0c040,#cc44ff);
+  background-size:300% 300%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmerGold 3s ease infinite;
+  text-align:center;
+}
+/* fold hint banner */
+.fold-allowed-banner{
+  text-align:center;font-family:'Cinzel',serif;font-size:.72rem;
+  letter-spacing:.18em;color:#cc44ff;
+  padding:.3rem .8rem;border:1px solid rgba(204,68,255,.3);
+  border-radius:2px;background:rgba(204,68,255,.06);
+  flex-shrink:0;margin:0 auto;
+}
+
+/* 4-dealer rows */
+.dealers4-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.6rem;
+  flex-shrink:0;
+}
+@media(min-width:900px){.dealers4-grid{grid-template-columns:repeat(4,1fr);}}
+.d4-zone{
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);
+  border-radius:3px;padding:.65rem .75rem;
+  transition:border-color .4s;
+}
+.d4-zone.active{border-color:rgba(204,68,255,.5);}
+.d4-zone.folded{opacity:.38;border-color:rgba(204,34,34,.3);}
+.d4-zone.winner-zone{border-color:var(--gold);box-shadow:0 0 18px rgba(201,148,15,.3);}
+.d4-zone-header{
+  display:flex;align-items:center;gap:.45rem;margin-bottom:.45rem;
+}
+.d4-zone-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.d4-zone-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;}
+.d4-zone-tag{font-family:'Noto Serif KR',serif;font-size:.62rem;margin-left:auto;color:var(--text-dim);}
+.d4-cards-row{display:flex;gap:.3rem;flex-wrap:wrap;min-height:72px;align-items:flex-end;}
+.d4-hint{font-family:'Cinzel',serif;font-size:.7rem;color:var(--text-dim);margin-top:.3rem;min-height:1em;}
+.d4-hint.folded-badge{color:var(--crimson-b);}
+
+/* player zone in 4-way */
+.player4-zone{
+  padding:.8rem;background:rgba(10,32,20,.4);
+  border:2px solid rgba(201,148,15,.4);border-radius:3px;flex-shrink:0;
+}
+.player4-zone .zone-label{font-size:.7rem;margin-bottom:.5rem;}
+
+/* 4-way dialogue box — compact */
+.dialogue4-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+  flex-shrink:0;
+}
+@media(min-width:900px){.dialogue4-grid{grid-template-columns:repeat(4,1fr);}}
+.dlg4-box{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);
+  border-radius:2px;padding:.6rem .7rem;transition:border-color .4s;min-height:70px;
+}
+.dlg4-box.active-dlg{border-color:rgba(204,68,255,.35);}
+.dlg4-speaker{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.15em;margin-bottom:.3rem;}
+.dlg4-text{font-family:'Noto Serif KR',serif;font-size:.8rem;line-height:1.7;font-style:italic;
+  color:var(--text-dim);word-break:keep-all;}
+.dlg4-box.folded-dlg{opacity:.4;}
+
+/* 4-way action bar */
+.action4-bar{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;padding:.4rem 0;flex-shrink:0;}
+
+/* ── 4-WAY FOLD MODAL ── */
+#fold4-modal{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:300;background:rgba(0,0,0,.75);
+}
+#fold4-modal.show{display:flex;}
+.fold4-box{
+  background:#0d0018;border:2px solid #cc44ff;padding:2rem 2.2rem;
+  text-align:center;max-width:500px;width:92%;animation:warnPop .45s ease;
+  position:relative;
+}
+.fold4-title{font-family:'Cinzel Decorative',cursive;font-size:1.25rem;color:#cc44ff;margin-bottom:1rem;}
+.fold4-reactions{display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.4rem;}
+.fold4-reaction{
+  display:flex;align-items:flex-start;gap:.65rem;
+  padding:.6rem .8rem;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:2px;text-align:left;
+}
+.fold4-reaction-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:.3rem;box-shadow:0 0 6px currentColor;}
+.fold4-reaction-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.15em;margin-bottom:.2rem;}
+.fold4-reaction-text{font-family:'Noto Serif KR',serif;font-size:.84rem;line-height:1.65;font-style:italic;color:var(--text-dim);}
+.fold4-buttons{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;}
+.fold4-confirm{
+  padding:.7rem 1.8rem;border:2px solid var(--crimson-b);background:transparent;
+  color:var(--crimson-b);font-family:'Cinzel',serif;font-size:.85rem;
+  letter-spacing:.18em;cursor:pointer;transition:all .3s;
+}
+.fold4-confirm:hover{background:rgba(204,34,34,.15);}
+.fold4-cancel{
+  padding:.7rem 1.8rem;border:2px solid rgba(255,255,255,.2);background:transparent;
+  color:var(--text);font-family:'Cinzel',serif;font-size:.85rem;
+  letter-spacing:.18em;cursor:pointer;transition:all .3s;
+}
+.fold4-cancel:hover{background:rgba(255,255,255,.06);}
+
+/* ── small cards for 4-way ── */
+.d4-cards-row .card{width:44px;height:64px;}
+.d4-cards-row .card-mid{font-size:1.35rem;}
+.d4-cards-row .card-top,.d4-cards-row .card-bot{font-size:.55rem;}
+
+/* ── 4-WAY REPORT extras ── */
+.r4-dealer-results{display:flex;flex-direction:column;gap:.5rem;margin:.8rem 0;}
+.r4-dealer-row{
+  display:flex;align-items:center;gap:.8rem;padding:.55rem .8rem;
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
+  border-radius:2px;
+}
+.r4-dealer-row.win4{border-color:var(--gold);background:rgba(201,148,15,.06);}
+.r4-dealer-row.lose4{border-color:rgba(204,34,34,.3);background:rgba(204,34,34,.04);}
+.r4-dealer-row.fold4-row{opacity:.45;}
+.r4-d-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
+.r4-d-name{font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.12em;flex:0 0 auto;min-width:90px;}
+.r4-d-hand{font-size:.85rem;color:var(--text);flex:1;}
+.r4-d-badge{font-family:'Cinzel',serif;font-size:.72rem;padding:.2rem .55rem;border-radius:2px;flex-shrink:0;}
+.badge-win{background:rgba(201,148,15,.18);color:var(--gold);border:1px solid rgba(201,148,15,.4);}
+.badge-lose{background:rgba(204,34,34,.15);color:var(--crimson-b);border:1px solid rgba(204,34,34,.3);}
+.badge-fold{background:rgba(100,100,100,.15);color:#888;border:1px solid rgba(100,100,100,.25);}
 </style>
 </head>
 <body>
 <canvas id="particles-canvas"></canvas>
 
-<!-- FOLD WARNING MODAL -->
+<!-- FOLD WARNING MODAL (single game) -->
 <div id="fold-modal">
   <div class="fold-box">
     <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
     <div class="fold-text" id="fold-text"></div>
     <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
+  </div>
+</div>
+
+<!-- 4-WAY FOLD MODAL -->
+<div id="fold4-modal">
+  <div class="fold4-box">
+    <div class="fold4-title">🃏 포기하려는가?</div>
+    <div class="fold4-reactions" id="fold4-reactions"></div>
+    <div class="fold4-buttons">
+      <button class="fold4-confirm" onclick="confirmFold4()">⚔️ 폴드하겠습니다</button>
+      <button class="fold4-cancel" onclick="closeFold4Modal()">계속 싸우겠습니다</button>
+    </div>
   </div>
 </div>
 
@@ -574,6 +760,17 @@ body{font-size:15px;}
         <div class="d-theme">명예 · 지혜</div>
         <div class="d-quote">"진리를 갈구하는가? 아니면 거짓 명성에 취할 것인가?"</div>
       </div>
+    </div>
+  </div>
+
+  <!-- 4-WAY CHALLENGE BUTTON -->
+  <div class="all4-wrap">
+    <button class="btn-all4 locked" id="btn-all4" onclick="tryStartAll4()">
+      <span class="all4-lock-icon" id="all4-lock-icon">🔒</span>
+      <span id="all4-btn-label">4신 동시 대결 — 운명의 최후 심판</span>
+    </button>
+    <div class="all4-hint" id="all4-hint">
+      🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)
     </div>
   </div>
 </div>
@@ -637,7 +834,59 @@ body{font-size:15px;}
   </div>
 </div>
 
-<!-- SCREEN 4: REPORT -->
+<!-- SCREEN 4: 4-WAY BATTLE -->
+<div class="screen hidden" id="screen-game4">
+  <div class="game4-wrap">
+    <!-- HUD -->
+    <div class="game4-hud">
+      <div class="hud-block">
+        <span class="hud-label">Vital Luck</span>
+        <span class="hud-val gold" id="hud4-luck">100</span>
+      </div>
+      <div class="hud-block hud-center">
+        <div class="game4-title">🔱 4신 동시 대결 🔱</div>
+        <span class="street-label" id="hud4-street" style="font-size:.85rem;">Third Street</span>
+        <span class="street-progress" id="hud4-prog">베팅 라운드 1 / 5</span>
+      </div>
+      <div class="hud-block" style="align-items:flex-end;">
+        <span class="hud-label">POT</span>
+        <span class="hud-val red" id="hud4-pot">0</span>
+      </div>
+    </div>
+    <!-- Fold allowed notice -->
+    <div class="fold-allowed-banner">
+      ⚔️ 이 대결에서는 <strong>폴드(Fold)가 허용</strong>됩니다 — 하지만 신들은 포기를 경멸한다
+    </div>
+
+    <!-- 4 dealer zones -->
+    <div class="dealers4-grid" id="dealers4-grid"></div>
+
+    <!-- Dealer dialogues -->
+    <div class="dialogue4-grid" id="dialogue4-grid"></div>
+
+    <!-- Player zone -->
+    <div class="player4-zone">
+      <div class="zone-label">♥ <span id="lbl4-player">당신</span>의 패</div>
+      <div class="cards-row" id="player4-row"></div>
+      <div class="hand-hint" id="player4-hint"></div>
+    </div>
+
+    <!-- Actions -->
+    <div>
+      <div class="action4-bar" id="action4-bar"></div>
+      <div class="spinning" id="spinning4" style="display:none;">
+        <div class="wheel-rings">
+          <div class="wheel-outer"></div>
+          <div class="wheel-inner"></div>
+          <div class="wheel-hub">☸</div>
+        </div>
+        <span class="spinning-text">4신의 운명이 뒤엉킵니다…</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: REPORT -->
 <div class="screen hidden" id="screen-report">
   <div class="report-scroll" id="report-content"></div>
   <button class="btn-restart" onclick="restartGame()">다시 운명에 도전하라</button>
@@ -1325,6 +1574,7 @@ function goToDealer(){
   G.name=v;
   document.getElementById('greet-name').textContent=v;
   document.getElementById('ishtar-q').textContent=`"사랑이라는 독배를 마실 준비가 되었니, ${v}?"`;
+  updateAll4Button();
   showScreen('screen-dealer');
 }
 
@@ -1513,7 +1763,7 @@ const BET_TIER_DATA = [
       '조심스러운 베팅조차 패배를 막지 못했다. 신중함만으로는 부족한 시기임을 알라,',
       '균형 잡힌 판단으로 임했으나 운명이 냉정했다. 지금 당장은'
     ],
-    winBonus:12, losePenalty:12,
+    winBonus:80, losePenalty:80,
     timingWin:['14일 이내에','보름 안에'],
     timingLose:['3주간','보름간']
   },
@@ -1531,7 +1781,7 @@ const BET_TIER_DATA = [
       '큰 베팅만큼 큰 경고가 울린다. 운명이 그대의 과감함을 시험했고, 이번엔 냉혹하게 벌했다.',
       '두려움 없이 임했으나 패배를 맛보았다. 그 손실만큼 강력한 역풍이 일고 있으니,'
     ],
-    winBonus:25, losePenalty:25,
+    winBonus:200, losePenalty:200,
     timingWin:['7일 이내에','10일 안에'],
     timingLose:['한 달간','이번 달 내내']
   },
@@ -1549,7 +1799,7 @@ const BET_TIER_DATA = [
       '모든 것을 걸고 모든 것을 잃었다. 오라클이 엄중히 경고한다:',
       '전력투구한 용기 자체는 칭찬한다. 하지만 운명은 그 패기를 박살냈다. 지금 이 순간,'
     ],
-    winBonus:40, losePenalty:40,
+    winBonus:400, losePenalty:400,
     timingWin:['3일 이내에','72시간 안에','일주일 이내에'],
     timingLose:['두 달간','앞으로 50일간','한동안']
   }
@@ -1583,12 +1833,14 @@ function buildReport(){
   const td=BET_TIER_DATA[tier];
   const raises=G.pot/20; // how many times player raised
 
-  // ── Intensity: hand rank (1-10) contributes base, pot amplifies strongly
-  const rawWin  = 30 + G.pHand.rank*4 + Math.round(G.pot * 0.55);
-  const rawLose = 60 - G.pHand.rank*3 - Math.round(G.pot * 0.55);
+  // ── Intensity: 99~999% 범위
+  // Win:  base 99 + handRank*30 + pot*3.5 + winBonus   (max 999)
+  // Lose: base 99 + handRank*15 + pot*1.5              (max 999)
+  const rawWin  = 99 + G.pHand.rank*30 + Math.round(G.pot * 3.5) + td.winBonus;
+  const rawLose = 99 + G.pHand.rank*15 + Math.round(G.pot * 1.5) + td.losePenalty;
   const intensity = win
-    ? Math.min(99, rawWin  + td.winBonus)
-    : Math.max(3,  rawLose - td.losePenalty);
+    ? Math.min(999, rawWin)
+    : Math.min(999, rawLose);
 
   // ── Timing (higher tier = sooner reward / longer curse)
   const tArr = td[win?'timingWin':'timingLose'];
@@ -1638,10 +1890,17 @@ ${actionText}<br><br>
 ${prefix}${betImpact}
 ${closingLine}`;
 
-  // ── Gauge bar (visual representation of intensity)
+  // ── Gauge bar (visual representation of intensity, out of 999)
   const gaugeColor = win
-    ? (intensity>=80?'#f0c040':intensity>=55?'#c9940f':'#9e7010')
-    : (intensity<=20?'#cc2222':intensity<=40?'#aa2222':'#7a1515');
+    ? (intensity>=800?'#f0c040':intensity>=500?'#c9940f':'#9e7010')
+    : (intensity<=200?'#cc2222':intensity<=400?'#aa2222':'#7a1515');
+  const gaugePct = Math.round(intensity/999*100);
+
+  // ── 999% 달성 시 all4 해금 저장
+  if(intensity>=999){
+    localStorage.setItem('destiny_poker_all4_unlocked','1');
+    updateAll4Button();
+  }
 
   document.getElementById('report-content').innerHTML=`
     <h2 class="r-title">📜 ${G.name}의 운명 판결서</h2>
@@ -1666,19 +1925,20 @@ ${closingLine}`;
     <div class="r-divider"></div>
     <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
-        운명의 ${win?'증폭':'감쇄'} 수치
+        운명의 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
-          (족보 기여 + 베팅 등급 가중치 포함)
+          (족보 기여 + 베팅 등급 가중치 포함 · 최대 999%)
         </span>
       </div>
-      <div class="meter-num ${win?'pos':'neg'}">${win?'+':'-'}${intensity}%</div>
+      <div class="meter-num pos">${intensity}%</div>
+      ${intensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;animation:purpleGlow 2s ease infinite;">🔱 999% 달성 — 4신 동시 대결이 해금되었습니다! 🔱</div>`:''}
       <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
-        <div style="width:${intensity}%;height:100%;background:${gaugeColor};border-radius:5px;
-          box-shadow:0 0 10px ${gaugeColor};transition:width 1s ease;"></div>
+        <div id="intensity-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
+          box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
       </div>
       <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
         font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
-        <span>0%</span><span>50%</span><span>100%</span>
+        <span>99%</span><span>500%</span><span>999%</span>
       </div>
     </div>
     <div class="r-divider"></div>
@@ -1694,19 +1954,536 @@ ${closingLine}`;
 
   // animate gauge after render
   setTimeout(()=>{
-    const bar=document.querySelector('#report-content .meter-block div div');
-    if(bar) bar.style.width=intensity+'%';
+    const bar=document.getElementById('intensity-bar');
+    if(bar) bar.style.width=gaugePct+'%';
   },200);
 }
 
 function restartGame(){
   G={name:G.name,dealer:null,deck:[],pCards:[],dCards:[],street:0,luck:100,pot:0,pHand:null,dHand:null,winner:null};
   document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
+  updateAll4Button();
   showScreen('screen-dealer');
 }
 
 // =============================================
-//  KAKAO SHARE
+//  ALL-4 BUTTON LOCK/UNLOCK
+// =============================================
+function isAll4Unlocked(){
+  return localStorage.getItem('destiny_poker_all4_unlocked')==='1';
+}
+
+function updateAll4Button(){
+  const btn=document.getElementById('btn-all4');
+  const icon=document.getElementById('all4-lock-icon');
+  const hint=document.getElementById('all4-hint');
+  if(!btn) return;
+  if(isAll4Unlocked()){
+    btn.className='btn-all4 unlocked';
+    if(icon) icon.textContent='🔱';
+    if(hint){
+      hint.className='all4-hint unlocked-hint';
+      hint.innerHTML='🔱 해금됨 — 4신 동시 대결 가능 (폴드 허용)';
+    }
+  } else {
+    btn.className='btn-all4 locked';
+    if(icon) icon.textContent='🔒';
+    if(hint){
+      hint.className='all4-hint';
+      hint.innerHTML='🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)';
+    }
+  }
+}
+
+function tryStartAll4(){
+  if(!isAll4Unlocked()){
+    // locked shake
+    const btn=document.getElementById('btn-all4');
+    btn.style.animation='warnPop .4s ease';
+    setTimeout(()=>btn.style.animation='',450);
+    return;
+  }
+  startAll4Game();
+}
+
+// =============================================
+//  4-WAY GAME STATE & DATA
+// =============================================
+const ALL4_DEALER_ORDER = ['amon','ishtar','thanatos','metatron'];
+
+// 폴드 시 캐릭터별 반응 대사 (성격 반영)
+const FOLD_REACTIONS = {
+  amon:[
+    `"포기라고? 크흐… ${'{n}'}, 겁쟁이는 황금을 손에 넣을 자격이 없다. 정말 도망치겠느냐?"`,
+    `"포기? 탐욕의 신 아몬 앞에서? 수치스럽군. 하지만… 그게 진심이라면 막을 수는 없지."`,
+    `"황금과 권력을 버리겠다고? ${'{n}'}… 그 결정이 평생 후회로 남을 것이다."`,
+  ],
+  ishtar:[
+    `"어머, 포기하려고요, ${'{n}'}? 이슈타르의 사랑을 뿌리치다니… 가슴이 아프네요."`,
+    `"포기예요? 설마… 우리의 대결이 그토록 두려웠나요? 붉은 실이 끊어질 것 같아 슬퍼요."`,
+    `"${'{n}'}… 진심으로 도망치겠다는 거예요? 사랑보다 두려움을 택한 건가요?"`,
+  ],
+  thanatos:[
+    `"……폴드. 그렇군. ${'{n}'}, 선택은 너의 것이다. 하지만 한번 물러선 자는 평생 물러선다."`,
+    `"……도망이라는 길은 결코 끝이 없다. 그것이 죽음의 신이 너에게 건네는 마지막 경고다."`,
+    `"……${'{n}'}. 시간이 멈추지 않듯, 포기도 결코 그대를 자유롭게 하지 않는다."`,
+  ],
+  metatron:[
+    `"포기를 택하겠다고, ${'{n}'}? 지혜로운 자는 물러날 때를 알지 — 하지만 이것은 지혜가 아닌 두려움이다."`,
+    `"거짓 명성보다 솔직한 포기가 낫다고 생각하나? 틀렸다. 도망치는 순간 기록에서 지워진다."`,
+    `"${'{n}'}… 공허의 기록 속에서 포기한 자의 이름은 영원히 빛바랜다. 그래도 괜찮은가?"`,
+  ]
+};
+
+let G4 = {
+  name:'', street:0, luck:100, pot:0,
+  deck:[],
+  pCards:[],
+  dealers:{}, // {amon:{cards:[], hand:null, folded:false}, ...}
+  winner:null // 'player' or 'dealer' or 'mixed'
+};
+
+function startAll4Game(){
+  G4.name = G.name;
+  G4.street = 0;
+  G4.luck = 100;
+  G4.pot = 0;
+  G4.deck = shuffle(makeDeck());
+  G4.pCards = [];
+  G4.winner = null;
+  G4.dealers = {};
+
+  ALL4_DEALER_ORDER.forEach(id=>{
+    G4.dealers[id]={cards:[], hand:null, folded:false};
+  });
+
+  document.getElementById('lbl4-player').textContent = G4.name;
+
+  // Deal 3 cards to each dealer and player (third card face-up)
+  for(let i=0;i<3;i++){
+    ALL4_DEALER_ORDER.forEach(id=>{
+      G4.dealers[id].cards.push({...G4.deck.pop(), fd:i<2});
+    });
+    G4.pCards.push({...G4.deck.pop(), fd:i<2});
+  }
+
+  render4DealerZones(false);
+  render4Dialogues(0, null);
+  render4PlayerRow();
+  update4HUD();
+  set4BettingButtons();
+
+  showScreen('screen-game4');
+}
+
+function render4DealerZones(showAll, winnerSet){
+  const grid = document.getElementById('dealers4-grid');
+  grid.innerHTML = '';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    let zoneClass='d4-zone';
+    if(ds.folded) zoneClass+=' folded';
+    else if(winnerSet&&winnerSet.has(id)) zoneClass+=' winner-zone';
+
+    const bestSet = (showAll&&ds.hand&&!ds.folded)
+      ? new Set(ds.hand.cards.map(c=>c.s+c.v)) : null;
+
+    const cardsHtml = ds.cards.map(card=>{
+      const faceDown=!showAll&&card.fd;
+      const col=card.s==='♦'||card.s==='♥'?'r':'k';
+      const isBest=!!bestSet&&bestSet.has(card.s+card.v);
+      return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
+        <div class="card-inner">
+          <div class="card-b"><div class="card-b-inner"></div></div>
+          <div class="card-f ${col}">
+            <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
+            <div class="card-mid">${card.s}</div>
+            <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    let hintText = '';
+    if(ds.folded) hintText='<span class="d4-hint folded-badge">FOLD</span>';
+    else if(showAll&&ds.hand) hintText=`<span class="d4-hint ${ds.hand.rank>=5?'strong':''}">${ds.hand.name}</span>`;
+
+    grid.innerHTML+=`
+      <div class="${zoneClass}">
+        <div class="d4-zone-header">
+          <span class="d4-zone-dot" style="color:${D.color};background:${D.color};"></span>
+          <span class="d4-zone-name" style="color:${D.color};">${D.name}</span>
+          <span class="d4-zone-tag">${D.theme}</span>
+        </div>
+        <div class="d4-cards-row">${cardsHtml}</div>
+        ${hintText}
+      </div>`;
+  });
+}
+
+function render4Dialogues(streetIdx, highlightId){
+  const grid = document.getElementById('dialogue4-grid');
+  grid.innerHTML = '';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    const isActive = id===highlightId;
+    const isFolded = ds.folded;
+    const dlg=pickLine(D.dialogues[Math.min(streetIdx,4)]);
+    grid.innerHTML+=`
+      <div class="dlg4-box${isActive?' active-dlg':''}${isFolded?' folded-dlg':''}">
+        <div class="dlg4-speaker" style="color:${D.color};">${D.name}</div>
+        <div class="dlg4-text">${isFolded?'…(침묵)…':dlg.replace(/{n}/g,G4.name)}</div>
+      </div>`;
+  });
+}
+
+function render4PlayerRow(){
+  const row = document.getElementById('player4-row');
+  row.innerHTML='';
+  G4.pCards.forEach(card=>{
+    row.appendChild(buildCard(card, card.fd, false, false));
+  });
+  const visPCards=G4.pCards.filter(c=>!c.fd);
+  const hint=document.getElementById('player4-hint');
+  if(visPCards.length>=5){
+    const h=bestHand(visPCards);
+    hint.textContent=h.name;
+    hint.className='hand-hint'+(h.rank>=5?' strong':'');
+  } else {
+    hint.textContent='';
+    hint.className='hand-hint';
+  }
+}
+
+function update4HUD(){
+  document.getElementById('hud4-luck').textContent=G4.luck;
+  document.getElementById('hud4-pot').textContent=G4.pot;
+  const si=Math.min(G4.street,4);
+  document.getElementById('hud4-street').textContent=STREETS[si];
+  document.getElementById('hud4-prog').textContent=`베팅 라운드 ${G4.street+1} / 5`;
+}
+
+function set4BettingButtons(){
+  const bar=document.getElementById('action4-bar');
+  bar.innerHTML='';
+  const btns=[
+    {type:'check',label:'체크 (Check)',fn:()=>doAction4('check')},
+    {type:'raise',label:'레이즈 +10',fn:()=>doAction4('raise')},
+    {type:'fold', label:'⚔️ 폴드 (Fold)',fn:showFold4Warning},
+  ];
+  btns.forEach(b=>{
+    const el=document.createElement('button');
+    el.className='btn-act '+b.type;
+    el.textContent=b.label;
+    el.onclick=b.fn;
+    bar.appendChild(el);
+  });
+}
+
+function setSpinning4(on){
+  document.getElementById('spinning4').style.display=on?'block':'none';
+  document.getElementById('action4-bar').style.display=on?'none':'flex';
+}
+
+function doAction4(act){
+  if(act==='raise'&&G4.luck>=10){
+    G4.luck-=10;
+    G4.pot+=20;
+  }
+  G4.street++;
+  update4HUD();
+  if(G4.street<=4) dealStreet4();
+  else runShowdown4();
+}
+
+function dealStreet4(){
+  setSpinning4(true);
+  setTimeout(()=>{
+    const faceDown = G4.street===4;
+    ALL4_DEALER_ORDER.forEach(id=>{
+      if(!G4.dealers[id].folded){
+        G4.dealers[id].cards.push({...G4.deck.pop(), fd:faceDown});
+      }
+    });
+    G4.pCards.push({...G4.deck.pop(), fd:faceDown});
+
+    render4DealerZones(false, null);
+    render4PlayerRow();
+    update4HUD();
+
+    // Random dealer speaks
+    const activeDealers=ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded);
+    const speaker=activeDealers[Math.floor(Math.random()*activeDealers.length)]||ALL4_DEALER_ORDER[0];
+    render4Dialogues(G4.street, speaker);
+    setSpinning4(false);
+
+    if(G4.street===4){
+      const bar=document.getElementById('action4-bar');
+      bar.innerHTML='';
+      const finalBtns=[
+        {type:'check',label:'체크 후 쇼다운',fn:runShowdown4},
+        {type:'raise',label:'라스트 레이즈 +10',fn:()=>{if(G4.luck>=10){G4.luck-=10;G4.pot+=20;update4HUD();}runShowdown4();}},
+        {type:'fold', label:'⚔️ 폴드 (Fold)',fn:showFold4Warning},
+      ];
+      finalBtns.forEach(b=>{
+        const el=document.createElement('button');
+        el.className='btn-act '+b.type;
+        el.textContent=b.label;
+        el.onclick=b.fn;
+        bar.appendChild(el);
+      });
+    } else {
+      set4BettingButtons();
+    }
+  },1400);
+}
+
+function runShowdown4(){
+  setSpinning4(true);
+  render4Dialogues(4, null);
+
+  setTimeout(()=>{
+    G4.pCards.forEach(c=>c.fd=false);
+    const pHand4 = bestHand(G4.pCards);
+
+    let playerWins=0, playerLoses=0;
+
+    ALL4_DEALER_ORDER.forEach(id=>{
+      const ds=G4.dealers[id];
+      if(ds.folded){
+        ds.hand=null;
+        return;
+      }
+      ds.cards.forEach(c=>c.fd=false);
+      ds.hand=bestHand(ds.cards);
+      const cmp=cmpHands(pHand4,ds.hand);
+      if(cmp>=0) playerWins++; else playerLoses++;
+    });
+
+    G4.winner = playerLoses===0?'player':(playerWins===0?'dealer':'mixed');
+    G4.pHand4 = pHand4;
+
+    const winnerSet=new Set(
+      ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded&&cmpHands(pHand4,G4.dealers[id].hand)<0)
+    );
+
+    render4DealerZones(true, null);
+    render4PlayerRow();
+    setSpinning4(false);
+
+    const bar=document.getElementById('action4-bar');
+    bar.innerHTML='';
+    const el=document.createElement('button');
+    el.className='btn-act next';
+    el.textContent='📜 4신 운명 판결서 받기';
+    el.onclick=buildReport4;
+    bar.appendChild(el);
+  },2200);
+}
+
+// ── 4-WAY FOLD ──
+function showFold4Warning(){
+  const reactions=document.getElementById('fold4-reactions');
+  reactions.innerHTML='';
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    if(ds.folded) return;
+    const lines=FOLD_REACTIONS[id];
+    const line=lines[Math.floor(Math.random()*lines.length)].replace(/\{n\}/g,G4.name);
+    reactions.innerHTML+=`
+      <div class="fold4-reaction">
+        <div>
+          <div class="fold4-reaction-dot" style="color:${D.color};background:${D.color};"></div>
+        </div>
+        <div>
+          <div class="fold4-reaction-name" style="color:${D.color};">${D.name}</div>
+          <div class="fold4-reaction-text">${line}</div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('fold4-modal').classList.add('show');
+}
+
+function closeFold4Modal(){
+  document.getElementById('fold4-modal').classList.remove('show');
+}
+
+function confirmFold4(){
+  closeFold4Modal();
+  // Player folds = instant lose to all remaining dealers
+  G4.winner='dealer_fold';
+
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const ds=G4.dealers[id];
+    if(!ds.folded){
+      // Reveal remaining cards
+      ds.cards.forEach(c=>c.fd=false);
+      if(ds.cards.length>=5) ds.hand=bestHand(ds.cards);
+      else ds.hand=null;
+    }
+  });
+  G4.pCards.forEach(c=>c.fd=false);
+  G4.pHand4=G4.pCards.length>=5?bestHand(G4.pCards):null;
+
+  render4DealerZones(true, null);
+  render4PlayerRow();
+
+  // Show fold result buttons
+  const bar=document.getElementById('action4-bar');
+  bar.innerHTML='';
+  const el=document.createElement('button');
+  el.className='btn-act next';
+  el.textContent='📜 4신 운명 판결서 받기 (폴드)';
+  el.onclick=buildReport4;
+  bar.appendChild(el);
+}
+
+// ── 4-WAY REPORT ──
+function buildReport4(){
+  const isFoldFinish = G4.winner==='dealer_fold';
+  const pHand4 = G4.pHand4;
+  const pSuit = dominantSuit(G4.pCards);
+  const sd = SUITS[pSuit];
+
+  const tier=getBetTier(G4.pot);
+  const td=BET_TIER_DATA[tier];
+  const raises=G4.pot/20;
+
+  // Intensity per dealer matchup
+  let totalScore=0, dealerCount=0;
+  ALL4_DEALER_ORDER.forEach(id=>{
+    const ds=G4.dealers[id];
+    if(ds.folded) return;
+    dealerCount++;
+    if(isFoldFinish){
+      totalScore+=99;
+      return;
+    }
+    const win=pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
+    const raw = win
+      ? 99 + (pHand4?pHand4.rank:1)*30 + Math.round(G4.pot*3.5) + td.winBonus
+      : 99 + (pHand4?pHand4.rank:1)*15 + Math.round(G4.pot*1.5) + td.losePenalty;
+    totalScore += Math.min(999, raw);
+  });
+  const avgIntensity = dealerCount>0 ? Math.round(totalScore/dealerCount) : 99;
+
+  // dealer result rows
+  const dealerRowsHtml = ALL4_DEALER_ORDER.map(id=>{
+    const D=DEALER_DATA[id];
+    const ds=G4.dealers[id];
+    if(ds.folded) return `
+      <div class="r4-dealer-row fold4-row">
+        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
+        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
+        <span class="r4-d-hand">— (기권)</span>
+        <span class="r4-d-badge badge-fold">FOLD</span>
+      </div>`;
+    const win=!isFoldFinish&&pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
+    const handName=ds.hand?ds.hand.name:'?';
+    return `
+      <div class="r4-dealer-row ${isFoldFinish?'lose4':(win?'win4':'lose4')}">
+        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
+        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
+        <span class="r4-d-hand">${handName}</span>
+        <span class="r4-d-badge ${isFoldFinish?'badge-lose':(win?'badge-win':'badge-lose')}">${isFoldFinish?'DEFEAT':win?'WIN':'LOSE'}</span>
+      </div>`;
+  }).join('');
+
+  const overallResult = isFoldFinish ? 'fold'
+    : G4.winner==='player' ? 'win'
+    : G4.winner==='mixed' ? 'mixed' : 'lose';
+
+  const resultLabel={
+    win:'✨ 전원 격파 · TOTAL VICTORY ✨',
+    mixed:'⚡ 혼전 · MIXED RESULTS ⚡',
+    lose:'💀 전원 패배 · TOTAL DEFEAT 💀',
+    fold:'🏳️ 폴드 · FORFEIT 🏳️'
+  }[overallResult];
+
+  const resultClass={win:'win',mixed:'',lose:'lose',fold:'lose'}[overallResult];
+
+  const gaugeColor = (overallResult==='win'||overallResult==='mixed')
+    ? (avgIntensity>=800?'#f0c040':avgIntensity>=500?'#c9940f':'#9e7010')
+    : '#cc2222';
+  const gaugePct=Math.round(avgIntensity/999*100);
+
+  // 999% 달성 체크
+  if(avgIntensity>=999){
+    localStorage.setItem('destiny_poker_all4_unlocked','1');
+  }
+
+  document.getElementById('report-content').innerHTML=`
+    <h2 class="r-title">🔱 ${G4.name}의 4신 운명 판결서</h2>
+    <div class="r-divider"></div>
+    <div class="r-row"><span class="r-label">대결 유형</span><span class="r-val" style="color:#cc44ff;">4신 동시 대결</span></div>
+    <div class="r-row"><span class="r-label">나의 패</span><span class="r-val">${pHand4?pHand4.name:'(폴드)'}</span></div>
+    <div class="r-row"><span class="r-label">지배 문양</span><span class="r-val">${sd.name} ${pSuit} — ${sd.theme}</span></div>
+    <div class="r-row"><span class="r-label">베팅 등급</span>
+      <span class="r-val" style="color:${td.color}">${td.icon} ${td.label} (${raises}회 레이즈)</span></div>
+    <div class="r-divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">각 딜러 대결 결과</div>
+    <div class="r4-dealer-results">${dealerRowsHtml}</div>
+    <div class="r-divider"></div>
+    <div class="r-result ${resultClass}" style="font-size:1.6rem;">${resultLabel}</div>
+    <div class="r-divider"></div>
+    <div class="meter-block">
+      <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
+        평균 운명 증폭 수치
+        <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">(최대 999%)</span>
+      </div>
+      <div class="meter-num pos">${avgIntensity}%</div>
+      ${avgIntensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;">🔱 999% — 최고의 운명에 도달했습니다! 🔱</div>`:''}
+      <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
+        <div id="intensity4-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
+          box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
+        font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
+        <span>99%</span><span>500%</span><span>999%</span>
+      </div>
+    </div>
+    <div class="r-divider"></div>
+    <div class="report-actions">
+      <button class="btn-share-kakao" onclick="shareAll4Kakao()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
+        카카오톡 공유하기
+      </button>
+      <a class="btn-home" href="/">🏠 메인으로 바로가기</a>
+    </div>
+  `;
+  showScreen('screen-report');
+  setTimeout(()=>{
+    const bar=document.getElementById('intensity4-bar');
+    if(bar) bar.style.width=gaugePct+'%';
+  },200);
+  updateAll4Button();
+}
+
+function shareAll4Kakao(){
+  const resultEl=document.querySelector('#report-content .r-result');
+  const result=resultEl?resultEl.textContent:'?';
+  const meterEl=document.querySelector('#report-content .meter-num');
+  const meter=meterEl?meterEl.textContent:'';
+  const text=`🔱 [데스티니 포커 — 4신 동시 대결]\n\n`
+    +`👤 도전자: ${G4.name}\n`
+    +`⚔ 대결: 아몬 · 이슈타르 · 타나토스 · 메타트론\n`
+    +`🏆 결과: ${result}\n`
+    +`운명 수치: ${meter}\n\n`
+    +`🎴 나도 운명에 도전하기 👇\nhttps://code-destiny.com/destiny-poker.html`;
+  if(navigator.share){
+    navigator.share({title:'🔱 데스티니 포커 — 4신 동시 대결',text,url:'https://code-destiny.com/destiny-poker.html'}).catch(()=>{});
+    return;
+  }
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>{
+    alert('클립보드에 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+  }).catch(()=>{});
+}
+
+// =============================================
+//  KAKAO SHARE (single game)
 // =============================================
 function sharePokerKakao(){
   const win=G.winner==='player';
