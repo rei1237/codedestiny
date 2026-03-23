@@ -148,11 +148,16 @@ export const metadata = {
     template: "%s | 꿀꿀 만세력",
   },
   description:
-    "무료 사주 타로 운세 플랫폼. AI 타로, 자미두수, 점성술, 주역, 숙요점, 동물 관상 등 20가지 이상의 운세 서비스를 한 곳에서. Free Saju Tarot Horoscope Fortune.",
+    "생년월일로 보는 정확한 무료 사주풀이. AI 타로·자미두수·점성술·주역·궁합 등 20가지 이상의 운세를 무료로. 오늘 운세·신년 운세 즉시 확인! Free Saju Fortune.",
   keywords: [
+    // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
     "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
     "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
-    "free tarot", "saju", "horoscope", "astrology", "fortune telling",
+    // 무료 + 정확도 의도 키워드 (사람들이 선호하는 검색어)
+    "ai 사주", "ai 타로", "사주풀이", "정확한 사주",
+    // 영어 검색어
+    "free tarot", "free horoscope", "free fortune telling", "accurate horoscope",
+    "saju", "horoscope", "astrology", "fortune telling",
     "zi wei dou shu", "vedic astrology", "jyotish", "I Ching",
     ...SEO_CORE_KEYWORDS,
   ],
