@@ -23,6 +23,9 @@ type TarotCardDto = {
   nameKr?: string;
   position?: string;
   orientation?: TarotOrientation | string;
+  imageUrl?: string;
+  proxyImageUrl?: string;
+  localImageUrl?: string;
 };
 
 type HealingReadingDto = {
@@ -39,8 +42,9 @@ type Stage = "intro" | "spread" | "result";
 
 const SPREAD_TYPE = "healing_rising_four_card" as const;
 const SPREAD_CARD_COUNT = 4 as const;
-const SECTION_BREATH_PAUSE_MS = 3400;
-const CHAR_DELAY_MS = 22;
+const SECTION_BREATH_PAUSE_MS = 1200;
+const CHAR_DELAY_MS = 12;
+const INITIAL_TEXT_BURST_CHARS = 28;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "☀ 따뜻한 태양 행복 타로";
@@ -72,8 +76,15 @@ function safeCardTitle(card?: TarotCardDto, idx?: number) {
   return isRev ? `${base} (역)` : base;
 }
 
-function cardImageUrl(cardId: string) {
-  // Always use the project’s linked free tarot source via proxy API.
+function cardImageUrl(card?: TarotCardDto) {
+  const local = String(card?.localImageUrl || "").trim();
+  if (local) return local;
+
+  const proxy = String(card?.proxyImageUrl || "").trim();
+  if (proxy) return proxy;
+
+  const cardId = String(card?.cardId || "").trim();
+  if (!cardId) return "";
   return `/api/tarot/card-image/${encodeURIComponent(cardId)}`;
 }
 
@@ -444,7 +455,7 @@ export default function SunHealingTarot() {
       if (!res.ok || data?.ok === false) throw new Error(data?.message || "reading failed");
       setReading((data?.reading || null) as HealingReadingDto | null);
       setStage("result");
-      setTapToReveal(true);
+      setTapToReveal(false);
       setTyped({});
       setTypingSection(null);
     } catch (e) {
@@ -490,8 +501,9 @@ export default function SunHealingTarot() {
 
     async function typeInto(key: string, sectionTitle: string, text: string) {
       setTypingSection(sectionTitle);
-      setTyped((prev) => ({ ...prev, [key]: "" }));
-      for (let i = 0; i < text.length; i += 1) {
+      const initial = text.slice(0, INITIAL_TEXT_BURST_CHARS);
+      setTyped((prev) => ({ ...prev, [key]: initial }));
+      for (let i = initial.length; i < text.length; i += 1) {
         if (cancelled) return;
         setTyped((prev) => ({ ...prev, [key]: (prev[key] || "") + text[i] }));
         // eslint-disable-next-line no-await-in-loop
@@ -693,11 +705,12 @@ export default function SunHealingTarot() {
                             <div className="absolute inset-0 overflow-hidden rounded-2xl border border-amber-200/60 bg-white/70 [transform:rotateY(180deg)] [backface-visibility:hidden]">
                               {card?.cardId ? (
                                 <Image
-                                  src={cardImageUrl(card.cardId)}
+                                  src={cardImageUrl(card)}
                                   alt={safeCardTitle(card, idx)}
                                   fill
                                   sizes="(max-width: 768px) 45vw, 260px"
                                   className="object-cover"
+                                  unoptimized
                                   priority
                                 />
                               ) : (
@@ -786,6 +799,15 @@ export default function SunHealingTarot() {
                       </button>
                     ) : (
                       <>
+                        <TimelineSection
+                          title="따뜻한 인사"
+                          icon={Sparkles}
+                          tone="cream"
+                          isTyping={typingSection === "☀️ 따뜻한 인사 ✨"}
+                        >
+                          <pre className="whitespace-pre-wrap font-sans">{typed.opening || ""}</pre>
+                        </TimelineSection>
+
                         <TimelineSection
                           title="마음 깊은 곳의 이야기"
                           icon={Telescope}
