@@ -857,7 +857,7 @@
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
     var doClose = function(e) {
-      if (e) e.preventDefault();
+      if (e && e.cancelable) e.preventDefault();
       if (typeof window._dpCloseFortuneSel === 'function') window._dpCloseFortuneSel();
     };
     var closeBtnEl = ov.querySelector('.dp-fsel-close-btn');
@@ -868,7 +868,7 @@
         doClose(e);
       });
       closeBtnEl.addEventListener('touchend', function(e) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         e.stopPropagation();
         doClose(e);
       }, { passive: false });
@@ -1110,7 +1110,7 @@
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl || !targetEl.closest) return;
         if (targetEl.closest('.dp-sheet-close')) {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpCloseList();
         }
@@ -1124,7 +1124,7 @@
         dpCloseList();
       });
       closeBtn.addEventListener('touchend', function(e) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         dpCloseList();
       }, { passive: false });
     }
@@ -1151,7 +1151,7 @@
       var dx = Math.abs(pt.clientX - _dpSheetTouchX);
       var dy = Math.abs(pt.clientY - _dpSheetTouchY);
       if (dx < 36 && dy < 36) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         dpCloseList();
       }
     }, { passive: false });
@@ -1164,19 +1164,19 @@
         if (!targetEl) return;
         var menuBtn = targetEl.closest('.dp-mc-list-btn');
         if (menuBtn) {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           dpOpenList();
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');
         if (loadBtn) {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           dpLoadProfile();
           return;
         }
         var guardianBtn = targetEl.closest('.dp-mc-guardian-btn');
         if (guardianBtn) {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           if (typeof window.dpGenerateGuardianAvatar === 'function') window.dpGenerateGuardianAvatar();
           return;
         }
@@ -1203,7 +1203,7 @@
         var dx = Math.abs(pt.clientX - _dpFselTouchX);
         var dy = Math.abs(pt.clientY - _dpFselTouchY);
         if (dx < 24 && dy < 24 && typeof window._dpCloseFortuneSel === 'function') {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           window._dpCloseFortuneSel();
         }
@@ -1215,7 +1215,7 @@
       var dx = Math.abs(pt.clientX - _dpFselTouchX);
       var dy = Math.abs(pt.clientY - _dpFselTouchY);
       if (dx >= 10 || dy >= 16) return; /* 스크롤로 간주 */
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       var type = '';
       if (btn.classList.contains('dp-fsel-btn--saju')) type = 'saju';
       else if (btn.classList.contains('dp-fsel-btn--sukuyo')) type = 'sukuyo';
@@ -1250,7 +1250,7 @@
             var delItem = targetEl.closest('[data-profile-id]');
             var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
             if (delPid) {
-              e.preventDefault();
+              if (e.cancelable) e.preventDefault();
               e.stopPropagation();
               dpDeleteProfile(delPid);
             }
@@ -1259,7 +1259,7 @@
           var item = targetEl.closest('[data-profile-id]');
           if (item && !targetEl.closest('.dp-li-del')) {
             var pid = item.getAttribute('data-profile-id');
-            if (pid) { e.preventDefault(); dpSelectProfile(pid); }
+            if (pid) { if (e.cancelable) e.preventDefault(); dpSelectProfile(pid); }
           }
         }
       }, { passive: false });
