@@ -42,6 +42,16 @@ for (const target of staticTargets) {
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
 }
 
+// Fallback: some pipelines generate ads.txt under build/ only.
+// Keep /public/ads.txt populated so final dist always exposes /ads.txt.
+const rootAdsTxt = resolve(rootDir, "ads.txt");
+const buildAdsTxt = resolve(rootDir, "build", "ads.txt");
+const publicAdsTxt = resolve(publicDir, "ads.txt");
+if (!existsSync(rootAdsTxt) && existsSync(buildAdsTxt)) {
+  cpSync(buildAdsTxt, publicAdsTxt, { force: true });
+  console.log("[sync-legacy-static-to-public] Fallback copied build/ads.txt -> public/ads.txt");
+}
+
 // Locale landing paths (same slugs as middleware.js LOCALE_SLUGS / app/layout.js).
 // Ensures Cloudflare Pages / asset-first hosts return 200 for /en-us etc., not 404.
 const localeLandingDirs = [
