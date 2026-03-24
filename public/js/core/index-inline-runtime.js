@@ -458,6 +458,13 @@ function __cdIsInsideDestinyFlowerSheet(event, el) {
   return !!(picked && sheet.contains(picked));
 }
 
+function __cdIsPointInsideElement(x, y, el) {
+  if (!el || typeof x !== 'number' || typeof y !== 'number') return false;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+  var rect = el.getBoundingClientRect();
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
+
 if (typeof window !== 'undefined') {
   window.__cdIsInsideDestinyFlowerSheet = __cdIsInsideDestinyFlowerSheet;
   window.__cdResolveDestinyFlowerClickTarget = __cdResolveDestinyFlowerClickTarget;
@@ -3584,6 +3591,9 @@ function openDestinyFlowerStudio() {
       var clickTarget = __cdResolveDestinyFlowerClickTarget(e);
       if (!clickTarget) return;
       var closeTrigger = clickTarget.closest('[data-action="closeDestinyFlowerStudio"], .df-studio-close, .df-studio-btn--secondary');
+      if (!closeTrigger && sheet && __cdIsPointInsideElement(e.clientX, e.clientY, sheet.querySelector('.df-studio-close'))) {
+        closeTrigger = sheet.querySelector('.df-studio-close');
+      }
       if (closeTrigger) {
         e.preventDefault();
         e.stopPropagation();
@@ -3629,6 +3639,13 @@ function openDestinyFlowerStudio() {
         return;
       }
       if (!el || !sheet.contains(el)) return;
+      var closeBtn = sheet.querySelector('.df-studio-close');
+      if (closeBtn && __cdIsPointInsideElement(x, y, closeBtn)) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        closeDestinyFlowerStudio();
+        return;
+      }
       var btn = el.closest && el.closest('[data-action]');
       if (!btn || !sheet.contains(btn)) return;
       var act = btn.getAttribute('data-action');
