@@ -515,6 +515,8 @@ body{font-size:15px;}
 @media(max-width:600px){
   .d-img-wrap{height:165px;}
   .d-body{padding:.8rem .9rem 1rem;}
+  .duel4-stage{grid-template-columns:1fr;}
+  .duel4-portrait-wrap{width:100%;height:180px;}
 }
 
 /* ── EXTRA DYNAMIC EFFECTS ── */
@@ -620,27 +622,50 @@ body{font-size:15px;}
 
 /* 4-dealer rows */
 .dealers4-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:.6rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:.55rem;
   flex-shrink:0;
 }
 @media(min-width:900px){.dealers4-grid{grid-template-columns:repeat(4,1fr);}}
 .d4-zone{
   background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07);
-  border-radius:3px;padding:.65rem .75rem;
-  transition:border-color .4s;
+  border-radius:3px;padding:.55rem .65rem;
+  transition:border-color .4s,transform .3s;
 }
-.d4-zone.active{border-color:rgba(204,68,255,.5);}
-.d4-zone.folded{opacity:.38;border-color:rgba(204,34,34,.3);}
+.d4-zone.active{border-color:rgba(204,68,255,.7);transform:translateY(-2px);box-shadow:0 0 16px rgba(204,68,255,.25);}
+.d4-zone.folded{opacity:.6;border-color:rgba(204,34,34,.3);}
 .d4-zone.winner-zone{border-color:var(--gold);box-shadow:0 0 18px rgba(201,148,15,.3);}
 .d4-zone-header{
-  display:flex;align-items:center;gap:.45rem;margin-bottom:.45rem;
+  display:flex;align-items:center;gap:.45rem;margin-bottom:.3rem;
 }
 .d4-zone-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor;}
 .d4-zone-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;}
 .d4-zone-tag{font-family:'Noto Serif KR',serif;font-size:.62rem;margin-left:auto;color:var(--text-dim);}
-.d4-cards-row{display:flex;gap:.3rem;flex-wrap:wrap;min-height:72px;align-items:flex-end;}
+.d4-cards-row{display:flex;gap:.35rem;flex-wrap:wrap;min-height:66px;align-items:flex-end;}
 .d4-hint{font-family:'Cinzel',serif;font-size:.7rem;color:var(--text-dim);margin-top:.3rem;min-height:1em;}
 .d4-hint.folded-badge{color:var(--crimson-b);}
+
+.duel4-stage{
+  display:grid;grid-template-columns:86px 1fr;gap:.8rem;
+  padding:.8rem .9rem;
+  border:1px solid rgba(204,68,255,.32);
+  background:linear-gradient(160deg,rgba(25,6,45,.75),rgba(8,0,20,.8));
+  border-radius:4px;
+  box-shadow:inset 0 0 18px rgba(204,68,255,.08),0 0 16px rgba(0,0,0,.35);
+}
+.duel4-portrait-wrap{
+  width:86px;height:120px;border-radius:3px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.16);box-shadow:0 0 14px rgba(0,0,0,.45);
+}
+.duel4-portrait{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;}
+.duel4-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.45rem;}
+.duel4-name{font-family:'Cinzel Decorative',cursive;font-size:1rem;letter-spacing:.07em;}
+.duel4-round{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;}
+.duel4-domain{font-size:.78rem;color:var(--text-dim);margin-bottom:.45rem;}
+.duel4-hint{font-family:'Cinzel',serif;font-size:.74rem;color:var(--gold);margin-top:.35rem;letter-spacing:.08em;}
+.duel4-empty{
+  text-align:center;padding:1rem .8rem;border:1px dashed rgba(255,255,255,.14);
+  color:var(--text-dim);font-style:italic;
+}
 
 /* player zone in 4-way */
 .player4-zone{
@@ -651,17 +676,16 @@ body{font-size:15px;}
 
 /* 4-way dialogue box — compact */
 .dialogue4-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:.5rem;
+  display:grid;grid-template-columns:1fr;gap:.45rem;
   flex-shrink:0;
 }
-@media(min-width:900px){.dialogue4-grid{grid-template-columns:repeat(4,1fr);}}
 .dlg4-box{
   background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.07);
-  border-radius:2px;padding:.6rem .7rem;transition:border-color .4s;min-height:70px;
+  border-radius:2px;padding:.8rem .95rem;transition:border-color .4s;min-height:88px;
 }
 .dlg4-box.active-dlg{border-color:rgba(204,68,255,.35);}
-.dlg4-speaker{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.15em;margin-bottom:.3rem;}
-.dlg4-text{font-family:'Noto Serif KR',serif;font-size:.8rem;line-height:1.7;font-style:italic;
+.dlg4-speaker{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.18em;margin-bottom:.35rem;}
+.dlg4-text{font-family:'Noto Serif KR',serif;font-size:.9rem;line-height:1.82;font-style:italic;
   color:var(--text-dim);word-break:keep-all;}
 .dlg4-box.folded-dlg{opacity:.4;}
 
@@ -905,6 +929,8 @@ body{font-size:15px;}
     <div class="fold-allowed-banner">
       ⚔️ 이 대결에서는 <strong>폴드(Fold)가 허용</strong>됩니다 — 하지만 신들은 포기를 경멸한다
     </div>
+
+    <div class="duel4-stage" id="duel4-stage"></div>
 
     <!-- 4 dealer zones -->
     <div class="dealers4-grid" id="dealers4-grid"></div>
@@ -2231,43 +2257,74 @@ const ALL4_DEALER_ORDER = ['amon','ishtar','thanatos','metatron'];
 
 const DEALER_CELEBRATIONS = {
   amon:[
-    '"크흐… 인정하지, {n}. 네 카드가 내 황금을 꿰뚫었다. 오늘의 승자는 너다."',
-    '"좋다, {n}. 탐욕의 신 아몬이 네 승리를 축하하마. 이 기세를 끝까지 가져가라."',
-    '"네가 나를 이겼다, {n}. 이 승리는 진짜다. 더 큰 판을 준비하라."'
+    '"좋다, {n}. 최종 결전의 칼끝에서 네가 먼저 숨을 고르게 되었군. 탐욕의 신 아몬이 이 승리를 공식적으로 인정하고 축하하겠다."',
+    '"{n}, 네 선택은 흔들리지 않았다. 방금 네가 보여준 결단은 금보다 무겁다. 이 흐름을 놓치지 마라, 다음 판은 더 잔혹하다."',
+    '"인정한다, {n}. 나를 꺾은 자의 이름은 프로비던스 홀의 장부 상단에 적힌다. 축하한다, 하지만 방심하는 순간 황금은 등을 돌린다."'
   ],
   ishtar:[
-    '"축하해요, {n}. 내 심장을 멈추게 할 만큼 아름다운 승부였어요."',
-    '"{n}, 정말 멋졌어요. 이슈타르가 당신의 승리를 진심으로 축복할게요."',
-    '"당신이 이겼어요, {n}. 운명도 이런 장면을 원했나 봐요."'
+    '"축하해요, {n}. 마지막 심판대에서 당신은 떨지 않았어요. 그 담대함이 내 카드를 잠재웠어요."',
+    '"{n}, 아주 아름다운 결전이었어요. 이슈타르가 당신의 승리를 축복해요. 다만 다음 라운드는 심장보다 냉정함이 필요할 거예요."',
+    '"당신이 이겼어요, {n}. 이건 우연이 아니라 의지의 승리예요. 그 불꽃을 끝까지 지켜요."'
   ],
   thanatos:[
-    '"……축하한다, {n}. 죽음의 신 앞에서 살아남은 자의 이름을 기억하겠다."',
-    '"{n}, 승리했다. 조용히 축하하마. 강한 생명력이다."',
-    '"……좋다, {n}. 이번 판은 네 것이다. 끝까지 집중하라."'
+    '"……축하한다, {n}. 생과 사의 경계에서 끝까지 버틴 자만 이 축하를 받을 수 있다."',
+    '"{n}, 승리했다. 조용히 축하하마. 네 호흡은 마지막까지 무너지지 않았다. 그 집중을 다음 결전까지 유지해라."',
+    '"……좋다, {n}. 방금 네가 증명한 것은 단순한 운이 아니라 생존의 자격이다. 끝까지 살아남아라."'
   ],
   metatron:[
-    '"기록하겠다, {n}. 공허의 심판을 넘어선 승리로."',
-    '"축하한다, {n}. 지혜와 담력이 함께한 승리다."',
-    '"{n}, 오늘의 승자는 너다. 이 명예를 마지막까지 지켜내라."'
+    '"기록하겠다, {n}. 최종 결전의 압력 속에서도 사고를 잃지 않은 승리로."',
+    '"축하한다, {n}. 지혜와 담력이 같은 방향으로 움직였다. 그 균형을 유지하면 마지막 문도 열린다."',
+    '"{n}, 오늘의 승자는 너다. 그러나 진짜 결말은 아직 남아 있다. 이 명예를 끝까지 지켜라."'
   ]
 };
 
 const DEALER_CAUTIONS = {
   amon:[
-    '"멈춰라, {n}. 더 큰 손실이 오기 전에 탐욕과 충동을 단속하라."',
-    '"경고다, {n}. 다음 판에서는 계산 없이 움직이면 크게 무너진다."'
+    '"주의해라, {n}. 최종 결전 테이블에서는 한 번의 오판이 연쇄 붕괴를 부른다. 탐욕보다 계산이 먼저다."',
+    '"경고다, {n}. 지금 흐트러지면 다음 딜러는 자비를 보이지 않는다. 손실을 복구하려는 조급함을 끊어라."'
   ],
   ishtar:[
-    '"주의해요, {n}. 감정에 끌려 선택하면 연속 패배로 이어질 수 있어요."',
-    '"{n}, 지금은 마음보다 균형이 먼저예요. 흔들리면 크게 다쳐요."'
+    '"주의해요, {n}. 결전 막판에는 감정의 미세한 흔들림도 칼날처럼 돌아와요. 심장을 진정시키고 다음 카드를 보세요."',
+    '"{n}, 지금은 설렘도 두려움도 잠깐 봉인해야 해요. 균형을 잃으면 다음 라운드에서 크게 다칠 수 있어요."'
   ],
   thanatos:[
-    '"……경고한다, {n}. 무리하면 체력과 판단력이 함께 꺼진다."',
-    '"주의해라, {n}. 서두름은 생명력을 깎아 먹는다."'
+    '"……경고한다, {n}. 무리하면 체력과 판단력이 동시에 무너진다. 최종 결전은 버티는 자가 이긴다."',
+    '"주의해라, {n}. 조급함은 호흡을 깨고, 깨진 호흡은 곧 패배를 부른다."'
   ],
   metatron:[
-    '"주의하라, {n}. 오만과 성급함이 남은 승부를 망칠 수 있다."',
-    '"경고다, {n}. 다음 결정을 내리기 전 반드시 한 번 더 검증하라."'
+    '"주의하라, {n}. 마지막 테이블일수록 오만은 치명적이다. 확신하기 전에 반드시 재검증하라."',
+    '"경고다, {n}. 다음 결정은 오늘의 결말을 고정한다. 빠르게가 아니라 정확하게 움직여라."'
+  ]
+};
+
+const DEALER_GAUNTLET_DIALOGUES = {
+  amon:[
+    ['"{n}, 네 번째 문은 없다. 이 카드부터가 결전의 시작이다. 황금이 네 이름을 기억할지, 지워버릴지 곧 판가름 난다."','"좋아, {n}. 아직은 워밍업이 아니다. 첫 베팅부터 피를 요구하는 진짜 최종전이다."'],
+    ['"네 번째 스트리트다, {n}. 지금부터는 후퇴가 의미를 잃는다. 결단하지 않으면 황금도 너를 버린다."','"아직 기회는 있다, {n}. 다만 머뭇거림의 값은 직전 라운드보다 훨씬 비싸다."'],
+    ['"중반에 들어왔다, {n}. 여기서 균형을 잃으면 마지막 카드가 오기 전에 이미 끝난다."','"카드가 너를 시험하는 게 아니다, {n}. 너의 탐욕을 통제할 수 있는지 보는 것이다."'],
+    ['"여섯 번째 카드다. 이제 모든 숫자가 칼이 된다. {n}, 계산을 끝냈다면 밀어붙여라."','"{n}, 마지막 전초전이다. 이 순간의 선택이 최종 결전의 목줄을 쥔다."'],
+    ['"세븐스 스트리트. 여기서 거짓 담력은 전부 무너진다. {n}, 진짜 실력을 내놔라."','"판결의 카드가 열린다, {n}. 이 테이블에서 살아남는 이름은 단 하나다."']
+  ],
+  ishtar:[
+    ['"{n}, 이 라운드는 설렘이 아니라 심판이에요. 심장이 흔들리면 손끝도 흔들려요."','"좋아요, {n}. 지금부터는 사랑의 유혹도 없어요. 오직 결전의 냉기만 남아요."'],
+    ['"네 번째 카드예요, {n}. 감정은 잠시 봉인하고, 호흡부터 정리해요. 이 테이블은 약한 박동을 놓치지 않아요."','"{n}, 지금 당신 눈빛이 흔들렸어요. 최종 결전에서는 그 반 박자도 치명적이에요."'],
+    ['"중반이에요, {n}. 지금부터는 작은 실수도 증폭돼요. 부드럽게, 하지만 단호하게 가야 해요."','"당신이 지금 버티는 이 긴장감, {n}. 바로 그 감각이 결승 카드를 바꿔요."'],
+    ['"여섯 번째 카드가 왔어요. 이제 숨길 수 있는 건 없어요, {n}. 진짜 의지를 보여줘요."','"{n}, 마지막 문턱이에요. 두려움은 내려놓고 정확성만 붙잡아요."'],
+    ['"마지막 카드예요, {n}. 오늘 당신의 결말이 이 한 장에서 봉인돼요."','"최종 결전의 끝이에요, {n}. 이제 운명이 당신을 선택하는지, 당신이 운명을 선택하는지 보죠."']
+  ],
+  thanatos:[
+    ['"……{n}. 시작이다. 이 라운드는 운보다 호흡이 먼저다. 무너지면 바로 끝난다."','"첫 카드부터 결전이다, {n}. 여기는 실험장이 아니라 생존 구역이다."'],
+    ['"네 번째 카드. 맥박을 낮춰라, {n}. 조급함은 패배보다 먼저 체력을 죽인다."','"……{n}. 지금부터는 몸의 떨림이 곧 결과다. 버텨라."'],
+    ['"중반. 돌아갈 길은 닫혔다, {n}. 남은 건 끝까지 견디는 선택뿐이다."','"……카드보다 너를 보겠다, {n}. 끝까지 집중을 유지할 수 있나."'],
+    ['"여섯 번째 카드. 결말의 그림자가 가까워진다, {n}. 지금 숨이 흐트러지면 판이 기운다."','"……최종전 직전이다. {n}, 마지막까지 같은 리듬을 유지해라."'],
+    ['"마지막 카드. 침묵. 판결. {n}, 이제 네가 버틴 시간이 대답한다."','"……종결이다, {n}. 살아남은 자만 다음 문을 본다."']
+  ],
+  metatron:[
+    ['"{n}, 이번 라운드는 예선이 아니다. 최종 결전의 본편이다. 생각의 오차 1도는 결과 100을 흔든다."','"시작부터 심판이다, {n}. 감각이 아니라 검증된 판단으로 움직여라."'],
+    ['"네 번째 카드가 열렸다, {n}. 지금 필요한 건 용기가 아니라 정밀도다."','"{n}, 결전의 압력은 실수를 확대한다. 결론을 내리기 전 한 번 더 검토하라."'],
+    ['"중반이다. 흔들리지 않는 사고만이 끝까지 도달한다, {n}."','"{n}, 네 판단 체계가 무너지면 카드가 좋아도 이길 수 없다. 구조를 유지해라."'],
+    ['"여섯 번째 카드. 종결 직전의 문이다. {n}, 오만도 공포도 계산을 흐리게 만든다."','"결승선이 보인다, {n}. 지금 이 선택이 오늘의 역사로 기록된다."'],
+    ['"마지막 카드가 열린다, {n}. 이제 모든 변명은 종료다. 결과만 남는다."','"최종 결전의 봉인 해제. {n}, 네가 증명한 논리가 현실이 되는 순간이다."']
   ]
 };
 
@@ -2313,6 +2370,7 @@ function startNextDealerRound(){
     btn.textContent='📜 최종 운명 판결서 받기';
     btn.onclick=buildReport4;
     bar.appendChild(btn);
+    render4Stage(true);
     render4DealerZones(true);
     render4Dialogues(true, null);
     return;
@@ -2332,11 +2390,66 @@ function startNextDealerRound(){
     G4.dCards.push({...G4.deck.pop(), fd:i<2});
   }
 
+  render4Stage(false);
   render4DealerZones(false);
   render4PlayerRow();
   render4Dialogues(false, null);
   update4HUD();
   set4BettingButtons();
+}
+
+function pickGauntletLine(id, streetIdx){
+  const table = DEALER_GAUNTLET_DIALOGUES[id] || [];
+  const lines = table[Math.min(streetIdx,4)] || [];
+  if(!lines.length) return pickLine(DEALER_DATA[id].dialogues[Math.min(streetIdx,4)]);
+  return lines[Math.floor(Math.random()*lines.length)];
+}
+
+function render4Stage(showAll){
+  const wrap = document.getElementById('duel4-stage');
+  if(!wrap) return;
+
+  const rid = G4.currentDealerId;
+  if(!rid){
+    wrap.innerHTML = '<div class="duel4-empty">최종 결전 종료. 판결서를 확인하십시오.</div>';
+    return;
+  }
+
+  const D = DEALER_DATA[rid];
+  const bestSet = (showAll && G4.dHand4) ? new Set(G4.dHand4.cards.map(c=>c.s+c.v)) : null;
+  const cardsHtml = G4.dCards.map(card=>{
+    const faceDown=!showAll&&card.fd;
+    const col=card.s==='♦'||card.s==='♥'?'r':'k';
+    const isBest=!!bestSet&&bestSet.has(card.s+card.v);
+    return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
+      <div class="card-inner">
+        <div class="card-b"><div class="card-b-inner"></div></div>
+        <div class="card-f ${col}">
+          <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
+          <div class="card-mid">${card.s}</div>
+          <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const hint = G4.roundDone && G4.dHand4
+    ? `딜러 족보: ${G4.dHand4.name}`
+    : '현재 딜러와 1:1 최종 결전 진행 중';
+
+  wrap.innerHTML = `
+    <div class="duel4-portrait-wrap">
+      <img class="duel4-portrait" src="${D.portrait}" alt="${D.name}">
+    </div>
+    <div>
+      <div class="duel4-head">
+        <div class="duel4-name" style="color:${D.color};">${D.name}</div>
+        <div class="duel4-round">ROUND ${G4.round+1} / 4</div>
+      </div>
+      <div class="duel4-domain">${D.theme} · 프로비던스 홀 최종 결전 테이블</div>
+      <div class="d4-cards-row">${cardsHtml}</div>
+      <div class="duel4-hint">${hint}</div>
+    </div>`;
 }
 
 function render4DealerZones(showAll){
@@ -2352,41 +2465,17 @@ function render4DealerZones(showAll){
     if(res && res.win) zoneClass+=' winner-zone';
     if(res && !res.win) zoneClass+=' folded';
 
-    let cardsHtml='';
     let hintText='';
-
     if(res){
-      const badgeClass = res.win ? 'badge-win' : 'badge-lose';
-      const badgeText = res.win ? 'WIN' : 'LOSE';
-      cardsHtml = `<div class="d4-hint">대결 완료 · 내 패 ${res.playerHandName}</div>`;
-      hintText = `<span class="r4-d-badge ${badgeClass}">${badgeText}</span>`;
+      hintText = res.win
+        ? `완료 · 승리 (${res.playerHandName})`
+        : `완료 · 패배 (${res.playerHandName})`;
     } else if(isCurrent){
-      const cards = G4.roundDone ? G4.dCards : G4.dCards;
-      const bestSet = (showAll && G4.dHand4) ? new Set(G4.dHand4.cards.map(c=>c.s+c.v)) : null;
-      cardsHtml = cards.map(card=>{
-        const faceDown=!showAll&&card.fd;
-        const col=card.s==='♦'||card.s==='♥'?'r':'k';
-        const isBest=!!bestSet&&bestSet.has(card.s+card.v);
-        return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
-          <div class="card-inner">
-            <div class="card-b"><div class="card-b-inner"></div></div>
-            <div class="card-f ${col}">
-              <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
-              <div class="card-mid">${card.s}</div>
-              <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-      hintText = G4.roundDone && G4.dHand4
-        ? `<span class="d4-hint ${G4.dHand4.rank>=5?'strong':''}">${G4.dHand4.name}</span>`
-        : '<span class="d4-hint">현재 대결 중</span>';
+      hintText = '현재 1:1 결전 진행 중';
     } else if(idx < G4.round){
-      cardsHtml = '<div class="d4-hint">대결 완료</div>';
-      hintText = '<span class="d4-hint">기록 보존</span>';
+      hintText = '완료 · 기록 보존';
     } else {
-      cardsHtml = '<div class="d4-hint">대기 중…</div>';
-      hintText = '<span class="d4-hint">곧 대결</span>';
+      hintText = '대기 중';
     }
 
     grid.innerHTML += `
@@ -2394,41 +2483,38 @@ function render4DealerZones(showAll){
         <div class="d4-zone-header">
           <span class="d4-zone-dot" style="color:${D.color};background:${D.color};"></span>
           <span class="d4-zone-name" style="color:${D.color};">${D.name}</span>
-          <span class="d4-zone-tag">${D.theme}</span>
+          <span class="d4-zone-tag">R${idx+1}</span>
         </div>
-        <div class="d4-cards-row">${cardsHtml}</div>
-        ${hintText}
+        <div class="d4-hint">${hintText}</div>
       </div>`;
   });
 }
 
 function render4Dialogues(isRoundEnd, roundMessage){
   const grid = document.getElementById('dialogue4-grid');
-  grid.innerHTML = '';
-  ALL4_DEALER_ORDER.forEach(id=>{
-    const D=DEALER_DATA[id];
-    const res=G4.results.find(r=>r.id===id);
-    const isCurrent = id===G4.currentDealerId && !res;
-    let text='';
-
-    if(res){
-      text = res.message;
-    } else if(isCurrent){
-      if(isRoundEnd && roundMessage){
-        text = roundMessage;
-      } else {
-        text = pickLine(D.dialogues[Math.min(G4.street,4)]).replace(/{n}/g,G4.name);
-      }
-    } else {
-      text = '운명의 대기열에서 당신을 지켜보고 있다…';
-    }
-
-    grid.innerHTML += `
-      <div class="dlg4-box${isCurrent?' active-dlg':''}">
-        <div class="dlg4-speaker" style="color:${D.color};">${D.name}</div>
-        <div class="dlg4-text">${text}</div>
+  const rid = G4.currentDealerId;
+  if(!rid){
+    grid.innerHTML = `
+      <div class="dlg4-box active-dlg">
+        <div class="dlg4-speaker" style="color:#cc44ff;">FINAL TABLE</div>
+        <div class="dlg4-text">네 명의 딜러와의 연속 결전이 종료되었습니다. 이제 최종 판결서에서 오늘의 운명을 확인하십시오.</div>
       </div>`;
-  });
+    return;
+  }
+
+  const D = DEALER_DATA[rid];
+  let text = '';
+  if(isRoundEnd && roundMessage){
+    text = roundMessage;
+  } else {
+    text = pickGauntletLine(rid, G4.street).replace(/{n}/g,G4.name);
+  }
+
+  grid.innerHTML = `
+    <div class="dlg4-box active-dlg">
+      <div class="dlg4-speaker" style="color:${D.color};">${D.name} · FINAL DUEL VOICE</div>
+      <div class="dlg4-text">${text}</div>
+    </div>`;
 }
 
 function render4PlayerRow(){
@@ -2508,6 +2594,7 @@ function dealStreet4(){
     G4.dCards.push({...G4.deck.pop(), fd:faceDown});
     G4.pCards.push({...G4.deck.pop(), fd:faceDown});
 
+    render4Stage(false);
     render4DealerZones(false);
     render4PlayerRow();
     render4Dialogues(false, null);
@@ -2576,6 +2663,7 @@ function runShowdown4(){
       message:msg
     });
 
+    render4Stage(true);
     render4DealerZones(true);
     render4PlayerRow();
     render4Dialogues(true, msg);
@@ -2655,6 +2743,7 @@ function confirmFold4(){
     message:msg
   });
 
+  render4Stage(true);
   render4DealerZones(true);
   render4PlayerRow();
   render4Dialogues(true, msg);
