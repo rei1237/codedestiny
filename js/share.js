@@ -916,7 +916,28 @@ window.addEventListener('load',function(){
   }, { passive: true });
 });
 
-function subscribeEmail() {
+function getSubscriptionApiBaseUrl() {
+  try {
+    if (typeof window !== 'undefined') {
+      if (typeof window.getFortuneApiBaseUrl === 'function') {
+        return String(window.getFortuneApiBaseUrl() || '').replace(/\/+$/, '');
+      }
+      if (window.CODE_DESTINY_API_BASE_URL) {
+        return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+      }
+      var custom = localStorage.getItem('fortune_api_base_url');
+      if (custom) return String(custom).replace(/\/+$/, '');
+      var host = String(location.hostname || '').toLowerCase();
+      if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:4000';
+      if (host === 'api.code-destiny.com') return location.origin;
+      if (host.endsWith('.pages.dev')) return 'https://code-destiny.com';
+      return location.origin;
+    }
+  } catch (_) {}
+  return '';
+}
+
+async function subscribeEmail() {
   const emailVal = document.getElementById('subEmail').value.trim();
   const subDaily = document.getElementById('subDaily').checked;
   const subMonthly = document.getElementById('subMonthly').checked;
@@ -948,61 +969,40 @@ function subscribeEmail() {
   const dayRes = analyzeFortuneGZ(dayGZ, window.G_PILLARS, '오늘 일진');
   const monRes = analyzeFortuneGZ(monGZ, window.G_PILLARS, '이달 월운');
 
-  // 3) 편지 내용 포맷팅
-  const uName = window.USER_NAME || '당신';
-  const isNeo = document.body.classList.contains('neo-mode'); 
-  const sender = isNeo ? "Destiny Strategist 쌈바" : "당신의 안식처, 꽃돼지 연이";
-  
-  let letter = isNeo 
-    ? `[전략 리포트] ${uName}님의 운행 데이터 수신 완료\n\n안녕하십니까, ${uName}님.\n당신의 명식에 기반한 가장 냉철하고 정확한 운세 전략 리포트를 전송합니다.\n\n`
-    : `[꽃돼지 운세] ${uName}님을 위한 맞춤 운세 레터 도착💌\n\n안녕하세요, ${uName}님!\n오늘 하루도 평안하셨나요? 요청하신 따뜻한 운세 편지를 정성껏 담아 보내드립니다.\n\n`;
+  if ((subDaily && !dayRes) || (subMonthly && !monRes)) {
+    alert('운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
 
-  function formatSection(resResult, titleNeo, titlePig, periodStr) {
-    if (!resResult) return '';
-    let sec = isNeo ? `[ ${titleNeo} (${periodStr}) ]\n` : `🌸 ${titlePig} (${periodStr}) 🌸\n`;
-    sec += `▶ 흐름: ${resResult.grade} (운세 배터리: ${resResult.batteryPercent}%)\n`;
-    sec += `▶ 에너지: ${resResult.gz.g}${resResult.gz.j} (${resResult.gGod}·${resResult.jGod} 기운)\n\n`;
-    
-    if (resResult.adviceItems && resResult.adviceItems.length > 0) {
-      sec += isNeo ? `[상세 전략 및 경고]\n` : `💡 어드바이스:\n`;
-      resResult.adviceItems.forEach(adv => {
-        let mark = adv.type === 'warn' ? (isNeo ? '경고' : '조심') : (isNeo ? '전략' : '긍정');
-        sec += `- [${mark}] ${adv.title}: ${adv.body}\n`;
-      });
-      sec += `\n`;
+  const apiBase = getSubscriptionApiBaseUrl();
+  const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: emailVal,
+        subDaily: !!subDaily,
+        subMonthly: !!subMonthly,
+      }),
+    });
+
+    if (!resp.ok) {
+      let message = '구독 등록에 실패했습니다.';
+      try {
+        const payload = await resp.json();
+        if (payload && payload.message) message = payload.message;
+      } catch (_) {}
+      throw new Error(message);
     }
-    
-    if (resResult.lb) {
-      sec += isNeo ? `[운세 강화 솔루션]\n` : `✨ 당신을 위한 행운의 팁:\n`;
-      sec += `- 행운 컬러: ${resResult.lb.color}\n`;
-      sec += `- 추천 아이템/소재: ${resResult.lb.item || resResult.lb.material || '자연스러운 아이템'}\n`;
-      sec += `- 추천 행동: ${resResult.lb.action}\n`;
-      sec += `- 요약: ${resResult.lb.desc}\n\n`;
-    }
-    return sec;
-  }
 
-  if (subDaily && dayRes) {
-    letter += formatSection(dayRes, '일간 전술 지표', '오늘의 운세', `${ty}년 ${tm}월 ${td}일`);
+    alert(emailVal + ' 주소로 매일 운세 자동 발송 구독이 등록되었습니다!\n내일부터 매일 생성되는 운세 메일이 자동 전송됩니다.');
+    document.getElementById('subEmail').value = '';
+  } catch (err) {
+    var detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
+    alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
   }
-  if (subMonthly && monRes) {
-    letter += formatSection(monRes, '월간 거시 지표', '이달의 운세', `${ty}년 ${tm}월`);
-  }
-
-  let closing = isNeo 
-    ? `감정에 휘둘리지 마십시오. 운명은 예측하는 것이 아니라 전략으로 쟁취하는 것입니다.\n\n- ${sender} -`
-    : `당신의 하루하루가 반짝이는 별처럼 빛나길 진심으로 응원할게요!\n\n- ${sender} 드림 -`;
-  
-  letter += closing;
-
-  // 4) 로컬 발송 시뮬레이션 (mailto)
-  const subjectStr = isNeo ? `[전략 리포트] ${uName}님을 위한 일상/월간 운행 분석` : `[꽃돼지 운세] ${uName}님, 맞춤 구독 편지가 도착했어요 💌`;
-  const mailtoLink = `mailto:${encodeURIComponent(emailVal)}?subject=${encodeURIComponent(subjectStr)}&body=${encodeURIComponent(letter)}`;
-  
-  alert(`${emailVal} 주소로 맞춤 운세 편지 구독이 성공적으로 완료되었습니다! 🎉\n\n\n[안내] 발송될 편지(운세)의 형태와 내용을 직접 확인하실 수 있도록\n회원님의 기본 메일 앱을 통해 이메일 초안(미리보기)을 띄워드립니다.`);
-  
-  document.getElementById('subEmail').value = '';
-  
-  // 메일 클라이언트 오픈하여 바로 전송/확인 가능하게 함
-  window.location.href = mailtoLink;
 }

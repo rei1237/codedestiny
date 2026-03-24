@@ -3,6 +3,8 @@ require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
+const connectDB = require("../config/db");
+const DailyFortuneSubscription = require("../models/DailyFortuneSubscription");
 
 function getDayHeavenlyStemIndex(date) {
   const base = new Date(2000, 0, 7);
@@ -157,15 +159,58 @@ async function sendEmail({ to, subject, body }) {
 
 const targetEmail = process.env.DAILY_CONTENT_EMAIL_TO || "your-email@gmail.com";
 
+async function getDailyRecipientList() {
+  const docs = await DailyFortuneSubscription.find({
+    isActive: true,
+    subDaily: true,
+  })
+    .select("email")
+    .lean();
+
+  const fromDb = docs.map((v) => String(v.email || "").trim().toLowerCase()).filter(Boolean);
+  const all = new Set(fromDb);
+  if (targetEmail && targetEmail !== "your-email@gmail.com") {
+    all.add(String(targetEmail).trim().toLowerCase());
+  }
+  return [...all];
+}
+
+async function markSentAt(email) {
+  if (!email) return;
+  await DailyFortuneSubscription.updateOne(
+    { email: String(email).trim().toLowerCase() },
+    { $set: { lastSentAt: new Date() } },
+  );
+}
+
 cron.schedule("0 6 * * *", async () => {
   console.log("🌸 일일 콘텐츠 프롬프트 자동 생성 시작...");
   try {
     const prompt = await generateDailyContentPrompt();
-    await sendEmail({
-      to: targetEmail,
-      subject: `🌸 ${new Date().toLocaleDateString("ko-KR")} 오늘의 콘텐츠 프롬프트`,
-      body: prompt,
-    });
+    const recipients = await getDailyRecipientList();
+    if (!recipients.length) {
+      console.log("ℹ️ 일일 운세 구독자가 없어 발송을 건너뜁니다.");
+      return;
+    }
+
+    const subject = `🌸 ${new Date().toLocaleDateString("ko-KR")} 오늘의 콘텐츠 프롬프트`;
+    let successCount = 0;
+
+    for (const email of recipients) {
+      try {
+        await sendEmail({
+          to: email,
+          subject,
+          body: prompt,
+        });
+        await markSentAt(email);
+        successCount += 1;
+      } catch (mailError) {
+        console.error(`❌ 발송 실패 (${email}):`, mailError.message);
+      }
+    }
+
+    console.log(`📨 일일 운세 메일 발송 완료: ${successCount}/${recipients.length}`);
     console.log("✅ 완료");
   } catch (error) {
     console.error("❌ 자동화 실패:", error.message);
@@ -174,5 +219,12 @@ cron.schedule("0 6 * * *", async () => {
   timezone: "Asia/Seoul",
 });
 
-console.log("🕕 daily-content cron started (Asia/Seoul, 06:00)");
+connectDB()
+  .then(() => {
+    console.log("🕕 daily-content cron started (Asia/Seoul, 06:00)");
+  })
+  .catch((error) => {
+    console.error("❌ daily-content cron DB 연결 실패:", error.message);
+    process.exit(1);
+  });
 
