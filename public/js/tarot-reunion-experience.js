@@ -614,6 +614,14 @@
         toggleTarotReunionMeditation();
       });
     }
+
+    var closeBtn = document.querySelector("#tarotReunionOverlay .tarot-reunion-close");
+    if (closeBtn && !closeBtn.__reunionCloseBound) {
+      closeBtn.__reunionCloseBound = true;
+      bindReunionFastTap(closeBtn, function () {
+        closeTarotReunionModal();
+      });
+    }
   }
 
   function bindReunionFastTap(el, handler) {
