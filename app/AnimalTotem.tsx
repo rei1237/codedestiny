@@ -366,12 +366,15 @@ export default function AnimalTotem() {
 
           <aside className="space-y-5">
             <div className="rounded-[2rem] border border-white/25 bg-white/10 p-5 shadow-[0_20px_48px_rgba(30,58,138,0.24)] backdrop-blur-xl sm:p-6">
-              <label className="mb-2 block text-sm font-semibold text-pink-50">동물 이름 검색</label>
+              <label htmlFor="animal-totem-query" className="mb-2 block text-sm font-semibold text-pink-50">동물 이름 검색</label>
               <input
+                id="animal-totem-query"
+                name="animalSearch"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="예: 고양이, 늑대, 올빼미"
                 className="w-full rounded-2xl border border-violet-100/45 bg-slate-900/35 px-4 py-3 text-sm text-white placeholder:text-violet-100/70 outline-none transition-all duration-300 focus:border-pink-200/80 focus:ring-2 focus:ring-pink-200/55"
+                autoComplete="off"
               />
 
               <div className="mt-3 flex flex-wrap gap-2">

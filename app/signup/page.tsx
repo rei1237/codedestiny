@@ -171,9 +171,11 @@ export default function SignupPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block sm:col-span-2">
+                <label htmlFor="signup-name" className="block sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이름</span>
                   <input
+                    id="signup-name"
+                    name="name"
                     type="text"
                     value={form.name}
                     onChange={(e) => onChange("name", e.target.value)}
@@ -183,9 +185,11 @@ export default function SignupPage() {
                   />
                 </label>
 
-                <label className="block sm:col-span-2">
+                <label htmlFor="signup-email" className="block sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이메일</span>
                   <input
+                    id="signup-email"
+                    name="email"
                     type="email"
                     value={form.email}
                     onChange={(e) => onChange("email", e.target.value)}
@@ -195,9 +199,11 @@ export default function SignupPage() {
                   />
                 </label>
 
-                <label className="block sm:col-span-2">
+                <label htmlFor="signup-password" className="block sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호</span>
                   <input
+                    id="signup-password"
+                    name="password"
                     type="password"
                     value={form.password}
                     onChange={(e) => onChange("password", e.target.value)}
@@ -207,32 +213,41 @@ export default function SignupPage() {
                   />
                 </label>
 
-                <label className="block">
+                <label htmlFor="signup-birth-date" className="block">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">생년월일</span>
                   <input
+                    id="signup-birth-date"
+                    name="birthDate"
                     type="date"
                     value={form.birthDate}
                     onChange={(e) => onChange("birthDate", e.target.value)}
                     className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    autoComplete="bday"
                   />
                 </label>
 
-                <label className="block">
+                <label htmlFor="signup-birth-time" className="block">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">태어난 시간</span>
                   <input
+                    id="signup-birth-time"
+                    name="birthTime"
                     type="time"
                     value={form.birthTime}
                     onChange={(e) => onChange("birthTime", e.target.value)}
                     className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    autoComplete="off"
                   />
                 </label>
 
-                <label className="block sm:col-span-2">
+                <label htmlFor="signup-gender" className="block sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">성별</span>
                   <select
+                    id="signup-gender"
+                    name="gender"
                     value={form.gender}
                     onChange={(e) => onChange("gender", e.target.value as SignupFormState["gender"])}
                     className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    autoComplete="sex"
                   >
                     <option value="OTHER">기타 / 응답하지 않음</option>
                     <option value="F">여성</option>
