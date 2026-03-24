@@ -636,13 +636,9 @@
 
       var metaEl = $(REPORT_META_ID);
       if (metaEl) {
-        var src = (data.record && (data.record.source || data.source)) || "";
-        var mdl = (data.record && data.record.model) || "";
-        var cachedTag = data.cached ? " (cached)" : "";
+        var cachedTag = data.cached ? " (캐시됨)" : "";
         var dateStr = new Date().toLocaleString();
-        var bits = [dateStr];
-        if (src) bits.push("출처: " + src);
-        if (mdl) bits.push("모델: " + mdl);
+        var bits = [dateStr, "정신분석 데이터 분석"];
         if (data.formatWarning) bits.push("섹션 형식은 일부 자동 정리됨");
         metaEl.textContent = bits.join(" · ") + cachedTag;
       }
@@ -687,8 +683,18 @@
       }
       setError(msg);
       setScreen("input");
+      // 모바일에서 UI가 락된 상태로 남지 않도록 강제 unlock
+      try {
+        setPsychoKeyboardVeil(false);
+        setBodyLock(false);
+      } catch (_) {}
     } finally {
       state.uiLocked = false;
+      // 추가 안전장치: finally에서 한 번 더 unlock 확인 (모바일 크래시 방지)
+      try {
+        clearInterval(state.loadingTimer);
+        clearInterval(state.typingTimer);
+      } catch (_) {}
     }
   }
 

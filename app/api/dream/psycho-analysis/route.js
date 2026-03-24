@@ -97,12 +97,14 @@ function isValidAnalysisObject(obj) {
 
 function analysisToMarkdown(analysis) {
   const symbols = Array.isArray(analysis?.symbols) ? analysis.symbols : [];
+  const symbolEmojis = ['🌙', '✨', '🔮', '🕯️', '📖', '🔑'];
   const symbolLines = symbols
-    .map((it) => {
+    .map((it, idx) => {
       const s = String(it?.symbol || "").trim();
       const m = String(it?.meaning || "").trim();
       if (!s) return "";
-      return m ? `- **[${s}]**: ${m}` : `- **[${s}]**`;
+      const emoji = symbolEmojis[idx % symbolEmojis.length];
+      return m ? `- ${emoji} **[${s}]**: ${m}` : `- ${emoji} **[${s}]**`;
     })
     .filter(Boolean)
     .join("\n");
@@ -115,7 +117,7 @@ function analysisToMarkdown(analysis) {
     String(analysis?.psychoanalytic_interpretation || "해석 결과를 정리 중입니다."),
     "",
     "### 상징(Symbol) 디코딩 사전",
-    symbolLines || "- 핵심 상징을 추출하지 못했습니다. 다시 시도해 주세요.",
+    symbolLines || "- 📚 핵심 상징을 추출하지 못했습니다.",
     "",
     "### 억압된 그림자와 감정선 분석",
     String(analysis?.shadow_analysis || "그림자 분석을 정리 중입니다."),
@@ -124,7 +126,7 @@ function analysisToMarkdown(analysis) {
     String(analysis?.archetype_exploration || "원형 탐구를 정리 중입니다."),
     "",
     "### 현실을 위한 통찰",
-    String(analysis?.advice || "조언을 생성하지 못했습니다. 다시 시도해 주세요."),
+    String(analysis?.advice || "조언을 생성하지 못했습니다."),
   ].join("\n");
 }
 
