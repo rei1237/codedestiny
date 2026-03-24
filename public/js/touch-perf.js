@@ -53,6 +53,8 @@
   document.addEventListener('touchstart', function(e) {
     var el = e.target.closest(TOUCH_SEL);
     if (!el) return;
+    // 컬렉션 박스 내부는 세로 스크롤 시작 빈도가 높아 터치 축소 효과를 제외한다.
+    if (el.closest('.feat-collection, .tarot-collection')) return;
     el.classList.add('is-touching');
     /* once:true 미지원 구형 브라우저 호환: named function + removeEventListener */
     function cleanup() {

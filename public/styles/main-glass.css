@@ -522,7 +522,7 @@ body {
 	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
 	min-height: 140px;
-	touch-action: manipulation;
+	touch-action: pan-y;
 	-webkit-tap-highlight-color: transparent;
 	box-shadow: 0 4px 20px rgba(100, 60, 200, 0.12), 0 2px 12px rgba(30, 123, 165, 0.08);
 }
@@ -672,6 +672,7 @@ body {
 	border-bottom: 1px solid rgba(253, 230, 138, 0.2);
 	margin-bottom: 0;
 	transition: opacity 0.18s;
+	touch-action: pan-y;
 }
 .fc-toggle-btn:hover { opacity: 0.92; }
 .fc-toggle-btn:focus-visible {
