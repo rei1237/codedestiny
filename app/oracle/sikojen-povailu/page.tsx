@@ -49,7 +49,11 @@ function PhaseRouter() {
 export default function SikojenpovailuPage() {
   return (
     <SikojenpovailuProvider>
-      <div className="sikojen-app">
+      <div className="sikojen-app" style={{
+        width: '100%',
+        height: '100%',
+        display: 'block',
+      }}>
         <PhaseRouter />
       </div>
     </SikojenpovailuProvider>

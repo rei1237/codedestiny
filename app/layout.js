@@ -57,6 +57,7 @@ function buildHreflangAlternates(currentPathname) {
     "/",
     "/tarot/healing",
     "/oracle/hwatu-life",
+    "/oracle/sikojen-povailu",
     "/points",
     "/login",
     "/signup",
