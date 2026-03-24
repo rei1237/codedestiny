@@ -5,6 +5,7 @@ const cron = require("node-cron");
 const nodemailer = require("nodemailer");
 const connectDB = require("../config/db");
 const DailyFortuneSubscription = require("../models/DailyFortuneSubscription");
+const { buildUnsubscribeUrl } = require("../utils/subscription-link");
 
 function getDayHeavenlyStemIndex(date) {
   const base = new Date(2000, 0, 7);
@@ -55,6 +56,24 @@ function buildPrompt(inputs) {
 - 나크샤트라:    ${inputs.나크샤트라}
 - 태양 별자리:   ${inputs.태양_별자리}
 - 달의 위치:     ${inputs.달_위치}
+
+요청:
+1) 사주 / 자미두수 / 숙요점 / 점성술 / 베다점 5개 섹션 생성
+2) KR / EN / JP / CN / FR 다국어 버전 생성
+3) 인스타 / X / 블로그 / 이메일 포맷 생성
+4) code-destiny.com CTA 포함
+`;
+}
+
+function buildMonthlyPrompt(inputs) {
+  return `
+## 🌕 CODE DESTINY 월간 운세 콘텐츠 자동 생성
+
+### ✅ 이번달 기준 자동 추출 입력값
+- 기준 월:         ${inputs.기준월}
+- 월간 오행 테마:  ${inputs.월간_오행}
+- 월간 나크샤트라: ${inputs.월간_나크샤트라}
+- 월간 별자리:     ${inputs.월간_별자리}
 
 요청:
 1) 사주 / 자미두수 / 숙요점 / 점성술 / 베다점 5개 섹션 생성
@@ -131,6 +150,32 @@ async function generateDailyContentPrompt() {
   });
 }
 
+async function generateMonthlyContentPrompt() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+
+  const elementTheme = ["목(木)", "화(火)", "토(土)", "금(金)", "수(水)"];
+  const monthIdx = (now.getMonth() + 1) % 5;
+
+  const NAKSHATRA = [
+    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha",
+    "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+    "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishtha", "Shatabhisha", "Purva Bhadrapada",
+    "Uttara Bhadrapada", "Revati",
+  ];
+  const monthlyNak = NAKSHATRA[(now.getMonth() + 3) % NAKSHATRA.length];
+
+  const sunSign = getSunSign(now.getMonth() + 1, 15);
+
+  return buildMonthlyPrompt({
+    기준월: `${yyyy}년 ${mm}월`,
+    월간_오행: elementTheme[monthIdx],
+    월간_나크샤트라: monthlyNak,
+    월간_별자리: sunSign,
+  });
+}
+
 async function sendEmail({ to, subject, body }) {
   const host = process.env.ADMIN_SMTP_HOST;
   const port = Number(process.env.ADMIN_SMTP_PORT || 587);
@@ -175,12 +220,28 @@ async function getDailyRecipientList() {
   return [...all];
 }
 
+async function getMonthlyRecipientList() {
+  const docs = await DailyFortuneSubscription.find({
+    isActive: true,
+    subMonthly: true,
+  })
+    .select("email")
+    .lean();
+
+  return docs.map((v) => String(v.email || "").trim().toLowerCase()).filter(Boolean);
+}
+
 async function markSentAt(email) {
   if (!email) return;
   await DailyFortuneSubscription.updateOne(
     { email: String(email).trim().toLowerCase() },
     { $set: { lastSentAt: new Date() } },
   );
+}
+
+function buildMailBodyWithUnsubscribe(prompt, email) {
+  const unsubscribeUrl = buildUnsubscribeUrl(email);
+  return `${prompt}\n\n---\n수신 해지: ${unsubscribeUrl}`;
 }
 
 cron.schedule("0 6 * * *", async () => {
@@ -201,7 +262,7 @@ cron.schedule("0 6 * * *", async () => {
         await sendEmail({
           to: email,
           subject,
-          body: prompt,
+          body: buildMailBodyWithUnsubscribe(prompt, email),
         });
         await markSentAt(email);
         successCount += 1;
@@ -219,9 +280,45 @@ cron.schedule("0 6 * * *", async () => {
   timezone: "Asia/Seoul",
 });
 
+cron.schedule("0 7 1 * *", async () => {
+  console.log("🌕 월간 콘텐츠 프롬프트 자동 생성 시작...");
+  try {
+    const prompt = await generateMonthlyContentPrompt();
+    const recipients = await getMonthlyRecipientList();
+    if (!recipients.length) {
+      console.log("ℹ️ 월간 운세 구독자가 없어 발송을 건너뜁니다.");
+      return;
+    }
+
+    const subject = `🌕 ${new Date().toLocaleDateString("ko-KR")} 월간 콘텐츠 프롬프트`;
+    let successCount = 0;
+
+    for (const email of recipients) {
+      try {
+        await sendEmail({
+          to: email,
+          subject,
+          body: buildMailBodyWithUnsubscribe(prompt, email),
+        });
+        await markSentAt(email);
+        successCount += 1;
+      } catch (mailError) {
+        console.error(`❌ 월간 발송 실패 (${email}):`, mailError.message);
+      }
+    }
+
+    console.log(`📨 월간 운세 메일 발송 완료: ${successCount}/${recipients.length}`);
+    console.log("✅ 완료");
+  } catch (error) {
+    console.error("❌ 월간 자동화 실패:", error.message);
+  }
+}, {
+  timezone: "Asia/Seoul",
+});
+
 connectDB()
   .then(() => {
-    console.log("🕕 daily-content cron started (Asia/Seoul, 06:00)");
+    console.log("🕕 daily-content cron started (Asia/Seoul, 06:00 / monthly 1st 07:00)");
   })
   .catch((error) => {
     console.error("❌ daily-content cron DB 연결 실패:", error.message);

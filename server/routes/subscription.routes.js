@@ -1,6 +1,11 @@
 const express = require("express");
 
 const DailyFortuneSubscription = require("../models/DailyFortuneSubscription");
+const {
+  normalizeEmail,
+  buildUnsubscribeUrl,
+  verifyUnsubscribeToken,
+} = require("../utils/subscription-link");
 
 const router = express.Router();
 
@@ -8,7 +13,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/daily-fortune", async (req, res, next) => {
   try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
+    const email = normalizeEmail(req.body?.email);
     const subDaily = req.body?.subDaily !== false;
     const subMonthly = req.body?.subMonthly === true;
 
@@ -32,6 +37,7 @@ router.post("/daily-fortune", async (req, res, next) => {
           subMonthly,
           isActive: true,
           source: "saju-analysis",
+          unsubscribedAt: null,
         },
       },
       {
@@ -43,6 +49,7 @@ router.post("/daily-fortune", async (req, res, next) => {
 
     return res.status(200).json({
       message: "매일 운세 이메일 구독이 등록되었습니다.",
+      unsubscribeUrl: buildUnsubscribeUrl(saved.email),
       subscription: {
         id: String(saved._id),
         email: saved.email,
@@ -51,6 +58,33 @@ router.post("/daily-fortune", async (req, res, next) => {
         isActive: !!saved.isActive,
       },
     });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/daily-fortune/unsubscribe", async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.query?.email);
+    const token = String(req.query?.token || "");
+
+    if (!email || !emailRegex.test(email) || !verifyUnsubscribeToken(email, token)) {
+      return res.status(400).type("text/html; charset=utf-8").send("<h1>유효하지 않은 구독 해지 링크입니다.</h1>");
+    }
+
+    await DailyFortuneSubscription.updateOne(
+      { email },
+      {
+        $set: {
+          isActive: false,
+          subDaily: false,
+          subMonthly: false,
+          unsubscribedAt: new Date(),
+        },
+      },
+    );
+
+    return res.status(200).type("text/html; charset=utf-8").send("<h1>구독 해지가 완료되었습니다.</h1><p>앞으로 매일 운세 메일이 발송되지 않습니다.</p>");
   } catch (error) {
     return next(error);
   }

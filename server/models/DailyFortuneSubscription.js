@@ -34,6 +34,10 @@ const dailyFortuneSubscriptionSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  unsubscribedAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true,
 });
