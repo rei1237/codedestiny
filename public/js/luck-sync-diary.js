@@ -967,22 +967,47 @@
   /* ─── 가챠 로또 ───────────────────────────────────────────────── */
   var _luckyEl = 'wood';
   var _gachaRunning = false;
+  var _lottoSpinTimer = null;
 
   function startLotto() {
     if (_gachaRunning) return;
     _gachaRunning = true;
+    var machine = document.getElementById('lsdLottoMachine');
     var globe   = document.getElementById('lsdGlobeInner');
     var result  = document.getElementById('lsdLottoResult');
+    var ticker  = document.getElementById('lsdLottoTicker');
     var btn     = document.getElementById('lsdLottoBtn');
-    if (!globe || !btn) { _gachaRunning = false; return; }
+    var spinPool = ['🌱', '🔥', '🤎', '⚡', '💧', '🍀', '✨', '🎯', '🧿', '💎'];
+    var spinFrames = 0;
+    if (!globe || !btn || !machine) { _gachaRunning = false; return; }
 
     btn.disabled = true;
-    result.style.display = 'none';
+    btn.textContent = '🎰 뽑는 중...';
+    if (result) result.style.display = 'none';
+    if (_lottoSpinTimer) {
+      clearInterval(_lottoSpinTimer);
+      _lottoSpinTimer = null;
+    }
+    machine.classList.add('is-drawing');
     globe.classList.add('is-spinning');
+    _lottoSpinTimer = setInterval(function () {
+      spinFrames++;
+      var a = spinPool[Math.floor(Math.random() * spinPool.length)];
+      var b = spinPool[Math.floor(Math.random() * spinPool.length)];
+      var c = spinPool[Math.floor(Math.random() * spinPool.length)];
+      globe.textContent = a + ' ' + b + ' ' + c + ' ' + spinPool[(spinFrames + 3) % spinPool.length] + ' ' + spinPool[(spinFrames + 6) % spinPool.length];
+      if (ticker) ticker.textContent = 'MIXING ' + spinPool[(spinFrames + 1) % spinPool.length] + ' ' + spinPool[(spinFrames + 4) % spinPool.length];
+    }, 110);
 
     setTimeout(function () {
+      if (_lottoSpinTimer) {
+        clearInterval(_lottoSpinTimer);
+        _lottoSpinTimer = null;
+      }
+      machine.classList.remove('is-drawing');
       globe.classList.remove('is-spinning');
       btn.disabled = false;
+      btn.textContent = '🎱 오늘의 럭키 비키 아이템 뽑기';
       _gachaRunning = false;
 
       var pool = LUCKY_ITEMS[_luckyEl] || LUCKY_ITEMS.wood;
@@ -999,20 +1024,26 @@
         ballEl.style.background = 'radial-gradient(circle at 35% 35%, ' + e.neon + ', ' + e.color + ')';
         ballEl.style.boxShadow  = '0 0 30px ' + e.neon + '88, 0 0 60px ' + e.color + '44';
         ballEl.style.color = '#fff';
+        ballEl.classList.remove('lsd-result-ball-pop', 'animate-bounce');
+        void ballEl.offsetWidth;
+        ballEl.classList.add('lsd-result-ball-pop', 'animate-bounce');
       }
       if (emojiEl) emojiEl.textContent = item.emoji;
       if (nameEl)  nameEl.textContent  = item.name;
       if (tipEl)   tipEl.textContent   = item.tip;
+      if (ticker)  ticker.textContent  = 'RESULT: ' + item.emoji + ' ' + item.name;
 
-      result.style.display = 'block';
-      result.classList.add('lsd-result--pop');
-      setTimeout(function () { result.classList.remove('lsd-result--pop'); }, 400);
+      if (result) {
+        result.style.display = 'block';
+        result.classList.add('lsd-result--pop');
+        setTimeout(function () { result.classList.remove('lsd-result--pop'); }, 400);
+      }
 
       // 저장
       var d = loadDiary();
       getTodayEntry(d).lotto = { element: _luckyEl, emoji: item.emoji, name: item.name };
       saveDiary(d);
-    }, 1800);
+    }, 2200);
   }
 
     /* ─── 갓생 지수 스코어 바 렌더 ──────────────────────────── */
@@ -1175,8 +1206,25 @@
         '@keyframes lsdGlobeSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}',
         '@keyframes lsdPopIn{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}',
         '@keyframes lsdSlideUp{0%{transform:translateY(16px);opacity:0}100%{transform:translateY(0);opacity:1}}',
+        '@keyframes lsdTwSpinSlow{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}',
+        '@keyframes lsdTwSpinReverse{0%{transform:rotate(0deg)}100%{transform:rotate(-360deg)}}',
+        '@keyframes lsdTwPulse{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.02)}}',
+        '@keyframes lsdTwBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}',
+        '.animate-spin-slow{animation:lsdTwSpinSlow 2.6s linear infinite}',
+        '.animate-spin-reverse{animation:lsdTwSpinReverse 1.7s linear infinite}',
+        '.animate-pulse{animation:lsdTwPulse 1.4s ease-in-out infinite}',
+        '.animate-bounce{animation:lsdTwBounce .9s ease-in-out 2}',
         '.lsd-globe-inner.is-spinning{animation:lsdGlobeSpin .2s linear infinite}',
         '.lsd-result--pop{animation:lsdPopIn .4s cubic-bezier(.17,.67,.35,1.4) forwards}',
+        '.lsd-result-ball-pop{animation:lsdPopIn .45s cubic-bezier(.17,.67,.35,1.4) forwards}',
+        '.lsd-lotto-machine{position:relative;padding:8px 0 10px}',
+        '.lsd-spin-ring{position:absolute;left:50%;top:64px;border-radius:999px;border:1.5px dashed rgba(124,58,237,.28);pointer-events:none;transform-origin:center center}',
+        '.lsd-spin-ring--outer{width:146px;height:146px;transform:translate(-50%,-50%)}',
+        '.lsd-spin-ring--inner{width:114px;height:114px;transform:translate(-50%,-50%)}',
+        '.lsd-lotto-machine.is-drawing .lsd-globe-inner{animation:lsdGlobeSpin .16s linear infinite}',
+        '.lsd-lotto-machine.is-drawing .lsd-spin-ring--outer{animation-duration:1.2s}',
+        '.lsd-lotto-machine.is-drawing .lsd-spin-ring--inner{animation-duration:.9s}',
+        '.lsd-lotto-ticker{display:inline-flex;align-items:center;justify-content:center;min-width:120px;padding:4px 12px;border-radius:999px;border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;font-size:.68rem;font-weight:800;letter-spacing:.05em;margin-bottom:10px}',
         '.lsd-tab{background:transparent;color:#6b7280;border:1.5px solid transparent;transition:all .2s;white-space:nowrap;flex:none;padding:7px 14px;border-radius:999px;font-size:.75rem;font-weight:700;cursor:pointer}',
         '.lsd-tab:hover{background:rgba(124,58,237,.08);color:#7c3aed}',
         '.lsd-tab.is-active{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.35)}',
@@ -1256,13 +1304,16 @@
       '<div style="background:#fff;border-radius:16px;padding:16px 14px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6;text-align:center">',
       '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">🎰 럭키 비키 아이템 뽑기</h3>',
       '<p style="font-size:.72rem;color:#9ca3af;margin:0 0 20px;line-height:1.5">오늘의 행운 오행 기반으로 LUCKY ITEM을 뿑아봐~!</p>',
-      '<div id="lsdLottoMachine" aria-live="polite" style="position:relative;padding:4px 0 10px">',
+      '<div id="lsdLottoMachine" class="lsd-lotto-machine" aria-live="polite">',
+      '<div class="lsd-spin-ring lsd-spin-ring--outer animate-spin-slow" aria-hidden="true"></div>',
+      '<div class="lsd-spin-ring lsd-spin-ring--inner animate-spin-reverse" aria-hidden="true"></div>',
       '<div style="width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:4px solid #c4b5fd;margin:0 auto 10px;position:relative;overflow:hidden;box-shadow:inset 0 4px 14px rgba(124,58,237,.18),0 6px 24px rgba(124,58,237,.2)">',
-      '<div id="lsdGlobeInner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;font-size:1.5rem;user-select:none">🌱 🔥 🤎 ⚡ 💧</div>',
+      '<div id="lsdGlobeInner" class="lsd-globe-inner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;font-size:1.5rem;user-select:none">🌱 🔥 🤎 ⚡ 💧</div>',
       '<div style="position:absolute;top:10px;left:14px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(3px)"></div></div>',
+      '<div id="lsdLottoTicker" class="lsd-lotto-ticker animate-pulse">READY</div>',
       '<div style="width:48px;height:7px;border-radius:4px;background:#c4b5fd;margin:0 auto 12px;opacity:.5"></div>',
       '<div id="lsdLuckyElemHint" style="font-size:.74rem;font-weight:700;color:#7c3aed;margin-bottom:14px;min-height:18px"></div>',
-      '<button id="lsdLottoBtn" type="button" style="padding:12px 24px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;box-shadow:0 4px 18px rgba(124,58,237,.4);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 8px 26px rgba(124,58,237,.5)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 18px rgba(124,58,237,.4)\'"">🎱 오늘의 럭키 비키 아이템 뽑기</button></div>',
+      '<button id="lsdLottoBtn" type="button" class="animate-pulse" style="padding:12px 24px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;box-shadow:0 4px 18px rgba(124,58,237,.4);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 8px 26px rgba(124,58,237,.5)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 18px rgba(124,58,237,.4)\'"">🎱 오늘의 럭키 비키 아이템 뽑기</button></div>',
       '<div id="lsdLottoResult" style="display:none;margin-top:18px">',
       '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,#faf5ff,#ede9fe);border-radius:20px;padding:22px 36px;border:1px solid #c4b5fd;width:100%;box-sizing:border-box">',
       '<div id="lsdResultBall" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.4)"></div>',
@@ -1315,6 +1366,9 @@
       '</div>',
       '<div id="lsdHistoryList" style="display:flex;flex-direction:column;gap:8px"></div>',
       '</section>',
+      '<div style="padding:10px 14px 14px;background:#fff;border-top:1px solid #eef2ff;display:flex;justify-content:flex-end;flex-shrink:0">',
+      '<button type="button" data-action="closeLuckSyncDiary" style="padding:9px 16px;border-radius:999px;border:1.5px solid #c4b5fd;background:#faf5ff;color:#6d28d9;font-size:.74rem;font-weight:800;cursor:pointer">닫기</button>',
+      '</div>',
       '</div>',
       '</div>'
     ].join('');
@@ -1499,7 +1553,8 @@
     var redrawBtn = document.getElementById('lsdRedrawBtn');
     if (lottoBtn)  lottoBtn.onclick  = startLotto;
     if (redrawBtn) redrawBtn.onclick = function () {
-      document.getElementById('lsdLottoResult').style.display = 'none';
+      var resultBox = document.getElementById('lsdLottoResult');
+      if (resultBox) resultBox.style.display = 'none';
       startLotto();
     };
 
