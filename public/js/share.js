@@ -389,6 +389,11 @@ function closeIosModal() {
   if (modal) modal.classList.remove('open');
 }
 
+// Ensure data-action routers can always resolve these handlers.
+window.handleFavoriteAdd = handleFavoriteAdd;
+window.handlePwaInstall = handlePwaInstall;
+window.closeIosModal = closeIosModal;
+
 // data-action 경로 문제로 설치 버튼이 누락되는 환경을 대비한 직접 바인딩.
 function bindPwaInstallButtons() {
   ['btnPwaInstall', 'btnPwaInstallHome'].forEach(function(id) {
@@ -398,6 +403,19 @@ function bindPwaInstallButtons() {
     btn.addEventListener('click', function(ev) {
       if (ev && ev.cancelable) ev.preventDefault();
       handlePwaInstall();
+    }, { passive: false });
+  });
+}
+
+// data-action 경로 문제로 즐겨찾기 버튼이 누락되는 환경을 대비한 직접 바인딩.
+function bindFavoriteButtons() {
+  ['btnFavorite', 'btnFavoriteHome'].forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (!btn || btn.dataset.favoriteBound === '1') return;
+    btn.dataset.favoriteBound = '1';
+    btn.addEventListener('click', function(ev) {
+      if (ev && ev.cancelable) ev.preventDefault();
+      handleFavoriteAdd();
     }, { passive: false });
   });
 }
@@ -890,6 +908,7 @@ window.addEventListener('load',function(){
 
   enforceThemeToggleSticky();
   bindPwaInstallButtons();
+  bindFavoriteButtons();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('orientationchange', function() {
