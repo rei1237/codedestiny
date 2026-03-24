@@ -226,6 +226,11 @@ body {
 	border-color: rgba(251, 207, 232, 0.7);
 	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(236, 72, 153, 0.35) inset;
 }
+.feat-collection--saju-fun {
+	background: linear-gradient(160deg, rgba(30, 41, 82, 0.74), rgba(21, 18, 58, 0.86));
+	border-color: rgba(196, 181, 253, 0.7);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(129, 140, 248, 0.35) inset;
+}
 .tarot-collection {
 	background: linear-gradient(180deg, rgba(55, 25, 95, 0.7), rgba(18, 8, 35, 0.92));
 	border-color: rgba(196, 181, 253, 0.5);
@@ -244,6 +249,7 @@ body {
 .feat-collection--oracle .feat-collection__header { border-bottom-color: rgba(253, 224, 71, 0.75); }
 .feat-collection--cosmic .feat-collection__header { border-bottom-color: rgba(167, 139, 250, 0.8); }
 .feat-collection--flower .feat-collection__header { border-bottom-color: rgba(251, 207, 232, 0.75); }
+.feat-collection--saju-fun .feat-collection__header { border-bottom-color: rgba(196, 181, 253, 0.78); }
 .tarot-collection__header { border-bottom-color: rgba(196, 181, 253, 0.75); }
 .feat-collection__icon,
 .tarot-collection__icon {
@@ -298,6 +304,8 @@ body {
 .feat-collection--cosmic .fc-div-gem { color: #a78bfa; }
 .feat-collection--flower .fc-div-line { background: linear-gradient(90deg, transparent, rgba(251, 207, 232, 0.9), transparent); }
 .feat-collection--flower .fc-div-gem { color: #f472b6; }
+.feat-collection--saju-fun .fc-div-line { background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.92), transparent); }
+.feat-collection--saju-fun .fc-div-gem { color: #c4b5fd; }
 .tarot-collection .tc-divider-line { background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.9), transparent); }
 .tarot-collection .tc-divider-star,
 .tarot-collection .tc-divider-gem { color: #a78bfa; }
@@ -356,6 +364,35 @@ body {
 .feat-collection--flower .fc-star {
 	background: #ec4899;
 	box-shadow: 0 0 10px 4px rgba(251, 207, 232, 0.95), 0 0 22px 8px rgba(236, 72, 153, 0.5);
+}
+.feat-collection--saju-fun .fc-star {
+	background: #a78bfa;
+	box-shadow: 0 0 10px 4px rgba(196, 181, 253, 0.95), 0 0 22px 8px rgba(129, 140, 248, 0.52);
+}
+
+.saju-fun-profile-hint {
+	position: relative;
+	z-index: 2;
+	margin: 2px 8px 14px;
+	padding: 10px 12px;
+	border-radius: 12px;
+	border: 1px solid rgba(196, 181, 253, 0.42);
+	background: linear-gradient(180deg, rgba(76, 29, 149, 0.2), rgba(15, 23, 42, 0.34));
+	color: rgba(237, 233, 254, 0.95);
+	font-size: 0.82rem;
+	line-height: 1.5;
+}
+
+.saju-fun-profile-hint.is-warning {
+	border-color: rgba(251, 191, 36, 0.6);
+	background: linear-gradient(180deg, rgba(120, 53, 15, 0.25), rgba(67, 20, 7, 0.32));
+	color: rgba(254, 243, 199, 0.98);
+}
+
+.saju-fun-profile-hint.is-success {
+	border-color: rgba(110, 231, 183, 0.58);
+	background: linear-gradient(180deg, rgba(6, 78, 59, 0.28), rgba(6, 46, 33, 0.34));
+	color: rgba(209, 250, 229, 0.98);
 }
 /* 타로 컬렉션 별 (tc-star) */
 .tarot-collection__cosmos .tc-star {
@@ -877,6 +914,7 @@ body {
 /* ─── 닫힌 상태: 컬렉션 박스 높이 축소 애니메이션 느낌 ─── */
 [data-collection-open="false"].feat-collection,
 [data-collection-open="false"].tarot-collection {
+	/* 신비로운 shimmer 테두리 강조 */
 	animation: fc-closedGlow 3s ease-in-out infinite;
 }
 @keyframes fc-closedGlow {

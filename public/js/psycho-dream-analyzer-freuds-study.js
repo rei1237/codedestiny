@@ -608,31 +608,25 @@
           throw new Error("non-json");
         }
         data = await res.json();
-      } catch (jsonErr) {
+      } catch (_) {
         data = null;
-        console.error("[정신분석 해몽] JSON 파싱 실패:", jsonErr);
       }
 
       if (!data || typeof data !== "object") {
         stopTyping();
-        console.error("[정신분석 해몽] API 응답 없음 또는 객체 아님", res);
-        setError("현재 이용자가 많아 잠시 후 다시 이용해 주세요.");
+        var hint =
+          res.status === 404
+            ? "분석 서비스 경로를 찾을 수 없습니다. 배포·도메인 설정을 확인해 주세요."
+            : "서버 응답을 받지 못했습니다. 네트워크 후 다시 시도해 주세요.";
+        setError(hint);
         setScreen("input");
         return;
       }
 
       if (!res.ok || !data.ok) {
-        var msg = (data && data.message) || "";
-        // 백엔드에서 쿼터 초과 등 안내 메시지가 오면 그대로 노출, 그 외는 통일 안내
-        var quotaHint = "잠시 후 다시 시도";
-        if (msg && (msg.includes("잠시 후 다시") || msg.includes("소진") || msg.includes("티타임"))) {
-          // 백엔드 안내 메시지(쿼터 초과 등) 그대로 노출
-          setError(msg);
-        } else {
-          setError("현재 이용자가 많아 잠시 후 다시 이용해 주세요.");
-        }
+        var msg = (data && data.message) || "분석에 실패했습니다.";
         stopTyping();
-        console.error("[정신분석 해몽] API 실패:", res, data);
+        setError(msg);
         setScreen("input");
         return;
       }
@@ -683,8 +677,11 @@
     } catch (e) {
       stopLoading();
       stopTyping();
-      console.error("[정신분석 해몽] 예외 발생:", e);
-      setError("현재 이용자가 많아 잠시 후 다시 이용해 주세요.");
+      var msg = (e && e.message) || "네트워크 오류로 분석에 실패했습니다.";
+      if (e && (e.name === "AbortError" || String(msg || "").toLowerCase().includes("abort"))) {
+        msg = "분석 요청이 지연되어 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+      }
+      setError(msg);
       setScreen("input");
       // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
       try { setPsychoKeyboardVeil(false); } catch (_) {}

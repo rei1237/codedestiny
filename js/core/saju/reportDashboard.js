@@ -672,11 +672,12 @@ function handleReportThumbError(imgEl) {
 window.handleReportThumbError = handleReportThumbError;
 
 function renderReportDashboard() {
+  try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
+
   var container = document.getElementById('reportDashboard');
   var dashCard  = document.getElementById('reportDashboardCard');
   if (!container || !dashCard) return;
   dashCard.style.display = '';
-  try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
 
   /* ── 타겟 기준 중복 제거 블록 목록 생성 ── */
   var seenTargets = {};
@@ -877,3 +878,82 @@ function toggleReportFeatureCard(btn) {
   }
   window.addEventListener('resize', onResize, { passive: true });
 })();
+
+function _sajuFunGetCurrentProfile() {
+  try {
+    if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
+      return window.DestinyProfileManager.storage.current() || null;
+    }
+  } catch (e) {}
+
+  try {
+    var ns = 'FORTUNE_APP_USER_PROFILES';
+    var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
+    var id = localStorage.getItem(ns + '.current');
+    if (!Array.isArray(list) || !id) return null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === id) return list[i];
+    }
+  } catch (e2) {}
+
+  return null;
+}
+
+function _sajuFunHasBirthCore(profile) {
+  if (!profile || !profile.birth) return false;
+  var b = profile.birth;
+  var y = Number(b.year);
+  var m = Number(b.month);
+  var d = Number(b.day);
+  return Number.isFinite(y) && y > 0 && Number.isFinite(m) && m >= 1 && m <= 12 && Number.isFinite(d) && d >= 1 && d <= 31;
+}
+
+function _sajuFunSetHint(message, tone) {
+  var hint = document.getElementById('sajuFunProfileHint');
+  if (!hint) return;
+  hint.classList.remove('is-warning', 'is-success');
+  if (tone === 'warning') hint.classList.add('is-warning');
+  if (tone === 'success') hint.classList.add('is-success');
+  hint.textContent = message;
+}
+
+window.openSajuFunFeature = function(targetId, afterAction) {
+  var profile = _sajuFunGetCurrentProfile();
+  if (!_sajuFunHasBirthCore(profile)) {
+    _sajuFunSetHint('⚠️ 사주 콘텐츠를 보려면 프로필 카드에 생년월일을 먼저 저장해 주세요. 입력 카드에서 저장 후 다시 눌러주세요.', 'warning');
+    return;
+  }
+
+  _sajuFunSetHint('✅ 프로필 확인 완료. 사주 데이터를 불러온 뒤 선택한 콘텐츠로 이동합니다.', 'success');
+
+  if (typeof window._dpOpenFortuneType === 'function') {
+    try { window._dpOpenFortuneType('saju'); } catch (e) {}
+  }
+
+  var tries = 0;
+  var maxTries = 12;
+  var tick = function() {
+    if (afterAction === 'openLuckSyncDiary' && typeof window.openLuckSyncDiary === 'function') {
+      try { window.openLuckSyncDiary(); } catch (e2) {}
+      return;
+    }
+
+    var target = targetId ? document.getElementById(targetId) : null;
+    if (!target) {
+      if (tries < maxTries) {
+        tries += 1;
+        setTimeout(tick, 260);
+      }
+      return;
+    }
+
+    if (target.style && target.style.display === 'none') target.style.display = '';
+    try {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e3) {
+      try { target.scrollIntoView(true); } catch (e4) {}
+    }
+  };
+
+  setTimeout(tick, 320);
+};

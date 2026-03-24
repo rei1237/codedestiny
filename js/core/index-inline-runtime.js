@@ -606,7 +606,8 @@ var __cdLazyActionLoaders = {
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); }
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
+  openSajuFunFeature: function() { return __cdLoadScriptOnce('/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1'); }
 };
 var __cdLazyActionState = {};
 

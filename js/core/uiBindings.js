@@ -22,7 +22,8 @@ const __lazyActionLoaders = {
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'),
-  openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js')
+  openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
+  openSajuFunFeature: () => __loadScriptOnce('/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1')
 };
 
 const __lazyActionState = {};
