@@ -278,13 +278,7 @@ function _s4cDecorSvg(type) {
 }
 
 function _s4cFrameDecorMarkup(frameSeed) {
-  var icons = ['heart', 'star', 'smile', 'cherry'];
-  var result = '';
-  for (var i = 0; i < 4; i++) {
-    var iconType = icons[(frameSeed + i) % icons.length];
-    result += '<span class="s4c-y2k s4c-y2k-' + (i + 1) + '">' + _s4cDecorSvg(iconType) + '</span>';
-  }
-  return result;
+  return '';
 }
 
 function _s4cBuildFrameData() {
