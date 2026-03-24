@@ -717,7 +717,7 @@ body {
 	content: "닫기";
 }
 [data-collection-open="false"] .fc-toggle-hint__text::after {
-	content: "";
+	content: "눌러서 열기";
 }
 
 /* ─── 그리드: 닫힌 상태에서 숨김 ─── */
