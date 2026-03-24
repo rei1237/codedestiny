@@ -246,6 +246,48 @@ if (document.readyState === 'loading') {
   cdInstallGoogleTranslateBannerGuard();
   try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
 }
+
+function initPerformanceDiagnosisObservers() {
+  if (typeof window === 'undefined' || typeof PerformanceObserver !== 'function') return;
+  if (window.__cdPerfObserverInstalled) return;
+  window.__cdPerfObserverInstalled = true;
+
+  try {
+    var longTaskObserver = new PerformanceObserver(function(entryList) {
+      var entries = entryList.getEntries();
+      for (var i = 0; i < entries.length; i += 1) {
+        var entry = entries[i];
+        if (entry && entry.duration > 50) {
+          console.warn('[perf] Long task detected', {
+            duration: Math.round(entry.duration),
+            startTime: Math.round(entry.startTime)
+          });
+        }
+      }
+    });
+    longTaskObserver.observe({ type: 'longtask', buffered: true });
+  } catch (_) {}
+
+  try {
+    var clsValue = 0;
+    var clsObserver = new PerformanceObserver(function(entryList) {
+      var entries = entryList.getEntries();
+      for (var i = 0; i < entries.length; i += 1) {
+        var entry = entries[i];
+        if (entry && !entry.hadRecentInput) {
+          clsValue += entry.value || 0;
+        }
+      }
+      if (clsValue >= 0.1) {
+        console.warn('[perf] CLS warning', { cls: Number(clsValue.toFixed(4)) });
+      }
+    });
+    clsObserver.observe({ type: 'layout-shift', buffered: true });
+  } catch (_) {}
+}
+
+initPerformanceDiagnosisObservers();
+
 function syncFeatureCardHeight(card) {
   if (!card) return;
   var detail = card.querySelector('.feature-card__detail');
@@ -490,6 +532,8 @@ var __cdLazyActionLoaders = {
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
+  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260323'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -713,6 +757,8 @@ function __cdBindGlobalActionsFallback() {
 
           var img = document.createElement('img');
           img.className = 'tarot-tile__img';
+          img.loading = 'lazy';
+          img.fetchPriority = 'low';
           img.decoding = 'async';
           img.width = 200;
           img.height = 150;

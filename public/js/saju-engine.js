@@ -2530,8 +2530,21 @@ function getQuantumElType(el, p, jg, pw, jh){
   return 'neutral';
 }
 
+var __evalDaewunMemo = new Map();
+var __evalDaewunContextVersion = 0;
+
+function resetEvalDaewunMemo() {
+  __evalDaewunContextVersion += 1;
+  __evalDaewunMemo.clear();
+}
+
 /* ─ 대운 통합 평가: 퀀텀 명리 천기(조후 우선, 합화 반영) ─ */
 function evalDaewun(ganChar,zhiChar){
+  var cacheKey = __evalDaewunContextVersion + '|' + ganChar + '|' + zhiChar;
+  if (__evalDaewunMemo.has(cacheKey)) {
+    return __evalDaewunMemo.get(cacheKey);
+  }
+
   var pw=G_POWER,jg=G_JONG,jh=G_JOHU,p0=G_PILLARS;
   var score=50; // 기본 점수 50점
   var ganEl=(GAN[ganChar]||{}).e||'earth';
@@ -2844,12 +2857,15 @@ function evalDaewun(ganChar,zhiChar){
     else jongStrength = 'neutral';
   }
 
-  return{score:score,label:label,cls:cls,tagCls:tagCls,emoji:emoji,
+  var result = {score:score,label:label,cls:cls,tagCls:tagCls,emoji:emoji,
     hasChungBonus:hasChungBonus,hasChungPenalty:hasChungPenalty,
     chungBonusText:chungBonusText,chungPenaltyText:chungPenaltyText,
     hasJiheBonus:hasJiheBonus, jiheBonusTxt:_jiheTxt,
     hasSamhapBonus:hasSamhapBonus, samhapBonusTxt:_samhapTxt,
     evalSummary:evalSummary, jongStrength:jongStrength};
+
+  __evalDaewunMemo.set(cacheKey, result);
+  return result;
 }
 
 /* ─── NEO_GAEUN_DB — 쌈바 팩폭 어투 대운 해석 ─── */
@@ -3298,6 +3314,26 @@ setTimeout(function(){
   try { updateFortunePointNotice(); } catch(e) {}
 }, 0);
 
+function runDeferredSajuTasks(taskList) {
+  if (!Array.isArray(taskList) || !taskList.length) return;
+  var idx = 0;
+
+  function scheduleNext() {
+    if (idx >= taskList.length) return;
+    var task = taskList[idx++];
+    setTimeout(function() {
+      try { task(); } catch (e) { console.error('[saju] deferred task error', e); }
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(scheduleNext);
+      } else {
+        setTimeout(scheduleNext, 0);
+      }
+    }, 0);
+  }
+
+  scheduleNext();
+}
+
 /* ═══════════════════════════════════════
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
@@ -3448,6 +3484,7 @@ async function calculate(){
     G_JONG = _tj;
 
     G_BAZI=bazi;
+    resetEvalDaewunMemo();
     _syncDestinyFlowerSajuSnapshot('full-analysis');
 
     document.getElementById('inputPage').style.display='none';
@@ -3515,23 +3552,27 @@ async function calculate(){
     try { renderEnergyCoord(natal); } catch(e) { console.error('EnergyCoord 에러:', e); }
     try { renderHealthReport(p, natal, johu, G_POWER, G_JONG); } catch(e) { console.error('HealthReport 에러:', e); }
     try { renderTTest(p, natal, johu, G_POWER); } catch(e) { console.error('TTest 에러:', e, e.stack); }
-    try { renderLottoNumbers(natal, bazi); } catch(e) { console.error('LottoNumbers 에러:', e); }
-    try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); }
-    try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); }
-    try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); }
-    try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); }
-    try {
-      var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
-      if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
-        _dailyMonthlyPromise.catch(function(e){ console.error('DailyMonthlyFortune 에러:', e, e && e.stack); });
-      }
-    } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e.stack); }
-    try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); }
-    try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); }
-    findSimilarCelebs(p);
-    try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); }
-    try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); }
-    try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
+    runDeferredSajuTasks([
+      function() { try { renderLottoNumbers(natal, bazi); } catch(e) { console.error('LottoNumbers 에러:', e); } },
+      function() { try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); } },
+      function() { try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); } },
+      function() { try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); } },
+      function() { try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); } },
+      function() {
+        try {
+          var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
+          if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
+            _dailyMonthlyPromise.catch(function(e){ console.error('DailyMonthlyFortune 에러:', e, e && e.stack); });
+          }
+        } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e && e.stack); }
+      },
+      function() { try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); } },
+      function() { try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); } },
+      function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
+      function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
+      function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
+      function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); } }
+    ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
@@ -15782,10 +15823,62 @@ function renderLifeGraph(bazi){
 /* ══════════════════════════════════════════
    ✨ 나와 비슷한 연예인 찾기
 ══════════════════════════════════════════ */
+var __similarCelebCache = new Map();
+
+function getSimilarCelebCacheKey(p) {
+  if (!p || !p.y || !p.m || !p.d || !p.h) return 'none';
+  return [
+    p.y.g, p.y.j,
+    p.m.g, p.m.j,
+    p.d.g, p.d.j,
+    p.h.g, p.h.j
+  ].join('|');
+}
+
+function renderSimilarCelebScores(card, resultArea, scores) {
+  scores.sort(function(a, b){ return b.score - a.score; });
+  var top3 = scores.slice(0, 3);
+
+  if(top3.length === 0 || top3[0].score < 20){
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+
+  var html = '<div style="font-size:0.85rem; color:#666; margin-bottom:12px;">사주의 핵심인 일간, 일지, 월지 및 전체 글자 구성을 분석하여 가장 비슷한 에너지를 가진 연예인을 찾았습니다.</div>';
+  html += '<div class="sim-celeb-list">';
+
+  top3.forEach(function(item, idx){
+    var rankCls = 'sim-rank-' + (idx + 1);
+    var pct = item.score;
+
+    html += '<div class="sim-celeb-item">';
+    html += '  <div class="sim-celeb-info">';
+    html += '    <div class="sim-celeb-name"><span class="sim-rank '+rankCls+'">'+(idx+1)+'</span> '+item.celeb.name+' <span class="sim-celeb-cat">'+item.celeb.cat+'</span></div>';
+    html += '    <div class="sim-celeb-matches">'+item.matches.join(', ')+'</div>';
+    html += '  </div>';
+    html += '  <div class="sim-celeb-score">';
+    html += '    <div class="sim-score-val">'+pct+'%</div>';
+    html += '    <div class="sim-score-bar-bg"><div class="sim-score-bar-fill" style="width:'+pct+'%"></div></div>';
+    html += '  </div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  resultArea.innerHTML = html;
+}
+
 function findSimilarCelebs(p){
   var card = document.getElementById('similarCelebCard');
   var resultArea = document.getElementById('similarCelebResult');
   if(!card || !resultArea) return;
+
+  var cacheKey = getSimilarCelebCacheKey(p);
+  if (__similarCelebCache.has(cacheKey)) {
+    renderSimilarCelebScores(card, resultArea, __similarCelebCache.get(cacheKey));
+    return;
+  }
 
   var myGans = [p.y.g, p.m.g, p.d.g, p.h.g];
   var myZhis = [p.y.j, p.m.j, p.d.j, p.h.j];
@@ -15795,7 +15888,10 @@ function findSimilarCelebs(p){
 
   var scores = [];
 
-  CELEBS.forEach(function(c){
+  var idx = 0;
+  var BATCH_SIZE = 60;
+
+  function processCeleb(c) {
     var parts = c.birth.split('-').map(Number);
     var year = parts[0], month = parts[1], day = parts[2];
     var hour = c.hour !== undefined ? c.hour : 12;
@@ -15874,42 +15970,25 @@ function findSimilarCelebs(p){
           matches: matches
         });
       }
-    } catch(e) {
-    }
-  });
-
-  scores.sort(function(a, b){ return b.score - a.score; });
-  
-  var top3 = scores.slice(0, 3);
-
-  if(top3.length === 0 || top3[0].score < 20){
-    card.style.display = 'none';
-    return;
+    } catch(e) {}
   }
 
-  card.style.display = 'block';
-  
-  var html = '<div style="font-size:0.85rem; color:#666; margin-bottom:12px;">사주의 핵심인 일간, 일지, 월지 및 전체 글자 구성을 분석하여 가장 비슷한 에너지를 가진 연예인을 찾았습니다.</div>';
-  html += '<div class="sim-celeb-list">';
-  
-  top3.forEach(function(item, idx){
-    var rankCls = 'sim-rank-' + (idx + 1);
-    var pct = item.score;
-    
-    html += '<div class="sim-celeb-item">';
-    html += '  <div class="sim-celeb-info">';
-    html += '    <div class="sim-celeb-name"><span class="sim-rank '+rankCls+'">'+(idx+1)+'</span> '+item.celeb.name+' <span class="sim-celeb-cat">'+item.celeb.cat+'</span></div>';
-    html += '    <div class="sim-celeb-matches">'+item.matches.join(', ')+'</div>';
-    html += '  </div>';
-    html += '  <div class="sim-celeb-score">';
-    html += '    <div class="sim-score-val">'+pct+'%</div>';
-    html += '    <div class="sim-score-bar-bg"><div class="sim-score-bar-fill" style="width:'+pct+'%"></div></div>';
-    html += '  </div>';
-    html += '</div>';
-  });
-  
-  html += '</div>';
-  resultArea.innerHTML = html;
+  function runBatch() {
+    var end = Math.min(idx + BATCH_SIZE, CELEBS.length);
+    for (; idx < end; idx++) {
+      processCeleb(CELEBS[idx]);
+    }
+
+    if (idx < CELEBS.length) {
+      setTimeout(runBatch, 0);
+      return;
+    }
+
+    __similarCelebCache.set(cacheKey, scores.slice());
+    renderSimilarCelebScores(card, resultArea, scores);
+  }
+
+  runBatch();
 }
 
 /* ══════════════════════════════════════════
