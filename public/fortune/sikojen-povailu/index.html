@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="연이와 함께하는 핀란드 주석점 - 따뜻한 마법으로 당신의 미래를 찾아보세요">
+  <title>연이의 핀란드 주석점 (Sikojen Povailu)</title>
+  <link rel="icon" type="image/svg+xml" href="/fortune/sikojen-povailu/images/yeon.webp">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --sikojen-cream: #FFF8E7;
+      --sikojen-beige: #F5E6D3;
+      --sikojen-ice: #A8D8EA;
+      --sikojen-amber: #D4A574;
+      --sikojen-pink: #F4C2C2;
+      --sikojen-green: #8FD14F;
+      --sikojen-purple: #C8A2D0;
+      --sikojen-dark: #2C1810;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Jua', 'Papogane', cursive, sans-serif;
+      overflow: hidden;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .phase {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 1;
+      animation: fadeIn 0.5s ease-in;
+      z-index: 1;
+    }
+
+    .phase.hidden {
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Phase styles */
+    .phase-welcome {
+      background: linear-gradient(180deg, #E8F4F8 0%, #F5E6D3 50%, #FFE8CC 100%);
+    }
+
+    .fireplace-bg {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 250px;
+      background: radial-gradient(ellipse at center, #FF6B35 0%, #F7931E 30%, #3A2F0B 100%);
+      border-radius: 50% 50% 0 0;
+      box-shadow: inset 0 -20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 107, 53, 0.3);
+      animation: fireflicker 3s infinite;
+    }
+
+    @keyframes fireflicker {
+      0%, 100% { box-shadow: inset 0 -20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 107, 53, 0.3); }
+      50% { box-shadow: inset 0 -20px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 107, 53, 0.5); }
+    }
+
+    .content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .yeon-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      box-shadow: 0 0 30px rgba(244, 194, 194, 0.5);
+      transition: transform 0.3s ease;
+    }
+
+    .yeon-image.dancing {
+      animation: pigDance 0.6s ease-in-out;
+    }
+
+    @keyframes pigDance {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(10deg) scale(1.05); }
+      50% { transform: rotate(-10deg) scale(1.05); }
+      75% { transform: rotate(5deg) scale(1.03); }
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      color: var(--sikojen-dark);
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      color: var(--sikojen-dark);
+      font-style: italic;
+    }
+
+    .description {
+      font-size: 1.1rem;
+      color: #4A4A4A;
+      max-width: 600px;
+      line-height: 1.8;
+      margin: 20px 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 40px;
+      font-size: 1.3rem;
+      background: linear-gradient(135deg, #F4C2C2, #FFE0B2);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(244, 194, 194, 0.4);
+      font-weight: bold;
+      color: var(--sikojen-dark);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(244, 194, 194, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.5rem; }
+      .yeon-image { width: 150px; height: 150px; }
+      .btn { font-size: 1.1rem; padding: 12px 30px; }
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 2rem; }
+      .yeon-image { width: 120px; height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Phase: Welcome -->
+    <div id="phase-welcome" class="phase phase-welcome">
+      <div class="fireplace-bg"></div>
+      <div class="content">
+        <img src="/fortune/sikojen-povailu/images/yeon.webp" alt="연이" class="yeon-image" id="yeon-welcome">
+        <h1>Moi! (안녕!)</h1>
+        <p class="subtitle">난 꽃돼지 연이야.</p>
+        <p class="description">
+          핀란드의 고대 마법, 돼지점(Sikojen Povailu)에 오신 것을 환영해!<br>
+          <em>핀란드 겨울의 차가움 속에는 아주 따뜻한 미래가 숨어있어.</em>
+        </p>
+        <button class="btn" onclick="switchPhase('category')">
+          <span>🌸</span>
+          <span>시작하기</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase: Category Selection -->
+    <div id="phase-category" class="phase hidden phase-welcome">
+      <div class="content">
+        <img src="/fortune/sikojen-povailu/images/yeon.webp" alt="연이" class="yeon-image" style="width: 150px; height: 150px;">
+        <h2 style="font-size: 1.8rem; color: var(--sikojen-dark); margin-bottom: 30px;">당신의 마음이 가는 것을 선택해</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; padding: 0 20px; max-width: 600px; margin: 0 auto;">
+          <button class="btn" onclick="selectCategory('wealth')" style="width: 100%; background: linear-gradient(135deg, #C8E6C9, #A8E6CF); color: white;">
+            💰 금전운
+          </button>
+          <button class="btn" onclick="selectCategory('love')" style="width: 100%; background: linear-gradient(135deg, #F8BBD0, #F48FB1); color: white;">
+            ❤️ 연애운
+          </button>
+          <button class="btn" onclick="selectCategory('luck')" style="width: 100%; background: linear-gradient(135deg, #FFE0B2, #FFCC80); color: white;">
+            ✨ 행운
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase: Result -->
+    <div id="phase-result" class="phase hidden">
+      <div style="background: linear-gradient(180deg, #FFF8E7 0%, #F5E6D3 50%, #E8D4B8 100%); position: absolute; inset: 0; z-index: 1;"></div>
+      
+      <div class="content" style="z-index: 10; max-width: 500px;">
+        <img src="/fortune/sikojen-povailu/images/yeon.webp" alt="연이" class="yeon-image" style="width: 140px; height: 140px; position: absolute; top: 20px; right: 20px;">
+        
+        <div style="padding: 40px; border-radius: 20px; background: white; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); border: 3px solid var(--sikojen-amber); min-height: 350px; display: flex; flex-direction: column; justify-content: center; gap: 15px; text-align: center; margin-top: 80px;">
+          
+          <div id="result-icon" style="font-size: 3.5rem; line-height: 1; margin-bottom: 10px;"></div>
+          <h2 id="result-name" style="font-size: 1.8rem; color: var(--sikojen-dark); margin: 10px 0 5px 0; font-weight: bold;"></h2>
+          <p id="result-name-fi" style="font-size: 1rem; color: #888; margin: 0 0 15px 0; font-style: italic;"></p>
+          
+          <div id="result-meaning" style="background: rgba(244, 194, 194, 0.1); padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 0.95rem; color: #4A4A4A; line-height: 1.6;"></div>
+          
+          <div style="background: linear-gradient(135deg, rgba(255, 245, 157, 0.3), rgba(200, 162, 208, 0.2)); padding: 12px; border-radius: 10px; margin-top: 10px;">
+            <p style="font-size: 0.95rem; color: var(--sikojen-amber); margin: 0 0 8px 0; font-weight: bold;">✧ 연이의 조언</p>
+            <p id="result-advice" style="font-size: 0.95rem; color: #555; margin: 0;"></p>
+          </div>
+        </div>
+
+        <div style="margin-top: 40px; display: flex; gap: 15px; flex-direction: column; align-items: center;">
+          <button class="btn" onclick="shareResult()" style="width: 250px;">📤 친구에게 공유</button>
+          <button class="btn" onclick="switchPhase('welcome')" style="background: linear-gradient(135deg, #FFCC80, #FFB74D); width: 250px;">🔄 다시 시작</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 형태 데이터
+    const SHAPES = [
+      {
+        id: 'boat',
+        name_ko: '항해하는 보트',
+        name_fi: 'Purjevene',
+        icon: '⛵',
+        meaning_ko: '새로운 여행과 모험이 기다리고 있어요. 미지의 세계로 나아갈 용기를 얻을 거예요.',
+        advice_ko: '두려움 없이 새로운 기회를 받아들이세요.'
+      },
+      {
+        id: 'heart',
+        name_ko: '사랑의 심장',
+        name_fi: 'Rakkaus Sydän',
+        icon: '❤️',
+        meaning_ko: '연애운이 상승합니다. 깊은 감정의 세찬 흐름 속에 당신이 있을 거예요.',
+        advice_ko: '마음 가는 사람에게 솔직해지세요.'
+      },
+      {
+        id: 'money_purse',
+        name_ko: '부의 동전주머니',
+        name_fi: 'Varaston Koti',
+        icon: '💰',
+        meaning_ko: '재물운이 풍성합니다. 금전적인 안정과 번영이 다가올 거예요.',
+        advice_ko: '번 돈을 현명하게 관리하고 저축하세요.'
+      },
+      {
+        id: 'key',
+        name_ko: '비밀의 열쇠',
+        name_fi: 'Salainen Avain',
+        icon: '🔑',
+        meaning_ko: '숨겨진 기회가 열릴 것입니다. 당신이 찾던 답이 곧 보일 거예요.',
+        advice_ko: '자신의 직감을 믿고 신비로운 것들에 열린 마음을 가지세요.'
+      },
+      {
+        id: 'sun',
+        name_ko: '번영의 태양',
+        name_fi: 'Vauraus Aurinko',
+        icon: '☀️',
+        meaning_ko: '밝은 미래가 기다립니다. 건강과 행운이 함께 올 것입니다.',
+        advice_ko: '긍정적인 에너지를 주변에 전파하세요.'
+      },
+      {
+        id: 'flower',
+        name_ko: '피는 꽃',
+        name_fi: 'Kukkiva Kukka',
+        icon: '🌸',
+        meaning_ko: '새로운 시작과 성장의 시기입니다. 당신의 잠재력이 꽃을 필 것입니다.',
+        advice_ko: '현재의 노력을 계속하면 곧 결실을 맺을 것입니다.'
+      },
+      {
+        id: 'compass',
+        name_ko: '길을 찾는 나침반',
+        name_fi: 'Polun Kompassi',
+        icon: '🧭',
+        meaning_ko: '올바른 방향이 보일 것입니다. 인생의 나침반이 맞춰질 거예요.',
+        advice_ko: '자신의 내면의 목소리에 귀 기울이세요.'
+      },
+      {
+        id: 'tree',
+        name_ko: '뿌리내린 나무',
+        name_fi: 'Juuratunut Puu',
+        icon: '🌲',
+        meaning_ko: '안정감과 번영이 함께합니다. 깊은 뿌리를 내릴 시간입니다.',
+        advice_ko: '현재의 것들을 소중히 여기고 장기적 계획을 세우세요.'
+      },
+      {
+        id: 'star',
+        name_ko: '반짝이는 별',
+        name_fi: 'Kimaltava Tähti',
+        icon: '⭐',
+        meaning_ko: '꿈이 현실이 될 단서를 얻습니다. 희망과 영감이 가득합니다.',
+        advice_ko: '작은 것부터 시작해서 큰 꿈을 이루어 가세요.'
+      },
+      {
+        id: 'crown',
+        name_ko: '승리의 왕관',
+        name_fi: 'Voiton Kruunu',
+        icon: '👑',
+        meaning_ko: '성공과 영광이 기다립니다. 당신의 노력이 인정받을 것입니다.',
+        advice_ko: '극기와 자기관리로 최고를 향해 나아가세요.'
+      }
+    ];
+
+    let currentPhase = 'welcome';
+    let selectedShape = null;
+
+    function switchPhase(phase) {
+      // Hide current phase
+      document.getElementById(`phase-${currentPhase}`).classList.add('hidden');
+      
+      // Show new phase
+      currentPhase = phase;
+      const newPhaseEl = document.getElementById(`phase-${phase}`);
+      if (newPhaseEl) {
+        newPhaseEl.classList.remove('hidden');
+      }
+    }
+
+    function selectCategory(category) {
+      // Get random shape
+      const randomIndex = Math.floor(Math.random() * SHAPES.length);
+      selectedShape = SHAPES[randomIndex];
+
+      // Display result
+      document.getElementById('result-icon').textContent = selectedShape.icon;
+      document.getElementById('result-name').textContent = selectedShape.name_ko;
+      document.getElementById('result-name-fi').textContent = selectedShape.name_fi;
+      document.getElementById('result-meaning').textContent = selectedShape.meaning_ko;
+      document.getElementById('result-advice').textContent = selectedShape.advice_ko;
+
+      // Switch to result phase
+      switchPhase('result');
+    }
+
+    function shareResult() {
+      if (!selectedShape) return;
+
+      const shareText = `✨ 나의 핀란드 주석점 결과: "${selectedShape.name_ko}" (${selectedShape.name_fi})\n\n💭 "${selectedShape.meaning_ko}"\n\n🌸 연이의 조언: ${selectedShape.advice_ko}\n\n#SikojenpovailuFortune #핀란드주석점 #연이`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: '연이의 핀란드 주석점',
+          text: shareText,
+        }).catch(err => {
+          // Fallback
+          navigator.clipboard.writeText(shareText);
+          alert('결과가 복사되었습니다!');
+        });
+      } else {
+        navigator.clipboard.writeText(shareText);
+        alert('결과가 복사되었습니다!\n친구들과 공유해보세요 😊');
+      }
+    }
+  </script>
+</body>
+</html>

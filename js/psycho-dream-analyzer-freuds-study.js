@@ -683,18 +683,10 @@
       }
       setError(msg);
       setScreen("input");
-      // 모바일에서 UI가 락된 상태로 남지 않도록 강제 unlock
-      try {
-        setPsychoKeyboardVeil(false);
-        setBodyLock(false);
-      } catch (_) {}
+      // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
+      try { setPsychoKeyboardVeil(false); } catch (_) {}
     } finally {
       state.uiLocked = false;
-      // 추가 안전장치: finally에서 한 번 더 unlock 확인 (모바일 크래시 방지)
-      try {
-        clearInterval(state.loadingTimer);
-        clearInterval(state.typingTimer);
-      } catch (_) {}
     }
   }
 

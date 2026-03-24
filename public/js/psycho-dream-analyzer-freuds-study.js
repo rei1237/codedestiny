@@ -686,18 +686,10 @@
       console.error("[정신분석 해몽] 예외 발생:", e);
       setError("현재 이용자가 많아 잠시 후 다시 이용해 주세요.");
       setScreen("input");
-      // 모바일에서 UI가 락된 상태로 남지 않도록 강제 unlock
-      try {
-        setPsychoKeyboardVeil(false);
-        setBodyLock(false);
-      } catch (_) {}
+      // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
+      try { setPsychoKeyboardVeil(false); } catch (_) {}
     } finally {
       state.uiLocked = false;
-      // 추가 안전장치: finally에서 한 번 더 unlock 확인 (모바일 크래시 방지)
-      try {
-        clearInterval(state.loadingTimer);
-        clearInterval(state.typingTimer);
-      } catch (_) {}
     }
   }
 
