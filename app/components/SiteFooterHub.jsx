@@ -42,6 +42,7 @@ const NAV_SECTIONS = [
       { href: "/oracle/kemet", text: "이집트 신탁" },
       { href: "/oracle/juyuk", text: "주역 64괘" },
       { href: "/oracle/sukuyo", text: "숙요점 27수" },
+      { href: "/royal-tea-oracle.html", text: "타세오그래피 찻잎 점" },
       { href: "/oracle/sikojen-povailu", text: "핀란드 주석점" },
     ],
   },

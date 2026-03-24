@@ -47,6 +47,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/oracle/kemet", changeFrequency: "weekly", priority: 0.82 },
   { path: "/oracle/juyuk", changeFrequency: "weekly", priority: 0.82 },
   { path: "/oracle/sukuyo", changeFrequency: "weekly", priority: 0.82 },
+  { path: "/royal-tea-oracle.html", changeFrequency: "weekly", priority: 0.8 },
   { path: "/vedic/jyotish", changeFrequency: "weekly", priority: 0.82 },
   { path: "/animal/physio", changeFrequency: "weekly", priority: 0.8 },
   { path: "/animal/mbti", changeFrequency: "weekly", priority: 0.8 },
