@@ -368,6 +368,295 @@
   <link rel="stylesheet" href="/css/entertain-system.css">
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
+<style id="lsd-styles">
+/* ════════════════════════════════════════════════════════════
+   Luck-Sync Diary — 갓생 운구기일 다이어리
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 랜딩 카드 그룹 ── */
+.fg-group--godlife { margin-top: 12px; }
+.feat-collection--godlife {
+  background: linear-gradient(135deg,#0f0c29 0%,#1a1040 50%,#100c2a 100%);
+  border:1.5px solid rgba(129,140,248,.35);
+  border-radius:20px;overflow:hidden;position:relative;
+}
+.feat-collection--godlife::before {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,rgba(129,140,248,.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.godlife-collection-body{padding:24px 20px;}
+.godlife-header-wrap{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.godlife-icon-wrap{flex-shrink:0;width:72px;height:72px;border-radius:16px;overflow:hidden;
+  background:rgba(129,140,248,.15);border:1.5px solid rgba(129,140,248,.4);
+  box-shadow:0 0 20px rgba(129,140,248,.3);}
+.godlife-header-img{width:100%;height:100%;object-fit:cover;display:block;}
+.godlife-header-text{flex:1;}
+.godlife-title{font-size:1.1rem;font-weight:700;color:#e0e7ff;margin:0 0 4px;line-height:1.3;}
+.godlife-subtitle{font-size:.82rem;color:rgba(199,210,254,.75);margin:0;line-height:1.4;}
+.godlife-features{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.godlife-feat-chip{font-size:.75rem;padding:4px 10px;border-radius:999px;
+  background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.3);
+  color:#c7d2fe;white-space:nowrap;}
+.godlife-open-btn{width:100%;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a78bfa 100%);
+  border:none;border-radius:14px;cursor:pointer;padding:0;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 4px 20px rgba(99,102,241,.45),0 0 40px rgba(139,92,246,.2);}
+.godlife-open-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,.55),0 0 50px rgba(139,92,246,.3);}
+.godlife-open-btn:active{transform:translateY(0);}
+.godlife-btn-inner{display:flex;align-items:center;gap:14px;padding:14px 18px;}
+.godlife-btn-img-wrap{width:56px;height:56px;border-radius:12px;overflow:hidden;flex-shrink:0;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);}
+.godlife-btn-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.godlife-btn-text{flex:1;text-align:left;}
+.godlife-btn-title{display:block;font-size:1rem;font-weight:700;color:#fff;margin-bottom:3px;}
+.godlife-btn-desc{display:block;font-size:.8rem;color:rgba(255,255,255,.8);}
+.godlife-btn-arrow{font-size:1.2rem;color:rgba(255,255,255,.7);flex-shrink:0;}
+
+/* ── 모달 오버레이 ── */
+#luckSyncDiaryModal{
+  position:fixed;inset:0;z-index:999999;
+  background:rgba(0,0,0,.84);
+  backdrop-filter:blur(7px);
+  display:none;
+  overflow-y:auto;
+  padding:14px;
+}
+.lsd-shell{
+  max-width:900px;
+  margin:10px auto;
+  background:linear-gradient(145deg,#0f0c29 0%,#1a1040 45%,#100c2a 100%);
+  border:2px solid rgba(129,140,248,.35);
+  border-radius:20px;
+  box-shadow:0 20px 80px rgba(0,0,0,.7),0 0 40px rgba(129,140,248,.3),inset 0 0 30px rgba(129,140,248,.1);
+  position:relative;
+  overflow:hidden;
+}
+.lsd-shell::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 20%,rgba(129,140,248,.08) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(167,139,250,.06) 0%,transparent 35%);
+  pointer-events:none;
+}
+
+/* 닫기 버튼 */
+.lsd-close{
+  position:absolute;top:14px;right:14px;
+  width:34px;height:34px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.09);
+  color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:20;
+  transition:all .2s;
+}
+.lsd-close:hover{background:rgba(255,80,80,.28);transform:rotate(90deg);}
+
+/* 헤더 */
+.lsd-header{
+  position:relative;
+  padding:26px 22px 18px;
+  border-bottom:1px solid rgba(129,140,248,.25);
+  background:linear-gradient(180deg,rgba(129,140,248,.08),transparent);
+}
+.lsd-header-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at center top,rgba(129,140,248,.18),transparent 70%);
+  pointer-events:none;
+}
+.lsd-header-content{display:flex;align-items:center;gap:16px;position:relative;z-index:2;}
+.lsd-header-img-wrap{
+  width:64px;height:64px;border-radius:14px;overflow:hidden;flex-shrink:0;
+  border:2px solid rgba(129,140,248,.45);
+  box-shadow:0 0 22px rgba(129,140,248,.35);
+}
+.lsd-header-img{width:100%;height:100%;object-fit:cover;display:block;}
+.lsd-header-text{flex:1;}
+.lsd-kicker{font-size:.72rem;letter-spacing:.18em;color:rgba(199,210,254,.72);margin-bottom:4px;}
+.lsd-title{font-size:1.28rem;font-weight:800;color:#fff;margin:0 0 4px;line-height:1.25;}
+.lsd-sub{font-size:.85rem;color:rgba(199,210,254,.85);margin:0;line-height:1.45;}
+
+/* 탭 */
+.lsd-tabs{
+  display:flex;gap:8px;
+  padding:12px 14px 0;
+  flex-wrap:wrap;
+}
+.lsd-tab{
+  border:1.5px solid rgba(129,140,248,.3);
+  background:rgba(129,140,248,.08);
+  color:#c7d2fe;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:.8rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .18s;
+}
+.lsd-tab:hover{background:rgba(129,140,248,.16);transform:translateY(-1px);}
+.lsd-tab.is-active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;
+  border-color:rgba(255,255,255,.35);
+  box-shadow:0 4px 14px rgba(99,102,241,.35);
+}
+
+/* 본문 */
+.lsd-body{padding:14px;position:relative;z-index:2;}
+.lsd-panel{display:none;}
+.lsd-panel.is-active{display:block;}
+
+.lsd-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(129,140,248,.23);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.lsd-section-title{font-size:.95rem;font-weight:800;color:#e0e7ff;margin:0 0 8px;}
+.lsd-section-sub{font-size:.8rem;color:rgba(199,210,254,.74);margin:0 0 10px;line-height:1.45;}
+
+/* 갓생 지수 게이지 */
+.lsd-score-wrap{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.lsd-score-num{font-size:1.8rem;font-weight:900;color:#fff;line-height:1;}
+.lsd-score-label{font-size:.72rem;color:#c7d2fe;letter-spacing:.08em;}
+.lsd-gauge{
+  width:100%;height:10px;border-radius:999px;
+  background:rgba(255,255,255,.08);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+}
+.lsd-gauge-fill{
+  width:0%;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#34d399,#60a5fa,#a78bfa);
+  box-shadow:0 0 14px rgba(96,165,250,.45);
+  transition:width .5s ease;
+}
+
+/* 챌린지 버튼 */
+.lsd-challenge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.lsd-challenge-btn{
+  border:1px solid rgba(129,140,248,.3);
+  background:rgba(129,140,248,.08);
+  color:#dbeafe;
+  border-radius:10px;
+  padding:8px;
+  font-size:.78rem;
+  font-weight:700;
+  cursor:pointer;
+  text-align:left;
+  transition:all .16s;
+}
+.lsd-challenge-btn:hover{background:rgba(129,140,248,.16);transform:translateY(-1px);}
+.lsd-challenge-btn.is-done{
+  background:rgba(16,185,129,.2);
+  border-color:rgba(52,211,153,.45);
+  color:#d1fae5;
+  text-decoration:line-through;
+}
+
+/* 럭키 가챠 */
+.lsd-lotto-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.lsd-btn{
+  border:none;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;
+  border-radius:10px;
+  padding:9px 12px;
+  font-size:.82rem;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 3px 12px rgba(99,102,241,.35);
+}
+.lsd-btn:disabled{opacity:.55;cursor:not-allowed;}
+.lsd-lotto-result{
+  margin-top:10px;
+  border:1px dashed rgba(129,140,248,.45);
+  border-radius:10px;
+  padding:10px;
+  background:rgba(129,140,248,.07);
+  color:#e5e7eb;
+  font-size:.85rem;
+  line-height:1.55;
+}
+
+/* 회고 입력 */
+.lsd-diary-label{display:block;font-size:.82rem;color:rgba(199,210,254,.7);margin-bottom:8px;}
+.lsd-diary-textarea{width:100%;min-height:100px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(129,140,248,.3);border-radius:10px;padding:10px;
+  color:#f8fafc;font-size:.84rem;resize:vertical;outline:none;
+  transition:border-color .2s,box-shadow .2s;}
+.lsd-diary-textarea::placeholder{color:rgba(199,210,254,.35);}
+.lsd-diary-textarea:focus{border-color:#818cf8;}
+
+/* 피드백 */
+.lsd-feedback{display:none;margin-top:8px;font-size:.8rem;color:#86efac;}
+
+/* 기록 탭 */
+.lsd-history-list{display:grid;gap:8px;}
+.lsd-history-item{
+  border:1px solid rgba(129,140,248,.26);
+  border-radius:10px;
+  padding:9px;
+  background:rgba(255,255,255,.025);
+}
+.lsd-history-date{font-size:.76rem;color:#a5b4fc;margin-bottom:4px;}
+.lsd-history-text{font-size:.8rem;color:#e2e8f0;line-height:1.5;white-space:pre-wrap;}
+
+/* 반응형 */
+@media (max-width:640px){
+  .godlife-collection-body{padding:16px 14px;}
+  .godlife-header-wrap{gap:10px;}
+  .godlife-icon-wrap{width:54px;height:54px;border-radius:12px;}
+  .godlife-title{font-size:1rem;}
+  .godlife-subtitle{font-size:.76rem;}
+  .godlife-features{gap:5px;margin-bottom:12px;}
+  .godlife-feat-chip{font-size:.68rem;padding:3px 8px;}
+  .godlife-btn-inner{padding:10px 12px;gap:8px;}
+  .godlife-btn-img-wrap{width:42px;height:42px;border-radius:10px;}
+  .godlife-btn-title{font-size:.88rem;}
+  .godlife-btn-desc{font-size:.72rem;}
+  .godlife-btn-arrow{font-size:1rem;}
+
+  #luckSyncDiaryModal{padding:8px;}
+  .lsd-shell{border-radius:14px;}
+  .lsd-header{padding:18px 12px 12px;}
+  .lsd-header-content{gap:9px;}
+  .lsd-header-img-wrap{width:46px;height:46px;border-radius:10px;}
+  .lsd-kicker{font-size:.64rem;letter-spacing:.14em;}
+  .lsd-title{font-size:1rem;}
+  .lsd-sub{font-size:.73rem;line-height:1.35;}
+  .lsd-close{top:8px;right:8px;width:28px;height:28px;font-size:13px;}
+
+  .lsd-tabs{padding:8px 8px 0;gap:5px;}
+  .lsd-tab{padding:6px 9px;font-size:.68rem;border-width:1.2px;}
+  .lsd-body{padding:8px;}
+  .lsd-card{padding:8px;margin-bottom:8px;border-radius:10px;}
+  .lsd-section-title{font-size:.82rem;margin-bottom:5px;}
+  .lsd-section-sub{font-size:.7rem;margin-bottom:7px;line-height:1.35;}
+
+  .lsd-score-wrap{gap:7px;margin-bottom:6px;}
+  .lsd-score-num{font-size:1.3rem;}
+  .lsd-score-label{font-size:.64rem;}
+  .lsd-gauge{height:8px;}
+
+  .lsd-challenge-grid{grid-template-columns:1fr;gap:6px;}
+  .lsd-challenge-btn{padding:7px;font-size:.7rem;border-radius:8px;}
+
+  .lsd-lotto-row{gap:7px;}
+  .lsd-btn{padding:7px 9px;font-size:.7rem;border-radius:8px;}
+  .lsd-lotto-result{margin-top:7px;padding:7px;font-size:.72rem;line-height:1.4;border-radius:8px;}
+
+  .lsd-diary-label{font-size:.72rem;margin-bottom:6px;}
+  .lsd-diary-textarea{min-height:74px;padding:7px;font-size:.73rem;border-radius:8px;}
+  .lsd-feedback{font-size:.7rem;margin-top:6px;}
+
+  .lsd-history-list{gap:6px;}
+  .lsd-history-item{padding:7px;border-radius:8px;}
+  .lsd-history-date{font-size:.68rem;margin-bottom:3px;}
+  .lsd-history-text{font-size:.72rem;line-height:1.35;}
+}
+</style>
 </head>
 <body>
 <script>
@@ -1474,6 +1763,62 @@
             </div><!-- /feat-collection--flower -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 갓생 운구기일 다이어리
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--godlife" aria-labelledby="fgTitleGodlife">
+          <div class="fg-group__cards">
+
+            <div class="godlife-collection feat-collection--godlife" id="godlifeCollection">
+              <div class="feat-collection__cosmos" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
+              </div>
+
+              <div class="godlife-collection-body">
+                <div class="godlife-header-wrap">
+                  <div class="godlife-icon-wrap" aria-hidden="true">
+                    <img src="/fuctionassets/godlife.webp" alt="" class="godlife-header-img" width="72" height="72" loading="lazy" decoding="async">
+                  </div>
+                  <div class="godlife-header-text">
+                    <h3 class="godlife-title" id="fgTitleGodlife">✨ 갓생 운구기일 다이어리</h3>
+                    <p class="godlife-subtitle">사주 에너지와 동기화되는 나만의 Luck-Sync 다이어리</p>
+                  </div>
+                </div>
+
+                <div class="godlife-features">
+                  <span class="godlife-feat-chip">📊 갓생 지수</span>
+                  <span class="godlife-feat-chip">🎰 럭키 아이템 가챠</span>
+                  <span class="godlife-feat-chip">✅ 오운완 챌린지</span>
+                  <span class="godlife-feat-chip">🌙 사주 야간 회고</span>
+                  <span class="godlife-feat-chip">📅 날짜별 저장</span>
+                </div>
+
+                <button class="godlife-open-btn" type="button"
+                        data-action="openLuckSyncDiary"
+                        aria-label="갓생 운구기일 다이어리 열기">
+                  <div class="godlife-btn-inner">
+                    <div class="godlife-btn-img-wrap" aria-hidden="true">
+                      <img src="/fuctionassets/godlife.webp" alt="" width="56" height="56" loading="lazy" decoding="async">
+                    </div>
+                    <div class="godlife-btn-text">
+                      <span class="godlife-btn-title">📔 다이어리 열기</span>
+                      <span class="godlife-btn-desc">오늘의 사주 기운과 싱크해봐~!</span>
+                    </div>
+                    <span class="godlife-btn-arrow">▶</span>
+                  </div>
+                </button>
+              </div>
+
+            </div><!-- /feat-collection--godlife -->
+
+          </div><!-- /fg-group__cards -->
+        </section><!-- /fg-group--godlife -->
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
@@ -3216,9 +3561,7 @@
 <script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260323-navscrollfix2"></script>
 <script src="/js/admin-flower.js" defer></script>
-<script src="/js/services/animal-totem-content-engine.js" defer></script>
-<script src="/js/animal-totem-experience.js" defer></script>
-<script src="/js/saju-totem-generator.js?v=20260323" defer></script>
+<!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
 <!-- ══ Saju Totem Generator Modal ══ -->
 <div id="sajuTotemOverlay" role="dialog" aria-modal="true" aria-label="사주로 볼때 나는 무슨 동물?">
@@ -3357,6 +3700,7 @@
 <script src="/js/touch-perf.js" defer></script>
 <script src="/js/dream-meaning-library.js" defer></script>
 <script src="/lib/ai-engine.js" defer></script>
+<script src="/js/luck-sync-diary.js" defer></script>
 <script src="/js/dream-ledger.js" defer></script>
 <script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
 <script src="/js/entertain-engine.js" defer></script>
