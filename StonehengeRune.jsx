@@ -1099,6 +1099,46 @@ export default function StonehengeRune() {
           border-color: rgba(139,92,246,0.8);
           box-shadow: 0 0 30px rgba(99,102,241,0.3), 0 0 60px rgba(99,102,241,0.1);
         }
+        .sr-card.tap-cue {
+          animation: runeTapNudge 2.2s ease-in-out infinite;
+          animation-delay: var(--sr-tap-delay, 0ms);
+        }
+        .sr-card.tap-cue::after {
+          content: 'TAP';
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 3px 8px;
+          border-radius: 999px;
+          font-size: 10px;
+          letter-spacing: 0.18em;
+          color: #e0e7ff;
+          border: 1px solid rgba(129, 140, 248, 0.48);
+          background: rgba(30, 41, 59, 0.82);
+          box-shadow: 0 0 12px rgba(129, 140, 248, 0.32);
+          animation: tapBadgeBlink 1.8s ease-in-out infinite;
+          animation-delay: var(--sr-tap-delay, 0ms);
+          pointer-events: none;
+        }
+        .sr-card.tap-cue:hover,
+        .sr-card.tap-cue:focus-visible {
+          animation-play-state: paused;
+        }
+        .sr-card.tap-cue:hover::after,
+        .sr-card.tap-cue:focus-visible::after,
+        .sr-card.selected::after {
+          opacity: 0;
+        }
+        @keyframes runeTapNudge {
+          0%, 100% { transform: translateY(0) scale(1); }
+          28%      { transform: translateY(-6px) scale(1.015); }
+          44%      { transform: translateY(0) scale(1); }
+          60%      { transform: translateY(-2px) scale(1.005); }
+        }
+        @keyframes tapBadgeBlink {
+          0%, 100% { opacity: 0.36; transform: translateY(0) scale(0.96); }
+          50%      { opacity: 1; transform: translateY(-1px) scale(1); }
+        }
 
         .sr-card-position {
           font-family: 'Cinzel', serif;
@@ -1660,8 +1700,9 @@ export default function StonehengeRune() {
                 {drawnRunes.map((rune, i) => (
                   <div
                     key={rune.id}
-                    className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.id === rune.id && selectedRune?.index === i ? "selected" : ""}`}
+                    className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.id === rune.id && selectedRune?.index === i ? "selected" : ""} ${!selectedRune ? "tap-cue" : ""}`}
                     onClick={() => (selectedRune?.index === i ? closeRuneDetail() : openRuneAt(i))}
+                    style={{ "--sr-tap-delay": `${i * 120}ms` }}
                   >
                     {SPREAD_LABELS[drawnRunes.length] && (
                       <p className="sr-card-position">{SPREAD_LABELS[drawnRunes.length][i]}</p>
