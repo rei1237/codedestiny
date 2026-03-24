@@ -676,6 +676,50 @@ function __cdBindGlobalActionsFallback() {
       return;
     }
 
+    if (action === 'toggleCollection') {
+      var targetId = actionEl.getAttribute('data-target');
+      var collection = targetId ? document.getElementById(targetId) : null;
+      if (!collection) return;
+
+      var isOpen = collection.getAttribute('data-collection-open') === 'true';
+      var newState = !isOpen;
+
+      collection.setAttribute('data-collection-open', String(newState));
+      actionEl.setAttribute('aria-expanded', String(newState));
+
+      var currentLabel = actionEl.getAttribute('aria-label') || '';
+      if (currentLabel) {
+        actionEl.setAttribute('aria-label', currentLabel.replace(/열기|닫기/, newState ? '닫기' : '열기'));
+      }
+
+      if (newState) {
+        collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]').forEach(function(wrap) {
+          if (wrap.querySelector('img.tarot-tile__img')) return;
+          var src = wrap.getAttribute('data-img-src');
+          var alt = wrap.getAttribute('data-img-alt') || '';
+
+          var skeleton = document.createElement('div');
+          skeleton.className = 'tarot-tile__img-skeleton';
+          wrap.insertBefore(skeleton, wrap.firstChild);
+
+          var img = document.createElement('img');
+          img.className = 'tarot-tile__img';
+          img.decoding = 'async';
+          img.width = 200;
+          img.height = 150;
+          img.alt = alt;
+          img.onload = function() { skeleton.remove(); };
+          img.onerror = function() { skeleton.remove(); };
+          img.src = src;
+          wrap.insertBefore(img, wrap.firstChild);
+        });
+      } else {
+        collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img').forEach(function(img) { img.remove(); });
+        collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton').forEach(function(sk) { sk.remove(); });
+      }
+      return;
+    }
+
     __cdInvokeAction(action, actionEl, event);
   });
 
