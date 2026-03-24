@@ -2723,7 +2723,6 @@ function buildAllWinLongOracle(wins){
 
 // ── 4-WAY REPORT ──
 function buildReport4(){
-    const avgIntensity = Math.max(-99, Math.min(999, Math.round(totalIntensity/total)));
   const wins = G4.results.filter(r=>r.win);
   const losses = G4.results.filter(r=>!r.win);
   const total = G4.results.length || 1;
@@ -2737,11 +2736,11 @@ function buildReport4(){
   G4.results.forEach(r=>{
     const handRank = HAND_FORTUNES && r.playerHandName ? (Object.values(HAND_FORTUNES).findIndex(h=>h.name===r.playerHandName)+1) : 1;
     const base = r.win
-      ? 99 + handRank*30 + Math.round(r.pot*3.5) + td.winBonus
-      : 99 + handRank*15 + Math.round(r.pot*1.5) + td.losePenalty;
-    totalIntensity += Math.min(999, base);
+      ? clamp(120 + handRank*34 + Math.round(r.pot*4.2) + td.winBonus, 0, 999)
+      : -clamp(22 + handRank*4 + Math.round(r.pot*0.45) + Math.round(td.losePenalty*0.09), 1, 99);
+    totalIntensity += base;
   });
-  const avgIntensity = Math.max(99, Math.min(999, Math.round(totalIntensity/total)));
+  const avgIntensity = clamp(Math.round(totalIntensity/total), -99, 999);
 
   const dealerRowsHtml = ALL4_DEALER_ORDER.map(id=>{
     const D=DEALER_DATA[id];
