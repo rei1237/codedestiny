@@ -258,6 +258,8 @@ export function bindGlobalActions(root) {
           if (wrap.querySelector('img.tarot-tile__img')) return;
           var src = wrap.getAttribute('data-img-src');
           var alt = wrap.getAttribute('data-img-alt') || '';
+          var placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
+          if (placeholder) placeholder.style.display = 'none';
 
           var skeleton = document.createElement('div');
           skeleton.className = 'tarot-tile__img-skeleton';
@@ -277,6 +279,9 @@ export function bindGlobalActions(root) {
       } else {
         collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img').forEach(function (img) { img.remove(); });
         collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton').forEach(function (sk) { sk.remove(); });
+        collection
+          .querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-placeholder')
+          .forEach(function (placeholder) { placeholder.style.display = ''; });
       }
       return;
     }
