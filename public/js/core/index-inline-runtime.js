@@ -255,6 +255,10 @@ if (document.readyState === 'loading') {
 
 function initPerformanceDiagnosisObservers() {
   if (typeof window === 'undefined' || typeof PerformanceObserver !== 'function') return;
+  var host = String(window.location && window.location.hostname || '').toLowerCase();
+  var isLocalHost = (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local'));
+  var debugEnabled = !!window.__CD_ENABLE_PERF_LOGS__;
+  if (!isLocalHost && !debugEnabled) return;
   if (window.__cdPerfObserverInstalled) return;
   window.__cdPerfObserverInstalled = true;
 

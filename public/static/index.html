@@ -1,11 +1,25 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script src="/js/inline/canonical-redirect.js"></script>
+  <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
-     crossorigin="anonymous"></script>
+  <script>
+  (function () {
+    try {
+      var host = String(location.hostname || '').toLowerCase();
+      var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
+      if (location.protocol !== 'https:' || !isProdHost) return;
+
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+      s.onerror = function () {};
+      document.head.appendChild(s);
+    } catch (_) {}
+  })();
+  </script>
   <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
   <!-- ADSENSE_AD_UNIT_SLOT: 승인 후 광고 단위(ins class="adsbygoogle") 코드를 본문 원하는 위치에 추가하세요. -->
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
@@ -369,7 +383,7 @@
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
 <style id="lsd-styles-placeholder">
-/* Luck-Sync Diary modal styles \u2014 injected by luck-sync-diary.js */
+/* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
 </head>
 <body>
@@ -3227,12 +3241,12 @@
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
 <script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
 <script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
-<script src="/js/core/saju/reportDashboard.js?v=20260325-saju-rpt2" defer></script>
+<script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260323-navscrollfix2"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
@@ -3381,6 +3395,16 @@
 <script>
 (function () {
   try {
+    var q = new URLSearchParams(location.search || '');
+    var debugVitals = window.__ENABLE_WEB_VITALS_CONSOLE__ === true
+      || q.get('debugVitals') === '1'
+      || localStorage.getItem('debug.vitals') === '1';
+    if (!debugVitals) return;
+  } catch (e) {
+    if (window.__ENABLE_WEB_VITALS_CONSOLE__ !== true) return;
+  }
+
+  try {
     var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     var saveData = !!(conn && conn.saveData);
     var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
@@ -3407,6 +3431,7 @@
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+
 
 
 

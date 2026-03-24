@@ -42,28 +42,11 @@
     if (!loc) return;
     var protocol = String(loc.protocol || '').toLowerCase();
     if (protocol !== 'http:' && protocol !== 'https:') return;
-    var path = loc.pathname || '';
-    if (path.indexOf('/static/') === 0) return;
-    var host = (loc.hostname || '').toLowerCase();
-    var isCanonicalHost = (host === 'code-destiny.com' || host === 'www.code-destiny.com' || host.endsWith('.pages.dev'));
-    var canonicalHost = 'code-destiny.com';
+    if (protocol === 'https:') return;
     var next = new URL(loc.href);
-
-    if (isCanonicalHost && protocol === 'https:') return;
-
     next.protocol = 'https:';
     next.port = '';
-
-    if (!isCanonicalHost) {
-      next.hostname = canonicalHost;
-      if (next.pathname === '/index.html') {
-        next.pathname = '/';
-      }
-    }
-
     var nextHref = next.toString();
-    if (nextHref && nextHref !== loc.href) {
-      window.location.replace(nextHref);
-    }
+    if (nextHref && nextHref !== loc.href) window.location.replace(nextHref);
   } catch (e) {}
 })();
