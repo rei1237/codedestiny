@@ -815,10 +815,10 @@ body{font-size:15px;}
   <div class="all4-wrap">
     <button class="btn-all4 locked" id="btn-all4" onclick="tryStartAll4()">
       <span class="all4-lock-icon" id="all4-lock-icon">🔒</span>
-      <span id="all4-btn-label">4신 동시 대결 — 운명의 최후 심판</span>
+      <span id="all4-btn-label">4신 연속 대결 — 운명의 최후 심판</span>
     </button>
     <div class="all4-hint" id="all4-hint">
-      🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 동시 대결)
+      🔒 운명의 증폭 수치 <strong>999%</strong> 달성 시 해금됩니다 (폴드 허용 · 4인 연속 대결)
     </div>
   </div>
 </div>
@@ -892,7 +892,7 @@ body{font-size:15px;}
         <span class="hud-val gold" id="hud4-luck">100</span>
       </div>
       <div class="hud-block hud-center">
-        <div class="game4-title">🔱 4신 동시 대결 🔱</div>
+        <div class="game4-title">🔱 4신 연속 대결 🔱</div>
         <span class="street-label" id="hud4-street" style="font-size:.85rem;">Third Street</span>
         <span class="street-progress" id="hud4-prog">베팅 라운드 1 / 5</span>
       </div>
@@ -1886,6 +1886,20 @@ function getBetTier(pot){
   return 3;
 }
 
+function clamp(n,min,max){
+  return Math.max(min,Math.min(max,n));
+}
+
+function setAll4UnlockByIntensity(intensity){
+  // 4인 연속 대결은 오직 999% 정확히 달성했을 때만 해금한다.
+  if(intensity===999){
+    localStorage.setItem('destiny_poker_all4_unlocked','1');
+  } else {
+    localStorage.removeItem('destiny_poker_all4_unlocked');
+  }
+  localStorage.setItem('destiny_poker_last_intensity', String(intensity));
+}
+
 const BET_TIER_DATA = [
   {
     label:'소극적 운명',
@@ -1989,14 +2003,13 @@ function buildReport(){
   const td=BET_TIER_DATA[tier];
   const raises=G.pot/20; // how many times player raised
 
-  // ── Intensity: 99~999% 범위
-  // Win:  base 99 + handRank*30 + pot*3.5 + winBonus   (max 999)
-  // Lose: base 99 + handRank*15 + pot*1.5              (max 999)
-  const rawWin  = 99 + G.pHand.rank*30 + Math.round(G.pot * 3.5) + td.winBonus;
-  const rawLose = 99 + G.pHand.rank*15 + Math.round(G.pot * 1.5) + td.losePenalty;
+  // ── Intensity: -99 ~ 999 범위
+  // 승리: 0~999, 패배: -99~-1로 정확 반영
+  const rawWin = 120 + G.pHand.rank*34 + Math.round(G.pot*4.2) + td.winBonus;
+  const rawLoseMagnitude = 22 + G.pHand.rank*4 + Math.round(G.pot*0.45) + Math.round(td.losePenalty*0.09);
   const intensity = win
-    ? Math.min(999, rawWin)
-    : Math.min(999, rawLose);
+    ? clamp(rawWin,0,999)
+    : -clamp(rawLoseMagnitude,1,99);
 
   // ── Timing (higher tier = sooner reward / longer curse)
   const tArr = td[win?'timingWin':'timingLose'];
@@ -2090,12 +2103,8 @@ ${closingLine}`;
   const gaugePct = Math.round(intensity/999*100);
 
   // ── 누적 intensity 저장 및 all4 해금 체크
-  const prevTotal = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
-  const newTotal = Math.min(9999, prevTotal + intensity);
-  localStorage.setItem('destiny_poker_intensity', String(newTotal));
-  if(newTotal >= 999){
-    localStorage.setItem('destiny_poker_all4_unlocked','1');
-  }
+  // 999를 정확히 달성했을 때만 4인 연속 대결 해금
+  setAll4UnlockByIntensity(intensity);
   updateAll4Button();
 
   document.getElementById('report-content').innerHTML=`
@@ -2129,23 +2138,25 @@ ${closingLine}`;
     <div class="guide-box">${sg[win?'win':'lose']}</div>
     <div class="r-divider"></div>
     <div class="meter-block">
+    <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
         운명의 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
-          (족보 기여 + 베팅 등급 가중치 포함 · 최대 999%)
+          (족보 기여 + 베팅 등급 가중치 포함 · 최소 -99% / 최대 999%)
         </span>
       </div>
-      <div class="meter-num pos">${intensity}%</div>
-      ${intensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;animation:purpleGlow 2s ease infinite;">🔱 999% 달성 — 4신 동시 대결이 해금되었습니다! 🔱</div>`:''}
+      <div class="meter-num ${intensity>=0?'pos':'neg'}">${intensity}%</div>
+      ${intensity===999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;animation:purpleGlow 2s ease infinite;">🔱 999% 달성 — 4신 연속 대결이 해금되었습니다! 🔱</div>`:''}
       <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
         <div id="intensity-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
           box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
       </div>
       <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
         font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
-        <span>99%</span><span>500%</span><span>999%</span>
+        <span>-99%</span><span>0%</span><span>999%</span>
       </div>
     </div>
+      const gaugePct = Math.round(((intensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
       <button class="btn-share-kakao" onclick="sharePokerKakao()">
@@ -2183,22 +2194,21 @@ function updateAll4Button(){
   const icon=document.getElementById('all4-lock-icon');
   const hint=document.getElementById('all4-hint');
   if(!btn) return;
-  const cumTotal = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
-  const dispVal = Math.min(999, cumTotal);
+  const lastIntensity = parseInt(localStorage.getItem('destiny_poker_last_intensity') || '0', 10);
   if(isAll4Unlocked()){
     btn.className='btn-all4 unlocked';
     if(icon) icon.textContent='🔱';
     if(hint){
       hint.className='all4-hint unlocked-hint';
-      hint.innerHTML='🔱 해금됨 — 4신 동시 대결 가능 (폴드 허용)';
+      hint.innerHTML='🔱 해금됨 — 4신 연속 대결 가능 (999% 유지 상태)';
     }
   } else {
     btn.className='btn-all4 locked';
     if(icon) icon.textContent='🔒';
     if(hint){
       hint.className='all4-hint';
-      const barPct=Math.round(dispVal/999*100);
-      hint.innerHTML=`🔒 누적 운명 수치: <strong style="color:#cc44ff">${dispVal}</strong> / 999%<div style="width:180px;height:5px;background:rgba(255,255,255,.1);margin:.4rem auto 0;border-radius:3px;overflow:hidden;"><div style="width:${barPct}%;height:100%;background:#9b30ff;border-radius:3px;transition:width .8s;"></div></div>`;
+      const barPct=Math.round(((lastIntensity+99)/1098)*100);
+      hint.innerHTML=`🔒 현재 운명 수치: <strong style="color:#cc44ff">${lastIntensity}</strong>% · 999%일 때만 해금<div style="width:180px;height:5px;background:rgba(255,255,255,.1);margin:.4rem auto 0;border-radius:3px;overflow:hidden;"><div style="width:${barPct}%;height:100%;background:#9b30ff;border-radius:3px;transition:width .8s;"></div></div>`;
     }
   }
 }
@@ -2219,105 +2229,167 @@ function tryStartAll4(){
 // =============================================
 const ALL4_DEALER_ORDER = ['amon','ishtar','thanatos','metatron'];
 
-// 폴드 시 캐릭터별 반응 대사 (성격 반영)
-const FOLD_REACTIONS = {
+const DEALER_CELEBRATIONS = {
   amon:[
-    `"포기라고? 크흐… ${'{n}'}, 겁쟁이는 황금을 손에 넣을 자격이 없다. 정말 도망치겠느냐?"`,
-    `"포기? 탐욕의 신 아몬 앞에서? 수치스럽군. 하지만… 그게 진심이라면 막을 수는 없지."`,
-    `"황금과 권력을 버리겠다고? ${'{n}'}… 그 결정이 평생 후회로 남을 것이다."`,
+    '"크흐… 인정하지, {n}. 네 카드가 내 황금을 꿰뚫었다. 오늘의 승자는 너다."',
+    '"좋다, {n}. 탐욕의 신 아몬이 네 승리를 축하하마. 이 기세를 끝까지 가져가라."',
+    '"네가 나를 이겼다, {n}. 이 승리는 진짜다. 더 큰 판을 준비하라."'
   ],
   ishtar:[
-    `"어머, 포기하려고요, ${'{n}'}? 이슈타르의 사랑을 뿌리치다니… 가슴이 아프네요."`,
-    `"포기예요? 설마… 우리의 대결이 그토록 두려웠나요? 붉은 실이 끊어질 것 같아 슬퍼요."`,
-    `"${'{n}'}… 진심으로 도망치겠다는 거예요? 사랑보다 두려움을 택한 건가요?"`,
+    '"축하해요, {n}. 내 심장을 멈추게 할 만큼 아름다운 승부였어요."',
+    '"{n}, 정말 멋졌어요. 이슈타르가 당신의 승리를 진심으로 축복할게요."',
+    '"당신이 이겼어요, {n}. 운명도 이런 장면을 원했나 봐요."'
   ],
   thanatos:[
-    `"……폴드. 그렇군. ${'{n}'}, 선택은 너의 것이다. 하지만 한번 물러선 자는 평생 물러선다."`,
-    `"……도망이라는 길은 결코 끝이 없다. 그것이 죽음의 신이 너에게 건네는 마지막 경고다."`,
-    `"……${'{n}'}. 시간이 멈추지 않듯, 포기도 결코 그대를 자유롭게 하지 않는다."`,
+    '"……축하한다, {n}. 죽음의 신 앞에서 살아남은 자의 이름을 기억하겠다."',
+    '"{n}, 승리했다. 조용히 축하하마. 강한 생명력이다."',
+    '"……좋다, {n}. 이번 판은 네 것이다. 끝까지 집중하라."'
   ],
   metatron:[
-    `"포기를 택하겠다고, ${'{n}'}? 지혜로운 자는 물러날 때를 알지 — 하지만 이것은 지혜가 아닌 두려움이다."`,
-    `"거짓 명성보다 솔직한 포기가 낫다고 생각하나? 틀렸다. 도망치는 순간 기록에서 지워진다."`,
-    `"${'{n}'}… 공허의 기록 속에서 포기한 자의 이름은 영원히 빛바랜다. 그래도 괜찮은가?"`,
+    '"기록하겠다, {n}. 공허의 심판을 넘어선 승리로."',
+    '"축하한다, {n}. 지혜와 담력이 함께한 승리다."',
+    '"{n}, 오늘의 승자는 너다. 이 명예를 마지막까지 지켜내라."'
+  ]
+};
+
+const DEALER_CAUTIONS = {
+  amon:[
+    '"멈춰라, {n}. 더 큰 손실이 오기 전에 탐욕과 충동을 단속하라."',
+    '"경고다, {n}. 다음 판에서는 계산 없이 움직이면 크게 무너진다."'
+  ],
+  ishtar:[
+    '"주의해요, {n}. 감정에 끌려 선택하면 연속 패배로 이어질 수 있어요."',
+    '"{n}, 지금은 마음보다 균형이 먼저예요. 흔들리면 크게 다쳐요."'
+  ],
+  thanatos:[
+    '"……경고한다, {n}. 무리하면 체력과 판단력이 함께 꺼진다."',
+    '"주의해라, {n}. 서두름은 생명력을 깎아 먹는다."'
+  ],
+  metatron:[
+    '"주의하라, {n}. 오만과 성급함이 남은 승부를 망칠 수 있다."',
+    '"경고다, {n}. 다음 결정을 내리기 전 반드시 한 번 더 검증하라."'
   ]
 };
 
 let G4 = {
-  name:'', street:0, luck:100, pot:0,
-  deck:[],
-  pCards:[],
-  dealers:{}, // {amon:{cards:[], hand:null, folded:false}, ...}
-  winner:null // 'player' or 'dealer' or 'mixed'
+  name:'', round:0, street:0, luck:100, pot:0,
+  deck:[], pCards:[], dCards:[],
+  currentDealerId:null,
+  pHand4:null, dHand4:null,
+  results:[],
+  winner:null,
+  roundDone:false
 };
 
 function startAll4Game(){
-  G4.name = G.name;
+  G4 = {
+    name:G.name,
+    round:0,
+    street:0,
+    luck:100,
+    pot:0,
+    deck:[],
+    pCards:[],
+    dCards:[],
+    currentDealerId:null,
+    pHand4:null,
+    dHand4:null,
+    results:[],
+    winner:null,
+    roundDone:false
+  };
+  document.getElementById('lbl4-player').textContent = G4.name;
+  showScreen('screen-game4');
+  startNextDealerRound();
+}
+
+function startNextDealerRound(){
+  if(G4.round >= ALL4_DEALER_ORDER.length){
+    G4.winner = finalizeGauntletResult();
+    const bar=document.getElementById('action4-bar');
+    bar.innerHTML='';
+    const btn=document.createElement('button');
+    btn.className='btn-act next';
+    btn.textContent='📜 최종 운명 판결서 받기';
+    btn.onclick=buildReport4;
+    bar.appendChild(btn);
+    render4DealerZones(true);
+    render4Dialogues(true, null);
+    return;
+  }
+
+  G4.currentDealerId = ALL4_DEALER_ORDER[G4.round];
   G4.street = 0;
-  G4.luck = 100;
-  G4.pot = 0;
+  G4.roundDone = false;
   G4.deck = shuffle(makeDeck());
   G4.pCards = [];
-  G4.winner = null;
-  G4.dealers = {};
+  G4.dCards = [];
+  G4.pHand4 = null;
+  G4.dHand4 = null;
 
-  ALL4_DEALER_ORDER.forEach(id=>{
-    G4.dealers[id]={cards:[], hand:null, folded:false};
-  });
-
-  document.getElementById('lbl4-player').textContent = G4.name;
-
-  // Deal 3 cards to each dealer and player (third card face-up)
   for(let i=0;i<3;i++){
-    ALL4_DEALER_ORDER.forEach(id=>{
-      G4.dealers[id].cards.push({...G4.deck.pop(), fd:i<2});
-    });
     G4.pCards.push({...G4.deck.pop(), fd:i<2});
+    G4.dCards.push({...G4.deck.pop(), fd:i<2});
   }
 
   render4DealerZones(false);
-  render4Dialogues(0, null);
   render4PlayerRow();
+  render4Dialogues(false, null);
   update4HUD();
   set4BettingButtons();
-
-  showScreen('screen-game4');
 }
 
-function render4DealerZones(showAll, winnerSet){
+function render4DealerZones(showAll){
   const grid = document.getElementById('dealers4-grid');
   grid.innerHTML = '';
-  ALL4_DEALER_ORDER.forEach(id=>{
+
+  ALL4_DEALER_ORDER.forEach((id, idx)=>{
     const D=DEALER_DATA[id];
-    const ds=G4.dealers[id];
+    const res=G4.results.find(r=>r.id===id);
+    const isCurrent = id===G4.currentDealerId && !res;
     let zoneClass='d4-zone';
-    if(ds.folded) zoneClass+=' folded';
-    else if(winnerSet&&winnerSet.has(id)) zoneClass+=' winner-zone';
+    if(isCurrent) zoneClass+=' active';
+    if(res && res.win) zoneClass+=' winner-zone';
+    if(res && !res.win) zoneClass+=' folded';
 
-    const bestSet = (showAll&&ds.hand&&!ds.folded)
-      ? new Set(ds.hand.cards.map(c=>c.s+c.v)) : null;
+    let cardsHtml='';
+    let hintText='';
 
-    const cardsHtml = ds.cards.map(card=>{
-      const faceDown=!showAll&&card.fd;
-      const col=card.s==='♦'||card.s==='♥'?'r':'k';
-      const isBest=!!bestSet&&bestSet.has(card.s+card.v);
-      return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
-        <div class="card-inner">
-          <div class="card-b"><div class="card-b-inner"></div></div>
-          <div class="card-f ${col}">
-            <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
-            <div class="card-mid">${card.s}</div>
-            <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+    if(res){
+      const badgeClass = res.win ? 'badge-win' : 'badge-lose';
+      const badgeText = res.win ? 'WIN' : 'LOSE';
+      cardsHtml = `<div class="d4-hint">대결 완료 · 내 패 ${res.playerHandName}</div>`;
+      hintText = `<span class="r4-d-badge ${badgeClass}">${badgeText}</span>`;
+    } else if(isCurrent){
+      const cards = G4.roundDone ? G4.dCards : G4.dCards;
+      const bestSet = (showAll && G4.dHand4) ? new Set(G4.dHand4.cards.map(c=>c.s+c.v)) : null;
+      cardsHtml = cards.map(card=>{
+        const faceDown=!showAll&&card.fd;
+        const col=card.s==='♦'||card.s==='♥'?'r':'k';
+        const isBest=!!bestSet&&bestSet.has(card.s+card.v);
+        return `<div class="card${faceDown?'':' up'}${isBest?' best':''}">
+          <div class="card-inner">
+            <div class="card-b"><div class="card-b-inner"></div></div>
+            <div class="card-f ${col}">
+              <div class="card-top">${vLabel(card.v)}<br>${card.s}</div>
+              <div class="card-mid">${card.s}</div>
+              <div class="card-bot">${vLabel(card.v)}<br>${card.s}</div>
+            </div>
           </div>
-        </div>
-      </div>`;
-    }).join('');
+        </div>`;
+      }).join('');
+      hintText = G4.roundDone && G4.dHand4
+        ? `<span class="d4-hint ${G4.dHand4.rank>=5?'strong':''}">${G4.dHand4.name}</span>`
+        : '<span class="d4-hint">현재 대결 중</span>';
+    } else if(idx < G4.round){
+      cardsHtml = '<div class="d4-hint">대결 완료</div>';
+      hintText = '<span class="d4-hint">기록 보존</span>';
+    } else {
+      cardsHtml = '<div class="d4-hint">대기 중…</div>';
+      hintText = '<span class="d4-hint">곧 대결</span>';
+    }
 
-    let hintText = '';
-    if(ds.folded) hintText='<span class="d4-hint folded-badge">FOLD</span>';
-    else if(showAll&&ds.hand) hintText=`<span class="d4-hint ${ds.hand.rank>=5?'strong':''}">${ds.hand.name}</span>`;
-
-    grid.innerHTML+=`
+    grid.innerHTML += `
       <div class="${zoneClass}">
         <div class="d4-zone-header">
           <span class="d4-zone-dot" style="color:${D.color};background:${D.color};"></span>
@@ -2330,19 +2402,31 @@ function render4DealerZones(showAll, winnerSet){
   });
 }
 
-function render4Dialogues(streetIdx, highlightId){
+function render4Dialogues(isRoundEnd, roundMessage){
   const grid = document.getElementById('dialogue4-grid');
   grid.innerHTML = '';
   ALL4_DEALER_ORDER.forEach(id=>{
     const D=DEALER_DATA[id];
-    const ds=G4.dealers[id];
-    const isActive = id===highlightId;
-    const isFolded = ds.folded;
-    const dlg=pickLine(D.dialogues[Math.min(streetIdx,4)]);
-    grid.innerHTML+=`
-      <div class="dlg4-box${isActive?' active-dlg':''}${isFolded?' folded-dlg':''}">
+    const res=G4.results.find(r=>r.id===id);
+    const isCurrent = id===G4.currentDealerId && !res;
+    let text='';
+
+    if(res){
+      text = res.message;
+    } else if(isCurrent){
+      if(isRoundEnd && roundMessage){
+        text = roundMessage;
+      } else {
+        text = pickLine(D.dialogues[Math.min(G4.street,4)]).replace(/{n}/g,G4.name);
+      }
+    } else {
+      text = '운명의 대기열에서 당신을 지켜보고 있다…';
+    }
+
+    grid.innerHTML += `
+      <div class="dlg4-box${isCurrent?' active-dlg':''}">
         <div class="dlg4-speaker" style="color:${D.color};">${D.name}</div>
-        <div class="dlg4-text">${isFolded?'…(침묵)…':dlg.replace(/{n}/g,G4.name)}</div>
+        <div class="dlg4-text">${text}</div>
       </div>`;
   });
 }
@@ -2350,11 +2434,20 @@ function render4Dialogues(streetIdx, highlightId){
 function render4PlayerRow(){
   const row = document.getElementById('player4-row');
   row.innerHTML='';
+  const bestSet = (G4.roundDone && G4.pHand4)
+    ? new Set(G4.pHand4.cards.map(c=>c.s+c.v))
+    : null;
   G4.pCards.forEach(card=>{
-    row.appendChild(buildCard(card, card.fd, false, false));
+    const isBest = !!bestSet && bestSet.has(card.s+card.v);
+    row.appendChild(buildCard(card, card.fd, false, isBest));
   });
   const visPCards=G4.pCards.filter(c=>!c.fd);
   const hint=document.getElementById('player4-hint');
+  if(G4.roundDone && G4.pHand4){
+    hint.textContent=G4.pHand4.name;
+    hint.className='hand-hint'+(G4.pHand4.rank>=5?' strong':'');
+    return;
+  }
   if(visPCards.length>=5){
     const h=bestHand(visPCards);
     hint.textContent=h.name;
@@ -2369,8 +2462,9 @@ function update4HUD(){
   document.getElementById('hud4-luck').textContent=G4.luck;
   document.getElementById('hud4-pot').textContent=G4.pot;
   const si=Math.min(G4.street,4);
+  const roundText = `${G4.round+1} / ${ALL4_DEALER_ORDER.length}`;
   document.getElementById('hud4-street').textContent=STREETS[si];
-  document.getElementById('hud4-prog').textContent=`베팅 라운드 ${G4.street+1} / 5`;
+  document.getElementById('hud4-prog').textContent=`라운드 ${roundText} · 베팅 ${G4.street+1} / 5`;
 }
 
 function set4BettingButtons(){
@@ -2396,6 +2490,7 @@ function setSpinning4(on){
 }
 
 function doAction4(act){
+  if(G4.roundDone) return;
   if(act==='raise'&&G4.luck>=10){
     G4.luck-=10;
     G4.pot+=20;
@@ -2410,21 +2505,13 @@ function dealStreet4(){
   setSpinning4(true);
   setTimeout(()=>{
     const faceDown = G4.street===4;
-    ALL4_DEALER_ORDER.forEach(id=>{
-      if(!G4.dealers[id].folded){
-        G4.dealers[id].cards.push({...G4.deck.pop(), fd:faceDown});
-      }
-    });
+    G4.dCards.push({...G4.deck.pop(), fd:faceDown});
     G4.pCards.push({...G4.deck.pop(), fd:faceDown});
 
-    render4DealerZones(false, null);
+    render4DealerZones(false);
     render4PlayerRow();
+    render4Dialogues(false, null);
     update4HUD();
-
-    // Random dealer speaks
-    const activeDealers=ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded);
-    const speaker=activeDealers[Math.floor(Math.random()*activeDealers.length)]||ALL4_DEALER_ORDER[0];
-    render4Dialogues(G4.street, speaker);
     setSpinning4(false);
 
     if(G4.street===4){
@@ -2448,70 +2535,94 @@ function dealStreet4(){
   },1400);
 }
 
+function getRoundResultMessage(id, isWin, pHandName, dHandName){
+  const lines = isWin ? DEALER_CELEBRATIONS[id] : DEALER_CAUTIONS[id];
+  const base = lines[Math.floor(Math.random()*lines.length)]
+    .replace(/\{n\}/g,G4.name);
+  if(isWin){
+    return `${base} (${G4.name}: ${pHandName} / ${DEALER_DATA[id].name}: ${dHandName})`;
+  }
+  return `${base} (${G4.name}: ${pHandName} / ${DEALER_DATA[id].name}: ${dHandName})`;
+}
+
 function runShowdown4(){
+  if(G4.roundDone) return;
   setSpinning4(true);
-  render4Dialogues(4, null);
 
   setTimeout(()=>{
     G4.pCards.forEach(c=>c.fd=false);
-    const pHand4 = bestHand(G4.pCards);
+    G4.dCards.forEach(c=>c.fd=false);
 
-    let playerWins=0, playerLoses=0;
+    G4.pHand4 = bestHand(G4.pCards);
+    G4.dHand4 = bestHand(G4.dCards);
+    G4.roundDone = true;
 
-    ALL4_DEALER_ORDER.forEach(id=>{
-      const ds=G4.dealers[id];
-      if(ds.folded){
-        ds.hand=null;
-        return;
-      }
-      ds.cards.forEach(c=>c.fd=false);
-      ds.hand=bestHand(ds.cards);
-      const cmp=cmpHands(pHand4,ds.hand);
-      if(cmp>=0) playerWins++; else playerLoses++;
+    const cmp=cmpHands(G4.pHand4,G4.dHand4);
+    const isWin = cmp>=0;
+    const rid=G4.currentDealerId;
+    const msg = getRoundResultMessage(rid, isWin, G4.pHand4.name, G4.dHand4.name);
+
+    G4.results.push({
+      id:rid,
+      win:isWin,
+      playerHandName:G4.pHand4.name,
+      dealerHandName:G4.dHand4.name,
+      playerCards:[...G4.pHand4.cards],
+      dealerCards:[...G4.dHand4.cards],
+      suit:dominantSuit(G4.pHand4.cards),
+      topVal:G4.pHand4.cards.reduce((mx,c)=>c.v>mx?c.v:mx,0),
+      pot:G4.pot,
+      luckAfter:G4.luck,
+      message:msg
     });
 
-    G4.winner = playerLoses===0?'player':(playerWins===0?'dealer':'mixed');
-    G4.pHand4 = pHand4;
-
-    const winnerSet=new Set(
-      ALL4_DEALER_ORDER.filter(id=>!G4.dealers[id].folded&&cmpHands(pHand4,G4.dealers[id].hand)<0)
-    );
-
-    render4DealerZones(true, null);
+    render4DealerZones(true);
     render4PlayerRow();
+    render4Dialogues(true, msg);
     setSpinning4(false);
 
     const bar=document.getElementById('action4-bar');
     bar.innerHTML='';
     const el=document.createElement('button');
     el.className='btn-act next';
-    el.textContent='📜 4신 운명 판결서 받기';
-    el.onclick=buildReport4;
+    if(G4.round < ALL4_DEALER_ORDER.length-1){
+      el.textContent='➡️ 다음 딜러와 연속 대결';
+      el.onclick=()=>{G4.round++;startNextDealerRound();};
+    } else {
+      G4.round++;
+      G4.winner = finalizeGauntletResult();
+      el.textContent='📜 최종 운명 판결서 받기';
+      el.onclick=buildReport4;
+    }
     bar.appendChild(el);
   },2200);
+}
+
+function finalizeGauntletResult(){
+  const wins = G4.results.filter(r=>r.win).length;
+  if(wins===4) return 'allwin';
+  if(wins===0) return 'alllose';
+  return 'mixed';
 }
 
 // ── 4-WAY FOLD ──
 function showFold4Warning(){
   const reactions=document.getElementById('fold4-reactions');
   reactions.innerHTML='';
-  ALL4_DEALER_ORDER.forEach(id=>{
-    const D=DEALER_DATA[id];
-    const ds=G4.dealers[id];
-    if(ds.folded) return;
-    const lines=FOLD_REACTIONS[id];
-    const line=lines[Math.floor(Math.random()*lines.length)].replace(/\{n\}/g,G4.name);
-    reactions.innerHTML+=`
-      <div class="fold4-reaction">
-        <div>
-          <div class="fold4-reaction-dot" style="color:${D.color};background:${D.color};"></div>
-        </div>
-        <div>
-          <div class="fold4-reaction-name" style="color:${D.color};">${D.name}</div>
-          <div class="fold4-reaction-text">${line}</div>
-        </div>
-      </div>`;
-  });
+  const rid = G4.currentDealerId;
+  const D = DEALER_DATA[rid];
+  const lines = DEALER_CAUTIONS[rid] || ['"주의하라."'];
+  const line = lines[Math.floor(Math.random()*lines.length)].replace(/\{n\}/g,G4.name);
+  reactions.innerHTML = `
+    <div class="fold4-reaction">
+      <div>
+        <div class="fold4-reaction-dot" style="color:${D.color};background:${D.color};"></div>
+      </div>
+      <div>
+        <div class="fold4-reaction-name" style="color:${D.color};">${D.name}</div>
+        <div class="fold4-reaction-text">${line}</div>
+      </div>
+    </div>`;
   document.getElementById('fold4-modal').classList.add('show');
 }
 
@@ -2521,142 +2632,191 @@ function closeFold4Modal(){
 
 function confirmFold4(){
   closeFold4Modal();
-  // Player folds = instant lose to all remaining dealers
-  G4.winner='dealer_fold';
-
-  ALL4_DEALER_ORDER.forEach(id=>{
-    const ds=G4.dealers[id];
-    if(!ds.folded){
-      // Reveal remaining cards
-      ds.cards.forEach(c=>c.fd=false);
-      if(ds.cards.length>=5) ds.hand=bestHand(ds.cards);
-      else ds.hand=null;
-    }
-  });
+  if(G4.roundDone) return;
   G4.pCards.forEach(c=>c.fd=false);
-  G4.pHand4=G4.pCards.length>=5?bestHand(G4.pCards):null;
+  G4.dCards.forEach(c=>c.fd=false);
+  G4.pHand4 = bestHand(G4.pCards);
+  G4.dHand4 = bestHand(G4.dCards);
+  G4.roundDone = true;
 
-  render4DealerZones(true, null);
+  const rid = G4.currentDealerId;
+  const msg = getRoundResultMessage(rid, false, G4.pHand4.name, G4.dHand4.name);
+  G4.results.push({
+    id:rid,
+    win:false,
+    playerHandName:G4.pHand4.name,
+    dealerHandName:G4.dHand4.name,
+    playerCards:[...G4.pHand4.cards],
+    dealerCards:[...G4.dHand4.cards],
+    suit:dominantSuit(G4.pHand4.cards),
+    topVal:G4.pHand4.cards.reduce((mx,c)=>c.v>mx?c.v:mx,0),
+    pot:G4.pot,
+    luckAfter:G4.luck,
+    message:msg
+  });
+
+  render4DealerZones(true);
   render4PlayerRow();
+  render4Dialogues(true, msg);
 
-  // Show fold result buttons
   const bar=document.getElementById('action4-bar');
   bar.innerHTML='';
   const el=document.createElement('button');
   el.className='btn-act next';
-  el.textContent='📜 4신 운명 판결서 받기 (폴드)';
-  el.onclick=buildReport4;
+  if(G4.round < ALL4_DEALER_ORDER.length-1){
+    el.textContent='➡️ 다음 딜러와 연속 대결';
+    el.onclick=()=>{G4.round++;startNextDealerRound();};
+  } else {
+    G4.round++;
+    G4.winner = finalizeGauntletResult();
+    el.textContent='📜 최종 운명 판결서 받기';
+    el.onclick=buildReport4;
+  }
   bar.appendChild(el);
+}
+
+function buildAllWinLongOracle(wins){
+  const suitCount={};
+  const dealerThemes=[];
+  const topRanks=[];
+  wins.forEach(r=>{
+    suitCount[r.suit]=(suitCount[r.suit]||0)+1;
+    dealerThemes.push(DEALER_DATA[r.id].theme);
+    topRanks.push(vLabel(r.topVal));
+  });
+  const domSuit = Object.entries(suitCount).sort((a,b)=>b[1]-a[1])[0][0];
+  const domSuitInfo = SUITS[domSuit];
+  const themes = [...new Set(dealerThemes)].join(' · ');
+  const rankJoin = topRanks.join(' / ');
+
+  return `
+    <div class="r-section-block" style="border-left-color:#cc44ff;background:rgba(204,68,255,.08);">
+      <div class="r-section-label" style="color:#cc44ff;">🔱 절대 행운 선언</div>
+      <div class="r-section-body">
+        ${G4.name}은(는) 4신 연속 대결을 전승으로 완주했습니다. 이것은 단순 승리가 아니라,
+        재물·인연·건강·명예라는 네 축의 운명 관문을 모두 통과한 상태입니다.
+        운명의 파동이 단기 행운을 넘어 구조적 상승으로 전환되는 희귀 구간에 진입했습니다.
+      </div>
+    </div>
+    <div class="r-section-block">
+      <div class="r-section-label" style="color:var(--gold);">◈ 승리 카드 종합 해석</div>
+      <div class="r-section-body">
+        네 번의 승부에서 핵심 카드 정점은 <strong>${rankJoin}</strong>로 나타났고,
+        우세 문양은 <strong>${domSuit} ${domSuitInfo.name}</strong>였습니다.
+        이는 ${domSuitInfo.theme} 계열 기회가 먼저 열리고,
+        그 결과가 ${themes}로 연결되어 확장된다는 뜻입니다.
+      </div>
+    </div>
+    <div class="r-section-block">
+      <div class="r-section-label" style="color:var(--gold);">◉ 30일 실행 예언</div>
+      <ul class="r-advice-list">
+        <li class="r-advice-item"><span class="r-advice-num">1</span>재물과 기회: 중요한 계약·협상·지원 신청은 7일 안에 1차 실행. 속도가 이 시기의 수익률을 결정합니다.</li>
+        <li class="r-advice-item"><span class="r-advice-num">2</span>인연과 협업: 단독 플레이보다 파트너십을 택하면 성과가 배가됩니다. 특히 오래 끊겼던 인연 복원에서 강한 반등이 있습니다.</li>
+        <li class="r-advice-item"><span class="r-advice-num">3</span>건강과 집중: 수면·체력 루틴을 먼저 고정하면 행운의 유지 시간이 길어집니다. 컨디션이 무너지면 기회 포착률이 급감합니다.</li>
+        <li class="r-advice-item"><span class="r-advice-num">4</span>명예와 확장: 성과를 숨기지 말고 기록·발표·공유하십시오. 이번 운은 공개될수록 더 큰 문을 엽니다.</li>
+      </ul>
+      <div class="r-rank-tip">결론: 당신은 지금 <strong>엄청난 운의 소유자</strong>입니다. 다만 이 운은 준비된 행동과 결합할 때 폭발합니다.</div>
+    </div>
+    <p class="r-closing-line" style="color:#cc44ff;">🎉 축하합니다. 4신의 관문을 모두 돌파한 당신의 이름이 오늘의 승자 명부에 새겨졌습니다.</p>
+  `;
 }
 
 // ── 4-WAY REPORT ──
 function buildReport4(){
-  const isFoldFinish = G4.winner==='dealer_fold';
-  const pHand4 = G4.pHand4;
-  const pSuit = dominantSuit(G4.pCards);
-  const sd = SUITS[pSuit];
+    const avgIntensity = Math.max(-99, Math.min(999, Math.round(totalIntensity/total)));
+  const wins = G4.results.filter(r=>r.win);
+  const losses = G4.results.filter(r=>!r.win);
+  const total = G4.results.length || 1;
+  const winRate = Math.round((wins.length/total)*100);
+  const avgPot = Math.round(G4.results.reduce((s,r)=>s+r.pot,0)/total);
 
-  const tier=getBetTier(G4.pot);
+  const tier=getBetTier(avgPot);
   const td=BET_TIER_DATA[tier];
-  const raises=G4.pot/20;
 
-  // Intensity per dealer matchup
-  let totalScore=0, dealerCount=0;
-  ALL4_DEALER_ORDER.forEach(id=>{
-    const ds=G4.dealers[id];
-    if(ds.folded) return;
-    dealerCount++;
-    if(isFoldFinish){
-      totalScore+=99;
-      return;
-    }
-    const win=pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
-    const raw = win
-      ? 99 + (pHand4?pHand4.rank:1)*30 + Math.round(G4.pot*3.5) + td.winBonus
-      : 99 + (pHand4?pHand4.rank:1)*15 + Math.round(G4.pot*1.5) + td.losePenalty;
-    totalScore += Math.min(999, raw);
+  let totalIntensity = 0;
+  G4.results.forEach(r=>{
+    const handRank = HAND_FORTUNES && r.playerHandName ? (Object.values(HAND_FORTUNES).findIndex(h=>h.name===r.playerHandName)+1) : 1;
+    const base = r.win
+      ? 99 + handRank*30 + Math.round(r.pot*3.5) + td.winBonus
+      : 99 + handRank*15 + Math.round(r.pot*1.5) + td.losePenalty;
+    totalIntensity += Math.min(999, base);
   });
-  const avgIntensity = dealerCount>0 ? Math.round(totalScore/dealerCount) : 99;
+  const avgIntensity = Math.max(99, Math.min(999, Math.round(totalIntensity/total)));
 
-  // dealer result rows
   const dealerRowsHtml = ALL4_DEALER_ORDER.map(id=>{
     const D=DEALER_DATA[id];
-    const ds=G4.dealers[id];
-    if(ds.folded) return `
-      <div class="r4-dealer-row fold4-row">
-        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
-        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
-        <span class="r4-d-hand">— (기권)</span>
-        <span class="r4-d-badge badge-fold">FOLD</span>
-      </div>`;
-    const win=!isFoldFinish&&pHand4&&ds.hand&&cmpHands(pHand4,ds.hand)>=0;
-    const handName=ds.hand?ds.hand.name:'?';
-    return `
-      <div class="r4-dealer-row ${isFoldFinish?'lose4':(win?'win4':'lose4')}">
-        <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
-        <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
-        <span class="r4-d-hand">${handName}</span>
-        <span class="r4-d-badge ${isFoldFinish?'badge-lose':(win?'badge-win':'badge-lose')}">${isFoldFinish?'DEFEAT':win?'WIN':'LOSE'}</span>
-      </div>`;
+    const r=G4.results.find(x=>x.id===id);
+    if(!r){
+      return `<div class="r4-dealer-row"><span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span><span class="r4-d-name" style="color:${D.color};">${D.name}</span><span class="r4-d-hand">기록 없음</span><span class="r4-d-badge badge-fold">-</span></div>`;
+    }
+    return `<div class="r4-dealer-row ${r.win?'win4':'lose4'}">
+      <span class="r4-d-dot" style="color:${D.color};background:${D.color};"></span>
+      <span class="r4-d-name" style="color:${D.color};">${D.name}</span>
+      <span class="r4-d-hand">나: ${r.playerHandName} / 딜러: ${r.dealerHandName}</span>
+      <span class="r4-d-badge ${r.win?'badge-win':'badge-lose'}">${r.win?'WIN':'LOSE'}</span>
+    </div>`;
   }).join('');
 
-  const overallResult = isFoldFinish ? 'fold'
-    : G4.winner==='player' ? 'win'
-    : G4.winner==='mixed' ? 'mixed' : 'lose';
-
+  const overallResult = G4.winner || finalizeGauntletResult();
   const resultLabel={
-    win:'✨ 전원 격파 · TOTAL VICTORY ✨',
-    mixed:'⚡ 혼전 · MIXED RESULTS ⚡',
-    lose:'💀 전원 패배 · TOTAL DEFEAT 💀',
-    fold:'🏳️ 폴드 · FORFEIT 🏳️'
+    allwin:'✨ 4인 전원 격파 · PERFECT VICTORY ✨',
+    mixed:'⚡ 연속 대결 완료 · MIXED RESULTS ⚡',
+    alllose:'💀 연속 대결 전패 · TOTAL DEFEAT 💀'
   }[overallResult];
 
-  const resultClass={win:'win',mixed:'',lose:'lose',fold:'lose'}[overallResult];
+  const resultClass={allwin:'win',mixed:'',alllose:'lose'}[overallResult];
+  const gaugeColor = overallResult==='allwin' ? '#cc44ff' : (wins.length>=2 ? '#c9940f' : '#cc2222');
+  const gaugePct=Math.round(((avgIntensity+99)/1098)*100);
 
-  const gaugeColor = (overallResult==='win'||overallResult==='mixed')
-    ? (avgIntensity>=800?'#f0c040':avgIntensity>=500?'#c9940f':'#9e7010')
-    : '#cc2222';
-  const gaugePct=Math.round(avgIntensity/999*100);
-
-  // ── 누적 avgIntensity 저장 및 all4 해금 체크
-  const prevTotal4 = parseInt(localStorage.getItem('destiny_poker_intensity') || '0', 10);
-  const newTotal4 = Math.min(9999, prevTotal4 + avgIntensity);
-  localStorage.setItem('destiny_poker_intensity', String(newTotal4));
-  if(newTotal4 >= 999){
-    localStorage.setItem('destiny_poker_all4_unlocked','1');
-  }
+  setAll4UnlockByIntensity(avgIntensity);
   updateAll4Button();
 
+  const normalOracle = `
+    <div class="r-section-block">
+      <div class="r-section-label" style="color:var(--gold);">◈ 연속 대결 종합</div>
+      <div class="r-section-body">총 ${total}전 중 ${wins.length}승 ${losses.length}패, 승률 ${winRate}%입니다. 이번 흐름은 단기 변동성이 높아, 강점 라운드와 약점 라운드를 분리해 전략적으로 접근할수록 성과가 좋아집니다.</div>
+    </div>
+    <div class="r-section-block r-warning-block">
+      <div class="r-section-label" style="color:#ff8844;">⚠ 주의 메시지</div>
+      <div class="r-section-body">패배 라운드에서 딜러가 남긴 경고를 반드시 복기하십시오. 다음 선택의 질이 즉시 운세 강도를 바꿉니다.</div>
+    </div>
+  `;
+
+  const oracleHtml = overallResult==='allwin'
+    ? buildAllWinLongOracle(wins)
+    : normalOracle;
+
   document.getElementById('report-content').innerHTML=`
-    <h2 class="r-title">🔱 ${G4.name}의 4신 운명 판결서</h2>
+    <h2 class="r-title">🔱 ${G4.name}의 4신 연속 대결 판결서</h2>
     <div class="r-divider"></div>
-    <div class="r-row"><span class="r-label">대결 유형</span><span class="r-val" style="color:#cc44ff;">4신 동시 대결</span></div>
-    <div class="r-row"><span class="r-label">나의 패</span><span class="r-val">${pHand4?pHand4.name:'(폴드)'}</span></div>
-    <div class="r-row"><span class="r-label">지배 문양</span><span class="r-val">${sd.name} ${pSuit} — ${sd.theme}</span></div>
-    <div class="r-row"><span class="r-label">베팅 등급</span>
-      <span class="r-val" style="color:${td.color}">${td.icon} ${td.label} (${raises}회 레이즈)</span></div>
+    <div class="r-row"><span class="r-label">대결 유형</span><span class="r-val" style="color:#cc44ff;">4신 연속 1:1 대결</span></div>
+    <div class="r-row"><span class="r-label">최종 전적</span><span class="r-val">${wins.length}승 ${losses.length}패 (승률 ${winRate}%)</span></div>
+    <div class="r-row"><span class="r-label">평균 베팅 등급</span><span class="r-val" style="color:${td.color}">${td.icon} ${td.label}</span></div>
     <div class="r-divider"></div>
-    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">각 딜러 대결 결과</div>
+    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">딜러별 결과</div>
     <div class="r4-dealer-results">${dealerRowsHtml}</div>
     <div class="r-divider"></div>
-    <div class="r-result ${resultClass}" style="font-size:1.6rem;">${resultLabel}</div>
+    <div class="r-result ${resultClass}" style="font-size:1.5rem;">${resultLabel}</div>
+    <div class="r-divider"></div>
+    <div class="oracle-box">${oracleHtml}</div>
     <div class="r-divider"></div>
     <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
+      <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
         평균 운명 증폭 수치
-        <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">(최대 999%)</span>
+        <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">(최소 -99% / 최대 999%)</span>
       </div>
-      <div class="meter-num pos">${avgIntensity}%</div>
-      ${avgIntensity>=999?`<div style="font-family:'Cinzel',serif;font-size:.8rem;color:#cc44ff;text-align:center;margin:.5rem 0;letter-spacing:.12em;">🔱 999% — 최고의 운명에 도달했습니다! 🔱</div>`:''}
+      <div class="meter-num ${avgIntensity>=0?'pos':'neg'}">${avgIntensity}%</div>
       <div style="margin:.9rem auto 0;width:220px;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;">
         <div id="intensity4-bar" style="width:0%;height:100%;background:${gaugeColor};border-radius:5px;
           box-shadow:0 0 10px ${gaugeColor};transition:width 1.2s ease;"></div>
       </div>
       <div style="display:flex;justify-content:space-between;width:220px;margin:.3rem auto 0;
         font-family:'Cinzel',serif;font-size:.6rem;color:var(--text-dim);">
-        <span>99%</span><span>500%</span><span>999%</span>
+        <span>-99%</span><span>0%</span><span>999%</span>
       </div>
     </div>
+      const gaugePct=Math.round(((avgIntensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
       <button class="btn-share-kakao" onclick="shareAll4Kakao()">
@@ -2671,7 +2831,6 @@ function buildReport4(){
     const bar=document.getElementById('intensity4-bar');
     if(bar) bar.style.width=gaugePct+'%';
   },200);
-  updateAll4Button();
 }
 
 function shareAll4Kakao(){
@@ -2679,14 +2838,14 @@ function shareAll4Kakao(){
   const result=resultEl?resultEl.textContent:'?';
   const meterEl=document.querySelector('#report-content .meter-num');
   const meter=meterEl?meterEl.textContent:'';
-  const text=`🔱 [데스티니 포커 — 4신 동시 대결]\n\n`
+  const text=`🔱 [데스티니 포커 — 4신 연속 대결]\n\n`
     +`👤 도전자: ${G4.name}\n`
-    +`⚔ 대결: 아몬 · 이슈타르 · 타나토스 · 메타트론\n`
+    +`⚔ 대결: 아몬 → 이슈타르 → 타나토스 → 메타트론\n`
     +`🏆 결과: ${result}\n`
     +`운명 수치: ${meter}\n\n`
     +`🎴 나도 운명에 도전하기 👇\nhttps://code-destiny.com/destiny-poker.html`;
   if(navigator.share){
-    navigator.share({title:'🔱 데스티니 포커 — 4신 동시 대결',text,url:'https://code-destiny.com/destiny-poker.html'}).catch(()=>{});
+    navigator.share({title:'🔱 데스티니 포커 — 4신 연속 대결',text,url:'https://code-destiny.com/destiny-poker.html'}).catch(()=>{});
     return;
   }
   if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>{
