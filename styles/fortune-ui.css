@@ -5135,7 +5135,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
 #reportDashboardCard .s4c-wrap{
   border-radius: 26px;
   border: 1.5px solid #000;
-  box-shadow: 6px 6px 0 #000;
+  box-shadow: 0 10px 24px rgba(15,23,42,.18);
   background:
     radial-gradient(120% 110% at 8% 0%, rgba(225, 204, 255, .66) 0%, rgba(225,204,255,0) 58%),
     radial-gradient(110% 120% at 92% 12%, rgba(187, 247, 208, .58) 0%, rgba(187,247,208,0) 62%),
@@ -5172,7 +5172,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
 #reportDashboardCard .s4c-capture{
   border-radius: 24px;
   border: 1.5px solid #000;
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: 0 8px 20px rgba(15,23,42,.14);
   padding: 42px 12px 12px;
 }
 #reportDashboardCard .s4c-grid{
@@ -5181,7 +5181,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
 #reportDashboardCard .s4c-frame{
   border-radius: 24px;
   border: 1.5px solid #000;
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: 0 6px 16px rgba(15,23,42,.14);
   padding: 12px 12px 10px;
   overflow: hidden;
   animation: s4cDropIn .5s cubic-bezier(.2,.95,.25,1.15) both;
@@ -5205,6 +5205,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   justify-content: center;
   z-index: 3;
   pointer-events: none;
+  display: none;
 }
 #reportDashboardCard .s4c-y2k svg{
   width: 100%;
@@ -5298,7 +5299,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   border-radius: 999px;
   border: 1.5px solid #000;
   background: #fff;
-  box-shadow: 2px 2px 0 #000;
+  box-shadow: 0 3px 8px rgba(15,23,42,.16);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5363,7 +5364,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   margin-top: 10px;
   border: 1.5px solid #000;
   border-radius: 14px;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 6px 14px rgba(15,23,42,.14);
   padding: 8px 10px;
   background: rgba(255,255,255,.86);
   display: flex;
@@ -5387,7 +5388,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   padding: 0 12px;
   font-size: .78rem;
   border: 1.5px solid #000;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 5px 12px rgba(15,23,42,.18);
   background: linear-gradient(135deg, #fca5a5 0%, #a7f3d0 50%, #c4b5fd 100%);
   color: #111827;
 }
@@ -5398,7 +5399,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   height: 34px;
   border-radius: 10px;
   border: 1.5px solid #000;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 5px 12px rgba(15,23,42,.2);
   background: #fff;
   font-size: 1.05rem;
   line-height: 1;
@@ -5413,7 +5414,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
 #reportDashboardCard .s4c-btn,
 #reportDashboardCard .s4c-tag-chip{
   border: 1.5px solid #000;
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 6px 14px rgba(15,23,42,.16);
 }
 
 @media (max-width: 640px){
