@@ -722,18 +722,26 @@ function renderReportDashboard() {
     gridHtml += '<h3 id="' + titleId + '" class="sec-title rpt-v2-title">' + b.title + '</h3>';
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
-    gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="toggleReportFeatureCard(this)" aria-expanded="false" data-label="' + b.cta + '">';
-    gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
-    gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
-    gridHtml += '</button>';
+    if (b.action === 'openLuckSyncDiary') {
+      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openLuckSyncDiary" aria-label="' + b.cta + '">';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
+      gridHtml += '</button>';
+    } else {
+      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="toggleReportFeatureCard(this)" aria-expanded="false" data-label="' + b.cta + '">';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
+      gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
+      gridHtml += '</button>';
+    }
     gridHtml += '</div>';
 
-    /* 토글 상세 영역 */
-    gridHtml += '<div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">';
+    if (b.action !== 'openLuckSyncDiary') {
+      /* 토글 상세 영역 */
+      gridHtml += '<div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">';
 
-    /* 기능 콘텐츠 슬롯 */
-    gridHtml += '<div class="rpt-v2-body" id="rpt-v2-body-' + b.target + '"></div>';
-    gridHtml += '</div></div>';
+      /* 기능 콘텐츠 슬롯 */
+      gridHtml += '<div class="rpt-v2-body" id="rpt-v2-body-' + b.target + '"></div>';
+      gridHtml += '</div></div>';
+    }
     gridHtml += '</section>';
   });
   gridHtml += '</div>';
@@ -741,16 +749,11 @@ function renderReportDashboard() {
 
   /* ── 기존 섹션을 슬롯 안으로 이동 ── */
   blocks.forEach(function(b) {
+    if (b.action === 'openLuckSyncDiary') return;
+
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);
     if (slot && !targetEl) {
-      if (b.action === 'openLuckSyncDiary') {
-        slot.innerHTML = ''
-          + '<div style="display:flex;flex-direction:column;gap:10px;">'
-          + '  <button type="button" data-action="openLuckSyncDiary" style="align-self:flex-start;border:none;border-radius:10px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.35);">📔 사주 다이어리 열기</button>'
-          + '</div>';
-        return;
-      }
       var missingBlock = document.getElementById('rpt-v2-section-' + b.target);
       if (missingBlock) missingBlock.style.display = 'none';
       return;
