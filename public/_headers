@@ -39,6 +39,7 @@
 # ─── HTML 페이지 — revalidate (SEO 필수) ─────────────────────
 /
   Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: index, follow
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
@@ -46,9 +47,38 @@
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: index, follow
 
 /static/index.html
   Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: index, follow
+
+/en-us
+  X-Robots-Tag: index, follow
+
+/ja-jp
+  X-Robots-Tag: index, follow
+
+/zh-cn
+  X-Robots-Tag: index, follow
+
+/hi-in
+  X-Robots-Tag: index, follow
+
+/es-es
+  X-Robots-Tag: index, follow
+
+/fr-fr
+  X-Robots-Tag: index, follow
+
+/de-de
+  X-Robots-Tag: index, follow
+
+/nl-nl
+  X-Robots-Tag: index, follow
+
+/ms-my
+  X-Robots-Tag: index, follow
 
 /*.html
   Cache-Control: no-cache, no-store, must-revalidate
