@@ -1,12 +1,14 @@
-export const metadata = {
-  title: "Privacy Policy | 개인정보처리방침",
-  description:
-    "Code Destiny 개인정보처리방침 페이지입니다. 쿠키 사용, 광고 제공, 개인정보 처리 목적과 이용자 권리를 안내합니다.",
-  keywords: ["Privacy Policy", "개인정보처리방침", "쿠키", "애드센스", "Google AdSense"],
-  alternates: {
-    canonical: "/privacy-policy",
-  },
-};
+import { generatePageMetadata } from "../../lib/generate-page-metadata";
+
+export function generateMetadata() {
+  return generatePageMetadata({
+    path: "/privacy-policy",
+    title: "Privacy Policy | 개인정보처리방침 — Code Destiny",
+    description:
+      "Code Destiny 개인정보처리방침 페이지입니다. 쿠키 사용, 광고 제공, 개인정보 처리 목적과 이용자 권리를 안내합니다.",
+    keywords: ["Privacy Policy", "개인정보처리방침", "쿠키", "애드센스", "Google AdSense"],
+  });
+}
 
 const sectionStyle = {
   background:

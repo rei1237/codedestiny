@@ -1,11 +1,14 @@
-export const metadata = {
-  title: "About Code Destiny | 서비스 소개",
-  description:
-    "Code Destiny의 서비스 목적, 콘텐츠 제작 기준, 운영 원칙, 문의 채널을 안내하는 공식 소개 페이지입니다.",
-  alternates: {
-    canonical: "/about",
-  },
-};
+import { generatePageMetadata } from "../../lib/generate-page-metadata";
+
+export function generateMetadata() {
+  return generatePageMetadata({
+    path: "/about",
+    title: "About 꿀꿀 만세력 — 무료 운세 서비스 소개 | Code Destiny",
+    description:
+      "꿀꿀 만세력(Code Destiny)은 사주·타로·점성술·자미두수·숙요점 등 20가지 이상의 운세를 모두 무료로 제공합니다. 서비스 목적·운영 원칙·문의 채널을 확인하세요.",
+    keywords: ["Code Destiny", "꿀꿀 만세력", "름료 운세 플랫폼", "서비스 소개"],
+  });
+}
 
 const sectionStyle = {
   background:

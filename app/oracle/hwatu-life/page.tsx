@@ -4,9 +4,9 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/oracle/hwatu-life",
-  title: "화투 인생 패 테스트 | 타짜 컨셉 심리테스트",
+  title: "무료 화투 인생 패 테스트 — 7문항으로 내 인생 패 찾기 | 꿀꿀 만세력",
   description:
-    "돈·사랑·위기 앞에서의 선택으로 나를 상징하는 화투 인생 패를 찾는 7문항 심리테스트. 삼광·고도리·청단·똥광 등 결과를 확인하세요.",
+    "7문항 선택으로 나를 상징하는 화투 인생 패(삼광·고도리·청단·똥광)를 무료로 찾아보세요. 돈·사랑·위기 상황에서 내 진짜 선택 패턴은? 지금 바로 무료 테스트!",
   keywords: ["화투", "화투 점", "심리테스트", "인생 패", "운세"],
   featureList: ["7문항 심리테스트", "화투 인생 패 아키타입 분석", "운세 결과 공유"],
   applicationCategory: "EntertainmentApplication",

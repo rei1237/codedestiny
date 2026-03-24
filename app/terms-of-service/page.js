@@ -1,12 +1,14 @@
-export const metadata = {
-  title: "Terms of Service | 이용약관",
-  description:
-    "Code Destiny 이용약관 페이지입니다. 서비스 이용 규칙, 면책, 책임 제한 및 분쟁 처리 원칙을 안내합니다.",
-  keywords: ["Terms of Service", "이용약관", "서비스 책임 제한", "면책"],
-  alternates: {
-    canonical: "/terms-of-service",
-  },
-};
+import { generatePageMetadata } from "../../lib/generate-page-metadata";
+
+export function generateMetadata() {
+  return generatePageMetadata({
+    path: "/terms-of-service",
+    title: "Terms of Service | 이용약관 — Code Destiny",
+    description:
+      "Code Destiny 이용약관 페이지입니다. 서비스 이용 규칙, 면책, 책임 제한 및 분쟁 처리 원칙을 안내합니다.",
+    keywords: ["Terms of Service", "이용약관", "서비스 책임 제한", "면책"],
+  });
+}
 
 const sectionStyle = {
   background:

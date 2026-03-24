@@ -1,12 +1,14 @@
-﻿export const metadata = {
-  title: "FAQ | 자주 묻는 질문",
-  description:
-    "Code Destiny(꿀꿀 만세력) 서비스 이용, 무료 여부, 개인정보, 문의 방법 등 자주 묻는 질문을 안내합니다.",
-  keywords: ["FAQ", "자주 묻는 질문", "Code Destiny", "꿀꿀 만세력", "고객지원"],
-  alternates: {
-    canonical: "/faq",
-  },
-};
+﻿import { generatePageMetadata } from "../../lib/generate-page-metadata";
+
+export function generateMetadata() {
+  return generatePageMetadata({
+    path: "/faq",
+    title: "FAQ 자주 묻는 질문 — 무료여부·회원가입·개인정보 안내 | 꿀꿀 만세력",
+    description:
+      "꿀꿀 만세력 사용 전 꾸르는 충문 해소! 무료여부, 회원가입 필요 여부, 개인정보 보호, 사주 결과 신뢰도, 오류 문의 방법까지 상세히 안내합니다.",
+    keywords: ["FAQ", "자주 묻는 질문", "무료 운세 사용법", "Code Destiny", "꿀꿀 만세력"],
+  });
+}
 
 const sectionStyle = {
   background:

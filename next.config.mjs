@@ -24,13 +24,30 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
+  /** Gzip/Brotli 압축 활성화 (Cloudflare Pages는 자동 처리하므로 빌드 산출물 호환) */
+  compress: true,
+  /** 프로덕션 소스맵 비활성 → JS 번들 크기 감소 + LCP 개선 */
+  productionBrowserSourceMaps: false,
+  /** 차세대 이미지 최적화 설정 */
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [360, 640, 750, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30일
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'code-destiny.com',
+        pathname: '/**',
+      },
+    ],
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  productionBrowserSourceMaps: false,
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
     const legacyHomeRewrites = [

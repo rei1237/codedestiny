@@ -1,11 +1,13 @@
-export const metadata = {
-  title: "Contact Us | 문의하기",
-  description: "Code Destiny 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
-  keywords: ["Contact Us", "문의하기", "고객지원", "Code Destiny 문의"],
-  alternates: {
-    canonical: "/contact-us",
-  },
-};
+import { generatePageMetadata } from "../../lib/generate-page-metadata";
+
+export function generateMetadata() {
+  return generatePageMetadata({
+    path: "/contact-us",
+    title: "Contact Us | 문의하기 — Code Destiny",
+    description: "Code Destiny 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
+    keywords: ["Contact Us", "문의하기", "고객지원", "Code Destiny 문의"],
+  });
+}
 
 const cardStyle = {
   background:

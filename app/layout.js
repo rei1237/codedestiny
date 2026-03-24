@@ -2,6 +2,7 @@
 import { headers } from "next/headers";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
+import SiteFooterHub from "./components/SiteFooterHub";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
@@ -250,6 +251,11 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
+        {/* 성능: 외부 오리진 사전 연결 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         {hreflangLinks.map((link) => (
@@ -270,74 +276,7 @@ export default async function RootLayout({ children }) {
         <AppVersionGuard />
         <WebVitalsConsole />
         <div>{children}</div>
-        {!hideFooter && (
-          <footer
-            style={{
-              marginTop: "40px",
-              padding: "20px 16px 28px",
-              borderTop: "1px solid rgba(148, 163, 184, 0.28)",
-              fontSize: "14px",
-              textAlign: "center",
-              color: "#cbd5e1",
-              background: "rgba(15, 23, 42, 0.9)",
-            }}
-          >
-            <p style={{ marginBottom: "8px" }}>© 2026 Code Destiny. All rights reserved.</p>
-            <p
-              style={{
-                margin: "0 auto 10px",
-                maxWidth: "860px",
-                lineHeight: 1.68,
-                color: "#dbeafe",
-                wordBreak: "keep-all",
-              }}
-            >
-              Code: Destiny의 꽃돼지 연이는 백사자 쌈바의 실행력을 더해 사주, 운세, 타로, 명리학 해석을
-              꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로 제공합니다.
-            </p>
-            <nav
-              aria-label="정책 페이지 바로가기"
-              style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}
-            >
-              <a
-                href="https://code-destiny.com/about"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                About
-              </a>
-              <a
-                href="https://code-destiny.com/insights"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                Insights
-              </a>
-              <a
-                href="https://code-destiny.com/privacy-policy"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="https://code-destiny.com/terms-of-service"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                Terms of Service
-              </a>
-              <a
-                href="https://code-destiny.com/faq"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                FAQ
-              </a>
-              <a
-                href="https://code-destiny.com/contact-us"
-                style={{ color: "#e2e8f0", textDecoration: "underline" }}
-              >
-                Contact Us
-              </a>
-            </nav>
-          </footer>
-        )}
+        {!hideFooter && <SiteFooterHub />}
       </body>
     </html>
   );

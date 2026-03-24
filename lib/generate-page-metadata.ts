@@ -49,11 +49,11 @@ export interface FortunePageMeta {
   path: string;
   title: string;
   description: string;
-  keywords?: string[];
+  keywords?: ReadonlyArray<string> | string[];
   /** OG 이미지 절대 URL. 없으면 사이트 기본 이미지 사용 */
   image?: string;
   /** SoftwareApplication featureList */
-  featureList?: string[];
+  featureList?: ReadonlyArray<string> | string[];
   /** 서비스 카테고리. 기본값: "LifestyleApplication" */
   applicationCategory?: string;
   /** 게시일 (ISO Date string). 기본값: undefined */
@@ -95,7 +95,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   return {
     title,
     description,
-    keywords: mergeKeywords(keywords, SEO_CORE_KEYWORDS),
+    keywords: mergeKeywords([...(keywords ?? [])], SEO_CORE_KEYWORDS),
     alternates: {
       canonical: canonicalUrl,
       languages: languagesMap,
