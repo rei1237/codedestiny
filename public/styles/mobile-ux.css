@@ -81,6 +81,21 @@ a[href].btn,
   .dp-master-card:active {
     opacity: 0.92;
   }
+
+  /* 컬렉션 카드(토글 헤더/타일)는 스크롤 중 위치 변형을 금지하고 세로 스크롤을 우선한다. */
+  .feature-card-grid .feat-collection,
+  .feature-card-grid .tarot-collection,
+  .feature-card-grid .fc-toggle-btn,
+  .feature-card-grid .tarot-tile {
+    touch-action: pan-y;
+  }
+
+  .feature-card-grid .feat-collection:active,
+  .feature-card-grid .tarot-collection:active,
+  .feature-card-grid .fc-toggle-btn:active,
+  .feature-card-grid .tarot-tile:active {
+    transform: none !important;
+  }
 }
 
 /* Sticky hover 방지: 포인터 있는 기기에서만 hover 적용 (보조) */
