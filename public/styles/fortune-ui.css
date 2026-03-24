@@ -4848,11 +4848,12 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   max-width: 100%;
   width: 100%;
   background:
-    radial-gradient(120% 100% at -10% -20%, color-mix(in srgb, var(--s4c-bg, #f5e9d3) 78%, #ffffff) 0%, rgba(255,255,255,0) 60%),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--s4c-bg, #f5e9d3) 48%, #ffffff) 100%);
+    radial-gradient(130% 110% at -12% -24%, color-mix(in srgb, var(--s4c-bg, #f5e9d3) 74%, #ffffff) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 140% at 116% 8%, rgba(251,113,133,0.28) 0%, rgba(251,113,133,0) 56%),
+    linear-gradient(135deg, #fff9f3 0%, color-mix(in srgb, var(--s4c-bg, #f5e9d3) 54%, #fff4f8) 100%);
   border: 1px solid rgba(15,23,42,0.13);
-  box-shadow: 0 12px 34px rgba(15,23,42,0.14);
-  font-family: "SUIT Variable", "Pretendard Variable", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  box-shadow: 0 16px 36px rgba(15,23,42,0.16);
+  font-family: "Gowun Dodum", "Gaegu", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 #reportDashboardCard .s4c-aurora{
   position: absolute;
@@ -4920,13 +4921,14 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: -.01em;
+  font-family: "Gowun Batang", "Gowun Dodum", "Noto Serif KR", serif;
 }
 #reportDashboardCard .s4c-sub{
   margin: 0;
-  font-size: .84rem;
+  font-size: .86rem;
   line-height: 1.52;
   color: rgba(15,23,42,.75);
-  font-family: "Gaegu", "Nanum Pen Script", "Comic Sans MS", cursive;
+  font-family: "Gowun Dodum", "Gaegu", "Noto Sans KR", sans-serif;
 }
 #reportDashboardCard .s4c-capture{
   position: relative;
@@ -4934,8 +4936,9 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   border-radius: 18px;
   padding: 40px 10px 12px;
   background:
-    linear-gradient(160deg, rgba(255,255,255,0.94) 0%, var(--s4c-card, #fff) 100%);
+    linear-gradient(160deg, rgba(255,255,255,0.95) 0%, color-mix(in srgb, var(--s4c-card, #fff) 86%, #fff6fb) 100%);
   border: 1px solid color-mix(in srgb, var(--s4c-line, #db2777) 45%, #fff);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 12px 24px rgba(15,23,42,.12);
 }
 #reportDashboardCard .s4c-capture--rare{
   background: linear-gradient(155deg, #fff8cf 0%, #ffe387 45%, #fbbf24 100%);
@@ -4949,14 +4952,6 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   font-weight: 800;
   letter-spacing: .08em;
   color: rgba(15,23,42,.7);
-}
-#reportDashboardCard .s4c-tag-watermark{
-  position: absolute;
-  inset: 10px 12px auto 12px;
-  font-size: .6rem;
-  line-height: 1.3;
-  color: rgba(15,23,42,.16);
-  pointer-events: none;
 }
 #reportDashboardCard .s4c-rare-card{
   margin: 0 2px 10px;
@@ -5002,16 +4997,16 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
 #reportDashboardCard .s4c-frame p{
   margin: 0;
   color: #111827;
-  line-height: 1.45;
-  font-size: .89rem;
+  line-height: 1.5;
+  font-size: .92rem;
   font-weight: 700;
-  font-family: "Gaegu", "Nanum Pen Script", "Comic Sans MS", cursive;
+  font-family: "Gowun Dodum", "Gaegu", "Noto Sans KR", sans-serif;
 }
 #reportDashboardCard .s4c-frame em{
   display: block;
   margin-top: 6px;
   font-style: normal;
-  font-size: .74rem;
+  font-size: .78rem;
   line-height: 1.5;
   color: rgba(15,23,42,.72);
 }
@@ -5022,32 +5017,29 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   font-size: .72rem;
 }
 #reportDashboardCard .s4c-sticker-pack{
-  position: absolute;
-  inset: auto 8px 8px auto;
-  width: 124px;
-  height: 86px;
+  position: static;
+  margin-top: 10px;
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
   pointer-events: none;
 }
 #reportDashboardCard .s4c-sticker-emoji{
-  position: absolute;
+  position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: rgba(255,255,255,.86);
   border: 1px solid rgba(15,23,42,.14);
   box-shadow: 0 6px 14px rgba(15,23,42,.16);
-  font-size: 1.05rem;
-  transform: rotate(-6deg);
+  font-size: 1rem;
+  transform: none !important;
 }
-#reportDashboardCard .s4c-sticker-emoji.s1{ top: 0; left: 2px; transform: rotate(-9deg); }
-#reportDashboardCard .s4c-sticker-emoji.s2{ top: 12px; left: 30px; transform: rotate(7deg); }
-#reportDashboardCard .s4c-sticker-emoji.s3{ top: 2px; left: 58px; transform: rotate(-5deg); }
-#reportDashboardCard .s4c-sticker-emoji.s4{ top: 38px; left: 8px; transform: rotate(4deg); }
-#reportDashboardCard .s4c-sticker-emoji.s5{ top: 42px; left: 40px; transform: rotate(-7deg); }
-#reportDashboardCard .s4c-sticker-emoji.s6{ top: 34px; left: 72px; transform: rotate(10deg); }
 #reportDashboardCard .s4c-tags{
   margin-top: 10px;
   display: flex;
@@ -5083,6 +5075,12 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   background: linear-gradient(135deg, #ec4899 0%, #f97316 45%, #fb7185 100%);
   box-shadow: 0 8px 20px rgba(236,72,153,.28);
   cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+#reportDashboardCard .s4c-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(236,72,153,.34);
+  filter: saturate(1.05);
 }
 #reportDashboardCard .s4c-btn--kakao{
   background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
@@ -5100,7 +5098,6 @@ body.neo-mode #reportDashboardCard .s4c-brand,
 body.neo-mode #reportDashboardCard .s4c-main-title{
   color: rgba(226,232,240,.86);
 }
-body.neo-mode #reportDashboardCard .s4c-tag-watermark{ color: rgba(226,232,240,.15); }
 body.neo-mode #reportDashboardCard .s4c-frame{
   background: linear-gradient(180deg, rgba(15,23,42,.88), rgba(2,6,23,.84));
   border-color: rgba(226,232,240,.16);
@@ -5125,17 +5122,11 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   #reportDashboardCard .s4c-grid{ grid-template-columns: 1fr; }
   #reportDashboardCard .s4c-frame{ min-height: 0; }
   #reportDashboardCard .s4c-sticker-pack{
-    position: static;
     margin-top: 8px;
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
   }
   #reportDashboardCard .s4c-sticker-emoji{
-    position: static;
-    transform: none !important;
+    width: 30px;
+    height: 30px;
   }
   #reportDashboardCard .s4c-actions{ grid-template-columns: 1fr; }
 }
