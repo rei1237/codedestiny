@@ -43,6 +43,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/tarot/year", changeFrequency: "weekly", priority: 0.84 },
   { path: "/oracle/hwatu", changeFrequency: "weekly", priority: 0.82 },
   { path: "/oracle/hwatu-life", changeFrequency: "weekly", priority: 0.81 },
+  { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.80 },
   { path: "/oracle/kemet", changeFrequency: "weekly", priority: 0.82 },
   { path: "/oracle/juyuk", changeFrequency: "weekly", priority: 0.82 },
   { path: "/oracle/sukuyo", changeFrequency: "weekly", priority: 0.82 },

@@ -6,7 +6,26 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/*?utm_*", "/*?fbclid=*", "/*?gclid=*"],
+        disallow: [
+          "/admin",
+          "/_admin",
+          "/api",
+          "/dev-status",
+          "/_lib",
+          "/_locale",
+          "/login",
+          "/signup",
+          "/*?utm_",
+          "/*?fbclid=",
+          "/*?gclid=",
+          "/*?session=",
+          "/*?token=",
+        ],
+      },
+      // 공개 API는 봇 직접 접근 불필요
+      {
+        userAgent: "GPTBot",
+        disallow: ["/api", "/admin", "/_admin"],
       },
     ],
     sitemap: [

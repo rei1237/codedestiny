@@ -52,25 +52,7 @@ function stripLocalePrefix(pathname) {
 }
 
 function buildHreflangAlternates(currentPathname) {
-  let basePath = stripLocalePrefix(currentPathname);
-  const supported = new Set([
-    "/",
-    "/tarot/healing",
-    "/oracle/hwatu-life",
-    "/oracle/sikojen-povailu",
-    "/points",
-    "/login",
-    "/signup",
-    "/about",
-    "/insights",
-    "/privacy-policy",
-    "/terms-of-service",
-    "/faq",
-    "/contact-us",
-  ]);
-  if (!supported.has(basePath)) {
-    basePath = "/";
-  }
+  const basePath = stripLocalePrefix(currentPathname);
   const alternates = [];
 
   for (const locale of LOCALES) {
@@ -163,7 +145,7 @@ export const metadata = {
     ...SEO_CORE_KEYWORDS,
   ],
   alternates: {
-    canonical: "https://code-destiny.com",
+    // canonical은 RootLayout에서 pathname 기반으로 동적 생성됨 — 여기서는 hreflang 언어 대안만 선언
     languages: {
       ko: "https://code-destiny.com/",
       en: "https://code-destiny.com/en-us",
