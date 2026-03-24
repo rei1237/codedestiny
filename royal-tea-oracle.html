@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Royal Porcelain Cup — Tasseography Oracle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=EB+Garamond:wght@400;500;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=EB+Garamond:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -28,8 +28,9 @@ html, body {
   width: 100%; min-height: 100%;
   background: radial-gradient(circle at 12% 8%, #1b2432 0%, #0f1724 45%, #0a1019 100%);
   color: var(--parchment);
-  font-family: 'EB Garamond', serif;
-  letter-spacing: 0.05em;
+  font-family: 'Noto Serif KR', 'EB Garamond', serif;
+  letter-spacing: 0.015em;
+  line-height: 1.65;
   overflow-x: hidden;
 }
 
@@ -206,8 +207,7 @@ body::before {
 
 /* ─── STATUS TEXT ─── */
 #status-text {
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
+  font-family: 'Noto Serif KR', 'IM Fell English', serif;
   font-size: clamp(0.8rem, 2.2vw, 1rem);
   color: rgba(212,175,55,0.75);
   text-align: center; max-width: 340px;
@@ -335,6 +335,7 @@ body::before {
   border-radius: 4px 12px 12px 4px;
   border: 1px solid transparent;
   background: linear-gradient(135deg, var(--gold), var(--gold-dim), var(--gold)) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: destination-out; mask-composite: exclude;
   pointer-events: none;
@@ -358,22 +359,23 @@ body::before {
   margin: 14px 0;
 }
 #result-meaning {
-  font-family: 'IM Fell English', serif;
+  font-family: 'Noto Serif KR', 'IM Fell English', serif;
   font-size: clamp(0.88rem, 2vw, 1.05rem);
   color: var(--parchment);
   line-height: 1.8;
   margin-bottom: 14px;
+  white-space: pre-line;
   opacity: 0;
   animation: none;
 }
 #result-advice {
-  font-family: 'EB Garamond', serif;
-  font-style: italic;
+  font-family: 'Noto Sans KR', 'EB Garamond', serif;
   font-size: clamp(0.8rem, 1.8vw, 0.92rem);
   color: rgba(212,175,55,0.8);
   line-height: 1.7;
   border-left: 2px solid var(--gold-dim);
   padding-left: 14px;
+  white-space: pre-line;
   opacity: 0;
 }
 #result-keywords {
@@ -1377,6 +1379,110 @@ function getSymbolKeywords(symbolId) {
   return keywordMap[symbolId] || ['상징 해석', '직관 리딩', '운세 메시지'];
 }
 
+function getDetailedInsight(symbolId) {
+  const insightMap = {
+    crown: {
+      focus: '직위, 영향력, 공적 평가가 동시에 상승하는 흐름입니다.',
+      timing: '2~6주 안에 책임이 커지는 제안 혹은 공식 역할 변화가 나타날 수 있습니다.',
+      caution: '과도한 완벽주의는 리더십을 권위적으로 보이게 만들 수 있습니다.'
+    },
+    anchor: {
+      focus: '흩어진 자원을 모아 안정 기반을 강화하는 시기입니다.',
+      timing: '한 달 내 생활 리듬과 재정 계획을 정리하면 하반기 변동성이 줄어듭니다.',
+      caution: '안정만 추구하면 성장 기회를 놓칠 수 있으니 작은 도전은 유지하십시오.'
+    },
+    lion: {
+      focus: '주도권 회복, 결단, 자기 신뢰 회복이 핵심입니다.',
+      timing: '가까운 일정에서 미뤄둔 결정 1건을 확정할수록 운의 흐름이 빨라집니다.',
+      caution: '강한 표현은 상대를 압박할 수 있으니 근거를 함께 제시하십시오.'
+    },
+    clock: {
+      focus: '타이밍 관리가 결과를 좌우하는 상징입니다.',
+      timing: '72시간 안에 첫 행동을 시작하면 기회 손실을 크게 줄일 수 있습니다.',
+      caution: '분석만 반복하면 마감이 지나갑니다. 오늘 착수 가능한 단위를 정하십시오.'
+    },
+    rose: {
+      focus: '관계의 진정성, 감정의 언어화, 부드러운 화해가 강조됩니다.',
+      timing: '다음 대화 1~2회가 관계 방향을 결정짓는 분기점이 됩니다.',
+      caution: '기대치를 숨긴 채 배려만 하면 오해가 커질 수 있습니다.'
+    },
+    key: {
+      focus: '닫혀 있던 문제의 해법과 접근 권한이 열리는 상징입니다.',
+      timing: '이번 주 안에 새로운 사람, 문서, 채널에서 단서가 발견될 수 있습니다.',
+      caution: '모든 문을 동시에 열기보다 우선순위 1개를 정해 집중하십시오.'
+    },
+    star: {
+      focus: '영감과 행운이 짧고 강하게 들어오는 파동입니다.',
+      timing: '아이디어가 떠오른 당일 30분 투자로 초안을 남기면 성과로 연결됩니다.',
+      caution: '번쩍이는 착상만 모으고 실행을 미루면 운의 효율이 급감합니다.'
+    },
+    ship: {
+      focus: '환경 변화, 이동, 확장 전략의 시작을 뜻합니다.',
+      timing: '4주 내 외부 네트워크와의 접점이 커지며 선택지가 늘어납니다.',
+      caution: '목적지 없이 이동하면 피로만 누적됩니다. 기준 지도를 먼저 정하십시오.'
+    },
+    butterfly: {
+      focus: '가벼운 전환과 정체 구간의 해제, 관계 스타일 업데이트를 뜻합니다.',
+      timing: '작은 습관 1개만 바꿔도 2주 내 분위기 반전이 체감됩니다.',
+      caution: '모든 것을 한 번에 바꾸려 하면 오히려 원점으로 돌아갈 수 있습니다.'
+    },
+    crescent: {
+      focus: '직관, 관찰, 내면의 신호 해석이 중요해지는 구간입니다.',
+      timing: '밤 시간대 기록한 메모에서 핵심 해답이 정리될 가능성이 높습니다.',
+      caution: '불안과 직관을 혼동하지 않도록 사실 기록을 병행하십시오.'
+    },
+    tree: {
+      focus: '기초 체력, 장기 시스템, 느리지만 큰 복리 성장의 상징입니다.',
+      timing: '한 달 단위 계획을 3개월 지속하면 결과가 가시화됩니다.',
+      caution: '즉시 성과 집착은 오히려 축적 구조를 무너뜨릴 수 있습니다.'
+    },
+    ring: {
+      focus: '계약, 약속, 관계 정의의 확정이 중심 주제입니다.',
+      timing: '이번 분기 내 공식화 문서나 명확한 합의가 발생할 가능성이 큽니다.',
+      caution: '구두 약속만 믿지 말고 범위와 책임을 문장으로 남기십시오.'
+    },
+    swan: {
+      focus: '품위 있는 대응, 감정 정돈, 신뢰 기반 평판 관리에 유리합니다.',
+      timing: '중요한 대화 1회에서 톤과 태도가 예상 밖의 기회를 열 수 있습니다.',
+      caution: '좋은 매너가 자기 억압이 되지 않도록 경계선은 분명히 하십시오.'
+    },
+    bridge: {
+      focus: '단절 회복, 협업 연결, 중재 능력 발휘의 상징입니다.',
+      timing: '막힌 프로젝트나 대화가 1~3주 내 다시 흐를 조짐이 큽니다.',
+      caution: '모두를 만족시키려다 핵심 메시지가 흐려지지 않게 기준을 세우십시오.'
+    }
+  };
+  return insightMap[symbolId] || {
+    focus: '현재 흐름의 핵심 신호를 읽고, 가장 중요한 한 가지를 선택하십시오.',
+    timing: '짧은 실행 루틴을 일주일 유지하면 해석이 현실로 연결됩니다.',
+    caution: '과도한 해석보다 작은 행동 검증이 운세 정확도를 높입니다.'
+  };
+}
+
+function formatDetailedMeaning(symbol) {
+  const insight = getDetailedInsight(symbol.id);
+  return [
+    symbol.meaning,
+    '',
+    '해석 포인트',
+    `- 핵심 흐름: ${insight.focus}`,
+    `- 예상 타이밍: ${insight.timing}`,
+    `- 주의 신호: ${insight.caution}`
+  ].join('\n');
+}
+
+function formatDetailedAdvice(symbol) {
+  const insight = getDetailedInsight(symbol.id);
+  return [
+    `"${symbol.advice}"`,
+    '',
+    '실천 가이드',
+    `1) 오늘의 우선순위 1개를 정하고 20분만 바로 착수하세요.`,
+    `2) 다음 7일 동안 ${getSymbolKeywords(symbol.id)[0]} 관련 기록을 남겨 흐름을 검증하세요.`,
+    `3) ${insight.caution}`
+  ].join('\n');
+}
+
 function startReading() {
   if (phase === 'swirl' || phase === 'morph') return;
   morphTarget = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
@@ -1413,8 +1519,8 @@ function showResult(symbol) {
   const meaningEl = document.getElementById('result-meaning');
   const adviceEl = document.getElementById('result-advice');
   const keywordsEl = document.getElementById('result-keywords');
-  meaningEl.textContent = symbol.meaning;
-  adviceEl.textContent = `"${symbol.advice}"`;
+  meaningEl.textContent = formatDetailedMeaning(symbol);
+  adviceEl.textContent = formatDetailedAdvice(symbol);
   keywordsEl.innerHTML = '';
   getSymbolKeywords(symbol.id).forEach((kw) => {
     const chip = document.createElement('span');

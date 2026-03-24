@@ -109,11 +109,14 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
       }
       return response;
-    }).catch(() =>
-      caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        if (event.request.mode === 'navigate') return caches.match('/');
-      })
-    )
+    }).catch(async () => {
+      const cached = await caches.match(event.request);
+      if (cached) return cached;
+      if (event.request.mode === 'navigate') {
+        const home = await caches.match('/');
+        if (home) return home;
+      }
+      return new Response('', { status: 503, statusText: 'offline_unavailable' });
+    })
   );
 });
