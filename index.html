@@ -1254,8 +1254,8 @@
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🐷 핀란드 주석점</span>
-                    <span class="tarot-tile__desc">주석으로 보는 운명</span>
+                    <span class="tarot-tile__title">🐷 핀란드 돼지 주석점</span>
+                    <span class="tarot-tile__desc">녹인 주석의 형태로 운명을 점쳐요</span>
                   </div>
                 </a>
 
@@ -1362,10 +1362,8 @@
                 <button class="tarot-tile tarot-tile--olympus-oracle" type="button"
                         data-action="openOlympusOracleModal"
                         aria-label="올림푸스 별자리 신탁 열기">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/olympus.webp"
-                         alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/olympus.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1385,7 +1383,7 @@
         <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower">
           <div class="fg-group__cards">
 
-            <div class="feat-collection feat-collection--flower" id="flowerCollection">
+            <div class="feat-collection feat-collection--flower" id="flowerCollection" data-collection-open="false">
               <div class="feat-collection__cosmos" aria-hidden="true">
                 <span class="fc-star fc-star--1"></span>
                 <span class="fc-star fc-star--2"></span>
@@ -1394,7 +1392,7 @@
                 <span class="fc-star fc-star--5"></span>
                 <span class="fc-star fc-star--6"></span>
               </div>
-              <div class="feat-collection__header">
+              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="flowerCollection" aria-expanded="false" aria-label="운명의 꽃 &amp; 해몽 컬렉션 열기">
                 <div class="feat-collection__icon" aria-hidden="true">🌸</div>
                 <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
                 <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
@@ -1405,18 +1403,20 @@
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
+              </button>
+              <div class="fc-closed-peek" aria-hidden="true">
+                <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
               </div>
 
-              <div class="feat-collection__grid">
+              <div class="feat-collection__grid" data-grid="flowerCollection">
 
                 <!-- 운명의 꽃 통합 아틀리에 -->
                 <button class="tarot-tile tarot-tile--bloom" type="button"
                         data-action="openDestinyFlowerStudio"
                         aria-label="운명의 꽃 아틀리에 열기">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/flower.webp"
-                         alt="운명의 꽃 — 사주·점성술·자미두수 통합"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1429,10 +1429,8 @@
                 <button class="tarot-tile tarot-tile--astro-flower" type="button"
                         data-action="openAstrologyFlowerStudio"
                         aria-label="점성술 운명의 꽃 아틀리에 열기">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/flower2.webp"
-                         alt="점성술 운명의 꽃 — 네온 성운 꽃"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--nebula">NEBULA</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1445,10 +1443,8 @@
                 <button class="tarot-tile tarot-tile--jami-flower" type="button"
                         data-action="openJamidusuFlowerStudio"
                         aria-label="자미두수 운명의 꽃 아틀리에 열기">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/flower3.webp"
-                         alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">ZIWEI</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1461,10 +1457,8 @@
                 <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
                         data-action="openSukuyoFlowerStudio"
                         aria-label="숙요 운명의 꽃 아틀리에 열기">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/flower4.webp"
-                         alt="숙요 운명의 꽃 — 27숙 달빛 꽃"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--sukuyo">SUKUYO</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1477,10 +1471,8 @@
                 <button class="tarot-tile tarot-tile--dream-tile" type="button"
                         data-action="openDreamModal"
                         aria-label="드림 타로 해몽 시작">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/heamong.webp"
-                         alt="드림 타로 해몽 — AI 꿈 해석 리포트"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/heamong.webp" data-img-alt="드림 타로 해몽 — AI 꿈 해석 리포트">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
                   <div class="tarot-tile__body">
@@ -1493,10 +1485,8 @@
                 <button class="tarot-tile tarot-tile--psycho-freud-tile" type="button"
                         data-action="openPsychoDreamModal"
                         aria-label="정신분석 해몽 시작">
-                  <div class="tarot-tile__img-wrap">
-                    <img class="tarot-tile__img" src="/fuctionassets/phydream.webp"
-                         alt="정신분석 해몽 — 프로이트 관점의 보고서"
-                         loading="lazy" decoding="async" width="200" height="150">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/phydream.webp" data-img-alt="정신분석 해몽 — 프로이트 관점의 보고서">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
                   <div class="tarot-tile__body">

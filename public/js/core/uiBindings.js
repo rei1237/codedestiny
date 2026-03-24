@@ -238,6 +238,45 @@ export function bindGlobalActions(root) {
       return;
     }
 
+    if (action === 'toggleCollection') {
+      const targetId = actionEl.getAttribute('data-target');
+      const collection = document.getElementById(targetId);
+      if (!collection) return;
+
+      const isOpen = collection.getAttribute('data-collection-open') === 'true';
+      const newState = !isOpen;
+
+      collection.setAttribute('data-collection-open', String(newState));
+      actionEl.setAttribute('aria-expanded', String(newState));
+
+      if (newState) {
+        collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]').forEach(function (wrap) {
+          if (wrap.querySelector('img.tarot-tile__img')) return;
+          var src = wrap.getAttribute('data-img-src');
+          var alt = wrap.getAttribute('data-img-alt') || '';
+
+          var skeleton = document.createElement('div');
+          skeleton.className = 'tarot-tile__img-skeleton';
+          wrap.insertBefore(skeleton, wrap.firstChild);
+
+          var img = document.createElement('img');
+          img.className = 'tarot-tile__img';
+          img.decoding = 'async';
+          img.width = 200;
+          img.height = 150;
+          img.alt = alt;
+          img.onload = function () { skeleton.remove(); };
+          img.onerror = function () { skeleton.remove(); };
+          img.src = src;
+          wrap.insertBefore(img, wrap.firstChild);
+        });
+      } else {
+        collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img').forEach(function (img) { img.remove(); });
+        collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton').forEach(function (sk) { sk.remove(); });
+      }
+      return;
+    }
+
     __invokeAction(action, actionEl, event);
   });
 
