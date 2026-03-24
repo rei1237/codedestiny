@@ -37,6 +37,27 @@ function _s4cPercent(v) {
   return Math.max(0, Math.round(n));
 }
 
+function _s4cClamp(v, min, max) {
+  var n = Number(v || 0);
+  if (!isFinite(n)) n = min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function _s4cSeedFromText(text) {
+  var s = String(text || 'seed');
+  var h = 0;
+  for (var i = 0; i < s.length; i++) {
+    h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff;
+  }
+  return h || 13579;
+}
+
+function _s4cPickBySeed(list, seed) {
+  if (!Array.isArray(list) || !list.length) return '';
+  var idx = Math.abs(Number(seed || 0)) % list.length;
+  return list[idx];
+}
+
 function _s4cGetDominantElement() {
   var ratios = (window.G_NATAL && window.G_NATAL.ratios) || null;
   var els = ['wood', 'fire', 'earth', 'metal', 'water'];
@@ -104,7 +125,166 @@ function _s4cBuildTenGodMix(p) {
   if (list.length === 1) {
     list.push({ name: '정인', pct: Math.max(0, 100 - list[0].pct), mz: '공부 모드' });
   }
-  return [list[0], list[1]];
+  return list;
+}
+
+function _s4cBuildVibeStats(dayStem, monthTenGod, dominant) {
+  var baseByStem = {
+    '甲': [86, 74, 82, 66, 78],
+    '乙': [72, 88, 76, 81, 83],
+    '丙': [79, 69, 92, 71, 75],
+    '丁': [77, 84, 81, 79, 80],
+    '戊': [68, 76, 72, 94, 73],
+    '己': [71, 82, 69, 90, 77],
+    '庚': [75, 70, 85, 87, 72],
+    '辛': [90, 68, 78, 73, 88],
+    '壬': [74, 78, 83, 75, 92],
+    '癸': [84, 91, 70, 72, 86]
+  };
+  var labels = ['예민미', '의리', '미적감각', '현실력', '집중력'];
+  var values = (baseByStem[dayStem] || [78, 80, 79, 77, 81]).slice();
+
+  var modByTenGod = {
+    '비견': [2, 6, 0, 2, 1],
+    '겁재': [-1, 7, 1, -1, 2],
+    '식신': [1, 2, 5, 1, -1],
+    '상관': [4, -1, 6, -2, 1],
+    '편재': [0, 3, 2, 4, -1],
+    '정재': [-2, 1, 1, 6, 2],
+    '편관': [-1, 2, 0, 5, 4],
+    '정관': [-2, 1, -1, 6, 5],
+    '편인': [5, 0, 2, -2, 4],
+    '정인': [3, 1, 1, 1, 6]
+  };
+  var mod = modByTenGod[monthTenGod] || [0, 0, 0, 0, 0];
+  for (var i = 0; i < values.length; i++) {
+    values[i] = _s4cClamp(values[i] + mod[i], 58, 99);
+  }
+
+  if (dominant === 'water') values[0] = _s4cClamp(values[0] + 4, 58, 99);
+  if (dominant === 'earth') values[3] = _s4cClamp(values[3] + 5, 58, 99);
+  if (dominant === 'fire') values[2] = _s4cClamp(values[2] + 4, 58, 99);
+
+  return labels.map(function(label, idx) {
+    return { label: label, value: values[idx] };
+  });
+}
+
+function _s4cBuildRadarSvg(stats) {
+  var cx = 70;
+  var cy = 70;
+  var r = 52;
+  var rings = [20, 32, 44, 52];
+  var angleStep = (Math.PI * 2) / Math.max(1, stats.length);
+  var grid = '';
+
+  rings.forEach(function(rv) {
+    var points = [];
+    for (var i = 0; i < stats.length; i++) {
+      var a = -Math.PI / 2 + i * angleStep;
+      points.push((cx + Math.cos(a) * rv).toFixed(1) + ',' + (cy + Math.sin(a) * rv).toFixed(1));
+    }
+    grid += '<polygon class="s4c-radar-ring" points="' + points.join(' ') + '"></polygon>';
+  });
+
+  var spokes = '';
+  var shapePoints = [];
+  for (var j = 0; j < stats.length; j++) {
+    var ang = -Math.PI / 2 + j * angleStep;
+    var outerX = cx + Math.cos(ang) * r;
+    var outerY = cy + Math.sin(ang) * r;
+    spokes += '<line class="s4c-radar-spoke" x1="' + cx + '" y1="' + cy + '" x2="' + outerX.toFixed(1) + '" y2="' + outerY.toFixed(1) + '"></line>';
+    var rr = r * (_s4cClamp(stats[j].value, 0, 100) / 100);
+    shapePoints.push((cx + Math.cos(ang) * rr).toFixed(1) + ',' + (cy + Math.sin(ang) * rr).toFixed(1));
+  }
+
+  return ''
+    + '<svg class="s4c-radar" viewBox="0 0 140 140" aria-hidden="true">'
+    + '<defs><linearGradient id="s4cRadarFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fb7185" stop-opacity="0.44"></stop><stop offset="100%" stop-color="#34d399" stop-opacity="0.30"></stop></linearGradient></defs>'
+    + grid
+    + spokes
+    + '<polygon class="s4c-radar-shape" points="' + shapePoints.join(' ') + '"></polygon>'
+    + '<polygon class="s4c-radar-fill" points="' + shapePoints.join(' ') + '"></polygon>'
+    + '</svg>';
+}
+
+function _s4cBuildFirstVsNow(monthTenGod) {
+  var table = {
+    '비견': { first: '차가운 도시 사람', now: '지켜주는 의리파', mood: '필요한 순간엔 무조건 와주는 타입' },
+    '겁재': { first: '도도한 리더상', now: '텐션 높은 팀장님', mood: '친해지면 말 많은 강아지 모드' },
+    '식신': { first: '무해한 분위기', now: '생활력 만렙 메이트', mood: '챙김 스킬과 유머를 동시에 씀' },
+    '상관': { first: '팩폭러 같음', now: '웃긴 감성러', mood: '센스 있는 농담으로 분위기 업' },
+    '편재': { first: '인싸 기질', now: '기회 연결자', mood: '사람과 정보를 자연스럽게 잇는다' },
+    '정재': { first: '성실한 모범생', now: '든든한 실속파', mood: '약속/일정/돈 감각이 안정적' },
+    '편관': { first: '엄격해 보임', now: '압박 돌파형', mood: '위기 때 오히려 강해지는 편' },
+    '정관': { first: '반듯한 이미지', now: '신뢰형 조율러', mood: '분위기와 규칙을 같이 잡는다' },
+    '편인': { first: '조용한 미스터리', now: '아이디어 폭격기', mood: '남들이 못 본 포인트를 발견' },
+    '정인': { first: '말끔한 엘리트', now: '다정한 조력자', mood: '설명력과 공감력이 둘 다 좋음' }
+  };
+  return table[monthTenGod] || { first: '차분한 첫인상', now: '친해지면 반전 매력', mood: '시간 갈수록 웃긴 포인트가 나온다' };
+}
+
+function _s4cBuildBrainMapData(tgList, dominant) {
+  var biggest = (tgList[0] && tgList[0].name) ? tgList[0].name : '식신';
+  var biggestPct = _s4cClamp((tgList[0] && tgList[0].pct) || 46, 30, 99);
+  var satellites = [];
+  var take = Math.min(4, Math.max(2, tgList.length - 1));
+  for (var i = 1; i <= take; i++) {
+    satellites.push({
+      name: tgList[i] && tgList[i].name ? tgList[i].name : (i === 1 ? '편인' : '정인'),
+      pct: _s4cClamp((tgList[i] && tgList[i].pct) || (35 - i * 3), 8, 55)
+    });
+  }
+  var worryByElement = {
+    wood: ['이번 주 발표 톤', '읽씹 아닌지 체크', '새 루틴 유지 가능성'],
+    fire: ['과몰입 멈추기', '말이 너무 빨랐나?', '체력 방전 관리'],
+    earth: ['지출 줄이기 미션', '할 일 우선순위', '약속 일정 조율'],
+    metal: ['완벽주의 브레이크', '기준 낮추기 연습', '답장 문구 선택'],
+    water: ['감정 과다해석 금지', '밤샘 생각 루프', '관계 거리 조절']
+  };
+  var worries = worryByElement[dominant] || worryByElement.earth;
+  var keyword = _s4cPickBySeed(worries, _s4cSeedFromText(biggest + dominant + biggestPct));
+  return {
+    biggest: biggest,
+    biggestPct: biggestPct,
+    satellites: satellites,
+    keyword: keyword
+  };
+}
+
+function _s4cBuildLuckyPack(dayStem, dominant) {
+  var items = ['🎒 캔버스 백', '🧦 포인트 양말', '📓 미니 다이어리', '🎧 노이즈캔슬링 이어폰', '🕶️ 틴트 선글라스'];
+  var bgm = ['NewJeans - Super Shy', 'Crush - Rush Hour', '아이유 - Blueming', '잔나비 - 주저하는 연인들을 위해', 'AKMU - Love Lee'];
+  var spots = ['햇살 들어오는 카페 창가', '동네 공원 벤치', '작은 독립서점', '강변 산책로', '조용한 루프탑'];
+  var seed = _s4cSeedFromText(dayStem + dominant + Date.now());
+  return {
+    item: _s4cPickBySeed(items, seed),
+    bgm: _s4cPickBySeed(bgm, seed + 3),
+    spot: _s4cPickBySeed(spots, seed + 7)
+  };
+}
+
+function _s4cDecorSvg(type) {
+  if (type === 'heart') {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.5-9.2-8.7C1.5 8 3.2 5 6.4 5c2 0 3.2 1 4.1 2.3C11.4 6 12.6 5 14.6 5c3.2 0 4.9 3 3.6 6.3C19.5 15.5 12 20 12 20z"></path></svg>';
+  }
+  if (type === 'star') {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 5.4L20 8.1l-4 3.9.9 5.6L12 15l-4.9 2.6.9-5.6-4-3.9 5.4-.7L12 2z"></path></svg>';
+  }
+  if (type === 'cherry') {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm7-1c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zM9 12c1.7-2.4 4.2-4.1 7.1-4.7L18 6c-3.8.5-7 2.6-9.1 5.7L9 12z"></path></svg>';
+  }
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="9" cy="10" r="1.2" fill="#000"></circle><circle cx="15" cy="10" r="1.2" fill="#000"></circle><path d="M8.2 14.2c1 1.2 2.3 1.8 3.8 1.8s2.8-.6 3.8-1.8" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"></path></svg>';
+}
+
+function _s4cFrameDecorMarkup(frameSeed) {
+  var icons = ['heart', 'star', 'smile', 'cherry'];
+  var result = '';
+  for (var i = 0; i < 4; i++) {
+    var iconType = icons[(frameSeed + i) % icons.length];
+    result += '<span class="s4c-y2k s4c-y2k-' + (i + 1) + '">' + _s4cDecorSvg(iconType) + '</span>';
+  }
+  return result;
 }
 
 function _s4cBuildFrameData() {
@@ -195,6 +375,11 @@ function _s4cBuildFrameData() {
   var frame3Detail = tgA.name + ' ' + tgA.pct + '%(' + tgA.mz + ') + ' + tgB.name + ' ' + tgB.pct + '%(' + tgB.mz + ') 조합으로, 머릿속이 늘 멀티탭 상태야. 그래서 중요한 건 "한 번에 하나씩" 우선순위 잠금 걸어두는 것. 오늘은 알림 줄이고 25분 집중 2세트만 해도 체감 성과가 확 올라간다.';
   var frame4Detail = '오늘은 작은 완수에서 운이 커지는 날. 친구랑 수다 떨듯 가볍게 시작해도 되고, 핵심은 "첫 버튼 눌러서 흐름 켜기"야. 1개 끝내고 바로 체크 표시하면 동기부여가 계속 붙으니까, 오히려 느긋하게 가는 게 결과는 더 잘 나온다.';
 
+  var firstNow = _s4cBuildFirstVsNow(monthTenGod);
+  var vibeStats = _s4cBuildVibeStats(dayStem, monthTenGod, dominant);
+  var brain = _s4cBuildBrainMapData(tg, dominant);
+  var luckyPack = _s4cBuildLuckyPack(dayStem, dominant);
+
   return {
     theme: theme,
     dominantElement: dominant,
@@ -210,10 +395,117 @@ function _s4cBuildFrameData() {
     frame4Detail: frame4Detail,
     monthPillar: monthPillar || '월주 대기',
     dayPillar: dayStem + dayBranch,
+    vibeStats: vibeStats,
+    radarSvg: _s4cBuildRadarSvg(vibeStats),
+    firstNow: firstNow,
+    brain: brain,
+    luckyPack: luckyPack,
+    stickerCatalog: ['💘', '⭐', '😊', '🍒', '🎀', '💿', '🫧', '📷'],
     stickerPack: ['🐔', '✨', '📸', '💘', '🎀', sticker.emoji || '🐷'],
     rare: (typeof window.__sajuFourCutRare === 'boolean') ? window.__sajuFourCutRare : (window.__sajuFourCutRare = (Math.random() < 0.01))
   };
 }
+
+function _s4cRenderVibeStatsLegend(stats) {
+  return stats.map(function(s) {
+    return '<li><strong>' + _s4cEscapeHtml(s.label) + '</strong><span>' + _s4cEscapeHtml(String(s.value)) + '%</span></li>';
+  }).join('');
+}
+
+function _s4cRenderBrainBubbles(brain) {
+  var bubbles = '';
+  for (var i = 0; i < brain.satellites.length; i++) {
+    var b = brain.satellites[i];
+    bubbles += '<div class="s4c-brain-bubble s4c-brain-bubble-' + (i + 1) + '"><strong>' + _s4cEscapeHtml(b.name) + '</strong><span>' + _s4cEscapeHtml(String(b.pct)) + '%</span></div>';
+  }
+  return bubbles;
+}
+
+function _s4cBindStickerStudio(host) {
+  if (!host) return;
+  var capture = host.querySelector('[data-s4c-capture]');
+  if (!capture) return;
+
+  var dragging = null;
+
+  function pointerPos(ev) {
+    if (ev.touches && ev.touches[0]) return { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+    if (ev.changedTouches && ev.changedTouches[0]) return { x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY };
+    return { x: ev.clientX, y: ev.clientY };
+  }
+
+  function onMove(ev) {
+    if (!dragging) return;
+    ev.preventDefault();
+    var pt = pointerPos(ev);
+    var rect = capture.getBoundingClientRect();
+    var x = _s4cClamp(pt.x - rect.left - dragging.offsetX, 0, rect.width - dragging.el.offsetWidth);
+    var y = _s4cClamp(pt.y - rect.top - dragging.offsetY, 0, rect.height - dragging.el.offsetHeight);
+    dragging.el.style.left = x + 'px';
+    dragging.el.style.top = y + 'px';
+  }
+
+  function onUp() {
+    dragging = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove, { passive: false });
+    document.removeEventListener('touchend', onUp);
+  }
+
+  function bindStickerDrag(el) {
+    if (!el) return;
+    function start(ev) {
+      ev.preventDefault();
+      var pt = pointerPos(ev);
+      var r = el.getBoundingClientRect();
+      dragging = {
+        el: el,
+        offsetX: pt.x - r.left,
+        offsetY: pt.y - r.top
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onUp);
+    }
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, { passive: false });
+  }
+
+  Array.prototype.slice.call(host.querySelectorAll('.s4c-user-sticker')).forEach(bindStickerDrag);
+  host.__s4cBindStickerDrag = bindStickerDrag;
+}
+
+window.addS4CSticker = function(btn) {
+  var wrap = btn && btn.closest ? btn.closest('.s4c-wrap') : null;
+  if (!wrap) return;
+  var capture = wrap.querySelector('[data-s4c-capture]');
+  var dock = wrap.querySelector('[data-s4c-sticker-dock]');
+  if (!capture || !dock) return;
+
+  var emoji = dock.getAttribute('data-next-sticker') || '💘';
+  var catalog = ['💘', '⭐', '😊', '🍒', '🎀', '💿', '🫧', '📷'];
+  var idx = catalog.indexOf(emoji);
+  var next = catalog[(idx + 1 + catalog.length) % catalog.length];
+  dock.setAttribute('data-next-sticker', next);
+  var preview = wrap.querySelector('.s4c-sticker-next');
+  if (preview) preview.textContent = next;
+
+  var sticker = document.createElement('button');
+  sticker.type = 'button';
+  sticker.className = 's4c-user-sticker';
+  sticker.textContent = emoji;
+  sticker.setAttribute('aria-label', '이동 가능한 스티커');
+  var offset = capture.querySelectorAll('.s4c-user-sticker').length;
+  sticker.style.left = (12 + (offset % 5) * 26) + 'px';
+  sticker.style.top = (12 + Math.floor(offset / 5) * 26) + 'px';
+  capture.appendChild(sticker);
+
+  if (typeof wrap.__s4cBindStickerDrag === 'function') {
+    wrap.__s4cBindStickerDrag(sticker);
+  }
+};
 
 function _s4cEnsureCanvasLib() {
   if (window.html2canvas) return Promise.resolve(window.html2canvas);
@@ -272,23 +564,16 @@ function renderSajuFourCutContent() {
     + '    <div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div>'
     + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
     + '    <div class="s4c-grid">'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>1. 나의 본캐 Vibe</h4><span>' + frameEmoji[0] + '</span></div><p>' + _s4cEscapeHtml(data.frame1) + '</p><em>' + _s4cEscapeHtml(data.frame1Detail) + '</em><span>' + _s4cEscapeHtml(data.dayPillar) + ' · ' + _s4cEscapeHtml(data.theme.name) + ' 무드</span></article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>2. 남들이 보는 나</h4><span>' + frameEmoji[1] + '</span></div><p>' + _s4cEscapeHtml(data.frame2) + '</p><em>' + _s4cEscapeHtml(data.frame2Detail) + '</em><span>' + _s4cEscapeHtml(data.monthPillar) + ' 분위기 리딩</span></article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>3. 머릿속 복잡도</h4><span>' + frameEmoji[2] + '</span></div><p>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>1. 본캐 Vibe 능력치</h4><span>' + frameEmoji[0] + '</span></div><p>' + _s4cEscapeHtml(data.frame1) + '</p><em>' + _s4cEscapeHtml(data.frame1Detail) + '</em><div class="s4c-radar-wrap">' + data.radarSvg + '<ul class="s4c-radar-legend">' + _s4cRenderVibeStatsLegend(data.vibeStats) + '</ul></div><span>' + _s4cEscapeHtml(data.dayPillar) + ' · ' + _s4cEscapeHtml(data.theme.name) + ' 무드</span>' + _s4cFrameDecorMarkup(1) + '</article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>2. 첫인상 vs 현인상</h4><span>' + frameEmoji[1] + '</span></div><p>' + _s4cEscapeHtml(data.frame2) + '</p><em>' + _s4cEscapeHtml(data.frame2Detail) + '</em><div class="s4c-compare"><div class="s4c-compare-item"><strong>첫인상</strong><span>' + _s4cEscapeHtml(data.firstNow.first) + '</span></div><div class="s4c-compare-item"><strong>현인상</strong><span>' + _s4cEscapeHtml(data.firstNow.now) + '</span></div></div><div class="s4c-compare-mood">💬 ' + _s4cEscapeHtml(data.firstNow.mood) + '</div><span>' + _s4cEscapeHtml(data.monthPillar) + ' 분위기 리딩</span>' + _s4cFrameDecorMarkup(2) + '</article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>3. 머릿속 브레인맵</h4><span>' + frameEmoji[2] + '</span></div><p>'
     + _s4cEscapeHtml(data.frame3[0].name) + ' ' + _s4cEscapeHtml(String(data.frame3[0].pct)) + '% (' + _s4cEscapeHtml(data.frame3[0].mz) + ') · '
     + _s4cEscapeHtml(data.frame3[1].name) + ' ' + _s4cEscapeHtml(String(data.frame3[1].pct)) + '% (' + _s4cEscapeHtml(data.frame3[1].mz) + ')</p>'
-    + '      <em>' + _s4cEscapeHtml(data.frame3Detail) + '</em><span>기절 포인트: 생각이 너무 많아서 웃김</span></article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>4. 오늘의 럭키비키</h4><span>' + frameEmoji[3] + '</span></div><p>' + _s4cEscapeHtml(data.frame4) + '</p><em>' + _s4cEscapeHtml(data.frame4Detail) + '</em><span>한 줄 미션으로 갓생 스타트</span></article>'
-    + '    </div>'
-    + '    <div class="s4c-sticker-pack" aria-label="cute emoji stickers">'
-    + '      <span class="s4c-sticker-emoji s1">' + _s4cEscapeHtml(data.stickerPack[0]) + '</span>'
-    + '      <span class="s4c-sticker-emoji s2">' + _s4cEscapeHtml(data.stickerPack[1]) + '</span>'
-    + '      <span class="s4c-sticker-emoji s3">' + _s4cEscapeHtml(data.stickerPack[2]) + '</span>'
-    + '      <span class="s4c-sticker-emoji s4">' + _s4cEscapeHtml(data.stickerPack[3]) + '</span>'
-    + '      <span class="s4c-sticker-emoji s5">' + _s4cEscapeHtml(data.stickerPack[4]) + '</span>'
-    + '      <span class="s4c-sticker-emoji s6">' + _s4cEscapeHtml(data.stickerPack[5]) + '</span>'
+    + '      <em>' + _s4cEscapeHtml(data.frame3Detail) + '</em><div class="s4c-brainmap"><div class="s4c-brain-core"><strong>' + _s4cEscapeHtml(data.brain.biggest) + '</strong><span>' + _s4cEscapeHtml(String(data.brain.biggestPct)) + '%</span></div>' + _s4cRenderBrainBubbles(data.brain) + '</div><div class="s4c-brain-note">🧩 지금 가장 큰 고민: ' + _s4cEscapeHtml(data.brain.keyword) + '</div><span>기절 포인트: 생각이 너무 많아서 웃김</span>' + _s4cFrameDecorMarkup(3) + '</article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>4. 오늘의 럭키비키</h4><span>' + frameEmoji[3] + '</span></div><p>' + _s4cEscapeHtml(data.frame4) + '</p><em>' + _s4cEscapeHtml(data.frame4Detail) + '</em><div class="s4c-lucky-pack"><div><strong>🧷 오늘의 행운 템</strong><span>' + _s4cEscapeHtml(data.luckyPack.item) + '</span></div><div><strong>🎵 오늘의 BGM</strong><span>' + _s4cEscapeHtml(data.luckyPack.bgm) + '</span></div><div><strong>📍 오늘의 에너지 스팟</strong><span>' + _s4cEscapeHtml(data.luckyPack.spot) + '</span></div></div><span>한 줄 미션으로 갓생 스타트</span>' + _s4cFrameDecorMarkup(4) + '</article>'
     + '    </div>'
     + '  </div>'
+    + '  <div class="s4c-sticker-dock" data-s4c-sticker-dock="1" data-next-sticker="💘"><span class="s4c-sticker-next">💘</span><button type="button" class="s4c-btn s4c-btn--sticker" onclick="addS4CSticker(this)">🧷 스티커 붙이기</button><small>클릭 후 캡처 영역에서 스티커를 드래그해 위치를 조정해줘.</small></div>'
     + '  <div class="s4c-tags" aria-label="share hashtags">'
     + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('')
     + '  </div>'
@@ -297,6 +582,8 @@ function renderSajuFourCutContent() {
     + '    <button type="button" class="s4c-btn s4c-btn--kakao" onclick="shareSajuFourCutKakao(this)">💬 카카오톡 공유</button>'
     + '  </div>'
     + '</div>';
+
+  _s4cBindStickerStudio(host.firstElementChild);
 }
 
 window.saveSajuFourCutImage = function(btn) {
