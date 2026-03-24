@@ -15,6 +15,7 @@ var REPORT_CARDS = [
   { id:'trip',       label:'에너지 원정 리포트',     desc:'나의 에너지 방향과 이상적 여정지를 안내합니다.',         note:'지금 나와 맞는 방향을 찾고 싶다면, 장소/활동 추천까지 한 번에 확인하세요.', cta:'🗺️ 에너지 좌표 확인하기',      accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           },
+  { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 아이템 · 회고를 기록해보세요.',           note:'오늘 사주 흐름을 짧게 기록하고 누적하면, 운의 패턴이 더 선명하게 보입니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary' },
   { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard'     }
 ];
 
@@ -685,6 +686,7 @@ function renderReportDashboard() {
       seenTargets[c.target] = {
         images: [],
         target: c.target,
+        action: c.action || '',
         title: c.label,
         preview: c.desc,
         note: c.note,
@@ -742,6 +744,14 @@ function renderReportDashboard() {
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);
     if (slot && !targetEl) {
+      if (b.action === 'openLuckSyncDiary') {
+        slot.innerHTML = ''
+          + '<div style="display:flex;flex-direction:column;gap:10px;">'
+          + '  <p style="margin:0;color:#cbd5e1;font-size:.9rem;line-height:1.6;">오늘의 사주 흐름을 다이어리로 기록하고, 갓생 지수와 럭키 아이템을 확인해보세요.</p>'
+          + '  <button type="button" data-action="openLuckSyncDiary" style="align-self:flex-start;border:none;border-radius:10px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.35);">📔 사주 다이어리 열기</button>'
+          + '</div>';
+        return;
+      }
       var missingBlock = document.getElementById('rpt-v2-section-' + b.target);
       if (missingBlock) missingBlock.style.display = 'none';
       return;
