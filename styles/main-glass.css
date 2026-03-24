@@ -685,6 +685,33 @@ body {
 .feat-collection--cosmic .fc-toggle-btn { border-bottom-color: rgba(167, 139, 250, 0.8); }
 .feat-collection--flower .fc-toggle-btn { border-bottom-color: rgba(251, 207, 232, 0.75); }
 .tarot-collection .fc-toggle-btn { border-bottom-color: rgba(196, 181, 253, 0.75); }
+.fc-toggle-btn::after {
+	content: "";
+	position: absolute;
+	left: 10%;
+	right: 10%;
+	bottom: 0;
+	height: 2px;
+	opacity: 0;
+	border-radius: 999px;
+	pointer-events: none;
+	background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.88) 50%, transparent 100%);
+	background-size: 180% 100%;
+	transition: opacity 0.25s ease;
+}
+[data-collection-open="false"] .fc-toggle-btn::after {
+	opacity: 0.9;
+	animation: fc-toggleSweep 2.8s ease-in-out infinite;
+}
+[data-collection-open="true"] .fc-toggle-btn::after {
+	opacity: 0;
+	animation: none;
+}
+@keyframes fc-toggleSweep {
+	0% { background-position: 180% 0; opacity: 0.35; }
+	50% { opacity: 0.95; }
+	100% { background-position: -80% 0; opacity: 0.35; }
+}
 
 /* ─── 토글 힌트 (▾ 눌러서 열기) ─── */
 .fc-toggle-hint {
@@ -692,22 +719,95 @@ body {
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
-	margin-top: 10px;
+	position: relative;
+	width: fit-content;
+	margin: 12px auto 0;
+	padding: 6px 14px;
+	border-radius: 999px;
+	border: 1px solid rgba(253, 230, 138, 0.28);
+	background: linear-gradient(120deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,255,255,0.04) inset;
 	color: rgba(253, 230, 138, 0.65);
 	font-size: 0.75rem;
 	letter-spacing: 0.06em;
-	transition: color 0.2s, transform 0.3s;
+	transition: color 0.2s, transform 0.3s, box-shadow 0.3s, border-color 0.3s;
 }
 .feat-collection--animal .fc-toggle-hint { color: rgba(167, 243, 208, 0.7); }
 .feat-collection--oracle .fc-toggle-hint { color: rgba(253, 224, 71, 0.7); }
 .feat-collection--cosmic .fc-toggle-hint { color: rgba(196, 181, 253, 0.7); }
 .feat-collection--flower .fc-toggle-hint { color: rgba(251, 207, 232, 0.7); }
 .tarot-collection .fc-toggle-hint { color: rgba(196, 181, 253, 0.7); }
+.feat-collection--cosmic .fc-toggle-hint {
+	border-color: rgba(167, 139, 250, 0.42);
+	background: linear-gradient(120deg, rgba(147, 104, 255, 0.24), rgba(56, 46, 135, 0.12));
+	box-shadow: 0 8px 24px rgba(76, 29, 149, 0.3), 0 0 0 1px rgba(196,181,253,0.2) inset;
+}
+.feat-collection--flower .fc-toggle-hint {
+	border-color: rgba(251, 113, 192, 0.38);
+	background: linear-gradient(120deg, rgba(251, 113, 192, 0.22), rgba(157, 23, 77, 0.12));
+	box-shadow: 0 8px 24px rgba(157, 23, 77, 0.28), 0 0 0 1px rgba(251,207,232,0.22) inset;
+}
+[data-collection-open="false"] .fc-toggle-hint {
+	animation: fc-tapBeacon 2.2s ease-in-out infinite;
+}
+[data-collection-open="false"] .feat-collection--cosmic .fc-toggle-hint {
+	animation-name: fc-tapBeacon-cosmic;
+}
+[data-collection-open="false"] .feat-collection--flower .fc-toggle-hint {
+	animation-name: fc-tapBeacon-flower;
+}
 .fc-toggle-hint__arrow {
 	display: inline-block;
 	font-size: 1rem;
 	line-height: 1;
 	transition: transform 0.3s ease;
+}
+[data-collection-open="false"] .fc-toggle-hint__arrow {
+	animation: fc-arrowNudge 1.25s ease-in-out infinite;
+}
+.fc-toggle-hint__text::after {
+	font-weight: 700;
+	letter-spacing: 0.03em;
+}
+.fc-toggle-btn:active .fc-toggle-hint {
+	transform: scale(0.97);
+}
+@keyframes fc-arrowNudge {
+	0%, 100% { transform: translateY(0); }
+	45% { transform: translateY(1px); }
+	60% { transform: translateY(4px); }
+}
+@keyframes fc-tapBeacon {
+	0%, 100% {
+		transform: translateY(0);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,255,255,0.05) inset;
+	}
+	50% {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 18px rgba(253, 230, 138, 0.18);
+	}
+}
+@keyframes fc-tapBeacon-cosmic {
+	0%, 100% {
+		transform: translateY(0);
+		box-shadow: 0 8px 24px rgba(76, 29, 149, 0.3), 0 0 0 1px rgba(196,181,253,0.2) inset;
+	}
+	50% {
+		transform: translateY(-1px);
+		box-shadow: 0 12px 30px rgba(76, 29, 149, 0.4), 0 0 0 1px rgba(196,181,253,0.36) inset, 0 0 22px rgba(167, 139, 250, 0.28);
+	}
+}
+@keyframes fc-tapBeacon-flower {
+	0%, 100% {
+		transform: translateY(0);
+		box-shadow: 0 8px 24px rgba(157, 23, 77, 0.28), 0 0 0 1px rgba(251,207,232,0.22) inset;
+	}
+	50% {
+		transform: translateY(-1px);
+		box-shadow: 0 12px 30px rgba(157, 23, 77, 0.38), 0 0 0 1px rgba(251,207,232,0.35) inset, 0 0 22px rgba(244, 114, 182, 0.28);
+	}
 }
 
 /* 열린 상태: 힌트 텍스트 변경 & 화살표 회전 */
@@ -719,6 +819,13 @@ body {
 }
 [data-collection-open="false"] .fc-toggle-hint__text::after {
 	content: "눌러서 열기";
+}
+@media (prefers-reduced-motion: reduce) {
+	[data-collection-open="false"] .fc-toggle-btn::after,
+	[data-collection-open="false"] .fc-toggle-hint,
+	[data-collection-open="false"] .fc-toggle-hint__arrow {
+		animation: none;
+	}
 }
 
 /* ─── 그리드: 닫힌 상태에서 숨김 ─── */

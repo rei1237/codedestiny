@@ -7,8 +7,22 @@
   var overlayWatch = { startedAt: 0, active: false };
   var _initDone = false;
   var _longTaskCount = 0;
+  var _runtimeDebug = false;
 
   function now() { return Date.now(); }
+
+  function shouldDebugRuntimeLog() {
+    if (_runtimeDebug) return true;
+    try {
+      var q = new URLSearchParams(location.search || '');
+      var queryOn = q.get('debugRuntime') === '1' || q.get('debugPerf') === '1';
+      var localOn = localStorage.getItem('debug.runtime') === '1' || localStorage.getItem('debug.perf') === '1';
+      _runtimeDebug = !!(queryOn || localOn || window.__ENABLE_RUNTIME_DEBUG__ === true);
+    } catch (e) {
+      _runtimeDebug = !!(window.__ENABLE_RUNTIME_DEBUG__ === true);
+    }
+    return _runtimeDebug;
+  }
 
   function showFallback(msg) {
     // Disabled per UX request: do not show runtime fallback toasts.
@@ -224,7 +238,9 @@
         }
         entries.forEach(function(entry) {
           if (entry && entry.duration > 50) {
-            try { console.warn('[runtime-stability] long task detected:', Math.round(entry.duration) + 'ms'); } catch (e) {}
+            if (shouldDebugRuntimeLog()) {
+              try { console.warn('[runtime-stability] long task detected:', Math.round(entry.duration) + 'ms'); } catch (e) {}
+            }
           }
         });
       });

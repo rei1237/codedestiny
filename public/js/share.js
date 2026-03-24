@@ -315,8 +315,7 @@ function handleFavoriteAdd() {
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
-  // Chrome/Android 설치 배너를 즉시 띄우지 않고 사용자 버튼에서 직접 띄우기 위해 보관합니다.
-  e.preventDefault();
+  // 이벤트를 보관해 사용자 버튼 설치 흐름에서 재사용합니다.
   _pwaPrompt = e;
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE);
   updateFavoriteButtonThemeText(isNeo);

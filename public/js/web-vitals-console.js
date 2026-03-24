@@ -213,7 +213,17 @@ var G = function(e2, n) {
 
 // scripts/web-vitals-console.mjs
 var THRESHOLDS = { LCP: 2500, CLS: 0.1, INP: 200 };
+function shouldLogVitalsToConsole() {
+  if (window.__ENABLE_WEB_VITALS_CONSOLE__ === true) return true;
+  try {
+    var q = new URLSearchParams(location.search || '');
+    return q.get('debugVitals') === '1' || localStorage.getItem('debug.vitals') === '1';
+  } catch (e2) {
+    return false;
+  }
+}
 function report(name, metric) {
+  if (!shouldLogVitalsToConsole()) return;
   const v2 = metric.value;
   let pass = true;
   if (name === "LCP") pass = v2 <= THRESHOLDS.LCP;
