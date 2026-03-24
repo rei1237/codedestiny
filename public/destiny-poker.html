@@ -2720,48 +2720,25 @@ function closeFold4Modal(){
 
 function confirmFold4(){
   closeFold4Modal();
-  if(G4.roundDone) return;
-  G4.pCards.forEach(c=>c.fd=false);
-  G4.dCards.forEach(c=>c.fd=false);
-  G4.pHand4 = bestHand(G4.pCards);
-  G4.dHand4 = bestHand(G4.dCards);
-  G4.roundDone = true;
-
-  const rid = G4.currentDealerId;
-  const msg = getRoundResultMessage(rid, false, G4.pHand4.name, G4.dHand4.name);
-  G4.results.push({
-    id:rid,
-    win:false,
-    playerHandName:G4.pHand4.name,
-    dealerHandName:G4.dHand4.name,
-    playerCards:[...G4.pHand4.cards],
-    dealerCards:[...G4.dHand4.cards],
-    suit:dominantSuit(G4.pHand4.cards),
-    topVal:G4.pHand4.cards.reduce((mx,c)=>c.v>mx?c.v:mx,0),
-    pot:G4.pot,
-    luckAfter:G4.luck,
-    message:msg
-  });
-
-  render4Stage(true);
-  render4DealerZones(true);
-  render4PlayerRow();
-  render4Dialogues(true, msg);
-
-  const bar=document.getElementById('action4-bar');
-  bar.innerHTML='';
-  const el=document.createElement('button');
-  el.className='btn-act next';
-  if(G4.round < ALL4_DEALER_ORDER.length-1){
-    el.textContent='➡️ 다음 딜러와 연속 대결';
-    el.onclick=()=>{G4.round++;startNextDealerRound();};
-  } else {
-    G4.round++;
-    G4.winner = finalizeGauntletResult();
-    el.textContent='📜 최종 운명 판결서 받기';
-    el.onclick=buildReport4;
-  }
-  bar.appendChild(el);
+  // 4인 연속 결전에서 폴드는 즉시 메인(딜러 선택)으로 복귀한다.
+  setSpinning4(false);
+  G4 = {
+    name:G.name,
+    round:0,
+    street:0,
+    luck:100,
+    pot:0,
+    deck:[],
+    pCards:[],
+    dCards:[],
+    currentDealerId:null,
+    pHand4:null,
+    dHand4:null,
+    results:[],
+    winner:null,
+    roundDone:false
+  };
+  restartGame();
 }
 
 function buildAllWinLongOracle(wins){
