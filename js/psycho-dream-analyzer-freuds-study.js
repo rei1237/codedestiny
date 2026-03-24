@@ -866,13 +866,35 @@
     if (typeof window.psychoDreamStartAnalysis === "function") window.psychoDreamStartAnalysis();
   });
 
+  // NOTE: 배경 클릭 닫기(backdrop click close)는 의도적으로 제거됨.
+  // 모바일에서 결과 스크롤 중 오버레이 영역이 클릭 이벤트로 잘못 인식되어
+  // 모달이 튕겨나가는 치명적 버그를 방지합니다. 닫기는 X 버튼을 사용하세요.
+
+  // 오버레이 내부 이벤트 위임: 동적으로 추가된 버튼(홈 버튼 등) 처리
   var overlay = $(OVERLAY_ID);
-  if (overlay && !overlay.dataset.cdBackdropCloseBound) {
-    overlay.dataset.cdBackdropCloseBound = "1";
+  if (overlay && !overlay.dataset.cdDelegationBound) {
+    overlay.dataset.cdDelegationBound = "1";
     overlay.addEventListener("click", function (ev) {
-      if (ev.target !== overlay) return;
-      if (typeof window.closePsychoDreamModal === "function") window.closePsychoDreamModal();
-    });
+      var target = ev.target && ev.target.closest ? ev.target.closest("[data-action]") : null;
+      if (!target) return;
+      var action = target.getAttribute("data-action");
+      if (action === "psychoDreamGoHome" && typeof window.psychoDreamGoHome === "function") {
+        ev.preventDefault(); ev.stopPropagation();
+        window.psychoDreamGoHome();
+      } else if (action === "closePsychoDreamModal" && typeof window.closePsychoDreamModal === "function") {
+        ev.preventDefault(); ev.stopPropagation();
+        window.closePsychoDreamModal();
+      } else if (action === "psychoDreamStartAnalysis" && typeof window.psychoDreamStartAnalysis === "function") {
+        ev.preventDefault(); ev.stopPropagation();
+        window.psychoDreamStartAnalysis();
+      } else if (action === "psychoDreamReset" && typeof window.psychoDreamReset === "function") {
+        ev.preventDefault(); ev.stopPropagation();
+        window.psychoDreamReset();
+      } else if (action === "psychoDreamShareText" && typeof window.psychoDreamShareText === "function") {
+        ev.preventDefault(); ev.stopPropagation();
+        window.psychoDreamShareText();
+      }
+    }, { capture: false });
   }
   setScreen("input");
 })();
