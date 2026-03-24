@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Royal Porcelain Cup — Tasseography Oracle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=EB+Garamond:wght@400;500;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --ebony: #1A1A1A;
-  --oxford: #2C3E50;
-  --gold: #D4AF37;
-  --gold-light: #F0D060;
-  --gold-dim: #8B7520;
-  --parchment: #F5EDD8;
-  --parchment-dark: #E8D9BC;
+  --ebony: #0c1018;
+  --oxford: #1f2f44;
+  --gold: #d9b25b;
+  --gold-light: #f1d89a;
+  --gold-dim: #887042;
+  --parchment: #f5ecda;
+  --parchment-dark: #e6d6b8;
   --ink: #1a0f00;
-  --cream: #FDF6E3;
-  --tea-brown: #3D1C02;
+  --cream: #fdf6e3;
+  --tea-brown: #3d1c02;
   --fog: rgba(200, 210, 220, 0.08);
 }
 
@@ -26,9 +26,9 @@
 
 html, body {
   width: 100%; min-height: 100%;
-  background: var(--ebony);
+  background: radial-gradient(circle at 12% 8%, #1b2432 0%, #0f1724 45%, #0a1019 100%);
   color: var(--parchment);
-  font-family: 'Lora', serif;
+  font-family: 'EB Garamond', serif;
   letter-spacing: 0.05em;
   overflow-x: hidden;
 }
@@ -51,19 +51,6 @@ body::before {
   overflow: hidden;
 }
 #skyline-svg { width: 100%; height: 100%; opacity: 0.18; }
-
-/* ─── LONDON PHOTO BACKDROP ─── */
-#london-photo-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(10, 9, 8, 0.3) 0%, rgba(8, 7, 6, 0.8) 72%, rgba(6, 5, 4, 0.92) 100%),
-    url('/fuctionassets/london.webp') center top / cover no-repeat;
-  opacity: 0.42;
-  filter: saturate(0.85) contrast(1.05);
-}
 
 /* ─── FOG LAYERS ─── */
 .fog-layer {
@@ -105,7 +92,7 @@ body::before {
   50%      { filter: drop-shadow(0 0 22px rgba(212,175,55,0.8)); }
 }
 #header h1 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(1.8rem, 5vw, 3.2rem);
   font-weight: 900; font-style: italic;
   color: var(--gold);
@@ -354,7 +341,7 @@ body::before {
 }
 
 #result-symbol-name {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: clamp(1.3rem, 3vw, 1.9rem);
   font-weight: 700; font-style: italic;
   color: var(--gold);
@@ -380,7 +367,7 @@ body::before {
   animation: none;
 }
 #result-advice {
-  font-family: 'Lora', serif;
+  font-family: 'EB Garamond', serif;
   font-style: italic;
   font-size: clamp(0.8rem, 1.8vw, 0.92rem);
   color: rgba(212,175,55,0.8);
@@ -416,23 +403,65 @@ body::before {
   100% { opacity: 1; filter: blur(0); transform: translateY(0); }
 }
 
-#close-btn {
-  display: block; margin: 22px auto 0;
-  background: none;
-  border: 1px solid rgba(212,175,55,0.3);
-  color: rgba(212,175,55,0.6);
-  font-family: 'IM Fell English', serif;
-  font-size: 0.8rem; letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 8px 24px; cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.3s;
+#panel-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(217,178,91,0.45);
+  background: rgba(16, 21, 33, 0.75);
+  color: var(--gold-light);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-#close-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(212,175,55,0.05);
-  box-shadow: 0 0 12px rgba(212,175,55,0.15);
+#panel-close-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold-light);
+  box-shadow: 0 0 14px rgba(217,178,91,0.24);
+}
+
+.result-actions {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.result-btn {
+  min-height: 40px;
+  border-radius: 7px;
+  border: 1px solid rgba(217,178,91,0.32);
+  background: rgba(217,178,91,0.08);
+  color: var(--parchment);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.result-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(241,216,154,0.58);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.result-btn--primary {
+  background: linear-gradient(135deg, rgba(217,178,91,0.3) 0%, rgba(136,112,66,0.35) 100%);
+  color: #fff7e4;
+}
+
+.result-btn--danger {
+  background: rgba(188,72,72,0.14);
+  border-color: rgba(188,72,72,0.38);
+}
+
+.result-actions #close-btn {
+  grid-column: 1 / -1;
 }
 
 /* ─── HISTORY SECTION ─── */
@@ -441,7 +470,7 @@ body::before {
   animation: fadeUp 1.8s ease 0.6s both;
 }
 #history-title {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 0.85rem; letter-spacing: 0.25em;
   text-transform: uppercase; color: var(--gold-dim);
   text-align: center; margin-bottom: 14px;
@@ -469,7 +498,7 @@ body::before {
 #footer {
   margin-top: 50px; text-align: center;
   color: rgba(212,175,55,0.25);
-  font-family: 'IM Fell English', serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 0.75rem; letter-spacing: 0.15em;
 }
 
@@ -501,6 +530,12 @@ body::before {
   #history-section { width: 100%; }
 }
 
+@media (max-width: 560px) {
+  .result-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── LOADING INDICATOR ─── */
 #loading-ring {
   display: none;
@@ -518,7 +553,6 @@ body::before {
 <body>
 
 <!-- London Skyline -->
-<div id="london-photo-backdrop" aria-hidden="true"></div>
 <div id="skyline-wrap">
   <svg id="skyline-svg" viewBox="0 0 1400 280" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
     <!-- Big Ben Tower -->
@@ -718,13 +752,18 @@ body::before {
     <div id="right-col">
       <div id="result-panel">
         <div id="notebook">
+          <button id="panel-close-btn" type="button" aria-label="결과 닫기">×</button>
           <div id="result-symbol-icon">🌿</div>
           <div id="result-symbol-name">형상을 기다리며…</div>
           <hr id="result-divider">
           <div id="result-meaning"></div>
           <div id="result-advice"></div>
           <div id="result-keywords" aria-label="오늘의 운세 키워드"></div>
-          <button id="close-btn">— 다시 점치다 —</button>
+          <div class="result-actions">
+            <button id="share-kakao-btn" class="result-btn result-btn--primary" type="button">💬 카카오톡 공유하기</button>
+            <button id="go-home-btn" class="result-btn" type="button">🏠 메인화면 바로가기</button>
+            <button id="close-btn" class="result-btn result-btn--danger" type="button">↻ 다시 점치기</button>
+          </div>
         </div>
       </div>
 
@@ -1441,6 +1480,40 @@ function resetOracle() {
   setStatus('귀하의 찻잔을 바라보십시오. 찻잎이 귀하의 운명을 속삭이고 있습니다.');
 }
 
+function closeResultPanel() {
+  document.getElementById('result-panel').classList.remove('open');
+  setStatus('결과 패널을 닫았습니다. 원하시면 다시 점을 치실 수 있습니다.');
+}
+
+function goMainHome() {
+  window.location.href = '/';
+}
+
+async function shareToKakao() {
+  const title = 'The Royal Porcelain Cup — Tasseography Oracle';
+  const text = '오늘의 찻잎 리딩 결과를 공유해보세요.';
+  const url = window.location.href;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+      return;
+    }
+  } catch (err) {
+    console.warn('Share cancelled or unavailable:', err);
+  }
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(url);
+    }
+  } catch (err) {
+    console.warn('Clipboard write failed:', err);
+  }
+
+  window.open(`https://story.kakao.com/share?url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+}
+
 // ══════════════════════════════════════════════
 //  Watch Clock Update
 // ══════════════════════════════════════════════
@@ -1480,6 +1553,9 @@ updateWatchHands();
 // ══════════════════════════════════════════════
 document.getElementById('oracle-btn').addEventListener('click', startReading);
 document.getElementById('close-btn').addEventListener('click', resetOracle);
+document.getElementById('panel-close-btn').addEventListener('click', closeResultPanel);
+document.getElementById('go-home-btn').addEventListener('click', goMainHome);
+document.getElementById('share-kakao-btn').addEventListener('click', shareToKakao);
 
 window.addEventListener('resize', () => {
   resize();
