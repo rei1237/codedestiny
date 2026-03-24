@@ -20,6 +20,7 @@ var REPORT_CARDS = [
 
 var S4C_TAG_TEXT = '#사주네컷 #코드데스티니 #꿀꿀 만세력 #무료 사주 #무료 운세 #대박 운세 #신년운세 #성격테스트 #2026운세';
 var _s4cCanvasLoader = null;
+var S4C_TAG_LIST = ['#사주네컷', '#코드데스티니', '#꿀꿀만세력', '#무료사주', '#무료운세', '#대박운세', '#신년운세', '#성격테스트', '#2026운세'];
 
 function _s4cEscapeHtml(raw) {
   return String(raw == null ? '' : raw)
@@ -152,16 +153,23 @@ function _s4cBuildFrameData() {
   };
 
   var luckyByElement = {
-    wood: '초록 포인트 하나 들고 할 일 1개만 끝내. 오히려 좋아.',
-    fire: '핑크 포인트 장착하고 아아 한 잔 들고 시작해. 럭키비키 각이야.',
-    earth: '베이지템 입고 책상 10분 정리해. 그게 오늘 갓생 트리거야.',
-    metal: '화이트 아이템으로 룩 정리하고 미뤘던 답장부터 보내. 폼 미쳤다.',
-    water: '네이비 포인트 챙기고 조용한 플레이리스트 틀어. 집중력 기절급이야.'
+    wood: '초록 포인트 장착하고 미루던 일 1개만 끝내. 오히려 좋아. 끝나면 산책 12분으로 리프레시하면 집중력 폼 미쳤다.',
+    fire: '핑크 아이템 하나 들고 아아 마시면서 할 일 3개 중 1개만 선빵쳐. 첫 스타트만 끊으면 럭키비키 모드가 바로 켜진다.',
+    earth: '베이지 무드로 책상 10분 정리하고 메모 3줄 써. 루틴 하나만 고정하면 오늘 갓생 루프가 자동으로 돌아간다.',
+    metal: '화이트 포인트 룩에 일정 2개만 칼같이 처리해. 디테일 챙긴 너 오늘 완전 일잘러 모드라 주변이 기절한다.',
+    water: '네이비 포인트 + 잔잔한 플리 조합으로 25분 몰입 타이머 돌려. 깊게 파고드는 흐름이 오늘 대박 기회를 데려온다.'
   };
 
   var luckyElement = (window.G_POWER && Array.isArray(window.G_POWER.yongshin) && window.G_POWER.yongshin[0]) || dominant;
   var theme = elementTheme[dominant] || elementTheme.earth;
   var monthPillar = (monthStem || '') + (monthBranch || '');
+
+  var frame1Detail = '겉보기는 쿨한데 속은 은근 섬세한 타입. 분위기만 보면 쉬워 보여도 기준선은 꽤 높은 편이라 아무나 못 넘는다.';
+  var frame2Detail = '처음엔 차분해 보여도 친해지면 텐션 급상승. 회의/일할 때는 정확하고, 놀 때는 분위기 메이커라 반전 매력 제대로 터진다.';
+  var tgA = tg[0] || { name: '식신', pct: 50, mz: '먹을 생각' };
+  var tgB = tg[1] || { name: '정인', pct: 50, mz: '공부 모드' };
+  var frame3Detail = tgA.name + ' ' + tgA.pct + '%(' + tgA.mz + ') + ' + tgB.name + ' ' + tgB.pct + '%(' + tgB.mz + ') 조합으로, 머릿속은 늘 프로젝트 탭 20개 열어둔 상태.';
+  var frame4Detail = '오늘은 작게 시작해서 크게 먹는 날. 대놓고 무리하지 말고, 1개 완수 -> 1개 보상 루프로 가면 성과가 진짜 빨리 붙는다.';
 
   return {
     theme: theme,
@@ -172,8 +180,13 @@ function _s4cBuildFrameData() {
     frame2: monthView[monthTenGod] || ('첫인상은 차분한데, ' + monthPillar + ' 포인트에서 반전 터지는 타입'),
     frame3: tg,
     frame4: luckyByElement[luckyElement] || luckyByElement[dominant] || luckyByElement.earth,
+    frame1Detail: frame1Detail,
+    frame2Detail: frame2Detail,
+    frame3Detail: frame3Detail,
+    frame4Detail: frame4Detail,
     monthPillar: monthPillar || '월주 대기',
     dayPillar: dayStem + dayBranch,
+    stickerPack: ['🐔', '✨', '📸', '💘', '🎀', sticker.emoji || '🐷'],
     rare: (typeof window.__sajuFourCutRare === 'boolean') ? window.__sajuFourCutRare : (window.__sajuFourCutRare = (Math.random() < 0.01))
   };
 }
@@ -220,7 +233,7 @@ function renderSajuFourCutContent() {
   var frameEmoji = ['🪩', '🎭', '🧠', '🍀'];
 
   host.innerHTML = ''
-    + '<div class="s4c-wrap" style="--s4c-bg:' + _s4cEscapeHtml(data.theme.bg) + ';--s4c-card:' + _s4cEscapeHtml(data.theme.card) + ';--s4c-line:' + _s4cEscapeHtml(data.theme.line) + ';">'
+    + '<div class="s4c-wrap s4c-tw" style="--s4c-bg:' + _s4cEscapeHtml(data.theme.bg) + ';--s4c-card:' + _s4cEscapeHtml(data.theme.card) + ';--s4c-line:' + _s4cEscapeHtml(data.theme.line) + ';">'
     + '  <div class="s4c-aurora s4c-aurora-a" aria-hidden="true"></div>'
     + '  <div class="s4c-aurora s4c-aurora-b" aria-hidden="true"></div>'
     + '  <div class="s4c-head">'
@@ -228,26 +241,33 @@ function renderSajuFourCutContent() {
     + '    <div class="s4c-head-copy">'
     + '      <span class="s4c-chip">MZ 운명 필터 ON</span>'
     + '      <h4 class="s4c-main-title">사주네컷 찍고 바로 스토리 각</h4>'
-    + '      <p class="s4c-sub">팩폭은 하는데 귀여움은 유지. 오늘 무드가 기절급이면 이걸로 박제해.</p>'
+    + '      <p class="s4c-sub">킹받게 정확한 팩폭 + 하찮고 귀여운 감성으로 오늘 분위기 박제. 공유 안 하면 손해인 텐션으로 뽑았어.</p>'
     + '    </div>'
     + '  </div>'
     + '  <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1">'
     + '    <div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div>'
-    + '    <div class="s4c-tag-watermark">' + _s4cEscapeHtml(S4C_TAG_TEXT) + '</div>'
+    + '    <div class="s4c-tag-watermark">MZ SAJU SNAP · VIBE MODE</div>'
     + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
     + '    <div class="s4c-grid">'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>1. 나의 본캐 Vibe</h4><span>' + frameEmoji[0] + '</span></div><p>' + _s4cEscapeHtml(data.frame1) + '</p><span>' + _s4cEscapeHtml(data.dayPillar) + ' · ' + _s4cEscapeHtml(data.theme.name) + ' 무드</span></article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>2. 남들이 보는 나</h4><span>' + frameEmoji[1] + '</span></div><p>' + _s4cEscapeHtml(data.frame2) + '</p><span>' + _s4cEscapeHtml(data.monthPillar) + ' 분위기 리딩</span></article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>1. 나의 본캐 Vibe</h4><span>' + frameEmoji[0] + '</span></div><p>' + _s4cEscapeHtml(data.frame1) + '</p><em>' + _s4cEscapeHtml(data.frame1Detail) + '</em><span>' + _s4cEscapeHtml(data.dayPillar) + ' · ' + _s4cEscapeHtml(data.theme.name) + ' 무드</span></article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>2. 남들이 보는 나</h4><span>' + frameEmoji[1] + '</span></div><p>' + _s4cEscapeHtml(data.frame2) + '</p><em>' + _s4cEscapeHtml(data.frame2Detail) + '</em><span>' + _s4cEscapeHtml(data.monthPillar) + ' 분위기 리딩</span></article>'
     + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>3. 머릿속 복잡도</h4><span>' + frameEmoji[2] + '</span></div><p>'
     + _s4cEscapeHtml(data.frame3[0].name) + ' ' + _s4cEscapeHtml(String(data.frame3[0].pct)) + '% (' + _s4cEscapeHtml(data.frame3[0].mz) + ') · '
     + _s4cEscapeHtml(data.frame3[1].name) + ' ' + _s4cEscapeHtml(String(data.frame3[1].pct)) + '% (' + _s4cEscapeHtml(data.frame3[1].mz) + ')</p>'
-    + '      <span>기절 포인트: 생각이 너무 많아서 웃김</span></article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>4. 오늘의 럭키비키</h4><span>' + frameEmoji[3] + '</span></div><p>' + _s4cEscapeHtml(data.frame4) + '</p><span>한 줄 미션으로 갓생 스타트</span></article>'
+    + '      <em>' + _s4cEscapeHtml(data.frame3Detail) + '</em><span>기절 포인트: 생각이 너무 많아서 웃김</span></article>'
+    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>4. 오늘의 럭키비키</h4><span>' + frameEmoji[3] + '</span></div><p>' + _s4cEscapeHtml(data.frame4) + '</p><em>' + _s4cEscapeHtml(data.frame4Detail) + '</em><span>한 줄 미션으로 갓생 스타트</span></article>'
     + '    </div>'
-    + '    <div class="s4c-sticker">'
-    + '      <span class="s4c-sticker-emoji">' + _s4cEscapeHtml(data.stickerEmoji) + '</span>'
-    + '      <span class="s4c-sticker-text">하찮고 귀여운 ' + _s4cEscapeHtml(data.stickerName) + ' 스티커</span>'
+    + '    <div class="s4c-sticker-pack" aria-label="cute emoji stickers">'
+    + '      <span class="s4c-sticker-emoji s1">' + _s4cEscapeHtml(data.stickerPack[0]) + '</span>'
+    + '      <span class="s4c-sticker-emoji s2">' + _s4cEscapeHtml(data.stickerPack[1]) + '</span>'
+    + '      <span class="s4c-sticker-emoji s3">' + _s4cEscapeHtml(data.stickerPack[2]) + '</span>'
+    + '      <span class="s4c-sticker-emoji s4">' + _s4cEscapeHtml(data.stickerPack[3]) + '</span>'
+    + '      <span class="s4c-sticker-emoji s5">' + _s4cEscapeHtml(data.stickerPack[4]) + '</span>'
+    + '      <span class="s4c-sticker-emoji s6">' + _s4cEscapeHtml(data.stickerPack[5]) + '</span>'
     + '    </div>'
+    + '  </div>'
+    + '  <div class="s4c-tags" aria-label="share hashtags">'
+    + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('')
     + '  </div>'
     + '  <div class="s4c-actions">'
     + '    <button type="button" class="s4c-btn" onclick="saveSajuFourCutImage(this)">📥 네컷 이미지 저장</button>'

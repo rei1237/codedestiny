@@ -4852,6 +4852,7 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
     linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--s4c-bg, #f5e9d3) 48%, #ffffff) 100%);
   border: 1px solid rgba(15,23,42,0.13);
   box-shadow: 0 12px 34px rgba(15,23,42,0.14);
+  font-family: "SUIT Variable", "Pretendard Variable", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 #reportDashboardCard .s4c-aurora{
   position: absolute;
@@ -5006,26 +5007,65 @@ body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   font-weight: 700;
   font-family: "Gaegu", "Nanum Pen Script", "Comic Sans MS", cursive;
 }
+#reportDashboardCard .s4c-frame em{
+  display: block;
+  margin-top: 6px;
+  font-style: normal;
+  font-size: .74rem;
+  line-height: 1.5;
+  color: rgba(15,23,42,.72);
+}
 #reportDashboardCard .s4c-frame span{
   display: block;
   margin-top: 5px;
   color: rgba(15,23,42,.66);
   font-size: .72rem;
 }
-#reportDashboardCard .s4c-sticker{
-  margin-top: 8px;
+#reportDashboardCard .s4c-sticker-pack{
+  position: absolute;
+  inset: auto 8px 8px auto;
+  width: 124px;
+  height: 86px;
+  pointer-events: none;
+}
+#reportDashboardCard .s4c-sticker-emoji{
+  position: absolute;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(15,23,42,.12);
-  border-radius: 999px;
-  padding: 5px 11px;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(15,23,42,.14);
+  box-shadow: 0 6px 14px rgba(15,23,42,.16);
+  font-size: 1.05rem;
+  transform: rotate(-6deg);
 }
-#reportDashboardCard .s4c-sticker-emoji{ font-size: 1.1rem; }
-#reportDashboardCard .s4c-sticker-text{
-  font-size: .76rem;
-  color: rgba(15,23,42,.76);
+#reportDashboardCard .s4c-sticker-emoji.s1{ top: 0; left: 2px; transform: rotate(-9deg); }
+#reportDashboardCard .s4c-sticker-emoji.s2{ top: 12px; left: 30px; transform: rotate(7deg); }
+#reportDashboardCard .s4c-sticker-emoji.s3{ top: 2px; left: 58px; transform: rotate(-5deg); }
+#reportDashboardCard .s4c-sticker-emoji.s4{ top: 38px; left: 8px; transform: rotate(4deg); }
+#reportDashboardCard .s4c-sticker-emoji.s5{ top: 42px; left: 40px; transform: rotate(-7deg); }
+#reportDashboardCard .s4c-sticker-emoji.s6{ top: 34px; left: 72px; transform: rotate(10deg); }
+#reportDashboardCard .s4c-tags{
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#reportDashboardCard .s4c-tag-chip{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: rgba(255,255,255,.82);
+  border: 1px solid rgba(15,23,42,.12);
 }
 #reportDashboardCard .s4c-actions{
   display: grid;
@@ -5056,7 +5096,6 @@ body.neo-mode #reportDashboardCard .s4c-wrap{
 }
 body.neo-mode #reportDashboardCard .s4c-sub,
 body.neo-mode #reportDashboardCard .s4c-frame span,
-body.neo-mode #reportDashboardCard .s4c-sticker-text,
 body.neo-mode #reportDashboardCard .s4c-brand,
 body.neo-mode #reportDashboardCard .s4c-main-title{
   color: rgba(226,232,240,.86);
@@ -5067,8 +5106,15 @@ body.neo-mode #reportDashboardCard .s4c-frame{
   border-color: rgba(226,232,240,.16);
 }
 body.neo-mode #reportDashboardCard .s4c-frame p{ color: #f8fafc; }
+body.neo-mode #reportDashboardCard .s4c-frame em{ color: rgba(226,232,240,.77); }
 body.neo-mode #reportDashboardCard .s4c-capture{
   background: linear-gradient(180deg, rgba(30,41,59,.86) 0%, rgba(15,23,42,.96) 100%);
+}
+body.neo-mode #reportDashboardCard .s4c-sticker-emoji,
+body.neo-mode #reportDashboardCard .s4c-tag-chip{
+  background: rgba(15,23,42,.88);
+  border-color: rgba(226,232,240,.18);
+  color: rgba(226,232,240,.92);
 }
 @media (max-width: 640px){
   #reportDashboardCard .s4c-head{
@@ -5078,6 +5124,19 @@ body.neo-mode #reportDashboardCard .s4c-capture{
   #reportDashboardCard .s4c-main-title{ font-size: .9rem; }
   #reportDashboardCard .s4c-grid{ grid-template-columns: 1fr; }
   #reportDashboardCard .s4c-frame{ min-height: 0; }
+  #reportDashboardCard .s4c-sticker-pack{
+    position: static;
+    margin-top: 8px;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #reportDashboardCard .s4c-sticker-emoji{
+    position: static;
+    transform: none !important;
+  }
   #reportDashboardCard .s4c-actions{ grid-template-columns: 1fr; }
 }
 .fortune-sec-title {
