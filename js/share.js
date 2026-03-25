@@ -724,7 +724,7 @@ var NEO_TITLES={
   '대박 로또 생성기 — 수리 에너지 공명 번호':'퀀텀 코드 추출 — 수리 공명 로또',
   '대운 (大運) — 억부+조후+종격 통합 판단':'대운 — 당신의 운명 궤도를 보라',
   '일운·월운 근대운':'단기 에너지 스캔 — 지금 당신의 흐름',
-  '사주 편지':'직격 통보 — 팩폭 에피소드',
+  '사주 편지':'사주 편지 — 연이의 편지',
   '오늘의 운세':'당일 에너지 스코어',
   '사주로 보는 매력':'매력 에너지 분석 — 블랙홀리스트',
   '자선 모드 — 전생 업 분석':'전생 진단 — 업(業)의 잔재물',
@@ -851,7 +851,7 @@ function applyNeoTexts(){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
+    letterTitle.innerHTML = '💖 연이의 편지';
   }
   // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
   if(isResultPageVisible() && typeof renderLetter === 'function' && window.G_PILLARS) {

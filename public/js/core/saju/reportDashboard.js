@@ -12,7 +12,7 @@ var REPORT_CARDS = [
   { id:'sajurpg',    label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
   { id:'tbal',       label:'극T 테스트',            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:'🧊 극T 테스트 결과 보기',      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard'           },
   { id:'tetoegen',   label:'테토 vs 에겐',          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:'❤️ 테토/에겐 분석 보기',      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section'},
-  { id:'trip',       label:'에너지 원정 리포트',     desc:'나의 에너지 방향과 이상적 여정지를 안내합니다.',         note:'지금 나와 맞는 방향을 찾고 싶다면, 장소/활동 추천까지 한 번에 확인하세요.', cta:'🗺️ 에너지 좌표 확인하기',      accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
+  { id:'trip',       label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard'     },
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           },
   { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary' },
@@ -760,12 +760,14 @@ function renderReportDashboard() {
       return;
     }
     if (slot && targetEl) {
-      /* 내부 콘텐츠 div가 비어 있으면 대시보드 블록 자체를 숨김 */
+      /* 내부 콘텐츠가 비어 있어도 블록을 숨기지 않고 복구 안내를 노출한다. */
       var innerSection = targetEl.querySelector('div[id]');
       if (innerSection && innerSection.innerHTML.trim().length < 30) {
-        var dashBlock = document.getElementById('rpt-v2-section-' + b.target);
-        if (dashBlock) dashBlock.style.display = 'none';
-        return;
+        innerSection.innerHTML = ''
+          + '<div style="border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:10px 12px;color:#334155;font-size:.84rem;line-height:1.6;">'
+          + '<b>콘텐츠를 불러오는 중입니다.</b><br>'
+          + '잠시 후 자동 반영됩니다. 바로 확인하려면 다시 분석하기를 눌러주세요.'
+          + '</div>';
       }
       /* 숨겨진 섹션도 대시보드 안에서 표시 */
       if (targetEl.style.display === 'none') {
