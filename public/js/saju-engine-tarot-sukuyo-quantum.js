@@ -4369,10 +4369,12 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           let tDate = new Date(y, m-1, d, h, min, 0);
 
           try {
-              if (calType === 'solar') {
-                  var syLat = (window._astroBirth && window._astroBirth.lat) || (window._ziweiBirth && window._ziweiBirth.lat) || 37.5665;
-                  var syLon = (window._astroBirth && window._astroBirth.lon) || (window._ziweiBirth && window._ziweiBirth.lon) || 126.9780;
-                  var syTz = (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : ((window._ziweiBirth && window._ziweiBirth.tz != null) ? window._ziweiBirth.tz : 9);
+                if (calType === 'solar') {
+                  // 상대 입력 폼에는 출생지 입력이 없으므로, 기준 인물 전역 상태를 참조하지 않고 고정 기준값을 사용한다.
+                  // 이렇게 해야 "누구를 기준으로 보느냐"를 바꿔도 동일 생년월일시에서 동일 숙요 결과가 보장된다.
+                  var syLat = 37.5665;
+                  var syLon = 126.9780;
+                  var syTz = 9;
                   var syCtx = await resolvePrimaryCalendarContext({
                     calendarType: 'solar',
                     year: y,
