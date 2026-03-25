@@ -605,6 +605,10 @@ function __cdLoadTarotSukuyoBundle() {
 
 function __cdLoadCoreSajuBundle() {
   var chain = [
+    '/js/data/chinese-astrology.js',
+    '/js/core/kasi/calendar.js',
+    '/js/services/sajuAnalyzer.js',
+    '/js/engines/ziwei-doushu.js',
     '/js/saju-engine.js?v=20260323-ziwei-fix1',
     '/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1',
     '/js/saju-engine-continuation.js?v=20260320-saju-rpt1',
@@ -660,6 +664,8 @@ var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
+  openPhysiognomyApp: function() { return __cdLoadScriptOnce('/PhysiognomyUI.js'); },
+  openMbtiModal: function() { return __cdLoadScriptOnce('/js/astral-soul.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
   openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260323'); },

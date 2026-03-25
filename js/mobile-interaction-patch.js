@@ -55,6 +55,20 @@
       ].join(',')
     },
     {
+      action: 'openMbtiModal',
+      cardSelector: '.feature-card--animal',
+      targetSelector: [
+        '[data-action="openMbtiModal"]',
+        '.feature-card--animal .feature-card__visual',
+        '.feature-card--animal .feature-card__img-wrap',
+        '.feature-card--animal .feature-card__img',
+        '.feature-card--animal .feature-card__title',
+        '.feature-card--animal .feature-card__desc',
+        '.feature-card--animal .feature-card__cta',
+        '.feature-card--animal .feature-card__launch'
+      ].join(',')
+    },
+    {
       action: 'openHwatuModal',
       cardSelector: '.feature-card--tazza, .tarot-tile--hwatu',
       targetSelector: [
@@ -481,6 +495,8 @@
     openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
     openDreamModal: ['js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
+    openPhysiognomyApp: ['PhysiognomyUI.js'],
+    openMbtiModal: ['js/astral-soul.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js']
   };

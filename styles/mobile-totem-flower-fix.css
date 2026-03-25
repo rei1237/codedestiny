@@ -64,37 +64,6 @@
   }
 }
 
-/* ─── 2. 운명의 꽃 카드 — absolute 요소가 터치를 가로채지 않도록 ─── */
-.feature-card--destiny-flower .df-bud-icon,
-.feature-card--destiny-flower .destiny-flower-glow,
-.feature-card--destiny-flower .destiny-flower-sticker,
-.feature-card--destiny-flower .df-garden-petal-field,
-.feature-card--destiny-flower .df-garden-petal-field span,
-.feature-card--destiny-flower .astrology-card-glow {
-  pointer-events: none;
-}
-
-/* 운명의 꽃 feature-card 모바일 overflow 방지 */
-@media (max-width: 768px) {
-  .feature-card--destiny-flower .feature-card__img-wrap {
-    min-height: 180px;
-  }
-  .feature-card--destiny-flower .feature-card__detail-content {
-    padding: 14px 16px 18px;
-  }
-  .feature-card--destiny-flower .destiny-flower-stage {
-    padding: 10px;
-  }
-  .feature-card--destiny-flower .df-source-tabs {
-    gap: 6px;
-  }
-  .feature-card--destiny-flower .df-source-tab {
-    min-height: 36px;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-  }
-}
-
 /* ─── 3. dp-fsel (운세 선택 모달) — 프로필 카드 모바일 (한 칸에 2개씩) ─── */
 @media (max-width: 480px) {
   .dp-fsel-btns {
@@ -178,9 +147,7 @@
 
 /* 모바일: 오버레이 열림 시 확실한 표시 및 스크롤 (iOS Safari 등) — body 직계로 이동 시 viewport 전체 덮음 */
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  .animal-totem-overlay.is-open,
-  .df-studio-overlay.is-show,
-  .df-studio-overlay[style*="display: block"] {
+  .animal-totem-overlay.is-open {
     position: fixed !important;
     inset: 0 !important;
     top: 0 !important;
@@ -202,12 +169,6 @@
     overscroll-behavior-y: contain !important;
     touch-action: pan-y !important;
     -webkit-tap-highlight-color: transparent;
-  }
-  /* 운명의 꽃 시트: 모바일 overflow 방지 */
-  .df-studio-overlay .df-studio-sheet {
-    overflow-x: hidden;
-    max-width: 100%;
-    box-sizing: border-box;
   }
 }
 
