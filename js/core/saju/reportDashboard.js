@@ -882,8 +882,7 @@ function toggleReportFeatureCard(btn) {
 function _sajuFunGetCurrentProfile() {
   try {
     if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
-      var current = window.DestinyProfileManager.storage.current() || null;
-      if (current) return current;
+      return window.DestinyProfileManager.storage.current() || null;
     }
   } catch (e) {}
 
@@ -891,14 +890,9 @@ function _sajuFunGetCurrentProfile() {
     var ns = 'FORTUNE_APP_USER_PROFILES';
     var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
     var id = localStorage.getItem(ns + '.current');
-    if (!Array.isArray(list) || !list.length) return null;
-    if (id) {
-      for (var i = 0; i < list.length; i++) {
-        if (list[i] && list[i].id === id) return list[i];
-      }
-    }
-    for (var j = 0; j < list.length; j++) {
-      if (_sajuFunHasBirthCore(list[j])) return list[j];
+    if (!Array.isArray(list) || !id) return null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === id) return list[i];
     }
   } catch (e2) {}
 
@@ -923,293 +917,43 @@ function _sajuFunSetHint(message, tone) {
   hint.textContent = message;
 }
 
-function _sajuFunTriggerAction(actionName) {
-  if (!actionName) return;
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.style.display = 'none';
-  btn.setAttribute('data-action', actionName);
-  document.body.appendChild(btn);
-  try { btn.click(); } catch (e) {}
-  if (btn.parentNode) btn.parentNode.removeChild(btn);
-}
-
-function _sajuFunEnsureCurrentProfile(profile) {
-  if (!profile || !profile.id) return;
-  try { localStorage.setItem('FORTUNE_APP_USER_PROFILES.current', profile.id); } catch (e) {}
-}
-
-var _sajuFunTargetsToMigrate = [
-  'dailyMonthlyCard',
-  'sajuFourCutCard',
-  'quantumCard',
-  'villainCard',
-  'skillTreeCard',
-  'energyCoordCard',
-  'healthReportCard',
-  'lottoCard',
-  'hormone-vibe-section',
-  'tTestCard'
-];
-
-function _sajuFunGetStageEls() {
-  return {
-    stage: document.getElementById('sajuFunMainStage'),
-    locked: document.getElementById('sajuFunMainLocked'),
-    content: document.getElementById('sajuFunMainContent')
-  };
-}
-
-function _sajuFunForceMainPage() {
-  var inputPage = document.getElementById('inputPage');
-  var resultPage = document.getElementById('resultPage');
-  if (inputPage) inputPage.style.display = '';
-  if (resultPage) resultPage.style.display = 'none';
-}
-
-var _sajuFunStayMainTimer = 0;
-function _sajuFunKeepMainPage(ms) {
-  if (_sajuFunStayMainTimer) {
-    clearInterval(_sajuFunStayMainTimer);
-    _sajuFunStayMainTimer = 0;
-  }
-  var keepMs = Number(ms || 0);
-  if (!keepMs || keepMs < 1) return;
-  var until = Date.now() + keepMs;
-  _sajuFunForceMainPage();
-  _sajuFunStayMainTimer = setInterval(function() {
-    _sajuFunForceMainPage();
-    if (Date.now() >= until) {
-      clearInterval(_sajuFunStayMainTimer);
-      _sajuFunStayMainTimer = 0;
-    }
-  }, 160);
-}
-
-function _sajuFunRenderLockedPlaceholders() {
-  var els = _sajuFunGetStageEls();
-  if (!els.stage || !els.locked || !els.content) return;
-  els.stage.style.display = '';
-  els.stage.setAttribute('data-stage-state', 'locked');
-  els.locked.style.display = '';
-  els.content.style.display = 'none';
-  els.locked.innerHTML = ''
-    + '<div class="saju-fun-lock-copy">'
-    + '<h4>🔒 로그인 후 확인하세요</h4>'
-    + '<p>지금 바로 생년월일을 입력하면 메인에서 바로 확인할 수 있어요.</p>'
-    + '</div>'
-    + '<div class="saju-fun-lock-grid">'
-    + '<article class="saju-fun-lock-card"><h5>💀 빌런 테스트</h5><p>관계 위험 시그널 분석</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>✨ 사주 매력 테스트</h5><p>도화/역마 기반 매력 리포트</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>🎮 사주 RPG</h5><p>능력치 트리 성장 가이드</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>📸 Saju4Cut</h5><p>사주네컷 운명 필터</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>🧠 BrainMap</h5><p>머릿속 복잡도 인사이트</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>🍀 LuckyVicky</h5><p>오늘의 행운 흐름 요약</p></article>'
-    + '<article class="saju-fun-lock-card"><h5>👀 First Impression</h5><p>남들이 보는 나의 첫인상</p></article>'
-    + '</div>';
-}
-
-function _sajuFunEnsureMainStageMigration() {
-  var els = _sajuFunGetStageEls();
-  if (!els.stage || !els.content) return;
-  if (els.stage.getAttribute('data-migrated') === 'true') return;
-
-  _sajuFunTargetsToMigrate.forEach(function(id) {
-    var section = document.getElementById(id);
-    if (!section) return;
-    section.style.display = 'none';
-    section.classList.add('saju-fun-stage-card');
-    els.content.appendChild(section);
-  });
-
-  els.stage.setAttribute('data-migrated', 'true');
-}
-
-function _sajuFunShowTargetInMainStage(target) {
-  var titleText = '';
-  if (target) {
-    var t = target.querySelector('.sec-title');
-    if (t) titleText = (t.textContent || '').trim();
-  }
-  if (_sajuFunOpenFeatureWindow(target, titleText || '재미있는 사주 콘텐츠')) {
-    return;
-  }
-
-  var els = _sajuFunGetStageEls();
-  if (!els.stage || !els.locked || !els.content || !target) return;
-  els.stage.style.display = '';
-  els.stage.setAttribute('data-stage-state', 'ready');
-  els.locked.style.display = 'none';
-  els.content.style.display = '';
-
-  _sajuFunTargetsToMigrate.forEach(function(id) {
-    var section = document.getElementById(id);
-    if (!section) return;
-    section.style.display = (section === target) ? '' : 'none';
-  });
-
-  try {
-    els.stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } catch (e) {
-    try { els.stage.scrollIntoView(true); } catch (e2) {}
-  }
-}
-
-function _sajuFunOpenFeatureWindow(target, titleText) {
-  if (!target) return false;
-  var popup = null;
-  try {
-    popup = window.open('', 'sajuFunFeatureWindow', 'width=980,height=900,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
-  } catch (e) {
-    return false;
-  }
-  if (!popup) return false;
-
-  var doc = popup.document;
-  var safeTitle = String(titleText || '재미있는 사주 콘텐츠');
-  var linkTags = '';
-  try {
-    var links = document.querySelectorAll('link[rel="stylesheet"]');
-    for (var i = 0; i < links.length; i++) {
-      var href = links[i].getAttribute('href');
-      if (href) linkTags += '<link rel="stylesheet" href="' + href + '">';
-    }
-  } catch (e2) {}
-
-  var rootClone = target.cloneNode(true);
-  rootClone.style.display = 'block';
-  rootClone.style.margin = '0';
-
-  doc.open();
-  doc.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'
-    + '<title>' + safeTitle + '</title>'
-    + linkTags
-    + '<style>'
-    + 'body{margin:0;padding:0;background:radial-gradient(circle at 10% 10%,#2a1450 0%,#0f172a 45%,#020617 100%);color:#e2e8f0;font-family:system-ui,-apple-system,Segoe UI,Apple SD Gothic Neo,sans-serif;}'
-    + '.sfw-shell{max-width:980px;margin:0 auto;padding:16px;}'
-    + '.sfw-head{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0 10px;background:linear-gradient(180deg,rgba(2,6,23,.95),rgba(2,6,23,.72) 72%,rgba(2,6,23,0));backdrop-filter:blur(6px);}'
-    + '.sfw-title{font-weight:800;font-size:1rem;color:#f8fafc;letter-spacing:.01em;}'
-    + '.sfw-close{border:1px solid rgba(148,163,184,.45);background:rgba(15,23,42,.62);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;}'
-    + '.sfw-close:hover{background:rgba(51,65,85,.72);}'
-    + '.sfw-card{margin-top:10px;}'
-    + '.sfw-card .card{display:block !important;margin:0 !important;}'
-    + '</style></head><body>'
-    + '<div class="sfw-shell">'
-    + '<div class="sfw-head"><div class="sfw-title">' + safeTitle + '</div><button class="sfw-close" onclick="window.close()">닫기</button></div>'
-    + '<div id="sfwContent" class="sfw-card"></div>'
-    + '</div></body></html>');
-  doc.close();
-
-  var host = doc.getElementById('sfwContent');
-  if (!host) return true;
-  host.appendChild(rootClone);
-  try { popup.focus(); } catch (e3) {}
-  return true;
-}
-
-function _sajuFunBuildProfileKey(profile) {
-  if (!profile || !profile.birth) return '';
-  var b = profile.birth || {};
-  return [
-    profile.id || '',
-    b.year || '',
-    b.month || '',
-    b.day || '',
-    b.hour != null ? b.hour : '',
-    b.minute != null ? b.minute : '',
-    b.calType || '',
-    profile.gender || ''
-  ].join('|');
-}
-
-function _sajuFunGetTargetBody(targetId) {
-  var map = {
-    dailyMonthlyCard: 'dailyPanel',
-    quantumCard: 'quantumSection',
-    healthReportCard: 'healthReportSection',
-    skillTreeCard: 'skillTreeSection',
-    tTestCard: 'tTestResult',
-    'hormone-vibe-section': 'hormoneVibeResult',
-    energyCoordCard: 'energyCoordSection',
-    villainCard: 'villainResult',
-    lottoCard: 'lottoSection',
-    sajuFourCutCard: 'sajuFourCutResult'
-  };
-  var bodyId = map[targetId] || '';
-  return bodyId ? document.getElementById(bodyId) : null;
-}
-
-function _sajuFunHasRenderedContent(targetId) {
-  var target = targetId ? document.getElementById(targetId) : null;
-  if (!target) return false;
-  var body = _sajuFunGetTargetBody(targetId);
-  if (!body) return target.innerHTML.trim().length > 30;
-  return body.innerHTML.trim().length > 30;
-}
-
-/* ═══ 재미있는 사주 기능 — 메인화면 직접 이관 방식 ═══ */
 window.openSajuFunFeature = function(targetId, afterAction) {
   var profile = _sajuFunGetCurrentProfile();
-  _sajuFunEnsureMainStageMigration();
-
   if (!_sajuFunHasBirthCore(profile)) {
     _sajuFunSetHint('⚠️ 사주 콘텐츠를 보려면 프로필 카드에 생년월일을 먼저 저장해 주세요. 입력 카드에서 저장 후 다시 눌러주세요.', 'warning');
-    _sajuFunRenderLockedPlaceholders();
     return;
   }
 
-  _sajuFunEnsureCurrentProfile(profile);
+  _sajuFunSetHint('✅ 프로필 확인 완료. 사주 데이터를 불러온 뒤 선택한 콘텐츠로 이동합니다.', 'success');
 
-  // 다이어리는 별도 액션으로 처리
-  if (afterAction === 'openLuckSyncDiary') {
-    _sajuFunTriggerAction('openLuckSyncDiary');
-    return;
-  }
-
-  _sajuFunForceMainPage();
-
-  var fallbackTargetMap = {
-    specialCharmCard: 'dailyMonthlyCard',
-    aiPromptCard: 'dailyMonthlyCard'
-  };
-  var fallbackTargetId = fallbackTargetMap[targetId] || '';
-  var effectiveTargetId = targetId || fallbackTargetId;
-  var profileKey = _sajuFunBuildProfileKey(profile);
-  var hasCache = window.__sajuFunPreparedKey && window.__sajuFunPreparedKey === profileKey;
-
-  if (hasCache && _sajuFunHasRenderedContent(effectiveTargetId)) {
-    _sajuFunSetHint('✅ 이미 준비된 데이터입니다. 요청 없이 바로 열어요.', 'success');
-    _sajuFunKeepMainPage(1200);
-  } else {
-    _sajuFunSetHint('✅ 프로필 확인 완료. 필요한 데이터만 1회 분석합니다.', 'success');
-    _sajuFunKeepMainPage(7000);
-    // ── 백그라운드 사주 계산 (같은 프로필에서는 1회만) ──
-    if (typeof window._dpOpenFortuneType === 'function') {
-      try { window._dpOpenFortuneType('saju'); } catch (e) {}
-    }
+  if (typeof window._dpOpenFortuneType === 'function') {
+    try { window._dpOpenFortuneType('saju'); } catch (e) {}
   }
 
   var tries = 0;
-  var maxTries = hasCache ? 10 : 60;
+  var maxTries = 12;
   var tick = function() {
-    var target = targetId ? document.getElementById(targetId) : null;
-    if (!target && fallbackTargetId) {
-      target = document.getElementById(fallbackTargetId);
+    if (afterAction === 'openLuckSyncDiary' && typeof window.openLuckSyncDiary === 'function') {
+      try { window.openLuckSyncDiary(); } catch (e2) {}
+      return;
     }
+
+    var target = targetId ? document.getElementById(targetId) : null;
     if (!target) {
       if (tries < maxTries) {
         tries += 1;
-        setTimeout(tick, 500);
-      } else {
-        _sajuFunSetHint('⚠️ 콘텐츠 준비에 실패했습니다. 잠시 후 다시 시도해주세요.', 'warning');
+        setTimeout(tick, 260);
       }
       return;
     }
-    window.__sajuFunPreparedKey = profileKey;
-    _sajuFunForceMainPage();
-    _sajuFunKeepMainPage(1200);
-    _sajuFunShowTargetInMainStage(target);
+
+    if (target.style && target.style.display === 'none') target.style.display = '';
+    try {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e3) {
+      try { target.scrollIntoView(true); } catch (e4) {}
+    }
   };
 
-  setTimeout(tick, 500);
+  setTimeout(tick, 320);
 };
