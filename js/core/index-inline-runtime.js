@@ -599,7 +599,17 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
+function __cdLoadTarotSukuyoBundle() {
+  return __cdLoadScriptOnce('/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1');
+}
+
 var __cdLazyActionLoaders = {
+  startTarotReading: __cdLoadTarotSukuyoBundle,
+  showTarotFinalInterpretation: __cdLoadTarotSukuyoBundle,
+  setTarotMode: __cdLoadTarotSukuyoBundle,
+  selectTarotCategory: __cdLoadTarotSukuyoBundle,
+  shareTarotKakao: __cdLoadTarotSukuyoBundle,
+  resetTarot: __cdLoadTarotSukuyoBundle,
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
