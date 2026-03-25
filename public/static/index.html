@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -43,7 +43,6 @@
   <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
   <!-- ADSENSE_AD_UNIT_SLOT: 승인 후 광고 단위(ins class="adsbygoogle") 코드를 본문 원하는 위치에 추가하세요. -->
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
-<meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -385,8 +384,8 @@
 
   <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
-  <link rel="preload" as="style" href="/styles/fortune-ui-critical.css?v=20260326-split1" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/fortune-ui-critical.css?v=20260326-split1"></noscript>
+  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2"></noscript>
   <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
@@ -403,6 +402,17 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 .skip-to-main{position:absolute;left:12px;top:-48px;z-index:100000;padding:10px 14px;border-radius:10px;background:#111;color:#fff;text-decoration:none;font-weight:700}
 .skip-to-main:focus{top:12px;outline:2px solid #ffd700;outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+/* CSS 로드 전에도 스플래시가 깨지지 않도록 최소 폴백 유지 */
+.code-splash{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 60%,#0d1225 0%,#060810 60%,#000 100%);display:flex;align-items:center;justify-content:center;z-index:99999;overflow:hidden}
+.code-splash-canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.7;pointer-events:none}
+.code-splash-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px}
+.splash-orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 42% 42%,rgba(200,210,255,.16) 0%,rgba(120,80,255,.09) 45%,transparent 72%);box-shadow:0 0 55px rgba(165,180,252,.22),0 0 110px rgba(108,99,255,.1)}
+.code-splash-brand{font-size:1.05rem;color:#818cf8;letter-spacing:3px;font-weight:600;text-transform:uppercase;margin-bottom:6px;text-align:center}
+.code-splash-heading{font-size:1.55rem;font-weight:900;color:#fff;letter-spacing:1px;line-height:1.3;text-align:center}
+.code-splash-subtitle{font-size:.78rem;color:#64748b;margin-top:5px;letter-spacing:.5px;text-align:center}
+.code-splash-message{font-size:.88rem;color:#a5b4fc;text-align:center;min-height:1.4em;letter-spacing:.5px;text-shadow:0 0 12px rgba(165,180,252,.5)}
+.code-splash-progress-track{width:220px;height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.code-splash-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,#f472b6,#fbbf24);border-radius:99px;transition:width .4s ease;box-shadow:0 0 8px rgba(108,99,255,.8)}
 /* CLS guard: 핵심 입력 레이아웃 영역을 초기 렌더부터 선점 */
 .wrap{min-height:clamp(980px,100vh,1480px)}
 .card.input-section{position:relative;min-height:clamp(680px,72vh,980px);aspect-ratio:16 / 11;contain:layout paint}
@@ -3292,14 +3302,20 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
     </aside>
 
   </article><!-- /#resultPage -->
-
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
+    "@id": "https://code-destiny.com/#softwareapplication",
     "name": "Code: Destiny AI 사주",
+    "url": "https://code-destiny.com/",
+    "description": "생년월일 기반 AI 사주 분석과 운세 리포트를 제공하는 웹 앱 서비스.",
     "operatingSystem": "Web",
     "applicationCategory": "LifestyleApplication",
+    "image": "https://code-destiny.com/icons/honeypig.webp",
+    "screenshot": "https://code-destiny.com/icons/honeypig.webp",
+    "inLanguage": ["ko", "en", "ja", "zh-CN", "hi", "es", "fr", "de", "nl", "ms"],
+    "isAccessibleForFree": true,
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": "4.9",
@@ -3308,12 +3324,17 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "KRW"
+      "priceCurrency": "KRW",
+      "availability": "https://schema.org/InStock"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Code Destiny",
+      "url": "https://code-destiny.com/"
     }
   }
   </script>
-
-  <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
+<footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
@@ -3468,6 +3489,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+
 
 
 
