@@ -939,6 +939,71 @@ function _sajuFunEnsureCurrentProfile(profile) {
   try { localStorage.setItem('FORTUNE_APP_USER_PROFILES.current', profile.id); } catch (e) {}
 }
 
+/* ═══ 재미있는 사주 기능 모달 닫기 ═══ */
+window._closeSajuFunModal = function() {
+  var modal = document.getElementById('sajuFunModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  // resultPage로 콘텐츠 요소 복원 (display:none 상태로)
+  var content = document.getElementById('sajuFunModalContent');
+  var resultPage = document.getElementById('resultPage');
+  if (content && resultPage) {
+    var children = Array.prototype.slice.call(content.children);
+    children.forEach(function(child) {
+      child.style.display = 'none';
+      resultPage.appendChild(child);
+    });
+    content.innerHTML = '';
+  }
+  // 메인화면(inputPage)으로 복귀
+  var inputPage = document.getElementById('inputPage');
+  if (inputPage) inputPage.style.display = '';
+  if (resultPage) resultPage.style.display = 'none';
+};
+
+function _sajuFunBuildProfileKey(profile) {
+  if (!profile || !profile.birth) return '';
+  var b = profile.birth || {};
+  return [
+    profile.id || '',
+    b.year || '',
+    b.month || '',
+    b.day || '',
+    b.hour != null ? b.hour : '',
+    b.minute != null ? b.minute : '',
+    b.calType || '',
+    profile.gender || ''
+  ].join('|');
+}
+
+function _sajuFunGetTargetBody(targetId) {
+  var map = {
+    dailyMonthlyCard: 'dailyPanel',
+    quantumCard: 'quantumSection',
+    healthReportCard: 'healthReportSection',
+    skillTreeCard: 'skillTreeSection',
+    tTestCard: 'tTestResult',
+    'hormone-vibe-section': 'hormoneVibeResult',
+    energyCoordCard: 'energyCoordSection',
+    villainCard: 'villainResult',
+    lottoCard: 'lottoSection',
+    sajuFourCutCard: 'sajuFourCutResult'
+  };
+  var bodyId = map[targetId] || '';
+  return bodyId ? document.getElementById(bodyId) : null;
+}
+
+function _sajuFunHasRenderedContent(targetId) {
+  var target = targetId ? document.getElementById(targetId) : null;
+  if (!target) return false;
+  var body = _sajuFunGetTargetBody(targetId);
+  if (!body) return target.innerHTML.trim().length > 30;
+  return body.innerHTML.trim().length > 30;
+}
+
+/* ═══ 재미있는 사주 기능 — 메인화면 모달 방식 ═══ */
 window.openSajuFunFeature = function(targetId, afterAction) {
   var profile = _sajuFunGetCurrentProfile();
   if (!_sajuFunHasBirthCore(profile)) {
@@ -948,10 +1013,28 @@ window.openSajuFunFeature = function(targetId, afterAction) {
 
   _sajuFunEnsureCurrentProfile(profile);
 
-  _sajuFunSetHint('✅ 프로필 확인 완료. 사주 데이터를 불러온 뒤 선택한 콘텐츠로 이동합니다.', 'success');
+  // 다이어리는 별도 액션으로 처리
+  if (afterAction === 'openLuckSyncDiary') {
+    _sajuFunTriggerAction('openLuckSyncDiary');
+    return;
+  }
 
-  if (typeof window._dpOpenFortuneType === 'function') {
-    try { window._dpOpenFortuneType('saju'); } catch (e) {}
+  // ── 모달 열기 ──
+  var modal = document.getElementById('sajuFunModal');
+  var loading = document.getElementById('sajuFunModalLoading');
+  var content = document.getElementById('sajuFunModalContent');
+  if (modal) {
+    if (loading) loading.style.display = '';
+    if (content) { content.innerHTML = ''; content.style.display = 'none'; }
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // 타이틀 설정
+    var card = null;
+    for (var ci = 0; ci < REPORT_CARDS.length; ci++) {
+      if (REPORT_CARDS[ci].target === targetId) { card = REPORT_CARDS[ci]; break; }
+    }
+    var titleEl = document.getElementById('sajuFunModalTitle');
+    if (titleEl && card) titleEl.textContent = card.label;
   }
 
   var fallbackTargetMap = {
@@ -959,14 +1042,23 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     aiPromptCard: 'dailyMonthlyCard'
   };
   var fallbackTargetId = fallbackTargetMap[targetId] || '';
-  var tries = 0;
-  var maxTries = 60;
-  var tick = function() {
-    if (afterAction === 'openLuckSyncDiary') {
-      _sajuFunTriggerAction('openLuckSyncDiary');
-      return;
-    }
+  var effectiveTargetId = targetId || fallbackTargetId;
+  var profileKey = _sajuFunBuildProfileKey(profile);
+  var hasCache = window.__sajuFunPreparedKey && window.__sajuFunPreparedKey === profileKey;
 
+  if (hasCache && _sajuFunHasRenderedContent(effectiveTargetId)) {
+    _sajuFunSetHint('✅ 이미 준비된 데이터입니다. 요청 없이 바로 열어요.', 'success');
+  } else {
+    _sajuFunSetHint('✅ 프로필 확인 완료. 필요한 데이터만 1회 분석합니다.', 'success');
+    // ── 백그라운드 사주 계산 (같은 프로필에서는 1회만) ──
+    if (typeof window._dpOpenFortuneType === 'function') {
+      try { window._dpOpenFortuneType('saju'); } catch (e) {}
+    }
+  }
+
+  var tries = 0;
+  var maxTries = hasCache ? 10 : 60;
+  var tick = function() {
     var target = targetId ? document.getElementById(targetId) : null;
     if (!target && fallbackTargetId) {
       target = document.getElementById(fallbackTargetId);
@@ -976,18 +1068,20 @@ window.openSajuFunFeature = function(targetId, afterAction) {
         tries += 1;
         setTimeout(tick, 500);
       } else {
-        _sajuFunSetHint('⚠️ 분석 데이터를 아직 준비 중입니다. 잠시 후 다시 눌러주세요.', 'warning');
+        if (loading) loading.style.display = 'none';
+        if (content) { content.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:40px">콘텐츠 준비에 실패했습니다. 잠시 후 다시 시도해주세요.</p>'; content.style.display = ''; }
       }
       return;
     }
-
-    if (target.style && target.style.display === 'none') target.style.display = '';
-    try {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (e3) {
-      try { target.scrollIntoView(true); } catch (e4) {}
+    window.__sajuFunPreparedKey = profileKey;
+    // 모달로 콘텐츠 이동
+    if (loading) loading.style.display = 'none';
+    if (content) {
+      if (target.style && target.style.display === 'none') target.style.display = '';
+      content.style.display = '';
+      content.appendChild(target);
     }
   };
 
-  setTimeout(tick, 320);
+  setTimeout(tick, 500);
 };

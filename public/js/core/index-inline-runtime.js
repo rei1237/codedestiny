@@ -508,6 +508,10 @@ function initFeatureCardBindings() {
     normalizeLegacyFuctionAssetImagePaths();
     bindFeatureCardVisualActions();
     bindFeatureCardImageFallbacks();
+    // 이미 열린 상태로 시작하는 컬렉션의 이미지 하이드레이션
+    document.querySelectorAll('[data-collection-open="true"]').forEach(function(col) {
+      __cdHydrateCollectionImagesChunked(col);
+    });
   }, 700);
 }
 
