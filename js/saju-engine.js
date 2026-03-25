@@ -5547,8 +5547,8 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
   var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
   var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
   var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
-  if (mode !== 'swisseph') {
-    throw new Error('SwissEph API 결과가 준비되지 않았습니다. precisionMode=' + mode);
+  if (mode !== 'swisseph' && mode !== 'legacy-fallback') {
+    throw new Error('점성술 차트 계산 결과가 비정상입니다. precisionMode=' + mode);
   }
   return chart;
 }

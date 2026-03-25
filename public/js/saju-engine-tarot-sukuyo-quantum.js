@@ -2734,7 +2734,11 @@ function renderLottoNumbers(natal, bazi){
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
 function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
-    if (!lunarObj || !lunarObj.month || !lunarObj.day) return null;
+  const forcedIdx = Number(
+    (opt && Number.isFinite(Number(opt.mansionIdxOverride))) ? opt.mansionIdxOverride
+    : (lunarObj && Number.isFinite(Number(lunarObj._sukuyoMansionIdx)) ? lunarObj._sukuyoMansionIdx : NaN)
+  );
+  if ((!lunarObj || !lunarObj.month || !lunarObj.day) && !Number.isFinite(forcedIdx)) return null;
 
     const mansions27 = [
         { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
@@ -2761,7 +2765,9 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
     let startIdx = monthStartOffsets[m_month - 1];
     if (startIdx === undefined) startIdx = 11;
 
-    let finalIdx = (startIdx + m_day - 1) % 27;
+    let finalIdx = Number.isFinite(forcedIdx)
+      ? ((Math.floor(forcedIdx) % 27) + 27) % 27
+      : (startIdx + m_day - 1) % 27;
     let m_data = mansions27[finalIdx];
     let m = m_data.name;
 
@@ -3024,7 +3030,9 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         wealth: "꾸준하고 안정된 삶을 영위할 기본적인 운을 지녔습니다."
     };
 
-    lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
+    if (lunarObj && typeof lunarObj === 'object') {
+      lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
+    }
 
     return {
         mansion: m + "(" + m_data.ch_name + ")",
