@@ -939,29 +939,93 @@ function _sajuFunEnsureCurrentProfile(profile) {
   try { localStorage.setItem('FORTUNE_APP_USER_PROFILES.current', profile.id); } catch (e) {}
 }
 
-/* ═══ 재미있는 사주 기능 모달 닫기 ═══ */
-window._closeSajuFunModal = function() {
-  var modal = document.getElementById('sajuFunModal');
-  if (modal) {
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-  // resultPage로 콘텐츠 요소 복원 (display:none 상태로)
-  var content = document.getElementById('sajuFunModalContent');
-  var resultPage = document.getElementById('resultPage');
-  if (content && resultPage) {
-    var children = Array.prototype.slice.call(content.children);
-    children.forEach(function(child) {
-      child.style.display = 'none';
-      resultPage.appendChild(child);
-    });
-    content.innerHTML = '';
-  }
-  // 메인화면(inputPage)으로 복귀
+var _sajuFunTargetsToMigrate = [
+  'dailyMonthlyCard',
+  'sajuFourCutCard',
+  'quantumCard',
+  'villainCard',
+  'skillTreeCard',
+  'energyCoordCard',
+  'healthReportCard',
+  'lottoCard',
+  'hormone-vibe-section',
+  'tTestCard'
+];
+
+function _sajuFunGetStageEls() {
+  return {
+    stage: document.getElementById('sajuFunMainStage'),
+    locked: document.getElementById('sajuFunMainLocked'),
+    content: document.getElementById('sajuFunMainContent')
+  };
+}
+
+function _sajuFunForceMainPage() {
   var inputPage = document.getElementById('inputPage');
+  var resultPage = document.getElementById('resultPage');
   if (inputPage) inputPage.style.display = '';
   if (resultPage) resultPage.style.display = 'none';
-};
+}
+
+function _sajuFunRenderLockedPlaceholders() {
+  var els = _sajuFunGetStageEls();
+  if (!els.stage || !els.locked || !els.content) return;
+  els.stage.style.display = '';
+  els.stage.setAttribute('data-stage-state', 'locked');
+  els.locked.style.display = '';
+  els.content.style.display = 'none';
+  els.locked.innerHTML = ''
+    + '<div class="saju-fun-lock-copy">'
+    + '<h4>🔒 로그인 후 확인하세요</h4>'
+    + '<p>지금 바로 생년월일을 입력하면 메인에서 바로 확인할 수 있어요.</p>'
+    + '</div>'
+    + '<div class="saju-fun-lock-grid">'
+    + '<article class="saju-fun-lock-card"><h5>💀 빌런 테스트</h5><p>관계 위험 시그널 분석</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>✨ 사주 매력 테스트</h5><p>도화/역마 기반 매력 리포트</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>🎮 사주 RPG</h5><p>능력치 트리 성장 가이드</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>📸 Saju4Cut</h5><p>사주네컷 운명 필터</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>🧠 BrainMap</h5><p>머릿속 복잡도 인사이트</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>🍀 LuckyVicky</h5><p>오늘의 행운 흐름 요약</p></article>'
+    + '<article class="saju-fun-lock-card"><h5>👀 First Impression</h5><p>남들이 보는 나의 첫인상</p></article>'
+    + '</div>';
+}
+
+function _sajuFunEnsureMainStageMigration() {
+  var els = _sajuFunGetStageEls();
+  if (!els.stage || !els.content) return;
+  if (els.stage.getAttribute('data-migrated') === 'true') return;
+
+  _sajuFunTargetsToMigrate.forEach(function(id) {
+    var section = document.getElementById(id);
+    if (!section) return;
+    section.style.display = 'none';
+    section.classList.add('saju-fun-stage-card');
+    els.content.appendChild(section);
+  });
+
+  els.stage.setAttribute('data-migrated', 'true');
+}
+
+function _sajuFunShowTargetInMainStage(target) {
+  var els = _sajuFunGetStageEls();
+  if (!els.stage || !els.locked || !els.content || !target) return;
+  els.stage.style.display = '';
+  els.stage.setAttribute('data-stage-state', 'ready');
+  els.locked.style.display = 'none';
+  els.content.style.display = '';
+
+  _sajuFunTargetsToMigrate.forEach(function(id) {
+    var section = document.getElementById(id);
+    if (!section) return;
+    section.style.display = (section === target) ? '' : 'none';
+  });
+
+  try {
+    els.stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    try { els.stage.scrollIntoView(true); } catch (e2) {}
+  }
+}
 
 function _sajuFunBuildProfileKey(profile) {
   if (!profile || !profile.birth) return '';
@@ -1003,11 +1067,14 @@ function _sajuFunHasRenderedContent(targetId) {
   return body.innerHTML.trim().length > 30;
 }
 
-/* ═══ 재미있는 사주 기능 — 메인화면 모달 방식 ═══ */
+/* ═══ 재미있는 사주 기능 — 메인화면 직접 이관 방식 ═══ */
 window.openSajuFunFeature = function(targetId, afterAction) {
   var profile = _sajuFunGetCurrentProfile();
+  _sajuFunEnsureMainStageMigration();
+
   if (!_sajuFunHasBirthCore(profile)) {
     _sajuFunSetHint('⚠️ 사주 콘텐츠를 보려면 프로필 카드에 생년월일을 먼저 저장해 주세요. 입력 카드에서 저장 후 다시 눌러주세요.', 'warning');
+    _sajuFunRenderLockedPlaceholders();
     return;
   }
 
@@ -1019,23 +1086,7 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     return;
   }
 
-  // ── 모달 열기 ──
-  var modal = document.getElementById('sajuFunModal');
-  var loading = document.getElementById('sajuFunModalLoading');
-  var content = document.getElementById('sajuFunModalContent');
-  if (modal) {
-    if (loading) loading.style.display = '';
-    if (content) { content.innerHTML = ''; content.style.display = 'none'; }
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    // 타이틀 설정
-    var card = null;
-    for (var ci = 0; ci < REPORT_CARDS.length; ci++) {
-      if (REPORT_CARDS[ci].target === targetId) { card = REPORT_CARDS[ci]; break; }
-    }
-    var titleEl = document.getElementById('sajuFunModalTitle');
-    if (titleEl && card) titleEl.textContent = card.label;
-  }
+  _sajuFunForceMainPage();
 
   var fallbackTargetMap = {
     specialCharmCard: 'dailyMonthlyCard',
@@ -1068,19 +1119,13 @@ window.openSajuFunFeature = function(targetId, afterAction) {
         tries += 1;
         setTimeout(tick, 500);
       } else {
-        if (loading) loading.style.display = 'none';
-        if (content) { content.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:40px">콘텐츠 준비에 실패했습니다. 잠시 후 다시 시도해주세요.</p>'; content.style.display = ''; }
+        _sajuFunSetHint('⚠️ 콘텐츠 준비에 실패했습니다. 잠시 후 다시 시도해주세요.', 'warning');
       }
       return;
     }
     window.__sajuFunPreparedKey = profileKey;
-    // 모달로 콘텐츠 이동
-    if (loading) loading.style.display = 'none';
-    if (content) {
-      if (target.style && target.style.display === 'none') target.style.display = '';
-      content.style.display = '';
-      content.appendChild(target);
-    }
+    _sajuFunForceMainPage();
+    _sajuFunShowTargetInMainStage(target);
   };
 
   setTimeout(tick, 500);
