@@ -5,12 +5,14 @@ import "./insights-hub.css";
  * /insights 레이아웃에서 import해 dev/프로덕션 모두에서 `app/insights/layout.css` 청크로 확실히 로드됩니다.
  */
 export default function InsightsLayout({ children }) {
+  const FONT_URL =
+    "https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap";
   return (
     <>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
-      />
+      {/* preload: 렌더 블로킹 없이 폰트 CSS를 미리 fetch */}
+      <link rel="preload" as="style" href={FONT_URL} />
+      {/* 실제 적용 — display=swap 포함으로 font-display:swap 자동 적용 */}
+      <link rel="stylesheet" href={FONT_URL} />
       {children}
     </>
   );

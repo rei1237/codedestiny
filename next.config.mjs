@@ -5,6 +5,20 @@ const configuredApiTarget =
 
 const apiTarget = (configuredApiTarget || 'http://localhost:4000').replace(/\/+$/, '');
 
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  "connect-src 'self' https: http: ws: wss:",
+  "frame-src 'self' https:",
+  'upgrade-insecure-requests',
+].join('; ');
+
 /** Nested paths only: locale roots are app/{slug}/page.js (static segment beats [adminHash]). */
 const LOCALE_PATH_SLUGS = [
   'en-us',
@@ -73,6 +87,16 @@ const nextConfig = {
   },
   async headers() {
     return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Content-Security-Policy', value: CONTENT_SECURITY_POLICY },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
       {
         source: '/_next/static/:path*',
         headers: [

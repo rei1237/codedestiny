@@ -1,6 +1,19 @@
 (function(){
   var _splashDone = false;
   var SPLASH_DURATION_MS = 900;
+  var _writeQ = [];
+  var _writeRaf = 0;
+  function scheduleWrite(fn) {
+    if (typeof fn !== 'function') return;
+    _writeQ.push(fn);
+    if (_writeRaf) return;
+    _writeRaf = requestAnimationFrame(function() {
+      _writeRaf = 0;
+      var q = _writeQ.slice();
+      _writeQ.length = 0;
+      for (var i = 0; i < q.length; i++) q[i]();
+    });
+  }
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -103,13 +116,17 @@
   var msgTimer = setInterval(function() {
     if (!msgEl) return;
     mi = (mi + 1) % msgs.length;
-    msgEl.style.opacity = '0';
-    msgEl.style.transition = 'opacity 0.35s';
+    scheduleWrite(function() {
+      if (!msgEl) return;
+      msgEl.style.opacity = '0';
+      msgEl.style.transition = 'opacity 0.35s';
+    });
     setTimeout(function() {
-      if (msgEl) {
+      scheduleWrite(function() {
+        if (!msgEl) return;
         msgEl.textContent = msgs[mi];
         msgEl.style.opacity = '1';
-      }
+      });
     }, 350);
   }, 1800);
 
@@ -118,7 +135,9 @@
   var barVal = 0;
   var barTimer = setInterval(function() {
     barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
-    if (bar) bar.style.width = barVal + '%';
+    scheduleWrite(function() {
+      if (bar) bar.style.width = barVal + '%';
+    });
     if (barVal >= 90) clearInterval(barTimer);
   }, 350);
 
@@ -128,11 +147,16 @@
     _splashDone = true;
     clearInterval(msgTimer);
     clearInterval(barTimer);
-    if (bar) bar.style.width = '100%';
+    scheduleWrite(function() {
+      if (bar) bar.style.width = '100%';
+    });
     var splash = document.getElementById('codeSplash');
     if (splash) {
-      splash.style.display = 'none';
-      if (splash.parentNode) splash.parentNode.removeChild(splash);
+      scheduleWrite(function() {
+        if (!splash) return;
+        splash.style.display = 'none';
+        if (splash.parentNode) splash.parentNode.removeChild(splash);
+      });
     }
     if (rafId) cancelAnimationFrame(rafId);
   }

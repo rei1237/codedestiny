@@ -14111,6 +14111,11 @@ function populateCelebList(){
   btnArea.className='celeb-name-area';
   container.appendChild(btnArea);
 
+  var CELEB_BATCH_SIZE=40;
+  var _celebObserver=null;
+  var _celebSentinel=null;
+  var _celebRenderToken=0;
+
   // 탭 클릭 → 이벤트 위임
   tabBar.addEventListener('click', function(e){
     var tabBtn=e.target.closest('.celeb-tab-btn');
@@ -14146,26 +14151,73 @@ function populateCelebList(){
   });
 
   function renderCelebs(filterCat){
+    var renderToken=++_celebRenderToken;
     btnArea.classList.add('fading');/* 전환 중 클릭 차단 */
     btnArea.style.opacity='0';
     btnArea.style.transition='opacity 0.15s';
     setTimeout(function(){
+      if(renderToken!==_celebRenderToken) return;
       btnArea.innerHTML='';
       var list=filterCat
         ?CELEBS.filter(function(c){return c.cat===filterCat;})
         :CELEBS;
-      list.forEach(function(c){
-        var btn=document.createElement('button');
-        btn.type='button';
-        btn.className='celeb-btn';
-        btn.textContent=c.name;
-        btn.dataset.name=c.name;
-        btn.dataset.birth=c.birth;
-        btn.dataset.hour=c.hour!==undefined?c.hour:12;
-        btn.dataset.minute=c.minute!==undefined?c.minute:0;
-        btn.dataset.cat=c.cat;
-        btnArea.appendChild(btn);
-      });
+
+      if(_celebObserver){_celebObserver.disconnect();_celebObserver=null;}
+      _celebSentinel=null;
+
+      var cursor=0;
+      function appendChunk(){
+        if(renderToken!==_celebRenderToken) return;
+        var frag=document.createDocumentFragment();
+        var end=Math.min(cursor+CELEB_BATCH_SIZE,list.length);
+        for(var i=cursor;i<end;i++){
+          var c=list[i];
+          var btn=document.createElement('button');
+          btn.type='button';
+          btn.className='celeb-btn';
+          btn.textContent=c.name;
+          btn.dataset.name=c.name;
+          btn.dataset.birth=c.birth;
+          btn.dataset.hour=c.hour!==undefined?c.hour:12;
+          btn.dataset.minute=c.minute!==undefined?c.minute:0;
+          btn.dataset.cat=c.cat;
+          frag.appendChild(btn);
+        }
+        if(_celebSentinel&&_celebSentinel.parentNode===btnArea){
+          btnArea.insertBefore(frag,_celebSentinel);
+        }else{
+          btnArea.appendChild(frag);
+        }
+        cursor=end;
+        if(cursor>=list.length&&_celebObserver){
+          _celebObserver.disconnect();
+          _celebObserver=null;
+        }
+      }
+
+      appendChunk();
+      if(cursor<list.length){
+        _celebSentinel=document.createElement('div');
+        _celebSentinel.className='celeb-list-sentinel';
+        _celebSentinel.setAttribute('aria-hidden','true');
+        _celebSentinel.style.cssText='width:100%;height:2px;opacity:0;';
+        btnArea.appendChild(_celebSentinel);
+
+        if('IntersectionObserver' in window){
+          _celebObserver=new IntersectionObserver(function(entries){
+            var entry=entries&&entries[0];
+            if(!entry||!entry.isIntersecting) return;
+            appendChunk();
+          },{root:btnArea,rootMargin:'180px 0px',threshold:0.01});
+          _celebObserver.observe(_celebSentinel);
+        }else{
+          (function pump(){
+            appendChunk();
+            if(cursor<list.length) requestAnimationFrame(pump);
+          })();
+        }
+      }
+
       btnArea.style.opacity='1';
       btnArea.classList.remove('fading');/* 전환 완료 → 클릭 허용 */
     }, 120);

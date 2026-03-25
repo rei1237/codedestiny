@@ -253,7 +253,8 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
-        {/* 성능: 핵심 오리진만 사전 연결 */}
+        {/* 성능: 핵심 오리진만 사전 연결 — googleapis(CSS), gstatic(폰트파일) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="canonical" href={canonicalHref} />

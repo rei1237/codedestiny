@@ -860,6 +860,12 @@
     (function syncViewportHeight() {
       var root = document.documentElement;
       if (!root) return;
+      var queuedHeight = 0;
+      var writeRaf = 0;
+      function flushWrite() {
+        writeRaf = 0;
+        if (queuedHeight > 0) root.style.setProperty('--cd-safe-vh', queuedHeight + 'px');
+      }
       function update() {
         var h = 0;
         if (window.visualViewport && Number(window.visualViewport.height) > 0) {
@@ -867,7 +873,10 @@
         } else if (Number(window.innerHeight) > 0) {
           h = window.innerHeight;
         }
-        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
+        if (h <= 0) return;
+        queuedHeight = h;
+        if (writeRaf) return;
+        writeRaf = requestAnimationFrame(flushWrite);
       }
       update();
       window.addEventListener('resize', update, { passive: true });
