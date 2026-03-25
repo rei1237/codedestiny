@@ -83,7 +83,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Unversioned JS/CSS should never be stored by SW to avoid stale deploys on normal mode.
+  // Versioned assets (?v=… or hashed filenames) are safe to cache long-term.
+  // Unversioned JS/CSS: no-store to prevent stale deploys.
+  const isVersioned =
+    requestUrl.searchParams.has('v') ||
+    /\.[a-f0-9]{8,}\.(js|css)$/.test(pathname);
+
   if (
     isSameOrigin &&
     (
@@ -93,7 +98,20 @@ self.addEventListener('fetch', event => {
       pathname.endsWith('.css')
     )
   ) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    if (!isVersioned) {
+      event.respondWith(fetch(event.request, { cache: 'no-store' }));
+      return;
+    }
+    // Versioned: cache-first (1 year TTL enforced by server headers)
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async cache => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        const response = await fetch(event.request);
+        if (response && response.status === 200) cache.put(event.request, response.clone());
+        return response;
+      })
+    );
     return;
   }
 
