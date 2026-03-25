@@ -1,62 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script>
-/**
- * Canonical domain redirect — runs at head parse time.
- * Non-canonical hosts redirect to "/" before render.
- */
-(function silenceTailwindCdnProdWarning() {
-  try {
-    if (!window.console || typeof window.console.warn !== 'function') return;
-    if (window.__TAILWIND_WARN_FILTER_APPLIED__) return;
-    var rawWarn = window.console.warn;
-    window.console.warn = function () {
-      try {
-        var first = arguments && arguments.length ? String(arguments[0] || '') : '';
-        if (first.indexOf('cdn.tailwindcss.com should not be used in production') !== -1) return;
-      } catch (e) {}
-      return rawWarn.apply(this, arguments);
-    };
-    window.__TAILWIND_WARN_FILTER_APPLIED__ = true;
-  } catch (e) {}
-})();
-
-(function installCoreLayoutStabilityGuards() {
-  try {
-    if (!document || !document.head) return;
-    var styleId = 'cd-layout-stability-guard';
-    if (document.getElementById(styleId)) return;
-    var st = document.createElement('style');
-    st.id = styleId;
-    st.textContent = ''
-      + 'html{scrollbar-gutter:stable both-edges;}'
-      + 'img[width][height]{height:auto;}'
-      + '.feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4 / 3;min-height:150px;overflow:hidden;}'
-      + '.feature-card__detail,.feature-card__detail-inner{min-height:120px;}'
-      + '[data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;contain-intrinsic-size:320px;}'
-      + 'body{font-synthesis-weight:none;text-size-adjust:100%;-webkit-text-size-adjust:100%;}';
-    document.head.appendChild(st);
-  } catch (e) {}
-})();
-
-(function redirectToCanonicalMain() {
-  try {
-    var loc = window.location;
-    if (!loc) return;
-    var protocol = String(loc.protocol || '').toLowerCase();
-    if (protocol !== 'http:' && protocol !== 'https:') return;
-    if (protocol === 'https:') return;
-    var next = new URL(loc.href);
-    next.protocol = 'https:';
-    next.port = '';
-    var nextHref = next.toString();
-    if (nextHref && nextHref !== loc.href) window.location.replace(nextHref);
-  } catch (e) {}
-})();
-  </script>
+  <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
+  <script src="/js/inline/runtime-singleton-guard.js" defer></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
+  <script>
+  (function () {
+    try {
+      if ((new URLSearchParams(location.search || '')).get('sesdebug') !== '1') return;
+      var original = console.log;
+      console.log = function () {
+        var first = arguments && arguments.length ? String(arguments[0]) : '';
+        if (first.indexOf('SES Removing unpermitted intrinsics') >= 0) {
+          try {
+            original.call(console, '[SES-TRACE] lockdown message captured');
+            original.call(console, new Error('[SES-TRACE] source stack').stack);
+          } catch (_e) {}
+        }
+        return original.apply(console, arguments);
+      };
+    } catch (_e) {}
+  })();
+  </script>
   <script>
   (function () {
     try {
@@ -64,12 +30,30 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var s = document.createElement('script');
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-      s.onerror = function () {};
-      document.head.appendChild(s);
+      var loaded = false;
+      function injectAdsense() {
+        if (loaded) return;
+        loaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+        s.onerror = function () {};
+        document.head.appendChild(s);
+      }
+
+      function scheduleIdleLoad() {
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(injectAdsense, { timeout: 5000 });
+          return;
+        }
+        setTimeout(injectAdsense, 3500);
+      }
+
+      ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function(evt) {
+        window.addEventListener(evt, injectAdsense, { once: true, passive: true });
+      });
+      scheduleIdleLoad();
     } catch (_) {}
   })();
   </script>
@@ -84,6 +68,8 @@
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
 <link rel="preload" as="image" href="/icons/samba-320.webp" type="image/webp" fetchpriority="high">
+<!-- LCP: honeypig 로고 프리로드 -->
+<link rel="preload" as="image" href="/icons/honeypig-320.webp" type="image/webp" fetchpriority="high">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -104,7 +90,7 @@
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
-<meta name="description" content="AI가 분석하는 무료 사주팔자·만세력·타로·궁합·오늘의운세·신년운세·자미두수·화투점·주역점·이집트신탁. 당신의 운명을 지금 확인하세요.">
+<meta name="description" content="AI 기반 무료 사주와 타로, 코드 데스티니에서 당신의 운명을 확인하세요.">
 <meta name="keywords" content="사주,무료사주,만세력,타로,오늘의운세,궁합,신년운세,토정비결,관상,재물운,재회운,MBTI궁합,꿈해몽,숙요점,숙요도,宿曜道,거북점,귀복,주역점,이집트신탁,케멧오라클,자미두수,紫微斗數,Saju,Tarot,Horoscope,Zodiac,Astrology,Fortune Telling,Daily Horoscope,Compatibility,Free Tarot Reading,I Ching,Sukuyo,Turtle Shell Divination,Kemet Oracle,Ziwei Doushu,八字,算命,星座,免费算命,塔罗牌,龟卜,宿曜占,紫微斗数,運勢,占い,相性,四柱推命,タロット,亀卜占い,宿曜占星術,紫微斗数占い,horóscopo,tarot gratis,astrología,compatibilidad,horoscope gratuit,tarot gratuit,astrologie,compatibilité,राशिफल,टैरो,ज्योतिष,कुंडली,भविष्यफल">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Seongbae">
@@ -401,31 +387,7 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script>
-/**
- * PWA theme init — neo/samba manifest & favicon switching.
- * Runs before body; must execute before favicon render.
- */
-(function () {
-  try {
-    var isNeo = localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
-    window.__INITIAL_THEME_NEO__ = isNeo;
-    if (!isNeo) return;
-    var manifestLink = document.getElementById('pwa-manifest');
-    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
-    var faviconLink = document.getElementById('pwa-favicon');
-    if (faviconLink) {
-      faviconLink.setAttribute('href', '/icons/samba.webp');
-      faviconLink.setAttribute('type', 'image/webp');
-      faviconLink.setAttribute('sizes', '192x192');
-    }
-    var appleIconLink = document.getElementById('pwa-apple-icon');
-    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
-  } catch (_) {
-    window.__INITIAL_THEME_NEO__ = false;
-  }
-})();
-</script>
+<script src="/js/inline/pwa-theme-init.js" defer></script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -438,26 +400,18 @@
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
-  <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/fortune-ui-critical.css?v=20260326-split1">
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
+  <link rel="preload" as="style" href="/styles/fortune-ui-critical.css?v=20260326-split1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui-critical.css?v=20260326-split1"></noscript>
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <script src="/js/inline/api-base-init.js" defer></script>
   <script src="/js/inline/noncritical-css-loader.js" defer></script>
-  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/saju-totem-generator.css?v=20260323" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
   <script src="/js/inline/tailwind-cdn-debug-loader.js" defer></script>
-  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
     <link rel="stylesheet" href="/styles/animations.css">
@@ -477,27 +431,18 @@
     <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
   </noscript>
 <style>
-.skip-to-main {
-  position: absolute;
-  left: 12px;
-  top: -48px;
-  z-index: 100000;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: #111;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 700;
-}
-.skip-to-main:focus {
-  top: 12px;
-  outline: 2px solid #ffd700;
-  outline-offset: 2px;
-}
+/* CRITICAL: background flash 방지만. 레이아웃/커피 클래스는 fortune-ui.css에서 완성 */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
+.skip-to-main{position:absolute;left:12px;top:-48px;z-index:100000;padding:10px 14px;border-radius:10px;background:#111;color:#fff;text-decoration:none;font-weight:700}
+.skip-to-main:focus{top:12px;outline:2px solid #ffd700;outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+/* below-fold 섹션: 초기 렌더 건너됀으로 Style & Layout 비용 절감 */
+.fg-group--tarot,.fg-group--oracle,.fg-group--cosmic,.fg-group--flower{content-visibility:auto;contain-intrinsic-size:0 800px}
 </style>
 </head>
 <body>
-<a class="skip-to-main" href="#inputPage">Skip to main content</a>
+<a class="skip-to-main" href="#inputPage">본문으로 바로가기</a>
 <script>
 (function () {
   function isMobile() {
@@ -807,7 +752,7 @@
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
-  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown">
+  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown" role="button" tabindex="0" aria-label="언어 선택" aria-haspopup="listbox" aria-expanded="false">
     <span class="lang-icon">🌐</span>
     <span class="lang-label" id="langLabel">EN</span>
     <span class="lang-arrow">▼</span>
@@ -924,7 +869,7 @@
           <img class="honeypig-logo-icon" src="/icons/honeypig-320.webp"
             srcset="/icons/honeypig-320.webp 320w, /icons/honeypig.webp 1024w"
             sizes="(max-width: 480px) 130px, 228px"
-            width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+            width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -1012,8 +957,8 @@
         </div>
       </div>
 
-      <div class="form-group form-group-mt15">
-        <label class="form-label">성별</label>
+      <div class="form-group form-group-mt15" role="group" aria-labelledby="genderGroupLabel">
+        <div id="genderGroupLabel" class="form-label">성별</div>
         <div class="toggle-wrap">
           <button class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
           <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
@@ -1047,7 +992,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 동물 & 관상
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
+        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal"><h2 id="fgTitleAnimal" class="sr-only">동물 &amp; 관상</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--animal" id="animalCollection" data-collection-open="false">
@@ -1142,7 +1087,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
+        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot"><h2 id="fgTitleTarot" class="sr-only">타로 &amp; 카드</h2>
           <div class="fg-group__cards">
 
         <!-- ═══ 타로 컬렉션 (Tarot Reading Collection Grid) ═══ -->
@@ -1268,7 +1213,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 신탁 & 점술
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
+        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle"><h2 id="fgTitleOracle" class="sr-only">신탁 &amp; 점술</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--oracle" id="oracleCollection" data-collection-open="false">
@@ -1413,7 +1358,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 코즈믹 & 별자리
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
+        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic"><h2 id="fgTitleCosmic" class="sr-only">코즈믹 &amp; 별자리</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="false">
@@ -1510,7 +1455,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 운명의 꽃 & 해몽
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower">
+        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower"><h2 id="fgTitleFlower" class="sr-only">운명의 꽃 &amp; 해몽</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--flower" id="flowerCollection" data-collection-open="false">
@@ -1691,7 +1636,8 @@
               </header>
 
               <div class="dream-library-search-row">
-                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" />
+                <label for="dreamLibraryQuery" class="sr-only">꿈 해몽 키워드 검색</label>
+                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" aria-label="꿈 해몽 키워드 검색" />
                 <button type="button" class="dream-library-btn" data-action="dreamLibrarySearch">검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--context" data-action="dreamLibrarySearchByDream">꿈 문장 검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--ghost" data-action="dreamLibraryClearSearch">초기화</button>
@@ -1908,7 +1854,7 @@
               <div class="ps-journal-title"><span class="ps-journal-ink">✒</span> The Dream Journal</div>
               <div class="ps-journal-paper">
                 <div id="psychoDreamInkLayer" class="ps-ink-layer" aria-hidden="true"></div>
-                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다."></textarea>
+                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다." aria-label="꿈 내용 입력"></textarea>
               </div>
 
               <div class="ps-input-footer">
@@ -1994,7 +1940,7 @@
 
           <!-- 질문 입력 -->
           <div class="tc-question-row">
-            <div class="tc-question-label">問 — 마음속 깊은 물음을 적으십시오</div>
+            <label class="tc-question-label" for="ichingQuestion">問 — 마음속 깊은 물음을 적으십시오</label>
             <input type="text" id="ichingQuestion" class="tc-question-inp"
               placeholder="예: 이번 사업을 지금 시작해도 괜찮을까?">
           </div>
@@ -2151,7 +2097,7 @@
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
-          <button data-action="closeTarotModal" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
+          <button data-action="closeTarotModal" aria-label="명리학 타로 닫기" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
         
         <div id="tarotInnerContainer" class="tarot-inner-shell" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
@@ -2690,6 +2636,7 @@
           <option value="global">🌍 위성 검색 [글로벌 오컬트 데이터베이스]</option>
         </select>
         <div class="kemet-input-group">
+          <label for="kemetWorry" class="sr-only">이집트 신탁 질문 입력</label>
           <input type="text" id="kemetWorry" class="kemet-input" placeholder="구체적인 질문을 입력하세요 (예: 이번 달 재물운은?, 남친과 재회 가능?, 공무원 합격?)">
           <button class="kemet-btn" data-action="startKemetOracle">신탁 해석</button>
         </div>
@@ -3443,7 +3390,7 @@
 
 <div class="modal" id="tsModal" data-action="closeModal" data-action-pass-event="1" data-action-self-only="1">
   <div class="modal-box">
-    <button class="modal-close" data-action="closeModal" type="button" aria-label="Close tarot result">✕</button>
+    <button class="modal-close" data-action="closeModal" type="button" aria-label="타로 결과 닫기">✕</button>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -3484,14 +3431,11 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/fate-scroll-reveal.js" defer></script>
-<script src="/js/fate-scroll-top.js" defer></script>
-<script src="/js/fsn-navbar.js" defer></script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
-    <button class="astral-close-btn" data-action="closeMbtiModal" type="button" aria-label="Close astral totem">✕</button>
+    <button class="astral-close-btn" data-action="closeMbtiModal" type="button" aria-label="아스트랄 토템 닫기">✕</button>
         
         <!-- Header -->
         <header class="astral-header">
@@ -3542,18 +3486,10 @@
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script src="/js/mobile-performance-bootstrap.js" defer></script>
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script src="/js/touch-perf.js" defer></script>
-<script src="/js/dream-meaning-library.js" defer></script>
-<script src="/lib/ai-engine.js" defer></script>
-<script src="/js/luck-sync-diary.js" defer></script>
-<script src="/js/dream-ledger.js" defer></script>
-<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
-<script src="/js/entertain-engine.js" defer></script>
+<script src="/js/inline/deferred-feature-loaders.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script src="/js/inline/web-vitals-debug-loader.js" defer></script>
 
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
