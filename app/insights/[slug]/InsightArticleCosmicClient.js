@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ServiceCTA from "../../components/ServiceCTA";
 import Breadcrumb from "../../components/Breadcrumb";
 
@@ -20,21 +20,35 @@ function buildTarotImageUrl(cardId) {
 
 export default function InsightArticleCosmicClient({ article, topic, relatedArticles }) {
   const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollProgressRef = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => {
+    let rafId = 0;
+
+    const updateProgress = () => {
+      rafId = 0;
       const total = document.documentElement.scrollHeight - window.innerHeight;
       if (total <= 0) {
+        scrollProgressRef.current = 0;
         setScrollProgress(0);
         return;
       }
-      const value = Math.max(0, Math.min(100, (window.scrollY / total) * 100));
-      setScrollProgress(value);
+      const nextValue = Math.max(0, Math.min(100, (window.scrollY / total) * 100));
+      if (Math.abs(nextValue - scrollProgressRef.current) < 0.2) return;
+      scrollProgressRef.current = nextValue;
+      setScrollProgress(nextValue);
     };
-    onScroll();
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(updateProgress);
+    };
+
+    updateProgress();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -50,6 +64,8 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
     let height = 0;
     let dpr = 1;
     let rafId = 0;
+    let resizeRafId = 0;
+    let isVisible = !document.hidden;
     let stars = [];
 
     function buildStars() {
@@ -77,6 +93,10 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
     }
 
     function draw() {
+      if (!isVisible) {
+        rafId = 0;
+        return;
+      }
       ctx.clearRect(0, 0, width, height);
       for (const star of stars) {
         star.t += star.tw;
@@ -90,12 +110,30 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
       rafId = window.requestAnimationFrame(draw);
     }
 
+    function scheduleResize() {
+      if (resizeRafId) return;
+      resizeRafId = window.requestAnimationFrame(() => {
+        resizeRafId = 0;
+        resize();
+      });
+    }
+
+    function onVisibilityChange() {
+      isVisible = !document.hidden;
+      if (isVisible && !rafId) {
+        rafId = window.requestAnimationFrame(draw);
+      }
+    }
+
     resize();
     draw();
-    window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("resize", scheduleResize, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
+      window.cancelAnimationFrame(resizeRafId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("resize", scheduleResize);
     };
   }, []);
 
@@ -169,6 +207,8 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
                               alt={`${card.name} 카드 이미지`}
                               fill
                               sizes="(max-width: 640px) 42vw, 220px"
+                              loading="lazy"
+                              decoding="async"
                               className="ins-tarot-card-image"
                             />
                           </div>

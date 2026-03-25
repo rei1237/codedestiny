@@ -58,6 +58,8 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
     let height = 0;
     let dpr = 1;
     let rafId = 0;
+    let resizeRafId = 0;
+    let isVisible = !document.hidden;
 
     const layers = [
       { count: 120, minR: 0.4, maxR: 1, speed: 0.009, minA: 0.18, maxA: 0.46 },
@@ -96,6 +98,10 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
     }
 
     function draw() {
+      if (!isVisible) {
+        rafId = 0;
+        return;
+      }
       ctx.clearRect(0, 0, width, height);
       for (const star of stars) {
         star.t += star.tw;
@@ -109,13 +115,31 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
       rafId = window.requestAnimationFrame(draw);
     }
 
+    function scheduleResize() {
+      if (resizeRafId) return;
+      resizeRafId = window.requestAnimationFrame(() => {
+        resizeRafId = 0;
+        resize();
+      });
+    }
+
+    function onVisibilityChange() {
+      isVisible = !document.hidden;
+      if (isVisible && !rafId) {
+        rafId = window.requestAnimationFrame(draw);
+      }
+    }
+
     resize();
     draw();
 
-    window.addEventListener("resize", resize, { passive: true });
+    window.addEventListener("resize", scheduleResize, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
+      window.cancelAnimationFrame(resizeRafId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("resize", scheduleResize);
     };
   }, []);
 
