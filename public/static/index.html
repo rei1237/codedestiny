@@ -1,8 +1,172 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
-  <script src="/js/inline/runtime-singleton-guard.js"></script>
+  <script>
+/**
+ * Canonical domain redirect — runs at head parse time.
+ * Non-canonical hosts redirect to "/" before render.
+ */
+(function silenceTailwindCdnProdWarning() {
+  try {
+    if (!window.console || typeof window.console.warn !== 'function') return;
+    if (window.__TAILWIND_WARN_FILTER_APPLIED__) return;
+    var rawWarn = window.console.warn;
+    window.console.warn = function () {
+      try {
+        var first = arguments && arguments.length ? String(arguments[0] || '') : '';
+        if (first.indexOf('cdn.tailwindcss.com should not be used in production') !== -1) return;
+      } catch (e) {}
+      return rawWarn.apply(this, arguments);
+    };
+    window.__TAILWIND_WARN_FILTER_APPLIED__ = true;
+  } catch (e) {}
+})();
+
+(function installCoreLayoutStabilityGuards() {
+  try {
+    if (!document || !document.head) return;
+    var styleId = 'cd-layout-stability-guard';
+    if (document.getElementById(styleId)) return;
+    var st = document.createElement('style');
+    st.id = styleId;
+    st.textContent = ''
+      + 'html{scrollbar-gutter:stable both-edges;}'
+      + 'img[width][height]{height:auto;}'
+      + '.feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4 / 3;min-height:150px;overflow:hidden;}'
+      + '.feature-card__detail,.feature-card__detail-inner{min-height:120px;}'
+      + '[data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;contain-intrinsic-size:320px;}'
+      + 'body{font-synthesis-weight:none;text-size-adjust:100%;-webkit-text-size-adjust:100%;}';
+    document.head.appendChild(st);
+  } catch (e) {}
+})();
+
+(function redirectToCanonicalMain() {
+  try {
+    var loc = window.location;
+    if (!loc) return;
+    var protocol = String(loc.protocol || '').toLowerCase();
+    if (protocol !== 'http:' && protocol !== 'https:') return;
+    if (protocol === 'https:') return;
+    var next = new URL(loc.href);
+    next.protocol = 'https:';
+    next.port = '';
+    var nextHref = next.toString();
+    if (nextHref && nextHref !== loc.href) window.location.replace(nextHref);
+  } catch (e) {}
+})();
+  </script>
+  <script>
+(function initRuntimeSingletonGuard(globalObj) {
+  'use strict';
+
+  if (!globalObj) return;
+  if (globalObj.__FORTUNE_RUNTIME_GUARD_READY__) return;
+
+  var STATE_KEY = '__FORTUNE_RUNTIME_SINGLETONS__';
+  var SCRIPT_KEY = '__FORTUNE_RUNTIME_SCRIPT_PROMISES__';
+  var STYLE_KEY = '__FORTUNE_RUNTIME_STYLE_LOADED__';
+
+  globalObj[STATE_KEY] = globalObj[STATE_KEY] || Object.create(null);
+  globalObj[SCRIPT_KEY] = globalObj[SCRIPT_KEY] || Object.create(null);
+  globalObj[STYLE_KEY] = globalObj[STYLE_KEY] || Object.create(null);
+
+  function runOnce(key, fn) {
+    if (!key || typeof fn !== 'function') return;
+    if (globalObj[STATE_KEY][key]) return;
+    globalObj[STATE_KEY][key] = 1;
+    fn();
+  }
+
+  function normalizePath(path) {
+    return String(path || '').replace(/^\.\//, '');
+  }
+
+  function findScriptBySrc(src) {
+    var target = normalizePath(src);
+    var scripts = document.querySelectorAll('script[src]');
+    for (var i = 0; i < scripts.length; i += 1) {
+      var cur = normalizePath(scripts[i].getAttribute('src') || '');
+      if (cur === target || cur.indexOf(target) >= 0 || target.indexOf(cur) >= 0) return scripts[i];
+    }
+    return null;
+  }
+
+  function loadScriptOnce(src, opts) {
+    var target = normalizePath(src);
+    if (!target) return Promise.resolve();
+
+    if (globalObj[SCRIPT_KEY][target]) return globalObj[SCRIPT_KEY][target];
+
+    var existing = findScriptBySrc(target);
+    if (existing && existing.dataset.loaded === '1') {
+      globalObj[SCRIPT_KEY][target] = Promise.resolve();
+      return globalObj[SCRIPT_KEY][target];
+    }
+
+    if (existing && existing.dataset.loading === '1') {
+      globalObj[SCRIPT_KEY][target] = new Promise(function (resolve, reject) {
+        existing.addEventListener('load', function () { resolve(); }, { once: true });
+        existing.addEventListener('error', function () { reject(new Error('load failed: ' + target)); }, { once: true });
+      });
+      return globalObj[SCRIPT_KEY][target];
+    }
+
+    globalObj[SCRIPT_KEY][target] = new Promise(function (resolve, reject) {
+      var script = existing || document.createElement('script');
+      if (!existing) {
+        script.src = target;
+        script.defer = !opts || opts.defer !== false;
+        script.async = !!(opts && opts.async);
+        script.dataset.loading = '1';
+        (document.head || document.body || document.documentElement).appendChild(script);
+      }
+
+      script.addEventListener('load', function () {
+        script.dataset.loading = '0';
+        script.dataset.loaded = '1';
+        resolve();
+      }, { once: true });
+
+      script.addEventListener('error', function () {
+        script.dataset.loading = '0';
+        reject(new Error('load failed: ' + target));
+      }, { once: true });
+    });
+
+    return globalObj[SCRIPT_KEY][target];
+  }
+
+  function loadStylesheetOnce(href) {
+    var target = normalizePath(href);
+    if (!target) return;
+    if (globalObj[STYLE_KEY][target]) return;
+
+    var links = document.querySelectorAll('link[rel="stylesheet"], link[rel="preload"][as="style"]');
+    for (var i = 0; i < links.length; i += 1) {
+      var cur = normalizePath(links[i].getAttribute('href') || '');
+      if (cur === target) {
+        globalObj[STYLE_KEY][target] = 1;
+        return;
+      }
+    }
+
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = target;
+    link.media = 'print';
+    link.onload = function () {
+      link.media = 'all';
+    };
+    document.head.appendChild(link);
+    globalObj[STYLE_KEY][target] = 1;
+  }
+
+  globalObj.__runOnce = runOnce;
+  globalObj.__loadScriptOnce = loadScriptOnce;
+  globalObj.__loadStylesheetOnce = loadStylesheetOnce;
+  globalObj.__FORTUNE_RUNTIME_GUARD_READY__ = true;
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+  </script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script>
@@ -349,16 +513,39 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js"></script>
+<script>
+/**
+ * PWA theme init — neo/samba manifest & favicon switching.
+ * Runs before body; must execute before favicon render.
+ */
+(function () {
+  try {
+    var isNeo = localStorage.getItem('fortuneThemeModeStateV1') === 'neo';
+    window.__INITIAL_THEME_NEO__ = isNeo;
+    if (!isNeo) return;
+    var manifestLink = document.getElementById('pwa-manifest');
+    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
+    var faviconLink = document.getElementById('pwa-favicon');
+    if (faviconLink) {
+      faviconLink.setAttribute('href', '/icons/samba.webp');
+      faviconLink.setAttribute('type', 'image/webp');
+      faviconLink.setAttribute('sizes', '192x192');
+    }
+    var appleIconLink = document.getElementById('pwa-apple-icon');
+    if (appleIconLink) appleIconLink.setAttribute('href', '/icons/samba.webp');
+  } catch (_) {
+    window.__INITIAL_THEME_NEO__ = false;
+  }
+})();
+</script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" rel="stylesheet"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -366,11 +553,11 @@
 
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/animations.css">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2">
-  <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <script src="/js/inline/api-base-init.js" defer></script>
   <script src="/js/inline/noncritical-css-loader.js" defer></script>
   <script>
@@ -391,13 +578,33 @@
     document.head.appendChild(s);
   })();
   </script>
-  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
+<style>
+.skip-to-main {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 100000;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+.skip-to-main:focus {
+  top: 12px;
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+}
+</style>
 </head>
 <body>
+<a class="skip-to-main" href="#inputPage">본문으로 바로가기</a>
 <script>
 (function () {
   function isMobile() {
@@ -3309,7 +3516,7 @@
 
 <div class="modal" id="tsModal" data-action="closeModal" data-action-pass-event="1" data-action-self-only="1">
   <div class="modal-box">
-    <button class="modal-close" data-action="closeModal">✕</button>
+    <button class="modal-close" data-action="closeModal" type="button" aria-label="타로 결과 닫기">✕</button>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -3387,7 +3594,7 @@
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
-        <button class="astral-close-btn" data-action="closeMbtiModal">✕</button>
+    <button class="astral-close-btn" data-action="closeMbtiModal" type="button" aria-label="아스트랄 토템 닫기">✕</button>
         
         <!-- Header -->
         <header class="astral-header">

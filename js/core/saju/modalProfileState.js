@@ -92,17 +92,63 @@ function _renderSukuyoSection(profile) {
     '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   var b = profile.birth;
-  var lunarObj = null;
-  try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-      lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
-    }
-  } catch (e) {
-    console.warn('[Sukuyo] lunarObj 계산 오류:', e);
+  var l = profile.location || {};
+
+  function toLunarFromContext(ctx) {
+    var lunar = ctx && ctx.lunar ? ctx.lunar : null;
+    if (!lunar) return null;
+    var y = Number(lunar.year);
+    var m = Number(lunar.month);
+    var d = Number(lunar.day);
+    if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+    return {
+      year: y,
+      month: m,
+      day: d,
+      isLeap: !!lunar.isLeap
+    };
   }
-  setTimeout(function () {
-    if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
-  }, 0);
+
+  function toLunarFallback() {
+    try {
+      if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+        return KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
+      }
+    } catch (e) {
+      console.warn('[Sukuyo] lunarObj fallback 계산 오류:', e);
+    }
+    return null;
+  }
+
+  function renderWith(lunarObj) {
+    setTimeout(function () {
+      if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
+    }, 0);
+  }
+
+  if (window.KasiCalendarService && typeof window.KasiCalendarService.resolveDateContext === 'function') {
+    window.KasiCalendarService.resolveDateContext({
+      calendarType: 'solar',
+      year: b.year,
+      month: b.month,
+      day: b.day,
+      hour: b.hour != null ? b.hour : 12,
+      minute: b.minute != null ? b.minute : 0,
+      latitude: l.lat != null ? l.lat : 37.5665,
+      longitude: l.lng != null ? l.lng : 126.978,
+      tzOffsetHours: l.tzOffset != null ? l.tzOffset : 9
+    }, {
+      setCurrent: true
+    }).then(function (ctx) {
+      renderWith(toLunarFromContext(ctx) || toLunarFallback());
+    }).catch(function (e) {
+      console.warn('[Sukuyo] KASI API 경유 변환 실패, fallback 사용:', e);
+      renderWith(toLunarFallback());
+    });
+    return;
+  }
+
+  renderWith(toLunarFallback());
 }
 
 function _renderZiweiSection() {

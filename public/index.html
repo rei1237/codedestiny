@@ -430,8 +430,28 @@
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
+<style>
+.skip-to-main {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 100000;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+.skip-to-main:focus {
+  top: 12px;
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+}
+</style>
 </head>
 <body>
+<a class="skip-to-main" href="#inputPage">본문으로 바로가기</a>
 <script>
 (function () {
   function isMobile() {
@@ -3343,7 +3363,7 @@
 
 <div class="modal" id="tsModal" data-action="closeModal" data-action-pass-event="1" data-action-self-only="1">
   <div class="modal-box">
-    <button class="modal-close" data-action="closeModal">✕</button>
+    <button class="modal-close" data-action="closeModal" type="button" aria-label="타로 결과 닫기">✕</button>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -3421,7 +3441,7 @@
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
-        <button class="astral-close-btn" data-action="closeMbtiModal">✕</button>
+    <button class="astral-close-btn" data-action="closeMbtiModal" type="button" aria-label="아스트랄 토템 닫기">✕</button>
         
         <!-- Header -->
         <header class="astral-header">
