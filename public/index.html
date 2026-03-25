@@ -7,6 +7,24 @@
   <script>
   (function () {
     try {
+      if ((new URLSearchParams(location.search || '')).get('sesdebug') !== '1') return;
+      var original = console.log;
+      console.log = function () {
+        var first = arguments && arguments.length ? String(arguments[0]) : '';
+        if (first.indexOf('SES Removing unpermitted intrinsics') >= 0) {
+          try {
+            original.call(console, '[SES-TRACE] lockdown message captured');
+            original.call(console, new Error('[SES-TRACE] source stack').stack);
+          } catch (_e) {}
+        }
+        return original.apply(console, arguments);
+      };
+    } catch (_e) {}
+  })();
+  </script>
+  <script>
+  (function () {
+    try {
       var host = String(location.hostname || '').toLowerCase();
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
@@ -375,7 +393,7 @@
   <link rel="preload" as="style" href="/styles/saju-totem-generator.css?v=20260323" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com" defer></script>
   <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
@@ -3418,12 +3436,55 @@
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
-<script src="/js/dream-meaning-library.js" defer></script>
-<script src="/lib/ai-engine.js" defer></script>
-<script src="/js/luck-sync-diary.js" defer></script>
-<script src="/js/dream-ledger.js" defer></script>
-<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
-<script src="/js/entertain-engine.js" defer></script>
+<script>
+(function () {
+  // Delay non-critical feature bundles to reduce desktop startup cost.
+  var optionalScripts = [
+    '/js/dream-meaning-library.js',
+    '/lib/ai-engine.js',
+    '/js/luck-sync-diary.js',
+    '/js/dream-ledger.js',
+    '/js/psycho-dream-analyzer-freuds-study.js',
+    '/js/entertain-engine.js'
+  ];
+
+  function loadScript(src) {
+    return new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      s.onload = resolve;
+      s.onerror = resolve;
+      document.body.appendChild(s);
+    });
+  }
+
+  function loadAllOptional() {
+    var chain = Promise.resolve();
+    for (var i = 0; i < optionalScripts.length; i += 1) {
+      (function (src) {
+        chain = chain.then(function () {
+          return loadScript(src);
+        });
+      })(optionalScripts[i]);
+    }
+  }
+
+  function scheduleOptionalLoad() {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(loadAllOptional, { timeout: 3000 });
+      return;
+    }
+    window.setTimeout(loadAllOptional, 1200);
+  }
+
+  if (document.readyState === 'complete') {
+    scheduleOptionalLoad();
+  } else {
+    window.addEventListener('load', scheduleOptionalLoad, { once: true });
+  }
+})();
+</script>
 <script type="module" src="/js/app.js"></script>
 <script>
 (function () {
