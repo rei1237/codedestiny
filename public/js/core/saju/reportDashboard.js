@@ -1026,6 +1026,15 @@ function _sajuFunEnsureMainStageMigration() {
 }
 
 function _sajuFunShowTargetInMainStage(target) {
+  var titleText = '';
+  if (target) {
+    var t = target.querySelector('.sec-title');
+    if (t) titleText = (t.textContent || '').trim();
+  }
+  if (_sajuFunOpenFeatureWindow(target, titleText || '재미있는 사주 콘텐츠')) {
+    return;
+  }
+
   var els = _sajuFunGetStageEls();
   if (!els.stage || !els.locked || !els.content || !target) return;
   els.stage.style.display = '';
@@ -1044,6 +1053,58 @@ function _sajuFunShowTargetInMainStage(target) {
   } catch (e) {
     try { els.stage.scrollIntoView(true); } catch (e2) {}
   }
+}
+
+function _sajuFunOpenFeatureWindow(target, titleText) {
+  if (!target) return false;
+  var popup = null;
+  try {
+    popup = window.open('', 'sajuFunFeatureWindow', 'width=980,height=900,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
+  } catch (e) {
+    return false;
+  }
+  if (!popup) return false;
+
+  var doc = popup.document;
+  var safeTitle = String(titleText || '재미있는 사주 콘텐츠');
+  var linkTags = '';
+  try {
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+    for (var i = 0; i < links.length; i++) {
+      var href = links[i].getAttribute('href');
+      if (href) linkTags += '<link rel="stylesheet" href="' + href + '">';
+    }
+  } catch (e2) {}
+
+  var rootClone = target.cloneNode(true);
+  rootClone.style.display = 'block';
+  rootClone.style.margin = '0';
+
+  doc.open();
+  doc.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">'
+    + '<title>' + safeTitle + '</title>'
+    + linkTags
+    + '<style>'
+    + 'body{margin:0;padding:0;background:radial-gradient(circle at 10% 10%,#2a1450 0%,#0f172a 45%,#020617 100%);color:#e2e8f0;font-family:system-ui,-apple-system,Segoe UI,Apple SD Gothic Neo,sans-serif;}'
+    + '.sfw-shell{max-width:980px;margin:0 auto;padding:16px;}'
+    + '.sfw-head{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0 10px;background:linear-gradient(180deg,rgba(2,6,23,.95),rgba(2,6,23,.72) 72%,rgba(2,6,23,0));backdrop-filter:blur(6px);}'
+    + '.sfw-title{font-weight:800;font-size:1rem;color:#f8fafc;letter-spacing:.01em;}'
+    + '.sfw-close{border:1px solid rgba(148,163,184,.45);background:rgba(15,23,42,.62);color:#e2e8f0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;}'
+    + '.sfw-close:hover{background:rgba(51,65,85,.72);}'
+    + '.sfw-card{margin-top:10px;}'
+    + '.sfw-card .card{display:block !important;margin:0 !important;}'
+    + '</style></head><body>'
+    + '<div class="sfw-shell">'
+    + '<div class="sfw-head"><div class="sfw-title">' + safeTitle + '</div><button class="sfw-close" onclick="window.close()">닫기</button></div>'
+    + '<div id="sfwContent" class="sfw-card"></div>'
+    + '</div></body></html>');
+  doc.close();
+
+  var host = doc.getElementById('sfwContent');
+  if (!host) return true;
+  host.appendChild(rootClone);
+  try { popup.focus(); } catch (e3) {}
+  return true;
 }
 
 function _sajuFunBuildProfileKey(profile) {
