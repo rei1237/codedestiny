@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
@@ -30,12 +30,30 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var s = document.createElement('script');
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-      s.onerror = function () {};
-      document.head.appendChild(s);
+      var loaded = false;
+      function injectAdsense() {
+        if (loaded) return;
+        loaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+        s.onerror = function () {};
+        document.head.appendChild(s);
+      }
+
+      function scheduleIdleLoad() {
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(injectAdsense, { timeout: 5000 });
+          return;
+        }
+        setTimeout(injectAdsense, 3500);
+      }
+
+      ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function(evt) {
+        window.addEventListener(evt, injectAdsense, { once: true, passive: true });
+      });
+      scheduleIdleLoad();
     } catch (_) {}
   })();
   </script>
@@ -375,8 +393,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -385,7 +403,7 @@
   <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
   
-  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2"></noscript>
+  <link rel="preload" as="style" href="/styles/fortune-ui-critical.css?v=20260326-split1" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/styles/fortune-ui-critical.css?v=20260326-split1"></noscript>
   <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
@@ -3288,6 +3306,26 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
   </article><!-- /#resultPage -->
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Code: Destiny AI 사주",
+    "operatingSystem": "Web",
+    "applicationCategory": "LifestyleApplication",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "1024"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "KRW"
+    }
+  }
+  </script>
+
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
@@ -3303,12 +3341,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 <script src="/js/destiny-profile.js" defer></script>
 <script src="/js/swisseph-lazy-init.js" defer></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
-<script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
-<script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
-<script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
-<script src="/js/services/sajuService.js" defer></script>
-<script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->

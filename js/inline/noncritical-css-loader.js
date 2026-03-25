@@ -10,14 +10,10 @@
   }
 
   var nonCriticalCss = [
+    '/styles/fortune-ui-deferred.css?v=20260326-split1',
     '/styles/animal-totem-mystic.css?v=20260315-mobile-opt1',
     '/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix',
     '/styles/saju-totem-generator.css?v=20260323',
-    '/styles/tarot-love-mystic.css?v=20260316-mobile-opt2',
-    '/styles/tarot-healing-dawn.css?v=20260317-luxury-sun',
-    '/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2',
-    '/styles/tarot-year-fortune.css?v=20260315-mobile-opt1',
-    '/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1',
     '/css/entertain-system.css'
   ];
 
