@@ -1,6 +1,14 @@
 (function loadNonCriticalCss() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
+  if (typeof window.__runOnce === 'function') {
+    var alreadyRan = false;
+    window.__runOnce('noncritical-css-loader', function () {
+      alreadyRan = true;
+    });
+    if (!alreadyRan) return;
+  }
+
   var nonCriticalCss = [
     '/styles/animal-totem-mystic.css?v=20260315-mobile-opt1',
     '/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix',
@@ -24,6 +32,10 @@
 
   function appendStylesheet(href) {
     if (!href || isLoaded(href)) return;
+    if (typeof window.__loadStylesheetOnce === 'function') {
+      window.__loadStylesheetOnce(href);
+      return;
+    }
     var link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = href;

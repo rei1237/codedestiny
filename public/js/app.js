@@ -17,8 +17,20 @@ function scheduleFortuneServiceLoad() {
   setTimeout(loadFortuneServiceFacade, 900);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootstrapOnce() {
+  if (typeof window !== 'undefined') {
+    window.__FORTUNE_APP_BOOTSTRAPPED__ = window.__FORTUNE_APP_BOOTSTRAPPED__ || false;
+    if (window.__FORTUNE_APP_BOOTSTRAPPED__) return;
+    window.__FORTUNE_APP_BOOTSTRAPPED__ = true;
+  }
+
   initAppShell();
   bootstrapDestinyFlower(window);
   scheduleFortuneServiceLoad();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapOnce, { once: true });
+} else {
+  bootstrapOnce();
+}
