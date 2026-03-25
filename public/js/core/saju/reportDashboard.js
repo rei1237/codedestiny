@@ -967,6 +967,25 @@ function _sajuFunForceMainPage() {
   if (resultPage) resultPage.style.display = 'none';
 }
 
+var _sajuFunStayMainTimer = 0;
+function _sajuFunKeepMainPage(ms) {
+  if (_sajuFunStayMainTimer) {
+    clearInterval(_sajuFunStayMainTimer);
+    _sajuFunStayMainTimer = 0;
+  }
+  var keepMs = Number(ms || 0);
+  if (!keepMs || keepMs < 1) return;
+  var until = Date.now() + keepMs;
+  _sajuFunForceMainPage();
+  _sajuFunStayMainTimer = setInterval(function() {
+    _sajuFunForceMainPage();
+    if (Date.now() >= until) {
+      clearInterval(_sajuFunStayMainTimer);
+      _sajuFunStayMainTimer = 0;
+    }
+  }, 160);
+}
+
 function _sajuFunRenderLockedPlaceholders() {
   var els = _sajuFunGetStageEls();
   if (!els.stage || !els.locked || !els.content) return;
@@ -1099,8 +1118,10 @@ window.openSajuFunFeature = function(targetId, afterAction) {
 
   if (hasCache && _sajuFunHasRenderedContent(effectiveTargetId)) {
     _sajuFunSetHint('✅ 이미 준비된 데이터입니다. 요청 없이 바로 열어요.', 'success');
+    _sajuFunKeepMainPage(1200);
   } else {
     _sajuFunSetHint('✅ 프로필 확인 완료. 필요한 데이터만 1회 분석합니다.', 'success');
+    _sajuFunKeepMainPage(7000);
     // ── 백그라운드 사주 계산 (같은 프로필에서는 1회만) ──
     if (typeof window._dpOpenFortuneType === 'function') {
       try { window._dpOpenFortuneType('saju'); } catch (e) {}
@@ -1125,6 +1146,7 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     }
     window.__sajuFunPreparedKey = profileKey;
     _sajuFunForceMainPage();
+    _sajuFunKeepMainPage(1200);
     _sajuFunShowTargetInMainStage(target);
   };
 
