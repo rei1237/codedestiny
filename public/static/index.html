@@ -862,11 +862,12 @@
         <label class="form-label" for="birthDate">생년월일</label>
         <input class="inp" type="date" id="birthDate" name="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
-        <div class="form-radio-row">
+        <fieldset class="form-radio-row" role="radiogroup" aria-label="달력 유형">
+          <legend style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">달력 유형</legend>
           <label for="calTypeSolar"><input type="radio" id="calTypeSolar" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
           <label for="calTypeLunar"><input type="radio" id="calTypeLunar" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
           <label for="calTypeLunarLeap"><input type="radio" id="calTypeLunarLeap" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(윤달)</label>
-        </div>
+        </fieldset>
         <div id="lunarPreview" class="form-lunar-preview"></div>
       </div>
       <div class="form-group">
@@ -874,11 +875,11 @@
         <div class="row2">
           <div>
             <label class="form-label form-label-compact" for="birthHour">시</label>
-            <select class="inp" id="birthHour" name="birthHour"></select>
+            <select class="inp" id="birthHour" name="birthHour" aria-describedby="birthTimeTip"></select>
           </div>
           <div>
             <label class="form-label form-label-compact" for="birthMinute">분</label>
-            <select class="inp" id="birthMinute" name="birthMinute"></select>
+            <select class="inp" id="birthMinute" name="birthMinute" aria-describedby="birthTimeTip"></select>
           </div>
         </div>
       </div>
@@ -904,7 +905,7 @@
           <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
         </div>
       </div>
-      <div class="birth-time-tip">
+      <div class="birth-time-tip" id="birthTimeTip">
         💡 시간 미입력 시 낮 12시로 계산됩니다
       </div>
       <!-- Destiny Profile 저장 버튼 -->
@@ -2994,22 +2995,24 @@
         <div class="form-group form-group-mb10">
           <label class="form-label form-label-compact" for="compatBirthDate">상대 생년월일 · 시간</label>
           <input class="inp" type="date" id="compatBirthDate" name="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview" autocomplete="bday">
-          <div class="form-radio-row">
+          <fieldset class="form-radio-row" role="radiogroup" aria-label="상대 달력 유형">
+            <legend style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">상대 달력 유형</legend>
             <label for="compatCalTypeSolar"><input type="radio" id="compatCalTypeSolar" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
             <label for="compatCalTypeLunar"><input type="radio" id="compatCalTypeLunar" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
             <label for="compatCalTypeLunarLeap"><input type="radio" id="compatCalTypeLunarLeap" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
-          </div>
+          </fieldset>
           <div id="compatLunarPreview" class="form-lunar-preview"></div>
           <div class="row2 row2-mt8">
             <div>
               <label class="form-label form-label-compact" for="compatBirthHour">시</label>
-              <select class="inp" id="compatBirthHour" name="compatBirthHour"></select>
+              <select class="inp" id="compatBirthHour" name="compatBirthHour" aria-describedby="compatBirthTimeHint"></select>
             </div>
             <div>
               <label class="form-label form-label-compact" for="compatBirthMinute">분</label>
-              <select class="inp" id="compatBirthMinute" name="compatBirthMinute"></select>
+              <select class="inp" id="compatBirthMinute" name="compatBirthMinute" aria-describedby="compatBirthTimeHint"></select>
             </div>
           </div>
+          <div id="compatBirthTimeHint" class="form-helper-desc">시간 미입력 시 기본값(12:00) 기준으로 계산됩니다.</div>
         </div>
         <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
         <div id="compatResult" class="compat-result-wrap"></div>

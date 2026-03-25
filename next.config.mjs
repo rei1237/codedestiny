@@ -48,6 +48,13 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  webpack: (config, { dev, isServer }) => {
+    // CSP(script-src without unsafe-eval) 환경에서 개발 번들 eval 소스맵 충돌 방지
+    if (dev && !isServer) {
+      config.devtool = 'source-map';
+    }
+    return config;
+  },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
     const legacyHomeRewrites = [
