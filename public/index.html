@@ -59,6 +59,7 @@
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
 <link rel="preload" as="image" href="/icons/samba.webp" fetchpriority="high" imagesizes="130px">
+<link rel="preload" as="image" href="/icons/honeypig.webp" fetchpriority="high" imagesizes="130px">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -384,8 +385,8 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -393,23 +394,14 @@
 
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/animations.css">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260325-collection-summary">
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <link rel="stylesheet" href="/styles/tailwind-static.generated.css?v=20260325-perf1">
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/css/entertain-system.css">
-  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
+  <link rel="preload" as="style" href="/styles/tailwind-static.generated.css?v=20260325-perf1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
@@ -840,7 +832,7 @@
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+               width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -3404,18 +3396,14 @@
     </nav>
   </footer>
 
-<script src="/js/destiny-profile.js" defer></script>
-<script type="module" src="/js/swisseph-loader.js"></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
 <script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
 <script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
 <script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
-<script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
-<script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
 <!-- ══ Saju Totem Generator Modal ══ -->
@@ -3437,12 +3425,30 @@
 
 <div class="share-toast" id="shareToast"></div>
 
+<script type="application/json" id="lazy-style-manifest">
+[
+  "/styles/animal-totem-mystic.css?v=20260315-mobile-opt1",
+  "/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix",
+  "/styles/saju-totem-generator.css?v=20260323",
+  "/styles/tarot-love-mystic.css?v=20260316-mobile-opt2",
+  "/styles/tarot-healing-dawn.css?v=20260317-luxury-sun",
+  "/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2",
+  "/styles/tarot-year-fortune.css?v=20260315-mobile-opt1",
+  "/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1",
+  "/css/entertain-system.css"
+]
+</script>
+
 <script type="application/json" id="lazy-script-manifest">
 [
   "/js/share.js?v=2026-03-23-v2-cachefix1",
+  "/js/destiny-profile.js",
+  "/js/mobile-interaction-patch.js",
+  "/js/admin-flower.js",
   "/js/iching-engine.js",
   "/js/iching-modal.js?v=20260321-sukuyo-scroll2",
   "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit",
+  "/js/swisseph-loader.js",
   "/js/fate-scroll-reveal.js",
   "/js/fate-scroll-top.js",
   "/js/fsn-navbar.js",
@@ -3562,12 +3568,15 @@
 <script>
 (function () {
   try {
-    var manifestEl = document.getElementById('lazy-script-manifest');
-    if (!manifestEl) return;
-    var scripts = JSON.parse(manifestEl.textContent || '[]');
-    if (!Array.isArray(scripts) || !scripts.length) return;
+    var scriptManifestEl = document.getElementById('lazy-script-manifest');
+    var styleManifestEl = document.getElementById('lazy-style-manifest');
+    var scripts = scriptManifestEl ? JSON.parse(scriptManifestEl.textContent || '[]') : [];
+    var styles = styleManifestEl ? JSON.parse(styleManifestEl.textContent || '[]') : [];
+    if (!Array.isArray(scripts)) scripts = [];
+    if (!Array.isArray(styles)) styles = [];
+    if (!scripts.length && !styles.length) return;
 
-    var loaded = false;
+    var lazyAssetsLoaded = false;
     function appendScript(src) {
       if (!src || document.querySelector('script[src="' + src + '"]')) return;
       var s = document.createElement('script');
@@ -3576,9 +3585,17 @@
       s.async = false;
       document.body.appendChild(s);
     }
-    function loadAllLazyScripts() {
-      if (loaded) return;
-      loaded = true;
+    function appendStyle(href) {
+      if (!href || document.querySelector('link[rel="stylesheet"][href="' + href + '"]')) return;
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = href;
+      document.head.appendChild(l);
+    }
+    function loadAllLazyAssets() {
+      if (lazyAssetsLoaded) return;
+      lazyAssetsLoaded = true;
+      styles.forEach(appendStyle);
       scripts.forEach(appendScript);
     }
 
@@ -3592,7 +3609,7 @@
       events.forEach(function (evt) {
         window.removeEventListener(evt, onIntent, { passive: true });
       });
-      loadAllLazyScripts();
+      loadAllLazyAssets();
     }
     events.forEach(function (evt) {
       window.addEventListener(evt, onIntent, { passive: true, once: true });
@@ -3600,9 +3617,9 @@
 
     var idleDelay = slow || saveData ? 9000 : 3500;
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(loadAllLazyScripts, { timeout: idleDelay });
+      requestIdleCallback(loadAllLazyAssets, { timeout: idleDelay });
     } else {
-      setTimeout(loadAllLazyScripts, idleDelay);
+      setTimeout(loadAllLazyAssets, idleDelay);
     }
   } catch (e) {}
 })();
@@ -3643,7 +3660,28 @@
 })();
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>
+(function () {
+  try {
+    function loadBeacon() {
+      if (document.querySelector('script[src*="static.cloudflareinsights.com/beacon.min.js"]')) return;
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516';
+      s.integrity = 'sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==';
+      s.crossOrigin = 'anonymous';
+      s.setAttribute('data-cf-beacon', '{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}');
+      document.head.appendChild(s);
+    }
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadBeacon, { timeout: 9000 });
+    } else {
+      setTimeout(loadBeacon, 4500);
+    }
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
 

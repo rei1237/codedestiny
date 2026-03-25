@@ -1,6 +1,6 @@
 (function(){
   var _splashDone = false;
-  var SPLASH_DURATION_MS = 3000;
+  var SPLASH_DURATION_MS = 900;
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -137,9 +137,9 @@
     if (rafId) cancelAnimationFrame(rafId);
   }
 
-  /* 별똥별 감상을 위해 로딩 스플래시 최소 3초 노출 */
+  /* 초기 화면 가시성을 우선해 스플래시 노출 시간을 짧게 유지 */
   setTimeout(hideSplash, SPLASH_DURATION_MS);
   window.addEventListener('pageshow', function() {
-    setTimeout(hideSplash, SPLASH_DURATION_MS);
+    setTimeout(hideSplash, 300);
   }, { once: true });
 })();
