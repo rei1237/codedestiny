@@ -271,7 +271,42 @@ function pulseFavoriteSaved() {
   });
 }
 
-function handleFavoriteAdd() {
+function markFavoriteSaved(modeKey, isNeo) {
+  var savedState = readFavoriteModeState();
+  if (savedState[modeKey]) return;
+  savedState[modeKey] = true;
+  writeFavoriteModeState(savedState);
+  updateFavoriteButtonThemeText(isNeo);
+  pulseFavoriteSaved();
+}
+
+function showBookmarkShortcutGuide(icon, title) {
+  var isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') || /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  var shortcut = isMac ? 'Cmd+D' : 'Ctrl+D';
+  var copied = false;
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href);
+      copied = true;
+    }
+  } catch (_) {}
+
+  var msg = icon + ' 브라우저 보안 정책으로 자동 즐겨찾기 추가가 제한됩니다.\n\n'
+    + '지금 ' + shortcut + ' 를 눌러 "' + title + '"를 즐겨찾기에 추가해 주세요.';
+
+  if (copied) {
+    msg += '\n\n주소는 클립보드에 복사해 두었어요.';
+  }
+
+  try {
+    window.alert(msg);
+  } catch (_) {}
+
+  showToast(icon + ' ' + shortcut + '로 즐겨찾기를 추가해 주세요.');
+}
+
+async function handleFavoriteAdd() {
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
   var labels = getFavoriteModeLabels();
   var modeKey = isNeo ? 'neo' : 'pig';
@@ -279,11 +314,6 @@ function handleFavoriteAdd() {
   var icon = isNeo ? '⭐' : '🌸';
   var savedState = readFavoriteModeState();
   var alreadySaved = !!savedState[modeKey];
-
-  savedState[modeKey] = true;
-  writeFavoriteModeState(savedState);
-  updateFavoriteButtonThemeText(isNeo);
-  pulseFavoriteSaved();
 
   var nativeAdded = false;
 
@@ -301,17 +331,34 @@ function handleFavoriteAdd() {
     }
   } catch (_) {}
 
+  // 모바일에서는 공유 시트가 가장 안정적인 진입점입니다.
+  if (!nativeAdded) {
+    try {
+      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+      if (isMobile && navigator.share) {
+        await navigator.share({
+          title: title,
+          text: title,
+          url: window.location.href
+        });
+        nativeAdded = true;
+      }
+    } catch (_) {}
+  }
+
   if (nativeAdded) {
+    markFavoriteSaved(modeKey, isNeo);
     showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
     return;
   }
 
   if (alreadySaved) {
     showToast(icon + ' 이미 저장된 즐겨찾기예요.');
+    showBookmarkShortcutGuide(icon, title);
     return;
   }
 
-  showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
+  showBookmarkShortcutGuide(icon, title);
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
