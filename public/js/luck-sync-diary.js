@@ -217,12 +217,27 @@
     if (!Array.isArray(entry.badges)) entry.badges = [];
     if (!Array.isArray(entry.nightPractices)) entry.nightPractices = [];
     if (!Array.isArray(entry.actionPlan)) entry.actionPlan = [];
+    if (!Array.isArray(entry.challengeCatalog)) entry.challengeCatalog = [];
+    if (!Array.isArray(entry.tomorrowActionPlan)) entry.tomorrowActionPlan = [];
+    if (!Array.isArray(entry.meditationLogs)) entry.meditationLogs = [];
+    if (typeof entry.challengeTotalToday !== 'number') entry.challengeTotalToday = 0;
+    if (typeof entry.tomorrowPlanTheme !== 'string') entry.tomorrowPlanTheme = '';
     if (typeof entry.reviewRate !== 'number') entry.reviewRate = 0;
     if (typeof entry.reviewNote !== 'string') entry.reviewNote = '';
     if (typeof entry.practiceNote !== 'string') entry.practiceNote = entry.reviewNote || entry.nightLog || '';
     if (typeof entry.aiLuckCoach !== 'string') entry.aiLuckCoach = '';
     if (typeof entry.aiCoachUpdatedAt !== 'string') entry.aiCoachUpdatedAt = '';
     if (typeof entry.tomorrowBlueprint !== 'string') entry.tomorrowBlueprint = '';
+    if (typeof entry.revisionOriginal !== 'string') entry.revisionOriginal = '';
+    if (typeof entry.revisionImagined !== 'string') entry.revisionImagined = '';
+    if (typeof entry.revisionDoneCount !== 'number') entry.revisionDoneCount = 0;
+    if (typeof entry.satsKeyword !== 'string') entry.satsKeyword = '';
+    if (typeof entry.satsScene !== 'string') entry.satsScene = '';
+    if (typeof entry.satsCompleted !== 'boolean') entry.satsCompleted = false;
+    if (typeof entry.iAmAffirmation !== 'string') entry.iAmAffirmation = '';
+    if (typeof entry.iAmCompleted !== 'boolean') entry.iAmCompleted = false;
+    if (typeof entry.meditationMinutes !== 'number') entry.meditationMinutes = 0;
+    if (typeof entry.meditationPoints !== 'number') entry.meditationPoints = 0;
     if (typeof entry.memoNote !== 'string') entry.memoNote = '';
     if (typeof entry.morningFortune !== 'string') entry.morningFortune = '';
     if (typeof entry.partnerName !== 'string') entry.partnerName = '';
@@ -262,10 +277,25 @@
         moodEmoji: '',
         nightPractices: [],
         actionPlan: [],
+        challengeCatalog: [],
+        challengeTotalToday: 0,
         practiceNote: '',
         aiLuckCoach: '',
         aiCoachUpdatedAt: '',
-        tomorrowBlueprint: ''
+        tomorrowBlueprint: '',
+        tomorrowActionPlan: [],
+        tomorrowPlanTheme: '',
+        revisionOriginal: '',
+        revisionImagined: '',
+        revisionDoneCount: 0,
+        satsKeyword: '',
+        satsScene: '',
+        satsCompleted: false,
+        iAmAffirmation: '',
+        iAmCompleted: false,
+        meditationMinutes: 0,
+        meditationPoints: 0,
+        meditationLogs: []
       };
     }
     ensureEntryShape(diary[key]);
@@ -538,7 +568,8 @@
       }
     }
 
-    var doneFull = (entry.challenges || []).length >= 5;
+    var challengeTotal = Number(entry.challengeTotalToday) || ((entry.challengeCatalog && entry.challengeCatalog.length) || 0);
+    var doneFull = (entry.challenges || []).length >= Math.max(5, Math.floor(challengeTotal * 0.75));
     if (doneFull) {
       var badgeName = '🏅 오운완 마스터 ' + getTodayKey();
       if (entry.badges.indexOf(badgeName) < 0) {
@@ -838,6 +869,70 @@
     water: ['💧 물 충분히 마시기 (2L 목표)', '🎧 좋아하는 음악으로 감성 충전']
   };
 
+  var CHALLENGE_POOL_BASE = [
+    '📘 오늘 배운 점 1줄 기록하기',
+    '🚶 15분 걷기 또는 가벼운 스트레칭',
+    '🧹 5분 정리로 작업 공간 리셋',
+    '💧 물 2잔 추가 섭취하기',
+    '📵 SNS 20분 오프',
+    '🎯 가장 어려운 할 일 1개 먼저 착수',
+    '🫁 4-7-8 호흡 3회',
+    '🧾 오늘 지출 1건 점검',
+    '📬 감사 메시지 1개 보내기',
+    '🛏️ 취침 30분 전 화면 끄기',
+    '🗂️ 내일 핵심 우선순위 1개 예약',
+    '🎧 집중 음악 10분 + 단일 작업',
+    '🍎 가벼운 건강 간식으로 교체',
+    '🧠 방해요소 1개 제거',
+    '📝 오늘 기분 태그 1개 이상 선택'
+  ];
+
+  var CHALLENGE_POOL_BY_BRANCH = {
+    '子': ['🌊 야간 생각 루프를 1줄로 끊어 적기', '🔍 직감이 온 순간을 기록하기'],
+    '丑': ['🧱 미뤄둔 실무 1개 마감하기', '📦 책상 위 잡동사니 5개 정리'],
+    '寅': ['🚀 미뤄둔 제안/아이디어 1개 발신하기', '🗣️ 먼저 연락 1회 시도'],
+    '卯': ['🌿 창문 열고 3분 심호흡', '🤝 관계 회복 메시지 1개 보내기'],
+    '辰': ['🧭 장기 목표 1줄 재정렬', '📊 진행률 숫자 1개 기록'],
+    '巳': ['🔥 집중 25분 타이머 1회', '🎤 발표/말하기 연습 3분'],
+    '午': ['☀️ 오전 핵심업무 먼저 완료', '💬 긍정 피드백 1회 전달'],
+    '未': ['🏡 집안 작은 구역 정리 완료', '🥗 저녁 과식 대신 가벼운 식사'],
+    '申': ['⚙️ 자동화/단축키 1개 적용', '📎 반복 작업 템플릿화'],
+    '酉': ['✨ 외형/스타일 포인트 1개 업그레이드', '🪞 말투/표정 체크 1회'],
+    '戌': ['🛡️ 경계선 필요한 관계 1개 정리', '📍 오늘 규칙 1개 끝까지 지키기'],
+    '亥': ['🌙 조용한 몰입 20분 확보', '📚 통찰 문장 1개 필사']
+  };
+
+  var CHALLENGE_POOL_BY_TENSTAR = {
+    '비견': ['🧍 혼자 끝낼 일 1개 단독 완수'],
+    '겁재': ['⚔️ 하기 싫은 일 1개 정면 돌파'],
+    '식신': ['🍱 몸을 돌보는 식사 루틴 유지'],
+    '상관': ['💡 창의 아이디어 3개 메모'],
+    '편재': ['📈 기회 연결 메시지 1개 보내기'],
+    '정재': ['💳 지출 한도 설정 후 소비'],
+    '편관': ['🏁 난도 높은 업무 1개 클리어'],
+    '정관': ['🗓️ 일정/규칙 100% 준수'],
+    '편인': ['🌌 혼자 사색 10분 확보'],
+    '정인': ['📖 학습 20분 완수']
+  };
+
+  function _seedFromText(text) {
+    var s = String(text || 'seed');
+    var h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff;
+    return h || 13579;
+  }
+
+  function _shuffleBySeed(list, seed) {
+    var arr = (list || []).slice();
+    var x = Math.abs(seed || 1);
+    for (var i = arr.length - 1; i > 0; i--) {
+      x = (x * 1103515245 + 12345) & 0x7fffffff;
+      var j = x % (i + 1);
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
   var BLUEPRINT_THEMES = [
     { id: 'wealth', label: '재물 흐름 설계', icon: '💰' },
     { id: 'love', label: '관계 기운 정돈', icon: '💞' },
@@ -853,28 +948,9 @@
     'Rule: Keep it practical and specific.'
   ].join(' ');
 
-  function buildNightActionPlan(luckyEl, mainTenStar) {
-    var elemChallenges = (CHALLENGE_SETS[luckyEl] || CHALLENGE_SETS.earth);
-    var tenstarHint = (mainTenStar && TENSTAR_GUIDE[mainTenStar])
-      ? ('⚡ ' + mainTenStar + ' 흐름에 맞춰 ' + TENSTAR_GUIDE[mainTenStar].vibe + ' 행동 1개 실행')
-      : '⚡ 오늘 중요 일정 1개를 미리 준비해 운의 타이밍 선점';
-    return [
-      { id: 'na1', text: elemChallenges[0], group: 'element' },
-      { id: 'na2', text: elemChallenges[1], group: 'element' },
-      { id: 'na3', text: '📵 자기 전 30분 디지털 디톡스', group: 'recovery' },
-      { id: 'na4', text: tenstarHint, group: 'tenstar' },
-      { id: 'na5', text: '📒 내일 우선순위 1개 먼저 예약', group: 'blueprint' }
-    ];
-  }
-
   function calcNightEffort(entry) {
-    var plan = Array.isArray(entry && entry.actionPlan) ? entry.actionPlan : [];
-    var doneIds = Array.isArray(entry && entry.nightPractices) ? entry.nightPractices : [];
-    var total = plan.length;
-    var done = 0;
-    for (var i = 0; i < plan.length; i++) {
-      if (doneIds.indexOf(plan[i].id) >= 0) done++;
-    }
+    var total = Number(entry && entry.challengeTotalToday) || ((entry && entry.challengeCatalog && entry.challengeCatalog.length) || 0);
+    var done = (entry && entry.challenges && entry.challenges.length) ? entry.challenges.length : 0;
     var pct = total > 0 ? Math.round((done / total) * 100) : 0;
     return { done: done, total: total, pct: pct };
   }
@@ -898,14 +974,12 @@
   }
 
   function buildAiLuckCoachAdvice(entry) {
-    var plan = Array.isArray(entry && entry.actionPlan) ? entry.actionPlan : [];
-    var doneIds = Array.isArray(entry && entry.nightPractices) ? entry.nightPractices : [];
-    var doneTexts = [];
-    var pendingTexts = [];
-    plan.forEach(function (p) {
-      if (doneIds.indexOf(p.id) >= 0) doneTexts.push(p.text);
-      else pendingTexts.push(p.text);
-    });
+    var doneIds = Array.isArray(entry && entry.challenges) ? entry.challenges : [];
+    var catalog = Array.isArray(entry && entry.challengeCatalog) ? entry.challengeCatalog : [];
+    var byId = {};
+    catalog.forEach(function (c) { byId[c.id] = c.text; });
+    var doneTexts = doneIds.map(function (id) { return byId[id]; }).filter(Boolean);
+    var pendingTexts = catalog.filter(function (c) { return doneIds.indexOf(c.id) < 0; }).map(function (c) { return c.text; });
     var note = String((entry && entry.practiceNote) || '').trim();
     var effort = calcNightEffort(entry);
     var tomorrow = new Date();
@@ -920,8 +994,9 @@
       focus: '집중 성과'
     };
     var themeText = themeMap[entry && entry.tomorrowBlueprint] || '핵심 루틴';
+    var tomorrowPlan = Array.isArray(entry && entry.tomorrowActionPlan) ? entry.tomorrowActionPlan : [];
     var doneHeadline = doneTexts[0] || '핵심 루틴 1개';
-    var pendingHeadline = pendingTexts[0] || '자기 전 30분 정리 루틴';
+    var pendingHeadline = pendingTexts[0] || tomorrowPlan[0] || '자기 전 30분 정리 루틴';
     var memoSignal = note ? ('메모에서 확인된 흐름: "' + escHtml(note.slice(0, 48)) + (note.length > 48 ? '...' : '') + '".') : '오늘 메모가 짧아 체감 데이터를 더 모으면 조언 정확도가 올라갑니다.';
     var liftLine = effort.pct >= 70
       ? '실천도가 높아 내일 운의 진입 속도가 빠를 가능성이 큽니다.'
@@ -934,50 +1009,61 @@
       + liftLine;
   }
 
+  function buildTomorrowActionPlan(entry) {
+    var theme = entry && entry.tomorrowBlueprint;
+    var themeActions = {
+      wealth: ['불필요 결제 1건 보류 후 24시간 재검토', '오전 1건은 수익/성과 직결 업무 먼저 처리', '저녁에 지출/수입 로그 1줄 기록'],
+      love: ['먼저 연락 1회로 관계 온도 올리기', '오해 가능 문장은 확인 질문으로 정리', '감사/칭찬 메시지 1개 발송'],
+      health: ['기상 후 물 1잔 + 스트레칭 5분', '점심 이후 카페인 1회 줄이기', '취침 40분 전 디지털 오프'],
+      focus: ['가장 중요한 업무 25분 몰입 2회', '알림 끄고 단일작업 슬롯 1개 확보', '퇴근 전 내일 첫 업무 1개 예약']
+    };
+    var doneIds = Array.isArray(entry && entry.challenges) ? entry.challenges : [];
+    var catalog = Array.isArray(entry && entry.challengeCatalog) ? entry.challengeCatalog : [];
+    var carry = catalog.filter(function (c) { return doneIds.indexOf(c.id) < 0; }).slice(0, 2).map(function (c) { return c.text; });
+    var head = (themeActions[theme] || themeActions.focus).slice(0, 1);
+    var plan = head.concat(carry);
+    while (plan.length < 3) {
+      plan.push((themeActions[theme] || themeActions.focus)[plan.length % 3]);
+    }
+    return plan.slice(0, 3);
+  }
+
   function renderNightPracticeBoard(entry) {
-    var checklist = document.getElementById('lsdActionChecklist');
-    var gaugeBar = document.getElementById('lsdEffortGaugeBar');
-    var gaugeText = document.getElementById('lsdEffortGaugeText');
+    var summaryBox = document.getElementById('lsdTomorrowFocusSummary');
+    var tomorrowPlanList = document.getElementById('lsdTomorrowPlanList');
     var noteInput = document.getElementById('lsdPracticeNoteInput');
     var noteCount = document.getElementById('lsdPracticeCharCount');
     var coachCard = document.getElementById('lsdAiLuckCoach');
-    var morningBox = document.getElementById('lsdMorningActionSummary');
     var themeBox = document.getElementById('lsdTomorrowBlueprintBtns');
 
-    if (!entry.actionPlan || !entry.actionPlan.length) {
-      entry.actionPlan = buildNightActionPlan(_lsdCtx.luckyEl, _lsdCtx.mainTenStar);
-    }
-
-    if (checklist) {
-      checklist.innerHTML = entry.actionPlan.map(function (item) {
-        var done = (entry.nightPractices || []).indexOf(item.id) >= 0;
-        return ''
-          + '<button type="button" class="lsd-night-action' + (done ? ' is-done' : '') + '" data-action-id="' + item.id + '">'
-          + '<span class="lsd-night-action-check">' + (done ? '✔' : '') + '</span>'
-          + '<span class="lsd-night-action-text">' + escHtml(item.text) + '</span>'
-          + '</button>';
-      }).join('');
+    var currentTheme = entry.tomorrowBlueprint || 'focus';
+    if (!Array.isArray(entry.tomorrowActionPlan) || !entry.tomorrowActionPlan.length || entry.tomorrowPlanTheme !== currentTheme) {
+      entry.tomorrowActionPlan = buildTomorrowActionPlan(entry);
+      entry.tomorrowPlanTheme = currentTheme;
     }
 
     var effort = calcNightEffort(entry);
-    if (gaugeBar) gaugeBar.style.width = effort.pct + '%';
-    if (gaugeText) gaugeText.textContent = '오늘 실천도 ' + effort.pct + '% (' + effort.done + '/' + effort.total + ')';
+    var meditationPts = calcMeditationPoints(entry);
+    if (summaryBox) {
+      summaryBox.innerHTML = '<strong>🧭 내일 설계 기준</strong><br>'
+        + '오늘 오운완 완료율 ' + effort.pct + '%, 명상 포인트 ' + meditationPts + 'pt를 반영해 내일 실행 3단계를 생성했습니다.';
+    }
+    if (tomorrowPlanList) {
+      tomorrowPlanList.innerHTML = (entry.tomorrowActionPlan || []).map(function (x, idx) {
+        return '<div class="lsd-night-action"><span class="lsd-night-action-check">' + (idx + 1) + '</span><span class="lsd-night-action-text">' + escHtml(x) + '</span></div>';
+      }).join('');
+    }
 
     if (noteInput) {
       noteInput.value = entry.practiceNote || entry.nightLog || '';
       if (noteCount) noteCount.textContent = noteInput.value.length;
     }
 
-    if (morningBox) {
-      if (!entry.morningFortune) entry.morningFortune = _lsdCtx.morningMsg || '아침 제안이 준비되는 중입니다.';
-      morningBox.innerHTML = '<strong>🌞 아침 제안 요약</strong><br>' + escHtml(entry.morningFortune);
-    }
-
     if (coachCard) {
       if (entry.aiLuckCoach) {
         coachCard.innerHTML = entry.aiLuckCoach + (entry.aiCoachUpdatedAt ? '<div class="lsd-ai-foot">최근 생성: ' + escHtml(entry.aiCoachUpdatedAt) + '</div>' : '');
       } else {
-        coachCard.innerHTML = '실천 체크 + 메모를 입력한 뒤 AI Luck Coach를 눌러보세요. 데이터 기반으로 내일의 운 설계 가이드를 생성합니다.';
+        coachCard.innerHTML = '오운완 완료 데이터와 설계 메모를 바탕으로, 내일 운 설계 전용 가이드를 생성합니다.';
       }
     }
 
@@ -988,30 +1074,183 @@
     }
   }
 
-  function buildChallenges(luckyEl, mainTenStar) {
+  var _lsdMeditationTimer = null;
+  var _lsdSatsAudioCtx = null;
+  var _lsdSatsAudioNodes = null;
+
+  function getTomorrowLuckKeyword(entry) {
+    var byTheme = {
+      wealth: '재물운 상승',
+      love: '귀인 상봉',
+      health: '회복력 강화',
+      focus: '집중 성과 실현'
+    };
+    if (entry && entry.tomorrowBlueprint && byTheme[entry.tomorrowBlueprint]) {
+      return byTheme[entry.tomorrowBlueprint];
+    }
+    if (_lsdCtx.mainTenStar === '정재' || _lsdCtx.mainTenStar === '편재') return '재물운 상승';
+    if (_lsdCtx.mainTenStar === '정관' || _lsdCtx.mainTenStar === '편관') return '성과와 인정';
+    if (_lsdCtx.luckyEl === 'water') return '직감력 상승';
+    return '귀인 상봉';
+  }
+
+  function buildSatsSceneText(keyword) {
+    var scenes = {
+      '재물운 상승': '송금 완료 알림이 뜨고, 통장 잔액이 안정적으로 늘어난 화면을 보며 안도하는 장면',
+      '귀인 상봉': '필요한 타이밍에 정확한 도움을 주는 사람과 웃으며 악수하는 장면',
+      '회복력 강화': '가벼운 몸과 맑은 호흡으로 아침 햇빛을 받으며 상쾌하게 일어나는 장면',
+      '집중 성과 실현': '중요한 업무를 완성해 전송 버튼을 누른 뒤 칭찬 메시지를 받는 장면',
+      '성과와 인정': '회의 종료 직후 "정확했다"는 피드백을 듣고 고개를 끄덕이는 장면',
+      '직감력 상승': '잠깐의 직감으로 올바른 선택을 하고 바로 좋은 결과를 확인하는 장면'
+    };
+    return scenes[keyword] || '내일 원하는 결과가 이미 완료되어 편안하게 미소 짓는 장면';
+  }
+
+  function buildIamAffirmation(entry) {
+    var keyword = getTomorrowLuckKeyword(entry);
+    var map = {
+      '재물운 상승': '나는 오늘 흐름을 읽고 부를 정확히 다루는 사람이다.',
+      '귀인 상봉': '나는 오늘 좋은 인연을 자연스럽게 끌어당기는 사람이다.',
+      '회복력 강화': '나는 오늘 안정된 호흡과 체력으로 중심을 지키는 사람이다.',
+      '집중 성과 실현': '나는 오늘 가장 중요한 일을 끝까지 완성하는 사람이다.',
+      '성과와 인정': '나는 오늘 신뢰를 증명하고 인정받는 사람이다.',
+      '직감력 상승': '나는 오늘 필요한 신호를 정확히 감지하는 사람이다.'
+    };
+    return map[keyword] || '나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.';
+  }
+
+  function calcMeditationPoints(entry) {
+    var rev = Number(entry && entry.revisionDoneCount) || 0;
+    var sats = entry && entry.satsCompleted ? 1 : 0;
+    var iam = entry && entry.iAmCompleted ? 1 : 0;
+    var mins = Number(entry && entry.meditationMinutes) || 0;
+    var pts = (rev * 8) + (sats * 18) + (iam * 10) + Math.min(15, mins);
+    return Math.max(0, Math.min(100, pts));
+  }
+
+  function renderMeditationTrend(diary) {
+    var box = document.getElementById('lsdMeditationTrend');
+    if (!box) return;
+    var keys = Object.keys(diary || {}).sort().slice(-7);
+    if (!keys.length) {
+      box.innerHTML = '<div style="font-size:.7rem;color:#94a3b8">명상 기록이 쌓이면 최근 7일 추세가 표시됩니다.</div>';
+      return;
+    }
+    var rows = keys.map(function (k) {
+      var e = diary[k] || {};
+      ensureEntryShape(e);
+      var p = calcMeditationPoints(e);
+      return '<div style="display:grid;grid-template-columns:68px 1fr 34px;gap:8px;align-items:center">'
+        + '<span style="font-size:.66rem;color:#64748b">' + k.slice(5) + '</span>'
+        + '<div style="height:7px;border-radius:999px;background:#1e293b;overflow:hidden"><div style="height:100%;width:' + p + '%;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div></div>'
+        + '<span style="font-size:.66rem;color:#e2e8f0;text-align:right">' + p + '</span>'
+        + '</div>';
+    }).join('');
+    box.innerHTML = rows;
+  }
+
+  function renderMeditationBoard(entry, diary) {
+    var originalInput = document.getElementById('lsdRevisionOriginal');
+    var revisedInput = document.getElementById('lsdRevisionImagined');
+    var revStatus = document.getElementById('lsdRevisionStatus');
+    var satsKeyword = document.getElementById('lsdSatsKeyword');
+    var satsScene = document.getElementById('lsdSatsScene');
+    var iAmCard = document.getElementById('lsdIamCard');
+    var iAmInput = document.getElementById('lsdIamInput');
+    var pts = document.getElementById('lsdMeditationPoints');
+
+    if (!entry.revisionOriginal && entry.practiceNote) entry.revisionOriginal = entry.practiceNote;
+    if (!entry.satsKeyword) entry.satsKeyword = getTomorrowLuckKeyword(entry);
+    if (!entry.satsScene) entry.satsScene = buildSatsSceneText(entry.satsKeyword);
+    if (!entry.iAmAffirmation) entry.iAmAffirmation = buildIamAffirmation(entry);
+    entry.meditationPoints = calcMeditationPoints(entry);
+
+    if (originalInput) originalInput.value = entry.revisionOriginal || '';
+    if (revisedInput) revisedInput.value = entry.revisionImagined || '';
+    if (revStatus) {
+      revStatus.textContent = 'Revision 완료 ' + (entry.revisionDoneCount || 0) + '회 · 누적 ' + (entry.meditationMinutes || 0) + '분';
+    }
+    if (satsKeyword) satsKeyword.textContent = entry.satsKeyword;
+    if (satsScene) satsScene.textContent = entry.satsScene;
+    if (iAmCard) iAmCard.textContent = entry.iAmAffirmation;
+    if (iAmInput) iAmInput.value = entry.iAmCompleted ? entry.iAmAffirmation : '';
+    if (pts) pts.textContent = String(entry.meditationPoints || 0);
+
+    renderMeditationTrend(diary);
+  }
+
+  function stopSatsAudio() {
+    if (_lsdSatsAudioNodes) {
+      try { _lsdSatsAudioNodes.oscA.stop(); } catch (e) {}
+      try { _lsdSatsAudioNodes.oscB.stop(); } catch (e) {}
+      try { _lsdSatsAudioNodes.gain.disconnect(); } catch (e) {}
+    }
+    _lsdSatsAudioNodes = null;
+    if (_lsdSatsAudioCtx && typeof _lsdSatsAudioCtx.close === 'function') {
+      try { _lsdSatsAudioCtx.close(); } catch (e) {}
+    }
+    _lsdSatsAudioCtx = null;
+  }
+
+  function startSatsAudio(mode) {
+    stopSatsAudio();
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    _lsdSatsAudioCtx = new AudioCtx();
+    var oscA = _lsdSatsAudioCtx.createOscillator();
+    var oscB = _lsdSatsAudioCtx.createOscillator();
+    var gain = _lsdSatsAudioCtx.createGain();
+    oscA.type = 'sine';
+    oscB.type = 'sine';
+    if (mode === 'theta') {
+      oscA.frequency.value = 220;
+      oscB.frequency.value = 224;
+    } else {
+      oscA.frequency.value = 196;
+      oscB.frequency.value = 198.2;
+    }
+    gain.gain.value = 0.03;
+    oscA.connect(gain);
+    oscB.connect(gain);
+    gain.connect(_lsdSatsAudioCtx.destination);
+    oscA.start();
+    oscB.start();
+    _lsdSatsAudioNodes = { oscA: oscA, oscB: oscB, gain: gain };
+  }
+
+  function buildChallenges(luckyEl, mainTenStar, todayGZ) {
     var diary = loadDiary();
     var entry = getTodayEntry(diary);
     var container = document.getElementById('lsdChallenges');
     if (!container) return;
 
-    entry.actionPlan = buildNightActionPlan(luckyEl, mainTenStar);
-    if (!Array.isArray(entry.nightPractices)) entry.nightPractices = [];
-    entry.nightPractices = entry.nightPractices.filter(function (id) {
-      return entry.actionPlan.some(function (p) { return p.id === id; });
+    var elemChallenges = (CHALLENGE_SETS[luckyEl] || CHALLENGE_SETS.earth);
+    var branch = (todayGZ && todayGZ.j) ? todayGZ.j : '子';
+    var branchPool = CHALLENGE_POOL_BY_BRANCH[branch] || [];
+    var tenPool = (mainTenStar && CHALLENGE_POOL_BY_TENSTAR[mainTenStar]) ? CHALLENGE_POOL_BY_TENSTAR[mainTenStar] : [];
+    var mergedPool = CHALLENGE_POOL_BASE.concat(elemChallenges).concat(branchPool).concat(tenPool);
+    var uniquePool = [];
+    var seen = {};
+    mergedPool.forEach(function (txt) {
+      if (!seen[txt]) {
+        seen[txt] = true;
+        uniquePool.push(txt);
+      }
+    });
+    var seed = _seedFromText(getTodayKey() + '|' + (todayGZ ? (todayGZ.g + todayGZ.j) : 'na') + '|' + luckyEl + '|' + (mainTenStar || 'x'));
+    var picked = _shuffleBySeed(uniquePool, seed).slice(0, 9);
+    var allChallenges = picked.map(function (txt, idx) {
+      return { id: 'c' + String(idx + 1), text: txt, type: 'random' };
+    });
+
+    entry.challengeCatalog = allChallenges.map(function (c) { return { id: c.id, text: c.text }; });
+    entry.challengeTotalToday = allChallenges.length;
+    entry.actionPlan = allChallenges.map(function (c) { return { id: c.id, text: c.text, group: c.type }; });
+    if (!Array.isArray(entry.challenges)) entry.challenges = [];
+    entry.challenges = entry.challenges.filter(function (id) {
+      return allChallenges.some(function (c) { return c.id === id; });
     });
     saveDiary(diary);
-
-    var elemChallenges = (CHALLENGE_SETS[luckyEl] || CHALLENGE_SETS.earth);
-    var allChallenges = [
-      { id: 'c1', text: elemChallenges[0], type: 'element' },
-      { id: 'c2', text: elemChallenges[1], type: 'element' },
-      { id: 'c3', text: '📝 오늘 할 일 3가지 적기', type: 'plan' },
-      { id: 'c4', text: '🚶 10분 이상 걷거나 스트레칭 하기', type: 'health' },
-      { id: 'c5', text: '💧 물 한 컵 마시기', type: 'health' }
-    ];
-    if (mainTenStar && TENSTAR_GUIDE[mainTenStar]) {
-      allChallenges.push({ id: 'c6', text: '⚡ ' + mainTenStar + '의 날 — ' + TENSTAR_GUIDE[mainTenStar].vibe + ' 한 가지 실천', type: 'tenstar' });
-    }
 
     container.innerHTML = allChallenges.map(function (c) {
       var checked = (entry.challenges || []).indexOf(c.id) >= 0;
@@ -1030,7 +1269,7 @@
         if (ids.indexOf(c.id) >= 0) doneCount++;
       });
 
-      if (doneCount >= allChallenges.length && allChallenges.length > 0) {
+      if (doneCount >= Math.max(5, Math.floor(allChallenges.length * 0.75)) && allChallenges.length > 0) {
         var luckyInfo = ELEM[luckyEl] || ELEM.earth;
         var ts = (mainTenStar && TENSTAR_GUIDE[mainTenStar]) ? TENSTAR_GUIDE[mainTenStar] : null;
         congratsEl.innerHTML = '🎉 오운완 클리어! 오늘은 <b style="color:' + luckyInfo.neon + '">' + luckyInfo.cn + '</b> 기운이 활짝 열렸어요.'
@@ -1089,12 +1328,14 @@
       var lotto = e.lotto ? (e.lotto.emoji + ' ' + e.lotto.name) : '';
       var doneCount = (e.challenges || []).length;
       var effort = calcNightEffort(e);
+      var medPts = calcMeditationPoints(e);
       var bp = blueprintMap[e.tomorrowBlueprint] || '';
       var memo = e.practiceNote || e.nightLog || '';
       return '<div class="lsd-history-item">' +
         '<div class="lsd-history-date">' + k + ' ' + mood + '</div>' +
         '<div class="lsd-history-meta">' +
           (effort.total > 0 ? '<span class="lsd-history-tag">📈 실천 ' + effort.pct + '%</span>' : '') +
+          (medPts > 0 ? '<span class="lsd-history-tag">🧘 명상 ' + medPts + 'pt</span>' : '') +
           (lotto ? '<span class="lsd-history-tag">🎱 ' + lotto + '</span>' : '') +
           (bp ? '<span class="lsd-history-tag">🧭 ' + bp + '</span>' : '') +
           (doneCount > 0 ? '<span class="lsd-history-tag">✅ 미션 ' + doneCount + '완</span>' : '') +
@@ -1120,6 +1361,7 @@
       lotto:     'lsdPanelLotto',
       challenge: 'lsdPanelChallenge',
       night:     'lsdPanelNight',
+      meditation:'lsdPanelMeditation',
       history:   'lsdPanelHistory'
     };
     Object.keys(panelMap).forEach(function (k) {
@@ -1127,6 +1369,11 @@
       if (el) el.style.display = (k === tabName) ? 'block' : 'none';
     });
     if (tabName === 'history') renderHistory();
+    if (tabName === 'meditation') {
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      renderMeditationBoard(e, d);
+    }
   }
 
   /* ─── 가챠 로또 ───────────────────────────────────────────────── */
@@ -1433,10 +1680,24 @@
         '.lsd-ai-foot{margin-top:8px;font-size:.68rem;color:#64748b;font-weight:700}',
         '.lsd-blueprint-btn{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 12px;font-size:.7rem;font-weight:800;color:#475569;cursor:pointer;transition:all .2s}',
         '.lsd-blueprint-btn.is-on{border-color:#38bdf8;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;box-shadow:0 6px 18px rgba(14,165,233,.28)}',
+        '.lsd-meditation-shell{display:grid;gap:10px}',
+        '.lsd-meditation-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px 12px 11px;box-shadow:0 1px 6px rgba(0,0,0,.04)}',
+        '.lsd-meditation-title{font-size:.78rem;font-weight:900;color:#0f172a;margin:0 0 8px}',
+        '.lsd-mini-label{display:block;font-size:.67rem;color:#64748b;font-weight:700;margin:0 0 4px}',
+        '.lsd-meditation-input{width:100%;border:1px solid #dbe3ef;border-radius:10px;padding:8px 10px;font-size:.76rem;color:#1f2937;line-height:1.45;background:#fff;box-sizing:border-box;margin-bottom:8px}',
+        '.lsd-mini-select{border:1px solid #dbe3ef;border-radius:999px;padding:7px 10px;font-size:.72rem;color:#334155;background:#fff}',
+        '.lsd-sats-zone{position:relative;overflow:hidden;transition:all .3s ease}',
+        '.lsd-sats-zone.is-dark{background:radial-gradient(circle at 50% 15%,#1e1b4b 0%,#0f172a 55%,#020617 100%);border-color:#312e81;box-shadow:0 12px 28px rgba(2,6,23,.45)}',
+        '.lsd-sats-scene{font-size:.76rem;line-height:1.55;color:#334155;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:8px 9px;margin:7px 0 8px}',
+        '.lsd-sats-zone.is-dark .lsd-sats-scene{background:rgba(30,41,59,.45);border-color:rgba(125,211,252,.4);color:#e0f2fe}',
+        '.lsd-sats-breath{font-size:.74rem;line-height:1.5;color:#0f172a;padding:8px 10px;border-radius:10px;background:rgba(224,242,254,.62);animation:lsdBreathText 7s ease-in-out infinite;opacity:.9;margin-bottom:8px}',
+        '.lsd-sats-zone.is-dark .lsd-sats-breath{color:#e0e7ff;background:rgba(30,41,59,.4)}',
+        '.lsd-iam-card{font-size:.78rem;line-height:1.5;color:#0f172a;background:linear-gradient(135deg,#ecfeff,#eef2ff);border:1px solid #bae6fd;border-radius:12px;padding:10px 11px;font-weight:800;margin-bottom:8px}',
         '.lsd-confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000001}',
         '.lsd-confetti-bit{position:absolute;top:42vh;width:8px;height:14px;border-radius:2px;opacity:.9;animation:lsdConfettiDrop .95s ease-out forwards}',
         '@keyframes lsdConfettiDrop{0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}100%{transform:translate3d(calc((var(--x,0) - 30) * 1px),220px,0) rotate(420deg);opacity:0}}',
         '@keyframes lsdShimmer{0%{transform:translateX(-110%)}100%{transform:translateX(110%)}}',
+        '@keyframes lsdBreathText{0%,100%{opacity:.5;transform:scale(.985)}50%{opacity:1;transform:scale(1.02)}}',
       ].join('');
       document.head.appendChild(st);
     }
@@ -1464,6 +1725,7 @@
       '<button class="lsd-tab" role="tab" data-tab="lotto" aria-selected="false">🎰 럭키 뽑기</button>',
       '<button class="lsd-tab" role="tab" data-tab="challenge" aria-selected="false">✅ 오운완</button>',
       '<button class="lsd-tab" role="tab" data-tab="night" aria-selected="false">🌙 야간회고</button>',
+      '<button class="lsd-tab" role="tab" data-tab="meditation" aria-selected="false">🧘 명상</button>',
       '<button class="lsd-tab" role="tab" data-tab="history" aria-selected="false">📅 기록</button>',
       '</nav>',
       '<div style="flex:1;overflow-y:auto;background:#f9fafb;scrollbar-width:thin">',
@@ -1531,41 +1793,94 @@
       '</div>',
       '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6;padding:12px 12px 14px">',
       '<div class="lsd-night-section">',
-      '<div class="lsd-mini-box" id="lsdMorningActionSummary"></div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">1) Action Checklist</p>',
-      '<div id="lsdActionChecklist" style="display:grid;gap:8px"></div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">1) Tomorrow Blueprint</p>',
+      '<div id="lsdTomorrowBlueprintBtns" style="display:flex;gap:6px;flex-wrap:wrap">',
+      BLUEPRINT_THEMES.map(function (t) { return '<button type="button" class="lsd-blueprint-btn" data-blueprint="' + t.id + '">' + t.icon + ' ' + t.label + '</button>'; }).join(''),
+      '</div>',
+      '</div>',
+      '<div class="lsd-mini-box" id="lsdTomorrowFocusSummary"></div>',
+      '<div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">2) 내일 실행 3단계</p>',
+      '<div id="lsdTomorrowPlanList" style="display:grid;gap:7px"></div>',
       '</div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">2) Effort Gauge</p>',
-      '<div class="lsd-gauge-track"><div id="lsdEffortGaugeBar" class="lsd-gauge-fill"></div></div>',
-      '<div id="lsdEffortGaugeText" class="lsd-gauge-copy">오늘 실천도 0%</div>',
-      '</div>',
-      '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">3) Reflection Note</p>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">3) 설계 메모</p>',
       '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;background:transparent;padding:8px 10px 10px;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다."></textarea>',
       '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:.69rem;color:#94a3b8"><span id="lsdPracticeCharCount">0</span>/500</div>',
       '</div>',
       '<div>',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px">',
-      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">4) AI Luck Coach</p>',
+      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">4) AI Tomorrow Coach</p>',
       '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:#93c5fd;color:#0c4a6e">🧠 AI 코칭 생성</button>',
       '</div>',
-      '<div id="lsdAiLuckCoach" class="lsd-ai-coach-card">실천 데이터를 기반으로 내일의 개운 설계를 제안합니다.</div>',
-      '</div>',
-      '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">5) Tomorrow Blueprint</p>',
-      '<div id="lsdTomorrowBlueprintBtns" style="display:flex;gap:6px;flex-wrap:wrap">',
-      BLUEPRINT_THEMES.map(function (t) { return '<button type="button" class="lsd-blueprint-btn" data-blueprint="' + t.id + '">' + t.icon + ' ' + t.label + '</button>'; }).join(''),
-      '</div>',
+      '<div id="lsdAiLuckCoach" class="lsd-ai-coach-card">오늘 실천 데이터를 바탕으로 내일 운 설계 가이드를 제안합니다.</div>',
       '</div>',
       '<div style="padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px">',
-      '<span style="font-size:.7rem;color:#64748b">실천 완료를 누르면 저장 + 축하 효과가 실행됩니다.</span>',
-      '<button id="lsdSaveNightBtn" type="button" style="padding:9px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(14,165,233,.28);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"">✨ 실천 완료 저장</button>',
+      '<span style="font-size:.7rem;color:#64748b">야간 회고는 내일 운 설계에만 집중합니다.</span>',
+      '<button id="lsdSaveNightBtn" type="button" style="padding:9px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(14,165,233,.28);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">🗓️ 내일 설계 저장</button>',
       '</div>',
       '<div id="lsdSaveFeedback" style="display:none;font-size:.78rem;font-weight:700;color:#0891b2">✅ 오늘의 운 설계 기록이 저장됐어요!</div>',
       '</div>',
       '</div></section>',
+      '<section class="lsd-panel" id="lsdPanelMeditation" role="tabpanel" style="padding:14px;display:none">',
+      '<div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
+      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 3px">🧘 운명 개척 명상 가이드</h3>',
+      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">네빌 고다드의 Revision, SATS, I AM 루틴을 오늘 운세 실천 지수와 연결합니다.</p>',
+      '</div>',
+      '<div class="lsd-meditation-shell">',
+      '<div class="lsd-meditation-card">',
+      '<p class="lsd-meditation-title">1) 수정의 가위 (Nightly Revision)</p>',
+      '<label class="lsd-mini-label" for="lsdRevisionOriginal">오늘의 부정적 사건</label>',
+      '<textarea id="lsdRevisionOriginal" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="예: 중요한 미팅에서 긴장해 말이 꼬였다."></textarea>',
+      '<label class="lsd-mini-label" for="lsdRevisionImagined">원하는 전개로 수정한 장면</label>',
+      '<textarea id="lsdRevisionImagined" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="예: 차분하게 핵심을 전달했고, 상대가 미소로 고개를 끄덕였다."></textarea>',
+      '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">',
+      '<button id="lsdStartRevisionTimer" type="button" class="lsd-plain-btn" style="border-color:#22d3ee;color:#0c4a6e">⏱️ 1분 상상 시작</button>',
+      '<span id="lsdRevisionCountdown" style="font-size:.74rem;font-weight:800;color:#0f172a">01:00</span>',
+      '</div>',
+      '<div id="lsdRevisionGuide" class="lsd-mini-box" style="margin-top:8px">이제 눈을 감고, 수정된 장면이 실제 사실인 것처럼 1분간 상상하세요.</div>',
+      '<div id="lsdRevisionStatus" style="margin-top:6px;font-size:.7rem;color:#64748b"></div>',
+      '</div>',
+
+      '<div class="lsd-meditation-card lsd-sats-zone" id="lsdSatsZone">',
+      '<p class="lsd-meditation-title">2) SATS 시각화</p>',
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">',
+      '<span style="font-size:.72rem;color:#475569">내일 키워드: <b id="lsdSatsKeyword" style="color:#0ea5e9">로딩중</b></span>',
+      '<button id="lsdGenerateSatsScene" type="button" class="lsd-plain-btn">✨ 장면 추천</button>',
+      '</div>',
+      '<div id="lsdSatsScene" class="lsd-sats-scene">당신이 이미 원하는 결과를 이룬 단 하나의 장면이 표시됩니다.</div>',
+      '<div class="lsd-sats-breath" id="lsdSatsBreathText">당신은 이미 이루어진 상태입니다. 소리, 촉감, 기분에만 집중하세요.</div>',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">',
+      '<select id="lsdSatsAudioMode" class="lsd-mini-select"><option value="lofi">Lofi 톤</option><option value="theta">Theta 톤</option></select>',
+      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">🌙 몰입 시작</button>',
+      '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">⏹️ 종료</button>',
+      '</div>',
+      '</div>',
+
+      '<div class="lsd-meditation-card">',
+      '<p class="lsd-meditation-title">3) 아침 I AM 선언</p>',
+      '<div id="lsdIamCard" class="lsd-iam-card">나는 오늘 운의 흐름을 선택하는 사람이다.</div>',
+      '<input id="lsdIamInput" type="text" class="lsd-meditation-input" placeholder="위 문장을 타이핑하거나 소리 내어 읽어보세요.">',
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">',
+      '<button id="lsdRegenerateIam" type="button" class="lsd-plain-btn">🔁 문구 새로고침</button>',
+      '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:#34d399;color:#065f46">✅ 선언 완료</button>',
+      '</div>',
+      '</div>',
+
+      '<div class="lsd-meditation-card" style="background:#0f172a;color:#e2e8f0">',
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">',
+      '<p class="lsd-meditation-title" style="color:#f8fafc;margin:0">운세 실천 지수 연동</p>',
+      '<span style="font-size:.72rem;font-weight:900;color:#67e8f9">Meditation Points <b id="lsdMeditationPoints">0</b></span>',
+      '</div>',
+      '<div id="lsdMeditationTrend" style="margin-top:8px;display:grid;gap:6px"></div>',
+      '<div class="lsd-mini-box" style="margin-top:8px;background:rgba(15,23,42,.45);border-color:rgba(56,189,248,.45);color:#bae6fd">',
+      '몰입 모드 제안: 명상 시작 전 기기의 방해 금지 모드(알림 차단)를 켜고, 전체화면으로 전환하면 집중도가 상승합니다.',
+      '<div style="margin-top:6px"><button id="lsdSuggestFocusMode" type="button" class="lsd-plain-btn" style="border-color:#38bdf8;color:#0ea5e9;background:rgba(15,23,42,.7)">🔕 몰입 모드 제안 실행</button></div>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '</section>',
       '<section class="lsd-panel" id="lsdPanelHistory" role="tabpanel" style="padding:14px;display:none">',
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
       '<div><h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">📅 나의 운구 기일 기록</h3><p style="font-size:.7rem;color:#9ca3af;margin:0">날짜별로 저장된 다이어리 기록이어요~</p></div>',
@@ -1696,7 +2011,7 @@
     renderFortuneDetail(pillars, power, todayGZ, scores, mainTenStar, _luckyEl);
 
     /* 챌린지 빌드 */
-    buildChallenges(_luckyEl, mainTenStar);
+    buildChallenges(_luckyEl, mainTenStar, todayGZ);
 
     /* 야간 회고 로드 */
     var diary = loadDiary();
@@ -1714,6 +2029,7 @@
     }
 
     renderMzSections(pillars, power, todayGZ, scores, mainTenStar, _luckyEl, entry, diary);
+    renderMeditationBoard(entry, diary);
 
     /* 이벤트 바인딩 (각 오픈마다 재바인딩 방지: once) */
     bindModalEvents(modal);
@@ -1761,30 +2077,9 @@
       entry.nightLog = entry.practiceNote;
       saveDiary(d);
       if (calcNightEffort(entry).pct >= 100) launchNightConfetti();
+      renderMeditationBoard(entry, d);
       var fb = document.getElementById('lsdSaveFeedback');
       if (fb) { fb.style.display = 'block'; setTimeout(function () { fb.style.display = 'none'; }, 2000); }
-    };
-
-    var checklist = document.getElementById('lsdActionChecklist');
-    if (checklist) checklist.onclick = function (ev) {
-      var btn = ev.target && ev.target.closest('[data-action-id]');
-      if (!btn) return;
-      var id = btn.getAttribute('data-action-id');
-      if (!id) return;
-      var d = loadDiary();
-      var e = getTodayEntry(d);
-      if (!Array.isArray(e.nightPractices)) e.nightPractices = [];
-      var idx = e.nightPractices.indexOf(id);
-      var becameDone = false;
-      if (idx >= 0) {
-        e.nightPractices.splice(idx, 1);
-      } else {
-        e.nightPractices.push(id);
-        becameDone = true;
-      }
-      saveDiary(d);
-      renderNightPracticeBoard(e);
-      if (becameDone) launchNightConfetti();
     };
 
     var themeWrap = document.getElementById('lsdTomorrowBlueprintBtns');
@@ -1795,8 +2090,11 @@
       var d = loadDiary();
       var e = getTodayEntry(d);
       e.tomorrowBlueprint = blueprint;
+      e.tomorrowPlanTheme = '';
+      e.tomorrowActionPlan = [];
       saveDiary(d);
       renderNightPracticeBoard(e);
+      renderMeditationBoard(e, d);
     };
 
     var aiBtn = document.getElementById('lsdGenerateAiCoachBtn');
@@ -1818,9 +2116,120 @@
         saveDiary(d);
         coachCard.classList.remove('is-loading');
         renderNightPracticeBoard(e);
+        renderMeditationBoard(e, d);
         aiBtn.disabled = false;
         aiBtn.textContent = '🧠 AI 코칭 생성';
       }, 1150);
+    };
+
+    var revisionBtn = document.getElementById('lsdStartRevisionTimer');
+    if (revisionBtn) revisionBtn.onclick = function () {
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      var o = document.getElementById('lsdRevisionOriginal');
+      var r = document.getElementById('lsdRevisionImagined');
+      var countEl = document.getElementById('lsdRevisionCountdown');
+      var guideEl = document.getElementById('lsdRevisionGuide');
+      e.revisionOriginal = o ? o.value : '';
+      e.revisionImagined = r ? r.value : '';
+      saveDiary(d);
+
+      var sec = 60;
+      if (countEl) countEl.textContent = '01:00';
+      if (guideEl) guideEl.textContent = '이제 눈을 감고, 수정된 장면이 실제 사실인 것처럼 1분간 상상하세요.';
+      if (_lsdMeditationTimer) clearInterval(_lsdMeditationTimer);
+      _lsdMeditationTimer = setInterval(function () {
+        sec -= 1;
+        var mm = String(Math.floor(sec / 60)).padStart(2, '0');
+        var ss = String(sec % 60).padStart(2, '0');
+        if (countEl) countEl.textContent = mm + ':' + ss;
+        if (sec <= 0) {
+          clearInterval(_lsdMeditationTimer);
+          _lsdMeditationTimer = null;
+          var dd = loadDiary();
+          var ee = getTodayEntry(dd);
+          ee.revisionDoneCount = (Number(ee.revisionDoneCount) || 0) + 1;
+          ee.meditationMinutes = (Number(ee.meditationMinutes) || 0) + 1;
+          ee.meditationLogs.push({ type: 'revision', ts: Date.now() });
+          ee.meditationPoints = calcMeditationPoints(ee);
+          saveDiary(dd);
+          if (guideEl) guideEl.textContent = '완료! 수정된 사실감이 잠재의식에 고정되도록 3회 심호흡을 더 하세요.';
+          launchNightConfetti();
+          renderMeditationBoard(ee, dd);
+        }
+      }, 1000);
+    };
+
+    var genSatsBtn = document.getElementById('lsdGenerateSatsScene');
+    if (genSatsBtn) genSatsBtn.onclick = function () {
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      e.satsKeyword = getTomorrowLuckKeyword(e);
+      e.satsScene = buildSatsSceneText(e.satsKeyword);
+      e.meditationPoints = calcMeditationPoints(e);
+      saveDiary(d);
+      renderMeditationBoard(e, d);
+    };
+
+    var startSatsBtn = document.getElementById('lsdStartSatsMode');
+    if (startSatsBtn) startSatsBtn.onclick = function () {
+      var zone = document.getElementById('lsdSatsZone');
+      var modeEl = document.getElementById('lsdSatsAudioMode');
+      if (zone) zone.classList.add('is-dark');
+      startSatsAudio(modeEl ? modeEl.value : 'lofi');
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      e.satsCompleted = true;
+      e.meditationLogs.push({ type: 'sats', ts: Date.now() });
+      e.meditationPoints = calcMeditationPoints(e);
+      saveDiary(d);
+      renderMeditationBoard(e, d);
+    };
+
+    var stopSatsBtn = document.getElementById('lsdStopSatsMode');
+    if (stopSatsBtn) stopSatsBtn.onclick = function () {
+      var zone = document.getElementById('lsdSatsZone');
+      if (zone) zone.classList.remove('is-dark');
+      stopSatsAudio();
+    };
+
+    var regenIam = document.getElementById('lsdRegenerateIam');
+    if (regenIam) regenIam.onclick = function () {
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      e.iAmAffirmation = buildIamAffirmation(e);
+      e.iAmCompleted = false;
+      e.meditationPoints = calcMeditationPoints(e);
+      saveDiary(d);
+      renderMeditationBoard(e, d);
+    };
+
+    var confirmIam = document.getElementById('lsdConfirmIam');
+    if (confirmIam) confirmIam.onclick = function () {
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      var iamInput = document.getElementById('lsdIamInput');
+      var typed = iamInput ? String(iamInput.value || '').trim() : '';
+      var target = String(e.iAmAffirmation || '').trim();
+      if (!typed) {
+        alert('I AM 선언 문장을 한번 입력하거나 소리 내어 읽고 확인해주세요.');
+        return;
+      }
+      e.iAmCompleted = typed === target;
+      e.meditationLogs.push({ type: 'iam', ts: Date.now(), ok: e.iAmCompleted });
+      e.meditationPoints = calcMeditationPoints(e);
+      saveDiary(d);
+      renderMeditationBoard(e, d);
+      alert(e.iAmCompleted ? '좋아요. 오늘의 정체성이 고정되었습니다.' : '문장을 카드와 동일하게 입력하면 확언 완료로 기록됩니다.');
+    };
+
+    var suggestFocus = document.getElementById('lsdSuggestFocusMode');
+    if (suggestFocus) suggestFocus.onclick = function () {
+      try {
+        var host = document.getElementById('luckSyncDiaryModal');
+        if (host && host.requestFullscreen) host.requestFullscreen();
+      } catch (e) {}
+      alert('몰입 모드 제안: 방해 금지 모드(알림 차단)를 켜고 이어폰을 착용하면 SATS 집중도가 더 높아집니다.');
     };
 
     /* 전체 삭제 버튼 */
@@ -1924,6 +2333,11 @@
   function closeDiary() {
     var modal = document.getElementById('luckSyncDiaryModal');
     if (modal) modal.style.display = 'none';
+    if (_lsdMeditationTimer) {
+      clearInterval(_lsdMeditationTimer);
+      _lsdMeditationTimer = null;
+    }
+    stopSatsAudio();
     document.body.style.overflow = '';
   }
 
