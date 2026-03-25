@@ -543,6 +543,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
@@ -552,8 +553,8 @@
 
 
   <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2">
+  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2"></noscript>
   <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
@@ -600,6 +601,17 @@
   top: 12px;
   outline: 2px solid #ffd700;
   outline-offset: 2px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 </style>
 </head>
@@ -914,7 +926,7 @@
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
-  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown">
+  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown" role="button" tabindex="0" aria-label="언어 선택" aria-haspopup="listbox" aria-expanded="false">
     <span class="lang-icon">🌐</span>
     <span class="lang-label" id="langLabel">EN</span>
     <span class="lang-arrow">▼</span>
@@ -1029,7 +1041,7 @@
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+               width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -1115,8 +1127,8 @@
         </div>
       </div>
 
-      <div class="form-group form-group-mt15">
-        <label class="form-label">성별</label>
+      <div class="form-group form-group-mt15" role="group" aria-labelledby="genderGroupLabel">
+        <div id="genderGroupLabel" class="form-label">성별</div>
         <div class="toggle-wrap">
           <button class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
           <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
@@ -1150,7 +1162,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 동물 & 관상
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
+        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal"><h2 id="fgTitleAnimal" class="sr-only">동물 &amp; 관상</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--animal" id="animalCollection" data-collection-open="false">
@@ -1245,7 +1257,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
+        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot"><h2 id="fgTitleTarot" class="sr-only">타로 &amp; 카드</h2>
           <div class="fg-group__cards">
 
         <!-- ═══ 타로 컬렉션 (Tarot Reading Collection Grid) ═══ -->
@@ -1371,7 +1383,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 신탁 & 점술
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
+        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle"><h2 id="fgTitleOracle" class="sr-only">신탁 &amp; 점술</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--oracle" id="oracleCollection" data-collection-open="false">
@@ -1516,7 +1528,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 코즈믹 & 별자리
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
+        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic"><h2 id="fgTitleCosmic" class="sr-only">코즈믹 &amp; 별자리</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="false">
@@ -1613,7 +1625,7 @@
         <!-- ══════════════════════════════════════
              GROUP: 운명의 꽃 & 해몽
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower">
+        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower"><h2 id="fgTitleFlower" class="sr-only">운명의 꽃 &amp; 해몽</h2>
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--flower" id="flowerCollection" data-collection-open="false">
@@ -1794,7 +1806,8 @@
               </header>
 
               <div class="dream-library-search-row">
-                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" />
+                <label for="dreamLibraryQuery" class="sr-only">꿈 해몽 키워드 검색</label>
+                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" aria-label="꿈 해몽 키워드 검색" />
                 <button type="button" class="dream-library-btn" data-action="dreamLibrarySearch">검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--context" data-action="dreamLibrarySearchByDream">꿈 문장 검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--ghost" data-action="dreamLibraryClearSearch">초기화</button>
@@ -2011,7 +2024,7 @@
               <div class="ps-journal-title"><span class="ps-journal-ink">✒</span> The Dream Journal</div>
               <div class="ps-journal-paper">
                 <div id="psychoDreamInkLayer" class="ps-ink-layer" aria-hidden="true"></div>
-                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다."></textarea>
+                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다." aria-label="꿈 내용 입력"></textarea>
               </div>
 
               <div class="ps-input-footer">
@@ -2097,7 +2110,7 @@
 
           <!-- 질문 입력 -->
           <div class="tc-question-row">
-            <div class="tc-question-label">問 — 마음속 깊은 물음을 적으십시오</div>
+            <label class="tc-question-label" for="ichingQuestion">問 — 마음속 깊은 물음을 적으십시오</label>
             <input type="text" id="ichingQuestion" class="tc-question-inp"
               placeholder="예: 이번 사업을 지금 시작해도 괜찮을까?">
           </div>
@@ -2254,7 +2267,7 @@
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
-          <button data-action="closeTarotModal" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
+          <button data-action="closeTarotModal" aria-label="명리학 타로 닫기" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
         
         <div id="tarotInnerContainer" class="tarot-inner-shell" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
@@ -2793,6 +2806,7 @@
           <option value="global">🌍 위성 검색 [글로벌 오컬트 데이터베이스]</option>
         </select>
         <div class="kemet-input-group">
+          <label for="kemetWorry" class="sr-only">이집트 신탁 질문 입력</label>
           <input type="text" id="kemetWorry" class="kemet-input" placeholder="구체적인 질문을 입력하세요 (예: 이번 달 재물운은?, 남친과 재회 가능?, 공무원 합격?)">
           <button class="kemet-btn" data-action="startKemetOracle">신탁 해석</button>
         </div>
