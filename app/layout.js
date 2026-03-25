@@ -251,11 +251,9 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
-        {/* 성능: 외부 오리진 사전 연결 */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* 성능: 핵심 오리진만 사전 연결 */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
-        <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         {hreflangLinks.map((link) => (

@@ -17,7 +17,7 @@ type BlueprintTheme = {
 const BLUEPRINTS: BlueprintTheme[] = [
   { id: 'wealth', label: '재물 흐름 설계', icon: '💰' },
   { id: 'love', label: '관계 기운 정돈', icon: '💞' },
-  { id: 'health', label: '회복력 강화', icon: '🫀' },
+  { id: 'health', label: '회복력 강화', icon: '🍃' },
   { id: 'focus', label: '집중/성과 모드', icon: '🎯' }
 ];
 
