@@ -1,28 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
-  <script src="/js/inline/runtime-singleton-guard.js" defer></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
-  <script>
-  (function () {
-    try {
-      if ((new URLSearchParams(location.search || '')).get('sesdebug') !== '1') return;
-      var original = console.log;
-      console.log = function () {
-        var first = arguments && arguments.length ? String(arguments[0]) : '';
-        if (first.indexOf('SES Removing unpermitted intrinsics') >= 0) {
-          try {
-            original.call(console, '[SES-TRACE] lockdown message captured');
-            original.call(console, new Error('[SES-TRACE] source stack').stack);
-          } catch (_e) {}
-        }
-        return original.apply(console, arguments);
-      };
-    } catch (_e) {}
-  })();
-  </script>
   <script>
   (function () {
     try {
@@ -30,30 +11,12 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var loaded = false;
-      function injectAdsense() {
-        if (loaded) return;
-        loaded = true;
-        var s = document.createElement('script');
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-        s.onerror = function () {};
-        document.head.appendChild(s);
-      }
-
-      function scheduleIdleLoad() {
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(injectAdsense, { timeout: 5000 });
-          return;
-        }
-        setTimeout(injectAdsense, 3500);
-      }
-
-      ['pointerdown', 'touchstart', 'keydown', 'scroll'].forEach(function(evt) {
-        window.addEventListener(evt, injectAdsense, { once: true, passive: true });
-      });
-      scheduleIdleLoad();
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+      s.onerror = function () {};
+      document.head.appendChild(s);
     } catch (_) {}
   })();
   </script>
@@ -67,9 +30,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba-320.webp" type="image/webp" fetchpriority="high">
-<!-- LCP: honeypig 로고 프리로드 -->
-<link rel="preload" as="image" href="/icons/honeypig-320.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/samba.webp">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -387,62 +348,45 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js" defer></script>
+<script src="/js/inline/pwa-theme-init.js"></script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" rel="stylesheet">
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
-  <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
-  <link rel="preload" as="style" href="/styles/fortune-ui-critical.css?v=20260326-split1" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/fortune-ui-critical.css?v=20260326-split1"></noscript>
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
-  <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
+  <link rel="stylesheet" href="/styles/globals.css">
+  <link rel="stylesheet" href="/styles/layout.css">
+  <link rel="stylesheet" href="/styles/animations.css">
+  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2">
+  <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
+  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
   <script src="/js/inline/api-base-init.js" defer></script>
-  <script src="/js/inline/noncritical-css-loader.js" defer></script>
-  <script src="/js/inline/tailwind-cdn-debug-loader.js" defer></script>
-  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
-  <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript>
-    <link rel="stylesheet" href="/styles/animations.css">
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
-    <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-    <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
-    <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-    <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-    <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
-    <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-    <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-    <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
-    <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
-    <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
-    <link rel="stylesheet" href="/css/entertain-system.css">
-    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
-  </noscript>
-<style>
-/* CRITICAL: background flash 방지만. 레이아웃/커피 클래스는 fortune-ui.css에서 완성 */
-*,*::before,*::after{box-sizing:border-box}
-body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
-.skip-to-main{position:absolute;left:12px;top:-48px;z-index:100000;padding:10px 14px;border-radius:10px;background:#111;color:#fff;text-decoration:none;font-weight:700}
-.skip-to-main:focus{top:12px;outline:2px solid #ffd700;outline-offset:2px}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
-/* below-fold 섹션: 초기 렌더 건너됀으로 Style & Layout 비용 절감 */
-.fg-group--tarot,.fg-group--oracle,.fg-group--cosmic,.fg-group--flower{content-visibility:auto;contain-intrinsic-size:0 800px}
+  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
+  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
+  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/css/entertain-system.css">
+  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
+  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
+<style id="lsd-styles-placeholder">
+/* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
 </head>
 <body>
-<a class="skip-to-main" href="#inputPage">본문으로 바로가기</a>
 <script>
 (function () {
   function isMobile() {
@@ -752,7 +696,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
 <!-- ══ 언어 선택 드롭다운 (우측 상단 고정, 컴팩트) ══ -->
 <div class="lang-toggle-wrap notranslate" id="langWrap">
-  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown" role="button" tabindex="0" aria-label="언어 선택" aria-haspopup="listbox" aria-expanded="false">
+  <div class="lang-trigger" id="langTrigger" data-action="toggleLangDropdown">
     <span class="lang-icon">🌐</span>
     <span class="lang-label" id="langLabel">EN</span>
     <span class="lang-arrow">▼</span>
@@ -866,20 +810,16 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img class="honeypig-logo-icon" src="/icons/honeypig-320.webp"
-            srcset="/icons/honeypig-320.webp 320w, /icons/honeypig.webp 1024w"
-            sizes="(max-width: 480px) 130px, 228px"
-            width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="async">
+          <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
+               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img class="neo-logo-icon" src="/icons/samba-320.webp"
-            srcset="/icons/samba-320.webp 320w, /icons/samba.webp 1024w"
-            sizes="(max-width: 480px) 130px, 228px"
-            width="130" height="130" alt="쌈바 모드 로고" loading="lazy" decoding="async">
+          <img class="neo-logo-icon" src="/icons/samba.webp"
+               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -957,8 +897,8 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         </div>
       </div>
 
-      <div class="form-group form-group-mt15" role="group" aria-labelledby="genderGroupLabel">
-        <div id="genderGroupLabel" class="form-label">성별</div>
+      <div class="form-group form-group-mt15">
+        <label class="form-label">성별</label>
         <div class="toggle-wrap">
           <button class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
           <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
@@ -992,7 +932,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         <!-- ══════════════════════════════════════
              GROUP: 동물 & 관상
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal"><h2 id="fgTitleAnimal" class="sr-only">동물 &amp; 관상</h2>
+        <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--animal" id="animalCollection" data-collection-open="false">
@@ -1008,7 +948,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
                 <div class="feat-collection__icon" aria-hidden="true">🦁</div>
                 <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
-                <p class="feat-collection__summary">AI 동물 관상 · MBTI 궁합 · 애니멀 토템 · 사주 가디언 아트</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1087,7 +1026,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot"><h2 id="fgTitleTarot" class="sr-only">타로 &amp; 카드</h2>
+        <section class="fg-group fg-group--tarot" aria-labelledby="fgTitleTarot">
           <div class="fg-group__cards">
 
         <!-- ═══ 타로 컬렉션 (Tarot Reading Collection Grid) ═══ -->
@@ -1106,7 +1045,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
             <div class="tarot-collection__icon" aria-hidden="true">✦</div>
             <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
             <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
-            <p class="feat-collection__summary feat-collection__summary--tarot">관계 · 회복 · 자존감 · 재회 · 연간운 · 명리학 타로 리딩</p>
             <div class="tarot-collection__divider" aria-hidden="true">
               <span class="tc-divider-star">✦</span>
               <span class="tc-divider-line"></span>
@@ -1213,7 +1151,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         <!-- ══════════════════════════════════════
              GROUP: 신탁 & 점술
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle"><h2 id="fgTitleOracle" class="sr-only">신탁 &amp; 점술</h2>
+        <section class="fg-group fg-group--oracle" aria-labelledby="fgTitleOracle">
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--oracle" id="oracleCollection" data-collection-open="false">
@@ -1229,7 +1167,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
                 <div class="feat-collection__icon" aria-hidden="true">𓂀</div>
                 <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
-                <p class="feat-collection__summary">화투점 · 이집트 신탁 · 주역 · 숙요 · 룬 · 홍차점 · 데스티니 포커</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1358,7 +1295,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         <!-- ══════════════════════════════════════
              GROUP: 코즈믹 & 별자리
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic"><h2 id="fgTitleCosmic" class="sr-only">코즈믹 &amp; 별자리</h2>
+        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="false">
@@ -1374,7 +1311,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
                 <div class="feat-collection__icon" aria-hidden="true">🌌</div>
                 <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
                 <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
-                <p class="feat-collection__summary">점성술 · 자미두수 · 베다 점성술 · 올림푸스 별자리 신탁</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1455,7 +1391,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
         <!-- ══════════════════════════════════════
              GROUP: 운명의 꽃 & 해몽
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower"><h2 id="fgTitleFlower" class="sr-only">운명의 꽃 &amp; 해몽</h2>
+        <section class="fg-group fg-group--flower" aria-labelledby="fgTitleFlower">
           <div class="fg-group__cards">
 
             <div class="feat-collection feat-collection--flower" id="flowerCollection" data-collection-open="false">
@@ -1471,7 +1407,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
                 <div class="feat-collection__icon" aria-hidden="true">🌸</div>
                 <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
                 <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
-                <p class="feat-collection__summary">운명의 꽃 아틀리에 · 점성술/자미두수/숙요 꽃 · 드림/정신분석 해몽</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1636,8 +1571,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
               </header>
 
               <div class="dream-library-search-row">
-                <label for="dreamLibraryQuery" class="sr-only">꿈 해몽 키워드 검색</label>
-                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" aria-label="꿈 해몽 키워드 검색" />
+                <input id="dreamLibraryQuery" class="dream-library-input" type="search" autocomplete="off" placeholder="예: 호랑이, 태몽, 합격, 재회, 금반지" />
                 <button type="button" class="dream-library-btn" data-action="dreamLibrarySearch">검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--context" data-action="dreamLibrarySearchByDream">꿈 문장 검색</button>
                 <button type="button" class="dream-library-btn dream-library-btn--ghost" data-action="dreamLibraryClearSearch">초기화</button>
@@ -1854,7 +1788,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
               <div class="ps-journal-title"><span class="ps-journal-ink">✒</span> The Dream Journal</div>
               <div class="ps-journal-paper">
                 <div id="psychoDreamInkLayer" class="ps-ink-layer" aria-hidden="true"></div>
-                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다." aria-label="꿈 내용 입력"></textarea>
+                <textarea id="psychoDreamInput" class="ps-textarea" placeholder="당신의 무의식이 건네는 이야기를 이곳에 적어주세요, 프로이트 박사가 기다립니다."></textarea>
               </div>
 
               <div class="ps-input-footer">
@@ -1940,7 +1874,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
           <!-- 질문 입력 -->
           <div class="tc-question-row">
-            <label class="tc-question-label" for="ichingQuestion">問 — 마음속 깊은 물음을 적으십시오</label>
+            <div class="tc-question-label">問 — 마음속 깊은 물음을 적으십시오</div>
             <input type="text" id="ichingQuestion" class="tc-question-inp"
               placeholder="예: 이번 사업을 지금 시작해도 괜찮을까?">
           </div>
@@ -2097,7 +2031,7 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
-          <button data-action="closeTarotModal" aria-label="명리학 타로 닫기" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
+          <button data-action="closeTarotModal" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; font-size:1.5rem; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">&times;</button>
         </div>
         
         <div id="tarotInnerContainer" class="tarot-inner-shell" style="max-width:420px; margin:60px auto 40px; padding:0 20px; position:relative;">
@@ -2636,7 +2570,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
           <option value="global">🌍 위성 검색 [글로벌 오컬트 데이터베이스]</option>
         </select>
         <div class="kemet-input-group">
-          <label for="kemetWorry" class="sr-only">이집트 신탁 질문 입력</label>
           <input type="text" id="kemetWorry" class="kemet-input" placeholder="구체적인 질문을 입력하세요 (예: 이번 달 재물운은?, 남친과 재회 가능?, 공무원 합격?)">
           <button class="kemet-btn" data-action="startKemetOracle">신탁 해석</button>
         </div>
@@ -2693,14 +2626,12 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
       <a href="/insights" style="display:block;padding:14px 14px 8px;text-decoration:none;color:#f8fafc;">
         <div style="position:relative;border-radius:14px;border:1px solid rgba(201,168,76,0.35);background:rgba(3,6,23,0.56);padding:10px;box-shadow:inset 0 0 28px rgba(124,58,237,0.2);">
           <img
-            src="/fuctionassets/info-640.webp"
-            srcset="/fuctionassets/info-640.webp 640w, /fuctionassets/info-960.webp 960w, /fuctionassets/info.webp 1808w"
-            sizes="(max-width: 600px) calc(100vw - 48px), 588px"
+            src="/fuctionassets/info.webp"
             alt="우주 신비 도서관 분위기의 인사이트 허브 대표 이미지"
             loading="lazy"
             decoding="async"
-            width="588"
-            height="333"
+            width="1200"
+            height="720"
             style="display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain;border-radius:10px;background:rgba(5,8,24,0.62);"
           >
         </div>
@@ -3306,39 +3237,6 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
   </article><!-- /#resultPage -->
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "@id": "https://code-destiny.com/#softwareapplication",
-    "name": "Code: Destiny AI 사주",
-    "url": "https://code-destiny.com/",
-    "description": "생년월일 기반 AI 사주 분석과 운세 리포트를 제공하는 웹 앱 서비스.",
-    "operatingSystem": "Web",
-    "applicationCategory": "LifestyleApplication",
-    "image": "https://code-destiny.com/icons/honeypig.webp",
-    "screenshot": "https://code-destiny.com/icons/honeypig.webp",
-    "inLanguage": ["ko", "en", "ja", "zh-CN", "hi", "es", "fr", "de", "nl", "ms"],
-    "isAccessibleForFree": true,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "1024"
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "KRW",
-      "availability": "https://schema.org/InStock"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Code Destiny",
-      "url": "https://code-destiny.com/"
-    }
-  }
-  </script>
-
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
@@ -3352,9 +3250,15 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
   </footer>
 
 <script src="/js/destiny-profile.js" defer></script>
-<script src="/js/swisseph-lazy-init.js" defer></script>
+<script type="module" src="/js/swisseph-loader.js"></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
+<script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
+<script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
+<script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
+<script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
+<script src="/js/services/sajuService.js" defer></script>
+<script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
@@ -3384,13 +3288,14 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
 <script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
 
-<!-- 구글 번역 스크립트는 index-inline-runtime에서 필요 시 지연 로드 -->
+<!-- 구글 번역 스크립트 -->
+<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <div class="modal" id="tsModal" data-action="closeModal" data-action-pass-event="1" data-action-self-only="1">
   <div class="modal-box">
-    <button class="modal-close" data-action="closeModal" type="button" aria-label="타로 결과 닫기">✕</button>
+    <button class="modal-close" data-action="closeModal">✕</button>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -3431,11 +3336,14 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
+<script src="/js/fate-scroll-reveal.js" defer></script>
+<script src="/js/fate-scroll-top.js" defer></script>
+<script src="/js/fsn-navbar.js" defer></script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
-    <button class="astral-close-btn" data-action="closeMbtiModal" type="button" aria-label="아스트랄 토템 닫기">✕</button>
+        <button class="astral-close-btn" data-action="closeMbtiModal">✕</button>
         
         <!-- Header -->
         <header class="astral-header">
@@ -3486,10 +3394,52 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
+<script src="/js/mobile-performance-bootstrap.js" defer></script>
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script src="/js/inline/deferred-feature-loaders.js" defer></script>
+<script src="/js/touch-perf.js" defer></script>
+<script src="/js/dream-meaning-library.js" defer></script>
+<script src="/lib/ai-engine.js" defer></script>
+<script src="/js/luck-sync-diary.js" defer></script>
+<script src="/js/dream-ledger.js" defer></script>
+<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
+<script src="/js/entertain-engine.js" defer></script>
 <script type="module" src="/js/app.js"></script>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search || '');
+    var debugVitals = window.__ENABLE_WEB_VITALS_CONSOLE__ === true
+      || q.get('debugVitals') === '1'
+      || localStorage.getItem('debug.vitals') === '1';
+    if (!debugVitals) return;
+  } catch (e) {
+    if (window.__ENABLE_WEB_VITALS_CONSOLE__ !== true) return;
+  }
+
+  try {
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    var saveData = !!(conn && conn.saveData);
+    var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
+    var isSlow = et === 'slow-2g' || et === '2g';
+    var isMobile = window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+    if ((isMobile && (saveData || isSlow)) || saveData) return;
+
+    var loadVitals = function () {
+      var s = document.createElement('script');
+      s.type = 'module';
+      s.src = '/js/web-vitals-console.js';
+      document.body.appendChild(s);
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadVitals, { timeout: 3500 });
+    } else {
+      setTimeout(loadVitals, 1200);
+    }
+  } catch (e) {}
+})();
+</script>
 
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
