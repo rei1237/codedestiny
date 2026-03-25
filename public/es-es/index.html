@@ -11,40 +11,12 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      var saveData = !!(conn && conn.saveData);
-      var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
-      var slow = et === 'slow-2g' || et === '2g';
-      if (saveData || slow) return;
-
-      var loaded = false;
-      function loadAdsenseOnce() {
-        if (loaded) return;
-        loaded = true;
-        var s = document.createElement('script');
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-        s.onerror = function () {};
-        document.head.appendChild(s);
-      }
-
-      var events = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
-      function onUserIntent() {
-        events.forEach(function (evt) {
-          window.removeEventListener(evt, onUserIntent, { passive: true });
-        });
-        loadAdsenseOnce();
-      }
-      events.forEach(function (evt) {
-        window.addEventListener(evt, onUserIntent, { passive: true, once: true });
-      });
-
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(loadAdsenseOnce, { timeout: 7000 });
-      } else {
-        setTimeout(loadAdsenseOnce, 7000);
-      }
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+      s.onerror = function () {};
+      document.head.appendChild(s);
     } catch (_) {}
   })();
   </script>
@@ -58,8 +30,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba.webp" fetchpriority="high" imagesizes="130px">
-<link rel="preload" as="image" href="/icons/honeypig.webp" fetchpriority="high" imagesizes="130px">
+<link rel="preload" as="image" href="/icons/samba.webp">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -385,8 +356,7 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" rel="stylesheet">
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -394,14 +364,23 @@
 
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles/animations.css">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2">
-  <link rel="stylesheet" href="/styles/main-glass.css?v=20260325-collection-summary">
-  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles/main-glass.css?v=20260316">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
+  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
   <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="preload" as="style" href="/styles/tailwind-static.generated.css?v=20260325-perf1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
+  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
+  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
+  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
+  <link rel="stylesheet" href="/css/entertain-system.css">
+  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260323-navscrollfix2">
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
@@ -832,7 +811,7 @@
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" decoding="async">
+               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -840,7 +819,7 @@
       <div class="neo-logo">
         <div class="pig-svg-wrap">
           <img class="neo-logo-icon" src="/icons/samba.webp"
-            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="high" decoding="async">
+               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -875,40 +854,33 @@
 
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
-        <label class="form-label" for="nameInput">이름</label>
-        <input class="inp" type="text" id="nameInput" name="name" placeholder="이름을 입력하세요"
+        <label class="form-label">이름</label>
+        <input class="inp" type="text" id="nameInput" placeholder="이름을 입력하세요"
           autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
-        <label class="form-label" for="birthDate">생년월일</label>
-        <input class="inp" type="date" id="birthDate" name="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
+        <label class="form-label">생년월일</label>
+        <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
-        <fieldset class="form-radio-row" role="radiogroup" aria-label="달력 유형">
-          <legend style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">달력 유형</legend>
-          <label for="calTypeSolar"><input type="radio" id="calTypeSolar" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
-          <label for="calTypeLunar"><input type="radio" id="calTypeLunar" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
-          <label for="calTypeLunarLeap"><input type="radio" id="calTypeLunarLeap" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(윤달)</label>
-        </fieldset>
+        <div class="form-radio-row">
+          <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
+          <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
+          <label><input type="radio" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(윤달)</label>
+        </div>
         <div id="lunarPreview" class="form-lunar-preview"></div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="birthHour">출생 시간</label>
+        <label class="form-label">출생 시간</label>
         <div class="row2">
-          <div>
-            <label class="form-label form-label-compact" for="birthHour">시</label>
-            <select class="inp" id="birthHour" name="birthHour" aria-describedby="birthTimeTip"></select>
-          </div>
-          <div>
-            <label class="form-label form-label-compact" for="birthMinute">분</label>
-            <select class="inp" id="birthMinute" name="birthMinute" aria-describedby="birthTimeTip"></select>
-          </div>
+          <select class="inp" id="birthHour"></select>
+          <select class="inp" id="birthMinute"></select>
         </div>
       </div>
       
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
-        <label class="form-label form-label-dark" for="birthCountry">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
-        <select class="inp form-country-select" id="birthCountry" name="birthCountry" data-change-action="updateCorrectedTimePreview">
+        <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
         
@@ -926,7 +898,7 @@
           <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
         </div>
       </div>
-      <div class="birth-time-tip" id="birthTimeTip">
+      <div class="birth-time-tip">
         💡 시간 미입력 시 낮 12시로 계산됩니다
       </div>
       <!-- Destiny Profile 저장 버튼 -->
@@ -952,133 +924,6 @@
     <div class="feature-card-grid">
 
         <!-- ══════════════════════════════════════
-             GROUP: 사주 분석 콘텐츠
-        ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--saju-fun" aria-labelledby="fgTitleSajuFun">
-          <div class="fg-group__cards">
-
-            <div class="feat-collection feat-collection--saju-fun" id="sajuFunCollection" data-collection-open="false">
-              <div class="feat-collection__cosmos" aria-hidden="true">
-                <span class="fc-star fc-star--1"></span>
-                <span class="fc-star fc-star--2"></span>
-                <span class="fc-star fc-star--3"></span>
-                <span class="fc-star fc-star--4"></span>
-                <span class="fc-star fc-star--5"></span>
-                <span class="fc-star fc-star--6"></span>
-              </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="sajuFunCollection" aria-expanded="false" aria-label="재미있는 사주 콘텐츠 컬렉션 열기">
-                <div class="feat-collection__icon" aria-hidden="true">🔮</div>
-                <h3 id="fgTitleSajuFun" class="feat-collection__title">재미있는 사주 콘텐츠 컬렉션</h3>
-                <p class="feat-collection__subtitle">프로필 생년월일이 있으면 바로 분석하고 원하는 기능으로 이동해요</p>
-                <p class="feat-collection__summary">매력 클래스 · 헬스 리포트 · 다이어리 · 사주네컷 등 사주 기반 12가지 체험</p>
-                <div class="feat-collection__divider" aria-hidden="true">
-                  <span class="fc-div-gem">✦</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">◈</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">✦</span>
-                </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
-              </button>
-              <div class="fc-closed-peek" aria-hidden="true">
-                <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
-              </div>
-
-              <div id="sajuFunProfileHint" class="saju-fun-profile-hint" role="status" aria-live="polite">
-                ✨ 프로필 카드에 생년월일이 저장되어 있으면, 원하는 사주 기능을 바로 열 수 있어요.
-              </div>
-
-              <div class="feat-collection__grid">
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="specialCharmCard" aria-label="나의 매력 클래스 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meryok.webp" data-img-alt="나의 매력 클래스">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">✨ 나의 매력 클래스</span><span class="tarot-tile__desc">도화 · 역마 · 매력 스탯</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="quantumCard" aria-label="퀀텀 명리 천기 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/quntum.webp" data-img-alt="퀀텀 명리 천기">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">⚡ 퀀텀 명리 천기</span><span class="tarot-tile__desc">합화 우선 전략 분석</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="healthReportCard" aria-label="명리 헬스 리포트 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sajuhealth.webp" data-img-alt="명리 헬스 리포트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💚</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">💚 명리 헬스 리포트</span><span class="tarot-tile__desc">오행 기반 건강 점검</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="aiPromptCard" aria-label="사주 프롬프트 보기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sajuprompt.webp" data-img-alt="사주 프롬프트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🤖</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">🤖 사주 프롬프트</span><span class="tarot-tile__desc">AI 이미지 문장 생성</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="skillTreeCard" aria-label="인생 스킬 트리 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sajurpg.webp" data-img-alt="인생 스킬 트리">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎮</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">🎮 인생 스킬 트리</span><span class="tarot-tile__desc">RPG 능력치 리포트</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="tTestCard" aria-label="극T 테스트 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tbal.webp" data-img-alt="극T 테스트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🧊</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">🧊 극T 테스트</span><span class="tarot-tile__desc">논리 온도 체크</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="hormone-vibe-section" aria-label="테토 에겐 분석 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tetoegen.webp" data-img-alt="테토 vs 에겐">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">❤️</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">❤️ 테토 vs 에겐</span><span class="tarot-tile__desc">매력 에너지 결 분석</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="energyCoordCard" aria-label="에너지 원정 리포트 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/trip.webp" data-img-alt="에너지 원정 리포트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🗺️</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">🗺️ 에너지 원정 리포트</span><span class="tarot-tile__desc">맞춤 여정지 안내</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="villainCard" aria-label="빌런 블랙리스트 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/vilun.webp" data-img-alt="빌런 블랙리스트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚠️</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">⚠️ 빌런 블랙리스트</span><span class="tarot-tile__desc">위험 관계 시그널</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="lottoCard" aria-label="퀀텀 로또 리포트 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/lotto.webp" data-img-alt="퀀텀 로또 리포트">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎱</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">🎱 퀀텀 로또 리포트</span><span class="tarot-tile__desc">공명 번호 추천</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="luckSyncDiaryEntryCard,openLuckSyncDiary" aria-label="사주 다이어리 열기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/godlife.webp" data-img-alt="사주 다이어리">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">📔</span></div>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">📔 사주 다이어리</span><span class="tarot-tile__desc">갓생 루틴 기록</span></div>
-                </button>
-
-                <button class="tarot-tile" type="button" data-action="openSajuFunFeature" data-action-args="sajuFourCutCard" aria-label="사주네컷 열기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/4CUT.webp" data-img-alt="사주네컷 운명 필터">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">📸</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                  </div>
-                  <div class="tarot-tile__body"><span class="tarot-tile__title">📸 사주네컷</span><span class="tarot-tile__desc">운명 필터 한 장 요약</span></div>
-                </button>
-              </div>
-            </div>
-
-          </div><!-- /fg-group__cards --></section><!-- /fg-group--saju-fun -->
-
-        <!-- ══════════════════════════════════════
              GROUP: 동물 & 관상
         ══════════════════════════════════════ -->
         <section class="fg-group fg-group--animal" aria-labelledby="fgTitleAnimal">
@@ -1097,7 +942,6 @@
                 <div class="feat-collection__icon" aria-hidden="true">🦁</div>
                 <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
-                <p class="feat-collection__summary">AI 동물 관상 · MBTI 궁합 · 애니멀 토템 · 사주 가디언 아트</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1195,7 +1039,6 @@
             <div class="tarot-collection__icon" aria-hidden="true">✦</div>
             <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
             <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
-            <p class="feat-collection__summary feat-collection__summary--tarot">관계 · 회복 · 자존감 · 재회 · 연간운 · 명리학 타로 리딩</p>
             <div class="tarot-collection__divider" aria-hidden="true">
               <span class="tc-divider-star">✦</span>
               <span class="tc-divider-line"></span>
@@ -1318,7 +1161,6 @@
                 <div class="feat-collection__icon" aria-hidden="true">𓂀</div>
                 <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
-                <p class="feat-collection__summary">화투점 · 이집트 신탁 · 주역 · 숙요 · 룬 · 홍차점 · 데스티니 포커</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1463,7 +1305,6 @@
                 <div class="feat-collection__icon" aria-hidden="true">🌌</div>
                 <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
                 <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
-                <p class="feat-collection__summary">점성술 · 자미두수 · 베다 점성술 · 올림푸스 별자리 신탁</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1560,7 +1401,6 @@
                 <div class="feat-collection__icon" aria-hidden="true">🌸</div>
                 <h3 class="feat-collection__title">운명의 꽃 &amp; 해몽 컬렉션</h3>
                 <p class="feat-collection__subtitle">우주의 언어로 피어나는 나만의 운명</p>
-                <p class="feat-collection__summary">운명의 꽃 아틀리에 · 점성술/자미두수/숙요 꽃 · 드림/정신분석 해몽</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -2236,7 +2076,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="0">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="0">
-                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="lazy" decoding="async">
+                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="eager" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -2245,7 +2085,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="1">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="1">
-                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="lazy" decoding="async">
+                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="eager" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -2254,7 +2094,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="2">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="2">
-                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="lazy" decoding="async">
+                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="eager" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -3127,12 +2967,12 @@
         
         <div class="row2">
           <div class="form-group" style="flex:1;">
-            <label class="form-label" for="compatName" style="margin-bottom:6px">상대 이름</label>
-            <input class="inp" type="text" id="compatName" name="compatName" placeholder="상대 이름을 입력하세요" autocomplete="name">
+            <label class="form-label" style="margin-bottom:6px">상대 이름</label>
+            <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
           </div>
           <div class="form-group" style="flex:1;">
-            <label class="form-label" for="compatType" style="margin-bottom:6px">궁합 유형</label>
-            <select class="inp" id="compatType" name="compatType">
+            <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
+            <select class="inp" id="compatType">
               <option value="love">연애/결혼</option>
               <option value="business">사업/동업</option>
               <option value="friend">친구/동료</option>
@@ -3146,26 +2986,18 @@
           <div id="celebsList"></div>
         </div>
         <div class="form-group form-group-mb10">
-          <label class="form-label form-label-compact" for="compatBirthDate">상대 생년월일 · 시간</label>
-          <input class="inp" type="date" id="compatBirthDate" name="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview" autocomplete="bday">
-          <fieldset class="form-radio-row" role="radiogroup" aria-label="상대 달력 유형">
-            <legend style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">상대 달력 유형</legend>
-            <label for="compatCalTypeSolar"><input type="radio" id="compatCalTypeSolar" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
-            <label for="compatCalTypeLunar"><input type="radio" id="compatCalTypeLunar" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
-            <label for="compatCalTypeLunarLeap"><input type="radio" id="compatCalTypeLunarLeap" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
-          </fieldset>
+          <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
+          <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
+          <div class="form-radio-row">
+            <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
+            <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
+            <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
+          </div>
           <div id="compatLunarPreview" class="form-lunar-preview"></div>
           <div class="row2 row2-mt8">
-            <div>
-              <label class="form-label form-label-compact" for="compatBirthHour">시</label>
-              <select class="inp" id="compatBirthHour" name="compatBirthHour" aria-describedby="compatBirthTimeHint"></select>
-            </div>
-            <div>
-              <label class="form-label form-label-compact" for="compatBirthMinute">분</label>
-              <select class="inp" id="compatBirthMinute" name="compatBirthMinute" aria-describedby="compatBirthTimeHint"></select>
-            </div>
+            <select class="inp" id="compatBirthHour"></select>
+            <select class="inp" id="compatBirthMinute"></select>
           </div>
-          <div id="compatBirthTimeHint" class="form-helper-desc">시간 미입력 시 기본값(12:00) 기준으로 계산됩니다.</div>
         </div>
         <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
         <div id="compatResult" class="compat-result-wrap"></div>
@@ -3185,6 +3017,14 @@
       <div id="sajuFourCutResult"></div>
     </section>
 
+
+    <!-- 사주 분석 리포트 대시보드 -->
+    <section class="card" id="reportDashboardCard" style="display:none" aria-labelledby="dashboardTitle">
+      <div class="report-dashboard-head">
+        <h3 id="dashboardTitle" class="sec-title report-dashboard-title">✦ 재미있는 사주 콘텐츠</h3>
+      </div>
+      <div id="reportDashboard"></div>
+    </section>
 
     <!-- 6-4. 퀀텀 명리 전략 리포트 (NEW) -->
     <section class="card" id="quantumCard" style="display:none" aria-labelledby="quantumTitle">
@@ -3396,14 +3236,18 @@
     </nav>
   </footer>
 
+<script src="/js/destiny-profile.js" defer></script>
+<script type="module" src="/js/swisseph-loader.js"></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
 <script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
 <script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
 <script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
+<script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
+<script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
 <!-- ══ Saju Totem Generator Modal ══ -->
@@ -3425,41 +3269,14 @@
 
 <div class="share-toast" id="shareToast"></div>
 
-<script type="application/json" id="lazy-style-manifest">
-[
-  "/styles/animal-totem-mystic.css?v=20260315-mobile-opt1",
-  "/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix",
-  "/styles/saju-totem-generator.css?v=20260323",
-  "/styles/tarot-love-mystic.css?v=20260316-mobile-opt2",
-  "/styles/tarot-healing-dawn.css?v=20260317-luxury-sun",
-  "/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2",
-  "/styles/tarot-year-fortune.css?v=20260315-mobile-opt1",
-  "/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1",
-  "/css/entertain-system.css"
-]
-</script>
+<script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
 
-<script type="application/json" id="lazy-script-manifest">
-[
-  "/js/share.js?v=2026-03-23-v2-cachefix1",
-  "/js/destiny-profile.js",
-  "/js/mobile-interaction-patch.js",
-  "/js/admin-flower.js",
-  "/js/iching-engine.js",
-  "/js/iching-modal.js?v=20260321-sukuyo-scroll2",
-  "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit",
-  "/js/swisseph-loader.js",
-  "/js/fate-scroll-reveal.js",
-  "/js/fate-scroll-top.js",
-  "/js/fsn-navbar.js",
-  "/js/dream-meaning-library.js",
-  "/lib/ai-engine.js",
-  "/js/luck-sync-diary.js",
-  "/js/dream-ledger.js",
-  "/js/psycho-dream-analyzer-freuds-study.js",
-  "/js/entertain-engine.js"
-]
-</script>
+<script src="/js/iching-engine.js" defer></script>
+
+<script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
+
+<!-- 구글 번역 스크립트 -->
+<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3506,6 +3323,10 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
+<script src="/js/fate-scroll-reveal.js" defer></script>
+<script src="/js/fate-scroll-top.js" defer></script>
+<script src="/js/fsn-navbar.js" defer></script>
+
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
@@ -3564,66 +3385,13 @@
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
+<script src="/js/dream-meaning-library.js" defer></script>
+<script src="/lib/ai-engine.js" defer></script>
+<script src="/js/luck-sync-diary.js" defer></script>
+<script src="/js/dream-ledger.js" defer></script>
+<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
+<script src="/js/entertain-engine.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script>
-(function () {
-  try {
-    var scriptManifestEl = document.getElementById('lazy-script-manifest');
-    var styleManifestEl = document.getElementById('lazy-style-manifest');
-    var scripts = scriptManifestEl ? JSON.parse(scriptManifestEl.textContent || '[]') : [];
-    var styles = styleManifestEl ? JSON.parse(styleManifestEl.textContent || '[]') : [];
-    if (!Array.isArray(scripts)) scripts = [];
-    if (!Array.isArray(styles)) styles = [];
-    if (!scripts.length && !styles.length) return;
-
-    var lazyAssetsLoaded = false;
-    function appendScript(src) {
-      if (!src || document.querySelector('script[src="' + src + '"]')) return;
-      var s = document.createElement('script');
-      s.src = src;
-      s.defer = true;
-      s.async = false;
-      document.body.appendChild(s);
-    }
-    function appendStyle(href) {
-      if (!href || document.querySelector('link[rel="stylesheet"][href="' + href + '"]')) return;
-      var l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.href = href;
-      document.head.appendChild(l);
-    }
-    function loadAllLazyAssets() {
-      if (lazyAssetsLoaded) return;
-      lazyAssetsLoaded = true;
-      styles.forEach(appendStyle);
-      scripts.forEach(appendScript);
-    }
-
-    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    var saveData = !!(conn && conn.saveData);
-    var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
-    var slow = et === 'slow-2g' || et === '2g';
-
-    var events = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
-    function onIntent() {
-      events.forEach(function (evt) {
-        window.removeEventListener(evt, onIntent, { passive: true });
-      });
-      loadAllLazyAssets();
-    }
-    events.forEach(function (evt) {
-      window.addEventListener(evt, onIntent, { passive: true, once: true });
-    });
-
-    var idleDelay = slow || saveData ? 9000 : 3500;
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(loadAllLazyAssets, { timeout: idleDelay });
-    } else {
-      setTimeout(loadAllLazyAssets, idleDelay);
-    }
-  } catch (e) {}
-})();
-</script>
 <script>
 (function () {
   try {
@@ -3660,28 +3428,7 @@
 })();
 </script>
 
-<script>
-(function () {
-  try {
-    function loadBeacon() {
-      if (document.querySelector('script[src*="static.cloudflareinsights.com/beacon.min.js"]')) return;
-      var s = document.createElement('script');
-      s.defer = true;
-      s.src = 'https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516';
-      s.integrity = 'sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==';
-      s.crossOrigin = 'anonymous';
-      s.setAttribute('data-cf-beacon', '{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}');
-      document.head.appendChild(s);
-    }
-
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(loadBeacon, { timeout: 9000 });
-    } else {
-      setTimeout(loadBeacon, 4500);
-    }
-  } catch (e) {}
-})();
-</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
 
