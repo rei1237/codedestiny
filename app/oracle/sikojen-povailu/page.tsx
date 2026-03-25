@@ -1,6 +1,10 @@
-import SikojenpovailuApp from "./SikojenpovailuApp";
+import dynamic from "next/dynamic";
 import FortunePageSEO from "../../components/FortunePageSEO";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+
+const SikojenpovailuApp = dynamic(() => import("./SikojenpovailuApp"), {
+  loading: () => <div className="py-10 text-center text-sm text-slate-400">주석점 의식을 준비하는 중...</div>,
+});
 
 const META = {
   path: "/oracle/sikojen-povailu",

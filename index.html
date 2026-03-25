@@ -11,12 +11,40 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var s = document.createElement('script');
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-      s.onerror = function () {};
-      document.head.appendChild(s);
+      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      var saveData = !!(conn && conn.saveData);
+      var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
+      var slow = et === 'slow-2g' || et === '2g';
+      if (saveData || slow) return;
+
+      var loaded = false;
+      function loadAdsenseOnce() {
+        if (loaded) return;
+        loaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+        s.onerror = function () {};
+        document.head.appendChild(s);
+      }
+
+      var events = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
+      function onUserIntent() {
+        events.forEach(function (evt) {
+          window.removeEventListener(evt, onUserIntent, { passive: true });
+        });
+        loadAdsenseOnce();
+      }
+      events.forEach(function (evt) {
+        window.addEventListener(evt, onUserIntent, { passive: true, once: true });
+      });
+
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadAdsenseOnce, { timeout: 7000 });
+      } else {
+        setTimeout(loadAdsenseOnce, 7000);
+      }
     } catch (_) {}
   })();
   </script>
@@ -30,7 +58,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba.webp">
+<link rel="preload" as="image" href="/icons/samba.webp" fetchpriority="high" imagesizes="130px">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -356,7 +384,8 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -375,7 +404,7 @@
   <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
   <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/tailwind-static.generated.css?v=20260325-perf1">
   <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
@@ -819,7 +848,7 @@
       <div class="neo-logo">
         <div class="pig-svg-wrap">
           <img class="neo-logo-icon" src="/icons/samba.webp"
-               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
+            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="high" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -2215,7 +2244,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="0">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="0">
-                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="eager" decoding="async">
+                      <img class="tarot-face-img" data-card-img="0" alt="Tarot card 1" loading="lazy" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -2224,7 +2253,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="1">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="1">
-                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="eager" decoding="async">
+                      <img class="tarot-face-img" data-card-img="1" alt="Tarot card 2" loading="lazy" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -2233,7 +2262,7 @@
                   <div class="oracle-card-m tarot-spread-card" data-action="flipTarotSpreadCard" data-action-args="2">
                     <div class="oracle-face-m oracle-back-m tarot-placeholder-back"></div>
                     <div class="oracle-face-m oracle-front-m" data-card-front="2">
-                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="eager" decoding="async">
+                      <img class="tarot-face-img" data-card-img="2" alt="Tarot card 3" loading="lazy" decoding="async">
                     </div>
                   </div>
                 </div>
@@ -3408,14 +3437,23 @@
 
 <div class="share-toast" id="shareToast"></div>
 
-<script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
-
-<script src="/js/iching-engine.js" defer></script>
-
-<script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
-
-<!-- 구글 번역 스크립트 -->
-<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script type="application/json" id="lazy-script-manifest">
+[
+  "/js/share.js?v=2026-03-23-v2-cachefix1",
+  "/js/iching-engine.js",
+  "/js/iching-modal.js?v=20260321-sukuyo-scroll2",
+  "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit",
+  "/js/fate-scroll-reveal.js",
+  "/js/fate-scroll-top.js",
+  "/js/fsn-navbar.js",
+  "/js/dream-meaning-library.js",
+  "/lib/ai-engine.js",
+  "/js/luck-sync-diary.js",
+  "/js/dream-ledger.js",
+  "/js/psycho-dream-analyzer-freuds-study.js",
+  "/js/entertain-engine.js"
+]
+</script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3462,10 +3500,6 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/fate-scroll-reveal.js" defer></script>
-<script src="/js/fate-scroll-top.js" defer></script>
-<script src="/js/fsn-navbar.js" defer></script>
-
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
         <!-- Close Button -->
@@ -3524,13 +3558,55 @@
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
-<script src="/js/dream-meaning-library.js" defer></script>
-<script src="/lib/ai-engine.js" defer></script>
-<script src="/js/luck-sync-diary.js" defer></script>
-<script src="/js/dream-ledger.js" defer></script>
-<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
-<script src="/js/entertain-engine.js" defer></script>
 <script type="module" src="/js/app.js"></script>
+<script>
+(function () {
+  try {
+    var manifestEl = document.getElementById('lazy-script-manifest');
+    if (!manifestEl) return;
+    var scripts = JSON.parse(manifestEl.textContent || '[]');
+    if (!Array.isArray(scripts) || !scripts.length) return;
+
+    var loaded = false;
+    function appendScript(src) {
+      if (!src || document.querySelector('script[src="' + src + '"]')) return;
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      s.async = false;
+      document.body.appendChild(s);
+    }
+    function loadAllLazyScripts() {
+      if (loaded) return;
+      loaded = true;
+      scripts.forEach(appendScript);
+    }
+
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    var saveData = !!(conn && conn.saveData);
+    var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
+    var slow = et === 'slow-2g' || et === '2g';
+
+    var events = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
+    function onIntent() {
+      events.forEach(function (evt) {
+        window.removeEventListener(evt, onIntent, { passive: true });
+      });
+      loadAllLazyScripts();
+    }
+    events.forEach(function (evt) {
+      window.addEventListener(evt, onIntent, { passive: true, once: true });
+    });
+
+    var idleDelay = slow || saveData ? 9000 : 3500;
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadAllLazyScripts, { timeout: idleDelay });
+    } else {
+      setTimeout(loadAllLazyScripts, idleDelay);
+    }
+  } catch (e) {}
+})();
+</script>
 <script>
 (function () {
   try {

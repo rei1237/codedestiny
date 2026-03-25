@@ -1,9 +1,11 @@
 ﻿import "../styles/globals.css";
 import { headers } from "next/headers";
-import WebVitalsConsole from "./components/WebVitalsConsole";
-import AppVersionGuard from "./components/AppVersionGuard";
+import dynamic from "next/dynamic";
 import SiteFooterHub from "./components/SiteFooterHub";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
+
+const WebVitalsConsole = dynamic(() => import("./components/WebVitalsConsole"), { ssr: false });
+const AppVersionGuard = dynamic(() => import("./components/AppVersionGuard"), { ssr: false });
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
