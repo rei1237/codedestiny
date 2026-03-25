@@ -49,9 +49,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/samba-320.webp" type="image/webp" fetchpriority="high">
 <!-- LCP: honeypig 로고 프리로드 -->
-<link rel="preload" as="image" href="/icons/honeypig.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/honeypig-320.webp" type="image/webp" fetchpriority="high">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -375,9 +375,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 
 
@@ -847,16 +845,20 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="async">
+          <img class="honeypig-logo-icon" src="/icons/honeypig-320.webp"
+            srcset="/icons/honeypig-320.webp 320w, /icons/honeypig.webp 1024w"
+            sizes="(max-width: 480px) 130px, 228px"
+            width="130" height="130" alt="꿀꿀 연이 로고" fetchpriority="high" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img class="neo-logo-icon" src="/icons/samba.webp"
-               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
+          <img class="neo-logo-icon" src="/icons/samba-320.webp"
+            srcset="/icons/samba-320.webp 320w, /icons/samba.webp 1024w"
+            sizes="(max-width: 480px) 130px, 228px"
+            width="130" height="130" alt="쌈바 모드 로고" loading="lazy" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -2670,12 +2672,14 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
       <a href="/insights" style="display:block;padding:14px 14px 8px;text-decoration:none;color:#f8fafc;">
         <div style="position:relative;border-radius:14px;border:1px solid rgba(201,168,76,0.35);background:rgba(3,6,23,0.56);padding:10px;box-shadow:inset 0 0 28px rgba(124,58,237,0.2);">
           <img
-            src="/fuctionassets/info.webp"
+            src="/fuctionassets/info-640.webp"
+            srcset="/fuctionassets/info-640.webp 640w, /fuctionassets/info-960.webp 960w, /fuctionassets/info.webp 1808w"
+            sizes="(max-width: 600px) calc(100vw - 48px), 588px"
             alt="우주 신비 도서관 분위기의 인사이트 허브 대표 이미지"
             loading="lazy"
             decoding="async"
-            width="1200"
-            height="720"
+            width="588"
+            height="333"
             style="display:block;width:100%;height:auto;max-height:none;aspect-ratio:auto;object-fit:contain;border-radius:10px;background:rgba(5,8,24,0.62);"
           >
         </div>

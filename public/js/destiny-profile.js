@@ -66,6 +66,18 @@
     }
   }
 
+  function _applyDesktopMasterCardReserve() {
+    var card = document.getElementById('dpMasterCard');
+    if (!card) return;
+    var isDesktop = false;
+    try {
+      isDesktop = window.matchMedia('(min-width: 901px)').matches;
+    } catch (e) {
+      isDesktop = false;
+    }
+    card.style.minHeight = isDesktop ? '320px' : '';
+  }
+
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
@@ -239,6 +251,7 @@
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
+    _applyDesktopMasterCardReserve();
 
     if (!profile) {
       el.innerHTML = _emptyCard();
@@ -1130,6 +1143,8 @@
     /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
 
+    _applyDesktopMasterCardReserve();
+
     renderMasterCard(DPStorage.current());
 
     /* ESC 키로 시트 닫기 */
@@ -1327,7 +1342,10 @@
 
     window.addEventListener('pageshow', function() {
       dpCloseList();
+      _applyDesktopMasterCardReserve();
     }, { passive: true });
+
+    window.addEventListener('resize', _applyDesktopMasterCardReserve, { passive: true });
   }
 
   if (document.readyState === 'loading') {

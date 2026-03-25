@@ -22,7 +22,35 @@
   var rafId, _frame = 0;
   if (cvs && !prefersReduced) {
     var ctx = cvs.getContext('2d');
-    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+    var _canvasResizeRaf = 0;
+    var _lastCanvasW = 0;
+    var _lastCanvasH = 0;
+    function getViewportSize() {
+      var vv = window.visualViewport;
+      var w = vv && typeof vv.width === 'number' && vv.width > 0 ? Math.round(vv.width) : window.innerWidth;
+      var h = vv && typeof vv.height === 'number' && vv.height > 0 ? Math.round(vv.height) : window.innerHeight;
+      return { w: w, h: h };
+    }
+    function applyCanvasSize() {
+      var size = getViewportSize();
+      if (size.w === _lastCanvasW && size.h === _lastCanvasH) return;
+      _lastCanvasW = size.w;
+      _lastCanvasH = size.h;
+      cvs.width = size.w;
+      cvs.height = size.h;
+    }
+    function scheduleCanvasResize() {
+      if (_canvasResizeRaf) return;
+      _canvasResizeRaf = requestAnimationFrame(function() {
+        _canvasResizeRaf = 0;
+        applyCanvasSize();
+      });
+    }
+    applyCanvasSize();
+    window.addEventListener('resize', scheduleCanvasResize, { passive: true });
+    if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
+      window.visualViewport.addEventListener('resize', scheduleCanvasResize, { passive: true });
+    }
 
     /* 색상 팔레트 (RGB 문자열 사전 생성 — 매 프레임 문자열 연산 없음) */
     var palette = ['200,215,255','225,235,255','255,245,210','220,200,255','255,255,255'];
@@ -113,13 +141,15 @@
   ];
   var mi = 0;
   var msgEl = document.getElementById('splashMsg');
+  if (msgEl) {
+    msgEl.style.transition = 'opacity 0.35s';
+  }
   var msgTimer = setInterval(function() {
     if (!msgEl) return;
     mi = (mi + 1) % msgs.length;
     scheduleWrite(function() {
       if (!msgEl) return;
       msgEl.style.opacity = '0';
-      msgEl.style.transition = 'opacity 0.35s';
     });
     setTimeout(function() {
       scheduleWrite(function() {

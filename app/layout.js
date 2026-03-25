@@ -253,9 +253,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
-        {/* 성능: 핵심 오리진만 사전 연결 — googleapis(CSS), gstatic(폰트파일) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* preconnect 과다 경고 방지를 위해 사전 연결 힌트는 제거하고 필요한 리소스만 지연 로드 */}
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />

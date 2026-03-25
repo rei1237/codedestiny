@@ -8,6 +8,8 @@
   var _initDone = false;
   var _longTaskCount = 0;
   var _runtimeDebug = false;
+  var _vhRaf = 0;
+  var _lastVhVar = '';
 
   function now() { return Date.now(); }
 
@@ -190,7 +192,7 @@
 
   function loadCoreFeatures() {
     return Promise.all([
-      runSafeTask('setDynamicVhVar', function () { setDynamicVhVar(); }),
+      runSafeTask('setDynamicVhVar', function () { scheduleDynamicVhVar(); }),
       runSafeTask('patchGlobalHandlers', function () { patchGlobalHandlers(); }),
       runSafeTask('patchCriticalFns', function () { patchCriticalFns(); }),
       runSafeTask('watchLoaderLifetime', function () { watchLoaderLifetime(); }),
@@ -251,9 +253,26 @@
     } catch (e) {}
   }
 
+  function readViewportHeight() {
+    var vv = window.visualViewport;
+    if (vv && typeof vv.height === 'number' && vv.height > 0) return vv.height;
+    return window.innerHeight;
+  }
+
   function setDynamicVhVar() {
-    var vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--app-vh', vh + 'px');
+    var vh = readViewportHeight() * 0.01;
+    var nextVhVar = vh.toFixed(2) + 'px';
+    if (nextVhVar === _lastVhVar) return;
+    _lastVhVar = nextVhVar;
+    document.documentElement.style.setProperty('--app-vh', nextVhVar);
+  }
+
+  function scheduleDynamicVhVar() {
+    if (_vhRaf) return;
+    _vhRaf = requestAnimationFrame(function () {
+      _vhRaf = 0;
+      setDynamicVhVar();
+    });
   }
 
   function installRuntimeSafeStyles() {
@@ -304,11 +323,15 @@
     setTimeout(stopBlockingOverlays, 7000);
 
     window.addEventListener('resize', function () {
-      setDynamicVhVar();
+      scheduleDynamicVhVar();
     }, { passive: true });
 
+    if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
+      window.visualViewport.addEventListener('resize', scheduleDynamicVhVar, { passive: true });
+    }
+
     window.addEventListener('orientationchange', function () {
-      setTimeout(setDynamicVhVar, 80);
+      setTimeout(scheduleDynamicVhVar, 80);
       setTimeout(stopBlockingOverlays, 3000);
     }, { passive: true });
 
