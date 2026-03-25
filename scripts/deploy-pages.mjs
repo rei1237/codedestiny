@@ -46,13 +46,17 @@ const args = [
   projectName,
   "--branch",
   branch,
+  // wrangler.json은 Worker 설정(main: .open-next/worker.js)이므로
+  // Pages 배포 시 wrangler.jsonc(pages_build_output_dir: dist)를 명시해 혼용을 방지한다.
+  "--config",
+  "wrangler.jsonc",
 ];
 
 console.log(`[deploy-pages] project=${projectName} branch=${branch}`);
 
 function runDeploy(env) {
   const result = isWindows
-    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx wrangler pages deploy dist --project-name ${projectName} --branch ${branch}`], {
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx wrangler pages deploy dist --project-name ${projectName} --branch ${branch} --config wrangler.jsonc`], {
         stdio: "inherit",
         shell: false,
         env,
