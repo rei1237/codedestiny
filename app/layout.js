@@ -5,6 +5,8 @@ import AppVersionGuard from "./components/AppVersionGuard";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
+const ENABLE_WEB_VITALS_CONSOLE = process.env.NEXT_PUBLIC_ENABLE_WEB_VITALS_CONSOLE === "1";
+
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
   { key: "ko-KR", slug: "", htmlLang: "ko", label: "Korean" },
@@ -272,7 +274,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <AppVersionGuard />
-        <WebVitalsConsole />
+        {ENABLE_WEB_VITALS_CONSOLE ? <WebVitalsConsole /> : null}
         <div>{children}</div>
         {!hideFooter && <SiteFooterHub />}
       </body>

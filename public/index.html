@@ -388,16 +388,8 @@
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/saju-totem-generator.css?v=20260323" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+  <script src="/js/inline/noncritical-css-loader.js" defer></script>
   <script src="https://cdn.tailwindcss.com" defer></script>
-  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
@@ -3374,9 +3366,36 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/fate-scroll-reveal.js" defer></script>
-<script src="/js/fate-scroll-top.js" defer></script>
-<script src="/js/fsn-navbar.js" defer></script>
+<script>
+(function () {
+  function loadScript(src) {
+    return new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      s.onload = resolve;
+      s.onerror = resolve;
+      document.body.appendChild(s);
+    });
+  }
+
+  function scheduleUiAssistScripts() {
+    var scripts = ['/js/fate-scroll-reveal.js', '/js/fate-scroll-top.js', '/js/fsn-navbar.js'];
+    var chain = Promise.resolve();
+    for (var i = 0; i < scripts.length; i += 1) {
+      (function (src) {
+        chain = chain.then(function () { return loadScript(src); });
+      })(scripts[i]);
+    }
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(scheduleUiAssistScripts, 700);
+  } else {
+    window.addEventListener('load', function () { setTimeout(scheduleUiAssistScripts, 700); }, { once: true });
+  }
+})();
+</script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
@@ -3432,10 +3451,28 @@
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script src="/js/mobile-performance-bootstrap.js" defer></script>
+<script>
+(function () {
+  var isMobile = window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (!isMobile) return;
+  var s = document.createElement('script');
+  s.src = '/js/mobile-performance-bootstrap.js';
+  s.defer = true;
+  document.body.appendChild(s);
+})();
+</script>
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script src="/js/touch-perf.js" defer></script>
+<script>
+(function () {
+  var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (!isTouchDevice) return;
+  var s = document.createElement('script');
+  s.src = '/js/touch-perf.js';
+  s.defer = true;
+  document.body.appendChild(s);
+})();
+</script>
 <script>
 (function () {
   // Delay non-critical feature bundles to reduce desktop startup cost.
@@ -3459,23 +3496,87 @@
     });
   }
 
-  function loadAllOptional() {
-    var chain = Promise.resolve();
-    for (var i = 0; i < optionalScripts.length; i += 1) {
-      (function (src) {
-        chain = chain.then(function () {
-          return loadScript(src);
+  function loadAllOptional(profile) {
+    var cfg = profile || { maxParallel: 1 };
+    var maxParallel = Math.max(1, Number(cfg.maxParallel || 1));
+    var queue = optionalScripts.slice();
+    var active = 0;
+
+    function tick() {
+      while (active < maxParallel && queue.length) {
+        active += 1;
+        loadScript(queue.shift()).finally(function () {
+          active -= 1;
+          tick();
         });
-      })(optionalScripts[i]);
+      }
     }
+
+    tick();
+  }
+
+  function detectRuntimeProfile() {
+    return new Promise(function (resolve) {
+      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      var fallback = {
+        lowEnd: false,
+        deferMs: 900,
+        idleTimeout: 2200,
+        maxParallel: 2
+      };
+
+      if (!('Worker' in window)) {
+        resolve(fallback);
+        return;
+      }
+
+      var worker = null;
+      var timeoutId = setTimeout(function () {
+        if (worker) worker.terminate();
+        resolve(fallback);
+      }, 450);
+
+      try {
+        worker = new Worker('/js/workers/runtime-profile.worker.js');
+        worker.onmessage = function (ev) {
+          clearTimeout(timeoutId);
+          worker.terminate();
+          resolve(ev && ev.data ? ev.data : fallback);
+        };
+        worker.onerror = function () {
+          clearTimeout(timeoutId);
+          worker.terminate();
+          resolve(fallback);
+        };
+        worker.postMessage({
+          cores: navigator.hardwareConcurrency || 0,
+          deviceMemory: navigator.deviceMemory || 0,
+          effectiveType: conn && conn.effectiveType ? conn.effectiveType : '',
+          saveData: !!(conn && conn.saveData)
+        });
+      } catch (_e) {
+        clearTimeout(timeoutId);
+        if (worker) worker.terminate();
+        resolve(fallback);
+      }
+    });
   }
 
   function scheduleOptionalLoad() {
-    if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(loadAllOptional, { timeout: 3000 });
-      return;
-    }
-    window.setTimeout(loadAllOptional, 1200);
+    detectRuntimeProfile().then(function (profile) {
+      var delay = Math.max(400, Number(profile && profile.deferMs || 900));
+      var timeout = Math.max(1200, Number(profile && profile.idleTimeout || 2200));
+
+      function run() {
+        loadAllOptional(profile);
+      }
+
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(run, { timeout: timeout });
+        return;
+      }
+      window.setTimeout(run, delay);
+    });
   }
 
   if (document.readyState === 'complete') {

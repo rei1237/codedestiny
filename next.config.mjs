@@ -53,7 +53,39 @@ const nextConfig = {
     if (dev && !isServer) {
       config.devtool = 'source-map';
     }
+
+    if (!dev && !isServer) {
+      config.optimization = config.optimization || {};
+      config.optimization.splitChunks = config.optimization.splitChunks || {};
+      config.optimization.splitChunks.cacheGroups = {
+        ...(config.optimization.splitChunks.cacheGroups || {}),
+        fortuneHeavy: {
+          test: /[\\/]js[\\/](saju-engine|saju-engine-continuation|iching-engine|tarot-.*experience|dream-ledger|dream-meaning-library|psycho-dream-analyzer-freuds-study|luck-sync-diary)\\.js$/,
+          name: 'fortune-heavy',
+          chunks: 'all',
+          priority: 25,
+          enforce: true,
+        },
+      };
+    }
+
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/image/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
+        ],
+      },
+    ];
   },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */

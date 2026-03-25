@@ -15,6 +15,10 @@
 /css/*.css
   Cache-Control: public, max-age=0, must-revalidate
 
+# ─── Next 해시 자산: 장기 immutable 캐시 ──────────────────────
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # ─── 이미지 & 폰트 ────────────────────────────────────────────
 /icons/*
   Cache-Control: public, max-age=31536000, immutable

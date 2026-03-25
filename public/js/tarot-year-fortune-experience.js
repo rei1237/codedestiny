@@ -877,11 +877,11 @@ function updateMonthCategoryPanel(text, cat) {
       // 월 상세 카드 및 삼재 스프레드 카드에 부드러운 플립 애니메이션 적용
       if (panel) {
         panel.classList.remove("ty-month-detail-panel--flip-start", "ty-month-detail-panel--flip-end");
-        // 강제 리플로우로 애니메이션 초기 상태를 확실히 적용
-        void panel.offsetWidth;
         panel.classList.add("ty-month-detail-panel--flip-start");
         requestAnimationFrame(function () {
-          panel.classList.add("ty-month-detail-panel--flip-end");
+          requestAnimationFrame(function () {
+            panel.classList.add("ty-month-detail-panel--flip-end");
+          });
         });
       }
     });
