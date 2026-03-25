@@ -908,7 +908,13 @@
         if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
         return 'pisces';
       }
-      function _olympusTimezoneOffset() {
+      function _olympusResolveTimezoneOffset(birth, location) {
+        try {
+          var resolved = resolveTimezoneOffset(birth || {}, location || {});
+          if (resolved && typeof resolved.tzOffsetHours === 'number' && !isNaN(resolved.tzOffsetHours)) {
+            return resolved.tzOffsetHours;
+          }
+        } catch (e) {}
         var offset = -new Date().getTimezoneOffset() / 60;
         return Number.isFinite(offset) ? offset : 9;
       }
@@ -957,6 +963,7 @@
           time: _olympusToTimeString(b)
         };
         var fallbackKey = _olympusSunSignFromDate(b.month, b.day);
+        var olympusTzOffset = _olympusResolveTimezoneOffset(b, pOlympus.location || {});
         fetch('/api/vedic/planets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -966,11 +973,12 @@
             day: b.day,
             hour: b.hour != null ? b.hour : 12,
             minute: b.minute != null ? b.minute : 0,
-            timezone: _olympusTimezoneOffset()
+            timezone: olympusTzOffset
           })
         })
           .then(function(res) { return res.ok ? res.json() : null; })
           .then(function(data) {
+            payload.timezone = olympusTzOffset;
             if (data && data.ok && data.planets && typeof data.planets.Sun === 'number') {
               var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
               var tropical = (data.planets.Sun + ayanamsa) % 360;

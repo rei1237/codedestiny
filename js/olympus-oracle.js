@@ -190,13 +190,14 @@
     var timeParts = parseTimeParts(time);
     var fallbackKey = sunSignFromDate(dateParts.month, dateParts.day);
 
+    var timezone = getLocalTimezoneHours();
     var payload = {
       year: dateParts.year,
       month: dateParts.month,
       day: dateParts.day,
       hour: timeParts.hour,
       minute: timeParts.minute,
-      timezone: getLocalTimezoneHours()
+      timezone: timezone
     };
 
     getSunKeyFromApi(payload, fallbackKey).then(function(sunKey) {
@@ -205,6 +206,7 @@
           name: name,
           date: date,
           time: time,
+          timezone: timezone,
           sunKey: sunKey
         };
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
