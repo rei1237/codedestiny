@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type ActionItem = {
   id: string;
@@ -50,9 +51,23 @@ export default function NightReflectionPlanner() {
   const [coachLines, setCoachLines] = useState<string[]>([]);
   const [loadingCoach, setLoadingCoach] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [revisionOriginal, setRevisionOriginal] = useState('');
+  const [revisionImagined, setRevisionImagined] = useState('');
+  const [revisionSec, setRevisionSec] = useState(60);
+  const [revisionRunning, setRevisionRunning] = useState(false);
+  const [revisionDone, setRevisionDone] = useState(0);
+  const [satsScene, setSatsScene] = useState('원하는 결과가 이미 완료된 단 하나의 장면을 추천받아 몰입하세요.');
+  const [satsMode, setSatsMode] = useState(false);
+  const [satsAudioMode, setSatsAudioMode] = useState<'lofi' | 'theta'>('lofi');
+  const [affirmation, setAffirmation] = useState('나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.');
+  const [affirmationInput, setAffirmationInput] = useState('');
+  const [iamDone, setIamDone] = useState(false);
+  const audioRef = useRef<AudioContext | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   const doneCount = checked.length;
   const effort = Math.round((doneCount / DEFAULT_ACTIONS.length) * 100);
+  const meditationPoints = Math.min(100, revisionDone * 12 + (satsMode ? 20 : 0) + (iamDone ? 18 : 0));
 
   const doneItems = useMemo(() => DEFAULT_ACTIONS.filter((item) => checked.includes(item.id)), [checked]);
   const pendingItems = useMemo(() => DEFAULT_ACTIONS.filter((item) => !checked.includes(item.id)), [checked]);
@@ -79,6 +94,105 @@ export default function NightReflectionPlanner() {
     await new Promise((resolve) => setTimeout(resolve, 1100));
     setCoachLines(buildCoachAdvice(doneItems, pendingItems, note, theme || undefined));
     setLoadingCoach(false);
+  };
+
+  const tomorrowKeyword = useMemo(() => {
+    const map: Record<string, string> = {
+      wealth: '재물운 상승',
+      love: '귀인 상봉',
+      health: '회복력 강화',
+      focus: '집중 성과 실현'
+    };
+    return map[theme] ?? '귀인 상봉';
+  }, [theme]);
+
+  const generateSatsScene = () => {
+    const sceneByKeyword: Record<string, string> = {
+      '재물운 상승': '당신은 이미 재정적으로 안정된 상태입니다. 잔액 확인 후 안도하며 미소 짓는 장면에 머무르세요.',
+      '귀인 상봉': '당신은 이미 필요한 도움을 받았습니다. 고마운 눈빛과 따뜻한 악수의 감각을 느끼세요.',
+      '회복력 강화': '당신은 이미 활력으로 가득합니다. 가벼운 몸으로 아침 공기를 들이마시는 감각에 집중하세요.',
+      '집중 성과 실현': '당신은 이미 중요한 일을 완수했습니다. 전송 완료 후 깊게 안도하는 순간을 반복하세요.'
+    };
+    setSatsScene(sceneByKeyword[tomorrowKeyword] ?? sceneByKeyword['귀인 상봉']);
+  };
+
+  const regenerateIam = () => {
+    const map: Record<string, string> = {
+      '재물운 상승': '나는 오늘 흐름을 읽고 부를 다루는 사람이다.',
+      '귀인 상봉': '나는 오늘 좋은 인연을 자연스럽게 끌어당기는 사람이다.',
+      '회복력 강화': '나는 오늘 안정된 호흡과 체력으로 중심을 지키는 사람이다.',
+      '집중 성과 실현': '나는 오늘 가장 중요한 일을 끝까지 완성하는 사람이다.'
+    };
+    setAffirmation(map[tomorrowKeyword] ?? '나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.');
+    setIamDone(false);
+    setAffirmationInput('');
+  };
+
+  const startRevision = () => {
+    if (!revisionImagined.trim()) return;
+    setRevisionRunning(true);
+    setRevisionSec(60);
+  };
+
+  useEffect(() => {
+    if (!revisionRunning) return;
+    timerRef.current = window.setInterval(() => {
+      setRevisionSec((prev) => {
+        if (prev <= 1) {
+          if (timerRef.current) window.clearInterval(timerRef.current);
+          setRevisionRunning(false);
+          setRevisionDone((v) => v + 1);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+    };
+  }, [revisionRunning]);
+
+  useEffect(() => {
+    if (!satsMode) {
+      if (audioRef.current) {
+        audioRef.current.close().catch(() => undefined);
+        audioRef.current = null;
+      }
+      return;
+    }
+    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+    const ctx = new AudioCtor();
+    audioRef.current = ctx;
+    const oscA = ctx.createOscillator();
+    const oscB = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscA.type = 'sine';
+    oscB.type = 'sine';
+    if (satsAudioMode === 'theta') {
+      oscA.frequency.value = 220;
+      oscB.frequency.value = 224;
+    } else {
+      oscA.frequency.value = 196;
+      oscB.frequency.value = 198.2;
+    }
+    gain.gain.value = 0.03;
+    oscA.connect(gain);
+    oscB.connect(gain);
+    gain.connect(ctx.destination);
+    oscA.start();
+    oscB.start();
+    return () => {
+      oscA.stop();
+      oscB.stop();
+      gain.disconnect();
+      ctx.close().catch(() => undefined);
+    };
+  }, [satsMode, satsAudioMode]);
+
+  const confirmIam = () => {
+    const ok = affirmationInput.trim() === affirmation.trim();
+    setIamDone(ok);
   };
 
   return (
@@ -211,6 +325,133 @@ export default function NightReflectionPlanner() {
             })}
           </div>
         </div>
+
+        <motion.div
+          className="rounded-2xl border border-slate-200 bg-white p-3"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+        >
+          <p className="text-xs font-black text-slate-900">6) 운명 개척 명상 가이드</p>
+
+          <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-black text-slate-800">수정의 가위 (Nightly Revision)</p>
+            <textarea
+              value={revisionOriginal}
+              onChange={(e) => setRevisionOriginal(e.target.value)}
+              rows={2}
+              maxLength={220}
+              className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
+              placeholder="오늘의 부정적 사건"
+            />
+            <textarea
+              value={revisionImagined}
+              onChange={(e) => setRevisionImagined(e.target.value)}
+              rows={2}
+              maxLength={220}
+              className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
+              placeholder="원하는 전개로 수정된 장면"
+            />
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={startRevision}
+                className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1.5 text-xs font-black text-cyan-700"
+              >
+                1분 상상 시작
+              </button>
+              <span className="text-xs font-black text-slate-700">{String(Math.floor(revisionSec / 60)).padStart(2, '0')}:{String(revisionSec % 60).padStart(2, '0')}</span>
+            </div>
+            <p className="mt-2 text-xs text-slate-600">이제 눈을 감고 수정된 장면이 실제 사실인 것처럼 반복해서 상상하세요. 완료 {revisionDone}회</p>
+          </div>
+
+          <motion.div
+            className={`mt-3 rounded-xl border p-3 transition ${satsMode ? 'border-indigo-400 bg-slate-900 text-slate-100' : 'border-slate-200 bg-white text-slate-800'}`}
+            animate={{ scale: satsMode ? [1, 1.01, 1] : 1 }}
+            transition={{ repeat: satsMode ? Infinity : 0, duration: 4, ease: 'easeInOut' }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-black">SATS 시각화</p>
+              <button
+                type="button"
+                onClick={generateSatsScene}
+                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-black"
+              >
+                장면 추천
+              </button>
+            </div>
+            <p className="mt-1 text-[11px]">내일 키워드: {tomorrowKeyword}</p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={satsScene}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="mt-2 rounded-lg border border-slate-300/40 bg-white/10 p-2 text-xs leading-5"
+              >
+                {satsScene}
+              </motion.p>
+            </AnimatePresence>
+
+            <motion.p
+              className="mt-2 text-center text-xs font-semibold"
+              animate={{ opacity: [0.45, 1, 0.45], scale: [0.99, 1.02, 0.99] }}
+              transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+            >
+              당신은 이미 이루어진 상태입니다. 감각에만 집중하며 잠드세요.
+            </motion.p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <select
+                value={satsAudioMode}
+                onChange={(e) => setSatsAudioMode(e.target.value as 'lofi' | 'theta')}
+                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] text-slate-700"
+              >
+                <option value="lofi">Lofi 톤</option>
+                <option value="theta">Theta 톤</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => setSatsMode(true)}
+                className="rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1 text-[11px] font-black text-indigo-700"
+              >
+                몰입 시작
+              </button>
+              <button
+                type="button"
+                onClick={() => setSatsMode(false)}
+                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-black"
+              >
+                종료
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-black text-slate-800">아침 I AM 선언</p>
+            <p className="mt-2 rounded-lg border border-cyan-200 bg-cyan-50 p-2 text-xs font-black text-slate-800">{affirmation}</p>
+            <input
+              value={affirmationInput}
+              onChange={(e) => setAffirmationInput(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs"
+              placeholder="문장을 그대로 타이핑해보세요"
+            />
+            <div className="mt-2 flex gap-2">
+              <button type="button" onClick={regenerateIam} className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-black">문구 새로고침</button>
+              <button type="button" onClick={confirmIam} className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[11px] font-black text-emerald-700">선언 완료</button>
+            </div>
+            <p className="mt-2 text-xs text-slate-600">{iamDone ? '확언 완료: 오늘의 정체성이 기록되었습니다.' : '확언 문장을 동일하게 입력하면 완료됩니다.'}</p>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900 p-3 text-slate-100">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-black">운세 실천 지수 연동</p>
+              <span className="text-xs font-black text-cyan-300">명상 포인트 {meditationPoints}</span>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-300">명상 중에는 기기 방해 금지 모드를 켜고 전체화면으로 전환하면 몰입감이 올라갑니다.</p>
+          </div>
+        </motion.div>
       </div>
 
       <style jsx>{`
