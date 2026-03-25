@@ -13,6 +13,12 @@
     return defaultValue;
   }
 
+  function isLockdownEnabled() {
+    // Default off: enable only when explicitly requested by runtime flags.
+    return getEnvFlag('__FORTUNE_ENABLE_SES_LOCKDOWN__', false)
+      || getEnvFlag('__FORTUNE_SES_STRICT__', false);
+  }
+
   function createSesConfig() {
     var preferStrict = getEnvFlag('__FORTUNE_SES_STRICT__', false);
 
@@ -114,6 +120,11 @@
   function install() {
     if (!globalObj || globalObj[LOCKDOWN_GUARD_KEY]) return;
 
+    if (!isLockdownEnabled()) {
+      globalObj.__FORTUNE_SES_SKIPPED__ = 'disabled';
+      return;
+    }
+
     if (typeof lockdown !== 'function') {
       if (globalObj.console && typeof globalObj.console.info === 'function') {
         globalObj.console.info('[SES] lockdown() not found; skipping SES lockdown install.');
@@ -126,14 +137,19 @@
     lockdown(config);
     globalObj[LOCKDOWN_GUARD_KEY] = true;
 
-    var sanity = runIntrinsicSanityCheck();
-    globalObj.__FORTUNE_SES_SANITY__ = sanity;
+    // Optional diagnostics only when explicitly enabled.
+    if (getEnvFlag('__FORTUNE_SES_SANITY_CHECK__', false)) {
+      var sanity = runIntrinsicSanityCheck();
+      globalObj.__FORTUNE_SES_SANITY__ = sanity;
 
-    if (!sanity.ok && globalObj.console && typeof globalObj.console.error === 'function') {
-      globalObj.console.error('[SES] Intrinsic sanity check failed:', sanity.failures);
+      if (!sanity.ok && globalObj.console && typeof globalObj.console.error === 'function') {
+        globalObj.console.error('[SES] Intrinsic sanity check failed:', sanity.failures);
+      }
     }
 
-    maybeHardenLibraries();
+    if (getEnvFlag('__FORTUNE_SES_HARDEN_LIBS__', false)) {
+      maybeHardenLibraries();
+    }
   }
 
   install();
