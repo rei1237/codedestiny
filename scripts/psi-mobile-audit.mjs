@@ -4,11 +4,15 @@ import { resolve } from "node:path";
 function parseArgs(argv) {
   const out = {
     url: "https://code-destiny.com",
+    fallbackUrls: ["https://code-destiny.com/en-us", "https://code-destiny.com/ja-jp"],
     strategy: "mobile",
     label: "current",
     outDir: "reports/perf",
     baseline: "",
     apiKey: process.env.PAGESPEED_API_KEY || process.env.GOOGLE_PAGESPEED_API_KEY || "",
+    retries: 3,
+    retryDelayMs: 2000,
+    timeoutMs: 120000,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -31,6 +35,21 @@ function parseArgs(argv) {
       i += 1;
     } else if (a === "--apiKey" && b) {
       out.apiKey = b;
+      i += 1;
+    } else if (a === "--fallbackUrls" && b) {
+      out.fallbackUrls = String(b)
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      i += 1;
+    } else if (a === "--retries" && b) {
+      out.retries = Math.max(0, Number.parseInt(b, 10) || 0);
+      i += 1;
+    } else if (a === "--retryDelayMs" && b) {
+      out.retryDelayMs = Math.max(0, Number.parseInt(b, 10) || 0);
+      i += 1;
+    } else if (a === "--timeoutMs" && b) {
+      out.timeoutMs = Math.max(1000, Number.parseInt(b, 10) || 120000);
       i += 1;
     }
   }
@@ -136,7 +155,21 @@ function writeMarkdown(summary, baselineSummary) {
   return `${lines.join("\n")}\n`;
 }
 
-async function fetchPsi(url, strategy, apiKey) {
+function shouldRetryHttpStatus(status) {
+  return status === 500 || status === 502 || status === 503 || status === 504 || status === 408;
+}
+
+function isLighthouseInternalError(payload) {
+  const msg = String(payload?.error?.message || "");
+  const reason = String(payload?.error?.errors?.[0]?.reason || "");
+  return msg.includes("Lighthouse returned error") || reason === "lighthouseError";
+}
+
+function wait(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+async function fetchPsi(url, strategy, apiKey, timeoutMs) {
   const endpoint = new URL("https://www.googleapis.com/pagespeedonline/v5/runPagespeed");
   endpoint.searchParams.set("url", url);
   endpoint.searchParams.set("strategy", strategy);
@@ -146,24 +179,73 @@ async function fetchPsi(url, strategy, apiKey) {
   endpoint.searchParams.append("category", "BEST_PRACTICES");
   endpoint.searchParams.append("category", "SEO");
 
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+
   const res = await fetch(endpoint.toString(), {
     headers: {
       "Accept": "application/json",
       "User-Agent": "code-destiny-psi-audit/1.0",
     },
+    signal: ac.signal,
   });
+  clearTimeout(timer);
 
   if (!res.ok) {
     const text = await res.text();
+    let parsed = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = null;
+    }
+
     if (res.status === 429) {
       throw new Error(
         "PSI quota exceeded (429). Set PAGESPEED_API_KEY or pass --apiKey <key>, then retry.",
       );
     }
+
+    if (shouldRetryHttpStatus(res.status) || isLighthouseInternalError(parsed)) {
+      const err = new Error(`PSI retryable error (${res.status}): ${text.slice(0, 220)}`);
+      err.retryable = true;
+      throw err;
+    }
+
     throw new Error(`PSI request failed (${res.status}): ${text.slice(0, 300)}`);
   }
 
-  return res.json();
+  const payload = await res.json();
+  const warnings = payload?.lighthouseResult?.runWarnings;
+  if (Array.isArray(warnings) && warnings.some((w) => String(w).toLowerCase().includes("time limit"))) {
+    const err = new Error(`PSI retryable warning: ${warnings.join(" | ")}`);
+    err.retryable = true;
+    throw err;
+  }
+
+  return payload;
+}
+
+async function runPsiWithRetry({ url, strategy, apiKey, retries, retryDelayMs, timeoutMs }) {
+  let lastErr = null;
+
+  for (let attempt = 1; attempt <= retries + 1; attempt += 1) {
+    try {
+      const data = await fetchPsi(url, strategy, apiKey, timeoutMs);
+      return data;
+    } catch (err) {
+      lastErr = err;
+      const retryable = !!err?.retryable;
+      if (!retryable || attempt > retries) {
+        throw lastErr;
+      }
+      const backoff = retryDelayMs * attempt;
+      console.warn(`[psi] retry ${attempt}/${retries} for ${url} in ${backoff}ms (${err.message})`);
+      await wait(backoff);
+    }
+  }
+
+  throw lastErr || new Error("Unknown PSI failure");
 }
 
 async function main() {
@@ -171,7 +253,33 @@ async function main() {
   const outDir = resolve(process.cwd(), args.outDir);
   mkdirSync(outDir, { recursive: true });
 
-  const psiRaw = await fetchPsi(args.url, args.strategy, args.apiKey);
+  const candidates = [args.url, ...(args.fallbackUrls || [])].filter(Boolean);
+  let psiRaw = null;
+  let selectedUrl = "";
+  let firstError = null;
+
+  for (const candidate of candidates) {
+    try {
+      psiRaw = await runPsiWithRetry({
+        url: candidate,
+        strategy: args.strategy,
+        apiKey: args.apiKey,
+        retries: args.retries,
+        retryDelayMs: args.retryDelayMs,
+        timeoutMs: args.timeoutMs,
+      });
+      selectedUrl = candidate;
+      break;
+    } catch (err) {
+      if (!firstError) firstError = err;
+      console.warn(`[psi] candidate failed: ${candidate} (${err.message})`);
+    }
+  }
+
+  if (!psiRaw) {
+    throw firstError || new Error("All PSI candidates failed");
+  }
+
   const summary = buildSummary(psiRaw, args.label);
 
   let baselineSummary = null;
@@ -194,6 +302,9 @@ async function main() {
   writeFileSync(mdPath, writeMarkdown(summary, baselineSummary), "utf8");
 
   console.log(`[psi] URL: ${args.url}`);
+  if (selectedUrl && selectedUrl !== args.url) {
+    console.log(`[psi] Fallback URL used: ${selectedUrl}`);
+  }
   console.log(`[psi] Strategy: ${args.strategy}`);
   console.log(`[psi] Performance: ${summary.scores.performance}`);
   console.log(`[psi] LCP: ${summary.metrics.lcp.displayValue}`);
