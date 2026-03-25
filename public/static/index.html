@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
-  <script src="/js/inline/runtime-singleton-guard.js"></script>
+  <script src="/js/inline/runtime-singleton-guard.js" defer></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script>
@@ -365,17 +365,18 @@
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
-  <link rel="stylesheet" href="/styles/globals.css">
+  <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
   <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2"></noscript>
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <script src="/js/inline/api-base-init.js" defer></script>
   <script src="/js/inline/noncritical-css-loader.js" defer></script>
   <script src="/js/inline/tailwind-cdn-debug-loader.js" defer></script>
-  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
 <style>
 /* CRITICAL: background flash 방지만. 레이아웃/커피 클래스는 fortune-ui.css에서 완성 */
@@ -397,6 +398,8 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 /* WCAG AA 대비 보강 */
 .form-label-hint,.birth-time-tip,.post-saju-services-intro span,.fortune-point-notice-meta,.sub-desc{color:#1f2937}
 .tc-header-note{color:#334155}
+/* below-fold 섹션: 초기 렌더 건너뜀으로 Style & Layout 비용 절감 */
+.fg-group--tarot,.fg-group--oracle,.fg-group--cosmic,.fg-group--flower{content-visibility:auto;contain-intrinsic-size:0 800px}
 </style>
 </head>
 <body>

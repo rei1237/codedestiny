@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
-  <script src="/js/inline/runtime-singleton-guard.js"></script>
+  <script src="/js/inline/runtime-singleton-guard.js" defer></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js" defer></script>
   <script>
@@ -369,7 +369,7 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js"></script>
+<script src="/js/inline/pwa-theme-init.js" defer></script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -382,17 +382,18 @@
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
 
 
-  <link rel="stylesheet" href="/styles/globals.css">
+  <link rel="preload" as="style" href="/styles/globals.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/globals.css"></noscript>
   
   <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260323-navscrollfix2"></noscript>
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/main-glass.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <script src="/js/inline/api-base-init.js" defer></script>
   <script src="/js/inline/noncritical-css-loader.js" defer></script>
   <script src="/js/inline/tailwind-cdn-debug-loader.js" defer></script>
-  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'" fetchpriority="low">
   <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260323-navscrollfix2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
     <link rel="stylesheet" href="/styles/animations.css">
@@ -418,6 +419,8 @@ body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
 .skip-to-main{position:absolute;left:12px;top:-48px;z-index:100000;padding:10px 14px;border-radius:10px;background:#111;color:#fff;text-decoration:none;font-weight:700}
 .skip-to-main:focus{top:12px;outline:2px solid #ffd700;outline-offset:2px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+/* below-fold 섹션: 초기 렌더 건너됀으로 Style & Layout 비용 절감 */
+.fg-group--tarot,.fg-group--oracle,.fg-group--cosmic,.fg-group--flower{content-visibility:auto;contain-intrinsic-size:0 800px}
 </style>
 </head>
 <body>
