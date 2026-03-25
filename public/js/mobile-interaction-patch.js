@@ -541,9 +541,10 @@
 
     var fn = window[rule.action];
     var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
+    var needsTotemRefresh = rule.action === 'openAnimalTotemModal' && typeof window.startAnimalTotemRitual !== 'function';
 
     /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
-    if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
+    if ((typeof fn !== 'function' || needsTotemRefresh) && lazyPaths && lazyPaths.length) {
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       raf(function() {
         var chain = Promise.resolve();

@@ -4563,6 +4563,18 @@ function startAnimalTotemMeditation() {
 }
 window.startAnimalTotemMeditation = startAnimalTotemMeditation;
 
+function startAnimalTotemRitual() {
+  var introStage = document.getElementById('animalTotemIntroStage');
+  var modeStage = document.getElementById('animalTotemModeStage');
+  if (introStage && modeStage && introStage.classList && modeStage.classList) {
+    introStage.classList.remove('is-active');
+    modeStage.classList.add('is-active');
+    return;
+  }
+  startAnimalTotemMeditation();
+}
+window.startAnimalTotemRitual = startAnimalTotemRitual;
+
 function drawAnimalTotemCard(btn, idxRaw) {
   var idx = parseInt(idxRaw, 10);
   if (_animalTotemReadLocked || Number.isNaN(idx)) return;
