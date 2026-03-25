@@ -882,7 +882,8 @@ function toggleReportFeatureCard(btn) {
 function _sajuFunGetCurrentProfile() {
   try {
     if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
-      return window.DestinyProfileManager.storage.current() || null;
+      var current = window.DestinyProfileManager.storage.current() || null;
+      if (current) return current;
     }
   } catch (e) {}
 
@@ -890,9 +891,14 @@ function _sajuFunGetCurrentProfile() {
     var ns = 'FORTUNE_APP_USER_PROFILES';
     var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
     var id = localStorage.getItem(ns + '.current');
-    if (!Array.isArray(list) || !id) return null;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].id === id) return list[i];
+    if (!Array.isArray(list) || !list.length) return null;
+    if (id) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i].id === id) return list[i];
+      }
+    }
+    for (var j = 0; j < list.length; j++) {
+      if (_sajuFunHasBirthCore(list[j])) return list[j];
     }
   } catch (e2) {}
 
@@ -917,6 +923,22 @@ function _sajuFunSetHint(message, tone) {
   hint.textContent = message;
 }
 
+function _sajuFunTriggerAction(actionName) {
+  if (!actionName) return;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.style.display = 'none';
+  btn.setAttribute('data-action', actionName);
+  document.body.appendChild(btn);
+  try { btn.click(); } catch (e) {}
+  if (btn.parentNode) btn.parentNode.removeChild(btn);
+}
+
+function _sajuFunEnsureCurrentProfile(profile) {
+  if (!profile || !profile.id) return;
+  try { localStorage.setItem('FORTUNE_APP_USER_PROFILES.current', profile.id); } catch (e) {}
+}
+
 window.openSajuFunFeature = function(targetId, afterAction) {
   var profile = _sajuFunGetCurrentProfile();
   if (!_sajuFunHasBirthCore(profile)) {
@@ -924,25 +946,37 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     return;
   }
 
+  _sajuFunEnsureCurrentProfile(profile);
+
   _sajuFunSetHint('✅ 프로필 확인 완료. 사주 데이터를 불러온 뒤 선택한 콘텐츠로 이동합니다.', 'success');
 
   if (typeof window._dpOpenFortuneType === 'function') {
     try { window._dpOpenFortuneType('saju'); } catch (e) {}
   }
 
+  var fallbackTargetMap = {
+    specialCharmCard: 'dailyMonthlyCard',
+    aiPromptCard: 'dailyMonthlyCard'
+  };
+  var fallbackTargetId = fallbackTargetMap[targetId] || '';
   var tries = 0;
-  var maxTries = 12;
+  var maxTries = 60;
   var tick = function() {
-    if (afterAction === 'openLuckSyncDiary' && typeof window.openLuckSyncDiary === 'function') {
-      try { window.openLuckSyncDiary(); } catch (e2) {}
+    if (afterAction === 'openLuckSyncDiary') {
+      _sajuFunTriggerAction('openLuckSyncDiary');
       return;
     }
 
     var target = targetId ? document.getElementById(targetId) : null;
+    if (!target && fallbackTargetId) {
+      target = document.getElementById(fallbackTargetId);
+    }
     if (!target) {
       if (tries < maxTries) {
         tries += 1;
-        setTimeout(tick, 260);
+        setTimeout(tick, 500);
+      } else {
+        _sajuFunSetHint('⚠️ 분석 데이터를 아직 준비 중입니다. 잠시 후 다시 눌러주세요.', 'warning');
       }
       return;
     }
