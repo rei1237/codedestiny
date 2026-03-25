@@ -6,7 +6,7 @@
    ══════════════════════════════════════════════ */
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard'    },
-  { id:'quntum',     label:'퀀텀 명리 천기',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 천기적으로 짚어드립니다.', cta:'⚡ 천기 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
+  { id:'quantum',    thumb:'quntum.webp', label:'퀀텀 명리 천기',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 천기적으로 짚어드립니다.', cta:'⚡ 천기 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard'         },
   { id:'sajuhealth', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard'    },
   { id:'sajuprompt', label:'사주 프롬프트',         desc:'AI 아바타/초상화 제작용 프롬프트를 받아보세요.',         note:'내 사주 분위기를 AI 이미지로 구현할 문장까지 바로 가져갈 수 있습니다.', cta:'🤖 사주 프롬프트 보기',        accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard'    },
   { id:'sajurpg',    label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard'       },
@@ -697,7 +697,7 @@ function renderReportDashboard() {
       };
       blocks.push(seenTargets[c.target]);
     }
-    seenTargets[c.target].images.push({ id: c.id, label: c.label, accent: c.accent });
+    seenTargets[c.target].images.push({ id: c.id, thumb: c.thumb || '', label: c.label, accent: c.accent });
   });
 
   /* ── 그리드 HTML 생성 ── */
@@ -710,7 +710,7 @@ function renderReportDashboard() {
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
     b.images.forEach(function(img) {
-      var thumbSrc = '/fuctionassets/' + img.id + '.webp';
+      var thumbSrc = '/fuctionassets/' + (img.thumb || (img.id + '.webp'));
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
         + 'decoding="async" onerror="handleReportThumbError(this)">';
@@ -917,6 +917,20 @@ function _sajuFunSetHint(message, tone) {
   hint.textContent = message;
 }
 
+function _sajuFunEnsureDashboardBlockOpen(targetEl) {
+  if (!targetEl || !targetEl.closest) return targetEl;
+  var block = targetEl.closest('.rpt-v2-block');
+  if (!block) return targetEl;
+
+  if (!block.classList.contains('open')) {
+    var toggleBtn = block.querySelector('.rpt-v2-head .rpt-v2-toggle-btn');
+    if (toggleBtn && typeof toggleReportFeatureCard === 'function') {
+      try { toggleReportFeatureCard(toggleBtn); } catch (e) {}
+    }
+  }
+  return block;
+}
+
 window.openSajuFunFeature = function(targetId, afterAction) {
   var profile = _sajuFunGetCurrentProfile();
   if (!_sajuFunHasBirthCore(profile)) {
@@ -948,10 +962,11 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     }
 
     if (target.style && target.style.display === 'none') target.style.display = '';
+    var scrollTarget = _sajuFunEnsureDashboardBlockOpen(target) || target;
     try {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e3) {
-      try { target.scrollIntoView(true); } catch (e4) {}
+      try { scrollTarget.scrollIntoView(true); } catch (e4) {}
     }
   };
 
