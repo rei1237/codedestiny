@@ -130,11 +130,11 @@ function buildJsonLd({ locale, canonicalHref }) {
 export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: {
-    default: "[2026년] AI가 분석하는 내 운명의 지도 🔮 | Code: Destiny",
+    default: "꿀꿀 만세력 | 무료 사주 타로 운세 점성술 궁합",
     template: "%s | 꿀꿀 만세력",
   },
   description:
-    "단순한 운세가 아닙니다. 1%의 데이터로 당신의 미래를 예측하는 AI 사주 플랫폼. 지금 당신의 운명을 코딩하세요.",
+    "생년월일로 보는 정확한 무료 사주풀이. AI 타로·자미두수·점성술·주역·궁합 등 20가지 이상의 운세를 무료로. 오늘 운세·신년 운세 즉시 확인! Free Saju Fortune.",
   keywords: [
     // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
     "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
@@ -169,8 +169,8 @@ export const metadata = {
     alternateLocale: ["en_US", "ja_JP", "zh_CN"],
     url: "https://code-destiny.com",
     siteName: "꿀꿀 만세력",
-    title: "[2026년] AI가 분석하는 내 운명의 지도 🔮 | Code: Destiny",
-    description: "단순한 운세가 아닙니다. 1%의 데이터로 당신의 미래를 예측하는 AI 사주 플랫폼. 지금 당신의 운명을 코딩하세요.",
+    title: "꿀꿀 만세력 | 무료 사주 타로 운세",
+    description: "생년월일로 보는 무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합.",
     images: [
       {
         url: "https://code-destiny.com/icons/honeypig.webp",
@@ -182,8 +182,8 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "[2026년] AI가 분석하는 내 운명의 지도 🔮 | Code: Destiny",
-    description: "단순한 운세가 아닙니다. 1%의 데이터로 당신의 미래를 예측하는 AI 사주 플랫폼. 지금 당신의 운명을 코딩하세요.",
+    title: "꿀꿀 만세력 | 무료 사주 타로 운세",
+    description: "AI 타로·점성술·자미두수 등 20+ 운세 서비스 무료 제공",
     images: ["https://code-destiny.com/icons/honeypig.webp"],
   },
   verification: {
