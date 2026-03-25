@@ -204,6 +204,28 @@ body {
 	overflow-x: hidden;
 	overflow-y: visible;
 	position: relative;
+	isolation: isolate;
+	transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+.feat-collection::before,
+.tarot-collection::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	background:
+		radial-gradient(160px 120px at 12% 0%, rgba(255, 255, 255, 0.12), transparent 72%),
+		radial-gradient(180px 130px at 88% 100%, rgba(255, 255, 255, 0.09), transparent 74%);
+	opacity: 0.85;
+	z-index: 0;
+}
+@media (hover: hover) {
+	.feat-collection:hover,
+	.tarot-collection:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 14px 42px rgba(8, 6, 28, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.14) inset;
+	}
 }
 /* 컬렉션별 배경·테두리 색상 (배포 사이트와 동일 - muted teal / deep purple) */
 .feat-collection--animal {
@@ -273,6 +295,49 @@ body {
 	color: rgba(220, 200, 255, 0.75);
 	margin: 0 0 14px;
 	line-height: 1.45;
+}
+.feat-collection__summary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	margin: 0 auto 14px;
+	padding: 8px 12px;
+	max-width: 94%;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.26);
+	background: linear-gradient(120deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05));
+	font-size: 0.73rem;
+	font-weight: 600;
+	line-height: 1.45;
+	letter-spacing: 0.01em;
+	color: rgba(248, 244, 255, 0.94);
+	box-shadow: 0 6px 20px rgba(15, 8, 35, 0.28);
+}
+.feat-collection__summary--tarot {
+	border-color: rgba(196, 181, 253, 0.56);
+	background: linear-gradient(120deg, rgba(167, 139, 250, 0.28), rgba(91, 33, 182, 0.16));
+}
+.feat-collection--animal .feat-collection__summary {
+	border-color: rgba(167, 243, 208, 0.6);
+	background: linear-gradient(120deg, rgba(16, 185, 129, 0.28), rgba(6, 95, 70, 0.16));
+}
+.feat-collection--oracle .feat-collection__summary {
+	border-color: rgba(253, 224, 71, 0.62);
+	background: linear-gradient(120deg, rgba(245, 158, 11, 0.28), rgba(120, 53, 15, 0.16));
+}
+.feat-collection--cosmic .feat-collection__summary {
+	border-color: rgba(167, 139, 250, 0.62);
+	background: linear-gradient(120deg, rgba(139, 92, 246, 0.3), rgba(49, 46, 129, 0.16));
+}
+.feat-collection--flower .feat-collection__summary {
+	border-color: rgba(251, 207, 232, 0.62);
+	background: linear-gradient(120deg, rgba(236, 72, 153, 0.3), rgba(131, 24, 67, 0.16));
+}
+.feat-collection--saju-fun .feat-collection__summary {
+	border-color: rgba(196, 181, 253, 0.62);
+	background: linear-gradient(120deg, rgba(129, 140, 248, 0.3), rgba(67, 56, 202, 0.16));
 }
 .feat-collection__divider,
 .tarot-collection__divider {
@@ -687,6 +752,7 @@ body {
 	.tarot-tile__sticker--construction { font-size: 0.95rem; padding: 8px 12px; letter-spacing: 0.1em; }
 	.feat-collection__title,
 	.tarot-collection__title { font-size: 1.15rem; }
+	.feat-collection__summary { font-size: 0.66rem; padding: 7px 10px; max-width: 98%; }
 	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }
 }
 
