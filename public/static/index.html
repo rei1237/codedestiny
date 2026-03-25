@@ -547,9 +547,8 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=optional" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 
 
   <!-- 우주의 신비감 (Cosmic UI) 적용 -->
@@ -588,81 +587,12 @@
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
 <style>
-/* ─── Critical CSS: FOUC/CLS 방지 (fortune-ui.css 비동기 로드 전 안정화) ─── */
-:root {
-  --bg-color: linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%);
-  --text-main: #3D3D3D;
-  --point-color: #FF85A2;
-  --pink: #FF8BA7;
-  --card-bg: #fff;
-  --card-glass: rgba(255,255,255,0.86);
-  --border-color: rgba(255,183,178,0.15);
-  --radius: 16px;
-  --radius-lg: 20px;
-  --spacing-md: 16px;
-  --shadow: 0 4px 20px rgba(255,139,167,.13);
-}
-*,*::before,*::after { box-sizing: border-box; }
-body {
-  margin: 0; padding: 0;
-  background: #FFF5F8;
-  background: var(--bg-color);
-  color: #3D3D3D;
-  color: var(--text-main);
-  min-height: 100dvh;
-  overflow-x: hidden;
-  position: relative;
-  font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  overscroll-behavior-y: none;
-  touch-action: pan-y;
-}
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 0;
-  background:
-    radial-gradient(circle at 15% 20%,rgba(255,139,167,.14),transparent 35%),
-    radial-gradient(circle at 85% 78%,rgba(124,58,237,.14),transparent 38%),
-    radial-gradient(circle at 50% 12%,rgba(255,215,0,.09),transparent 32%);
-}
-.wrap {
-  width: 100%; max-width: 960px;
-  margin: 0 auto; position: relative;
-  overflow-x: hidden;
-  padding: 0 8px calc(22px + env(safe-area-inset-bottom,0px));
-  display: flex; flex-direction: column;
-  z-index: 1; isolation: isolate; min-height: 100dvh;
-}
-#lib-overlay {
-  position: fixed; inset: 0;
-  background: #FFF5F8;
-  background: var(--bg-color);
-  z-index: 9999;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px;
-}
-#lib-overlay.done { display: none; }
-.card {
-  background: var(--card-glass);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  border: 1px solid var(--border-color);
-  margin-bottom: var(--spacing-md);
-}
-.skip-to-main {
-  position: absolute;
-  left: 12px; top: -48px;
-  z-index: 100000;
-  padding: 10px 14px; border-radius: 10px;
-  background: #111; color: #fff;
-  text-decoration: none; font-weight: 700;
-}
-.skip-to-main:focus { top: 12px; outline: 2px solid #ffd700; outline-offset: 2px; }
-.sr-only {
-  position: absolute; width: 1px; height: 1px;
-  padding: 0; margin: -1px; overflow: hidden;
-  clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
-}
+/* CRITICAL: background flash 방지만. 레이아웃/커피 클래스는 fortune-ui.css에서 완성 */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#FFF5F8;color:#3D3D3D;overflow-x:hidden}
+.skip-to-main{position:absolute;left:12px;top:-48px;z-index:100000;padding:10px 14px;border-radius:10px;background:#111;color:#fff;text-decoration:none;font-weight:700}
+.skip-to-main:focus{top:12px;outline:2px solid #ffd700;outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
 </style>
 </head>
 <body>
@@ -3538,14 +3468,14 @@ body::before {
 
 <script src="/js/destiny-profile.js" defer></script>
 <script src="/js/swisseph-lazy-init.js" defer></script>
-<script src="/js/mobile-interaction-patch.js" defer></script>
-<script src="/js/services/sajuService.js" defer></script>
-<script src="/js/core/saju/modalProfileState.js" defer></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
 <script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
 <script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
 <script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
+<script src="/js/mobile-interaction-patch.js" defer></script>
+<script src="/js/services/sajuService.js" defer></script>
+<script src="/js/core/saju/modalProfileState.js" defer></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
