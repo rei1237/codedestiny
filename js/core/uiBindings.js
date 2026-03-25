@@ -205,6 +205,76 @@ function bindEventAction(root, eventName, attrName) {
   });
 }
 
+function __openCollectionById(collectionId) {
+  if (!collectionId) return;
+  const collection = document.getElementById(collectionId);
+  if (!collection) return;
+  const isOpen = collection.getAttribute('data-collection-open') === 'true';
+  if (isOpen) return;
+
+  const toggle = document.querySelector(`[data-action="toggleCollection"][data-target="${collectionId}"]`);
+  if (toggle instanceof HTMLElement) {
+    toggle.click();
+    return;
+  }
+
+  collection.setAttribute('data-collection-open', 'true');
+}
+
+function __handleFooterInboundRoute() {
+  if (typeof window === 'undefined') return;
+  if (window.__codeDestinyFooterRouteHandled) return;
+  window.__codeDestinyFooterRouteHandled = true;
+
+  let url;
+  try {
+    url = new URL(window.location.href);
+  } catch (_) {
+    return;
+  }
+
+  const from = url.searchParams.get('from') || '';
+  const hash = window.location.hash || '';
+  const fromFooter = from.startsWith('footer-');
+
+  const featureGrid = document.getElementById('feature-card-grid') || document.querySelector('.feature-card-grid');
+  if (featureGrid && (fromFooter || hash === '#feature-card-grid')) {
+    setTimeout(() => {
+      featureGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
+
+  if (!fromFooter) return;
+
+  const key = from.slice('footer-'.length);
+  const collectionMap = {
+    'tarot-main': 'tarotCollection',
+    'oracle-main': 'oracleCollection',
+    'animal-main': 'animalCollection',
+    'flower-main': 'flowerCollection',
+    'dream-main': 'flowerCollection'
+  };
+
+  const collectionId = collectionMap[key];
+  if (collectionId) {
+    setTimeout(() => __openCollectionById(collectionId), 140);
+    return;
+  }
+
+  const sectionMap = {
+    'fun-saju-rpg': 'skillTreeCard',
+    'fun-saju-health': 'healthReportCard',
+    'fun-saju-prompt': 'run-btn'
+  };
+  const sectionId = sectionMap[key];
+  const section = sectionId ? document.getElementById(sectionId) : null;
+  if (section) {
+    setTimeout(() => {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 160);
+  }
+}
+
 export function bindGlobalActions(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
   if (typeof window !== 'undefined') {
@@ -305,4 +375,6 @@ export function bindGlobalActions(root) {
   bindEventAction(root, 'touchstart', 'data-touchstart-action');
   bindEventAction(root, 'touchend', 'data-touchend-action');
   bindEventAction(root, 'touchcancel', 'data-touchcancel-action');
+
+  __handleFooterInboundRoute();
 }
