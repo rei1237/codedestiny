@@ -215,8 +215,14 @@
     if (!Array.isArray(entry.emotionTags)) entry.emotionTags = [];
     if (!Array.isArray(entry.stickers)) entry.stickers = [];
     if (!Array.isArray(entry.badges)) entry.badges = [];
+    if (!Array.isArray(entry.nightPractices)) entry.nightPractices = [];
+    if (!Array.isArray(entry.actionPlan)) entry.actionPlan = [];
     if (typeof entry.reviewRate !== 'number') entry.reviewRate = 0;
     if (typeof entry.reviewNote !== 'string') entry.reviewNote = '';
+    if (typeof entry.practiceNote !== 'string') entry.practiceNote = entry.reviewNote || entry.nightLog || '';
+    if (typeof entry.aiLuckCoach !== 'string') entry.aiLuckCoach = '';
+    if (typeof entry.aiCoachUpdatedAt !== 'string') entry.aiCoachUpdatedAt = '';
+    if (typeof entry.tomorrowBlueprint !== 'string') entry.tomorrowBlueprint = '';
     if (typeof entry.memoNote !== 'string') entry.memoNote = '';
     if (typeof entry.morningFortune !== 'string') entry.morningFortune = '';
     if (typeof entry.partnerName !== 'string') entry.partnerName = '';
@@ -247,7 +253,20 @@
   function getTodayEntry(diary) {
     var key = getTodayKey();
     if (!diary[key]) {
-      diary[key] = { date: key, challenges: [], lotto: null, nightLog: '', feedback: null, moodEmoji: '' };
+      diary[key] = {
+        date: key,
+        challenges: [],
+        lotto: null,
+        nightLog: '',
+        feedback: null,
+        moodEmoji: '',
+        nightPractices: [],
+        actionPlan: [],
+        practiceNote: '',
+        aiLuckCoach: '',
+        aiCoachUpdatedAt: '',
+        tomorrowBlueprint: ''
+      };
     }
     ensureEntryShape(diary[key]);
     return diary[key];
@@ -335,18 +354,9 @@
       n.id = 'lsdReviewCard';
       n.className = 'lsd-mz-card';
       n.innerHTML = ''
-        + '<p class="lsd-mz-title">🔍 복기 시스템 (아침 운세 vs 저녁 현실)</p>'
-        + '<div class="lsd-mini-box" id="lsdMorningFortuneBox"></div>'
-        + '<p class="lsd-mz-sub" style="margin-top:8px;margin-bottom:6px">오늘 운세 적중률은 어느 정도였어?</p>'
-        + '<div class="lsd-review-rate" id="lsdReviewRateBtns">'
-        + '  <button type="button" data-rate="20">20% 😶</button>'
-        + '  <button type="button" data-rate="40">40% 🤏</button>'
-        + '  <button type="button" data-rate="60">60% 🙂</button>'
-        + '  <button type="button" data-rate="80">80% 😍</button>'
-        + '  <button type="button" data-rate="100">100% 🔮</button>'
-        + '</div>'
-        + '<textarea id="lsdReviewNote" class="lsd-note-box" placeholder="예: 오전엔 별로였는데 오후 4시 이후부터 운이 갑자기 풀렸음!"></textarea>'
-        + '<div style="margin-top:8px"><button id="lsdSaveReviewBtn" type="button" class="lsd-plain-btn">복기 저장</button></div>';
+        + '<p class="lsd-mz-title">🌙 Night Action Memo</p>'
+        + '<p class="lsd-mz-sub">야간 회고는 적중률 체크가 아니라, 오늘 실천한 개운 루틴을 기록하고 내일 운 설계를 만드는 공간으로 개편되었어요.</p>'
+        + '<div class="lsd-mini-box">체크리스트 완료율 + 실천 메모 + AI Luck Coach를 조합하면 운의 흐름을 능동적으로 설계할 수 있어요.</div>';
       night.appendChild(n);
     }
 
@@ -544,18 +554,7 @@
         : '<span style="font-size:.68rem;color:#9ca3af">아직 배지가 없어! 오늘 챌린지 성공하면 바로 지급돼.</span>';
     }
 
-    var morningBox = document.getElementById('lsdMorningFortuneBox');
-    if (morningBox) {
-      if (!entry.morningFortune) entry.morningFortune = _lsdCtx.morningMsg || '오늘 가이드를 불러오는 중...';
-      morningBox.innerHTML = '<strong>🌞 아침 운세 메모</strong><br>' + escHtml(entry.morningFortune);
-    }
-
-    var rateBtns = document.querySelectorAll('#lsdReviewRateBtns button');
-    rateBtns.forEach(function (btn) {
-      btn.classList.toggle('is-on', Number(btn.getAttribute('data-rate')) === Number(entry.reviewRate || 0));
-    });
-    var reviewNote = document.getElementById('lsdReviewNote');
-    if (reviewNote) reviewNote.value = entry.reviewNote || '';
+    renderNightPracticeBoard(entry);
 
     var memoInput = document.getElementById('lsdMemoInput');
     if (memoInput) memoInput.value = entry.memoNote || '';
@@ -839,11 +838,168 @@
     water: ['💧 물 충분히 마시기 (2L 목표)', '🎧 좋아하는 음악으로 감성 충전']
   };
 
+  var BLUEPRINT_THEMES = [
+    { id: 'wealth', label: '재물 흐름 설계', icon: '💰' },
+    { id: 'love', label: '관계 기운 정돈', icon: '💞' },
+    { id: 'health', label: '회복력 강화', icon: '🫀' },
+    { id: 'focus', label: '집중/성과 모드', icon: '🎯' }
+  ];
+
+  var AI_COACH_ENGINE_PROMPT = [
+    'Role: AI Luck Coach based on Gaewoon principles.',
+    'Input: completed actions, pending actions, reflection memo, ten-star, lucky element, tomorrow theme.',
+    'Output: data-based luck design guide in Korean.',
+    'Style: Avoid generic praise. Use pattern "오늘 ~를 실천하셨으니, 내일은 ~한 기운이 들어올 때 ~ 행동으로 시너지를 키우세요."',
+    'Rule: Keep it practical and specific.'
+  ].join(' ');
+
+  function buildNightActionPlan(luckyEl, mainTenStar) {
+    var elemChallenges = (CHALLENGE_SETS[luckyEl] || CHALLENGE_SETS.earth);
+    var tenstarHint = (mainTenStar && TENSTAR_GUIDE[mainTenStar])
+      ? ('⚡ ' + mainTenStar + ' 흐름에 맞춰 ' + TENSTAR_GUIDE[mainTenStar].vibe + ' 행동 1개 실행')
+      : '⚡ 오늘 중요 일정 1개를 미리 준비해 운의 타이밍 선점';
+    return [
+      { id: 'na1', text: elemChallenges[0], group: 'element' },
+      { id: 'na2', text: elemChallenges[1], group: 'element' },
+      { id: 'na3', text: '📵 자기 전 30분 디지털 디톡스', group: 'recovery' },
+      { id: 'na4', text: tenstarHint, group: 'tenstar' },
+      { id: 'na5', text: '📒 내일 우선순위 1개 먼저 예약', group: 'blueprint' }
+    ];
+  }
+
+  function calcNightEffort(entry) {
+    var plan = Array.isArray(entry && entry.actionPlan) ? entry.actionPlan : [];
+    var doneIds = Array.isArray(entry && entry.nightPractices) ? entry.nightPractices : [];
+    var total = plan.length;
+    var done = 0;
+    for (var i = 0; i < plan.length; i++) {
+      if (doneIds.indexOf(plan[i].id) >= 0) done++;
+    }
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    return { done: done, total: total, pct: pct };
+  }
+
+  function launchNightConfetti() {
+    var wrap = document.createElement('div');
+    wrap.className = 'lsd-confetti-wrap';
+    for (var i = 0; i < 18; i++) {
+      var bit = document.createElement('i');
+      bit.className = 'lsd-confetti-bit';
+      bit.style.left = (35 + Math.random() * 30) + 'vw';
+      bit.style.background = ['#22d3ee', '#fb7185', '#a78bfa', '#fbbf24', '#34d399'][i % 5];
+      bit.style.animationDelay = (Math.random() * 0.14) + 's';
+      bit.style.transform = 'translate3d(0,0,0) rotate(' + Math.round(Math.random() * 320) + 'deg)';
+      wrap.appendChild(bit);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(function () {
+      if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    }, 1300);
+  }
+
+  function buildAiLuckCoachAdvice(entry) {
+    var plan = Array.isArray(entry && entry.actionPlan) ? entry.actionPlan : [];
+    var doneIds = Array.isArray(entry && entry.nightPractices) ? entry.nightPractices : [];
+    var doneTexts = [];
+    var pendingTexts = [];
+    plan.forEach(function (p) {
+      if (doneIds.indexOf(p.id) >= 0) doneTexts.push(p.text);
+      else pendingTexts.push(p.text);
+    });
+    var note = String((entry && entry.practiceNote) || '').trim();
+    var effort = calcNightEffort(entry);
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    var tomorrowGZ = getGanZhiByDate(tomorrow);
+    var tomorrowEl = (tomorrowGZ && tomorrowGZ.g) ? (GAN_ELEM[tomorrowGZ.g] || 'earth') : 'earth';
+    var tomorrowInfo = ELEM[tomorrowEl] || ELEM.earth;
+    var themeMap = {
+      wealth: '재물 흐름',
+      love: '관계 조율',
+      health: '체력 회복',
+      focus: '집중 성과'
+    };
+    var themeText = themeMap[entry && entry.tomorrowBlueprint] || '핵심 루틴';
+    var doneHeadline = doneTexts[0] || '핵심 루틴 1개';
+    var pendingHeadline = pendingTexts[0] || '자기 전 30분 정리 루틴';
+    var memoSignal = note ? ('메모에서 확인된 흐름: "' + escHtml(note.slice(0, 48)) + (note.length > 48 ? '...' : '') + '".') : '오늘 메모가 짧아 체감 데이터를 더 모으면 조언 정확도가 올라갑니다.';
+    var liftLine = effort.pct >= 70
+      ? '실천도가 높아 내일 운의 진입 속도가 빠를 가능성이 큽니다.'
+      : '실천도 ' + effort.pct + '% 구간이라 내일은 루틴 수를 줄이고 핵심 2개만 끝내는 전략이 효율적입니다.';
+
+    return ''
+      + '오늘 <b>' + escHtml(doneHeadline) + '</b>를 실천하셨으니, 내일은 <b style="color:' + tomorrowInfo.neon + '">' + tomorrowInfo.cn + '</b> 기운이 들어올 때 <b>' + escHtml(themeText) + '</b> 행동으로 시너지를 키우세요.<br>'
+      + '보완 포인트는 <b>' + escHtml(pendingHeadline) + '</b>입니다. 오전/저녁 중 고정 슬롯 1개를 지정하면 운의 편차를 줄일 수 있습니다.<br>'
+      + memoSignal + '<br>'
+      + liftLine;
+  }
+
+  function renderNightPracticeBoard(entry) {
+    var checklist = document.getElementById('lsdActionChecklist');
+    var gaugeBar = document.getElementById('lsdEffortGaugeBar');
+    var gaugeText = document.getElementById('lsdEffortGaugeText');
+    var noteInput = document.getElementById('lsdPracticeNoteInput');
+    var noteCount = document.getElementById('lsdPracticeCharCount');
+    var coachCard = document.getElementById('lsdAiLuckCoach');
+    var morningBox = document.getElementById('lsdMorningActionSummary');
+    var themeBox = document.getElementById('lsdTomorrowBlueprintBtns');
+
+    if (!entry.actionPlan || !entry.actionPlan.length) {
+      entry.actionPlan = buildNightActionPlan(_lsdCtx.luckyEl, _lsdCtx.mainTenStar);
+    }
+
+    if (checklist) {
+      checklist.innerHTML = entry.actionPlan.map(function (item) {
+        var done = (entry.nightPractices || []).indexOf(item.id) >= 0;
+        return ''
+          + '<button type="button" class="lsd-night-action' + (done ? ' is-done' : '') + '" data-action-id="' + item.id + '">'
+          + '<span class="lsd-night-action-check">' + (done ? '✔' : '') + '</span>'
+          + '<span class="lsd-night-action-text">' + escHtml(item.text) + '</span>'
+          + '</button>';
+      }).join('');
+    }
+
+    var effort = calcNightEffort(entry);
+    if (gaugeBar) gaugeBar.style.width = effort.pct + '%';
+    if (gaugeText) gaugeText.textContent = '오늘 실천도 ' + effort.pct + '% (' + effort.done + '/' + effort.total + ')';
+
+    if (noteInput) {
+      noteInput.value = entry.practiceNote || entry.nightLog || '';
+      if (noteCount) noteCount.textContent = noteInput.value.length;
+    }
+
+    if (morningBox) {
+      if (!entry.morningFortune) entry.morningFortune = _lsdCtx.morningMsg || '아침 제안이 준비되는 중입니다.';
+      morningBox.innerHTML = '<strong>🌞 아침 제안 요약</strong><br>' + escHtml(entry.morningFortune);
+    }
+
+    if (coachCard) {
+      if (entry.aiLuckCoach) {
+        coachCard.innerHTML = entry.aiLuckCoach + (entry.aiCoachUpdatedAt ? '<div class="lsd-ai-foot">최근 생성: ' + escHtml(entry.aiCoachUpdatedAt) + '</div>' : '');
+      } else {
+        coachCard.innerHTML = '실천 체크 + 메모를 입력한 뒤 AI Luck Coach를 눌러보세요. 데이터 기반으로 내일의 운 설계 가이드를 생성합니다.';
+      }
+    }
+
+    if (themeBox) {
+      themeBox.querySelectorAll('[data-blueprint]').forEach(function (btn) {
+        btn.classList.toggle('is-on', btn.getAttribute('data-blueprint') === entry.tomorrowBlueprint);
+      });
+    }
+  }
+
   function buildChallenges(luckyEl, mainTenStar) {
     var diary = loadDiary();
     var entry = getTodayEntry(diary);
     var container = document.getElementById('lsdChallenges');
     if (!container) return;
+
+    entry.actionPlan = buildNightActionPlan(luckyEl, mainTenStar);
+    if (!Array.isArray(entry.nightPractices)) entry.nightPractices = [];
+    entry.nightPractices = entry.nightPractices.filter(function (id) {
+      return entry.actionPlan.some(function (p) { return p.id === id; });
+    });
+    saveDiary(diary);
 
     var elemChallenges = (CHALLENGE_SETS[luckyEl] || CHALLENGE_SETS.earth);
     var allChallenges = [
@@ -906,6 +1062,7 @@
         }
         saveDiary(d);
         refreshChallengeCongrats(e);
+        renderNightPracticeBoard(e);
       });
     });
   }
@@ -920,21 +1077,29 @@
       list.innerHTML = '<p class="lsd-empty">아직 기록이 없어요~ 오늘부터 시작해봐!</p>';
       return;
     }
-    var feedbackIcon = { matched: '🎯', partial: '🤔', missed: '🌀' };
+    var blueprintMap = {
+      wealth: '💰 재물',
+      love: '💞 관계',
+      health: '🫀 회복',
+      focus: '🎯 집중'
+    };
     list.innerHTML = keys.slice(0, 30).map(function (k) {
       var e = diary[k];
-      var fi = feedbackIcon[e.feedback] || '';
       var mood = e.moodEmoji || '';
       var lotto = e.lotto ? (e.lotto.emoji + ' ' + e.lotto.name) : '';
       var doneCount = (e.challenges || []).length;
+      var effort = calcNightEffort(e);
+      var bp = blueprintMap[e.tomorrowBlueprint] || '';
+      var memo = e.practiceNote || e.nightLog || '';
       return '<div class="lsd-history-item">' +
         '<div class="lsd-history-date">' + k + ' ' + mood + '</div>' +
         '<div class="lsd-history-meta">' +
-          (fi  ? '<span class="lsd-history-tag">' + fi + '  매칭도</span>' : '') +
+          (effort.total > 0 ? '<span class="lsd-history-tag">📈 실천 ' + effort.pct + '%</span>' : '') +
           (lotto ? '<span class="lsd-history-tag">🎱 ' + lotto + '</span>' : '') +
+          (bp ? '<span class="lsd-history-tag">🧭 ' + bp + '</span>' : '') +
           (doneCount > 0 ? '<span class="lsd-history-tag">✅ 미션 ' + doneCount + '완</span>' : '') +
         '</div>' +
-        (e.nightLog ? '<div class="lsd-history-log">"' + escHtml(e.nightLog) + '"</div>' : '') +
+        (memo ? '<div class="lsd-history-log">"' + escHtml(memo) + '"</div>' : '') +
       '</div>';
     }).join('');
   }
@@ -1252,6 +1417,26 @@
         '.lsd-badge-tag{font-size:.58rem;background:rgba(255,255,255,.3);border-radius:4px;padding:1px 4px;margin-left:2px}',
         '.lsd-badge-tag--ki{background:rgba(239,68,68,.2);color:#fca5a5}',
         '.lsd-iljin-elem{font-size:.78rem;opacity:.8;margin-left:4px}',
+        '.lsd-night-section{display:grid;gap:10px}',
+        '.lsd-night-action{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all .2s}',
+        '.lsd-night-action:hover{border-color:#93c5fd;background:#f8fbff}',
+        '.lsd-night-action.is-done{border-color:#67e8f9;background:linear-gradient(135deg,#ecfeff,#eef2ff)}',
+        '.lsd-night-action-check{width:20px;height:20px;border-radius:999px;border:1.5px solid #cbd5e1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.68rem;font-weight:800;color:#0369a1}',
+        '.lsd-night-action.is-done .lsd-night-action-check{border-color:#22d3ee;background:#cffafe}',
+        '.lsd-night-action-text{font-size:.76rem;font-weight:700;color:#334155;line-height:1.45}',
+        '.lsd-gauge-track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}',
+        '.lsd-gauge-fill{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#3b82f6,#a855f7);transition:width .5s ease}',
+        '.lsd-gauge-copy{font-size:.73rem;color:#475569;font-weight:700;margin-top:6px}',
+        '.lsd-ai-coach-card{border:1px solid #bfdbfe;background:linear-gradient(160deg,#eff6ff,#f8fafc);padding:12px;border-radius:12px;font-size:.77rem;line-height:1.55;color:#1e293b}',
+        '.lsd-ai-coach-card.is-loading{position:relative;overflow:hidden;color:#64748b}',
+        '.lsd-ai-coach-card.is-loading:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.55) 40%,transparent 80%);animation:lsdShimmer 1s linear infinite}',
+        '.lsd-ai-foot{margin-top:8px;font-size:.68rem;color:#64748b;font-weight:700}',
+        '.lsd-blueprint-btn{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 12px;font-size:.7rem;font-weight:800;color:#475569;cursor:pointer;transition:all .2s}',
+        '.lsd-blueprint-btn.is-on{border-color:#38bdf8;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;box-shadow:0 6px 18px rgba(14,165,233,.28)}',
+        '.lsd-confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000001}',
+        '.lsd-confetti-bit{position:absolute;top:42vh;width:8px;height:14px;border-radius:2px;opacity:.9;animation:lsdConfettiDrop .95s ease-out forwards}',
+        '@keyframes lsdConfettiDrop{0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}100%{transform:translate3d(calc((var(--x,0) - 30) * 1px),220px,0) rotate(420deg);opacity:0}}',
+        '@keyframes lsdShimmer{0%{transform:translateX(-110%)}100%{transform:translateX(110%)}}',
       ].join('');
       document.head.appendChild(st);
     }
@@ -1341,23 +1526,45 @@
       '</div></div></section>',
       '<section class="lsd-panel" id="lsdPanelNight" role="tabpanel" style="padding:14px;display:none">',
       '<div style="background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">🌙 사주 야간 회고</h3>',
-      '<p style="font-size:.72rem;color:#9ca3af;margin:0 0 12px;line-height:1.4">오늘 하루 사주 에너지와 얼마나 맞았나요?</p>',
-      '<p style="font-size:.74rem;font-weight:700;color:#6b7280;margin:0 0 8px">오늘 운세와의 매칭도</p>',
-      '<div style="display:flex;gap:6px">',
-      '<button type="button" class="lsd-match-btn" data-feedback="matched">🎯 딱! 맞았어</button>',
-      '<button type="button" class="lsd-match-btn" data-feedback="partial">🤔 반반이었어</button>',
-      '<button type="button" class="lsd-match-btn" data-feedback="missed">🌀 전혀 달랐어</button>',
-      '</div></div>',
-      '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6">',
-      '<div style="height:4px;background:linear-gradient(90deg,#7c3aed,#4f46e5,#06b6d4)"></div>',
-      '<div style="padding:12px 16px 6px"><label style="display:block;font-size:.62rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.16em;margin-bottom:6px" for="lsdNightInput">✍️ 오늘의 한 줄 사주 일기</label></div>',
-      '<textarea id="lsdNightInput" class="lsd-diary-lines" maxlength="300" rows="6" style="width:100%;background:transparent;padding:0 16px 10px;font-size:.84rem;color:#1f2937;resize:none;outline:none;border:none;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 정재의 날이라더니 진짜 지출 체크했더니 3만원 절약했다."></textarea>',
-      '<div style="padding:8px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f3f4f6">',
-      '<span style="font-size:.7rem;color:#9ca3af"><span id="lsdCharCount">0</span>/300</span>',
-      '<button id="lsdSaveNightBtn" type="button" style="padding:8px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.74rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(124,58,237,.3);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"">💾 저장하기</button>',
+      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 2px">🌙 운 개선 실천 회고</h3>',
+      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">적중률 체크 대신, 오늘 실천한 개운 루틴을 기록하고 내일의 운 설계를 만듭니다.</p>',
       '</div>',
-      '<div id="lsdSaveFeedback" style="display:none;padding:0 16px 10px;font-size:.78rem;font-weight:700;color:#22c55e">✅ 저장됐어~!</div>',
+      '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid #f3f4f6;padding:12px 12px 14px">',
+      '<div class="lsd-night-section">',
+      '<div class="lsd-mini-box" id="lsdMorningActionSummary"></div>',
+      '<div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">1) Action Checklist</p>',
+      '<div id="lsdActionChecklist" style="display:grid;gap:8px"></div>',
+      '</div>',
+      '<div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">2) Effort Gauge</p>',
+      '<div class="lsd-gauge-track"><div id="lsdEffortGaugeBar" class="lsd-gauge-fill"></div></div>',
+      '<div id="lsdEffortGaugeText" class="lsd-gauge-copy">오늘 실천도 0%</div>',
+      '</div>',
+      '<div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">3) Reflection Note</p>',
+      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;background:transparent;padding:8px 10px 10px;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="예: 오전엔 집중이 안 됐지만, 저녁에 디지털 디톡스를 하니 생각이 맑아졌다."></textarea>',
+      '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:.69rem;color:#94a3b8"><span id="lsdPracticeCharCount">0</span>/500</div>',
+      '</div>',
+      '<div>',
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px">',
+      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">4) AI Luck Coach</p>',
+      '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:#93c5fd;color:#0c4a6e">🧠 AI 코칭 생성</button>',
+      '</div>',
+      '<div id="lsdAiLuckCoach" class="lsd-ai-coach-card">실천 데이터를 기반으로 내일의 개운 설계를 제안합니다.</div>',
+      '</div>',
+      '<div>',
+      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">5) Tomorrow Blueprint</p>',
+      '<div id="lsdTomorrowBlueprintBtns" style="display:flex;gap:6px;flex-wrap:wrap">',
+      BLUEPRINT_THEMES.map(function (t) { return '<button type="button" class="lsd-blueprint-btn" data-blueprint="' + t.id + '">' + t.icon + ' ' + t.label + '</button>'; }).join(''),
+      '</div>',
+      '</div>',
+      '<div style="padding-top:4px;display:flex;align-items:center;justify-content:space-between;gap:8px">',
+      '<span style="font-size:.7rem;color:#64748b">실천 완료를 누르면 저장 + 축하 효과가 실행됩니다.</span>',
+      '<button id="lsdSaveNightBtn" type="button" style="padding:9px 18px;border:none;border-radius:999px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(14,165,233,.28);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"">✨ 실천 완료 저장</button>',
+      '</div>',
+      '<div id="lsdSaveFeedback" style="display:none;font-size:.78rem;font-weight:700;color:#0891b2">✅ 오늘의 운 설계 기록이 저장됐어요!</div>',
+      '</div>',
       '</div></section>',
       '<section class="lsd-panel" id="lsdPanelHistory" role="tabpanel" style="padding:14px;display:none">',
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">',
@@ -1496,18 +1703,15 @@
     var entry = getTodayEntry(diary);
     if (mainTenStar) entry.tenstar = mainTenStar;
     saveDiary(diary);
-    var nightInput = document.getElementById('lsdNightInput');
-    var cc = document.getElementById('lsdCharCount');
-    if (nightInput) {
-      nightInput.value = entry.nightLog || '';
-      if (cc) cc.textContent = nightInput.value.length;
-      nightInput.addEventListener('input', function () { if (cc) cc.textContent = nightInput.value.length; });
+    var practiceInput = document.getElementById('lsdPracticeNoteInput');
+    var cc = document.getElementById('lsdPracticeCharCount');
+    if (practiceInput) {
+      practiceInput.value = entry.practiceNote || entry.nightLog || '';
+      if (cc) cc.textContent = practiceInput.value.length;
+      practiceInput.addEventListener('input', function () {
+        if (cc) cc.textContent = practiceInput.value.length;
+      });
     }
-
-    /* feedback 복원 */
-    document.querySelectorAll('.lsd-match-btn').forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.dataset.feedback === entry.feedback);
-    });
 
     renderMzSections(pillars, power, todayGZ, scores, mainTenStar, _luckyEl, entry, diary);
 
@@ -1520,17 +1724,6 @@
     /* 탭 */
     modal.querySelectorAll('.lsd-tab').forEach(function (tab) {
       tab.onclick = function () { switchTab(tab.dataset.tab); };
-    });
-
-    /* 매칭 버튼 */
-    modal.querySelectorAll('.lsd-match-btn').forEach(function (btn) {
-      btn.onclick = function () {
-        modal.querySelectorAll('.lsd-match-btn').forEach(function (b) { b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
-        var d = loadDiary();
-        getTodayEntry(d).feedback = btn.dataset.feedback;
-        saveDiary(d);
-      };
     });
 
     /* 기분 이모지 */
@@ -1561,12 +1754,73 @@
     /* 저장 버튼 */
     var saveBtn = document.getElementById('lsdSaveNightBtn');
     if (saveBtn) saveBtn.onclick = function () {
-      var inp = document.getElementById('lsdNightInput');
+      var inp = document.getElementById('lsdPracticeNoteInput');
       var d = loadDiary();
-      getTodayEntry(d).nightLog = inp ? inp.value : '';
+      var entry = getTodayEntry(d);
+      entry.practiceNote = inp ? inp.value : '';
+      entry.nightLog = entry.practiceNote;
       saveDiary(d);
+      if (calcNightEffort(entry).pct >= 100) launchNightConfetti();
       var fb = document.getElementById('lsdSaveFeedback');
       if (fb) { fb.style.display = 'block'; setTimeout(function () { fb.style.display = 'none'; }, 2000); }
+    };
+
+    var checklist = document.getElementById('lsdActionChecklist');
+    if (checklist) checklist.onclick = function (ev) {
+      var btn = ev.target && ev.target.closest('[data-action-id]');
+      if (!btn) return;
+      var id = btn.getAttribute('data-action-id');
+      if (!id) return;
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      if (!Array.isArray(e.nightPractices)) e.nightPractices = [];
+      var idx = e.nightPractices.indexOf(id);
+      var becameDone = false;
+      if (idx >= 0) {
+        e.nightPractices.splice(idx, 1);
+      } else {
+        e.nightPractices.push(id);
+        becameDone = true;
+      }
+      saveDiary(d);
+      renderNightPracticeBoard(e);
+      if (becameDone) launchNightConfetti();
+    };
+
+    var themeWrap = document.getElementById('lsdTomorrowBlueprintBtns');
+    if (themeWrap) themeWrap.onclick = function (ev) {
+      var btn = ev.target && ev.target.closest('[data-blueprint]');
+      if (!btn) return;
+      var blueprint = btn.getAttribute('data-blueprint') || '';
+      var d = loadDiary();
+      var e = getTodayEntry(d);
+      e.tomorrowBlueprint = blueprint;
+      saveDiary(d);
+      renderNightPracticeBoard(e);
+    };
+
+    var aiBtn = document.getElementById('lsdGenerateAiCoachBtn');
+    if (aiBtn) aiBtn.onclick = function () {
+      var coachCard = document.getElementById('lsdAiLuckCoach');
+      if (!coachCard) return;
+      aiBtn.disabled = true;
+      aiBtn.textContent = '분석 중...';
+      coachCard.classList.add('is-loading');
+      coachCard.innerHTML = '실천 데이터를 분석 중입니다. 개운 원리와 내일 기운 흐름을 조합하고 있어요...';
+      setTimeout(function () {
+        var d = loadDiary();
+        var e = getTodayEntry(d);
+        var noteEl = document.getElementById('lsdPracticeNoteInput');
+        e.practiceNote = noteEl ? noteEl.value : e.practiceNote;
+        e.nightLog = e.practiceNote;
+        e.aiLuckCoach = buildAiLuckCoachAdvice(e) + '<div class="lsd-ai-foot">프롬프트 컨셉: ' + escHtml(AI_COACH_ENGINE_PROMPT.slice(0, 72)) + '...</div>';
+        e.aiCoachUpdatedAt = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        saveDiary(d);
+        coachCard.classList.remove('is-loading');
+        renderNightPracticeBoard(e);
+        aiBtn.disabled = false;
+        aiBtn.textContent = '🧠 AI 코칭 생성';
+      }, 1150);
     };
 
     /* 전체 삭제 버튼 */
@@ -1613,30 +1867,6 @@
         renderMzSections(window.G_PILLARS || null, window.G_POWER || null, _lsdCtx.todayGZ, _lsdCtx.scores, _lsdCtx.mainTenStar, _lsdCtx.luckyEl, e, d);
       };
     });
-
-    /* 복기 적중률 버튼 */
-    modal.querySelectorAll('#lsdReviewRateBtns button').forEach(function (btn) {
-      btn.onclick = function () {
-        var rate = Number(btn.getAttribute('data-rate') || 0);
-        var d = loadDiary();
-        var e = getTodayEntry(d);
-        e.reviewRate = rate;
-        saveDiary(d);
-        modal.querySelectorAll('#lsdReviewRateBtns button').forEach(function (x) { x.classList.remove('is-on'); });
-        btn.classList.add('is-on');
-      };
-    });
-
-    var saveReviewBtn = document.getElementById('lsdSaveReviewBtn');
-    if (saveReviewBtn) saveReviewBtn.onclick = function () {
-      var d = loadDiary();
-      var e = getTodayEntry(d);
-      var noteEl = document.getElementById('lsdReviewNote');
-      e.reviewNote = noteEl ? noteEl.value : '';
-      if (!e.morningFortune) e.morningFortune = _lsdCtx.morningMsg || '';
-      saveDiary(d);
-      alert('복기 저장 완료! 오늘 운세 적중 흐름이 누적되고 있어 ✨');
-    };
 
     var saveMemoBtn = document.getElementById('lsdSaveMemoBtn');
     if (saveMemoBtn) saveMemoBtn.onclick = function () {
