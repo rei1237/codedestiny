@@ -57,17 +57,6 @@ export async function GET(request: Request, { params }: { params: { adminHash: s
   const segment = String(params.adminHash || "");
   const lower = segment.toLowerCase();
 
-  // Reserved SEO/public endpoints must be handled before generic "." static handling.
-  if (lower === "robots.txt") {
-    return NextResponse.rewrite(new URL("/robots.txt", request.url));
-  }
-  if (lower === "sitemap.xml") {
-    return NextResponse.rewrite(new URL("/sitemap.xml", request.url));
-  }
-  if (lower === "rss.xml") {
-    return NextResponse.rewrite(new URL("/rss.xml", request.url));
-  }
-
   // app/[adminHash] can capture any root single-segment path.
   // If it looks like a static filename (e.g. /manifest.json, /AnalysisEngine.js),
   // serve from public root instead of running admin auth flow.
@@ -80,6 +69,15 @@ export async function GET(request: Request, { params }: { params: { adminHash: s
   }
   if (lower === "favicon.ico") {
     return NextResponse.rewrite(new URL("/icons/samba-mode-icon.png", request.url));
+  }
+  if (lower === "robots.txt") {
+    return NextResponse.rewrite(new URL("/robots.txt", request.url));
+  }
+  if (lower === "sitemap.xml") {
+    return NextResponse.rewrite(new URL("/sitemap.xml", request.url));
+  }
+  if (lower === "rss.xml") {
+    return NextResponse.rewrite(new URL("/rss.xml", request.url));
   }
 
   const blocked = await requireAdminSecret(request, params, { requireAuth: false });

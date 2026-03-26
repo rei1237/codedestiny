@@ -271,42 +271,7 @@ function pulseFavoriteSaved() {
   });
 }
 
-function markFavoriteSaved(modeKey, isNeo) {
-  var savedState = readFavoriteModeState();
-  if (savedState[modeKey]) return;
-  savedState[modeKey] = true;
-  writeFavoriteModeState(savedState);
-  updateFavoriteButtonThemeText(isNeo);
-  pulseFavoriteSaved();
-}
-
-function showBookmarkShortcutGuide(icon, title) {
-  var isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || '') || /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-  var shortcut = isMac ? 'Cmd+D' : 'Ctrl+D';
-  var copied = false;
-
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(window.location.href);
-      copied = true;
-    }
-  } catch (_) {}
-
-  var msg = icon + ' 브라우저 보안 정책으로 자동 즐겨찾기 추가가 제한됩니다.\n\n'
-    + '지금 ' + shortcut + ' 를 눌러 "' + title + '"를 즐겨찾기에 추가해 주세요.';
-
-  if (copied) {
-    msg += '\n\n주소는 클립보드에 복사해 두었어요.';
-  }
-
-  try {
-    window.alert(msg);
-  } catch (_) {}
-
-  showToast(icon + ' ' + shortcut + '로 즐겨찾기를 추가해 주세요.');
-}
-
-async function handleFavoriteAdd() {
+function handleFavoriteAdd() {
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
   var labels = getFavoriteModeLabels();
   var modeKey = isNeo ? 'neo' : 'pig';
@@ -314,6 +279,11 @@ async function handleFavoriteAdd() {
   var icon = isNeo ? '⭐' : '🌸';
   var savedState = readFavoriteModeState();
   var alreadySaved = !!savedState[modeKey];
+
+  savedState[modeKey] = true;
+  writeFavoriteModeState(savedState);
+  updateFavoriteButtonThemeText(isNeo);
+  pulseFavoriteSaved();
 
   var nativeAdded = false;
 
@@ -331,34 +301,17 @@ async function handleFavoriteAdd() {
     }
   } catch (_) {}
 
-  // 모바일에서는 공유 시트가 가장 안정적인 진입점입니다.
-  if (!nativeAdded) {
-    try {
-      var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-      if (isMobile && navigator.share) {
-        await navigator.share({
-          title: title,
-          text: title,
-          url: window.location.href
-        });
-        nativeAdded = true;
-      }
-    } catch (_) {}
-  }
-
   if (nativeAdded) {
-    markFavoriteSaved(modeKey, isNeo);
     showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
     return;
   }
 
   if (alreadySaved) {
     showToast(icon + ' 이미 저장된 즐겨찾기예요.');
-    showBookmarkShortcutGuide(icon, title);
     return;
   }
 
-  showBookmarkShortcutGuide(icon, title);
+  showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
 }
 
 window.addEventListener('beforeinstallprompt', function(e) {
@@ -724,7 +677,7 @@ var NEO_TITLES={
   '대박 로또 생성기 — 수리 에너지 공명 번호':'퀀텀 코드 추출 — 수리 공명 로또',
   '대운 (大運) — 억부+조후+종격 통합 판단':'대운 — 당신의 운명 궤도를 보라',
   '일운·월운 근대운':'단기 에너지 스캔 — 지금 당신의 흐름',
-  '사주 편지':'사주 편지 — 연이의 편지',
+  '사주 편지':'직격 통보 — 팩폭 에피소드',
   '오늘의 운세':'당일 에너지 스코어',
   '사주로 보는 매력':'매력 에너지 분석 — 블랙홀리스트',
   '자선 모드 — 전생 업 분석':'전생 진단 — 업(業)의 잔재물',
@@ -851,7 +804,7 @@ function applyNeoTexts(){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = '💖 연이의 편지';
+    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
   // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
   if(isResultPageVisible() && typeof renderLetter === 'function' && window.G_PILLARS) {

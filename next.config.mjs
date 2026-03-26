@@ -5,20 +5,6 @@ const configuredApiTarget =
 
 const apiTarget = (configuredApiTarget || 'http://localhost:4000').replace(/\/+$/, '');
 
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-  "connect-src 'self' https: http: ws: wss:",
-  "frame-src 'self' https:",
-  'upgrade-insecure-requests',
-].join('; ');
-
 /** Nested paths only: locale roots are app/{slug}/page.js (static segment beats [adminHash]). */
 const LOCALE_PATH_SLUGS = [
   'en-us',
@@ -61,69 +47,6 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  webpack: (config, { dev, isServer }) => {
-    // CSP(script-src without unsafe-eval) 환경에서 개발 번들 eval 소스맵 충돌 방지
-    if (dev && !isServer) {
-      config.devtool = 'source-map';
-    }
-
-    if (!dev && !isServer) {
-      config.optimization = config.optimization || {};
-      config.optimization.splitChunks = config.optimization.splitChunks || {};
-      config.optimization.splitChunks.cacheGroups = {
-        ...(config.optimization.splitChunks.cacheGroups || {}),
-        fortuneHeavy: {
-          test: /[\\/]js[\\/](saju-engine|saju-engine-continuation|iching-engine|tarot-.*experience|dream-ledger|dream-meaning-library|psycho-dream-analyzer-freuds-study|luck-sync-diary)\\.js$/,
-          name: 'fortune-heavy',
-          chunks: 'all',
-          priority: 25,
-          enforce: true,
-        },
-      };
-    }
-
-    return config;
-  },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Content-Security-Policy', value: CONTENT_SECURITY_POLICY },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        ],
-      },
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      {
-        source: '/styles/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=2592000, stale-while-revalidate=86400' },
-          { key: 'Vary', value: 'Accept-Encoding' },
-        ],
-      },
-      {
-        source: '/js/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=2592000' },
-          { key: 'Vary', value: 'Accept-Encoding' },
-        ],
-      },
-      {
-        source: '/_next/image/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
-        ],
-      },
-    ];
   },
   async rewrites() {
     /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */

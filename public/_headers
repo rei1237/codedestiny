@@ -2,22 +2,18 @@
 # 정적 자산: 버전 해시/쿼리스트링 포함 — 1년 불변 캐시
 # HTML: revalidate 단기 캐시
 
-# ─── JS/CSS: 무버전 자산이 섞여 있어 immutable은 금지, 대신 중기 캐시 + SWR ───
+# ─── JS/CSS: 무버전 자산이 섞여 있으므로 항상 재검증 ─────────
 /js/*.js
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=0, must-revalidate
 
 /lib/*.js
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=0, must-revalidate
 
 /styles/*.css
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+  Cache-Control: public, max-age=0, must-revalidate
 
 /css/*.css
-  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
-
-# ─── Next 해시 자산: 장기 immutable 캐시 ──────────────────────
-/_next/static/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
 
 # ─── 이미지 & 폰트 ────────────────────────────────────────────
 /icons/*

@@ -1,19 +1,6 @@
 (function(){
   var _splashDone = false;
-  var SPLASH_DURATION_MS = 900;
-  var _writeQ = [];
-  var _writeRaf = 0;
-  function scheduleWrite(fn) {
-    if (typeof fn !== 'function') return;
-    _writeQ.push(fn);
-    if (_writeRaf) return;
-    _writeRaf = requestAnimationFrame(function() {
-      _writeRaf = 0;
-      var q = _writeQ.slice();
-      _writeQ.length = 0;
-      for (var i = 0; i < q.length; i++) q[i]();
-    });
-  }
+  var SPLASH_DURATION_MS = 3000;
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -22,35 +9,7 @@
   var rafId, _frame = 0;
   if (cvs && !prefersReduced) {
     var ctx = cvs.getContext('2d');
-    var _canvasResizeRaf = 0;
-    var _lastCanvasW = 0;
-    var _lastCanvasH = 0;
-    function getViewportSize() {
-      var vv = window.visualViewport;
-      var w = vv && typeof vv.width === 'number' && vv.width > 0 ? Math.round(vv.width) : window.innerWidth;
-      var h = vv && typeof vv.height === 'number' && vv.height > 0 ? Math.round(vv.height) : window.innerHeight;
-      return { w: w, h: h };
-    }
-    function applyCanvasSize() {
-      var size = getViewportSize();
-      if (size.w === _lastCanvasW && size.h === _lastCanvasH) return;
-      _lastCanvasW = size.w;
-      _lastCanvasH = size.h;
-      cvs.width = size.w;
-      cvs.height = size.h;
-    }
-    function scheduleCanvasResize() {
-      if (_canvasResizeRaf) return;
-      _canvasResizeRaf = requestAnimationFrame(function() {
-        _canvasResizeRaf = 0;
-        applyCanvasSize();
-      });
-    }
-    applyCanvasSize();
-    window.addEventListener('resize', scheduleCanvasResize, { passive: true });
-    if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
-      window.visualViewport.addEventListener('resize', scheduleCanvasResize, { passive: true });
-    }
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
 
     /* 색상 팔레트 (RGB 문자열 사전 생성 — 매 프레임 문자열 연산 없음) */
     var palette = ['200,215,255','225,235,255','255,245,210','220,200,255','255,255,255'];
@@ -141,22 +100,16 @@
   ];
   var mi = 0;
   var msgEl = document.getElementById('splashMsg');
-  if (msgEl) {
-    msgEl.style.transition = 'opacity 0.35s';
-  }
   var msgTimer = setInterval(function() {
     if (!msgEl) return;
     mi = (mi + 1) % msgs.length;
-    scheduleWrite(function() {
-      if (!msgEl) return;
-      msgEl.style.opacity = '0';
-    });
+    msgEl.style.opacity = '0';
+    msgEl.style.transition = 'opacity 0.35s';
     setTimeout(function() {
-      scheduleWrite(function() {
-        if (!msgEl) return;
+      if (msgEl) {
         msgEl.textContent = msgs[mi];
         msgEl.style.opacity = '1';
-      });
+      }
     }, 350);
   }, 1800);
 
@@ -165,9 +118,7 @@
   var barVal = 0;
   var barTimer = setInterval(function() {
     barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
-    scheduleWrite(function() {
-      if (bar) bar.style.width = barVal + '%';
-    });
+    if (bar) bar.style.width = barVal + '%';
     if (barVal >= 90) clearInterval(barTimer);
   }, 350);
 
@@ -177,23 +128,18 @@
     _splashDone = true;
     clearInterval(msgTimer);
     clearInterval(barTimer);
-    scheduleWrite(function() {
-      if (bar) bar.style.width = '100%';
-    });
+    if (bar) bar.style.width = '100%';
     var splash = document.getElementById('codeSplash');
     if (splash) {
-      scheduleWrite(function() {
-        if (!splash) return;
-        splash.style.display = 'none';
-        if (splash.parentNode) splash.parentNode.removeChild(splash);
-      });
+      splash.style.display = 'none';
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
     }
     if (rafId) cancelAnimationFrame(rafId);
   }
 
-  /* 초기 화면 가시성을 우선해 스플래시 노출 시간을 짧게 유지 */
+  /* 별똥별 감상을 위해 로딩 스플래시 최소 3초 노출 */
   setTimeout(hideSplash, SPLASH_DURATION_MS);
   window.addEventListener('pageshow', function() {
-    setTimeout(hideSplash, 300);
+    setTimeout(hideSplash, SPLASH_DURATION_MS);
   }, { once: true });
 })();

@@ -64,20 +64,6 @@
 			font-size: inherit;
 		}
 	}
-	/* CLS guard: keep stable image boxes before image decode completes. */
-	img {
-		height: auto;
-	}
-	img.tarot-face-img,
-	#tarotCardFrontImg,
-	img[data-card-img] {
-		aspect-ratio: 2 / 3;
-		object-fit: cover;
-	}
-	#dfStudioImage {
-		aspect-ratio: 21 / 16;
-		object-fit: cover;
-	}
 }
 
 .visually-hidden {

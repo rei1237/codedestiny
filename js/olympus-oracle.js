@@ -152,61 +152,17 @@
     return signs[Math.floor(normalized / 30)];
   }
 
-  function fetchAstroPlanetsCached(payload) {
-    try {
-      if (typeof window.__fetchAstroPlanetsCached === 'function') {
-        return window.__fetchAstroPlanetsCached(payload);
-      }
-    } catch (e) {}
-
-    var CACHE_TTL_MS = 2 * 60 * 1000;
-    function fetchImpl(innerPayload) {
-      var key = '';
-      try {
-        key = JSON.stringify(innerPayload || {});
-      } catch (e) {
-        key = String(Date.now());
-      }
-      var now = Date.now();
-      var bucket = window.__astroPlanetsRequestCache || (window.__astroPlanetsRequestCache = { data: {}, inflight: {} });
-      var cached = bucket.data[key];
-      if (cached && cached.expiresAt > now) {
-        return Promise.resolve(cached.value);
-      }
-      if (bucket.inflight[key]) {
-        return bucket.inflight[key];
-      }
-      var req = fetch('/api/astro/planets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(innerPayload)
-      })
-        .then(function(res) { return res.ok ? res.json() : null; })
-        .then(function(data) {
-          if (data && data.ok) {
-            bucket.data[key] = {
-              value: data,
-              expiresAt: now + CACHE_TTL_MS
-            };
-          }
-          return data;
-        })
-        .finally(function() {
-          delete bucket.inflight[key];
-        });
-      bucket.inflight[key] = req;
-      return req;
-    }
-
-    try { window.__fetchAstroPlanetsCached = fetchImpl; } catch (e) {}
-    return fetchImpl(payload);
-  }
-
   function getSunKeyFromApi(payload, fallbackKey) {
-    return fetchAstroPlanetsCached(payload)
+    return fetch('/api/vedic/planets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(res) { return res.ok ? res.json() : null; })
       .then(function(data) {
         if (!data || !data.ok || !data.planets || typeof data.planets.Sun !== 'number') return fallbackKey;
-        var tropicalSun = data.planets.Sun % 360;
+        var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
+        var tropicalSun = (data.planets.Sun + ayanamsa) % 360;
         return tropicalDegreeToSign(tropicalSun);
       })
       .catch(function() { return fallbackKey; });
@@ -234,14 +190,13 @@
     var timeParts = parseTimeParts(time);
     var fallbackKey = sunSignFromDate(dateParts.month, dateParts.day);
 
-    var timezone = getLocalTimezoneHours();
     var payload = {
       year: dateParts.year,
       month: dateParts.month,
       day: dateParts.day,
       hour: timeParts.hour,
       minute: timeParts.minute,
-      timezone: timezone
+      timezone: getLocalTimezoneHours()
     };
 
     getSunKeyFromApi(payload, fallbackKey).then(function(sunKey) {
@@ -250,7 +205,6 @@
           name: name,
           date: date,
           time: time,
-          timezone: timezone,
           sunKey: sunKey
         };
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profile));

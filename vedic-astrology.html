@@ -492,37 +492,37 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <label for="v_year">연도</label>
-          <input id="v_year" name="v_year" inputmode="numeric" autocomplete="bday-year" placeholder="예: 1994">
+          <input id="v_year" inputmode="numeric" placeholder="예: 1994">
         </div>
         <div>
           <label for="v_month">월</label>
-          <input id="v_month" name="v_month" inputmode="numeric" autocomplete="bday-month" placeholder="1~12">
+          <input id="v_month" inputmode="numeric" placeholder="1~12">
         </div>
         <div>
           <label for="v_day">일</label>
-          <input id="v_day" name="v_day" inputmode="numeric" autocomplete="bday-day" placeholder="1~31">
+          <input id="v_day" inputmode="numeric" placeholder="1~31">
         </div>
         <div>
           <label for="v_gender">성별</label>
-          <select id="v_gender" name="v_gender" autocomplete="sex">
+          <select id="v_gender">
             <option value="M">남성</option>
             <option value="F">여성</option>
           </select>
         </div>
         <div>
           <label for="v_hour">시</label>
-          <input id="v_hour" name="v_hour" inputmode="numeric" autocomplete="off" placeholder="0~23">
+          <input id="v_hour" inputmode="numeric" placeholder="0~23">
         </div>
         <div>
           <label for="v_minute">분</label>
-          <input id="v_minute" name="v_minute" inputmode="numeric" autocomplete="off" placeholder="0~59">
+          <input id="v_minute" inputmode="numeric" placeholder="0~59">
         </div>
       </div>
       <div style="height:12px"></div>
       <div class="section-head" style="margin-bottom:10px">장소 · 시간대</div>
       <div style="margin-bottom:10px">
         <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
-        <select id="v_place" name="v_place" style="width:100%">
+        <select id="v_place" style="width:100%">
           <option value="" selected>장소를 선택하세요</option>
           <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
         </select>
@@ -533,15 +533,15 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <label for="v_lat">위도 (lat)</label>
-          <input id="v_lat" name="v_lat" inputmode="decimal" autocomplete="off" placeholder="예: 37.5665">
+          <input id="v_lat" inputmode="decimal" placeholder="예: 37.5665">
         </div>
         <div>
           <label for="v_lon">경도 (lon)</label>
-          <input id="v_lon" name="v_lon" inputmode="decimal" autocomplete="off" placeholder="예: 126.9780">
+          <input id="v_lon" inputmode="decimal" placeholder="예: 126.9780">
         </div>
         <div style="grid-column:1 / -1">
           <label for="v_tz">타임존 오프셋 (UTC 기준, 시간 단위)</label>
-          <input id="v_tz" name="v_tz" inputmode="decimal" autocomplete="off" placeholder="예: 9 (한국), -5 (뉴욕)">
+          <input id="v_tz" inputmode="decimal" placeholder="예: 9 (한국), -5 (뉴욕)">
         </div>
       </div>
       <div style="height:14px"></div>
@@ -2578,22 +2578,22 @@ function renderCompatInput(){
   <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
     <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div><label for="c-name">이름</label><input id="c-name" name="c_name" autocomplete="name" placeholder="이영희" value="이영희"></div>
-      <div><label for="c-gender">성별</label><select id="c-gender" name="c_gender" autocomplete="sex"><option value="F">여성 ♀</option><option value="M">남성 ♂</option></select></div>
+      <div><label>이름</label><input id="c-name" placeholder="이영희" value="이영희"></div>
+      <div><label>성별</label><select id="c-gender"><option value="F">여성 ♀</option><option value="M">남성 ♂</option></select></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-      <div><label for="c-year">연도</label><input id="c-year" name="c_year" type="number" autocomplete="bday-year" value="1992"></div>
-      <div><label for="c-month">월</label><input id="c-month" name="c_month" type="number" autocomplete="bday-month" value="3" min="1" max="12"></div>
-      <div><label for="c-day">일</label><input id="c-day" name="c_day" type="number" autocomplete="bday-day" value="15" min="1" max="31"></div>
+      <div><label>연도</label><input id="c-year" type="number" value="1992"></div>
+      <div><label>월</label><input id="c-month" type="number" value="3" min="1" max="12"></div>
+      <div><label>일</label><input id="c-day" type="number" value="15" min="1" max="31"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-      <div><label for="c-hour">시</label><input id="c-hour" name="c_hour" type="number" autocomplete="off" value="12" min="0" max="23"></div>
-      <div><label for="c-min">분</label><input id="c-min" name="c_min" type="number" autocomplete="off" value="30" min="0" max="59"></div>
-      <div><label for="c-tz">UTC+</label><input id="c-tz" name="c_tz" type="number" autocomplete="off" value="9" min="-12" max="14"></div>
+      <div><label>시</label><input id="c-hour" type="number" value="12" min="0" max="23"></div>
+      <div><label>분</label><input id="c-min" type="number" value="30" min="0" max="59"></div>
+      <div><label>UTC+</label><input id="c-tz" type="number" value="9" min="-12" max="14"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-      <div><label for="c-lat">위도</label><input id="c-lat" name="c_lat" autocomplete="off" value="37.5665"></div>
-      <div><label for="c-lon">경도</label><input id="c-lon" name="c_lon" autocomplete="off" value="126.978"></div>
+      <div><label>위도</label><input id="c-lat" value="37.5665"></div>
+      <div><label>경도</label><input id="c-lon" value="126.978"></div>
     </div>
     <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기</button>
   </div>

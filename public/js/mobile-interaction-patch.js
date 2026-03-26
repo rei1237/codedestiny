@@ -55,20 +55,6 @@
       ].join(',')
     },
     {
-      action: 'openMbtiModal',
-      cardSelector: '.feature-card--animal',
-      targetSelector: [
-        '[data-action="openMbtiModal"]',
-        '.feature-card--animal .feature-card__visual',
-        '.feature-card--animal .feature-card__img-wrap',
-        '.feature-card--animal .feature-card__img',
-        '.feature-card--animal .feature-card__title',
-        '.feature-card--animal .feature-card__desc',
-        '.feature-card--animal .feature-card__cta',
-        '.feature-card--animal .feature-card__launch'
-      ].join(',')
-    },
-    {
       action: 'openHwatuModal',
       cardSelector: '.feature-card--tazza, .tarot-tile--hwatu',
       targetSelector: [
@@ -495,8 +481,6 @@
     openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
     openDreamModal: ['js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
-    openPhysiognomyApp: ['PhysiognomyUI.js'],
-    openMbtiModal: ['js/astral-soul.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js']
   };
@@ -557,10 +541,9 @@
 
     var fn = window[rule.action];
     var lazyPaths = LAZY_LOAD_ACTIONS[rule.action];
-    var needsTotemRefresh = rule.action === 'openAnimalTotemModal' && typeof window.startAnimalTotemRitual !== 'function';
 
     /* lazy-load: 스크립트 미로드 시 로드 후 재호출 */
-    if ((typeof fn !== 'function' || needsTotemRefresh) && lazyPaths && lazyPaths.length) {
+    if (typeof fn !== 'function' && lazyPaths && lazyPaths.length) {
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       raf(function() {
         var chain = Promise.resolve();
@@ -876,12 +859,6 @@
     (function syncViewportHeight() {
       var root = document.documentElement;
       if (!root) return;
-      var queuedHeight = 0;
-      var writeRaf = 0;
-      function flushWrite() {
-        writeRaf = 0;
-        if (queuedHeight > 0) root.style.setProperty('--cd-safe-vh', queuedHeight + 'px');
-      }
       function update() {
         var h = 0;
         if (window.visualViewport && Number(window.visualViewport.height) > 0) {
@@ -889,10 +866,7 @@
         } else if (Number(window.innerHeight) > 0) {
           h = window.innerHeight;
         }
-        if (h <= 0) return;
-        queuedHeight = h;
-        if (writeRaf) return;
-        writeRaf = requestAnimationFrame(flushWrite);
+        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
       }
       update();
       window.addEventListener('resize', update, { passive: true });

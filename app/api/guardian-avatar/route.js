@@ -653,7 +653,7 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   }
 
   const normalizedMode = normalizeRenderMode(renderMode);
-  const normalizedStyle = normalizeStyleIntensity(styleIntensity);
+  const normalizedStyle = "strong";
   const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle);
   const models = modelCandidates();
   const expectedSpecies = normalizeAnimalSpeciesToken((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "");
@@ -708,13 +708,16 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             break;
           }
 
-          let speciesMismatch = false;
           if (expectedSpecies) {
             const receivedSpecies = normalizeAnimalSpeciesToken(
               obj.animal_species_en || obj.animal || obj.species || obj.title || obj.summary || obj.illustration_prompt
             );
             if (receivedSpecies && receivedSpecies !== expectedSpecies) {
-              speciesMismatch = true;
+              lastError = Object.assign(
+                new Error("Gemini animal species mismatch: expected " + expectedSpecies + ", got " + receivedSpecies),
+                { status: 502, model }
+              );
+              break;
             }
           }
 
@@ -743,7 +746,6 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             svg,
             source: "gemini",
             model,
-            speciesMismatch,
           };
         } catch (e) {
           lastError = e;
@@ -805,8 +807,6 @@ export async function POST(request) {
         warning_message:
           guardian.source === "fallback"
             ? "현재 API 이용자가 많아 임시 고화질 폴백 이미지로 표시했어요. 잠시 후 다시 시도하면 AI 원본 결과를 받을 수 있어요."
-            : guardian.speciesMismatch
-              ? "AI가 사주 동물 힌트와 유사한 종으로 그려서 결과를 보정 없이 표시했어요. 다시 생성하면 더 정확한 종으로 맞춰질 수 있어요."
             : null,
       },
       saju_visual: visual,

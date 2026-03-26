@@ -4,7 +4,8 @@
  */
 export const metadata = {
   title: "꿀꿀 만세력 — 무료 사주 타로 운세 궁합 점성술 플랫폼",
-  description: "AI 기반 무료 사주와 타로, 코드 데스티니에서 당신의 운명을 확인하세요.",
+  description:
+    "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합을 제공하는 운세 플랫폼. 꿀꿀 만세력에서 나만의 운명 지도를 확인하세요.",
   alternates: {
     canonical: "https://code-destiny.com/",
   },

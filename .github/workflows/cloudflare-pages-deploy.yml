@@ -41,14 +41,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
-      - name: Build OpenNext (Next + Worker bundle + dist)
-        run: npm run build:cf
-
-      - name: Deploy OpenNext Worker (custom domain / workers.dev)
-        run: npm run deploy:cf:worker
-
-      # Worker 배포 완료 후 시크릿 동기화 (Worker가 존재해야 secret put 성공)
       - name: Sync Worker AI secrets
         run: |
           if [ -n "${GOOGLE_API_KEY}" ]; then
@@ -60,7 +52,13 @@ jobs:
           if [ -n "${ANTHROPIC_API_KEY}" ]; then
             printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.json
           fi
-      # Cloudflare Pages는 GitHub push 기반 자동 배포(pages_build_output_dir: dist)만 사용.
-      # wrangler pages deploy를 여기서도 실행하면 자동 배포와 동시에 같은 프로젝트에
-      # 업로드를 시도해 "APIError: Received a malformed response from the API" 발생.
-      # ↳ Pages 배포는 Cloudflare Pages CI 단독 담당. 이 step 제거로 이중 배포 방지.
+
+      # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
+      - name: Build OpenNext (Next + Worker bundle + dist)
+        run: npm run build:cf
+
+      - name: Deploy OpenNext Worker (custom domain / workers.dev)
+        run: npm run deploy:cf:worker
+
+      - name: Deploy Cloudflare Pages (pages.dev parity, same build)
+        run: node scripts/deploy-pages.mjs

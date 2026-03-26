@@ -1,10 +1,6 @@
-import dynamic from "next/dynamic";
+import HwatuLifeCardTest from "../../components/HwatuLifeCardTest";
 import FortunePageSEO from "../../components/FortunePageSEO";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-
-const HwatuLifeCardTest = dynamic(() => import("../../components/HwatuLifeCardTest"), {
-  loading: () => <div className="py-10 text-center text-sm text-slate-400">화투 테스트를 준비하는 중...</div>,
-});
 
 const META = {
   path: "/oracle/hwatu-life",

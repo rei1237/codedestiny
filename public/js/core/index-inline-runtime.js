@@ -508,10 +508,6 @@ function initFeatureCardBindings() {
     normalizeLegacyFuctionAssetImagePaths();
     bindFeatureCardVisualActions();
     bindFeatureCardImageFallbacks();
-    // 이미 열린 상태로 시작하는 컬렉션의 이미지 하이드레이션
-    document.querySelectorAll('[data-collection-open="true"]').forEach(function(col) {
-      __cdHydrateCollectionImagesChunked(col);
-    });
   }, 700);
 }
 
@@ -599,73 +595,10 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
-function __cdLoadTarotSukuyoBundle() {
-  return __cdLoadScriptOnce('/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1');
-}
-
-function __cdLoadCoreSajuBundle() {
-  var chain = [
-    '/js/data/chinese-astrology.js',
-    '/js/core/kasi/calendar.js',
-    '/js/services/sajuAnalyzer.js',
-    '/js/engines/ziwei-doushu.js',
-    '/js/saju-engine.js?v=20260323-ziwei-fix1',
-    '/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1',
-    '/js/saju-engine-continuation.js?v=20260320-saju-rpt1',
-    '/js/services/sajuService.js',
-    '/js/core/saju/modalProfileState.js'
-  ];
-  var p = Promise.resolve();
-  for (var i = 0; i < chain.length; i += 1) {
-    (function(src) {
-      p = p.then(function() { return __cdLoadScriptOnce(src); });
-    })(chain[i]);
-  }
-  return p;
-}
-
-function __cdLoadStylesheetOnce(href) {
-  if (!href) return;
-  if (typeof window.__loadStylesheetOnce === 'function') {
-    window.__loadStylesheetOnce(href);
-    return;
-  }
-  var links = document.querySelectorAll('link[rel="stylesheet"], link[rel="preload"][as="style"]');
-  for (var i = 0; i < links.length; i += 1) {
-    if ((links[i].getAttribute('href') || '') === href) return;
-  }
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = href;
-  link.media = 'print';
-  link.onload = function () { link.media = 'all'; };
-  document.head.appendChild(link);
-}
-
-var __cdLazyActionStyleLoaders = {
-  openTarotLoveModal: function() { __cdLoadStylesheetOnce('/styles/tarot-love-mystic.css?v=20260316-mobile-opt2'); },
-  openTarotHealingModal: function() { __cdLoadStylesheetOnce('/styles/tarot-healing-dawn.css?v=20260317-luxury-sun'); },
-  openTarotReunionModal: function() { __cdLoadStylesheetOnce('/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2'); },
-  openTarotYearFortuneModal: function() { __cdLoadStylesheetOnce('/styles/tarot-year-fortune.css?v=20260315-mobile-opt1'); },
-  openTarotSelfEsteemModal: function() { __cdLoadStylesheetOnce('/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1'); }
-};
-
 var __cdLazyActionLoaders = {
-  checkPrivacyAndCalculate: __cdLoadCoreSajuBundle,
-  agreeAndCalculate: __cdLoadCoreSajuBundle,
-  calculate: __cdLoadCoreSajuBundle,
-  runCompat: __cdLoadCoreSajuBundle,
-  startTarotReading: __cdLoadTarotSukuyoBundle,
-  showTarotFinalInterpretation: __cdLoadTarotSukuyoBundle,
-  setTarotMode: __cdLoadTarotSukuyoBundle,
-  selectTarotCategory: __cdLoadTarotSukuyoBundle,
-  shareTarotKakao: __cdLoadTarotSukuyoBundle,
-  resetTarot: __cdLoadTarotSukuyoBundle,
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
-  openPhysiognomyApp: function() { return __cdLoadScriptOnce('/PhysiognomyUI.js'); },
-  openMbtiModal: function() { return __cdLoadScriptOnce('/js/astral-soul.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
   openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260323'); },
@@ -673,11 +606,9 @@ var __cdLazyActionLoaders = {
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
-  openSajuFunFeature: __cdLoadCoreSajuBundle
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); }
 };
 var __cdLazyActionState = {};
-var __cdLazyActionStyleState = {};
 
 /**
  * INP: 클릭 직후 메인 스레드에서 동기 실행되던 무거운 핸들러(사주/궁합/리딩 등)를
@@ -780,12 +711,6 @@ function __cdInvokeActionWithConfig(action, actionEl, event, args) {
 
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
-
-  var styleLoader = __cdLazyActionStyleLoaders[action];
-  if (styleLoader && !__cdLazyActionStyleState[action]) {
-    __cdLazyActionStyleState[action] = 1;
-    try { styleLoader(); } catch (_) {}
-  }
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
 
@@ -4622,18 +4547,6 @@ function startAnimalTotemMeditation() {
   }, 1000);
 }
 window.startAnimalTotemMeditation = startAnimalTotemMeditation;
-
-function startAnimalTotemRitual() {
-  var introStage = document.getElementById('animalTotemIntroStage');
-  var modeStage = document.getElementById('animalTotemModeStage');
-  if (introStage && modeStage && introStage.classList && modeStage.classList) {
-    introStage.classList.remove('is-active');
-    modeStage.classList.add('is-active');
-    return;
-  }
-  startAnimalTotemMeditation();
-}
-window.startAnimalTotemRitual = startAnimalTotemRitual;
 
 function drawAnimalTotemCard(btn, idxRaw) {
   var idx = parseInt(idxRaw, 10);

@@ -1,10 +1,6 @@
-import dynamic from "next/dynamic";
+import TarotHealingClient from "./TarotHealingClient";
 import FortunePageSEO from "../../components/FortunePageSEO";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-
-const TarotHealingClient = dynamic(() => import("./TarotHealingClient"), {
-  loading: () => <div className="py-10 text-center text-sm text-slate-400">힐링 타로를 준비하는 중...</div>,
-});
 
 const META = {
   path: "/tarot/healing",

@@ -137,11 +137,9 @@ export default function MingriTarot() {
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <label htmlFor="mingri-mode" className="flex flex-col gap-1 text-sm">
+            <label className="flex flex-col gap-1 text-sm">
               <span>리딩 모드</span>
               <select
-                id="mingri-mode"
-                name="mode"
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={mode}
                 onChange={(e) => setMode(e.target.value as TarotMode)}
@@ -150,11 +148,9 @@ export default function MingriTarot() {
                 <option value="three">3카드</option>
               </select>
             </label>
-            <label htmlFor="mingri-category" className="flex flex-col gap-1 text-sm md:col-span-2">
+            <label className="flex flex-col gap-1 text-sm md:col-span-2">
               <span>고민 카테고리</span>
               <select
-                id="mingri-category"
-                name="category"
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TarotCategory)}

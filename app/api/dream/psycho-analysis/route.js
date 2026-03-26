@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 // Path: `app/api/dream/psycho-analysis/route.js`
 // Role: LLM(프로이트/융 심리학) 호출 -> 결과 markdown 생성 (DB 저장 없음 / 공유용 텍스트 반환)
 
+const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 const GEMINI_ENDPOINT_TEMPLATE =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
@@ -253,14 +254,70 @@ function toEmergencyMarkdownFromRaw(rawText) {
   ].join("\n");
 }
 
+async function callAnthropicDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw Object.assign(new Error("ANTHROPIC_API_KEY 환경변수가 필요합니다."), { status: 500 });
+  }
+
+  const userMsg = [
+    "사용자가 입력한 꿈:",
+    dreamText,
+  ].join("\n");
+
+  const resp = await fetchWithTimeout(
+    ANTHROPIC_ENDPOINT,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: model || "claude-sonnet-4-20250514",
+        max_tokens: maxTokens || 1200,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMsg }],
+      }),
+    },
+    getProviderTimeoutMs()
+  );
+
+  const payload = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    const message = payload?.error?.message || payload?.message || `Anthropic 호출 실패(${resp.status})`;
+    const err = new Error(message);
+    err.status = resp.status;
+    throw err;
+  }
+
+  const out =
+    payload?.content?.find((p) => p?.type === "text")?.text ||
+    payload?.content?.[0]?.text ||
+    "";
+
+  return stripCodeFences(out);
+}
+
 async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, maxTokens }) {
   // Gemini 키는 반드시 환경변수로만 관리합니다.
   // 배포 환경에서는 여러 키를 순차 사용해 quota/rate limit에 대한 내성을 높입니다.
-  const apiKey = String(process.env.GEMINI_API_KEY || "").trim();
-  if (!apiKey) {
+  const keyCandidates = [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  const apiKeys = [...new Set(keyCandidates)];
+  if (!apiKeys.length) {
     throw Object.assign(
       new Error(
-        "API Key not found: GEMINI_API_KEY 환경변수가 필요합니다."
+        "API Key not found: GEMINI_API_KEY/GOOGLE_API_KEY(+_2,+_3) 환경변수가 필요합니다."
       ),
       { status: 500 }
     );
@@ -271,58 +328,67 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
   const endpointModel = encodeURIComponent(model || "gemini-2.5-flash");
   const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", endpointModel);
 
-  const resp = await fetchWithTimeout(
-    endpoint + "?key=" + encodeURIComponent(apiKey),
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          role: "system",
-          parts: [{ text: String(systemPrompt || "") }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+  let lastError = null;
+  for (const apiKey of apiKeys) {
+    const resp = await fetchWithTimeout(
+      endpoint + "?key=" + encodeURIComponent(apiKey),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: {
+            role: "system",
+            parts: [{ text: String(systemPrompt || "") }],
           },
-        ],
-        generationConfig: {
-          maxOutputTokens: Number(maxTokens || 1200),
-          temperature: 0.5,
-          topP: 0.95,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-    getProviderTimeoutMs()
-  );
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: ["사용자가 입력한 꿈:", String(dreamText || "")].join("\n") }],
+            },
+          ],
+          generationConfig: {
+            maxOutputTokens: Number(maxTokens || 1200),
+            temperature: 0.5,
+            topP: 0.95,
+            responseMimeType: "application/json",
+          },
+        }),
+      },
+      getProviderTimeoutMs()
+    );
 
-  const payload = await resp.json().catch(() => null);
-  if (resp.ok) {
-    const out =
-      payload?.candidates?.[0]?.content?.parts
-        ?.map((p) => p?.text)
-        ?.filter(Boolean)
-        ?.join("") ||
-      payload?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "";
-    return stripCodeFences(out);
+    const payload = await resp.json().catch(() => null);
+    if (resp.ok) {
+      const out =
+        payload?.candidates?.[0]?.content?.parts
+          ?.map((p) => p?.text)
+          ?.filter(Boolean)
+          ?.join("") ||
+        payload?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "";
+      return stripCodeFences(out);
+    }
+
+    const rawMessage = payload?.error?.message || payload?.message || `Gemini 호출 실패(${resp.status})`;
+    const lower = String(rawMessage || "").toLowerCase();
+    const isQuotaLike =
+      resp.status === 429 ||
+      lower.includes("quota") ||
+      lower.includes("resource exhausted") ||
+      lower.includes("rate limit") ||
+      lower.includes("too many requests");
+
+    lastError = Object.assign(new Error(isQuotaLike ? toFreudQuotaMessage() : rawMessage), {
+      status: resp.status,
+      quotaLike: isQuotaLike,
+    });
+
+    // quota/rate limit 계열이면 다음 키로 즉시 재시도
+    if (isQuotaLike) continue;
+    throw lastError;
   }
 
-  const rawMessage = payload?.error?.message || payload?.message || `Gemini 호출 실패(${resp.status})`;
-  const lower = String(rawMessage || "").toLowerCase();
-  const isQuotaLike =
-    resp.status === 429 ||
-    lower.includes("quota") ||
-    lower.includes("resource exhausted") ||
-    lower.includes("rate limit") ||
-    lower.includes("too many requests");
-
-  throw Object.assign(new Error(isQuotaLike ? toFreudQuotaMessage() : rawMessage), {
-    status: resp.status,
-    quotaLike: isQuotaLike,
-  });
+  throw lastError || Object.assign(new Error("Gemini 호출 실패"), { status: 502 });
 }
 
 const SYSTEM_PROMPT = `# Role & Persona
@@ -371,27 +437,31 @@ export async function POST(request) {
 
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
-    // Gemini 서버사이드 전용 키 사용 (클라이언트 노출 금지)
-    const useGemini = Boolean(process.env.GEMINI_API_KEY);
-    const provider = useGemini ? "gemini" : "none";
+    // Gemini/Anthropic 서버사이드 전용 키 사용 (클라이언트 노출 금지)
+    const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+    const useAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
+    const provider = useGemini ? "gemini" : useAnthropic ? "anthropic" : "none";
 
     const modelForKey = useGemini
       ? process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash"
-      : "default";
+      : useAnthropic
+        ? process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514"
+        : "default";
 
     let markdown = "";
     let analysis = null;
     if (useGemini) {
-      const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
-      const raw = await callGeminiDreamPsychoAnalysis({
-        systemPrompt: SYSTEM_PROMPT,
-        dreamText,
-        model,
-        maxTokens,
-      });
-      if (validateOutputStructure(raw)) {
-        markdown = String(raw || "").trim();
-      } else {
+      try {
+        const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
+        const raw = await callGeminiDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText,
+          model,
+          maxTokens,
+        });
+        if (validateOutputStructure(raw)) {
+          markdown = String(raw || "").trim();
+        } else {
         const parsed = (() => {
           try {
             return JSON.parse(raw);
@@ -411,13 +481,41 @@ export async function POST(request) {
         } else {
           markdown = analysisToMarkdown(analysis);
         }
+        }
+      } catch (geminiError) {
+        const lower = String(geminiError?.message || "").toLowerCase();
+        const geminiQuotaLike =
+          Number(geminiError?.status) === 429 ||
+          lower.includes("quota") ||
+          lower.includes("resource exhausted") ||
+          lower.includes("rate limit") ||
+          lower.includes("too many requests");
+        if (useAnthropic && geminiQuotaLike) {
+          const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+          markdown = await callAnthropicDreamPsychoAnalysis({
+            systemPrompt: SYSTEM_PROMPT,
+            dreamText,
+            model,
+            maxTokens,
+          });
+        } else {
+          throw geminiError;
+        }
       }
+    } else if (useAnthropic) {
+      const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+      markdown = await callAnthropicDreamPsychoAnalysis({
+        systemPrompt: SYSTEM_PROMPT,
+        dreamText,
+        model,
+        maxTokens,
+      });
     } else {
       return jsonWithCors(
         request,
         {
           ok: false,
-          message: "API Key not found: GEMINI_API_KEY 환경변수가 필요합니다.",
+          message: "API Key not found: GOOGLE_API_KEY/GEMINI_API_KEY 또는 ANTHROPIC_API_KEY 환경변수가 필요합니다.",
         },
         { status: 500 },
       );
@@ -435,13 +533,23 @@ export async function POST(request) {
         "- archetype_exploration\n" +
         "- advice\n";
 
-      const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
-      markdown = await callGeminiDreamPsychoAnalysis({
-        systemPrompt: SYSTEM_PROMPT,
-        dreamText: retryDreamText,
-        model,
-        maxTokens,
-      });
+      if (useGemini) {
+        const model = process.env.PSYCHO_ANALYSIS_GEMINI_MODEL || "gemini-2.5-flash";
+        markdown = await callGeminiDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText: retryDreamText,
+          model,
+          maxTokens,
+        });
+      } else {
+        const model = process.env.PSYCHO_ANALYSIS_ANTHROPIC_MODEL || undefined;
+        markdown = await callAnthropicDreamPsychoAnalysis({
+          systemPrompt: SYSTEM_PROMPT,
+          dreamText: retryDreamText,
+          model,
+          maxTokens,
+        });
+      }
 
       if (!validateOutputStructure(markdown)) {
         const raw = String(markdown || "").trim();

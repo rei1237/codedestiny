@@ -51,7 +51,7 @@
 <link rel="alternate" hreflang="x-default" href="https://code-destiny.com/">
 
 <!-- ═══ SEO: 기본 메타 (한국어 + 다국어 키워드) ═══ -->
-<meta name="description" content="AI 기반 무료 사주와 타로, 코드 데스티니에서 당신의 운명을 확인하세요.">
+<meta name="description" content="AI가 분석하는 무료 사주팔자·만세력·타로·궁합·오늘의운세·신년운세·자미두수·화투점·주역점·이집트신탁. 당신의 운명을 지금 확인하세요.">
 <meta name="keywords" content="사주,무료사주,만세력,타로,오늘의운세,궁합,신년운세,토정비결,관상,재물운,재회운,MBTI궁합,꿈해몽,숙요점,숙요도,宿曜道,거북점,귀복,주역점,이집트신탁,케멧오라클,자미두수,紫微斗數,Saju,Tarot,Horoscope,Zodiac,Astrology,Fortune Telling,Daily Horoscope,Compatibility,Free Tarot Reading,I Ching,Sukuyo,Turtle Shell Divination,Kemet Oracle,Ziwei Doushu,八字,算命,星座,免费算命,塔罗牌,龟卜,宿曜占,紫微斗数,運勢,占い,相性,四柱推命,タロット,亀卜占い,宿曜占星術,紫微斗数占い,horóscopo,tarot gratis,astrología,compatibilidad,horoscope gratuit,tarot gratuit,astrologie,compatibilité,राशिफल,टैरो,ज्योतिष,कुंडली,भविष्यफल">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Seongbae">
@@ -854,39 +854,33 @@
 
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
-        <label class="form-label" for="nameInput">이름</label>
-        <input class="inp" type="text" id="nameInput" name="name" placeholder="이름을 입력하세요"
+        <label class="form-label">이름</label>
+        <input class="inp" type="text" id="nameInput" placeholder="이름을 입력하세요"
           autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
-        <label class="form-label" for="birthDate">생년월일</label>
-        <input class="inp" type="date" id="birthDate" name="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
+        <label class="form-label">생년월일</label>
+        <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
         <div class="form-radio-row">
-          <label for="calTypeSolar"><input type="radio" id="calTypeSolar" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
-          <label for="calTypeLunar"><input type="radio" id="calTypeLunar" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
-          <label for="calTypeLunarLeap"><input type="radio" id="calTypeLunarLeap" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(윤달)</label>
+          <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
+          <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(평달)</label>
+          <label><input type="radio" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 음력(윤달)</label>
         </div>
         <div id="lunarPreview" class="form-lunar-preview"></div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="birthHour">출생 시간</label>
+        <label class="form-label">출생 시간</label>
         <div class="row2">
-          <div>
-            <label class="form-label form-label-compact" for="birthHour">시</label>
-            <select class="inp" id="birthHour" name="birthHour"></select>
-          </div>
-          <div>
-            <label class="form-label form-label-compact" for="birthMinute">분</label>
-            <select class="inp" id="birthMinute" name="birthMinute"></select>
-          </div>
+          <select class="inp" id="birthHour"></select>
+          <select class="inp" id="birthMinute"></select>
         </div>
       </div>
       
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
-        <label class="form-label form-label-dark" for="birthCountry">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
-        <select class="inp form-country-select" id="birthCountry" name="birthCountry" data-change-action="updateCorrectedTimePreview">
+        <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
         
@@ -2973,12 +2967,12 @@
         
         <div class="row2">
           <div class="form-group" style="flex:1;">
-            <label class="form-label" for="compatName" style="margin-bottom:6px">상대 이름</label>
-            <input class="inp" type="text" id="compatName" name="compatName" placeholder="상대 이름을 입력하세요" autocomplete="name">
+            <label class="form-label" style="margin-bottom:6px">상대 이름</label>
+            <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
           </div>
           <div class="form-group" style="flex:1;">
-            <label class="form-label" for="compatType" style="margin-bottom:6px">궁합 유형</label>
-            <select class="inp" id="compatType" name="compatType">
+            <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
+            <select class="inp" id="compatType">
               <option value="love">연애/결혼</option>
               <option value="business">사업/동업</option>
               <option value="friend">친구/동료</option>
@@ -2992,23 +2986,17 @@
           <div id="celebsList"></div>
         </div>
         <div class="form-group form-group-mb10">
-          <label class="form-label form-label-compact" for="compatBirthDate">상대 생년월일 · 시간</label>
-          <input class="inp" type="date" id="compatBirthDate" name="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview" autocomplete="bday">
+          <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
+          <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
           <div class="form-radio-row">
-            <label for="compatCalTypeSolar"><input type="radio" id="compatCalTypeSolar" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
-            <label for="compatCalTypeLunar"><input type="radio" id="compatCalTypeLunar" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
-            <label for="compatCalTypeLunarLeap"><input type="radio" id="compatCalTypeLunarLeap" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
+            <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
+            <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
+            <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
           </div>
           <div id="compatLunarPreview" class="form-lunar-preview"></div>
           <div class="row2 row2-mt8">
-            <div>
-              <label class="form-label form-label-compact" for="compatBirthHour">시</label>
-              <select class="inp" id="compatBirthHour" name="compatBirthHour"></select>
-            </div>
-            <div>
-              <label class="form-label form-label-compact" for="compatBirthMinute">분</label>
-              <select class="inp" id="compatBirthMinute" name="compatBirthMinute"></select>
-            </div>
+            <select class="inp" id="compatBirthHour"></select>
+            <select class="inp" id="compatBirthMinute"></select>
           </div>
         </div>
         <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
@@ -3037,7 +3025,6 @@
       </div>
       <div id="reportDashboard"></div>
     </section>
-
 
     <!-- 6-4. 퀀텀 명리 전략 리포트 (NEW) -->
     <section class="card" id="quantumCard" style="display:none" aria-labelledby="quantumTitle">

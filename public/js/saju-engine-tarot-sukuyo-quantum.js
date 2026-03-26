@@ -1686,20 +1686,33 @@ function renderLetter(p){
 
   var letterTitle = document.getElementById('letterTitle');
   if(letterTitle){
-    letterTitle.innerHTML = '💖 연이의 편지';
+    letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
 
-  document.getElementById('letterContent').innerHTML=
-    '<p class="letter-para">사랑하는 <b>'+USER_NAME+'</b>님,</p>'+
-    '<p class="letter-para">긴 하루를 보내고 이 편지를 읽고 있을 당신에게, 연이의 마음을 한 글자 한 글자 정성스럽게 담아 보냅니다.</p>'+
-    '<p class="letter-para">사주는 당신의 한계를 정해놓은 지도가 아니에요. 당신이 어떤 리듬을 타고 태어났는지, 어떤 계절에 가장 아름답게 피어나는지를 알려주는 소중한 안내서랍니다. 사주를 안다는 것은 내가 어떤 씨앗인지를 아는 거예요. 장미 씨앗에게 해바라기가 되라고 강요하는 건 잔인한 일이잖아요. 당신은 이미 완벽한 당신의 씨앗을 가지고 태어났어요.</p>'+
-    '<p class="letter-para">'+EL_E[dayEl]+' '+(ganLetter[dg]||'당신만의 특별한 빛이 있습니다.')+'</p>'+
-    (dayAnimal&&animalLetter[dayAnimal]?'<p class="letter-para">🐾 '+animalLetter[dayAnimal]+'</p>':'')+
-    powerPara+
-    '<p class="letter-para">혹시 요즘 힘든 시간을 보내고 계신가요? 사주에서 힘든 운이 오는 건, 바로 그 다음에 더 좋은 기운이 온다는 신호이기도 해요. 가장 어두운 시간은 새벽 직전이고, 가장 추운 계절은 봄 바로 앞에 있잖아요. 인생의 어떤 순간은 당신을 무릎 꿇게 할 수도 있어요. 하지만 기억해주세요 — 사주에서 가장 힘든 운(運)도 평균 10년이면 지나가고, 반드시 더 나은 기운의 시간이 옵니다. 지금 이 시간이, 내일의 당신을 단단하게 만드는 과정임을 잊지 마세요.</p>'+
-    '<p class="letter-para">그리고 당신 곁에 있는 소중한 사람들을 떠올려보세요. 가족이든, 친구든, 연인이든 — 당신의 사주가 만들어낸 인연의 그물은 우연이 아니에요. 그 사람들은 당신의 운명이 불러온 귀인이에요. 감사한 마음을 한 번 전해보세요. 그 작은 행동이 당신의 관계운을 더 크게 피워줄 거예요.</p>'+
-    '<p class="letter-para">'+USER_NAME+'님이 태어난 것 자체가 이 세상에 꼭 필요한 에너지가 하나 더해진 것입니다. 당신이 숨 쉬고, 웃고, 누군가를 걱정하는 것 — 그 모든 순간에 당신만의 빛이 세상에 퍼지고 있어요. 오늘도, 내일도, 당신의 모든 날들이 행복하기를 연이가 진심으로, 온 마음을 다해 바랍니다. 🌸</p>'+
-    '<p style="text-align:right;font-style:italic;color:var(--pink-l);font-weight:700;font-size:.82rem">— 연이가 온 마음을 담아 🐷💕</p>';
+  if(NEO_MODE){
+    document.getElementById('letterContent').innerHTML=
+      '<p class="letter-para">어이, <b>'+USER_NAME+'</b>.</p>'+
+      '<p class="letter-para">사주는 핑계 대라고 있는 게 아니다. 당신이 왜 그 모양으로 살고 있는지, 그리고 어떻게 해야 그 늪에서 빠져나올 수 있는지 보여주는 냉혹한 성적표다. "내 팔자가 이러니까 어쩔 수 없어"라고? 그 말 하는 순간 당신이 가진 가능성의 반은 이미 죽은 거다.</p>'+
+      '<p class="letter-para">넌 '+EL_K[dayEl]+'의 기운을 타고났다. '+ (neoGanLetter[dg]||'네 고집부터 꺾어야 뭐라도 될 거다.') +'</p>'+
+      (dayAnimal&&neoAnimalLetter[dayAnimal]?'<p class="letter-para">🐾 '+neoAnimalLetter[dayAnimal]+'</p>':'')+
+      neoPowerPara+
+      '<p class="letter-para">운이 나쁘다고 징징대지 마라. 겨울이 왔다고 죽는 게 아니라, 겨울에 반팔 입고 돌아다니니까 얼어 죽는 거다. 지금 당장 당신의 기신(忌神) 짓을 멈추고, 용신(用神)의 방향으로 움직여라. 사주는 당신이 어떤 옷을 입어야 가장 잘 어울리는지 알려주는 거다. 여름 사주가 겨울옷을 입고 땀 흘리면서 "왜 나만 힘들어"라고 하면 누가 동정하겠어?</p>'+
+      '<p class="letter-para">그리고 주변 관계도 점검해라. 당신의 용신에 해당하는 사람이 곁에 있으면 삶이 풀리고, 기신에 해당하는 인간이 옆에 붙어있으면 아무리 뛰어도 제자리다. 냉정하게 잘라낼 건 자르고, 소중한 건 목숨 걸고 지켜라. 인간관계도 천기가다.</p>'+
+      '<p class="letter-para">하지만 명심해라. 사주가 아무리 엉망이어도, 결국 그 패를 쥐고 게임을 하는 건 당신이다. <b>당신은 생각보다 강하고, 당신의 인생은 아직 끝나지 않았다.</b> 지금까지 살아남은 것 자체가 증거다. 당신은 여태 수많은 힘든 순간을 이겨냈잖아. 그때마다 "이번엔 진짜 안 될 것 같다"고 생각했을 거다. 근데 어? 여기까지 왔잖아. 이번에도 될 거다. 핑계는 여기까지다. 이제 당신의 진짜 패를 보여줄 차례다. 일어나라.</p>'+
+      '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 쌈바 🦁</p>';
+  } else {
+    document.getElementById('letterContent').innerHTML=
+      '<p class="letter-para">사랑하는 <b>'+USER_NAME+'</b>님,</p>'+
+      '<p class="letter-para">긴 하루를 보내고 이 편지를 읽고 있을 당신에게, 연이의 마음을 한 글자 한 글자 정성스럽게 담아 보냅니다.</p>'+
+      '<p class="letter-para">사주는 당신의 한계를 정해놓은 지도가 아니에요. 당신이 어떤 리듬을 타고 태어났는지, 어떤 계절에 가장 아름답게 피어나는지를 알려주는 소중한 안내서랍니다. 사주를 안다는 것은 내가 어떤 씨앗인지를 아는 거예요. 장미 씨앗에게 해바라기가 되라고 강요하는 건 잔인한 일이잖아요. 당신은 이미 완벽한 당신의 씨앗을 가지고 태어났어요.</p>'+
+      '<p class="letter-para">'+EL_E[dayEl]+' '+(ganLetter[dg]||'당신만의 특별한 빛이 있습니다.')+'</p>'+
+      (dayAnimal&&animalLetter[dayAnimal]?'<p class="letter-para">🐾 '+animalLetter[dayAnimal]+'</p>':'')+
+      powerPara+
+      '<p class="letter-para">혹시 요즘 힘든 시간을 보내고 계신가요? 사주에서 힘든 운이 오는 건, 바로 그 다음에 더 좋은 기운이 온다는 신호이기도 해요. 가장 어두운 시간은 새벽 직전이고, 가장 추운 계절은 봄 바로 앞에 있잖아요. 인생의 어떤 순간은 당신을 무릎 꿇게 할 수도 있어요. 하지만 기억해주세요 — 사주에서 가장 힘든 운(運)도 평균 10년이면 지나가고, 반드시 더 나은 기운의 시간이 옵니다. 지금 이 시간이, 내일의 당신을 단단하게 만드는 과정임을 잊지 마세요.</p>'+
+      '<p class="letter-para">그리고 당신 곁에 있는 소중한 사람들을 떠올려보세요. 가족이든, 친구든, 연인이든 — 당신의 사주가 만들어낸 인연의 그물은 우연이 아니에요. 그 사람들은 당신의 운명이 불러온 귀인이에요. 감사한 마음을 한 번 전해보세요. 그 작은 행동이 당신의 관계운을 더 크게 피워줄 거예요.</p>'+
+      '<p class="letter-para">'+USER_NAME+'님이 태어난 것 자체가 이 세상에 꼭 필요한 에너지가 하나 더해진 것입니다. 당신이 숨 쉬고, 웃고, 누군가를 걱정하는 것 — 그 모든 순간에 당신만의 빛이 세상에 퍼지고 있어요. 오늘도, 내일도, 당신의 모든 날들이 행복하기를 연이가 진심으로, 온 마음을 다해 바랍니다. 🌸</p>'+
+      '<p style="text-align:right;font-style:italic;color:var(--pink-l);font-weight:700;font-size:.82rem">— 연이가 온 마음을 담아 🐷💕</p>';
+  }
 }
 
 /* ── renderEnergyCoord: 에너지 원정 리포트 ── */
@@ -1829,8 +1842,8 @@ function renderEnergyCoord(natal){
       '<div class="ec-header">'+
         '<span class="ec-icon">🧭</span>'+
         '<div class="ec-title-wrap">'+
-          '<h3>사주로 보는 여행지</h3>'+
-          '<p>부족한 오행 기운을 보완하는 국내/해외 맞춤 여정 좌표</p>'+
+          '<h3>에너지 원정 리포트</h3>'+
+          '<p>부족한 오행 기운을 지형학적으로 충전하는 최적 좌표</p>'+
         '</div>'+
       '</div>'+
       '<div class="ec-element-badge '+badgeClass+'">'+
@@ -2720,12 +2733,26 @@ function renderLottoNumbers(natal, bazi){
 /* ─────────────────────────────────────────────────────────
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
-function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
-  const forcedIdx = Number(
-    (opt && Number.isFinite(Number(opt.mansionIdxOverride))) ? opt.mansionIdxOverride
-    : (lunarObj && Number.isFinite(Number(lunarObj._sukuyoMansionIdx)) ? lunarObj._sukuyoMansionIdx : NaN)
-  );
-  if ((!lunarObj || !lunarObj.month || !lunarObj.day) && !Number.isFinite(forcedIdx)) return null;
+function getSukuyoMansion(preciseDateData) {
+  const source = preciseDateData && typeof preciseDateData === 'object' ? preciseDateData : null;
+  if (!source) {
+    console.warn('[Sukuyo] preciseDateData missing. Expected KASI lunar date object.');
+    return null;
+  }
+
+  const lunYear = Number(source.lunYear ?? source.year);
+  const lunMonth = Number(source.lunMonth ?? source.month);
+  const lunDay = Number(source.lunDay ?? source.day);
+  const forcedIdxRaw = Number(source._sukuyoMansionIdx ?? source.mansionIdx);
+  const hasForcedIdx = Number.isFinite(forcedIdxRaw);
+
+  if ((!Number.isInteger(lunMonth) || !Number.isInteger(lunDay)) && !hasForcedIdx) {
+    if (source.kasiError || source.__kasiError) {
+      console.warn('[Sukuyo] KASI date payload reported an error:', source.kasiError || source.__kasiError);
+    }
+    console.warn('[Sukuyo] Invalid preciseDateData. lunMonth/lunDay are required.');
+    return null;
+  }
 
     const mansions27 = [
         { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
@@ -2741,22 +2768,40 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
 
     const monthStartOffsets = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
-    let m_month = parseInt(lunarObj.month, 10);
-    let m_day = parseInt(lunarObj.day, 10);
-    let isLeap = !!lunarObj.isLeap;
+      let finalIdx;
+      if (hasForcedIdx) {
+        finalIdx = ((Math.floor(forcedIdxRaw) % 27) + 27) % 27;
+      } else {
+        const startIdx = Number.isFinite(monthStartOffsets[lunMonth - 1]) ? monthStartOffsets[lunMonth - 1] : 11;
+        finalIdx = ((startIdx + lunDay - 1) % 27 + 27) % 27;
+      }
 
-    if (isLeap && opt.leapRule === 'previous') {
-        m_month = m_month === 1 ? 12 : m_month - 1;
+      const m_data = mansions27[finalIdx] || mansions27[0];
+      return {
+        mansion27: m_data,
+        mansion27Idx: finalIdx,
+        mansion28: {
+          name: m_data.name,
+          ch_name: m_data.ch_name,
+          index: finalIdx + 1
+        },
+        preciseDateData: {
+          lunYear: Number.isFinite(lunYear) ? lunYear : null,
+          lunMonth: Number.isFinite(lunMonth) ? lunMonth : null,
+          lunDay: Number.isFinite(lunDay) ? lunDay : null,
+          isLeap: !!(source.isLeap ?? source.lunLeapMonth)
+        }
+      };
     }
 
-    let startIdx = monthStartOffsets[m_month - 1];
-    if (startIdx === undefined) startIdx = 11;
+    function calcSukuyoData(lunarObj, opt = {}) {
+      const preciseDateData = (opt && opt.preciseDateData) || lunarObj;
+      const mansionResult = getSukuyoMansion(preciseDateData);
+      if (!mansionResult) return null;
 
-    let finalIdx = Number.isFinite(forcedIdx)
-      ? ((Math.floor(forcedIdx) % 27) + 27) % 27
-      : (startIdx + m_day - 1) % 27;
-    let m_data = mansions27[finalIdx];
-    let m = m_data.name;
+      let finalIdx = mansionResult.mansion27Idx;
+      let m_data = mansionResult.mansion27;
+      let m = m_data.name;
 
     const baseData = {
         "각": {icon:"✨",celebs:"아인슈타인, 마리 퀴리",talent:95,
@@ -3027,6 +3072,9 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         talent: mapped.talent,
         celebs: mapped.celebs,
         mansionIdx: finalIdx,
+      mansion27: m + "(" + m_data.ch_name + ")",
+      mansion28: mansionResult.mansion28.name + "(" + mansionResult.mansion28.ch_name + ")",
+      preciseDateData: mansionResult.preciseDateData,
         traits: mapped
     };
 }
@@ -3183,13 +3231,18 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     html += `<div class="sy-container" id="lunarNexusApp">`;
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
+    if (!lunarObj && window.__sajuPreciseDateData) {
+      lunarObj = window.__sajuPreciseDateData;
+    }
     if (!lunarObj) {
         try {
             const b = window._ziweiBirth;
             if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
                 lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
             }
-        } catch (e) {}
+      } catch (e) {
+        console.warn('[Sukuyo] fallback solarToLunar failed:', e && e.message ? e.message : e);
+      }
     }
     if (!lunarObj) {
         html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
@@ -4364,12 +4417,10 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
           let tDate = new Date(y, m-1, d, h, min, 0);
 
           try {
-                if (calType === 'solar') {
-                  // 상대 입력 폼에는 출생지 입력이 없으므로, 기준 인물 전역 상태를 참조하지 않고 고정 기준값을 사용한다.
-                  // 이렇게 해야 "누구를 기준으로 보느냐"를 바꿔도 동일 생년월일시에서 동일 숙요 결과가 보장된다.
-                  var syLat = 37.5665;
-                  var syLon = 126.9780;
-                  var syTz = 9;
+              if (calType === 'solar') {
+                  var syLat = (window._astroBirth && window._astroBirth.lat) || (window._ziweiBirth && window._ziweiBirth.lat) || 37.5665;
+                  var syLon = (window._astroBirth && window._astroBirth.lon) || (window._ziweiBirth && window._ziweiBirth.lon) || 126.9780;
+                  var syTz = (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : ((window._ziweiBirth && window._ziweiBirth.tz != null) ? window._ziweiBirth.tz : 9);
                   var syCtx = await resolvePrimaryCalendarContext({
                     calendarType: 'solar',
                     year: y,

@@ -5547,8 +5547,8 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
   var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
   var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
   var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
-  if (mode !== 'swisseph' && mode !== 'legacy-fallback') {
-    throw new Error('점성술 차트 계산 결과가 비정상입니다. precisionMode=' + mode);
+  if (mode !== 'swisseph') {
+    throw new Error('SwissEph API 결과가 준비되지 않았습니다. precisionMode=' + mode);
   }
   return chart;
 }
@@ -6362,23 +6362,23 @@ function renderAstroInsight() {
         /* 입력 폼 */
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label for="asDirect_name" style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">상대방 이름 (선택)</label>'
-        +'<input type="text" id="asDirect_name" name="asDirect_name" placeholder="예: 홍길동" autocomplete="name" '
+        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">상대방 이름 (선택)</label>'
+        +'<input type="text" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off" '
         +'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label for="asDirect_date" style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">생년월일</label>'
-        +'<input type="date" id="asDirect_date" name="asDirect_date" autocomplete="bday" '
+        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">생년월일</label>'
+        +'<input type="date" id="asDirect_date" '
         +'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;" required>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label for="asDirect_time" style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">태어난 시각</label>'
-        +'<input type="time" id="asDirect_time" name="asDirect_time" autocomplete="off" value="12:00" '
+        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">태어난 시각</label>'
+        +'<input type="time" id="asDirect_time" value="12:00" '
         +'style="width:120px;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label for="asDirect_city" style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">도시(시/군)</label>'
-        +'<select id="asDirect_city" name="asDirect_city" '
+        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">도시(시/군)</label>'
+        +'<select id="asDirect_city" '
         +'style="width:240px;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
         +'<option value="">도시 선택(시/군 단위)</option>'
         +'</select>'
@@ -14111,11 +14111,6 @@ function populateCelebList(){
   btnArea.className='celeb-name-area';
   container.appendChild(btnArea);
 
-  var CELEB_BATCH_SIZE=40;
-  var _celebObserver=null;
-  var _celebSentinel=null;
-  var _celebRenderToken=0;
-
   // 탭 클릭 → 이벤트 위임
   tabBar.addEventListener('click', function(e){
     var tabBtn=e.target.closest('.celeb-tab-btn');
@@ -14151,73 +14146,26 @@ function populateCelebList(){
   });
 
   function renderCelebs(filterCat){
-    var renderToken=++_celebRenderToken;
     btnArea.classList.add('fading');/* 전환 중 클릭 차단 */
     btnArea.style.opacity='0';
     btnArea.style.transition='opacity 0.15s';
     setTimeout(function(){
-      if(renderToken!==_celebRenderToken) return;
       btnArea.innerHTML='';
       var list=filterCat
         ?CELEBS.filter(function(c){return c.cat===filterCat;})
         :CELEBS;
-
-      if(_celebObserver){_celebObserver.disconnect();_celebObserver=null;}
-      _celebSentinel=null;
-
-      var cursor=0;
-      function appendChunk(){
-        if(renderToken!==_celebRenderToken) return;
-        var frag=document.createDocumentFragment();
-        var end=Math.min(cursor+CELEB_BATCH_SIZE,list.length);
-        for(var i=cursor;i<end;i++){
-          var c=list[i];
-          var btn=document.createElement('button');
-          btn.type='button';
-          btn.className='celeb-btn';
-          btn.textContent=c.name;
-          btn.dataset.name=c.name;
-          btn.dataset.birth=c.birth;
-          btn.dataset.hour=c.hour!==undefined?c.hour:12;
-          btn.dataset.minute=c.minute!==undefined?c.minute:0;
-          btn.dataset.cat=c.cat;
-          frag.appendChild(btn);
-        }
-        if(_celebSentinel&&_celebSentinel.parentNode===btnArea){
-          btnArea.insertBefore(frag,_celebSentinel);
-        }else{
-          btnArea.appendChild(frag);
-        }
-        cursor=end;
-        if(cursor>=list.length&&_celebObserver){
-          _celebObserver.disconnect();
-          _celebObserver=null;
-        }
-      }
-
-      appendChunk();
-      if(cursor<list.length){
-        _celebSentinel=document.createElement('div');
-        _celebSentinel.className='celeb-list-sentinel';
-        _celebSentinel.setAttribute('aria-hidden','true');
-        _celebSentinel.style.cssText='width:100%;height:2px;opacity:0;';
-        btnArea.appendChild(_celebSentinel);
-
-        if('IntersectionObserver' in window){
-          _celebObserver=new IntersectionObserver(function(entries){
-            var entry=entries&&entries[0];
-            if(!entry||!entry.isIntersecting) return;
-            appendChunk();
-          },{root:btnArea,rootMargin:'180px 0px',threshold:0.01});
-          _celebObserver.observe(_celebSentinel);
-        }else{
-          (function pump(){
-            appendChunk();
-            if(cursor<list.length) requestAnimationFrame(pump);
-          })();
-        }
-      }
-
+      list.forEach(function(c){
+        var btn=document.createElement('button');
+        btn.type='button';
+        btn.className='celeb-btn';
+        btn.textContent=c.name;
+        btn.dataset.name=c.name;
+        btn.dataset.birth=c.birth;
+        btn.dataset.hour=c.hour!==undefined?c.hour:12;
+        btn.dataset.minute=c.minute!==undefined?c.minute:0;
+        btn.dataset.cat=c.cat;
+        btnArea.appendChild(btn);
+      });
       btnArea.style.opacity='1';
       btnArea.classList.remove('fading');/* 전환 완료 → 클릭 허용 */
     }, 120);

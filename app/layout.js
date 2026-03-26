@@ -1,11 +1,9 @@
 ﻿import "../styles/globals.css";
 import { headers } from "next/headers";
-import SiteFooterHub from "./components/SiteFooterHub";
-import AppVersionGuard from "./components/AppVersionGuard";
 import WebVitalsConsole from "./components/WebVitalsConsole";
+import AppVersionGuard from "./components/AppVersionGuard";
+import SiteFooterHub from "./components/SiteFooterHub";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
-
-const ENABLE_WEB_VITALS_CONSOLE = process.env.NEXT_PUBLIC_ENABLE_WEB_VITALS_CONSOLE === "1";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
@@ -133,7 +131,8 @@ export const metadata = {
     default: "꿀꿀 만세력 | 무료 사주 타로 운세 점성술 궁합",
     template: "%s | 꿀꿀 만세력",
   },
-  description: "AI 기반 무료 사주와 타로, 코드 데스티니에서 당신의 운명을 확인하세요.",
+  description:
+    "생년월일로 보는 정확한 무료 사주풀이. AI 타로·자미두수·점성술·주역·궁합 등 20가지 이상의 운세를 무료로. 오늘 운세·신년 운세 즉시 확인! Free Saju Fortune.",
   keywords: [
     // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
     "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
@@ -252,8 +251,11 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={locale.htmlLang}>
       <head>
-        {/* preconnect 과다 경고 방지를 위해 사전 연결 힌트는 제거하고 필요한 리소스만 지연 로드 */}
+        {/* 성능: 외부 오리진 사전 연결 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         {hreflangLinks.map((link) => (
@@ -272,7 +274,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <AppVersionGuard />
-        {ENABLE_WEB_VITALS_CONSOLE ? <WebVitalsConsole /> : null}
+        <WebVitalsConsole />
         <div>{children}</div>
         {!hideFooter && <SiteFooterHub />}
       </body>

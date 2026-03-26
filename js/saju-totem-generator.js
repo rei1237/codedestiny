@@ -216,6 +216,84 @@
   }
 
   /* ─────────────────────────────────────
+     3. 프롬프트 빌드
+  ───────────────────────────────────── */
+  function buildPrompt(totemData) {
+    var a = totemData.primary || {};
+    var el = totemData.element || 'wood';
+    var dayZhi = totemData.dayZhi || '';
+    var power = totemData.powerLabel || '';
+    var tenGod = totemData.sipseong || '';
+    var animal = normalizeAnimalLabel(a.nameEn || a.name || 'spirit animal') || 'spirit animal';
+
+    var zhiMotif = {
+      '子': 'moonlit waters, tiny lantern reflections, agile wind swirls',
+      '丑': 'ancient stone path, calm mountain breeze, protective talisman ribbons',
+      '寅': 'misty pine forest, warm sunrise rim light, dynamic brushstroke aura',
+      '卯': 'sun-dappled ancient garden, cherry blossoms, lotus pond and wooden bridge',
+      '辰': 'celestial clouds, jade ornaments, mythical spiral energy',
+      '巳': 'silk smoke trails, moonlit bamboo, elegant geometric motifs',
+      '午': 'golden grassland, flowing ribbons, horizon glow and dust sparkles',
+      '未': 'pastel meadow, soft floating petals, gentle prayer flags',
+      '申': 'floating paper charms, playful light streaks, layered temple roofs',
+      '酉': 'dawn courtyard, lacquered wood details, radiant halo feathers',
+      '戌': 'guardian gate, warm lanterns, subtle protective sigils',
+      '亥': 'dreamy mist, jeweled waterdrops, tranquil moon garden'
+    };
+    var bgMap = {
+      wood: 'enchanted forest with cherry blossoms, mint glow and soft volumetric light',
+      fire: 'warm sunset sanctuary with peach clouds, ember particles and cinematic rays',
+      earth: 'cozy ancient garden with creamy stone textures and floating dandelion light',
+      metal: 'ethereal moonlit pavilion with silver reflections and crystalline sparkles',
+      water: 'serene lotus waterscape with sky-blue haze and bioluminescent ripples'
+    };
+    var costumeMap = {
+      wood: 'flowing hanbok-inspired robe in mint and cream, subtle leaf embroidery with gold accents',
+      fire: 'layered silk attire in coral and rose, elegant gold thread flame motifs',
+      earth: 'soft draped garment in honey and ivory, handcrafted earth-pattern trim',
+      metal: 'refined ceremonial outfit in pearl and silver, delicate metallic embroidery',
+      water: 'graceful pastel costume in sky blue and lavender, wave-pattern silk details'
+    };
+    var colorMap = {
+      wood: 'creamy white, mint green, powder pink, light sage',
+      fire: 'cream, peach, powder pink, warm coral, soft gold',
+      earth: 'cream, honey beige, butter yellow, muted apricot',
+      metal: 'pearl white, lavender mist, silver blue, cool gray',
+      water: 'sky blue, powder pink, lavender, mint green, aqua'
+    };
+
+    return [
+      'A breathtaking, high-definition anime illustration of a beautiful ' + animal + ' character inspired by Saju and Eastern zodiac symbolism.',
+      'Style direction: warm, sentimental, emotionally resonant, modern fantasy animation quality with delicate linework and painterly shading.',
+      'Color palette: soft ethereal pastels (' + (colorMap[el] || colorMap.wood) + ').',
+      'Character design: expressive sparkling eyes, elegant silhouette, velvety fur or refined scales, graceful pose, symbolic accessories tied to Saju energy (' + (a.keyword || 'balanced destiny energy') + ').',
+      'Costume: ' + (costumeMap[el] || costumeMap.wood) + '.',
+      'Background: ' + (bgMap[el] || bgMap.wood) + ', plus zodiac motifs: ' + (zhiMotif[dayZhi] || 'ancient oriental garden, floating petals, mystical stardust') + '.',
+      'Mood: peaceful, mystical, heartwarming; soft diffused cinematic lighting, glowing particles, depth of field, premium illustration finish.',
+      'Saju context tags: dominant element ' + el + ', day branch ' + (dayZhi || 'unknown') + ', strength ' + (power || 'balanced') + ', ten-god ' + (tenGod || 'harmonized') + '.',
+      'Composition: centered character portrait, rich scenic details, no text, no logo, no watermark, no typography, ultra clean render, 4k quality.'
+    ].join(' ');
+  }
+
+  function buildNegativePrompt() {
+    return [
+      'lowres',
+      'blurry',
+      'pixelated',
+      'distorted anatomy',
+      'extra limbs',
+      'deformed face',
+      'mutated hands',
+      'flat shading',
+      'washed colors',
+      'dull composition',
+      'text',
+      'logo',
+      'watermark'
+    ].join(', ');
+  }
+
+  /* ─────────────────────────────────────
      4. 설명 문구 생성
   ───────────────────────────────────── */
   function buildDescription(totemData) {
@@ -532,6 +610,8 @@
       dayZhi: totemData.dayZhi || '',
       element: totemData.element || ''
     } : null;
+    var qualityPrompt = buildPrompt(totemData);
+    var negativePrompt = buildNegativePrompt();
     fetch('/api/guardian-avatar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -541,6 +621,8 @@
         totemAnimal: totemAnimal,
         renderMode: 'saju-animal',
         styleIntensity: styleIntensity,
+        prompt: qualityPrompt,
+        negativePrompt: negativePrompt,
         renderOptions: {
           canvasSize: 1024,
           quality: 'ultra',
@@ -706,6 +788,9 @@
       ctx.clearRect(0, 0, cssSize, cssSize);
       drawCanvasBackdrop(ctx, cssSize, (totemData && totemData.element) || 'wood');
       ctx.drawImage(img, dx, dy, dw, dh);
+      if (isFlatRenderedCanvas(ctx, cssSize)) {
+        if (typeof onFail === 'function') onFail();
+      }
     };
     img.onerror = function () {
       if (typeof onFail === 'function') onFail();

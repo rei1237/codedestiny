@@ -92,132 +92,17 @@ function _renderSukuyoSection(profile) {
     '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   var b = profile.birth;
-  var l = profile.location || {};
-
-  function toLunarFromContext(ctx) {
-    var lunar = ctx && ctx.lunar ? ctx.lunar : null;
-    if (!lunar) return null;
-    var y = Number(lunar.year);
-    var m = Number(lunar.month);
-    var d = Number(lunar.day);
-    if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
-    return {
-      year: y,
-      month: m,
-      day: d,
-      isLeap: !!lunar.isLeap
-    };
-  }
-
-  function toLunarFallback() {
-    try {
-      if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-        return KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
-      }
-    } catch (e) {
-      console.warn('[Sukuyo] lunarObj fallback 계산 오류:', e);
+  var lunarObj = null;
+  try {
+    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
+      lunarObj = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
     }
-    return null;
+  } catch (e) {
+    console.warn('[Sukuyo] lunarObj 계산 오류:', e);
   }
-
-  function renderWith(lunarObj) {
-    setTimeout(function () {
-      if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
-    }, 0);
-  }
-
-  function _resolveFortuneApiBase() {
-    try {
-      if (typeof getFortuneApiBaseUrl === 'function') {
-        var base = String(getFortuneApiBaseUrl() || '').replace(/\/+$/, '');
-        if (base) return base;
-      }
-    } catch (e) {}
-    return '';
-  }
-
-  function _fetchSukuyoMansionIdxByAstronomyApi() {
-    var tz = l.tzOffset != null ? l.tzOffset : 9;
-    var endpoint = _resolveFortuneApiBase() + '/api/astro/planets';
-    var payload = {
-      year: b.year,
-      month: b.month,
-      day: b.day,
-      hour: b.hour != null ? b.hour : 12,
-      minute: b.minute != null ? b.minute : 0,
-      timezone: tz
-    };
-    return fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(function(res) {
-      return res && res.ok ? res.json() : null;
-    }).then(function(data) {
-      var moon = data && data.ok && data.planets ? Number(data.planets.Moon) : NaN;
-      if (!Number.isFinite(moon)) return null;
-      var normalized = ((moon % 360) + 360) % 360;
-      var idx = Math.floor(normalized / (360 / 27));
-      if (!Number.isFinite(idx)) return null;
-      if (idx < 0) idx = 0;
-      if (idx > 26) idx = 26;
-      return idx;
-    }).catch(function() {
-      return null;
-    });
-  }
-
-  function _attachSukuyoMansionIdx(lunarObj, idx) {
-    var target = lunarObj || { month: 1, day: 1, isLeap: false };
-    target._sukuyoMansionIdx = idx;
-    target._sukuyoSource = 'astronomy-api';
-    return target;
-  }
-
-  if (window.KasiCalendarService && typeof window.KasiCalendarService.resolveDateContext === 'function') {
-    window.KasiCalendarService.resolveDateContext({
-      calendarType: 'solar',
-      year: b.year,
-      month: b.month,
-      day: b.day,
-      hour: b.hour != null ? b.hour : 12,
-      minute: b.minute != null ? b.minute : 0,
-      latitude: l.lat != null ? l.lat : 37.5665,
-      longitude: l.lng != null ? l.lng : 126.978,
-      tzOffsetHours: l.tzOffset != null ? l.tzOffset : 9
-    }, {
-      setCurrent: true
-    }).then(function (ctx) {
-      var lunarObj = toLunarFromContext(ctx) || toLunarFallback();
-      _fetchSukuyoMansionIdxByAstronomyApi().then(function(idx) {
-        if (typeof idx === 'number') {
-          renderWith(_attachSukuyoMansionIdx(lunarObj, idx));
-          return;
-        }
-        renderWith(lunarObj);
-      });
-    }).catch(function (e) {
-      console.warn('[Sukuyo] KASI API 경유 변환 실패, fallback 사용:', e);
-      var fallbackLunar = toLunarFallback();
-      _fetchSukuyoMansionIdxByAstronomyApi().then(function(idx) {
-        if (typeof idx === 'number') {
-          renderWith(_attachSukuyoMansionIdx(fallbackLunar, idx));
-          return;
-        }
-        renderWith(fallbackLunar);
-      });
-    });
-    return;
-  }
-
-  var directFallback = toLunarFallback();
-  _fetchSukuyoMansionIdxByAstronomyApi().then(function(idx) {
-    if (typeof idx === 'number') {
-      renderWith(_attachSukuyoMansionIdx(directFallback, idx));
-      return;
-    }
-    renderWith(directFallback);
-  });
+  setTimeout(function () {
+    if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj);
+  }, 0);
 }
 
 function _renderZiweiSection() {

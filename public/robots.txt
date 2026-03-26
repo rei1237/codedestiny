@@ -30,6 +30,11 @@ Host: https://code-destiny.com
 Sitemap: https://code-destiny.com/sitemap.xml
 Sitemap: https://code-destiny.com/rss.xml
 
+
+Host: https://code-destiny.com
+Sitemap: https://code-destiny.com/sitemap.xml
+Sitemap: https://code-destiny.com/rss.xml
+
 User-agent: Googlebot
 Allow: /
 

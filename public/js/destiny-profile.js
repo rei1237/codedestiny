@@ -66,18 +66,6 @@
     }
   }
 
-  function _applyDesktopMasterCardReserve() {
-    var card = document.getElementById('dpMasterCard');
-    if (!card) return;
-    var isDesktop = false;
-    try {
-      isDesktop = window.matchMedia('(min-width: 901px)').matches;
-    } catch (e) {
-      isDesktop = false;
-    }
-    card.style.minHeight = isDesktop ? '320px' : '';
-  }
-
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
@@ -251,7 +239,6 @@
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
-    _applyDesktopMasterCardReserve();
 
     if (!profile) {
       el.innerHTML = _emptyCard();
@@ -921,64 +908,9 @@
         if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
         return 'pisces';
       }
-      function _olympusResolveTimezoneOffset(birth, location) {
-        try {
-          var resolved = resolveTimezoneOffset(birth || {}, location || {});
-          if (resolved && typeof resolved.tzOffsetHours === 'number' && !isNaN(resolved.tzOffsetHours)) {
-            return resolved.tzOffsetHours;
-          }
-        } catch (e) {}
+      function _olympusTimezoneOffset() {
         var offset = -new Date().getTimezoneOffset() / 60;
         return Number.isFinite(offset) ? offset : 9;
-      }
-      function _olympusFetchPlanetsCached(payload) {
-        try {
-          if (typeof window.__fetchVedicPlanetsCached === 'function') {
-            return window.__fetchVedicPlanetsCached(payload);
-          }
-        } catch (e) {}
-
-        var CACHE_TTL_MS = 2 * 60 * 1000;
-        function fetchImpl(innerPayload) {
-          var key = '';
-          try {
-            key = JSON.stringify(innerPayload || {});
-          } catch (e) {
-            key = String(Date.now());
-          }
-          var now = Date.now();
-          var bucket = window.__vedicPlanetsRequestCache || (window.__vedicPlanetsRequestCache = { data: {}, inflight: {} });
-          var cached = bucket.data[key];
-          if (cached && cached.expiresAt > now) {
-            return Promise.resolve(cached.value);
-          }
-          if (bucket.inflight[key]) {
-            return bucket.inflight[key];
-          }
-          var req = fetch('/api/astro/planets', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(innerPayload)
-          })
-            .then(function(res) { return res.ok ? res.json() : null; })
-            .then(function(data) {
-              if (data && data.ok) {
-                bucket.data[key] = {
-                  value: data,
-                  expiresAt: now + CACHE_TTL_MS
-                };
-              }
-              return data;
-            })
-            .finally(function() {
-              delete bucket.inflight[key];
-            });
-          bucket.inflight[key] = req;
-          return req;
-        }
-
-        try { window.__fetchVedicPlanetsCached = fetchImpl; } catch (e) {}
-        return fetchImpl(payload);
       }
       function _olympusToDateString(birth) {
         var mm = String(birth.month).padStart(2, '0');
@@ -1025,19 +957,23 @@
           time: _olympusToTimeString(b)
         };
         var fallbackKey = _olympusSunSignFromDate(b.month, b.day);
-        var olympusTzOffset = _olympusResolveTimezoneOffset(b, pOlympus.location || {});
-        _olympusFetchPlanetsCached({
-          year: b.year,
-          month: b.month,
-          day: b.day,
-          hour: b.hour != null ? b.hour : 12,
-          minute: b.minute != null ? b.minute : 0,
-          timezone: olympusTzOffset
+        fetch('/api/vedic/planets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            year: b.year,
+            month: b.month,
+            day: b.day,
+            hour: b.hour != null ? b.hour : 12,
+            minute: b.minute != null ? b.minute : 0,
+            timezone: _olympusTimezoneOffset()
+          })
         })
+          .then(function(res) { return res.ok ? res.json() : null; })
           .then(function(data) {
-            payload.timezone = olympusTzOffset;
             if (data && data.ok && data.planets && typeof data.planets.Sun === 'number') {
-              var tropical = data.planets.Sun % 360;
+              var ayanamsa = typeof data.ayanamsa === 'number' ? data.ayanamsa : 0;
+              var tropical = (data.planets.Sun + ayanamsa) % 360;
               var idx = Math.floor(((tropical % 360) + 360) % 360 / 30);
               var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
               payload.sunKey = signs[idx];
@@ -1142,8 +1078,6 @@
   function init() {
     /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
-
-    _applyDesktopMasterCardReserve();
 
     renderMasterCard(DPStorage.current());
 
@@ -1342,10 +1276,7 @@
 
     window.addEventListener('pageshow', function() {
       dpCloseList();
-      _applyDesktopMasterCardReserve();
     }, { passive: true });
-
-    window.addEventListener('resize', _applyDesktopMasterCardReserve, { passive: true });
   }
 
   if (document.readyState === 'loading') {

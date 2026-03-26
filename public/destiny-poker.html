@@ -2126,7 +2126,7 @@ ${closingLine}`;
   const gaugeColor = win
     ? (intensity>=800?'#f0c040':intensity>=500?'#c9940f':'#9e7010')
     : (intensity<=200?'#cc2222':intensity<=400?'#aa2222':'#7a1515');
-  const gaugePct = Math.max(0, Math.min(100, Math.round(((intensity+99)/1098)*100)));
+  const gaugePct = Math.round(intensity/999*100);
 
   // ── 누적 intensity 저장 및 all4 해금 체크
   // 999를 정확히 달성했을 때만 4인 연속 대결 해금
@@ -2164,6 +2164,7 @@ ${closingLine}`;
     <div class="guide-box">${sg[win?'win':'lose']}</div>
     <div class="r-divider"></div>
     <div class="meter-block">
+    <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
         운명의 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
@@ -2181,6 +2182,7 @@ ${closingLine}`;
         <span>-99%</span><span>0%</span><span>999%</span>
       </div>
     </div>
+      const gaugePct = Math.round(((intensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
       <button class="btn-share-kakao" onclick="sharePokerKakao()">
@@ -2785,43 +2787,6 @@ function buildAllWinLongOracle(wins){
   `;
 }
 
-function buildGauntletDealerDetailBlocks(results){
-  if(!results || !results.length) return '';
-  return results.map((r, idx)=>{
-    const D = DEALER_DATA[r.id];
-    const suit = r.suit || '♠';
-    const sd = SUITS[suit] || SUITS['♠'];
-    const dsReport = (DEALER_SUIT_REPORT[r.id] || {})[suit] || null;
-    const dsEntry = dsReport ? dsReport[r.win?'win':'lose'] : null;
-    const rankTip = (RANK_ACTION[r.topVal] || RANK_ACTION[10])[r.win?'win':'lose'];
-    const verdict = r.win ? '승리' : '패배';
-    const verdictColor = r.win ? '#f0c040' : 'var(--crimson-b)';
-
-    const body = dsEntry
-      ? `
-        <div class="r-section-body">${dsEntry.overture}</div>
-        <div class="r-section-body" style="margin-top:.45rem;">${dsEntry.domainFortune}</div>
-        <div class="r-section-body" style="margin-top:.45rem;">${dsEntry.suitChannel}</div>
-      `
-      : `
-        <div class="r-section-body">${D.name}의 영역인 ${D.theme}에서 ${verdict}했습니다. 문양 ${suit}(${sd.name})의 기운은 ${sd.theme}로 발현됩니다.</div>
-      `;
-
-    return `
-      <div class="r-section-block" style="border-left-color:${D.color};background:rgba(255,255,255,.03);">
-        <div class="r-section-label" style="color:${D.color};">${idx+1}. ${D.name} 결전 분석</div>
-        <div class="r-row" style="margin-bottom:.35rem;">
-          <span class="r-label">결전 결과</span><span class="r-val" style="color:${verdictColor};">${verdict} · ${r.playerHandName} vs ${r.dealerHandName}</span>
-        </div>
-        <div class="r-row" style="margin-bottom:.35rem;">
-          <span class="r-label">핵심 문양</span><span class="r-val">${suit} ${sd.name} · ${sd.theme}</span>
-        </div>
-        ${body}
-        <div class="r-rank-tip" style="margin-top:.55rem;">${rankTip}</div>
-      </div>`;
-  }).join('');
-}
-
 // ── 4-WAY REPORT ──
 function buildReport4(){
   const wins = G4.results.filter(r=>r.win);
@@ -2882,8 +2847,6 @@ function buildReport4(){
     </div>
   `;
 
-  const perDealerDetails = buildGauntletDealerDetailBlocks(G4.results);
-
   const oracleHtml = overallResult==='allwin'
     ? buildAllWinLongOracle(wins)
     : normalOracle;
@@ -2902,10 +2865,8 @@ function buildReport4(){
     <div class="r-divider"></div>
     <div class="oracle-box">${oracleHtml}</div>
     <div class="r-divider"></div>
-    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">딜러 분야별 상세 운세</div>
-    ${perDealerDetails}
-    <div class="r-divider"></div>
     <div class="meter-block">
+      <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
         평균 운명 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">(최소 -99% / 최대 999%)</span>
@@ -2920,6 +2881,7 @@ function buildReport4(){
         <span>-99%</span><span>0%</span><span>999%</span>
       </div>
     </div>
+      const gaugePct=Math.round(((avgIntensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
       <button class="btn-share-kakao" onclick="shareAll4Kakao()">

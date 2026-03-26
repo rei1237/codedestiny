@@ -2110,3 +2110,8 @@ function inferTopic(article) {
 export function getTopicKey(article) {
   return inferTopic(article);
 }
+
+export function getArticlesByTopic(topicKey) {
+  if (!topicKey || topicKey === "all") return INSIGHT_ARTICLES;
+  return INSIGHT_ARTICLES.filter((article) => inferTopic(article) === topicKey);
+}
