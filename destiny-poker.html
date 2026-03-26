@@ -759,7 +759,7 @@ body{font-size:15px;}
   <div class="fold-box">
     <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
     <div class="fold-text" id="fold-text"></div>
-    <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
+    <button class="fold-close" data-cd-inline-click="closeFoldModal">운명을 받아들이겠습니다</button>
   </div>
 </div>
 
@@ -769,8 +769,8 @@ body{font-size:15px;}
     <div class="fold4-title">🃏 포기하려는가?</div>
     <div class="fold4-reactions" id="fold4-reactions"></div>
     <div class="fold4-buttons">
-      <button class="fold4-confirm" onclick="confirmFold4()">⚔️ 폴드하겠습니다</button>
-      <button class="fold4-cancel" onclick="closeFold4Modal()">계속 싸우겠습니다</button>
+      <button class="fold4-confirm" data-cd-inline-click="confirmFold4">⚔️ 폴드하겠습니다</button>
+      <button class="fold4-cancel" data-cd-inline-click="closeFold4Modal">계속 싸우겠습니다</button>
     </div>
   </div>
 </div>
@@ -784,7 +784,7 @@ body{font-size:15px;}
   <div class="name-group">
     <span class="name-label">당신의 이름을 밝혀라</span>
     <input class="name-input" id="name-input" type="text" placeholder="이름을 입력하시오…" maxlength="10" autocomplete="off">
-    <button class="btn-fate" onclick="goToDealer()">운명의 문을 열어라</button>
+    <button class="btn-fate" data-cd-inline-click="goToDealer">운명의 문을 열어라</button>
   </div>
 </div>
 
@@ -793,7 +793,7 @@ body{font-size:15px;}
   <h2 class="section-title">대결할 운명의 딜러를 선택하라</h2>
   <p class="greeting"><span id="greet-name"></span>, 프로비던스 홀에 오신 것을 환영한다.</p>
   <div class="dealers-grid">
-    <div class="dealer-card" data-d="amon" onclick="pickDealer('amon')">
+    <div class="dealer-card" data-d="amon" data-cd-inline-click="pickDealer" data-cd-inline-click-args="amon">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/greedyman.webp" alt="탐욕의 아몬" loading="lazy">
       </div>
@@ -803,7 +803,7 @@ body{font-size:15px;}
         <div class="d-quote">"너의 금전적 야망, 그 무게를 감당할 수 있겠나?"</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="ishtar" onclick="pickDealer('ishtar')">
+    <div class="dealer-card" data-d="ishtar" data-cd-inline-click="pickDealer" data-cd-inline-click-args="ishtar">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokergirl.webp" alt="매혹의 이슈타르" loading="lazy">
       </div>
@@ -813,7 +813,7 @@ body{font-size:15px;}
         <div class="d-quote" id="ishtar-q">"사랑이라는 독배를 마실 준비가 되었니?"</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="thanatos" onclick="pickDealer('thanatos')">
+    <div class="dealer-card" data-d="thanatos" data-cd-inline-click="pickDealer" data-cd-inline-click-args="thanatos">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokerwarrior.webp" alt="침묵의 타나토스" loading="lazy">
       </div>
@@ -823,7 +823,7 @@ body{font-size:15px;}
         <div class="d-quote">"너의 시간은 흐르고 있다. 육체의 불꽃을 지켜보지."</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="metatron" onclick="pickDealer('metatron')">
+    <div class="dealer-card" data-d="metatron" data-cd-inline-click="pickDealer" data-cd-inline-click-args="metatron">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokergod.webp" alt="공허의 메타트론" loading="lazy">
       </div>
@@ -837,7 +837,7 @@ body{font-size:15px;}
 
   <!-- 4-WAY CHALLENGE BUTTON -->
   <div class="all4-wrap">
-    <button class="btn-all4 locked" id="btn-all4" onclick="tryStartAll4()">
+    <button class="btn-all4 locked" id="btn-all4" data-cd-inline-click="tryStartAll4">
       <span class="all4-lock-icon" id="all4-lock-icon">🔒</span>
       <span id="all4-btn-label">4신 연속 대결 — 운명의 최후 심판</span>
     </button>
@@ -963,7 +963,7 @@ body{font-size:15px;}
 <!-- SCREEN 5: REPORT -->
 <div class="screen hidden" id="screen-report">
   <div class="report-scroll" id="report-content"></div>
-  <button class="btn-restart" onclick="restartGame()">다시 운명에 도전하라</button>
+  <button class="btn-restart" data-cd-inline-click="restartGame">다시 운명에 도전하라</button>
 </div>
 
 <script>
@@ -2183,7 +2183,7 @@ ${closingLine}`;
     </div>
     <div class="r-divider"></div>
     <div class="report-actions">
-      <button class="btn-share-kakao" onclick="sharePokerKakao()">
+      <button class="btn-share-kakao" data-cd-inline-click="sharePokerKakao">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
         카카오톡 공유하기
       </button>
@@ -2882,7 +2882,7 @@ function buildReport4(){
       const gaugePct=Math.round(((avgIntensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
-      <button class="btn-share-kakao" onclick="shareAll4Kakao()">
+      <button class="btn-share-kakao" data-cd-inline-click="shareAll4Kakao">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
         카카오톡 공유하기
       </button>
@@ -2998,5 +2998,6 @@ function sharePokerKakao(){
 // ── Enter key ──
 document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')goToDealer();});
 </script>
+<script src="/js/cd-inline-click-binder.js" defer></script>
 </body>
 </html>

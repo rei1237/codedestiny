@@ -184,7 +184,7 @@
           핀란드의 고대 마법, 돼지점(Sikojen Povailu)에 오신 것을 환영해!<br>
           <em>핀란드 겨울의 차가움 속에는 아주 따뜻한 미래가 숨어있어.</em>
         </p>
-        <button class="btn" onclick="switchPhase('category')">
+        <button class="btn" data-cd-inline-click="switchPhase" data-cd-inline-click-args="category">
           <span>🌸</span>
           <span>시작하기</span>
           <span>→</span>
@@ -199,13 +199,13 @@
         <h2 style="font-size: 1.8rem; color: var(--sikojen-dark); margin-bottom: 30px;">당신의 마음이 가는 것을 선택해</h2>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; padding: 0 20px; max-width: 600px; margin: 0 auto;">
-          <button class="btn" onclick="selectCategory('wealth')" style="width: 100%; background: linear-gradient(135deg, #C8E6C9, #A8E6CF); color: white;">
+          <button class="btn" data-cd-inline-click="selectCategory" data-cd-inline-click-args="wealth" style="width: 100%; background: linear-gradient(135deg, #C8E6C9, #A8E6CF); color: white;">
             💰 금전운
           </button>
-          <button class="btn" onclick="selectCategory('love')" style="width: 100%; background: linear-gradient(135deg, #F8BBD0, #F48FB1); color: white;">
+          <button class="btn" data-cd-inline-click="selectCategory" data-cd-inline-click-args="love" style="width: 100%; background: linear-gradient(135deg, #F8BBD0, #F48FB1); color: white;">
             ❤️ 연애운
           </button>
-          <button class="btn" onclick="selectCategory('luck')" style="width: 100%; background: linear-gradient(135deg, #FFE0B2, #FFCC80); color: white;">
+          <button class="btn" data-cd-inline-click="selectCategory" data-cd-inline-click-args="luck" style="width: 100%; background: linear-gradient(135deg, #FFE0B2, #FFCC80); color: white;">
             ✨ 행운
           </button>
         </div>
@@ -234,8 +234,8 @@
         </div>
 
         <div style="margin-top: 40px; display: flex; gap: 15px; flex-direction: column; align-items: center;">
-          <button class="btn" onclick="shareResult()" style="width: 250px;">📤 친구에게 공유</button>
-          <button class="btn" onclick="switchPhase('welcome')" style="background: linear-gradient(135deg, #FFCC80, #FFB74D); width: 250px;">🔄 다시 시작</button>
+          <button class="btn" data-cd-inline-click="shareResult" style="width: 250px;">📤 친구에게 공유</button>
+          <button class="btn" data-cd-inline-click="switchPhase" data-cd-inline-click-args="welcome" style="background: linear-gradient(135deg, #FFCC80, #FFB74D); width: 250px;">🔄 다시 시작</button>
         </div>
       </div>
     </div>
@@ -377,5 +377,6 @@
       }
     }
   </script>
+  <script src="/js/cd-inline-click-binder.js" defer></script>
 </body>
 </html>

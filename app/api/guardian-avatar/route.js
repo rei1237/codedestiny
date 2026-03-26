@@ -218,6 +218,14 @@ function normalizeStyleIntensity(intensity) {
   return v === "strong" ? "strong" : "soft";
 }
 
+function normalizeOutputSize(size, renderMode) {
+  const mode = normalizeRenderMode(renderMode);
+  if (mode === "profile-mini") return 160;
+  const parsed = safeInt(size, 640);
+  const clamped = Math.max(384, Math.min(1024, parsed));
+  return Math.max(384, Math.round(clamped / 32) * 32);
+}
+
 function sanitizeAnimalNameKr(value) {
   return String(value || "")
     .replace(/^\s*아기\s*/g, "")
@@ -286,16 +294,18 @@ function fallbackAnimalByElement(element) {
   return map[element] || map.wood;
 }
 
-function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
+function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt) {
   const birth = (profile && profile.birth) || {};
   const loc = (profile && profile.location) || {};
   const gender = normalizeProfileGender(profile && profile.gender);
+  const targetSize = normalizeOutputSize(outputSize, renderMode);
+  const promptSeed = String(avatarPrompt || imagePrompt || "").trim();
 
   if (renderMode === "profile-mini") {
     return [
       "너는 프로필 카드용 미니 가디언 아이콘 디자이너다.",
       "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-      "SVG는 정확히 160x160, 정사각형, 작은 썸네일에서도 식별 가능한 단순 만화풍 아이콘으로 생성하라.",
+      "SVG는 정확히 " + targetSize + "x" + targetSize + ", 정사각형, 작은 썸네일에서도 식별 가능한 단순 만화풍 아이콘으로 생성하라.",
       "얼굴 중심(머리 위주) 클로즈업만 그리고, 배경은 완전 단색 하나만 사용하라.",
       "디테일 과잉, 복잡한 레이어, 미세 텍스처를 금지한다.",
       "소품/장식 요소를 넣지 말고, 한눈에 인지되는 얼굴 실루엣만 남겨라.",
@@ -342,7 +352,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
   return [
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
-    "SVG는 1024x1024, 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "SVG는 " + targetSize + "x" + targetSize + ", 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
     "스타일은 동화풍 스케치가 아니라 완성된 만화풍 일러스트로, 명확한 윤곽선과 디테일한 눈동자/헤어(털) 결을 표현하라.",
     "만화풍 강도 지시: " + styleGuide,
     "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
@@ -357,6 +367,7 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity) {
     "색감은 파스텔톤 중심(저채도, 부드러운 명도 대비)으로 통일하고 공격적/다크 톤은 금지한다.",
     "이미지 안에 문자, 로고, 워터마크, 이름을 절대 넣지 마라.",
     "사주 성향 기반 표정과 오행 기반 배경을 반드시 반영하라.",
+    promptSeed ? ("아바타 프롬프트 시드: " + promptSeed) : "아바타 프롬프트 시드: pastel cute guardian with clear species identity.",
     "사용자 프로필:",
     JSON.stringify({
       birth: {
@@ -584,9 +595,9 @@ function speciesInnerFeatures(species, size, palette, stroke, cx, cy) {
   return '<ellipse cx="' + cx + '" cy="' + Math.round(size * 0.58) + '" rx="' + Math.round(size * 0.05) + '" ry="' + Math.round(size * 0.035) + '" fill="' + palette.accent + '"/>';
 }
 
-function buildFallbackGuardianSvg(visual, totemAnimal, renderMode, styleIntensity) {
+function buildFallbackGuardianSvg(visual, totemAnimal, renderMode, styleIntensity, outputSize) {
   const mode = normalizeRenderMode(renderMode);
-  const size = mode === "profile-mini" ? 160 : 512;
+  const size = normalizeOutputSize(outputSize, mode);
   const dominant = String((visual && visual.dominantElement) || "wood").trim() || "wood";
   const palette = fallbackPalette(dominant, normalizeStyleIntensity(styleIntensity));
   const animalName = escapeXml(String((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby guardian").trim());
@@ -622,13 +633,13 @@ function buildFallbackGuardianSvg(visual, totemAnimal, renderMode, styleIntensit
   );
 }
 
-function buildFallbackGuardian(profile, visual, totemAnimal, renderMode, styleIntensity, reason) {
+function buildFallbackGuardian(profile, visual, totemAnimal, renderMode, styleIntensity, reason, outputSize) {
   const mode = normalizeRenderMode(renderMode);
   const style = normalizeStyleIntensity(styleIntensity);
   const fallbackAnimal = fallbackAnimalByElement((visual && visual.dominantElement) || "wood");
   const animalName = String((totemAnimal && totemAnimal.name) || fallbackAnimal.name || "아기 수호동물").trim();
   const animalNameEn = String((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || fallbackAnimal.nameEn || "baby guardian").trim();
-  const svg = buildFallbackGuardianSvg(visual, totemAnimal, mode, style);
+  const svg = buildFallbackGuardianSvg(visual, totemAnimal, mode, style, outputSize);
 
   return {
     title: mode === "profile-mini" ? "미니 가디언" : animalName + " 가디언",
@@ -646,7 +657,7 @@ function buildFallbackGuardian(profile, visual, totemAnimal, renderMode, styleIn
   };
 }
 
-async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensity) {
+async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt) {
   const keys = pickGeminiApiKeys();
   if (!keys.length) {
     throw Object.assign(new Error("GEMINI_API_KEY 또는 GOOGLE_API_KEY가 필요합니다."), { status: 500 });
@@ -654,7 +665,8 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
 
   const normalizedMode = normalizeRenderMode(renderMode);
   const normalizedStyle = "strong";
-  const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle);
+  const normalizedSize = normalizeOutputSize(outputSize, normalizedMode);
+  const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle, normalizedSize, avatarPrompt, imagePrompt);
   const models = modelCandidates();
   const expectedSpecies = normalizeAnimalSpeciesToken((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "");
   let lastError = null;
@@ -673,7 +685,8 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
               generationConfig: {
                 temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
                 topP: 0.95,
-                maxOutputTokens: normalizedMode === "profile-mini" ? 700 : 3600,
+                maxOutputTokens:
+                  normalizedMode === "profile-mini" ? 700 : normalizedSize <= 640 ? 2200 : normalizedSize <= 768 ? 2800 : 3400,
               },
             }),
             signal: controller.signal,
@@ -770,6 +783,9 @@ export async function POST(request) {
     const totemAnimal = normalizeTotemAnimal(body?.totemAnimal || null);
     const renderMode = normalizeRenderMode(body?.renderMode || null);
     const styleIntensity = normalizeStyleIntensity(body?.styleIntensity || null);
+    const outputSize = normalizeOutputSize(body?.outputSize || null, renderMode);
+    const avatarPrompt = String(body?.avatarPrompt || "").trim();
+    const imagePrompt = String(body?.imagePrompt || "").trim();
     if (!profile || !profile.birth) {
       return NextResponse.json({ ok: false, message: "profile.birth가 필요합니다." }, { status: 400 });
     }
@@ -777,7 +793,7 @@ export async function POST(request) {
     const visual = analyzeSajuVisual(profile, sajuAnalysis);
     let guardian;
     try {
-      guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity);
+      guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt);
     } catch (geminiError) {
       console.warn("[api/guardian-avatar] Gemini failed, using fallback guardian", geminiError);
       guardian = buildFallbackGuardian(
@@ -786,7 +802,8 @@ export async function POST(request) {
         totemAnimal,
         renderMode,
         styleIntensity,
-        geminiError?.message || "gemini-call-failed"
+        geminiError?.message || "gemini-call-failed",
+        outputSize
       );
     }
 
@@ -801,6 +818,7 @@ export async function POST(request) {
         svg_data_uri: toDataUri(guardian.svg),
         created_at: new Date().toISOString(),
         render_mode: renderMode,
+        output_size: outputSize,
         style_intensity: guardian.styleIntensity,
         generation_source: guardian.source || "unknown",
         fallback_reason: guardian.fallbackReason || null,

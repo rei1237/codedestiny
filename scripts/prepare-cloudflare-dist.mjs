@@ -26,6 +26,15 @@ if (existsSync(publicDir)) {
   console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${distDir}`);
 }
 
+// If Cloudflare Pages is configured to publish directly from `.open-next/assets` (common with
+// OpenNext deployments), ensure legacy static files are also merged there.
+// This prevents `/styles/*.css` (and other public assets) from being served as HTML fallback.
+const openNextAssetsDir = resolve(rootDir, ".open-next", "assets");
+if (existsSync(openNextAssetsDir) && existsSync(publicDir)) {
+  cpSync(publicDir, openNextAssetsDir, { recursive: true, force: true });
+  console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${openNextAssetsDir}`);
+}
+
 if (!existsSync(resolve(distDir, "index.html"))) {
   console.error("[prepare-cloudflare-dist] dist/index.html is missing after copy.");
   process.exit(1);

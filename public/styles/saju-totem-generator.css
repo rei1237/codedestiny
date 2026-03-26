@@ -463,6 +463,13 @@
 }
 .tarot-tile--saju-totem:hover::before { opacity: 1; }
 
+/* AI 배지(인라인 style 제거) */
+.tarot-tile--saju-totem .tarot-tile__badge {
+  background: linear-gradient(135deg,#7c3aed,#ec4899);
+  color: #fff;
+  border: none;
+}
+
 /* ── 반응형 ── */
 @media (min-width: 420px) {
   .stg-card__img-wrap { width: 340px; height: 340px; }

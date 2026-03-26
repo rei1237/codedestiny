@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
@@ -1020,7 +1020,7 @@
                         aria-label="생년월일 가디언 AI 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="AI가 그려주는 나의 수호신">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎨</span></div>
-                    <span class="tarot-tile__badge" style="background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;border:none;">AI</span>
+                    <span class="tarot-tile__badge">AI</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎨 사주로 볼때 나는 무슨 동물?</span>
@@ -3287,50 +3287,7 @@
 <script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
 
 <!-- 구글 번역 스크립트 -->
-<script>
-(function () {
-  var loaded = false;
-  function loadTranslate() {
-    if (loaded) return;
-    loaded = true;
-        cleanup();
-        var s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.async = true;
-    s.defer = true;
-    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    s.onerror = function () { loaded = false; };
-    document.head.appendChild(s);
-  }
-
-  function hasTranslateIntent() {
-    try {
-      if ((document.cookie || '').indexOf('googtrans=') !== -1) return true;
-      if ((location.search || '').indexOf('lang=') !== -1) return true;
-    } catch (_) {}
-    return false;
-  }
-
-  document.addEventListener('click', function (e) {
-    var t = e && e.target;
-    if (!t || !t.closest) return;
-    if (t.closest('.translate-lang-wrap, #translateLangToggleBtn, #translateLangCard, #google_translate_element')) {
-      loadTranslate();
-    }
-  }, { passive: true });
-
-  window.addEventListener('pointerdown', function () {
-    if (hasTranslateIntent()) loadTranslate();
-  }, { once: true, passive: true });
-
-  window.addEventListener('load', function () {
-    if (hasTranslateIntent()) {
-      loadTranslate();
-      return;
-    }
-  }, { once: true });
-})();
-</script>
+<script src="/js/cd-google-translate-lazy.js" defer></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3443,80 +3400,9 @@
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
-<script>
-(function () {
-  var loaded = false;
-
-  function loadSeq(srcList, idx) {
-    if (idx >= srcList.length) return;
-    var s = document.createElement('script');
-    s.src = srcList[idx];
-    s.defer = true;
-    s.async = false;
-    s.onload = function () { loadSeq(srcList, idx + 1); };
-    s.onerror = function () { loadSeq(srcList, idx + 1); };
-    document.body.appendChild(s);
-  }
-
-  function loadDeferredFeatureScripts() {
-    if (loaded) return;
-    loaded = true;
-    var nodes = document.querySelectorAll('script[data-cd-lazy-src]');
-    var srcList = [];
-    for (var i = 0; i < nodes.length; i++) {
-      var src = nodes[i].getAttribute('data-cd-lazy-src');
-      if (src) srcList.push(src);
-    }
-    if (!srcList.length) return;
-    loadSeq(srcList, 0);
-  }
-
-  function maybeLoadByIntent(e) {
-    var t = e && e.target;
-    if (!t || !t.closest) return;
-    if (t.closest('[data-action="openDreamLedger"], [data-action="analyzeDream"], [data-action="openPsychoDream"], [data-action="openEntertainHub"], #dreamLedgerModal, #psychoDreamModal')) {
-      loadDeferredFeatureScripts();
-    }
-  }
-
-  document.addEventListener('click', maybeLoadByIntent, { passive: true });})();
-</script>
+<script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script>
-(function () {
-  try {
-    var q = new URLSearchParams(location.search || '');
-    var debugVitals = window.__ENABLE_WEB_VITALS_CONSOLE__ === true
-      || q.get('debugVitals') === '1'
-      || localStorage.getItem('debug.vitals') === '1';
-    if (!debugVitals) return;
-  } catch (e) {
-    if (window.__ENABLE_WEB_VITALS_CONSOLE__ !== true) return;
-  }
-
-  try {
-    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    var saveData = !!(conn && conn.saveData);
-    var et = conn && conn.effectiveType ? String(conn.effectiveType).toLowerCase() : '';
-    var isSlow = et === 'slow-2g' || et === '2g';
-    var isMobile = window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-    if ((isMobile && (saveData || isSlow)) || saveData) return;
-
-    var loadVitals = function () {
-      var s = document.createElement('script');
-      s.type = 'module';
-      s.src = '/js/web-vitals-console.js';
-      document.body.appendChild(s);
-    };
-
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(loadVitals, { timeout: 3500 });
-    } else {
-      setTimeout(loadVitals, 1200);
-    }
-  } catch (e) {}
-})();
-</script>
+<script src="/js/cd-web-vitals-console-gated.js" defer></script>
 
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>

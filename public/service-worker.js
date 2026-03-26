@@ -6,8 +6,8 @@ const SW_VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
 const CACHE_NAME = `kkul-mansaeryeok-${SW_VERSION}`;
 
 const PRECACHE_URLS = [
-  '/manifest.json',
-  '/manifest-samba.json'
+  // Cloudflare/WAF가 manifest 요청을 특정 경로/헤더 조합에서 403으로 차단하는 케이스가 있어,
+  // SW install 단계의 프리캐시는 제거하고 브라우저의 기본 요청으로 처리되도록 둡니다.
 ];
 
 self.addEventListener('install', event => {
@@ -46,6 +46,15 @@ self.addEventListener('fetch', event => {
   const requestUrl = new URL(event.request.url);
   const pathname = requestUrl.pathname.toLowerCase();
   const isSameOrigin = requestUrl.origin === self.location.origin;
+
+  // manifest(.json)는 SW가 프록시하지 않도록 제외합니다.
+  // (SW fetch 중간에서 403/HTML 응답이 섞이면 manifest 로드 실패 및 PWA 동작 문제로 이어질 수 있음)
+  if (
+    isSameOrigin &&
+    (pathname === '/manifest.json' || pathname === '/manifest-samba.json')
+  ) {
+    return;
+  }
 
   // HTML 문서는 항상 네트워크 우선(no-store)로 받아 구버전 셸 고착을 방지한다.
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
