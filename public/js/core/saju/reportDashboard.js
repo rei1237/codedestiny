@@ -749,14 +749,19 @@ function renderReportDashboard() {
   container.innerHTML = gridHtml;
 
   /* ── 기존 섹션을 슬롯 안으로 이동 ── */
+  var pendingTargets = [];
   blocks.forEach(function(b) {
     if (b.action === 'openLuckSyncDiary') return;
 
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);
     if (slot && !targetEl) {
-      var missingBlock = document.getElementById('rpt-v2-section-' + b.target);
-      if (missingBlock) missingBlock.style.display = 'none';
+      slot.innerHTML = ''
+        + '<div style="border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:10px 12px;color:#334155;font-size:.84rem;line-height:1.6;">'
+        + '<b>콘텐츠 준비 중입니다.</b><br>'
+        + '잠시 후 자동으로 복원됩니다.'
+        + '</div>';
+      pendingTargets.push(b.target);
       return;
     }
     if (slot && targetEl) {
@@ -776,6 +781,31 @@ function renderReportDashboard() {
       slot.appendChild(targetEl);
     }
   });
+
+  if (pendingTargets.length) {
+    var retryCount = 0;
+    var maxRetry = 20;
+
+    var retryAttach = function() {
+      retryCount += 1;
+      pendingTargets = pendingTargets.filter(function(targetId) {
+        var slot = document.getElementById('rpt-v2-body-' + targetId);
+        var targetEl = document.getElementById(targetId);
+        if (!slot || !targetEl) return true;
+
+        if (targetEl.style.display === 'none') targetEl.style.display = '';
+        slot.innerHTML = '';
+        slot.appendChild(targetEl);
+        return false;
+      });
+
+      if (pendingTargets.length && retryCount < maxRetry) {
+        setTimeout(retryAttach, 260);
+      }
+    };
+
+    setTimeout(retryAttach, 220);
+  }
 }
 
 function syncReportBlockHeight(block) {
