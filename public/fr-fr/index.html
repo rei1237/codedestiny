@@ -11,12 +11,28 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var s = document.createElement('script');
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-      s.onerror = function () {};
-      document.head.appendChild(s);
+      var loaded = false;
+      function loadAdsense() {
+        if (loaded) return;
+        loaded = true;
+        cleanup();
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+        s.onerror = function () {};
+        document.head.appendChild(s);
+      }
+
+      function cleanup() {
+        document.removeEventListener('pointerdown', loadAdsense, true);
+        document.removeEventListener('keydown', loadAdsense, true);
+        document.removeEventListener('scroll', loadAdsense, true);
+      }
+
+      document.addEventListener('pointerdown', loadAdsense, true);
+      document.addEventListener('keydown', loadAdsense, true);
+      document.addEventListener('scroll', loadAdsense, true);
     } catch (_) {}
   })();
   </script>
@@ -375,7 +391,7 @@
   <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
   <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- tailwind runtime CDN removed: static CSS is used -->
   <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
@@ -3238,11 +3254,6 @@
 
 <script src="/js/destiny-profile.js" defer></script>
 <script type="module" src="/js/swisseph-loader.js"></script>
-<script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
-<script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
-<script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
-<script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
-<script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
@@ -3276,7 +3287,50 @@
 <script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
 
 <!-- 구글 번역 스크립트 -->
-<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script>
+(function () {
+  var loaded = false;
+  function loadTranslate() {
+    if (loaded) return;
+    loaded = true;
+        cleanup();
+        var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.defer = true;
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    s.onerror = function () { loaded = false; };
+    document.head.appendChild(s);
+  }
+
+  function hasTranslateIntent() {
+    try {
+      if ((document.cookie || '').indexOf('googtrans=') !== -1) return true;
+      if ((location.search || '').indexOf('lang=') !== -1) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e && e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('.translate-lang-wrap, #translateLangToggleBtn, #translateLangCard, #google_translate_element')) {
+      loadTranslate();
+    }
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', function () {
+    if (hasTranslateIntent()) loadTranslate();
+  }, { once: true, passive: true });
+
+  window.addEventListener('load', function () {
+    if (hasTranslateIntent()) {
+      loadTranslate();
+      return;
+    }
+  }, { once: true });
+})();
+</script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3385,12 +3439,48 @@
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
-<script src="/js/dream-meaning-library.js" defer></script>
-<script src="/lib/ai-engine.js" defer></script>
-<script src="/js/luck-sync-diary.js" defer></script>
-<script src="/js/dream-ledger.js" defer></script>
-<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
-<script src="/js/entertain-engine.js" defer></script>
+<script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
+<script data-cd-lazy-src="/lib/ai-engine.js"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
+<script>
+(function () {
+  var loaded = false;
+
+  function loadSeq(srcList, idx) {
+    if (idx >= srcList.length) return;
+    var s = document.createElement('script');
+    s.src = srcList[idx];
+    s.defer = true;
+    s.async = false;
+    s.onload = function () { loadSeq(srcList, idx + 1); };
+    s.onerror = function () { loadSeq(srcList, idx + 1); };
+    document.body.appendChild(s);
+  }
+
+  function loadDeferredFeatureScripts() {
+    if (loaded) return;
+    loaded = true;
+    var nodes = document.querySelectorAll('script[data-cd-lazy-src]');
+    var srcList = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var src = nodes[i].getAttribute('data-cd-lazy-src');
+      if (src) srcList.push(src);
+    }
+    if (!srcList.length) return;
+    loadSeq(srcList, 0);
+  }
+
+  function maybeLoadByIntent(e) {
+    var t = e && e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-action="openDreamLedger"], [data-action="analyzeDream"], [data-action="openPsychoDream"], [data-action="openEntertainHub"], #dreamLedgerModal, #psychoDreamModal')) {
+      loadDeferredFeatureScripts();
+    }
+  }
+
+  document.addEventListener('click', maybeLoadByIntent, { passive: true });})();
+</script>
 <script type="module" src="/js/app.js"></script>
 <script>
 (function () {
@@ -3431,6 +3521,10 @@
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+
+
+
+
 
 
 

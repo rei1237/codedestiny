@@ -2126,7 +2126,7 @@ ${closingLine}`;
   const gaugeColor = win
     ? (intensity>=800?'#f0c040':intensity>=500?'#c9940f':'#9e7010')
     : (intensity<=200?'#cc2222':intensity<=400?'#aa2222':'#7a1515');
-  const gaugePct = Math.round(intensity/999*100);
+  const gaugePct = Math.max(0, Math.min(100, Math.round(((intensity+99)/1098)*100)));
 
   // ── 누적 intensity 저장 및 all4 해금 체크
   // 999를 정확히 달성했을 때만 4인 연속 대결 해금
@@ -2164,7 +2164,6 @@ ${closingLine}`;
     <div class="guide-box">${sg[win?'win':'lose']}</div>
     <div class="r-divider"></div>
     <div class="meter-block">
-    <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
         운명의 증폭 수치
         <span style="font-size:.65rem;display:block;margin-top:.3rem;color:${td.color}">
@@ -2182,7 +2181,6 @@ ${closingLine}`;
         <span>-99%</span><span>0%</span><span>999%</span>
       </div>
     </div>
-      const gaugePct = Math.round(((intensity+99)/1098)*100);
     <div class="r-divider"></div>
     <div class="report-actions">
       <button class="btn-share-kakao" onclick="sharePokerKakao()">

@@ -268,7 +268,8 @@ body {
 	margin: 0 0 14px;
 	line-height: 1.45;
 }
-.feat-collection__lede {
+.feat-collection__lede,
+.tarot-collection__lede {
 	margin: 0 auto 10px;
 	max-width: min(92%, 720px);
 	font-size: 0.79rem;
@@ -278,7 +279,8 @@ body {
 	color: rgba(245, 235, 255, 0.84);
 	text-wrap: pretty;
 }
-.feat-collection__featureline {
+.feat-collection__featureline,
+.tarot-collection__featureline {
 	margin: 0 auto 12px;
 	width: fit-content;
 	max-width: min(92%, 760px);
@@ -294,6 +296,14 @@ body {
 	box-shadow: 0 8px 24px rgba(2, 6, 23, 0.22), 0 0 0 1px rgba(255,255,255,0.06) inset;
 	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.18);
 	color: rgba(240, 232, 255, 0.92);
+}
+.feat-collection--animal .feat-collection__lede {
+	color: rgba(209, 250, 229, 0.92);
+}
+.feat-collection--animal .feat-collection__featureline {
+	color: rgba(209, 250, 229, 0.98);
+	border-color: rgba(110, 231, 183, 0.42);
+	background: linear-gradient(120deg, rgba(16, 185, 129, 0.28), rgba(13, 148, 136, 0.18));
 }
 .feat-collection--oracle .feat-collection__lede {
 	color: rgba(255, 241, 179, 0.9);
@@ -318,6 +328,14 @@ body {
 	color: rgba(251, 207, 232, 0.98);
 	border-color: rgba(244, 114, 182, 0.42);
 	background: linear-gradient(120deg, rgba(236, 72, 153, 0.3), rgba(157, 23, 77, 0.2));
+}
+.tarot-collection .tarot-collection__lede {
+	color: rgba(233, 225, 255, 0.92);
+}
+.tarot-collection .tarot-collection__featureline {
+	color: rgba(221, 214, 254, 0.98);
+	border-color: rgba(196, 181, 253, 0.42);
+	background: linear-gradient(120deg, rgba(109, 40, 217, 0.3), rgba(67, 56, 202, 0.2));
 }
 .feat-collection--animal .feat-collection__subtitle::after,
 .feat-collection--oracle .feat-collection__subtitle::after,
@@ -694,8 +712,10 @@ body {
 	.tarot-tile__body { padding: 10px 12px 12px; }
 	.tarot-tile__title { font-size: 0.85rem; }
 	.tarot-tile__desc { font-size: 0.7rem; }
-	.feat-collection__lede { font-size: 0.75rem; line-height: 1.55; margin-bottom: 8px; }
-	.feat-collection__featureline { font-size: 0.68rem; padding: 6px 12px; margin-bottom: 10px; }
+	.feat-collection__lede,
+	.tarot-collection__lede { font-size: 0.75rem; line-height: 1.55; margin-bottom: 8px; }
+	.feat-collection__featureline,
+	.tarot-collection__featureline { font-size: 0.68rem; padding: 6px 12px; margin-bottom: 10px; }
 	.tarot-tile__sticker--construction { font-size: 1.1rem; padding: 10px 16px; }
 }
 @media (max-width: 480px) {
@@ -709,8 +729,10 @@ body {
 	.tarot-tile__title { font-size: 0.78rem; }
 	.tarot-tile__desc { font-size: 0.65rem; }
 	.tarot-tile__sticker--construction { font-size: 0.95rem; padding: 8px 12px; letter-spacing: 0.1em; }
-	.feat-collection__lede { font-size: 0.72rem; line-height: 1.5; margin-bottom: 8px; }
-	.feat-collection__featureline { font-size: 0.63rem; line-height: 1.3; padding: 6px 10px; margin-bottom: 10px; }
+	.feat-collection__lede,
+	.tarot-collection__lede { font-size: 0.72rem; line-height: 1.5; margin-bottom: 8px; }
+	.feat-collection__featureline,
+	.tarot-collection__featureline { font-size: 0.63rem; line-height: 1.3; padding: 6px 10px; margin-bottom: 10px; }
 	.feat-collection__title,
 	.tarot-collection__title { font-size: 1.15rem; }
 	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }

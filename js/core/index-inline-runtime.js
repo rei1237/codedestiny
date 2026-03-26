@@ -600,13 +600,19 @@ var __cdLazyActionLoaders = {
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
+  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
+  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
   openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260323'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); }
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
+  checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
+  agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
+  calculate: function() { return __cdEnsureSajuCoreLoaded(); },
+  runCompat: function() { return __cdEnsureSajuCoreLoaded(); }
 };
 var __cdLazyActionState = {};
 
@@ -699,6 +705,114 @@ function __cdLoadScriptOnce(src) {
   });
 }
 
+var __cdSajuCoreLoadPromise = null;
+
+function __cdEnsureSajuCoreLoaded() {
+  if (window.__cdSajuCoreReady === 1) return Promise.resolve(true);
+  if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
+
+  var chain = [
+    '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
+    '/js/saju-engine.js?v=20260323-ziwei-fix1',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1',
+    '/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1',
+    '/js/saju-engine-continuation.js?v=20260320-saju-rpt1',
+    '/js/entertain-engine.js'
+  ];
+
+  __cdSajuCoreLoadPromise = chain.reduce(function(promise, src) {
+    return promise.then(function() { return __cdLoadScriptOnce(src); });
+  }, Promise.resolve()).then(function() {
+    window.__cdSajuCoreReady = 1;
+    return true;
+  }).catch(function(err) {
+    __cdSajuCoreLoadPromise = null;
+    throw err;
+  });
+
+  return __cdSajuCoreLoadPromise;
+}
+
+function __cdInstallSajuActionStub(actionName) {
+  if (!actionName) return;
+  if (typeof window[actionName] === 'function') return;
+  var stub = function() {
+    var args = arguments;
+    return __cdEnsureSajuCoreLoaded().then(function() {
+      var fn = window[actionName];
+      if (typeof fn === 'function' && fn !== stub) {
+        return fn.apply(window, args);
+      }
+      return undefined;
+    }).catch(function(err) {
+      console.error('[index-inline-runtime] saju core lazy load failed:', actionName, err);
+      return undefined;
+    });
+  };
+  window[actionName] = stub;
+}
+
+function __cdBindSajuIntentPrefetch() {
+  if (window.__cdSajuIntentPrefetchBound) return;
+  window.__cdSajuIntentPrefetchBound = 1;
+
+  var selectors = [
+    '#birthDate',
+    '#birthHour',
+    '#birthMinute',
+    '#birthCountry',
+    '#btnF',
+    '#btnM',
+    '[data-action="checkPrivacyAndCalculate"]',
+    '[data-action="agreeAndCalculate"]',
+    '[data-action="calculate"]',
+    '[data-action="runCompat"]'
+  ].join(',');
+
+  var trigger = function(event) {
+    var target = __cdResolveEventElement(event);
+    if (!target || !target.closest(selectors)) return;
+    __cdEnsureSajuCoreLoaded().catch(function(err) {
+      console.error('[index-inline-runtime] saju prefetch failed:', err);
+    });
+    document.removeEventListener('focusin', trigger, true);
+    document.removeEventListener('pointerdown', trigger, true);
+    document.removeEventListener('touchstart', trigger, true);
+  };
+
+  document.addEventListener('focusin', trigger, true);
+  document.addEventListener('pointerdown', trigger, true);
+  document.addEventListener('touchstart', trigger, true);
+}
+
+window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
+__cdInstallSajuActionStub('checkPrivacyAndCalculate');
+__cdInstallSajuActionStub('agreeAndCalculate');
+__cdInstallSajuActionStub('calculate');
+__cdInstallSajuActionStub('runCompat');
+window.openLuckSyncDiary = function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js').then(function() {
+    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
+      return window.LuckSyncDiary.open();
+    }
+    return undefined;
+  });
+};
+window.closeLuckSyncDiary = function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js').then(function() {
+    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
+      return window.LuckSyncDiary.close();
+    }
+    return undefined;
+  });
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __cdBindSajuIntentPrefetch, { once: true });
+} else {
+  __cdBindSajuIntentPrefetch();
+}
+
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
   var passSelfMode = actionEl.getAttribute('data-action-pass-self');
   var passEvent = actionEl.getAttribute('data-action-pass-event') === '1';
@@ -731,6 +845,10 @@ function __cdInvokeAction(action, actionEl, event) {
       if (typeof window[action] !== 'function') {
         if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
           window._dpOpenFortuneType('olympus');
+        } else if (action === 'openLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
+          window.LuckSyncDiary.open();
+        } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
+          window.LuckSyncDiary.close();
         }
         return;
       }

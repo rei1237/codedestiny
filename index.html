@@ -11,12 +11,28 @@
       var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
       if (location.protocol !== 'https:' || !isProdHost) return;
 
-      var s = document.createElement('script');
-      s.async = true;
-      s.crossOrigin = 'anonymous';
-      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-      s.onerror = function () {};
-      document.head.appendChild(s);
+      var loaded = false;
+      function loadAdsense() {
+        if (loaded) return;
+        loaded = true;
+        cleanup();
+        var s = document.createElement('script');
+        s.async = true;
+        s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+        s.onerror = function () {};
+        document.head.appendChild(s);
+      }
+
+      function cleanup() {
+        document.removeEventListener('pointerdown', loadAdsense, true);
+        document.removeEventListener('keydown', loadAdsense, true);
+        document.removeEventListener('scroll', loadAdsense, true);
+      }
+
+      document.addEventListener('pointerdown', loadAdsense, true);
+      document.addEventListener('keydown', loadAdsense, true);
+      document.addEventListener('scroll', loadAdsense, true);
     } catch (_) {}
   })();
   </script>
@@ -375,7 +391,7 @@
   <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
   <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- tailwind runtime CDN removed: static CSS is used -->
   <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
@@ -942,6 +958,8 @@
                 <div class="feat-collection__icon" aria-hidden="true">🦁</div>
                 <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
+                <p class="feat-collection__lede">얼굴형·성향·사주 신호를 함께 읽어 당신의 본능 캐릭터와 관계 에너지를 한 번에 보여드립니다.</p>
+                <p class="feat-collection__featureline">AI 동물 관상 · MBTI 동물 궁합 · 애니멀 토템 · 사주 가디언 아트</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1039,6 +1057,8 @@
             <div class="tarot-collection__icon" aria-hidden="true">✦</div>
             <h2 class="tarot-collection__title">타로 리딩 컬렉션</h2>
             <p class="tarot-collection__subtitle">원하는 타로를 선택해 지금 바로 리딩을 시작하세요</p>
+            <p class="tarot-collection__lede">관계, 회복, 자존감, 재회, 연간운까지 지금 필요한 질문을 카드 스프레드별로 깊이 있게 해석해 드립니다.</p>
+            <p class="tarot-collection__featureline">관계 6카드 · 힐링 4카드 · 자존감 퀘스트 · 재회운 · 십이지신 천운 · 명리학 타로</p>
             <div class="tarot-collection__divider" aria-hidden="true">
               <span class="tc-divider-star">✦</span>
               <span class="tc-divider-line"></span>
@@ -3244,11 +3264,6 @@
 
 <script src="/js/destiny-profile.js" defer></script>
 <script type="module" src="/js/swisseph-loader.js"></script>
-<script src="/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo" defer></script>
-<script src="/js/saju-engine.js?v=20260323-ziwei-fix1" defer></script>
-<script src="/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1" defer></script>
-<script src="/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1" defer></script>
-<script src="/js/saju-engine-continuation.js?v=20260320-saju-rpt1" defer></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
@@ -3281,8 +3296,50 @@
 
 <script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
 
-<!-- 구글 번역 스크립트 -->
-<script type="text/javascript" defer src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<!-- 구글 번역 스크립트: 사용자 의도 기반 지연 로드 -->
+<script>
+(function () {
+  var loaded = false;
+  function loadTranslate() {
+    if (loaded) return;
+    loaded = true;
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.defer = true;
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    s.onerror = function () { loaded = false; };
+    document.head.appendChild(s);
+  }
+
+  function hasTranslateIntent() {
+    try {
+      if ((document.cookie || '').indexOf('googtrans=') !== -1) return true;
+      if ((location.search || '').indexOf('lang=') !== -1) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e && e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('.translate-lang-wrap, #translateLangToggleBtn, #translateLangCard, #google_translate_element')) {
+      loadTranslate();
+    }
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', function () {
+    if (hasTranslateIntent()) loadTranslate();
+  }, { once: true, passive: true });
+
+  window.addEventListener('load', function () {
+    if (hasTranslateIntent()) {
+      loadTranslate();
+      return;
+    }
+  }, { once: true });
+})();
+</script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3391,12 +3448,49 @@
 <script src="/js/image-fallback.js" defer></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script src="/js/touch-perf.js" defer></script>
-<script src="/js/dream-meaning-library.js" defer></script>
-<script src="/lib/ai-engine.js" defer></script>
-<script src="/js/luck-sync-diary.js" defer></script>
-<script src="/js/dream-ledger.js" defer></script>
-<script src="/js/psycho-dream-analyzer-freuds-study.js" defer></script>
-<script src="/js/entertain-engine.js" defer></script>
+<script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
+<script data-cd-lazy-src="/lib/ai-engine.js"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
+<script>
+(function () {
+  var loaded = false;
+
+  function loadSeq(srcList, idx) {
+    if (idx >= srcList.length) return;
+    var s = document.createElement('script');
+    s.src = srcList[idx];
+    s.defer = true;
+    s.async = false;
+    s.onload = function () { loadSeq(srcList, idx + 1); };
+    s.onerror = function () { loadSeq(srcList, idx + 1); };
+    document.body.appendChild(s);
+  }
+
+  function loadDeferredFeatureScripts() {
+    if (loaded) return;
+    loaded = true;
+    var nodes = document.querySelectorAll('script[data-cd-lazy-src]');
+    var srcList = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var src = nodes[i].getAttribute('data-cd-lazy-src');
+      if (src) srcList.push(src);
+    }
+    if (!srcList.length) return;
+    loadSeq(srcList, 0);
+  }
+
+  function maybeLoadByIntent(e) {
+    var t = e && e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('[data-action="openDreamLedger"], [data-action="analyzeDream"], [data-action="openPsychoDream"], [data-action="openEntertainHub"], #dreamLedgerModal, #psychoDreamModal')) {
+      loadDeferredFeatureScripts();
+    }
+  }
+
+  document.addEventListener('click', maybeLoadByIntent, { passive: true });
+})();
+</script>
 <script type="module" src="/js/app.js"></script>
 <script>
 (function () {

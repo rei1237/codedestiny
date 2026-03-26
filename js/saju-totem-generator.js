@@ -6,10 +6,6 @@
 (function () {
   'use strict';
 
-  function getSajuAnimalStyleIntensity() {
-    return 'strong';
-  }
-
   function normalizeAnimalLabel(value) {
     return String(value || '')
       .replace(/^\s*아기\s*/g, '')
@@ -120,52 +116,88 @@
 
   function captureSajuAnalysisSnapshot() {
     var natal = window.G_NATAL || {};
-    var ratios = natal.ratios || {};
-    var counts = natal.counts || {};
-    var dominant = natal.dominant || '';
-    var toNum = function (v) {
-      var n = Number(v);
-      return isFinite(n) ? n : 0;
+    var keys = ['wood', 'fire', 'earth', 'metal', 'water'];
+    var toNum = function (v) { return isFinite(Number(v)) ? Number(v) : 0; };
+    var hasAny = function (obj) {
+      return keys.some(function (k) { return toNum(obj[k]) > 0; });
     };
-    var normalizedRatios = {
-      wood: toNum(ratios.wood),
-      fire: toNum(ratios.fire),
-      earth: toNum(ratios.earth),
-      metal: toNum(ratios.metal),
-      water: toNum(ratios.water)
+    var normalize = function (obj) {
+      return keys.reduce(function (acc, key) {
+        acc[key] = toNum(obj[key]);
+        return acc;
+      }, {});
     };
-    var normalizedCounts = {
-      wood: toNum(counts.wood),
-      fire: toNum(counts.fire),
-      earth: toNum(counts.earth),
-      metal: toNum(counts.metal),
-      water: toNum(counts.water)
-    };
-    var totalCounts = normalizedCounts.wood + normalizedCounts.fire + normalizedCounts.earth + normalizedCounts.metal + normalizedCounts.water;
-    var totalRatios = normalizedRatios.wood + normalizedRatios.fire + normalizedRatios.earth + normalizedRatios.metal + normalizedRatios.water;
 
-    if (totalCounts <= 0 && totalRatios <= 0) return null;
+    var normalizedCounts = normalize(natal.counts || {});
+    var normalizedRatios = normalize(natal.ratios || {});
+    var hasCounts = hasAny(normalizedCounts);
+    var hasRatios = hasAny(normalizedRatios);
 
-    if (totalCounts <= 0 && totalRatios > 0) {
-      normalizedCounts.wood = Math.round(normalizedRatios.wood / 10);
-      normalizedCounts.fire = Math.round(normalizedRatios.fire / 10);
-      normalizedCounts.earth = Math.round(normalizedRatios.earth / 10);
-      normalizedCounts.metal = Math.round(normalizedRatios.metal / 10);
-      normalizedCounts.water = Math.round(normalizedRatios.water / 10);
+    if (!hasCounts && !hasRatios) return null;
+
+    if (!hasCounts && hasRatios) {
+      keys.forEach(function (k) { normalizedCounts[k] = Math.max(0, Math.round(normalizedRatios[k] / 10)); });
     }
-    if (totalRatios <= 0 && totalCounts > 0) {
-      normalizedRatios.wood = Number(((normalizedCounts.wood / totalCounts) * 100).toFixed(1));
-      normalizedRatios.fire = Number(((normalizedCounts.fire / totalCounts) * 100).toFixed(1));
-      normalizedRatios.earth = Number(((normalizedCounts.earth / totalCounts) * 100).toFixed(1));
-      normalizedRatios.metal = Number(((normalizedCounts.metal / totalCounts) * 100).toFixed(1));
-      normalizedRatios.water = Number(((normalizedCounts.water / totalCounts) * 100).toFixed(1));
+    if (!hasRatios && hasCounts) {
+      var totalCounts = keys.reduce(function (sum, k) { return sum + normalizedCounts[k]; }, 0);
+      if (totalCounts > 0) {
+        keys.forEach(function (k) { normalizedRatios[k] = Number(((normalizedCounts[k] / totalCounts) * 100).toFixed(1)); });
+      }
     }
 
     return {
-      dominant_element: dominant || getDominantElement(),
+      dominant_element: natal.dominant || getDominantElement(),
       five_elements_count: normalizedCounts,
       five_elements_ratio: normalizedRatios
     };
+  }
+
+  function mapPowerLabelToPrompt(label) {
+    if (label === '신강') return 'dominant self-energy with powerful momentum';
+    if (label === '신약') return 'sensitive self-energy with elegant balance';
+    return 'balanced spiritual temperament';
+  }
+
+  function toPromptSafeEnglish(text, fallback) {
+    var value = String(text || '').trim();
+    if (!value) return fallback;
+    return /[^\x00-\x7F]/.test(value) ? fallback : value;
+  }
+
+  function buildImagePrompt(totemData) {
+    var primary = totemData && totemData.primary ? totemData.primary : {};
+    var zhiAnimal = totemData && totemData.zhiAnimal ? totemData.zhiAnimal : null;
+    var elAnimal = totemData && totemData.elAnimal ? totemData.elAnimal : null;
+    var element = (totemData && totemData.element) || 'wood';
+    var animalNameEn = normalizeAnimalLabel(primary.nameEn || primary.name || 'mystic guardian animal');
+    var animalTraits = toPromptSafeEnglish(primary.traits, 'graceful, spiritual, and charismatic');
+    var colorAura = primary.color || (elAnimal && elAnimal.color) || 'iridescent';
+
+    var elementMeta = {
+      wood: { energy: 'vital growth energy', palette: 'jade green and mint highlights', motif: 'enchanted forest and blooming vines' },
+      fire: { energy: 'radiant fire energy', palette: 'amber, scarlet, and warm gold', motif: 'celestial flame petals and solar particles' },
+      earth: { energy: 'grounded earth energy', palette: 'honey yellow, warm beige, and soft brown', motif: 'sacred mountain mist and crystal dust' },
+      metal: { energy: 'refined metal energy', palette: 'silver white, platinum, and icy blue', motif: 'prismatic shards and aurora reflections' },
+      water: { energy: 'deep water energy', palette: 'azure, indigo, and moonlit cyan', motif: 'dreamwave ripples and lunar mist' }
+    };
+    var meta = elementMeta[element] || elementMeta.wood;
+    var zodiacAnimalEn = zhiAnimal && zhiAnimal.nameEn ? zhiAnimal.nameEn : '';
+    var baseAnimalEn = elAnimal && elAnimal.nameEn ? elAnimal.nameEn : '';
+    var powerPhrase = mapPowerLabelToPrompt((totemData && totemData.powerLabel) || '');
+    var sipseong = toPromptSafeEnglish((totemData && totemData.sipseong) ? String(totemData.sipseong) : '', '');
+    var sipseongPhrase = sipseong ? ('subtle archetype influence inspired by ' + sipseong) : 'subtle archetype influence from East Asian destiny symbolism';
+
+    return [
+      'A highly detailed, breathtaking magical pastel fantasy character portrait.',
+      'Main subject: a ' + animalTraits + ' ' + animalNameEn + ', full-body, centered composition, expressive eyes, premium character design.',
+      'Energy signature: ' + meta.energy + ', ' + powerPhrase + ', surrounded by a ' + colorAura + ' glowing aura and soft volumetric light.',
+      'Saju context: dominant element ' + element + ', zodiac spirit ' + (zodiacAnimalEn || 'mystic zodiac guardian') + ', elemental companion ' + (baseAnimalEn || animalNameEn) + '.',
+      'Art direction: whimsical Korean destiny-card vibe, ornate costume details, elegant brush texture, cinematic rim light, layered atmospheric depth.',
+      'Background: ' + meta.motif + ', ' + meta.palette + ', magical particles, dreamy bokeh, sacred symbol motifs, depth-rich composition.',
+      'Quality: masterpiece, ultra-detailed illustration, high contrast yet soft pastel harmony, clean anatomy, polished shading, 8k render.',
+      'Negative constraints: no text, no watermark, no logo, no frame, no blurry face, no extra limbs, no deformed anatomy.',
+      'Creative note: ' + sipseongPhrase + '.'
+    ].join(' ');
   }
 
   function getSipseong() {
@@ -216,84 +248,6 @@
   }
 
   /* ─────────────────────────────────────
-     3. 프롬프트 빌드
-  ───────────────────────────────────── */
-  function buildPrompt(totemData) {
-    var a = totemData.primary || {};
-    var el = totemData.element || 'wood';
-    var dayZhi = totemData.dayZhi || '';
-    var power = totemData.powerLabel || '';
-    var tenGod = totemData.sipseong || '';
-    var animal = normalizeAnimalLabel(a.nameEn || a.name || 'spirit animal') || 'spirit animal';
-
-    var zhiMotif = {
-      '子': 'moonlit waters, tiny lantern reflections, agile wind swirls',
-      '丑': 'ancient stone path, calm mountain breeze, protective talisman ribbons',
-      '寅': 'misty pine forest, warm sunrise rim light, dynamic brushstroke aura',
-      '卯': 'sun-dappled ancient garden, cherry blossoms, lotus pond and wooden bridge',
-      '辰': 'celestial clouds, jade ornaments, mythical spiral energy',
-      '巳': 'silk smoke trails, moonlit bamboo, elegant geometric motifs',
-      '午': 'golden grassland, flowing ribbons, horizon glow and dust sparkles',
-      '未': 'pastel meadow, soft floating petals, gentle prayer flags',
-      '申': 'floating paper charms, playful light streaks, layered temple roofs',
-      '酉': 'dawn courtyard, lacquered wood details, radiant halo feathers',
-      '戌': 'guardian gate, warm lanterns, subtle protective sigils',
-      '亥': 'dreamy mist, jeweled waterdrops, tranquil moon garden'
-    };
-    var bgMap = {
-      wood: 'enchanted forest with cherry blossoms, mint glow and soft volumetric light',
-      fire: 'warm sunset sanctuary with peach clouds, ember particles and cinematic rays',
-      earth: 'cozy ancient garden with creamy stone textures and floating dandelion light',
-      metal: 'ethereal moonlit pavilion with silver reflections and crystalline sparkles',
-      water: 'serene lotus waterscape with sky-blue haze and bioluminescent ripples'
-    };
-    var costumeMap = {
-      wood: 'flowing hanbok-inspired robe in mint and cream, subtle leaf embroidery with gold accents',
-      fire: 'layered silk attire in coral and rose, elegant gold thread flame motifs',
-      earth: 'soft draped garment in honey and ivory, handcrafted earth-pattern trim',
-      metal: 'refined ceremonial outfit in pearl and silver, delicate metallic embroidery',
-      water: 'graceful pastel costume in sky blue and lavender, wave-pattern silk details'
-    };
-    var colorMap = {
-      wood: 'creamy white, mint green, powder pink, light sage',
-      fire: 'cream, peach, powder pink, warm coral, soft gold',
-      earth: 'cream, honey beige, butter yellow, muted apricot',
-      metal: 'pearl white, lavender mist, silver blue, cool gray',
-      water: 'sky blue, powder pink, lavender, mint green, aqua'
-    };
-
-    return [
-      'A breathtaking, high-definition anime illustration of a beautiful ' + animal + ' character inspired by Saju and Eastern zodiac symbolism.',
-      'Style direction: warm, sentimental, emotionally resonant, modern fantasy animation quality with delicate linework and painterly shading.',
-      'Color palette: soft ethereal pastels (' + (colorMap[el] || colorMap.wood) + ').',
-      'Character design: expressive sparkling eyes, elegant silhouette, velvety fur or refined scales, graceful pose, symbolic accessories tied to Saju energy (' + (a.keyword || 'balanced destiny energy') + ').',
-      'Costume: ' + (costumeMap[el] || costumeMap.wood) + '.',
-      'Background: ' + (bgMap[el] || bgMap.wood) + ', plus zodiac motifs: ' + (zhiMotif[dayZhi] || 'ancient oriental garden, floating petals, mystical stardust') + '.',
-      'Mood: peaceful, mystical, heartwarming; soft diffused cinematic lighting, glowing particles, depth of field, premium illustration finish.',
-      'Saju context tags: dominant element ' + el + ', day branch ' + (dayZhi || 'unknown') + ', strength ' + (power || 'balanced') + ', ten-god ' + (tenGod || 'harmonized') + '.',
-      'Composition: centered character portrait, rich scenic details, no text, no logo, no watermark, no typography, ultra clean render, 4k quality.'
-    ].join(' ');
-  }
-
-  function buildNegativePrompt() {
-    return [
-      'lowres',
-      'blurry',
-      'pixelated',
-      'distorted anatomy',
-      'extra limbs',
-      'deformed face',
-      'mutated hands',
-      'flat shading',
-      'washed colors',
-      'dull composition',
-      'text',
-      'logo',
-      'watermark'
-    ].join(', ');
-  }
-
-  /* ─────────────────────────────────────
      4. 설명 문구 생성
   ───────────────────────────────────── */
   function buildDescription(totemData) {
@@ -339,111 +293,6 @@
       '사주 동물 아트 결과에서 <strong>' + traitStr + ' ' + animalName + '</strong> 타입으로 해석됩니다.',
       '<small style="color:var(--sg-text-muted,rgba(0,0,0,0.5))">✦ ' + (a.keyword || '') + ' · ' + (elKr[el] || '') + ' 시그니처</small>'
     ].join('<br>');
-  }
-
-  /* ─────────────────────────────────────
-     5. 이미지 URL / 다운로드
-  ───────────────────────────────────── */
-  function buildImageUrls(prompt) {
-    var seed = Math.floor(Math.random() * 999999);
-    var encoded = encodeURIComponent(prompt);
-    return [
-      'https://image.pollinations.ai/prompt/' + encoded + '?width=512&height=512&nologo=true&seed=' + seed + '&enhance=true',
-      'https://image.pollinations.ai/prompt/' + encoded + '?width=768&height=768&nologo=true&seed=' + seed + '&model=flux&enhance=true',
-      'https://image.pollinations.ai/prompt/' + encoded + '?width=512&height=512&seed=' + seed
-    ];
-  }
-
-  function buildFallbackImageDataUrl(totemData) {
-    var a = totemData && totemData.primary ? totemData.primary : { name: '가디언', keyword: '에너지 시그니처' };
-    var el = (totemData && totemData.element) || 'wood';
-    var title = String(a.name || '가디언').replace(/[<>&"]/g, '');
-    var subtitle = String(a.keyword || '에너지 시그니처').replace(/[<>&"]/g, '');
-    var palette = {
-      wood: { bg1: '#d9f99d', bg2: '#86efac', face: '#fefce8', ear: '#bbf7d0', accent: '#14532d', chip: '#166534' },
-      fire: { bg1: '#fed7aa', bg2: '#fca5a5', face: '#fff7ed', ear: '#fdba74', accent: '#9a3412', chip: '#c2410c' },
-      earth:{ bg1: '#fde68a', bg2: '#fcd34d', face: '#fffbeb', ear: '#facc15', accent: '#713f12', chip: '#a16207' },
-      metal:{ bg1: '#e2e8f0', bg2: '#cbd5e1', face: '#f8fafc', ear: '#e5e7eb', accent: '#334155', chip: '#475569' },
-      water:{ bg1: '#bfdbfe', bg2: '#93c5fd', face: '#eff6ff', ear: '#93c5fd', accent: '#1e3a8a', chip: '#1d4ed8' }
-    };
-    var p = palette[el] || palette.wood;
-    var emoji = '🐾';
-    if (/토끼|bunny/i.test(title)) emoji = '🐰';
-    else if (/고양이|kitten/i.test(title)) emoji = '🐱';
-    else if (/강아지|puppy/i.test(title)) emoji = '🐶';
-    else if (/호랑이|tiger/i.test(title)) emoji = '🐯';
-    else if (/곰|bear|panda/i.test(title)) emoji = '🐻';
-    else if (/여우|fox/i.test(title)) emoji = '🦊';
-    else if (/용|dragon/i.test(title)) emoji = '🐲';
-    else if (/돌고래|dolphin/i.test(title)) emoji = '🐬';
-
-    var svg = '' +
-      '<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">' +
-      '<defs>' +
-      '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="' + p.bg1 + '"/><stop offset="100%" stop-color="' + p.bg2 + '"/></linearGradient>' +
-      '<radialGradient id="halo" cx="50%" cy="35%" r="45%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>' +
-      '<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>' +
-      '</defs>' +
-      '<rect width="1024" height="1024" fill="url(#bg)"/>' +
-      '<circle cx="512" cy="340" r="300" fill="url(#halo)"/>' +
-      '<g opacity="0.65" fill="#ffffff" filter="url(#soft)"><circle cx="180" cy="170" r="10"/><circle cx="860" cy="220" r="14"/><circle cx="790" cy="120" r="7"/><circle cx="250" cy="820" r="12"/><circle cx="820" cy="760" r="10"/></g>' +
-      '<g>' +
-      '<circle cx="420" cy="390" r="72" fill="' + p.ear + '"/>' +
-      '<circle cx="604" cy="390" r="72" fill="' + p.ear + '"/>' +
-      '<circle cx="512" cy="465" r="205" fill="' + p.face + '"/>' +
-      '<circle cx="448" cy="452" r="12" fill="' + p.accent + '"/>' +
-      '<circle cx="576" cy="452" r="12" fill="' + p.accent + '"/>' +
-      '<ellipse cx="512" cy="520" rx="26" ry="18" fill="' + p.accent + '" opacity="0.8"/>' +
-      '<path d="M470 560 Q512 590 554 560" stroke="' + p.accent + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
-      '<text x="512" y="495" text-anchor="middle" font-size="112">' + emoji + '</text>' +
-      '</g>' +
-      '<g>' +
-      '<rect x="232" y="680" width="560" height="210" rx="34" fill="#ffffff" fill-opacity="0.82"/>' +
-      '<rect x="420" y="708" width="184" height="42" rx="21" fill="' + p.chip + '"/>' +
-      '<text x="512" y="736" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" fill="#ffffff">OFFLINE BEAUTY CARD</text>' +
-      '<text x="512" y="794" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" fill="#0f172a">' + title + '</text>' +
-      '<text x="512" y="840" text-anchor="middle" font-family="Arial, sans-serif" font-size="31" fill="#334155">' + subtitle + '</text>' +
-      '</g>' +
-      '</svg>';
-    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-  }
-
-  function tryLoadImageCandidates(urls, timeoutMs, onDone) {
-    var idx = 0;
-
-    function next() {
-      if (idx >= urls.length) {
-        onDone({ ok: false, url: '' });
-        return;
-      }
-
-      var url = urls[idx++];
-      var img = new Image();
-      var settled = false;
-      var timer = setTimeout(function () {
-        if (settled) return;
-        settled = true;
-        next();
-      }, timeoutMs);
-
-      img.onload = function () {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        onDone({ ok: true, url: url });
-      };
-
-      img.onerror = function () {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        next();
-      };
-
-      img.src = url;
-    }
-
-    next();
   }
 
   function downloadImage(url, filename) {
@@ -534,12 +383,13 @@
   function renderStateNoSaju() {
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
-    body.innerHTML = '<div class="stg-no-saju">' +
-      '<div class="stg-no-saju__icon">🔮</div>' +
-      '<p class="stg-no-saju__title">생년월일 정보가 필요해요</p>' +
-      '<p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 사주 동물 아트를 바로 생성할 수 있습니다.</p>' +
-      '<button class="stg-btn stg-btn--primary" onclick="window.closeSajuTotemModal();window.scrollTo({top:0,behavior:\'smooth\'})">생년월일 입력하러 가기 ✨</button>' +
-    '</div>';
+    body.innerHTML = `
+      <div class="stg-no-saju">
+        <div class="stg-no-saju__icon">🔮</div>
+        <p class="stg-no-saju__title">생년월일 정보가 필요해요</p>
+        <p class="stg-no-saju__desc">프로필 카드에 생년월일시를 저장하거나 입력창에 정보를 넣어주세요.<br>분석 버튼을 누르지 않아도 사주 동물 아트를 바로 생성할 수 있습니다.</p>
+        <button class="stg-btn stg-btn--primary" onclick="window.closeSajuTotemModal();window.scrollTo({top:0,behavior:'smooth'})">생년월일 입력하러 가기 ✨</button>
+      </div>`;
   }
 
   function renderStateB(contextSource) {
@@ -549,25 +399,25 @@
     var totemData = selectTotem();
     var el = totemData.element;
     var theme = ELEMENT_BG[el] || ELEMENT_BG.wood;
-    var styleIntensity = getSajuAnimalStyleIntensity();
+    var imagePrompt = buildImagePrompt(totemData);
 
-    body.innerHTML =
-      '<div class="stg-loading" id="sajuTotemLoading">' +
-        '<div class="stg-loading__orbs">' +
-          '<span class="stg-orb stg-orb--1"></span>' +
-          '<span class="stg-orb stg-orb--2"></span>' +
-          '<span class="stg-orb stg-orb--3"></span>' +
-        '</div>' +
-        '<div class="stg-loading__paintbrush">' +
-          '<div class="stg-pb-char">🎨</div>' +
-          '<div class="stg-pb-dust">' +
-            '<span>✨</span><span>⭐</span><span>💫</span><span>🌟</span><span>✦</span>' +
-          '</div>' +
-        '</div>' +
-        '<p class="stg-loading__title">사주 기운을 읽어 동물 캐릭터를 스케치 중이에요</p>' +
-        '<p class="stg-loading__subtitle">파스텔 만화풍으로 당신의 동물 아트를 채색하고 있어요...</p>' +
-        '<div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>' +
-      '</div>';
+    body.innerHTML = `
+      <div class="stg-loading" id="sajuTotemLoading">
+        <div class="stg-loading__orbs">
+          <span class="stg-orb stg-orb--1"></span>
+          <span class="stg-orb stg-orb--2"></span>
+          <span class="stg-orb stg-orb--3"></span>
+        </div>
+        <div class="stg-loading__paintbrush">
+          <div class="stg-pb-char">🎨</div>
+          <div class="stg-pb-dust">
+            <span>✨</span><span>⭐</span><span>💫</span><span>🌟</span><span>✦</span>
+          </div>
+        </div>
+        <p class="stg-loading__title">사주 기운을 읽어 동물 캐릭터를 스케치 중이에요</p>
+        <p class="stg-loading__subtitle">파스텔 만화풍으로 당신의 동물 아트를 채색하고 있어요...</p>
+        <div class="stg-loading__bar"><div class="stg-loading__bar-fill" id="sajuTotemLoadBar"></div></div>
+      </div>`;
 
     /* 로딩 바 애니메이션 */
     var bar = document.getElementById('sajuTotemLoadBar');
@@ -602,34 +452,15 @@
     }
 
     var sajuAnalysis = captureSajuAnalysisSnapshot();
-    var totemAnimal = totemData && totemData.primary ? {
-      name: normalizeAnimalLabel(totemData.primary.name || ''),
-      nameEn: normalizeAnimalLabel(totemData.primary.nameEn || ''),
-      keyword: totemData.primary.keyword || '',
-      traits: totemData.primary.traits || '',
-      dayZhi: totemData.dayZhi || '',
-      element: totemData.element || ''
-    } : null;
-    var qualityPrompt = buildPrompt(totemData);
-    var negativePrompt = buildNegativePrompt();
     fetch('/api/guardian-avatar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        imagePrompt: imagePrompt,
         profile: requestProfile,
         sajuAnalysis: sajuAnalysis,
-        totemAnimal: totemAnimal,
         renderMode: 'saju-animal',
-        styleIntensity: styleIntensity,
-        prompt: qualityPrompt,
-        negativePrompt: negativePrompt,
-        renderOptions: {
-          canvasSize: 1024,
-          quality: 'ultra',
-          style: 'anime-pastel-cinematic',
-          preferApiOnly: true,
-          aspectRatio: '1:1'
-        }
+        promptVersion: 'saju-totem-v2'
       })
     })
       .then(function (resp) {
@@ -652,13 +483,13 @@
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
-    body.innerHTML =
-      '<div class="stg-no-saju">' +
-        '<div class="stg-no-saju__icon">⏳</div>' +
-        '<p class="stg-no-saju__title">현재 API 이용자가 많아 실패했습니다. 잠시 후 다시 시도해주세요.</p>' +
-        '<p class="stg-no-saju__desc">' + sourceLabel + '를 바탕으로 재시도하면 더 선명한 결과를 받을 수 있어요.</p>' +
-        '<button class="stg-btn stg-btn--primary" id="sajuTotemRetryBtn" type="button">다시 시도하기 ✨</button>' +
-      '</div>';
+    body.innerHTML = `
+      <div class="stg-no-saju">
+        <div class="stg-no-saju__icon">⏳</div>
+        <p class="stg-no-saju__title">현재 API 이용자가 많아 실패했습니다. 잠시 후 다시 시도해주세요.</p>
+        <p class="stg-no-saju__desc">${sourceLabel}를 바탕으로 재시도하면 더 선명한 결과를 받을 수 있어요.</p>
+        <button class="stg-btn stg-btn--primary" id="sajuTotemRetryBtn" type="button">다시 시도하기 ✨</button>
+      </div>`;
 
     var retryBtn = document.getElementById('sajuTotemRetryBtn');
     if (retryBtn) {
@@ -666,32 +497,6 @@
         renderStateB(contextSource || 'analysis');
       });
     }
-  }
-
-  function resolveTotemEmoji(totemData, guardian) {
-    var raw = '';
-    if (totemData && totemData.primary && totemData.primary.name) raw += ' ' + totemData.primary.name;
-    if (totemData && totemData.primary && totemData.primary.nameEn) raw += ' ' + totemData.primary.nameEn;
-    if (guardian && guardian.title) raw += ' ' + guardian.title;
-    var name = String(raw || '').toLowerCase();
-    if (/닭|chick|chicken|rooster/.test(name)) return '🐥';
-    if (/토끼|rabbit|bunny/.test(name)) return '🐰';
-    if (/고양이|cat|kitten/.test(name)) return '🐱';
-    if (/강아지|dog|puppy/.test(name)) return '🐶';
-    if (/호랑이|tiger/.test(name)) return '🐯';
-    if (/사자|lion/.test(name)) return '🦁';
-    if (/곰|bear|panda/.test(name)) return '🐻';
-    if (/여우|fox/.test(name)) return '🦊';
-    if (/늑대|wolf/.test(name)) return '🐺';
-    if (/용|dragon/.test(name)) return '🐲';
-    if (/독수리|eagle/.test(name)) return '🦅';
-    if (/말|horse/.test(name)) return '🐴';
-    if (/양|lamb|sheep/.test(name)) return '🐑';
-    if (/원숭이|monkey/.test(name)) return '🐵';
-    if (/돼지|pig/.test(name)) return '🐷';
-    if (/거북|turtle/.test(name)) return '🐢';
-    if (/돌고래|dolphin/.test(name)) return '🐬';
-    return '🐾';
   }
 
   function drawCanvasBackdrop(ctx, size, element) {
@@ -818,54 +623,46 @@
     var summary = guardian && guardian.summary ? guardian.summary : '';
     var apiWarning = guardian && guardian.warning_message ? guardian.warning_message : '';
     var cardKeyword = summary || (a.keyword || '사주 에너지 기반 수호 캐릭터');
-    body.innerHTML =
-      '<div class="stg-result" id="sajuTotemResult" style="--stg-glow:' + theme.glow + ';--stg-bg:' + theme.bg + ';--stg-text:' + theme.text + '">' +
+    body.innerHTML = `
+      <div class="stg-result" id="sajuTotemResult" style="--stg-glow:${theme.glow};--stg-bg:${theme.bg};--stg-text:${theme.text}">
+        <div class="stg-card">
+          <div class="stg-card__glow"></div>
+          <div class="stg-card__badge">${elIcons[el] || '✨'} SAJU PORTRAIT</div>
+          <div class="stg-card__img-wrap">
+            <canvas class="stg-card__canvas" id="sajuTotemCanvas" style="width:min(92vw,640px);height:min(92vw,640px);" aria-label="사주 동물 아트 결과 캔버스"></canvas>
+            <div class="stg-card__img-overlay"></div>
+          </div>
+        </div>
 
-        /* 이미지 카드 */
-        '<div class="stg-card">' +
-          '<div class="stg-card__glow"></div>' +
-          '<div class="stg-card__badge">' + (elIcons[el] || '✨') + ' SAJU PORTRAIT</div>' +
-          '<div class="stg-card__img-wrap">' +
-            '<canvas class="stg-card__canvas" id="sajuTotemCanvas" style="width:min(92vw,640px);height:min(92vw,640px);" aria-label="사주 동물 아트 결과 캔버스"></canvas>' +
-            '<div class="stg-card__img-overlay"></div>' +
-          '</div>' +
-        '</div>' +
+        <div class="stg-desc-card">
+          ${apiWarning
+            ? '<div class="stg-api-warning-row"><div class="stg-api-warning">⚠ ' + apiWarning + '</div><button class="stg-api-retry-inline" id="sajuTotemAiRetryBtn" type="button">AI 원본 다시 생성</button></div>'
+            : ''}
+          <div class="stg-desc-card__label">✦ ${sourceLabel}</div>
+          <div class="stg-desc-card__title">${guardianTitle}</div>
+          <div class="stg-desc-card__text" style="margin-bottom:8px;">${cardKeyword}</div>
+          <div class="stg-desc-card__label">요약</div>
+          <div class="stg-desc-card__text" style="margin-bottom:8px;">${summary || '사주 중심 기운에 맞는 얼굴과 배경으로 완성된 이미지입니다.'}</div>
+          <div class="stg-desc-card__label">표정</div>
+          <div class="stg-desc-card__text" style="margin-bottom:8px;">${face || '사주 성향에 맞춘 부드러운 표정'}</div>
+          <div class="stg-desc-card__label">배경 모티프</div>
+          <div class="stg-desc-card__text" style="margin-bottom:8px;">${bg || '오행 중심 파스텔 배경'}</div>
+          <div class="stg-desc-card__label">동물 해석</div>
+          <div class="stg-desc-card__text">${desc}</div>
+        </div>
 
-        /* 설명 카드 */
-        '<div class="stg-desc-card">' +
-          (apiWarning
-            ? '<div class="stg-api-warning-row">' +
-                '<div class="stg-api-warning">⚠ ' + apiWarning + '</div>' +
-                '<button class="stg-api-retry-inline" id="sajuTotemAiRetryBtn" type="button">AI 원본 다시 생성</button>' +
-              '</div>'
-            : '') +
-          '<div class="stg-desc-card__label">✦ ' + sourceLabel + '</div>' +
-          '<div class="stg-desc-card__title">' + guardianTitle + '</div>' +
-          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + cardKeyword + '</div>' +
-          '<div class="stg-desc-card__label">요약</div>' +
-          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (summary || '사주 중심 기운에 맞는 얼굴과 배경으로 완성된 이미지입니다.') + '</div>' +
-          '<div class="stg-desc-card__label">표정</div>' +
-          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (face || '사주 성향에 맞춘 부드러운 표정') + '</div>' +
-          '<div class="stg-desc-card__label">배경 모티프</div>' +
-          '<div class="stg-desc-card__text" style="margin-bottom:8px;">' + (bg || '오행 중심 파스텔 배경') + '</div>' +
-          '<div class="stg-desc-card__label">동물 해석</div>' +
-          '<div class="stg-desc-card__text">' + desc + '</div>' +
-        '</div>' +
-
-        /* 버튼 영역 */
-        '<div class="stg-actions">' +
-          '<button class="stg-btn stg-btn--save" id="sajuTotemSaveBtn" type="button">' +
-            '<span class="stg-btn__icon">⬇</span> 이미지 저장하기' +
-          '</button>' +
-          '<button class="stg-btn stg-btn--share" id="sajuTotemShareBtn" type="button">' +
-            '<span class="stg-btn__icon">💬</span> 내 모습 공유하기' +
-          '</button>' +
-          '<button class="stg-btn stg-btn--regen" id="sajuTotemRegenBtn" type="button">' +
-            '<span class="stg-btn__icon">🔄</span> 다시 소환하기' +
-          '</button>' +
-        '</div>' +
-
-      '</div>';
+        <div class="stg-actions">
+          <button class="stg-btn stg-btn--save" id="sajuTotemSaveBtn" type="button">
+            <span class="stg-btn__icon">⬇</span> 이미지 저장하기
+          </button>
+          <button class="stg-btn stg-btn--share" id="sajuTotemShareBtn" type="button">
+            <span class="stg-btn__icon">💬</span> 내 모습 공유하기
+          </button>
+          <button class="stg-btn stg-btn--regen" id="sajuTotemRegenBtn" type="button">
+            <span class="stg-btn__icon">🔄</span> 다시 소환하기
+          </button>
+        </div>
+      </div>`;
 
     drawGuardianOnCanvas(imgUrl, totemData, function () {
       renderStateFailure(contextSource);
