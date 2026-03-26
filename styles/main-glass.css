@@ -294,6 +294,24 @@ body {
 	border-color: rgba(74, 222, 128, 0.35);
 	background: linear-gradient(120deg, rgba(22, 163, 74, 0.28), rgba(6, 95, 70, 0.2));
 }
+.feat-collection--oracle .feat-collection__subtitle::after {
+	content: "화투점 · 이집트 신탁 · 주역 · 숙요 · 룬 · 홍차점 · 데스티니 포커";
+	color: rgba(254, 240, 138, 0.95);
+	border-color: rgba(250, 204, 21, 0.36);
+	background: linear-gradient(120deg, rgba(202, 138, 4, 0.3), rgba(146, 64, 14, 0.22));
+}
+.feat-collection--cosmic .feat-collection__subtitle::after {
+	content: "서양 점성술 · 자미두수 · 베다 점성술 · 올림푸스 별자리 신탁";
+	color: rgba(221, 214, 254, 0.96);
+	border-color: rgba(167, 139, 250, 0.36);
+	background: linear-gradient(120deg, rgba(109, 40, 217, 0.3), rgba(30, 41, 59, 0.24));
+}
+.feat-collection--flower .feat-collection__subtitle::after {
+	content: "운명의 꽃 아틀리에 · 점성술 꽃 · 자미두수 꽃 · 꿈 해몽";
+	color: rgba(251, 207, 232, 0.96);
+	border-color: rgba(244, 114, 182, 0.34);
+	background: linear-gradient(120deg, rgba(236, 72, 153, 0.28), rgba(157, 23, 77, 0.22));
+}
 .tarot-collection .tarot-collection__subtitle::after {
 	content: "관계 · 회복 · 자존감 · 재회 · 연간운 · 명리학 타로";
 	color: rgba(221, 214, 254, 0.96);
@@ -727,6 +745,18 @@ body {
 	border-color: rgba(110, 231, 183, 0.32);
 	background: linear-gradient(145deg, rgba(16, 185, 129, 0.18), rgba(15, 118, 110, 0.12));
 }
+.feat-collection--oracle .fc-toggle-btn {
+	border-color: rgba(250, 204, 21, 0.34);
+	background: linear-gradient(145deg, rgba(245, 158, 11, 0.2), rgba(120, 53, 15, 0.14));
+}
+.feat-collection--cosmic .fc-toggle-btn {
+	border-color: rgba(167, 139, 250, 0.34);
+	background: linear-gradient(145deg, rgba(124, 58, 237, 0.22), rgba(30, 41, 59, 0.16));
+}
+.feat-collection--flower .fc-toggle-btn {
+	border-color: rgba(244, 114, 182, 0.32);
+	background: linear-gradient(145deg, rgba(236, 72, 153, 0.2), rgba(131, 24, 67, 0.14));
+}
 .tarot-collection .fc-toggle-btn {
 	border-color: rgba(196, 181, 253, 0.34);
 	background: linear-gradient(145deg, rgba(124, 58, 237, 0.2), rgba(49, 46, 129, 0.14));
@@ -879,6 +909,9 @@ body {
 
 @media (max-width: 560px) {
 	.feat-collection--animal .feat-collection__subtitle::after,
+	.feat-collection--oracle .feat-collection__subtitle::after,
+	.feat-collection--cosmic .feat-collection__subtitle::after,
+	.feat-collection--flower .feat-collection__subtitle::after,
 	.tarot-collection .tarot-collection__subtitle::after {
 		font-size: 0.66rem;
 		padding: 7px 12px;
