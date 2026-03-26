@@ -52,7 +52,7 @@ export default function robots(): MetadataRoute.Robots {
       "https://code-destiny.com/sitemap.xml",
       "https://code-destiny.com/rss.xml",
     ],
-    host: "https://code-destiny.com",
+    host: "code-destiny.com",
   };
 }
 

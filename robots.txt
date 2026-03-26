@@ -24,7 +24,7 @@ Disallow: /api
 Disallow: /admin
 Disallow: /_admin
 
-Host: https://code-destiny.com
+Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
 Sitemap: https://code-destiny.com/rss.xml
