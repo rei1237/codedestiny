@@ -3072,9 +3072,9 @@ function getSukuyoMansion(preciseDateData) {
         talent: mapped.talent,
         celebs: mapped.celebs,
         mansionIdx: finalIdx,
-      mansion27: m + "(" + m_data.ch_name + ")",
-      mansion28: mansionResult.mansion28.name + "(" + mansionResult.mansion28.ch_name + ")",
-      preciseDateData: mansionResult.preciseDateData,
+        mansion27: m + "(" + m_data.ch_name + ")",
+        mansion28: mansionResult.mansion28.name + "(" + mansionResult.mansion28.ch_name + ")",
+        preciseDateData: mansionResult.preciseDateData,
         traits: mapped
     };
 }
