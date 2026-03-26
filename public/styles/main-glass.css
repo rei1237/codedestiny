@@ -268,6 +268,38 @@ body {
 	margin: 0 0 14px;
 	line-height: 1.45;
 }
+.feat-collection--animal .feat-collection__subtitle::after,
+.tarot-collection .tarot-collection__subtitle::after {
+	display: block;
+	width: fit-content;
+	max-width: min(92%, 680px);
+	margin: 12px auto 0;
+	padding: 8px 16px;
+	border-radius: 999px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	line-height: 1.35;
+	border: 1px solid rgba(255, 255, 255, 0.24);
+	background: linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+	box-shadow: 0 10px 26px rgba(2, 6, 23, 0.25), 0 0 0 1px rgba(255,255,255,0.06) inset;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+	word-break: keep-all;
+}
+.feat-collection--animal .feat-collection__subtitle::after {
+	content: "AI 동물 관상 · MBTI 궁합 · 애니멀 토템 · 사주 가디언 아트";
+	color: rgba(187, 247, 208, 0.92);
+	border-color: rgba(74, 222, 128, 0.35);
+	background: linear-gradient(120deg, rgba(22, 163, 74, 0.28), rgba(6, 95, 70, 0.2));
+}
+.tarot-collection .tarot-collection__subtitle::after {
+	content: "관계 · 회복 · 자존감 · 재회 · 연간운 · 명리학 타로";
+	color: rgba(221, 214, 254, 0.96);
+	border-color: rgba(196, 181, 253, 0.38);
+	background: linear-gradient(120deg, rgba(109, 40, 217, 0.28), rgba(49, 46, 129, 0.24));
+}
 .feat-collection__divider,
 .tarot-collection__divider {
 	display: flex;
@@ -661,30 +693,44 @@ body {
 .fc-toggle-btn {
 	appearance: none;
 	-webkit-appearance: none;
-	background: none;
-	border: none;
+	background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+	border: 1px solid rgba(255, 255, 255, 0.12);
 	width: 100%;
-	padding: 0 8px 20px;
+	padding: 14px 12px 18px;
 	text-align: center;
 	cursor: pointer;
 	position: relative;
 	z-index: 2;
 	border-bottom: 1px solid rgba(253, 230, 138, 0.2);
 	margin-bottom: 0;
-	transition: opacity 0.18s;
+	border-radius: 22px;
+	box-shadow: 0 12px 26px rgba(2, 6, 23, 0.26), 0 0 0 1px rgba(255,255,255,0.04) inset;
+	transition: opacity 0.2s, transform 0.28s ease, box-shadow 0.28s ease, border-color 0.25s ease;
 	touch-action: pan-y;
 }
-.fc-toggle-btn:hover { opacity: 0.92; }
+.fc-toggle-btn:hover {
+	opacity: 1;
+	transform: translateY(-2px);
+	box-shadow: 0 16px 34px rgba(2, 6, 23, 0.34), 0 0 0 1px rgba(255,255,255,0.1) inset;
+}
 .fc-toggle-btn:focus-visible {
 	outline: 2px solid rgba(253, 230, 138, 0.7);
 	outline-offset: 3px;
-	border-radius: 6px;
+	border-radius: 22px;
 }
 .feat-collection--animal .fc-toggle-btn { border-bottom-color: rgba(167, 243, 208, 0.75); }
 .feat-collection--oracle .fc-toggle-btn { border-bottom-color: rgba(253, 224, 71, 0.75); }
 .feat-collection--cosmic .fc-toggle-btn { border-bottom-color: rgba(167, 139, 250, 0.8); }
 .feat-collection--flower .fc-toggle-btn { border-bottom-color: rgba(251, 207, 232, 0.75); }
 .tarot-collection .fc-toggle-btn { border-bottom-color: rgba(196, 181, 253, 0.75); }
+.feat-collection--animal .fc-toggle-btn {
+	border-color: rgba(110, 231, 183, 0.32);
+	background: linear-gradient(145deg, rgba(16, 185, 129, 0.18), rgba(15, 118, 110, 0.12));
+}
+.tarot-collection .fc-toggle-btn {
+	border-color: rgba(196, 181, 253, 0.34);
+	background: linear-gradient(145deg, rgba(124, 58, 237, 0.2), rgba(49, 46, 129, 0.14));
+}
 .fc-toggle-btn::after {
 	content: "";
 	position: absolute;
@@ -825,6 +871,18 @@ body {
 	[data-collection-open="false"] .fc-toggle-hint,
 	[data-collection-open="false"] .fc-toggle-hint__arrow {
 		animation: none;
+	}
+	.fc-toggle-btn {
+		transition: none;
+	}
+}
+
+@media (max-width: 560px) {
+	.feat-collection--animal .feat-collection__subtitle::after,
+	.tarot-collection .tarot-collection__subtitle::after {
+		font-size: 0.66rem;
+		padding: 7px 12px;
+		line-height: 1.3;
 	}
 }
 

@@ -1,56 +1,108 @@
-# CODE DESTINY Admin Portal (Secure Flower)
+# CODE DESTINY (Unified Root)
 
-이 프로젝트는 기존 `Next.js + Express(API)` 기반으로 동작하며, 관리자 포털은 **비밀 32자리 해시 경로**에서만 서빙됩니다.
+이 저장소는 **단일 루트 기준(현재 폴더 자체가 프로젝트 루트)** 으로 운영합니다.
+중복 루트(`pages`, `workers`)를 분리 운용하지 않고, 원격 `origin/main`을 기준으로 동기화합니다.
 
-## 1) 요구사항
+## 1) 기본 원칙
+
+- 개발/배포 기준 루트는 이 디렉토리 하나만 사용합니다.
+- `git fetch + reset --hard + clean -xfd`를 표준 초기화 플로우로 사용합니다.
+- 로컬 실험 파일은 커밋 전 반드시 정리합니다.
+- 비밀값은 `.env*`에만 두고, 저장소에는 예제 파일만 유지합니다.
+
+## 2) 요구사항
 
 - Node.js >= 20
-- MongoDB (프로젝트 기존 설정 사용)
-- `ADMIN_SECRET_HASH`, `ADMIN_ALLOWED_IPS` 등 관리자용 환경변수 설정
+- npm (lockfile: `package-lock.json`)
+- MongoDB (기존 API 설정 기준)
+- Cloudflare 배포 시 API 토큰/프로젝트 관련 환경변수
 
-## 2) 설치
+## 3) 빠른 시작
 
 ```bash
-npm install
+npm ci
+npm run dev
 ```
 
-## 3) 환경변수 설정
-
-### 관리자 환경변수
-
-기본 예시는 `admin/.env.example` 를 참고하세요.
-
-필수:
-- `ADMIN_SECRET_HASH` : 32자리 랜덤 해시 (실제 값은 소스코드에 남기지 말 것)
-- `ADMIN_ALLOWED_IPS` : 허용할 IP 목록(콤마 구분)
-- `JWT_SECRET` : 기존 Express JWT 서명 비밀(토큰 검증에 사용)
-
-선택:
-- `ADMIN_SMTP_*` : 로그인 잠금 해제(이메일 인증) 기능을 위한 SMTP 설정
-
-## 4) 실행
-
-API 서버:
+API 서버가 필요한 경우:
 
 ```bash
 npm run api
 ```
 
-웹(Next) 서버:
+## 4) 강제 동기화(충돌 복구 표준)
+
+```bash
+git fetch --all --prune --tags
+BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's#^refs/remotes/origin/##')
+git checkout "$BRANCH"
+git reset --hard "origin/$BRANCH"
+git clean -xfd
+```
+
+Windows PowerShell 예시:
+
+```powershell
+git fetch --all --prune --tags
+$branch = (git symbolic-ref refs/remotes/origin/HEAD) -replace '^refs/remotes/origin/',''
+if (-not $branch) { $branch = 'main' }
+git checkout $branch
+git reset --hard origin/$branch
+git clean -xfd
+```
+
+## 5) 프로젝트 구조(바이브 코딩 최적화)
+
+- `app/`: Next.js App Router 페이지 및 라우트
+- `public/`: 정적 자산
+- `server/`: Express API, 배치/크론 로직
+- `scripts/`: 빌드/배포/동기화 자동화 스크립트
+- `js/`, `styles/`, `css/`: 레거시/공통 프론트 자산
+- `workers/` (하위 경로): 런타임 워커 코드(루트 프로젝트의 일부)
+- `admin/`: 관리자 UI/설정 관련 자산
+- `docs/`, `Rules/`: 운영 문서/정책
+
+## 6) 자주 쓰는 명령어
 
 ```bash
 npm run dev
+npm run api
+npm run build
+npm run lint
+npm run build:cf
+npm run deploy:cf:pages
+npm run deploy:cf:worker
 ```
 
-## 5) 관리자 접근
+## 7) 환경 변수 가이드
 
-1. 관리자 로그인 후 세션 쿠키가 발급됩니다.
-2. 사이트 화면 하단의 🌸 버튼이 보이면 버튼을 눌러 비밀 경로로 이동합니다.
-3. 관리자 포털은 로그인(2FA 포함) -> 대시보드 순으로 동작합니다.
+기본 템플릿:
 
-## 6) 보안 참고
+- `.env.example` -> `.env`
+- `.env.cloudflare.example` -> `.env.cloudflare`
+- `admin/.env.example` (관리자 포털)
 
-- 접근 거부는 사용자에게 `403`를 노출하지 않고 `404`로 위장합니다.
-- 세션은 쿠키 기반으로 발급되며, CSRF는 Double Submit Cookie 패턴을 가정합니다.
-- 비활동 로그아웃(30분)은 서버 상태값/토큰 정책 확장을 통해 구성됩니다.
+현재 운영에 자주 쓰는 핵심 키:
+
+- `JWT_SECRET`
+- `MONGODB_URI`
+- `GEMINI_API_KEY` 또는 `GOOGLE_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `ADMIN_SECRET_HASH`
+- `ADMIN_ALLOWED_IPS`
+- `CLOUDFLARE_API_TOKEN`
+- `CF_PAGES_PROJECT_NAME`
+- `CF_PAGES_BRANCH`
+
+## 8) 관리자 포털 메모
+
+- 관리자 포털은 비밀 경로 기반 접근 제어를 사용합니다.
+- 민감 응답은 노출 최소화(예: 404 위장) 원칙을 따릅니다.
+- 인증/세션/CSRF 관련 정책 변경 시 `server/`와 `admin/`를 함께 검토하세요.
+
+## 9) 협업 규칙
+
+- 대규모 리팩터링 전: 먼저 강제 동기화로 기준 상태를 맞춥니다.
+- 기능 작업 후: `npm run lint`와 핵심 시나리오 수동 점검을 수행합니다.
+- 배포는 CI/Git 기반 자동화를 우선하고 수동 중복 배포를 피합니다.
 
