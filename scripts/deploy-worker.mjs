@@ -28,6 +28,8 @@ const workerConfig = resolve(rootDir, "wrangler.json");
 
 const isWindows = process.platform === "win32";
 const npmCmd = isWindows ? "npm.cmd" : "npm";
+const maxAttempts = Math.max(1, Number.parseInt(process.env.CF_DEPLOY_RETRY_ATTEMPTS || "3", 10) || 3);
+const retryDelayMs = Math.max(1000, Number.parseInt(process.env.CF_DEPLOY_RETRY_DELAY_MS || "10000", 10) || 10000);
 
 console.log("[deploy-worker] Full stack deploy (Worker + assets) for API routes support.");
 
@@ -68,21 +70,43 @@ if (workerName.trim()) {
   args.push("--name", workerName.trim());
   console.log(`[deploy-worker] Using Worker name override: ${workerName.trim()}`);
 }
-const result = isWindows
-  ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
-      stdio: "inherit",
-      shell: false,
-      env: process.env,
-    })
-  : spawnSync("npx", args, {
-      stdio: "inherit",
-      shell: false,
-      env: process.env,
-    });
 
-if (result.error) {
-  console.error("[deploy-worker] Failed to start wrangler:", result.error.message);
-  process.exit(1);
+function runDeployOnce() {
+  return isWindows
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
+        stdio: "inherit",
+        shell: false,
+        env: process.env,
+      })
+    : spawnSync("npx", args, {
+        stdio: "inherit",
+        shell: false,
+        env: process.env,
+      });
 }
 
-process.exit(typeof result.status === "number" ? result.status : 1);
+for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+  if (attempt > 1) {
+    console.log(`[deploy-worker] Retry attempt ${attempt}/${maxAttempts}...`);
+  }
+
+  const result = runDeployOnce();
+
+  if (result.error) {
+    console.error("[deploy-worker] Failed to start wrangler:", result.error.message);
+    process.exit(1);
+  }
+
+  const status = typeof result.status === "number" ? result.status : 1;
+  if (status === 0) {
+    process.exit(0);
+  }
+
+  if (attempt < maxAttempts) {
+    console.warn(`[deploy-worker] Deploy failed (exit=${status}). Waiting ${retryDelayMs}ms before retry...`);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, retryDelayMs);
+    continue;
+  }
+
+  process.exit(status);
+}
