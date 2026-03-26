@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny-web.pages.dev"]);
+const SEO_PUBLIC_PATHS = new Set([
+  "/robots.txt",
+  "/sitemap.xml",
+  "/rss.xml",
+  "/favicon.ico",
+]);
 function isLocalHost(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
@@ -22,6 +28,11 @@ export function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const ua = request.headers.get("user-agent") || "";
   const method = (request.method || "GET").toUpperCase();
+
+  // SEO/public discovery files should always pass through without middleware logic.
+  if (SEO_PUBLIC_PATHS.has(pathname)) {
+    return NextResponse.next();
+  }
 
   // API routes and non-idempotent requests must not be canonical-redirected.
   // Redirecting these can break POST flows and trigger cross-origin CORS failures.
@@ -84,6 +95,6 @@ export function middleware(request) {
 export const config = {
   matcher: [
     "/",
-    "/((?!_next|api|favicon.ico).*)",
+    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|rss.xml).*)",
   ],
 };

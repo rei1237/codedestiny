@@ -127,12 +127,23 @@ function buildJsonLd({ locale, canonicalHref }) {
 
 export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
+  applicationName: "꿀꿀 만세력",
   title: {
     default: "꿀꿀 만세력 | 무료 사주 타로 운세 점성술 궁합",
     template: "%s | 꿀꿀 만세력",
   },
   description:
     "생년월일로 보는 정확한 무료 사주풀이. AI 타로·자미두수·점성술·주역·궁합 등 20가지 이상의 운세를 무료로. 오늘 운세·신년 운세 즉시 확인! Free Saju Fortune.",
+  creator: "Code Destiny",
+  publisher: "Code Destiny",
+  category: "Fortune & Astrology",
+  classification: "Fortune telling, astrology, saju, tarot",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   keywords: [
     // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
     "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
@@ -164,7 +175,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    alternateLocale: ["en_US", "ja_JP", "zh_CN"],
+    alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
     url: "https://code-destiny.com",
     siteName: "꿀꿀 만세력",
     title: "꿀꿀 만세력 | 무료 사주 타로 운세",
@@ -196,7 +207,14 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   icons: {
     icon: "/favicon.ico",

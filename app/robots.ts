@@ -27,6 +27,26 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "GPTBot",
         disallow: ["/api", "/admin", "/_admin"],
       },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+      },
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+      },
+      {
+        userAgent: "Yeti",
+        allow: "/",
+      },
+      {
+        userAgent: "Baiduspider",
+        allow: "/",
+      },
+      {
+        userAgent: "NaverBot",
+        allow: "/",
+      },
     ],
     sitemap: [
       "https://code-destiny.com/sitemap.xml",
