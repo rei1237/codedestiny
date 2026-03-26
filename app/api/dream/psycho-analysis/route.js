@@ -52,6 +52,20 @@ function sanitizeDreamText(input) {
   return t.length > 4000 ? t.slice(0, 4000) : t;
 }
 
+function hasAnyGeminiKey() {
+  const keyCandidates = [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+  return keyCandidates.length > 0;
+}
+
 function extractFirstJsonObject(text) {
   const s = String(text || "").trim();
   if (!s) return "";
@@ -350,7 +364,6 @@ async function callGeminiDreamPsychoAnalysis({ systemPrompt, dreamText, model, m
             maxOutputTokens: Number(maxTokens || 1200),
             temperature: 0.5,
             topP: 0.95,
-            responseMimeType: "application/json",
           },
         }),
       },
@@ -438,7 +451,7 @@ export async function POST(request) {
     const maxTokens = Number(process.env.PSYCHO_ANALYSIS_MAX_TOKENS || 2400);
 
     // Gemini/Anthropic 서버사이드 전용 키 사용 (클라이언트 노출 금지)
-    const useGemini = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+    const useGemini = hasAnyGeminiKey();
     const useAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
     const provider = useGemini ? "gemini" : useAnthropic ? "anthropic" : "none";
 
