@@ -4611,6 +4611,34 @@ function shareAnimalTotemResult() {
 window.shareAnimalTotemResult = shareAnimalTotemResult;
 
 function openAnimalTotemModal() {
+  var currentOpenFn = openAnimalTotemModal;
+  var hasFullTotemFlow =
+    typeof window.startAnimalTotemRitual === 'function' &&
+    typeof window.drawAnimalTotemSpread === 'function';
+
+  if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); })
+      .then(function() {
+        var upgradedOpen = window.openAnimalTotemModal;
+        if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
+          upgradedOpen();
+          return;
+        }
+        var overlay = document.getElementById('animalTotemOverlay');
+        if (!overlay) return;
+        overlay.style.display = 'block';
+        if (overlay.classList) overlay.classList.add('is-open');
+        resetAnimalTotemFlow();
+        if (window._perf && window._perf.lockBody) window._perf.lockBody();
+        else document.body.style.overflow = 'hidden';
+      })
+      .catch(function(err) {
+        console.error('[animal-totem] lazy load failed in inline runtime:', err);
+      });
+    return;
+  }
+
   var overlay = document.getElementById('animalTotemOverlay');
   if (!overlay) return;
   overlay.style.display = 'block';
