@@ -57,16 +57,42 @@ function resetApp(){
 /* ═══════════════════════════════════════
    STEP 10: 초기화
 ═══════════════════════════════════════ */
+function _unlockCoreBirthInputsAfterBootstrapError() {
+  ['birthHour', 'birthMinute', 'birthCountry', 'btnF', 'btnM'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    try {
+      el.disabled = false;
+      el.removeAttribute('disabled');
+    } catch (e) {}
+  });
+}
+
+function _safeBootstrapSajuFlow() {
+  try {
+    initSelectors();
+  } catch (e1) {
+    console.error('[saju-bootstrap] initSelectors 실패:', e1);
+  }
+  try {
+    populateCelebList();
+  } catch (e2) {
+    console.error('[saju-bootstrap] populateCelebList 실패:', e2);
+  }
+  try {
+    loadNext();
+  } catch (e3) {
+    console.error('[saju-bootstrap] loadNext 실패:', e3);
+    _unlockCoreBirthInputsAfterBootstrapError();
+  }
+}
+
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',function(){
-  initSelectors();
-  populateCelebList();
-  loadNext();
+  _safeBootstrapSajuFlow();
 });
 }else{
-  initSelectors();
-  populateCelebList();
-  loadNext();
+  _safeBootstrapSajuFlow();
 }
 
 /* ═══════════════════════════════════════
