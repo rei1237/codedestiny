@@ -332,25 +332,6 @@
     return null;
   }
 
-  function isCollectionScrollZone(el) {
-    if (!el || typeof el.closest !== 'function') return false;
-    return !!el.closest('.feat-collection, .tarot-collection, .feat-collection__grid, .tarot-collection__grid');
-  }
-
-  function getTapThresholds(isCollectionZone) {
-    // 컬렉션 영역은 스크롤 시도 빈도가 높아 탭 허용 범위를 더 좁혀 오동작을 줄인다.
-    if (isCollectionZone) return { dx: 14, dy: 10 };
-    return { dx: TAP_MAX_DX, dy: TAP_MAX_DY };
-  }
-
-  function isTapGesture(dx, dy, isCollectionZone) {
-    var absDx = Math.abs(dx || 0);
-    var absDy = Math.abs(dy || 0);
-    var th = getTapThresholds(!!isCollectionZone);
-    if (isCollectionZone && absDy > absDx && absDy >= 8) return false;
-    return absDx < th.dx && absDy < th.dy;
-  }
-
   function findRuleFromTarget(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
     for (var i = 0; i < RULES.length; i += 1) {
@@ -707,8 +688,7 @@
 
     root.addEventListener('touchstart', function (event) {
       var pt = getPoint(event);
-      var inCollectionZone = isCollectionScrollZone(event && event.target);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y, inCollectionZone: inCollectionZone };
+      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
@@ -719,8 +699,7 @@
         startX: pt.x,
         startY: pt.y,
         target: event.target,
-        moved: false,
-        inCollectionZone: inCollectionZone
+        moved: false
       };
     }, { passive: true, capture: true });
 
@@ -728,7 +707,7 @@
       if (!touchCtx) return;
       var pt = getPoint(event);
       if (!pt) return;
-      if (!isTapGesture(pt.x - touchCtx.startX, pt.y - touchCtx.startY, touchCtx.inCollectionZone)) {
+      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
         touchCtx.moved = true;
       }
     }, { passive: true, capture: true });
@@ -741,9 +720,9 @@
       touchCtx = null;
 
       if (ctx) {
-        var dyRaw = pt.y - ctx.startY;
-        var dxRaw = pt.x - ctx.startX;
-        if (!ctx.moved && isTapGesture(dxRaw, dyRaw, ctx.inCollectionZone)) {
+        var dy = Math.abs(pt.y - ctx.startY);
+        var dx = Math.abs(pt.x - ctx.startX);
+        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
@@ -756,9 +735,9 @@
 
       /* 모바일 폴백: touchCtx 없거나 처리 실패 시 elementFromPoint로 터치 위치의 요소를 확인 (애니멀 토템 등) */
       if (lastTouchStart) {
-        var dxRaw2 = pt.x - lastTouchStart.x;
-        var dyRaw2 = pt.y - lastTouchStart.y;
-        if (isTapGesture(dxRaw2, dyRaw2, !!lastTouchStart.inCollectionZone)) {
+        var dx = Math.abs(pt.x - lastTouchStart.x);
+        var dy = Math.abs(pt.y - lastTouchStart.y);
+        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
@@ -788,8 +767,7 @@
     root.addEventListener('pointerdown', function (event) {
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
-      var inCollectionZone = isCollectionScrollZone(event && event.target);
-      if (pt) lastTouchStart = { x: pt.x, y: pt.y, inCollectionZone: inCollectionZone };
+      if (pt) lastTouchStart = { x: pt.x, y: pt.y };
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
@@ -799,8 +777,7 @@
         startX: pt.x,
         startY: pt.y,
         target: event.target,
-        moved: false,
-        inCollectionZone: inCollectionZone
+        moved: false
       };
     }, { passive: true, capture: true });
 
@@ -808,7 +785,7 @@
       if (event.pointerType !== 'touch' || !touchCtx) return;
       var pt = getPoint(event);
       if (!pt) return;
-      if (!isTapGesture(pt.x - touchCtx.startX, pt.y - touchCtx.startY, touchCtx.inCollectionZone)) {
+      if (Math.abs(pt.x - touchCtx.startX) > TAP_MAX_DX || Math.abs(pt.y - touchCtx.startY) > TAP_MAX_DY) {
         touchCtx.moved = true;
       }
     }, { passive: true, capture: true });
@@ -820,9 +797,9 @@
       var ctx = touchCtx;
       touchCtx = null;
       if (ctx) {
-        var dyRaw = pt.y - ctx.startY;
-        var dxRaw = pt.x - ctx.startX;
-        if (!ctx.moved && isTapGesture(dxRaw, dyRaw, ctx.inCollectionZone)) {
+        var dy = Math.abs(pt.y - ctx.startY);
+        var dx = Math.abs(pt.x - ctx.startX);
+        if (!ctx.moved && dy < TAP_MAX_DY && dx < TAP_MAX_DX) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
             event.preventDefault();
@@ -833,9 +810,9 @@
         }
       }
       if (lastTouchStart) {
-        var dxRaw2 = pt.x - lastTouchStart.x;
-        var dyRaw2 = pt.y - lastTouchStart.y;
-        if (isTapGesture(dxRaw2, dyRaw2, !!lastTouchStart.inCollectionZone)) {
+        var dx = Math.abs(pt.x - lastTouchStart.x);
+        var dy = Math.abs(pt.y - lastTouchStart.y);
+        if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
           var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
           if (ruleFromPoint) {
             var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
