@@ -17,7 +17,6 @@ const __lazyActionLoaders = {
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('/js/animal-totem-experience.js')
     ),
-  openSajuTotemModal: () => __loadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1'),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
