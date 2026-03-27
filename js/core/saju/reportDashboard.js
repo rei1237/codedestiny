@@ -679,6 +679,28 @@ function renderReportDashboard() {
   if (!container || !dashCard) return;
   dashCard.style.display = '';
 
+  /* ── 이전 렌더에서 컨테이너 안으로 이동된 요소를 rescue zone으로 임시 이동 ──
+     두 번째 이후 계산 시 container.innerHTML 교체로 파괴되는 것을 방지한다.   */
+  (function rescueContainerChildren() {
+    var zone = document.getElementById('_rptRescueZone');
+    if (!zone) {
+      zone = document.createElement('div');
+      zone.id = '_rptRescueZone';
+      zone.setAttribute('aria-hidden', 'true');
+      zone.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden;pointer-events:none;';
+      document.body.appendChild(zone);
+    }
+    REPORT_CARDS.forEach(function(c) {
+      if (c.action === 'openLuckSyncDiary') return;
+      try {
+        var el = document.getElementById(c.target);
+        if (el && container.contains(el)) {
+          zone.appendChild(el); // 컨테이너에서 분리 — DOM상 살아있어 getElementById로 찾을 수 있음
+        }
+      } catch (eRescue) {}
+    });
+  })();
+
   /* ── 타겟 기준 중복 제거 블록 목록 생성 ── */
   var seenTargets = {};
   var blocks = [];
