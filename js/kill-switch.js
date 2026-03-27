@@ -1,5 +1,5 @@
 (function () {
-  var STATUS_URL = "/status.json";
+  var STATUS_URL = "/status.json?v=1.0.1";
   var HEARTBEAT_INTERVAL_MS = 60000;
   var REQUEST_TIMEOUT_MS = 3500;
   var killed = false;

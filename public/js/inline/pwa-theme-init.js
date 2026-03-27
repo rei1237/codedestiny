@@ -8,7 +8,7 @@
     window.__INITIAL_THEME_NEO__ = isNeo;
     if (!isNeo) return;
     var manifestLink = document.getElementById('pwa-manifest');
-    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json');
+    if (manifestLink) manifestLink.setAttribute('href', '/manifest-samba.json?v=1.0.1');
     var faviconLink = document.getElementById('pwa-favicon');
     if (faviconLink) {
       faviconLink.setAttribute('href', '/icons/samba.webp');

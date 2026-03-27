@@ -195,7 +195,10 @@ function writeThemeModeState(isNeo) {
 
 function applyPwaThemeAssets(isNeo) {
   var manifestLink = document.querySelector('link[rel="manifest"]');
-  if (manifestLink) manifestLink.setAttribute('href', isNeo ? '/manifest-samba.json' : '/manifest.json');
+  if (manifestLink) {
+    var manifestHref = (isNeo ? '/manifest-samba.json' : '/manifest.json') + '?v=1.0.1';
+    manifestLink.setAttribute('href', manifestHref);
+  }
 
   var faviconLink = document.getElementById('pwa-favicon');
   var appleIconLink = document.getElementById('pwa-apple-icon');
