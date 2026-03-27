@@ -153,8 +153,13 @@
       }
 
       var svgMarkup = guardian.svg_markup ? String(guardian.svg_markup) : '';
+      var fallbackSvgMarkup = guardian.fallback_svg_markup ? String(guardian.fallback_svg_markup) : '';
       var svgDataUri = guardian.svg_data_uri ? String(guardian.svg_data_uri) : '';
-      if (!svgMarkup && !svgDataUri) {
+      var sources = [];
+      if (svgDataUri) sources.push({ type: 'uri', value: svgDataUri });
+      if (svgMarkup) sources.push({ type: 'svg', value: svgMarkup });
+      if (fallbackSvgMarkup) sources.push({ type: 'svg', value: fallbackSvgMarkup });
+      if (!sources.length) {
         resolve(guardian);
         return;
       }
@@ -169,42 +174,86 @@
         return;
       }
 
-      var img = new Image();
-      var objectUrl = '';
-      img.onload = function () {
+      function isMeaningfulCanvas() {
         try {
-          ctx.clearRect(0, 0, size, size);
-          var iw = img.naturalWidth || size;
-          var ih = img.naturalHeight || size;
-          var scale = Math.max(size / iw, size / ih);
-          var dw = iw * scale;
-          var dh = ih * scale;
-          var dx = (size - dw) / 2;
-          var dy = (size - dh) / 2;
-          ctx.drawImage(img, dx, dy, dw, dh);
-          guardian.image_data_uri = canvas.toDataURL('image/png');
-          guardian.svg_data_uri = '';
-        } catch (e) {}
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        resolve(guardian);
-      };
-      img.onerror = function () {
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        resolve(guardian);
-      };
-
-      if (svgDataUri) {
-        img.src = svgDataUri;
-        return;
+          var data = ctx.getImageData(0, 0, size, size).data;
+          var minL = 255;
+          var maxL = 0;
+          var alphaPixels = 0;
+          var step = Math.max(16, Math.floor((size * size) / 1800)) * 4;
+          var i;
+          for (i = 0; i < data.length; i += step) {
+            var a = data[i + 3];
+            if (a > 16) {
+              alphaPixels += 1;
+              var lum = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+              if (lum < minL) minL = lum;
+              if (lum > maxL) maxL = lum;
+            }
+          }
+          if (alphaPixels < 36) return false;
+          return (maxL - minL) >= 12;
+        } catch (e) {
+          return false;
+        }
       }
 
-      try {
-        var blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-        objectUrl = URL.createObjectURL(blob);
-        img.src = objectUrl;
-      } catch (e) {
-        resolve(guardian);
+      var sourceIdx = 0;
+      function tryNextSource() {
+        if (sourceIdx >= sources.length) {
+          resolve(guardian);
+          return;
+        }
+
+        var src = sources[sourceIdx++];
+        var img = new Image();
+        var objectUrl = '';
+        img.onload = function () {
+          try {
+            ctx.clearRect(0, 0, size, size);
+            var iw = img.naturalWidth || size;
+            var ih = img.naturalHeight || size;
+            var scale = Math.max(size / iw, size / ih);
+            var dw = iw * scale;
+            var dh = ih * scale;
+            var dx = (size - dw) / 2;
+            var dy = (size - dh) / 2;
+            ctx.drawImage(img, dx, dy, dw, dh);
+            if (!isMeaningfulCanvas()) {
+              if (objectUrl) URL.revokeObjectURL(objectUrl);
+              tryNextSource();
+              return;
+            }
+            guardian.image_data_uri = canvas.toDataURL('image/png');
+            guardian.svg_data_uri = '';
+          } catch (e) {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            tryNextSource();
+            return;
+          }
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          resolve(guardian);
+        };
+        img.onerror = function () {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          tryNextSource();
+        };
+
+        if (src.type === 'uri') {
+          img.src = src.value;
+          return;
+        }
+
+        try {
+          var blob = new Blob([src.value], { type: 'image/svg+xml;charset=utf-8' });
+          objectUrl = URL.createObjectURL(blob);
+          img.src = objectUrl;
+        } catch (e) {
+          tryNextSource();
+        }
       }
+
+      tryNextSource();
     });
   }
 
@@ -237,7 +286,7 @@
     body.innerHTML = '' +
       '<div class="stg-no-saju">' +
       '  <div class="stg-no-saju__icon">⏳</div>' +
-      '  <p class="stg-no-saju__title">현재 API 이용자가 많아 이미지 생성 결과를 잠시 숨김 처리 중입니다.</p>' +
+      '  <p class="stg-no-saju__title">API 호출 실패: 이미지 생성에 실패했습니다.</p>' +
       '  <p class="stg-no-saju__desc">' + sourceLabel + '를 바탕으로 재시도하면 더 선명한 결과를 받을 수 있어요.</p>' +
       '  <button class="stg-btn stg-btn--primary" id="sajuTotemRetryBtn" type="button">다시 시도하기 ✨</button>' +
       '</div>';
@@ -443,13 +492,10 @@
           });
       })
       .then(function (guardian) {
-        rasterizeGuardianToPng(guardian, renderSpec.outputSize)
-          .then(function (rasterized) {
-            finishWithSuccess(rasterized || guardian);
-          })
-          .catch(function () {
-            finishWithSuccess(guardian);
-          });
+        if (!guardian || !guardian.image_data_uri) {
+          throw new Error('saju-animal-image-missing');
+        }
+        finishWithSuccess(guardian);
       })
       .catch(function () {
         finishWithFailure();

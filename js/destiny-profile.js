@@ -791,8 +791,13 @@
       }
 
       var svgMarkup = guardian.svg_markup ? String(guardian.svg_markup) : '';
+      var fallbackSvgMarkup = guardian.fallback_svg_markup ? String(guardian.fallback_svg_markup) : '';
       var svgDataUri = guardian.svg_data_uri ? String(guardian.svg_data_uri) : '';
-      if (!svgMarkup && !svgDataUri) {
+      var sources = [];
+      if (svgDataUri) sources.push({ type: 'uri', value: svgDataUri });
+      if (svgMarkup) sources.push({ type: 'svg', value: svgMarkup });
+      if (fallbackSvgMarkup) sources.push({ type: 'svg', value: fallbackSvgMarkup });
+      if (!sources.length) {
         resolve(guardian);
         return;
       }
@@ -807,35 +812,79 @@
         return;
       }
 
-      var img = new Image();
-      var objectUrl = '';
-      img.onload = function() {
+      function isMeaningfulCanvas() {
         try {
-          ctx.clearRect(0, 0, canvasSize, canvasSize);
-          ctx.drawImage(img, 0, 0, canvasSize, canvasSize);
-          guardian.image_data_uri = canvas.toDataURL('image/png');
-          guardian.svg_data_uri = '';
-        } catch (e) {}
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        resolve(guardian);
-      };
-      img.onerror = function() {
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        resolve(guardian);
-      };
-
-      if (svgDataUri) {
-        img.src = svgDataUri;
-        return;
+          var data = ctx.getImageData(0, 0, canvasSize, canvasSize).data;
+          var alphaPixels = 0;
+          var minL = 255;
+          var maxL = 0;
+          var step = Math.max(8, Math.floor((canvasSize * canvasSize) / 1200)) * 4;
+          var i;
+          for (i = 0; i < data.length; i += step) {
+            var a = data[i + 3];
+            if (a > 16) {
+              alphaPixels += 1;
+              var lum = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+              if (lum < minL) minL = lum;
+              if (lum > maxL) maxL = lum;
+            }
+          }
+          if (alphaPixels < 24) return false;
+          return (maxL - minL) >= 10;
+        } catch (e) {
+          return false;
+        }
       }
 
-      try {
-        var blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-        objectUrl = URL.createObjectURL(blob);
-        img.src = objectUrl;
-      } catch (e) {
-        resolve(guardian);
+      var sourceIdx = 0;
+      function tryNextSource() {
+        if (sourceIdx >= sources.length) {
+          resolve(guardian);
+          return;
+        }
+
+        var src = sources[sourceIdx++];
+        var img = new Image();
+        var objectUrl = '';
+        img.onload = function() {
+          try {
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            ctx.drawImage(img, 0, 0, canvasSize, canvasSize);
+            if (!isMeaningfulCanvas()) {
+              if (objectUrl) URL.revokeObjectURL(objectUrl);
+              tryNextSource();
+              return;
+            }
+            guardian.image_data_uri = canvas.toDataURL('image/png');
+            guardian.svg_data_uri = '';
+          } catch (e) {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            tryNextSource();
+            return;
+          }
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          resolve(guardian);
+        };
+        img.onerror = function() {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          tryNextSource();
+        };
+
+        if (src.type === 'uri') {
+          img.src = src.value;
+          return;
+        }
+
+        try {
+          var blob = new Blob([src.value], { type: 'image/svg+xml;charset=utf-8' });
+          objectUrl = URL.createObjectURL(blob);
+          img.src = objectUrl;
+        } catch (e) {
+          tryNextSource();
+        }
       }
+
+      tryNextSource();
     });
   }
 
@@ -865,9 +914,9 @@
         throw new Error((data && data.message) || ('아바타 생성 실패 (' + resp.status + ')'));
       }
 
-      var guardian = await _dpRasterizeGuardianToPng(data.guardian, 320);
+      var guardian = data.guardian;
       if (!guardian || !guardian.image_data_uri) {
-        throw new Error('guardian-image-rasterize-failed');
+        throw new Error('guardian-image-missing');
       }
 
       DPStorage.update(p.id, {

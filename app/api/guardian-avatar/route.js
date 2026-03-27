@@ -240,6 +240,69 @@ function toDataUri(svg) {
   return "data:image/svg+xml;base64," + b64;
 }
 
+function parseGeminiInlineImage(payload) {
+  const candidates = (payload && payload.candidates) || [];
+  for (const c of candidates) {
+    const parts = (c && c.content && c.content.parts) || [];
+    for (const p of parts) {
+      const inlineData = p && (p.inlineData || p.inline_data);
+      const mimeType = String((inlineData && (inlineData.mimeType || inlineData.mime_type)) || "").trim();
+      const data = String((inlineData && inlineData.data) || "").trim();
+      if (data && /^image\//i.test(mimeType)) {
+        return "data:" + mimeType + ";base64," + data;
+      }
+    }
+  }
+  return "";
+}
+
+function buildImagePrompt(profile, visual, totemAnimal, renderMode, outputSize, avatarPrompt, imagePrompt) {
+  const birth = (profile && profile.birth) || {};
+  const loc = (profile && profile.location) || {};
+  const targetSize = normalizeOutputSize(outputSize, renderMode);
+  const fallbackAnimal = fallbackAnimalByElement(visual?.dominantElement || "wood");
+  const animal = totemAnimal || fallbackAnimal;
+  const animalName = sanitizeAnimalNameKr(String(animal?.name || fallbackAnimal.name || "사슴").trim()) || "사슴";
+  const animalNameEn = sanitizeAnimalNameEn(String(animal?.nameEn || fallbackAnimal.nameEn || "deer").trim()) || "deer";
+  const promptSeed = String(avatarPrompt || imagePrompt || "").trim();
+  return [
+    "사주 기반 캐릭터 일러스트를 생성하라.",
+    "출력은 텍스트가 아닌 이미지여야 한다.",
+    "형식: 고해상도 귀여운 만화풍 SD 캐릭터, 배경 포함.",
+    "캔버스: 정사각형 " + targetSize + "x" + targetSize + ".",
+    "동물 종 고정: " + animalNameEn + " (" + animalName + ").",
+    "사주 오행 반영: " + (visual && visual.summary ? visual.summary : "오행 균형 반영"),
+    "표정: " + (visual && visual.facialExpression ? visual.facialExpression : "부드러운 미소"),
+    "배경: " + (visual && visual.backgroundMotif ? visual.backgroundMotif : "파스텔 자연 배경"),
+    "텍스트/로고/워터마크 금지.",
+    promptSeed ? ("추가 스타일 시드: " + promptSeed) : "",
+    "참고 프로필:",
+    JSON.stringify({
+      birth: {
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute,
+        calType: birth.calType,
+      },
+      location: {
+        label: loc.label,
+        tz: loc.tz,
+        lat: loc.lat,
+        lng: loc.lng,
+      },
+      sajuVisual: visual,
+      totemAnimalHint: {
+        name: animalName,
+        nameEn: animalNameEn,
+      },
+    }),
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function normalizeTotemAnimal(payload) {
   if (!payload || typeof payload !== "object") return null;
   const name = sanitizeAnimalNameKr(String(payload.name || "").trim());
@@ -712,9 +775,15 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   const normalizedMode = normalizeRenderMode(renderMode);
   const normalizedStyle = "strong";
   const normalizedSize = normalizeOutputSize(outputSize, normalizedMode);
-  const prompt = buildPrompt(profile, visual, totemAnimal, normalizedMode, normalizedStyle, normalizedSize, avatarPrompt, imagePrompt);
-  const models = modelCandidates();
-  const expectedSpecies = normalizeAnimalSpeciesToken((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "");
+  const prompt = buildImagePrompt(profile, visual, totemAnimal, normalizedMode, normalizedSize, avatarPrompt, imagePrompt);
+  const models = [
+    "gemini-2.0-flash-preview-image-generation",
+    "gemini-2.5-flash-image-preview",
+    ...modelCandidates(),
+  ]
+    .map((m) => normalizeModelId(m))
+    .filter(Boolean)
+    .filter((m, i, arr) => arr.indexOf(m) === i);
   let lastError = null;
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
@@ -729,10 +798,9 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             body: JSON.stringify({
               contents: [{ role: "user", parts: [{ text: prompt }] }],
               generationConfig: {
-                temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
+                temperature: normalizedMode === "profile-mini" ? 0.55 : 0.75,
                 topP: 0.95,
-                maxOutputTokens:
-                  normalizedMode === "profile-mini" ? 700 : normalizedSize <= 640 ? 2200 : normalizedSize <= 896 ? 3200 : 4200,
+                maxOutputTokens: 512,
               },
             }),
             signal: controller.signal,
@@ -754,57 +822,35 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             break;
           }
 
-          const rawText = parseGeminiText(payload);
-          const obj = parseJson(rawText);
-          if (!obj) {
-            lastError = Object.assign(new Error("Gemini JSON parse failed"), { status: 502, model });
+          const imageDataUri = parseGeminiInlineImage(payload);
+          if (!imageDataUri) {
+            lastError = Object.assign(new Error("Gemini image parse failed"), { status: 502, model });
             break;
-          }
-
-          const svg = normalizeSvg(obj.svg || obj.guardian?.svg || obj.result?.svg || obj.data?.svg);
-          if (!svg) {
-            lastError = Object.assign(new Error("Gemini SVG parse failed"), { status: 502, model });
-            break;
-          }
-
-          if (expectedSpecies) {
-            const receivedSpecies = normalizeAnimalSpeciesToken(
-              obj.animal_species_en || obj.animal || obj.species || obj.title || obj.summary || obj.illustration_prompt
-            );
-            if (receivedSpecies && receivedSpecies !== expectedSpecies) {
-              lastError = Object.assign(
-                new Error("Gemini animal species mismatch: expected " + expectedSpecies + ", got " + receivedSpecies),
-                { status: 502, model }
-              );
-              break;
-            }
           }
 
           return {
             title: sanitizeOutputCopy(
-              obj.title ||
-                (normalizedMode === "profile-mini"
-                  ? "미니 가디언"
-                  : totemAnimal && totemAnimal.name
-                    ? toGuardianLabel(totemAnimal.name) + " 수호 캐릭터"
-                    : "사주 동물 아트")
+              normalizedMode === "profile-mini"
+                ? "미니 가디언"
+                : totemAnimal && totemAnimal.name
+                  ? toGuardianLabel(totemAnimal.name) + " 수호 캐릭터"
+                  : "사주 동물 아트"
             ),
             summary: buildWhyAnimalSummary(
               visual,
               totemAnimal,
-              obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 수호 캐릭터 아트")
+              visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 수호 캐릭터 아트")
             ),
-            facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
-            backgroundMotif: String(obj.background_motif || visual.backgroundMotif || "파스텔 자연 배경").trim(),
+            facialExpression: String(visual.facialExpression || "부드러운 미소").trim(),
+            backgroundMotif: String(visual.backgroundMotif || "파스텔 자연 배경").trim(),
             illustrationPrompt: String(
-              obj.illustration_prompt ||
-                (normalizedMode === "profile-mini"
-                  ? "프로필 카드용 미니 만화풍 가디언 아이콘"
-                  : "귀여운 파스텔톤 동물 가디언(" + ((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby animal") + "), 표정: " +
-                    (obj.facial_expression || visual.facialExpression) + ", 배경: " + (obj.background_motif || visual.backgroundMotif))
+              normalizedMode === "profile-mini"
+                ? "프로필 카드용 미니 만화풍 가디언 아이콘"
+                : "귀여운 파스텔톤 동물 가디언(" + ((totemAnimal && (totemAnimal.nameEn || totemAnimal.name)) || "baby animal") + "), 표정: " +
+                  (visual.facialExpression || "부드러운 미소") + ", 배경: " + (visual.backgroundMotif || "파스텔 자연 배경")
             ).trim(),
             styleIntensity: normalizedStyle,
-            svg,
+            imageDataUri,
             source: "gemini",
             model,
           };
@@ -843,19 +889,15 @@ export async function POST(request) {
     try {
       guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt);
     } catch (geminiError) {
-      console.warn("[api/guardian-avatar] Gemini failed, using fallback guardian", geminiError);
-      guardian = buildFallbackGuardian(
-        profile,
-        visual,
-        totemAnimal,
-        renderMode,
-        styleIntensity,
-        geminiError?.message || "gemini-call-failed",
-        outputSize
+      console.error("[api/guardian-avatar] Gemini image generation failed", geminiError);
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "API 호출 실패: 이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        },
+        { status: 503 }
       );
     }
-
-    const exposeSvg = shouldExposeGuardianSvg();
 
     return NextResponse.json({
       ok: true,
@@ -865,19 +907,15 @@ export async function POST(request) {
         facial_expression: guardian.facialExpression,
         background_motif: guardian.backgroundMotif,
         illustration_prompt: guardian.illustrationPrompt,
-        svg_data_uri: exposeSvg ? toDataUri(guardian.svg) : null,
-        svg_markup: String(guardian.svg || ""),
-        image_hidden: !exposeSvg,
+        image_data_uri: String(guardian.imageDataUri || ""),
+        image_hidden: false,
         created_at: new Date().toISOString(),
         render_mode: renderMode,
         output_size: outputSize,
         style_intensity: guardian.styleIntensity,
         generation_source: guardian.source || "unknown",
-        fallback_reason: guardian.fallbackReason || null,
-        warning_message:
-          guardian.source === "fallback"
-            ? "이미지 API 응답이 불안정해 사주 데이터 기반 폴백 일러스트로 렌더링했어요."
-            : null,
+        fallback_reason: null,
+        warning_message: null,
         analysis_source: sajuAnalysis ? "client-snapshot" : "profile-derived",
       },
       saju_visual: visual,
