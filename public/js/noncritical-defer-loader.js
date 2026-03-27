@@ -4,11 +4,35 @@
   var SELECTOR = 'script[data-cd-noncritical-src]';
   var STARTED = false;
 
+  function isMobile() {
+    return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  }
+
+  function isSaveData() {
+    var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    return !!(conn && conn.saveData);
+  }
+
+  function shouldSkip(tag) {
+    if (!tag) return false;
+    if (isSaveData() && tag.getAttribute('data-cd-skip-save-data') === '1') return true;
+    if (isMobile() && tag.getAttribute('data-cd-mobile-delay') === '2') return true;
+    return false;
+  }
+
+  function nextIdle(fn) {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(function () { fn(); }, { timeout: 1400 });
+      return;
+    }
+    setTimeout(fn, 120);
+  }
+
   function loadSequentially(nodes, idx) {
     if (!nodes || idx >= nodes.length) return;
     var tag = nodes[idx];
     var src = tag.getAttribute('data-cd-noncritical-src');
-    if (!src) {
+    if (!src || shouldSkip(tag)) {
       loadSequentially(nodes, idx + 1);
       return;
     }
@@ -22,8 +46,12 @@
     s.src = src;
     s.defer = true;
     s.async = false;
-    s.onload = function () { loadSequentially(nodes, idx + 1); };
-    s.onerror = function () { loadSequentially(nodes, idx + 1); };
+    s.onload = function () {
+      nextIdle(function () { loadSequentially(nodes, idx + 1); });
+    };
+    s.onerror = function () {
+      nextIdle(function () { loadSequentially(nodes, idx + 1); });
+    };
     document.body.appendChild(s);
   }
 
@@ -36,16 +64,27 @@
   }
 
   function boot() {
+    var mobile = isMobile();
+    var idleTimeout = mobile ? 6200 : 3500;
+    var fallbackTimeout = mobile ? 4200 : 2200;
+
     if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(start, { timeout: 3500 });
+      window.requestIdleCallback(start, { timeout: idleTimeout });
     } else {
-      setTimeout(start, 2200);
+      setTimeout(start, fallbackTimeout);
     }
 
-    var events = ['pointerdown', 'touchstart', 'keydown', 'scroll'];
+    var events = mobile
+      ? ['pointerdown', 'touchstart', 'keydown', 'click']
+      : ['pointerdown', 'keydown', 'scroll'];
     for (var i = 0; i < events.length; i += 1) {
       window.addEventListener(events[i], start, { once: true, passive: true });
     }
+
+    // 탭이 백그라운드로 갈 때는 사용자 체감 영향이 거의 없어 미뤄둔 스크립트를 로드한다.
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') start();
+    }, { once: true });
   }
 
   if (document.readyState === 'loading') {
