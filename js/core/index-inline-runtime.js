@@ -1002,6 +1002,7 @@ function __cdLoadScriptOnce(src) {
 }
 
 var __cdSajuCoreLoadPromise = null;
+var __cdSwissEphLoadPromise = null;
 
 function __cdEnsureSajuCoreLoaded() {
   if (window.__cdSajuCoreReady === 1) return Promise.resolve(true);
@@ -1028,6 +1029,92 @@ function __cdEnsureSajuCoreLoaded() {
   });
 
   return __cdSajuCoreLoadPromise;
+}
+
+function __cdEnsureSwissEphLoaded() {
+  if (window.__cdSwissEphReady === 1 || window.swisseph || window.Swe || window.swe) {
+    window.__cdSwissEphReady = 1;
+    return Promise.resolve(true);
+  }
+  if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
+
+  __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
+    var src = '/js/swisseph-loader.js?v=20260328-lazy1';
+    var norm = __cdNormalizeScriptSrc(src);
+    if (!norm) {
+      reject(new Error('missing swisseph src'));
+      return;
+    }
+
+    function markReady() {
+      window.__cdSwissEphReady = 1;
+      resolve(true);
+    }
+
+    function waitForBridge() {
+      if (window.swisseph || window.Swe || window.swe) {
+        markReady();
+        return;
+      }
+
+      var settled = false;
+      var done = function(ok) {
+        if (settled) return;
+        settled = true;
+        window.removeEventListener('swisseph:ready', onReady);
+        if (ok) {
+          markReady();
+        } else {
+          resolve(false);
+        }
+      };
+
+      var onReady = function() { done(true); };
+      window.addEventListener('swisseph:ready', onReady, { once: true });
+      setTimeout(function() { done(false); }, 12000);
+    }
+
+    var all = document.querySelectorAll('script[src]');
+    var existing = null;
+    var normBase = norm.split('?')[0];
+    for (var i = 0; i < all.length; i += 1) {
+      var cur = all[i].getAttribute('src') || '';
+      var curBase = cur.split('?')[0];
+      if (curBase === normBase) {
+        existing = all[i];
+        break;
+      }
+    }
+
+    if (existing) {
+      if (existing.dataset.loaded === '1') {
+        waitForBridge();
+        return;
+      }
+      existing.addEventListener('load', waitForBridge, { once: true });
+      existing.addEventListener('error', function() { reject(new Error('swisseph module load failed')); }, { once: true });
+      return;
+    }
+
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = norm;
+    s.async = true;
+    s.defer = true;
+    s.dataset.loading = '1';
+    s.onload = function() {
+      s.dataset.loading = '0';
+      s.dataset.loaded = '1';
+      waitForBridge();
+    };
+    s.onerror = function() { reject(new Error('swisseph module load failed')); };
+    document.head.appendChild(s);
+  }).catch(function(err) {
+    __cdSwissEphLoadPromise = null;
+    throw err;
+  });
+
+  return __cdSwissEphLoadPromise;
 }
 
 function __cdInstallSajuActionStub(actionName) {
@@ -1137,11 +1224,9 @@ window.closeLuckSyncDiary = function() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     __cdBindSajuIntentPrefetch();
-    __cdWarmupSajuInputsIfNeeded();
   }, { once: true });
 } else {
   __cdBindSajuIntentPrefetch();
-  __cdWarmupSajuInputsIfNeeded();
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
@@ -4874,8 +4959,17 @@ function closeZiweiModal() {
 }
 
 function openAstroModal(_retried) {
-  if (!_retried && __cdBirthModalDepsMissing()) {
-    __cdEnsureBirthModalDepsLoaded()
+  if (!_retried) {
+    Promise.resolve()
+      .then(function() {
+        return __cdBirthModalDepsMissing() ? __cdEnsureBirthModalDepsLoaded() : true;
+      })
+      .then(function() {
+        return __cdEnsureSwissEphLoaded().catch(function(err) {
+          console.warn('[openAstroModal] swisseph lazy load failed; using legacy fallback.', err);
+          return false;
+        });
+      })
       .then(function() { openAstroModal(true); })
       .catch(function(err) { console.error('[openAstroModal] dependency load failed:', err); });
     return;
