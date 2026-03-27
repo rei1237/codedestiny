@@ -259,9 +259,13 @@
     }
 
     var b = profile.birth;
-    var l = profile.location;
+    var l = profile.location || {};
+    var profileLng = (l.lng !== undefined && l.lng !== null && !isNaN(Number(l.lng)))
+      ? Number(l.lng)
+      : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
     var tzResolved = resolveTimezoneOffset(b, l);
-    var tso = calcTrueSolarOffset(l.lng, tzResolved.tzOffsetHours);
+    var safeLng = (profileLng !== null) ? profileLng : 127.0;
+    var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
     var corrected = applyTrueSolarOffset(b.hour, b.minute, tso);
     var trueSolarStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
     var dir = tso > 0 ? '−' : '+';
@@ -417,7 +421,10 @@
       return;
     }
     var b = profile.birth;
-    var l = profile.location;
+    var l = profile.location || {};
+    var profileLng = (l.lng !== undefined && l.lng !== null && !isNaN(Number(l.lng)))
+      ? Number(l.lng)
+      : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
 
     /* 필수값 검증 */
     if (!b || !b.year || !b.month || !b.day) {
@@ -426,9 +433,19 @@
       if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (!l || l.lng === undefined || l.lng === null) {
-      _toast('⚠️ 출생지 정보가 없습니다. 프로필을 다시 저장하세요.', 'warn');
-      return;
+    if (!l.tz || profileLng === null) {
+      var fallbackSel = document.getElementById('birthCountry');
+      var fallbackOpt = fallbackSel ? fallbackSel.options[fallbackSel.selectedIndex] : null;
+      if (fallbackOpt) {
+        if (!l.tz) l.tz = fallbackSel.value || 'Asia/Seoul';
+        if (profileLng === null) {
+          var fallbackLng = parseFloat(fallbackOpt.getAttribute('data-long') || '127');
+          profileLng = isNaN(fallbackLng) ? 127.0 : fallbackLng;
+        }
+      } else {
+        if (!l.tz) l.tz = 'Asia/Seoul';
+        if (profileLng === null) profileLng = 127.0;
+      }
     }
 
     /* 시각 피드백 먼저 */
@@ -456,7 +473,7 @@
       var matched = false;
       for (var i = 0; i < countrySel.options.length; i++) {
         var opt = countrySel.options[i];
-        if (opt.value === l.tz && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - l.lng) < 1) {
+        if (opt.value === l.tz && profileLng !== null && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - profileLng) < 1) {
           countrySel.selectedIndex = i; matched = true; break;
         }
       }
@@ -493,18 +510,8 @@
         try {
           if (typeof window.checkPrivacyAndCalculate === 'function') {
             var calcPromise = window.checkPrivacyAndCalculate();
-            if (calcPromise && typeof calcPromise.then === 'function') {
-              calcPromise.then(function() {
-                /* ⑥ 사주 계산 완료 후 재미있는 콘텐츠 유형들 자동 활성화 */
-                try {
-                  if (typeof window.openSukuyoModal === 'function') window.openSukuyoModal();
-                  if (typeof window.openZiweiModal === 'function') window.openZiweiModal();
-                  if (typeof window.openAstroModal === 'function') window.openAstroModal();
-                  if (typeof window.openDestinyFlowerStudio === 'function') window.openDestinyFlowerStudio();
-                } catch (err2) {
-                  console.error('[DP] 콘텐츠 활성화 중 오류:', err2);
-                }
-              }).catch(function(err) {
+            if (calcPromise && typeof calcPromise.catch === 'function') {
+              calcPromise.catch(function(err) {
                 console.error('[DP] 계산 완료 콜백 오류:', err);
                 _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
               });
