@@ -29,6 +29,10 @@ const projectName =
 const SECRET_KEYS = [
   "GEMINI_API_KEY",
   "GOOGLE_API_KEY",
+  "GEMINI_API_KEY_2",
+  "GOOGLE_API_KEY_2",
+  "GEMINI_API_KEY_3",
+  "GOOGLE_API_KEY_3",
   "ANTHROPIC_API_KEY",
   "DEEPL_API_KEY",
   "PORTONE_API_KEY",
@@ -40,7 +44,21 @@ const SECRET_KEYS = [
 function getSecretValue(key) {
   const raw = process.env[key];
   if (raw == null) return "";
-  return String(raw).trim();
+  const value = String(raw).trim();
+  if (!value) return "";
+
+  const upper = value.toUpperCase();
+  const placeholderMarkers = [
+    "CHANGE_ME",
+    "PUT_32_CHAR_RANDOM_HASH_HERE",
+    "YOUR_",
+    "EXAMPLE",
+  ];
+  if (placeholderMarkers.some((marker) => upper.includes(marker))) {
+    return "";
+  }
+
+  return value;
 }
 
 function putPagesSecret(project, key, value) {

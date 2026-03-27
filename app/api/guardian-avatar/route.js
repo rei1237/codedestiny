@@ -51,7 +51,8 @@ function shouldExposeGuardianSvg() {
   const raw = String(process.env.SAJU_TOTEM_ENABLE_SVG || "")
     .trim()
     .toLowerCase();
-  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+  if (!raw) return true;
+  return !(raw === "0" || raw === "false" || raw === "no" || raw === "off");
 }
 
 function safeInt(v, d) {
