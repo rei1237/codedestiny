@@ -642,8 +642,13 @@ function setupCoreCodeSplitHooks() {
 }
 
 function init() {
-  setupGpuSafety();
   setupFeatureCodeSplit();
+
+  if (!__isMobile()) {
+    return;
+  }
+
+  setupGpuSafety();
   setupCoreCodeSplitHooks();
   setupViewportEventOptimizations();
   __queuePostPaintOptimizations();

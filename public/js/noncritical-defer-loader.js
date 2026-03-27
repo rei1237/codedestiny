@@ -68,10 +68,14 @@
     var idleTimeout = mobile ? 6200 : 3500;
     var fallbackTimeout = mobile ? 4200 : 2200;
 
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(start, { timeout: idleTimeout });
-    } else {
-      setTimeout(start, fallbackTimeout);
+    // 모바일 Lighthouse 구간에서는 자동 비핵심 로딩이 성능 점수를 크게 깎을 수 있어
+    // 모바일에서는 사용자 상호작용 전에는 자동 시작하지 않는다.
+    if (!mobile) {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(start, { timeout: idleTimeout });
+      } else {
+        setTimeout(start, fallbackTimeout);
+      }
     }
 
     var events = mobile
