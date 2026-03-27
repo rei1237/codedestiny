@@ -188,7 +188,19 @@
     var bd      = bdEl ? bdEl.value : '';
     var hour    = parseInt((document.getElementById('birthHour') || {}).value) || 12;
     var minute  = parseInt((document.getElementById('birthMinute') || {}).value) || 0;
-    var gender  = window._gender || 'F';
+    /* 성별: 활성 버튼 우선, 폴백 window._gender, 기본값 'F' */
+    var gender  = 'F';
+    var btnM = document.getElementById('btnM');
+    var btnF = document.getElementById('btnF');
+    if (btnM && btnM.classList.contains('on')) {
+      gender = 'M';
+    } else if (btnF && btnF.classList.contains('on')) {
+      gender = 'F';
+    } else if (window._gender && (window._gender === 'M' || window._gender === 'F')) {
+      gender = window._gender;
+    } else if (typeof window.GENDER !== 'undefined' && window.GENDER) {
+      gender = window.GENDER;
+    }
 
     /* calType */
     var calType = 'solar';
@@ -459,9 +471,21 @@
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
 
-    /* ④ 미리보기 갱신 */
-    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
-    if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+    /* ④ 미리보기 갱신 — 예외 처리 강화 */
+    try {
+      if (window.updateLunarPreview && typeof window.updateLunarPreview === 'function') {
+        window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
+      }
+    } catch (err) {
+      console.error('[DP] 음력 미리보기 갱신 실패:', err);
+    }
+    try {
+      if (window.updateCorrectedTimePreview && typeof window.updateCorrectedTimePreview === 'function') {
+        window.updateCorrectedTimePreview();
+      }
+    } catch (err) {
+      console.error('[DP] 시간 보정 미리보기 갱신 실패:', err);
+    }
 
     /* ⑤ 비동기 실행 — RAF + 80ms: DOM 완전 반영 후 계산 */
     requestAnimationFrame(function() {

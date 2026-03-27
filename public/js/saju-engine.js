@@ -2129,9 +2129,27 @@ function initSelectors(){
     cm.value='0';
   }
 
+  /* 시간 보정 미리보기 업데이트 — 초기 부트 시 UI 활성화 */
   try {
-    if (typeof updateCorrectedTimePreview === 'function') updateCorrectedTimePreview();
-  } catch (e) {}
+    if (typeof updateCorrectedTimePreview === 'function') {
+      updateCorrectedTimePreview();
+    }
+  } catch (e) {
+    console.error('[initSelectors] updateCorrectedTimePreview 실패:', e);
+    /* 실패 시에도 로딩 상태 해제 */
+    var infoDiv = document.getElementById('timeCorrectionInfo');
+    if (infoDiv) {
+      infoDiv.classList.remove('time-correction-info--loading');
+      infoDiv.setAttribute('aria-busy', 'false');
+      infoDiv.innerHTML = '🌍 시간 보정 정보를 불러올 수 없습니다. 새로고침 후 다시 시도해주세요.';
+    }
+  }
+
+  /* 성별 초기값 설정 (입력 폼 활성화) */
+  if (typeof GENDER === 'undefined' || !GENDER) {
+    window.GENDER = 'F';
+    window._gender = 'F';
+  }
 }
 
 function updateCorrectedTimePreview(){

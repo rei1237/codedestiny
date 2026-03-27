@@ -69,22 +69,36 @@ function _unlockCoreBirthInputsAfterBootstrapError() {
 }
 
 function _safeBootstrapSajuFlow() {
+  /* 1단계: 입력 필드 초기화 */
   try {
     initSelectors();
   } catch (e1) {
     console.error('[saju-bootstrap] initSelectors 실패:', e1);
+    /* 실패해도 계속 진행 */
   }
+  
+  /* 2단계: 유명의 리스트 로드 */
   try {
     populateCelebList();
   } catch (e2) {
     console.error('[saju-bootstrap] populateCelebList 실패:', e2);
+    /* 실패해도 계속 진행 */
   }
+  
+  /* 3단계: CDN 라이브러리 로드 */
   try {
     loadNext();
   } catch (e3) {
     console.error('[saju-bootstrap] loadNext 실패:', e3);
     _unlockCoreBirthInputsAfterBootstrapError();
   }
+  
+  /* 부트 완료 후에도 입력 필드 상태 확보 */
+  setTimeout(function() {
+    try {
+      _unlockCoreBirthInputsAfterBootstrapError();
+    } catch (e) {}
+  }, 2000);
 }
 
 if(document.readyState==='loading'){
