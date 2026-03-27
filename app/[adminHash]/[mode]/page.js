@@ -1,11 +1,40 @@
 import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 import { getService, SECTION_LABELS } from "../../_lib/serviceMap";
 import RelatedServices from "../../components/RelatedServices";
 import Breadcrumb from "../../components/Breadcrumb";
+import ServiceRenderSkeleton from "../../components/ServiceRenderSkeleton";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "../../../lib/seo-metadata";
 import { FaqJsonLd, SoftwareApplicationJsonLd } from "../../components/SeoJsonLd";
 
 const SITE_ORIGIN = "https://code-destiny.com";
+
+const SERVICE_COMPONENT_LOADERS = {
+  sunHealingTarot: dynamic(() => import("../../components/SunHealingTarot"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  solarOracleTarot: dynamic(() => import("../../components/SolarOracleTarot"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  mingriTarot: dynamic(() => import("../../components/MingriTarot"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  loveRelationshipTarot: dynamic(() => import("../../components/LoveRelationshipTarot"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  sajuBasicPage: dynamic(() => import("../../components/SajuBasicPage"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  astrologyCosmicPage: dynamic(() => import("../../components/AstrologyCosmicPage"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  ziweiChartPage: dynamic(() => import("../../components/ZiweiChartPage"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+  stonehengeRune: dynamic(() => import("../../../StonehengeRune"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
+};
 
 /**
  * JSON-LD는 반드시 JSON.stringify로 직렬화해 유효한 JSON만 출력합니다.
@@ -106,7 +135,13 @@ export default function ServicePage({ params }) {
     notFound();
   }
 
-  const ServiceComponent = service.component;
+  const ServiceComponent = service.componentKey
+    ? SERVICE_COMPONENT_LOADERS[service.componentKey]
+    : service.component;
+
+  if (!ServiceComponent) {
+    notFound();
+  }
   const jsonLd = JSON.stringify(buildServiceJsonLd(slug, service));
   const canonicalUrl = toAbsoluteUrl(`/${slug}`);
   const mergedKeywords = mergeKeywords(service.keywords, SEO_CORE_KEYWORDS);

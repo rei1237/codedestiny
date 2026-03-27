@@ -1,12 +1,4 @@
-import SolarOracleTarot from "../components/SolarOracleTarot";
-import MingriTarot from "../components/MingriTarot";
-import LoveRelationshipTarot from "../components/LoveRelationshipTarot";
-import SajuBasicPage from "../components/SajuBasicPage";
-import ZiweiChartPage from "../components/ZiweiChartPage";
-import AstrologyCosmicPage from "../components/AstrologyCosmicPage";
 import FeatureLandingPage from "../components/FeatureLandingPage";
-import SunHealingTarot from "../components/SunHealingTarot";
-import StonehengeRune from "../../StonehengeRune";
 
 export const SECTION_LABELS = {
   tarot: "타로",
@@ -18,7 +10,7 @@ export const SECTION_LABELS = {
 
 export const SERVICE_MAP = {
   "tarot/healing": {
-    component: SunHealingTarot,
+    componentKey: "sunHealingTarot",
     title: "따뜻한 태양 회복 타로 - 4카드 힐링 스프레드",
     h1: "따뜻한 태양 회복 타로 - Sun and Light 4카드 힐링 스프레드",
     description:
@@ -37,7 +29,7 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/solar": {
-    component: SolarOracleTarot,
+    componentKey: "solarOracleTarot",
     title: "태양의 화답 - Solar Oracle 카드 리딩",
     h1: "태양의 화답 - Solar Oracle 카드 리딩",
     description:
@@ -54,7 +46,7 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/mingri": {
-    component: MingriTarot,
+    componentKey: "mingriTarot",
     title: "명리학 AI 타로 - 78장 유니버설 덱 리딩",
     h1: "명리학 AI 타로 - 78장 유니버설 덱 리딩",
     description:
@@ -73,7 +65,7 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/love": {
-    component: LoveRelationshipTarot,
+    componentKey: "loveRelationshipTarot",
     title: "우리는 무슨 사이? - 6카드 연애 관계 타로",
     h1: "우리는 무슨 사이? - 6카드 연애 관계 타로",
     description:
@@ -91,7 +83,7 @@ export const SERVICE_MAP = {
     ],
   },
   "saju/basic": {
-    component: SajuBasicPage,
+    componentKey: "sajuBasicPage",
     title: "사주 만세력 기본 해석 - 오행·십성·명식 분석",
     h1: "사주 만세력 기본 해석",
     description:
@@ -101,7 +93,7 @@ export const SERVICE_MAP = {
     ogImage: "https://code-destiny.com/fuctionassets/saju.webp",
   },
   "astrology/cosmic": {
-    component: AstrologyCosmicPage,
+    componentKey: "astrologyCosmicPage",
     title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",
     h1: "점성술 코즈믹 차트",
     description:
@@ -121,7 +113,7 @@ export const SERVICE_MAP = {
     ],
   },
   "ziwei/chart": {
-    component: ZiweiChartPage,
+    componentKey: "ziweiChartPage",
     title: "자미두수 12궁 명반 분석 - Ziwei Doushu",
     h1: "자미두수 12궁 명반 분석",
     description:
@@ -300,7 +292,7 @@ export const SERVICE_MAP = {
     ],
   },
   "oracle/rune": {
-    component: StonehengeRune,
+    componentKey: "stonehengeRune",
     title: "스톤헨지 룬 오라클 - Stonehenge Rune",
     h1: "스톤헨지 룬 오라클",
     description: "고대 룬 상징으로 현재 흐름과 연간 운세를 읽는 스톤헨지 룬 신탁 서비스입니다.",
