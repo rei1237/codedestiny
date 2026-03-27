@@ -278,7 +278,7 @@
     }
   }
 
-  function renderStateFailure(contextSource) {
+  function renderStateFailure(contextSource, errorMessage) {
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
 
@@ -288,6 +288,7 @@
       '  <div class="stg-no-saju__icon">⏳</div>' +
       '  <p class="stg-no-saju__title">API 호출 실패: 이미지 생성에 실패했습니다.</p>' +
       '  <p class="stg-no-saju__desc">' + sourceLabel + '를 바탕으로 재시도하면 더 선명한 결과를 받을 수 있어요.</p>' +
+      (errorMessage ? ('  <p class="stg-no-saju__desc" style="font-size:12px;opacity:0.8;word-break:break-word;">원인: ' + String(errorMessage) + '</p>') : '') +
       '  <button class="stg-btn stg-btn--primary" id="sajuTotemRetryBtn" type="button">다시 시도하기 ✨</button>' +
       '</div>';
 
@@ -449,11 +450,11 @@
       }, 240);
     }
 
-    function finishWithFailure() {
+    function finishWithFailure(errorMessage) {
       if (done) return;
       done = true;
       clearInterval(barTimer);
-      renderStateFailure(contextSource);
+      renderStateFailure(contextSource, errorMessage);
     }
 
     var sajuAnalysis = service.captureSajuAnalysisSnapshot();
@@ -475,7 +476,8 @@
           element: totemData.element
         },
         renderMode: 'saju-animal',
-        styleIntensity: 'soft'
+        styleIntensity: 'soft',
+        allowFallback: true
       })
     })
       .then(function (resp) {
@@ -486,19 +488,36 @@
           })
           .then(function (data) {
             if (!resp.ok || !data || !data.ok || !data.guardian) {
-              throw new Error((data && data.message) || ('saju-animal-api-failed-' + resp.status));
+              var fail = new Error((data && data.message) || ('saju-animal-api-failed-' + resp.status));
+              fail.status = resp.status;
+              fail.payload = data;
+              throw fail;
             }
             return data.guardian;
           });
       })
       .then(function (guardian) {
-        if (!guardian || !guardian.image_data_uri) {
-          throw new Error('saju-animal-image-missing');
-        }
+        return rasterizeGuardianToPng(guardian, renderSpec.outputSize).then(function (normalizedGuardian) {
+          if (!normalizedGuardian || !normalizedGuardian.image_data_uri) {
+            var missingErr = new Error('saju-animal-image-missing');
+            missingErr.payload = normalizedGuardian;
+            throw missingErr;
+          }
+          return normalizedGuardian;
+        });
+      })
+      .then(function (guardian) {
         finishWithSuccess(guardian);
       })
-      .catch(function () {
-        finishWithFailure();
+      .catch(function (err) {
+        console.error('[saju-totem-generator] guardian fetch failed', {
+          message: err && err.message,
+          status: err && err.status,
+          payload: err && err.payload,
+          contextSource: contextSource,
+          outputSize: renderSpec.outputSize
+        });
+        finishWithFailure((err && err.message) || 'unknown-error');
       });
   }
 

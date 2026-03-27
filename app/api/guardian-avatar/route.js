@@ -260,23 +260,23 @@ function buildImagePrompt(profile, visual, totemAnimal, renderMode, outputSize, 
   const birth = (profile && profile.birth) || {};
   const loc = (profile && profile.location) || {};
   const targetSize = normalizeOutputSize(outputSize, renderMode);
-  const fallbackAnimal = fallbackAnimalByElement(visual?.dominantElement || "wood");
-  const animal = totemAnimal || fallbackAnimal;
-  const animalName = sanitizeAnimalNameKr(String(animal?.name || fallbackAnimal.name || "사슴").trim()) || "사슴";
-  const animalNameEn = sanitizeAnimalNameEn(String(animal?.nameEn || fallbackAnimal.nameEn || "deer").trim()) || "deer";
+  const mapping = mapSajuToAnimalStyle(visual, totemAnimal);
+  const animalName = mapping.animalName || "사슴";
+  const animalNameEn = mapping.animalNameEn || "deer";
   const promptSeed = String(avatarPrompt || imagePrompt || "").trim();
   return [
-    "사주 기반 캐릭터 일러스트를 생성하라.",
-    "출력은 텍스트가 아닌 이미지여야 한다.",
-    "형식: 고해상도 귀여운 만화풍 SD 캐릭터, 배경 포함.",
-    "캔버스: 정사각형 " + targetSize + "x" + targetSize + ".",
-    "동물 종 고정: " + animalNameEn + " (" + animalName + ").",
-    "사주 오행 반영: " + (visual && visual.summary ? visual.summary : "오행 균형 반영"),
-    "표정: " + (visual && visual.facialExpression ? visual.facialExpression : "부드러운 미소"),
-    "배경: " + (visual && visual.backgroundMotif ? visual.backgroundMotif : "파스텔 자연 배경"),
-    "텍스트/로고/워터마크 금지.",
+    "Generate one high-quality image only (no markdown, no text block).",
+    "Style: adorable chibi mascot illustration, polished anime-cartoon rendering.",
+    "Canvas: square " + targetSize + "x" + targetSize + " with full composition.",
+    "Main subject must be: " + animalNameEn + " (" + animalName + ").",
+    "Saju mapping keyword: " + mapping.animalKeyword + ".",
+    "Atmosphere style: " + mapping.atmosphereStyle + ".",
+    "Color mood: " + mapping.colorMood + ".",
+    "Facial expression hint: " + (visual && visual.facialExpression ? visual.facialExpression : "warm gentle smile") + ".",
+    "Background motif hint: " + (visual && visual.backgroundMotif ? visual.backgroundMotif : "pastel nature background") + ".",
+    "No text, no logo, no watermark, no frame.",
     promptSeed ? ("추가 스타일 시드: " + promptSeed) : "",
-    "참고 프로필:",
+    "Profile context:",
     JSON.stringify({
       birth: {
         year: birth.year,
@@ -293,6 +293,7 @@ function buildImagePrompt(profile, visual, totemAnimal, renderMode, outputSize, 
         lng: loc.lng,
       },
       sajuVisual: visual,
+      sajuAnimalMapping: mapping,
       totemAnimalHint: {
         name: animalName,
         nameEn: animalNameEn,
@@ -400,6 +401,56 @@ function fallbackAnimalByElement(element) {
     water: { name: "거북이", nameEn: "turtle" },
   };
   return map[element] || map.wood;
+}
+
+function mapSajuToAnimalStyle(visual, totemAnimal) {
+  const dominant = String((visual && visual.dominantElement) || "earth").trim() || "earth";
+  const byElement = {
+    wood: {
+      animalKeyword: "forest deer guardian",
+      atmosphereStyle: "soft watercolor fantasy forest, spring breeze, hopeful mood",
+      colorMood: "mint green and warm cream",
+    },
+    fire: {
+      animalKeyword: "sunset lion guardian",
+      atmosphereStyle: "golden sunset fantasy, radiant particles, energetic smile",
+      colorMood: "apricot orange and honey gold",
+    },
+    earth: {
+      animalKeyword: "cozy bear guardian",
+      atmosphereStyle: "storybook meadow, warm and stable atmosphere",
+      colorMood: "beige, caramel and pastel olive",
+    },
+    metal: {
+      animalKeyword: "silver wolf guardian",
+      atmosphereStyle: "moonlit crystal field, clean high-contrast line art",
+      colorMood: "silver blue and pearl white",
+    },
+    water: {
+      animalKeyword: "moon turtle guardian",
+      atmosphereStyle: "dreamy mist over calm water, tranquil cinematic lighting",
+      colorMood: "aqua blue and lavender mist",
+    },
+  };
+  const picked = byElement[dominant] || byElement.earth;
+  const animal = totemAnimal || fallbackAnimalByElement(dominant);
+  const animalName = sanitizeAnimalNameKr(String((animal && animal.name) || "수호 동물").trim()) || "수호 동물";
+  const animalNameEn = sanitizeAnimalNameEn(String((animal && (animal.nameEn || animal.name)) || "guardian animal").trim()) || "guardian animal";
+  const traits = sanitizeOutputCopy(String((animal && (animal.keyword || animal.traits)) || "").trim());
+  return {
+    dominantElement: dominant,
+    animalName,
+    animalNameEn,
+    animalKeyword: picked.animalKeyword,
+    atmosphereStyle: picked.atmosphereStyle,
+    colorMood: picked.colorMood,
+    traits,
+    reason:
+      animalName +
+      " is selected because the " +
+      dominant +
+      " element dominates the natal pattern and aligns with this guardian temperament.",
+  };
 }
 
 function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt) {
@@ -760,6 +811,7 @@ function buildFallbackGuardian(profile, visual, totemAnimal, renderMode, styleIn
       ": " +
       animalNameEn,
     styleIntensity: style,
+    imageDataUri: "",
     svg,
     source: "fallback",
     fallbackReason: String(reason || "gemini-unavailable"),
@@ -775,6 +827,7 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   const normalizedMode = normalizeRenderMode(renderMode);
   const normalizedStyle = "strong";
   const normalizedSize = normalizeOutputSize(outputSize, normalizedMode);
+  const mapping = mapSajuToAnimalStyle(visual, totemAnimal);
   const prompt = buildImagePrompt(profile, visual, totemAnimal, normalizedMode, normalizedSize, avatarPrompt, imagePrompt);
   const models = [
     "gemini-2.5-flash-image",
@@ -812,6 +865,11 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
           const payload = await res.json().catch(() => null);
           if (!res.ok) {
             const retryable = res.status === 429 || res.status >= 500;
+            console.error("[api/guardian-avatar] gemini non-ok", {
+              model,
+              status: res.status,
+              message: payload?.error?.message || payload?.message || "gemini-call-failed",
+            });
             lastError = Object.assign(new Error(payload?.error?.message || payload?.message || "Gemini call failed"), {
               status: res.status,
               retryable,
@@ -855,8 +913,14 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             imageDataUri,
             source: "gemini",
             model,
+            mapping,
           };
         } catch (e) {
+          console.error("[api/guardian-avatar] gemini request error", {
+            model,
+            attempt,
+            error: String((e && e.message) || e || "unknown"),
+          });
           lastError = e;
           if (attempt === 0) {
             await wait(350);
@@ -874,12 +938,14 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
 export async function POST(request) {
   try {
     const body = await request.json();
+    const requestId = "gav-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
     const profile = body?.profile || null;
     const sajuAnalysis = body?.sajuAnalysis || null;
     const totemAnimal = normalizeTotemAnimal(body?.totemAnimal || null);
     const renderMode = normalizeRenderMode(body?.renderMode || null);
     const styleIntensity = normalizeStyleIntensity(body?.styleIntensity || null);
     const outputSize = normalizeOutputSize(body?.outputSize || null, renderMode);
+    const allowFallback = body?.allowFallback !== false;
     const avatarPrompt = String(body?.avatarPrompt || "").trim();
     const imagePrompt = String(body?.imagePrompt || "").trim();
     if (!profile || !profile.birth) {
@@ -887,23 +953,48 @@ export async function POST(request) {
     }
 
     const visual = analyzeSajuVisual(profile, sajuAnalysis);
+    const mapping = mapSajuToAnimalStyle(visual, totemAnimal);
     let guardian;
     try {
       guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt);
     } catch (geminiError) {
-      console.error("[api/guardian-avatar] Gemini image generation failed", geminiError);
+      console.error("[api/guardian-avatar] Gemini image generation failed", {
+        requestId,
+        message: String(geminiError?.message || "unknown"),
+        status: geminiError?.status,
+        model: geminiError?.model,
+      });
       const failMessage = String(geminiError?.message || "");
       const isQuota = Number(geminiError?.status) === 429 || /quota|exceed|billing/i.test(failMessage);
-      return NextResponse.json(
-        {
-          ok: false,
-          message: isQuota
-            ? "API 호출 실패: 이미지 생성 쿼터가 초과되었습니다. 잠시 후 재시도하거나 보조 API 키를 연결해주세요."
-            : "API 호출 실패: 이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        },
-        { status: 503 }
-      );
+      if (allowFallback) {
+        guardian = buildFallbackGuardian(
+          profile,
+          visual,
+          totemAnimal,
+          renderMode,
+          styleIntensity,
+          isQuota ? "quota-exceeded" : "gemini-unavailable",
+          outputSize
+        );
+      } else {
+        return NextResponse.json(
+          {
+            ok: false,
+            message: isQuota
+              ? "API 호출 실패: 이미지 생성 쿼터가 초과되었습니다. 잠시 후 재시도하거나 보조 API 키를 연결해주세요."
+              : "API 호출 실패: 이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          },
+          { status: 503 }
+        );
+      }
     }
+
+    const fallbackSvg = guardian && guardian.svg ? String(guardian.svg) : "";
+    const imageUri = String((guardian && guardian.imageDataUri) || "");
+    const warningMessage =
+      guardian && guardian.source === "fallback"
+        ? "외부 이미지 API가 불안정해 임시 가디언 일러스트를 표시 중입니다."
+        : null;
 
     return NextResponse.json({
       ok: true,
@@ -913,15 +1004,18 @@ export async function POST(request) {
         facial_expression: guardian.facialExpression,
         background_motif: guardian.backgroundMotif,
         illustration_prompt: guardian.illustrationPrompt,
-        image_data_uri: String(guardian.imageDataUri || ""),
+        image_data_uri: imageUri,
+        fallback_svg_markup: fallbackSvg,
         image_hidden: false,
         created_at: new Date().toISOString(),
         render_mode: renderMode,
         output_size: outputSize,
         style_intensity: guardian.styleIntensity,
         generation_source: guardian.source || "unknown",
-        fallback_reason: null,
-        warning_message: null,
+        fallback_reason: guardian.fallbackReason || null,
+        warning_message: warningMessage,
+        saju_mapping: guardian.mapping || mapping,
+        request_id: requestId,
         analysis_source: sajuAnalysis ? "client-snapshot" : "profile-derived",
       },
       saju_visual: visual,

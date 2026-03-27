@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "code-destiny",
+  "name": "code-destiny-web",
   "main": ".open-next/worker.js",
   "assets": {
     "directory": ".open-next/assets",

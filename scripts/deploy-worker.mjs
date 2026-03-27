@@ -73,7 +73,7 @@ if (workerName.trim()) {
 
 function runDeployOnce() {
   return isWindows
-    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${args.join(" ")}`], {
+    ? spawnSync("npx.cmd", args, {
         stdio: "inherit",
         shell: false,
         env: process.env,
