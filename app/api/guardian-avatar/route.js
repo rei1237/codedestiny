@@ -44,6 +44,16 @@ function modelCandidates() {
   return [...new Set(candidates)];
 }
 
+const SVG_HIDDEN_NOTICE =
+  "현재 API 이용자가 많아 이미지 생성 결과는 잠시 숨김 처리 중입니다. 잠시 후 다시 시도해주세요.";
+
+function shouldExposeGuardianSvg() {
+  const raw = String(process.env.SAJU_TOTEM_ENABLE_SVG || "")
+    .trim()
+    .toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 function safeInt(v, d) {
   const n = Number.parseInt(v, 10);
   return Number.isNaN(n) ? d : n;
@@ -182,6 +192,47 @@ function analyzeSajuVisual(profile, sajuAnalysis) {
       weights.water +
       ")",
   };
+}
+
+function formatElementBreakdown(visual) {
+  const w = (visual && visual.fiveElements) || {};
+  return (
+    "wood " +
+    Number(w.wood || 0) +
+    ", fire " +
+    Number(w.fire || 0) +
+    ", earth " +
+    Number(w.earth || 0) +
+    ", metal " +
+    Number(w.metal || 0) +
+    ", water " +
+    Number(w.water || 0)
+  );
+}
+
+function buildWhyAnimalSummary(visual, totemAnimal, baseSummary) {
+  const dominant = String((visual && visual.dominantElement) || "earth").trim() || "earth";
+  const dominantLabelMap = {
+    wood: "목(木)",
+    fire: "화(火)",
+    earth: "토(土)",
+    metal: "금(金)",
+    water: "수(水)",
+  };
+  const animalLabel = sanitizeOutputCopy((totemAnimal && (totemAnimal.name || totemAnimal.nameEn)) || "수호 동물") || "수호 동물";
+  const keyword = sanitizeOutputCopy((totemAnimal && totemAnimal.keyword) || "");
+  const traits = sanitizeOutputCopy((totemAnimal && totemAnimal.traits) || "");
+  const base = sanitizeOutputCopy(baseSummary || "");
+  const coreReason =
+    animalLabel +
+    "이(가) 선택된 이유는 " +
+    (dominantLabelMap[dominant] || dominant) +
+    " 기운이 중심(" +
+    formatElementBreakdown(visual) +
+    ")으로 나타났기 때문입니다.";
+  const traitReason = keyword || traits ? " 동물 키워드(" + (keyword || traits) + ")가 사주 성향과 맞물립니다." : "";
+  const baseReason = base ? " " + base : "";
+  return (coreReason + traitReason + baseReason).trim();
 }
 
 function normalizeSvg(raw) {
@@ -353,12 +404,13 @@ function buildPrompt(profile, visual, totemAnimal, renderMode, styleIntensity, o
     "너는 사주 기반 캐릭터 디렉터다.",
     "반드시 JSON만 출력하고, svg 필드에는 완전한 단일 SVG 마크업을 넣어라.",
     "SVG는 " + targetSize + "x" + targetSize + ", 고퀄리티 파스텔 만화풍 캐릭터 일러스트(SD/chibi), 선명한 라인과 정교한 셀 셰이딩, 저작권 문제 없는 오리지널로 생성하라.",
+    "큰 캔버스에서도 깨지지 않게 얼굴 디테일(눈/코/입/볼터치/귀)을 명확히 표현하고, 주인공 동물이 화면의 85~90%를 차지하게 구성하라.",
     "스타일은 동화풍 스케치가 아니라 완성된 만화풍 일러스트로, 명확한 윤곽선과 디테일한 눈동자/헤어(털) 결을 표현하라.",
     "만화풍 강도 지시: " + styleGuide,
     "반드시 동물 가디언을 주인공으로 그리고, 사주 동물 힌트와 동일한 동물 종을 유지하라.",
     "다른 종으로 치환하지 말고, 목표 동물의 얼굴/귀/코/입/체형 특징을 분명히 드러내라.",
     "캐릭터 디테일을 구체적으로 표현하라: 표정(눈, 입, 볼터치), 머리/귀/꼬리/장신구, 전경 소품, 배경 레이어, 광원, 색조 대비.",
-    "구도 지시: 얼굴+상반신이 캔버스 60~70%를 차지하고, 배경은 30~40% 영역에서 명확히 보이게 하라.",
+    "구도 지시: 얼굴+상반신이 캔버스 70~80%를 차지하고, 배경은 20~30% 영역에서 명확히 보이게 하라.",
     "배경 지시: 단색 배경 금지. 최소 2개 이상의 레이어(원거리/중거리)를 사용해 깊이감 있는 배경을 구성하라.",
     "배경은 흐릿한 장식이 아니라 동물과 어울리는 자연/판타지 요소를 식별 가능하게 포함하라.",
     "성별 반영 지시: " + genderStyleHint(gender),
@@ -643,7 +695,7 @@ function buildFallbackGuardian(profile, visual, totemAnimal, renderMode, styleIn
 
   return {
     title: mode === "profile-mini" ? "미니 가디언" : animalName + " 가디언",
-    summary: String((visual && visual.summary) || "사주 오행 기반 가디언 일러스트") + " (fallback)",
+    summary: buildWhyAnimalSummary(visual, totemAnimal, String((visual && visual.summary) || "사주 오행 기반 가디언 일러스트") + " (fallback)"),
     facialExpression: String((visual && visual.facialExpression) || "부드러운 미소"),
     backgroundMotif: String((visual && visual.backgroundMotif) || "오행 파스텔 배경"),
     illustrationPrompt:
@@ -686,7 +738,7 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
                 temperature: normalizedMode === "profile-mini" ? 0.65 : 0.85,
                 topP: 0.95,
                 maxOutputTokens:
-                  normalizedMode === "profile-mini" ? 700 : normalizedSize <= 640 ? 2200 : normalizedSize <= 768 ? 2800 : 3400,
+                  normalizedMode === "profile-mini" ? 700 : normalizedSize <= 640 ? 2200 : normalizedSize <= 896 ? 3200 : 4200,
               },
             }),
             signal: controller.signal,
@@ -743,7 +795,9 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
                     ? toGuardianLabel(totemAnimal.name) + " 수호 캐릭터"
                     : "사주 동물 아트")
             ),
-            summary: sanitizeOutputCopy(
+            summary: buildWhyAnimalSummary(
+              visual,
+              totemAnimal,
               obj.summary || visual.summary || (normalizedMode === "profile-mini" ? "프로필 카드용 미니 가디언" : "사주 기반 수호 캐릭터 아트")
             ),
             facialExpression: String(obj.facial_expression || visual.facialExpression || "부드러운 미소").trim(),
@@ -807,6 +861,9 @@ export async function POST(request) {
       );
     }
 
+    const exposeSvg = shouldExposeGuardianSvg();
+    const isSvgHidden = !exposeSvg;
+
     return NextResponse.json({
       ok: true,
       guardian: {
@@ -815,7 +872,8 @@ export async function POST(request) {
         facial_expression: guardian.facialExpression,
         background_motif: guardian.backgroundMotif,
         illustration_prompt: guardian.illustrationPrompt,
-        svg_data_uri: toDataUri(guardian.svg),
+        svg_data_uri: exposeSvg ? toDataUri(guardian.svg) : null,
+        image_hidden: isSvgHidden,
         created_at: new Date().toISOString(),
         render_mode: renderMode,
         output_size: outputSize,
@@ -823,7 +881,9 @@ export async function POST(request) {
         generation_source: guardian.source || "unknown",
         fallback_reason: guardian.fallbackReason || null,
         warning_message:
-          guardian.source === "fallback"
+          isSvgHidden
+            ? SVG_HIDDEN_NOTICE
+            : guardian.source === "fallback"
             ? "현재 API 이용자가 많아 임시 고화질 폴백 이미지로 표시했어요. 잠시 후 다시 시도하면 AI 원본 결과를 받을 수 있어요."
             : null,
       },
