@@ -671,6 +671,58 @@ function handleReportThumbError(imgEl) {
 
 window.handleReportThumbError = handleReportThumbError;
 
+function _sajuFunTryRecoverTargetCard(targetId) {
+  if (!targetId) return false;
+
+  try {
+    var p = window.G_PILLARS || null;
+    var natal = window.G_NATAL || null;
+    var bazi = window.G_BAZI || null;
+    var power = window.G_POWER || null;
+    var johu = window.G_JOHU || null;
+    var jong = window.G_JONG || null;
+
+    switch (targetId) {
+      case 'lottoCard':
+        if (typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
+        break;
+      case 'quantumCard':
+        if (typeof renderQuantumStrategy === 'function' && p && natal) renderQuantumStrategy(p, natal, bazi);
+        break;
+      case 'specialCharmCard':
+        if (typeof renderSpecialCharm === 'function' && p && natal) renderSpecialCharm(p, natal);
+        break;
+      case 'healthReportCard':
+        if (typeof renderHealthReport === 'function' && p && natal) renderHealthReport(p, natal, johu, power, jong);
+        break;
+      case 'skillTreeCard':
+        if (typeof renderSkillTree === 'function' && p && natal) renderSkillTree(p, natal);
+        break;
+      case 'tTestCard':
+        if (typeof renderTTest === 'function' && p && natal) renderTTest(p, natal, johu, power);
+        break;
+      case 'hormone-vibe-section':
+        if (typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
+        break;
+      case 'energyCoordCard':
+        if (typeof renderEnergyCoord === 'function' && natal) renderEnergyCoord(natal);
+        break;
+      case 'villainCard':
+        if (typeof renderVillain === 'function' && p && power) renderVillain(p, power);
+        break;
+      case 'sajuFourCutCard':
+        if (typeof renderSajuFourCutContent === 'function') renderSajuFourCutContent();
+        break;
+      default:
+        break;
+    }
+  } catch (recoverErr) {
+    console.warn('[reportDashboard] 카드 복구 시도 실패:', targetId, recoverErr);
+  }
+
+  return !!document.getElementById(targetId);
+}
+
 function renderReportDashboard() {
   try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
 
@@ -772,11 +824,17 @@ function renderReportDashboard() {
 
   /* ── 기존 섹션을 슬롯 안으로 이동 ── */
   var pendingTargets = [];
+  var recoverAttempted = {};
   blocks.forEach(function(b) {
     if (b.action === 'openLuckSyncDiary') return;
 
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);
+    if (!targetEl && !recoverAttempted[b.target]) {
+      recoverAttempted[b.target] = true;
+      _sajuFunTryRecoverTargetCard(b.target);
+      targetEl = document.getElementById(b.target);
+    }
     if (slot && !targetEl) {
       slot.innerHTML = ''
         + '<div style="border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:10px 12px;color:#334155;font-size:.84rem;line-height:1.6;">'
@@ -813,6 +871,11 @@ function renderReportDashboard() {
       pendingTargets = pendingTargets.filter(function(targetId) {
         var slot = document.getElementById('rpt-v2-body-' + targetId);
         var targetEl = document.getElementById(targetId);
+        if (!targetEl && !recoverAttempted[targetId]) {
+          recoverAttempted[targetId] = true;
+          _sajuFunTryRecoverTargetCard(targetId);
+          targetEl = document.getElementById(targetId);
+        }
         if (!slot || !targetEl) return true;
 
         if (targetEl.style.display === 'none') targetEl.style.display = '';
