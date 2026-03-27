@@ -1259,6 +1259,58 @@
     syncInputEnergy();
   };
 
+  function mergeTarotApiIntoReading(localReading, drawData, readingData) {
+    var apiCards = Array.isArray(drawData.cards) ? drawData.cards : [];
+    var apiReadingObj = readingData.reading || {};
+    var cardNarratives = Array.isArray(apiReadingObj.cardNarratives)
+      ? apiReadingObj.cardNarratives
+      : [];
+
+    // 뽑힌 실제 타로 카드 정보로 카드 이름·이미지·키워드 업데이트
+    if (Array.isArray(localReading.cards)) {
+      for (var i = 0; i < Math.min(localReading.cards.length, apiCards.length); i++) {
+        var ac = apiCards[i];
+        var lc = localReading.cards[i];
+        if (!ac || !lc) continue;
+        var orientLabel = ac.orientation === 'reversed' ? ' (역방향)' : '';
+        if (ac.nameKr || ac.name) {
+          lc.card_name = (ac.nameKr || ac.name) + orientLabel;
+        }
+        var imgUrl = ac.localImageUrl || ac.imageUrl || ac.proxyImageUrl || '';
+        if (imgUrl) lc.tarot_image_url = imgUrl;
+        if (Array.isArray(ac.keywords) && ac.keywords.length) {
+          lc.energy_keyword = ac.keywords.slice(0, 2).join(' · ');
+        }
+      }
+    }
+
+    // 타로 카드 해석(내러티브)을 각 단계 텍스트 앞에 추가
+    function cardLabel(idx) {
+      var ac = apiCards[idx];
+      return ac && (ac.nameKr || ac.name) ? (ac.nameKr || ac.name) : (idx + 1) + '번째 카드';
+    }
+    if (cardNarratives[0] && cardNarratives[0].interpretation) {
+      localReading.scene = '【타로 카드: ' + cardLabel(0) + '】\n'
+        + cardNarratives[0].interpretation + '\n\n' + localReading.scene;
+    }
+    if (cardNarratives[1] && cardNarratives[1].interpretation) {
+      localReading.symbol = '【타로 카드: ' + cardLabel(1) + '】\n'
+        + cardNarratives[1].interpretation + '\n\n' + localReading.symbol;
+    }
+    if (cardNarratives[2] && cardNarratives[2].interpretation) {
+      localReading.echo = '【타로 카드: ' + cardLabel(2) + '】\n'
+        + cardNarratives[2].interpretation + '\n\n' + localReading.echo;
+    }
+
+    // 타로 종합 조언을 황금 카드 조언에 통합
+    if (apiReadingObj.advice) {
+      localReading.goldenAdvice = (localReading.goldenAdvice || '')
+        + '\n\n【타로 종합 조언】\n' + apiReadingObj.advice;
+    }
+
+    return localReading;
+  }
+
   window.startDreamReading = function startDreamReading() {
     if (state.uiLocked) return;
     var input = $('dreamInput');
@@ -1286,19 +1338,12 @@
     syncInputEnergy();
     setWizardLine('지팡이를 들어 꿈의 장면을 소환합니다. 카드가 차례대로 서사를 들려줄 거예요.');
     setLoaderText('수정구슬이 상징의 결을 읽는 중...');
-    setTimeout(function () { setLoaderText('운명의 카드에 이름을 새기는 중...'); }, 700);
+    setTimeout(function () { setLoaderText('실제 타로 카드에 꿈의 서사를 새기는 중...'); }, 700);
 
     setTimeout(function () {
+      var reading;
       try {
-        var reading = ai.interpretDream(text, { goldenTone: state.goldenTone });
-        hydrateReading(reading);
-        setInteractionLocked(false);
-        var resultWrap = $('dreamResultWrap');
-        if (resultWrap && typeof resultWrap.scrollIntoView === 'function') {
-          window.setTimeout(function () {
-            resultWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 60);
-        }
+        reading = ai.interpretDream(text, { goldenTone: state.goldenTone });
       } catch (err) {
         var msg = err && err.message ? err.message : '누가(무엇이) 어떤 행동을 했고, 어떤 감정을 느꼈는지 적어주세요.';
         setLoaderText(msg);
@@ -1307,6 +1352,58 @@
           $('dreamLoader').style.display = 'none';
           setInteractionLocked(false);
         }, 1500);
+        return;
+      }
+
+      function finalizeReading(enhancedReading) {
+        hydrateReading(enhancedReading);
+        setInteractionLocked(false);
+        var resultWrap = $('dreamResultWrap');
+        if (resultWrap && typeof resultWrap.scrollIntoView === 'function') {
+          window.setTimeout(function () {
+            resultWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
+        }
+      }
+
+      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → 최종화
+      setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
+      try {
+        fetch('/api/tarot/draw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ spreadType: 'three_card_past_present_future' })
+        })
+        .then(function (drawRes) { return drawRes.json(); })
+        .then(function (drawData) {
+          if (!drawData || !drawData.ok || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
+            return null;
+          }
+          return fetch('/api/tarot/reading', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              category: 'general',
+              spreadType: 'three_card_past_present_future',
+              cards: drawData.cards
+            })
+          })
+          .then(function (readRes) { return readRes.json(); })
+          .then(function (readingData) {
+            return { drawData: drawData, readingData: readingData };
+          });
+        })
+        .then(function (apiResult) {
+          if (apiResult && apiResult.readingData && apiResult.readingData.ok) {
+            reading = mergeTarotApiIntoReading(reading, apiResult.drawData, apiResult.readingData);
+          }
+          finalizeReading(reading);
+        })
+        .catch(function () {
+          finalizeReading(reading);
+        });
+      } catch (_) {
+        finalizeReading(reading);
       }
     }, 1450);
   };
