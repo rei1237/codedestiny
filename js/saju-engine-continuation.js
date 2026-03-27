@@ -45,6 +45,28 @@ function resetApp(){
   if(specialCharmCard)specialCharmCard.remove();
   var dmCard=document.getElementById('dailyMonthlyCard');
   if(dmCard)dmCard.style.display='none';
+  /* ── 대시보드 카드 전체 원위치 초기화 ── */
+  (function _cleanupDashboard() {
+    try {
+      var _rc = document.getElementById('reportDashboard');
+      var _rd = document.getElementById('reportDashboardCard');
+      var _rz = document.getElementById('_rptRescueZone');
+      var _rp = document.getElementById('resultPage');
+      ['lottoCard','tTestCard','quantumCard','villainCard',
+       'hormone-vibe-section','sajuFourCutCard','aiPromptCard',
+       'skillTreeCard','healthReportCard','energyCoordCard'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if ((_rc && _rc.contains(el)) || (_rz && _rz.contains(el))) {
+          if (_rp) _rp.appendChild(el);
+        }
+        el.style.display = 'none';
+      });
+      if (_rc) _rc.innerHTML = '';
+      if (_rd) _rd.style.display = 'none';
+      if (_rz) _rz.innerHTML = '';
+    } catch (_e) {}
+  })();
   G_POWER=null;G_JONG=null;G_JOHU=null;
   _clearDestinyFlowerSajuSnapshot();
   requestAnimationFrame(function () {

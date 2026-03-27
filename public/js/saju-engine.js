@@ -3361,7 +3361,34 @@ async function calculate(){
   }
   var existingCharm=document.getElementById('specialCharmCard');
   if(existingCharm)existingCharm.remove();
-  
+
+  /* ── 재계산 전 대시보드 카드 원위치 복귀 ─────────────────────────────────
+     이전 renderReportDashboard() 호출로 카드들이 대시보드 슬롯 또는 rescue
+     zone으로 이동되어 있으면, render 함수들이 getElementById로 카드를 정상
+     탐색할 수 있도록 resultPage 레벨로 복귀시키고 숨긴다. 이렇게 하면 두
+     번째 이후 계산도 첫 번째 계산과 동일한 초기 상태에서 시작된다. ─── */
+  (function _resetDashboardBeforeCalc() {
+    try {
+      var _rc = document.getElementById('reportDashboard');
+      var _rd = document.getElementById('reportDashboardCard');
+      var _rz = document.getElementById('_rptRescueZone');
+      var _rp = document.getElementById('resultPage');
+      ['lottoCard','quantumCard','healthReportCard','skillTreeCard',
+       'tTestCard','hormone-vibe-section','energyCoordCard',
+       'villainCard','sajuFourCutCard','aiPromptCard'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if ((_rc && _rc.contains(el)) || (_rz && _rz.contains(el))) {
+          if (_rp) _rp.appendChild(el);
+          el.style.display = 'none';
+        }
+      });
+      if (_rc) _rc.innerHTML = '';
+      if (_rd) _rd.style.display = 'none';
+      if (_rz) _rz.innerHTML = '';
+    } catch (_e) {}
+  })();
+
   USER_NAME=document.getElementById('nameInput').value.trim()||'사용자';
   var bd=document.getElementById('birthDate').value;
   if(!bd){alert('생년월일을 입력하세요');return;}
