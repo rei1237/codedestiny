@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
@@ -388,7 +388,6 @@
   <script src="/js/inline/api-base-init.js" defer></script>
   <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
   <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260323">
   <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
   <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
   <!-- tailwind runtime CDN removed: static CSS is used -->
@@ -401,6 +400,7 @@
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
+  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260327-rebuild1">
 </head>
 <body>
 <script>
@@ -1015,10 +1015,10 @@
                     <span class="tarot-tile__desc">수호 동물 카드 리딩</span>
                   </div>
                 </button>
-
                 <!-- 사주 분석 기반 파스텔 동물 아트 -->
                 <button class="tarot-tile tarot-tile--saju-totem" type="button"
-                        data-action="openSajuTotemModal"
+                  data-action="openSajuTotemModal"
+                  onclick="return window.__cdOpenSajuTotemFromTile ? window.__cdOpenSajuTotemFromTile(event) : true;"
                         aria-label="생년월일 가디언 AI 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="AI가 그려주는 나의 수호신">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎨</span></div>
@@ -3281,27 +3281,70 @@
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260325-hotfix1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260328-hardbind1"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 
-<!-- ══ Saju Totem Generator Modal ══ -->
-<div id="sajuTotemOverlay" role="dialog" aria-modal="true" aria-label="사주로 볼때 나는 무슨 동물?">
-  <div class="stg-shell">
+<div id="sajuTotemOverlay" class="saju-totem-overlay" role="dialog" aria-modal="true" aria-label="사주로 보는 내 동물은?">
+  <div class="saju-totem-shell">
     <div class="stg-header">
       <div class="stg-header__label">
-        <span class="stg-header__badge">SAJU AI</span>
-        <h2 class="stg-header__title">사주로 볼때 나는 무슨 동물?</h2>
-        
+        <span class="stg-header__badge">SAJU ANIMAL</span>
+        <h2 class="stg-header__title">사주로 보는 나의 동물은?</h2>
       </div>
       <button class="stg-close" id="sajuTotemCloseBtn" type="button" aria-label="닫기">✕</button>
     </div>
     <div class="stg-body" id="sajuTotemBody">
-      <!-- JS로 동적 렌더링 -->
+      <form id="sajuTotemForm" class="stg-form" novalidate>
+        <div class="stg-grid">
+          <div class="stg-input-group stg-input-group--year">
+            <label for="stBirthYear">출생 연도</label>
+            <input id="stBirthYear" type="number" min="1900" max="2100" placeholder="예: 1997" required>
+          </div>
+          <div class="stg-input-group">
+            <label for="stBirthMonth">월</label>
+            <input id="stBirthMonth" type="number" min="1" max="12" placeholder="2" required>
+          </div>
+          <div class="stg-input-group">
+            <label for="stBirthDay">일</label>
+            <input id="stBirthDay" type="number" min="1" max="31" placeholder="10" required>
+          </div>
+          <div class="stg-input-group">
+            <label for="stBirthHour">시</label>
+            <input id="stBirthHour" type="number" min="0" max="23" placeholder="14" required>
+          </div>
+          <div class="stg-input-group">
+            <label for="stBirthMinute">분</label>
+            <input id="stBirthMinute" type="number" min="0" max="59" placeholder="30" required>
+          </div>
+        </div>
+        <button class="stg-submit" type="submit">사주 동물 생성하기</button>
+      </form>
+
+      <div id="stLoading" class="stg-loading" hidden>
+        <span class="stg-spinner" aria-hidden="true"></span>
+        <span>우주의 기운을 모아 동물을 그리는 중... 🌟</span>
+      </div>
+
+      <p id="stError" class="stg-error" hidden></p>
+
+      <section id="stResult" class="stg-result" hidden>
+        <div class="stg-result__image-wrap">
+          <img id="stResultImage" class="stg-result__image" alt="사주 동물 결과 이미지" loading="lazy" decoding="async" />
+        </div>
+        <div class="stg-result__content">
+          <h3 id="stHeadline" class="stg-headline"></h3>
+          <p id="stSummary" class="stg-summary"></p>
+          <ul id="stLines" class="stg-lines"></ul>
+          <div class="stg-actions">
+            <button id="stDownloadBtn" type="button" class="stg-btn stg-btn--download">이미지 다운로드</button>
+            <button id="stShareBtn" type="button" class="stg-btn stg-btn--share">결과 공유하기</button>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </div>
-
 <div class="share-toast" id="shareToast"></div>
 
 <script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
@@ -3431,6 +3474,9 @@
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e0f31d32aa9a329',t:'MTc3NDI4NzM0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+
+
+
 
 
 
