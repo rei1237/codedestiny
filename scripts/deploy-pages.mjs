@@ -26,7 +26,7 @@ const projectName =
   process.env.CF_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PROJECT_NAME ||
-  "code-destiny-web";
+  "code-destiny";
 
 const branchArgIndex = process.argv.findIndex((arg) => arg === "--branch");
 const branch =

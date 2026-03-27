@@ -1,7 +1,7 @@
 {
   // Pages-oriented hints. Worker entry + ASSETS live in wrangler.json (takes precedence over this file for Wrangler/OpenNext).
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "code-destiny-web",
+  "name": "code-destiny",
   "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-03-14",
   "compatibility_flags": [

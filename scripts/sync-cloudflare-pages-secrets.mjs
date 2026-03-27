@@ -24,7 +24,7 @@ const projectName =
   process.env.CF_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PAGES_PROJECT_NAME ||
   process.env.CLOUDFLARE_PROJECT_NAME ||
-  "code-destiny-web";
+  "code-destiny";
 
 const SECRET_KEYS = [
   "GEMINI_API_KEY",
