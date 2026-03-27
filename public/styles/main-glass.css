@@ -198,6 +198,9 @@ body {
 .tarot-collection {
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
+	contain: layout paint style;
+	content-visibility: auto;
+	contain-intrinsic-size: 420px;
 	border-radius: 22px;
 	padding: 24px 16px 22px;
 	border: 1px solid rgba(255, 255, 255, 0.08);
@@ -581,6 +584,7 @@ body {
 	gap: 12px;
 	position: relative;
 	z-index: 2;
+	contain: layout paint;
 }
 .feat-collection__grid { grid-template-columns: repeat(3, 1fr); }
 .feat-collection__grid--2col { grid-template-columns: repeat(2, 1fr); }
@@ -1008,6 +1012,40 @@ body {
 @keyframes fc-closedGlow {
 	0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(253,230,138,0.15) inset; }
 	50%       { box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(253,230,138,0.35) inset, 0 0 18px rgba(253,230,138,0.08); }
+}
+
+/* 모바일/터치: 컬렉션 스크롤 성능 최적화 */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+	.feat-collection,
+	.tarot-collection {
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+	}
+
+	/* 닫힌 컬렉션은 장식 레이어 애니메이션을 멈춰 스크롤 프레임 드랍 완화 */
+	[data-collection-open="false"].feat-collection::after,
+	[data-collection-open="false"].tarot-collection::after,
+	[data-collection-open="false"] .feat-collection__cosmos .fc-star,
+	[data-collection-open="false"] .tarot-collection__cosmos .tc-star,
+	[data-collection-open="false"] .fc-closed-peek__gem {
+		animation: none !important;
+	}
+
+	[data-collection-open="false"] .feat-collection__cosmos,
+	[data-collection-open="false"] .tarot-collection__cosmos {
+		display: none;
+	}
+
+	[data-collection-open="false"].feat-collection,
+	[data-collection-open="false"].tarot-collection {
+		animation: none;
+	}
+
+	/* 터치 환경에서는 hover transform을 비활성화해 레이아웃/컴포지팅 부담 최소화 */
+	.tarot-tile,
+	.tarot-tile:hover {
+		transform: none;
+	}
 }
 [data-collection-open="false"].feat-collection--animal { animation-name: fc-closedGlow-animal; }
 [data-collection-open="false"].feat-collection--oracle { animation-name: fc-closedGlow-oracle; }

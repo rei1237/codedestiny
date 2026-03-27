@@ -1379,6 +1379,19 @@ function __cdHydrateCollectionImagesChunked(collection) {
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
 }
 
+function __cdScheduleCollectionHydration(collection) {
+  var start = function() { __cdHydrateCollectionImagesChunked(collection); };
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(start, { timeout: 350 });
+    return;
+  }
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(start);
+    return;
+  }
+  setTimeout(start, 0);
+}
+
 function __cdReleaseCollectionImagesChunked(collection) {
   if (!collection) return;
   var observer = collection.__cdCollectionImageObserver;
@@ -1461,7 +1474,7 @@ function __cdBindGlobalActionsFallback() {
       }
 
       if (newState) {
-        __cdHydrateCollectionImagesChunked(collection);
+        __cdScheduleCollectionHydration(collection);
       } else {
         __cdReleaseCollectionImagesChunked(collection);
       }

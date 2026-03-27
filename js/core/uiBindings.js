@@ -211,6 +211,151 @@ function bindEventAction(root, eventName, attrName) {
   });
 }
 
+function __scheduleCollectionHydration(collection) {
+  const start = () => __hydrateCollectionImagesChunked(collection);
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(start, { timeout: 350 });
+    return;
+  }
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(start);
+    return;
+  }
+  setTimeout(start, 0);
+}
+
+function __runChunked(listLike, fn, opts = {}) {
+  const items = Array.from(listLike || []);
+  if (!items.length) return Promise.resolve();
+
+  const minBatch = Math.max(1, Number(opts.minBatch) || 4);
+  const maxBatch = Math.max(minBatch, Number(opts.maxBatch) || 16);
+  const budgetMs = Math.max(2, Number(opts.budgetMs) || 6);
+  let index = 0;
+
+  return new Promise((resolve) => {
+    const step = () => {
+      const startedAt = performance.now();
+      let processed = 0;
+
+      while (index < items.length && processed < maxBatch) {
+        fn(items[index], index);
+        index += 1;
+        processed += 1;
+        if (processed >= minBatch && (performance.now() - startedAt) >= budgetMs) {
+          break;
+        }
+      }
+
+      if (index < items.length) {
+        setTimeout(step, 0);
+      } else {
+        resolve();
+      }
+    };
+
+    step();
+  });
+}
+
+function __hydrateCollectionImagesChunked(collection) {
+  if (!collection) return;
+  const wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
+  const ioEnabled = typeof IntersectionObserver !== 'undefined';
+
+  const hydrateWrap = (wrap) => {
+    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
+    const src = wrap.getAttribute('data-img-src');
+    if (!src) return;
+    const alt = wrap.getAttribute('data-img-alt') || '';
+    const placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    const skeleton = document.createElement('div');
+    skeleton.className = 'tarot-tile__img-skeleton';
+    wrap.insertBefore(skeleton, wrap.firstChild);
+
+    const img = document.createElement('img');
+    img.className = 'tarot-tile__img';
+    img.loading = 'lazy';
+    img.fetchPriority = 'low';
+    img.decoding = 'async';
+    img.width = 200;
+    img.height = 150;
+    img.alt = alt;
+    img.onload = () => { skeleton.remove(); };
+    img.onerror = () => { skeleton.remove(); };
+    img.src = src;
+    wrap.insertBefore(img, wrap.firstChild);
+  };
+
+  if (!ioEnabled) {
+    __runChunked(wraps, (wrap) => {
+      hydrateWrap(wrap);
+    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
+    return;
+  }
+
+  const grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
+  let observer = collection.__cdCollectionImageObserver;
+  if (!observer) {
+    observer = new IntersectionObserver((entries, obs) => {
+      for (let i = 0; i < entries.length; i += 1) {
+        if (!entries[i].isIntersecting) continue;
+        const wrap = entries[i].target;
+        obs.unobserve(wrap);
+        if (wrap && wrap.dataset) {
+          delete wrap.dataset.cdImgObserved;
+        }
+        hydrateWrap(wrap);
+      }
+    }, {
+      root: grid || null,
+      rootMargin: '96px 0px',
+      threshold: 0.01
+    });
+    collection.__cdCollectionImageObserver = observer;
+  }
+
+  __runChunked(wraps, (wrap) => {
+    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
+    if (wrap.dataset && wrap.dataset.cdImgObserved === '1') return;
+    if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
+    observer.observe(wrap);
+  }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
+}
+
+function __releaseCollectionImagesChunked(collection) {
+  if (!collection) return;
+  const observer = collection.__cdCollectionImageObserver;
+  if (observer && typeof observer.disconnect === 'function') {
+    observer.disconnect();
+  }
+  collection.__cdCollectionImageObserver = null;
+
+  const observedWraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src][data-cd-img-observed]');
+  __runChunked(observedWraps, (wrap) => {
+    if (!wrap || !wrap.dataset) return;
+    delete wrap.dataset.cdImgObserved;
+  }, { minBatch: 12, maxBatch: 30, budgetMs: 5 });
+
+  const imgs = collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img');
+  const skeletons = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton');
+  const placeholders = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-placeholder');
+
+  __runChunked(imgs, (img) => {
+    img.remove();
+  }, { minBatch: 8, maxBatch: 24, budgetMs: 6 }).then(() => {
+    return __runChunked(skeletons, (sk) => {
+      sk.remove();
+    }, { minBatch: 8, maxBatch: 24, budgetMs: 6 });
+  }).then(() => {
+    return __runChunked(placeholders, (placeholder) => {
+      placeholder.style.display = '';
+    }, { minBatch: 8, maxBatch: 30, budgetMs: 6 });
+  });
+}
+
 export function bindGlobalActions(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
   if (typeof window !== 'undefined') {
@@ -265,34 +410,9 @@ export function bindGlobalActions(root) {
       }));
 
       if (newState) {
-        collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]').forEach(function (wrap) {
-          if (wrap.querySelector('img.tarot-tile__img')) return;
-          var src = wrap.getAttribute('data-img-src');
-          var alt = wrap.getAttribute('data-img-alt') || '';
-          var placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
-          if (placeholder) placeholder.style.display = 'none';
-
-          var skeleton = document.createElement('div');
-          skeleton.className = 'tarot-tile__img-skeleton';
-          wrap.insertBefore(skeleton, wrap.firstChild);
-
-          var img = document.createElement('img');
-          img.className = 'tarot-tile__img';
-          img.decoding = 'async';
-          img.width = 200;
-          img.height = 150;
-          img.alt = alt;
-          img.onload = function () { skeleton.remove(); };
-          img.onerror = function () { skeleton.remove(); };
-          img.src = src;
-          wrap.insertBefore(img, wrap.firstChild);
-        });
+        __scheduleCollectionHydration(collection);
       } else {
-        collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img').forEach(function (img) { img.remove(); });
-        collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton').forEach(function (sk) { sk.remove(); });
-        collection
-          .querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-placeholder')
-          .forEach(function (placeholder) { placeholder.style.display = ''; });
+        __releaseCollectionImagesChunked(collection);
       }
       return;
     }
