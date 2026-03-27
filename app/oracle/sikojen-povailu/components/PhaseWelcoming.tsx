@@ -48,10 +48,10 @@ export function PhaseWelcoming() {
       <div className="absolute bottom-32 left-20 w-72 h-72 rounded-full blur-3xl bg-gradient-to-tr from-yellow-100 to-pink-100 opacity-12 animate-pulse" style={{ animationDelay: '0.5s' }}></div>
 
       {/* 연이 캐릭터 (중앙 상단) - 귀여운 핑크 배경 */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-20 z-20 transform">
+      <div className="absolute left-1/2 -translate-x-1/2 top-10 sm:top-14 md:top-20 z-20 transform">
         <div className="relative">
           {/* 핑크 동그란 배경 */}
-          <div className="absolute -inset-8 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full shadow-lg"></div>
+          <div className="absolute -inset-4 sm:-inset-6 md:-inset-8 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full shadow-lg"></div>
           
           {/* 연이 이미지 */}
           <Image
@@ -59,34 +59,34 @@ export function PhaseWelcoming() {
             alt="연이"
             width={200}
             height={200}
-            className="rounded-full shadow-lg border-4 border-white drop-shadow-xl relative z-10"
+            className="w-[132px] h-[132px] sm:w-[168px] sm:h-[168px] md:w-[200px] md:h-[200px] rounded-full shadow-lg border-4 border-white drop-shadow-xl relative z-10"
             style={{
               animation: `gentle-bob 2.5s ease-in-out infinite`,
             }}
           />
 
           {/* 주석 국자 */}
-          <div className="absolute -right-8 -bottom-2 text-5xl drop-shadow-lg transform rotate-12 hover:scale-110 transition-transform z-20">
+          <div className="absolute -right-4 sm:-right-6 md:-right-8 -bottom-1 sm:-bottom-2 text-3xl sm:text-4xl md:text-5xl drop-shadow-lg transform rotate-12 hover:scale-110 transition-transform z-20">
             🥄
           </div>
         </div>
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="relative z-10 text-center max-w-2xl px-8 mt-48">
+      <div className="relative z-10 text-center max-w-2xl px-6 sm:px-8 mt-[230px] sm:mt-[260px] md:mt-48">
         
         {/* "TERVETULOA!" - 환영 인사 */}
-        <h1 className="text-4xl md:text-5xl font-bold text-pink-600 mb-2" style={{ fontFamily: "'Jua', serif" }}>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-600 mb-2" style={{ fontFamily: "'Jua', serif" }}>
           TERVETULOA!
         </h1>
 
         {/* 한글 인사말 */}
-        <p className="text-2xl md:text-3xl font-bold text-rose-600 mb-8" style={{ fontFamily: "'Jua', serif" }}>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-rose-600 mb-7 sm:mb-8" style={{ fontFamily: "'Jua', serif" }}>
           어서 오세요 🌸
         </p>
 
         {/* 부제목 */}
-        <p className="text-base md:text-lg text-rose-700 mb-12 leading-relaxed font-medium">
+        <p className="text-sm sm:text-base md:text-lg text-rose-700 mb-10 sm:mb-12 leading-relaxed font-medium">
           연이와 함께하는<br />
           마법의 돼지점에 오신 것을 환영합니다 ✨
         </p>
@@ -94,7 +94,7 @@ export function PhaseWelcoming() {
         {/* "내 주석점 보기" 버튼 */}
         <button
           onClick={handleStart}
-          className="relative group inline-block px-10 py-4 text-lg font-bold text-yellow-900 rounded-full shadow-lg border-3 border-yellow-400 transition-all duration-300 transform hover:scale-105 active:scale-95"
+          className="relative group inline-block px-7 sm:px-10 py-3 sm:py-4 text-base sm:text-lg font-bold text-yellow-900 rounded-full shadow-lg border-3 border-yellow-400 transition-all duration-300 transform hover:scale-105 active:scale-95"
           style={{
             background: 'linear-gradient(135deg, #FCD34D 0%, #FBBF24 50%, #F59E0B 100%)',
             boxShadow: '0 6px 16px rgba(251, 191, 36, 0.4)',
