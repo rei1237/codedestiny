@@ -208,6 +208,8 @@ function __loadScriptOnce(src) {
 }
 
 function setupImageOptimization() {
+  if (window.__CD_IO_LAZY_ACTIVE__ === true) return;
+
   const imgs = document.querySelectorAll('img:not([data-mobile-opt-ready="1"])');
   if (!imgs.length) return;
 
@@ -389,6 +391,7 @@ function __queuePostPaintOptimizations() {
 }
 
 function setupViewportEventOptimizations() {
+  if (window.__CD_IO_LAZY_ACTIVE__ === true) return;
   if (__viewportEventsBound) return;
   __viewportEventsBound = true;
 

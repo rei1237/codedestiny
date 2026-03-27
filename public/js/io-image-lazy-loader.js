@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  window.__CD_IO_LAZY_ACTIVE__ = true;
+
   var IO_MARGIN = '360px 0px';
   var HERO_SELECTOR = 'img[data-lcp-candidate="1"]';
   var IMG_SELECTOR = 'img[data-lazy-src], img[data-lazy-srcset]';
