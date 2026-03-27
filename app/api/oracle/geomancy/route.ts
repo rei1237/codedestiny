@@ -58,6 +58,92 @@ function extractFirstJsonObject(text: string): string {
   return jsonMatch ? jsonMatch[0] : "";
 }
 
+function stripCodeFence(text: string): string {
+  const src = String(text || "").trim();
+  if (!src) return "";
+  return src.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+}
+
+function decodeJsonStringValue(value: string): string {
+  return value
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t")
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\");
+}
+
+function extractQuotedField(src: string, key: string): string {
+  const keyPattern = new RegExp(`"${key}"\\s*:\\s*"`, "i");
+  const match = keyPattern.exec(src);
+  if (!match || typeof match.index !== "number") return "";
+
+  let i = match.index + match[0].length;
+  let out = "";
+  let escaped = false;
+
+  while (i < src.length) {
+    const ch = src[i];
+    if (escaped) {
+      out += `\\${ch}`;
+      escaped = false;
+      i += 1;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      i += 1;
+      continue;
+    }
+    if (ch === '"') {
+      break;
+    }
+    out += ch;
+    i += 1;
+  }
+
+  return decodeJsonStringValue(out).trim();
+}
+
+function parseLooseOracleJson(text: string): Partial<Record<string, string>> {
+  const src = stripCodeFence(String(text || ""));
+  if (!src) return {};
+
+  const fields = ["answer", "keyJudgement", "energyFlow", "risk", "timing", "actionTip"] as const;
+  const out: Partial<Record<string, string>> = {};
+  for (const field of fields) {
+    const v = extractQuotedField(src, field);
+    if (v) out[field] = v;
+  }
+  return out;
+}
+
+function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
+  const src = stripCodeFence(String(text || "").trim());
+  if (!src || !src.includes('"answer"')) return {};
+
+  const jsonCandidate = extractFirstJsonObject(src);
+  if (jsonCandidate) {
+    try {
+      const parsed = JSON.parse(jsonCandidate);
+      if (parsed && typeof parsed === "object") {
+        return {
+          answer: String((parsed as any).answer || "").trim(),
+          keyJudgement: String((parsed as any).keyJudgement || "").trim(),
+          energyFlow: String((parsed as any).energyFlow || "").trim(),
+          risk: String((parsed as any).risk || "").trim(),
+          timing: String((parsed as any).timing || "").trim(),
+          actionTip: String((parsed as any).actionTip || "").trim(),
+        };
+      }
+    } catch {
+      // Ignore parse error and try loose extraction.
+    }
+  }
+
+  return parseLooseOracleJson(src);
+}
+
 function parseGeminiText(payload: any): string {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   for (const candidate of candidates) {
@@ -72,14 +158,15 @@ function parseGeminiText(payload: any): string {
 }
 
 function ensureFields(raw: any, fallbackAnswer: string) {
-  const answer = normalizeText(raw?.answer || fallbackAnswer, 3000);
+  const nested = parseNestedAnswerJson(raw?.answer || "");
+  const answer = normalizeText(nested.answer || raw?.answer || fallbackAnswer, 3000);
   return {
     answer,
-    keyJudgement: normalizeText(raw?.keyJudgement, 600),
-    energyFlow: normalizeText(raw?.energyFlow, 600),
-    risk: normalizeText(raw?.risk, 600),
-    timing: normalizeText(raw?.timing, 600),
-    actionTip: normalizeText(raw?.actionTip, 600),
+    keyJudgement: normalizeText(raw?.keyJudgement || nested.keyJudgement, 600),
+    energyFlow: normalizeText(raw?.energyFlow || nested.energyFlow, 600),
+    risk: normalizeText(raw?.risk || nested.risk, 600),
+    timing: normalizeText(raw?.timing || nested.timing, 600),
+    actionTip: normalizeText(raw?.actionTip || nested.actionTip, 600),
   };
 }
 
@@ -187,7 +274,7 @@ export async function POST(request: Request) {
               generationConfig: {
                 temperature: 0.75,
                 topP: 0.9,
-                maxOutputTokens: 1200,
+                maxOutputTokens: 2048,
               },
             }),
           },
@@ -200,7 +287,8 @@ export async function POST(request: Request) {
         const rawText = parseGeminiText(payload);
         if (!rawText) continue;
 
-        const jsonCandidate = extractFirstJsonObject(rawText);
+        const cleanedText = stripCodeFence(rawText);
+        const jsonCandidate = extractFirstJsonObject(cleanedText);
         if (jsonCandidate) {
           try {
             const parsed = JSON.parse(jsonCandidate);
@@ -211,7 +299,23 @@ export async function POST(request: Request) {
           }
         }
 
-        const shaped = ensureFields({ answer: rawText }, fallback.answer);
+        const looseParsed = parseLooseOracleJson(cleanedText);
+        const shaped = ensureFields(
+          {
+            answer: looseParsed.answer || cleanedText,
+            keyJudgement: looseParsed.keyJudgement,
+            energyFlow: looseParsed.energyFlow,
+            risk: looseParsed.risk,
+            timing: looseParsed.timing,
+            actionTip: looseParsed.actionTip,
+          },
+          fallback.answer
+        );
+
+        // Never surface raw JSON fragments to the UI.
+        if (shaped.answer.startsWith('{"answer"') || shaped.answer.startsWith('{')) {
+          return NextResponse.json({ ...fallback, provider: "fallback-json-recovery" });
+        }
         return NextResponse.json({ ...shaped, provider: "gemini", model });
       } catch {
         // Try next key/model pair.
