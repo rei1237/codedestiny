@@ -786,6 +786,36 @@ function __cdBindSajuIntentPrefetch() {
   document.addEventListener('touchstart', trigger, true);
 }
 
+function __cdWarmupSajuInputsIfNeeded() {
+  if (window.__cdSajuInputWarmupDone === 1) return;
+  var hourSel = document.getElementById('birthHour');
+  var minuteSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+  if (!hourSel || !minuteSel || !countrySel) return;
+
+  var looksUninitialized = hourSel.options.length === 0 || minuteSel.options.length === 0 || countrySel.options.length <= 1;
+  if (!looksUninitialized) {
+    window.__cdSajuInputWarmupDone = 1;
+    return;
+  }
+
+  if (window.__cdSajuInputWarmupRequested === 1) return;
+  window.__cdSajuInputWarmupRequested = 1;
+
+  var loadCore = function() {
+    __cdEnsureSajuCoreLoaded().catch(function(err) {
+      console.error('[index-inline-runtime] saju warmup failed:', err);
+      window.__cdSajuInputWarmupRequested = 0;
+    });
+  };
+
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadCore, { timeout: 1200 });
+  } else {
+    setTimeout(loadCore, 200);
+  }
+}
+
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
 __cdInstallSajuActionStub('checkPrivacyAndCalculate');
 __cdInstallSajuActionStub('agreeAndCalculate');
@@ -809,9 +839,13 @@ window.closeLuckSyncDiary = function() {
 };
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', __cdBindSajuIntentPrefetch, { once: true });
+  document.addEventListener('DOMContentLoaded', function() {
+    __cdBindSajuIntentPrefetch();
+    __cdWarmupSajuInputsIfNeeded();
+  }, { once: true });
 } else {
   __cdBindSajuIntentPrefetch();
+  __cdWarmupSajuInputsIfNeeded();
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
