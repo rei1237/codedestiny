@@ -1018,7 +1018,7 @@
                 <!-- 사주 분석 기반 파스텔 동물 아트 -->
                 <button class="tarot-tile tarot-tile--saju-totem" type="button"
                   data-action="openSajuTotemModal"
-                  onclick="return window.__cdOpenSajuTotemFromTile ? window.__cdOpenSajuTotemFromTile(event) : true;"
+                  onclick="(function(e){e.preventDefault();e.stopPropagation();var S='/js/saju-totem-generator.js?v=20260329b';function tryOpen(n){if(typeof window.openSajuTotemModal==='function'){try{window.openSajuTotemModal();}catch(ex){}return;}if(n>0)setTimeout(function(){tryOpen(n-1);},100);}if(!window._stgInit){window._stgInit=true;var s=document.createElement('script');s.src=S;document.head.appendChild(s);}tryOpen(20);})(event)"
                         aria-label="생년월일 가디언 AI 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="AI가 그려주는 나의 수호신">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎨</span></div>
@@ -3281,7 +3281,7 @@
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script src="/js/services/sajuService.js" defer></script>
 <script src="/js/core/saju/modalProfileState.js" defer></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260328-hardbind1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260329b"></script>
 <script src="/js/admin-flower.js" defer></script>
 <!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
 

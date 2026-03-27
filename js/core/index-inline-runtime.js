@@ -603,7 +603,7 @@ var __cdLazyActionLoaders = {
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
-  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1'); },
+  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260329b'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -1375,7 +1375,7 @@ function __cdBindSajuTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1')
+        loadScriptOnce('/js/saju-totem-generator.js?v=20260329b')
           .then(function() {
             try {
               if (typeof window.openSajuTotemModal === 'function') window.openSajuTotemModal();
@@ -1403,8 +1403,6 @@ function __cdBindSajuTotemTileDirect() {
     var target = ev && ev.target;
     if (!target || !isSajuTotemTile(target)) return;
     ev.preventDefault();
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
     openSajuTotemModal();
   }
 
