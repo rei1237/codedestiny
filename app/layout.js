@@ -272,7 +272,6 @@ export default async function RootLayout({ children }) {
         {/* 성능: 외부 오리진 사전 연결 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
@@ -287,8 +286,6 @@ export default async function RootLayout({ children }) {
         <meta name="yandex-verification" content="98b1cd43eb1188de" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: websiteSchemaJsonLd }} />
-        <meta name="adsense-script-slot" content="ADSENSE_APPROVAL_SCRIPT_SLOT" />
-        <meta name="adsense-unit-slot" content="ADSENSE_AD_UNIT_SLOT" />
       </head>
       <body>
         <AppVersionGuard />

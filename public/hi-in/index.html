@@ -4,40 +4,6 @@
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
-  <script>
-  (function () {
-    try {
-      var host = String(location.hostname || '').toLowerCase();
-      var isProdHost = host === 'code-destiny.com' || host === 'www.code-destiny.com';
-      if (location.protocol !== 'https:' || !isProdHost) return;
-
-      var loaded = false;
-      function loadAdsense() {
-        if (loaded) return;
-        loaded = true;
-        cleanup();
-        var s = document.createElement('script');
-        s.async = true;
-        s.crossOrigin = 'anonymous';
-        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
-        s.onerror = function () {};
-        document.head.appendChild(s);
-      }
-
-      function cleanup() {
-        document.removeEventListener('pointerdown', loadAdsense, true);
-        document.removeEventListener('keydown', loadAdsense, true);
-        document.removeEventListener('scroll', loadAdsense, true);
-      }
-
-      document.addEventListener('pointerdown', loadAdsense, true);
-      document.addEventListener('keydown', loadAdsense, true);
-      document.addEventListener('scroll', loadAdsense, true);
-    } catch (_) {}
-  })();
-  </script>
-  <!-- ADSENSE_APPROVAL_SCRIPT_SLOT: 승인 후 구글에서 제공하는 adsbygoogle 스크립트 코드를 여기에 붙여 넣으세요. -->
-  <!-- ADSENSE_AD_UNIT_SLOT: 승인 후 광고 단위(ins class="adsbygoogle") 코드를 본문 원하는 위치에 추가하세요. -->
   <meta name="naver-site-verification" content="7b6c0226cae15c61e2582eea0d9378e241ef2167" />
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -400,7 +366,6 @@
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
-  <link rel="stylesheet" href="/styles/saju-totem-generator.css?v=20260327-rebuild1">
 </head>
 <body>
 <script>
@@ -1013,20 +978,6 @@
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
                     <span class="tarot-tile__desc">수호 동물 카드 리딩</span>
-                  </div>
-                </button>
-                <!-- 사주 분석 기반 파스텔 동물 아트 -->
-                <button class="tarot-tile tarot-tile--saju-totem" type="button"
-                  data-action="openSajuTotemModal"
-                  onclick="(function(e){e.preventDefault();e.stopPropagation();var S='/js/saju-totem-generator.js?v=20260329b';function tryOpen(n){if(typeof window.openSajuTotemModal==='function'){try{window.openSajuTotemModal();}catch(ex){}return;}if(n>0)setTimeout(function(){tryOpen(n-1);},100);}if(!window._stgInit){window._stgInit=true;var s=document.createElement('script');s.src=S;document.head.appendChild(s);}tryOpen(20);})(event)"
-                        aria-label="생년월일 가디언 AI 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="AI가 그려주는 나의 수호신">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎨</span></div>
-                    <span class="tarot-tile__badge">AI</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🎨 사주로 볼때 나는 무슨 동물?</span>
-                    <span class="tarot-tile__desc">사주 분석 기반 파스텔 동물 아트</span>
                   </div>
                 </button>
 
@@ -3283,68 +3234,6 @@
 <script src="/js/core/saju/modalProfileState.js" defer></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260329b"></script>
 <script src="/js/admin-flower.js" defer></script>
-<!-- 동물/사주 토템 스크립트는 클릭 시 index-inline-runtime의 lazy loader로 로드 -->
-
-<div id="sajuTotemOverlay" class="saju-totem-overlay" role="dialog" aria-modal="true" aria-label="사주로 보는 내 동물은?">
-  <div class="saju-totem-shell">
-    <div class="stg-header">
-      <div class="stg-header__label">
-        <span class="stg-header__badge">SAJU ANIMAL</span>
-        <h2 class="stg-header__title">사주로 보는 나의 동물은?</h2>
-      </div>
-      <button class="stg-close" id="sajuTotemCloseBtn" type="button" aria-label="닫기">✕</button>
-    </div>
-    <div class="stg-body" id="sajuTotemBody">
-      <form id="sajuTotemForm" class="stg-form" novalidate>
-        <div class="stg-grid">
-          <div class="stg-input-group stg-input-group--year">
-            <label for="stBirthYear">출생 연도</label>
-            <input id="stBirthYear" type="number" min="1900" max="2100" placeholder="예: 1997" required>
-          </div>
-          <div class="stg-input-group">
-            <label for="stBirthMonth">월</label>
-            <input id="stBirthMonth" type="number" min="1" max="12" placeholder="2" required>
-          </div>
-          <div class="stg-input-group">
-            <label for="stBirthDay">일</label>
-            <input id="stBirthDay" type="number" min="1" max="31" placeholder="10" required>
-          </div>
-          <div class="stg-input-group">
-            <label for="stBirthHour">시</label>
-            <input id="stBirthHour" type="number" min="0" max="23" placeholder="14" required>
-          </div>
-          <div class="stg-input-group">
-            <label for="stBirthMinute">분</label>
-            <input id="stBirthMinute" type="number" min="0" max="59" placeholder="30" required>
-          </div>
-        </div>
-        <button class="stg-submit" type="submit">사주 동물 생성하기</button>
-      </form>
-
-      <div id="stLoading" class="stg-loading" hidden>
-        <span class="stg-spinner" aria-hidden="true"></span>
-        <span>우주의 기운을 모아 동물을 그리는 중... 🌟</span>
-      </div>
-
-      <p id="stError" class="stg-error" hidden></p>
-
-      <section id="stResult" class="stg-result" hidden>
-        <div class="stg-result__image-wrap">
-          <img id="stResultImage" class="stg-result__image" alt="사주 동물 결과 이미지" loading="lazy" decoding="async" />
-        </div>
-        <div class="stg-result__content">
-          <h3 id="stHeadline" class="stg-headline"></h3>
-          <p id="stSummary" class="stg-summary"></p>
-          <ul id="stLines" class="stg-lines"></ul>
-          <div class="stg-actions">
-            <button id="stDownloadBtn" type="button" class="stg-btn stg-btn--download">이미지 다운로드</button>
-            <button id="stShareBtn" type="button" class="stg-btn stg-btn--share">결과 공유하기</button>
-          </div>
-        </div>
-      </section>
-    </div>
-  </div>
-</div>
 <div class="share-toast" id="shareToast"></div>
 
 <script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
