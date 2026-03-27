@@ -1,7 +1,11 @@
 (function () {
   'use strict';
 
-  window.__CD_IO_LAZY_ACTIVE__ = true;
+  function isMobile() {
+    return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  }
+
+  window.__CD_IO_LAZY_ACTIVE__ = isMobile();
 
   var IO_MARGIN = '360px 0px';
   var HERO_SELECTOR = 'img[data-lcp-candidate="1"]';
@@ -21,7 +25,6 @@
     if (!img || img.getAttribute('data-lcp-candidate') === '1') return;
     if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
     if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
-    if (!img.getAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
   }
 
   function hydrateImg(img) {
@@ -59,9 +62,20 @@
       }
     }
 
-    var allImgs = document.querySelectorAll('img');
-    for (var j = 0; j < allImgs.length; j += 1) {
-      ensureNativeLazy(allImgs[j]);
+    // 모바일에서만, 최초 페인트 아래 이미지에 한정해 native lazy를 부여한다.
+    if (isMobile()) {
+      var allImgs = document.querySelectorAll('img:not([loading])');
+      var viewportH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 640);
+      for (var j = 0; j < allImgs.length; j += 1) {
+        var candidate = allImgs[j];
+        if (!candidate || candidate.getAttribute('data-lcp-candidate') === '1') continue;
+        try {
+          var rect = candidate.getBoundingClientRect();
+          if (rect.top > viewportH * 1.15) {
+            ensureNativeLazy(candidate);
+          }
+        } catch (e) {}
+      }
     }
   }
 
@@ -109,11 +123,11 @@
         for (var j = 0; j < added.length; j += 1) {
           var node = added[j];
           if (!node || node.nodeType !== 1) continue;
-          if (node.matches && node.matches('img')) {
+          if (node.matches && node.matches(IMG_SELECTOR)) {
             ensureNativeLazy(node);
           }
           if (node.querySelectorAll) {
-            var imgs = node.querySelectorAll('img');
+            var imgs = node.querySelectorAll(IMG_SELECTOR);
             for (var n = 0; n < imgs.length; n += 1) {
               ensureNativeLazy(imgs[n]);
             }

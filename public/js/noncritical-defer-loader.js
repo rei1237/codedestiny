@@ -76,7 +76,7 @@
 
     var events = mobile
       ? ['pointerdown', 'touchstart', 'keydown', 'click']
-      : ['pointerdown', 'keydown', 'scroll'];
+      : ['pointerdown', 'keydown', 'click'];
     for (var i = 0; i < events.length; i += 1) {
       window.addEventListener(events[i], start, { once: true, passive: true });
     }
