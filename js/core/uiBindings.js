@@ -6,6 +6,12 @@ function callGlobal(fnName, ...args) {
   return undefined;
 }
 
+if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'function') {
+  window.openSajuAnimalPage = function openSajuAnimalPage() {
+    window.location.assign('/saju-picture');
+  };
+}
+
 const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
@@ -17,6 +23,7 @@ const __lazyActionLoaders = {
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('/js/animal-totem-experience.js')
     ),
+  openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-picture')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),

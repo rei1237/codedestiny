@@ -35,6 +35,7 @@ export const openAstrologyFlowerStudio = delegate('openAstrologyFlowerStudio');
 export const openJamidusuFlowerStudio = delegate('openJamidusuFlowerStudio');
 export const openSukuyoFlowerStudio = delegate('openSukuyoFlowerStudio');
 export const openAnimalTotemModal = delegate('openAnimalTotemModal');
+export const openSajuAnimalPage = delegate('openSajuAnimalPage');
 
 if (typeof window !== 'undefined') {
   window.fortuneService = Object.assign(window.fortuneService || {}, {
@@ -59,5 +60,6 @@ if (typeof window !== 'undefined') {
     openJamidusuFlowerStudio,
     openSukuyoFlowerStudio,
     openAnimalTotemModal,
+    openSajuAnimalPage,
   });
 }

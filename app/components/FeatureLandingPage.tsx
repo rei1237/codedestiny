@@ -150,7 +150,8 @@ const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
 /* Action map */
 const ACTION_MAP: Record<string, string> = {
   "/animal/physio":"openPhysiognomyApp", "/animal/mbti":"openMbtiModal",
-  "/animal/totem":"openAnimalTotemModal", "/tarot/self-esteem":"openTarotSelfEsteemModal",
+  "/animal/totem":"openAnimalTotemModal", "/animal/saju-picture":"openSajuAnimalPage",
+  "/tarot/self-esteem":"openTarotSelfEsteemModal",
   "/tarot/reunion":"openTarotReunionModal", "/tarot/year":"openTarotYearFortuneModal",
   "/oracle/hwatu":"openHwatuModal", "/oracle/kemet":"openKemetModal",
   "/oracle/juyuk":"openJuyukModal", "/oracle/sukuyo":"openSukuyoModal",
