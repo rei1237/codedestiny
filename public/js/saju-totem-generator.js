@@ -140,6 +140,74 @@
     };
   }
 
+  function rasterizeGuardianToPng(guardian, outputSize) {
+    return new Promise(function (resolve) {
+      if (!guardian || typeof guardian !== 'object') {
+        resolve(guardian);
+        return;
+      }
+
+      if (guardian.image_data_uri) {
+        resolve(guardian);
+        return;
+      }
+
+      var svgMarkup = guardian.svg_markup ? String(guardian.svg_markup) : '';
+      var svgDataUri = guardian.svg_data_uri ? String(guardian.svg_data_uri) : '';
+      if (!svgMarkup && !svgDataUri) {
+        resolve(guardian);
+        return;
+      }
+
+      var size = Math.max(256, Math.min(1024, Number(outputSize) || 640));
+      var canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(guardian);
+        return;
+      }
+
+      var img = new Image();
+      var objectUrl = '';
+      img.onload = function () {
+        try {
+          ctx.clearRect(0, 0, size, size);
+          var iw = img.naturalWidth || size;
+          var ih = img.naturalHeight || size;
+          var scale = Math.max(size / iw, size / ih);
+          var dw = iw * scale;
+          var dh = ih * scale;
+          var dx = (size - dw) / 2;
+          var dy = (size - dh) / 2;
+          ctx.drawImage(img, dx, dy, dw, dh);
+          guardian.image_data_uri = canvas.toDataURL('image/png');
+          guardian.svg_data_uri = '';
+        } catch (e) {}
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(guardian);
+      };
+      img.onerror = function () {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(guardian);
+      };
+
+      if (svgDataUri) {
+        img.src = svgDataUri;
+        return;
+      }
+
+      try {
+        var blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+        objectUrl = URL.createObjectURL(blob);
+        img.src = objectUrl;
+      } catch (e) {
+        resolve(guardian);
+      }
+    });
+  }
+
   function renderStateNoSaju() {
     var body = document.getElementById('sajuTotemBody');
     if (!body) return;
@@ -198,7 +266,7 @@
     var elIcons = { wood: '🌿', fire: '🔥', earth: '🌏', metal: '✨', water: '💧' };
     var desc = service.buildDescription(totemData);
     var sourceLabel = contextSource === 'profile' ? '프로필 기반 에너지 리포트' : '생년월일 에너지 리포트';
-    var imgUrl = guardian && guardian.svg_data_uri ? guardian.svg_data_uri : '';
+    var imgUrl = guardian && guardian.image_data_uri ? guardian.image_data_uri : '';
     var hasImage = !!imgUrl;
     var canvasCssSize = renderSpec && renderSpec.canvasCssSize ? Number(renderSpec.canvasCssSize) : 560;
 
@@ -207,14 +275,12 @@
     var face = guardian && guardian.facial_expression ? guardian.facial_expression : '';
     var bg = guardian && guardian.background_motif ? guardian.background_motif : '';
     var summary = guardian && guardian.summary ? guardian.summary : '';
-    var apiWarning = guardian && guardian.warning_message
-      ? guardian.warning_message
-      : '현재 API 이용자가 많아 이미지 생성 결과는 잠시 숨김 처리 중입니다. 잠시 후 다시 시도해주세요.';
+    var apiWarning = guardian && guardian.warning_message ? guardian.warning_message : '';
     var cardKeyword = a.keyword || '사주 에너지 기반 수호 캐릭터';
     var summaryText = summary || '사주 분석을 통해 왜 이 동물이 선택되었는지에 대한 설명을 생성했습니다.';
     var imagePanel = hasImage
       ? ('<canvas class="stg-card__canvas" id="sajuTotemCanvas" style="width:min(92vw,' + canvasCssSize + 'px);height:min(92vw,' + canvasCssSize + 'px);" aria-label="사주 동물 아트 결과 캔버스"></canvas>')
-      : '<div class="stg-no-saju" style="min-height:240px;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;"><p class="stg-no-saju__title" style="margin:0;font-size:15px;line-height:1.5;">현재 API 이용자가 많아 이미지 생성 결과는 잠시 숨김 처리 중입니다.<br>잠시 후 다시 시도해주세요.</p></div>';
+      : '<div class="stg-no-saju" style="min-height:240px;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;"><p class="stg-no-saju__title" style="margin:0;font-size:15px;line-height:1.5;">이미지 렌더링에 실패했어요.<br>잠시 후 다시 시도해주세요.</p></div>';
     var actionsHtml = hasImage
       ? ('<button class="stg-btn stg-btn--save" id="sajuTotemSaveBtn" type="button"><span class="stg-btn__icon">⬇</span> 이미지 저장하기</button>' +
         '<button class="stg-btn stg-btn--share" id="sajuTotemShareBtn" type="button"><span class="stg-btn__icon">💬</span> 내 모습 공유하기</button>' +
@@ -232,7 +298,7 @@
       '    </div>' +
       '  </div>' +
       '  <div class="stg-desc-card">' +
-      '<div class="stg-api-warning-row"><div class="stg-api-warning">⚠ ' + apiWarning + '</div></div>' +
+      (apiWarning ? '<div class="stg-api-warning-row"><div class="stg-api-warning">⚠ ' + apiWarning + '</div></div>' : '') +
       '    <div class="stg-desc-card__label">✦ ' + sourceLabel + '</div>' +
       '    <div class="stg-desc-card__title">' + guardianTitle + '</div>' +
       '    <div class="stg-desc-card__text" style="margin-bottom:8px;">' + cardKeyword + '</div>' +
@@ -377,7 +443,13 @@
           });
       })
       .then(function (guardian) {
-        finishWithSuccess(guardian);
+        rasterizeGuardianToPng(guardian, renderSpec.outputSize)
+          .then(function (rasterized) {
+            finishWithSuccess(rasterized || guardian);
+          })
+          .catch(function () {
+            finishWithSuccess(guardian);
+          });
       })
       .catch(function () {
         finishWithFailure();

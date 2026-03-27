@@ -779,6 +779,66 @@
     };
   }
 
+  function _dpRasterizeGuardianToPng(guardian, size) {
+    return new Promise(function(resolve) {
+      if (!guardian || typeof guardian !== 'object') {
+        resolve(guardian);
+        return;
+      }
+      if (guardian.image_data_uri) {
+        resolve(guardian);
+        return;
+      }
+
+      var svgMarkup = guardian.svg_markup ? String(guardian.svg_markup) : '';
+      var svgDataUri = guardian.svg_data_uri ? String(guardian.svg_data_uri) : '';
+      if (!svgMarkup && !svgDataUri) {
+        resolve(guardian);
+        return;
+      }
+
+      var canvasSize = Math.max(160, Math.min(640, Number(size) || 320));
+      var canvas = document.createElement('canvas');
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(guardian);
+        return;
+      }
+
+      var img = new Image();
+      var objectUrl = '';
+      img.onload = function() {
+        try {
+          ctx.clearRect(0, 0, canvasSize, canvasSize);
+          ctx.drawImage(img, 0, 0, canvasSize, canvasSize);
+          guardian.image_data_uri = canvas.toDataURL('image/png');
+          guardian.svg_data_uri = '';
+        } catch (e) {}
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(guardian);
+      };
+      img.onerror = function() {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        resolve(guardian);
+      };
+
+      if (svgDataUri) {
+        img.src = svgDataUri;
+        return;
+      }
+
+      try {
+        var blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+        objectUrl = URL.createObjectURL(blob);
+        img.src = objectUrl;
+      } catch (e) {
+        resolve(guardian);
+      }
+    });
+  }
+
   window.dpGenerateGuardianAvatar = async function() {
     var p = DPStorage.current();
     if (!p || !p.birth) {
@@ -801,18 +861,24 @@
         body: JSON.stringify({ profile: p, sajuAnalysis: _dpBuildSajuAnalysisSnapshot(), renderMode: 'profile-mini' })
       });
       var data = await resp.json().catch(function() { return null; });
-      if (!resp.ok || !data || !data.ok || !data.guardian || !data.guardian.svg_data_uri) {
+      if (!resp.ok || !data || !data.ok || !data.guardian) {
         throw new Error((data && data.message) || ('아바타 생성 실패 (' + resp.status + ')'));
+      }
+
+      var guardian = await _dpRasterizeGuardianToPng(data.guardian, 320);
+      if (!guardian || !guardian.image_data_uri) {
+        throw new Error('guardian-image-rasterize-failed');
       }
 
       DPStorage.update(p.id, {
         guardianAvatar: {
-          svg_data_uri: data.guardian.svg_data_uri,
-          summary: data.guardian.summary || '',
-          facial_expression: data.guardian.facial_expression || '',
-          background_motif: data.guardian.background_motif || '',
-          illustration_prompt: data.guardian.illustration_prompt || '',
-          created_at: data.guardian.created_at || new Date().toISOString()
+          image_data_uri: guardian.image_data_uri,
+          svg_data_uri: '',
+          summary: guardian.summary || '',
+          facial_expression: guardian.facial_expression || '',
+          background_motif: guardian.background_motif || '',
+          illustration_prompt: guardian.illustration_prompt || '',
+          created_at: guardian.created_at || new Date().toISOString()
         }
       });
 

@@ -44,15 +44,8 @@ function modelCandidates() {
   return [...new Set(candidates)];
 }
 
-const SVG_HIDDEN_NOTICE =
-  "현재 API 이용자가 많아 이미지 생성 결과는 잠시 숨김 처리 중입니다. 잠시 후 다시 시도해주세요.";
-
 function shouldExposeGuardianSvg() {
-  const raw = String(process.env.SAJU_TOTEM_ENABLE_SVG || "")
-    .trim()
-    .toLowerCase();
-  if (!raw) return true;
-  return !(raw === "0" || raw === "false" || raw === "no" || raw === "off");
+  return false;
 }
 
 function safeInt(v, d) {
@@ -863,7 +856,6 @@ export async function POST(request) {
     }
 
     const exposeSvg = shouldExposeGuardianSvg();
-    const isSvgHidden = !exposeSvg;
 
     return NextResponse.json({
       ok: true,
@@ -874,7 +866,8 @@ export async function POST(request) {
         background_motif: guardian.backgroundMotif,
         illustration_prompt: guardian.illustrationPrompt,
         svg_data_uri: exposeSvg ? toDataUri(guardian.svg) : null,
-        image_hidden: isSvgHidden,
+        svg_markup: String(guardian.svg || ""),
+        image_hidden: !exposeSvg,
         created_at: new Date().toISOString(),
         render_mode: renderMode,
         output_size: outputSize,
@@ -882,11 +875,10 @@ export async function POST(request) {
         generation_source: guardian.source || "unknown",
         fallback_reason: guardian.fallbackReason || null,
         warning_message:
-          isSvgHidden
-            ? SVG_HIDDEN_NOTICE
-            : guardian.source === "fallback"
-            ? "현재 API 이용자가 많아 임시 고화질 폴백 이미지로 표시했어요. 잠시 후 다시 시도하면 AI 원본 결과를 받을 수 있어요."
+          guardian.source === "fallback"
+            ? "이미지 API 응답이 불안정해 사주 데이터 기반 폴백 일러스트로 렌더링했어요."
             : null,
+        analysis_source: sajuAnalysis ? "client-snapshot" : "profile-derived",
       },
       saju_visual: visual,
     });
