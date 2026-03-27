@@ -22,7 +22,9 @@
 }
 
 .tarot-tile--animal-totem,
-[data-action="openAnimalTotemModal"] {
+.tarot-tile--saju-totem,
+[data-action="openAnimalTotemModal"],
+[data-action="openSajuTotemModal"] {
   position: relative;
   z-index: 10;
   pointer-events: auto !important;
@@ -31,7 +33,8 @@
   cursor: pointer;
 }
 .feat-collection--animal .feat-collection__grid,
-.feat-collection--animal .tarot-tile--animal-totem {
+.feat-collection--animal .tarot-tile--animal-totem,
+.feat-collection--animal .tarot-tile--saju-totem {
   position: relative;
   z-index: 5;
   isolation: isolate;
