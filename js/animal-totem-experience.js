@@ -276,11 +276,15 @@
       btn.setAttribute("aria-label", slotLabel(entry.slot) + " 카드 뒤집기");
       btn.innerHTML =
         '<span class="totem-draw-card-inner">' +
-        '<span class="totem-card-face totem-card-face--back"><span class="totem-card-emoji">🐾</span><small class="totem-card-slot">' + slotLabel(entry.slot) + '</small><small class="totem-card-mark">TOTEM CARD</small></span>' +
+        '<span class="totem-card-face totem-card-face--back">' +
+        '<span class="totem-card-emoji">✶</span>' +
+        '<small class="totem-card-slot">' + slotLabel(entry.slot) + '</small>' +
+        '<small class="totem-card-mark">ARCANA ' + String(idx + 1) + "</small>" +
+        "</span>" +
         '<span class="totem-card-face totem-card-face--front">' +
         '<b class="totem-card-emoji">' + entry.card.emoji + "</b>" +
         '<span class="totem-card-name">' + entry.card.name_ko + "</span>" +
-        '<small>' + entry.card.category + "</small>" +
+        '<small class="totem-card-slot">' + entry.card.category + "</small>" +
         "</span></span>";
       refs.cardRail.appendChild(btn);
     });
@@ -348,6 +352,7 @@
         '<span class="totem-result-card-emoji">' + entry.card.emoji + "</span>" +
         '<span class="totem-result-card-name">' + entry.card.name_ko + "</span>" +
         '<small class="totem-result-card-slot">' + slotLabel(entry.slot) + "</small>" +
+        '<small class="totem-card-mark">TOTEM ARCANA</small>' +
         '</div>';
       refs.resultCards.appendChild(card);
     });
@@ -379,15 +384,16 @@
       var message = takeSentences(entry.layered_reading.direct_message, maxSentences);
       var advices = state.mode === "one" ? (entry.layered_reading.daily_actions || []).slice(0, 5).map(function(v) { return takeSentences(v, 1); }) : shortenAdvice(entry.layered_reading.daily_actions);
       p.innerHTML =
+        /* 결과 카드 아래 해석은 호흡감 있는 짧은 문단으로 구성해 읽기 피로를 줄입니다. */
         '<div class="totem-guidance-aura" style="--aura-color:' + (entry.animal.color_theme.glow || "#facc15") + ';"></div>' +
         '<div class="totem-guidance-head">' +
           '<div class="totem-guidance-animal">' + entry.animal.emoji + "</div>" +
           '<div><p class="totem-guidance-slot">' + slotLabel(entry.slot) + '</p><h3 class="totem-guidance-name">' + entry.animal.name_ko + "</h3></div>" +
         "</div>" +
-        '<section class="totem-guidance-section"><h4>오늘의 수호신</h4><p>' + essence + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>작은 친구의 속삭임</h4><p>' + message + "</p></section>" +
-        '<section class="totem-guidance-section"><h4>오늘 해보면 좋을 것</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
-        '<details class="totem-ritual-toggle"><summary>5분 마음 정리</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
+        '<section class="totem-guidance-section"><h4>수호의 본질</h4><p>' + essence + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>오늘의 속삭임</h4><p>' + message + "</p></section>" +
+        '<section class="totem-guidance-section"><h4>작은 실천</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
+        '<details class="totem-ritual-toggle"><summary>짧은 치유 리추얼</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
       refs.readingPanels.appendChild(p);
     });
   }
