@@ -196,17 +196,17 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond'
 /* TOP NAV */
 #top-nav{
   position:relative;z-index:20;
-  display:flex;align-items:center;justify-content:center;gap:0;
+  display:flex;align-items:center;justify-content:center;
   padding:14px 20px 0;
 }
-.tnbtn{
-  padding:8px 24px;background:var(--bg2);border:1px solid var(--brd);
-  color:var(--txt3);font-family:'Cinzel',serif;font-size:.6rem;
-  letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .35s;
+.tn-pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 24px;background:linear-gradient(140deg,rgba(26,17,6,.95),rgba(10,7,2,.92));
+  border:1px solid rgba(212,168,67,.55);border-radius:4px;
+  color:var(--gold);font-family:'Cinzel',serif;font-size:.62rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  box-shadow:0 0 18px rgba(212,168,67,.2),inset 0 0 20px rgba(212,168,67,.05);
 }
-.tnbtn:first-child{border-radius:3px 0 0 3px;}
-.tnbtn:last-child{border-radius:0 3px 3px 0;}
-.tnbtn.on{background:rgba(212,168,67,.1);border-color:var(--gold);color:var(--gold);box-shadow:0 0 16px var(--gold-glo);}
 
 /* HEADER */
 #div-hdr{position:relative;z-index:20;text-align:center;padding:22px 20px 8px;}
@@ -406,8 +406,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond'
   <div id="div-bg"></div>
 
   <div id="top-nav">
-    <button class="tnbtn on" onclick="setTheme('alchemist')">⚗ Codex Alchemicus</button>
-    <button class="tnbtn" onclick="setTheme('sultan')">☽ Sand of the East</button>
+    <div class="tn-pill">⚗ CODEX ALCHEMICUS</div>
   </div>
 
   <div id="div-hdr">
