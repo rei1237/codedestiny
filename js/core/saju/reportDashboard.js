@@ -723,6 +723,21 @@ function _sajuFunTryRecoverTargetCard(targetId) {
   return !!document.getElementById(targetId);
 }
 
+function _sajuFunHasRenderableContent(targetEl) {
+  if (!targetEl) return false;
+  var innerSection = targetEl.querySelector ? targetEl.querySelector('div[id]') : null;
+  if (!innerSection) return true;
+
+  var html = String(innerSection.innerHTML || '').trim();
+  if (html.length >= 40) return true;
+
+  var text = String(innerSection.textContent || '').replace(/\s+/g, ' ').trim();
+  if (text.length >= 20) return true;
+
+  if (innerSection.children && innerSection.children.length > 0) return true;
+  return false;
+}
+
 function renderReportDashboard() {
   try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
 
@@ -825,6 +840,7 @@ function renderReportDashboard() {
   /* ── 기존 섹션을 슬롯 안으로 이동 ── */
   var pendingTargets = [];
   var recoverAttempted = {};
+  var recoverEmptyAttempted = {};
   blocks.forEach(function(b) {
     if (b.action === 'openLuckSyncDiary') return;
 
@@ -845,15 +861,22 @@ function renderReportDashboard() {
       return;
     }
     if (slot && targetEl) {
-      /* 내부 콘텐츠가 비어 있어도 블록을 숨기지 않고 복구 안내를 노출한다. */
-      var innerSection = targetEl.querySelector('div[id]');
-      if (innerSection && innerSection.innerHTML.trim().length < 30) {
-        innerSection.innerHTML = ''
+      if (!_sajuFunHasRenderableContent(targetEl) && !recoverEmptyAttempted[b.target]) {
+        recoverEmptyAttempted[b.target] = true;
+        _sajuFunTryRecoverTargetCard(b.target);
+        targetEl = document.getElementById(b.target);
+      }
+
+      if (!targetEl || !_sajuFunHasRenderableContent(targetEl)) {
+        slot.innerHTML = ''
           + '<div style="border:1px solid #e5e7eb;background:#f8fafc;border-radius:10px;padding:10px 12px;color:#334155;font-size:.84rem;line-height:1.6;">'
           + '<b>콘텐츠를 불러오는 중입니다.</b><br>'
           + '잠시 후 자동 반영됩니다. 바로 확인하려면 다시 분석하기를 눌러주세요.'
           + '</div>';
+        pendingTargets.push(b.target);
+        return;
       }
+
       /* 숨겨진 섹션도 대시보드 안에서 표시 */
       if (targetEl.style.display === 'none') {
         targetEl.style.display = '';
@@ -876,7 +899,12 @@ function renderReportDashboard() {
           _sajuFunTryRecoverTargetCard(targetId);
           targetEl = document.getElementById(targetId);
         }
-        if (!slot || !targetEl) return true;
+        if (targetEl && !_sajuFunHasRenderableContent(targetEl) && !recoverEmptyAttempted[targetId]) {
+          recoverEmptyAttempted[targetId] = true;
+          _sajuFunTryRecoverTargetCard(targetId);
+          targetEl = document.getElementById(targetId);
+        }
+        if (!slot || !targetEl || !_sajuFunHasRenderableContent(targetEl)) return true;
 
         if (targetEl.style.display === 'none') targetEl.style.display = '';
         slot.innerHTML = '';
