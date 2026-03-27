@@ -1,4 +1,5 @@
 (function () {
+  var ENABLE_REMOTE_KILL_SWITCH = false;
   var STATUS_URL = "/status.json?v=1.0.1";
   var HEARTBEAT_INTERVAL_MS = 60000;
   var REQUEST_TIMEOUT_MS = 3500;
@@ -176,6 +177,17 @@
 
   var qs = "";
   try { qs = (window.location && window.location.search) || ""; } catch (e) {}
+  var forceRemoteKillSwitch = false;
+  try {
+    forceRemoteKillSwitch = qs.indexOf("forceKillSwitch=1") !== -1;
+  } catch (e) {}
+
+  if (!ENABLE_REMOTE_KILL_SWITCH && !forceRemoteKillSwitch) {
+    window.__APP_ALIVE__ = true;
+    window.__verifyServiceAlive = function () { return Promise.resolve(); };
+    return;
+  }
+
   var devBypass = false;
   try {
     devBypass =

@@ -1,13 +1,36 @@
 import { NextResponse } from "next/server";
 
 const CANONICAL_HOST = "code-destiny.com";
-const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny-web.pages.dev"]);
+const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
 const SEO_PUBLIC_PATHS = new Set([
   "/robots.txt",
   "/sitemap.xml",
   "/rss.xml",
   "/favicon.ico",
+  "/manifest.json",
+  "/manifest-samba.json",
+  "/status.json",
 ]);
+
+const STATIC_PREFIXES = [
+  "/styles/",
+  "/css/",
+  "/js/",
+  "/icons/",
+  "/fuctionassets/",
+  "/tarot-cards/",
+  "/lib/",
+  "/sudda/",
+  "/_next/",
+];
+
+function isStaticAssetPath(pathname) {
+  if (!pathname) return false;
+  for (const prefix of STATIC_PREFIXES) {
+    if (pathname.startsWith(prefix)) return true;
+  }
+  return /\.[a-z0-9]+$/i.test(pathname);
+}
 function isLocalHost(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
 }
@@ -29,8 +52,8 @@ export function middleware(request) {
   const ua = request.headers.get("user-agent") || "";
   const method = (request.method || "GET").toUpperCase();
 
-  // SEO/public discovery files should always pass through without middleware logic.
-  if (SEO_PUBLIC_PATHS.has(pathname)) {
+  // SEO/public discovery files and static assets should always pass through unchanged.
+  if (SEO_PUBLIC_PATHS.has(pathname) || isStaticAssetPath(pathname)) {
     return NextResponse.next();
   }
 
@@ -95,6 +118,6 @@ export function middleware(request) {
 export const config = {
   matcher: [
     "/",
-    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|rss.xml).*)",
+    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|rss.xml|manifest.json|manifest-samba.json|status.json|styles/|css/|js/|icons/|fuctionassets/|tarot-cards/|lib/|sudda/).*)",
   ],
 };
