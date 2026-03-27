@@ -91,70 +91,28 @@ function _unlockCoreBirthInputsAfterBootstrapError() {
 }
 
 function _safeBootstrapSajuFlow() {
-  console.log('[saju-bootstrap] 부트스트랩 시작');
-  
-  /* 1단계: 입력 필드 초기화 */
+  // 메인 입력 폼 활성화만 우선 처리하고, 무거운 초기 로드는 사용자 액션 시점으로 미룬다.
   try {
     if (typeof initSelectors === 'function') {
-      console.log('[saju-bootstrap] initSelectors 호출 중...');
       initSelectors();
-      console.log('[saju-bootstrap] initSelectors 완료');
     } else {
-      console.warn('[saju-bootstrap] initSelectors 함수를 찾을 수 없음');
       _initSelectorsManually();
     }
   } catch (e1) {
     console.error('[saju-bootstrap] initSelectors 실패:', e1);
     _initSelectorsManually();
   }
-  
-  /* 2단계: 유명인 리스트 로드 */
-  try {
-    if (typeof populateCelebList === 'function') {
-      console.log('[saju-bootstrap] populateCelebList 호출 중...');
-      populateCelebList();
-      console.log('[saju-bootstrap] populateCelebList 완료');
+
+  _ensureFormFieldsReady();
+  _unlockCoreBirthInputsAfterBootstrapError();
+
+  requestAnimationFrame(function() {
+    try {
+      _ensureFormFieldsReady();
+    } catch (e2) {
+      console.error('[saju-bootstrap] 폼 상태 재확인 실패:', e2);
     }
-  } catch (e2) {
-    console.error('[saju-bootstrap] populateCelebList 실패:', e2);
-  }
-  
-  /* 3단계: CDN 라이브러리 로드 */
-  try {
-    if (typeof loadNext === 'function') {
-      console.log('[saju-bootstrap] loadNext 호출 중...');
-      loadNext();
-    } else {
-      console.warn('[saju-bootstrap] loadNext 함수를 찾을 수 없음');
-      _unlockCoreBirthInputsAfterBootstrapError();
-    }
-  } catch (e3) {
-    console.error('[saju-bootstrap] loadNext 실패:', e3);
-    _unlockCoreBirthInputsAfterBootstrapError();
-  }
-  
-  /* 입력 필드 상태 확보 - 100ms, 500ms, 2s 뒤 재확인 */
-  setTimeout(function() {
-    try {
-      console.log('[saju-bootstrap] 100ms 뒤 입력 필드 상태 확인');
-      _ensureFormFieldsReady();
-    } catch (e) { console.error('[saju-bootstrap] 100ms 체크 실패:', e); }
-  }, 100);
-  
-  setTimeout(function() {
-    try {
-      console.log('[saju-bootstrap] 500ms 뒤 입력 필드 상태 확인');
-      _ensureFormFieldsReady();
-    } catch (e) { console.error('[saju-bootstrap] 500ms 체크 실패:', e); }
-  }, 500);
-  
-  setTimeout(function() {
-    try {
-      console.log('[saju-bootstrap] 2s 뒤 입력 필드 상태 최종 확보');
-      _ensureFormFieldsReady();
-      _unlockCoreBirthInputsAfterBootstrapError();
-    } catch (e) { console.error('[saju-bootstrap] 2s 체크 실패:', e); }
-  }, 2000);
+  });
 }
 
 /* 매뉴얼 초기화 - initSelectors 대체 */
