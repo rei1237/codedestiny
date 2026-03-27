@@ -777,8 +777,9 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
   const normalizedSize = normalizeOutputSize(outputSize, normalizedMode);
   const prompt = buildImagePrompt(profile, visual, totemAnimal, normalizedMode, normalizedSize, avatarPrompt, imagePrompt);
   const models = [
-    "gemini-2.0-flash-preview-image-generation",
-    "gemini-2.5-flash-image-preview",
+    "gemini-2.5-flash-image",
+    "gemini-3.1-flash-image-preview",
+    "gemini-3-pro-image-preview",
     ...modelCandidates(),
   ]
     .map((m) => normalizeModelId(m))
@@ -798,6 +799,7 @@ async function callGemini(profile, visual, totemAnimal, renderMode, styleIntensi
             body: JSON.stringify({
               contents: [{ role: "user", parts: [{ text: prompt }] }],
               generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"],
                 temperature: normalizedMode === "profile-mini" ? 0.55 : 0.75,
                 topP: 0.95,
                 maxOutputTokens: 512,
@@ -890,10 +892,14 @@ export async function POST(request) {
       guardian = await callGemini(profile, visual, totemAnimal, renderMode, styleIntensity, outputSize, avatarPrompt, imagePrompt);
     } catch (geminiError) {
       console.error("[api/guardian-avatar] Gemini image generation failed", geminiError);
+      const failMessage = String(geminiError?.message || "");
+      const isQuota = Number(geminiError?.status) === 429 || /quota|exceed|billing/i.test(failMessage);
       return NextResponse.json(
         {
           ok: false,
-          message: "API 호출 실패: 이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          message: isQuota
+            ? "API 호출 실패: 이미지 생성 쿼터가 초과되었습니다. 잠시 후 재시도하거나 보조 API 키를 연결해주세요."
+            : "API 호출 실패: 이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.",
         },
         { status: 503 }
       );
