@@ -1171,6 +1171,15 @@ function __cdBindSajuIntentPrefetch() {
 
 function __cdWarmupSajuInputsIfNeeded() {
   if (window.__cdSajuInputWarmupDone === 1) return;
+  ['birthDate', 'birthHour', 'birthMinute', 'birthCountry', 'btnF', 'btnM'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    try {
+      el.disabled = false;
+      el.removeAttribute('disabled');
+    } catch (e) {}
+  });
+
   var hourSel = document.getElementById('birthHour');
   var minuteSel = document.getElementById('birthMinute');
   var countrySel = document.getElementById('birthCountry');
@@ -1224,9 +1233,13 @@ window.closeLuckSyncDiary = function() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     __cdBindSajuIntentPrefetch();
+    __cdWarmupSajuInputsIfNeeded();
+    setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
   }, { once: true });
 } else {
   __cdBindSajuIntentPrefetch();
+  __cdWarmupSajuInputsIfNeeded();
+  setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
