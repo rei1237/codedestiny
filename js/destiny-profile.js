@@ -492,7 +492,23 @@
       setTimeout(function() {
         try {
           if (typeof window.checkPrivacyAndCalculate === 'function') {
-            window.checkPrivacyAndCalculate();
+            var calcPromise = window.checkPrivacyAndCalculate();
+            if (calcPromise && typeof calcPromise.then === 'function') {
+              calcPromise.then(function() {
+                /* ⑥ 사주 계산 완료 후 재미있는 콘텐츠 유형들 자동 활성화 */
+                try {
+                  if (typeof window.openSukuyoModal === 'function') window.openSukuyoModal();
+                  if (typeof window.openZiweiModal === 'function') window.openZiweiModal();
+                  if (typeof window.openAstroModal === 'function') window.openAstroModal();
+                  if (typeof window.openDestinyFlowerStudio === 'function') window.openDestinyFlowerStudio();
+                } catch (err2) {
+                  console.error('[DP] 콘텐츠 활성화 중 오류:', err2);
+                }
+              }).catch(function(err) {
+                console.error('[DP] 계산 완료 콜백 오류:', err);
+                _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
+              });
+            }
           } else {
             _toast('⚠️ 계산 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
           }
