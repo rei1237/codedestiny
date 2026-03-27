@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geomancy Oracle — Codex Alchemicus</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#D4A843;--gold2:#a07820;--gold3:#e8c870;
+  --gold-glo:rgba(212,168,67,.4);--gold-glo2:rgba(212,168,67,.75);
+  --amber:#C47A20;
+  --bg:#060401;--bg1:#0c0804;--bg2:#160f05;--bg3:#1f1508;
+  --txt:#F2E4C0;--txt2:#C8A878;--txt3:#8a6a40;--txt4:#4a3820;
+  --brd:rgba(212,168,67,.2);--brd2:rgba(212,168,67,.45);--brd3:rgba(212,168,67,.7);
+  --red:#8B3030;--red2:#c44040;
+  --blue:#2a4060;--blue2:#4a70a0;
+}
+html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond',serif;overflow-x:hidden;}
+
+/* ═══════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════ */
+.gold{color:var(--gold);}
+.label{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:var(--txt3);}
+.ornline{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.ornline-dim{height:1px;background:linear-gradient(90deg,transparent,var(--brd2),transparent);}
+.section-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gold2);
+}
+.section-tag::before,.section-tag::after{content:'';width:30px;height:1px;background:var(--gold2);opacity:.5;}
+
+/* ═══════════════════════════════════════════════
+   BACKGROUND TEXTURE
+═══════════════════════════════════════════════ */
+#bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;}
+#bg-noise{
+  position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  background-size:200px;
+}
+
+/* ═══════════════════════════════════════════════
+   FLASH
+═══════════════════════════════════════════════ */
+#flash{position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity .18s;}
+
+/* ═══════════════════════════════════════════════
+   STAGE 1 · START SCREEN
+═══════════════════════════════════════════════ */
+#start-screen{
+  position:fixed;inset:0;z-index:800;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  background:radial-gradient(ellipse at 50% 50%,#0d0820 0%,#050010 50%,#010005 100%);
+  transition:opacity 1s ease,transform 1s ease;
+}
+#start-screen.hide{opacity:0;pointer-events:none;transform:scale(1.05);}
+
+#ss-title{
+  font-family:'Cinzel Decorative',serif;
+  font-size:clamp(.8rem,2.5vw,1.1rem);
+  color:rgba(160,200,255,.85);letter-spacing:.35em;text-align:center;
+  text-shadow:0 0 24px rgba(100,160,255,.6);
+  animation:ssPulse 5s ease-in-out infinite;
+}
+#ss-sub{
+  font-family:'Cinzel',serif;font-size:clamp(.55rem,1.4vw,.68rem);
+  color:rgba(120,165,255,.35);letter-spacing:.5em;text-transform:uppercase;
+  text-align:center;
+}
+@keyframes ssPulse{0%,100%{opacity:.65}50%{opacity:1;text-shadow:0 0 36px rgba(110,170,255,.9);}}
+
+#tc-wrap{
+  position:relative;width:min(380px,76vw);height:min(380px,76vw);
+  cursor:pointer;
+}
+#tc-wrap:hover #tc-svg{filter:brightness(1.3) drop-shadow(0 0 24px rgba(80,155,255,.85));}
+#tc-svg{width:100%;height:100%;transition:filter .4s;filter:drop-shadow(0 0 12px rgba(80,145,255,.55));}
+.tcA{transform-box:fill-box;transform-origin:center;animation:tcCW 26s linear infinite;}
+.tcB{transform-box:fill-box;transform-origin:center;animation:tcCCW 17s linear infinite;}
+.tcC{transform-box:fill-box;transform-origin:center;animation:tcCW 10s linear infinite;}
+.tcP{animation:tcGlow 3s ease-in-out infinite;}
+#tc-wrap.firing .tcA{animation-duration:.6s;}
+#tc-wrap.firing .tcB{animation-duration:.4s;}
+#tc-wrap.firing .tcC{animation-duration:.25s;}
+@keyframes tcCW{to{transform:rotate(360deg);}}
+@keyframes tcCCW{to{transform:rotate(-360deg);}}
+@keyframes tcGlow{
+  0%,100%{opacity:.82;filter:drop-shadow(0 0 3px rgba(160,210,255,.35));}
+  50%{opacity:1;filter:drop-shadow(0 0 12px rgba(160,210,255,1));}
+}
+#ss-cta{
+  font-family:'Cinzel',serif;font-size:clamp(.55rem,1.5vw,.7rem);
+  color:rgba(110,165,255,.42);letter-spacing:.5em;text-transform:uppercase;
+  animation:ssPulse 3s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   STAGE 2 · QUESTION MODAL
+═══════════════════════════════════════════════ */
+#q-screen{
+  position:fixed;inset:0;z-index:850;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,1,5,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .5s ease;
+}
+#q-screen.show{opacity:1;pointer-events:all;}
+
+#q-box{
+  width:min(560px,94vw);
+  background:linear-gradient(145deg,#10080c 0%,#0a0508 50%,#070306 100%);
+  border:1px solid rgba(160,200,255,.3);border-radius:6px;
+  padding:44px 40px 38px;
+  box-shadow:0 0 80px rgba(60,100,255,.18),0 24px 60px rgba(0,0,0,.75);
+  transform:translateY(18px);transition:transform .5s ease;position:relative;
+}
+#q-screen.show #q-box{transform:translateY(0);}
+#q-box::before{
+  content:'';position:absolute;inset:0;border-radius:6px;
+  background:conic-gradient(from 0deg,rgba(100,160,255,.06),transparent 35%,rgba(100,160,255,.04),transparent 70%,rgba(100,160,255,.06));
+  animation:qBg 15s linear infinite;pointer-events:none;
+}
+@keyframes qBg{to{transform:rotate(360deg);}}
+
+#q-icon{display:block;text-align:center;font-size:1.8rem;margin-bottom:16px;
+  filter:drop-shadow(0 0 12px rgba(100,160,255,.7));animation:tcGlow 4s ease-in-out infinite;}
+#q-title{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(.9rem,2.5vw,1.05rem);
+  color:rgba(170,215,255,.92);text-align:center;letter-spacing:.15em;margin-bottom:5px;
+}
+#q-subtitle{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(.8rem,2vw,.92rem);
+  color:rgba(140,185,255,.4);text-align:center;margin-bottom:28px;
+}
+#q-hr{height:1px;background:linear-gradient(90deg,transparent,rgba(120,170,255,.3),transparent);margin-bottom:24px;}
+
+#q-lbl{
+  display:block;font-family:'Cinzel',serif;font-size:.56rem;
+  letter-spacing:.26em;text-transform:uppercase;
+  color:rgba(140,185,255,.45);margin-bottom:10px;
+}
+#q-input{
+  width:100%;background:rgba(255,255,255,.035);
+  border:1px solid rgba(130,180,255,.25);border-radius:4px;
+  color:rgba(240,235,255,.92);font-family:'Cormorant Garamond',serif;
+  font-size:1rem;line-height:1.65;letter-spacing:.03em;
+  padding:14px 18px;resize:none;min-height:96px;outline:none;
+  transition:border-color .3s,box-shadow .3s;
+}
+#q-input::placeholder{color:rgba(140,180,255,.22);font-style:italic;}
+#q-input:focus{border-color:rgba(130,180,255,.6);box-shadow:0 0 22px rgba(80,125,255,.18),inset 0 0 12px rgba(80,125,255,.04);}
+#q-hint{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.78rem;
+  color:rgba(140,185,255,.24);margin:10px 0 24px;line-height:1.6;
+}
+
+#q-btn{
+  width:100%;padding:14px 20px;
+  background:rgba(90,130,255,.08);border:1px solid rgba(130,180,255,.38);
+  color:rgba(180,215,255,.9);font-family:'Cinzel',serif;
+  font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;
+  cursor:pointer;border-radius:4px;transition:all .3s;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+#q-btn::after{
+  content:'';position:absolute;left:-100%;top:0;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(150,190,255,.1),transparent);
+  animation:shimmer 2.8s ease-in-out infinite;
+}
+@keyframes shimmer{to{left:200%;}}
+#q-btn:hover{background:rgba(100,145,255,.16);border-color:rgba(160,205,255,.65);color:#fff;box-shadow:0 0 28px rgba(90,140,255,.28);}
+
+/* ═══════════════════════════════════════════════
+   STAGE 3 · DIVINATION SCREEN
+═══════════════════════════════════════════════ */
+#div-screen{
+  min-height:100vh;background:var(--bg1);
+  display:none;opacity:0;position:relative;
+}
+#div-screen.show{display:block;animation:scrFadeIn 1s ease forwards;}
+@keyframes scrFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+#div-bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;background-size:74px 74px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='74' height='74'%3E%3Cg fill='none' stroke='%23D4A843' stroke-width='.28' opacity='.065'%3E%3Crect x='3' y='3' width='68' height='68'/%3E%3Crect x='14' y='14' width='46' height='46'/%3E%3Cline x1='3' y1='3' x2='71' y2='71'/%3E%3Cline x1='71' y1='3' x2='3' y2='71'/%3E%3Ccircle cx='37' cy='37' r='17'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* TOP NAV */
+#top-nav{
+  position:relative;z-index:20;
+  display:flex;align-items:center;justify-content:center;gap:0;
+  padding:14px 20px 0;
+}
+.tnbtn{
+  padding:8px 24px;background:var(--bg2);border:1px solid var(--brd);
+  color:var(--txt3);font-family:'Cinzel',serif;font-size:.6rem;
+  letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .35s;
+}
+.tnbtn:first-child{border-radius:3px 0 0 3px;}
+.tnbtn:last-child{border-radius:0 3px 3px 0;}
+.tnbtn.on{background:rgba(212,168,67,.1);border-color:var(--gold);color:var(--gold);box-shadow:0 0 16px var(--gold-glo);}
+
+/* HEADER */
+#div-hdr{position:relative;z-index:20;text-align:center;padding:22px 20px 8px;}
+#div-sigil{
+  font-size:1.9rem;color:var(--gold);margin-bottom:7px;display:block;
+  filter:drop-shadow(0 0 10px var(--gold-glo));
+  animation:goldPulse 5s ease-in-out infinite;
+}
+@keyframes goldPulse{
+  0%,100%{filter:drop-shadow(0 0 10px var(--gold-glo));}
+  50%{filter:drop-shadow(0 0 24px var(--gold-glo2));}
+}
+#div-title{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(1rem,3.5vw,1.9rem);
+  color:var(--gold);letter-spacing:.1em;text-shadow:0 0 30px var(--gold-glo);line-height:1.2;
+}
+#div-sub{
+  font-family:'Cinzel',serif;font-size:clamp(.58rem,1.5vw,.72rem);
+  color:var(--txt3);margin-top:6px;letter-spacing:.22em;text-transform:uppercase;
+}
+.hdr-orn{display:flex;align-items:center;gap:14px;justify-content:center;margin:8px 0;}
+.hdr-orn::before,.hdr-orn::after{content:'';flex:1;max-width:130px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hdr-gem{color:var(--gold);font-size:.82rem;}
+
+/* QUESTION DISPLAY */
+#q-display{
+  position:relative;z-index:20;
+  max-width:560px;margin:0 auto 14px;padding:0 16px;
+}
+#q-display-box{
+  background:rgba(212,168,67,.06);border:1px solid var(--brd);
+  border-radius:4px;padding:11px 16px;
+  display:flex;gap:11px;align-items:flex-start;
+}
+.q-d-icon{font-size:.9rem;color:var(--gold2);flex-shrink:0;margin-top:2px;}
+#q-display-text{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.92rem;
+  color:var(--txt2);line-height:1.6;
+}
+
+/* STATUS */
+#div-status{position:relative;z-index:20;text-align:center;padding:0 20px 8px;}
+#div-status-txt{
+  font-family:'Cinzel',serif;font-size:.65rem;color:var(--txt3);
+  letter-spacing:.16em;min-height:1.4em;transition:all .4s;
+}
+#div-status-txt.glo{color:var(--gold);text-shadow:0 0 10px var(--gold-glo);}
+
+/* MAIN CONTENT */
+#div-main{position:relative;z-index:20;max-width:920px;margin:0 auto;padding:0 16px 60px;}
+
+/* PROGRESS */
+#prog-bar{display:flex;justify-content:center;gap:4px;margin-bottom:12px;}
+.pb{width:7px;height:7px;border-radius:50%;background:var(--brd);transition:all .3s;}
+.pb.lit{background:var(--gold);transform:scale(1.3);box-shadow:0 0 6px var(--gold-glo);}
+
+/* SECTION LABEL */
+.slbl{
+  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--txt4);text-align:center;margin-bottom:12px;
+}
+
+/* CASTING ROWS */
+#cast-wrap{max-width:560px;margin:0 auto 20px;}
+#rows-box{
+  background:var(--bg2);border:1px solid var(--brd);
+  border-radius:6px;padding:10px;
+  box-shadow:0 6px 28px rgba(0,0,0,.6),inset 0 1px 0 rgba(212,168,67,.05);
+}
+.crow{
+  display:flex;align-items:center;gap:8px;
+  height:30px;padding:0 8px;
+  border:1px solid transparent;border-radius:3px;transition:border-color .3s;
+}
+.crow.done{border-color:var(--brd);}
+.crow.done.odd{border-color:rgba(212,168,67,.38);}
+.crow-n{font-family:'Cinzel',serif;font-size:.5rem;color:var(--txt4);width:14px;text-align:right;flex-shrink:0;}
+.crow.done .crow-n{color:var(--gold2);}
+.crow-cw{flex:1;height:20px;position:relative;overflow:hidden;}
+.crow-cv{width:100%;height:100%;display:block;}
+.crow-hint{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:.52rem;color:var(--txt4);
+  pointer-events:none;letter-spacing:.1em;transition:opacity .25s;
+}
+.crow.done .crow-hint{opacity:0;}
+.crow-r{
+  width:34px;flex-shrink:0;text-align:center;
+  font-family:monospace;font-size:.88rem;color:var(--gold);
+  opacity:0;line-height:1;transition:opacity .4s;
+}
+.crow.done .crow-r{opacity:1;}
+
+/* CHART */
+#chart-sec{display:none;margin-top:10px;}
+#chart-sec.show{display:block;animation:fadeUp .9s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#chart-box{
+  background:var(--bg2);border:1px solid var(--brd);
+  border-radius:6px;padding:16px 8px;
+  overflow-x:auto;box-shadow:0 4px 32px rgba(0,0,0,.6);
+}
+#chart-svg{display:block;margin:0 auto;width:100%;min-width:640px;height:auto;}
+
+/* ═══════════════════════════════════════════════
+   STAGE 4 · RESULT SCREEN (FULL PAGE OVERLAY)
+═══════════════════════════════════════════════ */
+#result-screen{
+  position:fixed;inset:0;z-index:600;
+  background:var(--bg);
+  opacity:0;pointer-events:none;
+  transition:opacity .8s ease;
+  overflow-y:auto;
+}
+#result-screen.open{opacity:1;pointer-events:all;}
+
+#rs-inner{
+  max-width:880px;margin:0 auto;
+  padding:40px 20px 80px;
+}
+
+/* TOP BAR */
+#rs-topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:32px;flex-wrap:wrap;gap:12px;
+}
+#rs-logo{
+  font-family:'Cinzel Decorative',serif;font-size:.75rem;
+  color:var(--gold2);letter-spacing:.2em;
+}
+#rs-close{
+  background:none;border:1px solid var(--brd);
+  color:var(--txt3);font-family:'Cinzel',serif;
+  font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;
+  padding:7px 16px;cursor:pointer;border-radius:3px;transition:all .3s;
+  display:flex;align-items:center;gap:6px;
+}
+#rs-close:hover{border-color:var(--gold);color:var(--gold);}
+
+/* QUESTION HERO */
+#rs-question{
+  background:rgba(212,168,67,.05);
+  border:1px solid var(--brd);
+  border-radius:5px;padding:20px 24px;margin-bottom:36px;
+  position:relative;overflow:hidden;
+}
+#rs-question::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(to bottom,transparent,var(--gold),transparent);
+}
+#rs-q-tag{
+  font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gold2);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+#rs-q-tag::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,67,.3),transparent);}
+#rs-q-txt{
+  font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-style:italic;
+  color:#F0E4C8;line-height:1.65;font-weight:500;
+}
+
+/* SECTION DIVIDER */
+.rs-section{margin-bottom:40px;}
+.rs-sec-hdr{
+  display:flex;align-items:center;gap:14px;margin-bottom:20px;
+}
+.rs-sec-num{
+  font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold);
+  filter:drop-shadow(0 0 8px var(--gold-glo));flex-shrink:0;
+}
+.rs-sec-info{flex:1;}
+.rs-sec-title{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(.82rem,2.2vw,1rem);
+  color:var(--gold);letter-spacing:.08em;margin-bottom:2px;
+}
+.rs-sec-desc{
+  font-family:'Cormorant Garamond',serif;font-size:.84rem;
+  color:var(--txt3);font-style:italic;line-height:1.4;
+}
+.rs-sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--brd),transparent);}
+
+/* THREE CARDS GRID */
+#cards-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:12px;
+}
+@media(max-width:680px){
+  #cards-grid{grid-template-columns:1fr;}
+}
+
+/* ALCHEMY CARD */
+.alc-card{
+  background:var(--bg2);
+  border:1px solid var(--brd);
+  border-radius:6px;
+  position:relative;overflow:hidden;
+  transition:transform .3s,box-shadow .3s;
+}
+.alc-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 20px var(--gold-glo);}
+.alc-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--card-accent,var(--gold)),transparent);
+}
+/* Card variants */
+.card-past{--card-accent:rgba(100,140,200,.8);}
+.card-present{--card-accent:rgba(180,140,60,.9);}
+.card-judge{
+  --card-accent:var(--gold);
+  border-color:var(--brd2);
+  background:linear-gradient(160deg,#1a1204 0%,#0e0a03 100%);
+}
+.card-judge::after{
+  content:'';position:absolute;inset:0;border-radius:6px;
+  box-shadow:inset 0 0 30px rgba(212,168,67,.06);pointer-events:none;
+}
+
+/* Card role badge */
+.card-role-badge{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px 10px;border-bottom:1px solid var(--brd);
+}
+.crb-icon{font-size:1rem;flex-shrink:0;}
+.crb-info{}
+.crb-role{
+  font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--card-accent,var(--txt3));display:block;margin-bottom:1px;
+}
+.crb-desc{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.76rem;
+  color:var(--txt3);line-height:1.3;
+}
+
+/* Card figure area */
+.card-figure{
+  padding:18px 16px 12px;text-align:center;
+}
+.cf-dots{
+  display:flex;justify-content:center;gap:14px;margin-bottom:14px;
+}
+.cf-row{display:flex;flex-direction:column;align-items:center;gap:9px;}
+.cf-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 7px var(--gold-glo);
+}
+.cf-dot-dim{background:var(--gold2)!important;box-shadow:0 0 4px var(--gold-glo)!important;}
+.cf-dot-pair{display:flex;gap:5px;}
+.card-judge .cf-dot{width:12px;height:12px;box-shadow:0 0 10px var(--gold-glo2);}
+.cf-sigil{
+  font-size:1.6rem;color:var(--gold);margin-bottom:8px;display:block;
+  filter:drop-shadow(0 0 8px var(--gold-glo));
+}
+.card-judge .cf-sigil{font-size:2rem;filter:drop-shadow(0 0 14px var(--gold-glo2));}
+.cf-name{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(.72rem,1.8vw,.85rem);
+  color:var(--gold);letter-spacing:.08em;margin-bottom:3px;
+}
+.card-judge .cf-name{font-size:clamp(.85rem,2vw,1rem);color:var(--gold3);}
+.cf-element{
+  font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--txt3);
+}
+
+/* Card interpretation */
+.card-interp{
+  padding:0 16px 18px;
+}
+.card-interp-txt{
+  font-family:'Cormorant Garamond',serif;font-size:.9rem;
+  color:#D8C8A0;line-height:1.82;
+}
+.card-judge .card-interp-txt{
+  font-size:.96rem;color:#F0E4C8;line-height:1.88;
+}
+
+/* AI ANSWER SECTION */
+#rs-ai{
+  background:linear-gradient(145deg,rgba(212,168,67,.07),rgba(212,168,67,.03));
+  border:1px solid var(--brd2);border-radius:6px;
+  padding:26px 28px;margin-bottom:10px;
+  position:relative;overflow:hidden;
+}
+#rs-ai::before{
+  content:'✦ ORACLE ✦';
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:.4em;
+  color:var(--bg);background:var(--gold);
+  padding:4px 14px;border-radius:12px;white-space:nowrap;
+}
+#rs-ai-q{
+  font-family:'Cinzel',serif;font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--gold2);margin-bottom:14px;margin-top:4px;
+  display:flex;align-items:center;gap:8px;
+}
+#rs-ai-q::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,168,67,.3),transparent);}
+
+/* Spinner for loading */
+#rs-ai-loading{
+  display:none;align-items:center;gap:10px;padding:6px 0 4px;
+}
+#rs-ai-loading.show{display:flex;}
+.ai-sp{width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.2;animation:aiSp 1.5s ease-in-out infinite;}
+.ai-sp:nth-child(2){animation-delay:.18s;}
+.ai-sp:nth-child(3){animation-delay:.36s;}
+@keyframes aiSp{0%,80%,100%{opacity:.2;transform:scale(1);}40%{opacity:1;transform:scale(1.5);}}
+.ai-sp-lbl{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.18em;color:var(--txt3);}
+
+#rs-ai-txt{
+  font-family:'Cormorant Garamond',serif;font-size:1.08rem;
+  color:#F5EAD0;line-height:1.95;font-weight:400;
+  min-height:2.5em;
+  white-space:pre-wrap;
+}
+
+/* ADVICE QUOTE */
+#rs-advice{
+  border-left:2px solid var(--brd2);padding:6px 0 6px 20px;
+  margin-top:18px;
+}
+#rs-advice-txt{
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;
+  color:#C8A060;line-height:1.8;
+}
+
+/* HOW THIS WORKS SECTION */
+#rs-guide{
+  background:var(--bg2);border:1px solid var(--brd);
+  border-radius:6px;padding:24px 26px;margin-bottom:10px;
+}
+#rs-guide-title{
+  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--gold2);margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+}
+#rs-guide-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--brd),transparent);}
+
+.guide-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:580px){.guide-steps{grid-template-columns:1fr;}}
+.gs{text-align:center;}
+.gs-num{
+  font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--gold);
+  filter:drop-shadow(0 0 6px var(--gold-glo));margin-bottom:8px;display:block;
+}
+.gs-title{
+  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--txt2);margin-bottom:5px;
+}
+.gs-desc{
+  font-family:'Cormorant Garamond',serif;font-size:.82rem;
+  color:var(--txt3);line-height:1.6;font-style:italic;
+}
+
+/* AGAIN BUTTON */
+#rs-again{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  margin:32px auto 0;width:fit-content;
+  background:rgba(212,168,67,.08);border:1px solid var(--brd2);
+  color:var(--gold);font-family:'Cinzel',serif;
+  font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;
+  padding:14px 36px;cursor:pointer;border-radius:4px;transition:all .35s;
+  position:relative;overflow:hidden;
+}
+#rs-again::after{
+  content:'';position:absolute;left:-100%;top:0;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(212,168,67,.12),transparent);
+  animation:shimmer 2.5s ease-in-out infinite;
+}
+#rs-again:hover{background:rgba(212,168,67,.15);box-shadow:0 0 28px var(--gold-glo2);}
+
+/* TOOLTIP */
+#tip{
+  position:fixed;pointer-events:none;z-index:700;
+  background:rgba(14,9,2,.97);border:1px solid var(--brd2);
+  color:var(--txt2);font-family:'Cinzel',serif;
+  font-size:.6rem;letter-spacing:.1em;
+  padding:8px 14px;border-radius:3px;
+  box-shadow:0 4px 20px rgba(0,0,0,.7);
+  opacity:0;transition:opacity .18s;white-space:nowrap;
+}
+#tip.show{opacity:1;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="bg-noise"></div>
+<div id="flash"></div>
+<div id="tip"></div>
+
+<!-- ══════════════════════════════════════
+     STAGE 1 · START
+══════════════════════════════════════ -->
+<div id="start-screen">
+  <div id="ss-title">Geomancy Oracle</div>
+  <div id="tc-wrap" onclick="onCircleClick()">
+    <svg id="tc-svg" viewBox="-160 -160 320 320" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div id="ss-cta">연성진을 눌러 점술을 시작하십시오</div>
+  <div id="ss-sub">Tap the circle to begin the ritual</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STAGE 2 · QUESTION
+══════════════════════════════════════ -->
+<div id="q-screen">
+  <div id="q-box">
+    <span id="q-icon">⚗</span>
+    <div id="q-title">운명에게 물으십시오</div>
+    <div id="q-subtitle">What question burns in your soul?</div>
+    <div id="q-hr"></div>
+    <label id="q-lbl" for="q-input">귀하의 질문을 새기십시오</label>
+    <textarea id="q-input" placeholder="예) 이 직장을 그만두고 새로운 길을 떠나야 할까요?&#10;예) 지금의 관계가 진정한 인연인지 알고 싶습니다."></textarea>
+    <div id="q-hint">* 마음속 가장 깊은 물음을 구체적으로 적을수록 신탁의 정밀도가 높아집니다.</div>
+    <button id="q-btn" onclick="submitQ()">
+      <span>✦</span><span>연성을 시작하다 — Begin the Ritual</span><span>✦</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STAGE 3 · DIVINATION
+══════════════════════════════════════ -->
+<div id="div-screen">
+  <div id="div-bg"></div>
+
+  <div id="top-nav">
+    <button class="tnbtn on" onclick="setTheme('alchemist')">⚗ Codex Alchemicus</button>
+    <button class="tnbtn" onclick="setTheme('sultan')">☽ Sand of the East</button>
+  </div>
+
+  <div id="div-hdr">
+    <span id="div-sigil">⚗</span>
+    <h1 id="div-title">Codex Alchemicus</h1>
+    <p id="div-sub">The Art of Geomantic Divination</p>
+    <div class="hdr-orn"><span class="hdr-gem">◆</span></div>
+  </div>
+
+  <div id="q-display">
+    <div id="q-display-box">
+      <span class="q-d-icon">❓</span>
+      <div id="q-display-text"></div>
+    </div>
+  </div>
+
+  <div id="div-status"><div id="div-status-txt">연성이 시작되었습니다…</div></div>
+
+  <div id="div-main">
+    <div id="prog-bar"></div>
+    <div id="cast-wrap">
+      <div class="slbl" id="cast-lbl">I. 운명의 흙을 새기다 — 16행</div>
+      <div id="rows-box"></div>
+    </div>
+    <div id="chart-sec">
+      <div class="slbl" id="chart-lbl">II. 연금술 방패 차트</div>
+      <div id="chart-box">
+        <svg id="chart-svg" viewBox="0 0 880 450" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STAGE 4 · RESULT SCREEN
+══════════════════════════════════════ -->
+<div id="result-screen">
+  <div id="rs-inner">
+
+    <!-- Top Bar -->
+    <div id="rs-topbar">
+      <div id="rs-logo">⚗ Codex Alchemicus</div>
+      <button id="rs-close" onclick="closeResult()">✕ &nbsp;다시 점치다</button>
+    </div>
+
+    <!-- Question Hero -->
+    <div id="rs-question">
+      <div id="rs-q-tag">귀하의 질문</div>
+      <div id="rs-q-txt"></div>
+    </div>
+
+    <!-- SECTION I · 세 개의 도가니 -->
+    <div class="rs-section" id="sec-cards">
+      <div class="rs-sec-hdr">
+        <div class="rs-sec-num">Ⅰ</div>
+        <div class="rs-sec-info">
+          <div class="rs-sec-title">세 개의 도가니 — The Three Crucibles</div>
+          <div class="rs-sec-desc">과거의 원인, 현재의 흐름, 그리고 운명의 최종 판결</div>
+        </div>
+        <div class="rs-sec-line"></div>
+      </div>
+
+      <!-- Guide row -->
+      <div id="rs-guide" style="margin-bottom:18px;">
+        <div id="rs-guide-title">◈ &nbsp;각 도가니가 의미하는 것</div>
+        <div class="guide-steps">
+          <div class="gs">
+            <span class="gs-num">🜁</span>
+            <div class="gs-title">제1 도가니 — 원인</div>
+            <div class="gs-desc">질문을 만들어낸 과거의 에너지와 배경.<br>이 원소가 현재의 상황을 빚어냈습니다.</div>
+          </div>
+          <div class="gs">
+            <span class="gs-num">🜃</span>
+            <div class="gs-title">제2 도가니 — 흐름</div>
+            <div class="gs-desc">지금 이 순간 작용하는 힘과 에너지.<br>상황의 현재 기운을 나타냅니다.</div>
+          </div>
+          <div class="gs">
+            <span class="gs-num">☉</span>
+            <div class="gs-title">재판관 — 신탁</div>
+            <div class="gs-desc">두 도가니를 합산한 운명의 최종 판결.<br>귀하의 질문에 대한 핵심 답변입니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="cards-grid"></div>
+    </div>
+
+    <!-- SECTION II · AI 신탁 답변 -->
+    <div class="rs-section" id="sec-ai">
+      <div class="rs-sec-hdr">
+        <div class="rs-sec-num">Ⅱ</div>
+        <div class="rs-sec-info">
+          <div class="rs-sec-title">현자의 신탁 — The Oracle's Prophecy</div>
+          <div class="rs-sec-desc">귀하의 질문과 형상을 종합한 개인화된 신탁</div>
+        </div>
+        <div class="rs-sec-line"></div>
+      </div>
+      <div id="rs-ai">
+        <div id="rs-ai-q">✦ &nbsp;신탁의 답변</div>
+        <div id="rs-ai-loading">
+          <div class="ai-sp"></div><div class="ai-sp"></div><div class="ai-sp"></div>
+          <span class="ai-sp-lbl">현자가 운명의 실타래를 읽고 있습니다…</span>
+        </div>
+        <div id="rs-ai-txt"></div>
+        <div id="rs-advice" style="display:none;">
+          <div id="rs-advice-txt"></div>
+        </div>
+      </div>
+    </div>
+
+    <button id="rs-again" onclick="restartOracle()">
+      <span>✦</span><span>새로운 질문을 올리다</span><span>✦</span>
+    </button>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   ANIMATED BG CANVAS
+═══════════════════════════════════════════ */
+(function bgAnim(){
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  let w,h,particles=[];
+  function resize(){w=canvas.width=innerWidth;h=canvas.height=innerHeight;initP();}
+  function initP(){
+    particles=Array.from({length:60},()=>({
+      x:Math.random()*w,y:Math.random()*h,
+      vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12,
+      size:.5+Math.random()*1.2,
+      alpha:.05+Math.random()*.15,
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+      if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(212,168,67,${p.alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);
+  resize();draw();
+})();
+
+/* ═══════════════════════════════════════════
+   BUILD TRANSMUTATION CIRCLE
+═══════════════════════════════════════════ */
+(function buildTC(){
+  const R=145,R2=55,N=10,TP=Math.PI*2;
+  const ON=Array.from({length:N},(_,i)=>{const a=(i/N)*TP-Math.PI/2;return{x:R*Math.cos(a),y:R*Math.sin(a)};});
+  const IN=Array.from({length:5},(_,i)=>{const a=(i/5)*TP-Math.PI/2;return{x:R2*Math.cos(a),y:R2*Math.sin(a)};});
+  const f=v=>v.toFixed(1);
+  const pp=pts=>pts.map((p,i)=>`${i?'L':'M'}${f(p.x)},${f(p.y)}`).join(' ')+' Z';
+  const s1=[0,4,8,2,6].map(i=>ON[i]);
+  const s2=[1,5,9,3,7].map(i=>ON[i]);
+  const tks=Array.from({length:N},(_,i)=>{const a=(i/N)*TP-Math.PI/2+Math.PI/N;return{x1:f(140*Math.cos(a)),y1:f(140*Math.sin(a)),x2:f(154*Math.cos(a)),y2:f(154*Math.sin(a))};});
+  document.getElementById('tc-svg').innerHTML=`
+  <defs>
+    <filter id="gS"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gM"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="bgR"><stop offset="0%" stop-color="#0c0030" stop-opacity=".92"/><stop offset="100%" stop-color="#010008" stop-opacity=".55"/></radialGradient>
+  </defs>
+  <circle r="162" fill="url(#bgR)"/>
+  <circle r="162" fill="none" stroke="rgba(60,110,255,.055)" stroke-width="22" class="tcP"/>
+  <g class="tcA" filter="url(#gS)">
+    <circle r="146" fill="none" stroke="rgba(95,165,255,.88)" stroke-width="1.3"/>
+    ${tks.map(t=>`<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}" stroke="rgba(95,165,255,.62)" stroke-width="1.1"/>`).join('')}
+    ${ON.map(n=>`<circle cx="${f(n.x)}" cy="${f(n.y)}" r="8.5" fill="rgba(4,8,42,.97)" stroke="rgba(135,205,255,.92)" stroke-width="1.1"/><circle cx="${f(n.x)}" cy="${f(n.y)}" r="3.5" fill="rgba(185,230,255,.94)"/>`).join('')}
+  </g>
+  <g class="tcB" filter="url(#gS)">
+    <path d="${pp(s1)}" fill="none" stroke="rgba(105,178,255,.82)" stroke-width="1.3"/>
+    <path d="${pp(s2)}" fill="none" stroke="rgba(165,110,255,.52)" stroke-width=".9"/>
+  </g>
+  <g class="tcC" filter="url(#gM)">
+    <circle r="56" fill="none" stroke="rgba(125,195,255,.72)" stroke-width="1.1"/>
+    <path d="${pp(IN)}" fill="none" stroke="rgba(105,178,255,.55)" stroke-width=".9"/>
+    ${IN.map(p=>`<circle cx="${f(p.x)}" cy="${f(p.y)}" r="5.5" fill="rgba(4,10,42,.97)" stroke="rgba(140,205,255,.88)" stroke-width="1"/><circle cx="${f(p.x)}" cy="${f(p.y)}" r="2.2" fill="rgba(188,232,255,.92)"/>`).join('')}
+  </g>
+  <g class="tcP" filter="url(#gS)">
+    <circle r="28" fill="rgba(4,6,38,.98)" stroke="rgba(200,238,255,.9)" stroke-width="1.3"/>
+    ${Array.from({length:12},(_,i)=>{const a=i*(Math.PI/6);return`<line x1="${f(12*Math.cos(a))}" y1="${f(12*Math.sin(a))}" x2="${f(23*Math.cos(a))}" y2="${f(23*Math.sin(a))}" stroke="rgba(200,238,255,.75)" stroke-width=".85"/>`;}).join('')}
+    <circle r="9.5" fill="rgba(72,140,255,.6)" stroke="rgba(220,248,255,.92)" stroke-width="1.1"/>
+    <circle r="4" fill="rgba(238,250,255,.97)"/>
+  </g>`;
+})();
+
+/* ═══════════════════════════════════════════
+   SOUND
+═══════════════════════════════════════════ */
+let _ac=null;
+const AC=()=>{if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return _ac;};
+const scratchSound=()=>{const c=AC();if(!c)return;const b=c.createBuffer(1,c.sampleRate*.14,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(c.sampleRate*.04));const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=800;f.Q.value=.6;g.gain.value=.16;s.connect(f);f.connect(g);g.connect(c.destination);s.start();};
+const chimeSound=(fr=440)=>{const c=AC();if(!c)return;const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=fr;g.gain.setValueAtTime(.14,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+1.1);o.start();o.stop(c.currentTime+1.1);};
+const revealSound=()=>{const c=AC();if(!c)return;[261.6,329.6,392,523.3].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';const t=c.currentTime+i*.09;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.11,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+1.3);o.start(t);o.stop(t+1.3);});};
+const activateSound=()=>{const c=AC();if(!c)return;[220,330,440,555,660,880].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type=i%2?'sine':'triangle';o.frequency.setValueAtTime(f*.5,c.currentTime+i*.06);o.frequency.exponentialRampToValueAtTime(f*2,c.currentTime+i*.06+.4);g.gain.setValueAtTime(.1,c.currentTime+i*.06);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.06+.5);o.start(c.currentTime+i*.06);o.stop(c.currentTime+i*.06+.5);});};
+
+/* ═══════════════════════════════════════════
+   FIGURES DB
+═══════════════════════════════════════════ */
+const FIG={
+  Via:       {r:[1,1,1,1],ar:'الطريق',en:'Via',nm:'모든 길이 열리다',sig:'⊕',el:'Water',
+    al:{m:'순수한 수은의 흐름이 귀하의 운명 속에 넘칩니다. 모든 원소가 유동하며 변화의 불꽃이 귀하를 이끌 것입니다. 지금 이 순간 모든 길이 열려 있습니다.',a:'"흐름을 거스르지 마십시오. 현자는 강물을 막지 않고, 그 방향을 읽어 황금을 만들어냅니다."'},
+    su:{m:'별들의 대상로가 귀하 앞에 활짝 펼쳐져 있습니다. 사막을 가로지르는 모든 방향이 열려 있으니, 바람이 이끄는 대로 발걸음을 옮기십시오.',a:'"존경하는 손님이여, 길은 떠나는 자에게만 열립니다."'}},
+  Populus:   {r:[0,0,0,0],ar:'الجمع',en:'Populus',nm:'군중의 에너지',sig:'⊞',el:'Water',
+    al:{m:'집합체의 에너지가 귀하의 시험관 속에서 끓어오릅니다. 다수의 의지가 귀하의 운명과 얽혀 있습니다. 공동체 속에서 답을 찾으십시오.',a:'"납은 홀로 황금이 될 수 없습니다. 용광로 속 다른 금속들과 어우러져야 합니다."'},
+    su:{m:'오아시스 주변에 모인 카라반처럼, 귀하의 주변에 많은 이들이 모여들 것입니다.',a:'"사막에서 혼자는 살아남기 어렵습니다. 부족의 결속이 귀하의 가장 강한 방패입니다."'}},
+  Puer:      {r:[1,0,0,1],ar:'الفتى',en:'Puer',nm:'불의 충동',sig:'♂',el:'Fire',
+    al:{m:'청년의 원소 — 거친 불꽃이 귀하를 이끌고 있습니다. 충동적인 에너지가 넘쳐나며, 이를 정제하지 않으면 귀중한 물질이 연기로 사라질 것입니다.',a:'"불꽃은 뜨겁지만 제어하지 못하면 연금술사의 작업실을 태웁니다."'},
+    su:{m:'젊은 전사의 별자리가 귀하의 길 위에 빛납니다. 강렬한 의지가 귀하를 앞으로 나아가게 하지만, 충동은 신기루처럼 귀하를 속일 수 있습니다.',a:'"칼을 뽑기 전에 적이 진짜인지 확인하십시오."'}},
+  Puella:    {r:[0,1,1,0],ar:'الفتاة',en:'Puella',nm:'조화의 원소',sig:'♀',el:'Water',
+    al:{m:'조화와 아름다움의 원소가 귀하를 감싸고 있습니다. 내면의 균형이 만나는 지점에서 귀하의 황금이 빛날 것입니다.',a:'"은은 달의 성질을 닮았습니다. 부드럽게 빛나되, 그 차가운 단호함을 잊지 마십시오."'},
+    su:{m:'비너스의 별이 귀하 위에 빛납니다. 우아함과 조화가 귀하의 삶에 풍성하게 흐를 것입니다.',a:'"사막의 장미는 가시를 숨기고 있습니다. 아름다움은 강함의 다른 얼굴입니다."'}},
+  FortunaMaj:{r:[1,0,1,1],ar:'الحظ الأكبر',en:'Fortuna Major',nm:'위대한 행운',sig:'☉',el:'Fire',
+    al:{m:'위대한 행운의 현자의 돌이 귀하의 손 안에 있습니다! 오래 준비해온 대업이 마침내 황금으로 빛날 시기가 도래했습니다.',a:'"현자의 돌은 탐욕스러운 자에게는 나타나지 않습니다. 귀하의 성공은 귀하의 덕이 만들어낸 것입니다."'},
+    su:{m:'알라의 은총이 귀하에게 넉넉히 내리고 있습니다. 큰 성취와 명예가 귀하를 향해 오고 있습니다.',a:'"위대한 행운을 받은 자는 더 큰 감사를 드려야 합니다."'}},
+  FortunaMin:{r:[0,1,0,0],ar:'الحظ الأصغر',en:'Fortuna Minor',nm:'작은 행운',sig:'◉',el:'Fire',
+    al:{m:'작은 행운의 미약이 귀하에게 작용하고 있습니다. 작은 이득과 단기적 성공이 이어질 것입니다. 이 에너지를 현명하게 축적하십시오.',a:'"작은 납 조각들이 쌓여 황금 덩이가 됩니다. 사소한 성취를 경시하지 마십시오."'},
+    su:{m:'작은 별빛이 귀하의 길을 밝히고 있습니다. 꾸준한 전진과 소소한 기쁨이 귀하를 채울 것입니다.',a:'"사막을 건너는 것은 수천 번의 작은 발걸음입니다."'}},
+  Acquisitio:{r:[0,0,1,1],ar:'الاكتساب',en:'Acquisitio',nm:'획득과 축적',sig:'⊕',el:'Air',
+    al:{m:'획득과 축적의 원소가 귀하의 연금술 작업에 깃들었습니다. 물질적·정신적 부가 귀하에게 흘러들어오는 시기입니다.',a:'"황금은 준비된 그릇에만 담깁니다. 귀하의 내면을 넓히십시오."'},
+    su:{m:'상인의 별이 귀하에게 윙크하고 있습니다. 투자와 노력이 풍성한 이익으로 돌아오는 시기입니다.',a:'"지혜로운 상인은 무엇을 팔지도 알아야 합니다."'}},
+  Amissio:   {r:[1,1,0,0],ar:'الخسارة',en:'Amissio',nm:'정화의 소멸',sig:'⊖',el:'Earth',
+    al:{m:'소멸의 원소가 작용하고 있습니다. 무언가가 귀하의 손을 떠나갈 것이나, 이는 정화의 과정입니다. 불순물을 제거해야 순금이 남습니다.',a:'"용광로 속에서 납은 자신의 형태를 잃지만, 황금이 됩니다. 상실은 변환의 시작입니다."'},
+    su:{m:'바람이 모래를 가져가듯, 무언가가 귀하를 떠날 것입니다. 사막은 불필요한 것들을 씻어내고 진정한 것만 남겨줍니다.',a:'"잃어버린 낙타를 울면서 찾지 마십시오."'}},
+  Albus:     {r:[0,1,0,1],ar:'الأبيض',en:'Albus',nm:'백화의 지혜',sig:'☽',el:'Air',
+    al:{m:'순백의 알케미아 알바 — 정제와 지혜의 단계입니다. 귀하의 정신이 최고로 맑아지는 시기로, 오랫동안 찾던 해답이 귀하의 내면 깊은 곳에서 빛나고 있습니다.',a:'"백색 단계는 연금술의 가장 순수한 순간입니다. 마음을 고요히 하면 진리가 드러납니다."'},
+    su:{m:'달의 순수한 빛이 귀하를 비추고 있습니다. 명료한 사고와 지혜로운 판단의 시기입니다.',a:'"달빛 아래서 길을 찾는 자는 낮의 신기루에 속지 않습니다."'}},
+  Rubeus:    {r:[1,0,1,0],ar:'الأحمر',en:'Rubeus',nm:'붉은 경고',sig:'♈',el:'Fire',
+    al:{m:'경고! 붉은 연금술의 위험한 단계입니다. 강렬한 열정과 충동이 귀하를 지배하려 하고 있습니다. 섣부른 행동은 귀중한 물질을 오염시킬 것입니다.',a:'"붉은 독도 소량이면 약이 됩니다. 분노와 욕망을 제어하는 것이 가장 위대한 연금술입니다."'},
+    su:{m:'화성의 붉은 빛이 귀하의 길에 경고를 보내고 있습니다. 충동적인 결정은 사막의 폭풍처럼 모든 것을 흩트릴 것입니다.',a:'"폭풍이 올 때는 천막을 치고 기다리십시오."'}},
+  CaudaDrac: {r:[1,1,1,0],ar:'ذيل التنين',en:'Cauda Draconis',nm:'용의 꼬리',sig:'☋',el:'Fire/Earth',
+    al:{m:'용의 꼬리 — 마감과 하강의 원소입니다. 하나의 사이클이 끝나가고 있으며, 묵은 에너지들이 소진되고 있습니다. 새 시작의 전조입니다.',a:'"이 단계의 마감은 새로운 원소의 탄생을 준비합니다."'},
+    su:{m:'별의 꼬리가 지평선 아래로 사라지고 있습니다. 하나의 시대가 마무리되는 징조입니다.',a:'"오래된 짐을 내려놓아야 새 짐을 실을 수 있습니다."'}},
+  CaputDrac: {r:[0,0,0,1],ar:'رأس التنين',en:'Caput Draconis',nm:'용의 머리',sig:'☊',el:'Earth/Air',
+    al:{m:'용의 머리 — 상승과 새로운 시작의 길조입니다. 새로운 기회의 문이 열리고 있으며, 씨앗을 심기에 더없이 좋은 시기입니다.',a:'"모든 위대한 변환은 용감한 첫 투입에서 시작됩니다."'},
+    su:{m:'새벽별이 귀하를 위해 뜨고 있습니다. 새로운 시작과 상승의 기운이 가득합니다.',a:'"새로운 시작에는 모든 것을 바치십시오."'}},
+  Conjunctio:{r:[0,1,1,1],ar:'الاجتماع',en:'Conjunctio',nm:'합일의 결합',sig:'☿',el:'Air',
+    al:{m:'합일의 원소가 귀하에게 작용합니다. 오랫동안 분리되어 있던 원소들이 하나로 합쳐지는 시기입니다. 재결합과 협력의 기운이 강합니다.',a:'"두 원소의 합일은 새로운 물질을 탄생시킵니다. 예상치 못한 만남을 거부하지 마십시오."'},
+    su:{m:'두 별이 만나는 교점에 귀하가 있습니다. 중요한 만남과 재결합이 기다리고 있습니다.',a:'"사막에서의 만남은 우연이 아닙니다."'}},
+  Carcer:    {r:[1,0,0,0],ar:'السجن',en:'Carcer',nm:'속박과 인내',sig:'♄',el:'Earth',
+    al:{m:'속박과 정체의 원소가 귀하를 에워싸고 있습니다. 외부적 제약이나 내면의 두려움이 귀하의 변환을 막고 있습니다. 진정한 연금술사는 어떤 용기 안에서도 작업할 수 있습니다.',a:'"좁은 도가니는 압력을 높여 더 빠른 변환을 가능하게 합니다."'},
+    su:{m:'별들이 귀하에게 인내를 요구하고 있습니다. 지금은 전진이 어려운 시기이나, 이것은 영원하지 않습니다.',a:'"갇힌 낙타는 더 강한 다리를 가지게 됩니다."'}},
+  Tristitia: {r:[0,0,1,0],ar:'الحزن',en:'Tristitia',nm:'흑화의 슬픔',sig:'♄',el:'Earth',
+    al:{m:'멜랑콜리아 — 연금술의 흑화 단계입니다. 슬픔과 침잠의 시기이지만, 이 어둠 속에서 순수한 물질이 침전됩니다. 가장 어두운 밤이 새벽 직전이듯 정화가 기다립니다.',a:'"흑화 단계를 두려워하지 마십시오. 이 분해가 없다면 부활도 없습니다."'},
+    su:{m:'구름이 귀하의 별을 가리고 있습니다. 이 시기는 무거운 마음을 가져오지만, 비는 사막을 꽃피웁니다.',a:'"사막의 눈물은 씨앗을 키웁니다."'}},
+  Laetitia:  {r:[1,1,0,1],ar:'الفرح',en:'Laetitia',nm:'황금빛 기쁨',sig:'♃',el:'Air',
+    al:{m:'목성의 황금빛 기쁨이 귀하의 실험실을 가득 채우고 있습니다! 고귀한 원소들이 완벽한 비율로 합쳐지며, 귀하의 영혼 속에 참된 기쁨이 넘칠 것입니다.',a:'"진정한 기쁨은 황금의 완성보다 그 과정 속에 있습니다."'},
+    su:{m:'축제의 북이 귀하를 환영하고 있습니다! 별들이 귀하의 기쁨과 성공을 위해 축배를 들고 있습니다.',a:'"기쁨은 나눌수록 커집니다."'}},
+};
+const findFig=r=>{const k=r.join('');return Object.values(FIG).find(f=>f.r.join('')===k)||null;};
+
+/* ═══════════════════════════════════════════
+   STATE & THEME
+═══════════════════════════════════════════ */
+let theme='alchemist';
+let question='';
+let rowData=new Array(16).fill(null);
+let rowEls=[];
+
+const TCFG={
+  alchemist:{sigil:'⚗',title:'Codex Alchemicus',sub:'The Art of Geomantic Divination',castLbl:'I. 운명의 흙을 새기다 — 16행',chartLbl:'II. 연금술 방패 차트',pc:['#7a3600','#2e1000','#9a4600','#1a0800'],sys:'당신은 19세기 유럽의 연금술사이자 지오맨시 마스터입니다. 수수께끼 같고 신비로운 말투로, 연금술의 은유(원소, 변환, 정제, 현자의 돌, 도가니 등)를 사용하여 조언합니다. 반드시 한국어로 응답하십시오.'},
+  sultan:{sigil:'☽',title:'Sand of the East',sub:'رمل المشرق — The Sands of Destiny',castLbl:'I. استحضار القدر — 16 صفاً',chartLbl:'II. لوح الكون',pc:['#c8a84b','#504010','#a08030','#200e00'],sys:'당신은 중동의 지혜로운 술탄의 궁정 점술사입니다. 정중하고 격식 있는 말투로, 사막과 별과 오아시스의 은유를 사용하여 조언합니다. 반드시 한국어로 응답하십시오.'},
+};
+
+function setTheme(t){
+  theme=t;
+  const c=TCFG[t];
+  document.getElementById('div-sigil').textContent=c.sigil;
+  document.getElementById('div-title').textContent=c.title;
+  document.getElementById('div-sub').textContent=c.sub;
+  document.getElementById('cast-lbl').textContent=c.castLbl;
+  document.getElementById('chart-lbl').textContent=c.chartLbl;
+  document.querySelectorAll('.tnbtn').forEach((b,i)=>b.classList.toggle('on',(i===0?'alchemist':'sultan')===t));
+}
+
+function setStatus(msg,glo=false){
+  const el=document.getElementById('div-status-txt');
+  el.style.opacity='0';
+  setTimeout(()=>{el.textContent=msg;el.classList.toggle('glo',glo);el.style.opacity='1';},240);
+}
+
+/* ═══════════════════════════════════════════
+   FLOW
+═══════════════════════════════════════════ */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function onCircleClick(){
+  document.getElementById('q-screen').classList.add('show');
+  document.getElementById('q-input').focus();
+}
+
+function submitQ(){
+  const v=document.getElementById('q-input').value.trim();
+  if(!v){
+    const inp=document.getElementById('q-input');
+    inp.style.borderColor='rgba(255,80,80,.6)';
+    inp.placeholder='먼저 질문을 입력하십시오…';
+    setTimeout(()=>inp.style.borderColor='',1200);
+    return;
+  }
+  question=v;
+  document.getElementById('q-screen').classList.remove('show');
+  doActivation();
+}
+document.getElementById('q-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))submitQ();});
+
+async function doActivation(){
+  activateSound();
+  const w=document.getElementById('tc-wrap');
+  w.style.pointerEvents='none';w.classList.add('firing');
+  await sleep(900);
+  document.getElementById('flash').style.opacity='1';
+  await sleep(150);
+  const ds=document.getElementById('div-screen');
+  ds.style.display='block';await sleep(40);ds.classList.add('show');
+  document.getElementById('flash').style.transition='opacity .65s ease';
+  document.getElementById('flash').style.opacity='0';
+  document.getElementById('start-screen').classList.add('hide');
+  await sleep(750);document.getElementById('start-screen').style.display='none';
+  document.getElementById('q-display-text').textContent=question;
+  startAutoCast();
+}
+
+/* ═══════════════════════════════════════════
+   ROWS
+═══════════════════════════════════════════ */
+function initRows(){
+  rowData=new Array(16).fill(null);rowEls=[];
+  const box=document.getElementById('rows-box');box.innerHTML='';
+  const pb=document.getElementById('prog-bar');pb.innerHTML='';
+  for(let i=0;i<16;i++){
+    const div=document.createElement('div');div.className='crow';
+    const n=document.createElement('div');n.className='crow-n';n.textContent=String(i+1).padStart(2,'0');
+    const cw=document.createElement('div');cw.className='crow-cw';
+    const cv=document.createElement('canvas');cv.className='crow-cv';
+    const hint=document.createElement('div');hint.className='crow-hint';hint.textContent='…';
+    cw.append(cv,hint);
+    const r=document.createElement('div');r.className='crow-r';
+    div.append(n,cw,r);box.appendChild(div);
+    rowEls.push({div,cv,r});
+    const d=document.createElement('div');d.className='pb';pb.appendChild(d);
+  }
+}
+
+function castRow(i){
+  return new Promise(res=>{
+    const cnt=8+Math.floor(Math.random()*22);
+    const isOdd=cnt%2===1;
+    rowData[i]={count:cnt,odd:isOdd};
+    const{div,cv,r}=rowEls[i];
+    const W=cv.offsetWidth||cv.parentElement.offsetWidth||360,H=20;
+    cv.width=W;cv.height=H;
+    const ctx=cv.getContext('2d');
+    const cols=TCFG[theme].pc;
+    const marks=Array.from({length:cnt},(_,mi)=>({
+      x:(mi+.5)*(W/cnt),y:H/2+(Math.random()-.5)*5,
+      w:1.8+Math.random()*2.6,h:1+Math.random()*1.6,
+      col:cols[Math.floor(Math.random()*cols.length)],
+      a:0,born:mi*.022,
+    }));
+    let t=0;
+    (function frame(){
+      ctx.clearRect(0,0,W,H);t+=.055;let done=true;
+      marks.forEach(m=>{m.a=Math.min(1,Math.max(0,(t-m.born)*4.5));if(m.a<1)done=false;
+        ctx.save();ctx.globalAlpha=m.a*.78;ctx.fillStyle=m.col;ctx.fillRect(m.x-m.w/2,m.y-m.h/2,m.w,m.h);ctx.restore();});
+      if(!done)requestAnimationFrame(frame);
+      else{div.classList.add('done',isOdd?'odd':'even');r.textContent=isOdd?'●':'● ●';
+        document.querySelectorAll('.pb')[i].classList.add('lit');scratchSound();setTimeout(res,70);}
+    })();
+  });
+}
+
+async function startAutoCast(){
+  initRows();setStatus('운명의 흙이 새겨지고 있습니다…',true);await sleep(280);
+  for(let i=0;i<16;i++){await sleep(120);await castRow(i);}
+  setStatus('16개의 행이 완성되었습니다. 방패 차트를 생성합니다…');
+  await sleep(750);generateChart();
+}
+
+/* ═══════════════════════════════════════════
+   GEOMANCY ENGINE
+═══════════════════════════════════════════ */
+const addF=(a,b)=>a.map((v,i)=>(v+b[i])%2);
+const mkF=r=>r.map(v=>v%2===1?1:0);
+function calcChart(){
+  const bits=rowData.map(r=>r.odd?1:0);
+  const m=[0,1,2,3].map(mi=>mkF([bits[mi*4],bits[mi*4+1],bits[mi*4+2],bits[mi*4+3]]));
+  const d=[0,1,2,3].map(di=>mkF(m.map(mm=>mm[di])));
+  const n=[addF(m[0],m[1]),addF(m[2],m[3]),addF(d[0],d[1]),addF(d[2],d[3])];
+  const w=[addF(n[0],n[1]),addF(n[2],n[3])];
+  return{mothers:m,daughters:d,nephews:n,witnesses:w,judge:addF(w[0],w[1])};
+}
+
+/* ═══════════════════════════════════════════
+   CHART RENDERER
+═══════════════════════════════════════════ */
+const CW=62,CH=80,CWJ=80,CHJ=104;
+const POS=[
+  {cx:55, cy:385,label:'Mother I',    grp:'M'},{cx:165,cy:385,label:'Mother II',   grp:'M'},
+  {cx:275,cy:385,label:'Mother III',  grp:'M'},{cx:385,cy:385,label:'Mother IV',   grp:'M'},
+  {cx:495,cy:385,label:'Daughter IV', grp:'D'},{cx:605,cy:385,label:'Daughter III',grp:'D'},
+  {cx:715,cy:385,label:'Daughter II', grp:'D'},{cx:825,cy:385,label:'Daughter I',  grp:'D'},
+  {cx:110,cy:278,label:'Nephew I',    grp:'N'},{cx:330,cy:278,label:'Nephew II',   grp:'N'},
+  {cx:550,cy:278,label:'Nephew III',  grp:'N'},{cx:770,cy:278,label:'Nephew IV',   grp:'N'},
+  {cx:220,cy:165,label:'Rt Witness',  grp:'W'},{cx:660,cy:165,label:'Lt Witness',  grp:'W'},
+  {cx:440,cy:55, label:'JUDGE',       grp:'J'},
+];
+const CONNS=[[0,1,8],[2,3,9],[4,5,10],[6,7,11],[8,9,12],[10,11,13],[12,13,14]];
+const svgE=t=>document.createElementNS('http://www.w3.org/2000/svg',t);
+const sa=(el,o)=>Object.entries(o).forEach(([k,v])=>el.setAttribute(k,v));
+
+function generateChart(){
+  const chart=calcChart();
+  const figs=[chart.mothers[0],chart.mothers[1],chart.mothers[2],chart.mothers[3],
+    chart.daughters[3],chart.daughters[2],chart.daughters[1],chart.daughters[0],
+    chart.nephews[0],chart.nephews[1],chart.nephews[2],chart.nephews[3],
+    chart.witnesses[0],chart.witnesses[1],chart.judge];
+
+  const svg=document.getElementById('chart-svg');svg.innerHTML='';
+  const acc='#D4A843',acc2='#7a5010',brd='rgba(212,168,67,.28)',brd2='rgba(212,168,67,.55)',
+    cardBg='#120a02',txt2='rgba(212,190,140,.55)',txtf='rgba(212,190,140,.28)',
+    dot='#D4A843',dot2='#6a4a10',line='rgba(212,168,67,.32)';
+
+  const defs=svgE('defs');
+  defs.innerHTML=`<filter id="cJ" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  svg.appendChild(defs);
+
+  const lG=svgE('g');svg.appendChild(lG);
+  CONNS.forEach(([c1i,c2i,pi],ci)=>{
+    const c1=POS[c1i],c2=POS[c2i],p=POS[pi];
+    const isJ=p.grp==='J';
+    const ph=isJ?CHJ/2:CH/2,ch2=CH/2;
+    const pBot=p.cy+ph,midY=(pBot+c1.cy-ch2)/2;
+    [[p.cx,pBot,p.cx,midY],[c1.cx,midY,c2.cx,midY],[c1.cx,midY,c1.cx,c1.cy-ch2],[c2.cx,midY,c2.cx,c2.cy-ch2]]
+    .forEach((pts,li)=>{const l=svgE('line');
+      sa(l,{x1:pts[0],y1:pts[1],x2:pts[2],y2:pts[3],stroke:line,'stroke-width':'1','stroke-dasharray':'0',opacity:'0'});
+      l.id=`cl-${ci}-${li}`;lG.appendChild(l);});
+  });
+
+  const cG=svgE('g');svg.appendChild(cG);
+  POS.forEach((pos,pi)=>{
+    const fig=figs[pi],fd=findFig(fig),isJ=pos.grp==='J',isW=pos.grp==='W';
+    const cw=isJ?CWJ:CW,ch=isJ?CHJ:CH;
+    const g=svgE('g');g.id=`cc-${pi}`;g.setAttribute('cursor','pointer');g.style.opacity='0';
+    if(isJ)g.setAttribute('filter','url(#cJ)');
+
+    const rect=svgE('rect');
+    sa(rect,{x:pos.cx-cw/2,y:pos.cy-ch/2,width:cw,height:ch,rx:'4'});
+    rect.style.cssText=`fill:${cardBg};stroke:${isJ?brd2:isW?'rgba(212,168,67,.38)':brd};stroke-width:${isJ?'1.5':'1'};`;
+    g.appendChild(rect);
+
+    // Top accent line
+    const topLine=svgE('line');
+    sa(topLine,{x1:pos.cx-cw/2+6,y1:pos.cy-ch/2,x2:pos.cx+cw/2-6,y2:pos.cy-ch/2,'stroke':isJ?acc:'rgba(212,168,67,.45)','stroke-width':'1.5'});
+    g.appendChild(topLine);
+
+    const dotR=isJ?5:3.2,rowG=isJ?16:11,sy=pos.cy-ch/2+(isJ?26:17);
+    fig.forEach((val,ri)=>{
+      const cy=sy+ri*rowG;
+      if(val===1){const c=svgE('circle');sa(c,{cx:pos.cx,cy,r:dotR});c.style.fill=dot;g.appendChild(c);}
+      else{[-1,1].forEach(s=>{const c=svgE('circle');sa(c,{cx:pos.cx+s*(dotR+2.5),cy,r:dotR});c.style.fill=dot2;g.appendChild(c);});}
+    });
+
+    const nm=fd?fd.nm||fd.en:'?';
+    const lbl=svgE('text');
+    sa(lbl,{x:pos.cx,y:pos.cy+ch/2-(isJ?10:8),'text-anchor':'middle','font-family':'Cinzel,serif','font-size':isJ?'7.5':'6','letter-spacing':'0.4'});
+    lbl.style.fill=isJ?acc:txt2;lbl.textContent=nm.length>10?nm.slice(0,9)+'…':nm;g.appendChild(lbl);
+
+    const badge=svgE('text');
+    sa(badge,{x:pos.cx,y:pos.cy-ch/2+9,'text-anchor':'middle','font-family':'Cinzel,serif','font-size':'5.2','letter-spacing':'0.5'});
+    badge.style.fill=txtf;badge.textContent=pos.label;g.appendChild(badge);
+
+    g.addEventListener('mouseenter',e=>showTip(pos.label+(fd?` — ${fd.nm||fd.en}`:''),e));
+    g.addEventListener('mouseleave',hideTip);
+    cG.appendChild(g);
+  });
+
+  document.getElementById('chart-sec').classList.add('show');
+  animateReveal(figs,chart);
+}
+
+function animateReveal(figs,chart){
+  const waves=[[0,1,2,3,4,5,6,7],[8,9,10,11],[12,13],[14]];
+  const connW=[[0,1,2,3],[4,5],[6]];
+  let delay=120;
+  waves.forEach((group,wi)=>{
+    group.forEach(pi=>{
+      setTimeout(()=>{const c=document.getElementById(`cc-${pi}`);if(c){let op=0;(function f(){op+=.06;c.style.opacity=Math.min(1,op);if(op<1)requestAnimationFrame(f);})();}chimeSound(190+pi*28);},delay);
+      delay+=80;
+    });
+    if(wi<3){const cw=wi;setTimeout(()=>{(connW[cw]||[]).forEach(cni=>{[0,1,2,3].forEach(li=>{const l=document.getElementById(`cl-${cni}-${li}`);if(!l)return;l.style.opacity='.32';const x1=+l.getAttribute('x1'),y1=+l.getAttribute('y1'),x2=+l.getAttribute('x2'),y2=+l.getAttribute('y2');const len=Math.hypot(x2-x1,y2-y1)||1;l.setAttribute('stroke-dasharray',len);l.setAttribute('stroke-dashoffset',len);let st=null;(function s(ts){if(!st)st=ts;const t=Math.min((ts-st)/480,1);const e=t<.5?2*t*t:-1+(4-2*t)*t;l.setAttribute('stroke-dashoffset',len*(1-e));if(t<1)requestAnimationFrame(s);})(performance.now());});});},delay);}
+    delay+=280;
+  });
+  setTimeout(()=>{setStatus('재판관의 심판이 내려집니다…',true);setTimeout(()=>showResult(chart),900);},delay+450);
+}
+
+/* ═══════════════════════════════════════════
+   RESULT SCREEN — 3 CARDS
+═══════════════════════════════════════════ */
+function buildFigCard(figRows,roleClass,roleIcon,roleName,roleDesc,interp){
+  const fd=findFig(figRows);
+  const card=document.createElement('div');
+  card.className=`alc-card ${roleClass}`;
+
+  // Role badge
+  const badge=document.createElement('div');badge.className='card-role-badge';
+  badge.innerHTML=`<span class="crb-icon">${roleIcon}</span>
+  <div class="crb-info">
+    <span class="crb-role">${roleName}</span>
+    <span class="crb-desc">${roleDesc}</span>
+  </div>`;
+  card.appendChild(badge);
+
+  // Figure area
+  const fig=document.createElement('div');fig.className='card-figure';
+  // Dots
+  const dotsRow=document.createElement('div');dotsRow.className='cf-dots';
+  figRows.forEach(val=>{
+    const col=document.createElement('div');col.className='cf-row';
+    if(val===1){const d=document.createElement('div');d.className='cf-dot';col.appendChild(d);}
+    else{const p=document.createElement('div');p.className='cf-dot-pair';[0,1].forEach(()=>{const d=document.createElement('div');d.className='cf-dot cf-dot-dim';p.appendChild(d);});col.appendChild(p);}
+    dotsRow.appendChild(col);
+  });
+  fig.appendChild(dotsRow);
+
+  const sigil=document.createElement('span');sigil.className='cf-sigil';sigil.textContent=fd?fd.sig:'?';
+  const nm=document.createElement('div');nm.className='cf-name';nm.textContent=fd?fd.nm||fd.en:'Unknown';
+  const el=document.createElement('div');el.className='cf-element';el.textContent=(fd?fd.el:'')+(fd?` · ${fd.ar}`:'');
+  fig.append(sigil,nm,el);
+  card.appendChild(fig);
+
+  // Interpretation
+  const itp=document.createElement('div');itp.className='card-interp';
+  const itxt=document.createElement('div');itxt.className='card-interp-txt';
+  itxt.textContent=interp.m;
+  itp.appendChild(itxt);
+  card.appendChild(itp);
+
+  return card;
+}
+
+async function showResult(chart){
+  const t=theme;
+  const isAlch=t==='alchemist';
+  const interp=f=>f[isAlch?'al':'su'];
+
+  // Populate question
+  document.getElementById('rs-q-txt').textContent=question;
+
+  // Build 3 cards
+  const grid=document.getElementById('cards-grid');
+  grid.innerHTML='';
+  grid.appendChild(buildFigCard(
+    chart.witnesses[0],
+    'card-past','🜁',
+    '제 1 도가니 — 원인',
+    '질문을 만들어낸 과거의 에너지',
+    interp(findFig(chart.witnesses[0]))
+  ));
+  grid.appendChild(buildFigCard(
+    chart.witnesses[1],
+    'card-present','🜃',
+    '제 2 도가니 — 흐름',
+    '지금 이 순간 작용하는 힘',
+    interp(findFig(chart.witnesses[1]))
+  ));
+  grid.appendChild(buildFigCard(
+    chart.judge,
+    'card-judge','☉',
+    '재판관 — 신탁',
+    '운명의 최종 판결',
+    interp(findFig(chart.judge))
+  ));
+
+  // Set AI advice from judge
+  const judgeData=findFig(chart.judge);
+  if(judgeData){
+    document.getElementById('rs-advice').style.display='block';
+    document.getElementById('rs-advice-txt').textContent=interp(judgeData).a;
+  }
+
+  // Show result screen
+  const rs=document.getElementById('result-screen');
+  rs.classList.add('open');
+  revealSound();
+
+  // Stagger card animations
+  grid.querySelectorAll('.alc-card').forEach((c,i)=>{
+    c.style.opacity='0';c.style.transform='translateY(16px)';
+    setTimeout(()=>{c.style.transition='opacity .6s ease, transform .6s ease';c.style.opacity='1';c.style.transform='translateY(0)';},300+i*200);
+  });
+
+  // Fetch AI answer
+  await sleep(800);
+  document.getElementById('rs-ai-loading').classList.add('show');
+  document.getElementById('rs-ai-txt').style.opacity='0';
+
+  const oracleResult=await fetchOracle(question,judgeData,t);
+  document.getElementById('rs-ai-loading').classList.remove('show');
+  document.getElementById('rs-ai-txt').style.opacity='1';
+
+  if(oracleResult?.advice){
+    document.getElementById('rs-advice').style.display='block';
+    document.getElementById('rs-advice-txt').textContent=oracleResult.advice;
+  }
+
+  if(oracleResult?.text){await typeOut(document.getElementById('rs-ai-txt'),oracleResult.text);}
+  else{document.getElementById('rs-ai-txt').textContent=interp(judgeData).m;}
+}
+
+async function fetchOracle(q,fd,t){
+  if(!fd)return null;
+  try{
+    const isAlch=t==='alchemist';
+    const r=await fetch('/api/oracle/geomancy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        question:q,
+        theme:t,
+        judge:{
+          english:fd.en,
+          korean:fd.nm,
+          element:fd.el,
+          meaning:(fd[isAlch?'al':'su']?.m)||'',
+          advice:(fd[isAlch?'al':'su']?.a)||''
+        }
+      })
+    });
+    if(!r.ok)return null;
+    const data=await r.json();
+    const txt=formatOraclePayload(data);
+    if(!txt)return null;
+    return {text:txt,advice:data?.actionTip||null};
+  }catch{return null;}
+}
+
+function formatOraclePayload(data){
+  if(!data||typeof data!=='object')return '';
+  const sections=[];
+  if(data.answer)sections.push(String(data.answer).trim());
+  if(data.keyJudgement)sections.push('[핵심 판결]\n'+String(data.keyJudgement).trim());
+  if(data.energyFlow)sections.push('[에너지 흐름]\n'+String(data.energyFlow).trim());
+  if(data.risk)sections.push('[주의 신호]\n'+String(data.risk).trim());
+  if(data.timing)sections.push('[타이밍]\n'+String(data.timing).trim());
+  if(data.actionTip)sections.push('[실천 제안]\n'+String(data.actionTip).trim());
+  return sections.filter(Boolean).join('\n\n');
+}
+
+async function typeOut(el,txt){
+  el.textContent='';
+  for(let i=0;i<txt.length;i++){el.textContent+=txt[i];if(i%4===0)await sleep(14);}
+}
+
+function closeResult(){
+  document.getElementById('result-screen').classList.remove('open');
+}
+
+function restartOracle(){
+  document.getElementById('result-screen').classList.remove('open');
+  document.getElementById('chart-sec').classList.remove('show');
+  document.getElementById('chart-svg').innerHTML='';
+  question='';
+  document.getElementById('q-input').value='';
+  setStatus('');
+  const ss=document.getElementById('start-screen');
+  ss.style.display='flex';ss.classList.remove('hide');
+  document.getElementById('tc-wrap').classList.remove('firing');
+  document.getElementById('tc-wrap').style.pointerEvents='';
+  const ds=document.getElementById('div-screen');
+  ds.classList.remove('show');ds.style.display='none';
+}
+
+/* ═══════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════ */
+function showTip(t,e){const el=document.getElementById('tip');el.textContent=t;el.classList.add('show');moveTip(e);}
+function hideTip(){document.getElementById('tip').classList.remove('show');}
+function moveTip(e){const el=document.getElementById('tip');el.style.left=(e.clientX+14)+'px';el.style.top=(e.clientY-10)+'px';}
+document.addEventListener('mousemove',e=>{const el=document.getElementById('tip');if(el.classList.contains('show'))moveTip(e);});
+
+/* INIT */
+window.addEventListener('DOMContentLoaded',()=>initRows());
+</script>
+</body>
+</html>

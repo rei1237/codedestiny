@@ -4483,6 +4483,10 @@ function navigateToVedic() {
   window.location.href = '/vedic-astrology.html';
 }
 
+function openGeomancyOracle() {
+  window.location.href = '/geomancy-oracle-v4.html';
+}
+
 function openZiweiModal(_retried) {
   if (!_retried && __cdBirthModalDepsMissing()) {
     __cdEnsureBirthModalDepsLoaded()
