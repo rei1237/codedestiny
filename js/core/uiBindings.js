@@ -11,13 +11,13 @@ const __lazyActionLoaders = {
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js'),
+  openDreamModal: () => __loadScriptOnce('/lib/ai-engine.js').then(() => __loadScriptOnce('/js/dream-ledger.js')),
   openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('/js/animal-totem-experience.js')
     ),
-  openSajuTotemModal: () => __loadScriptOnce('/js/saju-totem-generator.js?v=20260327-hotfix2'),
+  openSajuTotemModal: () => __loadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1'),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),

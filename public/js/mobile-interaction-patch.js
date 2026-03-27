@@ -486,7 +486,7 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js'
     ],
-    openSajuTotemModal: ['js/saju-totem-generator.js?v=20260327-hotfix2'],
+    openSajuTotemModal: ['js/saju-totem-generator.js?v=20260328-hardbind1'],
     // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
     // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260320-tarot-uifix2'],
@@ -494,7 +494,7 @@
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'],
     openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
     openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
-    openDreamModal: ['js/dream-ledger.js'],
+    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js']

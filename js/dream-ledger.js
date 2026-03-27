@@ -55,6 +55,9 @@
     htmlOverflow: ''
   };
 
+  var DREAM_TAROT_API_TIMEOUT_MS = 9000;
+  var dreamAiLoadPromise = null;
+
   function $(id) {
     return document.getElementById(id);
   }
@@ -457,6 +460,208 @@
   function setLoaderText(text) {
     var loaderText = $('dreamLoaderText');
     if (loaderText) loaderText.textContent = text;
+  }
+
+  function normalizeApiBase(raw) {
+    var value = String(raw || '').trim();
+    if (!value) return '';
+    return value.replace(/\/+$/, '');
+  }
+
+  function getRuntimeEnvApiBase() {
+    try {
+      if (typeof process !== 'undefined' && process.env) {
+        var envBase = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.CLOUDFLARE_API_BASE_URL || process.env.API_BASE_URL;
+        if (envBase) return normalizeApiBase(envBase);
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL) {
+          return normalizeApiBase(window.__ENV__.NEXT_PUBLIC_API_BASE_URL);
+        }
+        if (window.__CF_PAGES_API_BASE_URL) {
+          return normalizeApiBase(window.__CF_PAGES_API_BASE_URL);
+        }
+        var meta = document.querySelector('meta[name="code-destiny-api-base"]');
+        if (meta && meta.content) return normalizeApiBase(meta.content);
+      }
+    } catch (_) {}
+
+    return '';
+  }
+
+  function getDreamTarotApiBase() {
+    var runtimeBase = getRuntimeEnvApiBase();
+    if (runtimeBase) return runtimeBase;
+
+    try {
+      if (typeof getFortuneApiBaseUrl === 'function') {
+        var base = getFortuneApiBaseUrl();
+        if (base) return normalizeApiBase(base);
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.CODE_DESTINY_API_BASE_URL) return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
+        var custom = localStorage.getItem('fortune_api_base_url');
+        if (custom) return normalizeApiBase(custom);
+      }
+    } catch (_) {}
+
+    try {
+      var host = String(location.host || '').toLowerCase();
+      if (host === 'api.code-destiny.com') return location.origin || '';
+    } catch (_) {}
+
+    return '';
+  }
+
+  function buildDreamTarotApiBaseCandidates() {
+    var out = [];
+    function add(base) {
+      var normalized = normalizeApiBase(base);
+      if (normalized && out.indexOf(normalized) === -1) out.push(normalized);
+    }
+
+    out.push('');
+    try {
+      if (location && location.origin) add(location.origin);
+    } catch (_) {}
+
+    add(getRuntimeEnvApiBase());
+    add(getDreamTarotApiBase());
+    return out;
+  }
+
+  function fetchJsonWithTimeout(url, payload) {
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function () {
+      if (controller) controller.abort();
+    }, DREAM_TAROT_API_TIMEOUT_MS);
+
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+      signal: controller ? controller.signal : undefined
+    })
+    .then(function (res) {
+      return res.text().then(function (body) {
+        var data = null;
+        if (body) {
+          try {
+            data = JSON.parse(body);
+          } catch (_) {
+            data = null;
+          }
+        }
+        if (!res.ok) {
+          var httpErr = new Error('Tarot API HTTP error: ' + res.status);
+          httpErr.status = res.status;
+          httpErr.responseBody = body || '';
+          throw httpErr;
+        }
+        if (!data || data.ok !== true) {
+          throw new Error('Invalid tarot API response payload');
+        }
+        return data;
+      });
+    })
+    .catch(function (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('Tarot API timeout');
+      }
+      throw error;
+    })
+    .finally(function () {
+      clearTimeout(timer);
+    });
+  }
+
+  function callDreamTarotApi(endpoint, payload) {
+    var bases = buildDreamTarotApiBaseCandidates();
+    var lastError = null;
+    var index = 0;
+
+    function tryNext() {
+      if (index >= bases.length) {
+        throw lastError || new Error('Tarot API request failed');
+      }
+
+      var base = bases[index++];
+      var url = (base ? base + '/api/tarot/' : '/api/tarot/') + endpoint;
+
+      return fetchJsonWithTimeout(url, payload).catch(function (error) {
+        lastError = error;
+        return tryNext();
+      });
+    }
+
+    return Promise.resolve().then(tryNext);
+  }
+
+  function loadScriptOnce(src) {
+    var norm = String(src || '').trim();
+    if (!norm) return Promise.reject(new Error('missing src'));
+
+    var all = document.querySelectorAll('script[src]');
+    var normBase = norm.split('?')[0];
+    var fileName = normBase.split('/').pop();
+    var existing = null;
+    for (var i = 0; i < all.length; i += 1) {
+      var cur = all[i].getAttribute('src') || '';
+      var curBase = cur.split('?')[0];
+      if (cur === norm || curBase === normBase || (fileName && curBase.indexOf('/' + fileName) !== -1)) {
+        existing = all[i];
+        break;
+      }
+    }
+
+    if (existing) {
+      if (existing.dataset.loaded === '1' || existing.readyState === 'complete' || existing.readyState === 'loaded') {
+        return Promise.resolve();
+      }
+      if (existing.dataset.loading !== '1') return Promise.resolve();
+      return new Promise(function (resolve, reject) {
+        existing.addEventListener('load', function () { resolve(); }, { once: true });
+        existing.addEventListener('error', function () { reject(new Error('load failed: ' + src)); }, { once: true });
+      });
+    }
+
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = norm;
+      s.defer = true;
+      s.async = true;
+      s.dataset.loading = '1';
+      s.onload = function () {
+        s.dataset.loading = '0';
+        s.dataset.loaded = '1';
+        resolve();
+      };
+      s.onerror = function () { reject(new Error('load failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function ensureDreamLedgerAiReady() {
+    var ai = window.DreamLedgerAI;
+    if (ai && typeof ai.interpretDream === 'function') return Promise.resolve(ai);
+
+    if (!dreamAiLoadPromise) {
+      dreamAiLoadPromise = loadScriptOnce('/lib/ai-engine.js').catch(function () {
+        return null;
+      });
+    }
+
+    return dreamAiLoadPromise.then(function () {
+      var loadedAi = window.DreamLedgerAI;
+      if (loadedAi && typeof loadedAi.interpretDream === 'function') return loadedAi;
+      return null;
+    });
   }
 
   function syncInputEnergy() {
@@ -1261,7 +1466,7 @@
 
   function mergeTarotApiIntoReading(localReading, drawData, readingData) {
     var apiCards = Array.isArray(drawData.cards) ? drawData.cards : [];
-    var apiReadingObj = readingData.reading || {};
+    var apiReadingObj = (readingData && readingData.reading) ? readingData.reading : {};
     var cardNarratives = Array.isArray(apiReadingObj.cardNarratives)
       ? apiReadingObj.cardNarratives
       : [];
@@ -1327,7 +1532,21 @@
     }
 
     var ai = window.DreamLedgerAI;
-    if (!ai || typeof ai.interpretDream !== 'function') return;
+    if (!ai || typeof ai.interpretDream !== 'function') {
+      setLoaderText('드림 타로 엔진을 불러오는 중입니다...');
+      $('dreamLoader').style.display = 'block';
+      ensureDreamLedgerAiReady().then(function (loadedAi) {
+        if (loadedAi && typeof loadedAi.interpretDream === 'function') {
+          window.startDreamReading();
+          return;
+        }
+        setLoaderText('드림 타로 엔진을 초기화하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        setTimeout(function () {
+          $('dreamLoader').style.display = 'none';
+        }, 1500);
+      });
+      return;
+    }
 
     resetCards();
     ensureAudioContext();
@@ -1368,33 +1587,25 @@
 
       // 타로 API로 실제 카드 뽑기 → 리딩 강화 → 최종화
       setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
-      try {
-        fetch('/api/tarot/draw', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ spreadType: 'three_card_past_present_future' })
-        })
-        .then(function (drawRes) { return drawRes.json(); })
+      callDreamTarotApi('draw', { spreadType: 'three_card_past_present_future' })
         .then(function (drawData) {
-          if (!drawData || !drawData.ok || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
+          if (!drawData || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
             return null;
           }
-          return fetch('/api/tarot/reading', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              category: 'general',
-              spreadType: 'three_card_past_present_future',
-              cards: drawData.cards
-            })
+          return callDreamTarotApi('reading', {
+            category: 'general',
+            spreadType: 'three_card_past_present_future',
+            cards: drawData.cards
           })
-          .then(function (readRes) { return readRes.json(); })
           .then(function (readingData) {
             return { drawData: drawData, readingData: readingData };
+          })
+          .catch(function () {
+            return { drawData: drawData, readingData: null };
           });
         })
         .then(function (apiResult) {
-          if (apiResult && apiResult.readingData && apiResult.readingData.ok) {
+          if (apiResult && apiResult.drawData) {
             reading = mergeTarotApiIntoReading(reading, apiResult.drawData, apiResult.readingData);
           }
           finalizeReading(reading);
@@ -1402,9 +1613,6 @@
         .catch(function () {
           finalizeReading(reading);
         });
-      } catch (_) {
-        finalizeReading(reading);
-      }
     }, 1450);
   };
 

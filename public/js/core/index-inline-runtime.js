@@ -597,13 +597,13 @@ function __cdCallGlobal(fnName) {
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
-  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260327-hotfix2'); },
+  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -1375,7 +1375,7 @@ function __cdBindSajuTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('/js/saju-totem-generator.js?v=20260327-hotfix2')
+        loadScriptOnce('/js/saju-totem-generator.js?v=20260328-hardbind1')
           .then(function() {
             try {
               if (typeof window.openSajuTotemModal === 'function') window.openSajuTotemModal();
@@ -1384,6 +1384,15 @@ function __cdBindSajuTotemTileDirect() {
           .catch(function(err) { console.error('[saju-totem] load failed:', err); });
       });
     } catch (err) { console.error('[saju-totem] openSajuTotemModal error:', err); }
+  }
+
+  if (typeof window.__cdOpenSajuTotemFromTile !== 'function') {
+    window.__cdOpenSajuTotemFromTile = function(ev) {
+      if (ev && ev.cancelable) ev.preventDefault();
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      openSajuTotemModal();
+      return false;
+    };
   }
 
   function isSajuTotemTile(el) {
