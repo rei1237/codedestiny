@@ -540,6 +540,7 @@
   function openTarotLoveModal() {
     var overlay = byId("tarotLoveOverlay");
     if (!overlay) return;
+    bindTarotLoveStaticActions();
     overlay.style.display = "block";
     overlay.classList.add("is-open");
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
@@ -563,6 +564,37 @@
     overlay.classList.remove("is-open");
     if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
     else document.body.style.overflow = "";
+  }
+
+  function bindTarotLoveStaticActions() {
+    var overlay = byId("tarotLoveOverlay");
+    if (!overlay) return;
+
+    if (!overlay.__tlCloseBackdropBound) {
+      overlay.__tlCloseBackdropBound = true;
+      overlay.addEventListener("click", function (e) {
+        if (e && e.target === overlay) closeTarotLoveModal();
+      });
+    }
+
+    var closeBtn = overlay.querySelector(".tarot-love-close");
+    if (closeBtn && !closeBtn.__tlCloseBtnBound) {
+      closeBtn.__tlCloseBtnBound = true;
+      closeBtn.addEventListener("click", function (e) {
+        if (e && e.cancelable) e.preventDefault();
+        closeTarotLoveModal();
+      });
+    }
+
+    if (!window.__tlEscCloseBound) {
+      window.__tlEscCloseBound = true;
+      document.addEventListener("keydown", function (e) {
+        if (!e || e.key !== "Escape") return;
+        var ov = byId("tarotLoveOverlay");
+        if (!ov || ov.style.display === "none") return;
+        closeTarotLoveModal();
+      });
+    }
   }
 
   function resetTarotLoveFlow() {
@@ -976,6 +1008,7 @@
     refs.introStage = byId("tarotLoveIntroStage");
     refs.drawStage = byId("tarotLoveDrawStage");
     refs.resultStage = byId("tarotLoveResultStage");
+    bindTarotLoveStaticActions();
   });
 
   window.openTarotLoveModal = openTarotLoveModal;
