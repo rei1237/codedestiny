@@ -103,6 +103,14 @@ function _safeBootstrapSajuFlow() {
     _initSelectorsManually();
   }
 
+  try {
+    if (typeof populateCelebList === 'function') {
+      populateCelebList();
+    }
+  } catch (eCeleb) {
+    console.error('[saju-bootstrap] populateCelebList 실패:', eCeleb);
+  }
+
   _ensureFormFieldsReady();
   _unlockCoreBirthInputsAfterBootstrapError();
 
