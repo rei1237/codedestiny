@@ -8,7 +8,9 @@
     revealedOrder: [],
     canvasLoop: null,
     canvasStars: [],
-    touchStart: null
+    touchStart: null,
+    lastFocusedElement: null,
+    isFlowBusy: false
   };
 
   var refs = {};
@@ -77,6 +79,81 @@
     refs.canvas = byId("animalTotemStarCanvas");
     refs.runeField = byId("animalTotemRuneField");
     refs.animalFigures = byId("animalTotemAnimalFigures");
+    refs.panel = refs.overlay ? refs.overlay.querySelector(".animal-totem-panel") : null;
+    refs.closeButton = refs.overlay ? refs.overlay.querySelector(".animal-totem-close") : null;
+    refs.stumpWrap = refs.overlay ? refs.overlay.querySelector(".totem-stump-wrap") : null;
+    if (refs.stumpWrap) refs.stumpWrap.removeAttribute("aria-hidden");
+  }
+
+  function focusWithoutJump(el) {
+    if (!el || typeof el.focus !== "function") return;
+    try { el.focus({ preventScroll: true }); }
+    catch (_) { el.focus(); }
+  }
+
+  function rememberFocusedElement() {
+    var active = document.activeElement;
+    if (!active || active === document.body || typeof active.focus !== "function") return;
+    state.lastFocusedElement = active;
+  }
+
+  function restoreFocusToInvoker() {
+    var target = state.lastFocusedElement;
+    state.lastFocusedElement = null;
+    if (!target) return;
+    if (!document.contains(target)) return;
+    if (target.hasAttribute && target.hasAttribute("disabled")) return;
+    focusWithoutJump(target);
+  }
+
+  function focusModalEntryPoint() {
+    ensureRefs();
+    var preferred = refs.overlay && refs.overlay.querySelector('[data-action="startAnimalTotemRitual"]');
+    focusWithoutJump(preferred || refs.closeButton);
+  }
+
+  function currentStageElement() {
+    var stages = [refs.introStage, refs.modeStage, refs.drawStage, refs.resultStage];
+    for (var i = 0; i < stages.length; i += 1) {
+      if (stages[i] && stages[i].classList && stages[i].classList.contains("is-active")) return stages[i];
+    }
+    return null;
+  }
+
+  function syncStumpAccessibility(stageEl) {
+    if (!refs.stumpWrap) return;
+    var isDrawStage = stageEl === refs.drawStage;
+    var shouldInert = !isDrawStage || state.isFlowBusy;
+    var active = document.activeElement;
+    if (shouldInert && active && refs.stumpWrap.contains(active)) {
+      if (typeof active.blur === "function") active.blur();
+      focusWithoutJump(refs.closeButton || refs.panel);
+    }
+    refs.stumpWrap.removeAttribute("aria-hidden");
+    refs.stumpWrap.toggleAttribute("inert", shouldInert);
+    refs.stumpWrap.setAttribute("aria-busy", state.isFlowBusy ? "true" : "false");
+  }
+
+  function updateDeckInteractivity() {
+    if (!refs.cardRail) return;
+    var nextIdx = state.revealedOrder.length;
+    var cards = refs.cardRail.children;
+    for (var i = 0; i < cards.length; i += 1) {
+      var card = cards[i];
+      var revealed = card.classList.contains("is-revealed");
+      var enabled = !state.isFlowBusy && !revealed && i === nextIdx;
+      card.classList.toggle("is-disabled", !enabled);
+      card.disabled = !enabled;
+      card.setAttribute("aria-disabled", enabled ? "false" : "true");
+      card.tabIndex = enabled ? 0 : -1;
+    }
+  }
+
+  function setFlowBusy(nextBusy) {
+    state.isFlowBusy = !!nextBusy;
+    if (refs.drawStage) refs.drawStage.setAttribute("aria-busy", state.isFlowBusy ? "true" : "false");
+    updateDeckInteractivity();
+    syncStumpAccessibility(currentStageElement());
   }
 
   function takeSentences(text, maxSentences) {
@@ -94,12 +171,24 @@
 
   function activateStage(stageEl) {
     [refs.introStage, refs.modeStage, refs.drawStage, refs.resultStage].forEach(function(el) {
-      if (el && el.classList) el.classList.remove("is-active");
+      if (!el || !el.classList) return;
+      el.classList.remove("is-active");
+      el.toggleAttribute("inert", true);
+      el.setAttribute("aria-hidden", "true");
     });
-    if (stageEl && stageEl.classList) stageEl.classList.add("is-active");
+    if (stageEl && stageEl.classList) {
+      stageEl.classList.add("is-active");
+      stageEl.toggleAttribute("inert", false);
+      stageEl.removeAttribute("aria-hidden");
+    }
     if (refs.overlay) {
       refs.overlay.classList.toggle("is-result-view", stageEl === refs.resultStage);
     }
+    if (stageEl === refs.resultStage && refs.cardRail) {
+      refs.cardRail.innerHTML = "";
+      refs.cardRail._totemTouchBound = false;
+    }
+    syncStumpAccessibility(stageEl);
   }
 
   function buildRuneField() {
@@ -289,6 +378,7 @@
       refs.cardRail.appendChild(btn);
     });
     bindCardRailTouch();
+    updateDeckInteractivity();
   }
 
   function parallaxCard(btn, active) {
@@ -402,6 +492,7 @@
     try {
       ensureRefs();
       if (!refs.overlay) return;
+      rememberFocusedElement();
       /* 이미 열려 있으면 중복 호출 방지 (이중 핸들러/더블탭 시 화면 멈춤 방지) */
       if (refs.overlay.classList.contains("is-open")) return;
       /* 모바일: overlay가 main 내부에 있으면 transform/overflow 조상으로 viewport 전체 미덮음 → body로 이동 */
@@ -410,11 +501,16 @@
       }
       refs.overlay.classList.remove("env-ground", "env-air", "env-water");
       refs.overlay.classList.add("is-open");
+      refs.overlay.setAttribute("role", "dialog");
+      refs.overlay.setAttribute("aria-modal", "true");
+      refs.overlay.removeAttribute("aria-hidden");
+      refs.overlay.toggleAttribute("inert", false);
       refs.overlay.scrollTop = 0;
       /* 모바일: 언어 선택 등 상단 UI가 overlay 위에 보이지 않도록 (z-index·겹침 방지) */
       document.body.classList.add("animal-totem-modal-open");
       lockBody();
       resetAnimalTotemFlow();
+      focusModalEntryPoint();
       /* 모바일: 애니메이션 과부하로 Main Thread 차단 방지 — 지연·분산 실행 */
       var raf = global.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       var isMobile = useSoftBodyLock();
@@ -450,7 +546,10 @@
   function closeAnimalTotemModal() {
     ensureRefs();
     if (!refs.overlay) return;
+    setFlowBusy(false);
     refs.overlay.classList.remove("is-open");
+    refs.overlay.setAttribute("aria-hidden", "true");
+    refs.overlay.toggleAttribute("inert", true);
     document.body.classList.remove("animal-totem-modal-open");
     unlockBody();
     stopCanvas();
@@ -460,6 +559,7 @@
         document.body.style.overflow = bodyLockState.bodyOverflow || "";
       }
     } catch (_) {}
+    setTimeout(restoreFocusToInvoker, 0);
   }
 
   function resetAnimalTotemFlow() {
@@ -467,6 +567,7 @@
     state.spread = null;
     state.consultation = null;
     state.revealedOrder = [];
+    setFlowBusy(false);
     activateStage(refs.introStage);
     if (refs.cardRail) refs.cardRail.innerHTML = "";
     if (refs.resultCards) refs.resultCards.innerHTML = "";
@@ -494,14 +595,19 @@
     }
     state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
     state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, {});
+    setFlowBusy(true);
     renderDeck();
     applyAmbientClass();
     activateStage(refs.drawStage);
+    setFlowBusy(false);
+    var firstCard = refs.cardRail && refs.cardRail.children && refs.cardRail.children[0];
+    focusWithoutJump(firstCard);
   }
 
   function revealAnimalTotemCard(btn, idxRaw) {
     ensureRefs();
     if (!state.spread || !state.consultation) return;
+    if (state.isFlowBusy) return;
     var idx = parseInt(idxRaw, 10);
     if (Number.isNaN(idx)) return;
     if (state.revealedOrder.indexOf(idx) >= 0) return;
@@ -509,20 +615,27 @@
     if (navigator.vibrate) navigator.vibrate(12);
     var card = refs.cardRail ? refs.cardRail.children[idx] : null;
     if (!card) return;
+    setFlowBusy(true);
     card.classList.add("is-revealed");
     card.classList.remove("is-disabled");
     parallaxCard(card, true);
     var clr = state.spread.cards[idx].card.color_theme.glow || "#facc15";
     burstAt(card, clr);
     state.revealedOrder.push(idx);
-    for (var i = 0; i < refs.cardRail.children.length; i += 1) {
-      if (i > state.revealedOrder.length) refs.cardRail.children[i].classList.add("is-disabled");
-      else refs.cardRail.children[i].classList.remove("is-disabled");
-    }
+    updateDeckInteractivity();
     if (state.revealedOrder.length === state.spread.cards.length) {
       renderConsultation();
-      setTimeout(function() { activateStage(refs.resultStage); }, 250);
+      setTimeout(function() {
+        activateStage(refs.resultStage);
+        setFlowBusy(false);
+      }, 250);
+      return;
     }
+    setTimeout(function() {
+      setFlowBusy(false);
+      var next = refs.cardRail && refs.cardRail.children ? refs.cardRail.children[state.revealedOrder.length] : null;
+      focusWithoutJump(next);
+    }, 120);
   }
 
   function shareAnimalTotemResult() {
