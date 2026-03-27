@@ -603,7 +603,7 @@ var __cdLazyActionLoaders = {
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js'); }); },
-  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260326'); },
+  openSajuTotemModal: function() { return __cdLoadScriptOnce('/js/saju-totem-generator.js?v=20260327-hotfix2'); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
@@ -1339,6 +1339,159 @@ function __cdBindDestinyFlowerTileDirect() {
   }
 }
 
+function __cdBindSajuTotemTileDirect() {
+  var sel = '.tarot-tile--saju-totem, [data-action="openSajuTotemModal"]';
+  var touchStart = null;
+  var lastTouchStart = null;
+  var TAP_THRESH = 36;
+
+  function loadScriptOnce(src) {
+    return new Promise(function(resolve, reject) {
+      var norm = (src || '').replace(/^\.\//, '');
+      var existing = document.querySelector('script[src*="' + norm.split('/').pop() + '"]');
+      if (existing && (existing.dataset.loaded === '1' || existing.readyState === 'complete')) {
+        resolve();
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = norm;
+      s.defer = true;
+      s.async = true;
+      s.onload = function() { resolve(); };
+      s.onerror = function() { reject(new Error('load failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function openSajuModal() {
+    try {
+      var overlay = document.getElementById('sajuTotemOverlay');
+      if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
+      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+      if (typeof window.openSajuTotemModal === 'function') {
+        raf(function() {
+          try { window.openSajuTotemModal(); } catch (e) { console.error('[saju-totem] open error:', e); }
+        });
+        return;
+      }
+      raf(function() {
+        loadScriptOnce('/js/saju-totem-generator.js?v=20260327-hotfix2')
+          .then(function() {
+            try {
+              if (typeof window.openSajuTotemModal === 'function') window.openSajuTotemModal();
+            } catch (e) { console.error('[saju-totem] open error:', e); }
+          })
+          .catch(function(err) { console.error('[saju-totem] load failed:', err); });
+      });
+    } catch (err) { console.error('[saju-totem] openSajuModal error:', err); }
+  }
+
+  function isSajuTile(el) {
+    return el && el.closest && el.closest(sel);
+  }
+
+  function handleClick(ev) {
+    var target = ev && ev.target;
+    if (!target || !isSajuTile(target)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    openSajuModal();
+  }
+
+  function handleTouchStart(ev) {
+    var t = ev.touches && ev.touches[0];
+    if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
+    if (!ev.target || !isSajuTile(ev.target)) return;
+    touchStart = t ? { x: t.clientX, y: t.clientY } : null;
+  }
+
+  function handleTouchCancel() {
+    touchStart = null;
+  }
+
+  function handleTouchEnd(ev) {
+    if (!ev.changedTouches || !ev.changedTouches[0]) return;
+    var t = ev.changedTouches[0];
+    var x = t.clientX, y = t.clientY;
+    var start = touchStart || lastTouchStart;
+    touchStart = null;
+    if (start) {
+      var dx = Math.abs(x - start.x);
+      var dy = Math.abs(y - start.y);
+      if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+    }
+    var fromStart = start && isSajuTile(ev.target);
+    var elAtPoint = null;
+    if (typeof document.elementFromPoint === 'function') {
+      elAtPoint = document.elementFromPoint(x, y);
+      if ((!elAtPoint || !isSajuTile(elAtPoint)) && lastTouchStart) {
+        elAtPoint = document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
+      }
+    }
+    var fromPoint = elAtPoint && isSajuTile(elAtPoint);
+    if (fromStart || fromPoint) {
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      openSajuModal();
+    }
+  }
+
+  document.addEventListener('click', handleClick, { capture: true });
+  document.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+  document.addEventListener('touchcancel', handleTouchCancel, { capture: true, passive: true });
+  document.addEventListener('touchend', handleTouchEnd, { capture: true, passive: false });
+
+  function bindDirectToTiles() {
+    var tiles = document.querySelectorAll(sel);
+    tiles.forEach(function(tile) {
+      if (tile._cdSajuDirectBound) return;
+      tile._cdSajuDirectBound = true;
+      var tileTouchStart = null;
+      tile.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openSajuModal();
+      });
+      tile.addEventListener('touchstart', function(ev) {
+        var t = ev.touches && ev.touches[0];
+        tileTouchStart = t ? { x: t.clientX, y: t.clientY } : null;
+      }, { passive: true });
+      tile.addEventListener('touchend', function(ev) {
+        if (!ev.changedTouches || !ev.changedTouches[0]) return;
+        var t = ev.changedTouches[0];
+        var x = t.clientX, y = t.clientY;
+        var start = tileTouchStart;
+        tileTouchStart = null;
+        if (start) {
+          var dx = Math.abs(x - start.x);
+          var dy = Math.abs(y - start.y);
+          if (dx > TAP_THRESH || dy > TAP_THRESH) return;
+        } else {
+          var elAt = (typeof document.elementFromPoint === 'function') ? document.elementFromPoint(x, y) : null;
+          if (!elAt || !tile.contains(elAt)) return;
+        }
+        if (ev.cancelable) ev.preventDefault();
+        openSajuModal();
+      }, { passive: false });
+    });
+  }
+
+  bindDirectToTiles();
+
+  var splash = document.getElementById('codeSplash');
+  if (splash && splash.parentNode) {
+    var obs = new MutationObserver(function() {
+      if (!document.getElementById('codeSplash')) {
+        obs.disconnect();
+        bindDirectToTiles();
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
 function _cdEnsureMainScreenOnLoad() {
   var ids = ['juyukModalOverlay','sukuyoModalOverlay','astroModalOverlay','ziweiModalOverlay'];
   for (var i = 0; i < ids.length; i++) {
@@ -1386,6 +1539,7 @@ if (document.readyState === 'loading') {
     __cdEnsureModalOverlaysInBody();
     _cdInitAfterSplash();
     __cdBindAnimalTotemTileDirect();
+    __cdBindSajuTotemTileDirect();
     __cdBindDestinyFlowerTileDirect();
     setTimeout(__cdBindGlobalActionsFallback, 0);
   }, { once: true });
@@ -1393,6 +1547,7 @@ if (document.readyState === 'loading') {
   __cdEnsureModalOverlaysInBody();
   _cdInitAfterSplash();
   __cdBindAnimalTotemTileDirect();
+  __cdBindSajuTotemTileDirect();
   __cdBindDestinyFlowerTileDirect();
   setTimeout(__cdBindGlobalActionsFallback, 0);
 }
