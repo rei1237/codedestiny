@@ -1363,7 +1363,7 @@ function __cdBindSajuTotemTileDirect() {
     });
   }
 
-  function openSajuModal() {
+  function openSajuTotemModal() {
     try {
       var overlay = document.getElementById('sajuTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
@@ -1383,26 +1383,26 @@ function __cdBindSajuTotemTileDirect() {
           })
           .catch(function(err) { console.error('[saju-totem] load failed:', err); });
       });
-    } catch (err) { console.error('[saju-totem] openSajuModal error:', err); }
+    } catch (err) { console.error('[saju-totem] openSajuTotemModal error:', err); }
   }
 
-  function isSajuTile(el) {
+  function isSajuTotemTile(el) {
     return el && el.closest && el.closest(sel);
   }
 
   function handleClick(ev) {
     var target = ev && ev.target;
-    if (!target || !isSajuTile(target)) return;
+    if (!target || !isSajuTotemTile(target)) return;
     ev.preventDefault();
     ev.stopPropagation();
     ev.stopImmediatePropagation();
-    openSajuModal();
+    openSajuTotemModal();
   }
 
   function handleTouchStart(ev) {
     var t = ev.touches && ev.touches[0];
     if (t) lastTouchStart = { x: t.clientX, y: t.clientY };
-    if (!ev.target || !isSajuTile(ev.target)) return;
+    if (!ev.target || !isSajuTotemTile(ev.target)) return;
     touchStart = t ? { x: t.clientX, y: t.clientY } : null;
   }
 
@@ -1421,20 +1421,20 @@ function __cdBindSajuTotemTileDirect() {
       var dy = Math.abs(y - start.y);
       if (dx > TAP_THRESH || dy > TAP_THRESH) return;
     }
-    var fromStart = start && isSajuTile(ev.target);
+    var fromStart = start && isSajuTotemTile(ev.target);
     var elAtPoint = null;
     if (typeof document.elementFromPoint === 'function') {
       elAtPoint = document.elementFromPoint(x, y);
-      if ((!elAtPoint || !isSajuTile(elAtPoint)) && lastTouchStart) {
+      if ((!elAtPoint || !isSajuTotemTile(elAtPoint)) && lastTouchStart) {
         elAtPoint = document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
       }
     }
-    var fromPoint = elAtPoint && isSajuTile(elAtPoint);
+    var fromPoint = elAtPoint && isSajuTotemTile(elAtPoint);
     if (fromStart || fromPoint) {
-      if (ev.cancelable) ev.preventDefault();
+      ev.preventDefault();
       ev.stopPropagation();
       ev.stopImmediatePropagation();
-      openSajuModal();
+      openSajuTotemModal();
     }
   }
 
@@ -1446,13 +1446,13 @@ function __cdBindSajuTotemTileDirect() {
   function bindDirectToTiles() {
     var tiles = document.querySelectorAll(sel);
     tiles.forEach(function(tile) {
-      if (tile._cdSajuDirectBound) return;
-      tile._cdSajuDirectBound = true;
+      if (tile._cdSajuTotemDirectBound) return;
+      tile._cdSajuTotemDirectBound = true;
       var tileTouchStart = null;
       tile.addEventListener('click', function(ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        openSajuModal();
+        openSajuTotemModal();
       });
       tile.addEventListener('touchstart', function(ev) {
         var t = ev.touches && ev.touches[0];
@@ -1473,7 +1473,7 @@ function __cdBindSajuTotemTileDirect() {
           if (!elAt || !tile.contains(elAt)) return;
         }
         if (ev.cancelable) ev.preventDefault();
-        openSajuModal();
+        openSajuTotemModal();
       }, { passive: false });
     });
   }
