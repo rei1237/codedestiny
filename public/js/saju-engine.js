@@ -3544,9 +3544,6 @@ async function calculate(){
       if (!lunarDateObj) {
         lunarDateObj = KasiEngine.solarToLunar(new Date(year, month-1, day, correctedHour, correctedMinute));
       }
-      if (lunarDateObj && typeof lunarDateObj === 'object') {
-        window.__sajuPreciseDateData = lunarDateObj;
-      }
       var leapStr = lunarDateObj.isLeap ? '(윤달)' : '(평달)';
       lunarInfo = `<div class="hero-lunar-row"><span class="hero-lunar-label">입춘기준 년도</span><span class="hero-lunar-value">${bazi.getYearGan()}${bazi.getYearZhi()}년</span></div>`
                + `<div class="hero-lunar-row"><span class="hero-lunar-label">음력</span><span class="hero-lunar-value">${lunarDateObj.year}년 ${lunarDateObj.month}월 ${lunarDateObj.day}일 ${leapStr}</span></div>`;
