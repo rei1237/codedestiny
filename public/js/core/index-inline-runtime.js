@@ -1,3 +1,281 @@
+function __cdPushPerfMetric(name, value, detail) {
+  try {
+    var root = window.__cdPerfMetrics = window.__cdPerfMetrics || {
+      lcp: null,
+      cls: 0,
+      inp: null,
+      collectionTapSamples: [],
+      marks: []
+    };
+
+    root[name] = value;
+    root.marks.push({
+      name: name,
+      value: value,
+      detail: detail || null,
+      ts: Date.now()
+    });
+
+    window.dispatchEvent(new CustomEvent('cd:perf-metric', {
+      detail: {
+        name: name,
+        value: value,
+        meta: detail || null
+      }
+    }));
+  } catch (_) {}
+}
+
+function __cdInitCollectionPerfMetrics() {
+  if (window.__cdCollectionPerfInited) return;
+  window.__cdCollectionPerfInited = true;
+
+  var supportsPO = typeof PerformanceObserver !== 'undefined';
+  var lastLcp = null;
+  var clsValue = 0;
+  var maxInp = null;
+
+  if (supportsPO) {
+    try {
+      var lcpObserver = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        if (!entries || !entries.length) return;
+        lastLcp = entries[entries.length - 1];
+        __cdPushPerfMetric('lcp', Math.round(lastLcp.startTime), {
+          entryType: 'largest-contentful-paint'
+        });
+      });
+      lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+          try { lcpObserver.disconnect(); } catch (_) {}
+          if (lastLcp) {
+            __cdPushPerfMetric('lcpFinal', Math.round(lastLcp.startTime), {
+              reason: 'visibility-hidden'
+            });
+          }
+        }
+      }, { once: true });
+    } catch (_) {}
+
+    try {
+      var clsObserver = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].hadRecentInput) continue;
+          clsValue += entries[i].value || 0;
+        }
+        __cdPushPerfMetric('cls', Number(clsValue.toFixed(4)), {
+          entryType: 'layout-shift'
+        });
+      });
+      clsObserver.observe({ type: 'layout-shift', buffered: true });
+    } catch (_) {}
+
+    try {
+      var inpObserver = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        for (var i = 0; i < entries.length; i++) {
+          var e = entries[i];
+          if (!e || typeof e.duration !== 'number') continue;
+          if (!maxInp || e.duration > maxInp.duration) {
+            maxInp = e;
+            __cdPushPerfMetric('inp', Math.round(e.duration), {
+              entryType: 'event',
+              interactionId: e.interactionId || 0,
+              target: e.name || 'unknown'
+            });
+          }
+        }
+      });
+      inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 16 });
+    } catch (_) {}
+  }
+
+  var trackedSelector = '.fc-toggle-btn, .tarot-tile, [data-action="toggleCollection"]';
+  var tapState = { ts: 0, key: '' };
+
+  function getTargetKey(el) {
+    if (!el || !el.closest) return '';
+    var target = el.closest(trackedSelector);
+    if (!target) return '';
+    var action = target.getAttribute('data-action') || '';
+    var id = target.id || target.getAttribute('data-target') || '';
+    var cls = target.className || '';
+    return [action, id, cls].join('|');
+  }
+
+  function onPressStart(event) {
+    var key = getTargetKey(event.target);
+    if (!key) return;
+    tapState.ts = performance.now();
+    tapState.key = key;
+  }
+
+  function onClick(event) {
+    var key = getTargetKey(event.target);
+    if (!key || !tapState.ts) return;
+    var delta = performance.now() - tapState.ts;
+    if (tapState.key !== key) return;
+    if (!(delta >= 0 && delta < 10000)) return;
+
+    var ms = Math.round(delta);
+    var root = window.__cdPerfMetrics = window.__cdPerfMetrics || { collectionTapSamples: [] };
+    if (!Array.isArray(root.collectionTapSamples)) root.collectionTapSamples = [];
+    root.collectionTapSamples.push({ key: key, latencyMs: ms, ts: Date.now() });
+    if (root.collectionTapSamples.length > 50) {
+      root.collectionTapSamples.shift();
+    }
+
+    __cdPushPerfMetric('collectionTapLatencyLast', ms, {
+      key: key
+    });
+  }
+
+  document.addEventListener('pointerdown', onPressStart, { passive: true });
+  document.addEventListener('touchstart', onPressStart, { passive: true });
+  document.addEventListener('click', onClick, { passive: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __cdInitCollectionPerfMetrics, { once: true });
+} else {
+  __cdInitCollectionPerfMetrics();
+}
+
+function cdNormalizeLang(langCode) {
+  var raw = String(langCode || 'ko').trim();
+  if (!raw) return 'ko';
+  var low = raw.toLowerCase();
+  if (low === 'jp') return 'ja';
+  if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
+  if (low === 'en' || low === 'ja' || low === 'hi' || low === 'es' || low === 'fr' || low === 'de' || low === 'nl' || low === 'ms' || low === 'ko') {
+    return low;
+  }
+  return 'ko';
+}
+
+function cdGetCurrentLang() {
+  try {
+    var q = new URLSearchParams(window.location.search || '');
+    var fromQuery = q.get('lang');
+    if (fromQuery) return cdNormalizeLang(fromQuery);
+  } catch (_) {}
+
+  try {
+    var saved = localStorage.getItem('cd_lang');
+    if (saved) return cdNormalizeLang(saved);
+  } catch (_) {}
+
+  try {
+    var gt = document.cookie.match(/(?:^|;\s*)googtrans=\/ko\/([^;]+)/i);
+    if (gt && gt[1]) return cdNormalizeLang(gt[1]);
+  } catch (_) {}
+
+  return 'ko';
+}
+
+function cdSaveCurrentLang(langCode) {
+  var normalized = cdNormalizeLang(langCode);
+  try { localStorage.setItem('cd_lang', normalized); } catch (_) {}
+  return normalized;
+}
+
+var __cdLocalePrefixMap = {
+  en: '/en-us',
+  ja: '/ja-jp',
+  'zh-CN': '/zh-cn',
+  hi: '/hi-in',
+  es: '/es-es',
+  fr: '/fr-fr',
+  de: '/de-de',
+  nl: '/nl-nl',
+  ms: '/ms-my'
+};
+
+function cdStripLocalePrefix(pathname) {
+  var p = String(pathname || '/');
+  var prefixes = Object.keys(__cdLocalePrefixMap).map(function(k) { return __cdLocalePrefixMap[k]; });
+  for (var i = 0; i < prefixes.length; i++) {
+    var pref = prefixes[i];
+    if (p === pref) return '/';
+    if (p.indexOf(pref + '/') === 0) return p.slice(pref.length);
+  }
+  return p;
+}
+
+function cdBuildLocalizedAppPath(basePath, langCode) {
+  var normalized = cdNormalizeLang(langCode);
+  if (normalized === 'ko') return basePath;
+  var prefix = __cdLocalePrefixMap[normalized] || '';
+  return prefix ? (prefix + basePath) : basePath;
+}
+
+function cdResolveLocalizedFeatureHref(rawHref, langCode) {
+  if (!rawHref) return rawHref;
+  var normalized = cdNormalizeLang(langCode || cdGetCurrentLang());
+  var u;
+  try {
+    u = new URL(rawHref, window.location.origin);
+  } catch (_) {
+    return rawHref;
+  }
+  if (u.origin !== window.location.origin) return rawHref;
+
+  var basePath = cdStripLocalePrefix(u.pathname);
+  var isAppLocalized = (
+    basePath === '/oracle/rune' ||
+    basePath === '/oracle/sikojen-povailu' ||
+    basePath === '/insights' ||
+    basePath === '/olympus'
+  );
+  var isStandaloneHtml = (
+    basePath === '/vedic-astrology.html' ||
+    basePath === '/geomancy-oracle-v4.html' ||
+    basePath === '/royal-tea-oracle.html' ||
+    basePath === '/destiny-poker.html'
+  );
+
+  if (isAppLocalized) {
+    u.pathname = cdBuildLocalizedAppPath(basePath, normalized);
+  }
+
+  if (isStandaloneHtml) {
+    u.pathname = basePath;
+    if (normalized === 'ko') u.searchParams.delete('lang');
+    else u.searchParams.set('lang', normalized);
+  }
+
+  return u.pathname + u.search + u.hash;
+}
+
+function cdRetargetLocaleSensitiveLinks() {
+  var lang = cdGetCurrentLang();
+  var selector = [
+    'a[href^="/oracle/rune"]',
+    'a[href^="/oracle/sikojen-povailu"]',
+    'a[href^="/insights"]',
+    'a[href^="/olympus"]',
+    'a[href^="/vedic-astrology.html"]',
+    'a[href^="/geomancy-oracle-v4.html"]',
+    'a[href^="/royal-tea-oracle.html"]',
+    'a[href^="/destiny-poker.html"]'
+  ].join(', ');
+  var links = document.querySelectorAll(selector);
+  for (var i = 0; i < links.length; i++) {
+    var link = links[i];
+    var raw = link.getAttribute('href');
+    var nextHref = cdResolveLocalizedFeatureHref(raw, lang);
+    if (nextHref && raw !== nextHref) {
+      link.setAttribute('href', nextHref);
+    }
+  }
+}
+
+window.__cdResolveLocalizedFeatureHref = cdResolveLocalizedFeatureHref;
+window.__cdRetargetLocaleSensitiveLinks = cdRetargetLocaleSensitiveLinks;
+
 // 구글 번역 언어 선택 카드 토글 기능 (DOM 로드 대기)
 function initTranslateLangUI() {
   var langWrap = document.querySelector('.translate-lang-wrap');
@@ -59,6 +337,7 @@ function initTranslateLangUI() {
       
       var lang = btn.getAttribute('data-lang');
       if (!lang) return;
+      cdSaveCurrentLang(lang);
       
       // 활성 상태 업데이트
       Array.prototype.forEach.call(langCodeBtns, function(b) { b.classList.remove('active'); });
@@ -73,6 +352,7 @@ function initTranslateLangUI() {
         retryDelay: 200,
         fallbackToCookieReload: true
       });
+      cdRetargetLocaleSensitiveLinks();
       startHideTimer();
       
       // 카드 닫기
@@ -247,10 +527,14 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     cdInstallGoogleTranslateBannerGuard();
     try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
+    cdSaveCurrentLang(cdGetCurrentLang());
+    cdRetargetLocaleSensitiveLinks();
   });
 } else {
   cdInstallGoogleTranslateBannerGuard();
   try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
+  cdSaveCurrentLang(cdGetCurrentLang());
+  cdRetargetLocaleSensitiveLinks();
 }
 
 function initPerformanceDiagnosisObservers() {
@@ -920,9 +1204,12 @@ function __cdBindActionEventFallback(root, eventName, attrName) {
 function __cdHydrateCollectionImagesChunked(collection) {
   if (!collection) return;
   var wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
-  __cdRunChunked(wraps, function(wrap) {
-    if (wrap.querySelector('img.tarot-tile__img')) return;
+  var ioEnabled = typeof IntersectionObserver !== 'undefined';
+
+  function hydrateWrap(wrap) {
+    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
     var src = wrap.getAttribute('data-img-src');
+    if (!src) return;
     var alt = wrap.getAttribute('data-img-alt') || '';
     var placeholder = wrap.querySelector('.tarot-tile__img-placeholder');
     if (placeholder) placeholder.style.display = 'none';
@@ -943,11 +1230,58 @@ function __cdHydrateCollectionImagesChunked(collection) {
     img.onerror = function() { skeleton.remove(); };
     img.src = src;
     wrap.insertBefore(img, wrap.firstChild);
-  }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
+  }
+
+  if (!ioEnabled) {
+    __cdRunChunked(wraps, function(wrap) {
+      hydrateWrap(wrap);
+    }, { minBatch: 2, maxBatch: 8, budgetMs: 7 });
+    return;
+  }
+
+  var grid = collection.querySelector('.feat-collection__grid, .tarot-collection__grid');
+  var observer = collection.__cdCollectionImageObserver;
+  if (!observer) {
+    observer = new IntersectionObserver(function(entries, obs) {
+      for (var i = 0; i < entries.length; i++) {
+        if (!entries[i].isIntersecting) continue;
+        var wrap = entries[i].target;
+        obs.unobserve(wrap);
+        if (wrap && wrap.dataset) {
+          delete wrap.dataset.cdImgObserved;
+        }
+        hydrateWrap(wrap);
+      }
+    }, {
+      root: grid || null,
+      rootMargin: '96px 0px',
+      threshold: 0.01
+    });
+    collection.__cdCollectionImageObserver = observer;
+  }
+
+  __cdRunChunked(wraps, function(wrap) {
+    if (!wrap || wrap.querySelector('img.tarot-tile__img')) return;
+    if (wrap.dataset && wrap.dataset.cdImgObserved === '1') return;
+    if (wrap.dataset) wrap.dataset.cdImgObserved = '1';
+    observer.observe(wrap);
+  }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
 }
 
 function __cdReleaseCollectionImagesChunked(collection) {
   if (!collection) return;
+  var observer = collection.__cdCollectionImageObserver;
+  if (observer && typeof observer.disconnect === 'function') {
+    observer.disconnect();
+  }
+  collection.__cdCollectionImageObserver = null;
+
+  var observedWraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src][data-cd-img-observed]');
+  __cdRunChunked(observedWraps, function(wrap) {
+    if (!wrap || !wrap.dataset) return;
+    delete wrap.dataset.cdImgObserved;
+  }, { minBatch: 12, maxBatch: 30, budgetMs: 5 });
+
   var imgs = collection.querySelectorAll('.tarot-tile__img-wrap img.tarot-tile__img');
   var skeletons = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-skeleton');
   var placeholders = collection.querySelectorAll('.tarot-tile__img-wrap .tarot-tile__img-placeholder');
@@ -4479,11 +4813,11 @@ function navigateToVedic() {
       localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
     } catch (e) {}
   }
-  window.location.href = '/vedic-astrology.html';
+  window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
 }
 
 function openGeomancyOracle() {
-  window.location.href = '/geomancy-oracle-v4.html';
+  window.location.href = cdResolveLocalizedFeatureHref('/geomancy-oracle-v4.html', cdGetCurrentLang());
 }
 
 function openZiweiModal(_retried) {

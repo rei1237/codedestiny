@@ -168,6 +168,32 @@
       .catch(function() { return fallbackKey; });
   }
 
+  function getLocalizedOlympusHref() {
+    if (typeof window.__cdResolveLocalizedFeatureHref === 'function') {
+      return window.__cdResolveLocalizedFeatureHref('/olympus');
+    }
+    var lang = 'ko';
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) lang = String(saved);
+    } catch (_) {}
+    var low = String(lang || 'ko').toLowerCase();
+    var map = {
+      en: '/en-us',
+      ja: '/ja-jp',
+      zh: '/zh-cn',
+      'zh-cn': '/zh-cn',
+      hi: '/hi-in',
+      es: '/es-es',
+      fr: '/fr-fr',
+      de: '/de-de',
+      nl: '/nl-nl',
+      ms: '/ms-my'
+    };
+    var prefix = map[low] || '';
+    return prefix ? (prefix + '/olympus') : '/olympus';
+  }
+
   function handleSubmit(overlay, form) {
     var name = (form.elements.name && form.elements.name.value || '').trim();
     var date = form.elements.date && form.elements.date.value;
@@ -209,7 +235,7 @@
         };
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
       } catch (e) {}
-      window.location.href = '/olympus';
+      window.location.href = getLocalizedOlympusHref();
     }).catch(function() {
       setLoading(overlay, false);
       showError(overlay, '신탁 계산에 실패했습니다. 다시 시도해주세요.');

@@ -1735,5 +1735,125 @@ document.addEventListener('visibilitychange', handleVisibilityChange, { passive:
 resize();
 startAnimationLoop();
 </script>
+<script>
+(function(){
+  var GT_ID = 'cdStandaloneGtHost';
+  var MAP = {
+    ko:'ko', en:'en', ja:'ja', 'zh-CN':'zh-CN', zh:'zh-CN',
+    hi:'hi', es:'es', fr:'fr', de:'de', nl:'nl', ms:'ms'
+  };
+  function normalizeLang(v){
+    var l = String(v || 'ko').trim();
+    if (!l) return 'ko';
+    var low = l.toLowerCase();
+    if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
+    if (low === 'jp') return 'ja';
+    return MAP[low] ? low : 'ko';
+  }
+  function resolveLang(){
+    try {
+      var q = new URLSearchParams(window.location.search || '');
+      var fromQuery = q.get('lang');
+      if (fromQuery) return normalizeLang(fromQuery);
+    } catch (_) {}
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) return normalizeLang(saved);
+    } catch (_) {}
+    return 'ko';
+  }
+  function writeGoogTransCookie(target){
+    var value = '/ko/' + target;
+    var host = (window.location.hostname || '').replace(/^www\./, '');
+    document.cookie = 'googtrans=' + value + '; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=' + value + '; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + value + '; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+  function clearGoogTransCookie(){
+    var host = (window.location.hostname || '').replace(/^www\./, '');
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+  function ensureHost(){
+    var host = document.getElementById(GT_ID);
+    if (host) return host;
+    host = document.createElement('div');
+    host.id = GT_ID;
+    host.style.position = 'fixed';
+    host.style.left = '-9999px';
+    host.style.top = '-9999px';
+    host.style.width = '1px';
+    host.style.height = '1px';
+    host.style.overflow = 'hidden';
+    document.body.appendChild(host);
+    return host;
+  }
+  function hideGoogleBanner(){
+    if (document.getElementById('cdStandaloneGtHideStyle')) return;
+    var st = document.createElement('style');
+    st.id = 'cdStandaloneGtHideStyle';
+    st.textContent = '.goog-te-banner-frame{display:none !important;visibility:hidden !important;height:0 !important;}.skiptranslate iframe{display:none !important;}body{top:0 !important;position:static !important;}html{margin-top:0 !important;}';
+    document.head.appendChild(st);
+  }
+  function applyGoogleLang(target){
+    function setCombo(){
+      var combo = document.querySelector('#' + GT_ID + ' .goog-te-combo') || document.querySelector('.goog-te-combo');
+      if (!combo) return false;
+      combo.value = target;
+      try { combo.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+      return true;
+    }
+    window.__cdStandaloneGtInit = function(){
+      try {
+        if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+          ensureHost();
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'ko',
+            includedLanguages: 'en,ja,zh-CN,hi,es,fr,de,nl,ms',
+            autoDisplay: false,
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+          }, GT_ID);
+        }
+      } catch (_) {}
+      var tries = 0;
+      (function poll(){
+        if (setCombo() || tries > 40) return;
+        tries++;
+        setTimeout(poll, 120);
+      })();
+    };
+    if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+      window.__cdStandaloneGtInit();
+      return;
+    }
+    if (!document.querySelector('script[data-cd-standalone-gt="1"]')) {
+      var script = document.createElement('script');
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-cd-standalone-gt', '1');
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=__cdStandaloneGtInit';
+      document.head.appendChild(script);
+    }
+  }
+
+  var lang = resolveLang();
+  try { localStorage.setItem('cd_lang', lang); } catch (_) {}
+  document.documentElement.setAttribute('lang', lang);
+  hideGoogleBanner();
+
+  if (lang === 'ko') {
+    clearGoogTransCookie();
+    return;
+  }
+  var target = MAP[lang] || 'en';
+  writeGoogTransCookie(target);
+  applyGoogleLang(target);
+})();
+</script>
 </body>
 </html>
