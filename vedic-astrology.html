@@ -1371,6 +1371,10 @@ function vedicInstallGoogleBannerGuard(){
       var st=document.createElement('style');
       st.id=styleId;
       st.textContent='.goog-te-banner-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
+        +'.goog-te-balloon-frame{display:none !important;visibility:hidden !important;height:0 !important;}'
+        +'#goog-gt-tt{display:none !important;visibility:hidden !important;}'
+        +'.goog-tooltip{display:none !important;visibility:hidden !important;}'
+        +'.goog-text-highlight{background-color:transparent !important;box-shadow:none !important;}'
         +'.skiptranslate iframe{display:none !important;}'
         +'body{top:0 !important;position:static !important;}'
         +'html{margin-top:0 !important;}';
@@ -1380,11 +1384,20 @@ function vedicInstallGoogleBannerGuard(){
 
   function hideNow(){
     try{
-      var frames=document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
+      var frames=document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-balloon-frame, iframe.goog-te-balloon-frame');
       for(var i=0;i<frames.length;i++){
         frames[i].style.setProperty('display','none','important');
         frames[i].style.setProperty('visibility','hidden','important');
         frames[i].style.setProperty('height','0','important');
+      }
+      var gtTooltip=document.getElementById('goog-gt-tt');
+      if(gtTooltip){
+        gtTooltip.style.setProperty('display','none','important');
+        gtTooltip.style.setProperty('visibility','hidden','important');
+      }
+      var highlighted=document.querySelectorAll('.goog-text-highlight');
+      for(var j=0;j<highlighted.length;j++){
+        highlighted[j].classList.remove('goog-text-highlight');
       }
       document.body.style.setProperty('top','0px','important');
       document.body.style.setProperty('position','static','important');
