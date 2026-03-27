@@ -1,141 +1,56 @@
 /**
- * cd-aria-modal-manager.js
+ * cd-aria-modal-manager.js (v2 — 안전 재작성)
  * ─────────────────────────────────────────────────────────────
  * "Blocked aria-hidden on an element because its descendant
- *  retained focus" 경고를 근본적으로 해소합니다.
+ *  retained focus" 경고를 해소합니다.
  *
- * 접근 방식:
- *   - 모달이 열릴 때: 배경 DOM에 `inert` 속성을 추가하고,
- *     모달 내 첫 번째 포커스 가능 요소로 포커스를 이동합니다.
- *   - 모달이 닫힐 때: `inert`를 제거하고 이전 포커스 위치로
- *     복귀합니다.
- *   - `aria-hidden` 요소가 포커스를 보유하는 상황 자체를 방지합니다.
- *
- * 대상 모달: style.display 또는 hidden 속성으로 토글되는
- *            role="dialog" / aria-modal="true" 요소들.
+ * v1 대비 변경:
+ *   - lockBackground / inert 배경 잠금 제거 (오진 시 전체 페이지 비활성화 위험)
+ *   - isVisible 판단 오류 제거 (CSS 클래스 기반 숨김 미감지 버그 수정)
+ *   - 2가지 안전한 가드만 유지:
+ *       1. focusin 가드: aria-hidden 영역에 포커스 진입 시 즉각 이동
+ *       2. MutationObserver 가드: aria-hidden 속성 추가 시 포커스 이동
  * ─────────────────────────────────────────────────────────────
  */
 (function () {
   'use strict';
 
-  var FOCUSABLE = [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-    'summary',
-    'details'
-  ].join(',');
-
-  /** 모달 열릴 때 기억할 트리거 포커스 위치 */
-  var _prevFocus = null;
-
-  /** body 직속 자식에 inert를 추가하고 제외 요소(모달)를 보호 */
-  function lockBackground(exceptEl) {
-    Array.prototype.forEach.call(document.body.children, function (child) {
-      if (child === exceptEl) return;
-      if (child.hasAttribute('inert')) return; // 이미 잠긴 경우 유지
-      child.setAttribute('inert', '');
-      child.dataset.cdAriaLocked = '1';
-    });
-  }
-
-  /** lockBackground가 추가한 inert만 제거 */
-  function unlockBackground() {
-    Array.prototype.forEach.call(document.body.children, function (child) {
-      if (child.dataset.cdAriaLocked === '1') {
-        child.removeAttribute('inert');
-        delete child.dataset.cdAriaLocked;
-      }
-    });
-  }
-
-  /** 모달 내 첫 번째 포커스 가능 요소 반환 */
-  function firstFocusable(el) {
-    // 닫기 버튼을 우선
-    var closeBtn = el.querySelector(
-      '[data-action*="close"],[aria-label*="닫기"],[aria-label*="Close"]'
-    );
-    if (closeBtn && !closeBtn.disabled) return closeBtn;
-    return el.querySelector(FOCUSABLE);
-  }
-
-  /** 모달 열기 처리 */
-  function onOpen(dialog) {
-    var active = document.activeElement;
-    if (active && active !== document.body) {
-      _prevFocus = active;
-    }
-    lockBackground(dialog);
-    // aria-hidden이 실수로 붙어있을 경우 제거
-    dialog.removeAttribute('aria-hidden');
-    var target = firstFocusable(dialog);
-    if (target) {
-      // 다음 프레임에 포커스 (CSS transition 완료 후)
-      requestAnimationFrame(function () {
-        try { target.focus({ preventScroll: false }); } catch (e) {}
-      });
-    }
-  }
-
-  /** 모달 닫기 처리 */
-  function onClose() {
-    unlockBackground();
-    if (_prevFocus && document.body.contains(_prevFocus)) {
-      try { _prevFocus.focus({ preventScroll: true }); } catch (e) {}
-    }
-    _prevFocus = null;
-  }
-
-  /** display style 또는 hidden 속성으로 토글되는 모달 감시 */
-  function watchModal(el) {
-    // 초기 상태 확인
-    var wasVisible = isVisible(el);
-
-    var observer = new MutationObserver(function (mutations) {
-      var nowVisible = isVisible(el);
-      if (!wasVisible && nowVisible) {
-        wasVisible = true;
-        onOpen(el);
-      } else if (wasVisible && !nowVisible) {
-        wasVisible = false;
-        onClose();
-      }
-    });
-
-    observer.observe(el, {
-      attributes: true,
-      attributeFilter: ['style', 'hidden', 'class']
-    });
-
-    return observer;
-  }
-
-  function isVisible(el) {
-    if (el.hidden) return false;
-    var s = el.style.display;
-    if (s === 'none') return false;
-    // class로 숨겨진 경우 (예: .is-hidden, .hidden)
-    if (el.classList.contains('is-hidden') || el.classList.contains('hidden')) return false;
-    return true;
-  }
-
   /**
-   * aria-hidden 요소 내에 포커스가 남아있는 경우를 실시간으로 감지하여
-   * 안전한 위치로 포커스를 이동시키는 안전망.
+   * [가드 1] focusin 이벤트 가드
+   * aria-hidden="true" 요소 안으로 포커스가 진입하면 즉시 안전한 곳으로 이동.
    */
   function installAriaHiddenFocusGuard() {
     document.addEventListener('focusin', function (e) {
       var target = e.target;
-      if (!target || target === document.body) return;
-      // 부모 체인에서 aria-hidden="true"를 찾는다
+      if (!target || target === document.body || !target.parentElement) return;
+
+      // 부모 체인에서 aria-hidden="true" 찾기
       var node = target.parentElement;
       while (node && node !== document.body) {
         if (node.getAttribute('aria-hidden') === 'true') {
-          // aria-hidden 영역에 포커스가 들어왔다 → body로 이동
-          try { document.body.focus(); } catch (err) {}
+          // 열려있는 다이얼로그 탐색 (computedStyle 기반 정확한 가시성 판단)
+          var openDialog = null;
+          var dialogs = document.querySelectorAll('[role="dialog"],[aria-modal="true"]');
+          for (var i = 0; i < dialogs.length; i++) {
+            var d = dialogs[i];
+            if (d.getAttribute('aria-hidden') === 'true') continue;
+            var cs = window.getComputedStyle(d);
+            if (cs.display !== 'none' && cs.visibility !== 'hidden') {
+              openDialog = d;
+              break;
+            }
+          }
+          var focusTarget = openDialog
+            ? openDialog.querySelector('button:not([disabled]),[tabindex="0"],[href],input:not([disabled])')
+            : null;
+          try {
+            if (focusTarget) {
+              focusTarget.focus();
+            } else {
+              document.body.tabIndex = -1;
+              document.body.focus();
+            }
+          } catch (err) {}
           return;
         }
         node = node.parentElement;
@@ -143,32 +58,49 @@
     }, true);
   }
 
-  /** 초기화 */
-  function init() {
-    installAriaHiddenFocusGuard();
+  /**
+   * [가드 2] MutationObserver 가드
+   * 요소에 aria-hidden="true"가 추가되는 시점에 포커스가 내부에 있으면
+   * 안전한 위치로 이동.
+   */
+  function installAriaHiddenMutationGuard() {
+    var observer = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var m = mutations[i];
+        if (m.type !== 'attributes' || m.attributeName !== 'aria-hidden') continue;
+        var el = m.target;
+        if (el.getAttribute('aria-hidden') !== 'true') continue;
 
-    // 현재 DOM에서 모달을 찾아 감시 시작
-    var dialogs = document.querySelectorAll('[role="dialog"],[aria-modal="true"]');
-    Array.prototype.forEach.call(dialogs, watchModal);
+        var active = document.activeElement;
+        if (!active || active === document.body) continue;
+        if (!el.contains(active)) continue;
 
-    // body-level 오버레이 중 display:none → block으로 전환되는 요소 감시
-    var overlaySelectors = [
-      '#destinyFlowerStudioOverlay',
-      '#tarotSelfEsteemOverlay',
-      '#astralModal',
-      '#ios-install-modal',
-      '#privacy-modal-overlay',
-      '#sajuLoaderOverlay',
-      '#dpListOverlay',
-      '.tarot-focus-overlay'
-    ];
-    overlaySelectors.forEach(function (sel) {
-      var el = document.querySelector(sel);
-      if (el && !el.dataset.cdAriaWatched) {
-        el.dataset.cdAriaWatched = '1';
-        watchModal(el);
+        // 포커스가 aria-hidden 영역 내에 있음 → 이동
+        var candidates = document.querySelectorAll(
+          '[role="dialog"]:not([aria-hidden="true"]) button:not([disabled]),' +
+          '[aria-modal="true"]:not([aria-hidden="true"]) button:not([disabled])'
+        );
+        try {
+          if (candidates.length > 0) {
+            candidates[0].focus();
+          } else {
+            document.body.tabIndex = -1;
+            document.body.focus();
+          }
+        } catch (err) {}
       }
     });
+
+    observer.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-hidden']
+    });
+  }
+
+  function init() {
+    installAriaHiddenFocusGuard();
+    installAriaHiddenMutationGuard();
   }
 
   if (document.readyState === 'loading') {

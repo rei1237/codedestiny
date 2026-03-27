@@ -527,29 +527,6 @@ select.inp {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ★ content-visibility 적용 (INP/TBT 개선)
-   화면 밖 섹션의 레이아웃 계산을 지연시켜 메인 스레드 부담 감소
-   ═══════════════════════════════════════════════════════════ */
-
-/* 뷰포트 아래 주요 섹션 — 브라우저 지원 시 lazy render */
-.feature-card-grid,
-.dw-section,
-.tarot-section,
-.oracle-section,
-.insights-section {
-  content-visibility: auto;
-  /* 실제 콘텐츠 크기 추정치로 CLS 방지 */
-  contain-intrinsic-size: auto 400px;
-}
-
-/* 모달 콘텐츠 — 숨겨진 동안 layout 비용 제거 */
-.df-studio-overlay[style*="none"],
-.tarot-self-esteem-overlay[style*="none"],
-#astralModal[style*="none"] {
-  content-visibility: hidden;
-}
-
-/* ═══════════════════════════════════════════════════════════
    ★ font-display: swap 폴백
    (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)
    ═══════════════════════════════════════════════════════════ */
