@@ -3442,6 +3442,37 @@ async function calculate(){
     dstOffsetMinutes: (resultObj && resultObj.offsetDetails) ? resultObj.offsetDetails.dstOffset : 0,
     totalCorrectionMinutes: (resultObj && resultObj.offsetDetails) ? resultObj.offsetDetails.totalCorrection : 0
   };
+  window.__cdActiveBirthProfile = {
+    name: USER_NAME || (document.getElementById('nameInput') && document.getElementById('nameInput').value) || '나',
+    gender: GENDER || window._gender || 'F',
+    birth: {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      calType: calType
+    },
+    location: {
+      label: opt ? opt.text : '대한민국 (서울)',
+      tz: bTz || 'Asia/Seoul',
+      lng: bLong,
+      lat: bLat,
+      tzOffset: bTzOff,
+      baseTzOffset: tzResolved.baseOffsetHours,
+      dstMinutes: tzResolved.dstMinutes
+    }
+  };
+  try {
+    document.dispatchEvent(new CustomEvent('destinyProfileChanged', {
+      detail: {
+        profile: window.__cdActiveBirthProfile,
+        source: 'manual-input'
+      }
+    }));
+  } catch (eDispatch) {
+    console.warn('[saju] destinyProfileChanged dispatch skipped:', eDispatch);
+  }
   BIRTH_YEAR=year;
   CURRENT_AGE=new Date().getFullYear()-year+1;
 

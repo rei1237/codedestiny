@@ -913,6 +913,12 @@ function toggleReportFeatureCard(btn) {
 
 function _sajuFunGetCurrentProfile() {
   try {
+    if (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
+      return window.__cdActiveBirthProfile;
+    }
+  } catch (e0) {}
+
+  try {
     if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
       return window.DestinyProfileManager.storage.current() || null;
     }

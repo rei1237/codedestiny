@@ -316,6 +316,14 @@
 
   function getProfileFromManager() {
     try {
+      if (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
+        return window.__cdActiveBirthProfile;
+      }
+    } catch (e0) {
+      return null;
+    }
+
+    try {
       if (!window.DestinyProfileManager || !window.DestinyProfileManager.storage || typeof window.DestinyProfileManager.storage.current !== 'function') {
         return null;
       }
