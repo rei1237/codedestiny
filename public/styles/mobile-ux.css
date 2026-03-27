@@ -544,3 +544,28 @@ select.inp {
   font-display: swap;
   src: local("Cinzel");
 }
+
+/* IO 기반 이미지/배경 지연 로딩용 LQIP 상태 */
+.io-lazy-img {
+  filter: blur(10px);
+  transform: scale(1.02);
+  opacity: 0.82;
+  transition: filter 0.28s ease, transform 0.28s ease, opacity 0.28s ease;
+  background: linear-gradient(135deg, rgba(43, 31, 72, 0.9), rgba(23, 20, 38, 0.95));
+}
+
+.io-lazy-img.is-loaded {
+  filter: none;
+  transform: none;
+  opacity: 1;
+}
+
+[data-lazy-bg] {
+  background-color: rgba(16, 12, 30, 0.9);
+  background-size: cover;
+  background-position: center;
+}
+
+[data-lazy-bg].is-bg-loaded {
+  transition: background-image 0.25s ease;
+}
