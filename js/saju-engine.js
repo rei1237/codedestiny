@@ -654,9 +654,58 @@ function _zwCompatPalSnapshotLite(zwData, palaceName) {
   };
 }
 
+var __compatLiteMemo = new Map();
+var __compatLiteMemoMax = 120;
+
+function _compatLiteBirthKey(birth) {
+  if (!birth) return 'none';
+  return [
+    birth.year || 0,
+    birth.month || 0,
+    birth.day || 0,
+    birth.hour || 0,
+    birth.minute || 0,
+    birth.lat || 0,
+    birth.lon || 0,
+    birth.tz || 0
+  ].join('|');
+}
+
+function _compatLiteGet(key) {
+  if (!__compatLiteMemo.has(key)) return null;
+  var cached = __compatLiteMemo.get(key);
+  __compatLiteMemo.delete(key);
+  __compatLiteMemo.set(key, cached);
+  return cached;
+}
+
+function _compatLiteSet(key, value) {
+  __compatLiteMemo.set(key, value);
+  if (__compatLiteMemo.size > __compatLiteMemoMax) {
+    var oldestKey = __compatLiteMemo.keys().next().value;
+    __compatLiteMemo.delete(oldestKey);
+  }
+  return value;
+}
+
+function resetCompatLiteMemo() {
+  __compatLiteMemo.clear();
+}
+
+window.resetCompatLiteMemo = resetCompatLiteMemo;
+
 function computeZiweiCompatLite(meBirth, partnerBirth) {
   try {
     if (!meBirth || !partnerBirth) return { score: 50, source: 'none' };
+
+    var ziweiKey = [
+      'ziwei-lite',
+      _compatLiteBirthKey(meBirth),
+      _compatLiteBirthKey(partnerBirth)
+    ].join('::');
+    var ziweiCached = _compatLiteGet(ziweiKey);
+    if (ziweiCached) return ziweiCached;
+
     var meData = window._currentZiweiData || calcZiweiPalaces(meBirth.year, meBirth.month, meBirth.day, meBirth.hour, meBirth.minute);
     var youData = calcZiweiPalaces(partnerBirth.year, partnerBirth.month, partnerBirth.day, partnerBirth.hour, partnerBirth.minute);
 
@@ -698,7 +747,7 @@ function computeZiweiCompatLite(meBirth, partnerBirth) {
     var persona = pairScore(mePal.meng, youPal.meng, 50, 10, 4, 1.9);
 
     var finalScore = Math.round((love * 0.30) + (marriage * 0.20) + (work * 0.20) + (money * 0.15) + (persona * 0.15));
-    return { score: Math.max(20, Math.min(96, finalScore)), source: 'ziwei-lite' };
+    return _compatLiteSet(ziweiKey, { score: Math.max(20, Math.min(96, finalScore)), source: 'ziwei-lite' });
   } catch (e) {
     console.warn('[ZiweiLiteCompat] failed:', e);
     return { score: 50, source: 'fallback' };
@@ -712,6 +761,15 @@ function computeAstroCompatLite(meBirth, partnerBirth) {
     }
 
     var hs = (window.ASTRO_HOUSE_SYSTEM || 'P');
+    var astroKey = [
+      'astro-lite',
+      hs,
+      _compatLiteBirthKey(meBirth),
+      _compatLiteBirthKey(partnerBirth)
+    ].join('::');
+    var astroCached = _compatLiteGet(astroKey);
+    if (astroCached) return astroCached;
+
     var meLocalHour = (meBirth.hour || 0) + ((meBirth.minute || 0) / 60);
     var youLocalHour = (partnerBirth.hour || 0) + ((partnerBirth.minute || 0) / 60);
     var meChart = AstroEngine.calcAll(meBirth.year, meBirth.month, meBirth.day, meLocalHour, meBirth.lat || 37.5665, meBirth.lon || 126.9780, meBirth.tz || 9, { houseSystem: hs });
@@ -753,7 +811,7 @@ function computeAstroCompatLite(meBirth, partnerBirth) {
     raw += pairRelScore(meSun, youMoon) * 0.9;
 
     var score = Math.max(20, Math.min(96, Math.round(raw)));
-    return { score: score, source: 'astro-lite' };
+    return _compatLiteSet(astroKey, { score: score, source: 'astro-lite' });
   } catch (e) {
     console.warn('[AstroLiteCompat] failed:', e);
     return { score: 50, source: 'fallback' };
