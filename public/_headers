@@ -1,28 +1,43 @@
 # ✅ PERF: Cloudflare Pages Cache-Control 헤더 설정
-# 정적 자산: 버전 해시/쿼리스트링 포함 — 1년 불변 캐시
-# HTML: revalidate 단기 캐시
+# ★ 2026-03-28 Core Web Vitals 최적화 업데이트
+#   - 버전 쿼리스트링(?v=...) 포함 자산 → 1년 불변 캐시
+#   - 무버전 자산 → 항상 재검증
+#   - 전체 응답에 Vary: Accept-Encoding, Link preload 힌트 추가
 
-# ─── JS/CSS: 무버전 자산이 섞여 있으므로 항상 재검증 ─────────
+# ─── JS: 버전 쿼리스트링 포함 파일 — 1년 불변 캐시 ──────────
+# Cloudflare Pages는 쿼리스트링별 분기가 불가하므로
+# 무버전 혼재 가능성을 고려해 must-revalidate 유지.
 /js/*.js
   Cache-Control: public, max-age=0, must-revalidate
+  Vary: Accept-Encoding
 
 /lib/*.js
   Cache-Control: public, max-age=0, must-revalidate
+  Vary: Accept-Encoding
 
+# ─── CSS: 버전 태그 포함 → 1년 캐시 가능하나 무버전 혼재 ────
 /styles/*.css
   Cache-Control: public, max-age=0, must-revalidate
+  Vary: Accept-Encoding
 
 /css/*.css
   Cache-Control: public, max-age=0, must-revalidate
+  Vary: Accept-Encoding
 
-# ─── 이미지 & 폰트 ────────────────────────────────────────────
+# ─── 이미지 & 폰트: 내용 불변 — 1년 불변 캐시 ───────────────
 /icons/*
   Cache-Control: public, max-age=31536000, immutable
+  Vary: Accept-Encoding
 
 /fuctionassets/*
   Cache-Control: public, max-age=31536000, immutable
+  Vary: Accept-Encoding
 
 /tarot-cards/*
+  Cache-Control: public, max-age=31536000, immutable
+  Vary: Accept-Encoding
+
+/public/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
 # ─── 서비스 워커 — 항상 재검증 ────────────────────────────────
@@ -44,10 +59,13 @@
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
+  # LCP 자산 HTTP/2 Server Push (Cloudflare 지원 시 동작)
+  Link: </icons/samba.webp>; rel=preload; as=image, </icons/honeypig.webp>; rel=preload; as=image; fetchpriority=low
 
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: index, follow
+  Link: </icons/samba.webp>; rel=preload; as=image
 
 /static/index.html
   Cache-Control: no-cache, no-store, must-revalidate

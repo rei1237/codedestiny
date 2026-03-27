@@ -325,3 +325,245 @@ canvas {
 .card img {
   object-fit: contain;
 }
+
+/* 컬렉션 타일 CLS 방지: 이미지 영역의 고정 비율/높이를 유지한다. */
+.tarot-tile__img-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 120px;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.tarot-tile__img-wrap .tarot-tile__img,
+.tarot-tile__img-wrap .tarot-tile__img-placeholder,
+.tarot-tile__img-wrap .tarot-tile__img-skeleton {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tarot-tile__img-wrap .tarot-tile__img-placeholder,
+.tarot-tile__img-wrap .tarot-tile__img-skeleton {
+  display: grid;
+  place-items: center;
+}
+
+.tarot-tile__img-wrap .tarot-tile__img {
+  object-fit: cover;
+}
+
+@media (max-width: 520px) {
+  .tarot-tile__img-wrap {
+    min-height: 108px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ GPU 가속 애니메이션 최적화 (Core Web Vitals: INP/CLS 개선)
+   ═══════════════════════════════════════════════════════════ */
+
+/*
+ * 원칙:
+ * 1. 실제로 변환(transform/opacity)이 일어나는 요소만 will-change 지정
+ * 2. 정적 상태에서는 will-change:auto로 메모리 절약
+ * 3. translate3d(0,0,0)으로 GPU 레이어 생성 (애니메이션 중)
+ * 4. 배터리 소모 방지: prefers-reduced-motion 감지 시 모든 애니메이션 제거
+ */
+
+/* 애니메이션 활성 요소 — 인터랙션 전 레이어 예약 */
+.feature-card,
+.tarot-tile,
+.totem-card,
+.oracle-card-m,
+.dp-master-card {
+  /* GPU 레이어 격리로 painter 비용 감소 */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* hover/focus 발생 시에만 will-change 활성화 */
+@media (hover: hover) {
+  .feature-card:hover,
+  .tarot-tile:hover,
+  .totem-card:hover {
+    will-change: transform;
+  }
+}
+
+/* 터치 디바이스: active 상태에서만 will-change 활성화 */
+@media (hover: none) and (pointer: coarse) {
+  .feature-card:active,
+  .tarot-tile:active {
+    will-change: transform;
+  }
+  /* 정적 상태에서는 will-change 해제 (메모리 절약 — 모바일 필수) */
+  .feature-card:not(:active),
+  .tarot-tile:not(:active) {
+    will-change: auto;
+  }
+}
+
+/* 슬라이드/페이드 오버레이 — 표시 중만 GPU 레이어 사용 */
+[class*="overlay"].is-open,
+[class*="overlay"][style*="display: block"],
+[class*="overlay"][style*="display:block"],
+.df-studio-overlay[style*="block"],
+.tarot-self-esteem-overlay[style*="block"],
+#astralModal[style*="block"] {
+  will-change: opacity, transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 코즈믹 배경 별 애니메이션 — 독립 레이어 격리 */
+.cosmic-star,
+.cosmic-star-flower,
+.logo-star {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+/* 카드 플립/회전 — GPU 합성 레이어에서 처리 */
+.saju-book,
+.saju-book .book-page,
+.tarot-card[class*="flip"],
+.tarot-card[class*="rotate"] {
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ─── 모션 감소 설정 존중 (배터리/전정 기관 배려) ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    will-change: auto !important;
+  }
+
+  .cosmic-star,
+  .cosmic-star-flower,
+  .logo-star,
+  .orb,
+  .ritual-particle,
+  .q-back-element-emoji {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ 터치 타겟 강화 — 최소 44×44px 전체 적용
+   (기존 globals.css 규칙을 보완하는 특정 소형 버튼 대상)
+   ═══════════════════════════════════════════════════════════ */
+
+/* 모달 닫기/소형 칩 버튼 — 터치 영역 확장 */
+.df-studio-close,
+.df-studio-chip,
+.df-source-tab,
+.tarot-self-esteem-close,
+.modal-close,
+.astral-close-btn,
+.ios-modal-close,
+.dp-sheet-close,
+.back-btn,
+.df-studio-btn,
+.ritual-btn,
+.privacy-btns .btn-cancel,
+.privacy-btns .btn-agree {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(8px, 0.5rem) max(12px, 0.75rem);
+}
+
+/* 언어 선택 드롭다운 버튼 */
+.lang-btn {
+  min-height: 44px;
+  padding-top: max(10px, 0.625rem);
+  padding-bottom: max(10px, 0.625rem);
+}
+
+/* 탭 버튼 (타로/카테고리) */
+.tab-btn,
+.ctg-btn,
+.tarot-cat-btn,
+.oracle-cat-btn-m,
+.mystic-tab-btn,
+.celeb-tab-btn,
+.df-source-tab {
+  min-height: 44px;
+}
+
+/* 토글 버튼 (남/여) */
+.tog-btn {
+  min-height: 44px;
+  padding: 12px 20px;
+}
+
+/* 스크롤 화살표 */
+.fate-scroll-next-arrow {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px;
+}
+
+/* select 요소: iOS에서 터치 영역 확보 */
+select.inp {
+  min-height: 44px;
+  font-size: 16px; /* iOS 줌 방지 */
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ content-visibility 적용 (INP/TBT 개선)
+   화면 밖 섹션의 레이아웃 계산을 지연시켜 메인 스레드 부담 감소
+   ═══════════════════════════════════════════════════════════ */
+
+/* 뷰포트 아래 주요 섹션 — 브라우저 지원 시 lazy render */
+.feature-card-grid,
+.dw-section,
+.tarot-section,
+.oracle-section,
+.insights-section {
+  content-visibility: auto;
+  /* 실제 콘텐츠 크기 추정치로 CLS 방지 */
+  contain-intrinsic-size: auto 400px;
+}
+
+/* 모달 콘텐츠 — 숨겨진 동안 layout 비용 제거 */
+.df-studio-overlay[style*="none"],
+.tarot-self-esteem-overlay[style*="none"],
+#astralModal[style*="none"] {
+  content-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ★ font-display: swap 폴백
+   (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)
+   ═══════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: "Noto Sans KR";
+  font-display: swap;
+  /* Google Fonts CDN에서 실제 src를 오버라이드하지 않고
+     display:swap을 로컬로 보장 (환경에 따라 Google Fonts가
+     display=swap 파라미터를 미반영할 경우 대비) */
+  src: local("Noto Sans KR");
+  unicode-range: U+AC00-D7A3; /* 한글 */
+}
+@font-face {
+  font-family: "Cinzel";
+  font-display: swap;
+  src: local("Cinzel");
+}
