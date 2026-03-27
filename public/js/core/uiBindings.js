@@ -260,6 +260,10 @@ export function bindGlobalActions(root) {
           ? actionEl.getAttribute('aria-label').replace(/열기|닫기/, newState ? '닫기' : '열기')
           : '');
 
+      document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
+        detail: { targetId, isOpen: newState }
+      }));
+
       if (newState) {
         collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]').forEach(function (wrap) {
           if (wrap.querySelector('img.tarot-tile__img')) return;

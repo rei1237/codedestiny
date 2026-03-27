@@ -57,6 +57,13 @@
     setTimeout(start, 0);
   }
 
+  function onCollectionOpened(event) {
+    var detail = event && event.detail;
+    if (!detail || detail.isOpen !== true) return;
+    loadDeferredFeatureScripts();
+    unbindIntentListeners();
+  }
+
   function maybeLoadByIntent(e) {
     var t = e && e.target;
     if (!t || !t.closest) return;
@@ -88,7 +95,7 @@
     if (watcherBound || loaded) return;
     watcherBound = true;
 
-    var nodes = document.querySelectorAll(INTENT_SELECTOR + ', .feature-card-grid .feat-collection, .feature-card-grid .tarot-collection');
+    var nodes = document.querySelectorAll(INTENT_SELECTOR);
     if (!nodes || !nodes.length) return;
 
     if (typeof IntersectionObserver !== 'undefined') {
@@ -143,6 +150,7 @@
   }
 
   bindIntentListeners();
+  document.addEventListener('cd:collection-toggle', onCollectionOpened, { passive: true });
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindViewportPrefetch, { once: true });
   } else {

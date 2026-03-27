@@ -1438,6 +1438,10 @@ function __cdBindGlobalActionsFallback() {
       collection.setAttribute('data-collection-open', String(newState));
       actionEl.setAttribute('aria-expanded', String(newState));
 
+      document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
+        detail: { targetId: targetId, isOpen: newState }
+      }));
+
       var currentLabel = actionEl.getAttribute('aria-label') || '';
       if (currentLabel) {
         actionEl.setAttribute('aria-label', currentLabel.replace(/열기|닫기/, newState ? '닫기' : '열기'));
