@@ -214,14 +214,15 @@ function pickGeminiApiKeys() {
 }
 
 function modelCandidates() {
-  const preferred = normalizeModelId(process.env.SAJU_ANIMAL_GEMINI_MODEL || "gemini-2.5-flash-image");
+  const preferred = normalizeModelId(process.env.SAJU_ANIMAL_GEMINI_MODEL || "gemini-2.0-flash-preview-image-generation");
   const candidates = [
     preferred,
+    "gemini-2.0-flash-preview-image-generation",
+    "gemini-2.0-flash-exp-image-generation",
+    "gemini-2.5-flash-image-preview",
     "gemini-2.5-flash-image",
     "gemini-3.1-flash-image-preview",
     "gemini-3-pro-image-preview",
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
   ]
     .map((v) => normalizeModelId(v))
     .filter(Boolean);
@@ -239,9 +240,82 @@ function parseGeminiInlineImage(payload) {
       if (data && /^image\//i.test(mimeType)) {
         return `data:${mimeType};base64,${data}`;
       }
+
+      const fileData = part && (part.fileData || part.file_data);
+      const fileUri = String((fileData && (fileData.fileUri || fileData.file_uri || fileData.uri)) || "").trim();
+      if (fileUri && /^https?:\/\//i.test(fileUri)) {
+        return fileUri;
+      }
     }
   }
   return "";
+}
+
+function isUnknownFieldError(message) {
+  const text = String(message || "").toLowerCase();
+  return text.includes("unknown name") || text.includes("unknown field") || text.includes("unrecognized field");
+}
+
+function classifyGeminiFailure(message) {
+  const text = String(message || "").toLowerCase();
+  if (!text) return { code: "gemini-image-failed", fallbackMessage: FALLBACK_MESSAGE };
+  if (text.includes("missing-gemini-api-key")) {
+    return {
+      code: "missing-gemini-api-key",
+      fallbackMessage: "Gemini API 키가 설정되지 않아 기본 이미지를 표시했어요. 서버 환경변수 GEMINI_API_KEY 또는 GOOGLE_API_KEY를 확인해 주세요.",
+    };
+  }
+  if (text.includes("api key") || text.includes("permission") || text.includes("unauthenticated") || text.includes("forbidden")) {
+    return {
+      code: "gemini-auth-error",
+      fallbackMessage: "Gemini API 인증에 실패해 기본 이미지를 표시했어요. API 키 권한/유효기간을 확인해 주세요.",
+    };
+  }
+  if (text.includes("quota") || text.includes("resource exhausted") || text.includes("429")) {
+    return {
+      code: "gemini-quota-exceeded",
+      fallbackMessage: "Gemini 호출 한도에 도달해 기본 이미지를 표시했어요. 잠시 후 다시 시도하거나 예비 키를 설정해 주세요.",
+    };
+  }
+  if (text.includes("timeout") || text.includes("abort")) {
+    return {
+      code: "gemini-timeout",
+      fallbackMessage: "Gemini 응답 지연으로 기본 이미지를 표시했어요. 네트워크 상태 확인 후 다시 시도해 주세요.",
+    };
+  }
+  if (text.includes("not found") || text.includes("model") || text.includes("unsupported")) {
+    return {
+      code: "gemini-model-unavailable",
+      fallbackMessage: "현재 설정된 Gemini 이미지 모델이 사용 불가하여 기본 이미지를 표시했어요. SAJU_ANIMAL_GEMINI_MODEL 값을 점검해 주세요.",
+    };
+  }
+  return { code: "gemini-image-failed", fallbackMessage: FALLBACK_MESSAGE };
+}
+
+function buildGeminiRequestVariants(prompt) {
+  return [
+    {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ["IMAGE"],
+        temperature: 0.8,
+        topP: 0.95,
+        maxOutputTokens: 512,
+      },
+    },
+    {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+        temperature: 0.8,
+        topP: 0.95,
+        maxOutputTokens: 512,
+      },
+    },
+    {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    },
+  ];
 }
 
 function wait(ms) {
@@ -251,73 +325,85 @@ function wait(ms) {
 async function generateImage(prompt) {
   const keys = pickGeminiApiKeys();
   if (!keys.length) {
-    return { imageUrl: FALLBACK_IMAGE_URL, fallback: true, fallbackMessage: FALLBACK_MESSAGE, error: "missing-gemini-api-key" };
+    const failure = classifyGeminiFailure("missing-gemini-api-key");
+    return {
+      imageUrl: FALLBACK_IMAGE_URL,
+      fallback: true,
+      fallbackMessage: failure.fallbackMessage,
+      error: failure.code,
+    };
   }
 
   let lastError = null;
   const models = modelCandidates();
+  const requestVariants = buildGeminiRequestVariants(prompt);
 
   for (const model of models) {
     const endpoint = GEMINI_ENDPOINT_TEMPLATE.replace("{model}", encodeURIComponent(model));
     for (const key of keys) {
       for (let attempt = 0; attempt < 2; attempt += 1) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort("saju-animal-timeout"), 30000);
-        try {
-          const res = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: {
-                responseModalities: ["TEXT", "IMAGE"],
-                temperature: 0.8,
-                topP: 0.95,
-                maxOutputTokens: 512,
-              },
-            }),
-            signal: controller.signal,
-            cache: "no-store",
-          });
-          clearTimeout(timer);
+        for (const bodyVariant of requestVariants) {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort("saju-animal-timeout"), 30000);
+          try {
+            const res = await fetch(`${endpoint}?key=${encodeURIComponent(key)}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(bodyVariant),
+              signal: controller.signal,
+              cache: "no-store",
+            });
+            clearTimeout(timer);
 
-          const payload = await res.json().catch(() => null);
-          if (!res.ok) {
-            const retryable = res.status === 429 || res.status >= 500;
-            lastError = new Error(payload?.error?.message || payload?.message || `gemini-image-error-${res.status}`);
-            if (retryable && attempt === 0) {
-              await wait(450);
+            const payload = await res.json().catch(() => null);
+            if (!res.ok) {
+              const message = payload?.error?.message || payload?.message || `gemini-image-error-${res.status}`;
+              const retryable = res.status === 429 || res.status >= 500;
+              const unknownField = isUnknownFieldError(message);
+              lastError = new Error(message);
+              if (unknownField) {
+                continue;
+              }
+              if (retryable && attempt === 0) {
+                await wait(450);
+                continue;
+              }
+              break;
+            }
+
+            const imageUrl = parseGeminiInlineImage(payload);
+            if (!imageUrl) {
+              lastError = new Error("gemini-image-empty");
+              continue;
+            }
+
+            return {
+              imageUrl,
+              fallback: false,
+              fallbackMessage: "",
+              model,
+            };
+          } catch (error) {
+            clearTimeout(timer);
+            lastError = error;
+            if (attempt === 0) {
+              await wait(350);
               continue;
             }
             break;
           }
-
-          const imageUrl = parseGeminiInlineImage(payload);
-          if (!imageUrl) {
-            lastError = new Error("gemini-image-empty");
-            break;
-          }
-
-          return {
-            imageUrl,
-            fallback: false,
-            fallbackMessage: "",
-            model,
-          };
-        } catch (error) {
-          clearTimeout(timer);
-          lastError = error;
-          if (attempt === 0) {
-            await wait(350);
-            continue;
-          }
-          break;
         }
       }
     }
   }
 
-  return { imageUrl: FALLBACK_IMAGE_URL, fallback: true, fallbackMessage: FALLBACK_MESSAGE, error: String(lastError || "gemini-image-failed") };
+  const failure = classifyGeminiFailure(String(lastError || "gemini-image-failed"));
+  return {
+    imageUrl: FALLBACK_IMAGE_URL,
+    fallback: true,
+    fallbackMessage: failure.fallbackMessage,
+    error: failure.code,
+  };
 }
 
 export async function POST(request) {
@@ -337,6 +423,8 @@ export async function POST(request) {
       imageUrl: generated.imageUrl,
       fallback: generated.fallback,
       fallbackMessage: generated.fallbackMessage,
+      fallbackReason: generated.error || "",
+      model: generated.model || "",
     });
   } catch (error) {
     return NextResponse.json(
