@@ -2511,8 +2511,20 @@ function _dfResolveSelection() {
     return null;
   }
 
+  if (!_dfHasReadySourceData('saju', payload)) {
+    return null;
+  }
+
   var matched = null;
   var theme = null;
+  var hasEngineMatcher = !!(
+    (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
+    || typeof window.matchDestinyFlower === 'function'
+  );
+
+  if (!hasEngineMatcher) {
+    return null;
+  }
 
   try {
     if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function') {
@@ -2527,21 +2539,17 @@ function _dfResolveSelection() {
     console.warn('[DestinyFlower] 매칭 실패:', e2);
   }
 
-  var flower = matched && (matched.flower || matched.flowerSymbology);
-  if (!flower && window.flowerSymbology) {
-    flower = window.flowerSymbology.LOTUS || null;
-  }
-  if (!flower) {
-    flower = {
-      name: '연꽃',
-      scientific_name: 'Nelumbo nucifera',
-      symbolism: '탁함 속에서도 투명하게 피어나는 재생의 상징',
-      primary_color: '#f472b6',
-      secondary_color: '#22d3ee',
-      keywords: ['rebirth', 'purity', 'flow'],
-      particle_type: 'petal'
-    };
-  }
+  if (!matched) return null;
+
+  var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
+  if (fallbackUsed) return null;
+
+  var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
+  var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
+  if (!matchedDayMaster) return null;
+
+  var flower = matched.flower || matched.flowerSymbology;
+  if (!flower) return null;
 
   var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
   var secondary = _dfSafeColor((flower.secondary_color || (theme && theme.palette && theme.palette.secondary)), '#22d3ee');
@@ -3801,7 +3809,49 @@ function _dfPersistHistory() {
 function _dfHasReadySourceData(source, payload) {
   var normalized = _dfNormalizeSource(source);
   var data = payload && typeof payload === 'object' ? payload : {};
-  if (normalized === 'saju') return true;
+  if (normalized === 'saju') {
+    var hasEngineMatcher = !!(
+      (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
+      || typeof window.matchDestinyFlower === 'function'
+    );
+    if (!hasEngineMatcher) return false;
+
+    var saju = data.saju || {};
+    var sajuDomain = (data.domains && data.domains.saju) || {};
+    var analysis = data.analysis || {};
+    var dayMaster = String(
+      saju.dayMaster
+      || saju.day_master
+      || saju.ilgan
+      || sajuDomain.day_master
+      || sajuDomain.dayMaster
+      || analysis.day_master
+      || analysis.dayMaster
+      || ''
+    ).trim();
+
+    var hasPillar = !!(
+      String(saju.yearPillar || sajuDomain.year_pillar || '').trim()
+      || String(saju.monthPillar || sajuDomain.month_pillar || '').trim()
+      || String(saju.dayPillar || sajuDomain.day_pillar || '').trim()
+      || String(saju.hourPillar || sajuDomain.hour_pillar || '').trim()
+    );
+
+    var weights = analysis.elementalWeights || analysis.elements || saju.elementalWeights || saju.elements || {};
+    var values = ['wood', 'fire', 'earth', 'metal', 'water'].map(function(key) {
+      return Number(weights && weights[key]);
+    }).filter(function(v) {
+      return Number.isFinite(v);
+    });
+    var hasNonDefaultWeights = false;
+    if (values.length === 5) {
+      var allSame = values.every(function(v) { return Math.abs(v - values[0]) < 0.05; });
+      var looksDefault = allSame && Math.abs(values[0] - 20) < 0.2;
+      hasNonDefaultWeights = !looksDefault;
+    }
+
+    return !!(dayMaster || hasPillar || hasNonDefaultWeights);
+  }
 
   if (normalized === 'astrology') {
     var astrology = data.astrology || {};
@@ -3866,7 +3916,11 @@ function _dfGetDataMissingUiState(source) {
 function _dfEnsureStudioEmptyState(main) {
   if (!main) return null;
   var emptyEl = main.querySelector('#dfStudioEmptyState');
-  if (emptyEl) return emptyEl;
+  if (emptyEl) {
+    var existingBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
+    if (existingBtn) _dfBindEmptyLoadButton(existingBtn);
+    return emptyEl;
+  }
 
   emptyEl = document.createElement('section');
   emptyEl.id = 'dfStudioEmptyState';
@@ -3878,15 +3932,19 @@ function _dfEnsureStudioEmptyState(main) {
   main.appendChild(emptyEl);
 
   var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
-  if (loadBtn && !loadBtn.__dfBound) {
-    loadBtn.__dfBound = true;
-    loadBtn.addEventListener('click', function() {
-      var source = loadBtn.getAttribute('data-df-source') || _dfStudioState.activeSource || 'saju';
-      _dfFetchSourceOnDemand(source);
-    });
-  }
+  if (loadBtn) _dfBindEmptyLoadButton(loadBtn);
 
   return emptyEl;
+}
+
+function _dfBindEmptyLoadButton(loadBtn) {
+  if (!loadBtn || loadBtn.__dfBound) return;
+  loadBtn.__dfBound = true;
+  loadBtn.addEventListener('click', function() {
+    var source = loadBtn.getAttribute('data-df-source') || _dfStudioState.activeSource || 'saju';
+    _dfSetActiveSource(source);
+    _dfFetchSourceOnDemand(source, { force: true });
+  });
 }
 
 function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
@@ -3907,10 +3965,30 @@ function _dfShowStudioEmptyState(source, message, showLoadButton) {
   var main = document.querySelector('.df-studio-main');
   var panels = document.querySelector('.df-studio-panels');
   var historySection = document.querySelector('.df-studio-history');
+  var narrativeEl = document.getElementById('dfStudioNarrative');
+  var badgesEl = document.getElementById('dfStudioSajuBadges');
+  var sourceDescEl = document.getElementById('dfStudioSourceDesc');
+  var nameEl = document.getElementById('dfStudioName');
+  var latinEl = document.getElementById('dfStudioLatin');
+  var dayMasterEl = document.getElementById('dfStudioDayMasterBadge');
+  var symbolismEl = document.getElementById('dfStudioSymbolism');
+  var keywordsEl = document.getElementById('dfStudioKeywords');
 
   if (!main) return;
   var emptyEl = _dfEnsureStudioEmptyState(main);
   var messageEl = emptyEl ? emptyEl.querySelector('#dfStudioEmptyMessage') : null;
+
+  if (sourceDescEl) {
+    var meta = _DF_SOURCE_META[normalized] || _DF_SOURCE_META.saju;
+    sourceDescEl.textContent = meta.description || '';
+  }
+  if (narrativeEl) narrativeEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
+  if (nameEl) nameEl.textContent = _dfGetSourceLabel(normalized) + ' 데이터 연동 대기';
+  if (latinEl) latinEl.textContent = 'Data not linked';
+  if (dayMasterEl) dayMasterEl.textContent = _dfGetSourceLabel(normalized) + ' 판독 대기';
+  if (symbolismEl) symbolismEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
+  if (keywordsEl) keywordsEl.textContent = _dfGetSourceLabel(normalized) + ' keywords · loading';
+  if (badgesEl) badgesEl.style.display = 'none';
 
   if (messageEl) messageEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
   if (emptyEl) emptyEl.hidden = false;
@@ -3926,10 +4004,12 @@ function _dfHideStudioEmptyState() {
   var main = document.querySelector('.df-studio-main');
   var panels = document.querySelector('.df-studio-panels');
   var historySection = document.querySelector('.df-studio-history');
+  var badgesEl = document.getElementById('dfStudioSajuBadges');
   if (!main) return;
   var emptyEl = main.querySelector('#dfStudioEmptyState');
   if (emptyEl) emptyEl.hidden = true;
   main.classList.remove('is-empty');
+  if (badgesEl) badgesEl.style.display = '';
   if (panels) panels.style.display = '';
   if (historySection) historySection.style.display = '';
 }
@@ -4001,7 +4081,7 @@ function _dfFetchSourceOnDemand(source, options) {
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   var state = _dfGetDataMissingUiState(normalized);
-  if (!state.showLoadButton) {
+  if (!state.showLoadButton && !opts.force) {
     _dfSetStudioStatus(state.message, {
       showLoadButton: state.showLoadButton,
       source: normalized
@@ -4029,6 +4109,7 @@ function _dfFetchSourceOnDemand(source, options) {
     skipUiRefresh: true
   }).then(function(selection) {
     if (selection) {
+      _dfSetActiveSource(normalized);
       _dfRefreshStudioForSource(normalized, true);
       _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 불러왔습니다.');
       return selection;
