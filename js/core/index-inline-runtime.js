@@ -3174,6 +3174,7 @@ function _dfApplyCardVisual(card, selection) {
 }
 
 var _dfCrossDomainCoreLoadPromise = null;
+var _dfFlowerEngineBootPromise = null;
 
 function _dfNeedsCrossDomainCore() {
   return (
@@ -3240,6 +3241,48 @@ function _dfWarmupCrossDomainCoreIfNeeded() {
   });
 
   return _dfCrossDomainCoreLoadPromise;
+}
+
+function _dfNeedsFlowerEngine() {
+  var engine = window.DestinyFlowerEngine;
+  var hasEngineMatchers = !!(
+    engine &&
+    typeof engine.matchDestinyFlower === 'function' &&
+    typeof engine.matchAstrologyFlower === 'function' &&
+    typeof engine.matchJamidusuFlower === 'function' &&
+    typeof engine.matchSukuyoFlower === 'function'
+  );
+  if (hasEngineMatchers) return false;
+
+  var hasGlobalMatchers = (
+    typeof window.matchDestinyFlower === 'function' &&
+    typeof window.matchAstrologyFlower === 'function' &&
+    typeof window.matchJamidusuFlower === 'function' &&
+    typeof window.matchSukuyoFlower === 'function'
+  );
+
+  return !hasGlobalMatchers;
+}
+
+function _dfWarmupFlowerEngineIfNeeded() {
+  if (!_dfNeedsFlowerEngine()) return Promise.resolve(true);
+  if (_dfFlowerEngineBootPromise) return _dfFlowerEngineBootPromise;
+
+  _dfFlowerEngineBootPromise = import('/js/core/bootstrapDestinyFlower.js').then(function(mod) {
+    if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
+      mod.bootstrapDestinyFlower(window);
+    }
+    if (_dfNeedsFlowerEngine()) return false;
+    _dfRefreshSelectionAfterCoreReady();
+    return true;
+  }).catch(function(err) {
+    console.warn('[DestinyFlower] Engine lazy bootstrap failed:', err);
+    return false;
+  }).finally(function() {
+    _dfFlowerEngineBootPromise = null;
+  });
+
+  return _dfFlowerEngineBootPromise;
 }
 
 function _dfSetBodyLock(locked) {
@@ -4425,6 +4468,7 @@ function openSukuyoFlowerStudio() {
 }
 
 function openDestinyFlower(forceRefreshData) {
+  _dfWarmupFlowerEngineIfNeeded();
   _dfWarmupCrossDomainCoreIfNeeded();
 
   var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -4455,6 +4499,7 @@ function openDestinyFlower(forceRefreshData) {
 }
 
 function openDestinyFlowerStudio() {
+  _dfWarmupFlowerEngineIfNeeded();
   _dfWarmupCrossDomainCoreIfNeeded();
 
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
