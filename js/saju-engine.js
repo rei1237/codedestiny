@@ -6334,17 +6334,17 @@ function renderAstroInsight() {
     };
     var sunArchetype = sunArchetypeByIdx[sunIndex] || '복합형 자아 전개';
     var sunStrategy = sunStrategyByIdx[sunIndex] || '핵심 우선순위를 3개로 제한해 실행하기';
-    var sunCoreInterpretation = '태양 '+sunSign+'('+sunHousePair+')은 <b>'+sunArchetype+'</b> 타입의 매력을 보여줘요. '
-      +'지금 내 마음-행동 리듬은 <b>'+axisGapDesc+'</b>에 가깝고, '+imbalanceText+' '
-      +'실행 스타일은 '+modalityNames[modalityDominant]+' 쪽이 강해요. 그래서 오늘은 <b>'+sunStrategy+'</b>를 '+topHouseTopic+' 영역에 먼저 써보는 게 가장 효율적입니다.';
+    var sunCoreInterpretation = '태양 '+sunSign+'('+sunHousePair+')은 <b>'+sunArchetype+'</b> 타입 매력의 본체예요. '
+      +'오늘 내 감정-행동 리듬은 <b>'+axisGapDesc+'</b> 쪽이라, '+imbalanceText+' '
+      +'실행은 '+modalityNames[modalityDominant]+' 템포가 가장 잘 먹힙니다. 결론은 간단해요: <b>'+sunStrategy+'</b>를 '+topHouseTopic+'에 먼저 꽂으면 갓생 루트가 열립니다.';
 
     var astroKeywordLine = '#'+(resilientString(topHouseTopic).split('/')[0] || '오늘의포인트')+' #'+(elemShortNames[elemWeakest] ? ('밸런스'+elemShortNames[elemWeakest]) : '밸런스업')+' #'+(modalityNames[modalityDominant].indexOf('활동궁')>=0?'바로실행':'루틴정리');
     function resilientString(v){ return String(v || '').replace(/\s+/g,'').replace(/[()]/g,''); }
     var astroMoodLine = '오늘은 '+moodLineByBattery();
     function moodLineByBattery(){
-      if((retroPlanets||[]).length>=2) return '속도보다 점검이 이기는 날이에요. 메시지와 약속은 한 번 더 확인하면 훨씬 편해져요. 🌙';
-      if(topFocusCount>=3) return '집중력이 강하게 모여요. 해야 할 일 하나를 크게 끝내는 전략이 딱 맞아요. 🚀';
-      return '고르게 흐르는 날이에요. 무리하지 않고 꾸준히 가면 결과가 따라옵니다. 🌿';
+      if((retroPlanets||[]).length>=2) return '도파민보다 점검이 이기는 날. 급발진 말고 체크 한 번이면 실수 절반 컷이에요. 🌙';
+      if(topFocusCount>=3) return '집중 버프 강하게 켜졌어요. 하나만 제대로 끝내도 오늘 판이 내 쪽으로 기웁니다. 🚀';
+      return '템포 안정적인 날이라 과속만 안 하면 오히려 좋아. 꾸준함이 결과를 데려옵니다. 🌿';
     }
     var boosterColorMap = { fire:'코랄/레드', earth:'베이지/카멜', air:'민트/스카이', water:'네이비/블루' };
     var boosterPlaceMap = { 1:'헬스장이나 운동 공간', 2:'은행/재테크 노트 정리 공간', 3:'카페나 스터디 공간', 4:'집 근처 조용한 공간', 5:'전시/공연/취미 공간', 6:'데스크 정리된 업무 공간', 7:'약속 장소/미팅 공간', 8:'혼자 집중할 수 있는 공간', 9:'서점/강연/여행 계획 공간', 10:'오피스/프로필 정리 공간', 11:'모임/커뮤니티 공간', 12:'산책로/명상 공간' };
@@ -6352,20 +6352,20 @@ function renderAstroInsight() {
     var astroBoosterPlace = boosterPlaceMap[topFocusHouse] || '조용한 카페';
     var isActionMode = (modalityNames[modalityDominant] || '').indexOf('활동궁') >= 0;
     var astroStarterMission = isActionMode
-      ? '시작 15분만 투자해서 가장 미루던 일의 첫 단추를 끼우기'
-      : '기존 루틴 하나를 더 날카롭게 다듬고 반복성 높이기';
+      ? '가보자고 모드로 15분 스타트: 미루던 일 첫 버튼 누르기'
+      : '갓벽 루틴 1개만 리빌드해서 반복 효율 올리기';
     var astroRelationshipMission = axisGap === 6
-      ? '대화 전에 원하는 것 1개와 양보할 것 1개를 먼저 정리하기'
-      : '감정이 올라오는 순간, 바로 답장하지 말고 10초 호흡 후 전달하기';
+      ? '팩폭 전에 호흡 10초: 원하는 것 1개 + 양보할 것 1개 정리하기'
+      : '감정 올라오면 즉답 금지. 10초 멈추고 전달하면 관계운 럭키비키';
     var astroMoneyMission = (topFocusHouse === 2 || topFocusHouse === 8)
-      ? '오늘 결제 내역을 점검해 고정비 1개 최적화하기'
-      : '지출 대신 내 성장을 위한 투자 항목 1개 고르기';
+      ? '결제 내역 점검하고 고정비 1개만 날카롭게 절감하기'
+      : '충동지출 스킵하고 성장 투자 1건에 예산 몰아주기';
     var astroSocialMission = topFocusHouse === 11
-      ? '커뮤니티/네트워크 대화에서 나를 드러내는 문장 1개 남기기'
-      : '도움이 필요했던 사람 1명에게 먼저 안부 보내기';
+      ? '커뮤니티에서 존재감 문장 1개 남겨서 내 이름 각인하기'
+      : '연락 미룬 사람 1명에게 먼저 안부 보내고 흐름 열기';
     var astroSelfcareMission = (retroPlanets || []).length >= 2
-      ? '오늘 밤 취침 전, 디지털 디톡스 30분으로 뇌 과열 식히기'
-      : '수분 2회 + 가벼운 스트레칭 5분으로 컨디션 리셋하기';
+      ? '취침 전 30분 디지털 오프. 과열된 뇌 식히면 내일 효율 급상승'
+      : '물 2잔 + 5분 스트레칭으로 멘탈 배터리 리부팅하기';
     function clampBriefScore(v){ return Math.max(55, Math.min(98, Math.round(v))); }
     var astroCategoryData = [
       { icon:'🔥', title:'커리어/학업', score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
@@ -6376,39 +6376,68 @@ function renderAstroInsight() {
     ];
     var astroCategoryCardsHtml = astroCategoryData.map(function(item){
       return ''
-        +'<div class="rounded-xl border border-white/10 bg-slate-900/55 p-3 sm:p-4 backdrop-blur">'
-        +'<div class="flex items-center justify-between gap-2">'
-        +'<div class="text-sm sm:text-base font-semibold tracking-tight text-cyan-100">'+item.icon+' '+item.title+'</div>'
-        +'<div class="text-xs sm:text-sm font-semibold text-cyan-300">'+item.score+'점</div>'
+        +'<div class="astro-neon-mini">'
+        +'<div class="astro-neon-mini-head">'
+        +'<div class="astro-neon-mini-title">'+item.icon+' '+item.title+'</div>'
+        +'<div class="astro-neon-mini-score">'+item.score+'점</div>'
         +'</div>'
-        +'<p class="mt-2 text-[12px] sm:text-[13px] leading-relaxed text-slate-200">'+item.mission+'</p>'
+        +'<div class="astro-neon-mini-meter"><span style="width:'+item.score+'%"></span></div>'
+        +'<p class="astro-neon-mini-copy">'+item.mission+'</p>'
         +'</div>';
     }).join('');
     var astroImmersiveLine = isActionMode
-      ? '오늘의 하늘은 "빠른 스타트 + 짧은 피드백" 조합에서 폭발력이 올라가요. 지금 바로 1개만 시작하면 도미노처럼 다음 흐름이 열립니다.'
-      : '오늘의 하늘은 "정교한 루틴 + 템포 유지" 조합에서 강해져요. 적게 해도 정확하게 쌓으면 체감 성과가 크게 남습니다.';
+      ? '오늘 하늘은 "빠른 스타트 + 짧은 피드백" 조합에서 폭발해요. 한 개만 먼저 착수하면 다음 흐름이 자동으로 이어집니다.'
+      : '오늘 하늘은 "정교한 루틴 + 템포 유지"에서 힘을 줍니다. 적게 해도 정확하면 성과는 크게 남아요.';
+    var astroTotalScore = clampBriefScore((astroCategoryData.reduce(function(acc, item){ return acc + item.score; }, 0) / astroCategoryData.length) + 4);
+    var astroNeonCss = '<style id="astroNeonBriefingStyle">'
+      +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(96,165,250,.38);background:linear-gradient(165deg,#0b0e14 0%,#0f1d3a 46%,#1a1c2c 100%);box-shadow:0 0 0 1px rgba(34,211,238,.18),0 24px 48px -28px rgba(56,189,248,.75),inset 0 1px 0 rgba(255,255,255,.07);}'
+      +'.astro-neon-wrap:before{content:"";position:absolute;inset:-40% auto auto -25%;width:240px;height:240px;background:radial-gradient(circle,rgba(45,212,191,.22),rgba(45,212,191,0));filter:blur(4px);pointer-events:none;}'
+      +'.astro-neon-wrap:after{content:"";position:absolute;right:-90px;bottom:-110px;width:260px;height:260px;background:radial-gradient(circle,rgba(168,85,247,.28),rgba(168,85,247,0));filter:blur(8px);pointer-events:none;}'
+      +'.astro-neon-head{position:relative;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;z-index:1;}'
+      +'.astro-neon-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;border:1px solid rgba(125,211,252,.42);background:rgba(34,211,238,.12);color:#cffafe;font-size:11px;font-weight:700;letter-spacing:.02em;}'
+      +'.astro-neon-panel{position:relative;z-index:1;margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.24);background:rgba(2,6,23,.54);backdrop-filter:blur(6px);}'
+      +'.astro-neon-key{font-size:14px;line-height:1.62;color:#f8fafc;margin:0 0 7px 0;}'
+      +'.astro-neon-key b{color:#67e8f9;}'
+      +'.astro-neon-grid{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px;}'
+      +'.astro-neon-mini{border-radius:13px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.58);padding:11px;backdrop-filter:blur(4px);}'
+      +'.astro-neon-mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}'
+      +'.astro-neon-mini-title{font-size:14px;font-weight:700;color:#e0f2fe;letter-spacing:-.01em;}'
+      +'.astro-neon-mini-score{font-size:12px;font-weight:700;color:#67e8f9;}'
+      +'.astro-neon-mini-meter{height:6px;border-radius:999px;background:rgba(30,41,59,.85);overflow:hidden;margin-top:7px;}'
+      +'.astro-neon-mini-meter span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#a855f7);box-shadow:0 0 12px rgba(34,211,238,.65);}'
+      +'.astro-neon-mini-copy{margin:7px 0 0 0;font-size:12px;line-height:1.6;color:#cbd5e1;}'
+      +'.astro-neon-actions{position:relative;z-index:1;margin-top:10px;border:1px solid rgba(125,211,252,.24);border-radius:14px;background:rgba(15,23,42,.58);padding:12px;}'
+      +'.astro-neon-actions h4{margin:0 0 8px 0;font-size:14px;color:#cffafe;}'
+      +'.astro-neon-actions ul{margin:0;padding-left:18px;color:#e2e8f0;font-size:13px;line-height:1.7;}'
+      +'.astro-neon-total{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#a5f3fc;}'
+      +'.astro-neon-total strong{font-size:16px;color:#fff;}'
+      +'@media (min-width:700px){.astro-neon-wrap{padding:18px;}.astro-neon-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}'
+      +'@media (min-width:1100px){.astro-neon-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}'
+      +'</style>';
 
     var html = '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
-      +'<div class="astro-section mb-4">'
-      +'<div class="rounded-2xl border border-cyan-300/40 bg-gradient-to-br from-slate-950 via-sky-950/80 to-indigo-950/80 p-4 sm:p-5 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_22px_60px_-28px_rgba(14,165,233,0.7)]">'
-      +'<div class="flex flex-wrap items-center justify-between gap-2">'
-      +'<div class="astro-subhead !mb-0 text-cyan-200">✨ 오늘의 별자리 브리핑</div>'
-      +'<div class="rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-[11px] sm:text-xs font-medium text-cyan-200">오늘의 몰입 모드 ON</div>'
+      + astroNeonCss
+      +'<div class="astro-section" style="margin-bottom:16px;">'
+      +'<div class="astro-neon-wrap">'
+      +'<div class="astro-neon-head">'
+      +'<div class="astro-subhead" style="margin:0;color:#a5f3fc;">✨ 오늘의 별자리 브리핑</div>'
+      +'<div class="astro-neon-badge">Deep Universe · Neon Star</div>'
       +'</div>'
-      +'<div class="mt-3 rounded-xl border border-white/10 bg-slate-950/45 p-3 sm:p-4">'
-      +'<p class="text-sm sm:text-base leading-relaxed text-slate-100"><b class="text-cyan-200">오늘의 핵심 키워드:</b> '+astroKeywordLine+'</p>'
-      +'<p class="mt-2 text-sm sm:text-base leading-relaxed text-slate-100"><b class="text-cyan-200">별들이 전하는 한마디:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
-      +'<p class="mt-2 text-sm sm:text-base leading-relaxed text-cyan-100"><b>몰입 포인트:</b> '+astroImmersiveLine+'</p>'
+      +'<div class="astro-neon-panel">'
+      +'<p class="astro-neon-key"><b>오늘의 핵심 키워드:</b> '+astroKeywordLine+'</p>'
+      +'<p class="astro-neon-key"><b>별들이 전하는 한마디:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
+      +'<p class="astro-neon-key" style="color:#bae6fd;"><b>몰입 포인트:</b> '+astroImmersiveLine+'</p>'
+      +'<div class="astro-neon-total">오늘 총운 <strong>'+astroTotalScore+'점</strong> · 오늘의 모드: '+(isActionMode?'가보자고 액션':'정교한 루틴')+'</div>'
       +'</div>'
-      +'<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">'+astroCategoryCardsHtml+'</div>'
-      +'<div class="mt-3 rounded-xl border border-cyan-200/20 bg-slate-900/50 p-3 sm:p-4">'
-      +'<p class="text-sm sm:text-base font-semibold text-cyan-100">오늘의 액션 미션 3</p>'
-      +'<ul class="mt-2 list-disc pl-5 text-[13px] sm:text-sm leading-relaxed text-slate-200">'
-      +'<li>중요한 답장은 10초 숨 고르고 보내기</li>'
-      +'<li>오늘의 핵심 과제 1개는 점심 전 70%까지 밀어붙이기</li>'
-      +'<li>기분 배터리 30% 이하로 떨어지면 일정 1개 과감히 비우기</li>'
+      +'<div class="astro-neon-grid">'+astroCategoryCardsHtml+'</div>'
+      +'<div class="astro-neon-actions">'
+      +'<h4>오늘의 액션 미션 3</h4>'
+      +'<ul>'
+      +'<li>중요한 답장은 10초 숨 고른 뒤 전송하기 (팩폭보다 맥락이 먼저)</li>'
+      +'<li>핵심 과제 1개는 점심 전에 70%까지 밀어붙이기</li>'
+      +'<li>기분 배터리 30% 이하일 땐 일정 1개 비워서 리듬 회복하기</li>'
       +'</ul>'
-      +'<p class="mt-2 text-[12px] sm:text-sm text-cyan-100"><b>행운의 부스터:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
+      +'<p style="margin:8px 0 0 0;font-size:12px;color:#a5f3fc;"><b>행운의 부스터:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
       +'</div>'
       +'</div>'
       +'</div>'
