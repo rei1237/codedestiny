@@ -4864,18 +4864,46 @@ function __cdBirthModalDepsMissing() {
     typeof _ModalProfileState === 'undefined' ||
     typeof _renderSukuyoSection !== 'function' ||
     typeof _renderZiweiSection !== 'function' ||
-    typeof _renderAstroSection !== 'function'
+    typeof _renderAstroSection !== 'function' ||
+    typeof window.renderSukuyo !== 'function' ||
+    typeof window.renderZiwei !== 'function'
   );
+}
+
+function __cdEnsureSukuyoZiweiCoreLoaded() {
+  var needsCore = (
+    typeof window.renderSukuyo !== 'function' ||
+    typeof window.renderZiwei !== 'function' ||
+    typeof window.calcSukuyoData !== 'function' ||
+    typeof window.calcZiweiPalaces !== 'function'
+  );
+
+  if (!needsCore) return Promise.resolve(true);
+
+  var chain = [
+    '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
+    '/js/saju-engine.js?v=20260323-ziwei-fix1',
+    '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1'
+  ];
+
+  return chain.reduce(function(promise, src) {
+    return promise.then(function() { return __cdLoadScriptOnce(src); });
+  }, Promise.resolve()).then(function() {
+    return true;
+  });
 }
 
 function __cdEnsureBirthModalDepsLoaded() {
   var tasks = [];
-  if (__cdBirthModalDepsMissing()) {
+  if (
+    typeof _ModalProfileState === 'undefined' ||
+    typeof _renderSukuyoSection !== 'function' ||
+    typeof _renderZiweiSection !== 'function' ||
+    typeof _renderAstroSection !== 'function'
+  ) {
     tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=20260326-modaldeps1'));
   }
-  if (window.__cdSajuCoreReady !== 1) {
-    tasks.push(__cdEnsureSajuCoreLoaded());
-  }
+  tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
   return Promise.all(tasks).then(function() { return true; });
 }
