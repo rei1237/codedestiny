@@ -13,6 +13,10 @@ if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'funct
 }
 
 const __lazyActionLoaders = {
+  checkPrivacyAndCalculate: () => __ensureSajuCoreScripts(),
+  agreeAndCalculate: () => __ensureSajuCoreScripts(),
+  calculate: () => __ensureSajuCoreScripts(),
+  runCompat: () => __ensureSajuCoreScripts(),
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js').then(() => __loadScriptOnce('PhysiognomyUI.js')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
@@ -31,6 +35,13 @@ const __lazyActionLoaders = {
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js')
 };
+
+function __ensureSajuCoreScripts() {
+  return __loadScriptOnce('/js/destiny-profile.js')
+    .then(() => __loadScriptOnce('/js/services/sajuService.js'))
+    .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
+    .then(() => __loadScriptOnce('/js/admin-flower.js'));
+}
 
 const __lazyActionState = {};
 

@@ -13,8 +13,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
 <!-- LCP: 모바일/데스크톱 분기 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
-<link rel="preload" as="image" href="/icons/honeypig-130.webp" media="(min-width: 769px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/honeypig-96.webp" imagesrcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/honeypig-130.webp" imagesrcset="/icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" imagesizes="130px" media="(min-width: 769px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="low">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -390,8 +391,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <link rel="stylesheet" href="/styles/layout.css">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260328-animaluxfix1">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
-  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2">
+  <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1"></noscript>
+  <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260328-animaluxfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2"></noscript>
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
@@ -3309,12 +3312,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     </nav>
   </footer>
 
-<script src="/js/destiny-profile.js" defer></script>
+<script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
-<script src="/js/services/sajuService.js" defer></script>
-<script src="/js/core/saju/modalProfileState.js" defer></script>
+<script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260329b"></script>
-<script src="/js/admin-flower.js" defer></script>
+<script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
 <script data-cd-noncritical-src="/js/share.js?v=2026-03-23-v2-cachefix1"></script>

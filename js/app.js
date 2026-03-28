@@ -1,5 +1,4 @@
 import { initAppShell } from './core/init.js';
-import './services/fortuneService.js';
 
 const DESTINY_FLOWER_ACTIONS = [
   'openDestinyFlowerStudio',
@@ -13,6 +12,7 @@ const DESTINY_FLOWER_ACTIONS = [
 ];
 
 let __destinyFlowerBootPromise = null;
+let __fortuneServiceBootPromise = null;
 
 function scheduleIdleTask(task, timeout) {
   const idle = window.requestIdleCallback || function (cb) {
@@ -40,6 +40,16 @@ function ensureDestinyFlowerBootstrapped() {
       });
   }
   return __destinyFlowerBootPromise;
+}
+
+function ensureFortuneServiceBootstrapped() {
+  if (!__fortuneServiceBootPromise) {
+    __fortuneServiceBootPromise = import('./services/fortuneService.js').catch(function (err) {
+      __fortuneServiceBootPromise = null;
+      console.error('[app] fortune service bootstrap failed', err);
+    });
+  }
+  return __fortuneServiceBootPromise;
 }
 
 function installDestinyFlowerStubs() {
@@ -77,13 +87,34 @@ function warmupDestinyFlowerOnFirstInteraction() {
   window.addEventListener('touchstart', warmup, { capture: true, passive: true, once: true });
 }
 
+function warmupFortuneServiceOnFirstInteraction() {
+  let warmed = false;
+  const warmup = function () {
+    if (warmed) return;
+    warmed = true;
+    window.removeEventListener('pointerdown', warmup, true);
+    window.removeEventListener('keydown', warmup, true);
+    window.removeEventListener('touchstart', warmup, true);
+    ensureFortuneServiceBootstrapped();
+  };
+
+  window.addEventListener('pointerdown', warmup, { capture: true, passive: true, once: true });
+  window.addEventListener('keydown', warmup, { capture: true, once: true });
+  window.addEventListener('touchstart', warmup, { capture: true, passive: true, once: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initAppShell();
   installDestinyFlowerStubs();
   warmupDestinyFlowerOnFirstInteraction();
+  warmupFortuneServiceOnFirstInteraction();
 
   // Avoid blocking first paint with non-critical engine bootstrap.
   scheduleIdleTask(function () {
     ensureDestinyFlowerBootstrapped();
   }, 2200);
+
+  scheduleIdleTask(function () {
+    ensureFortuneServiceBootstrapped();
+  }, 2800);
 });

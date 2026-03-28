@@ -1,7 +1,13 @@
 (function () {
   'use strict';
 
-  var loaded = false;
+  var loading = false;
+  var loadedSrcMap = Object.create(null);
+  var interactionCount = 0;
+
+  function isMobile() {
+    return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  }
 
   function loadSeq(srcList, idx) {
     if (idx >= srcList.length) return;
@@ -33,20 +39,31 @@
   }
 
   function loadDeferredFeatureScripts() {
-    if (loaded) return;
-    loaded = true;
+    if (loading) return;
 
     var nodes = document.querySelectorAll('script[data-cd-lazy-src]');
     var srcList = [];
     for (var i = 0; i < nodes.length; i++) {
-      var src = nodes[i].getAttribute('data-cd-lazy-src');
-      if (src) srcList.push(src);
+      var node = nodes[i];
+      var delayLevel = Number(node.getAttribute('data-cd-mobile-delay') || '0');
+      if (isMobile() && delayLevel > interactionCount) continue;
+      var src = node.getAttribute('data-cd-lazy-src');
+      if (!src || loadedSrcMap[src]) continue;
+      srcList.push(src);
     }
     if (!srcList.length) return;
 
+    loading = true;
+
     preconnectOrigins(srcList);
 
-    var start = function () { loadSeq(srcList, 0); };
+    var start = function () {
+      loadSeq(srcList, 0);
+      for (var i = 0; i < srcList.length; i += 1) {
+        loadedSrcMap[srcList[i]] = 1;
+      }
+      loading = false;
+    };
     if (typeof window.requestIdleCallback === 'function') {
       requestIdleCallback(start, { timeout: 1200 });
       return;
@@ -57,9 +74,40 @@
   function onCollectionOpened(event) {
     var detail = event && event.detail;
     if (!detail || detail.isOpen !== true) return;
+    interactionCount = Math.max(interactionCount, 1);
     loadDeferredFeatureScripts();
   }
 
-  document.addEventListener('cd:collection-toggle', onCollectionOpened, { passive: true });
+  function onFirstInteraction() {
+    interactionCount = Math.max(interactionCount + 1, 1);
+    loadDeferredFeatureScripts();
+  }
+
+  function boot() {
+    document.addEventListener('cd:collection-toggle', onCollectionOpened, { passive: true });
+
+    var events = ['pointerdown', 'touchstart', 'keydown', 'click'];
+    for (var i = 0; i < events.length; i += 1) {
+      window.addEventListener(events[i], onFirstInteraction, { passive: true, once: true });
+    }
+
+    if (!isMobile()) {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(loadDeferredFeatureScripts, { timeout: 3200 });
+      } else {
+        setTimeout(loadDeferredFeatureScripts, 1800);
+      }
+      return;
+    }
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') {
+        interactionCount = Math.max(interactionCount, 1);
+        loadDeferredFeatureScripts();
+      }
+    }, { once: true });
+  }
+
+  boot();
 })();
 

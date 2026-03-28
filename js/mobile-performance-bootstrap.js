@@ -210,22 +210,54 @@ function __loadScriptOnce(src) {
 function __applyResponsiveSrcsetHints(img) {
   if (!img || img.dataset.responsiveHintReady === '1') return;
 
+  var srcsetHints = {
+    '/icons/honeypig.webp': {
+      srcset: '/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w',
+      sizes: '(max-width: 768px) 88px, 130px'
+    },
+    '/icons/samba.webp': {
+      srcset: '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w',
+      sizes: '(max-width: 768px) 88px, 130px'
+    },
+    '/fuctionassets/flower.webp': {
+      srcset: '/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w',
+      sizes: '(max-width: 768px) 86vw, 420px'
+    }
+  };
+
+  function normalizePath(raw) {
+    if (!raw) return '';
+    try {
+      var parsed = new URL(raw, window.location.href);
+      return parsed.pathname || '';
+    } catch (e) {
+      return raw.charAt(0) === '/' ? raw : '';
+    }
+  }
+
   var cls = img.className || '';
   var id = img.id || '';
+  var srcPath = normalizePath(img.getAttribute('data-lazy-src') || img.getAttribute('src'));
+  var byPath = srcsetHints[srcPath];
+
+  if (byPath && !img.getAttribute('srcset')) {
+    img.setAttribute('srcset', byPath.srcset);
+    img.setAttribute('sizes', byPath.sizes);
+  }
 
   if ((cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', '/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w');
-    img.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+    img.setAttribute('srcset', srcsetHints['/icons/honeypig.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/icons/honeypig.webp'].sizes);
   }
 
   if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w');
-    img.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+    img.setAttribute('srcset', srcsetHints['/icons/samba.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/icons/samba.webp'].sizes);
   }
 
   if (id === 'dfStudioImage' && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', '/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w');
-    img.setAttribute('sizes', '(max-width: 768px) 86vw, 420px');
+    img.setAttribute('srcset', srcsetHints['/fuctionassets/flower.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/fuctionassets/flower.webp'].sizes);
   }
 
   img.dataset.responsiveHintReady = '1';

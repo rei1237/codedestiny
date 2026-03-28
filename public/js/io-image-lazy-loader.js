@@ -12,6 +12,20 @@
   var IMG_SELECTOR = 'img[data-lazy-src], img[data-lazy-srcset]';
   var BG_SELECTOR = '[data-lazy-bg]';
   var LQIP_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%223%22 viewBox=%220 0 4 3%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 x2=%221%22 y1=%220%22 y2=%221%22%3E%3Cstop stop-color=%22%231a1630%22/%3E%3Cstop offset=%221%22 stop-color=%22%23272545%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%224%22 height=%223%22 fill=%22url(%23g)%22/%3E%3C/svg%3E';
+  var SRCSET_HINTS = {
+    '/icons/honeypig.webp': {
+      srcset: '/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w',
+      sizes: '(max-width: 768px) 88px, 130px'
+    },
+    '/icons/samba.webp': {
+      srcset: '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w',
+      sizes: '(max-width: 768px) 88px, 130px'
+    },
+    '/fuctionassets/flower.webp': {
+      srcset: '/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w',
+      sizes: '(max-width: 768px) 86vw, 420px'
+    }
+  };
 
   function markHero() {
     var hero = document.querySelector(HERO_SELECTOR);
@@ -62,6 +76,11 @@
       }
     }
 
+    var plainImgs = document.querySelectorAll('img');
+    for (var k = 0; k < plainImgs.length; k += 1) {
+      applyResponsiveHintsIfPossible(plainImgs[k]);
+    }
+
     // 모바일에서만, 최초 페인트 아래 이미지에 한정해 native lazy를 부여한다.
     if (isMobile()) {
       var allImgs = document.querySelectorAll('img:not([loading])');
@@ -77,6 +96,43 @@
         } catch (e) {}
       }
     }
+  }
+
+  function normalizePath(src) {
+    if (!src) return '';
+    try {
+      var u = new URL(src, window.location.href);
+      return u.pathname || '';
+    } catch (_) {
+      return src.charAt(0) === '/' ? src : '';
+    }
+  }
+
+  function applyResponsiveHintsIfPossible(img) {
+    if (!img || img.dataset.cdResponsiveHint === '1') return;
+
+    var key = normalizePath(img.getAttribute('data-lazy-src') || img.getAttribute('src'));
+    var hint = SRCSET_HINTS[key];
+    if (hint && !img.getAttribute('srcset')) {
+      img.setAttribute('srcset', hint.srcset);
+      img.setAttribute('sizes', hint.sizes);
+    }
+
+    if ((img.id === 'honeypigLogo' || (img.className || '').indexOf('honeypig-logo-icon') !== -1) && !img.getAttribute('srcset')) {
+      img.setAttribute('srcset', SRCSET_HINTS['/icons/honeypig.webp'].srcset);
+      img.setAttribute('sizes', SRCSET_HINTS['/icons/honeypig.webp'].sizes);
+    }
+    if ((img.id === 'neoLogo' || (img.className || '').indexOf('neo-logo-icon') !== -1) && !img.getAttribute('srcset')) {
+      img.setAttribute('srcset', SRCSET_HINTS['/icons/samba.webp'].srcset);
+      img.setAttribute('sizes', SRCSET_HINTS['/icons/samba.webp'].sizes);
+    }
+
+    if (img.id === 'dfStudioImage' && !img.getAttribute('srcset')) {
+      img.setAttribute('srcset', SRCSET_HINTS['/fuctionassets/flower.webp'].srcset);
+      img.setAttribute('sizes', SRCSET_HINTS['/fuctionassets/flower.webp'].sizes);
+    }
+
+    img.dataset.cdResponsiveHint = '1';
   }
 
   function observe() {
@@ -125,11 +181,13 @@
           if (!node || node.nodeType !== 1) continue;
           if (node.matches && node.matches(IMG_SELECTOR)) {
             ensureNativeLazy(node);
+            applyResponsiveHintsIfPossible(node);
           }
           if (node.querySelectorAll) {
             var imgs = node.querySelectorAll(IMG_SELECTOR);
             for (var n = 0; n < imgs.length; n += 1) {
               ensureNativeLazy(imgs[n]);
+              applyResponsiveHintsIfPossible(imgs[n]);
             }
           }
         }
