@@ -3,7 +3,8 @@
 */
 
 const SW_VERSION = new URL(self.location.href).searchParams.get('v') || 'dev';
-const CACHE_NAME = `kkul-mansaeryeok-${SW_VERSION}`;
+const CACHE_PREFIX = 'kkul-mansaeryeok-';
+const CACHE_NAME = `${CACHE_PREFIX}${SW_VERSION}`;
 
 const PRECACHE_URLS = [
   // Cloudflare/WAF가 manifest 요청을 특정 경로/헤더 조합에서 403으로 차단하는 케이스가 있어,
@@ -24,12 +25,44 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames =>
       Promise.all(
         cacheNames
-          .filter(name => name !== CACHE_NAME)
+          .filter(name => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
           .map(name => caches.delete(name))
       )
     ).then(() => self.clients.claim())
   );
 });
+
+function reportCriticalError(message, error) {
+  if (!error) {
+    console.error(`[SW] ${message}`);
+    return;
+  }
+  console.error(`[SW] ${message}`, error);
+}
+
+function createOfflineFallback(request) {
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    return new Response(
+      '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>Offline</title></head><body><h1>오프라인 상태입니다.</h1><p>네트워크 연결 후 다시 시도해 주세요.</p></body></html>',
+      {
+        status: 503,
+        statusText: 'offline_unavailable',
+        headers: { 'content-type': 'text/html; charset=UTF-8' }
+      }
+    );
+  }
+
+  return new Response('', { status: 204, statusText: 'offline_empty' });
+}
+
+async function safeNetworkFetch(request, options, fallbackStatusText) {
+  try {
+    return await fetch(request, options);
+  } catch (error) {
+    reportCriticalError(`Network fetch failed: ${fallbackStatusText}`, error);
+    return new Response('', { status: 503, statusText: fallbackStatusText });
+  }
+}
 
 self.addEventListener('message', event => {
   if (!event || !event.data) return;
@@ -57,21 +90,13 @@ self.addEventListener('fetch', event => {
 
   // HTML 문서는 항상 네트워크 우선(no-store)로 받아 구버전 셸 고착을 방지한다.
   if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch(
-        () => new Response('', { status: 503, statusText: 'offline_unavailable' })
-      )
-    );
+    event.respondWith(safeNetworkFetch(event.request, { cache: 'no-store' }, 'offline_unavailable'));
     return;
   }
 
   // Kill-switch heartbeat must always hit network and never use cache fallback.
   if (requestUrl.origin === self.location.origin && requestUrl.pathname === '/status.json') {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch(
-        () => new Response('', { status: 503, statusText: 'status_unavailable' })
-      )
-    );
+    event.respondWith(safeNetworkFetch(event.request, { cache: 'no-store' }, 'status_unavailable'));
     return;
   }
 
@@ -87,7 +112,7 @@ self.addEventListener('fetch', event => {
       requestUrl.pathname.includes('/styles/tarot-')
     )
   ) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    event.respondWith(safeNetworkFetch(event.request, { cache: 'no-store' }, 'tarot_asset_unavailable'));
     return;
   }
 
@@ -101,30 +126,41 @@ self.addEventListener('fetch', event => {
       pathname.endsWith('.css')
     )
   ) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' }).catch(async error => {
+        reportCriticalError('Static asset no-store fetch failed', error);
+        const cached = await caches.match(event.request);
+        return cached || createOfflineFallback(event.request);
+      })
+    );
     return;
   }
 
   event.respondWith(
-    fetch(event.request).then(response => {
-      if (!response || response.status !== 200 || response.type === 'opaque') return response;
-      const shouldCache =
-        !pathname.endsWith('.html') &&
-        !pathname.endsWith('.js') &&
-        !pathname.endsWith('.css');
-      if (shouldCache) {
-        const toCache = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
-      }
-      return response;
-    }).catch(async () => {
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
-      if (event.request.mode === 'navigate') {
-        const home = await caches.match('/');
-        if (home) return home;
-      }
-      return new Response('', { status: 503, statusText: 'offline_unavailable' });
-    })
+    fetch(event.request)
+      .then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') return response;
+        const shouldCache =
+          !pathname.endsWith('.html') &&
+          !pathname.endsWith('.js') &&
+          !pathname.endsWith('.css');
+        if (shouldCache) {
+          const toCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache)).catch(error => {
+            reportCriticalError('Cache put failed', error);
+          });
+        }
+        return response;
+      })
+      .catch(async error => {
+        reportCriticalError('Network-first fetch failed', error);
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+          const offlinePage = await caches.match('/offline.html');
+          if (offlinePage) return offlinePage;
+        }
+        return createOfflineFallback(event.request);
+      })
   );
 });
