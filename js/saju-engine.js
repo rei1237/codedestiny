@@ -6391,6 +6391,7 @@ function renderAstroInsight() {
       : '오늘 하늘은 "정교한 루틴 + 템포 유지"에서 힘을 줍니다. 적게 해도 정확하면 성과는 크게 남아요.';
     var astroTotalScore = clampBriefScore((astroCategoryData.reduce(function(acc, item){ return acc + item.score; }, 0) / astroCategoryData.length) + 4);
     var astroNeonCss = '<style id="astroNeonBriefingStyle">'
+      +'.astro-body, .astro-body button, .astro-body input, .astro-body select, .astro-body textarea{font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif !important;}'
       +'.astro-body{background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;}'
       +'.astro-body .astro-section{position:relative;overflow:hidden;border:1px solid rgba(148,163,184,.22);background:linear-gradient(160deg,rgba(15,23,42,.92),rgba(10,20,45,.9));border-radius:16px;padding:14px;box-shadow:0 0 0 1px rgba(34,211,238,.08),0 16px 28px -24px rgba(56,189,248,.65);}'
       +'.astro-body .astro-section:before{content:"";position:absolute;top:-45px;right:-45px;width:120px;height:120px;background:radial-gradient(circle,rgba(56,189,248,.24),rgba(56,189,248,0));pointer-events:none;}'
@@ -6408,6 +6409,14 @@ function renderAstroInsight() {
       +'.astro-neon-syn-title{font-size:13px;font-weight:800;color:#bae6fd;letter-spacing:.01em;}'
       +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:11px;color:#cffafe;}'
       +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:12px;color:#a5f3fc;line-height:1.65;}'
+      +'.astro-neon-input,.astro-neon-select{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:10px;background:rgba(10,18,38,.86);color:#f8fafc;border:1px solid rgba(125,211,252,.36);font-size:13px;outline:none;box-shadow:inset 0 0 0 1px rgba(56,189,248,.08);}'
+      +'.astro-neon-input:focus,.astro-neon-select:focus{border-color:rgba(125,211,252,.7);box-shadow:0 0 0 2px rgba(56,189,248,.22);}'
+      +'.astro-neon-cta{width:100%;padding:11px 12px;border-radius:11px;background:linear-gradient(135deg,#0891b2,#6366f1 55%,#8b5cf6);color:#fff;font-weight:800;font-size:13px;border:1px solid rgba(125,211,252,.45);cursor:pointer;letter-spacing:.35px;box-shadow:0 8px 22px -14px rgba(56,189,248,.85);transition:transform .15s ease, box-shadow .15s ease;}'
+      +'.astro-neon-cta:hover{transform:translateY(-1px);box-shadow:0 12px 24px -14px rgba(99,102,241,.9);}'
+      +'.astro-neon-scroll{display:flex;flex-wrap:wrap;gap:6px;max-height:130px;overflow-y:auto;padding:7px;border:1px solid rgba(148,163,184,.16);border-radius:10px;background:rgba(2,6,23,.34);min-height:44px;}'
+      +'.astro-neon-scroll::-webkit-scrollbar{width:8px;height:8px;}'
+      +'.astro-neon-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(34,211,238,.7),rgba(99,102,241,.7));border-radius:999px;}'
+      +'.astro-neon-tab-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(96,165,250,.38);background:linear-gradient(165deg,#0b0e14 0%,#0f1d3a 46%,#1a1c2c 100%);box-shadow:0 0 0 1px rgba(34,211,238,.18),0 24px 48px -28px rgba(56,189,248,.75),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:-40% auto auto -25%;width:240px;height:240px;background:radial-gradient(circle,rgba(45,212,191,.22),rgba(45,212,191,0));filter:blur(4px);pointer-events:none;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;right:-90px;bottom:-110px;width:260px;height:260px;background:radial-gradient(circle,rgba(168,85,247,.28),rgba(168,85,247,0));filter:blur(8px);pointer-events:none;}'
@@ -6612,29 +6621,24 @@ function renderAstroInsight() {
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
         +'<div style="flex:1;min-width:130px;">'
         +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">상대방 이름 (선택)</label>'
-        +'<input type="text" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off" '
-        +'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
+        +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off">'
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
         +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">생년월일</label>'
-        +'<input type="date" id="asDirect_date" '
-        +'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;" required>'
+        +'<input type="date" class="astro-neon-input" id="asDirect_date" required>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
         +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">태어난 시각</label>'
-        +'<input type="time" id="asDirect_time" value="12:00" '
-        +'style="width:120px;box-sizing:border-box;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
+        +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
         +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">도시(시/군)</label>'
-        +'<select id="asDirect_city" '
-        +'style="width:240px;padding:8px 10px;border-radius:7px;background:rgba(20,25,35,0.9);color:#fff;border:1px solid rgba(245,158,11,0.4);font-size:0.85rem;">'
+        +'<select id="asDirect_city" class="astro-neon-select" style="width:240px;">'
         +'<option value="">도시 선택(시/군 단위)</option>'
         +'</select>'
         +'</div>'
         +'</div>'
-        +'<button onclick="window._astroDirectSynastry()" '
-        +'style="width:100%;padding:10px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:800;font-size:0.9rem;border:none;cursor:pointer;letter-spacing:0.5px;">✦ 시나스트리 분석하기</button>'
+        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 시나스트리 분석하기</button>'
         +'<div id="asDirectResult" style="margin-top:14px;"></div>'
         +'</div>'
         +'</div>'
@@ -6685,17 +6689,16 @@ function renderAstroInsight() {
         +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
         +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">유명인을 선택하면 나탈 차트를 비교하여 연애·동료·영적 궁합을 분석합니다. 생시 미상 인물은 정오(12:00) 기준이며 달·상승궁 오차가 있을 수 있습니다.</p>'
         /* 국가 탭 */
-        +'<div id="astroCtryTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>'
+        +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
         /* 카테고리 탭 */
-        +'<div id="astroCatTabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>'
+        +'<div id="astroCatTabs" class="astro-neon-tab-row"></div>'
         /* 검색 */
         +'<div style="position:relative;margin-bottom:8px;">'
-        +'<input type="text" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" '
-        +'style="width:100%;box-sizing:border-box;padding:7px 34px 7px 10px;border-radius:6px;background:rgba(20,25,35,0.8);color:#fff;border:1px solid rgba(244,114,182,0.4);font-size:0.83rem;">'
+        +'<input type="text" class="astro-neon-input" id="astroSyQ" placeholder="이름 검색 (예: 테일러 스위프트, 아이유...)" autocomplete="off" style="padding-right:34px;">'
         +'<span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;font-size:0.9rem;">🔍</span>'
         +'</div>'
         /* 유명인 버튼 목록 */
-        +'<div id="astroSyCelebs" style="display:flex;flex-wrap:wrap;gap:5px;max-height:130px;overflow-y:auto;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;background:rgba(0,0,0,0.15);min-height:44px;"></div>'
+        +'<div id="astroSyCelebs" class="astro-neon-scroll"></div>'
         +'</div>'
 
         /* ── [시나스트리 결과판] ── */
@@ -6966,11 +6969,11 @@ function renderAstroInsight() {
                 var btn = document.createElement('button');
                 btn.type = 'button';
                 btn.textContent = flag + c.name;
-                btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.75rem;border:1px solid rgba(244,114,182,0.3);background:rgba(20,25,35,0.8);color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;';
+                btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
-                btn.onmouseleave = function() { this.style.background='rgba(20,25,35,0.8)'; };
+                btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
                 btn.onclick = function() {
-                    listDiv.querySelectorAll('button').forEach(function(b) { b.style.background='rgba(20,25,35,0.8)'; });
+                  listDiv.querySelectorAll('button').forEach(function(b) { b.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; });
                     this.style.background = 'rgba(244,114,182,0.25)';
                     window._astroPickCeleb(c.name, c.birth, c.hour || 12);
                 };
@@ -6991,7 +6994,7 @@ function renderAstroInsight() {
                 var b = document.createElement('button'); b.type = 'button';
                 b.textContent = label; b.dataset.c = code;
                 var isA = code === '';
-                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'#7f8c8d')+';cursor:pointer;white-space:nowrap;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(129,140,248,'+(isA?'0.7':'0.3')+');background:rgba(129,140,248,'+(isA?'0.18':'0.04')+');color:'+(isA?'#a5b4fc':'#7f8c8d')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     ctryDiv.querySelectorAll('button').forEach(function(x){
                         x.style.background='rgba(129,140,248,0.04)'; x.style.borderColor='rgba(129,140,248,0.3)'; x.style.color='#7f8c8d';
@@ -7014,7 +7017,7 @@ function renderAstroInsight() {
             ['전체'].concat(CELEB_CATS).forEach(function(c, i) {
                 var b = document.createElement('button'); b.type='button'; b.dataset.cat = i===0?'':c;
                 b.textContent = (ic[c]||'✨') + ' ' + c;
-                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'#94a3b8')+';cursor:pointer;white-space:nowrap;';
+                b.style.cssText = 'padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;border:1px solid rgba(244,114,182,'+(i===0?'0.6':'0.25')+');background:rgba(244,114,182,'+(i===0?'0.15':'0.04')+');color:'+(i===0?'#f9a8d4':'#94a3b8')+';cursor:pointer;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 b.onclick = function() {
                     catDiv.querySelectorAll('button').forEach(function(x){
                         x.style.background='rgba(244,114,182,0.04)'; x.style.borderColor='rgba(244,114,182,0.25)'; x.style.color='#94a3b8';
