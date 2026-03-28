@@ -8360,6 +8360,10 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   gap: 16px;
 }
 
+.df-studio-empty[hidden] {
+  display: none !important;
+}
+
 .df-studio-empty-message {
   margin: 0;
   color: rgba(251, 241, 221, 0.92);
@@ -13210,6 +13214,28 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 /* date/time 입력 — 모바일에서 텍스트 가시성 보장 */
 input[type="date"][style*="background: rgba(20,25,35"],
 input[type="time"][style*="background: rgba(20,25,35"] {
+  color-scheme: dark;
+}
+/* 모바일 WebKit: 라이트 배경 date/time 텍스트가 투명/시스템색으로 사라지는 현상 방지 */
+body:not(.neo-mode) .inp[type="date"],
+body:not(.neo-mode) .inp[type="time"],
+body:not(.neo-mode) .inp[type="datetime-local"] {
+  color: #111;
+  -webkit-text-fill-color: #111;
+  color-scheme: light;
+}
+body:not(.neo-mode) .inp[type="date"]::-webkit-datetime-edit,
+body:not(.neo-mode) .inp[type="time"]::-webkit-datetime-edit,
+body:not(.neo-mode) .inp[type="datetime-local"]::-webkit-datetime-edit,
+body:not(.neo-mode) .inp[type="date"]::-webkit-date-and-time-value,
+body:not(.neo-mode) .inp[type="time"]::-webkit-date-and-time-value,
+body:not(.neo-mode) .inp[type="datetime-local"]::-webkit-date-and-time-value {
+  color: #111;
+  -webkit-text-fill-color: #111;
+}
+body.neo-mode .inp[type="date"],
+body.neo-mode .inp[type="time"],
+body.neo-mode .inp[type="datetime-local"] {
   color-scheme: dark;
 }
 input[type="date"]::-webkit-date-and-time-value,
