@@ -2088,7 +2088,14 @@ function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
     imageEl.src = _dfBuildFlowerDataUri(selection, sourceOverride);
     if (typeof imageEl.removeAttribute === 'function') {
       imageEl.removeAttribute('srcset');
+      imageEl.removeAttribute('data-lazy-src');
+      imageEl.removeAttribute('data-lazy-srcset');
+      imageEl.removeAttribute('loading');
     }
+    if (imageEl.classList && imageEl.classList.contains('io-lazy-img')) {
+      imageEl.classList.remove('io-lazy-img');
+    }
+    imageEl.setAttribute('data-df-generated', '1');
   } catch (e) {
     console.warn('[DestinyFlower] 동적 SVG 생성 실패:', e);
   }
@@ -2191,14 +2198,31 @@ function _dfResolveBirthContext(payload) {
   var astroBirth = window._astroBirth || {};
   var ziweiBirth = window._ziweiBirth || {};
 
-  var year = _dfPickNumber([pBirth.year, iBirth.year, astroBirth.year, ziweiBirth.year], 0, true);
-  var month = _dfPickNumber([pBirth.month, iBirth.month, astroBirth.month, ziweiBirth.month], 0, true);
-  var day = _dfPickNumber([pBirth.day, iBirth.day, astroBirth.day, ziweiBirth.day], 0, true);
-  var hour = _dfPickNumber([pBirth.hour, iBirth.hour, astroBirth.hour, ziweiBirth.hour], 12, false);
-  var minute = _dfPickNumber([pBirth.minute, iBirth.minute, astroBirth.minute, ziweiBirth.minute], 0, false);
-  var lat = _dfPickNumber([pBirth.lat, pBirth.latitude, iBirth.lat, iBirth.latitude, astroBirth.lat, location.lat], 37.6, false);
-  var lon = _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, astroBirth.lon, location.lng, location.lon], 127, false);
-  var tz = _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, astroBirth.tz, location.tzOffset, location.baseTzOffset], 9, false);
+  var hasProfileCore = _dfHasBirthCore(pBirth) || _dfHasBirthCore(iBirth);
+  var yearCandidates = hasProfileCore
+    ? [pBirth.year, iBirth.year]
+    : [pBirth.year, iBirth.year, astroBirth.year, ziweiBirth.year];
+  var monthCandidates = hasProfileCore
+    ? [pBirth.month, iBirth.month]
+    : [pBirth.month, iBirth.month, astroBirth.month, ziweiBirth.month];
+  var dayCandidates = hasProfileCore
+    ? [pBirth.day, iBirth.day]
+    : [pBirth.day, iBirth.day, astroBirth.day, ziweiBirth.day];
+  var hourCandidates = hasProfileCore
+    ? [pBirth.hour, iBirth.hour]
+    : [pBirth.hour, iBirth.hour, astroBirth.hour, ziweiBirth.hour];
+  var minuteCandidates = hasProfileCore
+    ? [pBirth.minute, iBirth.minute]
+    : [pBirth.minute, iBirth.minute, astroBirth.minute, ziweiBirth.minute];
+
+  var year = _dfPickNumber(yearCandidates, 0, true);
+  var month = _dfPickNumber(monthCandidates, 0, true);
+  var day = _dfPickNumber(dayCandidates, 0, true);
+  var hour = _dfPickNumber(hourCandidates, 12, false);
+  var minute = _dfPickNumber(minuteCandidates, 0, false);
+  var lat = _dfPickNumber([pBirth.lat, pBirth.latitude, iBirth.lat, iBirth.latitude, location.lat], 37.6, false);
+  var lon = _dfPickNumber([pBirth.lon, pBirth.lng, iBirth.lon, iBirth.lng, location.lng, location.lon], 127, false);
+  var tz = _dfPickNumber([pBirth.tz, pBirth.tzOffset, iBirth.tz, iBirth.tzOffset, location.tzOffset, location.baseTzOffset], 9, false);
 
   // 자미두수·점성술 등은 양력 기준. 음력 입력 시 양력으로 변환하여 명궁 등이 정확히 계산되도록 함.
   var calType = pBirth.calType || iBirth.calType || 'solar';
@@ -2465,7 +2489,38 @@ function _dfGetProfilePayload(options) {
     if (!a || !b) return false;
     return Number(a.year || 0) === Number(b.year || 0)
       && Number(a.month || 0) === Number(b.month || 0)
-      && Number(a.day || 0) === Number(b.day || 0);
+      && Number(a.day || 0) === Number(b.day || 0)
+      && Number(a.hour || 0) === Number(b.hour || 0)
+      && Number(a.minute || 0) === Number(b.minute || 0)
+      && String(a.calType || 'solar') === String(b.calType || 'solar');
+  }
+
+  function buildProfileSignature(profile) {
+    var p = profile || {};
+    var b = (p.birth || (p.identity && p.identity.birth) || {});
+    return [
+      Number(b.year || 0),
+      Number(b.month || 0),
+      Number(b.day || 0),
+      Number(b.hour || 0),
+      Number(b.minute || 0),
+      String(b.calType || 'solar'),
+      String(p.name || ''),
+      String(p.gender || '')
+    ].join('|');
+  }
+
+  function syncStudioStateByProfile(profile) {
+    if (typeof _dfStudioState !== 'object' || !_dfStudioState) return;
+    var signature = buildProfileSignature(profile);
+    if (!signature) return;
+    if (_dfStudioState.profileSignature && _dfStudioState.profileSignature !== signature) {
+      _dfStudioState.flowerData = null;
+      _dfStudioState.selection = null;
+      _dfStudioState.linkedSources = {};
+      _dfStudioState.userRequestedLoad = {};
+    }
+    _dfStudioState.profileSignature = signature;
   }
 
   function pickSajuSnapshot(baseProfile) {
@@ -2503,6 +2558,7 @@ function _dfGetProfilePayload(options) {
   }
 
   var current = getCurrentProfile();
+  syncStudioStateByProfile(current);
   var payload = current || {};
   var snapshot = pickSajuSnapshot(current);
   if (snapshot && isMeaningfulSnapshot(snapshot)) {
@@ -3347,6 +3403,7 @@ var _dfStudioState = {
   selection: null,
   history: [],
   flowerData: null,
+  profileSignature: '',
   activeSource: 'saju',
   loadingSource: '',
   loadingTasks: {},
