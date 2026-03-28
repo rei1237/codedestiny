@@ -343,16 +343,6 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script>
-(function(){
-  try {
-    var staleFontPreloads = document.querySelectorAll('link[rel="preload"][as="font"][href*="fonts.gstatic.com/s/notosanskr/"]');
-    for (var i = 0; i < staleFontPreloads.length; i += 1) {
-      staleFontPreloads[i].remove();
-    }
-  } catch (_) {}
-})();
-</script>
 <!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
