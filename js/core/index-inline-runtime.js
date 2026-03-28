@@ -2578,9 +2578,27 @@ function _dfGetProfilePayload(options) {
 
   if (payload && payload.birth && typeof window.computeProfileForModal === 'function') {
     try {
-      window.computeProfileForModal(payload);
+      var modalComputed = window.computeProfileForModal(payload);
+      if (!modalComputed) {
+        console.error('[DestinyFlower][Saju] computeProfileForModal failed', {
+          hasSolar: !(typeof window.Solar === 'undefined'),
+          hasSolarFromYmdHms: !!(window.Solar && typeof window.Solar.fromYmdHms === 'function'),
+          birth: payload && payload.birth ? {
+            year: payload.birth.year,
+            month: payload.birth.month,
+            day: payload.birth.day,
+            hour: payload.birth.hour,
+            minute: payload.birth.minute,
+            calType: payload.birth.calType
+          } : null
+        });
+      }
       snapshot = pickSajuSnapshot(payload);
-      if (snapshot) payload = mergePayload(payload, snapshot);
+      if (snapshot) {
+        payload = mergePayload(payload, snapshot);
+      } else {
+        console.warn('[DestinyFlower][Saju] snapshot not available after computeProfileForModal');
+      }
     } catch (e2) {
       console.warn('[DestinyFlower] 사주 재계산 실패:', e2);
     }
@@ -4024,6 +4042,15 @@ function _dfHasReadySourceData(source, payload) {
       || ''
     ).trim();
 
+    var dayStem = String(
+      saju.dayStem
+      || saju.day_stem
+      || sajuDomain.day_stem
+      || analysis.dayStem
+      || analysis.day_stem
+      || ''
+    ).trim();
+
     var hasPillar = !!(
       String(saju.yearPillar || sajuDomain.year_pillar || '').trim()
       || String(saju.monthPillar || sajuDomain.month_pillar || '').trim()
@@ -4037,6 +4064,7 @@ function _dfHasReadySourceData(source, payload) {
     }).filter(function(v) {
       return Number.isFinite(v);
     });
+    var hasAnyWeights = values.length === 5;
     var hasNonDefaultWeights = false;
     if (values.length === 5) {
       var allSame = values.every(function(v) { return Math.abs(v - values[0]) < 0.05; });
@@ -4044,7 +4072,7 @@ function _dfHasReadySourceData(source, payload) {
       hasNonDefaultWeights = !looksDefault;
     }
 
-    return !!(dayMaster || hasPillar || hasNonDefaultWeights);
+    return !!(dayMaster || dayStem || hasPillar || hasNonDefaultWeights || hasAnyWeights);
   }
 
   if (normalized === 'astrology') {
