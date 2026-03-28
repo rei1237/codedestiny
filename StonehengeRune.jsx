@@ -648,7 +648,7 @@ export default function StonehengeRune() {
   const handleShareKakao = async () => {
     const shareTitle = "스톤헨지 룬 오라클";
     const shareText = "룬의 속삭임으로 오늘의 흐름을 확인해보세요.";
-    const shareUrl = typeof window !== "undefined" ? window.location.href : "https://code-destiny-web.pages.dev/oracle/rune";
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "https://code-destiny.pages.dev/oracle/rune";
 
     try {
       if (navigator.share) {
@@ -658,7 +658,7 @@ export default function StonehengeRune() {
 
       const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`${shareTitle} - ${shareText}`)}`;
       window.open(kakaoUrl, "_blank", "noopener,noreferrer");
-    } catch (error) {
+    } catch {
       try {
         await navigator.clipboard.writeText(shareUrl);
         window.alert("공유 링크를 복사했습니다. 카카오톡 대화창에 붙여넣어 공유해 주세요.");
