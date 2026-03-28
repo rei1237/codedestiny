@@ -2564,6 +2564,7 @@ function _dfResolveSelection() {
 
 function _afResolveSelection() {
   var payload = _dfGetProfilePayload();
+  if (!_dfHasReadySourceData('astrology', payload)) return null;
   var matched = null;
 
   try {
@@ -2577,6 +2578,7 @@ function _afResolveSelection() {
   } catch (e) {
     console.warn('[AstrologyFlower] 매칭 실패:', e);
   }
+  if (!matched) return null;
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -2762,6 +2764,8 @@ function _jfResolveSelection() {
   } catch (e) {
     console.warn('[JamidusuFlower] 매칭 실패:', e);
   }
+  if (!_dfHasReadySourceData('jamidusu', payload)) return null;
+  if (!matched) return null;
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -2924,6 +2928,8 @@ function _sfResolveSelection() {
   } catch (e) {
     console.warn('[SukuyoFlower] 매칭 실패:', e);
   }
+  if (!_dfHasReadySourceData('sukuyo', payload)) return null;
+  if (!matched) return null;
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -3347,7 +3353,7 @@ function _dfGetUnifiedSelection(source, forceRefresh) {
   if (!selection) {
     selection = _dfResolveSelectionBySource(normalized);
   }
-  if (!selection) {
+  if (!selection && normalized === 'saju') {
     selection = _dfResolveSelection();
   }
   if (selection) selection.source = _dfNormalizeSource(selection.source || normalized);
@@ -3778,9 +3784,147 @@ function _dfPersistHistory() {
   }
 }
 
-function _dfSetStudioStatus(message) {
+function _dfHasReadySourceData(source, payload) {
+  var normalized = _dfNormalizeSource(source);
+  var data = payload && typeof payload === 'object' ? payload : {};
+  if (normalized === 'saju') return true;
+
+  if (normalized === 'astrology') {
+    var astrology = data.astrology || {};
+    var astroDomain = (data.domains && data.domains.astrology) || {};
+    var sun = _dfNormalizeAstroSign(astrology.sunSign || astrology.sun_sign || astroDomain.sun_sign || '');
+    var moon = _dfNormalizeAstroSign(astrology.moonSign || astrology.moon_sign || astroDomain.moon_sign || '');
+    var rising = _dfNormalizeAstroSign(astrology.risingSign || astrology.rising_sign || astroDomain.rising_sign || '');
+    return !!(sun || moon || rising);
+  }
+
+  if (normalized === 'jamidusu') {
+    var ziwei = data.ziwei || {};
+    var ziweiDomain = (data.domains && data.domains.ziwei) || {};
+    var mainStar = String(ziwei.mainStar || ziwei.main_star || ziweiDomain.main_star || '').trim();
+    var palace = String(ziwei.palace || ziwei.mainPalace || ziweiDomain.palace || '').trim();
+    var stars = Array.isArray(ziwei.stars) ? ziwei.stars : (Array.isArray(ziweiDomain.stars) ? ziweiDomain.stars : []);
+    return !!(mainStar || palace || stars.length);
+  }
+
+  if (normalized === 'sukuyo') {
+    var sukuyo = data.sukuyo || {};
+    var sukuyoDomain = (data.domains && data.domains.sukuyo) || {};
+    var mansion = String(sukuyo.mansion || sukuyo.name || sukuyoDomain.mansion || '').trim();
+    var idx = Number(sukuyo.mansionIndex || sukuyo.index || sukuyoDomain.mansion_index);
+    return !!(mansion || Number.isFinite(idx));
+  }
+
+  return true;
+}
+
+function _dfHasBirthInfo(payload) {
+  var birthCtx = _dfResolveBirthContext(payload || {});
+  return _dfHasBirthCore(birthCtx);
+}
+
+function _dfGetNoDomainDataMessage(source) {
+  var normalized = _dfNormalizeSource(source);
+  if (normalized === 'astrology') return '점성술 차트 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
+  if (normalized === 'jamidusu') return '자미두수 명궁 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
+  if (normalized === 'sukuyo') return '숙요점 달력 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
+  return '필요한 데이터가 아직 준비되지 않았어요. 아래 버튼으로 다시 불러와 주세요.';
+}
+
+function _dfGetDataMissingUiState(source) {
+  var normalized = _dfNormalizeSource(source);
+  var payload = _dfGetProfilePayload() || {};
+
+  if (!_dfHasBirthInfo(payload)) {
+    return {
+      message: _dfGetNoBirthMessage(normalized),
+      showLoadButton: false,
+      source: normalized
+    };
+  }
+
+  var missingDomain = !_dfHasReadySourceData(normalized, payload);
+  return {
+    message: missingDomain ? _dfGetNoDomainDataMessage(normalized) : _dfGetNoBirthMessage(normalized),
+    showLoadButton: missingDomain && normalized !== 'saju',
+    source: normalized
+  };
+}
+
+function _dfRefreshStudioForSource(source, forceRefresh) {
+  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var selection = _dfGetUnifiedSelection(normalized, !!forceRefresh);
+  _dfStudioState.selection = selection;
+
+  var main = document.querySelector('.df-studio-main');
+  var panels = document.querySelector('.df-studio-panels');
+  var historySection = document.querySelector('.df-studio-history');
+
+  if (!selection) {
+    if (main) main.style.display = 'none';
+    if (panels) panels.style.display = 'none';
+    if (historySection) historySection.style.display = 'none';
+    var emptyState = _dfGetDataMissingUiState(normalized);
+    _dfSetStudioStatus(emptyState.message, {
+      showLoadButton: emptyState.showLoadButton,
+      source: normalized
+    });
+    return null;
+  }
+
+  _dfApplyStudioSelection(selection);
+  if (main) main.style.display = '';
+  if (panels) panels.style.display = '';
+  if (historySection) historySection.style.display = '';
+  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+  return selection;
+}
+
+function _dfReloadSourceData(source) {
+  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  _dfSetStudioStatus('데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.');
+
+  var loader = Promise.resolve(true);
+  if (typeof __cdEnsureSajuCoreLoaded === 'function') {
+    loader = __cdEnsureSajuCoreLoaded().catch(function(err) {
+      console.warn('[DestinyFlower] 데이터 로드 준비 실패:', err);
+      return false;
+    });
+  }
+
+  loader.then(function() {
+    _dfStudioState.flowerData = null;
+    _dfRefreshStudioForSource(normalized, true);
+  });
+}
+
+function _dfSetStudioStatus(message, options) {
   var el = document.getElementById('dfStudioStatus');
   if (el) el.textContent = message || '';
+  var parent = el && el.parentElement ? el.parentElement : null;
+  if (!parent) return;
+
+  var actionWrap = document.getElementById('dfStudioStatusActionWrap');
+  if (!actionWrap) {
+    actionWrap = document.createElement('div');
+    actionWrap.id = 'dfStudioStatusActionWrap';
+    actionWrap.style.marginTop = '10px';
+    parent.appendChild(actionWrap);
+  }
+  actionWrap.innerHTML = '';
+
+  if (!options || !options.showLoadButton) return;
+
+  var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'df-bloom-btn';
+  btn.textContent = '데이터 불러오기';
+  btn.setAttribute('aria-label', '운명의 꽃 데이터 불러오기');
+  btn.addEventListener('click', function() {
+    _dfReloadSourceData(source);
+  });
+  actionWrap.appendChild(btn);
 }
 
 function _dfEscapeHtml(s) {
@@ -4363,7 +4507,18 @@ function openDestinyFlower(forceRefreshData) {
   var activeSource = _dfSetActiveSource(_dfStudioState.activeSource || 'saju');
   var refresh = forceRefreshData !== false;
   var selection = _dfGetUnifiedSelection(activeSource, refresh);
-  _dfAnimateUnifiedCardSwitch(card, selection);
+  if (selection) {
+    _dfAnimateUnifiedCardSwitch(card, selection);
+  } else {
+    var stage = card.querySelector('.destiny-flower-stage');
+    var nameEl = card.querySelector('.destiny-flower-stage__name');
+    var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
+    var emptyState = _dfGetDataMissingUiState(activeSource);
+    if (stage && nameEl && symbolismEl) {
+      nameEl.textContent = '데이터 불러오기 대기';
+      symbolismEl.textContent = emptyState.message;
+    }
+  }
   if (typeof syncFeatureCardHeight === 'function') {
     syncFeatureCardHeight(card);
     requestAnimationFrame(function() {
@@ -4491,7 +4646,11 @@ function openDestinyFlowerStudio() {
     if (main) main.style.display = 'none';
     if (panels) panels.style.display = 'none';
     if (historySection) historySection.style.display = 'none';
-    _dfSetStudioStatus(_dfGetNoBirthMessage(_dfStudioState.activeSource || 'saju'));
+    var emptyState = _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
+    _dfSetStudioStatus(emptyState.message, {
+      showLoadButton: emptyState.showLoadButton,
+      source: emptyState.source
+    });
   } else {
     _dfStudioState.selection = selection;
     _dfApplyStudioSelection(selection);
@@ -4537,20 +4696,9 @@ function setDestinyFlowerSourceTab(source) {
   _dfStudioState.selection = selection;
 
   if (isStudioOpen) {
-    var main = document.querySelector('.df-studio-main');
-    var panels = document.querySelector('.df-studio-panels');
-    var historySection = document.querySelector('.df-studio-history');
-    if (!selection) {
-      if (main) main.style.display = 'none';
-      if (panels) panels.style.display = 'none';
-      if (historySection) historySection.style.display = 'none';
-      _dfSetStudioStatus(_dfGetNoBirthMessage(normalized));
-    } else {
-      _dfApplyStudioSelection(selection);
-      if (main) main.style.display = '';
-      if (panels) panels.style.display = '';
-      if (historySection) historySection.style.display = '';
-      _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+    var studioSelection = _dfRefreshStudioForSource(normalized, false);
+    if (studioSelection) {
+      _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -4564,7 +4712,7 @@ function setDestinyFlowerSourceTab(source) {
         var symbolismEl = card.querySelector('.destiny-flower-stage__symbolism');
         if (stage && nameEl && symbolismEl) {
           nameEl.textContent = '생년월일 입력 대기';
-          symbolismEl.textContent = _dfGetNoBirthMessage(normalized);
+          symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
         }
       }
       if (typeof syncFeatureCardHeight === 'function') {
@@ -4578,7 +4726,11 @@ function setDestinyFlowerSourceTab(source) {
 
   return selection;
 }
-
+            var emptyState = _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
+            _dfSetStudioStatus(emptyState.message, {
+              showLoadButton: emptyState.showLoadButton,
+              source: emptyState.source
+            });
 function closeDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
