@@ -13,6 +13,7 @@ var CDN_URLS=[
 var tried=0;
 var __libReady = false;
 var __libLoading = false;
+var __pendingAutoCalculation = false;
 
 function _setRunButtonToRetry() {
   var btnEl = document.getElementById('run-btn');
@@ -910,6 +911,19 @@ function onLibReady(){
     btn.textContent='🐷 사주 분석하기';
     /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
     btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
+  }
+
+  if (__pendingAutoCalculation) {
+    __pendingAutoCalculation = false;
+    setTimeout(function() {
+      try {
+        if (typeof checkPrivacyAndCalculate === 'function') {
+          checkPrivacyAndCalculate();
+        }
+      } catch (e) {
+        console.error('[saju] pending auto calculation failed', e);
+      }
+    }, 0);
   }
 }
 
@@ -3360,11 +3374,13 @@ async function agreeAndCalculate() {
 
 async function startSajuCalculationFlow() {
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
+    __pendingAutoCalculation = true;
     if (!__libLoading && !__libReady) {
       retrySajuLibraryLoad();
     }
-    alert('라이브러리가 아직 로딩 중입니다. 잠시 후 다시 시도해주세요 🐷');return;
+    return;
   }
+  __pendingAutoCalculation = false;
   var bd=document.getElementById('birthDate').value;
   if(!bd){alert('생년월일을 입력하세요');return;}
 

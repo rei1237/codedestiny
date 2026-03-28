@@ -415,6 +415,39 @@
     return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
   }
 
+  function _runSajuWhenReady(maxAttempts, delayMs) {
+    var attempts = 0;
+    var max = (typeof maxAttempts === 'number' && maxAttempts > 0) ? maxAttempts : 60;
+    var delay = (typeof delayMs === 'number' && delayMs > 0) ? delayMs : 250;
+
+    function tick() {
+      attempts += 1;
+      if (typeof window.checkPrivacyAndCalculate === 'function') {
+        try {
+          var p = window.checkPrivacyAndCalculate();
+          if (p && typeof p.catch === 'function') {
+            p.catch(function(err) {
+              console.error('[DP] 계산 완료 콜백 오류:', err);
+              _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
+            });
+          }
+        } catch (err) {
+          console.error('[DP] 계산 실행 오류:', err);
+          _toast('⚠️ 계산 실행 중 오류가 발생했습니다', 'warn');
+        }
+        return;
+      }
+
+      if (attempts < max) {
+        setTimeout(tick, delay);
+      } else {
+        _toast('⚠️ 계산 모듈 로딩이 지연되고 있습니다. 잠시 후 자동으로 다시 시도됩니다.', 'warn');
+      }
+    }
+
+    tick();
+  }
+
   function _injectAndRun(profile, fortuneType) {
     if (!profile) {
       _toast('⚠️ 활성화된 프로필이 없습니다', 'warn');
@@ -507,22 +540,7 @@
     /* ⑤ 비동기 실행 — RAF + 80ms: DOM 완전 반영 후 계산 */
     requestAnimationFrame(function() {
       setTimeout(function() {
-        try {
-          if (typeof window.checkPrivacyAndCalculate === 'function') {
-            var calcPromise = window.checkPrivacyAndCalculate();
-            if (calcPromise && typeof calcPromise.catch === 'function') {
-              calcPromise.catch(function(err) {
-                console.error('[DP] 계산 완료 콜백 오류:', err);
-                _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
-              });
-            }
-          } else {
-            _toast('⚠️ 계산 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
-          }
-        } catch (err) {
-          console.error('[DP] 계산 실행 오류:', err);
-          _toast('⚠️ 계산 실행 중 오류가 발생했습니다', 'warn');
-        }
+        _runSajuWhenReady(60, 250);
       }, 80);
     });
   }
