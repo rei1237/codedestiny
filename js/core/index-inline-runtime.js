@@ -2229,27 +2229,55 @@ function _dfResolveBirthContext(payload) {
 }
 
 function _dfExtractAstroLiveData(birthCtx) {
-  if (!_dfHasBirthCore(birthCtx) || typeof window.calcAstroApiChartOrThrow !== 'function') return null;
-  try {
-    var chart = window.calcAstroApiChartOrThrow(
-      Number(birthCtx.year),
-      Number(birthCtx.month),
-      Number(birthCtx.day),
-      Number(birthCtx.hour) + Number(birthCtx.minute) / 60,
-      Number(birthCtx.lat),
-      Number(birthCtx.lon),
-      Number(birthCtx.tz),
-      window.ASTRO_HOUSE_SYSTEM || 'P'
-    );
-    return {
-      sunSign: _dfAstroSignFromNode(chart && chart.sun),
-      moonSign: _dfAstroSignFromNode(chart && chart.moon),
-      risingSign: _dfAstroSignFromNode(chart && chart.asc)
-    };
-  } catch (e) {
-    console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
+  if (!_dfHasBirthCore(birthCtx)) return null;
+
+  var chart = null;
+  var localHour = Number(birthCtx.hour) + Number(birthCtx.minute) / 60;
+
+  if (typeof window.calcAstroApiChartOrThrow === 'function') {
+    try {
+      chart = window.calcAstroApiChartOrThrow(
+        Number(birthCtx.year),
+        Number(birthCtx.month),
+        Number(birthCtx.day),
+        localHour,
+        Number(birthCtx.lat),
+        Number(birthCtx.lon),
+        Number(birthCtx.tz),
+        window.ASTRO_HOUSE_SYSTEM || 'P'
+      );
+    } catch (e) {
+      // Strict SwissEph 모드 미준비 시에는 조용히 레거시 차트로 폴백 시도.
+      if (!(window.AstroEngine && typeof window.AstroEngine.calcAll === 'function')) {
+        console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e);
+      }
+    }
   }
-  return null;
+
+  if (!chart && window.AstroEngine && typeof window.AstroEngine.calcAll === 'function') {
+    try {
+      chart = window.AstroEngine.calcAll(
+        Number(birthCtx.year),
+        Number(birthCtx.month),
+        Number(birthCtx.day),
+        localHour,
+        Number(birthCtx.lat),
+        Number(birthCtx.lon),
+        Number(birthCtx.tz),
+        { houseSystem: window.ASTRO_HOUSE_SYSTEM || 'P' }
+      );
+    } catch (e2) {
+      console.warn('[DestinyFlower] 점성술 브리지 계산 실패:', e2);
+      return null;
+    }
+  }
+
+  if (!chart) return null;
+  return {
+    sunSign: _dfAstroSignFromNode(chart && chart.sun),
+    moonSign: _dfAstroSignFromNode(chart && chart.moon),
+    risingSign: _dfAstroSignFromNode(chart && chart.asc)
+  };
 }
 
 function _dfExtractZiweiLiveRaw(birthCtx) {
@@ -2346,10 +2374,16 @@ function _dfExtractSukuyoLiveData(birthCtx) {
   return null;
 }
 
-function _dfApplyLiveDomainBridge(payload, birthCtx) {
+function _dfApplyLiveDomainBridge(payload, birthCtx, options) {
   if (!payload || typeof payload !== 'object') return payload;
+  var opts = options && typeof options === 'object' ? options : {};
+  var rawHint = String(opts.sourceHint || '').trim();
+  var sourceHint = rawHint ? _dfNormalizeSource(rawHint) : '';
+  var applyAstro = !sourceHint || sourceHint === 'astrology';
+  var applyZiwei = !sourceHint || sourceHint === 'jamidusu';
+  var applySukuyo = !sourceHint || sourceHint === 'sukuyo';
 
-  var astro = _dfExtractAstroLiveData(birthCtx);
+  var astro = applyAstro ? _dfExtractAstroLiveData(birthCtx) : null;
   if (astro && (astro.sunSign || astro.moonSign || astro.risingSign)) {
     payload.astrology = Object.assign({}, payload.astrology || {}, {
       sunSign: astro.sunSign,
@@ -2369,7 +2403,7 @@ function _dfApplyLiveDomainBridge(payload, birthCtx) {
     }
   }
 
-  var ziweiRaw = _dfExtractZiweiLiveRaw(birthCtx);
+  var ziweiRaw = applyZiwei ? _dfExtractZiweiLiveRaw(birthCtx) : null;
   var ziwei = _dfDeriveZiweiDomain(ziweiRaw);
   if (ziwei && (ziwei.mainStar || ziwei.palace)) {
     payload.ziwei = Object.assign({}, payload.ziwei || {}, {
@@ -2390,7 +2424,7 @@ function _dfApplyLiveDomainBridge(payload, birthCtx) {
     }
   }
 
-  var sukuyo = _dfExtractSukuyoLiveData(birthCtx);
+  var sukuyo = applySukuyo ? _dfExtractSukuyoLiveData(birthCtx) : null;
   if (sukuyo && (sukuyo.mansion || Number.isFinite(Number(sukuyo.mansionIndex)))) {
     payload.sukuyo = Object.assign({}, payload.sukuyo || {}, {
       mansion: sukuyo.mansion,
@@ -2414,7 +2448,8 @@ function _dfApplyLiveDomainBridge(payload, birthCtx) {
   return payload;
 }
 
-function _dfGetProfilePayload() {
+function _dfGetProfilePayload(options) {
+  var opts = options && typeof options === 'object' ? options : {};
   function getCurrentProfile() {
     try {
       if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
@@ -2498,11 +2533,12 @@ function _dfGetProfilePayload() {
     if (!Number.isFinite(Number(payload.birth.tz)) && Number.isFinite(Number(birthCtx.tz))) payload.birth.tz = birthCtx.tz;
   }
 
-  return _dfApplyLiveDomainBridge(payload || {}, birthCtx);
+  if (opts.skipLiveBridge) return payload || {};
+  return _dfApplyLiveDomainBridge(payload || {}, birthCtx, opts);
 }
 
 function _dfResolveSelection() {
-  var payload = _dfGetProfilePayload();
+  var payload = _dfGetProfilePayload({ sourceHint: 'saju' });
   var birthCtx = _dfResolveBirthContext(payload || {});
   var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
 
@@ -2579,7 +2615,7 @@ function _dfResolveSelection() {
 }
 
 function _afResolveSelection() {
-  var payload = _dfGetProfilePayload();
+  var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
   if (!_dfHasReadySourceData('astrology', payload)) return null;
   var matched = null;
 
@@ -2740,7 +2776,7 @@ function _afApplyCardVisual(card, selection) {
 }
 
 function _jfResolveSelection() {
-  var payload = _dfGetProfilePayload();
+  var payload = _dfGetProfilePayload({ sourceHint: 'jamidusu' });
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
@@ -2933,7 +2969,7 @@ function _jfApplyCardVisual(card, selection) {
 }
 
 function _sfResolveSelection() {
-  var payload = _dfGetProfilePayload();
+  var payload = _dfGetProfilePayload({ sourceHint: 'sukuyo' });
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
@@ -3351,6 +3387,7 @@ function _dfResolveSelectionBySource(source) {
 
 function _dfBuildUnifiedFlowerData(forceRefresh, source) {
   var normalizedSource = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var userRequested = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalizedSource]);
   var hasCache = !!(_dfStudioState.flowerData && _dfStudioState.flowerData.sources);
   if (!hasCache) {
     _dfStudioState.flowerData = {
@@ -3360,6 +3397,9 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
   }
 
   var sources = _dfStudioState.flowerData.sources;
+  if (!forceRefresh && !userRequested && typeof sources[normalizedSource] === 'undefined') {
+    return _dfStudioState.flowerData;
+  }
   if (!forceRefresh && typeof sources[normalizedSource] !== 'undefined') {
     return _dfStudioState.flowerData;
   }
@@ -3379,12 +3419,14 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
 
 function _dfGetUnifiedSelection(source, forceRefresh) {
   var normalized = _dfNormalizeSource(source);
+  var userRequested = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalized]);
+  var shouldResolve = !!forceRefresh || userRequested;
   var data = _dfBuildUnifiedFlowerData(!!forceRefresh, normalized);
   var selection = data && data.sources ? data.sources[normalized] : null;
-  if (!selection) {
+  if (!selection && shouldResolve) {
     selection = _dfResolveSelectionBySource(normalized);
   }
-  if (!selection && normalized === 'saju') {
+  if (!selection && normalized === 'saju' && shouldResolve) {
     selection = _dfResolveSelection();
   }
   if (selection) selection.source = _dfNormalizeSource(selection.source || normalized);
@@ -3904,7 +3946,7 @@ function _dfGetNoDomainDataMessage(source) {
 
 function _dfGetDataMissingUiState(source) {
   var normalized = _dfNormalizeSource(source);
-  var payload = _dfGetProfilePayload() || {};
+  var payload = _dfGetProfilePayload({ skipLiveBridge: true }) || {};
 
   if (!_dfHasBirthInfo(payload)) {
     return {
@@ -4068,6 +4110,24 @@ function _dfReloadSourceData(source, options) {
     });
   }
 
+  if (typeof __cdEnsureLunarLibReady === 'function') {
+    loader = loader.then(function() {
+      return __cdEnsureLunarLibReady().catch(function(err) {
+        console.warn('[DestinyFlower] 음력 라이브러리 로드 실패:', err);
+        return false;
+      });
+    });
+  }
+
+  if (normalized === 'astrology' && typeof __cdEnsureSwissEphLoaded === 'function') {
+    loader = loader.then(function() {
+      return __cdEnsureSwissEphLoaded().catch(function(err) {
+        console.warn('[DestinyFlower] SwissEph 로드 실패:', err);
+        return false;
+      });
+    });
+  }
+
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
     loader = loader.then(function() {
       return __cdEnsureSajuCoreLoaded().catch(function(err) {
@@ -4136,6 +4196,7 @@ function _dfFetchSourceOnDemand(source, options) {
   }).finally(function() {
     if (_dfStudioState.loadingTasks) delete _dfStudioState.loadingTasks[normalized];
     if (_dfStudioState.loadingSource === normalized) _dfStudioState.loadingSource = '';
+    if (_dfStudioState.userRequestedLoad) _dfStudioState.userRequestedLoad[normalized] = false;
     _dfSetEmptyLoadButtonState(false, normalized, state.showLoadButton);
   });
 
@@ -4914,8 +4975,6 @@ function setDestinyFlowerSourceTab(source) {
     var studioSelection = _dfRefreshStudioForSource(normalized, false);
     if (studioSelection) {
       _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
-    } else {
-      _dfFetchSourceOnDemand(normalized, { silentStatus: true });
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -4931,7 +4990,6 @@ function setDestinyFlowerSourceTab(source) {
           nameEl.textContent = '생년월일 입력 대기';
           symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
         }
-        _dfFetchSourceOnDemand(normalized, { silentStatus: true });
       }
       if (typeof syncFeatureCardHeight === 'function') {
         syncFeatureCardHeight(card);
