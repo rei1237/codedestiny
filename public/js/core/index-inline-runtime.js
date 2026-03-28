@@ -3398,10 +3398,8 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
   }
 
   var sources = _dfStudioState.flowerData.sources;
-  if (!forceRefresh && !userRequested && typeof sources[normalizedSource] === 'undefined') {
-    return _dfStudioState.flowerData;
-  }
-  if (!forceRefresh && typeof sources[normalizedSource] !== 'undefined') {
+  // If cached selection exists and user did not request recalculation, reuse it.
+  if (!forceRefresh && !userRequested && typeof sources[normalizedSource] !== 'undefined') {
     return _dfStudioState.flowerData;
   }
 
@@ -3947,8 +3945,7 @@ function _dfGetNoDomainDataMessage(source) {
 
 function _dfCanShowLoadButton(source, missingDomain) {
   var normalized = _dfNormalizeSource(source);
-  var linked = !!(_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]);
-  return !!missingDomain && !linked;
+  return !!missingDomain;
 }
 
 function _dfGetDataMissingUiState(source) {
