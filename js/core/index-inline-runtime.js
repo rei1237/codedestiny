@@ -2580,6 +2580,14 @@ function _afResolveSelection() {
   }
   if (!matched) return null;
 
+  var chart = matched && matched.chart ? matched.chart : {};
+  var hasChartSignals = !!(
+    String(chart.sun_sign || chart.sunSign || '').trim() ||
+    String(chart.moon_sign || chart.moonSign || '').trim() ||
+    String(chart.rising_sign || chart.risingSign || '').trim()
+  );
+  if (!hasChartSignals) return null;
+
   var flower = matched && matched.flower;
   if (!flower) {
     flower = {
@@ -3888,10 +3896,26 @@ function _dfReloadSourceData(source, options) {
   }
 
   var loader = Promise.resolve(true);
+  if (!(window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')) {
+    loader = loader.then(function() {
+      return import('/js/core/bootstrapDestinyFlower.js').then(function(mod) {
+        if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
+          mod.bootstrapDestinyFlower(window);
+        }
+        return true;
+      }).catch(function(err) {
+        console.warn('[DestinyFlower] 엔진 부트스트랩 실패:', err);
+        return false;
+      });
+    });
+  }
+
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
-    loader = __cdEnsureSajuCoreLoaded().catch(function(err) {
-      console.warn('[DestinyFlower] 데이터 로드 준비 실패:', err);
-      return false;
+    loader = loader.then(function() {
+      return __cdEnsureSajuCoreLoaded().catch(function(err) {
+        console.warn('[DestinyFlower] 데이터 로드 준비 실패:', err);
+        return false;
+      });
     });
   }
 
