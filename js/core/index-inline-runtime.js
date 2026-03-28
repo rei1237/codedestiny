@@ -2783,8 +2783,8 @@ function _jfResolveSelection() {
   var matched = null;
 
   try {
-    // NOTE: 자미두수 운명의 꽃은 "명궁(main)" 데이터만 반영하도록 입력을 고정한다.
-    // (렌더/재계산 타이밍에 aux/기타 궁 데이터가 섞여 결과가 변하는 문제 방지)
+    // 자미두수 데이터는 명궁뿐 아니라 각 궁의 주성 정보를 함께 유지한다.
+    // (엔진/렌더가 궁별 별 정보를 참조할 때 누락되지 않도록 함)
     if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function') {
       try {
         var zw = window.calcZiweiPalaces(
@@ -2795,19 +2795,61 @@ function _jfResolveSelection() {
           Number(birthCtx.minute)
         );
         if (zw && zw.palacesByIndex && zw.stars) {
+          var cleanStarName = function(raw) {
+            return String(raw || '')
+              .replace(/<[^>]*>/g, ' ')
+              .replace(/\(차성\)/g, ' ')
+              .replace(/화록|화권|화과|화기/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+          };
+
+          var palaceRows = [];
+          var allStarSet = {};
+          for (var pi = 0; pi < zw.palacesByIndex.length; pi++) {
+            var pName = String(zw.palacesByIndex[pi] || '').trim();
+            if (!pName) continue;
+            var rawMain = (zw.stars[pi] && Array.isArray(zw.stars[pi].main)) ? zw.stars[pi].main : [];
+            var mainStars = rawMain.map(cleanStarName).filter(Boolean);
+            for (var si = 0; si < mainStars.length; si++) {
+              allStarSet[mainStars[si]] = true;
+            }
+            var palaceBrightness = '';
+            if (zw.palaceStarData && zw.palaceStarData[pi] && zw.palaceStarData[pi].stars && zw.palaceStarData[pi].stars[0]) {
+              palaceBrightness = String(zw.palaceStarData[pi].stars[0].strength || '');
+            }
+            palaceRows.push({ palace: pName, stars: mainStars, brightness: palaceBrightness });
+          }
+
           var mingIdx = zw.palacesByIndex.indexOf('명궁');
-          var mainStar = '';
+          var mingStars = [];
           var brightness = '';
           if (mingIdx >= 0 && zw.stars[mingIdx] && zw.stars[mingIdx].main && zw.stars[mingIdx].main.length) {
-            mainStar = zw.stars[mingIdx].main[0] || '';
+            mingStars = zw.stars[mingIdx].main.map(cleanStarName).filter(Boolean);
           }
           if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
             brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
           }
+          var mainStar = mingStars.join(' · ');
+          var allMainStars = Object.keys(allStarSet);
           payload = payload && typeof payload === 'object' ? payload : {};
-          payload.ziwei = { mainStar: mainStar, palace: '명궁', brightness: brightness, stars: mainStar ? [mainStar] : [] };
+          payload.ziwei = {
+            mainStar: mainStar,
+            palace: '명궁',
+            brightness: brightness,
+            stars: mingStars,
+            palaces: palaceRows,
+            allMainStars: allMainStars
+          };
           payload.domains = payload.domains && typeof payload.domains === 'object' ? payload.domains : {};
-          payload.domains.ziwei = { main_star: mainStar, palace: '명궁', brightness: brightness, stars: mainStar ? [mainStar] : [] };
+          payload.domains.ziwei = {
+            main_star: mainStar,
+            palace: '명궁',
+            brightness: brightness,
+            stars: mingStars,
+            palaces: palaceRows,
+            all_main_stars: allMainStars
+          };
         }
       } catch (eFix) {
         // ignore
@@ -3378,6 +3420,18 @@ function _dfSetActiveSource(source) {
   return normalized;
 }
 
+function _dfIsSourceLinked(source) {
+  var normalized = _dfNormalizeSource(source);
+  return !!(_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]);
+}
+
+function _dfCanResolveSourceSelection(source, forceRefresh) {
+  var normalized = _dfNormalizeSource(source);
+  if (forceRefresh) return true;
+  if (_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalized]) return true;
+  return _dfIsSourceLinked(normalized);
+}
+
 function _dfResolveSelectionBySource(source) {
   var normalized = _dfNormalizeSource(source);
   if (normalized === 'astrology') return _afResolveSelection();
@@ -3418,6 +3472,9 @@ function _dfBuildUnifiedFlowerData(forceRefresh, source) {
 
 function _dfGetUnifiedSelection(source, forceRefresh) {
   var normalized = _dfNormalizeSource(source);
+  if (!_dfCanResolveSourceSelection(normalized, !!forceRefresh)) {
+    return null;
+  }
   var userRequested = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad[normalized]);
   var shouldResolve = !!forceRefresh || userRequested;
   var data = _dfBuildUnifiedFlowerData(!!forceRefresh, normalized);
@@ -3943,9 +4000,16 @@ function _dfGetNoDomainDataMessage(source) {
   return '아직 연동된 ' + label + ' 데이터가 없습니다. 아래 버튼을 눌러 당신만의 운명의 꽃을 피워보세요.';
 }
 
+function _dfGetNotLinkedMessage(source) {
+  var normalized = _dfNormalizeSource(source);
+  var label = _dfGetSourceLabel(normalized);
+  return label + ' 운명의 꽃 아틀리에는 연동하기 버튼을 눌러야 계산됩니다. 아래 버튼을 눌러 결과를 불러오세요.';
+}
+
 function _dfCanShowLoadButton(source, missingDomain) {
   var normalized = _dfNormalizeSource(source);
-  return !!missingDomain;
+  var linked = _dfIsSourceLinked(normalized);
+  return !linked || !!missingDomain;
 }
 
 function _dfGetDataMissingUiState(source) {
@@ -3956,6 +4020,14 @@ function _dfGetDataMissingUiState(source) {
     return {
       message: _dfGetNoBirthMessage(normalized),
       showLoadButton: false,
+      source: normalized
+    };
+  }
+
+  if (!_dfIsSourceLinked(normalized)) {
+    return {
+      message: _dfGetNotLinkedMessage(normalized),
+      showLoadButton: true,
       source: normalized
     };
   }
