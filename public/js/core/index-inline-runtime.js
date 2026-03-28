@@ -2487,12 +2487,25 @@ function _dfGetProfilePayload(options) {
 
   function sameBirth(a, b) {
     if (!a || !b) return false;
-    return Number(a.year || 0) === Number(b.year || 0)
+    var sameYmd = Number(a.year || 0) === Number(b.year || 0)
       && Number(a.month || 0) === Number(b.month || 0)
-      && Number(a.day || 0) === Number(b.day || 0)
-      && Number(a.hour || 0) === Number(b.hour || 0)
-      && Number(a.minute || 0) === Number(b.minute || 0)
-      && String(a.calType || 'solar') === String(b.calType || 'solar');
+      && Number(a.day || 0) === Number(b.day || 0);
+    if (!sameYmd) return false;
+
+    // snapshot 데이터에 시/분/달력 타입이 없는 경우가 있어, 양쪽 값이 모두 있을 때만 엄격 비교한다.
+    var aHour = Number(a.hour);
+    var bHour = Number(b.hour);
+    if (Number.isFinite(aHour) && Number.isFinite(bHour) && aHour !== bHour) return false;
+
+    var aMinute = Number(a.minute);
+    var bMinute = Number(b.minute);
+    if (Number.isFinite(aMinute) && Number.isFinite(bMinute) && aMinute !== bMinute) return false;
+
+    var aCal = String(a.calType || '').trim();
+    var bCal = String(b.calType || '').trim();
+    if (aCal && bCal && aCal !== bCal) return false;
+
+    return true;
   }
 
   function buildProfileSignature(profile) {
@@ -2599,10 +2612,19 @@ function _dfResolveSelection() {
   // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
   // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
   if (!_dfHasBirthCore(birthCtx)) {
+    console.warn('[DestinyFlower][Saju] resolve failed: missing birth core', {
+      year: birthCtx && birthCtx.year,
+      month: birthCtx && birthCtx.month,
+      day: birthCtx && birthCtx.day
+    });
     return null;
   }
 
   if (!_dfHasReadySourceData('saju', payload) && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve failed: saju domain not ready and fallback not allowed', {
+      linked: _dfIsSourceLinked('saju'),
+      userRequested: allowUserForcedFallback
+    });
     return null;
   }
 
@@ -2614,6 +2636,7 @@ function _dfResolveSelection() {
   );
 
   if (!hasEngineMatcher) {
+    console.error('[DestinyFlower][Saju] resolve failed: matcher unavailable');
     return null;
   }
 
@@ -2630,14 +2653,23 @@ function _dfResolveSelection() {
     console.warn('[DestinyFlower] 매칭 실패:', e2);
   }
 
-  if (!matched) return null;
+  if (!matched) {
+    console.error('[DestinyFlower][Saju] resolve failed: matcher returned empty result');
+    return null;
+  }
 
   var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
-  if (fallbackUsed && !allowUserForcedFallback) return null;
+  if (fallbackUsed && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve blocked: fallback result requires user-initiated load');
+    return null;
+  }
 
   var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
   var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
-  if (!matchedDayMaster && !allowUserForcedFallback) return null;
+  if (!matchedDayMaster && !allowUserForcedFallback) {
+    console.warn('[DestinyFlower][Saju] resolve blocked: missing day master in matched profile');
+    return null;
+  }
 
   var flower = matched.flower || matched.flowerSymbology;
   if (!flower && allowUserForcedFallback && window.flowerSymbology) {
@@ -4327,6 +4359,12 @@ function _dfFetchSourceOnDemand(source, options) {
     }
 
     var retryState = _dfGetDataMissingUiState(normalized);
+    if (normalized === 'saju') {
+      console.error('[DestinyFlower][Saju] linkage failed: on-demand reload returned no selection', {
+        stateMessage: retryState && retryState.message,
+        showLoadButton: !!(retryState && retryState.showLoadButton)
+      });
+    }
     _dfSetStudioStatus(retryState.message, {
       showLoadButton: retryState.showLoadButton,
       source: retryState.source
