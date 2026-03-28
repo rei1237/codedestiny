@@ -4183,7 +4183,13 @@ function _dfFetchSourceOnDemand(source, options) {
   }).then(function(selection) {
     if (selection) {
       _dfSetActiveSource(normalized);
-      _dfRefreshStudioForSource(normalized, true);
+      // 클릭으로 얻은 1차 결과를 그대로 반영해야 fallback 플래그 소거 후
+      // 재계산(null)로 덮어써지는 회귀를 막을 수 있다.
+      _dfStudioState.selection = selection;
+      _dfApplyStudioSelection(selection);
+      _dfHideStudioEmptyState();
+      var main = document.querySelector('.df-studio-main');
+      if (main) main.style.display = '';
       _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 불러왔습니다.');
       return selection;
     }
