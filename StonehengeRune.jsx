@@ -1125,8 +1125,7 @@ export default function StonehengeRune() {
           animation-play-state: paused;
         }
         .sr-card.tap-cue:hover::after,
-        .sr-card.tap-cue:focus-visible::after,
-        .sr-card.selected::after {
+        .sr-card.tap-cue:focus-visible::after {
           opacity: 0;
         }
         @keyframes runeTapNudge {
@@ -1700,7 +1699,7 @@ export default function StonehengeRune() {
                 {drawnRunes.map((rune, i) => (
                   <div
                     key={rune.id}
-                    className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.id === rune.id && selectedRune?.index === i ? "selected" : ""} ${!selectedRune ? "tap-cue" : ""}`}
+                    className={`sr-card ${rune.isReversed ? "reversed" : ""} ${visibleCards.includes(i) ? "visible" : ""} ${selectedRune?.index === i ? "selected" : ""} ${!selectedRune ? "tap-cue" : ""}`}
                     onClick={() => (selectedRune?.index === i ? closeRuneDetail() : openRuneAt(i))}
                     style={{ "--sr-tap-delay": `${i * 120}ms` }}
                   >
@@ -1769,8 +1768,8 @@ export default function StonehengeRune() {
                     <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
 
                     <div className="sr-detail-nav">
-                      <button className="sr-detail-nav-btn" onClick={showPrevRune} disabled={!selectedRune || selectedRune.index <= 0}>← 이전 룬</button>
-                      <button className="sr-detail-nav-btn" onClick={showNextRune} disabled={!selectedRune || selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
+                      <button className="sr-detail-nav-btn" onClick={showPrevRune} disabled={selectedRune.index <= 0}>← 이전 룬</button>
+                      <button className="sr-detail-nav-btn" onClick={showNextRune} disabled={selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
                     </div>
                     <p className="sr-detail-ux-note">카드를 연속으로 비교해 보고 싶다면 좌우 화살표 키를 사용하세요.</p>
                   </div>
