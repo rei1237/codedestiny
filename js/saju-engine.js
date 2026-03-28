@@ -1451,7 +1451,9 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
     var kishin = _dfArrayCopy(G_POWER && G_POWER.kijishin);
     var dayStem = (G_PILLARS.d && G_PILLARS.d.g) || DAY_GAN || '';
     var dayStemElement = (G_PILLARS.d && G_PILLARS.d.gE) || '';
-    var birth = window._ziweiBirth || window._astroBirth || {};
+    // snapshot birth must align with profile.birth (civil/original time),
+    // otherwise sameBirth() rejects snapshot due minute/hour mismatch.
+    var birth = window._astroBirth || window._ziweiBirth || {};
 
     var snapshot = {
       updatedAt: new Date().toISOString(),

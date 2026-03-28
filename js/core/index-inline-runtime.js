@@ -1071,11 +1071,11 @@ function __cdEnsureSajuCoreLoaded() {
 
   var chain = [
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260323-ziwei-fix1',
+    '/js/saju-engine.js?v=20260329-saju-linkage-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1',
     '/js/core/saju/modalProfileState.js?v=20260326-modaldeps1',
-    '/js/core/saju/reportDashboard.js?v=20260320-saju-rpt1',
-    '/js/saju-engine-continuation.js?v=20260320-saju-rpt1',
+    '/js/core/saju/reportDashboard.js?v=20260329-saju-rpt3',
+    '/js/saju-engine-continuation.js?v=20260329-saju-rpt3',
     '/js/entertain-engine.js'
   ];
 
@@ -4302,6 +4302,18 @@ function _dfReloadSourceData(source, options) {
   }
 
   return loader.then(function() {
+    if (normalized === 'saju') {
+      try {
+        if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
+          var currentProfile = window.DestinyProfileManager.storage.current() || {};
+          if (currentProfile && currentProfile.birth && typeof window.computeProfileForModal === 'function') {
+            window.computeProfileForModal(currentProfile);
+          }
+        }
+      } catch (e2) {
+        console.warn('[DestinyFlower][Saju] pre-resolve recompute failed:', e2);
+      }
+    }
     _dfStudioState.flowerData = null;
     if (opts.skipUiRefresh) {
       return _dfGetUnifiedSelection(normalized, true);
@@ -5558,7 +5570,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
 
   var chain = [
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260323-ziwei-fix1',
+    '/js/saju-engine.js?v=20260329-saju-linkage-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1'
   ];
 
