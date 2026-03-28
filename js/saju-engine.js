@@ -5711,7 +5711,7 @@ function renderAstroApiUnavailable(reason) {
   var msg = String(reason || 'SwissEph API 초기화 실패')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   area.innerHTML = ''
-    + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
+    + '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
     + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
     + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
     + '<div class="astro-desc" style="line-height:1.75;">'
@@ -6251,8 +6251,8 @@ function renderAstroInsight() {
     var fortunaHousePair = _housePairText(chart.lots && chart.lots.fortuna ? chart.lots.fortuna : null);
     var spiritHousePair = _housePairText(chart.lots && chart.lots.spirit ? chart.lots.spirit : null);
 
-    masterInsight = '<div class="astro-section precision-insight-card" style="border-left:4px solid #D4AF37; background:linear-gradient(to right, rgba(212,175,55,0.05), transparent); margin-bottom:20px;">'
-      +'<div class="astro-subhead" style="color:#D4AF37;">✨ 내 별자리 3줄 핵심 요약</div>'
+    masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
+      +'<div class="astro-subhead" style="color:#D4AF37;">✨ 내 별자리 3줄 핵심 요약 (한눈에 쏙)</div>'
       +'<div class="astro-desc" style="font-size:0.95rem;white-space:normal;word-break:break-word;overflow-wrap:anywhere;max-width:100%;box-sizing:border-box;">'
       +'<p><b class="precision-headline">🌞 나는 어떤 사람인가?</b><br>'
       +'태양 <b>'+sunSign+'</b>은 "내 기본 성격", 달 <b>'+moonSign+'</b>은 "감정 버튼", 상승궁 <b>'+ascSign+'</b>은 "첫인상 캐릭터"입니다. '
@@ -6401,6 +6401,17 @@ function renderAstroInsight() {
       +'.astro-body .astro-tags{margin-bottom:10px;}'
       +'.astro-body .astro-tag{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.25);background:rgba(15,23,42,.7);font-size:11px;color:#bae6fd;margin:0 5px 5px 0;}'
       +'.astro-body .astro-desc p{margin:0 0 10px 0;font-size:14px;line-height:1.72;color:#e2e8f0;}'
+      +'.astro-readable{font-size:15px;line-height:1.78;}'
+      +'.astro-readable .astro-section{padding:16px;}'
+      +'.astro-readable .astro-subhead{font-size:20px;line-height:1.34;letter-spacing:-.012em;}'
+      +'.astro-readable .astro-desc p{font-size:15px;line-height:1.82;margin-bottom:12px;letter-spacing:.004em;}'
+      +'.astro-readable .astro-desc ul,.astro-readable .astro-desc li{line-height:1.78;}'
+      +'.astro-readable .astro-core{font-size:14px;line-height:1.72;}'
+      +'.astro-readable .astro-tag{font-size:11.5px;}'
+      +'.astro-readable .astro-neon-soft-block{line-height:1.75;}'
+      +'.astro-readable .table-wrapper{overflow:auto;-webkit-overflow-scrolling:touch;}'
+      +'.astro-readable .astro-table th,.astro-readable .astro-table td{padding:8px 7px;line-height:1.62;}'
+      +'.astro-label{font-size:12px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
       +'.astro-body .astro-core{border:1px solid rgba(167,139,250,.28);background:rgba(76,29,149,.15);border-radius:12px;padding:10px;color:#ede9fe;font-size:13px;line-height:1.65;}'
       +'.astro-body .expert-title{color:#a5f3fc;font-weight:800;margin-bottom:10px;}'
       +'.astro-body .neo-bubble,.astro-body .yeon-bubble{border-radius:12px;padding:11px 12px;line-height:1.7;font-size:13px;color:#e2e8f0;}'
@@ -6419,6 +6430,14 @@ function renderAstroInsight() {
       +'.astro-neon-scroll::-webkit-scrollbar{width:8px;height:8px;}'
       +'.astro-neon-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(34,211,238,.7),rgba(99,102,241,.7));border-radius:999px;}'
       +'.astro-neon-tab-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}'
+      +'.astro-neon-accent{border-left:4px solid rgba(125,211,252,.6) !important;background:linear-gradient(90deg,rgba(56,189,248,.08),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-gold{border-left:4px solid #d4af37 !important;background:linear-gradient(90deg,rgba(212,175,55,.12),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-pink{border-left:4px solid #f472b6 !important;background:linear-gradient(90deg,rgba(244,114,182,.1),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-amber{border-left:4px solid #f59e0b !important;background:linear-gradient(90deg,rgba(245,158,11,.1),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-indigo{border-left:4px solid #818cf8 !important;background:linear-gradient(90deg,rgba(129,140,248,.1),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-violet{border-left:3px solid #a78bfa !important;background:linear-gradient(90deg,rgba(167,139,250,.1),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-accent-cyan{border-left:3px solid #22d3ee !important;background:linear-gradient(90deg,rgba(34,211,238,.1),rgba(15,23,42,0)) !important;}'
+      +'.astro-neon-soft-block{background:rgba(15,23,42,.52) !important;border:1px solid rgba(148,163,184,.24) !important;border-radius:11px !important;padding:12px !important;}'
       +'.astro-syn-loading{font-size:12px;color:#cbd5e1;line-height:1.65;}'
       +'.astro-syn-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;}'
       +'.astro-syn-name{font-size:16px;font-weight:900;color:#f8fafc;letter-spacing:-.01em;}'
@@ -6464,6 +6483,10 @@ function renderAstroInsight() {
       +'.astro-syn-shadow-good{font-size:12px;color:#86efac;margin-bottom:5px;line-height:1.5;}'
       +'.astro-syn-shadow-bad{font-size:12px;color:#fca5a5;margin-bottom:8px;line-height:1.5;}'
       +'.astro-syn-shadow-remedy{font-size:12px;background:rgba(129,140,248,.12);border-left:3px solid #818cf8;padding:8px 10px;border-radius:0 8px 8px 0;color:#c7d2fe;line-height:1.6;word-break:keep-all;}'
+      +'.astro-syn-quick{margin:10px 0 12px 0;padding:10px 11px;border-radius:10px;background:rgba(56,189,248,.1);border:1px solid rgba(125,211,252,.28);}'
+      +'.astro-syn-quick-title{font-size:11px;color:#a5f3fc;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}'
+      +'.astro-syn-quick ul{margin:0;padding-left:16px;}'
+      +'.astro-syn-quick li{font-size:12px;line-height:1.66;color:#e2e8f0;margin-bottom:3px;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(96,165,250,.38);background:linear-gradient(165deg,#0b0e14 0%,#0f1d3a 46%,#1a1c2c 100%);box-shadow:0 0 0 1px rgba(34,211,238,.18),0 24px 48px -28px rgba(56,189,248,.75),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:-40% auto auto -25%;width:240px;height:240px;background:radial-gradient(circle,rgba(45,212,191,.22),rgba(45,212,191,0));filter:blur(4px);pointer-events:none;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;right:-90px;bottom:-110px;width:260px;height:260px;background:radial-gradient(circle,rgba(168,85,247,.28),rgba(168,85,247,0));filter:blur(8px);pointer-events:none;}'
@@ -6487,9 +6510,10 @@ function renderAstroInsight() {
       +'.astro-neon-total strong{font-size:16px;color:#fff;}'
       +'@media (min-width:700px){.astro-neon-wrap{padding:18px;}.astro-neon-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}'
       +'@media (min-width:1100px){.astro-neon-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}'
+      +'@media (max-width:640px){.astro-readable .astro-subhead{font-size:18px;}.astro-readable .astro-desc p{font-size:14px;line-height:1.75;}.astro-syn-score-row{grid-template-columns:1fr;}.astro-syn-score-card{min-width:0;}.astro-syn-header{gap:6px;margin-bottom:10px;}.astro-syn-name{font-size:15px;}.astro-neon-cta{min-height:44px;font-size:13px;}.astro-neon-input,.astro-neon-select{min-height:42px;font-size:13px;}}'
       +'</style>';
 
-    var html = '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
+    var html = '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap">'
       + astroNeonCss
       +'<div class="astro-section" style="margin-bottom:16px;">'
       +'<div class="astro-neon-wrap">'
@@ -6640,13 +6664,13 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── 통합 인연 리포트 (Synastry & Bond) ── */
-        +'<div class="astro-section" style="border-left:4px solid #f472b6; background:linear-gradient(to right, rgba(244,114,182,0.06), transparent);">'
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-pink">'
         +'<div class="astro-subhead" style="color:#f472b6;">💞 궁합 한눈에 리포트 (팩트 버전)</div>'
         +'<div class="astro-desc">'
         +'<p><b>[하강궁 — 자꾸 끌리는 타입]</b> 당신의 하강궁(7H)은 <b>'+descSign+'</b>입니다. 그래서 이 성향을 가진 사람에게 "이유 없이 끌리는 느낌"이 자주 생길 수 있어요.</p>'
         +'<p><b>[Venus ♀ × Mars ♂ — 설렘 스위치]</b> 금성(<b>'+venusSign+'</b>)과 화성(<b>'+marsSign+'</b>)의 조합은 이렇게 읽혀요: '+(vmAspect||vmCalcFallback)+'</p>'
-        +'<p><b>[궁합 체크 포인트]</b> 같은 별자리라고 자동 찰떡은 아니에요. 태양·달·금성·화성의 실제 각도가 맞을수록 관계 유지력이 높아집니다.</p>'
-        +'<div style="background:rgba(244,114,182,0.08); border-radius:10px; padding:14px; margin-top:12px;">'
+        +'<p><b>[궁합 체크 포인트]</b> 같은 별자리라고 자동 찰떡은 아니에요. 태양·달·금성·화성의 실제 각도가 맞을수록 관계 유지력이 높아집니다. 한마디로 케미는 별자리 + 운영력의 합입니다.</p>'
+        +'<div class="astro-neon-soft-block" style="margin-top:12px;">'
         +'<div style="color:#f9a8d4; font-weight:700; margin-bottom:8px; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">✦ Bond Compatibility Map</div>'
         +'<ul style="padding-left:18px; margin:0; color:#e2e8f0; line-height:1.85; font-size:0.9rem;">'
         +'<li><b>💕 연애 궁합</b> — 달 <b>'+moonSign+'</b>('+moonHousePair+')의 감정 리듬을 직관적으로 알아봐 주는 사람. '+relationComplementElement+' 기질로 내 에너지의 빈틈을 채워주는 상대일수록 오래갑니다.</li>'
@@ -6658,7 +6682,7 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
-        +'<div class="astro-section" style="border-left:4px solid #f59e0b; background:linear-gradient(to right, rgba(245,158,11,0.07), transparent);">'
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-amber">'
         +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
@@ -6667,19 +6691,19 @@ function renderAstroInsight() {
         /* 입력 폼 */
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">상대방 이름 (선택)</label>'
+        +'<label class="astro-label">상대방 이름 (선택)</label>'
         +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="예: 홍길동" autocomplete="off">'
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">생년월일</label>'
+        +'<label class="astro-label">생년월일</label>'
         +'<input type="date" class="astro-neon-input" id="asDirect_date" required>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">태어난 시각</label>'
+        +'<label class="astro-label">태어난 시각</label>'
         +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label style="font-size:0.72rem;color:#94a3b8;display:block;margin-bottom:3px;">도시(시/군)</label>'
+        +'<label class="astro-label">도시(시/군)</label>'
         +'<select id="asDirect_city" class="astro-neon-select" style="width:240px;">'
         +'<option value="">도시 선택(시/군 단위)</option>'
         +'</select>'
@@ -6691,12 +6715,12 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
-        +'<div class="astro-section" id="astroSynastrySection" style="border-left:4px solid #818cf8; background:linear-gradient(to right, rgba(129,140,248,0.07), transparent);">'
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo" id="astroSynastrySection">'
         +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div>'
         +'<div class="astro-desc">'
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
-        +'<div style="background:rgba(129,140,248,0.09);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(129,140,248,0.25);">'
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;">'
         +'<div style="font-size:0.78rem;color:#818cf8;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">✨ 천상의 지도: 당신의 성좌</div>'
         +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;">'
         +'<div style="background:rgba(251,191,36,0.1);border-radius:9px;padding:10px;text-align:center;border:1px solid rgba(251,191,36,0.25);">'
@@ -6723,7 +6747,7 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── [🎭 영혼의 쌍둥이: 나와 닮은 별의 인물] — 동적 렌더 컨테이너 ── */
-        +'<div style="background:rgba(52,211,153,0.07);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(52,211,153,0.2);">'
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(52,211,153,0.25) !important;background:rgba(16,185,129,.08) !important;">'
         +'<div style="font-size:0.78rem;color:#34d399;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🎭 영혼의 쌍둥이: 나와 같은 별의 인물</div>'
         +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">사주 <b>CelebrityDB</b>에서 <b>'+sunSign+'</b> 태양 또는 <b>'+venusSign+'</b> 금성과 같은 기운을 가진 유명인을 자동으로 찾아드립니다.</p>'
         +'<div id="astroCosmicTwins" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;">'
@@ -6732,9 +6756,9 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── [💍 운명의 시나스트리] — 유명인 선택 UI ── */
-        +'<div style="background:rgba(244,114,182,0.06);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid rgba(244,114,182,0.2);">'
+        +'<div class="astro-neon-soft-block" style="margin-bottom:14px;border-color:rgba(244,114,182,0.25) !important;background:rgba(244,114,182,.08) !important;">'
         +'<div style="font-size:0.78rem;color:#f472b6;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💍 운명의 시나스트리: 유명인 궁합 분석</div>'
-        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 봐주세요.</p>'
+        +'<p style="font-size:0.82rem;color:#94a3b8;margin:0 0 10px 0;line-height:1.5;">셀럽을 고르면 네 차트와 바로 맞대결. 연애 케미, 협업 합, 감정 파동까지 한 번에 뜨는 코즈믹 랩이에요. 생시 미상은 12:00 기준이라 달/상승궁은 참고용으로 보고, 실제 성향은 대화 템포로 최종 체크해요.</p>'
         /* 국가 탭 */
         +'<div id="astroCtryTabs" class="astro-neon-tab-row"></div>'
         /* 카테고리 탭 */
@@ -6777,7 +6801,7 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── 피르다리아 (실시간) ── */
-        +'<div class="astro-section" style="border-left:3px solid #a78bfa;">'
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-violet">'
         +'<div class="astro-subhead" style="color:#a78bfa;">🪐 피르다리아 (Firdaria — 고전 시간 통치자)</div>'
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
@@ -6829,7 +6853,7 @@ function renderAstroInsight() {
         +'</div>'
 
         /* ── 연간 프로펙션 (실시간) ── */
-        +'<div class="astro-section" style="border-left:3px solid #22d3ee;">'
+        +'<div class="astro-section astro-neon-accent astro-neon-accent-cyan">'
         +'<div class="astro-subhead" style="color:#22d3ee;">🌀 연간 프로펙션 (Annual Profection — '+now.getFullYear()+'년)</div>'
         +'<div class="astro-desc">'
         +'<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">'
@@ -7381,6 +7405,7 @@ function renderAstroInsight() {
 
                 /* ── HTML 렌더 ── */
                 var html2 = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 리포트</div><span class="astro-neon-syn-chip">네온 궁합 모드</span></div><p class="astro-neon-mz-tip">오늘의 별자리 브리핑 톤 그대로 적용했어요. 점수는 내비게이션, 진짜 키는 대화 템포와 감정 회복 루틴입니다.</p>';
+                html2 += '<div class="astro-syn-quick"><div class="astro-syn-quick-title">Quick Read</div><ul><li><b>현재 관계 결:</b> '+relType+'</li><li><b>강점 각도:</b> '+bestSupport+'</li><li><b>보완 포인트:</b> '+bestChallenge+'</li></ul></div>';
 
                 /* 헤더 */
                 html2 += '<div class="astro-syn-header">'
@@ -7630,6 +7655,7 @@ function renderAstroInsight() {
 
                 /* ── 렌더 ── */
                 var h = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">💫 직접 입력 시나스트리 리포트</div><span class="astro-neon-syn-chip">실전 궁합 맵</span></div><p class="astro-neon-mz-tip">오늘 브리핑 감성으로 풀어낸 실전 버전입니다. 점수는 방향표이고, 관계의 승부는 합의 루틴과 리페어 속도에서 갈려요.</p>';
+                h += '<div class="astro-syn-quick"><div class="astro-syn-quick-title">Quick Read</div><ul><li><b>현재 관계 결:</b> '+relType2+'</li><li><b>강점 각도:</b> '+bestSupport2+'</li><li><b>보완 포인트:</b> '+bestChallenge2+'</li></ul></div>';
 
                 h += '<div class="astro-syn-header">'
                   +'<div class="astro-syn-name" style="color:#fde68a;">'+nameVal+'</div>'
@@ -7674,9 +7700,9 @@ function renderAstroInsight() {
                     h += '</div></div>';
                 }
 
-                h += '<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.28);border-radius:10px;padding:10px;margin-bottom:12px;">'
-                  +'<div style="font-size:0.72rem;color:#fbbf24;font-weight:700;margin-bottom:6px;">📊 오브 가중치 점수 근거</div>'
-                  +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.65;">'
+                h += '<div class="astro-syn-data" style="background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);">'
+                  +'<div class="astro-syn-data-title" style="color:#fbbf24;">📊 오브 가중치 점수 근거</div>'
+                  +'<div class="astro-syn-data-copy">'
                   +'정규화 점수: <b>'+synScore2+'</b>/100 · 가중 합산: <b>'+synRaw2.toFixed(2)+'</b> / 최대 '+synMax2.toFixed(2)+'<br>'
                   +'하우스 오버레이 보정(7H/8H 포함): <b>'+overlayScore2.toFixed(2)+'</b> · 영향도 '+(overlayNorm2*100).toFixed(1)+'% ('+overlayMode2+')<br>'
                   +'해석 신뢰도(각도 기반): <b>'+synConfidence2+'%</b><br>'
@@ -7685,9 +7711,9 @@ function renderAstroInsight() {
                   +'</div>'
                   +'</div>';
 
-                h += '<div style="background:rgba(20,25,35,0.6);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:10px;margin-bottom:12px;">'
-                  +'<div style="font-size:0.72rem;color:#f59e0b;font-weight:700;margin-bottom:6px;">🏠 하우스 오버레이 (Whole Sign 기준)</div>'
-                  +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.6;">'
+                h += '<div class="astro-syn-overlay" style="border-color:rgba(245,158,11,.3);">'
+                  +'<div class="astro-syn-overlay-title" style="color:#f59e0b;">🏠 하우스 오버레이 (Whole Sign 기준)</div>'
+                  +'<div class="astro-syn-overlay-copy">'
                   +'내 태양(☀)이 상대 차트의 <b>'+(ovMySunToPartner ? ovMySunToPartner + 'H' : '-')+'</b>에 투사<br>'
                   +'상대 태양(☀)이 내 차트의 <b>'+(ovPartnerSunToMy ? ovPartnerSunToMy + 'H' : '-')+'</b>에 투사<br>'
                   +'내 달(☽)이 상대 차트의 <b>'+(ovMyMoonToPartner ? ovMyMoonToPartner + 'H' : '-')+'</b>에 투사<br>'
@@ -7695,18 +7721,18 @@ function renderAstroInsight() {
                   +'내 금성(♀)이 상대 차트의 <b>'+(ovMyVenusToPartner ? ovMyVenusToPartner + 'H' : '-')+'</b>에 투사<br>'
                   +'상대 금성(♀)이 내 차트의 <b>'+(ovPartnerVenusToMy ? ovPartnerVenusToMy + 'H' : '-')+'</b>에 투사'
                   +'</div>'
-                  +'<div style="font-size:0.74rem;color:#94a3b8;margin-top:6px;line-height:1.55;">'
+                  +'<div class="astro-syn-overlay-tip">'
                   +'태양 투사는 관계의 중심 무대를, 금성 투사는 애정 교환 방식과 호감 코드를 보여줍니다. '
                   +(ovMySunToPartner ? ('내 태양은 상대의 '+ovMySunToPartner+'H('+_syHouseTheme(ovMySunToPartner)+')를 활성화합니다. ') : '')
                   +(ovPartnerSunToMy ? ('상대 태양은 내 '+ovPartnerSunToMy+'H('+_syHouseTheme(ovPartnerSunToMy)+')를 자극합니다.') : '')
                   +'</div>'
                   +'</div>';
 
-                h += '<div style="background:rgba(15,23,42,0.6);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.07);">'
-                    +'<div style="font-size:0.72rem;color:#94a3b8;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">⚖️ 빛과 그림자</div>'
-                    +'<div style="font-size:0.8rem;color:#86efac;margin-bottom:5px;line-height:1.5;">'+shadowInfo2.light+'</div>'
-                    +'<div style="font-size:0.8rem;color:#fca5a5;margin-bottom:8px;line-height:1.5;">'+shadowInfo2.shadow+'</div>'
-                    +'<div style="font-size:0.78rem;background:rgba(245,158,11,0.1);border-left:3px solid #f59e0b;padding:8px 10px;border-radius:0 8px 8px 0;color:#fde68a;line-height:1.6;word-break:keep-all;">'
+                h += '<div class="astro-syn-shadow">'
+                  +'<div class="astro-syn-shadow-title">⚖️ 빛과 그림자</div>'
+                  +'<div class="astro-syn-shadow-good">'+shadowInfo2.light+'</div>'
+                  +'<div class="astro-syn-shadow-bad">'+shadowInfo2.shadow+'</div>'
+                  +'<div class="astro-syn-shadow-remedy" style="background:rgba(245,158,11,.1);border-left-color:#f59e0b;color:#fde68a;">'
                     +'🌿 <b>개선의 길</b>: '+shadowInfo2.remedy
                     +'</div>'
                     +'</div></div>';
