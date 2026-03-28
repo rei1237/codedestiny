@@ -2568,70 +2568,6 @@ function _dfGetProfilePayload(options) {
     return merged;
   }
 
-  function hydrateSajuDomainFallback(basePayload) {
-    if (!basePayload || typeof basePayload !== 'object') return basePayload || {};
-
-    var parser = null;
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.parseDestinyProfile === 'function') {
-      parser = window.DestinyFlowerEngine.parseDestinyProfile.bind(window.DestinyFlowerEngine);
-    } else if (typeof window.parseDestinyProfile === 'function') {
-      parser = window.parseDestinyProfile;
-    }
-    if (typeof parser !== 'function') return basePayload;
-
-    try {
-      var parsed = parser(basePayload) || {};
-      var parsedSaju = (parsed.domains && parsed.domains.saju) || {};
-      var parsedCore = parsed.core || {};
-      var parsedBirth = (parsed.identity && parsed.identity.birth) || {};
-      if (!parsedSaju || typeof parsedSaju !== 'object') return basePayload;
-
-      var merged = Object.assign({}, basePayload);
-      merged.birth = Object.assign({}, basePayload.birth || {}, parsedBirth || {});
-
-      var weightMap = parsedSaju.element_strength_percent || parsedCore.element_strength_percent || {};
-      merged.analysis = Object.assign({}, basePayload.analysis || {}, {
-        dayMaster: parsedSaju.day_master || ((basePayload.analysis && basePayload.analysis.dayMaster) || ''),
-        day_master: parsedSaju.day_master || ((basePayload.analysis && basePayload.analysis.day_master) || ''),
-        dayStem: parsedSaju.day_master_stem || ((basePayload.analysis && basePayload.analysis.dayStem) || ''),
-        day_stem: parsedSaju.day_master_stem || ((basePayload.analysis && basePayload.analysis.day_stem) || ''),
-        season: parsedSaju.season || parsedCore.season || ((basePayload.analysis && basePayload.analysis.season) || ''),
-        environment: parsedSaju.environment || parsedCore.environment || ((basePayload.analysis && basePayload.analysis.environment) || ''),
-        elementalWeights: Object.assign({}, (basePayload.analysis && basePayload.analysis.elementalWeights) || {}, {
-          wood: Number(weightMap.Wood || weightMap.wood || 20),
-          fire: Number(weightMap.Fire || weightMap.fire || 20),
-          earth: Number(weightMap.Earth || weightMap.earth || 20),
-          metal: Number(weightMap.Metal || weightMap.metal || 20),
-          water: Number(weightMap.Water || weightMap.water || 20)
-        })
-      });
-
-      merged.saju = Object.assign({}, basePayload.saju || {}, {
-        dayMaster: parsedSaju.day_master || ((basePayload.saju && basePayload.saju.dayMaster) || ''),
-        day_master: parsedSaju.day_master || ((basePayload.saju && basePayload.saju.day_master) || ''),
-        dayStem: parsedSaju.day_master_stem || ((basePayload.saju && basePayload.saju.dayStem) || ''),
-        day_stem: parsedSaju.day_master_stem || ((basePayload.saju && basePayload.saju.day_stem) || ''),
-        elementWeights: Object.assign({}, (basePayload.saju && basePayload.saju.elementWeights) || {}, {
-          wood: Number(weightMap.Wood || weightMap.wood || 20),
-          fire: Number(weightMap.Fire || weightMap.fire || 20),
-          earth: Number(weightMap.Earth || weightMap.earth || 20),
-          metal: Number(weightMap.Metal || weightMap.metal || 20),
-          water: Number(weightMap.Water || weightMap.water || 20)
-        })
-      });
-
-      merged.domains = Object.assign({}, basePayload.domains || {});
-      merged.domains.saju = Object.assign({}, (basePayload.domains && basePayload.domains.saju) || {}, parsedSaju || {}, {
-        enabled: true
-      });
-
-      return merged;
-    } catch (e) {
-      console.warn('[DestinyFlower][Saju] fallback domain hydrate failed:', e);
-      return basePayload;
-    }
-  }
-
   var current = getCurrentProfile();
   syncStudioStateByProfile(current);
   var payload = current || {};
@@ -2642,39 +2578,12 @@ function _dfGetProfilePayload(options) {
 
   if (payload && payload.birth && typeof window.computeProfileForModal === 'function') {
     try {
-      var modalComputed = window.computeProfileForModal(payload);
-      if (!modalComputed) {
-        console.error('[DestinyFlower][Saju] computeProfileForModal failed', {
-          hasSolar: !(typeof window.Solar === 'undefined'),
-          hasSolarFromYmdHms: !!(window.Solar && typeof window.Solar.fromYmdHms === 'function'),
-          birth: payload && payload.birth ? {
-            year: payload.birth.year,
-            month: payload.birth.month,
-            day: payload.birth.day,
-            hour: payload.birth.hour,
-            minute: payload.birth.minute,
-            calType: payload.birth.calType
-          } : null
-        });
-        if (typeof __cdEnsureLunarLibReady === 'function') {
-          __cdEnsureLunarLibReady().catch(function(err) {
-            console.warn('[DestinyFlower][Saju] lunar library lazy load failed:', err);
-          });
-        }
-      }
+      window.computeProfileForModal(payload);
       snapshot = pickSajuSnapshot(payload);
-      if (snapshot) {
-        payload = mergePayload(payload, snapshot);
-      } else {
-        console.warn('[DestinyFlower][Saju] snapshot not available after computeProfileForModal');
-      }
+      if (snapshot) payload = mergePayload(payload, snapshot);
     } catch (e2) {
       console.warn('[DestinyFlower] 사주 재계산 실패:', e2);
     }
-  }
-
-  if (!_dfHasReadySourceData('saju', payload)) {
-    payload = hydrateSajuDomainFallback(payload);
   }
 
   var birthCtx = _dfResolveBirthContext(payload || {});
@@ -4115,15 +4024,6 @@ function _dfHasReadySourceData(source, payload) {
       || ''
     ).trim();
 
-    var dayStem = String(
-      saju.dayStem
-      || saju.day_stem
-      || sajuDomain.day_stem
-      || analysis.dayStem
-      || analysis.day_stem
-      || ''
-    ).trim();
-
     var hasPillar = !!(
       String(saju.yearPillar || sajuDomain.year_pillar || '').trim()
       || String(saju.monthPillar || sajuDomain.month_pillar || '').trim()
@@ -4137,7 +4037,6 @@ function _dfHasReadySourceData(source, payload) {
     }).filter(function(v) {
       return Number.isFinite(v);
     });
-    var hasAnyWeights = values.length === 5;
     var hasNonDefaultWeights = false;
     if (values.length === 5) {
       var allSame = values.every(function(v) { return Math.abs(v - values[0]) < 0.05; });
@@ -4145,7 +4044,7 @@ function _dfHasReadySourceData(source, payload) {
       hasNonDefaultWeights = !looksDefault;
     }
 
-    return !!(dayMaster || dayStem || hasPillar || hasNonDefaultWeights || hasAnyWeights);
+    return !!(dayMaster || hasPillar || hasNonDefaultWeights);
   }
 
   if (normalized === 'astrology') {
