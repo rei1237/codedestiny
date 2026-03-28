@@ -11,8 +11,9 @@
 <meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
-<!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba.webp">
+<!-- LCP: 모바일/데스크톱 분기 프리로드 -->
+<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/honeypig-130.webp" media="(min-width: 769px)" fetchpriority="high">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -347,21 +348,32 @@
 
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/animations.css">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260328-animaluxfix1">
   <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
   <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
+  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
+  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix"></noscript>
+  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
+  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
   <!-- tailwind runtime CDN removed: static CSS is used -->
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/css/entertain-system.css">
+  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
+  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
+  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
+  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
   <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix1">
 <style id="lsd-styles-placeholder">
@@ -467,7 +479,7 @@
     <div class="df-studio-main">
       <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
       <div class="df-studio-visual">
-        <img id="dfStudioImage" src="/fuctionassets/flower.webp" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" width="420" height="320">
+        <img id="dfStudioImage" src="/fuctionassets/flower.webp" srcset="/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w" sizes="(max-width: 768px) 86vw, 420px" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" width="420" height="320">
       </div>
       <article class="df-studio-insight">
         <h3 id="dfStudioName">연꽃</h3>
@@ -792,16 +804,18 @@
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+          <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig.webp"
+            srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
+            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img class="neo-logo-icon" src="/icons/samba.webp"
-               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp"
+            srcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w" sizes="(max-width: 768px) 88px, 130px"
+            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -3249,14 +3263,14 @@
 <script src="/js/admin-flower.js" defer></script>
 <div class="share-toast" id="shareToast"></div>
 
-<script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
+<script data-cd-noncritical-src="/js/share.js?v=2026-03-23-v2-cachefix1"></script>
 
-<script src="/js/iching-engine.js" defer></script>
+<script data-cd-noncritical-src="/js/iching-engine.js"></script>
 
-<script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=20260321-sukuyo-scroll2"></script>
 
 <!-- 구글 번역 스크립트: 사용자 의도 기반 지연 로드 -->
-<script src="/js/cd-google-translate-lazy.js" defer></script>
+<script data-cd-noncritical-src="/js/cd-google-translate-lazy.js" data-cd-skip-save-data="1"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3303,9 +3317,9 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/fate-scroll-reveal.js" defer></script>
-<script src="/js/fate-scroll-top.js" defer></script>
-<script src="/js/fsn-navbar.js" defer></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
+<script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
@@ -3362,16 +3376,17 @@
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
-<script src="/js/image-fallback.js" defer></script>
+<script src="/js/noncritical-defer-loader.js" defer></script>
+<script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script src="/js/touch-perf.js" defer></script>
+<script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script src="/js/cd-web-vitals-console-gated.js" defer></script>
+<script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 </body>
 </html>
 

@@ -2,6 +2,7 @@ const __perfCleanups = [];
 let __imgOptimizationQueued = false;
 let __textCollapseQueued = false;
 let __lazyHydrationQueued = false;
+let __viewportEventsBound = false;
 
 function __addCleanup(fn) {
   if (typeof fn === 'function') __perfCleanups.push(fn);
@@ -42,6 +43,97 @@ function __scheduleIdle(work, timeout) {
     }, 16);
   };
   return idle(work, { timeout: timeout || 800 });
+}
+
+function __throttle(fn, wait) {
+  let timer = null;
+  let last = 0;
+  let pendingArgs = null;
+
+  return function throttled() {
+    const now = Date.now();
+    const remain = wait - (now - last);
+    pendingArgs = arguments;
+
+    if (remain <= 0) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      last = now;
+      fn.apply(this, pendingArgs);
+      pendingArgs = null;
+      return;
+    }
+
+    if (!timer) {
+      timer = setTimeout(() => {
+        timer = null;
+        last = Date.now();
+        if (pendingArgs) {
+          fn.apply(this, pendingArgs);
+          pendingArgs = null;
+        }
+      }, remain);
+    }
+  };
+}
+
+function __debounce(fn, wait) {
+  let timer = null;
+  return function debounced() {
+    const ctx = this;
+    const args = arguments;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(ctx, args), wait);
+  };
+}
+
+function __getPerfTuningProfile() {
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const et = (conn && conn.effectiveType) ? String(conn.effectiveType).toLowerCase() : '';
+  const saveData = !!(conn && conn.saveData);
+  const lowEnd = __isLikelyLowGpuDevice();
+
+  const profile = {
+    preHydrateViewportMultiplier: 1.15,
+    noSkeletonViewportMultiplier: 1.4,
+    scrollThrottleMs: 220,
+    resizeDebounceMs: 240,
+    imageChunkSize: 28,
+    imgIdleTimeoutMs: 900,
+    textIdleTimeoutMs: 3200,
+    sectionIdleTimeoutMs: 3600,
+    viewportRefreshIdleMs: 900,
+    viewportResizeIdleMs: 1000
+  };
+
+  if (saveData || et === 'slow-2g' || et === '2g' || lowEnd) {
+    profile.preHydrateViewportMultiplier = 0.95;
+    profile.noSkeletonViewportMultiplier = 1.15;
+    profile.scrollThrottleMs = 320;
+    profile.resizeDebounceMs = 320;
+    profile.imageChunkSize = 18;
+    profile.textIdleTimeoutMs = 3600;
+    profile.sectionIdleTimeoutMs = 4200;
+    profile.viewportRefreshIdleMs = 1200;
+    profile.viewportResizeIdleMs = 1300;
+    return profile;
+  }
+
+  if (et === '4g' && !lowEnd) {
+    profile.preHydrateViewportMultiplier = 1.55;
+    profile.noSkeletonViewportMultiplier = 1.75;
+    profile.scrollThrottleMs = 150;
+    profile.resizeDebounceMs = 190;
+    profile.imageChunkSize = 36;
+    profile.textIdleTimeoutMs = 3000;
+    profile.sectionIdleTimeoutMs = 3300;
+    profile.viewportRefreshIdleMs = 700;
+    profile.viewportResizeIdleMs = 800;
+  }
+
+  return profile;
 }
 
 function __runChunked(list, worker, chunkSize) {
@@ -115,7 +207,73 @@ function __loadScriptOnce(src) {
   });
 }
 
+function __applyResponsiveSrcsetHints(img) {
+  if (!img || img.dataset.responsiveHintReady === '1') return;
+
+  var cls = img.className || '';
+  var id = img.id || '';
+
+  if ((cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') && !img.getAttribute('srcset')) {
+    img.setAttribute('srcset', '/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w');
+    img.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+  }
+
+  if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
+    img.setAttribute('srcset', '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w');
+    img.setAttribute('sizes', '(max-width: 768px) 88px, 130px');
+  }
+
+  if (id === 'dfStudioImage' && !img.getAttribute('srcset')) {
+    img.setAttribute('srcset', '/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w');
+    img.setAttribute('sizes', '(max-width: 768px) 86vw, 420px');
+  }
+
+  img.dataset.responsiveHintReady = '1';
+}
+
+function __isVisibleElement(el) {
+  if (!el) return false;
+  try {
+    var cs = window.getComputedStyle(el);
+    if (!cs || cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+    var rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+function __applyThemeAwareLcpPriority() {
+  var pig = document.querySelector('img.honeypig-logo-icon');
+  var neo = document.querySelector('img.neo-logo-icon');
+  if (!pig && !neo) return;
+
+  var isMobileLcp = window.matchMedia('(max-width: 768px)').matches;
+  var target = null;
+
+  if (isMobileLcp) {
+    target = __isVisibleElement(neo) ? neo : (__isVisibleElement(pig) ? pig : (neo || pig));
+  } else {
+    target = __isVisibleElement(pig) ? pig : (__isVisibleElement(neo) ? neo : (pig || neo));
+  }
+
+  [pig, neo].forEach(function(img) {
+    if (!img) return;
+    __applyResponsiveSrcsetHints(img);
+    if (img === target) {
+      img.setAttribute('loading', 'eager');
+      img.setAttribute('fetchpriority', 'high');
+    } else {
+      if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
+      img.setAttribute('fetchpriority', 'low');
+    }
+    if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
+  });
+}
+
 function setupImageOptimization() {
+  if (window.__CD_IO_LAZY_ACTIVE__ === true) return;
+
   const imgs = document.querySelectorAll('img:not([data-mobile-opt-ready="1"])');
   if (!imgs.length) return;
 
@@ -158,13 +316,16 @@ function setupImageOptimization() {
     document.head.appendChild(st);
   }
 
+  const tuning = __getPerfTuningProfile();
+
   __runChunked(imgs, (img, idx) => {
     img.dataset.mobileOptReady = '1';
+    __applyResponsiveSrcsetHints(img);
     const likelyHero = isLikelyHeroImage(img);
     if (!img.getAttribute('loading')) img.setAttribute('loading', likelyHero ? 'eager' : 'lazy');
     if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
     if (!img.getAttribute('fetchpriority')) {
-      if (likelyHero && highAssigned < 2) {
+      if (likelyHero && highAssigned < 1) {
         img.setAttribute('fetchpriority', 'high');
         highAssigned += 1;
       } else if (isFarBelowFold(img)) {
@@ -174,7 +335,7 @@ function setupImageOptimization() {
     if (!img.classList.contains('img-ph') && !img.complete) img.classList.add('img-ph');
     img.addEventListener('load', () => img.classList.remove('img-ph'), { passive: true, once: true });
     img.addEventListener('error', () => img.classList.remove('img-ph'), { passive: true, once: true });
-  }, 28);
+  }, tuning.imageChunkSize);
 }
 
 function setupGpuSafety() {
@@ -263,12 +424,17 @@ function __canWarmupHeavyFeature() {
 function __queuePostPaintOptimizations() {
   if (!__isMobile()) return;
 
+  const tuning = __getPerfTuningProfile();
+
+  // Prioritize image hints first; defer heavier DOM mutations to protect LCP.
+  setupImageOptimization();
+
   if (!__imgOptimizationQueued) {
     __imgOptimizationQueued = true;
     __scheduleIdle(() => {
       setupImageOptimization();
       __imgOptimizationQueued = false;
-    }, 1400);
+    }, tuning.imgIdleTimeoutMs);
   }
 
   if (!__textCollapseQueued) {
@@ -276,7 +442,7 @@ function __queuePostPaintOptimizations() {
     __scheduleIdle(() => {
       setupTextCollapse();
       __textCollapseQueued = false;
-    }, 1800);
+    }, tuning.textIdleTimeoutMs);
   }
 
   if (__isMobile() && !__lazyHydrationQueued) {
@@ -284,8 +450,38 @@ function __queuePostPaintOptimizations() {
     __scheduleIdle(() => {
       setupLazySectionHydration();
       __lazyHydrationQueued = false;
-    }, 2100);
+    }, tuning.sectionIdleTimeoutMs);
   }
+
+}
+
+function setupViewportEventOptimizations() {
+  if (window.__CD_IO_LAZY_ACTIVE__ === true) return;
+  if (__viewportEventsBound) return;
+  __viewportEventsBound = true;
+
+  const tuning = __getPerfTuningProfile();
+
+  const onScroll = __throttle(() => {
+    __scheduleIdle(() => {
+      setupImageOptimization();
+    }, tuning.viewportRefreshIdleMs);
+  }, tuning.scrollThrottleMs);
+
+  const onResize = __debounce(() => {
+    __scheduleIdle(() => {
+      setupImageOptimization();
+    }, tuning.viewportResizeIdleMs);
+  }, tuning.resizeDebounceMs);
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize, { passive: true });
+
+  __addCleanup(() => {
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onResize);
+    __viewportEventsBound = false;
+  });
 }
 
 function setupLazySectionHydration() {
@@ -511,9 +707,16 @@ function setupCoreCodeSplitHooks() {
 }
 
 function init() {
-  setupGpuSafety();
   setupFeatureCodeSplit();
+  __applyThemeAwareLcpPriority();
+
+  if (!__isMobile()) {
+    return;
+  }
+
+  setupGpuSafety();
   setupCoreCodeSplitHooks();
+  setupViewportEventOptimizations();
   __queuePostPaintOptimizations();
 
   window.addEventListener('pagehide', () => {
