@@ -2504,6 +2504,7 @@ function _dfGetProfilePayload() {
 function _dfResolveSelection() {
   var payload = _dfGetProfilePayload();
   var birthCtx = _dfResolveBirthContext(payload || {});
+  var allowUserForcedFallback = !!(_dfStudioState.userRequestedLoad && _dfStudioState.userRequestedLoad.saju);
 
   // 생년월일 핵심 정보가 전혀 없으면 운명의 꽃을 계산하지 않는다.
   // (빈 상태에서는 어떤 꽃도 노출하지 않고 안내 문구만 보여주기 위함)
@@ -2511,7 +2512,7 @@ function _dfResolveSelection() {
     return null;
   }
 
-  if (!_dfHasReadySourceData('saju', payload)) {
+  if (!_dfHasReadySourceData('saju', payload) && !allowUserForcedFallback) {
     return null;
   }
 
@@ -2542,13 +2543,16 @@ function _dfResolveSelection() {
   if (!matched) return null;
 
   var fallbackUsed = !!(matched.fallback_logic && matched.fallback_logic.used);
-  if (fallbackUsed) return null;
+  if (fallbackUsed && !allowUserForcedFallback) return null;
 
   var matchedSaju = (matched.profile && matched.profile.domains && matched.profile.domains.saju) || {};
   var matchedDayMaster = String(matchedSaju.day_master || matchedSaju.dayMaster || '').trim();
-  if (!matchedDayMaster) return null;
+  if (!matchedDayMaster && !allowUserForcedFallback) return null;
 
   var flower = matched.flower || matched.flowerSymbology;
+  if (!flower && allowUserForcedFallback && window.flowerSymbology) {
+    flower = window.flowerSymbology.LOTUS || null;
+  }
   if (!flower) return null;
 
   var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
@@ -2556,6 +2560,10 @@ function _dfResolveSelection() {
   var keywords = Array.isArray(flower.keywords) && flower.keywords.length
     ? flower.keywords.slice(0, 4)
     : [flower.particle_type || 'petal', 'balance', 'bloom'];
+
+  if (_dfStudioState.userRequestedLoad) {
+    _dfStudioState.userRequestedLoad.saju = false;
+  }
 
   return {
     source: 'saju',
@@ -3263,7 +3271,8 @@ var _dfStudioState = {
   flowerData: null,
   activeSource: 'saju',
   loadingSource: '',
-  loadingTasks: {}
+  loadingTasks: {},
+  userRequestedLoad: {}
 };
 
 function _dfToArray(v) {
@@ -4080,6 +4089,9 @@ function _dfReloadSourceData(source, options) {
 function _dfFetchSourceOnDemand(source, options) {
   var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  if (_dfStudioState.userRequestedLoad && (opts.force || opts.userInitiated)) {
+    _dfStudioState.userRequestedLoad[normalized] = true;
+  }
   var state = _dfGetDataMissingUiState(normalized);
   if (!state.showLoadButton && !opts.force) {
     _dfSetStudioStatus(state.message, {
