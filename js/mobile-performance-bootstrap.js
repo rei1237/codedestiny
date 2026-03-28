@@ -260,6 +260,12 @@ function __applyResponsiveSrcsetHints(img) {
     img.setAttribute('sizes', srcsetHints['/fuctionassets/flower.webp'].sizes);
   }
 
+  if (!img.getAttribute('srcset') && /^\/fuctionassets\/.+\.webp$/i.test(srcPath) && srcPath.indexOf('/mobile/') === -1) {
+    var mobilePath = srcPath.replace('/fuctionassets/', '/fuctionassets/mobile/');
+    img.setAttribute('srcset', mobilePath + ' 420w, ' + srcPath + ' 960w');
+    img.setAttribute('sizes', '(max-width: 768px) 86vw, 420px');
+  }
+
   img.dataset.responsiveHintReady = '1';
 }
 

@@ -294,6 +294,11 @@ function __hydrateCollectionImagesChunked(collection) {
     img.width = 200;
     img.height = 150;
     img.alt = alt;
+    if (/^\/fuctionassets\/.+\.webp$/i.test(src) && src.indexOf('/mobile/') === -1) {
+      const mobileSrc = src.replace('/fuctionassets/', '/fuctionassets/mobile/');
+      img.srcset = mobileSrc + ' 420w, ' + src + ' 960w';
+      img.sizes = '(max-width: 768px) 86vw, 420px';
+    }
     img.onload = () => { skeleton.remove(); };
     img.onerror = () => { skeleton.remove(); };
     img.src = src;
