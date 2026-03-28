@@ -3173,6 +3173,75 @@ function _dfApplyCardVisual(card, selection) {
   stage.classList.add('is-bloomed');
 }
 
+var _dfCrossDomainCoreLoadPromise = null;
+
+function _dfNeedsCrossDomainCore() {
+  return (
+    typeof window.calcAstroApiChartOrThrow !== 'function' ||
+    typeof window.calcZiweiPalaces !== 'function' ||
+    typeof window.calcSukuyoData !== 'function'
+  );
+}
+
+function _dfRefreshSelectionAfterCoreReady() {
+  _dfStudioState.flowerData = null;
+  var activeSource = _dfStudioState.activeSource || 'saju';
+  var selection = _dfGetUnifiedSelection(activeSource, true);
+  _dfStudioState.selection = selection;
+
+  var card = document.querySelector('.feature-card.feature-card--destiny-flower');
+  if (card) {
+    _dfEnsureCardOpen(card);
+    _dfAnimateUnifiedCardSwitch(card, selection);
+    if (typeof syncFeatureCardHeight === 'function') {
+      syncFeatureCardHeight(card);
+      requestAnimationFrame(function() {
+        syncFeatureCardHeight(card);
+      });
+    }
+  }
+
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  var studioOpen = overlay && overlay.style.display !== 'none' && overlay.classList.contains('is-show');
+  if (!studioOpen) return;
+
+  var main = document.querySelector('.df-studio-main');
+  var panels = document.querySelector('.df-studio-panels');
+  var historySection = document.querySelector('.df-studio-history');
+
+  if (!selection) {
+    if (main) main.style.display = 'none';
+    if (panels) panels.style.display = 'none';
+    if (historySection) historySection.style.display = 'none';
+    _dfSetStudioStatus(_dfGetNoBirthMessage(activeSource));
+    return;
+  }
+
+  _dfApplyStudioSelection(selection);
+  if (main) main.style.display = '';
+  if (panels) panels.style.display = '';
+  if (historySection) historySection.style.display = '';
+  _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
+}
+
+function _dfWarmupCrossDomainCoreIfNeeded() {
+  if (!_dfNeedsCrossDomainCore()) return Promise.resolve(true);
+  if (typeof __cdEnsureSajuCoreLoaded !== 'function') return Promise.resolve(false);
+  if (_dfCrossDomainCoreLoadPromise) return _dfCrossDomainCoreLoadPromise;
+
+  _dfCrossDomainCoreLoadPromise = __cdEnsureSajuCoreLoaded().then(function() {
+    _dfRefreshSelectionAfterCoreReady();
+    return true;
+  }).catch(function(err) {
+    console.warn('[DestinyFlower] 통합 코어 지연 로드 실패:', err);
+    return false;
+  }).finally(function() {
+    _dfCrossDomainCoreLoadPromise = null;
+  });
+
+  return _dfCrossDomainCoreLoadPromise;
+}
+
 function _dfSetBodyLock(locked) {
   if (window._perf && typeof window._perf.lockBody === 'function' && typeof window._perf.unlockBody === 'function') {
     if (locked) window._perf.lockBody();
@@ -4356,6 +4425,8 @@ function openSukuyoFlowerStudio() {
 }
 
 function openDestinyFlower(forceRefreshData) {
+  _dfWarmupCrossDomainCoreIfNeeded();
+
   var card = document.querySelector('.feature-card.feature-card--destiny-flower');
   if (!card) return;
 
@@ -4384,6 +4455,8 @@ function openDestinyFlower(forceRefreshData) {
 }
 
 function openDestinyFlowerStudio() {
+  _dfWarmupCrossDomainCoreIfNeeded();
+
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
   if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) return;
