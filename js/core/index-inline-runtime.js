@@ -3880,9 +3880,12 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   return selection;
 }
 
-function _dfReloadSourceData(source) {
+function _dfReloadSourceData(source, options) {
+  var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
-  _dfSetStudioStatus('데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.');
+  if (!opts.silentStatus) {
+    _dfSetStudioStatus('데이터를 다시 불러오는 중입니다. 잠시만 기다려주세요.');
+  }
 
   var loader = Promise.resolve(true);
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
@@ -3892,9 +3895,36 @@ function _dfReloadSourceData(source) {
     });
   }
 
-  loader.then(function() {
+  return loader.then(function() {
     _dfStudioState.flowerData = null;
-    _dfRefreshStudioForSource(normalized, true);
+    if (opts.skipUiRefresh) {
+      return _dfGetUnifiedSelection(normalized, true);
+    }
+    return _dfRefreshStudioForSource(normalized, true);
+  });
+}
+
+function _dfAutoLoadSourceIfNeeded(source) {
+  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var state = _dfGetDataMissingUiState(normalized);
+  if (!state.showLoadButton) return Promise.resolve(null);
+
+  _dfSetStudioStatus('데이터를 자동으로 불러오는 중입니다. 잠시만 기다려주세요.');
+  return _dfReloadSourceData(normalized, {
+    silentStatus: true,
+    skipUiRefresh: true
+  }).then(function(selection) {
+    if (selection) {
+      _dfRefreshStudioForSource(normalized, true);
+      return selection;
+    }
+
+    var retryState = _dfGetDataMissingUiState(normalized);
+    _dfSetStudioStatus(retryState.message, {
+      showLoadButton: retryState.showLoadButton,
+      source: retryState.source
+    });
+    return null;
   });
 }
 
@@ -4518,6 +4548,17 @@ function openDestinyFlower(forceRefreshData) {
       nameEl.textContent = '데이터 불러오기 대기';
       symbolismEl.textContent = emptyState.message;
     }
+    _dfReloadSourceData(activeSource, {
+      silentStatus: true,
+      skipUiRefresh: true
+    }).then(function(reloaded) {
+      if (!reloaded) return;
+      _dfStudioState.selection = reloaded;
+      _dfAnimateUnifiedCardSwitch(card, reloaded);
+      if (typeof syncFeatureCardHeight === 'function') {
+        syncFeatureCardHeight(card);
+      }
+    });
   }
   if (typeof syncFeatureCardHeight === 'function') {
     syncFeatureCardHeight(card);
@@ -4651,6 +4692,7 @@ function openDestinyFlowerStudio() {
       showLoadButton: emptyState.showLoadButton,
       source: emptyState.source
     });
+    _dfAutoLoadSourceIfNeeded(_dfStudioState.activeSource || 'saju');
   } else {
     _dfStudioState.selection = selection;
     _dfApplyStudioSelection(selection);
@@ -4699,6 +4741,8 @@ function setDestinyFlowerSourceTab(source) {
     var studioSelection = _dfRefreshStudioForSource(normalized, false);
     if (studioSelection) {
       _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
+    } else {
+      _dfAutoLoadSourceIfNeeded(normalized);
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
