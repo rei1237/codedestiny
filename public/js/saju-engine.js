@@ -6286,7 +6286,7 @@ function renderAstroInsight() {
     var focusHouseText = topFocusHouse ? (topFocusHouse+'하우스에 행성 '+topFocusCount+'개 집중') : '에너지가 여러 영역에 고르게 퍼진 타입';
     var axisGap = (sunIndex - moonIndex + 12) % 12;
     var axisGapDesc = (axisGap === 0) ? '의식-정서 일치형' : (axisGap === 6 ? '의식-정서 대칭형(긴장/보완)' : '의식-정서 혼합형');
-    var relationAxisText = '지금 관계 키워드는 "내 기준 지키기"와 "상대 속도 맞추기"의 균형이에요. 둘 중 하나만 밀면 쉽게 지칩니다.';
+    var relationAxisText = '지금 관계 키워드는 "내 페이스 지키기"와 "상대 템포 존중하기"의 밸런스예요. 한쪽으로만 몰아붙이면 감정 체력이 먼저 소모됩니다.';
     var transitExecutionText = '지금 목성 흐름은 '+jupiterHousePair+' 영역에서 특히 체감이 커요. 이 주제에 에너지를 주면 성과가 빨리 붙습니다.';
     var houseTopicMap = {
       1:'자기정체성/신체/개인 브랜딩', 2:'재정/자원/가치체계', 3:'학습/콘텐츠/소통',
@@ -6350,16 +6350,68 @@ function renderAstroInsight() {
     var boosterPlaceMap = { 1:'헬스장이나 운동 공간', 2:'은행/재테크 노트 정리 공간', 3:'카페나 스터디 공간', 4:'집 근처 조용한 공간', 5:'전시/공연/취미 공간', 6:'데스크 정리된 업무 공간', 7:'약속 장소/미팅 공간', 8:'혼자 집중할 수 있는 공간', 9:'서점/강연/여행 계획 공간', 10:'오피스/프로필 정리 공간', 11:'모임/커뮤니티 공간', 12:'산책로/명상 공간' };
     var astroBoosterColor = boosterColorMap[elemDominant] || '네이비/민트';
     var astroBoosterPlace = boosterPlaceMap[topFocusHouse] || '조용한 카페';
+    var isActionMode = (modalityNames[modalityDominant] || '').indexOf('활동궁') >= 0;
+    var astroStarterMission = isActionMode
+      ? '시작 15분만 투자해서 가장 미루던 일의 첫 단추를 끼우기'
+      : '기존 루틴 하나를 더 날카롭게 다듬고 반복성 높이기';
+    var astroRelationshipMission = axisGap === 6
+      ? '대화 전에 원하는 것 1개와 양보할 것 1개를 먼저 정리하기'
+      : '감정이 올라오는 순간, 바로 답장하지 말고 10초 호흡 후 전달하기';
+    var astroMoneyMission = (topFocusHouse === 2 || topFocusHouse === 8)
+      ? '오늘 결제 내역을 점검해 고정비 1개 최적화하기'
+      : '지출 대신 내 성장을 위한 투자 항목 1개 고르기';
+    var astroSocialMission = topFocusHouse === 11
+      ? '커뮤니티/네트워크 대화에서 나를 드러내는 문장 1개 남기기'
+      : '도움이 필요했던 사람 1명에게 먼저 안부 보내기';
+    var astroSelfcareMission = (retroPlanets || []).length >= 2
+      ? '오늘 밤 취침 전, 디지털 디톡스 30분으로 뇌 과열 식히기'
+      : '수분 2회 + 가벼운 스트레칭 5분으로 컨디션 리셋하기';
+    function clampBriefScore(v){ return Math.max(55, Math.min(98, Math.round(v))); }
+    var astroCategoryData = [
+      { icon:'🔥', title:'커리어/학업', score:clampBriefScore(64 + topFocusCount * 5 + (isActionMode ? 7 : 2)), mission:astroStarterMission },
+      { icon:'💘', title:'연애/관계', score:clampBriefScore(60 + (axisGap === 6 ? 4 : 9) + ((retroPlanets || []).length >= 2 ? -3 : 5)), mission:astroRelationshipMission },
+      { icon:'💸', title:'머니/실속', score:clampBriefScore(59 + ((topFocusHouse === 2 || topFocusHouse === 8) ? 11 : 4)), mission:astroMoneyMission },
+      { icon:'🫂', title:'소셜/인맥', score:clampBriefScore(58 + (topFocusHouse === 11 ? 12 : 6) + (isActionMode ? 3 : 0)), mission:astroSocialMission },
+      { icon:'🧠', title:'멘탈/셀프케어', score:clampBriefScore(62 + ((retroPlanets || []).length >= 2 ? 5 : 1)), mission:astroSelfcareMission }
+    ];
+    var astroCategoryCardsHtml = astroCategoryData.map(function(item){
+      return ''
+        +'<div class="rounded-xl border border-white/10 bg-slate-900/55 p-3 sm:p-4 backdrop-blur">'
+        +'<div class="flex items-center justify-between gap-2">'
+        +'<div class="text-sm sm:text-base font-semibold tracking-tight text-cyan-100">'+item.icon+' '+item.title+'</div>'
+        +'<div class="text-xs sm:text-sm font-semibold text-cyan-300">'+item.score+'점</div>'
+        +'</div>'
+        +'<p class="mt-2 text-[12px] sm:text-[13px] leading-relaxed text-slate-200">'+item.mission+'</p>'
+        +'</div>';
+    }).join('');
+    var astroImmersiveLine = isActionMode
+      ? '오늘의 하늘은 "빠른 스타트 + 짧은 피드백" 조합에서 폭발력이 올라가요. 지금 바로 1개만 시작하면 도미노처럼 다음 흐름이 열립니다.'
+      : '오늘의 하늘은 "정교한 루틴 + 템포 유지" 조합에서 강해져요. 적게 해도 정확하게 쌓으면 체감 성과가 크게 남습니다.';
 
     var html = '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
-      +'<div class="astro-section" style="border-left:4px solid #22d3ee;background:linear-gradient(to right, rgba(34,211,238,.08), transparent);margin-bottom:16px;">'
-      +'<div class="astro-subhead" style="color:#67e8f9;">✨ 오늘의 별자리 브리핑</div>'
-      +'<div class="astro-desc">'
-      +'<p><b>오늘의 핵심 키워드:</b> '+astroKeywordLine+'</p>'
-      +'<p><b>별들이 전하는 한마디:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
-      +'<p><b>이건 꼭 챙기세요!</b><br>1) 중요한 답장은 10초 쉬고 보내기<br>2) 오늘의 핵심 과제 1개만 먼저 끝내기<br>3) 내 기분 배터리 떨어지면 일정 1개 과감히 줄이기</p>'
-      +'<p><b>행운의 부스터:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
-      +'</div></div>'
+      +'<div class="astro-section mb-4">'
+      +'<div class="rounded-2xl border border-cyan-300/40 bg-gradient-to-br from-slate-950 via-sky-950/80 to-indigo-950/80 p-4 sm:p-5 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_22px_60px_-28px_rgba(14,165,233,0.7)]">'
+      +'<div class="flex flex-wrap items-center justify-between gap-2">'
+      +'<div class="astro-subhead !mb-0 text-cyan-200">✨ 오늘의 별자리 브리핑</div>'
+      +'<div class="rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-[11px] sm:text-xs font-medium text-cyan-200">오늘의 몰입 모드 ON</div>'
+      +'</div>'
+      +'<div class="mt-3 rounded-xl border border-white/10 bg-slate-950/45 p-3 sm:p-4">'
+      +'<p class="text-sm sm:text-base leading-relaxed text-slate-100"><b class="text-cyan-200">오늘의 핵심 키워드:</b> '+astroKeywordLine+'</p>'
+      +'<p class="mt-2 text-sm sm:text-base leading-relaxed text-slate-100"><b class="text-cyan-200">별들이 전하는 한마디:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
+      +'<p class="mt-2 text-sm sm:text-base leading-relaxed text-cyan-100"><b>몰입 포인트:</b> '+astroImmersiveLine+'</p>'
+      +'</div>'
+      +'<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">'+astroCategoryCardsHtml+'</div>'
+      +'<div class="mt-3 rounded-xl border border-cyan-200/20 bg-slate-900/50 p-3 sm:p-4">'
+      +'<p class="text-sm sm:text-base font-semibold text-cyan-100">오늘의 액션 미션 3</p>'
+      +'<ul class="mt-2 list-disc pl-5 text-[13px] sm:text-sm leading-relaxed text-slate-200">'
+      +'<li>중요한 답장은 10초 숨 고르고 보내기</li>'
+      +'<li>오늘의 핵심 과제 1개는 점심 전 70%까지 밀어붙이기</li>'
+      +'<li>기분 배터리 30% 이하로 떨어지면 일정 1개 과감히 비우기</li>'
+      +'</ul>'
+      +'<p class="mt-2 text-[12px] sm:text-sm text-cyan-100"><b>행운의 부스터:</b> '+astroBoosterColor+' 톤 + '+astroBoosterPlace+' + 물 한 잔 루틴 💧</p>'
+      +'</div>'
+      +'</div>'
+      +'</div>'
       + masterInsight
       +'<div class="astro-subhead">🗺 0. 내 탄생 별자리 지도</div>'
         +'<div class="astro-desc">'
