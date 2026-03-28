@@ -5709,12 +5709,13 @@ function renderAstroApiUnavailable(reason) {
   var msg = String(reason || 'SwissEph API 초기화 실패')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   area.innerHTML = ''
-    + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap">'
-    + '<div class="astro-section" style="border-left:4px solid #ef4444;background:rgba(15,23,42,0.7);">'
-    + '<div class="astro-subhead" style="color:#fda4af;">🛰 점성술 API 연결 대기</div>'
-    + '<div class="astro-desc" style="line-height:1.7;">'
-    + '<p style="margin:0;">점성술은 SwissEph API 기반 계산만 표시하도록 설정되어 있습니다.</p>'
-    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">원인: ' + msg + '</p>'
+    + '<div class="astro-body cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
+    + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
+    + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
+    + '<div class="astro-desc" style="line-height:1.75;">'
+    + '<p style="margin:0;color:#ffe4e6;">아직 코즈믹 데이터가 완전히 연결되지 않았어요. 잠시 후 다시 시도하면 정상 반영됩니다.</p>'
+    + '<p style="margin:8px 0 0 0;color:#fecdd3;"><b>참고 로그:</b> ' + msg + '</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">지금은 급하게 새로고침 1회 후 다시 열면 복구되는 케이스가 가장 많아요.</p>'
     + '</div></div></div>';
 }
 
@@ -6402,6 +6403,11 @@ function renderAstroInsight() {
       +'.astro-body .neo-bubble,.astro-body .yeon-bubble{border-radius:12px;padding:11px 12px;line-height:1.7;font-size:13px;color:#e2e8f0;}'
       +'.astro-body .neo-bubble{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.23);margin-bottom:8px;}'
       +'.astro-body .yeon-bubble{background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.22);}'
+      +'.astro-neon-syn-wrap{margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(96,165,250,.35);background:linear-gradient(165deg,rgba(11,14,20,.92),rgba(15,29,58,.88) 46%,rgba(26,28,44,.9));box-shadow:0 12px 24px -20px rgba(56,189,248,.8),inset 0 1px 0 rgba(255,255,255,.06);}'
+      +'.astro-neon-syn-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
+      +'.astro-neon-syn-title{font-size:13px;font-weight:800;color:#bae6fd;letter-spacing:.01em;}'
+      +'.astro-neon-syn-chip{padding:3px 8px;border-radius:999px;border:1px solid rgba(125,211,252,.38);background:rgba(34,211,238,.12);font-size:11px;color:#cffafe;}'
+      +'.astro-neon-syn-wrap .astro-neon-mz-tip{margin:8px 0 0 0;font-size:12px;color:#a5f3fc;line-height:1.65;}'
       +'.astro-neon-wrap{position:relative;overflow:hidden;border-radius:22px;padding:16px;border:1px solid rgba(96,165,250,.38);background:linear-gradient(165deg,#0b0e14 0%,#0f1d3a 46%,#1a1c2c 100%);box-shadow:0 0 0 1px rgba(34,211,238,.18),0 24px 48px -28px rgba(56,189,248,.75),inset 0 1px 0 rgba(255,255,255,.07);}'
       +'.astro-neon-wrap:before{content:"";position:absolute;inset:-40% auto auto -25%;width:240px;height:240px;background:radial-gradient(circle,rgba(45,212,191,.22),rgba(45,212,191,0));filter:blur(4px);pointer-events:none;}'
       +'.astro-neon-wrap:after{content:"";position:absolute;right:-90px;bottom:-110px;width:260px;height:260px;background:radial-gradient(circle,rgba(168,85,247,.28),rgba(168,85,247,0));filter:blur(8px);pointer-events:none;}'
@@ -7226,7 +7232,7 @@ function renderAstroInsight() {
         var resultDiv = document.getElementById('astroSyResult');
         if (!resultDiv) return;
         resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<div style="color:#818cf8;font-size:0.85rem;padding:10px;text-align:center;">✦ 천체 계산 중...</div>';
+        resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 계산중</div><span class="astro-neon-syn-chip">Deep Universe</span></div><div style="color:#a5b4fc;font-size:0.85rem;">별자리 각도와 하우스 투사를 정밀 계산하고 있어요. 잠깐만 기다려주세요.</div></div>';
 
         setTimeout(function() {
             try {
@@ -7324,7 +7330,7 @@ function renderAstroInsight() {
                 var spiritDesc = synNarr.spiritDesc;
 
                 /* ── HTML 렌더 ── */
-                var html2 = '<div style="border-top:1px solid rgba(129,140,248,0.3);margin-top:10px;padding-top:12px;">';
+                var html2 = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">🌌 셀럽 시나스트리 리포트</div><span class="astro-neon-syn-chip">네온 궁합 모드</span></div><p class="astro-neon-mz-tip">같은 별자리여도 각도와 하우스가 다르면 케미가 달라져요. 아래 점수는 참고 지표로 보고, 실제 대화 템포를 함께 체크하면 정확도가 올라갑니다.</p>';
 
                 /* 헤더 */
                 html2 += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
@@ -7351,7 +7357,7 @@ function renderAstroInsight() {
                     +'<div style="background:rgba(239,68,68,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fca5a5;"><span style="color:#94a3b8;">♂</span> '+celebMSign+'</div>'
                     +'</div>'
                     +'</div>'
-                    +'</div>';
+                    +'</div></div>';
 
                 /* 관계 분석 3종 */
                 html2 += '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;">'
@@ -7423,7 +7429,7 @@ function renderAstroInsight() {
                 resultDiv.innerHTML = html2;
                 resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch(e) {
-                resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</p>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">시나스트리 계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
@@ -7442,11 +7448,11 @@ function renderAstroInsight() {
         var lonVal  = (lon != null) ? Number(lon) : 126.9780;
 
         if (!dateVal) {
-            resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;padding:8px;">⚠ 상대방의 생년월일을 입력해 주세요.</p>';
+            resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;padding:4px 0;">⚠ 상대방의 생년월일을 입력해 주세요.</div></div>';
             return;
         }
 
-        resultDiv.innerHTML = '<div style="color:#f59e0b;font-size:0.85rem;padding:10px;text-align:center;">✦ 천체 계산 중…</div>';
+          resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">💫 직접 입력 시나스트리 계산중</div><span class="astro-neon-syn-chip">럭키비키 분석</span></div><div style="color:#fcd34d;font-size:0.85rem;">행성 각도와 오브를 계산하고 있어요. 2~3초 안에 결과가 열립니다.</div></div>';
 
         setTimeout(async function() {
             try {
@@ -7580,7 +7586,7 @@ function renderAstroInsight() {
                 var spiritDesc2 = synNarr2.spiritDesc;
 
                 /* ── 렌더 ── */
-                var h = '<div style="border-top:1px solid rgba(245,158,11,0.3);margin-top:10px;padding-top:12px;">';
+                var h = '<div class="astro-neon-syn-wrap"><div class="astro-neon-syn-top"><div class="astro-neon-syn-title">💫 직접 입력 시나스트리 리포트</div><span class="astro-neon-syn-chip">실전 궁합 맵</span></div><p class="astro-neon-mz-tip">이 결과는 운의 방향을 읽는 가이드예요. 점수가 높아도 대화 없으면 흔들리고, 점수가 낮아도 합의 루틴이 있으면 충분히 좋아질 수 있습니다.</p>';
 
                 h += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
                     +'<div style="font-size:1rem;font-weight:900;color:#fde68a;">'+nameVal+'</div>'
@@ -7596,7 +7602,7 @@ function renderAstroInsight() {
                     +'<div style="font-size:0.6rem;color:#64748b;margin-top:2px;">/100</div>'
                     +'</div>'
                     +'<div style="display:flex;flex-direction:column;gap:5px;">'
-                    +'<div style="font-size:0.75rem;color:#e2e8f0;line-height:1.4;font-weight:700;word-break:keep-all;">'+relType2+'</div>'
+                    +'<div style="font-size:0.75rem;color:#e2e8f0;line-height:1.4;font-weight:700;word-break:keep-all;">'+relType2+' · 오늘은 팩트 기반으로 템포 맞추기!</div>'
                     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;">'
                     +'<div style="background:rgba(251,191,36,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fde68a;"><span style="color:#94a3b8;">☀</span> '+pSunSign+'</div>'
                     +'<div style="background:rgba(148,163,184,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#e2e8f0;"><span style="color:#94a3b8;">☽</span> '+pMoonSign+'</div>'
@@ -7604,7 +7610,7 @@ function renderAstroInsight() {
                     +'<div style="background:rgba(239,68,68,0.08);padding:5px 7px;border-radius:6px;font-size:0.68rem;color:#fca5a5;"><span style="color:#94a3b8;">♂</span> '+pMSign+'</div>'
                     +'</div>'
                     +'</div>'
-                    +'</div>';
+                    +'</div></div>';
 
                 h += '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;">'
                     +'<div style="background:rgba(244,114,182,0.08);border-radius:10px;padding:10px 12px;border:1px solid rgba(244,114,182,0.2);">'
@@ -7761,7 +7767,7 @@ function renderAstroInsight() {
                   console.warn('[CompatLlm western]', llmW);
                 }
             } catch(e) {
-                resultDiv.innerHTML = '<p style="color:#f87171;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</p>';
+                resultDiv.innerHTML = '<div class="astro-neon-syn-wrap"><div style="color:#fda4af;font-size:0.85rem;">계산 중 오류가 발생했습니다: ' + (e.message || e) + '</div></div>';
             }
         }, 50);
     };
