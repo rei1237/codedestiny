@@ -3308,7 +3308,8 @@ var _dfStudioState = {
   activeSource: 'saju',
   loadingSource: '',
   loadingTasks: {},
-  userRequestedLoad: {}
+  userRequestedLoad: {},
+  linkedSources: {}
 };
 
 function _dfToArray(v) {
@@ -3944,6 +3945,12 @@ function _dfGetNoDomainDataMessage(source) {
   return '아직 연동된 ' + label + ' 데이터가 없습니다. 아래 버튼을 눌러 당신만의 운명의 꽃을 피워보세요.';
 }
 
+function _dfCanShowLoadButton(source, missingDomain) {
+  var normalized = _dfNormalizeSource(source);
+  var linked = !!(_dfStudioState.linkedSources && _dfStudioState.linkedSources[normalized]);
+  return !!missingDomain && !linked;
+}
+
 function _dfGetDataMissingUiState(source) {
   var normalized = _dfNormalizeSource(source);
   var payload = _dfGetProfilePayload({ skipLiveBridge: true }) || {};
@@ -3959,7 +3966,7 @@ function _dfGetDataMissingUiState(source) {
   var missingDomain = !_dfHasReadySourceData(normalized, payload);
   return {
     message: missingDomain ? _dfGetNoDomainDataMessage(normalized) : _dfGetNoBirthMessage(normalized),
-    showLoadButton: missingDomain,
+    showLoadButton: _dfCanShowLoadButton(normalized, missingDomain),
     source: normalized
   };
 }
@@ -4183,6 +4190,7 @@ function _dfFetchSourceOnDemand(source, options) {
   }).then(function(selection) {
     if (selection) {
       _dfSetActiveSource(normalized);
+      if (_dfStudioState.linkedSources) _dfStudioState.linkedSources[normalized] = true;
       // 클릭으로 얻은 1차 결과를 그대로 반영해야 fallback 플래그 소거 후
       // 재계산(null)로 덮어써지는 회귀를 막을 수 있다.
       _dfStudioState.selection = selection;
@@ -4204,7 +4212,8 @@ function _dfFetchSourceOnDemand(source, options) {
     if (_dfStudioState.loadingTasks) delete _dfStudioState.loadingTasks[normalized];
     if (_dfStudioState.loadingSource === normalized) _dfStudioState.loadingSource = '';
     if (_dfStudioState.userRequestedLoad) _dfStudioState.userRequestedLoad[normalized] = false;
-    _dfSetEmptyLoadButtonState(false, normalized, state.showLoadButton);
+    var latestState = _dfGetDataMissingUiState(normalized);
+    _dfSetEmptyLoadButtonState(false, normalized, latestState.showLoadButton);
   });
 
   _dfStudioState.loadingTasks[normalized] = task;
@@ -4216,7 +4225,12 @@ function _dfSetStudioStatus(message, options) {
   if (el) el.textContent = message || '';
   if (options && options.showLoadButton) {
     var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
-    _dfSetEmptyLoadButtonState(!!options.isLoading || _dfStudioState.loadingSource === source, source, true);
+    var state = _dfGetDataMissingUiState(source);
+    _dfSetEmptyLoadButtonState(
+      !!options.isLoading || _dfStudioState.loadingSource === source,
+      source,
+      !!state.showLoadButton
+    );
   }
 }
 
