@@ -3253,7 +3253,9 @@ var _dfStudioState = {
   selection: null,
   history: [],
   flowerData: null,
-  activeSource: 'saju'
+  activeSource: 'saju',
+  loadingSource: '',
+  loadingTasks: {}
 };
 
 function _dfToArray(v) {
@@ -3330,33 +3332,37 @@ function _dfResolveSelectionBySource(source) {
   return _dfResolveSelection();
 }
 
-function _dfBuildUnifiedFlowerData(forceRefresh) {
-  if (!forceRefresh && _dfStudioState.flowerData && _dfStudioState.flowerData.sources) {
+function _dfBuildUnifiedFlowerData(forceRefresh, source) {
+  var normalizedSource = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var hasCache = !!(_dfStudioState.flowerData && _dfStudioState.flowerData.sources);
+  if (!hasCache) {
+    _dfStudioState.flowerData = {
+      updatedAt: 0,
+      sources: {}
+    };
+  }
+
+  var sources = _dfStudioState.flowerData.sources;
+  if (!forceRefresh && typeof sources[normalizedSource] !== 'undefined') {
     return _dfStudioState.flowerData;
   }
 
-  var sources = {};
-  _DF_SOURCE_ORDER.forEach(function(src) {
-    try {
-      var selection = _dfResolveSelectionBySource(src);
-      if (selection) selection.source = _dfNormalizeSource(selection.source || src);
-      sources[src] = selection;
-    } catch (e) {
-      console.warn('[DestinyFlower] 통합 데이터 계산 실패 (' + src + '):', e);
-      sources[src] = null;
-    }
-  });
+  try {
+    var selection = _dfResolveSelectionBySource(normalizedSource);
+    if (selection) selection.source = _dfNormalizeSource(selection.source || normalizedSource);
+    sources[normalizedSource] = selection || null;
+  } catch (e) {
+    console.warn('[DestinyFlower] 통합 데이터 계산 실패 (' + normalizedSource + '):', e);
+    sources[normalizedSource] = null;
+  }
 
-  _dfStudioState.flowerData = {
-    updatedAt: Date.now(),
-    sources: sources
-  };
+  _dfStudioState.flowerData.updatedAt = Date.now();
   return _dfStudioState.flowerData;
 }
 
 function _dfGetUnifiedSelection(source, forceRefresh) {
   var normalized = _dfNormalizeSource(source);
-  var data = _dfBuildUnifiedFlowerData(!!forceRefresh);
+  var data = _dfBuildUnifiedFlowerData(!!forceRefresh, normalized);
   var selection = data && data.sources ? data.sources[normalized] : null;
   if (!selection) {
     selection = _dfResolveSelectionBySource(normalized);
@@ -3833,10 +3839,8 @@ function _dfHasBirthInfo(payload) {
 
 function _dfGetNoDomainDataMessage(source) {
   var normalized = _dfNormalizeSource(source);
-  if (normalized === 'astrology') return '점성술 차트 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
-  if (normalized === 'jamidusu') return '자미두수 명궁 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
-  if (normalized === 'sukuyo') return '숙요점 달력 데이터가 아직 준비되지 않았어요. 아래 버튼으로 데이터를 불러와 주세요.';
-  return '필요한 데이터가 아직 준비되지 않았어요. 아래 버튼으로 다시 불러와 주세요.';
+  var label = _dfGetSourceLabel(normalized);
+  return '아직 연동된 ' + label + ' 데이터가 없습니다. 아래 버튼을 눌러 당신만의 운명의 꽃을 피워보세요.';
 }
 
 function _dfGetDataMissingUiState(source) {
@@ -3854,9 +3858,80 @@ function _dfGetDataMissingUiState(source) {
   var missingDomain = !_dfHasReadySourceData(normalized, payload);
   return {
     message: missingDomain ? _dfGetNoDomainDataMessage(normalized) : _dfGetNoBirthMessage(normalized),
-    showLoadButton: missingDomain && normalized !== 'saju',
+    showLoadButton: missingDomain,
     source: normalized
   };
+}
+
+function _dfEnsureStudioEmptyState(main) {
+  if (!main) return null;
+  var emptyEl = main.querySelector('#dfStudioEmptyState');
+  if (emptyEl) return emptyEl;
+
+  emptyEl = document.createElement('section');
+  emptyEl.id = 'dfStudioEmptyState';
+  emptyEl.className = 'df-studio-empty';
+  emptyEl.hidden = true;
+  emptyEl.innerHTML = ''
+    + '<p id="dfStudioEmptyMessage" class="df-studio-empty-message"></p>'
+    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="운명 연동하기">운명 연동하기</button>';
+  main.appendChild(emptyEl);
+
+  var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
+  if (loadBtn && !loadBtn.__dfBound) {
+    loadBtn.__dfBound = true;
+    loadBtn.addEventListener('click', function() {
+      var source = loadBtn.getAttribute('data-df-source') || _dfStudioState.activeSource || 'saju';
+      _dfFetchSourceOnDemand(source);
+    });
+  }
+
+  return emptyEl;
+}
+
+function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
+  var btn = document.getElementById('dfStudioEmptyLoadButton');
+  if (!btn) return;
+  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var enable = !!canLoad;
+  btn.hidden = !enable;
+  if (!enable) return;
+  btn.disabled = !!isLoading;
+  btn.classList.toggle('is-loading', !!isLoading);
+  btn.setAttribute('data-df-source', normalized);
+  btn.textContent = isLoading ? '연동 중...' : '운명 연동하기';
+}
+
+function _dfShowStudioEmptyState(source, message, showLoadButton) {
+  var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
+  var main = document.querySelector('.df-studio-main');
+  var panels = document.querySelector('.df-studio-panels');
+  var historySection = document.querySelector('.df-studio-history');
+
+  if (!main) return;
+  var emptyEl = _dfEnsureStudioEmptyState(main);
+  var messageEl = emptyEl ? emptyEl.querySelector('#dfStudioEmptyMessage') : null;
+
+  if (messageEl) messageEl.textContent = message || _dfGetNoDomainDataMessage(normalized);
+  if (emptyEl) emptyEl.hidden = false;
+  main.classList.add('is-empty');
+  main.style.display = '';
+  if (panels) panels.style.display = 'none';
+  if (historySection) historySection.style.display = 'none';
+
+  _dfSetEmptyLoadButtonState(_dfStudioState.loadingSource === normalized, normalized, !!showLoadButton);
+}
+
+function _dfHideStudioEmptyState() {
+  var main = document.querySelector('.df-studio-main');
+  var panels = document.querySelector('.df-studio-panels');
+  var historySection = document.querySelector('.df-studio-history');
+  if (!main) return;
+  var emptyEl = main.querySelector('#dfStudioEmptyState');
+  if (emptyEl) emptyEl.hidden = true;
+  main.classList.remove('is-empty');
+  if (panels) panels.style.display = '';
+  if (historySection) historySection.style.display = '';
 }
 
 function _dfRefreshStudioForSource(source, forceRefresh) {
@@ -3864,15 +3939,9 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   var selection = _dfGetUnifiedSelection(normalized, !!forceRefresh);
   _dfStudioState.selection = selection;
 
-  var main = document.querySelector('.df-studio-main');
-  var panels = document.querySelector('.df-studio-panels');
-  var historySection = document.querySelector('.df-studio-history');
-
   if (!selection) {
-    if (main) main.style.display = 'none';
-    if (panels) panels.style.display = 'none';
-    if (historySection) historySection.style.display = 'none';
     var emptyState = _dfGetDataMissingUiState(normalized);
+    _dfShowStudioEmptyState(normalized, emptyState.message, emptyState.showLoadButton);
     _dfSetStudioStatus(emptyState.message, {
       showLoadButton: emptyState.showLoadButton,
       source: normalized
@@ -3881,9 +3950,9 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   }
 
   _dfApplyStudioSelection(selection);
+  _dfHideStudioEmptyState();
+  var main = document.querySelector('.df-studio-main');
   if (main) main.style.display = '';
-  if (panels) panels.style.display = '';
-  if (historySection) historySection.style.display = '';
   _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
   return selection;
 }
@@ -3928,18 +3997,40 @@ function _dfReloadSourceData(source, options) {
   });
 }
 
-function _dfAutoLoadSourceIfNeeded(source) {
+function _dfFetchSourceOnDemand(source, options) {
+  var opts = options && typeof options === 'object' ? options : {};
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   var state = _dfGetDataMissingUiState(normalized);
-  if (!state.showLoadButton) return Promise.resolve(null);
+  if (!state.showLoadButton) {
+    _dfSetStudioStatus(state.message, {
+      showLoadButton: state.showLoadButton,
+      source: normalized
+    });
+    return Promise.resolve(null);
+  }
 
-  _dfSetStudioStatus('데이터를 자동으로 불러오는 중입니다. 잠시만 기다려주세요.');
-  return _dfReloadSourceData(normalized, {
+  if (_dfStudioState.loadingTasks && _dfStudioState.loadingTasks[normalized]) {
+    return _dfStudioState.loadingTasks[normalized];
+  }
+
+  _dfStudioState.loadingSource = normalized;
+  _dfSetEmptyLoadButtonState(true, normalized, true);
+
+  if (!opts.silentStatus) {
+    _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 연동 중입니다. 잠시만 기다려주세요.', {
+      showLoadButton: true,
+      source: normalized,
+      isLoading: true
+    });
+  }
+
+  var task = _dfReloadSourceData(normalized, {
     silentStatus: true,
     skipUiRefresh: true
   }).then(function(selection) {
     if (selection) {
       _dfRefreshStudioForSource(normalized, true);
+      _dfSetStudioStatus(_dfGetSourceLabel(normalized) + ' 데이터를 불러왔습니다.');
       return selection;
     }
 
@@ -3949,36 +4040,23 @@ function _dfAutoLoadSourceIfNeeded(source) {
       source: retryState.source
     });
     return null;
+  }).finally(function() {
+    if (_dfStudioState.loadingTasks) delete _dfStudioState.loadingTasks[normalized];
+    if (_dfStudioState.loadingSource === normalized) _dfStudioState.loadingSource = '';
+    _dfSetEmptyLoadButtonState(false, normalized, state.showLoadButton);
   });
+
+  _dfStudioState.loadingTasks[normalized] = task;
+  return task;
 }
 
 function _dfSetStudioStatus(message, options) {
   var el = document.getElementById('dfStudioStatus');
   if (el) el.textContent = message || '';
-  var parent = el && el.parentElement ? el.parentElement : null;
-  if (!parent) return;
-
-  var actionWrap = document.getElementById('dfStudioStatusActionWrap');
-  if (!actionWrap) {
-    actionWrap = document.createElement('div');
-    actionWrap.id = 'dfStudioStatusActionWrap';
-    actionWrap.style.marginTop = '10px';
-    parent.appendChild(actionWrap);
+  if (options && options.showLoadButton) {
+    var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
+    _dfSetEmptyLoadButtonState(!!options.isLoading || _dfStudioState.loadingSource === source, source, true);
   }
-  actionWrap.innerHTML = '';
-
-  if (!options || !options.showLoadButton) return;
-
-  var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
-  var btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'df-bloom-btn';
-  btn.textContent = '데이터 불러오기';
-  btn.setAttribute('aria-label', '운명의 꽃 데이터 불러오기');
-  btn.addEventListener('click', function() {
-    _dfReloadSourceData(source);
-  });
-  actionWrap.appendChild(btn);
 }
 
 function _dfEscapeHtml(s) {
@@ -4572,17 +4650,6 @@ function openDestinyFlower(forceRefreshData) {
       nameEl.textContent = '데이터 불러오기 대기';
       symbolismEl.textContent = emptyState.message;
     }
-    _dfReloadSourceData(activeSource, {
-      silentStatus: true,
-      skipUiRefresh: true
-    }).then(function(reloaded) {
-      if (!reloaded) return;
-      _dfStudioState.selection = reloaded;
-      _dfAnimateUnifiedCardSwitch(card, reloaded);
-      if (typeof syncFeatureCardHeight === 'function') {
-        syncFeatureCardHeight(card);
-      }
-    });
   }
   if (typeof syncFeatureCardHeight === 'function') {
     syncFeatureCardHeight(card);
@@ -4609,10 +4676,6 @@ function openDestinyFlowerStudio() {
   if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) return;
 
   var sheet = document.getElementById('destinyFlowerStudioSheet');
-  var main = document.querySelector('.df-studio-main');
-  var panels = document.querySelector('.df-studio-panels');
-  var historySection = document.querySelector('.df-studio-history');
-
   try {
   if (!overlay.__dfCloseBridgeBound) {
     overlay.__dfCloseBridgeBound = '1';
@@ -4703,29 +4766,23 @@ function openDestinyFlowerStudio() {
     }, true);
   }
 
-  var selection = openDestinyFlower(true) || _dfGetUnifiedSelection(_dfStudioState.activeSource || 'saju', true);
+  var selection = openDestinyFlower(false) || _dfGetUnifiedSelection(_dfStudioState.activeSource || 'saju', false);
 
   if (!selection) {
-    // 생년월일 정보가 없어 운명의 꽃을 계산할 수 없는 상태
     _dfStudioState.selection = null;
-    if (main) main.style.display = 'none';
-    if (panels) panels.style.display = 'none';
-    if (historySection) historySection.style.display = 'none';
     var emptyState = _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
+    _dfShowStudioEmptyState(emptyState.source, emptyState.message, emptyState.showLoadButton);
     _dfSetStudioStatus(emptyState.message, {
       showLoadButton: emptyState.showLoadButton,
       source: emptyState.source
     });
-    _dfAutoLoadSourceIfNeeded(_dfStudioState.activeSource || 'saju');
   } else {
     _dfStudioState.selection = selection;
     _dfApplyStudioSelection(selection);
+    _dfHideStudioEmptyState();
     _dfLoadHistory();
     _dfRenderHistoryList();
     _dfSetStudioStatus(_dfGetSajuVerdict(selection) + ' 결과를 저장하거나 카카오톡으로 공유할 수 있습니다.');
-    if (main) main.style.display = '';
-    if (panels) panels.style.display = '';
-    if (historySection) historySection.style.display = '';
   }
 
   overlay.style.display = 'block';
@@ -4758,7 +4815,6 @@ function setDestinyFlowerSourceTab(source) {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var isStudioOpen = overlay && overlay.style.display !== 'none';
   var selection = _dfGetUnifiedSelection(normalized, false);
-  if (!selection) selection = _dfGetUnifiedSelection(normalized, true);
   _dfStudioState.selection = selection;
 
   if (isStudioOpen) {
@@ -4766,7 +4822,7 @@ function setDestinyFlowerSourceTab(source) {
     if (studioSelection) {
       _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
     } else {
-      _dfAutoLoadSourceIfNeeded(normalized);
+      _dfFetchSourceOnDemand(normalized, { silentStatus: true });
     }
   } else {
     var card = document.querySelector('.feature-card.feature-card--destiny-flower');
@@ -4782,6 +4838,7 @@ function setDestinyFlowerSourceTab(source) {
           nameEl.textContent = '생년월일 입력 대기';
           symbolismEl.textContent = _dfGetDataMissingUiState(normalized).message;
         }
+        _dfFetchSourceOnDemand(normalized, { silentStatus: true });
       }
       if (typeof syncFeatureCardHeight === 'function') {
         syncFeatureCardHeight(card);
@@ -4794,11 +4851,7 @@ function setDestinyFlowerSourceTab(source) {
 
   return selection;
 }
-            var emptyState = _dfGetDataMissingUiState(_dfStudioState.activeSource || 'saju');
-            _dfSetStudioStatus(emptyState.message, {
-              showLoadButton: emptyState.showLoadButton,
-              source: emptyState.source
-            });
+
 function closeDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
