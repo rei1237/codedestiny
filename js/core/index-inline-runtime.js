@@ -3979,7 +3979,7 @@ function _dfEnsureStudioEmptyState(main) {
   emptyEl.hidden = true;
   emptyEl.innerHTML = ''
     + '<p id="dfStudioEmptyMessage" class="df-studio-empty-message"></p>'
-    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="운명 연동하기">운명 연동하기</button>';
+    + '<button id="dfStudioEmptyLoadButton" type="button" class="df-studio-link-btn df-bloom-btn" aria-label="운명의 꽃 연동하기">운명의 꽃 연동하기</button>';
   main.appendChild(emptyEl);
 
   var loadBtn = emptyEl.querySelector('#dfStudioEmptyLoadButton');
@@ -3993,8 +3993,9 @@ function _dfBindEmptyLoadButton(loadBtn) {
   loadBtn.__dfBound = true;
   loadBtn.addEventListener('click', function() {
     var source = loadBtn.getAttribute('data-df-source') || _dfStudioState.activeSource || 'saju';
+    _dfSetEmptyLoadButtonState(true, source, true);
     _dfSetActiveSource(source);
-    _dfFetchSourceOnDemand(source, { force: true });
+    _dfFetchSourceOnDemand(source, { force: true, userInitiated: true });
   });
 }
 
@@ -4003,12 +4004,12 @@ function _dfSetEmptyLoadButtonState(isLoading, source, canLoad) {
   if (!btn) return;
   var normalized = _dfNormalizeSource(source || _dfStudioState.activeSource || 'saju');
   var enable = !!canLoad;
-  btn.hidden = !enable;
+  btn.hidden = !enable || !!isLoading;
   if (!enable) return;
   btn.disabled = !!isLoading;
   btn.classList.toggle('is-loading', !!isLoading);
   btn.setAttribute('data-df-source', normalized);
-  btn.textContent = isLoading ? '연동 중...' : '운명 연동하기';
+  btn.textContent = isLoading ? '연동 중...' : '운명의 꽃 연동하기';
 }
 
 function _dfShowStudioEmptyState(source, message, showLoadButton) {
