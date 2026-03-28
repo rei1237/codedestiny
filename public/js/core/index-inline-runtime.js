@@ -1003,6 +1003,67 @@ function __cdLoadScriptOnce(src) {
 
 var __cdSajuCoreLoadPromise = null;
 var __cdSwissEphLoadPromise = null;
+var __cdLunarLibLoadPromise = null;
+
+function __cdHasLunarLibReady() {
+  return (
+    typeof window.Solar !== 'undefined' &&
+    typeof window.Solar.fromYmdHms === 'function' &&
+    typeof window.Lunar !== 'undefined' &&
+    typeof window.Lunar.fromYmd === 'function'
+  );
+}
+
+function __cdWaitForLunarLibReady(timeoutMs) {
+  var ms = (typeof timeoutMs === 'number' && timeoutMs > 0) ? timeoutMs : 12000;
+  return new Promise(function(resolve, reject) {
+    if (__cdHasLunarLibReady()) {
+      resolve(true);
+      return;
+    }
+    var start = Date.now();
+    var timer = setInterval(function() {
+      if (__cdHasLunarLibReady()) {
+        clearInterval(timer);
+        resolve(true);
+        return;
+      }
+      if (Date.now() - start >= ms) {
+        clearInterval(timer);
+        reject(new Error('lunar library timeout'));
+      }
+    }, 100);
+  });
+}
+
+function __cdEnsureLunarLibReady() {
+  if (__cdHasLunarLibReady()) return Promise.resolve(true);
+  if (__cdLunarLibLoadPromise) return __cdLunarLibLoadPromise;
+
+  __cdLunarLibLoadPromise = __cdLoadScriptOnce('/js/services/saju-library-loader.js')
+    .then(function() {
+      if (__cdHasLunarLibReady()) return true;
+
+      var loader = window.SajuLibraryLoader;
+      if (loader && typeof loader.loadNext === 'function') {
+        var isLoading = (typeof loader.isLoading === 'function') ? loader.isLoading() : false;
+        if (!isLoading) {
+          loader.loadNext();
+        }
+        return __cdWaitForLunarLibReady(14000);
+      }
+
+      return __cdLoadScriptOnce('https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.min.js')
+        .then(function() { return __cdWaitForLunarLibReady(7000); });
+    })
+    .then(function() { return true; })
+    .catch(function(err) {
+      __cdLunarLibLoadPromise = null;
+      throw err;
+    });
+
+  return __cdLunarLibLoadPromise;
+}
 
 function __cdEnsureSajuCoreLoaded() {
   if (window.__cdSajuCoreReady === 1) return Promise.resolve(true);
@@ -4865,6 +4926,10 @@ function __cdBirthModalDepsMissing() {
     typeof _renderSukuyoSection !== 'function' ||
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function' ||
+    typeof window.Solar === 'undefined' ||
+    typeof window.Solar.fromYmdHms !== 'function' ||
+    typeof window.Lunar === 'undefined' ||
+    typeof window.Lunar.fromYmd !== 'function' ||
     typeof window.renderSukuyo !== 'function' ||
     typeof window.renderZiwei !== 'function'
   );
@@ -4872,6 +4937,10 @@ function __cdBirthModalDepsMissing() {
 
 function __cdEnsureSukuyoZiweiCoreLoaded() {
   var needsCore = (
+    typeof window.Solar === 'undefined' ||
+    typeof window.Solar.fromYmdHms !== 'function' ||
+    typeof window.Lunar === 'undefined' ||
+    typeof window.Lunar.fromYmd !== 'function' ||
     typeof window.renderSukuyo !== 'function' ||
     typeof window.renderZiwei !== 'function' ||
     typeof window.calcSukuyoData !== 'function' ||
@@ -4886,9 +4955,11 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1'
   ];
 
-  return chain.reduce(function(promise, src) {
-    return promise.then(function() { return __cdLoadScriptOnce(src); });
-  }, Promise.resolve()).then(function() {
+  return __cdEnsureLunarLibReady().then(function() {
+    return chain.reduce(function(promise, src) {
+      return promise.then(function() { return __cdLoadScriptOnce(src); });
+    }, Promise.resolve());
+  }).then(function() {
     return true;
   });
 }
