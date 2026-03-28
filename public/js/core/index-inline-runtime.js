@@ -2517,8 +2517,6 @@ function _dfGetProfilePayload(options) {
     if (_dfStudioState.profileSignature && _dfStudioState.profileSignature !== signature) {
       _dfStudioState.flowerData = null;
       _dfStudioState.selection = null;
-      _dfStudioState.linkedSources = {};
-      _dfStudioState.userRequestedLoad = {};
     }
     _dfStudioState.profileSignature = signature;
   }
