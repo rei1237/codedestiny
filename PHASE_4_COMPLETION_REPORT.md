@@ -167,7 +167,7 @@
 | **GitHub Push** | ✅ 완료 | 2026-03-22 ~10분 전 |
 | **Commit Hash** | `6c2450d` | 1780 insertions |
 | **Cloudflare Pages** | ✅ 배포 완료 | 2-5분 소요 |
-| **배포 URL** | https://code-destiny-web.pages.dev | 실시간 |
+| **배포 URL** | https://code-destiny.pages.dev | 실시간 |
 
 ---
 
@@ -334,7 +334,7 @@ node scripts/validate-mobile-touch.js         # 5/7 PASS + 7/7 Load Order
 └─────────────────────────────────────┘
 ```
 
-**배포 완료:** GitHub → Cloudflare Pages (code-destiny-web.pages.dev)  
+**배포 완료:** GitHub → Cloudflare Pages (code-destiny.pages.dev)  
 **변경 내역:** commit 6c2450d (1780 insertions)  
 **예상 개선:** 2-5% 파일 크기 감소, 10-15% 로드 속도 개선
 

@@ -69,7 +69,7 @@ try {
     {
       name: 'canonical URL',
       pattern: /href="([^"]+)" rel="canonical"/i,
-      expected: 'https://code-destiny-web.pages.dev'
+      expected: 'https://code-destiny.pages.dev'
     },
     {
       name: 'og:title',
@@ -217,7 +217,7 @@ try {
 
   console.log('🚀 배포 상태:\n');
   console.log('  ✅ GitHub: commit 6c2450d pushed');
-  console.log('  ✅ Cloudflare Pages: 자동 배포 완료 (code-destiny-web.pages.dev)');
+  console.log('  ✅ Cloudflare Pages: 자동 배포 완료 (code-destiny.pages.dev)');
   console.log('  ☑️ 실제 렌더링: 브라우저에서 og: 메타 태그 확인 필요\n');
 
   process.exit(deployReady ? 0 : 1);

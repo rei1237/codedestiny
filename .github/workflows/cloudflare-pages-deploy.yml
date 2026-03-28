@@ -26,7 +26,7 @@ jobs:
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME || 'code-destiny-web' }}
+      CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME || 'code-destiny' }}
       CF_PAGES_BRANCH: main
     steps:
       - name: Checkout

@@ -100,7 +100,7 @@ npm run deploy:cf:worker
      - **assets.directory**: `./dist` (정적 파일)
 
 4. 배포가 끝나면 터미널에 Workers URL이 출력됩니다.  
-   예: `https://code-destiny-web.<계정서브도메인>.workers.dev`
+   예: `https://code-destiny.<계정서브도메인>.workers.dev`
 
 ### 4.2 이미 빌드해 둔 경우 (빌드 생략하고 배포만)
 
@@ -118,7 +118,7 @@ node scripts/deploy-worker.mjs
 
 ### 5.1 Worker URL에서 사이트 접속
 
-터미널에 나온 URL(예: `https://code-destiny-web.xxxx.workers.dev`)로 접속해  
+터미널에 나온 URL(예: `https://code-destiny.xxxx.workers.dev`)로 접속해  
 메인 페이지와 타로 기능이 정상 동작하는지 확인합니다.
 
 ### 5.2 타로 API 직접 호출 테스트
@@ -126,7 +126,7 @@ node scripts/deploy-worker.mjs
 **draw (카드 뽑기):**
 
 ```bash
-curl -X POST "https://code-destiny-web.xxxx.workers.dev/api/tarot/draw" \
+curl -X POST "https://code-destiny.xxxx.workers.dev/api/tarot/draw" \
   -H "Content-Type: application/json" \
   -d "{\"spreadType\":\"relationship_six_card\"}"
 ```
@@ -149,7 +149,7 @@ curl -X POST "https://code-destiny-web.xxxx.workers.dev/api/tarot/draw" \
 `code-destiny.pages.dev` 또는 `code-destiny.com` 같은 기존 도메인을 Worker에 붙이려면:
 
 1. **Cloudflare 대시보드** → **Workers & Pages**
-2. **code-destiny-web** Worker 선택
+2. **code-destiny** Worker 선택
 3. **Settings** → **Domains & Routes** (또는 **Triggers**)
 4. **Add Custom Domain** 또는 **Add Route**로 도메인/경로 추가
 

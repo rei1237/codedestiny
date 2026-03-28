@@ -132,12 +132,6 @@
       img.setAttribute('sizes', SRCSET_HINTS['/fuctionassets/flower.webp'].sizes);
     }
 
-    if (!img.getAttribute('srcset') && /^\/fuctionassets\/.+\.webp$/i.test(key) && key.indexOf('/mobile/') === -1) {
-      var mobilePath = key.replace('/fuctionassets/', '/fuctionassets/mobile/');
-      img.setAttribute('srcset', mobilePath + ' 420w, ' + key + ' 960w');
-      img.setAttribute('sizes', '(max-width: 768px) 86vw, 420px');
-    }
-
     img.dataset.cdResponsiveHint = '1';
   }
 
