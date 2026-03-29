@@ -494,9 +494,10 @@
     border: 1px solid rgba(212,168,67,0.24);
     border-radius: 20px;
     background: linear-gradient(145deg, rgba(15,9,30,0.92), rgba(35,14,52,0.84));
-    padding: 24px;
+    padding: 28px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 22px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(245,224,144,0.12);
   }
   .practice-flow::before {
     content: '';
@@ -547,14 +548,16 @@
   .practice-title {
     font-family: 'Cinzel Decorative', serif;
     color: var(--gold-pale);
-    font-size: clamp(1.15rem, 3vw, 1.6rem);
-    margin-bottom: 8px;
+    font-size: clamp(1.45rem, 4vw, 2.1rem);
+    margin-bottom: 10px;
+    line-height: 1.35;
+    text-shadow: 0 0 26px rgba(245,224,144,0.28);
   }
   .practice-desc {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.7;
-    margin-bottom: 16px;
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 18px;
   }
   .auto-guide-wrap {
     border: 1px solid rgba(212,168,67,0.23);
@@ -562,6 +565,9 @@
     background: linear-gradient(160deg, rgba(6,4,14,0.78), rgba(22,8,32,0.86));
     overflow: hidden;
     position: relative;
+    min-height: min(72vh, 760px);
+    display: flex;
+    flex-direction: column;
   }
   .auto-guide-wrap::before {
     content: '';
@@ -577,7 +583,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 12px 14px 10px;
+    padding: 14px 16px 12px;
     border-bottom: 1px solid rgba(212,168,67,0.16);
   }
   .auto-guide-head strong {
@@ -589,7 +595,7 @@
   }
   .auto-guide-head span {
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
   }
   .auto-guide-progress {
     position: relative;
@@ -615,14 +621,17 @@
   .typing-console {
     border: 1px solid rgba(212,168,67,0.2);
     border-radius: 16px;
-    background: rgba(3,2,10,0.66);
-    min-height: 170px;
-    max-height: 300px;
+    background: radial-gradient(ellipse 75% 65% at 50% 10%, rgba(212,168,67,0.08), rgba(5,3,12,0.82) 72%);
+    min-height: 52vh;
+    max-height: none;
+    flex: 1;
     overflow-y: auto;
-    padding: 16px 16px 14px;
-    color: #f3e8ca;
-    font-size: 0.92rem;
-    line-height: 1.8;
+    padding: 24px 24px 20px;
+    color: #f7ebcd;
+    font-size: clamp(1.08rem, 2.2vw, 1.56rem);
+    line-height: 2;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 16px rgba(212,168,67,0.18);
     white-space: pre-wrap;
     margin: 0;
     position: relative;
@@ -638,10 +647,10 @@
     50%, 100% { opacity: 0; }
   }
   .guide-finish-note {
-    margin-top: 14px;
+    margin-top: 16px;
     text-align: center;
     color: var(--text-secondary);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     letter-spacing: 0.06em;
   }
 
@@ -1048,6 +1057,14 @@
     .duration-grid { grid-template-columns: 1fr; }
     .info-grid { grid-template-columns: 1fr; }
     .info-box.spiritual, .info-box.caution { grid-column: 1; }
+    .practice-flow { padding: 18px; }
+    .auto-guide-wrap { min-height: 62vh; }
+    .typing-console {
+      min-height: 46vh;
+      font-size: 1rem;
+      line-height: 1.9;
+      padding: 18px 16px;
+    }
   }
 
   @media (max-width: 900px) {
@@ -1280,6 +1297,8 @@ let typingCharIdx = 0;
 let typingPauseMode = false;
 let typingCharIntervalMs = 36;
 let typingTotalDurationMs = 0;
+let typingCharsPerTick = 1;
+let typingLinePauseMs = 180;
 
 function resolveApiBase() {
   const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
@@ -1573,8 +1592,17 @@ function buildTypingLines(courseData) {
   const lines = [];
   lines.push('수련이 시작됩니다. 몸의 긴장을 놓고, 화면의 유도 문장을 호흡 속도에 맞춰 따라가세요.');
   lines.push('지금부터 안내 문장은 자동으로 흘러가며, 전체 속도는 선택한 수련 시간에 맞춰 조정됩니다.');
+  lines.push('어깨를 떨어뜨리고 턱에 힘을 풉니다. 코끝으로 들어오는 공기의 결을 조용히 관찰합니다.');
+  lines.push('아래 문장은 수련 내내 이어집니다. 완벽한 동작보다 안정된 호흡의 리듬을 우선하세요.');
 
   const steps = Array.isArray(courseData?.sequence) ? courseData.sequence : [];
+  const mysticAnchors = [
+    '미간 뒤 고요한 빛점에 의식을 머물게 하세요.',
+    '심장 중심에서 따뜻한 파동이 원처럼 퍼진다고 상상하세요.',
+    '내쉬는 숨마다 불필요한 긴장이 발바닥으로 빠져나갑니다.',
+    '들이쉬는 숨마다 척추를 따라 금빛 기운이 위로 오릅니다.'
+  ];
+
   steps.forEach((step, idx) => {
     const stepLabel = `${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'}`;
     lines.push(stepLabel.trim());
@@ -1583,27 +1611,54 @@ function buildTypingLines(courseData) {
         lines.push(ins);
       });
     }
+
+    const breathGuide = step.breathing_guide || '들이숨 4박, 날숨 6박으로 호흡을 길게 연결하세요.';
+    lines.push(`호흡: ${breathGuide}`);
+    lines.push(`집중: ${mysticAnchors[idx % mysticAnchors.length]}`);
+
+    for (let cycle = 1; cycle <= 4; cycle += 1) {
+      lines.push(`${idx + 1}단계 호흡 사이클 ${cycle}/4 · 들숨에서 몸의 길이를 만들고 날숨에서 긴장을 비워냅니다.`);
+      lines.push(`${idx + 1}단계 미세 정렬 ${cycle}/4 · 골반과 늑골, 어깨선을 같은 축으로 정돈하세요.`);
+    }
+
     if (step.breathing_guide) {
       lines.push(`호흡: ${step.breathing_guide}`);
     }
     if (step.caution) {
       lines.push(`주의: ${step.caution}`);
     }
+    lines.push('현재 자세를 3호흡 더 유지합니다. 시선은 부드럽게, 목 뒤는 길게 유지합니다.');
+    lines.push('다음 자세로 전환합니다. 이동은 천천히, 관절보다 호흡이 먼저 움직입니다.');
   });
 
   if (courseData?.closing_mantra) {
     lines.push(`마무리 만트라: ${courseData.closing_mantra}`);
   }
+  lines.push('이제 두 손바닥을 가볍게 비벼 체온을 올립니다. 따뜻해진 손을 눈 위에 올려 잔광을 느껴보세요.');
   lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 확인해 주세요.');
   return lines;
 }
 
-function calculateTypingInterval() {
+function calculateTypingPace() {
   const totalChars = typingLines.reduce((acc, line) => acc + line.length + 2, 0);
-  if (!totalChars) return 36;
-  const reservedPauseMs = Math.max(typingLines.length * 240, 1200);
-  const effectiveMs = Math.max(typingTotalDurationMs - reservedPauseMs, 2000);
-  return Math.max(22, Math.floor(effectiveMs / totalChars));
+  if (!totalChars) {
+    return {
+      intervalMs: 36,
+      charsPerTick: 1,
+      linePauseMs: 180
+    };
+  }
+
+  const intervalMs = 30;
+  const totalTicks = Math.max(1, Math.floor(typingTotalDurationMs / intervalMs));
+  const charsPerTick = Math.max(1, Math.ceil(totalChars / totalTicks));
+  const linePauseMs = Math.max(60, Math.min(170, Math.floor(typingTotalDurationMs / Math.max(typingLines.length * 16, 1))));
+
+  return {
+    intervalMs,
+    charsPerTick,
+    linePauseMs
+  };
 }
 
 function stopTypingFlow() {
@@ -1637,8 +1692,9 @@ function typingTick() {
 
   const currentLine = typingLines[typingLineIdx];
   if (typingCharIdx < currentLine.length) {
-    out.textContent += currentLine.charAt(typingCharIdx);
-    typingCharIdx += 1;
+    const nextChunk = currentLine.slice(typingCharIdx, typingCharIdx + typingCharsPerTick);
+    out.textContent += nextChunk;
+    typingCharIdx += nextChunk.length;
     out.scrollTop = out.scrollHeight;
     return;
   }
@@ -1649,7 +1705,7 @@ function typingTick() {
   typingPauseMode = true;
   setTimeout(() => {
     typingPauseMode = false;
-  }, 240);
+  }, typingLinePauseMs);
 }
 
 function startTypingFlow() {
@@ -1837,12 +1893,12 @@ function renderCourse(data) {
       <div class="auto-guide-wrap">
         <div class="auto-guide-head">
           <strong>Automatic Sacred Guidance</strong>
-          <span id="autoGuideStatus">${escapeHtml(String(durationMin))}분 자동 유도 진행 중</span>
+          <span id="autoGuideStatus">${escapeHtml(String(durationMin))}분 몰입 유도 진행 중</span>
         </div>
         <div class="auto-guide-progress"><i id="autoGuideProgressBar"></i></div>
         <div class="typing-console" id="typingConsole" aria-live="polite"></div>
       </div>
-      <p class="guide-finish-note">화면은 자동 속도로 흘러갑니다. 호흡만 잃지 마세요.</p>
+      <p class="guide-finish-note">텍스트 흐름은 수련 시간에 동기화되어 끊기지 않게 이어집니다. 지금은 자세보다 리듬을 우선하세요.</p>
     </div>
 
     <div class="course-hero">
@@ -1889,7 +1945,10 @@ function renderCourse(data) {
 
   typingLines = buildTypingLines(data);
   typingTotalDurationMs = Math.max(60 * 1000, durationMin * 60 * 1000);
-  typingCharIntervalMs = calculateTypingInterval();
+  const typingPace = calculateTypingPace();
+  typingCharIntervalMs = typingPace.intervalMs;
+  typingCharsPerTick = typingPace.charsPerTick;
+  typingLinePauseMs = typingPace.linePauseMs;
   resetTypingFlow();
   startTypingFlow();
 
