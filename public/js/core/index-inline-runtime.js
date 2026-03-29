@@ -1305,6 +1305,13 @@ window.closeLuckSyncDiary = function() {
     return undefined;
   });
 };
+window.openNevilleMeditationPage = function() {
+  try {
+    window.location.href = '/neville-meditation.html';
+  } catch (err) {
+    console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
+  }
+};
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {

@@ -432,6 +432,49 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
+  <style id="meditation-collection-theme">
+    #meditationCollection {
+      background:
+        radial-gradient(circle at 18% 16%, rgba(52, 86, 160, 0.2), transparent 42%),
+        radial-gradient(circle at 84% 78%, rgba(17, 42, 92, 0.3), transparent 48%),
+        linear-gradient(165deg, rgba(6, 14, 34, 0.96) 0%, rgba(3, 6, 16, 0.98) 55%, rgba(0, 0, 0, 0.98) 100%);
+      border-color: rgba(90, 130, 210, 0.34);
+      box-shadow: 0 30px 70px rgba(2, 6, 20, 0.66), inset 0 1px 0 rgba(140, 182, 255, 0.1);
+    }
+    #meditationCollection .tarot-collection__header {
+      background: linear-gradient(180deg, rgba(24, 44, 86, 0.32) 0%, rgba(8, 16, 34, 0.2) 100%);
+    }
+    #meditationCollection .tarot-collection__icon {
+      color: #9bc4ff;
+      text-shadow: 0 0 14px rgba(105, 158, 255, 0.42);
+    }
+    #meditationCollection .tarot-collection__title {
+      color: #d5e6ff;
+    }
+    #meditationCollection .tarot-collection__subtitle,
+    #meditationCollection .tarot-collection__lede {
+      color: rgba(193, 213, 245, 0.86);
+    }
+    #meditationCollection .tarot-collection__featureline {
+      border-color: rgba(95, 132, 207, 0.52);
+      background: rgba(23, 45, 89, 0.4);
+      color: rgba(204, 222, 255, 0.92);
+    }
+    #meditationCollection .tc-divider-line {
+      background: linear-gradient(90deg, transparent, rgba(115, 158, 240, 0.8), transparent);
+    }
+    #meditationCollection .tc-divider-star,
+    #meditationCollection .tc-divider-gem,
+    #meditationCollection .fc-closed-peek__gem {
+      color: #8db8ff;
+      text-shadow: 0 0 10px rgba(95, 146, 240, 0.45);
+    }
+    #meditationCollection .tarot-tile__badge {
+      background: rgba(14, 31, 66, 0.9);
+      border-color: rgba(121, 164, 244, 0.6);
+      color: #d5e9ff;
+    }
+  </style>
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
@@ -1095,7 +1138,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </div>
 
           <div class="tarot-collection__grid">
-            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" aria-label="네빌 명상 시작하기">
+            <button class="tarot-tile tarot-tile--meditation" type="button" data-action="openNevilleMeditationPage" aria-label="네빌 명상 시작하기">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
@@ -1104,7 +1147,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <span class="tarot-tile__title">🧘 네빌 명상 실습</span>
                 <span class="tarot-tile__desc">상상 창조 집중 가이드</span>
               </div>
-            </a>
+            </button>
           </div>
         </div><!-- /meditation-collection -->
 
@@ -3356,7 +3399,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260329m1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260329m2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
