@@ -1004,6 +1004,7 @@ function __cdLoadScriptOnce(src) {
 var __cdSajuCoreLoadPromise = null;
 var __cdSwissEphLoadPromise = null;
 var __cdLunarLibLoadPromise = null;
+var __cdDestinyProfileLoadPromise = null;
 
 function __cdHasLunarLibReady() {
   return (
@@ -1090,6 +1091,20 @@ function __cdEnsureSajuCoreLoaded() {
   });
 
   return __cdSajuCoreLoadPromise;
+}
+
+function __cdEnsureDestinyProfileLoaded() {
+  if (window.DestinyProfileManager) return Promise.resolve(true);
+  if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
+
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js')
+    .then(function() { return true; })
+    .catch(function(err) {
+      __cdDestinyProfileLoadPromise = null;
+      throw err;
+    });
+
+  return __cdDestinyProfileLoadPromise;
 }
 
 function __cdEnsureSwissEphLoaded() {
@@ -1293,11 +1308,17 @@ window.closeLuckSyncDiary = function() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
+    __cdEnsureDestinyProfileLoaded().catch(function(err) {
+      console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
+    });
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
     setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
   }, { once: true });
 } else {
+  __cdEnsureDestinyProfileLoaded().catch(function(err) {
+    console.error('[index-inline-runtime] destiny profile auto-load failed:', err);
+  });
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
   setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
