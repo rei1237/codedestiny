@@ -398,6 +398,33 @@
     font-size: 0.78rem;
     line-height: 1.4;
   }
+  .music-controls {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 10px;
+    flex-wrap: wrap;
+  }
+  .music-mini-btn {
+    border: 1px solid rgba(212,168,67,0.24);
+    background: rgba(6,3,16,0.72);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+  .music-mini-btn:hover {
+    color: var(--gold-pale);
+    border-color: rgba(240,200,74,0.5);
+  }
+  .music-open-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--gold-pale);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    margin: 0 0 10px;
+  }
   .music-open-link {
     display: inline-flex;
     margin: 0 0 12px;
@@ -950,6 +977,10 @@
           <p class="music-meta">수련 전후 집중을 돕는 Theta 계열 명상 트랙을 모았습니다. 마음 상태에 맞는 채널을 골라 의식처럼 재생해 보세요.</p>
           <div class="music-chip-row" id="musicPlaylistChips"></div>
           <p class="music-now-playing" id="musicNowPlaying">현재 재생 목록: 준비 중...</p>
+          <div class="music-controls">
+            <button type="button" class="music-mini-btn" id="musicPrevBtn">◀ 이전 곡</button>
+            <button type="button" class="music-mini-btn" id="musicNextBtn">다음 곡 ▶</button>
+          </div>
           <div class="music-player-wrap" id="musicPlayerWrap"></div>
         </div>
       </div>
@@ -988,13 +1019,15 @@
 <script>
 let selectedDuration = null;
 const THETA_PLAYLISTS = [
-  { label: 'Theta Temple Breath', query: 'theta waves meditation music copyright free 432hz indian ambient' },
-  { label: 'Lotus Deep Focus', query: 'theta frequency healing meditation no copyright yoga music' },
-  { label: 'Chakra Night River', query: 'chakra theta meditation music royalty free relaxing background' },
-  { label: 'Mantra & Bowls', query: 'tibetan bowls theta meditation royalty free music' },
-  { label: 'Silent Astral Flow', query: 'deep theta sleep meditation no copyright ambient drone' }
+  { mode: 'theta', label: 'Theta Temple Breath', query: 'theta waves meditation music copyright free 432hz indian ambient' },
+  { mode: 'lofi', label: 'Lotus Deep Focus', query: 'copyright free lofi playlist beats to study and relax' },
+  { mode: 'theta', label: 'Chakra Night River', query: 'chakra theta meditation music royalty free relaxing background' },
+  { mode: 'theta', label: 'Mantra & Bowls', query: 'tibetan bowls theta meditation royalty free music' },
+  { mode: 'theta', label: 'Silent Astral Flow', query: 'deep theta sleep meditation no copyright ambient drone' }
 ];
 let currentPlaylistIndex = 0;
+let musicVideoItems = [];
+let currentMusicVideoIndex = 0;
 
 function resolveApiBase() {
   const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
@@ -1022,6 +1055,11 @@ function initPageState() {
       ensurePlaylistFrameLoaded();
     }
   });
+
+  const prevBtn = document.getElementById('musicPrevBtn');
+  const nextBtn = document.getElementById('musicNextBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => playRelativeMusic(-1));
+  if (nextBtn) nextBtn.addEventListener('click', () => playRelativeMusic(1));
 }
 
 function renderPlaylistButtons() {
@@ -1038,7 +1076,7 @@ function renderPlaylistButtons() {
       if (!Number.isFinite(idx)) return;
       currentPlaylistIndex = idx;
       renderPlaylistButtons();
-      loadYoutubeSearchPlaylist(currentPlaylistIndex);
+      loadPlaylistFromApi(currentPlaylistIndex);
     });
   });
 }
@@ -1047,11 +1085,66 @@ function ensurePlaylistFrameLoaded() {
   const wrap = document.getElementById('musicPlayerWrap');
   if (!wrap) return;
   if (wrap.querySelector('iframe')) return;
-  loadYoutubeSearchPlaylist(currentPlaylistIndex);
+  loadPlaylistFromApi(currentPlaylistIndex);
 }
 
-function loadYoutubeSearchPlaylist(idx) {
+async function loadPlaylistFromApi(idx) {
   const item = THETA_PLAYLISTS[idx] || THETA_PLAYLISTS[0];
+  if (!item) return;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch(`${resolveApiBase()}/api/youtube/sats-playlist?mode=${encodeURIComponent(item.mode)}`, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    clearTimeout(timeoutId);
+
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || !data?.ok || !Array.isArray(data?.items) || !data.items.length) {
+      throw new Error(data?.message || `playlist-load-failed-${resp.status}`);
+    }
+
+    musicVideoItems = data.items;
+    currentMusicVideoIndex = 0;
+    renderMusicVideo(item);
+  } catch (err) {
+    loadYoutubeSearchFallback(item);
+  }
+}
+
+function renderMusicVideo(item) {
+  const wrap = document.getElementById('musicPlayerWrap');
+  const nowPlaying = document.getElementById('musicNowPlaying');
+  if (!wrap) return;
+
+  if (!musicVideoItems.length) {
+    loadYoutubeSearchFallback(item || THETA_PLAYLISTS[currentPlaylistIndex] || THETA_PLAYLISTS[0]);
+    return;
+  }
+
+  const video = musicVideoItems[currentMusicVideoIndex] || musicVideoItems[0];
+  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.videoId)}?rel=0&autoplay=0&modestbranding=1&playsinline=1`;
+  wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation track"></iframe>`;
+  if (nowPlaying) {
+    nowPlaying.textContent = `현재 재생: ${video.title} · ${video.channel}`;
+  }
+
+  const openHref = `https://www.youtube.com/watch?v=${encodeURIComponent(video.videoId)}`;
+  upsertOpenMusicLink(openHref);
+}
+
+function playRelativeMusic(offset) {
+  if (!musicVideoItems.length) return;
+  const total = musicVideoItems.length;
+  currentMusicVideoIndex = (currentMusicVideoIndex + offset + total) % total;
+  const item = THETA_PLAYLISTS[currentPlaylistIndex] || THETA_PLAYLISTS[0];
+  renderMusicVideo(item);
+}
+
+function loadYoutubeSearchFallback(item) {
   const wrap = document.getElementById('musicPlayerWrap');
   const nowPlaying = document.getElementById('musicNowPlaying');
   if (!item || !wrap) return;
@@ -1060,9 +1153,13 @@ function loadYoutubeSearchPlaylist(idx) {
   const openHref = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.query)}`;
   wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation playlist"></iframe>`;
   if (nowPlaying) {
-    nowPlaying.textContent = `현재 재생 목록: ${item.label} (재생이 막히면 아래 링크로 바로 듣기)`;
+    nowPlaying.textContent = `현재 재생 목록: ${item.label} (임베드 제한 시 외부 열기로 재생)`;
   }
 
+  upsertOpenMusicLink(openHref);
+}
+
+function upsertOpenMusicLink(openHref) {
   const existingLink = document.getElementById('musicOpenLink');
   if (existingLink) {
     existingLink.setAttribute('href', openHref);
@@ -1138,6 +1235,9 @@ async function invokeGuru() {
 
     if (!response.ok) {
       const errBody = await response.text();
+      if (response.status === 404) {
+        throw new Error('요가 코스 API 경로를 찾지 못했습니다. 배포 환경에서 /api/yoga-guru 라우트를 확인해주세요.');
+      }
       throw new Error(`요가 코스 엔진 오류: ${response.status} ${errBody}`);
     }
     const data = await response.json();
