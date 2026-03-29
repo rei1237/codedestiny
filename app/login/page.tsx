@@ -144,7 +144,7 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = sanitizeNextPath(params.get("next")) || "/";
-    const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?next=${encodeURIComponent(nextPath)}`;
+    const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?flow=login&next=${encodeURIComponent(nextPath)}`;
     window.location.href = startUrl;
   };
 

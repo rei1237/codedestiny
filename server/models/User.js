@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema({
   },
   passwordHash: {
     type: String,
-    required: true,
+    required: false,
+    default: "",
     select: false,
   },
   birthDate: {
@@ -56,6 +57,10 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0,
+  },
+  localAuth: {
+    enabled: { type: Boolean, default: true },
+    activatedAt: { type: Date, default: Date.now },
   },
   socialAccounts: {
     google: {

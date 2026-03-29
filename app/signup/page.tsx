@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type SignupFormState = {
   name: string;
   email: string;
   password: string;
+  passwordConfirm: string;
   birthDate: string;
   birthTime: string;
   gender: "M" | "F" | "OTHER";
@@ -15,6 +17,8 @@ type SignupFormState = {
 type SignupResult = {
   message?: string;
   token?: string;
+  nextPath?: string;
+  provider?: "google" | "naver" | "kakao";
   user?: {
     id: string;
     name: string;
@@ -27,10 +31,13 @@ type SignupResult = {
   };
 };
 
+type SocialProvider = "google" | "naver" | "kakao";
+
 const INITIAL_FORM: SignupFormState = {
   name: "",
   email: "",
   password: "",
+  passwordConfirm: "",
   birthDate: "",
   birthTime: "",
   gender: "OTHER",
@@ -38,11 +45,20 @@ const INITIAL_FORM: SignupFormState = {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function sanitizeNextPath(rawNext: string | null) {
+  if (!rawNext) return null;
+  if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
+  return rawNext;
+}
+
 export default function SignupPage() {
+  const router = useRouter();
   const [form, setForm] = useState<SignupFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const socialCompleteOnceRef = useRef(false);
 
   const apiBase = useMemo(
     () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
@@ -50,6 +66,7 @@ export default function SignupPage() {
   );
 
   const endpoint = `${apiBase}/api/auth/register`;
+  const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
 
   const persistAuth = (token?: string, user?: SignupResult["user"]) => {
     if (token) {
@@ -67,6 +84,80 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (socialCompleteOnceRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const socialGrant = params.get("social_grant");
+    const socialError = params.get("social_error");
+
+    if (!socialGrant && !socialError) {
+      return;
+    }
+
+    if (socialError) {
+      socialCompleteOnceRef.current = true;
+      setError("소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
+    if (!socialGrant) return;
+
+    socialCompleteOnceRef.current = true;
+    setLoading(true);
+
+    fetch(socialCompleteEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ socialGrant }),
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as SignupResult & { errors?: string[] };
+
+        if (!response.ok) {
+          if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+            throw new Error(payload.errors.join(" "));
+          }
+          throw new Error(payload.message || "소셜 회원가입 처리에 실패했습니다.");
+        }
+
+        persistAuth(payload.token, payload.user);
+        setSuccess(payload.message || "소셜 회원가입에 성공했습니다.");
+
+        const nextFromQuery = sanitizeNextPath(params.get("next"));
+        const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
+
+        if (payload.user?.role === "admin" && nextPath === "/") {
+          router.replace("/admin");
+          return;
+        }
+
+        router.replace(nextPath);
+      })
+      .catch((e: Error) => {
+        setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [router, socialCompleteEndpoint]);
+
+  const startSocialSignup = (provider: SocialProvider) => {
+    if (typeof window === "undefined") return;
+
+    setError("");
+    setSuccess("");
+    setSocialLoading(provider);
+
+    const params = new URLSearchParams(window.location.search);
+    const nextPath = sanitizeNextPath(params.get("next")) || "/";
+    const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?flow=signup&next=${encodeURIComponent(nextPath)}`;
+    window.location.href = startUrl;
+  };
+
   const validate = () => {
     if (!form.name.trim() || form.name.trim().length < 2) {
       return "이름은 최소 2자 이상 입력해 주세요.";
@@ -78,6 +169,10 @@ export default function SignupPage() {
 
     if (form.password.length < 8) {
       return "비밀번호는 최소 8자 이상이어야 합니다.";
+    }
+
+    if (form.password !== form.passwordConfirm) {
+      return "비밀번호 확인이 일치하지 않습니다.";
     }
 
     if (!form.birthDate) {
@@ -137,6 +232,7 @@ export default function SignupPage() {
 
       setSuccess(payload.message || "회원가입이 완료되었습니다.");
       setForm(INITIAL_FORM);
+      router.replace("/");
     } catch {
       setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
     } finally {
@@ -207,6 +303,18 @@ export default function SignupPage() {
                   />
                 </label>
 
+                <label className="block sm:col-span-2">
+                  <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호 확인</span>
+                  <input
+                    type="password"
+                    value={form.passwordConfirm}
+                    onChange={(e) => onChange("passwordConfirm", e.target.value)}
+                    placeholder="비밀번호를 다시 입력해 주세요"
+                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    autoComplete="new-password"
+                  />
+                </label>
+
                 <label className="block">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">생년월일</span>
                   <input
@@ -257,6 +365,44 @@ export default function SignupPage() {
                 {loading ? "별빛 정보를 수집하는 중..." : "회원가입하고 운세 시작하기"}
               </button>
             </form>
+
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-violet-100/20" />
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-violet-100/60">SOCIAL SIGN UP</span>
+              <div className="h-px flex-1 bg-violet-100/20" />
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => startSocialSignup("google")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
+                {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 빠른 회원가입"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startSocialSignup("naver")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
+                {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 빠른 회원가입"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startSocialSignup("kakao")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
+                {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 빠른 회원가입"}
+              </button>
+            </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/65">
               API Endpoint: <span className="font-mono text-violet-200/90">{endpoint}</span>

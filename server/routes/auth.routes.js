@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
 const User = require("../models/User");
+const { requireAuth } = require("../middleware/auth.middleware");
 const { validateRegisterPayload, validateLoginPayload } = require("../utils/validation");
 
 const router = express.Router();
@@ -30,6 +31,12 @@ function sanitizeNextPath(rawNext) {
   if (!rawNext || typeof rawNext !== "string") return null;
   if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
   return rawNext;
+}
+
+function sanitizeAuthFlow(rawFlow) {
+  const normalized = String(rawFlow || "").trim().toLowerCase();
+  if (normalized === "signup") return "signup";
+  return "login";
 }
 
 function signSocialState(payload) {
@@ -168,6 +175,11 @@ function normalizeUserResponse(user) {
   };
 }
 
+function isLocalAuthEnabled(user) {
+  // 기존 사용자 문서에 필드가 없을 수 있으므로 undefined는 enabled로 처리한다.
+  return user?.localAuth?.enabled !== false;
+}
+
 async function exchangeCodeForAccessToken(provider, code, req) {
   const cfg = buildProviderConfig(provider, req);
   if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
@@ -268,18 +280,20 @@ async function findOrCreateSocialUser(provider, profile) {
   }
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
-  const randomPassword = crypto.randomBytes(20).toString("hex");
-  const passwordHash = await bcrypt.hash(randomPassword, 12);
 
   const created = await User.create({
     name: profile.name || `${provider} 사용자`,
     email: profile.email || fallbackEmail,
-    passwordHash,
+    passwordHash: "",
     birthDate: "1900-01-01",
     birthTime: "00:00",
     gender: "OTHER",
     role: "user",
     joinedAt: new Date(),
+    localAuth: {
+      enabled: false,
+      activatedAt: null,
+    },
     socialAccounts: {
       [provider]: {
         id: profile.providerId,
@@ -317,9 +331,40 @@ router.post("/register", async (req, res, next) => {
       });
     }
 
-    const existing = await User.findOne({ email: sanitized.email }).lean();
+    const existing = await User.findOne({ email: sanitized.email })
+      .select("+passwordHash")
+      .lean();
     if (existing) {
-      return res.status(409).json({ message: "이미 가입된 이메일입니다." });
+      const canUpgradeToLocal = !isLocalAuthEnabled(existing);
+      if (!canUpgradeToLocal) {
+        return res.status(409).json({ message: "이미 가입된 이메일입니다." });
+      }
+
+      const passwordHash = await bcrypt.hash(sanitized.password, 12);
+      const updated = await User.findByIdAndUpdate(
+        existing._id,
+        {
+          $set: {
+            name: sanitized.name,
+            passwordHash,
+            birthDate: sanitized.birthDate,
+            birthTime: sanitized.birthTime,
+            gender: sanitized.gender,
+            localAuth: {
+              enabled: true,
+              activatedAt: new Date(),
+            },
+          },
+        },
+        { new: true },
+      ).lean();
+
+      const token = signToken(updated);
+      return res.status(200).json({
+        message: "소셜 계정에 로컬 로그인 수단이 추가되었습니다.",
+        token,
+        user: normalizeUserResponse(updated),
+      });
     }
 
     const passwordHash = await bcrypt.hash(sanitized.password, 12);
@@ -333,6 +378,10 @@ router.post("/register", async (req, res, next) => {
       gender: sanitized.gender,
       role: "user",
       joinedAt: new Date(),
+      localAuth: {
+        enabled: true,
+        activatedAt: new Date(),
+      },
     });
 
     const token = signToken(created);
@@ -372,8 +421,12 @@ router.post("/login", async (req, res, next) => {
       .select("+passwordHash")
       .lean();
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+    }
+
+    if (!isLocalAuthEnabled(user) || !user.passwordHash) {
+      return res.status(409).json({ message: "이 계정은 소셜 로그인으로 가입되었습니다. 소셜 로그인 또는 회원가입에서 로컬 로그인 추가를 진행해 주세요." });
     }
 
     const isPasswordValid = await bcrypt.compare(sanitized.password, user.passwordHash);
@@ -387,21 +440,34 @@ router.post("/login", async (req, res, next) => {
     return res.status(200).json({
       message: "로그인에 성공했습니다.",
       token,
-      user: {
-        id: String(user._id),
-        name: user.name,
-        email: user.email,
-        birthDate: user.birthDate,
-        birthTime: user.birthTime,
-        gender: user.gender,
-        role: user.role,
-        points: user.points,
-        joinedAt: user.joinedAt,
-      },
+      user: normalizeUserResponse(user),
     });
   } catch (error) {
     return next(error);
   }
+});
+
+router.get("/me", requireAuth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.auth.userId).lean();
+    if (!user) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    return res.status(200).json({
+      message: "인증 사용자 조회에 성공했습니다.",
+      user: normalizeUserResponse(user),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/logout", async (req, res) => {
+  // JWT stateless 구조이므로 서버 세션 제거는 없고, 클라이언트 쿠키 정리를 위한 응답만 반환한다.
+  res.clearCookie("fortune_auth_token", { path: "/" });
+  res.clearCookie("fortune_auth_role", { path: "/" });
+  return res.status(200).json({ message: "로그아웃되었습니다." });
 });
 
 router.get("/oauth/:provider/start", async (req, res) => {
@@ -417,8 +483,9 @@ router.get("/oauth/:provider/start", async (req, res) => {
     }
 
     const nextPath = sanitizeNextPath(String(req.query.next || "")) || "/";
+    const flow = sanitizeAuthFlow(req.query.flow);
     const frontendBase = getFrontendBaseUrl();
-    const stateToken = signSocialState({ provider, nextPath, frontendBase });
+    const stateToken = signSocialState({ provider, nextPath, frontendBase, flow });
 
     const params = new URLSearchParams({
       client_id: cfg.clientId,
@@ -461,6 +528,9 @@ router.get("/oauth/:provider/callback", async (req, res) => {
       return res.redirect(`${frontendBase}/login?social_error=provider_mismatch`);
     }
 
+    const flow = sanitizeAuthFlow(statePayload.flow);
+    const redirectPath = flow === "signup" ? "/signup" : "/login";
+
     const accessToken = await exchangeCodeForAccessToken(provider, code, req);
     const socialProfile = await fetchSocialProfile(provider, accessToken, req);
     const user = await findOrCreateSocialUser(provider, socialProfile);
@@ -476,7 +546,7 @@ router.get("/oauth/:provider/callback", async (req, res) => {
       redirectParams.set("next", statePayload.nextPath);
     }
 
-    return res.redirect(`${frontendBase}/login?${redirectParams.toString()}`);
+    return res.redirect(`${frontendBase}${redirectPath}?${redirectParams.toString()}`);
   } catch {
     return res.redirect(fallbackRedirect);
   }
