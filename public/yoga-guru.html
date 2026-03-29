@@ -444,18 +444,129 @@
   .music-player-wrap {
     position: relative;
     width: 100%;
-    padding-top: 56.25%;
+    min-height: 150px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(212,168,67,0.18);
-    background: rgba(0,0,0,0.45);
+    background: radial-gradient(circle at 50% 42%, rgba(212,168,67,0.14), rgba(11,6,23,0.92) 68%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px;
   }
-  .music-player-wrap iframe {
+  .music-player-wrap::before {
+    content: 'ॐ';
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    color: rgba(240,200,74,0.8);
+    font-size: 1.8rem;
+    filter: drop-shadow(0 0 16px rgba(212,168,67,0.4));
+  }
+  .music-soundscape-desc {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 420px;
+  }
+  .music-wave {
+    width: 100%;
+    max-width: 360px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(240,200,74,0.24);
+    background:
+      radial-gradient(circle at 15% 50%, rgba(245,224,144,0.35) 0 12px, transparent 14px),
+      radial-gradient(circle at 48% 50%, rgba(196,90,138,0.3) 0 10px, transparent 12px),
+      radial-gradient(circle at 82% 50%, rgba(45,191,189,0.28) 0 9px, transparent 11px),
+      linear-gradient(90deg, rgba(212,168,67,0.06), rgba(107,63,160,0.12), rgba(26,138,136,0.08));
+    background-size: 120% 100%, 100% 100%, 110% 100%, 100% 100%;
+    animation: musicWaveFloat 7s ease-in-out infinite;
+  }
+  @keyframes musicWaveFloat {
+    0%, 100% { transform: translateX(0); opacity: 0.66; }
+    50% { transform: translateX(6px); opacity: 1; }
+  }
+
+  .practice-flow {
+    margin: 0 0 28px;
+    border: 1px solid rgba(212,168,67,0.24);
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(15,9,30,0.92), rgba(35,14,52,0.84));
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .practice-flow::before {
+    content: '';
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 65% 48% at 50% 0%, rgba(212,168,67,0.08), transparent 70%);
+  }
+  .practice-label {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-size: 0.72rem;
+    margin-bottom: 12px;
+  }
+  .practice-title {
+    font-family: 'Cinzel Decorative', serif;
+    color: var(--gold-pale);
+    font-size: clamp(1.15rem, 3vw, 1.6rem);
+    margin-bottom: 8px;
+  }
+  .practice-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .typing-console {
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 16px;
+    background: rgba(3,2,10,0.66);
+    min-height: 170px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 16px 16px 14px;
+    color: #f3e8ca;
+    font-size: 0.92rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    margin-bottom: 14px;
+  }
+  .typing-console .cursor {
+    display: inline-block;
+    width: 8px;
+    animation: typeCursorBlink 0.8s steps(2, start) infinite;
+  }
+  @keyframes typeCursorBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  .practice-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .practice-btn {
+    border: 1px solid rgba(240,200,74,0.32);
+    background: rgba(8,4,18,0.74);
+    color: var(--gold-pale);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .practice-btn:hover {
+    border-color: rgba(240,200,74,0.62);
+    background: rgba(212,168,67,0.16);
   }
 
   /* === INVOKE BUTTON === */
@@ -965,24 +1076,27 @@
         </div>
       </div>
 
+      <div id="musicPanelHome">
       <div class="music-panel" id="musicPanel">
         <button class="music-toggle" type="button" id="musicToggleBtn" aria-expanded="false" aria-controls="musicContent">
           <div>
-            <strong>ॐ Theta Sanctuary Playlist</strong>
-            <small>YouTube 기반 테타 명상 사운드 · 열고 닫으며 자유롭게 선택</small>
+            <strong>ॐ Sacred Soundscape Playlist</strong>
+            <small>저작권 걱정 없는 생성형 신비 명상음 · 코스 진행 중에도 동일 재생</small>
           </div>
           <span class="music-chevron" aria-hidden="true">▾</span>
         </button>
         <div class="music-content" id="musicContent">
-          <p class="music-meta">수련 전후 집중을 돕는 Theta 계열 명상 트랙을 모았습니다. 마음 상태에 맞는 채널을 골라 의식처럼 재생해 보세요.</p>
+          <p class="music-meta">브라우저가 실시간 생성하는 명상 사운드스케이프입니다. 외부 저작권 음원 없이, 수련 흐름에 맞게 장면을 전환해 들을 수 있습니다.</p>
           <div class="music-chip-row" id="musicPlaylistChips"></div>
           <p class="music-now-playing" id="musicNowPlaying">현재 재생 목록: 준비 중...</p>
           <div class="music-controls">
+            <button type="button" class="music-mini-btn" id="musicPlayToggleBtn">재생 시작</button>
             <button type="button" class="music-mini-btn" id="musicPrevBtn">◀ 이전 곡</button>
             <button type="button" class="music-mini-btn" id="musicNextBtn">다음 곡 ▶</button>
           </div>
           <div class="music-player-wrap" id="musicPlayerWrap"></div>
         </div>
+      </div>
       </div>
 
       <div id="errorBox" class="error-box">
@@ -1018,16 +1132,49 @@
 
 <script>
 let selectedDuration = null;
-const THETA_PLAYLISTS = [
-  { mode: 'theta', label: 'Theta Temple Breath', query: 'theta waves meditation music copyright free 432hz indian ambient' },
-  { mode: 'lofi', label: 'Lotus Deep Focus', query: 'copyright free lofi playlist beats to study and relax' },
-  { mode: 'theta', label: 'Chakra Night River', query: 'chakra theta meditation music royalty free relaxing background' },
-  { mode: 'theta', label: 'Mantra & Bowls', query: 'tibetan bowls theta meditation royalty free music' },
-  { mode: 'theta', label: 'Silent Astral Flow', query: 'deep theta sleep meditation no copyright ambient drone' }
+const SACRED_SOUND_PLAYLISTS = [
+  {
+    label: 'Himalayan Ether',
+    tone: '깊고 안정적인 드론',
+    rootHz: 108,
+    harmonicRatio: 1.5,
+    lfoHz: 0.08,
+    noiseAmount: 0.012
+  },
+  {
+    label: 'Lotus Moon Chamber',
+    tone: '은은한 연꽃 차크라 파동',
+    rootHz: 136.1,
+    harmonicRatio: 1.33,
+    lfoHz: 0.1,
+    noiseAmount: 0.01
+  },
+  {
+    label: 'Temple Night Current',
+    tone: '신전의 밤 공명',
+    rootHz: 144,
+    harmonicRatio: 1.25,
+    lfoHz: 0.065,
+    noiseAmount: 0.014
+  },
+  {
+    label: 'Astral Om Rain',
+    tone: '성운 같은 빗결 앰비언스',
+    rootHz: 96,
+    harmonicRatio: 2,
+    lfoHz: 0.055,
+    noiseAmount: 0.016
+  }
 ];
 let currentPlaylistIndex = 0;
-let musicVideoItems = [];
-let currentMusicVideoIndex = 0;
+let sacredAudioContext = null;
+let sacredAudioNodes = null;
+let musicPlaying = false;
+let typingJob = null;
+let typingLines = [];
+let typingLineIdx = 0;
+let typingCharIdx = 0;
+let typingPauseMode = false;
 
 function resolveApiBase() {
   const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
@@ -1044,6 +1191,8 @@ function resolveApiBase() {
 
 function initPageState() {
   renderPlaylistButtons();
+  renderMusicScene();
+  syncNowPlaying();
 
   const panel = document.getElementById('musicPanel');
   const btn = document.getElementById('musicToggleBtn');
@@ -1058,6 +1207,8 @@ function initPageState() {
 
   const prevBtn = document.getElementById('musicPrevBtn');
   const nextBtn = document.getElementById('musicNextBtn');
+  const playToggleBtn = document.getElementById('musicPlayToggleBtn');
+  if (playToggleBtn) playToggleBtn.addEventListener('click', toggleMusicPlayback);
   if (prevBtn) prevBtn.addEventListener('click', () => playRelativeMusic(-1));
   if (nextBtn) nextBtn.addEventListener('click', () => playRelativeMusic(1));
 }
@@ -1065,7 +1216,7 @@ function initPageState() {
 function renderPlaylistButtons() {
   const chipsRoot = document.getElementById('musicPlaylistChips');
   if (!chipsRoot) return;
-  chipsRoot.innerHTML = THETA_PLAYLISTS.map((item, idx) => {
+  chipsRoot.innerHTML = SACRED_SOUND_PLAYLISTS.map((item, idx) => {
     const activeClass = idx === currentPlaylistIndex ? ' active' : '';
     return `<button type="button" class="music-chip${activeClass}" data-playlist-idx="${idx}">${escapeHtml(item.label)}</button>`;
   }).join('');
@@ -1076,7 +1227,11 @@ function renderPlaylistButtons() {
       if (!Number.isFinite(idx)) return;
       currentPlaylistIndex = idx;
       renderPlaylistButtons();
-      loadPlaylistFromApi(currentPlaylistIndex);
+      renderMusicScene();
+      if (musicPlaying) {
+        startGeneratedMusic();
+      }
+      syncNowPlaying();
     });
   });
 }
@@ -1084,95 +1239,283 @@ function renderPlaylistButtons() {
 function ensurePlaylistFrameLoaded() {
   const wrap = document.getElementById('musicPlayerWrap');
   if (!wrap) return;
-  if (wrap.querySelector('iframe')) return;
-  loadPlaylistFromApi(currentPlaylistIndex);
+  renderMusicScene();
 }
 
-async function loadPlaylistFromApi(idx) {
-  const item = THETA_PLAYLISTS[idx] || THETA_PLAYLISTS[0];
-  if (!item) return;
+function createAudioContext() {
+  if (!sacredAudioContext) {
+    sacredAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return sacredAudioContext;
+}
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-    const resp = await fetch(`${resolveApiBase()}/api/youtube/sats-playlist?mode=${encodeURIComponent(item.mode)}`, {
-      method: 'GET',
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' }
-    });
-    clearTimeout(timeoutId);
+function renderMusicScene() {
+  const wrap = document.getElementById('musicPlayerWrap');
+  if (!wrap) return;
+  const preset = SACRED_SOUND_PLAYLISTS[currentPlaylistIndex] || SACRED_SOUND_PLAYLISTS[0];
+  if (!preset) return;
 
-    const data = await resp.json().catch(() => ({}));
-    if (!resp.ok || !data?.ok || !Array.isArray(data?.items) || !data.items.length) {
-      throw new Error(data?.message || `playlist-load-failed-${resp.status}`);
-    }
+  wrap.innerHTML = `
+    <div class="music-wave" aria-hidden="true"></div>
+    <p class="music-soundscape-desc">${escapeHtml(preset.label)} · ${escapeHtml(preset.tone)}<br>브라우저 내부 생성 음향이므로 외부 저작권 음원 파일을 사용하지 않습니다.</p>
+  `;
+}
 
-    musicVideoItems = data.items;
-    currentMusicVideoIndex = 0;
-    renderMusicVideo(item);
-  } catch (err) {
-    loadYoutubeSearchFallback(item);
+function buildNoiseBuffer(ctx) {
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) {
+    data[i] = (Math.random() * 2 - 1) * 0.45;
+  }
+  return buffer;
+}
+
+function stopGeneratedMusic() {
+  if (!sacredAudioNodes) return;
+  sacredAudioNodes.oscillators.forEach((osc) => {
+    try { osc.stop(); } catch (_) {}
+    try { osc.disconnect(); } catch (_) {}
+  });
+  sacredAudioNodes.sources.forEach((src) => {
+    try { src.stop(); } catch (_) {}
+    try { src.disconnect(); } catch (_) {}
+  });
+  sacredAudioNodes.gains.forEach((gain) => {
+    try { gain.disconnect(); } catch (_) {}
+  });
+  if (sacredAudioNodes.filter) {
+    try { sacredAudioNodes.filter.disconnect(); } catch (_) {}
+  }
+  if (sacredAudioNodes.masterGain) {
+    try { sacredAudioNodes.masterGain.disconnect(); } catch (_) {}
+  }
+  sacredAudioNodes = null;
+}
+
+async function startGeneratedMusic() {
+  const preset = SACRED_SOUND_PLAYLISTS[currentPlaylistIndex] || SACRED_SOUND_PLAYLISTS[0];
+  if (!preset) return;
+
+  const ctx = createAudioContext();
+  if (ctx.state === 'suspended') {
+    await ctx.resume();
+  }
+
+  stopGeneratedMusic();
+
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.24;
+  masterGain.connect(ctx.destination);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 860;
+  filter.Q.value = 0.5;
+  filter.connect(masterGain);
+
+  const baseGain = ctx.createGain();
+  baseGain.gain.value = 0.2;
+  baseGain.connect(filter);
+
+  const secondaryGain = ctx.createGain();
+  secondaryGain.gain.value = 0.14;
+  secondaryGain.connect(filter);
+
+  const rootOsc = ctx.createOscillator();
+  rootOsc.type = 'sine';
+  rootOsc.frequency.value = preset.rootHz;
+  rootOsc.connect(baseGain);
+
+  const harmonicOsc = ctx.createOscillator();
+  harmonicOsc.type = 'triangle';
+  harmonicOsc.frequency.value = preset.rootHz * preset.harmonicRatio;
+  harmonicOsc.connect(secondaryGain);
+
+  const noiseSource = ctx.createBufferSource();
+  noiseSource.buffer = buildNoiseBuffer(ctx);
+  noiseSource.loop = true;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = preset.noiseAmount;
+  const noiseHighPass = ctx.createBiquadFilter();
+  noiseHighPass.type = 'highpass';
+  noiseHighPass.frequency.value = 150;
+  noiseSource.connect(noiseHighPass);
+  noiseHighPass.connect(noiseGain);
+  noiseGain.connect(filter);
+
+  const lfo = ctx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = preset.lfoHz;
+  const lfoDepth = ctx.createGain();
+  lfoDepth.gain.value = 0.08;
+  lfo.connect(lfoDepth);
+  lfoDepth.connect(baseGain.gain);
+
+  const filterLfo = ctx.createOscillator();
+  filterLfo.type = 'sine';
+  filterLfo.frequency.value = preset.lfoHz * 0.7;
+  const filterDepth = ctx.createGain();
+  filterDepth.gain.value = 180;
+  filterLfo.connect(filterDepth);
+  filterDepth.connect(filter.frequency);
+
+  rootOsc.start();
+  harmonicOsc.start();
+  noiseSource.start();
+  lfo.start();
+  filterLfo.start();
+
+  sacredAudioNodes = {
+    oscillators: [rootOsc, harmonicOsc, lfo, filterLfo],
+    sources: [noiseSource],
+    gains: [baseGain, secondaryGain, noiseGain, lfoDepth, filterDepth],
+    filter,
+    masterGain
+  };
+
+  musicPlaying = true;
+  syncNowPlaying();
+}
+
+function syncNowPlaying() {
+  const nowPlaying = document.getElementById('musicNowPlaying');
+  const playToggleBtn = document.getElementById('musicPlayToggleBtn');
+  const preset = SACRED_SOUND_PLAYLISTS[currentPlaylistIndex] || SACRED_SOUND_PLAYLISTS[0];
+  if (nowPlaying && preset) {
+    nowPlaying.textContent = musicPlaying
+      ? `현재 재생: ${preset.label} · ${preset.tone} (생성형 무저작권 음향)`
+      : `대기 중: ${preset.label} · ${preset.tone} (생성형 무저작권 음향)`;
+  }
+  if (playToggleBtn) {
+    playToggleBtn.textContent = musicPlaying ? '일시 정지' : '재생 시작';
   }
 }
 
-function renderMusicVideo(item) {
-  const wrap = document.getElementById('musicPlayerWrap');
-  const nowPlaying = document.getElementById('musicNowPlaying');
-  if (!wrap) return;
-
-  if (!musicVideoItems.length) {
-    loadYoutubeSearchFallback(item || THETA_PLAYLISTS[currentPlaylistIndex] || THETA_PLAYLISTS[0]);
+async function toggleMusicPlayback() {
+  if (!musicPlaying) {
+    try {
+      await startGeneratedMusic();
+    } catch (err) {
+      alert('브라우저 오디오 시작에 실패했습니다. 다시 시도해주세요.');
+    }
     return;
   }
 
-  const video = musicVideoItems[currentMusicVideoIndex] || musicVideoItems[0];
-  const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.videoId)}?rel=0&autoplay=0&modestbranding=1&playsinline=1`;
-  wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation track"></iframe>`;
-  if (nowPlaying) {
-    nowPlaying.textContent = `현재 재생: ${video.title} · ${video.channel}`;
-  }
-
-  const openHref = `https://www.youtube.com/watch?v=${encodeURIComponent(video.videoId)}`;
-  upsertOpenMusicLink(openHref);
+  stopGeneratedMusic();
+  musicPlaying = false;
+  syncNowPlaying();
 }
 
 function playRelativeMusic(offset) {
-  if (!musicVideoItems.length) return;
-  const total = musicVideoItems.length;
-  currentMusicVideoIndex = (currentMusicVideoIndex + offset + total) % total;
-  const item = THETA_PLAYLISTS[currentPlaylistIndex] || THETA_PLAYLISTS[0];
-  renderMusicVideo(item);
+  const total = SACRED_SOUND_PLAYLISTS.length;
+  if (!total) return;
+  currentPlaylistIndex = (currentPlaylistIndex + offset + total) % total;
+  renderPlaylistButtons();
+  renderMusicScene();
+  if (musicPlaying) {
+    startGeneratedMusic();
+  } else {
+    syncNowPlaying();
+  }
 }
 
-function loadYoutubeSearchFallback(item) {
-  const wrap = document.getElementById('musicPlayerWrap');
-  const nowPlaying = document.getElementById('musicNowPlaying');
-  if (!item || !wrap) return;
+function buildTypingLines(courseData) {
+  const lines = [];
+  lines.push('구루의 맞춤 수련이 완성되었습니다. 먼저 숨을 고르고, 이어지는 문장을 천천히 따라가세요.');
+  lines.push('지금 재생 시작을 누르면 생성형 무저작권 사운드가 흐르며, 그 위에 동작 안내가 타이핑됩니다.');
 
-  const src = `https://www.youtube-nocookie.com/embed/videoseries?listType=search&list=${encodeURIComponent(item.query)}&rel=0&autoplay=0&modestbranding=1&playsinline=1`;
-  const openHref = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.query)}`;
-  wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation playlist"></iframe>`;
-  if (nowPlaying) {
-    nowPlaying.textContent = `현재 재생 목록: ${item.label} (임베드 제한 시 외부 열기로 재생)`;
+  const steps = Array.isArray(courseData?.sequence) ? courseData.sequence : [];
+  steps.forEach((step, idx) => {
+    const stepLabel = `${idx + 1}단계 ${step.type || 'Practice'} · ${step.english_name || ''}`;
+    lines.push(stepLabel.trim());
+    if (Array.isArray(step.instructions) && step.instructions.length) {
+      lines.push(step.instructions[0]);
+    }
+    if (step.breathing_guide) {
+      lines.push(`호흡: ${step.breathing_guide}`);
+    }
+    if (step.benefits_spiritual) {
+      lines.push(`마음 다잡기 포인트: ${step.benefits_spiritual}`);
+    }
+  });
+
+  if (courseData?.closing_mantra) {
+    lines.push(`마무리 만트라: ${courseData.closing_mantra}`);
+  }
+  lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 확인해 주세요.');
+  return lines;
+}
+
+function stopTypingFlow() {
+  if (typingJob) {
+    clearInterval(typingJob);
+    typingJob = null;
+  }
+}
+
+function resetTypingFlow() {
+  stopTypingFlow();
+  typingLineIdx = 0;
+  typingCharIdx = 0;
+  typingPauseMode = false;
+  const out = document.getElementById('typingConsole');
+  if (out) out.textContent = '';
+}
+
+function typingTick() {
+  const out = document.getElementById('typingConsole');
+  if (!out) {
+    stopTypingFlow();
+    return;
+  }
+  if (typingPauseMode) return;
+  if (typingLineIdx >= typingLines.length) {
+    stopTypingFlow();
+    out.innerHTML = `${escapeHtml(out.textContent)}\n\n✦ 여정이 마무리되었습니다.<span class="cursor">|</span>`;
+    return;
   }
 
-  upsertOpenMusicLink(openHref);
+  const currentLine = typingLines[typingLineIdx];
+  if (typingCharIdx < currentLine.length) {
+    out.textContent += currentLine.charAt(typingCharIdx);
+    typingCharIdx += 1;
+    out.scrollTop = out.scrollHeight;
+    return;
+  }
+
+  out.textContent += '\n\n';
+  typingLineIdx += 1;
+  typingCharIdx = 0;
+  typingPauseMode = true;
+  setTimeout(() => {
+    typingPauseMode = false;
+  }, 380);
 }
 
-function upsertOpenMusicLink(openHref) {
-  const existingLink = document.getElementById('musicOpenLink');
-  if (existingLink) {
-    existingLink.setAttribute('href', openHref);
+function startTypingFlow() {
+  if (!typingLines.length) return;
+  stopTypingFlow();
+  typingJob = setInterval(typingTick, 32);
+}
+
+async function handleStartPracticeFlow() {
+  if (!musicPlaying) {
+    try {
+      await startGeneratedMusic();
+    } catch (err) {
+      alert('오디오 권한이 필요합니다. 다시 한번 시작 버튼을 눌러주세요.');
+      return;
+    }
+  }
+  resetTypingFlow();
+  startTypingFlow();
+}
+
+function handlePausePracticeFlow() {
+  if (typingJob) {
+    stopTypingFlow();
   } else {
-    const link = document.createElement('a');
-    link.id = 'musicOpenLink';
-    link.className = 'music-open-link';
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.href = openHref;
-    link.textContent = 'YouTube에서 바로 열기';
-    const content = document.getElementById('musicContent');
-    if (content) content.insertBefore(link, wrap);
+    startTypingFlow();
   }
 }
 
@@ -1396,6 +1739,19 @@ function renderCourse(data) {
 
   const output = document.getElementById('courseOutput');
   output.innerHTML = `
+    <div class="practice-flow">
+      <div class="practice-label">Step 3 · Practice Flow</div>
+      <h3 class="practice-title">Mystic Typing Meditation Chamber</h3>
+      <p class="practice-desc">제미나이가 만든 맞춤 수련법을 타이핑 리듬으로 안내합니다. 먼저 음악을 켠 뒤, 타이핑 명상을 시작하면 동작과 호흡, 마음 다잡기 포인트가 순서대로 흐릅니다.</p>
+      <div id="courseMusicAnchor"></div>
+      <div class="typing-console" id="typingConsole" aria-live="polite"></div>
+      <div class="practice-controls">
+        <button type="button" class="practice-btn" id="practiceStartBtn">명상 타이핑 시작</button>
+        <button type="button" class="practice-btn" id="practicePauseBtn">타이핑 일시정지/재개</button>
+        <button type="button" class="practice-btn" id="practiceResetBtn">타이핑 처음부터</button>
+      </div>
+    </div>
+
     <div class="course-hero">
       <div class="hero-deity">${escapeHtml(meta.deity_theme || meta.title || '')}</div>
       <div class="hero-title">${escapeHtml(meta.title || '')}</div>
@@ -1432,6 +1788,30 @@ function renderCourse(data) {
     <button class="restart-btn" onclick="restartJourney()">✦ 새로운 여정 시작하기 ✦</button>
   `;
 
+  const musicPanel = document.getElementById('musicPanel');
+  const anchor = document.getElementById('courseMusicAnchor');
+  if (musicPanel && anchor) {
+    anchor.appendChild(musicPanel);
+    musicPanel.classList.add('open');
+    const toggleBtn = document.getElementById('musicToggleBtn');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  typingLines = buildTypingLines(data);
+  resetTypingFlow();
+
+  const startBtn = document.getElementById('practiceStartBtn');
+  const pauseBtn = document.getElementById('practicePauseBtn');
+  const resetBtn = document.getElementById('practiceResetBtn');
+  if (startBtn) startBtn.addEventListener('click', handleStartPracticeFlow);
+  if (pauseBtn) pauseBtn.addEventListener('click', handlePausePracticeFlow);
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      resetTypingFlow();
+      startTypingFlow();
+    });
+  }
+
   document.getElementById('loadingState').classList.remove('active');
   output.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1444,8 +1824,19 @@ function toggleStep(card) {
 }
 
 function restartJourney() {
+  stopTypingFlow();
   document.getElementById('courseOutput').classList.remove('active');
   document.getElementById('courseOutput').innerHTML = '';
+
+  const musicPanel = document.getElementById('musicPanel');
+  const musicHome = document.getElementById('musicPanelHome');
+  if (musicPanel && musicHome) {
+    musicHome.appendChild(musicPanel);
+    musicPanel.classList.remove('open');
+    const toggleBtn = document.getElementById('musicToggleBtn');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+  }
+
   document.getElementById('inputSection').style.display = 'block';
   document.getElementById('moodInput').value = '';
   document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
