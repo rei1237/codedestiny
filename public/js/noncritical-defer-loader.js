@@ -3,6 +3,7 @@
 
   var SELECTOR = 'script[data-cd-noncritical-src]';
   var STARTED = false;
+  var MOBILE_DELAY_LEVEL = 0;
 
   function isMobile() {
     return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
@@ -16,7 +17,10 @@
   function shouldSkip(tag) {
     if (!tag) return false;
     if (isSaveData() && tag.getAttribute('data-cd-skip-save-data') === '1') return true;
-    if (isMobile() && tag.getAttribute('data-cd-mobile-delay') === '2') return true;
+    if (isMobile()) {
+      var mobileDelay = Number(tag.getAttribute('data-cd-mobile-delay') || '0');
+      if (mobileDelay > MOBILE_DELAY_LEVEL) return true;
+    }
     return false;
   }
 
@@ -28,17 +32,20 @@
     setTimeout(fn, 120);
   }
 
-  function loadSequentially(nodes, idx) {
-    if (!nodes || idx >= nodes.length) return;
+  function loadSequentially(nodes, idx, done) {
+    if (!nodes || idx >= nodes.length) {
+      if (typeof done === 'function') done();
+      return;
+    }
     var tag = nodes[idx];
     var src = tag.getAttribute('data-cd-noncritical-src');
     if (!src || shouldSkip(tag)) {
-      loadSequentially(nodes, idx + 1);
+      loadSequentially(nodes, idx + 1, done);
       return;
     }
 
     if (document.querySelector('script[src="' + src + '"]')) {
-      loadSequentially(nodes, idx + 1);
+      loadSequentially(nodes, idx + 1, done);
       return;
     }
 
@@ -47,10 +54,10 @@
     s.defer = true;
     s.async = false;
     s.onload = function () {
-      nextIdle(function () { loadSequentially(nodes, idx + 1); });
+      nextIdle(function () { loadSequentially(nodes, idx + 1, done); });
     };
     s.onerror = function () {
-      nextIdle(function () { loadSequentially(nodes, idx + 1); });
+      nextIdle(function () { loadSequentially(nodes, idx + 1, done); });
     };
     document.body.appendChild(s);
   }
@@ -85,17 +92,29 @@
     nextIdle(function () { loadStylesSequentially(nodes, idx + 1, done); });
   }
 
-  function start() {
+  function start(level) {
+    if (typeof level === 'number') {
+      MOBILE_DELAY_LEVEL = Math.max(MOBILE_DELAY_LEVEL, level);
+    }
+
     if (STARTED) return;
     STARTED = true;
     var styleNodes = document.querySelectorAll('link[data-cd-noncritical-style-src]');
     var scriptNodes = document.querySelectorAll(SELECTOR);
 
-    if (!styleNodes.length && !scriptNodes.length) return;
+    if (!styleNodes.length && !scriptNodes.length) {
+      STARTED = false;
+      return;
+    }
 
     loadStylesSequentially(styleNodes, 0, function () {
-      if (!scriptNodes.length) return;
-      loadSequentially(scriptNodes, 0);
+      if (!scriptNodes.length) {
+        STARTED = false;
+        return;
+      }
+      loadSequentially(scriptNodes, 0, function () {
+        STARTED = false;
+      });
     });
   }
 
@@ -112,18 +131,28 @@
       } else {
         setTimeout(start, fallbackTimeout);
       }
+    } else {
+      MOBILE_DELAY_LEVEL = 0;
     }
 
     var events = mobile
       ? ['pointerdown', 'touchstart', 'keydown', 'click']
       : ['pointerdown', 'keydown', 'click'];
     for (var i = 0; i < events.length; i += 1) {
-      window.addEventListener(events[i], start, { once: true, passive: true });
+      window.addEventListener(events[i], function () {
+        start(1);
+      }, { once: true, passive: true });
+    }
+
+    if (mobile) {
+      setTimeout(function () {
+        start(2);
+      }, 9000);
     }
 
     // 탭이 백그라운드로 갈 때는 사용자 체감 영향이 거의 없어 미뤄둔 스크립트를 로드한다.
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') start();
+      if (document.visibilityState === 'hidden') start(2);
     }, { once: true });
   }
 
