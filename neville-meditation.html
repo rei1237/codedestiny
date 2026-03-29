@@ -244,12 +244,41 @@
       padding:14px 14px 12px;
       box-shadow:0 18px 42px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.05);
     }
+    .music-panel.is-closed {
+      opacity:0;
+      transform:translateY(-8px);
+      pointer-events:none;
+    }
+    .music-panel__head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:10px;
+    }
     .music-panel__title {
       font-family:'Cormorant Garamond',serif;
       font-size:0.95rem;
       letter-spacing:0.14em;
       color:var(--gold);
-      margin-bottom:10px;
+      margin-bottom:0;
+    }
+    .music-panel__close {
+      flex-shrink:0;
+      min-width:34px;
+      height:30px;
+      border:1px solid rgba(201,168,76,0.28);
+      background:rgba(0,0,0,0.28);
+      color:rgba(205,214,238,0.86);
+      font-size:0.8rem;
+      line-height:1;
+      cursor:pointer;
+      transition:all 0.25s ease;
+    }
+    .music-panel__close:hover {
+      border-color:rgba(201,168,76,0.55);
+      color:var(--gold);
+      background:rgba(201,168,76,0.08);
     }
     .music-panel__row {
       display:flex;
@@ -299,6 +328,25 @@
       position:absolute;
       left:-9999px;
       top:-9999px;
+    }
+    .music-panel-opener {
+      position:absolute;
+      top:86px;
+      right:26px;
+      z-index:1;
+      border:1px solid rgba(201,168,76,0.35);
+      background:rgba(5,10,24,0.86);
+      color:var(--gold);
+      font-family:'Noto Serif KR',serif;
+      font-size:0.72rem;
+      letter-spacing:0.1em;
+      padding:9px 12px;
+      cursor:pointer;
+      transition:all 0.25s ease;
+    }
+    .music-panel-opener:hover {
+      border-color:rgba(201,168,76,0.6);
+      background:rgba(201,168,76,0.08);
     }
     .guidance {
       font-family:'Noto Serif KR',serif;
@@ -356,15 +404,95 @@
       100% { transform:translate(300px,80px); opacity:0; }
     }
 
+    @media (max-width:900px), (max-height:740px) {
+      #landing {
+        gap:30px;
+        padding:28px 18px 40px;
+      }
+      .cards {
+        gap:16px;
+      }
+      .card {
+        width:min(340px, 100%);
+        padding:28px 22px;
+      }
+      #meditation {
+        justify-content:flex-start;
+        padding-top:88px;
+      }
+      .top-bar {
+        padding:14px 16px;
+      }
+      .orb-wrap {
+        width:170px;
+        height:170px;
+        margin-bottom:6px;
+      }
+      .ring-a {
+        width:124px;
+        height:124px;
+      }
+      .ring-b {
+        width:154px;
+        height:154px;
+      }
+      .orb {
+        width:88px;
+        height:88px;
+      }
+      .text-wrap {
+        min-height:110px;
+      }
+      .controls {
+        bottom:16px;
+        width:calc(100% - 28px);
+        justify-content:center;
+      }
+      .music-panel {
+        top:58px;
+        right:14px;
+        left:14px;
+        width:auto;
+        max-height:min(40vh, 250px);
+        overflow:auto;
+      }
+      .music-panel-opener {
+        top:58px;
+        right:14px;
+      }
+    }
+
     @media (max-width:600px) {
       .cards { flex-direction:column; }
       .card { width:100%; max-width:300px; }
-      .music-panel {
-        top:auto;
-        right:14px;
-        bottom:92px;
-        left:14px;
-        width:auto;
+      .h1 {
+        font-size:clamp(2.2rem, 10vw, 3.1rem);
+      }
+      .subtitle {
+        font-size:0.8rem;
+        line-height:1.75;
+      }
+      .author-intro {
+        font-size:0.74rem;
+        line-height:1.75;
+      }
+      .phase-label {
+        font-size:0.68rem;
+        letter-spacing:0.3em;
+      }
+      .timer {
+        font-size:1.05rem;
+      }
+      .text-wrap {
+        padding:0 18px;
+      }
+      .guidance {
+        font-size:clamp(0.88rem, 4.2vw, 1rem);
+        line-height:1.9;
+      }
+      .btn {
+        padding:10px 18px;
+        font-size:0.74rem;
       }
       .music-panel__row {
         flex-wrap:wrap;
@@ -452,8 +580,11 @@
     <div class="timer" id="timerEl">00:00</div>
   </div>
 
-  <div class="music-panel" aria-live="polite">
-    <div class="music-panel__title">Theta Sound Altar</div>
+  <div class="music-panel" id="musicPanel" aria-live="polite">
+    <div class="music-panel__head">
+      <div class="music-panel__title">Theta Sound Altar</div>
+      <button class="music-panel__close" type="button" aria-label="배경음 패널 닫기" onclick="closeMusicPanel()">닫기</button>
+    </div>
     <div class="music-panel__row">
       <select class="music-panel__select" id="thetaPreset" aria-label="Theta 명상 배경음 프리셋 선택" onchange="changeThetaPreset()">
         <option value="mystic">Mystic Theta - Cosmic Temple</option>
@@ -468,6 +599,7 @@
     <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
     <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
   </div>
+  <button class="music-panel-opener" id="musicPanelOpener" type="button" onclick="openMusicPanel()" hidden>BGM 열기</button>
 
   <div class="orb-wrap">
     <div class="ring ring-a" id="ringA"></div>
@@ -811,6 +943,7 @@ let ytPresetKey = 'mystic';
 let ytCurrentPhaseIdx = -1;
 let ytCurrentTrackIdx = 0;
 let ytCurrentTrack = null;
+let musicPanelClosed = false;
 
 const THETA_PRESETS = {
   mystic: {
@@ -1000,6 +1133,22 @@ function nextThetaTrack() {
   }
 }
 
+function setMusicPanelClosed(closed) {
+  const panel = document.getElementById('musicPanel');
+  const opener = document.getElementById('musicPanelOpener');
+  musicPanelClosed = !!closed;
+  if (panel) panel.classList.toggle('is-closed', musicPanelClosed);
+  if (opener) opener.hidden = !musicPanelClosed;
+}
+
+function closeMusicPanel() {
+  setMusicPanelClosed(true);
+}
+
+function openMusicPanel() {
+  setMusicPanelClosed(false);
+}
+
 function onYouTubeIframeAPIReady() {
   const mount = document.getElementById('ytPlayer');
   if (!mount || !window.YT || !window.YT.Player) return;
@@ -1069,6 +1218,7 @@ function startCourse(mins) {
   if (typTO) clearTimeout(typTO);
 
   showScreen('meditation');
+  setMusicPanelClosed(false);
   ytShouldPlay = true;
   safePlayTheta();
   setTimeout(() => {
