@@ -1792,23 +1792,84 @@
       tomorrowCaution = '할 일이 흩어질 수 있으니, 아침에 핵심 1개만 먼저 정하면 충분합니다.';
     }
 
+    var colorGuide = {
+      wood: '민트 + 라이트그린',
+      fire: '코랄 + 오렌지레드',
+      earth: '베이지 + 카멜',
+      metal: '실버 + 화이트그레이',
+      water: '네이비 + 스카이블루'
+    };
+    var placeGuide = {
+      wood: '창가/공원 근처처럼 초록이 보이는 장소',
+      fire: '밝은 조명 공간, 햇빛이 드는 자리',
+      earth: '정돈된 책상, 안정감 있는 카페 좌석',
+      metal: '깔끔한 미팅룸, 정리된 작업 테이블',
+      water: '조용한 코너석, 음악이 잔잔한 공간'
+    };
+    var socialGuide = {
+      wealth: '결론 먼저 말하고 숫자/기한을 짧게 덧붙이면 신뢰가 올라가요.',
+      love: '상대의 감정을 먼저 확인한 뒤 내 의도를 말하면 오해가 줄어요.',
+      fame: '진행 상황을 한 번 더 공유하면 "믿고 맡길 수 있는 사람" 인상이 강해져요.',
+      health: '무리 약속은 정중히 조절하고, 컨디션 회복 시간을 선점하세요.',
+      study: '질문 1개와 배운 점 1개를 남기면 성장운이 더 오래 유지돼요.'
+    };
+
+    var cautionList = [];
+    if (kis.indexOf(todayEl) >= 0) cautionList.push('기신 오행이 강해 감정 반응이 커질 수 있어요. 답변은 10초 숨 고르고 보내세요.');
+    if (KE[todayEl] === dEl) cautionList.push('압박을 크게 느끼기 쉬운 날이라 멀티태스킹보다 단일 작업이 안전해요.');
+    if (KE[dEl] === todayEl) cautionList.push('의견을 밀어붙이기 쉬우니 제안형 문장("어떨까요?")으로 톤을 조절해보세요.');
+    if (!cautionList.length) cautionList.push('큰 이슈는 오전 1회, 저녁 1회로 나눠 처리하면 피로 누적을 줄일 수 있어요.');
+
+    var daySeed = new Date().getDate() + (todayGZ.g ? todayGZ.g.charCodeAt(0) : 0) + (todayGZ.j ? todayGZ.j.charCodeAt(0) : 0);
+    var luckyPool = LUCKY_ITEMS[luckyEl] || [];
+    var luckyItemA = luckyPool.length ? luckyPool[daySeed % luckyPool.length] : null;
+    var luckyItemB = luckyPool.length > 1 ? luckyPool[(daySeed + 2) % luckyPool.length] : null;
+    var itemLine = luckyItemA
+      ? (luckyItemA.emoji + ' ' + luckyItemA.name + (luckyItemB ? (' / ' + luckyItemB.emoji + ' ' + luckyItemB.name) : ''))
+      : (luckyInfo.badge + ' ' + luckyInfo.cn + ' 소품');
+    var itemTip = luckyItemA ? luckyItemA.tip : '오늘 오행 색감 소품을 하나만 챙겨도 흐름 전환에 도움이 돼요.';
+
+    var topScoreLine = keyMap[bestKey].label + '운 ' + bestScore + '점';
+    var cautionTop = cautionList[0] || '속도보다 리듬을 지키는 운영이 더 유리해요.';
+
     box.innerHTML = ''
-      + '<p style="margin:0 0 8px;font-size:.78rem;font-weight:900;color:#111827">🔮 하루 운세 디테일 가이드</p>'
-      + '<ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:.73rem;color:#4b5563;line-height:1.5">'
-      + '<li>오늘 일진은 <b style="color:' + todayInfo.neon + '">' + todayGZ.g + todayGZ.j + '</b>이며, ' + todayInfo.cn + ' 리듬에 맞춰 오전에 핵심 1건을 먼저 처리하세요.</li>'
-      + '<li>최상 운 영역은 <b>' + keyMap[bestKey].label + '운(' + bestScore + '점)</b>. ' + keyMap[bestKey].action + '</li>'
-      + '<li>시간대 추천: 오늘 핵심 행동은 <b>' + todayTime + '</b>, 오늘 오행 부스팅 타임은 <b>' + todayElemTime + '</b>입니다.</li>'
-      + '<li>' + tenstarLine + '</li>'
-      + '<li>' + yongLine + '</li>'
-      + '<li>' + kiLine + ' 오늘의 행운 오행은 <b style="color:' + luckyInfo.neon + '">' + luckyInfo.cn + '</b>입니다.</li>'
-      + '<li><b>오늘 체크리스트</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</li>'
-      + '</ul>'
+      + '<p style="margin:0 0 8px;font-size:.78rem;font-weight:900;color:#111827">🔮 오늘 운세 카드 · 카테고리 가이드</p>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.72rem;line-height:1.5">'
+      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
+      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🧭 오늘의 핵심 조언</p>'
+      + '    <p style="margin:0;color:#334155">최상 운 영역: <b>' + topScoreLine + '</b><br>' + keyMap[bestKey].action + '</p>'
+      + '  </div>'
+      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
+      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🎨 행운의 색 & 장소</p>'
+      + '    <p style="margin:0;color:#334155">컬러: <b style="color:' + luckyInfo.neon + '">' + (colorGuide[luckyEl] || luckyInfo.lotto) + '</b><br>장소: ' + (placeGuide[luckyEl] || '편안하고 조용한 자리') + '</p>'
+      + '  </div>'
+      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
+      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🎁 행운 아이템</p>'
+      + '    <p style="margin:0;color:#334155"><b>' + itemLine + '</b><br>' + itemTip + '</p>'
+      + '  </div>'
+      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
+      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🤝 오늘 처세술</p>'
+      + '    <p style="margin:0;color:#334155">' + (socialGuide[bestKey] || socialGuide.health) + '</p>'
+      + '  </div>'
+      + '</div>'
+      + '<div style="margin-top:8px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.5;color:#92400e">'
+      + '  <p style="margin:0 0 4px;font-weight:900">⚠️ 오늘 주의해야 할 점</p>'
+      + '  <p style="margin:0">' + cautionTop + '</p>'
+      + '</div>'
+      + '<div style="margin-top:8px;border:1px solid #dbeafe;background:#eff6ff;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.55;color:#1e3a8a">'
+      + '  <p style="margin:0 0 4px;font-weight:900">⏰ 운 상승 타이밍</p>'
+      + '  <p style="margin:0">핵심 행동 시간: <b>' + todayTime + '</b> · 오행 부스팅: <b>' + todayElemTime + '</b><br>일진: <b style="color:' + todayInfo.neon + '">' + todayGZ.g + todayGZ.j + '</b> (' + todayInfo.cn + ')</p>'
+      + '</div>'
       + '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe;font-size:.73rem;color:#3730a3;line-height:1.55">'
       + '<p style="margin:0 0 6px;font-weight:900">🌅 내일 아침 3줄 플랜 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
       + '<p style="margin:0">1) ' + tomorrowTime + ' 전에 내일의 핵심 목표 1가지를 짧게 적어두기</p>'
       + '<p style="margin:0">2) ' + tomorrowFocus + '</p>'
       + '<p style="margin:0">3) ' + tomorrowCaution + '</p>'
-      + '</div>';
+      + '</div>'
+      + '<div style="margin-top:8px;padding:9px 10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc;font-size:.71rem;color:#475569;line-height:1.55">'
+      + '<b>추가 리딩</b><br>' + tenstarLine + '<br>' + yongLine + '<br>' + kiLine
+      + '</div>'
+      + '<div style="margin-top:8px;font-size:.71rem;color:#475569;line-height:1.55"><b>오늘 체크리스트</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</div>';
   }
 
   /* ─── 모달 HTML 생성 ─────────────────────────────────────── */
