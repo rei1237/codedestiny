@@ -75,6 +75,33 @@
   display: none !important;
 }
 
+/* 컬렉션 래퍼 보조 레이어/배경 제거 + 스크롤 UX 개선 */
+#inputPage .feature-card-grid::before,
+#inputPage .feature-card-grid::after,
+#inputPage .feature-card-grid > .fg-group::before,
+#inputPage .feature-card-grid > .fg-group::after,
+#inputPage .feature-card-grid > .fg-group > .fg-group__cards::before,
+#inputPage .feature-card-grid > .fg-group > .fg-group__cards::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+#inputPage .feature-card-grid > .fg-group,
+#inputPage .feature-card-grid > .fg-group > .fg-group__cards {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#inputPage .feature-card-grid {
+  gap: 28px !important;
+  margin-top: 28px !important;
+  margin-bottom: 28px !important;
+}
+
 @media (max-width: 480px) {
   .feature-card-grid::before {
     inset: -8px 0;
