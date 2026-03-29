@@ -28,11 +28,13 @@ const userSchema = new mongoose.Schema({
   birthDate: {
     type: String,
     required: true,
+    default: "1900-01-01",
     match: birthDateRegex,
   },
   birthTime: {
     type: String,
     required: true,
+    default: "00:00",
     match: birthTimeRegex,
   },
   gender: {
@@ -54,6 +56,20 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0,
+  },
+  socialAccounts: {
+    google: {
+      id: { type: String, default: "" },
+      connectedAt: { type: Date, default: null },
+    },
+    naver: {
+      id: { type: String, default: "" },
+      connectedAt: { type: Date, default: null },
+    },
+    kakao: {
+      id: { type: String, default: "" },
+      connectedAt: { type: Date, default: null },
+    },
   },
   /**
    * 2FA(TOTP) 설정

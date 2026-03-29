@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type LoginFormState = {
@@ -12,6 +12,8 @@ type LoginFormState = {
 type LoginResult = {
   message?: string;
   token?: string;
+  nextPath?: string;
+  provider?: "google" | "naver" | "kakao";
   user?: {
     id: string;
     name: string;
@@ -23,6 +25,8 @@ type LoginResult = {
     joinedAt: string;
   };
 };
+
+type SocialProvider = "google" | "naver" | "kakao";
 
 const INITIAL_FORM: LoginFormState = {
   email: "",
@@ -42,8 +46,10 @@ export default function LoginPage() {
 
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const socialCompleteOnceRef = useRef(false);
 
   const apiBase = useMemo(
     () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
@@ -51,6 +57,7 @@ export default function LoginPage() {
   );
 
   const endpoint = `${apiBase}/api/auth/login`;
+  const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
 
   const onChange = <K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -66,6 +73,79 @@ export default function LoginPage() {
       localStorage.setItem("fortune_auth_user", JSON.stringify(user));
       document.cookie = `fortune_auth_role=${encodeURIComponent(user.role)}; path=/; max-age=604800; samesite=lax`;
     }
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (socialCompleteOnceRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const socialGrant = params.get("social_grant");
+    const socialError = params.get("social_error");
+
+    if (!socialGrant && !socialError) {
+      return;
+    }
+
+    if (socialError) {
+      socialCompleteOnceRef.current = true;
+      setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+
+    if (!socialGrant) return;
+
+    socialCompleteOnceRef.current = true;
+    setLoading(true);
+
+    fetch(socialCompleteEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ socialGrant }),
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as LoginResult & { errors?: string[] };
+
+        if (!response.ok) {
+          if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+            throw new Error(payload.errors.join(" "));
+          }
+          throw new Error(payload.message || "소셜 로그인 처리에 실패했습니다.");
+        }
+
+        persistAuth(payload.token, payload.user);
+        setSuccess(payload.message || "소셜 로그인에 성공했습니다.");
+
+        const nextFromQuery = sanitizeNextPath(params.get("next"));
+        const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
+
+        if (payload.user?.role === "admin" && nextPath === "/") {
+          router.replace("/admin");
+          return;
+        }
+
+        router.replace(nextPath);
+      })
+      .catch((e: Error) => {
+        setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [router, socialCompleteEndpoint]);
+
+  const startSocialLogin = (provider: SocialProvider) => {
+    if (typeof window === "undefined") return;
+    setError("");
+    setSuccess("");
+    setSocialLoading(provider);
+
+    const params = new URLSearchParams(window.location.search);
+    const nextPath = sanitizeNextPath(params.get("next")) || "/";
+    const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?next=${encodeURIComponent(nextPath)}`;
+    window.location.href = startUrl;
   };
 
   const validate = () => {
@@ -205,6 +285,44 @@ export default function LoginPage() {
                 {loading ? "인증 중..." : "로그인"}
               </button>
             </form>
+
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-violet-100/20" />
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-violet-100/60">SOCIAL LOGIN</span>
+              <div className="h-px flex-1 bg-violet-100/20" />
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => startSocialLogin("google")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
+                {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 계속하기"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startSocialLogin("naver")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
+                {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 계속하기"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => startSocialLogin("kakao")}
+                disabled={loading || socialLoading !== null}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
+                {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 계속하기"}
+              </button>
+            </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
               계정이 없다면{" "}
