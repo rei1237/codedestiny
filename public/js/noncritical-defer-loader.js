@@ -55,12 +55,48 @@
     document.body.appendChild(s);
   }
 
+  function loadStylesSequentially(nodes, idx, done) {
+    if (!nodes || idx >= nodes.length) {
+      if (typeof done === 'function') done();
+      return;
+    }
+
+    var tag = nodes[idx];
+    var href = tag.getAttribute('data-cd-noncritical-style-src') || tag.getAttribute('href');
+
+    if (!href || shouldSkip(tag)) {
+      loadStylesSequentially(nodes, idx + 1, done);
+      return;
+    }
+
+    var existing = document.querySelector('link[rel="stylesheet"][href="' + href + '"]');
+    if (!existing || existing === tag) {
+      if (tag.getAttribute('rel') !== 'stylesheet') {
+        tag.setAttribute('rel', 'stylesheet');
+      }
+      if (!tag.getAttribute('href')) {
+        tag.setAttribute('href', href);
+      }
+      tag.media = 'all';
+      nextIdle(function () { loadStylesSequentially(nodes, idx + 1, done); });
+      return;
+    }
+
+    nextIdle(function () { loadStylesSequentially(nodes, idx + 1, done); });
+  }
+
   function start() {
     if (STARTED) return;
     STARTED = true;
-    var nodes = document.querySelectorAll(SELECTOR);
-    if (!nodes.length) return;
-    loadSequentially(nodes, 0);
+    var styleNodes = document.querySelectorAll('link[data-cd-noncritical-style-src]');
+    var scriptNodes = document.querySelectorAll(SELECTOR);
+
+    if (!styleNodes.length && !scriptNodes.length) return;
+
+    loadStylesSequentially(styleNodes, 0, function () {
+      if (!scriptNodes.length) return;
+      loadSequentially(scriptNodes, 0);
+    });
   }
 
   function boot() {

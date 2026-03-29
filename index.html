@@ -400,37 +400,37 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/animations.css" media="print">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
-  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260316" media="print">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=20260317" media="print">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" media="print">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/css/entertain-system.css" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -1092,6 +1092,21 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
                     <span class="tarot-tile__desc">수호 동물 카드 리딩</span>
+                  </div>
+                </button>
+
+                <!-- 사주 가디언 아트 -->
+                <button class="tarot-tile tarot-tile--saju-guardian" type="button"
+                        data-action="openSajuAnimalPage"
+                        data-fallback-href="/saju-picture"
+                        aria-label="사주 가디언 아트 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/12animals.webp" data-img-alt="사주 가디언 아트 — 생년월일로 찾는 나의 수호 동물">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🐲 사주 가디언 아트</span>
+                    <span class="tarot-tile__desc">생년월일 기반 수호 동물</span>
                   </div>
                 </button>
 
