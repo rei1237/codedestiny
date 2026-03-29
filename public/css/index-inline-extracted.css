@@ -3193,7 +3193,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   transform-origin:top center;
   transform:rotate(-42deg) translateY(-200px);
   opacity:0;
-  animation:meteorFall var(--dur,2s) linear var(--delay,0s) infinite;
+  animation:meteorFall 2.5s linear var(--delay,0s) infinite;
   pointer-events:none;
   will-change:transform,opacity;
 }
