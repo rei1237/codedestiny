@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>의식의 재프로그래밍 — 네빌 고다드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #02030E;
+      --deep: #050A18;
+      --gold: #C9A84C;
+      --gold-dim: rgba(201,168,76,0.18);
+      --silver: #8899BB;
+      --text: #CDD6EE;
+      --phase-col: #4A7C9E;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
+    body { font-family:'Noto Serif KR',serif; color:var(--text); position:relative; }
+
+    /* ── Canvas ── */
+    #cosmos { position:fixed; inset:0; z-index:0; }
+
+    /* ── Nebula overlay ── */
+    #nebula {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      background:
+        radial-gradient(ellipse 55% 40% at 18% 28%, rgba(74,124,158,0.09) 0%, transparent 70%),
+        radial-gradient(ellipse 45% 55% at 82% 72%, rgba(123,94,167,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 60% at 50% 50%, rgba(2,3,14,0.4) 0%, transparent 80%);
+      transition: background 3s ease;
+    }
+
+    /* ── Loading shooting stars ── */
+    #shootingStarLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .shooting-star {
+      position: absolute;
+      width: 140px;
+      height: 1.4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(201,168,76,0.72), rgba(201,168,76,0));
+      opacity: 0;
+      transform: translate(0, 0) rotate(14deg);
+      filter: drop-shadow(0 0 6px rgba(201,168,76,0.42));
+      animation: shootingStar 2.5s linear forwards;
+    }
+
+    /* ── Vignette ── */
+    .vignette {
+      position:fixed; inset:0; z-index:2; pointer-events:none;
+      background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.7) 100%);
+    }
+
+    /* ── Screens ── */
+    .screen {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      opacity:1; transition:opacity 1.2s ease;
+    }
+    .screen.out { opacity:0; pointer-events:none; }
+    .screen.hidden { display:none; }
+
+    /* ════════════ LANDING ════════════ */
+    #landing { gap:52px; padding:32px; }
+
+    .cosmos-sigil {
+      opacity:0; animation:fadeUp 1.2s 0.2s forwards;
+    }
+    .cosmos-sigil svg { width:56px; height:56px; }
+
+    .title-block { text-align:center; }
+
+    .eyebrow {
+      font-family:'Cormorant Garamond',serif;
+      font-size:0.78rem; letter-spacing:0.5em; color:var(--gold);
+      text-transform:uppercase; margin-bottom:20px;
+      opacity:0; animation:fadeUp 1s 0.5s forwards;
+    }
+
+    .h1 {
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(2.8rem,6vw,5rem); font-weight:300;
+      line-height:1.05; letter-spacing:-0.02em; color:var(--text);
+      opacity:0; animation:fadeUp 1s 0.8s forwards;
+    }
+    .h1 em { font-style:italic; color:var(--gold); }
+
+    .subtitle {
+      font-size:0.88rem; font-weight:300; color:var(--silver);
+      margin-top:18px; letter-spacing:0.12em; line-height:1.9;
+      opacity:0; animation:fadeUp 1s 1.1s forwards;
+    }
+
+    .author-intro {
+      margin-top:18px;
+      font-size:0.8rem;
+      line-height:1.95;
+      letter-spacing:0.04em;
+      color:rgba(201,214,238,0.78);
+      opacity:0;
+      animation:fadeUp 1s 1.25s forwards;
+    }
+    .author-intro .neville {
+      font-size:1rem;
+    }
+
+    /* ── Course cards ── */
+    .cards {
+      display:flex; gap:28px;
+      opacity:0; animation:fadeUp 1s 1.5s forwards;
+    }
+
+    .card {
+      width:270px; padding:36px 30px; cursor:pointer;
+      border:1px solid rgba(201,168,76,0.18);
+      background:rgba(5,10,24,0.7);
+      backdrop-filter:blur(24px);
+      position:relative; overflow:hidden;
+      transition:transform 0.4s ease, border-color 0.4s, box-shadow 0.4s;
+    }
+    .card::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg, rgba(201,168,76,0.04) 0%, transparent 60%);
+      opacity:0; transition:opacity 0.4s;
+    }
+    .card:hover { transform:translateY(-5px); border-color:rgba(201,168,76,0.45); box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(201,168,76,0.08); }
+    .card:hover::after { opacity:1; }
+
+    .card-corner {
+      position:absolute; top:0; right:0;
+      width:60px; height:60px; overflow:hidden;
+    }
+    .card-corner::before {
+      content:''; position:absolute; top:-1px; right:-1px;
+      border-style:solid; border-width:0 24px 24px 0;
+      border-color:transparent rgba(201,168,76,0.2) transparent transparent;
+    }
+
+    .card-dur {
+      font-family:'Cormorant Garamond',serif;
+      font-size:3.2rem; font-weight:300; color:var(--gold); line-height:1;
+    }
+    .card-dur span { font-size:1rem; color:var(--silver); margin-left:3px; }
+
+    .card-title {
+      font-size:1rem; font-weight:400; color:var(--text);
+      margin-top:16px; line-height:1.7;
+    }
+    .card-desc {
+      font-size:0.78rem; font-weight:300; color:var(--silver);
+      margin-top:10px; line-height:1.9;
+    }
+
+    .phase-dots { display:flex; gap:4px; margin-top:24px; }
+    .phase-dot { height:2px; flex:1; border-radius:1px; opacity:0.45; }
+
+    /* ════════════ MEDITATION ════════════ */
+    #meditation { padding:0; justify-content:center; gap:16px; }
+
+    /* top bar */
+    .top-bar {
+      position:absolute; top:0; left:0; right:0;
+      display:flex; justify-content:space-between; align-items:center;
+      padding:22px 36px;
+    }
+    .phase-label {
+      font-family:'Cormorant Garamond',serif;
+      font-size:0.75rem; letter-spacing:0.45em; text-transform:uppercase;
+      color:var(--phase-col); transition:color 2.5s ease;
+    }
+    .timer {
+      font-family:'Cormorant Garamond',serif; font-size:1.3rem;
+      font-weight:300; color:rgba(136,153,187,0.55); letter-spacing:0.08em;
+    }
+
+    /* progress */
+    .prog-wrap { position:absolute; top:0; left:0; right:0; height:2px; }
+    .prog-track { position:absolute; inset:0; background:rgba(255,255,255,0.04); }
+    .prog-fill {
+      position:absolute; top:0; left:0; height:2px; width:0%;
+      background:var(--gold); transition:width 1s linear;
+      box-shadow:0 0 12px var(--gold);
+    }
+
+    /* ── Orb ── */
+    .orb-wrap { position:relative; display:flex; align-items:center; justify-content:center; width:220px; height:220px; margin-bottom:12px; flex-shrink:0; }
+
+    .ring {
+      position:absolute; border-radius:50%;
+      border:1px solid var(--phase-col);
+      opacity:0; animation:ringPulse 5s ease-out infinite;
+      transition:border-color 2.5s ease;
+    }
+    .ring-a { width:160px; height:160px; animation-delay:0s; }
+    .ring-b { width:200px; height:200px; animation-delay:2.5s; }
+
+    .orb {
+      width:110px; height:110px; border-radius:50%; position:relative; z-index:2;
+      background:radial-gradient(circle at 38% 36%,
+        rgba(255,255,255,0.12),
+        rgba(201,168,76,0.18) 30%,
+        rgba(74,124,158,0.12) 55%,
+        transparent 75%
+      );
+      border:1px solid rgba(201,168,76,0.28);
+      box-shadow:
+        0 0 40px rgba(201,168,76,0.12),
+        0 0 80px rgba(74,124,158,0.06),
+        inset 0 0 30px rgba(201,168,76,0.06);
+      animation:breathe 19s ease-in-out infinite;
+    }
+
+    .neville {
+      font-family:'Cormorant Garamond',serif;
+      font-style:italic; font-weight:400;
+      color:var(--gold);
+      letter-spacing:0.06em;
+      text-shadow:0 0 18px rgba(201,168,76,0.45);
+    }
+
+    /* ── Guidance text ── */
+    .text-wrap {
+      max-width:560px; width:100%; padding:0 32px;
+      text-align:center; min-height:130px;
+      display:flex; align-items:center; justify-content:center;
+    }
+
+    /* ── YouTube Theta Music ── */
+    .music-panel {
+      position:absolute;
+      top:84px;
+      right:26px;
+      width:min(360px, calc(100vw - 40px));
+      border:1px solid rgba(201,168,76,0.23);
+      background:rgba(3,8,20,0.74);
+      backdrop-filter:blur(14px);
+      padding:14px 14px 12px;
+      box-shadow:0 18px 42px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.05);
+    }
+    .music-panel__title {
+      font-family:'Cormorant Garamond',serif;
+      font-size:0.95rem;
+      letter-spacing:0.14em;
+      color:var(--gold);
+      margin-bottom:10px;
+    }
+    .music-panel__row {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .music-panel__select {
+      flex:1;
+      min-width:0;
+      background:rgba(0,0,0,0.32);
+      border:1px solid rgba(201,168,76,0.25);
+      color:var(--text);
+      font-family:'Noto Serif KR',serif;
+      font-size:0.75rem;
+      padding:8px 10px;
+      outline:none;
+    }
+    .music-panel__btn {
+      background:none;
+      border:1px solid rgba(201,168,76,0.3);
+      color:rgba(201,168,76,0.82);
+      font-family:'Noto Serif KR',serif;
+      font-size:0.72rem;
+      letter-spacing:0.08em;
+      padding:8px 10px;
+      cursor:pointer;
+      transition:all 0.25s ease;
+    }
+    .music-panel__btn:hover {
+      border-color:rgba(201,168,76,0.55);
+      color:var(--gold);
+      background:rgba(201,168,76,0.06);
+    }
+    .music-panel__status {
+      font-size:0.68rem;
+      line-height:1.65;
+      color:rgba(205,214,238,0.75);
+      letter-spacing:0.03em;
+      min-height:1.8em;
+    }
+    .yt-player {
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+      position:absolute;
+      left:-9999px;
+      top:-9999px;
+    }
+    .guidance {
+      font-family:'Noto Serif KR',serif;
+      font-size:clamp(1rem,2.3vw,1.25rem);
+      font-weight:300; line-height:2.1; color:var(--text);
+      transition:opacity 0.7s ease;
+    }
+    .cursor {
+      display:inline-block; width:2px; height:1em;
+      background:var(--gold); margin-left:3px;
+      vertical-align:middle; animation:blink 1.1s step-end infinite;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      position:absolute; bottom:36px;
+      display:flex; gap:16px; align-items:center;
+    }
+    .btn {
+      background:none; border:1px solid rgba(201,168,76,0.25);
+      color:rgba(201,168,76,0.75);
+      font-family:'Noto Serif KR',serif; font-size:0.82rem; font-weight:300;
+      padding:11px 26px; cursor:pointer; letter-spacing:0.15em;
+      transition:all 0.35s ease;
+    }
+    .btn:hover { border-color:rgba(201,168,76,0.6); color:var(--gold); background:rgba(201,168,76,0.04); box-shadow:0 0 20px rgba(201,168,76,0.08); }
+
+    /* ════════════ COMPLETION ════════════ */
+    #completion { gap:32px; text-align:center; padding:32px; }
+    .comp-sigil { opacity:0; animation:fadeUp 1s 0.3s forwards; }
+    .comp-h { font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem); font-weight:300; opacity:0; animation:fadeUp 1s 0.7s forwards; }
+    .comp-p { font-size:0.9rem; font-weight:300; color:var(--silver); line-height:2.3; max-width:380px; opacity:0; animation:fadeUp 1s 1.1s forwards; }
+    .comp-quote { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.3rem; color:var(--gold); opacity:0; animation:fadeUp 1s 1.5s forwards; }
+
+    /* ════════════ ANIMATIONS ════════════ */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; } 50% { opacity:0; }
+    }
+    @keyframes ringPulse {
+      0%   { transform:scale(0.85); opacity:0.3; }
+      50%  { opacity:0.12; }
+      100% { transform:scale(1.9); opacity:0; }
+    }
+    @keyframes breathe {
+      0%,100% { transform:scale(1);    box-shadow:0 0 40px rgba(201,168,76,0.12),inset 0 0 30px rgba(201,168,76,0.06); }
+      21.05%  { transform:scale(1.22); box-shadow:0 0 60px rgba(201,168,76,0.22),inset 0 0 40px rgba(201,168,76,0.1); }
+      57.89%  { transform:scale(1.22); box-shadow:0 0 60px rgba(201,168,76,0.22),inset 0 0 40px rgba(201,168,76,0.1); }
+    }
+    @keyframes shootingStar {
+      0%   { transform:translate(0,0); opacity:1; }
+      100% { transform:translate(300px,80px); opacity:0; }
+    }
+
+    @media (max-width:600px) {
+      .cards { flex-direction:column; }
+      .card { width:100%; max-width:300px; }
+      .music-panel {
+        top:auto;
+        right:14px;
+        bottom:92px;
+        left:14px;
+        width:auto;
+      }
+      .music-panel__row {
+        flex-wrap:wrap;
+      }
+      .music-panel__select {
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="cosmos"></canvas>
+<div id="nebula"></div>
+<div id="shootingStarLayer" aria-hidden="true"></div>
+<div class="vignette"></div>
+
+<!-- ═══════════════ LANDING ═══════════════ -->
+<div class="screen" id="landing">
+
+  <div class="cosmos-sigil">
+    <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="28" cy="28" r="27" stroke="rgba(201,168,76,0.3)" stroke-width="0.5"/>
+      <circle cx="28" cy="28" r="20" stroke="rgba(201,168,76,0.2)" stroke-width="0.5"/>
+      <circle cx="28" cy="28" r="3" fill="rgba(201,168,76,0.7)"/>
+      <line x1="28" y1="1" x2="28" y2="55" stroke="rgba(201,168,76,0.12)" stroke-width="0.5"/>
+      <line x1="1" y1="28" x2="55" y2="28" stroke="rgba(201,168,76,0.12)" stroke-width="0.5"/>
+      <line x1="8" y1="8" x2="48" y2="48" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+      <line x1="48" y1="8" x2="8" y2="48" stroke="rgba(201,168,76,0.08)" stroke-width="0.5"/>
+      <circle cx="28" cy="1" r="1.5" fill="rgba(201,168,76,0.5)"/>
+      <circle cx="28" cy="55" r="1.5" fill="rgba(201,168,76,0.5)"/>
+      <circle cx="1" cy="28" r="1.5" fill="rgba(201,168,76,0.5)"/>
+      <circle cx="55" cy="28" r="1.5" fill="rgba(201,168,76,0.5)"/>
+    </svg>
+  </div>
+
+  <div class="title-block">
+    <div class="eyebrow"><span class="neville" style="font-size:0.9rem;letter-spacing:0.25em;">Neville Goddard</span> &nbsp;·&nbsp; 잠재의식의 법칙</div>
+    <h1 class="h1">의식의<br><em>재프로그래밍</em></h1>
+    <p class="subtitle">잠재의식의 문을 열고<br>이미 이루어진 현실을 수신하라</p>
+    <p class="author-intro"><span class="neville">네빌 고다드</span>는 "상상은 미래가 아니라 현재의 창조 행위"라고 말했습니다.<br>당신이 지금 느끼는 성취의 감정이 곧 현실의 설계도가 됩니다.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card" onclick="startCourse(30)">
+      <div class="card-corner"></div>
+      <div class="card-dur">30<span>분</span></div>
+      <div class="card-title">에센셜 명상<br>현실의 즉각적 전환</div>
+      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스</div>
+      <div class="phase-dots">
+        <div class="phase-dot" style="background:#4A7C9E"></div>
+        <div class="phase-dot" style="background:#7B5EA7"></div>
+        <div class="phase-dot" style="background:#C9A84C;flex:3"></div>
+        <div class="phase-dot" style="background:#4A9E7C"></div>
+      </div>
+    </div>
+
+    <div class="card" onclick="startCourse(60)">
+      <div class="card-corner"></div>
+      <div class="card-dur">60<span>분</span></div>
+      <div class="card-title">마스터 명상<br>의식의 완전한 재편</div>
+      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스</div>
+      <div class="phase-dots">
+        <div class="phase-dot" style="background:#4A7C9E"></div>
+        <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
+        <div class="phase-dot" style="background:#9B6EA7"></div>
+        <div class="phase-dot" style="background:#C9A84C;flex:4"></div>
+        <div class="phase-dot" style="background:#4A9E7C;flex:2"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ MEDITATION ═══════════════ -->
+<div class="screen hidden" id="meditation">
+
+  <div class="prog-wrap">
+    <div class="prog-track"></div>
+    <div class="prog-fill" id="progFill"></div>
+  </div>
+
+  <div class="top-bar">
+    <div class="phase-label" id="phaseLabel">준비</div>
+    <div class="timer" id="timerEl">00:00</div>
+  </div>
+
+  <div class="music-panel" aria-live="polite">
+    <div class="music-panel__title">Theta Sound Altar</div>
+    <div class="music-panel__row">
+      <select class="music-panel__select" id="thetaPreset" aria-label="Theta 명상 배경음 프리셋 선택" onchange="changeThetaPreset()">
+        <option value="mystic">Mystic Theta - Cosmic Temple</option>
+        <option value="healing">528Hz Theta - Healing Sanctuary</option>
+        <option value="deep">Deep Theta - Night Ocean</option>
+      </select>
+    </div>
+    <div class="music-panel__row">
+      <button class="music-panel__btn" id="musicToggleBtn" type="button" onclick="toggleThetaMusic()">음악 켜기</button>
+      <button class="music-panel__btn" type="button" onclick="nextThetaTrack()">다음 곡</button>
+    </div>
+    <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
+    <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
+  </div>
+
+  <div class="orb-wrap">
+    <div class="ring ring-a" id="ringA"></div>
+    <div class="ring ring-b" id="ringB"></div>
+    <div class="orb" id="orb"></div>
+  </div>
+
+  <div class="text-wrap">
+    <div class="guidance" id="guidance"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="pauseBtn" onclick="togglePause()">일시정지</button>
+    <button class="btn" onclick="endSession()">종료</button>
+  </div>
+
+</div>
+
+<!-- ═══════════════ COMPLETION ═══════════════ -->
+<div class="screen hidden" id="completion">
+
+  <div class="comp-sigil">
+    <svg viewBox="0 0 60 60" width="60" height="60" fill="none">
+      <circle cx="30" cy="30" r="28" stroke="rgba(201,168,76,0.4)" stroke-width="0.8"/>
+      <path d="M30 6 L32.5 22 L48 12 L37 26 L54 30 L37 34 L48 48 L32.5 38 L30 54 L27.5 38 L12 48 L23 34 L6 30 L23 26 L12 12 L27.5 22 Z" fill="rgba(201,168,76,0.25)" stroke="rgba(201,168,76,0.6)" stroke-width="0.6"/>
+      <circle cx="30" cy="30" r="4" fill="rgba(201,168,76,0.8)"/>
+    </svg>
+  </div>
+
+  <h2 class="comp-h">씨앗은 심어졌습니다</h2>
+
+  <p class="comp-p">
+    이미 이루어졌습니다.<br>
+    의심하지 마십시오.<br>
+    당신의 현실은 조용히 재편되고 있습니다.
+  </p>
+
+  <div class="comp-quote">"이미 다 되었습니다."</div>
+
+  <button class="btn" style="margin-top:36px; opacity:0; animation:fadeUp 1s 2s forwards;" onclick="backToLanding()">처음으로 돌아가기</button>
+
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+/* ═══════════════════════════ STAR CANVAS ═══════════════════════════ */
+const cvs = document.getElementById('cosmos');
+const ctx = cvs.getContext('2d');
+let stars = [], shooters = [];
+let loadingMeteorTimer = null;
+let loadingMeteorStopTimer = null;
+
+function resizeCvs() {
+  cvs.width = window.innerWidth;
+  cvs.height = window.innerHeight;
+  buildStars();
+}
+
+function buildStars() {
+  stars = [];
+  const n = Math.min(220, Math.floor(cvs.width * cvs.height / 5000));
+  for (let i = 0; i < n; i++) {
+    stars.push({
+      x: Math.random() * cvs.width,
+      y: Math.random() * cvs.height,
+      r: Math.random() * 1.3 + 0.2,
+      base: Math.random() * 0.7 + 0.1,
+      speed: Math.random() * 0.018 + 0.004,
+      ph: Math.random() * Math.PI * 2,
+      hue: Math.random() < 0.15 ? 'warm' : 'cool'
+    });
+  }
+}
+
+function drawFrame(ts) {
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+  stars.forEach(s => {
+    s.ph += s.speed;
+    const op = s.base * (0.55 + 0.45 * Math.sin(s.ph));
+    const rgb = s.hue === 'warm' ? `220,195,155` : `190,210,240`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${rgb},${op})`;
+    ctx.fill();
+  });
+
+  // shooting stars
+  shooters = shooters.filter(sh => sh.life > 0);
+  shooters.forEach(sh => {
+    sh.life -= 0.025;
+    sh.x += sh.vx;
+    sh.y += sh.vy;
+    ctx.beginPath();
+    ctx.moveTo(sh.x, sh.y);
+    ctx.lineTo(sh.x - sh.vx * 8, sh.y - sh.vy * 8);
+    ctx.strokeStyle = `rgba(220,210,180,${sh.life * 0.6})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  requestAnimationFrame(drawFrame);
+}
+
+function spawnShooter() {
+  shooters.push({
+    x: Math.random() * cvs.width * 0.7,
+    y: Math.random() * cvs.height * 0.4,
+    vx: 3 + Math.random() * 4,
+    vy: 0.5 + Math.random() * 1.5,
+    life: 1
+  });
+  setTimeout(spawnShooter, 8000 + Math.random() * 12000);
+}
+
+resizeCvs();
+window.addEventListener('resize', resizeCvs);
+requestAnimationFrame(drawFrame);
+setTimeout(spawnShooter, 4000);
+
+function spawnLoadingMeteor() {
+  const layer = document.getElementById('shootingStarLayer');
+  if (!layer) return;
+  const meteor = document.createElement('span');
+  meteor.className = 'shooting-star';
+  meteor.style.left = `${-160 + Math.random() * (window.innerWidth * 0.35)}px`;
+  meteor.style.top = `${Math.random() * Math.max(140, window.innerHeight * 0.42)}px`;
+  meteor.style.animationDuration = '2.5s';
+  layer.appendChild(meteor);
+  meteor.addEventListener('animationend', () => meteor.remove(), { once: true });
+}
+
+function startLoadingMeteors() {
+  const loop = () => {
+    spawnLoadingMeteor();
+    loadingMeteorTimer = setTimeout(loop, 420 + Math.random() * 520);
+  };
+  loop();
+  loadingMeteorStopTimer = setTimeout(stopLoadingMeteors, 10000);
+}
+
+function stopLoadingMeteors() {
+  if (loadingMeteorTimer) {
+    clearTimeout(loadingMeteorTimer);
+    loadingMeteorTimer = null;
+  }
+  if (loadingMeteorStopTimer) {
+    clearTimeout(loadingMeteorStopTimer);
+    loadingMeteorStopTimer = null;
+  }
+}
+
+startLoadingMeteors();
+
+/* ═══════════════════════════ COURSE DATA ═══════════════════════════ */
+const COURSES = {
+  30: {
+    dur: 1800,
+    phases: [
+      { name:'급속 이완', start:0,   end:300,  col:'#4A7C9E' },
+      { name:'순수 의식 진입', start:300,  end:600,  col:'#7B5EA7' },
+      { name:'핵심 루프  ·  S·A·T·S', start:600,  end:1500, col:'#C9A84C' },
+      { name:'확정 및 귀환', start:1500, end:1800, col:'#4A9E7C' }
+    ],
+    msgs: [
+      {t:0,   tx:'고요히 앉거나\n편안하게 누우십시오.'},
+      {t:7,   tx:'지금 이 순간부터\n당신은 일상의 세계 너머로 발을 내딛습니다.'},
+      {t:20,  tx:'첫 번째 호흡.\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:33,  tx:'일곱을 세며\n멈추십시오...'},
+      {t:45,  tx:'여덟을 세며\n입으로 천천히 내뱉으십시오...'},
+      {t:62,  tx:'다시...\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:75,  tx:'멈추십시오...\n일곱...'},
+      {t:86,  tx:'천천히... 여덟을 세며\n내뱉으십시오...'},
+      {t:105, tx:'뇌가 안전 신호를 받았습니다.\n이제 몸의 스위치를 내립니다.'},
+      {t:130, tx:'당신의 몸이 바닥으로 스며듭니다.\n10cm... 더 깊이...'},
+      {t:158, tx:'발끝부터... 발목... 종아리...\n모든 것이 녹아내립니다.'},
+      {t:190, tx:'무릎... 허벅지... 골반...\n무거운 돌처럼 가라앉습니다.'},
+      {t:220, tx:'복부... 가슴... 어깨...\n모든 긴장이 공기 중으로 사라집니다.'},
+      {t:252, tx:'얼굴의 근육이...\n눈꺼풀이... 턱이...\n완전히 이완됩니다.'},
+      {t:278, tx:'혀를 입천장에서 떼십시오.\n입술을 살짝 벌리십시오.'},
+      {t:296, tx:'몸은 이제 사라졌습니다.\n오직 의식만이 남아 있습니다.'},
+      // Phase 2
+      {t:314, tx:'당신은 지금\n순수한 에너지입니다.'},
+      {t:340, tx:'이름도... 직업도... 나이도...\n모두 내려놓으십시오.'},
+      {t:372, tx:'눈을 감은 채\n눈앞의 무한한 어둠 속을 바라보십시오.'},
+      {t:410, tx:'저 멀리...\n우주의 끝을 바라봅니다.'},
+      {t:448, tx:'당신은 형체가 없는\n맑은 의식입니다.'},
+      {t:488, tx:'이 우주 공간을\n자유롭게 부유하고 있습니다.'},
+      {t:530, tx:'모든 생각은\n스쳐 지나가는 별빛일 뿐입니다.'},
+      {t:565, tx:'당신은 그 모든 것을 바라보는\n거대한 우주 그 자체입니다.'},
+      {t:590, tx:'이제...\n소망이 이미 실현된 순간으로 가겠습니다.'},
+      // Phase 3
+      {t:610, tx:'지금부터가 핵심입니다.'},
+      {t:632, tx:'상상하지 마십시오.\n기억해내십시오.'},
+      {t:658, tx:'이미 일어난 일을\n복기하듯이...'},
+      {t:692, tx:'목표가 달성된 바로 그 순간.\n그 장면 속에 들어서십시오.'},
+      {t:740, tx:'한 사람이 당신 앞에 서 있습니다.\n그 얼굴에 환한 미소가 번집니다.'},
+      {t:785, tx:'손을 내밀며 말합니다...\n"정말 해냈군요."'},
+      {t:828, tx:'그 손을 잡으십시오.\n손바닥의 온기를 느끼십시오.'},
+      {t:870, tx:'악수의 단단함...\n그 진심을 손 전체로 받으십시오.'},
+      {t:920, tx:'당신의 가슴 중앙에서\n무언가가 피어납니다.'},
+      {t:965, tx:'"드디어 해냈구나..."\n그 안도감을 느끼십시오.'},
+      {t:1010,tx:'흥분이 아닙니다.\n평온하고 담담한 안도감입니다.'},
+      {t:1055,tx:'"당연히 이렇게 될 줄 알았어."\n바로 그 느낌입니다.'},
+      {t:1100,tx:'장면이 흐릿해지면\n다시 처음으로 돌아가십시오.'},
+      {t:1145,tx:'그 손을 다시 잡는 순간부터...\n반복합니다.'},
+      {t:1195,tx:'이 루프가\n당신의 미래를 코딩하고 있습니다.'},
+      {t:1260,tx:'다시...\n그 미소를 보십시오...'},
+      {t:1320,tx:'그 손의 온기를 느끼십시오...\n그 안도감을...'},
+      {t:1390,tx:'이 느낌이\n당신의 세포 하나하나에 새겨지고 있습니다.'},
+      {t:1455,tx:'상상이 현실보다 더 리얼하게\n느껴지기 시작합니다.'},
+      {t:1488,tx:'그것이 바로\n\'성취된 느낌\'입니다.'},
+      // Phase 4
+      {t:1510,tx:'이제 씨앗은 심어졌습니다.'},
+      {t:1538,tx:'"언제 될까?" 라는 의문을 내려놓으십시오.\n그것은 독입니다.'},
+      {t:1580,tx:'"이미 되었습니다."\n이 마침표를 찍으십시오.'},
+      {t:1610,tx:'나의 상상은 곧 물리적 사실입니다.\n이것은 중력처럼 불변하는 법칙입니다.'},
+      {t:1655,tx:'방금 느꼈던 그 성취감을\n마음 한켠에 고이 간직하십시오.'},
+      {t:1700,tx:'손끝을... 발끝을...\n살며시 움직여보십시오.'},
+      {t:1738,tx:'천천히\n현실로 돌아옵니다.'},
+      {t:1762,tx:'하나...'},
+      {t:1774,tx:'둘...'},
+      {t:1785,tx:'셋.'},
+      {t:1796,tx:'눈을 뜨십시오.\n당신의 현실은 이미 변하기 시작했습니다.'}
+    ]
+  },
+
+  60: {
+    dur: 3600,
+    phases: [
+      { name:'준비 및 정렬', start:0,    end:300,  col:'#4A7C9E' },
+      { name:'점진적 이완', start:300,  end:1200, col:'#7B5EA7' },
+      { name:'공(空)의 상태  ·  SATS', start:1200, end:1800, col:'#9B6EA7' },
+      { name:'결과 내에서의 상상', start:1800, end:3000, col:'#C9A84C' },
+      { name:'느낌의 고착 및 귀환', start:3000, end:3600, col:'#4A9E7C' }
+    ],
+    msgs: [
+      // Phase 1
+      {t:0,   tx:'공간의 에너지를 먼저 정돈하십시오.\n척추가 곧게 펴지는 자세를 취합니다.'},
+      {t:14,  tx:'오늘 이 시간 동안\n당신이 도달하고자 하는\n단 하나의 목적지를 마음속으로 정의합니다.'},
+      {t:42,  tx:'명상은 기술이 아니라 환경입니다.'},
+      {t:60,  tx:'첫 번째 호흡.\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:75,  tx:'일곱을 세며 멈추십시오...'},
+      {t:87,  tx:'여덟을 세며 천천히 내뱉으십시오...'},
+      {t:105, tx:'다시... 넷을 세며 들이마시세요...'},
+      {t:118, tx:'멈추십시오... 일곱...'},
+      {t:129, tx:'내뱉으십시오... 여덟...'},
+      {t:148, tx:'세 번째 호흡.\n넷을 세며 깊이 들이마시세요...'},
+      {t:162, tx:'멈추십시오...'},
+      {t:174, tx:'내뱉으십시오...'},
+      {t:200, tx:'네 번째 호흡...'},
+      {t:228, tx:'다섯 번째 호흡.\n마지막입니다...'},
+      {t:275, tx:'자율신경계가 이완 모드로 전환되었습니다.\n뇌는 이제 안전하다는 신호를 받았습니다.'},
+      {t:294, tx:'이제 당신의 몸을\n하나씩 꺼 나가겠습니다.'},
+      // Phase 2
+      {t:316, tx:'육체가 잠들어야 영혼이 깨어납니다.\n몸의 모든 근육을 하나씩 끄십시오.'},
+      {t:355, tx:'발가락 끝의 감각부터 시작합니다.\n그 감각을 바라보다가... 놓아주십시오.'},
+      {t:405, tx:'발목... 종아리...\n내 다리는 이제 무거운 통나무처럼\n바닥으로 가라앉습니다.'},
+      {t:460, tx:'허벅지의 무게를 느낍니다.\n그 무게를 지구 중심에 맡기십시오.'},
+      {t:515, tx:'골반을 완전히 이완합니다.\n허리가 편안하게 풀립니다.'},
+      {t:570, tx:'복부...\n장기 하나하나가 편안해지는 것을 상상합니다.'},
+      {t:630, tx:'위장이... 간이... 심장이...\n모두 이완됩니다.'},
+      {t:690, tx:'흉곽이 넓어집니다.\n폐가 자유롭게 숨쉽니다.'},
+      {t:750, tx:'가장 긴장이 많이 모이는 곳,\n어깨를 이완합니다.'},
+      {t:800, tx:'어깨가 바닥을 향해\n무겁게 내려앉습니다.'},
+      {t:855, tx:'팔꿈치... 손목... 손가락 끝...\n모든 긴장이 손끝에서 흘러나옵니다.'},
+      {t:920, tx:'목의 근육을 이완합니다.\n고개가 자연스럽게 무게를 잃습니다.'},
+      {t:980, tx:'턱관절을 이완합니다.\n혀를 입천장에서 떼십시오.'},
+      {t:1030,tx:'미간의 긴장을...\n눈꺼풀의 무게를... 놓아주십시오.'},
+      {t:1080,tx:'두피가 이완됩니다.\n머리카락 하나하나까지.'},
+      {t:1130,tx:'이제 당신의 몸은\n존재하지 않는 것처럼 느껴집니다.'},
+      {t:1175,tx:'오직 의식만이\n맑고 고요하게 깨어 있습니다.'},
+      // Phase 3
+      {t:1215,tx:'이것이 네빌 고다드가 말한\n잠과 유사한 상태 — SATS 입니다.'},
+      {t:1265,tx:'여기서 당신은\n무엇이든 될 수 있는 순수한 에너지입니다.'},
+      {t:1320,tx:'눈을 감은 채\n눈앞에 펼쳐진 무한한 검은 공간을 바라봅니다.'},
+      {t:1380,tx:'당신의 의식이 몸 밖으로 나와\n우주 공간을 유영합니다.'},
+      {t:1440,tx:'떠오르는 생각들은\n스쳐 지나가는 구름일 뿐입니다.'},
+      {t:1500,tx:'당신은 그 구름을 바라보는\n드넓은 하늘입니다.'},
+      {t:1558,tx:'아무 것도 판단하지 마십시오.\n아무 것도 붙잡지 마십시오.'},
+      {t:1610,tx:'그저 존재하십시오.\n당신은 이미 충분합니다.'},
+      {t:1670,tx:'이 고요한 공간에서\n당신의 소망이 다가오고 있습니다.'},
+      {t:1740,tx:'당신이 원하는 것은 이미 존재합니다.\n당신이 수신할 준비가 되어 있을 뿐입니다.'},
+      {t:1790,tx:'이제 그 현실로\n들어갈 시간입니다.'},
+      // Phase 4
+      {t:1820,tx:'어떻게(How)는 잊으십시오.\n오직 결과(End)만 취하십시오.'},
+      {t:1870,tx:'소망이 완벽하게 이루어졌음을 증명하는\n단 하나의 장면을 선택하십시오.'},
+      {t:1930,tx:'5초 내외의 짧은 장면.\n누군가의 축하... 목표 달성의 순간...'},
+      {t:1990,tx:'그 장면 속으로\n1인칭 시점으로 걸어 들어가십시오.'},
+      {t:2040,tx:'먼저 촉각.\n주변의 모든 것을 손으로 느낍니다.'},
+      {t:2095,tx:'악수하는 손의 온기...\n혹은 목표했던 물건의 단단한 질감...'},
+      {t:2150,tx:'이제 청각.\n주변의 소리들을 듣습니다.'},
+      {t:2205,tx:'나를 축하하는 목소리의 떨림...\n그 진심을 귀로 받아들이십시오.'},
+      {t:2260,tx:'"정말 대단해!"\n그 말이 귀에서 가슴으로 울립니다.'},
+      {t:2320,tx:'이제 감정.\n가슴 중앙에서 무언가가 피어납니다.'},
+      {t:2375,tx:'"드디어 해냈구나..."\n담담하고 차분한 안도감.'},
+      {t:2430,tx:'"당연히 이렇게 될 줄 알았어."\n그 평온한 확신.'},
+      {t:2495,tx:'장면이 끝나면\n다시 시작점으로 돌아가십시오.'},
+      {t:2550,tx:'다시 그 손을 잡는 순간부터...\n반복합니다.'},
+      {t:2615,tx:'이 루프가 현실보다\n더 리얼하게 느껴질 때까지.'},
+      {t:2690,tx:'다시...\n그 온기를 느끼십시오...'},
+      {t:2760,tx:'그 목소리를 듣습니다...\n그 안도감을 느낍니다...'},
+      {t:2840,tx:'이 느낌이\n당신의 세포 하나하나에 새겨지고 있습니다.'},
+      {t:2915,tx:'상상이 아니라\n이미 일어난 일을 기억하는 것입니다.'},
+      {t:2960,tx:'다시...\n그 장면 속으로...'},
+      {t:2980,tx:'온기... 소리... 안도감...\n이 세 가지를 동시에 느끼십시오.'},
+      // Phase 5
+      {t:3015,tx:'이제 씨앗은 심어졌습니다.\n의심하지 마십시오.'},
+      {t:3065,tx:'이미 소망이 이루어졌음에\n깊은 감사를 표합니다.'},
+      {t:3115,tx:'"고맙습니다.\n이미 다 되었습니다."'},
+      {t:3175,tx:'이 느낌은 나의 세포 하나하나에 저장되었으며\n내가 잠든 동안에도 현실로 구체화될 것입니다.'},
+      {t:3255,tx:'나의 상상은 곧 물리적 사실입니다.\n이것은 불변의 법칙입니다.'},
+      {t:3330,tx:'"언제 될까?" 라는 의문은 독입니다.\n"이미 되었다"는 마침표만을 간직하십시오.'},
+      {t:3405,tx:'방금 느꼈던 그 성취감을\n배경 프로세스로 계속 간직하십시오.'},
+      {t:3480,tx:'손끝과 발끝을\n살며시 움직여보십시오.'},
+      {t:3530,tx:'천천히\n현실로 돌아옵니다.'},
+      {t:3558,tx:'하나...'},
+      {t:3571,tx:'둘...'},
+      {t:3583,tx:'셋.'},
+      {t:3595,tx:'눈을 뜨십시오.\n이미 다 이루어졌습니다.'}
+    ]
+  }
+};
+
+/* ═══════════════════════════ STATE ═══════════════════════════ */
+let course = null;
+let elapsed = 0;
+let paused = false;
+let finished = false;
+let timerID = null;
+let msgIdx = 0;
+let typTO = null;
+let targetTxt = '';
+let charIdx = 0;
+let fading = false;
+let ytPlayer = null;
+let ytReady = false;
+let ytShouldPlay = false;
+let ytPendingPlay = false;
+let ytPresetKey = 'mystic';
+let ytCurrentPhaseIdx = -1;
+let ytCurrentTrackIdx = 0;
+let ytCurrentTrack = null;
+
+const THETA_PRESETS = {
+  mystic: {
+    title: 'Mystic Theta',
+    fallbackQuery: 'theta meditation music creative commons no copyright',
+    tracks: [
+      { id: '1ZYbU82GVz4', label: 'Celestial Theta Field' },
+      { id: 'hHW1oY26kxQ', label: 'Mystic Breath Loop' },
+      { id: 'a9LDPn-MO4I', label: 'Temple Theta Drift' }
+    ]
+  },
+  healing: {
+    title: '528Hz Theta',
+    fallbackQuery: '528hz theta meditation music creative commons',
+    tracks: [
+      { id: 'lFcSrYw-ARY', label: 'Healing 528 Resonance' },
+      { id: '7NOSDKb0HlU', label: 'Theta DNA Calm' },
+      { id: '2OEL4P1Rz04', label: 'Golden Sanctuary 528' }
+    ]
+  },
+  deep: {
+    title: 'Deep Theta',
+    fallbackQuery: 'deep theta binaural beats no copyright',
+    tracks: [
+      { id: '3oXhLdeuxDw', label: 'Night Ocean Theta' },
+      { id: 'UfcAVejslrU', label: 'Moon Tide Binaural' },
+      { id: '5qap5aO4i9A', label: 'Endless Deep Focus' }
+    ]
+  }
+};
+
+/* ═══════════════════════════ YOUTUBE THETA MUSIC ═══════════════════════════ */
+function updateMusicStatus(msg) {
+  const el = document.getElementById('musicStatus');
+  if (el) el.textContent = msg;
+}
+
+function updateMusicToggleLabel() {
+  const btn = document.getElementById('musicToggleBtn');
+  if (!btn) return;
+  btn.textContent = ytShouldPlay ? '음악 끄기' : '음악 켜기';
+}
+
+function getSelectedThetaQuery() {
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  return preset.fallbackQuery;
+}
+
+function getThetaPresetKey() {
+  const sel = document.getElementById('thetaPreset');
+  if (!sel) return 'mystic';
+  return THETA_PRESETS[sel.value] ? sel.value : 'mystic';
+}
+
+function getCurrentPhaseIndex() {
+  if (!course || !Array.isArray(course.phases)) return 0;
+  const idx = course.phases.findIndex(p => elapsed >= p.start && elapsed < p.end);
+  if (idx >= 0) return idx;
+  return Math.max(0, course.phases.length - 1);
+}
+
+function getTrackForPhase(phaseIdx) {
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const list = Array.isArray(preset.tracks) ? preset.tracks : [];
+  if (!list.length) return null;
+  const normalized = Math.max(0, phaseIdx);
+  const idx = normalized % list.length;
+  ytCurrentTrackIdx = idx;
+  return list[idx] || null;
+}
+
+function loadThetaFallbackSearch() {
+  if (!ytPlayer || !ytReady) return;
+  try {
+    ytPlayer.loadPlaylist({
+      listType: 'search',
+      list: getSelectedThetaQuery(),
+      index: 0,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
+    updateMusicStatus('고정 트랙 로드 실패로 검색 기반 Theta 배경음으로 전환했습니다.');
+  } catch (_) {
+    updateMusicStatus('YouTube 트랙을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
+  }
+}
+
+function loadThetaTrackByPhase(phaseIdx) {
+  const track = getTrackForPhase(phaseIdx);
+  if (!track || !track.id) {
+    loadThetaFallbackSearch();
+    return;
+  }
+  ytCurrentTrack = track;
+  try {
+    ytPlayer.loadVideoById({
+      videoId: track.id,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
+    const phaseText = course && course.phases && course.phases[phaseIdx] ? course.phases[phaseIdx].name : '현재 단계';
+    updateMusicStatus(`${phaseText} 단계: ${track.label} 재생 중`);
+  } catch (_) {
+    loadThetaFallbackSearch();
+  }
+}
+
+function safePlayTheta() {
+  if (!ytReady || !ytPlayer) {
+    ytPendingPlay = true;
+    updateMusicStatus('유튜브 플레이어 연결 중... 잠시 후 재생됩니다.');
+    return;
+  }
+  try {
+    const phaseIdx = getCurrentPhaseIndex();
+    ytCurrentPhaseIdx = phaseIdx;
+    loadThetaTrackByPhase(phaseIdx);
+    ytShouldPlay = true;
+    ytPendingPlay = false;
+    updateMusicToggleLabel();
+  } catch (err) {
+    ytPendingPlay = true;
+    updateMusicStatus('자동 재생이 제한되었습니다. 음악 켜기를 눌러 시작해 주세요.');
+  }
+}
+
+function pauseTheta() {
+  if (ytPlayer && ytReady) {
+    try { ytPlayer.pauseVideo(); } catch (_) {}
+  }
+  ytShouldPlay = false;
+  updateMusicToggleLabel();
+  updateMusicStatus('Theta 배경음 일시정지');
+}
+
+function toggleThetaMusic() {
+  if (!ytShouldPlay) {
+    safePlayTheta();
+    return;
+  }
+  pauseTheta();
+}
+
+function changeThetaPreset() {
+  ytPresetKey = getThetaPresetKey();
+  ytCurrentPhaseIdx = -1;
+  if (!ytReady || !ytPlayer) {
+    updateMusicStatus('프리셋 변경이 저장되었습니다. 플레이어 연결 후 적용됩니다.');
+    return;
+  }
+  try {
+    loadThetaTrackByPhase(getCurrentPhaseIndex());
+    ytShouldPlay = true;
+    updateMusicToggleLabel();
+    const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+    updateMusicStatus(`${preset.title} 프리셋으로 변경했습니다.`);
+  } catch (_) {
+    updateMusicStatus('프리셋 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
+  }
+}
+
+function nextThetaTrack() {
+  if (!ytReady || !ytPlayer) {
+    updateMusicStatus('플레이어 준비 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const tracks = Array.isArray(preset.tracks) ? preset.tracks : [];
+  if (!tracks.length) {
+    loadThetaFallbackSearch();
+    return;
+  }
+  try {
+    ytCurrentTrackIdx = (ytCurrentTrackIdx + 1) % tracks.length;
+    const track = tracks[ytCurrentTrackIdx];
+    ytCurrentTrack = track;
+    ytPlayer.loadVideoById({
+      videoId: track.id,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
+    ytShouldPlay = true;
+    updateMusicToggleLabel();
+    updateMusicStatus(`다음 트랙: ${track.label}`);
+  } catch (_) {
+    loadThetaFallbackSearch();
+  }
+}
+
+function onYouTubeIframeAPIReady() {
+  const mount = document.getElementById('ytPlayer');
+  if (!mount || !window.YT || !window.YT.Player) return;
+  ytPlayer = new window.YT.Player('ytPlayer', {
+    width: '1',
+    height: '1',
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      rel: 0,
+      modestbranding: 1,
+      playsinline: 1,
+      iv_load_policy: 3
+    },
+    events: {
+      onReady: () => {
+        ytReady = true;
+        ytPresetKey = getThetaPresetKey();
+        updateMusicStatus('유튜브 플레이어 준비 완료. 단계별 Theta 배경음이 자동 전환됩니다.');
+        updateMusicToggleLabel();
+        if (ytPendingPlay || ytShouldPlay) {
+          safePlayTheta();
+        } else {
+          const track = getTrackForPhase(0);
+          if (track && track.id) {
+            try {
+              ytPlayer.cueVideoById({
+                videoId: track.id,
+                startSeconds: 0,
+                suggestedQuality: 'small'
+              });
+            } catch (_) {
+              loadThetaFallbackSearch();
+            }
+          } else {
+            loadThetaFallbackSearch();
+          }
+        }
+      },
+      onError: () => {
+        loadThetaFallbackSearch();
+      }
+    }
+  });
+}
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+/* ═══════════════════════════ SCREEN HELPERS ═══════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    if (s.id === id) return;          // ← 대상 화면은 건드리지 않음
+    s.classList.add('out');
+    setTimeout(() => s.classList.add('hidden'), 1200);
+  });
+  const el = document.getElementById(id);
+  el.classList.remove('hidden');
+  el.classList.add('out');            // 일단 투명 상태로 세팅
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('out')));
+}
+
+/* ═══════════════════════════ START ═══════════════════════════ */
+function startCourse(mins) {
+  stopLoadingMeteors();
+  course = COURSES[mins];
+  elapsed = 0; msgIdx = 0; paused = false; finished = false;
+  clearInterval(timerID);
+  if (typTO) clearTimeout(typTO);
+
+  showScreen('meditation');
+  ytShouldPlay = true;
+  safePlayTheta();
+  setTimeout(() => {
+    // 이전 세션 텍스트 초기화
+    const g = document.getElementById('guidance');
+    g.innerHTML = '';
+    g.style.opacity = '1';
+    document.getElementById('pauseBtn').textContent = '일시정지';
+    updateHUD();
+    checkMsgs();
+    startTicker();
+  }, 1400);
+}
+
+function startTicker() {
+  clearInterval(timerID);
+  timerID = setInterval(() => {
+    if (paused || finished) return;
+    elapsed++;
+    updateHUD();
+    checkMsgs();
+    if (elapsed >= course.dur) { finished = true; clearInterval(timerID); onComplete(); }
+  }, 1000);
+}
+
+/* ═══════════════════════════ HUD UPDATE ═══════════════════════════ */
+function updateHUD() {
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  document.getElementById('timerEl').textContent = `${m}:${s}`;
+
+  const pct = (elapsed / course.dur) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+
+  const phase = course.phases.find(p => elapsed >= p.start && elapsed < p.end)
+              || course.phases[course.phases.length - 1];
+  const phaseIdx = getCurrentPhaseIndex();
+
+  const lbl = document.getElementById('phaseLabel');
+  lbl.textContent = phase.name;
+  lbl.style.color = phase.col;
+
+  const pf = document.getElementById('progFill');
+  pf.style.background = phase.col;
+  pf.style.boxShadow = `0 0 12px ${phase.col}`;
+
+  // Update orb ring colors
+  document.querySelectorAll('.ring').forEach(r => r.style.borderColor = phase.col);
+
+  // Update nebula ambient color
+  document.getElementById('nebula').style.background = `
+    radial-gradient(ellipse 55% 40% at 18% 28%, ${phase.col}18 0%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 82% 72%, ${phase.col}10 0%, transparent 70%),
+    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(2,3,14,0.4) 0%, transparent 80%)
+  `;
+
+  // 명상 단계가 바뀌면 배경음도 자동 전환합니다.
+  if (ytShouldPlay && ytReady && phaseIdx !== ytCurrentPhaseIdx) {
+    ytCurrentPhaseIdx = phaseIdx;
+    loadThetaTrackByPhase(phaseIdx);
+  }
+}
+
+/* ═══════════════════════════ MESSAGES ═══════════════════════════ */
+function checkMsgs() {
+  const msgs = course.msgs;
+  if (msgIdx >= msgs.length) return;
+  if (elapsed >= msgs[msgIdx].t) {
+    showMsg(msgs[msgIdx].tx);
+    msgIdx++;
+  }
+}
+
+function showMsg(text) {
+  if (typTO) clearTimeout(typTO);
+  const el = document.getElementById('guidance');
+  if (el.innerHTML !== '') {
+    fading = true;
+    el.style.opacity = '0';
+    setTimeout(() => {
+      fading = false;
+      el.style.opacity = '1';
+      startTyping(el, text);
+    }, 700);
+  } else {
+    startTyping(el, text);
+  }
+}
+
+function startTyping(el, text) {
+  targetTxt = text;
+  charIdx = 0;
+  el.innerHTML = '<span class="cursor"></span>';
+  typeNext(el);
+}
+
+function typeNext(el) {
+  if (charIdx <= targetTxt.length) {
+    const shown = targetTxt.substring(0, charIdx);
+    let html = shown.replace(/\n/g, '<br>');
+    // 타이핑 완료 시점에만 강조 적용
+    if (charIdx === targetTxt.length) {
+      html = highlightNeville(html);
+    }
+    el.innerHTML = html + '<span class="cursor"></span>';
+    charIdx++;
+    const ch = targetTxt[charIdx - 1];
+    const delay = ch === '\n' ? 380
+                : '.,。·' .includes(ch) ? 280
+                : '!' .includes(ch) ? 200
+                : 38 + Math.random() * 22;
+    typTO = setTimeout(() => typeNext(el), delay);
+  }
+}
+
+function highlightNeville(html) {
+  return html
+    .replace(/네빌 고다드/g, '<span class="neville">네빌 고다드</span>')
+    .replace(/Neville Goddard/g, '<span class="neville">Neville Goddard</span>');
+}
+
+/* ═══════════════════════════ CONTROLS ═══════════════════════════ */
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? '계속하기' : '일시정지';
+}
+
+function endSession() {
+  finished = true;
+  clearInterval(timerID);
+  if (typTO) clearTimeout(typTO);
+  pauseTheta();
+  showScreen('landing');
+}
+
+function onComplete() {
+  if (typTO) clearTimeout(typTO);
+  pauseTheta();
+  setTimeout(() => showScreen('completion'), 2500);
+}
+
+function backToLanding() {
+  pauseTheta();
+  showScreen('landing');
+}
+</script>
+</body>
+</html>
