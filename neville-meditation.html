@@ -98,6 +98,19 @@
       opacity:0; animation:fadeUp 1s 1.1s forwards;
     }
 
+    .author-intro {
+      margin-top:18px;
+      font-size:0.8rem;
+      line-height:1.95;
+      letter-spacing:0.04em;
+      color:rgba(201,214,238,0.78);
+      opacity:0;
+      animation:fadeUp 1s 1.25s forwards;
+    }
+    .author-intro .neville {
+      font-size:1rem;
+    }
+
     /* ── Course cards ── */
     .cards {
       display:flex; gap:28px;
@@ -218,6 +231,75 @@
       text-align:center; min-height:130px;
       display:flex; align-items:center; justify-content:center;
     }
+
+    /* ── YouTube Theta Music ── */
+    .music-panel {
+      position:absolute;
+      top:84px;
+      right:26px;
+      width:min(360px, calc(100vw - 40px));
+      border:1px solid rgba(201,168,76,0.23);
+      background:rgba(3,8,20,0.74);
+      backdrop-filter:blur(14px);
+      padding:14px 14px 12px;
+      box-shadow:0 18px 42px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.05);
+    }
+    .music-panel__title {
+      font-family:'Cormorant Garamond',serif;
+      font-size:0.95rem;
+      letter-spacing:0.14em;
+      color:var(--gold);
+      margin-bottom:10px;
+    }
+    .music-panel__row {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .music-panel__select {
+      flex:1;
+      min-width:0;
+      background:rgba(0,0,0,0.32);
+      border:1px solid rgba(201,168,76,0.25);
+      color:var(--text);
+      font-family:'Noto Serif KR',serif;
+      font-size:0.75rem;
+      padding:8px 10px;
+      outline:none;
+    }
+    .music-panel__btn {
+      background:none;
+      border:1px solid rgba(201,168,76,0.3);
+      color:rgba(201,168,76,0.82);
+      font-family:'Noto Serif KR',serif;
+      font-size:0.72rem;
+      letter-spacing:0.08em;
+      padding:8px 10px;
+      cursor:pointer;
+      transition:all 0.25s ease;
+    }
+    .music-panel__btn:hover {
+      border-color:rgba(201,168,76,0.55);
+      color:var(--gold);
+      background:rgba(201,168,76,0.06);
+    }
+    .music-panel__status {
+      font-size:0.68rem;
+      line-height:1.65;
+      color:rgba(205,214,238,0.75);
+      letter-spacing:0.03em;
+      min-height:1.8em;
+    }
+    .yt-player {
+      width:1px;
+      height:1px;
+      opacity:0;
+      pointer-events:none;
+      position:absolute;
+      left:-9999px;
+      top:-9999px;
+    }
     .guidance {
       font-family:'Noto Serif KR',serif;
       font-size:clamp(1rem,2.3vw,1.25rem);
@@ -277,6 +359,19 @@
     @media (max-width:600px) {
       .cards { flex-direction:column; }
       .card { width:100%; max-width:300px; }
+      .music-panel {
+        top:auto;
+        right:14px;
+        bottom:92px;
+        left:14px;
+        width:auto;
+      }
+      .music-panel__row {
+        flex-wrap:wrap;
+      }
+      .music-panel__select {
+        width:100%;
+      }
     }
   </style>
 </head>
@@ -310,6 +405,7 @@
     <div class="eyebrow"><span class="neville" style="font-size:0.9rem;letter-spacing:0.25em;">Neville Goddard</span> &nbsp;·&nbsp; 잠재의식의 법칙</div>
     <h1 class="h1">의식의<br><em>재프로그래밍</em></h1>
     <p class="subtitle">잠재의식의 문을 열고<br>이미 이루어진 현실을 수신하라</p>
+    <p class="author-intro"><span class="neville">네빌 고다드</span>는 "상상은 미래가 아니라 현재의 창조 행위"라고 말했습니다.<br>당신이 지금 느끼는 성취의 감정이 곧 현실의 설계도가 됩니다.</p>
   </div>
 
   <div class="cards">
@@ -356,6 +452,23 @@
     <div class="timer" id="timerEl">00:00</div>
   </div>
 
+  <div class="music-panel" aria-live="polite">
+    <div class="music-panel__title">Theta Sound Altar</div>
+    <div class="music-panel__row">
+      <select class="music-panel__select" id="thetaPreset" aria-label="Theta 명상 배경음 프리셋 선택" onchange="changeThetaPreset()">
+        <option value="theta meditation music creative commons no copyright">Mystic Theta - Creative Commons</option>
+        <option value="528hz theta meditation music creative commons">528Hz Theta - Healing Field</option>
+        <option value="deep theta binaural beats no copyright">Deep Theta - Night Temple</option>
+      </select>
+    </div>
+    <div class="music-panel__row">
+      <button class="music-panel__btn" id="musicToggleBtn" type="button" onclick="toggleThetaMusic()">음악 켜기</button>
+      <button class="music-panel__btn" type="button" onclick="nextThetaTrack()">다음 곡</button>
+    </div>
+    <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 후 자동 재생을 시도합니다.</div>
+    <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
+  </div>
+
   <div class="orb-wrap">
     <div class="ring ring-a" id="ringA"></div>
     <div class="ring ring-b" id="ringB"></div>
@@ -398,6 +511,7 @@
 
 </div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
 /* ═══════════════════════════ STAR CANVAS ═══════════════════════════ */
 const cvs = document.getElementById('cosmos');
@@ -689,6 +803,135 @@ let typTO = null;
 let targetTxt = '';
 let charIdx = 0;
 let fading = false;
+let ytPlayer = null;
+let ytReady = false;
+let ytShouldPlay = false;
+let ytPendingPlay = false;
+
+/* ═══════════════════════════ YOUTUBE THETA MUSIC ═══════════════════════════ */
+function updateMusicStatus(msg) {
+  const el = document.getElementById('musicStatus');
+  if (el) el.textContent = msg;
+}
+
+function updateMusicToggleLabel() {
+  const btn = document.getElementById('musicToggleBtn');
+  if (!btn) return;
+  btn.textContent = ytShouldPlay ? '음악 끄기' : '음악 켜기';
+}
+
+function getSelectedThetaQuery() {
+  const sel = document.getElementById('thetaPreset');
+  return sel ? sel.value : 'theta meditation music creative commons no copyright';
+}
+
+function buildThetaLoadOptions() {
+  return {
+    listType: 'search',
+    list: getSelectedThetaQuery(),
+    index: 0,
+    startSeconds: 0,
+    suggestedQuality: 'small'
+  };
+}
+
+function safePlayTheta() {
+  if (!ytReady || !ytPlayer) {
+    ytPendingPlay = true;
+    updateMusicStatus('유튜브 플레이어 연결 중... 잠시 후 재생됩니다.');
+    return;
+  }
+  try {
+    ytPlayer.loadPlaylist(buildThetaLoadOptions());
+    ytShouldPlay = true;
+    ytPendingPlay = false;
+    updateMusicToggleLabel();
+    updateMusicStatus('Theta 배경음 재생 중 (YouTube API)');
+  } catch (err) {
+    ytPendingPlay = true;
+    updateMusicStatus('자동 재생이 제한되었습니다. 음악 켜기를 눌러 시작해 주세요.');
+  }
+}
+
+function pauseTheta() {
+  if (ytPlayer && ytReady) {
+    try { ytPlayer.pauseVideo(); } catch (_) {}
+  }
+  ytShouldPlay = false;
+  updateMusicToggleLabel();
+  updateMusicStatus('Theta 배경음 일시정지');
+}
+
+function toggleThetaMusic() {
+  if (!ytShouldPlay) {
+    safePlayTheta();
+    return;
+  }
+  pauseTheta();
+}
+
+function changeThetaPreset() {
+  if (!ytReady || !ytPlayer) {
+    updateMusicStatus('프리셋 변경이 저장되었습니다. 플레이어 연결 후 적용됩니다.');
+    return;
+  }
+  try {
+    ytPlayer.loadPlaylist(buildThetaLoadOptions());
+    ytShouldPlay = true;
+    updateMusicToggleLabel();
+    updateMusicStatus('배경음 프리셋을 변경했습니다.');
+  } catch (_) {
+    updateMusicStatus('프리셋 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
+  }
+}
+
+function nextThetaTrack() {
+  if (!ytReady || !ytPlayer) {
+    updateMusicStatus('플레이어 준비 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  try {
+    ytPlayer.nextVideo();
+    ytShouldPlay = true;
+    updateMusicToggleLabel();
+    updateMusicStatus('다음 Theta 트랙으로 전환했습니다.');
+  } catch (_) {
+    updateMusicStatus('다음 곡 전환에 실패했습니다.');
+  }
+}
+
+function onYouTubeIframeAPIReady() {
+  const mount = document.getElementById('ytPlayer');
+  if (!mount || !window.YT || !window.YT.Player) return;
+  ytPlayer = new window.YT.Player('ytPlayer', {
+    width: '1',
+    height: '1',
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      rel: 0,
+      modestbranding: 1,
+      playsinline: 1,
+      iv_load_policy: 3
+    },
+    events: {
+      onReady: () => {
+        ytReady = true;
+        updateMusicStatus('유튜브 플레이어 준비 완료. 명상 시작 시 자동 재생됩니다.');
+        updateMusicToggleLabel();
+        if (ytPendingPlay || ytShouldPlay) {
+          safePlayTheta();
+        } else {
+          try { ytPlayer.cuePlaylist(buildThetaLoadOptions()); } catch (_) {}
+        }
+      },
+      onError: () => {
+        updateMusicStatus('YouTube 트랙 로딩에 실패했습니다. 프리셋을 바꿔 다시 시도해 주세요.');
+      }
+    }
+  });
+}
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
 /* ═══════════════════════════ SCREEN HELPERS ═══════════════════════════ */
 function showScreen(id) {
@@ -712,6 +955,8 @@ function startCourse(mins) {
   if (typTO) clearTimeout(typTO);
 
   showScreen('meditation');
+  ytShouldPlay = true;
+  safePlayTheta();
   setTimeout(() => {
     // 이전 세션 텍스트 초기화
     const g = document.getElementById('guidance');
@@ -834,15 +1079,18 @@ function endSession() {
   finished = true;
   clearInterval(timerID);
   if (typTO) clearTimeout(typTO);
+  pauseTheta();
   showScreen('landing');
 }
 
 function onComplete() {
   if (typTO) clearTimeout(typTO);
+  pauseTheta();
   setTimeout(() => showScreen('completion'), 2500);
 }
 
 function backToLanding() {
+  pauseTheta();
   showScreen('landing');
 }
 </script>
