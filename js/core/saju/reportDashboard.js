@@ -25,10 +25,25 @@ function _rptIsDirectAction(actionName) {
 }
 
 window.openSecretHouseRoute = function() {
+  var stem = '';
   try {
-    window.location.assign('/secret-house-final.html');
+    stem = String(
+      (window.G_PILLARS && window.G_PILLARS.d && window.G_PILLARS.d.g) ||
+      window.DAY_GAN ||
+      (window.__destinyFlowerSajuSnapshot && window.__destinyFlowerSajuSnapshot.dayStem) ||
+      ''
+    ).trim();
+  } catch (_eStem) {
+    stem = '';
+  }
+  var target = '/secret-house-final.html';
+  if (/^[甲乙丙丁戊己庚辛壬癸]$/.test(stem)) {
+    target += '?dayStem=' + encodeURIComponent(stem);
+  }
+  try {
+    window.location.assign(target);
   } catch (e) {
-    window.open('/secret-house-final.html', '_blank');
+    window.open(target, '_blank');
   }
 };
 
