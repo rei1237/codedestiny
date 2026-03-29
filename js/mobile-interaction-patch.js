@@ -146,16 +146,16 @@
     },
     {
       action: 'openNevilleMeditationPage',
-      cardSelector: '.tarot-tile--meditation',
+      cardSelector: '.tarot-tile--meditation[data-action="openNevilleMeditationPage"], .tarot-tile--meditation[href*="neville-meditation"]',
       targetSelector: [
         '[data-action="openNevilleMeditationPage"]',
-        '.tarot-tile--meditation',
-        '.tarot-tile--meditation .tarot-tile__img-wrap',
-        '.tarot-tile--meditation .tarot-tile__img',
-        '.tarot-tile--meditation .tarot-tile__badge',
-        '.tarot-tile--meditation .tarot-tile__title',
-        '.tarot-tile--meditation .tarot-tile__desc',
-        '.tarot-tile--meditation .tarot-tile__body'
+        '.tarot-tile--meditation[href*="neville-meditation"]',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__img-wrap',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__img',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__badge',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__title',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__desc',
+        '.tarot-tile--meditation[href*="neville-meditation"] .tarot-tile__body'
       ].join(',')
     },
     {
