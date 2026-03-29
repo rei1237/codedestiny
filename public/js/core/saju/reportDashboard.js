@@ -16,8 +16,21 @@ var REPORT_CARDS = [
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard'         },
   { id:'lotto',      label:'퀀텀 로또 리포트',       desc:'수리 에너지 공명 기반 추천 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 번호 흐름을 기반으로 흥미로운 조합을 제안합니다.', cta:'🎱 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard'           },
   { id:'godlife',    label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary' },
-  { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard'     }
+  { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard'     },
+  { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute' }
 ];
+
+function _rptIsDirectAction(actionName) {
+  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute';
+}
+
+window.openSecretHouseRoute = function() {
+  try {
+    window.location.assign('/secret-house-final.html');
+  } catch (e) {
+    window.open('/secret-house-final.html', '_blank');
+  }
+};
 
 var S4C_TAG_TEXT = '#사주네컷 #코드데스티니 #꿀꿀 만세력 #무료 사주 #무료 운세 #대박 운세 #신년운세 #성격테스트 #2026운세';
 var _s4cCanvasLoader = null;
@@ -758,7 +771,7 @@ function renderReportDashboard() {
       document.body.appendChild(zone);
     }
     REPORT_CARDS.forEach(function(c) {
-      if (c.action === 'openLuckSyncDiary') return;
+      if (_rptIsDirectAction(c.action)) return;
       try {
         var el = document.getElementById(c.target);
         if (el && container.contains(el)) {
@@ -816,6 +829,10 @@ function renderReportDashboard() {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openLuckSyncDiary" aria-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '</button>';
+    } else if (b.action === 'openSecretHouseRoute') {
+      gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="openSecretHouseRoute()" aria-label="' + b.cta + '">';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
+      gridHtml += '</button>';
     } else {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" onclick="toggleReportFeatureCard(this)" aria-expanded="false" data-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
@@ -824,7 +841,7 @@ function renderReportDashboard() {
     }
     gridHtml += '</div>';
 
-    if (b.action !== 'openLuckSyncDiary') {
+    if (!_rptIsDirectAction(b.action)) {
       /* 토글 상세 영역 */
       gridHtml += '<div class="rpt-v2-detail" aria-hidden="true"><div class="rpt-v2-detail-inner">';
 
@@ -842,7 +859,7 @@ function renderReportDashboard() {
   var recoverAttempted = {};
   var recoverEmptyAttempted = {};
   blocks.forEach(function(b) {
-    if (b.action === 'openLuckSyncDiary') return;
+    if (_rptIsDirectAction(b.action)) return;
 
     var slot = document.getElementById('rpt-v2-body-' + b.target);
     var targetEl = document.getElementById(b.target);

@@ -17,6 +17,20 @@ export default function SajuBasicPage() {
           <p>- 출생 시각/출생지 보정을 반영한 명식 기반 분석</p>
         </section>
 
+        <section className="mt-6 rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+          <h2 className="text-base font-semibold">시크릿 하우스 연동 콘텐츠</h2>
+          <p className="mt-2 leading-7 text-rose-100/90">
+            사주 결과 화면에서 바로 이어서 즐길 수 있는 선택형 연애 시뮬레이션입니다.
+            사주 정보 입력 없이도 자동 일간 캐치 후 멀티 엔딩으로 분기됩니다.
+          </p>
+          <Link
+            href="/secret-house-final.html"
+            className="mt-3 inline-flex rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white"
+          >
+            나는 솔로 시크릿 하우스 입장
+          </Link>
+        </section>
+
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white">
             사주 기능 바로 실행
