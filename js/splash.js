@@ -2,6 +2,17 @@
   var _splashDone = false;
   var splashStartedAt = Date.now();
   var isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+
+  // 모바일은 초기 페인트/LCP 우선: 스플래시를 즉시 제거해 렌더 지연을 없앤다.
+  if (isMobile) {
+    var mobileSplash = document.getElementById('codeSplash');
+    if (mobileSplash && mobileSplash.parentNode) {
+      mobileSplash.style.display = 'none';
+      mobileSplash.parentNode.removeChild(mobileSplash);
+    }
+    return;
+  }
+
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MIN_VISIBLE_MS = isMobile ? (prefersReduced ? 180 : 360) : (prefersReduced ? 450 : 1800);
