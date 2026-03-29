@@ -102,8 +102,14 @@
       width: 200px;
       height: 200px;
       border-radius: 50%;
-      box-shadow: 0 0 30px rgba(244, 194, 194, 0.5);
-      transition: transform 0.3s ease;
+      box-shadow:
+        0 0 0 6px #fff,
+        0 4px 32px 0 rgba(244, 194, 194, 0.25),
+        0 1.5px 12px 0 rgba(200, 162, 208, 0.10);
+      background: linear-gradient(135deg, #fff8e7 60%, #f4c2c2 100%);
+      outline: 2px solid #ffe0b2;
+      outline-offset: 2px;
+      transition: box-shadow 0.3s, outline 0.3s, transform 0.3s;
     }
 
     .yeon-image.dancing {
