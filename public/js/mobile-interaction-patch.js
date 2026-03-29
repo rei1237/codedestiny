@@ -551,6 +551,24 @@
     if (!rule) return false;
     if (shouldSkipDuplicateAction(rule.action)) return true;
 
+    if (rule.action === 'openNevilleMeditationPage') {
+      try {
+        window.location.href = '/neville-meditation.html';
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] meditation navigation failed:', err);
+        var fallbackHref = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/neville-meditation.html';
+        if (fallbackHref) {
+          try {
+            window.location.assign(fallbackHref);
+            return true;
+          } catch (fallbackErr) {
+            console.error('[mobile-interaction-patch] meditation fallback navigation failed:', fallbackErr);
+          }
+        }
+      }
+    }
+
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
@@ -677,7 +695,8 @@
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
-      '}',,
+      '}',
+      ':root {',
       '  --cd-safe-vh: 100vh;',
       '}',
       '@supports (height: 100dvh) {',
