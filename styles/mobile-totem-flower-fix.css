@@ -58,6 +58,23 @@
   height: 0 !important;
 }
 
+/* 메인 컬렉션 카드 뒤의 보조 백그라운드(회색 뒷판) 제거 */
+#inputPage .feat-collection::before,
+#inputPage .feat-collection::after,
+#inputPage .tarot-collection::before,
+#inputPage .tarot-collection::after,
+#inputPage .fg-group__cards::before,
+#inputPage .fg-group__cards::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+#inputPage .fc-closed-peek {
+  display: none !important;
+}
+
 @media (max-width: 480px) {
   .feature-card-grid::before {
     inset: -8px 0;
