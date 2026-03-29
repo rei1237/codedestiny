@@ -29,6 +29,7 @@ const projectName =
 const SECRET_KEYS = [
   "GEMINI_API_KEY",
   "GOOGLE_API_KEY",
+  "YOUTUBE_API_KEY",
   "GEMINI_API_KEY_2",
   "GOOGLE_API_KEY_2",
   "GEMINI_API_KEY_3",
