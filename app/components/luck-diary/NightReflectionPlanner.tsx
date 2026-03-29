@@ -57,6 +57,7 @@ export default function NightReflectionPlanner() {
   const [revisionRunning, setRevisionRunning] = useState(false);
   const [revisionDone, setRevisionDone] = useState(0);
   const [satsScene, setSatsScene] = useState('원하는 결과가 이미 완료된 단 하나의 장면을 추천받아 몰입하세요.');
+  const [satsSceneIndex, setSatsSceneIndex] = useState(-1);
   const [satsMode, setSatsMode] = useState(false);
   const [satsAudioMode, setSatsAudioMode] = useState<'lofi' | 'theta'>('lofi');
   const [affirmation, setAffirmation] = useState('나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.');
@@ -107,13 +108,35 @@ export default function NightReflectionPlanner() {
   }, [theme]);
 
   const generateSatsScene = () => {
-    const sceneByKeyword: Record<string, string> = {
-      '재물운 상승': '당신은 이미 재정적으로 안정된 상태입니다. 잔액 확인 후 안도하며 미소 짓는 장면에 머무르세요.',
-      '귀인 상봉': '당신은 이미 필요한 도움을 받았습니다. 고마운 눈빛과 따뜻한 악수의 감각을 느끼세요.',
-      '회복력 강화': '당신은 이미 활력으로 가득합니다. 가벼운 몸으로 아침 공기를 들이마시는 감각에 집중하세요.',
-      '집중 성과 실현': '당신은 이미 중요한 일을 완수했습니다. 전송 완료 후 깊게 안도하는 순간을 반복하세요.'
+    const sceneByKeyword: Record<string, string[]> = {
+      '재물운 상승': [
+        '당신은 이미 재정적으로 안정된 상태입니다. 잔액 확인 후 안도하며 미소 짓는 장면에 머무르세요.',
+        '입금 알림이 연속으로 도착하고 월간 목표를 체크하는 장면을 선명하게 떠올리세요.',
+        '계획한 지출을 깔끔히 정리하고 여유 자금이 생긴 표정을 느껴보세요.'
+      ],
+      '귀인 상봉': [
+        '당신은 이미 필요한 도움을 받았습니다. 고마운 눈빛과 따뜻한 악수의 감각을 느끼세요.',
+        '정확한 조언을 주는 사람과 대화가 자연스럽게 이어지는 장면을 반복하세요.',
+        '막혔던 일이 연락 한 통으로 풀리며 미소 짓는 순간을 상상하세요.'
+      ],
+      '회복력 강화': [
+        '당신은 이미 활력으로 가득합니다. 가벼운 몸으로 아침 공기를 들이마시는 감각에 집중하세요.',
+        '어깨 힘이 풀리고 호흡이 깊어지며 몸이 따뜻해지는 장면에 머무르세요.',
+        '숙면 후 눈을 뜨자마자 개운함이 퍼지는 감각을 디테일하게 상상하세요.'
+      ],
+      '집중 성과 실현': [
+        '당신은 이미 중요한 일을 완수했습니다. 전송 완료 후 깊게 안도하는 순간을 반복하세요.',
+        '핵심 과제를 먼저 끝내고 체크 표시가 쌓이는 화면을 또렷하게 떠올리세요.',
+        '회의에서 준비한 포인트를 정확히 전달해 신뢰를 얻는 장면을 느껴보세요.'
+      ]
     };
-    setSatsScene(sceneByKeyword[tomorrowKeyword] ?? sceneByKeyword['귀인 상봉']);
+    const pool = sceneByKeyword[tomorrowKeyword] ?? sceneByKeyword['귀인 상봉'];
+    let nextIdx = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && nextIdx === satsSceneIndex) {
+      nextIdx = (nextIdx + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+    }
+    setSatsSceneIndex(nextIdx);
+    setSatsScene(pool[nextIdx]);
   };
 
   const regenerateIam = () => {

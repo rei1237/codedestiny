@@ -233,6 +233,7 @@
     if (typeof entry.revisionDoneCount !== 'number') entry.revisionDoneCount = 0;
     if (typeof entry.satsKeyword !== 'string') entry.satsKeyword = '';
     if (typeof entry.satsScene !== 'string') entry.satsScene = '';
+    if (typeof entry.satsSceneLastIndex !== 'number') entry.satsSceneLastIndex = -1;
     if (typeof entry.satsCompleted !== 'boolean') entry.satsCompleted = false;
     if (typeof entry.iAmAffirmation !== 'string') entry.iAmAffirmation = '';
     if (typeof entry.iAmCompleted !== 'boolean') entry.iAmCompleted = false;
@@ -290,6 +291,7 @@
         revisionDoneCount: 0,
         satsKeyword: '',
         satsScene: '',
+        satsSceneLastIndex: -1,
         satsCompleted: false,
         iAmAffirmation: '',
         iAmCompleted: false,
@@ -767,10 +769,60 @@
     }
     var dStr = best.date.getMonth() + 1 + '/' + best.date.getDate();
     var vibe = best.score >= 3 ? '찰떡합' : (best.score >= 1 ? '무난합' : '조심합');
+    var relationScore = _relScore(_lsdCtx.dEl, partnerEl);
+    var typeLabel = ctype === 'business' ? '비즈니스' : (ctype === 'friend' ? '친구' : '연애');
+    var strengths = [];
+    var cautions = [];
+    var boostTips = [];
+
+    if (relationScore >= 1) {
+      strengths.push('기본 오행 궁합이 자연스럽게 맞물려 대화가 빠르게 통합니다.');
+      strengths.push('의사결정 타이밍이 비슷해 함께 움직일 때 속도가 납니다.');
+    } else if (relationScore === 0) {
+      strengths.push('서로 역할이 달라 보완 시너지가 나기 좋은 조합입니다.');
+      cautions.push('속도감 차이가 있을 수 있어 중요한 결정은 템포 합의가 필요합니다.');
+    } else {
+      strengths.push('관점이 달라 아이디어 폭이 넓어지는 조합입니다.');
+      cautions.push('감정 반응 포인트가 달라 오해가 누적되기 쉬우니 중간 확인이 중요합니다.');
+    }
+
+    if (best.score >= 3) {
+      strengths.push('향후 7일 중 추천일에 협업/데이트를 잡으면 체감 운이 상승합니다.');
+    } else if (best.score <= 0) {
+      cautions.push('이번 주는 즉흥 약속보다 사전 계획형 일정이 안정적입니다.');
+    }
+
+    if (ctype === 'love') {
+      strengths.push('감정 표현이 부드럽게 이어질 때 친밀도가 빠르게 올라갑니다.');
+      cautions.push('서운함을 참아두면 한 번에 폭발할 수 있으니 당일 대화가 좋습니다.');
+      boostTips.push('저녁 산책 20분 + 감사 한 문장 공유');
+      boostTips.push('연락 템포를 하루 1회만 명확히 합의');
+    } else if (ctype === 'friend') {
+      strengths.push('편한 대화에서 서로의 장점을 끌어내기 좋은 흐름입니다.');
+      cautions.push('농담 톤이 과해지면 피로도가 올라갈 수 있어 선을 맞춰주세요.');
+      boostTips.push('짧은 커피 약속으로 근황 점검 후 일정 확정');
+      boostTips.push('같이 할 작은 미션 1개를 오늘 바로 시작');
+    } else {
+      strengths.push('역할 분담이 명확할수록 결과물이 빠르게 정리됩니다.');
+      cautions.push('우선순위 기준이 다르면 일정 지연이 생길 수 있습니다.');
+      boostTips.push('회의 전 목표 3줄 공유 + 종료 전 액션 아이템 확정');
+      boostTips.push('피드백은 사실-대안-기한 순서로 짧게 전달');
+    }
+
+    if (!cautions.length) cautions.push('큰 이슈 전에는 시간·장소·목표를 한 번 더 확인하면 안정적입니다.');
+    if (!boostTips.length) boostTips.push('추천일 저녁 시간대에 핵심 대화를 배치해 보세요.');
+
+    function toBullets(items) {
+      return items.slice(0, 3).map(function (txt) { return '• ' + escHtml(txt); }).join('<br>');
+    }
+
     box.innerHTML = (nativeCompatLine ? nativeCompatLine : '다이어리 Lite 궁합으로 계산 중<br>')
       + (bridged ? '' : '엔진 연동 정보가 제한돼 Lite 결과를 우선 보여줘.<br>')
       + '💞 <b>' + escHtml(name) + '</b> 님과의 추천일: <b>' + dStr + '</b> (' + (best.gz ? best.gz.g + best.gz.j : '—') + ')<br>'
-      + '오늘부터 7일 중 <b>' + vibe + '</b> 흐름! 대화/데이트는 저녁 시간대가 좋아.<br>'
+      + '[' + typeLabel + ' 궁합] 오늘부터 7일 중 <b>' + vibe + '</b> 흐름! 대화/데이트는 저녁 시간대가 좋아.<br>'
+      + '<div style="margin-top:6px"><b>✅ 좋은 점</b><br>' + toBullets(strengths) + '</div>'
+      + '<div style="margin-top:6px"><b>⚠️ 주의할 점</b><br>' + toBullets(cautions) + '</div>'
+      + '<div style="margin-top:6px"><b>🍀 운 상승 포인트</b><br>' + toBullets(boostTips) + '</div>'
       + '<span style="font-size:.65rem;color:#64748b">입력 기준: ' + escHtml((bdate || (by + '-01-01')) + ' ' + btime + ' · ' + bcity + ' · ' + ctype) + '</span>';
   }
 
@@ -1099,16 +1151,61 @@
     return '귀인 상봉';
   }
 
-  function buildSatsSceneText(keyword) {
+  function buildSatsSceneText(keyword, entry) {
     var scenes = {
-      '재물운 상승': '송금 완료 알림이 뜨고, 통장 잔액이 안정적으로 늘어난 화면을 보며 안도하는 장면',
-      '귀인 상봉': '필요한 타이밍에 정확한 도움을 주는 사람과 웃으며 악수하는 장면',
-      '회복력 강화': '가벼운 몸과 맑은 호흡으로 아침 햇빛을 받으며 상쾌하게 일어나는 장면',
-      '집중 성과 실현': '중요한 업무를 완성해 전송 버튼을 누른 뒤 칭찬 메시지를 받는 장면',
-      '성과와 인정': '회의 종료 직후 "정확했다"는 피드백을 듣고 고개를 끄덕이는 장면',
-      '직감력 상승': '잠깐의 직감으로 올바른 선택을 하고 바로 좋은 결과를 확인하는 장면'
+      '재물운 상승': [
+        '송금 완료 알림이 뜨고 통장 잔액이 안정적으로 늘어난 화면을 보며 안도하는 장면',
+        '월말 정산표에서 수입 칸이 예상보다 크게 올라 모두가 박수치는 장면',
+        '필요한 계약이 무리 없이 성사되어 첫 입금 문자를 확인하는 장면',
+        '오래 고민하던 지출을 현명하게 줄여 여유 자금을 확보한 장면',
+        '가벼운 미소로 투자/저축 목표 달성 체크박스를 채우는 장면'
+      ],
+      '귀인 상봉': [
+        '필요한 타이밍에 정확한 도움을 주는 사람과 웃으며 악수하는 장면',
+        '막히던 문제의 해답을 아는 멘토를 만나 대화가 술술 풀리는 장면',
+        '우연한 소개 자리에서 서로의 방향이 딱 맞아 대화가 길어지는 장면',
+        '팀 미팅에서 나를 지지해 주는 조력자의 한마디로 분위기가 바뀌는 장면',
+        '중요한 연락이 와서 다음 기회가 자연스럽게 연결되는 장면'
+      ],
+      '회복력 강화': [
+        '가벼운 몸과 맑은 호흡으로 아침 햇빛을 받으며 상쾌하게 일어나는 장면',
+        '어깨와 목의 긴장이 풀리며 깊은 숨이 편안하게 들어오는 장면',
+        '짧은 산책 후 심장이 안정되고 머리가 맑아지는 장면',
+        '따뜻한 물 한 잔을 마신 뒤 속이 편안해지고 집중이 살아나는 장면',
+        '저녁 루틴을 지키고 숙면 후 개운하게 눈을 뜨는 장면'
+      ],
+      '집중 성과 실현': [
+        '중요한 업무를 완성해 전송 버튼을 누른 뒤 칭찬 메시지를 받는 장면',
+        '할 일 목록의 가장 큰 항목을 먼저 지우고 마음이 가벼워지는 장면',
+        '몰입 타이머가 끝날 때마다 결과물이 분명하게 쌓여 있는 장면',
+        '회의 자료를 깔끔하게 정리해 모두가 이해했다며 고개를 끄덕이는 장면',
+        '마감 전에 핵심 과제를 끝내고 여유 있게 검토하는 장면'
+      ],
+      '성과와 인정': [
+        '회의 종료 직후 "정확했다"는 피드백을 듣고 고개를 끄덕이는 장면',
+        '프로젝트 발표 후 팀 채팅에 축하 메시지가 연달아 도착하는 장면',
+        '상사가 내 준비성을 칭찬하며 다음 기회를 제안하는 장면',
+        '내가 만든 기준안이 공식 문서로 채택되는 장면',
+        '발표 자료 마지막 페이지에서 박수와 미소를 동시에 마주하는 장면'
+      ],
+      '직감력 상승': [
+        '잠깐의 직감으로 올바른 선택을 하고 바로 좋은 결과를 확인하는 장면',
+        '첫 느낌대로 결정했는데 예상보다 빠르게 길이 열리는 장면',
+        '사소한 신호를 놓치지 않아 리스크를 미리 피하는 장면',
+        '고민하던 선택지 중 하나를 직관적으로 고르고 확신이 드는 장면',
+        '우선순위를 즉시 잡아 하루 흐름이 매끄럽게 이어지는 장면'
+      ]
     };
-    return scenes[keyword] || '내일 원하는 결과가 이미 완료되어 편안하게 미소 짓는 장면';
+    var pool = scenes[keyword] || [
+      '내일 원하는 결과가 이미 완료되어 편안하게 미소 짓는 장면',
+      '하루의 핵심 목표를 이룬 뒤 가볍게 스트레칭하며 안도하는 장면',
+      '좋은 소식 알림을 확인하고 마음이 안정되는 장면'
+    ];
+    var prev = entry && typeof entry.satsSceneLastIndex === 'number' ? entry.satsSceneLastIndex : -1;
+    var idx = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && idx === prev) idx = (idx + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+    if (entry && typeof entry === 'object') entry.satsSceneLastIndex = idx;
+    return pool[idx];
   }
 
   function buildIamAffirmation(entry) {
@@ -1166,7 +1263,7 @@
 
     if (!entry.revisionOriginal && entry.practiceNote) entry.revisionOriginal = entry.practiceNote;
     if (!entry.satsKeyword) entry.satsKeyword = getTomorrowLuckKeyword(entry);
-    if (!entry.satsScene) entry.satsScene = buildSatsSceneText(entry.satsKeyword);
+    if (!entry.satsScene) entry.satsScene = buildSatsSceneText(entry.satsKeyword, entry);
     if (!entry.iAmAffirmation) entry.iAmAffirmation = buildIamAffirmation(entry);
     entry.meditationPoints = calcMeditationPoints(entry);
 
@@ -2303,7 +2400,7 @@
       var d = loadDiary();
       var e = getTodayEntry(d);
       e.satsKeyword = getTomorrowLuckKeyword(e);
-      e.satsScene = buildSatsSceneText(e.satsKeyword);
+      e.satsScene = buildSatsSceneText(e.satsKeyword, e);
       e.meditationPoints = calcMeditationPoints(e);
       saveDiary(d);
       renderMeditationBoard(e, d);
