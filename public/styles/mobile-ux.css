@@ -526,6 +526,41 @@ select.inp {
   font-size: 16px; /* iOS 줌 방지 */
 }
 
+/* 모바일 WebKit에서 날짜 텍스트(년/월/일)가 투명하게 보이는 이슈 방지 */
+#birthDate.inp,
+input.inp[type="date"] {
+  color: #2d2438 !important;
+  -webkit-text-fill-color: #2d2438 !important;
+  color-scheme: light;
+}
+
+body.neo-mode #birthDate.inp,
+body.neo-mode input.inp[type="date"] {
+  color: rgba(240, 232, 220, 0.95) !important;
+  -webkit-text-fill-color: rgba(240, 232, 220, 0.95) !important;
+  color-scheme: dark;
+}
+
+#birthDate.inp::-webkit-date-and-time-value,
+#birthDate.inp::-webkit-datetime-edit,
+#birthDate.inp::-webkit-datetime-edit-text,
+#birthDate.inp::-webkit-datetime-edit-year-field,
+#birthDate.inp::-webkit-datetime-edit-month-field,
+#birthDate.inp::-webkit-datetime-edit-day-field {
+  color: #2d2438 !important;
+  -webkit-text-fill-color: #2d2438 !important;
+}
+
+body.neo-mode #birthDate.inp::-webkit-date-and-time-value,
+body.neo-mode #birthDate.inp::-webkit-datetime-edit,
+body.neo-mode #birthDate.inp::-webkit-datetime-edit-text,
+body.neo-mode #birthDate.inp::-webkit-datetime-edit-year-field,
+body.neo-mode #birthDate.inp::-webkit-datetime-edit-month-field,
+body.neo-mode #birthDate.inp::-webkit-datetime-edit-day-field {
+  color: rgba(240, 232, 220, 0.95) !important;
+  -webkit-text-fill-color: rgba(240, 232, 220, 0.95) !important;
+}
+
 /* ═══════════════════════════════════════════════════════════
    ★ font-display: swap 폴백
    (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)

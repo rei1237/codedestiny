@@ -648,11 +648,10 @@ function setThemeToggleEnabled(enabled){
 
 function scheduleThemeToggleAutoDisable(){
   setThemeToggleEnabled(true);
-  if(_themeToggleHideTimer) clearTimeout(_themeToggleHideTimer);
-  _themeToggleHideTimer = setTimeout(function(){
+  if(_themeToggleHideTimer) {
+    clearTimeout(_themeToggleHideTimer);
     _themeToggleHideTimer = null;
-    setThemeToggleEnabled(false);
-  }, 30000); // 로딩 후 30초 지나면 꽃돼지/백사자 토글 숨김
+  }
 }
 
 function isHomePageVisible(){
