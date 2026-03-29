@@ -317,44 +317,6 @@
 
   .field-gap { margin-top: 32px; }
 
-  .api-config {
-    margin-top: 28px;
-    padding: 16px 18px;
-    border: 1px solid rgba(212,168,67,0.2);
-    border-radius: 14px;
-    background: rgba(5,3,15,0.45);
-  }
-  .api-config-label {
-    display: block;
-    font-family: 'Cinzel', serif;
-    font-size: 0.65rem;
-    color: var(--gold);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .api-key-input {
-    width: 100%;
-    background: rgba(5,3,15,0.75);
-    border: 1px solid rgba(212,168,67,0.26);
-    border-radius: 10px;
-    color: var(--text-primary);
-    font-family: 'Lora', serif;
-    font-size: 0.9rem;
-    padding: 11px 12px;
-    outline: none;
-  }
-  .api-key-input:focus {
-    border-color: rgba(212,168,67,0.58);
-    box-shadow: 0 0 0 3px rgba(212,168,67,0.12);
-  }
-  .api-note {
-    margin-top: 8px;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    line-height: 1.5;
-  }
-
   .music-panel {
     margin-top: 24px;
     border-radius: 16px;
@@ -404,6 +366,36 @@
     color: var(--text-secondary);
     font-size: 0.82rem;
     line-height: 1.6;
+  }
+  .music-chip-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+  .music-chip {
+    border: 1px solid rgba(212,168,67,0.22);
+    background: rgba(6,3,16,0.7);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .music-chip:hover,
+  .music-chip.active {
+    color: var(--gold-pale);
+    border-color: rgba(240,200,74,0.52);
+    background: rgba(212,168,67,0.12);
+  }
+  .music-now-playing {
+    margin: 0 0 10px;
+    color: var(--gold-pale);
+    font-size: 0.78rem;
+    line-height: 1.4;
   }
   .music-player-wrap {
     position: relative;
@@ -897,8 +889,8 @@
     <h1 class="header-title">Divya Yoga</h1>
     <p class="header-subtitle">Sacred Practice Portal · 신성한 수련의 문</p>
     <div class="divider-ornament"><span>✦</span></div>
-    <p style="font-size:0.9rem; color:var(--text-muted); font-style:italic; max-width:480px; margin:0 auto; line-height:1.8;">
-      수천 년의 힌두 신화와 현대 요가의 지혜가 만나는 곳.<br>신들의 에너지를 빌려, 오늘 당신만을 위한 영적 여정이 펼쳐집니다.
+    <p style="font-size:0.9rem; color:var(--text-muted); font-style:italic; max-width:520px; margin:0 auto; line-height:1.8;">
+      밤하늘의 사원 문이 열리면, 숨결은 만트라가 되고 몸은 별자리의 리듬을 닮아갑니다.<br>고요한 신들의 결을 따라 오늘의 영혼에 맞는 수련 의식을 시작하세요.
     </p>
   </header>
 
@@ -929,22 +921,18 @@
         </div>
       </div>
 
-      <div class="api-config">
-        <label class="api-config-label" for="geminiApiKeyInput">Gemini API Key (브라우저 저장)</label>
-        <input id="geminiApiKeyInput" class="api-key-input" type="password" autocomplete="off" placeholder="AIza... 형식 키를 입력하세요">
-        <div class="api-note">입력한 키는 이 브라우저 로컬 저장소에만 저장됩니다. 서버로 키를 보관하지 않습니다.</div>
-      </div>
-
       <div class="music-panel" id="musicPanel">
         <button class="music-toggle" type="button" id="musicToggleBtn" aria-expanded="false" aria-controls="musicContent">
           <div>
-            <strong>ॐ 인디아 명상 플레이리스트</strong>
-            <small>YouTube IFrame API · CC/저작권 걱정 적은 명상 트랙 큐레이션</small>
+            <strong>ॐ Theta Sanctuary Playlist</strong>
+            <small>YouTube 기반 테타 명상 사운드 · 열고 닫으며 자유롭게 선택</small>
           </div>
           <span class="music-chevron" aria-hidden="true">▾</span>
         </button>
         <div class="music-content" id="musicContent">
-          <p class="music-meta">호흡 준비 시에 틀어두기 좋은 인도풍 명상 배경음입니다. 필요할 때 열고 닫아 수련 몰입도를 조절할 수 있습니다.</p>
+          <p class="music-meta">수련 전후 집중을 돕는 Theta 계열 명상 트랙을 모았습니다. 마음 상태에 맞는 채널을 골라 의식처럼 재생해 보세요.</p>
+          <div class="music-chip-row" id="musicPlaylistChips"></div>
+          <p class="music-now-playing" id="musicNowPlaying">현재 재생 목록: 준비 중...</p>
           <div class="music-player-wrap" id="musicPlayerWrap"></div>
         </div>
       </div>
@@ -982,83 +970,67 @@
 
 <script>
 let selectedDuration = null;
-let youtubeApiReady = false;
-let youtubePlayer = null;
-const YOGA_GEMINI_STORAGE_KEY = 'divyaYogaGeminiApiKey';
-const YT_PLAYLIST_VIDEO_IDS = [
-  '5qap5aO4i9A',
-  'jfKfPfyJRdk',
-  'DWcJFNfaw9c',
-  'n61ULEU7CO0',
-  'hlWiI4xVXKY'
+const THETA_PLAYLISTS = [
+  { label: 'Theta Temple Breath', query: 'theta waves meditation music copyright free 432hz indian ambient' },
+  { label: 'Lotus Deep Focus', query: 'theta frequency healing meditation no copyright yoga music' },
+  { label: 'Chakra Night River', query: 'chakra theta meditation music royalty free relaxing background' },
+  { label: 'Mantra & Bowls', query: 'tibetan bowls theta meditation royalty free music' },
+  { label: 'Silent Astral Flow', query: 'deep theta sleep meditation no copyright ambient drone' }
 ];
+let currentPlaylistIndex = 0;
 
 function initPageState() {
-  const cachedKey = localStorage.getItem(YOGA_GEMINI_STORAGE_KEY) || '';
-  const keyInput = document.getElementById('geminiApiKeyInput');
-  keyInput.value = cachedKey;
-  keyInput.addEventListener('change', () => {
-    localStorage.setItem(YOGA_GEMINI_STORAGE_KEY, keyInput.value.trim());
-  });
+  renderPlaylistButtons();
 
   const panel = document.getElementById('musicPanel');
   const btn = document.getElementById('musicToggleBtn');
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', () => {
     const nextOpen = !panel.classList.contains('open');
     panel.classList.toggle('open', nextOpen);
     btn.setAttribute('aria-expanded', String(nextOpen));
     if (nextOpen) {
-      await ensureYoutubePlayer();
+      ensurePlaylistFrameLoaded();
     }
   });
 }
 
-function ensureYoutubeApiLoaded() {
-  if (youtubeApiReady) return Promise.resolve();
-  if (window.YT && window.YT.Player) {
-    youtubeApiReady = true;
-    return Promise.resolve();
+function renderPlaylistButtons() {
+  const chipsRoot = document.getElementById('musicPlaylistChips');
+  if (!chipsRoot) return;
+  chipsRoot.innerHTML = THETA_PLAYLISTS.map((item, idx) => {
+    const activeClass = idx === currentPlaylistIndex ? ' active' : '';
+    return `<button type="button" class="music-chip${activeClass}" data-playlist-idx="${idx}">${escapeHtml(item.label)}</button>`;
+  }).join('');
+
+  chipsRoot.querySelectorAll('.music-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const idx = Number(chip.getAttribute('data-playlist-idx'));
+      if (!Number.isFinite(idx)) return;
+      currentPlaylistIndex = idx;
+      renderPlaylistButtons();
+      loadYoutubeSearchPlaylist(currentPlaylistIndex);
+    });
+  });
+}
+
+function ensurePlaylistFrameLoaded() {
+  const wrap = document.getElementById('musicPlayerWrap');
+  if (!wrap) return;
+  if (wrap.querySelector('iframe')) return;
+  loadYoutubeSearchPlaylist(currentPlaylistIndex);
+}
+
+function loadYoutubeSearchPlaylist(idx) {
+  const item = THETA_PLAYLISTS[idx] || THETA_PLAYLISTS[0];
+  const wrap = document.getElementById('musicPlayerWrap');
+  const nowPlaying = document.getElementById('musicNowPlaying');
+  if (!item || !wrap) return;
+
+  const src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(item.query)}&rel=0&autoplay=0&modestbranding=1&playsinline=1`;
+  wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation playlist"></iframe>`;
+  if (nowPlaying) {
+    nowPlaying.textContent = `현재 재생 목록: ${item.label}`;
   }
-
-  return new Promise((resolve, reject) => {
-    const existing = document.getElementById('yt-iframe-api');
-    if (!existing) {
-      const script = document.createElement('script');
-      script.id = 'yt-iframe-api';
-      script.src = 'https://www.youtube.com/iframe_api';
-      script.async = true;
-      script.onerror = () => reject(new Error('YouTube API 로드 실패'));
-      document.head.appendChild(script);
-    }
-
-    const timeout = setTimeout(() => {
-      reject(new Error('YouTube API 응답 지연'));
-    }, 10000);
-
-    window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
-      clearTimeout(timeout);
-      youtubeApiReady = true;
-      resolve();
-    };
-  });
-}
-
-async function ensureYoutubePlayer() {
-  if (youtubePlayer) return;
-  await ensureYoutubeApiLoaded();
-
-  youtubePlayer = new window.YT.Player('musicPlayerWrap', {
-    videoId: YT_PLAYLIST_VIDEO_IDS[0],
-    playerVars: {
-      autoplay: 0,
-      controls: 1,
-      rel: 0,
-      modestbranding: 1,
-      loop: 1,
-      playlist: YT_PLAYLIST_VIDEO_IDS.join(','),
-      playsinline: 1
-    }
-  });
 }
 
 function selectDuration(btn, duration) {
@@ -1099,31 +1071,14 @@ async function invokeGuru() {
 
   const systemPrompt = buildSystemPrompt();
   const userPrompt = buildUserPrompt(mood, selectedDuration);
-  const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
-
-  if (!apiKey) {
-    clearInterval(msgInterval);
-    document.getElementById('loadingState').classList.remove('active');
-    document.getElementById('inputSection').style.display = 'block';
-    document.getElementById('errorBox').classList.add('active');
-    document.getElementById('errorDetail').textContent = 'Gemini API 키를 먼저 입력해주세요.';
-    return;
-  }
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    const response = await fetch('/api/yoga-guru', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: userPrompt }]
-          }
-        ]
+        systemPrompt,
+        userPrompt
       })
     });
 
@@ -1131,11 +1086,11 @@ async function invokeGuru() {
 
     if (!response.ok) {
       const errBody = await response.text();
-      throw new Error(`Gemini API Error: ${response.status} ${errBody}`);
+      throw new Error(`요가 코스 엔진 오류: ${response.status} ${errBody}`);
     }
     const data = await response.json();
-    const raw = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) || '';
-    if (!raw) throw new Error('Gemini 응답 본문이 비어 있습니다.');
+    const raw = String(data?.text || '');
+    if (!raw) throw new Error('요가 코스 응답 본문이 비어 있습니다.');
 
     // Extract JSON
     let jsonStr = raw;
