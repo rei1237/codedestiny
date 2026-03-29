@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
+  <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
@@ -332,7 +333,10 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json?v=1.0.1" crossorigin="anonymous">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js"></script>
+<!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
+<script>
+(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=1.0.1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+</script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -340,43 +344,94 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
+<!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<!-- 보조 폰트(한국 세리프·데코)는 저우선순위 로드 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
+<!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
-  <!-- 우주의 신비감 (Cosmic UI) 적용 -->
+  <!-- ════════════════════════════════════════════════════════
+       ★ CRITICAL CSS — 인라인 (렌더블로킹 CSS 전면 제거를 위한 ATF 필수 스타일)
+       ════════════════════════════════════════════════════════ -->
+  <style id="cd-critical">
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
+body{margin:0;padding:0;background:#020617;color:#f8fafc;font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%;display:block}
+img[width][height]{height:auto}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 32px}
+@media(min-width:768px){.wrap{padding:0 24px 48px}}
+.fsn-navbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;background:rgba(2,6,23,0.92);display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;padding:0 12px}
+.logo-area{background:rgba(20,8,45,0.92);border-radius:24px;margin-bottom:16px;padding:40px 16px 36px;text-align:center}
+.logo-area h1{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:800;color:#f4eeff;margin:.5rem 0}
+.logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-top:6px}
+.pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
+.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
+.feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+[data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
+button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.card.input-section{background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
+.auth-quick-links{display:flex;justify-content:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+.auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
+.auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
+.auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
+.btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
+#sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
+.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
+  </style>
 
-
+  <!-- ════════════════════════════════════════════════════════
+       레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
+       ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
+
+    <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
+    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
+    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2">
+
+  <script src="/js/inline/api-base-init.js" defer></script>
+
+  <!-- ════════════════════════════════════════════════════════
+       모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
+       ════════════════════════════════════════════════════════ -->
   <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
+
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
+
   <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
-  <script src="/js/inline/api-base-init.js" defer></script>
+
   <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
+
   <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix"></noscript>
+
   <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
+
   <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
-  <!-- tailwind runtime CDN removed: static CSS is used -->
+
   <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
+
   <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
+
   <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
+
   <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
-    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix1">
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
@@ -480,7 +535,7 @@
     <div class="df-studio-main">
       <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
       <div class="df-studio-visual">
-        <img id="dfStudioImage" src="/fuctionassets/flower.webp" srcset="/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w" sizes="(max-width: 768px) 86vw, 420px" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" width="420" height="320">
+        <img id="dfStudioImage" class="io-lazy-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='32' viewBox='0 0 42 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%231a1630'/%3E%3Cstop offset='1' stop-color='%23272545'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='42' height='32' fill='url(%23g)'/%3E%3C/svg%3E" data-lazy-src="/fuctionassets/flower.webp" data-lazy-srcset="/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w" sizes="(max-width: 768px) 86vw, 420px" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" fetchpriority="low" width="420" height="320">
       </div>
       <article class="df-studio-insight">
         <h3 id="dfStudioName">연꽃</h3>
@@ -807,7 +862,7 @@
         <div class="pig-svg-wrap">
           <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig.webp"
             srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" decoding="async">
+            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
@@ -940,7 +995,7 @@
                 <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
                 <p class="feat-collection__lede">얼굴형·성향·사주 신호를 함께 읽어 당신의 본능 캐릭터와 관계 에너지를 한 번에 보여드립니다.</p>
-                <p class="feat-collection__featureline">AI 동물 관상 · MBTI 동물 궁합 · 애니멀 토템 · 사주로 보는 내 동물 🐾</p>
+                <p class="feat-collection__featureline">AI 동물 관상 · MBTI 동물 궁합 · 애니멀 토템 · 사주 가디언 아트</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -997,24 +1052,63 @@
                   </div>
                 </button>
 
-                <!-- 사주로 보는 나는 무슨 동물? -->
-                <button class="tarot-tile tarot-tile--saju-picture" type="button"
-                        data-action="openSajuAnimalPage"
-                        aria-label="사주로 보는 나는 무슨 동물? 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="사주로 보는 나는 무슨 동물? — AI 사주 오행 동물 이미지 생성">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐾</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--new">AI</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🐾 사주로 보는 내 동물</span>
-                    <span class="tarot-tile__desc">AI가 그려주는 나의 동물</span>
-                  </div>
-                </button>
-
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 명상 & 내면
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--meditation" aria-labelledby="fgTitleMeditation">
+          <div class="fg-group__cards">
+
+        <!-- ═══ 명상 컬렉션 (Meditation Collection Grid) ═══ -->
+        <div class="tarot-collection" id="meditationCollection" data-collection-open="false">
+          <div class="tarot-collection__cosmos" aria-hidden="true">
+            <span class="tc-star tc-star--1"></span>
+            <span class="tc-star tc-star--2"></span>
+            <span class="tc-star tc-star--3"></span>
+            <span class="tc-star tc-star--4"></span>
+            <span class="tc-star tc-star--5"></span>
+            <span class="tc-star tc-star--6"></span>
+            <span class="tc-star tc-star--7"></span>
+            <span class="tc-star tc-star--8"></span>
+          </div>
+          <button class="tarot-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="meditationCollection" aria-expanded="false" aria-label="명상 컬렉션 열기">
+            <div class="tarot-collection__icon" aria-hidden="true">🧘</div>
+            <h2 class="tarot-collection__title">명상 컬렉션</h2>
+            <p class="tarot-collection__subtitle">상상과 잠재의식으로 오늘의 에너지를 정돈해 보세요</p>
+            <p class="tarot-collection__lede">네빌 고다드 방식의 상상 명상 루틴으로 감정 상태를 안정시키고 원하는 현실에 집중할 수 있도록 안내합니다.</p>
+            <p class="tarot-collection__featureline">네빌 명상 루틴 · 집중 호흡 · 자기 암시 · 현실화 시각화</p>
+            <div class="tarot-collection__divider" aria-hidden="true">
+              <span class="tc-divider-star">✦</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-gem">◈</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-star">✦</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+          </div>
+
+          <div class="tarot-collection__grid">
+            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" aria-label="네빌 명상 시작하기">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
+                <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
+                <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🧘 네빌 명상 실습</span>
+                <span class="tarot-tile__desc">상상 창조 집중 가이드</span>
+              </div>
+            </a>
+          </div>
+        </div><!-- /meditation-collection -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--meditation -->
 
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
@@ -2478,10 +2572,10 @@
 
             <section id="animalTotemIntroStage" class="animal-totem-stage is-active">
               <div class="totem-intro-hero rounded-2xl shadow-xl overflow-hidden">
-                <div class="totem-intro-title tracking-widest">ANIMAL TOTEM RITUAL</div>
-                <p class="totem-intro-subtitle leading-relaxed text-white/95">별빛의 문을 열고 오늘의 영적 메시지를 받으세요. 원카드·3장·5장 중 마음이 이끄는 방식으로 심층 리딩을 진행할 수 있습니다.</p>
+                <div class="totem-intro-title tracking-widest">LUMINOUS TOTEM RITUAL</div>
+                <p class="totem-intro-subtitle leading-relaxed text-white/95">오로라가 흐르는 밤하늘 아래에서, 마음을 비추는 동물 토템 카드를 만나보세요. 한 장, 세 장, 다섯 장 중 지금의 감정에 맞는 리추얼을 선택할 수 있습니다.</p>
                 <div class="mt-5">
-                  <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">INVOKE MY GUIDE</button>
+                  <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">BEGIN DREAM RITUAL</button>
                 </div>
               </div>
               <div class="totem-canvas-wrap">
@@ -2493,35 +2587,35 @@
 
             <section id="animalTotemModeStage" class="animal-totem-stage totem-mode-stage">
               <div class="totem-mode-header text-center">
-                <span class="totem-mode-badge inline-block">🐾 ANIMAL TAROT</span>
-                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">리딩 방식 선택</h3>
-                <p class="totem-mode-hint mt-1">마음이 이끄는 카드 수를 골라주세요</p>
+                <span class="totem-mode-badge inline-block">✦ MYSTIC CARD CIRCLE ✦</span>
+                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">카드 의식 선택</h3>
+                <p class="totem-mode-hint mt-1">선택지 자체가 하나의 마법진이 되도록 구성했습니다</p>
               </div>
               <div class="totem-mode-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <button type="button" class="totem-mode-btn" data-mode="one" data-action="setAnimalTotemSpreadMode" data-action-args="one">
-                  <span class="totem-mode-icon">✨</span>
-                  <span class="totem-mode-content"><b>원카드 오늘의 메시지</b><br><small>한 장으로 전해지는 수호 동물의 속삭임</small></span>
+                  <span class="totem-mode-icon">☾</span>
+                  <span class="totem-mode-content"><b>Moon Single</b><br><small>한 장의 카드로 받는 오늘의 핵심 안내</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
-                  <span class="totem-mode-icon">🦉</span>
-                  <span class="totem-mode-content"><b>3카드 심층 리딩</b><br><small>과거 상처 · 현재 에너지 · 통합 방향</small></span>
+                  <span class="totem-mode-icon">✶</span>
+                  <span class="totem-mode-content"><b>Aurora Triple</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
-                  <span class="totem-mode-icon">🦋</span>
-                  <span class="totem-mode-content"><b>5카드 영성 상담</b><br><small>이성 · 감정 · 그림자 · 선물 · 다음 행동</small></span>
+                  <span class="totem-mode-icon">✧</span>
+                  <span class="totem-mode-content"><b>Constellation Five</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색</small></span>
                 </button>
               </div>
               <div class="totem-result-actions totem-mode-actions flex flex-wrap justify-center gap-3 mt-6">
-                <button type="button" class="totem-btn totem-btn--spread px-6 py-3 rounded-xl" data-action="drawAnimalTotemSpread">🃏 카드 펼치기</button>
+                <button type="button" class="totem-btn totem-btn--spread px-6 py-3 rounded-xl" data-action="drawAnimalTotemSpread">✦ 카드 소환하기</button>
                 <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="resetAnimalTotemFlow">↺ 처음으로</button>
               </div>
             </section>
 
             <section id="animalTotemDrawStage" class="animal-totem-stage totem-draw-stage">
               <div class="totem-draw-header-wrap text-center mb-6">
-                <span class="totem-draw-badge">🌿 TOTEM CARD</span>
-                <h3 class="totem-draw-header text-lg font-semibold mt-2">카드를 순서대로 뒤집어 영적 메시지를 받으세요</h3>
-                <p class="totem-draw-hint mt-1 text-white/70">탭하여 뒤집기</p>
+                <span class="totem-draw-badge">ARCANA FLIP RITUAL</span>
+                <h3 class="totem-draw-header text-lg font-semibold mt-2">세로형 타로 카드를 순서대로 뒤집어 빛의 메시지를 받으세요</h3>
+                <p class="totem-draw-hint mt-1 text-white/70">부드러운 3D 플립으로 카드가 열립니다</p>
               </div>
               <div class="totem-stump-wrap" inert>
                 <div id="animalTotemCardRail" class="totem-card-grid totem-card-grid--organic gap-4 md:gap-6"></div>
@@ -2531,7 +2625,7 @@
             <section id="animalTotemResultStage" class="animal-totem-stage totem-result-stage">
               <div class="totem-result-container max-w-2xl mx-auto flex flex-col gap-6">
                 <header class="totem-result-header">
-                  <h2 class="totem-result-title text-2xl md:text-3xl font-extrabold tracking-wide">Today's Animal Totem Message</h2>
+                  <h2 class="totem-result-title text-2xl md:text-3xl font-extrabold tracking-wide">Your Dreaming Animal Wisdom</h2>
                   <div id="animalTotemFlowStrip" class="totem-flow-strip totem-flow-strip--compact mt-4 rounded-2xl" aria-live="polite"></div>
                 </header>
                 <div class="totem-result-card-section flex justify-center">
@@ -2539,19 +2633,19 @@
                 </div>
                 <div class="totem-result-content space-y-5">
                   <article class="totem-panel-float totem-panel-float--opening rounded-2xl p-6 shadow-lg">
-                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">오라클 서문</h4>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">Ritual Prelude</h4>
                     <p id="animalTotemOpeningText" class="leading-relaxed"></p>
                   </article>
                   <div id="animalTotemReadingPanels" class="totem-consult-list space-y-5"></div>
                   <article class="totem-panel-float totem-panel-float--closing rounded-2xl p-6 shadow-lg">
-                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">마무리 인도문</h4>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">Healing Closing</h4>
                     <p id="animalTotemClosingText" class="leading-relaxed"></p>
                   </article>
                 </div>
                 <div class="totem-result-actions flex flex-wrap justify-center gap-3 mt-6">
-                  <button type="button" class="totem-btn px-6 py-3 rounded-xl" data-action="shareAnimalTotemResult">💬 카카오톡 공유하기</button>
-                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="resetAnimalTotemFlow">🔄 다시 리딩하기</button>
-                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="closeAnimalTotemModal">🏠 홈화면 바로가기</button>
+                  <button type="button" class="totem-btn px-6 py-3 rounded-xl" data-action="shareAnimalTotemResult">💬 카카오톡에 별빛 공유</button>
+                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="resetAnimalTotemFlow">🔄 리추얼 다시 시작</button>
+                  <button type="button" class="totem-btn totem-btn--subtle px-5 py-2.5 rounded-xl" data-action="closeAnimalTotemModal">🏠 홈으로 돌아가기</button>
                 </div>
               </div>
             </section>
@@ -3262,7 +3356,7 @@
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260329h"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260329m1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -3379,10 +3473,13 @@
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
+<script src="/js/io-image-lazy-loader.js" defer></script>
 <script src="/js/noncritical-defer-loader.js" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
+<!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
+<script src="/js/cd-aria-modal-manager.js" defer></script>
 <script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>

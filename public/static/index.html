@@ -995,7 +995,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <h3 class="feat-collection__title">동물 &amp; 관상 컬렉션</h3>
                 <p class="feat-collection__subtitle">당신 안에 잠든 야생의 본성을 깨워보세요</p>
                 <p class="feat-collection__lede">얼굴형·성향·사주 신호를 함께 읽어 당신의 본능 캐릭터와 관계 에너지를 한 번에 보여드립니다.</p>
-                <p class="feat-collection__featureline">AI 동물 관상 · MBTI 동물 궁합 · 애니멀 토템 · 사주로 보는 내 동물 🐾</p>
+                <p class="feat-collection__featureline">AI 동물 관상 · MBTI 동물 궁합 · 애니멀 토템 · 사주 가디언 아트</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -1052,24 +1052,63 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   </div>
                 </button>
 
-                <!-- 사주로 보는 나는 무슨 동물? -->
-                <button class="tarot-tile tarot-tile--saju-picture" type="button"
-                        data-action="openSajuAnimalPage"
-                        aria-label="사주로 보는 나는 무슨 동물? 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="사주로 보는 나는 무슨 동물? — AI 사주 오행 동물 이미지 생성">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐾</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--new">AI</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🐾 사주로 보는 내 동물</span>
-                    <span class="tarot-tile__desc">AI가 그려주는 나의 동물</span>
-                  </div>
-                </button>
-
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 명상 & 내면
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--meditation" aria-labelledby="fgTitleMeditation">
+          <div class="fg-group__cards">
+
+        <!-- ═══ 명상 컬렉션 (Meditation Collection Grid) ═══ -->
+        <div class="tarot-collection" id="meditationCollection" data-collection-open="false">
+          <div class="tarot-collection__cosmos" aria-hidden="true">
+            <span class="tc-star tc-star--1"></span>
+            <span class="tc-star tc-star--2"></span>
+            <span class="tc-star tc-star--3"></span>
+            <span class="tc-star tc-star--4"></span>
+            <span class="tc-star tc-star--5"></span>
+            <span class="tc-star tc-star--6"></span>
+            <span class="tc-star tc-star--7"></span>
+            <span class="tc-star tc-star--8"></span>
+          </div>
+          <button class="tarot-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="meditationCollection" aria-expanded="false" aria-label="명상 컬렉션 열기">
+            <div class="tarot-collection__icon" aria-hidden="true">🧘</div>
+            <h2 class="tarot-collection__title">명상 컬렉션</h2>
+            <p class="tarot-collection__subtitle">상상과 잠재의식으로 오늘의 에너지를 정돈해 보세요</p>
+            <p class="tarot-collection__lede">네빌 고다드 방식의 상상 명상 루틴으로 감정 상태를 안정시키고 원하는 현실에 집중할 수 있도록 안내합니다.</p>
+            <p class="tarot-collection__featureline">네빌 명상 루틴 · 집중 호흡 · 자기 암시 · 현실화 시각화</p>
+            <div class="tarot-collection__divider" aria-hidden="true">
+              <span class="tc-divider-star">✦</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-gem">◈</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-star">✦</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+          </div>
+
+          <div class="tarot-collection__grid">
+            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" aria-label="네빌 명상 시작하기">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
+                <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
+                <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🧘 네빌 명상 실습</span>
+                <span class="tarot-tile__desc">상상 창조 집중 가이드</span>
+              </div>
+            </a>
+          </div>
+        </div><!-- /meditation-collection -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--meditation -->
 
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
@@ -3317,7 +3356,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script src="/js/mobile-interaction-patch.js" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260329h"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260329m1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -3439,6 +3478,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script src="/js/runtime-stability.js" defer></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
+<!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
+<script src="/js/cd-aria-modal-manager.js" defer></script>
 <script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>

@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
+  <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
@@ -11,8 +12,10 @@
 <meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
-<!-- LCP: 입력 영역 로고(samba.webp) 프리로드 -->
-<link rel="preload" as="image" href="/icons/samba.webp">
+<!-- LCP: 모바일/데스크톱 분기 프리로드 -->
+<link rel="preload" as="image" href="/icons/honeypig-96.webp" imagesrcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/honeypig-130.webp" imagesrcset="/icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" imagesizes="130px" media="(min-width: 769px)" fetchpriority="high">
+<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="low">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -330,7 +333,10 @@
 <link id="pwa-manifest" rel="manifest" href="/manifest.json?v=1.0.1" crossorigin="anonymous">
 <link id="pwa-favicon" rel="icon" type="image/png" sizes="192x192" href="/icons/honeypig-192.png">
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
-<script src="/js/inline/pwa-theme-init.js"></script>
+<!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
+<script>
+(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=1.0.1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+</script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -338,35 +344,145 @@
 <meta name="apple-mobile-web-app-title" content="꿀꿀 만세력">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Noto+Sans+KR:wght@300;400;700&display=optional" media="print" onload="this.media='all'">
+<!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<!-- 보조 폰트(한국 세리프·데코)는 저우선순위 로드 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
+<!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
-  <!-- 우주의 신비감 (Cosmic UI) 적용 -->
+  <!-- ════════════════════════════════════════════════════════
+       ★ CRITICAL CSS — 인라인 (렌더블로킹 CSS 전면 제거를 위한 ATF 필수 스타일)
+       ════════════════════════════════════════════════════════ -->
+  <style id="cd-critical">
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
+body{margin:0;padding:0;background:#020617;color:#f8fafc;font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%;display:block}
+img[width][height]{height:auto}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 32px}
+@media(min-width:768px){.wrap{padding:0 24px 48px}}
+.fsn-navbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;background:rgba(2,6,23,0.92);display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;padding:0 12px}
+.logo-area{background:rgba(20,8,45,0.92);border-radius:24px;margin-bottom:16px;padding:40px 16px 36px;text-align:center}
+.logo-area h1{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:800;color:#f4eeff;margin:.5rem 0}
+.logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-top:6px}
+.pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
+.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
+.feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+[data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
+button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.card.input-section{background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
+.auth-quick-links{display:flex;justify-content:center;gap:12px;margin-top:20px;flex-wrap:wrap}
+.auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
+.auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
+.auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
+.btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
+#sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
+.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
+  </style>
 
-
+  <!-- ════════════════════════════════════════════════════════
+       레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
+       ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-  <link rel="stylesheet" href="/styles/animations.css">
     <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
+
     <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316">
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317">
+    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
+    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2">
+
   <script src="/js/inline/api-base-init.js" defer></script>
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix">
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun">
-  <!-- tailwind runtime CDN removed: static CSS is used -->
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2">
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1">
-  <link rel="stylesheet" href="/css/entertain-system.css">
-  <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-  <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix1">
-  <link id="lsd-styles-placeholder" rel="stylesheet" href="/styles/luck-sync-placeholder.css">
+
+  <!-- ════════════════════════════════════════════════════════
+       모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
+       ════════════════════════════════════════════════════════ -->
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
+
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
+
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
+
+  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
+
+  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix"></noscript>
+
+  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
+
+  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
+
+  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
+
+  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
+
+  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
+
+  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
+<style id="lsd-styles-placeholder">
+/* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
+</style>
 </head>
 <body>
-<script src="/js/inline/mobile-safe-render-init.js"></script>
+<script>
+(function () {
+  function isMobile() {
+    return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+  }
+  function isLikelyLowGpu() {
+    var dm = navigator.deviceMemory || 0;
+    var cores = navigator.hardwareConcurrency || 0;
+    var ua = (navigator.userAgent || '').toLowerCase();
+    var oldAndroid = /android\s([0-9]+)/.exec(ua);
+    var androidMajor = oldAndroid ? parseInt(oldAndroid[1], 10) : 999;
+    if (dm && dm <= 4) return true;
+    if (cores && cores <= 4) return true;
+    if (/android/.test(ua) && androidMajor <= 10) return true;
+    if (/wv\)|; wv/.test(ua)) return true;
+    return false;
+  }
+  function supportsStableWebGL() {
+    try {
+      var canvas = document.createElement('canvas');
+      var gl = canvas.getContext('webgl', { antialias: false, alpha: false }) || canvas.getContext('experimental-webgl');
+      return !!gl;
+    } catch (e) {
+      return false;
+    }
+  }
+  if (!isMobile()) return;
+  var root = document.documentElement;
+  root.classList.add('mobile-safe-render');
+  var forceLite = isLikelyLowGpu() || !supportsStableWebGL() || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (forceLite) root.classList.add('mobile-gpu-lite');
+  if (document.getElementById('mobileSafeRenderStyle')) return;
+  var st = document.createElement('style');
+  st.id = 'mobileSafeRenderStyle';
+  st.textContent = '' +
+    '.mobile-safe-render .saju-book,.mobile-safe-render .saju-vortex,.mobile-safe-render .orb,.mobile-safe-render .feature-card,.mobile-safe-render .dw-item,.mobile-safe-render .ts-card,.mobile-safe-render .tarot-card,.mobile-safe-render .oracle-card-m{will-change:auto !important;}' +
+    '.mobile-safe-render .feature-card:hover .feature-card__img{transform:none !important;}' +
+    '.mobile-safe-render .tarot-focus-overlay,.mobile-safe-render .astral-modal-overlay{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}' +
+    '.mobile-safe-render .tarot-healing-overlay,.mobile-safe-render .tarot-year-overlay{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}' +
+    '.mobile-gpu-lite .card,.mobile-gpu-lite .theme-switch-wrapper,.mobile-gpu-lite .astral-ritual-bar,.mobile-gpu-lite .dp-sheet,.mobile-gpu-lite .dp-toast,.mobile-gpu-lite .result-box{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}' +
+    '.mobile-gpu-lite .smoke-layer,.mobile-gpu-lite .flickering-lamp,.mobile-gpu-lite .saju-vortex,.mobile-gpu-lite .saju-vortex::before,.mobile-gpu-lite .saju-vortex::after{animation:none !important;filter:none !important;}' +
+    '.mobile-gpu-lite .totem-card,.mobile-gpu-lite .feature-card,.mobile-gpu-lite .result-box,.mobile-gpu-lite .dp-sheet{box-shadow:0 2px 10px rgba(0,0,0,0.28) !important;}' +
+    '.mobile-gpu-lite .orb,.mobile-gpu-lite .ritual-particle,.mobile-gpu-lite .q-back-element-emoji,.mobile-gpu-lite .cs-class-icon{display:none !important;}';
+  document.head.appendChild(st);
+})();
+</script>
 
 <!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
 <div class="cosmic-bg" aria-hidden="true">
@@ -419,7 +535,7 @@
     <div class="df-studio-main">
       <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
       <div class="df-studio-visual">
-        <img id="dfStudioImage" src="/fuctionassets/flower.webp" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" width="420" height="320">
+        <img id="dfStudioImage" class="io-lazy-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='32' viewBox='0 0 42 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%231a1630'/%3E%3Cstop offset='1' stop-color='%23272545'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='42' height='32' fill='url(%23g)'/%3E%3C/svg%3E" data-lazy-src="/fuctionassets/flower.webp" data-lazy-srcset="/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w" sizes="(max-width: 768px) 86vw, 420px" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" fetchpriority="low" width="420" height="320">
       </div>
       <article class="df-studio-insight">
         <h3 id="dfStudioName">연꽃</h3>
@@ -744,16 +860,18 @@
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img class="honeypig-logo-icon" src="/icons/honeypig.webp"
-               width="130" height="130" alt="꿀꿀 연이 로고" loading="lazy" decoding="async">
+          <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig.webp"
+            srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
+            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
         </div>
         <h1>연이의 꿀꿀 운세 플랫폼</h1>
         <p>타고난 운명의 지도를 펼쳐보세요</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img class="neo-logo-icon" src="/icons/samba.webp"
-               width="130" height="130" alt="쌈바 모드 로고" fetchpriority="high" decoding="async">
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp"
+            srcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w" sizes="(max-width: 768px) 88px, 130px"
+            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -934,24 +1052,63 @@
                   </div>
                 </button>
 
-                <!-- 사주 분석 기반 파스텔 동물 아트 -->
-                <button class="tarot-tile tarot-tile--saju-picture" type="button"
-                        data-action="openSajuAnimalPage"
-                        aria-label="생년월일 가디언 AI 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who%20am%20I%20with%20saju.webp" data-img-alt="사주로 보는 나는 무슨 동물? — AI 사주 오행 동물 이미지 생성">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎨</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--new">AI</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🎨 사주로 볼때 나는 무슨 동물?</span>
-                    <span class="tarot-tile__desc">AI 오행 기반 동물 이미지 생성</span>
-                  </div>
-                </button>
-
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--animal -->
+
+        <!-- ══════════════════════════════════════
+             GROUP: 명상 & 내면
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--meditation" aria-labelledby="fgTitleMeditation">
+          <div class="fg-group__cards">
+
+        <!-- ═══ 명상 컬렉션 (Meditation Collection Grid) ═══ -->
+        <div class="tarot-collection" id="meditationCollection" data-collection-open="false">
+          <div class="tarot-collection__cosmos" aria-hidden="true">
+            <span class="tc-star tc-star--1"></span>
+            <span class="tc-star tc-star--2"></span>
+            <span class="tc-star tc-star--3"></span>
+            <span class="tc-star tc-star--4"></span>
+            <span class="tc-star tc-star--5"></span>
+            <span class="tc-star tc-star--6"></span>
+            <span class="tc-star tc-star--7"></span>
+            <span class="tc-star tc-star--8"></span>
+          </div>
+          <button class="tarot-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="meditationCollection" aria-expanded="false" aria-label="명상 컬렉션 열기">
+            <div class="tarot-collection__icon" aria-hidden="true">🧘</div>
+            <h2 class="tarot-collection__title">명상 컬렉션</h2>
+            <p class="tarot-collection__subtitle">상상과 잠재의식으로 오늘의 에너지를 정돈해 보세요</p>
+            <p class="tarot-collection__lede">네빌 고다드 방식의 상상 명상 루틴으로 감정 상태를 안정시키고 원하는 현실에 집중할 수 있도록 안내합니다.</p>
+            <p class="tarot-collection__featureline">네빌 명상 루틴 · 집중 호흡 · 자기 암시 · 현실화 시각화</p>
+            <div class="tarot-collection__divider" aria-hidden="true">
+              <span class="tc-divider-star">✦</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-gem">◈</span>
+              <span class="tc-divider-line"></span>
+              <span class="tc-divider-star">✦</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+          </div>
+
+          <div class="tarot-collection__grid">
+            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" aria-label="네빌 명상 시작하기">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
+                <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
+                <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🧘 네빌 명상 실습</span>
+                <span class="tarot-tile__desc">상상 창조 집중 가이드</span>
+              </div>
+            </a>
+          </div>
+        </div><!-- /meditation-collection -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--meditation -->
 
         <!-- ══════════════════════════════════════
              GROUP: 타로 & 카드
@@ -2561,7 +2718,6 @@
       </div>
     </section>
 
-<script src="/js/oracle-kcg.js" defer></script>
       </div> <!-- /padding:20px -->
     </div> <!-- /kemetOracleOverlay -->
     <!-- ═══ 이집트 신탁 운세 끝 ═══ -->
@@ -3196,22 +3352,22 @@
     </nav>
   </footer>
 
-<script src="/js/destiny-profile.js" defer></script>
+<script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
 <script src="/js/mobile-interaction-patch.js" defer></script>
-<script src="/js/services/sajuService.js" defer></script>
-<script src="/js/core/saju/modalProfileState.js" defer></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260329h"></script>
-<script src="/js/admin-flower.js" defer></script>
+<script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260329m1"></script>
+<script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
-<script src="/js/share.js?v=2026-03-23-v2-cachefix1" defer></script>
+<script data-cd-noncritical-src="/js/share.js?v=2026-03-23-v2-cachefix1"></script>
 
-<script src="/js/iching-engine.js" defer></script>
+<script data-cd-noncritical-src="/js/iching-engine.js"></script>
 
-<script src="/js/iching-modal.js?v=20260321-sukuyo-scroll2" defer></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=20260321-sukuyo-scroll2"></script>
 
 <!-- 구글 번역 스크립트: 사용자 의도 기반 지연 로드 -->
-<script src="/js/cd-google-translate-lazy.js" defer></script>
+<script data-cd-noncritical-src="/js/cd-google-translate-lazy.js" data-cd-skip-save-data="1"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
 
@@ -3258,9 +3414,9 @@
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/fate-scroll-reveal.js" defer></script>
-<script src="/js/fate-scroll-top.js" defer></script>
-<script src="/js/fsn-navbar.js" defer></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
+<script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
@@ -3317,20 +3473,22 @@
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
-<script src="/js/image-fallback.js" defer></script>
+<script src="/js/io-image-lazy-loader.js" defer></script>
+<script src="/js/noncritical-defer-loader.js" defer></script>
+<script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script src="/js/touch-perf.js" defer></script>
+<script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
+<!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
+<script src="/js/cd-aria-modal-manager.js" defer></script>
 <script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
-<script src="/js/cd-web-vitals-console-gated.js" defer></script>
-
+<script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 </body>
 </html>
-
 
 
 
