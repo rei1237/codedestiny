@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+declare global {
+  interface Window {
+    CODE_DESTINY_API_BASE_URL?: string;
+  }
+}
+
 type SignupFormState = {
   name: string;
   email: string;
@@ -60,10 +66,17 @@ export default function SignupPage() {
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
 
-  const apiBase = useMemo(
-    () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
-    [],
-  );
+  const apiBase = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (typeof window !== "undefined") {
+      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        return "http://localhost:4000";
+      }
+      return window.location.origin;
+    }
+    return "http://localhost:4000";
+  }, []);
 
   const endpoint = `${apiBase}/api/auth/register`;
   const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
