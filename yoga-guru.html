@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Divya Yoga — Sacred Practice Portal</title>
+<script src="/js/inline/api-base-init.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -396,6 +397,22 @@
     color: var(--gold-pale);
     font-size: 0.78rem;
     line-height: 1.4;
+  }
+  .music-open-link {
+    display: inline-flex;
+    margin: 0 0 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,168,67,0.3);
+    background: rgba(8,4,18,0.65);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+  .music-open-link:hover {
+    color: var(--gold-pale);
+    border-color: rgba(240,200,74,0.58);
   }
   .music-player-wrap {
     position: relative;
@@ -979,6 +996,19 @@ const THETA_PLAYLISTS = [
 ];
 let currentPlaylistIndex = 0;
 
+function resolveApiBase() {
+  const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
+    ? String(window.__ENV__.NEXT_PUBLIC_API_BASE_URL)
+    : '';
+  const fromCf = window.__CF_PAGES_API_BASE_URL ? String(window.__CF_PAGES_API_BASE_URL) : '';
+  const fromMeta = (function() {
+    const node = document.querySelector('meta[name="cd:api-base"]');
+    return node ? String(node.getAttribute('content') || '') : '';
+  })();
+  const picked = fromEnv || fromCf || fromMeta || window.location.origin;
+  return picked.replace(/\/$/, '');
+}
+
 function initPageState() {
   renderPlaylistButtons();
 
@@ -1026,10 +1056,26 @@ function loadYoutubeSearchPlaylist(idx) {
   const nowPlaying = document.getElementById('musicNowPlaying');
   if (!item || !wrap) return;
 
-  const src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(item.query)}&rel=0&autoplay=0&modestbranding=1&playsinline=1`;
+  const src = `https://www.youtube-nocookie.com/embed/videoseries?listType=search&list=${encodeURIComponent(item.query)}&rel=0&autoplay=0&modestbranding=1&playsinline=1`;
+  const openHref = `https://www.youtube.com/results?search_query=${encodeURIComponent(item.query)}`;
   wrap.innerHTML = `<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${src}" title="Theta meditation playlist"></iframe>`;
   if (nowPlaying) {
-    nowPlaying.textContent = `현재 재생 목록: ${item.label}`;
+    nowPlaying.textContent = `현재 재생 목록: ${item.label} (재생이 막히면 아래 링크로 바로 듣기)`;
+  }
+
+  const existingLink = document.getElementById('musicOpenLink');
+  if (existingLink) {
+    existingLink.setAttribute('href', openHref);
+  } else {
+    const link = document.createElement('a');
+    link.id = 'musicOpenLink';
+    link.className = 'music-open-link';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.href = openHref;
+    link.textContent = 'YouTube에서 바로 열기';
+    const content = document.getElementById('musicContent');
+    if (content) content.insertBefore(link, wrap);
   }
 }
 
@@ -1048,6 +1094,7 @@ const loadingMessages = [
 ];
 
 async function invokeGuru() {
+  const invokeBtn = document.getElementById('invokeBtn');
   const mood = document.getElementById('moodInput').value.trim();
   if (!mood) {
     alert('구루에게 현재 상태를 알려주세요.');
@@ -1061,6 +1108,7 @@ async function invokeGuru() {
   document.getElementById('errorBox').classList.remove('active');
   document.getElementById('inputSection').style.display = 'none';
   document.getElementById('loadingState').classList.add('active');
+  if (invokeBtn) invokeBtn.disabled = true;
 
   // Cycle loading messages
   let msgIdx = 0;
@@ -1073,14 +1121,18 @@ async function invokeGuru() {
   const userPrompt = buildUserPrompt(mood, selectedDuration);
 
   try {
-    const response = await fetch('/api/yoga-guru', {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 35000);
+    const response = await fetch(`${resolveApiBase()}/api/yoga-guru`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         systemPrompt,
         userPrompt
       })
     });
+    clearTimeout(timeoutId);
 
     clearInterval(msgInterval);
 
@@ -1110,7 +1162,11 @@ async function invokeGuru() {
     document.getElementById('loadingState').classList.remove('active');
     document.getElementById('inputSection').style.display = 'block';
     document.getElementById('errorBox').classList.add('active');
-    document.getElementById('errorDetail').textContent = err.message;
+    document.getElementById('errorDetail').textContent = (err && err.name === 'AbortError')
+      ? '요가 코스 엔진 응답이 지연되어 시간 초과되었습니다. 잠시 후 다시 시도해주세요.'
+      : (err && err.message ? err.message : '알 수 없는 오류가 발생했습니다.');
+  } finally {
+    if (invokeBtn) invokeBtn.disabled = false;
   }
 }
 
