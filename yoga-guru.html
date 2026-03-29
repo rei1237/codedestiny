@@ -505,6 +505,37 @@
     pointer-events: none;
     background: radial-gradient(ellipse 65% 48% at 50% 0%, rgba(212,168,67,0.08), transparent 70%);
   }
+  .course-music-dock {
+    position: sticky;
+    top: 10px;
+    z-index: 40;
+    margin: 0 0 14px;
+  }
+  .music-panel.mini-top {
+    border-radius: 14px;
+    border-color: rgba(212,168,67,0.34);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+    background: linear-gradient(145deg, rgba(10,6,24,0.94), rgba(24,12,40,0.9));
+  }
+  .music-panel.mini-top .music-toggle {
+    padding: 10px 12px;
+  }
+  .music-panel.mini-top .music-toggle strong {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+  }
+  .music-panel.mini-top .music-toggle small {
+    font-size: 0.64rem;
+    margin-top: 2px;
+  }
+  .music-panel.mini-top .music-content {
+    padding: 0 12px 12px;
+  }
+  .music-panel.mini-top .music-chip {
+    font-size: 0.66rem;
+    padding: 7px 10px;
+  }
+
   .practice-label {
     font-family: 'Cinzel', serif;
     letter-spacing: 0.2em;
@@ -525,6 +556,62 @@
     line-height: 1.7;
     margin-bottom: 16px;
   }
+  .auto-guide-wrap {
+    border: 1px solid rgba(212,168,67,0.23);
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(6,4,14,0.78), rgba(22,8,32,0.86));
+    overflow: hidden;
+    position: relative;
+  }
+  .auto-guide-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 55% 40% at 50% 0%, rgba(212,168,67,0.09), transparent 72%);
+  }
+  .auto-guide-head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid rgba(212,168,67,0.16);
+  }
+  .auto-guide-head strong {
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--gold-pale);
+    text-transform: uppercase;
+  }
+  .auto-guide-head span {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+  }
+  .auto-guide-progress {
+    position: relative;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+  }
+  .auto-guide-progress > i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, rgba(240,200,74,0.5), rgba(196,90,138,0.66), rgba(45,191,189,0.56));
+    box-shadow: 0 0 14px rgba(212,168,67,0.35);
+  }
+  .auto-guide-progress > i.running {
+    animation-name: yogaGuideProgress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes yogaGuideProgress {
+    from { width: 0; }
+    to { width: 100%; }
+  }
   .typing-console {
     border: 1px solid rgba(212,168,67,0.2);
     border-radius: 16px;
@@ -537,7 +624,9 @@
     font-size: 0.92rem;
     line-height: 1.8;
     white-space: pre-wrap;
-    margin-bottom: 14px;
+    margin: 0;
+    position: relative;
+    z-index: 2;
   }
   .typing-console .cursor {
     display: inline-block;
@@ -548,25 +637,12 @@
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0; }
   }
-  .practice-controls {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .practice-btn {
-    border: 1px solid rgba(240,200,74,0.32);
-    background: rgba(8,4,18,0.74);
-    color: var(--gold-pale);
-    border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    text-transform: uppercase;
-  }
-  .practice-btn:hover {
-    border-color: rgba(240,200,74,0.62);
-    background: rgba(212,168,67,0.16);
+  .guide-finish-note {
+    margin-top: 14px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
   }
 
   /* === INVOKE BUTTON === */
@@ -891,6 +967,15 @@
     position: relative;
     overflow: hidden;
   }
+  .closing-mantra::after {
+    content: '✦ ✧ ✦';
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    color: rgba(245,224,144,0.4);
+    letter-spacing: 0.2em;
+    font-size: 0.7rem;
+  }
   .closing-mantra::before {
     content: '';
     position: absolute; inset: 0;
@@ -1164,6 +1249,24 @@ const SACRED_SOUND_PLAYLISTS = [
     harmonicRatio: 2,
     lfoHz: 0.055,
     noiseAmount: 0.016
+  },
+  {
+    label: 'Theta Tranquil Gate',
+    tone: '세타 6Hz 양이 공명',
+    rootHz: 210,
+    harmonicRatio: 1.2,
+    lfoHz: 0.06,
+    noiseAmount: 0.009,
+    thetaBeatHz: 6
+  },
+  {
+    label: 'Theta Cave 4Hz',
+    tone: '초저속 세타 4Hz 명상',
+    rootHz: 188,
+    harmonicRatio: 1.4,
+    lfoHz: 0.05,
+    noiseAmount: 0.008,
+    thetaBeatHz: 4
   }
 ];
 let currentPlaylistIndex = 0;
@@ -1175,6 +1278,8 @@ let typingLines = [];
 let typingLineIdx = 0;
 let typingCharIdx = 0;
 let typingPauseMode = false;
+let typingCharIntervalMs = 36;
+let typingTotalDurationMs = 0;
 
 function resolveApiBase() {
   const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
@@ -1289,6 +1394,16 @@ function stopGeneratedMusic() {
   if (sacredAudioNodes.masterGain) {
     try { sacredAudioNodes.masterGain.disconnect(); } catch (_) {}
   }
+  if (Array.isArray(sacredAudioNodes.extra)) {
+    sacredAudioNodes.extra.forEach((node) => {
+      try {
+        if (typeof node.stop === 'function') node.stop();
+      } catch (_) {}
+      try {
+        if (typeof node.disconnect === 'function') node.disconnect();
+      } catch (_) {}
+    });
+  }
   sacredAudioNodes = null;
 }
 
@@ -1359,6 +1474,40 @@ async function startGeneratedMusic() {
   filterLfo.connect(filterDepth);
   filterDepth.connect(filter.frequency);
 
+  const stereoNodes = [];
+  if (Number.isFinite(preset.thetaBeatHz) && preset.thetaBeatHz > 0) {
+    const thetaCarrier = Math.max(120, Number(preset.rootHz || 180));
+    const thetaSpread = preset.thetaBeatHz / 2;
+    const leftOsc = ctx.createOscillator();
+    leftOsc.type = 'sine';
+    leftOsc.frequency.value = thetaCarrier - thetaSpread;
+    const rightOsc = ctx.createOscillator();
+    rightOsc.type = 'sine';
+    rightOsc.frequency.value = thetaCarrier + thetaSpread;
+
+    const leftGain = ctx.createGain();
+    leftGain.gain.value = 0.045;
+    const rightGain = ctx.createGain();
+    rightGain.gain.value = 0.045;
+
+    const leftPan = ctx.createStereoPanner();
+    leftPan.pan.value = -0.72;
+    const rightPan = ctx.createStereoPanner();
+    rightPan.pan.value = 0.72;
+
+    leftOsc.connect(leftGain);
+    leftGain.connect(leftPan);
+    leftPan.connect(filter);
+
+    rightOsc.connect(rightGain);
+    rightGain.connect(rightPan);
+    rightPan.connect(filter);
+
+    leftOsc.start();
+    rightOsc.start();
+    stereoNodes.push(leftOsc, rightOsc, leftGain, rightGain, leftPan, rightPan);
+  }
+
   rootOsc.start();
   harmonicOsc.start();
   noiseSource.start();
@@ -1370,7 +1519,8 @@ async function startGeneratedMusic() {
     sources: [noiseSource],
     gains: [baseGain, secondaryGain, noiseGain, lfoDepth, filterDepth],
     filter,
-    masterGain
+    masterGain,
+    extra: stereoNodes
   };
 
   musicPlaying = true;
@@ -1421,21 +1571,23 @@ function playRelativeMusic(offset) {
 
 function buildTypingLines(courseData) {
   const lines = [];
-  lines.push('구루의 맞춤 수련이 완성되었습니다. 먼저 숨을 고르고, 이어지는 문장을 천천히 따라가세요.');
-  lines.push('지금 재생 시작을 누르면 생성형 무저작권 사운드가 흐르며, 그 위에 동작 안내가 타이핑됩니다.');
+  lines.push('수련이 시작됩니다. 몸의 긴장을 놓고, 화면의 유도 문장을 호흡 속도에 맞춰 따라가세요.');
+  lines.push('지금부터 안내 문장은 자동으로 흘러가며, 전체 속도는 선택한 수련 시간에 맞춰 조정됩니다.');
 
   const steps = Array.isArray(courseData?.sequence) ? courseData.sequence : [];
   steps.forEach((step, idx) => {
-    const stepLabel = `${idx + 1}단계 ${step.type || 'Practice'} · ${step.english_name || ''}`;
+    const stepLabel = `${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'}`;
     lines.push(stepLabel.trim());
     if (Array.isArray(step.instructions) && step.instructions.length) {
-      lines.push(step.instructions[0]);
+      step.instructions.slice(0, 3).forEach((ins) => {
+        lines.push(ins);
+      });
     }
     if (step.breathing_guide) {
       lines.push(`호흡: ${step.breathing_guide}`);
     }
-    if (step.benefits_spiritual) {
-      lines.push(`마음 다잡기 포인트: ${step.benefits_spiritual}`);
+    if (step.caution) {
+      lines.push(`주의: ${step.caution}`);
     }
   });
 
@@ -1444,6 +1596,14 @@ function buildTypingLines(courseData) {
   }
   lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 확인해 주세요.');
   return lines;
+}
+
+function calculateTypingInterval() {
+  const totalChars = typingLines.reduce((acc, line) => acc + line.length + 2, 0);
+  if (!totalChars) return 36;
+  const reservedPauseMs = Math.max(typingLines.length * 240, 1200);
+  const effectiveMs = Math.max(typingTotalDurationMs - reservedPauseMs, 2000);
+  return Math.max(22, Math.floor(effectiveMs / totalChars));
 }
 
 function stopTypingFlow() {
@@ -1489,34 +1649,13 @@ function typingTick() {
   typingPauseMode = true;
   setTimeout(() => {
     typingPauseMode = false;
-  }, 380);
+  }, 240);
 }
 
 function startTypingFlow() {
   if (!typingLines.length) return;
   stopTypingFlow();
-  typingJob = setInterval(typingTick, 32);
-}
-
-async function handleStartPracticeFlow() {
-  if (!musicPlaying) {
-    try {
-      await startGeneratedMusic();
-    } catch (err) {
-      alert('오디오 권한이 필요합니다. 다시 한번 시작 버튼을 눌러주세요.');
-      return;
-    }
-  }
-  resetTypingFlow();
-  startTypingFlow();
-}
-
-function handlePausePracticeFlow() {
-  if (typingJob) {
-    stopTypingFlow();
-  } else {
-    startTypingFlow();
-  }
+  typingJob = setInterval(typingTick, typingCharIntervalMs);
 }
 
 function selectDuration(btn, duration) {
@@ -1685,71 +1824,25 @@ const typeKo = {
 
 function renderCourse(data) {
   const meta = data.course_metadata;
-  const sequence = data.sequence;
-
-  let stepsHtml = sequence.map((step, i) => {
-    const typeClass = `type-${step.type}`;
-    const color = typeColors[step.type] || '#d4a843';
-    const instructionsHtml = (step.instructions || []).map(ins =>
-      `<li>${escapeHtml(ins)}</li>`
-    ).join('');
-
-    const animDelay = i * 0.08;
-
-    return `
-    <div class="step-card" style="animation-delay:${animDelay}s" onclick="toggleStep(this)">
-      <div class="step-header">
-        <div class="step-number ${typeClass}">${step.step_number}</div>
-        <div class="step-names">
-          <div class="type-badge ${typeClass}" style="border:1px solid ${color}33; background:${color}22; color:${color}">
-            ${typeKo[step.type] || step.type}
-          </div>
-          <div class="step-sanskrit">${escapeHtml(step.sanskrit_name || '')}</div>
-          <div class="step-english">${escapeHtml(step.english_name || '')}</div>
-        </div>
-        <div class="step-duration">
-          ${formatDuration(step.duration_seconds || 0)}
-          <span>▾ 자세히</span>
-        </div>
-      </div>
-      <div class="step-body">
-        ${instructionsHtml ? `<ul class="instruction-list">${instructionsHtml}</ul>` : ''}
-        <div class="info-grid">
-          <div class="info-box breathing">
-            <div class="info-box-label">🌬 호흡 가이드</div>
-            <div class="info-box-text">${escapeHtml(step.breathing_guide || '—')}</div>
-          </div>
-          <div class="info-box physical">
-            <div class="info-box-label">⚡ 신체 효과</div>
-            <div class="info-box-text">${escapeHtml(step.benefits_physical || '—')}</div>
-          </div>
-          <div class="info-box spiritual">
-            <div class="info-box-label">✨ 영적 의미</div>
-            <div class="info-box-text">${escapeHtml(step.benefits_spiritual || '—')}</div>
-          </div>
-          ${step.caution ? `<div class="info-box caution">
-            <div class="info-box-label">⚠ 주의사항</div>
-            <div class="info-box-text">${escapeHtml(step.caution)}</div>
-          </div>` : ''}
-        </div>
-        ${step.visual_cue_ui ? `<div class="visual-cue">${escapeHtml(step.visual_cue_ui)}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+  const durationMin = Number(meta?.duration_min || selectedDuration || 30);
 
   const output = document.getElementById('courseOutput');
   output.innerHTML = `
+    <div class="course-music-dock" id="courseMusicDock"></div>
+
     <div class="practice-flow">
       <div class="practice-label">Step 3 · Practice Flow</div>
-      <h3 class="practice-title">Mystic Typing Meditation Chamber</h3>
-      <p class="practice-desc">제미나이가 만든 맞춤 수련법을 타이핑 리듬으로 안내합니다. 먼저 음악을 켠 뒤, 타이핑 명상을 시작하면 동작과 호흡, 마음 다잡기 포인트가 순서대로 흐릅니다.</p>
-      <div id="courseMusicAnchor"></div>
-      <div class="typing-console" id="typingConsole" aria-live="polite"></div>
-      <div class="practice-controls">
-        <button type="button" class="practice-btn" id="practiceStartBtn">명상 타이핑 시작</button>
-        <button type="button" class="practice-btn" id="practicePauseBtn">타이핑 일시정지/재개</button>
-        <button type="button" class="practice-btn" id="practiceResetBtn">타이핑 처음부터</button>
+      <h3 class="practice-title">Mystic Auto-Guided Yoga Chamber</h3>
+      <p class="practice-desc">전체 여정은 자동 진행됩니다. 안내 문장을 따라 자세와 호흡을 맞추며 고요하게 수련하세요.</p>
+      <div class="auto-guide-wrap">
+        <div class="auto-guide-head">
+          <strong>Automatic Sacred Guidance</strong>
+          <span id="autoGuideStatus">${escapeHtml(String(durationMin))}분 자동 유도 진행 중</span>
+        </div>
+        <div class="auto-guide-progress"><i id="autoGuideProgressBar"></i></div>
+        <div class="typing-console" id="typingConsole" aria-live="polite"></div>
       </div>
+      <p class="guide-finish-note">화면은 자동 속도로 흘러갑니다. 호흡만 잃지 마세요.</p>
     </div>
 
     <div class="course-hero">
@@ -1775,10 +1868,6 @@ function renderCourse(data) {
       </div>
     </div>
 
-    <div class="sequence-header">⟡ 신성한 시퀀스 · Sacred Sequence ⟡</div>
-
-    ${stepsHtml}
-
     <div class="closing-mantra">
       <div class="mantra-label">✦ Closing Mantra · 마감 만트라 ✦</div>
       <div class="mantra-text">${escapeHtml((data.closing_mantra || '').split('·')[0])}</div>
@@ -1789,26 +1878,32 @@ function renderCourse(data) {
   `;
 
   const musicPanel = document.getElementById('musicPanel');
-  const anchor = document.getElementById('courseMusicAnchor');
-  if (musicPanel && anchor) {
-    anchor.appendChild(musicPanel);
+  const dock = document.getElementById('courseMusicDock');
+  if (musicPanel && dock) {
+    dock.appendChild(musicPanel);
+    musicPanel.classList.add('mini-top');
     musicPanel.classList.add('open');
     const toggleBtn = document.getElementById('musicToggleBtn');
     if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
   }
 
   typingLines = buildTypingLines(data);
+  typingTotalDurationMs = Math.max(60 * 1000, durationMin * 60 * 1000);
+  typingCharIntervalMs = calculateTypingInterval();
   resetTypingFlow();
+  startTypingFlow();
 
-  const startBtn = document.getElementById('practiceStartBtn');
-  const pauseBtn = document.getElementById('practicePauseBtn');
-  const resetBtn = document.getElementById('practiceResetBtn');
-  if (startBtn) startBtn.addEventListener('click', handleStartPracticeFlow);
-  if (pauseBtn) pauseBtn.addEventListener('click', handlePausePracticeFlow);
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      resetTypingFlow();
-      startTypingFlow();
+  const progressBar = document.getElementById('autoGuideProgressBar');
+  if (progressBar) {
+    progressBar.classList.remove('running');
+    void progressBar.offsetWidth;
+    progressBar.style.animationDuration = `${typingTotalDurationMs}ms`;
+    progressBar.classList.add('running');
+  }
+
+  if (!musicPlaying) {
+    startGeneratedMusic().catch(() => {
+      syncNowPlaying();
     });
   }
 
@@ -1832,6 +1927,7 @@ function restartJourney() {
   const musicHome = document.getElementById('musicPanelHome');
   if (musicPanel && musicHome) {
     musicHome.appendChild(musicPanel);
+    musicPanel.classList.remove('mini-top');
     musicPanel.classList.remove('open');
     const toggleBtn = document.getElementById('musicToggleBtn');
     if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
