@@ -136,18 +136,12 @@
     }
 
     var events = mobile
-      ? ['pointerdown', 'touchstart', 'keydown', 'click']
+      ? ['pointerdown', 'touchstart', 'keydown']
       : ['pointerdown', 'keydown', 'click'];
     for (var i = 0; i < events.length; i += 1) {
       window.addEventListener(events[i], function () {
         start(1);
       }, { once: true, passive: true });
-    }
-
-    if (mobile) {
-      setTimeout(function () {
-        start(2);
-      }, 9000);
     }
 
     // 탭이 백그라운드로 갈 때는 사용자 체감 영향이 거의 없어 미뤄둔 스크립트를 로드한다.
