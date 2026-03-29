@@ -456,16 +456,16 @@
     <div class="music-panel__title">Theta Sound Altar</div>
     <div class="music-panel__row">
       <select class="music-panel__select" id="thetaPreset" aria-label="Theta 명상 배경음 프리셋 선택" onchange="changeThetaPreset()">
-        <option value="theta meditation music creative commons no copyright">Mystic Theta - Creative Commons</option>
-        <option value="528hz theta meditation music creative commons">528Hz Theta - Healing Field</option>
-        <option value="deep theta binaural beats no copyright">Deep Theta - Night Temple</option>
+        <option value="mystic">Mystic Theta - Cosmic Temple</option>
+        <option value="healing">528Hz Theta - Healing Sanctuary</option>
+        <option value="deep">Deep Theta - Night Ocean</option>
       </select>
     </div>
     <div class="music-panel__row">
       <button class="music-panel__btn" id="musicToggleBtn" type="button" onclick="toggleThetaMusic()">음악 켜기</button>
       <button class="music-panel__btn" type="button" onclick="nextThetaTrack()">다음 곡</button>
     </div>
-    <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 후 자동 재생을 시도합니다.</div>
+    <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
     <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
   </div>
 
@@ -807,6 +807,40 @@ let ytPlayer = null;
 let ytReady = false;
 let ytShouldPlay = false;
 let ytPendingPlay = false;
+let ytPresetKey = 'mystic';
+let ytCurrentPhaseIdx = -1;
+let ytCurrentTrackIdx = 0;
+let ytCurrentTrack = null;
+
+const THETA_PRESETS = {
+  mystic: {
+    title: 'Mystic Theta',
+    fallbackQuery: 'theta meditation music creative commons no copyright',
+    tracks: [
+      { id: '1ZYbU82GVz4', label: 'Celestial Theta Field' },
+      { id: 'hHW1oY26kxQ', label: 'Mystic Breath Loop' },
+      { id: 'a9LDPn-MO4I', label: 'Temple Theta Drift' }
+    ]
+  },
+  healing: {
+    title: '528Hz Theta',
+    fallbackQuery: '528hz theta meditation music creative commons',
+    tracks: [
+      { id: 'lFcSrYw-ARY', label: 'Healing 528 Resonance' },
+      { id: '7NOSDKb0HlU', label: 'Theta DNA Calm' },
+      { id: '2OEL4P1Rz04', label: 'Golden Sanctuary 528' }
+    ]
+  },
+  deep: {
+    title: 'Deep Theta',
+    fallbackQuery: 'deep theta binaural beats no copyright',
+    tracks: [
+      { id: '3oXhLdeuxDw', label: 'Night Ocean Theta' },
+      { id: 'UfcAVejslrU', label: 'Moon Tide Binaural' },
+      { id: '5qap5aO4i9A', label: 'Endless Deep Focus' }
+    ]
+  }
+};
 
 /* ═══════════════════════════ YOUTUBE THETA MUSIC ═══════════════════════════ */
 function updateMusicStatus(msg) {
@@ -821,18 +855,67 @@ function updateMusicToggleLabel() {
 }
 
 function getSelectedThetaQuery() {
-  const sel = document.getElementById('thetaPreset');
-  return sel ? sel.value : 'theta meditation music creative commons no copyright';
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  return preset.fallbackQuery;
 }
 
-function buildThetaLoadOptions() {
-  return {
-    listType: 'search',
-    list: getSelectedThetaQuery(),
-    index: 0,
-    startSeconds: 0,
-    suggestedQuality: 'small'
-  };
+function getThetaPresetKey() {
+  const sel = document.getElementById('thetaPreset');
+  if (!sel) return 'mystic';
+  return THETA_PRESETS[sel.value] ? sel.value : 'mystic';
+}
+
+function getCurrentPhaseIndex() {
+  if (!course || !Array.isArray(course.phases)) return 0;
+  const idx = course.phases.findIndex(p => elapsed >= p.start && elapsed < p.end);
+  if (idx >= 0) return idx;
+  return Math.max(0, course.phases.length - 1);
+}
+
+function getTrackForPhase(phaseIdx) {
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const list = Array.isArray(preset.tracks) ? preset.tracks : [];
+  if (!list.length) return null;
+  const normalized = Math.max(0, phaseIdx);
+  const idx = normalized % list.length;
+  ytCurrentTrackIdx = idx;
+  return list[idx] || null;
+}
+
+function loadThetaFallbackSearch() {
+  if (!ytPlayer || !ytReady) return;
+  try {
+    ytPlayer.loadPlaylist({
+      listType: 'search',
+      list: getSelectedThetaQuery(),
+      index: 0,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
+    updateMusicStatus('고정 트랙 로드 실패로 검색 기반 Theta 배경음으로 전환했습니다.');
+  } catch (_) {
+    updateMusicStatus('YouTube 트랙을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
+  }
+}
+
+function loadThetaTrackByPhase(phaseIdx) {
+  const track = getTrackForPhase(phaseIdx);
+  if (!track || !track.id) {
+    loadThetaFallbackSearch();
+    return;
+  }
+  ytCurrentTrack = track;
+  try {
+    ytPlayer.loadVideoById({
+      videoId: track.id,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
+    const phaseText = course && course.phases && course.phases[phaseIdx] ? course.phases[phaseIdx].name : '현재 단계';
+    updateMusicStatus(`${phaseText} 단계: ${track.label} 재생 중`);
+  } catch (_) {
+    loadThetaFallbackSearch();
+  }
 }
 
 function safePlayTheta() {
@@ -842,11 +925,12 @@ function safePlayTheta() {
     return;
   }
   try {
-    ytPlayer.loadPlaylist(buildThetaLoadOptions());
+    const phaseIdx = getCurrentPhaseIndex();
+    ytCurrentPhaseIdx = phaseIdx;
+    loadThetaTrackByPhase(phaseIdx);
     ytShouldPlay = true;
     ytPendingPlay = false;
     updateMusicToggleLabel();
-    updateMusicStatus('Theta 배경음 재생 중 (YouTube API)');
   } catch (err) {
     ytPendingPlay = true;
     updateMusicStatus('자동 재생이 제한되었습니다. 음악 켜기를 눌러 시작해 주세요.');
@@ -871,15 +955,18 @@ function toggleThetaMusic() {
 }
 
 function changeThetaPreset() {
+  ytPresetKey = getThetaPresetKey();
+  ytCurrentPhaseIdx = -1;
   if (!ytReady || !ytPlayer) {
     updateMusicStatus('프리셋 변경이 저장되었습니다. 플레이어 연결 후 적용됩니다.');
     return;
   }
   try {
-    ytPlayer.loadPlaylist(buildThetaLoadOptions());
+    loadThetaTrackByPhase(getCurrentPhaseIndex());
     ytShouldPlay = true;
     updateMusicToggleLabel();
-    updateMusicStatus('배경음 프리셋을 변경했습니다.');
+    const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+    updateMusicStatus(`${preset.title} 프리셋으로 변경했습니다.`);
   } catch (_) {
     updateMusicStatus('프리셋 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
   }
@@ -890,13 +977,26 @@ function nextThetaTrack() {
     updateMusicStatus('플레이어 준비 중입니다. 잠시 후 다시 시도해 주세요.');
     return;
   }
+  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const tracks = Array.isArray(preset.tracks) ? preset.tracks : [];
+  if (!tracks.length) {
+    loadThetaFallbackSearch();
+    return;
+  }
   try {
-    ytPlayer.nextVideo();
+    ytCurrentTrackIdx = (ytCurrentTrackIdx + 1) % tracks.length;
+    const track = tracks[ytCurrentTrackIdx];
+    ytCurrentTrack = track;
+    ytPlayer.loadVideoById({
+      videoId: track.id,
+      startSeconds: 0,
+      suggestedQuality: 'small'
+    });
     ytShouldPlay = true;
     updateMusicToggleLabel();
-    updateMusicStatus('다음 Theta 트랙으로 전환했습니다.');
+    updateMusicStatus(`다음 트랙: ${track.label}`);
   } catch (_) {
-    updateMusicStatus('다음 곡 전환에 실패했습니다.');
+    loadThetaFallbackSearch();
   }
 }
 
@@ -917,16 +1017,30 @@ function onYouTubeIframeAPIReady() {
     events: {
       onReady: () => {
         ytReady = true;
-        updateMusicStatus('유튜브 플레이어 준비 완료. 명상 시작 시 자동 재생됩니다.');
+        ytPresetKey = getThetaPresetKey();
+        updateMusicStatus('유튜브 플레이어 준비 완료. 단계별 Theta 배경음이 자동 전환됩니다.');
         updateMusicToggleLabel();
         if (ytPendingPlay || ytShouldPlay) {
           safePlayTheta();
         } else {
-          try { ytPlayer.cuePlaylist(buildThetaLoadOptions()); } catch (_) {}
+          const track = getTrackForPhase(0);
+          if (track && track.id) {
+            try {
+              ytPlayer.cueVideoById({
+                videoId: track.id,
+                startSeconds: 0,
+                suggestedQuality: 'small'
+              });
+            } catch (_) {
+              loadThetaFallbackSearch();
+            }
+          } else {
+            loadThetaFallbackSearch();
+          }
         }
       },
       onError: () => {
-        updateMusicStatus('YouTube 트랙 로딩에 실패했습니다. 프리셋을 바꿔 다시 시도해 주세요.');
+        loadThetaFallbackSearch();
       }
     }
   });
@@ -991,6 +1105,7 @@ function updateHUD() {
 
   const phase = course.phases.find(p => elapsed >= p.start && elapsed < p.end)
               || course.phases[course.phases.length - 1];
+  const phaseIdx = getCurrentPhaseIndex();
 
   const lbl = document.getElementById('phaseLabel');
   lbl.textContent = phase.name;
@@ -1009,6 +1124,12 @@ function updateHUD() {
     radial-gradient(ellipse 45% 55% at 82% 72%, ${phase.col}10 0%, transparent 70%),
     radial-gradient(ellipse 60% 60% at 50% 50%, rgba(2,3,14,0.4) 0%, transparent 80%)
   `;
+
+  // 명상 단계가 바뀌면 배경음도 자동 전환합니다.
+  if (ytShouldPlay && ytReady && phaseIdx !== ytCurrentPhaseIdx) {
+    ytCurrentPhaseIdx = phaseIdx;
+    loadThetaTrackByPhase(phaseIdx);
+  }
 }
 
 /* ═══════════════════════════ MESSAGES ═══════════════════════════ */
