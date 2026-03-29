@@ -15,7 +15,6 @@
 <!-- LCP: 모바일/데스크톱 분기 프리로드 -->
 <link rel="preload" as="image" href="/icons/honeypig-96.webp" imagesrcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
 <link rel="preload" as="image" href="/icons/honeypig-130.webp" imagesrcset="/icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" imagesizes="130px" media="(min-width: 769px)" fetchpriority="high">
-<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="low">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -914,7 +913,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <div class="pig-svg-wrap">
           <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp"
             srcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
+            width="130" height="130" alt="쌈바 모드 로고" loading="lazy" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>

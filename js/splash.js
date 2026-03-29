@@ -1,15 +1,16 @@
 (function(){
   var _splashDone = false;
   var splashStartedAt = Date.now();
+  var isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var MIN_VISIBLE_MS = prefersReduced ? 450 : 1800;
-  var MAX_VISIBLE_MS = 5000;
+  var MIN_VISIBLE_MS = isMobile ? (prefersReduced ? 180 : 360) : (prefersReduced ? 450 : 1800);
+  var MAX_VISIBLE_MS = isMobile ? 2500 : 5000;
 
   /* -- 별빛 캔버스 (reduced-motion 비활성) -- */
   var cvs = document.getElementById('splashCanvas');
   var rafId, _frame = 0;
-  if (cvs && !prefersReduced) {
+  if (cvs && !prefersReduced && !isMobile) {
     var ctx = cvs.getContext('2d');
     cvs.width = window.innerWidth; cvs.height = window.innerHeight;
 
@@ -102,27 +103,35 @@
   ];
   var mi = 0;
   var msgEl = document.getElementById('splashMsg');
-  var msgTimer = setInterval(function() {
-    if (!msgEl) return;
-    mi = (mi + 1) % msgs.length;
-    msgEl.style.opacity = '0';
-    msgEl.style.transition = 'opacity 0.35s';
-    setTimeout(function() {
-      if (msgEl) {
-        msgEl.textContent = msgs[mi];
-        msgEl.style.opacity = '1';
-      }
-    }, 350);
-  }, 1800);
+  var msgTimer = null;
+  if (!isMobile) {
+    msgTimer = setInterval(function() {
+      if (!msgEl) return;
+      mi = (mi + 1) % msgs.length;
+      msgEl.style.opacity = '0';
+      msgEl.style.transition = 'opacity 0.35s';
+      setTimeout(function() {
+        if (msgEl) {
+          msgEl.textContent = msgs[mi];
+          msgEl.style.opacity = '1';
+        }
+      }, 350);
+    }, 1800);
+  }
 
   /* -- 로딩 바 진행 -- */
   var bar = document.getElementById('splashBar');
   var barVal = 0;
-  var barTimer = setInterval(function() {
-    barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
-    if (bar) bar.style.width = barVal + '%';
-    if (barVal >= 90) clearInterval(barTimer);
-  }, 350);
+  var barTimer = null;
+  if (isMobile) {
+    if (bar) bar.style.width = '90%';
+  } else {
+    barTimer = setInterval(function() {
+      barVal = Math.min(barVal + Math.random() * 18 + 5, 90);
+      if (bar) bar.style.width = barVal + '%';
+      if (barVal >= 90) clearInterval(barTimer);
+    }, 350);
+  }
 
   /* -- 초기 로딩 완료 -> 스플래시 숨김 -- */
   function hideSplash() {
@@ -149,8 +158,10 @@
   /* 무한 체류 방지 안전장치 */
   setTimeout(hideSplash, MAX_VISIBLE_MS);
 
-  if (document.readyState === 'complete') {
+  if (document.readyState === 'complete' || (isMobile && document.readyState !== 'loading')) {
     scheduleHideSplash();
+  } else if (isMobile) {
+    document.addEventListener('DOMContentLoaded', scheduleHideSplash, { once: true });
   } else {
     window.addEventListener('load', scheduleHideSplash, { once: true });
   }
