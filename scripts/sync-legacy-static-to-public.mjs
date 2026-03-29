@@ -13,6 +13,7 @@ const staticTargets = [
   "PhysiognomyUI.js",
   "HwatuFortune.js",
   "index.html",
+  "secret-house-final.html",
   "ads.txt",
   "manifest.json",
   "manifest-samba.json",
