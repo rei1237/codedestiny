@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Divya Yoga — Sacred Practice Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #05030f;
+    --bg-deep: #0a0618;
+    --bg-mid: #120d28;
+    --gold: #d4a843;
+    --gold-bright: #f0c84a;
+    --gold-pale: #f5e090;
+    --saffron: #e8751a;
+    --saffron-pale: #f5a44a;
+    --lotus: #c45a8a;
+    --lotus-pale: #e88ab4;
+    --teal: #1a8a88;
+    --teal-bright: #2dbfbd;
+    --indigo: #3d2a8a;
+    --purple: #6b3fa0;
+    --text-primary: #f5e8d0;
+    --text-secondary: #c8b888;
+    --text-muted: #7a6a54;
+    --border-gold: rgba(212, 168, 67, 0.3);
+    --india-bg: url('/fuctionassets/india.webp');
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: 'Lora', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(120deg, rgba(5,3,15,0.84), rgba(10,6,24,0.8) 45%, rgba(16,11,38,0.88)),
+      var(--india-bg);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.54;
+    pointer-events: none;
+  }
+
+  /* === COSMIC BACKGROUND === */
+  .cosmos {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #1a0a3a 0%, #05030f 60%);
+    overflow: hidden;
+  }
+  .cosmos::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(245,224,144,0.8) 0%, transparent 0%),
+      radial-gradient(1px 1px at 30% 5%, rgba(245,224,144,0.6) 0%, transparent 0%),
+      radial-gradient(1.5px 1.5px at 50% 25%, rgba(255,255,255,0.9) 0%, transparent 0%),
+      radial-gradient(1px 1px at 70% 10%, rgba(245,224,144,0.7) 0%, transparent 0%),
+      radial-gradient(1px 1px at 85% 20%, rgba(255,255,255,0.5) 0%, transparent 0%),
+      radial-gradient(1px 1px at 20% 40%, rgba(245,224,144,0.4) 0%, transparent 0%),
+      radial-gradient(1.5px 1.5px at 60% 35%, rgba(255,255,255,0.6) 0%, transparent 0%),
+      radial-gradient(1px 1px at 90% 45%, rgba(245,224,144,0.5) 0%, transparent 0%),
+      radial-gradient(1px 1px at 5% 60%, rgba(255,255,255,0.4) 0%, transparent 0%),
+      radial-gradient(1px 1px at 40% 55%, rgba(245,224,144,0.6) 0%, transparent 0%),
+      radial-gradient(1px 1px at 75% 65%, rgba(255,255,255,0.3) 0%, transparent 0%),
+      radial-gradient(1px 1px at 15% 80%, rgba(245,224,144,0.5) 0%, transparent 0%),
+      radial-gradient(1.5px 1.5px at 55% 75%, rgba(255,200,100,0.7) 0%, transparent 0%),
+      radial-gradient(1px 1px at 80% 85%, rgba(245,224,144,0.4) 0%, transparent 0%),
+      radial-gradient(1px 1px at 35% 90%, rgba(255,255,255,0.3) 0%, transparent 0%);
+    animation: starTwinkle 8s ease-in-out infinite alternate;
+  }
+  @keyframes starTwinkle {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+  }
+
+  /* Flowing energy lines */
+  .energy-lines {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      linear-gradient(135deg, transparent 40%, rgba(212,168,67,0.03) 50%, transparent 60%),
+      linear-gradient(45deg, transparent 30%, rgba(196,90,138,0.03) 45%, transparent 55%);
+    animation: energyFlow 12s ease-in-out infinite;
+  }
+  @keyframes energyFlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+  }
+
+  /* === MANDALA SVG BACKGROUND === */
+  .mandala-bg {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(800px, 100vw);
+    height: min(800px, 100vh);
+    opacity: 0.04;
+    z-index: 0;
+    animation: mandalaSpin 120s linear infinite;
+  }
+  @keyframes mandalaSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* === LAYOUT === */
+  .container {
+    position: relative; z-index: 10;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  .top-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    color: var(--gold-pale);
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid rgba(212,168,67,0.38);
+    background: rgba(5,3,15,0.5);
+    border-radius: 999px;
+    padding: 9px 16px;
+    transition: all 0.28s ease;
+  }
+  .top-back:hover {
+    border-color: var(--gold);
+    background: rgba(212,168,67,0.12);
+  }
+
+  /* === HEADER === */
+  .header {
+    text-align: center;
+    padding: 60px 0 40px;
+  }
+  .header-om {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 3.5rem;
+    color: var(--gold);
+    filter: drop-shadow(0 0 20px rgba(212,168,67,0.6));
+    animation: omPulse 4s ease-in-out infinite;
+    display: block;
+    margin-bottom: 12px;
+  }
+  @keyframes omPulse {
+    0%, 100% { filter: drop-shadow(0 0 15px rgba(212,168,67,0.5)); }
+    50% { filter: drop-shadow(0 0 35px rgba(212,168,67,0.9)); }
+  }
+  .header-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold) 40%, var(--saffron) 80%, var(--gold-pale) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+  .header-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+  .divider-ornament {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin: 24px 0;
+  }
+  .divider-ornament::before, .divider-ornament::after {
+    content: '';
+    height: 1px;
+    width: 80px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .divider-ornament span {
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+
+  /* === INPUT CARD === */
+  .input-card {
+    background: linear-gradient(135deg, rgba(18,13,40,0.9) 0%, rgba(26,10,58,0.85) 100%);
+    border: 1px solid var(--border-gold);
+    border-radius: 24px;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(212,168,67,0.08), inset 0 1px 0 rgba(212,168,67,0.2);
+  }
+  .input-card::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(212,168,67,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .input-card::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(196,90,138,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .question {
+    font-family: 'Lora', serif;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .mood-input {
+    width: 100%;
+    background: rgba(5,3,15,0.6);
+    border: 1px solid var(--border-gold);
+    border-radius: 14px;
+    color: var(--text-primary);
+    font-family: 'Lora', serif;
+    font-size: 1rem;
+    padding: 16px 20px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    line-height: 1.6;
+  }
+  .mood-input::placeholder { color: var(--text-muted); font-style: italic; }
+  .mood-input:focus {
+    border-color: rgba(212,168,67,0.6);
+    box-shadow: 0 0 20px rgba(212,168,67,0.1);
+  }
+
+  .duration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .duration-btn {
+    background: rgba(5,3,15,0.6);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 24px 20px;
+    text-align: center;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .duration-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at center, rgba(212,168,67,0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+  .duration-btn:hover::before, .duration-btn.selected::before { opacity: 1; }
+  .duration-btn.selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 25px rgba(212,168,67,0.2), inset 0 1px 0 rgba(212,168,67,0.3);
+  }
+  .duration-btn .deity { font-size: 1.8rem; margin-bottom: 8px; }
+  .duration-btn .time {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .duration-btn .name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    color: var(--saffron-pale);
+    letter-spacing: 0.1em;
+    margin: 4px 0;
+  }
+  .duration-btn .desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  .field-gap { margin-top: 32px; }
+
+  .api-config {
+    margin-top: 28px;
+    padding: 16px 18px;
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 14px;
+    background: rgba(5,3,15,0.45);
+  }
+  .api-config-label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .api-key-input {
+    width: 100%;
+    background: rgba(5,3,15,0.75);
+    border: 1px solid rgba(212,168,67,0.26);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-family: 'Lora', serif;
+    font-size: 0.9rem;
+    padding: 11px 12px;
+    outline: none;
+  }
+  .api-key-input:focus {
+    border-color: rgba(212,168,67,0.58);
+    box-shadow: 0 0 0 3px rgba(212,168,67,0.12);
+  }
+  .api-note {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .music-panel {
+    margin-top: 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(212,168,67,0.2);
+    background: linear-gradient(140deg, rgba(13,8,30,0.92), rgba(34,14,46,0.76));
+    overflow: hidden;
+  }
+  .music-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 16px 18px;
+    cursor: pointer;
+  }
+  .music-toggle strong {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.07em;
+    font-size: 0.86rem;
+    color: var(--gold-pale);
+  }
+  .music-toggle small {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 0.73rem;
+    text-align: left;
+  }
+  .music-chevron {
+    color: var(--gold);
+    font-size: 1rem;
+    transition: transform 0.28s ease;
+  }
+  .music-panel.open .music-chevron { transform: rotate(180deg); }
+  .music-content {
+    display: none;
+    padding: 0 18px 18px;
+    border-top: 1px solid rgba(212,168,67,0.14);
+  }
+  .music-panel.open .music-content { display: block; }
+  .music-meta {
+    margin: 12px 0;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  .music-player-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(212,168,67,0.18);
+    background: rgba(0,0,0,0.45);
+  }
+  .music-player-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* === INVOKE BUTTON === */
+  .invoke-btn {
+    width: 100%;
+    margin-top: 36px;
+    background: linear-gradient(135deg, #8a4f00 0%, var(--gold) 40%, var(--saffron) 70%, #8a4f00 100%);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 14px;
+    color: var(--bg-void);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 20px 32px;
+    text-transform: uppercase;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    animation: goldShimmer 4s ease-in-out infinite;
+  }
+  @keyframes goldShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .invoke-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(212,168,67,0.4);
+  }
+  .invoke-btn:disabled {
+    opacity: 0.6; cursor: not-allowed; transform: none;
+    animation: none;
+  }
+
+  /* === LOADING STATE === */
+  .loading-state {
+    display: none;
+    text-align: center;
+    padding: 80px 40px;
+  }
+  .loading-state.active { display: block; }
+  .loading-mandala {
+    width: 100px; height: 100px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .loading-mandala svg { animation: mandalaSpin 4s linear infinite; }
+  .loading-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .loading-mantra {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    margin-top: 16px;
+    animation: breathe 3s ease-in-out infinite 1.5s;
+  }
+
+  /* === COURSE OUTPUT === */
+  .course-output { display: none; }
+  .course-output.active { display: block; }
+
+  .course-hero {
+    text-align: center;
+    padding: 48px 32px;
+    background: linear-gradient(135deg, rgba(18,13,40,0.95) 0%, rgba(40,15,70,0.9) 100%);
+    border: 1px solid var(--border-gold);
+    border-radius: 24px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .course-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(212,168,67,0.08) 0%, transparent 70%);
+  }
+  .hero-deity {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    background: linear-gradient(135deg, var(--gold-pale), var(--saffron));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .meta-item {
+    background: rgba(5,3,15,0.5);
+    border: 1px solid rgba(212,168,67,0.15);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .meta-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .meta-value {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* === SEQUENCE STEPS === */
+  .sequence-header {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 40px 0 24px;
+  }
+
+  .step-card {
+    background: rgba(10,6,24,0.85);
+    border: 1px solid rgba(212,168,67,0.15);
+    border-radius: 20px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: stepFadeIn 0.6s ease-out both;
+  }
+  .step-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(212,168,67,0.1);
+  }
+  @keyframes stepFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    position: relative;
+  }
+  .step-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 24px; right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,168,67,0.2), transparent);
+  }
+  .step-number {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .type-Warmup { background: rgba(45,191,189,0.2); color: var(--teal-bright); border: 1px solid rgba(45,191,189,0.4); }
+  .type-Asana { background: rgba(212,168,67,0.2); color: var(--gold-bright); border: 1px solid rgba(212,168,67,0.4); }
+  .type-Pranayama { background: rgba(196,90,138,0.2); color: var(--lotus-pale); border: 1px solid rgba(196,90,138,0.4); }
+  .type-Meditation { background: rgba(107,63,160,0.2); color: #b89ae8; border: 1px solid rgba(107,63,160,0.4); }
+  .type-Relaxation { background: rgba(26,138,136,0.2); color: var(--teal-bright); border: 1px solid rgba(26,138,136,0.4); }
+
+  .step-names { flex: 1; }
+  .step-sanskrit {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 0.8rem;
+    color: var(--saffron-pale);
+    letter-spacing: 0.05em;
+  }
+  .step-english {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .step-english-ko {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .step-duration {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .step-duration span { font-size: 0.65rem; color: var(--text-muted); font-family: 'Cinzel', serif; display: block; letter-spacing: 0.1em; }
+
+  .step-body {
+    padding: 24px;
+    display: none;
+  }
+  .step-card.expanded .step-body { display: block; }
+
+  .instruction-list {
+    list-style: none;
+    margin-bottom: 20px;
+  }
+  .instruction-list li {
+    padding: 10px 0 10px 28px;
+    border-bottom: 1px solid rgba(212,168,67,0.07);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    position: relative;
+  }
+  .instruction-list li::before {
+    content: '❋';
+    position: absolute; left: 0;
+    color: var(--gold);
+    font-size: 0.7rem;
+    top: 12px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .info-box {
+    background: rgba(5,3,15,0.5);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border-left: 3px solid;
+  }
+  .info-box.breathing { border-color: var(--teal-bright); }
+  .info-box.physical { border-color: var(--gold); }
+  .info-box.spiritual { border-color: var(--lotus); grid-column: 1 / -1; }
+  .info-box.caution { border-color: var(--saffron); grid-column: 1 / -1; }
+  .info-box-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .info-box.breathing .info-box-label { color: var(--teal-bright); }
+  .info-box.physical .info-box-label { color: var(--gold); }
+  .info-box.spiritual .info-box-label { color: var(--lotus-pale); }
+  .info-box.caution .info-box-label { color: var(--saffron-pale); }
+  .info-box-text {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .info-box.caution .info-box-text { color: #f5b067; }
+
+  .visual-cue {
+    background: linear-gradient(135deg, rgba(61,42,138,0.2) 0%, rgba(107,63,160,0.1) 100%);
+    border: 1px dashed rgba(107,63,160,0.4);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: #b89ae8;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .visual-cue::before {
+    content: '✦ 시각 이펙트 · ';
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #7b5abe;
+    font-style: normal;
+  }
+
+  /* === TYPE BADGE === */
+  .type-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+
+  /* === CLOSING MANTRA === */
+  .closing-mantra {
+    text-align: center;
+    padding: 48px 32px;
+    background: linear-gradient(135deg, rgba(18,13,40,0.95) 0%, rgba(40,15,70,0.9) 100%);
+    border: 1px solid var(--border-gold);
+    border-radius: 24px;
+    margin-top: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .closing-mantra::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 100%, rgba(196,90,138,0.07) 0%, transparent 70%);
+  }
+  .mantra-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .mantra-text {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+    font-size: 1.8rem;
+    color: var(--gold);
+    filter: drop-shadow(0 0 15px rgba(212,168,67,0.4));
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+  .mantra-translation {
+    font-family: 'Lora', serif;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.8;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* === RESTART BUTTON === */
+  .restart-btn {
+    display: block;
+    margin: 32px auto 0;
+    background: transparent;
+    border: 1px solid var(--border-gold);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    padding: 14px 32px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+  .restart-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212,168,67,0.05);
+  }
+
+  /* === ERROR === */
+  .error-box {
+    display: none;
+    background: rgba(50,10,10,0.8);
+    border: 1px solid rgba(200,80,80,0.4);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-top: 16px;
+    color: #e88888;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .error-box.active { display: block; }
+
+  @media (max-width: 600px) {
+    .input-card { padding: 28px 20px; }
+    .duration-grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    .info-box.spiritual, .info-box.caution { grid-column: 1; }
+  }
+
+  @media (max-width: 900px) {
+    .container {
+      padding: 0 14px 60px;
+    }
+    .header {
+      padding: 42px 0 26px;
+    }
+    .step-header {
+      grid-template-columns: auto 1fr;
+    }
+    .step-duration {
+      grid-column: 1 / -1;
+      text-align: left;
+      margin-left: 56px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="cosmos"></div>
+<div class="energy-lines"></div>
+
+<!-- Mandala Background SVG -->
+<svg class="mandala-bg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(200,200)">
+    <circle r="190" fill="none" stroke="#d4a843" stroke-width="0.5"/>
+    <circle r="150" fill="none" stroke="#d4a843" stroke-width="0.5"/>
+    <circle r="110" fill="none" stroke="#d4a843" stroke-width="0.5"/>
+    <circle r="70" fill="none" stroke="#d4a843" stroke-width="0.5"/>
+    <circle r="30" fill="none" stroke="#d4a843" stroke-width="0.5"/>
+    <g id="petals">
+      <script type="text/javascript">/*placeholder*/</script>
+    </g>
+    <!-- 8 petals outer -->
+    <g stroke="#d4a843" stroke-width="0.5" fill="none">
+      <ellipse rx="15" ry="60" transform="rotate(0)"/>
+      <ellipse rx="15" ry="60" transform="rotate(45)"/>
+      <ellipse rx="15" ry="60" transform="rotate(90)"/>
+      <ellipse rx="15" ry="60" transform="rotate(135)"/>
+      <ellipse rx="15" ry="60" transform="rotate(180)"/>
+      <ellipse rx="15" ry="60" transform="rotate(225)"/>
+      <ellipse rx="15" ry="60" transform="rotate(270)"/>
+      <ellipse rx="15" ry="60" transform="rotate(315)"/>
+    </g>
+    <!-- 16 spokes -->
+    <g stroke="#d4a843" stroke-width="0.3" opacity="0.5">
+      <line x1="0" y1="-190" x2="0" y2="190"/>
+      <line x1="-190" y1="0" x2="190" y2="0"/>
+      <line x1="-134" y1="-134" x2="134" y2="134"/>
+      <line x1="134" y1="-134" x2="-134" y2="134"/>
+      <line x1="-73" y1="-174" x2="73" y2="174"/>
+      <line x1="73" y1="-174" x2="-73" y2="174"/>
+      <line x1="-174" y1="-73" x2="174" y2="73"/>
+      <line x1="174" y1="-73" x2="-174" y2="73"/>
+    </g>
+    <!-- Lotus inner -->
+    <g stroke="#d4a843" stroke-width="0.5" fill="none">
+      <ellipse rx="8" ry="28" transform="rotate(0) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(45) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(90) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(135) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(180) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(225) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(270) translate(0,-42)"/>
+      <ellipse rx="8" ry="28" transform="rotate(315) translate(0,-42)"/>
+    </g>
+  </g>
+</svg>
+
+<div class="container">
+  <a class="top-back" href="/" aria-label="메인 화면으로 돌아가기">← Home</a>
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="header-om">ॐ</span>
+    <h1 class="header-title">Divya Yoga</h1>
+    <p class="header-subtitle">Sacred Practice Portal · 신성한 수련의 문</p>
+    <div class="divider-ornament"><span>✦</span></div>
+    <p style="font-size:0.9rem; color:var(--text-muted); font-style:italic; max-width:480px; margin:0 auto; line-height:1.8;">
+      수천 년의 힌두 신화와 현대 요가의 지혜가 만나는 곳.<br>신들의 에너지를 빌려, 오늘 당신만을 위한 영적 여정이 펼쳐집니다.
+    </p>
+  </header>
+
+  <!-- INPUT SECTION -->
+  <div id="inputSection">
+    <div class="input-card">
+      <div class="section-label">⟡ Step 1 · 현재 상태</div>
+      <p class="question">"지금 이 순간, 당신의 몸과 마음은 어떤 상태인가요? 구루에게 솔직하게 전해주세요."</p>
+      <textarea class="mood-input" id="moodInput" rows="4"
+        placeholder="예: 오늘은 어깨와 목이 너무 뻐근하고, 야근으로 마음이 지쳐 있어요. 집중력을 되찾고 싶어요. / 활력이 넘치지만 마음이 산만해요. 내면의 평정심을 찾고 싶습니다..."></textarea>
+
+      <div class="field-gap">
+        <div class="section-label">⟡ Step 2 · 신성한 여정의 길이</div>
+        <p class="question">"오늘 신들과 함께할 시간을 선택하세요."</p>
+        <div class="duration-grid">
+          <button class="duration-btn" data-duration="30" onclick="selectDuration(this, 30)">
+            <div class="deity">🐘</div>
+            <div class="time">30분</div>
+            <div class="name">Ganesha's Awakening</div>
+            <div class="desc">장애물을 걷어내는 가네샤의 기운 · 활력 회복 · 스트레스 해소</div>
+          </button>
+          <button class="duration-btn" data-duration="60" onclick="selectDuration(this, 60)">
+            <div class="deity">🔱</div>
+            <div class="time">60분</div>
+            <div class="name">Shiva's Transformation</div>
+            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="api-config">
+        <label class="api-config-label" for="geminiApiKeyInput">Gemini API Key (브라우저 저장)</label>
+        <input id="geminiApiKeyInput" class="api-key-input" type="password" autocomplete="off" placeholder="AIza... 형식 키를 입력하세요">
+        <div class="api-note">입력한 키는 이 브라우저 로컬 저장소에만 저장됩니다. 서버로 키를 보관하지 않습니다.</div>
+      </div>
+
+      <div class="music-panel" id="musicPanel">
+        <button class="music-toggle" type="button" id="musicToggleBtn" aria-expanded="false" aria-controls="musicContent">
+          <div>
+            <strong>ॐ 인디아 명상 플레이리스트</strong>
+            <small>YouTube IFrame API · CC/저작권 걱정 적은 명상 트랙 큐레이션</small>
+          </div>
+          <span class="music-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="music-content" id="musicContent">
+          <p class="music-meta">호흡 준비 시에 틀어두기 좋은 인도풍 명상 배경음입니다. 필요할 때 열고 닫아 수련 몰입도를 조절할 수 있습니다.</p>
+          <div class="music-player-wrap" id="musicPlayerWrap"></div>
+        </div>
+      </div>
+
+      <div id="errorBox" class="error-box">
+        구루가 현재 영적 교신 중입니다. 잠시 후 다시 시도해주세요.<br>
+        <small id="errorDetail" style="opacity:0.7"></small>
+      </div>
+
+      <button class="invoke-btn" id="invokeBtn" onclick="invokeGuru()">
+        ✦ 나만의 영적 여정 소환하기 ✦
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div id="loadingState" class="loading-state">
+    <div class="loading-mandala">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#d4a843" stroke-width="1" stroke-dasharray="4 4"/>
+        <circle cx="50" cy="50" r="30" fill="none" stroke="#e8751a" stroke-width="1" stroke-dasharray="3 6"/>
+        <circle cx="50" cy="50" r="15" fill="none" stroke="#c45a8a" stroke-width="1.5"/>
+        <text x="50" y="56" text-anchor="middle" font-size="20" fill="#d4a843" font-family="serif">ॐ</text>
+      </svg>
+    </div>
+    <div class="loading-text" id="loadingText">CHANNELING DIVINE ENERGY</div>
+    <div class="loading-mantra">नमस्ते · ॐ नमः शिवाय · ॐ गं गणपतये नमः</div>
+  </div>
+
+  <!-- COURSE OUTPUT -->
+  <div id="courseOutput" class="course-output">
+    <!-- dynamically populated -->
+  </div>
+</div>
+
+<script>
+let selectedDuration = null;
+let youtubeApiReady = false;
+let youtubePlayer = null;
+const YOGA_GEMINI_STORAGE_KEY = 'divyaYogaGeminiApiKey';
+const YT_PLAYLIST_VIDEO_IDS = [
+  '5qap5aO4i9A',
+  'jfKfPfyJRdk',
+  'DWcJFNfaw9c',
+  'n61ULEU7CO0',
+  'hlWiI4xVXKY'
+];
+
+function initPageState() {
+  const cachedKey = localStorage.getItem(YOGA_GEMINI_STORAGE_KEY) || '';
+  const keyInput = document.getElementById('geminiApiKeyInput');
+  keyInput.value = cachedKey;
+  keyInput.addEventListener('change', () => {
+    localStorage.setItem(YOGA_GEMINI_STORAGE_KEY, keyInput.value.trim());
+  });
+
+  const panel = document.getElementById('musicPanel');
+  const btn = document.getElementById('musicToggleBtn');
+  btn.addEventListener('click', async () => {
+    const nextOpen = !panel.classList.contains('open');
+    panel.classList.toggle('open', nextOpen);
+    btn.setAttribute('aria-expanded', String(nextOpen));
+    if (nextOpen) {
+      await ensureYoutubePlayer();
+    }
+  });
+}
+
+function ensureYoutubeApiLoaded() {
+  if (youtubeApiReady) return Promise.resolve();
+  if (window.YT && window.YT.Player) {
+    youtubeApiReady = true;
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing = document.getElementById('yt-iframe-api');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.id = 'yt-iframe-api';
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.async = true;
+      script.onerror = () => reject(new Error('YouTube API 로드 실패'));
+      document.head.appendChild(script);
+    }
+
+    const timeout = setTimeout(() => {
+      reject(new Error('YouTube API 응답 지연'));
+    }, 10000);
+
+    window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
+      clearTimeout(timeout);
+      youtubeApiReady = true;
+      resolve();
+    };
+  });
+}
+
+async function ensureYoutubePlayer() {
+  if (youtubePlayer) return;
+  await ensureYoutubeApiLoaded();
+
+  youtubePlayer = new window.YT.Player('musicPlayerWrap', {
+    videoId: YT_PLAYLIST_VIDEO_IDS[0],
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      rel: 0,
+      modestbranding: 1,
+      loop: 1,
+      playlist: YT_PLAYLIST_VIDEO_IDS.join(','),
+      playsinline: 1
+    }
+  });
+}
+
+function selectDuration(btn, duration) {
+  document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedDuration = duration;
+}
+
+const loadingMessages = [
+  "CHANNELING DIVINE ENERGY",
+  "AWAKENING THE CHAKRAS",
+  "CONSULTING THE VEDIC SCRIPTURES",
+  "INVOKING THE COSMIC DANCE",
+  "WEAVING YOUR SPIRITUAL JOURNEY"
+];
+
+async function invokeGuru() {
+  const mood = document.getElementById('moodInput').value.trim();
+  if (!mood) {
+    alert('구루에게 현재 상태를 알려주세요.');
+    return;
+  }
+  if (!selectedDuration) {
+    alert('여정의 길이를 선택해주세요.');
+    return;
+  }
+
+  document.getElementById('errorBox').classList.remove('active');
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('loadingState').classList.add('active');
+
+  // Cycle loading messages
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % loadingMessages.length;
+    document.getElementById('loadingText').textContent = loadingMessages[msgIdx];
+  }, 2500);
+
+  const systemPrompt = buildSystemPrompt();
+  const userPrompt = buildUserPrompt(mood, selectedDuration);
+  const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
+
+  if (!apiKey) {
+    clearInterval(msgInterval);
+    document.getElementById('loadingState').classList.remove('active');
+    document.getElementById('inputSection').style.display = 'block';
+    document.getElementById('errorBox').classList.add('active');
+    document.getElementById('errorDetail').textContent = 'Gemini API 키를 먼저 입력해주세요.';
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }
+        ]
+      })
+    });
+
+    clearInterval(msgInterval);
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Gemini API Error: ${response.status} ${errBody}`);
+    }
+    const data = await response.json();
+    const raw = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) || '';
+    if (!raw) throw new Error('Gemini 응답 본문이 비어 있습니다.');
+
+    // Extract JSON
+    let jsonStr = raw;
+    const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) jsonStr = fenceMatch[1];
+    else {
+      const braceStart = raw.indexOf('{');
+      const braceEnd = raw.lastIndexOf('}');
+      if (braceStart !== -1 && braceEnd !== -1) jsonStr = raw.slice(braceStart, braceEnd + 1);
+    }
+
+    const courseData = JSON.parse(jsonStr);
+    renderCourse(courseData);
+
+  } catch (err) {
+    clearInterval(msgInterval);
+    document.getElementById('loadingState').classList.remove('active');
+    document.getElementById('inputSection').style.display = 'block';
+    document.getElementById('errorBox').classList.add('active');
+    document.getElementById('errorDetail').textContent = err.message;
+  }
+}
+
+function buildSystemPrompt() {
+  return `당신은 수천 년의 힌두 신화와 요가 철학의 지혜를 현대적으로 전달하는 Mystical Indian Yoga & Meditation Guru입니다.
+사용자의 현재 몸/마음 상태와 선택한 시간에 맞추어, 아래 JSON 스키마를 엄격히 준수하여 완전한 개인화 요가 코스를 생성합니다.
+
+반드시 아래 JSON 구조만 출력하세요 (마크다운 코드블록 없이):
+{
+  "course_metadata": {
+    "title": "string",
+    "deity_theme": "string",
+    "duration_min": number,
+    "intensity": "Beginner|Intermediate|Advanced",
+    "focus_area": "string",
+    "chakra_focus": "string"
+  },
+  "sequence": [
+    {
+      "step_number": number,
+      "type": "Warmup|Asana|Pranayama|Meditation|Relaxation",
+      "sanskrit_name": "string (산스크리트어)",
+      "english_name": "string (영문 + 한국어 병기)",
+      "duration_seconds": number,
+      "instructions": ["상세 지시 1(힌두 신화 서사 포함, 한국어)", "상세 지시 2", "상세 지시 3"],
+      "breathing_guide": "string (들숨/날숨 타이밍, 한국어)",
+      "benefits_physical": "string (신체적 효과, 한국어)",
+      "benefits_spiritual": "string (힌두 신화적 의미/신과의 연결, 한국어)",
+      "caution": "string (안전 주의사항, 한국어)",
+      "visual_cue_ui": "string (애니메이션/이펙트 묘사, 한국어)"
+    }
+  ],
+  "closing_mantra": "string (산스크리트어 만트라 + 한국어 해석)"
+}
+
+코칭 원칙:
+- 모든 지시는 "태양신 수리야의 빛을 온몸으로 받아들이듯..."처럼 신화적 서사를 담아 풍부하게 표현
+- 신체 안전 주의사항은 반드시 실용적으로 포함
+- 자세 간 전환(Vinyasa)이 신들의 춤(Tandava)처럼 유기적으로 연결되도록 설명
+- 사용자의 질문/컨디션을 세밀하게 반영하고, 초보자가 따라할 수 있는 구체 동작 문장을 사용
+- JSON만 출력, 다른 텍스트 없음`;
+}
+
+function buildUserPrompt(mood, duration) {
+  const courseSpecs = duration === 30
+    ? "30분 코스 (Ganesha's Awakening): 정화 웜업(5분) → 핵심 아사나(15분) → 프라나야마 호흡(5분) → 짧은 명상 및 이완(5분). 자세 유지 30~45초. Sattva(가볍고 맑은) 에너지."
+    : "60분 코스 (Shiva's Transformation): 전통 옴 챈팅 및 중심잡기(5분) → 수리야 나마스카라 12단계(15분) → 스탠딩/시팅/인버전 아사나(25분) → 심화 프라나야마(5분) → 가이드 명상 및 사바사나(10분). Vinyasa flow 연결 + 신화적/철학적 배경 포함.";
+
+  return `수련자의 현재 상태: "${mood}"
+
+선택한 코스: ${courseSpecs}
+
+이 수련자의 상태에 최적화된 개인화 요가 코스 JSON을 생성해주세요. 사용자 상태를 깊이 반영한 sequence를 구성하세요.`;
+}
+
+function formatDuration(seconds) {
+  if (seconds >= 60) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return s > 0 ? `${m}분 ${s}초` : `${m}분`;
+  }
+  return `${seconds}초`;
+}
+
+const typeColors = {
+  Warmup: '#2dbfbd', Asana: '#d4a843', Pranayama: '#e88ab4',
+  Meditation: '#b89ae8', Relaxation: '#2dbfbd'
+};
+const typeKo = {
+  Warmup: '웜업', Asana: '아사나', Pranayama: '프라나야마',
+  Meditation: '명상', Relaxation: '이완'
+};
+
+function renderCourse(data) {
+  const meta = data.course_metadata;
+  const sequence = data.sequence;
+
+  let stepsHtml = sequence.map((step, i) => {
+    const typeClass = `type-${step.type}`;
+    const color = typeColors[step.type] || '#d4a843';
+    const instructionsHtml = (step.instructions || []).map(ins =>
+      `<li>${escapeHtml(ins)}</li>`
+    ).join('');
+
+    const animDelay = i * 0.08;
+
+    return `
+    <div class="step-card" style="animation-delay:${animDelay}s" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number ${typeClass}">${step.step_number}</div>
+        <div class="step-names">
+          <div class="type-badge ${typeClass}" style="border:1px solid ${color}33; background:${color}22; color:${color}">
+            ${typeKo[step.type] || step.type}
+          </div>
+          <div class="step-sanskrit">${escapeHtml(step.sanskrit_name || '')}</div>
+          <div class="step-english">${escapeHtml(step.english_name || '')}</div>
+        </div>
+        <div class="step-duration">
+          ${formatDuration(step.duration_seconds || 0)}
+          <span>▾ 자세히</span>
+        </div>
+      </div>
+      <div class="step-body">
+        ${instructionsHtml ? `<ul class="instruction-list">${instructionsHtml}</ul>` : ''}
+        <div class="info-grid">
+          <div class="info-box breathing">
+            <div class="info-box-label">🌬 호흡 가이드</div>
+            <div class="info-box-text">${escapeHtml(step.breathing_guide || '—')}</div>
+          </div>
+          <div class="info-box physical">
+            <div class="info-box-label">⚡ 신체 효과</div>
+            <div class="info-box-text">${escapeHtml(step.benefits_physical || '—')}</div>
+          </div>
+          <div class="info-box spiritual">
+            <div class="info-box-label">✨ 영적 의미</div>
+            <div class="info-box-text">${escapeHtml(step.benefits_spiritual || '—')}</div>
+          </div>
+          ${step.caution ? `<div class="info-box caution">
+            <div class="info-box-label">⚠ 주의사항</div>
+            <div class="info-box-text">${escapeHtml(step.caution)}</div>
+          </div>` : ''}
+        </div>
+        ${step.visual_cue_ui ? `<div class="visual-cue">${escapeHtml(step.visual_cue_ui)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const output = document.getElementById('courseOutput');
+  output.innerHTML = `
+    <div class="course-hero">
+      <div class="hero-deity">${escapeHtml(meta.deity_theme || meta.title || '')}</div>
+      <div class="hero-title">${escapeHtml(meta.title || '')}</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">⏱ 시간</div>
+          <div class="meta-value">${escapeHtml(String(meta.duration_min || ''))}분</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">⚡ 강도</div>
+          <div class="meta-value">${escapeHtml(meta.intensity || '')}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">🎯 집중 영역</div>
+          <div class="meta-value">${escapeHtml(meta.focus_area || '')}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">✦ 차크라</div>
+          <div class="meta-value">${escapeHtml(meta.chakra_focus || '')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sequence-header">⟡ 신성한 시퀀스 · Sacred Sequence ⟡</div>
+
+    ${stepsHtml}
+
+    <div class="closing-mantra">
+      <div class="mantra-label">✦ Closing Mantra · 마감 만트라 ✦</div>
+      <div class="mantra-text">${escapeHtml((data.closing_mantra || '').split('·')[0])}</div>
+      <div class="mantra-translation">${escapeHtml(data.closing_mantra || '')}</div>
+    </div>
+
+    <button class="restart-btn" onclick="restartJourney()">✦ 새로운 여정 시작하기 ✦</button>
+  `;
+
+  document.getElementById('loadingState').classList.remove('active');
+  output.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleStep(card) {
+  card.classList.toggle('expanded');
+  const durSpan = card.querySelector('.step-duration span');
+  if (durSpan) durSpan.textContent = card.classList.contains('expanded') ? '▴ 닫기' : '▾ 자세히';
+}
+
+function restartJourney() {
+  document.getElementById('courseOutput').classList.remove('active');
+  document.getElementById('courseOutput').innerHTML = '';
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('moodInput').value = '';
+  document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+  selectedDuration = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+initPageState();
+</script>
+</body>
+</html>
