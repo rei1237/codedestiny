@@ -1,7 +1,10 @@
 (function(){
   var _splashDone = false;
+  var splashStartedAt = Date.now();
   /* prefers-reduced-motion: 접근성 배려 + 저사양 기기 보호 */
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MIN_VISIBLE_MS = prefersReduced ? 450 : 1800;
+  var MAX_VISIBLE_MS = 5000;
 
   /* -- 별빛 캔버스 (reduced-motion 비활성) -- */
   var cvs = document.getElementById('splashCanvas');
@@ -136,9 +139,23 @@
     if (rafId) cancelAnimationFrame(rafId);
   }
 
-  /* 즉시 숨김: 로딩 연출 대기 제거 */
-  hideSplash();
+  function scheduleHideSplash() {
+    if (_splashDone) return;
+    var elapsed = Date.now() - splashStartedAt;
+    var waitMs = Math.max(0, MIN_VISIBLE_MS - elapsed);
+    setTimeout(hideSplash, waitMs);
+  }
+
+  /* 무한 체류 방지 안전장치 */
+  setTimeout(hideSplash, MAX_VISIBLE_MS);
+
+  if (document.readyState === 'complete') {
+    scheduleHideSplash();
+  } else {
+    window.addEventListener('load', scheduleHideSplash, { once: true });
+  }
+
   window.addEventListener('pageshow', function() {
-    hideSplash();
+    scheduleHideSplash();
   }, { once: true });
 })();
