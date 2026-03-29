@@ -648,10 +648,11 @@ function setThemeToggleEnabled(enabled){
 
 function scheduleThemeToggleAutoDisable(){
   setThemeToggleEnabled(true);
-  if(_themeToggleHideTimer) {
-    clearTimeout(_themeToggleHideTimer);
+  if(_themeToggleHideTimer) clearTimeout(_themeToggleHideTimer);
+  _themeToggleHideTimer = setTimeout(function(){
     _themeToggleHideTimer = null;
-  }
+    setThemeToggleEnabled(false);
+  }, 30000); // 로딩 후 30초 지나면 꽃돼지/백사자 토글 비활성화
 }
 
 function isHomePageVisible(){
@@ -833,14 +834,15 @@ function enforceThemeToggleSticky() {
     document.body.appendChild(wrap);
   }
 
-  wrap.style.position = 'fixed';
-  wrap.style.left = 'auto';
-  wrap.style.right = 'max(12px, env(safe-area-inset-right, 0px))';
-  wrap.style.bottom = 'max(10px, env(safe-area-inset-bottom, 0px))';
-  wrap.style.top = 'auto';
-  wrap.style.transform = 'none';
-  wrap.style.zIndex = '2147483000';
-  wrap.style.pointerEvents = 'auto';
+  // 모바일 Safari의 동적 뷰포트/스크롤 재계산에도 위치가 흔들리지 않도록 important로 고정
+  wrap.style.setProperty('position', 'fixed', 'important');
+  wrap.style.setProperty('left', 'auto', 'important');
+  wrap.style.setProperty('right', 'max(12px, env(safe-area-inset-right, 0px))', 'important');
+  wrap.style.setProperty('bottom', 'max(10px, env(safe-area-inset-bottom, 0px))', 'important');
+  wrap.style.setProperty('top', 'auto', 'important');
+  wrap.style.setProperty('transform', 'none', 'important');
+  wrap.style.setProperty('z-index', '2147483000', 'important');
+  wrap.style.setProperty('pointer-events', 'auto', 'important');
 }
 
 window.addEventListener('load',function(){
@@ -913,6 +915,7 @@ window.addEventListener('load',function(){
   bindFavoriteButtons();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
+  window.addEventListener('touchmove', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('orientationchange', function() {
     setTimeout(enforceThemeToggleSticky, 80);
   }, { passive: true });
