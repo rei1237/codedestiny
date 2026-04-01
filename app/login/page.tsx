@@ -47,6 +47,24 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const rawText = await response.text();
+  if (!rawText) return {} as T;
+
+  try {
+    return JSON.parse(rawText) as T;
+  } catch {
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    const looksLikeHtml = contentType.includes("text/html") || /^\s*</.test(rawText);
+
+    if (looksLikeHtml) {
+      throw new Error("서버가 JSON 대신 HTML을 반환했습니다. 배포/캐시 상태를 확인해 주세요.");
+    }
+
+    throw new Error("서버 응답 파싱 중 오류가 발생했습니다.");
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -119,7 +137,7 @@ export default function LoginPage() {
       body: JSON.stringify({ socialGrant }),
     })
       .then(async (response) => {
-        const payload = (await response.json()) as LoginResult & { errors?: string[] };
+        const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
 
         if (!response.ok) {
           if (Array.isArray(payload.errors) && payload.errors.length > 0) {
@@ -198,9 +216,9 @@ export default function LoginPage() {
         }),
       });
 
-      const payload = (await response.json()) as LoginResult & {
+      const payload = await parseJsonResponse<LoginResult & {
         errors?: string[];
-      };
+      }>(response);
 
       if (!response.ok) {
         if (Array.isArray(payload.errors) && payload.errors.length > 0) {
