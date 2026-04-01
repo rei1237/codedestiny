@@ -60,13 +60,7 @@ export default function ContactUsPage() {
       <section style={{ ...cardStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>이메일 문의 / Email Contact</h2>
         <p style={{ lineHeight: 1.82, marginBottom: "8px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-          서비스명: 코드 데스니티(Code Destiny)
-          <br />
-          대표자: 박병하
-          <br />
-          사업자 등록번호: 372-23-02329
-          <br />
-          고객센터: 010-7180-7398
+          서비스명: Code Destiny
           <br />
           운영 이메일:{" "}
           <a href="mailto:seongbae555@gmail.com" style={{ color: "#93c5fd", textDecoration: "underline" }}>

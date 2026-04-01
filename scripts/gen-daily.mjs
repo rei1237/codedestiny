@@ -528,14 +528,14 @@ const payload = {
   sukuyo_meta: {
     solar_date: dateStr,
     today_mansion: {
-      name_kr: '방숙(房宿)',
+      name_kr: '방수(房宿)',
       name_en: 'Room Mansion',
       element: '火',
       energy_kr: '따뜻한 기운이 관계와 집안을 부드럽게 이어 줍니다. 급한 결정은 피하고, 한 박자 쉬어 가세요.',
     },
-    this_month_dominant: '실숙(室宿)',
-    this_year_dominant: '규숙(奎宿)',
-    next_year_dominant: '정숙(井宿)',
+    this_month_dominant: '실수(室宿)',
+    this_year_dominant: '규수(奎宿)',
+    next_year_dominant: '정수(井宿)',
   },
   panchanga_today: {
     solar_date: dateStr,

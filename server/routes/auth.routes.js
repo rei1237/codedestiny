@@ -12,34 +12,19 @@ const router = express.Router();
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
 
-function normalizeBaseUrl(rawUrl, fallback) {
-  const candidate = String(rawUrl || "").trim() || String(fallback || "").trim();
-  if (!candidate) return "";
-  return candidate.replace(/\/+$/, "");
-}
-
 function getFrontendBaseUrl() {
-  return normalizeBaseUrl((
+  return (
     process.env.AUTH_FRONTEND_BASE_URL
     || process.env.SITE_BASE_URL
     || "http://localhost:3000"
-  ));
+  );
 }
 
 function getApiBaseUrl(req) {
-  if (process.env.AUTH_API_BASE_URL) {
-    return normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
-  }
+  if (process.env.AUTH_API_BASE_URL) return process.env.AUTH_API_BASE_URL;
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "http";
   const host = req.headers["x-forwarded-host"] || req.get("host");
-  return normalizeBaseUrl(`${proto}://${host}`);
-}
-
-function getProviderApiBaseUrl(provider, req) {
-  const upper = String(provider || "").toUpperCase();
-  const key = `${upper}_OAUTH_REDIRECT_BASE_URL`;
-  if (process.env[key]) return normalizeBaseUrl(process.env[key]);
-  return getApiBaseUrl(req);
+  return `${proto}://${host}`;
 }
 
 function sanitizeNextPath(rawNext) {
@@ -104,8 +89,7 @@ function verifySocialGrant(token) {
 }
 
 function buildProviderConfig(provider, req) {
-  const redirectBase = getProviderApiBaseUrl(provider, req);
-  const redirectUri = `${redirectBase}/api/auth/oauth/${provider}/callback`;
+  const redirectUri = `${getApiBaseUrl(req)}/api/auth/oauth/${provider}/callback`;
 
   if (provider === "google") {
     return {

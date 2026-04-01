@@ -98,11 +98,37 @@
     };
   }
 
+  function getLocalizedOlympusHref() {
+    if (typeof window.__cdResolveLocalizedFeatureHref === 'function') {
+      return window.__cdResolveLocalizedFeatureHref('/olympus');
+    }
+    var lang = 'ko';
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) lang = String(saved);
+    } catch (_) {}
+    var low = String(lang || 'ko').toLowerCase();
+    var map = {
+      en: '/en-us',
+      ja: '/ja-jp',
+      zh: '/zh-cn',
+      'zh-cn': '/zh-cn',
+      hi: '/hi-in',
+      es: '/es-es',
+      fr: '/fr-fr',
+      de: '/de-de',
+      nl: '/nl-nl',
+      ms: '/ms-my'
+    };
+    var prefix = map[low] || '';
+    return prefix ? (prefix + '/olympus') : '/olympus';
+  }
+
   function commitAndMove(profilePayload) {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(profilePayload));
     } catch (e) {}
-    window.location.href = '/olympus';
+    window.location.href = getLocalizedOlympusHref();
   }
 
   function openOlympusOracleModal() {

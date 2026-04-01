@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 
 export function PhaseWelcoming() {
@@ -20,14 +19,14 @@ export function PhaseWelcoming() {
       <div className="absolute inset-0 bg-gradient-to-b from-rose-50 via-pink-50 to-rose-50"></div>
 
       {/* 닫기 버튼 (우측 상단) */}
-      <Link
+      <a
         href="/"
         className="absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-rose-200 text-rose-500 text-sm font-bold shadow-md hover:bg-rose-50 hover:text-rose-700 transition-all duration-200 hover:scale-105 active:scale-95"
         aria-label="메인으로 돌아가기"
       >
         <span className="text-base">✕</span>
         <span className="hidden sm:inline">닫기</span>
-      </Link>
+      </a>
       
       {/* 별/꽃 장식 입자 */}
       {Array.from({ length: 8 }).map((_, i) => (

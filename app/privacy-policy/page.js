@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 총칙 / General Notice</h2>
         <p style={{ lineHeight: 1.75 }}>
-          Code Destiny(이하 &quot;서비스&quot;)는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을
+          Code Destiny(이하 "서비스")는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을
           준수하기 위해 노력합니다. This Privacy Policy explains what data we process, why we process it, how long we keep it,
           and how you can exercise your rights.
         </p>
@@ -119,7 +119,7 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 아동의 개인정보 / Children&apos;s Privacy</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 아동의 개인정보 / Children's Privacy</h2>
         <p style={{ lineHeight: 1.75 }}>
           서비스는 원칙적으로 만 14세 미만 아동을 대상으로 하지 않으며, 관련 정보가 수집된 사실을 인지한 경우 지체 없이 삭제 조치합니다.
           If you believe a child has provided personal data, please contact us immediately.
@@ -145,13 +145,7 @@ export default function PrivacyPolicyPage() {
       <section style={sectionStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 개인정보 문의처 / Privacy Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
-          서비스명: 코드 데스니티(Code Destiny)
-          <br />
-          대표자: 박병하
-          <br />
-          사업자 등록번호: 372-23-02329
-          <br />
-          고객센터: 010-7180-7398
+          서비스명: Code Destiny
           <br />
           개인정보 보호 문의 이메일: seongbae555@gmail.com
           <br />

@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminSecret } from "../../_admin/requireAdminSecret";
 import { serveAdminFile } from "../../_admin/serveAdminFile";
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ adminHash: string }> },
-) {
-  const params = await context.params;
+export async function GET(request: Request, { params }: { params: { adminHash: string } }) {
   const blocked = await requireAdminSecret(request, params, { requireAuth: true });
   if (blocked) return blocked;
   return serveAdminFile(["[hash]", "members.html"]);

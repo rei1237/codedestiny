@@ -1,12 +1,10 @@
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
 import connectDB from "../../../../server/config/db";
 import User from "../../../../server/models/User";
-
-export const runtime = "nodejs";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
@@ -26,13 +24,6 @@ function getFrontendBaseUrl() {
 function getApiBaseUrl(request) {
   if (process.env.AUTH_API_BASE_URL) return process.env.AUTH_API_BASE_URL;
   return request.nextUrl.origin;
-}
-
-function getProviderApiBaseUrl(provider, request) {
-  const upper = String(provider || "").toUpperCase();
-  const key = `${upper}_OAUTH_REDIRECT_BASE_URL`;
-  if (process.env[key]) return process.env[key];
-  return getApiBaseUrl(request);
 }
 
 function sanitizeNextPath(rawNext) {
@@ -79,8 +70,7 @@ function verifySocialGrant(token) {
 }
 
 function buildProviderConfig(provider, request) {
-  const redirectBase = getProviderApiBaseUrl(provider, request);
-  const redirectUri = `${redirectBase}/api/auth/oauth/${provider}/callback`;
+  const redirectUri = `${getApiBaseUrl(request)}/api/auth/oauth/${provider}/callback`;
 
   if (provider === "google") {
     return {

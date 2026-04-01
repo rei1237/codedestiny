@@ -53,11 +53,7 @@ async function servePublicRootFile(fileName: string): Promise<NextResponse> {
  * app/[adminHash]/route.ts 는 "/:단일세그먼트" 전부를 잡는다.
  * 미들웨어를 우회한 경우를 대비해 index.html·favicon 같은 정적 파일명은 먼저 예외 처리한다.
  */
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ adminHash: string }> },
-) {
-  const params = await context.params;
+export async function GET(request: Request, { params }: { params: { adminHash: string } }) {
   const segment = String(params.adminHash || "");
   const lower = segment.toLowerCase();
 
@@ -88,8 +84,7 @@ export async function GET(
   if (blocked) return blocked;
 
   // 토큰이 있으면 대시보드, 없으면 로그인
-  const cookieStore = await cookies();
-  const token = cookieStore.get("fortune_auth_token")?.value;
+  const token = cookies().get("fortune_auth_token")?.value;
   if (token) {
     // requireAdminSecret의 인증 검증을 재사용하기 위해 requireAuth=true로 재호출
     const blocked2 = await requireAdminSecret(request, params, { requireAuth: true });

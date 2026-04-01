@@ -1,0 +1,96 @@
+﻿C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:94:   console.log('[saju-bootstrap] 부트스트랩 시작');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:98:     if (typeof initSelectors === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:99:       console.log('[saju-bootstrap] initSelectors 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:100:       initSelectors();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:101:       console.log('[saju-bootstrap] initSelectors 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:103:       console.warn('[saju-bootstrap] initSelectors 함수를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:104:       _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:107:     console.error('[saju-bootstrap] initSelectors 실패:', e1);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:108:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:113:     if (typeof populateCelebList === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:114:       console.log('[saju-bootstrap] populateCelebList 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:115:       populateCelebList();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:116:       console.log('[saju-bootstrap] populateCelebList 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:119:     console.error('[saju-bootstrap] populateCelebList 실패:', e2);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:124:     if (typeof loadNext === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:125:       console.log('[saju-bootstrap] loadNext 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:126:       loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:128:       console.warn('[saju-bootstrap] loadNext 함수를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:132:     console.error('[saju-bootstrap] loadNext 실패:', e3);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:139:       console.log('[saju-bootstrap] 100ms 뒤 입력 필드 상태 확인');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:141:     } catch (e) { console.error('[saju-bootstrap] 100ms 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:146:       console.log('[saju-bootstrap] 500ms 뒤 입력 필드 상태 확인');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:148:     } catch (e) { console.error('[saju-bootstrap] 500ms 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:153:       console.log('[saju-bootstrap] 2s 뒤 입력 필드 상태 최종 확보');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:156:     } catch (e) { console.error('[saju-bootstrap] 2s 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:160: /* 매뉴얼 초기화 - initSelectors 대체 */
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:161: function _initSelectorsManually() {
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:162:   console.log('[saju-bootstrap] 매뉴얼 초기화 시작');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:183:       console.log('[saju-bootstrap] 매뉴얼 초기화 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:185:       console.error('[saju-bootstrap] birthHour 또는 birthMinute 요소를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:188:     console.error('[saju-bootstrap] 매뉴얼 초기화 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:199:     console.log('[saju-bootstrap] birthHour options이 비어있음, 추가 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:200:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:204:     console.log('[saju-bootstrap] birthMinute options이 비어있음, 추가 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:205:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:209:     console.log('[saju-bootstrap] birthCountry options이 부족함, 복구 시도 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine-continuation.js:215:       console.error('[saju-bootstrap] birthCountry 복구 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:39:   loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:857: function loadNext(){
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:881:     loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:894:     loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:899:   if(n>30){loadNext();return;}
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:2162: function initSelectors(){
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:2196:     console.error('[initSelectors] updateCorrectedTimePreview 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\js\saju-engine.js:14221: function populateCelebList(){
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:94:   console.log('[saju-bootstrap] 부트스트랩 시작');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:98:     if (typeof initSelectors === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:99:       console.log('[saju-bootstrap] initSelectors 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:100:       initSelectors();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:101:       console.log('[saju-bootstrap] initSelectors 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:103:       console.warn('[saju-bootstrap] initSelectors 함수를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:104:       _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:107:     console.error('[saju-bootstrap] initSelectors 실패:', e1);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:108:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:113:     if (typeof populateCelebList === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:114:       console.log('[saju-bootstrap] populateCelebList 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:115:       populateCelebList();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:116:       console.log('[saju-bootstrap] populateCelebList 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:119:     console.error('[saju-bootstrap] populateCelebList 실패:', e2);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:124:     if (typeof loadNext === 'function') {
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:125:       console.log('[saju-bootstrap] loadNext 호출 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:126:       loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:128:       console.warn('[saju-bootstrap] loadNext 함수를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:132:     console.error('[saju-bootstrap] loadNext 실패:', e3);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:139:       console.log('[saju-bootstrap] 100ms 뒤 입력 필드 상태 확인');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:141:     } catch (e) { console.error('[saju-bootstrap] 100ms 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:146:       console.log('[saju-bootstrap] 500ms 뒤 입력 필드 상태 확인');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:148:     } catch (e) { console.error('[saju-bootstrap] 500ms 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:153:       console.log('[saju-bootstrap] 2s 뒤 입력 필드 상태 최종 확보');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:156:     } catch (e) { console.error('[saju-bootstrap] 2s 체크 실패:', e); }
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:160: /* 매뉴얼 초기화 - initSelectors 대체 */
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:161: function _initSelectorsManually() {
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:162:   console.log('[saju-bootstrap] 매뉴얼 초기화 시작');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:183:       console.log('[saju-bootstrap] 매뉴얼 초기화 완료');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:185:       console.error('[saju-bootstrap] birthHour 또는 birthMinute 요소를 찾을 수 없음');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:188:     console.error('[saju-bootstrap] 매뉴얼 초기화 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:199:     console.log('[saju-bootstrap] birthHour options이 비어있음, 추가 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:200:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:204:     console.log('[saju-bootstrap] birthMinute options이 비어있음, 추가 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:205:     _initSelectorsManually();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:209:     console.log('[saju-bootstrap] birthCountry options이 부족함, 복구 시도 중...');
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine-continuation.js:215:       console.error('[saju-bootstrap] birthCountry 복구 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:39:   loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:857: function loadNext(){
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:881:     loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:894:     loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:899:   if(n>30){loadNext();return;}
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:2162: function initSelectors(){
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:2196:     console.error('[initSelectors] updateCorrectedTimePreview 실패:', e);
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\saju-engine.js:14221: function populateCelebList(){
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:56:       loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:68:   function loadNext() {
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:102:       loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:116:       loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:135:     loadNext();
+C:\Users\Neo\Desktop\Code Destiny Main\public\js\services\saju-library-loader.js:156:     loadNext: loadNext,

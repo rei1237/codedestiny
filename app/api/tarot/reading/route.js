@@ -3,7 +3,17 @@ import { NextResponse } from "next/server";
 import sampleData from "../../../../server/data/tarot-cards.sample.json";
 import dbData from "../../../../server/data/tarot-cards.db.json";
 
-const tarotEngineModulePromise = import("../../../../server/services/tarot-engine.service.js");
+const {
+  createReading,
+  createRelationshipReading,
+  createHealingRisingReading,
+  createReunionLighthouseReading,
+  createSelfEsteemLevelupReading,
+  createYearlyFromThreeCardReading,
+  createYearlyTwelveCardReading,
+  normalizeSpreadType,
+  initFromPreloadedData,
+} = require("../../../../server/services/tarot-engine.service");
 
 function mapCardForUi(item) {
   return {
@@ -23,18 +33,6 @@ function mapCardForUi(item) {
 
 export async function POST(request) {
   try {
-    const tarotEngineModule = await tarotEngineModulePromise;
-    const {
-      createReading,
-      createRelationshipReading,
-      createHealingRisingReading,
-      createReunionLighthouseReading,
-      createSelfEsteemLevelupReading,
-      createYearlyFromThreeCardReading,
-      createYearlyTwelveCardReading,
-      normalizeSpreadType,
-      initFromPreloadedData,
-    } = tarotEngineModule.default || tarotEngineModule;
     initFromPreloadedData(dbData, sampleData);
     const body = await request.json();
     const category = body?.category || "general";

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 
 export function PhaseSharing() {
@@ -217,7 +216,7 @@ export function PhaseSharing() {
           </button>
 
           {/* 메인 화면 바로가기 버튼 */}
-          <Link
+          <a
             href="/"
             className="py-3 px-4 bg-white border-2 border-rose-300
               text-rose-500 font-bold rounded-xl hover:bg-rose-50 hover:border-rose-400 hover:text-rose-600
@@ -225,7 +224,7 @@ export function PhaseSharing() {
               flex items-center justify-center gap-2"
           >
             🏠 메인 화면으로
-          </Link>
+          </a>
         </div>
 
         {/* 연이의 축복 메시지 */}

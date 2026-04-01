@@ -140,13 +140,7 @@ export default function TermsOfServicePage() {
       <section style={sectionStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 문의 / Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
-          서비스명: 코드 데스니티(Code Destiny)
-          <br />
-          대표자: 박병하
-          <br />
-          사업자 등록번호: 372-23-02329
-          <br />
-          고객센터: 010-7180-7398
+          서비스명: Code Destiny
           <br />
           약관 문의: seongbae555@gmail.com
           <br />

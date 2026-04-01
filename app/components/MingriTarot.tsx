@@ -45,10 +45,6 @@ function cardImageUrl(cardId: string) {
   return `/api/tarot/card-image/${encodeURIComponent(cardId)}`;
 }
 
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
-
 export default function MingriTarot() {
   const router = useRouter();
   const [mode, setMode] = useState<TarotMode>("one");
@@ -57,7 +53,7 @@ export default function MingriTarot() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [readingRaw, setReadingRaw] = useState<Record<string, unknown> | null>(null);
+  const [readingRaw, setReadingRaw] = useState<any>(null);
 
   const spreadType = useMemo(() => spreadTypeForMode(mode), [mode]);
   const requiredRevealCount = mode === "three" ? 3 : 1;
@@ -84,8 +80,8 @@ export default function MingriTarot() {
       const sliced = nextCards.slice(0, requiredRevealCount);
       if (!sliced.length) throw new Error("카드 데이터가 비어 있습니다.");
       setCards(sliced);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "카드 뽑기 중 오류가 발생했습니다."));
+    } catch (e: any) {
+      setError(e?.message || "카드 뽑기 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -115,8 +111,8 @@ export default function MingriTarot() {
         throw new Error(data?.message || "해석 생성 실패");
       }
       setReadingRaw(data?.reading ?? data);
-    } catch (e: unknown) {
-      setError(getErrorMessage(e, "해석 생성 중 오류가 발생했습니다."));
+    } catch (e: any) {
+      setError(e?.message || "해석 생성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }

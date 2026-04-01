@@ -47,20 +47,6 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
-async function parseApiPayload(response: Response) {
-  const contentType = response.headers.get("content-type") || "";
-
-  if (contentType.includes("application/json")) {
-    return response.json();
-  }
-
-  const text = await response.text();
-  const compact = text.replace(/\s+/g, " ").slice(0, 160);
-  throw new Error(
-    `API가 JSON이 아닌 응답을 반환했습니다. url=${response.url}, 상태코드=${response.status}, content-type=${contentType || "unknown"}, body=${compact}`,
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
 
@@ -72,14 +58,15 @@ export default function LoginPage() {
   const socialCompleteOnceRef = useRef(false);
 
   const apiBase = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
     if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL.replace(/\/+$/, "");
+      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         return "http://localhost:4000";
       }
-      return window.location.origin.replace(/\/+$/, "");
+      return window.location.origin;
     }
-    return (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000").replace(/\/+$/, "");
+    return "http://localhost:4000";
   }, []);
 
   const endpoint = `${apiBase}/api/auth/login`;
@@ -132,7 +119,7 @@ export default function LoginPage() {
       body: JSON.stringify({ socialGrant }),
     })
       .then(async (response) => {
-        const payload = (await parseApiPayload(response)) as LoginResult & { errors?: string[] };
+        const payload = (await response.json()) as LoginResult & { errors?: string[] };
 
         if (!response.ok) {
           if (Array.isArray(payload.errors) && payload.errors.length > 0) {
@@ -155,7 +142,6 @@ export default function LoginPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
-        console.error("[Login][Social] request failed", e);
         setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
@@ -212,7 +198,7 @@ export default function LoginPage() {
         }),
       });
 
-      const payload = (await parseApiPayload(response)) as LoginResult & {
+      const payload = (await response.json()) as LoginResult & {
         errors?: string[];
       };
 
@@ -246,13 +232,8 @@ export default function LoginPage() {
       }
 
       router.replace("/");
-    } catch (e) {
-      console.error("[Login] request failed", e);
-      if (e instanceof Error && e.message) {
-        setError(e.message);
-      } else {
-        setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
-      }
+    } catch {
+      setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
     } finally {
       setLoading(false);
     }

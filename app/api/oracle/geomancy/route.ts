@@ -118,10 +118,6 @@ function parseLooseOracleJson(text: string): Partial<Record<string, string>> {
   return out;
 }
 
-function stringOrEmpty(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
-
 function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   const src = stripCodeFence(String(text || "").trim());
   if (!src || !src.includes('"answer"')) return {};
@@ -129,15 +125,15 @@ function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   const jsonCandidate = extractFirstJsonObject(src);
   if (jsonCandidate) {
     try {
-      const parsed = JSON.parse(jsonCandidate) as Record<string, unknown>;
+      const parsed = JSON.parse(jsonCandidate);
       if (parsed && typeof parsed === "object") {
         return {
-          answer: stringOrEmpty(parsed.answer).trim(),
-          keyJudgement: stringOrEmpty(parsed.keyJudgement).trim(),
-          energyFlow: stringOrEmpty(parsed.energyFlow).trim(),
-          risk: stringOrEmpty(parsed.risk).trim(),
-          timing: stringOrEmpty(parsed.timing).trim(),
-          actionTip: stringOrEmpty(parsed.actionTip).trim(),
+          answer: String((parsed as any).answer || "").trim(),
+          keyJudgement: String((parsed as any).keyJudgement || "").trim(),
+          energyFlow: String((parsed as any).energyFlow || "").trim(),
+          risk: String((parsed as any).risk || "").trim(),
+          timing: String((parsed as any).timing || "").trim(),
+          actionTip: String((parsed as any).actionTip || "").trim(),
         };
       }
     } catch {
@@ -148,9 +144,8 @@ function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   return parseLooseOracleJson(src);
 }
 
-function parseGeminiText(payload: unknown): string {
-  const root = payload as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-  const candidates = Array.isArray(root?.candidates) ? root.candidates : [];
+function parseGeminiText(payload: any): string {
+  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   for (const candidate of candidates) {
     const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
     for (const part of parts) {
@@ -162,17 +157,16 @@ function parseGeminiText(payload: unknown): string {
   return "";
 }
 
-function ensureFields(raw: Record<string, unknown> | null | undefined, fallbackAnswer: string) {
-  const rawAnswer = stringOrEmpty(raw?.answer);
-  const nested = parseNestedAnswerJson(rawAnswer);
-  const answer = normalizeText(nested.answer || rawAnswer || fallbackAnswer, 3000);
+function ensureFields(raw: any, fallbackAnswer: string) {
+  const nested = parseNestedAnswerJson(raw?.answer || "");
+  const answer = normalizeText(nested.answer || raw?.answer || fallbackAnswer, 3000);
   return {
     answer,
-    keyJudgement: normalizeText(stringOrEmpty(raw?.keyJudgement) || nested.keyJudgement, 600),
-    energyFlow: normalizeText(stringOrEmpty(raw?.energyFlow) || nested.energyFlow, 600),
-    risk: normalizeText(stringOrEmpty(raw?.risk) || nested.risk, 600),
-    timing: normalizeText(stringOrEmpty(raw?.timing) || nested.timing, 600),
-    actionTip: normalizeText(stringOrEmpty(raw?.actionTip) || nested.actionTip, 600),
+    keyJudgement: normalizeText(raw?.keyJudgement || nested.keyJudgement, 600),
+    energyFlow: normalizeText(raw?.energyFlow || nested.energyFlow, 600),
+    risk: normalizeText(raw?.risk || nested.risk, 600),
+    timing: normalizeText(raw?.timing || nested.timing, 600),
+    actionTip: normalizeText(raw?.actionTip || nested.actionTip, 600),
   };
 }
 

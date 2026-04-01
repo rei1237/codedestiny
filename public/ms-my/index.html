@@ -352,6 +352,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
+
   <!-- ════════════════════════════════════════════════════════
        ★ CRITICAL CSS — 인라인 (렌더블로킹 CSS 전면 제거를 위한 ATF 필수 스타일)
        ════════════════════════════════════════════════════════ -->
@@ -816,6 +817,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   </div>
 </div>
 
+
 <script src="/js/splash.js" defer></script>
 
 <!-- 섹션 네비게이션 바 -->
@@ -968,7 +970,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
-</header>
+
+      <div id="goldenGrainBadgeRoot"></div>
+
+    </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
 
@@ -1580,6 +1585,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   </div>
                 </button>
 
+
                 <!-- 올림푸스 별자리 신탁 -->
                 <button class="tarot-tile tarot-tile--olympus-oracle" type="button"
                         data-action="openOlympusOracleModal"
@@ -1723,6 +1729,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div><!-- /feat-collection--flower -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
+
+
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
@@ -1935,6 +1943,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </section>
         </div>
       </div>
+
 
       <!-- 정신분석 해몽 모달 (Freud's Study) -->
       <div id="psychoDreamModalOverlay" class="ps-overlay" style="display:none;">
@@ -2235,6 +2244,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </div>
       </div>
 
+
+
+
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
@@ -2344,6 +2356,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div>
           </div>
           
+
 
         </div>
       </div>
@@ -2750,6 +2763,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </div>
       </div>
 
+
+
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
     <div id="kemetOracleOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,12,18,0.95); backdrop-filter:blur(10px); overflow-y:auto; animation: kemetFadeIn 0.4s ease-out;">
       <div style="position:absolute; top:20px; right:20px; z-index:100000;">
@@ -2881,12 +2896,16 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </button>
     </div>
 
+
+
     <!-- 0. 상단 히어로 -->
     <div class="top-hero">
       <div class="hero-animal" id="heroAnimal"></div>
       <h2 id="heroName"></h2>
       <div class="hero-sub" id="heroSub"></div>
     </div>
+
+
 
     <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
     <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
@@ -2968,12 +2987,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
                 </div>
 
+
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
 
     
 
@@ -3085,6 +3106,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </div>
 
+
+
     <!-- 2. 핵심 십성 -->
     <div class="card" id="tenshinCard">
       <div class="sec-title">🎴 보유 십성 (十星) — 탭하면 상세 분석!</div>
@@ -3113,6 +3136,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div class="sec-title">⚖️ 억부(抑扶) · 종격(從格) 분석</div>
       <div id="ukbuSection"></div>
     </div>
+
+
 
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
@@ -3146,6 +3171,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="summaryArea"></div>
     </section>
 
+
+
     <!-- 오늘의 운세 & 이달의 운세 -->
     <section class="card" id="dailyMonthlyCard" style="display:none" aria-labelledby="dailyMonthlyTitle">
       <h3 id="dailyMonthlyTitle" class="sec-title">🔆 오늘의 운세 &amp; 이달의 운세</h3>
@@ -3156,6 +3183,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="dailyPanel" class="fortune-panel active"></div>
       <div id="monthlyPanel" class="fortune-panel"></div>
     </section>
+
+
 
     <!-- 2-1. 궁합 보기 -->
     <section class="card" id="compatCard" aria-labelledby="compatTitle">
@@ -3214,6 +3243,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="sajuFourCutResult"></div>
     </section>
 
+
     <!-- 사주 분석 리포트 대시보드 -->
     <section class="card" id="reportDashboardCard" style="display:none" aria-labelledby="dashboardTitle">
       <div class="report-dashboard-head">
@@ -3227,6 +3257,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="quantumTitle" class="sec-title">⚡ 퀀텀 명리 전략 리포트 — 합화 우선 분석</h3>
       <div id="quantumSection"></div>
     </section>
+
+
 
         <!-- 🌟 통합 점술 탭 시스템 (Mystic Tab System) 🌟 -->
     <section class="mystic-tabs-wrapper" style="margin-bottom:25px; position:relative;" aria-label="Mystic Tab System">
@@ -3243,6 +3275,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </defs>
       </svg>
 
+
       </section>
 
       <section id="tabAstro" class="mystic-tab-content" role="tabpanel" aria-label="Astrology">
@@ -3250,6 +3283,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </section>
     </section>
       <!-- 탭 전환 스크립트 -->
+
+
 
     <section class="card" id="villainCard" style="display:none" aria-labelledby="villainTitle">
       <h3 id="villainTitle" class="sec-title">💀 요주의 빌런 블랙리스트</h3>
@@ -3261,6 +3296,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="skillTreeTitle" class="sec-title">🎮 인생 스킬 트리 — 運命 RPG 캐릭터 시트</h3>
       <div id="skillTreeSection"></div>
     </section>
+
 
     <section class="card" id="energyCoordCard" style="display:none" aria-labelledby="energyTitle">
       <h3 id="energyTitle" class="sec-title">🧭 에너지 원정 리포트 — 사주 맞춤 에너지 좌표</h3>
@@ -3285,6 +3321,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="egyptTitle" class="sec-title" style="color: #D4AF37;">𓂀 고대 이집트 오라클 (Eye of Horus)</h3>
       <div id="egyptSection"></div>
     </section>
+
+
 
     <section id="hormone-vibe-section" class="card hv-card" style="display:none; overflow:hidden; position:relative;">
       <h3 class="sec-title">🧬 사주로 볼때 나는 테토인가? 에겐인가?</h3>
@@ -3350,6 +3388,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
         <!-- 연락처 -->
         <div class="neo-promo-contact" style="margin-top: 15px; margin-bottom: 25px;"><a href="mailto:seongbae555@gmail.com" style="color:white; text-decoration:none; font-weight:bold; font-size:1.1rem; border-bottom: 1px dashed white;"> 이메일 상담 문의: seongbae555@gmail.com</a></div>
+
         <div class="golden-unlock-area">
           <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
           <div class="golden-unlock-list">
@@ -3369,6 +3408,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </aside>
 
     </div>
+
 
     
         <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
@@ -3428,18 +3468,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
-    </p>
-    <p style="font-size:0.73rem;color:#a7b3cf;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      상호명: 코드 데스니티(Code Destiny) | 대표자: 박병하
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      사업장 주소: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      사업자 등록번호: 372-23-02329
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 12px;word-break:break-all;">
-      고객센터: 010-7180-7398/seongbae555@gmail.com
     </p>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
@@ -3570,6 +3598,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 <script>
 (function () {
+  var PAYMENT_API_READY = false;
   var GOLDEN_GRAIN_STORAGE_KEY = 'goldenPigCoinBalanceV1';
   var userBalance = 0;
   var selectedPackageId = 'sample';
@@ -3784,6 +3813,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   async function applyCharge() {
+    if (!PAYMENT_API_READY) {
+      window.alert('실제 결제 API 연동 전이라 지금은 황금 돼지 코인을 충전할 수 없어요.');
+      return;
+    }
+
     var selected = getSelectedPackage();
     var addCoins = (selected.coins || 0) + (selected.bonus || 0);
 
@@ -3815,12 +3849,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
     }
 
-    userBalance += addCoins;
-    saveBalance();
-    updateBadge();
-    closeChargeModal();
-    window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
-    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+    window.alert('실제 결제 API 연동 전이라 충전이 비활성화되어 있습니다.');
   }
 
   async function tryUnlockFeature(button) {
@@ -3934,6 +3963,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 })();
 </script>
 
+
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
@@ -3953,4 +3983,29 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

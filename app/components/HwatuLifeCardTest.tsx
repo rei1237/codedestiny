@@ -287,7 +287,7 @@ export default function HwatuLifeCardTest() {
             <h2 className="mb-1 text-center text-2xl font-extrabold text-amber-300">[{result.name}] {result.cardTitle}</h2>
             <p className="mb-3 text-center text-red-200">{result.tagline}</p>
             <p className="mb-4 rounded-xl border border-amber-600/45 bg-zinc-900/70 p-3 text-sm leading-relaxed text-zinc-100">
-              &quot;{result.quote}&quot;
+              "{result.quote}"
             </p>
             <div className="mb-4 flex flex-wrap gap-2">
               {result.traits.map((trait) => (
@@ -322,7 +322,7 @@ export default function HwatuLifeCardTest() {
                         <p key={line}>• {line}</p>
                       ))}
                     </div>
-                    <p className="mt-2 text-amber-100/90">&quot;패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다.&quot;</p>
+                    <p className="mt-2 text-amber-100/90">"패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다."</p>
                   </motion.div>
                 )}
               </AnimatePresence>
