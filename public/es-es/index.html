@@ -381,35 +381,39 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
-.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,178,199,0.58);background:linear-gradient(140deg,#fff8f4 0%,#ffe6ef 55%,#fff1db 100%);box-shadow:0 12px 24px rgba(122,53,87,0.2);color:#7c3257;font-weight:800;font-size:.84rem;letter-spacing:.02em;z-index:4}
-.golden-grain-badge__coin{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff7cf 0%,#ffd96b 45%,#f3a526 100%);border:1px solid rgba(165,84,7,0.36);box-shadow:inset 0 2px 6px rgba(255,255,255,0.45),0 4px 10px rgba(173,84,8,0.25);font-size:.88rem;line-height:1}
-.golden-grain-badge__value{font-variant-numeric:tabular-nums}
-.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:6px 10px;background:linear-gradient(135deg,#ff6fa7,#ff9f7a);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;transition:transform .22s ease,filter .22s ease}
-.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.05)}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,210,130,0.66);background:linear-gradient(145deg,rgba(255,247,230,0.97),rgba(255,226,173,0.95));box-shadow:0 10px 30px rgba(176,98,21,0.22),inset 0 2px 10px rgba(255,255,255,0.42);color:#6e350b;font-weight:800;font-size:.84rem;letter-spacing:.01em;z-index:4}
+.golden-grain-badge__coin{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 26% 22%,#fff9d7 0%,#ffd45a 46%,#e79b12 100%);border:1px solid rgba(164,90,8,0.44);box-shadow:inset 0 2px 8px rgba(255,255,255,0.56),0 6px 12px rgba(150,76,11,0.24);font-size:1rem;line-height:1}
+.golden-grain-badge__value{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
+.golden-grain-badge__label{font-size:.67rem;font-weight:700;color:#8e5a2f;letter-spacing:.03em;text-transform:uppercase}
+.golden-grain-badge__balance{font-size:.86rem;font-weight:900;color:#5f2e08;white-space:nowrap}
+.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:7px 11px;background:linear-gradient(135deg,#ff8a5b,#ff5a77);color:#fff;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 6px 14px rgba(219,89,55,0.32)}
+.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.04)}
 .golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:100002;background:rgba(28,9,35,0.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .golden-grain-modal--open{display:flex}
-.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff6ea 0%,#ffe4d2 42%,#ffd8e8 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
+.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff8ec 0%,#ffe8c9 46%,#ffd7bb 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
 .golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
 .golden-grain-modal__close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.76);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer}
 .golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.35rem;color:#812f00}
-.golden-grain-modal__subtitle{margin:0 0 12px;font-size:.9rem;color:#9f5978;text-align:center}
-.golden-grain-piggy{width:82px;height:82px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:radial-gradient(circle at 32% 25%,#ffe0ef 0%,#ffc6de 60%,#f7a5c8 100%);border:2px solid rgba(255,154,196,0.7);box-shadow:inset 0 3px 8px rgba(255,255,255,0.56),0 8px 20px rgba(215,91,145,0.25)}
+.golden-grain-modal__subtitle{margin:0 0 14px;font-size:.9rem;color:#8b4b24}
+.golden-grain-piggy{width:82px;height:82px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
 .golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
 @keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
 .golden-grain-packages{display:grid;gap:10px}
-.golden-grain-package{position:relative;border:1px solid rgba(255,163,120,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.74);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.78);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
 .golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(169,56,95,0.14)}
 .golden-grain-package.is-selected{border-color:rgba(245,124,0,0.9);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01)}
 .golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.golden-grain-package__best{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#ff5f45,#ff8c32);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 14px rgba(214,91,33,0.3)}
 .golden-grain-package__name{font-weight:800;color:#742c16}
 .golden-grain-package__coin{font-weight:900;color:#a6450f}
-.golden-grain-package__price{margin-top:4px;font-size:.86rem;color:#7d4b2b}
+.golden-grain-package__meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:5px}
+.golden-grain-package__price{font-size:.86rem;color:#7d4b2b}
+.golden-grain-package__total{font-size:.79rem;font-weight:800;color:#8e4c11}
 .golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
-.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff86b6,#ffba7e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease}
+.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
-.golden-grain-modal__charge-btn:disabled{cursor:not-allowed;opacity:.62;transform:none;box-shadow:none}
-.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#9a5d45;font-weight:700;font-size:.82rem}
-.golden-grain-modal__notice{margin-top:9px;padding:10px 12px;border-radius:12px;background:rgba(255,246,230,0.92);border:1px dashed rgba(239,153,80,0.72);font-size:.79rem;color:#925225;text-align:center;font-weight:700}
+.golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
+.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
 .golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
 .golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
 .golden-unlock-list{display:grid;gap:8px}
@@ -3600,8 +3604,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   var unlockedFeatureMap = Object.create(null);
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
-    { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 10, price: 9900 },
-    { id: 'goldBarn', name: '황금 돼지 곳간', coins: 300, bonus: 50, price: 29000 }
+    { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
+    { id: 'goldBarn', name: '황금 돼지 곳간', coins: 300, bonus: 60, price: 29000 },
+    { id: 'goldVault', name: '황금 돼지 금고', coins: 700, bonus: 180, price: 59000 },
+    { id: 'emperorReserve', name: '황금 돼지 제왕 보물고', coins: 1500, bonus: 500, price: 119000 }
   ];
 
   function formatWon(value) {
@@ -3655,9 +3661,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     if (!root) return;
     root.innerHTML = [
       '<div class="golden-grain-badge" aria-live="polite">',
-      '  <span class="golden-grain-badge__coin" aria-hidden="true">🐽</span>',
-      '  <span class="golden-grain-badge__value">황금 돼지 코인 <strong id="goldenGrainBalanceText">' + userBalance + ' 코인</strong></span>',
-      '  <button type="button" class="golden-grain-badge__charge" data-action="openGoldenGrainCharge">충전하기</button>',
+      '  <span class="golden-grain-badge__coin" aria-hidden="true">🪙</span>',
+      '  <span class="golden-grain-badge__value"><span class="golden-grain-badge__label">황금 돼지 저금통</span><strong id="goldenGrainBalanceText" class="golden-grain-badge__balance">보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인</strong></span>',
+      '  <button type="button" class="golden-grain-badge__charge" data-action="openGoldenGrainCharge">코인 충전</button>',
       '</div>'
     ].join('');
   }
@@ -3665,22 +3671,30 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   function ChargeModal() {
     var root = document.getElementById('goldenGrainChargeModalRoot');
     if (!root) return;
-    var chargeDisabled = !PAYMENT_API_READY;
-    var chargeButtonLabel = PAYMENT_API_READY ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
+    var paymentReady = (typeof PAYMENT_API_READY === 'boolean') ? PAYMENT_API_READY : true;
+    var chargeDisabled = !paymentReady;
+    var chargeButtonLabel = paymentReady ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
     var chargeButtonDisabled = chargeDisabled ? ' disabled' : '';
     var chargeNotice = chargeDisabled
       ? '<div class="golden-grain-modal__notice">현재 실제 결제 API 연동 전 단계입니다. 충전은 곧 오픈됩니다.</div>'
       : '';
     var packageItems = goldenPackages.map(function (pkg) {
-      var totalCoins = pkg.coins + pkg.bonus;
+      var baseCoins = Number(pkg.coins || 0);
+      var bonusCoins = Number(pkg.bonus || 0);
+      var totalCoins = baseCoins + bonusCoins;
+      var bestRibbon = pkg.id === 'emperorReserve' ? '<span class="golden-grain-package__best">BEST 혜택</span>' : '';
       var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">보너스 +' + pkg.bonus + '코인</span>' : '';
       return [
         '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
+        bestRibbon,
         '  <span class="golden-grain-package__top">',
         '    <span class="golden-grain-package__name">' + pkg.name + '</span>',
-        '    <span class="golden-grain-package__coin">' + totalCoins + '코인</span>',
+        '    <span class="golden-grain-package__coin">+' + baseCoins.toLocaleString('ko-KR') + '코인</span>',
         '  </span>',
-        '  <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
+        '  <span class="golden-grain-package__meta">',
+        '    <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
+        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인</span>',
+        '  </span>',
         bonusHTML,
         '</button>'
       ].join('');
@@ -3690,13 +3704,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
       '  <div class="golden-grain-modal__card">',
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
-      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true">🐷</div>',
-      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 코인 충전소</h3>',
-      '    <p class="golden-grain-modal__subtitle">돼지 저금통에 복채를 담아 행운을 깨워보세요</p>',
+      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true">🐷🪙</div>',
+      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 저금통 충전소</h3>',
+      '    <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    <div class="golden-grain-packages">' + packageItems + '</div>',
       '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge"' + chargeButtonDisabled + '>' + chargeButtonLabel + '</button>',
       chargeNotice,
-      '    <div class="golden-grain-modal__footer-copy">복채를 던지면 돼지가 행운을 물어다 줍니다!</div>',
+      '    <div class="golden-grain-modal__footer-copy">최상위 단계가 가장 큰 보너스를 제공합니다.</div>',
       '  </div>',
       '</div>'
     ].join('');
@@ -3764,7 +3778,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function updateBadge() {
     var el = document.getElementById('goldenGrainBalanceText');
-    if (el) el.textContent = userBalance + ' 코인';
+    if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
   }
 
   function openChargeModal() {
@@ -3966,6 +3980,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 </body>
 </html>
+
 
 
 
