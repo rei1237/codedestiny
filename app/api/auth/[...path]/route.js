@@ -605,15 +605,35 @@ async function routeRequest(request) {
   return json({ message: "요청한 API 경로를 찾을 수 없습니다." }, 404);
 }
 
+function normalizeRouteError(error) {
+  const raw = normalizeErrorMessage(error, "서버 내부 오류가 발생했습니다.");
+
+  if (raw === "invalid_json_body") {
+    return { message: "요청 본문 JSON 형식이 올바르지 않습니다.", status: 400 };
+  }
+
+  // MongoDB 연결 타임아웃 / 네트워크 에러 → 재시도 안내
+  if (
+    raw.includes("timed out") ||
+    raw.includes("ECONNREFUSED") ||
+    raw.includes("ENOTFOUND") ||
+    raw.includes("MongoNetworkError") ||
+    raw.includes("MongoServerSelectionError") ||
+    error?.name === "MongoNetworkError" ||
+    error?.name === "MongoServerSelectionError"
+  ) {
+    return { message: "서버가 시작되고 있습니다. 잠시 후 다시 시도해 주세요.", status: 503 };
+  }
+
+  return { message: raw, status: 500 };
+}
+
 export async function GET(request) {
   try {
     return await routeRequest(request);
   } catch (error) {
-    const message = normalizeErrorMessage(error, "서버 내부 오류가 발생했습니다.");
-    if (message === "invalid_json_body") {
-      return json({ message: "요청 본문 JSON 형식이 올바르지 않습니다." }, 400);
-    }
-    return json({ message }, 500);
+    const { message, status } = normalizeRouteError(error);
+    return json({ message }, status);
   }
 }
 
@@ -621,10 +641,7 @@ export async function POST(request) {
   try {
     return await routeRequest(request);
   } catch (error) {
-    const message = normalizeErrorMessage(error, "서버 내부 오류가 발생했습니다.");
-    if (message === "invalid_json_body") {
-      return json({ message: "요청 본문 JSON 형식이 올바르지 않습니다." }, 400);
-    }
-    return json({ message }, 500);
+    const { message, status } = normalizeRouteError(error);
+    return json({ message }, status);
   }
 }

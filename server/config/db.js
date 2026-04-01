@@ -4,6 +4,7 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 
 let __cdTriedServerEnvFallback = false;
+let __cdConnectionPromise = null;
 
 function normalizeMongoUri(rawUri) {
   let uri = String(rawUri || "").trim();
@@ -72,11 +73,71 @@ async function connectDB() {
 
   mongoose.set("strictQuery", true);
 
-  await mongoose.connect(mongoUri, {
-    dbName: process.env.MONGO_DB_NAME || undefined,
-  });
+  // 이미 연결된 경우 즉시 반환
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
 
-  console.log("[DB] MongoDB 연결됨");
+  // 연결 중인 경우 완료 대기
+  if (mongoose.connection.readyState === 2) {
+    await mongoose.connection.asPromise();
+    return;
+  }
+
+  // 기존 연결 promise 재사용 (동시 요청 중복 연결 방지)
+  if (__cdConnectionPromise) {
+    try {
+      await __cdConnectionPromise;
+      return;
+    } catch {
+      __cdConnectionPromise = null;
+    }
+  }
+
+  const connectOptions = {
+    dbName: process.env.MONGO_DB_NAME || undefined,
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 20000,
+    heartbeatFrequencyMS: 10000,
+    maxPoolSize: 5,
+    bufferCommands: true,
+  };
+
+  __cdConnectionPromise = mongoose.connect(mongoUri, connectOptions);
+
+  try {
+    await __cdConnectionPromise;
+    console.log("[DB] MongoDB 연결됨");
+
+    // 연결 끊어지면 캐시 초기화하여 재연결 가능하게 함
+    mongoose.connection.once("disconnected", () => {
+      __cdConnectionPromise = null;
+    });
+    mongoose.connection.once("error", () => {
+      __cdConnectionPromise = null;
+    });
+  } catch (firstErr) {
+    __cdConnectionPromise = null;
+    console.warn("[DB] 첫 연결 실패, 재시도 중...", firstErr?.message);
+
+    // cold start 재시도 1회
+    await new Promise((r) => setTimeout(r, 1500));
+    __cdConnectionPromise = mongoose.connect(mongoUri, connectOptions);
+    try {
+      await __cdConnectionPromise;
+      console.log("[DB] MongoDB 재연결 성공");
+      mongoose.connection.once("disconnected", () => {
+        __cdConnectionPromise = null;
+      });
+      mongoose.connection.once("error", () => {
+        __cdConnectionPromise = null;
+      });
+    } catch (retryErr) {
+      __cdConnectionPromise = null;
+      throw retryErr;
+    }
+  }
 }
 
 module.exports = connectDB;

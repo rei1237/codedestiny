@@ -253,6 +253,8 @@ export default function SignupPage() {
       if (!response.ok) {
         if (Array.isArray(payload.errors) && payload.errors.length > 0) {
           setError(payload.errors.join(" "));
+        } else if (response.status === 503) {
+          setError("서버가 준비 중입니다. 잠시 후 다시 시도해 주세요.");
         } else {
           setError(payload.message || "회원가입에 실패했습니다.");
         }
