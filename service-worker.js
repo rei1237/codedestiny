@@ -103,6 +103,7 @@ self.addEventListener('fetch', event => {
   // Keep crawler-critical files network-direct to avoid stale/fallback responses.
   if (event.request.url.includes('/ads.txt') || event.request.url.includes('/robots.txt') || event.request.url.includes('/sitemap.xml')) return;
   if (event.request.url.includes('pagead') || event.request.url.includes('google-analytics')) return;
+  if (isSameOrigin && pathname.startsWith('/api/')) return;
   if (event.request.url.includes('emailjs') || event.request.url.includes('api.')) return;
   // Tarot interactions must never display stale JS/CSS.
   if (
