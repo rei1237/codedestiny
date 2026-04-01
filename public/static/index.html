@@ -379,6 +379,41 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,215,155,0.64);background:linear-gradient(140deg,rgba(255,244,225,0.95),rgba(255,217,159,0.9));box-shadow:0 8px 26px rgba(255,162,72,0.28);color:#7a3b0c;font-weight:800;font-size:.84rem;letter-spacing:.02em;z-index:4}
+.golden-grain-badge__coin{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff7cf 0%,#ffd96b 45%,#f3a526 100%);border:1px solid rgba(165,84,7,0.36);box-shadow:inset 0 2px 6px rgba(255,255,255,0.45),0 4px 10px rgba(173,84,8,0.25);font-size:.88rem;line-height:1}
+.golden-grain-badge__value{font-variant-numeric:tabular-nums}
+.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:6px 10px;background:linear-gradient(135deg,#ff6fa7,#ff9f7a);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;transition:transform .22s ease,filter .22s ease}
+.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.05)}
+.golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:100002;background:rgba(28,9,35,0.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.golden-grain-modal--open{display:flex}
+.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff6ea 0%,#ffe4d2 42%,#ffd8e8 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
+.golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
+.golden-grain-modal__close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.76);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer}
+.golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.35rem;color:#812f00}
+.golden-grain-modal__subtitle{margin:0 0 14px;font-size:.9rem;color:#8b4b24}
+.golden-grain-piggy{width:82px;height:82px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:radial-gradient(circle at 32% 25%,#ffe0ef 0%,#ffc6de 60%,#f7a5c8 100%);border:2px solid rgba(255,154,196,0.7);box-shadow:inset 0 3px 8px rgba(255,255,255,0.56),0 8px 20px rgba(215,91,145,0.25)}
+.golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
+@keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
+.golden-grain-packages{display:grid;gap:10px}
+.golden-grain-package{position:relative;border:1px solid rgba(255,163,120,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.74);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(169,56,95,0.14)}
+.golden-grain-package.is-selected{border-color:rgba(245,124,0,0.9);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01)}
+.golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.golden-grain-package__name{font-weight:800;color:#742c16}
+.golden-grain-package__coin{font-weight:900;color:#a6450f}
+.golden-grain-package__price{margin-top:4px;font-size:.86rem;color:#7d4b2b}
+.golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
+.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
+.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
+.golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
+.golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
+.golden-unlock-list{display:grid;gap:8px}
+.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease}
+.golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.animate-bounce{animation:goldenBounce .72s ease}
+@keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
+@media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
@@ -924,6 +959,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
+
+      <div id="goldenGrainBadgeRoot"></div>
 
     </header>
 
@@ -3340,6 +3377,21 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
         <!-- 연락처 -->
         <div class="neo-promo-contact" style="margin-top: 15px; margin-bottom: 25px;"><a href="mailto:seongbae555@gmail.com" style="color:white; text-decoration:none; font-weight:bold; font-size:1.1rem; border-bottom: 1px dashed white;"> 이메일 상담 문의: seongbae555@gmail.com</a></div>
+
+        <div class="golden-unlock-area">
+          <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
+          <div class="golden-unlock-list">
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-a" data-unlock-cost="10">
+              자세히 보기: 심층 리포트 (10코인)
+            </button>
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-b" data-unlock-cost="10">
+              자세히 보기: 관계 궁합 확장본 (10코인)
+            </button>
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-c" data-unlock-cost="10">
+              자세히 보기: 커리어 전략 확장본 (10코인)
+            </button>
+          </div>
+        </div>
         
         <!-- 하단 상담 신청 띠 -->
       </aside>
@@ -3530,6 +3582,357 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </div>
     </div>
 </div>
+
+<div id="goldenGrainChargeModalRoot"></div>
+
+<script>
+(function () {
+  var GOLDEN_GRAIN_STORAGE_KEY = 'goldenPigCoinBalanceV1';
+  var userBalance = 0;
+  var selectedPackageId = 'sample';
+  var consumeInFlight = false;
+  var syncInFlight = false;
+  var unlockedFeatureMap = Object.create(null);
+  var goldenPackages = [
+    { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
+    { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 10, price: 9900 },
+    { id: 'goldBarn', name: '황금 돼지 곳간', coins: 300, bonus: 50, price: 29000 }
+  ];
+
+  function formatWon(value) {
+    return (Number(value) || 0).toLocaleString('ko-KR') + '원';
+  }
+
+  function getSelectedPackage() {
+    for (var i = 0; i < goldenPackages.length; i += 1) {
+      if (goldenPackages[i].id === selectedPackageId) return goldenPackages[i];
+    }
+    return goldenPackages[0];
+  }
+
+  function getApiBaseUrl() {
+    if (window.CODE_DESTINY_API_BASE_URL) return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+    try {
+      var custom = localStorage.getItem('fortune_api_base_url');
+      if (custom) return String(custom).replace(/\/+$/, '');
+    } catch (_e) {}
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return 'http://localhost:4000';
+    return location.origin;
+  }
+
+  function getAuthToken() {
+    try {
+      return localStorage.getItem('fortune_auth_token') || '';
+    } catch (_e) {
+      return '';
+    }
+  }
+
+  function hasAuthToken() {
+    return !!getAuthToken();
+  }
+
+  function loadBalance() {
+    try {
+      var stored = Number(localStorage.getItem(GOLDEN_GRAIN_STORAGE_KEY));
+      if (Number.isFinite(stored) && stored >= 0) userBalance = stored;
+    } catch (_e) {}
+  }
+
+  function saveBalance() {
+    try {
+      localStorage.setItem(GOLDEN_GRAIN_STORAGE_KEY, String(userBalance));
+    } catch (_e) {}
+  }
+
+  function GoldenGrainBadge() {
+    var root = document.getElementById('goldenGrainBadgeRoot');
+    if (!root) return;
+    root.innerHTML = [
+      '<div class="golden-grain-badge" aria-live="polite">',
+      '  <span class="golden-grain-badge__coin" aria-hidden="true">🐽</span>',
+      '  <span class="golden-grain-badge__value">황금 돼지 코인 <strong id="goldenGrainBalanceText">' + userBalance + ' 코인</strong></span>',
+      '  <button type="button" class="golden-grain-badge__charge" data-action="openGoldenGrainCharge">충전하기</button>',
+      '</div>'
+    ].join('');
+  }
+
+  function ChargeModal() {
+    var root = document.getElementById('goldenGrainChargeModalRoot');
+    if (!root) return;
+    var packageItems = goldenPackages.map(function (pkg) {
+      var totalCoins = pkg.coins + pkg.bonus;
+      var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">보너스 +' + pkg.bonus + '코인</span>' : '';
+      return [
+        '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
+        '  <span class="golden-grain-package__top">',
+        '    <span class="golden-grain-package__name">' + pkg.name + '</span>',
+        '    <span class="golden-grain-package__coin">' + totalCoins + '코인</span>',
+        '  </span>',
+        '  <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
+        bonusHTML,
+        '</button>'
+      ].join('');
+    }).join('');
+
+    root.innerHTML = [
+      '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
+      '  <div class="golden-grain-modal__card">',
+      '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
+      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true">🐷</div>',
+      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 코인 충전소</h3>',
+      '    <p class="golden-grain-modal__subtitle">복채를 던지면 돼지가 행운을 물어다 줍니다!</p>',
+      '    <div class="golden-grain-packages">' + packageItems + '</div>',
+      '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">선택한 패키지 충전하기</button>',
+      '    <div class="golden-grain-modal__footer-copy">복채를 던지면 돼지가 행운을 물어다 줍니다!</div>',
+      '  </div>',
+      '</div>'
+    ].join('');
+  }
+
+  function UnlockButton(button) {
+    if (!button) return;
+    var key = button.getAttribute('data-unlock-key') || '';
+    if (unlockedFeatureMap[key]) {
+      button.disabled = true;
+      button.textContent = '해제 완료 ✅';
+      button.style.opacity = '0.86';
+      button.style.cursor = 'default';
+    }
+  }
+
+  function refreshUnlockButtons() {
+    var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
+    for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
+  }
+
+  async function fetchJsonWithAuth(path, init) {
+    var token = getAuthToken();
+    if (!token) {
+      return { ok: false, status: 401, payload: { message: '로그인이 필요합니다.' } };
+    }
+
+    var headers = Object.assign({}, (init && init.headers) || {}, {
+      Authorization: 'Bearer ' + token,
+    });
+    if (init && init.body && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    var response = await fetch(getApiBaseUrl() + path, Object.assign({}, init || {}, { headers: headers }));
+    var payload = {};
+    try { payload = await response.json(); } catch (_e) {}
+    return { ok: response.ok, status: response.status, payload: payload };
+  }
+
+  async function syncBalanceFromServer() {
+    if (!hasAuthToken() || syncInFlight) return;
+    syncInFlight = true;
+    try {
+      var primary = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
+      if (primary.ok && primary.payload && primary.payload.user && typeof primary.payload.user.points === 'number') {
+        userBalance = Number(primary.payload.user.points || 0);
+        saveBalance();
+        updateBadge();
+        return;
+      }
+
+      var fallback = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
+      if (fallback.ok && fallback.payload && fallback.payload.user && typeof fallback.payload.user.points === 'number') {
+        userBalance = Number(fallback.payload.user.points || 0);
+        saveBalance();
+        updateBadge();
+      }
+    } catch (error) {
+      console.error('[golden-pig-coin] balance sync failed', error);
+    } finally {
+      syncInFlight = false;
+    }
+  }
+
+  function updateBadge() {
+    var el = document.getElementById('goldenGrainBalanceText');
+    if (el) el.textContent = userBalance + ' 코인';
+  }
+
+  function openChargeModal() {
+    var modal = document.getElementById('goldenGrainChargeModal');
+    if (!modal) return;
+    modal.classList.add('golden-grain-modal--open');
+  }
+
+  function closeChargeModal() {
+    var modal = document.getElementById('goldenGrainChargeModal');
+    if (!modal) return;
+    modal.classList.remove('golden-grain-modal--open');
+  }
+
+  function animatePiggy() {
+    var pig = document.getElementById('goldenPiggyBank');
+    if (!pig) return;
+    pig.classList.remove('is-shaking');
+    pig.classList.remove('animate-bounce');
+    void pig.offsetWidth;
+    pig.classList.add('is-shaking');
+    pig.classList.add('animate-bounce');
+  }
+
+  function selectPackage(packageId) {
+    selectedPackageId = packageId;
+    ChargeModal();
+    animatePiggy();
+  }
+
+  async function applyCharge() {
+    var selected = getSelectedPackage();
+    var addCoins = (selected.coins || 0) + (selected.bonus || 0);
+
+    if (hasAuthToken()) {
+      try {
+        var result = await fetchJsonWithAuth('/api/fortune/pig-coin/charge-simulate', {
+          method: 'POST',
+          body: JSON.stringify({ packageId: selected.id }),
+        });
+
+        if (!result.ok) {
+          if (result.status === 401) {
+            window.alert('로그인 세션이 만료되어 로컬 코인 모드로 전환합니다. 다시 로그인하면 서버 잔액으로 동기화됩니다.');
+          } else {
+            window.alert((result.payload && result.payload.message) || '서버 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+            return;
+          }
+        } else {
+          userBalance = Number(((result.payload || {}).user || {}).points || 0);
+          saveBalance();
+          updateBadge();
+          closeChargeModal();
+          window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
+          // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+          return;
+        }
+      } catch (error) {
+        console.error('[golden-pig-coin] charge simulate failed', error);
+      }
+    }
+
+    userBalance += addCoins;
+    saveBalance();
+    updateBadge();
+    closeChargeModal();
+    window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
+    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+  }
+
+  async function tryUnlockFeature(button) {
+    if (!button) return;
+    var featureKey = button.getAttribute('data-unlock-key') || '';
+    var cost = Number(button.getAttribute('data-unlock-cost') || 10);
+
+    if (unlockedFeatureMap[featureKey]) {
+      window.alert('이미 해제된 기능입니다.');
+      return;
+    }
+
+    var confirmed = window.confirm('황금 돼지 코인 10코인을 사용하여 해제하시겠습니까?');
+    if (!confirmed) return;
+
+    if (hasAuthToken()) {
+      if (consumeInFlight) return;
+      consumeInFlight = true;
+      try {
+        var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+          method: 'POST',
+          body: JSON.stringify({
+            cost: cost,
+            featureKey: featureKey,
+            reason: '유료 섹션 잠금 해제 코인 차감',
+          }),
+        });
+
+        if (result.status === 402) {
+          window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+          openChargeModal();
+          return;
+        }
+
+        if (!result.ok) {
+          window.alert((result.payload && result.payload.message) || '잠금 해제 처리에 실패했습니다.');
+          return;
+        }
+
+        userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
+        saveBalance();
+        updateBadge();
+        unlockedFeatureMap[featureKey] = true;
+        UnlockButton(button);
+        window.alert('심층 리포트가 해제되었습니다. 행운의 문이 열렸어요!');
+        // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+        return;
+      } catch (error) {
+        console.error('[golden-pig-coin] consume failed', error);
+      } finally {
+        consumeInFlight = false;
+      }
+    }
+
+    if (userBalance < cost) {
+      window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+      openChargeModal();
+      return;
+    }
+
+    userBalance -= cost;
+    saveBalance();
+    updateBadge();
+    unlockedFeatureMap[featureKey] = true;
+    UnlockButton(button);
+    window.alert('심층 리포트가 해제되었습니다. 행운의 문이 열렸어요!');
+    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+  }
+
+  document.addEventListener('click', function (event) {
+    var target = event.target;
+    if (!(target instanceof Element)) return;
+    var actionNode = target.closest('[data-action]');
+    if (!actionNode) return;
+    var action = actionNode.getAttribute('data-action');
+
+    if (action === 'openGoldenGrainCharge') {
+      openChargeModal();
+      return;
+    }
+    if (action === 'closeGoldenGrainCharge') {
+      closeChargeModal();
+      return;
+    }
+    if (action === 'selectGoldenPackage') {
+      selectPackage(actionNode.getAttribute('data-package-id') || 'sample');
+      return;
+    }
+    if (action === 'confirmGoldenCharge') {
+      void applyCharge();
+      return;
+    }
+    if (action === 'unlockPremiumFeature') {
+      void tryUnlockFeature(actionNode);
+      return;
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    var modal = document.getElementById('goldenGrainChargeModal');
+    if (!modal || !modal.classList.contains('golden-grain-modal--open')) return;
+    if (event.target === modal) closeChargeModal();
+  });
+
+  loadBalance();
+  GoldenGrainBadge();
+  ChargeModal();
+  updateBadge();
+  refreshUnlockButtons();
+  void syncBalanceFromServer();
+})();
+</script>
 
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
