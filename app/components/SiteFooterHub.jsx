@@ -247,6 +247,54 @@ const POLICY_ROW = {
   justifyContent: "center",
 };
 
+const BUSINESS_PANEL = {
+  maxWidth: "860px",
+  margin: "0 auto 24px",
+  padding: "16px 18px",
+  borderRadius: "12px",
+  background: "linear-gradient(135deg, rgba(30,41,59,0.72), rgba(15,23,42,0.9))",
+  border: "1px solid rgba(124,58,237,0.3)",
+  boxShadow: "inset 0 1px 0 rgba(148,163,184,0.08)",
+};
+
+const BUSINESS_TITLE = {
+  margin: "0 0 10px",
+  fontSize: "12px",
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "#a78bfa",
+};
+
+const BUSINESS_LIST = {
+  listStyle: "none",
+  margin: "0 0 12px",
+  padding: 0,
+  display: "grid",
+  gap: "6px",
+};
+
+const BUSINESS_ITEM = {
+  fontSize: "12px",
+  lineHeight: 1.7,
+  color: "#94a3b8",
+};
+
+const BUSINESS_KEY = {
+  color: "#cbd5e1",
+  fontWeight: 600,
+};
+
+const REFUND_NOTE = {
+  margin: 0,
+  paddingTop: "10px",
+  borderTop: "1px solid rgba(71,85,105,0.65)",
+  color: "#fda4af",
+  fontSize: "12px",
+  lineHeight: 1.75,
+  wordBreak: "keep-all",
+};
+
 const POLICY_LINK = {
   color: "#475569",
   textDecoration: "none",
@@ -346,6 +394,19 @@ export default function SiteFooterHub() {
           꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로 제공합니다.
           무료 사주풀이·무료 타로·자미두수·베다 점성술·AI 관상·꿈 해몽까지, 모든 서비스는 무료입니다.
         </p>
+
+        <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 환불 규정">
+          <h3 style={BUSINESS_TITLE}>사업자 정보 및 환불 규정</h3>
+          <ul style={BUSINESS_LIST}>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스니티 (Code Destiny)</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> 박병하</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
+          </ul>
+          <p style={REFUND_NOTE}>
+            환불 규정: 운세 서비스는 디지털 콘텐츠 특성상 결과 조회 또는 서비스 이용이 시작된 이후에는 환불이 불가능합니다.
+          </p>
+        </section>
 
         {/* 정책 링크 */}
         <nav aria-label="정책 페이지" style={POLICY_ROW}>
