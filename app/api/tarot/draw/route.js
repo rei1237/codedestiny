@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 
 import sampleData from "../../../../server/data/tarot-cards.sample.json";
 import dbData from "../../../../server/data/tarot-cards.db.json";
+import tarotEngine from "../../../../server/services/tarot-engine.service";
 
-const { drawCards, normalizeSpreadType, initFromPreloadedData } = require("../../../../server/services/tarot-engine.service");
+const { drawCards, normalizeSpreadType, initFromPreloadedData } = tarotEngine;
 
 export async function POST(request) {
   try {

@@ -48,7 +48,7 @@ const nextConfig = {
     ],
   },
   eslint: {
-    ignoreDuringBuilds: process.env.CF_DEPLOY_IGNORE_ESLINT === '1',
+    ignoreDuringBuilds: process.env.CI_IGNORE_NEXT_ESLINT === '1',
   },
   typescript: {
     ignoreBuildErrors: false,

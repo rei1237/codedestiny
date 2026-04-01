@@ -1,4 +1,5 @@
 ﻿import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import Link from "next/link";
 
 export function generateMetadata() {
   return generatePageMetadata({
@@ -105,17 +106,17 @@ export default function FaqPage() {
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>관련 문서 / Related pages</h2>
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
-          <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             개인정보처리방침 (Privacy Policy)
-          </a>
+          </Link>
           {" · "}
-          <a href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             이용약관 (Terms of Service)
-          </a>
+          </Link>
           {" · "}
-          <a href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
+          <Link href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
             문의하기 (Contact Us)
-          </a>
+          </Link>
         </p>
       </section>
     </main>

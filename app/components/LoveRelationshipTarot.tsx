@@ -12,6 +12,8 @@ type DrawnCard = {
   orientation?: string;
 };
 
+type ReadingResult = Record<string, string | string[] | number | boolean | null | undefined>;
+
 const SPREAD_TYPE = "relationship_six_card";
 const CATEGORY = "love";
 const CARD_COUNT = 6;
@@ -41,9 +43,21 @@ export default function LoveRelationshipTarot() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [readingRaw, setReadingRaw] = useState<any>(null);
+  const [readingRaw, setReadingRaw] = useState<ReadingResult | null>(null);
 
   const canRead = cards.length === CARD_COUNT && revealedCount === CARD_COUNT && !loading;
+
+  function toErrorMessage(error: unknown, fallback: string) {
+    if (error instanceof Error && error.message) return error.message;
+    return fallback;
+  }
+
+  function toReadingResult(raw: unknown): ReadingResult {
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      return raw as ReadingResult;
+    }
+    return { result: String(raw ?? "") };
+  }
 
   async function startDraw() {
     setLoading(true);
@@ -67,8 +81,8 @@ export default function LoveRelationshipTarot() {
         throw new Error("6카드 데이터가 올바르지 않습니다.");
       }
       setCards(sliced);
-    } catch (e: any) {
-      setError(e?.message || "카드 뽑기 중 오류가 발생했습니다.");
+    } catch (e: unknown) {
+      setError(toErrorMessage(e, "카드 뽑기 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }
@@ -97,9 +111,9 @@ export default function LoveRelationshipTarot() {
       if (!res.ok || data?.ok === false) {
         throw new Error(data?.message || "해석 생성 실패");
       }
-      setReadingRaw(data?.reading ?? data);
-    } catch (e: any) {
-      setError(e?.message || "해석 생성 중 오류가 발생했습니다.");
+      setReadingRaw(toReadingResult(data?.reading ?? data));
+    } catch (e: unknown) {
+      setError(toErrorMessage(e, "해석 생성 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }

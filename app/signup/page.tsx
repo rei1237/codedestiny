@@ -67,7 +67,7 @@ async function parseApiPayload(response: Response) {
   const text = await response.text();
   const compact = text.replace(/\s+/g, " ").slice(0, 160);
   throw new Error(
-    `API가 JSON이 아닌 응답을 반환했습니다. 상태코드=${response.status}, content-type=${contentType || "unknown"}, body=${compact}`,
+    `API가 JSON이 아닌 응답을 반환했습니다. url=${response.url}, 상태코드=${response.status}, content-type=${contentType || "unknown"}, body=${compact}`,
   );
 }
 
@@ -82,7 +82,7 @@ export default function SignupPage() {
 
   const apiBase = useMemo(() => {
     if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
+      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL.replace(/\/+$/, "");
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         return "http://localhost:4000";
       }
@@ -164,6 +164,7 @@ export default function SignupPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
+        console.error("[Signup][Social] request failed", e);
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
@@ -259,8 +260,13 @@ export default function SignupPage() {
       setSuccess(payload.message || "회원가입이 완료되었습니다.");
       setForm(INITIAL_FORM);
       router.replace("/");
-    } catch {
-      setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
+    } catch (e) {
+      console.error("[Signup] request failed", e);
+      if (e instanceof Error && e.message) {
+        setError(e.message);
+      } else {
+        setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
+      }
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 /* ─────────────────────────── 타입 ─────────────────────────── */
 interface ApiResult {
@@ -425,14 +426,14 @@ export default function SajuPicturePage() {
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-violet-100">
         {/* 뒤로가기 */}
         <div className="sticky top-0 z-20 bg-white/70 backdrop-blur-md border-b border-pink-100/60 px-4 py-3 flex items-center gap-3">
-          <a
+          <Link
             href="/"
             className="flex items-center justify-center w-8 h-8 rounded-full bg-pink-100 hover:bg-pink-200 transition-colors"
           >
             <svg className="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
-          </a>
+          </Link>
           <span className="text-sm font-semibold text-slate-600">사주로 보는 내 동물</span>
         </div>
 
