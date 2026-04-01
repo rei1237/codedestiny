@@ -47,6 +47,20 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+async function parseApiPayload(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const text = await response.text();
+  const compact = text.replace(/\s+/g, " ").slice(0, 160);
+  throw new Error(
+    `API가 JSON이 아닌 응답을 반환했습니다. 상태코드=${response.status}, content-type=${contentType || "unknown"}, body=${compact}`,
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -58,15 +72,14 @@ export default function LoginPage() {
   const socialCompleteOnceRef = useRef(false);
 
   const apiBase = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
     if (typeof window !== "undefined") {
       if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         return "http://localhost:4000";
       }
-      return window.location.origin;
+      return window.location.origin.replace(/\/+$/, "");
     }
-    return "http://localhost:4000";
+    return (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000").replace(/\/+$/, "");
   }, []);
 
   const endpoint = `${apiBase}/api/auth/login`;
@@ -119,7 +132,7 @@ export default function LoginPage() {
       body: JSON.stringify({ socialGrant }),
     })
       .then(async (response) => {
-        const payload = (await response.json()) as LoginResult & { errors?: string[] };
+        const payload = (await parseApiPayload(response)) as LoginResult & { errors?: string[] };
 
         if (!response.ok) {
           if (Array.isArray(payload.errors) && payload.errors.length > 0) {
@@ -198,7 +211,7 @@ export default function LoginPage() {
         }),
       });
 
-      const payload = (await response.json()) as LoginResult & {
+      const payload = (await parseApiPayload(response)) as LoginResult & {
         errors?: string[];
       };
 
