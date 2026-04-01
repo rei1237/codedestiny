@@ -1,6 +1,4 @@
-﻿import KkulkkulManseryukMain from "./components/KkulkkulManseryukMain";
-
-/**
+﻿/**
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
  * if the rewrite is bypassed; metadata matches the public canonical.
  */
@@ -28,6 +26,13 @@ export const metadata = {
 };
 
 export default function Home() {
-  return <KkulkkulManseryukMain />;
+  return (
+    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "24px", textAlign: "center" }}>
+      <section>
+        <h1 style={{ marginBottom: "8px" }}>꿀꿀 만세력</h1>
+        <p>홈 서비스는 정적 엔트리에서 제공됩니다.</p>
+      </section>
+    </main>
+  );
 }
 
