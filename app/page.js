@@ -2,6 +2,8 @@
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
  * if the rewrite is bypassed; metadata matches the public canonical.
  */
+import Link from "next/link";
+
 export const metadata = {
   title: "꿀꿀 만세력 — 무료 사주 타로 운세 궁합 점성술 플랫폼",
   description:
@@ -27,11 +29,14 @@ export const metadata = {
 
 export default function Home() {
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "24px", textAlign: "center" }}>
-      <section>
-        <h1 style={{ marginBottom: "8px" }}>꿀꿀 만세력</h1>
-        <p>홈 서비스는 정적 엔트리에서 제공됩니다.</p>
-      </section>
+    <main className="min-h-[40vh] bg-slate-950 px-4 py-10 text-center text-slate-300">
+      <p className="text-sm">
+        메인은{" "}
+        <Link href="/" className="text-amber-300 underline">
+          /
+        </Link>
+        (레거시)입니다. 주소창이 <code className="text-slate-400">/</code>가 아니면 홈으로 이동해 주세요.
+      </p>
     </main>
   );
 }

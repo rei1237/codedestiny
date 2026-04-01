@@ -25,8 +25,6 @@ type DrawnCard = {
   orientation?: string;
 };
 
-type ReadingResult = Record<string, string | string[] | number | boolean | null | undefined>;
-
 const CATEGORY_OPTIONS: Array<{ value: TarotCategory; label: string }> = [
   { value: "love", label: "연애/애정" },
   { value: "reunion", label: "재회운" },
@@ -47,6 +45,10 @@ function cardImageUrl(cardId: string) {
   return `/api/tarot/card-image/${encodeURIComponent(cardId)}`;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export default function MingriTarot() {
   const router = useRouter();
   const [mode, setMode] = useState<TarotMode>("one");
@@ -55,19 +57,7 @@ export default function MingriTarot() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [readingRaw, setReadingRaw] = useState<ReadingResult | null>(null);
-
-  function toErrorMessage(error: unknown, fallback: string) {
-    if (error instanceof Error && error.message) return error.message;
-    return fallback;
-  }
-
-  function toReadingResult(raw: unknown): ReadingResult {
-    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-      return raw as ReadingResult;
-    }
-    return { result: String(raw ?? "") };
-  }
+  const [readingRaw, setReadingRaw] = useState<Record<string, unknown> | null>(null);
 
   const spreadType = useMemo(() => spreadTypeForMode(mode), [mode]);
   const requiredRevealCount = mode === "three" ? 3 : 1;
@@ -95,7 +85,7 @@ export default function MingriTarot() {
       if (!sliced.length) throw new Error("카드 데이터가 비어 있습니다.");
       setCards(sliced);
     } catch (e: unknown) {
-      setError(toErrorMessage(e, "카드 뽑기 중 오류가 발생했습니다."));
+      setError(getErrorMessage(e, "카드 뽑기 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }
@@ -124,9 +114,9 @@ export default function MingriTarot() {
       if (!res.ok || data?.ok === false) {
         throw new Error(data?.message || "해석 생성 실패");
       }
-      setReadingRaw(toReadingResult(data?.reading ?? data));
+      setReadingRaw(data?.reading ?? data);
     } catch (e: unknown) {
-      setError(toErrorMessage(e, "해석 생성 중 오류가 발생했습니다."));
+      setError(getErrorMessage(e, "해석 생성 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }
