@@ -115,6 +115,17 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // 이미 로그인된 사용자 → 홈으로 리다이렉트
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("social_grant")) return; // 소셜 연동 콜백은 제외
+    const token = localStorage.getItem("fortune_auth_token");
+    if (token) {
+      router.replace("/");
+    }
+  }, [router]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (socialCompleteOnceRef.current) return;

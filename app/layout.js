@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
+import AuthWidget from "./components/AuthWidget";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
@@ -290,6 +291,40 @@ export default async function RootLayout({ children }) {
       <body>
         <AppVersionGuard />
         <WebVitalsConsole />
+        {/* 전역 인증 상태 헤더 */}
+        <header
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 16px",
+            height: "52px",
+            background: "rgba(7, 11, 31, 0.88)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
+          }}
+        >
+          <a
+            href="/"
+            style={{
+              fontWeight: 900,
+              fontSize: "16px",
+              letterSpacing: "-0.02em",
+              background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              textDecoration: "none",
+            }}
+          >
+            ✦ Code Destiny
+          </a>
+          <AuthWidget />
+        </header>
         <div>{children}</div>
         {!hideFooter && <SiteFooterHub />}
       </body>
