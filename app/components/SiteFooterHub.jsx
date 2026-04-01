@@ -76,11 +76,23 @@ const NAV_SECTIONS = [
 ];
 
 const INSIGHT_LINKS = [
-  { href: "/insights/saju-four-pillars-basics", text: "사주팔자 기초 완전 이해" },
+  {
+    href: "/insights/saju-four-pillars-basics",
+    text: "사주팔자 기초 완전 이해",
+  },
   { href: "/insights/ten-heavenly-stems-practical", text: "십천간 실전 해석" },
-  { href: "/insights/twelve-earthly-branches-and-seasons", text: "십이지지와 계절성" },
-  { href: "/insights/tarot-major-arcana-symbols", text: "타로 메이저 아르카나" },
-  { href: "/insights/astrology-vs-saju-differences", text: "서양점성술 vs 사주 차이" },
+  {
+    href: "/insights/twelve-earthly-branches-and-seasons",
+    text: "십이지지와 계절성",
+  },
+  {
+    href: "/insights/tarot-major-arcana-symbols",
+    text: "타로 메이저 아르카나",
+  },
+  {
+    href: "/insights/astrology-vs-saju-differences",
+    text: "서양점성술 vs 사주 차이",
+  },
   { href: "/insights/ziwei-doushu-stars-intro", text: "자미두수 성군 입문" },
 ];
 
@@ -90,11 +102,13 @@ const POLICY_LINKS = [
   { href: "/contact-us", text: "문의하기" },
   { href: "/privacy-policy", text: "개인정보처리방침" },
   { href: "/terms-of-service", text: "이용약관" },
+  { href: "/refund-policy", text: "환불 규정" },
 ];
 
 // ─── 스타일 상수 ───────────────────────────────────────────────
 const ROOT_STYLE = {
-  background: "linear-gradient(180deg, rgba(7,11,31,0) 0%, rgba(7,11,31,0.98) 4%, #070b1f 100%)",
+  background:
+    "linear-gradient(180deg, rgba(7,11,31,0) 0%, rgba(7,11,31,0.98) 4%, #070b1f 100%)",
   borderTop: "1px solid rgba(124,58,237,0.25)",
   paddingTop: "52px",
   paddingBottom: "32px",
@@ -131,7 +145,8 @@ const FREE_BADGE = {
   alignItems: "center",
   padding: "3px 10px",
   borderRadius: "999px",
-  background: "linear-gradient(135deg, rgba(124,58,237,0.35), rgba(78,205,196,0.25))",
+  background:
+    "linear-gradient(135deg, rgba(124,58,237,0.35), rgba(78,205,196,0.25))",
   border: "1px solid rgba(124,58,237,0.5)",
   fontSize: "11px",
   fontWeight: 700,
@@ -269,11 +284,15 @@ export default function SiteFooterHub() {
       <div style={INNER_STYLE}>
         {/* 브랜드 */}
         <div style={BRAND_ROW}>
-          <span style={BRAND_LOGO} aria-label="꿀꿀 만세력">🐷 꿀꿀 만세력</span>
+          <span style={BRAND_LOGO} aria-label="꿀꿀 만세력">
+            🐷 꿀꿀 만세력
+          </span>
           <span style={FREE_BADGE}>전 서비스 무료</span>
         </div>
         <p style={TAGLINE_STYLE}>
-          무료 사주팔자 · AI 타로 · 자미두수 · 점성술 · 숙요점 · 궁합 · 동물관상 · 꿈 해몽까지<br />
+          무료 사주팔자 · AI 타로 · 자미두수 · 점성술 · 숙요점 · 궁합 · 동물관상
+          · 꿈 해몽까지
+          <br />
           생년월일 하나로 20가지 이상의 운세를 무료로 — Code Destiny 꿀꿀 만세력
         </p>
 
@@ -285,7 +304,9 @@ export default function SiteFooterHub() {
                 <div style={SECTION_LABEL}>{section.label}</div>
                 <ul style={LINK_LIST_STYLE}>
                   {section.links.map((link) => {
-                    const badgeStyle = link.badge ? BADGE_MAP[link.badge] : null;
+                    const badgeStyle = link.badge
+                      ? BADGE_MAP[link.badge]
+                      : null;
                     return (
                       <li key={link.href}>
                         <a
@@ -295,7 +316,9 @@ export default function SiteFooterHub() {
                         >
                           <span>→</span>
                           <span>{link.text}</span>
-                          {badgeStyle && <span style={badgeStyle}>{link.badge}</span>}
+                          {badgeStyle && (
+                            <span style={badgeStyle}>{link.badge}</span>
+                          )}
                         </a>
                       </li>
                     );
@@ -322,7 +345,14 @@ export default function SiteFooterHub() {
                 {link.text}
               </a>
             ))}
-            <a href={`${ORIGIN}/insights`} style={{ ...INSIGHT_CHIP, color: "#a78bfa", borderColor: "rgba(124,58,237,0.4)" }}>
+            <a
+              href={`${ORIGIN}/insights`}
+              style={{
+                ...INSIGHT_CHIP,
+                color: "#a78bfa",
+                borderColor: "rgba(124,58,237,0.4)",
+              }}
+            >
               전체 보기 →
             </a>
           </div>
@@ -342,15 +372,20 @@ export default function SiteFooterHub() {
             wordBreak: "keep-all",
           }}
         >
-          Code: Destiny의 꽃돼지 연이는 백사자 쌈바와 함께 사주, 운세, 타로, 명리학 해석을
-          꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로 제공합니다.
-          무료 사주풀이·무료 타로·자미두수·베다 점성술·AI 관상·꿈 해몽까지, 모든 서비스는 무료입니다.
+          Code: Destiny의 꽃돼지 연이는 백사자 쌈바와 함께 사주, 운세, 타로,
+          명리학 해석을 꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로
+          제공합니다. 무료 사주풀이·무료 타로·자미두수·베다 점성술·AI 관상·꿈
+          해몽까지, 모든 서비스는 무료입니다.
         </p>
 
         {/* 정책 링크 */}
         <nav aria-label="정책 페이지" style={POLICY_ROW}>
           {POLICY_LINKS.map((link) => (
-            <a key={link.href} href={`${ORIGIN}${link.href}`} style={POLICY_LINK}>
+            <a
+              key={link.href}
+              href={`${ORIGIN}${link.href}`}
+              style={POLICY_LINK}
+            >
               {link.text}
             </a>
           ))}
