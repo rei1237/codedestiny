@@ -264,8 +264,9 @@ export default function SignupPage() {
       setSuccess(payload.message || "회원가입이 완료되었습니다.");
       setForm(INITIAL_FORM);
       router.replace("/");
-    } catch {
-      setError("서버에 연결할 수 없습니다. API 서버 실행 상태를 확인해 주세요.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
     }
