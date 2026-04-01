@@ -268,32 +268,6 @@ const POLICY_LINK = {
   fontSize: "12px",
 };
 
-const LEGAL_CARD = {
-  maxWidth: "860px",
-  margin: "0 auto 24px",
-  padding: "14px 16px",
-  borderRadius: "12px",
-  border: "1px solid rgba(124,58,237,0.22)",
-  background: "linear-gradient(145deg, rgba(15,23,42,0.72), rgba(30,41,59,0.58))",
-};
-
-const LEGAL_TITLE = {
-  margin: "0 0 8px",
-  fontSize: "12px",
-  fontWeight: 700,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "#a78bfa",
-};
-
-const LEGAL_TEXT = {
-  margin: 0,
-  fontSize: "12px",
-  lineHeight: 1.8,
-  color: "#94a3b8",
-  wordBreak: "keep-all",
-};
-
 const COPYRIGHT = {
   textAlign: "center",
   fontSize: "12px",
@@ -403,29 +377,6 @@ export default function SiteFooterHub() {
           제공합니다. 무료 사주풀이·무료 타로·자미두수·베다 점성술·AI 관상·꿈
           해몽까지, 모든 서비스는 무료입니다.
         </p>
-
-        <section aria-label="사업자 정보" style={LEGAL_CARD}>
-          <h3 style={LEGAL_TITLE}>사업자 정보</h3>
-          <p style={LEGAL_TEXT}>
-            상호명: 코드 데스니티 (Code Destiny)
-            <br />
-            대표자: 박병하
-            <br />
-            사업자등록번호: 372-23-02329
-            <br />
-            사업장 주소: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호
-          </p>
-        </section>
-
-        <section aria-label="환불 규정" style={LEGAL_CARD}>
-          <h3 style={LEGAL_TITLE}>디지털 콘텐츠 환불 안내</h3>
-          <p style={LEGAL_TEXT}>
-            본 서비스의 유료 디지털 콘텐츠(포인트/결제형 운세 결과 등)는 결제 후 즉시 제공되거나 사용이 개시되는 특성상,
-            전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호 및 관련 법령에 따라 청약철회(환불)가 제한될 수 있습니다.
-            다만, 표시·광고 내용과 다르거나 계약 내용과 다르게 이행된 경우, 또는 관련 법령상 환불 사유가 인정되는 경우에는
-            법령 및 이용약관에 따라 환불 또는 적절한 조치를 제공합니다.
-          </p>
-        </section>
 
         {/* 정책 링크 */}
         <nav aria-label="정책 페이지" style={POLICY_ROW}>
