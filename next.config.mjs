@@ -1,9 +1,14 @@
 const configuredApiTarget =
   process.env.CODE_DESTINY_API_URL ||
   process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
   '';
 
-const apiTarget = (configuredApiTarget || 'http://localhost:4000').replace(/\/+$/, '');
+const defaultApiTarget = process.env.NODE_ENV === 'production'
+  ? 'https://code-destiny.com'
+  : 'http://localhost:4000';
+
+const apiTarget = (configuredApiTarget || defaultApiTarget).replace(/\/+$/, '');
 
 /** Nested paths only: locale roots are app/{slug}/page.js (static segment beats [adminHash]). */
 const LOCALE_PATH_SLUGS = [
