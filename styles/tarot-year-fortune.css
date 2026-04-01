@@ -1,0 +1,1472 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   12지신 × 타로 3카드 1년 운세 — 웅장하고 위엄 있는 붉은색·금색 테마
+   Cross-over Tarot Master: 동양 12지신 × 서양 타로
+   화려한 CSS & 애니메이션으로 신성한 의식의 품격 구현
+══════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ty-gold: #d4af37;
+  --ty-gold-bright: #f4e4a6;
+  --ty-gold-shine: #ffec8b;
+  --ty-gold-dark: #b8860b;
+  --ty-red: #8b0000;
+  --ty-red-deep: #5c0000;
+  --ty-red-dark: #3d0000;
+  --ty-crimson: #a52a2a;
+  --ty-vermilion: #c41e3a;
+  --ty-burgundy: #722f37;
+}
+
+/* ─── Feature Card ─── */
+.feature-card--tarot-year { border-bottom: 3px solid var(--ty-gold); }
+.feature-card--tarot-year .feature-card__cta,
+.feature-card--tarot-year .feature-card__launch {
+  background: linear-gradient(135deg, var(--ty-red-deep), var(--ty-crimson));
+  color: var(--ty-gold-bright);
+  box-shadow: 0 0 28px rgba(212, 175, 55, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── 동양 문양 레이어 (신비로운 문양) ─── */
+.ty-eastern-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: 99996;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.08;
+}
+.ty-eastern-pattern::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.4' d='M0 40 Q20 20 40 40 Q60 60 80 40'/%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.3' d='M40 0 Q60 20 40 40 Q20 60 40 80'/%3E%3Ccircle cx='40' cy='40' r='4' fill='none' stroke='%23d4af37' stroke-width='0.25'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.35' d='M5 30 L30 5 L55 30 L30 55 Z'/%3E%3Cpath fill='none' stroke='%23d4af37' stroke-width='0.2' d='M30 15 L45 30 L30 45 L15 30 Z'/%3E%3C/svg%3E");
+  background-size: 80px 80px, 60px 60px;
+  background-position: 0 0, 40px 40px;
+  animation: tyPatternShift 60s linear infinite;
+}
+.ty-eastern-pattern::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23d4af37' stroke-width='0.2' opacity='0.6'%3E%3Cpath d='M50 10 L90 50 L50 90 L10 50 Z'/%3E%3Cpath d='M50 25 L75 50 L50 75 L25 50 Z'/%3E%3Cpath d='M50 35 L65 50 L50 65 L35 50 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100px 100px;
+  background-position: 0 0;
+  animation: tyPatternShift 80s linear infinite reverse;
+}
+@keyframes tyPatternShift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(80px, 80px); }
+}
+
+/* ─── Overlay: 천상의 붉은 궁전 배경 ─── */
+.tarot-year-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* 터치 스크롤 허용 (모바일에서 스크롤 막힘 방지) */
+  touch-action: pan-y pan-x;
+  /* iOS/Android safe area (노치·홈 인디케이터) */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:
+    radial-gradient(ellipse 160% 120% at 50% -30%, rgba(212, 175, 55, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse 120% 100% at 20% 20%, rgba(139, 0, 0, 0.5), transparent 50%),
+    radial-gradient(ellipse 120% 100% at 80% 80%, rgba(92, 0, 0, 0.6), transparent 50%),
+    radial-gradient(ellipse 100% 140% at 50% 50%, rgba(61, 0, 0, 0.9), rgba(45, 5, 5, 0.98) 90%),
+    linear-gradient(180deg, #050101 0%, #0d0202 15%, #1a0505 40%, #2d0a0a 60%, #1a0505 85%, #050101 100%);
+  backdrop-filter: blur(12px);
+  isolation: isolate;
+}
+.tarot-year-overlay.is-open {
+  display: block;
+  /* 뷰포트 고정 높이로 스크롤 컨테이너 역할 확실히 (스크롤 안 되는 문제 해결) */
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  animation: tyReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes tyReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── 십이지신 실루엣: 패널 주변 수호신 ─── */
+.ty-zodiac-silhouettes {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99997;
+  overflow: hidden;
+}
+.ty-zodiac-sil {
+  position: absolute;
+  font-size: 2.2rem;
+  opacity: 0.12;
+  filter: grayscale(1) brightness(0.3) contrast(1.5);
+  transition: opacity 0.5s ease;
+  animation: tyZodiacFloat 12s ease-in-out infinite;
+}
+.tarot-year-overlay.is-open .ty-zodiac-sil { opacity: 0.16; }
+.ty-zodiac-sil--1  { left: 4%;  top: 8%;  animation-delay: 0s; }
+.ty-zodiac-sil--2  { left: 12%; top: 4%;  animation-delay: -1s; }
+.ty-zodiac-sil--3  { left: 22%; top: 12%; animation-delay: -2s; }
+.ty-zodiac-sil--4  { left: 32%; top: 2%;  animation-delay: -3s; }
+.ty-zodiac-sil--5  { left: 42%; top: 6%;  animation-delay: -4s; }
+.ty-zodiac-sil--6  { left: 52%; top: 3%;  animation-delay: -5s; }
+.ty-zodiac-sil--7  { left: 62%; top: 10%; animation-delay: -6s; }
+.ty-zodiac-sil--8  { left: 72%; top: 5%;  animation-delay: -7s; }
+.ty-zodiac-sil--9  { left: 82%; top: 9%;  animation-delay: -8s; }
+.ty-zodiac-sil--10 { left: 90%; top: 14%; animation-delay: -9s; }
+.ty-zodiac-sil--11 { left: 6%;  bottom: 12%; animation-delay: -10s; }
+.ty-zodiac-sil--12 { right: 8%; bottom: 8%; left: auto; animation-delay: -11s; }
+@keyframes tyZodiacFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05); }
+}
+
+/* ─── 배경 글로우: 금빛 오라 ─── */
+.ty-bg-glow {
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.5;
+  animation: tyGlowPulse 8s ease-in-out infinite;
+}
+.ty-bg-glow--1 {
+  width: 700px;
+  height: 700px;
+  left: -200px;
+  top: -150px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, transparent 65%);
+}
+.ty-bg-glow--2 {
+  width: 600px;
+  height: 600px;
+  right: -150px;
+  bottom: -120px;
+  background: radial-gradient(circle, rgba(139, 0, 0, 0.5) 0%, transparent 65%);
+  animation-delay: -4s;
+}
+@keyframes tyGlowPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+/* ─── 파티클: 별빛 낙하 ─── */
+.ty-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100000;
+  overflow: hidden;
+}
+.ty-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ty-gold-bright);
+  box-shadow:
+    0 0 16px var(--ty-gold),
+    0 0 32px rgba(212, 175, 55, 0.6);
+  animation: tyFloat 5s ease-in-out infinite;
+}
+.ty-particle.p1 { left: 8%; top: 12%; animation-delay: 0s; }
+.ty-particle.p2 { left: 22%; top: 6%; animation-delay: 0.8s; }
+.ty-particle.p3 { left: 42%; top: 18%; animation-delay: 1.6s; }
+.ty-particle.p4 { left: 62%; top: 10%; animation-delay: 0.4s; }
+.ty-particle.p5 { left: 82%; top: 15%; animation-delay: 1.2s; }
+.ty-particle.p6 { left: 50%; top: 78%; animation-delay: 0.6s; }
+@keyframes tyFloat {
+  0%, 100% { opacity: 0.5; transform: translateY(0) scale(1); }
+  50% { opacity: 1; transform: translateY(-20px) scale(1.4); }
+}
+
+/* ─── 패널: 신성한 금색 테두리 ─── */
+.tarot-year-shell {
+  position: relative;
+  max-width: 760px;
+  margin: 36px auto;
+  padding: 28px 24px 64px;
+  z-index: 100001;
+  min-height: 0;
+}
+.tarot-year-panel {
+  position: relative;
+  border-radius: 32px;
+  border: 4px solid var(--ty-gold);
+  box-shadow:
+    0 0 0 2px rgba(212, 175, 55, 0.3),
+    0 0 80px rgba(212, 175, 55, 0.2),
+    0 50px 120px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 248, 220, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  background: linear-gradient(168deg,
+    rgba(92, 0, 0, 0.95) 0%,
+    rgba(61, 0, 0, 0.97) 35%,
+    rgba(92, 0, 0, 0.95) 70%,
+    rgba(45, 5, 5, 0.98) 100%);
+  padding: 44px 32px 52px;
+  overflow: visible;
+}
+.tarot-year-panel::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 26px;
+  pointer-events: none;
+}
+.tarot-year-panel::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 20px;
+  pointer-events: none;
+}
+.tarot-year-close {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  width: 52px;
+  height: 52px;
+  border: 3px solid rgba(212, 175, 55, 0.6);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--ty-gold-bright);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+}
+.tarot-year-close:hover,
+.tarot-year-close:focus-visible {
+  background: var(--ty-gold);
+  color: var(--ty-red-dark);
+  box-shadow: 0 0 36px rgba(212, 175, 55, 0.6);
+  transform: scale(1.12) rotate(90deg);
+  border-color: var(--ty-gold-bright);
+  outline: none;
+}
+.tarot-year-close:focus {
+  outline: none;
+}
+.ty-cta-btn:focus-visible,
+.ty-result-btn:focus-visible,
+.ty-month-cat-btn:focus-visible {
+  outline: 2px solid var(--ty-gold-bright);
+  outline-offset: 3px;
+}
+
+/* ─── 스테이지 전환 애니메이션 ─── */
+.tarot-year-stage { display: none; }
+.tarot-year-stage.is-active {
+  display: block;
+  animation: tyStageIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tyStageIn {
+  from { opacity: 0; transform: translateY(32px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── 인트로: 위엄 있는 히어로 ─── */
+.ty-hero {
+  text-align: center;
+  padding: 36px 0 48px;
+}
+.ty-hero-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  margin-bottom: 20px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--ty-red-dark);
+  background: linear-gradient(135deg, var(--ty-gold), var(--ty-gold-dark));
+  border-radius: 999px;
+  border: 2px solid rgba(255, 248, 220, 0.5);
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: tyBadgeShine 2.5s ease-in-out infinite;
+}
+@keyframes tyBadgeShine {
+  0%, 100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+  50% { box-shadow: 0 0 50px rgba(212, 175, 55, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+}
+.ty-hero-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--ty-gold-bright);
+  margin: 0 0 20px;
+  line-height: 1.2;
+  text-shadow:
+    0 0 60px rgba(212, 175, 55, 0.6),
+    0 0 30px rgba(212, 175, 55, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    0 6px 24px rgba(139, 0, 0, 0.5);
+  letter-spacing: -0.03em;
+  animation: tyTitleGlow 3s ease-in-out infinite;
+}
+@keyframes tyTitleGlow {
+  0%, 100% { text-shadow: 0 0 60px rgba(212, 175, 55, 0.6), 0 0 30px rgba(212, 175, 55, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6); }
+  50% { text-shadow: 0 0 80px rgba(212, 175, 55, 0.8), 0 0 40px rgba(212, 175, 55, 0.5), 0 2px 6px rgba(0, 0, 0, 0.6); }
+}
+.ty-hero-subtitle {
+  font-size: 1.05rem;
+  color: rgba(255, 248, 220, 0.92);
+  margin: 0 0 40px;
+  line-height: 1.8;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.ty-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 18px 48px;
+  border: 4px solid var(--ty-gold);
+  border-radius: 24px;
+  background: linear-gradient(145deg, var(--ty-red-deep), var(--ty-crimson));
+  color: var(--ty-gold-bright);
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    0 0 40px rgba(212, 175, 55, 0.35),
+    0 10px 40px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.ty-cta-btn:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow:
+    0 0 60px rgba(212, 175, 55, 0.55),
+    0 16px 50px rgba(0, 0, 0, 0.55);
+  border-color: var(--ty-gold-bright);
+  background: linear-gradient(145deg, var(--ty-crimson), var(--ty-vermilion));
+}
+.ty-cta-btn:active { transform: translateY(-2px) scale(1.01); }
+
+/* ─── 로딩 스테이지 (톤앤매너) ─── */
+.ty-loading-block {
+  text-align: center;
+  padding: 48px 24px 56px;
+}
+.ty-loading-block .ty-draw-title {
+  margin-bottom: 14px;
+}
+.ty-loading-text {
+  font-size: 1rem;
+  color: rgba(255, 248, 220, 0.88);
+  margin: 0 0 28px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+}
+.ty-loading-spinner {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  border-top-color: var(--ty-gold-bright);
+  border-radius: 50%;
+  animation: tySpinner 0.9s linear infinite;
+}
+@keyframes tySpinner {
+  to { transform: rotate(360deg); }
+}
+#tarotYearFortuneDrawStage .ty-draw-grid {
+  display: none;
+}
+
+/* ─── 드로우 스테이지: 카드 뒤집기 의식 ─── */
+.ty-draw-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--ty-gold);
+  text-align: center;
+  margin: 0 0 10px;
+  text-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+}
+.ty-draw-guide {
+  font-size: 1rem;
+  color: rgba(255, 248, 220, 0.92);
+  text-align: center;
+  margin: 0 0 32px;
+}
+.ty-draw-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  margin-bottom: 36px;
+}
+.ty-draw-grid--twelve {
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.ty-draw-slot--month {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(212, 175, 55, 0.25);
+  transition: all 0.35s ease;
+}
+.ty-draw-slot--month:hover {
+  border-color: rgba(212, 175, 55, 0.5);
+  background: rgba(0, 0, 0, 0.45);
+  transform: translateY(-4px);
+}
+.ty-draw-slot--month .ty-draw-slot-label {
+  font-family: "Noto Serif JP", "Noto Serif KR", "Yu Mincho", serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ty-gold-bright);
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}
+.ty-draw-slot-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ty-gold);
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+.ty-draw-card--month {
+  width: 72px;
+  height: 120px;
+  position: relative;
+  perspective: 400px;
+}
+.ty-draw-card--month .ty-draw-card-back::after {
+  content: "天運";
+  font-size: 0.55rem;
+  bottom: 6px;
+}
+.ty-draw-card--month .ty-draw-card-back::before {
+  font-size: 1.6rem;
+}
+.ty-draw-card--month .ty-draw-card-inner {
+  transition-duration: 0.55s;
+}
+.ty-draw-card--month .ty-draw-card-img {
+  height: 88px;
+}
+.ty-draw-card--month .ty-draw-card-name {
+  font-size: 0.6rem;
+  margin-top: 4px;
+}
+.ty-draw-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-draw-slot--next {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+}
+/* 카드 3D 뒤집기: 뒤→앞 플립 */
+.ty-draw-card {
+  position: relative;
+  width: 130px;
+  height: 216px;
+  cursor: pointer;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 4px solid var(--ty-gold);
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.4),
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 36px rgba(212, 175, 55, 0.25);
+  transition: box-shadow 0.45s ease, border-color 0.45s ease;
+  perspective: 680px;
+}
+.ty-draw-card:hover:not(.ty-draw-card--flipped) {
+  box-shadow:
+    0 0 60px rgba(212, 175, 55, 0.5),
+    0 24px 60px rgba(0, 0, 0, 0.6);
+  border-color: var(--ty-gold-bright);
+}
+.ty-draw-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-draw-card--flipped .ty-draw-card-inner {
+  transform: rotateY(180deg);
+}
+.ty-draw-card--flipped {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.ty-draw-card-back,
+.ty-draw-card-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.ty-draw-card-back {
+  background: linear-gradient(165deg, var(--ty-red-deep), var(--ty-red-dark));
+  border: 3px solid var(--ty-gold);
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+.ty-draw-card-back::before {
+  content: "✦";
+  font-size: 3rem;
+  color: var(--ty-gold);
+  text-shadow: 0 0 40px rgba(212, 175, 55, 0.7);
+  animation: tyCardPulse 1.8s ease-in-out infinite;
+}
+.ty-draw-card-back::after {
+  content: "천운";
+  position: absolute;
+  bottom: 12px;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(255, 236, 139, 0.8);
+}
+@keyframes tyCardPulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.ty-draw-card-front {
+  background: linear-gradient(180deg, #1a0808 0%, #0d0404 100%);
+  padding: 10px;
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+.ty-draw-card-front[data-reversed="1"] .ty-draw-card-img {
+  transform: rotate(180deg);
+}
+.ty-draw-card-img {
+  width: 100%;
+  height: 162px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid rgba(212, 175, 55, 0.35);
+}
+.ty-draw-card-name {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--ty-gold-bright);
+  margin-top: 6px;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+.ty-draw-actions { text-align: center; }
+.ty-draw-final-btn {
+  min-height: 56px;
+  padding: 16px 40px;
+  border: 4px solid var(--ty-gold);
+  border-radius: 20px;
+  background: linear-gradient(145deg, var(--ty-red-deep), var(--ty-crimson));
+  color: var(--ty-gold-bright);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.4s;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+.ty-draw-final-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.ty-draw-final-btn:not(:disabled):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+  border-color: var(--ty-gold-bright);
+}
+
+/* ─── 결과 스테이지: 12지신 월별 운세 ─── */
+.ty-result-hint {
+  font-size: 0.9rem;
+  color: rgba(255, 248, 220, 0.8);
+  text-align: center;
+  margin: 0 0 16px;
+}
+.ty-result-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.ty-result-title {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: var(--ty-gold);
+  margin: 0;
+  text-shadow:
+    0 0 40px rgba(212, 175, 55, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.5);
+  animation: tyTitleGlow 3s ease-in-out infinite;
+}
+.ty-result-summary {
+  display: none;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: rgba(255, 248, 220, 0.94);
+  margin-bottom: 32px;
+  padding: 24px 28px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
+  animation: tyFadeUp 0.6s ease 0.2s both;
+}
+@keyframes tyFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ty-result-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+.ty-result-card-wrap {
+  width: 110px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 4px solid var(--ty-gold);
+  box-shadow:
+    0 0 30px rgba(212, 175, 55, 0.25),
+    0 8px 28px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s;
+  animation: tyFadeUp 0.6s ease both;
+}
+.ty-result-card-wrap:nth-child(1) { animation-delay: 0.1s; }
+.ty-result-card-wrap:nth-child(2) { animation-delay: 0.2s; }
+.ty-result-card-wrap:nth-child(3) { animation-delay: 0.3s; }
+.ty-result-card-wrap:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.4);
+}
+.ty-result-card-front {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: linear-gradient(180deg, #1a0808 0%, #0d0404 100%);
+}
+.ty-result-card-front img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+}
+.ty-result-card-name {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ty-gold-bright);
+  margin-top: 6px;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+.ty-result-cards--twelve {
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.ty-result-card-wrap--month {
+  width: 96px;
+  min-height: 124px;
+  cursor: pointer;
+  padding: 10px 8px 12px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 236, 139, 0.2), transparent 45%),
+    linear-gradient(180deg, rgba(45, 8, 8, 0.95) 0%, rgba(18, 4, 4, 0.95) 100%);
+  border: 2px solid rgba(212, 175, 55, 0.45);
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+.ty-result-card-wrap--month:hover {
+  transform: translateY(-6px) scale(1.05);
+  border-color: var(--ty-gold-bright);
+  box-shadow: 0 0 38px rgba(212, 175, 55, 0.42);
+}
+/* 결과 카드: 뒷면 → 클릭 시 앞면(월별 운세) 플립 */
+.ty-result-card-wrap--month {
+  perspective: 380px;
+}
+.ty-result-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 98px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-result-card-wrap--flipped .ty-result-card-inner {
+  transform: rotateY(180deg);
+}
+/* 순차 플립: 카드 등장 시 1月~12月가 차례로 뒤집혀 보이도록 */
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(1) .ty-result-card-inner { transition-delay: 0.05s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(2) .ty-result-card-inner { transition-delay: 0.1s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(3) .ty-result-card-inner { transition-delay: 0.15s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(4) .ty-result-card-inner { transition-delay: 0.2s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(5) .ty-result-card-inner { transition-delay: 0.25s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(6) .ty-result-card-inner { transition-delay: 0.3s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(7) .ty-result-card-inner { transition-delay: 0.35s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(8) .ty-result-card-inner { transition-delay: 0.4s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(9) .ty-result-card-inner { transition-delay: 0.45s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(10) .ty-result-card-inner { transition-delay: 0.5s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(11) .ty-result-card-inner { transition-delay: 0.55s; }
+.ty-result-cards--twelve.ty-result-cards--flip-ready .ty-result-card-wrap--month:nth-child(12) .ty-result-card-inner { transition-delay: 0.6s; }
+.ty-result-card-back,
+.ty-result-card-wrap--month .ty-result-card-front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ty-result-card-wrap--month .ty-result-card-front {
+  transform: rotateY(180deg);
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(45, 8, 8, 0.98) 0%, rgba(18, 4, 4, 0.98) 100%);
+  padding: 10px 8px;
+}
+.ty-result-card-back {
+  background: linear-gradient(165deg, var(--ty-red-deep), var(--ty-red-dark));
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+.ty-result-card-back::before {
+  content: "✦";
+  font-size: 1.5rem;
+  color: var(--ty-gold);
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  margin-bottom: 4px;
+}
+.ty-result-card-back::after {
+  content: "天運";
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: rgba(255, 236, 139, 0.85);
+}
+.ty-result-card-month {
+  display: block;
+  font-family: "Noto Serif JP", "Noto Serif KR", "Yu Mincho", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ty-gold-bright);
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+.ty-result-card-zodiac {
+  font-size: 1.3rem;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+.ty-result-card-guide {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  color: rgba(255, 240, 210, 0.88);
+  text-transform: uppercase;
+}
+.ty-result-card-wrap--month.is-active {
+  border-color: var(--ty-gold-bright);
+  box-shadow: 0 0 45px rgba(212, 175, 55, 0.5);
+}
+.ty-result-card-wrap--month.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 236, 139, 0.55);
+  pointer-events: none;
+}
+/* ─── 월별 상세 패널 ─── */
+.ty-month-detail-placeholder {
+  display: block;
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255, 248, 220, 0.9);
+  letter-spacing: 0.04em;
+}
+.ty-month-detail-content {
+  display: block;
+}
+.ty-month-detail-panel {
+  margin-bottom: 28px;
+  padding: 26px 28px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(255, 236, 139, 0.14), transparent 40%),
+    radial-gradient(circle at 10% 100%, rgba(212, 175, 55, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(27, 6, 6, 0.94) 0%, rgba(10, 3, 3, 0.94) 100%);
+  border: 3px solid rgba(212, 175, 55, 0.48);
+  box-shadow:
+    0 0 45px rgba(0, 0, 0, 0.35),
+    inset 0 0 50px rgba(0, 0, 0, 0.32);
+  display: none;
+  opacity: 0;
+  transform: translateY(8px);
+  overflow: visible;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.ty-month-detail-panel.is-visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+.ty-month-detail-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--ty-gold);
+  margin: 0 0 16px;
+  text-shadow: 0 0 16px rgba(212, 175, 55, 0.4);
+}
+.ty-month-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ty-month-oracle-hero {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  margin: 0 0 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: linear-gradient(145deg, rgba(90, 14, 14, 0.4), rgba(20, 4, 4, 0.35));
+}
+.ty-month-oracle-card {
+  width: 110px;
+  height: 186px;
+  border-radius: 14px;
+  border: 3px solid rgba(212, 175, 55, 0.7);
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.2);
+  background: #1a0909;
+}
+.ty-month-oracle-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(0deg);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-month-oracle-card.is-reversed img {
+  transform: rotate(180deg);
+}
+.ty-month-oracle-meta {
+  flex: 1;
+}
+.ty-month-oracle-name {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ty-gold-bright);
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+}
+.ty-month-oracle-consult {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: rgba(255, 231, 176, 0.85);
+}
+.ty-month-spread-wrap {
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: linear-gradient(180deg, rgba(93, 14, 14, 0.3), rgba(16, 4, 4, 0.3));
+}
+.ty-month-spread-title {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  color: var(--ty-gold-bright);
+  letter-spacing: 0.08em;
+}
+.ty-month-spread-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.ty-month-spread-card {
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(8, 4, 4, 0.45);
+}
+.ty-month-spread-pos {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 231, 176, 0.9);
+}
+.ty-month-spread-img-wrap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.35);
+}
+.ty-month-spread-img-wrap[data-reversed="1"] .ty-month-spread-img {
+  transform: rotate(180deg);
+}
+.ty-month-spread-img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(0deg);
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-month-spread-name {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: rgba(255, 248, 220, 0.92);
+}
+.ty-month-category-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.ty-month-cat-btn {
+  min-height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(0, 0, 0, 0.32);
+  color: rgba(255, 240, 210, 0.88);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ty-month-cat-btn:hover {
+  border-color: rgba(212, 175, 55, 0.7);
+}
+.ty-month-cat-btn.is-active {
+  color: #2d0a0a;
+  background: linear-gradient(135deg, var(--ty-gold-bright), var(--ty-gold));
+  border-color: var(--ty-gold-bright);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.35);
+}
+.ty-month-category-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(0, 0, 0, 0.36);
+  padding: 12px 14px;
+  overflow: visible;
+}
+.ty-month-category-title {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--ty-gold-bright);
+}
+.ty-month-category-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.72;
+  color: rgba(255, 248, 220, 0.94);
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  max-height: 280px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+.ty-month-category-text::-webkit-scrollbar {
+  width: 6px;
+}
+.ty-month-category-text::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+.ty-month-category-text::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 3px;
+}
+
+/* 월 상세 카드 플립 애니메이션 */
+.ty-month-detail-panel.ty-month-detail-panel--flip-start .ty-month-oracle-card img,
+.ty-month-detail-panel.ty-month-detail-panel--flip-start .ty-month-spread-img {
+  transform: rotateY(180deg);
+}
+.ty-month-detail-panel.ty-month-detail-panel--flip-end .ty-month-oracle-card img,
+.ty-month-detail-panel.ty-month-detail-panel--flip-end .ty-month-spread-img {
+  transform: rotateY(0deg);
+}
+
+/* Keep tarot cards fully visible without cropping */
+.ty-draw-card-img,
+.ty-result-card-front img,
+.ty-month-oracle-card img,
+.ty-month-spread-img {
+  object-fit: contain;
+  background: linear-gradient(180deg, rgba(26, 8, 8, 0.8), rgba(13, 4, 4, 0.85));
+}
+.ty-month-detail-item {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255, 248, 220, 0.94);
+}
+.ty-month-detail-item strong {
+  display: inline-block;
+  min-width: 100px;
+  color: var(--ty-gold-bright);
+}
+
+/* ─── 월별 아코디언: 화려한 12지신 ─── */
+.ty-monthly-section { margin-bottom: 32px; }
+.ty-monthly-section-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--ty-gold);
+  margin: 0 0 20px;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ty-monthly-section-title::before {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5));
+  border-radius: 1px;
+}
+.ty-monthly-section-title::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.5), transparent);
+  border-radius: 1px;
+}
+.ty-monthly-list { display: flex; flex-direction: column; gap: 12px; }
+.ty-month-item {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 3px solid rgba(212, 175, 55, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: tyFadeUp 0.5s ease both;
+}
+.ty-month-item:nth-child(1) { animation-delay: 0.05s; }
+.ty-month-item:nth-child(2) { animation-delay: 0.1s; }
+.ty-month-item:nth-child(3) { animation-delay: 0.15s; }
+.ty-month-item:nth-child(4) { animation-delay: 0.2s; }
+.ty-month-item:nth-child(5) { animation-delay: 0.25s; }
+.ty-month-item:nth-child(6) { animation-delay: 0.3s; }
+.ty-month-item:nth-child(7) { animation-delay: 0.35s; }
+.ty-month-item:nth-child(8) { animation-delay: 0.4s; }
+.ty-month-item:nth-child(9) { animation-delay: 0.45s; }
+.ty-month-item:nth-child(10) { animation-delay: 0.5s; }
+.ty-month-item:nth-child(11) { animation-delay: 0.55s; }
+.ty-month-item:nth-child(12) { animation-delay: 0.6s; }
+.ty-month-item--open {
+  border-color: var(--ty-gold);
+  box-shadow:
+    0 0 40px rgba(212, 175, 55, 0.25),
+    inset 0 0 30px rgba(212, 175, 55, 0.05);
+}
+.ty-month-header {
+  width: 100%;
+  padding: 18px 24px;
+  border: none;
+  background: transparent;
+  color: var(--ty-gold-bright);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ty-month-header:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+.ty-month-header::after {
+  content: "▼";
+  margin-left: auto;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ty-month-item--open .ty-month-header::after {
+  transform: rotate(180deg);
+}
+.ty-month-body {
+  display: none;
+  padding: 0 24px 24px;
+}
+.ty-month-item--open .ty-month-body {
+  display: block;
+  animation: tyExpand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tyExpand {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ty-month-body p {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: rgba(255, 248, 220, 0.92);
+}
+.ty-month-body p:last-child { margin-bottom: 0; }
+.ty-month-flow { border-left: 3px solid var(--ty-gold); padding-left: 14px; margin-left: 4px !important; }
+.ty-month-money { padding-left: 4px; }
+.ty-month-love { padding-left: 4px; }
+.ty-month-relation { padding-left: 4px; }
+
+/* ─── 타로 마스터 총평: 금색 서판 ─── */
+.ty-advice-section {
+  padding: 28px 28px;
+  margin-bottom: 32px;
+  border-radius: 24px;
+  background: linear-gradient(165deg,
+    rgba(212, 175, 55, 0.18) 0%,
+    rgba(184, 134, 11, 0.1) 50%,
+    rgba(212, 175, 55, 0.12) 100%);
+  border: 3px solid rgba(212, 175, 55, 0.45);
+  box-shadow:
+    0 0 50px rgba(212, 175, 55, 0.15),
+    inset 0 0 60px rgba(212, 175, 55, 0.05);
+  animation: tyFadeUp 0.6s ease 0.4s both;
+}
+.ty-advice-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--ty-gold);
+  margin: 0 0 14px;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+.ty-advice-text {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: rgba(255, 248, 220, 0.96);
+  margin: 0;
+}
+
+/* ─── 액션 버튼 ─── */
+.ty-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+.ty-result-btn {
+  min-height: 52px;
+  padding: 14px 28px;
+  border: 3px solid var(--ty-gold);
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--ty-red-deep), var(--ty-crimson));
+  color: var(--ty-gold-bright);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+}
+.ty-result-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.45);
+  border-color: var(--ty-gold-bright);
+}
+.ty-result-btn--outline {
+  background: transparent;
+  color: var(--ty-gold-bright);
+}
+.ty-result-btn--outline:hover {
+  background: rgba(212, 175, 55, 0.18);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+.ty-result-btn--home {
+  border-width: 2px;
+  border-color: rgba(212, 175, 55, 0.5);
+  color: rgba(255, 248, 220, 0.9);
+}
+.ty-result-btn--home:hover {
+  border-color: rgba(212, 175, 55, 0.75);
+  background: rgba(212, 175, 55, 0.12);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+}
+
+/* ─── 반응형 ─── */
+@media (max-width: 680px) {
+  .ty-hero-title { font-size: 1.9rem; }
+  .ty-hero { padding: 28px 0 36px; }
+  .ty-draw-card { width: 110px; height: 184px; }
+  .ty-draw-card-img { height: 138px; }
+  .ty-draw-grid { gap: 20px; }
+  .ty-draw-grid--twelve { gap: 10px; }
+  .ty-draw-card--month { width: 58px; height: 96px; }
+  .ty-draw-card--month .ty-draw-card-img { height: 68px; }
+  .ty-draw-card--month .ty-draw-card-name { font-size: 0.5rem; }
+  .ty-draw-slot-label { font-size: 0.7rem; }
+  .ty-result-card-wrap { width: 95px; }
+  .ty-result-card-wrap--month { width: 72px; min-height: 102px; }
+  .ty-result-card-month { font-size: 1rem; }
+  .ty-result-card-zodiac { font-size: 1.05rem; }
+  .ty-result-card-front img { height: 118px; }
+  .ty-month-oracle-hero { flex-direction: column; align-items: flex-start; }
+  .ty-month-oracle-card { width: 90px; height: 150px; }
+  .ty-month-category-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ty-month-spread-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ty-month-detail-panel { padding: 18px 16px; border-radius: 18px; }
+  .ty-month-category-text { line-height: 1.8; }
+  .tarot-year-panel { padding: 32px 20px 40px; }
+}
+
+@media (max-width: 768px) {
+  .tarot-year-shell {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: max(26px, env(safe-area-inset-bottom));
+  }
+  .ty-zodiac-silhouettes,
+  .ty-bg-glow,
+  .ty-particles {
+    display: none;
+  }
+  .ty-eastern-pattern {
+    opacity: 0.05;
+  }
+  .tarot-year-shell {
+    margin: 14px auto;
+    padding: 10px 10px 26px;
+  }
+  .tarot-year-panel {
+    border-width: 2px;
+    border-radius: 18px;
+    padding: 20px 12px 22px;
+  }
+  .tarot-year-close {
+    width: 42px;
+    height: 42px;
+    top: 10px;
+    right: 10px;
+    font-size: 22px;
+  }
+  .ty-hero {
+    padding: 14px 0 20px;
+  }
+  .ty-loading-block {
+    padding: 32px 16px 40px;
+  }
+  .ty-loading-text {
+    font-size: 0.92rem;
+    margin-bottom: 20px;
+  }
+  .ty-hero-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .ty-hero-subtitle {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+  .ty-cta-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border-width: 2px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+  }
+  .ty-draw-grid--twelve {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .ty-draw-slot--month {
+    padding: 8px 4px;
+    border-width: 1px;
+    border-radius: 12px;
+  }
+  .ty-draw-slot--month .ty-draw-slot-label {
+    font-size: 1rem;
+  }
+  .ty-draw-card--month {
+    width: 100%;
+    max-width: 84px;
+    height: 124px;
+  }
+  .ty-draw-card--month .ty-draw-card-img {
+    height: 86px;
+  }
+  .ty-result-cards--twelve {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .ty-result-card-wrap--month {
+    width: 100%;
+    min-height: 106px;
+    padding: 8px 6px;
+    border-radius: 12px;
+  }
+  .ty-result-card-wrap--month .ty-result-card-front {
+    min-height: 86px;
+    border-radius: 9px;
+  }
+  .ty-result-card-month {
+    font-size: 1rem;
+  }
+  .ty-result-card-zodiac {
+    font-size: 1.05rem;
+  }
+  .ty-result-card-guide {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+  .ty-month-detail-panel {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-width: 2px;
+    border-radius: 14px;
+  }
+  .ty-month-detail-title {
+    font-size: 0.96rem;
+    margin-bottom: 10px;
+  }
+  .ty-month-oracle-hero {
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+  }
+  .ty-month-oracle-card {
+    width: 82px;
+    height: 134px;
+    border-width: 2px;
+    border-radius: 10px;
+  }
+  .ty-month-oracle-name {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  .ty-month-oracle-consult {
+    font-size: 0.68rem;
+  }
+  .ty-month-spread-wrap {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .ty-month-spread-title {
+    font-size: 0.8rem;
+  }
+  .ty-month-spread-cards {
+    gap: 6px;
+  }
+  .ty-month-spread-card {
+    padding: 6px;
+    border-radius: 10px;
+  }
+  .ty-month-spread-name {
+    font-size: 0.62rem;
+  }
+  .ty-month-category-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ty-month-cat-btn {
+    flex: 0 0 auto;
+    min-width: 82px;
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 0.72rem;
+  }
+  .ty-month-category-panel {
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .ty-month-category-title {
+    font-size: 0.8rem;
+  }
+  .ty-month-category-text {
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+  .ty-advice-section {
+    padding: 14px;
+    border-width: 2px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .ty-advice-title {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  .ty-advice-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+  .ty-result-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ty-result-btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-width: 2px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+  }
+}
