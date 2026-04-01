@@ -12,9 +12,6 @@
 <meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>꿀꿀 만세력 | 무료 사주·타로·궁합·오늘의운세·자미두수·신년운세</title>
-<!-- LCP: 모바일/데스크톱 분기 프리로드 -->
-<link rel="preload" as="image" href="/icons/honeypig-96.webp" imagesrcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
-<link rel="preload" as="image" href="/icons/honeypig-130.webp" imagesrcset="/icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" imagesizes="130px" media="(min-width: 769px)" fetchpriority="high">
 <link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="low">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
@@ -1466,7 +1463,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
                    aria-label="핀란드 주석점 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/yeon.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
@@ -3771,14 +3768,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         userBalance = Number(primary.payload.user.points || 0);
         saveBalance();
         updateBadge();
-        return;
-      }
-
-      var fallback = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
-      if (fallback.ok && fallback.payload && fallback.payload.user && typeof fallback.payload.user.points === 'number') {
-        userBalance = Number(fallback.payload.user.points || 0);
-        saveBalance();
-        updateBadge();
       }
     } catch (error) {
       console.error('[golden-pig-coin] balance sync failed', error);
@@ -3795,6 +3784,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   function openChargeModal() {
     var modal = document.getElementById('goldenGrainChargeModal');
     if (!modal) return;
+    void syncBalanceFromServer();
     modal.classList.add('golden-grain-modal--open');
   }
 
@@ -3967,7 +3957,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
-  void syncBalanceFromServer();
 })();
 </script>
 
