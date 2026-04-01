@@ -17,13 +17,51 @@ function json(body, status = 200) {
   return NextResponse.json(body, { status });
 }
 
+function normalizeBaseUrl(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+
+  try {
+    const parsed = new URL(value);
+    return parsed.origin.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
 function getFrontendBaseUrl() {
-  return process.env.AUTH_FRONTEND_BASE_URL || process.env.SITE_BASE_URL || "http://localhost:3000";
+  const candidates = [
+    process.env.AUTH_FRONTEND_BASE_URL,
+    process.env.SITE_BASE_URL,
+    process.env.CODE_DESTINY_API_URL,
+    process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    "http://localhost:3000",
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeBaseUrl(candidate);
+    if (normalized) return normalized;
+  }
+
+  return "http://localhost:3000";
 }
 
 function getApiBaseUrl(request) {
-  if (process.env.AUTH_API_BASE_URL) return process.env.AUTH_API_BASE_URL;
-  return request.nextUrl.origin;
+  const candidates = [
+    process.env.AUTH_API_BASE_URL,
+    process.env.CODE_DESTINY_API_URL,
+    process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    request.nextUrl.origin,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeBaseUrl(candidate);
+    if (normalized) return normalized;
+  }
+
+  return request.nextUrl.origin.replace(/\/$/, "");
 }
 
 function sanitizeNextPath(rawNext) {
