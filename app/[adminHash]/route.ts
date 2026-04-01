@@ -53,7 +53,11 @@ async function servePublicRootFile(fileName: string): Promise<NextResponse> {
  * app/[adminHash]/route.ts 는 "/:단일세그먼트" 전부를 잡는다.
  * 미들웨어를 우회한 경우를 대비해 index.html·favicon 같은 정적 파일명은 먼저 예외 처리한다.
  */
-export async function GET(request: Request, { params }: { params: { adminHash: string } }) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ adminHash: string }> },
+) {
+  const params = await context.params;
   const segment = String(params.adminHash || "");
   const lower = segment.toLowerCase();
 
