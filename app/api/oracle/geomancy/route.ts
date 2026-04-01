@@ -118,6 +118,20 @@ function parseLooseOracleJson(text: string): Partial<Record<string, string>> {
   return out;
 }
 
+type OracleFields = {
+  answer?: string;
+  keyJudgement?: string;
+  energyFlow?: string;
+  risk?: string;
+  timing?: string;
+  actionTip?: string;
+};
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object") return {};
+  return value as Record<string, unknown>;
+}
+
 function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   const src = stripCodeFence(String(text || "").trim());
   if (!src || !src.includes('"answer"')) return {};
@@ -125,15 +139,15 @@ function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   const jsonCandidate = extractFirstJsonObject(src);
   if (jsonCandidate) {
     try {
-      const parsed = JSON.parse(jsonCandidate);
-      if (parsed && typeof parsed === "object") {
+      const parsed = toRecord(JSON.parse(jsonCandidate));
+      if (Object.keys(parsed).length > 0) {
         return {
-          answer: String((parsed as any).answer || "").trim(),
-          keyJudgement: String((parsed as any).keyJudgement || "").trim(),
-          energyFlow: String((parsed as any).energyFlow || "").trim(),
-          risk: String((parsed as any).risk || "").trim(),
-          timing: String((parsed as any).timing || "").trim(),
-          actionTip: String((parsed as any).actionTip || "").trim(),
+          answer: String(parsed.answer || "").trim(),
+          keyJudgement: String(parsed.keyJudgement || "").trim(),
+          energyFlow: String(parsed.energyFlow || "").trim(),
+          risk: String(parsed.risk || "").trim(),
+          timing: String(parsed.timing || "").trim(),
+          actionTip: String(parsed.actionTip || "").trim(),
         };
       }
     } catch {
@@ -144,29 +158,34 @@ function parseNestedAnswerJson(text: string): Partial<Record<string, string>> {
   return parseLooseOracleJson(src);
 }
 
-function parseGeminiText(payload: any): string {
-  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+function parseGeminiText(payload: unknown): string {
+  const root = toRecord(payload);
+  const candidates = Array.isArray(root.candidates) ? root.candidates : [];
   for (const candidate of candidates) {
-    const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+    const candidateRecord = toRecord(candidate);
+    const content = toRecord(candidateRecord.content);
+    const parts = Array.isArray(content.parts) ? content.parts : [];
     for (const part of parts) {
-      if (typeof part?.text === "string" && part.text.trim()) {
-        return part.text.trim();
+      const partRecord = toRecord(part);
+      if (typeof partRecord.text === "string" && partRecord.text.trim()) {
+        return partRecord.text.trim();
       }
     }
   }
   return "";
 }
 
-function ensureFields(raw: any, fallbackAnswer: string) {
-  const nested = parseNestedAnswerJson(raw?.answer || "");
-  const answer = normalizeText(nested.answer || raw?.answer || fallbackAnswer, 3000);
+function ensureFields(raw: OracleFields | undefined, fallbackAnswer: string) {
+  const source = raw || {};
+  const nested = parseNestedAnswerJson(source.answer || "");
+  const answer = normalizeText(nested.answer || source.answer || fallbackAnswer, 3000);
   return {
     answer,
-    keyJudgement: normalizeText(raw?.keyJudgement || nested.keyJudgement, 600),
-    energyFlow: normalizeText(raw?.energyFlow || nested.energyFlow, 600),
-    risk: normalizeText(raw?.risk || nested.risk, 600),
-    timing: normalizeText(raw?.timing || nested.timing, 600),
-    actionTip: normalizeText(raw?.actionTip || nested.actionTip, 600),
+    keyJudgement: normalizeText(source.keyJudgement || nested.keyJudgement, 600),
+    energyFlow: normalizeText(source.energyFlow || nested.energyFlow, 600),
+    risk: normalizeText(source.risk || nested.risk, 600),
+    timing: normalizeText(source.timing || nested.timing, 600),
+    actionTip: normalizeText(source.actionTip || nested.actionTip, 600),
   };
 }
 
@@ -291,7 +310,7 @@ export async function POST(request: Request) {
         const jsonCandidate = extractFirstJsonObject(cleanedText);
         if (jsonCandidate) {
           try {
-            const parsed = JSON.parse(jsonCandidate);
+            const parsed = JSON.parse(jsonCandidate) as OracleFields;
             const shaped = ensureFields(parsed, fallback.answer);
             return NextResponse.json({ ...shaped, provider: "gemini", model });
           } catch {

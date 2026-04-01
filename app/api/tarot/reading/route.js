@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import sampleData from "../../../../server/data/tarot-cards.sample.json";
 import dbData from "../../../../server/data/tarot-cards.db.json";
+import tarotEngine from "../../../../server/services/tarot-engine.service";
 
 const {
   createReading,
@@ -13,7 +14,7 @@ const {
   createYearlyTwelveCardReading,
   normalizeSpreadType,
   initFromPreloadedData,
-} = require("../../../../server/services/tarot-engine.service");
+} = tarotEngine;
 
 function mapCardForUi(item) {
   return {
