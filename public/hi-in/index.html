@@ -352,6 +352,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
+
   <!-- ════════════════════════════════════════════════════════
        ★ CRITICAL CSS — 인라인 (렌더블로킹 CSS 전면 제거를 위한 ATF 필수 스타일)
        ════════════════════════════════════════════════════════ -->
@@ -380,42 +381,35 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
-.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,210,130,0.66);background:linear-gradient(145deg,rgba(255,247,230,0.97),rgba(255,226,173,0.95));box-shadow:0 10px 30px rgba(176,98,21,0.22),inset 0 2px 10px rgba(255,255,255,0.42);color:#6e350b;font-weight:800;font-size:.84rem;letter-spacing:.01em;z-index:4}
-.golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 26% 22%,#fff8ce 0%,#ffd14d 48%,#df920b 100%);border:1px solid rgba(164,90,8,0.44);box-shadow:inset 0 2px 8px rgba(255,255,255,0.56),0 6px 12px rgba(150,76,11,0.24)}
-.golden-grain-badge__coin::before{content:'';width:16px;height:16px;border-radius:50%;border:2px solid rgba(133,69,8,0.58);box-shadow:inset 0 2px 5px rgba(255,245,201,0.72)}
-.golden-grain-badge__coin::after{content:'';position:absolute;top:7px;left:7px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.72)}
-.golden-grain-badge__value{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
-.golden-grain-badge__label{font-size:.67rem;font-weight:700;color:#8e5a2f;letter-spacing:.03em;text-transform:uppercase}
-.golden-grain-badge__balance{font-size:.86rem;font-weight:900;color:#5f2e08;white-space:nowrap}
-.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:7px 11px;background:linear-gradient(135deg,#ff8a5b,#ff5a77);color:#fff;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 6px 14px rgba(219,89,55,0.32)}
-.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.04)}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,178,199,0.58);background:linear-gradient(140deg,#fff8f4 0%,#ffe6ef 55%,#fff1db 100%);box-shadow:0 12px 24px rgba(122,53,87,0.2);color:#7c3257;font-weight:800;font-size:.84rem;letter-spacing:.02em;z-index:4}
+.golden-grain-badge__coin{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff7cf 0%,#ffd96b 45%,#f3a526 100%);border:1px solid rgba(165,84,7,0.36);box-shadow:inset 0 2px 6px rgba(255,255,255,0.45),0 4px 10px rgba(173,84,8,0.25);font-size:.88rem;line-height:1}
+.golden-grain-badge__value{font-variant-numeric:tabular-nums}
+.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:6px 10px;background:linear-gradient(135deg,#ff6fa7,#ff9f7a);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;transition:transform .22s ease,filter .22s ease}
+.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.05)}
 .golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:100002;background:rgba(28,9,35,0.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .golden-grain-modal--open{display:flex}
-.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff8ec 0%,#ffe8c9 46%,#ffd7bb 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
+.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff6ea 0%,#ffe4d2 42%,#ffd8e8 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
 .golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
 .golden-grain-modal__close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.76);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer}
 .golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.35rem;color:#812f00}
-.golden-grain-modal__subtitle{margin:0 0 14px;font-size:.9rem;color:#8b4b24}
-.golden-grain-piggy{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;display:block;overflow:hidden;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
-.golden-grain-piggy__img{width:100%;height:100%;object-fit:cover;display:block}
+.golden-grain-modal__subtitle{margin:0 0 12px;font-size:.9rem;color:#9f5978;text-align:center}
+.golden-grain-piggy{width:82px;height:82px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:radial-gradient(circle at 32% 25%,#ffe0ef 0%,#ffc6de 60%,#f7a5c8 100%);border:2px solid rgba(255,154,196,0.7);box-shadow:inset 0 3px 8px rgba(255,255,255,0.56),0 8px 20px rgba(215,91,145,0.25)}
 .golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
 @keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
 .golden-grain-packages{display:grid;gap:10px}
-.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.78);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.golden-grain-package{position:relative;border:1px solid rgba(255,163,120,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.74);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
 .golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(169,56,95,0.14)}
 .golden-grain-package.is-selected{border-color:rgba(245,124,0,0.9);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01)}
 .golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.golden-grain-package__best{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#ff5f45,#ff8c32);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 14px rgba(214,91,33,0.3)}
 .golden-grain-package__name{font-weight:800;color:#742c16}
 .golden-grain-package__coin{font-weight:900;color:#a6450f}
-.golden-grain-package__meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:5px}
-.golden-grain-package__price{font-size:.86rem;color:#7d4b2b}
-.golden-grain-package__total{font-size:.79rem;font-weight:800;color:#8e4c11}
+.golden-grain-package__price{margin-top:4px;font-size:.86rem;color:#7d4b2b}
 .golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
-.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff86b6,#ffba7e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
-.golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
-.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
+.golden-grain-modal__charge-btn:disabled{cursor:not-allowed;opacity:.62;transform:none;box-shadow:none}
+.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#9a5d45;font-weight:700;font-size:.82rem}
+.golden-grain-modal__notice{margin-top:9px;padding:10px 12px;border-radius:12px;background:rgba(255,246,230,0.92);border:1px dashed rgba(239,153,80,0.72);font-size:.79rem;color:#925225;text-align:center;font-weight:700}
 .golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
 .golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
 .golden-unlock-list{display:grid;gap:8px}
@@ -816,6 +810,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   </div>
 </div>
 
+
 <script src="/js/splash.js" defer></script>
 
 <!-- 섹션 네비게이션 바 -->
@@ -968,7 +963,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
-</header>
+
+      <div id="goldenGrainBadgeRoot"></div>
+
+    </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
 
@@ -1580,6 +1578,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   </div>
                 </button>
 
+
                 <!-- 올림푸스 별자리 신탁 -->
                 <button class="tarot-tile tarot-tile--olympus-oracle" type="button"
                         data-action="openOlympusOracleModal"
@@ -1723,6 +1722,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div><!-- /feat-collection--flower -->
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
+
+
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
@@ -1935,6 +1936,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </section>
         </div>
       </div>
+
 
       <!-- 정신분석 해몽 모달 (Freud's Study) -->
       <div id="psychoDreamModalOverlay" class="ps-overlay" style="display:none;">
@@ -2235,6 +2237,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </div>
       </div>
 
+
+
+
       <!-- 타로 모달 (Hidden Overlay) -->
       <div id="tarotModalOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,10,20,0.95); backdrop-filter:blur(8px); overflow-y:auto; animation: fadeIn 0.3s ease-out;">
         <div style="position:absolute; top:20px; right:20px; z-index:100000;">
@@ -2344,6 +2349,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div>
           </div>
           
+
 
         </div>
       </div>
@@ -2750,6 +2756,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </div>
       </div>
 
+
+
     <!-- ═══ 이집트 신탁 운세 (The Oracle of Kemet) ═══ -->
     <div id="kemetOracleOverlay" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(10,12,18,0.95); backdrop-filter:blur(10px); overflow-y:auto; animation: kemetFadeIn 0.4s ease-out;">
       <div style="position:absolute; top:20px; right:20px; z-index:100000;">
@@ -2881,12 +2889,16 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </button>
     </div>
 
+
+
     <!-- 0. 상단 히어로 -->
     <div class="top-hero">
       <div class="hero-animal" id="heroAnimal"></div>
       <h2 id="heroName"></h2>
       <div class="hero-sub" id="heroSub"></div>
     </div>
+
+
 
     <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
     <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
@@ -2968,12 +2980,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="g-desc" id="gAction" style="text-align:left; line-height: 1.4; margin-top:4px;">--</div>
                 </div>
 
+
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
 
     
 
@@ -3085,6 +3099,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </div>
 
+
+
     <!-- 2. 핵심 십성 -->
     <div class="card" id="tenshinCard">
       <div class="sec-title">🎴 보유 십성 (十星) — 탭하면 상세 분석!</div>
@@ -3113,6 +3129,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div class="sec-title">⚖️ 억부(抑扶) · 종격(從格) 분석</div>
       <div id="ukbuSection"></div>
     </div>
+
+
 
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
@@ -3146,6 +3164,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="summaryArea"></div>
     </section>
 
+
+
     <!-- 오늘의 운세 & 이달의 운세 -->
     <section class="card" id="dailyMonthlyCard" style="display:none" aria-labelledby="dailyMonthlyTitle">
       <h3 id="dailyMonthlyTitle" class="sec-title">🔆 오늘의 운세 &amp; 이달의 운세</h3>
@@ -3156,6 +3176,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="dailyPanel" class="fortune-panel active"></div>
       <div id="monthlyPanel" class="fortune-panel"></div>
     </section>
+
+
 
     <!-- 2-1. 궁합 보기 -->
     <section class="card" id="compatCard" aria-labelledby="compatTitle">
@@ -3214,6 +3236,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="sajuFourCutResult"></div>
     </section>
 
+
     <!-- 사주 분석 리포트 대시보드 -->
     <section class="card" id="reportDashboardCard" style="display:none" aria-labelledby="dashboardTitle">
       <div class="report-dashboard-head">
@@ -3227,6 +3250,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="quantumTitle" class="sec-title">⚡ 퀀텀 명리 전략 리포트 — 합화 우선 분석</h3>
       <div id="quantumSection"></div>
     </section>
+
+
 
         <!-- 🌟 통합 점술 탭 시스템 (Mystic Tab System) 🌟 -->
     <section class="mystic-tabs-wrapper" style="margin-bottom:25px; position:relative;" aria-label="Mystic Tab System">
@@ -3243,6 +3268,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         </defs>
       </svg>
 
+
       </section>
 
       <section id="tabAstro" class="mystic-tab-content" role="tabpanel" aria-label="Astrology">
@@ -3250,6 +3276,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </section>
     </section>
       <!-- 탭 전환 스크립트 -->
+
+
 
     <section class="card" id="villainCard" style="display:none" aria-labelledby="villainTitle">
       <h3 id="villainTitle" class="sec-title">💀 요주의 빌런 블랙리스트</h3>
@@ -3261,6 +3289,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="skillTreeTitle" class="sec-title">🎮 인생 스킬 트리 — 運命 RPG 캐릭터 시트</h3>
       <div id="skillTreeSection"></div>
     </section>
+
 
     <section class="card" id="energyCoordCard" style="display:none" aria-labelledby="energyTitle">
       <h3 id="energyTitle" class="sec-title">🧭 에너지 원정 리포트 — 사주 맞춤 에너지 좌표</h3>
@@ -3285,6 +3314,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="egyptTitle" class="sec-title" style="color: #D4AF37;">𓂀 고대 이집트 오라클 (Eye of Horus)</h3>
       <div id="egyptSection"></div>
     </section>
+
+
 
     <section id="hormone-vibe-section" class="card hv-card" style="display:none; overflow:hidden; position:relative;">
       <h3 class="sec-title">🧬 사주로 볼때 나는 테토인가? 에겐인가?</h3>
@@ -3350,6 +3381,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
         <!-- 연락처 -->
         <div class="neo-promo-contact" style="margin-top: 15px; margin-bottom: 25px;"><a href="mailto:seongbae555@gmail.com" style="color:white; text-decoration:none; font-weight:bold; font-size:1.1rem; border-bottom: 1px dashed white;"> 이메일 상담 문의: seongbae555@gmail.com</a></div>
+
         <div class="golden-unlock-area">
           <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
           <div class="golden-unlock-list">
@@ -3369,6 +3401,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </aside>
 
     </div>
+
 
     
         <!-- 9. 연이의 편지 / 쌈바의 팩폭 -->
@@ -3428,18 +3461,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
-    </p>
-    <p style="font-size:0.73rem;color:#a7b3cf;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      상호명: 코드 데스니티(Code Destiny) | 대표자: 박병하
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      사업장 주소: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 8px;word-break:keep-all;">
-      사업자 등록번호: 372-23-02329
-    </p>
-    <p style="font-size:0.7rem;color:#8e9ab5;max-width:92%;line-height:1.7;margin:0 0 12px;word-break:break-all;">
-      고객센터: 010-7180-7398/seongbae555@gmail.com
     </p>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
@@ -3570,6 +3591,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 <script>
 (function () {
+  var PAYMENT_API_READY = false;
   var GOLDEN_GRAIN_STORAGE_KEY = 'goldenPigCoinBalanceV1';
   var userBalance = 0;
   var selectedPackageId = 'sample';
@@ -3578,10 +3600,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   var unlockedFeatureMap = Object.create(null);
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
-    { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
-    { id: 'goldBarn', name: '황금 돼지 곳간', coins: 300, bonus: 60, price: 29000 },
-    { id: 'goldVault', name: '황금 돼지 금고', coins: 700, bonus: 180, price: 59000 },
-    { id: 'emperorReserve', name: '황금 돼지 제왕 보물고', coins: 1500, bonus: 500, price: 119000 }
+    { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 10, price: 9900 },
+    { id: 'goldBarn', name: '황금 돼지 곳간', coins: 300, bonus: 50, price: 29000 }
   ];
 
   function formatWon(value) {
@@ -3635,9 +3655,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     if (!root) return;
     root.innerHTML = [
       '<div class="golden-grain-badge" aria-live="polite">',
-      '  <span class="golden-grain-badge__coin" aria-hidden="true"></span>',
-      '  <span class="golden-grain-badge__value"><span class="golden-grain-badge__label">황금 돼지 저금통</span><strong id="goldenGrainBalanceText" class="golden-grain-badge__balance">보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인</strong></span>',
-      '  <button type="button" class="golden-grain-badge__charge" data-action="openGoldenGrainCharge">코인 충전</button>',
+      '  <span class="golden-grain-badge__coin" aria-hidden="true">🐽</span>',
+      '  <span class="golden-grain-badge__value">황금 돼지 코인 <strong id="goldenGrainBalanceText">' + userBalance + ' 코인</strong></span>',
+      '  <button type="button" class="golden-grain-badge__charge" data-action="openGoldenGrainCharge">충전하기</button>',
       '</div>'
     ].join('');
   }
@@ -3645,30 +3665,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   function ChargeModal() {
     var root = document.getElementById('goldenGrainChargeModalRoot');
     if (!root) return;
-    var paymentReady = (typeof PAYMENT_API_READY === 'boolean') ? PAYMENT_API_READY : true;
-    var chargeDisabled = !paymentReady;
-    var chargeButtonLabel = paymentReady ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
+    var chargeDisabled = !PAYMENT_API_READY;
+    var chargeButtonLabel = PAYMENT_API_READY ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
     var chargeButtonDisabled = chargeDisabled ? ' disabled' : '';
     var chargeNotice = chargeDisabled
       ? '<div class="golden-grain-modal__notice">현재 실제 결제 API 연동 전 단계입니다. 충전은 곧 오픈됩니다.</div>'
       : '';
     var packageItems = goldenPackages.map(function (pkg) {
-      var baseCoins = Number(pkg.coins || 0);
-      var bonusCoins = Number(pkg.bonus || 0);
-      var totalCoins = baseCoins + bonusCoins;
-      var bestRibbon = pkg.id === 'emperorReserve' ? '<span class="golden-grain-package__best">BEST 혜택</span>' : '';
+      var totalCoins = pkg.coins + pkg.bonus;
       var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">보너스 +' + pkg.bonus + '코인</span>' : '';
       return [
         '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
-        bestRibbon,
         '  <span class="golden-grain-package__top">',
         '    <span class="golden-grain-package__name">' + pkg.name + '</span>',
-        '    <span class="golden-grain-package__coin">+' + baseCoins.toLocaleString('ko-KR') + '코인</span>',
+        '    <span class="golden-grain-package__coin">' + totalCoins + '코인</span>',
         '  </span>',
-        '  <span class="golden-grain-package__meta">',
-        '    <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
-        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인</span>',
-        '  </span>',
+        '  <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
         bonusHTML,
         '</button>'
       ].join('');
@@ -3678,13 +3690,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
       '  <div class="golden-grain-modal__card">',
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
-      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/honeypig-96.webp" srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="84px" width="84" height="84" alt=""></div>',
-      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 저금통 충전소</h3>',
-      '    <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
+      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true">🐷</div>',
+      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 코인 충전소</h3>',
+      '    <p class="golden-grain-modal__subtitle">돼지 저금통에 복채를 담아 행운을 깨워보세요</p>',
       '    <div class="golden-grain-packages">' + packageItems + '</div>',
       '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge"' + chargeButtonDisabled + '>' + chargeButtonLabel + '</button>',
       chargeNotice,
-      '    <div class="golden-grain-modal__footer-copy">최상위 단계가 가장 큰 보너스를 제공합니다.</div>',
+      '    <div class="golden-grain-modal__footer-copy">복채를 던지면 돼지가 행운을 물어다 줍니다!</div>',
       '  </div>',
       '</div>'
     ].join('');
@@ -3752,7 +3764,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function updateBadge() {
     var el = document.getElementById('goldenGrainBalanceText');
-    if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
+    if (el) el.textContent = userBalance + ' 코인';
   }
 
   function openChargeModal() {
@@ -3784,6 +3796,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   async function applyCharge() {
+    if (!PAYMENT_API_READY) {
+      window.alert('실제 결제 API 연동 전이라 지금은 황금 돼지 코인을 충전할 수 없어요.');
+      return;
+    }
+
     var selected = getSelectedPackage();
     var addCoins = (selected.coins || 0) + (selected.bonus || 0);
 
@@ -3815,12 +3832,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
     }
 
-    userBalance += addCoins;
-    saveBalance();
-    updateBadge();
-    closeChargeModal();
-    window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
-    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+    window.alert('실제 결제 API 연동 전이라 충전이 비활성화되어 있습니다.');
   }
 
   async function tryUnlockFeature(button) {
@@ -3934,6 +3946,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 })();
 </script>
 
+
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
 <script src="/js/mobile-performance-bootstrap.js" defer></script>
@@ -3953,5 +3966,28 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

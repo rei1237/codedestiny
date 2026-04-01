@@ -21,22 +21,12 @@ const PIG_COIN_PACKAGES = {
   luckyMeal: {
     name: "행운의 한 끼",
     coins: 100,
-    bonus: 15,
+    bonus: 10,
   },
   goldBarn: {
     name: "황금 돼지 곳간",
     coins: 300,
-    bonus: 60,
-  },
-  goldVault: {
-    name: "황금 돼지 금고",
-    coins: 700,
-    bonus: 180,
-  },
-  emperorReserve: {
-    name: "황금 돼지 제왕 보물고",
-    coins: 1500,
-    bonus: 500,
+    bonus: 50,
   },
 };
 
