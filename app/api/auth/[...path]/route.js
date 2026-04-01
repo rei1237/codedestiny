@@ -1,10 +1,12 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 
 import connectDB from "../../../../server/config/db";
 import User from "../../../../server/models/User";
+
+export const runtime = "nodejs";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 const SOCIAL_GRANT_EXPIRES_IN_SEC = 180;
