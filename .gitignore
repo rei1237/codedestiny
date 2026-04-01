@@ -51,3 +51,15 @@ tmp_brand_replace_log.txt
 olympus_diff_review.txt
 removed-duplicates.txt
 audit_phase1/
+
+# generic temp artifacts
+.tmp*
+_tmp*
+*.tmp
+oauth_check*.txt
+
+# local Cloudflare metadata/cache
+.wrangler/
+
+# TypeScript incremental cache
+*.tsbuildinfo

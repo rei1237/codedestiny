@@ -48,10 +48,10 @@ const nextConfig = {
     ],
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.CF_DEPLOY_IGNORE_ESLINT === '1',
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   async rewrites() {
     /** Legacy shell: locale roots stay legacy HTML (URL no redirect). Root / now uses App Router home. */

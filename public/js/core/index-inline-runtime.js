@@ -1313,13 +1313,6 @@ window.openNevilleMeditationPage = function() {
     window.location.href = '/neville-meditation.html';
   } catch (err) {
     console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
-    try {
-      if (window.location && typeof window.location.assign === 'function') {
-        window.location.assign('/neville-meditation.html');
-      }
-    } catch (assignErr) {
-      console.error('[index-inline-runtime] openNevilleMeditationPage assign fallback failed:', assignErr);
-    }
   }
 };
 
