@@ -12,7 +12,6 @@ const staticTargets = [
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
   "HwatuFortune.js",
-  "index.html",
   "secret-house-final.html",
   "ads.txt",
   "manifest.json",
@@ -28,6 +27,9 @@ const staticTargets = [
   "sudda",
 ];
 
+const rootIndexPath = resolve(rootDir, "index.html");
+const publicIndexPath = resolve(publicDir, "index.html");
+
 if (!existsSync(publicDir)) {
   mkdirSync(publicDir, { recursive: true });
 }
@@ -41,6 +43,13 @@ for (const target of staticTargets) {
   }
 
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
+}
+
+// Keep public/index.html as the source of truth for production shell.
+// Root index can be edited independently for local experiments, but should not overwrite deploy entry.
+if (!existsSync(publicIndexPath) && existsSync(rootIndexPath)) {
+  cpSync(rootIndexPath, publicIndexPath, { force: true });
+  console.log("[sync-legacy-static-to-public] Seeded missing public/index.html from root/index.html");
 }
 
 // Fallback: some pipelines generate ads.txt under build/ only.
