@@ -129,6 +129,13 @@ router.get("/pig-coin/balance", async (req, res, next) => {
 
 router.post("/pig-coin/charge-simulate", async (req, res, next) => {
   try {
+    if (process.env.PIG_COIN_PAYMENT_API_READY !== "true") {
+      return res.status(503).json({
+        message: "실제 결제 API 준비 중입니다. 현재는 황금 돼지 코인 충전이 비활성화되어 있습니다.",
+        code: "PIG_COIN_CHARGE_DISABLED",
+      });
+    }
+
     const packageId = String(req.body?.packageId || "").trim();
     const pkg = PIG_COIN_PACKAGES[packageId];
 

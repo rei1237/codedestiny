@@ -381,7 +381,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
-.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,215,155,0.64);background:linear-gradient(140deg,rgba(255,244,225,0.95),rgba(255,217,159,0.9));box-shadow:0 8px 26px rgba(255,162,72,0.28);color:#7a3b0c;font-weight:800;font-size:.84rem;letter-spacing:.02em;z-index:4}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,178,199,0.58);background:linear-gradient(140deg,#fff8f4 0%,#ffe6ef 55%,#fff1db 100%);box-shadow:0 12px 24px rgba(122,53,87,0.2);color:#7c3257;font-weight:800;font-size:.84rem;letter-spacing:.02em;z-index:4}
 .golden-grain-badge__coin{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff7cf 0%,#ffd96b 45%,#f3a526 100%);border:1px solid rgba(165,84,7,0.36);box-shadow:inset 0 2px 6px rgba(255,255,255,0.45),0 4px 10px rgba(173,84,8,0.25);font-size:.88rem;line-height:1}
 .golden-grain-badge__value{font-variant-numeric:tabular-nums}
 .golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:6px 10px;background:linear-gradient(135deg,#ff6fa7,#ff9f7a);color:#fff;font-size:.74rem;font-weight:800;cursor:pointer;transition:transform .22s ease,filter .22s ease}
@@ -392,7 +392,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
 .golden-grain-modal__close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.76);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer}
 .golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.35rem;color:#812f00}
-.golden-grain-modal__subtitle{margin:0 0 14px;font-size:.9rem;color:#8b4b24}
+.golden-grain-modal__subtitle{margin:0 0 12px;font-size:.9rem;color:#9f5978;text-align:center}
 .golden-grain-piggy{width:82px;height:82px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2rem;background:radial-gradient(circle at 32% 25%,#ffe0ef 0%,#ffc6de 60%,#f7a5c8 100%);border:2px solid rgba(255,154,196,0.7);box-shadow:inset 0 3px 8px rgba(255,255,255,0.56),0 8px 20px rgba(215,91,145,0.25)}
 .golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
 @keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
@@ -405,9 +405,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-package__coin{font-weight:900;color:#a6450f}
 .golden-grain-package__price{margin-top:4px;font-size:.86rem;color:#7d4b2b}
 .golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
-.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff86b6,#ffba7e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
-.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
+.golden-grain-modal__charge-btn:disabled{cursor:not-allowed;opacity:.62;transform:none;box-shadow:none}
+.golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#9a5d45;font-weight:700;font-size:.82rem}
+.golden-grain-modal__notice{margin-top:9px;padding:10px 12px;border-radius:12px;background:rgba(255,246,230,0.92);border:1px dashed rgba(239,153,80,0.72);font-size:.79rem;color:#925225;text-align:center;font-weight:700}
 .golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
 .golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
 .golden-unlock-list{display:grid;gap:8px}
@@ -3383,14 +3385,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <div class="golden-unlock-area">
           <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
           <div class="golden-unlock-list">
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-a" data-unlock-cost="10">
-              자세히 보기: 심층 리포트 (10코인)
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="saju-premium-all" data-unlock-cost="700">
+              사주 확장 콘텐츠 전체 해금 (700코인)
             </button>
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-b" data-unlock-cost="10">
-              자세히 보기: 관계 궁합 확장본 (10코인)
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="premium-divination-pack" data-unlock-cost="300">
+              프리미엄 점술 패키지 해금 (300코인)
             </button>
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="deep-report-c" data-unlock-cost="10">
-              자세히 보기: 커리어 전략 확장본 (10코인)
+            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="secret-house-pass" data-unlock-cost="100">
+              시크릿 하우스 전체 에피소드 열람권 (100코인)
             </button>
           </div>
         </div>
@@ -3589,6 +3591,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 <script>
 (function () {
+  var PAYMENT_API_READY = false;
   var GOLDEN_GRAIN_STORAGE_KEY = 'goldenPigCoinBalanceV1';
   var userBalance = 0;
   var selectedPackageId = 'sample';
@@ -3662,6 +3665,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   function ChargeModal() {
     var root = document.getElementById('goldenGrainChargeModalRoot');
     if (!root) return;
+    var chargeDisabled = !PAYMENT_API_READY;
+    var chargeButtonLabel = PAYMENT_API_READY ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
+    var chargeButtonDisabled = chargeDisabled ? ' disabled' : '';
+    var chargeNotice = chargeDisabled
+      ? '<div class="golden-grain-modal__notice">현재 실제 결제 API 연동 전 단계입니다. 충전은 곧 오픈됩니다.</div>'
+      : '';
     var packageItems = goldenPackages.map(function (pkg) {
       var totalCoins = pkg.coins + pkg.bonus;
       var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">보너스 +' + pkg.bonus + '코인</span>' : '';
@@ -3683,9 +3692,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
       '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true">🐷</div>',
       '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 코인 충전소</h3>',
-      '    <p class="golden-grain-modal__subtitle">복채를 던지면 돼지가 행운을 물어다 줍니다!</p>',
+      '    <p class="golden-grain-modal__subtitle">돼지 저금통에 복채를 담아 행운을 깨워보세요</p>',
       '    <div class="golden-grain-packages">' + packageItems + '</div>',
-      '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">선택한 패키지 충전하기</button>',
+      '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge"' + chargeButtonDisabled + '>' + chargeButtonLabel + '</button>',
+      chargeNotice,
       '    <div class="golden-grain-modal__footer-copy">복채를 던지면 돼지가 행운을 물어다 줍니다!</div>',
       '  </div>',
       '</div>'
@@ -3786,6 +3796,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   async function applyCharge() {
+    if (!PAYMENT_API_READY) {
+      window.alert('실제 결제 API 연동 전이라 지금은 황금 돼지 코인을 충전할 수 없어요.');
+      return;
+    }
+
     var selected = getSelectedPackage();
     var addCoins = (selected.coins || 0) + (selected.bonus || 0);
 
@@ -3817,12 +3832,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
     }
 
-    userBalance += addCoins;
-    saveBalance();
-    updateBadge();
-    closeChargeModal();
-    window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
-    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+    window.alert('실제 결제 API 연동 전이라 충전이 비활성화되어 있습니다.');
   }
 
   async function tryUnlockFeature(button) {
@@ -3835,7 +3845,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       return;
     }
 
-    var confirmed = window.confirm('황금 돼지 코인 10코인을 사용하여 해제하시겠습니까?');
+    var confirmed = window.confirm('황금 돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
     if (hasAuthToken()) {
@@ -3867,7 +3877,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         updateBadge();
         unlockedFeatureMap[featureKey] = true;
         UnlockButton(button);
-        window.alert('심층 리포트가 해제되었습니다. 행운의 문이 열렸어요!');
+        window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
         // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
         return;
       } catch (error) {
@@ -3888,7 +3898,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     updateBadge();
     unlockedFeatureMap[featureKey] = true;
     UnlockButton(button);
-    window.alert('심층 리포트가 해제되었습니다. 행운의 문이 열렸어요!');
+    window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
     // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
   }
 
