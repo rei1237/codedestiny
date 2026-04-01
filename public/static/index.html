@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
+  <meta name="google-adsense-account" content="ca-pub-9863227498729828">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828" crossorigin="anonymous"></script>
   <script src="/js/inline/canonical-redirect.js?v=20260325-hotfix1"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
   <script src="/js/kill-switch.js?v=20260328-killoff1" defer></script>
@@ -15,7 +17,6 @@
 <!-- LCP: 모바일/데스크톱 분기 프리로드 -->
 <link rel="preload" as="image" href="/icons/honeypig-96.webp" imagesrcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="high">
 <link rel="preload" as="image" href="/icons/honeypig-130.webp" imagesrcset="/icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" imagesizes="130px" media="(min-width: 769px)" fetchpriority="high">
-<link rel="preload" as="image" href="/icons/samba-96.webp" imagesrcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w" imagesizes="(max-width: 768px) 88px, 130px" media="(max-width: 768px)" fetchpriority="low">
 <!-- RSS 피드 (브라우저·피드리더 자동 감지) -->
 <link rel="alternate" type="application/rss+xml" title="꿀꿀 만세력 RSS" href="https://code-destiny.com/rss.xml">
 <!-- 사이트맵 (검색엔진·브라우저 자동 감지) -->
@@ -371,6 +372,8 @@ img[width][height]{height:auto}
 .pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
 .neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+.tarot-tile--sikojen-fc .tarot-tile__img-wrap{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,236,208,.95) 0%,rgba(254,215,170,.82) 52%,rgba(253,186,116,.72) 100%)}
+.tarot-tile--sikojen-fc .tarot-tile__img{width:min(100%,240px);height:100%;object-fit:contain;object-position:center bottom;padding:8px 10px 0;filter:drop-shadow(0 6px 14px rgba(120,53,15,.28)) saturate(1.06)}
 [data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
 button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -389,48 +392,52 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
+    <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1"></noscript>
 
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
-    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2">
+    <link rel="preload" as="style" href="/styles/main-glass.css?v=20260328-animaluxfix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1"></noscript>
+    <link rel="preload" as="style" href="/styles/browser-compat.css?v=20260316-browser-compat1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1"></noscript>
+    <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260328-animaluxfix2" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/mobile-ux.css?v=20260328-animaluxfix2"></noscript>
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/animations.css" media="print">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
-  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260316" media="print">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=20260317" media="print">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260317-scroll-fix"></noscript>
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" media="print">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" data-cd-noncritical-style-src="/css/entertain-system.css" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -914,7 +921,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <div class="pig-svg-wrap">
           <img id="neoLogo" class="neo-logo-icon" src="/icons/samba.webp"
             srcset="/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="쌈바 모드 로고" loading="eager" fetchpriority="low" decoding="async">
+            width="130" height="130" alt="쌈바 모드 로고" loading="lazy" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;">쌈바의 팩폭 운세 플랫폼</p>
         <p>감성 제로. 팩트만 남는다.</p>
@@ -1425,7 +1432,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu"
                    aria-label="핀란드 주석점 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/piggyfortune.webp" data-img-alt="핀란드 주석점 — 주석으로 보는 운명의 점">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/yeon.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                   </div>
@@ -3413,13 +3420,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
-    <p style="font-size: 0.74rem; color: #8d97a4; max-width: 90%; line-height: 1.55; margin-bottom: 10px; word-break: keep-all;">
-      유료 디지털 기능(코인/잠금 해제)은 미사용·중복결제·시스템 오류 등 법령 및 환불 규정에 따른 사유에 한해 환불이 가능합니다.
-    </p>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
       <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관 Terms of Service</a>
-      <a href="/refund-policy" style="color:#b7f0ff;text-decoration:underline;">환불 규정 Refund Policy</a>
       <a href="/faq" style="color:#b7f0ff;text-decoration:underline;">자주 묻는 질문 FAQ</a>
       <a href="/contact-us" style="color:#b7f0ff;text-decoration:underline;">문의하기 Contact Us</a>
     </nav>
@@ -3433,7 +3436,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
-<script data-cd-noncritical-src="/js/share.js?v=2026-03-23-v2-cachefix1"></script>
+<script data-cd-noncritical-src="/js/share.js?v=2026-03-29-themefix2"></script>
 
 <script data-cd-noncritical-src="/js/iching-engine.js"></script>
 
@@ -3487,9 +3490,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
-<script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
-<script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js" data-cd-mobile-delay="2"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-top.js" data-cd-mobile-delay="2"></script>
+<script data-cd-noncritical-src="/js/fsn-navbar.js" data-cd-mobile-delay="2"></script>
 
 <div id="astralModal" class="astral-modal-overlay" style="display:none;">
     <div class="astral-container">
@@ -3550,7 +3553,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script src="/js/noncritical-defer-loader.js" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script src="/js/runtime-stability.js" defer></script>
-<script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
+<script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="2"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
 <script data-cd-lazy-src="/js/dream-meaning-library.js"></script>
