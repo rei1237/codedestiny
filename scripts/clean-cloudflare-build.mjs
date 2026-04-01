@@ -11,7 +11,12 @@ for (const target of targets) {
     continue;
   }
 
-  rmSync(targetPath, { recursive: true, force: true });
+  rmSync(targetPath, {
+    recursive: true,
+    force: true,
+    maxRetries: 10,
+    retryDelay: 200,
+  });
   console.log(`[clean-cloudflare-build] Removed ${target}`);
 }
 
