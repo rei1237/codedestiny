@@ -49,9 +49,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   async rewrites() {
-    /** Legacy shell: URL stays / or /{locale}, content from /static/index.html (no redirect). */
+    /** Legacy shell: locale roots stay legacy HTML (URL no redirect). Root / now uses App Router home. */
     const legacyHomeRewrites = [
-      { source: '/', destination: '/static/index.html' },
       ...LOCALE_PATH_SLUGS.map((slug) => ({
         source: `/${slug}`,
         destination: '/static/index.html',

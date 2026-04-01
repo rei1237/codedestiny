@@ -1,4 +1,6 @@
-﻿/**
+﻿import KkulkkulManseryukMain from "./components/KkulkkulManseryukMain";
+
+/**
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
  * if the rewrite is bypassed; metadata matches the public canonical.
  */
@@ -26,16 +28,6 @@ export const metadata = {
 };
 
 export default function Home() {
-  return (
-    <main className="min-h-[40vh] bg-slate-950 px-4 py-10 text-center text-slate-300">
-      <p className="text-sm">
-        메인은{" "}
-        <a href="/" className="text-amber-300 underline">
-          /
-        </a>
-        (레거시)입니다. 주소창이 <code className="text-slate-400">/</code>가 아니면 홈으로 이동해 주세요.
-      </p>
-    </main>
-  );
+  return <KkulkkulManseryukMain />;
 }
 
