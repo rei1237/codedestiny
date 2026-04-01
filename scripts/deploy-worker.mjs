@@ -24,7 +24,7 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
 
 const openNextDir = resolve(rootDir, ".open-next");
 const workerAssetsDir = resolve(openNextDir, "assets");
-const workerConfig = resolve(rootDir, "wrangler.json");
+const workerConfig = "wrangler.json";
 
 const isWindows = process.platform === "win32";
 const npmCmd = isWindows ? "npm.cmd" : "npm";
@@ -72,15 +72,21 @@ if (workerName.trim()) {
 }
 
 function runDeployOnce() {
+  const cmdArgs = args
+    .map((arg) => (/[\s"]/u.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg))
+    .join(" ");
+
   return isWindows
-    ? spawnSync("npx.cmd", args, {
+    ? spawnSync("cmd.exe", ["/d", "/s", "/c", `npx ${cmdArgs}`], {
         stdio: "inherit",
         shell: false,
+        cwd: rootDir,
         env: process.env,
       })
     : spawnSync("npx", args, {
         stdio: "inherit",
         shell: false,
+        cwd: rootDir,
         env: process.env,
       });
 }

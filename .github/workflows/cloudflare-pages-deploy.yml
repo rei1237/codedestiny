@@ -23,9 +23,20 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      AUTH_API_BASE_URL: ${{ secrets.AUTH_API_BASE_URL }}
+      AUTH_FRONTEND_BASE_URL: ${{ secrets.AUTH_FRONTEND_BASE_URL }}
+      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+      NAVER_OAUTH_CLIENT_ID: ${{ secrets.NAVER_OAUTH_CLIENT_ID }}
+      NAVER_OAUTH_CLIENT_SECRET: ${{ secrets.NAVER_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME || 'code-destiny' }}
       CF_PAGES_BRANCH: main
     steps:
@@ -43,6 +54,15 @@ jobs:
 
       - name: Sync Worker AI secrets
         run: |
+          if [ -n "${MONGO_URI}" ]; then
+            printf '%s\n' "${MONGO_URI}" | npx wrangler secret put MONGO_URI --config wrangler.json
+          fi
+          if [ -n "${MONGO_DB_NAME}" ]; then
+            printf '%s\n' "${MONGO_DB_NAME}" | npx wrangler secret put MONGO_DB_NAME --config wrangler.json
+          fi
+          if [ -n "${JWT_SECRET}" ]; then
+            printf '%s\n' "${JWT_SECRET}" | npx wrangler secret put JWT_SECRET --config wrangler.json
+          fi
           if [ -n "${GOOGLE_API_KEY}" ]; then
             printf '%s\n' "${GOOGLE_API_KEY}" | npx wrangler secret put GOOGLE_API_KEY --config wrangler.json
           fi
@@ -51,6 +71,30 @@ jobs:
           fi
           if [ -n "${ANTHROPIC_API_KEY}" ]; then
             printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.json
+          fi
+          if [ -n "${AUTH_API_BASE_URL}" ]; then
+            printf '%s\n' "${AUTH_API_BASE_URL}" | npx wrangler secret put AUTH_API_BASE_URL --config wrangler.json
+          fi
+          if [ -n "${AUTH_FRONTEND_BASE_URL}" ]; then
+            printf '%s\n' "${AUTH_FRONTEND_BASE_URL}" | npx wrangler secret put AUTH_FRONTEND_BASE_URL --config wrangler.json
+          fi
+          if [ -n "${GOOGLE_OAUTH_CLIENT_ID}" ]; then
+            printf '%s\n' "${GOOGLE_OAUTH_CLIENT_ID}" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_ID --config wrangler.json
+          fi
+          if [ -n "${GOOGLE_OAUTH_CLIENT_SECRET}" ]; then
+            printf '%s\n' "${GOOGLE_OAUTH_CLIENT_SECRET}" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_SECRET --config wrangler.json
+          fi
+          if [ -n "${NAVER_OAUTH_CLIENT_ID}" ]; then
+            printf '%s\n' "${NAVER_OAUTH_CLIENT_ID}" | npx wrangler secret put NAVER_OAUTH_CLIENT_ID --config wrangler.json
+          fi
+          if [ -n "${NAVER_OAUTH_CLIENT_SECRET}" ]; then
+            printf '%s\n' "${NAVER_OAUTH_CLIENT_SECRET}" | npx wrangler secret put NAVER_OAUTH_CLIENT_SECRET --config wrangler.json
+          fi
+          if [ -n "${KAKAO_OAUTH_CLIENT_ID}" ]; then
+            printf '%s\n' "${KAKAO_OAUTH_CLIENT_ID}" | npx wrangler secret put KAKAO_OAUTH_CLIENT_ID --config wrangler.json
+          fi
+          if [ -n "${KAKAO_OAUTH_CLIENT_SECRET}" ]; then
+            printf '%s\n' "${KAKAO_OAUTH_CLIENT_SECRET}" | npx wrangler secret put KAKAO_OAUTH_CLIENT_SECRET --config wrangler.json
           fi
 
       # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).

@@ -1,5 +1,9 @@
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, ".env") });
+const dotenv = require("dotenv");
+
+// Load root env first, then server/.env to allow server-specific override.
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
+dotenv.config({ path: path.resolve(__dirname, ".env"), override: true });
 
 const app = require("./app");
 const connectDB = require("./config/db");
