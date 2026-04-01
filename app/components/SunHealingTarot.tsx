@@ -470,9 +470,7 @@ export default function SunHealingTarot() {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
     const text = SHARE_TEXT_PREFIX + url;
     try {
-      // @ts-expect-error navigator.share exists on mobile
       if (navigator.share) {
-        // @ts-expect-error navigator.share exists on mobile
         await navigator.share({ title: SHARE_TITLE, text, url });
         return;
       }

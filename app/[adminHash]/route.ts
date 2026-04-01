@@ -88,7 +88,8 @@ export async function GET(
   if (blocked) return blocked;
 
   // 토큰이 있으면 대시보드, 없으면 로그인
-  const token = cookies().get("fortune_auth_token")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("fortune_auth_token")?.value;
   if (token) {
     // requireAdminSecret의 인증 검증을 재사용하기 위해 requireAuth=true로 재호출
     const blocked2 = await requireAdminSecret(request, params, { requireAuth: true });

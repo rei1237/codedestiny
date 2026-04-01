@@ -44,7 +44,11 @@ function decodeJwtRole(token, jwtSecret) {
   return payload.role;
 }
 
-export async function requireAdminSecret(request, params, options = {}) {
+export async function requireAdminSecret(
+  request: Request,
+  params: { adminHash?: string },
+  options: { requireAuth?: boolean } = {},
+) {
   const { adminHash } = params;
   const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
   const allowedIps = parseAllowedIps(process.env.ADMIN_ALLOWED_IPS);
@@ -69,7 +73,7 @@ export async function requireAdminSecret(request, params, options = {}) {
   if (!requireAuth) return null;
 
   // 3) 세션 인증(쿠키 기반) - 접근 전용
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("fortune_auth_token")?.value;
   if (!token) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
