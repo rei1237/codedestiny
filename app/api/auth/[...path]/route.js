@@ -16,7 +16,35 @@ const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 function json(body, status = 200) {
-  return NextResponse.json(body, { status });
+  const payload = status >= 400
+    ? {
+        error: String(body?.error || body?.message || "request_failed"),
+        ...body,
+      }
+    : body;
+
+  return NextResponse.json(payload, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
+}
+
+function normalizeErrorMessage(error, fallback = "server_error") {
+  if (!error) return fallback;
+  if (typeof error === "string") return error;
+  if (typeof error?.message === "string" && error.message.trim()) return error.message.trim();
+  return fallback;
+}
+
+async function parseJsonBody(request) {
+  try {
+    return await request.json();
+  } catch {
+    throw new Error("invalid_json_body");
+  }
 }
 
 function normalizeBaseUrl(rawValue) {
@@ -347,7 +375,8 @@ async function findOrCreateSocialUser(provider, profile) {
 }
 
 async function handleRegister(request) {
-  const payload = await request.json();
+  await connectDB();
+  const payload = await parseJsonBody(request);
   const { isValid, errors, sanitized } = validateRegisterPayload(payload);
   if (!isValid) return json({ message: "입력값 유효성 검증에 실패했습니다.", errors }, 400);
 
@@ -394,7 +423,8 @@ async function handleRegister(request) {
 }
 
 async function handleLogin(request) {
-  const payload = await request.json();
+  await connectDB();
+  const payload = await parseJsonBody(request);
   const { isValid, errors, sanitized } = validateLoginPayload(payload);
   if (!isValid) return json({ message: "입력값 유효성 검증에 실패했습니다.", errors }, 400);
 
@@ -412,6 +442,7 @@ async function handleLogin(request) {
 }
 
 async function handleMe(request) {
+  await connectDB();
   const token = getAuthToken(request);
   if (!token) return json({ message: "인증 토큰이 필요합니다." }, 401);
 
@@ -461,6 +492,7 @@ function handleOAuthStart(request, provider) {
 }
 
 async function handleOAuthCallback(request, provider) {
+  await connectDB();
   const frontendBase = getFrontendBaseUrl();
   const fallbackRedirect = `${frontendBase}/login?social_error=oauth_callback_failed`;
 
@@ -508,7 +540,8 @@ async function handleOAuthCallback(request, provider) {
 }
 
 async function handleOAuthComplete(request) {
-  const payload = await request.json();
+  await connectDB();
+  const payload = await parseJsonBody(request);
   const socialGrant = String(payload?.socialGrant || "");
   if (!socialGrant) return json({ message: "소셜 인증 정보가 없습니다." }, 400);
 
@@ -529,13 +562,14 @@ async function handleOAuthComplete(request) {
     if (error?.name === "TokenExpiredError") {
       return json({ message: "소셜 인증이 만료되었습니다. 다시 시도해 주세요." }, 401);
     }
+    if (error?.name === "JsonWebTokenError") {
+      return json({ message: "유효하지 않은 소셜 인증 정보입니다. 다시 시도해 주세요." }, 401);
+    }
     return json({ message: "소셜 인증 처리 중 오류가 발생했습니다." }, 500);
   }
 }
 
 async function routeRequest(request) {
-  await connectDB();
-
   const pathSegments = request.nextUrl.pathname.split("/").filter(Boolean);
   const authSegments = pathSegments.slice(2); // api/auth/...
   const method = request.method.toUpperCase();
@@ -575,7 +609,11 @@ export async function GET(request) {
   try {
     return await routeRequest(request);
   } catch (error) {
-    return json({ message: error?.message || "서버 내부 오류가 발생했습니다." }, 500);
+    const message = normalizeErrorMessage(error, "서버 내부 오류가 발생했습니다.");
+    if (message === "invalid_json_body") {
+      return json({ message: "요청 본문 JSON 형식이 올바르지 않습니다." }, 400);
+    }
+    return json({ message }, 500);
   }
 }
 
@@ -583,6 +621,10 @@ export async function POST(request) {
   try {
     return await routeRequest(request);
   } catch (error) {
-    return json({ message: error?.message || "서버 내부 오류가 발생했습니다." }, 500);
+    const message = normalizeErrorMessage(error, "서버 내부 오류가 발생했습니다.");
+    if (message === "invalid_json_body") {
+      return json({ message: "요청 본문 JSON 형식이 올바르지 않습니다." }, 400);
+    }
+    return json({ message }, 500);
   }
 }
