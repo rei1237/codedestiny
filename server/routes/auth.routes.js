@@ -27,6 +27,13 @@ function getApiBaseUrl(req) {
   return `${proto}://${host}`;
 }
 
+function getProviderApiBaseUrl(provider, req) {
+  const upper = String(provider || "").toUpperCase();
+  const key = `${upper}_OAUTH_REDIRECT_BASE_URL`;
+  if (process.env[key]) return process.env[key];
+  return getApiBaseUrl(req);
+}
+
 function sanitizeNextPath(rawNext) {
   if (!rawNext || typeof rawNext !== "string") return null;
   if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
@@ -89,7 +96,8 @@ function verifySocialGrant(token) {
 }
 
 function buildProviderConfig(provider, req) {
-  const redirectUri = `${getApiBaseUrl(req)}/api/auth/oauth/${provider}/callback`;
+  const redirectBase = getProviderApiBaseUrl(provider, req);
+  const redirectUri = `${redirectBase}/api/auth/oauth/${provider}/callback`;
 
   if (provider === "google") {
     return {

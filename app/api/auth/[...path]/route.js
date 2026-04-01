@@ -28,6 +28,13 @@ function getApiBaseUrl(request) {
   return request.nextUrl.origin;
 }
 
+function getProviderApiBaseUrl(provider, request) {
+  const upper = String(provider || "").toUpperCase();
+  const key = `${upper}_OAUTH_REDIRECT_BASE_URL`;
+  if (process.env[key]) return process.env[key];
+  return getApiBaseUrl(request);
+}
+
 function sanitizeNextPath(rawNext) {
   if (!rawNext || typeof rawNext !== "string") return null;
   if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
@@ -72,7 +79,8 @@ function verifySocialGrant(token) {
 }
 
 function buildProviderConfig(provider, request) {
-  const redirectUri = `${getApiBaseUrl(request)}/api/auth/oauth/${provider}/callback`;
+  const redirectBase = getProviderApiBaseUrl(provider, request);
+  const redirectUri = `${redirectBase}/api/auth/oauth/${provider}/callback`;
 
   if (provider === "google") {
     return {
