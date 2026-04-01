@@ -145,7 +145,13 @@ export default function PrivacyPolicyPage() {
       <section style={sectionStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 개인정보 문의처 / Privacy Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
-          서비스명: Code Destiny
+          서비스명: 코드 데스니티(Code Destiny)
+          <br />
+          대표자: 박병하
+          <br />
+          사업자 등록번호: 372-23-02329
+          <br />
+          고객센터: 010-7180-7398
           <br />
           개인정보 보호 문의 이메일: seongbae555@gmail.com
           <br />
