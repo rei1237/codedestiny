@@ -375,8 +375,11 @@ function cdDispatchNativeChangeEvent(el) {
 }
 
 function cdEnsureGoogleTranslateBootstrap() {
-  if (typeof window.googleTranslateElementInit === 'function') {
-    try { window.googleTranslateElementInit(); } catch (_) {}
+  var hasGoogleTranslateRuntime = !!(window.google && window.google.translate && window.google.translate.TranslateElement);
+  if (hasGoogleTranslateRuntime) {
+    if (typeof window.googleTranslateElementInit === 'function') {
+      try { window.googleTranslateElementInit(); } catch (_) {}
+    }
     return;
   }
 

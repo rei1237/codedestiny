@@ -31,7 +31,7 @@
   document.addEventListener('click', function (e) {
     var t = e && e.target;
     if (!t || !t.closest) return;
-    if (t.closest('.translate-lang-wrap, #translateLangToggleBtn, #translateLangCard, #google_translate_element')) {
+    if (t.closest('.translate-lang-wrap, #translateLangToggleBtn, #translateLangCard, #google_translate_element, .lang-toggle-wrap, #langWrap, #langTrigger, .lang-btn')) {
       loadTranslate();
     }
   }, { passive: true });
