@@ -1177,7 +1177,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20animal.webp" data-img-alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--beta">얼굴 분석</span>
-                    <span class="tarot-tile__coin-badge">🪙 30코인 · 궁합 50코인</span>
+                        <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료 · 궁합 🪙50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎭 AI 동물 관상</span>
@@ -1202,11 +1202,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 애니멀 토템 리딩 -->
                 <button class="tarot-tile tarot-tile--animal-totem" type="button"
                         data-action="openAnimalTotemModal"
+                        data-coin-cost="30"
                         aria-label="애니멀 토템 리딩 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/animaltotem.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐯</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--totem">토템 리딩</span>
-                    <span class="tarot-tile__coin-badge">🪙 30코인</span>
+                        <span class="tarot-tile__coin-badge">🪙 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
@@ -1273,7 +1274,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </div>
 
           <div class="tarot-collection__grid">
-            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" data-action="openNevilleMeditationPage" data-fallback-href="/neville-meditation.html" aria-label="네빌 명상 시작하기">
+            <a class="tarot-tile tarot-tile--meditation" href="/neville-meditation.html" data-action="openNevilleMeditationPage" data-fallback-href="/neville-meditation.html" data-coin-cost="30" aria-label="네빌 명상 시작하기">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/meditation.webp" alt="네빌 명상 실습 — 상상 창조 집중 가이드">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
@@ -1285,14 +1286,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               </div>
             </a>
 
-            <a class="tarot-tile tarot-tile--meditation" href="/yoga-guru.html" aria-label="인도 명상 요가 코스 시작하기">
+            <a class="tarot-tile tarot-tile--meditation" href="/yoga-guru.html" data-action="openYogaGuru" data-coin-cost="30" aria-label="인도 명상 요가 코스 시작하기">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/india.webp" data-img-alt="Divya Yoga - 인도 감성 맞춤 요가 코스">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/india.webp" alt="Divya Yoga - 인도 감성 맞춤 요가 코스">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">YOGA GURU</span>
                 <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
               </div>
               <div class="tarot-tile__body">
-                <span class="tarot-tile__title">🪷 Divya Yoga</span>
+                <span class="tarot-tile__title">&#x1FAB7; Divya Yoga</span>
                 <span class="tarot-tile__desc">맞춤 명상 요가 루틴</span>
               </div>
             </a>
@@ -1343,6 +1344,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <!-- [기능 연결부] 우리는 무슨 사이? → openTarotLoveModal() -->
             <button class="tarot-tile tarot-tile--love" type="button"
                     data-action="openTarotLoveModal"
+                    data-coin-cost="50"
                     aria-label="우리는 무슨 사이? 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tarolove.webp" data-img-alt="우리는 무슨 사이? — 6카드 관계 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
@@ -1388,6 +1390,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
             <button class="tarot-tile tarot-tile--reunion" type="button"
                     data-action="openTarotReunionModal"
+                    data-coin-cost="50"
                     aria-label="재회운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/reunion.webp" data-img-alt="별 헤는 밤바다 재회운 타로 — 5카드 스프레드">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌊</span></div>
@@ -1403,6 +1406,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
             <button class="tarot-tile tarot-tile--year" type="button"
                     data-action="openTarotYearFortuneModal"
+                    data-coin-cost="15"
                     aria-label="십이지신 천운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/12animals.webp" data-img-alt="십이지신 천운 타로 — 재물·연애·인간관계 월별 운세">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
@@ -1418,6 +1422,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
+                    data-coin-cost="15"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
@@ -1487,6 +1492,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 고대 이집트 신탁 -->
                 <button class="tarot-tile tarot-tile--egypt-fc" type="button"
                         data-action="openKemetModal"
+                        data-coin-cost="30"
                         aria-label="이집트 신탁 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/egypt.webp" data-img-alt="고대 이집트 신탁 — 케멧 오라클">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">턼ɀ@</span></div>
@@ -1501,6 +1507,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 주역 64괘 -->
                 <button class="tarot-tile tarot-tile--juyuk-fc" type="button"
                         data-action="openJuyukModal"
+                        data-coin-cost="30"
                         aria-label="주역 거북점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/juyuk.webp" data-img-alt="주역 64괘 거북점 — 3000년 지혜">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☯️</span></div>
@@ -1515,6 +1522,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 숙요점 -->
                 <button class="tarot-tile tarot-tile--sukuyo-fc" type="button"
                         data-action="openSukuyoModal"
+                        data-tile-lock-key="sukuyo-fc"
+                        data-tile-lock-cost="400"
                         aria-label="숙요점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
@@ -1529,6 +1538,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
                 <!-- 스톤헨지 룬 오라클 -->
                 <a class="tarot-tile tarot-tile--rune-fc" href="/oracle/rune"
+                   data-action="openRuneOracle"
+                   data-coin-cost="50"
                    aria-label="스톤헨지 룬 오라클 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/rune.webp" data-img-alt="스톤헨지 룬 오라클 — 고대 룬 상징 리딩">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">ᚠ</span></div>
@@ -1544,6 +1555,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 지오맨시 흙점 -->
                  <a class="tarot-tile tarot-tile--geomancy-fc" href="/geomancy-oracle-v4.html"
                    data-action="openGeomancyOracle"
+                   data-coin-cost="50"
                    aria-label="지오맨시 흙점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/geomancy.webp" data-img-alt="지오맨시 흙점 — 모래와 점으로 읽는 대지의 신탁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⟁</span></div>
@@ -1572,6 +1584,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
                 <!-- 영국 홍차점 -->
                 <a class="tarot-tile tarot-tile--royal-tea" href="/royal-tea-oracle.html"
+                   data-action="openRoyalTeaOracle"
+                   data-coin-cost="30"
                    aria-label="영국 홍차점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/london.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🫖</span></div>
@@ -1642,6 +1656,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 점성술 코즈믹 차트 -->
                 <button class="tarot-tile tarot-tile--astro-fc" type="button"
                         data-action="openAstroModal"
+                        data-tile-lock-key="astro-fc"
+                        data-tile-lock-cost="400"
                         aria-label="점성술 코즈믹 차트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
@@ -1656,6 +1672,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 자미두수 12궁 명반 -->
                 <button class="tarot-tile tarot-tile--ziwei-fc" type="button"
                         data-action="openZiweiModal"
+                        data-tile-lock-key="ziwei-fc"
+                        data-tile-lock-cost="400"
                         aria-label="자미두수 명반 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
@@ -1671,6 +1689,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 베다 점성술 (Jyotish) -->
                 <button class="tarot-tile tarot-tile--vedic-fc" type="button"
                         data-action="navigateToVedic"
+                        data-tile-lock-key="vedic-fc"
+                        data-tile-lock-cost="300"
                         aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
@@ -1686,6 +1706,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 올림푸스 별자리 신탁 -->
                 <button class="tarot-tile tarot-tile--olympus-oracle" type="button"
                         data-action="openOlympusOracleModal"
+                        data-tile-lock-key="olympus-fc"
+                        data-tile-lock-cost="300"
                         aria-label="올림푸스 별자리 신탁 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/olympus.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
@@ -1742,6 +1764,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 운명의 꽃 통합 아틀리에 -->
                 <button class="tarot-tile tarot-tile--bloom" type="button"
                         data-action="openDestinyFlowerStudio"
+                        data-tile-lock-key="flower-destiny"
+                        data-tile-lock-cost="50"
                         aria-label="운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
@@ -1757,6 +1781,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 점성술 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--astro-flower" type="button"
                         data-action="openAstrologyFlowerStudio"
+                        data-tile-lock-key="flower-astro"
+                        data-tile-lock-cost="50"
                         aria-label="점성술 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
@@ -1772,6 +1798,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 자미두수 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--jami-flower" type="button"
                         data-action="openJamidusuFlowerStudio"
+                        data-tile-lock-key="flower-ziwei"
+                        data-tile-lock-cost="50"
                         aria-label="자미두수 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
@@ -1787,6 +1815,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <!-- 숙요 운명의 꽃 -->
                 <button class="tarot-tile tarot-tile--sukuyo-fl" type="button"
                         data-action="openSukuyoFlowerStudio"
+                        data-tile-lock-key="flower-sukuyo"
+                        data-tile-lock-cost="50"
                         aria-label="숙요 운명의 꽃 아틀리에 열기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
@@ -3707,6 +3737,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   var consumeInFlight = false;
   var syncInFlight = false;
   var unlockedFeatureMap = Object.create(null);
+  var perUseApproved = Object.create(null);
+  var TILE_LOCKS_KEY = 'cd_tile_locks';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -3776,6 +3808,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function saveBalance() {
     syncAuthUserPoints(userBalance);
+  }
+
+  function loadTileLocks() {
+    try {
+      var saved = localStorage.getItem(TILE_LOCKS_KEY);
+      if (!saved) return;
+      var parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        var keys = Object.keys(parsed);
+        for (var i = 0; i < keys.length; i += 1) unlockedFeatureMap[keys[i]] = true;
+      }
+    } catch (_e) {}
+  }
+
+  function saveTileLocks() {
+    try { localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(unlockedFeatureMap)); } catch (_e) {}
   }
 
   function GoldenGrainBadge() {
@@ -3980,6 +4028,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       saveBalance();
       updateBadge();
       unlockedFeatureMap[featureKey] = true;
+      saveTileLocks();
       UnlockButton(button);
       window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
       // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
@@ -3997,6 +4046,119 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var actionNode = target.closest('[data-action]');
     if (!actionNode) return;
     var action = actionNode.getAttribute('data-action');
+
+    // ── 회당 코인 게이트 (per-use) ──
+    var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
+    if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
+      if (!perUseApproved[action]) {
+        event.preventDefault();
+        event.stopPropagation();
+        (async function () {
+          if (!hasAuthToken()) {
+            if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+              window.location.href = '/login?next=%2F';
+            }
+            return;
+          }
+          if (userBalance < tileCoinCost) {
+            if (window.confirm('황금 돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
+              openChargeModal();
+            }
+            return;
+          }
+          var titleEl = actionNode.querySelector('.tarot-tile__title');
+          var fname = titleEl ? titleEl.textContent.trim() : '서비스';
+          if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
+          if (consumeInFlight) return;
+          consumeInFlight = true;
+          try {
+            var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+              method: 'POST',
+              body: JSON.stringify({ cost: tileCoinCost, reason: fname + ' 이용' }),
+            });
+            if (r.status === 402) { openChargeModal(); return; }
+            if (!r.ok) {
+              window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+              return;
+            }
+            if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
+              userBalance = r.payload.user.points;
+            } else {
+              userBalance = Math.max(0, userBalance - tileCoinCost);
+            }
+            saveBalance();
+            updateBadge();
+            sessionStorage.setItem('cd_pa_' + action, '1');
+            perUseApproved[action] = true;
+            actionNode.click();
+            setTimeout(function () { delete perUseApproved[action]; }, 1000);
+          } catch (e) {
+            console.error('[per-use coin gate]', e);
+            window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+          } finally {
+            consumeInFlight = false;
+          }
+        })();
+        return;
+      }
+      delete perUseApproved[action];
+    }
+
+    // ── 영구 해금 타일 게이트 ──
+    var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
+    var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
+    if (tileLockKey && tileLockCost > 0 && !unlockedFeatureMap[tileLockKey]) {
+      event.preventDefault();
+      event.stopPropagation();
+      (async function () {
+        if (!hasAuthToken()) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        var titleEl = actionNode.querySelector('.tarot-tile__title');
+        var fname = titleEl ? titleEl.textContent.trim() : '서비스';
+        if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
+        if (userBalance < tileLockCost) {
+          if (window.confirm('황금 돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
+            openChargeModal();
+          }
+          return;
+        }
+        if (consumeInFlight) return;
+        consumeInFlight = true;
+        try {
+          var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+            method: 'POST',
+            body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
+          });
+          if (r.status === 402) { openChargeModal(); return; }
+          if (!r.ok) {
+            window.alert((r.payload && r.payload.message) || '해금 처리에 실패했습니다.');
+            return;
+          }
+          if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
+            userBalance = r.payload.user.points;
+          } else {
+            userBalance = Math.max(0, userBalance - tileLockCost);
+          }
+          saveBalance();
+          updateBadge();
+          unlockedFeatureMap[tileLockKey] = true;
+          saveTileLocks();
+          sessionStorage.setItem('cd_pa_' + action, '1');
+          window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
+          actionNode.click();
+        } catch (e) {
+          console.error('[tile unlock gate]', e);
+          window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        } finally {
+          consumeInFlight = false;
+        }
+      })();
+      return;
+    }
 
     if (action === 'openGoldenGrainCharge') {
       openChargeModal();
@@ -4018,7 +4180,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       void tryUnlockFeature(actionNode);
       return;
     }
-  });
+  }, true);
 
   document.addEventListener('click', function (event) {
     var modal = document.getElementById('goldenGrainChargeModal');
@@ -4027,6 +4189,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   });
 
   loadBalance();
+  loadTileLocks();
   GoldenGrainBadge();
   ChargeModal();
   updateBadge();
@@ -4043,6 +4206,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   window.__cdRefreshGoldenBalance = function () {
     void syncBalanceFromServer();
   };
+  window.__cdOpenChargeModal = openChargeModal;
 
   // Auth 상태 재확인 (인라인 스크립트 보조)
   if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();

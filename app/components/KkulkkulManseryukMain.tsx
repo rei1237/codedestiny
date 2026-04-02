@@ -92,8 +92,17 @@ const FREE_FEATURES = [
   "행복한 회복 타로",
 ];
 
+function saveUserPoints(points: number) {
+  try {
+    const raw = localStorage.getItem('fortune_auth_user');
+    const user = raw ? JSON.parse(raw) : {};
+    user.points = points;
+    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+  } catch (_) {}
+}
+
 export default function KkulkkulManseryukMain() {
-  const [currentCoins, setCurrentCoins] = useState(1000);
+  const [currentCoins, setCurrentCoins] = useState(0);
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
   const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({
@@ -114,33 +123,73 @@ export default function KkulkkulManseryukMain() {
     premiumTarot: 0,
   });
 
-  const unlockByCoins = (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
+  const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
-
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = '/login?next=%2F';
+      return;
+    }
     if (currentCoins < cost) {
       setShowRechargeModal(true);
       return;
     }
-
-    setCurrentCoins((prev) => prev - cost);
-    setUnlockedFeatures((prev) => {
-      const next = { ...prev, [key]: true };
-      if (alsoUnlock?.length) {
-        for (const aliasKey of alsoUnlock) next[aliasKey] = true;
-      }
-      return next;
-    });
-    setSparkleTarget(key);
+    try {
+      const res = await fetch('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cost, reason: `${key} 해금` }),
+      });
+      const data = await res.json();
+      if (res.status === 402) { setShowRechargeModal(true); return; }
+      if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
+      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      setCurrentCoins(newPoints);
+      saveUserPoints(newPoints);
+      setUnlockedFeatures((prev) => {
+        const next = { ...prev, [key]: true };
+        if (alsoUnlock?.length) {
+          for (const aliasKey of alsoUnlock) next[aliasKey] = true;
+        }
+        return next;
+      });
+      setSparkleTarget(key);
+    } catch (e) {
+      console.error('[unlockByCoins]', e);
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
   };
 
-  const usePaidFeatureOnce = (key: PerUseKey, cost: number) => {
+  const usePaidFeatureOnce = async (key: PerUseKey, cost: number) => {
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = '/login?next=%2F';
+      return;
+    }
     if (currentCoins < cost) {
       setShowRechargeModal(true);
       return;
     }
-    setCurrentCoins((prev) => prev - cost);
-    setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-    setSparkleTarget(key);
+    try {
+      const res = await fetch('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cost, reason: `${key} 이용` }),
+      });
+      const data = await res.json();
+      if (res.status === 402) { setShowRechargeModal(true); return; }
+      if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
+      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      setCurrentCoins(newPoints);
+      saveUserPoints(newPoints);
+      setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+      setSparkleTarget(key);
+    } catch (e) {
+      console.error('[usePaidFeatureOnce]', e);
+      alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
   };
 
   useEffect(() => {
@@ -148,6 +197,30 @@ export default function KkulkkulManseryukMain() {
     const timer = setTimeout(() => setSparkleTarget(null), 1100);
     return () => clearTimeout(timer);
   }, [sparkleTarget]);
+
+  useEffect(() => {
+    // 1) localStorage에서 즉시 표시
+    try {
+      const raw = localStorage.getItem('fortune_auth_user');
+      const user = raw ? JSON.parse(raw) : {};
+      if (typeof user?.points === 'number') setCurrentCoins(user.points);
+    } catch (_) {}
+    // 2) API로 실제 잔액 동기화
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) return;
+    fetch('/api/fortune/pig-coin/balance', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.user?.points !== undefined) {
+          const pts = Number(d.user.points);
+          setCurrentCoins(pts);
+          saveUserPoints(pts);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">
@@ -344,12 +417,12 @@ export default function KkulkkulManseryukMain() {
               <button
                 type="button"
                 onClick={() => {
-                  setCurrentCoins((prev) => prev + 500);
                   setShowRechargeModal(false);
+                  window.location.href = '/points';
                 }}
                 className="rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
               >
-                +500 코인 충전
+                코인 충전하기
               </button>
               <button
                 type="button"

@@ -4052,7 +4052,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
         event.preventDefault();
-        event.stopImmediatePropagation();
+        event.stopPropagation();
         (async function () {
           if (!hasAuthToken()) {
             if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
@@ -4088,6 +4088,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             }
             saveBalance();
             updateBadge();
+            sessionStorage.setItem('cd_pa_' + action, '1');
             perUseApproved[action] = true;
             actionNode.click();
             setTimeout(function () { delete perUseApproved[action]; }, 1000);
@@ -4108,7 +4109,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
     if (tileLockKey && tileLockCost > 0 && !unlockedFeatureMap[tileLockKey]) {
       event.preventDefault();
-      event.stopImmediatePropagation();
+      event.stopPropagation();
       (async function () {
         if (!hasAuthToken()) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
@@ -4146,6 +4147,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           updateBadge();
           unlockedFeatureMap[tileLockKey] = true;
           saveTileLocks();
+          sessionStorage.setItem('cd_pa_' + action, '1');
           window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
           actionNode.click();
         } catch (e) {
@@ -4178,7 +4180,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       void tryUnlockFeature(actionNode);
       return;
     }
-  });
+  }, true);
 
   document.addEventListener('click', function (event) {
     var modal = document.getElementById('goldenGrainChargeModal');

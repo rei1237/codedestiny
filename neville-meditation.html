@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -677,6 +677,46 @@
   </style>
 </head>
 <body>
+<script>
+(function(){
+  'use strict';
+  var COST = 30, KEY = 'openNevilleMeditationPage';
+  var flag = 'cd_pa_' + KEY;
+  if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); return; }
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
+  if (!token) {
+    if (window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
+      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
+    } else { window.history.back(); }
+    return;
+  }
+  var pts = 0;
+  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
+  if (pts < COST) {
+    window.alert('🐷 황금 돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
+    window.history.back();
+    return;
+  }
+  fetch('/api/fortune/pig-coin/consume', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ cost: COST, reason: KEY + ' 이용' })
+  }).then(function(r) {
+    return r.json().then(function(d) {
+      if (r.status === 402 || !r.ok) {
+        window.alert('🐷 황금 돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+        window.history.back();
+        return;
+      }
+      if (d && d.user && typeof d.user.points === 'number') {
+        try { var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}'); u.points = d.user.points; localStorage.setItem('fortune_auth_user', JSON.stringify(u)); } catch(e) {}
+        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
+      }
+    });
+  }).catch(function() {});
+})();
+</script>
 
 <canvas id="cosmos"></canvas>
 <div id="nebula"></div>

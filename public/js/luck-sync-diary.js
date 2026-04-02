@@ -1,4 +1,4 @@
-/* ===================================================================
+﻿/* ===================================================================
    Luck-Sync Diary (운구 기일 다이어리)
    기존 사주 분석 엔진(G_PILLARS, G_POWER, G_JONG)과 연동
    LocalStorage 기반 날짜별 저장
@@ -1129,7 +1129,7 @@
   var _lsdMeditationTimer = null;
   var _lsdSatsYouTubeCache = { lofi: null, theta: null };
   var _lsdSatsNowPlaying = { mode: '', videoId: '' };
-  var LSD_YOUTUBE_API_KEY = String(window.LSD_YOUTUBE_API_KEY || 'AIzaSyAYtZJZzNHWWciMDgaleLv7IFudqLBoBkw');
+  var LSD_YOUTUBE_API_KEY = String(window.LSD_YOUTUBE_API_KEY || '');
   var LSD_SATS_SOURCE_META = {
     lofi: { label: 'LoFi', query: 'copyright free lofi playlist beats to study and relax' },
     theta: { label: 'Theta', query: 'theta binaural beats no copyright meditation playlist' }
