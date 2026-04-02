@@ -963,10 +963,31 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
-      <div class="auth-quick-links">
+      <div class="auth-quick-links" id="authQuickLinks">
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
+      <script>
+        (function () {
+          try {
+            var t = localStorage.getItem('fortune_auth_token');
+            var us = localStorage.getItem('fortune_auth_user');
+            if (!t) return;
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            var n = '사용자', p = 0;
+            try { var u = JSON.parse(us || '{}'); n = u.name || n; p = u.points || 0; } catch (e) {}
+            el.innerHTML =
+              '<span style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;' +
+              'background:rgba(124,58,237,0.25);border:1px solid rgba(167,139,250,0.5);' +
+              'color:#e2e8f0;font-weight:700;font-size:.9rem">✦ ' + n + '님 · ' + p + 'P</span>' +
+              '<button type="button" class="auth-btn auth-btn--login" onclick="' +
+              "(function(){['fortune_auth_token','fortune_auth_user','fortune_auth_role'].forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});" +
+              "['fortune_auth_token','fortune_auth_role'].forEach(function(k){document.cookie=k+'=;max-age=0;path=/;SameSite=Lax'});location.reload();})()" +
+              '">🔓 로그아웃</button>';
+          } catch (e) {}
+        })();
+      </script>
 
       <div id="goldenGrainBadgeRoot"></div>
 

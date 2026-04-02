@@ -12,10 +12,10 @@ const ORIGIN = "https://code-destiny.com";
 
 const NAV_SECTIONS = [
   {
-    label: "🔮 무료 타로",
+    label: "🔮 타로",
     emoji: "🔮",
     links: [
-      { href: "/tarot/healing", text: "무료 힐링 타로", badge: "인기" },
+      { href: "/tarot/healing", text: "힐링 타로", badge: "인기" },
       { href: "/tarot/mingri", text: "명리학 AI 타로" },
       { href: "/tarot/love", text: "연애 관계 타로" },
       { href: "/tarot/self-esteem", text: "자존감 타로" },
@@ -24,20 +24,20 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "🌟 무료 사주 · 점성술",
+    label: "🌟 사주 · 점성술",
     emoji: "🌟",
     links: [
-      { href: "/saju/basic", text: "무료 사주 풀이", badge: "핵심" },
+      { href: "/saju/basic", text: "사주 풀이", badge: "핵심" },
       { href: "/ziwei/chart", text: "자미두수 명반" },
       { href: "/astrology/cosmic", text: "코즈믹 점성술" },
       { href: "/vedic/jyotish", text: "베다 점성술" },
     ],
   },
   {
-    label: "🃏 무료 오라클 · 신탁",
+    label: "🃏 오라클 · 신탁",
     emoji: "🃏",
     links: [
-      { href: "/oracle/hwatu", text: "무료 화투점" },
+      { href: "/oracle/hwatu", text: "화투점" },
       { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
       { href: "/oracle/kemet", text: "이집트 신탁" },
       { href: "/oracle/juyuk", text: "주역 64괘" },
@@ -47,7 +47,7 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "🐾 무료 동물 · 관상",
+    label: "🐾 동물 · 관상",
     emoji: "🐾",
     links: [
       { href: "/animal/physio", text: "AI 동물 관상" },
@@ -56,7 +56,7 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "🌸 무료 운명의 꽃",
+    label: "🌸 운명의 꽃",
     emoji: "🌸",
     links: [
       { href: "/flower/destiny", text: "운명의 꽃 사주" },
@@ -66,10 +66,10 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: "💭 무료 꿈 해몽 · 심리",
+    label: "💭 꿈 해몽 · 심리",
     emoji: "💭",
     links: [
-      { href: "/dream/tarot", text: "무료 꿈 타로" },
+      { href: "/dream/tarot", text: "꿈 타로" },
       { href: "/dream/psycho", text: "꿈 심리 분석" },
     ],
   },
@@ -318,11 +318,10 @@ export default function SiteFooterHub() {
         {/* 브랜드 */}
         <div style={BRAND_ROW}>
           <span style={BRAND_LOGO} aria-label="꿀꿀 만세력">🐷 꿀꿀 만세력</span>
-          <span style={FREE_BADGE}>전 서비스 무료</span>
         </div>
         <p style={TAGLINE_STYLE}>
-          무료 사주팔자 · AI 타로 · 자미두수 · 점성술 · 숙요점 · 궁합 · 동물관상 · 꿈 해몽까지<br />
-          생년월일 하나로 20가지 이상의 운세를 무료로 — Code Destiny 꿀꿀 만세력
+          사주팔자 · AI 타로 · 자미두수 · 점성술 · 숙요점 · 궁합 · 동물관상 · 꿈 해몽까지<br />
+          생년월일 하나로 20가지 이상의 운세를 한 곳에서 — Code Destiny 꿀꿀 만세력
         </p>
 
         {/* 서비스 카테고리 내부 링크 그리드 */}
@@ -339,7 +338,7 @@ export default function SiteFooterHub() {
                         <a
                           href={`${ORIGIN}${link.href}`}
                           style={LINK_STYLE}
-                          aria-label={`${link.text} — 무료`}
+                          aria-label={link.text}
                         >
                           <span>→</span>
                           <span>{link.text}</span>
@@ -392,7 +391,7 @@ export default function SiteFooterHub() {
         >
           Code: Destiny의 꽃돼지 연이는 백사자 쌈바와 함께 사주, 운세, 타로, 명리학 해석을
           꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력 기반의 실전 인사이트로 제공합니다.
-          무료 사주풀이·무료 타로·자미두수·베다 점성술·AI 관상·꿈 해몽까지, 모든 서비스는 무료입니다.
+          사주풀이·타로·자미두수·베다 점성술·AI 관상·꿈 해몽 등 다양한 서비스를 이용하세요.
         </p>
 
         <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 환불 규정">
@@ -423,7 +422,7 @@ export default function SiteFooterHub() {
             © 2026 Code Destiny. All rights reserved.
           </p>
           <p style={{ margin: 0 }}>
-            🐷 꿀꿀 만세력 — 무료 사주 · 타로 · 운세 · 궁합 플랫폼
+            🐷 꿀꿀 만세력 — 사주 · 타로 · 운세 · 궁합 플랫폼
           </p>
         </div>
       </div>
