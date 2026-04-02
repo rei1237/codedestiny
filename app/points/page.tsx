@@ -84,9 +84,11 @@ declare global {
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
 
 const POINT_PACKAGES: PointPackage[] = [
-  { id: "pkg_5000", title: "초승달 패키지", amount: 5000, points: 5000 },
-  { id: "pkg_10000", title: "보랏빛 오로라 패키지", amount: 10000, points: 10000, badge: "인기" },
-  { id: "pkg_30000", title: "은하수 마스터 패키지", amount: 30000, points: 32000, badge: "+2,000P" },
+  { id: "sample",         title: "맛보기 한 줌",          amount: 3300,   points: 30   },
+  { id: "luckyMeal",      title: "행운의 한 끼",           amount: 9900,   points: 115,  badge: "+15" },
+  { id: "goldBarn",       title: "황금 돼지 곳간",          amount: 29000,  points: 360,  badge: "+60" },
+  { id: "goldVault",      title: "황금 돼지 금고",          amount: 59000,  points: 880,  badge: "+180" },
+  { id: "emperorReserve", title: "황금 돼지 제왕 보물고",    amount: 119000, points: 2000, badge: "🔥 BEST" },
 ];
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
@@ -101,7 +103,7 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
 ];
 
 function formatPoints(points: number) {
-  return `${Number(points || 0).toLocaleString("ko-KR")}P`;
+  return `${Number(points || 0).toLocaleString("ko-KR")}코인`;
 }
 
 function formatWon(amount: number) {
@@ -522,157 +524,179 @@ export default function PointsPage() {
 
   if (isBooting) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-100">
-        포인트 충전 정보를 불러오는 중...
+      <main className="flex min-h-screen items-center justify-center bg-[#fff9ef] text-[#5f2e08]">
+        🐷 황금 돼지 저금통을 불러오는 중...
       </main>
     );
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#090b1d] via-[#1a103a] to-[#2b0e46] px-4 py-8 text-slate-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:64px_64px] opacity-30 animate-twinkle" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.25),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(99,102,241,0.25),transparent_35%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#fff9ef] via-[#ffe9cc] to-[#ffd8bd] px-4 py-8 text-[#5f2e08]">
+      {/* 배경 광원 */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-1/3 -left-1/4 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,222,155,0.54)_0%,rgba(255,222,155,0)_72%)]" />
+        <div className="absolute top-1/2 -right-1/4 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(255,180,100,0.28)_0%,rgba(255,180,100,0)_72%)]" />
+      </div>
 
       {showStarBurst ? (
         <div className="pointer-events-none fixed inset-0 z-[90]">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-yellow-200 animate-ping">✦</div>
-          <div className="absolute left-[42%] top-[44%] text-2xl text-fuchsia-200 animate-pulse">✧</div>
-          <div className="absolute left-[57%] top-[43%] text-3xl text-violet-200 animate-pulse">✦</div>
-          <div className="absolute left-[49%] top-[57%] text-2xl text-indigo-200 animate-ping">✧</div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping">🪙</div>
+          <div className="absolute left-[42%] top-[44%] text-2xl animate-pulse">✨</div>
+          <div className="absolute left-[57%] top-[43%] text-3xl animate-bounce">🐷</div>
+          <div className="absolute left-[49%] top-[57%] text-2xl animate-ping">💰</div>
         </div>
       ) : null}
 
-      <div className="relative mx-auto w-full max-w-4xl space-y-5">
-        <header className="rounded-2xl border border-violet-300/25 bg-slate-950/55 p-5 backdrop-blur-md">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.28em] text-violet-200">TWILIGHT POINT ALTAR</p>
-              <h1 className="mt-1 text-2xl font-bold text-white sm:text-3xl">신비로운 포인트 충전소</h1>
-              <p className="mt-1 text-sm text-violet-100/80">포트원 통합 결제로 포인트를 충전하고 운세를 이어보세요.</p>
+      <div className="relative mx-auto w-full max-w-2xl space-y-5">
+        {/* 헤더 */}
+        <header className="rounded-3xl border border-[rgba(255,203,147,0.72)] bg-white/80 p-6 shadow-[0_12px_40px_rgba(43,5,29,0.14)] backdrop-blur-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                src="/icons/honeypig-96.webp"
+                srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+                sizes="72px"
+                width={72}
+                height={72}
+                alt="황금 돼지"
+                className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.22)]"
+              />
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.22em] text-[#a6450f] uppercase">Golden Pig Coin</p>
+                <h1 className="mt-0.5 text-2xl font-bold text-[#812f00] sm:text-3xl">🐷✨ 황금 돼지 저금통 충전소</h1>
+                <p className="mt-1 text-sm text-[#8b4b24]">💫 동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>
+              </div>
             </div>
             <Link
               href="/"
-              className="inline-flex items-center justify-center rounded-xl border border-violet-300/40 bg-violet-500/15 px-4 py-2 text-sm font-semibold text-violet-100 hover:bg-violet-500/25"
+              className="inline-flex items-center justify-center self-start rounded-xl border border-[rgba(160,64,21,0.28)] bg-white/70 px-4 py-2 text-sm font-semibold text-[#7f3606] shadow-sm hover:bg-white transition-colors"
             >
-              운세 화면으로 돌아가기
+              ← 운세 화면으로
             </Link>
           </div>
         </header>
 
-        <section className="rounded-2xl border border-yellow-300/35 bg-gradient-to-r from-amber-200/10 via-yellow-200/8 to-violet-200/10 p-5 shadow-[0_0_28px_rgba(234,179,8,0.16)] backdrop-blur-md">
-          <p className="text-xs tracking-[0.22em] text-amber-200/90">PROFILE CRYSTAL</p>
-          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-lg font-semibold text-violet-100">{authUser?.name || "사용자"} 님의 별빛 지갑</p>
-              <p className="text-sm text-violet-200/80">결제 완료 즉시 포인트가 반영됩니다.</p>
+        {/* 잔액 표시 */}
+        <section className="rounded-2xl border border-[rgba(255,171,101,0.5)] bg-gradient-to-r from-[#fff8e8] to-[#fff0d6] p-5 shadow-[0_4px_20px_rgba(169,96,21,0.12)]">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[radial-gradient(circle_at_26%_22%,#fff8ce_0%,#ffd14d_48%,#df920b_100%)] shadow-[inset_0_2px_8px_rgba(255,255,255,0.56),0_4px_10px_rgba(150,76,11,0.24)]" aria-hidden="true" />
+              <div>
+                <p className="text-[11px] font-bold tracking-wide text-[#8e5a2f] uppercase">황금 돼지 저금통</p>
+                <p className="text-base font-bold text-[#742c16]">{authUser?.name || "사용자"} 님의 코인 지갑</p>
+              </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-violet-200/80">현재 보유 포인트</p>
-              <p className="text-3xl font-extrabold text-yellow-300 drop-shadow-[0_0_12px_rgba(250,204,21,.75)]">{formatPoints(currentPoints)}</p>
+              <p className="text-[11px] text-[#8b4b24]">현재 보유</p>
+              <p className="text-2xl font-black text-[#a6450f]">🪙 {Number(currentPoints).toLocaleString("ko-KR")}코인</p>
             </div>
           </div>
         </section>
 
+        {/* 알림 */}
         {notice ? (
-          <div className={`rounded-xl border px-4 py-3 text-sm ${
+          <div className={`rounded-xl border px-4 py-3 text-sm font-semibold ${
             notice.type === "success"
-              ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+              ? "border-emerald-400/60 bg-emerald-50 text-emerald-800"
               : notice.type === "error"
-                ? "border-rose-400/40 bg-rose-500/10 text-rose-200"
-                : "border-violet-300/40 bg-violet-500/10 text-violet-100"
+                ? "border-rose-400/60 bg-rose-50 text-rose-800"
+                : "border-amber-400/60 bg-amber-50 text-amber-900"
           }`}>
             {notice.text}
           </div>
         ) : null}
 
-        <section className="rounded-2xl border border-violet-300/25 bg-slate-950/55 p-5 backdrop-blur-md">
+        {/* 패키지 선택 */}
+        <section className="rounded-3xl border border-[rgba(255,203,147,0.72)] bg-white/90 p-5 shadow-[0_12px_40px_rgba(43,5,29,0.1)]">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-violet-100">충전 패키지 선택</h2>
-            <span className="text-xs text-violet-200/80">원하는 패키지를 선택한 뒤 결제 수단을 고르세요.</span>
+            <h2 className="text-lg font-bold text-[#742c16]">충전 패키지 선택</h2>
+            <span className="text-[11px] text-[#8b4b24]">패키지를 선택한 뒤 결제 수단을 고르세요.</span>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="flex flex-col gap-3">
             {POINT_PACKAGES.map((pkg) => {
               const selected = selectedPackage.id === pkg.id;
+              const isBest = pkg.id === "emperorReserve";
+              const BASE_COINS: Record<string, number> = { sample: 30, luckyMeal: 100, goldBarn: 300, goldVault: 700, emperorReserve: 1500 };
+              const baseCoins = BASE_COINS[pkg.id] ?? pkg.points;
+              const bonusCoins = pkg.points - baseCoins;
 
               return (
                 <button
                   key={pkg.id}
                   type="button"
-                  onClick={() => {
-                    setSelectedPackage(pkg);
-                    setIsMethodModalOpen(true);
-                  }}
-                  className={`group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 ${
+                  onClick={() => { setSelectedPackage(pkg); setIsMethodModalOpen(true); }}
+                  className={`relative w-full rounded-[18px] border p-4 text-left transition-all duration-200 ${
                     selected
-                      ? "border-violet-300/70 bg-violet-500/18 shadow-[0_0_22px_rgba(167,139,250,.4)]"
-                      : "border-violet-300/25 bg-slate-900/55 hover:border-violet-300/55 hover:shadow-[0_0_18px_rgba(167,139,250,.28)]"
+                      ? "border-[rgba(245,124,0,0.95)] bg-gradient-to-r from-white to-[#fff3e0] shadow-[0_12px_22px_rgba(238,137,21,0.24)] -translate-y-0.5 scale-[1.01]"
+                      : "border-[rgba(255,171,101,0.42)] bg-gradient-to-r from-white to-[#fffbf6] hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(169,56,95,0.14)]"
                   }`}
                 >
-                  <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100">
-                    <span className="absolute left-[8%] top-[14%] text-violet-200/80 animate-pulse">✦</span>
-                    <span className="absolute left-[72%] top-[22%] text-fuchsia-200/80 animate-pulse">✧</span>
-                    <span className="absolute left-[46%] top-[60%] text-indigo-200/80 animate-ping">✦</span>
+                  {isBest && (
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#ff5f45] to-[#ff8c32] px-2.5 py-1 text-[11px] font-black text-white shadow-[0_6px_14px_rgba(214,91,33,0.3)]">
+                      🔥 BEST 혜택
+                    </span>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[#742c16]">{pkg.title}</span>
+                    <span className="font-black text-[#a6450f]">🪙 +{baseCoins.toLocaleString("ko-KR")}코인</span>
                   </div>
-
-                  <div className="relative">
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-violet-100">{pkg.title}</p>
-                      {pkg.badge ? (
-                        <span className="rounded-full border border-amber-300/50 bg-amber-200/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
-                          {pkg.badge}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="text-2xl font-extrabold text-white">{formatPoints(pkg.points)}</p>
-                    <p className="mt-1 text-sm text-violet-100/80">{formatWon(pkg.amount)}</p>
-                    <p className="mt-3 text-xs text-violet-200/70">마우스를 올리면 별빛이 내려앉는 패키지 카드 ✨</p>
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <span className="text-sm text-[#7d4b2b]">{formatWon(pkg.amount)}</span>
+                    <span className="text-sm font-bold text-[#8e4c11]">총 {pkg.points.toLocaleString("ko-KR")}코인 ✨</span>
                   </div>
+                  {bonusCoins > 0 && (
+                    <span className="mt-2 inline-flex rounded-full bg-[rgba(251,177,74,0.25)] px-2.5 py-1 text-[12px] font-bold text-[#8d4a04]">
+                      🎁 보너스 +{bonusCoins.toLocaleString("ko-KR")}코인
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          <p className="mt-4 text-xs text-violet-200/75">
-            결제 이후 서버에서 포트원 결제 정보를 재조회해 금액 위변조를 검증한 뒤 포인트를 반영합니다.
+          <p className="mt-4 text-[11px] text-[#9b5a23]">
+            ✅ 결제 완료 즉시 서버에서 금액 검증 후 코인이 반영됩니다. 👑 최상위 단계가 가장 큰 보너스를 제공합니다.
           </p>
         </section>
 
-        <section className="rounded-2xl border border-violet-300/25 bg-slate-950/55 p-5 backdrop-blur-md">
-          <h3 className="text-lg font-semibold text-violet-100">결제 실패 안내</h3>
-          <ul className="mt-2 space-y-1 text-sm text-violet-100/85">
-            <li>• 창 닫기/취소: 결제가 취소되어 포인트가 차감되지 않습니다.</li>
+        {/* 결제 실패 안내 */}
+        <section className="rounded-2xl border border-[rgba(255,171,101,0.4)] bg-[rgba(255,245,230,0.8)] p-5">
+          <h3 className="font-bold text-[#742c16]">결제 실패 안내</h3>
+          <ul className="mt-2 space-y-1 text-sm text-[#8b4b24]">
+            <li>• 창 닫기/취소: 결제가 취소되어 코인이 차감되지 않습니다.</li>
             <li>• 한도 초과: 다른 카드/계좌이체 또는 금액을 낮춰 재시도해 주세요.</li>
-            <li>• 카드사 점검: 잠시 후 다시 시도하거나 다른 PG를 선택해 주세요.</li>
+            <li>• 카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.</li>
           </ul>
         </section>
       </div>
 
+      {/* 결제 수단 선택 모달 */}
       {isMethodModalOpen ? (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-2xl border border-violet-300/40 bg-gradient-to-b from-[#11122c] to-[#1d1438] p-5 shadow-[0_20px_70px_rgba(76,29,149,.5)]">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(23,8,29,0.62)] px-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl border border-[rgba(255,203,147,0.72)] bg-gradient-to-b from-[#fff9ef] to-[#ffe9cc] p-6 shadow-[0_22px_68px_rgba(43,5,29,0.38)]">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs tracking-[0.22em] text-violet-300">PAYMENT METHOD</p>
-                <h4 className="mt-1 text-xl font-bold text-white">결제 수단 선택</h4>
-                <p className="mt-1 text-sm text-violet-100/80">
-                  {selectedPackage.title} · {formatPoints(selectedPackage.points)} ({formatWon(selectedPackage.amount)})
-                </p>
+                <p className="text-[11px] font-bold tracking-[0.2em] text-[#a6450f] uppercase">결제 수단 선택</p>
+                <h4 className="mt-0.5 text-lg font-bold text-[#742c16]">
+                  {selectedPackage.title} · {selectedPackage.points.toLocaleString("ko-KR")}코인
+                </h4>
+                <p className="text-sm text-[#8b4b24]">{formatWon(selectedPackage.amount)}</p>
               </div>
               <button
                 type="button"
                 disabled={isProcessing}
                 onClick={() => setIsMethodModalOpen(false)}
-                className="rounded-lg border border-violet-300/35 bg-slate-800/55 px-3 py-1.5 text-sm text-violet-100 hover:bg-slate-700/65 disabled:opacity-50"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(160,64,21,0.24)] bg-white/84 text-lg font-bold text-[#7f3606] hover:bg-white disabled:opacity-50"
+                aria-label="닫기"
               >
-                닫기
+                ×
               </button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {PAYMENT_METHODS.map((method) => {
                 const selected = method.id === selectedMethod;
-
                 return (
                   <button
                     key={method.id}
@@ -680,47 +704,39 @@ export default function PointsPage() {
                     onClick={() => setSelectedMethod(method.id)}
                     className={`rounded-xl border p-3 text-left transition-all ${
                       selected
-                        ? "border-violet-300 bg-violet-500/20 shadow-[0_0_20px_rgba(167,139,250,.45)]"
-                        : "border-violet-300/25 bg-slate-900/55 hover:border-violet-300/55"
+                        ? "border-[rgba(245,124,0,0.9)] bg-[rgba(255,236,205,0.9)] shadow-[0_8px_18px_rgba(238,137,21,0.2)]"
+                        : "border-[rgba(255,171,101,0.42)] bg-white/80 hover:border-[rgba(245,124,0,0.6)]"
                     }`}
                   >
-                    <div className="mb-1 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <span className="text-lg">{method.logo}</span>
-                      <span className="font-semibold text-violet-100">{method.label}</span>
+                      <span className="font-semibold text-[#742c16]">{method.label}</span>
                     </div>
-                    <p className="text-xs text-violet-200/80">{method.desc}</p>
-                    <p className="mt-1 text-[11px] text-violet-300/70">
-                      {method.group === "domestic" ? "국내 결제" : "해외 결제"}
-                    </p>
+                    <p className="mt-0.5 text-xs text-[#8b4b24]">{method.desc}</p>
                   </button>
                 );
               })}
             </div>
 
-            <p className="mt-4 text-xs text-violet-200/70">
-              선택된 수단에 따라 `pg` 파라미터가 자동 분기됩니다. (IMP 코드: {PORTONE_IMP_CODE})
-            </p>
-
             <button
               type="button"
               onClick={startPayment}
               disabled={isProcessing}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-gradient-to-r from-violet-600/85 via-fuchsia-600/80 to-indigo-600/85 px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_30px_rgba(76,29,149,.4)] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 w-full rounded-[14px] border-none bg-gradient-to-r from-[#ff7aaa] to-[#ffb15e] px-4 py-3.5 text-base font-black text-white shadow-[0_12px_22px_rgba(214,99,31,0.34)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_26px_rgba(214,99,31,0.4)] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "결제 연결 중..." : "이 수단으로 결제 진행"}
+              {isProcessing ? "🐷 연결 중..." : "🪙 이 수단으로 결제 진행"}
             </button>
           </div>
         </div>
       ) : null}
 
+      {/* 결제 처리 중 오버레이 */}
       {isProcessing ? (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[#020617]/72 backdrop-blur-sm">
-          <div className="rounded-2xl border border-violet-300/45 bg-[#120f2f]/92 px-7 py-6 text-center shadow-[0_0_28px_rgba(168,85,247,.45)]">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-violet-300/65 bg-violet-500/25">
-              <div className="h-9 w-9 rounded-full border-2 border-violet-200 border-t-transparent animate-spin" />
-            </div>
-            <p className="text-sm font-semibold text-violet-100">신비로운 기운으로 결제를 연결 중입니다...</p>
-            <p className="mt-1 text-xs text-violet-200/80">{processingText}</p>
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[rgba(23,8,29,0.62)] backdrop-blur-sm">
+          <div className="rounded-3xl border border-[rgba(255,203,147,0.72)] bg-[#fff9ef] px-8 py-7 text-center shadow-[0_22px_68px_rgba(43,5,29,0.38)]">
+            <div className="mx-auto mb-3 text-5xl animate-bounce">🐷</div>
+            <p className="font-bold text-[#742c16]">황금 돼지가 코인을 세고 있어요...</p>
+            <p className="mt-1 text-sm text-[#8b4b24]">{processingText}</p>
           </div>
         </div>
       ) : null}
