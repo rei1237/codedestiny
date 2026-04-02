@@ -289,6 +289,7 @@ async function findOrCreateSocialUser(provider, profile) {
     birthTime: "00:00",
     gender: "OTHER",
     role: "user",
+    points: 50,
     joinedAt: new Date(),
     localAuth: {
       enabled: false,

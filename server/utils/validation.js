@@ -1,6 +1,11 @@
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+const DEFAULT_POINT_CHARGE_PACKAGES = {
+  5000: 5000,
+  10000: 10000,
+  30000: 32000,
+};
 
 function parsePointChargePackages(raw) {
   if (!raw) return null;
@@ -42,7 +47,8 @@ function resolveChargePointsByAmount(paymentAmount, requestedPoints) {
     throw new Error("결제 금액은 1원 이상의 정수여야 합니다.");
   }
 
-  const packageTable = parsePointChargePackages(process.env.POINT_CHARGE_PACKAGES);
+  const packageTable = parsePointChargePackages(process.env.POINT_CHARGE_PACKAGES)
+    || new Map(Object.entries(DEFAULT_POINT_CHARGE_PACKAGES).map(([k, v]) => [Number(k), Number(v)]));
   const resolvedPoints = packageTable
     ? packageTable.get(amount)
     : amount;
