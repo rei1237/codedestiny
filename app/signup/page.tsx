@@ -81,6 +81,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState<SignupFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -153,14 +154,15 @@ export default function SignupPage() {
       <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
     ) : null;
 
-  // 이미 로그인된 사용자 → 홈으로 리다이렉트
+  // 이미 로그인된 사용자 → 홈으로 리다이렉트 (로딩 오버레이 표시 후 이동)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("social_grant")) return; // 소셜 연동 콜백은 제외
     const token = localStorage.getItem("fortune_auth_token");
     if (token) {
-      router.replace("/");
+      setIsRedirecting(true);
+      setTimeout(() => router.replace("/"), 400);
     }
   }, [router]);
 
@@ -314,12 +316,14 @@ export default function SignupPage() {
 
       const name = payload.user?.name ?? "회원님";
       const pts = payload.user?.points ?? 50;
+      try { sessionStorage.setItem('fortune_just_logged_in', name); } catch (_) {}
       showToast(
         `✦ 환영합니다 ${name}! 별빛 여정을 시작합니다 — ${pts}P 지급 완료!`,
         "success",
       );
       setForm(INITIAL_FORM);
       setFieldTouched({});
+      setIsRedirecting(true);
       setTimeout(() => router.replace("/"), 700);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
@@ -331,6 +335,30 @@ export default function SignupPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#3b0764] px-4 py-10 text-slate-100">
+      {/* 코즈믹 로딩 오버레이 — API 처리 중 또는 리다이렉트 중 */}
+      {(loading || isRedirecting) && (
+        <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #3b0764 100%)' }}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:60px_60px] opacity-35" />
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute top-1/3 left-1/4 h-56 w-56 rounded-full bg-violet-600/20 blur-3xl animate-pulse" />
+            <div className="absolute bottom-1/3 right-1/4 h-40 w-40 rounded-full bg-fuchsia-500/20 blur-3xl animate-pulse" style={{ animationDelay: '0.9s' }} />
+          </div>
+          <div className="relative z-10 flex flex-col items-center gap-6">
+            <div className="relative h-20 w-20">
+              <div className="absolute inset-0 rounded-full border border-violet-500/20" />
+              <div className="absolute inset-0 rounded-full border-t-2 border-violet-400 animate-spin" />
+              <div className="absolute inset-[5px] rounded-full border-t-2 border-fuchsia-400/70 animate-spin" style={{ animationDuration: '1.4s', animationDirection: 'reverse' }} />
+              <div className="absolute inset-0 flex items-center justify-center text-2xl text-violet-300 animate-pulse">✦</div>
+            </div>
+            <div className="text-center">
+              <p className="text-base font-bold tracking-wide text-white">
+                {isRedirecting ? '별빛 여정으로 이동 중...' : '별빛 여정을 준비하고 있습니다'}
+              </p>
+              <p className="mt-1 text-sm text-violet-200/60">잠시만 기다려 주세요...</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.20)_1px,transparent_1px)] [background-size:64px_64px] opacity-40 animate-twinkle" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(168,85,247,0.32),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(147,51,234,0.22),transparent_33%)]" />
 

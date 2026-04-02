@@ -72,6 +72,7 @@ export default function LoginPage() {
 
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -137,14 +138,15 @@ export default function LoginPage() {
     }
   };
 
-  // 이미 로그인된 사용자 → 홈으로 리다이렉트
+  // 이미 로그인된 사용자 → 홈으로 리다이렉트 (로딩 오버레이 표시 후 이동)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("social_grant")) return; // 소셜 연동 콜백은 제외
     const token = localStorage.getItem("fortune_auth_token");
     if (token) {
-      router.replace("/");
+      setIsRedirecting(true);
+      setTimeout(() => router.replace("/"), 400);
     }
   }, [router]);
 
@@ -276,6 +278,7 @@ export default function LoginPage() {
       persistAuth(payload.token, payload.user);
       const name = payload.user?.name ?? "님";
       const pts = payload.user?.points ?? 0;
+      try { sessionStorage.setItem('fortune_just_logged_in', name); } catch (_) {}
       showToast(`✦ ${name}님, 환영합니다! 잔여 포인트: ${pts}P`, "success");
       setForm(INITIAL_FORM);
       setFieldTouched({});
@@ -286,6 +289,7 @@ export default function LoginPage() {
           : null;
       const resolvedNext = sanitizeNextPath(nextValue);
       const loginDest = resolvedNext ?? (payload.user?.role === "admin" ? "/admin" : "/");
+      setIsRedirecting(true);
       setTimeout(() => router.replace(loginDest), 600);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
@@ -297,6 +301,30 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#0b1225] via-[#1b1745] to-[#2f0a4f] px-4 py-10 text-slate-100">
+      {/* 코즈믹 로딩 오버레이 — API 처리 중 또는 리다이렉트 중 */}
+      {(loading || isRedirecting) && (
+        <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #0b1225 0%, #1b1745 50%, #2f0a4f 100%)' }}>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:60px_60px] opacity-35" />
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute top-1/3 left-1/4 h-56 w-56 rounded-full bg-indigo-600/20 blur-3xl animate-pulse" />
+            <div className="absolute bottom-1/3 right-1/4 h-40 w-40 rounded-full bg-violet-500/20 blur-3xl animate-pulse" style={{ animationDelay: '0.9s' }} />
+          </div>
+          <div className="relative z-10 flex flex-col items-center gap-6">
+            <div className="relative h-20 w-20">
+              <div className="absolute inset-0 rounded-full border border-indigo-500/20" />
+              <div className="absolute inset-0 rounded-full border-t-2 border-indigo-400 animate-spin" />
+              <div className="absolute inset-[5px] rounded-full border-t-2 border-violet-400/70 animate-spin" style={{ animationDuration: '1.4s', animationDirection: 'reverse' }} />
+              <div className="absolute inset-0 flex items-center justify-center text-2xl text-indigo-300 animate-pulse">✶</div>
+            </div>
+            <div className="text-center">
+              <p className="text-base font-bold tracking-wide text-white">
+                {isRedirecting ? '별빛 여정으로 이동 중...' : '별빛 로그인 포틸을 열고 있습니다'}
+              </p>
+              <p className="mt-1 text-sm text-indigo-200/60">잠시만 기다려 주세요...</p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:64px_64px] opacity-40 animate-twinkle" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(168,85,247,0.30),transparent_28%),radial-gradient(circle_at_15%_80%,rgba(99,102,241,0.22),transparent_33%)]" />
 

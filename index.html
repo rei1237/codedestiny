@@ -368,6 +368,9 @@ img[width][height]{height:auto}
 .pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
 .neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+.tarot-tile__img-wrap{position:relative}
+.tarot-tile__coin-badge{position:absolute;top:10px;left:10px;z-index:3;display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.72rem;font-weight:800;line-height:1;background:rgba(15,23,42,.88);color:#f8fafc;border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none}
+.tarot-tile__coin-badge--free{background:rgba(6,95,70,.9);border-color:rgba(110,231,183,.52);color:#ecfdf5}
 .tarot-tile--sikojen-fc .tarot-tile__img-wrap{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,236,208,.95) 0%,rgba(254,215,170,.82) 52%,rgba(253,186,116,.72) 100%)}
 .tarot-tile--sikojen-fc .tarot-tile__img{width:min(100%,240px);height:100%;object-fit:contain;object-position:center bottom;padding:8px 10px 0;filter:drop-shadow(0 6px 14px rgba(120,53,15,.28)) saturate(1.06)}
 [data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
@@ -969,23 +972,36 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
       <script>
         (function () {
-          try {
-            var t = localStorage.getItem('fortune_auth_token');
-            var us = localStorage.getItem('fortune_auth_user');
-            if (!t) return;
-            var el = document.getElementById('authQuickLinks');
-            if (!el) return;
-            var n = '사용자', p = 0;
-            try { var u = JSON.parse(us || '{}'); n = u.name || n; p = u.points || 0; } catch (e) {}
-            el.innerHTML =
-              '<span style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;' +
-              'background:rgba(124,58,237,0.25);border:1px solid rgba(167,139,250,0.5);' +
-              'color:#e2e8f0;font-weight:700;font-size:.9rem">✦ ' + n + '님 · ' + p + 'P</span>' +
-              '<button type="button" class="auth-btn auth-btn--login" onclick="' +
-              "(function(){['fortune_auth_token','fortune_auth_user','fortune_auth_role'].forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});" +
-              "['fortune_auth_token','fortune_auth_role'].forEach(function(k){document.cookie=k+'=;max-age=0;path=/;SameSite=Lax'});location.reload();})()" +
-              '">🔓 로그아웃</button>';
-          } catch (e) {}
+          function __cdAuthState() {
+            try {
+              var t = localStorage.getItem('fortune_auth_token');
+              var el = document.getElementById('authQuickLinks');
+              if (!el) return;
+              if (!t) return;
+              var us = localStorage.getItem('fortune_auth_user');
+              var n = '사용자', p = 0;
+              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = u.points || 0; } catch (_) {}
+              el.innerHTML =
+                '<span class="auth-btn" style="display:inline-flex;align-items:center;gap:6px;' +
+                'padding:8px 18px;border-radius:999px;background:rgba(124,58,237,0.22);' +
+                'border:1px solid rgba(167,139,250,0.45);color:#e2e8f0;font-weight:700;font-size:.9rem;text-decoration:none;">' +
+                '✦\u00a0' + n + '님\u00a0·\u00a0' + p + 'P</span>' +
+                '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--login" style="cursor:pointer;">🔓\u00a0로그아웃</button>';
+              var btn = document.getElementById('cdAuthLogoutBtn');
+              if (btn) {
+                btn.addEventListener('click', function () {
+                  ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                    try { localStorage.removeItem(k); } catch (_) {}
+                  });
+                  document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                  document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                  location.reload();
+                });
+              }
+            } catch (_) {}
+          }
+          window.__cdUpdateAuthState = __cdAuthState;
+          __cdAuthState();
         })();
       </script>
 
@@ -1119,7 +1135,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="AI 동물 관상 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20animal.webp" data-img-alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--beta">BETA</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--beta">얼굴 분석</span>
+                    <span class="tarot-tile__coin-badge">🪙 30코인 · 궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎭 AI 동물 관상</span>
@@ -1133,6 +1150,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="MBTI 동물 궁합 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20face.webp" data-img-alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🦁</span></div>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🦁 MBTI 동물 궁합</span>
@@ -1146,7 +1164,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="애니멀 토템 리딩 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/animaltotem.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐯</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">토템 리딩</span>
+                    <span class="tarot-tile__coin-badge">🪙 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
@@ -1161,7 +1180,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="사주 가디언 아트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who am I with saju.webp" data-img-alt="사주 가디언 아트 — 생년월일로 찾는 나의 수호 동물">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">가디언 아트</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🐲 사주 가디언 아트</span>
@@ -3969,6 +3989,39 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
+
+  // Auth 상태 재확인 (인라인 스크립트 보조)
+  if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();
+
+  // 로그인/회원가입 후 메인 복귀 환영 토스트
+  (function () {
+    try {
+      var who = sessionStorage.getItem('fortune_just_logged_in');
+      if (!who) return;
+      sessionStorage.removeItem('fortune_just_logged_in');
+      var toast = document.createElement('div');
+      toast.setAttribute('style',
+        'position:fixed;top:70px;right:16px;z-index:9999;padding:14px 20px;border-radius:16px;' +
+        'background:linear-gradient(135deg,rgba(124,58,237,0.95),rgba(168,85,247,0.9));' +
+        'color:#fff;font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(124,58,237,0.4);' +
+        'border:1px solid rgba(255,255,255,0.15);line-height:1.6;pointer-events:none;' +
+        'transform:translateY(-10px);opacity:0;transition:transform 0.35s ease,opacity 0.35s ease;'
+      );
+      toast.textContent = '✦ ' + who + '님, 별빛 여정에 오신 것을 환영합니다!';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          toast.style.transform = 'translateY(0)';
+          toast.style.opacity = '1';
+        });
+      });
+      setTimeout(function () {
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.opacity = '0';
+        setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+      }, 4500);
+    } catch (_) {}
+  })();
 })();
 </script>
 
