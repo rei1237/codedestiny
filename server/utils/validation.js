@@ -2,9 +2,11 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 const DEFAULT_POINT_CHARGE_PACKAGES = {
-  5000: 5000,
-  10000: 10000,
-  30000: 32000,
+  3300: 30,
+  9900: 115,
+  29000: 360,
+  59000: 880,
+  119000: 2000,
 };
 
 function parsePointChargePackages(raw) {

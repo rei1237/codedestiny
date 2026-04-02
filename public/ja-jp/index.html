@@ -368,6 +368,9 @@ img[width][height]{height:auto}
 .pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
 .neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
+.tarot-tile__img-wrap{position:relative}
+.tarot-tile__coin-badge{position:absolute;top:10px;left:10px;z-index:3;display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.72rem;font-weight:800;line-height:1;background:rgba(15,23,42,.88);color:#f8fafc;border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none}
+.tarot-tile__coin-badge--free{background:rgba(6,95,70,.9);border-color:rgba(110,231,183,.52);color:#ecfdf5}
 .tarot-tile--sikojen-fc .tarot-tile__img-wrap{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,236,208,.95) 0%,rgba(254,215,170,.82) 52%,rgba(253,186,116,.72) 100%)}
 .tarot-tile--sikojen-fc .tarot-tile__img{width:min(100%,240px);height:100%;object-fit:contain;object-position:center bottom;padding:8px 10px 0;filter:drop-shadow(0 6px 14px rgba(120,53,15,.28)) saturate(1.06)}
 [data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
@@ -387,21 +390,26 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-badge__balance{font-size:.86rem;font-weight:900;color:#5f2e08;white-space:nowrap}
 .golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:7px 11px;background:linear-gradient(135deg,#ff8a5b,#ff5a77);color:#fff;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 6px 14px rgba(219,89,55,0.32)}
 .golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.04)}
-.golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;z-index:100002;background:rgba(28,9,35,0.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;z-index:100002;background:radial-gradient(circle at 20% 18%,rgba(255,205,131,.18) 0%,rgba(30,8,34,.74) 54%),rgba(23,8,29,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .golden-grain-modal--open{display:flex}
-.golden-grain-modal__card{width:min(560px,94vw);border-radius:26px;padding:22px 18px 18px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff8ec 0%,#ffe8c9 46%,#ffd7bb 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
+.golden-grain-modal__card{width:min(620px,96vw);max-height:calc(100vh - 28px);display:flex;flex-direction:column;border-radius:28px;padding:18px 14px 14px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff9ef 0%,#ffe9cc 44%,#ffd8bd 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
 .golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
-.golden-grain-modal__close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.76);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer}
-.golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.35rem;color:#812f00}
-.golden-grain-modal__subtitle{margin:0 0 14px;font-size:.9rem;color:#8b4b24}
-.golden-grain-piggy{width:84px;height:84px;margin:0 auto 14px;border-radius:50%;display:block;overflow:hidden;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
+.golden-grain-modal__close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.84);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer;z-index:2}
+.golden-grain-modal__head{position:relative;z-index:1;text-align:center;padding:4px 8px 8px}
+.golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.45rem;color:#812f00;letter-spacing:.01em}
+.golden-grain-modal__subtitle{margin:0;font-size:.91rem;color:#8b4b24;line-height:1.45}
+.golden-grain-piggy{width:84px;height:84px;margin:0 auto 10px;border-radius:50%;display:block;overflow:hidden;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
 .golden-grain-piggy__img{width:100%;height:100%;object-fit:cover;display:block}
 .golden-grain-piggy.is-shaking{animation:piggyShake .56s ease}
 @keyframes piggyShake{0%{transform:rotate(0deg)}20%{transform:rotate(-8deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(4deg)}100%{transform:rotate(0deg)}}
+.golden-grain-modal__scroll{overflow-y:auto;overflow-x:hidden;padding:8px 6px 8px 4px;margin-top:8px;max-height:min(50vh,430px);scrollbar-width:thin;scrollbar-color:rgba(194,116,30,.58) rgba(255,235,208,.52)}
+.golden-grain-modal__scroll::-webkit-scrollbar{width:8px}
+.golden-grain-modal__scroll::-webkit-scrollbar-track{background:rgba(255,235,208,.52);border-radius:999px}
+.golden-grain-modal__scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ffbc72,#f58a42);border-radius:999px}
 .golden-grain-packages{display:grid;gap:10px}
-.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:16px;padding:12px;background:rgba(255,255,255,0.78);cursor:pointer;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:18px;padding:13px 12px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,246,236,0.86));cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
 .golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(169,56,95,0.14)}
-.golden-grain-package.is-selected{border-color:rgba(245,124,0,0.9);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01)}
+.golden-grain-package.is-selected{border-color:rgba(245,124,0,0.95);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01);background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,238,214,0.94))}
 .golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .golden-grain-package__best{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#ff5f45,#ff8c32);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 14px rgba(214,91,33,0.3)}
 .golden-grain-package__name{font-weight:800;color:#742c16}
@@ -410,7 +418,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-package__price{font-size:.86rem;color:#7d4b2b}
 .golden-grain-package__total{font-size:.79rem;font-weight:800;color:#8e4c11}
 .golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
-.golden-grain-modal__charge-btn{margin-top:14px;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.golden-grain-modal__cta{position:relative;z-index:1;margin-top:10px;padding:10px 4px 2px;background:linear-gradient(180deg,rgba(255,236,211,0) 0%,rgba(255,225,193,.88) 42%,rgba(255,217,182,.98) 100%)}
+.golden-grain-modal__charge-btn{margin-top:0;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
 .golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
 .golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
@@ -421,7 +430,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
 .animate-bounce{animation:goldenBounce .72s ease}
 @keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
-@media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}}
+@media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
@@ -963,10 +972,79 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <p>감성 제로. 팩트만 남는다.</p>
       </div>
 
-      <div class="auth-quick-links">
+      <div class="auth-quick-links" id="authQuickLinks">
         <a href="/signup" class="auth-btn auth-btn--signup">✨ 회원가입</a>
         <a href="/login" class="auth-btn auth-btn--login">🔐 로그인</a>
       </div>
+      <script>
+        (function () {
+          function __cdRenderAuthSummary(name, points) {
+            var el = document.getElementById('authQuickLinks');
+            if (!el) return;
+            el.innerHTML =
+              '<span class="auth-btn" style="display:inline-flex;align-items:center;gap:8px;' +
+              'padding:8px 16px;border-radius:999px;background:linear-gradient(135deg,rgba(255,247,214,.95),rgba(255,227,165,.95));' +
+              'border:1px solid rgba(194,120,15,.45);color:#6b3a10;font-weight:800;font-size:.9rem;text-decoration:none;box-shadow:0 6px 14px rgba(128,72,7,.18);">' +
+              '🪙\u00a0보유\u00a0' + Number(points || 0).toLocaleString('ko-KR') + '코인</span>' +
+              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--login" style="cursor:pointer;">🔓\u00a0로그아웃</button>';
+
+            var btn = document.getElementById('cdAuthLogoutBtn');
+            if (btn) {
+              btn.addEventListener('click', function () {
+                ['fortune_auth_token', 'fortune_auth_user', 'fortune_auth_role'].forEach(function (k) {
+                  try { localStorage.removeItem(k); } catch (_) {}
+                });
+                document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
+                document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                location.reload();
+              });
+            }
+          }
+
+          function __cdAuthState() {
+            try {
+              var t = localStorage.getItem('fortune_auth_token');
+              var el = document.getElementById('authQuickLinks');
+              if (!el) return;
+              if (!t) return;
+              var us = localStorage.getItem('fortune_auth_user');
+              var n = '사용자', p = 0;
+              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); } catch (_) {}
+              __cdRenderAuthSummary(n, p);
+
+              fetch('/api/payments/me', {
+                method: 'GET',
+                headers: { Authorization: 'Bearer ' + t },
+              })
+                .then(function (response) {
+                  if (!response.ok) throw new Error('auth_sync_failed');
+                  return response.json();
+                })
+                .then(function (payload) {
+                  var nextPoints = Number((((payload || {}).user || {}).points) || 0);
+                  if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
+
+                  try {
+                    var raw = localStorage.getItem('fortune_auth_user');
+                    var user = raw ? JSON.parse(raw) : {};
+                    if (typeof user !== 'object' || user === null) user = {};
+                    user.name = user.name || n;
+                    user.points = nextPoints;
+                    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+                  } catch (_) {}
+
+                  __cdRenderAuthSummary(n, nextPoints);
+                  if (typeof window.__cdSetGoldenBalance === 'function') {
+                    window.__cdSetGoldenBalance(nextPoints);
+                  }
+                })
+                .catch(function () {});
+            } catch (_) {}
+          }
+          window.__cdUpdateAuthState = __cdAuthState;
+          __cdAuthState();
+        })();
+      </script>
 
       <div id="goldenGrainBadgeRoot"></div>
 
@@ -1098,7 +1176,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="AI 동물 관상 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20animal.webp" data-img-alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--beta">BETA</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--beta">얼굴 분석</span>
+                    <span class="tarot-tile__coin-badge">🪙 30코인 · 궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎭 AI 동물 관상</span>
@@ -1112,6 +1191,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="MBTI 동물 궁합 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20face.webp" data-img-alt="MBTI 동물 궁합 — 16가지 토템 연애 궁합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🦁</span></div>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🦁 MBTI 동물 궁합</span>
@@ -1125,7 +1205,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="애니멀 토템 리딩 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/animaltotem.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐯</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">토템 리딩</span>
+                    <span class="tarot-tile__coin-badge">🪙 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
@@ -1140,7 +1221,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="사주 가디언 아트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/Who am I with saju.webp" data-img-alt="사주 가디언 아트 — 생년월일로 찾는 나의 수호 동물">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--totem">NEW</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--totem">가디언 아트</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🐲 사주 가디언 아트</span>
@@ -1195,6 +1277,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/meditation.webp" data-img-alt="네빌 명상 실습 — 상상 창조 집중 가이드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/meditation.webp" alt="네빌 명상 실습 — 상상 창조 집중 가이드">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">MEDITATION</span>
+                <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">🧘 네빌 명상 실습</span>
@@ -1206,6 +1289,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/india.webp" data-img-alt="Divya Yoga - 인도 감성 맞춤 요가 코스">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/india.webp" alt="Divya Yoga - 인도 감성 맞춤 요가 코스">
                 <span class="tarot-tile__badge tarot-tile__badge--healing">YOGA GURU</span>
+                <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">🪷 Divya Yoga</span>
@@ -1263,6 +1347,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tarolove.webp" data-img-alt="우리는 무슨 사이? — 6카드 관계 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                <span class="tarot-tile__coin-badge">🪙 1회 50코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">💕 우리는 무슨 사이?</span>
@@ -1277,6 +1362,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — Sun &amp; Light 4카드 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☀️</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">☀ 따뜻한 태양 회복 타로</span>
@@ -1291,6 +1377,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jajongam.webp" data-img-alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--levelup">LEVEL UP</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">✨ 자존감 레벨업</span>
@@ -1305,6 +1392,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/reunion.webp" data-img-alt="별 헤는 밤바다 재회운 타로 — 5카드 스프레드">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌊</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--reunion">REUNION</span>
+                <span class="tarot-tile__coin-badge">🪙 1회 50코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">🌊 재회운 타로</span>
@@ -1319,6 +1407,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/12animals.webp" data-img-alt="십이지신 천운 타로 — 재물·연애·인간관계 월별 운세">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                <span class="tarot-tile__coin-badge">🪙 1회 15코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">십이지신 천운(天運)</span>
@@ -1332,6 +1421,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
+                <span class="tarot-tile__coin-badge">🪙 1회 15코인</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">🔮 명리학 타로</span>
@@ -1386,6 +1476,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="화투점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tazza.webp" data-img-alt="타짜들의 화투점 — 한국 전통 화투패 12달 운세">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🀄</span></div>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎴 타짜들의 화투점</span>
@@ -1399,6 +1490,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="이집트 신탁 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/egypt.webp" data-img-alt="고대 이집트 신탁 — 케멧 오라클">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">턼ɀ@</span></div>
+                    <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">𓂀 이집트 신탁</span>
@@ -1412,6 +1504,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="주역 거북점 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/juyuk.webp" data-img-alt="주역 64괘 거북점 — 3000년 지혜">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☯️</span></div>
+                    <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">☯️ 주역 거북점</span>
@@ -1426,6 +1519,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
@@ -1439,6 +1533,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/rune.webp" data-img-alt="스톤헨지 룬 오라클 — 고대 룬 상징 리딩">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">ᚠ</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🪙 1회 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">ᚠ 스톤헨지 룬 오라클</span>
@@ -1453,6 +1548,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/geomancy.webp" data-img-alt="지오맨시 흙점 — 모래와 점으로 읽는 대지의 신탁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⟁</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🪙 1회 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">⟁ 지오맨시 흙점</span>
@@ -1466,6 +1562,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fortune/sikojen-povailu/images/piggyfortune.webp" data-img-alt="핀란드 주석점 — 돼지 마스코트 연이">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🐷 핀란드 돼지 주석점</span>
@@ -1479,6 +1576,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/london.webp" data-img-alt="영국 홍차점 — 찻잎 문양으로 읽는 타세오그래피">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🫖</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🪙 1회 30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🫖 영국 홍차점</span>
@@ -1492,6 +1590,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/destiny%20pocker.webp" data-img-alt="데스티니 포커 — 운명의 카지노 심판">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🃏</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🃏 데스티니 포커</span>
@@ -1546,7 +1645,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="점성술 코즈믹 차트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--free">FREE</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
@@ -1561,6 +1660,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
@@ -1574,7 +1674,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--free">FREE</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 300코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🪐 베다 점성술</span>
@@ -1590,6 +1690,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/olympus.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 300코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">⚡ 올림푸스 신탁</span>
@@ -1645,6 +1746,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌸 운명의 꽃</span>
@@ -1659,6 +1761,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--nebula">NEBULA</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 꽃</span>
@@ -1673,6 +1776,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">ZIWEI</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌺 자미두수 꽃</span>
@@ -1687,6 +1791,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--sukuyo">SUKUYO</span>
+                    <span class="tarot-tile__coin-badge">🔓 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌙 숙요 꽃</span>
@@ -1701,6 +1806,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/heamong.webp" data-img-alt="드림 타로 해몽 — AI 꿈 해석 리포트">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌙 드림 타로</span>
@@ -1715,6 +1821,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/phydream.webp" data-img-alt="정신분석 해몽 — 프로이트 관점의 보고서">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🕯️</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🕯️ 정신분석 해몽</span>
@@ -3466,14 +3573,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
-    <section aria-label="사업자 정보 및 환불 규정" style="width:min(92%,760px);margin:0 auto 12px;padding:10px 12px;border:1px solid rgba(183,240,255,.35);border-radius:12px;background:linear-gradient(135deg,rgba(12,22,37,.82),rgba(20,14,30,.86));box-shadow:inset 0 1px 0 rgba(255,255,255,.05);text-align:left;">
-      <p style="margin:0 0 7px;font-size:.74rem;letter-spacing:.04em;color:#b7f0ff;font-weight:700;">사업자 정보</p>
-      <p style="margin:0 0 4px;font-size:.74rem;line-height:1.55;color:#b7c6d2;"><strong style="color:#d8efff;">상호명</strong> 코드 데스니티 (Code Destiny)</p>
-      <p style="margin:0 0 4px;font-size:.74rem;line-height:1.55;color:#b7c6d2;"><strong style="color:#d8efff;">대표자</strong> 박병하</p>
-      <p style="margin:0 0 4px;font-size:.74rem;line-height:1.55;color:#b7c6d2;"><strong style="color:#d8efff;">사업자등록번호</strong> 372-23-02329</p>
-      <p style="margin:0 0 8px;font-size:.74rem;line-height:1.55;color:#b7c6d2;"><strong style="color:#d8efff;">사업장 주소</strong> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</p>
-      <p style="margin:0;padding-top:7px;border-top:1px solid rgba(183,240,255,.22);font-size:.74rem;line-height:1.62;color:#ffd2da;"><strong style="color:#ffe3e8;">환불 규정</strong> 운세 서비스는 디지털 콘텐츠 특성상 결과 조회 또는 서비스 이용이 시작된 이후에는 환불이 불가능합니다.</p>
-    </section>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
       <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관 Terms of Service</a>
@@ -3603,8 +3702,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 <script>
 (function () {
-  var PAYMENT_API_READY = false;
-  var GOLDEN_GRAIN_STORAGE_KEY = 'goldenPigCoinBalanceV1';
   var userBalance = 0;
   var selectedPackageId = 'sample';
   var consumeInFlight = false;
@@ -3651,17 +3748,34 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     return !!getAuthToken();
   }
 
-  function loadBalance() {
+  function readAuthUser() {
     try {
-      var stored = Number(localStorage.getItem(GOLDEN_GRAIN_STORAGE_KEY));
-      if (Number.isFinite(stored) && stored >= 0) userBalance = stored;
+      var raw = localStorage.getItem('fortune_auth_user');
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return parsed;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function syncAuthUserPoints(points) {
+    try {
+      var user = readAuthUser() || {};
+      user.points = Number(points || 0);
+      localStorage.setItem('fortune_auth_user', JSON.stringify(user));
     } catch (_e) {}
   }
 
+  function loadBalance() {
+    var user = readAuthUser();
+    var points = Number(user && user.points);
+    userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
+  }
+
   function saveBalance() {
-    try {
-      localStorage.setItem(GOLDEN_GRAIN_STORAGE_KEY, String(userBalance));
-    } catch (_e) {}
+    syncAuthUserPoints(userBalance);
   }
 
   function GoldenGrainBadge() {
@@ -3679,29 +3793,24 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   function ChargeModal() {
     var root = document.getElementById('goldenGrainChargeModalRoot');
     if (!root) return;
-    var paymentReady = (typeof PAYMENT_API_READY === 'boolean') ? PAYMENT_API_READY : true;
-    var chargeDisabled = !paymentReady;
-    var chargeButtonLabel = paymentReady ? '선택한 패키지 결제하고 충전하기' : '결제 API 준비중';
-    var chargeButtonDisabled = chargeDisabled ? ' disabled' : '';
-    var chargeNotice = chargeDisabled
-      ? '<div class="golden-grain-modal__notice">현재 실제 결제 API 연동 전 단계입니다. 충전은 곧 오픈됩니다.</div>'
-      : '';
+    var chargeButtonLabel = '🛍️ 공식 포인트 충전소로 이동';
+    var chargeNotice = '<div class="golden-grain-modal__notice">✅ 결제 완료 건만 정책에 맞춰 즉시 반영됩니다.</div>';
     var packageItems = goldenPackages.map(function (pkg) {
       var baseCoins = Number(pkg.coins || 0);
       var bonusCoins = Number(pkg.bonus || 0);
       var totalCoins = baseCoins + bonusCoins;
-      var bestRibbon = pkg.id === 'emperorReserve' ? '<span class="golden-grain-package__best">BEST 혜택</span>' : '';
-      var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">보너스 +' + pkg.bonus + '코인</span>' : '';
+      var bestRibbon = pkg.id === 'emperorReserve' ? '<span class="golden-grain-package__best">🔥 BEST 혜택</span>' : '';
+      var bonusHTML = pkg.bonus > 0 ? '<span class="golden-grain-package__bonus">🎁 보너스 +' + pkg.bonus + '코인</span>' : '';
       return [
         '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
         bestRibbon,
         '  <span class="golden-grain-package__top">',
         '    <span class="golden-grain-package__name">' + pkg.name + '</span>',
-        '    <span class="golden-grain-package__coin">+' + baseCoins.toLocaleString('ko-KR') + '코인</span>',
+        '    <span class="golden-grain-package__coin">🪙 +' + baseCoins.toLocaleString('ko-KR') + '코인</span>',
         '  </span>',
         '  <span class="golden-grain-package__meta">',
         '    <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
-        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인</span>',
+        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인 ✨</span>',
         '  </span>',
         bonusHTML,
         '</button>'
@@ -3712,13 +3821,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
       '  <div class="golden-grain-modal__card">',
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
-      '    <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/honeypig-96.webp" srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="84px" width="84" height="84" alt=""></div>',
-      '    <h3 id="goldenChargeTitle" class="golden-grain-modal__title">황금 돼지 저금통 충전소</h3>',
-      '    <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
-      '    <div class="golden-grain-packages">' + packageItems + '</div>',
-      '    <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge"' + chargeButtonDisabled + '>' + chargeButtonLabel + '</button>',
+      '    <div class="golden-grain-modal__head">',
+      '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/honeypig-96.webp" srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="84px" width="84" height="84" alt=""></div>',
+      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title">🐷✨ 황금 돼지 저금통 충전소</h3>',
+      '      <p class="golden-grain-modal__subtitle">💫 동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
+      '    </div>',
+      '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
+      '    <div class="golden-grain-modal__cta">',
+      '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
-      '    <div class="golden-grain-modal__footer-copy">최상위 단계가 가장 큰 보너스를 제공합니다.</div>',
+      '      <div class="golden-grain-modal__footer-copy">👑 최상위 단계가 가장 큰 보너스를 제공합니다.</div>',
+      '    </div>',
       '  </div>',
       '</div>'
     ].join('');
@@ -3811,43 +3924,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   async function applyCharge() {
-    if (!PAYMENT_API_READY) {
-      window.alert('실제 결제 API 연동 전이라 지금은 황금 돼지 코인을 충전할 수 없어요.');
+    if (!hasAuthToken()) {
+      window.alert('로그인이 필요합니다. 로그인 후 공식 포인트 충전소에서 결제를 진행해 주세요.');
+      window.location.href = '/login?next=%2Fpoints';
       return;
     }
 
-    var selected = getSelectedPackage();
-    var addCoins = (selected.coins || 0) + (selected.bonus || 0);
-
-    if (hasAuthToken()) {
-      try {
-        var result = await fetchJsonWithAuth('/api/fortune/pig-coin/charge-simulate', {
-          method: 'POST',
-          body: JSON.stringify({ packageId: selected.id }),
-        });
-
-        if (!result.ok) {
-          if (result.status === 401) {
-            window.alert('로그인 세션이 만료되어 로컬 코인 모드로 전환합니다. 다시 로그인하면 서버 잔액으로 동기화됩니다.');
-          } else {
-            window.alert((result.payload && result.payload.message) || '서버 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-            return;
-          }
-        } else {
-          userBalance = Number(((result.payload || {}).user || {}).points || 0);
-          saveBalance();
-          updateBadge();
-          closeChargeModal();
-          window.alert(selected.name + ' 충전 완료! +' + addCoins + '코인이 보관됐어요.');
-          // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
-          return;
-        }
-      } catch (error) {
-        console.error('[golden-pig-coin] charge simulate failed', error);
-      }
-    }
-
-    window.alert('실제 결제 API 연동 전이라 충전이 비활성화되어 있습니다.');
+    closeChargeModal();
+    window.location.href = '/points';
   }
 
   async function tryUnlockFeature(button) {
@@ -3863,58 +3947,48 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var confirmed = window.confirm('황금 돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
-    if (hasAuthToken()) {
-      if (consumeInFlight) return;
-      consumeInFlight = true;
-      try {
-        var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
-          method: 'POST',
-          body: JSON.stringify({
-            cost: cost,
-            featureKey: featureKey,
-            reason: '유료 섹션 잠금 해제 코인 차감',
-          }),
-        });
-
-        if (result.status === 402) {
-          window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
-          openChargeModal();
-          return;
-        }
-
-        if (!result.ok) {
-          window.alert((result.payload && result.payload.message) || '잠금 해제 처리에 실패했습니다.');
-          return;
-        }
-
-        userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
-        saveBalance();
-        updateBadge();
-        unlockedFeatureMap[featureKey] = true;
-        UnlockButton(button);
-        window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
-        // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
-        return;
-      } catch (error) {
-        console.error('[golden-pig-coin] consume failed', error);
-      } finally {
-        consumeInFlight = false;
-      }
-    }
-
-    if (userBalance < cost) {
-      window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
-      openChargeModal();
+    if (!hasAuthToken()) {
+      window.alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
+      window.location.href = '/login?next=%2F';
       return;
     }
 
-    userBalance -= cost;
-    saveBalance();
-    updateBadge();
-    unlockedFeatureMap[featureKey] = true;
-    UnlockButton(button);
-    window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
-    // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+    if (consumeInFlight) return;
+    consumeInFlight = true;
+    try {
+      var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        body: JSON.stringify({
+          cost: cost,
+          featureKey: featureKey,
+          reason: '유료 섹션 잠금 해제 코인 차감',
+        }),
+      });
+
+      if (result.status === 402) {
+        window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+        openChargeModal();
+        return;
+      }
+
+      if (!result.ok) {
+        window.alert((result.payload && result.payload.message) || '잠금 해제 처리에 실패했습니다.');
+        return;
+      }
+
+      userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
+      saveBalance();
+      updateBadge();
+      unlockedFeatureMap[featureKey] = true;
+      UnlockButton(button);
+      window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
+      // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
+      return;
+    } catch (error) {
+      console.error('[golden-pig-coin] consume failed', error);
+    } finally {
+      consumeInFlight = false;
+    }
   }
 
   document.addEventListener('click', function (event) {
@@ -3957,6 +4031,51 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
+  void syncBalanceFromServer();
+
+  window.__cdSetGoldenBalance = function (points) {
+    var next = Number(points);
+    if (!Number.isFinite(next) || next < 0) return;
+    userBalance = next;
+    saveBalance();
+    updateBadge();
+  };
+  window.__cdRefreshGoldenBalance = function () {
+    void syncBalanceFromServer();
+  };
+
+  // Auth 상태 재확인 (인라인 스크립트 보조)
+  if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();
+
+  // 로그인/회원가입 후 메인 복귀 환영 토스트
+  (function () {
+    try {
+      var who = sessionStorage.getItem('fortune_just_logged_in');
+      if (!who) return;
+      sessionStorage.removeItem('fortune_just_logged_in');
+      var toast = document.createElement('div');
+      toast.setAttribute('style',
+        'position:fixed;top:70px;right:16px;z-index:9999;padding:14px 20px;border-radius:16px;' +
+        'background:linear-gradient(135deg,rgba(124,58,237,0.95),rgba(168,85,247,0.9));' +
+        'color:#fff;font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(124,58,237,0.4);' +
+        'border:1px solid rgba(255,255,255,0.15);line-height:1.6;pointer-events:none;' +
+        'transform:translateY(-10px);opacity:0;transition:transform 0.35s ease,opacity 0.35s ease;'
+      );
+      toast.textContent = '✦ ' + who + '님, 별빛 여정에 오신 것을 환영합니다!';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          toast.style.transform = 'translateY(0)';
+          toast.style.opacity = '1';
+        });
+      });
+      setTimeout(function () {
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.opacity = '0';
+        setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+      }, 4500);
+    } catch (_) {}
+  })();
 })();
 </script>
 
