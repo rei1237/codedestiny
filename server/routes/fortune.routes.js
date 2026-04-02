@@ -279,7 +279,7 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
 
     const isTimely = tier !== "free" && expAt && new Date(expAt) > new Date();
     // standard는 추가로 코인 잔액 > 0 조건 필요
-    const isActive = isTimely && (tier !== "standard" || points > 0);
+    const isActive = isTimely && points > 0;
 
     const plan = PROFILE_SUB_PLANS[tier];
     const effectiveTier  = isActive ? tier  : "free";

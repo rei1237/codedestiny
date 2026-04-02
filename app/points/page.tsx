@@ -338,8 +338,8 @@ function SubscriptionSection({
         {subscription.isActive && expires && (
           <p className="mt-0.5 text-xs text-[#7A5230]">{expires} 까지 유효</p>
         )}
-        {subscription.tier === "standard" && subscription.isActive && (
-          <p className="mt-1 text-xs text-amber-700">⚠️ 스탠다드 플랜: 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
+        {subscription.isActive && subscription.tier !== "free" && (
+          <p className="mt-1 text-xs text-amber-700">⚠️ 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
         )}
       </div>
 
