@@ -3,12 +3,9 @@ const express = require("express");
 const User = require("../models/User");
 const PointHistory = require("../models/PointHistory");
 const { requireAuth } = require("../middleware/auth.middleware");
-const { requireSufficientPoints } = require("../middleware/point.middleware");
 
 const router = express.Router();
 
-const FORTUNE_COST_POINTS = Number(process.env.DEFAULT_FORTUNE_COST_POINTS || 1000);
-const FORTUNE_FEATURE_KEY = "saju-report";
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
 
@@ -21,89 +18,59 @@ const PIG_COIN_PACKAGES = {
   luckyMeal: {
     name: "행운의 한 끼",
     coins: 100,
-    bonus: 10,
+    bonus: 15,
   },
   goldBarn: {
     name: "황금 돼지 곳간",
     coins: 300,
-    bonus: 50,
+    bonus: 60,
+  },
+  goldVault: {
+    name: "황금 돼지 금고",
+    coins: 700,
+    bonus: 180,
+  },
+  emperorReserve: {
+    name: "황금 돼지 제왕 보물고",
+    coins: 1500,
+    bonus: 500,
   },
 };
 
 router.use(requireAuth);
 
-router.get(
-  "/check",
-  requireSufficientPoints(FORTUNE_COST_POINTS, {
-    message: "포인트가 부족합니다.",
-    rechargeUrl: "/points",
-  }),
-  async (req, res) => {
-    return res.status(200).json({
-      message: "운세 조회 가능 포인트가 확인되었습니다.",
-      requiredPoints: FORTUNE_COST_POINTS,
-      currentPoints: Number(req.pointGate?.currentPoints || 0),
-    });
-  },
-);
+router.get("/check", async (req, res) => {
+  return res.status(200).json({
+    message: "사주 풀이는 현재 무료로 제공됩니다.",
+    requiredPoints: 0,
+    currentPoints: null,
+    isFree: true,
+  });
+});
 
-router.post(
-  "/consume",
-  requireSufficientPoints(FORTUNE_COST_POINTS, {
-    message: "포인트가 부족합니다.",
-    rechargeUrl: "/points",
-  }),
-  async (req, res, next) => {
-    try {
-      const reason = String(req.body?.reason || "사주 운세 조회 포인트 차감").slice(0, 120);
+router.post("/consume", async (req, res, next) => {
+  try {
+    const user = await User.findById(req.auth.userId)
+      .select("points")
+      .lean();
 
-      const updatedUser = await User.findOneAndUpdate(
-        {
-          _id: req.auth.userId,
-          points: { $gte: FORTUNE_COST_POINTS },
-        },
-        {
-          $inc: { points: -FORTUNE_COST_POINTS },
-        },
-        {
-          new: true,
-          projection: { points: 1 },
-        },
-      ).lean();
-
-      if (!updatedUser) {
-        return res.status(402).json({
-          message: "포인트가 부족합니다.",
-          requiredPoints: FORTUNE_COST_POINTS,
-          rechargeUrl: "/points",
-        });
-      }
-
-      await PointHistory.create({
-        userId: req.auth.userId,
-        kind: "deduct",
-        delta: -FORTUNE_COST_POINTS,
-        balanceAfter: Number(updatedUser.points || 0),
-        reason,
-        featureKey: FORTUNE_FEATURE_KEY,
-        metadata: {
-          source: "fortune.consume",
-        },
-      });
-
-      return res.status(200).json({
-        message: `${FORTUNE_COST_POINTS.toLocaleString("ko-KR")} 포인트가 차감되었습니다.`,
-        requiredPoints: FORTUNE_COST_POINTS,
-        user: {
-          id: String(req.auth.userId),
-          points: Number(updatedUser.points || 0),
-        },
-      });
-    } catch (error) {
-      return next(error);
+    if (!user) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
-  },
-);
+
+    return res.status(200).json({
+      message: "사주 풀이는 현재 무료라 코인이 차감되지 않습니다.",
+      requiredPoints: 0,
+      isFree: true,
+      user: {
+        id: String(req.auth.userId),
+        points: Number(user.points || 0),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.get("/pig-coin/balance", async (req, res, next) => {
   try {

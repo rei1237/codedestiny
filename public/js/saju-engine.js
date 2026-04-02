@@ -3125,12 +3125,13 @@ function showJongVerificationModal(jongResult, p) {
 /* ═══════════════════════════════════════
    개인정보 동의 모달 제어
 ═══════════════════════════════════════ */
-var FORTUNE_COST_POINTS = 1000;
+var FORTUNE_COST_POINTS = 0;
 var __fortuneConsumeInFlight = false;
 
 function formatPointAmount(points){
   var n = Number(points || 0);
   if (!Number.isFinite(n)) n = 0;
+  if (n <= 0) return '무료';
   return n.toLocaleString('ko-KR') + 'P';
 }
 
@@ -3232,128 +3233,13 @@ function showFortuneConfirmModal(costPoints){
 }
 
 async function checkFortunePointEligibility(){
-  if (window.__SKIP_FORTUNE_POINT_GATE === true) return true;
-
-  var token = getFortuneAuthToken();
-  if (!token) {
-    if (isGuestFortuneModeEnabled()) {
-      updateFortunePointNotice();
-      return true;
-    }
-
-    var goLogin = window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?');
-    if (goLogin) redirectToLoginForFortune();
-    return false;
-  }
-
-  var confirmed = await showFortuneConfirmModal(FORTUNE_COST_POINTS);
-  if (!confirmed) return false;
-
-  try {
-    var response = await fetch(getFortuneApiBaseUrl() + '/api/fortune/check', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      }
-    });
-
-    var payload = {};
-    try { payload = await response.json(); } catch(e) {}
-
-    if (response.status === 401) {
-      alert(payload.message || '로그인이 만료되었습니다. 다시 로그인해 주세요.');
-      try {
-        localStorage.removeItem('fortune_auth_token');
-        localStorage.removeItem('fortune_auth_user');
-      } catch(e) {}
-      redirectToLoginForFortune();
-      return false;
-    }
-
-    if (response.status === 402) {
-      alert((payload && payload.message ? payload.message : '포인트가 부족합니다.') + '\n포인트 충전 페이지로 이동합니다.');
-      redirectToPointRecharge();
-      return false;
-    }
-
-    if (!response.ok) {
-      alert(payload.message || '포인트 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-      return false;
-    }
-
-    if (payload && typeof payload.currentPoints === 'number') {
-      updateFortunePointNotice(payload.currentPoints);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('[points] fortune check failed', error);
-    alert('포인트 서버와 통신하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  }
+  updateFortunePointNotice();
+  return true;
 }
 
 async function consumeFortunePointAfterCalculation(){
-  if (window.__SKIP_FORTUNE_POINT_GATE === true) return true;
-  if (__fortuneConsumeInFlight) return false;
-
-  var token = getFortuneAuthToken();
-  if (!token) {
-    if (isGuestFortuneModeEnabled()) return true;
-    return false;
-  }
-
-  __fortuneConsumeInFlight = true;
-  try {
-    var response = await fetch(getFortuneApiBaseUrl() + '/api/fortune/consume', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({
-        reason: '사주 분석 결과 조회 포인트 차감'
-      })
-    });
-
-    var payload = {};
-    try { payload = await response.json(); } catch(e) {}
-
-    if (response.status === 401) {
-      try {
-        localStorage.removeItem('fortune_auth_token');
-        localStorage.removeItem('fortune_auth_user');
-      } catch(e) {}
-      return false;
-    }
-
-    if (response.status === 402) {
-      alert((payload && payload.message ? payload.message : '포인트가 부족합니다.') + '\n포인트 충전 페이지로 이동합니다.');
-      redirectToPointRecharge();
-      return false;
-    }
-
-    if (!response.ok) {
-      alert(payload.message || '포인트 차감 처리 중 오류가 발생했습니다.');
-      return false;
-    }
-
-    if (payload && payload.user && typeof payload.user.points === 'number') {
-      var user = getStoredAuthUser();
-      if (user) {
-        user.points = payload.user.points;
-        try { localStorage.setItem('fortune_auth_user', JSON.stringify(user)); } catch(e) {}
-      }
-      updateFortunePointNotice(payload.user.points);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('[points] fortune consume failed', error);
-    return false;
-  } finally {
-    __fortuneConsumeInFlight = false;
-  }
+  updateFortunePointNotice();
+  return true;
 }
 
 async function checkPrivacyAndCalculate() {
