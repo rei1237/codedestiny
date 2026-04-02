@@ -4,6 +4,7 @@ import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
 import AuthWidget from "./components/AuthWidget";
+import { ToastProvider } from "./components/Toast";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
@@ -291,6 +292,7 @@ export default async function RootLayout({ children }) {
       <body>
         <AppVersionGuard />
         <WebVitalsConsole />
+        <ToastProvider />
         {/* 전역 인증 상태 헤더 */}
         <header
           style={{

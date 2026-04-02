@@ -377,6 +377,7 @@ router.post("/register", async (req, res, next) => {
       birthTime: sanitized.birthTime,
       gender: sanitized.gender,
       role: "user",
+      points: 50, // 신규 가입 축하 초기 포인트
       joinedAt: new Date(),
       localAuth: {
         enabled: true,

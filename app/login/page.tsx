@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { showToast } from "../components/Toast";
 
 declare global {
   interface Window {
@@ -28,6 +29,7 @@ type LoginResult = {
     birthTime: string;
     gender: string;
     role: "user" | "admin";
+    points?: number;
     joinedAt: string;
   };
 };
@@ -74,6 +76,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
     if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -93,6 +96,34 @@ export default function LoginPage() {
   const onChange = <K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  // 실시간 필드 유효성
+  const fieldValid = useMemo(
+    () => ({
+      email: emailRegex.test(form.email.trim()),
+      password: form.password.length >= 8,
+    }),
+    [form],
+  );
+
+  const markTouched = (field: string) =>
+    setFieldTouched((prev) => ({ ...prev, [field]: true }));
+
+  const ib = (field: keyof typeof fieldValid) => {
+    const base =
+      "w-full rounded-xl border bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 " +
+      "placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:ring-2 ";
+    if (!fieldTouched[field])
+      return base + "border-violet-200/20 focus:border-violet-300/70 focus:ring-violet-400/50";
+    if (fieldValid[field])
+      return base + "border-emerald-400/55 focus:border-emerald-400/70 focus:ring-emerald-400/30";
+    return base + "border-rose-400/55 focus:border-rose-400/70 focus:ring-rose-400/30";
+  };
+
+  const fe = (field: keyof typeof fieldValid, msg: string) =>
+    fieldTouched[field] && !fieldValid[field] ? (
+      <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
+    ) : null;
 
   const persistAuth = (token?: string, user?: LoginResult["user"]) => {
     if (token) {
@@ -243,26 +274,19 @@ export default function LoginPage() {
       }
 
       persistAuth(payload.token, payload.user);
-      setSuccess(payload.message || "로그인에 성공했습니다.");
+      const name = payload.user?.name ?? "님";
+      const pts = payload.user?.points ?? 0;
+      showToast(`✦ ${name}님, 환영합니다! 잔여 포인트: ${pts}P`, "success");
       setForm(INITIAL_FORM);
+      setFieldTouched({});
 
       const nextValue =
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("next")
           : null;
-      const nextPath = sanitizeNextPath(nextValue);
-
-      if (nextPath) {
-        router.replace(nextPath);
-        return;
-      }
-
-      if (payload.user?.role === "admin") {
-        router.replace("/admin");
-        return;
-      }
-
-      router.replace("/");
+      const resolvedNext = sanitizeNextPath(nextValue);
+      const loginDest = resolvedNext ?? (payload.user?.role === "admin" ? "/admin" : "/");
+      setTimeout(() => router.replace(loginDest), 600);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
@@ -290,36 +314,36 @@ export default function LoginPage() {
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <label className="block">
+              <div>
                 <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이메일</span>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => onChange("email", e.target.value)}
+                  onBlur={() => markTouched("email")}
                   placeholder="you@example.com"
-                  className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                  className={ib("email")}
                   autoComplete="email"
                 />
-              </label>
+                {fe("email", "올바른 이메일 형식을 입력해 주세요.")}
+              </div>
 
-              <label className="block">
+              <div>
                 <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호</span>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => onChange("password", e.target.value)}
+                  onBlur={() => markTouched("password")}
                   placeholder="비밀번호"
-                  className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                  className={ib("password")}
                   autoComplete="current-password"
                 />
-              </label>
+                {fe("password", "비밀번호를 다시 확인해 주세요.")}
+              </div>
 
               {error ? (
                 <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
-              ) : null}
-
-              {success ? (
-                <p className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{success}</p>
               ) : null}
 
               <button

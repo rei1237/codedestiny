@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { showToast } from "../components/Toast";
 
 declare global {
   interface Window {
@@ -33,6 +34,7 @@ type SignupResult = {
     birthTime: string;
     gender: string;
     role: "user" | "admin";
+    points?: number;
     joinedAt: string;
   };
 };
@@ -83,6 +85,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
     if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -114,6 +117,41 @@ export default function SignupPage() {
   const onChange = <K extends keyof SignupFormState>(key: K, value: SignupFormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  // 실시간 필드 유효성 상태
+  const fieldValid = useMemo(
+    () => ({
+      name: form.name.trim().length >= 2,
+      email: emailRegex.test(form.email.trim()),
+      password: form.password.length >= 8,
+      passwordConfirm:
+        form.passwordConfirm.length > 0 && form.password === form.passwordConfirm,
+      birthDate: !!form.birthDate,
+      birthTime: !!form.birthTime,
+    }),
+    [form],
+  );
+
+  const markTouched = (field: string) =>
+    setFieldTouched((prev) => ({ ...prev, [field]: true }));
+
+  // 입력필드 border 클래스 동적 기준
+  const ib = (field: keyof typeof fieldValid) => {
+    const base =
+      "w-full rounded-xl border bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 " +
+      "placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:ring-2 ";
+    if (!fieldTouched[field])
+      return base + "border-violet-200/20 focus:border-violet-300/70 focus:ring-violet-400/50";
+    if (fieldValid[field])
+      return base + "border-emerald-400/55 focus:border-emerald-400/70 focus:ring-emerald-400/30";
+    return base + "border-rose-400/55 focus:border-rose-400/70 focus:ring-rose-400/30";
+  };
+
+  // 필드 오류 메시지
+  const fe = (field: keyof typeof fieldValid, msg: string) =>
+    fieldTouched[field] && !fieldValid[field] ? (
+      <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
+    ) : null;
 
   // 이미 로그인된 사용자 → 홈으로 리다이렉트
   useEffect(() => {
@@ -274,9 +312,15 @@ export default function SignupPage() {
 
       persistAuth(payload.token, payload.user);
 
-      setSuccess(payload.message || "회원가입이 완료되었습니다.");
+      const name = payload.user?.name ?? "회원님";
+      const pts = payload.user?.points ?? 50;
+      showToast(
+        `✦ 환영합니다 ${name}! 별빛 여정을 시작합니다 — ${pts}P 지급 완료!`,
+        "success",
+      );
       setForm(INITIAL_FORM);
-      router.replace("/");
+      setFieldTouched({});
+      setTimeout(() => router.replace("/"), 700);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";
       setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
@@ -312,94 +356,115 @@ export default function SignupPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block sm:col-span-2">
+                {/* 이름 */}
+                <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이름</span>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => onChange("name", e.target.value)}
+                    onBlur={() => markTouched("name")}
                     placeholder="홍길동"
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    className={ib("name")}
                     autoComplete="name"
                   />
-                </label>
+                  {fe("name", "이름은 최소 2자 이상 입력해 주세요.")}
+                </div>
 
-                <label className="block sm:col-span-2">
+                {/* 이메일 */}
+                <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이메일</span>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => onChange("email", e.target.value)}
+                    onBlur={() => markTouched("email")}
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    className={ib("email")}
                     autoComplete="email"
                   />
-                </label>
+                  {fe("email", "올바른 이메일 형식을 입력해 주세요.")}
+                </div>
 
-                <label className="block sm:col-span-2">
+                {/* 비밀번호 */}
+                <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호</span>
                   <input
                     type="password"
                     value={form.password}
                     onChange={(e) => onChange("password", e.target.value)}
+                    onBlur={() => markTouched("password")}
                     placeholder="최소 8자 이상"
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    className={ib("password")}
                     autoComplete="new-password"
                   />
-                </label>
+                  {fe("password", "비밀번호는 최소 8자 이상이어야 합니다.")}
+                </div>
 
-                <label className="block sm:col-span-2">
+                {/* 비밀번호 확인 */}
+                <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호 확인</span>
                   <input
                     type="password"
                     value={form.passwordConfirm}
                     onChange={(e) => onChange("passwordConfirm", e.target.value)}
+                    onBlur={() => markTouched("passwordConfirm")}
                     placeholder="비밀번호를 다시 입력해 주세요"
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    className={ib("passwordConfirm")}
                     autoComplete="new-password"
                   />
-                </label>
+                  {fe("passwordConfirm", "비밀번호가 일치하지 않습니다.")}
+                </div>
 
-                <label className="block">
+                {/* 생년월일 */}
+                <div>
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">생년월일</span>
                   <input
                     type="date"
                     value={form.birthDate}
                     onChange={(e) => onChange("birthDate", e.target.value)}
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    onBlur={() => markTouched("birthDate")}
+                    className={ib("birthDate")}
                   />
-                </label>
+                  {fe("birthDate", "생년월일을 선택해 주세요.")}
+                </div>
 
-                <label className="block">
+                {/* 태어난 시간 */}
+                <div>
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">태어난 시간</span>
                   <input
                     type="time"
                     value={form.birthTime}
                     onChange={(e) => onChange("birthTime", e.target.value)}
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    onBlur={() => markTouched("birthTime")}
+                    className={ib("birthTime")}
                   />
-                </label>
+                  {fe("birthTime", "태어난 시간을 선택해 주세요.")}
+                </div>
 
-                <label className="block sm:col-span-2">
+                {/* 성별 */}
+                <div className="sm:col-span-2">
                   <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">성별</span>
                   <select
                     value={form.gender}
                     onChange={(e) => onChange("gender", e.target.value as SignupFormState["gender"])}
-                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:shadow-violet-neon-focus focus:ring-2 focus:ring-violet-400/50"
+                    className="w-full rounded-xl border border-violet-200/20 bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 outline-none transition-all duration-300 focus:border-violet-300/70 focus:ring-2 focus:ring-violet-400/50"
                   >
                     <option value="OTHER">기타 / 응답하지 않음</option>
                     <option value="F">여성</option>
                     <option value="M">남성</option>
                   </select>
-                </label>
+                </div>
+              </div>
+
+              {/* 신규가입 혜택 안내 */}
+              <div className="flex items-center gap-2 rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3.5 py-2.5">
+                <span className="text-sm text-fuchsia-200">✦</span>
+                <p className="text-xs text-fuchsia-100/90">신규 가입 시 <strong>50P</strong>가 무료 지급됩니다!</p>
               </div>
 
               {error ? (
                 <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
-              ) : null}
-
-              {success ? (
-                <p className="rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{success}</p>
               ) : null}
 
               <button

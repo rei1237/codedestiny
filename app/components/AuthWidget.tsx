@@ -19,6 +19,7 @@ type AuthUser = {
   name: string;
   email: string;
   role: "user" | "admin";
+  points?: number;
 };
 
 function readAuthUser(): AuthUser | null {
@@ -86,8 +87,9 @@ export default function AuthWidget() {
         <Link
           href="/points"
           className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
+          title="포인트 충전/내역"
         >
-          포인트
+          ✦ {(user.points ?? 0).toLocaleString()}P
         </Link>
         <button
           type="button"
