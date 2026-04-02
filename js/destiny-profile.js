@@ -564,7 +564,9 @@
 
     requestAnimationFrame(function() {
       try {
-        container.innerHTML = list.map(function(p, idx) {
+        var lockedNotice = '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필은 계정당 1개이며, 수정·삭제할 수 없습니다.</div>';
+
+    container.innerHTML = list.map(function(p, idx) {
           var safe = p || {};
           var b = safe.birth || {};
           var l = safe.location || {};
@@ -609,9 +611,9 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
-            + '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
-          + '</div>';
-        }).join('');
+            + '</div>';
+          /* ★ 삭제 버튼 제거: 프로필 1개 고정 정책 */
+        }).join('') + lockedNotice;
       } catch (err) {
         console.error('[DP] renderProfileList failed', err);
         container.innerHTML = '<div class="dp-list-empty">프로필 목록을 표시할 수 없습니다.<br><small>새로고침 후 다시 시도해주세요.</small></div>';
@@ -650,16 +652,10 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    /* 동명 동일 날짜 중복 방지 */
-    var existing = DPStorage.list().find(function(p) {
-      return p.name === data.name
-        && p.birth.year === data.birth.year
-        && p.birth.month === data.birth.month
-        && p.birth.day === data.birth.day;
-    });
-    if (existing) {
-      if (!confirm('"' + data.name + '"의 동일 날짜 프로필이 있습니다. 덮어쓸까요?')) return;
-      DPStorage.remove(existing.id);
+    /* ★ 계정당 프로필 1개 제한: 이미 저장된 프로필이 있으면 추가 저장 차단 */
+    if (DPStorage.list().length > 0) {
+      alert('프로필은 계정당 하나만 저장할 수 있습니다.\n한 번 저장된 생년월일 정보는 수정·삭제할 수 없습니다.');
+      return;
     }
     var saved = DPStorage.add(data);
     DPStorage.setCurrent(saved.id);
@@ -733,13 +729,8 @@
   };
 
   window.dpDeleteProfile = function(id) {
-    var p = DPStorage.list().find(function(x) { return x.id === id; });
-    if (!p) return;
-    if (!confirm('"' + p.name + '" 프로필을 삭제할까요?')) return;
-    DPStorage.remove(id);
-    renderProfileList();
-    renderMasterCard(DPStorage.current());
-    broadcastProfileChange(DPStorage.current());
+    /* ★ 프로필 삭제 차단: 계정당 하나의 생년월일로만 콘텐츠 접근 가능 */
+    alert('프로필은 한 번 저장하면 삭제할 수 없습니다.\n한 계정의 생년월일 정보로만 해금 콘텐츠에 접근할 수 있습니다.');
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
@@ -1260,6 +1251,17 @@
     dpCloseList();
 
     renderMasterCard(DPStorage.current());
+
+    /* ★ 이미 프로필이 있으면 저장 버튼 비활성화 (생년월일 고정) */
+    if (DPStorage.list().length > 0) {
+      var dpSaveBtnEl = document.getElementById('dpSaveBtn');
+      if (dpSaveBtnEl) {
+        dpSaveBtnEl.disabled = true;
+        dpSaveBtnEl.textContent = '✦ 프로필 저장 완료 (수정 불가)';
+        dpSaveBtnEl.style.opacity = '0.45';
+        dpSaveBtnEl.style.cursor = 'not-allowed';
+      }
+    }
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {
