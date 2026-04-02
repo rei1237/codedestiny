@@ -99,6 +99,17 @@ const userSchema = new mongoose.Schema({
    *   서버 재시작에도 어느 정도 동작을 유지하기 위해 DB 값도 보조로 둔다.
    */
   adminLastActivityAt: { type: Date, default: null },
+  /**
+   * 프로필 카드 다중 구독
+   * - free: 프로필 1개
+   * - standard(9,900원 상당 115코인/월): 프로필 3개, 코인 잔액 > 0 조건
+   * - premium(29,900원 상당 360코인/월): 프로필 무제한
+   */
+  profileSubscription: {
+    tier:      { type: String, enum: ["free", "standard", "premium"], default: "free" },
+    startedAt: { type: Date, default: null },
+    expiresAt: { type: Date, default: null },
+  },
 }, {
   timestamps: true,
 });

@@ -248,4 +248,119 @@ router.post("/pig-coin/consume", async (req, res, next) => {
   }
 });
 
+/* ─────────────────────────────────────────────────────────────────
+   프로필 구독 플랜
+   coins: 실제 차감 코인 수 (9,900원 = 115코인, 29,900원 = 360코인)
+   profileLimit: 최대 프로필 수 (0 = 무제한)
+───────────────────────────────────────────────────────────────── */
+const PROFILE_SUB_PLANS = {
+  standard: { name: "스탠다드 (프로필 3개)", coins: 115,  profileLimit: 3,        durationDays: 30 },
+  premium:  { name: "프리미엄 (프로필 무제한)", coins: 360, profileLimit: 0,      durationDays: 30 },
+};
+
+/* GET /api/fortune/pig-coin/profile-subscription/status */
+router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
+  try {
+    if (req.auth?.role === "admin") {
+      return res.status(200).json({
+        tier: "premium", isActive: true, expiresAt: null, profileLimit: 0, adminUnlocked: true,
+      });
+    }
+
+    const user = await User.findById(req.auth.userId)
+      .select("points profileSubscription")
+      .lean();
+    if (!user) return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+
+    const sub   = user.profileSubscription || {};
+    const tier  = sub.tier || "free";
+    const expAt = sub.expiresAt || null;
+    const points = Number(user.points || 0);
+
+    const isTimely = tier !== "free" && expAt && new Date(expAt) > new Date();
+    // standard는 추가로 코인 잔액 > 0 조건 필요
+    const isActive = isTimely && (tier !== "standard" || points > 0);
+
+    const plan = PROFILE_SUB_PLANS[tier];
+    const effectiveTier  = isActive ? tier  : "free";
+    const profileLimit   = isActive ? (plan?.profileLimit ?? 1) : 1;
+
+    return res.status(200).json({
+      tier:         effectiveTier,
+      isActive:     !!isActive,
+      expiresAt:    expAt ? new Date(expAt).toISOString() : null,
+      profileLimit,
+      points,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/* POST /api/fortune/pig-coin/profile-subscription/subscribe
+   body: { tier: 'standard' | 'premium' }
+*/
+router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) => {
+  try {
+    const reqTier = String(req.body?.tier || "").trim();
+    const plan = PROFILE_SUB_PLANS[reqTier];
+    if (!plan) {
+      return res.status(400).json({ message: "지원하지 않는 구독 플랜입니다." });
+    }
+
+    if (req.auth?.role === "admin") {
+      return res.status(200).json({
+        message: `관리자 모드: ${plan.name} 구독 (코인 차감 없음)`,
+        adminUnlocked: true,
+        subscription: { tier: reqTier, isActive: true, expiresAt: null, profileLimit: plan.profileLimit },
+        user: { points: 9_999_999 },
+      });
+    }
+
+    const cost = plan.coins;
+    const now  = new Date();
+    const expiresAt = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.auth.userId, points: { $gte: cost } },
+      {
+        $inc: { points: -cost },
+        $set: {
+          "profileSubscription.tier":      reqTier,
+          "profileSubscription.startedAt": now,
+          "profileSubscription.expiresAt": expiresAt,
+        },
+      },
+      { new: true, projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      return res.status(402).json({ message: "코인이 부족합니다.", requiredCoins: cost });
+    }
+
+    await PointHistory.create({
+      userId:       req.auth.userId,
+      kind:         "deduct",
+      delta:        -cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason:       `프로필 ${plan.name} 구독`,
+      featureKey:   "profile-subscription",
+      metadata:     { tier: reqTier, expiresAt: expiresAt.toISOString() },
+    });
+
+    return res.status(200).json({
+      message: `${plan.name} 구독이 시작되었습니다. (30일간 유효)`,
+      subscription: {
+        tier:         reqTier,
+        isActive:     true,
+        expiresAt:    expiresAt.toISOString(),
+        profileLimit: plan.profileLimit,
+      },
+      user: { points: Number(updatedUser.points || 0) },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 module.exports = router;

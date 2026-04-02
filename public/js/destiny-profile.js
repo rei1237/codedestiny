@@ -69,6 +69,83 @@
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
+  /* ── 프로필 구독 상태 (로드 후 갱신) ── */
+  var _dpSubTier         = 'free';   // 'free' | 'standard' | 'premium'
+  var _dpSubIsActive     = false;
+  var _dpSubProfileLimit = 1;        // 1 | 3 | Infinity (0 = unlimited)
+
+  /** localStorage 캐시에서 구독 상태를 읽어 변수 초기화 */
+  function _dpLoadSubCache() {
+    try {
+      var c = JSON.parse(localStorage.getItem('fortune_profile_subscription') || 'null');
+      if (!c || !c.isActive) return;
+      _dpSubTier         = c.tier         || 'free';
+      _dpSubIsActive     = !!c.isActive;
+      _dpSubProfileLimit = typeof c.profileLimit === 'number' ? (c.profileLimit === 0 ? Infinity : c.profileLimit) : 1;
+    } catch(e) {}
+  }
+
+  /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
+  function _fetchSubscription() {
+    var token = localStorage.getItem('fortune_auth_token');
+    if (!token) return;
+    fetch('/api/fortune/pig-coin/profile-subscription/status', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) {
+      if (!d) return;
+      _dpSubTier         = d.tier         || 'free';
+      _dpSubIsActive     = !!d.isActive;
+      var rawLimit       = typeof d.profileLimit === 'number' ? d.profileLimit : 1;
+      _dpSubProfileLimit = rawLimit === 0 ? Infinity : rawLimit;
+      try {
+        localStorage.setItem('fortune_profile_subscription', JSON.stringify({
+          tier:         _dpSubTier,
+          isActive:     _dpSubIsActive,
+          profileLimit: d.profileLimit, // rawNumber (0=무제한)
+          expiresAt:    d.expiresAt || null,
+        }));
+      } catch(e) {}
+      _dpUpdateSaveBtn();
+      renderProfileList();
+    })
+    .catch(function() {});
+  }
+
+  /** 현재 플랜에 따른 최대 프로필 수 반환 */
+  function _dpGetMaxProfiles() {
+    if (!_dpSubIsActive) _dpLoadSubCache();
+    if (!_dpSubIsActive) return 1;
+    return _dpSubProfileLimit; // Infinity or 3
+  }
+
+  /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
+  function _dpUpdateSaveBtn() {
+    var btn = document.getElementById('dpSaveBtn');
+    if (!btn) return;
+    var count = DPStorage.list().length;
+    var max   = _dpGetMaxProfiles();
+    if (count < max) {
+      btn.disabled       = false;
+      btn.textContent    = '✦ 프로필 저장';
+      btn.style.opacity  = '';
+      btn.style.cursor   = '';
+      btn.removeAttribute('title');
+    } else {
+      btn.disabled       = true;
+      btn.style.opacity  = '0.45';
+      btn.style.cursor   = 'not-allowed';
+      if (max <= 1) {
+        btn.textContent = '✦ 무료 플랜 한도 (1개) — 구독 업그레이드';
+        btn.title       = '/points 페이지에서 스탠다드 또는 프리미엄 구독 후 추가 등록 가능합니다.';
+      } else {
+        btn.textContent = '✦ 스탠다드 한도 (3개) — 프리미엄 업그레이드';
+        btn.title       = '/points 페이지에서 프리미엄 구독 후 무제한 등록 가능합니다.';
+      }
+    }
+  }
+
   function _resolveEventElement(target) {
     if (!target) return null;
     if (target.nodeType === 1) return target;
@@ -611,8 +688,11 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
+            + '</div>'
+            + (_dpGetMaxProfiles() > 1
+              ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
+              : '')
             + '</div>';
-          /* ★ 삭제 버튼 제거: 프로필 1개 고정 정책 */
         }).join('') + lockedNotice;
       } catch (err) {
         console.error('[DP] renderProfileList failed', err);
@@ -652,9 +732,15 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    /* ★ 계정당 프로필 1개 제한: 이미 저장된 프로필이 있으면 추가 저장 차단 */
-    if (DPStorage.list().length > 0) {
-      alert('프로필은 계정당 하나만 저장할 수 있습니다.\n한 번 저장된 생년월일 정보는 수정·삭제할 수 없습니다.');
+    /* ★ 구독 플랜에 따른 프로필 수 제한 */
+    var _cnt = DPStorage.list().length;
+    var _max = _dpGetMaxProfiles();
+    if (_cnt >= _max) {
+      if (_max <= 1) {
+        alert('무료 플랜은 프로필 1개까지 저장할 수 있습니다.\n더 많은 프로필이 필요하면 /points 페이지에서 구독을 업그레이드하세요.');
+      } else {
+        alert('스탠다드 플랜은 프로필 3개까지 저장할 수 있습니다.\n무제한 프로필이 필요하면 /points 페이지에서 프리미엄 구독으로 업그레이드하세요.');
+      }
       return;
     }
     var saved = DPStorage.add(data);
@@ -663,6 +749,7 @@
     renderMasterCard(DPStorage.current());
     renderProfileList();
     broadcastProfileChange(saved);
+    _dpUpdateSaveBtn();
     _toast('귀사는 귀중한 개인정보를 수집하지 않으며, 생년월일 정보는 오직 고객님의 로컬 데이터(기기 브라우저)에만 저장됩니다.', 'privacy');
   };
 
@@ -729,8 +816,19 @@
   };
 
   window.dpDeleteProfile = function(id) {
-    /* ★ 프로필 삭제 차단: 계정당 하나의 생년월일로만 콘텐츠 접근 가능 */
-    alert('프로필은 한 번 저장하면 삭제할 수 없습니다.\n한 계정의 생년월일 정보로만 해금 콘텐츠에 접근할 수 있습니다.');
+    /* ★ 구독자는 삭제 허용, 무료 플랜은 차단 */
+    if (_dpGetMaxProfiles() <= 1) {
+      alert('무료 플랜에서는 프로필을 삭제할 수 없습니다.\n/points 페이지에서 구독 업그레이드 후 프로필 관리가 가능합니다.');
+      return;
+    }
+    var p = DPStorage.list().find(function(x) { return x.id === id; });
+    if (!p) return;
+    if (!confirm('"' + p.name + '" 프로필을 삭제할까요?')) return;
+    DPStorage.remove(id);
+    renderProfileList();
+    renderMasterCard(DPStorage.current());
+    broadcastProfileChange(DPStorage.current());
+    _dpUpdateSaveBtn();
   };
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
@@ -1252,16 +1350,10 @@
 
     renderMasterCard(DPStorage.current());
 
-    /* ★ 이미 프로필이 있으면 저장 버튼 비활성화 (생년월일 고정) */
-    if (DPStorage.list().length > 0) {
-      var dpSaveBtnEl = document.getElementById('dpSaveBtn');
-      if (dpSaveBtnEl) {
-        dpSaveBtnEl.disabled = true;
-        dpSaveBtnEl.textContent = '✦ 프로필 저장 완료 (수정 불가)';
-        dpSaveBtnEl.style.opacity = '0.45';
-        dpSaveBtnEl.style.cursor = 'not-allowed';
-      }
-    }
+    /* ★ 구독 플랜 기반 저장 버튼 초기화 */
+    _dpLoadSubCache();
+    _dpUpdateSaveBtn();
+    _fetchSubscription(); // API 로드 후 재검증
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {
