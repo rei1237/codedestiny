@@ -638,38 +638,95 @@ window.switchMode = async function(mode) {
       alert('먼저 관상 분석을 완료해주세요.');
       return;
     }
-    compatMode = true;
 
-    // UI 리셋하되 궁합 상태는 유지
-    isAnalyzing = false;
-    analysisComplete = false;
-    landmarksData = null;
-    document.getElementById('phyResult').style.display = 'none';
-    document.getElementById('scanOverlay').style.display = 'none';
-    document.getElementById('captureBtn').style.display = 'none';
-    document.getElementById('expertReportContainer').innerHTML = '';
+    // ── 관상 궁합 50코인 게이트 ──
+    (async function () {
+      var authToken = '';
+      try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (e) {}
+      if (!authToken) {
+        if (window.confirm('🔒 관상 궁합은 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
+          window.location.href = '/login?next=%2F';
+        }
+        return;
+      }
+      var userObj = null;
+      try { userObj = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); } catch (e) {}
+      var balance = Number((userObj && userObj.points) || 0);
+      var COMPAT_COST = 50;
+      if (balance < COMPAT_COST) {
+        if (window.confirm('황금 돼지 코인이 부족해요 🐷\n관상 궁합 이용: ' + COMPAT_COST + '코인 필요\n현재 보유: ' + balance + '코인\n충전 창을 여시겠습니까?')) {
+          if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+        }
+        return;
+      }
+      if (!window.confirm('💕 관상 궁합 보기\n' + COMPAT_COST + '코인을 사용합니다.\n(현재 보유: ' + balance + '코인)\n진행하시겠습니까?')) return;
 
-    const imgEl = document.getElementById('phyImage');
-    if(imgEl) {
-      imgEl.src = '';
-      imgEl.onload = null;
-    }
-    if(canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      try {
+        var apiBase = (window.CODE_DESTINY_API_BASE_URL || '').replace(/\/+$/, '') || location.origin;
+        var resp = await fetch(apiBase + '/api/fortune/pig-coin/consume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+          body: JSON.stringify({ cost: COMPAT_COST, reason: '관상 궁합 이용' }),
+        });
+        var data = {};
+        try { data = await resp.json(); } catch (_e) {}
+        if (resp.status === 402) {
+          if (window.confirm('황금 돼지 코인이 부족해요 🐷\n충전 창을 여시겠습니까?')) {
+            if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
+          }
+          return;
+        }
+        if (!resp.ok) {
+          window.alert((data && data.message) || '코인 차감에 실패했습니다.');
+          return;
+        }
+        var newPoints = (data && data.user && typeof data.user.points === 'number') ? data.user.points : Math.max(0, balance - COMPAT_COST);
+        try {
+          var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+          u.points = newPoints;
+          localStorage.setItem('fortune_auth_user', JSON.stringify(u));
+        } catch (_e) {}
+        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newPoints);
+      } catch (err) {
+        console.error('[관상 궁합 coin gate]', err);
+        window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
 
-    // 궁합 안내 상태 텍스트
-    document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
-      <div style="font-size:1.1rem; font-weight:800; color:#f472b6; margin-bottom:6px;">💕 궁합 분석 모드</div>
-      <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
-      <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
-    </div>`;
+      // 코인 차감 성공 → 궁합 모드 시작
+      compatMode = true;
 
-    // 파일 모드면 업로드 UI 다시 표시
-    if (currentMode === 'file') {
-      document.getElementById('fileUploadContainer').style.display = 'block';
-    } else {
-      // 카메라 모드면 카메라 재시작
-      if(camera) camera.start();
-    }
+      // UI 리셋하되 궁합 상태는 유지
+      isAnalyzing = false;
+      analysisComplete = false;
+      landmarksData = null;
+      document.getElementById('phyResult').style.display = 'none';
+      document.getElementById('scanOverlay').style.display = 'none';
+      document.getElementById('captureBtn').style.display = 'none';
+      document.getElementById('expertReportContainer').innerHTML = '';
+
+      const imgEl = document.getElementById('phyImage');
+      if(imgEl) {
+        imgEl.src = '';
+        imgEl.onload = null;
+      }
+      if(canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+      // 궁합 안내 상태 텍스트
+      document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
+        <div style="font-size:1.1rem; font-weight:800; color:#f472b6; margin-bottom:6px;">💕 궁합 분석 모드</div>
+        <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
+        <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
+      </div>`;
+
+      // 파일 모드면 업로드 UI 다시 표시
+      if (currentMode === 'file') {
+        document.getElementById('fileUploadContainer').style.display = 'block';
+      } else {
+        // 카메라 모드면 카메라 재시작
+        if(camera) camera.start();
+      }
+    })();
   }
 
   // 궁합 결과 렌더링
