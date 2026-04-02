@@ -104,7 +104,10 @@ jobs:
       - name: Build OpenNext (Next + Worker bundle + dist)
         run: npm run build:cf
 
-      - name: Deploy OpenNext Worker (custom domain / workers.dev)
+      # Worker deploy may fail if the API token lacks Zone Workers Routes permission.
+      # continue-on-error ensures Pages deploy always runs as the primary publish path.
+      - name: Deploy OpenNext Worker (workers.dev + custom domain)
+        continue-on-error: true
         run: npm run deploy:cf:worker
 
       - name: Deploy Cloudflare Pages (pages.dev parity, same build)

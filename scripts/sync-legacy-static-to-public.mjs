@@ -23,7 +23,6 @@ const staticTargets = [
   "styles",
   "fortune",
   "fuctionassets",
-  "lib",
   "sudda",
 ];
 

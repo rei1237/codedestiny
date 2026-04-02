@@ -9,10 +9,5 @@
   },
   "compatibility_date": "2026-03-14",
   "compatibility_flags": ["nodejs_compat"],
-  "routes": [
-    {
-      "pattern": "code-destiny.com/*",
-      "zone_name": "code-destiny.com"
-    }
-  ]
+  "workers_dev": true
 }
