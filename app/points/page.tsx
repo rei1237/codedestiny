@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+/* ══════════════════════════════════════════════════════════════════
+   타입 정의
+══════════════════════════════════════════════════════════════════ */
+
 type AuthUser = {
   id: string;
   name: string;
@@ -17,7 +21,6 @@ type PointPackage = {
   title: string;
   amount: number;
   points: number;
-  badge?: string;
 };
 
 type PaymentMethodOption = {
@@ -71,6 +74,13 @@ type PortOnePaymentResponse = {
   errorMsg?: string;
 };
 
+/** Toast 알림 하나의 데이터 구조 */
+type ToastItem = {
+  id: number;
+  type: "error" | "success" | "info";
+  text: string;
+};
+
 declare global {
   interface Window {
     IMP?: {
@@ -81,26 +91,43 @@ declare global {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   상수 정의
+══════════════════════════════════════════════════════════════════ */
+
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
 
+/** 패키지별 기본 코인 (보너스 제외) */
+const BASE_COINS: Record<string, number> = {
+  sample: 30,
+  luckyMeal: 100,
+  goldBarn: 300,
+  goldVault: 700,
+  emperorReserve: 1500,
+};
+
 const POINT_PACKAGES: PointPackage[] = [
-  { id: "sample",         title: "맛보기 한 줌",          amount: 3300,   points: 30   },
-  { id: "luckyMeal",      title: "행운의 한 끼",           amount: 9900,   points: 115,  badge: "+15" },
-  { id: "goldBarn",       title: "황금 돼지 곳간",          amount: 29000,  points: 360,  badge: "+60" },
-  { id: "goldVault",      title: "황금 돼지 금고",          amount: 59000,  points: 880,  badge: "+180" },
-  { id: "emperorReserve", title: "황금 돼지 제왕 보물고",    amount: 119000, points: 2000, badge: "🔥 BEST" },
+  { id: "sample",         title: "맛보기 한 줌",         amount: 3300,   points: 30   },
+  { id: "luckyMeal",      title: "행운의 한 끼",          amount: 9900,   points: 115  },
+  { id: "goldBarn",       title: "황금 돼지 곳간",         amount: 29000,  points: 360  },
+  { id: "goldVault",      title: "황금 돼지 금고",         amount: 59000,  points: 880  },
+  { id: "emperorReserve", title: "황금 돼지 제왕 보물고",  amount: 119000, points: 2000 },
 ];
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: "kakao", label: "카카오페이", logo: "🟨", desc: "간편 결제", group: "domestic" },
-  { id: "toss_card", label: "토스페이먼츠(카드)", logo: "💳", desc: "국내 카드", group: "domestic" },
-  { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체", group: "domestic" },
-  { id: "naverpay", label: "네이버페이", logo: "🟩", desc: "네이버 간편 결제", group: "domestic" },
-  { id: "card_general", label: "일반 신용카드", logo: "💠", desc: "다날/나이스 등", group: "domestic" },
-  { id: "paypal", label: "PayPal", logo: "🅿️", desc: "해외 결제", group: "global" },
-  { id: "applepay", label: "Apple Pay", logo: "🍎", desc: "포트원 지원 PG 기준", group: "global" },
-  { id: "googlepay", label: "Google Pay", logo: "🟢", desc: "포트원 지원 PG 기준", group: "global" },
+  { id: "kakao",         label: "카카오페이",             logo: "🟨", desc: "간편 결제",          group: "domestic" },
+  { id: "toss_card",     label: "토스페이먼츠(카드)",     logo: "💳", desc: "국내 카드",           group: "domestic" },
+  { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체",          group: "domestic" },
+  { id: "naverpay",      label: "네이버페이",             logo: "🟩", desc: "네이버 간편 결제",     group: "domestic" },
+  { id: "card_general",  label: "일반 신용카드",          logo: "💠", desc: "다날/나이스 등",       group: "domestic" },
+  { id: "paypal",        label: "PayPal",                 logo: "🅿️", desc: "해외 결제",          group: "global"   },
+  { id: "applepay",      label: "Apple Pay",              logo: "🍎", desc: "포트원 지원 PG 기준", group: "global"   },
+  { id: "googlepay",     label: "Google Pay",             logo: "🟢", desc: "포트원 지원 PG 기준", group: "global"   },
 ];
+
+/* ══════════════════════════════════════════════════════════════════
+   유틸리티 함수
+══════════════════════════════════════════════════════════════════ */
 
 function formatPoints(points: number) {
   return `${Number(points || 0).toLocaleString("ko-KR")}코인`;
@@ -133,6 +160,21 @@ function mapPaymentErrorMessage(rawMessage: string) {
   }
 
   return "결제를 완료하지 못했습니다. 네트워크 상태와 결제 정보를 확인 후 다시 시도해 주세요.";
+}
+
+/**
+ * API 응답을 안전하게 JSON으로 파싱합니다.
+ * response.ok 여부와 Content-Type이 application/json인지를 먼저 확인하고,
+ * HTML 에러 페이지 등이 반환된 경우 사용자 친화적 에러를 던집니다.
+ */
+async function safeParseJson<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `서버 점검 중입니다. 잠시 후 다시 시도해 주세요. (HTTP ${response.status})`,
+    );
+  }
+  return response.json() as Promise<T>;
 }
 
 function ensurePortoneSdk() {
@@ -213,7 +255,176 @@ function clearPendingOrder() {
   localStorage.removeItem("fortune_pending_order");
 }
 
-export default function PointsPage() {
+/* ══════════════════════════════════════════════════════════════════
+   서브 컴포넌트: Toast 알림 컨테이너
+   화면 상단 중앙에 최대 n개의 토스트를 쌓아 표시하며, 5초 후 자동 닫힙니다.
+══════════════════════════════════════════════════════════════════ */
+
+function ToastContainer({
+  toasts,
+  onDismiss,
+}: {
+  toasts: ToastItem[];
+  onDismiss: (id: number) => void;
+}) {
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed top-5 left-1/2 z-[200] -translate-x-1/2 flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          role="alert"
+          className={`pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3.5 text-sm font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.18)] ${
+            toast.type === "success"
+              ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+              : toast.type === "error"
+                ? "bg-rose-50 border-rose-300 text-rose-800"
+                : "bg-amber-50 border-amber-300 text-amber-900"
+          }`}
+        >
+          {/* 아이콘 */}
+          <span className="mt-0.5 flex-shrink-0 text-base">
+            {toast.type === "success" ? "✅" : toast.type === "error" ? "⚠️" : "ℹ️"}
+          </span>
+          {/* 메시지 */}
+          <span className="flex-1 leading-snug">{toast.text}</span>
+          {/* 닫기 버튼 */}
+          <button
+            type="button"
+            onClick={() => onDismiss(toast.id)}
+            className="flex-shrink-0 text-base opacity-50 hover:opacity-90 transition-opacity"
+            aria-label="알림 닫기"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   서브 컴포넌트: 패키지 카드
+   클릭 시 눌리는 scale 애니메이션, 선택 상태 강조, 보너스 뱃지를 포함합니다.
+══════════════════════════════════════════════════════════════════ */
+
+function PackageCard({
+  pkg,
+  selected,
+  onSelect,
+}: {
+  pkg: PointPackage;
+  selected: boolean;
+  onSelect: (pkg: PointPackage) => void;
+}) {
+  const isBest = pkg.id === "emperorReserve";
+  const baseCoins = BASE_COINS[pkg.id] ?? pkg.points;
+  const bonusCoins = pkg.points - baseCoins;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(pkg)}
+      className={`relative w-full rounded-[20px] border p-4 text-left transition-all duration-200
+        active:scale-[0.97] active:shadow-none
+        ${
+          selected
+            ? "border-[#C9A84C] bg-gradient-to-r from-[#FFFBF0] to-[#FFF0CC] shadow-[0_12px_28px_rgba(180,130,30,0.25)] -translate-y-0.5"
+            : "border-[#EDDBA3] bg-white/90 shadow-[0_4px_14px_rgba(180,130,30,0.08)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(180,130,30,0.18)]"
+        }`}
+    >
+      {/* BEST 뱃지 */}
+      {isBest && (
+        <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#FF5F45] to-[#FF9A3C] px-2.5 py-1 text-[11px] font-black text-white shadow-[0_4px_12px_rgba(214,91,33,0.40)]">
+          🔥 BEST 혜택
+        </span>
+      )}
+
+      {/* 상단 행: 상품명 + 기본 코인 수 */}
+      <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[88px]" : ""}`}>
+        <span className="text-[15px] font-bold text-[#5C3A1E]">{pkg.title}</span>
+        <span className="whitespace-nowrap text-[15px] font-black text-[#9A6800]">
+          🪙 +{baseCoins.toLocaleString("ko-KR")}코인
+        </span>
+      </div>
+
+      {/* 하단 행: 가격 + 총 코인 */}
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <span className="text-sm font-semibold text-[#7A5230]">{formatWon(pkg.amount)}</span>
+        <span className="text-sm font-bold text-[#5C3A1E]">
+          총 {pkg.points.toLocaleString("ko-KR")}코인 ✨
+        </span>
+      </div>
+
+      {/* 보너스 뱃지 — 눈에 잘 띄는 오렌지-골드 그라데이션 */}
+      {bonusCoins > 0 && (
+        <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#FF8C00] to-[#FFC107] px-2.5 py-1 text-[12px] font-black text-white shadow-[0_3px_10px_rgba(255,140,0,0.38)]">
+          🎁 보너스 +{bonusCoins.toLocaleString("ko-KR")}코인
+        </span>
+      )}
+
+      {/* 선택 체크 마크 */}
+      {selected && (
+        <span className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[10px] font-black text-white shadow">
+          ✓
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   서브 컴포넌트: 지갑 잔액 카드
+   현재 보유 코인과 사용자 이름을 샴페인 골드 테마로 표시합니다.
+══════════════════════════════════════════════════════════════════ */
+
+function WalletCard({ name, points }: { name: string; points: number }) {
+  return (
+    <section
+      aria-label="현재 보유 코인"
+      className="rounded-[20px] border border-[#E8CC7A] p-5 shadow-[0_6px_24px_rgba(180,130,30,0.16)]"
+      style={{
+        background: "linear-gradient(135deg, #FFF8E0 0%, #FFF0C0 60%, #FFE49C 100%)",
+      }}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* 왼쪽: 코인 아이콘 + 이름 */}
+        <div className="flex items-center gap-3">
+          {/* 황금 코인 아이콘 */}
+          <div
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
+            style={{
+              background:
+                "radial-gradient(circle at 30% 28%, #fff9ce 0%, #ffd14d 50%, #c8900a 100%)",
+              boxShadow:
+                "inset 0 2px 8px rgba(255,255,255,0.6), 0 4px 12px rgba(140,80,10,0.28)",
+            }}
+            aria-hidden="true"
+          >
+            🐷
+          </div>
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A6020]">
+              황금 돼지 저금통
+            </p>
+            <p className="text-[15px] font-bold text-[#5C3A1E]">{name} 님의 코인 지갑</p>
+          </div>
+        </div>
+
+        {/* 오른쪽: 보유 코인 수 */}
+        <div className="flex flex-col items-start gap-0.5 pl-15 sm:items-end sm:pl-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8A6020]">
+            현재 보유
+          </p>
+          <p className="text-2xl font-black text-[#7A4A00]">
+            🪙 {Number(points).toLocaleString("ko-KR")}코인
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
   const router = useRouter();
 
   const redirectHandledRef = useRef(false);

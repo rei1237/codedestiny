@@ -3358,46 +3358,57 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <!-- 2-1. 궁합 보기 -->
     <section class="card" id="compatCard" aria-labelledby="compatTitle">
       <h3 id="compatTitle" class="sec-title">💞 궁합 보기 (연애 · 사업 · 친구)</h3>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        
-        <div class="row2">
-          <div class="form-group" style="flex:1;">
-            <label class="form-label" style="margin-bottom:6px">상대 이름</label>
-            <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
-            <select class="inp" id="compatType">
-              <option value="love">연애/결혼</option>
-              <option value="business">사업/동업</option>
-              <option value="friend">친구/동료</option>
-            </select>
+      <div class="cd-section-gate" id="compatGate">
+        <div class="cd-section-gate__overlay">
+          <div class="cd-section-gate__icon">💞</div>
+          <p class="cd-section-gate__title">궁합 분석 — 유료 콘텐츠</p>
+          <p class="cd-section-gate__desc">연애·사업·친구 궁합을 사주 기반으로 분석한 결과를 열람하려면 황금 돼지 코인이 필요합니다.</p>
+          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
+        </div>
+        <div class="cd-section-gate__body">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            
+            <div class="row2">
+              <div class="form-group" style="flex:1;">
+                <label class="form-label" style="margin-bottom:6px">상대 이름</label>
+                <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
+              </div>
+              <div class="form-group" style="flex:1;">
+                <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
+                <select class="inp" id="compatType">
+                  <option value="love">연애/결혼</option>
+                  <option value="business">사업/동업</option>
+                  <option value="friend">친구/동료</option>
+                </select>
+              </div>
+            </div>
+            <div id="compatTypeDesc" class="form-helper-desc">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
+            <!-- 유명인 목록 클릭으로 빠르게 입력 -->
+            <div class="form-group">
+              <label class="form-label form-label-compact">유명인 선택</label>
+              <div id="celebsList"></div>
+            </div>
+            <div class="form-group form-group-mb10">
+              <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
+              <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
+              <div class="form-radio-row">
+                <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
+                <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
+                <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
+              </div>
+              <div id="compatLunarPreview" class="form-lunar-preview"></div>
+              <div class="row2 row2-mt8">
+                <select class="inp" id="compatBirthHour"></select>
+                <select class="inp" id="compatBirthMinute"></select>
+              </div>
+            </div>
+            <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
+            <div id="compatResult" class="compat-result-wrap"></div>
+            <div id="compatLlmHost" class="compat-llm-root"></div>
+            <div id="compatTestResults" class="compat-test-results"></div>
           </div>
         </div>
-        <div id="compatTypeDesc" class="form-helper-desc">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
-        <!-- 유명인 목록 클릭으로 빠르게 입력 -->
-        <div class="form-group">
-          <label class="form-label form-label-compact">유명인 선택</label>
-          <div id="celebsList"></div>
-        </div>
-        <div class="form-group form-group-mb10">
-          <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
-          <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
-          <div class="form-radio-row">
-            <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
-            <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
-            <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
-          </div>
-          <div id="compatLunarPreview" class="form-lunar-preview"></div>
-          <div class="row2 row2-mt8">
-            <select class="inp" id="compatBirthHour"></select>
-            <select class="inp" id="compatBirthMinute"></select>
-          </div>
-        </div>
-        <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
-        <div id="compatResult" class="compat-result-wrap"></div>
-        <div id="compatLlmHost" class="compat-llm-root"></div>
-        <div id="compatTestResults" class="compat-test-results"></div>
       </div>
     </section>
 
@@ -3951,6 +3962,24 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
   }
 
+  // 섹션 코인 게이트 잠금/해제 상태 반영
+  var SECTION_GATE_KEYS = [
+    { gateId: 'daewunGate',  unlockKey: 'section_daewun' },
+    { gateId: 'summaryGate', unlockKey: 'section_summary' },
+    { gateId: 'compatGate',  unlockKey: 'section_compat'  }
+  ];
+  function applySectionGates() {
+    SECTION_GATE_KEYS.forEach(function(sg) {
+      var el = document.getElementById(sg.gateId);
+      if (!el) return;
+      if (unlockedFeatureMap[sg.unlockKey]) {
+        el.classList.add('cd-section-gate--unlocked');
+      } else {
+        el.classList.remove('cd-section-gate--unlocked');
+      }
+    });
+  }
+
   async function fetchJsonWithAuth(path, init) {
     var token = getAuthToken();
     if (!token) {
@@ -4088,6 +4117,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
       UnlockButton(button);
+      applySectionGates();
       window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
       // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
       return;
@@ -4100,6 +4130,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
+    // 리포트 대시보드 토글 카드
+    if (action === 'toggleRptCard') {
+      if (typeof window.toggleReportFeatureCard === 'function') {
+        window.toggleReportFeatureCard(actionEl);
+      }
+      return;
+    }
     // <a href> 타일: href 경로로 직접 이동
     if (actionEl && actionEl.tagName === 'A') {
       var href = actionEl.getAttribute('href') || actionEl.getAttribute('data-fallback-href') || '';
@@ -4310,6 +4347,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
+  applySectionGates();
   void syncBalanceFromServer();
 
   window.__cdSetGoldenBalance = function (points) {

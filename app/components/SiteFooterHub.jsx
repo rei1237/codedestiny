@@ -285,13 +285,47 @@ const BUSINESS_KEY = {
   fontWeight: 600,
 };
 
-const REFUND_NOTE = {
-  margin: 0,
+const REFUND_BOX = {
+  marginTop: "10px",
   paddingTop: "10px",
   borderTop: "1px solid rgba(71,85,105,0.65)",
-  color: "#fda4af",
+};
+
+const REFUND_HEAD = {
+  margin: "0 0 8px",
   fontSize: "12px",
-  lineHeight: 1.75,
+  fontWeight: 700,
+  color: "#fda4af",
+  letterSpacing: "0.03em",
+};
+
+const REFUND_SUMMARY = {
+  margin: "0 0 8px",
+  color: "#cbd5e1",
+  fontSize: "12px",
+  lineHeight: 1.72,
+  wordBreak: "keep-all",
+};
+
+const REFUND_RULES = {
+  margin: 0,
+  padding: "0 0 0 18px",
+  display: "grid",
+  gap: "6px",
+};
+
+const REFUND_RULE_ITEM = {
+  color: "#94a3b8",
+  fontSize: "12px",
+  lineHeight: 1.72,
+  wordBreak: "keep-all",
+};
+
+const REFUND_NOTICE = {
+  margin: "10px 0 0",
+  color: "#fda4af",
+  fontSize: "11px",
+  lineHeight: 1.72,
   wordBreak: "keep-all",
 };
 
@@ -394,17 +428,31 @@ export default function SiteFooterHub() {
           사주풀이·타로·자미두수·베다 점성술·AI 관상·꿈 해몽 등 다양한 서비스를 이용하세요.
         </p>
 
-        <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 환불 규정">
-          <h3 style={BUSINESS_TITLE}>사업자 정보 및 환불 규정</h3>
+        <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 코인 환불 정책">
+          <h3 style={BUSINESS_TITLE}>사업자 정보 및 코인 환불 정책</h3>
           <ul style={BUSINESS_LIST}>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스니티 (Code Destiny)</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> 박병하</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
           </ul>
-          <p style={REFUND_NOTE}>
-            환불 규정: 운세 서비스는 디지털 콘텐츠 특성상 결과 조회 또는 서비스 이용이 시작된 이후에는 환불이 불가능합니다.
-          </p>
+          <div style={REFUND_BOX}>
+            <p style={REFUND_HEAD}>코인 충전형 디지털 운세 서비스 환불 기준</p>
+            <p style={REFUND_SUMMARY}>
+              코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라
+              미사용 코인 범위에서만 환불이 가능합니다.
+            </p>
+            <ul style={REFUND_RULES}>
+              <li style={REFUND_RULE_ITEM}>충전일로부터 7일 이내이고 코인을 전혀 사용하지 않은 경우: 전액 환불 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>결과 열람, 리딩 실행, AI 해석 생성 등 코인이 차감된 경우: 해당 사용분은 디지털 콘텐츠 제공이 완료되어 환불되지 않습니다.</li>
+              <li style={REFUND_RULE_ITEM}>부분 환불은 미사용 유상 코인에 한해 처리하며, 프로모션/보너스/무상 지급 코인은 환불 대상에서 제외됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>환불 신청 시 보유 코인은 최근 충전분부터 차감 기준으로 산정되며, 결제사 정책에 따라 환급 완료까지 영업일 3~10일이 소요될 수 있습니다.</li>
+              <li style={REFUND_RULE_ITEM}>타인 명의 도용, 비정상 결제, 약관 위반, 중복 환불 시도 등 부정 이용이 확인되는 경우 환불이 제한되거나 보류될 수 있습니다.</li>
+            </ul>
+            <p style={REFUND_NOTICE}>
+              위 기준과 다른 강행규정이 있는 경우 관계 법령을 우선 적용합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
+            </p>
+          </div>
         </section>
 
         {/* 정책 링크 */}

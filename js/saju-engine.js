@@ -13751,78 +13751,380 @@ function renderSummary(p,johu,natal){
   var ratStr=Object.keys(natal.ratios).map(function(e){return EL_K[e]+' '+natal.ratios[e].toFixed(0)+'%';}).join(' · ');
   var pw=G_POWER,jg=G_JONG;
 
-  var html=
-    '<div class="prem-box">'+
-    '<span class="prem-title">🌡️ 조후(調候) 판정</span>'+
-    '<div class="prem-text"><span class="johu-badge '+johu.badgeCls+'">'+johu.badgeTxt+'</span><br>'+
+  /* ─── 섹션 빌더 헬퍼 ─── */
+  function box(title,body,accent,bg){
+    var bc=accent||'#bba371';var bkg=bg||'rgba(255,255,255,.85)';
+    return '<div class="prem-box" style="background:'+bkg+';border-left:4px solid '+bc+'">'+
+           '<span class="prem-title" style="border-color:'+bc+'">'+title+'</span>'+
+           '<div class="prem-text">'+body+'</div></div>';
+  }
+  function subHead(txt,c){return '<b style="font-size:.88rem;color:'+(c||'#444')+'">'+txt+'</b><br>';}
+  function li(items){return '<ul style="margin:6px 0 6px 16px;padding:0;font-size:.85rem;line-height:1.78">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
+  function kv(k,v){return '<span style="display:inline-flex;gap:4px;margin:3px 0"><b style="color:#666;font-size:.8rem;min-width:72px">'+k+'</b><span style="color:#333;font-size:.84rem;line-height:1.58">'+v+'</span></span><br>';}
+
+  /* ─── 데이터 맵 ─── */
+  var EL_KO={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
+  var ganChar={甲:'갑(甲) — 하늘을 향한 큰 나무',乙:'을(乙) — 휘어지는 덩굴',丙:'병(丙) — 뜨거운 태양',丁:'정(丁) — 은은한 촛불',戊:'무(戊) — 드넓은 대산',己:'기(己) — 비옥한 밭',庚:'경(庚) — 날선 큰 쇠',辛:'신(辛) — 정제된 보석',壬:'임(壬) — 거대한 강',癸:'계(癸) — 맑은 이슬'};
+  var ganKeyword={甲:'추진력·독립·생명력',乙:'유연성·적응·감성',丙:'에너지·리더십·열정',丁:'섬세함·온기·신뢰',戊:'안정·포용·묵직함',己:'실용·세심·뒷받침',庚:'결단력·정직·직선',辛:'완벽주의·예민·예술',壬:'통찰·전략·유연',癸:'공감·깊이·지속'};
+  var ganTalent={甲:'실행력, 대형 프로젝트 리딩, 스포츠·무대·사회운동',乙:'공감 마케팅, 컨설팅, 글쓰기·디자인·상담',丙:'동기부여, 무대 퍼포먼스, 미디어·방송·PR',丁:'심리치료, 교육, 수공예·뷰티·문화기획',戊:'장기 전략, 부동산·건설, 금융안정·자산관리',己:'사무·행정, 세무·회계, 의료보조·요식업·돌봄',庚:'법률·의료, 금융·보안, 기계·정밀 기술',辛:'쥬얼리·패션, 미용·예술, IT·IT보안',壬:'기획·전략, 외교·무역, 철학·심리',癸:'연구·분석, 상담·심리, 작가·시인·기록'};
+  var ganWeakPoint={甲:'고집, 독선, 팀워크 부족',乙:'우유부단, 의존성, 소극적',丙:'충동, 에너지 낭비, 지속력 부족',丁:'소심, 자기비판 과도, 폭발 전 참기',戊:'변화 저항, 고집, 행동 느림',己:'자기 과소평가, 희생 과도, 결단력 부족',庚:'냉정함, 인간관계 어려움, 완고함',辛:'예민함, 비판 과민, 완벽주의 스트레스',壬:'산만함, 집중력 분산, 무계획',癸:'내성, 우유부단, 감상 과다'};
+  var ganRel={甲:'동등한 파트너십, 친구형 연애',乙:'귀인 의지, 보호받는 연애',丙:'열렬하고 화끈한 연애',丁:'조용하고 진심 있는 연애',戊:'든든하고 책임감 있는 연애',己:'세심하게 챙기는 연애',庚:'정직하고 솔직한 연애',辛:'감각적이고 세련된 연애',壬:'지적이고 자유로운 연애',癸:'섬세하고 감성적인 연애'};
+
+  // 십성별 재물 패턴
+  var tsMoneyPattern={
+    '비견':'수입은 안정적이나 고집으로 사업 손실 위험. 독립 창업이 직장보다 유리하고, 공동 투자는 피하세요.',
+    '겁재':'큰 돈이 들어오나 도박·투기·연대보증으로 무너지기 쉽습니다. 반드시 강제저축 구조를 만드세요.',
+    '식신':'노력한 만큼 꼭 돌아오는 성실형 재물. 하고 싶은 일로 먹고사는 구조가 가장 이상적입니다.',
+    '상관':'아이디어와 창의력으로 수익을 냅니다. 충동 지출이 재물 손실의 가장 큰 구멍입니다.',
+    '편재':'기회형 재물 — 보일 때 과감히 잡아야 합니다. 분산 투자가 맞으며 고정 자산 비중을 높이세요.',
+    '정재':'성실하게 모아 지키는 재물. 안정적이지만 리스크를 완전 회피하면 큰 기회를 놓칩니다.',
+    '편관':'명예를 통해 재물이 따라옵니다. 리더 역할을 맡을수록 수입이 올라가는 구조입니다.',
+    '정관':'공직·대기업·전문직에서 안정적 수입. 부업보다는 본업 집중 전략이 효율적입니다.',
+    '편인':'아이디어·특허·콘텐츠로 수익화가 유리합니다. 조급해하지 말고 긴 호흡으로 가세요.',
+    '정인':'꾸준한 월급형 재물. 부동산·임대·교육 분야에서 안정적으로 자산을 키울 수 있습니다.'
+  };
+
+  // 십성별 인간관계 패턴
+  var tsRelPattern={
+    '비견':'경쟁자이자 동료. 나와 비슷한 사람이 가장 편하지만 독립심 때문에 갈등도 잦습니다.',
+    '겁재':'카리스마로 사람을 모으나, 주변 사람에게 에너지를 뺏길 수 있습니다. 선 긋기 연습이 필요합니다.',
+    '식신':'퍼주는 것에 익숙해 이용당할 수 있습니다. 베풀되 경계를 세우는 지혜가 필요합니다.',
+    '상관':'언변으로 인기를 얻지만 적도 만들기 쉽습니다. 말의 부드러움이 관계의 핵심 열쇠입니다.',
+    '편재':'넓게 사귀지만 깊이가 얕을 수 있습니다. 핵심 인맥 3~5명에게 집중 투자하세요.',
+    '정재':'진지하고 신뢰 있는 관계를 선호합니다. 처음에는 경계가 강하지만 한번 마음을 열면 깊습니다.',
+    '편관':'존경받지 못하면 관계가 깨집니다. 권위보다 공감으로 사람을 이끄는 법을 배우세요.',
+    '정관':'원칙과 예의를 중시합니다. 불성실한 사람과는 자연히 멀어지는 경향이 있습니다.',
+    '편인':'혼자 있는 것이 편하고 소수 정예 관계를 선호합니다. 먼저 다가가는 노력이 삶을 풍요롭게 합니다.',
+    '정인':'귀인 복이 있어 좋은 스승·후원자를 만납니다. 받은 만큼 내려주는 베풂의 순환을 만드세요.'
+  };
+
+  // 십성별 시간대 최적 에너지
+  var tsPeakTime={
+    '비견':'이른 아침(5~8시) 혼자만의 루틴 설정, 독립 작업',
+    '겁재':'경쟁자가 쉴 때 — 야간(22~1시) 집중 작업',
+    '식신':'점심 전후(10~14시) 감각이 살아있는 창작·소통',
+    '상관':'오후 늦은 시간(15~20시) 브레인스토밍·발표',
+    '편재':'오전(9~12시) 빠른 판단과 네트워킹',
+    '정재':'오전 집중 작업 후 오후 마감 체크',
+    '편관':'위기·마감 순간에 집중력 극대화',
+    '정관':'규칙적인 시간대 반복 루틴',
+    '편인':'새벽(3~6시) 영감과 직관이 활성화',
+    '정인':'오전 학습, 저녁 복습 루틴이 이상적'
+  };
+
+  // 재물운 수호 법칙
+  var elMoneyAdvice={
+    wood:'동쪽 방향·초록 계열 정리, 나무 화분을 책상 왼쪽에. 도장(인장)에 신경 쓰고 사인·계약서 꼼꼼히.',
+    fire:'남쪽 방향, 붉은 소품 하나. 지갑은 붉은색 계열이 유리. 인맥으로 들어오는 기회를 놓치지 마세요.',
+    earth:'노란·황금 계열 지갑, 북동쪽 방향 정리. 부동산·실물 자산 비중을 높이세요.',
+    metal:'서쪽 방향·흰색·금속 소품. 지갑을 자주 정리하고 동전은 지갑에 보관하지 마세요.',
+    water:'북쪽 방향·파란색 계열. 흐르는 물 이미지(분수, 수족관) 인테리어. 저축 자동이체 필수.'
+  };
+
+  // 귀인 유형
+  var guiinByDom={
+    wood:'창의적이고 추진력 있는 선배나 멘토. 나무처럼 성장을 돕는 교육·문화계 인물.',
+    fire:'열정적인 리더나 PR 전문가. 당신을 세상에 알려주는 화(火) 에너지의 인물.',
+    earth:'든든한 현실 조언을 주는 연장자. 부동산·금融 분야 인맥이 자산을 지켜줍니다.',
+    metal:'날카로운 조언과 정확한 피드백을 주는 법률·의료·기술 분야 전문가.',
+    water:'깊은 통찰을 나눠주는 학자나 철학자, 상담가. 조용히 당신의 깊은 면을 알아봐 주는 인물.'
+  };
+
+  // 인생 전략 요약
+  var lifeStrategyByTs={
+    '비견':'1조 전략 — 독립, 전문성, 브랜딩. 나만의 분야에서 최고가 되는 것이 유일한 성공 공식입니다.',
+    '겁재':'경쟁 우위 전략 — 남들이 쉴 때 다음 수를 준비하세요. 단, 도박·보증은 절대 금지.',
+    '식신':'콘텐츠 복지 전략 — 내가 좋아하는 일로 수익 구조를 만드세요. 음식·교육·돌봄 분야가 유리.',
+    '상관':'혁신가 전략 — 기존 틀을 깨는 아이디어로 승부하세요. 단, 표현의 타이밍과 강도를 조절하세요.',
+    '편재':'기회 포착 전략 — 정보 수집과 빠른 판단이 핵심. 해외·다양성·네트워크에서 기회가 옵니다.',
+    '정재':'복리 전략 — 작은 것을 오래 꾸준히 쌓으세요. 신뢰와 성실함이 당신의 최대 자산입니다.',
+    '편관':'리더십 전략 — 위기 때 능력이 빛납니다. 책임있는 역할을 맡을수록 운이 열립니다.',
+    '정관':'명예 전략 — 평판과 신뢰가 당신의 운입니다. 원칙을 지키되 결코 융통성을 잃지 마세요.',
+    '편인':'통찰 전략 — 남들이 보지 못한 길을 먼저 보고 가세요. 특허·저작권·콘텐츠에 투자하세요.',
+    '정인':'수용 전략 — 배움은 당신의 평생 자산입니다. 좋은 스승을 찾아 배우고, 그것을 나눠주세요.'
+  };
+
+  var html='';
+
+  /* ───────────────────────────────
+     1. 사주 총평 & 일간 분석
+  ─────────────────────────────── */
+  html+=box('🌿 ① 나의 사주 총평 — 일간(日干) '+dg+' 풀이',
+    subHead('일간 근본 기운','#2e7d32')+
+    kv('일간','<b>'+dg+' ('+dayMaster+')</b> — '+(ganChar[dg]||dg))+
+    kv('핵심 키워드',ganKeyword[dg]||'추진력·독립')+
+    kv('천생 재능',ganTalent[dg]||'다방면에서 두각')+
+    kv('약점 포인트',ganWeakPoint[dg]||'균형 조율 필요')+
+    kv('연애 스타일',ganRel[dg]||'진심 있는 연애')+
+    '<br><div style="background:rgba(255,255,255,.6);border-radius:8px;padding:10px;font-size:.85rem;line-height:1.78;color:#333">'+
+    '당신은 자연으로 치면 <b>\''+dayNames[dayMaster]+'\'</b>과 같습니다. '+
+    '오행 중 <b>'+EL_KO[dayMaster]+'</b> 에너지를 주 기반으로 삼아, 세상을 인식하고 반응합니다. '+
+    '이 기운이 지나치게 강하면 집착·고집·과잉으로, 너무 약하면 자신감 부족·우유부단으로 나타납니다. '+
+    '적절한 균형이 삶 전체의 여유를 만듭니다.</div>',
+    '#4caf50','rgba(232,245,233,.7)');
+
+  /* ───────────────────────────────
+     2. 조후 & 억부 & 종격
+  ─────────────────────────────── */
+  html+=box('🌡️ ② 조후(調候) 판정 — 계절 에너지 분석',
+    '<span class="johu-badge '+johu.badgeCls+'">'+johu.badgeTxt+'</span><br>'+
     johu.advice+'<br><br>'+
-    '<span style="color:#888;font-size:.82rem">대운·세운 판단 시 조후가 억부와 함께 핵심 기준입니다.</span>'+
-    '</div></div>'+
+    '<span style="color:#888;font-size:.82rem">조후는 사주의 계절적 균형을 뜻합니다. 더운 여름 사주는 차가운 기운(水·金)이, 추운 겨울 사주는 따뜻한 기운(火·木)이 용신(用神)이 됩니다. 대운·세운 판단의 핵심 기준입니다.</span>',
+    '#2196F3','rgba(227,242,253,.7)');
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">⚖️ 억부(抑扶) & 종격(從格) 요약</span>'+
-    '<div class="prem-text">'+
+  html+=box('⚖️ ③ 억부(抑扶) & 종격(從格) 심층 분석',
     (jg&&jg.isJong
-      ?'<b>'+jg.name+'</b> — '+EL_K[jg.dominant]+' 기운 '+jg.pct+'% 지배<br>이 사주는 '+EL_K[jg.dominant]+' 기운과 함께하는 모든 것이 길(吉)합니다. 반하는 흐름은 흉(凶)합니다.'
+      ?'<b>'+jg.name+'</b> — '+EL_KO[jg.dominant]+' 기운 '+jg.pct+'% 지배<br>'+
+       '<div style="margin-top:6px;font-size:.85rem;line-height:1.78">이 사주는 하나의 기운이 사주 전체를 압도하는 <b>종격 사주</b>입니다. '+
+       '억부(신강/신약) 원칙을 우선적으로 배제하고, '+EL_KO[jg.dominant]+' 에너지를 돕는 운이 길(吉)하고, 거스르는 운은 흉(凶)합니다.<br><br>'+
+       '✓ 종격이란? — 오행 중 한 가지가 75% 이상을 차지할 때, 그 기운에 순응하는 것이 원칙입니다. 역행은 오히려 파국을 부릅니다.</div>'
       :pw
-        ?'<span class="power-badge '+(pw.isStrong?'pb-strong':'pb-weak')+'" style="font-size:.78rem;padding:3px 10px">'+(pw.isStrong?'🔥 신강':'💧 신약')+'</span><br>'+
-         '억부 점수 '+pw.score+'점 — '+(pw.isStrong?'용신(설기·재·관)이 오는 운에서 사회적 성취가 폭발합니다.':'용신(비겁·인성)이 오는 운에서 자존감과 귀인이 함께 옵니다.')
-        :'')+
-    '</div></div>'+
+        ?'<span class="power-badge '+(pw.isStrong?'pb-strong':'pb-weak')+'" style="font-size:.78rem;padding:3px 10px">'+(pw.isStrong?'🔥 신강':'💧 신약')+'</span>'+
+         '<div style="margin-top:8px;font-size:.85rem;line-height:1.78">억부 점수: <b>'+pw.score+'점</b><br><br>'+
+         (pw.isStrong
+           ?'<b>신강</b>이란 일간이 원국에서 도움받는 기운이 탄탄한 사주입니다. 에너지가 넘쳐 설기(洩氣)·재(財)·관(官)으로 빠져나가는 운이 올 때 사회적 성취가 폭발합니다.<br>'+
+            '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
+            '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', ')
+           :'<b>신약</b>이란 일간이 외부 압박에 비해 자체 에너지가 부족한 사주입니다. 비겁(비견·겁재)이나 인성(편인·정인)이 오는 운에서 자존감과 귀인이 동시에 옵니다.<br>'+
+            '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
+            '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '))+
+         '</div>'
+        :'억부 계산 중 또는 사주 데이터가 부족합니다.'),
+    '#9C27B0','rgba(243,229,245,.7)');
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">🧭 오행 분포 & 쏠림 판정</span>'+
-    '<div class="prem-text">'+
+  /* ───────────────────────────────
+     3. 오행 분포
+  ─────────────────────────────── */
+  var ratioBar='<div style="display:grid;gap:4px;margin-top:8px">';
+  ['wood','fire','earth','metal','water'].forEach(function(el){
+    var pct=Math.round(natal.ratios[el]||0);
+    var color={wood:'#4CAF50',fire:'#FF5722',earth:'#FF9800',metal:'#78909C',water:'#2196F3'}[el]||'#999';
+    ratioBar+='<div style="display:flex;align-items:center;gap:6px;font-size:.81rem">'+
+      '<span style="min-width:28px;text-align:right;color:#666">'+EL_K[el]+'</span>'+
+      '<div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px">'+
+        '<div style="width:'+Math.min(pct,100)+'%;height:100%;background:'+color+';border-radius:4px;transition:width .5s"></div>'+
+      '</div>'+
+      '<span style="min-width:30px;font-weight:700;color:'+color+'">'+pct+'%</span>'+
+    '</div>';
+  });
+  ratioBar+='</div>';
+
+  html+=box('🧭 ④ 오행 분포 & 균형 진단',
     (natal.counts[domE]>=5?'🔴 <b>'+EL_K[domE]+' 기운이 매우 강하게 편중</b>되어 있어요! 반드시 균형 조절이 필요합니다.'
       :natal.counts[domE]>=4?'🟠 <b>'+EL_K[domE]+' 기운이 강하게 쏠려</b> 있습니다. 적극적인 균형 조절을 권합니다.'
       :natal.counts[domE]>=3?'🟡 <b>'+EL_K[domE]+' 기운이 다소 강하게 자리</b>잡고 있습니다. 의식적인 균형이 도움이 됩니다.'
-      :'🟢 오행이 비교적 고르게 분포되어 있습니다. 균형잡힌 사주입니다.')+'<br>'+
-    '<span class="hl">오행 비율:</span> '+ratStr+'<br><br>'+
-    '<span class="hl">개운 핵심:</span> 강한 <b>'+EL_K[domE]+'</b> 기운이 폭주하지 않게, '+
-    '<b>'+EL_K[tips.controller]+'</b>(극)과 <b>'+EL_K[tips.drain]+'</b>(설기)으로 눌러주세요.'+
-    '</div></div>'+
+      :'🟢 오행이 비교적 고르게 분포되어 있습니다. 균형잡힌 사주입니다.')+
+    ratioBar+
+    '<div style="margin-top:10px;font-size:.84rem;line-height:1.78">'+
+    kv('오행 비율',ratStr)+
+    kv('개운 핵심','강한 <b>'+EL_K[domE]+'</b> 기운이 폭주하지 않게, '+
+        '<b>'+EL_K[tips.controller]+'</b>(극)과 <b>'+EL_K[tips.drain]+'</b>(설기)으로 눌러주세요.')+
+    '</div>',
+    '#FF9800','rgba(255,243,224,.7)');
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">🧬 타고난 본질 (일간 '+p.d.g+' '+EL_K[dayMaster]+')</span>'+
-    '<div class="prem-text">'+
-    '당신은 자연으로 치면 <b>\''+dayNames[dayMaster]+'\'</b>과 같습니다.<br>'+
-    '보유 십성 <b>'+dominant+'('+tsInfo.desc+')</b>이 인생의 방향키 역할을 합니다.'+
-    '</div></div>'+
+  /* ───────────────────────────────
+     4. 십성(十星) 심층 분석
+  ─────────────────────────────── */
+  var tsFullList=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
+  var tsRankHtml='<div style="display:grid;gap:6px;margin:8px 0">';
+  tsFullList.slice(0,5).forEach(function(t,i){
+    var info=TS_DB[t]||{emoji:'⭐',desc:'',meaning:''};
+    var pct=Math.round((cnt[t]/(tsFullList.length||1))*100);
+    tsRankHtml+='<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.6)">'+
+      '<span style="font-size:1.1rem">'+info.emoji+'</span>'+
+      '<span style="font-weight:700;min-width:32px;font-size:.85rem">'+t+'</span>'+
+      '<span style="font-size:.8rem;color:#555;flex:1">'+info.meaning+'</span>'+
+      '<span style="font-weight:800;color:#7c3aed;font-size:.85rem">'+cnt[t]+'개</span>'+
+    '</div>';
+  });
+  tsRankHtml+='</div>';
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">🦁 성격과 기질 (팩트 체크)</span>'+
-    '<div class="prem-text">'+deep.nature+'</div></div>'+
+  html+=box('⭐ ⑤ 십성(十星) 심층 분석 — 내 삶의 에너지 구성',
+    subHead('보유 십성 랭킹','#5c35c8')+
+    tsRankHtml+
+    '<br>'+subHead('주 십성 '+dominant+' — 성향 상세','#7c3aed')+
+    '<div style="font-size:.85rem;line-height:1.78;margin-top:4px">'+
+    kv('본질',deep.nature)+
+    kv('진로 적성',deep.career)+
+    kv('연애 스타일',deep.love)+
+    kv('주의사항',deep.advice||'주어진 환경에 유연하게 적응하세요')+
+    kv('재물 패턴',tsMoneyPattern[dominant]||'성실함이 재물의 기반입니다')+
+    kv('인간관계',tsRelPattern[dominant]||'신뢰 기반 관계를 우선하세요')+
+    kv('에너지 피크',tsPeakTime[dominant]||'아침 루틴이 하루를 좌우합니다')+
+    kv('인생 전략',lifeStrategyByTs[dominant]||'강점에 집중하세요')+
+    '</div>',
+    '#7c3aed','rgba(237,233,254,.7)');
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">💼 진로 적성 & 성공 천기</span>'+
-    '<div class="prem-text"><span class="hl">추천 직업:</span> '+deep.career+'<br><br>'+
-    '성공을 위해서는 당신의 강점인 <b>'+tsInfo.meaning+'</b>을(를) 살려야 합니다.'+
-    '</div></div>'+
+  /* ───────────────────────────────
+     5. 성격·기질 심층 분석
+  ─────────────────────────────── */
+  var personalityByGan={
+    甲:'표면적으로는 느긋해 보이지만, 한 번 결심하면 포기를 모릅니다. 경쟁 상황에서 진가가 드러나며 리더 자리를 자연스럽게 차지합니다. 고집스러울 수 있으나 그것이 오히려 큰 성공의 원동력이 됩니다.',
+    乙:'눈치가 빠르고 환경 적응력이 탁월합니다. 부드럽게 스며들어 상대방을 내 편으로 만드는 재주가 있습니다. 갈등을 정면으로 맞서기보다 우회하는 전략을 선호합니다.',
+    丙:'에너지가 넘쳐흐르고 주변을 환하게 밝히는 존재감이 있습니다. 말이 많고 솔직하며 감정 표현이 풍부합니다. 지루함을 못 견디고 새로운 자극을 끊임없이 찾습니다.',
+    丁:'겉으로는 조용하지만 내면에 뜨거운 열정이 있습니다. 감수성이 풍부하고 배려심이 깊습니다. 한 번 상처받으면 오랫동안 기억하는 편입니다.',
+    戊:'흔들리지 않는 내면의 안정감이 있습니다. 묵직하고 신뢰감을 주며 약속과 책임을 중시합니다. 변화에 느리게 반응하지만 일단 행동하면 멈추지 않습니다.',
+    己:'세밀하고 실용적인 눈이 있습니다. 남을 뒤에서 지원하고 도우면서 실질적인 결과를 만들어내는 타입입니다. 자신의 공로를 드러내지 않지만 핵심 역할을 합니다.',
+    庚:'직선적이고 결단력이 강합니다. 불합리한 것을 보면 참지 못하고 직접 해결하려 합니다. 냉정해 보이지만 의리와 책임감이 강한 사람입니다.',
+    辛:'예리하고 미적 감각이 뛰어납니다. 완벽주의 성향으로 자신과 타인에게 높은 기준을 적용합니다. 표면적으로는 차가워 보여도 속으로는 매우 감성적입니다.',
+    壬:'시야가 넓고 전략적으로 사고합니다. 감정을 잘 드러내지 않지만 내면은 깊습니다. 한 가지 일보다 여러 프로젝트를 동시에 처리하는 능력이 있습니다.',
+    癸:'공감 능력이 뛰어나고 섬세합니다. 다른 사람의 감정을 빠르게 포착하고 적절히 반응합니다. 내향적으로 보이지만 일대일 관계에서는 매우 깊고 따뜻합니다.'
+  };
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">💘 연애 & 결혼 스타일</span>'+
-    '<div class="prem-text">'+deep.love+'</div></div>'+
+  html+=box('🦁 ⑥ 성격·기질 심층 분석 (팩트 보고서)',
+    subHead('핵심 성향','#c2185b')+
+    '<div style="font-size:.85rem;line-height:1.85;margin-top:6px">'+
+    (personalityByGan[dg]||deep.nature)+'<br><br>'+
+    deep.nature+'</div>'+
+    '<br>'+subHead('보완이 필요한 부분','#d32f2f')+
+    '<div style="font-size:.84rem;line-height:1.78;color:#b71c1c;margin-top:4px">'+
+    (ganWeakPoint[dg]||'균형을 항상 체크하세요')+'</div>',
+    '#e91e63','rgba(253,232,241,.7)');
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">🥗 건강 & 소울 푸드</span>'+
-    '<div class="prem-text">'+
-    '타고나길 <b>'+health.weak+'</b> 쪽이 약해질 수 있으니 미리 수호하세요.<br>'+
-    '<span class="hl">추천 음식:</span> '+health.food+'<br>'+
-    '<span class="hl">건강 조언:</span> '+health.advice+
-    '</div></div>'+
+  /* ───────────────────────────────
+     6. 진로 & 적성 상세
+  ─────────────────────────────── */
+  var careerByEl={
+    wood:['교육·강사·교수','출판·작가·저술','환경·조경·산림','의료·한방·재활','문화·예술 기획'],
+    fire:['방송·미디어·PR','연예·공연·스포츠','IT·스타트업·플랫폼','요식·서비스·호텔','광고·마케팅·브랜딩'],
+    earth:['부동산·건설·인테리어','금융·보험·투자','농업·식품·유통','행정·공무·국제기관','상담·교육 지원'],
+    metal:['법률·검찰·경찰·군인','의료·치과·외과','금융·회계·세무','IT보안·정밀기술·항공','귀금속·패션·디자인'],
+    water:['연구·분석·데이터','외교·무역·관광','심리·상담·철학','글쓰기·시·문학','음악·영화·순수예술']
+  };
 
-    '<div class="prem-box">'+
-    '<span class="prem-title">🍀 개운 루트 (강한 '+EL_K[domE]+' 누르기)</span>'+
-    '<div class="prem-text">'+
+  html+=box('💼 ⑦ 진로 적성 & 성공 천기 — 운명이 알려주는 직업 지도',
+    subHead('천성 맞춤 분야 ('+EL_KO[dayMaster]+' 에너지 기반)','#1565C0')+
+    li(careerByEl[dayMaster]||[])+
+    subHead('십성 '+dominant+' 기반 추천','#0d47a1')+
+    '<div style="font-size:.84rem;margin-top:4px;line-height:1.75">'+deep.career+'</div>'+
+    '<br>'+subHead('성공의 핵심 원칙','#1976D2')+
+    '<div style="font-size:.84rem;margin-top:4px;line-height:1.75">'+
+    '당신의 가장 큰 강점인 <b>'+tsInfo.meaning+'</b>을(를) 살릴 때 다른 누구보다 빛납니다. '+
+    lifeStrategyByTs[dominant]+'</div>',
+    '#1565C0','rgba(227,242,253,.7)');
+
+  /* ───────────────────────────────
+     7. 연애·결혼 심층 분석
+  ─────────────────────────────── */
+  var loveByEl={
+    wood:'성장형 파트너십을 원합니다. 서로 발전하고 응원하는 관계가 가장 이상적입니다. 구속하거나 성장을 막는 상대와는 관계가 오래가기 힘듭니다.',
+    fire:'열정적이고 화끈한 연애를 합니다. 첫 눈에 반하는 경우가 많고 감정 기복이 있습니다. 권태기를 방지하기 위해 지속적인 새로운 자극이 필요합니다.',
+    earth:'안정과 신뢰를 최우선으로 합니다. 천천히 감정을 쌓아가고, 한 번 정이 들면 쉽게 헤어지지 않습니다. 가정적이고 든든한 파트너가 맞습니다.',
+    metal:'원칙과 기준이 분명한 연애를 합니다. 상대방에게 높은 기준을 요구하고, 자신도 그에 맞게 행동합니다. 감정 표현이 서툴러 오해를 살 수 있습니다.',
+    water:'감성적이고 깊이 있는 관계를 원합니다. 영혼의 교감을 중시하고 표면적인 것보다 내면의 연결을 봅니다. 이별의 상처가 오래가는 편입니다.'
+  };
+
+  html+=box('💘 ⑧ 연애·결혼 심층 풀이',
+    subHead('사랑의 패턴','#ad1457')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+deep.love+'<br><br>'+loveByEl[dayMaster||'earth']+'</div>'+
+    '<br>'+subHead('인연의 신호 — 어떤 사람과 맞는가','#c2185b')+
+    li(['오행상 '+(dayMaster==='wood'?'화(火) 에너지의 따뜻한 상대':dayMaster==='fire'?'목(木) 에너지의 추진력 있는 상대':dayMaster==='earth'?'화(火) 에너지의 열정적인 상대':dayMaster==='metal'?'토(土) 에너지의 안정적인 상대':'금(金) 에너지의 단단한 상대')+'와 잘 어울립니다.',
+      '십성 '+dominant+' 사주에서는 '+ganRel[dg||'甲']+'를 추구합니다.',
+      '삶의 방향과 가치관이 맞는 사람, 나의 약점을 이해해주는 파트너가 귀인 배우자입니다.'])+
+    '<br>'+subHead('결혼 후 행복의 열쇠','#880e4f')+
+    '<div style="font-size:.84rem;line-height:1.78">서로의 사생활과 성장 공간을 존중해주고, 명절/기념일/일상의 작은 감사 표현을 꾸준히 이어가는 것이 가장 안정적인 관계 유지 방법입니다.</div>',
+    '#e91e63','rgba(252,228,236,.7)');
+
+  /* ───────────────────────────────
+     8. 건강 & 소울 푸드
+  ─────────────────────────────── */
+  var stressSign={
+    wood:'목이 뻣뻣하거나 눈이 쉽게 피로해지고 분노가 잦아지면 간·담낭 에너지 고갈 신호입니다.',
+    fire:'가슴이 두근거리거나 더위를 타고 불면이 심해지면 심장·소장 에너지 과부하입니다.',
+    earth:'소화가 안 되거나 식욕이 없고 생각이 너무 많아지면 비·위 에너지 과부하입니다.',
+    metal:'피부가 건조해지고 기침이 잦아지며 슬픔·우울이 커지면 폐·대장 에너지 부족 신호입니다.',
+    water:'허리와 무릎이 약해지고 이명이 생기거나 두려움이 커지면 신장·방광 에너지 고갈입니다.'
+  };
+
+  html+=box('🥗 ⑨ 건강·소울 푸드 & 스트레스 신호 분석',
+    subHead('타고난 건강 약점','#2e7d32')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    kv('취약 부위',health.weak)+
+    kv('추천 음식',health.food)+
+    kv('건강 조언',health.advice)+
+    kv('스트레스 신호',stressSign[dayMaster]||'체력 저하 신호를 놓치지 마세요')+
+    '</div>'+
+    '<br>'+subHead('오행에 맞는 운동 추천','#388e3c')+
+    li(dayMaster==='wood'?['산책·등산·스트레칭','요가·필라테스','댄스·리듬 운동']:
+       dayMaster==='fire'?['고강도 인터벌 트레이닝','수영·사이클','팀 스포츠']:
+       dayMaster==='earth'?['걷기·태극권','헬스·웨이트','명상·호흡']:
+       dayMaster==='metal'?['복싱·무술·격투기','달리기·수영','근력 운동']:
+       ['수영·아쿠아로빅','명상·요가','스트레칭·폼롤러']),
+    '#4caf50','rgba(232,245,233,.7)');
+
+  /* ───────────────────────────────
+     9. 재물운 & 투자 전략
+  ─────────────────────────────── */
+  html+=box('💰 ⑩ 재물운 & 투자 전략 상세',
+    subHead('재물 패턴','#e65100')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    tsMoneyPattern[dominant]+'</div>'+
+    '<br>'+subHead('오행 기반 재물 개운법','#f57c00')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    (elMoneyAdvice[domE]||'재물이 들어오는 방향과 색상을 활용하세요')+'</div>'+
+    '<br>'+subHead('투자 원칙','#ef6c00')+
+    li(dominant==='식신'||dominant==='정재'?
+       ['안정형 — 적금·부동산·배당주 우선','월 소득의 20% 이상 자동이체 저축','급등주·코인 단타 지양']:
+       dominant==='편재'||dominant==='겁재'?
+       ['공격형 — 분산 투자, 빠른 손절 원칙','레버리지는 총 자산의 10% 이내로 제한','연대보증·구두 계약 절대 금지']:
+       ['균형형 — 안전자산 60%, 변동자산 40%','분기별 포트폴리오 점검','장기 복리 투자가 가장 효율적']),
+    '#FF6F00','rgba(255,243,224,.7)');
+
+  /* ───────────────────────────────
+     10. 귀인 & 인간관계
+  ─────────────────────────────── */
+  html+=box('🤝 ⑪ 귀인(貴人) & 인간관계 지도',
+    subHead('귀인의 유형','#1565C0')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    (guiinByDom[domE]||'당신의 성장을 돕는 멘토와 공동체')+'</div>'+
+    '<br>'+subHead('인간관계 패턴','#1976D2')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    tsRelPattern[dominant]+'</div>'+
+    '<br>'+subHead('관계에서 주의할 시그널','#d32f2f')+
+    li(['나의 성장을 시기하거나 깎아내리는 사람',
+       '돈·감정·시간을 지속적으로 착취하는 관계',
+       '자존감을 낮추는 환경은 과감히 거리를 두세요']),
+    '#1565C0','rgba(227,242,253,.7)');
+
+  /* ───────────────────────────────
+     11. 개운 테마 & 행동 루틴
+  ─────────────────────────────── */
+  html+=box('🍀 ⑫ 개운 루트 상세 — '+EL_K[domE]+' 에너지 다스리기',
     '<div class="tip-grid">'+
     '<div class="tip-chip"><strong>극(눌러주기): '+EL_K[tips.controller]+'</strong>'+
     '🎨 '+tips.ctips.color+'<br>🏠 '+tips.ctips.place+'<br>🧭 '+tips.ctips.action+'<br>🍽️ '+tips.ctips.food+'</div>'+
     '<div class="tip-chip"><strong>설기(분산): '+EL_K[tips.drain]+'</strong>'+
     '🎨 '+tips.dtips.color+'<br>🏠 '+tips.dtips.place+'<br>🧭 '+tips.dtips.action+'<br>🍽️ '+tips.dtips.food+'</div>'+
-    '</div></div></div>'+
+    '</div>'+
+    '<br>'+subHead('일상 개운 행동 루틴 7가지','#2e7d32')+
+    li(['매일 아침 '+domE+'과 반대 색상의 소품('+tips.ctips.color+') 하나 착용',
+       '정기적인 정리정돈 — 물건이 정체되면 운도 정체됩니다',
+       '이름(도장·서명)을 쓰는 계약서와 중요 서류 꼼꼼히 확인',
+       '귀인이 있는 방향('+tips.ctips.place+') 공간 활성화',
+       '식단에 '+tips.ctips.food+' 추가',
+       '주 2회 이상 '+tips.ctips.action+' 활동 실천',
+       '새로운 배움(책·강의·멘토)에 지속 투자']),
+    '#4caf50','rgba(232,245,233,.7)');
 
-    '<div class="prem-box" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7">'+
-    '<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 현실 조언 — '+USER_NAME+'님만을 위한 이야기</span>'+
+  /* ───────────────────────────────
+     12. 인생 전략 요약
+  ─────────────────────────────── */
+  html+=box('🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기',
+    subHead('지금 당장 실천할 것','#7b1fa2')+
+    li(['강점인 <b>'+dominant+'</b> 에너지를 일과 관계에 최대한 활용하세요',
+       '약점인 <b>'+EL_K[domE]+'</b> 과잉을 의식적으로 다스리세요',
+       '용신 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+'를 생활에 꾸준히 흡수하세요',
+       '귀인('+guiinByDom[domE]+')과의 인연을 의도적으로 만들어가세요'])+
+    subHead('10년 관점 커리어 전략','#6a1b9a')+
+    '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
+    lifeStrategyByTs[dominant]+'</div>',
+    '#9C27B0','rgba(243,229,245,.7)');
+
+  /* ───────────────────────────────
+     13. 연이의 현실 조언
+  ─────────────────────────────── */
+  html+='<div class="prem-box" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7">'+
+    '<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 현실 조언 — '+(USER_NAME||'당신')+'님만을 위한 이야기</span>'+
     '<div class="prem-text">'+generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
 
   document.getElementById('summaryArea').innerHTML=html;

@@ -2733,26 +2733,8 @@ function renderLottoNumbers(natal, bazi){
 /* ─────────────────────────────────────────────────────────
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
-function getSukuyoMansion(preciseDateData) {
-  const source = preciseDateData && typeof preciseDateData === 'object' ? preciseDateData : null;
-  if (!source) {
-    console.warn('[Sukuyo] preciseDateData missing. Expected KASI lunar date object.');
-    return null;
-  }
-
-  const lunYear = Number(source.lunYear ?? source.year);
-  const lunMonth = Number(source.lunMonth ?? source.month);
-  const lunDay = Number(source.lunDay ?? source.day);
-  const forcedIdxRaw = Number(source._sukuyoMansionIdx ?? source.mansionIdx);
-  const hasForcedIdx = Number.isFinite(forcedIdxRaw);
-
-  if ((!Number.isInteger(lunMonth) || !Number.isInteger(lunDay)) && !hasForcedIdx) {
-    if (source.kasiError || source.__kasiError) {
-      console.warn('[Sukuyo] KASI date payload reported an error:', source.kasiError || source.__kasiError);
-    }
-    console.warn('[Sukuyo] Invalid preciseDateData. lunMonth/lunDay are required.');
-    return null;
-  }
+function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
+    if (!lunarObj || !lunarObj.month || !lunarObj.day) return null;
 
     const mansions27 = [
         { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
@@ -2768,40 +2750,20 @@ function getSukuyoMansion(preciseDateData) {
 
     const monthStartOffsets = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
-      let finalIdx;
-      if (hasForcedIdx) {
-        finalIdx = ((Math.floor(forcedIdxRaw) % 27) + 27) % 27;
-      } else {
-        const startIdx = Number.isFinite(monthStartOffsets[lunMonth - 1]) ? monthStartOffsets[lunMonth - 1] : 11;
-        finalIdx = ((startIdx + lunDay - 1) % 27 + 27) % 27;
-      }
+    let m_month = parseInt(lunarObj.month, 10);
+    let m_day = parseInt(lunarObj.day, 10);
+    let isLeap = !!lunarObj.isLeap;
 
-      const m_data = mansions27[finalIdx] || mansions27[0];
-      return {
-        mansion27: m_data,
-        mansion27Idx: finalIdx,
-        mansion28: {
-          name: m_data.name,
-          ch_name: m_data.ch_name,
-          index: finalIdx + 1
-        },
-        preciseDateData: {
-          lunYear: Number.isFinite(lunYear) ? lunYear : null,
-          lunMonth: Number.isFinite(lunMonth) ? lunMonth : null,
-          lunDay: Number.isFinite(lunDay) ? lunDay : null,
-          isLeap: !!(source.isLeap ?? source.lunLeapMonth)
-        }
-      };
+    if (isLeap && opt.leapRule === 'previous') {
+        m_month = m_month === 1 ? 12 : m_month - 1;
     }
 
-    function calcSukuyoData(lunarObj, opt = {}) {
-      const preciseDateData = (opt && opt.preciseDateData) || lunarObj;
-      const mansionResult = getSukuyoMansion(preciseDateData);
-      if (!mansionResult) return null;
+    let startIdx = monthStartOffsets[m_month - 1];
+    if (startIdx === undefined) startIdx = 11;
 
-      let finalIdx = mansionResult.mansion27Idx;
-      let m_data = mansionResult.mansion27;
-      let m = m_data.name;
+    let finalIdx = (startIdx + m_day - 1) % 27;
+    let m_data = mansions27[finalIdx];
+    let m = m_data.name;
 
     const baseData = {
         "각": {icon:"✨",celebs:"아인슈타인, 마리 퀴리",talent:95,
@@ -3062,9 +3024,7 @@ function getSukuyoMansion(preciseDateData) {
         wealth: "꾸준하고 안정된 삶을 영위할 기본적인 운을 지녔습니다."
     };
 
-    if (lunarObj && typeof lunarObj === 'object') {
-      lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
-    }
+    lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
 
     return {
         mansion: m + "(" + m_data.ch_name + ")",
@@ -3072,9 +3032,6 @@ function getSukuyoMansion(preciseDateData) {
         talent: mapped.talent,
         celebs: mapped.celebs,
         mansionIdx: finalIdx,
-        mansion27: m + "(" + m_data.ch_name + ")",
-        mansion28: mansionResult.mansion28.name + "(" + mansionResult.mansion28.ch_name + ")",
-        preciseDateData: mansionResult.preciseDateData,
         traits: mapped
     };
 }
@@ -3231,18 +3188,13 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
     html += `<div class="sy-container" id="lunarNexusApp">`;
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
-    if (!lunarObj && window.__sajuPreciseDateData) {
-      lunarObj = window.__sajuPreciseDateData;
-    }
     if (!lunarObj) {
         try {
             const b = window._ziweiBirth;
             if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
                 lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
             }
-      } catch (e) {
-        console.warn('[Sukuyo] fallback solarToLunar failed:', e && e.message ? e.message : e);
-      }
+        } catch (e) {}
     }
     if (!lunarObj) {
         html += `<div class="sy-card" style="border-left-color:#f59e0b; background:rgba(245,158,11,0.08);">
