@@ -10,14 +10,15 @@ export const SECTION_LABELS = {
 
 export const SERVICE_MAP = {
   "tarot/healing": {
-    componentKey: "sunHealingTarot",
+    component: FeatureLandingPage,
     title: "따뜻한 태양 회복 타로 - 4카드 힐링 스프레드",
-    h1: "따뜻한 태양 회복 타로 - Sun and Light 4카드 힐링 스프레드",
+    h1: "따뜻한 태양 회복 타로",
     description:
-      "햇살처럼 포근한 빛으로 마음을 어루만지고, 다시 일어설 힘을 찾아가는 4카드 타로 리딩. 무료 힐링 타로로 오늘의 회복 에너지를 확인하세요.",
+      "햇살잘 한 손길에 마음을 어루만지고 다시 일어설 힘을 찾아가는 4카드 타로 리딩. 무료 힐링 타로로 오늘의 회복 에너지를 확인하세요.",
     seoText:
-      "따뜻한 태양 회복 타로는 Sun and Light 에너지를 활용한 4카드 힐링 스프레드입니다. 과거의 상처, 현재의 에너지, 회복의 방향, 오늘의 선물을 카드로 읽습니다.",
+      "따뜻한 태양 회복 타로는 Sun and Light 에너지를 활용한 4카드 힐링 스프레드입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/healing.webp",
+    landingPoints: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "과거·현재·방향·선물 카드 해석"],
     keywords: [
       "힐링 타로",
       "4카드 타로",
@@ -46,14 +47,15 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/mingri": {
-    componentKey: "mingriTarot",
+    component: FeatureLandingPage,
     title: "명리학 AI 타로 - 78장 유니버설 덱 리딩",
     h1: "명리학 AI 타로 - 78장 유니버설 덱 리딩",
     description:
-      "연애, 재회, 사업, 건강 등 고민 카테고리에 맞춰 원카드 또는 3카드 명리학 타로 해석을 제공합니다.",
+      "연애, 재회, 사업, 건강 등 고민 카테고리에 맞쳐 원카드 또는 3카드 명리학 타로 해석을 제공합니다.",
     seoText:
-      "명리학 AI 타로는 타로 카드를 카테고리별 맥락으로 해석하는 서비스입니다. 원카드와 3카드 스프레드를 지원하며, 카드 공개 후 맞춤 리딩 결과를 제공합니다.",
+      "명리학 AI 타로는 타로 카드를 카테고리별 맥락으로 해석하는 서비스입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20tarrot.webp",
+    landingPoints: ["카테고리별 고민 리딩", "원카드 및 3카드 스프레드", "AI 명리 해석 리포트"],
     keywords: [
       "명리학 타로",
       "78장 타로",
@@ -65,7 +67,7 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/love": {
-    componentKey: "loveRelationshipTarot",
+    component: FeatureLandingPage,
     title: "우리는 무슨 사이? - 6카드 연애 관계 타로",
     h1: "우리는 무슨 사이? - 6카드 연애 관계 타로",
     description:
@@ -73,6 +75,7 @@ export const SERVICE_MAP = {
     seoText:
       "우리는 무슨 사이 타로는 relationship_six_card 스프레드를 사용해 관계의 현재 상태와 흐름을 다각도로 읽어주는 연애 특화 카드 리딩입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/tarolove.webp",
+    landingPoints: ["6카드 연애 스프레드", "서로의 시선 확인", "관계 방향 한눈에 파악"],
     keywords: [
       "우리는 무슨 사이",
       "6카드 타로",
@@ -83,17 +86,18 @@ export const SERVICE_MAP = {
     ],
   },
   "saju/basic": {
-    componentKey: "sajuBasicPage",
+    component: FeatureLandingPage,
     title: "사주 만세력 기본 해석 - 오행·십성·명식 분석",
     h1: "사주 만세력 기본 해석",
     description:
       "생년월일시 기반 사주 명식으로 오행 균형과 십성 흐름을 분석하는 Code Destiny의 사주 서비스 안내 페이지.",
     seoText:
-      "사주 서비스는 년월일시와 출생지 정보를 바탕으로 오행 균형, 십성 관계, 해석 포인트를 제공하는 개인 맞춤 운세 분석 기능입니다.",
+      "사주 서비스는 년월일시와 출생지 정보를 바탕으로 오행 균형, 십성 관계, 해석 포인트를 제공하는 개인 맞완 운세 분석 기능입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/saju.webp",
+    landingPoints: ["사주팔자 명식 생성", "오행 균형 분석", "십성 흐름 해석"],
   },
   "astrology/cosmic": {
-    componentKey: "astrologyCosmicPage",
+    component: FeatureLandingPage,
     title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",
     h1: "점성술 코즈믹 차트",
     description:
@@ -101,6 +105,7 @@ export const SERVICE_MAP = {
     seoText:
       "점성술 코즈믹 차트는 출생 정보를 기반으로 태양, 달, 상승궁을 해석해 성향과 감정 패턴, 표현 방식을 이해하도록 돕습니다.",
     ogImage: "https://code-destiny.com/fuctionassets/jumsung.webp",
+    landingPoints: ["태양궁·달궁·상승궁 해석", "코즈믹 스타일 차트", "관계 패턴 파악"],
     keywords: [
       "점성술",
       "코즈믹 차트",
@@ -113,7 +118,7 @@ export const SERVICE_MAP = {
     ],
   },
   "ziwei/chart": {
-    componentKey: "ziweiChartPage",
+    component: FeatureLandingPage,
     title: "자미두수 12궁 명반 분석 - Ziwei Doushu",
     h1: "자미두수 12궁 명반 분석",
     description:
@@ -121,6 +126,7 @@ export const SERVICE_MAP = {
     seoText:
       "자미두수 서비스는 생년월일시를 기반으로 12궁 명반 구조를 해석하고 성향, 관계, 진로 등 핵심 흐름을 제공합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/jami.webp",
+    landingPoints: ["12궁 명반 구조 도식", "주요 성군 조합 해석", "성향·관계·진로 흐름 파악"],
     keywords: [
       "자미두수",
       "紫微斗數",
@@ -415,6 +421,59 @@ export const SERVICE_MAP = {
       "꿈 분석",
       "psychoanalysis dream",
       "Freud dream",
+    ],
+  },
+  /* ── 신규 서비스 엔트리 ── */
+  "oracle/hwatu-life": {
+    component: FeatureLandingPage,
+    title: "화투 인생 패 테스트 - 7문항 심리테스트",
+    h1: "화투 인생 패 테스트",
+    description: "돈·사랑·위기 상황에서의 선택 패턴을 통해 나를 상징하는 화투 인생 패 아키타입을 찾아주는 심리테스트.",
+    seoText: "화투 인생 패 테스트는 7문항 심리테스트로 삼광·고도리·청단·똑광 아키타입을 찾아드립니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/tazza.webp",
+    landingPoints: ["7문항 심리테스트", "화투 인생 패 아키타입 파악", "조건별 선택 패턴 분석"],
+    keywords: [
+      "화투",
+      "화투 인생 패",
+      "심리테스트",
+      "아키타입 테스트",
+      "hwatu life test",
+    ],
+  },
+  "oracle/sikojen-povailu": {
+    component: FeatureLandingPage,
+    title: "핀란드 주석점 Sikojen Povailu",
+    h1: "핀란드 주석점",
+    description:
+      "핀란드 전통 주석점(낙점) 의식을 무료로 체험하세요. 낙이 물에서 굳는 형태로 미래를 읽는 5단게 인터랙티브 오라클.",
+    seoText:
+      "핀란드 주석점은 5단계 인터랙티브 의식으로 낙 형태 상징을 해석하고 Shadow Reading까지 제공합니다.",
+    ogImage: "https://code-destiny.com/icons/honeypig.webp",
+    landingPoints: ["5단계 인터랙티브 의식", "낙 형태 상징 해석", "Shadow Reading 제공"],
+    keywords: [
+      "핀란드 주석점",
+      "Sikojen Povailu",
+      "낙점",
+      "핀란드 신탁",
+      "tin casting oracle",
+    ],
+  },
+  "oracle/royal-tea": {
+    component: FeatureLandingPage,
+    title: "타세오그래피 찻잎 점 - 랰던 로열 컵 문양 리딩",
+    h1: "타세오그래피 찻잎 점",
+    description:
+      "랰던 로열 컵 문양을 기반으로 상징을 해석하는 영국 홀차 찻잎 점 오라클 리딩 서비스.",
+    seoText:
+      "타세오그래피는 타 컵 내에 남은 찻잎 패턴으로 미래를 읽는 유럽 전통 점술입니다.",
+    ogImage: "https://code-destiny.com/fuctionassets/royaltea.webp",
+    landingPoints: ["랰던 로열 컵 문양 리딩", "영국 홀차 전통 점술", "상징 해석 오라클"],
+    keywords: [
+      "타세오그래피",
+      "찻잎 점",
+      "로열 컵",
+      "tasseography",
+      "tea leaf reading",
     ],
   },
 };

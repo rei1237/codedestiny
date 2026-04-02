@@ -41,6 +41,15 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/animal/totem":      { icon:"🦅", badge:"TOTEM CARD",   tag:"수호 동물 카드 리딩",     particles:["🦅","🦉","🐺","🦁","🐉"] },
   "/dream/tarot":       { icon:"💭", badge:"DREAM AI",      tag:"AI 꿈 해석 리포트",      particles:["💭","🌙","✨","⭐","💫"] },
   "/dream/psycho":      { icon:"🧠", badge:"FREUD STUDY",  tag:"정신분석 해몽",           particles:["🧠","🌀","💭","🔮","✦"] },
+  "/tarot/healing":     { icon:"☀️", badge:"HEALING",       tag:"4카드 힐링 스프레드",      particles:["☀️","🌿","✦","💛","🌟"] },
+  "/tarot/mingri":      { icon:"🎴", badge:"AI TAROT",       tag:"78장 유니버설 덱 AI 리딩", particles:["🎴","✦","⭐","🔮","💫"] },
+  "/tarot/love":        { icon:"💕", badge:"LOVE TAROT",     tag:"6카드 연애 관계 스프레드",  particles:["💕","🌹","✦","💌","🌸"] },
+  "/saju/basic":        { icon:"📜", badge:"SAJU",           tag:"사주팔자 만세력 기본 해석",  particles:["📜","☯","✦","⭐","🌟"] },
+  "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁 자미두수 명반 분석",   particles:["☸","✦","⭐","🌙","🌟"] },
+  "/astrology/cosmic":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },
+  "/oracle/hwatu-life": { icon:"🀄", badge:"HWATU LIFE",     tag:"7문항 화투 인생 패 테스트", particles:["🀄","🌸","🍁","🌊","🎴"] },
+  "/oracle/sikojen-povailu": { icon:"🐷", badge:"TIN ORACLE", tag:"핀란드 주석 납점 오라클",  particles:["🐷","✦","❄️","🌊","⭐"] },
+  "/oracle/royal-tea":  { icon:"🍵", badge:"TEA ORACLE",     tag:"타세오그래피 찻잎 리딩",   particles:["🍵","🌿","✦","☕","🌸"] },
 };
 
 /* ═══════════════════════════════════════════
@@ -57,6 +66,39 @@ interface Theme {
   badge: string; seo: string; divider: string;
 }
 const THEMES: Record<string, Theme> = {
+  saju: {
+    bg: "linear-gradient(155deg,#0c0805 0%,#1a1005 45%,#100c06 100%)",
+    orb1:"rgba(245,158,11,0.22)", orb2:"rgba(180,83,9,0.14)",
+    glow:"rgba(252,211,77,0.14)", border:"rgba(252,211,77,0.28)",
+    accent:"#fcd34d", titleGrad:"linear-gradient(135deg,#fffbeb 0%,#f59e0b 55%,#fde68a 100%)",
+    ptBg:"rgba(245,158,11,0.09)", ptBorder:"rgba(252,211,77,0.22)", ptDot:"#f59e0b",
+    btnPrimary:"linear-gradient(135deg,#92400e 0%,#d97706 100%)",
+    btnGlow:"0 14px 36px rgba(146,64,14,0.48),0 0 0 1px rgba(252,211,77,0.22)",
+    btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
+    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
+  },
+  ziwei: {
+    bg: "linear-gradient(155deg,#08041c 0%,#120832 45%,#0a0520 100%)",
+    orb1:"rgba(139,92,246,0.26)", orb2:"rgba(236,72,153,0.14)",
+    glow:"rgba(196,181,253,0.18)", border:"rgba(196,181,253,0.3)",
+    accent:"#c4b5fd", titleGrad:"linear-gradient(135deg,#f5f3ff 0%,#8b5cf6 55%,#ec4899 100%)",
+    ptBg:"rgba(139,92,246,0.1)", ptBorder:"rgba(196,181,253,0.24)", ptDot:"#a78bfa",
+    btnPrimary:"linear-gradient(135deg,#5b21b6 0%,#9333ea 100%)",
+    btnGlow:"0 14px 36px rgba(91,33,182,0.48),0 0 0 1px rgba(196,181,253,0.22)",
+    btnSec:"rgba(196,181,253,0.09)", btnSecBorder:"rgba(196,181,253,0.3)",
+    badge:"rgba(196,181,253,0.88)", seo:"rgba(196,181,253,0.44)", divider:"rgba(196,181,253,0.14)",
+  },
+  astrology: {
+    bg: "linear-gradient(155deg,#040812 0%,#060e2a 45%,#050a1c 100%)",
+    orb1:"rgba(56,189,248,0.2)", orb2:"rgba(99,102,241,0.16)",
+    glow:"rgba(125,211,252,0.14)", border:"rgba(125,211,252,0.28)",
+    accent:"#7dd3fc", titleGrad:"linear-gradient(135deg,#f0f9ff 0%,#38bdf8 55%,#818cf8 100%)",
+    ptBg:"rgba(56,189,248,0.09)", ptBorder:"rgba(125,211,252,0.22)", ptDot:"#38bdf8",
+    btnPrimary:"linear-gradient(135deg,#0369a1 0%,#4338ca 100%)",
+    btnGlow:"0 14px 36px rgba(3,105,161,0.48),0 0 0 1px rgba(125,211,252,0.22)",
+    btnSec:"rgba(125,211,252,0.08)", btnSecBorder:"rgba(125,211,252,0.28)",
+    badge:"rgba(125,211,252,0.88)", seo:"rgba(125,211,252,0.44)", divider:"rgba(125,211,252,0.14)",
+  },
   flower: {
     bg: "linear-gradient(155deg,#0f0a1e 0%,#1e0f34 45%,#0d1825 100%)",
     orb1:"rgba(255,182,220,0.28)", orb2:"rgba(192,132,252,0.22)",
@@ -136,6 +178,15 @@ const SLUG_THEME_OVERRIDE: Partial<Record<string, Partial<Theme>>> = {
     btnPrimary:"linear-gradient(135deg,#312e81 0%,#7c3aed 100%)",
     btnGlow:"0 14px 36px rgba(49,46,129,0.48),0 0 0 1px rgba(165,180,252,0.22)",
   },
+  "/oracle/hwatu-life": {
+    bg:"linear-gradient(155deg,#1c0202 0%,#300808 45%,#1c0505 100%)",
+    orb1:"rgba(220,38,38,0.22)", orb2:"rgba(0,0,0,0.5)",
+    glow:"rgba(220,38,38,0.16)", border:"rgba(220,38,38,0.32)",
+    accent:"#fca5a5", titleGrad:"linear-gradient(135deg,#fff1f2 0%,#f87171 55%,#fbbf24 100%)",
+    ptDot:"#f87171", badge:"rgba(252,165,165,0.88)",
+    btnPrimary:"linear-gradient(135deg,#991b1b 0%,#dc2626 100%)",
+    btnGlow:"0 14px 36px rgba(153,27,27,0.48),0 0 0 1px rgba(220,38,38,0.22)",
+  },
   "/oracle/hwatu": {
     bg:"linear-gradient(155deg,#1c0202 0%,#300808 45%,#1c0505 100%)",
     orb1:"rgba(220,38,38,0.22)", orb2:"rgba(0,0,0,0.5)",
@@ -159,6 +210,16 @@ const ACTION_MAP: Record<string, string> = {
   "/flower/destiny":"openDestinyFlowerStudio", "/flower/astrology":"openAstrologyFlowerStudio",
   "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
+  /* ── 추가된 서비스 ── */
+  "/tarot/healing":"openTarotHealingModal",
+  "/tarot/mingri":"/tarot/mingri/play",
+  "/tarot/love":"openTarotLoveModal",
+  "/saju/basic":"/saju/basic/play",
+  "/ziwei/chart":"openZiweiModal",
+  "/astrology/cosmic":"openAstroModal",
+  "/oracle/hwatu-life":"/oracle/hwatu-life/play",
+  "/oracle/sikojen-povailu":"/oracle/sikojen-povailu/play",
+  "/oracle/royal-tea":"/royal-tea-oracle.html",
 };
 
 /* Particle positions for the 5 floating items */
@@ -178,7 +239,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const basePath = stripLocalePrefix(pathname);
 
   const action = ACTION_MAP[basePath];
-  const runHref = action ? `/?action=${encodeURIComponent(action)}` : "/";
+  const runHref = action
+    ? (action.startsWith('/') ? action : `/?action=${encodeURIComponent(action)}`)
+    : "/";
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
