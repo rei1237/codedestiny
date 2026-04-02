@@ -23,6 +23,28 @@
         letter-spacing:.08em;
       }
       .cd-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+      /* 코인 지급 모달 */
+      .coin-modal-backdrop{
+        display:none; position:fixed; inset:0; z-index:200;
+        background:rgba(0,0,0,.72); backdrop-filter:blur(4px);
+        align-items:center; justify-content:center; padding:16px;
+      }
+      .coin-modal-backdrop.is-open{ display:flex; }
+      .coin-modal{
+        width:100%; max-width:360px; border-radius:18px;
+        border:1px solid rgba(251,191,36,.35); background:#0a0a18;
+        padding:24px; box-shadow:0 0 0 1px rgba(251,191,36,.18),0 24px 56px rgba(0,0,0,.75);
+      }
+      .coin-modal h2{ font-size:17px; font-weight:800; color:#fbbf24; margin:0 0 4px; }
+      .coin-modal .coin-meta{ font-size:12.5px; color:#94a3b8; margin-bottom:14px; line-height:1.6; }
+      .coin-modal label{ display:block; font-size:11.5px; font-weight:700; color:#cbd5e1; margin-bottom:6px; }
+      .coin-modal input{ width:100%; box-sizing:border-box; background:#0f172a; border:1px solid rgba(251,191,36,.3);
+        border-radius:10px; padding:9px 12px; font-size:13px; color:#f1f5f9; outline:none; margin-bottom:12px; }
+      .coin-modal input:focus{ border-color:rgba(251,191,36,.65); }
+      .coin-modal-error{ background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3);
+        border-radius:8px; padding:7px 10px; font-size:12px; color:#fca5a5; margin-bottom:12px; }
+      .coin-modal-actions{ display:flex; gap:10px; margin-top:4px; }
+      .coin-modal-actions .cd-btn{ flex:1; }
     </style>
   </head>
   <body data-page="members">
@@ -82,11 +104,12 @@
                     <th>이메일</th>
                     <th>가입일</th>
                     <th>생년월일</th>
+                    <th>🐷 코인</th>
                     <th>관리</th>
                   </tr>
                 </thead>
                 <tbody id="memberTbody">
-                  <tr><td colspan="5" style="color:var(--muted); text-align:center; padding:18px 10px;">로딩 중...</td></tr>
+                  <tr><td colspan="6" style="color:var(--muted); text-align:center; padding:18px 10px;">로딩 중...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -95,9 +118,87 @@
       </main>
     </div>
 
+    <!-- 황금 돼지 코인 지급 모달 -->
+    <div id="coinModal" class="coin-modal-backdrop" role="dialog" aria-modal="true" aria-label="황금 돼지 코인 지급">
+      <div class="coin-modal">
+        <h2>🐷 황금 돼지 코인 지급</h2>
+        <div class="coin-meta" id="coinModalMeta">-</div>
+        <label>코인 수량 <span style="color:#64748b;">(음수 입력 시 차감)</span></label>
+        <input id="coinAmount" type="number" placeholder="예: 100 (지급) 또는 -50 (차감)" />
+        <label>지급 사유</label>
+        <input id="coinReason" type="text" value="관리자 황금 돼지 코인 지급" />
+        <div id="coinModalError" class="coin-modal-error" style="display:none;"></div>
+        <div class="coin-modal-actions">
+          <button id="coinModalConfirm" type="button" class="cd-btn" style="background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.5);color:#fde68a;">🐷 지급</button>
+          <button id="coinModalCancel" type="button" class="cd-btn ghost">취소</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="./assets/admin.js"></script>
     <script type="module">
-      import { apiUsersList } from "./api/members.js";
+      import { apiUsersList, apiAdjustPoints } from "./api/members.js";
+
+      // 코인 모달 상태
+      let _coinTargetUser = null;
+
+      const coinModal = document.getElementById("coinModal");
+      const coinModalMeta = document.getElementById("coinModalMeta");
+      const coinAmount = document.getElementById("coinAmount");
+      const coinReason = document.getElementById("coinReason");
+      const coinModalError = document.getElementById("coinModalError");
+      const coinModalConfirm = document.getElementById("coinModalConfirm");
+      const coinModalCancel = document.getElementById("coinModalCancel");
+
+      function openCoinModal(user) {
+        _coinTargetUser = user;
+        coinModalMeta.innerHTML = `<strong style="color:#f1f5f9;">${user.name}</strong> <span style="color:#64748b;">(${user.email})</span><br>현재 잔액: <strong style="color:#fbbf24;">${Number(user.points||0).toLocaleString("ko-KR")} 코인</strong>`;
+        coinAmount.value = "";
+        coinReason.value = "관리자 황금 돼지 코인 지급";
+        coinModalError.style.display = "none";
+        coinModalError.textContent = "";
+        coinModal.classList.add("is-open");
+        coinAmount.focus();
+      }
+
+      function closeCoinModal() {
+        _coinTargetUser = null;
+        coinModal.classList.remove("is-open");
+      }
+
+      coinModalCancel.addEventListener("click", closeCoinModal);
+      coinModal.addEventListener("click", (e) => { if (e.target === coinModal) closeCoinModal(); });
+
+      coinModalConfirm.addEventListener("click", async () => {
+        if (!_coinTargetUser) return;
+        const delta = Number(coinAmount.value);
+        if (!Number.isFinite(delta) || delta === 0) {
+          coinModalError.textContent = "유효한 코인 수량을 입력해 주세요.";
+          coinModalError.style.display = "block";
+          return;
+        }
+        const reason = (coinReason.value || "관리자 황금 돼지 코인 지급").trim();
+        coinModalConfirm.disabled = true;
+        coinModalConfirm.textContent = "처리 중...";
+        coinModalError.style.display = "none";
+        try {
+          const res = await apiAdjustPoints({ userId: _coinTargetUser._id, delta, reason });
+          if (!res.ok) {
+            coinModalError.textContent = res.payload?.message || "코인 지급에 실패했습니다.";
+            coinModalError.style.display = "block";
+            return;
+          }
+          closeCoinModal();
+          showToast(`🐷 ${delta > 0 ? "+" : ""}${delta.toLocaleString("ko-KR")} 코인 반영 완료`);
+          await load();
+        } catch(_e) {
+          coinModalError.textContent = "요청 중 오류가 발생했습니다.";
+          coinModalError.style.display = "block";
+        } finally {
+          coinModalConfirm.disabled = false;
+          coinModalConfirm.textContent = "🐷 지급";
+        }
+      });
 
       window.__CD_ADMIN_PAGE_INIT__ = ({ showToast }) => {
         const tbody = document.getElementById("memberTbody");
@@ -113,12 +214,12 @@
         }
 
         async function load(){
-          tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted); text-align:center; padding:18px 10px;">로딩 중...</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted); text-align:center; padding:18px 10px;">로딩 중...</td></tr>`;
           const search = (searchEl.value || "").trim();
           const res = await apiUsersList({ search });
           if(!res?.ok){
             meta.textContent = "불러오기에 실패했습니다.";
-            tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted); text-align:center; padding:18px 10px;">오류</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted); text-align:center; padding:18px 10px;">오류</td></tr>`;
             return;
           }
           const users = Array.isArray(res.payload?.users) ? res.payload.users : [];
@@ -131,13 +232,24 @@
               <td>${u.email || "-"}</td>
               <td>${formatDate(u.joinedAt)}</td>
               <td>${formatDate(u.birthDate)}</td>
+              <td style="font-weight:700; color:#fbbf24;">${Number(u.points||0).toLocaleString("ko-KR")}</td>
               <td>
                 <div class="cd-actions">
+                  <button type="button" class="cd-btn" data-coin='${JSON.stringify({_id:u._id,name:u.name,email:u.email,points:u.points||0})}' style="padding:8px 10px;background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.45);color:#fde68a;">🐷 코인</button>
                   <button type="button" class="cd-btn ghost" data-del="${u._id}" style="padding:8px 10px;">삭제</button>
                 </div>
               </td>
             </tr>
           `).join("");
+
+          tbody.querySelectorAll("[data-coin]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              try {
+                const user = JSON.parse(btn.getAttribute("data-coin") || "{}");
+                openCoinModal(user);
+              } catch(_e) {}
+            });
+          });
 
           tbody.querySelectorAll("[data-del]").forEach((btn) => {
             btn.addEventListener("click", async () => {

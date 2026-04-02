@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 type AdminUser = {
   _id: string;
@@ -11,6 +10,7 @@ type AdminUser = {
   birthDate: string;
   joinedAt: string;
   role: "user" | "admin";
+  points: number;
 };
 
 type AdminUsersResponse = {
@@ -18,6 +18,14 @@ type AdminUsersResponse = {
   count?: number;
   users?: AdminUser[];
   message?: string;
+};
+
+type CoinGrantState = {
+  user: AdminUser | null;
+  amount: string;
+  reason: string;
+  loading: boolean;
+  error: string;
 };
 
 function formatDate(value?: string) {
@@ -32,46 +40,6 @@ function formatDate(value?: string) {
 }
 
 export default function AdminPage() {
-  // 위장 목적: 외부에서 `/admin` 경로를 발견했을 때 관리자 기능을 노출하지 않는다.
-  // - 관리자 UI/기능/문구("ADMIN MODE")를 렌더링하지 않는다.
-  // - 대신 일반적인 404/미존재 화면처럼 보이도록 구성한다.
-  return (
-    <main
-      className="min-h-screen flex items-center justify-center bg-[#0a0a0f] px-4 py-10 text-slate-100"
-      role="main"
-      aria-label="미존재 페이지"
-    >
-      <div
-        className="w-full max-w-xl rounded-2xl border border-slate-700/60 bg-slate-950/60 p-6 shadow-[0_18px_50px_rgba(0,0,0,.45)]"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#f472b6] shadow-[0_0_0_6px_rgba(244,114,182,.18)]" />
-          <h1 className="text-2xl font-extrabold">페이지를 찾을 수 없습니다.</h1>
-        </div>
-        <p className="text-slate-400 leading-7 mt-2">
-          요청하신 경로는 존재하지 않거나 처리할 수 없습니다.
-          <br />
-          잠시 후 다시 시도해 주세요.
-        </p>
-        <div className="mt-5 flex gap-3 flex-wrap">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-600/60 bg-slate-800/40 px-4 py-2 font-semibold"
-          >
-            홈으로
-          </Link>
-          <button
-            type="button"
-            onClick={() => (typeof window !== "undefined" ? window.history.back() : null)}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-600/60 bg-slate-800/20 px-4 py-2 font-semibold"
-          >
-            뒤로가기
-          </button>
-        </div>
-      </div>
-    </main>
-  );
-
   const router = useRouter();
 
   const [token, setToken] = useState("");
@@ -85,6 +53,14 @@ export default function AdminPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [users, setUsers] = useState<AdminUser[]>([]);
+
+  const [coinGrant, setCoinGrant] = useState<CoinGrantState>({
+    user: null,
+    amount: "",
+    reason: "관리자 황금 돼지 코인 지급",
+    loading: false,
+    error: "",
+  });
 
   const apiBase = useMemo(
     () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
@@ -200,6 +176,49 @@ export default function AdminPage() {
     }
   };
 
+  const handleGrantCoinSubmit = async () => {
+    const { user, amount, reason } = coinGrant;
+    if (!user) return;
+
+    const delta = Number(amount);
+    if (!Number.isFinite(delta) || delta === 0) {
+      setCoinGrant((prev) => ({ ...prev, error: "유효한 코인 수량을 입력해 주세요." }));
+      return;
+    }
+
+    setCoinGrant((prev) => ({ ...prev, loading: true, error: "" }));
+
+    try {
+      const response = await fetch(`${apiBase}/api/admin/members/points`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: user._id, delta, reason }),
+      });
+
+      const payload = (await response.json()) as { ok?: boolean; message?: string; user?: { points: number } };
+
+      if (!response.ok) {
+        setCoinGrant((prev) => ({ ...prev, error: payload.message || "코인 지급에 실패했습니다.", loading: false }));
+        return;
+      }
+
+      // 로컬 상태 업데이트
+      setUsers((prev) =>
+        prev.map((u) =>
+          u._id === user._id
+            ? { ...u, points: payload.user?.points ?? u.points }
+            : u,
+        ),
+      );
+      setCoinGrant({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" });
+    } catch {
+      setCoinGrant((prev) => ({ ...prev, error: "요청 중 오류가 발생했습니다.", loading: false }));
+    }
+  };
+
   if (isBooting) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-200">
@@ -210,12 +229,77 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#070b18] via-[#0d1325] to-[#141130] px-4 py-8 text-slate-100">
+      {/* 황금 돼지 코인 지급 모달 */}
+      {coinGrant.user ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-amber-400/35 bg-slate-950 p-6 shadow-[0_0_0_1px_rgba(251,191,36,.2),0_20px_50px_rgba(0,0,0,.7)]">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-2xl">🐷</span>
+              <h2 className="text-lg font-bold text-amber-300">황금 돼지 코인 지급</h2>
+            </div>
+            <p className="mb-4 text-sm text-slate-300">
+              <span className="font-semibold text-white">{coinGrant.user.name}</span>{" "}
+              <span className="text-slate-400">({coinGrant.user.email})</span>
+              <br />
+              현재 잔액:{" "}
+              <span className="font-bold text-amber-300">
+                {Number(coinGrant.user.points || 0).toLocaleString("ko-KR")} 코인
+              </span>
+            </p>
+            <div className="mb-3">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                코인 수량 <span className="text-slate-500">(음수 입력 시 차감)</span>
+              </label>
+              <input
+                type="number"
+                value={coinGrant.amount}
+                onChange={(e) => setCoinGrant((prev) => ({ ...prev, amount: e.target.value, error: "" }))}
+                placeholder="예: 100 (지급) 또는 -50 (차감)"
+                className="w-full rounded-xl border border-amber-400/30 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/30"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-300">지급 사유</label>
+              <input
+                type="text"
+                value={coinGrant.reason}
+                onChange={(e) => setCoinGrant((prev) => ({ ...prev, reason: e.target.value }))}
+                className="w-full rounded-xl border border-slate-600/50 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-violet-400/60 focus:ring-2 focus:ring-violet-400/25"
+              />
+            </div>
+            {coinGrant.error ? (
+              <div className="mb-3 rounded-lg border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                {coinGrant.error}
+              </div>
+            ) : null}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleGrantCoinSubmit}
+                disabled={coinGrant.loading}
+                className="flex-1 rounded-xl border border-amber-400/50 bg-amber-500/20 py-2.5 text-sm font-bold text-amber-200 hover:bg-amber-500/30 disabled:opacity-50"
+              >
+                {coinGrant.loading ? "처리 중..." : "🐷 지급"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCoinGrant({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" })}
+                disabled={coinGrant.loading}
+                className="rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-700/50 disabled:opacity-50"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mx-auto w-full max-w-6xl rounded-2xl border border-violet-400/25 bg-slate-950/60 p-5 shadow-[0_0_0_1px_rgba(109,40,217,.18),0_18px_45px_rgba(15,23,42,.55)] backdrop-blur-md sm:p-7">
         <header className="mb-5 flex flex-col gap-3 border-b border-violet-500/25 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold tracking-[0.3em] text-violet-300">ADMIN MODE</p>
             <h1 className="mt-1 text-2xl font-bold text-white sm:text-3xl">회원 관리 페이지</h1>
-            <p className="mt-1 text-sm text-slate-300">가입 회원 조회, 검색, 삭제 기능을 제공합니다.</p>
+            <p className="mt-1 text-sm text-slate-300">가입 회원 조회, 검색, 삭제 및 황금 돼지 코인 지급을 제공합니다.</p>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <div className="rounded-lg border border-violet-400/35 bg-violet-500/10 px-3 py-2 text-violet-100">
@@ -256,6 +340,7 @@ export default function AdminPage() {
                   <th className="px-4 py-3">이메일</th>
                   <th className="px-4 py-3">가입일</th>
                   <th className="px-4 py-3">생년월일</th>
+                  <th className="px-4 py-3">🐷 코인</th>
                   <th className="px-4 py-3">관리</th>
                 </tr>
               </thead>
@@ -266,21 +351,41 @@ export default function AdminPage() {
                     <td className="px-4 py-3 text-slate-200">{user.email}</td>
                     <td className="px-4 py-3 text-slate-300">{formatDate(user.joinedAt)}</td>
                     <td className="px-4 py-3 text-slate-300">{formatDate(user.birthDate)}</td>
+                    <td className="px-4 py-3 font-semibold text-amber-300">
+                      {Number(user.points || 0).toLocaleString("ko-KR")}
+                    </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(user)}
-                        className="rounded-lg border border-rose-400/45 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25"
-                      >
-                        삭제
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCoinGrant({
+                              user,
+                              amount: "",
+                              reason: "관리자 황금 돼지 코인 지급",
+                              loading: false,
+                              error: "",
+                            })
+                          }
+                          className="rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25"
+                        >
+                          🐷 코인
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(user)}
+                          className="rounded-lg border border-rose-400/45 bg-rose-500/15 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/25"
+                        >
+                          삭제
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
 
                 {!loading && users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                    <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
                       표시할 회원 정보가 없습니다.
                     </td>
                   </tr>

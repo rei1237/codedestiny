@@ -423,6 +423,19 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
 .golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
 .golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
+/* ── 섹션 코인 잠금 오버레이 ── */
+.cd-section-gate{position:relative}
+.cd-section-gate__body{filter:blur(6px) brightness(.92);pointer-events:none;user-select:none;transition:filter .35s}
+.cd-section-gate--unlocked .cd-section-gate__body{filter:none;pointer-events:auto;user-select:auto}
+.cd-section-gate__overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(180deg,rgba(255,250,245,.08) 0%,rgba(255,245,230,.82) 52%,rgba(255,236,210,.97) 100%);border-radius:12px;padding:20px 16px;text-align:center}
+.cd-section-gate--unlocked .cd-section-gate__overlay{display:none}
+.cd-section-gate__icon{font-size:2.6rem;line-height:1}
+.cd-section-gate__title{font-size:1.05rem;font-weight:900;color:#7c2e00;margin:0}
+.cd-section-gate__desc{font-size:.84rem;color:#8a4620;line-height:1.5;margin:0;max-width:320px}
+.cd-section-gate__btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:999px;padding:12px 26px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.91rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(219,89,55,.32);transition:transform .2s ease,box-shadow .2s ease;letter-spacing:.02em}
+.cd-section-gate__btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(219,89,55,.42)}
+.cd-section-gate__badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:rgba(255,193,87,.32);color:#7a3a00;font-size:.76rem;font-weight:800;border:1px solid rgba(255,162,58,.38)}
+@media(max-width:600px){.cd-section-gate__overlay{padding:16px 12px}.cd-section-gate__btn{padding:11px 20px;font-size:.86rem}}
 .golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
 .golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
 .golden-unlock-list{display:grid;gap:8px}
@@ -3276,33 +3289,55 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
       <h3 id="daewunTitle" class="sec-title">🔮 대운 (大運) — 억부+조후+종격 통합 판단</h3>
-      <div style="font-size: 0.82rem; color: #666; margin-top: 4px; margin-bottom: 16px; line-height: 1.5; padding: 10px 12px; background: rgba(0,0,0,0.02); border-radius: 6px; border-left: 3px solid #bba371; word-break: keep-all;">
-        ※ 만세력의 산술적 데이터만으로는 한 개인의 입체적인 운명을 완전히 규명하기에는 한계가 따릅니다. 본 분석은 명리학적 경향성에 기반한 것이므로 절대적인 지표가 아닌, <b>삶의 흐름을 읽고 대비하기 위한 전략적 참고 자료</b>로만 활용하시기를 권장합니다.
-      </div>
-      <div id="dwLegend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:.78rem"></div>
-      <div id="currentAgeInfo" style="font-size:.83rem;color:#888;margin-bottom:12px"></div>
-      <!-- 인생 그래프 -->
-      <div class="life-graph-section">
-        <div class="life-graph-title">인생 길흉 그래프 (억부+조후+종격 통합)</div>
-        <div class="life-graph-wrap" id="lifeGraphWrap">
-          <canvas id="lifeGraphCanvas"></canvas>
-          <div class="graph-tooltip" id="graphTooltip"></div>
+      <div class="cd-section-gate" id="daewunGate">
+        <div class="cd-section-gate__overlay">
+          <div class="cd-section-gate__icon">🔒</div>
+          <p class="cd-section-gate__title">대운 분석 — 유료 콘텐츠</p>
+          <p class="cd-section-gate__desc">억부·조후·종격 통합 대운 흐름과 인생 길흉 그래프를 열람하려면 황금 돼지 코인이 필요합니다.</p>
+          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
         </div>
-        <div class="life-graph-legend">
-          <div class="lgl-item"><span class="lgl-dot" style="background:#4CAF50"></span>길운 (吉)</div>
-          <div class="lgl-item"><span class="lgl-dot" style="background:#FF8BA7"></span>중립</div>
-          <div class="lgl-item"><span class="lgl-dot" style="background:#E53935"></span>역경 (凶)</div>
-          <div class="lgl-item"><span class="lgl-dot" style="background:#7B1FA2;opacity:.8"></span>현재</div>
+        <div class="cd-section-gate__body">
+          <div style="font-size: 0.82rem; color: #666; margin-top: 4px; margin-bottom: 16px; line-height: 1.5; padding: 10px 12px; background: rgba(0,0,0,0.02); border-radius: 6px; border-left: 3px solid #bba371; word-break: keep-all;">
+            ※ 만세력의 산술적 데이터만으로는 한 개인의 입체적인 운명을 완전히 규명하기에는 한계가 따릅니다. 본 분석은 명리학적 경향성에 기반한 것이므로 절대적인 지표가 아닌, <b>삶의 흐름을 읽고 대비하기 위한 전략적 참고 자료</b>로만 활용하시기를 권장합니다.
+          </div>
+          <div id="dwLegend" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:.78rem"></div>
+          <div id="currentAgeInfo" style="font-size:.83rem;color:#888;margin-bottom:12px"></div>
+          <!-- 인생 그래프 -->
+          <div class="life-graph-section">
+            <div class="life-graph-title">인생 길흉 그래프 (억부+조후+종격 통합)</div>
+            <div class="life-graph-wrap" id="lifeGraphWrap">
+              <canvas id="lifeGraphCanvas"></canvas>
+              <div class="graph-tooltip" id="graphTooltip"></div>
+            </div>
+            <div class="life-graph-legend">
+              <div class="lgl-item"><span class="lgl-dot" style="background:#4CAF50"></span>길운 (吉)</div>
+              <div class="lgl-item"><span class="lgl-dot" style="background:#FF8BA7"></span>중립</div>
+              <div class="lgl-item"><span class="lgl-dot" style="background:#E53935"></span>역경 (凶)</div>
+              <div class="lgl-item"><span class="lgl-dot" style="background:#7B1FA2;opacity:.8"></span>현재</div>
+            </div>
+          </div>
+          <div class="dw-grid" id="dwGrid"></div>
+          <div class="dw-detail" id="dwDetail"></div>
         </div>
       </div>
-      <div class="dw-grid" id="dwGrid"></div>
-      <div class="dw-detail" id="dwDetail"></div>
     </section>
       
     <!-- 6. 종합 사주 풀이 -->
     <section class="card" id="summaryCard" aria-labelledby="summaryTitle">
       <h3 id="summaryTitle" class="sec-title">📖 종합 사주 풀이</h3>
-      <div id="summaryArea"></div>
+      <div class="cd-section-gate" id="summaryGate">
+        <div class="cd-section-gate__overlay">
+          <div class="cd-section-gate__icon">📖</div>
+          <p class="cd-section-gate__title">종합 사주 풀이 — 유료 콘텐츠</p>
+          <p class="cd-section-gate__desc">A4 20페이지 분량의 성격·진로·연애·건강·재물·귀인·개운 심층 풀이를 열람하려면 황금 돼지 코인이 필요합니다.</p>
+          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
+        </div>
+        <div class="cd-section-gate__body">
+          <div id="summaryArea"></div>
+        </div>
+      </div>
     </section>
 
 
@@ -3800,13 +3835,28 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     } catch (_e) {}
   }
 
+  function isAdminUser() {
+    try {
+      var user = readAuthUser();
+      if (user && user.role === 'admin') return true;
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var pair = cookies[i].trim().split('=');
+        if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
+      }
+    } catch (_e) {}
+    return false;
+  }
+
   function loadBalance() {
+    if (isAdminUser()) { userBalance = 9999999; return; }
     var user = readAuthUser();
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
   }
 
   function saveBalance() {
+    if (isAdminUser()) return;
     syncAuthUserPoints(userBalance);
   }
 
@@ -3992,14 +4042,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       return;
     }
 
-    var confirmed = window.confirm('황금 돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
-    if (!confirmed) return;
-
     if (!hasAuthToken()) {
       window.alert('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
       window.location.href = '/login?next=%2F';
       return;
     }
+
+    // 관리자 모드: 코인 차감 없이 즉시 해금
+    if (isAdminUser()) {
+      unlockedFeatureMap[featureKey] = true;
+      saveTileLocks();
+      UnlockButton(button);
+      return;
+    }
+
+    var confirmed = window.confirm('황금 돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
+    if (!confirmed) return;
 
     if (consumeInFlight) return;
     consumeInFlight = true;
@@ -4070,6 +4128,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
+        return;
+      }
+      // 관리자 모드: 코인 차감 없이 즉시 실행
+      if (isAdminUser()) {
+        sessionStorage.setItem('cd_pa_' + action, '1');
+        _cdInvokeActionDirect(action, actionNode);
         return;
       }
       if (userBalance < tileCoinCost) {
@@ -4159,6 +4223,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
+          return;
+        }
+        // 관리자 모드: 코인 차감 없이 즉시 영구 해금
+        if (isAdminUser()) {
+          unlockedFeatureMap[tileLockKey] = true;
+          saveTileLocks();
+          sessionStorage.setItem('cd_pa_' + action, '1');
+          _cdInvokeActionDirect(action, actionNode);
           return;
         }
         var titleEl = actionNode.querySelector('.tarot-tile__title');

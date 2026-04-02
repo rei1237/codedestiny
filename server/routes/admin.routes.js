@@ -716,6 +716,85 @@ router.post("/security/allowed-ip", requireAuth, requireAdmin, async (req, res) 
 });
 
 // -------------------------------------------------------------------------
+// 황금 돼지 코인 지급/차감 API
+// -------------------------------------------------------------------------
+router.post("/members/points", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const userId = String(req.body?.userId || "").trim();
+    const delta = Number(req.body?.delta);
+    const reason = String(req.body?.reason || "관리자 코인 지급").trim().slice(0, 200);
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "유효하지 않은 사용자 ID입니다." });
+    }
+    if (!Number.isFinite(delta) || delta === 0) {
+      return res.status(400).json({ message: "코인 수량(delta)이 유효하지 않습니다." });
+    }
+    if (Math.abs(delta) > 10_000) {
+      return res.status(400).json({ message: "1회 지급 한도(10,000 코인)를 초과했습니다." });
+    }
+
+    const isDeduct = delta < 0;
+
+    // 차감 시 잔액 부족 방지
+    const updateQuery = isDeduct
+      ? { $inc: { points: delta } }
+      : { $inc: { points: delta } };
+
+    const filter = isDeduct
+      ? { _id: userId, points: { $gte: -delta } }
+      : { _id: userId };
+
+    const updatedUser = await User.findOneAndUpdate(
+      filter,
+      updateQuery,
+      { new: true, projection: { points: 1, name: 1, email: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      const exists = await User.exists({ _id: userId });
+      if (!exists) return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      return res.status(402).json({ message: "코인이 부족합니다." });
+    }
+
+    const PointHistory = require("../models/PointHistory");
+    await PointHistory.create({
+      userId,
+      kind: "adjust",
+      delta,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey: "admin-coin-grant",
+      metadata: {
+        source: "admin.members.points",
+        actorUserId: String(req.auth.userId),
+      },
+    }).catch(() => {});
+
+    await AdminAuditLog.create({
+      action: "member.points.adjusted",
+      actorUserId: req.auth.userId,
+      ip: getClientIp(req),
+      userAgent: String(req.headers["user-agent"] || ""),
+      meta: { targetUserId: userId, delta, reason, balanceAfter: Number(updatedUser.points || 0) },
+    }).catch(() => {});
+
+    return res.status(200).json({
+      ok: true,
+      message: `${delta > 0 ? `+${delta.toLocaleString("ko-KR")}` : delta.toLocaleString("ko-KR")} 코인이 반영되었습니다.`,
+      user: {
+        id: String(updatedUser._id),
+        name: updatedUser.name || "",
+        email: updatedUser.email || "",
+        points: Number(updatedUser.points || 0),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// -------------------------------------------------------------------------
 // 기존 회원 관리 API (쿠키 기반 인증/권한 체크 동작하도록 requireAuth 수정 반영됨)
 // -------------------------------------------------------------------------
 router.get("/users", requireAuth, requireAdmin, async (req, res, next) => {

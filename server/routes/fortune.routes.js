@@ -74,6 +74,18 @@ router.post("/consume", async (req, res, next) => {
 
 router.get("/pig-coin/balance", async (req, res, next) => {
   try {
+    // 관리자는 테스트 목적으로 무제한 잔액을 반환한다 (실제 DB 값은 변경하지 않는다)
+    if (req.auth?.role === "admin") {
+      return res.status(200).json({
+        message: "황금 돼지 코인 잔액을 불러왔습니다.",
+        adminUnlocked: true,
+        user: {
+          id: String(req.auth.userId),
+          points: 9_999_999,
+        },
+      });
+    }
+
     const user = await User.findById(req.auth.userId)
       .select("points")
       .lean();
@@ -176,6 +188,19 @@ router.post("/pig-coin/consume", async (req, res, next) => {
     const featureKey = String(req.body?.featureKey || "pig-coin-unlock")
       .trim()
       .slice(0, 60);
+
+    // 관리자는 코인을 차감하지 않고 즉시 성공 반환 (테스트 모드)
+    if (req.auth?.role === "admin") {
+      return res.status(200).json({
+        message: `관리자 모드: ${cost.toLocaleString("ko-KR")} 코인 차감 없이 잠금 해제되었습니다.`,
+        requiredCoins: cost,
+        adminUnlocked: true,
+        user: {
+          id: String(req.auth.userId),
+          points: 9_999_999,
+        },
+      });
+    }
 
     const updatedUser = await User.findOneAndUpdate(
       {
