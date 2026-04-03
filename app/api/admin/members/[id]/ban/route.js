@@ -1,12 +1,12 @@
 // POST /api/admin/members/[id]/ban — 유저 정지/해제
 export const runtime = "nodejs";
 
-import { dbConnect } from "../../../../_lib/dbConnect.js";
-import { getUserModel } from "../../../../_lib/models/UserModel.js";
+import { dbConnect } from "../../../../../_lib/dbConnect.js";
+import { getUserModel } from "../../../../../_lib/models/UserModel.js";
 import {
   verifyFlowerAdminToken,
   extractAdminTokenFromRequest,
-} from "../../../../_lib/flowerAdminToken.js";
+} from "../../../../../_lib/flowerAdminToken.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
