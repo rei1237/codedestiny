@@ -524,7 +524,7 @@ function SubscriptionSection({
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
-              "자미두수 · 서양 점성술 · 숙요 정밀 분석",
+              "한 계정으로 최대 15개 프로필 동시 관리 (가족·연인·자녀 포함)",
               "프리미엄 타로 · 이집트 오라클 · 스톤헨지 룬 등",
               "RPG 운명 캐릭터 · 여행 운명지 · 건강 보고서",
               "가족·연인 등 다계정 프로필 동시 분석",
@@ -549,14 +549,14 @@ function SubscriptionSection({
             가족과 연인의 운명까지, <strong>한 구독으로 모든 프로필</strong>이 열립니다.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/80 px-2.5 py-1 text-[10.5px] font-bold text-amber-900">
-              ☕ 커피 한 잔 값으로 30일
-            </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10.5px] font-bold text-emerald-800">
               🎁 첫 구독 코인 전액 보너스
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
               ✨ 구독 즉시 잠금 해제
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-[10.5px] font-bold text-sky-700">
+              👨‍👩‍👧 최대 15 프로필 한 구독으로
             </span>
           </div>
         </div>
@@ -607,6 +607,13 @@ function SubscriptionSection({
               {showBonus && !isCurrentActive && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-400/40">
                   🎁 첫 구독 +{plan.coins.toLocaleString("ko-KR")}코인 보너스
+                </div>
+              )}
+
+              {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
+              {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.id === "standard" && (
+                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-amber-200/80 px-2.5 py-1 text-[11px] font-bold text-amber-900">
+                  ☕ 커피 한 잔 값으로 30일
                 </div>
               )}
 
