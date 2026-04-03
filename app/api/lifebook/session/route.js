@@ -26,6 +26,11 @@ function parseText(payload) {
   return "";
 }
 
+function getFinishReason(payload) {
+  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  return candidates[0]?.finishReason || "";
+}
+
 const SYSTEM_PROMPT = `너는 현대 명리학과 심리학, 그리고 데이터 분석에 능통한 '사주 전략 마스터'다.
 단순한 운세 풀이를 넘어, 한 사람의 인생 전체를 관통하는 '운명의 알고리즘'을 분석한다.
 너의 문체는 냉철하고 지적이면서도, 사용자에게 강력한 확신을 주는 권위 있는 어조를 유지한다.
@@ -230,6 +235,15 @@ export async function POST(req) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     const userPrompt = config.prompt(sajuData);
 
+    // gemini-2.5 계열은 thinking 모델 — thinking 토큰이 출력 예산을 잠식하므로
+    // thinkingBudget:0 으로 비활성화하고, 출력 토큰은 넉넉하게 설정
+    const isThinkingModel = /gemini-2\.5/.test(model);
+    const maxOutputTokens = isThinkingModel ? 24576 : 8192;
+    const generationConfig = { maxOutputTokens, temperature: 0.85 };
+    if (isThinkingModel) {
+      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
+
     let lastError = null;
     for (const key of keys) {
       try {
@@ -239,7 +253,7 @@ export async function POST(req) {
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
             contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-            generationConfig: { maxOutputTokens: 4096, temperature: 0.85 },
+            generationConfig,
           }),
         });
 
@@ -252,9 +266,24 @@ export async function POST(req) {
         }
 
         const text = parseText(payload);
+        const finishReason = getFinishReason(payload);
+
         if (!text) {
           lastError = new Error("모델 응답이 비어 있습니다.");
           continue;
+        }
+
+        // MAX_TOKENS: 여전히 잘린 경우 — 경고 문구를 붙여 반환
+        if (finishReason === "MAX_TOKENS") {
+          return NextResponse.json({
+            ok: true,
+            text: text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*",
+            sessionId,
+            title: config.title,
+            emoji: config.emoji,
+            model,
+            truncated: true,
+          });
         }
 
         return NextResponse.json({
