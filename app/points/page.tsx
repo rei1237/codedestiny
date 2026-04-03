@@ -316,35 +316,41 @@ function SubscriptionSection({
   return (
     <section
       aria-label="프로필 구독"
-      className="rounded-[24px] border border-[#EDDBA3] bg-white/90 p-5 shadow-[0_8px_32px_rgba(120,80,10,0.08)]"
+      className="rounded-[24px] border border-[#EDDBA3] bg-white/90 overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
     >
-      {/* 섹션 제목 */}
-      <div className="mb-4">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Profile Subscription</p>
-        <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🐷 프로필 다중 구독</h2>
-        <p className="mt-1 text-sm text-[#7A5230]">
-          황금 돼지 코인으로 구독하면 여러 생년월일 프로필을 만들어 해금 콘텐츠를 이용할 수 있습니다.
-        </p>
-      </div>
+      {/* 섹션 헤더 바닥 */}
+      <div
+        className="px-5 pt-5 pb-4"
+        style={{ background: "linear-gradient(135deg, #FFFDF7 0%, #FFF9EC 100%)" }}
+      >
+        {/* 섹션 제목 */}
+        <div className="mb-4">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Profile Subscription</p>
+          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🐷 프로필 다중 구독</h2>
+          <p className="mt-1 text-sm text-[#7A5230]">
+            황금 돼지 코인으로 구독하면 여러 생년월일 프로필을 만들어 해금 콘텐츠를 이용할 수 있습니다.
+          </p>
+        </div>
 
-      {/* 현재 구독 상태 */}
-      <div className="mb-5 rounded-[16px] border border-[#EDDBA3]/80 bg-[#FFF8E0]/70 px-4 py-3">
-        <p className="text-xs font-semibold text-[#8A6020]">현재 구독 플랜</p>
-        <p className={`mt-0.5 text-lg font-black ${tierColor[subscription.tier]}`}>
-          {tierLabel[subscription.tier]}
-          {subscription.isActive && <span className="ml-2 text-sm font-semibold text-emerald-600">● 활성</span>}
-          {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료</span>}
-        </p>
-        {subscription.isActive && expires && (
-          <p className="mt-0.5 text-xs text-[#7A5230]">{expires} 까지 유효</p>
-        )}
-        {subscription.isActive && subscription.tier !== "free" && (
-          <p className="mt-1 text-xs text-amber-700">⚠️ 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
-        )}
-      </div>
+        {/* 현재 구독 상태 */}
+        <div className="mb-5 rounded-[16px] border border-amber-200/70 bg-gradient-to-r from-amber-50/80 to-yellow-50/80 px-4 py-3">
+          <p className="text-xs font-extrabold uppercase tracking-wide text-amber-700">현재 구독 플랜</p>
+          <p className={`mt-0.5 text-lg font-black ${tierColor[subscription.tier]}`}>
+            {tierLabel[subscription.tier]}
+            {subscription.isActive && <span className="ml-2 text-sm font-semibold text-emerald-600">● 활성</span>}
+            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료</span>}
+          </p>
+          {subscription.isActive && expires && (
+            <p className="mt-0.5 text-xs text-[#7A5230]">{expires} 까지 유효</p>
+          )}
+          {subscription.isActive && subscription.tier !== "free" && (
+            <p className="mt-1 text-xs text-amber-700">⚠️ 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
+          )}
+        </div>
+      </div>{/* end header bg */}
 
       {/* 플랜 카드 */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
           const canAfford = currentPoints >= plan.coins;
@@ -371,8 +377,9 @@ function SubscriptionSection({
               )}
 
               <p className="text-xs font-bold uppercase tracking-wider text-[#A0700A]">{plan.title}</p>
-              <p className="mt-1 text-xl font-black text-[#5C3A1E]">
-                🪙 {plan.coins.toLocaleString("ko-KR")}코인
+              <p className="mt-1 flex items-center gap-1.5 text-xl font-black text-[#5C3A1E]">
+                <CoinIcon size="lg" />
+                {plan.coins.toLocaleString("ko-KR")}코인
                 <span className="ml-1 text-sm font-semibold text-[#8A6020]">/ 30일</span>
               </p>
               <p className="text-xs text-[#7A5230]">({formatWon(plan.wonPrice)} 상당)</p>
@@ -402,14 +409,14 @@ function SubscriptionSection({
                   ? "🔄 갱신하기 (30일 연장)"
                   : canAfford
                     ? `🐷 ${plan.title} 구독 시작`
-                    : `🪙 코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
+                    : `코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
               </button>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-4 text-[11px] text-[#9B7040]">
+      <p className="mt-5 px-5 pb-5 text-[11px] text-[#9B7040]">
         ✅ 구독은 코인 즉시 차감 방식이며 30일 후 만료됩니다. 갱신은 언제든 수동으로 가능합니다.
       </p>
     </section>
@@ -466,6 +473,32 @@ function ToastContainer({
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   서브 컴포넌트: CSS 기반 골드 코인 아이콘
+   🪙 이모지 렌더링 불안정 문제를 해결합니다.
+══════════════════════════════════════════════════════════════════ */
+
+function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" | "xl"; className?: string }) {
+  const sizeClasses: Record<string, string> = {
+    sm: "h-4 w-4 text-[8px]",
+    md: "h-5 w-5 text-[10px]",
+    lg: "h-6 w-6 text-[13px]",
+    xl: "h-8 w-8 text-[16px]",
+  };
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex flex-shrink-0 items-center justify-center rounded-full font-black text-white select-none ${sizeClasses[size]} ${className}`}
+      style={{
+        background: "radial-gradient(circle at 38% 32%, #fff6b0 0%, #f5c842 45%, #c8860a 100%)",
+        boxShadow: "inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(0,0,0,0.18), 0 2px 6px rgba(140,80,0,0.28)",
+      }}
+    >
+      ✦
+    </span>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    서브 컴포넌트: 잔액 지갑 카드
    현재 보유 코인을 샴페인 골드 테마로 표시합니다.
 ══════════════════════════════════════════════════════════════════ */
@@ -474,38 +507,52 @@ function WalletCard({ name, points }: { name: string; points: number }) {
   return (
     <section
       aria-label="현재 보유 코인"
-      className="rounded-[20px] border border-[#E8CC7A] p-5 shadow-[0_6px_24px_rgba(180,130,30,0.16)]"
-      style={{ background: "linear-gradient(135deg, #FFF8E0 0%, #FFF0C0 60%, #FFE49C 100%)" }}
+      className="rounded-[24px] overflow-hidden shadow-[0_10px_36px_rgba(180,130,30,0.22)]"
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* 왼쪽: 코인 아이콘 + 사용자 이름 */}
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
-            style={{
-              background: "radial-gradient(circle at 30% 28%, #fff9ce 0%, #ffd14d 50%, #c8900a 100%)",
-              boxShadow: "inset 0 2px 8px rgba(255,255,255,0.6), 0 4px 12px rgba(140,80,10,0.28)",
-            }}
-            aria-hidden="true"
-          >
-            🐷
+      {/* Premium gold shimmer bar */}
+      <div
+        className="h-[3px] w-full"
+        style={{ background: "linear-gradient(90deg, #C8860A 0%, #FFE070 30%, #FFFFFF 50%, #FFE070 70%, #C8860A 100%)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="border border-t-0 border-amber-200 rounded-b-[24px] p-5"
+        style={{ background: "linear-gradient(135deg, #FFFAE8 0%, #FFF3CC 50%, #FFE89C 100%)" }}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* 왼쪽: 코인 아이콘 + 사용자 이름 */}
+          <div className="flex items-center gap-3.5">
+            <div
+              className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl text-[26px]"
+              style={{
+                background: "radial-gradient(circle at 35% 30%, #fff9ce 0%, #ffd14d 55%, #c8900a 100%)",
+                boxShadow: "inset 0 2px 8px rgba(255,255,255,0.65), 0 6px 16px rgba(140,80,10,0.32)",
+              }}
+              aria-hidden="true"
+            >
+              🐷
+            </div>
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-800">
+                황금 돼지 저금통
+              </p>
+              <p className="mt-0.5 text-[15px] font-bold text-[#5C3A1E]">{name} 님의 코인 지갑</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A6020]">
-              황금 돼지 저금통
-            </p>
-            <p className="text-[15px] font-bold text-[#5C3A1E]">{name} 님의 코인 지갑</p>
-          </div>
-        </div>
 
-        {/* 오른쪽: 보유 코인 수 */}
-        <div className="flex flex-col items-end gap-0.5">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8A6020]">
-            현재 보유
-          </p>
-          <p className="text-2xl font-black text-[#7A4A00]">
-            🪙 {Number(points).toLocaleString("ko-KR")}코인
-          </p>
+          {/* 오른쪽: 보유 코인 수 */}
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+              현재 보유
+            </p>
+            <div className="flex items-center gap-2">
+              <CoinIcon size="xl" />
+              <span className="text-[22px] font-black text-[#7A4A00] leading-none">
+                {Number(points).toLocaleString("ko-KR")}
+                <span className="ml-1 text-base font-bold text-amber-800">코인</span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -538,8 +585,8 @@ function PackageCard({
         "relative w-full rounded-[20px] border p-4 text-left",
         "transition-all duration-200 active:scale-[0.97] active:shadow-none",
         selected
-          ? "border-[#C9A84C] bg-gradient-to-r from-[#FFFBF0] to-[#FFF0CC] shadow-[0_12px_28px_rgba(180,130,30,0.25)] -translate-y-0.5"
-          : "border-[#EDDBA3] bg-white/90 shadow-[0_4px_14px_rgba(180,130,30,0.08)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(180,130,30,0.18)]",
+          ? "border-amber-400 bg-gradient-to-r from-[#FFFBF0] to-[#FFF0CC] shadow-[0_12px_28px_rgba(180,130,30,0.28)] -translate-y-0.5 ring-2 ring-amber-300/50"
+          : "border-[#EDDBA3] bg-white/95 shadow-[0_4px_14px_rgba(180,130,30,0.09)] hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(180,130,30,0.20)] hover:border-amber-300",
       ].join(" ")}
     >
       {/* BEST 뱃지 */}
@@ -552,8 +599,9 @@ function PackageCard({
       {/* 상단 행: 상품명 + 기본 코인 수 */}
       <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[90px]" : ""}`}>
         <span className="text-[15px] font-bold text-[#5C3A1E]">{pkg.title}</span>
-        <span className="whitespace-nowrap text-[15px] font-black text-[#9A6800]">
-          🪙 +{baseCoins.toLocaleString("ko-KR")}코인
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#9A6800]">
+          <CoinIcon size="md" />
+          +{baseCoins.toLocaleString("ko-KR")}코인
         </span>
       </div>
 
@@ -574,7 +622,7 @@ function PackageCard({
 
       {/* 선택 체크마크 */}
       {selected && (
-        <span className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[10px] font-black text-white shadow">
+        <span className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white shadow-[0_2px_8px_rgba(180,130,0,0.4)]">
           ✓
         </span>
       )}
@@ -1011,24 +1059,28 @@ export default function PointsPage() {
   return (
     <main
       className="relative min-h-screen overflow-hidden px-4 py-8 text-[#5C3A1E]"
-      style={{ background: "linear-gradient(160deg, #FDF8F0 0%, #FDF0D8 50%, #FAE8C8 100%)" }}
+      style={{ background: "linear-gradient(160deg, #FDFAF4 0%, #FDF3E0 35%, #FAE9CC 65%, #F7DEB8 100%)" }}
     >
       {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div
-          className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-50"
-          style={{ background: "radial-gradient(circle, rgba(255,220,120,0.55) 0%, transparent 70%)" }}
+          className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40"
+          style={{ background: "radial-gradient(circle, rgba(255,220,100,0.60) 0%, rgba(255,190,60,0.20) 50%, transparent 70%)" }}
         />
         <div
-          className="absolute top-1/2 -right-40 w-[400px] h-[400px] rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, rgba(255,180,80,0.55) 0%, transparent 70%)" }}
+          className="absolute top-1/3 -right-48 w-[450px] h-[450px] rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, rgba(255,175,60,0.60) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, rgba(255,200,80,0.55) 0%, transparent 70%)" }}
         />
       </div>
 
       {/* ── 결제 성공 StarBurst 이펙트 ───────────────────────────── */}
       {showStarBurst && (
         <div className="pointer-events-none fixed inset-0 z-[90]" aria-hidden="true">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping">🪙</div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping">💰</div>
           <div className="absolute left-[42%] top-[44%] text-2xl animate-pulse">✨</div>
           <div className="absolute left-[57%] top-[43%] text-3xl animate-bounce">🐷</div>
           <div className="absolute left-[49%] top-[57%] text-2xl animate-ping">💰</div>
@@ -1042,36 +1094,47 @@ export default function PointsPage() {
       <div className="relative mx-auto w-full max-w-2xl space-y-5">
 
         {/* ① 헤더 카드 */}
-        <header className="rounded-[24px] border border-[#EDDBA3] bg-white/85 p-6 shadow-[0_12px_40px_rgba(120,80,10,0.10)] backdrop-blur-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <img
-                src="/icons/honeypig-96.webp"
-                srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
-                sizes="72px"
-                width={72}
-                height={72}
-                alt="황금 돼지"
-                className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.22)]"
-              />
-              <div>
-                <p className="text-[11px] font-bold tracking-[0.22em] text-[#A0700A] uppercase">
-                  Golden Pig Coin
-                </p>
-                <h1 className="mt-0.5 text-2xl font-bold text-[#5C3A1E] sm:text-3xl">
-                  🐷✨ 황금 돼지 저금통 충전소
-                </h1>
-                <p className="mt-1 text-sm text-[#7A5230]">
-                  💫 동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.
-                </p>
+        <header className="rounded-[24px] overflow-hidden shadow-[0_12px_40px_rgba(120,80,10,0.14)]">
+          {/* 헤더 탐색 프리리엄 바 */}
+          <div
+            className="h-[3px] w-full"
+            style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 25%, #FFFFFF 50%, #FFD060 75%, #A0680A 100%)" }}
+            aria-hidden="true"
+          />
+          <div
+            className="border border-t-0 border-[#EDDBA3] rounded-b-[24px] p-6 backdrop-blur-sm"
+            style={{ background: "linear-gradient(135deg, rgba(255,253,247,0.97) 0%, rgba(255,249,238,0.95) 100%)" }}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <img
+                  src="/icons/honeypig-96.webp"
+                  srcSet="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+                  sizes="72px"
+                  width={72}
+                  height={72}
+                  alt="황금 돼지"
+                  className="rounded-2xl shadow-[0_6px_20px_rgba(150,76,11,0.26)]"
+                />
+                <div>
+                  <p className="text-[11px] font-extrabold tracking-[0.22em] text-amber-800 uppercase">
+                    Golden Pig Coin
+                  </p>
+                  <h1 className="mt-0.5 text-[22px] font-black text-[#5C3A1E] sm:text-3xl leading-tight">
+                    🐷✨ 황금 돼지 저금통 충전소
+                  </h1>
+                  <p className="mt-1 text-sm text-[#7A5230]">
+                    💫 동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.
+                  </p>
+                </div>
               </div>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center gap-1.5 self-start rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:shadow-[0_4px_14px_rgba(180,130,30,0.22)] hover:-translate-y-0.5 active:scale-[0.97]"
+              >
+                ← 서비스 화면으로
+              </Link>
             </div>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center self-start rounded-xl border border-[#EDDBA3] bg-white/80 px-4 py-2 text-sm font-semibold text-[#7A5230] shadow-sm transition-colors hover:bg-[#FFF8E0]"
-            >
-              ← 운세 화면으로
-            </Link>
           </div>
         </header>
 
@@ -1088,35 +1151,45 @@ export default function PointsPage() {
 
         {/* ④ 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent opacity-40" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
             충전 패키지 선택
           </span>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[#C9A84C] to-transparent opacity-40" />
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
 
         {/* ④ 패키지 카드 목록 */}
         <section
           aria-label="충전 패키지"
-          className="rounded-[24px] border border-[#EDDBA3] bg-white/90 p-5 shadow-[0_8px_32px_rgba(120,80,10,0.08)]"
+          className="rounded-[24px] overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
         >
-          <p className="mb-4 text-right text-[12px] text-[#7A5230]">
-            패키지를 선택한 뒤 결제 수단을 고르세요.
-          </p>
-          <div className="flex flex-col gap-3">
-            {POINT_PACKAGES.map((pkg) => (
-              <PackageCard
-                key={pkg.id}
-                pkg={pkg}
-                selected={selectedPackage.id === pkg.id}
-                onSelect={handlePackageSelect}
-              />
-            ))}
+          <div
+            className="border border-[#EDDBA3] rounded-[24px] p-5"
+            style={{ background: "linear-gradient(135deg, #FFFDF8 0%, #FEFBF0 100%)" }}
+          >
+            <p className="mb-3 flex items-center gap-2 text-[12px] font-bold text-[#8A6020]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
+              패키지를 선택한 뒤 결제 수단을 고르세요.
+            </p>
+            <div className="flex flex-col gap-3">
+              {POINT_PACKAGES.map((pkg) => (
+                <PackageCard
+                  key={pkg.id}
+                  pkg={pkg}
+                  selected={selectedPackage.id === pkg.id}
+                  onSelect={handlePackageSelect}
+                />
+              ))}
+            </div>
+            <div className="mt-4 flex items-start gap-2 rounded-[14px] border border-amber-100 bg-amber-50/60 px-3.5 py-3">
+              <span className="text-amber-600 flex-shrink-0 mt-0.5">✔️</span>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                결제 완료 즉시 서버에서 금액 검증 후 코인이 반영됩니다.
+                <span className="mx-1">·</span>
+                황금 돼지 제왕 보물고 (엔페러 리저브)는 코인 효율이 가장 높습니다.
+              </p>
+            </div>
           </div>
-          <p className="mt-4 text-[11px] text-[#9B7040]">
-            ✅ 결제 완료 즉시 서버에서 금액 검증 후 코인이 반영됩니다.{" "}
-            👑 최상위 단계가 가장 큰 보너스를 제공합니다.
-          </p>
         </section>
 
         {/* ⑤ 결제 실패 안내 */}
@@ -1138,12 +1211,22 @@ export default function PointsPage() {
             if (e.target === e.currentTarget && !isProcessing) setIsMethodModalOpen(false);
           }}
         >
-          <div className="w-full max-w-lg rounded-[28px] border border-[#EDDBA3] bg-gradient-to-b from-[#FFF9EC] to-[#FFF0CC] p-6 shadow-[0_24px_70px_rgba(80,40,5,0.38)]">
+          <div className="w-full max-w-lg rounded-[28px] overflow-hidden shadow-[0_24px_70px_rgba(80,40,5,0.42)]">
+            {/* 모달 식별 골드 바 */}
+            <div
+              className="h-[3px] w-full"
+              style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 30%, #FFFFFF 50%, #FFD060 70%, #A0680A 100%)" }}
+              aria-hidden="true"
+            />
+            <div
+              className="border border-t-0 border-[#EDDBA3] rounded-b-[28px] p-6"
+              style={{ background: "linear-gradient(160deg, #FFFDF5 0%, #FFF6E0 50%, #FFF1CC 100%)" }}
+            >
 
             {/* 모달 헤더 */}
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#A0700A]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
                   결제 수단 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
@@ -1195,12 +1278,13 @@ export default function PointsPage() {
               type="button"
               onClick={startPayment}
               disabled={isProcessing}
-              className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_24px_rgba(160,120,20,0.40)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(160,120,20,0.50)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "🐷 연결 중..." : "🪙 이 수단으로 결제 진행"}
+              {isProcessing ? "🐷 연결 중..." : "결제를 진행합니다"}
             </button>
-          </div>
-        </div>
+            </div>{/* end inner gradient div */}
+          </div>{/* end outer modal wrapper */}
+        </div>{/* end backdrop */}
       )}
 
       {/* ══ 결제 처리 중 오버레이 ════════════════════════════════════ */}
