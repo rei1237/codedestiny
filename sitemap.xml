@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://code-destiny.com/</loc>
@@ -10,7 +10,7 @@
     <loc>https://code-destiny.com/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/animal/mbti</loc>
@@ -40,7 +40,7 @@
     <loc>https://code-destiny.com/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de</loc>
@@ -52,7 +52,7 @@
     <loc>https://code-destiny.com/de-de/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/animal/mbti</loc>
@@ -82,7 +82,7 @@
     <loc>https://code-destiny.com/de-de/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/dream/psycho</loc>
@@ -100,7 +100,7 @@
     <loc>https://code-destiny.com/de-de/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/flower/astrology</loc>
@@ -622,7 +622,7 @@
     <loc>https://code-destiny.com/de-de/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/saju/basic</loc>
@@ -676,7 +676,7 @@
     <loc>https://code-destiny.com/de-de/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/vedic/jyotish</loc>
@@ -712,7 +712,7 @@
     <loc>https://code-destiny.com/en-us/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/animal/mbti</loc>
@@ -742,7 +742,7 @@
     <loc>https://code-destiny.com/en-us/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/dream/psycho</loc>
@@ -760,7 +760,7 @@
     <loc>https://code-destiny.com/en-us/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/flower/astrology</loc>
@@ -1282,7 +1282,7 @@
     <loc>https://code-destiny.com/en-us/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/saju/basic</loc>
@@ -1336,7 +1336,7 @@
     <loc>https://code-destiny.com/en-us/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/vedic/jyotish</loc>
@@ -1360,7 +1360,7 @@
     <loc>https://code-destiny.com/es-es/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/animal/mbti</loc>
@@ -1390,7 +1390,7 @@
     <loc>https://code-destiny.com/es-es/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/dream/psycho</loc>
@@ -1408,7 +1408,7 @@
     <loc>https://code-destiny.com/es-es/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/flower/astrology</loc>
@@ -1930,7 +1930,7 @@
     <loc>https://code-destiny.com/es-es/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/saju/basic</loc>
@@ -1984,7 +1984,7 @@
     <loc>https://code-destiny.com/es-es/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/vedic/jyotish</loc>
@@ -2002,7 +2002,7 @@
     <loc>https://code-destiny.com/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/flower/astrology</loc>
@@ -2038,7 +2038,7 @@
     <loc>https://code-destiny.com/fr-fr/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/animal/mbti</loc>
@@ -2068,7 +2068,7 @@
     <loc>https://code-destiny.com/fr-fr/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/dream/psycho</loc>
@@ -2086,7 +2086,7 @@
     <loc>https://code-destiny.com/fr-fr/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/flower/astrology</loc>
@@ -2608,7 +2608,7 @@
     <loc>https://code-destiny.com/fr-fr/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/saju/basic</loc>
@@ -2662,7 +2662,7 @@
     <loc>https://code-destiny.com/fr-fr/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/vedic/jyotish</loc>
@@ -2686,7 +2686,7 @@
     <loc>https://code-destiny.com/hi-in/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/animal/mbti</loc>
@@ -2716,7 +2716,7 @@
     <loc>https://code-destiny.com/hi-in/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/dream/psycho</loc>
@@ -2734,7 +2734,7 @@
     <loc>https://code-destiny.com/hi-in/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/flower/astrology</loc>
@@ -3256,7 +3256,7 @@
     <loc>https://code-destiny.com/hi-in/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/saju/basic</loc>
@@ -3310,7 +3310,7 @@
     <loc>https://code-destiny.com/hi-in/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/vedic/jyotish</loc>
@@ -3790,7 +3790,7 @@
     <loc>https://code-destiny.com/ja-jp/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/animal/mbti</loc>
@@ -3820,7 +3820,7 @@
     <loc>https://code-destiny.com/ja-jp/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/dream/psycho</loc>
@@ -3838,7 +3838,7 @@
     <loc>https://code-destiny.com/ja-jp/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/flower/astrology</loc>
@@ -4360,7 +4360,7 @@
     <loc>https://code-destiny.com/ja-jp/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/saju/basic</loc>
@@ -4414,7 +4414,7 @@
     <loc>https://code-destiny.com/ja-jp/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/vedic/jyotish</loc>
@@ -4444,7 +4444,7 @@
     <loc>https://code-destiny.com/ms-my/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/animal/mbti</loc>
@@ -4474,7 +4474,7 @@
     <loc>https://code-destiny.com/ms-my/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/dream/psycho</loc>
@@ -4492,7 +4492,7 @@
     <loc>https://code-destiny.com/ms-my/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/flower/astrology</loc>
@@ -5014,7 +5014,7 @@
     <loc>https://code-destiny.com/ms-my/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/saju/basic</loc>
@@ -5068,7 +5068,7 @@
     <loc>https://code-destiny.com/ms-my/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/vedic/jyotish</loc>
@@ -5092,7 +5092,7 @@
     <loc>https://code-destiny.com/nl-nl/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/animal/mbti</loc>
@@ -5122,7 +5122,7 @@
     <loc>https://code-destiny.com/nl-nl/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/dream/psycho</loc>
@@ -5140,7 +5140,7 @@
     <loc>https://code-destiny.com/nl-nl/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/flower/astrology</loc>
@@ -5662,7 +5662,7 @@
     <loc>https://code-destiny.com/nl-nl/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/saju/basic</loc>
@@ -5716,7 +5716,7 @@
     <loc>https://code-destiny.com/nl-nl/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/vedic/jyotish</loc>
@@ -5764,7 +5764,7 @@
     <loc>https://code-destiny.com/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/rss.xml</loc>
@@ -5824,7 +5824,7 @@
     <loc>https://code-destiny.com/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/vedic/jyotish</loc>
@@ -5842,7 +5842,7 @@
     <loc>https://code-destiny.com/zh-cn/about</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/animal/mbti</loc>
@@ -5872,7 +5872,7 @@
     <loc>https://code-destiny.com/zh-cn/contact-us</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.55</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/dream/psycho</loc>
@@ -5890,7 +5890,7 @@
     <loc>https://code-destiny.com/zh-cn/faq</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/flower/astrology</loc>
@@ -6412,7 +6412,7 @@
     <loc>https://code-destiny.com/zh-cn/privacy-policy</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/saju/basic</loc>
@@ -6466,7 +6466,7 @@
     <loc>https://code-destiny.com/zh-cn/terms-of-service</loc>
     <lastmod>2026-04-03</lastmod>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/vedic/jyotish</loc>

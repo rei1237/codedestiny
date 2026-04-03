@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -1158,14 +1158,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
       <div id="goldenGrainBadgeRoot"></div>
 
-      <button
-        type="button"
-        data-action="openAdminFlowerGate"
-        aria-label="관리자 패널 진입"
-        title="관리자 진입"
-        style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);z-index:1200;width:42px;height:42px;border:none;border-radius:999px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.72),rgba(250,204,21,.24) 42%,rgba(236,72,153,.22) 100%);box-shadow:0 4px 12px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.35) inset;cursor:pointer;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.42;backdrop-filter:blur(2px);"
-      >🌸</button>
-
     </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
@@ -2141,7 +2133,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                     <span class="dream-ritual-card-front">
                       <span class="dream-card-illustration dream-card-illustration--gold" aria-hidden="true"></span>
                       <span class="dream-card-name" id="dreamCardName4">[황금 카드]</span>
-                      <span class="dream-card-symbol" id="dreamCardSymbol4">🌿</span>
+                      <span class="dream-card-symbol" id="dreamCardSymbol4">✶</span>
                       <span class="dream-card-step">현실 밀착 힐링 조언</span>
                     </span>
                   </span>
@@ -2935,7 +2927,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <section id="animalTotemIntroStage" class="animal-totem-stage is-active">
               <div class="totem-intro-hero rounded-2xl shadow-xl overflow-hidden">
                 <div class="totem-intro-title tracking-widest">✦ ANIMAL TOTEM SACRED RITUAL ✦</div>
-                <p class="totem-intro-subtitle leading-relaxed text-white/95">신비로운 숲속의 동물들이 당신의 마음을 읽습니다. 수호 동물 카드로 오늘의 에너지와 방향성을 발견해 보세요. 한 장세 장다섯 장 중 지금의 감정에 맞는 의식을 선택하세요.</p>
+                <p class="totem-intro-subtitle leading-relaxed text-white/95">신비로운 숲속의 동물들이 당신의 마음을 읽습니다. 수호 동물 카드로 오늘의 에너지와 방향성을 발견해 보세요. 한 장·세 장·다섯 장 중 지금의 감정에 맞는 의식을 선택하세요.</p>
                 <div class="mt-5">
                   <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">🌿 리추얼 시작하기</button>
                 </div>
@@ -2950,20 +2942,20 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <section id="animalTotemModeStage" class="animal-totem-stage totem-mode-stage">
               <div class="totem-mode-header text-center">
                 <span class="totem-mode-badge inline-block">✦ SACRED TOTEM CIRCLE ✦</span>
-                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">카드 의식 선택</h3>
+                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">수호 동물 카드 의식 선택</h3>
                 <p class="totem-mode-hint mt-1">지금의 감정과 에너지에 맞는 카드 의식을 선택하세요</p>
               </div>
               <div class="totem-mode-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <button type="button" class="totem-mode-btn" data-mode="one" data-action="setAnimalTotemSpreadMode" data-action-args="one">
                   <span class="totem-mode-icon">🌙</span>
-                  <span class="totem-mode-content"><b>달빛 한 장</b><br><small>한 장의 카드로 받는 오늘의 핵심 안내</small></span>
+                  <span class="totem-mode-content"><b>달빛 한 장</b><br><small>한 장의 수호 동물로 받는 오늘의 핵심 안내</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
                   <span class="totem-mode-icon">🌿</span>
                   <span class="totem-mode-content"><b>숲의 세 길</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
-                  <span class="totem-mode-icon">✧</span>
+                  <span class="totem-mode-icon">⭐</span>
                   <span class="totem-mode-content"><b>별자리 다섯 동물</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색</small></span>
                 </button>
               </div>
@@ -3136,6 +3128,29 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabelHome">꽃돼지 운세 서비스 앱 설치하기</span>
       </button>
     </div>
+
+    <!-- 홈 화면 운세 이메일 구독 서비스 박스 -->
+    <aside class="subscription-wrap" id="emailSubBoxHome" style="margin:0 auto 28px;" aria-label="Home Email Subscription">
+      <div class="sub-header">
+        <span class="sub-title pig-only">💌 맞춤 운세 이메일 구독</span>
+        <span class="sub-title neo-only">⚠️ 전략 리포트 이메일 구독</span>
+      </div>
+      <div class="sub-desc pig-only">
+        원하는 주기로 연이의 따뜻한 맞춤 운세를 이메일로 편하게 받아보세요!<br>
+      </div>
+      <div class="sub-desc neo-only">
+        쌈바의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
+      </div>
+      <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center; font-size: 0.95rem;">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="subDailyHome" checked> 일일 운세 받기</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="subMonthlyHome" checked> 월별 운세 받기</label>
+      </div>
+      <div class="sub-form">
+        <input type="email" id="subEmailHome" class="sub-input" placeholder="이메일 주소 입력">
+        <button class="btn-subscribe pig-only" data-action="subscribeEmailHome">구독하기 🌸</button>
+        <button class="btn-subscribe neo-only" data-action="subscribeEmailHome">구독하기 🦁</button>
+      </div>
+    </aside>
   </main>
 
   <!-- ═══ 결과 페이지 (SEO: Result Content) ═══ -->
@@ -3948,6 +3963,18 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <a href="/faq" style="color:#b7f0ff;text-decoration:underline;">자주 묻는 질문 FAQ</a>
       <a href="/contact-us" style="color:#b7f0ff;text-decoration:underline;">문의하기 Contact Us</a>
     </nav>
+    <!-- 관리자 진입 꽃 버튼 — 개인정보처리방침/이용약관 하단 고정 -->
+    <div id="cdAdminFlowerWrap" style="margin-top:16px;">
+      <button
+        id="cdAdminFlowerBtn"
+        type="button"
+        data-action="openAdminFlowerGate"
+        aria-label="꽃 버튼"
+        style="width:44px;height:44px;border:1px solid rgba(244,114,182,.18);border-radius:999px;background:rgba(244,114,182,.04);color:rgba(255,255,255,.82);opacity:0.55;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .12s ease,opacity .12s ease;"
+        onmouseover="this.style.opacity='0.9';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.opacity='0.55';this.style.transform='translateY(0)'"
+      >🌸</button>
+    </div>
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
@@ -4575,6 +4602,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
+      // 관리자 모드: 코인 게이트 bypass
+      if (!window.__cdAdminBypass && !isAdminUser()) {
       if (!perUseApproved[action]) {
         // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
         if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
@@ -4585,6 +4614,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
       } else {
         delete perUseApproved[action];
+      }
       }
     }
 
@@ -4697,6 +4727,20 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   loadBalance();
   loadTileLocks();
+  // 관리자 모드: 모든 섹션 게이트 + 타일 잠금 자동 해제
+  if (isAdminUser()) {
+    try {
+      SECTION_GATE_KEYS.forEach(function(sg){ unlockedFeatureMap[sg.unlockKey] = true; });
+      // 타일 lock key도 전부 해제
+      var _adminTiles = document.querySelectorAll('[data-tile-lock-key]');
+      for (var _at = 0; _at < _adminTiles.length; _at++) {
+        var _atk = _adminTiles[_at].getAttribute('data-tile-lock-key');
+        if (_atk) unlockedFeatureMap[_atk] = true;
+      }
+      // perUse 코인 게이트도 우회 — isAdmin 플래그
+      window.__cdAdminBypass = true;
+    } catch (_adminErr) {}
+  }
   GoldenGrainBadge();
   applyTileLockVisuals();
   ChargeModal();

@@ -9,7 +9,7 @@ import {
   extractAdminTokenFromRequest,
 } from "../../../../_lib/flowerAdminToken.js";
 
-const MAX_DELTA = 10_000;
+const MAX_DELTA = 1_000_000; // 관리자 최대 지급/차감 한도 (1회당 100만 코인)
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {

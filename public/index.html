@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -3513,7 +3513,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="daewunTitle" class="sec-title">🔮 대운 (大運) — 억부+조후+종격 통합 판단 <span class="sec-tier-badge sec-tier-badge--paid">PREMIUM</span></h3>
       <div class="cd-section-gate" id="daewunGate">
         <div class="cd-section-gate__overlay">
-          <div class="cd-section-gate__icon">�</div>
+          <div class="cd-section-gate__icon">🔐</div>
           <p class="cd-section-gate__title">대운 분석 — 프리미엄 콘텐츠</p>
           <p class="cd-section-gate__desc">억부·조후·종격 통합 대운 흐름과 인생 길흉 그래프를 열람하려면 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
@@ -4602,6 +4602,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
+      // 관리자 모드: 코인 게이트 bypass
+      if (!window.__cdAdminBypass && !isAdminUser()) {
       if (!perUseApproved[action]) {
         // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
         if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
@@ -4612,6 +4614,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
       } else {
         delete perUseApproved[action];
+      }
       }
     }
 

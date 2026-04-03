@@ -1,62 +1,40 @@
-/* 서비스 화면 하단 “꽃” 관리자 진입 버튼
-   - 화면에 "admin"이라는 텍스트를 표시하지 않는다.
-   - 하단에 항상 꽃 이모지를 배치하고, 클릭 시 서버 진입 엔드포인트로 이동한다.
-   - 실제 관리자 경로(32자리 해시)는 코드에 하드코딩하지 않는다.
+/* 서비스 페이지 하단 footer "꽃" 관리자 진입 버튼
+   - index.html footer에 #cdAdminFlowerBtn 이 이미 직접 삽입되어 있음.
+   - 이 스크립트는 버튼이 없는 경우(다국어 페이지 등)를 위한 폴백 역할만 함.
+   - 화면에 "admin"이라는 텍스트를 노출하지 않음.
 */
 
-function ensureButton() {
-  const footer = document.querySelector('footer[role="contentinfo"]') || document.querySelector("footer");
-  if (!footer) return;
-  if (document.getElementById("cdAdminFlowerBtn")) return;
-
-  const btnWrap = document.createElement("div");
-  btnWrap.id = "cdAdminFlowerWrap";
-  btnWrap.style.marginTop = "10px";
-  btnWrap.style.display = "flex";
-  btnWrap.style.justifyContent = "center";
-  btnWrap.style.pointerEvents = "auto";
-
-  const btn = document.createElement("button");
-  btn.id = "cdAdminFlowerBtn";
-  btn.type = "button";
-  btn.setAttribute("aria-label", "꽃 버튼");
-  btn.style.borderRadius = "999px";
-  btn.style.width = "52px";
-  btn.style.height = "52px";
-  btn.style.border = "1px solid rgba(244,114,182,.18)";
-  btn.style.background = "rgba(244,114,182,.04)";
-  btn.style.color = "rgba(255,255,255,.82)";
-  btn.style.opacity = "0.72";
-  btn.style.cursor = "pointer";
-  btn.style.display = "flex";
-  btn.style.alignItems = "center";
-  btn.style.justifyContent = "center";
-  btn.style.boxShadow = "0 6px 16px rgba(0,0,0,.18)";
-  btn.style.backdropFilter = "blur(8px)";
-  btn.style.transition = "transform .12s ease, background .12s ease";
-  btn.innerHTML = "🌸";
-
-  btn.addEventListener("mouseover", () => {
-    btn.style.transform = "translateY(-1px)";
-    btn.style.opacity = "0.9";
-  });
-  btn.addEventListener("mouseout", () => {
-    btn.style.transform = "translateY(0px)";
-    btn.style.opacity = "0.72";
-  });
-
-  btn.addEventListener("click", () => {
-    // secret hash 노출 없이 서버 리다이렉트 수행
-    window.location.href = "/api/admin/entry";
-  });
-
-  btnWrap.appendChild(btn);
-  footer.appendChild(btnWrap);
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  try {
-    ensureButton();
-  } catch (_) {}
-});
-
+(function () {
+  function injectButton() {
+    if (document.getElementById("cdAdminFlowerBtn")) return;
+    const footer =
+      document.querySelector('footer[role="contentinfo"]') ||
+      document.querySelector("footer");
+    if (!footer) return;
+    const btnWrap = document.createElement("div");
+    btnWrap.id = "cdAdminFlowerWrap";
+    btnWrap.style.cssText = "margin-top:16px;display:flex;justify-content:center;";
+    const btn = document.createElement("button");
+    btn.id = "cdAdminFlowerBtn";
+    btn.type = "button";
+    btn.setAttribute("aria-label", "꽃 버튼");
+    btn.setAttribute("data-action", "openAdminFlowerGate");
+    btn.style.cssText =
+      "width:44px;height:44px;border:1px solid rgba(244,114,182,.18);border-radius:999px;" +
+      "background:rgba(244,114,182,.04);color:rgba(255,255,255,.82);opacity:0.55;" +
+      "cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" +
+      "font-size:18px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.16);" +
+      "backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);" +
+      "transition:transform .12s ease,opacity .12s ease;";
+    btn.innerHTML = "\uD83C\uDF38";
+    btn.addEventListener("mouseover", function () { btn.style.opacity = "0.9"; btn.style.transform = "translateY(-1px)"; });
+    btn.addEventListener("mouseout", function () { btn.style.opacity = "0.55"; btn.style.transform = "translateY(0)"; });
+    btnWrap.appendChild(btn);
+    footer.appendChild(btnWrap);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { try { injectButton(); } catch (_) {} });
+  } else {
+    try { injectButton(); } catch (_) {}
+  }
+})();
