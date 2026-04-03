@@ -1,8 +1,9 @@
-﻿/**
+/**
  * Main page glassmorphism & collection UI
- * 李몄“ ?대?吏 湲곗?: ?대몢??肄붿쫰誘?諛곌꼍, ?⑷툑 ??댄?, 援щ텇?? 諛섏쓳??洹몃━?? */
+ * 참조 이미지 기준: 어두운 코즈믹 배경, 황금 타이틀, 구분선, 반응형 그리드
+ */
 
-/* ??? Page & wrap (fallback if globals not loaded) ??? */
+/* ─── Page & wrap (fallback if globals not loaded) ─── */
 body {
 	background-color: #0f0a1a;
 }
@@ -15,7 +16,7 @@ body {
 	.wrap { padding: 0 24px 48px; }
 }
 
-/* ??? Hero / Logo area ??? */
+/* ─── Hero / Logo area ─── */
 .logo-area {
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
@@ -63,7 +64,7 @@ body {
 	border: 1px solid rgba(234, 179, 8, 0.5);
 }
 
-/* ??? Destiny card (MY DESTINY CARD) ??? */
+/* ─── Destiny card (MY DESTINY CARD) ─── */
 .dp-master-card {
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
@@ -79,7 +80,7 @@ body {
 	box-shadow: 0 0 24px rgba(255, 200, 80, 0.15);
 }
 
-/* ??? Input section (form card) ??? */
+/* ─── Input section (form card) ─── */
 .card.input-section {
 	backdrop-filter: blur(14px);
 	-webkit-backdrop-filter: blur(14px);
@@ -156,7 +157,7 @@ body {
 	font-size: 0.85rem;
 }
 
-/* ??? Post-saju intro ??? */
+/* ─── Post-saju intro ─── */
 .post-saju-services-intro {
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
@@ -181,7 +182,7 @@ body {
 	line-height: 1.55;
 }
 
-/* ??? Feature card grid ??? */
+/* ─── Feature card grid ─── */
 .feature-card-grid {
 	display: flex;
 	flex-direction: column;
@@ -191,8 +192,8 @@ body {
 .fg-group { margin-bottom: 28px; }
 .fg-group:last-child { margin-bottom: 0; }
 
-/* ??? Collection boxes ??? */
-/* overflow-x: hidden留??좎? (媛濡??섏묠 諛⑹?), overflow-y: visible濡?硫붿씤 ?섏씠吏 ?ㅽ겕濡?諛⑺빐 諛⑹? */
+/* ─── Collection boxes ─── */
+/* overflow-x: hidden만 유지 (가로 넘침 방지), overflow-y: visible로 메인 페이지 스크롤 방해 방지 */
 .feat-collection,
 .tarot-collection {
 	backdrop-filter: blur(14px);
@@ -207,7 +208,7 @@ body {
 	overflow-y: visible;
 	position: relative;
 }
-/* 而щ젆?섎퀎 諛곌꼍쨌?뚮몢由??됱긽 (諛고룷 ?ъ씠?몄? ?숈씪 - muted teal / deep purple) */
+/* 컬렉션별 배경·테두리 색상 (배포 사이트와 동일 - muted teal / deep purple) */
 .feat-collection--animal {
 	background: linear-gradient(180deg, rgba(8, 78, 62, 0.72), rgba(3, 48, 44, 0.82));
 	border-color: rgba(167, 243, 208, 0.55);
@@ -380,7 +381,7 @@ body {
 .tarot-collection .tc-divider-line { background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.9), transparent); }
 .tarot-collection .tc-divider-star,
 .tarot-collection .tc-divider-gem { color: #a78bfa; }
-/* ??? 蹂??④낵 (cosmos overlay) ??? */
+/* ─── 별 효과 (cosmos overlay) ─── */
 .feat-collection__cosmos,
 .tarot-collection__cosmos {
 	position: absolute;
@@ -419,7 +420,7 @@ body {
 	0%, 100% { opacity: 0.7; transform: scale(1); }
 	50% { opacity: 1; transform: scale(1.15); }
 }
-/* 而щ젆?섎퀎 蹂??됱긽 (??吏꾪븯寃? */
+/* 컬렉션별 별 색상 (더 진하게) */
 .feat-collection--animal .fc-star {
 	background: #34d399;
 	box-shadow: 0 0 10px 4px rgba(167, 243, 208, 0.95), 0 0 22px 8px rgba(34, 197, 94, 0.5);
@@ -436,7 +437,7 @@ body {
 	background: #ec4899;
 	box-shadow: 0 0 10px 4px rgba(251, 207, 232, 0.95), 0 0 22px 8px rgba(236, 72, 153, 0.5);
 }
-/* ?濡?而щ젆??蹂?(tc-star) */
+/* 타로 컬렉션 별 (tc-star) */
 .tarot-collection__cosmos .tc-star {
 	position: absolute;
 	display: block;
@@ -462,7 +463,7 @@ body {
 .tarot-collection__cosmos .tc-star--6 { top: 72%; left: 25%; animation-delay: 0.3s; }
 .tarot-collection__cosmos .tc-star--7 { top: 35%; right: 5%; left: auto; animation-delay: 1.1s; }
 .tarot-collection__cosmos .tc-star--8 { top: 88%; right: 35%; left: auto; animation-delay: 1.8s; }
-/* 諛곌꼍 蹂??뚰떚??(::after) - 蹂꾨튆 ?④낵 媛뺥솕 */
+/* 배경 별 파티클 (::after) - 별빛 효과 강화 */
 .feat-collection::after,
 .tarot-collection::after {
 	content: "";
@@ -589,7 +590,7 @@ body {
 .feat-collection__grid--2col { grid-template-columns: repeat(2, 1fr); }
 .tarot-collection__grid { grid-template-columns: repeat(3, 1fr); }
 
-/* ??? Tiles (諛고룷 ?ъ씠?? purplish-blue glow, 蹂꾨튆 ?④낵) ??? */
+/* ─── Tiles (배포 사이트: purplish-blue glow, 별빛 효과) ─── */
 .tarot-tile {
 	display: flex;
 	flex-direction: column;
@@ -615,7 +616,7 @@ body {
 	width: 100%;
 	overflow: hidden;
 }
-/* 移대뱶 ?대?吏 ?곸뿭 蹂꾨튆 ?뚰떚??*/
+/* 카드 이미지 영역 별빛 파티클 */
 .tarot-tile__img-wrap::after {
 	content: "";
 	position: absolute;
@@ -661,7 +662,7 @@ body {
 .tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
 .tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
 .tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
-/* 怨듭궗 以??ㅽ떚而?(踰좊떎???? */
+/* 공사 중 스티커 (베다점 등) */
 .tarot-tile__sticker {
 	position: absolute;
 	top: 50%;
@@ -741,11 +742,11 @@ body {
 	.auth-btn { min-width: 110px; padding: 11px 18px; font-size: 0.85rem; }
 }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-   而щ젆??議곌굔遺 ?뚮뜑留????대┝/?ロ옒 ?곹깭 (2026-03-25)
-   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+/* ════════════════════════════════════════════════════
+   컬렉션 조건부 렌더링 — 열림/닫힘 상태 (2026-03-25)
+   ════════════════════════════════════════════════════ */
 
-/* ??? ?ㅻ뜑 ?좉? 踰꾪듉 湲곕낯 由ъ뀑 ??? */
+/* ─── 헤더 토글 버튼 기본 리셋 ─── */
 .fc-toggle-btn {
 	appearance: none;
 	-webkit-appearance: none;
@@ -827,7 +828,7 @@ body {
 	100% { background-position: -80% 0; opacity: 0.35; }
 }
 
-/* ??? ?좉? ?뚰듃 (???뚮윭???닿린) ??? */
+/* ─── 토글 힌트 (▾ 눌러서 열기) ─── */
 .fc-toggle-hint {
 	display: flex;
 	align-items: center;
@@ -924,15 +925,15 @@ body {
 	}
 }
 
-/* ?대┛ ?곹깭: ?뚰듃 ?띿뒪??蹂寃?& ?붿궡???뚯쟾 */
+/* 열린 상태: 힌트 텍스트 변경 & 화살표 회전 */
 [data-collection-open="true"] .fc-toggle-hint__arrow {
 	transform: rotate(180deg);
 }
 [data-collection-open="true"] .fc-toggle-hint__text::after {
-	content: "?リ린";
+	content: "닫기";
 }
 [data-collection-open="false"] .fc-toggle-hint__text::after {
-	content: "?뚮윭???닿린";
+	content: "눌러서 열기";
 }
 @media (prefers-reduced-motion: reduce) {
 	[data-collection-open="false"] .fc-toggle-btn::after,
@@ -957,7 +958,7 @@ body {
 	}
 }
 
-/* ??? 洹몃━?? ?ロ엺 ?곹깭?먯꽌 ?④? ??? */
+/* ─── 그리드: 닫힌 상태에서 숨김 ─── */
 [data-collection-open="false"] .feat-collection__grid,
 [data-collection-open="false"] .tarot-collection__grid {
 	display: none;
@@ -975,7 +976,7 @@ body {
 	to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ??? ?ロ엺 ?곹깭: ?좊퉬濡쒖슫 peek ?뚰듃 ??? */
+/* ─── 닫힌 상태: 신비로운 peek 힌트 ─── */
 .fc-closed-peek {
 	display: flex;
 	justify-content: center;
@@ -1003,7 +1004,7 @@ body {
 	50%       { opacity: 0.85; }
 }
 
-/* ??? ?ロ엺 ?곹깭: 而щ젆??諛뺤뒪 ?믪씠 異뺤냼 ?좊땲硫붿씠???먮굦 ??? */
+/* ─── 닫힌 상태: 컬렉션 박스 높이 축소 애니메이션 느낌 ─── */
 [data-collection-open="false"].feat-collection,
 [data-collection-open="false"].tarot-collection {
 	animation: fc-closedGlow 3s ease-in-out infinite;
@@ -1013,7 +1014,7 @@ body {
 	50%       { box-shadow: 0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(253,230,138,0.35) inset, 0 0 18px rgba(253,230,138,0.08); }
 }
 
-/* 紐⑤컮???곗튂: 而щ젆???ㅽ겕濡??깅뒫 理쒖쟻??*/
+/* 모바일/터치: 컬렉션 스크롤 성능 최적화 */
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
 	.feat-collection,
 	.tarot-collection {
@@ -1021,7 +1022,7 @@ body {
 		-webkit-backdrop-filter: blur(8px);
 	}
 
-	/* ?ロ엺 而щ젆?섏? ?μ떇 ?덉씠???좊땲硫붿씠?섏쓣 硫덉떠 ?ㅽ겕濡??꾨젅???쒕엻 ?꾪솕 */
+	/* 닫힌 컬렉션은 장식 레이어 애니메이션을 멈춰 스크롤 프레임 드랍 완화 */
 	[data-collection-open="false"].feat-collection::after,
 	[data-collection-open="false"].tarot-collection::after,
 	[data-collection-open="false"] .feat-collection__cosmos .fc-star,
@@ -1040,7 +1041,7 @@ body {
 		animation: none;
 	}
 
-	/* ?곗튂 ?섍꼍?먯꽌??hover transform??鍮꾪솢?깊솕???덉씠?꾩썐/而댄룷吏??遺??理쒖냼??*/
+	/* 터치 환경에서는 hover transform을 비활성화해 레이아웃/컴포지팅 부담 최소화 */
 	.tarot-tile,
 	.tarot-tile:hover {
 		transform: none;
@@ -1067,7 +1068,7 @@ body {
 	50%       { box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 0 1px rgba(236,72,153,0.65) inset, 0 0 18px rgba(236,72,153,0.1); }
 }
 
-/* ??? ?대?吏 placeholder (?ロ엺 ??? ??? */
+/* ─── 이미지 placeholder (닫힌 타일) ─── */
 .tarot-tile__img-placeholder {
 	width: 100%;
 	aspect-ratio: 4 / 3;
@@ -1112,7 +1113,7 @@ body {
 	50%       { transform: translateY(-6px); opacity: 0.75; }
 }
 
-/* ??? ?대?吏 濡쒕뵫 以??ㅼ펷?덊넠 ??? */
+/* ─── 이미지 로딩 중 스켈레톤 ─── */
 .tarot-tile__img-skeleton {
 	width: 100%;
 	aspect-ratio: 4 / 3;
@@ -1133,7 +1134,7 @@ body {
 	100% { background-position: -200% 0; }
 }
 
-/* ??? ?ㅼ젣 ?대?吏: 濡쒕뱶 ?꾨즺 ???섏씠?쒖씤 ??? */
+/* ─── 실제 이미지: 로드 완료 후 페이드인 ─── */
 .tarot-tile__img {
 	animation: tile-img-fadein 0.4s ease both;
 }

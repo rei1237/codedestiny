@@ -2,7 +2,7 @@
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, statSync, readdirSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const rootDir = process.cwd();
@@ -28,11 +28,22 @@ const staticTargets = [
 
 /**
  * Safe per-file sync for the styles/ directory.
- * Guards against two failure modes:
+ * Guards against three failure modes:
  *   1. A root/styles/*.css that is just an @import pointer back to public/styles/
  *      accidentally overwrites the real CSS in public/styles/ (circular reference + CSS loss).
  *   2. A tiny/empty placeholder in root/styles/ overwrites a large, real CSS in public/styles/.
+ *   3. PowerShell Set-Content adds UTF-8 BOM or CRLF line endings to CSS files.
+ *      This function always writes normalized (BOM-free, LF) CSS.
  */
+function normalizeCss(buf) {
+  let str = buf.toString("utf8");
+  // Remove UTF-8 BOM (EF BB BF) if present
+  if (str.charCodeAt(0) === 0xFEFF) str = str.slice(1);
+  // Normalize CRLF → LF
+  str = str.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  return Buffer.from(str, "utf8");
+}
+
 function syncStylesDir() {
   const srcDir = resolve(rootDir, "styles");
   const dstDir = resolve(publicDir, "styles");
@@ -40,6 +51,7 @@ function syncStylesDir() {
   mkdirSync(dstDir, { recursive: true });
 
   const POINTER_RE = /@import\s+url\s*\(\s*["']?\.\.\/public\/styles\//;
+  const TAILWIND_RE = /^@tailwind\s+(base|components|utilities)\s*;/m;
   const TINY_THRESHOLD = 512; // bytes — anything smaller is considered a placeholder
 
   for (const name of readdirSync(srcDir)) {
@@ -52,30 +64,40 @@ function syncStylesDir() {
       continue;
     }
 
-    const srcStat = statSync(srcFile);
-    const srcContent = readFileSync(srcFile, "utf8");
+    const srcBuf = readFileSync(srcFile);
+    const srcNorm = normalizeCss(srcBuf);
+    const srcStr = srcNorm.toString("utf8");
+    const srcSize = srcBuf.length;
 
     // Guard 1: skip pointer files that reference ../public/styles/ (would create circular @import)
-    if (POINTER_RE.test(srcContent)) {
+    if (POINTER_RE.test(srcStr)) {
       console.warn(`[sync-styles] SKIP pointer file: styles/${name} → would overwrite public/styles/${name} with self-reference`);
       continue;
     }
 
     // Guard 2: skip tiny source if destination already has a larger real file
-    if (srcStat.size < TINY_THRESHOLD && existsSync(dstFile)) {
+    if (srcSize < TINY_THRESHOLD && existsSync(dstFile)) {
       const dstStat = statSync(dstFile);
-      if (dstStat.size > srcStat.size * 10) {
-        console.warn(`[sync-styles] SKIP tiny src (${srcStat.size}B) vs large dst (${dstStat.size}B): styles/${name}`);
+      if (dstStat.size > srcSize * 10) {
+        console.warn(`[sync-styles] SKIP tiny src (${srcSize}B) vs large dst (${dstStat.size}B): styles/${name}`);
         continue;
       }
     }
 
-    cpSync(srcFile, dstFile, { force: true });
+    // Guard 3: skip if source contains @tailwind directives (static serving can't compile them)
+    // and destination already has a valid plain CSS file
+    if (TAILWIND_RE.test(srcStr) && existsSync(dstFile)) {
+      const dstContent = normalizeCss(readFileSync(dstFile)).toString("utf8");
+      if (!TAILWIND_RE.test(dstContent) && dstContent.length > srcStr.length) {
+        console.warn(`[sync-styles] SKIP @tailwind source: styles/${name} → would replace compiled CSS with source`);
+        continue;
+      }
+    }
+
+    // Write normalized (BOM-free, LF) content
+    writeFileSync(dstFile, srcNorm);
   }
 
-  // Also copy any files present in public/styles/ that are NOT in root/styles/
-  // (e.g. CSS generated directly into public/ during a build step).
-  // These are kept as-is since they have no root counterpart to overwrite them.
   console.log(`[sync-styles] Completed safe styles sync: ${srcDir} → ${dstDir}`);
 }
 

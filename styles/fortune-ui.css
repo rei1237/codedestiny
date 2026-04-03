@@ -1,19 +1,19 @@
-﻿/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
+/* Extracted from index.html inline <style> blocks. Keep order for cascade fidelity. */
 
 /* --- block 1 --- */
-/* ??? ?꾩뿭 踰꾪듉 ?곗튂 諛섏쓳????? */
+/* ─── 전역 버튼 터치 반응성 ─── */
 button, [role="button"], input[type="button"], input[type="submit"], label[for] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-/* ?リ린 踰꾪듉 理쒖냼 ?곗튂 ?곸뿭 44px 蹂댁옣 */
-button[onclick*="close"], button[aria-label*="??] {
+/* 닫기 버튼 최소 터치 영역 44px 보장 */
+button[onclick*="close"], button[aria-label*="닫"] {
   min-width: 44px; min-height: 44px;
 }
 
-/* ??? 蹂??& 由ъ뀑 ??? */
+/* ─── 변수 & 리셋 ─── */
 :root{
-  /* 怨듯넻 ?덉씠?꾩썐 ?섏튂 */
+  /* 공통 레이아웃 수치 */
   --radius-lg: 20px;
   --spacing-md: 16px;
   --card-shadow: 0 8px 30px rgba(0,0,0,0.05);
@@ -46,8 +46,8 @@ button[onclick*="close"], button[aria-label*="??] {
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
-/* overflow-x:hidden??html???ㅼ젙?섎㈃ html+body ?댁쨷 ?ㅽ겕濡?而⑦뀒?대꼫 ??iOS ?섏쭅 ?ㅽ겕濡?李⑤떒
-   body??overflow-x:hidden??visible??html???듯빐 酉고룷?몃줈 ?꾪뙆?섎?濡?html?먮뒗 ?ㅼ젙 遺덊븘??*/
+/* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
+   body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body{background-color:#FFF5F8;background:var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
@@ -98,7 +98,7 @@ body::after{
 
 
 
-/* ??? 濡쒕뵫 ?ㅻ쾭?덉씠 ??? */
+/* ─── 로딩 오버레이 ─── */
 #lib-overlay{position:fixed;inset:0;background:var(--bg-color, linear-gradient(135deg,#FFF5F8,#FFF0FA));
   z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 #lib-overlay.done{display:none}
@@ -111,10 +111,10 @@ body::after{
 #lib-msg{font-size:1rem;font-weight:700;color:var(--point-color, var(--pink))}
 #lib-sub{font-size:.8rem;color:#bbb}
 
-/* ??? 怨듯넻 移대뱶 ??? */
+/* ─── 공통 카드 ─── */
 .card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
   box-shadow:var(--card-shadow, 0 2px 24px rgba(255,139,167,.1));border:1px solid var(--border-color, rgba(255,183,178,.15));margin-bottom:var(--spacing-md, 16px); transition: background 0.4s ease, border-color 0.4s ease;backdrop-filter:blur(6px) saturate(110%);-webkit-backdrop-filter:blur(6px) saturate(110%);}
-/* 留덉슦??湲곌린?먯꽌留?? 釉붾윭 ?곸슜 (?곗튂 湲곌린 GPU ?덉빟) */
+/* 마우스 기기에서만 풀 블러 적용 (터치 기기 GPU 절약) */
 @media (pointer: fine) { .card { backdrop-filter:blur(10px) saturate(120%); -webkit-backdrop-filter:blur(10px) saturate(120%); } }
 @media (min-width: 768px){
   .card{padding:18px}
@@ -127,7 +127,7 @@ body::after{
 .sec-title::before{content:'';display:block;width:4px;height:18px;
   background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}
 
-/* Force content to respect container width ??CLS 諛⑹? (width/height ?먮뒗 aspect-ratio 吏??沅뚯옣) */
+/* Force content to respect container width — CLS 방지 (width/height 또는 aspect-ratio 지정 권장) */
 img, canvas, svg, video {
   max-width: 100%;
   height: auto;
@@ -161,7 +161,7 @@ img.img-fallback-broken {
   width: 100%;
   max-width: 100%;
 }
-/* content-visibility: 酉고룷??諛??뱀뀡 ?뚮뜑留?李⑤떒 ???ㅽ겕濡??깅뒫 ?μ긽 */
+/* content-visibility: 뷰포트 밖 섹션 렌더링 차단 → 스크롤 성능 향상 */
 #resultPage .card,
 #resultPage .destiny-section,
 #resultPage .letter-box,
@@ -328,7 +328,7 @@ input:checked + .slider .paw-pad {
   transform: scale(1);
 }
 
-/* ??? Divine Focus Mode (Tarot) ??? */
+/* ─── Divine Focus Mode (Tarot) ─── */
 .tarot-focus-overlay {
   position: fixed;
   inset: 0;
@@ -380,7 +380,7 @@ input:checked + .slider .paw-pad {
   box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
 }
 
-/* ??? 媛쒖씤?뺣낫 ?숈쓽 紐⑤떖 ??? */
+/* ─── 개인정보 동의 모달 ─── */
 #privacy-modal-overlay {
   position: fixed;
   inset: 0;
@@ -486,7 +486,7 @@ input:checked + .slider .paw-pad {
   box-shadow: 0 6px 16px rgba(255,139,167,.4);
 }
 
-/* ??? ?낅젰 ??? */
+/* ─── 입력 ─── */
 .logo-area{text-align:center;padding:20px 0 28px}
 .pig-big{font-size:3.8rem;display:block;animation:float 2.5s ease-in-out infinite}
 .pig-svg-wrap{animation:float 2.5s ease-in-out infinite;margin-bottom:6px;display:flex;justify-content:center;}
@@ -496,7 +496,7 @@ input:checked + .slider .paw-pad {
   box-shadow:0 4px 12px rgba(255,215,0,.3);
   background:#0f1118;
 }
-/* 硫붿씤(苑껊뤌吏) 紐⑤뱶: ???덉뿉 honeypig ?대?吏 諛곗튂 */
+/* 메인(꽃돼지) 모드: 원 안에 honeypig 이미지 배치 */
 .honeypig-logo-icon,
 .normal-logo .pig-svg-wrap img {
   display: block;
@@ -514,7 +514,7 @@ input:checked + .slider .paw-pad {
   font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;transition:all .25s;font-family:inherit;
   -webkit-appearance:none;appearance:none;min-height:48px;}
 .inp:focus{outline:none;border-color:var(--pink-l);background:#fff;box-shadow:0 0 0 4px rgba(255,183,178,.15)}
-/* iOS 以?諛⑹?: 紐⑤뱺 input/select/textarea 16px ?댁긽 ?좎? */
+/* iOS 줌 방지: 모든 input/select/textarea 16px 이상 유지 */
 @media (max-width:768px){
   input,select,textarea{font-size:max(1rem,16px)!important;}
 }
@@ -541,7 +541,7 @@ input:checked + .slider .paw-pad {
 .form-country-select{margin-bottom:10px;background:#fff}
 .time-correction-info{font-size:.85rem;color:#475569;line-height:1.4;display:none}
 
-/* CLS: #inputPage .card.input-section ???숈쟻 ?곸뿭 ?믪씠쨌?ㅼ펷?덊넠 */
+/* CLS: #inputPage .card.input-section — 동적 영역 높이·스켈레톤 */
 #inputPage .card.input-section {
 	contain: layout style;
 }
@@ -648,8 +648,8 @@ input:checked + .slider .paw-pad {
 .compat-test-results{margin-top:12px;font-size:.9rem;color:#333}
 
 .modal-overlay-shell{display:none;width:100%}
-/* ?꾩껜?붾㈃ 誘몄뒪??紐⑤떖: ?ㅻ쾭?덉씠??怨좎젙쨌鍮꾩뒪?щ·, #*ModalSheet留??몃줈 ?ㅽ겕濡?(iOS fixed+overflow 媛꾩꽠 諛⑹?).
-   display??JS?먯꽌 flex濡????뚮쭔 ?곸슜 ??.modal-overlay-shell??display:none怨?異⑸룎?섏? ?딄쾶 ?ш린?쒕뒗 吏?뺥븯吏 ?딆쓬 */
+/* 전체화면 미스틱 모달: 오버레이는 고정·비스크롤, #*ModalSheet만 세로 스크롤 (iOS fixed+overflow 간섭 방지).
+   display는 JS에서 flex로 열 때만 적용 — .modal-overlay-shell의 display:none과 충돌하지 않게 여기서는 지정하지 않음 */
 .modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 .modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 .modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
@@ -758,7 +758,7 @@ input:checked + .slider .paw-pad {
 .btn-sub:hover{background:#FFF5F8}
 .btn-sub:active{transform:scale(.97);background:#FFE8EF;box-shadow:0 1px 4px rgba(255,139,167,.2)}
 
-/* ?좊챸??移댄뀒怨좊━ ??*/
+/* 유명인 카테고리 탭 */
 .celeb-tab-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
 .celeb-tab-btn{
   padding:8px 14px;border-radius:20px;
@@ -768,7 +768,7 @@ input:checked + .slider .paw-pad {
   font-family:inherit;white-space:nowrap;
   transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .12s;
   box-shadow:0 1px 4px rgba(232,168,124,.10);
-  min-height:40px;/* ?곗튂 ?寃??뺣낫 */
+  min-height:40px;/* 터치 타겟 확보 */
   user-select:none;
 }
 .celeb-tab-btn:hover{
@@ -785,7 +785,7 @@ input:checked + .slider .paw-pad {
   box-shadow:0 3px 10px rgba(232,168,124,.40);
   transform:translateY(-1px);
 }
-/* ?좊챸???대쫫 踰꾪듉 */
+/* 유명인 이름 버튼 */
 .celeb-name-area{
   display:flex;flex-wrap:wrap;gap:6px;
   max-height:260px;overflow-y:auto;
@@ -794,7 +794,7 @@ input:checked + .slider .paw-pad {
   transition:opacity 0.15s ease;
   scrollbar-width:thin;scrollbar-color:#f0c4a0 transparent;
 }
-.celeb-name-area.fading{pointer-events:none;}/* ?꾪솚 以??대┃ 李⑤떒 */
+.celeb-name-area.fading{pointer-events:none;}/* 전환 중 클릭 차단 */
 .celeb-name-area::-webkit-scrollbar{width:4px}
 .celeb-name-area::-webkit-scrollbar-track{background:transparent}
 .celeb-name-area::-webkit-scrollbar-thumb{background:#f0c4a0;border-radius:4px}
@@ -805,7 +805,7 @@ input:checked + .slider .paw-pad {
   border-radius:14px;font-size:13px;font-weight:600;
   cursor:pointer;white-space:nowrap;
   font-family:inherit;
-  min-height:38px;/* ?곗튂 ?寃??뺣낫 */
+  min-height:38px;/* 터치 타겟 확보 */
   user-select:none;
   transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .12s;
 }
@@ -958,7 +958,7 @@ input:checked + .slider .paw-pad {
 .hero-correction-list{margin:0;padding:0;list-style:none;display:grid;gap:2px;position:relative;z-index:1}
 .hero-correction-list li{position:relative;padding-left:13px}
 .hero-correction-list li::before{
-  content:'??;
+  content:'✦';
   position:absolute;
   left:0;
   top:.1em;
@@ -985,7 +985,7 @@ input:checked + .slider .paw-pad {
   .hero-correction-card{font-size:.76rem;padding:11px 12px}
 }
 
-/* ??? ?ъ＜ 紐낆떇 ??? */
+/* ─── 사주 명식 ─── */
 .manse-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .pillar{display:flex;flex-direction:column;align-items:center;gap:4px}
 .pillar-head{font-size:.72rem;color:#AAA;font-weight:700}
@@ -998,7 +998,7 @@ input:checked + .slider .paw-pad {
 .char-box:active{transform:scale(1.15);}
 .yang-yin{font-size:.65rem;color:#999;font-weight:600;text-align:center}
 
-/* CLS: #sajuCard ??紐낆떇 濡쒕뱶 ???믪씠 ?좎? + ?ㅼ펷?덊넠 */
+/* CLS: #sajuCard — 명식 로드 전 높이 유지 + 스켈레톤 */
 #sajuCard .saju-manse-slot {
   position: relative;
   display: grid;
@@ -1058,7 +1058,7 @@ input:checked + .slider .paw-pad {
 .bg-metal{background:var(--metal-bg);color:var(--metal-tx)}
 .bg-water{background:var(--water-bg);color:var(--water-tx)}
 
-/* ??? ?듭떖 ??꽦 ??? */
+/* ─── 핵심 십성 ─── */
 .ts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .ts-card{background:linear-gradient(135deg,#FFFBF8,#FFF8F5);border:2px solid #FFE8E0;
   border-radius:14px;padding:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
@@ -1070,7 +1070,7 @@ input:checked + .slider .paw-pad {
 .ts-desc{font-size:.8rem;color:#777; font-weight:600;}
 .ts-hint{font-size:.75rem;color:#FF8BA7;margin-top:10px; font-weight:700; background:rgba(255,139,167,0.1); display:inline-block; padding:3px 10px; border-radius:20px;}
 
-/* ??? 議고썑 誘명꽣 ??? */
+/* ─── 조후 미터 ─── */
 .johu-box{background:linear-gradient(135deg,#EBF5FB,#EAF6EB);border:2px solid #AED6F1;
   border-radius:16px;padding:20px;margin-bottom:16px}
 .johu-meter{height:28px;background:linear-gradient(to right,#1565C0,#90CAF9,#FFEBEE,#C62828);
@@ -1088,7 +1088,7 @@ input:checked + .slider .paw-pad {
 .jb-neutral{background:#F5F5F5;color:#546E7A}.jb-cool{background:#E3F2FD;color:#1565C0}
 .jb-cold{background:#E1F5FE;color:#0277BD}
 
-/* ??? ?듬?/醫낃꺽 諛곕꼫 ??? */
+/* ─── 억부/종격 배너 ─── */
 .ukbu-box{border-radius:14px;padding:16px;margin-bottom:12px}
 .ukbu-strong{background:linear-gradient(135deg,#FFF3E0,#FFF8E1);border:2px solid #FFCC80}
 .ukbu-weak{background:linear-gradient(135deg,#E3F2FD,#E8F4FD);border:2px solid #90CAF9}
@@ -1098,7 +1098,7 @@ input:checked + .slider .paw-pad {
 .pb-jong{background:#E1BEE7;color:#6A1B9A}
 .yn-row{background:rgba(255,255,255,.7);border-radius:10px;padding:10px 12px;font-size:.83rem;margin-top:10px;line-height:1.7}
 
-/* ??? ?먮??먯닔 沅???? */
+/* ─── 자미두수 궁 ─── */
 .palace-block{border-radius:13px;padding:14px 16px;margin-bottom:10px;border:1.5px solid}
 .palace-tag{display:inline-block;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:8px;margin-bottom:7px}
 .palace-star{font-weight:700;font-size:.88rem;margin-bottom:5px}
@@ -1106,7 +1106,7 @@ input:checked + .slider .paw-pad {
 .palace-desc{font-size:.82rem;color:#555;line-height:1.78}
 .palace-note{font-size:.72rem;margin-top:7px;font-style:italic}
 
-/* ??? ?꾨━誘몄뾼 遺꾩꽍 諛뺤뒪 ??? */
+/* ─── 프리미엄 분석 박스 ─── */
 .prem-box{background:#FAFAFA;border:1px solid #EEE;border-radius:12px;padding:16px;margin-top:12px}
 .prem-title{display:block;font-weight:700;color:#333;font-size:.88rem;
   border-left:3px solid var(--pink);padding-left:9px;margin-bottom:10px}
@@ -1116,7 +1116,7 @@ input:checked + .slider .paw-pad {
 .tip-chip{background:#fff;border:1px solid #FFE0D6;border-radius:10px;padding:13px;font-size:.82rem;line-height:1.65;color:#555}
 .tip-chip strong{color:#FF6B35;display:block;margin-bottom:5px}
 
-/* ??? ?ы뻾 媛쒖슫 ??? */
+/* ─── 여행 개운 ─── */
 .travel-box{background:linear-gradient(135deg,#F5F0FF,#FFF5F8);border-radius:16px;padding:16px;border:1px solid rgba(197,202,233,.6);margin-top:8px}
 .travel-header{font-size:.85rem;color:#666;margin-bottom:10px;line-height:1.7}
 .travel-badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:.78rem;font-weight:700;margin-right:6px;margin-bottom:4px}
@@ -1128,7 +1128,7 @@ input:checked + .slider .paw-pad {
 .travel-chip ul{margin-top:4px;padding-left:16px;margin-bottom:4px}
 .travel-chip li{margin-bottom:2px}
 
-/* ??? ?????? */
+/* ─── 대운 ─── */
 .dw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px;margin-bottom:12px}
 .dw-item{border:2px solid #FFE0D6;border-radius:13px;padding:12px 8px;text-align:center;
   cursor:pointer;transition:all .25s;position:relative;background:linear-gradient(135deg,#FFFBF8,#FFF8F5)}
@@ -1145,28 +1145,28 @@ input:checked + .slider .paw-pad {
 .tag-best{background:#E8F5E9;color:#2E7D32}.tag-good{background:#E3F2FD;color:#1565C0}
 .tag-ok{background:#FFF8E1;color:#F57F17}.tag-caut{background:#FFF3E0;color:#E65100}
 .tag-bad{background:#FFEBEE;color:#C62828}
-/* ?? 醫낃꺽 ?ъ＜ 移대뱶: ?됱긽? ?먯닔 湲곗?(excellent/good/neutral/caution/bad)怨??숈씪 ?곸슜 ?? */
+/* ── 종격 사주 카드: 색상은 점수 기준(excellent/good/neutral/caution/bad)과 동일 적용 ── */
 .dw-jong-badge{font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:800;display:inline-block;margin-top:5px}
 .dw-jong-badge.str{background:#E1BEE7;color:#4A148C}
 .dw-jong-badge.wkn{background:#FFEBEE;color:#C62828}
 .dw-jong-badge.ntl{background:#F5F5F5;color:#757575}
 .dw-jong-badge.ga-str{background:#EDE7F6;color:#6A1B9A;border:1px dashed #9C27B0}
-/* ?? 紐⑤컮?????대┃쨌?곗튂 ?꾩뿭 理쒖쟻???? */
+/* ── 모바일/웹 클릭·터치 전역 최적화 ── */
 button,.dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.lang-btn,.tog-btn,.oracle-cat-btn-m,.oracle-card-m,.iching-btn,.celeb-tab-btn,.celeb-btn,.feature-card,.tarot-cat-btn,.btn-kakao,.btn-insta{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button,.tog-btn,.btn-main,.btn-sub,.feature-card{min-height:44px;}
-/* 紐⑤뱺 ?명꽣?숉떚釉??붿냼 active ?쇰뱶諛?*/
+/* 모든 인터랙티브 요소 active 피드백 */
 button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.97)!important;}
 @media(hover:none){button:hover,.feature-card:hover{transform:none!important;}}
 .dw-item,.year-row,.fortune-tab,.mystic-tab-btn,.oracle-cat-btn-m{user-select:none}
-/* ?? ???移대뱶 ?붿빟 ?쇰꺼 ?? */
+/* ── 대운 카드 요약 라벨 ── */
 .dw-eval-label{font-size:.58rem;color:#888;margin-top:3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-/* ? ?? ?⑺솕 諛곗? (???移대뱶) ? */
+/* ─ 퀀텀 합화 배지 (대운 카드) ─ */
 .dw-qm-badge{font-size:.56rem;font-weight:800;padding:2px 5px;border-radius:5px;text-align:center;margin-top:4px;letter-spacing:.01em;line-height:1.3;display:block}
 .dw-qm-badge.bonus{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);color:#1B5E20;border:1px solid #A5D6A7}
 .dw-qm-badge.snare{background:linear-gradient(135deg,#FFEBEE,#FCE4EC);color:#B71C1C;border:1px solid #FFCDD2}
 .dw-qm-badge.hap{background:#F5F5F5;color:#757575;border:1px solid #E0E0E0}
 
-/* ??? RPG ?몄깮 ?ㅽ궗 ?몃━ ??? */
+/* ─── RPG 인생 스킬 트리 ─── */
 .skill-wrap{background:linear-gradient(145deg,#0d0d1a,#111827,#0f1923);border-radius:20px;padding:20px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.45)}
 .skill-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(99,102,241,.08) 0%,transparent 60%),radial-gradient(circle at 80% 70%,rgba(251,191,36,.06) 0%,transparent 60%);pointer-events:none}
 .sk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px}
@@ -1213,7 +1213,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .sk-levelup-text{font-size:.82rem;color:rgba(255,255,255,.8);line-height:1.7}
 .sk-hl{background:rgba(251,191,36,.2);color:#FDE68A;padding:1px 6px;border-radius:4px;font-weight:700}
 
-/* ??? ?쇱＜ 怨좎쑀?λ젰 (INNATE ABILITY) ??? */
+/* ─── 일주 고유능력 (INNATE ABILITY) ─── */
 .sk-innate-section{background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(168,85,247,.10));border-radius:14px;padding:15px;border:1px solid rgba(236,72,153,.30);position:relative;overflow:hidden;margin-bottom:14px}
 .sk-innate-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(236,72,153,.08),transparent 70%);pointer-events:none}
 .sk-innate-label{font-size:.6rem;letter-spacing:.18em;font-weight:800;color:rgba(236,72,153,.85);text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(236,72,153,.18);position:relative;z-index:1}
@@ -1224,7 +1224,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .sk-innate-desc{font-size:.72rem;color:rgba(255,255,255,.65);line-height:1.6}
 .sk-innate-type{display:inline-block;font-size:.5rem;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(236,72,153,.25);color:#F9A8D4;letter-spacing:.1em;vertical-align:middle;margin-left:5px}
 
-/* ??? ????곸꽭 ??? */
+/* ─── 대운 상세 ─── */
 .dw-detail{margin-top:12px;padding:20px;background:#FFFBF8;border-radius:15px;
   border:2px solid #FFE0D6;display:none}
 .dw-detail.show{display:block;animation:slideDown .3s ease-out}
@@ -1245,7 +1245,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .lb-ok{background:#FFF8E1;color:#F57F17;border:1px solid #FFE082}
 .lb-bad{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
 
-/* ??? ?몄슫 ??? */
+/* ─── 세운 ─── */
 .year-list{display:flex;flex-direction:column;gap:8px}
 .year-row{background:#fff;border:2px solid #FFE0D6;border-radius:12px;padding:14px;cursor:pointer;transition:all .25s}
 .year-row:hover{box-shadow:0 3px 10px rgba(255,183,178,.18)}
@@ -1265,9 +1265,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .yr-label{font-weight:700;color:var(--pink);font-size:.82rem;margin-bottom:5px}
 .yr-content{font-size:.8rem;color:#666;line-height:1.68}
 
-/* ??? ?몄? ??? */
+/* ─── 편지 ─── */
 .letter-box{
-  /* 湲곕낯 洹몃씪?붿뼵??+ 醫낆씠 吏덇컧 ?덉씠??*/
+  /* 기본 그라디언트 + 종이 질감 레이어 */
   background:
     linear-gradient(140deg,#FFFCFC,#FFF5F8),
     radial-gradient(circle at 0 0,rgba(255,255,255,.7) 0,transparent 55%),
@@ -1296,7 +1296,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   margin-right: auto;
 }
 
-/* 紐⑤컮?쇱뿉???몃줈濡?湲멸쾶 蹂댁씠?꾨줉 議곗젙 */
+/* 모바일에서 세로로 길게 보이도록 조정 */
 @media (max-width:768px){
   .letter-box{
     max-width:100%;
@@ -1308,7 +1308,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   }
 }
 
-/* ??? 釉붾줈洹???? */
+/* ─── 블로그 ─── */
 .blog-item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;
   background:rgba(255,255,255,.8);border:1.5px solid #FFE8E0;text-decoration:none;color:inherit;
   transition:all .2s;margin-bottom:10px}
@@ -1317,7 +1317,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .blog-title{font-weight:800;font-size:.85rem;margin-bottom:4px}
 .blog-summary{font-size:.78rem;color:#666;line-height:1.7;margin-top:2px;white-space:normal;overflow:hidden}
 
-/* ??? 紐⑤떖 ??? */
+/* ─── 모달 ─── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
   align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .modal.show{display:flex}
@@ -1326,9 +1326,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .modal-close{position:absolute;top:16px;right:18px;font-size:1.4rem;cursor:pointer;
   color:#CCC;background:none;border:none;transition:color .2s;font-family:inherit}
 .modal-close:hover{color:var(--pink)}
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-   ?렣 ?ㅻ뒛???대챸 移대뱶 (Universal Oracle)
-?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+/* ══════════════════════════════════════
+   🎴 오늘의 운명 카드 (Universal Oracle)
+══════════════════════════════════════ */
 .destiny-section{margin-bottom:16px}
 .destiny-wrap{
   background:linear-gradient(160deg,#1a0a2e 0%,#16213e 40%,#0f3460 100%);
@@ -1348,7 +1348,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   text-transform:uppercase;margin-bottom:18px;
 }
 
-/* ?濡?移댄뀒怨좊━ ?좏깮 */
+/* 타로 카테고리 선택 */
 .tarot-cats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;position:relative;z-index:2}
 .tarot-cat-btn{
   background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);
@@ -1363,7 +1363,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   box-shadow:0 0 15px rgba(255,215,0,0.4);
 }
 
-/* ?濡?由ъ텛???띿뒪??(?ㅽ듃由щ컢) */
+/* 타로 리추얼 텍스트 (스트리밍) */
 .tarot-ritual-msg{
   min-height:30px;text-align:center;font-size:0.8rem;color:#bda0e3;
   font-style:italic;margin-bottom:20px;opacity:0.9;
@@ -1380,7 +1380,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   transition:transform 1s;
   cursor:pointer;
 }
-/* 移대뱶 ?룸㈃ */
+/* 카드 뒷면 */
 .destiny-card-back{
   position:absolute;inset:0;backface-visibility:hidden;
   background:
@@ -1397,7 +1397,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 .destiny-card-back span{z-index:1;font-size:2rem;opacity:0.5;filter:grayscale(1)}
 
-/* 移대뱶 ?욌㈃ */
+/* 카드 앞면 */
 .destiny-card-front{
   position:absolute;inset:0;backface-visibility:hidden;
   transform:rotateY(180deg);
@@ -1406,8 +1406,9 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-  ?쒕┝ ?濡??먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+/* ══════════════════════════════════════════════
+  드림 타로
+══════════════════════════════════════════════ */
 .dream-ledger-shell .max-w-3xl { max-width: 48rem; }
 .dream-ledger-shell .max-w-4xl { max-width: 56rem; }
 .dream-ledger-shell .mx-auto { margin-left: auto; margin-right: auto; }
@@ -2222,7 +2223,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-ritual-card-back::after {
-  content: '??;
+  content: '✶';
   position: absolute;
   inset: 0;
   display: flex;
@@ -2252,7 +2253,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 
 .dream-ritual-card-front::before,
 .dream-ritual-card-front::after {
-  content: '??;
+  content: '✧';
   position: absolute;
   color: rgba(117, 88, 45, 0.6);
   font-size: 0.88rem;
@@ -2352,7 +2353,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-ritual-card--gold .dream-ritual-card-back::after {
-  content: '??;
+  content: '✷';
   color: rgba(255, 245, 219, 0.88);
   text-shadow: 0 0 18px rgba(255, 225, 146, 0.5);
 }
@@ -2487,7 +2488,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-story-bubble--book::before {
-  content: '?뱴 轅덉쓽 留덈쾿梨?;
+  content: '📚 꿈의 마법책';
   display: inline-block;
   margin-bottom: 8px;
   color: rgba(255, 221, 166, 0.95);
@@ -2518,7 +2519,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-story-bubble--gold::before {
-  content: '???⑷툑 移대뱶??異뺣났';
+  content: '✶ 황금 카드의 축복';
   display: inline-block;
   margin-bottom: 10px;
   color: rgba(255, 242, 208, 0.95);
@@ -2553,7 +2554,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 
 .dream-story-bubble--consult::before {
-  content: '?㎛ 理쒖쥌 而⑥꽕??;
+  content: '🧭 최종 컨설팅';
   display: inline-block;
   margin-bottom: 10px;
   color: rgba(216, 243, 255, 0.96);
@@ -2928,7 +2929,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 .destiny-card.flipped { transform: rotateY(180deg); }
 
-/* ?곸쟻 泥섎갑??*/
+/* 영적 처방전 */
 .tarot-oracle{
   margin-top:20px;padding:15px;background:rgba(0,0,0,0.3);
   border-left:3px solid #FFD700;border-radius:4px;
@@ -2937,14 +2938,14 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 }
 .tarot-oracle.show{opacity:1;transform:translateY(0)}
 
-/* 怨⑤뱶 ?붿뒪???④낵 */
+/* 골드 더스트 효과 */
 .gold-dust{
   position:absolute;width:4px;height:4px;background:#FFD700;
   border-radius:50%;pointer-events:none;animation:dustFloat 2s linear forwards;
 }
 @keyframes dustFloat{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-50px) scale(0);opacity:0}}
 
-/* ?? ?ㅽ뻾 移대뱶 ?룸㈃ ?ㅽ????? */
+/* ── 오행 카드 뒷면 스타일 ── */
 .q-back-element-emoji{
   font-size:3.1rem;
   margin-bottom:10px;
@@ -3045,16 +3046,16 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .dfr-cat{font-size:.68rem;color:rgba(255,210,80,.7);font-weight:700;letter-spacing:.1em;display:block;margin-bottom:2px}
 .dfr-text{font-size:.78rem;color:rgba(255,255,255,.8);line-height:1.58}
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-   ?뱢 ?몄깮 洹몃옒??(Life Fortune Graph)
-?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+/* ══════════════════════════════════════
+   📈 인생 그래프 (Life Fortune Graph)
+══════════════════════════════════════ */
 .life-graph-section{margin-top:20px;margin-bottom:4px}
 .life-graph-title{
   font-size:.78rem;color:#888;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;
   display:flex;align-items:center;gap:8px;
 }
-.life-graph-title::before{content:'?뱢';font-size:1rem}
+.life-graph-title::before{content:'📈';font-size:1rem}
 .life-graph-wrap{
   background:linear-gradient(180deg,#fafafa 0%,#fff6f9 100%);
   border-radius:16px;border:1px solid #FFE0D6;
@@ -3077,7 +3078,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   border:1px solid rgba(255,215,0,.3);
 }
 
-/* ??? 怨듭쑀?섍린 ??? */
+/* ─── 공유하기 ─── */
 .share-section{
   background:#fff;
   border-radius:20px;
@@ -3160,7 +3161,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .25s}
 .btn-insta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(131,58,180,.4)}
 .btn-insta:active{transform:scale(.96);box-shadow:0 2px 8px rgba(131,58,180,.25)}
-/* ?? PWA ?ㅼ튂 踰꾪듉 (???붾㈃ 遺???ㅼ튂) ?? */
+/* ── PWA 설치 버튼 (홈 화면 부적 설치) ── */
 .btn-install{
   padding:14px;
   background:linear-gradient(135deg,#1A1A1B 0%,#2D2A1E 50%,#1A1A1B 100%);
@@ -3197,13 +3198,13 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   color:#fff;
 }
 .btn-install:active{transform:translateY(0)}
-/* 留λ컯 ?좊땲硫붿씠??*/
+/* 맥박 애니메이션 */
 @keyframes pwa-pulse{
   0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.35)}
   50%{box-shadow:0 0 0 8px rgba(255,215,0,0)}
 }
 
-/* ?? 利먭꺼李얘린 踰꾪듉 (紐⑤뱶蹂?苑?蹂?而⑥뀎) ?? */
+/* ── 즐겨찾기 버튼 (모드별 꽃/별 컨셉) ── */
 .btn-favorite{
   padding:14px;
   border:2px solid rgba(255,201,186,.55);
@@ -3276,14 +3277,14 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
   pointer-events:none;
   opacity:.88;
 }
-/* ?대? ?ㅼ튂??寃쎌슦 踰꾪듉 ?④린湲?*/
+/* 이미 설치된 경우 버튼 숨기기 */
 .btn-install.installed{
   opacity:0.45;
   animation:none;
   cursor:default;
   pointer-events:none;
 }
-/* iOS ?덈궡 紐⑤떖 */
+/* iOS 안내 모달 */
 #ios-install-modal{
   display:none;
   position:fixed;
@@ -3357,7 +3358,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
   font-size:.85rem;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
 .share-toast.show{opacity:1}
 
-/* ??? 留ㅻ젰 遺꾩꽍 ?꾩슜 移대뱶 ??? */
+/* ─── 매력 분석 전용 카드 ─── */
 .charm-master-card{background:linear-gradient(180deg,#FFFDFE 0%,#FFF8FB 100%);border:2px solid #FFD1DC}
 .charm-intro{background:#fff;border:1px solid #FFE3EA;border-radius:12px;padding:13px 14px;font-size:.84rem;line-height:1.78;color:#555}
 .charm-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
@@ -3378,7 +3379,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .hg-box ul{margin-top:7px;padding-left:16px}
 .hg-box li{font-size:.8rem;color:#6B4F66;line-height:1.65;margin-bottom:3px}
 .hg-summary{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
-/* ??? 由ы룷????쒕낫??v2 ??? */
+/* ─── 리포트 대시보드 v2 ─── */
 .rpt-v2-grid{display:flex;flex-direction:column;gap:40px}
 .rpt-v2-block{border-radius:22px;overflow:hidden;background:rgba(10,8,28,.92);
   border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 36px rgba(0,0,0,.55)}
@@ -3407,15 +3408,15 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
   .rpt-v2-price-badge{top:8px;right:8px;padding:4px 10px;font-size:.68rem}
 }
 
-/* ?뱀뀡 ?좉툑 ?ㅻ쾭?덉씠??援ы삎 '?곴뎄 ?닿툑' 諛곗????④? 泥섎━ */
+/* 섹션 잠금 오버레이의 구형 '영구 해금' 배지는 숨김 처리 */
 .cd-section-gate__badge{display:none !important}
 
-/* ?쇰컲 移대뱶: ?щ챸 泥섎━ (?대? 肄섑뀗痢??ㅽ???洹몃?濡? */
+/* 일반 카드: 투명 처리 (내부 콘텐츠 스타일 그대로) */
 .rpt-v2-body>.card:not(.t-test-card):not(.hv-card){
   background:transparent!important;border:none!important;
   box-shadow:none!important;border-radius:0!important;
   margin:0!important;padding:12px 18px 20px!important}
-/* ?뱀닔 移대뱶: ?섎떒 紐⑥꽌由щ쭔 議곗젙 */
+/* 특수 카드: 하단 모서리만 조정 */
 .rpt-v2-body>.t-test-card,.rpt-v2-body>.hv-card{
   margin:0!important;border-radius:0 0 22px 22px!important}
 .hg-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.74rem;font-weight:700}
@@ -3429,7 +3430,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .hg-gongmang-box{background:#E8F5E9;border:1px solid #C8E6C9;border-radius:10px;padding:9px 12px;margin-top:8px}
 .hg-gongmang-box p{font-size:.8rem;color:#2E7D32;line-height:1.7}
 
-/* ??? ?濡??ㅽ꺈 留ㅻ젰 移대뱶 ??? */
+/* ─── 타로 스탯 매력 카드 ─── */
 .cscard{background:linear-gradient(145deg,#1a0533 0%,#2d0b4e 40%,#1a1a3e 100%);border-radius:20px;padding:20px 18px;color:#fff;position:relative;overflow:hidden;margin-bottom:14px;box-shadow:0 8px 32px rgba(130,0,220,.35)}
 .cscard::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(255,100,200,.15),transparent);pointer-events:none}
 .cscard::after{content:'';position:absolute;bottom:-80px;left:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(50,100,255,.1),transparent);pointer-events:none}
@@ -3466,13 +3467,13 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .cs-factbomb{background:rgba(255,80,100,.07);border:1px solid rgba(255,80,100,.28);border-radius:12px;padding:13px 15px;margin-top:4px;position:relative;z-index:1}
 .cs-factbomb-title{font-size:.72rem;color:#ff8ba7;font-weight:800;margin-bottom:9px;letter-spacing:2px;text-transform:uppercase}
 .cs-factbomb-item{font-size:.8rem;color:#f0c0cc;line-height:1.72;margin-bottom:6px;padding-left:14px;position:relative}
-.cs-factbomb-item::before{content:'??;position:absolute;left:0;color:#ff6b9d;font-weight:900}
+.cs-factbomb-item::before{content:'▸';position:absolute;left:0;color:#ff6b9d;font-weight:900}
 .cs-strategy{background:rgba(100,255,180,.05);border:1px solid rgba(100,255,180,.18);border-radius:12px;padding:13px 15px;margin-top:10px;position:relative;z-index:1}
 .cs-strategy-title{font-size:.72rem;color:#7effc8;font-weight:800;margin-bottom:9px;letter-spacing:2px;text-transform:uppercase}
 .cs-strategy-item{font-size:.8rem;color:#c0f0e0;line-height:1.72;margin-bottom:6px;padding-left:16px;position:relative}
-.cs-strategy-item::before{content:'??;position:absolute;left:0;color:#7effc8;font-weight:700}
+.cs-strategy-item::before{content:'→';position:absolute;left:0;color:#7effc8;font-weight:700}
 
-/* ?? ?먮꼫吏 ?먯젙 由ы룷??移대뱶 ?? */
+/* ── 에너지 원정 리포트 카드 ── */
 .ec-card{background:linear-gradient(145deg,#0a1628,#0d2137,#0a1628);border-radius:20px;padding:22px 18px;color:#e8f4ff;border:1px solid rgba(100,180,255,.18);box-shadow:0 8px 32px rgba(0,120,255,.12)}
 .ec-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .ec-icon{font-size:2rem;animation:csFloat 3.5s ease-in-out infinite}
@@ -3500,7 +3501,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .ec-badge-metal{background:rgba(148,163,184,.15);color:#cbd5e1;border:1px solid rgba(148,163,184,.3)}
 .ec-badge-water{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
 
-/* ?? ?? 濡쒕삉 移대뱶 ?? */
+/* ── 퀀텀 로또 카드 ── */
 .lc-wrap{background:linear-gradient(145deg,#1a1200,#2a1f00,#1a1a00);border-radius:20px;padding:22px 18px;color:#f5e6b0;border:1px solid rgba(255,210,0,.18);box-shadow:0 8px 32px rgba(200,160,0,.1)}
 .lc-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .lc-icon{font-size:2rem;animation:csFloat 3.8s ease-in-out infinite}
@@ -3524,10 +3525,10 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .lc-reason{background:rgba(255,210,0,.04);border:1px solid rgba(255,210,0,.14);border-radius:12px;padding:12px 14px}
 .lc-reason-title{font-size:.72rem;color:#ffd200;font-weight:800;letter-spacing:.1em;margin-bottom:8px}
 .lc-reason-item{font-size:.79rem;color:#c8a84a;line-height:1.75;padding-left:14px;position:relative;margin-bottom:4px}
-.lc-reason-item::before{content:'??;position:absolute;left:0;font-size:.55rem;top:3px;color:#ffd200}
+.lc-reason-item::before{content:'◆';position:absolute;left:0;font-size:.55rem;top:3px;color:#ffd200}
 .lc-disclaimer{font-size:.7rem;color:#665530;text-align:center;margin-top:12px;line-height:1.7}
 
-/* ?? ?ㅼ떆 戮묎린 踰꾪듉 ?? */
+/* ── 다시 뽑기 버튼 ── */
 .lotto-redraw-btn {
   display:block;width:100%;padding:14px;margin:18px 0 8px;
   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
@@ -3555,7 +3556,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
   border-radius:20px;padding:4px 14px;display:inline-block;
 }
 
-/* ?? ?? 紐낅━ ?꾨왂 由ы룷???? */
+/* ── 퀀텀 명리 전략 리포트 ── */
 .qm-wrap{background:linear-gradient(145deg,#030912,#040f1f,#03091a);border-radius:20px;
   padding:22px 18px;color:#b8d4f0;border:1px solid rgba(0,200,130,.15);
   box-shadow:0 8px 40px rgba(0,0,0,.8),0 0 30px rgba(0,255,130,.04)}
@@ -3572,7 +3573,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .qm-sec-title.s3{color:#ff4d6d}
 .qm-sec-title.s4{color:#60a5fa}
 .qm-panel{background:rgba(255,255,255,.03);border-radius:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.06)}
-/* 紐낆떇 援ъ“ */
+/* 명식 구조 */
 .qm-struct-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:.82rem}
 .qm-struct-label{color:#4a7a6a;font-size:.7rem;min-width:52px;font-weight:700}
 .qm-struct-val{color:#d0e8d0;font-weight:700}
@@ -3585,7 +3586,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .qm-chip-good{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
 .qm-chip-bad{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
 .qm-chip-neutral{background:rgba(148,163,184,.1);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
-/* ?⑺솕 蹂??移대뱶 */
+/* 합화 변환 카드 */
 .qm-hap-card{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:12px;padding:11px 13px;margin-bottom:8px}
 .qm-hap-card.hap-bad{background:rgba(255,77,109,.04);border-color:rgba(255,77,109,.18)}
 .qm-hap-card.hap-neutral{background:rgba(148,163,184,.04);border-color:rgba(148,163,184,.12)}
@@ -3606,12 +3607,12 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 .qm-hap-desc{font-size:.77rem;color:#5a8a7a;line-height:1.72;margin-top:5px}
 .qm-hap-desc b{color:#d0e8d0}
 .qm-no-hap{font-size:.78rem;color:#3a5a4a;text-align:center;padding:12px;letter-spacing:.05em}
-/* ?⑺듃 ??뻾 */
+/* 팩트 폭행 */
 .qm-fact-item{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start}
 .qm-fact-bullet{font-size:.85rem;line-height:1}
 .qm-fact-text{font-size:.8rem;color:#f0a0b0;line-height:1.75}
 .qm-fact-text b{color:#ff4d6d}
-/* ?꾨왂 ?≪뀡 */
+/* 전략 액션 */
 .qm-action-item{display:flex;gap:9px;margin-bottom:9px;align-items:flex-start;
   background:rgba(96,165,250,.05);border-radius:9px;padding:8px 11px;border:1px solid rgba(96,165,250,.1)}
 .qm-action-num{width:20px;height:20px;background:rgba(96,165,250,.2);border-radius:50%;
@@ -3622,7 +3623,7 @@ body.theme-neo .btn-favorite .btn-favorite-icon{animation:favoriteStarTwinkle 1.
 /* NEO mode override */
 body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8px 40px rgba(0,0,0,.9),0 0 30px rgba(255,215,0,.04)!important}
 
-/* ??? ?쇱슫/?붿슫 ?뱀뀡 ??? */
+/* ─── 일운/월운 섹션 ─── */
 .fortune-tab-wrap{display:flex;gap:0;background:linear-gradient(135deg,#F3E5F5 0%,#FCE4EC 100%);border-radius:14px;padding:4px;margin-bottom:16px;box-shadow:0 4px 16px rgba(233,30,99,.1),inset 0 1px 0 rgba(255,255,255,.6)}
 .fortune-tab{flex:1;border:none;padding:10px 6px;border-radius:11px;background:transparent;font-size:.85rem;font-weight:700;color:#BBA0B7;cursor:pointer;font-family:inherit;transition:all .3s;position:relative}
 .fortune-tab.active{background:linear-gradient(135deg,#FFF,#FFF5F8);color:var(--pink);box-shadow:0 4px 12px rgba(255,139,167,.25),inset 0 1px 2px rgba(255,255,255,.8);font-weight:800}
@@ -3663,7 +3664,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .fr-gz-chip:hover{box-shadow:0 4px 12px rgba(255,107,157,.25),inset 0 1px 0 rgba(255,255,255,.8);transform:translateY(-2px)}
 .fr-gz-chip span{font-size:.64rem;font-weight:600;color:#999;margin-top:3px;letter-spacing:.2px}
 
-/* ?먥븧???곹샎???띾뫁???곗삁???먥븧??*/
+/* ═══ 영혼의 쌍둥이 연예인 ═══ */
 .sim-celeb-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .sim-celeb-item { display: flex; justify-content: space-between; align-items: center; background: #fff8f2; border: 1px solid #ffe0d6; border-radius: 12px; padding: 12px 16px; transition: transform 0.2s; }
 .sim-celeb-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -3680,7 +3681,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .sim-score-bar-bg { width: 100%; height: 6px; background: #ffe0d6; border-radius: 3px; overflow: hidden; }
 .sim-score-bar-fill { height: 100%; background: linear-gradient(90deg, #ffb347, #ff7b54); border-radius: 3px; }
 
-/* ?덈컮 紐⑤뱶 ???*/
+/* 쌈바 모드 대응 */
 .neo-mode .sim-celeb-item { background: #1e293b; border-color: #334155; }
 .neo-mode .sim-celeb-name { color: #e2e8f0; }
 .neo-mode .sim-celeb-matches { color: #94a3b8; }
@@ -3689,7 +3690,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .neo-mode .sim-score-bar-bg { background: #334155; }
 .neo-mode .sim-score-bar-fill { background: linear-gradient(90deg, #d4af37, #fcd34d); }
 
-/* ?먥븧??沅곹빀 寃곌낵 ???붿옄???먥븧??*/
+/* ═══ 궁합 결과 새 디자인 ═══ */
 .compat-wrap{
   font-family:'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
   font-size:clamp(.95rem,.9rem + .22vw,1.03rem);
@@ -3721,7 +3722,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
 .compat-advice-box{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:13px;padding:16px 17px;margin-bottom:12px}
 .compat-advice-title{font-size:.98rem;font-weight:800;color:#2E7D32;margin-bottom:9px;display:flex;align-items:center;gap:7px;line-height:1.42}
 .compat-advice-body{font-size:.94rem;color:#33691E;line-height:1.82}
-/* ?먥븧???꾩깮 ?몄뿰 移대뱶 ?먥븧??*/
+/* ═══ 전생 인연 카드 ═══ */
 .pastlife-card{background:linear-gradient(160deg,#1A0533,#2D0B5E,#1A0A3B);border:1.5px solid rgba(186,104,200,.35);border-radius:18px;padding:20px 18px;margin-top:10px;position:relative;overflow:hidden}
 .pastlife-card::before{content:'';position:absolute;top:-30px;right:-20px;width:180px;height:180px;background:radial-gradient(circle,rgba(186,104,200,.2),transparent 70%);pointer-events:none}
 .pastlife-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -3762,9 +3763,9 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   .compat-section,.compat-fact-box,.compat-advice-box{padding:13px 14px}
 }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧??NEO MODE ??諛깆궗???덈컮 ?ㅽ겕 紐⑤뱶 ?먥븧?먥븧?먥븧?먥븧?먥븧??*/
+/* ═══════════ NEO MODE — 백사자 쌈바 다크 모드 ═══════════ */
 
-/* ?? ?몄뼱 ?좏깮 ?쒕∼?ㅼ슫 (而댄뙥?? ?? */
+/* ── 언어 선택 드롭다운 (컴팩트) ── */
 .lang-toggle-wrap {
   position: fixed;
   top: 56px;
@@ -3855,7 +3856,7 @@ body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8
   opacity: 0.8;
 }
 
-/* ?? ?ㅼ삤 紐⑤뱶 ?? */
+/* ── 네오 모드 ── */
 body.neo-mode .lang-trigger {
   background: rgba(26, 24, 48, 0.85);
   border-color: rgba(197, 160, 89, 0.4);
@@ -3883,7 +3884,7 @@ body.neo-mode .lang-btn:hover:not(.active) {
   color: #C5A059;
 }
 
-/* ?? ?먮룞 ?④? (3珥???異뺤냼) ?? */
+/* ── 자동 숨김 (3초 후 축소) ── */
 .lang-toggle-wrap.collapsed .lang-trigger {
   padding: 7px 10px;
   border-radius: 50%;
@@ -3899,7 +3900,7 @@ body.neo-mode .lang-btn:hover:not(.active) {
   margin: 0;
 }
 
-/* ?? 湲곕뒫 ?숈옉 以??몄뼱 踰꾪듉 ?먮룞 ?④? ?? */
+/* ── 기능 동작 중 언어 버튼 자동 숨김 ── */
 .lang-toggle-wrap.lang-wrap--hidden {
   visibility: hidden;
   pointer-events: none;
@@ -3907,13 +3908,13 @@ body.neo-mode .lang-btn:hover:not(.active) {
   transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-/* ?? 援ш? 踰덉뿭湲?湲곕낯 ?꾩젽 諛??곷떒 諛곕꼫 ?④? ?? */
+/* ── 구글 번역기 기본 위젯 및 상단 배너 숨김 ── */
 .VIpgJd-ZVi9od-ORHb-OEVmcd { display: none !important; }
 .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-gadget-simple { display: none !important; }
 #google_translate_element { display: none !important; }
 body { top: 0px !important; }
 
-/* ?? 湲由ъ튂 ?꾪솚 ?ㅻ쾭?덉씠 ?? */
+/* ── 글리치 전환 오버레이 ── */
 .neo-glitch-wrap{
   position:fixed;inset:0;z-index:9996;pointer-events:none;
   display:none;
@@ -3947,7 +3948,7 @@ body { top: 0px !important; }
   100%{clip-path:inset(100% 0 0 0)}
 }
 
-/* 湲由ъ튂 ?좊땲硫붿씠??*/
+/* 글리치 애니메이션 */
 @keyframes neoGlitch{
   0%{filter:brightness(1) hue-rotate(0deg) saturate(1)}
   8%{filter:brightness(2.5) hue-rotate(90deg) saturate(3) contrast(2);transform:translateX(-3px)}
@@ -3958,7 +3959,7 @@ body { top: 0px !important; }
 .neo-glitch-active{animation:neoGlitch .5s ease forwards!important}
 .neo-glitch-active .neo-glitch-layer{animation:neoGlitch .5s ease forwards!important}
 
-/* 紐⑤컮????ъ뼇 ?꾪솚 寃쎈웾 ?뚮옒??*/
+/* 모바일/저사양 전환 경량 플래시 */
 body.neo-glitch-lite::before{
   content:'';
   position:fixed;
@@ -3973,7 +3974,7 @@ body.neo-glitch-lite::before{
   100%{opacity:0}
 }
 
-/* ?먮룞 寃쎈웾 紐⑤뱶: FPS ???long task 媛먯? ??吏꾩엯 */
+/* 자동 경량 모드: FPS 저하/long task 감지 시 진입 */
 body.neo-auto-lite .neo-glitch-wrap{display:none!important}
 body.neo-auto-lite .neo-glitch-layer{animation:none!important}
 body.neo-auto-lite.neo-mode .card{
@@ -3988,7 +3989,7 @@ body.neo-auto-lite.neo-mode .modal-card{
   -webkit-backdrop-filter:none!important;
   box-shadow:0 4px 16px rgba(0,0,0,.45)!important;
 }
-/* NEO MODE 湲곕낯 */
+/* NEO MODE 기본 */
 body.neo-mode{background:#0a0b10!important;color:#c8c8c8!important;transition:background .4s,color .4s}
 body.neo-mode .card{
   background:rgba(255,255,255,.04)!important;
@@ -4069,12 +4070,12 @@ body.neo-mode #lib-msg{color:#FFD700!important}
 body.neo-mode .dot{background:#FFD700!important}
 body.neo-mode .logo-area h1{color:#FFD700!important;text-shadow:0 0 16px rgba(255,215,0,.4)}
 body.neo-mode .logo-area p{color:#444!important}
-/* ?덈컮 濡쒓퀬 ?꾪솚 */
+/* 쌈바 로고 전환 */
 body.neo-mode .normal-logo{display:none!important}
 body.neo-mode .neo-logo{display:flex!important}
-/* 諛깆궗??紐⑤뱶: 濡쒓퀬 ??蹂꽷룸꽕酉몃씪 ?쒓굅 */
+/* 백사자 모드: 로고 위 별·네뷸라 제거 */
 body.neo-mode .logo-cosmos{display:none}
-/* 諛깆궗??紐⑤뱶: ???ш린??留욊쾶 諛깆궗???대?吏留??쒖떆 */
+/* 백사자 모드: 원 크기에 맞게 백사자 이미지만 표시 */
 body.neo-mode .pig-svg-wrap {
   position: relative;
   width: 160px;
@@ -4113,7 +4114,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
 
 .neo-logo{display:none;flex-direction:column;align-items:center;padding:20px 0 28px}
 .normal-logo{display:flex;flex-direction:column;align-items:center}
-/* CSS 湲고븯?숈쟻 ?ъ옄 濡쒓퀬 */
+/* CSS 기하학적 사자 로고 */
 .neo-lion{position:relative;width:72px;height:72px;margin:0 auto 6px}
 .neo-lion-mane{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -4140,7 +4141,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
 .neo-logo h1{font-family:'Noto Serif KR',serif;color:#FFD700;font-size:1.9rem;font-weight:700;
   text-shadow:0 0 20px rgba(255,215,0,.5);margin-top:6px}
 .neo-logo p{color:#555;font-size:.85rem;margin-top:4px}
-/* ?덈컮 ?꾨줈紐⑥뀡 諛뺤뒪 */
+/* 쌈바 프로모션 박스 */
 .neo-promo-box {
   background: #0f172a;
   border-radius: 12px;
@@ -4177,7 +4178,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   letter-spacing: 0.3em;
   margin-bottom: 4px;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  margin-left: 0.3em; /* letter-spacing 蹂댁젙 */
+  margin-left: 0.3em; /* letter-spacing 보정 */
 }
 .neo-promo-subtitle {
   font-size: 0.75rem;
@@ -4194,7 +4195,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   position: relative;
 }
 .neo-promo-divider::before {
-  content: '??;
+  content: '✦';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -4227,10 +4228,10 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   z-index: 1;
 }
 
-  /* PDF ?⑤씪??紐낅━ ?꾨왂 ?곷떞 諛뺤뒪 */
+  /* PDF 온라인 명리 전략 상담 박스 */
   .pdf-consult-box {
-    background: #0f1525; /* 醫 ???대몢???ㅼ씠鍮?諛곌꼍 */
-    border: 1px solid #c5a059; /* 怨⑤뱶 ?뚮몢由?*/
+    background: #0f1525; /* 좀 더 어두운 네이비 배경 */
+    border: 1px solid #c5a059; /* 골드 테두리 */
     box-sizing: border-box;
     padding: 30px 20px;
     margin-top: 20px;
@@ -4247,7 +4248,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
     left: 5px;
     right: 5px;
     bottom: 5px;
-    border: 1px dashed rgba(197, 160, 89, 0.5); /* ?먯꽑 ?뚮몢由?*/
+    border: 1px dashed rgba(197, 160, 89, 0.5); /* 점선 테두리 */
     pointer-events: none;
   }
   .pdf-consult-subtitle {
@@ -4339,7 +4340,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
     vertical-align: middle;
   }
   
-  /* ?붿＜??鍮뚮윴 釉붾옓由ъ뒪??UI */
+  /* 요주의 빌런 블랙리스트 UI */
   .villain-container {
     background: radial-gradient(circle at top left, #261414 0%, #111 45%, #0a0a0a 100%);
     border: 1px solid #4a2525;
@@ -4477,7 +4478,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   position: relative;
 }
 .villain-fact-bomb::before {
-  content: 'Neo???⑺룺';
+  content: 'Neo의 팩폭';
   position: absolute;
   top: -10px;
   left: 15px;
@@ -4653,7 +4654,7 @@ body.neo-mode .pig-svg-wrap .neo-logo-icon {
   }
 }
 
-/* ??? ?곗씪由??댁꽭 & ?붽컙 ?먮쫫 ??? */
+/* ─── 데일리 운세 & 월간 흐름 ─── */
 .fortune-card {
   background: linear-gradient(135deg, #fffafa, #ffe4e8);
   border: 1px solid rgba(255,139,167,0.4);
@@ -4708,9 +4709,9 @@ body.neo-mode .fortune-section {
   color: #cbd5e1;
 }
 
-/* ??? 由ы룷????쒕낫??v2 (?ъ＜ 遺꾩꽍 > ?щ??덈뒗 ?ъ＜ 肄섑뀗痢? ???
-   NOTE: fortune-section(諛앹? 諛곌꼍) ?꾩뿉???뚯븘媛誘濡?
-   ??移대뱶 ?대??먯꽌留??몃꽕??鍮꾩쑉/??댄룷/?됱쓣 ?ъ젙?섑븳?? */
+/* ─── 리포트 대시보드 v2 (사주 분석 > 재미있는 사주 콘텐츠) ───
+   NOTE: fortune-section(밝은 배경) 위에서 돌아가므로,
+   이 카드 내부에서만 썸네일 비율/타이포/색을 재정의한다. */
 #reportDashboardCard .rpt-v2-block.fortune-section{
   padding: 0;
   overflow: hidden;
@@ -4725,7 +4726,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
   box-shadow: 0 10px 46px rgba(0,0,0,0.45);
 }
 
-/* ?대?吏: 怨좎젙 鍮꾩쑉濡?移대뱶 ??뿉 源붾걫?섍쾶 留욎땄 */
+/* 이미지: 고정 비율로 카드 폭에 깔끔하게 맞춤 */
 #reportDashboardCard .rpt-v2-img-row{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
@@ -4757,7 +4758,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{
   display: block;
 }
 
-/* ?띿뒪?? 移대뱶 ?대? ?붿냼留?媛?낆꽦 媛쒖꽑 */
+/* 텍스트: 카드 내부 요소만 가독성 개선 */
 #reportDashboardCard .rpt-v2-head{
   padding: 14px 16px 14px;
   font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -4778,7 +4779,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-title{ color: #f8fafc; }
 body.neo-mode #reportDashboardCard .rpt-v2-preview{ color: rgba(226,232,240,0.86); }
 body.neo-mode #reportDashboardCard .rpt-v2-note{ color: rgba(226,232,240,0.68); }
 
-/* CTA 踰꾪듉: 諛앹? 移대뱶?먯꽌???鍮??뺣낫 (??移대뱶 ?대?留? */
+/* CTA 버튼: 밝은 카드에서도 대비 확보 (이 카드 내부만) */
 #reportDashboardCard .rpt-v2-toggle-btn{
   border: 1px solid rgba(124,58,237,0.22);
   box-shadow: 0 8px 20px rgba(124,58,237,0.18);
@@ -4788,13 +4789,13 @@ body.neo-mode #reportDashboardCard .rpt-v2-note{ color: rgba(226,232,240,0.68); 
   #reportDashboardCard .rpt-v2-img-wrap{ min-height: 120px; }
 }
 
-/* 苑껊뤌吏 紐⑤뱶(?쇱씠???먯꽌: ?쇱퀜吏?湲곕뒫 移대뱶 ?띿뒪???鍮?蹂닿컯 (??移대뱶 ?대?留? */
+/* 꽃돼지 모드(라이트)에서: 펼쳐진 기능 카드 텍스트 대비 보강 (이 카드 내부만) */
 body:not(.neo-mode) #reportDashboardCard{
   --rpt-pink-strong: #ec4899;
   --rpt-pink: #f472b6;
 }
 
-/* 苑껊뤌吏 紐⑤뱶(?쇱씠??: '?щ??덈뒗 ?ъ＜ 肄섑뀗痢? 移대뱶 由ъ뒪???몃꽕???꾨옒) ?띿뒪??媛?낆꽦 */
+/* 꽃돼지 모드(라이트): '재미있는 사주 콘텐츠' 카드 리스트(썸네일 아래) 텍스트 가독성 */
 body:not(.neo-mode) #reportDashboardCard .rpt-v2-title{
   color: #db2777 !important; /* pink-600 */
 }
@@ -4805,7 +4806,7 @@ body:not(.neo-mode) #reportDashboardCard .rpt-v2-note{
   color: rgba(15,23,42,0.74);
 }
 
-/* 移대뱶(?몃꽕???띿뒪?? 媛濡???쓣 議곌툑 ???щ┝?섍쾶 */
+/* 카드(썸네일+텍스트) 가로 폭을 조금 더 슬림하게 */
 #reportDashboardCard .rpt-v2-block{
   max-width: 680px;
   margin-left: auto;
@@ -4815,7 +4816,7 @@ body:not(.neo-mode) #reportDashboardCard .rpt-v2-note{
   #reportDashboardCard .rpt-v2-block{ max-width: 100%; }
 }
 
-/* 鍮뚮윴 釉붾옓由ъ뒪??*/
+/* 빌런 블랙리스트 */
 body:not(.neo-mode) #reportDashboardCard .villain-grade,
 body:not(.neo-mode) #reportDashboardCard .villain-name,
 body:not(.neo-mode) #reportDashboardCard .villain-section-title,
@@ -4823,7 +4824,7 @@ body:not(.neo-mode) #reportDashboardCard .villain-quote strong{
   color: var(--rpt-pink-strong);
 }
 
-/* ?? 濡쒕삉 由ы룷??*/
+/* 퀀텀 로또 리포트 */
 body:not(.neo-mode) #reportDashboardCard .lc-title-wrap h3,
 body:not(.neo-mode) #reportDashboardCard .lc-resonance,
 body:not(.neo-mode) #reportDashboardCard .lc-reason-title,
@@ -4831,7 +4832,7 @@ body:not(.neo-mode) #reportDashboardCard .lc-game-tag{
   color: var(--rpt-pink-strong);
 }
 
-/* ?뚰넗 vs ?먭쾺 */
+/* 테토 vs 에겐 */
 body:not(.neo-mode) #reportDashboardCard .hv-teto-badge,
 body:not(.neo-mode) #reportDashboardCard .hv-egen-badge,
 body:not(.neo-mode) #reportDashboardCard .hv-teto-title,
@@ -4841,14 +4842,14 @@ body:not(.neo-mode) #reportDashboardCard .hv-neutral-title{
   text-shadow: 0 0 14px rgba(236,72,153,0.28), 0 2px 4px rgba(0,0,0,0.35);
 }
 
-/* 洹퉅 ?뚯뒪??*/
+/* 극T 테스트 */
 body:not(.neo-mode) #reportDashboardCard .t-test-card #tTestTitle,
 body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-title,
 body:not(.neo-mode) #reportDashboardCard .t-test-card .t-test-item strong{
   color: var(--rpt-pink-strong);
 }
 
-/* ?ъ＜?ㅼ뻔 : ?대챸 ?꾪꽣 */
+/* 사주네컷 : 운명 필터 */
 #reportDashboardCard .s4c-wrap{
   position: relative;
   overflow: hidden;
@@ -5140,7 +5141,7 @@ body.neo-mode #reportDashboardCard .s4c-tag-chip{
   #reportDashboardCard .s4c-actions{ grid-template-columns: 1fr; }
 }
 
-/* ?ъ＜?ㅼ뻔 遺??媛먯꽦 ?낃렇?덉씠??(Phase 1~3) */
+/* 사주네컷 부스 감성 업그레이드 (Phase 1~3) */
 #reportDashboardCard .s4c-wrap{
   border-radius: 26px;
   border: 1.5px solid #000;
@@ -5529,7 +5530,7 @@ body.neo-mode .monthly-bar.is-today { background: #FFD700; box-shadow: 0 -2px 8p
 }
 body.neo-mode .monthly-label { color: #64748b; }
 
-  /* ??? ?뚮┝ 援щ룆 ?쒕퉬??& ?뚮┝ ?쇳꽣 ??? */
+  /* ─── 알림 구독 서비스 & 알림 센터 ─── */
   .subscription-wrap {
     margin: 24px auto 10px;
     max-width: 600px;
@@ -5634,7 +5635,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   body.neo-mode .sub-webpush { color: #64748b; }
   
-  /* ?뚮┝ ?쇳꽣 紐⑤떖 UI */
+  /* 알림 센터 모달 UI */
   .notif-item {
     padding: 14px 4px;
     border-bottom: 1px solid #f0f0f0;
@@ -5666,19 +5667,20 @@ body.neo-mode .monthly-label { color: #64748b; }
     color: #eedc9a;
   }
 
-  /* ?덈컮/苑껊뤌吏 紐⑤뱶 遺꾧린 (湲곕낯媛??ㅼ젙) */
+  /* 쌈바/꽃돼지 모드 분기 (기본값 설정) */
   .pig-only { display: block; }
   span.pig-only { display: inline; }
   .neo-only { display: none; }
   
-  /* 媛뺤젣 ?ㅻ쾭?쇱씠??*/
+  /* 강제 오버라이딩 */
   body.neo-mode .pig-only { display: none !important; }
   body.neo-mode .neo-only { display: block !important; }
   body.neo-mode span.neo-only { display: inline !important; }
 
-  /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-     fate-scroll-section ???ㅽ겕濡??깆옣 ?쒖뒪??     ?ㅼ엫?ㅽ럹?댁뒪 異⑸룎 諛⑹? 쨌 湲濡쒕쾶 ?쒓렇 吏곸젒 ?ㅽ??쇰쭅 湲덉?
-  ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+  /* ══════════════════════════════════════════
+     fate-scroll-section │ 스크롤 등장 시스템
+     네임스페이스 충돌 방지 · 글로벌 태그 직접 스타일링 금지
+  ══════════════════════════════════════════ */
   .fate-scroll-section-hidden {
     opacity: 0;
     transform: translate3d(0, 36px, 0);
@@ -5691,7 +5693,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     transform: translate3d(0, 0, 0) !important;
     will-change: auto;
   }
-  /* ?ㅼ쓬 ?뱀뀡 ?몃뵒耳?댄꽣 而⑦뀒?대꼫 ??GPU 媛??*/
+  /* 다음 섹션 인디케이터 컨테이너 — GPU 가속 */
   .fate-scroll-next-indicator {
     position: fixed;
     bottom: 86px;
@@ -5713,7 +5715,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   .fate-scroll-top-indicator {
     bottom: 86px;
   }
-  /* ?붿궡??踰꾪듉 */
+  /* 화살표 버튼 */
   .fate-scroll-next-arrow {
     width: 38px;
     height: 38px;
@@ -5732,7 +5734,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     outline: none;
     animation: fate-scroll-bounce 1.5s ease-in-out infinite;
   }
-  /* ?쇰꺼 */
+  /* 라벨 */
   .fate-scroll-next-label {
     font-size: 0.68rem;
     color: var(--point-color, #FF8BA7);
@@ -5747,7 +5749,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     text-overflow: ellipsis;
     display: block;
   }
-  /* 諛붿슫???ㅽ봽?덉엫 */
+  /* 바운스 키프레임 */
   @keyframes fate-scroll-bounce {
     0%, 100% { transform: translateY(0); }
     50%       { transform: translateY(7px); }
@@ -5759,7 +5761,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   .fate-scroll-top-indicator .fate-scroll-next-arrow {
     animation: fate-scroll-bounce-up 1.5s ease-in-out infinite;
   }
-  /* ?덈컮 紐⑤뱶 ?됱긽 ?ㅻ쾭?쇱씠??*/
+  /* 쌈바 모드 색상 오버라이드 */
   body.neo-mode .fate-scroll-next-arrow {
     box-shadow: 0 4px 16px rgba(255, 215, 0, 0.35);
   }
@@ -5767,9 +5769,10 @@ body.neo-mode .monthly-label { color: #64748b; }
     color: var(--point-color, #FFD700);
   }
 
-  /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-     fsn-navbar ???뱀뀡 ?ㅻ퉬寃뚯씠??諛?     pig mode: 苑??μ떇 | neo mode: 諛쒕컮???μ떇
-  ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+  /* ══════════════════════════════════════════
+     fsn-navbar │ 섹션 네비게이션 바
+     pig mode: 꽃 장식 | neo mode: 발바닥 장식
+  ══════════════════════════════════════════ */
   .fsn-navbar {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -5792,19 +5795,19 @@ body.neo-mode .monthly-label { color: #64748b; }
     transform: translateY(0);
     pointer-events: auto;
   }
-  /* 苑껊뤌吏 紐⑤뱶 */
+  /* 꽃돼지 모드 */
   .fsn-navbar.fsn-pig {
     background: rgba(255, 245, 248, 0.9);
     border-bottom: 1.5px solid rgba(255, 183, 178, 0.45);
     box-shadow: 0 3px 16px rgba(255, 139, 167, 0.18);
   }
-  /* ?덈컮 紐⑤뱶 */
+  /* 쌈바 모드 */
   .fsn-navbar.fsn-neo {
     background: rgba(14, 14, 20, 0.92);
     border-bottom: 1.5px solid rgba(255, 215, 0, 0.28);
     box-shadow: 0 3px 16px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 215, 0, 0.07);
   }
-  /* ?μ떇 ?꾩씠肄?*/
+  /* 장식 아이콘 */
   .fsn-deco {
     font-size: 1rem;
     line-height: 1;
@@ -5825,7 +5828,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     0%, 100% { opacity: 0.65; transform: scale(0.9); }
     50%       { opacity: 1;    transform: scale(1.15); }
   }
-  /* ?뱀뀡 ?쒕ぉ ?띿뒪??*/
+  /* 섹션 제목 텍스트 */
   .fsn-title {
     font-size: 0.77rem;
     font-weight: 700;
@@ -5838,7 +5841,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .fsn-pig .fsn-title  { color: var(--pink, #FF8BA7); }
   .fsn-neo .fsn-title  { color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,.3); }
-  /* 援щ텇 ??*/
+  /* 구분 점 */
   .fsn-sep {
     font-size: 0.6rem;
     flex-shrink: 0;
@@ -5846,7 +5849,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
   .fsn-pig .fsn-sep { color: var(--pink, #FF8BA7); }
   .fsn-neo .fsn-sep { color: #FFD700; }
-  /* 耳?댁뒪 ?섎떒 ?ㅽ겕濡?吏꾪뻾 諛?*/
+  /* 케이스 하단 스크롤 진행 바 */
   .fsn-progress {
     position: absolute;
     bottom: 0; left: 0;
@@ -5862,9 +5865,9 @@ body.neo-mode .monthly-label { color: #64748b; }
     background: linear-gradient(90deg, #FFA500, #FFD700);
   }
 
-  /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-     ?좊퉬濡쒖슫 ?ъ＜ 由ъ뀑 踰꾪듉 (Mystic Summon Button)
-  ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+  /* ══════════════════════════════════════════
+     신비로운 사주 리셋 버튼 (Mystic Summon Button)
+  ══════════════════════════════════════════ */
   @keyframes mystic-breathe {
     0%   { transform: scale(1);   box-shadow: 0 0 15px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(212, 175, 55, 0.2); }
     50%  { transform: scale(1.03);box-shadow: 0 0 30px rgba(212, 175, 55, 0.8), inset 0 0 20px rgba(212, 175, 55, 0.4); }
@@ -5922,7 +5925,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     }
   }
 
-/* ?? 紐낅━ ?붿쭊 ?낃렇?덉씠???ㅽ???(Cosmic Constellation UX) */
+/* 퀀텀 명리 엔진 업그레이드 스타일 (Cosmic Constellation UX) */
 .quantum-mode {
   --q-ink: #f4f8ff;
   --q-muted: #aebcdd;
@@ -5984,7 +5987,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   z-index: 1;
 }
 @keyframes q-star-drift {
-  /* inset -30%/-10% ?泥? scale留뚯쑝濡??ш린 議곗젅(?덉씠?꾩썐 % ?섏〈 ?쒓굅) */
+  /* inset -30%/-10% 대체: scale만으로 크기 조절(레이아웃 % 의존 제거) */
   0% { transform: translate3d(0, 0, 0) scale(1.2, 1.6); }
   100% { transform: translate3d(-42px, 34px, 0) scale(1.248, 1.664); }
 }
@@ -6133,7 +6136,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   line-height: 1;
 }
 .q-logo:empty::before {
-  content: '??;
+  content: '✦';
 }
 .q-tap-text {
   z-index: 1;
@@ -6356,7 +6359,7 @@ body.neo-mode .monthly-label { color: #64748b; }
   }
 }
 
-/* ?먥븧??Feature Card Grid (遺媛 湲곕뒫 移대뱶) ?먥븧??*/
+/* ═══ Feature Card Grid (부가 기능 카드) ═══ */
 .feature-card-grid {
   display: flex;
   flex-direction: column;
@@ -6516,7 +6519,7 @@ body.neo-mode .feature-card--juyuk .feature-card__img-wrap { background: linear-
 }
 
 
-/* NEO (?ъ옄) mode overrides */
+/* NEO (사자) mode overrides */
 body.neo-mode .feature-card {
   background: rgba(20, 18, 40, 0.9);
   border-color: rgba(197, 160, 89, 0.25);
@@ -6527,9 +6530,9 @@ body.neo-mode .feature-card__title { color: #f1f5f9; }
 body.neo-mode .feature-card__desc { color: #94a3b8; }
 body.neo-mode .feature-card__img-wrap { background: linear-gradient(135deg, #1e1b3a, #0f172a); }
 
-/* ??? Feature Card Accordion (?좉? 諛⑹떇 ?곸꽭 肄섑뀗痢? ??? */
+/* ─── Feature Card Accordion (토글 방식 상세 콘텐츠) ─── */
 .feature-card { cursor: default; }
-/* CTA: span ??button ?꾨㈃ ?ъ젙??(full-width, 44px+) */
+/* CTA: span → button 전면 재정의 (full-width, 44px+) */
 .feature-card__cta {
   display: flex !important;
   align-items: center;
@@ -8409,7 +8412,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
 }
 
 .df-studio-link-btn::after {
-  content: "??;
+  content: "✦";
   position: absolute;
   left: 14px;
   top: 50%;
@@ -8599,7 +8602,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   color: #48306f;
 }
 .df-panel h4::before {
-  content: "?";
+  content: "❀";
   font-size: 0.76rem;
   color: #cf77ac;
 }
@@ -9304,7 +9307,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     }
 
 /* --- block 3 --- */
-  /* 紐⑤떖 ?쒗듃 ??釉뚮씪?곗? ?ㅼ씠?곕툕 ?ㅽ겕濡ㅻ컮 ?ъ슜, ?덉씠?꾩썐 ?먰봽 諛⑹? */
+  /* 모달 시트 — 브라우저 네이티브 스크롤바 사용, 레이아웃 점프 방지 */
   #ziweiModalSheet, #sukuyoModalSheet, #astroModalSheet, #juyukModalSheet {
     scrollbar-gutter: stable;
     flex: 1 1 auto;
@@ -9315,7 +9318,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     overscroll-behavior-y: contain;
     touch-action: pan-y;
   }
-  /* 寃곌낵 ?붾㈃???섎━吏 ?딅룄濡??섎떒 ?щ갚 */
+  /* 결과 화면이 잘리지 않도록 하단 여백 */
   #ziweiModalSheet > div,
   #sukuyoModalSheet > div,
   #astroModalSheet > div,
@@ -9350,7 +9353,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   pointer-events: none;
 }
 
-/* 蹂꾨삦蹂???紐⑤컮???꾩슜 (?곗뒪?ы깙? 鍮꾪몴?? 紐⑤컮?쇱뿉??3媛쒕쭔) */
+/* 별똥별 — 모바일 전용 (데스크탑은 비표시, 모바일에서 3개만) */
 .meteor-1 { top:3%;  left:18%; --delay:0s;   --dur:2.3s; --h:110px; --w:2px;   --hc:rgba(200,220,255,0.95); --gc1:rgba(170,200,255,0.6); --gc2:rgba(140,175,255,0.35); }
 .meteor-2 { top:8%;  left:55%; --delay:1.0s; --dur:2.0s; --h:90px;  --w:2px;   --hc:rgba(255,255,255,1);    --gc1:rgba(200,220,255,0.7); --gc2:rgba(175,205,255,0.4);  }
 .meteor-3 { top:1%;  left:78%; --delay:1.8s; --dur:2.7s; --h:130px; --w:2px;   --hc:rgba(255,238,195,0.95); --gc1:rgba(255,215,140,0.65);--gc2:rgba(255,195,95,0.38);  }
@@ -9358,7 +9361,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 .meteor-5 { top:0%;  left:38%; --delay:2.4s; --dur:1.9s; --h:105px; --w:2px;   --hc:rgba(238,210,255,0.95); --gc1:rgba(208,168,255,0.65);--gc2:rgba(178,128,255,0.38); }
 .meteor-6 { top:5%;  left:88%; --delay:0.7s; --dur:2.2s; --h:120px; --w:2px;   --hc:rgba(195,238,255,0.95); --gc1:rgba(155,220,255,0.65);--gc2:rgba(115,205,255,0.38); }
 
-/* ?곗뒪?ы깙: 蹂꾨삦蹂?鍮꾪몴??(紐⑤컮?쇱뿉?쒕쭔 ?몄텧) */
+/* 데스크탑: 별똥별 비표시 (모바일에서만 노출) */
 @media (min-width: 769px) {
   .code-splash .meteor { display: none !important; }
 }
@@ -9427,7 +9430,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   box-shadow: 0 0 8px rgba(108, 99, 255, 0.8);
 }
 
-/* 肄붿뒪誘??ㅻ툕 ???뺤쟻 湲濡쒖슦 (?좊땲硫붿씠???놁쓬) */
+/* 코스믹 오브 — 정적 글로우 (애니메이션 없음) */
 .splash-orb {
   width:150px; height:150px;
   border-radius:50%;
@@ -9440,7 +9443,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     0 0 55px rgba(165,180,252,0.22),
     0 0 110px rgba(108,99,255,0.10);
 }
-/* 蹂꾨삦蹂?CSS ?좊땲硫붿씠????寃쎈웾?? box-shadow 理쒖냼?? ::after 2??湲濡쒖슦 */
+/* 별똥별 CSS 애니메이션 — 경량화: box-shadow 최소화, ::after 2단 글로우 */
 .meteor {
   position: absolute;
   width: var(--w, 2px);
@@ -9455,7 +9458,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     var(--hc, rgba(255,255,255,0.95)) 90%,
     var(--hc, #fff) 100%
   );
-  /* 瑗щ━ 痢〓㈃ 諛쒓킅 ??1?덉씠?대쭔 */
+  /* 꼬리 측면 발광 — 1레이어만 */
   box-shadow: 0 0 5px 1px var(--gc1, rgba(195,218,255,0.28));
   transform-origin: top center;
   transform: rotate(-42deg) translateY(-220px);
@@ -9465,7 +9468,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   will-change: transform, opacity;
 }
 
-/* 鍮쏅굹??蹂꾨삦蹂?癒몃━ ??2??湲濡쒖슦 (4????2?⑥쑝濡?寃쎈웾?? */
+/* 빛나는 별똥별 머리 — 2단 글로우 (4단 → 2단으로 경량화) */
 .meteor::after {
   content: '';
   position: absolute;
@@ -9505,44 +9508,45 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   100% { transform: rotate(-42deg) translateY(115vh);  opacity: 0; }
 }
 
-/* ?묎렐?? 紐⑥뀡 媛먯냼 ?좏샇 ??蹂꾨삦蹂?罹붾쾭??鍮꾪솢??*/
+/* 접근성: 모션 감소 선호 시 별똥별/캔버스 비활성 */
 @media (prefers-reduced-motion: reduce) {
   .meteor { display: none !important; }
   .code-splash-canvas { display: none !important; }
 }
-/* ????????????????????????????????????????????????????
-   紐⑤컮???깅뒫 理쒖쟻??(pointer:coarse = ?곗튂 ?ㅽ겕由?
-   ? 紐⑹쟻: ?ㅽ뵆?섏떆 ?꾨━吏?諛??꾩껜 ?뚮뜑 吏??諛⑹?
-   ? ?먯튃: transform/opacity ?꾩슜 ?좊땲硫붿씠?섏? ?좎?,
-           compositor layer瑜?怨쇰룄?섍쾶 ?앹꽦?섍굅??           pseudo-element/filter瑜??ъ슜?섎뒗 寃껊쭔 ?쒓굅
-???????????????????????????????????????????????????? */
+/* ────────────────────────────────────────────────────
+   모바일 성능 최적화 (pointer:coarse = 터치 스크린)
+   ─ 목적: 스플래시 프리징 및 전체 렌더 지연 방지
+   ─ 원칙: transform/opacity 전용 애니메이션은 유지,
+           compositor layer를 과도하게 생성하거나
+           pseudo-element/filter를 사용하는 것만 제거
+──────────────────────────────────────────────────── */
 @media (pointer: coarse) {
-  /* 0. position:fixed ?μ떇 諛곌꼍 ?쒓굅 ??iOS Safari ?ㅽ겕濡???GPU ?ы럹?명듃濡??명븳 ?고솕硫?諛⑹? */
+  /* 0. position:fixed 장식 배경 제거 → iOS Safari 스크롤 시 GPU 재페인트로 인한 흰화면 방지 */
   body::before, body::after { display: none !important; }
 
-  /* 0-1. wrap CSS containment ??repaint 踰붿쐞 ?쒗븳 */
+  /* 0-1. wrap CSS containment → repaint 범위 제한 */
   .wrap { contain: layout; }
 
-  /* 1. 紐⑤컮???ㅽ뵆?섏떆: 蹂꾨삦蹂?3媛쒕쭔 ?쒖떆 (4,5,6 ?④?), 罹붾쾭?ㅒ룹삤釉??쒓굅 */
+  /* 1. 모바일 스플래시: 별똥별 3개만 표시 (4,5,6 숨김), 캔버스·오브 제거 */
   .code-splash .meteor-4,
   .code-splash .meteor-5,
   .code-splash .meteor-6 { display: none !important; }
   .code-splash-canvas { display: none !important; }
   .code-splash .splash-orb { display: none !important; }
 
-  /* 2. 吏꾪뻾諛?shimmer ?ㅼ틪 ?쒓굅 (translateX pseudo-element) */
+  /* 2. 진행바 shimmer 스캔 제거 (translateX pseudo-element) */
   .cs-bar-fill::after,
   .fr-battery-fill::after { animation: none !important; opacity: 0 !important; }
 
-  /* 3. 移대뱶 諛곌꼍 shimmer ?쒓굅 (radial-gradient transform) */
+  /* 3. 카드 배경 shimmer 제거 (radial-gradient transform) */
   .fr-summary::before { animation: none !important; }
 
-  /* 4. ?ㅽ겕濡?由щ퉴 will-change ?쒓굅
-        ??.card ?섏떗 媛쒖뿉 compositor layer ?덉빟?섎㈃ GPU 硫붾え由?怨쇰???*/
+  /* 4. 스크롤 리빌 will-change 제거
+        — .card 수십 개에 compositor layer 예약하면 GPU 메모리 과부하 */
   .fate-scroll-section-hidden { will-change: auto !important; }
 
-  /* 5. drop-shadow filter + infinite animation 議고빀 ?꾪솕
-        ??filter: drop-shadow??紐⑤컮?쇱뿉??GPU 鍮꾩슜????*/
+  /* 5. drop-shadow filter + infinite animation 조합 완화
+        — filter: drop-shadow는 모바일에서 GPU 비용이 큼 */
   .cs-class-icon,
   .ec-icon,
   .lc-icon,
@@ -9557,7 +9561,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   }
   #sajuLoaderOverlay.show { display: flex !important; }
 
-  /* 以묒븰 梨?留뚯꽭?? 3D 而⑦뀒?대꼫 */
+  /* 중앙 책(만세력) 3D 컨테이너 */
   .saju-book-wrapper {
     position: relative; width: 220px; height: 150px; perspective: 2000px;
     margin-bottom: 60px;
@@ -9573,7 +9577,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     100% { transform: rotateX(20deg) scale(1); opacity: 1; }
   }
 
-  /* 梨?而ㅻ쾭? 醫낆씠 吏덇컧 */
+  /* 책 커버와 종이 질감 */
   .book-base {
     position: absolute; top: 0; width: 50%; height: 100%;
     background: linear-gradient(135deg, #1f1a14 0%, #3e3020 100%);
@@ -9584,7 +9588,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   .book-base.right { left: 50%; transform-origin: left; transform: rotateY(-10deg); border-left: none; border-radius: 0 6px 6px 0; box-shadow: 10px 10px 20px rgba(0,0,0,0.5), inset -15px 0 30px rgba(0,0,0,0.6); }
   .book-cover-title { color: rgba(212,175,55,0.4); font-size: 2rem; transform: rotateY(-10deg) translateZ(1px); font-family: 'Cinzel', serif; letter-spacing: 5px; }
 
-  /* ?섍꺼吏???섏씠吏??*/
+  /* 넘겨지는 페이지들 */
   .book-page {
     position: absolute; top: 2%; right: 50%; width: 48%; height: 96%;
     background: #f4ecd8; border: 1px solid rgba(184,134,11,0.3);
@@ -9602,7 +9606,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     100% { transform: rotateY(175deg); }
   }
 
-  /* ?ㅽ뻾 ?뚯슜?뚯씠 (Five Elements Vortex) */
+  /* 오행 소용돌이 (Five Elements Vortex) */
   .saju-vortex {
     position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
     width: 200px; height: 200px; border-radius: 50%;
@@ -9610,7 +9614,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     animation: vortexAppear 2.5s ease-out forwards 0.5s;
     pointer-events: none;
   }
-  /* 媛쒓린?쇱떇 ?먮굦: 以묒떖 ?묒썝 + 肄붾줈???꾧킅 */
+  /* 개기일식 느낌: 중심 흑원 + 코로라 후광 */
   .saju-vortex::before {
     content: '';
     position: absolute;
@@ -9656,7 +9660,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   .orb.m { color: #b8b8b8; background: #b8b8b8; bottom: 15%; left: 25%; }
   .orb.wa{ color: #406c8a; background: #406c8a; top: 35%; left: 10%; }
 
-  /* ?덇났???⑹뼱吏???ъ＜ 紐낆떇(?쒖옄) ?뚰떚??*/
+  /* 허공에 흩어지는 사주 명식(한자) 파티클 */
   .hanja-particle-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
   .hanja-char {
     position: absolute; color: #ffd700; font-family: serif; opacity: 0;
@@ -9669,7 +9673,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     100% { opacity: 0; transform: translateY(-80px) scale(1.5) rotate(0deg); filter: blur(5px); }
   }
 
-  /* ??댄븨 ?띿뒪???곸뿭 */
+  /* 타이핑 텍스트 영역 */
   .saju-txt-wrap {
     position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center;
   }
@@ -9682,7 +9686,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   @keyframes sajuBlink { from, to { border-color: transparent } 50% { border-color: #e5c07b; } }
 
 /* --- block 6 --- */
-      /* ?? ?꾩뿭 ?좏겙 ?? */
+      /* ── 전역 토큰 ── */
       :root {
         --dp-gold: #FFD700;
         --dp-gold-dim: rgba(255,215,0,0.55);
@@ -9693,9 +9697,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         --dp-purple: rgba(120,80,220,0.35);
       }
 
-      /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-         Master Destiny Card ??Cosmic Blossom
-      ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+      /* ══════════════════════════════════════════
+         Master Destiny Card — Cosmic Blossom
+      ══════════════════════════════════════════ */
       .dp-master-card {
         position: relative;
         border-radius: 20px;
@@ -9707,7 +9711,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         box-shadow: 0 6px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,215,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
         transition: box-shadow 0.4s, border-color 0.4s;
       }
-      /* ?곷떒 ??덉뒪?곗뼹 怨⑤뱶 愿묒꽑 */
+      /* 상단 셀레스티얼 골드 광선 */
       .dp-master-card::before {
         content: '';
         position: absolute; top: 0; left: 0; right: 0; height: 2px;
@@ -9719,7 +9723,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         box-shadow: 0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.24),
                     0 0 55px rgba(255,215,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06);
       }
-      /* 苑?媛쒗솕 ?ㅻ씪 */
+      /* 꽃 개화 오라 */
       @keyframes dpAuraPulse {
         0%,100% { opacity: 0.42; transform: scale(1); }
         50%     { opacity: 0.82; transform: scale(1.014); }
@@ -9751,7 +9755,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         background-position: 8% 18%, 55% 75%, 80% 28%, 35% 55%;
         pointer-events: none; z-index: 0; opacity: 0.65;
       }
-      /* 12沅?湲고븯??苑??뚰꽣留덊겕 */
+      /* 12궁 기하학 꽃 워터마크 */
       .dp-mc-flower {
         position: absolute; right: -15px; bottom: -15px;
         width: 150px; height: 150px;
@@ -9769,14 +9773,14 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         opacity: 0.12;
         animation: dpBloomSpin 40s linear infinite;
       }
-      /* Empty 移대뱶 bloom icon */
+      /* Empty 카드 bloom icon */
       .dp-mc-empty-bloom {
         width: 44px; height: 44px; margin: 0 auto 10px;
         opacity: 0.4;
         animation: dpBloomSpin 10s linear infinite;
       }
       .dp-mc-inner { position: relative; z-index: 1; padding: 16px 16px 14px; }
-      /* ?? ?ㅻ뜑 ?? */
+      /* ── 헤더 ── */
       .dp-mc-header { display: flex; align-items: flex-start; gap: 12px; position: relative; z-index: 6; }
       .dp-mc-avatar {
         width: 50px; height: 50px; border-radius: 50%;
@@ -9819,7 +9823,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         background: linear-gradient(90deg, transparent, rgba(255,215,0,0.22), rgba(160,120,255,0.15), transparent);
         margin: 12px 0 10px;
       }
-      /* ?? ?뺣낫 2??洹몃━???? */
+      /* ── 정보 2열 그리드 ── */
       .dp-mc-info {
         display: grid; grid-template-columns: 1fr 1fr;
         gap: 7px; margin-bottom: 12px;
@@ -9843,7 +9847,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-mc-solar { color: #FFE566 !important; }
       .dp-mc-correction { font-size: 0.66rem; color: rgba(255,215,0,0.55); font-weight: 400; margin-left: 3px; }
-      /* Load 踰꾪듉 */
+      /* Load 버튼 */
       .dp-mc-load-btn {
         display: block; width: 100%; padding: 11px 16px;
         background: linear-gradient(135deg, rgba(255,215,0,0.09) 0%, rgba(140,80,255,0.09) 100%);
@@ -9866,7 +9870,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(140,80,255,0.18));
         box-shadow: 0 0 22px rgba(255,215,0,0.28); border-color: rgba(255,215,0,0.55);
       }
-      /* Empty 移대뱶 */
+      /* Empty 카드 */
       .dp-master-card--empty {
         border-style: dashed; border-color: rgba(255,215,0,0.18);
         background: linear-gradient(135deg, rgba(6,11,25,0.95), rgba(13,20,51,0.9));
@@ -9888,8 +9892,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         animation: dpAuraPulse 2s ease-in-out infinite;
       }
 
-      /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-         ???踰꾪듉 ??Starlight Cosmos ??      ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+      /* ══════════════════════════════════════════
+         저장 버튼 — Starlight Cosmos ✦
+      ══════════════════════════════════════════ */
       .dp-save-btn {
         display: block; width: 100%;
         padding: 15px 16px;
@@ -9955,7 +9960,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           border-color: rgba(255,215,0,0.95);
         }
       }
-      /* 蹂꾨튆 愿묓깮 ?ㅼ쐞???④낵 */
+      /* 별빛 광택 스위프 효과 */
       .dp-save-btn::before {
         content: '';
         position: absolute; top: -50%; left: -70%;
@@ -9972,7 +9977,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         animation: dpShimmer 2.8s ease-in-out infinite;
         pointer-events: none;
       }
-      /* 蹂꾨튆 肄붿뼱 ?ㅻ씪 */
+      /* 별빛 코어 오라 */
       .dp-save-btn::after {
         content: '';
         position: absolute; top: 50%; left: 50%;
@@ -9998,7 +10003,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         100% { left: 135%; opacity: 0; }
       }
 
-      /* ?? Bottom Sheet ??Profile Constellation List ?? */
+      /* ── Bottom Sheet — Profile Constellation List ── */
       .dp-sheet-overlay {
         position: fixed; inset: 0; z-index: 2000000;
         background: rgba(0,0,0,0.65);
@@ -10066,7 +10071,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-sheet-close:active { background: rgba(255,215,0,0.2); }
 
-      /* 紐⑸줉 ?ㅽ겕濡??곸뿭 */
+      /* 목록 스크롤 영역 */
       .dp-list-scroll {
         flex: 1; overflow-y: auto;
         overscroll-behavior-y: contain;
@@ -10094,7 +10099,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         text-align: center; padding: 30px 20px;
         color: rgba(180,160,100,0.6); font-size: 0.88rem; line-height: 1.7;
       }
-      /* 紐⑸줉 ?꾩씠????Celestial Transition */
+      /* 목록 아이템 — Celestial Transition */
       @keyframes dpStarAppear {
         from { opacity: 0; transform: scale(0.88) translateY(8px); }
         to   { opacity: 1; transform: scale(1)    translateY(0); }
@@ -10154,7 +10159,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-li-del:active { color: rgba(255,80,80,0.9); }
 
-      /* ?? Stardust ?뚰떚???? */
+      /* ── Stardust 파티클 ── */
       .dp-stardust {
         position: fixed;
         width: 5px; height: 5px;
@@ -10170,7 +10175,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         100% { opacity: 0; transform: translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(0.2); }
       }
 
-      /* ?? Toast ?? */
+      /* ── Toast ── */
       .dp-toast {
         position: fixed; bottom: 80px; left: 50%;
         transform: translateX(-50%) translateY(20px);
@@ -10209,7 +10214,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .dp-toast--privacy::before,
       .dp-toast--privacy::after {
-        content: '??;
+        content: '✦';
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -10221,7 +10226,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-toast--privacy::before { left: 10px; }
       .dp-toast--privacy::after  { right: 10px; }
 
-      /* ?? ?대챸 ?곗씠??????뺤씤 ?ㅻ쾭?덉씠 ?? */
+      /* ── 운명 데이터 저장 확인 오버레이 ── */
       @keyframes dpSaveRipple {
         0%   { transform:translate(-50%,-50%) scale(0.6); opacity:0; }
         60%  { opacity:1; }
@@ -10238,7 +10243,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         0%,100% { opacity:0.5; letter-spacing:4px; }
         50%     { opacity:1;   letter-spacing:8px; }
       }
-      /* ?? ?댁꽭 ?좏깮 紐⑤떖 (dp-fsel) ?? */
+      /* ── 운세 선택 모달 (dp-fsel) ── */
       .dp-fsel-overlay {
         position:fixed; inset:0; z-index:2050000;
         background:rgba(0,0,0,0);
@@ -10364,7 +10369,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         box-shadow:0 0 60px rgba(180,130,255,0.18), 0 0 0 1px rgba(255,215,0,0.08) inset;
         opacity:0; transform:translateX(-50%) translateY(8px) scale(0.96);
         transition:opacity 0.35s ease, transform 0.35s ease;
-        /* ?ㅻ쾭?덉씠 ?대??먯꽌??translate offset?놁씠 ?꾩씠?쒖쑝濡??꾩튂 */
+        /* 오버레이 내부에서는 translate offset없이 아이템으로 위치 */
         position:static; transform:translateY(12px) scale(0.96);
       }
       .dp-save-overlay--in .dp-save-modal {
@@ -10432,7 +10437,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         box-shadow:0 0 18px rgba(255,215,0,0.3);
       }
 
-      /* ?? ?꾨줈???꾪솚 ?뺤씤 ?ㅼ씠?쇰줈洹??? */
+      /* ── 프로필 전환 확인 다이얼로그 ── */
       .dp-switch-overlay {
         position:fixed; inset:0; z-index:2100000;
         background:rgba(0,0,0,0);
@@ -10698,7 +10703,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               background-image: radial-gradient(#6366f1 1px, transparent 1px), radial-gradient(#6366f1 1px, transparent 1px);
               background-size: 20px 20px; background-position: 0 0, 10px 10px;
             }
-            .oracle-back-m::after { content: '??; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
+            .oracle-back-m::after { content: '⚛'; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
             .oracle-front-m {
               z-index: 1; transform: rotateY(180deg); background-size: cover; background-position: center;
               border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
@@ -10708,7 +10713,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               border-radius: inherit; background: #1a1530; position: absolute; inset: 0;
             }
 
-            /* ?濡?紐⑤뱶 ?좉? */
+            /* 타로 모드 토글 */
             .tarot-mode-toggle {
               display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;
             }
@@ -10722,7 +10727,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               background: rgba(139,92,246,0.35); border-color: #a78bfa; color: #fff;
               box-shadow: 0 0 12px rgba(167,139,250,0.4);
             }
-            /* ?곕━移대뱶 ?ㅽ봽?덈뱶 */
+            /* 쓰리카드 스프레드 */
             .oracle-scene-three { flex-direction: column; min-height: 380px; }
             .tarot-spread-guide {
               text-align: center; color: #c4b5fd; font-size: 0.95rem; margin-bottom: 16px;
@@ -10772,7 +10777,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               box-shadow: inset 0 0 30px rgba(99,102,241,0.15), 0 0 20px rgba(0,0,0,0.4);
             }
             .tarot-placeholder-back::before {
-              content: '??; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+              content: '✦'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
               font-size: 2rem; color: rgba(255,255,255,0.2); animation: tarotPlaceholderPulse 3s ease-in-out infinite;
             }
             @keyframes tarotPlaceholderPulse { 0%,100%{opacity:0.3} 50%{opacity:0.6} }
@@ -10845,7 +10850,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         #tarotModalOverlay:-webkit-full-screen #tarotInnerContainer { max-width: 640px !important; }
         #tarotModalOverlay:fullscreen #tarotInnerContainer { max-width: 640px !important; }
 
-/* ?濡?紐⑤떖 ?ㅽ겕濡ㅒ룰??낆꽦 媛쒖꽑 */
+/* 타로 모달 스크롤·가독성 개선 */
 #tarotModalOverlay {
           height: 100vh;
           height: 100dvh;
@@ -10910,7 +10915,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         font-family: 'Noto Serif KR', serif; color: #f2e2c5;
       }
       
-      /* ?좊퉬濡쒖슫 紐⑤옒 癒쇱?(?뚰떚?? ?④낵 */
+      /* 신비로운 모래 먼지(파티클) 효과 */
       .kemet-oracle-container::before {
         content: ''; position: absolute; inset: 0;
         background-image: radial-gradient(rgba(212,175,55,0.15) 1px, transparent 1px);
@@ -10926,7 +10931,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         z-index: 1;
       }
       
-      /* ?꾩떆??(Eye of Horus) ?ㅼ틪 ?뚯쫰 ?④낵 */
+      /* 전시안 (Eye of Horus) 스캔 렌즈 효과 */
       .kemet-eye-of-horus {
         position: relative; width: 140px; height: 140px; margin: 0 auto 25px;
         display: flex; align-items: center; justify-content: center;
@@ -10992,7 +10997,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .kemet-res-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.7), inset 0 0 30px rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.6); }
       .kemet-res-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: #d4af37; }
-      .kemet-res-card::after { content:'??'; position:absolute; right:-10px; top:-10px; font-size:9rem; opacity:0.03; color:#ffd700; font-family:serif; pointer-events:none; filter:blur(1px); transition:all 1s;}
+      .kemet-res-card::after { content:'𓃀'; position:absolute; right:-10px; top:-10px; font-size:9rem; opacity:0.03; color:#ffd700; font-family:serif; pointer-events:none; filter:blur(1px); transition:all 1s;}
       .kemet-res-card:hover::after { opacity: 0.08; transform: scale(1.1) rotate(-5deg); }
       
       .kemet-r-label { display: flex; align-items: center; color: #e5c07b; font-weight: 900; font-size: 1.3rem; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(212,175,55,0.2); letter-spacing: 1px; }
@@ -11055,7 +11060,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           }
           .kcg-btn-reset:hover { border-color:#d4af37; color:#d4af37; }
 
-          /* 移대뱶 ?꾨젅??*/
+          /* 카드 아레나 */
           .kcg-arena {
             position:relative; width:340px; height:370px;
             margin:0 auto;
@@ -11103,7 +11108,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           .kcg-card-num {
             font-size:.55rem; color:rgba(212,175,55,.5); position:relative; z-index:1; margin-top:2px; letter-spacing:1px;
           }
-          /* ?좏깮??移대뱶 媛뺤“ */
+          /* 선택된 카드 강조 */
           .kcg-card.selected .kcg-card-back {
             border-color:#ffd700;
             box-shadow:0 0 25px rgba(255,215,0,.7), 0 0 50px rgba(255,215,0,.3), 0 4px 15px rgba(0,0,0,.6);
@@ -11122,11 +11127,11 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             border-color:rgba(255,215,0,.6);
             box-shadow:0 0 18px rgba(255,215,0,.4), 0 4px 15px rgba(0,0,0,.6);
           }
-          /* 戮묓엺 ?좏깮 ?덉씠釉?*/
+          /* 뽑힌 선택 레이블 */
           .kcg-card .kcg-sel-badge { display:none; }
           .kcg-card.selected .kcg-sel-badge { display:none; }
 
-          /* ?좏깮 移댁슫??*/
+          /* 선택 카운터 */
           .kcg-counter {
             text-align:center; color:#9e8260; font-size:.9rem;
             margin-bottom:14px; letter-spacing:1px; min-height:22px;
@@ -11154,7 +11159,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             animation: kcgDissolve .9s forwards !important;
           }
 
-          /* 吏???띿뒪??*/
+          /* 지시 텍스트 */
           .kcg-hint {
             text-align:center; color:#9e8260; font-size:.82rem;
             letter-spacing:.5px; margin-top:14px; min-height:18px;
@@ -11396,7 +11401,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 30px rgba(212, 175, 55, 0.1) !important;
       }
 
-      /* 紐⑤컮???섍꼍?먯꽌???몃쾭 ???ㅼ??? ?몃옖?ㅽ뤌 ?④낵瑜?以꾩씠嫄곕굹 ?쒓굅?섏뿬 ?붾㈃ 源⑥쭚/媛濡??ㅽ겕濡?諛⑹? */
+      /* 모바일 환경에서는 호버 시 스케일, 트랜스폼 효과를 줄이거나 제거하여 화면 깨짐/가로 스크롤 방지 */
       @media (max-width: 768px) {
         body.neo-mode .sacred-mirror-card:hover {
           transform: none !important;
@@ -11539,9 +11544,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
 
 /* --- block 13 --- */
-        /* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-           嫄곕턿?????섎У???ㅼ삤?ㅻ━?뷀깉由ъ쬁 UI
-        ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+        /* ══════════════════════════════════════
+           거북점 — 수묵화 네오오리엔탈리즘 UI
+        ══════════════════════════════════════ */
         @keyframes floatHex {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-8px) scale(1.02); }
@@ -11591,8 +11596,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           from{transform:translate(-50%,-50%) scale(.45);opacity:1;}
           to{transform:translate(-50%,-50%) scale(1.15);opacity:0;}
         }
-        /* ?몃? 而⑦뀒?대꼫 */
-        /* bottom-sheet ?좊땲硫붿씠??*/
+        /* 외부 컨테이너 */
+        /* bottom-sheet 애니메이션 */
         @keyframes tcPageIn {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -11610,7 +11615,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           border: 1px solid rgba(180,120,30,.3);
           box-shadow: 0 0 60px rgba(180,100,20,.12), 0 4px 32px rgba(0,0,0,.6);
         }
-        /* 紐⑹옱 吏덇컧 ?ㅻ쾭?덉씠 */
+        /* 목재 질감 오버레이 */
         .tc-wrap::before {
           content: '';
           position: absolute;
@@ -11621,7 +11626,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           pointer-events: none;
           z-index: 0;
         }
-        /* 珥쏅텋 愿묒썝 */
+        /* 촛불 광원 */
         .tc-candle {
           position: absolute;
           border-radius: 50%;
@@ -11647,7 +11652,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           background: radial-gradient(circle, rgba(255,120,20,.1) 0%, transparent 65%);
           animation-delay: 1.3s;
         }
-        /* ?ㅻ뜑 */
+        /* 헤더 */
         .tc-header {
           position: relative;
           z-index: 2;
@@ -11676,7 +11681,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           color: rgba(210,185,130,.65);
           line-height: 1.6;
         }
-        /* 吏덈Ц ?낅젰 */
+        /* 질문 입력 */
         .tc-question-row {
           position: relative;
           z-index: 2;
@@ -11708,7 +11713,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           box-shadow: 0 0 14px rgba(255,180,40,.15) !important;
         }
         .tc-question-inp::placeholder { color: rgba(180,145,70,.45) !important; }
-        /* 嫄곕턿 猿띿쭏 ?곸뿭 */
+        /* 거북 껍질 영역 */
         .tc-shell-area {
           position: relative;
           z-index: 2;
@@ -11728,7 +11733,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           cursor: pointer;
           outline: none;
           -webkit-tap-highlight-color: transparent;
-          touch-action: pan-y; /* ?섏쭅 ?ㅽ겕濡??덉슜 ??touchstart/touchend???뺤긽 諛쒗솕 */
+          touch-action: pan-y; /* 수직 스크롤 허용 — touchstart/touchend는 정상 발화 */
           transition: transform .2s, border-color .3s;
           box-shadow:
             inset 0 0 25px rgba(0,0,0,.6),
@@ -11737,12 +11742,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           overflow: hidden;
           user-select: none;
         }
-        /* 寃곌낵 ?쒖떆 以? ??踰꾪듉 鍮꾪솢?깊솕 */
+        /* 결과 표시 중: 셸 버튼 비활성화 */
         .tc-wrap--answered .tc-shell-btn {
           pointer-events: none !important;
         }
-        /* 寃곌낵 ?뺤씤 以? 吏덈Ц ?낅젰쨌?닿린諛붋룹긽?쑣룸쾭???곸뿭 ?꾩쟾 ?④?
-           ??touch-action:none ?붿냼媛 DOM?먯꽌 ?щ씪???ㅽ겕濡?100% ?덉슜 */
+        /* 결과 확인 중: 질문 입력·열기바·상태·버튼 영역 완전 숨김
+           → touch-action:none 요소가 DOM에서 사라져 스크롤 100% 허용 */
         .tc-wrap--answered .tc-question-row,
         .tc-wrap--answered .tc-heat-bar-wrap,
         .tc-wrap--answered .tc-status-msg,
@@ -11753,7 +11758,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           animation: shellVibrate .18s linear infinite, heatPulse 1.5s ease-in-out infinite;
           border-color: rgba(255,120,20,.7);
         }
-        /* 猿띿쭏 ?꾩쓽 ?↔컖???⑦꽩 SVG */
+        /* 껍질 위의 육각형 패턴 SVG */
         .tc-shell-pattern {
           position: absolute;
           inset: 0;
@@ -11779,7 +11784,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         }
         .tc-shell-btn.heating .tc-shell-label,
         .tc-shell-btn.cracked .tc-shell-label { opacity: 0; }
-        /* 濡깊봽?덉뒪 留?*/
+        /* 롱프레스 링 */
         .tc-press-ring {
           position: absolute;
           top: 50%; left: 50%;
@@ -11793,7 +11798,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .tc-press-ring.animate {
           animation: longPressRing 1s ease-out forwards;
         }
-        /* ?닿린 ?꾨줈洹몃젅??諛?*/
+        /* 열기 프로그레스 바 */
         .tc-heat-bar-wrap {
           position: relative;
           z-index: 2;
@@ -11812,7 +11817,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           transition: width .1s linear;
           box-shadow: 0 0 8px rgba(255,140,0,.5);
         }
-        /* ?곹깭 硫붿떆吏 */
+        /* 상태 메시지 */
         .tc-status-msg {
           position: relative;
           z-index: 2;
@@ -11824,7 +11829,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           margin-bottom: 14px;
           transition: opacity .4s;
         }
-        /* 寃곌낵 ?⑤꼸 */
+        /* 결과 패널 */
         .tc-result {
           position: relative;
           z-index: 2;
@@ -11834,10 +11839,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           word-break: keep-all;
           overflow-wrap: break-word;
           overflow-x: hidden;
-          /* ?ㅽ겕濡ㅼ? #juyukModalSheet 而⑦뀒?대꼫媛 ?꾨떞 ???댁쨷 ?ㅽ겕濡??쒓굅 */
+          /* 스크롤은 #juyukModalSheet 컨테이너가 전담 — 이중 스크롤 제거 */
         }
         .tc-result.show { display: block; }
-        /* 留??꾨줈 踰꾪듉 */
+        /* 맨 위로 버튼 */
         .tc-scroll-top-btn {
           display: block;
           margin: 20px auto 12px;
@@ -11859,7 +11864,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           border-color: rgba(255,200,60,.55);
           color: rgba(255,210,100,.9);
         }
-        /* 癒밸Ъ 踰덉쭚 ?μ궗洹몃옩 */
+        /* 먹물 번짐 헥사그램 */
         .tc-ink-hex {
           text-align: center;
           font-size: 5.8rem;
@@ -11883,7 +11888,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           animation: inkBloom 1s .15s both;
           text-shadow: 0 0 20px rgba(255,200,60,.4);
         }
-        /* 癒밸Ъ 踰덉쭚 ?④낵 而⑦뀒?대꼫 */
+        /* 먹물 번짐 효과 컨테이너 */
         .tc-ink-bloom-wrap {
           position: relative;
           background: radial-gradient(ellipse at 50% 50%, rgba(255,200,50,.06) 0%, transparent 65%);
@@ -11901,9 +11906,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             radial-gradient(ellipse at 80% 20%, rgba(80,40,0,.2) 0%, transparent 50%);
           pointer-events: none;
         }
-        /* SVG 癒밸Ъ 踰덉쭚 ?꾪꽣 */
+        /* SVG 먹물 번짐 필터 */
         .tc-ink-filter { position: absolute; width: 0; height: 0; }
-        /* ?곴킌/?섍킌 ??*/
+        /* 상괘/하괘 행 */
         .tc-trigram-row {
           display: flex;
           justify-content: center;
@@ -11924,7 +11929,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .tc-trigram-label { font-size: .72rem; color: rgba(200,165,70,.6); margin-bottom: 4px; }
         .tc-trigram-name { color: #f0a030; font-weight: 700; font-size: .95rem; }
         .tc-sep { width: 1px; background: rgba(200,160,50,.2); align-self: stretch; }
-        /* ?뱀뀡 釉붾줉 */
+        /* 섹션 블록 */
         .tc-section {
           background: rgba(8,4,0,.45);
           border: 1px solid rgba(150,100,20,.2);
@@ -11956,7 +11961,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           color: #e8d5a0;
           font-size: .9rem;
         }
-        /* 移댄뀒怨좊━ 洹몃━??*/
+        /* 카테고리 그리드 */
         .tc-cat-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -11993,7 +11998,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           background: linear-gradient(90deg, transparent, rgba(200,160,50,.35), transparent);
           margin: 16px 0;
         }
-        /* ?ㅼ떆?먯튂湲?踰꾪듉 */
+        /* 다시점치기 버튼 */
         .tc-redo-btn {
           display: block;
           width: 100%;
@@ -12019,7 +12024,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           box-shadow: 0 0 20px rgba(255,180,30,.2);
           background: linear-gradient(135deg, rgba(100,55,8,.85), rgba(55,28,4,.95));
         }
-        /* ?덉쑝濡?踰꾪듉 */
+        /* 홈으로 버튼 */
         .tc-home-btn {
           display: block;
           width: 100%;
@@ -12046,7 +12051,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           border-color: rgba(220,175,50,.5);
           color: rgba(255,210,100,0.9);
         }
-        /* ?좏긽 怨듭쑀?섍린 踰꾪듉 */
+        /* 신탁 공유하기 버튼 */
         .tc-share-btn {
           display: block;
           width: 100%;
@@ -12072,7 +12077,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           box-shadow: 0 0 18px rgba(180,80,220,.25);
           background: linear-gradient(135deg, rgba(45,28,70,.92), rgba(25,12,48,.98));
         }
-        /* 吏덈Ц ?듬? 釉붾줉 */
+        /* 질문 답변 블록 */
         .tc-answer-block {
           background: linear-gradient(135deg, rgba(60,35,5,.55), rgba(20,10,1,.7));
           border: 1px solid rgba(220,170,50,.3);
@@ -12095,7 +12100,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         }
         .tc-answer-text strong { color: #f5d060; }
 
-        /* ?낅젰遺 ??(iching-inp ?섏쐞?명솚) */
+        /* 입력부 폼 (iching-inp 하위호환) */
         .iching-input-wrap input.iching-inp {
           background: rgba(0,0,0,0.4) !important;
           border: 1px solid rgba(255,215,0,.3) !important;
@@ -12113,7 +12118,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
             outline: none;
             background: rgba(0, 0, 0, 0.6) !important;
           }
-        /* (iching-btn / iching-result-box ?섏쐞?명솚 ???좉퇋 UI??tc-* ?대옒???ъ슜) */
+        /* (iching-btn / iching-result-box 하위호환 — 신규 UI는 tc-* 클래스 사용) */
         .iching-btn { display: none; }
         .iching-result-box { display: none; }
 
@@ -12195,8 +12200,8 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 .astral-container {
     width: 100%; max-width: 480px;
-  min-height: 100dvh; /* Dynamic Viewport Height ??iOS Safari ?섎떒 UI 諛????*/
-  min-height: 100vh;  /* ?대갚 */
+  min-height: 100dvh; /* Dynamic Viewport Height — iOS Safari 하단 UI 바 대응 */
+  min-height: 100vh;  /* 폴백 */
     margin: 0 auto; position: relative;
     background: linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(10,10,15,1) 100%);
     border-left: 1px solid rgba(255,255,255,0.05);
@@ -12237,7 +12242,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     color: rgba(255,255,255,0.5); margin-top: 10px; letter-spacing: 1px;
 }
 
-/* Grid System ??移대뱶 ?ш린 ?곗꽑, 諛섏쓳??????*/
+/* Grid System — 카드 크기 우선, 반응형 열 수 */
 .astral-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -12254,7 +12259,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   .astral-grid { grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 0 24px 24px; max-width: 880px; margin: 0 auto; }
 }
 
-/* New Card Design ??移대뱶 ?ш린 ?뺣?, ?곗튂 ?곸뿭 ?뺣낫 */
+/* New Card Design — 카드 크기 확대, 터치 영역 확보 */
 .totem-card {
   position: relative;
   aspect-ratio: 0.82;
@@ -12305,7 +12310,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   box-shadow: 0 0 22px rgba(212, 175, 55, 0.28), inset 0 0 0 1px rgba(212,175,55,0.22);
 }
 
-/* Card Content Layout ???꾩씠肄샕룻뀓?ㅽ듃 ?ш린 ?뺣? */
+/* Card Content Layout — 아이콘·텍스트 크기 확대 */
 .totem-card .totem-icon {
   font-size: 2.75rem;
   margin-bottom: 8px;
@@ -12397,7 +12402,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 /* Checkmark Badge for Selected State */
 .totem-card::after {
-  content: '??;
+  content: '✓';
   position: absolute; top: 8px; right: 8px;
   width: 22px; height: 22px; border-radius: 50%;
   background: var(--gold); color: #000;
@@ -12407,7 +12412,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 .totem-card.selected::after { opacity: 1; transform: scale(1); }
 
-/* Info Button on Card ???곗튂 ?곸뿭 44px ?댁긽 */
+/* Info Button on Card — 터치 영역 44px 이상 */
 .totem-info-btn {
   position: absolute; bottom: 8px; right: 8px;
   background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.3) 0%, rgba(212,175,55,0.18) 32%, rgba(80,56,20,0.5) 100%);
@@ -12445,7 +12450,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   transform: translateY(-0.4px);
 }
 
-/* Ritual Bar - ?붾㈃ ?섎떒 怨좎젙 (2媛??좏깮 ???ъ슜???붾㈃??留욎떠 ?쒖떆) */
+/* Ritual Bar - 화면 하단 고정 (2개 선택 시 사용자 화면에 맞춰 표시) */
 .astral-ritual-bar {
   position: relative;
   bottom: auto;
@@ -12466,7 +12471,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   opacity: 1; transform: translateY(0); pointer-events: auto;
 }
 
-/* 2媛??좏깮 ???붾㈃ ?섎떒??怨좎젙?섏뿬 ??긽 蹂댁씠?꾨줉 */
+/* 2개 선택 시 화면 하단에 고정하여 항상 보이도록 */
 .astral-ritual-bar.active {
   position: fixed;
   bottom: calc(16px + env(safe-area-inset-bottom, 0px));
@@ -12591,7 +12596,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 .back-btn:hover { color: var(--gold); }
 
-/* Typography for Content ??怨꾩링 ?뺣━ */
+/* Typography for Content — 계층 정리 */
 .res-header { text-align: center; margin-bottom: 32px; padding-top: 16px; }
 @media (max-width: 640px) {
   .res-header { margin-bottom: 20px; padding-top: 10px; }
@@ -12640,7 +12645,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   .result-content { padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px)); }
 }
 
-/* 沅곹빀 寃곌낵 洹몃━?? ?볦? ?붾㈃?먯꽌 2?대줈 ?몃줈 湲몄씠 媛먯냼 */
+/* 궁합 결과 그리드: 넓은 화면에서 2열로 세로 길이 감소 */
 .res-grid-stack {
   display: grid;
   grid-template-columns: 1fr;
@@ -12756,7 +12761,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     height: 40px;
 }
 
-/* ?? Ritual Animation (Enhanced) ?? */
+/* ── Ritual Animation (Enhanced) ── */
 .astral-ritual-stage {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -12855,7 +12860,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
     transition: opacity 0.5s; text-align: center;
 }
 
-/* ?? Individual MBTI Detail Sheet ?? */
+/* ── Individual MBTI Detail Sheet ── */
 .mbti-detail-sheet {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, #0a0a1a 0%, #100825 100%);
@@ -12974,9 +12979,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 @keyframes pulseMirror { 0% { box-shadow: 0 0 30px rgba(212,175,55,0.3); } 100% { box-shadow: 0 0 60px rgba(212,175,55,0.8); } }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
-   ?몃Ⅴ紐?愿?????뚰넗 vs ?먭쾺
-?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
+/* ══════════════════════════════════════════
+   호르몬 관상 — 테토 vs 에겐
+══════════════════════════════════════════ */
 @keyframes hv-flame { 0%,100%{transform:scaleY(1) rotate(-2deg)} 50%{transform:scaleY(1.18) rotate(2deg)} }
 @keyframes hv-sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1.4) rotate(180deg)} }
 @keyframes hv-shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
@@ -12988,7 +12993,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 
 .hv-card { animation: hv-fadein .7s ease both; }
 
-/* ?뚰넗 移대뱶 */
+/* 테토 카드 */
 .hv-teto-wrap {
   background: linear-gradient(135deg,#1a0a00 0%,#2d0d00 50%,#1a0800 100%);
   border-radius: 18px; padding: 0; overflow: hidden; position: relative;
@@ -13028,7 +13033,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 .hv-reason-list { display:flex;flex-direction:column;gap:7px; }
 .hv-reason-item { display:flex;align-items:center;gap:8px;font-size:.83rem;color:#ffcbaa;background:rgba(255,255,255,.06);padding:7px 12px;border-radius:8px;border-left:3px solid #ff5500; }
 
-/* ?먭쾺 移대뱶 */
+/* 에겐 카드 */
 .hv-egen-wrap {
   background: linear-gradient(135deg,#1a0025 0%,#2a0838 50%,#180020 100%);
   border-radius: 18px; padding: 0; overflow: hidden; position: relative;
@@ -13058,7 +13063,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 .hv-egen-copy { font-size:.97rem;color:#f3c4ff;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.6);margin-bottom:18px; }
 .hv-reason-item.egen-item { color:#f3c4ff;border-left-color:#d980fa; }
 
-/* 以묐┰ 移대뱶 */
+/* 중립 카드 */
 .hv-neutral-wrap {
   background:linear-gradient(135deg,#0d1a2e 0%,#1a2a40 100%);
   border-radius:18px;padding:0;overflow:hidden;position:relative;
@@ -13069,7 +13074,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 .hv-neutral-title { font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:10px; }
 .hv-neutral-copy { font-size:.95rem;color:#a8e6df;font-weight:600; }
 
-/* 怨듯넻 ?ㅽ꺈 洹몃━??*/
+/* 공통 스탯 그리드 */
 .hv-stats-grid {
   display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px;
 }
@@ -13080,7 +13085,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 .hv-stat-num { font-size:1.5rem;font-weight:900;color:#fff; }
 .hv-stat-label { font-size:.72rem;color:rgba(255,255,255,.5);margin-top:2px; }
 
-/* ?? T諛쒕냸 ?뚯뒪??(Frozen Logic Theme) ?? */
+/* ── T발놈 테스트 (Frozen Logic Theme) ── */
 .t-test-card {
   background: #050505;
   border: 1px solid #333;
@@ -13156,7 +13161,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   font-size: 1.1rem; font-weight: bold; color: #fff; margin-top: 5px;
 }
 
-/* ?? Lotto Draw Animation ?? */
+/* ── Lotto Draw Animation ── */
 .lotto-draw-btn {
   display: block; width: 100%; padding: 15px; margin: 20px 0;
   background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
@@ -13196,9 +13201,9 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 @keyframes fadeInResult { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* --- block 16 --- */
-/* ?먥븧??紐⑤컮??留덉뒪??理쒖쟻??異붽? CSS ?먥븧??*/
+/* ═══ 모바일 마스터 최적화 추가 CSS ═══ */
 
-/* 1. 媛濡?紐⑤뱶(Landscape) ???*/
+/* 1. 가로 모드(Landscape) 대응 */
 @media (orientation: landscape) and (max-height: 500px) {
   .wrap { padding-top: 8px; }
   .card { padding: 12px 14px; margin-bottom: 10px; }
@@ -13206,19 +13211,19 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
   #sajuLoaderOverlay .saju-txt-wrap { margin-top: -20px; }
 }
 
-/* 2. ?ㅽ겕紐⑤뱶 ?쒖뒪???곕룞 (theme-pig ?섎룞 紐⑤뱶 ?놁쓣 ?? */
+/* 2. 다크모드 시스템 연동 (theme-pig 수동 모드 없을 때) */
 @media (prefers-color-scheme: dark) {
   :root:not(.theme-pig) {
     color-scheme: dark;
   }
 }
 
-/* date/time ?낅젰 ??紐⑤컮?쇱뿉???띿뒪??媛?쒖꽦 蹂댁옣 */
+/* date/time 입력 — 모바일에서 텍스트 가시성 보장 */
 input[type="date"][style*="background: rgba(20,25,35"],
 input[type="time"][style*="background: rgba(20,25,35"] {
   color-scheme: dark;
 }
-/* 紐⑤컮??WebKit: ?쇱씠??諛곌꼍 date/time ?띿뒪?멸? ?щ챸/?쒖뒪?쒖깋?쇰줈 ?щ씪吏???꾩긽 諛⑹? */
+/* 모바일 WebKit: 라이트 배경 date/time 텍스트가 투명/시스템색으로 사라지는 현상 방지 */
 body:not(.neo-mode) .inp[type="date"],
 body:not(.neo-mode) .inp[type="time"],
 body:not(.neo-mode) .inp[type="datetime-local"] {
@@ -13252,7 +13257,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
-/* 3. ??ъ뼇 湲곌린 ??紐⑥뀡 理쒖냼??(?ъ＜ 濡쒕뜑???쒖쇅: 濡쒕뵫 泥닿컧???꾩닔) */
+/* 3. 저사양 기기 — 모션 최소화 (사주 로더는 제외: 로딩 체감에 필수) */
 @media (prefers-reduced-motion: reduce) {
   *:not(#sajuLoaderOverlay):not(#sajuLoaderOverlay *),
   *:not(#sajuLoaderOverlay)::before,
@@ -13263,7 +13268,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 }
 
-/* 4. ?ㅼ펷?덊넠 UI */
+/* 4. 스켈레톤 UI */
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -13282,17 +13287,17 @@ body.neo-mode .skeleton {
   height: 72px; border-radius: 14px; margin-bottom: 12px;
 }
 
-/* 5. Safe-area 媛뺥솕 ???섎떒 怨좎젙 ?붿냼 */
+/* 5. Safe-area 강화 — 하단 고정 요소 */
 .fixed-bottom-safe {
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
-/* 6. ?곗튂 ?곸뿭 理쒖냼 44px 媛뺤젣 */
+/* 6. 터치 영역 최소 44px 강제 */
 .form-label { min-height: 24px; }
 .tog-btn { min-height: 48px; }
 select.inp { min-height: 48px; cursor: pointer; }
 
-/* 7. feature-card 媛濡쒕え???뚰삎湲곌린 */
+/* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
   .theme-switch-wrapper {
     top: calc(48px + env(safe-area-inset-top, 0px));
@@ -13399,7 +13404,7 @@ select.inp { min-height: 48px; cursor: pointer; }
   }
 }
 
-/* 7.5 ?먯꽦??肄붿쫰誘?李⑦듃) 紐⑤컮??理쒖쟻??*/
+/* 7.5 점성술(코즈믹 차트) 모바일 최적화 */
 @media (max-width: 768px) {
   #acc-astro-body .astro-body.cosmic-theme {
     padding: 14px;
@@ -13558,7 +13563,7 @@ select.inp { min-height: 48px; cursor: pointer; }
   }
 }
 
-/* 8. ?쇰뵒??踰꾪듉 ?곗튂 ?곸뿭 ?뺤옣 */
+/* 8. 라디오 버튼 터치 영역 확장 */
 .form-group label {
   display: inline-flex;
   align-items: center;
@@ -13571,16 +13576,17 @@ select.inp { min-height: 48px; cursor: pointer; }
 }
 .form-group label:active { background: rgba(255,139,167,.1); }
 
-/* 9. ?ъ빱??媛?쒖꽦 (?ㅻ낫???ъ슜???묎렐?? */
+/* 9. 포커스 가시성 (키보드 사용자 접근성) */
 :focus-visible {
   outline: 3px solid var(--pink, #FF8BA7);
   outline-offset: 2px;
 }
 
-/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧??   Touch Performance Layer v2
-   ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧??*/
+/* ═══════════════════════════════════════════
+   Touch Performance Layer v2
+   ═══════════════════════════════════════════ */
 
-/* 10. iOS 濡깊봽?덉뒪 ?앹뾽 李⑤떒 + ?꾩뿭 ?곗튂 理쒖쟻??*/
+/* 10. iOS 롱프레스 팝업 차단 + 전역 터치 최적화 */
 a,button,[role="button"],select,label,
 .ts-card,.dw-item,.feature-card,.tarot-card,.oracle-card-m,
 .palace-block,.fortune-tab,.mystic-tab-btn,.lang-btn,.ctg-btn,
@@ -13590,7 +13596,7 @@ a,button,[role="button"],select,label,
   -webkit-touch-callout: none;
 }
 
-/* 11. 鍮꾪뀓?ㅽ듃 ?명꽣?숉떚釉??붿냼 ?띿뒪???좏깮 諛⑹? */
+/* 11. 비텍스트 인터랙티브 요소 텍스트 선택 방지 */
 button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 .fortune-tab,.mystic-tab-btn,.tarot-cat-btn,.celeb-tab-btn,
 .celeb-btn,.ctg-btn,.lang-btn,.oracle-cat-btn-m,.iching-btn,
@@ -13599,7 +13605,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   -webkit-user-select: none;
 }
 
-/* 12. ?뚰삎 踰꾪듉 ?곗튂 ?寃?44px ?뺤옣 (::after 媛???붿냼) */
+/* 12. 소형 버튼 터치 타겟 44px 확장 (::after 가상 요소) */
 .celeb-tab-btn,.celeb-btn,.ctg-btn,.lang-btn,.oracle-cat-btn-m {
   position: relative;
 }
@@ -13612,7 +13618,7 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   min-height: 44px;
 }
 
-/* 13. GPU 媛?????좊땲硫붿씠???덉씠??(紐⑤컮???붿씠?몄뒪?щ┛ 諛⑹?瑜??꾪빐 will-change ?⑥슜 ?쒓굅) */
+/* 13. GPU 가속 — 애니메이션 레이어 (모바일 화이트스크린 방지를 위해 will-change 남용 제거) */
 .saju-book,.saju-vortex,.orb,
 .feature-card,.dw-item,.ts-card,
 .sy-gauge-fill,.sy-talent-fill,
@@ -13621,12 +13627,12 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   backface-visibility: hidden;
 }
 
-/* 14. CSS Containment ??移대뱶 而댄룷?뚰듃 由ы뵆濡쒖슦 寃⑸━ */
+/* 14. CSS Containment — 카드 컴포넌트 리플로우 격리 */
 .feature-card,.ts-card,.prem-box,.palace-block {
   contain: layout style;
 }
 
-/* 15. is-touching ??JS touchstart 利됯컖 ?쒓컖 ?쇰뱶諛?*/
+/* 15. is-touching — JS touchstart 즉각 시각 피드백 */
 .is-touching {
   opacity: .82 !important;
   transform: scale(.96) !important;
@@ -13636,12 +13642,12 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   transform: scale(.97) translateY(1px) !important;
 }
 
-/* 16. .ts-card / .sy-card / .palace-block active ?쇰뱶諛?*/
+/* 16. .ts-card / .sy-card / .palace-block active 피드백 */
 .ts-card:active { transform: scale(.97) translateY(-1px) !important; }
 .palace-block:active { opacity: .85; transform: scale(.98) !important; }
 .sy-card:active { opacity: .9; }
 
-/* 17. ?ㅽ겕濡?而⑦뀒?대꼫 ?깅뒫 */
+/* 17. 스크롤 컨테이너 성능 */
 .celeb-name-area,#szCelebBtns,.dw-grid {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
