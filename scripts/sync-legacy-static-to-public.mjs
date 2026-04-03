@@ -28,13 +28,22 @@ const staticTargets = [
 
 /**
  * Safe per-file sync for the styles/ directory.
- * Guards against three failure modes:
+ * Guards against four failure modes:
  *   1. A root/styles/*.css that is just an @import pointer back to public/styles/
  *      accidentally overwrites the real CSS in public/styles/ (circular reference + CSS loss).
  *   2. A tiny/empty placeholder in root/styles/ overwrites a large, real CSS in public/styles/.
  *   3. PowerShell Set-Content adds UTF-8 BOM or CRLF line endings to CSS files.
  *      This function always writes normalized (BOM-free, LF) CSS.
+ *   4. styles/globals.css is the Next.js source file (requires @tailwind directives for
+ *      PostCSS compilation). public/styles/globals.css is the statically-served pure CSS.
+ *      These have DIFFERENT contents by design and must NEVER be synced to each other.
+ *      Same applies to any other file listed in STATIC_ONLY_OVERRIDES.
  */
+
+// Files whose root/styles/ version is a Next.js source (Tailwind/PostCSS processed)
+// and whose public/styles/ version is independently maintained pure CSS.
+// These are NEVER overwritten by the sync in either direction.
+const STATIC_ONLY_OVERRIDES = new Set(["globals.css"]);
 function normalizeCss(buf) {
   let str = buf.toString("utf8");
   // Remove UTF-8 BOM (EF BB BF) if present
@@ -69,6 +78,13 @@ function syncStylesDir() {
     const srcStr = srcNorm.toString("utf8");
     const srcSize = srcBuf.length;
 
+    // Guard 0: files that serve fundamentally different roles in root vs public
+    // (e.g. globals.css = Next.js @tailwind source vs. static pure CSS)
+    if (STATIC_ONLY_OVERRIDES.has(name)) {
+      console.log(`[sync-styles] SKIP dual-purpose file: styles/${name} (root=Next.js source, public=static pure CSS)`);
+      continue;
+    }
+
     // Guard 1: skip pointer files that reference ../public/styles/ (would create circular @import)
     if (POINTER_RE.test(srcStr)) {
       console.warn(`[sync-styles] SKIP pointer file: styles/${name} → would overwrite public/styles/${name} with self-reference`);
@@ -85,11 +101,13 @@ function syncStylesDir() {
     }
 
     // Guard 3: skip if source contains @tailwind directives (static serving can't compile them)
-    // and destination already has a valid plain CSS file
+    // and destination already has a valid plain CSS file.
+    // Note: globals.css is handled by STATIC_ONLY_OVERRIDES above; this catches any other
+    // Tailwind source files that might be added to styles/ in the future.
     if (TAILWIND_RE.test(srcStr) && existsSync(dstFile)) {
       const dstContent = normalizeCss(readFileSync(dstFile)).toString("utf8");
-      if (!TAILWIND_RE.test(dstContent) && dstContent.length > srcStr.length) {
-        console.warn(`[sync-styles] SKIP @tailwind source: styles/${name} → would replace compiled CSS with source`);
+      if (!TAILWIND_RE.test(dstContent)) {
+        console.warn(`[sync-styles] SKIP @tailwind source: styles/${name} → would replace static CSS with uncompiled source`);
         continue;
       }
     }

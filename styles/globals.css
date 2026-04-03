@@ -1,35 +1,35 @@
-/* ─── 기본 리셋 및 모바일 터치·스크롤 기반 ─── */
-/* NOTE: @tailwind 지시어는 Next.js 빌드에서만 처리됨.
-   static HTML 직접 링크 시에는 순수 CSS 규칙만 유효함. */
-html {
-	-webkit-text-size-adjust: 100%;
-	text-size-adjust: 100%;
-	-webkit-overflow-scrolling: touch;
-}
-@media (prefers-reduced-motion: no-preference) {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
+@layer base {
 	html {
-		scroll-behavior: smooth;
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
+		-webkit-overflow-scrolling: touch;
 	}
-}
-body {
-	margin: 0;
-	padding: 0;
-	min-height: 100%;
-	min-height: 100dvh;
-	/* fortune-ui.css 기본 배경과 일치: FOUC/CLS 방지 */
-	background: #FFF5F8;
-	background: var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
-	color: #3D3D3D;
-	color: var(--text-main, #3D3D3D);
-	font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-	-webkit-overflow-scrolling: touch;
-	overscroll-behavior-y: none;
-	touch-action: pan-y;
-	padding-left: env(safe-area-inset-left, 0);
-	padding-right: env(safe-area-inset-right, 0);
-	padding-bottom: env(safe-area-inset-bottom, 0);
-	overflow-x: hidden;
-}
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+	body {
+		margin: 0;
+		padding: 0;
+		min-height: 100%;
+		min-height: 100dvh;
+		background: #020617;
+		color: #f8fafc;
+		font-family: "Inter", "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-y: none;
+		touch-action: pan-y;
+		padding-left: env(safe-area-inset-left, 0);
+		padding-right: env(safe-area-inset-right, 0);
+		padding-bottom: env(safe-area-inset-bottom, 0);
+	}
 	* {
 		box-sizing: border-box;
 	}
@@ -64,20 +64,7 @@ body {
 			font-size: inherit;
 		}
 	}
-	/* CLS guard: keep stable image boxes before image decode completes. */
-	img {
-		height: auto;
-	}
-	img.tarot-face-img,
-	#tarotCardFrontImg,
-	img[data-card-img] {
-		aspect-ratio: 2 / 3;
-		object-fit: cover;
-	}
-	#dfStudioImage {
-		aspect-ratio: 21 / 16;
-		object-fit: cover;
-	}
+}
 
 .visually-hidden {
 	position: absolute;
