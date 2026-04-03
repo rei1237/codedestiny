@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 type AdminUser = {
   _id: string;
@@ -39,11 +38,26 @@ function formatDate(value?: string) {
   }).format(date);
 }
 
-export default function AdminPage() {
-  const router = useRouter();
+const FLOWER_TOKEN_KEY = "flower_admin_token";
 
+function getStoredToken(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return sessionStorage.getItem(FLOWER_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export default function AdminPage() {
   const [token, setToken] = useState("");
   const [isBooting, setIsBooting] = useState(true);
+
+  // 비밀번호 입력 폼 (토큰이 없을 때)
+  const [pwInput, setPwInput] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -62,60 +76,72 @@ export default function AdminPage() {
     error: "",
   });
 
-  const apiBase = useMemo(
-    () => process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000",
-    [],
-  );
-
-  const endpoint = `${apiBase}/api/admin/users`;
-
+  // 부팅 시 sessionStorage에서 토큰 복원
   useEffect(() => {
-    const savedToken = localStorage.getItem("fortune_auth_token");
-    const rawUser = localStorage.getItem("fortune_auth_user");
+    const stored = getStoredToken();
+    setToken(stored || "");
+    setIsBooting(false);
+  }, []);
 
-    if (!savedToken) {
-      router.replace("/login?next=%2Fadmin");
-      return;
-    }
-
-    try {
-      const parsedUser = rawUser ? JSON.parse(rawUser) : null;
-      if (!parsedUser || parsedUser.role !== "admin") {
-        router.replace("/login?next=%2Fadmin");
+  // 비밀번호 제출 → 토큰 발급
+  const handlePasswordSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const pw = pwInput.trim();
+      if (!pw) {
+        setPwError("비밀번호를 입력해 주세요.");
         return;
       }
-    } catch {
-      router.replace("/login?next=%2Fadmin");
-      return;
-    }
+      setPwLoading(true);
+      setPwError("");
+      try {
+        const res = await fetch("/api/admin/entry/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: pw }),
+        });
+        if (!res.ok) {
+          setPwError("비밀번호가 일치하지 않습니다.");
+          return;
+        }
+        const payload = await res.json() as { ok?: boolean; adminToken?: string };
+        const adminToken = payload.adminToken || "";
+        if (!adminToken) {
+          setPwError("토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+        try {
+          sessionStorage.setItem(FLOWER_TOKEN_KEY, adminToken);
+        } catch (_) {}
+        setToken(adminToken);
+        setPwInput("");
+      } catch {
+        setPwError("요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        setPwLoading(false);
+      }
+    },
+    [pwInput],
+  );
 
-    setToken(savedToken);
-    setIsBooting(false);
-  }, [router]);
-
+  // 회원 목록 조회 — 상대경로 /api/admin/members 사용 (Express 백엔드 불필요)
   const fetchUsers = useCallback(
-    async (keyword: string) => {
-      if (!token) return;
-
+    async (keyword: string, currentToken: string) => {
+      if (!currentToken) return;
       setLoading(true);
       setError("");
-
       try {
         const query = keyword ? `?search=${encodeURIComponent(keyword)}` : "";
-        const response = await fetch(`${endpoint}${query}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(`/api/admin/members${query}`, {
+          headers: { Authorization: `Bearer ${currentToken}` },
         });
 
         const payload = (await response.json()) as AdminUsersResponse;
 
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("fortune_auth_token");
-          localStorage.removeItem("fortune_auth_user");
-          document.cookie = "fortune_auth_token=; path=/; max-age=0";
-          document.cookie = "fortune_auth_role=; path=/; max-age=0";
-          router.replace("/login?next=%2Fadmin");
+        if (response.status === 401) {
+          // 토큰 만료 or 위변조
+          try { sessionStorage.removeItem(FLOWER_TOKEN_KEY); } catch (_) {}
+          setToken("");
           return;
         }
 
@@ -125,24 +151,21 @@ export default function AdminPage() {
         }
 
         const nextUsers = Array.isArray(payload.users) ? payload.users : [];
-        const nextVisibleCount = Number(payload.count ?? nextUsers.length);
-        const nextTotalCount = Number(payload.totalCount ?? nextVisibleCount);
-
         setUsers(nextUsers);
-        setVisibleCount(nextVisibleCount);
-        setTotalCount(nextTotalCount);
+        setVisibleCount(nextUsers.length);
+        setTotalCount(Number(payload.totalCount ?? nextUsers.length));
       } catch {
-        setError("관리자 API에 연결하지 못했습니다. 서버 상태를 확인해 주세요.");
+        setError("관리자 API에 연결하지 못했습니다.");
       } finally {
         setLoading(false);
       }
     },
-    [endpoint, router, token],
+    [],
   );
 
   useEffect(() => {
     if (!isBooting && token) {
-      fetchUsers(searchKeyword);
+      fetchUsers(searchKeyword, token);
     }
   }, [fetchUsers, isBooting, searchKeyword, token]);
 
@@ -154,23 +177,17 @@ export default function AdminPage() {
   const handleDelete = async (user: AdminUser) => {
     const shouldDelete = window.confirm(`${user.name} (${user.email}) 회원을 삭제할까요?`);
     if (!shouldDelete) return;
-
     try {
-      const response = await fetch(`${endpoint}/${encodeURIComponent(user._id)}`, {
+      const response = await fetch(`/api/admin/members/${encodeURIComponent(user._id)}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       const payload = (await response.json()) as { message?: string };
-
       if (!response.ok) {
         setError(payload.message || "회원 삭제에 실패했습니다.");
         return;
       }
-
-      await fetchUsers(searchKeyword);
+      await fetchUsers(searchKeyword, token);
     } catch {
       setError("회원 삭제 요청 중 오류가 발생했습니다.");
     }
@@ -189,7 +206,7 @@ export default function AdminPage() {
     setCoinGrant((prev) => ({ ...prev, loading: true, error: "" }));
 
     try {
-      const response = await fetch(`${apiBase}/api/admin/members/points`, {
+      const response = await fetch("/api/admin/members/points", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -222,7 +239,44 @@ export default function AdminPage() {
   if (isBooting) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-200">
-        관리자 권한 확인 중...
+        로딩 중...
+      </main>
+    );
+  }
+
+  // 토큰 없음 → 인라인 비밀번호 입력 폼
+  if (!token) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#070b18] via-[#0d1325] to-[#141130] px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-violet-400/30 bg-slate-950/80 p-8 shadow-[0_0_0_1px_rgba(109,40,217,.18),0_20px_50px_rgba(0,0,0,.7)] backdrop-blur-md">
+          <div className="mb-6 text-center">
+            <span className="text-4xl">🌸</span>
+            <h1 className="mt-3 text-xl font-bold text-white">관리자 인증</h1>
+            <p className="mt-1 text-sm text-slate-400">관리자 비밀번호를 입력해 주세요.</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-3">
+            <input
+              type="password"
+              value={pwInput}
+              onChange={(e) => setPwInput(e.target.value)}
+              placeholder="비밀번호"
+              autoFocus
+              className="w-full rounded-xl border border-violet-300/30 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-violet-300/70 focus:ring-2 focus:ring-violet-400/40"
+            />
+            {pwError ? (
+              <div className="rounded-lg border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                {pwError}
+              </div>
+            ) : null}
+            <button
+              type="submit"
+              disabled={pwLoading}
+              className="w-full rounded-xl border border-violet-400/50 bg-violet-600/70 py-3 text-sm font-bold text-white hover:bg-violet-500/80 disabled:opacity-50"
+            >
+              {pwLoading ? "확인 중..." : "입장"}
+            </button>
+          </form>
+        </div>
       </main>
     );
   }
