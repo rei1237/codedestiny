@@ -406,7 +406,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__card::before{content:'';position:absolute;inset:-40% auto auto -14%;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(255,222,155,0.54) 0%,rgba(255,222,155,0) 72%);pointer-events:none}
 .golden-grain-modal__close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(160,64,21,0.24);background:rgba(255,255,255,0.84);color:#7f3606;font-size:1.2rem;font-weight:700;cursor:pointer;z-index:2}
 .golden-grain-modal__head{position:relative;z-index:1;text-align:center;padding:4px 8px 8px}
-.golden-grain-modal__title{margin:0 0 6px;font-family:'Noto Serif KR',serif;font-size:1.45rem;color:#812f00;letter-spacing:.01em}
+.golden-grain-modal__title{margin:0 0 6px;font-size:1.38rem;font-weight:900;color:#6d2400;letter-spacing:-.01em}
 .golden-grain-modal__subtitle{margin:0;font-size:.91rem;color:#8b4b24;line-height:1.45}
 .golden-grain-piggy{width:84px;height:84px;margin:0 auto 10px;border-radius:50%;display:block;overflow:hidden;background:radial-gradient(circle at 30% 25%,#fff2cb 0%,#ffd972 56%,#f6b126 100%);border:2px solid rgba(211,133,17,0.62);box-shadow:inset 0 3px 10px rgba(255,255,255,0.56),0 8px 20px rgba(155,95,15,0.25)}
 .golden-grain-piggy__img{width:100%;height:100%;object-fit:cover;display:block}
@@ -417,19 +417,19 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__scroll::-webkit-scrollbar-track{background:rgba(255,235,208,.52);border-radius:999px}
 .golden-grain-modal__scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ffbc72,#f58a42);border-radius:999px}
 .golden-grain-packages{display:grid;gap:10px}
-.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:18px;padding:13px 12px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,246,236,0.86));cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.golden-grain-package{position:relative;border:1px solid rgba(255,171,101,0.42);border-radius:16px;padding:13px 14px;background:rgba(255,255,255,0.92);cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;box-shadow:0 2px 8px rgba(160,60,10,0.06)}
 .golden-grain-package:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(169,56,95,0.14)}
 .golden-grain-package.is-selected{border-color:rgba(245,124,0,0.95);box-shadow:0 12px 22px rgba(238,137,21,0.24);transform:translateY(-1px) scale(1.01);background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,238,214,0.94))}
 .golden-grain-package__top{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .golden-grain-package__best{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#ff5f45,#ff8c32);color:#fff;font-size:.66rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 14px rgba(214,91,33,0.3)}
 .golden-grain-package__name{font-weight:800;color:#742c16}
-.golden-grain-package__coin{font-weight:900;color:#a6450f}
+.golden-grain-package__coin{font-weight:900;color:#b85608;display:inline-flex;align-items:center;gap:3px}
 .golden-grain-package__meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:5px}
 .golden-grain-package__price{font-size:.86rem;color:#7d4b2b}
-.golden-grain-package__total{font-size:.79rem;font-weight:800;color:#8e4c11}
-.golden-grain-package__bonus{display:inline-flex;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(251,177,74,0.25);color:#8d4a04;font-size:.73rem;font-weight:700}
+.golden-grain-package__total{font-size:.79rem;font-weight:700;color:#9e6030}
+.golden-grain-package__bonus{display:inline-flex;align-items:center;gap:3px;margin-top:6px;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,200,80,0.2),rgba(255,160,50,0.16));border:1px solid rgba(220,140,30,0.28);color:#8a4400;font-size:.73rem;font-weight:800}
 .golden-grain-modal__cta{position:relative;z-index:1;margin-top:10px;padding:10px 4px 2px;background:linear-gradient(180deg,rgba(255,236,211,0) 0%,rgba(255,225,193,.88) 42%,rgba(255,217,182,.98) 100%)}
-.golden-grain-modal__charge-btn{margin-top:0;width:100%;border:none;border-radius:14px;padding:13px 14px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.01em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+.golden-grain-modal__charge-btn{margin-top:0;width:100%;border:none;border-radius:14px;padding:14px;background:linear-gradient(135deg,#f94f84,#ff8436);color:#fff;font-size:.98rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 8px 20px rgba(210,60,90,0.24)}
 .golden-grain-modal__charge-btn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(214,99,31,0.34)}
 .golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
 .golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
@@ -4266,11 +4266,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         bestRibbon,
         '  <span class="golden-grain-package__top">',
         '    <span class="golden-grain-package__name">' + pkg.name + '</span>',
-        '    <span class="golden-grain-package__coin">🪙 +' + baseCoins.toLocaleString('ko-KR') + '코인</span>',
+        '    <span class="golden-grain-package__coin">+' + baseCoins.toLocaleString('ko-KR') + '코인 <svg class="gg-star-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="#d97706" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-left:2px;flex-shrink:0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span>',
         '  </span>',
         '  <span class="golden-grain-package__meta">',
         '    <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
-        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인 ✨</span>',
+        '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인</span>',
         '  </span>',
         bonusHTML,
         '</button>'
@@ -4283,8 +4283,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="충전 창 닫기">×</button>',
       '    <div class="golden-grain-modal__head">',
       '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><img class="golden-grain-piggy__img" src="/icons/honeypig-96.webp" srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="84px" width="84" height="84" alt=""></div>',
-      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title">🐷✨ 황금 돼지 저금통 충전소</h3>',
-      '      <p class="golden-grain-modal__subtitle">💫 동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
+      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title">✨ 황금 돼지 저금통 충전소</h3>',
+      '      <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
       '    <div class="golden-grain-modal__cta">',
