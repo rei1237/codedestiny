@@ -4,7 +4,6 @@ export const runtime = "nodejs";
 
 import connectDB from "../../../../server/config/db.js";
 import User from "../../../../server/models/User.js";
-import PointHistory from "../../../../server/models/PointHistory.js";
 import {
   verifyFlowerAdminToken,
   extractAdminTokenFromRequest,
