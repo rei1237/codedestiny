@@ -369,7 +369,7 @@ img[width][height]{height:auto}
 .neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
 .tarot-tile__img-wrap{position:relative}
-.tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:3px;padding:4px 10px 4px 9px;border-radius:999px;font-size:.68rem;font-weight:800;line-height:1;letter-spacing:.02em;white-space:nowrap;background:rgba(14,8,2,.88);color:#fcd262;border:1px solid rgba(250,190,50,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,100,.08);pointer-events:none}
+.tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:4px;padding:4px 10px 4px 7px;border-radius:999px;font-size:.68rem;font-weight:800;line-height:1;letter-spacing:.02em;white-space:nowrap;background:rgba(14,8,2,.88);color:#fcd262;border:1px solid rgba(250,190,50,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,100,.08);pointer-events:none}.tarot-tile__coin-badge::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1px solid rgba(255,200,50,.55);box-shadow:0 0 4px rgba(255,195,40,.45),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}.tarot-tile__coin-badge--free::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#d1fae5 0%,#6ee7b7 50%,#059669 100%);border:1px solid rgba(110,231,183,.55);box-shadow:none;flex-shrink:0}
 .tarot-tile__coin-badge--free{background:rgba(4,28,20,.88);border-color:rgba(90,210,150,.38);color:#6ee7b7}
 .tarot-tile__coin-badge--lock{background:linear-gradient(135deg,rgba(45,15,90,.92),rgba(70,25,120,.88));border-color:rgba(190,140,255,.42);color:#ddbfff;box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 1px rgba(160,100,255,.12),inset 0 1px 0 rgba(255,255,255,.07)}
 .tarot-tile__lock-icon{position:absolute;bottom:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;background:rgba(10,5,30,.85);border:1.5px solid rgba(180,130,255,.45);display:none;align-items:center;justify-content:center;font-size:.85rem;line-height:1;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:none}
@@ -444,7 +444,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-section-gate__desc{font-size:.84rem;color:#8a4620;line-height:1.5;margin:0;max-width:320px}
 .cd-section-gate__btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:999px;padding:12px 26px;background:linear-gradient(135deg,#ff7aaa,#ffb15e);color:#fff;font-size:.91rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(219,89,55,.32);transition:transform .2s ease,box-shadow .2s ease;letter-spacing:.02em}
 .cd-section-gate__btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(219,89,55,.42)}
-.cd-section-gate__badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:rgba(255,193,87,.32);color:#7a3a00;font-size:.76rem;font-weight:800;border:1px solid rgba(255,162,58,.38)}
+.cd-section-gate__badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px 5px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,193,87,.28),rgba(255,162,58,.22));color:#7a3a00;font-size:.76rem;font-weight:800;border:1px solid rgba(255,162,58,.38);box-shadow:0 2px 8px rgba(255,150,50,.12)}.cd-section-gate__badge::before{content:"";display:inline-block;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 46%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 5px rgba(255,195,40,.5),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
 @media(max-width:600px){.cd-section-gate__overlay{padding:16px 12px}.cd-section-gate__btn{padding:11px 20px;font-size:.86rem}}
 .golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
 .golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
@@ -453,6 +453,34 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
 .animate-bounce{animation:goldenBounce .72s ease}
 @keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
+/* ── 프리미엄 기능 쇼케이스 ── */
+.pf-showcase{padding:24px 20px 28px;background:linear-gradient(160deg,rgba(12,6,32,.97) 0%,rgba(20,8,50,.96) 100%);border:1px solid rgba(160,100,255,.18)}
+.pf-showcase__header{text-align:center;margin-bottom:24px}
+.pf-showcase__eyebrow{font-size:.6rem;font-weight:900;letter-spacing:.22em;color:#fbbf24;text-transform:uppercase;margin-bottom:8px}
+.pf-showcase__title{font-size:clamp(1.15rem,4vw,1.45rem);font-weight:900;color:#f5f0ff;margin:0 0 8px;line-height:1.3}
+.pf-showcase__sub{font-size:.84rem;color:rgba(196,181,253,.75);margin:0;line-height:1.5}
+.pf-showcase__grid{display:grid;gap:16px}
+@media(min-width:680px){.pf-showcase__grid{grid-template-columns:repeat(3,1fr)}}
+.pf-card{display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(8,4,24,.82);border:1px solid rgba(140,90,255,.22);box-shadow:0 6px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s ease}
+.pf-card:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(100,40,220,.45),0 0 0 1px rgba(180,140,255,.35),inset 0 1px 0 rgba(255,255,255,.09)}
+.pf-card__icon-wrap{font-size:2.4rem;padding:20px 20px 0;line-height:1;text-align:center}
+.pf-card--daewun .pf-card__icon-wrap{background:linear-gradient(160deg,rgba(109,40,217,.18),transparent)}
+.pf-card--summary .pf-card__icon-wrap{background:linear-gradient(160deg,rgba(14,116,144,.18),transparent)}
+.pf-card--compat .pf-card__icon-wrap{background:linear-gradient(160deg,rgba(190,24,93,.18),transparent)}
+.pf-card__body{padding:14px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.pf-card__badge{display:inline-block;font-size:.58rem;font-weight:900;letter-spacing:.14em;color:#fde68a;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.32);border-radius:4px;padding:3px 8px;text-transform:uppercase;width:max-content}
+.pf-card__title{font-size:1.05rem;font-weight:900;color:#f0ebff;margin:0;letter-spacing:.02em}
+.pf-card__desc{font-size:.82rem;color:rgba(210,200,245,.8);line-height:1.6;margin:0}
+.pf-card__desc strong{color:#ddd6fe}
+.pf-card__points{margin:0;padding:0 0 0 2px;list-style:none;display:flex;flex-direction:column;gap:5px}
+.pf-card__points li{font-size:.78rem;color:rgba(200,190,240,.85);display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.pf-card__price-row{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(140,90,255,.14)}
+.pf-card__price{display:flex;align-items:center;gap:6px}
+.pf-coin-icon{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 6px rgba(255,195,40,.5),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
+.pf-coin-amount{font-size:.9rem;font-weight:900;color:#fcd262;letter-spacing:.02em}
+.pf-coin-note{font-size:.72rem;color:rgba(200,170,255,.65)}
+.pf-card__cta{width:100%;border:none;border-radius:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(109,40,217,.9),rgba(79,70,229,.85));color:#fff;font-size:.85rem;font-weight:800;cursor:pointer;letter-spacing:.03em;transition:filter .2s,transform .2s;box-shadow:0 4px 16px rgba(80,30,180,.35)}
+.pf-card__cta:hover{filter:brightness(1.1);transform:translateY(-1px)}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
@@ -557,27 +585,53 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
 <style id="tile-preview-styles">
-/* === Feature Preview Panel === */
+/* === Feature Preview Panel v2 (이미지 포함 상세 페이지) === */
 .tile-pvw-overlay{position:fixed;inset:0;z-index:99990;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;opacity:0;transition:opacity .28s ease}
 .tile-pvw-overlay.pvw-open{pointer-events:all;opacity:1}
-.tile-pvw-bd{position:absolute;inset:0;background:rgba(5,2,16,.75);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
-.tile-pvw-sheet{position:relative;width:min(500px,100%);background:linear-gradient(175deg,#130a2a 0%,#1d0b38 55%,#0e0420 100%);border:1px solid rgba(180,120,255,.2);border-bottom:none;border-radius:26px 26px 0 0;padding:16px 22px 42px;box-shadow:0 -12px 54px rgba(0,0,0,.6),0 0 0 1px rgba(200,150,255,.05);transform:translateY(110%);transition:transform .38s cubic-bezier(.34,1.32,.64,1)}
+.tile-pvw-bd{position:absolute;inset:0;background:rgba(5,2,16,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tile-pvw-sheet{position:relative;width:min(500px,100%);max-height:88vh;overflow-y:auto;background:linear-gradient(175deg,#130a2a 0%,#1d0b38 55%,#0e0420 100%);border:1px solid rgba(180,120,255,.22);border-bottom:none;border-radius:24px 24px 0 0;box-shadow:0 -14px 60px rgba(0,0,0,.65),0 0 0 1px rgba(200,150,255,.06);transform:translateY(110%);transition:transform .38s cubic-bezier(.34,1.32,.64,1);scrollbar-width:none;-ms-overflow-style:none}
+.tile-pvw-sheet::-webkit-scrollbar{display:none}
 .tile-pvw-overlay.pvw-open .tile-pvw-sheet{transform:translateY(0)}
-.tile-pvw-handle{width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.2);margin:0 auto 16px}
-.tile-pvw-close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:rgba(255,255,255,.65);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .18s}
-.tile-pvw-close:hover{background:rgba(255,255,255,.14)}
-.tile-pvw-meta{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap}
-.tile-pvw-cat{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.66rem;font-weight:800;letter-spacing:.04em;background:rgba(160,100,255,.18);border:1px solid rgba(180,120,255,.28);color:#d8b4fe}
-.tile-pvw-cost{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:999px;font-size:.66rem;font-weight:800;letter-spacing:.03em;background:rgba(255,210,60,.1);border:1px solid rgba(255,215,80,.28);color:#fde68a}
-.tile-pvw-cost--free{background:rgba(28,155,96,.14);border-color:rgba(100,220,158,.28);color:#6ee7b7}
-.tile-pvw-title{font-size:1.28rem;font-weight:900;color:#f0e8ff;margin:0 0 6px;line-height:1.25;padding-right:40px}
-.tile-pvw-tagline{font-size:.87rem;color:rgba(200,168,255,.72);margin:0 0 18px;line-height:1.5}
-.tile-pvw-feats{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;gap:7px}
-.tile-pvw-feats li{display:flex;align-items:center;gap:9px;font-size:.82rem;color:#ddd0f8;background:rgba(130,70,255,.07);border:1px solid rgba(150,90,255,.11);border-radius:10px;padding:8px 13px;line-height:1.35}
-.tile-pvw-feats li::before{content:'✦';color:#9d6cf5;font-size:.7rem;flex-shrink:0}
+/* 드래그 핸들 (hero 위에 겹침) */
+.tile-pvw-handle{width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.25);position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3}
+/* 닫기 버튼 */
+.tile-pvw-close{position:absolute;top:13px;right:13px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(15,8,32,.75);color:rgba(255,255,255,.85);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .18s;z-index:4;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tile-pvw-close:hover{background:rgba(255,255,255,.18)}
+/* 히어로 이미지 영역 */
+.tile-pvw-hero{position:relative;width:100%;height:200px;overflow:hidden;border-radius:24px 24px 0 0;background:#120832;flex-shrink:0}
+.tile-pvw-hero-img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block;transition:transform .4s ease}
+.tile-pvw-hero:has(.tile-pvw-hero-img[src=""]) .tile-pvw-hero-img{display:none}
+.tile-pvw-hero-gradient{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,4,20,.15) 0%,rgba(8,4,20,.55) 60%,rgba(19,10,42,1) 100%);pointer-events:none}
+.tile-pvw-hero-badges{position:absolute;top:44px;left:14px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+.tile-pvw-hero-cat{display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;font-size:.67rem;font-weight:800;letter-spacing:.04em;background:rgba(10,5,25,.7);border:1px solid rgba(180,120,255,.4);color:#d8b4fe;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.tile-pvw-hero-cost{display:inline-flex;align-items:center;gap:3px;padding:4px 11px;border-radius:999px;font-size:.67rem;font-weight:800;letter-spacing:.02em;background:rgba(10,5,25,.7);border:1px solid rgba(255,215,80,.38);color:#fde68a;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.tile-pvw-hero-cost--free{border-color:rgba(100,220,158,.38);color:#6ee7b7}
+/* 콘텐츠 영역 */
+.tile-pvw-content{padding:18px 22px 40px}
+.tile-pvw-title{font-size:1.32rem;font-weight:900;color:#f0e8ff;margin:0 0 8px;line-height:1.25}
+.tile-pvw-tagline{font-size:.88rem;color:rgba(200,168,255,.78);margin:0 0 16px;line-height:1.6}
+.tile-pvw-divider{width:36px;height:2px;background:linear-gradient(90deg,#7c3aed,transparent);border-radius:2px;margin:0 0 14px}
+.tile-pvw-feats-label{font-size:.68rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:rgba(180,140,255,.45);margin:0 0 9px}
+.tile-pvw-feats{list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:6px}
+.tile-pvw-feats li{display:flex;align-items:flex-start;gap:9px;font-size:.84rem;color:#ddd0f8;background:rgba(130,70,255,.07);border:1px solid rgba(150,90,255,.12);border-radius:10px;padding:9px 13px;line-height:1.45}
+.tile-pvw-feats li::before{content:'✦';color:#9d6cf5;font-size:.68rem;flex-shrink:0;margin-top:3px}
+/* 코인/해금 paywall 정보 박스 */
+.tile-pvw-paywall{background:rgba(255,200,50,.07);border:1px solid rgba(255,215,80,.22);border-radius:12px;padding:12px 15px;margin:0 0 18px;display:flex;align-items:flex-start;gap:10px}
+.tile-pvw-paywall-icon{font-size:1.3rem;flex-shrink:0;line-height:1.4}
+.tile-pvw-paywall-body{flex:1}
+.tile-pvw-paywall-title{display:block;font-size:.88rem;font-weight:800;color:#fde68a;margin-bottom:3px}
+.tile-pvw-paywall-desc{font-size:.78rem;color:rgba(253,230,138,.7);line-height:1.45}
+.tile-pvw-paywall--lock{background:rgba(160,100,255,.08);border-color:rgba(160,100,255,.28)}
+.tile-pvw-paywall--lock .tile-pvw-paywall-title{color:#d8b4fe}
+.tile-pvw-paywall--lock .tile-pvw-paywall-desc{color:rgba(216,180,254,.65)}
+/* CTA 버튼 */
 .tile-pvw-cta-btn{width:100%;padding:15px 20px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:.97rem;font-weight:900;cursor:pointer;letter-spacing:.01em;box-shadow:0 6px 24px rgba(124,58,237,.45),inset 0 1px 0 rgba(255,255,255,.16);transition:transform .18s,filter .18s,box-shadow .18s}
 .tile-pvw-cta-btn:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.1);box-shadow:0 10px 32px rgba(168,85,247,.55)}
 .tile-pvw-cta-btn:active{transform:scale(.97)}
+.tile-pvw-cta-btn--coin{background:linear-gradient(135deg,#b45309,#d97706,#f59e0b);box-shadow:0 6px 24px rgba(180,83,9,.42),inset 0 1px 0 rgba(255,255,255,.16)}
+.tile-pvw-cta-btn--coin:hover{box-shadow:0 10px 32px rgba(245,158,11,.5)}
+.tile-pvw-cta-btn--lock{background:linear-gradient(135deg,#5b21b6,#7c3aed,#9333ea);box-shadow:0 6px 24px rgba(91,33,182,.48),inset 0 1px 0 rgba(255,255,255,.14)}
+.tile-pvw-cta-btn--lock:hover{box-shadow:0 10px 32px rgba(147,51,234,.55)}
 </style>
 </head>
 <body>
@@ -1235,7 +1289,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20animal.webp" data-img-alt="AI 동물 관상 — 셀카로 보는 얼굴형 관상 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--beta">얼굴 분석</span>
-                        <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료 · 궁합 🪙50코인</span>
+                        <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료 · 궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🎭 AI 동물 관상</span>
@@ -1265,7 +1319,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/animaltotem.webp" data-img-alt="애니멀 토템 리딩 — 수호 동물 메시지">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐯</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--totem">토템 리딩</span>
-                        <span class="tarot-tile__coin-badge">🪙 30코인</span>
+                        <span class="tarot-tile__coin-badge">30코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🧸 애니멀 토템</span>
@@ -3331,6 +3385,108 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
 
 
+    <!-- ══ 프리미엄 기능 상세 소개 ══ -->
+    <section class="card pf-showcase" aria-label="프리미엄 유료 기능 상세 안내">
+      <div class="pf-showcase__header">
+        <div class="pf-showcase__eyebrow">PREMIUM ANALYSIS</div>
+        <h2 class="pf-showcase__title">당신의 運命을 전략으로 바꾸는<br>심층 분석 3종 세트</h2>
+        <p class="pf-showcase__sub">사주팔자의 전략적 해석 — 단순 운세 이상의 인생 설계도를 제공합니다</p>
+      </div>
+      <div class="pf-showcase__grid">
+
+        <!-- 대운 분석 -->
+        <div class="pf-card pf-card--daewun">
+          <div class="pf-card__icon-wrap" aria-hidden="true">🔮</div>
+          <div class="pf-card__body">
+            <div class="pf-card__badge">영구 해금</div>
+            <h3 class="pf-card__title">대운 (大運) 분석</h3>
+            <p class="pf-card__desc">
+              10년 주기 대운의 흐름을 억부·조후·종격 세 가지 시각으로 통합 분석합니다.
+              인생의 길흉(吉凶) 그래프로 한눈에 보는 시대별 전략 로드맵 —
+              <strong>언제 치고 나가고, 언제 버텨야 하는지</strong>를 사주가 말해줍니다.
+            </p>
+            <ul class="pf-card__points">
+              <li>📊 10년 단위 인생 길흉 그래프 시각화</li>
+              <li>🌊 대운별 유·불리 요소 심층 해석</li>
+              <li>🎯 현재 대운 위치 & 핵심 전략 제언</li>
+              <li>⚡ 억부·조후·종격 통합 판단</li>
+            </ul>
+            <div class="pf-card__price-row">
+              <div class="pf-card__price">
+                <span class="pf-coin-icon" aria-hidden="true"></span>
+                <span class="pf-coin-amount">50코인</span>
+                <span class="pf-coin-note">영구 해금 · 1회 약 500원</span>
+              </div>
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">
+                지금 열람하기 →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 종합 사주 풀이 -->
+        <div class="pf-card pf-card--summary">
+          <div class="pf-card__icon-wrap" aria-hidden="true">📖</div>
+          <div class="pf-card__body">
+            <div class="pf-card__badge">영구 해금</div>
+            <h3 class="pf-card__title">종합 사주 풀이</h3>
+            <p class="pf-card__desc">
+              A4 20페이지 분량의 사주 종합 리포트. 성격·진로·연애·건강·재물·귀인·개운법까지
+              삶의 모든 영역을 사주 전략 마스터가 심층 해석합니다.
+              <strong>한 번 해금으로 평생 열람 가능</strong>한 당신만의 운명 교과서.
+            </p>
+            <ul class="pf-card__points">
+              <li>🧬 8글자로 읽는 타고난 성격과 재능</li>
+              <li>💼 10년간 유망한 직업군 & 진로 전략</li>
+              <li>💕 연애·결혼 타이밍과 인연의 조건</li>
+              <li>💰 재물 흐름과 돈이 모이는 방법</li>
+            </ul>
+            <div class="pf-card__price-row">
+              <div class="pf-card__price">
+                <span class="pf-coin-icon" aria-hidden="true"></span>
+                <span class="pf-coin-amount">50코인</span>
+                <span class="pf-coin-note">영구 해금 · 1회 약 500원</span>
+              </div>
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">
+                지금 열람하기 →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 궁합 분석 -->
+        <div class="pf-card pf-card--compat">
+          <div class="pf-card__icon-wrap" aria-hidden="true">💞</div>
+          <div class="pf-card__body">
+            <div class="pf-card__badge">영구 해금</div>
+            <h3 class="pf-card__title">궁합 분석</h3>
+            <p class="pf-card__desc">
+              연애·사업·친구 궁합을 사주팔자 기반으로 분석합니다.
+              오행의 상생·상극 원리로 파악하는 두 사람의 에너지 궁합 —
+              <strong>함께할수록 좋아지는 관계인지, 조심해야 하는 관계인지</strong>를 밝혀드립니다.
+            </p>
+            <ul class="pf-card__points">
+              <li>🔥 오행 상생·상극 궁합 점수</li>
+              <li>💬 연애·결혼·사업·친구 유형별 분석</li>
+              <li>🌹 좋은 타이밍과 조심할 구간 안내</li>
+              <li>✨ AI 사주 마스터의 맞춤 조언</li>
+            </ul>
+            <div class="pf-card__price-row">
+              <div class="pf-card__price">
+                <span class="pf-coin-icon" aria-hidden="true"></span>
+                <span class="pf-coin-amount">50코인</span>
+                <span class="pf-coin-note">영구 해금 · 1회 약 500원</span>
+              </div>
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">
+                지금 열람하기 →
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- 7. 대운 -->
     <section class="card" id="daewunCard" aria-labelledby="daewunTitle">
       <h3 id="daewunTitle" class="sec-title">🔮 대운 (大運) — 억부+조후+종격 통합 판단</h3>
@@ -3339,7 +3495,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div class="cd-section-gate__icon">🔒</div>
           <p class="cd-section-gate__title">대운 분석 — 유료 콘텐츠</p>
           <p class="cd-section-gate__desc">억부·조후·종격 통합 대운 흐름과 인생 길흉 그래프를 열람하려면 황금 돼지 코인이 필요합니다.</p>
-          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
           <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
@@ -3376,7 +3532,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div class="cd-section-gate__icon">🔒</div>
           <p class="cd-section-gate__title">종합 사주 풀이 — 유료 콘텐츠</p>
           <p class="cd-section-gate__desc">A4 20페이지 분량의 성격·진로·연애·건강·재물·귀인·개운 심층 풀이를 열람하려면 황금 돼지 코인이 필요합니다.</p>
-          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
           <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
@@ -3408,7 +3564,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div class="cd-section-gate__icon">🔒</div>
           <p class="cd-section-gate__title">궁합 분석 — 유료 콘텐츠</p>
           <p class="cd-section-gate__desc">연애·사업·친구 궁합을 사주 기반으로 분석한 결과를 열람하려면 황금 돼지 코인이 필요합니다.</p>
-          <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
+          <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
           <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
@@ -4396,6 +4552,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
+    // .tarot-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
+    if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) return;
     // 터치 해제 위치가 타일 영역 내인지 확인
     var t = event.changedTouches && event.changedTouches[0];
     if (t && typeof document.elementFromPoint === 'function') {
@@ -4416,16 +4574,26 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-        return;
+        // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
+        if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
+          // Preview 인터셉터로 위임 (이벤트 계속 전파)
+        } else {
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
+        }
+      } else {
+        delete perUseApproved[action];
       }
-      delete perUseApproved[action];
     }
 
     // ── 영구 해금 타일 게이트 ──
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
     if (tileLockKey && tileLockCost > 0 && !unlockedFeatureMap[tileLockKey]) {
+      // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
+      if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
+        // Preview 인터셉터로 위임 (이벤트 계속 전파)
+      } else {
       event.preventDefault();
       event.stopImmediatePropagation();
       (async function () {
@@ -4486,7 +4654,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
       })();
       return;
-    }
+      } // else: pvw-bypass 있을 때만 해금 진행
+    } // if tileLockKey
 
     if (action === 'openGoldenGrainCharge') {
       openChargeModal();
@@ -4596,57 +4765,75 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
-<!-- Feature Preview Panel -->
+<!-- Feature Preview Panel v2 -->
 <div id="tilePvwOverlay" class="tile-pvw-overlay" role="dialog" aria-modal="true" aria-labelledby="tilePvwTitle">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
   <div class="tile-pvw-sheet" id="tilePvwSheet">
     <div class="tile-pvw-handle" aria-hidden="true"></div>
     <button class="tile-pvw-close" id="tilePvwClose" aria-label="닫기">✕</button>
-    <div class="tile-pvw-meta">
-      <span class="tile-pvw-cat" id="tilePvwCat"></span>
-      <span class="tile-pvw-cost" id="tilePvwCost"></span>
+    <!-- 히어로 이미지 섹션 -->
+    <div class="tile-pvw-hero" id="tilePvwHero">
+      <img class="tile-pvw-hero-img" id="tilePvwHeroImg" src="" alt="" loading="lazy" decoding="async">
+      <div class="tile-pvw-hero-gradient" aria-hidden="true"></div>
+      <div class="tile-pvw-hero-badges">
+        <span class="tile-pvw-hero-cat" id="tilePvwCat"></span>
+        <span class="tile-pvw-hero-cost" id="tilePvwCost"></span>
+      </div>
     </div>
-    <h2 class="tile-pvw-title" id="tilePvwTitle"></h2>
-    <p class="tile-pvw-tagline" id="tilePvwTagline"></p>
-    <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
-    <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
+    <!-- 콘텐츠 영역 -->
+    <div class="tile-pvw-content">
+      <h2 class="tile-pvw-title" id="tilePvwTitle"></h2>
+      <p class="tile-pvw-tagline" id="tilePvwTagline"></p>
+      <div class="tile-pvw-divider" aria-hidden="true"></div>
+      <p class="tile-pvw-feats-label">주요 기능</p>
+      <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
+      <!-- 코인/해금 paywall 정보 박스 -->
+      <div class="tile-pvw-paywall" id="tilePvwPaywall" style="display:none" aria-live="polite">
+        <span class="tile-pvw-paywall-icon" id="tilePvwPaywallIcon" aria-hidden="true">🪙</span>
+        <div class="tile-pvw-paywall-body">
+          <strong class="tile-pvw-paywall-title" id="tilePvwPaywallTitle"></strong>
+          <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
+        </div>
+      </div>
+      <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
+    </div>
   </div>
 </div>
 <script>
-/* === Tile Feature Preview v1.0 === */
+/* === Tile Feature Preview v2.0 (이미지 포함 상세 페이지) === */
 (function(){
   'use strict';
   var D={
-    openDestinyFlowerStudio:{cat:'사주 · 운명의 꽃',title:'🌸 사주로 보는 꽃',tagline:'태어난 날의 팔자(八字)를 세상에 단 하나뿐인 꽃으로 피워냅니다',feats:['사주 명리학 8글자 완전 분석','나만의 운명 꽃 아트 비주얼 생성','사주·점성술·자미두수 통합 시각화','감성적 개인 운명 리포트 제공'],cost:'🔒 해금 50코인',ct:'paid'},
-    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양·달·상승궁 에너지를 성운 꽃으로 피워냅니다',feats:['태양·달·상승궁 삼각 에너지 분석','서양 점성술 기반 꽃 아트 생성','12행성 배치 패턴 해석','감성 성운 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
-    openJamidusuFlowerStudio:{cat:'자미두수 · 동양 점성',title:'🌺 자미두수 꽃',tagline:'제왕의 별자리를 꽃으로 시각화한 동양 최고 명리 예술',feats:['자미두수 명궁·주성 정밀 분석','주성·보성 별 밝기 해석','귀인성·재성 꽃 매핑 시각화','전통 동양 운명 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
-    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'27수(宿) 달의 위상으로 피어나는 생명의 꽃',feats:['인도-불교 27수 별자리 분석','태어날 때 달빛 에너지 해석','숙요 전통 운세 꽃 시각화','달의 위상 리듬 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
-    openDreamModal:{cat:'드림 타로 · 해몽',title:'🌙 드림 타로',tagline:'꿈의 상징을 타로와 연결해 숨겨진 运命을 해독합니다',feats:['AI 기반 꿈 심층 해석','타로 카드 연결 심볼 분석','꿈 속 인물·장소·감정 의미 해독','운명 예언 리포트 제공'],cost:'✨ 무료',ct:'free'},
-    openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'프로이트 & 영국 심리학으로 꿈의 무의식을 파헤칩니다',feats:['프로이트 정신분석 해석 적용','현대 영국 임상심리학 관점 교차','꿈 무의식 패턴 심층 분석','전문 심리 보고서 형식 리포트'],cost:'✨ 무료',ct:'free'},
-    openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장으로 당신의 얼굴에 숨겨진 운명을 읽어냅니다',feats:['AI 얼굴형 관상 정밀 분석','동물 토템 매핑 시각화','성격·운세·매력 지수 분석','셀카 업로드만으로 즉시 결과'],cost:'✨ 무료',ct:'free'},
-    openMbtiModal:{cat:'MBTI · 궁합',title:'🦁 MBTI 동물 궁합',tagline:'16가지 MBTI를 동물 토템으로 재해석한 연애 궁합 리딩',feats:['MBTI 16유형 동물 토템 매핑','커플 궁합 점수 & 시너지 분석','연애 스타일 & 갈등 포인트 해석','무료 즉시 결과 제공'],cost:'✨ 무료',ct:'free'},
-    openAnimalTotemModal:{cat:'토템 · 수호 동물',title:'🧸 애니멀 토템',tagline:'수호 동물이 당신에게 전하는 비밀 메시지를 리딩합니다',feats:['샤머닉 전통 수호 동물 카드 리딩','오늘의 인도 & 경고 메시지','동물 상징 에너지 심층 해석','고화질 토템 카드 비주얼'],cost:'🪙 30코인',ct:'paid'},
-    openSajuAnimalPage:{cat:'사주 · 수호 동물 아트',title:'🐲 사주 가디언 아트',tagline:'생년월일로 찾는 나만의 수호 동물 & AI 가디언 이미지',feats:['사주 8글자 기반 수호 동물 매핑','12지신 + 천간 기반 캐릭터 생성','나만의 AI 가디언 아트 제공','무료 대형 결과 이미지 다운로드'],cost:'✨ 무료',ct:'free'},
-    openNevilleMeditationPage:{cat:'네빌 명상 · 실습',title:'🧘 네빌 명상 실습',tagline:'상상이 현실이 되는 네빌 고다드식 집중 명상 루틴',feats:['네빌 고다드 이론 기반 명상 가이드','단계별 집중 호흡 & 자기 암시','원하는 현실 시각화 루틴','30분 완전 가이드 세션'],cost:'🪙 30코인',ct:'paid'},
-    openYogaGuru:{cat:'인도 요가 · 명상',title:'🪷 Divya Yoga',tagline:'당신의 에너지 타입에 맞춘 인도 감성 요가 & 명상 루틴',feats:['사주 기반 에너지 타입 분석','맞춤 아사나 & 호흡법 제공','차크라 활성화 명상 루틴','인도 전통 감성 가이드 세션'],cost:'🪙 30코인',ct:'paid'},
-    openTarotLoveModal:{cat:'타로 · 관계 리딩',title:'💕 우리는 무슨 사이?',tagline:'지금 이 관계의 진짜 감정을 6장의 타로가 말합니다',feats:['6카드 관계 심층 스프레드','상대방 감정 & 나의 감정 분석','관계 진전 가능성 & 장벽 해석','커플·짝사랑·이별 모든 상황 적용'],cost:'🪙 50코인',ct:'paid'},
-    openTarotHealingModal:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'상처받은 마음을 따뜻한 태양 에너지로 회복시켜 드립니다',feats:['4카드 회복 스프레드 리딩','감정 상처 & 치유 에너지 분석','앞으로 나아갈 방향 & 조언','따뜻한 응원 메시지 포함'],cost:'✨ 무료',ct:'free'},
-    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'RPG 퀘스트 형식으로 자존감을 5단계로 레벨업합니다',feats:['5카드 RPG 퀘스트 스프레드','자존감 레벨 & 성장 포인트 분석','내면 강점 & 약점 해석','미션 형식의 실천 가이드 제공'],cost:'✨ 무료',ct:'free'},
-    openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'별을 헤는 밤바다, 그 사람이 돌아올 확률을 읽어냅니다',feats:['5카드 등대 스프레드 리딩','재회 가능성 & 타이밍 분석','상대방 현재 감정 상태 해석','재회를 위한 실전 어드바이스'],cost:'🪙 50코인',ct:'paid'},
-    openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'12지신의 기운으로 12개월 재물·연애·인간관계 가이드',feats:['12개월 월별 상세 운세 분석','재물·연애·건강·인간관계 항목','십이지신 수호 기운 해석','행운의 달 & 주의 달 표시'],cost:'30코인',ct:'paid'},
-    openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'78장 유니버설 덱으로 명리학과 타로를 교차 해석합니다',feats:['78장 유니버설 타로 덱 활용','명리학 프레임 교차 해석','질문 맞춤 카드 스프레드','AI 심층 리딩 리포트'],cost:'30코인',ct:'paid'},
-    openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'12달 화투패의 숨겨진 운명 암호를 타짜가 읽어드립니다',feats:['한국 전통 화투패 12달 운세','월별 꽃패 상징 심층 해석','재물·사랑·시험 운세 분석','타짜 스타일 생생한 리딩'],cost:'✨ 무료',ct:'free'},
-    openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'고대 케멧의 신들이 오늘 당신에게 신탁을 내립니다',feats:['고대 이집트 케멧 오라클 카드','신 & 상징 교차 해석','오늘의 질문 삶 적용 가이드','신비로운 이집트 아트 비주얼'],cost:'🪙 30코인',ct:'paid'},
-    openJuyukModal:{cat:'주역 64괘 · 거북점',title:'☯️ 주역 거북점',tagline:'3000년 동양 지혜의 결정체, 64괘로 운명을 점칩니다',feats:['주역 64괘 정통 해석','거북이 등 문양 점술 의식','오늘의 질문 괘 매핑','한문 & 현대 해석 동시 제공'],cost:'🪙 30코인',ct:'paid'},
-    openSukuyoModal:{cat:'숙요점 · 불교 천문',title:'💫 숙요점(宿曜占)',tagline:'불교 밀교 27수 별자리로 운명의 별을 찾아드립니다',feats:['불교 밀교 전통 27수 점성','나의 수호 별자리 & 길흉 분석','숙요 달력 기반 길일 계산','VIP 전용 프리미엄 리포트'],cost:'🔒 해금 400코인',ct:'paid'},
-    openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'고대 켈트 룬 문자에 새겨진 운명의 메시지를 읽어냅니다',feats:['고대 퓨사크 24룬 오라클 리딩','스톤헨지 의식 기반 뽑기','룬 상징 심층 & 역방향 해석','켈트 전통 비주얼 리딩'],cost:'🪙 50코인',ct:'paid'},
-    openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'대지에 던진 16행 점의 패턴으로 땅의 신탁을 읽습니다',feats:['중동-아프리카 전통 흙점 의식','16행 기하학 패턴 신탁 해석','오늘의 질문 대지 메시지 제공','감성적 사막 아트 비주얼'],cost:'🪙 50코인',ct:'paid'},
-    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'왕실의 찻잎 문양에서 오늘의 운명 이야기가 펼쳐집니다',feats:['영국 전통 타세오그래피 의식','찻잎 형태 상징 심층 해독','왕실 스타일 운세 리포트','빅토리아 시대 감성 비주얼'],cost:'🪙 30코인',ct:'paid'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석이 만드는 형태로 새해 운명을 점치는 핀란드 전통',feats:['핀란드 정통 주석점 의식 시뮬레이션','주석 형태 상징 20가지 해석','돼지 마스코트 연이와 함께하는 리딩','행운·사랑·재물 운세 무료 제공'],cost:'✨ 무료',ct:'free'},
-    '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신들과 벌이는 운명의 카드 대결! 승리하면 행운이 찾아옵니다',feats:['5장 포커 기반 운명 대결 게임','올림푸스 신 캐릭터 4명 배틀','승률로 보는 오늘의 운세 지수','완전 무료 엔터테인먼트 점술'],cost:'✨ 무료',ct:'free'}
+    openDestinyFlowerStudio:{cat:'사주 · 운명의 꽃',title:'🌸 사주로 보는 꽃',tagline:'태어난 날의 팔자(八字)를 세상에 단 하나뿐인 꽃으로 피워냅니다',feats:['사주 명리학 8글자 완전 분석','나만의 운명 꽃 아트 비주얼 생성','사주·점성술·자미두수 통합 시각화','감성적 개인 운명 리포트 제공'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
+    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양·달·상승궁 에너지를 성운 꽃으로 피워냅니다',feats:['태양·달·상승궁 삼각 에너지 분석','서양 점성술 기반 꽃 아트 생성','12행성 배치 패턴 해석','감성 성운 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
+    openJamidusuFlowerStudio:{cat:'자미두수 · 동양 점성',title:'🌺 자미두수 꽃',tagline:'제왕의 별자리를 꽃으로 시각화한 동양 최고 명리 예술',feats:['자미두수 명궁·주성 정밀 분석','주성·보성 별 밝기 해석','귀인성·재성 꽃 매핑 시각화','전통 동양 운명 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
+    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'27수(宿) 달의 위상으로 피어나는 생명의 꽃',feats:['인도-불교 27수 별자리 분석','태어날 때 달빛 에너지 해석','숙요 전통 운세 꽃 시각화','달의 위상 리듬 리포트'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
+    openDreamModal:{cat:'드림 타로 · 해몽',title:'🌙 드림 타로',tagline:'꿈의 상징을 타로와 연결해 숨겨진 運命을 해독합니다',feats:['AI 기반 꿈 심층 해석','타로 카드 연결 심볼 분석','꿈 속 인물·장소·감정 의미 해독','운명 예언 리포트 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/heamong.webp'},
+    openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'프로이트 & 영국 심리학으로 꿈의 무의식을 파헤칩니다',feats:['프로이트 정신분석 해석 적용','현대 영국 임상심리학 관점 교차','꿈 무의식 패턴 심층 분석','전문 심리 보고서 형식 리포트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/phydream.webp'},
+    openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장으로 당신의 얼굴에 숨겨진 운명을 읽어냅니다',feats:['AI 얼굴형 관상 정밀 분석','동물 토템 매핑 시각화','성격·운세·매력 지수 분석','셀카 업로드만으로 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},
+    openMbtiModal:{cat:'MBTI · 궁합',title:'🦁 MBTI 동물 궁합',tagline:'16가지 MBTI를 동물 토템으로 재해석한 연애 궁합 리딩',feats:['MBTI 16유형 동물 토템 매핑','커플 궁합 점수 & 시너지 분석','연애 스타일 & 갈등 포인트 해석','무료 즉시 결과 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20face.webp'},
+    openAnimalTotemModal:{cat:'토템 · 수호 동물',title:'🧸 애니멀 토템',tagline:'수호 동물이 당신에게 전하는 비밀 메시지를 리딩합니다',feats:['샤머닉 전통 수호 동물 카드 리딩','오늘의 인도 & 경고 메시지','동물 상징 에너지 심층 해석','고화질 토템 카드 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/animaltotem.webp'},
+    openSajuAnimalPage:{cat:'사주 · 수호 동물 아트',title:'🐲 사주 가디언 아트',tagline:'생년월일로 찾는 나만의 수호 동물 & AI 가디언 이미지',feats:['사주 8글자 기반 수호 동물 매핑','12지신 + 천간 기반 캐릭터 생성','나만의 AI 가디언 아트 제공','무료 대형 결과 이미지 다운로드'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/Who%20am%20I%20with%20saju.webp'},
+    openNevilleMeditationPage:{cat:'네빌 명상 · 실습',title:'🧘 네빌 명상 실습',tagline:'상상이 현실이 되는 네빌 고다드식 집중 명상 루틴',feats:['네빌 고다드 이론 기반 명상 가이드','단계별 집중 호흡 & 자기 암시','원하는 현실 시각화 루틴','30분 완전 가이드 세션'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/meditation.webp'},
+    openYogaGuru:{cat:'인도 요가 · 명상',title:'🪷 Divya Yoga',tagline:'당신의 에너지 타입에 맞춘 인도 감성 요가 & 명상 루틴',feats:['사주 기반 에너지 타입 분석','맞춤 아사나 & 호흡법 제공','차크라 활성화 명상 루틴','인도 전통 감성 가이드 세션'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/india.webp'},
+    openTarotLoveModal:{cat:'타로 · 관계 리딩',title:'💕 우리는 무슨 사이?',tagline:'지금 이 관계의 진짜 감정을 6장의 타로가 말합니다',feats:['6카드 관계 심층 스프레드','상대방 감정 & 나의 감정 분석','관계 진전 가능성 & 장벽 해석','커플·짝사랑·이별 모든 상황 적용'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/tarolove.webp'},
+    openTarotHealingModal:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'상처받은 마음을 따뜻한 태양 에너지로 회복시켜 드립니다',feats:['4카드 회복 스프레드 리딩','감정 상처 & 치유 에너지 분석','앞으로 나아갈 방향 & 조언','따뜻한 응원 메시지 포함'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
+    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'RPG 퀘스트 형식으로 자존감을 5단계로 레벨업합니다',feats:['5카드 RPG 퀘스트 스프레드','자존감 레벨 & 성장 포인트 분석','내면 강점 & 약점 해석','미션 형식의 실천 가이드 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
+    openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'별을 헤는 밤바다, 그 사람이 돌아올 확률을 읽어냅니다',feats:['5카드 등대 스프레드 리딩','재회 가능성 & 타이밍 분석','상대방 현재 감정 상태 해석','재회를 위한 실전 어드바이스'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
+    openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'12지신의 기운으로 12개월 재물·연애·인간관계 가이드',feats:['12개월 월별 상세 운세 분석','재물·연애·건강·인간관계 항목','십이지신 수호 기운 해석','행운의 달 & 주의 달 표시'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
+    openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'78장 유니버설 덱으로 명리학과 타로를 교차 해석합니다',feats:['78장 유니버설 타로 덱 활용','명리학 프레임 교차 해석','질문 맞춤 카드 스프레드','AI 심층 리딩 리포트'],cost:'30코인',ct:'paid',img:'/fuctionassets/ai%20tarrot.webp'},
+    openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'12달 화투패의 숨겨진 운명 암호를 타짜가 읽어드립니다',feats:['한국 전통 화투패 12달 운세','월별 꽃패 상징 심층 해석','재물·사랑·시험 운세 분석','타짜 스타일 생생한 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/tazza.webp'},
+    openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'고대 케멧의 신들이 오늘 당신에게 신탁을 내립니다',feats:['고대 이집트 케멧 오라클 카드','신 & 상징 교차 해석','오늘의 질문 삶 적용 가이드','신비로운 이집트 아트 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/egypt.webp'},
+    openJuyukModal:{cat:'주역 64괘 · 거북점',title:'☯️ 주역 거북점',tagline:'3000년 동양 지혜의 결정체, 64괘로 운명을 점칩니다',feats:['주역 64괘 정통 해석','거북이 등 문양 점술 의식','오늘의 질문 괘 매핑','한문 & 현대 해석 동시 제공'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/juyuk.webp'},
+    openSukuyoModal:{cat:'숙요점 · 불교 천문',title:'💫 숙요점(宿曜占)',tagline:'불교 밀교 27수 별자리로 운명의 별을 찾아드립니다',feats:['불교 밀교 전통 27수 점성','나의 수호 별자리 & 길흉 분석','숙요 달력 기반 길일 계산','VIP 전용 프리미엄 리포트'],cost:'🔒 해금 400코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
+    openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'고대 켈트 룬 문자에 새겨진 운명의 메시지를 읽어냅니다',feats:['고대 퓨사크 24룬 오라클 리딩','스톤헨지 의식 기반 뽑기','룬 상징 심층 & 역방향 해석','켈트 전통 비주얼 리딩'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/rune.webp'},
+    openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'대지에 던진 16행 점의 패턴으로 땅의 신탁을 읽습니다',feats:['중동-아프리카 전통 흙점 의식','16행 기하학 패턴 신탁 해석','오늘의 질문 대지 메시지 제공','감성적 사막 아트 비주얼'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/geomancy.webp'},
+    openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'왕실의 찻잎 문양에서 오늘의 운명 이야기가 펼쳐집니다',feats:['영국 전통 타세오그래피 의식','찻잎 형태 상징 심층 해독','왕실 스타일 운세 리포트','빅토리아 시대 감성 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석이 만드는 형태로 새해 운명을 점치는 핀란드 전통',feats:['핀란드 정통 주석점 의식 시뮬레이션','주석 형태 상징 20가지 해석','돼지 마스코트 연이와 함께하는 리딩','행운·사랑·재물 운세 무료 제공'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
+    '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신들과 벌이는 운명의 카드 대결! 승리하면 행운이 찾아옵니다',feats:['5장 포커 기반 운명 대결 게임','올림푸스 신 캐릭터 4명 배틀','승률로 보는 오늘의 운세 지수','완전 무료 엔터테인먼트 점술'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'}
   };
 
-  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn;
+  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
   var _pendingTile=null,_pendingHref=null;
 
   function _init(){
@@ -4659,6 +4846,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     _catEl=document.getElementById('tilePvwCat');
     _costEl=document.getElementById('tilePvwCost');
     _ctaBtn=document.getElementById('tilePvwCtaBtn');
+    _heroImg=document.getElementById('tilePvwHeroImg');
+    _paywallEl=document.getElementById('tilePvwPaywall');
+    _paywallIcon=document.getElementById('tilePvwPaywallIcon');
+    _paywallTitle=document.getElementById('tilePvwPaywallTitle');
+    _paywallDesc=document.getElementById('tilePvwPaywallDesc');
     document.getElementById('tilePvwBd').addEventListener('click',_close);
     document.getElementById('tilePvwClose').addEventListener('click',_close);
     _ctaBtn.addEventListener('click',_onCta);
@@ -4672,13 +4864,60 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     if(!_ov)return;
     _pendingTile=tile;
     _pendingHref=href||null;
+
+    // 카테고리 & 비용 배지
     _catEl.textContent=d.cat||'';
+    _costEl.textContent=d.cost||'';
+    _costEl.className='tile-pvw-hero-cost'+(d.ct==='free'?' tile-pvw-hero-cost--free':'');
+
+    // 타이틀, 태그라인
     _titleEl.textContent=d.title||'';
     _taglineEl.textContent=d.tagline||'';
-    _costEl.textContent=d.cost||'';
-    _costEl.className='tile-pvw-cost'+(d.ct==='free'?' tile-pvw-cost--free':'');
+
+    // 기능 목록
     _featsEl.innerHTML='';
     (d.feats||[]).forEach(function(f){var li=document.createElement('li');li.textContent=f;_featsEl.appendChild(li);});
+
+    // 히어로 이미지: tile의 data-img-src 우선, 없으면 D 데이터의 img
+    var imgWrap=tile.querySelector('[data-img-src]');
+    var imgSrc=(imgWrap&&imgWrap.getAttribute('data-img-src'))||d.img||'';
+    if(_heroImg&&imgSrc){
+      _heroImg.src=imgSrc;
+      _heroImg.alt=d.title||'';
+      document.getElementById('tilePvwHero').style.display='';
+    } else if(document.getElementById('tilePvwHero')){
+      document.getElementById('tilePvwHero').style.display='none';
+    }
+
+    // 코인/해금 paywall 정보
+    var coinCost=Number(tile.getAttribute('data-coin-cost')||0);
+    var lockKey=tile.getAttribute('data-tile-lock-key');
+    var lockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
+
+    if(_paywallEl){
+      if(coinCost>0){
+        _paywallEl.style.display='';
+        _paywallEl.className='tile-pvw-paywall';
+        if(_paywallIcon)_paywallIcon.textContent='🪙';
+        if(_paywallTitle)_paywallTitle.textContent='이용 코인: '+coinCost+'코인';
+        if(_paywallDesc)_paywallDesc.textContent='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
+        _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
+        _ctaBtn.textContent='🪙 '+coinCost+'코인으로 시작하기';
+      } else if(lockKey&&lockCost>0){
+        _paywallEl.style.display='';
+        _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
+        if(_paywallIcon)_paywallIcon.textContent='🔒';
+        if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
+        if(_paywallDesc)_paywallDesc.textContent='한 번 해금하면 계속 이용 가능합니다!';
+        _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--lock';
+        _ctaBtn.textContent='🔓 '+lockCost+'코인으로 영구 해금';
+      } else {
+        _paywallEl.style.display='none';
+        _ctaBtn.className='tile-pvw-cta-btn';
+        _ctaBtn.textContent='지금 시작하기 →';
+      }
+    }
+
     _ov.removeAttribute('style');
     requestAnimationFrame(function(){_ov.classList.add('pvw-open');});
   }
