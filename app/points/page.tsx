@@ -51,7 +51,7 @@ type ConfirmResponse = {
 };
 
 /* ── 프로필 구독 타입 ───────────────────────────────────────── */
-type SubscriptionTier = "free" | "standard" | "premium";
+type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
 
 type SubscriptionStatus = {
   tier:         SubscriptionTier;
@@ -61,11 +61,13 @@ type SubscriptionStatus = {
 };
 
 type SubscriptionPlan = {
-  id:           "standard" | "premium";
+  id:           "standard" | "premium" | "vvip";
   title:        string;
   wonPrice:     number;
   coins:        number;
   profileLimit: number | null; // null = unlimited
+  freeUpTo:     number | null; // null = 모든 서비스 무료, number = 해당 코인 이하 무료
+  theme:        "amber" | "rose" | "purple";
   features:     string[];
   badge?:       string;
 };
@@ -120,24 +122,57 @@ declare global {
 
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
 
-/* 프로필 구독 플랜 정의 */
+/* 꿀 구독 시스템 플랜 정의 */
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id:           "standard",
-    title:        "스탠다드",
+    title:        "스탠다드 꿀",
     wonPrice:     9900,
     coins:        115,
     profileLimit: 3,
-    features:     ["프로필 3개 생성 가능", "30일간 유효", "코인 잔액 > 0 조건 시 활성", "구독자 한정 프로필 삭제·관리 가능"],
+    freeUpTo:     30,
+    theme:        "amber",
+    features:     [
+      "프로필 최대 3개 생성",
+      "30코인 이하 서비스 무료 이용",
+      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "30일간 유효 (코인 잔액 > 0 조건)",
+      "프로필 삭제·관리 기능 포함",
+    ],
   },
   {
     id:           "premium",
-    title:        "프리미엄",
+    title:        "프리미엄 꿀",
     wonPrice:     29900,
     coins:        360,
-    profileLimit: null,
-    features:     ["프로필 무제한 생성", "30일간 유효", "코인 잔액 무관 안정 유지", "전체 프로필 관리 기능 포함"],
+    profileLimit: 7,
+    freeUpTo:     50,
+    theme:        "rose",
+    features:     [
+      "프로필 최대 7개 생성",
+      "50코인 이하 서비스 무료 이용",
+      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "30일간 유효 (코인 잔액 무관 안정 유지)",
+      "전체 프로필 관리 기능 포함",
+    ],
     badge:        "추천",
+  },
+  {
+    id:           "vvip",
+    title:        "VVIP 꿀단지",
+    wonPrice:     59000,
+    coins:        700,
+    profileLimit: null,
+    freeUpTo:     null,
+    theme:        "purple",
+    features:     [
+      "프로필 무제한 생성",
+      "모든 서비스 무료 이용 (코인 차감 없음)",
+      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "30일간 유효 (최우선 안정 유지)",
+      "전용 VVIP 프로필 관리 기능",
+    ],
+    badge:        "VVIP",
   },
 ];
 
@@ -301,34 +336,81 @@ function SubscriptionSection({
 }) {
   const tierLabel: Record<SubscriptionTier, string> = {
     free:     "무료 플랜",
-    standard: "스탠다드",
-    premium:  "프리미엄",
+    standard: "스탠다드 꿀",
+    premium:  "프리미엄 꿀",
+    vvip:     "VVIP 꿀단지",
   };
   const tierColor: Record<SubscriptionTier, string> = {
     free:     "text-neutral-500",
     standard: "text-amber-700",
-    premium:  "text-rose-700",
+    premium:  "text-rose-600",
+    vvip:     "text-purple-700",
   };
+
+  type PlanThemeKey = "amber" | "rose" | "purple";
+  const planThemeMap: Record<PlanThemeKey, {
+    card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
+  }> = {
+    amber: {
+      card:    "border-amber-300 bg-gradient-to-b from-amber-50/50 to-white",
+      label:   "text-amber-800",
+      badge:   "from-amber-500 to-yellow-400",
+      freeTag: "bg-amber-100 text-amber-800 ring-1 ring-amber-400/50",
+      btn:     "from-[#C9A84C] to-[#F0C830] shadow-[0_6px_16px_rgba(160,120,0,0.32)]",
+      icon:    "🍯",
+    },
+    rose: {
+      card:    "border-rose-300 bg-gradient-to-b from-rose-50/50 to-white",
+      label:   "text-rose-700",
+      badge:   "from-rose-500 to-amber-500",
+      freeTag: "bg-rose-100 text-rose-800 ring-1 ring-rose-400/50",
+      btn:     "from-rose-500 to-amber-400 shadow-[0_6px_16px_rgba(220,60,60,0.32)]",
+      icon:    "🌹",
+    },
+    purple: {
+      card:    "border-purple-300 bg-gradient-to-b from-purple-50/50 to-white",
+      label:   "text-purple-700",
+      badge:   "from-purple-600 to-violet-500",
+      freeTag: "bg-purple-100 text-purple-800 ring-1 ring-purple-400/50",
+      btn:     "from-purple-600 to-violet-600 shadow-[0_6px_16px_rgba(120,50,200,0.35)]",
+      icon:    "👑",
+    },
+  };
+
   const expires = subscription.expiresAt
     ? new Date(subscription.expiresAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
     : null;
 
   return (
     <section
-      aria-label="프로필 구독"
+      aria-label="꿀 구독 시스템"
       className="rounded-[24px] border border-[#EDDBA3] bg-white/90 overflow-hidden shadow-[0_8px_32px_rgba(120,80,10,0.10)]"
     >
-      {/* 섹션 헤더 바닥 */}
+      {/* 섹션 헤더 */}
       <div
         className="px-5 pt-5 pb-4"
         style={{ background: "linear-gradient(135deg, #FFFDF7 0%, #FFF9EC 100%)" }}
       >
-        {/* 섹션 제목 */}
+        {/* 제목 */}
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Profile Subscription</p>
-          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🐷 프로필 다중 구독</h2>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-[#A0700A]">Honey Subscription</p>
+          <h2 className="mt-0.5 text-xl font-bold text-[#5C3A1E]">🍯 꿀 구독 시스템</h2>
           <p className="mt-1 text-sm text-[#7A5230]">
-            황금 돼지 코인으로 구독하면 여러 생년월일 프로필을 만들어 해금 콘텐츠를 이용할 수 있습니다.
+            황금 돼지 코인 하나로 여러 생년월일 프로필을 만들고 해금 콘텐츠를 마음껏 즐기세요.
+          </p>
+        </div>
+
+        {/* 핵심 혜택 callout */}
+        <div className="mb-4 rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 px-4 py-3 shadow-[inset_0_1px_3px_rgba(180,130,0,0.08)]">
+          <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-amber-800">
+            <span aria-hidden="true">🍯</span> 꿀 구독만의 특별한 이유
+          </p>
+          <p className="text-[12.5px] leading-relaxed text-[#6B4410]">
+            <span className="font-bold text-[#8B5E0A]">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
+            한 구독으로 <span className="font-bold text-[#8B5E0A]">모든 프로필에서 해금 콘텐츠를 그대로 이용</span>할 수 있습니다.
+          </p>
+          <p className="mt-1 text-[11.5px] text-[#8B6020]">
+            👉 프로필마다 따로 구독 없이, 단 한 번의 구독으로 OK!
           </p>
         </div>
 
@@ -347,68 +429,92 @@ function SubscriptionSection({
             <p className="mt-1 text-xs text-amber-700">⚠️ 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
           )}
         </div>
-      </div>{/* end header bg */}
+      </div>
 
       {/* 플랜 카드 */}
-      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2">
+      <div className="grid gap-3 p-5 pt-0 sm:grid-cols-3">
         {SUBSCRIPTION_PLANS.map((plan) => {
+          const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
           const canAfford = currentPoints >= plan.coins;
           return (
             <div
               key={plan.id}
               className={[
-                "relative rounded-[20px] border p-5",
+                "relative flex flex-col rounded-[20px] border p-4 transition-shadow",
                 isCurrentActive
-                  ? "border-emerald-400 bg-emerald-50/60 shadow-[0_4px_20px_rgba(16,185,129,0.18)]"
-                  : "border-[#EDDBA3] bg-white shadow-[0_4px_14px_rgba(180,130,30,0.10)]",
+                  ? "border-emerald-400 bg-gradient-to-b from-emerald-50/60 to-white shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
+                  : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
               ].join(" ")}
             >
-              {/* 추천 뱃지 */}
-              {plan.badge && (
-                <span className="absolute top-3 right-3 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 px-2.5 py-0.5 text-[11px] font-black text-white shadow">
-                  ✨ {plan.badge}
+              {/* 뱃지 */}
+              {plan.badge && !isCurrentActive && (
+                <span className={`absolute top-3 right-3 rounded-full bg-gradient-to-r ${theme.badge} px-2 py-0.5 text-[11px] font-black text-white shadow`}>
+                  {plan.id === "vvip" ? "👑 VVIP" : `✨ ${plan.badge}`}
                 </span>
               )}
               {isCurrentActive && (
-                <span className="absolute top-3 right-3 rounded-full bg-emerald-500 px-2.5 py-0.5 text-[11px] font-black text-white shadow">
+                <span className="absolute top-3 right-3 rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-black text-white shadow">
                   ✓ 구독 중
                 </span>
               )}
 
-              <p className="text-xs font-bold uppercase tracking-wider text-[#A0700A]">{plan.title}</p>
-              <p className="mt-1 flex items-center gap-1.5 text-xl font-black text-[#5C3A1E]">
-                <CoinIcon size="lg" />
-                {plan.coins.toLocaleString("ko-KR")}코인
-                <span className="ml-1 text-sm font-semibold text-[#8A6020]">/ 30일</span>
-              </p>
-              <p className="text-xs text-[#7A5230]">({formatWon(plan.wonPrice)} 상당)</p>
+              {/* 플랜 아이콘 & 이름 */}
+              <p className="text-2xl leading-none">{theme.icon}</p>
+              <p className={`mt-2 text-[11px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
 
-              <ul className="mt-3 space-y-1">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-1.5 text-xs text-[#5C3A1E]">
-                    <span className="mt-0.5 flex-shrink-0 text-amber-500">✦</span>
-                    {f}
-                  </li>
-                ))}
+              {/* 가격 */}
+              <p className="mt-2 flex items-center gap-1 text-lg font-black text-[#5C3A1E]">
+                <CoinIcon size="md" />
+                {plan.coins.toLocaleString("ko-KR")}코인
+                <span className="ml-0.5 text-xs font-semibold text-[#8A6020]">/ 30일</span>
+              </p>
+              <p className="text-[11px] text-[#7A5230]">({formatWon(plan.wonPrice)} 상당)</p>
+
+              {/* 무료 이용 범위 태그 */}
+              <div className={`mt-2.5 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
+                🆓{" "}
+                {plan.freeUpTo === null ? "모든 서비스 무료" : `${plan.freeUpTo}코인 이하 무료`}
+              </div>
+
+              {/* 기능 목록 */}
+              <ul className="mt-3 flex-1 space-y-1.5">
+                {plan.features.map((f) => {
+                  const isKey = f.includes("무료") || f.includes("해금");
+                  return (
+                    <li
+                      key={f}
+                      className={[
+                        "flex items-start gap-1.5 text-[11.5px]",
+                        isKey ? `font-semibold ${theme.label}` : "text-[#7A5230]",
+                      ].join(" ")}
+                    >
+                      <span className={`mt-0.5 flex-shrink-0 ${isKey ? theme.label : "text-amber-400"}`}>
+                        {isKey ? "★" : "·"}
+                      </span>
+                      {f}
+                    </li>
+                  );
+                })}
               </ul>
 
+              {/* CTA 버튼 */}
               <button
                 type="button"
                 onClick={() => onSubscribe(plan)}
                 disabled={isProcessing || !canAfford}
                 className={[
-                  "mt-4 w-full rounded-[14px] px-4 py-3 text-sm font-black text-white shadow transition-all",
+                  "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black text-white shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
                   isCurrentActive
-                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 shadow-[0_6px_16px_rgba(16,185,129,0.35)]"
-                    : "bg-gradient-to-r from-[#C9A84C] to-[#E8C060] shadow-[0_8px_20px_rgba(160,120,20,0.38)]",
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 shadow-[0_5px_14px_rgba(16,185,129,0.35)]"
+                    : `bg-gradient-to-r ${theme.btn}`,
                 ].join(" ")}
               >
                 {isCurrentActive
                   ? "🔄 갱신하기 (30일 연장)"
                   : canAfford
-                    ? `🐷 ${plan.title} 구독 시작`
+                    ? `${theme.icon} ${plan.title} 시작`
                     : `코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
               </button>
             </div>
@@ -416,7 +522,7 @@ function SubscriptionSection({
         })}
       </div>
 
-      <p className="mt-5 px-5 pb-5 text-[11px] text-[#9B7040]">
+      <p className="px-5 pb-5 text-[11px] text-[#9B7040]">
         ✅ 구독은 코인 즉시 차감 방식이며 30일 후 만료됩니다. 갱신은 언제든 수동으로 가능합니다.
       </p>
     </section>
