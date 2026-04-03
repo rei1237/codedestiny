@@ -4204,8 +4204,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         var pair = cookies[i].trim().split('=');
         if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
       }
-    } catch (_e) {}
-    return false;
+    }
+    // 3) flower_admin_token: admin panel login -> all features available without coins
+    try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
+  } catch (_e) {}
+  return false;
   }
 
   function loadBalance() {
@@ -4955,7 +4958,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var tile=_pendingTile,href=_pendingHref;
     _close();
     if(!tile)return;
-    if(href&&tile.tagName==='A'){window.location.href=href;return;}
+    var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
+    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0){window.location.href=href;return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
