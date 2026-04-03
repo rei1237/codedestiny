@@ -1,11 +1,9 @@
 // POST /api/admin/members/points
-// 황금 돼지 코인 지급/차감 API — 꽃 관리자 세션 토큰 인증
-// Express 백엔드 없이 MongoDB에 직접 접근
 export const runtime = "nodejs";
 
-import connectDB from "../../../../../server/config/db.js";
-import User from "../../../../../server/models/User.js";
-import PointHistory from "../../../../../server/models/PointHistory.js";
+import { dbConnect } from "../../../../_lib/dbConnect.js";
+import { getUserModel } from "../../../../_lib/models/UserModel.js";
+import { getPointHistoryModel } from "../../../../_lib/models/PointHistoryModel.js";
 import {
   verifyFlowerAdminToken,
   extractAdminTokenFromRequest,
@@ -13,58 +11,40 @@ import {
 
 const MAX_DELTA = 10_000;
 
-function unauthorized() {
-  return new Response(JSON.stringify({ message: "Unauthorized" }), {
-    status: 401,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-function badRequest(message) {
-  return new Response(JSON.stringify({ message }), {
-    status: 400,
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
 
 export async function POST(request) {
-  // 환경변수 검증
-  if (!process.env.FLOWER_ADMIN_SECRET) {
-    console.error("[admin/members/points POST] FLOWER_ADMIN_SECRET not set in Cloudflare environment");
-  }
-  if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
-    console.error("[admin/members/points POST] MONGO_URI/MONGODB_URI not set");
-  }
-
-  const token = extractAdminTokenFromRequest(request);
-  if (!(await verifyFlowerAdminToken(token))) {
-    return unauthorized();
-  }
-
-  let body = null;
   try {
-    body = await request.json();
-  } catch {
-    return badRequest("잘못된 요청 형식입니다.");
-  }
+    const token = extractAdminTokenFromRequest(request);
+    if (!(await verifyFlowerAdminToken(token))) {
+      return json({ message: "Unauthorized" }, 401);
+    }
 
-  const userId = String(body?.userId || "").trim();
-  const delta = Number(body?.delta ?? body?.amount ?? 0);
-  const reason = String(body?.reason || "관리자 황금 돼지 코인 지급").trim().slice(0, 200);
+    let body;
+    try { body = await request.json(); }
+    catch { return json({ message: "잘못된 요청 형식입니다." }, 400); }
 
-  if (!userId) return badRequest("userId가 필요합니다.");
-  if (!Number.isFinite(delta) || delta === 0) return badRequest("유효한 코인 수량을 입력해 주세요.");
-  if (Math.abs(delta) > MAX_DELTA) return badRequest(`1회 한도는 ±${MAX_DELTA.toLocaleString("ko-KR")} 코인입니다.`);
+    const userId = String(body?.userId || "").trim();
+    const delta = Number(body?.delta ?? body?.amount ?? 0);
+    const reason = String(body?.reason || "관리자 황금 돼지 코인 지급").trim().slice(0, 200);
 
-  try {
-    await connectDB();
+    if (!userId) return json({ message: "userId가 필요합니다." }, 400);
+    if (!Number.isFinite(delta) || delta === 0) return json({ message: "유효한 코인 수량을 입력해 주세요." }, 400);
+    if (Math.abs(delta) > MAX_DELTA) return json({ message: `1회 한도는 ±${MAX_DELTA.toLocaleString("ko-KR")} 코인입니다.` }, 400);
+
+    await dbConnect();
+    const User = await getUserModel();
+    const PointHistory = await getPointHistoryModel();
 
     const user = await User.findById(userId);
-    if (!user) return badRequest("해당 회원을 찾을 수 없습니다.");
+    if (!user) return json({ message: "해당 회원을 찾을 수 없습니다." }, 400);
 
-    const currentPoints = Number(user.points) || 0;
-    const newPoints = Math.max(0, currentPoints + delta);
-
+    const newPoints = Math.max(0, (Number(user.points) || 0) + delta);
     user.points = newPoints;
     await user.save();
 
@@ -76,26 +56,12 @@ export async function POST(request) {
       reason,
     });
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        user: {
-          _id: String(user._id),
-          name: user.name,
-          email: user.email,
-          points: newPoints,
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-      },
-    );
-  } catch (err) {
-    console.error("[admin/members/points POST]", err);
-    return new Response(JSON.stringify({ message: "서버 오류가 발생했습니다." }), {
-      status: 500,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+    return json({
+      ok: true,
+      user: { _id: String(user._id), name: user.name, email: user.email, points: newPoints },
     });
+  } catch (err) {
+    console.error("[admin/members/points POST]", err?.message || err);
+    return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
   }
 }
