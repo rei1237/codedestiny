@@ -480,6 +480,88 @@ function SubscriptionSection({
         </div>
       </div>
 
+      {/* ────────────────────────────────────────────────── */}
+      {/* 무료 플랜 안내 + 구독 훅                          */}
+      {/* ────────────────────────────────────────────────── */}
+      <div className="mx-5 mb-4 rounded-[20px] border border-neutral-200/80 bg-gradient-to-b from-neutral-50/70 to-white p-4 shadow-[0_2px_14px_rgba(0,0,0,0.06)]">
+        {/* 제목 행 */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-2xl leading-none">🆓</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10.5px] font-black uppercase tracking-widest text-neutral-400">Free Plan</p>
+            <p className="text-[15px] font-black text-neutral-700 leading-tight">무료 플랜</p>
+          </div>
+          {subscription.tier === "free" && (
+            <span className="flex-shrink-0 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[11px] font-bold text-neutral-600">현재 플랜</span>
+          )}
+        </div>
+
+        {/* 무료 제공 항목 */}
+        <div className="mb-3 rounded-[14px] border border-emerald-200 bg-emerald-50/60 px-3.5 py-3">
+          <p className="mb-2 text-[11px] font-extrabold text-emerald-700">✅ 무료로 지금 바로 즐길 수 있어요</p>
+          <ul className="space-y-1.5">
+            {[
+              { icon: "☀️", text: "일일 운세 · 오늘/이달 운세 키워드", sub: "매일 갱신, 무제한 무료" },
+              { icon: "🃏", text: "행복한 회복 타로", sub: "힐링 타로 — 제한 없이 무료" },
+              { icon: "🀄", text: "데일리 점술 5종", sub: "화투점·데스티니 포커·돼지 주석점·영국 홍차점·역경 주역" },
+              { icon: "📊", text: "기본 사주 만세력", sub: "연·월·일·시 명식표 + 일주 캐릭터 요약" },
+              { icon: "🎭", text: "재미 맛보기 콘텐츠", sub: "MBTI 동물 궁합·사주 AI 이상형·사주네컷 등" },
+            ].map(({ icon, text, sub }) => (
+              <li key={text} className="flex items-start gap-2">
+                <span className="flex-shrink-0 text-sm leading-4 mt-0.5">{icon}</span>
+                <span className="text-[11.5px] text-neutral-700">
+                  <span className="font-semibold">{text}</span>
+                  <span className="ml-1 text-[10.5px] text-neutral-400">{sub}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 잠긴 콘텐츠 — 구독 훅 */}
+        <div className="mb-3 rounded-[14px] border border-neutral-200 bg-neutral-50/80 px-3.5 py-3">
+          <p className="mb-2 text-[11px] font-extrabold text-neutral-400">🔒 구독하면 잠금이 해제돼요</p>
+          <ul className="space-y-1.5">
+            {[
+              "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
+              "자미두수 · 서양 점성술 · 숙요 정밀 분석",
+              "프리미엄 타로 · 이집트 오라클 · 스톤헨지 룬 등",
+              "RPG 운명 캐릭터 · 여행 운명지 · 건강 보고서",
+              "가족·연인 등 다계정 프로필 동시 분석",
+            ].map((text) => (
+              <li key={text} className="flex items-start gap-2 opacity-60 blur-[0.3px]">
+                <span className="flex-shrink-0 text-[11px] text-neutral-400 mt-0.5">🔒</span>
+                <span className="text-[11.5px] text-neutral-500 line-through decoration-neutral-300">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 마케팅 훅 CTA 블록 */}
+        <div className="rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50/70 px-4 py-3.5">
+          <p className="text-[12.5px] font-black text-[#7A4A00] leading-snug mb-1.5">
+            맛보기만으로도 이 정도인데,<br />
+            <span className="text-[#C07B00]">구독하면 얼마나 깊이 볼 수 있을까요?</span> 🍯
+          </p>
+          <p className="text-[11.5px] text-[#8B6020] leading-relaxed mb-2.5">
+            오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
+            <br />꿀 구독 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
+            가족과 연인의 운명까지, <strong>한 구독으로 모든 프로필</strong>이 열립니다.
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/80 px-2.5 py-1 text-[10.5px] font-bold text-amber-900">
+              ☕ 커피 한 잔 값으로 30일
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10.5px] font-bold text-emerald-800">
+              🎁 첫 구독 코인 전액 보너스
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
+              ✨ 구독 즉시 잠금 해제
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* 플랜 카드 */}
       <div className="grid gap-3 p-5 pt-0 sm:grid-cols-3">
         {SUBSCRIPTION_PLANS.map((plan) => {
