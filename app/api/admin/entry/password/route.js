@@ -1,7 +1,7 @@
 // POST /api/admin/entry/password
 // 꽃 버튼 비밀번호 게이트 — 비밀번호 검증 후 관리자 진입 URL 반환
-// Express backend 없이 Cloudflare Workers(OpenNext)에서 직접 처리.
-export const runtime = "edge";
+// OpenNext Cloudflare 번들 제약으로 Node.js runtime에서 처리.
+export const runtime = "nodejs";
 
 // server/routes/admin.routes.js DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256 와 동일 값 유지
 const ADMIN_ENTRY_PASSWORD_SHA256 =
@@ -9,7 +9,7 @@ const ADMIN_ENTRY_PASSWORD_SHA256 =
 
 /**
  * Web Crypto API 기반 SHA-256 검증.
- * Node.js crypto 모듈 없이 Cloudflare Workers edge 환경에서 동작.
+ * Node.js runtime(Next Route Handler)에서도 globalThis.crypto.subtle 사용 가능.
  */
 async function verifyAdminEntryPassword(rawInput) {
   const inp = String(rawInput || "");
