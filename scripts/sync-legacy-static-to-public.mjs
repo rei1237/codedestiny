@@ -2,8 +2,8 @@
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
  */
-import { cpSync, existsSync, mkdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { cpSync, existsSync, mkdirSync, readFileSync, statSync, readdirSync } from "node:fs";
+import { resolve, join } from "node:path";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -20,11 +20,64 @@ const staticTargets = [
   "css",
   "js",
   "icons",
-  "styles",
+  // "styles" is handled separately via syncStylesDir() to prevent pointer files from overwriting real CSS
   "fortune",
   "fuctionassets",
   "sudda",
 ];
+
+/**
+ * Safe per-file sync for the styles/ directory.
+ * Guards against two failure modes:
+ *   1. A root/styles/*.css that is just an @import pointer back to public/styles/
+ *      accidentally overwrites the real CSS in public/styles/ (circular reference + CSS loss).
+ *   2. A tiny/empty placeholder in root/styles/ overwrites a large, real CSS in public/styles/.
+ */
+function syncStylesDir() {
+  const srcDir = resolve(rootDir, "styles");
+  const dstDir = resolve(publicDir, "styles");
+  if (!existsSync(srcDir)) return;
+  mkdirSync(dstDir, { recursive: true });
+
+  const POINTER_RE = /@import\s+url\s*\(\s*["']?\.\.\/public\/styles\//;
+  const TINY_THRESHOLD = 512; // bytes — anything smaller is considered a placeholder
+
+  for (const name of readdirSync(srcDir)) {
+    const srcFile = join(srcDir, name);
+    const dstFile = join(dstDir, name);
+
+    // Only handle regular CSS files; sub-directories are copied as-is
+    if (!name.endsWith(".css")) {
+      cpSync(srcFile, dstFile, { recursive: true, force: true });
+      continue;
+    }
+
+    const srcStat = statSync(srcFile);
+    const srcContent = readFileSync(srcFile, "utf8");
+
+    // Guard 1: skip pointer files that reference ../public/styles/ (would create circular @import)
+    if (POINTER_RE.test(srcContent)) {
+      console.warn(`[sync-styles] SKIP pointer file: styles/${name} → would overwrite public/styles/${name} with self-reference`);
+      continue;
+    }
+
+    // Guard 2: skip tiny source if destination already has a larger real file
+    if (srcStat.size < TINY_THRESHOLD && existsSync(dstFile)) {
+      const dstStat = statSync(dstFile);
+      if (dstStat.size > srcStat.size * 10) {
+        console.warn(`[sync-styles] SKIP tiny src (${srcStat.size}B) vs large dst (${dstStat.size}B): styles/${name}`);
+        continue;
+      }
+    }
+
+    cpSync(srcFile, dstFile, { force: true });
+  }
+
+  // Also copy any files present in public/styles/ that are NOT in root/styles/
+  // (e.g. CSS generated directly into public/ during a build step).
+  // These are kept as-is since they have no root counterpart to overwrite them.
+  console.log(`[sync-styles] Completed safe styles sync: ${srcDir} → ${dstDir}`);
+}
 
 const rootIndexPath = resolve(rootDir, "index.html");
 const publicIndexPath = resolve(publicDir, "index.html");
@@ -43,6 +96,9 @@ for (const target of staticTargets) {
 
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
 }
+
+// Sync styles/ with pointer-file and tiny-file protection
+syncStylesDir();
 
 // Keep public/index.html as the source of truth for production shell.
 // Root index can be edited independently for local experiments, but should not overwrite deploy entry.
