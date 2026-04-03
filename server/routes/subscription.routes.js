@@ -16,6 +16,9 @@ router.post("/daily-fortune", async (req, res, next) => {
     const email = normalizeEmail(req.body?.email);
     const subDaily = req.body?.subDaily !== false;
     const subMonthly = req.body?.subMonthly === true;
+    const rawBirthYear = req.body?.birthYear;
+    const birthYear = rawBirthYear ? parseInt(rawBirthYear, 10) : null;
+    const source = req.body?.source || "saju-analysis";
 
     if (!email || !emailRegex.test(email)) {
       return res.status(400).json({
@@ -29,17 +32,20 @@ router.post("/daily-fortune", async (req, res, next) => {
       });
     }
 
+    const updateFields = {
+      subDaily,
+      subMonthly,
+      isActive: true,
+      unsubscribedAt: null,
+      source,
+    };
+    if (birthYear && birthYear >= 1900 && birthYear <= 2100) {
+      updateFields.birthYear = birthYear;
+    }
+
     const saved = await DailyFortuneSubscription.findOneAndUpdate(
       { email },
-      {
-        $set: {
-          subDaily,
-          subMonthly,
-          isActive: true,
-          source: "saju-analysis",
-          unsubscribedAt: null,
-        },
-      },
+      { $set: updateFields },
       {
         upsert: true,
         new: true,

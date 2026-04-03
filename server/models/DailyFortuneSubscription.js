@@ -19,6 +19,12 @@ const dailyFortuneSubscriptionSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  birthYear: {
+    type: Number,
+    default: null,
+    min: 1900,
+    max: 2100,
+  },
   source: {
     type: String,
     default: "saju-analysis",

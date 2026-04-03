@@ -3933,6 +3933,27 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   </article><!-- /#resultPage -->
 
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
+    <!-- 메인 하단 이메일 구독 섹션 -->
+    <aside class="subscription-wrap" id="footerSubBox" aria-label="메인 하단 이메일 구독" style="margin-bottom:24px;">
+      <div class="sub-header">
+        <span class="sub-title">💌 맞춤 운세 이메일 구독</span>
+      </div>
+      <div class="sub-desc">
+        사주·점성술·자미두수 기반 일일 &amp; 월별 운세를 이메일로 받아보세요!
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:18px;justify-content:center;font-size:0.95rem;flex-wrap:wrap;">
+        <label style="cursor:pointer;display:flex;align-items:center;gap:5px;"><input type="checkbox" id="footerSubDaily" checked> 일일 운세</label>
+        <label style="cursor:pointer;display:flex;align-items:center;gap:5px;"><input type="checkbox" id="footerSubMonthly" checked> 월별 운세</label>
+      </div>
+      <div style="margin-bottom:12px;display:flex;justify-content:center;">
+        <input type="number" id="footerSubBirthYear" class="sub-input" placeholder="태어난 해 (예: 1990)" min="1900" max="2100" style="max-width:200px;text-align:center;">
+      </div>
+      <div class="sub-form">
+        <input type="email" id="footerSubEmail" class="sub-input" placeholder="이메일 주소 입력">
+        <button class="btn-subscribe" data-action="subscribeEmailFooter">구독하기 🌸</button>
+      </div>
+    </aside>
+    <!-- /메인 하단 이메일 구독 섹션 -->
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>

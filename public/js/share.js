@@ -1011,3 +1011,55 @@ async function subscribeEmail() {
     alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
   }
 }
+
+async function subscribeEmailFooter() {
+  const emailEl   = document.getElementById('footerSubEmail');
+  const dailyEl   = document.getElementById('footerSubDaily');
+  const monthlyEl = document.getElementById('footerSubMonthly');
+  const birthEl   = document.getElementById('footerSubBirthYear');
+
+  if (!emailEl) return;
+  const emailVal  = emailEl.value.trim();
+  const subDaily   = dailyEl   ? dailyEl.checked   : true;
+  const subMonthly = monthlyEl ? monthlyEl.checked : true;
+  const birthYearRaw = birthEl ? parseInt(birthEl.value, 10) : NaN;
+  const birthYear  = (!isNaN(birthYearRaw) && birthYearRaw >= 1900 && birthYearRaw <= 2100)
+    ? birthYearRaw : null;
+
+  if (!emailVal) {
+    alert('이메일 주소를 입력해주세요!');
+    return;
+  }
+  if (!emailVal.includes('@')) {
+    alert('유효한 이메일 주소를 입력해주세요.');
+    return;
+  }
+  if (!subDaily && !subMonthly) {
+    alert('일일 운세 또는 월별 운세 중 하나 이상을 선택해주세요!');
+    return;
+  }
+
+  const apiBase  = (typeof getSubscriptionApiBaseUrl === 'function') ? getSubscriptionApiBaseUrl() : '';
+  const endpoint = (apiBase || '') + '/api/subscriptions/daily-fortune';
+
+  try {
+    const body = { email: emailVal, subDaily: !!subDaily, subMonthly: !!subMonthly, source: 'main-footer' };
+    if (birthYear) body.birthYear = birthYear;
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      let message = '구독 등록에 실패했습니다.';
+      try { const p = await resp.json(); if (p && p.message) message = p.message; } catch (_) {}
+      throw new Error(message);
+    }
+    alert(emailVal + ' 주소로 운세 구독이 등록되었습니다!\n매일 새벽 운세 소식을 보내드릴게요 💌');
+    emailEl.value = '';
+    if (birthEl) birthEl.value = '';
+  } catch (err) {
+    const detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
+    alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
+  }
+}
