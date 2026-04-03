@@ -1282,9 +1282,9 @@ export default function PointsPage() {
             >
               {isProcessing ? "🐷 연결 중..." : "결제를 진행합니다"}
             </button>
-            </div>{/* end inner gradient div */}
-          </div>{/* end outer modal wrapper */}
-        </div>{/* end backdrop */}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ══ 결제 처리 중 오버레이 ════════════════════════════════════ */}
