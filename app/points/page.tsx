@@ -461,23 +461,6 @@ function SubscriptionSection({
           </ul>
         </div>
 
-        {/* 현재 구독 상태 */}
-        <div className="mb-5 rounded-[16px] border border-amber-200/70 bg-gradient-to-r from-amber-50/80 to-yellow-50/80 px-4 py-3">
-          <p className="text-xs font-extrabold uppercase tracking-wide text-amber-700">현재 구독 플랜</p>
-          <p className={`mt-0.5 text-lg font-black ${tierColor[subscription.tier]}`}>
-            {tierLabel[subscription.tier]}
-            {subscription.isActive && <span className="ml-2 text-sm font-semibold text-emerald-600">● 활성</span>}
-            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료 (기간 만료)</span>}
-          </p>
-          {subscription.isActive && expires && (
-            <p className="mt-0.5 text-xs text-[#7A5230]">
-              {expires} 까지 유효
-              {daysLeft !== null && daysLeft <= 7 && (
-                <span className="ml-2 font-bold text-orange-600">⏰ D-{daysLeft} 곧 만료</span>
-              )}
-            </p>
-          )}
-        </div>
       </div>
 
       {/* ────────────────────────────────────────────────── */}
@@ -613,7 +596,7 @@ function SubscriptionSection({
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.id === "standard" && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-amber-200/80 px-2.5 py-1 text-[11px] font-bold text-amber-900">
-                  ☕ 커피 한 잔 값으로 30일
+                  ☕ 커피 2잔 값으로 30일
                 </div>
               )}
 
