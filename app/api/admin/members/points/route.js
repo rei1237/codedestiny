@@ -28,6 +28,14 @@ function badRequest(message) {
 }
 
 export async function POST(request) {
+  // 환경변수 검증
+  if (!process.env.FLOWER_ADMIN_SECRET) {
+    console.error("[admin/members/points POST] FLOWER_ADMIN_SECRET not set in Cloudflare environment");
+  }
+  if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+    console.error("[admin/members/points POST] MONGO_URI/MONGODB_URI not set");
+  }
+
   const token = extractAdminTokenFromRequest(request);
   if (!(await verifyFlowerAdminToken(token))) {
     return unauthorized();
