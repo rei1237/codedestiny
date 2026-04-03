@@ -4184,11 +4184,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         var pair = cookies[i].trim().split('=');
         if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
       }
-    }
-    // 3) flower_admin_token: admin panel login -> all features available without coins
-    try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
-  } catch (_e) {}
-  return false;
+      // 3) flower_admin_token: admin panel login -> all features available without coins
+      try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
+    } catch (_e) {}
+    return false;
   }
 
   function loadBalance() {
@@ -4509,6 +4508,16 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         _cdInvokeActionDirect(action, actionNode);
         return;
       }
+      // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
+      try {
+        var _subUser = readAuthUser();
+        var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
+        if (_subPlan === 'unlimited' || _subPlan === 'premium') {
+          sessionStorage.setItem('cd_pa_' + action, '1');
+          _cdInvokeActionDirect(action, actionNode);
+          return;
+        }
+      } catch (_subErr) {}
       if (userBalance < tileCoinCost) {
         if (window.confirm('황금 돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
           openChargeModal();
@@ -4619,6 +4628,19 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           _cdInvokeActionDirect(action, actionNode);
           return;
         }
+        // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
+        try {
+          var _lockSubUser = readAuthUser();
+          var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
+          if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
+            unlockedFeatureMap[tileLockKey] = true;
+            saveTileLocks();
+            applyTileLockVisuals();
+            sessionStorage.setItem('cd_pa_' + action, '1');
+            _cdInvokeActionDirect(action, actionNode);
+            return;
+          }
+        } catch (_lockSubErr) {}
         var titleEl = actionNode.querySelector('.tarot-tile__title');
         var fname = titleEl ? titleEl.textContent.trim() : '서비스';
         if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
@@ -4837,7 +4859,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'대지에 던진 16행 점의 패턴으로 땅의 신탁을 읽습니다',feats:['중동-아프리카 전통 흙점 의식','16행 기하학 패턴 신탁 해석','오늘의 질문 대지 메시지 제공','감성적 사막 아트 비주얼'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'왕실의 찻잎 문양에서 오늘의 운명 이야기가 펼쳐집니다',feats:['영국 전통 타세오그래피 의식','찻잎 형태 상징 심층 해독','왕실 스타일 운세 리포트','빅토리아 시대 감성 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
     '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석이 만드는 형태로 새해 운명을 점치는 핀란드 전통',feats:['핀란드 정통 주석점 의식 시뮬레이션','주석 형태 상징 20가지 해석','돼지 마스코트 연이와 함께하는 리딩','행운·사랑·재물 운세 무료 제공'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
-    '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신들과 벌이는 운명의 카드 대결! 승리하면 행운이 찾아옵니다',feats:['5장 포커 기반 운명 대결 게임','올림푸스 신 캐릭터 4명 배틀','승률로 보는 오늘의 운세 지수','완전 무료 엔터테인먼트 점술'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'}
+    '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신들과 벌이는 운명의 카드 대결! 승리하면 행운이 찾아옵니다',feats:['5장 포커 기반 운명 대결 게임','올림푸스 신 캐릭터 4명 배틀','승률로 보는 오늘의 운세 지수','완전 무료 엔터테인먼트 점술'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
+    openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'나만을 위한 사주 심층 분석 — 태어난 날의 운명 전체를 펼쳐드립니다',feats:['사주 팔자 8글자 완전 정밀 분석','대운·세운·월운 10년 운세 흐름','재물·건강·사랑·직업 4대 운세 종합','PDF 저장 가능한 프리미엄 리포트'],cost:'🪙 700코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
+    openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'태양·달·상승궁 3각 에너지로 우주적 자아를 분석합니다',feats:['서양 점성술 전체 행성 배치 분석','태양궁·달궁·상승궁 정밀 해석','12하우스 영역별 운세 적용','트랜지트 & 프로그레션 해석 포함'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jumsung.webp'},
+    openZiweiModal:{cat:'자미두수 · 12궁 명반',title:'🌌 자미두수(紫微)',tagline:'동양 최고 명리학 자미두수로 12궁 명반을 펼쳐드립니다',feats:['자미두수 12궁 명반 완전 분석','주성·보성·화기성 정밀 해석','명궁·재백궁·관록궁 운세 적용','한 번 해금으로 평생 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami.webp'},
+    navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'5000년 인도 Jyotish 별자리로 업장과 운명의 패턴을 읽습니다',feats:['Jyotish 라시·낙샤트라 정밀 분석','다샤 기간별 운세 흐름 해석','카르마·업장 운명 패턴 해독','도시·나라 기반 로컬 차트 적용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
+    openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신이 당신의 별자리에 맞는 신탁을 내립니다',feats:['12 올림푸스 신 신탁 오라클 리딩','출생 별자리 & 재전생 수호신 해석','신탁 메시지 & 행운의 기운 분석','한 번 해금으로 평생 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };
 
   var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
@@ -4902,22 +4929,42 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var lockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
 
     if(_paywallEl){
+      // 구독 플랜 체크
+      var _pvwUserPlan='';
+      try{var _pvwU=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');_pvwUserPlan=(_pvwU&&_pvwU.plan)?String(_pvwU.plan):'';}catch(_){}
+      var _pvwHasSub=(_pvwUserPlan==='unlimited'||_pvwUserPlan==='premium');
       if(coinCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall';
-        if(_paywallIcon)_paywallIcon.textContent='🪙';
-        if(_paywallTitle)_paywallTitle.textContent='이용 코인: '+coinCost+'코인';
-        if(_paywallDesc)_paywallDesc.textContent='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
-        _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
-        _ctaBtn.textContent='🪙 '+coinCost+'코인으로 시작하기';
+        if(_pvwHasSub){
+          if(_paywallIcon)_paywallIcon.textContent='✅';
+          if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 이용 가능';
+          if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 이용 가능합니다!';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
+          _ctaBtn.textContent='✅ 구독으로 바로 시작하기';
+        } else {
+          if(_paywallIcon)_paywallIcon.textContent='🪙';
+          if(_paywallTitle)_paywallTitle.textContent='이용 코인: '+coinCost+'코인';
+          if(_paywallDesc)_paywallDesc.textContent='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
+          _ctaBtn.textContent='🪙 '+coinCost+'코인으로 시작하기';
+        }
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
-        if(_paywallIcon)_paywallIcon.textContent='🔒';
-        if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
-        if(_paywallDesc)_paywallDesc.textContent='한 번 해금하면 계속 이용 가능합니다!';
-        _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--lock';
-        _ctaBtn.textContent='🔓 '+lockCost+'코인으로 영구 해금';
+        if(_pvwHasSub){
+          if(_paywallIcon)_paywallIcon.textContent='✅';
+          if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 영구 해금 가능';
+          if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 영구 해금됩니다!';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
+          _ctaBtn.textContent='✅ 구독으로 영구 해금';
+        } else {
+          if(_paywallIcon)_paywallIcon.textContent='🔒';
+          if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
+          if(_paywallDesc)_paywallDesc.textContent='한 번 해금하면 계속 이용 가능합니다! 혹은 프리미엄 구독으로도 해금 가능합니다.';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--lock';
+          _ctaBtn.textContent='🔓 '+lockCost+'코인으로 영구 해금';
+        }
       } else {
         _paywallEl.style.display='none';
         _ctaBtn.className='tile-pvw-cta-btn';
@@ -4946,7 +4993,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   document.addEventListener('click',function(e){
-    var tile=e.target.closest('.tarot-tile');
+    var tile=e.target.closest('.tarot-tile,.lifebook-tile');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
