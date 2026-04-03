@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
 //  Types 
 
@@ -356,7 +357,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
       if (!r.ok) { const d = await r.json(); throw new Error(d.message || `[${r.status}]`); }
       if (detail.user?._id === u._id) setDetail({ user: null, history: [], loading: false });
       toast(`${u.name} 회원이 삭제되었습니다.`, "success");
-      fetchUsers(searchKw);
+      fetchUsers(searchKw, page);
     } catch (e) { toast(e instanceof Error ? e.message : "삭제 실패", "error"); }
   };
 
@@ -721,23 +722,28 @@ function ServiceAccessTab() {
     <div className="space-y-4">
       <div className="rounded-xl border border-violet-400/20 bg-violet-500/8 px-5 py-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-violet-300 mb-1">🔓 관리자 무제한 접근 모드</p>
-        <p className="text-xs text-slate-400">아래 서비스 링크는 관리자 세션으로 열려 코인 게이트가 자동으로 해제됩니다. 링크를 클릭하면 해당 서비스가 새 탭에서 열립니다.</p>
+        <p className="text-xs text-slate-400">
+          아래 링크를 클릭하면 <strong className="text-violet-200">현재 탭</strong>에서 서비스 페이지로 이동합니다.
+          관리자 세션(flower_admin_token)이 유지되어 <strong className="text-violet-200">코인 게이트가 자동 해제</strong>됩니다.
+          브라우저 뒤로가기(←)로 관리자 패널에 돌아올 수 있습니다.
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {SERVICE_LIST.map(s => (
-          <a key={s.path} href={s.path} target="_blank" rel="noopener noreferrer"
+          <Link key={s.path} href={s.path}
             className="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/70 px-3 py-3 text-sm text-slate-200 hover:bg-violet-900/40 hover:border-violet-400/40 transition group">
             <span className="text-xl flex-shrink-0">{s.icon}</span>
             <span className="font-medium leading-tight group-hover:text-violet-200 text-xs">{s.name}</span>
-          </a>
+          </Link>
         ))}
       </div>
       <div className="rounded-xl border border-amber-400/20 bg-amber-500/8 px-5 py-4 mt-4">
-        <p className="text-xs font-semibold text-amber-300 mb-2">💡 관리자 직접 진입 방법</p>
+        <p className="text-xs font-semibold text-amber-300 mb-2">💡 관리자 서비스 접근 안내</p>
         <ol className="list-decimal list-inside space-y-1 text-xs text-slate-400">
-          <li>위 링크 클릭 시 새 탭에서 서비스 페이지가 열림</li>
-          <li>이 탭의 sessionStorage에 <code className="bg-slate-800 px-1 rounded text-amber-200 text-[10px]">flower_admin_token</code>이 저장되어 있어야 코인 게이트가 해제됨</li>
-          <li>새 탭에서 flower_admin_token이 없으면: 메인화면 하단 🌸 버튼 → 비밀번호 입력 후 진입</li>
+          <li>위 링크 클릭 → 현재 탭에서 서비스 페이지로 이동 (sessionStorage 유지 → 코인 게이트 자동 해제)</li>
+          <li>테스트 완료 후 브라우저 뒤로가기(←) 버튼으로 관리자 패널 복귀</li>
+          <li>새 탭으로 열고 싶으면 링크를 <strong className="text-amber-200">마우스 우클릭 → 새 탭에서 열기</strong>로 접근 가능
+            (단, 새 탭은 sessionStorage가 없어 코인 게이트 해제 안 됨 — 일반 사용자 화면 확인 시 사용)</li>
         </ol>
       </div>
     </div>
@@ -885,7 +891,8 @@ export default function AdminPage() {
 
   const logout = () => {
     try { sessionStorage.removeItem(FLOWER_TOKEN_KEY); } catch { /* ignore */ }
-    setToken("");
+    // setToken("") 대신 즉시 홈으로 이동 — setToken 후 PasswordGate가 렌더되는 현상 방지
+    window.location.href = '/';
   };
 
   if (isBooting) return (

@@ -2,6 +2,22 @@
  * CF Pages / Next.js App Router 전용 MongoDB 연결 유틸리티 (순수 ESM)
  * - server/config/db.js의 CJS/fs 의존성을 배제하고 직접 연결
  * - 연결 캐싱으로 콜드스타트 최소화
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * ★ MongoDB Atlas IP 화이트리스트 설정 방법 (서버리스 필수!)
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * Cloudflare Pages/Workers는 서버리스 환경으로 요청마다 IP가 달라집니다.
+ * 특정 IP를 허용해도 다음 요청에서 다른 IP가 배정되어 타임아웃이 발생합니다.
+ *
+ * 설정 방법:
+ *  1. https://cloud.mongodb.com 접속 → 해당 Organization/Project 선택
+ *  2. 왼쪽 메뉴 "Network Access" 클릭
+ *  3. "ADD IP ADDRESS" 버튼 클릭
+ *  4. "ALLOW ACCESS FROM ANYWHERE" 선택 → 0.0.0.0/0 자동 입력됨
+ *  5. "Confirm" 버튼 클릭 → 적용까지 약 1~2분 대기
+ *
+ * ★ 주의: 0.0.0.0/0은 "모든 IP 허용"으로 DB에 강한 비밀번호가 반드시 필요합니다.
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
 let _mongoose = null;
@@ -43,14 +59,36 @@ export async function dbConnect() {
   }
 
   _connecting = m.connect(uri, {
-    serverSelectionTimeoutMS: 8000,
-    socketTimeoutMS: 15000,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 20000,
+    connectTimeoutMS: 10000,
     maxPoolSize: 5,
     minPoolSize: 1,
   }).finally(() => {
     _connecting = null;
   });
 
-  await _connecting;
+  try {
+    await _connecting;
+  } catch (err) {
+    const msg = String(err?.message || err);
+    // 네트워크/연결 타임아웃 → IP 화이트리스트 안내 메시지로 교체
+    const isNetworkErr =
+      msg.includes("timed out") ||
+      msg.includes("ETIMEDOUT") ||
+      msg.includes("ECONNREFUSED") ||
+      msg.includes("ENOTFOUND") ||
+      msg.includes("connection") ||
+      msg.includes("Server selection");
+    if (isNetworkErr) {
+      throw new Error(
+        `MongoDB 연결 실패 — IP 화이트리스트 설정 확인 필요!\n` +
+        `Cloudflare Pages는 서버리스 환경으로 IP가 매 요청마다 변경됩니다.\n` +
+        `해결방법: MongoDB Atlas → Network Access → "ALLOW ACCESS FROM ANYWHERE" (0.0.0.0/0) 설정\n` +
+        `원본 오류: ${msg}`
+      );
+    }
+    throw err;
+  }
   return m;
 }

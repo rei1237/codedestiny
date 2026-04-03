@@ -47,8 +47,28 @@ export async function POST(request) {
       user: { _id: String(user._id), name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
-    console.error("[admin/promote-email POST]", err?.message || err);
-    return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
+    const msg = String(err?.message || err);
+    console.error("[admin/promote-email POST]", msg);
+
+    // MongoDB Atlas IP 화이트리스트 미설정 시 발생하는 타임아웃 에러 감지
+    const isNetworkErr =
+      msg.includes("timed out") ||
+      msg.includes("ETIMEDOUT") ||
+      msg.includes("ECONNREFUSED") ||
+      msg.includes("ENOTFOUND") ||
+      msg.includes("Server selection") ||
+      msg.toLowerCase().includes("connection");
+
+    if (isNetworkErr) {
+      return json({
+        message:
+          "DB 연결 타임아웃: MongoDB Atlas → Network Access → " +
+          '"ALLOW ACCESS FROM ANYWHERE" (0.0.0.0/0) 로 설정해 주세요. ' +
+          "Cloudflare Pages는 서버리스 환경으로 IP가 매 요청마다 변경됩니다.",
+      }, 503);
+    }
+
+    return json({ message: `서버 오류: ${msg}` }, 500);
   }
 }
 
