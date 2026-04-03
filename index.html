@@ -3133,6 +3133,29 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <span style="font-size:1.1rem">🔮</span> <span id="pwaInstallLabelHome">꽃돼지 운세 서비스 앱 설치하기</span>
       </button>
     </div>
+
+    <!-- 홈 화면 운세 이메일 구독 서비스 박스 -->
+    <aside class="subscription-wrap" id="emailSubBoxHome" style="margin:0 auto 28px;" aria-label="Home Email Subscription">
+      <div class="sub-header">
+        <span class="sub-title pig-only">💌 맞춤 운세 이메일 구독</span>
+        <span class="sub-title neo-only">⚠️ 전략 리포트 이메일 구독</span>
+      </div>
+      <div class="sub-desc pig-only">
+        원하는 주기로 연이의 따뜻한 맞춤 운세를 이메일로 편하게 받아보세요!<br>
+      </div>
+      <div class="sub-desc neo-only">
+        쌈바의 냉철한 운세 분석을 원하는 주기로 이메일을 통해 전송받으세요.<br>
+      </div>
+      <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center; font-size: 0.95rem;">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="subDailyHome" checked> 일일 운세 받기</label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="subMonthlyHome" checked> 월별 운세 받기</label>
+      </div>
+      <div class="sub-form">
+        <input type="email" id="subEmailHome" class="sub-input" placeholder="이메일 주소 입력">
+        <button class="btn-subscribe pig-only" data-action="subscribeEmailHome">구독하기 🌸</button>
+        <button class="btn-subscribe neo-only" data-action="subscribeEmailHome">구독하기 🦁</button>
+      </div>
+    </aside>
   </main>
 
   <!-- ═══ 결과 페이지 (SEO: Result Content) ═══ -->

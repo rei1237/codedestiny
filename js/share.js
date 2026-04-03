@@ -996,3 +996,55 @@ async function subscribeEmail() {
     alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
   }
 }
+
+// 홈 화면 전용 이메일 구독 (사주 분석 없이 바로 구독 가능)
+async function subscribeEmailHome() {
+  const emailVal = document.getElementById('subEmailHome').value.trim();
+  const subDaily = document.getElementById('subDailyHome').checked;
+  const subMonthly = document.getElementById('subMonthlyHome').checked;
+
+  if (!emailVal) {
+    alert('이메일 주소를 입력해주세요!');
+    return;
+  }
+  if (!emailVal.includes('@')) {
+    alert('유효한 이메일 주소를 입력해주세요.');
+    return;
+  }
+  if (!subDaily && !subMonthly) {
+    alert('일일 운세 또는 월별 운세 중 하나 이상을 선택해주세요!');
+    return;
+  }
+
+  const apiBase = getSubscriptionApiBaseUrl();
+  const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailVal,
+        subDaily: !!subDaily,
+        subMonthly: !!subMonthly,
+        source: 'home-page',
+      }),
+    });
+
+    if (!resp.ok) {
+      let message = '구독 등록에 실패했습니다.';
+      try {
+        const payload = await resp.json();
+        if (payload && payload.message) message = payload.message;
+      } catch (_) {}
+      throw new Error(message);
+    }
+
+    alert(emailVal + ' 주소로 매일 일일 운세 자동 발송 구독이 등록되었습니다!\n내일부터 매일 생성되는 운세 메일이 자동 전송됩니다.');
+    document.getElementById('subEmailHome').value = '';
+  } catch (err) {
+    var detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
+    alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
+  }
+}
+window.subscribeEmailHome = subscribeEmailHome;
