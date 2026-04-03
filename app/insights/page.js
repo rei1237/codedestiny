@@ -16,13 +16,13 @@ const _META = {
   keywords: ["사주 基礎", "타로 해석", "자미두수", "숙요점", "베다 점성술", "명리학 아카이브"],
 };
 
+export const dynamic = "force-static";
+
 export function generateMetadata() {
   return generatePageMetadata(_META);
 }
 
-export default async function InsightsIndexPage({ searchParams }) {
-  const sp = await searchParams;
-  const requestedTopic = typeof sp?.topic === "string" ? sp.topic : "all";
+export default function InsightsIndexPage() {
   const insightsHubJsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -39,7 +39,7 @@ export default async function InsightsIndexPage({ searchParams }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: insightsHubJsonLd }} />
-      <InsightsCosmicClient initialTopic={requestedTopic} />
+      <InsightsCosmicClient />
     </>
   );
 }

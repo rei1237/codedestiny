@@ -3,10 +3,10 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/about",
-    title: "About 꿀꿀 만세력 — 무료 운세 서비스 소개 | Code Destiny",
+    title: "About Code Destiny — 서비스 소개 | Code Destiny",
     description:
       "꿀꿀 만세력(Code Destiny)은 사주·타로·점성술·자미두수·숙요점 등 20가지 이상의 운세를 모두 무료로 제공합니다. 서비스 목적·운영 원칙·문의 채널을 확인하세요.",
-    keywords: ["Code Destiny", "꿀꿀 만세력", "름료 운세 플랫폼", "서비스 소개"],
+    keywords: ["Code Destiny", "꿀꿀 만세력", "무료 운세 플랫폼", "서비스 소개", "운영자", "Google AdSense"],
   });
 }
 
@@ -51,6 +51,17 @@ export default function AboutPage() {
       </p>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "#f8fafc" }}>운영자 및 서비스 정보</h2>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
+          사이트 주소: https://code-destiny.com
+          <br />
+          운영자: 꽃돼지 연이
+          <br />
+          주요 제공 서비스: 사주, 타로, 점성술, 자미두수, 숙요점 기반 정보성 콘텐츠 및 해석 도구
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "#f8fafc" }}>1. 서비스 미션</h2>
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           전통 명리학과 현대 인터랙션 UI를 결합해 접근성 높은 해석 경험을 제공합니다. 사용자는 복잡한 개념을 빠르게 이해하고,
@@ -79,6 +90,8 @@ export default function AboutPage() {
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           서비스명: Code Destiny
           <br />
+          운영자: 꽃돼지 연이
+          <br />
           문의 이메일: seongbae555@gmail.com
           <br />
           Contact: seongbae555@gmail.com
@@ -87,7 +100,17 @@ export default function AboutPage() {
 
       <section style={{ ...sectionStyle, marginTop: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "#f8fafc" }}>
-          5. 저자 전문성 (E-E-A-T)
+          5. 광고 및 쿠키 고지
+        </h2>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
+          본 서비스는 운영 재원을 위해 Google AdSense를 포함한 제3자 광고를 노출할 수 있으며, 관련 광고 제공 과정에서 쿠키가 사용될 수 있습니다.
+          이용자는 브라우저 설정 또는 Google 광고 설정을 통해 맞춤 광고 관련 선택을 관리할 수 있습니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginTop: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "#f8fafc" }}>
+          6. 저자 전문성 (E-E-A-T)
         </h2>
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           꽃돼지 연이는 감성적 통찰을 존중하면서도, 백사자 쌈바의 실행력으로 결과를 현실 전략으로 전환합니다.

@@ -53,6 +53,28 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      { source: '/oracle/rune', destination: '/geomancy-oracle-v4.html', permanent: true },
+      { source: '/tarot/self-esteem', destination: '/tarot/love', permanent: true },
+      { source: '/tarot/reunion', destination: '/tarot/love', permanent: true },
+      { source: '/tarot/year', destination: '/tarot/mingri', permanent: true },
+      { source: '/vedic/jyotish', destination: '/astrology/cosmic', permanent: true },
+      { source: '/oracle/hwatu', destination: '/oracle/hwatu-life', permanent: true },
+      { source: '/oracle/kemet', destination: '/royal-tea-oracle.html', permanent: true },
+      { source: '/oracle/juyuk', destination: '/oracle/sikojen-povailu', permanent: true },
+      { source: '/oracle/sukuyo', destination: '/insights?topic=sukuyo', permanent: true },
+      { source: '/animal/physio', destination: '/saju-picture', permanent: true },
+      { source: '/animal/mbti', destination: '/saju-picture', permanent: true },
+      { source: '/animal/totem', destination: '/saju-picture', permanent: true },
+      { source: '/flower/destiny', destination: '/insights?topic=saju', permanent: true },
+      { source: '/flower/astrology', destination: '/insights?topic=astrology', permanent: true },
+      { source: '/flower/jamidusu', destination: '/insights?topic=ziwei', permanent: true },
+      { source: '/flower/sukuyo', destination: '/insights?topic=sukuyo', permanent: true },
+      { source: '/dream/tarot', destination: '/insights?topic=tarot', permanent: true },
+      { source: '/dream/psycho', destination: '/insights?topic=saju', permanent: true },
+    ];
+  },
   async rewrites() {
     /** Legacy shell: locale roots stay legacy HTML (URL no redirect). Root / now uses App Router home. */
     const legacyHomeRewrites = [

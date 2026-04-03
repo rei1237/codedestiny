@@ -1,3 +1,5 @@
+import { ADSENSE_READY_ARTICLES } from "./adsense-ready-articles";
+
 const RAW_INSIGHT_ARTICLES = [
   {
     slug: "saju-four-pillars-basics",
@@ -2599,6 +2601,7 @@ const RAW_INSIGHT_ARTICLES = [
       },
     ],
   },
+  ...ADSENSE_READY_ARTICLES,
 ];
 
 const NON_ESSENTIAL_CATEGORIES = new Set([

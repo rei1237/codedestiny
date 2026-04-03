@@ -10,6 +10,7 @@
     "api": "node server/server.js",
     "cron:daily-content": "node server/jobs/daily-content-cron.js",
     "seo:check": "node scripts/check-seo-health.mjs",
+    "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",

@@ -32,6 +32,9 @@ Sitemap: https://code-destiny.com/rss.xml
 User-agent: Googlebot
 Allow: /
 
+User-agent: Mediapartners-Google
+Allow: /
+
 User-agent: Bingbot
 Allow: /
 

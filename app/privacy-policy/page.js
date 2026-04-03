@@ -52,9 +52,14 @@ export default function PrivacyPolicyPage() {
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>1. 총칙 / General Notice</h2>
         <p style={{ lineHeight: 1.75 }}>
-          Code Destiny(이하 "서비스")는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을
+          Code Destiny(https://code-destiny.com, 이하 "서비스")는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을
           준수하기 위해 노력합니다. This Privacy Policy explains what data we process, why we process it, how long we keep it,
           and how you can exercise your rights.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          운영자(개인정보처리자): 꽃돼지 연이
+          <br />
+          Operator / Data Controller: 꽃돼지 연이
         </p>
       </section>
 
@@ -82,6 +87,10 @@ export default function PrivacyPolicyPage() {
           서비스는 원활한 기능 제공과 이용 패턴 분석을 위해 쿠키 및 유사 기술을 사용할 수 있습니다. Google AdSense 등 제3자 파트너가
           광고 제공 목적으로 쿠키를 사용할 수 있으며, 이용자는 브라우저 설정 및 Google 광고 설정 페이지를 통해 맞춤 광고를 관리할 수 있습니다.
           You can disable cookies in your browser, but parts of the service may not function properly.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          Google을 포함한 제3자 광고 사업자는 이용자의 이전 방문 기록에 기반한 맞춤 광고를 제공할 수 있습니다. Google 광고 쿠키 사용에 대한
+          상세 안내는 Google 광고 정책 및 광고 설정 페이지에서 확인할 수 있습니다.
         </p>
       </section>
 
@@ -146,6 +155,10 @@ export default function PrivacyPolicyPage() {
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 개인정보 문의처 / Privacy Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
           서비스명: Code Destiny
+          <br />
+          사이트: https://code-destiny.com
+          <br />
+          운영자: 꽃돼지 연이
           <br />
           개인정보 보호 문의 이메일: seongbae555@gmail.com
           <br />

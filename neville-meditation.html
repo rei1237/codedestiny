@@ -811,7 +811,7 @@
       <button class="music-panel__btn" id="musicToggleBtn" type="button" onclick="toggleThetaMusic()">음악 켜기</button>
       <button class="music-panel__btn" type="button" onclick="nextThetaTrack()">다음 곡</button>
     </div>
-    <div class="music-panel__status" id="musicStatus">유튜브 API 준비 중... 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
+    <div class="music-panel__status" id="musicStatus">유튜브 API 연결을 확인하는 중입니다. 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
     <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
   </div>
   <button class="music-panel-opener" id="musicPanelOpener" type="button" onclick="openMusicPanel()" hidden>사운드 열기</button>
@@ -1322,7 +1322,7 @@ function changeThetaPreset() {
 
 function nextThetaTrack() {
   if (!ytReady || !ytPlayer) {
-    updateMusicStatus('플레이어 준비 중입니다. 잠시 후 다시 시도해 주세요.');
+    updateMusicStatus('플레이어 연결을 확인하는 중입니다. 잠시 후 다시 시도해 주세요.');
     return;
   }
   const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;

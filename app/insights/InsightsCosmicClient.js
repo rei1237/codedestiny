@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getTopicKey } from "./articles";
 
@@ -33,12 +34,14 @@ function getCardMeta(article) {
 }
 
 export default function InsightsCosmicClient({ initialTopic = "all" }) {
+  const searchParams = useSearchParams();
   const [topic, setTopic] = useState(safeTopic(initialTopic));
   const starCanvasRef = useRef(null);
 
   useEffect(() => {
-    setTopic(safeTopic(initialTopic));
-  }, [initialTopic]);
+    const queryTopic = searchParams?.get("topic");
+    setTopic(safeTopic(queryTopic || initialTopic));
+  }, [initialTopic, searchParams]);
 
   const filteredArticles = useMemo(() => {
     if (topic === "all") return INSIGHT_ARTICLES;
