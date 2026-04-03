@@ -169,17 +169,38 @@ function DashboardTab({ token }: { token: string }) {
   useEffect(() => {
     setLoading(true);
     fetch("/api/admin/stats", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then((d: Stats & { message?: string }) => {
-        if (d.message) setErr(d.message);
-        else setStats(d);
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text();
+          throw new Error(`[${r.status}] ${r.statusText} — ${text.slice(0, 100)}`);
+        }
+        return r.json();
       })
-      .catch(() => setErr("통계를 불러오지 못했습니다."))
+      .then((d: Stats & { message?: string; ok?: boolean }) => {
+        if (d.message) {
+          setErr(`서버 응답: ${d.message}`);
+        } else if (d.ok === false) {
+          setErr("API 오류: 데이터를 받지 못했습니다.");
+        } else {
+          setStats(d);
+        }
+      })
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : "알 수 없는 오류";
+        setErr(`통계 조회 실패: ${msg}`);
+      })
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <p className="text-slate-400 text-sm py-8 text-center">통계 불러오는 중</p>;
-  if (err) return <p className="text-rose-300 text-sm py-8 text-center">{err}</p>;
+  if (loading) return <p className="text-slate-400 text-sm py-8 text-center">통계 불러오는 중…</p>;
+  if (err) {
+    return (
+      <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-4">
+        <p className="text-rose-300 text-sm font-semibold mb-2">⚠️ 통계 조회 오류</p>
+        <p className="text-rose-200 text-xs whitespace-pre-wrap break-words">{err}</p>
+      </div>
+    );
+  }
   if (!stats) return null;
 
   const { summary, gender, daily, recentUsers } = stats;
@@ -277,12 +298,22 @@ function MembersTab({ token }: { token: string }) {
     try {
       const q = kw ? `?search=${encodeURIComponent(kw)}` : "";
       const r = await fetch(`/api/admin/members${q}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) {
+        const text = await r.text();
+        const errMsg = `[${r.status}] ${r.statusText} — ${text.slice(0, 150)}`;
+        setErr(`회원 조회 실패: ${errMsg}`);
+        return;
+      }
       const d = await r.json() as { ok?: boolean; totalCount?: number; users?: AdminUser[]; message?: string };
-      if (!r.ok) { setErr(d.message || "목록 조회 실패"); return; }
+      if (d.message) { 
+        setErr(`서버: ${d.message}`);
+        return;
+      }
       setUsers(d.users ?? []);
       setTotalCount(d.totalCount ?? 0);
-    } catch {
-      setErr("API 연결 오류");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "네트워크 오류";
+      setErr(`회원 목록 조회 실패: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -299,17 +330,27 @@ function MembersTab({ token }: { token: string }) {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!r.ok) { const d = await r.json(); alert(d.message || "삭제 실패"); return; }
+      if (!r.ok) { 
+        const d = await r.json();
+        alert(`삭제 실패: ${d.message || `[${r.status}] ${r.statusText}`}`); 
+        return; 
+      }
       if (detail.user?._id === u._id) setDetail({ user: null });
       fetchUsers(searchKw);
-    } catch { alert("삭제 요청 오류"); }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "네트워크 오류";
+      alert(`삭제 요청 오류: ${msg}`);
+    }
   };
 
   const submitCoin = async () => {
     const { user, amount, reason } = coin;
     if (!user) return;
     const delta = Number(amount);
-    if (!Number.isFinite(delta) || delta === 0) { setCoin(p => ({ ...p, error: "유효한 수량을 입력하세요." })); return; }
+    if (!Number.isFinite(delta) || delta === 0) { 
+      setCoin(p => ({ ...p, error: "유효한 수량을 입력하세요." })); 
+      return; 
+    }
     setCoin(p => ({ ...p, loading: true, error: "" }));
     try {
       const r = await fetch("/api/admin/members/points", {
@@ -318,12 +359,19 @@ function MembersTab({ token }: { token: string }) {
         body: JSON.stringify({ userId: user._id, delta, reason }),
       });
       const d = await r.json() as { ok?: boolean; message?: string; user?: { points: number } };
-      if (!r.ok) { setCoin(p => ({ ...p, error: d.message || "처리 실패", loading: false })); return; }
+      if (!r.ok) { 
+        const errMsg = d.message || `[${r.status}] ${r.statusText}`;
+        setCoin(p => ({ ...p, error: `코인 처리 실패: ${errMsg}`, loading: false })); 
+        return; 
+      }
       const newPoints = d.user?.points ?? user.points;
       setUsers(prev => prev.map(u => u._id === user._id ? { ...u, points: newPoints } : u));
       if (detail.user?._id === user._id) setDetail(p => ({ user: p.user ? { ...p.user, points: newPoints } : null }));
       setCoin({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" });
-    } catch { setCoin(p => ({ ...p, error: "요청 오류", loading: false })); }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "네트워크 오류";
+      setCoin(p => ({ ...p, error: `요청 오류: ${msg}`, loading: false })); 
+    }
   };
 
   return (
@@ -348,7 +396,7 @@ function MembersTab({ token }: { token: string }) {
         </div>
       </div>
 
-      {err && <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-2.5 text-sm text-rose-300">{err}</div>}
+      {err && <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"><span className="font-semibold">⚠️ </span>{err}</div>}
 
       <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/60">
         <div className="overflow-x-auto">

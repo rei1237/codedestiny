@@ -69,7 +69,8 @@ const nextConfig = {
       beforeFiles: [...legacyHomeRewrites, ...localeBeforeFiles],
       afterFiles: [
         { source: '/vedic', destination: '/vedic-astrology.html' },
-        { source: '/api/admin/:path*', destination: apiTarget + '/api/admin/:path*' },
+        // Admin API는 Next.js App Router 라우트 (/api/admin/*/route.js)로 처리 — 리라이트 제거
+        // 나머지 API는 Express 백엔드로 프록시
         { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
         { source: '/api/fortune/:path*', destination: apiTarget + '/api/fortune/:path*' },
         { source: '/api/kasi/:path*', destination: apiTarget + '/api/kasi/:path*' },
