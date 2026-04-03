@@ -374,20 +374,19 @@
       btn.innerHTML =
         '<span class="totem-draw-card-inner">' +
         '<span class="totem-card-face totem-card-face--back">' +
-        '<span class="totem-cb-corner-tl" aria-hidden="true">✦</span>' +
-        '<span class="totem-cb-corner-tr" aria-hidden="true">✦</span>' +
-        '<span class="totem-cb-frame" aria-hidden="true"></span>' +
-        '<span class="totem-card-emoji" aria-hidden="true">🌿</span>' +
-        '<small class="totem-card-slot">' + slotLabel(entry.slot) + "</small>" +
-        '<small class="totem-card-mark">ARCANA ' + roman + "</small>" +
-        '<span class="totem-cb-corner-bl" aria-hidden="true">✦</span>' +
-        '<span class="totem-cb-corner-br" aria-hidden="true">✦</span>' +
+        '<span class="atc-corner atc-corner--tl" aria-hidden="true">✦</span>' +
+        '<span class="atc-corner atc-corner--tr" aria-hidden="true">✦</span>' +
+        '<span class="atc-glyph" aria-hidden="true">🌲</span>' +
+        '<small class="atc-slot">' + slotLabel(entry.slot) + "</small>" +
+        '<small class="atc-roman">ARCANA ' + roman + "</small>" +
+        '<span class="atc-corner atc-corner--bl" aria-hidden="true">✦</span>' +
+        '<span class="atc-corner atc-corner--br" aria-hidden="true">✦</span>' +
         "</span>" +
         '<span class="totem-card-face totem-card-face--front">' +
-        '<span class="totem-cf-aura" aria-hidden="true"></span>' +
-        '<b class="totem-card-emoji">' + entry.card.emoji + "</b>" +
-        '<span class="totem-card-name">' + entry.card.name_ko + "</span>" +
-        '<small class="totem-card-slot">' + entry.card.category + "</small>" +
+        '<span class="atc-aura" aria-hidden="true"></span>' +
+        '<b class="atc-animal">' + entry.card.emoji + "</b>" +
+        '<span class="atc-name">' + entry.card.name_ko + "</span>" +
+        '<small class="atc-cat">' + entry.card.category + "</small>" +
         "</span></span>";
       refs.cardRail.appendChild(btn);
     });

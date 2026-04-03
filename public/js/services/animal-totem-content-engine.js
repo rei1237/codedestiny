@@ -5,7 +5,7 @@
     {
       id: "cat",
       name_ko: "고양이",
-      emoji: "🐱",
+      emoji: "�",
       category: "기본",
       color_theme: { primary: "#f9a8d4", glow: "#fbcfe8", particle: "#fdf2f8" },
       essence_poetic:
@@ -30,7 +30,7 @@
       affirmation: "나는 나의 리듬을 존중하며, 조용하지만 분명한 선택을 한다."
     },
     {
-      id: "squirrel", name_ko: "다람쥐", emoji: "🐿️", category: "기본",
+      id: "squirrel", name_ko: "다람쥐", emoji: "🐿", category: "기본",
       color_theme: { primary: "#f59e0b", glow: "#fcd34d", particle: "#fffbeb" },
       essence_poetic:
         "🐿️ 우리 다람쥐는 도토리 한 알 한 알이 소중하다고 생각해. 큰 일을 한 번에 하려 하지 말고, 오늘 할 수 있는 작은 걸부터 해보는 거야. 오랜 상담 경험으로 봐도, 진짜 변화는 '한 번에 다 바꾸기'가 아니라 '매일 조금씩 옮기는 습관'에서 나와. 그게 결국 큰 변화를 만든다고!",
@@ -43,7 +43,7 @@
       affirmation: "나는 작은 실천을 통해 큰 변화를 차분히 만들어간다."
     },
     {
-      id: "bluebird", name_ko: "파랑새", emoji: "🐦", category: "기본",
+      id: "bluebird", name_ko: "파랑새", emoji: "�️", category: "기본",
       color_theme: { primary: "#60a5fa", glow: "#93c5fd", particle: "#eff6ff" },
       essence_poetic:
         "🐦 짹짹! 나 파랑새는 희망이 멀리 있지 않다고 노래해. 기적은 번개처럼 오지 않고, 조용히 네 곁에 내려앉을 때가 많아. '뭔가 큰 일이 일어나야만'이라고 느끼는 순간, 우리는 이미 와 있는 작은 가능성을 놓치기 쉬워. 마음의 창문을 조금만 열어봐.",
@@ -56,7 +56,7 @@
       affirmation: "나는 삶이 보내는 신호를 신뢰하며, 작은 기회를 크게 키운다."
     },
     {
-      id: "puppy", name_ko: "강아지", emoji: "🐶", category: "기본",
+      id: "puppy", name_ko: "강아지", emoji: "�", category: "기본",
       color_theme: { primary: "#fb7185", glow: "#fda4af", particle: "#fff1f2" },
       essence_poetic:
         "🐶 멍! 나 강아지는 네가 혼자 버티지 않아도 된다고 말하고 싶어. 다정함은 약한 게 아니야. 오랜 시간 사람들의 마음을 봐온 입장에서 말하면, '혼자 잘해내는 것'만 강하다고 여기다 보면 관계는 점점 얇아져. 진짜로 연결되는 건 서로 의지할 수 있을 때라고!",
@@ -69,7 +69,7 @@
       affirmation: "나는 건강한 연결 속에서 더 단단해지고 더 따뜻해진다."
     },
     {
-      id: "rabbit", name_ko: "토끼", emoji: "🐰", category: "기본",
+      id: "rabbit", name_ko: "토끼", emoji: "�", category: "기본",
       color_theme: { primary: "#c084fc", glow: "#d8b4fe", particle: "#faf5ff" },
       essence_poetic:
         "🐰 깡총! 나 토끼는 두려워도 뛸 수 있다고 생각해. 예민한 건 약점이 아니라, 위험과 기회를 먼저 알아채는 힘이야. 두려움과 함께 움직이는 걸 '용기'라고 부르거든. 작은 점프부터 시작해보자!",
@@ -95,7 +95,7 @@
       affirmation: "나는 나의 본능을 신뢰하며, 건강한 연대 속에서 더 멀리 간다."
     },
     {
-      id: "bear", name_ko: "곰", emoji: "🐻", category: "지상",
+      id: "bear", name_ko: "곰", emoji: "🐻‍❄️", category: "지상",
       color_theme: { primary: "#b45309", glow: "#f59e0b", particle: "#fffbeb" },
       essence_poetic:
         "🐻 그르렁~ 나 곰은 겨울에 잠잘 때가 제일 중요하다고 생각해. 멈추는 게 퇴보가 아니라, 다시 힘을 모으는 시간이야. 오랜 상담 경험상 '쉬면 안 된다'고 믿는 분일수록 나중에 더 크게 멈춰야 할 때가 와. 회복도 선택이에요.",
@@ -121,7 +121,7 @@
       affirmation: "나는 섬세함을 지혜로 바꾸며, 부드럽게 나를 지킨다."
     },
     {
-      id: "tiger", name_ko: "호랑이", emoji: "🐯", category: "지상",
+      id: "tiger", name_ko: "호랑이", emoji: "�", category: "지상",
       color_theme: { primary: "#f97316", glow: "#fdba74", particle: "#fff7ed" },
       essence_poetic:
         "🐯 나 호랑이는 소란 피우지 않고 조용히 힘을 모은 다음, 딱 한 번 도약할 때 판을 바꾼다고 생각해. 절제된 강함이 진짜 힘이야. 미루는 건 때로 두려움 때문이에요. 그 두려움을 인정한 다음, '오늘 한 가지만' 정해서 실행해 보는 게 시작이야.",
@@ -186,7 +186,7 @@
       affirmation: "나는 삶의 신호를 읽고, 창조적으로 새로운 길을 연다."
     },
     {
-      id: "dolphin", name_ko: "돌고래", emoji: "🐬", category: "물/기타",
+      id: "dolphin", name_ko: "돌고래", emoji: "�", category: "물/기타",
       color_theme: { primary: "#22d3ee", glow: "#67e8f9", particle: "#ecfeff" },
       essence_poetic:
         "🐬 우리 돌고래는 삶이 전투만이 아니라고 생각해. 놀고, 호흡하고, 소통하는 게 회복의 길이야. 오랜 상담 경험으로 봐도, '잘해내는 것'만 하다 보면 감각이 무뎌져. 가벼운 유쾌함도 당신을 지키는 힘이에요.",
