@@ -27,25 +27,32 @@ export async function GET(request) {
 
     const url = new URL(request.url);
     const search = (url.searchParams.get("search") || "").trim();
-    const limit = Math.min(Number(url.searchParams.get("limit") || "200"), 500);
+    const pageSize = Math.min(Math.max(Number(url.searchParams.get("pageSize") || "50"), 10), 200);
+    const page = Math.max(Number(url.searchParams.get("page") || "1"), 1);
+    const skip = (page - 1) * pageSize;
 
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const filter = search
       ? { $or: [
-          { name: { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
-          { email: { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+          { name: { $regex: safeSearch, $options: "i" } },
+          { email: { $regex: safeSearch, $options: "i" } },
         ] }
       : {};
 
-    const [totalCount, users] = await Promise.all([
+    const [totalCount, filteredCount, users] = await Promise.all([
       User.countDocuments({}),
+      User.countDocuments(filter),
       User.find(filter)
         .select("_id name email birthDate joinedAt role points status banReason bannedAt lastLoginAt")
         .sort({ joinedAt: -1 })
-        .limit(limit)
+        .skip(skip)
+        .limit(pageSize)
         .lean(),
     ]);
 
-    return json({ ok: true, totalCount, count: users.length, users });
+    const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
+
+    return json({ ok: true, totalCount, filteredCount, count: users.length, users, page, pageSize, totalPages });
   } catch (err) {
     console.error("[admin/members GET]", err?.message || err);
     return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);

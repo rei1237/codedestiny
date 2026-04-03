@@ -157,10 +157,14 @@ function PasswordGate({ onAuth }: { onAuth: (token: string) => void }) {
 
 //  Dashboard Tab 
 
-function DashboardTab({ token }: { token: string }) {
+function DashboardTab({ token, toast }: { token: string; toast: (msg: string, type?: "success" | "error") => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [promoteEmail, setPromoteEmail] = useState("seongbae555@gmail.com");
+  const [promoteRole, setPromoteRole] = useState<"admin" | "user">("admin");
+  const [promoting, setPromoting] = useState(false);
+  const [promoteMsg, setPromoteMsg] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -185,6 +189,23 @@ function DashboardTab({ token }: { token: string }) {
     </div>
   );
   if (!stats) return null;
+
+  const handlePromote = async () => {
+    if (!promoteEmail.trim()) return;
+    setPromoting(true); setPromoteMsg("");
+    try {
+      const r = await fetch("/api/admin/promote-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: promoteEmail.trim(), role: promoteRole }),
+      });
+      const d = await r.json() as { ok?: boolean; message?: string };
+      if (!r.ok || !d.ok) throw new Error(d.message || `[${r.status}]`);
+      setPromoteMsg(`✅ ${d.message}`);
+      toast(d.message || "역할 변경 완료", "success");
+    } catch (e) { setPromoteMsg(`❌ ${e instanceof Error ? e.message : "오류"}`); }
+    finally { setPromoting(false); }
+  };
 
   const { summary, gender, daily, recentUsers } = stats;
   const totalGender = (gender.M + gender.F + gender.OTHER) || 1;
@@ -252,15 +273,43 @@ function DashboardTab({ token }: { token: string }) {
           </table>
         </div>
       </div>
+      {/* 역할 빠른 설정 */}
+      <div className="rounded-xl border border-yellow-400/20 bg-yellow-500/8 p-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-yellow-300 mb-3">👑 이메일로 역할 설정</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-xs text-slate-400">이메일</label>
+            <input type="email" value={promoteEmail} onChange={e => setPromoteEmail(e.target.value)}
+              className="w-full rounded-xl border border-yellow-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-yellow-400/60" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-slate-400">역할</label>
+            <select value={promoteRole} onChange={e => setPromoteRole(e.target.value as "admin" | "user")}
+              className="rounded-xl border border-yellow-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-yellow-400/60">
+              <option value="admin">👑 관리자</option>
+              <option value="user">👤 일반 사용자</option>
+            </select>
+          </div>
+          <button onClick={handlePromote} disabled={promoting || !promoteEmail.trim()}
+            className="rounded-xl border border-yellow-400/50 bg-yellow-500/20 px-5 py-2.5 text-sm font-bold text-yellow-200 hover:bg-yellow-500/30 disabled:opacity-50">
+            {promoting ? "처리 중…" : "적용"}
+          </button>
+        </div>
+        {promoteMsg && <p className={`mt-2 text-xs ${promoteMsg.startsWith("✅") ? "text-emerald-300" : "text-rose-300"}`}>{promoteMsg}</p>}
+      </div>
     </div>
   );
 }
 
-//  Members Tab 
+type RoleModal = { user: AdminUser | null; loading: boolean };
 
 function MembersTab({ token, toast }: { token: string; toast: (msg: string, type?: "success" | "error") => void }) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [filteredCount, setFilteredCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PAGE_SIZE = 50;
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -268,20 +317,27 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
   const [detail, setDetail] = useState<DetailModal>({ user: null, history: [], loading: false });
   const [coin, setCoin] = useState<CoinModal>({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" });
   const [ban, setBan] = useState<BanModal>({ user: null, reason: "", loading: false });
+  const [roleModal, setRoleModal] = useState<RoleModal>({ user: null, loading: false });
 
-  const fetchUsers = useCallback(async (kw: string) => {
+  const fetchUsers = useCallback(async (kw: string, pg: number) => {
     setLoading(true); setErr("");
     try {
-      const r = await fetch(`/api/admin/members${kw ? `?search=${encodeURIComponent(kw)}` : ""}`, { headers: { Authorization: `Bearer ${token}` } });
+      const params = new URLSearchParams({ page: String(pg), pageSize: String(PAGE_SIZE) });
+      if (kw) params.set("search", kw);
+      const r = await fetch(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!r.ok) { const t = await r.text(); throw new Error(`[${r.status}] ${t.slice(0,150)}`); }
-      const d = await r.json() as { ok?: boolean; totalCount?: number; users?: AdminUser[]; message?: string };
+      const d = await r.json() as { ok?: boolean; totalCount?: number; filteredCount?: number; users?: AdminUser[]; totalPages?: number; message?: string };
       if (d.message) throw new Error(d.message);
-      setUsers(d.users ?? []); setTotalCount(d.totalCount ?? 0);
+      setUsers(d.users ?? []);
+      setTotalCount(d.totalCount ?? 0);
+      setFilteredCount(d.filteredCount ?? d.totalCount ?? 0);
+      setTotalPages(d.totalPages ?? 1);
     } catch (e) { setErr(e instanceof Error ? e.message : "알 수 없는 오류"); }
     finally { setLoading(false); }
   }, [token]);
 
-  useEffect(() => { fetchUsers(searchKw); }, [fetchUsers, searchKw]);
+  useEffect(() => { setPage(1); }, [searchKw]);
+  useEffect(() => { fetchUsers(searchKw, page); }, [fetchUsers, searchKw, page]);
 
   const openDetail = async (u: AdminUser) => {
     setDetail({ user: u, history: [], loading: true });
@@ -302,6 +358,24 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
       toast(`${u.name} 회원이 삭제되었습니다.`, "success");
       fetchUsers(searchKw);
     } catch (e) { toast(e instanceof Error ? e.message : "삭제 실패", "error"); }
+  };
+
+  const handleRoleChange = async (targetRole: "admin" | "user") => {
+    const { user } = roleModal;
+    if (!user) return;
+    setRoleModal(p => ({ ...p, loading: true }));
+    try {
+      const r = await fetch(`/api/admin/members/${encodeURIComponent(user._id)}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ role: targetRole }),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.message || `[${r.status}]`); }
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, role: targetRole } : u));
+      if (detail.user?._id === user._id) setDetail(p => ({ ...p, user: p.user ? { ...p.user, role: targetRole } : null }));
+      toast(`${user.name} 계정을 ${targetRole === "admin" ? "관리자" : "일반 사용자"}로 변경했습니다.`, "success");
+      setRoleModal({ user: null, loading: false });
+    } catch (e) { toast(e instanceof Error ? e.message : "역할 변경 실패", "error"); setRoleModal(p => ({ ...p, loading: false })); }
   };
 
   const handleBan = async () => {
@@ -356,9 +430,10 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
           <button type="submit" className="rounded-xl border border-violet-400/40 bg-violet-600/60 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500/70">검색</button>
           {searchKw && <button type="button" onClick={() => { setSearchInput(""); setSearchKw(""); }} className="rounded-xl border border-slate-600/40 bg-slate-700/50 px-3 py-2.5 text-sm text-slate-300">초기화</button>}
         </form>
-        <div className="flex gap-2 text-sm">
-          <span className="rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-violet-100">전체 <b className="text-white">{fmtNum(totalCount)}</b>명</span>
-          <span className="rounded-lg border border-slate-600/40 bg-slate-800/60 px-3 py-2 text-slate-200">검색 <b className="text-white">{fmtNum(users.length)}</b>명</span>
+        <div className="flex gap-2 text-sm flex-wrap">
+          <span className="rounded-lg border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-violet-100">전체 가입자 <b className="text-white">{fmtNum(totalCount)}</b>명</span>
+          {searchKw && <span className="rounded-lg border border-sky-400/30 bg-sky-500/10 px-3 py-2 text-sky-200">검색결과 <b className="text-white">{fmtNum(filteredCount)}</b>명</span>}
+          <button onClick={() => fetchUsers(searchKw, page)} className="rounded-lg border border-slate-600/40 bg-slate-700/50 px-3 py-2 text-xs text-slate-300 hover:bg-slate-600/50">↻ 새로고침</button>
         </div>
       </div>
       {err && <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"><b>⚠️ </b>{err}</div>}
@@ -368,7 +443,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-slate-800/90 text-xs uppercase tracking-wider text-slate-300">
               <tr>
-                <th className="px-4 py-3 text-left">이름</th>
+                <th className="px-4 py-3 text-left">이름 / 역할</th>
                 <th className="px-4 py-3 text-left">이메일</th>
                 <th className="px-4 py-3 text-left">가입일</th>
                 <th className="px-4 py-3 text-left">생년월일</th>
@@ -398,6 +473,10 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
                         className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${u.status === "banned" ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20" : "border-orange-400/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"}`}>
                         {u.status === "banned" ? "해제" : "정지"}
                       </button>
+                      <button onClick={() => setRoleModal({ user: u, loading: false })}
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${u.role === "admin" ? "border-yellow-400/40 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20" : "border-slate-500/40 bg-slate-700/30 text-slate-300 hover:bg-slate-600/40"}`}>
+                        {u.role === "admin" ? "👑" : "👤"}
+                      </button>
                       <button onClick={() => handleDelete(u)}
                         className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-300 hover:bg-rose-500/20">삭제</button>
                     </div>
@@ -411,6 +490,21 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
         {loading && <p className="px-4 py-3 text-right text-xs text-slate-500">로드 중</p>}
       </div>
 
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 py-2">
+          <button disabled={page <= 1} onClick={() => setPage(1)}
+            className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-30 hover:bg-slate-700/50">«</button>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
+            className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-30 hover:bg-slate-700/50">‹ 이전</button>
+          <span className="rounded-lg border border-violet-400/25 bg-violet-500/10 px-4 py-1.5 text-xs text-violet-200">{page} / {totalPages}</span>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
+            className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-30 hover:bg-slate-700/50">다음 ›</button>
+          <button disabled={page >= totalPages} onClick={() => setPage(totalPages)}
+            className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-3 py-1.5 text-xs text-slate-300 disabled:opacity-30 hover:bg-slate-700/50">»</button>
+        </div>
+      )}
+
       {/* 상세 모달 */}
       {detail.user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm" onClick={() => setDetail({ user: null, history: [], loading: false })}>
@@ -418,6 +512,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
             <div className="flex items-start justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  {detail.user.role === "admin" && <span title="관리자">👑</span>}
                   {detail.user.name}
                   {detail.user.status === "banned" && <span className="text-xs rounded-full bg-rose-500/20 border border-rose-400/40 px-2 py-0.5 text-rose-300">제재중</span>}
                 </h2>
@@ -464,7 +559,15 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
                   </div>
                 )}
             </div>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button onClick={() => { setRoleModal({ user: detail.user!, loading: false }); setDetail({ user: null, history: [], loading: false }); }}
+                className={`rounded-xl border px-3 py-2.5 text-sm font-bold ${
+                  detail.user.role === "admin"
+                    ? "border-slate-500/40 bg-slate-700/40 text-slate-300 hover:bg-slate-600/50"
+                    : "border-yellow-400/40 bg-yellow-500/15 text-yellow-200 hover:bg-yellow-500/25"
+                }`}>
+                {detail.user.role === "admin" ? "👤 관리자 해제" : "👑 관리자 설정"}
+              </button>
               <button onClick={() => { setCoin({ user: detail.user!, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" }); setDetail({ user: null, history: [], loading: false }); }}
                 className="flex-1 rounded-xl border border-amber-400/45 bg-amber-500/20 py-2.5 text-sm font-bold text-amber-200 hover:bg-amber-500/30">🐷 코인 지급/차감</button>
               <button onClick={() => { setBan({ user: detail.user!, reason: "", loading: false }); setDetail({ user: null, history: [], loading: false }); }}
@@ -498,6 +601,37 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
                 {ban.loading ? "처리 중" : ban.user.status === "banned" ? "정지 해제" : "정지하기"}
               </button>
               <button onClick={() => setBan(p => ({ ...p, user: null }))} disabled={ban.loading}
+                className="rounded-xl border border-slate-600/40 bg-slate-800/50 px-4 py-2.5 text-sm text-slate-300">취소</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 역할 변경 모달 */}
+      {roleModal.user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm" onClick={() => !roleModal.loading && setRoleModal(p => ({ ...p, user: null }))}>
+          <div className="w-full max-w-sm rounded-2xl border border-yellow-400/30 bg-slate-950 p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="text-base font-bold text-white mb-1">👑 역할 변경</h2>
+            <p className="text-sm text-slate-400 mb-5">{roleModal.user.name} ({roleModal.user.email})</p>
+            <p className="text-xs text-slate-400 mb-4">
+              현재 역할: <span className={`font-semibold ${roleModal.user.role === "admin" ? "text-yellow-300" : "text-slate-200"}`}>
+                {roleModal.user.role === "admin" ? "👑 관리자" : "👤 일반 사용자"}
+              </span>
+            </p>
+            <div className="flex gap-2">
+              {roleModal.user.role !== "admin" && (
+                <button onClick={() => handleRoleChange("admin")} disabled={roleModal.loading}
+                  className="flex-1 rounded-xl border border-yellow-400/50 bg-yellow-500/20 py-2.5 text-sm font-bold text-yellow-200 hover:bg-yellow-500/30 disabled:opacity-50">
+                  {roleModal.loading ? "처리 중" : "👑 관리자로 설정"}
+                </button>
+              )}
+              {roleModal.user.role === "admin" && (
+                <button onClick={() => handleRoleChange("user")} disabled={roleModal.loading}
+                  className="flex-1 rounded-xl border border-slate-500/50 bg-slate-700/30 py-2.5 text-sm font-bold text-slate-300 hover:bg-slate-600/40 disabled:opacity-50">
+                  {roleModal.loading ? "처리 중" : "👤 일반 사용자로 변경"}
+                </button>
+              )}
+              <button onClick={() => setRoleModal(p => ({ ...p, user: null }))} disabled={roleModal.loading}
                 className="rounded-xl border border-slate-600/40 bg-slate-800/50 px-4 py-2.5 text-sm text-slate-300">취소</button>
             </div>
           </div>
@@ -621,7 +755,8 @@ function BannedUsersTab({ token, toast }: { token: string; toast: (msg: string, 
   const fetchBanned = useCallback(async (kw: string) => {
     setLoading(true); setErr("");
     try {
-      const params = new URLSearchParams({ limit: "500" });
+      // 차단 유저는 소수이므로 pageSize=200으로 전체 로드
+      const params = new URLSearchParams({ pageSize: "200", page: "1" });
       if (kw) params.set("search", kw);
       const r = await fetch(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!r.ok) { const t = await r.text(); throw new Error(`[${r.status}] ${t.slice(0,150)}`); }
@@ -791,7 +926,7 @@ export default function AdminPage() {
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-4 py-6">
-        {tab === "dashboard" && <DashboardTab token={token} />}
+        {tab === "dashboard" && <DashboardTab token={token} toast={addToast} />}
         {tab === "members" && <MembersTab token={token} toast={addToast} />}
         {tab === "services" && <ServiceAccessTab />}
         {tab === "banned" && <BannedUsersTab token={token} toast={addToast} />}
