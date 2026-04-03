@@ -1,12 +1,12 @@
-// POST /api/admin/members/[id]/ban — 유저 정지/해제
+﻿// POST /api/admin/members/[id]/ban ???좎? ?뺤?/?댁젣
 export const runtime = "nodejs";
 
-import { dbConnect } from "../../../../_lib/dbConnect.js";
-import { getUserModel } from "../../../../_lib/models/UserModel.js";
+import { dbConnect } from "../../../../../_lib/dbConnect.js";
+import { getUserModel } from "../../../../../_lib/models/UserModel.js";
 import {
   verifyFlowerAdminToken,
   extractAdminTokenFromRequest,
-} from "../../../../_lib/flowerAdminToken.js";
+} from "../../../../../_lib/flowerAdminToken.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -22,29 +22,29 @@ export async function POST(request, { params }) {
     if (!(await verifyFlowerAdminToken(token))) return json({ message: "Unauthorized" }, 401);
 
     const userId = String(params?.id || "").trim();
-    if (!userId) return json({ message: "유효하지 않은 사용자 ID입니다." }, 400);
+    if (!userId) return json({ message: "?좏슚?섏? ?딆? ?ъ슜??ID?낅땲??" }, 400);
 
     let body;
     try { body = await request.json(); }
-    catch { return json({ message: "잘못된 요청 형식입니다." }, 400); }
+    catch { return json({ message: "?섎せ???붿껌 ?뺤떇?낅땲??" }, 400); }
 
     const action = String(body?.action || "").trim(); // "ban" or "unban"
     const reason = String(body?.reason || "").trim().slice(0, 300);
 
     if (!["ban", "unban"].includes(action)) {
-      return json({ message: "action은 'ban' 또는 'unban' 이어야 합니다." }, 400);
+      return json({ message: "action? 'ban' ?먮뒗 'unban' ?댁뼱???⑸땲??" }, 400);
     }
 
     await dbConnect();
     const User = await getUserModel();
 
     const user = await User.findById(userId);
-    if (!user) return json({ message: "해당 회원을 찾을 수 없습니다." }, 404);
-    if (user.role === "admin") return json({ message: "관리자 계정은 변경할 수 없습니다." }, 400);
+    if (!user) return json({ message: "?대떦 ?뚯썝??李얠쓣 ???놁뒿?덈떎." }, 404);
+    if (user.role === "admin") return json({ message: "愿由ъ옄 怨꾩젙? 蹂寃쏀븷 ???놁뒿?덈떎." }, 400);
 
     if (action === "ban") {
       user.status = "banned";
-      user.banReason = reason || "관리자에 의한 계정 정지";
+      user.banReason = reason || "愿由ъ옄???섑븳 怨꾩젙 ?뺤?";
       user.bannedAt = new Date();
     } else {
       user.status = "active";
@@ -68,6 +68,6 @@ export async function POST(request, { params }) {
     });
   } catch (err) {
     console.error("[admin/members/[id]/ban POST]", err?.message || err);
-    return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
+    return json({ message: `?쒕쾭 ?ㅻ쪟: ${err?.message || "?????녿뒗 ?ㅻ쪟"}` }, 500);
   }
 }

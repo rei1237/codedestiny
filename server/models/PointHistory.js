@@ -9,7 +9,7 @@ const pointHistorySchema = new mongoose.Schema({
   },
   kind: {
     type: String,
-    enum: ["charge", "deduct", "refund", "adjust"],
+    enum: ["charge", "deduct", "refund", "adjust", "share_reward"],
     required: true,
     index: true,
   },

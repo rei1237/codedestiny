@@ -1718,6 +1718,7 @@ window.shareHwatuLifeCard = function() {
         return;
     }
 
+    shareWithReward(function() {
     const text = [
         '[🎴 화투 인생 패 테스트]',
         '나의 인생 패: [' + result.name + '] ' + result.cardTitle,
@@ -1779,6 +1780,7 @@ window.shareHwatuLifeCard = function() {
         if(anchor && anchor.parentNode) anchor.parentNode.removeChild(anchor);
         alert('카카오 공유를 시도했습니다. 실행되지 않으면 아래 메시지를 복사해서 공유해주쇼.\n\n' + text);
     }, 380);
+    }, 'hwatu'); /* shareWithReward 콜백 끝 */
 };
 
 // ═══════════════════════════════════════════════════════════════

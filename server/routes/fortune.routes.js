@@ -252,6 +252,7 @@ router.post("/pig-coin/consume", async (req, res, next) => {
    프로필 구독 플랜
    coins:        구독 시 차감 코인 수
    welcomeBonus: 첫 구독 시 추가 지급 보너스 코인 (2안: 시작 패키지)
+/* ─────────────────────────────────────────────────────────────────────
    profileLimit: 최대 프로필 수 (0 = 무제한)
    lowWarnAt:    이 코인 이하이면 잔액 부족 경고
 ───────────────────────────────────────────────────────────────── */
@@ -300,6 +301,115 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       points,
       lowBalanceWarning:   !!lowBalanceWarning,
       welcomeBonusEligible: !!welcomeBonusEligible,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/* POST /api/fortune/pig-coin/share-reward
+   body: { contentId: string }
+   — 카카오톡 공유 보상: 하루 3회 한도, 같은 콘텐츠 중복 불가, 10코인 지급
+*/
+const SHARE_REWARD_AMOUNT      = 10;
+const SHARE_REWARD_DAILY_LIMIT = 3;
+
+router.post("/pig-coin/share-reward", async (req, res, next) => {
+  try {
+    const contentId = String(req.body?.contentId || "default")
+      .trim()
+      .replace(/[^a-zA-Z0-9_\-]/g, "")
+      .slice(0, 40) || "default";
+
+    // 관리자: 보상 없이 즉시 성공
+    if (req.auth?.role === "admin") {
+      return res.status(200).json({
+        message: "관리자 모드: 공유 보상이 기록되지 않습니다.",
+        adminUnlocked: true,
+        reward: 0,
+        usedToday: 0,
+        limitPerDay: SHARE_REWARD_DAILY_LIMIT,
+        user: { id: String(req.auth.userId), points: 9_999_999 },
+      });
+    }
+
+    // KST 오늘 0시 계산 (UTC+9)
+    const now = new Date();
+    const kstMidnight = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0, 0, 0, 0,
+      ) - 9 * 3600 * 1000,
+    );
+
+    // 오늘 이미 받은 보상 횟수
+    const todayCount = await PointHistory.countDocuments({
+      userId: req.auth.userId,
+      kind:   "share_reward",
+      createdAt: { $gte: kstMidnight },
+    });
+
+    if (todayCount >= SHARE_REWARD_DAILY_LIMIT) {
+      return res.status(429).json({
+        message: "오늘 공유 보상은 모두 받았어요.",
+        code: "DAILY_LIMIT_EXCEEDED",
+        usedToday: todayCount,
+        limitPerDay: SHARE_REWARD_DAILY_LIMIT,
+      });
+    }
+
+    // 같은 contentId 오늘 이미 보상 받았는지
+    const contentDup = await PointHistory.countDocuments({
+      userId:              req.auth.userId,
+      kind:                "share_reward",
+      "metadata.contentId": contentId,
+      createdAt:           { $gte: kstMidnight },
+    });
+
+    if (contentDup > 0) {
+      return res.status(409).json({
+        message: "이미 오늘 공유한 콘텐츠예요.",
+        code: "CONTENT_ALREADY_REWARDED",
+        usedToday: todayCount,
+        limitPerDay: SHARE_REWARD_DAILY_LIMIT,
+      });
+    }
+
+    // 코인 지급
+    const updatedUser = await User.findByIdAndUpdate(
+      req.auth.userId,
+      { $inc: { points: SHARE_REWARD_AMOUNT } },
+      { new: true, projection: { points: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    await PointHistory.create({
+      userId:       req.auth.userId,
+      kind:         "share_reward",
+      delta:        SHARE_REWARD_AMOUNT,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason:       `카카오톡 공유 보상 — ${contentId}`,
+      featureKey:   "share-reward",
+      metadata: {
+        source:    "fortune.pig-coin.share-reward",
+        contentId,
+      },
+    });
+
+    return res.status(200).json({
+      message:      `공유 보상으로 ${SHARE_REWARD_AMOUNT}코인을 드렸어요! 🐷`,
+      reward:       SHARE_REWARD_AMOUNT,
+      usedToday:    todayCount + 1,
+      limitPerDay:  SHARE_REWARD_DAILY_LIMIT,
+      user: {
+        id:     String(req.auth.userId),
+        points: Number(updatedUser.points || 0),
+      },
     });
   } catch (error) {
     return next(error);
