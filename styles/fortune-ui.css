@@ -10344,6 +10344,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-fsel-btn--tarot:hover  { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.55); }
       .dp-fsel-btn--flower { border-color:rgba(244,114,182,0.32); }
       .dp-fsel-btn--flower:hover { background:rgba(244,114,182,0.11); border-color:rgba(244,114,182,0.55); }
+      .dp-fsel-btn--vedic  { border-color:rgba(99,176,255,0.3); }
+      .dp-fsel-btn--vedic:hover  { background:rgba(99,176,255,0.1); border-color:rgba(99,176,255,0.5); }
+      .dp-fsel-btn--locked { opacity:0.75; border-color:rgba(255,255,255,0.15) !important; background:rgba(0,0,0,0.18) !important; }
+      .dp-fsel-btn--locked .dp-fsel-btn-icon { filter:grayscale(0.6); }
+      .dp-fsel-btn--locked .dp-fsel-btn-label { color:rgba(255,255,255,0.55); }
+      .dp-fsel-btn-cost { display:block; font-size:0.68rem; font-weight:600; color:rgba(251,191,36,0.82); margin-top:2px; letter-spacing:0.01em; }
 
       .dp-save-overlay {
         position:fixed; inset:0; z-index:2000000;
