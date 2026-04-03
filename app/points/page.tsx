@@ -54,10 +54,12 @@ type ConfirmResponse = {
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
 
 type SubscriptionStatus = {
-  tier:         SubscriptionTier;
-  isActive:     boolean;
-  expiresAt:    string | null;
-  profileLimit: number; // 0 = unlimited
+  tier:                  SubscriptionTier;
+  isActive:              boolean;
+  expiresAt:             string | null;
+  profileLimit:          number; // 0 = unlimited
+  lowBalanceWarning?:    boolean;
+  welcomeBonusEligible?: boolean;
 };
 
 type SubscriptionPlan = {
@@ -136,8 +138,8 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "프로필 최대 3개 생성",
       "30코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
-      "30일간 유효 (코인 잔액 > 0 조건)",
-      "프로필 삭제·관리 기능 포함",
+      "30일간 유효 (기간 기반, 코인 잔액 무관)",
+      "🎁 첫 구독 시 115코인 시작 보너스 지급",
     ],
   },
   {
@@ -152,8 +154,8 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "프로필 최대 7개 생성",
       "50코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
-      "30일간 유효 (코인 잔액 > 0 조건)",
-      "전체 프로필 관리 기능 포함",
+      "30일간 유효 (기간 기반, 코인 잔액 무관)",
+      "🎁 첫 구독 시 360코인 시작 보너스 지급",
     ],
     badge:        "추천",
   },
@@ -169,8 +171,8 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "프로필 무제한 생성",
       "모든 서비스 무료 이용 (코인 차감 없음)",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
-      "30일간 유효 (코인 잔액 > 0 조건)",
-      "전용 VVIP 프로필 관리 기능",
+      "30일간 유효 (기간 기반, 코인 잔액 무관)",
+      "🎁 첫 구독 시 700코인 시작 보너스 지급",
     ],
     badge:        "VVIP",
   },
@@ -381,6 +383,10 @@ function SubscriptionSection({
     ? new Date(subscription.expiresAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
     : null;
 
+  const daysLeft = subscription.expiresAt
+    ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / 86_400_000))
+    : null;
+
   return (
     <section
       aria-label="꿀 구독 시스템"
@@ -400,6 +406,22 @@ function SubscriptionSection({
           </p>
         </div>
 
+        {/* 첫 구독 시작 보너스 callout */}
+        {subscription.welcomeBonusEligible !== false && (
+          <div className="mb-4 rounded-[14px] border border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 px-4 py-3 shadow-[inset_0_1px_3px_rgba(0,160,100,0.08)]">
+            <p className="mb-1 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-emerald-800">
+              <span aria-hidden="true">🎁</span> 첫 구독 시작 보너스
+            </p>
+            <p className="text-[12.5px] leading-relaxed text-emerald-900">
+              <span className="font-bold">처음 구독하시면 구독 코인만큼 보너스를 즉시 지급</span>해드립니다.
+              구독료가 실질적으로 무료인 셈이에요!
+            </p>
+            <p className="mt-1 text-[11.5px] text-emerald-700">
+              예) 스탠다드 구독 시 → 115코인 차감 후 115코인 즉시 지급 → 잔액 그대로!
+            </p>
+          </div>
+        )}
+
         {/* 핵심 혜택 callout */}
         <div className="mb-4 rounded-[14px] border border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 px-4 py-3 shadow-[inset_0_1px_3px_rgba(180,130,0,0.08)]">
           <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-amber-800">
@@ -414,15 +436,28 @@ function SubscriptionSection({
           </p>
         </div>
 
+        {/* 잔액 부족 사전 경고 */}
+        {subscription.lowBalanceWarning && (
+          <div className="mb-4 rounded-[14px] border border-orange-300 bg-orange-50 px-4 py-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-orange-800">
+              <span aria-hidden="true">🔔</span> 코인 잔액이 부족합니다
+            </p>
+            <p className="mt-1 text-[11.5px] text-orange-700">
+              현재 코인이 거의 소진되었습니다. 구독 기간({expires}까지)은 유지되지만,
+              추가 콘텐츠 이용을 위해 충전을 추천드립니다.
+            </p>
+          </div>
+        )}
+
         {/* 공통 운영 정책 안내 */}
-        <div className="mb-4 rounded-[14px] border border-rose-200 bg-rose-50/60 px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-rose-700">
-            <span aria-hidden="true">⚠️</span> 구독 유지 조건 안내
+        <div className="mb-4 rounded-[14px] border border-sky-200 bg-sky-50/60 px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-700">
+            <span aria-hidden="true">ℹ️</span> 구독 운영 정책
           </p>
-          <ul className="mt-1.5 space-y-1 text-[11.5px] text-rose-800">
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 플랜은 <strong>30일간 유효</strong>하며, 30일 후 자동 만료됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><strong>코인 잔액이 소진되면 플랜 등급과 관계없이 즉시 비활성화</strong>됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>코인을 충전하면 남은 기간 동안 자동으로 재활성화됩니다.</li>
+          <ul className="mt-1.5 space-y-1 text-[11.5px] text-sky-800">
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 플랜은 <strong>결제일로부터 30일간 유효</strong>합니다 (기간 기반).</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>구독은 <strong>코인 잔액과 무관하게 30일간 유지</strong>됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>갱신은 언제든 수동으로 가능하며, 갱신 시 30일이 추가됩니다.</li>
           </ul>
         </div>
 
@@ -432,13 +467,15 @@ function SubscriptionSection({
           <p className={`mt-0.5 text-lg font-black ${tierColor[subscription.tier]}`}>
             {tierLabel[subscription.tier]}
             {subscription.isActive && <span className="ml-2 text-sm font-semibold text-emerald-600">● 활성</span>}
-            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료 (코인 소진 또는 기간 만료)</span>}
+            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료 (기간 만료)</span>}
           </p>
           {subscription.isActive && expires && (
-            <p className="mt-0.5 text-xs text-[#7A5230]">{expires} 까지 유효</p>
-          )}
-          {subscription.isActive && subscription.tier !== "free" && (
-            <p className="mt-1 text-xs text-rose-600 font-semibold">⚠️ 코인 잔액이 소진되면 즉시 비활성화됩니다.</p>
+            <p className="mt-0.5 text-xs text-[#7A5230]">
+              {expires} 까지 유효
+              {daysLeft !== null && daysLeft <= 7 && (
+                <span className="ml-2 font-bold text-orange-600">⏰ D-{daysLeft} 곧 만료</span>
+              )}
+            </p>
           )}
         </div>
       </div>
@@ -449,6 +486,7 @@ function SubscriptionSection({
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.id;
           const canAfford = currentPoints >= plan.coins;
+          const showBonus = subscription.welcomeBonusEligible !== false;
           return (
             <div
               key={plan.id}
@@ -483,8 +521,15 @@ function SubscriptionSection({
               </p>
               <p className="text-[11px] text-[#7A5230]">({formatWon(plan.wonPrice)} 상당)</p>
 
+              {/* 첫 구독 보너스 태그 */}
+              {showBonus && !isCurrentActive && (
+                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-400/40">
+                  🎁 첫 구독 +{plan.coins.toLocaleString("ko-KR")}코인 보너스
+                </div>
+              )}
+
               {/* 무료 이용 범위 태그 */}
-              <div className={`mt-2.5 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
+              <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
                 🆓{" "}
                 {plan.freeUpTo === null ? "모든 서비스 무료" : `${plan.freeUpTo}코인 이하 무료`}
               </div>
@@ -492,18 +537,23 @@ function SubscriptionSection({
               {/* 기능 목록 */}
               <ul className="mt-3 flex-1 space-y-1.5">
                 {plan.features.map((f) => {
-                  const isKey = f.includes("무료") || f.includes("해금");
+                  const isBonus = f.startsWith("🎁");
+                  const isKey   = !isBonus && (f.includes("무료") || f.includes("해금"));
                   return (
                     <li
                       key={f}
                       className={[
                         "flex items-start gap-1.5 text-[11.5px]",
-                        isKey ? `font-semibold ${theme.label}` : "text-[#7A5230]",
+                        isBonus ? "font-semibold text-emerald-700"
+                          : isKey  ? `font-semibold ${theme.label}`
+                          : "text-[#7A5230]",
                       ].join(" ")}
                     >
-                      <span className={`mt-0.5 flex-shrink-0 ${isKey ? theme.label : "text-amber-400"}`}>
-                        {isKey ? "★" : "·"}
-                      </span>
+                      {!isBonus && (
+                        <span className={`mt-0.5 flex-shrink-0 ${isKey ? theme.label : "text-amber-400"}`}>
+                          {isKey ? "★" : "·"}
+                        </span>
+                      )}
                       {f}
                     </li>
                   );
@@ -526,7 +576,9 @@ function SubscriptionSection({
                 {isCurrentActive
                   ? "🔄 갱신하기 (30일 연장)"
                   : canAfford
-                    ? `${theme.icon} ${plan.title} 시작`
+                    ? showBonus
+                      ? `${theme.icon} ${plan.title} 시작 (보너스 포함)`
+                      : `${theme.icon} ${plan.title} 시작`
                     : `코인 부족 (${plan.coins - currentPoints}개 더 필요)`}
               </button>
             </div>
@@ -535,8 +587,8 @@ function SubscriptionSection({
       </div>
 
       <div className="px-5 pb-5 space-y-1">
-        <p className="text-[11px] text-[#9B7040]">✅ 구독은 코인 즉시 차감 방식이며 <strong>30일 후 자동 만료</strong>됩니다.</p>
-        <p className="text-[11px] text-rose-600">⚠️ 모든 플랜은 코인 잔액이 소진되면 등급 무관 즉시 비활성화됩니다. 충전 시 자동 재활성화됩니다.</p>
+        <p className="text-[11px] text-[#9B7040]">✅ 구독 코인은 즉시 차감되며 <strong>30일 후 자동 만료</strong>됩니다 (코인 잔액 무관).</p>
+        <p className="text-[11px] text-emerald-700 font-semibold">🎁 첫 구독 한정: 구독 시 동일 코인이 즉시 보너스 지급됩니다.</p>
         <p className="text-[11px] text-[#9B7040]">🔄 갱신은 언제든 수동으로 가능합니다.</p>
       </div>
     </section>
@@ -907,10 +959,12 @@ export default function PointsPage() {
       .then((d) => {
         if (!d) return;
         setSubscription({
-          tier:         d.tier         || "free",
-          isActive:     !!d.isActive,
-          expiresAt:    d.expiresAt    || null,
-          profileLimit: typeof d.profileLimit === "number" ? d.profileLimit : 1,
+          tier:                  d.tier         || "free",
+          isActive:              !!d.isActive,
+          expiresAt:             d.expiresAt    || null,
+          profileLimit:          typeof d.profileLimit === "number" ? d.profileLimit : 1,
+          lowBalanceWarning:     !!d.lowBalanceWarning,
+          welcomeBonusEligible:  d.welcomeBonusEligible !== false,
         });
       })
       .catch(() => {});
@@ -1131,6 +1185,8 @@ export default function PointsPage() {
       });
       const data = await safeParseJson<{
         message?: string;
+        welcomeBonusGranted?: boolean;
+        welcomeBonus?: number;
         subscription?: SubscriptionStatus;
         user?: { points: number };
       }>(res);
@@ -1143,7 +1199,10 @@ export default function PointsPage() {
         return;
       }
       if (data.user?.points !== undefined) persistUserPoints(Number(data.user.points));
-      if (data.subscription) setSubscription(data.subscription);
+      if (data.subscription) {
+        // 첫 구독 보너스 수령 후 welcomeBonusEligible = false 로 반영
+        setSubscription({ ...data.subscription, welcomeBonusEligible: false });
+      }
       pushToast("success", data.message || `${plan.title} 구독이 시작되었습니다! ✨`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);

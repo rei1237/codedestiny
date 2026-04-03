@@ -48,9 +48,10 @@ export async function getUserModel() {
         kakao:  { id: { type: String, default: "" }, connectedAt: { type: Date, default: null } },
       },
       profileSubscription: {
-        tier:      { type: String, enum: ["free", "standard", "premium"], default: "free" },
-        startedAt: { type: Date, default: null },
-        expiresAt: { type: Date, default: null },
+        tier:       { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
+        startedAt:  { type: Date, default: null },
+        expiresAt:  { type: Date, default: null },
+        firstSubAt: { type: Date, default: null },
       },
     },
     { timestamps: true },

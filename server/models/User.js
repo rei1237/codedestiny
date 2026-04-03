@@ -101,14 +101,17 @@ const userSchema = new mongoose.Schema({
   adminLastActivityAt: { type: Date, default: null },
   /**
    * 프로필 카드 다중 구독
-   * - free: 프로필 1개
-   * - standard(9,900원 상당 115코인/월): 프로필 3개, 코인 잔액 > 0 조건
-   * - premium(29,900원 상당 360코인/월): 프로필 무제한
+   * - free:     프로필 1개
+   * - standard(115코인/월, 첫 구독 시 230코인 범려): 프로필 3개
+   * - premium(360코인/월, 첫 구독 시 720코인 범려): 프로필 7개
+   * - vvip(700코인/월, 첫 구독 시 1,400코인 범려): 프로필 무제한
+   * 구독은 30일 기간 기반으로 유지 (코인 잔액 무관)
    */
   profileSubscription: {
-    tier:      { type: String, enum: ["free", "standard", "premium"], default: "free" },
-    startedAt: { type: Date, default: null },
-    expiresAt: { type: Date, default: null },
+    tier:       { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
+    startedAt:  { type: Date, default: null },
+    expiresAt:  { type: Date, default: null },
+    firstSubAt: { type: Date, default: null },
   },
 }, {
   timestamps: true,
