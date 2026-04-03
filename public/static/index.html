@@ -371,6 +371,9 @@ img[width][height]{height:auto}
 .tarot-tile__img-wrap{position:relative}
 .tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:3px;padding:4px 10px 4px 9px;border-radius:999px;font-size:.68rem;font-weight:800;line-height:1;letter-spacing:.02em;white-space:nowrap;background:rgba(14,8,2,.88);color:#fcd262;border:1px solid rgba(250,190,50,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,100,.08);pointer-events:none}
 .tarot-tile__coin-badge--free{background:rgba(4,28,20,.88);border-color:rgba(90,210,150,.38);color:#6ee7b7}
+.tarot-tile__coin-badge--lock{background:linear-gradient(135deg,rgba(45,15,90,.92),rgba(70,25,120,.88));border-color:rgba(190,140,255,.42);color:#ddbfff;box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 1px rgba(160,100,255,.12),inset 0 1px 0 rgba(255,255,255,.07)}
+.tarot-tile__lock-icon{position:absolute;bottom:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;background:rgba(10,5,30,.85);border:1.5px solid rgba(180,130,255,.45);display:none;align-items:center;justify-content:center;font-size:.85rem;line-height:1;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:none}
+.tarot-tile--tileLocked .tarot-tile__lock-icon{display:flex}
 .tarot-tile--sikojen-fc .tarot-tile__img-wrap{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,236,208,.95) 0%,rgba(254,215,170,.82) 52%,rgba(253,186,116,.72) 100%)}
 .tarot-tile--sikojen-fc .tarot-tile__img{width:min(100%,240px);height:100%;object-fit:contain;object-position:center bottom;padding:8px 10px 0;filter:drop-shadow(0 6px 14px rgba(120,53,15,.28)) saturate(1.06)}
 [data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
@@ -431,7 +434,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .golden-grain-modal__notice{margin-top:10px;text-align:center;color:#9b5a23;font-weight:700;font-size:.78rem}
 .golden-grain-modal__footer-copy{margin-top:11px;text-align:center;color:#8f4a33;font-weight:700;font-size:.82rem}
 /* ── 섹션 코인 잠금 오버레이 ── */
-.cd-section-gate{position:relative}
+.cd-section-gate{position:relative;overflow:hidden;border-radius:inherit}
 .cd-section-gate__body{filter:blur(6px) brightness(.92);pointer-events:none;user-select:none;transition:filter .35s}
 .cd-section-gate--unlocked .cd-section-gate__body{filter:none;pointer-events:auto;user-select:auto}
 .cd-section-gate__overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(180deg,rgba(255,250,245,.08) 0%,rgba(255,245,230,.82) 52%,rgba(255,236,210,.97) 100%);border-radius:12px;padding:20px 16px;text-align:center}
@@ -1092,6 +1095,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
       <div id="goldenGrainBadgeRoot"></div>
 
+      <button
+        type="button"
+        data-action="openAdminFlowerGate"
+        aria-label="관리자 패널 진입"
+        title="관리자 진입"
+        style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);z-index:1200;width:42px;height:42px;border:none;border-radius:999px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.72),rgba(250,204,21,.24) 42%,rgba(236,72,153,.22) 100%);box-shadow:0 4px 12px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.35) inset;cursor:pointer;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.42;backdrop-filter:blur(2px);"
+      >🌸</button>
+
     </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
@@ -1738,7 +1749,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
-                    <span class="tarot-tile__coin-badge">🔓 해금 300코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 300코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🪐 베다 점성술</span>
@@ -1756,7 +1767,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/olympus.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">🔓 해금 300코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 300코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">⚡ 올림푸스 신탁</span>
@@ -3359,7 +3370,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="summaryTitle" class="sec-title">📖 종합 사주 풀이</h3>
       <div class="cd-section-gate" id="summaryGate">
         <div class="cd-section-gate__overlay">
-          <div class="cd-section-gate__icon">📖</div>
+          <div class="cd-section-gate__icon">🔒</div>
           <p class="cd-section-gate__title">종합 사주 풀이 — 유료 콘텐츠</p>
           <p class="cd-section-gate__desc">A4 20페이지 분량의 성격·진로·연애·건강·재물·귀인·개운 심층 풀이를 열람하려면 황금 돼지 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
@@ -3391,7 +3402,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <h3 id="compatTitle" class="sec-title">💞 궁합 보기 (연애 · 사업 · 친구)</h3>
       <div class="cd-section-gate" id="compatGate">
         <div class="cd-section-gate__overlay">
-          <div class="cd-section-gate__icon">💞</div>
+          <div class="cd-section-gate__icon">🔒</div>
           <p class="cd-section-gate__title">궁합 분석 — 유료 콘텐츠</p>
           <p class="cd-section-gate__desc">연애·사업·친구 궁합을 사주 기반으로 분석한 결과를 열람하려면 황금 돼지 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">🪙 50코인으로 영구 해금</span>
@@ -3845,6 +3856,42 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     return location.origin;
   }
 
+  async function requestAdminFlowerEntry() {
+    var password = window.prompt('관리자 꽃 진입 비밀번호를 입력해 주세요.');
+    if (password === null) return;
+    password = String(password || '').trim();
+    if (!password) {
+      window.alert('비밀번호를 입력해 주세요.');
+      return;
+    }
+
+    try {
+      var response = await fetch('/api/admin/entry/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password }),
+      });
+
+      if (!response.ok) {
+        window.alert('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      var payload = {};
+      try { payload = await response.json(); } catch (_e) {}
+
+      // 서명된 관리자 세션 토큰을 sessionStorage에 보관 (탭 닫으면 자동 소멸)
+      var adminToken = (payload && payload.adminToken) ? String(payload.adminToken) : '';
+      if (adminToken) {
+        try { sessionStorage.setItem('flower_admin_token', adminToken); } catch (_e2) {}
+      }
+
+      window.location.href = '/admin';
+    } catch (_e) {
+      window.alert('관리자 진입 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  }
+
   function getAuthToken() {
     try {
       return localStorage.getItem('fortune_auth_token') || '';
@@ -3919,6 +3966,31 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function saveTileLocks() {
     try { localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(unlockedFeatureMap)); } catch (_e) {}
+  }
+
+  // 잠금 타일에 시각적 자물쇠 아이콘 표시/제거
+  function applyTileLockVisuals() {
+    try {
+      var tiles = document.querySelectorAll('[data-tile-lock-key]');
+      for (var i = 0; i < tiles.length; i++) {
+        var tile = tiles[i];
+        var key = tile.getAttribute('data-tile-lock-key');
+        var wrap = tile.querySelector('.tarot-tile__img-wrap');
+        if (!wrap) continue;
+        if (!wrap.querySelector('.tarot-tile__lock-icon')) {
+          var icon = document.createElement('span');
+          icon.className = 'tarot-tile__lock-icon';
+          icon.setAttribute('aria-hidden', 'true');
+          icon.textContent = '🔒';
+          wrap.appendChild(icon);
+        }
+        if (unlockedFeatureMap[key]) {
+          tile.classList.remove('tarot-tile--tileLocked');
+        } else {
+          tile.classList.add('tarot-tile--tileLocked');
+        }
+      }
+    } catch (_e) {}
   }
 
   function GoldenGrainBadge() {
@@ -4278,6 +4350,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         if (isAdminUser()) {
           unlockedFeatureMap[tileLockKey] = true;
           saveTileLocks();
+          applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return;
@@ -4312,6 +4385,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           updateBadge();
           unlockedFeatureMap[tileLockKey] = true;
           saveTileLocks();
+          applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
           window.alert('✅ ' + fname + ' 해금 완료!\n이제 자유롭게 이용하실 수 있습니다 🌟');
           _cdInvokeActionDirect(action, actionNode);
@@ -4345,6 +4419,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       void tryUnlockFeature(actionNode);
       return;
     }
+    if (action === 'openAdminFlowerGate') {
+      void requestAdminFlowerEntry();
+      return;
+    }
   }, true);
 
   document.addEventListener('click', function (event) {
@@ -4356,6 +4434,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   loadBalance();
   loadTileLocks();
   GoldenGrainBadge();
+  applyTileLockVisuals();
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
