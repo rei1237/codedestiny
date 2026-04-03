@@ -3127,6 +3127,58 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </section>
 
+    <!-- ═══ 유명인 사주 분석 패널 ═══ -->
+    <section id="famousSajuPanel" aria-label="유명인 사주 분석 아카이브" style="margin:28px auto 12px;max-width:860px;">
+      <!-- 패널 헤더 배너 -->
+      <div style="border-radius:20px 20px 0 0;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(10,13,46,0.97) 0%,rgba(26,8,58,0.97) 50%,rgba(10,13,46,0.97) 100%);border:1px solid rgba(183,148,244,0.38);border-bottom:none;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(124,58,237,0.28),transparent 65%),radial-gradient(ellipse 50% 40% at 90% 90%,rgba(78,205,196,0.14),transparent 60%);pointer-events:none;"></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:18px 20px 14px;position:relative;">
+          <img src="/fuctionassets/famous.webp" alt="유명인 사주 아카이브" loading="lazy" decoding="async"
+            style="width:54px;height:54px;object-fit:cover;border-radius:50%;border:2px solid rgba(183,148,244,0.6);box-shadow:0 0 18px rgba(124,58,237,0.5);flex-shrink:0;">
+          <div>
+            <strong style="display:block;font-size:1.08rem;color:#f3e8ff;letter-spacing:0.02em;text-shadow:0 0 12px rgba(183,148,244,0.4);">⭐ 유명인 사주 분석 아카이브</strong>
+            <span style="font-size:0.82rem;color:rgba(203,195,227,0.85);line-height:1.5;">역사 속 위인·현대 인물의 사주 원국을 명리학적 관점에서 심층 분석합니다</span>
+          </div>
+        </div>
+        <!-- 탭 선택 -->
+        <div id="famousSajuTabs" style="display:flex;gap:0;padding:0 14px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;position:relative;">
+          <button class="fsaj-tab fsaj-tab--active" data-idx="0" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:#e9d5ff;border-bottom:2px solid #a78bfa;cursor:pointer;white-space:nowrap;transition:all .2s;">이순신</button>
+          <button class="fsaj-tab" data-idx="1" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">세종대왕</button>
+          <button class="fsaj-tab" data-idx="2" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">유관순</button>
+          <button class="fsaj-tab" data-idx="3" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">안중근</button>
+          <button class="fsaj-tab" data-idx="4" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">김구</button>
+          <button class="fsaj-tab" data-idx="5" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">정약용</button>
+          <button class="fsaj-tab" data-idx="6" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">BTS RM</button>
+          <button class="fsaj-tab" data-idx="7" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">IU (이지은)</button>
+          <button class="fsaj-tab" data-idx="8" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">손흥민</button>
+          <button class="fsaj-tab" data-idx="9" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">Taylor Swift</button>
+          <button class="fsaj-tab" data-idx="10" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">Elon Musk</button>
+          <button class="fsaj-tab" data-idx="11" style="flex-shrink:0;padding:9px 16px;font-size:0.83rem;font-weight:700;border:none;background:none;color:rgba(203,195,227,0.7);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s;">뉴진스 하니</button>
+        </div>
+      </div>
+
+      <!-- 카드 컨테이너 -->
+      <div id="famousSajuCard" style="border-radius:0 0 20px 20px;border:1px solid rgba(183,148,244,0.28);border-top:none;background:linear-gradient(160deg,rgba(15,10,40,0.97) 0%,rgba(10,13,46,0.97) 100%);overflow:hidden;">
+        <!-- 로딩 스피너 -->
+        <div id="famousSajuLoading" style="display:none;padding:48px 20px;text-align:center;">
+          <div style="display:inline-block;width:36px;height:36px;border:3px solid rgba(167,139,250,0.3);border-top-color:#a78bfa;border-radius:50%;animation:fsajSpin 0.8s linear infinite;"></div>
+        </div>
+        <!-- 실제 콘텐츠 -->
+        <div id="famousSajuContent" style="padding:20px;">
+          <!-- JS로 동적 렌더링 -->
+        </div>
+        <!-- 학술 면책 -->
+        <div style="margin:0 16px 18px;padding:12px 16px;border-radius:12px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.22);">
+          <p style="margin:0;font-size:0.76rem;line-height:1.7;color:rgba(253,230,138,0.85);text-align:center;">
+            ⚠️ <strong style="color:#fbbf24;">학술·교육 목적 전용 콘텐츠</strong> — 본 분석은 동양 명리학의 이론적 원리를 소개·교육하기 위한 학술적 목적으로만 작성되었습니다.
+            실제 인물에 대한 가치 판단·예측·진단이 아니며, 어떠한 상업적·법적 판단의 근거로도 사용될 수 없습니다.
+            인물 정보는 역사 기록 및 공개 자료에 근거하며, 출생 시간 불명확 사항은 학술적 추정치를 사용합니다.
+          </p>
+        </div>
+      </div>
+    </section>
+    <!-- ═══ 유명인 사주 분석 패널 끝 ═══ -->
+
     <!-- 즐겨찾기 + 앱 설치 버튼 (홈 화면 하단) -->
     <div class="quick-action-stack quick-action-stack--home" style="padding: 36px 0 24px; display:flex; justify-content:center;">
       <button class="btn-favorite" id="btnFavoriteHome" data-action="handleFavoriteAdd">
@@ -5073,5 +5125,538 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 })();
 </script>
+
+<!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
+<style>
+@keyframes fsajSpin{to{transform:rotate(360deg)}}
+.fsaj-tab{outline:none;}
+.fsaj-tab:hover{color:#e9d5ff!important;}
+.fsaj-tab--active{color:#e9d5ff!important;border-bottom-color:#a78bfa!important;}
+.fsaj-el-bar{height:8px;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.fsaj-profile-photo{width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:center top;border:3px solid rgba(167,139,250,0.7);box-shadow:0 0 24px rgba(124,58,237,0.55),0 4px 12px rgba(0,0,0,0.55);flex-shrink:0;}
+.fsaj-profile-photo-placeholder{width:88px;height:88px;border-radius:50%;border:3px solid rgba(167,139,250,0.6);background:linear-gradient(135deg,rgba(124,58,237,0.35),rgba(78,205,196,0.25));display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;}
+.fsaj-section{margin:14px 0;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(183,148,244,0.16);}
+.fsaj-section-title{font-size:0.82rem;font-weight:800;letter-spacing:0.04em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.fsaj-pillar-box{background:rgba(10,8,30,0.7);border:1px solid rgba(183,148,244,0.28);border-radius:10px;padding:10px 8px;text-align:center;flex:1;min-width:64px;}
+.fsaj-pillar-label{font-size:0.7rem;color:rgba(203,195,227,0.7);margin-bottom:4px;}
+.fsaj-pillar-chars{font-size:1.45rem;line-height:1.2;font-weight:700;color:#e9d5ff;letter-spacing:0.05em;}
+.fsaj-pillar-elem{font-size:0.68rem;color:rgba(203,195,227,0.65);margin-top:3px;}
+.fsaj-fortune-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:rgba(255,255,255,0.04);}
+.fsaj-fortune-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.fsaj-career-tag{display:inline-block;padding:4px 10px;border-radius:999px;font-size:0.75rem;margin:3px 2px;border:1px solid;font-weight:600;}
+</style>
+<script>
+(function(){
+'use strict';
+
+/* ─── 유명인 사주 데이터베이스 ─── */
+var FAMOUS_DATA=[
+  {
+    name:'이순신',
+    lifespan:'1545~1598',
+    job:'조선 수군 통제사·장군',
+    photo:null,
+    emoji:'⚓',
+    birth:{year:1545,month:4,day:28,hour:0},
+    pillars:{
+      y:{g:'乙',j:'巳',gE:'wood',jE:'fire',gY:'-',jY:'+'},
+      m:{g:'庚',j:'辰',gE:'metal',jE:'earth',gY:'+',jY:'+'},
+      d:{g:'甲',j:'子',gE:'wood',jE:'water',gY:'+',jY:'-'},
+      h:{g:'甲',j:'子',gE:'wood',jE:'water',gY:'+',jY:'-'}
+    },
+    dayGan:'甲',
+    dominantEl:'wood',
+    elRatios:{wood:44,fire:11,earth:22,metal:11,water:22},
+    mainStar:'편관',
+    fiveAnalysis:'목(木) 기운이 중심이 되어 강한 용기와 결단력을 내재하며, 토(土)와 수(水)의 조화로 실용적 지략까지 겸비한 균형 있는 사주입니다. 목극토(木剋土)로 지휘 권한을 직접 장악하는 힘이 두드러지며, 금(金)의 편관 기운이 극한의 충성심과 책임감을 부여합니다.',
+    tenStarAnalysis:'편관(偏官)이 강하게 자리잡아 불굴의 의지와 목숨을 건 책임감을 상징합니다. 역경을 에너지로 삼아 전장에서 빛을 발하는 전형적인 편관 지도자형입니다. 비견(比肩)이 보조해 독립적 판단력과 자립심이 탁월합니다.',
+    personality:'강직·책임형: 불의 앞에 타협이 없으며 원칙을 끝까지 고수합니다. 부하를 아끼나 규율은 엄격하게 세우는 카리스마형 리더입니다.',
+    careerFit:'군사·전략가·지휘관 적성 최고 수준. 목(木) 일간의 성장·개척 에너지와 편관의 극기·규율 에너지가 결합하여 전쟁이라는 극한 환경에서 최고의 성과를 냈습니다.',
+    careerTags:['군사 전략가','지도자·통솔','위기관리 전문가','국가 청렴 행정'],
+    fortuneFlow:[
+      {period:'1545~1570년대','label':'초년기','color':'#60a5fa','desc':'목(木) 기운 강한 초년. 인내와 학습으로 내공을 쌓는 시기. 관직 진출 전 수련기.'},
+      {period:'1570~1590년대','label':'중년 전성기','color':'#a78bfa','desc':'금(金) 대운 진입으로 편관 기운 극대화. 장군 임명·노량해전 등 인생 최고봉.'},
+      {period:'1597~1598년','label':'말년기','color':'#f87171','desc':'수(水) 기운 강세로 고난 절정. 백의종군·노량해전 장렬한 순국. 운명과 정면 대결한 시기.'}
+    ]
+  },
+  {
+    name:'세종대왕',
+    lifespan:'1397~1450',
+    job:'조선 4대 국왕·훈민정음 창제',
+    photo:null,
+    emoji:'📜',
+    birth:{year:1397,month:4,day:10,hour:10},
+    pillars:{
+      y:{g:'丁',j:'丑',gE:'fire',jE:'earth',gY:'-',jY:'-'},
+      m:{g:'庚',j:'辰',gE:'metal',jE:'earth',gY:'+',jY:'+'},
+      d:{g:'壬',j:'午',gE:'water',jE:'fire',gY:'+',jY:'-'},
+      h:{g:'甲',j:'午',gE:'wood',jE:'fire',gY:'+',jY:'-'}
+    },
+    dayGan:'壬',
+    dominantEl:'fire',
+    elRatios:{wood:11,fire:44,earth:33,metal:11,water:11},
+    mainStar:'편재',
+    fiveAnalysis:'화(火) 기운이 가장 강하여 빛나는 지성과 창의적 영감을 상징합니다. 토(土)가 화(火)를 받아 지식을 실용화하는 능력이 출중합니다. 임수(壬水) 일간이 화(火)를 제어해 균형을 유지하며 깊은 학문적 탐구심을 키웁니다.',
+    tenStarAnalysis:'편재(偏財)가 주성으로 넓은 세계관과 백성 전체를 아우르는 포용적 리더십을 상징합니다. 정인(正印)도 강하게 작용해 학문·연구·교육에 대한 끝없는 열정이 특징입니다.',
+    personality:'창조·포용형: 실용 학문을 통해 세상을 변화시키고자 하는 열망이 강합니다. 인류에게 도움이 되는 지식 창조에 삶의 의미를 찾는 성향입니다.',
+    careerFit:'학자·연구자·정책입안자 최적 적성. 화(火)의 창의 에너지와 토(土)의 실용 에너지가 결합하여 한글 창제·과학기기 발명 등 실용적 학문 성과를 이루었습니다.',
+    careerTags:['학자·연구자','정책 기획','언어·문화 창조','과학기술 개발'],
+    fortuneFlow:[
+      {period:'1397~1418년','label':'왕자 시절','color':'#60a5fa','desc':'화(火) 기운 압도적 초년. 학문 탐구와 독서에 몰두. 형들의 순서를 넘어 조기 왕위 계승.'},
+      {period:'1418~1440년대','label':'창제·전성기','color':'#a78bfa','desc':'토(土) 대운 진입. 편재 극대화로 훈민정음 창제·집현전 설치 등 폭발적 창조 성과.'},
+      {period:'1440~1450년','label':'말년','color':'#6ee7b7','desc':'수(水) 대운 시작. 지병 악화를 딛고 국정 정비. 학문 유산 완성하는 마무리 시기.'}
+    ]
+  },
+  {
+    name:'유관순',
+    lifespan:'1902~1920',
+    job:'독립운동가·3·1운동 상징',
+    photo:null,
+    emoji:'🌸',
+    birth:{year:1902,month:11,day:17,hour:6},
+    pillars:{
+      y:{g:'壬',j:'寅',gE:'water',jE:'wood',gY:'+',jY:'+'},
+      m:{g:'壬',j:'子',gE:'water',jE:'water',gY:'+',jY:'-'},
+      d:{g:'丁',j:'亥',gE:'fire',jE:'water',gY:'-',jY:'+'},
+      h:{g:'甲',j:'寅',gE:'wood',jE:'wood',gY:'+',jY:'+'}
+    },
+    dayGan:'丁',
+    dominantEl:'water',
+    elRatios:{wood:33,fire:11,earth:0,metal:0,water:56},
+    mainStar:'정관',
+    fiveAnalysis:'수(水) 기운이 압도적으로 강하여 깊은 신념과 흔들리지 않는 의지의 사주입니다. 목(木)이 수(水)를 받아 성장·행동으로 표출하는 구조입니다. 정(丁)화 일간이 거대한 수(水) 기운 속에서도 홀로 꺼지지 않는 작은 불꽃으로 신념을 지켜냅니다.',
+    tenStarAnalysis:'정관(正官)이 주성으로 바른 도리와 정의 앞에서 두려움이 없는 원칙주의적 성향을 나타냅니다. 겁재(劫財)가 보조해 경쟁적 환경에서도 절대 굴복하지 않는 강인함이 더해집니다.',
+    personality:'신념·정의형: 옳고 그름에 대한 판단이 명확하며, 부정의를 목격하면 행동으로 저항합니다. 죽음 앞에서도 신념을 굽히지 않는 강인한 내면을 가졌습니다.',
+    careerFit:'사회운동·교육·언론 분야 최적 적성. 수(水)의 깊은 지혜와 목(木)의 성장 에너지가 합쳐져 약자를 위한 목소리를 내는 활동에서 빛나는 재능을 발휘합니다.',
+    careerTags:['사회운동가','교육자','언론·저술가','공공봉사·NGO'],
+    fortuneFlow:[
+      {period:'1902~1916년','label':'유년·학업기','color':'#60a5fa','desc':'목(木) 대운. 이화학당 입학·신앙과 교육으로 신념 형성. 성장과 학습의 시기.'},
+      {period:'1919년','label':'3·1운동','color':'#a78bfa','desc':'수(水) 기운 극대화. 아우내 장터 만세운동 주도. 정관·겁재의 용기가 역사에 각인된 순간.'},
+      {period:'1919~1920년','label':'순국','color':'#f87171','desc':'극한의 수(水) 기운. 서대문 형무소 투옥·옥중 순국. 18세의 짧고 강렬한 생애 마감.'}
+    ]
+  },
+  {
+    name:'안중근',
+    lifespan:'1879~1910',
+    job:'독립운동가·의사(義士)',
+    photo:null,
+    emoji:'🦅',
+    birth:{year:1879,month:7,day:16,hour:8},
+    pillars:{
+      y:{g:'己',j:'卯',gE:'earth',jE:'wood',gY:'-',jY:'-'},
+      m:{g:'壬',j:'申',gE:'water',jE:'metal',gY:'+',jY:'+'},
+      d:{g:'庚',j:'子',gE:'metal',jE:'water',gY:'+',jY:'-'},
+      h:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'}
+    },
+    dayGan:'庚',
+    dominantEl:'metal',
+    elRatios:{wood:22,fire:0,earth:33,metal:33,water:22},
+    mainStar:'편인',
+    fiveAnalysis:'금(金)과 토(土) 기운이 강하여 철의 의지와 강한 원칙을 상징하는 사주입니다. 경(庚)금 일간은 날카롭고 단호한 결단력을 나타내며, 수(水)가 유통되어 지략도 겸비합니다. 목(木)의 편인 기운이 신비로운 통찰과 독자적 사상을 부여합니다.',
+    tenStarAnalysis:'편인(偏印)이 주성으로 세상이 모르는 독자적 사상체계와 직관적 신념을 상징합니다. 편관(偏官)이 보조하여 불의에 맞서는 카리스마적 실행력이 더해집니다.',
+    personality:'결단·독행형: 자신의 신념과 의로움을 위해서라면 목숨도 도구로 쓰는 극도의 결단력을 소유했습니다. 조용하나 일단 행동에 나서면 어떤 것도 막을 수 없습니다.',
+    careerFit:'군사·법학·철학 분야 최적 적성. 금(金)의 날카로운 판단력과 편인의 독자적 사상이 결합해 역사에 남을 용기 있는 행동을 가능하게 한 사주입니다.',
+    careerTags:['군인·지휘관','법률·정의 수호','철학·사상가','독립운동·사회변혁'],
+    fortuneFlow:[
+      {period:'1879~1905년','label':'성장·입신기','color':'#60a5fa','desc':'토(土) 대운. 학문과 무술 연마. 의병 활동 시작. 강한 신념을 행동으로 옮기는 준비기.'},
+      {period:'1905~1909년','label':'의거 준비기','color':'#a78bfa','desc':'금(金) 대운 극대화. 국채보상운동·의병 지휘. 이토 히로부미 처단 결의.'},
+      {period:'1909~1910년','label':'의거·순국','color':'#f87171','desc':'하얼빈 거사 성공. 사형 집행. 짧고 눈부신 31년의 생애. 동양평화론 집필로 사상 완성.'}
+    ]
+  },
+  {
+    name:'김구',
+    lifespan:'1876~1949',
+    job:'독립운동가·대한민국임시정부 주석',
+    photo:null,
+    emoji:'🕊️',
+    birth:{year:1876,month:7,day:11,hour:12},
+    pillars:{
+      y:{g:'丙',j:'子',gE:'fire',jE:'water',gY:'+',jY:'-'},
+      m:{g:'丁',j:'未',gE:'fire',jE:'earth',gY:'-',jY:'-'},
+      d:{g:'甲',j:'午',gE:'wood',jE:'fire',gY:'+',jY:'-'},
+      h:{g:'壬',j:'午',gE:'water',jE:'fire',gY:'+',jY:'-'}
+    },
+    dayGan:'甲',
+    dominantEl:'fire',
+    elRatios:{wood:11,fire:55,earth:11,metal:0,water:22},
+    mainStar:'식신',
+    fiveAnalysis:'화(火) 기운이 압도적으로 강하여 뜨거운 열정과 민족에 대한 헌신을 상징합니다. 갑(甲)목 일간이 화(火)를 생하여 활활 타오르는 에너지를 공급합니다. 수(水)가 과열을 막아 지혜와 인내를 더하는 균형 구조입니다.',
+    tenStarAnalysis:'식신(食神)이 주성으로 나누고 베푸는 성향, 민족을 위한 헌신적 에너지를 상징합니다. 겉으로는 따뜻하나 내면에 편관의 불굴 의지도 숨어있어 어떤 고난에도 흔들리지 않습니다.',
+    personality:'헌신·포용형: 민족과 대의를 위해 개인의 안위를 철저히 희생합니다. 따뜻한 인품으로 사람을 모으며 식신의 베품 에너지로 조직을 이끌었습니다.',
+    careerFit:'정치·외교·민족운동 분야 최적 적성. 목(木)이 화(火)를 생하는 에너지 흐름이 지도자로서의 추진력과 헌신을 극대화하며, 임시정부를 27년간 이끄는 원동력이 되었습니다.',
+    careerTags:['정치 지도자','외교·협상가','민족 운동가','교육·계몽 활동'],
+    fortuneFlow:[
+      {period:'1876~1910년','label':'항일 투쟁기','color':'#60a5fa','desc':'화(火) 기운 강세. 동학농민운동 참여·의병 활동. 수감과 탈옥을 반복하는 불굴의 투쟁기.'},
+      {period:'1919~1945년','label':'임시정부 시기','color':'#a78bfa','desc':'식신 극대화. 임시정부 주석으로 독립운동 총지휘. 광복 위해 전 생애를 헌신하는 전성기.'},
+      {period:'1945~1949년','label':'광복 후 활동','color':'#6ee7b7','desc':'통일 정부 수립 위해 남북협상 주도. 1949년 안두희 저격으로 서거. 분단의 아픔을 안고 마친 생애.'}
+    ]
+  },
+  {
+    name:'정약용',
+    lifespan:'1762~1836',
+    job:'조선 실학자·다산(茶山)',
+    photo:null,
+    emoji:'📚',
+    birth:{year:1762,month:6,day:16,hour:8},
+    pillars:{
+      y:{g:'壬',j:'午',gE:'water',jE:'fire',gY:'+',jY:'-'},
+      m:{g:'庚',j:'午',gE:'metal',jE:'fire',gY:'+',jY:'-'},
+      d:{g:'壬',j:'申',gE:'water',jE:'metal',gY:'+',jY:'+'},
+      h:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'}
+    },
+    dayGan:'壬',
+    dominantEl:'water',
+    elRatios:{wood:11,fire:33,earth:11,metal:22,water:33},
+    mainStar:'정인',
+    fiveAnalysis:'수(水)와 화(火)가 균형 있게 공존하는 드문 사주 구조입니다. 임(壬)수 일간이 광대한 지식의 바다를 상징하며, 화(火)의 창의성이 이를 빛나는 학문적 성과로 변환합니다. 금(金)이 수(水)를 생하여 분석력과 정밀함을 더합니다.',
+    tenStarAnalysis:'정인(正印)이 주성으로 끝없는 학문적 탐구심과 지식 흡수 능력을 상징합니다. 편인도 보조하여 독창적 사상 체계를 구축하는 능력까지 갖추었으며, 이것이 500여 권의 저서로 결실 맺었습니다.',
+    personality:'탐구·혁신형: 세계를 분석하고 더 나은 구조를 설계하는 데 삶의 의미를 찾습니다. 18년의 유배조차 484권의 저술 시간으로 전환하는 불굴의 학문 정신이 특징입니다.',
+    careerFit:'학자·연구자·행정개혁가 적성 최고 수준. 수(水)의 광범한 정보 처리 능력과 화(火)의 창의적 분석이 결합하여 실학이라는 새로운 학문 패러다임을 창출했습니다.',
+    careerTags:['학자·연구자','행정·제도 개혁','공학·실용과학','저술·교육 활동'],
+    fortuneFlow:[
+      {period:'1762~1800년','label':'관직 성장기','color':'#60a5fa','desc':'화(火) 대운. 과거 급제·정조 총애. 수원 화성 설계 등 실용 학문 폭발적 성과기.'},
+      {period:'1801~1818년','label':'유배 전반기','color':'#f87171','desc':'금(金) 대운 악운. 신유박해로 강진 유배. 그러나 이 시기에 수백 권의 저서 집필 시작.'},
+      {period:'1818~1836년','label':'해배·완성기','color':'#a78bfa','desc':'유배 해제 후 고향 귀향. 목민심서·경세유표 등 대표작 완성. 74세 사망까지 학문 정진.'}
+    ]
+  },
+  /* ══ 현대 연예인 섹션 ══ */
+  {
+    name:'BTS RM (김남준)',
+    lifespan:'1994년생',
+    job:'BTS 리더·래퍼·아티스트',
+    photo:null,
+    emoji:'🎤',
+    birth:{year:1994,month:9,day:12,hour:12},
+    pillars:{
+      y:{g:'甲',j:'戌',gE:'wood',jE:'earth',gY:'+',jY:'+'},
+      m:{g:'壬',j:'申',gE:'water',jE:'metal',gY:'+',jY:'+'},
+      d:{g:'甲',j:'子',gE:'wood',jE:'water',gY:'+',jY:'-'},
+      h:{g:'壬',j:'午',gE:'water',jE:'fire',gY:'+',jY:'-'}
+    },
+    dayGan:'甲',
+    dominantEl:'water',
+    elRatios:{wood:22,fire:11,earth:11,metal:22,water:44},
+    mainStar:'편인',
+    fiveAnalysis:'수(水)기운이 주도적으로 흘러 깊은 지성과 철학적 사유 능력을 부여합니다. 갑(甲)목 일간이 수(水)의 생함을 받아 끊임없이 성장하는 에너지를 보유합니다. 금(金)도 강해 분석력·언어 재능이 더해지며, 이것이 철학적 가사와 예술적 창작의 원천이 됩니다.',
+    tenStarAnalysis:'편인(偏印)이 주성으로 독자적 사상과 번뜩이는 직관, 예술·철학에 대한 깊은 탐구심이 특징입니다. 정인(正印)도 함께해 체계적 학습력과 자기계발 에너지가 결합하여 IQ 148의 지적 재능을 설명합니다.',
+    personality:'탐구·표현형: 음악을 통해 내면의 복잡한 감정과 철학을 세상에 전달합니다. 겉으로는 카리스마적이나 내면은 깊은 고뇌와 예술적 감수성이 공존합니다.',
+    careerFit:'음악·예술·철학·작가 분야 최적 적성. 수(水)의 광대한 감성과 갑(甲)목의 성장 추진력이 결합해 단순 아이돌을 넘어 글로벌 아티스트로 성장하는 운명적 구조입니다.',
+    careerTags:['음악·작사','시각예술·미술','철학·자기성찰','브랜드·크리에이티브'],
+    fortuneFlow:[
+      {period:'2010~2013년','label':'데뷔 전 수련기','color':'#60a5fa','desc':'수(水) 기운 강세. 빅히트 연습생 입소. 래핑·작사 실력을 집중 연마하는 준비기.'},
+      {period:'2013~2020년','label':'BTS 전성기','color':'#a78bfa','desc':'편인 기운 폭발. DNA·FAKE LOVE·Dynamite 등 전 세계 히트. UN 연설로 세계적 리더 등극.'},
+      {period:'2022년~현재','label':'개인 아티스트기','color':'#6ee7b7','desc':'목(木) 대운. 솔로앨범 Indigo 발매·군복무. 음악가+아티스트로 정체성 확장 중.'}
+    ]
+  },
+  {
+    name:'IU (이지은)',
+    lifespan:'1993년생',
+    job:'가수·배우·프로듀서',
+    photo:null,
+    emoji:'🌙',
+    birth:{year:1993,month:5,day:16,hour:10},
+    pillars:{
+      y:{g:'癸',j:'酉',gE:'water',jE:'metal',gY:'-',jY:'-'},
+      m:{g:'癸',j:'巳',gE:'water',jE:'fire',gY:'-',jY:'+'},
+      d:{g:'癸',j:'丑',gE:'water',jE:'earth',gY:'-',jY:'-'},
+      h:{g:'辛',j:'巳',gE:'metal',jE:'fire',gY:'-',jY:'+'}
+    },
+    dayGan:'癸',
+    dominantEl:'water',
+    elRatios:{wood:0,fire:22,earth:11,metal:22,water:44},
+    mainStar:'정인',
+    fiveAnalysis:'계(癸)수가 세 기둥에 자리잡아 극도로 섬세하고 공감 능력이 풍부한 감성형 사주입니다. 금(金)이 수(水)를 생해 타고난 음악적 감수성과 정밀한 표현력이 더해집니다. 화(火)의 기운이 수(水)를 조화롭게 균형 잡아 따뜻함과 감성을 동시에 발산합니다.',
+    tenStarAnalysis:'정인(正印)이 주성으로 깊은 공감 능력, 배우고 흡수하는 능력, 대중에게 사랑받는 인복을 상징합니다. 편인도 보조하여 직관적 창작 감각이 더해지며, 이것이 직접 작사·작곡하는 프로듀서형 아티스트의 근거입니다.',
+    personality:'공감·치유형: 음악으로 청중의 마음을 어루만지는 능력이 탁월합니다. 실제로는 치열하게 자기관리하는 프로페셔널이나, 겉으로는 따뜻하고 친근한 이미지를 자연스럽게 발산합니다.',
+    careerFit:'음악·연기·크리에이티브 프로듀싱 최적 적성. 계(癸)수의 깊은 감성과 금(金)의 정밀한 표현력이 결합해 파워풀한 보컬과 세심한 작곡 능력을 함께 발휘합니다.',
+    careerTags:['싱어송라이터','배우·연기','음악 프로듀서','브랜드 아이콘'],
+    fortuneFlow:[
+      {period:'2007~2010년','label':'데뷔 초 고난기','color':'#f87171','desc':'수(水) 과잉 초년. 데뷔 초 경제적 어려움·주목 부족. 묵묵히 실력을 쌓은 인내의 시기.'},
+      {period:'2010~2018년','label':'국민 가수 전성기','color':'#a78bfa','desc':'금(金)·화(火) 균형 대운. 좋은 날·밤편지 등 연속 히트. 대한민국 국민 여동생 아이콘 등극.'},
+      {period:'2019년~현재','label':'아티스트 진화기','color':'#6ee7b7','desc':'정인 안정기. 드라마 마이디어문·호텔델루나 성공. 음악+연기 양면 최고 위상 유지 중.'}
+    ]
+  },
+  {
+    name:'손흥민',
+    lifespan:'1992년생',
+    job:'축구선수·토트넘 홋스퍼 주장',
+    photo:null,
+    emoji:'⚽',
+    birth:{year:1992,month:7,day:8,hour:6},
+    pillars:{
+      y:{g:'壬',j:'申',gE:'water',jE:'metal',gY:'+',jY:'+'},
+      m:{g:'甲',j:'午',gE:'wood',jE:'fire',gY:'+',jY:'-'},
+      d:{g:'庚',j:'子',gE:'metal',jE:'water',gY:'+',jY:'-'},
+      h:{g:'戊',j:'寅',gE:'earth',jE:'wood',gY:'+',jY:'+'}
+    },
+    dayGan:'庚',
+    dominantEl:'metal',
+    elRatios:{wood:22,fire:11,earth:11,metal:33,water:22},
+    mainStar:'편관',
+    fiveAnalysis:'경(庚)금 일간이 강한 금(金) 기운을 주도하며, 날카로운 결단력과 폭발적 순발력을 상징합니다. 수(水)가 금(金)을 유통시켜 경쟁 상황에서 차분한 판단력을 더합니다. 목(木) 기운이 목(木)극토로 강한 자기 주도성과 독립적 추진력을 더합니다.',
+    tenStarAnalysis:'편관(偏官)이 주성으로 극한의 경쟁에서 빛을 발하는 투지와 책임감, 한계를 돌파하는 의지를 상징합니다. 비견(比肩)이 보조해 혼자서도 강한 독립적 플레이 스타일이 형성되었습니다.',
+    personality:'도전·집중형: 경쟁을 두려워하지 않고 오히려 역경에서 더 강해지는 타입. 아버지의 혹독한 트레이닝을 버텨낸 인내심과 절대 포기하지 않는 집착이 특징입니다.',
+    careerFit:'스포츠·경쟁 분야 최적 적성. 금(金)의 예리함과 수(水)의 유연한 적응력이 결합해 윙 포워드의 폭발적 드리블과 정확한 슛팅 능력을 설명합니다.',
+    careerTags:['스포츠·운동선수','리더십·주장','글로벌 브랜드','멘탈 코치·롤모델'],
+    fortuneFlow:[
+      {period:'2008~2013년','label':'유럽 입성기','color':'#60a5fa','desc':'금(金) 대운. 독일 함부르크·레버쿠젠 이적. 유럽 무대 적응 + 폭발적 성장의 시기.'},
+      {period:'2015~2022년','label':'EPL 전성기','color':'#a78bfa','desc':'편관 극대화. 토트넘 이적 후 EPL 골 랭킹 1위. 2022 아시아인 최초 EPL 득점왕 등극.'},
+      {period:'2023년~현재','label':'주장·레전드기','color':'#6ee7b7','desc':'화(火) 대운 진입. 토트넘 주장 완전 정착. 국가대표 100경기 돌파·아시안컵 주도적 활약 중.'}
+    ]
+  },
+  {
+    name:'Taylor Swift',
+    lifespan:'1989년생',
+    job:'싱어송라이터·미국 팝스타',
+    photo:null,
+    emoji:'🌟',
+    birth:{year:1989,month:12,day:13,hour:8},
+    pillars:{
+      y:{g:'己',j:'巳',gE:'earth',jE:'fire',gY:'-',jY:'+'},
+      m:{g:'壬',j:'子',gE:'water',jE:'water',gY:'+',jY:'-'},
+      d:{g:'丁',j:'亥',gE:'fire',jE:'water',gY:'-',jY:'+'},
+      h:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'}
+    },
+    dayGan:'丁',
+    dominantEl:'water',
+    elRatios:{wood:11,fire:22,earth:22,metal:0,water:44},
+    mainStar:'정관',
+    fiveAnalysis:'수(水) 기운이 강해 풍부한 감성·직관력이 탐구적 글쓰기로 분출되는 구조입니다. 정(丁)화 일간이 거대한 수(水) 에너지 속에서 빛을 발하는 구조로, 역설적으로 불꽃이 더 강렬하게 타오릅니다. 토(土) 기운이 균형을 잡아 비즈니스 감각을 더합니다.',
+    tenStarAnalysis:'정관(正官)이 주성으로 음악 업계에서 정도(正道)를 걷는 원칙주의적 성향을 나타냅니다. 앨범 마스터 소유권 분쟁에서 타협 없이 재녹음(Taylor\'s Version)을 선택한 것이 정관의 대표적 표현입니다.',
+    personality:'감성·원칙형: 개인적 감정과 경험을 음악으로 승화하는 특별한 재능이 있습니다. 불합리한 대우에는 끝까지 싸우는 원칙주의자이나, 팬과의 관계에서는 따뜻하고 진심 어린 소통을 합니다.',
+    careerFit:'음악·스토리텔링·프로듀싱 최적 적성. 수(Water)의 깊은 감성과 정(丁)화의 표현력이 결합해 개인의 감정을 전 세계가 공감하는 음악으로 변환하는 능력을 발휘합니다.',
+    careerTags:['싱어송라이터','비즈니스 전략가','브랜드 파워','팬덤 리더십'],
+    fortuneFlow:[
+      {period:'2006~2012년','label':'컨트리 팝 스타기','color':'#60a5fa','desc':'목(木) 대운. 첫 앨범 발매로 10대 스타 등극. Fearless·Speak Now로 그래미 수상.'},
+      {period:'2014~2020년','label':'팝 슈퍼스타기','color':'#a78bfa','desc':'정관 극대화. 1989·reputation·Lover 등 연속 히트. 스쿠터 브라운과의 소유권 분쟁 정면 대응.'},
+      {period:'2021년~현재','label':'레전드 확정기','color':'#fbbf24','desc':'화(火) 대운. Taylor\'s Version 재녹음 프로젝트 성공. 에라스 투어 역대 최고 수익. 타임지 올해의 인물 선정.'}
+    ]
+  },
+  {
+    name:'Elon Musk',
+    lifespan:'1971년생',
+    job:'테슬라·SpaceX·X(트위터) CEO',
+    photo:null,
+    emoji:'🚀',
+    birth:{year:1971,month:6,day:28,hour:8},
+    pillars:{
+      y:{g:'辛',j:'亥',gE:'metal',jE:'water',gY:'-',jY:'+'},
+      m:{g:'庚',j:'午',gE:'metal',jE:'fire',gY:'+',jY:'-'},
+      d:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'},
+      h:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'}
+    },
+    dayGan:'甲',
+    dominantEl:'metal',
+    elRatios:{wood:33,fire:11,earth:22,metal:33,water:11},
+    mainStar:'편관',
+    fiveAnalysis:'갑(甲)목 일간에 금(金)과 목(木)이 강하게 대립하는 극도로 역동적인 사주 구조입니다. 금극목(金剋木)의 강한 긴장 에너지가 편관의 압박을 이겨내는 불굴의 도전 정신으로 발현됩니다. 토(土)가 완충 역할로 실용적 사업 감각을 더합니다.',
+    tenStarAnalysis:'편관(偏官)이 주성으로 기존의 한계를 부수고 불가능에 도전하는 파괴적 혁신 에너지를 상징합니다. 편재(偏財)가 보조해 스케일이 큰 사업 기회를 직관적으로 포착하는 능력이 더해집니다.',
+    personality:'혁신·극단형: "불가능"이라는 단어를 거부하고 물리학적 한계에 직접 도전합니다. 논쟁적이고 충동적인 면이 있으나, 장기적 목표(화성 이주)를 향한 집착이 일반인의 상상을 초월합니다.',
+    careerFit:'기술 혁신·우주·미래산업 최적 적성. 갑(甲)목의 성장 개척 에너지와 금(金)의 날카로운 공학적 분析力이 결합해 테슬라·SpaceX·Neuralink 등 파괴적 혁신 기업들을 동시에 운영합니다.',
+    careerTags:['기술 혁신가','우주·미래산업','비즈니스 제국 건설','알고리즘·工학'],
+    fortuneFlow:[
+      {period:'1995~2002년','label':'창업 초기','color':'#60a5fa','desc':'목(木) 대운 성장기. Zip2·X.com(페이팔 전신) 창업 및 매각. 첫 억만장자 등극.'},
+      {period:'2004~2018년','label':'테슬라·스페이스X','color':'#a78bfa','desc':'편관 폭발기. 테슬라 투자·SpaceX 설립. 수차례 파산 위기를 넘기며 세계 부호 반열에.'},
+      {period:'2019년~현재','label':'세계 지배 확장기','color':'#fbbf24','desc':'금(金) 대운. 테슬라 주가 폭등으로 세계 최부자. 트위터 인수·도지코인 밈 운용·정치적 영향력 극대화.'}
+    ]
+  },
+  {
+    name:'뉴진스 하니 (팜 하니)',
+    lifespan:'2004년생',
+    job:'뉴진스 멤버·글로벌 팝스타',
+    photo:null,
+    emoji:'🐰',
+    birth:{year:2004,month:10,day:6,hour:8},
+    pillars:{
+      y:{g:'甲',j:'申',gE:'wood',jE:'metal',gY:'+',jY:'+'},
+      m:{g:'壬',j:'戌',gE:'water',jE:'earth',gY:'+',jY:'+'},
+      d:{g:'甲',j:'寅',gE:'wood',jE:'wood',gY:'+',jY:'+'},
+      h:{g:'甲',j:'辰',gE:'wood',jE:'earth',gY:'+',jY:'+'}
+    },
+    dayGan:'甲',
+    dominantEl:'wood',
+    elRatios:{wood:55,fire:0,earth:22,metal:11,water:11},
+    mainStar:'비견',
+    fiveAnalysis:'갑(甲)목이 무려 세 기둥에 자리잡아 양(陽)목 기운이 압도적인 특이 사주입니다. 성장·창조·자유·표현의 에너지가 극도로 강해 무대 위에서 자연스럽게 빛나는 존재감을 발휘합니다. 금(金)이 목(木)을 적절히 다듬어 날카로운 퍼포먼스 감각도 더합니다.',
+    tenStarAnalysis:'비견(比肩)이 주성으로 강렬한 자기 정체성과 독립적 에너지를 상징합니다. 어떤 그룹에 있어도 자신만의 개성을 잃지 않는 강한 자아가 형성됩니다. 편관이 보조해 무대 위에서 경쟁자를 압도하는 카리스마도 함께합니다.',
+    personality:'자유·표현형: 경계 없이 자신을 표현하며 다문화 배경(베트남계 호주인)을 강점으로 삼습니다. 규칙에 얽매이기보다 본능적으로 창의적 방향을 선택하는 성향입니다.',
+    careerFit:'K-팝·글로벌 엔터테인먼트·패션 최적 적성. 목(木)의 자연스러운 리듬감과 성장 에너지가 뉴진스의 Y2K 감성과 완벽히 맞아떨어지며, 글로벌 팬덤을 형성하는 원동력입니다.',
+    careerTags:['K-팝 퍼포머','패션·뮤즈','글로벌 모델','크리에이티브 아이콘'],
+    fortuneFlow:[
+      {period:'2022년 데뷔','label':'혜성 같은 등장','color':'#60a5fa','desc':'목(木) 기운 폭발. 뉴진스 데뷔와 동시에 Hype Boy·Cookie 글로벌 히트. K-팝 신인 최단기 기록 경신.'},
+      {period:'2023~2024년','label':'글로벌 아이콘기','color':'#a78bfa','desc':'비견 기운 강화. 유엔 연설 참여·LVMH 샤넬 앰배서더. 단순 아이돌을 넘어 문화 아이콘으로 격상.'},
+      {period:'2025년~현재','label':'독자 활동 전환기','color':'#fbbf24','desc':'레이블 분쟁 이후 새로운 방향 모색 중. 강한 목(木) 에너지로 어떤 환경에서도 자신의 빛을 잃지 않는 상승 흐름.'}
+    ]
+  }
+];
+
+/* ─── 오행 색상 맵 ─── */
+var EL_COLOR={wood:'#4ade80',fire:'#f97316',earth:'#fbbf24',metal:'#94a3b8',water:'#60a5fa'};
+var EL_KOR={wood:'목(木)🌿',fire:'화(火)🔥',earth:'토(土)🌏',metal:'금(金)✨',water:'수(水)💧'};
+var EL_SHORT={wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
+var TS_EMOJI={'비견':'👬','겁재':'🥷','식신':'🍔','상관':'💥','편재':'🎢','정재':'🐖','편관':'⚔️','정관':'👑','편인':'🔮','정인':'🤱'};
+
+var currentFamousIdx=0;
+
+function renderFamousCard(idx){
+  var card=FAMOUS_DATA[idx];
+  if(!card) return;
+  var content=document.getElementById('famousSajuContent');
+  if(!content) return;
+
+  /* ── 오행 바 HTML ── */
+  var elOrder=['wood','fire','earth','metal','water'];
+  var elBars=elOrder.map(function(el){
+    var pct=card.elRatios[el]||0;
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">'
+      +'<span style="min-width:28px;font-size:0.72rem;color:rgba(203,195,227,0.8);">'+EL_SHORT[el]+'</span>'
+      +'<div style="flex:1;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">'
+      +'<div class="fsaj-el-bar" style="width:0;background:'+EL_COLOR[el]+';border-radius:4px;" data-width="'+pct+'"></div>'
+      +'</div>'
+      +'<span style="min-width:32px;font-size:0.72rem;font-weight:700;color:'+EL_COLOR[el]+';">'+pct+'%</span>'
+      +'</div>';
+  }).join('');
+
+  /* ── 사주 원국 HTML ── */
+  var pillarOrder=['y','m','d','h'];
+  var pillarLabel=['년주(年柱)','월주(月柱)','일주(日柱)','시주(時柱)'];
+  var pillarHtml=pillarOrder.map(function(p,i){
+    var pil=card.pillars[p];
+    var isDayPillar=(p==='d');
+    return '<div class="fsaj-pillar-box" style="'+(isDayPillar?'border-color:rgba(167,139,250,0.55);background:rgba(124,58,237,0.12);':'')+'">'
+      +'<div class="fsaj-pillar-label">'+pillarLabel[i]+'</div>'
+      +'<div class="fsaj-pillar-chars" style="color:'+(isDayPillar?'#c4b5fd':'#e9d5ff')+';">'
+        +'<span style="color:'+EL_COLOR[pil.gE]+';">'+pil.g+'</span>'
+        +'<span style="color:'+EL_COLOR[pil.jE]+';">'+pil.j+'</span>'
+      +'</div>'
+      +'<div class="fsaj-pillar-elem">'+EL_SHORT[pil.gE]+' / '+EL_SHORT[pil.jE]+'</div>'
+      +'</div>';
+  }).join('');
+
+  /* ── 운의 흐름 HTML ── */
+  var fortuneHtml=card.fortuneFlow.map(function(f){
+    return '<div class="fsaj-fortune-item">'
+      +'<div class="fsaj-fortune-dot" style="background:'+f.color+';box-shadow:0 0 6px '+f.color+'80;"></div>'
+      +'<div style="flex:1;">'
+        +'<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;">'
+          +'<span style="font-size:0.78rem;font-weight:700;color:'+f.color+';">'+f.label+'</span>'
+          +'<span style="font-size:0.7rem;color:rgba(203,195,227,0.6);">'+f.period+'</span>'
+        +'</div>'
+        +'<p style="margin:0;font-size:0.79rem;line-height:1.65;color:rgba(226,232,240,0.88);">'+f.desc+'</p>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  /* ── 진로 적성 태그 HTML ── */
+  var tagColors=['rgba(167,139,250,0.25)','rgba(96,165,250,0.25)','rgba(110,231,183,0.25)','rgba(251,191,36,0.25)'];
+  var tagBorders=['rgba(167,139,250,0.45)','rgba(96,165,250,0.45)','rgba(110,231,183,0.45)','rgba(251,191,36,0.45)'];
+  var tagTextColors=['#c4b5fd','#93c5fd','#6ee7b7','#fde68a'];
+  var careerTagHtml=(card.careerTags||[]).map(function(t,i){
+    var ci=i%4;
+    return '<span class="fsaj-career-tag" style="background:'+tagColors[ci]+';border-color:'+tagBorders[ci]+';color:'+tagTextColors[ci]+';">'+t+'</span>';
+  }).join('');
+
+  /* ── 전체 렌더링 ── */
+  var starEmoji=TS_EMOJI[card.mainStar]||'⭐';
+  var domColor=EL_COLOR[card.dominantEl]||'#a78bfa';
+
+  content.innerHTML=''
+    +'<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;">'
+      +(card.photo
+        ?'<img src="'+card.photo+'" alt="'+card.name+' 프로필" class="fsaj-profile-photo">'
+        :'<div class="fsaj-profile-photo-placeholder"><span>'+card.emoji+'</span></div>')
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">'
+          +'<h3 style="margin:0;font-size:1.18rem;font-weight:800;color:#f3e8ff;letter-spacing:0.02em;">'+card.name+'</h3>'
+          +'<span style="font-size:0.72rem;color:rgba(203,195,227,0.65);white-space:nowrap;">'+card.lifespan+'</span>'
+        +'</div>'
+        +'<p style="margin:0 0 8px;font-size:0.8rem;color:rgba(203,195,227,0.8);line-height:1.4;">'+card.job+'</p>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+          +'<span style="padding:3px 9px;border-radius:999px;font-size:0.7rem;font-weight:700;background:rgba('+hexToRgb(domColor)+',0.18);border:1px solid rgba('+hexToRgb(domColor)+',0.45);color:'+domColor+';">'+EL_KOR[card.dominantEl]+'</span>'
+          +'<span style="padding:3px 9px;border-radius:999px;font-size:0.7rem;font-weight:700;background:rgba(124,58,237,0.18);border:1px solid rgba(167,139,250,0.4);color:#c4b5fd;">'+starEmoji+' '+card.mainStar+'</span>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    /* 사주 원국 */
+    +'<div class="fsaj-section">'
+      +'<div class="fsaj-section-title" style="color:#c4b5fd;">🔮 사주 원국 (四柱 原局)</div>'
+      +'<div style="display:flex;gap:8px;">'+pillarHtml+'</div>'
+      +'<p style="margin:10px 0 0;font-size:0.73rem;color:rgba(203,195,227,0.55);text-align:center;">※ 일주(日柱)가 본인을 나타냅니다 · 출생 시간 불명확 인물은 학술적 추정 적용</p>'
+    +'</div>'
+    /* 오행 분석 */
+    +'<div class="fsaj-section">'
+      +'<div class="fsaj-section-title" style="color:#6ee7b7;">🌿 오행(五行) 분석</div>'
+      +elBars
+      +'<p style="margin:10px 0 0;font-size:0.8rem;line-height:1.72;color:rgba(226,232,240,0.88);">'+card.fiveAnalysis+'</p>'
+    +'</div>'
+    /* 십성 분석 */
+    +'<div class="fsaj-section">'
+      +'<div class="fsaj-section-title" style="color:#fde68a;">'+starEmoji+' 십성(十星) 분석</div>'
+      +'<p style="margin:0;font-size:0.8rem;line-height:1.72;color:rgba(226,232,240,0.88);">'+card.tenStarAnalysis+'</p>'
+    +'</div>'
+    /* 성향과 진로 적성 */
+    +'<div class="fsaj-section">'
+      +'<div class="fsaj-section-title" style="color:#93c5fd;">💼 성향 & 진로 적성 판단</div>'
+      +'<p style="margin:0 0 10px;font-size:0.8rem;line-height:1.72;color:rgba(226,232,240,0.88);"><strong style="color:#bfdbfe;">성향:</strong> '+card.personality+'</p>'
+      +'<p style="margin:0 0 10px;font-size:0.8rem;line-height:1.72;color:rgba(226,232,240,0.88);"><strong style="color:#bfdbfe;">적성 분석:</strong> '+card.careerFit+'</p>'
+      +'<div>'+careerTagHtml+'</div>'
+    +'</div>'
+    /* 운의 흐름 */
+    +'<div class="fsaj-section">'
+      +'<div class="fsaj-section-title" style="color:#f9a8d4;">🌊 운의 흐름 (大運 추이)</div>'
+      +fortuneHtml
+    +'</div>';
+
+  /* 오행 바 애니메이션 */
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      var bars=content.querySelectorAll('.fsaj-el-bar');
+      bars.forEach(function(b){
+        b.style.width=(b.getAttribute('data-width')||'0')+'%';
+      });
+    },80);
+  });
+}
+
+function hexToRgb(hex){
+  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
+}
+
+function initFamousSajuTabs(){
+  var tabsEl=document.getElementById('famousSajuTabs');
+  if(!tabsEl) return;
+  var tabs=tabsEl.querySelectorAll('.fsaj-tab');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      var idx=parseInt(tab.getAttribute('data-idx'));
+      if(idx===currentFamousIdx) return;
+      currentFamousIdx=idx;
+      tabs.forEach(function(t){
+        t.classList.remove('fsaj-tab--active');
+        t.style.color='rgba(203,195,227,0.7)';
+        t.style.borderBottomColor='transparent';
+      });
+      tab.classList.add('fsaj-tab--active');
+      tab.style.color='#e9d5ff';
+      tab.style.borderBottomColor='#a78bfa';
+      renderFamousCard(idx);
+    });
+  });
+}
+
+function initFamousSaju(){
+  renderFamousCard(0);
+  initFamousSajuTabs();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initFamousSaju);
+}else{
+  initFamousSaju();
+}
+})();
+</script>
+<!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 </body>
 </html>
