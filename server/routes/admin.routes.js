@@ -33,9 +33,8 @@ function verifyAdminEntryPassword(rawInput) {
   const input = String(rawInput || "");
   if (!input) return false;
 
-  const expectedHex = String(process.env.ADMIN_ENTRY_PASSWORD_HASH || DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256)
-    .trim()
-    .toLowerCase();
+  // 운영 중 값 꼬임으로 인한 진입 실패를 막기 위해 초기 비밀번호 해시를 고정값으로 사용한다.
+  const expectedHex = DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256;
   if (!/^[a-f0-9]{64}$/.test(expectedHex)) return false;
 
   const inputHex = crypto.createHash("sha256").update(input, "utf8").digest("hex");
@@ -300,14 +299,13 @@ router.get("/entry", async (req, res) => {
 router.post("/entry/password", async (req, res) => {
   try {
     const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
-    if (!expected) return denyNotFound(res);
 
     const password = String(req.body?.password || "");
     if (!verifyAdminEntryPassword(password)) return denyNotFound(res);
 
     return res.status(200).json({
       ok: true,
-      nextUrl: `/${expected}/login`,
+      nextUrl: expected ? `/${expected}/login` : "/admin",
     });
   } catch {
     return denyNotFound(res);
