@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -677,6 +677,48 @@
   </style>
 </head>
 <body>
+<script>
+(function(){
+  'use strict';
+  var COST = 30, KEY = 'openNevilleMeditationPage';
+  var flag = 'cd_pa_' + KEY;
+  if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); return; }
+  // 관리자 패널 로그인: 코인 없이 바로 이용 가능
+  try { if (sessionStorage.getItem('flower_admin_token')) return; } catch(_ae) {}
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
+  if (!token) {
+    if (window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
+      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
+    } else { window.history.back(); }
+    return;
+  }
+  var pts = 0;
+  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
+  if (pts < COST) {
+    window.alert('🐷 황금 돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
+    window.history.back();
+    return;
+  }
+  fetch('/api/fortune/pig-coin/consume', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ cost: COST, reason: KEY + ' 이용' })
+  }).then(function(r) {
+    return r.json().then(function(d) {
+      if (r.status === 402 || !r.ok) {
+        window.alert('🐷 황금 돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+        window.history.back();
+        return;
+      }
+      if (d && d.user && typeof d.user.points === 'number') {
+        try { var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}'); u.points = d.user.points; localStorage.setItem('fortune_auth_user', JSON.stringify(u)); } catch(e) {}
+        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
+      }
+    });
+  }).catch(function() {});
+})();
+</script>
 
 <canvas id="cosmos"></canvas>
 <div id="nebula"></div>
@@ -940,10 +982,10 @@ const COURSES = {
     msgs: [
       {t:0,   tx:'고요히 앉거나\n편안하게 누우십시오.\n오늘의 현실 전환은 지금부터 시작됩니다.'},
       {t:7,   tx:'지금 이 순간부터\n당신은 일상의 세계 너머로 발을 내딛습니다.'},
-      {t:20,  tx:'첫 번째 호흡.\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:20,  tx:'첫 번째 호흡.\n코로 천천히 숨을 들이마시며 몸의 긴장을 풀어봅니다...'},
       {t:33,  tx:'일곱을 세며\n멈추십시오...'},
       {t:45,  tx:'여덟을 세며\n입으로 천천히 내뱉으십시오...'},
-      {t:62,  tx:'다시...\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:62,  tx:'다시...\n자연스럽게 숨을 들이마시며 몸이 더 편안해집니다...'},
       {t:75,  tx:'멈추십시오...\n일곱...'},
       {t:86,  tx:'천천히... 여덟을 세며\n내뱉으십시오...'},
       {t:105, tx:'뇌가 안전 신호를 받았습니다.\n이제 몸의 스위치를 하나씩 내립니다.\n의식은 더 선명해집니다.'},
@@ -1014,7 +1056,7 @@ const COURSES = {
       {t:0,   tx:'공간의 에너지를 먼저 정돈하십시오.\n척추가 곧게 펴지는 자세를 취합니다.'},
       {t:14,  tx:'오늘 이 시간 동안\n당신이 도달하고자 하는\n단 하나의 목적지를 마음속으로 정의합니다.'},
       {t:42,  tx:'명상은 기술이 아니라 환경입니다.\n지금 이 공간을 이미 이루어진 현실의 접속점으로 만드십시오.'},
-      {t:60,  tx:'첫 번째 호흡.\n코로 넷을 세며 깊이 들이마시세요...'},
+      {t:60,  tx:'첫 번째 호흡.\n천천히 숨을 들이마시며 몸의 긴장을 내려놓으세요...'},
       {t:75,  tx:'일곱을 세며 멈추십시오...'},
       {t:87,  tx:'여덟을 세며 천천히 내뱉으십시오...'},
       {t:105, tx:'다시... 넷을 세며 들이마시세요...'},
@@ -1499,10 +1541,11 @@ function typeNext(el) {
     el.innerHTML = html + '<span class="cursor"></span>';
     charIdx++;
     const ch = targetTxt[charIdx - 1];
-    const delay = ch === '\n' ? 180
-                : '.,。·' .includes(ch) ? 145
-                : '!' .includes(ch) ? 120
-                : 24 + Math.random() * 14;
+    // 느린 타이핑: 줄바꿈 320ms, 마침표/쉼표 등 220ms, 느낌표 180ms, 기본 48~62ms
+    const delay = ch === '\n' ? 320
+          : '.,。·'.includes(ch) ? 220
+          : '!'.includes(ch) ? 180
+          : 48 + Math.random() * 14;
     typTO = setTimeout(() => typeNext(el), delay);
   }
 }

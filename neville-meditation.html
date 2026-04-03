@@ -683,6 +683,8 @@
   var COST = 30, KEY = 'openNevilleMeditationPage';
   var flag = 'cd_pa_' + KEY;
   if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); return; }
+  // 관리자 패널 로그인: 코인 없이 바로 이용 가능
+  try { if (sessionStorage.getItem('flower_admin_token')) return; } catch(_ae) {}
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
   if (!token) {
