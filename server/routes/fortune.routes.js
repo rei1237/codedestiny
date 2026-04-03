@@ -234,7 +234,7 @@ router.post("/pig-coin/consume", async (req, res, next) => {
 const PROFILE_SUB_PLANS = {
   standard: { name: "스탠다드 꿀",   coins: 115, welcomeBonus: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
   premium:  { name: "프리미엄 꿀",   coins: 360, welcomeBonus: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip:     { name: "VVIP 꿀단지",   coins: 700, welcomeBonus: 700, profileLimit: 0, durationDays: 30, lowWarnAt: 100 },
+  vvip:     { name: "VVIP 꿀단지",   coins: 700, welcomeBonus: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
 };
 
 /* GET /api/fortune/pig-coin/profile-subscription/status */

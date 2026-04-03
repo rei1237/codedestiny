@@ -104,7 +104,7 @@ const userSchema = new mongoose.Schema({
    * - free:     프로필 1개
    * - standard(115코인/월, 첫 구독 시 230코인 범려): 프로필 3개
    * - premium(360코인/월, 첫 구독 시 720코인 범려): 프로필 7개
-   * - vvip(700코인/월, 첫 구독 시 1,400코인 범려): 프로필 무제한
+   * - vvip(700코인/월, 첫 구독 시 1,400코인 범려): 프로필 15개
    * 구독은 30일 기간 기반으로 유지 (코인 잔액 무관)
    */
   profileSubscription: {
