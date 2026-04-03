@@ -829,9 +829,12 @@ function renderReportDashboard() {
     gridHtml += '<div class="rpt-v2-img-row">';
     b.images.forEach(function(img) {
       var thumbSrc = '/fuctionassets/' + (img.thumb || (img.id + '.webp'));
+      var tilePriceText = (b.coinCost > 0) ? ('🪙 ' + b.coinCost + '코인') : '무료';
+      var tilePriceClass = (b.coinCost > 0) ? 'rpt-v2-price-badge' : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
         + 'decoding="async" onerror="handleReportThumbError(this)">';
+      gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';
       gridHtml += '</div>';
     });
     gridHtml += '</div>';
@@ -842,18 +845,17 @@ function renderReportDashboard() {
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var coinAttrs = (b.coinCost > 0) ? (' data-tile-lock-key="rpt_' + b.target + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
-    var coinBadge = (b.coinCost > 0) ? ('<span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 8px;border-radius:999px;background:rgba(255,193,87,.28);color:#7a3a00;font-size:.72rem;font-weight:800;border:1px solid rgba(255,162,58,.35)">🪙 ' + b.coinCost + '코인</span>') : '';
     if (b.action === 'openLuckSyncDiary') {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openLuckSyncDiary"' + coinAttrs + ' aria-label="' + b.cta + '">';
-      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + coinBadge + '</span>';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '</button>';
     } else if (b.action === 'openSecretHouseRoute') {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openSecretHouseRoute"' + coinAttrs + ' aria-label="' + b.cta + '">';
-      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + coinBadge + '</span>';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '</button>';
     } else {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button"' + (b.coinCost > 0 ? ' data-action="toggleRptCard"' : ' onclick="toggleReportFeatureCard(this)"') + coinAttrs + ' aria-expanded="false" data-label="' + b.cta + '">';
-      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + coinBadge + '</span>';
+      gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
       gridHtml += '</button>';
     }
