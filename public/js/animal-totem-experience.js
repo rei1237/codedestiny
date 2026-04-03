@@ -350,6 +350,8 @@
     }, { passive: false });
   }
 
+  var ROMAN_NUMERALS = ["I", "II", "III", "IV", "V"];
+
   function renderDeck() {
     if (!refs.cardRail || !state.spread) return;
     refs.cardRail.innerHTML = "";
@@ -363,14 +365,26 @@
       btn.setAttribute("data-action-pass-self", "1");
       btn.setAttribute("data-action-args", String(idx));
       btn.setAttribute("aria-label", slotLabel(entry.slot) + " 카드 뒤집기");
+      /* 동물별 컬러 테마 CSS 변수 주입 */
+      var ct = entry.card.color_theme || {};
+      if (ct.glow) btn.style.setProperty("--card-glow", ct.glow);
+      if (ct.primary) btn.style.setProperty("--card-primary", ct.primary);
+      if (ct.particle) btn.style.setProperty("--card-particle", ct.particle);
+      var roman = ROMAN_NUMERALS[idx] || String(idx + 1);
       btn.innerHTML =
         '<span class="totem-draw-card-inner">' +
         '<span class="totem-card-face totem-card-face--back">' +
-        '<span class="totem-card-emoji">✶</span>' +
-        '<small class="totem-card-slot">' + slotLabel(entry.slot) + '</small>' +
-        '<small class="totem-card-mark">ARCANA ' + String(idx + 1) + "</small>" +
+        '<span class="totem-cb-corner-tl" aria-hidden="true">✦</span>' +
+        '<span class="totem-cb-corner-tr" aria-hidden="true">✦</span>' +
+        '<span class="totem-cb-frame" aria-hidden="true"></span>' +
+        '<span class="totem-card-emoji" aria-hidden="true">🌿</span>' +
+        '<small class="totem-card-slot">' + slotLabel(entry.slot) + "</small>" +
+        '<small class="totem-card-mark">ARCANA ' + roman + "</small>" +
+        '<span class="totem-cb-corner-bl" aria-hidden="true">✦</span>' +
+        '<span class="totem-cb-corner-br" aria-hidden="true">✦</span>' +
         "</span>" +
         '<span class="totem-card-face totem-card-face--front">' +
+        '<span class="totem-cf-aura" aria-hidden="true"></span>' +
         '<b class="totem-card-emoji">' + entry.card.emoji + "</b>" +
         '<span class="totem-card-name">' + entry.card.name_ko + "</span>" +
         '<small class="totem-card-slot">' + entry.card.category + "</small>" +
@@ -437,12 +451,17 @@
       var card = document.createElement("div");
       card.className = "totem-result-card totem-result-card--" + (idx + 1);
       card.setAttribute("aria-label", slotLabel(entry.slot) + " — " + entry.card.name_ko);
+      /* 동물별 컬러 테마 CSS 변수 주입 */
+      var ct = entry.card.color_theme || {};
+      if (ct.glow) card.style.setProperty("--card-glow", ct.glow);
+      if (ct.primary) card.style.setProperty("--card-primary", ct.primary);
+      if (ct.particle) card.style.setProperty("--card-particle", ct.particle);
       card.innerHTML =
         '<div class="totem-result-card-inner">' +
+        '<span class="totem-rc-aura" aria-hidden="true"></span>' +
         '<span class="totem-result-card-emoji">' + entry.card.emoji + "</span>" +
         '<span class="totem-result-card-name">' + entry.card.name_ko + "</span>" +
         '<small class="totem-result-card-slot">' + slotLabel(entry.slot) + "</small>" +
-        '<small class="totem-card-mark">TOTEM ARCANA</small>' +
         '</div>';
       refs.resultCards.appendChild(card);
     });

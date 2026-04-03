@@ -2288,3 +2288,313 @@ body.animal-totem-modal-open .lang-toggle-wrap { visibility: hidden; pointer-eve
     margin: 0 auto;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   PREMIUM CARD REDESIGN  — Animal Totem
+   · 카드 뒷면: 자연 오너먼트 + 반딧불이 글로우
+   · 카드 앞면: 동물별 고유 컬러 테마 (CSS 변수 주입)
+   · 결과 카드: 동물별 색상 아우라 + 파티클 그래디언트
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 카드 뒷면 완전 재설계 ── */
+.totem-card-face--back {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(245,240,230,0.18) 0%, transparent 36%),
+    radial-gradient(circle at 16% 78%, rgba(45,80,22,0.28) 0%, transparent 46%),
+    radial-gradient(circle at 84% 72%, rgba(92,64,51,0.22) 0%, transparent 42%),
+    linear-gradient(168deg, #1b3a1b 0%, #2e520f 20%, #3d2914 55%, #1a1712 100%);
+  border: 1.5px solid rgba(245,240,230,0.25);
+  box-shadow:
+    0 10px 32px rgba(0,0,0,.55),
+    inset 0 0 0 1px rgba(245,240,230,.18),
+    inset 0 1px 5px rgba(200,255,180,0.08);
+  animation: totemCardPulse 3.4s ease-in-out infinite;
+  justify-content: center;
+  gap: 3px;
+}
+
+.totem-card-face--back::before {
+  top: 12%;
+  font-size: 0.46rem;
+  letter-spacing: 0.58em;
+  color: rgba(245,240,230,0.35);
+  content: "✦  ✧  ✦";
+}
+
+/* 대각선 패턴 (저해상도 이미지 오버레이 대체) */
+.totem-card-face--back::after {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 9px,
+      rgba(245,240,230,0.022) 9px,
+      rgba(245,240,230,0.022) 10px
+    );
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+/* 코너 오너먼트 (JS에서 주입) */
+.totem-cb-corner-tl,
+.totem-cb-corner-tr,
+.totem-cb-corner-bl,
+.totem-cb-corner-br {
+  position: absolute;
+  font-size: 0.5rem;
+  color: rgba(245,240,230,0.44);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 0 4px rgba(200,255,180,0.32));
+}
+.totem-cb-corner-tl { top: 7px; left: 9px; }
+.totem-cb-corner-tr { top: 7px; right: 9px; }
+.totem-cb-corner-bl { bottom: 7px; left: 9px; }
+.totem-cb-corner-br { bottom: 7px; right: 9px; }
+
+/* 내부 액자 프레임 */
+.totem-cb-frame {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(245,240,230,0.14);
+  border-radius: calc(var(--totem-radius) - 5px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 잎 글리프 강화 */
+.totem-card-face--back .totem-card-emoji {
+  font-size: 1.8rem;
+  z-index: 1;
+  position: relative;
+  filter: drop-shadow(0 0 14px rgba(200,255,180,0.75)) drop-shadow(0 0 5px rgba(245,240,230,0.4));
+  animation: cb-glyph-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes cb-glyph-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(200,255,180,0.55)) drop-shadow(0 0 4px rgba(245,240,230,0.32));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(200,255,180,0.85)) drop-shadow(0 0 11px rgba(245,240,230,0.58));
+  }
+}
+
+.totem-card-face--back .totem-card-slot {
+  z-index: 1;
+  position: relative;
+  font-size: 0.6rem;
+  color: rgba(245,240,230,0.62);
+  letter-spacing: 0.08em;
+}
+
+.totem-card-face--back .totem-card-mark {
+  z-index: 1;
+  position: relative;
+  font-size: 0.5rem;
+  color: rgba(245,240,230,0.4);
+  letter-spacing: 0.2em;
+}
+
+/* ── 카드 앞면: 동물별 고유 컬러 테마 ── */
+.totem-card-face--front {
+  background:
+    radial-gradient(circle at 50% 38%, var(--card-glow, rgba(184,169,201,0.3)) 0%, transparent 54%),
+    linear-gradient(165deg,
+      var(--card-particle, rgba(245,240,230,1)) 0%,
+      rgba(255,255,255,0.99) 52%,
+      var(--card-particle, rgba(245,240,230,0.96)) 100%);
+  border: 1.5px solid var(--card-primary, rgba(92,64,51,0.22));
+  box-shadow:
+    0 6px 26px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.68),
+    0 0 20px var(--card-glow, rgba(184,169,201,0.16));
+}
+
+/* 컬러 테마 아우라 블롭 (JS에서 주입) */
+.totem-cf-aura {
+  position: absolute;
+  width: 70%;
+  height: 52%;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--card-glow, rgba(184,169,201,0.45)) 0%, transparent 68%);
+  opacity: 0.52;
+  pointer-events: none;
+  z-index: 0;
+  animation: cf-aura-pulse 3.4s ease-in-out infinite;
+}
+
+@keyframes cf-aura-pulse {
+  0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.72; transform: translateX(-50%) scale(1.12); }
+}
+
+.totem-card-face--front .totem-card-emoji {
+  font-size: 2.65rem;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.12))
+    drop-shadow(0 0 16px var(--card-glow, rgba(184,169,201,0.68)));
+  z-index: 1;
+  position: relative;
+  animation: emojiReveal 0.52s ease-out 0.3s both;
+}
+
+.totem-card-face--front .totem-card-name {
+  color: var(--card-primary, var(--forest-bark));
+  font-weight: 800;
+  font-size: 0.96rem;
+  z-index: 1;
+  position: relative;
+  letter-spacing: 0.02em;
+}
+
+.totem-card-face--front .totem-card-slot {
+  z-index: 1;
+  position: relative;
+  color: var(--card-primary, var(--forest-earth));
+  opacity: 0.75;
+}
+
+/* ── 결과 카드: 동물별 파티클 그래디언트 & 아우라 ── */
+.totem-result-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 38%, var(--card-glow, rgba(184,169,201,0.28)) 0%, transparent 56%),
+    linear-gradient(165deg,
+      var(--card-particle, rgba(245,240,230,0.98)) 0%,
+      rgba(255,255,255,0.99) 100%);
+  border: 1.5px solid var(--card-primary, rgba(92,64,51,.28));
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.3),
+    0 0 18px var(--card-glow, rgba(184,169,201,0.22)),
+    inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+/* 펄스 아우라 레이어 (JS에서 주입) */
+.totem-rc-aura {
+  position: absolute;
+  width: 90%;
+  height: 62%;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--card-glow, rgba(184,169,201,0.42)) 0%, transparent 68%);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+  animation: rc-aura-pulse 4.2s ease-in-out infinite;
+}
+
+@keyframes rc-aura-pulse {
+  0%, 100% { opacity: 0.35; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.62; transform: translateX(-50%) scale(1.06); }
+}
+
+.totem-result-card-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.totem-result-card-emoji {
+  font-size: 2.6rem;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.1))
+    drop-shadow(0 0 16px var(--card-glow, rgba(184,169,201,0.65)));
+}
+
+.totem-result-card-name {
+  color: var(--card-primary, var(--forest-bark));
+  font-weight: 700;
+}
+
+.totem-result-card-slot {
+  color: var(--card-primary, var(--forest-earth));
+  opacity: 0.78;
+}
+
+/* ── 결과 카드 그리드 재배치: 3장 가로 배치 ── */
+.totem-result-cards--1 {
+  grid-template-columns: 1fr;
+  max-width: 150px;
+  margin: 0 auto;
+}
+
+.totem-result-cards--3 {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 440px;
+  margin: 0 auto;
+  gap: 14px;
+}
+
+.totem-result-cards--5 {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 460px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.totem-result-card {
+  max-width: unset;
+}
+
+/* ── 인트로 히어로 개선: 더 고급스러운 레이아웃 ── */
+.totem-intro-title {
+  font-family: "Cinzel", Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--forest-moonlight);
+  text-shadow:
+    0 0 20px var(--forest-lavender-glow),
+    0 0 40px rgba(184,169,201,0.15);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(232,220,200,0.16);
+  margin-bottom: 6px;
+}
+
+/* ── 타일 카드 (홈화면) 배지 개선 ── */
+.tarot-tile--animal-totem .tarot-tile__badge--totem {
+  background: linear-gradient(135deg, rgba(45,80,22,0.85), rgba(92,64,51,0.7));
+  border: 1px solid rgba(232,220,200,0.4);
+  color: var(--forest-moonlight, #f5f0e6);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ── 모바일 결과 카드 그리드 조정 ── */
+@media (max-width: 480px) {
+  .totem-result-cards--3 {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 330px;
+    gap: 10px;
+  }
+  .totem-result-cards--5 {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 340px;
+    gap: 9px;
+  }
+  .totem-result-card {
+    aspect-ratio: 2 / 3;
+  }
+  .totem-result-card-emoji {
+    font-size: 2rem;
+  }
+  .totem-result-card-name {
+    font-size: 0.82rem;
+  }
+}
+
+/* prefers-reduced-motion 확장 */
+@media (prefers-reduced-motion: reduce) {
+  .totem-cb-glyph-pulse,
+  .totem-card-face--back .totem-card-emoji,
+  .totem-cf-aura,
+  .totem-rc-aura {
+    animation: none !important;
+  }
+}
