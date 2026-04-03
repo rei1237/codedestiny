@@ -56,12 +56,12 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/insights/vedic-astrology-navamsa-basics", changeFrequency: "monthly", priority: 0.75 },
   { path: "/insights/ziwei-doushu-stars-intro", changeFrequency: "monthly", priority: 0.75 },
   { path: "/insights/astrology-houses-quick-guide", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/about", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/about", changeFrequency: "monthly", priority: 0.8 },
   { path: "/points", changeFrequency: "weekly", priority: 0.5 },
-  { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.2 },
-  { path: "/terms-of-service", changeFrequency: "yearly", priority: 0.2 },
-  { path: "/faq", changeFrequency: "monthly", priority: 0.35 },
-  { path: "/contact-us", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.5 },
+  { path: "/terms-of-service", changeFrequency: "yearly", priority: 0.5 },
+  { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/contact-us", changeFrequency: "yearly", priority: 0.55 },
 ];
 
 export function getAllSitemapUrls(): string[] {

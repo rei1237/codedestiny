@@ -411,6 +411,42 @@ export default function SiteFooterHub() {
 
         <hr style={DIVIDER} />
 
+        {/* ── About 서비스 소개 스니펫 (AdSense · E-E-A-T 대응) ── */}
+        <section
+          aria-label="서비스 소개"
+          style={{
+            maxWidth: "860px",
+            margin: "0 auto 28px",
+            padding: "18px 20px",
+            borderRadius: "14px",
+            background: "linear-gradient(135deg, rgba(30,41,59,0.54), rgba(15,23,42,0.8))",
+            border: "1px solid rgba(124,58,237,0.22)",
+          }}
+        >
+          <h3 style={{ fontSize: "12px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px", paddingBottom: "6px", borderBottom: "1px solid rgba(124,58,237,0.18)" }}>
+            About Code Destiny — 꿀꿀 만세력이란?
+          </h3>
+          <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
+            <strong style={{ color: "#94a3b8" }}>Code Destiny(꿀꿀 만세력)</strong>는 사주팔자·AI 타로·자미두수·코즈믹 점성술·
+            숙요점·동물관상·꿈 해몽 등 <strong style={{ color: "#4ecdc4" }}>20가지 이상의 운세 서비스를 완전 무료</strong>로 제공하는
+            AI 기반 운세 플랫폼입니다. 한국어·영어·일본어·중국어·힌디어·스페인어 등 10개 언어를 지원합니다.
+            모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
+          </p>
+          <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
+            본 서비스는 <strong style={{ color: "#94a3b8" }}>Google AdSense</strong> 등 제3자 광고를 노출할 수 있으며,
+            광고 수익은 전적으로 서비스 품질 유지 및 신규 기능 개발에 재투자됩니다.
+            운영 주체: 코드 데스티니 (대표 박병하 · 사업자등록번호 372-23-02329) |
+            이메일: seongbae555@gmail.com
+          </p>
+          <nav aria-label="서비스 소개 링크" style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px" }}>
+            <a href={`${ORIGIN}/about`} style={{ color: "#a78bfa", textDecoration: "none", fontSize: "12px", fontWeight: 700 }}>서비스 소개 About →</a>
+            <a href={`${ORIGIN}/faq`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>FAQ</a>
+            <a href={`${ORIGIN}/contact-us`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>문의하기</a>
+            <a href={`${ORIGIN}/privacy-policy`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>개인정보처리방침</a>
+            <a href={`${ORIGIN}/terms-of-service`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>이용약관</a>
+          </nav>
+        </section>
+
         {/* SEO 텍스트 블록 — 주요 키워드 자연 표현 */}
         <p
           style={{
