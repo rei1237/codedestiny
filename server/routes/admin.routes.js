@@ -23,9 +23,26 @@ try {
 const router = express.Router();
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
+const DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256 = "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e";
 
 function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function verifyAdminEntryPassword(rawInput) {
+  const input = String(rawInput || "");
+  if (!input) return false;
+
+  const expectedHex = String(process.env.ADMIN_ENTRY_PASSWORD_HASH || DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256)
+    .trim()
+    .toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(expectedHex)) return false;
+
+  const inputHex = crypto.createHash("sha256").update(input, "utf8").digest("hex");
+  const expectedBuf = Buffer.from(expectedHex, "hex");
+  const inputBuf = Buffer.from(inputHex, "hex");
+  if (expectedBuf.length !== inputBuf.length) return false;
+  return crypto.timingSafeEqual(expectedBuf, inputBuf);
 }
 
 function getCookieValue(req, cookieName) {
@@ -107,6 +124,7 @@ const adminMinuteLimiter = rateLimit({
 function csrfTokenMiddleware(req, res, next) {
   if (!IS_STRICT_SECURITY) return next();
   if (req.method !== "POST") return next();
+  if (req.path === "/entry/password") return next();
 
   const cookieCsrf = getCookieValue(req, "fortune_csrf_token");
   const headerCsrf = req.headers["x-csrf-token"];
@@ -276,6 +294,23 @@ router.get("/entry", async (req, res) => {
     const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
     if (!expected) return denyNotFound(res);
     return res.redirect(302, `/${expected}/login`);
+  }
+});
+
+router.post("/entry/password", async (req, res) => {
+  try {
+    const expected = String(process.env.ADMIN_SECRET_HASH || "").trim();
+    if (!expected) return denyNotFound(res);
+
+    const password = String(req.body?.password || "");
+    if (!verifyAdminEntryPassword(password)) return denyNotFound(res);
+
+    return res.status(200).json({
+      ok: true,
+      nextUrl: `/${expected}/login`,
+    });
+  } catch {
+    return denyNotFound(res);
   }
 });
 

@@ -1069,6 +1069,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
       <div id="goldenGrainBadgeRoot"></div>
 
+      <button
+        type="button"
+        data-action="openAdminFlowerGate"
+        aria-label="관리자 패널 진입"
+        title="관리자 진입"
+        style="position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1200;width:46px;height:46px;border:none;border-radius:999px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.95),rgba(250,204,21,.35) 42%,rgba(236,72,153,.35) 100%);box-shadow:0 8px 24px rgba(15,23,42,.32),0 0 0 1px rgba(255,255,255,.55) inset;cursor:pointer;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;"
+      >🌸</button>
+
     </header>
 
     <!-- ═══ Destiny Profile Manager ═══ -->
@@ -3822,6 +3830,40 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     return location.origin;
   }
 
+  async function requestAdminFlowerEntry() {
+    var password = window.prompt('관리자 꽃 진입 비밀번호를 입력해 주세요.');
+    if (password === null) return;
+    password = String(password || '').trim();
+    if (!password) {
+      window.alert('비밀번호를 입력해 주세요.');
+      return;
+    }
+
+    try {
+      var response = await fetch(getApiBaseUrl() + '/api/admin/entry/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password }),
+      });
+
+      if (!response.ok) {
+        window.alert('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      var payload = {};
+      try { payload = await response.json(); } catch (_e) {}
+      var nextUrl = (payload && payload.nextUrl) ? String(payload.nextUrl) : '';
+      if (!nextUrl) {
+        window.alert('관리자 진입 경로를 확인할 수 없습니다.');
+        return;
+      }
+      window.location.href = nextUrl;
+    } catch (_e) {
+      window.alert('관리자 진입 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  }
+
   function getAuthToken() {
     try {
       return localStorage.getItem('fortune_auth_token') || '';
@@ -4320,6 +4362,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     }
     if (action === 'unlockPremiumFeature') {
       void tryUnlockFeature(actionNode);
+      return;
+    }
+    if (action === 'openAdminFlowerGate') {
+      void requestAdminFlowerEntry();
       return;
     }
   }, true);
