@@ -1,7 +1,7 @@
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 
-const InsightsCosmicClient = dynamic(() => import("./InsightsCosmicClient"), {
+const InsightsCosmicClient = nextDynamic(() => import("./InsightsCosmicClient"), {
   loading: () => (
     <div className="flex min-h-[32vh] items-center justify-center text-sm text-slate-400">
       인사이트 허브를 불러오는 중…
