@@ -152,7 +152,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "프로필 최대 7개 생성",
       "50코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
-      "30일간 유효 (코인 잔액 무관 안정 유지)",
+      "30일간 유효 (코인 잔액 > 0 조건)",
       "전체 프로필 관리 기능 포함",
     ],
     badge:        "추천",
@@ -169,7 +169,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "프로필 무제한 생성",
       "모든 서비스 무료 이용 (코인 차감 없음)",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
-      "30일간 유효 (최우선 안정 유지)",
+      "30일간 유효 (코인 잔액 > 0 조건)",
       "전용 VVIP 프로필 관리 기능",
     ],
     badge:        "VVIP",
@@ -414,19 +414,31 @@ function SubscriptionSection({
           </p>
         </div>
 
+        {/* 공통 운영 정책 안내 */}
+        <div className="mb-4 rounded-[14px] border border-rose-200 bg-rose-50/60 px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-rose-700">
+            <span aria-hidden="true">⚠️</span> 구독 유지 조건 안내
+          </p>
+          <ul className="mt-1.5 space-y-1 text-[11.5px] text-rose-800">
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 플랜은 <strong>30일간 유효</strong>하며, 30일 후 자동 만료됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><strong>코인 잔액이 소진되면 플랜 등급과 관계없이 즉시 비활성화</strong>됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>코인을 충전하면 남은 기간 동안 자동으로 재활성화됩니다.</li>
+          </ul>
+        </div>
+
         {/* 현재 구독 상태 */}
         <div className="mb-5 rounded-[16px] border border-amber-200/70 bg-gradient-to-r from-amber-50/80 to-yellow-50/80 px-4 py-3">
           <p className="text-xs font-extrabold uppercase tracking-wide text-amber-700">현재 구독 플랜</p>
           <p className={`mt-0.5 text-lg font-black ${tierColor[subscription.tier]}`}>
             {tierLabel[subscription.tier]}
             {subscription.isActive && <span className="ml-2 text-sm font-semibold text-emerald-600">● 활성</span>}
-            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료</span>}
+            {!subscription.isActive && subscription.tier !== "free" && <span className="ml-2 text-sm font-semibold text-rose-500">● 만료 (코인 소진 또는 기간 만료)</span>}
           </p>
           {subscription.isActive && expires && (
             <p className="mt-0.5 text-xs text-[#7A5230]">{expires} 까지 유효</p>
           )}
           {subscription.isActive && subscription.tier !== "free" && (
-            <p className="mt-1 text-xs text-amber-700">⚠️ 코인 잔액이 0이 되면 일시 비활성화됩니다.</p>
+            <p className="mt-1 text-xs text-rose-600 font-semibold">⚠️ 코인 잔액이 소진되면 즉시 비활성화됩니다.</p>
           )}
         </div>
       </div>
@@ -522,9 +534,11 @@ function SubscriptionSection({
         })}
       </div>
 
-      <p className="px-5 pb-5 text-[11px] text-[#9B7040]">
-        ✅ 구독은 코인 즉시 차감 방식이며 30일 후 만료됩니다. 갱신은 언제든 수동으로 가능합니다.
-      </p>
+      <div className="px-5 pb-5 space-y-1">
+        <p className="text-[11px] text-[#9B7040]">✅ 구독은 코인 즉시 차감 방식이며 <strong>30일 후 자동 만료</strong>됩니다.</p>
+        <p className="text-[11px] text-rose-600">⚠️ 모든 플랜은 코인 잔액이 소진되면 등급 무관 즉시 비활성화됩니다. 충전 시 자동 재활성화됩니다.</p>
+        <p className="text-[11px] text-[#9B7040]">🔄 갱신은 언제든 수동으로 가능합니다.</p>
+      </div>
     </section>
   );
 }
