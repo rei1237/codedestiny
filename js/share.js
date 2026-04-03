@@ -45,75 +45,60 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');},2500);
 }
 function shareKakao(){
-  var text=getShareText();
-  if(navigator.share){
-    navigator.share({title:'🐷 꿀꿀 만세력',text:text,url:window.location.href})
-      .catch(function(){});
-    return;
-  }
-  var encoded=encodeURIComponent(text);
-  var kakaoUrl='kakaotalk://send?text='+encoded;
-  var a=document.createElement('a');a.href=kakaoUrl;a.click();
-  setTimeout(function(){
-    copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
-  },800);
+  shareWithReward(function(){
+    var text=getShareText();
+    if(navigator.share){
+      navigator.share({title:'🐷 꿀꿀 만세력',text:text,url:window.location.href}).catch(function(){});
+      return;
+    }
+    var encoded=encodeURIComponent(text);
+    var a=document.createElement('a');a.href='kakaotalk://send?text='+encoded;a.click();
+    setTimeout(function(){
+      copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    },800);
+  },'saju');
 }
 function shareInstagram(){
   var text=getShareText();
   copyToClipboard(text,'링크를 복사했어요! 📷 인스타그램 DM에 붙여넣기 하세요 ✨');
 }
 function shareTarotKakao(){
-  var cName = document.getElementById('tarotCardName').innerText || '운명의 카드';
-  var cFortune = document.getElementById('destinyFortune').innerText || '';
-  var cOracle = document.getElementById('tarotOracleText').innerText || '';
-
-  var text = "🔮 [연이의 꿀꿀 타로] 🔮\n\n";
-  text += cName + "\n\n";
-  text += cFortune + "\n\n";
-  text += cOracle + "\n\n";
-  text += "👉 무료 타로 보러가기: https://code-destiny.com";
-
-  if(navigator.share){
-      navigator.share({
-          title: '🐷 연이의 꿀꿀 타로',
-          text: text,
-          url: 'https://code-destiny.com'
-      }).catch(console.error);
+  shareWithReward(function(){
+    var cName    = document.getElementById('tarotCardName').innerText || '운명의 카드';
+    var cFortune = document.getElementById('destinyFortune').innerText || '';
+    var cOracle  = document.getElementById('tarotOracleText').innerText || '';
+    var text = '🔮 [연이의 꿀꿀 타로] 🔮\n\n' + cName + '\n\n' + cFortune + '\n\n' + cOracle + '\n\n👉 무료 타로 보러가기: https://code-destiny.com';
+    if(navigator.share){
+      navigator.share({title:'🐷 연이의 꿀꿀 타로',text:text,url:'https://code-destiny.com'}).catch(function(){});
       return;
-  }
-
-  var encoded = encodeURIComponent(text);
-  var kakaoUrl = 'kakaotalk://send?text=' + encoded;
-  var a = document.createElement('a');
-  a.href = kakaoUrl;
-  a.click();
-  
-  setTimeout(function(){
-    copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요! 💬');
-  }, 1000);
+    }
+    var a=document.createElement('a');a.href='kakaotalk://send?text='+encodeURIComponent(text);a.click();
+    setTimeout(function(){copyToClipboard(text,'카카오톡 앱이 없거나 PC에서는 클립보드에 복사했어요! 💬');},1000);
+  },'tarot');
 }
 function shareAstroKakao() {
-  var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
-    ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
-    : (window.USER_NAME || '나');
-  var section = document.getElementById('astroResult');
-  var preview = section ? _trimShareText(section.innerText, 240) : '';
-  var base = window.location.href.split('?')[0];
-  var text = '✨ [점성술 코즈믹 차트 결과 공유]\n\n'
-    + name + '님의 점성술 분석 결과입니다.\n'
-    + (preview ? ('\n' + preview + '\n') : '\n')
-    + '\n나도 무료로 확인하기 👇\n' + base;
-  if (navigator.share) {
-    navigator.share({ title: '✨ 점성술 코즈믹 차트', text: text, url: base }).catch(function(){});
-    return;
-  }
-  var encoded = encodeURIComponent(text);
-  var a = document.createElement('a');
-  a.href = 'kakaotalk://send?text=' + encoded;
-  a.click();
-  setTimeout(function() {
-    copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
-  }, 800);
+  shareWithReward(function() {
+    var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+      ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
+      : (window.USER_NAME || '나');
+    var section = document.getElementById('astroResult');
+    var preview = section ? _trimShareText(section.innerText, 240) : '';
+    var base = window.location.href.split('?')[0];
+    var text = '✨ [점성술 코즈믹 차트 결과 공유]\n\n'
+      + name + '님의 점성술 분석 결과입니다.\n'
+      + (preview ? ('\n' + preview + '\n') : '\n')
+      + '\n나도 무료로 확인하기 👇\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: '✨ 점성술 코즈믹 차트', text: text, url: base }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function() {
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    }, 800);
+  }, 'astro');
 }
 
 function _trimShareText(raw, maxLen) {
@@ -123,53 +108,53 @@ function _trimShareText(raw, maxLen) {
 }
 
 function shareSukuyoKakao() {
-  var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
-    ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
-    : (window.USER_NAME || '나');
-  var section = document.getElementById('sukuyoSection');
-  var preview = section ? _trimShareText(section.innerText, 240) : '';
-  var base = window.location.href.split('?')[0];
-  var text = '💫 [숙요점 결과 공유]\n\n'
-    + name + '님의 숙요점 결과입니다.\n'
-    + (preview ? ('\n' + preview + '\n') : '\n')
-    + '\n나도 무료로 확인하기 👇\n' + base;
-
-  if (navigator.share) {
-    navigator.share({ title: '💫 숙요점 결과', text: text, url: base }).catch(function(){});
-    return;
-  }
-  var encoded = encodeURIComponent(text);
-  var a = document.createElement('a');
-  a.href = 'kakaotalk://send?text=' + encoded;
-  a.click();
-  setTimeout(function() {
-    copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
-  }, 800);
+  shareWithReward(function() {
+    var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+      ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
+      : (window.USER_NAME || '나');
+    var section = document.getElementById('sukuyoSection');
+    var preview = section ? _trimShareText(section.innerText, 240) : '';
+    var base = window.location.href.split('?')[0];
+    var text = '💫 [숙요점 결과 공유]\n\n'
+      + name + '님의 숙요점 결과입니다.\n'
+      + (preview ? ('\n' + preview + '\n') : '\n')
+      + '\n나도 무료로 확인하기 👇\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: '💫 숙요점 결과', text: text, url: base }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function() {
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    }, 800);
+  }, 'sukuyo');
 }
 
 function shareZiweiKakao() {
-  var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
-    ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
-    : (window.USER_NAME || '나');
-  var section = document.getElementById('ziweiModalSection');
-  var preview = section ? _trimShareText(section.innerText, 240) : '';
-  var base = window.location.href.split('?')[0];
-  var text = '🌌 [자미두수 명반 결과 공유]\n\n'
-    + name + '님의 자미두수 결과입니다.\n'
-    + (preview ? ('\n' + preview + '\n') : '\n')
-    + '\n나도 무료로 확인하기 👇\n' + base;
-
-  if (navigator.share) {
-    navigator.share({ title: '🌌 자미두수 결과', text: text, url: base }).catch(function(){});
-    return;
-  }
-  var encoded = encodeURIComponent(text);
-  var a = document.createElement('a');
-  a.href = 'kakaotalk://send?text=' + encoded;
-  a.click();
-  setTimeout(function() {
-    copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
-  }, 800);
+  shareWithReward(function() {
+    var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+      ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
+      : (window.USER_NAME || '나');
+    var section = document.getElementById('ziweiModalSection');
+    var preview = section ? _trimShareText(section.innerText, 240) : '';
+    var base = window.location.href.split('?')[0];
+    var text = '🌌 [자미두수 명반 결과 공유]\n\n'
+      + name + '님의 자미두수 결과입니다.\n'
+      + (preview ? ('\n' + preview + '\n') : '\n')
+      + '\n나도 무료로 확인하기 👇\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: '🌌 자미두수 결과', text: text, url: base }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function() {
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    }, 800);
+  }, 'ziwei');
 }
 /* ══════════════════════════════════════════════
    PWA 설치 비술 (홈 화면 부적 설치)
@@ -1016,15 +1001,27 @@ async function subscribeEmailFooter() {
   const emailEl   = document.getElementById('footerSubEmail');
   const dailyEl   = document.getElementById('footerSubDaily');
   const monthlyEl = document.getElementById('footerSubMonthly');
-  const birthEl   = document.getElementById('footerSubBirthYear');
 
   if (!emailEl) return;
   const emailVal  = emailEl.value.trim();
   const subDaily   = dailyEl   ? dailyEl.checked   : true;
   const subMonthly = monthlyEl ? monthlyEl.checked : true;
-  const birthYearRaw = birthEl ? parseInt(birthEl.value, 10) : NaN;
-  const birthYear  = (!isNaN(birthYearRaw) && birthYearRaw >= 1900 && birthYearRaw <= 2100)
-    ? birthYearRaw : null;
+
+  // 출생년도 자동 추출: 사주 분석 결과 → birthDate 입력 순으로 시도
+  let birthYear = null;
+  try {
+    if (window.G_PILLARS && window.G_PILLARS.y && window.G_PILLARS.y.y) {
+      const yr = parseInt(window.G_PILLARS.y.y, 10);
+      if (yr >= 1900 && yr <= 2100) birthYear = yr;
+    }
+    if (!birthYear) {
+      const birthDateEl = document.getElementById('birthDate');
+      if (birthDateEl && birthDateEl.value) {
+        const yr = parseInt(birthDateEl.value.split('-')[0], 10);
+        if (yr >= 1900 && yr <= 2100) birthYear = yr;
+      }
+    }
+  } catch (_) {}
 
   if (!emailVal) {
     alert('이메일 주소를 입력해주세요!');
@@ -1057,7 +1054,6 @@ async function subscribeEmailFooter() {
     }
     alert(emailVal + ' 주소로 운세 구독이 등록되었습니다!\n매일 새벽 운세 소식을 보내드릴게요 💌');
     emailEl.value = '';
-    if (birthEl) birthEl.value = '';
   } catch (err) {
     const detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
     alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);

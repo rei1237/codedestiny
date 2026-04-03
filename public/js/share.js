@@ -1016,15 +1016,27 @@ async function subscribeEmailFooter() {
   const emailEl   = document.getElementById('footerSubEmail');
   const dailyEl   = document.getElementById('footerSubDaily');
   const monthlyEl = document.getElementById('footerSubMonthly');
-  const birthEl   = document.getElementById('footerSubBirthYear');
 
   if (!emailEl) return;
   const emailVal  = emailEl.value.trim();
   const subDaily   = dailyEl   ? dailyEl.checked   : true;
   const subMonthly = monthlyEl ? monthlyEl.checked : true;
-  const birthYearRaw = birthEl ? parseInt(birthEl.value, 10) : NaN;
-  const birthYear  = (!isNaN(birthYearRaw) && birthYearRaw >= 1900 && birthYearRaw <= 2100)
-    ? birthYearRaw : null;
+
+  // 출생년도 자동 추출: 사주 분석 결과 → birthDate 입력 순으로 시도
+  let birthYear = null;
+  try {
+    if (window.G_PILLARS && window.G_PILLARS.y && window.G_PILLARS.y.y) {
+      const yr = parseInt(window.G_PILLARS.y.y, 10);
+      if (yr >= 1900 && yr <= 2100) birthYear = yr;
+    }
+    if (!birthYear) {
+      const birthDateEl = document.getElementById('birthDate');
+      if (birthDateEl && birthDateEl.value) {
+        const yr = parseInt(birthDateEl.value.split('-')[0], 10);
+        if (yr >= 1900 && yr <= 2100) birthYear = yr;
+      }
+    }
+  } catch (_) {}
 
   if (!emailVal) {
     alert('이메일 주소를 입력해주세요!');
@@ -1057,7 +1069,6 @@ async function subscribeEmailFooter() {
     }
     alert(emailVal + ' 주소로 운세 구독이 등록되었습니다!\n매일 새벽 운세 소식을 보내드릴게요 💌');
     emailEl.value = '';
-    if (birthEl) birthEl.value = '';
   } catch (err) {
     const detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
     alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
