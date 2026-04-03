@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -380,19 +380,26 @@ img[width][height]{height:auto}
 button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .card.input-section{background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
-.auth-quick-links{display:flex;justify-content:center;gap:12px;margin-top:20px;flex-wrap:wrap}
-.auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem}
-.auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35)}
+.auth-quick-links{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+.auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
+.auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35);box-shadow:0 4px 18px rgba(124,58,237,0.35)}
+.auth-btn--signup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.5)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
-.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,210,130,0.66);background:linear-gradient(145deg,rgba(255,247,230,0.97),rgba(255,226,173,0.95));box-shadow:0 10px 30px rgba(176,98,21,0.22),inset 0 2px 10px rgba(255,255,255,0.42);color:#6e350b;font-weight:800;font-size:.84rem;letter-spacing:.01em;z-index:4}
-.golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 26% 22%,#fff8ce 0%,#ffd14d 48%,#df920b 100%);border:1px solid rgba(164,90,8,0.44);box-shadow:inset 0 2px 8px rgba(255,255,255,0.56),0 6px 12px rgba(150,76,11,0.24)}
-.golden-grain-badge__coin::before{content:'';width:16px;height:16px;border-radius:50%;border:2px solid rgba(133,69,8,0.58);box-shadow:inset 0 2px 5px rgba(255,245,201,0.72)}
-.golden-grain-badge__coin::after{content:'';position:absolute;top:7px;left:7px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.72)}
-.golden-grain-badge__value{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
-.golden-grain-badge__label{font-size:.67rem;font-weight:700;color:#8e5a2f;letter-spacing:.03em;text-transform:uppercase}
-.golden-grain-badge__balance{font-size:.86rem;font-weight:900;color:#5f2e08;white-space:nowrap}
-.golden-grain-badge__charge{margin-left:2px;border:none;border-radius:999px;padding:7px 11px;background:linear-gradient(135deg,#ff8a5b,#ff5a77);color:#fff;font-size:.74rem;font-weight:900;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 6px 14px rgba(219,89,55,0.32)}
-.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.03);filter:brightness(1.04)}
+.auth-btn--coin{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;background:linear-gradient(135deg,rgba(18,8,42,0.9),rgba(32,14,68,0.86));border:1px solid rgba(255,200,80,0.32);color:#ffe7a0;font-weight:800;font-size:.9rem;text-decoration:none;box-shadow:0 6px 24px rgba(0,0,0,0.45),0 0 0 1px rgba(200,140,255,0.1),inset 0 1px 0 rgba(255,230,130,0.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:default;letter-spacing:.01em}
+.auth-btn--coin .coin-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff9d0 0%,#ffd040 46%,#c97a08 100%);border:1.5px solid rgba(255,215,0,0.4);box-shadow:0 0 10px rgba(255,200,50,0.55),inset 0 1px 4px rgba(255,255,200,0.55);font-style:normal;font-size:.75rem;flex-shrink:0}
+.auth-btn--coin .coin-amount{font-size:.88rem;font-weight:900;color:#fde68a;text-shadow:0 0 6px rgba(255,200,60,0.4);white-space:nowrap}
+.auth-btn--coin .coin-label{font-size:.75rem;font-weight:700;color:rgba(255,220,100,0.7);white-space:nowrap}
+.auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(226,232,240,0.8);font-weight:700;font-size:.88rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.auth-btn--logout:hover{transform:translateY(-1px);border-color:rgba(255,100,100,0.4);box-shadow:0 6px 18px rgba(200,50,50,0.2),inset 0 1px 0 rgba(255,255,255,0.07);color:#fca5a5}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:999px;border:1px solid rgba(255,200,80,0.28);background:linear-gradient(135deg,rgba(18,8,42,0.92),rgba(30,12,60,0.88));box-shadow:0 8px 32px rgba(0,0,0,0.55),0 0 0 1px rgba(160,100,255,0.12),inset 0 1px 0 rgba(255,220,140,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f0e8ff;font-weight:700;font-size:.84rem;letter-spacing:.01em;z-index:4}
+.golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff9d6 0%,#ffd14d 46%,#c97a08 100%);border:1.5px solid rgba(255,215,0,0.45);box-shadow:0 0 14px rgba(255,200,50,0.5),inset 0 2px 6px rgba(255,255,200,0.6),0 4px 10px rgba(140,80,8,0.28)}
+.golden-grain-badge__coin::before{content:'';width:14px;height:14px;border-radius:50%;border:2px solid rgba(120,60,5,0.4);box-shadow:inset 0 2px 4px rgba(255,250,200,0.6)}
+.golden-grain-badge__coin::after{content:'';position:absolute;top:6px;left:7px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.75)}
+.golden-grain-badge__value{display:flex;flex-direction:column;line-height:1.15;font-variant-numeric:tabular-nums}
+.golden-grain-badge__label{font-size:.62rem;font-weight:700;color:rgba(255,210,110,0.88);letter-spacing:.04em}
+.golden-grain-badge__balance{font-size:.85rem;font-weight:900;color:#f5e8ff;white-space:nowrap;text-shadow:0 0 8px rgba(200,160,255,0.35)}
+.golden-grain-badge__charge{margin-left:4px;border:none;border-radius:999px;padding:7px 13px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:.73rem;font-weight:900;letter-spacing:.02em;cursor:pointer;transition:transform .22s ease,filter .22s ease,box-shadow .22s ease;box-shadow:0 4px 16px rgba(124,58,237,0.48),inset 0 1px 0 rgba(255,255,255,0.18)}
+.golden-grain-badge__charge:hover{transform:translateY(-1px) scale(1.04);filter:brightness(1.1);box-shadow:0 6px 22px rgba(168,85,247,0.6),inset 0 1px 0 rgba(255,255,255,0.18)}
 .golden-grain-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;z-index:100002;background:radial-gradient(circle at 20% 18%,rgba(255,205,131,.18) 0%,rgba(30,8,34,.74) 54%),rgba(23,8,29,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .golden-grain-modal--open{display:flex}
 .golden-grain-modal__card{width:min(620px,96vw);max-height:calc(100vh - 28px);display:flex;flex-direction:column;border-radius:28px;padding:18px 14px 14px;border:1px solid rgba(255,203,147,0.72);background:linear-gradient(165deg,#fff9ef 0%,#ffe9cc 44%,#ffd8bd 100%);box-shadow:0 22px 68px rgba(43,5,29,0.38);position:relative;overflow:hidden}
@@ -439,13 +446,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-section-gate__btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(219,89,55,.42)}
 .cd-section-gate__badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:rgba(255,193,87,.32);color:#7a3a00;font-size:.76rem;font-weight:800;border:1px solid rgba(255,162,58,.38)}
 @media(max-width:600px){.cd-section-gate__overlay{padding:16px 12px}.cd-section-gate__btn{padding:11px 20px;font-size:.86rem}}
-.golden-unlock-area{margin-top:24px;padding:18px 16px;border-radius:16px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
-.golden-unlock-title{font-size:1rem;font-weight:900;color:#6f2d0d;margin:0 0 4px}
-.golden-unlock-total{font-size:.8rem;color:#a0522d;font-weight:700;margin:0 0 12px;opacity:.85}
+.golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
+.golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
 .golden-unlock-list{display:grid;gap:8px}
-.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px 14px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease;font-size:.88rem;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease}
 .golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
-.golden-unlock-btn__cost{background:rgba(255,255,255,.25);border-radius:999px;padding:2px 10px;font-size:.76rem;font-weight:800;white-space:nowrap;flex-shrink:0}
 .animate-bounce{animation:goldenBounce .72s ease}
 @keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
@@ -499,6 +504,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
+
+  <link rel="preload" as="style" href="/styles/life-book.css?v=20260403-v1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260403-v1"></noscript>
 
   <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -1023,11 +1031,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
             el.innerHTML =
-              '<span class="auth-btn" style="display:inline-flex;align-items:center;gap:8px;' +
-              'padding:8px 16px;border-radius:999px;background:linear-gradient(135deg,rgba(255,247,214,.95),rgba(255,227,165,.95));' +
-              'border:1px solid rgba(194,120,15,.45);color:#6b3a10;font-weight:800;font-size:.9rem;text-decoration:none;box-shadow:0 6px 14px rgba(128,72,7,.18);">' +
-              '🪙\u00a0보유\u00a0' + Number(points || 0).toLocaleString('ko-KR') + '코인</span>' +
-              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--login" style="cursor:pointer;">🔓\u00a0로그아웃</button>';
+              '<span class="auth-btn auth-btn--coin">' +
+              '<i class="coin-icon" aria-hidden="true">🪙</i>' +
+              '<span class="coin-amount">' + Number(points || 0).toLocaleString('ko-KR') + '</span>' +
+              '<span class="coin-label">코인</span>' +
+              '</span>' +
+              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0로그아웃</button>';
 
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
@@ -1577,7 +1586,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">🪙 400코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
@@ -1710,7 +1719,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         aria-label="점성술 코즈믹 차트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
-                    <span class="tarot-tile__coin-badge">🪙 400코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
@@ -1727,7 +1736,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">🪙 400코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
@@ -1819,7 +1828,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower.webp" data-img-alt="운명의 꽃 — 사주·점성술·자미두수 통합">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌸</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--bloom">BLOOM</span>
-                    <span class="tarot-tile__coin-badge">🪙 50코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌸 운명의 꽃</span>
@@ -1836,7 +1845,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower2.webp" data-img-alt="점성술 운명의 꽃 — 네온 성운 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--nebula">NEBULA</span>
-                    <span class="tarot-tile__coin-badge">🪙 50코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 꽃</span>
@@ -1853,7 +1862,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower3.webp" data-img-alt="자미두수 운명의 꽃 — 명궁 주성 제왕의 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌺</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">ZIWEI</span>
-                    <span class="tarot-tile__coin-badge">🪙 50코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌺 자미두수 꽃</span>
@@ -1870,7 +1879,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/flower4.webp" data-img-alt="숙요 운명의 꽃 — 27숙 달빛 꽃">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌙</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--sukuyo">SUKUYO</span>
-                    <span class="tarot-tile__coin-badge">🪙 50코인</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌙 숙요 꽃</span>
@@ -3403,48 +3412,48 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">🐷 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
-          <div style="display:flex;flex-direction:column;gap:10px">
-            
-            <div class="row2">
-              <div class="form-group" style="flex:1;">
-                <label class="form-label" style="margin-bottom:6px">상대 이름</label>
-                <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
-              </div>
-              <div class="form-group" style="flex:1;">
-                <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
-                <select class="inp" id="compatType">
-                  <option value="love">연애/결혼</option>
-                  <option value="business">사업/동업</option>
-                  <option value="friend">친구/동료</option>
-                </select>
-              </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          
+          <div class="row2">
+            <div class="form-group" style="flex:1;">
+              <label class="form-label" style="margin-bottom:6px">상대 이름</label>
+              <input class="inp" type="text" id="compatName" placeholder="상대 이름을 입력하세요">
             </div>
-            <div id="compatTypeDesc" class="form-helper-desc">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
-            <!-- 유명인 목록 클릭으로 빠르게 입력 -->
-            <div class="form-group">
-              <label class="form-label form-label-compact">유명인 선택</label>
-              <div id="celebsList"></div>
+            <div class="form-group" style="flex:1;">
+              <label class="form-label" style="margin-bottom:6px">궁합 유형</label>
+              <select class="inp" id="compatType">
+                <option value="love">연애/결혼</option>
+                <option value="business">사업/동업</option>
+                <option value="friend">친구/동료</option>
+              </select>
             </div>
-            <div class="form-group form-group-mb10">
-              <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
-              <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
-              <div class="form-radio-row">
-                <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
-                <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
-                <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
-              </div>
-              <div id="compatLunarPreview" class="form-lunar-preview"></div>
-              <div class="row2 row2-mt8">
-                <select class="inp" id="compatBirthHour"></select>
-                <select class="inp" id="compatBirthMinute"></select>
-              </div>
-            </div>
-            <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
-            <div id="compatResult" class="compat-result-wrap"></div>
-            <div id="compatLlmHost" class="compat-llm-root"></div>
-            <div id="compatTestResults" class="compat-test-results"></div>
           </div>
+          <div id="compatTypeDesc" class="form-helper-desc">유형을 선택하면 해당 유형에 맞는 분석 문구와 권장 포인트가 표시됩니다.</div>
+          <!-- 유명인 목록 클릭으로 빠르게 입력 -->
+          <div class="form-group">
+            <label class="form-label form-label-compact">유명인 선택</label>
+            <div id="celebsList"></div>
+          </div>
+          <div class="form-group form-group-mb10">
+            <label class="form-label form-label-compact">상대 생년월일 · 시간</label>
+            <input class="inp" type="date" id="compatBirthDate" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
+            <div class="form-radio-row">
+              <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 양력</label>
+              <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(평달)</label>
+              <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> 음력(윤달)</label>
+            </div>
+            <div id="compatLunarPreview" class="form-lunar-preview"></div>
+            <div class="row2 row2-mt8">
+              <select class="inp" id="compatBirthHour"></select>
+              <select class="inp" id="compatBirthMinute"></select>
+            </div>
+          </div>
+          <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat">💗 궁합 분석하기</button>
+          <div id="compatResult" class="compat-result-wrap"></div>
+          <div id="compatLlmHost" class="compat-llm-root"></div>
+          <div id="compatTestResults" class="compat-test-results"></div>
         </div>
+              </div>
       </div>
     </section>
 
@@ -3551,25 +3560,163 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="tTestResult"></div>
     </section>
 
-      <!-- 심층 리포트 잠금 해제 -->
-      <div class="golden-unlock-area" aria-label="심층 리포트 잠금 해제">
-        <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
-        <p class="golden-unlock-total">유료 콘텐츠 총 비용 · 1,100코인</p>
-        <div class="golden-unlock-list">
-          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="saju-premium-all" data-unlock-cost="700">
-            <span>사주 확장 콘텐츠 전체 해금</span>
-            <span class="golden-unlock-btn__cost">🪙 700코인</span>
-          </button>
-          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="premium-divination-pack" data-unlock-cost="300">
-            <span>프리미엄 점술 패키지 해금</span>
-            <span class="golden-unlock-btn__cost">🪙 300코인</span>
-          </button>
-          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="secret-house-pass" data-unlock-cost="100">
-            <span>시크릿 하우스 전체 에피소드 열람권</span>
-            <span class="golden-unlock-btn__cost">🪙 100코인</span>
+    <!-- ══════════════════════════════════════════════
+         인생의 책 (Life Book) — 프리미엄 사주 심층 분석
+    ══════════════════════════════════════════════ -->
+    <section class="fg-group fg-group--lifebook" aria-labelledby="fgTitleLifebook" style="margin: 0 0 16px;">
+      <div class="fg-group__cards">
+        <button class="lifebook-tile" type="button"
+                data-action="openLifeBookModal"
+                data-coin-cost="700"
+                aria-label="인생의 책 — 나만을 위한 프리미엄 사주 심층 분석">
+          <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
+          <div class="lifebook-tile__bg" aria-hidden="true"></div>
+          <div class="lifebook-tile__particles" aria-hidden="true">
+            <span class="lb-p lb-p--1">✦</span>
+            <span class="lb-p lb-p--2">◈</span>
+            <span class="lb-p lb-p--3">✦</span>
+            <span class="lb-p lb-p--4">✧</span>
+            <span class="lb-p lb-p--5">◈</span>
+            <span class="lb-p lb-p--6">✦</span>
+          </div>
+          <div class="lifebook-tile__inner">
+            <div class="lifebook-tile__label-row">
+              <span class="lifebook-tile__label-badge">PREMIUM</span>
+              <span class="lifebook-tile__coin-badge">1회 700코인</span>
+            </div>
+            <div class="lifebook-tile__img-wrap">
+              <img class="lifebook-tile__img" loading="lazy" decoding="async" width="260" height="195"
+                   src="/fuctionassets/lifebook.webp" alt="인생의 책 — 나만을 위한 프리미엄 사주 심층 분석">
+            </div>
+            <div class="lifebook-tile__body">
+              <h2 class="lifebook-tile__title">📜 인생의 책</h2>
+              <p class="lifebook-tile__subtitle">運命의 알고리즘을 해독하다</p>
+              <p class="lifebook-tile__desc">사주 전략 마스터의 10가지 심층 분석 · 10,000자 이상의 전문 리포트 · PDF 다운로드</p>
+              <div class="lifebook-tile__features">
+                <span class="lb-feat">🚨 운명의 임계점</span>
+                <span class="lb-feat">🚀 천직 설계도</span>
+                <span class="lb-feat">💕 연애 역학</span>
+                <span class="lb-feat">💍 배우자 분석</span>
+                <span class="lb-feat">🛤️ 인생 시나리오</span>
+                <span class="lb-feat">🔮 사주의 비밀</span>
+                <span class="lb-feat">📅 5개년 운세</span>
+                <span class="lb-feat">💰 자산 전략</span>
+                <span class="lb-feat">🌅 생애 마스터플랜</span>
+                <span class="lb-feat">💌 최종 전략 제언</span>
+              </div>
+              <div class="lifebook-tile__cta">
+                지금 나의 운명을 읽어보세요 →
+              </div>
+            </div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- 인생의 책 모달 -->
+    <div id="lifeBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="인생의 책" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeLifeBookModal"></div>
+      <div class="lb-modal__panel">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-line"></span>
+            <span class="lb-header-gem">◈</span>
+            <span class="lb-header-line"></span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <div class="lb-modal__badge">PREMIUM SAJU ANALYSIS</div>
+          <h2 class="lb-modal__title">📜 인생의 책</h2>
+          <p class="lb-modal__subtitle">사주 전략 마스터가 당신만을 위해 쓴 運命의 알고리즘</p>
+          <button type="button" class="lb-modal__close" data-action="closeLifeBookModal" aria-label="닫기">✕</button>
+        </div>
+
+        <!-- 생성 전: 시작 화면 -->
+        <div id="lbStartScreen" class="lb-start-screen">
+          <div class="lb-start-preview">
+            <div class="lb-preview-chapters">
+              <div class="lb-chapter-item"><span class="lb-ch-num">I</span><span class="lb-ch-title">운명의 임계점과 장애물</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">II</span><span class="lb-ch-title">천직과 부의 설계도</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">III</span><span class="lb-ch-title">감정의 역학과 연애운</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">IV</span><span class="lb-ch-title">배우자 분석과 결합의 운명</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">V</span><span class="lb-ch-title">인생의 3가지 평행우주</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">VI</span><span class="lb-ch-title">사주의 비밀 코드네임</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">VII</span><span class="lb-ch-title">5개년 정밀 운세</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">VIII</span><span class="lb-ch-title">자산의 증식과 리스크 관리</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">IX</span><span class="lb-ch-title">생애 주기별 마스터플랜</span></div>
+              <div class="lb-chapter-item"><span class="lb-ch-num">X</span><span class="lb-ch-title">마스터의 최종 전략 제언</span></div>
+            </div>
+          </div>
+          <div class="lb-start-info">
+            <p class="lb-start-desc">사주팔자의 여덟 글자 속에 숨겨진 당신의 운명 알고리즘을 10개 챕터, 10,000자 이상의 전문 분석으로 완전 해독합니다.</p>
+            <p class="lb-start-warning">⚠️ 분석에는 약 2~3분이 소요됩니다. 사주 정보 입력 후 이용 가능합니다.</p>
+          </div>
+          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook">
+            <span class="lb-btn-icon">✦</span>
+            나의 인생의 책 생성하기
+            <span class="lb-btn-icon">✦</span>
           </button>
         </div>
+
+        <!-- 생성 중: 로딩 화면 -->
+        <div id="lbLoadingScreen" class="lb-loading-screen" style="display:none;">
+          <div class="lb-loading-orb" aria-hidden="true">
+            <div class="lb-orb-ring lb-orb-ring--1"></div>
+            <div class="lb-orb-ring lb-orb-ring--2"></div>
+            <div class="lb-orb-ring lb-orb-ring--3"></div>
+            <div class="lb-orb-core">📜</div>
+          </div>
+          <p class="lb-loading-title">인생의 책을 집필하는 중입니다</p>
+          <p id="lbLoadingChapter" class="lb-loading-chapter">사주 원국을 분석하는 중...</p>
+          <div class="lb-loading-progress">
+            <div id="lbProgressBar" class="lb-progress-bar"></div>
+          </div>
+          <p id="lbProgressText" class="lb-progress-text">0 / 10 챕터 완성</p>
+        </div>
+
+        <!-- 생성 완료: 결과 화면 -->
+        <div id="lbResultScreen" class="lb-result-screen" style="display:none;">
+          <div class="lb-result-header">
+            <div class="lb-result-title-area">
+              <p class="lb-result-label">나만을 위한 운명의 리포트</p>
+              <h3 id="lbResultName" class="lb-result-name"></h3>
+              <p id="lbResultDate" class="lb-result-date"></p>
+            </div>
+            <div class="lb-result-actions">
+              <button type="button" class="lb-btn-pdf" id="lbPdfBtn" data-action="downloadLifeBookPdf">
+                <span>⬇</span> PDF 다운로드
+              </button>
+            </div>
+          </div>
+
+          <!-- 목차 네비게이션 -->
+          <nav class="lb-toc" aria-label="챕터 목차">
+            <button type="button" class="lb-toc-item active" data-lb-chapter="1">I</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="2">II</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="3">III</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="4">IV</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="5">V</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="6">VI</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="7">VII</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="8">VIII</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="9">IX</button>
+            <button type="button" class="lb-toc-item" data-lb-chapter="10">X</button>
+          </nav>
+
+          <!-- 챕터 콘텐츠 영역 -->
+          <div id="lbChapterContent" class="lb-chapter-content">
+            <!-- JS가 렌더링 -->
+          </div>
+        </div>
+
+        <!-- 에러 화면 -->
+        <div id="lbErrorScreen" class="lb-error-screen" style="display:none;">
+          <div class="lb-error-icon">⚠️</div>
+          <p id="lbErrorMsg" class="lb-error-msg"></p>
+          <button type="button" class="lb-btn-retry" data-action="generateLifeBook">다시 시도</button>
+        </div>
       </div>
+    </div>
 
     </div>
 
@@ -3868,8 +4015,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function isAdminUser() {
     try {
+      // 1) localStorage fortune_auth_user의 role 확인
       var user = readAuthUser();
       if (user && user.role === 'admin') return true;
+      // 2) fortune_auth_role 쿠키 확인 (관리자 세션 쿠키)
       var cookies = document.cookie.split(';');
       for (var i = 0; i < cookies.length; i++) {
         var pair = cookies[i].trim().split('=');
@@ -3880,6 +4029,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   function loadBalance() {
+    // 관리자는 항상 충분한 잔액으로 시작 (UI 게이트 통과용)
     if (isAdminUser()) { userBalance = 9999999; return; }
     var user = readAuthUser();
     var points = Number(user && user.points);
@@ -3887,7 +4037,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   function saveBalance() {
-    if (isAdminUser()) return;
+    if (isAdminUser()) return; // 관리자는 잔액 덮어쓰기 방지
     syncAuthUserPoints(userBalance);
   }
 
@@ -4002,27 +4152,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     }
   }
 
+  var SECTION_GATE_KEYS=[{gateId:'daewunGate',unlockKey:'section_daewun'},{gateId:'summaryGate',unlockKey:'section_summary'},{gateId:'compatGate',unlockKey:'section_compat'}];
+  function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;if(unlockedFeatureMap[sg.unlockKey]){el.classList.add('cd-section-gate--unlocked');}else{el.classList.remove('cd-section-gate--unlocked');}});}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
-  }
-
-  // 섹션 코인 게이트 잠금/해제 상태 반영
-  var SECTION_GATE_KEYS = [
-    { gateId: 'daewunGate',  unlockKey: 'section_daewun' },
-    { gateId: 'summaryGate', unlockKey: 'section_summary' },
-    { gateId: 'compatGate',  unlockKey: 'section_compat'  }
-  ];
-  function applySectionGates() {
-    SECTION_GATE_KEYS.forEach(function(sg) {
-      var el = document.getElementById(sg.gateId);
-      if (!el) return;
-      if (unlockedFeatureMap[sg.unlockKey]) {
-        el.classList.add('cd-section-gate--unlocked');
-      } else {
-        el.classList.remove('cd-section-gate--unlocked');
-      }
-    });
   }
 
   async function fetchJsonWithAuth(path, init) {
@@ -4162,7 +4296,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
       UnlockButton(button);
-      applySectionGates();
+      if(typeof applySectionGates==='function')applySectionGates();
       window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
       // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
       return;
@@ -4175,13 +4309,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
-    // 리포트 대시보드 토글 카드
-    if (action === 'toggleRptCard') {
-      if (typeof window.toggleReportFeatureCard === 'function') {
-        window.toggleReportFeatureCard(actionEl);
-      }
-      return;
-    }
+    if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
     // <a href> 타일: href 경로로 직접 이동
     if (actionEl && actionEl.tagName === 'A') {
       var href = actionEl.getAttribute('href') || actionEl.getAttribute('data-fallback-href') || '';
@@ -4399,7 +4527,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ChargeModal();
   updateBadge();
   refreshUnlockButtons();
-  applySectionGates();
+  if(typeof applySectionGates==='function')applySectionGates();
   void syncBalanceFromServer();
 
   window.__cdSetGoldenBalance = function (points) {
@@ -4464,6 +4592,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
+<script data-cd-lazy-src="/js/life-book.js"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
@@ -4488,10 +4617,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 (function(){
   'use strict';
   var D={
-    openDestinyFlowerStudio:{cat:'사주 · 운명의 꽃',title:'🌸 사주로 보는 꽃',tagline:'태어난 날의 팔자(八字)를 세상에 단 하나뿐인 꽃으로 피워냅니다',feats:['사주 명리학 8글자 완전 분석','나만의 운명 꽃 아트 비주얼 생성','사주·점성술·자미두수 통합 시각화','감성적 개인 운명 리포트 제공'],cost:'🪙 50코인',ct:'paid'},
-    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양·달·상승궁 에너지를 성운 꽃으로 피워냅니다',feats:['태양·달·상승궁 삼각 에너지 분석','서양 점성술 기반 꽃 아트 생성','12행성 배치 패턴 해석','감성 성운 비주얼 리포트'],cost:'🪙 50코인',ct:'paid'},
-    openJamidusuFlowerStudio:{cat:'자미두수 · 동양 점성',title:'🌺 자미두수 꽃',tagline:'제왕의 별자리를 꽃으로 시각화한 동양 최고 명리 예술',feats:['자미두수 명궁·주성 정밀 분석','주성·보성 별 밝기 해석','귀인성·재성 꽃 매핑 시각화','전통 동양 운명 비주얼 리포트'],cost:'🪙 50코인',ct:'paid'},
-    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'27수(宿) 달의 위상으로 피어나는 생명의 꽃',feats:['인도-불교 27수 별자리 분석','태어날 때 달빛 에너지 해석','숙요 전통 운세 꽃 시각화','달의 위상 리듬 리포트'],cost:'🪙 50코인',ct:'paid'},
+    openDestinyFlowerStudio:{cat:'사주 · 운명의 꽃',title:'🌸 사주로 보는 꽃',tagline:'태어난 날의 팔자(八字)를 세상에 단 하나뿐인 꽃으로 피워냅니다',feats:['사주 명리학 8글자 완전 분석','나만의 운명 꽃 아트 비주얼 생성','사주·점성술·자미두수 통합 시각화','감성적 개인 운명 리포트 제공'],cost:'🔒 해금 50코인',ct:'paid'},
+    openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양·달·상승궁 에너지를 성운 꽃으로 피워냅니다',feats:['태양·달·상승궁 삼각 에너지 분석','서양 점성술 기반 꽃 아트 생성','12행성 배치 패턴 해석','감성 성운 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
+    openJamidusuFlowerStudio:{cat:'자미두수 · 동양 점성',title:'🌺 자미두수 꽃',tagline:'제왕의 별자리를 꽃으로 시각화한 동양 최고 명리 예술',feats:['자미두수 명궁·주성 정밀 분석','주성·보성 별 밝기 해석','귀인성·재성 꽃 매핑 시각화','전통 동양 운명 비주얼 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
+    openSukuyoFlowerStudio:{cat:'숙요 · 달빛 꽃',title:'🌙 숙요 꽃',tagline:'27수(宿) 달의 위상으로 피어나는 생명의 꽃',feats:['인도-불교 27수 별자리 분석','태어날 때 달빛 에너지 해석','숙요 전통 운세 꽃 시각화','달의 위상 리듬 리포트'],cost:'🔒 해금 50코인',ct:'paid'},
     openDreamModal:{cat:'드림 타로 · 해몽',title:'🌙 드림 타로',tagline:'꿈의 상징을 타로와 연결해 숨겨진 运命을 해독합니다',feats:['AI 기반 꿈 심층 해석','타로 카드 연결 심볼 분석','꿈 속 인물·장소·감정 의미 해독','운명 예언 리포트 제공'],cost:'✨ 무료',ct:'free'},
     openPsychoDreamModal:{cat:'정신분석 · 해몽',title:'🕯️ 정신분석 해몽',tagline:'프로이트 & 영국 심리학으로 꿈의 무의식을 파헤칩니다',feats:['프로이트 정신분석 해석 적용','현대 영국 임상심리학 관점 교차','꿈 무의식 패턴 심층 분석','전문 심리 보고서 형식 리포트'],cost:'✨ 무료',ct:'free'},
     openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장으로 당신의 얼굴에 숨겨진 운명을 읽어냅니다',feats:['AI 얼굴형 관상 정밀 분석','동물 토템 매핑 시각화','성격·운세·매력 지수 분석','셀카 업로드만으로 즉시 결과'],cost:'✨ 무료',ct:'free'},
@@ -4509,7 +4638,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'12달 화투패의 숨겨진 운명 암호를 타짜가 읽어드립니다',feats:['한국 전통 화투패 12달 운세','월별 꽃패 상징 심층 해석','재물·사랑·시험 운세 분석','타짜 스타일 생생한 리딩'],cost:'✨ 무료',ct:'free'},
     openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'고대 케멧의 신들이 오늘 당신에게 신탁을 내립니다',feats:['고대 이집트 케멧 오라클 카드','신 & 상징 교차 해석','오늘의 질문 삶 적용 가이드','신비로운 이집트 아트 비주얼'],cost:'🪙 30코인',ct:'paid'},
     openJuyukModal:{cat:'주역 64괘 · 거북점',title:'☯️ 주역 거북점',tagline:'3000년 동양 지혜의 결정체, 64괘로 운명을 점칩니다',feats:['주역 64괘 정통 해석','거북이 등 문양 점술 의식','오늘의 질문 괘 매핑','한문 & 현대 해석 동시 제공'],cost:'🪙 30코인',ct:'paid'},
-    openSukuyoModal:{cat:'숙요점 · 불교 천문',title:'💫 숙요점(宿曜占)',tagline:'불교 밀교 27수 별자리로 운명의 별을 찾아드립니다',feats:['불교 밀교 전통 27수 점성','나의 수호 별자리 & 길흉 분석','숙요 달력 기반 길일 계산','VIP 전용 프리미엄 리포트'],cost:'🪙 400코인',ct:'paid'},
+    openSukuyoModal:{cat:'숙요점 · 불교 천문',title:'💫 숙요점(宿曜占)',tagline:'불교 밀교 27수 별자리로 운명의 별을 찾아드립니다',feats:['불교 밀교 전통 27수 점성','나의 수호 별자리 & 길흉 분석','숙요 달력 기반 길일 계산','VIP 전용 프리미엄 리포트'],cost:'🔒 해금 400코인',ct:'paid'},
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'고대 켈트 룬 문자에 새겨진 운명의 메시지를 읽어냅니다',feats:['고대 퓨사크 24룬 오라클 리딩','스톤헨지 의식 기반 뽑기','룬 상징 심층 & 역방향 해석','켈트 전통 비주얼 리딩'],cost:'🪙 50코인',ct:'paid'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'대지에 던진 16행 점의 패턴으로 땅의 신탁을 읽습니다',feats:['중동-아프리카 전통 흙점 의식','16행 기하학 패턴 신탁 해석','오늘의 질문 대지 메시지 제공','감성적 사막 아트 비주얼'],cost:'🪙 50코인',ct:'paid'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'왕실의 찻잎 문양에서 오늘의 운명 이야기가 펼쳐집니다',feats:['영국 전통 타세오그래피 의식','찻잎 형태 상징 심층 해독','왕실 스타일 운세 리포트','빅토리아 시대 감성 비주얼'],cost:'🪙 30코인',ct:'paid'},
@@ -4591,29 +4720,3 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
