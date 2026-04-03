@@ -436,11 +436,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-section-gate__btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(219,89,55,.42)}
 .cd-section-gate__badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;background:rgba(255,193,87,.32);color:#7a3a00;font-size:.76rem;font-weight:800;border:1px solid rgba(255,162,58,.38)}
 @media(max-width:600px){.cd-section-gate__overlay{padding:16px 12px}.cd-section-gate__btn{padding:11px 20px;font-size:.86rem}}
-.golden-unlock-area{margin-top:16px;padding:14px;border-radius:14px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
-.golden-unlock-title{font-size:.95rem;font-weight:900;color:#6f2d0d;margin:0 0 8px}
+.golden-unlock-area{margin-top:24px;padding:18px 16px;border-radius:16px;border:1px solid rgba(255,182,121,0.34);background:linear-gradient(160deg,rgba(255,242,226,0.9),rgba(255,232,241,0.82))}
+.golden-unlock-title{font-size:1rem;font-weight:900;color:#6f2d0d;margin:0 0 4px}
+.golden-unlock-total{font-size:.8rem;color:#a0522d;font-weight:700;margin:0 0 12px;opacity:.85}
 .golden-unlock-list{display:grid;gap:8px}
-.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease}
+.golden-unlock-btn{width:100%;border:none;border-radius:12px;padding:12px 14px;background:linear-gradient(135deg,#ff7ea1,#ffc36f);color:#fff;font-weight:900;cursor:pointer;transition:transform .2s ease,filter .2s ease;font-size:.88rem;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .golden-unlock-btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.golden-unlock-btn__cost{background:rgba(255,255,255,.25);border-radius:999px;padding:2px 10px;font-size:.76rem;font-weight:800;white-space:nowrap;flex-shrink:0}
 .animate-bounce{animation:goldenBounce .72s ease}
 @keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
@@ -3546,77 +3548,25 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div id="tTestResult"></div>
     </section>
 
-      <!-- 쌈바 프로모션 박스 -->
-      <aside class="neo-promo-box" style="padding-bottom: 25px;" aria-label="Premium Service Promotion">
-        <div class="neo-promo-logo">PREMIUM</div>
-        <div class="neo-promo-subtitle">DESTINY STRATEGIST</div>
-        <div class="neo-promo-divider"></div>
-
-        <!-- 병합된 온라인 리포트 섹션 헤더 -->
-        <div style="margin-top: 15px;">
-          <div class="pdf-consult-subtitle" style="margin-bottom: 4px;">깊은 통찰로 읽어내는 운명</div>
-          <div class="pdf-consult-title" style="margin-bottom: 20px;">온라인 명리 전략 리포트</div>
+      <!-- 심층 리포트 잠금 해제 -->
+      <div class="golden-unlock-area" aria-label="심층 리포트 잠금 해제">
+        <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
+        <p class="golden-unlock-total">유료 콘텐츠 총 비용 · 1,100코인</p>
+        <div class="golden-unlock-list">
+          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="saju-premium-all" data-unlock-cost="700">
+            <span>사주 확장 콘텐츠 전체 해금</span>
+            <span class="golden-unlock-btn__cost">🪙 700코인</span>
+          </button>
+          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="premium-divination-pack" data-unlock-cost="300">
+            <span>프리미엄 점술 패키지 해금</span>
+            <span class="golden-unlock-btn__cost">🪙 300코인</span>
+          </button>
+          <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="secret-house-pass" data-unlock-cost="100">
+            <span>시크릿 하우스 전체 에피소드 열람권</span>
+            <span class="golden-unlock-btn__cost">🪙 100코인</span>
+          </button>
         </div>
-
-        <div class="neo-promo-text" style="margin-bottom: 25px;">
-          대한민국 현대사의 가장 뜨거웠던 갈림길—<br>
-          윤석열과 이재명, 그 두 거물의 성패를 소름 돋는 
-          정밀함으로 예언했던 명리학계의 숨은 거성.<br>
-          세상은 그것을 '적중'이라 말하지만, 우리는 그것을 <b>'별들이 가리키는 필연'</b>이라 부른다<br><br>
-          천기(天機)는 아무에게나 모습을 드러내지 않으나,<br>
-          준비된 자에게는 반드시 그 길을 내어주는 법.<br><br>
-          "당신이 지금 서 있는 이 자리는, 추락의 끝인가 아니면 비상의 시작인가?"<br><br>
-          수만 개의 변수 속에서 오직 당신만을 위해 추출된 단 하나의 결과값.<br>
-          권력의 정점을 맞춘 그 서늘한 통찰력으로,<br>
-          이제 당신의 재물, 명예, 그리고 감춰진 일생의 기회를 해부한다
-        </div>
-
-        <!-- 가격 정보 -->
-        <div class="pdf-consult-price-box" style="margin: 0; width: auto;">
-          <div class="pdf-consult-old-price">기존 이메일 상담가 150,000원</div>
-          <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap">
-            <span class="pdf-consult-discount">특별가 적용</span>
-            <span class="pdf-consult-new-price">100,000<span style="font-size:1.2rem; font-weight:normal">원</span></span>
-          </div>
-          <div class="pdf-consult-method">PDF 이메일 발송</div>
-        </div>
-
-        <!-- 분석 특징 아이콘 -->
-        <div class="pdf-consult-features" style="justify-content: center; gap: 20px;">
-          <div class="pdf-consult-feature">
-            <div class="pdf-consult-feature-icon" style="margin-bottom: 8px;">🔍</div>
-            <div style="font-size: 0.85rem;">1:1 심층 분석</div>
-          </div>
-          <div class="pdf-consult-feature">
-            <div class="pdf-consult-feature-icon" style="margin-bottom: 8px;">📄</div>
-            <div style="font-size: 0.85rem;">종합 명리 전략</div>
-          </div>
-          <div class="pdf-consult-feature">
-            <div class="pdf-consult-feature-icon" style="margin-bottom: 8px;">📧</div>
-            <div style="font-size: 0.85rem;">이메일 수신</div>
-          </div>
-        </div>
-
-        <!-- 연락처 -->
-        <div class="neo-promo-contact" style="margin-top: 15px; margin-bottom: 25px;"><a href="mailto:seongbae555@gmail.com" style="color:white; text-decoration:none; font-weight:bold; font-size:1.1rem; border-bottom: 1px dashed white;"> 이메일 상담 문의: seongbae555@gmail.com</a></div>
-
-        <div class="golden-unlock-area">
-          <p class="golden-unlock-title">🔐 심층 리포트 잠금 해제</p>
-          <div class="golden-unlock-list">
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="saju-premium-all" data-unlock-cost="700">
-              사주 확장 콘텐츠 전체 해금 (700코인)
-            </button>
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="premium-divination-pack" data-unlock-cost="300">
-              프리미엄 점술 패키지 해금 (300코인)
-            </button>
-            <button type="button" class="golden-unlock-btn" data-action="unlockPremiumFeature" data-unlock-key="secret-house-pass" data-unlock-cost="100">
-              시크릿 하우스 전체 에피소드 열람권 (100코인)
-            </button>
-          </div>
-        </div>
-        
-        <!-- 하단 상담 신청 띠 -->
-      </aside>
+      </div>
 
     </div>
 

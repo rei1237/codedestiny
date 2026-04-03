@@ -842,7 +842,9 @@ function renderReportDashboard() {
     gridHtml += '<p class="rpt-v2-preview">' + b.preview + '</p>';
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var coinAttrs = (b.coinCost > 0) ? (' data-tile-lock-key="rpt_' + b.target + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
-    var coinBadge = (b.coinCost > 0) ? ('<span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 8px;border-radius:999px;background:rgba(255,193,87,.28);color:#7a3a00;font-size:.72rem;font-weight:800;border:1px solid rgba(255,162,58,.35)">🪙 ' + b.coinCost + '코인</span>') : '';
+    var coinBadge = (b.coinCost > 0)
+      ? ('<span class="rpt-v2-coin-badge">🪙 ' + b.coinCost + '코인</span>')
+      : '<span class="rpt-v2-free-badge">무료</span>';
     if (b.action === 'openLuckSyncDiary') {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="openLuckSyncDiary"' + coinAttrs + ' aria-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + coinBadge + '</span>';
