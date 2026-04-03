@@ -4205,17 +4205,15 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function isAdminUser() {
     try {
-      // 1) localStorage fortune_auth_user의 role 확인
+      // 1) localStorage fortune_auth_user의 role 확인 (서버 인증 후 설정)
       var user = readAuthUser();
       if (user && user.role === 'admin') return true;
-      // 2) fortune_auth_role 쿠키 확인 (관리자 세션 쿠키)
-      var cookies = document.cookie.split(';');
-      for (var i = 0; i < cookies.length; i++) {
-        var pair = cookies[i].trim().split('=');
-        if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
-      }
-      // 3) flower_admin_token: admin panel login -> all features available without coins
-      try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
+      // 2) flower_admin_token: HMAC-SHA256 서명 구조 검증 (payloadB64.64hexSig 형식)
+      //    단순 truthy 체크 대신 토큰 포맷을 검증해 콘솔 조작 우회를 차단
+      try {
+        var tok = sessionStorage.getItem('flower_admin_token');
+        if (tok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(tok)) return true;
+      } catch (_ss) {}
     } catch (_e) {}
     return false;
   }

@@ -4215,7 +4215,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
       }
       // 3) flower_admin_token: admin panel login -> all features available without coins
-      try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
+      try {
+        var tok = sessionStorage.getItem('flower_admin_token');
+        if (tok && /^[A-Za-z0-9_\\-]{20,}\\.[0-9a-f]{64}\$/.test(tok)) return true;
+      } catch (_ss) {}
     } catch (_e) {}
     return false;
   }

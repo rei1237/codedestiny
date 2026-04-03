@@ -8,6 +8,44 @@ import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken.js";
 const ADMIN_ENTRY_PASSWORD_SHA256 =
   "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e";
 
+// ── 브루트포스 방어: IP당 15분 윈도우에서 최대 5회 실패 허용 ──────────────
+const _loginAttempts = new Map(); // ip -> { count, resetAt }
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15분
+
+function getClientIp(request) {
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+    "unknown"
+  );
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = _loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) return { allowed: true };
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return { allowed: false, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
+  }
+  return { allowed: true };
+}
+
+function recordFailedAttempt(ip) {
+  const now = Date.now();
+  const entry = _loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    _loginAttempts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+  } else {
+    entry.count += 1;
+  }
+}
+
+function clearAttempts(ip) {
+  _loginAttempts.delete(ip);
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 async function verifyAdminEntryPassword(rawInput) {
   const inp = String(rawInput || "");
   if (!inp) return false;
@@ -28,6 +66,20 @@ function notFound() {
 
 export async function POST(request) {
   try {
+    // 브루트포스 체크
+    const ip = getClientIp(request);
+    const rl = checkRateLimit(ip);
+    if (!rl.allowed) {
+      return new Response(JSON.stringify({ message: "Too many attempts. Try again later." }), {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Retry-After": String(rl.retryAfter),
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     let body = null;
     try {
       body = await request.json();
@@ -37,7 +89,12 @@ export async function POST(request) {
 
     const password = String(body?.password || "");
     const ok = await verifyAdminEntryPassword(password);
-    if (!ok) return notFound();
+    if (!ok) {
+      recordFailedAttempt(ip);
+      return notFound();
+    }
+
+    clearAttempts(ip); // 성공 시 카운터 초기화
 
     // 서명된 단기 세션 토큰 발급 — 클라이언트가 sessionStorage에 보관
     const adminToken = await generateFlowerAdminToken();
