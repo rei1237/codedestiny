@@ -60,7 +60,7 @@ export async function dbConnect() {
     socketTimeoutMS: 20000,
     connectTimeoutMS: 10000,
     maxPoolSize: 5,
-    minPoolSize: 1,
+    minPoolSize: 0, // 서버리스: 불필요한 백그라운드 연결 유지 안 함
   }).finally(() => {
     _connecting = null;
   });
@@ -75,8 +75,8 @@ export async function dbConnect() {
       msg.includes("ETIMEDOUT") ||
       msg.includes("ECONNREFUSED") ||
       msg.includes("ENOTFOUND") ||
-      msg.includes("connection") ||
-      msg.includes("Server selection");
+      msg.includes("Server selection timed") ||
+      msg.includes("network error");
     if (isNetworkErr) {
       throw new Error(
         `MongoDB 연결 실패 — IP 화이트리스트 설정 확인 필요!\n` +

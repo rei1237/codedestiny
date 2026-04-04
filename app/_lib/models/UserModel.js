@@ -59,6 +59,7 @@ export async function getUserModel() {
 
   userSchema.index({ email: 1 }, { unique: true });
 
-  _UserModel = mongoose.model("User", userSchema);
+  // 컬렉션 이름 명시 (3번째 인수) → mongoose 자동 복수화('users')와 동일하나 명시해 mismatch 방지
+  _UserModel = mongoose.model("User", userSchema, "users");
   return _UserModel;
 }

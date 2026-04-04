@@ -1,0 +1,45 @@
+﻿tion>
+
+    <!-- ═══ T발놈 테스트 (Cold Logic) ═══ -->
+    <section id="tTestCard" class="card t-test-card" style="display:none" aria-labelledby="tTestTitle">
+      <h3 id="tTestTitle" class="sec-title">The Frozen Logic — 극T 테스트</h3>
+      <div id="tTestResult"></div>
+    </section>
+
+      <!-- 쌈바 프로모션 박스 -->
+      <aside class="neo-promo-box" style="padding-bottom: 25px;" aria-label="Premium Service Promotion">
+        <div class="neo-promo-logo">PREMIUM</div>
+        <div class="neo-promo-subtitle">DESTINY STRATEGIST</div>
+        <div class="neo-promo-divider"></div>
+
+        <!-- 병합된 온라인 리포트 섹션 헤더 -->
+        <div style="margin-top: 15px;">
+          <div class="pdf-consult-subtitle" style="margin-bottom: 4px;">깊은 통찰로 읽어내는 운명</div>
+          <div class="pdf-consult-title" style="margin-bottom: 20px;">온라인 명리 전략 리포트</div>
+        </div>
+
+        <div class="neo-promo-text" style="margin-bottom: 25px;">
+          대한민국 현대사의 가장 뜨거웠던 갈림길—<br>
+          윤석열과 이재명, 그 두 거물의 성패를 소름 돋는 
+          정밀함으로 예언했던 명리학계의 숨은 거성.<br>
+          세상은 그것을 '적중'이라 말하지만, 우리는 그것을 <b>'별들이 가리키는 필연'</b>이라 부른다<br><br>
+          천기(天機)는 아무에게나 모습을 드러내지 않으나,<br>
+          준비된 자에게는 반드시 그 길을 내어주는 법.<br><br>
+          "당신이 지금 서 있는 이 자리는, 추락의 끝인가 아니면 비상의 시작인가?"<br><br>
+          수만 개의 변수 속에서 오직 당신만을 위해 추출된 단 하나의 결과값.<br>
+          권력의 정점을 맞춘 그 서늘한 통찰력으로,<br>
+          이제 당신의 재물, 명예, 그리고 감춰진 일생의 기회를 해부한다
+        </div>
+
+        <!-- 가격 정보 -->
+        <div class="pdf-consult-price-box" style="margin: 0; width: auto;">
+          <div class="pdf-consult-old-price">기존 이메일 상담가 150,000원</div>
+          <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap">
+            <span class="pdf-consult-discount">특별가 적용</span>
+            <span class="pdf-consult-new-price">100,000<span style="font-size:1.2rem; font-weight:normal">원</span></span>
+          </div>
+          <div class="pdf-consult-method">PDF 이메일 발송</div>
+        </div>
+
+        <!-- 분석 특징 아이콘 -->
+        <div class="pdf-consult

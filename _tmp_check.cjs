@@ -1,0 +1,10 @@
+const fs = require('fs');
+const c2 = fs.readFileSync('public/en-us/index.html', 'utf8');
+const rIdx = c2.indexOf('function __cdRenderAuthSummary(name, points)');
+console.log('renderAuthSummary found:', rIdx !== -1);
+console.log('renderAuthSummary snippet:', JSON.stringify(c2.slice(rIdx, rIdx+80)));
+const aIdx = c2.indexOf('function __cdAuthState()');
+console.log('authState snippet:', JSON.stringify(c2.slice(aIdx, aIdx+300)));
+const lIdx = c2.lastIndexOf('fortune_auth_role=;max-age=0');
+const logoutCtx = c2.slice(lIdx, lIdx+150);
+console.log('logout context:', JSON.stringify(logoutCtx));

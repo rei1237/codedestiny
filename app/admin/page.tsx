@@ -61,6 +61,24 @@ function fmtDateTime(v?: string) {
 }
 function fmtNum(n: number) { return n.toLocaleString("ko-KR"); }
 
+/** API 오류 응답에서 사람이 읽을 수 있는 메시지 추출
+ * - JSON { message } → 메시지 반환
+ * - HTML (<!DOCTYPE …) → "서버 내부 오류" 안내 반환
+ * - 기타 텍스트 → 최대 200자 잘라 반환 */
+async function safeErrorMsg(r: Response): Promise<string> {
+  let text = "";
+  try { text = await r.text(); } catch { return `서버 오류 (HTTP ${r.status})`; }
+  if (text.trimStart().startsWith("<")) {
+    // HTML 에러 페이지 (Cloudflare 워커 예외 등)
+    return `서버 내부 오류 (HTTP ${r.status}) — /api/admin/ping 으로 DB 연결 상태를 확인해 주세요.`;
+  }
+  try {
+    const parsed = JSON.parse(text) as { message?: string };
+    if (parsed?.message) return parsed.message;
+  } catch { /* JSON 파싱 실패 — 원문 반환 */ }
+  return text.slice(0, 200) || `HTTP ${r.status}`;
+}
+
 //  Toast 
 
 function ToastContainer({ toasts, remove }: { toasts: Toast[]; remove: (id: number) => void }) {
@@ -171,7 +189,7 @@ function DashboardTab({ token, toast }: { token: string; toast: (msg: string, ty
     setLoading(true);
     fetch("/api/admin/stats", { headers: { Authorization: `Bearer ${token}` } })
       .then(async r => {
-        if (!r.ok) { const t = await r.text(); throw new Error(`[${r.status}] ${t.slice(0,200)}`); }
+        if (!r.ok) throw new Error(await safeErrorMsg(r));
         return r.json();
       })
       .then((d: Stats & { message?: string }) => {
@@ -184,9 +202,14 @@ function DashboardTab({ token, toast }: { token: string; toast: (msg: string, ty
 
   if (loading) return <p className="text-slate-400 text-sm py-8 text-center">통계 불러오는 중</p>;
   if (err) return (
-    <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-4">
-      <p className="text-rose-300 text-sm font-semibold mb-2">⚠️ 통계 조회 오류</p>
-      <p className="text-rose-200 text-xs break-words">{err}</p>
+    <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 space-y-2">
+      <p className="text-rose-300 text-sm font-semibold">⚠️ 통계 조회 오류</p>
+      <p className="text-rose-200 text-xs break-words whitespace-pre-wrap">{err}</p>
+      <p className="text-slate-400 text-xs">
+        DB 연결 상태 확인:{" "}
+        <a href="/api/admin/ping" target="_blank" rel="noopener noreferrer"
+          className="underline text-sky-400 hover:text-sky-300">/api/admin/ping</a>
+      </p>
     </div>
   );
   if (!stats) return null;
@@ -326,7 +349,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
       const params = new URLSearchParams({ page: String(pg), pageSize: String(PAGE_SIZE) });
       if (kw) params.set("search", kw);
       const r = await fetch(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!r.ok) { const t = await r.text(); throw new Error(`[${r.status}] ${t.slice(0,150)}`); }
+      if (!r.ok) throw new Error(await safeErrorMsg(r));
       const d = await r.json() as { ok?: boolean; totalCount?: number; filteredCount?: number; users?: AdminUser[]; totalPages?: number; message?: string };
       if (d.message) throw new Error(d.message);
       setUsers(d.users ?? []);
@@ -765,7 +788,7 @@ function BannedUsersTab({ token, toast }: { token: string; toast: (msg: string, 
       const params = new URLSearchParams({ pageSize: "200", page: "1" });
       if (kw) params.set("search", kw);
       const r = await fetch(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!r.ok) { const t = await r.text(); throw new Error(`[${r.status}] ${t.slice(0,150)}`); }
+      if (!r.ok) throw new Error(await safeErrorMsg(r));
       const d = await r.json() as { users?: AdminUser[] };
       const banned = (d.users ?? []).filter(u => u.status === "banned");
       setUsers(banned);

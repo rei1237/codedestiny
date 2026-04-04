@@ -1,0 +1,20 @@
+fix(security): 로그아웃 후 코인 게이트 우회 치명적 버그 수정 + 관리자 UI 강화
+
+[Critical Bug] 로그아웃 후에도 모든 기능 무료 접근 가능 문제
+- Root Cause: 로그아웃 핸들러가 sessionStorage의 flower_admin_token을
+  삭제하지 않아, 페이지 재로드 후에도 isAdminUser()=true 유지됨
+
+[Security Fix 1] 로그아웃 핸들러 (한국어 + 10개 로케일 전체)
+- sessionStorage.removeItem('flower_admin_token') 추가
+- window.__cdAdminBypass = false 리셋 추가
+
+[Security Fix 2] isAdminUser() 강화
+- fortune_auth_role 쿠키 체크 제거 (클라이언트 조작 가능)
+- flower_admin_token 단순 truthy 체크 -> 서명 포맷 regex 검증으로 교체
+
+[UI/UX] 관리자 로그인 시 헤더 ADMIN 배지 표시
+- role=admin 또는 유효한 flower_admin_token -> ADMIN 배지 (pulse 애니메이션)
+- flower_admin_token만 있는 경우: 나가기 버튼 포함 ADMIN 배지 표시
+- .admin-badge CSS: 금빛-오렌지 그라디언트 텍스트 + 글로우 효과
+
+[Fix] 대운 섹션 게이트 아이콘 broken emoji(U+FFFD) 수정
