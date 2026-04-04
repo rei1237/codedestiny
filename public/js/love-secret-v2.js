@@ -345,17 +345,6 @@
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
 
-  window.regenerateLoveSecret = function () {
-    if (_generating) {
-      if (!window.confirm('생성이 진행 중입니다.\n중단하고 다시 생성하시겠습니까?')) return;
-      _generating = false;
-    }
-    var profile = window.__cdActiveBirthProfile || {};
-    _clearSaved(profile);
-    _chapters = Array(10).fill(null);
-    _showScreen('lsStartScreen');
-  };
-
   function _bindToc() {
     var nav = document.querySelector('.ls-toc');
     if (!nav) return;
@@ -565,7 +554,6 @@
     if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
     if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
     if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
-    if (action === 'regenerateLoveSecret') { window.regenerateLoveSecret(); return; }
     if (action === 'shareLoveSecretKakao') {
       if (typeof window.shareLoveSecretKakao === 'function') window.shareLoveSecretKakao();
       return;
