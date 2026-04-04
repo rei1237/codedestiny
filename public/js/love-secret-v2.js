@@ -202,6 +202,52 @@
     return lines.join('\n');
   }
 
+  function _collectPartnerData() {
+    var section = _qs('lsPartnerSection');
+    if (!section || !section.classList.contains('open')) return '';
+    var name = (_qs('lsPartnerName') || {}).value || '';
+    var year = parseInt((_qs('lsPartnerYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPartnerMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPartnerDay') || {}).value || '0', 10);
+    var hourEl = _qs('lsPartnerHour');
+    var hourVal = hourEl ? hourEl.value : '';
+    var gender = '';
+    var gm = _qs('lsPartnerGenderM');
+    var gf = _qs('lsPartnerGenderF');
+    if (gm && gm.classList.contains('active')) gender = '남성';
+    else if (gf && gf.classList.contains('active')) gender = '여성';
+    if (!year || !month || !day) return '';
+    var lines = ['【상대방 정보】'];
+    if (name) lines.push('이름: ' + name);
+    if (gender) lines.push('성별: ' + gender);
+    lines.push('생년월일: ' + year + '년 ' + month + '월 ' + day + '일');
+    if (hourVal !== '') {
+      var hourNames = ['자시(23-01시)','축시(01-03시)','인시(03-05시)','묘시(05-07시)','진시(07-09시)',
+        '사시(09-11시)','오시(11-13시)','미시(13-15시)','신시(15-17시)','유시(17-19시)','술시(19-21시)','해시(21-23시)'];
+      lines.push('출생 시각: ' + (hourNames[parseInt(hourVal, 10)] || hourVal + '시'));
+    } else {
+      lines.push('출생 시각: 미상');
+    }
+    return lines.join('\n');
+  }
+
+  function _bindPartnerSection() {
+    var toggle = _qs('lsPartnerToggle');
+    var section = _qs('lsPartnerSection');
+    if (!toggle || !section) return;
+    toggle.addEventListener('click', function () {
+      var isOpen = section.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    var genderBtns = document.querySelectorAll('.ls-partner-gender-btn');
+    Array.prototype.forEach.call(genderBtns, function (btn) {
+      btn.addEventListener('click', function () {
+        Array.prototype.forEach.call(genderBtns, function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+  }
+
   function _showScreen(id) {
     var screens = ['lsStartScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
@@ -226,6 +272,7 @@
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    _bindPartnerSection();
     try {
       modal.setAttribute('aria-hidden', 'false');
       var closeBtn = modal.querySelector('.ls-modal__close');
@@ -309,6 +356,7 @@
     _generating = true;
     _chapters = Array(10).fill(null);
     var sajuData = _collectSajuData();
+    var partnerData = _collectPartnerData();
     _showScreen('lsLoadingScreen');
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
@@ -322,6 +370,12 @@
       if (chapterMsg && done >= 10) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
     }
     _setProgress(0);
+    var lsTitle = _qs('lsLoadingTitle');
+    if (lsTitle) {
+      lsTitle.textContent = partnerData
+        ? '두 사람의 궁합과 연애 비책을 집필하는 중입니다'
+        : '연애 비책을 집필하는 중입니다';
+    }
 
     (function generateNext(idx) {
       if (idx >= 10) {
@@ -341,7 +395,7 @@
       fetch('/api/love-secret/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
+        body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
       })
         .then(function (res) { return res.json(); })
         .then(function (data) {
