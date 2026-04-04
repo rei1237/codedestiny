@@ -459,9 +459,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* ── 프리미엄 기능 쇼케이스 ── */
 .pf-showcase{padding:28px 20px 32px;background:linear-gradient(160deg,#090719 0%,#10082c 55%,#0c0622 100%);border:1px solid rgba(139,92,246,.25);box-shadow:0 0 80px rgba(109,40,217,.1),inset 0 1px 0 rgba(255,255,255,.04)}
 .pf-showcase__header{text-align:center;margin-bottom:28px}
-.pf-showcase__eyebrow{font-size:.62rem;font-weight:900;letter-spacing:.24em;color:#f8bb25;text-transform:uppercase;margin-bottom:10px}
-.pf-showcase__title{font-size:clamp(1.15rem,4vw,1.5rem);font-weight:900;background:linear-gradient(135deg,#f0ebff 0%,#c4b5fd 60%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 10px;line-height:1.35}
-.pf-showcase__sub{font-size:.84rem;color:rgba(196,181,253,.78);margin:0;line-height:1.55}
+.pf-showcase__eyebrow{font-size:.68rem;font-weight:900;letter-spacing:.3em;color:#f8bb25;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px}.pf-showcase__eyebrow::before,.pf-showcase__eyebrow::after{content:'';display:inline-block;width:32px;height:1px;background:#f8bb2555;flex-shrink:0}
+.pf-showcase__title{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,#e9e0ff 30%,#c4a8ff 65%,#9b6ef5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 12px;line-height:1.4;letter-spacing:-.02em}
+.pf-showcase__sub{font-size:.88rem;color:rgba(220,208,255,.9);margin:0;line-height:1.6;letter-spacing:.01em}
 .pf-showcase__grid{display:grid;gap:18px}
 @media(min-width:680px){.pf-showcase__grid{grid-template-columns:repeat(3,1fr)}}
 .pf-card{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,rgba(14,8,32,.94) 0%,rgba(9,4,22,.97) 100%);border:1px solid rgba(140,90,255,.2);box-shadow:0 4px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s ease}
