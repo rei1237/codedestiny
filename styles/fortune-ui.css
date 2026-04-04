@@ -156,6 +156,8 @@ img.img-fallback-broken {
   margin: 0 auto;
   /* Keep first content clear of fixed fsn top bar on mobile. */
   padding-top: calc(72px + env(safe-area-inset-top, 0px));
+  /* Keep last content clear of fixed fate-scroll-next-indicator (bottom:86px + ~67px height). */
+  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
 }
 #resultPage > * {
   width: 100%;
@@ -169,6 +171,8 @@ img.img-fallback-broken {
 #resultPage .rpt-v2-block {
   content-visibility: auto;
   contain-intrinsic-size: auto 200px;
+  /* Prevent fate-scroll-next-indicator from hiding section bottom on scrollIntoView. */
+  scroll-margin-bottom: 160px;
 }
 #inputPage,
 .wrap > footer {
