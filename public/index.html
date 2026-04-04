@@ -395,6 +395,20 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
 .admin-badge__crown{font-style:normal;font-size:.9rem}
 .admin-badge__text{font-size:.76rem;font-weight:900;background:linear-gradient(90deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cd-user-card{position:relative;overflow:hidden;margin-top:20px;padding:22px 18px 18px;border-radius:22px;background:linear-gradient(145deg,rgba(12,4,32,0.97),rgba(25,8,58,0.93));border:1px solid rgba(140,90,255,0.22);box-shadow:0 0 50px rgba(90,40,180,0.18),0 14px 44px rgba(0,0,0,0.52),inset 0 1px 0 rgba(180,130,255,0.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;width:100%}
+.cd-user-card::before{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:220px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(130,60,240,0.22),transparent 70%);pointer-events:none}
+.cd-user-card::after{content:'';position:absolute;bottom:-20%;left:15%;width:160px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(60,120,255,0.12),transparent 70%);pointer-events:none}
+.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0}
+@keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
+.cd-user-card__avatar{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#d8b4fe,#8b5cf6 55%,#3b0764 100%);border:2px solid rgba(200,150,255,0.45);box-shadow:0 0 22px rgba(160,100,255,0.55),inset 0 2px 8px rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3s ease-in-out infinite}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}
+.cd-user-card__avatar-ring{position:absolute;inset:-9px;border-radius:50%;border:1.5px solid transparent;border-top-color:rgba(200,150,255,0.75);border-right-color:rgba(200,150,255,0.3);animation:cdAvatarSpin 4s linear infinite}
+@keyframes cdAvatarSpin{to{transform:rotate(360deg)}}
+.cd-user-card__initial{font-size:1.5rem;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.7);line-height:1}
+.cd-user-card__info{display:flex;flex-direction:column;gap:2px;align-items:center}
+.cd-user-card__greeting{font-size:.75rem;color:rgba(190,160,255,0.72);font-weight:600;letter-spacing:.06em}
+.cd-user-card__name{font-size:1.25rem;font-weight:900;background:linear-gradient(90deg,#e2d9ff,#c084fc,#f0abfc 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em;line-height:1.25}
+.cd-user-card__tagline{font-size:.72rem;color:rgba(180,150,255,0.5);font-weight:500;margin-top:2px}
+.cd-user-card__actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:12px;border-top:1px solid rgba(140,90,255,0.15);width:100%}
 .golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:999px;border:1px solid rgba(255,200,80,0.28);background:linear-gradient(135deg,rgba(18,8,42,0.92),rgba(30,12,60,0.88));box-shadow:0 8px 32px rgba(0,0,0,0.55),0 0 0 1px rgba(160,100,255,0.12),inset 0 1px 0 rgba(255,220,140,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f0e8ff;font-weight:700;font-size:.84rem;letter-spacing:.01em;z-index:4}
 .golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff9d6 0%,#ffd14d 46%,#c97a08 100%);border:1.5px solid rgba(255,215,0,0.45);box-shadow:0 0 14px rgba(255,200,50,0.5),inset 0 2px 6px rgba(255,255,200,0.6),0 4px 10px rgba(140,80,8,0.28)}
 .golden-grain-badge__coin::before{content:'';width:14px;height:14px;border-radius:50%;border:2px solid rgba(120,60,5,0.4);box-shadow:inset 0 2px 4px rgba(255,250,200,0.6)}
@@ -1096,20 +1110,44 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           function __cdRenderAuthSummary(name, points, isAdmin) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
+            var _esc = function(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+            var safeName = _esc(name || '사용자');
+            var initial = String(name || '✦').trim().charAt(0) || '✦';
             var adminBadgeHtml = isAdmin
               ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
                 + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
                 + '<span class="admin-badge__text">ADMIN</span>'
-                + '</span> '
+                + '</span>'
               : '';
             el.innerHTML =
+              '<div class="cd-user-card">' +
+              '<span class="cd-user-star" style="width:2px;height:2px;top:14%;left:7%;--dur:2.1s"></span>' +
+              '<span class="cd-user-star" style="width:3px;height:3px;top:20%;left:84%;--dur:1.8s;--delay:.4s"></span>' +
+              '<span class="cd-user-star" style="width:1.5px;height:1.5px;top:74%;left:12%;--dur:2.5s;--delay:.8s"></span>' +
+              '<span class="cd-user-star" style="width:2px;height:2px;top:65%;left:90%;--dur:1.5s;--delay:1.2s"></span>' +
+              '<span class="cd-user-star" style="width:2px;height:2px;top:38%;left:96%;--dur:2.8s;--delay:.2s"></span>' +
+              '<span class="cd-user-star" style="width:1px;height:1px;top:82%;left:50%;--dur:2.2s;--delay:1.6s"></span>' +
+              '<span class="cd-user-star" style="width:2.5px;height:2.5px;top:48%;left:3%;--dur:1.9s;--delay:.6s"></span>' +
+              '<span class="cd-user-star" style="width:2px;height:2px;top:28%;left:42%;--dur:3.1s;--delay:1s"></span>' +
+              '<div class="cd-user-card__avatar" aria-hidden="true">' +
+              '<span class="cd-user-card__initial">' + initial + '</span>' +
+              '<div class="cd-user-card__avatar-ring"></div>' +
+              '</div>' +
+              '<div class="cd-user-card__info">' +
+              '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
+              '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
+              '<span class="cd-user-card__tagline">오늘도 운명의 별자리를 탐험해 보세요</span>' +
+              '</div>' +
+              '<div class="cd-user-card__actions">' +
               adminBadgeHtml +
               '<span class="auth-btn auth-btn--coin">' +
               '<i class="coin-icon" aria-hidden="true">🪙</i>' +
               '<span class="coin-amount">' + Number(points || 0).toLocaleString('ko-KR') + '</span>' +
               '<span class="coin-label">코인</span>' +
               '</span>' +
-              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0로그아웃</button>';
+              '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0로그아웃</button>' +
+              '</div>' +
+              '</div>';
 
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
@@ -1139,11 +1177,28 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               if (!t) {
                 if (_adminTokValid) {
                   el.innerHTML =
-                    '<span class="admin-badge" title="관리자 패널 세션 — 코인 제한 없음">'
-                    + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
-                    + '<span class="admin-badge__text">ADMIN</span>'
-                    + '</span> '
-                    + '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>';
+                    '<div class="cd-user-card">' +
+                    '<span class="cd-user-star" style="width:2px;height:2px;top:14%;left:7%;--dur:2.1s"></span>' +
+                    '<span class="cd-user-star" style="width:3px;height:3px;top:20%;left:84%;--dur:1.8s;--delay:.4s"></span>' +
+                    '<span class="cd-user-star" style="width:2px;height:2px;top:65%;left:90%;--dur:1.5s;--delay:1.2s"></span>' +
+                    '<span class="cd-user-star" style="width:2px;height:2px;top:38%;left:96%;--dur:2.8s;--delay:.2s"></span>' +
+                    '<div class="cd-user-card__avatar" aria-hidden="true">' +
+                    '<span class="cd-user-card__initial">👑</span>' +
+                    '<div class="cd-user-card__avatar-ring"></div>' +
+                    '</div>' +
+                    '<div class="cd-user-card__info">' +
+                    '<span class="cd-user-card__greeting">✦ 관리자 세션</span>' +
+                    '<span class="cd-user-card__name">ADMIN 님</span>' +
+                    '<span class="cd-user-card__tagline">코인 제한 없음 · 관리자 패널 활성화</span>' +
+                    '</div>' +
+                    '<div class="cd-user-card__actions">' +
+                    '<span class="admin-badge" title="관리자 패널 세션 — 코인 제한 없음">' +
+                    '<i class="admin-badge__crown" aria-hidden="true">👑</i>' +
+                    '<span class="admin-badge__text">ADMIN</span>' +
+                    '</span>' +
+                    '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>' +
+                    '</div>' +
+                    '</div>';
                   var _abtn = document.getElementById('cdAuthLogoutBtn');
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
