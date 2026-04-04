@@ -262,9 +262,6 @@
   border-color: var(--ty-gold-bright);
   outline: none;
 }
-.tarot-year-close:focus {
-  outline: none;
-}
 .ty-cta-btn:focus-visible,
 .ty-result-btn:focus-visible,
 .ty-month-cat-btn:focus-visible {

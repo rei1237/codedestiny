@@ -5768,6 +5768,11 @@ body.neo-mode .monthly-label { color: #64748b; }
   body.neo-mode .fate-scroll-next-label {
     color: var(--point-color, #FFD700);
   }
+  /* 키보드 포커스 인디케이터 */
+  .fate-scroll-next-arrow:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: 2px;
+  }
 
   /* ══════════════════════════════════════════
      fsn-navbar │ 섹션 네비게이션 바

@@ -962,16 +962,16 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <span class="lang-arrow">▼</span>
   </div>
   <div class="lang-dropdown" id="langDropdown">
-    <button class="lang-btn" data-lang="ko" data-action="changeLanguage"><span class="lang-flag">🇰🇷</span> KR</button>
-    <button class="lang-btn active" data-lang="en" data-action="changeLanguage"><span class="lang-flag">🇺🇸</span> EN</button>
-    <button class="lang-btn" data-lang="ja" data-action="changeLanguage"><span class="lang-flag">🇯🇵</span> JP</button>
-    <button class="lang-btn" data-lang="zh-CN" data-action="changeLanguage"><span class="lang-flag">🇨🇳</span> CN</button>
-    <button class="lang-btn" data-lang="hi" data-action="changeLanguage"><span class="lang-flag">🇮🇳</span> HI</button>
-    <button class="lang-btn" data-lang="es" data-action="changeLanguage"><span class="lang-flag">🇪🇸</span> ES</button>
-    <button class="lang-btn" data-lang="fr" data-action="changeLanguage"><span class="lang-flag">🇫🇷</span> FR</button>
-    <button class="lang-btn" data-lang="de" data-action="changeLanguage"><span class="lang-flag">🇩🇪</span> DE</button>
-    <button class="lang-btn" data-lang="nl" data-action="changeLanguage"><span class="lang-flag">🇳🇱</span> NL</button>
-    <button class="lang-btn" data-lang="ms" data-action="changeLanguage"><span class="lang-flag">🇲🇾</span> MS</button>
+    <button class="lang-btn" data-lang="ko" data-action="changeLanguage" aria-label="한국어 (Korean)"><span class="lang-flag" aria-hidden="true">🇰🇷</span> KR</button>
+    <button class="lang-btn active" data-lang="en" data-action="changeLanguage" aria-label="영어 (English)"><span class="lang-flag" aria-hidden="true">🇺🇸</span> EN</button>
+    <button class="lang-btn" data-lang="ja" data-action="changeLanguage" aria-label="일본어 (Japanese)"><span class="lang-flag" aria-hidden="true">🇯🇵</span> JP</button>
+    <button class="lang-btn" data-lang="zh-CN" data-action="changeLanguage" aria-label="중국어 간체 (Chinese Simplified)"><span class="lang-flag" aria-hidden="true">🇨🇳</span> CN</button>
+    <button class="lang-btn" data-lang="hi" data-action="changeLanguage" aria-label="힌디어 (Hindi)"><span class="lang-flag" aria-hidden="true">🇮🇳</span> HI</button>
+    <button class="lang-btn" data-lang="es" data-action="changeLanguage" aria-label="스페인어 (Spanish)"><span class="lang-flag" aria-hidden="true">🇪🇸</span> ES</button>
+    <button class="lang-btn" data-lang="fr" data-action="changeLanguage" aria-label="프랑스어 (French)"><span class="lang-flag" aria-hidden="true">🇫🇷</span> FR</button>
+    <button class="lang-btn" data-lang="de" data-action="changeLanguage" aria-label="독일어 (German)"><span class="lang-flag" aria-hidden="true">🇩🇪</span> DE</button>
+    <button class="lang-btn" data-lang="nl" data-action="changeLanguage" aria-label="네덜란드어 (Dutch)"><span class="lang-flag" aria-hidden="true">🇳🇱</span> NL</button>
+    <button class="lang-btn" data-lang="ms" data-action="changeLanguage" aria-label="말레이어 (Malay)"><span class="lang-flag" aria-hidden="true">🇲🇾</span> MS</button>
   </div>
 </div>
 
@@ -1221,12 +1221,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
     <section class="card input-section" aria-label="사주 정보 입력">
       <div class="form-group">
-        <label class="form-label">이름</label>
+        <label class="form-label" for="nameInput">이름</label>
         <input class="inp" type="text" id="nameInput" placeholder="이름을 입력하세요"
           autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
-        <label class="form-label">생년월일</label>
+        <label class="form-label" for="birthDate">생년월일</label>
         <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
         <div class="form-radio-row">
@@ -1237,16 +1237,16 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <div id="lunarPreview" class="form-lunar-preview"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">출생 시간</label>
-        <div class="row2">
-          <select class="inp" id="birthHour"></select>
-          <select class="inp" id="birthMinute"></select>
+        <label class="form-label" id="birthTimeLabel">출생 시간</label>
+        <div class="row2" role="group" aria-labelledby="birthTimeLabel">
+          <select class="inp" id="birthHour" aria-label="출생 시간 (시)"></select>
+          <select class="inp" id="birthMinute" aria-label="출생 시간 (분)"></select>
         </div>
       </div>
       
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
-        <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <label class="form-label form-label-dark" for="birthCountry">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
         <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
@@ -1259,20 +1259,20 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
 
       <div class="form-group form-group-mt15">
-        <label class="form-label">성별</label>
-        <div class="toggle-wrap">
-          <button class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F">♀ 여성</button>
-          <button class="tog-btn" id="btnM" data-action="setGender" data-action-args="M">♂ 남성</button>
+        <label class="form-label" id="genderLabel">성별</label>
+        <div class="toggle-wrap" role="group" aria-labelledby="genderLabel">
+          <button class="tog-btn on" id="btnF" type="button" data-action="setGender" data-action-args="F" aria-pressed="true">♀ 여성</button>
+          <button class="tog-btn" id="btnM" type="button" data-action="setGender" data-action-args="M" aria-pressed="false">♂ 남성</button>
         </div>
       </div>
       <div class="birth-time-tip">
         💡 시간 미입력 시 낮 12시로 계산됩니다
       </div>
       <!-- Destiny Profile 저장 버튼 -->
-      <button id="dpSaveBtn" class="dp-save-btn" data-action="dpSaveProfile">
+      <button id="dpSaveBtn" type="button" class="dp-save-btn" data-action="dpSaveProfile">
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
-      <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
+      <button class="btn-main" id="run-btn" type="button" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
     </section><!-- /section.card.input-section -->
 
     <div class="post-saju-services-intro" role="note" aria-live="polite">
