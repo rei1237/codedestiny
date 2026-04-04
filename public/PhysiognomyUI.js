@@ -332,7 +332,6 @@ function loadMediaPipeScripts() {
     if (window.FaceMesh) { resolve(); return; }
     let loadedCount = 0;
     const scripts = [
-      'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
       'https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js',
       'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
       'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
@@ -385,6 +384,60 @@ function onResults(results) {
   canvasCtx.restore();
 }
 
+function createCustomCamera(videoEl, onFrame, width, height) {
+  let stream = null;
+  let animFrameId = null;
+  let running = false;
+
+  async function loop() {
+    if (!running) return;
+    if (videoEl.readyState >= 2) {
+      try { await onFrame(); } catch (_e) {}
+    }
+    if (running) animFrameId = requestAnimationFrame(loop);
+  }
+
+  return {
+    async start() {
+      if (running) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        document.getElementById('phyStatus').innerHTML =
+          '📷 이 브라우저는 카메라를 지원하지 않습니다.<br><small style="color:#94a3b8;">위의 <b>사진 업로드</b>를 이용해 주세요.</small>';
+        setTimeout(() => { if (currentMode === 'camera' && typeof switchMode === 'function') switchMode('file'); }, 2000);
+        return;
+      }
+      try {
+        const constraints = { video: { facingMode: 'user', width: { ideal: width }, height: { ideal: height } } };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoEl.srcObject = stream;
+        videoEl.setAttribute('playsinline', '');
+        videoEl.setAttribute('muted', '');
+        await videoEl.play().catch(() => {});
+        running = true;
+        animFrameId = requestAnimationFrame(loop);
+      } catch (err) {
+        running = false;
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          document.getElementById('phyStatus').innerHTML =
+            '📷 카메라 권한이 거부되었습니다.<br><small style="color:#94a3b8;">브라우저 주소창의 잠금 아이콘에서 카메라를 허용하거나<br><b>사진 업로드</b>를 이용해 주세요.</small>';
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          document.getElementById('phyStatus').innerHTML =
+            '📷 카메라를 찾을 수 없습니다.<br><small style="color:#94a3b8;"><b>사진 업로드</b>를 이용해 주세요.</small>';
+        } else {
+          document.getElementById('phyStatus').innerText = '카메라 연결에 실패했습니다. 페이지를 새로고침 후 다시 시도해주세요.';
+        }
+        setTimeout(() => { if (currentMode === 'camera' && typeof switchMode === 'function') switchMode('file'); }, 2500);
+      }
+    },
+    stop() {
+      running = false;
+      if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      if (videoEl.srcObject) { videoEl.srcObject = null; }
+    }
+  };
+}
+
 async function startMediaPipe() {
   faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
   faceMesh.setOptions({
@@ -394,11 +447,12 @@ async function startMediaPipe() {
   faceMesh.onResults(onResults);
 
   if(currentMode === 'camera') {
-    camera = new Camera(videoElement, {
-      onFrame: async () => { if(currentMode === 'camera' && !analysisComplete) { if (++_phyFrameCount % 2 === 0) await faceMesh.send({image: videoElement}); } },
-      width: 320, height: 320
-    });
-    camera.start();
+    camera = createCustomCamera(
+      videoElement,
+      async () => { if(currentMode === 'camera' && !analysisComplete) { if (++_phyFrameCount % 2 === 0) await faceMesh.send({image: videoElement}); } },
+      320, 320
+    );
+    await camera.start();
   }
 }
 
