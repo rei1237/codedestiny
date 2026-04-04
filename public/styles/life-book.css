@@ -582,6 +582,25 @@
   box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
 }
 
+.lb-btn-kakao {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(254, 229, 0, 0.55);
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: rgba(254, 229, 0, 0.12);
+  color: #fde68a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.lb-btn-kakao:hover { background: rgba(254, 229, 0, 0.24); transform: translateY(-1px); }
+
 /* TOC 네비게이션 */
 .lb-toc {
   display: flex;

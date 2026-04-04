@@ -490,6 +490,10 @@
       window.downloadLifeBookPdf();
       return;
     }
+    if (action === 'shareLifeBookKakao') {
+      if (typeof window.shareLifeBookKakao === 'function') window.shareLifeBookKakao();
+      return;
+    }
   }, false);
 
   // ESC 키로 모달 닫기

@@ -455,6 +455,10 @@
     if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
     if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
     if (action === 'regenerateLoveSecret') { window.regenerateLoveSecret(); return; }
+    if (action === 'shareLoveSecretKakao') {
+      if (typeof window.shareLoveSecretKakao === 'function') window.shareLoveSecretKakao();
+      return;
+    }
   }, false);
 
   /* ESC 키로 모달 닫기 */

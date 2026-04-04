@@ -156,6 +156,50 @@ function shareZiweiKakao() {
     }, 800);
   }, 'ziwei');
 }
+function shareLifeBookKakao() {
+  shareWithReward(function () {
+    var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
+      || (window.USER_NAME || '사용자');
+    var base = window.location.href.split('?')[0];
+    var text = '📜 [인생의 책 — 나만을 위한 사주 심층 분석]\n\n'
+      + name + '님의 운명을 10가지 심층 분석으로 완전 해독했습니다.\n\n'
+      + '🔮 사주 팔자 완전 분석 · 대운 10년 흐름 · 재물·사랑·직업 종합\n\n'
+      + '나도 무료로 확인하기 👇\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: '📜 인생의 책', text: text, url: base }).catch(function () {});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function () {
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    }, 800);
+  }, 'lifebook');
+}
+
+function shareLoveSecretKakao() {
+  shareWithReward(function () {
+    var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
+      || (window.USER_NAME || '사용자');
+    var base = window.location.href.split('?')[0];
+    var text = '💕 [연애 비책 — 운명이 설계한 사랑의 지도]\n\n'
+      + name + '님만을 위한 사주 명리학자의 10가지 연애 전략을 받았어요!\n\n'
+      + '🔑 연애 자아 분석 · 💘 매력 해독 · ⚔️ 밀당 전략 · 🌿 개운 처방전\n\n'
+      + '나도 무료로 확인하기 👇\n' + base;
+    if (navigator.share) {
+      navigator.share({ title: '💕 연애 비책', text: text, url: base }).catch(function () {});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function () {
+      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+    }, 800);
+  }, 'lovesecret');
+}
+
 /* ══════════════════════════════════════════════
    PWA 설치 비술 (홈 화면 부적 설치)
    ══════════════════════════════════════════════ */
