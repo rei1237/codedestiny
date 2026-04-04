@@ -34,6 +34,9 @@ const SERVICE_COMPONENT_LOADERS = {
   stonehengeRune: dynamic(() => import("../../../StonehengeRune"), {
     loading: () => <ServiceRenderSkeleton />,
   }),
+  loveSimulation: dynamic(() => import("../../../LoveSimulation"), {
+    loading: () => <ServiceRenderSkeleton />,
+  }),
 };
 
 /**

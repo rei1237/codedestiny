@@ -81,7 +81,7 @@ type UnlockKey =
   | "secretHouseEpisodes"
   | "premiumDivinationPack";
 
-type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot";
+type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
 
 const FREE_FEATURES = [
   "기본 만세력: 연/월/일/시 명식표 + 일주 캐릭터 요약",
@@ -121,6 +121,7 @@ export default function KkulkkulManseryukMain() {
     geomancy: 0,
     stonehengeRunes: 0,
     premiumTarot: 0,
+    loveSimulation: 0,
   });
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
@@ -186,6 +187,10 @@ export default function KkulkkulManseryukMain() {
       saveUserPoints(newPoints);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
+      // 연애 시뮬레이션은 결제 후 전용 페이지로 이동
+      if (key === 'loveSimulation') {
+        window.location.href = '/saju/love-simulation';
+      }
     } catch (e) {
       console.error('[usePaidFeatureOnce]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
@@ -387,6 +392,68 @@ export default function KkulkkulManseryukMain() {
         <p className="text-xs text-neutral-600">
           정책 요약: 무료로 지정된 항목 외 기능은 유료이며, 결제 전에는 실제 콘텐츠를 렌더링하지 않습니다.
         </p>
+
+        {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
+        <section className="overflow-hidden rounded-3xl border border-rose-300/60 bg-gradient-to-br from-rose-950/90 via-purple-950/90 to-slate-950/90 shadow-2xl shadow-rose-900/30">
+          {/* 배너 이미지 */}
+          <div className="relative w-full overflow-hidden" style={{ maxHeight: 320 }}>
+            <img
+              src="/fuctionassets/lovesimulation.webp"
+              alt="LOVE CODE 사주 연애 시뮬레이션"
+              className="w-full object-cover"
+              style={{ display: 'block' }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-rose-950/80 via-transparent to-transparent" />
+          </div>
+
+          <div className="p-6">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-2xl">💕</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-rose-300">
+                재미 사주 콘텐츠
+              </span>
+            </div>
+            <h2 className="mb-2 text-2xl font-black text-white">
+              LOVE CODE — 사주 연애 시뮬레이션
+            </h2>
+            <p className="mb-4 text-sm leading-relaxed text-rose-200/80">
+              상대방의 생년월일을 입력하면 사주 분석 엔진이 그 사람의 오행·일간·MBTI를 계산해
+              <strong className="text-rose-300"> 페르소나 캐릭터</strong>를 만들어줍니다.
+              다양한 데이트 코스와 선택지를 통해 상대방의 취향·성격을 미리 경험하고
+              더 나은 연애를 준비해보세요.
+            </p>
+
+            <ul className="mb-5 space-y-1.5 text-sm text-rose-100/70">
+              {[
+                "🔮 상대방 생년월일 → 사주팔자 명식 분석",
+                "✨ 오행·일간·MBTI 기반 연애 페르소나 캐릭터 생성",
+                "💬 실시간 채팅으로 상대의 반응 미리 경험",
+                "🎲 돌발 데이트 이벤트 & 오행 선택지 시나리오",
+                "📊 호감도 게이지 & 감정 변화 실시간 추적",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2">
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-500/30 bg-rose-950/50 px-4 py-3">
+              <div>
+                <p className="text-xs text-rose-300/70">1회 이용 요금</p>
+                <p className="text-xl font-extrabold text-amber-300">
+                  🐷 황금 돼지 코인 100
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => usePaidFeatureOnce('loveSimulation', 100)}
+                className="rounded-xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-rose-800/40 transition-transform duration-200 hover:scale-105 active:scale-95"
+              >
+                💕 시뮬레이션 시작
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
 
       {sparkleTarget ? (
