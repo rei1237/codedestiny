@@ -2913,6 +2913,44 @@ function buildAllWinLongOracle(wins){
   `;
 }
 
+// ── 4-WAY GAUNTLET : PER-DEALER DETAIL BLOCKS ──
+function buildGauntletDealerDetailBlocks(results){
+  if(!results || !results.length) return '';
+  return results.map((r, idx)=>{
+    const D = DEALER_DATA[r.id];
+    const suit = r.suit || '♠';
+    const sd = SUITS[suit] || SUITS['♠'];
+    const dsReport = (DEALER_SUIT_REPORT[r.id] || {})[suit] || null;
+    const dsEntry = dsReport ? dsReport[r.win?'win':'lose'] : null;
+    const rankTip = (RANK_ACTION[r.topVal] || RANK_ACTION[10])[r.win?'win':'lose'];
+    const verdict = r.win ? '✨ 승리' : '💀 패배';
+    const verdictColor = r.win ? '#f0c040' : 'var(--crimson-b)';
+
+    const body = dsEntry
+      ? `
+        <div class="r-section-body">${dsEntry.overture}</div>
+        <div class="r-section-body" style="margin-top:.45rem;">${dsEntry.domainFortune}</div>
+        <div class="r-section-body" style="margin-top:.45rem;">${dsEntry.suitChannel}</div>
+      `
+      : `
+        <div class="r-section-body">${D.name}의 영역, ${D.theme}에서 ${verdict}했습니다. 핵심 문양 ${suit}(${sd.name})의 기운 — ${sd.theme}으로 뻗어납니다.</div>
+      `;
+
+    return `
+      <div class="r-section-block" style="border-left-color:${D.color};background:rgba(255,255,255,.03);">
+        <div class="r-section-label" style="color:${D.color};">${idx+1}. ${D.name} 대결 해석</div>
+        <div class="r-row" style="margin-bottom:.35rem;">
+          <span class="r-label">대결 결과</span><span class="r-val" style="color:${verdictColor};">${verdict} · ${r.playerHandName} vs ${r.dealerHandName}</span>
+        </div>
+        <div class="r-row" style="margin-bottom:.35rem;">
+          <span class="r-label">핵심 문양</span><span class="r-val">${suit} ${sd.name} · ${sd.theme}</span>
+        </div>
+        ${body}
+        <div class="r-rank-tip" style="margin-top:.55rem;">${rankTip}</div>
+      </div>`;
+  }).join('');
+}
+
 // ── 4-WAY REPORT ──
 function buildReport4(){
   const wins = G4.results.filter(r=>r.win);
@@ -2977,6 +3015,8 @@ function buildReport4(){
     ? buildAllWinLongOracle(wins)
     : normalOracle;
 
+  const perDealerDetails = buildGauntletDealerDetailBlocks(G4.results);
+
   document.getElementById('report-content').innerHTML=`
     <h2 class="r-title">🔱 ${G4.name}의 4신 연속 대결 판결서</h2>
     <div class="r-divider"></div>
@@ -2990,6 +3030,9 @@ function buildReport4(){
     <div class="r-result ${resultClass}" style="font-size:1.5rem;">${resultLabel}</div>
     <div class="r-divider"></div>
     <div class="oracle-box">${oracleHtml}</div>
+    <div class="r-divider"></div>
+    <div style="font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-dim);letter-spacing:.22em;margin-bottom:.6rem;">딜러별 대결 상세 해석</div>
+    ${perDealerDetails}
     <div class="r-divider"></div>
     <div class="meter-block">
       <div style="font-family:'Cinzel',serif;font-size:.74rem;color:var(--text-dim);letter-spacing:.28em;margin-bottom:.7rem;">
