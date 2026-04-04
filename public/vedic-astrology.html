@@ -757,6 +757,102 @@ const YOGADAT=[
 const NKGANA={"Ashwini":"Deva","Bharani":"Manushya","Krittika":"Rakshasa","Rohini":"Manushya","Mrigashira":"Deva","Ardra":"Manushya","Punarvasu":"Deva","Pushya":"Deva","Ashlesha":"Rakshasa","Magha":"Rakshasa","Purva Phalguni":"Manushya","Uttara Phalguni":"Manushya","Hasta":"Deva","Chitra":"Rakshasa","Swati":"Deva","Vishakha":"Rakshasa","Anuradha":"Deva","Jyeshtha":"Rakshasa","Mula":"Rakshasa","Purva Ashadha":"Manushya","Uttara Ashadha":"Manushya","Shravana":"Deva","Dhanishtha":"Rakshasa","Shatabhisha":"Rakshasa","Purva Bhadrapada":"Manushya","Uttara Bhadrapada":"Manushya","Revati":"Deva"};
 const NKYONI={"Ashwini":"Horse","Bharani":"Elephant","Krittika":"Goat","Rohini":"Serpent","Mrigashira":"Serpent","Ardra":"Dog","Punarvasu":"Cat","Pushya":"Goat","Ashlesha":"Cat","Magha":"Rat","Purva Phalguni":"Rat","Uttara Phalguni":"Cow","Hasta":"Buffalo","Chitra":"Tiger","Swati":"Buffalo","Vishakha":"Tiger","Anuradha":"Deer","Jyeshtha":"Deer","Mula":"Dog","Purva Ashadha":"Monkey","Uttara Ashadha":"Mongoose","Shravana":"Monkey","Dhanishtha":"Lion","Shatabhisha":"Horse","Purva Bhadrapada":"Lion","Uttara Bhadrapada":"Cow","Revati":"Elephant"};
 const NKNADI={"Ashwini":"Vata","Bharani":"Pitta","Krittika":"Kapha","Rohini":"Vata","Mrigashira":"Pitta","Ardra":"Kapha","Punarvasu":"Vata","Pushya":"Pitta","Ashlesha":"Kapha","Magha":"Vata","Purva Phalguni":"Pitta","Uttara Phalguni":"Kapha","Hasta":"Vata","Chitra":"Pitta","Swati":"Kapha","Vishakha":"Vata","Anuradha":"Pitta","Jyeshtha":"Kapha","Mula":"Vata","Purva Ashadha":"Pitta","Uttara Ashadha":"Kapha","Shravana":"Vata","Dhanishtha":"Pitta","Shatabhisha":"Kapha","Purva Bhadrapada":"Vata","Uttara Bhadrapada":"Pitta","Revati":"Kapha"};
+// ── 보강 데이터: 낙샤트라 신 / 파다 / 동기 ──────────────
+const NAKDEITY_DATA={
+  "Ashwini":{deity:"아슈위니 쿠마라(Ashwini Kumara)",role:"쌍둥이 신성 의사 — 빠른 치유와 새벽의 선구력",kw:["치유","속도","새로운 시작"],motive:"Dharma"},
+  "Bharani":{deity:"야마(Yama)",role:"죽음·업보·변혁의 신 — 정화와 재탄생의 주관자",kw:["변혁","정의","카르마"],motive:"Artha"},
+  "Krittika":{deity:"아그니(Agni)",role:"불의 신 — 정화·날카로운 비판력·용기의 화신",kw:["정화","날카로움","용기"],motive:"Kama"},
+  "Rohini":{deity:"브라흐마/프라자파티(Brahma)",role:"창조의 주관자 — 물질적 풍요와 아름다움의 신",kw:["창조","풍요","아름다움"],motive:"Moksha"},
+  "Mrigashira":{deity:"소마(Soma)",role:"달신 소마 — 부드러운 감수성과 탐구심의 상징",kw:["탐구","감수성","순수"],motive:"Moksha"},
+  "Ardra":{deity:"루드라(Rudra)",role:"폭풍·파괴·치유의 신 — 심층 변혁과 공감의 화신",kw:["변혁","폭풍","공감"],motive:"Kama"},
+  "Punarvasu":{deity:"아디티(Aditi)",role:"무한한 어머니 신 — 귀환·재기·풍요의 상징",kw:["귀환","회복","낙관"],motive:"Artha"},
+  "Pushya":{deity:"브리하스파티(Brihaspati)",role:"목성 스승신 — 영적 양육과 최고의 행운 상징",kw:["양육","스승","영적성장"],motive:"Dharma"},
+  "Ashlesha":{deity:"나가(Naga)",role:"뱀의 신 — 잠재의식과 변혁적 통찰의 수호자",kw:["통찰","변혁","신비"],motive:"Dharma"},
+  "Magha":{deity:"피트르(Pitr조상신)",role:"조상의 수호신 — 왕족 기질과 권위의 뿌리",kw:["권위","유산","리더십"],motive:"Artha"},
+  "Purva Phalguni":{deity:"바가(Bhaga)",role:"향락·행운·사랑의 신 — 풍요와 창의적 기쁨",kw:["창의","기쁨","향락"],motive:"Kama"},
+  "Uttara Phalguni":{deity:"아리야만(Aryaman)",role:"계약·우정·명예의 신 — 지속적 번영과 신뢰",kw:["신뢰","번영","관대함"],motive:"Moksha"},
+  "Hasta":{deity:"사비타르(Savitar)",role:"태양의 창조력 — 손으로 실현하는 기술과 치유",kw:["기술","치유","실현"],motive:"Moksha"},
+  "Chitra":{deity:"비슈와카르마(Vishwakarma)",role:"우주의 장인 — 아름다움과 기술적 완벽함",kw:["아름다움","창조","기술"],motive:"Kama"},
+  "Swati":{deity:"바유(Vayu)",role:"바람의 신 — 독립·자유·유연한 적응력",kw:["자유","독립","유연성"],motive:"Artha"},
+  "Vishakha":{deity:"인드라-아그니(Indra-Agni)",role:"인드라와 아그니의 합일 — 목적의식과 최후 승리",kw:["목적","야망","승리"],motive:"Dharma"},
+  "Anuradha":{deity:"미트라(Mitra)",role:"우정·계약의 신 — 진실한 헌신과 사랑을 통한 성장",kw:["헌신","우정","사랑"],motive:"Dharma"},
+  "Jyeshtha":{deity:"인드라(Indra)",role:"번개와 전쟁의 왕 — 용기·보호·리더십의 정점",kw:["용기","보호","리더십"],motive:"Artha"},
+  "Mula":{deity:"니리티(Nirriti)",role:"재앙과 분해의 여신 — 근본까지 파헤치는 진실 탐구",kw:["진실","강렬함","파괴후재생"],motive:"Kama"},
+  "Purva Ashadha":{deity:"아파스(Apas)",role:"물의 신 — 정화·승리·설득력의 화신",kw:["승리","설득","정화"],motive:"Moksha"},
+  "Uttara Ashadha":{deity:"비슈와데바(Vishvadeva)",role:"10 우주 신들의 집합 — 덕망·영원성·깊은 인내",kw:["덕망","인내","영원한승리"],motive:"Moksha"},
+  "Shravana":{deity:"비슈누(Vishnu)",role:"유지의 신 — 경청·학습·지식 전파의 수호자",kw:["경청","지식","연결"],motive:"Artha"},
+  "Dhanishtha":{deity:"아슈타 바수스(Ashta Vasus)",role:"8 풍요의 신들 — 음악·리듬·재물의 원천",kw:["재물","음악","관대함"],motive:"Artha"},
+  "Shatabhisha":{deity:"바루나(Varuna)",role:"우주 법칙의 신 — 신비·치유·독립적 깊이",kw:["신비","치유","독립"],motive:"Artha"},
+  "Purva Bhadrapada":{deity:"아자 에카파드(Aja Ekapad)",role:"미래의 불꽃 단발 염소 — 영적 각성과 변혁",kw:["영적각성","변혁","불꽃"],motive:"Artha"},
+  "Uttara Bhadrapada":{deity:"아히르 부드냐(Ahir Budhnya)",role:"심해 뱀의 신 — 잠재의식 심오한 지혜",kw:["지혜","통찰","인내"],motive:"Moksha"},
+  "Revati":{deity:"푸샨(Pushan)",role:"여행과 여정의 신 — 양육·완성·귀환의 안내자",kw:["양육","완성","보호"],motive:"Moksha"}};
+
+const NAKPADA_SIGNS={
+  "Ashwini":["Aries","Taurus","Gemini","Cancer"],"Bharani":["Leo","Virgo","Libra","Scorpio"],
+  "Krittika":["Sagittarius","Capricorn","Aquarius","Pisces"],"Rohini":["Aries","Taurus","Gemini","Cancer"],
+  "Mrigashira":["Leo","Virgo","Libra","Scorpio"],"Ardra":["Sagittarius","Capricorn","Aquarius","Pisces"],
+  "Punarvasu":["Aries","Taurus","Gemini","Cancer"],"Pushya":["Leo","Virgo","Libra","Scorpio"],
+  "Ashlesha":["Sagittarius","Capricorn","Aquarius","Pisces"],"Magha":["Aries","Taurus","Gemini","Cancer"],
+  "Purva Phalguni":["Leo","Virgo","Libra","Scorpio"],"Uttara Phalguni":["Sagittarius","Capricorn","Aquarius","Pisces"],
+  "Hasta":["Aries","Taurus","Gemini","Cancer"],"Chitra":["Leo","Virgo","Libra","Scorpio"],
+  "Swati":["Sagittarius","Capricorn","Aquarius","Pisces"],"Vishakha":["Aries","Taurus","Gemini","Cancer"],
+  "Anuradha":["Leo","Virgo","Libra","Scorpio"],"Jyeshtha":["Sagittarius","Capricorn","Aquarius","Pisces"],
+  "Mula":["Aries","Taurus","Gemini","Cancer"],"Purva Ashadha":["Leo","Virgo","Libra","Scorpio"],
+  "Uttara Ashadha":["Sagittarius","Capricorn","Aquarius","Pisces"],"Shravana":["Aries","Taurus","Gemini","Cancer"],
+  "Dhanishtha":["Leo","Virgo","Libra","Scorpio"],"Shatabhisha":["Sagittarius","Capricorn","Aquarius","Pisces"],
+  "Purva Bhadrapada":["Aries","Taurus","Gemini","Cancer"],"Uttara Bhadrapada":["Leo","Virgo","Libra","Scorpio"],
+  "Revati":["Sagittarius","Capricorn","Aquarius","Pisces"]};
+
+// Pada 특성 설명 (라시별 강화 키워드)
+const PADA_SIGN_KW={
+  Aries:"자기 표현·주도적 행동이 강화됩니다. 리더십과 개척 에너지가 앞세워지는 파다입니다.",
+  Taurus:"물질적 안정·감각적 향유가 강조됩니다. 재물과 안정에 대한 욕구가 두드러집니다.",
+  Gemini:"지적 호기심·소통 능력이 배가됩니다. 언어·글쓰기·다양한 관심사가 꽃핍니다.",
+  Cancer:"감성·가정·보호 본능이 강해집니다. 직관과 공감 능력이 영혼의 중심이 됩니다.",
+  Leo:"창의성·리더십·자아 표현이 빛납니다. 무대 위에서 자신을 드러내는 에너지입니다.",
+  Virgo:"분석·완벽주의·섬세한 봉사 정신이 강조됩니다. 세부 사항에서 탁월함을 발휘합니다.",
+  Libra:"조화·관계·미적 감각이 중심이 됩니다. 파트너십과 균형에서 진정한 아름다움을 찾습니다.",
+  Scorpio:"변혁·심층 탐구·재생 에너지가 집중됩니다. 진실을 끝까지 파고드는 집중력의 파다입니다.",
+  Sagittarius:"철학·자유·대범한 확장이 강화됩니다. 이상과 비전을 향해 달려가는 화살의 에너지입니다.",
+  Capricorn:"야망·인내·현실적 성취가 부각됩니다. 장기 목표를 묵묵히 쌓아가는 산의 에너지입니다.",
+  Aquarius:"혁신·인류애·독창적 사고가 앞섭니다. 전통을 벗어나 새 길을 여는 바람의 에너지입니다.",
+  Pisces:"영성·연민·직관적 흐름이 깊어집니다. 경계를 흐릿하게 하며 우주와 하나 되는 물의 에너지입니다."};
+
+const MOTIVES_KR={Dharma:"다르마(Dharma) — 정의·사명·올바른 행동",Artha:"아르타(Artha) — 재물·목표·실질적 성취",Kama:"카마(Kama) — 욕망·감각적 기쁨·창의적 표현",Moksha:"목샤(Moksha) — 해방·영성·물질을 넘어선 자유"};
+const MOTIVES_DESC={
+  Dharma:"이번 생의 근원적 동기는 올바름과 사명입니다. 정의·의무·도덕적 행동이 영혼의 나침반으로 작동하며, 사회나 공동체에 헌신할 때 가장 충만한 자아를 만납니다. 타협하지 않는 원칙이 삶의 등불이 되어야 합니다.",
+  Artha:"이번 생의 핵심 동기는 목표 달성과 번영입니다. 재물·사회적 성공·실질적 결과를 통해 영혼이 성장합니다. 물질을 단순한 탐욕이 아닌 사명 실현의 도구로 활용할 때 진정한 아르타가 펼쳐집니다.",
+  Kama:"이번 생의 원동력은 열정과 창의적 풍요입니다. 예술·사랑·감각적 경험이 영혼의 언어이며, 이 기쁨을 두려움 없이 표현할 때 진정한 삶의 의미를 찾습니다. 욕망을 억누르기보다 의식적으로 승화시키는 것이 핵심입니다.",
+  Moksha:"이번 생의 가장 깊은 갈망은 자유와 영적 해방입니다. 물질의 집착을 내려놓고 내면 탐구와 의식 확장에서 충만함을 찾습니다. 종교·명상·봉사가 영혼의 언어이며, 해방의 씨앗이 이미 당신 안에 심어져 있습니다."};
+
+const REMEDY_DANA={
+  Sun:{day:"일요일",item:"붉은 꽃·밀·구리 그릇·붉은 천",color:"빨강·황금",activity:"아버지나 권위자에게 감사 표현, 태양 예배·사원 방문",mantra:"Om Suryaya Namaha",count:"108회",food:"밀·당류→소화 강화"},
+  Moon:{day:"월요일",item:"쌀·흰 천·우유·실버 액세서리",color:"흰색·은색",activity:"어머니께 선물, 물가·해변 산책, 자선 급식 봉사",mantra:"Om Chandraya Namaha",count:"108회",food:"쌀·코코넛·흰 음식→마음 안정"},
+  Mars:{day:"화요일",item:"붉은 렌즈콩·산호·붉은 꽃·구리",color:"빨강·주황",activity:"혈연 형제에게 도움, 군인·소방관 후원단 기부",mantra:"Om Mangalaya Namaha",count:"108회",food:"석류·붉은 채소→활력 강화"},
+  Mercury:{day:"수요일",item:"녹두·초록 채소·황동·책 기부",color:"초록·에메랄드",activity:"학생 후원·도서관 기부·글쓰기 재능 기부 봉사",mantra:"Om Budhaya Namaha",count:"108회",food:"녹두·허브·신선한 채소→집중력 향상"},
+  Jupiter:{day:"목요일",item:"황색 옷감·강황·황수정·꿀",color:"노랑·황금",activity:"스승·교사에게 감사 선물, 성전·기도처 음식 기부",mantra:"Om Gurave Namaha",count:"108회",food:"강황·생강·황색 과일→지혜 확장"},
+  Venus:{day:"금요일",item:"흰 설탕·흰 꽃·쌀밥·향수",color:"흰색·분홍",activity:"여성 지원 시설 기부, 예술 장학금 후원, 장미 기부",mantra:"Om Shukraya Namaha",count:"108회",food:"흰 쌀·달콤한 음식·장미차→감성 균형"},
+  Saturn:{day:"토요일",item:"검은 깨·철제품·검은 콩·기름",color:"검정·남색",activity:"노인·장애인 돌봄 봉사, 노숙자·빈민 식사 제공",mantra:"Om Shanaischaraya Namaha",count:"108회",food:"검은 참깨·검은 렌즈콩→인내력 강화"},
+  Rahu:{day:"토요일",item:"파란 꽃·검은 렌즈콩·코발트",color:"파랑·검정",activity:"이민자·소외 계층 후원, 환경 정화 캠페인 봉사",mantra:"Om Rahave Namaha",count:"108회",food:"혁신 식품·퓨전 음식→도전 에너지 균형"},
+  Ketu:{day:"화요일",item:"회색 천·참깨·유기동물 음식",color:"회색·갈색",activity:"유기동물 후원, 영적 수련 장소 기부, 명상 기부",mantra:"Om Ketave Namaha",count:"108회",food:"삶은 채소·단식→영적 정화"}};
+
+const DOSHA_FOOD={
+  Vata:{type:"바타(Vata)",desc:"바람·공간 원소 체질 — 가볍고 움직임이 많으며 창의적",balance:["따뜻하고 기름진 음식 (기, 올리브유)","규칙적 식사 시간 엄수","달콤·신맛·짠맛 식품 (고구마, 아보카도, 견과류)"],avoid:["차갑고 건조한 음식 (냉동 식품, 건빵)","불규칙한 식사 습관","과도한 생채소·수분이 적은 음식"],practice:["따뜻한 참기름 마사지 (아비앙가)","규칙적 수면 (밤 10시 취침)","온수 요가·스트레칭·느린 산책"],mantra:"Om Vam"},
+  Pitta:{type:"피타(Pitta)",desc:"불·물 원소 체질 — 열정적이며 집중력이 강함",balance:["시원하고 달콤한 음식 (코코넛, 수박, 오이)","쓴맛·달콤한 맛 권장 (씀바귀, 멜론)","쿠민·코리앤더·회향 소화 향신료"],avoid:["매운 음식·알코올·카페인·튀김","과도한 햇볕 노출과 경쟁 환경","분노 유발 상황·업무 과부하"],practice:["달빛 명상·수영·달빛 산책","분노 해소 일기 쓰기","알로에 베라 주스·로즈워터 섭취"],mantra:"Om Ram"},
+  Kapha:{type:"카파(Kapha)",desc:"물·흙 원소 체질 — 안정적이며 인내심이 강함",balance:["가볍고 건조하며 매운 음식 (생강, 후추, 칠리)","적극적인 운동 루틴 매일 실천","쓰고 매운맛 권장 (씀바귀, 무, 생강차)"],avoid:["유제품·단 음식·밀가루 과다 섭취","낮잠·과수면·오래 앉아있기","고요한 정체 환경"],practice:["비냐사 플로우·달리기·파워 요가","간헐적 단식 (주 1-2회)","인센스 향 아로마테라피 (유칼립투스)"],mantra:"Om Hum"}};
+
+const INDU_VALUES={Sun:30,Moon:16,Mars:6,Mercury:8,Jupiter:10,Venus:12,Saturn:1,Rahu:0,Ketu:0};
+
+// 차크라 비자 만트라 + 심화 정보 (기존 CHKINFO 확장)
+const CHAKRA_EXTENDED={
+  Muladhara:{mantra:"LAM",ele:"Earth",color:"#DC2626",planet:"Saturn",yoga:"Tadasana (산 자세)·Warrior I",crystal:"흑요석·붉은 재스퍼",affirmation:"나는 안전하고 대지에 뿌리를 내립니다",detail:"물라다라 차크라는 척추 아래 끝, 코크시스와 회음부 사이에 위치합니다. 4개의 꽃잎이 있으며 산스크리트어로 '뿌리 지지대'를 의미합니다. 생존 본능, 안전, 신체 건강, 금전적 안정의 중심지입니다. Saturn(토성)이 이 에너지를 주관하며, 약화 시 불안장애, 만성 피로, 재정 불안이 나타날 수 있습니다."},
+  Svadhisthana:{mantra:"VAM",ele:"Water",color:"#EA580C",planet:"Jupiter",yoga:"Goddess Pose·Pigeon Pose",crystal:"카넬리안·주황 칼사이트",affirmation:"나는 풍요롭고 창의적으로 흐릅니다",detail:"스바디스타나 차크라는 배꼽 아래 2-3cm, 천골(엉치뼈) 앞에 위치합니다. 6개의 꽃잎으로 상징되며 '자아의 달콤한 거처'를 의미합니다. 창의성, 감정, 섹슈얼리티, 기쁨의 에너지 센터입니다. Jupiter(목성)이 주관하며, 차단 시 감정 억압, 무감각, 창의력 고갈이 나타납니다."},
+  Manipura:{mantra:"RAM",ele:"Fire",color:"#CA8A04",planet:"Mars",yoga:"Boat Pose·Plank",crystal:"황수정·호안석",affirmation:"나는 강하고 자신감 넘치며 의지를 실현합니다",detail:"마니푸라 차크라는 명치(태양신경총) 부위, 배꼽 위 5cm에 위치합니다. 10개의 꽃잎으로 상징되며 '빛나는 보석 도시'를 의미합니다. 의지력, 자아 존중감, 결단력, 소화 기능을 담당합니다. Mars(화성)이 주관하며, 과활성 시 공격성·지배욕, 차단 시 무기력·위장 문제가 나타납니다."},
+  Anahata:{mantra:"YAM",ele:"Air",color:"#16A34A",planet:"Venus",yoga:"Camel Pose·Fish Pose",crystal:"로즈 쿼츠·말라카이트",affirmation:"나는 사랑받을 자격이 있으며 무조건적 사랑을 줍니다",detail:"아나하타 차크라는 흉골 중앙, 심장 부위에 위치합니다. 12개의 꽃잎으로 상징되며 '두드리지 않은 소리'를 의미합니다. 사랑, 공감, 용서, 관계의 에너지 센터입니다. Venus(금성)이 주관하며, 차단 시 자기혐오·관계 공포·고독이 나타납니다."},
+  Vishuddha:{mantra:"HAM",ele:"Ether/Sound",color:"#0284C7",planet:"Mercury",yoga:"Shoulder Stand·Plow Pose",crystal:"청금석·터콰이즈",affirmation:"나는 진실되게 표현하며 내 목소리를 신뢰합니다",detail:"비슈다 차크라는 목의 중앙, 갑상선 부위에 위치합니다. 16개의 꽃잎으로 상징되며 '순수한 것'을 의미합니다. 의사소통, 창의적 표현, 진실성의 에너지 센터입니다. Mercury(수성)이 주관하며, 차단 시 목 질환·소통 장애·자기 표현 억압이 나타납니다."},
+  Ajna:{mantra:"OM",ele:"Light",color:"#7C3AED",planet:"Sun",yoga:"Child's Pose·Eagle Pose",crystal:"아메시스트·라피스라줄리",affirmation:"나는 내면의 직관을 신뢰하며 명확하게 봅니다",detail:"아즈나 차크라는 미간 사이 '제3의 눈' 위치에 있습니다. 2개의 큰 꽃잎(각각 48개의 작은 꽃잎)으로 상징됩니다. 직관, 통찰, 꿈, 상상력, 영적 인식의 중심입니다. Sun(태양)이 주관하며, 약화 시 판단력 저하·망상·현실 도피가 나타납니다."},
+  Sahasrara:{mantra:"AH",ele:"Cosmic Consciousness",color:"#A21CAF",planet:"Moon",yoga:"Headstand·Meditation",crystal:"수정·자수정",affirmation:"나는 우주와 연결되어 있으며 신성한 인도를 받습니다",detail:"사하스라라 차크라는 두정부(정수리) 위에 위치합니다. 1000개의 꽃잎 연꽃으로 상징되며 '천 개의 꽃잎'을 의미합니다. 영적 연결, 우주 의식, 깨달음의 최고 에너지 센터입니다. Moon(달)이 주관하며, 차단 시 영적 단절·우울·삶의 의미 상실이 나타납니다."}};
+
 const PFRIEND={
   Sun:{Moon:"Friend",Mars:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Enemy",Saturn:"Enemy",Rahu:"Enemy",Ketu:"Enemy"},
   Moon:{Sun:"Friend",Mars:"Neutral",Mercury:"Friend",Jupiter:"Friend",Venus:"Neutral",Saturn:"Neutral",Rahu:"Enemy",Ketu:"Enemy"},
@@ -767,6 +863,19 @@ const PFRIEND={
   Saturn:{Sun:"Enemy",Moon:"Enemy",Mars:"Enemy",Mercury:"Neutral",Jupiter:"Neutral",Venus:"Friend",Rahu:"Friend",Ketu:"Neutral"},
   Rahu:{Sun:"Enemy",Moon:"Enemy",Mars:"Neutral",Mercury:"Friend",Jupiter:"Enemy",Venus:"Friend",Saturn:"Friend",Ketu:"Neutral"},
   Ketu:{Sun:"Neutral",Moon:"Neutral",Mars:"Friend",Mercury:"Enemy",Jupiter:"Friend",Venus:"Neutral",Saturn:"Neutral",Rahu:"Neutral"}
+};
+
+// ─── VIMSHOTTARI DASHA NARRATIVES (global) ────────────────
+const DASHA_NARRATIVE={
+  Sun:"태양 대운은 권위·자아·영성의 불꽃이 타오르는 시기입니다. 리더십과 정부·공직 분야에서 두드러진 전진이 가능합니다. 아버지·스승 같은 권위자와의 관계가 운명에 큰 영향을 미치며, 자아 정체성을 재정립하는 황금 기회이기도 합니다. 그러나 자기중심적 태도는 인간관계의 균열을 초래할 수 있으니, 빛을 나누는 '태양의 관대함'을 실천하는 것이 이 시기의 핵심 과제입니다.",
+  Moon:"달 대운은 감성·직관·가정·대중과의 연결이 전면에 나서는 시기입니다. 어머니와의 관계, 여성 인사들과의 만남이 중요해지며, 무역·요식·음악처럼 대중의 감성을 다루는 분야에서 꽃이 핍니다. 내면의 감정 불안을 명상과 물과의 교감으로 달래면, 달의 풍성한 빛이 풍요와 직관으로 돌아옵니다. 마음의 기복이 크므로 수면·영양 관리가 필수입니다.",
+  Mars:"화성 대운은 공격적 에너지·용기·행동력이 가장 강하게 분출되는 시기입니다. 지금은 화성 대운 — 두려움 없이 앞으로 돌진할 때입니다. 부동산·기술·군경·운동 분야에서 탁월한 결과를 만들어낼 수 있으며, 형제·동료와의 협력이 중요한 key가 됩니다. 단 충동성·사고 위험에 주의하고, 에너지를 창의적 경로로 승화시키는 의식적 노력이 필요합니다.",
+  Rahu:"라후 대운은 파격·변화·국제화·테크놀로지의 바람이 당신의 삶을 뒤흔드는 시기입니다. 전통적 경로를 벗어나 혁신적 도전이 빛나며, 외국·미디어·IT 분야에서 눈부신 기회가 찾아옵니다. 그러나 집착과 과욕은 금물 — 라후는 환상을 먹고 자라는 행성입니다. 목적의식이 없으면 방향을 잃기 쉬우므로, 명확한 나침반 하나를 세우는 것이 이 시기의 최우선 과제입니다.",
+  Jupiter:"목성 대운은 지혜·번영·확장의 황금물결이 밀려드는 시기입니다. 목성 대운 — 재물·명예·지식이 자연스럽게 끌려옵니다. 교육·법률·철학·금융·종교 분야에서 도약하며, 자녀 복이 강해지고 스승과의 귀한 만남이 이루어집니다. 과도한 낙관주의나 팽창만 조심하면 — 목성이 주는 풍요를 진정한 지혜로 소화해낼 수 있는 최고의 대운입니다.",
+  Saturn:"토성 대운은 7년 이상 지속되는 장기 업보 정산의 시간입니다. 게으름과 나태함은 이 시기에 즉각적 벌을 받지만, 묵묵히 노력하고 의무를 다하는 사람에게는 느리지만 반드시 결실이 찾아옵니다. 인내·규율·책임감이 성공의 열쇠이며, 건강과 장수 관리가 최우선입니다. 이 시기를 성실히 버텨낸 사람은 이후 모든 대운에서 단단한 기반 위에 서게 됩니다.",
+  Mercury:"수성 대운은 지성·소통·무역·IT의 에너지가 삶 전반에 스며드는 시기입니다. 언어·글쓰기·마케팅·교육·회계·프로그래밍 분야에서 빠른 성장이 이루어지며, 정보의 연결과 네트워킹이 운명을 바꾸는 도구가 됩니다. 청소년기 또는 젊은 나이에 이 대운이 오면 학습·시험에서 눈부신 결과를 낼 수 있습니다. 산만함과 우유부단함만 주의하면 됩니다.",
+  Venus:"금성 대운은 아름다움·사랑·예술·사치·번영의 가장 달콤한 물결입니다. 연애·결혼·예술 창작·패션·외교 분야에서 꽃이 피어나며, 삶의 즐거움과 감각적 풍요를 최대한 누릴 수 있는 시기입니다. 파트너십이 재물 창출에 직결되는 시기이기도 합니다. 단 과도한 향락·의존·낭비는 대운의 혜택을 소모하는 주범이므로 균형을 유지하는 것이 중요합니다.",
+  Ketu:"케투 대운은 물질의 집착에서 자유로워지고 영적 깊이가 깊어지는 고독한 탐구의 시기입니다. 과거 업보의 흔적을 정리하고, 이번 생에서 버려야 할 것들을 놓아주는 영혼의 대청소가 이루어집니다. 의학·연구·신비학·영적 수련 분야에서 독보적인 통찰이 생겨나며, 내면 여정을 통해 진정한 자유의 씨앗이 심어집니다. 결과보다 과정과 의미에 집중하는 것이 이 시기의 지혜입니다."
 };
 
 // ─── ASTRONOMY ENGINE ─────────────────────────────────────
@@ -1139,7 +1248,73 @@ function analyze(chart){
   if(domEl==="Air")avoidYoga.push("과도한 Pranayama (공기 원소 과잉 주의)");
   const yoga={dominantEl:domEl,deficientEl:defEl,primary,secondary,bestTime,avoid:avoidYoga.length?avoidYoga:["특별한 제한 없음"],practices:[primary,secondary,YOGADAT[5]]};
 
-  return{personality,wealth,career,chakra,romance,yoga};
+  // ── 확장 분석: 카라카 / 망글릭 도샤 / 우파파다 / 아루다 / 구제책 ──
+  // Jaimini Karakas (라이시 등급)
+  const jaiminiPlanets=["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
+  const sortedByDeg=[...jaiminiPlanets].sort((a,b)=>rasi.planets[b].deg-rasi.planets[a].deg);
+  const atmakaraka=sortedByDeg[0];
+  const amatyakaraka=sortedByDeg[1];
+  const darakaraka=sortedByDeg[sortedByDeg.length-1];
+
+  // 망글릭 도샤
+  const marsHouseNum=planetHouse(rasi,'Mars');
+  const manglikDosha=[1,4,7,8,12].includes(marsHouseNum);
+  const manglikLevel=manglikDosha?(marsHouseNum===7||marsHouseNum===8?'강성':'경미'):'없음';
+
+  // 우파파다 라그나 (12H 지배 행성의 자리에서 같은 수 더함)
+  const h12=rasi.houses[11];const h12lord=h12.lord;
+  const h12lordHouseNum=planetHouse(rasi,h12lord);
+  const upapadaSi=((h12.si+(h12lordHouseNum-1))%12);
+  const upapadaSign=SIGNS[upapadaSi];const upapadaSignKr=SIGNKR[upapadaSi];
+
+  // 아루다 라그나 (라그나 지배 행성의 거리를 라그나에서 반영)
+  const lagnaSignIdx=Math.floor(nd(rasi.asc)/30);
+  const llH=planetHouse(rasi,ll);
+  let alSi=((lagnaSignIdx+(llH-1)+(llH-1))%12);
+  if(alSi===lagnaSignIdx)alSi=(lagnaSignIdx+9)%12;
+  if(alSi===(lagnaSignIdx+6)%12)alSi=(lagnaSignIdx+3)%12;
+  const arudhaSign=SIGNS[alSi];const arudhaSignKr=SIGNKR[alSi];
+
+  // 인두 라그나 (재물 특화 포인트)
+  const h9FromLagna=rasi.houses[8];const moonSi=rasi.planets['Moon'].sign;
+  const h9FromMoon=rasi.houses[(moonSi+8)%12];
+  const induVal=(INDU_VALUES[h9FromLagna.lord]||0)+(INDU_VALUES[h9FromMoon.lord]||0);
+  const induSi=(lagnaSignIdx+induVal)%12;
+  const induSign=SIGNS[induSi];const induSignKr=SIGNKR[induSi];
+  const induScore=Math.min(100,Math.round(induVal/42*100));
+
+  // 재물 유형
+  const h2LordName=rasi.houses[1].lord;const h11LordName=rasi.houses[10].lord;
+  let wealthType='균형 축적형';
+  if(['Mercury','Jupiter'].includes(h2LordName)||['Mercury','Jupiter'].includes(h11LordName))wealthType='전문직형';
+  else if(['Mars','Sun','Rahu'].includes(h2LordName)||['Mars','Sun','Rahu'].includes(h11LordName))wealthType='사업형';
+  else if(['Saturn','Ketu'].includes(h2LordName)&&['Saturn','Ketu'].includes(h11LordName))wealthType='서비스형';
+  else if(['Venus'].includes(h2LordName)||['Venus'].includes(h11LordName))wealthType='예술·창작형';
+  else if(['Moon'].includes(h2LordName)||['Moon'].includes(h11LordName))wealthType='유산형';
+
+  // 도샤 체질 (나크샤트라 기반)
+  const moonDosha=NKNADI[nak.name]||'Vata';
+  const doshaInfo=DOSHA_FOOD[moonDosha]||DOSHA_FOOD.Vata;
+
+  // 해약 처방 (약한 차크라 기반 행성)
+  const weakPlanet=CHKMAP[blkCh]||'Saturn';
+  const remedyGem=PSIG[weakPlanet]?PSIG[weakPlanet].gem:'사파이어';
+  const remedyDana=REMEDY_DANA[weakPlanet]||REMEDY_DANA.Saturn;
+  const remedyMantra=remedyDana.mantra+' '+remedyDana.count;
+
+  // 낙샤트라 신·파다 상세
+  const nakDeityInfo=NAKDEITY_DATA[nak.name]||{deity:"미상",role:"우주의 신",kw:["지혜"],motive:"Dharma"};
+  const nakPadaSigns=NAKPADA_SIGNS[nak.name]||["Aries","Taurus","Gemini","Cancer"];
+  const nakPadaIdx=Math.max(0,Math.min(3,nak.pada-1));
+  const nakPadaSign=nakPadaSigns[nakPadaIdx]||"Aries";
+  const nakPadaKw=PADA_SIGN_KW[nakPadaSign]||'고유한 파다 에너지';
+
+  // 아마탸카라카 직업 통찰
+  const amKarDef=PSIG[amatyakaraka]||PSIG.Mercury;
+  const amKarCar=(amKarDef.car||[]).slice(0,3).join('·');
+  const amKarKar=(amKarDef.kar||[]).slice(0,2).join('·');
+
+  return{personality,wealth:{...wealth,wealthType,induScore,induSignKr,induSign,arudhaSignKr,arudhaSign},career:{...career,amatyakaraka,amKarCar,amKarKar},chakra:{...chakra,blkChInfo:CHKINFO[blkCh]||{}},romance:{...romance,upapadaSignKr,upapadaSign,manglikDosha,manglikLevel,karakamsha:{sign:d9[darakaraka].signName,signKr:SIGNKR[d9[darakaraka].sign]}},yoga,remedies:{dosha:doshaInfo,gem:remedyGem,dana:remedyDana,mantra:remedyMantra,weakPlanet,blkCh,blkChKr:(CHKINFO[blkCh]||{kr:blkCh}).kr},ext:{atmakaraka,amatyakaraka,darakaraka,nakDeityInfo,nakPadaSign,nakPadaKw,manglikDosha,manglikLevel,upapadaSign,upapadaSignKr,arudhaSign,arudhaSignKr,induSign,induSignKr,induScore,wealthType,moonDosha}};
 }
 
 // Ashtakoot Milan (Compatibility)
@@ -1655,40 +1830,55 @@ function generateInsights(chart,report){
 
   // ── 2. 라그나 + 낙샤트라 심층 성향 ──────────────────────
   const lagnaEl=(STRN[p.lagnaSign]||STRN.Aries).el;
+  const lagnaStr=STRN[p.lagnaSign]||STRN.Aries;
   const elDesc={Fire:"불꽃처럼 타오르는 영혼으로, 한번 정한 방향을 향해 강렬하게 돌진하는 선천적 에너지를 지닙니다",Earth:"대지처럼 묵직하고 신뢰할 수 있는 토대를 구축하며, 현실에 뿌리내린 지혜로 주변을 안정시킵니다",Air:"바람처럼 자유롭고 지적인 영혼으로, 정보와 아이디어를 연결하며 세상을 변화시키는 소통의 달인입니다",Water:"깊은 바다처럼 감성과 직관이 풍부하며, 타인의 마음을 읽어내는 탁월한 공감 능력을 타고났습니다"};
-  const personalityInsight=`당신의 라그나(상승궁) <span class="keyword">${p.lagnaSignKr}</span>는 ${elDesc[lagnaEl]||''}.
-달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식의 언어입니다. ${nktr.pur}를 삶의 목적으로 품고 태어난 당신은, ${nktr.tr.join('·')}의 자질이 외적으로 드러날 때 진정한 본성에 가까워집니다.
-그러나 그림자 속에는 ${nktr.sh.join('과 ')}의 패턴이 숨어 있습니다. 이것은 결함이 아닌, 당신이 이번 생에서 통합해야 할 카르마의 씨앗입니다.`;
+  const deityInfo=NAKDEITY_DATA[nak.name]||{deity:"우주신",role:"신성한 에너지",kw:["지혜"],motive:"Dharma"};
+  const padaSign=NAKPADA_SIGNS[nak.name]?NAKPADA_SIGNS[nak.name][Math.max(0,nak.pada-1)]:"Aries";
+  const padaKw=PADA_SIGN_KW[padaSign]||'';
+  const ganaKR={Deva:"데바(Deva) — 신성한 기질로 영성·덕망·조화를 추구합니다",Manushya:"마누샤(Manushya) — 인간적 기질로 현실과 이상 사이에서 균형을 찾습니다",Rakshasa:"락샤사(Rakshasa) — 강렬한 기질로 한 번 목표를 정하면 끝까지 밀어붙이는 집중력이 있습니다"}[NKGANA[nak.name]||'Manushya'];
+  const motiveKr=MOTIVES_KR[deityInfo.motive]||deityInfo.motive;
+  const motiveDesc=MOTIVES_DESC[deityInfo.motive]||'';
+  const personalityInsight=`당신의 라그나(상승궁) <span class="keyword">${p.lagnaSignKr}</span>는 ${elDesc[lagnaEl]||''}.<br><br>
+3대 핵심 운명 키워드: <span class="keyword">${(lagnaStr.kw||[]).join(' · ')}</span>. 천성적으로 ${(lagnaStr.tr||[]).slice(0,2).join(', ')}의 에너지가 외적 페르소나를 형성하며, 세상은 당신을 그렇게 봅니다.<br><br>
+달이 머무는 낙샤트라 <span class="keyword">${nak.name}</span>(${nktr.sym})은 잠재의식의 언어입니다. 이 낙샤트라는 <span class="keyword">${deityInfo.deity}</span>의 수호를 받습니다. ${deityInfo.role}.<br><br>
+파다(Pada) <span class="keyword">${nak.pada}</span> — <span class="keyword">${padaSign} 나밤샤 기질</span>: ${padaKw}<br><br>
+기질(Gana): <span class="keyword">${ganaKR}</span><br><br>
+인생 동기(Motivation): <span class="keyword">${motiveKr}</span>. ${motiveDesc}<br><br>
+그림자 속에는 <span class="keyword">${(nktr.sh||[]).join('과 ')}</span>의 패턴이 숨어 있습니다. 이것은 결함이 아닌, 당신이 이번 생에서 통합해야 할 카르마의 씨앗입니다.`;
+
 
   // ── 3. 재물 심층 분석 ─────────────────────────────────
   const wScore=w.score||50;
+  const wTypeLabel=w.wealthType||'균형 축적형';
   const wealthNarrative=wScore>=70?
-    `당신의 재물 차트는 <span class="keyword">${wScore}점</span>의 강한 활성 상태입니다. 재물을 끌어당기는 선천적 자력이 있으며, 특히 ${w.src} 분야에서 풍성한 흐름이 형성됩니다.`:
+    `당신의 재물 차트는 <span class="keyword">${wScore}점</span>의 강한 활성 상태입니다. 재물을 끌어당기는 선천적 자력이 있으며, 특히 ${w.src} 분야에서 풍성한 흐름이 형성됩니다. 재물 유형은 <span class="keyword">${wTypeLabel}</span>으로, 이 성향에 맞는 커리어와 투자 전략이 재물 그릇을 더욱 크게 만듭니다.<br><br>아루다 라그나(사회적 성공 이미지): <span class="keyword">${w.arudhaSignKr||''}</span> — 세상이 바라보는 당신의 성공 아우라입니다. 인두 라그나(재물 특화 포인트): <span class="keyword">${w.induSignKr||''}</span> (에너지 지수 ${w.induScore||0}점) — 재물의 비밀 통로가 이 별자리 에너지에 숨어있습니다.`:
     wScore>=50?
-    `재물 지수 <span class="keyword">${wScore}점</span> — 안정적인 중간 강도의 재물 에너지입니다. 꾸준한 적립과 전략적 선택이 재물을 빚는 주 도구가 됩니다.`:
-    `재물 지수 <span class="keyword">${wScore}점</span> — 이번 생에서 재물은 '노력으로 쌓는 카르마'로 설정되어 있습니다. 물질보다 기술과 인간 관계 자본에 집중하면 장기적 풍요가 따릅니다.`;
+    `재물 지수 <span class="keyword">${wScore}점</span> — 안정적인 중간 강도의 재물 에너지입니다. 재물 유형 <span class="keyword">${wTypeLabel}</span>에 맞춘 전략적 축적이 핵심입니다. 꾸준한 적립과 전략적 선택이 재물을 빚는 주 도구가 됩니다.<br><br>아루다 라그나: <span class="keyword">${w.arudhaSignKr||''}</span> — 타인의 눈에 비치는 당신의 사회적 이미지를 이 에너지로 강화하세요. 인두 라그나: <span class="keyword">${w.induSignKr||''}</span> (지수 ${w.induScore||0}점) — 재물의 흐름을 촉진시키는 비밀 열쇠입니다.`:
+    `재물 지수 <span class="keyword">${wScore}점</span> — 이번 생에서 재물은 '노력으로 쌓는 카르마'로 설정되어 있습니다. 재물 유형 <span class="keyword">${wTypeLabel}</span>에 집중하여 강점을 키우면, 장기적으로 의미 있는 풍요가 따릅니다.<br><br>아루다 라그나: <span class="keyword">${w.arudhaSignKr||''}</span>의 에너지를 적극 활용해 사회적 이미지를 높이세요. 인두 라그나: <span class="keyword">${w.induSignKr||''}</span>가 재물 에너지의 활성화 포인트입니다.`;
   const yogaText=w.yogas&&w.yogas[0]&&!w.yogas[0].includes('없음')?`차트에서 <span class="keyword">${w.yogas[0].split(':')[0]}</span>이 발견됩니다. 이 요가는 ${w.yogas[0].split('—')[1]||'재물의 특별한 통로'}를 활성화합니다.`:'특별 재물 요가보다 일상의 꾸준함이 당신의 재물을 쌓는 가장 강력한 수단입니다.';
 
+
   // ── 4. 천직 심층 분석 ─────────────────────────────────
-  const careerNarrative=`10하우스의 지배 행성 <span class="keyword">${PKR[c.h10lord]}</span>는 당신의 사회적 사명을 상징합니다. ${PSIG[c.h10lord]?PSIG[c.h10lord].kar.slice(0,2).join('과 '):'지혜와 행동'}의 카르마를 세상에 펼칠 때 진정한 직업적 성취가 찾아옵니다.
-추천 직군 <span class="keyword">${(c.primary||[]).join(' · ')}</span>은 단순한 직업 목록이 아니라, 당신의 영혼이 이번 생에서 가장 자연스럽게 기여할 수 있는 영역입니다.
+  const amKarakaName=report.career.amatyakaraka||'Mercury';
+  const careerNarrative=`10하우스의 지배 행성 <span class="keyword">${PKR[c.h10lord]}</span>는 당신의 사회적 사명을 상징합니다. ${PSIG[c.h10lord]?PSIG[c.h10lord].kar.slice(0,2).join('과 '):'지혜와 행동'}의 카르마를 세상에 펼칠 때 진정한 직업적 성취가 찾아옵니다.<br><br>
+추천 직군 <span class="keyword">${(c.primary||[]).join(' · ')}</span>은 단순한 직업 목록이 아니라, 당신의 영혼이 이번 생에서 가장 자연스럽게 기여할 수 있는 영역입니다.<br><br>
+아마탸카라카(Amatyakaraka) — 직업적 재능의 행성: <span class="keyword">${PKR[amKarakaName]} (${amKarakaName})</span>. 이 행성의 카르마 <span class="keyword">${PSIG[amKarakaName]?PSIG[amKarakaName].kar.slice(0,2).join('·'):'소통·분석'}</span>를 기반으로 한 직업에서 타고난 재능이 빛을 발합니다. 관련 분야: <span class="keyword">${PSIG[amKarakaName]?PSIG[amKarakaName].car.slice(0,3).join('·'):'다양한 분야'}</span>.<br><br>
 ${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 될 것입니다.`:'현재 진행 중인 대운에서 커리어의 씨앗을 심을 때입니다.'}`;
+
 
   // ── 5. 다샤 심층 해석 ─────────────────────────────────
   const dashaInsights={};
   for(const d of dashas){
     const dp=rasi.planets[d.p];
-    const str=dp?planetStrength(rasi,d.p):50;
     const dq=dp?dp.dignity:'Neutral';
-    const karWords=PSIG[d.p]?PSIG[d.p].kar.slice(0,2).join('·'):'성장';
-    const carWords=PSIG[d.p]?PSIG[d.p].car.slice(0,2).join('·'):'다양한 분야';
-    const insightByDignity={
-      Exalted:`${PKR[d.p]}의 에너지가 최고조로 빛나는 시기. ${karWords}의 영역이 활짝 열리며, ${carWords} 분야에서 눈에 띄는 성취가 나타납니다.`,
-      Own:`${PKR[d.p]}가 자신의 집에서 안정적으로 운행하는 시기. 내면의 힘을 기반으로 ${karWords}을 자연스럽게 확장할 수 있습니다.`,
-      Debilitated:`${PKR[d.p]}가 도전받는 시기입니다. ${karWords} 영역에서 시련이 찾아오지만, 이는 영혼을 단련시키는 황금 같은 교훈입니다.`,
-      Neutral:`${PKR[d.p]}의 균형 잡힌 운행. ${karWords}의 카르마를 의식적으로 실천할 때 이 시기의 잠재력이 온전히 실현됩니다.`
-    };
-    dashaInsights[d.p]=insightByDignity[dq]||insightByDignity.Neutral;
+    const baseNarrative=DASHA_NARRATIVE[d.p]||`${PKR[d.p]}의 카르마적 에너지가 삶에 스며드는 시기입니다.`;
+    const qualSuffix={
+      Exalted:`특히 이번 ${PKR[d.p]} 대운은 <span class="keyword">항진(Exalted)</span> 상태로 — 생애 최고의 에너지로 운행됩니다. 이 시기의 모든 노력은 배로 돌아옵니다.`,
+      Own:`${PKR[d.p]}이 자기 별자리에서 안정적으로 운행하여, 에너지의 흐름이 자연스럽고 일관됩니다.`,
+      Debilitated:`이번 ${PKR[d.p]} 대운은 <span class="keyword">약화(Debilitated)</span> 상태로 — 도전과 시련이 찾아오지만, 이는 영혼 성장의 귀중한 토양이 됩니다. 과욕을 낮추고 내면 작업에 집중하세요.`,
+      Neutral:`${PKR[d.p]}의 에너지가 균형 상태로 흐릅니다. 의식적인 실천과 규율이 이 시기의 잠재력을 온전히 열어냅니다.`
+    }[dq]||'';
+    dashaInsights[d.p]=baseNarrative+(qualSuffix?'<br><br>'+qualSuffix:'');
   }
 
   // ── 6. 차크라 심층 해석 ───────────────────────────────
@@ -1699,11 +1889,67 @@ ${c.best?`<span class="keyword">${c.best}</span>이 커리어의 황금기가 �
 
   // ── 7. 연애 심층 해석 ─────────────────────────────────
   const h7tr=STRN[rom.h7sign]||STRN.Aries;
-  const romanceNarrative=`당신의 7하우스(배우자·파트너의 집)에는 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.h7sign)]||rom.h7sign}</span>의 에너지가 흐릅니다. 이상적인 파트너는 ${h7tr.tr.slice(0,2).join('·')}한 특질을 지닌 사람입니다.
-${chart.f.gender==='M'?'금성(Venus)':'목성(Jupiter)'}이 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.karakaSign)]||rom.karakaSign}</span>에 위치해, ${(STRN[rom.karakaSign]||STRN.Aries).tr.slice(0,2).join('과 ')}의 에너지를 지닌 파트너와 깊은 영적 계약이 맺어져 있습니다.
-${rom.challenges&&rom.challenges.length&&!rom.challenges[0].includes('없음')?`특히 <span class="keyword">${rom.challenges[0].split(':')[0]}</span>에 주의가 필요합니다.`:'연애의 에너지 흐름은 전반적으로 건강합니다.'}`;
+  const manglikInfo=report.romance.manglikDosha?`⚠️ <span class="keyword">망글릭 도샤(Manglik Dosha) ${report.romance.manglikLevel}</span> — 화성이 민감 하우스에 있어 연애/결혼 생활에서 갈등·에너지 충돌이 발생할 수 있습니다. 같은 망글릭 파트너나 화성 에너지가 강한 파트너와의 만남이 이를 균형 잡아줍니다.`:'✓ 망글릭 도샤 없음 — 연애·결혼 에너지가 자연스럽게 흐릅니다.';
+  const upapadaKr=report.romance.upapadaSignKr||'';
+  const karakamsha=report.romance.karakamsha||{signKr:'미상'};
+  const romanceNarrative=`당신의 7하우스(배우자·파트너의 집)에는 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.h7sign)]||rom.h7sign}</span>의 에너지가 흐릅니다. 이상적인 파트너는 ${h7tr.tr.slice(0,2).join('·')}한 특질을 지닌 사람입니다.<br><br>
+${chart.f.gender==='M'?'금성(Venus)':'목성(Jupiter)'}이 <span class="keyword">${SIGNKR[SIGNS.indexOf(rom.karakaSign)]||rom.karakaSign}</span>에 위치해, ${(STRN[rom.karakaSign]||STRN.Aries).tr.slice(0,2).join('과 ')}의 에너지를 지닌 파트너와 깊은 영적 계약이 맺어져 있습니다.<br><br>
+우파파다 라그나(실제 배우자의 성격): <span class="keyword">${upapadaKr}</span> — 이 별자리의 특성을 지닌 파트너와 인연이 깊습니다.<br><br>
+카라카마샤(영혼이 원하는 배우자 이상향): <span class="keyword">${karakamsha.signKr||'미상'}</span> — D-9 차트에서 아트마카라카의 위치로 본 영혼 깊은 곳의 이상형입니다.<br><br>
+${manglikInfo}`;
 
-  return{todayVibe,personalityInsight,wealthNarrative,yogaText,careerNarrative,dashaInsights,chakraNarrative,romanceNarrative};
+  // ── 8. 처방 & 추가 필드 ────────────────────────────────
+  const amKaraka=report.career&&report.career.amatyakaraka||'Mercury';
+  const rdana=report&&report.remedies&&report.remedies.dana||REMEDY_DANA[chart.maha&&chart.maha.p||'Saturn']||REMEDY_DANA.Saturn;
+  const blkChIdx=ch&&ch.blocked?Object.keys(CHAKRA_EXTENDED).indexOf(ch.blocked):0;
+  const manglikLevelStr=report.romance.manglikDosha?report.romance.manglikLevel||'약망글릭':'비망글릭';
+  const manglikDescStr=report.romance.manglikDosha?`화성이 민감 하우스(${report.romance.manglikHouse||''}하우스)에 위치해 관계 에너지의 긴장이 있습니다.`:'화성이 민감 하우스에 없어 연애·결혼 에너지가 자연스럽습니다.';
+  // 다샤 포맷 처리 (start/end은 ISO 문자열, display용 별도)
+  const dashasFmt=(chart.dashas||[]).map(d=>({
+    planet:d.p,
+    start:new Date(d.start).toISOString(),
+    end:new Date(d.end).toISOString(),
+    startDisp:new Date(d.start).toLocaleDateString('ko',{year:'numeric',month:'2-digit'}),
+    endDisp:new Date(d.end).toLocaleDateString('ko',{year:'numeric',month:'2-digit'}),
+    antardasha:(d.sub||[]).map(s=>({
+      planet:s.p,
+      start:new Date(s.start).toISOString(),
+      end:new Date(s.end).toISOString(),
+      startDisp:new Date(s.start).toLocaleDateString('ko',{year:'numeric',month:'2-digit'}),
+      endDisp:new Date(s.end).toLocaleDateString('ko',{year:'numeric',month:'2-digit'})
+    }))
+  }));
+
+  return{
+    todayVibe,personalityInsight,wealthNarrative,yogaText,careerNarrative,
+    dashaInsights,chakraNarrative,romanceNarrative,
+    // 재물 추가 필드
+    arudhaKr:w.arudhaSignKr||'',
+    induKr:w.induSignKr||'',
+    wealthTypeLabel:w.wealthType||'균형형',
+    // 커리어 추가 필드
+    amatyakarakaPlanet:amKaraka,
+    amatyakarakaPlanetKr:PKR[amKaraka]||amKaraka,
+    amatyakaraka:`${PKR[amKaraka]}(${amKaraka})가 직업·사회적 역할의 핵심 행성입니다. ${PSIG[amKaraka]?PSIG[amKaraka].kar.slice(0,2).join('·'):'소통·분석'}의 카르마를 통해 직업적 성취가 이루어집니다.`,
+    // 연애 추가 필드
+    upapadaKr:upapadaKr,
+    karakamshaKr:karakamsha.signKr||'',
+    manglikLevel:manglikLevelStr,
+    manglikDesc:manglikDescStr,
+    // 처방 필드
+    moonDosha:report.remedies&&report.remedies.dosha||'Vata',
+    remedyPlanet:rdana.planet||'Saturn',
+    remedyPlanetKr:PKR[rdana.planet||'Saturn']||'토성',
+    remedyDay:rdana.day||'토요일',
+    remedyItem:rdana.item||'참기름·검은깨',
+    remedyColor:rdana.color||'남색',
+    remedyMantra:rdana.mantra||'옴 샴 샤나이슈차라야 나마하',
+    blockedChakra:blkChIdx>=0?blkChIdx:0,
+    // 다샤 필드
+    dashas:dashasFmt,
+    currentDasha:dashasFmt.find(d=>{try{const now=new Date();const s=new Date(d.start);const e=new Date(d.end);return now>=s&&now<e;}catch{return false;}})||null,
+    dashaOverview:`빔쇼타리 다샤는 베다 점성술의 핵심 시간 예측 체계로, 달의 낙샤트라(<span class="keyword">${nak.name}</span>)를 기준으로 총 120년 주기의 대운·소운을 계산합니다. 현재 당신은 <span class="keyword">${PKR[chart.maha&&chart.maha.p||'Saturn']} 대운</span>을 걷고 있습니다. 어떤 행성의 대운을 걷느냐에 따라 삶의 풍경이 전혀 달라지므로, 각 대운의 특성을 이해하는 것이 삶의 전략을 짜는 핵심 도구입니다.`
+  };
 }
 
 // ─── PROFILE 정규화 (지역/생일 null 시 서울·기본값 적용, tz = 시간 단위 UTC 오프셋) ─
@@ -2124,7 +2370,9 @@ function renderResult(){
     {id:'chakra',icon:'🔮',col:'#A78BFA',title:'차크라 에너지',score:report.chakra.overall,sub:`${CHKINFO[report.chakra.dominant]?CHKINFO[report.chakra.dominant].kr:''} 주도`},
     {id:'romance',icon:'💫',col:'#EC4899',title:'연애운',score:null,sub:`7H: ${SIGNKR[SIGNS.indexOf(report.romance.h7sign)]||report.romance.h7sign}`},
     {id:'compat',icon:'👫',col:'#F59E0B',title:'궁합 계산기',score:null,sub:'Ashtakoot Milan · 36점 만점'},
-    {id:'yoga',icon:'🧘',col:'#34D399',title:'맞는 요가',score:null,sub:report.yoga.primary?report.yoga.primary.n:'Hatha Yoga 권장'}
+    {id:'yoga',icon:'🧘',col:'#34D399',title:'맞는 요가',score:null,sub:report.yoga.primary?report.yoga.primary.n:'Hatha Yoga 권장'},
+    {id:'remedies',icon:'🕉️',col:'#F472B6',title:'치유 처방',score:null,sub:`도샤: ${report.remedies?report.remedies.dosha.type:'바타'} · 보석: ${report.remedies?report.remedies.gem:'상담 권장'}`},
+    {id:'vimshottari',icon:'🌌',col:'#818CF8',title:'빔쇼타리 다샤',score:null,sub:`현재: ${PKR[maha.p]} 대운 → ${PKR[anta.p]} 세운`}
   ].map((m,i)=>`<div class="mod-card reveal reveal-delay-${Math.min(i+1,4)}" onclick="showDetail('${m.id}')">
     <div class="mod-icon" style="background:${m.col}18;border:1px solid ${m.col}33">${m.icon}</div>
     <div class="mod-texts">
@@ -2292,6 +2540,8 @@ function showDetail(id){
   else if(id==='romance')html=renderRomance(r.romance,c,ins);
   else if(id==='compat')html=renderCompatInput();
   else if(id==='yoga')html=renderYoga(r.yoga);
+  else if(id==='remedies')html=renderRemedies(r.remedies,c,ins);
+  else if(id==='vimshottari')html=renderVimshottari(c,ins);
   document.getElementById('detail-content').innerHTML=html;
   showPage('detail');
 }
@@ -2299,25 +2549,106 @@ function showDetail(id){
 // ─── DETAIL: PERSONALITY ─────────────────────────────────
 function renderPersonality(p,chart,ins){
   const nkData=NAKTR[p.moonNak]||{sym:"⭐"};
+  const deityData=NAKDEITY_DATA[p.moonNak]||{deity:"우주신",role:"신성한 에너지",kw:["지혜"],motive:"Dharma"};
+  const padaSignsList=NAKPADA_SIGNS[p.moonNak]||["Aries","Taurus","Gemini","Cancer"];
+  const padaSignName=padaSignsList[Math.max(0,(chart.nak.pada||1)-1)];
+  const padaDetail=PADA_SIGN_KW[padaSignName]||'파다 에너지';
+  const ganaName=NKGANA[p.moonNak]||'Manushya';
+  const ganaKR={Deva:"데바(Deva) — 신성·영성·조화를 추구",Manushya:"마누샤(Manushya) — 현실과 이상의 균형",Rakshasa:"락샤사(Rakshasa) — 강렬·집중·목표 지향"}[ganaName]||ganaName;
+  const motiveKr=MOTIVES_KR[deityData.motive]||deityData.motive;
+  const motiveDesc=MOTIVES_DESC[deityData.motive]||'';
   return detailHeader('🌟','타고난 성향','Innate Personality & Karma')+`
   <div class="reveal">
-    <div style="text-align:center;padding:16px 0 20px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.15);border-radius:16px;margin-bottom:16px">
-      <div style="font-size:40px;margin-bottom:8px">${nkData.sym}</div>
-      <div class="section-head" style="font-size:clamp(16px,4vw,18px)">${p.lagnaSignKr} 라그나</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:4px">${p.moonNak} · Pada ${chart.nak.pada}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;padding:0 20px;line-height:1.6">${(NAKTR[p.moonNak]||{pur:'성장'}).pur}</div>
+    <div style="text-align:center;padding:16px 0 20px;background:linear-gradient(135deg,rgba(212,175,55,0.06),rgba(167,139,250,0.08));border:1px solid rgba(212,175,55,0.2);border-radius:20px;margin-bottom:16px">
+      <div style="font-size:48px;margin-bottom:8px;filter:drop-shadow(0 0 12px rgba(212,175,55,0.3))">${nkData.sym}</div>
+      <div class="section-head" style="font-size:clamp(16px,4vw,20px);color:var(--gold)">${p.lagnaSignKr} 라그나</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:6px">${p.moonNak} · Pada ${chart.nak.pada} · ${deityData.deity}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:10px">
+        <span class="tag tag-gold">🕉 ${ganaName}</span>
+        <span class="tag tag-purple">${motiveKr.split('—')[0].trim()}</span>
+        <span class="tag tag-cyan">Pada ${chart.nak.pada}: ${padaSignName}</span>
+      </div>
     </div>
   </div>
   <div class="reveal reveal-delay-1">
     <div class="sage-text">${ins.personalityInsight||''}</div>
   </div>
+
+  <!-- 수호신 섹션 -->
+  <div class="acc-item reveal reveal-delay-1" style="background:rgba(212,175,55,0.04);border-color:rgba(212,175,55,0.2)">
+    <div class="acc-header" onclick="toggleAcc('pers-deity')">
+      <span style="font-size:16px">🌠</span>
+      <span class="acc-title" style="color:var(--gold)">수호신 (Deity) 에너지</span>
+      <span class="acc-arrow" id="arr-pers-deity">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-pers-deity">
+      <div class="acc-inner">
+        <div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:6px">${deityData.deity}</div>
+        <div class="body-text" style="margin-bottom:10px">${deityData.role}</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px">수호 키워드</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
+          ${(deityData.kw||[]).map(k=>`<span class="tag tag-gold">${k}</span>`).join('')}
+        </div>
+        <div class="sage-text" style="font-size:12px">이 낙샤트라의 영혼은 <strong style="color:var(--gold)">${deityData.deity}</strong>의 에너지를 통해 자신의 사명을 드러냅니다. 이 신의 특성을 깊이 이해하면, 당신이 이번 삶에서 무엇을 위해 태어났는지가 더 선명하게 보입니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 파다 섹션 -->
   <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('pers-pada')">
+      <span style="font-size:16px">🎯</span>
+      <span class="acc-title">파다 (Pada) ${chart.nak.pada} — ${padaSignName} 나밤샤</span>
+      <span class="acc-arrow" id="arr-pers-pada">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-pers-pada">
+      <div class="acc-inner">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:12px">
+          ${padaSignsList.map((ps,i)=>`<div style="text-align:center;padding:8px 4px;border-radius:8px;background:${i===(chart.nak.pada-1)?'rgba(212,175,55,0.15)':'rgba(255,255,255,0.03)'};border:1px solid ${i===(chart.nak.pada-1)?'rgba(212,175,55,0.4)':'rgba(255,255,255,0.06)'};font-size:10px;color:${i===(chart.nak.pada-1)?'var(--gold)':'var(--text3)'}">
+            <div style="font-weight:700;margin-bottom:2px">P${i+1}</div>
+            <div>${ps}</div>
+          </div>`).join('')}
+        </div>
+        <div class="body-text">${padaDetail}</div>
+        <div style="margin-top:10px;padding:10px;background:rgba(167,139,250,0.07);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.7">
+          현재 파다 ${chart.nak.pada}는 <strong style="color:var(--purple2)">${padaSignName}</strong> 나밤샤에서 운행됩니다. D-9 차트의 이 위치는 <span class="keyword">${(STRN[padaSignName]||STRN.Aries).tr.slice(0,2).join('·')}</span>의 성숙한 잠재력이 이번 생에서 어떻게 꽃피는지를 나타냅니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기나(기질) + 동기 섹션 -->
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('pers-gana')">
+      <span style="font-size:16px">⚡</span>
+      <span class="acc-title">기질(Gana) & 인생 동기(Motivation)</span>
+      <span class="acc-arrow" id="arr-pers-gana">▾</span>
+    </div>
+    <div class="acc-body" id="acc-pers-gana">
+      <div class="acc-inner">
+        <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:var(--purple2);margin-bottom:6px">기질(Gana): ${ganaKR}</div>
+          <div class="body-text">${{
+            Deva:"데바 기질은 신과 인간 사이를 잇는 영혼입니다. 영성·도덕·조화를 자연스럽게 추구하며, 다른 이들을 이끌고 위로하는 빛이 됩니다. 밝고 건설적인 에너지로 주변을 정화시키며, 성인(聖人)의 기질이 내재되어 있습니다.",
+            Manushya:"마누샤 기질은 인간의 모든 복잡성을 품은 영혼입니다. 현실적 욕망과 영적 열망 사이에서 풍부한 경험을 쌓으며 성장합니다. 현실 세계에서 가장 다양하고 입체적인 삶을 살아가는 기질입니다.",
+            Rakshasa:"락샤사 기질은 강렬한 집중과 목표 지향성을 가진 영혼입니다. 한번 결심하면 끝까지 밀고 나가는 불굴의 의지가 있으며, 이 에너지를 건설적으로 사용하면 어떤 장애도 뚫어내는 강력한 힘이 됩니다."
+          }[ganaName]||''}</div>
+        </div>
+        <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:14px">
+          <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px">인생 동기: ${motiveKr}</div>
+          <div class="body-text">${motiveDesc}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-3">
     <div class="acc-header" onclick="toggleAcc('pers1')">
       <span style="font-size:16px">✦</span>
       <span class="acc-title">핵심 자질 & 그림자</span>
       <span class="acc-arrow" id="arr-pers1">▾</span>
     </div>
-    <div class="acc-body open" id="acc-pers1">
+    <div class="acc-body" id="acc-pers1">
       <div class="acc-inner">
         <div style="margin-bottom:10px">
           <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:0.08em">빛의 자질</div>
@@ -2331,7 +2662,7 @@ function renderPersonality(p,chart,ins){
       </div>
     </div>
   </div>
-  <div class="acc-item reveal reveal-delay-3">
+  <div class="acc-item reveal reveal-delay-4">
     <div class="acc-header" onclick="toggleAcc('pers2')">
       <span style="font-size:16px">⚡</span>
       <span class="acc-title">원소 & 양식 분포</span>
@@ -2410,6 +2741,55 @@ function renderWealth(w,ins){
         <div style="margin-top:12px;padding:10px;background:rgba(212,175,55,0.05);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;font-size:13px;color:var(--text2)">${w.advice||''}</div>
       </div>
     </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-3" style="background:rgba(212,175,55,0.04);border-color:rgba(212,175,55,0.2)">
+    <div class="acc-header" onclick="toggleAcc('w-arudha')">
+      <span style="font-size:16px">🪬</span>
+      <span class="acc-title" style="color:var(--gold)">아루다 라그나 & 인두 라그나</span>
+      <span class="acc-arrow" id="arr-w-arudha">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-w-arudha">
+      <div class="acc-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px">아루다 라그나 (AL)</div>
+            <div style="font-size:20px;font-weight:700;color:var(--gold)">${ins&&ins.arudhaKr||'—'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">세상에 비치는 나의 상</div>
+          </div>
+          <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px">인두 라그나 (IL)</div>
+            <div style="font-size:20px;font-weight:700;color:var(--purple2)">${ins&&ins.induKr||'—'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">재물 흐름의 포털</div>
+          </div>
+        </div>
+        <div style="background:rgba(212,175,55,0.05);border-left:2px solid var(--gold);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.7">
+          <strong style="color:var(--gold)">아루다 라그나</strong>는 세상에서 당신을 인식하는 방식, 즉 사회적 이미지와 재물·성공이 어떻게 드러나는지를 보여줍니다. 이 사인의 지배 행성이 강하면 외부 성공의 에너지가 증폭됩니다.
+        </div>
+        <div style="background:rgba(139,92,246,0.05);border-left:2px solid var(--purple2);border-radius:0 10px 10px 0;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7">
+          <strong style="color:var(--purple2)">인두 라그나</strong>는 목성과 달의 조화로 계산되는 재물의 원천 포털입니다. 이 사인이 강화될 때, 재물의 씨앗이 가장 자연스럽게 싹튼다고 봅니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('w-type')">
+      <span style="font-size:16px">🏷️</span>
+      <span class="acc-title">재물 유형 분석</span>
+      <span class="acc-arrow" id="arr-w-type">▾</span>
+    </div>
+    <div class="acc-body" id="acc-w-type">
+      <div class="acc-inner">
+        <div style="text-align:center;margin-bottom:14px">
+          <span style="display:inline-block;padding:8px 20px;border-radius:20px;font-size:15px;font-weight:700;background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(34,197,94,0.1));border:1px solid rgba(212,175,55,0.3);color:var(--gold)">${ins&&ins.wealthTypeLabel||'복합형'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          ${[{type:'사업형',icon:'🏢',desc:'10하우스+화성이 강해 경영·창업으로 부 축적'},{type:'전문직형',icon:'🎓',desc:'수성+목성 강해 지식·기술 기반 안정 수입'},{type:'유산형',icon:'👑',desc:'2하우스+금성이 강해 가문·상속 에너지'}].map(t=>`<div style="background:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.12)':'rgba(255,255,255,0.02)'};border:1px solid ${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'rgba(212,175,55,0.35)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:22px">${t.icon}</div><div style="font-size:11px;font-weight:700;color:${(ins&&ins.wealthTypeLabel||'').includes(t.type)?'var(--gold)':'var(--text2)'};margin:4px 0">${t.type}</div><div style="font-size:9px;color:var(--text3);line-height:1.5">${t.desc}</div></div>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.7">재물 유형은 차트의 여러 행성 강도와 하우스 구조를 종합해 도출합니다. 하나의 유형이 강조된다고 해서 다른 유형을 통한 추가 소득이 불가능한 것은 아닙니다.</div>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -2456,6 +2836,36 @@ function renderCareer(c,ins){
       <div class="acc-inner">
         <div style="padding:12px;background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);border-radius:10px;font-size:13px;color:var(--gold);text-align:center">${c.best||''}</div>
         <div style="margin-top:10px;font-size:13px;color:var(--text2);line-height:1.7">${c.advice||''}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 아마티야카라카 섹션 -->
+  <div class="acc-item reveal reveal-delay-4" style="background:rgba(6,182,212,0.04);border-color:rgba(6,182,212,0.2)">
+    <div class="acc-header" onclick="toggleAcc('c-amatya')">
+      <span style="font-size:16px">👁️</span>
+      <span class="acc-title" style="color:var(--cyan)">아마티야카라카 (Amatyakaraka)</span>
+      <span class="acc-arrow" id="arr-c-amatya">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-c-amatya">
+      <div class="acc-inner">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;background:rgba(6,182,212,0.07);border-radius:14px;padding:14px">
+          <div style="text-align:center;min-width:60px">
+            <div style="font-size:28px">${{Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Rahu:'☊',Ketu:'☋'}[ins&&ins.amatyakarakaPlanet]||'⭐'}</div>
+            <div style="font-size:11px;color:var(--cyan);margin-top:4px;font-weight:700">${ins&&ins.amatyakarakaPlanetKr||'—'}</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--cyan);margin-bottom:6px">직업 카라카 행성</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7">${ins&&ins.amatyakaraka||'아마티야카라카는 당신의 직업적 성공과 커리어 방향을 지배하는 핵심 행성입니다.'}</div>
+          </div>
+        </div>
+        <div style="background:rgba(6,182,212,0.05);border-left:2px solid var(--cyan);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.7">
+          자이미니 점성술에서 <strong style="color:var(--cyan)">아마티야카라카</strong>는 태양 다음으로 높은 경도를 가진 행성으로, 직업·조력자·사회적 역할의 카라카입니다. 이 행성의 대운·소운이 활성화될 때 커리어의 전환점이 찾아옵니다.
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">이 행성 대운에서 주목할 커리어 분야</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${({Sun:['리더십','정치·행정','관리직','브랜딩'],Moon:['케어·상담','유통·식품','부동산','심리'],Mercury:['IT·미디어','교육','회계','분석'],Venus:['예술·뷰티','엔터테인먼트','외교','디자인'],Mars:['엔지니어링','스포츠','군·경찰','건설'],Jupiter:['교육·법률','금융·투자','의료·철학','종교'],Saturn:['연구·분석','공공·정책','광업·농업','장기프로젝트'],Rahu:['IT·AI','해외업무','미디어','비이상적 분야'],Ketu:['영성·연구','비전통 분야','비밀업무','기술분석']}[ins&&ins.amatyakarakaPlanet]||['통합형 분야']).map(j=>`<span class="tag tag-cyan">${j}</span>`).join('')}
+        </div>
       </div>
     </div>
   </div>`;
@@ -2567,6 +2977,61 @@ function renderRomance(r,chart,ins){
       <div class="acc-inner">
         ${(r.challenges||[]).map(c2=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;color:var(--text2)">${c2}</div>`).join('')}
         <div style="margin-top:10px;padding:10px;background:rgba(212,175,55,0.05);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;font-size:13px;color:var(--text2)">${r.advice||''}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 우파파다 라그나 -->
+  <div class="acc-item reveal reveal-delay-4" style="background:rgba(236,72,153,0.04);border-color:rgba(236,72,153,0.2)">
+    <div class="acc-header" onclick="toggleAcc('rom-upapada')">
+      <span style="font-size:16px">💞</span>
+      <span class="acc-title" style="color:var(--pink)">우파파다 라그나 & 카라카마샤</span>
+      <span class="acc-arrow" id="arr-rom-upapada">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-rom-upapada">
+      <div class="acc-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="background:rgba(236,72,153,0.08);border:1px solid rgba(236,72,153,0.25);border-radius:14px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px">우파파다 라그나 (UL)</div>
+            <div style="font-size:20px;font-weight:700;color:var(--pink)">${ins&&ins.upapadaKr||'—'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">결혼·배우자 원형 사인</div>
+          </div>
+          <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);border-radius:14px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px">카라카마샤 (Karakamsha)</div>
+            <div style="font-size:20px;font-weight:700;color:var(--purple2)">${ins&&ins.karakamshaKr||chart&&SIGNKR[SIGNS.indexOf(r.karakaSign)]||'—'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">아트마카라카 나밤샤 위치</div>
+          </div>
+        </div>
+        <div style="background:rgba(236,72,153,0.05);border-left:2px solid var(--pink);border-radius:0 10px 10px 0;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.7">
+          <strong style="color:var(--pink)">우파파다 라그나</strong>는 12하우스의 지배 행성으로부터 계산되며, 배우자의 성격·출신·특성을 나타냅니다. 이 사인과 그 지배 행성이 강할수록 결혼의 안정성과 파트너와의 조화가 높아집니다.
+        </div>
+        <div style="background:rgba(139,92,246,0.05);border-left:2px solid var(--purple2);border-radius:0 10px 10px 0;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.7">
+          <strong style="color:var(--purple2)">카라카마샤</strong>는 자이미니 아트마카라카가 D-9(나밤샤)에서 위치한 사인입니다. 이 자리는 영적 열망과 관계 속에서 가장 깊은 내면의 원형을 드러냅니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 망글릭 도샤 -->
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('rom-manglik')">
+      <span style="font-size:16px">🔥</span>
+      <span class="acc-title">망글릭 도샤 (Manglik Dosha)</span>
+      <span class="acc-arrow" id="arr-rom-manglik">▾</span>
+    </div>
+    <div class="acc-body" id="acc-rom-manglik">
+      <div class="acc-inner">
+        <div style="text-align:center;margin-bottom:14px;padding:16px;background:${ins&&ins.manglikLevel==='강망글릭'?'rgba(239,68,68,0.08)':ins&&ins.manglikLevel==='약망글릭'?'rgba(245,158,11,0.08)':'rgba(34,197,94,0.06)'};border:1px solid ${ins&&ins.manglikLevel==='강망글릭'?'rgba(239,68,68,0.3)':ins&&ins.manglikLevel==='약망글릭'?'rgba(245,158,11,0.3)':'rgba(34,197,94,0.2)'};border-radius:14px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">도샤 수준</div>
+          <div style="font-size:22px;font-weight:700;color:${ins&&ins.manglikLevel==='강망글릭'?'#EF4444':ins&&ins.manglikLevel==='약망글릭'?'#F59E0B':'#22C55E'}">${ins&&ins.manglikLevel||'비망글릭 ✓'}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px">${ins&&ins.manglikDesc||'화성이 민감 하우스에 없어 망글릭 도샤가 없거나 미약합니다.'}</div>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
+          망글릭 도샤는 화성이 <strong style="color:#EF4444">1·4·7·8·12하우스</strong>에 위치할 때 발생합니다. 현대 베다 점성술에서는 과거보다 완화된 시각으로 해석하며, 짝의 차트에도 유사한 도샤가 있으면 상호 상쇄됩니다.
+        </div>
+        ${ins&&ins.manglikLevel&&ins.manglikLevel!=='비망글릭'?`<div style="margin-top:12px;padding:10px;background:rgba(245,158,11,0.07);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.7">
+          <span style="color:var(--gold);font-weight:700">🕉 조화 방법:</span> 화성 얀트라 수행, 화요일 단식, 망갈 파트너와의 결합, 뱀·코끼리 신과 혼례 의식(Kumbha Vivah) 등 고전적 처방이 전해집니다.
+        </div>`:''}
       </div>
     </div>
   </div>`;
@@ -2773,6 +3238,294 @@ function renderYoga(y){
   </div>`;
 }
 
-</script>
+// ─── DETAIL: REMEDIES ────────────────────────────────────
+function renderRemedies(rem,chart,ins){
+  rem=rem||{};
+  const dosha=rem.dosha||ins&&ins.moonDosha||'Vata';
+  const df=DOSHA_FOOD[dosha]||DOSHA_FOOD.Vata;
+  const doshaCol={Vata:'#a78bfa',Pitta:'#f97316',Kapha:'#22c55e'}[dosha]||'#a78bfa';
+  const doshaIcon={Vata:'💨',Pitta:'🔥',Kapha:'🌊'}[dosha]||'💨';
+  const doshaDescFull={
+    Vata:'바타(Vata)는 공기와 에테르 원소로 이루어진 도샤입니다. 창의성·유연성·이동성을 관장하지만 과잉되면 불안·불면·피로가 찾아옵니다. 따뜻하고 무거운 음식과 규칙적인 일상이 바타를 안정시킵니다.',
+    Pitta:'피타(Pitta)는 불과 물 원소로 이루어진 도샤입니다. 통찰력·리더십·소화력을 관장하지만 과잉되면 분노·염증·번아웃이 생깁니다. 시원하고 달콤한 음식과 적당한 휴식이 피타를 조화롭게 합니다.',
+    Kapha:'카파(Kapha)는 물과 흙 원소로 이루어진 도샤입니다. 안정성·인내·자기 연민을 관장하지만 과잉되면 무기력·집착·체중 증가가 나타납니다. 자극적이고 가벼운 음식과 규칙적인 운동이 카파를 활성화합니다.'
+  }[dosha]||'';
+  // 행성별 처방
+  const gemInfo={Sun:{gem:'루비 (Ruby)',col:'#EF4444'},Moon:{gem:'진주 (Pearl)',col:'#E8E8E8'},Mercury:{gem:'에메랄드 (Emerald)',col:'#10B981'},Venus:{gem:'다이아몬드 / 오팔',col:'#EC4899'},Mars:{gem:'레드 코랄',col:'#F97316'},Jupiter:{gem:'황색 사파이어 (Yellow Sapphire)',col:'#F59E0B'},Saturn:{gem:'블루 사파이어 (Blue Sapphire)',col:'#6366F1'},Rahu:{gem:'헤소나이트 (Hessonite)',col:'#8B5CF6'},Ketu:{gem:'캣츠 아이 (Cat\'s Eye)',col:'#06B6D4'}};
+  const daDay=rem.day||ins&&ins.remedyDay||'토요일';
+  const daItem=rem.item||ins&&ins.remedyItem||'참기름·검은깨';
+  const daColor=rem.col||ins&&ins.remedyColor||'남색';
+  const daMantra=rem.mantra||ins&&ins.remedyMantra||'옴 샴 샤나이슈차라야 나마하';
+  const daPlanetKr=ins&&ins.remedyPlanetKr||'토성';
+  const gemPlanet=ins&&ins.remedyPlanet||'Saturn';
+  const gemDat=gemInfo[gemPlanet]||gemInfo.Saturn;
+
+  // 차크라 처방
+  const blkCh=rem.blkCh||ins&&ins.blockedChakra||0;
+  const CHKEXT_KEYS=Object.keys(CHAKRA_EXTENDED);
+  const chkData=CHAKRA_EXTENDED[CHKEXT_KEYS[blkCh]]||CHAKRA_EXTENDED.Muladhara;
+
+  return detailHeader('🕉️','치유 처방','Vedic Remedies & Healing')+`
+  <div class="reveal">
+    <div style="text-align:center;padding:20px 0 18px;background:linear-gradient(135deg,rgba(139,92,246,0.06),rgba(6,182,212,0.05));border:1px solid rgba(139,92,246,0.2);border-radius:20px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:0.12em;margin-bottom:6px">베다 치유 핵심 처방</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span class="tag tag-gold">💎 ${gemDat.gem}</span>
+        <span class="tag tag-purple">${doshaIcon} ${dosha} 체질</span>
+        <span class="tag tag-cyan">🗓 ${daDay} 행법</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 도샤 체질 진단 -->
+  <div class="acc-item reveal reveal-delay-1" style="background:rgba(${doshaCol.replace('#','').match(/../g).map(h=>parseInt(h,16)).join(',')},0.04);border-color:${doshaCol}33">
+    <div class="acc-header" onclick="toggleAcc('rem-dosha')">
+      <span style="font-size:16px">${doshaIcon}</span>
+      <span class="acc-title" style="color:${doshaCol}">${dosha} 도샤 — 체질 진단 & 식이 처방</span>
+      <span class="acc-arrow" id="arr-rem-dosha">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-rem-dosha">
+      <div class="acc-inner">
+        <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:12px">${doshaDescFull}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:12px">
+            <div style="font-size:11px;color:#22C55E;font-weight:700;margin-bottom:6px">✅ 균형 음식</div>
+            ${(df.eat||[]).map(f=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">${f}</div>`).join('')}
+          </div>
+          <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:12px;padding:12px">
+            <div style="font-size:11px;color:#EF4444;font-weight:700;margin-bottom:6px">⛔ 절제 음식</div>
+            ${(df.avoid||[]).map(f=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">${f}</div>`).join('')}
+          </div>
+        </div>
+        <div style="background:rgba(139,92,246,0.07);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text2)">
+          <div style="font-weight:700;color:var(--purple2);margin-bottom:5px">🌿 추천 수련</div>
+          ${(df.practice||[]).map(p=>`<div style="padding:2px 0">✦ ${p}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 보석 처방 -->
+  <div class="acc-item reveal reveal-delay-2" style="background:rgba(212,175,55,0.04);border-color:rgba(212,175,55,0.2)">
+    <div class="acc-header" onclick="toggleAcc('rem-gem')">
+      <span style="font-size:16px">💎</span>
+      <span class="acc-title" style="color:var(--gold)">보석 처방 (Ratna Dharana)</span>
+      <span class="acc-arrow" id="arr-rem-gem">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-rem-gem">
+      <div class="acc-inner">
+        <div style="display:flex;align-items:center;gap:14px;background:rgba(212,175,55,0.08);border-radius:14px;padding:14px;margin-bottom:12px">
+          <div style="width:54px;height:54px;border-radius:50%;background:${gemDat.col}22;border:2px solid ${gemDat.col}55;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">💎</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:4px">${gemDat.gem}</div>
+            <div style="font-size:12px;color:var(--text2)">행성: <strong style="color:var(--gold)">${daPlanetKr}</strong> 강화</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">약지 착용, 금·은 세팅 권장</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:10px">보석은 특정 행성의 빛 주파수를 증폭시켜 인체 에너지 장에 영향을 줍니다. 베다 점성술에서는 약한 행성을 강화하는 보석 착용이 카르마의 흐름을 완화한다고 봅니다.</div>
+        <div style="background:rgba(212,175,55,0.06);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text3)">
+          ⚠️ 보석은 검증된 베다 점성사(Jyotishi)의 개인 차트 분석 후 착용하는 것이 권장됩니다. 이 정보는 참고용입니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 다나(Dana) 보시 처방 -->
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('rem-dana')">
+      <span style="font-size:16px">🙏</span>
+      <span class="acc-title">다나 & 만트라 수행 (Dana & Mantra)</span>
+      <span class="acc-arrow" id="arr-rem-dana">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-rem-dana">
+      <div class="acc-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:5px">보시일</div>
+            <div style="font-size:16px;font-weight:700;color:#F59E0B">${daDay}</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:5px">행운 색상</div>
+            <div style="font-size:16px;font-weight:700;color:#F59E0B">${daColor}</div>
+          </div>
+        </div>
+        <div style="background:rgba(212,175,55,0.06);border-radius:12px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">보시 물품</div>
+          <div style="font-size:13px;color:var(--text2)">${daItem}</div>
+        </div>
+        <div style="background:rgba(139,92,246,0.07);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">핵심 만트라 (108회 반복 권장)</div>
+          <div style="font-size:13px;font-weight:600;color:var(--purple2);letter-spacing:0.04em;line-height:1.8">${daMantra}</div>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text3);line-height:1.7">신요일(일·월요일 등)에 맞는 사원 방문, 보시, 만트라 수련이 카르마의 짐을 가볍게 하는 고전적 처방입니다. 믿음이 핵심이며, 기계적 수행보다 진심 어린 의도가 중요합니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차크라 힐링 -->
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('rem-chakra')">
+      <span style="font-size:16px">🔮</span>
+      <span class="acc-title">차크라 힐링 & 비자 만트라</span>
+      <span class="acc-arrow" id="arr-rem-chakra">▾</span>
+    </div>
+    <div class="acc-body" id="acc-rem-chakra">
+      <div class="acc-inner">
+        <div style="display:flex;align-items:center;gap:14px;background:rgba(139,92,246,0.07);border-radius:14px;padding:14px;margin-bottom:12px">
+          <div style="width:54px;height:54px;border-radius:50%;background:${chkData.col||'#8B5CF6'}22;border:2px solid ${chkData.col||'#8B5CF6'}55;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${chkData.sym||'🔮'}</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--purple2);margin-bottom:4px">${chkData.kr||chkData.name||'차크라'} 우선 활성화</div>
+            <div style="font-size:13px;color:var(--text2)">비자 만트라: <strong style="color:var(--purple2);font-size:15px">${chkData.seed||'OM'}</strong></div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:10px">${chkData.detail||''}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text2)">
+          <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">요가 수련</div>
+            <div>${chkData.yoga||'명상'}</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border-radius:10px;padding:10px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">힐링 크리스탈</div>
+            <div>${chkData.crystal||'수정'}</div>
+          </div>
+        </div>
+        ${chkData.affirmation?`<div style="margin-top:12px;padding:12px;background:rgba(139,92,246,0.07);border-radius:10px;text-align:center;font-size:13px;color:var(--purple2);font-style:italic">"${chkData.affirmation}"</div>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── DETAIL: VIMSHOTTARI DASHA ───────────────────────────
+function renderVimshottari(chart,ins){
+  ins=ins||{};
+  const dashas=ins.dashas||[];
+  const curr=ins.currentDasha||null;
+  const PORD=['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'];
+  const PYRS={Ketu:7,Venus:20,Sun:6,Moon:10,Mars:7,Rahu:18,Jupiter:16,Saturn:19,Mercury:17};
+  const PSYM={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Rahu:'☊',Ketu:'☋'};
+  const PCOL={Sun:'#F59E0B',Moon:'#C4B5FD',Mercury:'#10B981',Venus:'#EC4899',Mars:'#EF4444',Jupiter:'#F59E0B',Saturn:'#8B7CF6',Rahu:'#7C3AED',Ketu:'#6B7280'};
+  const PKRKR={Sun:'태양',Moon:'달',Mercury:'수성',Venus:'금성',Mars:'화성',Jupiter:'목성',Saturn:'토성',Rahu:'라후',Ketu:'케투'};
+
+  // 현재 대운 찾기
+  const now=new Date();
+  let activeDasha=null;
+  let activePct=0;
+  for(const d of dashas){
+    const s=new Date(d.start);const e=new Date(d.end);
+    if(now>=s&&now<e){activeDasha=d;activePct=Math.min(99,Math.round((now-s)/(e-s)*100));break;}
+  }
+
+  return detailHeader('🌌','빔쇼타리 다샤','Vimshottari Dasha Timeline')+`
+  <div class="reveal">
+    <div class="sage-text" style="margin-bottom:16px">${ins.dashaOverview||'빔쇼타리 다샤는 베다 점성술의 핵심 시간 예측 체계로, 달의 낙샤트라를 기준으로 총 120년 주기의 각 행성 대운·소운을 계산합니다. 어떤 행성의 대운을 걷느냐에 따라 삶의 색깔이 전혀 달라집니다.'}</div>
+  </div>
+
+  ${activeDasha?`
+  <!-- 현재 활성 대운 강조 카드 -->
+  <div class="reveal reveal-delay-1" style="background:linear-gradient(135deg,${PCOL[activeDasha.planet]||'#8B5CF6'}10,rgba(212,175,55,0.05));border:1px solid ${PCOL[activeDasha.planet]||'#8B5CF6'}40;border-radius:20px;padding:18px;margin-bottom:16px">
+    <div style="font-size:11px;color:var(--text3);letter-spacing:0.12em;margin-bottom:8px">✦ 현재 활성 대운 ✦</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">Disp||activeDasha.start}~${activeDasha.endDisp||
+      <div style="font-size:36px;filter:drop-shadow(0 0 10px ${PCOL[activeDasha.planet]||'#8B5CF6'})">${PSYM[activeDasha.planet]||'⭐'}</div>
+      <div>
+        <div style="font-size:20px;font-weight:700;color:${PCOL[activeDasha.planet]||'#8B5CF6'}">${PKRKR[activeDasha.planet]||''} 마하다샤</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${activeDasha.start}~${activeDasha.end} · ${PYRS[activeDasha.planet]}년 주기</div>
+      </div>
+    </div>
+    <div class="bar-wrap" style="margin-bottom:8px;height:6px;border-radius:4px">
+      <div class="bar-fill" style="width:${activePct}%;background:linear-gradient(90deg,${PCOL[activeDasha.planet]||'#8B5CF6'},${PCOL[activeDasha.planet]||'#8B5CF6'}aa);height:6px;border-radius:4px"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">대운 진행도: ${activePct}%</div>
+    <div class="sage-text" style="font-size:13px;line-height:1.8">${DASHA_NARRATIVE[activeDasha.planet]||''}</div>
+    ${activeDasha.antardasha&&activeDasha.antardasha.length?`
+    <div style="margin-top:14px">
+      <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;margin-bottom:8px">현재 소운 (안타르다샤)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${activeDasha.antardasha.slice(0,5).map((ad,i)=>{Disp||ad.start}~${ad.endDisp||
+          const adNow=now>=new Date(ad.start)&&now<new Date(ad.end);
+          return`<div style="padding:6px 10px;border-radius:10px;background:${adNow?PCOL[ad.planet]+'20':'rgba(255,255,255,0.04)'};border:1px solid ${adNow?PCOL[ad.planet]+'50':'rgba(255,255,255,0.07)'};font-size:11px;color:${adNow?PCOL[ad.planet]:'var(--text3)'}">
+            ${PSYM[ad.planet]||''} ${PKRKR[ad.planet]||ad.planet}${adNow?' 🔥':''}
+            <div style="font-size:10px;margin-top:2px">${ad.start}~${ad.end}</div>
+          </div>`;}).join('')}
+      </div>
+    </div>`:''}
+  </div>`:''}
+
+  <!-- 전체 다샤 타임라인 -->
+  <div class="acc-item reveal reveal-delay-2">
+    <div class="acc-header" onclick="toggleAcc('vims-timeline')">
+      <span style="font-size:16px">📅</span>
+      <span class="acc-title">전체 대운 타임라인</span>
+      <span class="acc-arrow" id="arr-vims-timeline">▾</span>
+    </div>
+    <div class="acc-body open" id="acc-vims-timeline">
+      <div class="acc-inner" style="padding:0">
+        ${(dashas||[]).map((d,idx)=>{
+          const isActive=activeDasha&&d.planet===activeDasha.planet&&d.start===activeDasha.start;
+          const isPast=new Date(d.end)<now;
+          const col=PCOL[d.planet]||'#8B5CF6';
+          return`<div style="display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04);background:${isActive?col+'0D':'transparent'};position:relative">
+            ${isActive?`<div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${col};border-radius:2px"></div>`:''}
+            <div style="min-width:32px;text-align:center">
+              <div style="font-size:22px;opacity:${isPast?0.35:1}">${PSYM[d.planet]||'⭐'}</div>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                <span style="font-size:13px;font-weight:700;color:${isPast?'var(--text3)':col}">${PKRKDisp||d.start} ~ ${d.endDisp||anet]||d.planet} 대운</span>
+                ${isActive?`<span style="font-size:9px;padding:2px 7px;border-radius:8px;background:${col}22;color:${col};border:1px solid ${col}44">진행 중</span>`:''}
+                ${isPast?`<span style="font-size:9px;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,0.04);color:var(--text3)">완료</span>`:''}
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:${isActive?6:0}px">${d.start} ~ ${d.end} · ${PYRS[d.planet]}년</div>
+              ${isActive?`<div style="font-size:11px;color:var(--text2);line-height:1.6">${(DASHA_NARRATIVE[d.planet]||'').slice(0,90)}...</div>`:''}
+            </div>
+          </div>`;}).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- 각 행성 대운 상세 -->
+  <div class="acc-item reveal reveal-delay-3">
+    <div class="acc-header" onclick="toggleAcc('vims-detail')">
+      <span style="font-size:16px">📖</span>
+      <span class="acc-title">각 대운의 의미 — 행성별 가이드</span>
+      <span class="acc-arrow" id="arr-vims-detail">▾</span>
+    </div>
+    <div class="acc-body" id="acc-vims-detail">
+      <div class="acc-inner" style="padding:0">
+        ${PORD.map(pl=>`<div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:20px">${PSYM[pl]||'⭐'}</span>
+            <span style="font-size:13px;font-weight:700;color:${PCOL[pl]||'#8B5CF6'}">${PKRKR[pl]||pl} 대운</span>
+            <span style="font-size:11px;color:var(--text3);margin-left:auto">${PYRS[pl]}년</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.8">${DASHA_NARRATIVE[pl]||''}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- 다샤 활용법 -->
+  <div class="acc-item reveal reveal-delay-4">
+    <div class="acc-header" onclick="toggleAcc('vims-guide')">
+      <span style="font-size:16px">🌠</span>
+      <span class="acc-title">다샤 시스템 활용 가이드</span>
+      <span class="acc-arrow" id="arr-vims-guide">▾</span>
+    </div>
+    <div class="acc-body" id="acc-vims-guide">
+      <div class="acc-inner">
+        <div style="font-size:13px;color:var(--text2);line-height:1.9">
+          빔쇼타리 다샤를 최대로 활용하려면:<br>
+          <br>
+          <strong style="color:var(--gold)">1. 대운의 행성을 강화하세요</strong> — 현재 대운 행성의 만트라, 색상, 요일에 맞춘 수련이 그 대운의 긍정적 에너지를 증폭시킵니다.<br>
+          <br>
+          <strong style="color:var(--purple2)">2. 소운을 함께 보세요</strong> — 마하다샤(대운) 안에서 소운(안타르다샤)이 세부 리듬을 만듭니다. 대운·소운 행성이 차트에서 서로 우호적이면 그 시기가 특히 순조롭습니다.<br>
+          <br>
+          <strong style="color:var(--cyan)">3. 트랜짓과 결합하세요</strong> — 현재 대운 행성이 출생 목성·달과 합 또는 삼합이 되는 트랜짓 시기에 중요한 기회가 집중됩니다.<br>
+          <br>
+          <strong style="color:#22C55E">4. 어려운 대운도 성장의 씨앗</strong> — 토성·라후·케투 대운처럼 도전적인 대운이라 해서 나쁜 것은 아닙니다. 불필요한 것을 놓아주고 다음 대운의 씨앗을 심는 시기입니다.
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
 </body>
 </html>
