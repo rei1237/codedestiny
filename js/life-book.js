@@ -333,11 +333,30 @@
       }
     }
 
-    // ── 현재 나이
+    // ── 현재 나이 + 현재 대운(大運) 식별
     if (birth.year) {
       var currentAge = new Date().getFullYear() - birth.year + 1;
       lines.push('\n현재 나이: ' + currentAge + '세 (만 ' + (currentAge - 1) + '세)');
       lines.push('현재 기준年: 2026년 丙午年');
+      // 현재 진행 중인 대운 식별
+      if (G_DAEWUN && Array.isArray(G_DAEWUN) && G_DAEWUN.length) {
+        var currentDw = null;
+        for (var cdi = 0; cdi < G_DAEWUN.length - 1; cdi++) {
+          var dwCur = G_DAEWUN[cdi];
+          var dwNext = G_DAEWUN[cdi + 1];
+          if (dwCur && dwNext && dwCur.age <= currentAge && currentAge < dwNext.age) {
+            currentDw = dwCur;
+            break;
+          }
+        }
+        if (!currentDw && G_DAEWUN.length > 0) currentDw = G_DAEWUN[G_DAEWUN.length - 1];
+        if (currentDw) {
+          lines.push('\n【⭐ 현재 진행 중인 대운(大運) — 핵심 분석 대상】');
+          lines.push('현재 대운: ' + (currentDw.g || '') + (currentDw.j || '') +
+            (currentDw.gE ? ' [' + currentDw.gE + '/' + currentDw.jE + ']' : ''));
+          lines.push('대운 진입 나이: ' + currentDw.age + '세 → 현재 나이 ' + currentAge + '세 (대운 경과: ' + (currentAge - currentDw.age) + '년)');
+        }
+      }
     }
 
     return lines.join('\n');
