@@ -1056,3 +1056,122 @@
     padding-top: 52px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   인생의 책 — 마케팅 상세 페이지 (2026 개편)
+═══════════════════════════════════════════════════════ */
+
+/* 신뢰 배지 (trust badges) */
+.lb-marketing-hero {
+  padding: 20px 20px 12px;
+  text-align: center;
+}
+.lb-trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.lb-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(186,134,255,0.18), rgba(120,60,200,0.12));
+  border: 1px solid rgba(186,134,255,0.35);
+  color: #d4aaff;
+  white-space: nowrap;
+}
+.lb-feat--trust {
+  background: linear-gradient(135deg, rgba(255,200,80,0.2), rgba(200,140,0,0.1)) !important;
+  border-color: rgba(255,200,80,0.4) !important;
+  color: #ffd966 !important;
+}
+.lb-marketing-headline {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #f0e0ff;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+.lb-marketing-headline strong { color: #c89bff; }
+.lb-marketing-sub {
+  font-size: 0.82rem;
+  color: rgba(220,200,255,0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Why 섹션 */
+.lb-why-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(186,134,255,0.15);
+  border-bottom: 1px solid rgba(186,134,255,0.15);
+  margin: 10px 0;
+}
+.lb-why-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(186,134,255,0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.lb-why-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.lb-why-item strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #d4aaff;
+  margin-bottom: 3px;
+}
+.lb-why-item span { font-size: 0.72rem; color: rgba(210,190,255,0.7); line-height: 1.45; }
+
+/* 목차 레이블 */
+.lb-toc-label {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(186,134,255,0.7);
+  margin: 14px 0 8px;
+}
+
+/* 추천 섹션 */
+.lb-recommend-section {
+  padding: 12px 18px;
+  background: rgba(186,134,255,0.05);
+  border-radius: 12px;
+  margin: 8px 16px;
+  border: 1px solid rgba(186,134,255,0.15);
+}
+.lb-recommend-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: rgba(186,134,255,0.7);
+  letter-spacing: 0.06em;
+  text-align: center;
+  margin: 0 0 8px;
+}
+.lb-recommend-list { display: flex; flex-direction: column; gap: 5px; }
+.lb-recommend-item {
+  font-size: 0.78rem;
+  color: rgba(230,220,255,0.78);
+  padding: 6px 10px;
+  border-left: 2px solid rgba(186,134,255,0.35);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .lb-why-section { grid-template-columns: 1fr; }
+  .lb-marketing-headline { font-size: 1rem; }
+}

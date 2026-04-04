@@ -7,46 +7,55 @@
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
+    '� 사주 원국 완전 해설',
     '🏛️ 나의 설계도',
     '⚔️ 숨겨진 무기',
-    '🤝 관계의 전략',
+    '🌀 대운 정밀 분석',
     '👑 사회적 소명',
-    '💎 부와 사랑',
-    '🔮 사주의 비밀 코드',
-    '📅 2026 실전 로드맵',
-    '💰 자산의 증식과 리스크',
+    '🤝 관계의 전략',
+    '💑 연애·결혼 완전 분석',
+    '💰 재물·직업 완전 전략',
+    '🏥 건강·심신 에너지',
+    '🔮 신살·12운성·퀀텀 명리',
+    '📅 2026 丙午年 로드맵',
     '🌅 생애 마스터플랜',
-    '💌 마스터의 최종 전략',
+    '💌 거장의 최종 전략 제언',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '타고난 기질과 환경의 설계',
-    '나만의 압도적 강점 발견',
-    '아비투스와 사람 — 관계의 역학',
-    '나의 성공 방정식',
-    '인생의 그릇 크기',
-    '일간과 천기가 밝히는 특이점',
-    '丙午년 12개월 행동 지침',
-    '부의 그릇을 키우는 비법',
-    '인생 전체의 파노라마 (10~80세)',
-    '운명을 이기는 의지의 설계',
+    '팔자 8글자 — 년주·월주·일주·시주 완전 해독',
+    '타고난 기질과 월지·일간·조후 판정',
+    '용신·희신·기신과 나만의 천직 필살기',
+    '전생애 대운 표와 현재 대운 심층 분석',
+    '격국·상신·구신과 성공 방정식',
+    '충·합·육신의 인연 법칙과 파트너십',
+    '일지·관성·재성으로 본 사랑 설계도',
+    '재성·식상·격국으로 설계하는 부의 지도',
+    '오행별 신체 지도와 에너지 관리 전략',
+    '신살·12운성·공망·퀀텀 잠재력 해독',
+    '丙午年 12개월 Monthly Go/Stop 전략',
+    '유년부터 노년까지 대운별 인생 파노라마',
+    '12챕터 총결산 · 귀인운 · 3가지 핵심 비책',
   ];
 
   var LOADING_MSGS = [
-    '타고난 기질과 월지·일간·지지를 분석하는 중...',
-    '용신·희신과 필살기 강점을 해독하는 중...',
-    '상충·합·육신의 관계 역학을 분석하는 중...',
-    '격국·상신으로 사회적 소명을 탐색하는 중...',
-    '재물운·애정운·건강운 그릇을 측정하는 중...',
-    '일간 특이점과 신살을 탐색하는 중...',
-    '2026 丙午년 12개월 로드맵을 작성하는 중...',
-    '자산 증식 전략과 리스크를 계산하는 중...',
-    '대운 흐름과 생애주기를 조망하는 중...',
-    '마스터의 최종 전략을 집필하는 중...',
+    '사주 원국 팔자 8글자와 기둥별 의미를 해독하는 중...',
+    '월지·일간·조후·신강신약을 분석하는 중...',
+    '용신·희신·기신과 천직 강점을 탐색하는 중...',
+    '대운 전체 흐름과 현재 대운을 정밀 분석하는 중...',
+    '격국·상신·사회적 소명을 해독하는 중...',
+    '충·합·육신 관계 역학을 매핑하는 중...',
+    '연애·결혼 구조와 이상형 프로파일을 분석하는 중...',
+    '재성·식상·부의 그릇과 직업 전략을 계산하는 중...',
+    '오행별 건강 지도와 심신 에너지를 분석하는 중...',
+    '신살·12운성·공망·퀀텀 잠재력을 탐색하는 중...',
+    '2026 丙午年 월별 로드맵을 작성하는 중...',
+    '대운별 생애 파노라마를 조망하는 중...',
+    '거장의 최종 전략과 귀인운을 집필하는 중...',
   ];
 
   /* ─────────────── 상태 ─────────────── */
-  var _chapters = Array(10).fill(null);
+  var _chapters = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
 
@@ -382,7 +391,7 @@
       return;
     }
 
-    _chapters = Array(10).fill(null);
+    _chapters = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
@@ -457,7 +466,7 @@
     }
 
     _generating = true;
-    _chapters = Array(10).fill(null);
+    _chapters = Array(13).fill(null);
     var sajuData = _collectSajuData();
 
     _showScreen('lbLoadingScreen');
@@ -467,18 +476,18 @@
     var chapterMsg = _qs('lbLoadingChapter');
 
     function _setProgress(done) {
-      var pct = (done / 10) * 100;
+      var pct = (done / 13) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / 10 챕터 완성';
-      if (chapterMsg && done < 10) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 10) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
+      if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
+      if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= 13) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
     }
 
     _setProgress(0);
 
     // 챕터 1~10 순차 생성
     (function generateNext(idx) {
-      if (idx >= 10) {
+      if (idx >= 13) {
         _generating = false;
         _showScreen('lbResultScreen');
         _updateTocState();

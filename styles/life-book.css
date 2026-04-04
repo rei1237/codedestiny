@@ -861,6 +861,176 @@
 }
 
 /* ── 반응형 ─────────────────────────────────── */
+
+/* ── 599px 이하: 모달 풀스크린 ── */
+@media (max-width: 599px) {
+  /* 모달 전체: 바닥에서 올라오는 풀스크린 */
+  .lb-modal {
+    align-items: flex-end;
+  }
+
+  .lb-modal__panel {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    max-width: 100%;
+    border-radius: 0;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* 헤더: 컴팩트하게 */
+  .lb-modal__header {
+    padding: 16px 16px 12px;
+    padding-top: max(16px, env(safe-area-inset-top, 16px));
+  }
+
+  .lb-modal__close {
+    top: max(10px, env(safe-area-inset-top, 10px));
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  /* 결과 헤더: 세로 스택 */
+  .lb-result-header {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .lb-result-title-area {
+    width: 100%;
+  }
+
+  .lb-result-name {
+    font-size: 1rem;
+  }
+
+  .lb-result-label {
+    font-size: 0.62rem;
+  }
+
+  .lb-result-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* 버튼: 균등 분배, 최소 터치타겟 44px */
+  .lb-btn-pdf,
+  .lb-btn-kakao {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 10px 10px;
+    min-height: 44px;
+    border-radius: 10px;
+  }
+
+  /* TOC: 큰 터치 타겟 */
+  .lb-toc {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .lb-toc-item {
+    width: 40px;
+    height: 40px;
+    font-size: 0.7rem;
+    border-radius: 9px;
+  }
+
+  /* 챕터 본문 */
+  .lb-chapter-wrap {
+    padding: 18px 14px;
+  }
+
+  .lb-chapter-body {
+    font-size: 0.89rem;
+    line-height: 1.88;
+  }
+
+  .lb-md-h1,
+  .lb-md-h2 {
+    font-size: 1rem;
+    padding: 7px 12px;
+  }
+
+  .lb-md-h3 {
+    font-size: 0.94rem;
+  }
+
+  /* 시작 화면 */
+  .lb-start-screen {
+    padding: 16px;
+  }
+
+  .lb-btn-generate {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    font-size: 0.9rem;
+    padding: 16px 20px;
+  }
+
+  /* 로딩 */
+  .lb-loading-screen {
+    padding: 24px 16px;
+  }
+
+  /* 에러 */
+  .lb-error-screen {
+    padding: 24px 16px;
+  }
+}
+
+/* ── 360px 이하 초소형 ── */
+@media (max-width: 360px) {
+  .lb-toc-item {
+    width: 34px;
+    height: 34px;
+    font-size: 0.62rem;
+  }
+
+  .lb-chapter-body {
+    font-size: 0.85rem;
+  }
+
+  .lb-btn-pdf,
+  .lb-btn-kakao {
+    font-size: 0.74rem;
+    padding: 9px 8px;
+  }
+
+  .lb-md-h1,
+  .lb-md-h2 {
+    font-size: 0.93rem;
+  }
+}
+
+/* ── 가로모드 소형 기기 ── */
+@media (max-height: 500px) and (max-width: 900px) {
+  .lb-modal__header {
+    padding: 8px 16px 6px;
+  }
+
+  .lb-modal__header-deco {
+    display: none;
+  }
+
+  .lb-start-screen {
+    padding: 10px 14px;
+  }
+}
+
 @media (min-width: 640px) {
   .lifebook-tile__inner {
     flex-direction: row;
@@ -885,4 +1055,123 @@
   .lifebook-tile__inner {
     padding-top: 52px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════
+   인생의 책 — 마케팅 상세 페이지 (2026 개편)
+═══════════════════════════════════════════════════════ */
+
+/* 신뢰 배지 (trust badges) */
+.lb-marketing-hero {
+  padding: 20px 20px 12px;
+  text-align: center;
+}
+.lb-trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.lb-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(186,134,255,0.18), rgba(120,60,200,0.12));
+  border: 1px solid rgba(186,134,255,0.35);
+  color: #d4aaff;
+  white-space: nowrap;
+}
+.lb-feat--trust {
+  background: linear-gradient(135deg, rgba(255,200,80,0.2), rgba(200,140,0,0.1)) !important;
+  border-color: rgba(255,200,80,0.4) !important;
+  color: #ffd966 !important;
+}
+.lb-marketing-headline {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #f0e0ff;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+.lb-marketing-headline strong { color: #c89bff; }
+.lb-marketing-sub {
+  font-size: 0.82rem;
+  color: rgba(220,200,255,0.75);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Why 섹션 */
+.lb-why-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(186,134,255,0.15);
+  border-bottom: 1px solid rgba(186,134,255,0.15);
+  margin: 10px 0;
+}
+.lb-why-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(186,134,255,0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.lb-why-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.lb-why-item strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #d4aaff;
+  margin-bottom: 3px;
+}
+.lb-why-item span { font-size: 0.72rem; color: rgba(210,190,255,0.7); line-height: 1.45; }
+
+/* 목차 레이블 */
+.lb-toc-label {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(186,134,255,0.7);
+  margin: 14px 0 8px;
+}
+
+/* 추천 섹션 */
+.lb-recommend-section {
+  padding: 12px 18px;
+  background: rgba(186,134,255,0.05);
+  border-radius: 12px;
+  margin: 8px 16px;
+  border: 1px solid rgba(186,134,255,0.15);
+}
+.lb-recommend-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: rgba(186,134,255,0.7);
+  letter-spacing: 0.06em;
+  text-align: center;
+  margin: 0 0 8px;
+}
+.lb-recommend-list { display: flex; flex-direction: column; gap: 5px; }
+.lb-recommend-item {
+  font-size: 0.78rem;
+  color: rgba(230,220,255,0.78);
+  padding: 6px 10px;
+  border-left: 2px solid rgba(186,134,255,0.35);
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .lb-why-section { grid-template-columns: 1fr; }
+  .lb-marketing-headline { font-size: 1rem; }
 }
