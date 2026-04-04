@@ -1735,107 +1735,171 @@ async analyze(landmarksData, expressionData) {
 
     // --- 1. 정밀 안상(眼相) 분석 (운명을 결정짓는 창) --- 
     let eyes = [
-      { name: '용안(龍眼)', desc: '눈이 크고 길며 위엄이 있는 제왕의 눈. (가장 길하고 귀한 지위)', prob: 0, tag: 'dragon' },
-      { name: '호안(虎眼)', desc: '둥글고 부리부리하며 날카롭게 치켜올라간 눈. (권력과 투지의 상징)', prob: 0, tag: 'tiger' },
-      { name: '우안(牛眼)', desc: '크고 선하며 속눈썹이 길고 인내심이 강해 보이는 눈. (거부의 상징)', prob: 0, tag: 'cow' },
-      { name: '도화안(桃花眼)', desc: '눈가에 물기가 머문 듯 붉고 웃을 때 초승달처럼 휘어지는 눈. (압도적 인복)', prob: 0, tag: 'peach' },
-      { name: '삼백안/사백안(三白眼)', desc: '세로 폭이 넓어 흰자위가 많이 드러나는 형태. (기세가 강하고 파격적 승부사)', prob: 0, tag: 'sanpaku' },
-      { name: '봉황안(鳳凰眼)', desc: '가로로 극도로 길고 끝이 부드럽게 날아오르는 최상급의 귀한 눈.', prob: 0, tag: 'phoenix' }
+      { name: '용안(龍眼)', desc: '눈이 크고 길며 위엄이 있는 제왕의 눈. (가장 길하고 귀한 지위)', prob: 0, tag: 'dragon', tier: 'good' },
+      { name: '호안(虎眼)', desc: '둥글고 부리부리하며 날카롭게 치켜올라간 눈. (권력과 투지의 상징)', prob: 0, tag: 'tiger', tier: 'good' },
+      { name: '우안(牛眼)', desc: '크고 선하며 속눈썹이 길고 인내심이 강해 보이는 눈. (거부의 상징)', prob: 0, tag: 'cow', tier: 'good' },
+      { name: '도화안(桃花眼)', desc: '눈가에 물기가 머문 듯 붉고 웃을 때 초승달처럼 휘어지는 눈. (압도적 인복과 매력의 상징)', prob: 0, tag: 'peach', tier: 'good' },
+      { name: '삼백안(三白眼)', desc: '눈의 세로 폭이 지나치게 넓어 흰자가 세 방향으로 노출되는 형상. 충동적 기질과 강한 살기(殺氣)가 서려 있어 주변 사람과 마찰이 잦고 뜻밖의 재난을 불러오는 경계의 눈매.', prob: 0, tag: 'sanpaku', tier: 'warning' },
+      { name: '봉황안(鳳凰眼)', desc: '가로로 극도로 길고 끝이 부드럽게 날아오르는 최상급의 귀한 눈.', prob: 0, tag: 'phoenix', tier: 'good' },
+      // ── 흉안(凶眼) 유형 ──
+      { name: '쥐안(鼠眼)', desc: '가늘고 좁으며 아래로 처진 듯 음습한 형상. 의심과 탐욕이 강하고 속마음을 쉽게 드러내지 않아 배신수가 높은 흉안.', prob: 0, tag: 'rat', tier: 'bad' },
+      { name: '낙타안(駱駝眼)', desc: '눈꼬리가 과도하게 처지며 눈이 흐릿하고 게을러 보이는 형상. 의지력이 약하고 우유부단하며, 중년 이후 급격한 운기 하락이 우려되는 눈매.', prob: 0, tag: 'camel', tier: 'bad' },
+      { name: '사안(蛇眼)', desc: '가늘고 날카롭게 치켜올라간 뱀의 눈. 차갑고 잔인한 기질, 집요한 복수심이 서려 있어 타인을 불편하게 하고 고독한 말년을 맞이하기 쉬운 극흉(極凶)의 눈매.', prob: 0, tag: 'snake_eye', tier: 'bad' },
+      { name: '돼지안(豚眼)', desc: '반쯤 감긴 듯 작고 돼지 눈처럼 흐리멍덩한 형상. 게으름과 탐식, 단기적 이익에만 집착하고 원대한 뜻을 펼치기 어려운 흉안.', prob: 0, tag: 'pig_eye', tier: 'bad' }
     ];
-    
-          // --- 영혼의 주파수를 맞추는 척도 함수 ---
-      // 선형적 뺄셈(Math.abs)이 아닌, 운명의 중력장(차이의 제곱)을 사용하여
-      // 특정 관상의 완벽한 비율에 가까워질수록 점수가 강력하게 응집되도록 빚어낸 비술이야
-      const calcKarma = (diff1, w1, diff2 = 0, w2 = 0) => {
-          let penalty = (Math.pow(diff1, 2) * w1) + (Math.pow(diff2, 2) * w2);
-          return Math.max(10.1, Math.min(99.9, 100 - penalty));
-      };
 
-      // --- 1. 정밀 안상(眼相) 분석 ---
-      // er: 눈의 가로세로 비율 (세상을 바라보는 시야의 넓이)
-      // es: 눈꼬리 각도 (음수면 하늘을 향해 치솟고, 양수면 대지를 향해 쳐짐)
-      let er = features.eyeRatio;
-      let es = features.eyeSlant;
+    // ── 관상 유형별 설명 JSON (눈/코/입/귀 오관 전체) ──
+    const PHY_TYPE_META = {
+      eye: {
+        dragon:   { tier: 'good',    icon: '🐉', headerColor: '#1d4ed8', bgColor: '#eff6ff', borderColor: '#93c5fd' },
+        tiger:    { tier: 'good',    icon: '🐯', headerColor: '#b45309', bgColor: '#fffbeb', borderColor: '#fcd34d' },
+        cow:      { tier: 'good',    icon: '🐄', headerColor: '#065f46', bgColor: '#ecfdf5', borderColor: '#6ee7b7' },
+        peach:    { tier: 'good',    icon: '🌸', headerColor: '#9d174d', bgColor: '#fdf2f8', borderColor: '#f9a8d4' },
+        sanpaku:  { tier: 'warning', icon: '⚠️', headerColor: '#92400e', bgColor: '#fffbeb', borderColor: '#fbbf24' },
+        phoenix:  { tier: 'good',    icon: '🦅', headerColor: '#4c1d95', bgColor: '#f5f3ff', borderColor: '#c4b5fd' },
+        rat:      { tier: 'bad',     icon: '🐀', headerColor: '#991b1b', bgColor: '#fff1f2', borderColor: '#fca5a5' },
+        camel:    { tier: 'bad',     icon: '🐪', headerColor: '#78350f', bgColor: '#fff7ed', borderColor: '#fdba74' },
+        snake_eye:{ tier: 'bad',     icon: '🐍', headerColor: '#7f1d1d', bgColor: '#fff1f2', borderColor: '#ef4444' },
+        pig_eye:  { tier: 'bad',     icon: '🐷', headerColor: '#7c3aed', bgColor: '#f5f3ff', borderColor: '#a78bfa' }
+      },
+      nose: {
+        gall:    { tier: 'good',    icon: '💰', headerColor: '#065f46' },
+        bamboo:  { tier: 'good',    icon: '🎋', headerColor: '#1e40af' },
+        hook:    { tier: 'neutral', icon: '⚔️', headerColor: '#6b21a8' },
+        flat:    { tier: 'bad',     icon: '🥊', headerColor: '#991b1b' }
+      },
+      mouth: {
+        upward:  { tier: 'good',    icon: '☺️', headerColor: '#065f46' },
+        downward:{ tier: 'bad',     icon: '😞', headerColor: '#991b1b' },
+        large:   { tier: 'good',    icon: '🦁', headerColor: '#b45309' },
+        small:   { tier: 'neutral', icon: '🤫', headerColor: '#4c1d95' },
+        thin:    { tier: 'bad',     icon: '🥶', headerColor: '#7f1d1d' }
+      }
+    };
 
-      eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8); // 용안 (제왕의 균형)
-      eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2); // 호안 (맹렬하게 치켜올라간 기세)
-      eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2);    // 우안 (대지처럼 순하게 쳐진 눈매)
+    // --- 척도 함수: 차이의 제곱 기반 운명 중력장 ---
+    // 최솟값을 0.1로 낮춰 경합을 의미있게 함 (이전: 10.1 → 흉안이 불합리하게 높게 유지되던 문제 수정)
+    const calcKarma = (diff1, w1, diff2 = 0, w2 = 0) => {
+        let penalty = (Math.pow(diff1, 2) * w1) + (Math.pow(diff2, 2) * w2);
+        return Math.max(0.1, Math.min(99.9, 100 - penalty));
+    };
 
-      // 도화안은 입꼬리의 기운(mc)이 달빛처럼 더해져야 진정한 유혹의 상이 완성돼
-      let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8);
-      let peachBonus = features.mouthCurve > 0.003 ? 12 : 0; 
-      eyes[3].prob = Math.max(10.1, Math.min(99.9, peachBase + peachBonus)); 
+    // --- 1. 정밀 안상(眼相) 분석 ---
+    // er: 눈 가로/세로 비율 (높을수록 가늘고 긴 눈 / 낮을수록 크고 둥근 눈)
+    // es: 눈꼬리 각도 (음수=치켜올라감 / 양수=아래로 처짐)
+    let er = features.eyeRatio;
+    let es = features.eyeSlant;
 
-      eyes[4].prob = calcKarma(er - 2.2, 70);                 // 삼백안 (흰자위가 드러나는 압도적 세로 폭)
-      eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8); // 봉황안 (세상을 품어내는 극도로 긴 눈매)
+    eyes[0].prob = calcKarma(er - 3.0, 45, es - (-2), 0.8);   // 용안: er=3.0, es=-2
+    eyes[1].prob = calcKarma(er - 2.5, 55, es - (-6), 1.2);   // 호안: er=2.5, es=-6 (강하게 올라감)
+    eyes[2].prob = calcKarma(er - 2.7, 45, es - 4, 1.2);      // 우안: er=2.7, es=+4 (살짝 처짐)
+    // 도화안: 입꼬리(mc)가 올라가야 완성
+    let peachBase = calcKarma(er - 2.8, 50, es - (-1), 0.8);
+    let peachBonus = features.mouthCurve > 0.003 ? 12 : 0;
+    eyes[3].prob = Math.max(0.1, Math.min(99.9, peachBase + peachBonus));
+    eyes[4].prob = calcKarma(er - 2.2, 85);                    // 삼백안: er=2.2 (눈이 매우 크고 세로 폭 넓음)
+    eyes[5].prob = calcKarma(er - 3.6, 35, es - (-3), 0.8);   // 봉황안: er=3.6, es=-3 (극도로 길고 날카롭게 위로)
+    eyes[6].prob = calcKarma(er - 3.8, 80, es - 5, 1.0);      // 쥐안: er=3.8(좁고 가늘) + es=+5(처짐) 조합
+    eyes[7].prob = calcKarma(er - 3.2, 60, es - 7, 0.8);      // 낙타안: er=3.2 + es=+7(심하게 처짐)
+    eyes[8].prob = calcKarma(er - 3.4, 100, es - (-5), 1.0);  // 사안: er=3.4(가늘) + es=-5(날카롭게 올라감) — 봉황안과 탈분리
+    eyes[9].prob = calcKarma(er - 4.0, 50, es - 2, 0.8);      // 돼지안: er=4.0(매우 가늘고 작음) + es=+2
 
-      eyes.sort((a,b) => b.prob - a.prob);
-      let bestEye = eyes[0];
+    eyes.sort((a,b) => b.prob - a.prob);
+    let bestEye = eyes[0];
 
-      // --- 2. 정밀 비상(鼻相) 분석 (재물의 척도) ---
-      let noses = [
-        { name: '현담비(懸膽鼻)', desc: '쓸개를 매단 듯 코끝(준두)이 둥글고 두툼하여 엄청난 재물을 쓸어 담는 코.', prob: 0, tag: 'gall' },
-        { name: '절통비(截筒鼻)', desc: '초록 대나무를 자른 듯 콧대가 곧고 반듯하여 부귀영화를 고루 누리는 코.', prob: 0, tag: 'bamboo' },
-        { name: '매부리코', desc: '콧대가 높게 솟고 끝이 날카롭게 굽어 있어 예리한 통찰력과 불굴의 투지를 지닌 코.', prob: 0, tag: 'hook' }
-      ];
-      let nr = features.noseRatio; 
-      noses[0].prob = calcKarma(nr - 1.35, 120); // 현담비 (짧고 두툼하게 맺힌 재물창고)
-      noses[1].prob = calcKarma(nr - 1.6, 150);  // 절통비 (대나무처럼 맑고 반듯한 귀격)
-      noses[2].prob = calcKarma(nr - 1.9, 100);  // 매부리코 (높고 예리하게 깎아지른 승부사)
+    // --- 2. 정밀 비상(鼻相) 분석 (재물의 척도) ---
+    // nr: 코 비율 (높을수록 콧대가 높고 좁음 / 낮을수록 납작하고 넓음)
+    // 관상 유형 JSON: { tag, name, desc, tier, targetNr, w1 }
+    const NOSE_TYPES_JSON = [
+      { tag: 'gall',   name: '현담비(懸膽鼻)', tier: 'good',
+        desc: '쓸개를 매단 듯 코끝(준두)이 둥글고 두툼하여 엄청난 재물을 쓸어 담는 코.',
+        targetNr: 1.35, w: 120 },
+      { tag: 'bamboo', name: '절통비(截筒鼻)', tier: 'good',
+        desc: '초록 대나무를 자른 듯 콧대가 곧고 반듯하여 부귀영화를 고루 누리는 코.',
+        targetNr: 1.6, w: 150 },
+      { tag: 'hook',   name: '매부리코', tier: 'neutral',
+        desc: '콧대가 높게 솟고 끝이 날카롭게 굽어 있어 예리한 통찰력과 불굴의 투지를 지닌 코.',
+        targetNr: 1.9, w: 100 },
+      { tag: 'flat',   name: '주먹코/납작코(拳鼻)', tier: 'bad',
+        desc: '코가 납작하고 넓게 퍼져 기운이 응집되지 못하고 흩어지는 형상. 재물이 모이지 않고 매사 의지력이 부족하며, 이성에게 첫인상이 불리한 경우가 많은 흉비(凶鼻).',
+        targetNr: 0.9, w: 150 }
+    ];
+    let noses = NOSE_TYPES_JSON.map(t => ({ ...t, prob: calcKarma(features.noseRatio - t.targetNr, t.w) }));
+    noses.sort((a,b) => b.prob - a.prob);
+    let bestNose = noses[0];
+    let nr = features.noseRatio;
 
-      noses.sort((a,b) => b.prob - a.prob);
-      let bestNose = noses[0];
-
-      // --- 3. 정밀 구상(口相) 분석 (복록의 수용력) ---
-      let mouths = [
-        { name: '앙월구(仰月口)', desc: '입꼬리가 초승달처럼 위를 향해 총명함이 빛나며 만년의 복록이 대단히 두터운 입.', prob: 0, tag: 'upward' },
-        { name: '복선구(覆船口)', desc: '입꼬리가 굳게 닫혀 아래를 향하나, 결단력이 강하고 묵직한 카리스마로 조직을 이끄는 입.', prob: 0, tag: 'downward' },
-        { name: '대구(大口)', desc: '시원하게 넓고 큰 입구조로 호탕한 리더십을 발휘하며 수많은 사람을 거느리는 제왕의 입.', prob: 0, tag: 'large' },
-        { name: '음배구(陰配口)', desc: '작고 앙증맞으나 윤곽이 단정하여, 비밀을 무겁게 지키고 내면의 신념이 단단한 입.', prob: 0, tag: 'small' }
-      ];
-      // 미세한 입꼬리 근육(mc)의 파동을 1000배 증폭시켜 뚜렷한 영적 수치로 체환했어
-      let mcScaled = features.mouthCurve * 1000; 
-      let mr = features.mouthRatio;
-
-      mouths[0].prob = calcKarma(mcScaled - 5, 2.5, mr - 1.35, 60);    // 앙월구 (초승달처럼 위를 향해 열린 복록)
-      mouths[1].prob = calcKarma(mcScaled - (-5), 2.5, mr - 1.35, 60); // 복선구 (배가 뒤집힌 듯 무겁고 굳건한 닫힘)
-      mouths[2].prob = calcKarma(mr - 1.7, 120);                       // 대구 (세상의 모든 것을 집어삼키는 호탕함)
-      mouths[3].prob = calcKarma(mr - 1.05, 150);                      // 음배구 (작고 앙증맞으나 속이 꽉 찬 신념)
-
-      mouths.sort((a,b) => b.prob - a.prob);
-      let bestMouth = mouths[0];
+    // --- 3. 정밀 구상(口相) 분석 (복록의 수용력) ---
+    // 관상 유형 JSON: { tag, name, desc, tier, targetMc, wMc, targetMr, wMr }
+    const MOUTH_TYPES_JSON = [
+      { tag: 'upward',   name: '앙월구(仰月口)', tier: 'good',
+        desc: '입꼬리가 초승달처럼 위를 향해 총명함이 빛나며 만년의 복록이 대단히 두터운 입.',
+        targetMc: 5, wMc: 2.5, targetMr: 1.35, wMr: 60 },
+      { tag: 'downward', name: '복선구(覆船口)', tier: 'bad',
+        desc: '입꼬리가 굳게 닫혀 아래로 처진 형상. 불만과 원망이 얼굴에 새겨져 대인관계에서 지속적인 마찰이 생기고, 말년에 고독과 쇠퇴가 찾아올 수 있는 흉구(凶口).',
+        targetMc: -5, wMc: 2.5, targetMr: 1.35, wMr: 60 },
+      { tag: 'large',    name: '대구(大口)', tier: 'good',
+        desc: '시원하게 넓고 큰 입구조로 호탕한 리더십을 발휘하며 수많은 사람을 거느리는 제왕의 입.',
+        targetMc: 0, wMc: 0, targetMr: 1.7, wMr: 120 },
+      { tag: 'small',    name: '음배구(陰配口)', tier: 'neutral',
+        desc: '작고 앙증맞으나 윤곽이 단정하여, 비밀을 무겁게 지키고 내면의 신념이 단단한 입.',
+        targetMc: 0, wMc: 0, targetMr: 1.05, wMr: 150 },
+      { tag: 'thin',     name: '박순구(薄脣口)', tier: 'bad',
+        desc: '윗입술이 매우 얇고 냉기가 서린 형상. 냉정하고 이기적이며 상대방의 감정에 무감각하여 깊은 인간관계를 맺기 어렵고, 믿음을 저버리는 배신수(背信數)가 높은 흉구.',
+        targetMc: -2, wMc: 3.0, targetMr: 1.5, wMr: 200 }
+    ];
+    let mcScaled = features.mouthCurve * 1000;
+    let mr = features.mouthRatio;
+    let mouths = MOUTH_TYPES_JSON.map(t => ({
+      ...t,
+      prob: calcKarma(mcScaled - t.targetMc, t.wMc, mr - t.targetMr, t.wMr)
+    }));
+    mouths.sort((a,b) => b.prob - a.prob);
+    let bestMouth = mouths[0];
 
     // --- 4. 정밀 이상(耳相) 분석 ---
+    // 귀 위치(earPosition) + 귀 비율(earRatio)로 4가지 분기
     let earText = "";
     if (features.earPosition === "high") {
-        earText += "귀의 윗부분이 눈썹 선보다 위치가 높아(과목상) 학문적 성취와 지혜가 대단히 뛰어나며, 일찍부터 이름을 떨치어 부귀를 누릴 <b>학자/귀인(貴人)</b>의 상입니다. ";
+      if (features.earRatio > 0.22) {
+        earText = "귀의 윗부분이 눈썹보다 높이 솟아(과목·高耳) 지혜와 학문의 기운이 충만하며, 두툼한 수주(귓볼)가 재복을 든든히 받쳐 주어 <b>학자·귀인(貴人)의 옥이(玉耳)</b>입니다. 초년부터 이름을 떨치고 중만년에 부귀가 쌓입니다.";
+      } else {
+        earText = "귀가 높이 달렸으나(과목상) 귓볼이 빈약하여 <b>두뇌는 탁월하나 재물이 잘 모이지 않는</b> 아쉬운 기운입니다. 지식 노동에서 뛰어난 성과를 내지만, 이를 경제적 성과로 전환하는 금전 감각을 별도로 키워야 합니다.";
+      }
     } else {
-        earText += "귀가 눈의 높이와 수평으로 조화를 이루어, <b>뛰어난 현실 감각과 흔들림 없는 평정심</b>으로 탄탄한 중년의 성취를 일궈내는 듬직한 상입니다. ";
-    }
-    if (features.earRatio > 0.22) {
-        earText += "<br>특히 <b>수주(귓볼)가 매우 두껍고 넉넉하여</b> 흘러가는 재물을 꽉 쥐어 담고, 만인을 포용하는 자비로움을 갖춘 덕 있는 장수의 귀입니다.";
-    } else {
-        earText += "<br>수주의 테두리가 단정하고 예리하여 타인에게 헛된 기대를 걸지 않고, 스스로의 완벽주의적 <b>실력 하나로 크게 자수성가</b>하는 서늘한 감각이 비범합니다.";
+      if (features.earRatio > 0.22) {
+        earText = "귀가 눈 높이와 수평을 이루며 수주(귓볼)가 넉넉하고 두툼합니다. <b>뛰어난 현실 감각에 탄탄한 재물복</b>이 겹쳐진 안정된 중년의 상입니다.";
+      } else {
+        earText = "귀가 낮고 작으며 귓볼이 빈약하여 조상·부모의 음덕이 희박하고 <b>초·중년의 고생이 많은 이소박(耳小薄)에 가까운 상</b>입니다. 건강 관리와 독립적 경제력 확보에 특별히 유의해야 합니다.";
+      }
     }
 
     // --- 5. 심화 조화 분석 (상생 / 상극) ---
     let harmonyText = "안면 오관(五官)이 각자의 자리에서 무난한 균형을 유지하고 있어 인생 전반이 크게 기울지 않는 평원(平原)의 격국입니다.";
-    
-    // 조화 분석 규칙 (상생/상극 매핑)
+
+    // 조화 분석 규칙 맵핑 (길상 상생 + 흉상 상극 + 신규 흉조 조합)
     if (bestEye.tag === 'tiger' && bestMouth.tag === 'downward') {
-        harmonyText = "⚠️ <b>[상극 조화 - 호안과 복선구]</b> 눈빛의 기세가 천하를 뚫는 맹렬한 호안(虎眼)이나, 입꼬리가 굳게 닫힌 복선구로 인해 분노가 안으로 쌓여 기운이 단절될 우려가 있습니다. 유연한 미소와 온화한 덕(德)을 갖추어 기운을 순환시키면 대업을 이룹니다.";
+        harmonyText = "⚠️ <b>[상극 조화 - 호안과 복선구]</b> 눈빛의 기세가 천하를 뚫는 맹렬한 호안(虎眼)이나, 입꼬리가 굳게 닫힌 복선구로 인해 분노가 안으로 쌓여 기운이 단절될 우려가 있습니다.";
     } else if ((bestEye.tag === 'dragon' || bestEye.tag === 'phoenix') && bestNose.tag === 'gall') {
-        harmonyText = "✨ <b>[극상 상생 - 제왕과 거부의 조화]</b> 위엄 있는 용상(또는 봉황)의 눈과 천하의 재물을 쓸어 담는 현담비(懸膽鼻)가 만나 <b>가장 완벽하고 부귀한 최고의 격국(格局)</b>을 이뤘습니다. 이끄는 곳마다 엄청난 결과와 명예가 쏟아집니다.";
+        harmonyText = "✨ <b>[극상 상생 - 제왕과 거부의 조화]</b> 위엄 있는 용상(또는 봉황)의 눈과 천하의 재물을 쓸어 담는 현담비(懸膽鼻)가 만나 <b>가장 완벽하고 부귀한 최고의 격국(格局)</b>을 이뤘습니다.";
     } else if ((bestEye.tag === 'dragon' || bestEye.tag === 'tiger') && bestNose.tag === 'hook') {
-        harmonyText = "⚔️ <b>[패업 상생 - 투장(鬪將)의 기운]</b> 두려움 없는 눈매에 매부리코의 예리하고 공격적인 기운이 더해져, 난세의 영웅이나 기업 파괴적 승부사처럼 남들이 불가능하다 여기는 일을 과감히 쟁취해내는 <b>풍운아의 격국</b>입니다.";
+        harmonyText = "⚔️ <b>[패업 상생 - 투장(鬪將)의 기운]</b> 두려움 없는 눈매에 매부리코의 예리하고 공격적인 기운이 더해져 <b>난세의 풍운아</b>의 격국입니다.";
     } else if ((bestEye.tag === 'phoenix' || bestEye.tag === 'sanpaku') && bestNose.tag === 'bamboo') {
-        harmonyText = "✨ <b>[청귀(淸貴) 상생 - 불의와 타협 않는 고고함]</b> 극도로 예리한 눈빛과 초록 대나무를 쪼갠 듯 반듯한 절통비가 아름답게 조화를 이룹니다. 학자, 판검사 혹은 시대의 리더로서 <b>탁함에 물들지 않고 맑고 숭고한 지위</b>에 오를 격국입니다.";
+        harmonyText = "✨ <b>[청귀(淸貴) 상생 - 불의와 타협 않는 고고함]</b> 예리한 눈빛과 절통비가 조화를 이룹니다. <b>학자·리더로서 맑고 숭고한 지위</b>에 오를 격국입니다.";
     } else if (bestEye.tag === 'peach' && bestMouth.tag === 'upward') {
-        harmonyText = "🌸 <b>[도화 상생 - 압도적 만인의 연인]</b> 촉촉하고 아련하게 사람을 홀리는 도화안에, 자연스레 호감을 불러일으키는 사랑스러운 앙월구가 더해져 <b>한 번 보면 잊을 수 없는 엄청난 인복과 대중의 사랑</b>을 독차지하는 격국입니다.";
+        harmonyText = "🌸 <b>[도화 상생 - 압도적 만인의 연인]</b> 도화안에 앙월구가 더해져 <b>한 번 보면 잊을 수 없는 엄청난 인복과 대중의 사랑</b>을 독차지하는 격국입니다.";
     } else if (bestEye.tag === 'cow' && bestMouth.tag === 'large') {
-        harmonyText = "🤝 <b>[포용 상생 - 천하를 거느리는 대장보]</b> 선하고 다정다감한 우안과 한 번에 바다를 들이켤 듯 시원한 대구(大口)가 조화되어, 수많은 사람을 넉넉히 먹여 살리고 거느리는 덕장(德將)의 기운을 완벽히 뽐냅니다.";
+        harmonyText = "🤝 <b>[포용 상생 - 천하를 거느리는 대장보]</b> 선하고 다정다감한 우안과 시원한 대구(大口)가 조화되어 <b>수많은 사람을 거느리는 덕장(德將)</b>의 기운입니다.";
     } else if (bestEye.tag === 'sanpaku' && bestMouth.tag === 'small') {
-        harmonyText = "⚠️ <b>[상극 조화 - 삼백안과 은배구]</b> 눈빛의 야망(삼백안)은 몹시 강렬하나, 이를 뿜어낼 입(음배구)이 앙증맞고 작아 포부를 다 펼치지 못하고 속병을 앓기 쉽습니다. 소통의 폭을 과감히 넓히면 내면의 천재성이 빛을 봅니다.";
+        harmonyText = "⚠️ <b>[상극 조화 - 삼백안과 음배구]</b> 눈빛의 야망은 강렬하나 소통력 부족으로 포부를 다 펼치지 못하고 속병을 앓기 쉽습니다.";
+    } else if (bestEye.tag === 'rat' || bestEye.tag === 'snake_eye') {
+        harmonyText = "💀 <b>[극흉(極凶) - 배반과 고독의 기운]</b> " + (bestEye.tag === 'rat' ? '쥐안(鼠眼)' : '사안(蛇眼)') + "에서 발산되는 차갑고 음습한 기운이 오관 전체를 덮어 <b>가까운 이들과의 배신·고독·재물 손실</b>이 이어질 수 있는 극히 경계해야 할 격국입니다. 적극적인 선행과 심상(心相) 수양으로 반드시 개운하십시오.";
+    } else if (bestEye.tag === 'camel' && bestMouth.tag === 'downward') {
+        harmonyText = "⛓️ <b>[쌍흉(雙凶) - 낙타안과 복선구]</b> 처진 낙타안과 아래로 닫힌 복선구가 겹쳐 <b>의지력 고갈, 만성 불평, 의욕 상실</b>의 기운이 강하게 서려 있습니다. 삶의 목표를 재설정하고 긍정의 힘을 길러야 합니다.";
+    } else if (bestEye.tag === 'pig_eye' && bestNose.tag === 'flat') {
+        harmonyText = "⚠️ <b>[흉상 - 탐욕과 재물난(財物難)]</b> 돼지안(豚眼)과 납작코가 동시에 나타나 <b>탐욕은 크나 재물이 쌓이지 않는 전형적 흉조</b>입니다. 절제와 공덕(功德)을 쌓는 것이 유일한 개운책입니다.";
+    } else if (bestNose.tag === 'flat' && bestMouth.tag === 'thin') {
+        harmonyText = "🪨 <b>[貧苦 상극 - 납작코와 박순구]</b> 재물의 기운이 모이지 않는 납작코와 냉기 어린 박순구(薄脣口)가 겹쳐 <b>경제적 고난과 인간관계의 단절</b>이 반복될 수 있습니다. 온화한 표정 연습과 봉사 활동으로 기운을 전환하십시오.";
     }
 
     // 비술: 업보와 그림자의 농도 계산 (관상학적 흉상 수치화)
@@ -1887,18 +1951,18 @@ async analyze(landmarksData, expressionData) {
         <div style="margin-bottom: 15px;">
           <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;"> 오관(五官) 정밀 확률 분석</div>
           <ul style="padding-left: 0; list-style: none; font-size: 0.95rem; color: #475569; margin: 0;">
-            <li style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 6px;">
-               <div style="font-weight:700; color:#3b82f6; margin-bottom:4px; font-size: 1rem;">👁️ 안상(눈) - ${bestEye.name} <span style="color:#2563eb;">[${bestEye.prob.toFixed(1)}% 일치]</span></div>
+            <li style="margin-bottom: 12px; background: ${bestEye.tier === 'bad' ? '#fff1f2' : bestEye.tier === 'warning' ? '#fffbeb' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestEye.tier === 'bad' ? '#ef4444' : bestEye.tier === 'warning' ? '#f59e0b' : '#3b82f6'};">
+               <div style="font-weight:700; color:${bestEye.tier === 'bad' ? '#991b1b' : bestEye.tier === 'warning' ? '#92400e' : '#3b82f6'}; margin-bottom:4px; font-size: 1rem;">👁️ 안상(눈) - ${bestEye.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestEye.tier === 'bad' ? '#fee2e2' : bestEye.tier === 'warning' ? '#fef3c7' : '#dbeafe'}; color:${bestEye.tier === 'bad' ? '#b91c1c' : bestEye.tier === 'warning' ? '#92400e' : '#1d4ed8'};">${bestEye.tier === 'bad' ? '凶相' : bestEye.tier === 'warning' ? '주의' : '吉相'}</span> [${bestEye.prob.toFixed(1)}% 일치]</div>
                ${bestEye.desc}
                <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">*경합 분석: ${eyes[1].name}(${eyes[1].prob.toFixed(1)}%), ${eyes[2].name}(${eyes[2].prob.toFixed(1)}%)</div>
             </li>
-            <li style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 6px;">
-               <div style="font-weight:700; color:#8b5cf6; margin-bottom:4px; font-size: 1rem;">👃 비상(코) - ${bestNose.name} <span style="color:#7c3aed;">[${bestNose.prob.toFixed(1)}% 일치]</span></div>
+            <li style="margin-bottom: 12px; background: ${bestNose.tier === 'bad' ? '#fff1f2' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestNose.tier === 'bad' ? '#ef4444' : '#8b5cf6'};">
+               <div style="font-weight:700; color:${bestNose.tier === 'bad' ? '#991b1b' : '#8b5cf6'}; margin-bottom:4px; font-size: 1rem;">👃 비상(코) - ${bestNose.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestNose.tier === 'bad' ? '#fee2e2' : '#ede9fe'}; color:${bestNose.tier === 'bad' ? '#b91c1c' : '#7c3aed'};">${bestNose.tier === 'bad' ? '凶相' : bestNose.tier === 'neutral' ? '中相' : '吉相'}</span> [${bestNose.prob.toFixed(1)}% 일치]</div>
                ${bestNose.desc}
                <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">*경합 분석: ${noses[1].name}(${noses[1].prob.toFixed(1)}%)</div>
             </li>
-            <li style="margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 6px;">
-               <div style="font-weight:700; color:#ec4899; margin-bottom:4px; font-size: 1rem;">👄 구상(입) - ${bestMouth.name} <span style="color:#db2777;">[${bestMouth.prob.toFixed(1)}% 일치]</span></div>
+            <li style="margin-bottom: 12px; background: ${bestMouth.tier === 'bad' ? '#fff1f2' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestMouth.tier === 'bad' ? '#ef4444' : '#ec4899'};">
+               <div style="font-weight:700; color:${bestMouth.tier === 'bad' ? '#991b1b' : '#ec4899'}; margin-bottom:4px; font-size: 1rem;">👄 구상(입) - ${bestMouth.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestMouth.tier === 'bad' ? '#fee2e2' : '#fce7f3'}; color:${bestMouth.tier === 'bad' ? '#b91c1c' : '#db2777'};">${bestMouth.tier === 'bad' ? '凶相' : bestMouth.tier === 'neutral' ? '中相' : '吉相'}</span> [${bestMouth.prob.toFixed(1)}% 일치]</div>
                ${bestMouth.desc}
             </li>
             <li style="margin-bottom: 6px; background: #f8fafc; padding: 10px; border-radius: 6px;">
