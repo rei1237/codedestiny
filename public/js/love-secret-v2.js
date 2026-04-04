@@ -211,23 +211,80 @@
     var day = parseInt((_qs('lsPartnerDay') || {}).value || '0', 10);
     var hourEl = _qs('lsPartnerHour');
     var hourVal = hourEl ? hourEl.value : '';
-    var gender = '';
     var gm = _qs('lsPartnerGenderM');
     var gf = _qs('lsPartnerGenderF');
-    if (gm && gm.classList.contains('active')) gender = '남성';
-    else if (gf && gf.classList.contains('active')) gender = '여성';
+    var genderCode = (gm && gm.classList.contains('active')) ? 'M' : (gf && gf.classList.contains('active')) ? 'F' : 'F';
+    var genderLabel = genderCode === 'M' ? '남성' : '여성';
     if (!year || !month || !day) return '';
+
+    // 12지시 → 대표 시각(시작 시각 기준) 매핑
+    var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+    var jiHourNames = ['자시(23-01시)','축시(01-03시)','인시(03-05시)','묘시(05-07시)','진시(07-09시)',
+      '사시(09-11시)','오시(11-13시)','미시(13-15시)','신시(15-17시)','유시(17-19시)','술시(19-21시)','해시(21-23시)'];
+    var hourIdx = (hourVal !== '') ? parseInt(hourVal, 10) : -1;
+    var birthHour = (hourIdx >= 0 && hourIdx < 12) ? jiHourMap[hourIdx] : 12;
+    var hourDisplay = (hourIdx >= 0) ? jiHourNames[hourIdx] : '미상';
+
     var lines = ['【상대방 정보】'];
     if (name) lines.push('이름: ' + name);
-    if (gender) lines.push('성별: ' + gender);
+    lines.push('성별: ' + genderLabel);
     lines.push('생년월일: ' + year + '년 ' + month + '월 ' + day + '일');
-    if (hourVal !== '') {
-      var hourNames = ['자시(23-01시)','축시(01-03시)','인시(03-05시)','묘시(05-07시)','진시(07-09시)',
-        '사시(09-11시)','오시(11-13시)','미시(13-15시)','신시(15-17시)','유시(17-19시)','술시(19-21시)','해시(21-23시)'];
-      lines.push('출생 시각: ' + (hourNames[parseInt(hourVal, 10)] || hourVal + '시'));
-    } else {
-      lines.push('출생 시각: 미상');
+    lines.push('출생 시각: ' + hourDisplay);
+
+    // 사주 엔진으로 상대방 사주 계산
+    if (typeof window.computeProfileForModal === 'function') {
+      var partnerProfile = {
+        name: name,
+        gender: genderCode,
+        birth: { year: year, month: month, day: day, hour: birthHour, minute: 0, calType: 'solar' },
+        location: { lat: 37.6, lng: 127.0, tz: 'Asia/Seoul', baseTzOffset: 9 }
+      };
+      try {
+        var result = window.computeProfileForModal(partnerProfile);
+        if (result) {
+          var GP = window.G_PILLARS;
+          var GW = window.G_POWER;
+          var snap = window.__destinyFlowerSajuSnapshot || {};
+          var analysis = snap.analysis || snap.saju || {};
+
+          if (GP) {
+            lines.push('\n【상대방 사주 원국(四柱)】');
+            if (GP.y) lines.push('년주(年柱): ' + (GP.y.g || '') + (GP.y.j || '') + (GP.y.gE ? ' [' + GP.y.gE + '/' + GP.y.jE + ']' : ''));
+            if (GP.m) lines.push('월주(月柱): ' + (GP.m.g || '') + (GP.m.j || '') + (GP.m.gE ? ' [' + GP.m.gE + '/' + GP.m.jE + ']' : ''));
+            if (GP.d) lines.push('일주(日柱): ' + (GP.d.g || '') + (GP.d.j || '') + (GP.d.gE ? ' [' + GP.d.gE + '/' + GP.d.jE + ']' : ''));
+            if (GP.h && hourIdx >= 0) lines.push('시주(時柱): ' + (GP.h.g || '') + (GP.h.j || '') + (GP.h.gE ? ' [' + GP.h.gE + '/' + GP.h.jE + ']' : ''));
+          }
+
+          if (analysis.elementWeights) {
+            var w = analysis.elementWeights;
+            lines.push('\n【상대방 오행(五行) 분포】');
+            lines.push('목(木):' + (w.wood || 0) + ' 화(火):' + (w.fire || 0) + ' 토(土):' + (w.earth || 0) + ' 금(金):' + (w.metal || 0) + ' 수(水):' + (w.water || 0));
+          }
+          if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
+          if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
+          if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
+          if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
+          if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
+            lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
+          }
+
+          if (GW && GW.groups) {
+            lines.push('\n【상대방 십성(十星) 분포】');
+            var gk = Object.keys(GW.groups);
+            for (var gi = 0; gi < gk.length; gi++) lines.push(gk[gi] + ': ' + GW.groups[gk[gi]]);
+          }
+        }
+      } catch (e) {
+        // 엔진 계산 실패 시 기본 텍스트만 사용
+      } finally {
+        // 원래 사용자 프로필로 완전히 복원
+        var origProfile = window.__cdActiveBirthProfile;
+        if (origProfile && origProfile.birth) {
+          try { window.computeProfileForModal(origProfile); } catch (_) {}
+        }
+      }
     }
+
     return lines.join('\n');
   }
 
