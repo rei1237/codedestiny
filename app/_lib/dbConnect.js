@@ -18,18 +18,15 @@
  *
  * ★ 주의: 0.0.0.0/0은 "모든 IP 허용"으로 DB에 강한 비밀번호가 반드시 필요합니다.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * ▸ Dynamic import 대신 정적 import 사용:
+ *   Cloudflare Workers + OpenNext 번들링 환경에서 `await import("mongoose")`를
+ *   동적으로 쓰면 esbuild가 모듈 초기화 시점에 require로 인라인해 Worker 시작 시
+ *   충돌할 수 있다. 정적 import로 선언하면 esbuild가 안전하게 번들링한다.
  */
+import mongoose from "mongoose";
 
-let _mongoose = null;
 let _connecting = null;
-
-async function getMongoose() {
-  if (!_mongoose) {
-    // Dynamic import to ensure it's loaded asynchronously
-    _mongoose = (await import("mongoose")).default;
-  }
-  return _mongoose;
-}
 
 export async function dbConnect() {
   const uri = (
@@ -45,7 +42,7 @@ export async function dbConnect() {
     );
   }
 
-  const m = await getMongoose();
+  const m = mongoose;
 
   // 이미 연결된 상태 (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)
   if (m.connection.readyState === 1) {

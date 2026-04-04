@@ -1,9 +1,9 @@
 /**
  * Next.js App Router / CF Pages 전용 User 모델 (ESM)
  * - server/models/User.js의 CJS 버전과 동일한 스키마 유지
- * - mongoose를 동적 import하여 CF Pages 환경 호환성 확보
  */
 
+import mongoose from "mongoose";
 import { dbConnect } from "../dbConnect.js";
 
 let _UserModel = null;
@@ -14,12 +14,12 @@ export async function getUserModel() {
   if (_UserModel) return _UserModel;
 
   // mongoose.models 캐시 확인 (hot-reload 환경)
-  if (m.models && m.models.User) {
-    _UserModel = m.models.User;
+  if (mongoose.models && mongoose.models.User) {
+    _UserModel = mongoose.models.User;
     return _UserModel;
   }
 
-  const { Schema } = m;
+  const { Schema } = mongoose;
 
   const userSchema = new Schema(
     {
@@ -59,6 +59,6 @@ export async function getUserModel() {
 
   userSchema.index({ email: 1 }, { unique: true });
 
-  _UserModel = m.model("User", userSchema);
+  _UserModel = mongoose.model("User", userSchema);
   return _UserModel;
 }

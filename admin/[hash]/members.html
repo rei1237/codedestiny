@@ -137,7 +137,7 @@
 
     <script type="module" src="./assets/admin.js"></script>
     <script type="module">
-      import { apiUsersList, apiAdjustPoints } from "./api/members.js";
+      import { apiUsersList, apiAdjustPoints, apiDeleteUser } from "./api/members.js";
 
       // 코인 모달 상태
       let _coinTargetUser = null;
@@ -258,12 +258,9 @@
               const ok = window.confirm("삭제하시겠습니까?");
               if(!ok) return;
               try{
-                const res2 = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
-                  method: "DELETE",
-                  credentials: "include"
-                });
+                const res2 = await apiDeleteUser(userId);
                 if(!res2.ok){
-                  showToast("삭제 실패");
+                  showToast("삭제 실패: " + (res2.payload?.message || "오류"));
                   return;
                 }
                 await load();

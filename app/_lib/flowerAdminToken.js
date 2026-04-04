@@ -73,12 +73,23 @@ export async function verifyFlowerAdminToken(token) {
 
 /**
  * Request 헤더에서 토큰 추출
- * Authorization: Bearer <token> 또는 x-admin-token: <token>
+ * Authorization: Bearer <token>, x-admin-token: <token>, 또는 fortune_auth_token 쿠키
  * @param {Request} request
  * @returns {string}
  */
 export function extractAdminTokenFromRequest(request) {
   const auth = request.headers.get("authorization") || "";
   if (auth.startsWith("Bearer ")) return auth.slice(7).trim();
-  return request.headers.get("x-admin-token") || "";
+
+  const xat = request.headers.get("x-admin-token") || "";
+  if (xat) return xat.trim();
+
+  // HTML 관리 패널 호환: fortune_auth_token 쿠키에서 토큰 추출
+  const cookieHeader = request.headers.get("cookie") || "";
+  const match = cookieHeader.match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
+  if (match) {
+    try { return decodeURIComponent(match[1]); } catch { return match[1]; }
+  }
+
+  return "";
 }
