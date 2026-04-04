@@ -1549,6 +1549,116 @@ let G = {
 };
 
 // =============================================
+//  SOUND ENGINE (Web Audio API – procedural, no external files)
+// =============================================
+const _sfxCtx = (()=>{ try{ return new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } })();
+function _sfxUnlock(){ if(_sfxCtx&&_sfxCtx.state==='suspended') _sfxCtx.resume(); }
+document.addEventListener('click',_sfxUnlock,{once:true});
+document.addEventListener('touchend',_sfxUnlock,{once:true});
+
+function sfxDeal(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const sr=_sfxCtx.sampleRate;
+  const len=Math.floor(sr*0.07);
+  const buf=_sfxCtx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/len*14);
+  const src=_sfxCtx.createBufferSource(); src.buffer=buf;
+  const flt=_sfxCtx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=3400; flt.Q.value=0.7;
+  const g=_sfxCtx.createGain(); g.gain.setValueAtTime(0.38,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.07);
+  src.connect(flt); flt.connect(g); g.connect(_sfxCtx.destination); src.start(t);
+}
+
+function sfxFlip(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const osc=_sfxCtx.createOscillator();
+  const g=_sfxCtx.createGain();
+  osc.type='triangle';
+  osc.frequency.setValueAtTime(1400,t); osc.frequency.exponentialRampToValueAtTime(220,t+0.13);
+  g.gain.setValueAtTime(0.28,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.13);
+  osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t); osc.stop(t+0.14);
+}
+
+function sfxChip(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [0,0.055,0.10].forEach((dt,i)=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='sine'; osc.frequency.value=1700+i*380;
+    g.gain.setValueAtTime(0.22,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.22);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.23);
+  });
+}
+
+function sfxClick(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const osc=_sfxCtx.createOscillator();
+  const g=_sfxCtx.createGain();
+  osc.type='square'; osc.frequency.setValueAtTime(480,t); osc.frequency.exponentialRampToValueAtTime(200,t+0.045);
+  g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.045);
+  osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t); osc.stop(t+0.05);
+}
+
+function sfxWin(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [[523,0],[659,0.14],[784,0.28],[1047,0.45]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='triangle'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.24,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.3);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.32);
+  });
+}
+
+function sfxLose(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [[494,0],[392,0.18],[262,0.38]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='sawtooth'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.18,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.35);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.37);
+  });
+}
+
+function sfxStart(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const sr=_sfxCtx.sampleRate;
+  const len=Math.floor(sr*0.28);
+  const buf=_sfxCtx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++){
+    const env=Math.min(i/(len*0.08),1)*Math.exp(-i/len*5);
+    d[i]=(Math.random()*2-1)*env;
+  }
+  const src=_sfxCtx.createBufferSource(); src.buffer=buf;
+  const flt=_sfxCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=160;
+  const g=_sfxCtx.createGain(); g.gain.setValueAtTime(0.42,t);
+  src.connect(flt); flt.connect(g); g.connect(_sfxCtx.destination); src.start(t);
+  [[220,0.06],[330,0.2],[440,0.34]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const gn=_sfxCtx.createGain();
+    osc.type='sine'; osc.frequency.value=freq;
+    gn.gain.setValueAtTime(0.16,t+dt); gn.gain.exponentialRampToValueAtTime(0.001,t+dt+0.26);
+    osc.connect(gn); gn.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.28);
+  });
+}
+
+// =============================================
 //  DECK
 // =============================================
 function makeDeck(){
@@ -1761,6 +1871,7 @@ function goToDealer(){
 }
 
 function pickDealer(id){
+  sfxClick();
   G.dealer=id;
   document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
   document.querySelector(`[data-d="${id}"]`).classList.add('sel');
@@ -1784,6 +1895,7 @@ function startGame(){
   const dot=document.getElementById('d-speaker-dot');
   if(dot){dot.style.color=D.color;dot.style.background=D.color;}
 
+  sfxStart();
   showScreen('screen-game');
 
   // Deal 3 cards each: p1 fd, p2 fd, p3 open
@@ -1816,8 +1928,11 @@ function setBettingButtons(){
 
 function doAction(act){
   if(act==='raise'&&G.luck>=10){
+    sfxChip();
     G.luck-=10;
     G.pot+=20;
+  } else {
+    sfxClick();
   }
   G.street++;
   updateHUD();
@@ -1838,6 +1953,8 @@ function dealStreet(){
     const dc={...G.deck.pop(), fd:faceDown};
     G.pCards.push(pc);
     G.dCards.push(dc);
+    sfxDeal();
+    setTimeout(sfxDeal, 110);
 
     renderRow('player-row',G.pCards,false,null);
     renderRow('dealer-row',G.dCards,false,null);
@@ -1872,6 +1989,8 @@ function runShowdown(){
     // Reveal all
     G.pCards.forEach(c=>c.fd=false);
     G.dCards.forEach(c=>c.fd=false);
+    sfxFlip();
+    setTimeout(sfxFlip,120);
 
     G.pHand=bestHand(G.pCards);
     G.dHand=bestHand(G.dCards);
@@ -1895,6 +2014,7 @@ function runShowdown(){
       ? `"${G.name}… 너의 ${G.pHand.name}이(가) 나의 어둠을 꿰뚫었다! 운명은 오늘 너의 편이군."`
       : `"${G.name}… 나의 ${G.dHand.name} 앞에 너의 ${G.pHand.name}이(가) 무너졌다. 이것이 운명이다."`;
     setDialogue(winMsg);
+    if(G.winner==='player') sfxWin(); else sfxLose();
 
     setButtons([{type:'next',label:'📜 운명 판결서 받기',fn:buildReport}]);
   },2200);
@@ -2576,8 +2696,11 @@ function setSpinning4(on){
 function doAction4(act){
   if(G4.roundDone) return;
   if(act==='raise'&&G4.luck>=10){
+    sfxChip();
     G4.luck-=10;
     G4.pot+=20;
+  } else {
+    sfxClick();
   }
   G4.street++;
   update4HUD();
@@ -2591,6 +2714,8 @@ function dealStreet4(){
     const faceDown = G4.street===4;
     G4.dCards.push({...G4.deck.pop(), fd:faceDown});
     G4.pCards.push({...G4.deck.pop(), fd:faceDown});
+    sfxDeal();
+    setTimeout(sfxDeal, 110);
 
     render4Stage(false);
     render4DealerZones(false);
@@ -2637,6 +2762,8 @@ function runShowdown4(){
   setTimeout(()=>{
     G4.pCards.forEach(c=>c.fd=false);
     G4.dCards.forEach(c=>c.fd=false);
+    sfxFlip();
+    setTimeout(sfxFlip,120);
 
     G4.pHand4 = bestHand(G4.pCards);
     G4.dHand4 = bestHand(G4.dCards);
@@ -2666,6 +2793,7 @@ function runShowdown4(){
     render4PlayerRow();
     render4Dialogues(true, msg);
     setSpinning4(false);
+    if(isWin) sfxWin(); else sfxLose();
 
     const bar=document.getElementById('action4-bar');
     bar.innerHTML='';

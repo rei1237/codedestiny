@@ -759,7 +759,7 @@ body{font-size:15px;}
   <div class="fold-box">
     <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
     <div class="fold-text" id="fold-text"></div>
-    <button class="fold-close" data-cd-inline-click="closeFoldModal">운명을 받아들이겠습니다</button>
+    <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
   </div>
 </div>
 
@@ -769,8 +769,8 @@ body{font-size:15px;}
     <div class="fold4-title">🃏 포기하려는가?</div>
     <div class="fold4-reactions" id="fold4-reactions"></div>
     <div class="fold4-buttons">
-      <button class="fold4-confirm" data-cd-inline-click="confirmFold4">⚔️ 폴드하겠습니다</button>
-      <button class="fold4-cancel" data-cd-inline-click="closeFold4Modal">계속 싸우겠습니다</button>
+      <button class="fold4-confirm" onclick="confirmFold4()">⚔️ 폴드하겠습니다</button>
+      <button class="fold4-cancel" onclick="closeFold4Modal()">계속 싸우겠습니다</button>
     </div>
   </div>
 </div>
@@ -784,7 +784,7 @@ body{font-size:15px;}
   <div class="name-group">
     <span class="name-label">당신의 이름을 밝혀라</span>
     <input class="name-input" id="name-input" type="text" placeholder="이름을 입력하시오…" maxlength="10" autocomplete="off">
-    <button class="btn-fate" data-cd-inline-click="goToDealer">운명의 문을 열어라</button>
+    <button class="btn-fate" onclick="goToDealer()">운명의 문을 열어라</button>
   </div>
 </div>
 
@@ -793,7 +793,7 @@ body{font-size:15px;}
   <h2 class="section-title">대결할 운명의 딜러를 선택하라</h2>
   <p class="greeting"><span id="greet-name"></span>, 프로비던스 홀에 오신 것을 환영한다.</p>
   <div class="dealers-grid">
-    <div class="dealer-card" data-d="amon" data-cd-inline-click="pickDealer" data-cd-inline-click-args="amon">
+    <div class="dealer-card" data-d="amon" onclick="pickDealer('amon')">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/greedyman.webp" alt="탐욕의 아몬" loading="lazy">
       </div>
@@ -803,7 +803,7 @@ body{font-size:15px;}
         <div class="d-quote">"너의 금전적 야망, 그 무게를 감당할 수 있겠나?"</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="ishtar" data-cd-inline-click="pickDealer" data-cd-inline-click-args="ishtar">
+    <div class="dealer-card" data-d="ishtar" onclick="pickDealer('ishtar')">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokergirl.webp" alt="매혹의 이슈타르" loading="lazy">
       </div>
@@ -813,7 +813,7 @@ body{font-size:15px;}
         <div class="d-quote" id="ishtar-q">"사랑이라는 독배를 마실 준비가 되었니?"</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="thanatos" data-cd-inline-click="pickDealer" data-cd-inline-click-args="thanatos">
+    <div class="dealer-card" data-d="thanatos" onclick="pickDealer('thanatos')">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokerwarrior.webp" alt="침묵의 타나토스" loading="lazy">
       </div>
@@ -823,7 +823,7 @@ body{font-size:15px;}
         <div class="d-quote">"너의 시간은 흐르고 있다. 육체의 불꽃을 지켜보지."</div>
       </div>
     </div>
-    <div class="dealer-card" data-d="metatron" data-cd-inline-click="pickDealer" data-cd-inline-click-args="metatron">
+    <div class="dealer-card" data-d="metatron" onclick="pickDealer('metatron')">
       <div class="d-img-wrap">
         <img class="d-img" src="/fuctionassets/destinyporker/pokergod.webp" alt="공허의 메타트론" loading="lazy">
       </div>
@@ -837,7 +837,7 @@ body{font-size:15px;}
 
   <!-- 4-WAY CHALLENGE BUTTON -->
   <div class="all4-wrap">
-    <button class="btn-all4 locked" id="btn-all4" data-cd-inline-click="tryStartAll4">
+    <button class="btn-all4 locked" id="btn-all4" onclick="tryStartAll4()">
       <span class="all4-lock-icon" id="all4-lock-icon">🔒</span>
       <span id="all4-btn-label">4신 연속 대결 — 운명의 최후 심판</span>
     </button>
@@ -963,7 +963,7 @@ body{font-size:15px;}
 <!-- SCREEN 5: REPORT -->
 <div class="screen hidden" id="screen-report">
   <div class="report-scroll" id="report-content"></div>
-  <button class="btn-restart" data-cd-inline-click="restartGame">다시 운명에 도전하라</button>
+  <button class="btn-restart" onclick="restartGame()">다시 운명에 도전하라</button>
 </div>
 
 <script>
@@ -1549,6 +1549,116 @@ let G = {
 };
 
 // =============================================
+//  SOUND ENGINE (Web Audio API – procedural, no external files)
+// =============================================
+const _sfxCtx = (()=>{ try{ return new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } })();
+function _sfxUnlock(){ if(_sfxCtx&&_sfxCtx.state==='suspended') _sfxCtx.resume(); }
+document.addEventListener('click',_sfxUnlock,{once:true});
+document.addEventListener('touchend',_sfxUnlock,{once:true});
+
+function sfxDeal(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const sr=_sfxCtx.sampleRate;
+  const len=Math.floor(sr*0.07);
+  const buf=_sfxCtx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/len*14);
+  const src=_sfxCtx.createBufferSource(); src.buffer=buf;
+  const flt=_sfxCtx.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=3400; flt.Q.value=0.7;
+  const g=_sfxCtx.createGain(); g.gain.setValueAtTime(0.38,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.07);
+  src.connect(flt); flt.connect(g); g.connect(_sfxCtx.destination); src.start(t);
+}
+
+function sfxFlip(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const osc=_sfxCtx.createOscillator();
+  const g=_sfxCtx.createGain();
+  osc.type='triangle';
+  osc.frequency.setValueAtTime(1400,t); osc.frequency.exponentialRampToValueAtTime(220,t+0.13);
+  g.gain.setValueAtTime(0.28,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.13);
+  osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t); osc.stop(t+0.14);
+}
+
+function sfxChip(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [0,0.055,0.10].forEach((dt,i)=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='sine'; osc.frequency.value=1700+i*380;
+    g.gain.setValueAtTime(0.22,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.22);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.23);
+  });
+}
+
+function sfxClick(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const osc=_sfxCtx.createOscillator();
+  const g=_sfxCtx.createGain();
+  osc.type='square'; osc.frequency.setValueAtTime(480,t); osc.frequency.exponentialRampToValueAtTime(200,t+0.045);
+  g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.045);
+  osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t); osc.stop(t+0.05);
+}
+
+function sfxWin(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [[523,0],[659,0.14],[784,0.28],[1047,0.45]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='triangle'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.24,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.3);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.32);
+  });
+}
+
+function sfxLose(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  [[494,0],[392,0.18],[262,0.38]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const g=_sfxCtx.createGain();
+    osc.type='sawtooth'; osc.frequency.value=freq;
+    g.gain.setValueAtTime(0.18,t+dt); g.gain.exponentialRampToValueAtTime(0.001,t+dt+0.35);
+    osc.connect(g); g.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.37);
+  });
+}
+
+function sfxStart(){
+  if(!_sfxCtx) return;
+  _sfxCtx.resume();
+  const t=_sfxCtx.currentTime;
+  const sr=_sfxCtx.sampleRate;
+  const len=Math.floor(sr*0.28);
+  const buf=_sfxCtx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++){
+    const env=Math.min(i/(len*0.08),1)*Math.exp(-i/len*5);
+    d[i]=(Math.random()*2-1)*env;
+  }
+  const src=_sfxCtx.createBufferSource(); src.buffer=buf;
+  const flt=_sfxCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=160;
+  const g=_sfxCtx.createGain(); g.gain.setValueAtTime(0.42,t);
+  src.connect(flt); flt.connect(g); g.connect(_sfxCtx.destination); src.start(t);
+  [[220,0.06],[330,0.2],[440,0.34]].forEach(([freq,dt])=>{
+    const osc=_sfxCtx.createOscillator();
+    const gn=_sfxCtx.createGain();
+    osc.type='sine'; osc.frequency.value=freq;
+    gn.gain.setValueAtTime(0.16,t+dt); gn.gain.exponentialRampToValueAtTime(0.001,t+dt+0.26);
+    osc.connect(gn); gn.connect(_sfxCtx.destination); osc.start(t+dt); osc.stop(t+dt+0.28);
+  });
+}
+
+// =============================================
 //  DECK
 // =============================================
 function makeDeck(){
@@ -1761,6 +1871,7 @@ function goToDealer(){
 }
 
 function pickDealer(id){
+  sfxClick();
   G.dealer=id;
   document.querySelectorAll('.dealer-card').forEach(c=>c.classList.remove('sel'));
   document.querySelector(`[data-d="${id}"]`).classList.add('sel');
@@ -1784,6 +1895,7 @@ function startGame(){
   const dot=document.getElementById('d-speaker-dot');
   if(dot){dot.style.color=D.color;dot.style.background=D.color;}
 
+  sfxStart();
   showScreen('screen-game');
 
   // Deal 3 cards each: p1 fd, p2 fd, p3 open
@@ -1816,8 +1928,11 @@ function setBettingButtons(){
 
 function doAction(act){
   if(act==='raise'&&G.luck>=10){
+    sfxChip();
     G.luck-=10;
     G.pot+=20;
+  } else {
+    sfxClick();
   }
   G.street++;
   updateHUD();
@@ -1838,6 +1953,8 @@ function dealStreet(){
     const dc={...G.deck.pop(), fd:faceDown};
     G.pCards.push(pc);
     G.dCards.push(dc);
+    sfxDeal();
+    setTimeout(sfxDeal, 110);
 
     renderRow('player-row',G.pCards,false,null);
     renderRow('dealer-row',G.dCards,false,null);
@@ -1872,6 +1989,8 @@ function runShowdown(){
     // Reveal all
     G.pCards.forEach(c=>c.fd=false);
     G.dCards.forEach(c=>c.fd=false);
+    sfxFlip();
+    setTimeout(sfxFlip,120);
 
     G.pHand=bestHand(G.pCards);
     G.dHand=bestHand(G.dCards);
@@ -1895,6 +2014,7 @@ function runShowdown(){
       ? `"${G.name}… 너의 ${G.pHand.name}이(가) 나의 어둠을 꿰뚫었다! 운명은 오늘 너의 편이군."`
       : `"${G.name}… 나의 ${G.dHand.name} 앞에 너의 ${G.pHand.name}이(가) 무너졌다. 이것이 운명이다."`;
     setDialogue(winMsg);
+    if(G.winner==='player') sfxWin(); else sfxLose();
 
     setButtons([{type:'next',label:'📜 운명 판결서 받기',fn:buildReport}]);
   },2200);
@@ -2183,7 +2303,7 @@ ${closingLine}`;
     </div>
     <div class="r-divider"></div>
     <div class="report-actions">
-      <button class="btn-share-kakao" data-cd-inline-click="sharePokerKakao">
+      <button class="btn-share-kakao" onclick="sharePokerKakao()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
         카카오톡 공유하기
       </button>
@@ -2576,8 +2696,11 @@ function setSpinning4(on){
 function doAction4(act){
   if(G4.roundDone) return;
   if(act==='raise'&&G4.luck>=10){
+    sfxChip();
     G4.luck-=10;
     G4.pot+=20;
+  } else {
+    sfxClick();
   }
   G4.street++;
   update4HUD();
@@ -2591,6 +2714,8 @@ function dealStreet4(){
     const faceDown = G4.street===4;
     G4.dCards.push({...G4.deck.pop(), fd:faceDown});
     G4.pCards.push({...G4.deck.pop(), fd:faceDown});
+    sfxDeal();
+    setTimeout(sfxDeal, 110);
 
     render4Stage(false);
     render4DealerZones(false);
@@ -2637,6 +2762,8 @@ function runShowdown4(){
   setTimeout(()=>{
     G4.pCards.forEach(c=>c.fd=false);
     G4.dCards.forEach(c=>c.fd=false);
+    sfxFlip();
+    setTimeout(sfxFlip,120);
 
     G4.pHand4 = bestHand(G4.pCards);
     G4.dHand4 = bestHand(G4.dCards);
@@ -2666,6 +2793,7 @@ function runShowdown4(){
     render4PlayerRow();
     render4Dialogues(true, msg);
     setSpinning4(false);
+    if(isWin) sfxWin(); else sfxLose();
 
     const bar=document.getElementById('action4-bar');
     bar.innerHTML='';
@@ -2880,7 +3008,7 @@ function buildReport4(){
     </div>
     <div class="r-divider"></div>
     <div class="report-actions">
-      <button class="btn-share-kakao" data-cd-inline-click="shareAll4Kakao">
+      <button class="btn-share-kakao" onclick="shareAll4Kakao()">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0;"><path d="M12 3C6.477 3 2 6.72 2 11.22c0 2.83 1.58 5.33 4.01 6.88L4.75 21.5l4.52-1.88C10.12 19.87 11.05 20 12 20c5.523 0 10-3.72 10-8.78C22 6.72 17.523 3 12 3z"/></svg>
         카카오톡 공유하기
       </button>
@@ -3116,6 +3244,5 @@ document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key===
   applyGoogleLang(target);
 })();
 </script>
-<script src="/js/cd-inline-click-binder.js" defer></script>
 </body>
 </html>
