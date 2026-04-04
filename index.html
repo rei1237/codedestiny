@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -391,6 +391,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn--coin .coin-label{font-size:.75rem;font-weight:700;color:rgba(255,220,100,0.7);white-space:nowrap}
 .auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(226,232,240,0.8);font-weight:700;font-size:.88rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
 .auth-btn--logout:hover{transform:translateY(-1px);border-color:rgba(255,100,100,0.4);box-shadow:0 6px 18px rgba(200,50,50,0.2),inset 0 1px 0 rgba(255,255,255,0.07);color:#fca5a5}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(30,5,60,0.95),rgba(80,20,10,0.9));border:1px solid rgba(255,180,40,0.55);color:#fde68a;font-size:.82rem;font-weight:800;letter-spacing:.03em;box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:adminBadgePulse 3s ease-in-out infinite;flex-shrink:0}
+@keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
+.admin-badge__crown{font-style:normal;font-size:.9rem}
+.admin-badge__text{font-size:.76rem;font-weight:900;background:linear-gradient(90deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:999px;border:1px solid rgba(255,200,80,0.28);background:linear-gradient(135deg,rgba(18,8,42,0.92),rgba(30,12,60,0.88));box-shadow:0 8px 32px rgba(0,0,0,0.55),0 0 0 1px rgba(160,100,255,0.12),inset 0 1px 0 rgba(255,220,140,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f0e8ff;font-weight:700;font-size:.84rem;letter-spacing:.01em;z-index:4}
 .golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff9d6 0%,#ffd14d 46%,#c97a08 100%);border:1.5px solid rgba(255,215,0,0.45);box-shadow:0 0 14px rgba(255,200,50,0.5),inset 0 2px 6px rgba(255,255,200,0.6),0 4px 10px rgba(140,80,8,0.28)}
 .golden-grain-badge__coin::before{content:'';width:14px;height:14px;border-radius:50%;border:2px solid rgba(120,60,5,0.4);box-shadow:inset 0 2px 4px rgba(255,250,200,0.6)}
@@ -541,8 +545,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   <link rel="preload" as="style" href="/styles/life-book.css?v=20260403-v1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260403-v1"></noscript>
-  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260601-v1" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260601-v1"></noscript>
+  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260604-v2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260604-v2"></noscript>
 
   <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -1089,10 +1093,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
       <script>
         (function () {
-          function __cdRenderAuthSummary(name, points) {
+          function __cdRenderAuthSummary(name, points, isAdmin) {
             var el = document.getElementById('authQuickLinks');
             if (!el) return;
+            var adminBadgeHtml = isAdmin
+              ? '<span class="admin-badge" title="관리자 모드 활성화 — 코인 제한 없음">'
+                + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
+                + '<span class="admin-badge__text">ADMIN</span>'
+                + '</span> '
+              : '';
             el.innerHTML =
+              adminBadgeHtml +
               '<span class="auth-btn auth-btn--coin">' +
               '<i class="coin-icon" aria-hidden="true">🪙</i>' +
               '<span class="coin-amount">' + Number(points || 0).toLocaleString('ko-KR') + '</span>' +
@@ -1108,6 +1119,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 });
                 document.cookie = 'fortune_auth_token=;max-age=0;path=/;SameSite=Lax';
                 document.cookie = 'fortune_auth_role=;max-age=0;path=/;SameSite=Lax';
+                // 관리자 패널 세션 토큰도 반드시 제거 (핵심 보안 Fix)
+                try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                try { window.__cdAdminBypass = false; } catch (_) {}
                 location.reload();
               });
             }
@@ -1118,11 +1132,34 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               var t = localStorage.getItem('fortune_auth_token');
               var el = document.getElementById('authQuickLinks');
               if (!el) return;
-              if (!t) return;
+              // flower_admin_token 포맷 검증 (서명 형식: payloadB64.hex64)
+              var _adminTok = (function(){ try { return sessionStorage.getItem('flower_admin_token'); } catch(_){return null;} })();
+              var _adminTokValid = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
+              // 일반 인증 없이 관리자 패널 토큰만 있는 경우 — 관리자 표시 + 나가기 버튼
+              if (!t) {
+                if (_adminTokValid) {
+                  el.innerHTML =
+                    '<span class="admin-badge" title="관리자 패널 세션 — 코인 제한 없음">'
+                    + '<i class="admin-badge__crown" aria-hidden="true">👑</i>'
+                    + '<span class="admin-badge__text">ADMIN</span>'
+                    + '</span> '
+                    + '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>';
+                  var _abtn = document.getElementById('cdAuthLogoutBtn');
+                  if (_abtn) {
+                    _abtn.addEventListener('click', function () {
+                      try { sessionStorage.removeItem('flower_admin_token'); } catch (_) {}
+                      try { window.__cdAdminBypass = false; } catch (_) {}
+                      location.reload();
+                    });
+                  }
+                }
+                return;
+              }
               var us = localStorage.getItem('fortune_auth_user');
-              var n = '사용자', p = 0;
-              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); } catch (_) {}
-              __cdRenderAuthSummary(n, p);
+              var n = '사용자', p = 0, r = 'user';
+              try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) {}
+              var isAdm = r === 'admin' || _adminTokValid;
+              __cdRenderAuthSummary(n, p, isAdm);
 
               fetch('/api/payments/me', {
                 method: 'GET',
@@ -1145,7 +1182,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                     localStorage.setItem('fortune_auth_user', JSON.stringify(user));
                   } catch (_) {}
 
-                  __cdRenderAuthSummary(n, nextPoints);
+                  __cdRenderAuthSummary(n, nextPoints, isAdm);
                   if (typeof window.__cdSetGoldenBalance === 'function') {
                     window.__cdSetGoldenBalance(nextPoints);
                   }
@@ -1159,14 +1196,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </script>
 
       <div id="goldenGrainBadgeRoot"></div>
-
-      <button
-        type="button"
-        data-action="openAdminFlowerGate"
-        aria-label="관리자 패널 진입"
-        title="관리자 진입"
-        style="position:fixed;left:50%;bottom:2px;transform:translateX(-50%);z-index:1200;width:42px;height:42px;border:none;border-radius:999px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.72),rgba(250,204,21,.24) 42%,rgba(236,72,153,.22) 100%);box-shadow:0 4px 12px rgba(15,23,42,.2),0 0 0 1px rgba(255,255,255,.35) inset;cursor:pointer;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.42;backdrop-filter:blur(2px);"
-      >🌸</button>
 
     </header>
 
@@ -2936,10 +2965,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
             <section id="animalTotemIntroStage" class="animal-totem-stage is-active">
               <div class="totem-intro-hero rounded-2xl shadow-xl overflow-hidden">
-                <div class="totem-intro-title tracking-widest">LUMINOUS TOTEM RITUAL</div>
-                <p class="totem-intro-subtitle leading-relaxed text-white/95">오로라가 흐르는 밤하늘 아래에서, 마음을 비추는 동물 토템 카드를 만나보세요. 한 장, 세 장, 다섯 장 중 지금의 감정에 맞는 리추얼을 선택할 수 있습니다.</p>
+                <div class="totem-intro-title tracking-widest">✦ ANIMAL TOTEM SACRED RITUAL ✦</div>
+                <p class="totem-intro-subtitle leading-relaxed text-white/95">신비로운 숲속의 동물들이 당신의 마음을 읽습니다. 수호 동물 카드로 오늘의 에너지와 방향성을 발견해 보세요. 한 장·세 장·다섯 장 중 지금의 감정에 맞는 의식을 선택하세요.</p>
                 <div class="mt-5">
-                  <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">BEGIN DREAM RITUAL</button>
+                  <button class="totem-btn totem-btn--invoke w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold tracking-wider" type="button" data-action="startAnimalTotemRitual">🌿 리추얼 시작하기</button>
                 </div>
               </div>
               <div class="totem-canvas-wrap">
@@ -2951,22 +2980,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
             <section id="animalTotemModeStage" class="animal-totem-stage totem-mode-stage">
               <div class="totem-mode-header text-center">
-                <span class="totem-mode-badge inline-block">✦ MYSTIC CARD CIRCLE ✦</span>
-                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">카드 의식 선택</h3>
-                <p class="totem-mode-hint mt-1">선택지 자체가 하나의 마법진이 되도록 구성했습니다</p>
+                <span class="totem-mode-badge inline-block">✦ SACRED TOTEM CIRCLE ✦</span>
+                <h3 class="totem-draw-header totem-mode-title text-xl font-bold mt-2">수호 동물 카드 의식 선택</h3>
+                <p class="totem-mode-hint mt-1">지금의 감정과 에너지에 맞는 카드 의식을 선택하세요</p>
               </div>
               <div class="totem-mode-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <button type="button" class="totem-mode-btn" data-mode="one" data-action="setAnimalTotemSpreadMode" data-action-args="one">
-                  <span class="totem-mode-icon">☾</span>
-                  <span class="totem-mode-content"><b>Moon Single</b><br><small>한 장의 카드로 받는 오늘의 핵심 안내</small></span>
+                  <span class="totem-mode-icon">🌙</span>
+                  <span class="totem-mode-content"><b>달빛 한 장</b><br><small>한 장의 수호 동물로 받는 오늘의 핵심 안내</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn is-active" data-mode="three" data-action="setAnimalTotemSpreadMode" data-action-args="three">
-                  <span class="totem-mode-icon">✶</span>
-                  <span class="totem-mode-content"><b>Aurora Triple</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기</small></span>
+                  <span class="totem-mode-icon">🌿</span>
+                  <span class="totem-mode-content"><b>숲의 세 길</b><br><small>과거 · 현재 · 통합의 흐름을 부드럽게 읽기</small></span>
                 </button>
                 <button type="button" class="totem-mode-btn" data-mode="five" data-action="setAnimalTotemSpreadMode" data-action-args="five">
-                  <span class="totem-mode-icon">✧</span>
-                  <span class="totem-mode-content"><b>Constellation Five</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색</small></span>
+                  <span class="totem-mode-icon">⭐</span>
+                  <span class="totem-mode-content"><b>별자리 다섯 동물</b><br><small>감정, 그림자, 선물, 행동까지 깊이 탐색</small></span>
                 </button>
               </div>
               <div class="totem-result-actions totem-mode-actions flex flex-wrap justify-center gap-3 mt-6">
@@ -2989,7 +3018,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <section id="animalTotemResultStage" class="animal-totem-stage totem-result-stage">
               <div class="totem-result-container max-w-2xl mx-auto flex flex-col gap-6">
                 <header class="totem-result-header">
-                  <h2 class="totem-result-title text-2xl md:text-3xl font-extrabold tracking-wide">Your Dreaming Animal Wisdom</h2>
+                  <h2 class="totem-result-title text-2xl md:text-3xl font-extrabold tracking-wide">✨ 수호 동물의 메시지</h2>
                   <div id="animalTotemFlowStrip" class="totem-flow-strip totem-flow-strip--compact mt-4 rounded-2xl" aria-live="polite"></div>
                 </header>
                 <div class="totem-result-card-section flex justify-center">
@@ -2997,12 +3026,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 </div>
                 <div class="totem-result-content space-y-5">
                   <article class="totem-panel-float totem-panel-float--opening rounded-2xl p-6 shadow-lg">
-                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">Ritual Prelude</h4>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">🌱 오프닝 메시지</h4>
                     <p id="animalTotemOpeningText" class="leading-relaxed"></p>
                   </article>
                   <div id="animalTotemReadingPanels" class="totem-consult-list space-y-5"></div>
                   <article class="totem-panel-float totem-panel-float--closing rounded-2xl p-6 shadow-lg">
-                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">Healing Closing</h4>
+                    <h4 class="font-semibold tracking-wider uppercase text-sm mb-3">🌸 힐링 클로징</h4>
                     <p id="animalTotemClosingText" class="leading-relaxed"></p>
                   </article>
                 </div>
@@ -3239,50 +3268,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         itemscope itemtype="https://schema.org/Collection"
         style="border-radius:22px;overflow:hidden;background:linear-gradient(145deg,rgba(10,13,46,0.98) 0%,rgba(20,8,50,0.98) 55%,rgba(10,13,46,0.98) 100%);border:1px solid rgba(183,148,244,0.32);box-shadow:0 8px 40px rgba(0,0,0,0.55),0 0 0 1px rgba(183,148,244,0.08) inset;">
 
-        <!-- ① 배너 헤더: 클릭하면 패널 열림 (다른 기능과 동일한 webp 클릭 패턴) -->
-        <button id="fsp-header-btn" type="button" aria-label="유명인 사주 분석 아카이브 열기"
-          style="display:block;width:100%;background:none;border:none;padding:0;cursor:pointer;text-align:left;">
-          <div style="position:relative;height:200px;overflow:hidden;">
-            <img src="/fuctionassets/famous.webp"
-              alt="유명인 사주 분석 아카이브 — 역사 위인·K-스타·해외 유명인 사주팔자 명리학 심층 분석"
-              loading="lazy" decoding="async"
-              width="860" height="200"
-              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;">
-            <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,46,0.18) 0%,rgba(10,13,46,0.58) 55%,rgba(10,13,46,0.94) 100%);"></div>
-            <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 20px 16px;">
-              <h2 itemprop="name" style="margin:0 0 4px;font-size:1.18rem;font-weight:800;color:#f3e8ff;letter-spacing:0.03em;text-shadow:0 2px 12px rgba(0,0,0,0.9);">⭐ 유명인 사주 분석 아카이브</h2>
-              <p style="margin:0;font-size:0.79rem;color:rgba(220,210,240,0.95);line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,0.8);">역사 위인·K-스타·일본·중국·미국 유명인의 사주팔자를 명리학 엔진으로 심층 분석합니다. 탭을 눌러 살펴보세요.</p>
-            </div>
-            <div style="position:absolute;top:12px;right:14px;background:rgba(124,58,237,0.72);border-radius:999px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:#e9d5ff;backdrop-filter:blur(4px);">탭하여 열기 ▼</div>
+        <!-- ① 배너 헤더: famous.webp 이미지 위에 패널 타이틀 배치 -->
+        <div style="position:relative;height:180px;overflow:hidden;">
+          <img src="/fuctionassets/famous.webp"
+            alt="유명인 사주 분석 아카이브 대표 이미지"
+            loading="lazy" decoding="async"
+            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;">
+          <!-- 이미지 위 그라데이션 오버레이 -->
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,46,0.22) 0%,rgba(10,13,46,0.6) 55%,rgba(10,13,46,0.92) 100%);"></div>
+          <!-- 이미지 안에 표시되는 패널 타이틀 -->
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 20px 16px;">
+            <h2 itemprop="name" style="margin:0 0 5px;font-size:1.15rem;font-weight:800;color:#f3e8ff;letter-spacing:0.03em;text-shadow:0 2px 12px rgba(0,0,0,0.9);">⭐ 유명인 사주 분석 아카이브</h2>
+            <p style="margin:0;font-size:0.79rem;color:rgba(220,210,240,0.95);line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,0.8);">역사 위인·K-스타·해외 스타 14인의 사주팔자를 명리학 사주 엔진으로 심층 분석합니다</p>
           </div>
-        </button>
-
-        <!-- ② 패널 콘텐츠 (헤더 클릭 시 표시) -->
-        <div id="fsp-body" style="display:none;">
-
-        <!-- SEO 구조화 소개글 (검색엔진 크롤링용) -->
-        <div style="padding:18px 20px 6px;" itemscope itemtype="https://schema.org/Article">
-          <meta itemprop="name" content="유명인 사주팔자 분석 아카이브 — 명리학 사주 엔진 기반 심층 분석">
-          <meta itemprop="description" content="이순신·세종대왕·BTS·손흥민·Taylor Swift·Elon Musk·미야자키 하야오·이소룡 등 국내외 유명인의 생년월일 사주팔자를 KasiEngine 명리학 엔진으로 계산·분석합니다.">
-          <h2 itemprop="headline" style="margin:0 0 6px;font-size:1.05rem;font-weight:800;color:#f3e8ff;letter-spacing:0.02em;">유명인 사주팔자 분석 — 국내·일본·중국·미국 각 분야 대표 인물</h2>
-          <p style="margin:0 0 10px;font-size:0.8rem;line-height:1.7;color:rgba(203,195,227,0.8);">
-            역사 위인·K-스타·해외 유명인의 생년월일 기준 <strong style="color:#c4b5fd;">사주팔자(四柱八字)</strong>를 명리학 엔진으로 실시간 계산합니다.
-            오행 분포·일간 특성·십성·운의 흐름까지 심층 분석하는 명리학 교육 콘텐츠입니다.
-          </p>
         </div>
 
-        <!-- ③ 검색창 -->
-        <div style="padding:0 14px 10px;">
-          <div style="position:relative;">
-            <input id="fsp-search" type="search" placeholder="이름으로 검색 (예: 이순신, BTS, 손흥민…)" autocomplete="off"
-              style="width:100%;padding:9px 14px 9px 36px;border-radius:12px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.83rem;outline:none;box-sizing:border-box;-webkit-appearance:none;"
-              aria-label="유명인 검색">
-            <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;opacity:0.55;">🔍</span>
-          </div>
-          <div id="fsp-search-empty" style="display:none;text-align:center;padding:18px 8px;font-size:0.78rem;color:rgba(203,195,227,0.5);">검색 결과가 없습니다</div>
-        </div>
-
-        <!-- ④ 카테고리 필터 바 -->
+        <!-- ② 카테고리 필터 바 -->
         <div id="fsp-filter-bar" role="group" aria-label="카테고리 필터"
           style="display:flex;gap:6px;padding:0 14px 12px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
           <button class="fsp-filter-btn fsp-filter--active" data-cat="all" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(167,139,250,0.6);background:rgba(124,58,237,0.35);color:#e9d5ff;cursor:pointer;white-space:nowrap;transition:all .18s;">전체</button>
@@ -3299,8 +3300,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <button class="fsp-filter-btn" data-cat="politics" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🏛️ 정치인</button>
         </div>
 
-        <!-- ⑤ 인물 카드 그리드 (SEO 정적 HTML) -->
-        <div id="fsp-grid" role="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:0 14px 8px;">
+        <!-- ③ 인물 카드 그리드 (SEO 정적 HTML) -->
+        <div id="fsp-grid" role="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:14px 14px 8px;">
           <!-- JS가 카드를 동적 렌더링 (FAMOUS_DATA 기반) — SEO용 noscript 인물 목록 -->
           <noscript>
             <p itemprop="description">이순신세종대왕유관순안중근김구정약용BTS RMIU(이지은)손흥민뉴진스 하니류현진봉준호유해진박찬호김연아박세리박정희김대중한강미야자키 하야오나루히토오타니 쇼헤이기타노 다케시무라카미 하루키도요토미 히데요시쿠로사와 아키라아무로 나미에이소룡성룡마윈공자장이머우류사오치(마오쩌둥)테일러 스위프트엘론 머스크마이클 잭슨스티브 잡스마틴 루터 킹엘비스 프레슬리빌 게이츠버락 오바마스티브 워즈니악마돈나마틴 스코세이지레오나르도 다 빈치알베르트 아인슈타인윌리엄 셰익스피어나폴레옹 등 국내외 유명인 50인+ 사주팔자 명리학 심층 분석</p>
@@ -3320,12 +3321,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
         <!-- ⑤ 생년월일 입력 → 원하는 인물 사주팔자 분석 -->
         <div style="margin:0 14px 14px;padding:16px;border-radius:16px;background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.22);">
-          <div style="font-size:0.84rem;font-weight:800;color:#c4b5fd;margin-bottom:6px;">📅 원하는 인물의 생년월일로 사주팔자 분석하기</div>
-          <p style="margin:0 0 12px;font-size:0.73rem;color:rgba(203,195,227,0.6);line-height:1.55;">유명인·역사 인물 등 누구든 생년월일(양력)을 입력하면 사주 엔진으로 년주·월주·일주를 계산합니다</p>
+          <div style="font-size:0.84rem;font-weight:800;color:#c4b5fd;margin-bottom:6px;">🔍 원하는 인물의 생년월일로 사주팔자 분석하기</div>
+          <p style="margin:0 0 12px;font-size:0.73rem;color:rgba(203,195,227,0.6);line-height:1.55;">유명인·역사 인물 등 누구든 생년월일을 입력하면 사주 엔진으로 사주팔자를 계산해드립니다</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
             <div style="display:flex;flex-direction:column;gap:4px;">
               <label for="fsp-input-year" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">년 (양력)</label>
-              <input id="fsp-input-year" type="number" min="1300" max="2025" placeholder="1990" aria-label="출생년도(양력)"
+              <input id="fsp-input-year" type="number" min="1300" max="2024" placeholder="1990" aria-label="출생년도(양력)"
                 style="width:72px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;">
@@ -3337,6 +3338,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <label for="fsp-input-day" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">일</label>
               <input id="fsp-input-day" type="number" min="1" max="31" placeholder="1" aria-label="출생일"
                 style="width:54px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label for="fsp-input-hour" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">시(0~23)</label>
+              <input id="fsp-input-hour" type="number" min="0" max="23" placeholder="12" aria-label="출생 시각"
+                style="width:56px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
             </div>
             <button id="fsp-calc-btn" style="padding:8px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#f3e8ff;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s;">사주팔자 분석</button>
           </div>
@@ -3354,10 +3360,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </p>
         </div>
 
-        </div><!-- /#fsp-body -->
-
       </section>
     </div><!-- /.feature-card-wrapper -->
+    <!-- ═══ 유명인 사주 분석 패널 끝 ═══ -->
 
     <!-- 즐겨찾기 + 앱 설치 버튼 (홈 화면 하단) -->
     <div class="quick-action-stack quick-action-stack--home" style="padding: 36px 0 24px; display:flex; justify-content:center;">
@@ -3744,6 +3749,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div>
           </div>
         </div>
+
 
       </div>
     </section>
@@ -4206,16 +4212,67 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div class="ls-preview-chapters">
             <div class="ls-chapter-item"><span class="ls-ch-num">I</span><span class="ls-ch-title">본연의 연애 자아: 나도 몰랐던 사랑의 본능</span></div>
             <div class="ls-chapter-item"><span class="ls-ch-num">II</span><span class="ls-ch-title">치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">III</span><span class="ls-ch-title">운명의 상대방 리포트: 나를 완성시킬 그/그녀의 사주</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">IV</span><span class="ls-ch-title">실전 연애 전략: 사랑을 이기는 병법서</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">III</span><span class="ls-ch-title">두 사람의 사주 궁합: 우리는 운명인가</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">IV</span><span class="ls-ch-title">밀당 전략서: 상대방 심리를 꿰뚫는 작전 지도</span></div>
             <div class="ls-chapter-item"><span class="ls-ch-num">V</span><span class="ls-ch-title">시기별 연애 운의 흐름: 운명이 허락하는 그날</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">VI</span><span class="ls-ch-title">연애의 어두운 면: 내 안의 그림자와 화해하라</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">VII</span><span class="ls-ch-title">섹슈얼리티와 육체적 궁합: 깊은 밤의 언어</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">VI</span><span class="ls-ch-title">연애 리스크: 충돌 지점과 금기 지도</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">VII</span><span class="ls-ch-title">육체적 궁합: 두 사람의 감각 에너지 호환성</span></div>
             <div class="ls-chapter-item"><span class="ls-ch-num">VIII</span><span class="ls-ch-title">현대적 상황별 비책: 디지털 시대의 연애 전략</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">IX</span><span class="ls-ch-title">결혼과 정착: 운명의 동반자와 백년가약</span></div>
-            <div class="ls-chapter-item"><span class="ls-ch-num">X</span><span class="ls-ch-title">맞춤형 개운 처방전: 사랑을 부르는 일상의 의식</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">IX</span><span class="ls-ch-title">결혼 시기: 언제, 누구와 정착할 것인가</span></div>
+            <div class="ls-chapter-item"><span class="ls-ch-num">X</span><span class="ls-ch-title">개운 처방전: 두 사람의 사랑을 부르는 비책</span></div>
           </div>
           <p class="ls-start-desc">사주팔자의 여덟 글자 속에 숨겨진 연애 알고리즘을 10개 챕터, 20,000자 이상의 전문 분석으로 완전 해독합니다.</p>
+
+          <!-- 상대방 사주 입력 (선택) -->
+          <div class="ls-partner-section" id="lsPartnerSection">
+            <button type="button" class="ls-partner-toggle" id="lsPartnerToggle" aria-expanded="false" aria-controls="lsPartnerForm">
+              <span class="ls-partner-toggle-icon">💑</span>
+              <span class="ls-partner-toggle-label">상대방 사주 입력하기</span>
+              <span class="ls-partner-toggle-badge">궁합 분석 추가</span>
+              <span class="ls-partner-toggle-arrow">▼</span>
+            </button>
+            <div class="ls-partner-form" id="lsPartnerForm" role="group" aria-label="상대방 정보 입력">
+              <p class="ls-partner-note">💡 상대방 정보를 입력하면 두 사람의 사주 궁합, 충돌 지점, 밀당 전략을 상세하게 분석해 드립니다. 입력하지 않으면 나 혼자의 연애 분석으로 진행됩니다.</p>
+              <div class="ls-partner-row">
+                <span class="ls-partner-label">이름</span>
+                <input type="text" class="ls-partner-input" id="lsPartnerName" placeholder="상대방 이름 (선택)" maxlength="20" autocomplete="off">
+              </div>
+              <div class="ls-partner-row">
+                <span class="ls-partner-label">성별</span>
+                <div class="ls-partner-gender">
+                  <button type="button" class="ls-partner-gender-btn" data-gender="M" id="lsPartnerGenderM">♂ 남성</button>
+                  <button type="button" class="ls-partner-gender-btn" data-gender="F" id="lsPartnerGenderF">♀ 여성</button>
+                </div>
+              </div>
+              <div class="ls-partner-row">
+                <span class="ls-partner-label">생년월일</span>
+                <div class="ls-partner-birth-row">
+                  <input type="number" class="ls-partner-input year" id="lsPartnerYear" placeholder="년 (예:1995)" min="1920" max="2010" inputmode="numeric">
+                  <input type="number" class="ls-partner-input month" id="lsPartnerMonth" placeholder="월" min="1" max="12" inputmode="numeric">
+                  <input type="number" class="ls-partner-input day" id="lsPartnerDay" placeholder="일" min="1" max="31" inputmode="numeric">
+                </div>
+              </div>
+              <div class="ls-partner-row">
+                <span class="ls-partner-label">출생시</span>
+                <select class="ls-partner-select" id="lsPartnerHour">
+                  <option value="">모름 (시간 불명)</option>
+                  <option value="0">자시 (23:00~01:00)</option>
+                  <option value="1">축시 (01:00~03:00)</option>
+                  <option value="2">인시 (03:00~05:00)</option>
+                  <option value="3">묘시 (05:00~07:00)</option>
+                  <option value="4">진시 (07:00~09:00)</option>
+                  <option value="5">사시 (09:00~11:00)</option>
+                  <option value="6">오시 (11:00~13:00)</option>
+                  <option value="7">미시 (13:00~15:00)</option>
+                  <option value="8">신시 (15:00~17:00)</option>
+                  <option value="9">유시 (17:00~19:00)</option>
+                  <option value="10">술시 (19:00~21:00)</option>
+                  <option value="11">해시 (21:00~23:00)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <p class="ls-start-warning">⚠️ 분석에는 약 2~3분이 소요됩니다. 사주 정보 입력 후 이용 가능합니다.</p>
           <button type="button" class="ls-btn-generate" id="lsGenerateBtn" data-action="generateLoveSecret">
             <span class="ls-btn-icon">♡</span>
@@ -4232,7 +4289,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             <div class="ls-orb-ring ls-orb-ring--3"></div>
             <div class="ls-orb-core">💕</div>
           </div>
-          <p class="ls-loading-title">연애 비책을 집필하는 중입니다</p>
+          <p class="ls-loading-title" id="lsLoadingTitle">연애 비책을 집필하는 중입니다</p>
           <p id="lsLoadingChapter" class="ls-loading-chapter">사주 원국을 분석하는 중...</p>
           <div class="ls-loading-progress">
             <div id="lsProgressBar" class="ls-progress-bar"></div>
@@ -4344,77 +4401,28 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   </article><!-- /#resultPage -->
 
-  <!-- ════ ABOUT 서비스 소개 섹션 (정적 크롤러 대응) ════ -->
-  <section id="site-about" aria-label="서비스 소개" style="
-    max-width:860px; margin:0 auto 32px; padding:0 16px;
-    font-size:0.82rem; line-height:1.75; color:#94a3b8; word-break:keep-all;">
-    <style>
-      #site-about .about-panel {
-        background: linear-gradient(135deg, rgba(30,41,59,0.72), rgba(15,23,42,0.9));
-        border: 1px solid rgba(124,58,237,0.3);
-        border-radius: 14px;
-        padding: 18px 20px;
-        margin-bottom: 10px;
-      }
-      #site-about .about-panel h2 {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #a78bfa;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        margin: 0 0 8px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid rgba(124,58,237,0.2);
-      }
-      #site-about .about-panel p { margin:0; }
-      #site-about .about-links { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:10px; }
-      #site-about .about-links a { color:#4ecdc4; text-decoration:none; font-size:0.82rem; }
-      #site-about .about-links a:hover { text-decoration:underline; }
-      #site-about .about-kv { display:grid; gap:5px; }
-      #site-about .about-kv dt { color:#cbd5e1; font-weight:600; }
-      #site-about .about-kv dd { margin:0; color:#94a3b8; }
-    </style>
-
-    <div class="about-panel">
-      <h2>꿀꿀 만세력이란? — About Code Destiny</h2>
-      <p>
-        <strong style="color:#f1f5f9">Code Destiny(꿀꿀 만세력)</strong>는
-        사주팔자·AI 타로·자미두수·코즈믹 점성술·숙요점·동물관상·꿈 해몽 등
-        <strong style="color:#4ecdc4">20가지 이상의 운세 서비스를 완전 무료</strong>로 제공하는 AI 기반 운세 플랫폼입니다.
-        생년월일 하나로 동양 명리학과 서양 점성술을 통합 해석하며, 한국어·영어·일본어·중국어 등 10개 언어를 지원합니다.
-        본 서비스의 모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
-      </p>
-      <div class="about-links">
-        <a href="/about">서비스 소개 About</a>
-        <a href="/insights">운세 인사이트 아카이브</a>
-        <a href="/faq">자주 묻는 질문</a>
-        <a href="/contact-us">문의하기</a>
-      </div>
-    </div>
-
-    <div class="about-panel">
-      <h2>운영자 정보 &amp; 광고 안내</h2>
-      <dl class="about-kv">
-        <dt>서비스명</dt><dd>Code Destiny — 꿀꿀 만세력 (code-destiny.com)</dd>
-        <dt>운영 주체</dt><dd>코드 데스티니 · 대표 박병하 · 사업자등록번호 372-23-02329</dd>
-        <dt>이메일</dt><dd>seongbae555@gmail.com</dd>
-        <dt>광고</dt><dd>본 서비스는 Google AdSense 등 제3자 광고를 노출할 수 있으며, 광고 수익은 서비스 운영에 재투자됩니다.</dd>
-      </dl>
-    </div>
-  </section>
-  <!-- ════ /ABOUT ════ -->
-
   <footer style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
-      <a href="/about" style="color:#a78bfa;text-decoration:underline;font-weight:600;">서비스 소개 About</a>
       <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침 Privacy Policy</a>
       <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관 Terms of Service</a>
       <a href="/faq" style="color:#b7f0ff;text-decoration:underline;">자주 묻는 질문 FAQ</a>
       <a href="/contact-us" style="color:#b7f0ff;text-decoration:underline;">문의하기 Contact Us</a>
     </nav>
+    <!-- 관리자 진입 꽃 버튼 — 개인정보처리방침/이용약관 하단 고정 -->
+    <div id="cdAdminFlowerWrap" style="margin-top:16px;">
+      <button
+        id="cdAdminFlowerBtn"
+        type="button"
+        data-action="openAdminFlowerGate"
+        aria-label="꽃 버튼"
+        style="width:44px;height:44px;border:1px solid rgba(244,114,182,.18);border-radius:999px;background:rgba(244,114,182,.04);color:rgba(255,255,255,.82);opacity:0.55;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:18px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .12s ease,opacity .12s ease;"
+        onmouseover="this.style.opacity='0.9';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.opacity='0.55';this.style.transform='translateY(0)'"
+      >🌸</button>
+    </div>
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
@@ -4646,17 +4654,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   function isAdminUser() {
     try {
-      // 1) localStorage fortune_auth_user의 role 확인
+      // 1) fortune_auth_user.role 확인 (서버 발급 JWT 기반 — 신뢰)
       var user = readAuthUser();
       if (user && user.role === 'admin') return true;
-      // 2) fortune_auth_role 쿠키 확인 (관리자 세션 쿠키)
-      var cookies = document.cookie.split(';');
-      for (var i = 0; i < cookies.length; i++) {
-        var pair = cookies[i].trim().split('=');
-        if (pair[0] === 'fortune_auth_role' && decodeURIComponent(pair[1] || '') === 'admin') return true;
-      }
-      // 3) flower_admin_token: admin panel login -> all features available without coins
-      try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_ss) {}
+      // 2) flower_admin_token: 관리자 패널 로그인 (서명 포맷 검증 필수 — 단순 truthy 차단)
+      try {
+        var _tok = sessionStorage.getItem('flower_admin_token');
+        if (_tok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tok)) return true;
+      } catch (_ss) {}
     } catch (_e) {}
     return false;
   }
@@ -5043,6 +5048,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     // ── 회당 코인 게이트 (per-use) ──
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
+      // 관리자 모드: 코인 게이트 bypass
+      if (!window.__cdAdminBypass && !isAdminUser()) {
       if (!perUseApproved[action]) {
         // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
         if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
@@ -5053,6 +5060,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
       } else {
         delete perUseApproved[action];
+      }
       }
     }
 
@@ -5165,6 +5173,20 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   loadBalance();
   loadTileLocks();
+  // 관리자 모드: 모든 섹션 게이트 + 타일 잠금 자동 해제
+  if (isAdminUser()) {
+    try {
+      SECTION_GATE_KEYS.forEach(function(sg){ unlockedFeatureMap[sg.unlockKey] = true; });
+      // 타일 lock key도 전부 해제
+      var _adminTiles = document.querySelectorAll('[data-tile-lock-key]');
+      for (var _at = 0; _at < _adminTiles.length; _at++) {
+        var _atk = _adminTiles[_at].getAttribute('data-tile-lock-key');
+        if (_atk) unlockedFeatureMap[_atk] = true;
+      }
+      // perUse 코인 게이트도 우회 — isAdmin 플래그
+      window.__cdAdminBypass = true;
+    } catch (_adminErr) {}
+  }
   GoldenGrainBadge();
   applyTileLockVisuals();
   ChargeModal();
