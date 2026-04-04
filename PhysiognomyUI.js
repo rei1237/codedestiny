@@ -13,6 +13,7 @@ let isAnalyzing = false;
 let analysisComplete = false;
 let landmarksData = null;
 let currentMode = 'camera';
+let _phyFrameCount = 0; // 프레임 스로틀용
 
 // ── 궁합 분석 상태 변수 ──
 let compatMode = false;        // 궁합 모드 활성화 여부
@@ -246,7 +247,7 @@ const appHtml = `
       <div class="video-container" id="videoContainer">
         <video id="phyVideo" autoplay playsinline></video>
         <img id="phyImage" style="display:none;" />
-        <canvas id="phyCanvas" width="480" height="480"></canvas>
+        <canvas id="phyCanvas" width="320" height="320"></canvas>
         <div class="scan-overlay" id="scanOverlay"></div>
       </div>
       
@@ -279,7 +280,7 @@ const appHtml = `
 
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
-        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px; font-size:1.05rem;" onclick="startCompatMode()">💕 상대방과 관상 궁합 보기</button>
+        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 50 코인 차감</span></button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
       </div>
@@ -369,7 +370,7 @@ function onResults(results) {
     landmarksData = results.multiFaceLandmarks[0];
     
     if (!analysisComplete && typeof drawConnectors !== 'undefined') {
-        drawConnectors(canvasCtx, landmarksData, FACEMESH_TESSELATION, {color: '#10b98144', lineWidth: 1});
+        // FACEMESH_TESSELATION은 1300+선 매 프레임 드로우 → 제거(래그 주원인)
         drawConnectors(canvasCtx, landmarksData, FACEMESH_RIGHT_EYE, {color: '#34d399', lineWidth: 2});
         drawConnectors(canvasCtx, landmarksData, FACEMESH_LEFT_EYE, {color: '#34d399', lineWidth: 2});
         drawConnectors(canvasCtx, landmarksData, FACEMESH_LIPS, {color: '#4ade80', lineWidth: 2});
@@ -394,8 +395,8 @@ async function startMediaPipe() {
 
   if(currentMode === 'camera') {
     camera = new Camera(videoElement, {
-      onFrame: async () => { if(currentMode === 'camera' && !analysisComplete) { await faceMesh.send({image: videoElement}); } },
-      width: 480, height: 480
+      onFrame: async () => { if(currentMode === 'camera' && !analysisComplete) { if (++_phyFrameCount % 2 === 0) await faceMesh.send({image: videoElement}); } },
+      width: 320, height: 320
     });
     camera.start();
   }
@@ -534,7 +535,7 @@ window.switchMode = async function(mode) {
     document.getElementById('phyStatus').innerText = "상/중/하정 밸런스 및 이상(귀) 수치 정밀 분석 중... ";
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      await new Promise(resolve => setTimeout(resolve, 500));
       if(!window.faceAnalysisEngine) throw new Error("분석 엔진 부재");
 
       // face-api.js 표정 감지 (실패 시 null → 기하학 분석만으로 동작)
