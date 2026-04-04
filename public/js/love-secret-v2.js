@@ -9,7 +9,7 @@
   var CHAPTER_TITLES = [
     '🔑 본연의 연애 자아: 나도 몰랐던 사랑의 본능',
     '💘 치명적 매력과 페로몬: 이성을 끌어당기는 나의 무기',
-    '� 두 사람의 사주 궁합: 우리는 운명인가',
+    '💑 두 사람의 사주 궁합: 우리는 운명인가',
     '⚔️ 밀당 전략서: 상대방 심리를 꿰뚫는 작전 지도',
     '📅 시기별 연애 운의 흐름: 운명이 허락하는 그날',
     '🌑 연애 리스크: 충돌 지점과 금기 지도',
@@ -17,6 +17,7 @@
     '📲 현대적 상황별 비책: 디지털 시대의 연애 전략',
     '💍 결혼 시기: 언제, 누구와 정착할 것인가',
     '🌿 개운 처방전: 두 사람의 사랑을 부르는 비책',
+    '🌊 속궁합 완전 해석: 조후와 십성으로 본 깊은 궁합의 비밀',
   ];
 
   var CHAPTER_SUBTITLES = [
@@ -30,6 +31,7 @@
     '현대 연애 플랫폼 완전 공략',
     '언제, 누구와 정착할 것인가',
     '두 사람의 사랑을 부르는 개운 비책',
+    '조후·수화 균형·십성으로 판정하는 깊은 궁합',
   ];
 
   var LOADING_MSGS = [
@@ -43,9 +45,10 @@
     '현대 연애 시나리오별 비책을 작성하는 중...',
     '결혼 최적 시기와 배우자 분석 중...',
     '개운 처방전을 완성하는 중...',
+    '조후·십성·속궁합을 최종 해석하는 중...',
   ];
 
-  var _chapters = Array(10).fill(null);
+  var _chapters = Array(11).fill(null);
   var _generating = false;
 
   /* ── localStorage 저장/복원 ──────────────────────────────── */
@@ -426,7 +429,7 @@
       alert('💕 연애 비책을 생성하려면 먼저 사주 계산을 완료해 주세요.\n생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
-    _chapters = Array(10).fill(null);
+    _chapters = Array(11).fill(null);
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -503,7 +506,7 @@
     );
     if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
     _cachedSajuData = _collectSajuData();
-    _chapters = Array(10).fill(null);
+    _chapters = Array(11).fill(null);
     _showScreen('lsPartnerScreen');
     _bindPartnerScreen();
   };
@@ -540,11 +543,11 @@
     var chapterMsg = _qs('lsLoadingChapter');
 
     function _setProgress(done) {
-      var pct = (done / 10) * 100;
+      var pct = (done / 11) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / 10 챕터 완성';
-      if (chapterMsg && done < 10) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 10) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
+      if (progressText) progressText.textContent = done + ' / 11 챕터 완성';
+      if (chapterMsg && done < 11) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= 11) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
     }
     _setProgress(0);
     var lsTitle = _qs('lsLoadingTitle');
@@ -555,7 +558,7 @@
     }
 
     (function generateNext(idx) {
-      if (idx >= 10) {
+      if (idx >= 11) {
         _generating = false;
         _showScreen('lsResultScreen');
         _updateTocState();
@@ -598,7 +601,7 @@
     var genderStr = profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '';
     var issued = new Date().toLocaleDateString('ko-KR');
     var bodyHtml = '';
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 11; i++) {
       if (!_chapters[i]) continue;
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
