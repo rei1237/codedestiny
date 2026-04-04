@@ -490,6 +490,24 @@ export default function SiteFooterHub() {
               본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
             </p>
           </div>
+          <div style={{...REFUND_BOX, marginTop: "12px"}}>
+            <p style={REFUND_HEAD}>구독형 요금제 환불 기준</p>
+            <p style={REFUND_SUMMARY}>
+              구독 코인은 요금제 선택 즉시 차감되며, 전자상거래 등에서의 소비자보호에 관한 법률 및
+              콘텐츠산업 진흥법에 따른 디지털 콘텐츠 환불 정책이 적용됩니다.
+            </p>
+            <ul style={REFUND_RULES}>
+              <li style={REFUND_RULE_ITEM}>구독 시작 후 <strong>7일 이내</strong>이며, 구독 혜택(해금 콘텐츠 열람, 추가 프로필 생성, AI 리딩 등)을 <strong>전혀 이용하지 않은 경우</strong>에 한해 코인 전액 환원이 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>구독 기간 중 해금 콘텐츠 이용, 프로필 생성, AI 해석 실행 등 혜택을 1회라도 사용한 경우, 사용일수 비례 공제 후 잔여분만 환원됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>자동 갱신으로 차감된 코인은 갱신일로부터 <strong>24시간 이내</strong>에 미사용 상태인 경우에만 취소 및 환원 신청이 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>구독 기간이 만료되었거나 이미 갱신이 완료된 회차분은 환원 대상에서 제외됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>이벤트·프로모션 할인가로 구독한 경우, 환원 금액은 실제 차감된 코인 기준으로 산정됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>환불 신청은 고객센터(문의하기) 또는 고객지원 이메일로 접수하며, 처리까지 영업일 기준 3~10일이 소요됩니다.</li>
+            </ul>
+            <p style={REFUND_NOTICE}>
+              본 구독 환불 정책은 이용약관과 함께 적용되며, 강행규정과 충돌 시 관계 법령이 우선합니다.
+            </p>
+          </div>
         </section>
 
         {/* 정책 링크 */}

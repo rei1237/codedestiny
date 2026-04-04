@@ -635,7 +635,7 @@ function SubscriptionSection({
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 구독 코인은 즉시 차감되며 <strong>30일간 유효</strong>합니다.</p>
         <p className="text-[11px] text-amber-700 font-semibold">🔄 코인 잔액이 충분하면 만료 시 자동으로 갱신됩니다.</p>
-        <p className="text-[11px] text-[#9B7040]">🔄 갱신은 언제든 수동으로도 가능합니다.</p>
+        <p className="text-[11px] text-[#9B7040]">🔄 갱신 취소는 언제든 수동으로 가능합니다.</p>
       </div>
     </section>
   );
