@@ -4,7 +4,23 @@ const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
 function getLifeBookKey() {
-  return String(process.env.VERTEX_API_KEY || "").trim() || null;
+  // VERTEX_API_KEY (대소문자 모두 시도) → 일반 Gemini 키 순서로 fallback
+  const candidates = [
+    process.env.VERTEX_API_KEY,
+    process.env.vertex_api_key,
+    process.env.LIFEBOOK_API_KEY,
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+  ];
+  for (const k of candidates) {
+    const v = String(k || "").trim();
+    if (v) return v;
+  }
+  return null;
 }
 
 function parseText(payload) {
@@ -453,7 +469,7 @@ export async function POST(req) {
     const apiKey = getLifeBookKey();
     if (!apiKey) {
       return NextResponse.json(
-        { ok: false, message: "인생의 책 전용 API 키(VERTEX_API_KEY)가 설정되지 않았습니다." },
+        { ok: false, message: "Gemini API 키가 설정되지 않았습니다. GEMINI_API_KEY 또는 GOOGLE_API_KEY 환경변수를 확인해 주세요." },
         { status: 500 }
       );
     }
@@ -462,7 +478,7 @@ export async function POST(req) {
     const model = String(
       process.env.VERTEX_GEMINI_MODEL ||
       process.env.LIFEBOOK_GEMINI_MODEL ||
-      "gemini-2.5-pro"
+      "gemini-2.5-flash"
     ).trim();
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     const userPrompt = config.prompt(sajuData);

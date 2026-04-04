@@ -428,16 +428,15 @@ export async function POST(req) {
     const config = SESSION_CONFIGS[sessionId - 1];
     const model = String(
       process.env.LOVESECRET_GEMINI_MODEL ||
-      process.env.LIFEBOOK_GEMINI_MODEL ||
       process.env.PSYCHO_ANALYSIS_GEMINI_MODEL ||
-      "gemini-2.5-pro"
+      "gemini-2.5-flash"
     ).trim();
 
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     const userPrompt = config.prompt(sajuData);
 
     const isThinkingModel = /gemini-2\.5/.test(model);
-    const maxOutputTokens = isThinkingModel ? 32768 : 16384;
+    const maxOutputTokens = isThinkingModel ? 24576 : 8192;
     const generationConfig = { maxOutputTokens, temperature: 1.0 };
     if (isThinkingModel) {
       generationConfig.thinkingConfig = { thinkingBudget: 0 };
