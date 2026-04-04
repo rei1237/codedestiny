@@ -13317,11 +13317,20 @@ select.inp { min-height: 48px; cursor: pointer; }
 /* 7. feature-card 가로모드/소형기기 */
 @media (max-width: 380px) {
   .theme-switch-wrapper {
-    top: calc(48px + env(safe-area-inset-top, 0px));
+    top: auto;
     right: max(8px, env(safe-area-inset-right, 0px));
     transform: translateX(calc(100% - 56px));
     padding: 5px 8px;
     gap: 6px;
+  }
+
+  /* 30초 활성 구간에는 하단에 완전히 펼쳐서 표시 */
+  .theme-switch-wrapper.theme-toggle-active {
+    transform: none;
+  }
+
+  .theme-switch-wrapper.theme-toggle-active .theme-toggle-label {
+    opacity: 1;
   }
 
   .theme-toggle-label {

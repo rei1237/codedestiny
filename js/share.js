@@ -666,6 +666,7 @@ function setThemeToggleEnabled(enabled){
   var cb = document.getElementById('themeCheckbox');
   if(wrap){
     wrap.classList.toggle('theme-toggle-hidden', !enabled);
+    wrap.classList.toggle('theme-toggle-active', !!enabled);
     wrap.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     wrap.setAttribute('aria-hidden', enabled ? 'false' : 'true');
   }
