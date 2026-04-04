@@ -551,6 +551,42 @@
     if (!rule) return false;
     if (shouldSkipDuplicateAction(rule.action)) return true;
 
+    // ── 코인/잠금 게이트 체크 ──
+    // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
+    // 프리뷰 패널에 위임해 정상적인 게이트 흐름을 거치게 한다.
+    if (!window.__cdAdminBypass) {
+      var _coinGateTile = null;
+      if (origin && typeof origin.closest === 'function') {
+        _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
+      }
+      if (!_coinGateTile) {
+        _coinGateTile = document.querySelector(
+          '[data-action="' + rule.action + '"][data-tile-lock-key],' +
+          '[data-action="' + rule.action + '"][data-coin-cost]'
+        );
+      }
+      if (_coinGateTile && typeof _coinGateTile.click === 'function') {
+        var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
+        var _hasCoinCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0) > 0;
+        var _needsGate = _hasCoinCost; // per-use 코인 타일: 항상 게이트
+        if (!_needsGate && _lockKey) {
+          // 영구 잠금 타일: localStorage에서 해금 여부 확인
+          try {
+            var _locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}');
+            _needsGate = !_locks[_lockKey];
+          } catch (_e) {
+            _needsGate = true;
+          }
+        }
+        if (_needsGate) {
+          // 프리뷰 패널이 인터셉트 → 코인/잠금 UI 표시 후 정상 게이트 처리
+          _coinGateTile.click();
+          return true;
+        }
+      }
+    }
+    // ── 코인/잠금 게이트 체크 끝 ──
+
     if (rule.action === 'openNevilleMeditationPage') {
       try {
         window.location.href = '/neville-meditation.html';
