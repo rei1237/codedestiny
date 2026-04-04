@@ -398,15 +398,62 @@
     }
   }
 
+  /** DOM 입력값에서 생년월일 복구 */
+  function _recoverBirthFromDOM() {
+    try {
+      var dateEl = document.getElementById('birthDate');
+      var nameEl = document.getElementById('nameInput');
+      var isFemale = document.querySelector('#btnF.on') !== null;
+      if (!dateEl || !dateEl.value) return null;
+      var parts = dateEl.value.split('-');
+      if (parts.length < 3) return null;
+      var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+      if (!y || !m || !d) return null;
+      var hourEl = document.getElementById('birthHour');
+      var minEl = document.getElementById('birthMinute');
+      return {
+        name: (nameEl && nameEl.value.trim()) || '사용자',
+        gender: isFemale ? 'F' : 'M',
+        birth: {
+          year: y, month: m, day: d,
+          hour: hourEl ? Number(hourEl.value) : 12,
+          minute: minEl ? Number(minEl.value) : 0
+        },
+        location: { label: '대한민국 (서울)' }
+      };
+    } catch (_) { return null; }
+  }
+
+  /** 사주 데이터 유효성 확인 (여러 소스 순서대로 체크) */
+  function _getActiveBirthProfile() {
+    // 1순위: window.__cdActiveBirthProfile (사주 계산 후 설정)
+    var p = window.__cdActiveBirthProfile;
+    if (p && p.birth && p.birth.year) return p;
+    // 2순위: destiny flower 스냅샷
+    var snap = window.__destinyFlowerSajuSnapshot;
+    if (snap && snap.birth && snap.birth.year) return snap;
+    // 3순위: DOM 입력값 직접 읽기
+    var fromDom = _recoverBirthFromDOM();
+    if (fromDom) return fromDom;
+    return null;
+  }
+
   window.openLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
-    if (!modal) return;
+    if (!modal) {
+      console.error('[인생의 책] lifeBookModal 요소를 찾을 수 없습니다.');
+      return;
+    }
 
-    // 사주 계산 여부 확인
-    var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
-    if (!hasData) {
+    var profile = _getActiveBirthProfile();
+    if (!profile) {
       alert('📜 인생의 책을 생성하려면 먼저 사주 계산을 완료해 주세요.\n생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
+    }
+
+    // 복구된 프로필이 있으면 window에 주입
+    if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
+      window.__cdActiveBirthProfile = profile;
     }
 
     _chapters = Array(13).fill(null);
@@ -425,6 +472,7 @@
   window.closeLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) return;
+    if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
@@ -477,15 +525,26 @@
   window.generateLifeBook = function () {
     if (_generating) return;
 
-    var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
-    if (!hasData) {
+    var profile = _getActiveBirthProfile();
+    if (!profile) {
       alert('사주 계산을 먼저 완료해 주세요.');
       return;
+    }
+    // 복구된 프로필 주입
+    if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
+      window.__cdActiveBirthProfile = profile;
     }
 
     _generating = true;
     _chapters = Array(13).fill(null);
     var sajuData = _collectSajuData();
+
+    // 사주 데이터가 최소한으로 채워졌는지 확인
+    if (!sajuData || sajuData.length < 30) {
+      _generating = false;
+      alert('사주 데이터를 불러오지 못했습니다. 생년월일을 입력하고 사주 분석을 먼저 실행해 주세요.');
+      return;
+    }
 
     _showScreen('lbLoadingScreen');
 
@@ -528,19 +587,15 @@
       if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= 13) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
-
-      // 챕터 번호 레이블
       if (chapterNumEl) {
         chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
       }
-
       // 챕터 아이콘 업데이트
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-lbch'));
         var wasDone = d.classList.contains('lb-ch-dot--done');
         d.classList.toggle('lb-ch-dot--done', ch <= done);
         d.classList.toggle('lb-ch-dot--active', ch === done + 1 && done < 13);
-        // pop 애니메이션: 새로 done된 것
         if (!wasDone && ch <= done) {
           d.style.animation = 'none';
           void d.offsetWidth;
@@ -551,50 +606,85 @@
 
     _setProgress(0);
 
+    /** 챕터 fetch (60초 타임아웃 포함) */
+    function _fetchChapter(idx) {
+      return new Promise(function (resolve) {
+        var timeoutId = setTimeout(function () {
+          resolve({ ok: false, message: '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.' });
+        }, 60000);
+
+        fetch('/api/lifebook/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
+        })
+          .then(function (res) {
+            if (!res.ok) {
+              return res.json().catch(function () { return {}; }).then(function (e) {
+                return { ok: false, message: (e && e.message) || 'HTTP ' + res.status };
+              });
+            }
+            return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+          })
+          .then(function (data) {
+            clearTimeout(timeoutId);
+            resolve(data);
+          })
+          .catch(function (err) {
+            clearTimeout(timeoutId);
+            resolve({ ok: false, message: String(err && err.message ? err.message : err) });
+          });
+      });
+    }
+
+    var _failCount = 0;
+
     // 챕터 순차 생성
     (function generateNext(idx) {
       if (idx >= 13) {
         clearInterval(_mysticTimer);
         _mysticTimer = null;
         _generating = false;
+
+        // 전체 실패 체크
+        var allFailed = _chapters.every(function (c) { return !c || /^⚠️/.test(c); });
+        if (allFailed) {
+          var errEl = _qs('lbErrorMsg');
+          if (errEl) errEl.textContent = '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.';
+          _showScreen('lbErrorScreen');
+          return;
+        }
+
         _showScreen('lbResultScreen');
         _updateTocState();
         _renderChapter(1);
         _bindToc();
 
-        var profile = window.__cdActiveBirthProfile || {};
+        var prof = window.__cdActiveBirthProfile || {};
         var nameEl = _qs('lbResultName');
         var dateEl = _qs('lbResultDate');
-        if (nameEl) nameEl.textContent = '📜 ' + (profile.name || '사용자') + '님의 인생의 책';
+        if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
         if (dateEl) {
-          var b = profile.birth || {};
-          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '') + ' · ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
+          var b = prof.birth || {};
+          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
         }
         return;
       }
 
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
 
-      fetch('/api/lifebook/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          if (data && data.ok && data.text) {
-            _chapters[idx] = data.text;
-          } else {
-            _chapters[idx] = '⚠️ 이 챕터의 분석을 불러오는 데 실패했습니다.\n\n' + (data && data.message ? data.message : '알 수 없는 오류');
-          }
-          _setProgress(idx + 1);
-          generateNext(idx + 1);
-        })
-        .catch(function (err) {
-          _chapters[idx] = '⚠️ 네트워크 오류로 이 챕터를 불러오지 못했습니다.\n' + String(err && err.message ? err.message : err);
-          _setProgress(idx + 1);
-          generateNext(idx + 1);
-        });
+      _fetchChapter(idx).then(function (data) {
+        if (data && data.ok && data.text) {
+          _chapters[idx] = data.text;
+        } else {
+          _failCount++;
+          var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+          console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
+          _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 해당 챕터를 개별적으로 재시도하거나, 처음부터 다시 생성해 주세요.';
+        }
+        _setProgress(idx + 1);
+        generateNext(idx + 1);
+      });
     })(0);
   };
 
