@@ -95,7 +95,7 @@ export default function AboutPage() {
         </h1>
         <p style={{ ...P, fontSize: "1rem", opacity: 0.88 }}>
           Code Destiny(꿀꿀 만세력)는 <strong style={{ color: "#a78bfa" }}>사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽</strong> 등
-          20가지 이상의 운세·자기성찰 콘텐츠를 <strong style={{ color: "#4ecdc4" }}>완전 무료</strong>로 제공하는 AI 기반 운세 플랫폼입니다.
+          다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다.
           생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.
         </p>
       </header>
@@ -131,7 +131,7 @@ export default function AboutPage() {
         </p>
         <p style={{ ...P, marginTop: "12px" }}>
           단순한 '띠별 운세'나 '별자리 운세'를 넘어, 생년월일시·출생지를 기반으로 개인화된 사주 명반, 자미두수 명반,
-          베다 점성술 차트를 제공합니다. 모든 서비스는 <strong style={{ color: "#4ecdc4" }}>완전 무료</strong>로 이용 가능합니다.
+          베다 점성술 차트를 제공합니다.
         </p>
       </section>
 

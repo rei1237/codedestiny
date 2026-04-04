@@ -428,7 +428,7 @@ export default function SiteFooterHub() {
           </h3>
           <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
             <strong style={{ color: "#94a3b8" }}>Code Destiny(꿀꿀 만세력)</strong>는 사주팔자·AI 타로·자미두수·코즈믹 점성술·
-            숙요점·동물관상·꿈 해몽 등 <strong style={{ color: "#4ecdc4" }}>20가지 이상의 운세 서비스를 완전 무료</strong>로 제공하는
+            숙요점·동물관상·꿈 해몽 등 다양한 운세 서비스를 제공하는
             AI 기반 운세 플랫폼입니다. 한국어·영어·일본어·중국어·힌디어·스페인어 등 10개 언어를 지원합니다.
             모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
           </p>
