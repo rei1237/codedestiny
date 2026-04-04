@@ -4051,7 +4051,9 @@ body.neo-mode .fortune-tab{color:#444!important}
 body.neo-mode .fortune-tab.active{background:rgba(255,215,0,.1)!important;color:#FFD700!important;box-shadow:none!important}
 body.neo-mode .prem-box{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.1)!important}
 body.neo-mode .prem-title{color:#FFD700!important}
-body.neo-mode .prem-text{color:#999!important}
+body.neo-mode .prem-text{color:#dce8ff!important}
+body.neo-mode .prem-text b{color:#FFD700!important}
+body.neo-mode .prem-text span{color:#c8d8f8!important}
 body.neo-mode .travel-box,.neo-mode .travel-chip{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.1)!important}
 body.neo-mode .travel-chip-title{color:#FFD700!important}
 body.neo-mode .travel-badge{background:rgba(255,215,0,.1)!important;color:#FFD700!important;border:1px solid rgba(255,215,0,.2)!important}
