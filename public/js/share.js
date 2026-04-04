@@ -839,8 +839,14 @@ function applyNeoTexts(){
     letterTitle.innerHTML = NEO_MODE ? '🦁 쌈바의 팩폭!' : '💖 연이의 편지';
   }
   // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
-  if(isResultPageVisible() && typeof renderLetter === 'function' && window.G_PILLARS) {
-    renderLetter(window.G_PILLARS, window.G_NATAL, window.G_POWER, window.G_JONG);
+  if(isResultPageVisible() && window.G_PILLARS) {
+    // 사주 분석 종합 요약 (NEO 전용 팩폭 ↔ 연이 조언 즉시 전환)
+    if(typeof renderSummary === 'function' && window.G_NATAL) {
+      try { renderSummary(window.G_PILLARS, window.G_JOHU || {badgeCls:'',badgeTxt:'',advice:''}, window.G_NATAL); } catch(e){}
+    }
+    if(typeof renderLetter === 'function') {
+      renderLetter(window.G_PILLARS, window.G_NATAL, window.G_POWER, window.G_JONG);
+    }
   }
   if(isResultPageVisible() && typeof renderDailyMonthlyFortune === 'function' && window.G_PILLARS) {
     renderDailyMonthlyFortune(window.G_PILLARS);
