@@ -48,6 +48,55 @@
   var _chapters = Array(10).fill(null);
   var _generating = false;
 
+  /* ── localStorage 저장/복원 ──────────────────────────────── */
+  var _STORE_VER = 'ls_v1_';
+
+  function _makeKey(profile) {
+    var b = (profile && profile.birth) || {};
+    return _STORE_VER + (b.year || '0') + '_' + (b.month || '0') + '_' + (b.day || '0') + '_' + ((profile && profile.gender) || 'u');
+  }
+
+  function _saveResult(profile) {
+    try {
+      localStorage.setItem(_makeKey(profile), JSON.stringify({
+        chapters: _chapters,
+        name: (profile && profile.name) || '사용자',
+        birth: (profile && profile.birth) || {},
+        gender: (profile && profile.gender) || '',
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) { /* 용량 수 한 또는 일반 브라우저 제한 */ }
+  }
+
+  function _loadSaved(profile) {
+    try {
+      var raw = localStorage.getItem(_makeKey(profile));
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function _clearSaved(profile) {
+    try { localStorage.removeItem(_makeKey(profile)); } catch (e) {}
+  }
+
+  /* ── 결과 헤더 렌더 ───────────────────────────────────────── */
+  function _renderResultHeader(name, birth, gender, savedDate, isNew) {
+    var nameEl = document.getElementById('lsResultName');
+    var dateEl = document.getElementById('lsResultDate');
+    if (nameEl) nameEl.textContent = '💕 ' + (name || '사용자') + '님의 연애 비책';
+    if (dateEl) {
+      var b = birth || {};
+      var dateStr = savedDate ? savedDate.toLocaleDateString('ko-KR') : new Date().toLocaleDateString('ko-KR');
+      var icon = isNew ? '🗓️ ' : '💾 ';
+      var label = isNew ? '발행' : '저장';
+      dateEl.textContent =
+        [b.year, b.month, b.day].filter(Boolean).join('. ') +
+        ' 생 · ' +
+        (gender === 'F' ? '여성' : gender === 'M' ? '남성' : '') +
+        ' · ' + icon + dateStr + ' ' + label;
+    }
+  }
+
   function _qs(id) { return document.getElementById(id); }
 
   function _escHtml(s) {
@@ -192,6 +241,17 @@
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
 
+  window.regenerateLoveSecret = function () {
+    if (_generating) {
+      if (!window.confirm('생성이 진행 중입니다.\n중단하고 다시 생성하시겠습니까?')) return;
+      _generating = false;
+    }
+    var profile = window.__cdActiveBirthProfile || {};
+    _clearSaved(profile);
+    _chapters = Array(10).fill(null);
+    _showScreen('lsStartScreen');
+  };
+
   function _bindToc() {
     var nav = document.querySelector('.ls-toc');
     if (!nav) return;
@@ -273,16 +333,8 @@
         var profile = window.__cdActiveBirthProfile || {};
         var nameEl = _qs('lsResultName');
         var dateEl = _qs('lsResultDate');
-        if (nameEl) nameEl.textContent = '💕 ' + (profile.name || '사용자') + '님의 연애 비책';
-        if (dateEl) {
-          var b = profile.birth || {};
-          dateEl.textContent =
-            [b.year, b.month, b.day].filter(Boolean).join('. ') +
-            ' 생 · ' +
-            (profile.gender === 'F' ? '여성' : profile.gender === 'M' ? '남성' : '') +
-            ' · ' +
-            new Date().toLocaleDateString('ko-KR') + ' 발행';
-        }
+        _saveResult(profile);
+        _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
         return;
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
@@ -391,5 +443,26 @@
     }
     setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
   };
+
+  /* ── 클릭 핸들러 (data-action 디스패치) ──────────────────── */
+  document.addEventListener('click', function (e) {
+    var target = e.target;
+    if (!(target instanceof Element)) return;
+    var btn = target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
+    if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
+    if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
+    if (action === 'regenerateLoveSecret') { window.regenerateLoveSecret(); return; }
+  }, false);
+
+  /* ESC 키로 모달 닫기 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var modal = _qs('loveSecretModal');
+      if (modal && modal.style.display !== 'none') window.closeLoveSecretModal();
+    }
+  });
 
 })();
