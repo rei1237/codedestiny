@@ -812,7 +812,10 @@
 
     requestAnimationFrame(function() {
       try {
-        var lockedNotice = '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필은 계정당 1개이며, 수정·삭제할 수 없습니다.</div>';
+        var isFreeUser = _dpGetMaxProfiles() <= 1;
+        var lockedNotice = isFreeUser
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 무료 플랜은 프로필 1개만 사용할 수 있습니다. 초과 프로필은 ✕ 버튼으로 삭제해 주세요.</div>'
+          : '';
 
     container.innerHTML = list.map(function(p, idx) {
           var safe = p || {};
@@ -850,6 +853,9 @@
               + '<div class="dp-li-body">'
                 + '<div class="dp-li-name">' + _esc(pname)
                   + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
+                  + (isFreeUser && !isActive
+                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">사용불가</span>'
+                    : '')
                   + (safe.gender === 'M'
                     ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
                     : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
@@ -860,7 +866,7 @@
               + '</div>'
             + '</div>'
             + '</div>'
-            + (_dpGetMaxProfiles() > 1
+            + (list.length > 1
               ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
               : '')
             + '</div>';
@@ -977,6 +983,12 @@
   };
 
   window.dpSelectProfile = function(id) {
+    /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
+    var _curId = (DPStorage.current() || {}).id;
+    if (_dpGetMaxProfiles() <= 1 && id !== _curId) {
+      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n초과 저장된 프로필은 삭제 버튼(✕)으로 정리하거나, /points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
+      return;
+    }
     DPStorage.setCurrent(id);
     var p = DPStorage.current();
     renderMasterCard(p);
@@ -987,12 +999,13 @@
   };
 
   window.dpDeleteProfile = function(id) {
-    /* ★ 구독자는 삭제 허용, 무료 플랜은 차단 */
-    if (_dpGetMaxProfiles() <= 1) {
-      alert('무료 플랜에서는 프로필을 삭제할 수 없습니다.\n/points 페이지에서 구독 업그레이드 후 프로필 관리가 가능합니다.');
+    /* ★ 마지막 프로필(1개)은 삭제 불가; 초과 프로필은 무료/유료 모두 삭제 허용 */
+    var _profiles = DPStorage.list();
+    if (_profiles.length <= 1) {
+      alert('마지막 프로필은 삭제할 수 없습니다.\n프로필을 모두 비울 수 없습니다.');
       return;
     }
-    var p = DPStorage.list().find(function(x) { return x.id === id; });
+    var p = _profiles.find(function(x) { return x.id === id; });
     if (!p) return;
     if (!confirm('"' + p.name + '" 프로필을 삭제할까요?')) return;
     DPStorage.remove(id);
