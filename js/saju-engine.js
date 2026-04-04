@@ -3609,7 +3609,19 @@ async function calculate(){
       function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
       function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
       function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
-      function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); } }
+      function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); } },
+      function() {
+        try {
+          var lbCard = document.getElementById('loveBibleCard');
+          if (lbCard) lbCard.style.display = 'block';
+          if (typeof window.renderLoveBible === 'function') {
+            window.renderLoveBible(p, natal, johu, G_POWER, G_JONG);
+          } else {
+            // 스크립트 지연 로드 대비: 파라미터를 전역에 보관
+            window._loveBiblePending = { p: p, natal: natal, johu: johu, G_POWER: G_POWER, G_JONG: G_JONG };
+          }
+        } catch(e) { console.error('LoveBible 에러:', e); }
+      }
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     document.getElementById('dwDetail').innerHTML='';
