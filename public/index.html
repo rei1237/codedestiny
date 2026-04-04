@@ -545,8 +545,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   <link rel="preload" as="style" href="/styles/life-book.css?v=20260404-v1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260404-v1"></noscript>
-  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260404-v1" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260404-v1"></noscript>
+  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260608-v1" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260608-v1"></noscript>
 
   <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -4223,62 +4223,85 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </div>
           <p class="ls-start-desc">사주팔자의 여덟 글자 속에 숨겨진 연애 알고리즘을 10개 챕터, 20,000자 이상의 전문 분석으로 완전 해독합니다.</p>
 
-          <!-- 상대방 사주 입력 (선택) -->
-          <div class="ls-partner-section" id="lsPartnerSection">
-            <button type="button" class="ls-partner-toggle" id="lsPartnerToggle" aria-expanded="false" aria-controls="lsPartnerForm">
-              <span class="ls-partner-toggle-icon">💑</span>
-              <span class="ls-partner-toggle-label">상대방 사주 입력하기</span>
-              <span class="ls-partner-toggle-badge">궁합 분석 추가</span>
-              <span class="ls-partner-toggle-arrow">▼</span>
-            </button>
-            <div class="ls-partner-form" id="lsPartnerForm" role="group" aria-label="상대방 정보 입력">
-              <p class="ls-partner-note">💡 상대방 정보를 입력하면 두 사람의 사주 궁합, 충돌 지점, 밀당 전략을 상세하게 분석해 드립니다. 입력하지 않으면 나 혼자의 연애 분석으로 진행됩니다.</p>
-              <div class="ls-partner-row">
-                <span class="ls-partner-label">이름</span>
-                <input type="text" class="ls-partner-input" id="lsPartnerName" placeholder="상대방 이름 (선택)" maxlength="20" autocomplete="off">
-              </div>
-              <div class="ls-partner-row">
-                <span class="ls-partner-label">성별</span>
-                <div class="ls-partner-gender">
-                  <button type="button" class="ls-partner-gender-btn" data-gender="M" id="lsPartnerGenderM">♂ 남성</button>
-                  <button type="button" class="ls-partner-gender-btn" data-gender="F" id="lsPartnerGenderF">♀ 여성</button>
-                </div>
-              </div>
-              <div class="ls-partner-row">
-                <span class="ls-partner-label">생년월일</span>
-                <div class="ls-partner-birth-row">
-                  <input type="number" class="ls-partner-input year" id="lsPartnerYear" placeholder="년 (예:1995)" min="1920" max="2010" inputmode="numeric">
-                  <input type="number" class="ls-partner-input month" id="lsPartnerMonth" placeholder="월" min="1" max="12" inputmode="numeric">
-                  <input type="number" class="ls-partner-input day" id="lsPartnerDay" placeholder="일" min="1" max="31" inputmode="numeric">
-                </div>
-              </div>
-              <div class="ls-partner-row">
-                <span class="ls-partner-label">출생시</span>
-                <select class="ls-partner-select" id="lsPartnerHour">
-                  <option value="">모름 (시간 불명)</option>
-                  <option value="0">자시 (23:00~01:00)</option>
-                  <option value="1">축시 (01:00~03:00)</option>
-                  <option value="2">인시 (03:00~05:00)</option>
-                  <option value="3">묘시 (05:00~07:00)</option>
-                  <option value="4">진시 (07:00~09:00)</option>
-                  <option value="5">사시 (09:00~11:00)</option>
-                  <option value="6">오시 (11:00~13:00)</option>
-                  <option value="7">미시 (13:00~15:00)</option>
-                  <option value="8">신시 (15:00~17:00)</option>
-                  <option value="9">유시 (17:00~19:00)</option>
-                  <option value="10">술시 (19:00~21:00)</option>
-                  <option value="11">해시 (21:00~23:00)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
           <p class="ls-start-warning">⚠️ 분석에는 약 2~3분이 소요됩니다. 사주 정보 입력 후 이용 가능합니다.</p>
           <button type="button" class="ls-btn-generate" id="lsGenerateBtn" data-action="generateLoveSecret">
             <span class="ls-btn-icon">♡</span>
             나의 연애 비책 생성하기
             <span class="ls-btn-icon">♡</span>
           </button>
+        </div>
+
+        <!-- 파트너 사주 입력 화면 (생성 버튼 클릭 후) -->
+        <div id="lsPartnerScreen" class="ls-pscreen" style="display:none;">
+          <!-- 헤더 -->
+          <div class="ls-pscreen__header">
+            <div class="ls-pscreen__badge">💑 궁합 분석 — 선택사항</div>
+            <h3 class="ls-pscreen__title">상대방 사주로<br>더 정밀한 궁합을 분석합니다</h3>
+            <p class="ls-pscreen__desc">
+              생년월일시를 입력하면 두 사람의 오행 충합·일주 상성·연애 케미·밀당 전략을<br class="ls-pscreen__br">
+              실제 사주 데이터 기반으로 훨씬 정밀하게 분석합니다.
+            </p>
+          </div>
+
+          <!-- 실시간 사주 원국 미리보기 -->
+          <div class="ls-pscreen__preview" id="lsPsCard">
+            <p class="ls-pscreen__preview-label">✨ 상대방 사주 원국 실시간 미리보기</p>
+            <div class="ls-pscreen__pillars" id="lsPsPillars"></div>
+            <p class="ls-pscreen__preview-info" id="lsPsInfo"></p>
+          </div>
+
+          <!-- 입력 폼 -->
+          <div class="ls-pscreen__form">
+            <div class="ls-pscreen__field">
+              <label class="ls-pscreen__label" for="lsPsName">이름 <span class="ls-pscreen__opt">(선택)</span></label>
+              <input type="text" id="lsPsName" class="ls-pscreen__input" placeholder="상대방 이름" maxlength="20" autocomplete="off">
+            </div>
+            <div class="ls-pscreen__field">
+              <label class="ls-pscreen__label">성별</label>
+              <div class="ls-pscreen__gender" id="lsPsGenderGroup">
+                <button type="button" class="ls-pscreen__gender-btn" id="lsPsGenderM">♂ 남성</button>
+                <button type="button" class="ls-pscreen__gender-btn active" id="lsPsGenderF">♀ 여성</button>
+              </div>
+            </div>
+            <div class="ls-pscreen__field">
+              <label class="ls-pscreen__label">생년월일 <span class="ls-pscreen__req">* 필수</span></label>
+              <div class="ls-pscreen__birth">
+                <input type="number" id="lsPsYear" class="ls-pscreen__input" placeholder="년도 (예: 1995)" min="1920" max="2015" inputmode="numeric">
+                <input type="number" id="lsPsMonth" class="ls-pscreen__input sm" placeholder="월" min="1" max="12" inputmode="numeric">
+                <input type="number" id="lsPsDay" class="ls-pscreen__input sm" placeholder="일" min="1" max="31" inputmode="numeric">
+              </div>
+            </div>
+            <div class="ls-pscreen__field">
+              <label class="ls-pscreen__label" for="lsPsHour">출생 시각 <span class="ls-pscreen__opt">(선택)</span></label>
+              <select id="lsPsHour" class="ls-pscreen__select">
+                <option value="">모름 (시간 불명)</option>
+                <option value="0">자시 (23:00~01:00)</option>
+                <option value="1">축시 (01:00~03:00)</option>
+                <option value="2">인시 (03:00~05:00)</option>
+                <option value="3">묘시 (05:00~07:00)</option>
+                <option value="4">진시 (07:00~09:00)</option>
+                <option value="5">사시 (09:00~11:00)</option>
+                <option value="6">오시 (11:00~13:00)</option>
+                <option value="7">미시 (13:00~15:00)</option>
+                <option value="8">신시 (15:00~17:00)</option>
+                <option value="9">유시 (17:00~19:00)</option>
+                <option value="10">술시 (19:00~21:00)</option>
+                <option value="11">해시 (21:00~23:00)</option>
+              </select>
+              <p class="ls-pscreen__hint">시각을 모르셔도 정밀 분석이 가능합니다</p>
+            </div>
+          </div>
+
+          <!-- 액션 버튼 -->
+          <div class="ls-pscreen__actions">
+            <button type="button" class="ls-pscreen__btn-start" data-action="lsStartWithPartner">
+              <span class="ls-pscreen__btn-icon">💑</span>
+              두 사람의 궁합 포함 분석 시작하기
+            </button>
+            <button type="button" class="ls-pscreen__btn-solo" data-action="lsSkipPartner">
+              나 혼자만의 연애 분석으로 진행하기 →
+            </button>
+          </div>
         </div>
 
         <!-- 생성 중: 로딩 화면 -->

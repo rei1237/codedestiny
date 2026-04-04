@@ -205,22 +205,27 @@
   function _collectPartnerData() {
     var section = _qs('lsPartnerSection');
     if (!section || !section.classList.contains('open')) return '';
-    var name = (_qs('lsPartnerName') || {}).value || '';
-    var year = parseInt((_qs('lsPartnerYear') || {}).value || '0', 10);
-    var month = parseInt((_qs('lsPartnerMonth') || {}).value || '0', 10);
-    var day = parseInt((_qs('lsPartnerDay') || {}).value || '0', 10);
-    var hourEl = _qs('lsPartnerHour');
+    return '';
+  }
+
+  /* ── 전용 파트너 화면에서 데이터 수집 ─────────────────────── */
+  function _collectPartnerScreenData() {
+    var name = (_qs('lsPsName') || {}).value || '';
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    var hourEl = _qs('lsPsHour');
     var hourVal = hourEl ? hourEl.value : '';
-    var gm = _qs('lsPartnerGenderM');
-    var gf = _qs('lsPartnerGenderF');
+    var gm = _qs('lsPsGenderM');
+    var gf = _qs('lsPsGenderF');
     var genderCode = (gm && gm.classList.contains('active')) ? 'M' : (gf && gf.classList.contains('active')) ? 'F' : 'F';
     var genderLabel = genderCode === 'M' ? '남성' : '여성';
+
     if (!year || !month || !day) return '';
 
-    // 12지시 → 대표 시각(시작 시각 기준) 매핑
     var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
-    var jiHourNames = ['자시(23-01시)','축시(01-03시)','인시(03-05시)','묘시(05-07시)','진시(07-09시)',
-      '사시(09-11시)','오시(11-13시)','미시(13-15시)','신시(15-17시)','유시(17-19시)','술시(19-21시)','해시(21-23시)'];
+    var jiHourNames = ['자시(23-01시)', '축시(01-03시)', '인시(03-05시)', '묘시(05-07시)', '진시(07-09시)',
+      '사시(09-11시)', '오시(11-13시)', '미시(13-15시)', '신시(15-17시)', '유시(17-19시)', '술시(19-21시)', '해시(21-23시)'];
     var hourIdx = (hourVal !== '') ? parseInt(hourVal, 10) : -1;
     var birthHour = (hourIdx >= 0 && hourIdx < 12) ? jiHourMap[hourIdx] : 12;
     var hourDisplay = (hourIdx >= 0) ? jiHourNames[hourIdx] : '미상';
@@ -231,82 +236,178 @@
     lines.push('생년월일: ' + year + '년 ' + month + '월 ' + day + '일');
     lines.push('출생 시각: ' + hourDisplay);
 
-    // 사주 엔진으로 상대방 사주 계산
     if (typeof window.computeProfileForModal === 'function') {
       var partnerProfile = {
-        name: name,
+        name: name || '상대방',
         gender: genderCode,
         birth: { year: year, month: month, day: day, hour: birthHour, minute: 0, calType: 'solar' },
         location: { lat: 37.6, lng: 127.0, tz: 'Asia/Seoul', baseTzOffset: 9 }
       };
       try {
-        var result = window.computeProfileForModal(partnerProfile);
-        if (result) {
-          var GP = window.G_PILLARS;
-          var GW = window.G_POWER;
-          var snap = window.__destinyFlowerSajuSnapshot || {};
-          var analysis = snap.analysis || snap.saju || {};
+        window.computeProfileForModal(partnerProfile);
+        var GP = window.G_PILLARS;
+        var GW = window.G_POWER;
+        var snap = window.__destinyFlowerSajuSnapshot || {};
+        var analysis = snap.analysis || snap.saju || {};
 
-          if (GP) {
-            lines.push('\n【상대방 사주 원국(四柱)】');
-            if (GP.y) lines.push('년주(年柱): ' + (GP.y.g || '') + (GP.y.j || '') + (GP.y.gE ? ' [' + GP.y.gE + '/' + GP.y.jE + ']' : ''));
-            if (GP.m) lines.push('월주(月柱): ' + (GP.m.g || '') + (GP.m.j || '') + (GP.m.gE ? ' [' + GP.m.gE + '/' + GP.m.jE + ']' : ''));
-            if (GP.d) lines.push('일주(日柱): ' + (GP.d.g || '') + (GP.d.j || '') + (GP.d.gE ? ' [' + GP.d.gE + '/' + GP.d.jE + ']' : ''));
-            if (GP.h && hourIdx >= 0) lines.push('시주(時柱): ' + (GP.h.g || '') + (GP.h.j || '') + (GP.h.gE ? ' [' + GP.h.gE + '/' + GP.h.jE + ']' : ''));
-          }
-
-          if (analysis.elementWeights) {
-            var w = analysis.elementWeights;
-            lines.push('\n【상대방 오행(五行) 분포】');
-            lines.push('목(木):' + (w.wood || 0) + ' 화(火):' + (w.fire || 0) + ' 토(土):' + (w.earth || 0) + ' 금(金):' + (w.metal || 0) + ' 수(水):' + (w.water || 0));
-          }
-          if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
-          if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
-          if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
-          if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
-          if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
-            lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
-          }
-
-          if (GW && GW.groups) {
-            lines.push('\n【상대방 십성(十星) 분포】');
-            var gk = Object.keys(GW.groups);
-            for (var gi = 0; gi < gk.length; gi++) lines.push(gk[gi] + ': ' + GW.groups[gk[gi]]);
-          }
+        if (GP) {
+          lines.push('\n【상대방 사주 원국(四柱)】');
+          if (GP.y) lines.push('년주(年柱): ' + (GP.y.g || '') + (GP.y.j || '') + (GP.y.gE ? ' [' + GP.y.gE + '/' + GP.y.jE + ']' : ''));
+          if (GP.m) lines.push('월주(月柱): ' + (GP.m.g || '') + (GP.m.j || '') + (GP.m.gE ? ' [' + GP.m.gE + '/' + GP.m.jE + ']' : ''));
+          if (GP.d) lines.push('일주(日柱): ' + (GP.d.g || '') + (GP.d.j || '') + (GP.d.gE ? ' [' + GP.d.gE + '/' + GP.d.jE + ']' : ''));
+          if (GP.h && hourIdx >= 0) lines.push('시주(時柱): ' + (GP.h.g || '') + (GP.h.j || '') + (GP.h.gE ? ' [' + GP.h.gE + '/' + GP.h.jE + ']' : ''));
         }
-      } catch (e) {
-        // 엔진 계산 실패 시 기본 텍스트만 사용
-      } finally {
-        // 원래 사용자 프로필로 완전히 복원
+        if (analysis.elementWeights) {
+          var w = analysis.elementWeights;
+          lines.push('\n【상대방 오행(五行) 분포】');
+          lines.push('목(木):' + (w.wood || 0) + ' 화(火):' + (w.fire || 0) + ' 토(土):' + (w.earth || 0) + ' 금(金):' + (w.metal || 0) + ' 수(水):' + (w.water || 0));
+        }
+        if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
+        if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
+        if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
+        if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
+        if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
+          lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
+        }
+        if (GW && GW.groups) {
+          lines.push('\n【상대방 십성(十星) 분포】');
+          var gk = Object.keys(GW.groups);
+          for (var gi = 0; gi < gk.length; gi++) lines.push(gk[gi] + ': ' + GW.groups[gk[gi]]);
+        }
+      } catch (e) { /* 엔진 오류 시 기본 텍스트만 사용 */ } finally {
         var origProfile = window.__cdActiveBirthProfile;
         if (origProfile && origProfile.birth) {
           try { window.computeProfileForModal(origProfile); } catch (_) {}
         }
       }
     }
-
     return lines.join('\n');
   }
 
-  function _bindPartnerSection() {
-    var toggle = _qs('lsPartnerToggle');
-    var section = _qs('lsPartnerSection');
-    if (!toggle || !section) return;
-    toggle.addEventListener('click', function () {
-      var isOpen = section.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-    var genderBtns = document.querySelectorAll('.ls-partner-gender-btn');
-    Array.prototype.forEach.call(genderBtns, function (btn) {
-      btn.addEventListener('click', function () {
-        Array.prototype.forEach.call(genderBtns, function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
+  /* ── 파트너 화면 실시간 사주 미리보기 ─────────────────────── */
+  var _psPreviewTimer = null;
+  function _schedulePartnerPreview() {
+    clearTimeout(_psPreviewTimer);
+    _psPreviewTimer = setTimeout(_renderPartnerPreview, 420);
+  }
+
+  function _renderPartnerPreview() {
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    var card = _qs('lsPsCard');
+    var pillarsEl = _qs('lsPsPillars');
+    var infoEl = _qs('lsPsInfo');
+
+    if (!year || !month || !day || year < 1920 || year > 2020 || month < 1 || month > 12 || day < 1 || day > 31) {
+      if (card) card.classList.remove('visible');
+      var origP = window.__cdActiveBirthProfile;
+      if (origP && origP.birth && typeof window.computeProfileForModal === 'function') {
+        try { window.computeProfileForModal(origP); } catch (_) {}
+      }
+      return;
+    }
+    if (typeof window.computeProfileForModal !== 'function') return;
+
+    var hourEl = _qs('lsPsHour');
+    var hourIdx = (hourEl && hourEl.value !== '') ? parseInt(hourEl.value, 10) : -1;
+    var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
+    var birthHour = hourIdx >= 0 ? jiHourMap[hourIdx] : 12;
+    var gm = _qs('lsPsGenderM');
+    var genderCode = (gm && gm.classList.contains('active')) ? 'M' : 'F';
+
+    try {
+      window.computeProfileForModal({
+        name: (_qs('lsPsName') || {}).value || '상대방',
+        gender: genderCode,
+        birth: { year: year, month: month, day: day, hour: birthHour, minute: 0, calType: 'solar' },
+        location: { lat: 37.6, lng: 127.0, tz: 'Asia/Seoul', baseTzOffset: 9 }
       });
+
+      var GP = window.G_PILLARS;
+      if (GP && card && pillarsEl) {
+        var LABELS = ['년주', '월주', '일주', '시주'];
+        var KEYS = ['y', 'm', 'd', 'h'];
+        var html = '';
+        for (var i = 0; i < 4; i++) {
+          var p = GP[KEYS[i]];
+          if (i === 3 && hourIdx < 0) {
+            html += '<div class="ls-pscreen__pillar-card ls-pscreen__pillar-card--dim">' +
+              '<span class="ls-pscreen__pillar-lbl">' + LABELS[i] + '</span>' +
+              '<span class="ls-pscreen__pillar-stem">?</span>' +
+              '<span class="ls-pscreen__pillar-branch">?</span>' +
+              '<span class="ls-pscreen__pillar-ten">시불명</span></div>';
+            continue;
+          }
+          if (!p) continue;
+          html += '<div class="ls-pscreen__pillar-card">' +
+            '<span class="ls-pscreen__pillar-lbl">' + LABELS[i] + '</span>' +
+            '<span class="ls-pscreen__pillar-stem">' + _escHtml(p.g || '') + '</span>' +
+            '<span class="ls-pscreen__pillar-branch">' + _escHtml(p.j || '') + '</span>' +
+            '<span class="ls-pscreen__pillar-ten">' + _escHtml(p.gE || '') + '</span>' +
+            '</div>';
+        }
+        pillarsEl.innerHTML = html;
+
+        var snap = window.__destinyFlowerSajuSnapshot || {};
+        var an = snap.analysis || snap.saju || {};
+        if (infoEl) {
+          var parts = [];
+          if (an.dayStem) parts.push('일간 ' + an.dayStem);
+          if (an.power_label) parts.push(an.power_label);
+          if (an.yongshin_elements && an.yongshin_elements.length) parts.push('용신 ' + an.yongshin_elements.join('·'));
+          infoEl.textContent = parts.join(' · ');
+        }
+        card.classList.add('visible');
+      }
+    } catch (e) {
+      if (card) card.classList.remove('visible');
+    } finally {
+      var orig = window.__cdActiveBirthProfile;
+      if (orig && orig.birth) {
+        try { window.computeProfileForModal(orig); } catch (_) {}
+      }
+    }
+  }
+
+  /* ── 파트너 화면 이벤트 바인딩 ───────────────────────────── */
+  function _bindPartnerScreen() {
+    // 성별 버튼
+    var gm = _qs('lsPsGenderM');
+    var gf = _qs('lsPsGenderF');
+    if (gm) gm.addEventListener('click', function () {
+      gm.classList.add('active'); gf && gf.classList.remove('active');
+      _schedulePartnerPreview();
     });
+    if (gf) gf.addEventListener('click', function () {
+      gf.classList.add('active'); gm && gm.classList.remove('active');
+      _schedulePartnerPreview();
+    });
+    // 생년월일·시각 실시간 미리보기
+    ['lsPsYear', 'lsPsMonth', 'lsPsDay', 'lsPsHour'].forEach(function (id) {
+      var el = _qs(id);
+      if (el) el.addEventListener('input', _schedulePartnerPreview);
+      if (el) el.addEventListener('change', _schedulePartnerPreview);
+    });
+    // 초기 상태 리셋
+    var card = _qs('lsPsCard');
+    if (card) card.classList.remove('visible');
+    ['lsPsYear', 'lsPsMonth', 'lsPsDay', 'lsPsName'].forEach(function (id) {
+      var el = _qs(id);
+      if (el) el.value = '';
+    });
+    var hourEl = _qs('lsPsHour');
+    if (hourEl) hourEl.selectedIndex = 0;
+    if (gf) { gf.classList.add('active'); }
+    if (gm) { gm.classList.remove('active'); }
+  }
+
+  function _bindPartnerSection() {
+    // 레거시 호환 — 신규 화면에서는 사용 안 함
   }
 
   function _showScreen(id) {
-    var screens = ['lsStartScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
+    var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
       if (el) el.style.display = (screens[i] === id) ? '' : 'none';
@@ -329,7 +430,6 @@
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    _bindPartnerSection();
     try {
       modal.setAttribute('aria-hidden', 'false');
       var closeBtn = modal.querySelector('.ls-modal__close');
@@ -391,6 +491,9 @@
     });
   }
 
+  /* ── 모듈 레벨 사주 데이터 저장 ───────────────────────────── */
+  var _cachedSajuData = '';
+
   window.generateLoveSecret = function () {
     if (_generating) return;
     var hasData = !!(
@@ -399,11 +502,39 @@
       window.__cdActiveBirthProfile.birth.year
     );
     if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
-    _generating = true;
+    _cachedSajuData = _collectSajuData();
     _chapters = Array(10).fill(null);
-    var sajuData = _collectSajuData();
-    var partnerData = _collectPartnerData();
+    _showScreen('lsPartnerScreen');
+    _bindPartnerScreen();
+  };
+
+  window.lsStartWithPartner = function () {
+    if (_generating) return;
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    if (!year || !month || !day) {
+      var yearEl = _qs('lsPsYear');
+      if (yearEl) {
+        yearEl.focus();
+        yearEl.style.borderColor = 'rgba(239,68,68,0.8)';
+        setTimeout(function () { yearEl.style.borderColor = ''; }, 2000);
+      }
+      return;
+    }
+    var partnerData = _collectPartnerScreenData();
+    _startGeneration(partnerData);
+  };
+
+  window.lsSkipPartner = function () {
+    if (_generating) return;
+    _startGeneration('');
+  };
+
+  function _startGeneration(partnerData) {
+    _generating = true;
     _showScreen('lsLoadingScreen');
+    var sajuData = _cachedSajuData || _collectSajuData();
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
     var chapterMsg = _qs('lsLoadingChapter');
@@ -431,8 +562,6 @@
         _renderChapter(1);
         _bindToc();
         var profile = window.__cdActiveBirthProfile || {};
-        var nameEl = _qs('lsResultName');
-        var dateEl = _qs('lsResultDate');
         _saveResult(profile);
         _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
         return;
@@ -457,7 +586,7 @@
           generateNext(idx + 1);
         });
     })(0);
-  };
+  }
 
   window.downloadLoveSecretPdf = function () {
     if (!_chapters.some(Boolean)) { alert('먼저 연애 비책을 생성해 주세요.'); return; }
@@ -553,6 +682,8 @@
     var action = btn.getAttribute('data-action');
     if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
     if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
+    if (action === 'lsStartWithPartner')  { window.lsStartWithPartner();  return; }
+    if (action === 'lsSkipPartner')       { window.lsSkipPartner();       return; }
     if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
     if (action === 'shareLoveSecretKakao') {
       if (typeof window.shareLoveSecretKakao === 'function') window.shareLoveSecretKakao();
