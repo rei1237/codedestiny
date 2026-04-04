@@ -48,8 +48,29 @@
     '조후·십성·속궁합을 최종 해석하는 중...',
   ];
 
+  var LS_LOVE_QUOTES = [
+    '사주의 여덟 글자 속에는<br>당신이 사랑할 사람의 그림자가 담겨 있습니다',
+    '사랑은 우연처럼 만나지만,<br>사주는 처음부터 알고 있었습니다',
+    '일지(日支) 배우자궁에는<br>이미 운명의 상대가 새겨져 있습니다',
+    '紅塵十丈<br>붉은 먼지 열 길의 세상에서도 인연은 반드시 만납니다',
+    '용신(用神)이 강해지는 계절,<br>반드시 인연의 문이 열립니다',
+    '합(合)이 있는 곳에 인연이 있고<br>충(沖)이 있는 곳에 열정이 있습니다',
+    '木은 火를 기르듯,<br>진정한 사랑은 서로를 자라게 합니다',
+    '도화살(桃花煞)은 꽃의 살이 아니라<br>사람을 끌어당기는 향기입니다',
+    '두 사주가 만나면<br>그것은 우연이 아니라 오행의 끌림입니다',
+    '천간(天干)은 마음을 보여주고<br>지지(地支)는 본성을 드러냅니다',
+    '이별은 기신운(忌神運)이 만든 파도이고<br>재회는 용신운(用神運)이 여는 문입니다',
+    '내 사주팔자가 당신을 기다리고 있었습니다<br>우리의 만남은 오행이 연출한 운명입니다',
+    '사랑의 타이밍도 사주에 새겨져 있습니다<br>지금 당신의 연애 비책을 해독하는 중입니다',
+    '조후(調候)가 맞으면,<br>두 사람 사이에 자연스러운 온기가 흐릅니다',
+    '일주(日柱)가 합(合)을 이루는 순간<br>운명은 조용히 미소 짓습니다',
+  ];
+
   var _chapters = Array(11).fill(null);
   var _generating = false;
+  var _quoteTimer = null;
+  var _heartTimer = null;
+  var _quoteIdx = 0;
 
   /* ── localStorage 저장/복원 ──────────────────────────────── */
   var _STORE_VER = 'ls_v1_';
@@ -409,7 +430,72 @@
     // 레거시 호환 — 신규 화면에서는 사용 안 함
   }
 
-  function _showScreen(id) {
+  /* ── 로딩 애니메이션 ──────────────────────────────────────── */
+  function _startLoadingAnimation() {
+    _stopLoadingAnimation();
+    _quoteIdx = Math.floor(Math.random() * LS_LOVE_QUOTES.length);
+    var el = _qs('lsLoadQuoteText');
+    if (el) el.innerHTML = LS_LOVE_QUOTES[_quoteIdx];
+    _quoteTimer = setTimeout(_rotateQuote, 6000);
+    _spawnHearts();
+    _updateLoadPills(0);
+  }
+
+  function _stopLoadingAnimation() {
+    clearTimeout(_quoteTimer);
+    clearInterval(_heartTimer);
+    _quoteTimer = null;
+    _heartTimer = null;
+    var bg = _qs('lsLoadBg');
+    if (bg) bg.innerHTML = '';
+  }
+
+  function _rotateQuote() {
+    var el = _qs('lsLoadQuoteText');
+    if (!el) return;
+    el.classList.add('ls-fade');
+    _quoteTimer = setTimeout(function () {
+      _quoteIdx = (_quoteIdx + 1) % LS_LOVE_QUOTES.length;
+      el.innerHTML = LS_LOVE_QUOTES[_quoteIdx];
+      el.classList.remove('ls-fade');
+      _quoteTimer = setTimeout(_rotateQuote, 6000);
+    }, 450);
+  }
+
+  function _spawnHearts() {
+    var bg = _qs('lsLoadBg');
+    if (!bg) return;
+    var symbols = ['♡', '♥', '✦', '✿', '❋', '◈', '✸'];
+    function _spawn() {
+      var sp = document.createElement('span');
+      sp.className = 'ls-load-heart';
+      sp.setAttribute('aria-hidden', 'true');
+      sp.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      sp.style.left = (5 + Math.random() * 90) + '%';
+      var dur = 8 + Math.random() * 9;
+      sp.style.fontSize = (0.55 + Math.random() * 0.65).toFixed(2) + 'rem';
+      sp.style.animationDuration = dur + 's';
+      sp.style.color = 'rgba(236,72,153,' + (0.12 + Math.random() * 0.25).toFixed(2) + ')';
+      bg.appendChild(sp);
+      setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, (dur + 0.3) * 1000);
+    }
+    _spawn();
+    _heartTimer = setInterval(_spawn, 2000);
+  }
+
+  function _updateLoadPills(done) {
+    var pills = document.querySelectorAll('.ls-load-pill');
+    Array.prototype.forEach.call(pills, function (p, i) {
+      p.classList.remove('done', 'active');
+      if (i < done) {
+        p.classList.add('done');
+      } else if (i === done && done < 11) {
+        p.classList.add('active');
+      }
+    });
+  }
+
+
     var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
@@ -537,6 +623,7 @@
   function _startGeneration(partnerData) {
     _generating = true;
     _showScreen('lsLoadingScreen');
+    _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
@@ -548,6 +635,7 @@
       if (progressText) progressText.textContent = done + ' / 11 챕터 완성';
       if (chapterMsg && done < 11) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= 11) chapterMsg.textContent = '모든 챕터가 완성되었습니다 💕';
+      _updateLoadPills(done);
     }
     _setProgress(0);
     var lsTitle = _qs('lsLoadingTitle');
@@ -560,6 +648,7 @@
     (function generateNext(idx) {
       if (idx >= 11) {
         _generating = false;
+        _stopLoadingAnimation();
         _showScreen('lsResultScreen');
         _updateTocState();
         _renderChapter(1);
