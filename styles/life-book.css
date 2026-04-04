@@ -473,85 +473,225 @@
 
 /* ── 로딩 화면 ─────────────────────────────── */
 .lb-loading-screen {
-  padding: 48px 24px;
+  padding: 36px 24px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
   flex: 1;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 별 파티클 */
+.lb-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.lb-star {
+  position: absolute;
+  color: rgba(196, 181, 253, 0.5);
+  font-size: 0.7rem;
+  animation: lb-star-float 5s ease-in-out infinite;
+}
+.lb-star--1  { top:  8%; left:  7%; animation-delay: 0s;    color: rgba(245,215,142,0.55); font-size: 0.75rem; }
+.lb-star--2  { top: 15%; right: 9%; animation-delay: -1.2s; color: rgba(196,181,253,0.45); }
+.lb-star--3  { top: 40%; left:  4%; animation-delay: -2.5s; color: rgba(245,215,142,0.4);  font-size: 0.6rem; }
+.lb-star--4  { top: 55%; right: 6%; animation-delay: -0.8s; color: rgba(196,181,253,0.5);  font-size: 0.65rem; }
+.lb-star--5  { top: 72%; left: 10%; animation-delay: -3.5s; color: rgba(245,215,142,0.5);  font-size: 0.7rem; }
+.lb-star--6  { top: 25%; left: 50%; animation-delay: -1.8s; color: rgba(196,181,253,0.35); font-size: 0.55rem; }
+.lb-star--7  { top: 80%; right:12%; animation-delay: -4.2s; color: rgba(245,215,142,0.45); font-size: 0.6rem; }
+.lb-star--8  { top: 90%; left: 30%; animation-delay: -2.9s; color: rgba(196,181,253,0.4);  }
+
+@keyframes lb-star-float {
+  0%, 100% { transform: translateY(0) scale(1);   opacity: 0.6; }
+  40%       { transform: translateY(-8px) scale(1.15); opacity: 1; }
+  70%       { transform: translateY(4px)  scale(0.9);  opacity: 0.5; }
 }
 
 .lb-loading-orb {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
+  filter: drop-shadow(0 0 24px rgba(124, 58, 237, 0.55));
 }
 
 .lb-orb-ring {
   position: absolute;
   border-radius: 50%;
   border-style: solid;
-  border-color: transparent #7c3aed transparent #7c3aed;
+  border-color: transparent #7c3aed transparent var(--lb-gold);
   animation: lb-spin 2.5s linear infinite;
 }
-.lb-orb-ring--1 { width: 100px; height: 100px; border-width: 2px; animation-duration: 2.5s; opacity: 0.6; }
-.lb-orb-ring--2 { width: 76px; height: 76px; border-width: 2px; animation-direction: reverse; animation-duration: 1.8s; opacity: 0.45; }
-.lb-orb-ring--3 { width: 54px; height: 54px; border-width: 1px; animation-duration: 3.2s; opacity: 0.35; }
+.lb-orb-ring--1 { width: 110px; height: 110px; border-width: 2px; animation-duration: 2.4s; opacity: 0.65; }
+.lb-orb-ring--2 { width:  84px; height:  84px; border-width: 2px; animation-direction: reverse; animation-duration: 1.7s; opacity: 0.5; border-color: transparent var(--lb-gold) transparent #7c3aed; }
+.lb-orb-ring--3 { width:  60px; height:  60px; border-width: 1.5px; animation-duration: 3s; opacity: 0.4; }
 
 @keyframes lb-spin {
   to { transform: rotate(360deg); }
 }
 
 .lb-orb-core {
-  font-size: 1.8rem;
-  animation: lb-pulse 2s ease-in-out infinite;
+  font-size: 2rem;
+  animation: lb-pulse 2.2s ease-in-out infinite;
+  z-index: 2;
 }
 
 @keyframes lb-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+  0%, 100% { transform: scale(1);    filter: none; }
+  50%       { transform: scale(1.18); filter: drop-shadow(0 0 12px rgba(245,215,142,0.7)); }
 }
 
 .lb-loading-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #f5f0ff;
+  color: var(--lb-gold);
   margin: 0;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 18px rgba(245,200,80,0.45);
+  z-index: 1;
 }
 
+/* 챕터 번호 + 분석 메시지 박스 */
+.lb-loading-chapter-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 1;
+}
+.lb-loading-chapter-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--lb-amethyst);
+  text-transform: uppercase;
+  background: rgba(124,58,237,0.18);
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 20px;
+  padding: 3px 12px;
+}
 .lb-loading-chapter {
-  font-size: 0.88rem;
-  color: #a78bfa;
+  font-size: 0.9rem;
+  color: var(--lb-lilac);
   margin: 0;
-  min-height: 1.2em;
-  transition: opacity 0.3s;
+  min-height: 1.3em;
+  animation: lb-txt-fade 0.5s ease;
+}
+
+@keyframes lb-txt-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 신비로운 운명 멘트 */
+.lb-mystic-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(196,181,253,0.18);
+  border-radius: 12px;
+  max-width: 360px;
+  z-index: 1;
+}
+.lb-mystic-deco {
+  color: var(--lb-gold-dim);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.lb-mystic-quote {
+  font-size: 0.82rem;
+  color: rgba(196,181,253,0.8);
+  margin: 0;
+  line-height: 1.5;
+  font-style: italic;
+  transition: opacity 0.4s ease;
+}
+.lb-mystic-quote.lb-fade-out {
+  opacity: 0;
+}
+
+/* 챕터 그리드 */
+.lb-ch-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 360px;
+  z-index: 1;
+}
+.lb-ch-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(124,58,237,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  color: rgba(167,139,250,0.45);
+  background: rgba(16,8,48,0.6);
+  transition: all 0.4s ease;
+  font-family: 'Gowun Dodum', serif;
+}
+.lb-ch-dot--done {
+  background: linear-gradient(135deg, rgba(124,58,237,0.7), rgba(109,40,217,0.5));
+  border-color: rgba(167,139,250,0.7);
+  color: var(--lb-lilac);
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
+  animation: lb-ch-pop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lb-ch-dot--active {
+  border-color: var(--lb-gold);
+  color: var(--lb-gold);
+  background: rgba(245,215,142,0.1);
+  box-shadow: 0 0 10px rgba(245,200,80,0.4);
+  animation: lb-ch-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes lb-ch-pop {
+  0%  { transform: scale(0.7); opacity: 0.3; }
+  60% { transform: scale(1.25); }
+  100%{ transform: scale(1); opacity: 1; }
+}
+@keyframes lb-ch-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(245,200,80,0.35); }
+  50%       { box-shadow: 0 0 16px rgba(245,200,80,0.7); }
 }
 
 .lb-loading-progress {
   width: 100%;
   max-width: 340px;
-  height: 6px;
-  background: rgba(109, 40, 217, 0.2);
+  height: 5px;
+  background: rgba(109, 40, 217, 0.18);
   border-radius: 999px;
   overflow: hidden;
+  z-index: 1;
 }
 
 .lb-progress-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  background: linear-gradient(90deg, #7c3aed, var(--lb-gold));
   border-radius: 999px;
-  transition: width 0.6s ease;
+  transition: width 0.7s ease;
+  box-shadow: 0 0 8px rgba(245,200,80,0.4);
 }
 
 .lb-progress-text {
-  font-size: 0.82rem;
-  color: #94a3b8;
+  font-size: 0.8rem;
+  color: #7c6fa0;
   margin: 0;
+  z-index: 1;
 }
 
 /* ── 결과 화면 ─────────────────────────────── */
@@ -983,7 +1123,28 @@
 
   /* 로딩 */
   .lb-loading-screen {
-    padding: 24px 16px;
+    padding: 22px 14px 18px;
+    gap: 14px;
+  }
+  .lb-loading-orb {
+    width: 90px;
+    height: 90px;
+  }
+  .lb-orb-ring--1 { width: 90px; height: 90px; }
+  .lb-orb-ring--2 { width: 70px; height: 70px; }
+  .lb-orb-ring--3 { width: 50px; height: 50px; }
+  .lb-mystic-wrap {
+    max-width: 280px;
+    padding: 8px 12px;
+  }
+  .lb-ch-grid {
+    gap: 5px;
+    max-width: 280px;
+  }
+  .lb-ch-dot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.56rem;
   }
 
   /* 에러 */

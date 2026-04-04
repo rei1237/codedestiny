@@ -54,10 +54,28 @@
     '거장의 최종 전략과 귀인운을 집필하는 중...',
   ];
 
+  var MYSTIC_QUOTES = [
+    '팔자(八字) 여덟 글자 속에 당신만의 우주가 담겨 있습니다.',
+    '태어난 순간의 하늘 기운이 지금도 당신 안에서 흐르고 있습니다.',
+    '천간(天干)과 지지(地支)가 엮어낸 운명의 실타래를 풀어냅니다.',
+    '용신(用神)의 빛이 당신이 가야 할 길을 밝히고 있습니다.',
+    '대운(大運)은 인생의 계절입니다. 지금 어느 계절을 지나고 있는지 읽습니다.',
+    '음양(陰陽)의 균형 속에서 당신만의 해답이 나타나고 있습니다.',
+    '오행(五行)의 흐름이 당신의 건강·재물·사랑을 결정합니다.',
+    '격국(格局)은 하늘이 당신에게 부여한 사회적 사명입니다.',
+    '충(沖)과 합(合)의 자리에서 인연의 법칙을 발견합니다.',
+    '재성(財星)의 위치가 당신의 부(富)의 그릇을 말해줍니다.',
+    '귀인(貴人)이 나타나는 시기와 장소를 계산하고 있습니다.',
+    '삶의 파도를 읽어 오직 당신을 위한 전략으로 엮겠습니다.',
+    '신강신약(身强身弱)의 경계에서 당신의 진짜 강점이 드러납니다.',
+    '하늘이 숨긴 천기(天機)를 펼쳐 당신의 이름으로 기록합니다.',
+  ];
+
   /* ─────────────── 상태 ─────────────── */
   var _chapters = Array(13).fill(null);
   var _generating = false;
   var _currentChapter = 1;
+  var _mysticTimer = null;
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
@@ -474,6 +492,35 @@
     var progressBar = _qs('lbProgressBar');
     var progressText = _qs('lbProgressText');
     var chapterMsg = _qs('lbLoadingChapter');
+    var chapterNumEl = _qs('lbLoadingChapterNum');
+    var mysticEl = _qs('lbMysticQuote');
+
+    // 신비 멘트 인터벌 시작
+    if (_mysticTimer) clearInterval(_mysticTimer);
+    var _mqIdx = 0;
+    if (mysticEl) {
+      mysticEl.textContent = MYSTIC_QUOTES[0];
+      mysticEl.classList.remove('lb-fade-out');
+    }
+    _mysticTimer = setInterval(function () {
+      _mqIdx = (_mqIdx + 1) % MYSTIC_QUOTES.length;
+      if (mysticEl) {
+        mysticEl.classList.add('lb-fade-out');
+        setTimeout(function () {
+          if (mysticEl) {
+            mysticEl.textContent = MYSTIC_QUOTES[_mqIdx];
+            mysticEl.classList.remove('lb-fade-out');
+          }
+        }, 420);
+      }
+    }, 3600);
+
+    // 챕터 아이콘 초기화
+    var chDots = document.querySelectorAll('.lb-ch-dot');
+    Array.prototype.forEach.call(chDots, function (d) {
+      d.classList.remove('lb-ch-dot--done', 'lb-ch-dot--active');
+    });
+    if (chDots[0]) chDots[0].classList.add('lb-ch-dot--active');
 
     function _setProgress(done) {
       var pct = (done / 13) * 100;
@@ -481,13 +528,34 @@
       if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
       if (chapterMsg && done >= 13) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
+
+      // 챕터 번호 레이블
+      if (chapterNumEl) {
+        chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
+      }
+
+      // 챕터 아이콘 업데이트
+      Array.prototype.forEach.call(chDots, function (d) {
+        var ch = Number(d.getAttribute('data-lbch'));
+        var wasDone = d.classList.contains('lb-ch-dot--done');
+        d.classList.toggle('lb-ch-dot--done', ch <= done);
+        d.classList.toggle('lb-ch-dot--active', ch === done + 1 && done < 13);
+        // pop 애니메이션: 새로 done된 것
+        if (!wasDone && ch <= done) {
+          d.style.animation = 'none';
+          void d.offsetWidth;
+          d.style.animation = '';
+        }
+      });
     }
 
     _setProgress(0);
 
-    // 챕터 1~10 순차 생성
+    // 챕터 순차 생성
     (function generateNext(idx) {
       if (idx >= 13) {
+        clearInterval(_mysticTimer);
+        _mysticTimer = null;
         _generating = false;
         _showScreen('lbResultScreen');
         _updateTocState();
