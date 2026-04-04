@@ -223,18 +223,16 @@ router.post("/pig-coin/consume", async (req, res, next) => {
   }
 });
 
-/* ─────────────────────────────────────────────────────────────────
-   프로필 구독 플랜
-   coins:        구독 시 차감 코인 수
-   welcomeBonus: 첫 구독 시 추가 지급 보너스 코인 (2안: 시작 패키지)
 /* ─────────────────────────────────────────────────────────────────────
+   프로필 구독 플랜
+   coins:        구독 시 차감 코인 수 (코인 잔액이 충분하면 만료 시 자동 갱신)
    profileLimit: 최대 프로필 수 (0 = 무제한)
    lowWarnAt:    이 코인 이하이면 잔액 부족 경고
 ───────────────────────────────────────────────────────────────── */
 const PROFILE_SUB_PLANS = {
-  standard: { name: "스탠다드 꿀",   coins: 115, welcomeBonus: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
-  premium:  { name: "프리미엄 꿀",   coins: 360, welcomeBonus: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip:     { name: "VVIP 꿀단지",   coins: 700, welcomeBonus: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
+  standard: { name: "스탠다드 꿀",   coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
+  premium:  { name: "프리미엄 꿀",   coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
+  vvip:     { name: "VVIP 꿀단지",   coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
 };
 
 /* GET /api/fortune/pig-coin/profile-subscription/status */
@@ -250,26 +248,61 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
     const expAt  = sub.expiresAt || null;
     const points = Number(user.points || 0);
 
-    // 구독 유효성: 기간 기반 (2안 핵심 수정 — 코인 잔액 조건 제거)
-    const isTimely = tier !== "free" && expAt && new Date(expAt) > new Date();
-    const isActive = !!isTimely;
+    const plan = PROFILE_SUB_PLANS[tier];
+    const now  = new Date();
 
-    const plan             = PROFILE_SUB_PLANS[tier];
-    const effectiveTier    = isActive ? tier : "free";
-    const profileLimit     = isActive ? (plan?.profileLimit ?? 1) : 1;
-    // 잔액 부족 사전 경고 (구독 활성 상태에서 일정 코인 이하)
-    const lowBalanceWarning = isActive && points <= (plan?.lowWarnAt ?? 30);
-    // 첫 구독 보너스 수령 가능 여부
-    const welcomeBonusEligible = !sub.firstSubAt;
+    // 만료 여부 확인
+    let effectiveTier = "free";
+    let effectiveExpAt = expAt ? new Date(expAt) : null;
+    let autoRenewed = false;
+
+    if (tier !== "free" && effectiveExpAt) {
+      if (effectiveExpAt > now) {
+        // 구독 활성
+        effectiveTier = tier;
+      } else if (plan && points >= plan.coins) {
+        // 만료됐지만 코인 충분 → 자동 갱신
+        const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 24 * 60 * 60 * 1000);
+        const updatedUser2 = await User.findOneAndUpdate(
+          { _id: req.auth.userId, points: { $gte: plan.coins } },
+          {
+            $inc: { points: -plan.coins },
+            $set: {
+              "profileSubscription.expiresAt": newExpAt,
+              "profileSubscription.startedAt": now,
+            },
+          },
+          { new: true, projection: { points: 1 } },
+        ).lean();
+        if (updatedUser2) {
+          effectiveTier  = tier;
+          effectiveExpAt = newExpAt;
+          autoRenewed    = true;
+          await PointHistory.create({
+            userId:       req.auth.userId,
+            kind:         "deduct",
+            delta:        -plan.coins,
+            balanceAfter: Number(updatedUser2.points || 0),
+            reason:       `${plan.name} 구독 자동 갱신`,
+            featureKey:   "profile-subscription-auto-renew",
+            metadata:     { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
+          }).catch(() => {});
+        }
+      }
+    }
+
+    const isActive = effectiveTier !== "free";
+    const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
+    const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
 
     return res.status(200).json({
-      tier:                effectiveTier,
-      isActive:            !!isActive,
-      expiresAt:           expAt ? new Date(expAt).toISOString() : null,
+      tier:              effectiveTier,
+      isActive:          !!isActive,
+      expiresAt:         effectiveExpAt ? effectiveExpAt.toISOString() : null,
       profileLimit,
       points,
-      lowBalanceWarning:   !!lowBalanceWarning,
-      welcomeBonusEligible: !!welcomeBonusEligible,
+      lowBalanceWarning: !!lowBalanceWarning,
+      autoRenewed:       !!autoRenewed,
     });
   } catch (error) {
     return next(error);
@@ -375,7 +408,7 @@ router.post("/pig-coin/share-reward", async (req, res, next) => {
 
 /* POST /api/fortune/pig-coin/profile-subscription/subscribe
    body: { tier: 'standard' | 'premium' | 'vvip' }
-   2안: 첫 구독 시 welcomeBonus 코인 추가 지급
+   코인 차감으로 구독 활성화 (30일). 코인 잔액이 충분하면 만료 시 자동 갱신됨.
 */
 router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) => {
   try {
@@ -385,11 +418,10 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
       return res.status(400).json({ message: "지원하지 않는 구독 플랜입니다." });
     }
 
-    const cost    = plan.coins;
-    const now     = new Date();
-    const expiresAt = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+    const cost = plan.coins;
+    const now  = new Date();
 
-    // 현재 구독 상태 확인 (첫 구독 보너스 판단용)
+    // 현재 구독 만료일 확인 (갱신 시 남은 기간에서 이어서 연장)
     const existingUser = await User.findById(req.auth.userId)
       .select("points profileSubscription")
       .lean();
@@ -398,15 +430,18 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
       return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
     }
 
+    const prevExpAt = existingUser.profileSubscription?.expiresAt;
+    const baseTime  = (prevExpAt && new Date(prevExpAt) > now)
+      ? new Date(prevExpAt).getTime()
+      : now.getTime();
+    const expiresAt = new Date(baseTime + plan.durationDays * 24 * 60 * 60 * 1000);
+
     const isFirstSub = !existingUser.profileSubscription?.firstSubAt;
-    const bonus = isFirstSub ? Number(plan.welcomeBonus || 0) : 0;
-    // 차감 후 보너스를 더하면 순 코인 변화 = bonus - cost
-    const netDelta = bonus - cost;
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: req.auth.userId, points: { $gte: cost } },
       {
-        $inc: { points: netDelta },
+        $inc: { points: -cost },
         $set: {
           "profileSubscription.tier":       reqTier,
           "profileSubscription.startedAt":  now,
@@ -423,38 +458,18 @@ router.post("/pig-coin/profile-subscription/subscribe", async (req, res, next) =
 
     const balanceAfter = Number(updatedUser.points || 0);
 
-    // 구독료 차감 이력
     await PointHistory.create({
       userId:       req.auth.userId,
       kind:         "deduct",
       delta:        -cost,
-      balanceAfter: isFirstSub ? balanceAfter - bonus : balanceAfter,
+      balanceAfter: balanceAfter,
       reason:       `프로필 ${plan.name} 구독`,
       featureKey:   "profile-subscription",
       metadata:     { tier: reqTier, expiresAt: expiresAt.toISOString() },
     });
 
-    // 첫 구독 시작 보너스 지급 이력
-    if (isFirstSub && bonus > 0) {
-      await PointHistory.create({
-        userId:       req.auth.userId,
-        kind:         "charge",
-        delta:        bonus,
-        balanceAfter: balanceAfter,
-        reason:       `${plan.name} 첫 구독 시작 보너스`,
-        featureKey:   "profile-subscription-welcome-bonus",
-        metadata:     { tier: reqTier, welcomeBonus: bonus },
-      });
-    }
-
-    const planMsg = isFirstSub && bonus > 0
-      ? `${plan.name} 구독이 시작되었습니다! 🎁 첫 구독 보너스 ${bonus.toLocaleString("ko-KR")}코인이 추가 지급되었어요.`
-      : `${plan.name} 구독이 시작되었습니다. (30일간 유효)`;
-
     return res.status(200).json({
-      message: planMsg,
-      welcomeBonusGranted: isFirstSub && bonus > 0,
-      welcomeBonus: bonus,
+      message: `${plan.name} 구독이 시작되었습니다. (30일간 유효)`,
       subscription: {
         tier:         reqTier,
         isActive:     true,
