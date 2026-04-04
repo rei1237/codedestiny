@@ -7,41 +7,41 @@
 
   /* ─────────────── 상수 ─────────────── */
   var CHAPTER_TITLES = [
-    '🚨 운명의 임계점과 장애물',
-    '🚀 천직과 부의 설계도',
-    '💕 감정의 역학과 연애운',
-    '💍 배우자 분석과 결합의 운명',
-    '🛤️ 인생의 3가지 평행우주',
-    '🔮 사주의 비밀 코드네임',
-    '📅 5개년 정밀 운세',
-    '💰 자산의 증식과 리스크 관리',
-    '🌅 생애 주기별 마스터플랜',
-    '💌 마스터의 최종 전략 제언',
+    '🏛️ 나의 설계도',
+    '⚔️ 숨겨진 무기',
+    '🤝 관계의 전략',
+    '👑 사회적 소명',
+    '💎 부와 사랑',
+    '🔮 사주의 비밀 코드',
+    '📅 2026 실전 로드맵',
+    '💰 자산의 증식과 리스크',
+    '🌅 생애 마스터플랜',
+    '💌 마스터의 최종 전략',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '실패의 알고리즘을 파괴하라',
-    '당신만을 위한 독점적 영역',
-    '관계의 결핍과 충족의 시나리오',
-    '미래 배우자의 데이터 프로파일링',
-    '선택에 따른 시뮬레이션',
-    '심층 데이터가 밝히는 특이점',
-    '과거의 복기와 미래의 선점',
-    '부를 지키는 방어 기제',
+    '타고난 기질과 환경의 설계',
+    '나만의 압도적 강점 발견',
+    '아비투스와 사람 — 관계의 역학',
+    '나의 성공 방정식',
+    '인생의 그릇 크기',
+    '일간과 천기가 밝히는 특이점',
+    '丙午년 12개월 행동 지침',
+    '부의 그릇을 키우는 비법',
     '인생 전체의 파노라마 (10~80세)',
     '운명을 이기는 의지의 설계',
   ];
 
   var LOADING_MSGS = [
-    '사주 원국(四柱原局)을 분석하는 중...',
-    '천직과 재능 설계도를 그리는 중...',
-    '연애 역학 패턴을 해독하는 중...',
-    '배우자 데이터를 프로파일링하는 중...',
-    '3가지 인생 시나리오를 시뮬레이션하는 중...',
-    '숨겨진 신살(神殺)을 탐색하는 중...',
-    '5개년 세운을 교차 분석하는 중...',
-    '재성운과 리스크를 계산하는 중...',
-    '대운 흐름을 조망하는 중...',
+    '타고난 기질과 월지·일간·지지를 분석하는 중...',
+    '용신·희신과 필살기 강점을 해독하는 중...',
+    '상충·합·육신의 관계 역학을 분석하는 중...',
+    '격국·상신으로 사회적 소명을 탐색하는 중...',
+    '재물운·애정운·건강운 그릇을 측정하는 중...',
+    '일간 특이점과 신살을 탐색하는 중...',
+    '2026 丙午년 12개월 로드맵을 작성하는 중...',
+    '자산 증식 전략과 리스크를 계산하는 중...',
+    '대운 흐름과 생애주기를 조망하는 중...',
     '마스터의 최종 전략을 집필하는 중...',
   ];
 
@@ -63,6 +63,11 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+
+    // blockquote (must run before > is treated as escaped)
+    h = h.replace(/^&gt; (.+)$/gm, '<blockquote class="lb-md-blockquote">$1</blockquote>');
+    // merge consecutive blockquotes
+    h = h.replace(/<\/blockquote>\n<blockquote class="lb-md-blockquote">/g, '<br>');
 
     // headings
     h = h.replace(/^#### (.+)$/gm, '<h4 class="lb-md-h4">$1</h4>');
@@ -97,7 +102,7 @@
         result.push('');
         continue;
       }
-      if (/^<(h[1-4]|ul|li|hr)/.test(line) || /<\/(h[1-4]|ul|li|hr)>$/.test(line)) {
+      if (/^<(h[1-4]|ul|li|hr|blockquote)/.test(line) || /<\/(h[1-4]|ul|li|hr|blockquote)>$/.test(line)) {
         result.push(line);
       } else {
         result.push('<p class="lb-md-p">' + line + '</p>');
@@ -141,62 +146,198 @@
       if (G.h) lines.push('시주(時柱): ' + (G.h.g || '') + (G.h.j || '') + (G.h.gE ? ' [' + G.h.gE + '/' + G.h.jE + ']' : ''));
     }
 
-    // 오행 분포
+    // ── 오행 분포
     var analysis = snap.analysis || snap.saju || {};
     if (analysis.elementWeights) {
       var w = analysis.elementWeights;
-      lines.push('\n【오행(五行) 분포】');
-      lines.push('목(木): ' + (w.wood || 0) + ' | 화(火): ' + (w.fire || 0) + ' | 토(土): ' + (w.earth || 0) + ' | 금(金): ' + (w.metal || 0) + ' | 수(水): ' + (w.water || 0));
+      lines.push('\n【오행(五行) 분포 — 퀀텀 명리 천기】');
+      lines.push('목(木): ' + (w.wood || 0) + '% | 화(火): ' + (w.fire || 0) + '% | 토(土): ' + (w.earth || 0) + '% | 금(金): ' + (w.metal || 0) + '% | 수(水): ' + (w.water || 0) + '%');
+      // 최강/최약 오행
+      var elArr = [['목(木)',w.wood||0],['화(火)',w.fire||0],['토(土)',w.earth||0],['금(金)',w.metal||0],['수(水)',w.water||0]];
+      elArr.sort(function(a,b){return b[1]-a[1];});
+      lines.push('최강 오행: ' + elArr[0][0] + ' (' + elArr[0][1] + '%) → 과다 시 기신 작용 주의');
+      lines.push('최약 오행: ' + elArr[4][0] + ' (' + elArr[4][1] + '%) → 결핍 기운, 용신 후보');
     }
 
-    // 용신/기신
+    // ── [1부 나의 설계도] 월지·일간·지지 심화
+    var G_PILLARS_R = window.G_PILLARS;
+    if (G_PILLARS_R) {
+      lines.push('\n【1부. 나의 설계도 — 월지·일간·지지 정밀 분석】');
+      if (G_PILLARS_R.m && G_PILLARS_R.m.j) {
+        lines.push('월지(月支): ' + G_PILLARS_R.m.j + (G_PILLARS_R.m.jE ? ' [' + G_PILLARS_R.m.jE + ']' : '') + ' → 태어난 계절·환경의 기운. 삶의 무대와 난이도를 결정');
+      }
+      if (G_PILLARS_R.d) {
+        lines.push('일간(日干): ' + (G_PILLARS_R.d.g||'') + (G_PILLARS_R.d.gE ? ' [' + G_PILLARS_R.d.gE + ']' : '') + ' → 나의 핵심 정체성, 주도적 vs 협조적 기질의 근원');
+        lines.push('일지(日支): ' + (G_PILLARS_R.d.j||'') + (G_PILLARS_R.d.jE ? ' [' + G_PILLARS_R.d.jE + ']' : '') + ' → 나의 내면 심성, 배우자궁, 감정의 결');
+      }
+      // 지지 4개 — 내 인생 반복 패턴
+      var zhiList = [];
+      ['y','m','d','h'].forEach(function(k){
+        if (G_PILLARS_R[k] && G_PILLARS_R[k].j) zhiList.push(G_PILLARS_R[k].j + (G_PILLARS_R[k].jE ? '['+G_PILLARS_R[k].jE+']' : ''));
+      });
+      if (zhiList.length) lines.push('지지(地支) 전체: ' + zhiList.join(' · ') + ' → 삶에 반복 출현하는 상황 패턴');
+      // 계절(조후)
+      var johuType = (window.G_JOHU && window.G_JOHU.type) ? window.G_JOHU.type : (analysis.johuType || analysis.johu_type || '');
+      if (johuType) lines.push('조후(調候) 판정: ' + johuType + (johuType==='hot'?' — 뜨거운 여름 사주, 水·金 환경에서 능력 최대화':johuType==='cold'?' — 차가운 겨울 사주, 火·木 환경에서 능력 최대화':johuType==='warm'?' — 따뜻한 봄/여름 사주':johuType==='cool'?' — 선선한 가을/겨울 사주':''));
+    }
+
+    // ── [2부 숨겨진 무기] 용신·희신·Specialist vs Generalist
+    var G_POWER = window.G_POWER;
+    var G_JOHU = window.G_JOHU;
+    lines.push('\n【2부. 숨겨진 무기 — 용신·희신·천직 특성 분석】');
     if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
-      lines.push('용신(用神): ' + analysis.yongshin_elements.join(', '));
+      lines.push('용신(用神): ' + analysis.yongshin_elements.join(', ') + ' → 내가 가장 잘 쓸 수 있는 필살기 오행');
     }
     if (analysis.kishin_elements && analysis.kishin_elements.length) {
-      lines.push('기신(忌神): ' + analysis.kishin_elements.join(', '));
+      lines.push('기신(忌神): ' + analysis.kishin_elements.join(', ') + ' → 에너지를 소진시키는 장애 오행');
     }
-
-    // 일간/격국
-    if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
-    if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
-    if (analysis.johuType) lines.push('조후(調候): ' + analysis.johuType);
-    if (analysis.johu_type && !analysis.johuType) lines.push('조후(調候): ' + analysis.johu_type);
-    if (analysis.isJong) lines.push('종격(從格): ' + (analysis.jongName || '종격'));
-    if (snap.saju && snap.saju.notes && snap.saju.notes.length) {
-      lines.push('추가 판정: ' + snap.saju.notes.join(' / '));
-    }
-
-    // 십성 분포
-    var G_JOHU = window.G_JOHU;
-    var G_POWER = window.G_POWER;
     if (G_POWER) {
-      if (G_POWER.groups) {
-        lines.push('\n【십성(十星) 분포】');
-        var gk = Object.keys(G_POWER.groups);
-        for (var gi = 0; gi < gk.length; gi++) {
-          lines.push(gk[gi] + ': ' + G_POWER.groups[gk[gi]]);
-        }
+      if (G_POWER.yongshin) lines.push('용신 상세: ' + (Array.isArray(G_POWER.yongshin) ? G_POWER.yongshin.join(', ') : G_POWER.yongshin));
+      if (G_POWER.kijishin && G_POWER.kijishin.length) lines.push('기신 상세: ' + G_POWER.kijishin.join(', '));
+    }
+    // 일간/신강신약
+    if (analysis.dayStem) lines.push('일간(日干): ' + analysis.dayStem);
+    if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label + (analysis.power_label==='신강'?' — 자기 주도성 강, 에너지 과다 주의. 상관·식신으로 발산 권장':' — 지지 기반 필요. 인성·비겁 운에서 비약적 성장'));
+    if (analysis.isJong) lines.push('격 판정: ' + (analysis.jongName || '종격') + ' — 종격은 용신을 따르는 방향으로 거스르지 말 것');
+
+    // Specialist vs Generalist 판별
+    if (G_POWER && G_POWER.groups) {
+      lines.push('\n【십성(十星) 분포 — Specialist/Generalist 판별 기반】');
+      var gk = Object.keys(G_POWER.groups);
+      for (var gi = 0; gi < gk.length; gi++) {
+        lines.push(gk[gi] + ': ' + G_POWER.groups[gk[gi]]);
       }
-      if (G_POWER.yongshin) lines.push('용신: ' + (Array.isArray(G_POWER.yongshin) ? G_POWER.yongshin.join(', ') : G_POWER.yongshin));
+      // Specialist: 관성 강하고 비겁 약 / Generalist: 식상 강하고 재성 발달
+      var grp = G_POWER.groups;
+      var hasStrongKwan = (grp['정관']||0) + (grp['편관']||0) > 2;
+      var hasStrongSik = (grp['식신']||0) + (grp['상관']||0) > 2;
+      var hasStrongJae = (grp['정재']||0) + (grp['편재']||0) > 2;
+      lines.push('천직 기질: ' + (hasStrongKwan && !hasStrongSik ? 'Specialist형 — 한 분야의 전문 장인, 체계·규범·조직 안에서 빛남' : hasStrongSik && hasStrongJae ? 'Generalist(창업가)형 — 아이디어를 돈으로 전환, 판을 넓히는 사업가' : '균형형 — 전문성과 유연성을 함께 발휘'));
     }
 
-    // 대운
+    // ── [3부 관계의 전략] 상충·합·육신
+    lines.push('\n【3부. 관계의 전략 — 상충·합·육신 분석】');
+    if (G_PILLARS_R) {
+      // 천간합 탐색
+      var GAN_PAIRS = [['甲','己'],['乙','庚'],['丙','辛'],['丁','壬'],['戊','癸']];
+      var GAN_PAIR_EL = ['토(土)','금(金)','수(水)','목(木)','화(火)'];
+      var ganList = ['y','m','d','h'].map(function(k){ return G_PILLARS_R[k] && G_PILLARS_R[k].g || ''; });
+      var hapFound = [];
+      GAN_PAIRS.forEach(function(p,i){
+        var cnt0 = ganList.filter(function(g){return g===p[0];}).length;
+        var cnt1 = ganList.filter(function(g){return g===p[1];}).length;
+        if (cnt0 > 0 && cnt1 > 0) hapFound.push(p[0]+'·'+p[1]+' 천간합 → '+GAN_PAIR_EL[i]+' 화합, 전략적 파트너십 기운');
+      });
+      if (hapFound.length) lines.push('천간합(天干合): ' + hapFound.join(' / '));
+      // 지지충 탐색
+      var JI_CHUNG = [['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
+      var jiList = ['y','m','d','h'].map(function(k){ return G_PILLARS_R[k] && G_PILLARS_R[k].j || ''; });
+      var chungFound = [];
+      JI_CHUNG.forEach(function(p){
+        var c0 = jiList.filter(function(j){return j===p[0];}).length;
+        var c1 = jiList.filter(function(j){return j===p[1];}).length;
+        if (c0>0 && c1>0) chungFound.push(p[0]+'·'+p[1]+' 충(沖)');
+      });
+      if (chungFound.length) lines.push('지지충(地支沖): ' + chungFound.join(' / ') + ' → 변화의 자극, 성장 트리거이자 예기치 못한 변동 신호');
+      else lines.push('지지충: 원국 내 주요 충 없음 — 비교적 안정적 흐름');
+      // 삼합/육합 탐색
+      var YUKHAP = [['子','丑'],['寅','亥'],['卯','戌'],['辰','酉'],['巳','申'],['午','未']];
+      var yukFound = [];
+      YUKHAP.forEach(function(p){
+        if (jiList.indexOf(p[0])>=0 && jiList.indexOf(p[1])>=0) yukFound.push(p[0]+'·'+p[1]+' 육합(六合)');
+      });
+      if (yukFound.length) lines.push('육합(六合): ' + yukFound.join(' / ') + ' → 파트너십·제휴에서 강력한 시너지');
+    }
+    // 육신(六神) — 타인이 보는 나 vs 내가 바라보는 세상
+    if (G_POWER && G_POWER.groups) {
+      var g = G_POWER.groups;
+      var topStar = '';
+      var topVal = 0;
+      Object.keys(g).forEach(function(k){ if((g[k]||0)>topVal){topVal=g[k];topStar=k;} });
+      var starDesc = {
+        '정관': '타인 평가: 책임감 있고 신뢰할 수 있는 사람. 내가 바라보는 세상: 규범·질서·명예가 최우선',
+        '편관': '타인 평가: 강렬하고 카리스마 있는 사람. 내가 바라보는 세상: 도전·극복·리더십이 삶의 이유',
+        '정재': '타인 평가: 성실하고 믿음직한 사람. 내가 바라보는 세상: 안정된 자산과 현실 결과가 가장 중요',
+        '편재': '타인 평가: 매력적이고 사교적인 사람. 내가 바라보는 세상: 기회·확장·자유로운 재물 흐름',
+        '식신': '타인 평가: 온화하고 재능 있는 사람. 내가 바라보는 세상: 표현·창조·즐거움이 삶의 핵심',
+        '상관': '타인 평가: 개성 강하고 독창적인 사람. 내가 바라보는 세상: 기존 틀을 깨는 혁신과 자유',
+        '비견': '타인 평가: 주관·독립심이 강한 사람. 내가 바라보는 세상: 경쟁과 자립이 성장의 원동력',
+        '겁재': '타인 평가: 도전적이고 추진력 있는 사람. 내가 바라보는 세상: 승부·쟁취·역동적 변화',
+        '정인': '타인 평가: 지성적이고 배려 깊은 사람. 내가 바라보는 세상: 학문·배움·내면 성숙이 삶의 목적',
+        '편인': '타인 평가: 신비롭고 독특한 사람. 내가 바라보는 세상: 직관·영적 통찰·비주류적 가치'
+      };
+      if (topStar && starDesc[topStar]) {
+        lines.push('주도 십성(육신): ' + topStar + ' — ' + starDesc[topStar]);
+      }
+    }
+
+    // ── [4부 사회적 소명] 격국·상신·구신
+    lines.push('\n【4부. 사회적 소명 — 격국·상신·구신 분석】');
+    if (snap.saju && snap.saju.notes && snap.saju.notes.length) {
+      lines.push('격 판정 노트: ' + snap.saju.notes.join(' / '));
+    }
+    if (johuType) lines.push('조후(調候): ' + johuType);
+    // 격국 추론 (월지 기반)
+    if (G_PILLARS_R && G_PILLARS_R.m) {
+      var monthG = G_PILLARS_R.m.g || '';
+      var monthJ = G_PILLARS_R.m.j || '';
+      lines.push('격국 기반 월주: ' + monthG + monthJ + ' → 이 월주가 격국(格局)과 직업적성·사회적 그릇의 틀을 결정');
+    }
+    lines.push('상신(相神): 용신을 돕는 조력 오행 = ' + (analysis.yongshin_elements ? analysis.yongshin_elements.join(' 계열') + ' 관련 인맥·환경·직업' : '사주 상세 분석 필요'));
+    lines.push('구신(仇神): 기신(忌神) ' + (analysis.kishin_elements ? analysis.kishin_elements.join(', ') : '') + ' → 고난 끝에 결국 내 것이 되는 역설적 결과 오행 — 극복 후 최대 무기로 전환');
+
+    // ── [5부 부와 사랑] 재물운·애정운·건강운
+    lines.push('\n【5부. 부와 사랑 — 재물운·애정운·건강운】');
+    if (G_POWER && G_POWER.groups) {
+      var gg = G_POWER.groups;
+      var jaeTotal = (gg['정재']||0) + (gg['편재']||0);
+      var gwanTotal = (gg['정관']||0) + (gg['편관']||0);
+      var sikTotal = (gg['식신']||0) + (gg['상관']||0);
+      lines.push('재물 그릇(재성 총량): ' + jaeTotal + '개 — ' + (jaeTotal >= 3 ? '재성 풍부. 단, 겁재가 강하면 재물 유출 주의' : jaeTotal >= 1 ? '적정 재물 기운. 식상 활성화 시 재물이 따름' : '재성 약. 전문 기술(식상)을 먼저 키워야 재물이 열림'));
+      lines.push('돈그릇 모양: ' + (gg['편재']||0 > gg['정재']||0 ? '편재형 — 공격적 투자형, 사업·주식·부동산 등 변동성 자산에 강점' : '정재형 — 안정적 저축형, 꾸준한 수입·안전 자산 선호'));
+      lines.push('애정 구조: ' + (gwanTotal > 0 ? '관성 발달 — 책임 기반 연애, 진지한 관계 지향' : sikTotal > 2 ? '식상 강 — 매력·표현력 넘치는 연애, 자유로운 감정 표현' : '비겁 강 — 독립심 강해 주체적 연애, 상대방 존중이 관계의 열쇠'));
+    }
+    if (analysis.elementWeights) {
+      var hw = analysis.elementWeights;
+      var weakEl = '';
+      var minV = 999;
+      [['목(木)',hw.wood||0],['화(火)',hw.fire||0],['토(土)',hw.earth||0],['금(金)',hw.metal||0],['수(水)',hw.water||0]].forEach(function(e){ if(e[1]<minV){minV=e[1];weakEl=e[0];} });
+      lines.push('건강 취약 오행: ' + weakEl + ' — ' + {'목(木)':'간·담·근육·눈 계열 주의, 스트레스 해소 필수', '화(火)':'심장·소장·혈관·정신 에너지 소진 주의', '토(土)':'소화기·비위·췌장, 과식·불규칙 식사 주의', '금(金)':'폐·대장·피부·호흡기 주의, 환절기 건강 관리', '수(水)':'신장·방광·생식기·뼈 주의, 수분 보충 중요'}[weakEl]);
+      lines.push('타고난 에너지 총량: ' + (analysis.power_label === '신강' ? '신강(身强) — 에너지가 넘쳐 과로·번아웃 주의. 정기적 운동과 이완 필수' : '신약(身弱) — 에너지 효율적 분배 필요. 무리한 다중 역할보다 선택과 집중이 건강의 핵심'));
+    }
+
+    // ── [6부 2026 실전 로드맵]
+    lines.push('\n【6부. 2026 丙午 실전 로드맵 — 신년 행동 지침】');
+    lines.push('2026년 세운(歲運): 丙午年 — 천간 丙(병,火)·지지 午(오,火). 화(火) 기운이 천지를 뒤덮는 해');
+    // 용신/기신에 따른 2026 판단
+    var yong = analysis.yongshin_elements || [];
+    var ki = analysis.kishin_elements || [];
+    var is2026Good = yong.indexOf('火') >= 0 || yong.indexOf('화') >= 0 || yong.indexOf('fire') >= 0;
+    var is2026Bad = ki.indexOf('火') >= 0 || ki.indexOf('화') >= 0 || ki.indexOf('fire') >= 0;
+    lines.push('2026 용신/기신 판정: ' + (is2026Good ? '🔥 丙午 火 기운이 용신 — 2026년은 적극 행동의 해! Go 시즌' : is2026Bad ? '⚠️ 丙午 火 기운이 기신 — 2026년은 내실 강화의 해. Stop→내공 축적' : '🌀 중립 — 2026년은 전략적 선별 행동의 해'));
+    lines.push('타이밍 전략(Go/Stop): ' + (is2026Good ? '봄(1~3월) 씨앗 심기 → 여름(5~7월) 폭발 성장 → 가을(9~10월) 수확. 무리한 확장보다 핵심 1개 승부' : '상반기 조심(충돌·과소비 금지), 하반기 2027 준비 기간. 丙午충 원국 있으면 환경 변동 대비'));
+    lines.push('2026년 핵심 키워드: ' + (is2026Good ? '가시성·도전·사회적 인정·관계 확장' : is2026Bad ? '내실·절제·전문성 심화·재정 안정' : '균형·선택과 집중·관계 정리·핵심 역량'));
+    // 월별 정보 기반 (현재 연도/월)
+    var nowMonth = new Date().getMonth() + 1; // 1~12
+    lines.push('현재 월(2026년 ' + nowMonth + '월) 기운: 올해 가장 주의할 월 — 기신 오행이 강해지는 달(月)에 큰 결정 자제, 용신 달에 승부');
+
+    // ── 대운
     var G_DAEWUN = window.G_DAEWUN || window.G_DAEUN;
     if (G_DAEWUN && Array.isArray(G_DAEWUN) && G_DAEWUN.length) {
-      lines.push('\n【대운(大運) 흐름】');
-      for (var di = 0; di < Math.min(G_DAEWUN.length, 10); di++) {
+      lines.push('\n【대운(大運) 전체 흐름 — 생애 마스터플랜 기반】');
+      for (var di = 0; di < Math.min(G_DAEWUN.length, 12); di++) {
         var dw = G_DAEWUN[di];
         if (dw) {
-          lines.push((dw.age || '') + '세: ' + (dw.g || '') + (dw.j || '') + (dw.gE ? ' [' + dw.gE + ']' : ''));
+          lines.push((dw.age || '') + '세 대운: ' + (dw.g || '') + (dw.j || '') + (dw.gE ? ' [' + dw.gE + ']' : '') + (dw.jE ? '/' + dw.jE : ''));
         }
       }
     }
 
-    // 현재 나이
+    // ── 현재 나이
     if (birth.year) {
       var currentAge = new Date().getFullYear() - birth.year + 1;
       lines.push('\n현재 나이: ' + currentAge + '세 (만 ' + (currentAge - 1) + '세)');
+      lines.push('현재 기준年: 2026년 丙午年');
     }
 
     return lines.join('\n');
@@ -416,22 +557,24 @@
       '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:1rem;}' +
       '.toc-num{color:#7c3aed;font-weight:700;min-width:80px;}' +
       '.toc-text{color:#1e1b4b;}' +
-      '.chapter{padding:48px 56px;}' +
-      '.chapter-header{border-bottom:1px solid #ede9fe;margin-bottom:32px;padding-bottom:24px;}' +
-      '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:8px;}' +
-      '.chapter-title{font-size:1.8rem;font-weight:700;color:#1e1b4b;margin:0 0 8px;}' +
+      '.chapter{padding:52px 60px;}' +
+      '.chapter-header{border-bottom:2px solid #ede9fe;margin-bottom:36px;padding-bottom:26px;}' +
+      '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:10px;}' +
+      '.chapter-title{font-size:1.9rem;font-weight:700;color:#1e1b4b;margin:0 0 8px;}' +
       '.chapter-sub{font-size:0.95rem;color:#6d28d9;margin:0;}' +
-      '.chapter-body{line-height:1.9;font-size:0.98rem;color:#2d2d4e;}' +
-      '.lb-md-h1,.lb-md-h2{font-size:1.3rem;font-weight:700;color:#1e1b4b;margin:28px 0 12px;border-left:4px solid #7c3aed;padding-left:12px;}' +
-      '.lb-md-h3{font-size:1.1rem;font-weight:700;color:#312e81;margin:20px 0 8px;}' +
+      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d2d4e;}' +
+      '.lb-md-h1,.lb-md-h2{font-size:1.3rem;font-weight:700;color:#1e1b4b;margin:30px 0 13px;border-left:4px solid #7c3aed;padding:6px 12px;background:#f5f0ff;}' +
+      '.lb-md-h3{font-size:1.1rem;font-weight:700;color:#312e81;margin:22px 0 9px;border-left:2px solid #a78bfa;padding-left:10px;}' +
       '.lb-md-h4{font-size:1rem;font-weight:700;color:#4c1d95;margin:16px 0 6px;}' +
-      '.lb-md-p{margin:0 0 14px;}' +
-      '.lb-md-ul{margin:0 0 14px;padding-left:24px;}' +
-      '.lb-md-li{margin-bottom:6px;}' +
-      '.lb-md-hr{border:none;border-top:1px solid #ede9fe;margin:24px 0;}' +
+      '.lb-md-p{margin:0 0 16px;}' +
+      '.lb-md-ul{margin:0 0 16px;padding-left:26px;}' +
+      '.lb-md-li{margin-bottom:8px;line-height:1.8;}' +
+      '.lb-md-hr{border:none;border-top:2px solid #ede9fe;margin:28px 0;}' +
+      '.lb-md-blockquote{border-left:4px solid #d4a72c;background:#fffbeb;padding:14px 20px;margin:20px 0;border-radius:0 8px 8px 0;color:#7c5500;font-style:italic;font-size:0.97rem;line-height:1.75;}' +
       '@media print{' +
       'body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
-      '.cover{min-height:auto;padding:60px 40px;}' +
+      '.cover{min-height:auto;padding:80px 60px;}' +
+      '.chapter{padding:52px 60px;}' +
       '}' +
       '</style></head><body>' +
       '<div class="cover">' +
