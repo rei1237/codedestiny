@@ -3258,111 +3258,70 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         <a href="/insights?topic=astrology" style="text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(102,217,255,0.42);background:rgba(102,217,255,0.14);color:#daf5ff;font-size:0.72rem;font-weight:600;">🪐 서양 점성술</a>
         <a href="/insights?topic=ziwei" style="text-decoration:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(183,148,244,0.42);background:rgba(183,148,244,0.14);color:#efe4ff;font-size:0.72rem;font-weight:600;">✨ 자미두수</a>
       </div>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!-- ⭐ 유명인 사주 분석 아카이브 (인사이트 허브 통합) -->
+      <!-- ════════════════════════════════════════════ -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(183,148,244,0.35),transparent);margin:16px 16px 0;"></div>
+
+      <!-- 서브 타이틀 -->
+      <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.35rem;">⭐</span>
+        <div>
+          <h3 itemprop="name" style="margin:0 0 3px;font-size:0.97rem;font-weight:800;color:#f3e8ff;letter-spacing:0.02em;">유명인 사주 분석 아카이브</h3>
+          <p itemprop="description" style="margin:0;font-size:0.74rem;color:rgba(203,195,227,0.6);line-height:1.4;">역사 위인·K-스타·세계 유명인 50인+의 사주팔자를 KasiEngine 명리 엔진으로 심층 분석합니다</p>
+        </div>
+      </div>
+
+      <!-- 검색 입력 -->
+      <div style="padding:0 16px 10px;">
+        <div style="position:relative;">
+          <input id="fsp-search" type="search" placeholder="이름으로 검색… (예: 이순신, 테일러)" aria-label="유명인 검색"
+            style="width:100%;box-sizing:border-box;padding:8px 14px 8px 36px;border-radius:10px;border:1px solid rgba(167,139,250,0.3);background:rgba(0,0,0,0.3);color:#f3e8ff;font-size:0.82rem;outline:none;">
+          <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.9rem;pointer-events:none;opacity:0.5;">🔍</span>
+        </div>
+        <div id="fsp-search-empty" style="display:none;padding:6px 2px 0;font-size:0.79rem;color:rgba(203,195,227,0.45);">검색 결과가 없습니다</div>
+      </div>
+
+      <!-- 카테고리 필터 바 -->
+      <div id="fsp-filter-bar" role="group" aria-label="카테고리 필터"
+        style="display:flex;gap:6px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
+        <button class="fsp-filter-btn fsp-filter--active" data-cat="all" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(167,139,250,0.6);background:rgba(124,58,237,0.35);color:#e9d5ff;cursor:pointer;white-space:nowrap;transition:all .18s;">전체</button>
+        <button class="fsp-filter-btn" data-cat="kr-historic" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">역사 위인</button>
+        <button class="fsp-filter-btn" data-cat="kr-modern" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">K-스타</button>
+        <button class="fsp-filter-btn" data-cat="jp" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇯🇵 일본</button>
+        <button class="fsp-filter-btn" data-cat="cn" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇨🇳 중국</button>
+        <button class="fsp-filter-btn" data-cat="us" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇺🇸 미국</button>
+        <button class="fsp-filter-btn" data-cat="music" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">음악</button>
+        <button class="fsp-filter-btn" data-cat="acting" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">연기</button>
+        <button class="fsp-filter-btn" data-cat="sports" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">스포츠</button>
+        <button class="fsp-filter-btn" data-cat="business" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">기업인</button>
+        <button class="fsp-filter-btn" data-cat="director" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">감독·창작</button>
+        <button class="fsp-filter-btn" data-cat="politics" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🏛️ 정치인</button>
+      </div>
+
+      <!-- 인물 카드 그리드 (JS 동적 렌더링) -->
+      <div id="fsp-grid" role="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:0 16px 10px;">
+        <noscript>
+          <p>이순신·세종대왕·유관순·안중근·김구·정약용·BTS RM·IU(이지은)·손흥민·뉴진스 하니·류현진·봉준호·유해진·박찬호·김연아·박세리·박정희·김대중·한강·미야자키 하야오·나루히토·오타니 쇼헤이·기타노 다케시·무라카미 하루키·도요토미 히데요시·쿠로사와 아키라·아무로 나미에·이소룡·성룡·마윈·공자·장이머우·마오쩌둥·테일러 스위프트·엘론 머스크·마이클 잭슨·스티브 잡스·마틴 루터 킹·엘비스 프레슬리·빌 게이츠·버락 오바마·스티브 워즈니악·마돈나·마틴 스코세이지·레오나르도 다 빈치·알베르트 아인슈타인·윌리엄 셰익스피어·나폴레옹 등 국내외 유명인 50인+ 사주팔자 명리학 심층 분석</p>
+        </noscript>
+      </div><!-- /#fsp-grid -->
+
+      <!-- 상세 분석 패널 (카드 클릭 시) -->
+      <div id="fsp-detail" style="display:none;margin:0 16px 14px;border-radius:16px;border:1px solid rgba(167,139,250,0.28);background:rgba(0,0,0,0.25);overflow:hidden;">
+        <div id="fsp-detail-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(183,148,244,0.15);">
+          <span id="fsp-detail-title" style="font-size:0.9rem;font-weight:800;color:#e9d5ff;">인물 상세 분석</span>
+          <button id="fsp-detail-close" aria-label="닫기" style="background:none;border:none;color:rgba(203,195,227,0.6);font-size:1.1rem;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1;">✕</button>
+        </div>
+        <div id="famousSajuContent" style="padding:16px;"><!-- JS 동적 렌더링 --></div>
+      </div>
+
+      <!-- 학술 면책 고지 -->
+      <div style="margin:0 16px 16px;padding:8px 12px;border-radius:10px;background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.18);">
+        <p style="margin:0;font-size:0.7rem;line-height:1.65;color:rgba(253,230,138,0.75);text-align:center;">⚠️ <strong style="color:#fbbf24;">학술·교육 목적</strong> — 동양 명리학 이론 소개·교육을 위한 학술적 콘텐츠입니다. 실제 인물에 대한 가치 판단·예측이 아니며, 출생 시간 불명 인물은 정오(12시) 기준 3기둥(년주·월주·일주) 분석입니다.</p>
+      </div>
     </section>
     <!-- ═══ 운세 인사이트 허브 끝 ═══ -->
-
-    <!-- ═══ 유명인 사주 분석 패널 ═══ -->
-    <!-- 메인 피처 카드 (다른 기능들과 동일한 컨테이너 방식) -->
-    <div class="feature-card-wrapper" style="padding:0 12px;margin:20px auto 8px;max-width:860px;">
-      <section id="famousSajuPanel" aria-label="유명인 사주 분석 아카이브"
-        itemscope itemtype="https://schema.org/Collection"
-        style="border-radius:22px;overflow:hidden;background:linear-gradient(145deg,rgba(10,13,46,0.98) 0%,rgba(20,8,50,0.98) 55%,rgba(10,13,46,0.98) 100%);border:1px solid rgba(183,148,244,0.32);box-shadow:0 8px 40px rgba(0,0,0,0.55),0 0 0 1px rgba(183,148,244,0.08) inset;">
-
-        <!-- ① 배너 헤더: famous.webp 이미지 위에 패널 타이틀 배치 -->
-        <div style="position:relative;height:180px;overflow:hidden;">
-          <img src="/fuctionassets/famous.webp"
-            alt="유명인 사주 분석 아카이브 대표 이미지"
-            loading="lazy" decoding="async"
-            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;">
-          <!-- 이미지 위 그라데이션 오버레이 -->
-          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,46,0.22) 0%,rgba(10,13,46,0.6) 55%,rgba(10,13,46,0.92) 100%);"></div>
-          <!-- 이미지 안에 표시되는 패널 타이틀 -->
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 20px 16px;">
-            <h2 itemprop="name" style="margin:0 0 5px;font-size:1.15rem;font-weight:800;color:#f3e8ff;letter-spacing:0.03em;text-shadow:0 2px 12px rgba(0,0,0,0.9);">⭐ 유명인 사주 분석 아카이브</h2>
-            <p style="margin:0;font-size:0.79rem;color:rgba(220,210,240,0.95);line-height:1.45;text-shadow:0 1px 6px rgba(0,0,0,0.8);">역사 위인·K-스타·해외 스타 14인의 사주팔자를 명리학 사주 엔진으로 심층 분석합니다</p>
-          </div>
-        </div>
-
-        <!-- ② 카테고리 필터 바 -->
-        <div id="fsp-filter-bar" role="group" aria-label="카테고리 필터"
-          style="display:flex;gap:6px;padding:0 14px 12px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;">
-          <button class="fsp-filter-btn fsp-filter--active" data-cat="all" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(167,139,250,0.6);background:rgba(124,58,237,0.35);color:#e9d5ff;cursor:pointer;white-space:nowrap;transition:all .18s;">전체</button>
-          <button class="fsp-filter-btn" data-cat="kr-historic" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">역사 위인</button>
-          <button class="fsp-filter-btn" data-cat="kr-modern" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">K-스타</button>
-          <button class="fsp-filter-btn" data-cat="jp" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇯🇵 일본</button>
-          <button class="fsp-filter-btn" data-cat="cn" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇨🇳 중국</button>
-          <button class="fsp-filter-btn" data-cat="us" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🇺🇸 미국</button>
-          <button class="fsp-filter-btn" data-cat="music" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">음악</button>
-          <button class="fsp-filter-btn" data-cat="acting" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">연기</button>
-          <button class="fsp-filter-btn" data-cat="sports" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">스포츠</button>
-          <button class="fsp-filter-btn" data-cat="business" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">기업인</button>
-          <button class="fsp-filter-btn" data-cat="director" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">감독·창작</button>
-          <button class="fsp-filter-btn" data-cat="politics" style="flex-shrink:0;padding:5px 13px;font-size:0.74rem;font-weight:700;border-radius:999px;border:1px solid rgba(183,148,244,0.25);background:rgba(255,255,255,0.05);color:rgba(203,195,227,0.75);cursor:pointer;white-space:nowrap;transition:all .18s;">🏛️ 정치인</button>
-        </div>
-
-        <!-- ③ 인물 카드 그리드 (SEO 정적 HTML) -->
-        <div id="fsp-grid" role="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:14px 14px 8px;">
-          <!-- JS가 카드를 동적 렌더링 (FAMOUS_DATA 기반) — SEO용 noscript 인물 목록 -->
-          <noscript>
-            <p itemprop="description">이순신세종대왕유관순안중근김구정약용BTS RMIU(이지은)손흥민뉴진스 하니류현진봉준호유해진박찬호김연아박세리박정희김대중한강미야자키 하야오나루히토오타니 쇼헤이기타노 다케시무라카미 하루키도요토미 히데요시쿠로사와 아키라아무로 나미에이소룡성룡마윈공자장이머우류사오치(마오쩌둥)테일러 스위프트엘론 머스크마이클 잭슨스티브 잡스마틴 루터 킹엘비스 프레슬리빌 게이츠버락 오바마스티브 워즈니악마돈나마틴 스코세이지레오나르도 다 빈치알베르트 아인슈타인윌리엄 셰익스피어나폴레옹 등 국내외 유명인 50인+ 사주팔자 명리학 심층 분석</p>
-          </noscript>
-        </div><!-- /#fsp-grid -->
-
-        <!-- ④ 상세 분석 패널 (카드 클릭 시 표시) -->
-        <div id="fsp-detail" style="display:none;margin:0 14px 14px;border-radius:16px;border:1px solid rgba(167,139,250,0.28);background:rgba(0,0,0,0.25);overflow:hidden;">
-          <div id="fsp-detail-header" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(183,148,244,0.15);">
-            <span id="fsp-detail-title" style="font-size:0.9rem;font-weight:800;color:#e9d5ff;">인물 상세 분석</span>
-            <button id="fsp-detail-close" aria-label="닫기" style="background:none;border:none;color:rgba(203,195,227,0.6);font-size:1.1rem;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1;">✕</button>
-          </div>
-          <div id="famousSajuContent" style="padding:16px;">
-            <!-- JS 동적 렌더링 -->
-          </div>
-        </div>
-
-        <!-- ⑤ 생년월일 입력 → 원하는 인물 사주팔자 분석 -->
-        <div style="margin:0 14px 14px;padding:16px;border-radius:16px;background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.22);">
-          <div style="font-size:0.84rem;font-weight:800;color:#c4b5fd;margin-bottom:6px;">🔍 원하는 인물의 생년월일로 사주팔자 분석하기</div>
-          <p style="margin:0 0 12px;font-size:0.73rem;color:rgba(203,195,227,0.6);line-height:1.55;">유명인·역사 인물 등 누구든 생년월일을 입력하면 사주 엔진으로 사주팔자를 계산해드립니다</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label for="fsp-input-year" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">년 (양력)</label>
-              <input id="fsp-input-year" type="number" min="1300" max="2024" placeholder="1990" aria-label="출생년도(양력)"
-                style="width:72px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label for="fsp-input-month" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">월</label>
-              <input id="fsp-input-month" type="number" min="1" max="12" placeholder="1" aria-label="출생월"
-                style="width:54px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label for="fsp-input-day" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">일</label>
-              <input id="fsp-input-day" type="number" min="1" max="31" placeholder="1" aria-label="출생일"
-                style="width:54px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
-            </div>
-            <div style="display:flex;flex-direction:column;gap:4px;">
-              <label for="fsp-input-hour" style="font-size:0.7rem;color:rgba(203,195,227,0.65);">시(0~23)</label>
-              <input id="fsp-input-hour" type="number" min="0" max="23" placeholder="12" aria-label="출생 시각"
-                style="width:56px;padding:7px 8px;border-radius:9px;border:1px solid rgba(167,139,250,0.35);background:rgba(0,0,0,0.35);color:#f3e8ff;font-size:0.82rem;outline:none;text-align:center;">
-            </div>
-            <button id="fsp-calc-btn" style="padding:8px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#f3e8ff;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s;">사주팔자 분석</button>
-          </div>
-          <div id="fsp-my-result" style="margin-top:12px;display:none;">
-            <!-- 사주 분석 결과 JS 렌더링 -->
-          </div>
-        </div>
-
-        <!-- ⑥ 학술 면책 고지 -->
-        <div style="margin:0 14px 16px;padding:10px 14px;border-radius:12px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);">
-          <p style="margin:0;font-size:0.72rem;line-height:1.7;color:rgba(253,230,138,0.8);text-align:center;">
-            ⚠️ <strong style="color:#fbbf24;">학술·교육 목적 전용 콘텐츠</strong> — 본 분석은 동양 명리학 이론 소개·교육을 위한 학술적 목적으로만 작성되었습니다.
-            실제 인물에 대한 가치 판단·예측·진단이 아니며, 상업적·법적 판단의 근거로 사용될 수 없습니다.
-            출생 시간 불명 인물은 정오(12시) 기준 학술 추정치를 사용합니다.
-          </p>
-        </div>
-
-      </section>
-    </div><!-- /.feature-card-wrapper -->
-    <!-- ═══ 유명인 사주 분석 패널 끝 ═══ -->
 
     <!-- 즐겨찾기 + 앱 설치 버튼 (홈 화면 하단) -->
     <div class="quick-action-stack quick-action-stack--home" style="padding: 36px 0 24px; display:flex; justify-content:center;">
@@ -6137,39 +6096,61 @@ var FAMOUS_DATA=[
     {period:'1610~1616년',label:'만년 복귀',color:'#fbbf24',desc:'스트랫포드 귀향. 52세 영면. 400년 넘어 생존.'}]}
 ];
 
-/* ─── KasiEngine 기반 사주팔자 계산 (시주 제외 3기둥) ─── */
+/* ─── 사주팔자 계산: Solar API 우선 → KasiEngine 폴백 (시주 제외 3기둥) ─── */
 function _computePillarsViaEngine(y, m, d, callback) {
+  function parse2(str) {
+    var s = String(str || ''); return { g: s[0] || '', j: s[1] || '' };
+  }
   function doCompute() {
     try {
+      /* ① Solar.fromYmdHms → getEightChar (절입 보정 포함) */
+      if (window.Solar && typeof Solar.fromYmdHms === 'function') {
+        try {
+          var sol = Solar.fromYmdHms(y, m, d, 12, 0, 0);
+          var lun = sol.getLunar ? sol.getLunar() : null;
+          var bz  = lun && lun.getEightChar ? lun.getEightChar() : null;
+          if (bz) {
+            var yP = parse2(typeof bz.getYear  === 'function' ? bz.getYear()  : '');
+            var mP = parse2(typeof bz.getMonth === 'function' ? bz.getMonth() : '');
+            var dP = parse2(typeof bz.getDay   === 'function' ? bz.getDay()   : '');
+            if (yP.g && mP.g && dP.g) {
+              callback({
+                y: {g:yP.g, j:yP.j, gE:(_G[yP.g]||{}).e||'', jE:(_J[yP.j]||{}).e||''},
+                m: {g:mP.g, j:mP.j, gE:(_G[mP.g]||{}).e||'', jE:(_J[mP.j]||{}).e||''},
+                d: {g:dP.g, j:dP.j, gE:(_G[dP.g]||{}).e||'', jE:(_J[dP.j]||{}).e||''}
+              });
+              return;
+            }
+          }
+        } catch(e1) {}
+      }
+      /* ② KasiEngine.getGanji 폴백 */
       var ke = window.KasiEngine;
-      if (!ke || typeof ke.getGanji !== 'function') { callback(null, '엔진 로딩 중'); return; }
-
-      var dt = new Date(y, m - 1, d, 12, 0, 0);
-      var gj = ke.getGanji(dt);
-      if (!gj || !gj.secha || !gj.weolgeon || !gj.iljin) { callback(null, '계산 실패'); return; }
-
-      var yg = String(gj.secha)[0]   || '', yz = String(gj.secha)[1]   || '';
-      var mg = String(gj.weolgeon)[0] || '', mz = String(gj.weolgeon)[1] || '';
-      var dg = String(gj.iljin)[0]   || '', dz = String(gj.iljin)[1]   || '';
-
-      callback({
-        y: { g: yg, j: yz, gE: (_G[yg] || {}).e || '', jE: (_J[yz] || {}).e || '' },
-        m: { g: mg, j: mz, gE: (_G[mg] || {}).e || '', jE: (_J[mz] || {}).e || '' },
-        d: { g: dg, j: dz, gE: (_G[dg] || {}).e || '', jE: (_J[dz] || {}).e || '' }
-      });
-    } catch (err) { callback(null, '계산 오류'); }
+      if (ke && typeof ke.getGanji === 'function') {
+        var dt = new Date(y, m - 1, d, 12, 0, 0);
+        var gj = ke.getGanji(dt);
+        if (gj && gj.secha && gj.weolgeon && gj.iljin) {
+          var yg=String(gj.secha)[0]||'',   yz=String(gj.secha)[1]||'';
+          var mg=String(gj.weolgeon)[0]||'', mz=String(gj.weolgeon)[1]||'';
+          var dg=String(gj.iljin)[0]||'',   dz=String(gj.iljin)[1]||'';
+          callback({
+            y:{g:yg,j:yz, gE:(_G[yg]||{}).e||'',jE:(_J[yz]||{}).e||''},
+            m:{g:mg,j:mz, gE:(_G[mg]||{}).e||'',jE:(_J[mz]||{}).e||''},
+            d:{g:dg,j:dz, gE:(_G[dg]||{}).e||'',jE:(_J[dz]||{}).e||''}
+          });
+          return;
+        }
+      }
+      callback(null, '엔진 계산 실패');
+    } catch(err) { callback(null, '계산 오류'); }
   }
-
-  if (window.KasiEngine) {
+  if (window.Solar || window.KasiEngine) {
     doCompute();
-  } else if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
-    window.__cdEnsureSajuCoreLoaded().then(function() { doCompute(); }).catch(function() { callback(null, '엔진 로딩 실패'); });
-  } else if (typeof window.__cdEnsureLunarLibReady === 'function') {
-    window.__cdEnsureLunarLibReady().then(function() {
-      if (window.KasiEngine) { doCompute(); } else { callback(null, '엔진 없음'); }
-    }).catch(function() { callback(null, '라이브러리 로딩 실패'); });
   } else {
-    callback(null, '엔진 없음');
+    var loader = window.__cdEnsureSajuCoreLoaded || window.__cdEnsureLunarLibReady;
+    if (typeof loader === 'function') {
+      loader().then(function(){ doCompute(); }).catch(function(){ callback(null,'엔진 로딩 실패'); });
+    } else { callback(null,'엔진 없음'); }
   }
 }
 
@@ -6339,21 +6320,6 @@ function renderFamousCard(idx) {
   });
 }
 
-/* ─── 헤더 버튼 토글 ─── */
-function initFspHeaderToggle() {
-  var btn = document.getElementById('fsp-header-btn');
-  var body = document.getElementById('fsp-body');
-  if (!btn || !body) return;
-  btn.addEventListener('click', function() {
-    var open = body.style.display !== 'none';
-    body.style.display = open ? 'none' : 'block';
-    var badge = btn.querySelector('[style*="탭하여"]');
-    if (badge) badge.textContent = open ? '탭하여 열기 ▼' : '닫기 ▲';
-    if (!open) {
-      btn.closest('section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  });
-}
 
 /* ─── 검색 기능 ─── */
 function initFspSearch() {
@@ -6447,86 +6413,11 @@ function renderFspGrid() {
   });
 }
 
-/* ─── 생년월일 생년월일 입력 분석 (시주 없음 — 3기둥) ─── */
-function initFspCalc() {
-  var btn = document.getElementById('fsp-calc-btn');
-  if (!btn) return;
-  btn.addEventListener('click', function() {
-    var yVal = document.getElementById('fsp-input-year').value;
-    var mVal = document.getElementById('fsp-input-month').value;
-    var dVal = document.getElementById('fsp-input-day').value;
-
-    var y = parseInt(yVal), m = parseInt(mVal), d = parseInt(dVal);
-    var result = document.getElementById('fsp-my-result');
-    if (!result) return;
-
-    if (!y || !m || !d || y < 1300 || y > 2025 || m < 1 || m > 12 || d < 1 || d > 31) {
-      result.style.display = '';
-      result.innerHTML = '<p style="margin:0;font-size:0.78rem;color:#f87171;">올바른 생년월일(양력)을 입력해 주세요. (년 1300~2025, 월 1~12, 일 1~31)</p>';
-      return;
-    }
-
-    result.style.display = '';
-    result.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(203,195,227,0.55);font-size:0.85rem;">⏳ 사주팔자 계산 중...</div>';
-
-    _computePillarsViaEngine(y, m, d, function(pillars, errMsg) {
-      if (!pillars) {
-        result.innerHTML = '<p style="margin:0;font-size:0.78rem;color:#f87171;">사주 계산 엔진 로딩 중입니다. 잠시 후 다시 시도해 주세요.' + (errMsg ? ' (' + errMsg + ')' : '') + '</p>';
-        return;
-      }
-      var elRatios = _computeElRatios(pillars);
-      var dominant = _dominantEl(elRatios);
-
-      var elOrder = ['wood','fire','earth','metal','water'];
-      var bars = elOrder.map(function(el) {
-        var pct = elRatios[el] || 0;
-        return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">'
-          + '<span style="min-width:20px;font-size:0.7rem;color:rgba(203,195,227,0.8);">' + EL_SHORT[el] + '</span>'
-          + '<div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">'
-          + '<div class="fsaj-el-bar" style="width:0;background:' + EL_COLOR[el] + ';border-radius:4px;" data-width="' + pct + '"></div>'
-          + '</div>'
-          + '<span style="min-width:28px;font-size:0.7rem;font-weight:700;color:' + EL_COLOR[el] + ';">' + pct + '%</span>'
-          + '</div>';
-      }).join('');
-
-      /* 3기둥만 */
-      var pilHtml = ['y','m','d'].map(function(k, i) {
-        var p = pillars[k];
-        if (!p || !p.g) return '';
-        return '<div class="fsaj-pillar-box">'
-          + '<div class="fsaj-pillar-label">' + ['년주','월주','일주'][i] + '</div>'
-          + '<div class="fsaj-pillar-chars">'
-          + '<span style="color:' + (EL_COLOR[p.gE] || '#e9d5ff') + ';">' + p.g + '</span>'
-          + '<span style="color:' + (EL_COLOR[p.jE] || '#e9d5ff') + ';">' + p.j + '</span>'
-          + '</div>'
-          + '<div class="fsaj-pillar-elem">' + (EL_SHORT[p.gE] || '?') + '/' + (EL_SHORT[p.jE] || '?') + '</div>'
-          + '</div>';
-      }).join('');
-
-      result.innerHTML = '<div style="padding:14px;border-radius:12px;background:rgba(0,0,0,0.2);border:1px solid rgba(167,139,250,0.22);">'
-        + '<div style="font-size:0.79rem;font-weight:700;color:#c4b5fd;margin-bottom:10px;">📊 사주 분석 결과 <span style="font-size:0.68rem;font-weight:400;color:rgba(203,195,227,0.5);">' + y + '년 ' + m + '월 ' + d + '일 · 년주·월주·일주 (양력)</span></div>'
-        + '<div style="display:flex;gap:6px;margin-bottom:10px;">' + pilHtml + '</div>'
-        + '<div style="font-size:0.76rem;font-weight:700;color:#6ee7b7;margin-bottom:6px;">오행 분포</div>'
-        + bars
-        + '<p style="margin:8px 0 0;font-size:0.7rem;color:rgba(203,195,227,0.5);">우세 기운: <strong style="color:' + EL_COLOR[dominant] + ';">' + EL_KOR[dominant] + '</strong> · KasiEngine 절입 보정 적용 · 출생 시간 미입력으로 시주 제외</p>'
-        + '</div>';
-
-      requestAnimationFrame(function() {
-        setTimeout(function() {
-          result.querySelectorAll('.fsaj-el-bar').forEach(function(b) { b.style.width = (b.getAttribute('data-width') || '0') + '%'; });
-        }, 80);
-      });
-    });
-  });
-}
-
 function _fspInit() {
   renderFspGrid();
-  initFspHeaderToggle();
   initFspSearch();
   initFspFilter();
   initFspGrid();
-  initFspCalc();
 }
 
 if (document.readyState === 'loading') {
