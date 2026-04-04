@@ -11,32 +11,32 @@ const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel+Decorative:wght@400;700;900&display=swap');
 
 :root {
-  --void: #030309;
-  --deep: #07071A;
-  --surface: #0C0C22;
-  --glass: rgba(255,255,255,0.03);
-  --gold: #C8A96E;
-  --gold-bright: #E8C97E;
-  --gold-dim: rgba(200,169,110,0.4);
-  --rose: #E8A0BF;
-  --rose-dim: rgba(232,160,191,0.3);
-  --crimson: #C0324A;
-  --crimson-dim: rgba(192,50,74,0.2);
-  --water-c: #4A7FA5;
-  --wood-c: #4A8C5C;
-  --fire-c: #C84B2A;
-  --earth-c: #B8943A;
-  --metal-c: #8CA0B8;
-  --text: #F0E8D8;
-  --text-dim: #8A8099;
-  --border: rgba(200,169,110,0.15);
-  --border-hover: rgba(200,169,110,0.35);
+  --void: #050108;
+  --deep: #0d0518;
+  --surface: #1a0828;
+  --glass: rgba(255,255,255,0.04);
+  --gold: #f0bbd8;
+  --gold-bright: #fce7f3;
+  --gold-dim: rgba(240,187,216,0.4);
+  --rose: #f9a8d4;
+  --rose-dim: rgba(249,168,212,0.3);
+  --crimson: #be185d;
+  --crimson-dim: rgba(190,24,93,0.22);
+  --water-c: #93c5fd;
+  --wood-c: #86efac;
+  --fire-c: #fca5a5;
+  --earth-c: #fcd34d;
+  --metal-c: #e2e8f0;
+  --text: #fdf2f8;
+  --text-dim: #c4a0bf;
+  --border: rgba(249,168,212,0.18);
+  --border-hover: rgba(249,168,212,0.45);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--void);
+  background: linear-gradient(160deg, #050108 0%, #1a0030 55%, #050108 100%);
   color: var(--text);
   font-family: 'Noto Serif KR', serif;
   min-height: 100vh;
@@ -119,7 +119,7 @@ body {
   background: linear-gradient(135deg, rgba(200,169,110,0.06), transparent 60%, rgba(232,160,191,0.04));
   opacity: 0; transition: opacity 0.28s;
 }
-.lc-preset-card:hover { border-color: var(--border-hover); transform: translateY(-3px); box-shadow: 0 8px 40px rgba(200,169,110,0.12); }
+.lc-preset-card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 8px 40px rgba(249,168,212,0.22), 0 0 0 1px rgba(249,168,212,0.15); }
 .lc-preset-card:hover::before { opacity: 1; }
 .lc-preset-emoji { font-size: 36px; margin-bottom: 10px; }
 .lc-preset-name { font-size: 15px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
@@ -180,7 +180,7 @@ body {
 
 .cd-fate-btn {
   width: 100%; padding: 15px;
-  background: linear-gradient(135deg, #7B1929, #C0324A, #7B1929);
+  background: linear-gradient(135deg, #831843, #be185d, #a21caf);
   background-size: 200%;
   border: none; border-radius: 10px;
   color: var(--text);
@@ -547,10 +547,44 @@ body {
   letter-spacing: 0.05em;
 }
 .lc-tab.active {
-  background: rgba(200,169,110,0.12);
-  color: var(--gold);
-  border-bottom: 2px solid var(--gold);
+  background: rgba(249,168,212,0.1);
+  color: var(--rose);
+  border-bottom: 2px solid var(--rose);
 }
+
+/* ── 젠더 토글 ── */
+.lc-gender-toggle { display:flex; gap:10px; margin-bottom:18px; width:100%; max-width:520px; }
+.lc-gender-btn {
+  flex:1; padding:9px 18px; border-radius:12px; border:1px solid var(--border);
+  background: var(--glass); color: var(--text-dim); font-family:'Noto Serif KR',serif;
+  font-size:14px; cursor:pointer; transition: all 0.25s; letter-spacing:0.05em;
+}
+.lc-gender-btn.active-m {
+  background: rgba(100,180,255,0.12); border-color: rgba(100,180,255,0.5); color:#93c5fd;
+}
+.lc-gender-btn.active-f {
+  background: rgba(249,168,212,0.14); border-color: rgba(249,168,212,0.55); color: var(--rose);
+}
+
+/* ── 매칭 결과 카드 ── */
+.lc-match-card {
+  background: var(--glass); border:1px solid var(--border); border-radius:16px;
+  padding:16px 18px; cursor:pointer; transition:all 0.28s; display:flex; align-items:center; gap:14px;
+}
+.lc-match-card:hover {
+  border-color: var(--border-hover); transform:translateY(-3px);
+  box-shadow: 0 8px 32px rgba(249,168,212,0.22);
+}
+.lc-match-rank {
+  font-family:'Cinzel Decorative',cursive; font-size:20px; color:var(--gold);
+  width:32px; flex-shrink:0; text-align:center;
+}
+.lc-match-pct {
+  font-family:'Cinzel Decorative',cursive; font-size:17px; margin-left:auto; flex-shrink:0;
+}
+.lc-match-pct.high { color:#f9a8d4; }
+.lc-match-pct.mid  { color:#fcd34d; }
+.lc-match-pct.low  { color:#c4a0bf; }
 `;
 
 /* ═══════════════════════════════════════════════
@@ -983,6 +1017,40 @@ function getNextScenario(usedIndices) {
 }
 
 /* ═══════════════════════════════════════════════
+   ── 오행 궁합 기반 최고의 상대 매칭 ──
+═══════════════════════════════════════════════ */
+
+// [내 오행][상대 오행] = 궁합 점수 (최대 6)
+// 상생(生): +열정, 상극(克): -마이너스, 동행(同): +안정
+const ELEMENT_HARMONY = {
+  목: { 목:4, 화:6, 토:1, 금:2, 수:5 },
+  화: { 목:5, 화:4, 토:6, 금:1, 수:2 },
+  토: { 목:2, 화:5, 토:4, 금:6, 수:1 },
+  금: { 목:1, 화:2, 토:5, 금:4, 수:6 },
+  수: { 목:6, 화:1, 토:2, 금:5, 수:4 },
+};
+
+function computeMatchScore(userStem, npcStem) {
+  const userEl = STEM_ELEMENTS[STEMS.indexOf(userStem)];
+  const npcEl  = STEM_ELEMENTS[STEMS.indexOf(npcStem)];
+  if (!userEl || !npcEl) return 6;
+  return (ELEMENT_HARMONY[userEl]?.[npcEl] || 3) + (ELEMENT_HARMONY[npcEl]?.[userEl] || 3);
+}
+
+function findBestMatches(userYear, userMonth, userDay, userHour, presets) {
+  const dy = calcDayPillar(userYear, userMonth, userDay);
+  const userStem = dy.stem;
+  return presets
+    .map(p => {
+      const npcDy  = calcDayPillar(p.birth.year, p.birth.month, p.birth.day);
+      const score  = computeMatchScore(userStem, npcDy.stem);
+      const matchPct = Math.min(99, Math.round(score / 12 * 100));
+      return { ...p, matchScore: score, matchPct, npcStem: npcDy.stem };
+    })
+    .sort((a, b) => b.matchScore - a.matchScore);
+}
+
+/* ═══════════════════════════════════════════════
    ── 사주 기반 남성 케이스 프리셋 ──
 ═══════════════════════════════════════════════ */
 
@@ -991,6 +1059,7 @@ const MALE_PRESETS = [
     emoji: '🌲',
     name: '이준혁',
     birth: { year: 1995, month: 3, day: 15, hour: 10 },
+    gender: '남',
     desc: '갑목 일간 · ENFJ',
     tags: ['직진형', '리더십', '솔직한'],
   },
@@ -998,6 +1067,7 @@ const MALE_PRESETS = [
     emoji: '☀️',
     name: '김도윤',
     birth: { year: 1997, month: 7, day: 4, hour: 14 },
+    gender: '남',
     desc: '병화 일간 · ESFP',
     tags: ['활발함', '열정적', '솔직함'],
   },
@@ -1005,6 +1075,7 @@ const MALE_PRESETS = [
     emoji: '💎',
     name: '박서준',
     birth: { year: 1993, month: 11, day: 22, hour: 20 },
+    gender: '남',
     desc: '신금 일간 · INTJ',
     tags: ['완벽주의', '냉철한', '섬세함'],
   },
@@ -1012,6 +1083,7 @@ const MALE_PRESETS = [
     emoji: '🌊',
     name: '최민준',
     birth: { year: 1999, month: 1, day: 8, hour: 6 },
+    gender: '남',
     desc: '임수 일간 · INTP',
     tags: ['자유로움', '탐구적', '유연함'],
   },
@@ -1019,6 +1091,7 @@ const MALE_PRESETS = [
     emoji: '⛰️',
     name: '정태현',
     birth: { year: 1991, month: 5, day: 30, hour: 12 },
+    gender: '남',
     desc: '무토 일간 · ISTJ',
     tags: ['믿음직한', '신중함', '책임감'],
   },
@@ -1026,6 +1099,7 @@ const MALE_PRESETS = [
     emoji: '🕯️',
     name: '윤재원',
     birth: { year: 1996, month: 9, day: 17, hour: 18 },
+    gender: '남',
     desc: '정화 일간 · INFJ',
     tags: ['따뜻함', '헌신적', '로맨틱'],
   },
@@ -1033,6 +1107,7 @@ const MALE_PRESETS = [
     emoji: '🌸',
     name: '장현우',
     birth: { year: 1998, month: 4, day: 25, hour: 8 },
+    gender: '남',
     desc: '을목 일간 · ISFP',
     tags: ['섬세함', '배려심', '감성적'],
   },
@@ -1040,8 +1115,80 @@ const MALE_PRESETS = [
     emoji: '⚔️',
     name: '오성민',
     birth: { year: 1994, month: 8, day: 9, hour: 16 },
+    gender: '남',
     desc: '경금 일간 · ESTP',
     tags: ['강직함', '원칙주의', '냉철한'],
+  },
+];
+
+/* ═══════════════════════════════════════════════
+   ── 사주 기반 여성 케이스 프리셋 ──
+═══════════════════════════════════════════════ */
+
+const FEMALE_PRESETS = [
+  {
+    emoji: '🌸',
+    name: '이수현',
+    birth: { year: 1997, month: 3, day: 22, hour: 10 },
+    gender: '여',
+    desc: '여성 일간 · ISFJ',
+    tags: ['섬세함', '배려심', '따뜻한'],
+  },
+  {
+    emoji: '☀️',
+    name: '김지아',
+    birth: { year: 1998, month: 7, day: 15, hour: 14 },
+    gender: '여',
+    desc: '여성 일간 · ENFP',
+    tags: ['활발함', '솔직함', '에너지'],
+  },
+  {
+    emoji: '💎',
+    name: '박서연',
+    birth: { year: 1995, month: 11, day: 8, hour: 20 },
+    gender: '여',
+    desc: '여성 일간 · INTJ',
+    tags: ['완벽주의', '냉철한', '지적'],
+  },
+  {
+    emoji: '🌊',
+    name: '최예린',
+    birth: { year: 2000, month: 1, day: 20, hour: 6 },
+    gender: '여',
+    desc: '여성 일간 · INFP',
+    tags: ['자유로움', '감수성', '직관적'],
+  },
+  {
+    emoji: '🌙',
+    name: '정하은',
+    birth: { year: 1996, month: 9, day: 5, hour: 18 },
+    gender: '여',
+    desc: '여성 일간 · INFJ',
+    tags: ['내면적', '직관적', '신비로운'],
+  },
+  {
+    emoji: '🌿',
+    name: '윤체원',
+    birth: { year: 1999, month: 4, day: 12, hour: 8 },
+    gender: '여',
+    desc: '여성 일간 · ENFJ',
+    tags: ['리더십', '카리스마', '직진형'],
+  },
+  {
+    emoji: '🕯️',
+    name: '장민서',
+    birth: { year: 1994, month: 8, day: 28, hour: 16 },
+    gender: '여',
+    desc: '여성 일간 · ISFP',
+    tags: ['따뜻함', '헌신적', '로맨틱'],
+  },
+  {
+    emoji: '⛰️',
+    name: '오지현',
+    birth: { year: 1993, month: 5, day: 17, hour: 12 },
+    gender: '여',
+    desc: '여성 일간 · ISTJ',
+    tags: ['신뢰감', '책임감', '안정적'],
   },
 ];
 
@@ -1061,9 +1208,10 @@ const STARS = Array.from({ length: 90 }, (_, i) => ({
 }));
 
 const NEBULAE = [
-  { x:'-10%', y:'20%', size:500, color:'rgba(100,50,160,0.06)' },
-  { x:'60%',  y:'60%', size:400, color:'rgba(192,50,74,0.05)'  },
-  { x:'20%',  y:'70%', size:350, color:'rgba(74,127,165,0.04)' },
+  { x:'-10%', y:'20%', size:500, color:'rgba(180,20,120,0.07)' },
+  { x:'60%',  y:'60%', size:450, color:'rgba(190,24,93,0.06)'  },
+  { x:'20%',  y:'70%', size:380, color:'rgba(124,58,237,0.05)' },
+  { x:'50%',  y:'10%', size:300, color:'rgba(249,168,212,0.04)' },
 ];
 
 /* ═══════════════════════════════════════════════
@@ -1072,8 +1220,11 @@ const NEBULAE = [
 
 export default function LoveSimulation() {
   const [screen, setScreen] = useState('portal'); // portal | awakening | chat
-  const [tab, setTab] = useState('preset');        // preset | custom
+  const [tab, setTab] = useState('preset');        // preset | match | custom
+  const [npcGender, setNpcGender] = useState('\ub0a8');  // \ub0a8 | \uc5ec
   const [form, setForm] = useState({ name:'', year:'', month:'', day:'', hour:'', noTime:false });
+  const [matchForm, setMatchForm] = useState({ year:'', month:'', day:'' });
+  const [matchResults, setMatchResults] = useState(null);
   const [persona, setPersona] = useState(null);
   const [affinity, setAffinity] = useState(10);
   const [mood, setMood] = useState('설렘');
@@ -1097,8 +1248,9 @@ export default function LoveSimulation() {
 
   /* ── 프리셋 선택 ── */
   function selectPreset(preset) {
+    const gdr = preset.gender || '남';
     const p = buildPersonaFromSaju(
-      preset.name, '남',
+      preset.name, gdr,
       preset.birth.year, preset.birth.month, preset.birth.day, preset.birth.hour, false
     );
     startGame(p);
@@ -1109,7 +1261,7 @@ export default function LoveSimulation() {
     const { name, year, month, day, hour, noTime } = form;
     if (!name || !year || !month || !day) return;
     const p = buildPersonaFromSaju(
-      name, '남',
+      name, npcGender,
       Number(year), Number(month), Number(day),
       noTime ? 12 : Number(hour || 12),
       noTime
@@ -1245,32 +1397,123 @@ export default function LoveSimulation() {
             {/* 탭 */}
             <div className="lc-tabs" style={{ width:'100%', maxWidth:520 }}>
               <button className={`lc-tab${tab==='preset'?' active':''}`} onClick={() => setTab('preset')}>
-                ✦ 남성 케이스 선택
+                💕 케이스 선택
+              </button>
+              <button className={`lc-tab${tab==='match'?' active':''}`} onClick={() => { setTab('match'); setMatchResults(null); }}>
+                🔮 사주 매칭
               </button>
               <button className={`lc-tab${tab==='custom'?' active':''}`} onClick={() => setTab('custom')}>
-                ✦ 이름·생년월일 직접 입력
+                ✦ 직접 입력
               </button>
             </div>
 
-            {/* 프리셋 */}
+            {/* ── 케이스 선택 탭 ── */}
             {tab === 'preset' && (
-              <div className="lc-preset-grid">
-                {MALE_PRESETS.map((p) => (
-                  <div key={p.name} className="lc-preset-card" onClick={() => selectPreset(p)}>
-                    <div className="lc-preset-emoji">{p.emoji}</div>
-                    <div className="lc-preset-name">{p.name}</div>
-                    <div className="lc-preset-dm">{p.desc}</div>
-                    <div style={{ marginTop: 8 }}>
-                      {p.tags.map(t => <span key={t} className="lc-preset-tag">{t}</span>)}
+              <>
+                <div className="lc-gender-toggle">
+                  <button
+                    className={`lc-gender-btn${npcGender==='남'?' active-m':''}`}
+                    onClick={() => setNpcGender('남')}>
+                    💙 남성 NPC
+                  </button>
+                  <button
+                    className={`lc-gender-btn${npcGender==='여'?' active-f':''}`}
+                    onClick={() => setNpcGender('여')}>
+                    💕 여성 NPC
+                  </button>
+                </div>
+                <div className="lc-preset-grid">
+                  {(npcGender === '여' ? FEMALE_PRESETS : MALE_PRESETS).map((p) => (
+                    <div key={p.name} className="lc-preset-card" onClick={() => selectPreset(p)}>
+                      <div className="lc-preset-emoji">{p.emoji}</div>
+                      <div className="lc-preset-name">{p.name}</div>
+                      <div className="lc-preset-dm">{p.desc}</div>
+                      <div style={{ marginTop: 8 }}>
+                        {p.tags.map(t => <span key={t} className="lc-preset-tag">{t}</span>)}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* ── 사주 매칭 탭 ── */}
+            {tab === 'match' && (
+              <div className="cd-form-card" style={{ maxWidth:500 }}>
+                <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
+                  ✦ 내 생년월일을 입력하면 가장 잘 맞는 상대를 찾아드려요 ✦
+                </p>
+                <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
+                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
+                    💙 남성에서 찾기
+                  </button>
+                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
+                    💕 여성에서 찾기
+                  </button>
+                </div>
+                <div className="cd-form-group">
+                  <label className="cd-form-label">나의 생년월일</label>
+                  <div className="cd-input-row" style={{ marginBottom:10 }}>
+                    <input className="cd-input" placeholder="년도 (예: 1998)"
+                      value={matchForm.year} onChange={e => setMatchForm({...matchForm, year:e.target.value})} />
+                    <input className="cd-input" placeholder="월 (1-12)"
+                      value={matchForm.month} onChange={e => setMatchForm({...matchForm, month:e.target.value})} />
                   </div>
-                ))}
+                  <input className="cd-input" placeholder="일 (1-31)"
+                    value={matchForm.day} onChange={e => setMatchForm({...matchForm, day:e.target.value})} />
+                </div>
+                <button className="cd-fate-btn"
+                  disabled={!matchForm.year || !matchForm.month || !matchForm.day}
+                  onClick={() => {
+                    if (!matchForm.year || !matchForm.month || !matchForm.day) return;
+                    const pool = npcGender === '여' ? FEMALE_PRESETS : MALE_PRESETS;
+                    const results = findBestMatches(
+                      Number(matchForm.year), Number(matchForm.month), Number(matchForm.day), 12, pool
+                    );
+                    setMatchResults(results);
+                  }}>
+                  💕 최고의 상대 찾기
+                </button>
+                {matchResults && (
+                  <div style={{ marginTop:22 }}>
+                    <p style={{ fontSize:11, color:'var(--text-dim)', textAlign:'center', marginBottom:14, letterSpacing:'0.1em' }}>
+                      ✦ 사주 궁합 순위 — 클릭하면 바로 시뮬레이션 시작 ✦
+                    </p>
+                    {matchResults.slice(0, 4).map((m, i) => {
+                      const rank = ['✦','◈','◇','○'][i] || '·';
+                      const pctClass = m.matchPct >= 70 ? 'high' : m.matchPct >= 50 ? 'mid' : 'low';
+                      return (
+                        <div key={m.name} className="lc-match-card" onClick={() => selectPreset(m)} style={{ marginBottom:10 }}>
+                          <span className="lc-match-rank">{rank}</span>
+                          <div style={{ flex:1 }}>
+                            <p style={{ fontSize:15, color:'var(--gold)', fontWeight:700, marginBottom:3 }}>
+                              {m.emoji} {m.name}
+                            </p>
+                            <p style={{ fontSize:12, color:'var(--text-dim)' }}>{m.desc}</p>
+                            <div style={{ marginTop:4 }}>
+                              {m.tags.map(t => <span key={t} className="lc-preset-tag">{t}</span>)}
+                            </div>
+                          </div>
+                          <span className={`lc-match-pct ${pctClass}`}>{m.matchPct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* 직접 입력 */}
+            {/* ── 직접 입력 탭 ── */}
             {tab === 'custom' && (
               <div className="cd-form-card">
+                <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
+                  <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
+                    💙 남성
+                  </button>
+                  <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
+                    💕 여성
+                  </button>
+                </div>
                 <div className="cd-form-group">
                   <label className="cd-form-label">상대방 이름</label>
                   <input className="cd-input" placeholder="이름을 입력하세요"
@@ -1314,7 +1557,7 @@ export default function LoveSimulation() {
           <div className="cd-screen" style={{ paddingTop: 40, paddingBottom: 40 }}>
             <div className="cd-awakening">
               <p style={{ fontSize:11, color:'var(--gold)', letterSpacing:'0.25em', textAlign:'center', marginBottom:24 }}>
-                ✦ CHARACTER AWAKENED ✦
+                {persona.gender === '여' ? '✦ HEROINE AWAKENED ✦' : '✦ CHARACTER AWAKENED ✦'}
               </p>
 
               <div className="cd-avatar-wrap">
