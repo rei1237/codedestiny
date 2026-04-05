@@ -5071,6 +5071,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       } // else: pvw-bypass 있을 때만 해금 진행
     } // if tileLockKey
 
+    // ── 이미 해금된 toggleRptCard 버튼 직접 토글 ──
+    if (action === 'toggleRptCard') {
+      if (typeof window.toggleReportFeatureCard === 'function') window.toggleReportFeatureCard(actionNode);
+      return;
+    }
+    // ── 잠금 해제 후 직접 실행 (버블 핸들러 없는 액션) ──
+    if (action === 'openSecretHouseRoute') {
+      if (typeof window.openSecretHouseRoute === 'function') window.openSecretHouseRoute();
+      return;
+    }
+
     if (action === 'openGoldenGrainCharge') {
       openChargeModal();
       return;
