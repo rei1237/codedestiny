@@ -76,6 +76,7 @@
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _hasPaid = false; // 코인 결제 완료 플래그
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
@@ -228,14 +229,32 @@
     if (analysis.isJong) lines.push('격 판정: ' + (analysis.jongName || '종격') + ' — 종격은 용신을 따르는 방향으로 거스르지 말 것');
 
     // Specialist vs Generalist 판별
-    if (G_POWER && G_POWER.groups) {
+    // G_POWER.groups는 calcPower() 반환값에 없으므로 G_PILLARS 기반으로 직접 계산
+    var _tgGroups = null;
+    if (G_PILLARS_R && G_PILLARS_R.d && G_PILLARS_R.d.g && typeof window.getTenGod === 'function') {
+      var _dg = G_PILLARS_R.d.g;
+      _tgGroups = {};
+      [
+        G_PILLARS_R.y && G_PILLARS_R.y.g, G_PILLARS_R.y && G_PILLARS_R.y.j,
+        G_PILLARS_R.m && G_PILLARS_R.m.g, G_PILLARS_R.m && G_PILLARS_R.m.j,
+        G_PILLARS_R.d && G_PILLARS_R.d.j,
+        G_PILLARS_R.h && G_PILLARS_R.h.g, G_PILLARS_R.h && G_PILLARS_R.h.j
+      ].forEach(function (c) {
+        if (!c) return;
+        var t = window.getTenGod(_dg, c);
+        if (t && t !== '?' && t !== '일간') _tgGroups[t] = (_tgGroups[t] || 0) + 1;
+      });
+    } else if (G_POWER && G_POWER.groups) {
+      _tgGroups = G_POWER.groups;
+    }
+    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
       lines.push('\n【십성(十星) 분포 — Specialist/Generalist 판별 기반】');
-      var gk = Object.keys(G_POWER.groups);
+      var gk = Object.keys(_tgGroups);
       for (var gi = 0; gi < gk.length; gi++) {
-        lines.push(gk[gi] + ': ' + G_POWER.groups[gk[gi]]);
+        lines.push(gk[gi] + ': ' + _tgGroups[gk[gi]]);
       }
       // Specialist: 관성 강하고 비겁 약 / Generalist: 식상 강하고 재성 발달
-      var grp = G_POWER.groups;
+      var grp = _tgGroups;
       var hasStrongKwan = (grp['정관']||0) + (grp['편관']||0) > 2;
       var hasStrongSik = (grp['식신']||0) + (grp['상관']||0) > 2;
       var hasStrongJae = (grp['정재']||0) + (grp['편재']||0) > 2;
@@ -276,8 +295,8 @@
       if (yukFound.length) lines.push('육합(六合): ' + yukFound.join(' / ') + ' → 파트너십·제휴에서 강력한 시너지');
     }
     // 육신(六神) — 타인이 보는 나 vs 내가 바라보는 세상
-    if (G_POWER && G_POWER.groups) {
-      var g = G_POWER.groups;
+    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
+      var g = _tgGroups;
       var topStar = '';
       var topVal = 0;
       Object.keys(g).forEach(function(k){ if((g[k]||0)>topVal){topVal=g[k];topStar=k;} });
@@ -315,8 +334,8 @@
 
     // ── [5부 부와 사랑] 재물운·애정운·건강운
     lines.push('\n【5부. 부와 사랑 — 재물운·애정운·건강운】');
-    if (G_POWER && G_POWER.groups) {
-      var gg = G_POWER.groups;
+    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
+      var gg = _tgGroups;
       var jaeTotal = (gg['정재']||0) + (gg['편재']||0);
       var gwanTotal = (gg['정관']||0) + (gg['편관']||0);
       var sikTotal = (gg['식신']||0) + (gg['상관']||0);
@@ -458,6 +477,7 @@
 
     _chapters = Array(13).fill(null);
     _currentChapter = 1;
+    _hasPaid = false; // 모달 열 때마다 결제 플래그 초기화
     _showScreen('lbStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -524,6 +544,19 @@
   /* ─────────────── 생성 로직 ─────────────── */
   window.generateLifeBook = function () {
     if (_generating) return;
+
+    // 코인락 검증 — sessionStorage 결제 완료 마커 확인
+    var _paKey = 'cd_pa_generateLifeBook';
+    if (sessionStorage.getItem(_paKey)) {
+      sessionStorage.removeItem(_paKey);
+      _hasPaid = true;
+    }
+    if (!_hasPaid) {
+      // 결제 버튼(코인 게이트)으로 안내
+      var _genBtn = document.getElementById('lbGenerateBtn');
+      if (_genBtn) _genBtn.click();
+      return;
+    }
 
     var profile = _getActiveBirthProfile();
     if (!profile) {

@@ -1336,3 +1336,111 @@
   .lb-why-section { grid-template-columns: 1fr; }
   .lb-marketing-headline { font-size: 1rem; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   모바일 최적화 패치 (2026-04)
+═══════════════════════════════════════════════════════ */
+
+/* 먹싄 노드리기 + 터치 피드백 */
+.lb-toc-item,
+.lb-btn-generate,
+.lb-btn-retry,
+.lb-nav-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-btn-generate,
+.lb-btn-retry {
+  min-height: 48px;
+}
+
+/* 모달 오버스크롤 차단 */
+.lb-modal-wrap {
+  overscroll-behavior: contain;
+}
+.lb-reader-body {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.lb-toc-list {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 540px) {
+  /* 모늬 라운드 + 내부 패딩 */
+  .lb-modal {
+    border-radius: 14px 14px 0 0;
+    max-height: 96dvh;
+    max-height: 96vh; /* dvh fallback */
+  }
+  /* 헤더 */
+  .lb-modal-header {
+    padding: 12px 14px 10px;
+  }
+  .lb-modal-title {
+    font-size: 1rem;
+  }
+  /* TOC 아이템 터치 대역 48px */
+  .lb-toc-item {
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+  .lb-toc-item .lb-chapter-num {
+    font-size: 0.7rem;
+  }
+  /* 생성 버튼 */
+  .lb-btn-generate {
+    font-size: 0.92rem;
+    padding: 14px 20px;
+    width: 100%;
+  }
+  /* 리더 콘텐츠 */
+  .lb-reader-body {
+    padding: 14px 14px 60px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+  }
+  /* 리더 내 제목 */
+  .lb-chapter-title {
+    font-size: 1.1rem;
+  }
+  /* 브레드크럼 */
+  .lb-loading-screen {
+    padding: 24px 16px;
+  }
+  .lb-loading-quote {
+    font-size: 0.82rem;
+    padding: 0 8px;
+  }
+  /* 타일 내 코인 배지 가독성 */
+  .lifebook-tile__coin-badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+  .lifebook-tile__title {
+    font-size: 1.1rem;
+  }
+  .lifebook-tile__desc {
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+  /* 마케팅 페이지 모바일 */
+  .lb-marketing-hero {
+    padding: 20px 14px;
+  }
+  .lb-marketing-title {
+    font-size: 1.2rem;
+  }
+  .lb-sample-section {
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .lb-modal-title { font-size: 0.92rem; }
+  .lb-toc-item { font-size: 0.78rem; }
+  .lb-reader-body { font-size: 0.84rem; }
+  .lb-btn-generate { font-size: 0.85rem; }
+}

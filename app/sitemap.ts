@@ -96,6 +96,41 @@ export default function sitemap(): MetadataRoute.Sitemap {
     );
   }
 
+  // ── 운세 정적 HTML 페이지 (fortune static pages) ──
+  const FORTUNE_PERIODS = ["today", "tomorrow", "weekly", "monthly"] as const;
+  const FORTUNE_ANIMALS = ["rat","ox","tiger","rabbit","dragon","snake","horse","goat","monkey","rooster","dog","pig"];
+  const FORTUNE_ZODIACS = ["aries","taurus","gemini","cancer","leo","virgo","libra","scorpio","sagittarius","capricorn","aquarius","pisces"];
+  const FORTUNE_VEDIC   = ["mesha","vrishabha","mithuna","karka","simha","kanya","tula","vrishchika","dhanu","makara","kumbha","meena"];
+  const FORTUNE_ZIWEI   = ["mingong","hyeongje","bubu","janyeo","jeonaek","noebok","chunyi","jilaek","jaeback","gwanllok","bokdeok","bumo"];
+  const FORTUNE_SUKUYO  = Array.from({length: 27}, (_, i) => String(i + 1));
+
+  for (const period of FORTUNE_PERIODS) {
+    for (const id of [...FORTUNE_ANIMALS, ...FORTUNE_ZODIACS]) {
+      const url = `${BASE_URL}/fortune/${period}/${id}`;
+      if (!entriesByUrl.has(url)) {
+        entriesByUrl.set(url, { url, lastModified: now, changeFrequency: period === "today" || period === "tomorrow" ? "daily" : "weekly", priority: 0.75 });
+      }
+    }
+    for (const id of FORTUNE_VEDIC) {
+      const url = `${BASE_URL}/fortune/${period}/vedic/${id}`;
+      if (!entriesByUrl.has(url)) {
+        entriesByUrl.set(url, { url, lastModified: now, changeFrequency: period === "today" || period === "tomorrow" ? "daily" : "weekly", priority: 0.72 });
+      }
+    }
+    for (const id of FORTUNE_ZIWEI) {
+      const url = `${BASE_URL}/fortune/${period}/ziwei/${id}`;
+      if (!entriesByUrl.has(url)) {
+        entriesByUrl.set(url, { url, lastModified: now, changeFrequency: period === "today" || period === "tomorrow" ? "daily" : "weekly", priority: 0.72 });
+      }
+    }
+    for (const id of FORTUNE_SUKUYO) {
+      const url = `${BASE_URL}/fortune/${period}/sukuyo/${id}`;
+      if (!entriesByUrl.has(url)) {
+        entriesByUrl.set(url, { url, lastModified: now, changeFrequency: period === "today" || period === "tomorrow" ? "daily" : "weekly", priority: 0.70 });
+      }
+    }
+  }
+
   return Array.from(entriesByUrl.values());
 }
 

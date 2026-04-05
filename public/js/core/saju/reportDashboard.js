@@ -1045,6 +1045,8 @@ function toggleReportFeatureCard(btn) {
     setTimeout(function(){ syncReportBlockHeight(block); }, 220);
   }
 }
+// 전역 노출 — _cdInvokeActionDirect('toggleRptCard') 에서 호출
+window.toggleReportFeatureCard = toggleReportFeatureCard;
 
 (function(){
   var resizeTicking = false;

@@ -1336,3 +1336,127 @@
   .lb-why-section { grid-template-columns: 1fr; }
   .lb-marketing-headline { font-size: 1rem; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   모바일 최적화 — 터치·스크롤·안전 영역 강화
+═══════════════════════════════════════════════════════ */
+
+/* 스크롤 연결고리 차단: 모달 내 스크롤이 배경 페이지로 전파되지 않도록 */
+.lb-modal__panel {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 결과 화면 스크롤 영역 */
+.lb-result-screen {
+  overscroll-behavior: contain;
+}
+
+/* TOC 스크롤 — 가로 스크롤 스냅 지원 */
+.lb-toc {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.lb-toc-item {
+  scroll-snap-align: start;
+}
+
+/* 챕터 본문 스크롤 영역 */
+.lb-ch-content {
+  overscroll-behavior: contain;
+}
+
+/* 터치 피드백 — 버튼 및 인터랙티브 요소 */
+.lb-btn-generate:active,
+.lb-btn-retry:active,
+.lb-btn-pdf:active,
+.lb-btn-kakao:active {
+  transform: scale(0.97);
+  opacity: 0.88;
+}
+
+.lb-toc-item {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.lb-toc-item:active {
+  background: rgba(186,134,255,0.25);
+}
+
+/* lifebook-tile 터치 강화 */
+.lifebook-tile {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.lifebook-tile:active .lifebook-tile__inner {
+  opacity: 0.88;
+  transform: scale(0.985);
+}
+
+/* 챕터 wrap 최대 너비 및 읽기 편의 */
+.lb-chapter-body {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 모바일에서 MD 인용구 패딩 조정 */
+@media (max-width: 480px) {
+  .lb-md-blockquote {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  .lb-toc {
+    padding: 6px 10px;
+  }
+  /* 로딩 신비 문구 줄바꿈 방지 */
+  .lb-mystic-quote {
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+}
+
+
+/* =======================================================
+   모바일 최적화 패치 (2026-04)
+======================================================= */
+
+/* 터치 피드백 개선 */
+.lb-toc-item,
+.lb-btn-generate,
+.lb-btn-retry,
+.lb-nav-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-btn-generate,
+.lb-btn-retry {
+  min-height: 48px;
+}
+
+/* 모달 오버스크롤 차단 */
+.lb-modal-wrap { overscroll-behavior: contain; }
+.lb-reader-body { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+.lb-toc-list { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 540px) {
+  .lb-modal { border-radius: 14px 14px 0 0; max-height: 96dvh; max-height: 96vh; }
+  .lb-modal-header { padding: 12px 14px 10px; }
+  .lb-modal-title { font-size: 1rem; }
+  .lb-toc-item { min-height: 46px; padding: 10px 12px; font-size: 0.82rem; }
+  .lb-toc-item .lb-chapter-num { font-size: 0.7rem; }
+  .lb-btn-generate { font-size: 0.92rem; padding: 14px 20px; width: 100%; }
+  .lb-reader-body { padding: 14px 14px 60px; font-size: 0.88rem; line-height: 1.8; }
+  .lb-chapter-title { font-size: 1.1rem; }
+  .lb-loading-screen { padding: 24px 16px; }
+  .lb-loading-quote { font-size: 0.82rem; padding: 0 8px; }
+  .lifebook-tile__coin-badge { font-size: 0.72rem; padding: 3px 8px; }
+  .lifebook-tile__title { font-size: 1.1rem; }
+  .lifebook-tile__desc { font-size: 0.78rem; line-height: 1.55; }
+}
+
+@media (max-width: 360px) {
+  .lb-modal-title { font-size: 0.92rem; }
+  .lb-toc-item { font-size: 0.78rem; }
+  .lb-reader-body { font-size: 0.84rem; }
+  .lb-btn-generate { font-size: 0.85rem; }
+}

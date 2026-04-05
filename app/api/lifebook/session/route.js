@@ -1063,27 +1063,42 @@ export async function POST(req) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     const userPrompt = config.prompt(sajuData);
 
-    // gemini-2.5 계열 thinking 모델 — thinkingBudget:0 으로 비활성화하여
-    // 모든 출력 토큰을 본문 생성에 집중시킴. maxOutputTokens는 넉넉히 65536 설정.
-    const isThinkingModel = /gemini-2\.5/.test(model);
     const maxOutputTokens = 65536;
     const generationConfig = { maxOutputTokens, temperature: 1.0 };
-    if (isThinkingModel) {
-      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+
+    const requestBody = JSON.stringify({
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig,
+    });
+
+    // 재시도 로직 — 서버 오류(5xx)는 최대 2회 재시도, 2초 간격
+    let response, payload;
+    const MAX_RETRIES = 2;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 2000 * attempt));
+      }
+      try {
+        response = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: requestBody,
+        });
+        payload = await response.json().catch(() => ({}));
+        if (response.ok || response.status < 500) break; // 성공 또는 클라이언트 오류
+      } catch (fetchErr) {
+        payload = {};
+        if (attempt === MAX_RETRIES) {
+          return NextResponse.json(
+            { ok: false, message: String(fetchErr?.message || "네트워크 오류") },
+            { status: 502 }
+          );
+        }
+      }
     }
 
     try {
-      const response = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig,
-        }),
-      });
-
-      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         const errMsg = payload?.error?.message || `API 요청 실패 (${response.status})`;
         return NextResponse.json(
