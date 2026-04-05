@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 
 /* ═══════════════════════════════════════════════
    LOVE CODE — 사주 기반 연애 시뮬레이션
-   API 없이 로컬 사주 엔진으로 완전 동작
+   lunar-javascript + /api/love-saju-pillar 기반
+   절기(節氣) 정확 사주 팔자 계산
 ═══════════════════════════════════════════════ */
 
 const STYLES = `
@@ -599,14 +600,79 @@ body {
 `;
 
 /* ═══════════════════════════════════════════════
-   ── 로컬 사주 엔진 ──
+   ── 생시 12지지 선택 옵션 ──
 ═══════════════════════════════════════════════ */
 
+const SINJU_OPTIONS = [
+  { label: '자시 (子時, 23:00-01:00)', hour: 0,  han: '子', kr: '자' },
+  { label: '축시 (丑時, 01:00-03:00)', hour: 2,  han: '丑', kr: '축' },
+  { label: '인시 (寅時, 03:00-05:00)', hour: 4,  han: '寅', kr: '인' },
+  { label: '묘시 (卯時, 05:00-07:00)', hour: 6,  han: '卯', kr: '묘' },
+  { label: '진시 (辰時, 07:00-09:00)', hour: 8,  han: '辰', kr: '진' },
+  { label: '사시 (巳時, 09:00-11:00)', hour: 10, han: '巳', kr: '사' },
+  { label: '오시 (午時, 11:00-13:00)', hour: 12, han: '午', kr: '오' },
+  { label: '미시 (未時, 13:00-15:00)', hour: 14, han: '未', kr: '미' },
+  { label: '신시 (申時, 15:00-17:00)', hour: 16, han: '申', kr: '신' },
+  { label: '유시 (酉時, 17:00-19:00)', hour: 18, han: '酉', kr: '유' },
+  { label: '술시 (戌時, 19:00-21:00)', hour: 20, han: '戌', kr: '술' },
+  { label: '해시 (亥時, 21:00-23:00)', hour: 22, han: '亥', kr: '해' },
+];
+
+/* ─────────────────────────────────────────────
+   사주 팔자 API 호출 (/api/love-saju-pillar)
+   lunar-javascript 절기 기반 정확 계산
+───────────────────────────────────────────── */
+async function fetchSajuPillar({ name, gender, year, month, day, hour }) {
+  const res = await fetch('/api/love-saju-pillar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, gender, year, month, day, hour }),
+  });
+  if (!res.ok) throw new Error(`saju-api ${res.status}`);
+  return res.json();
+}
+
+/* ─ API 응답 → 페르소나 객체 변환 ─ */
+function apiDataToPersona(data) {
+  return {
+    name:         data.name,
+    gender:       data.gender,
+    dayMaster:    data.dayMasterName,
+    dayMasterKan: data.dayMasterGanKr,
+    dayMasterElement: data.dayMasterElement,
+    mbti:         data.mbti,
+    coreTraits:   data.coreTraits,
+    stats:        data.stats,
+    tastes: {
+      idealDateSpot: data.idealDateSpot,
+      favTaste:      data.favTaste,
+    },
+    fiveElements:  data.fiveElements,
+    specialStars:  data.specialStars,
+    yongshin:      data.yongshin,
+    initialAffinity: data.initialAffinity,
+    greeting:      data.greeting,
+    scenarioEmoji: data.scenarioEmoji,
+    dmEmoji:       data.dmEmoji,
+    pillars:       data.pillars,   // 사주 팔자 원문 저장
+    id: `npc_${Date.now()}`,
+  };
+}
+
+/* ─ 오행 궁합 점수 계산 (로컬, 일간 기반) ─ */
+const EL_HARMONY = {
+  목: { 목:4, 화:6, 토:1, 금:2, 수:5 },
+  화: { 목:5, 화:4, 토:6, 금:1, 수:2 },
+  토: { 목:2, 화:5, 토:4, 금:6, 수:1 },
+  금: { 목:1, 화:2, 토:5, 금:4, 수:6 },
+  수: { 목:6, 화:1, 토:2, 금:5, 수:4 },
+};
+function elemHarmony(el1, el2) {
+  return (EL_HARMONY[el1]?.[el2] || 3) + (EL_HARMONY[el2]?.[el1] || 3);
+}
+
 const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
-const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
 const STEM_ELEMENTS = ['목','목','화','화','토','토','금','금','수','수'];
-const BRANCH_ELEMENTS = ['수','토','목','목','토','화','화','토','금','금','토','수'];
-const STEM_YIN = [false,true,false,true,false,true,false,true,false,true]; // 양=false 음=true
 
 const DM_EMOJI = {
   갑:'🌲',을:'🌸',병:'☀️',정:'🕯️',무:'⛰️',기:'🌾',경:'⚔️',신:'💎',임:'🌊',계:'🌧️'
@@ -622,210 +688,8 @@ const STAT_META = {
   sociability: { label:'사교성', color:'#E8A0BF' },
 };
 
-/**
- * 생년월일→년주 천간·지지 계산
- * 기준: 甲子년(4년)을 기점으로 한 올바른 공식
- */
-function calcYearPillar(year) {
-  const stemIdx = ((year - 4) % 10 + 10) % 10;
-  const branchIdx = ((year - 4) % 12 + 12) % 12;
-  return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
-}
-
-// 연간(年干) 그룹별 인월(寅月) 시작 월간 오프셋: 甲己→戊(4), 乙庚→庚(6), 丙辛→壬(8), 丁壬→甲(0), 戊癸→丙(2)
-const MONTH_STEM_BASES = [4, 6, 8, 0, 2];
-
-/**
- * 월주: 절입 근사 (양력 월 기준)
- * 월간은 연간 그룹(甲己/乙庚/丙辛/丁壬/戊癸)으로 결정
- * 월지: 인월(寅=2)이 2월, 자월(子=0)이 12월
- */
-function calcMonthPillar(year, month) {
-  const yearStemIdx = ((year - 4) % 10 + 10) % 10;
-  const base = MONTH_STEM_BASES[yearStemIdx % 5];
-  // 인월(month=2)이 기준 → stemIdx = (base + month - 2 + 10) % 10
-  const stemIdx = (base + month - 2 + 10) % 10;
-  // 월지: 1월=丑(1), 2월=寅(2), ..., 12월=子(0)
-  const branchIdx = month % 12;
-  return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
-}
-
-/**
- * 일주: 율리우스일수(JDN) 기반 — 표준 그레고리력 JDN 공식
- * 기준점: JDN+31 이 甲子(0,0)으로 매핑됨 (2000-01-01=庚子 검증됨)
- */
-function calcDayPillar(year, month, day) {
-  const a = Math.floor((14 - month) / 12);
-  const y = year + 4800 - a;          // 표준 JDN 공식: +4800 필수
-  const m = month + 12 * a - 3;       // 표준 JDN 공식: -3
-  const jd = day + Math.floor((153 * m + 2) / 5) + 365 * y +
-    Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-  const stemIdx = ((jd + 31) % 10 + 10) % 10;  // +31: 庚子 기준점 오프셋
-  const branchIdx = ((jd + 31) % 12 + 12) % 12;
-  return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
-}
-
-/**
- * 시주
- */
-function calcHourPillar(dayPillarStemIdx, hour) {
-  const branchIdx = Math.floor((hour + 1) / 2) % 12;
-  const hourStemBase = (dayPillarStemIdx % 5) * 2;
-  const stemIdx = (hourStemBase + branchIdx) % 10;
-  return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
-}
-
-/**
- * 오행 분포 계산
- */
-function calcElements(pillars) {
-  const counts = { 목:0, 화:0, 토:0, 금:0, 수:0 };
-  pillars.forEach(p => {
-    if (p.stem) counts[STEM_ELEMENTS[STEMS.indexOf(p.stem)]] += 2;
-    if (p.branch) counts[BRANCH_ELEMENTS[BRANCHES.indexOf(p.branch)]] += 2;
-  });
-  const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-  const result = {};
-  Object.keys(counts).forEach(k => { result[k] = Math.round(counts[k] / total * 100); });
-  return result;
-}
-
-/**
- * 용신 추론: 가장 약한 오행
- */
-function calcYongshin(elements) {
-  return Object.entries(elements).sort((a, b) => a[1] - b[1])[0][0];
-}
-
-/**
- * 도화살 여부 (년지 또는 일지가 자·오·묘·유)
- */
-function checkDohwa(yearBranch, dayBranch) {
-  return ['자','오','묘','유'].includes(yearBranch) || ['자','오','묘','유'].includes(dayBranch);
-}
-
-/**
- * 일간 명칭
- */
-function getDayMasterName(stem) {
-  const names = {
-    갑:'갑목(甲木)', 을:'을목(乙木)', 병:'병화(丙火)', 정:'정화(丁火)',
-    무:'무토(戊土)', 기:'기토(己土)', 경:'경금(庚金)', 신:'신금(辛金)',
-    임:'임수(壬水)', 계:'계수(癸水)',
-  };
-  return names[stem] || stem;
-}
-
-/**
- * MBTI 근사 추론 (오행 패턴 기반)
- * 완전히 정확하지 않지만 재미있는 근사치 제공
- */
-function inferMBTI(elements, dayMasterEl) {
-  const E = elements['화'] + elements['목'] > elements['금'] + elements['수'] ? 'E' : 'I';
-  const N = elements['화'] + elements['목'] > 50 ? 'N' : 'S';
-  const T = elements['금'] + elements['수'] > 45 ? 'T' : 'F';
-  const J = elements['토'] > 20 ? 'J' : 'P';
-  return E + N + T + J;
-}
-
-/**
- * 성격 키워드 (일간 기반)
- */
-const STEM_TRAITS = {
-  갑: ['리더십', '직진형', '단호한'],
-  을: ['섬세함', '배려심', '감성적'],
-  병: ['활발함', '솔직함', '열정적'],
-  정: ['따뜻함', '헌신적', '로맨틱'],
-  무: ['신중함', '믿음직한', '책임감'],
-  기: ['살뜰함', '현실적', '다정함'],
-  경: ['강직함', '원칙주의', '냉철한'],
-  신: ['섬세함', '완벽주의', '예민한'],
-  임: ['자유로움', '유연함', '탐구적'],
-  계: ['내면적', '직관적', '감수성'],
-};
-
-/**
- * 이상형 장소 (일간+월지 기반)
- */
-const IDEAL_SPOTS = {
-  갑: '활동적인 아웃도어', 을: '조용한 카페나 플로리스트', 병: '루프탑 바나 야경 명소',
-  정: '감성 레스토랑이나 캔들 무드', 무: '자연 속 캠핑', 기: '맛집 탐방이나 재래시장',
-  경: '스포츠 활동이나 경쟁적 게임', 신: '아트 갤러리나 독립 서점', 임: '여행이나 드라이브',
-  계: '집에서 영화감상 or 인디 공연',
-};
-
-/**
- * 인사말 (일간+MBTI 기반 패턴)
- */
-function makeGreeting(name, stem, mbti) {
-  const greetings = {
-    갑: [`"${name}야, 처음 보는 사람한테 먼저 말 거는 거 별로 안 하는데… 뭔가 달라 보여서."`, `"나 ${name}이야. 직접적으로 말할게—네가 좀 궁금해."`],
-    을: [`"아, 안녕… 나 ${name}이야. 사람 많은 데가 좀 어색해서…"`, `"${name}이야. 왠지 네 옆이 편할 것 같아서 왔어."`],
-    병: [`"어 안녕! 나 ${name}! 여기 분위기 진짜 좋지 않아? 완전 내 스타일이야."`, `"나 ${name}! 먼저 말 거는 거 너무 자연스러워. 잘 부탁해 😄"`],
-    정: [`"처음인데 낯설지 않아. 나 ${name}이야… 왠지 오래 알던 느낌이다."`, `"${name}이야. 네가 좀 걱정돼 보여서 말 걸었어. 괜찮아?"`],
-    무: [`"${name}이야. 사람 쉽게 믿진 않는데, 네한테는 좀 다른 것 같아."`, `"나 ${name}. 오래 걸리겠지만 한번 알아가 보자."`],
-    기: [`"어, 안녕~ 나 ${name}이야! 배고프지 않아? 근처에 맛있는 데 알아."`, `"${name}이야. 처음 보는데 친근하다. 나 좀 특이한 편이야."`],
-    경: [`"${name}이야. 빙빙 돌리는 거 딱 싫어해, 그냥 솔직하게 대화하자."`, `"나 ${name}. 시간 낭비 별로야—마음에 들면 계속 보고 아니면 그냥 끝."`],
-    신: [`"…${name}이야. 말 무뚝뚝하게 한다고 했지? 사실 많이 생각해."`, `"${name}이야. 나 까다롭다는 말 많이 듣는데, 그래도 괜찮아?"`],
-    임: [`"${name}이야~ 사실 지금 머릿속에 생각이 열두 갈래인데—같이 얘기해볼래?"`, `"나 ${name}. 한곳에 오래 못 있는 편이야, 근데 네 앞에선 있고 싶어."`],
-    계: [`"…${name}이야. 조용히 관찰하는 편이라서. 그냥 뭔가 끌려서 온 거야."`, `"나 ${name}이야. 말 잘 못하는 편인데… 너한테는 하고 싶어졌어."`],
-  };
-  const opts = greetings[stem] || [`"안녕, 나 ${name}이야."`];
-  return opts[Math.floor(Math.random() * opts.length)];
-}
-
-/**
- * 사주 분석 → 페르소나 생성 (순수 로컬)
- */
-function buildPersonaFromSaju(name, gender, year, month, day, hour, noTime) {
-  const yr = calcYearPillar(year);
-  const mo = calcMonthPillar(year, month);
-  const dy = calcDayPillar(year, month, day);
-  const hr = noTime ? null : calcHourPillar(dy.stemIdx, hour);
-
-  const pillars = [yr, mo, dy, ...(hr ? [hr] : [])];
-  const elements = calcElements(pillars);
-  const yongshin = calcYongshin(elements);
-  const stem = dy.stem;  // 일간
-  const dayMaster = getDayMasterName(stem);
-  const dayMasterKan = stem;
-  const mbti = inferMBTI(elements, STEM_ELEMENTS[dy.stemIdx]);
-  const coreTraits = STEM_TRAITS[stem] || ['다정함', '신중함', '매력적'];
-  const hasDohwa = checkDohwa(yr.branch, dy.branch);
-
-  // 능력치 (오행 가중치 기반)
-  const el = elements;
-  const stats = {
-    passion:     Math.min(99, Math.round(30 + (el['화'] || 0) * 0.9 + (el['목'] || 0) * 0.4)),
-    empathy:     Math.min(99, Math.round(30 + (el['수'] || 0) * 0.8 + (el['목'] || 0) * 0.5)),
-    logic:       Math.min(99, Math.round(30 + (el['금'] || 0) * 0.9 + (el['수'] || 0) * 0.3)),
-    stability:   Math.min(99, Math.round(30 + (el['토'] || 0) * 1.0 + (el['금'] || 0) * 0.3)),
-    sociability: Math.min(99, Math.round(30 + (el['화'] || 0) * 0.7 + (el['목'] || 0) * 0.7)),
-  };
-
-  const initialAffinity = 10 + Math.round(elements[yongshin] / 5);
-  const idealSpot = IDEAL_SPOTS[stem] || '분위기 좋은 카페';
-  const favTasteMap = { 목:'신맛', 화:'쓴맛', 토:'단맛', 금:'매운맛', 수:'짠맛' };
-  const scenEmojis = { 목:'🌿✨', 화:'🔥💫', 토:'🌙🍂', 금:'⚔️💎', 수:'🌊🌌' };
-
-  return {
-    name,
-    gender,
-    dayMaster,
-    dayMasterKan,
-    mbti,
-    coreTraits,
-    stats,
-    tastes: { idealDateSpot: idealSpot, favTaste: favTasteMap[STEM_ELEMENTS[dy.stemIdx]] || '단맛' },
-    fiveElements: elements,
-    specialStars: hasDohwa ? ['도화살'] : [],
-    yongshin,
-    initialAffinity,
-    greeting: makeGreeting(name, stem, mbti),
-    scenarioEmoji: scenEmojis[STEM_ELEMENTS[dy.stemIdx]] || '✨',
-    id: `npc_${Date.now()}`,
-  };
-}
+/* BRANCHES 는 응답 데이터 표시용으로만 유지 */
+const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
 
 /* ═══════════════════════════════════════════════
    ── 대화 & 시나리오 로컬 데이터베이스 ──

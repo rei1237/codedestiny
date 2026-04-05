@@ -36,10 +36,16 @@ export async function GET(request, context) {
       .lean();
     if (!user) return json({ message: "해당 회원을 찾을 수 없습니다." }, 404);
 
-    const history = await PointHistory.find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+    let history = [];
+    try {
+      history = await PointHistory.find({ userId: user._id })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean();
+    } catch (historyErr) {
+      // 운영 DB에서 userId 타입이 섞인 경우에도 상세 조회 자체는 정상 동작시킨다.
+      console.warn("[admin/members/[id] GET] history fallback", historyErr?.message || historyErr);
+    }
 
     return json({
       ok: true,
@@ -47,8 +53,8 @@ export async function GET(request, context) {
       pointHistory: history.map(h => ({
         _id: String(h._id),
         kind: h.kind,
-        delta: h.delta,
-        balanceAfter: h.balanceAfter,
+        delta: Number.isFinite(Number(h.delta)) ? Number(h.delta) : 0,
+        balanceAfter: Number.isFinite(Number(h.balanceAfter)) ? Number(h.balanceAfter) : 0,
         reason: h.reason,
         createdAt: h.createdAt,
       })),

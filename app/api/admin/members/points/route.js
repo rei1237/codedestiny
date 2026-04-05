@@ -48,13 +48,18 @@ export async function POST(request) {
     user.points = newPoints;
     await user.save();
 
-    await PointHistory.create({
-      userId: user._id,
-      kind: "adjust",
-      delta,
-      balanceAfter: newPoints,
-      reason,
-    });
+    try {
+      await PointHistory.create({
+        userId: user._id,
+        kind: "adjust",
+        delta,
+        balanceAfter: newPoints,
+        reason,
+      });
+    } catch (historyErr) {
+      // 기록 스키마 불일치가 있어도 코인 잔액 반영은 성공 처리한다.
+      console.warn("[admin/members/points POST] point history write skipped", historyErr?.message || historyErr);
+    }
 
     return json({
       ok: true,

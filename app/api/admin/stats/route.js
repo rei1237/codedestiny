@@ -26,6 +26,15 @@ export async function GET(request) {
     await dbConnect();
     const User = await getUserModel();
 
+    // 운영 DB에는 joinedAt/points가 문자열로 저장된 레거시 문서가 섞일 수 있으므로
+    // 집계 전 안전 변환식을 사용해 500 오류를 방지한다.
+    const joinedAtExpr = {
+      $convert: { input: "$joinedAt", to: "date", onError: null, onNull: null },
+    };
+    const pointsExpr = {
+      $convert: { input: "$points", to: "double", onError: 0, onNull: 0 },
+    };
+
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
@@ -34,23 +43,36 @@ export async function GET(request) {
     const thirtyDaysAgo = new Date(todayStart);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
 
+    const countSince = async (startAt) => {
+      const rows = await User.aggregate([
+        { $addFields: { _joinedAtSafe: joinedAtExpr } },
+        { $match: { _joinedAtSafe: { $gte: startAt } } },
+        { $count: "count" },
+      ]);
+      return Number(rows?.[0]?.count || 0);
+    };
+
+    const [todayUsersSafe, weekUsersSafe, monthUsersSafe] = await Promise.all([
+      countSince(todayStart),
+      countSince(weekStart),
+      countSince(monthStart),
+    ]);
+
     const [
-      totalUsers, todayUsers, weekUsers, monthUsers, adminUsers, bannedUsers,
+      totalUsers, adminUsers, bannedUsers,
       genderAgg, dailyAgg, pointsAgg, recentUsers,
     ] = await Promise.all([
       User.countDocuments({}),
-      User.countDocuments({ joinedAt: { $gte: todayStart } }),
-      User.countDocuments({ joinedAt: { $gte: weekStart } }),
-      User.countDocuments({ joinedAt: { $gte: monthStart } }),
       User.countDocuments({ role: "admin" }),
       User.countDocuments({ status: "banned" }),
       User.aggregate([{ $group: { _id: "$gender", count: { $sum: 1 } } }]),
       User.aggregate([
-        { $match: { joinedAt: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$joinedAt" } }, count: { $sum: 1 } } },
+        { $addFields: { _joinedAtSafe: joinedAtExpr } },
+        { $match: { _joinedAtSafe: { $gte: thirtyDaysAgo } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$_joinedAtSafe" } }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ]),
-      User.aggregate([{ $group: { _id: null, total: { $sum: "$points" }, avg: { $avg: "$points" } } }]),
+      User.aggregate([{ $group: { _id: null, total: { $sum: pointsExpr }, avg: { $avg: pointsExpr } } }]),
       User.find({}).select("_id name email joinedAt points status").sort({ joinedAt: -1 }).limit(5).lean(),
     ]);
 
@@ -76,7 +98,10 @@ export async function GET(request) {
     return json({
       ok: true,
       summary: {
-        totalUsers, todayUsers, weekUsers, monthUsers,
+        totalUsers,
+        todayUsers: todayUsersSafe,
+        weekUsers: weekUsersSafe,
+        monthUsers: monthUsersSafe,
         adminUsers, bannedUsers,
         totalCoins: Number(pointsAgg[0]?.total ?? 0),
         avgCoins: Math.round(Number(pointsAgg[0]?.avg ?? 0)),
@@ -85,7 +110,9 @@ export async function GET(request) {
       daily: { labels: dailyLabels, counts: dailyCounts },
       recentUsers: recentUsers.map((u) => ({
         _id: String(u._id), name: u.name, email: u.email,
-        joinedAt: u.joinedAt, points: u.points, status: u.status || "active",
+        joinedAt: u.joinedAt,
+        points: Number.isFinite(Number(u.points)) ? Number(u.points) : 0,
+        status: u.status || "active",
       })),
     });
   } catch (err) {
