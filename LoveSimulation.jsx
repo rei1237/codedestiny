@@ -917,15 +917,19 @@ function computeMatchScore(userStem, npcStem) {
   return (ELEMENT_HARMONY[userEl]?.[npcEl] || 3) + (ELEMENT_HARMONY[npcEl]?.[userEl] || 3);
 }
 
-function findBestMatches(userYear, userMonth, userDay, userHour, presets) {
-  const dy = calcDayPillar(userYear, userMonth, userDay);
-  const userStem = dy.stem;
+async function findBestMatches(userYear, userMonth, userDay, userHour, presets) {
+  const KR_STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
+  const [userData, ...npcResults] = await Promise.all([
+    fetchSajuPillar({ year: userYear, month: userMonth, day: userDay, hour: userHour, name: '나', gender: '여' }),
+    ...presets.map(p => fetchSajuPillar({ year: p.birth.year, month: p.birth.month, day: p.birth.day, hour: p.birth.hour, name: p.name, gender: p.gender || '남' })),
+  ]);
+  const userStem = STEMS[KR_STEMS.indexOf(userData.dayMasterGanKr)] || '甲';
   return presets
-    .map(p => {
-      const npcDy  = calcDayPillar(p.birth.year, p.birth.month, p.birth.day);
-      const score  = computeMatchScore(userStem, npcDy.stem);
+    .map((p, i) => {
+      const npcStem = STEMS[KR_STEMS.indexOf(npcResults[i]?.dayMasterGanKr)] || '甲';
+      const score   = computeMatchScore(userStem, npcStem);
       const matchPct = Math.min(99, Math.round(score / 12 * 100));
-      return { ...p, matchScore: score, matchPct, npcStem: npcDy.stem };
+      return { ...p, matchScore: score, matchPct, npcStem };
     })
     .sort((a, b) => b.matchScore - a.matchScore);
 }
@@ -1102,7 +1106,7 @@ export default function LoveSimulation() {
   const [screen, setScreen] = useState('portal'); // portal | awakening | chat
   const [tab, setTab] = useState('preset');        // preset | match | custom
   const [npcGender, setNpcGender] = useState('\ub0a8');  // \ub0a8 | \uc5ec
-  const [form, setForm] = useState({ name:'', year:'', month:'', day:'', hour:'', noTime:false });
+  const [form, setForm] = useState({ name:'', year:'', month:'', day:'', sinju: 0, noTime:false });
   const [matchForm, setMatchForm] = useState({ year:'', month:'', day:'' });
   const [matchResults, setMatchResults] = useState(null);
   const [persona, setPersona] = useState(null);
@@ -1119,6 +1123,9 @@ export default function LoveSimulation() {
   const [toast, setToast] = useState(null);
   const msgEnd = useRef(null);
   const typingRef = useRef(null);
+  const greetingShownRef = useRef(false);
+  const [loadingPersona, setLoadingPersona] = useState(false);
+  const [matchLoading, setMatchLoading] = useState(false);
 
   useEffect(() => { msgEnd.current?.scrollIntoView({ behavior:'smooth' }); }, [messages, busy]);
 
@@ -1126,6 +1133,16 @@ export default function LoveSimulation() {
   useEffect(() => {
     return () => { if (typingRef.current) clearInterval(typingRef.current); };
   }, []);
+
+  // 채팅 메시지 3개마다 자동으로 데이트 이벤트 발생
+  useEffect(() => {
+    if (screen !== 'chat' || !persona || scenario || busy) return;
+    const npcCount = messages.filter(m => m.role === 'npc').length;
+    if (npcCount > 0 && npcCount % 3 === 0) {
+      const timer = setTimeout(() => triggerScenario(), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* 엔피시(NPC) 메시지 타이프라이터 엔피 수신 */
   function addNpcMsgTyped(text, affinityChange) {
@@ -1150,34 +1167,45 @@ export default function LoveSimulation() {
     setTimeout(() => setToast(null), 2800);
   }
 
+  /* ── API 호출 후 게임 시작 ── */
+  async function loadAndStartGame({ name, gender, year, month, day, hour, presetEmoji }) {
+    setLoadingPersona(true);
+    greetingShownRef.current = false;
+    try {
+      const data = await fetchSajuPillar({ name, gender, year, month, day, hour });
+      const p = apiDataToPersona(data);
+      if (presetEmoji) p.emoji = presetEmoji;
+      startGame(p);
+    } catch (e) {
+      showToast('사주 계산 중 오류가 발생했어요.');
+    } finally {
+      setLoadingPersona(false);
+    }
+  }
+
   /* ── 프리셋 선택 ── */
   function selectPreset(preset) {
     const gdr = preset.gender || '남';
-    const p = buildPersonaFromSaju(
-      preset.name, gdr,
-      preset.birth.year, preset.birth.month, preset.birth.day, preset.birth.hour, false
-    );
-    startGame(p);
+    loadAndStartGame({
+      name: preset.name, gender: gdr,
+      year: preset.birth.year, month: preset.birth.month, day: preset.birth.day, hour: preset.birth.hour,
+      presetEmoji: preset.emoji,
+    });
   }
 
   /* ── 직접 입력 ── */
   function submitCustom() {
-    const { name, year, month, day, hour, noTime } = form;
+    const { name, year, month, day, sinju, noTime } = form;
     if (!name || !year || !month || !day) return;
-    const p = buildPersonaFromSaju(
-      name, npcGender,
-      Number(year), Number(month), Number(day),
-      noTime ? 12 : Number(hour || 12),
-      noTime
-    );
-    startGame(p);
+    const hour = noTime ? 12 : (SINJU_OPTIONS[sinju]?.hour ?? 12);
+    loadAndStartGame({ name, gender: npcGender, year: Number(year), month: Number(month), day: Number(day), hour });
   }
 
   function startGame(p) {
     setPersona(p);
     setAffinity(p.initialAffinity);
     setMood('설렘');
-    setMessages([{ role:'npc', text: p.greeting, affinityChange: 0 }]);
+    setMessages([]);
     setUsedScenarios([]);
     setScreen('awakening');
   }
@@ -1327,7 +1355,7 @@ export default function LoveSimulation() {
                 </div>
                 <div className="lc-preset-grid">
                   {(npcGender === '여' ? FEMALE_PRESETS : MALE_PRESETS).map((p) => (
-                    <div key={p.name} className="lc-preset-card" onClick={() => selectPreset(p)}>
+                    <div key={p.name} className={`lc-preset-card${loadingPersona?' lc-preset-loading':''}`} onClick={() => !loadingPersona && selectPreset(p)}>
                       <div className="lc-preset-emoji">{p.emoji}</div>
                       <div className="lc-preset-name">{p.name}</div>
                       <div className="lc-preset-dm">{p.desc}</div>
@@ -1337,6 +1365,9 @@ export default function LoveSimulation() {
                     </div>
                   ))}
                 </div>
+                {loadingPersona && (
+                  <p style={{ textAlign:'center', color:'var(--gold)', fontSize:13, marginTop:12 }}>✦ 사주 계산 중…</p>
+                )}
               </>
             )}
 
@@ -1366,16 +1397,20 @@ export default function LoveSimulation() {
                     value={matchForm.day} onChange={e => setMatchForm({...matchForm, day:e.target.value})} />
                 </div>
                 <button className="cd-fate-btn"
-                  disabled={!matchForm.year || !matchForm.month || !matchForm.day}
-                  onClick={() => {
+                  disabled={!matchForm.year || !matchForm.month || !matchForm.day || matchLoading}
+                  onClick={async () => {
                     if (!matchForm.year || !matchForm.month || !matchForm.day) return;
                     const pool = npcGender === '여' ? FEMALE_PRESETS : MALE_PRESETS;
-                    const results = findBestMatches(
-                      Number(matchForm.year), Number(matchForm.month), Number(matchForm.day), 12, pool
-                    );
-                    setMatchResults(results);
+                    setMatchLoading(true);
+                    try {
+                      const results = await findBestMatches(
+                        Number(matchForm.year), Number(matchForm.month), Number(matchForm.day), 12, pool
+                      );
+                      setMatchResults(results);
+                    } catch { showToast('궁합 계산 중 오류가 발생했어요.'); }
+                    finally { setMatchLoading(false); }
                   }}>
-                  💕 최고의 상대 찾기
+                  {matchLoading ? '계산 중…' : '💕 최고의 상대 찾기'}
                 </button>
                 {matchResults && (
                   <div style={{ marginTop:22 }}>
@@ -1434,21 +1469,25 @@ export default function LoveSimulation() {
                     value={form.day} onChange={e => setForm({...form, day:e.target.value})} />
                 </div>
                 <div className="cd-form-group">
-                  <label className="cd-form-label">태어난 시간</label>
-                  <input className="cd-input" placeholder={form.noTime ? '시간 불명' : '시 (0~23)'}
-                    disabled={form.noTime}
-                    value={form.hour} onChange={e => setForm({...form, hour:e.target.value})}
-                    style={{ opacity: form.noTime ? 0.4 : 1 }} />
+                  <label className="cd-form-label">태어난 시간 (생시)</label>
+                  <select className="cd-input" disabled={form.noTime}
+                    value={form.sinju}
+                    onChange={e => setForm({...form, sinju: Number(e.target.value)})}
+                    style={{ opacity: form.noTime ? 0.4 : 1 }}>
+                    {SINJU_OPTIONS.map((s, i) => (
+                      <option key={s.kr} value={i}>{s.label}</option>
+                    ))}
+                  </select>
                   <label className="cd-check-label">
                     <input type="checkbox" checked={form.noTime}
-                      onChange={e => setForm({...form, noTime:e.target.checked, hour:''})} />
+                      onChange={e => setForm({...form, noTime:e.target.checked})} />
                     태어난 시간을 모릅니다
                   </label>
                 </div>
                 <button className="cd-fate-btn"
                   onClick={submitCustom}
-                  disabled={!form.name || !form.year || !form.month || !form.day}>
-                  ✦ 사주 분석 시작 ✦
+                  disabled={!form.name || !form.year || !form.month || !form.day || loadingPersona}>
+                  {loadingPersona ? '사주 계산 중…' : '✦ 사주 분석 시작 ✦'}
                 </button>
               </div>
             )}
@@ -1481,6 +1520,28 @@ export default function LoveSimulation() {
                 ))}
                 {persona.scenarioEmoji && <span className="cd-trait">{persona.scenarioEmoji}</span>}
               </div>
+
+              {/* 사주 팔자 카드 */}
+              {persona.pillars && (
+                <div className="cd-stats-card" style={{ marginBottom: 20 }}>
+                  <p className="cd-stats-title">사주 팔자 (四柱八字)</p>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, textAlign:'center' }}>
+                    {[
+                      { label:'年柱', pillar: persona.pillars.year },
+                      { label:'月柱', pillar: persona.pillars.month },
+                      { label:'日柱', pillar: persona.pillars.day },
+                      { label:'時柱', pillar: persona.pillars.hour },
+                    ].map(({ label, pillar }) => (
+                      <div key={label} style={{ background:'rgba(255,255,255,0.04)', borderRadius:10, padding:'10px 4px', border:'1px solid rgba(200,169,110,0.2)' }}>
+                        <p style={{ fontSize:10, color:'var(--gold)', marginBottom:4, letterSpacing:'0.1em' }}>{label}</p>
+                        <p style={{ fontSize:20, fontWeight:700, lineHeight:1.1, color:'var(--fg)' }}>{pillar?.gan || '?'}</p>
+                        <p style={{ fontSize:20, fontWeight:700, lineHeight:1.1, color:'var(--rose)' }}>{pillar?.zhi || '?'}</p>
+                        <p style={{ fontSize:10, color:'var(--text-dim)', marginTop:4 }}>{pillar?.ganKr || ''}{pillar?.zhiKr || ''}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="cd-stats-card">
                 <p className="cd-stats-title">오행 능력치 분석</p>
@@ -1523,8 +1584,13 @@ export default function LoveSimulation() {
 
               <button className="cd-start-btn" onClick={() => {
                 setScreen('chat');
-                // 화면 렌더 후 인사말 타이핑 시작
-                setTimeout(() => addNpcMsgTyped(persona.greeting, 0), 120);
+                // 중복 방지: greetingShownRef가 false일 때만 인사말 출력
+                setTimeout(() => {
+                  if (!greetingShownRef.current) {
+                    greetingShownRef.current = true;
+                    addNpcMsgTyped(persona.greeting, 0);
+                  }
+                }, 120);
               }}>
                 ✦ 운명의 만남을 시작하다 ✦
               </button>

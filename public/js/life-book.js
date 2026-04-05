@@ -815,11 +815,17 @@
     if (!btn) return;
     var action = btn.getAttribute('data-action');
 
+    if (action === 'openLifeBookModal') {
+      // 코인 게이트 없이 타일 클릭 시 직접 모달 오픈 (결제는 생성하기 버튼에서 처리)
+      window.openLifeBookModal();
+      return;
+    }
     if (action === 'closeLifeBookModal') {
       window.closeLifeBookModal();
       return;
     }
     if (action === 'generateLifeBook') {
+      // 코인 게이트 통과 후 window[action]() 직접 호출 또는 이 경로로 도달
       window.generateLifeBook();
       return;
     }

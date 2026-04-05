@@ -3943,7 +3943,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <div class="fg-group__cards">
         <button class="lifebook-tile" type="button"
                 data-action="openLifeBookModal"
-                data-coin-cost="490"
                 aria-label="인생의 책 — 나만을 위한 프리미엄 사주 심층 분석">
           <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
           <div class="lifebook-tile__bg" aria-hidden="true"></div>
@@ -4134,12 +4133,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
           <div class="lb-start-info">
             <p class="lb-start-desc">사주팔자의 여덟 글자 속에 숨겨진 당신의 운명 알고리즘을 <strong>13개 챕터, 50,000자 이상</strong>의 전문 분석으로 완전 해독합니다.</p>
-          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook">
+          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook" data-coin-cost="490">
+            <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
             <span class="lb-btn-icon">✦</span>
             나의 인생의 책 생성하기
             <span class="lb-btn-icon">✦</span>
           </button>
         </div>
+        </div><!-- /lbStartScreen -->
 
         <!-- 생성 중: 로딩 화면 -->
         <div id="lbLoadingScreen" class="lb-loading-screen" style="display:none;">
