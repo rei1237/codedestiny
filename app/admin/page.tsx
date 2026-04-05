@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 
 //  Types 
 
@@ -711,63 +710,288 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
 }
 
 
-// ─── Service Access Tab ───────────────────────────────────────
-const SERVICE_LIST = [
-  { name: "사주 풀이 (메인)", path: "/", icon: "🔮" },
-  { name: "운명의 꽃 아틀리에", path: "/?openDestinyFlower=1", icon: "🌸" },
-  { name: "타로 — 연애/이별", path: "/?openTarot=love", icon: "🃏" },
-  { name: "타로 — 힐링 새벽", path: "/?openTarot=healing", icon: "🌙" },
-  { name: "타로 — 만남/재회", path: "/?openTarot=reunion", icon: "💌" },
-  { name: "타로 — 올해 운세", path: "/?openTarot=year", icon: "📅" },
-  { name: "타로 — 자존감 레벨업", path: "/?openTarot=selfesteem", icon: "⭐" },
-  { name: "AI 관상 (동물)", path: "/saju-animal", icon: "🐯" },
-  { name: "AI 동물 MBTI 궁합", path: "/?openMBTI=1", icon: "🦊" },
-  { name: "주역 64괘 거북점", path: "/?openYiching=1", icon: "🐢" },
-  { name: "이집트 케멧 신탁", path: "/?openKemet=1", icon: "🏺" },
-  { name: "화투점", path: "/?openHwatu=1", icon: "🎴" },
-  { name: "자미두수", path: "/?openZiwei=1", icon: "⭐" },
-  { name: "점성술 (서양)", path: "/?openAstrology=1", icon: "♑" },
-  { name: "숙요점 (27수)", path: "/?openSukuyo=1", icon: "🌕" },
-  { name: "인생책 (생명 수비학)", path: "/?openLifeBook=1", icon: "📖" },
-  { name: "역사 속 나의 전생", path: "/?openPastLife=1", icon: "🏛️" },
-  { name: "요가 가루다 신탁", path: "/yoga-guru", icon: "🧘" },
-  { name: "럭키-싱크 일기", path: "/?openLuckSync=1", icon: "🍀" },
-  { name: "코드 데스티니 회원가입", path: "/signup", icon: "✨" },
-  { name: "로그인", path: "/login", icon: "🔐" },
-  { name: "코인 결제", path: "/?openCoinCharge=1", icon: "🐷" },
-  { name: "FAQ", path: "/faq", icon: "❓" },
-  { name: "개인정보처리방침", path: "/privacy-policy", icon: "📜" },
-  { name: "이용약관", path: "/terms-of-service", icon: "📋" },
-];
+// ─── Coin Grant Tab ───────────────────────────────────────────
+function CoinGrantTab({ token, toast }: { token: string; toast: (msg: string, type?: "success" | "error") => void }) {
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKw, setSearchKw] = useState("");
+  const [searchResults, setSearchResults] = useState<AdminUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchErr, setSearchErr] = useState("");
+  const [selected, setSelected] = useState<AdminUser | null>(null);
+  const [amount, setAmount] = useState("");
+  const [reason, setReason] = useState("관리자 황금 돼지 코인 지급");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState("");
+  const [history, setHistory] = useState<PointHistory[]>([]);
+  const [histLoading, setHistLoading] = useState(false);
+  const [bulkEmails, setBulkEmails] = useState("");
+  const [bulkAmount, setBulkAmount] = useState("");
+  const [bulkReason, setBulkReason] = useState("관리자 황금 돼지 이벤트 코인 지급");
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ ok: number; fail: number; errors: string[] } | null>(null);
 
-function ServiceAccessTab() {
+  const handleSearch = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const kw = searchInput.trim();
+    if (!kw) return;
+    setSearchKw(kw); setSearching(true); setSearchErr(""); setSearchResults([]);
+    try {
+      const params = new URLSearchParams({ search: kw, pageSize: "20", page: "1" });
+      const r = await fetch(`/api/admin/members?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error(await safeErrorMsg(r));
+      const d = await r.json() as { users?: AdminUser[]; message?: string };
+      if (d.message) throw new Error(d.message);
+      setSearchResults(d.users ?? []);
+    } catch (e) { setSearchErr(e instanceof Error ? e.message : "검색 오류"); }
+    finally { setSearching(false); }
+  };
+
+  const selectUser = async (u: AdminUser) => {
+    setSelected(u); setAmount(""); setSubmitErr(""); setHistory([]); setHistLoading(true);
+    try {
+      const r = await fetch(`/api/admin/members/${encodeURIComponent(u._id)}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error(`[${r.status}]`);
+      const d = await r.json() as { user?: AdminUser; pointHistory?: PointHistory[] };
+      if (d.user) setSelected(d.user);
+      setHistory(d.pointHistory ?? []);
+    } catch { /* history load fail — show empty */ }
+    finally { setHistLoading(false); }
+  };
+
+  const handleGrant = async () => {
+    if (!selected) return;
+    const delta = Number(amount);
+    if (!Number.isFinite(delta) || delta === 0) { setSubmitErr("유효한 수량을 입력하세요."); return; }
+    setSubmitting(true); setSubmitErr("");
+    try {
+      const r = await fetch("/api/admin/members/points", {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: selected._id, delta, reason }),
+      });
+      if (!r.ok) { const d = await r.json(); throw new Error(d.message || `[${r.status}]`); }
+      const d = await r.json() as { user?: { points: number } };
+      const newPoints = d.user?.points ?? selected.points;
+      const updated = { ...selected, points: newPoints };
+      setSelected(updated);
+      setSearchResults(prev => prev.map(u => u._id === selected._id ? updated : u));
+      setHistory(prev => [{
+        _id: String(Date.now()), kind: "adjust", delta, balanceAfter: newPoints,
+        reason, createdAt: new Date().toISOString(),
+      }, ...prev]);
+      setAmount("");
+      toast(`${selected.name}님 ${delta > 0 ? "+" : ""}${fmtNum(delta)} 코인 ${delta > 0 ? "지급" : "차감"} 완료`, "success");
+    } catch (e) { setSubmitErr(e instanceof Error ? e.message : "요청 오류"); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleBulkGrant = async () => {
+    const emails = bulkEmails.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+    const delta = Number(bulkAmount);
+    if (emails.length === 0) { toast("이메일을 입력하세요.", "error"); return; }
+    if (!Number.isFinite(delta) || delta === 0) { toast("유효한 코인 수량을 입력하세요.", "error"); return; }
+    setBulkSubmitting(true); setBulkResult(null);
+    let ok = 0; const errors: string[] = [];
+    for (const email of emails) {
+      try {
+        const sr = await fetch(`/api/admin/members?${new URLSearchParams({ search: email, pageSize: "5" })}`, { headers: { Authorization: `Bearer ${token}` } });
+        const sd = await sr.json() as { users?: AdminUser[] };
+        const user = (sd.users ?? []).find(u => u.email.toLowerCase() === email.toLowerCase());
+        if (!user) { errors.push(`${email}: 회원 없음`); continue; }
+        const pr = await fetch("/api/admin/members/points", {
+          method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ userId: user._id, delta, reason: bulkReason }),
+        });
+        if (!pr.ok) { const pd = await pr.json(); errors.push(`${email}: ${pd.message || pr.status}`); continue; }
+        ok++;
+      } catch (e) { errors.push(`${email}: ${e instanceof Error ? e.message : "오류"}`); }
+    }
+    setBulkResult({ ok, fail: errors.length, errors });
+    setBulkSubmitting(false);
+    if (ok > 0) toast(`${ok}명에게 코인 지급 완료`, "success");
+    if (errors.length > 0) toast(`${errors.length}건 실패`, "error");
+  };
+
+  const QUICK_AMOUNTS = [100, 500, 1000, 3000, 5000, 10000, -100, -500, -1000];
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-violet-400/20 bg-violet-500/8 px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-violet-300 mb-1">🔓 관리자 무제한 접근 모드</p>
-        <p className="text-xs text-slate-400">
-          아래 링크를 클릭하면 <strong className="text-violet-200">현재 탭</strong>에서 서비스 페이지로 이동합니다.
-          관리자 세션(flower_admin_token)이 유지되어 <strong className="text-violet-200">코인 게이트가 자동 해제</strong>됩니다.
-          브라우저 뒤로가기(←)로 관리자 패널에 돌아올 수 있습니다.
-        </p>
+    <div className="space-y-6">
+      {/* 개별 지급 섹션 */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* 왼쪽: 회원 검색 + 선택 */}
+        <div className="space-y-4">
+          <div className="rounded-xl border border-amber-400/25 bg-amber-500/8 px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-amber-300 mb-3">🔍 회원 검색</p>
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <input value={searchInput} onChange={e => setSearchInput(e.target.value)} type="search"
+                placeholder="이름 또는 이메일"
+                className="flex-1 rounded-xl border border-amber-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-400/60" />
+              <button type="submit" disabled={searching || !searchInput.trim()}
+                className="rounded-xl border border-amber-400/50 bg-amber-500/25 px-4 py-2.5 text-sm font-bold text-amber-200 hover:bg-amber-500/35 disabled:opacity-40">
+                {searching ? "…" : "검색"}
+              </button>
+            </form>
+            {searchErr && <p className="mt-2 text-xs text-rose-300">⚠️ {searchErr}</p>}
+          </div>
+
+          {searchResults.length > 0 && (
+            <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 overflow-hidden">
+              <p className="px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-400 border-b border-slate-700/50">
+                검색 결과 {searchResults.length}명
+              </p>
+              <div className="max-h-64 overflow-y-auto">
+                {searchResults.map(u => (
+                  <button key={u._id} onClick={() => selectUser(u)}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-sm border-b border-slate-700/40 last:border-b-0 hover:bg-slate-800/60 transition text-left
+                      ${selected?._id === u._id ? "bg-amber-900/30 border-l-2 border-l-amber-400/60" : ""}`}>
+                    <div>
+                      <span className="font-semibold text-slate-100">{u.name}</span>
+                      <span className="ml-2 text-xs text-slate-400">{u.email}</span>
+                      {u.status === "banned" && <span className="ml-2 text-xs text-rose-300">제재중</span>}
+                    </div>
+                    <span className="text-amber-300 font-bold text-xs">{fmtNum(u.points)} 🐷</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {searchKw && searchResults.length === 0 && !searching && (
+            <p className="text-center text-sm text-slate-500 py-4">일치하는 회원이 없습니다.</p>
+          )}
+        </div>
+
+        {/* 오른쪽: 코인 지급 폼 */}
+        <div>
+          {!selected ? (
+            <div className="rounded-xl border border-slate-700/50 bg-slate-900/40 flex items-center justify-center h-full min-h-[200px]">
+              <p className="text-slate-500 text-sm">왼쪽에서 회원을 검색해 선택하세요</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-amber-400/30 bg-slate-900/60 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-white text-base">{selected.name}</p>
+                  <p className="text-xs text-slate-400">{selected.email}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">현재 잔액</p>
+                  <p className="text-xl font-bold text-amber-300">{fmtNum(selected.points)} 🐷</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-400 mb-2">빠른 선택</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_AMOUNTS.map(v => (
+                    <button key={v} type="button" onClick={() => { setAmount(String(v)); setSubmitErr(""); }}
+                      className={`rounded-lg px-2.5 py-1 text-xs font-semibold border ${v > 0
+                        ? "border-emerald-400/35 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                        : "border-rose-400/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"}`}>
+                      {v > 0 ? `+${fmtNum(v)}` : fmtNum(v)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-300">
+                  직접 입력 <span className="text-slate-500 font-normal">(음수=차감)</span>
+                </label>
+                <input type="number" value={amount} onChange={e => { setAmount(e.target.value); setSubmitErr(""); }}
+                  placeholder="예: 1000 또는 -500"
+                  className="w-full rounded-xl border border-amber-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-400/60" />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-300">지급 사유</label>
+                <input type="text" value={reason} onChange={e => setReason(e.target.value)}
+                  className="w-full rounded-xl border border-slate-600/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-amber-400/40" />
+              </div>
+
+              {submitErr && <p className="text-xs text-rose-300 border border-rose-400/30 bg-rose-500/10 rounded-xl px-3 py-2">⚠️ {submitErr}</p>}
+
+              <button onClick={handleGrant} disabled={submitting || !amount}
+                className="w-full rounded-xl border border-amber-400/50 bg-amber-500/25 py-3 text-sm font-bold text-amber-200 hover:bg-amber-500/35 disabled:opacity-40 transition">
+                {submitting ? "처리 중…" : `🐷 ${Number(amount) > 0 ? "코인 지급" : "코인 차감"} 적용`}
+              </button>
+
+              {/* 코인 내역 */}
+              {(histLoading || history.length > 0) && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2 mt-2">최근 코인 내역</p>
+                  {histLoading
+                    ? <p className="text-xs text-slate-500 text-center py-2">로드 중…</p>
+                    : (
+                      <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
+                        {history.map(h => (
+                          <div key={h._id} className="flex justify-between items-center rounded-lg bg-slate-900/60 px-3 py-1.5 text-xs">
+                            <div>
+                              <span className={`font-bold ${h.delta > 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                                {h.delta > 0 ? `+${fmtNum(h.delta)}` : fmtNum(h.delta)}
+                              </span>
+                              <span className="text-slate-500 ml-2">{h.reason || h.kind}</span>
+                            </div>
+                            <div className="text-slate-500 text-right">
+                              <div>{fmtNum(h.balanceAfter)} 코인</div>
+                              <div>{fmtDateTime(h.createdAt)}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-        {SERVICE_LIST.map(s => (
-          <Link key={s.path} href={s.path}
-            className="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/70 px-3 py-3 text-sm text-slate-200 hover:bg-violet-900/40 hover:border-violet-400/40 transition group">
-            <span className="text-xl flex-shrink-0">{s.icon}</span>
-            <span className="font-medium leading-tight group-hover:text-violet-200 text-xs">{s.name}</span>
-          </Link>
-        ))}
-      </div>
-      <div className="rounded-xl border border-amber-400/20 bg-amber-500/8 px-5 py-4 mt-4">
-        <p className="text-xs font-semibold text-amber-300 mb-2">💡 관리자 서비스 접근 안내</p>
-        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-400">
-          <li>위 링크 클릭 → 현재 탭에서 서비스 페이지로 이동 (sessionStorage 유지 → 코인 게이트 자동 해제)</li>
-          <li>테스트 완료 후 브라우저 뒤로가기(←) 버튼으로 관리자 패널 복귀</li>
-          <li>새 탭으로 열고 싶으면 링크를 <strong className="text-amber-200">마우스 우클릭 → 새 탭에서 열기</strong>로 접근 가능
-            (단, 새 탭은 sessionStorage가 없어 코인 게이트 해제 안 됨 — 일반 사용자 화면 확인 시 사용)</li>
-        </ol>
+
+      {/* 일괄 지급 섹션 */}
+      <div className="rounded-xl border border-violet-400/25 bg-violet-500/8 p-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-violet-300 mb-4">📋 이메일 일괄 지급</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-300">
+              이메일 목록 <span className="text-slate-500 font-normal">(줄바꿈·쉼표·세미콜론 구분)</span>
+            </label>
+            <textarea value={bulkEmails} onChange={e => setBulkEmails(e.target.value)} rows={5}
+              placeholder={"user1@example.com\nuser2@example.com"}
+              className="w-full rounded-xl border border-violet-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-violet-400/60 resize-none" />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-300">지급 코인 수량</label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {[100, 500, 1000, 3000, 5000].map(v => (
+                  <button key={v} type="button" onClick={() => setBulkAmount(String(v))}
+                    className="rounded-lg px-2.5 py-1 text-xs font-semibold border border-emerald-400/35 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
+                    +{fmtNum(v)}
+                  </button>
+                ))}
+              </div>
+              <input type="number" value={bulkAmount} onChange={e => setBulkAmount(e.target.value)} placeholder="코인 수량"
+                className="w-full rounded-xl border border-violet-400/25 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:border-violet-400/60" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-300">지급 사유</label>
+              <input type="text" value={bulkReason} onChange={e => setBulkReason(e.target.value)}
+                className="w-full rounded-xl border border-slate-600/40 bg-slate-900/80 px-3 py-2.5 text-sm text-slate-100 outline-none" />
+            </div>
+            <button onClick={handleBulkGrant} disabled={bulkSubmitting || !bulkEmails.trim() || !bulkAmount}
+              className="w-full rounded-xl border border-violet-400/50 bg-violet-500/25 py-2.5 text-sm font-bold text-violet-200 hover:bg-violet-500/35 disabled:opacity-40 transition">
+              {bulkSubmitting ? "처리 중…" : "🐷 일괄 지급 실행"}
+            </button>
+          </div>
+        </div>
+        {bulkResult && (
+          <div className={`mt-4 rounded-xl border px-4 py-3 text-xs space-y-1 ${bulkResult.fail > 0 ? "border-orange-400/30 bg-orange-500/10" : "border-emerald-400/30 bg-emerald-500/10"}`}>
+            <p className="font-semibold text-slate-200">
+              ✅ 성공 <span className="text-emerald-300">{bulkResult.ok}명</span>
+              {bulkResult.fail > 0 && <> &nbsp;|&nbsp; ❌ 실패 <span className="text-rose-300">{bulkResult.fail}건</span></>}
+            </p>
+            {bulkResult.errors.map((e, i) => <p key={i} className="text-rose-300">{e}</p>)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -893,7 +1117,7 @@ function BannedUsersTab({ token, toast }: { token: string; toast: (msg: string, 
 
 //  Main Page 
 
-type Tab = "dashboard" | "members" | "services" | "banned";
+type Tab = "dashboard" | "members" | "coins" | "banned";
 
 export default function AdminPage() {
   const [token, setToken] = useState("");
@@ -928,7 +1152,7 @@ export default function AdminPage() {
   const TAB_CONFIG: { id: Tab; label: string }[] = [
     { id: "dashboard", label: "📊 대시보드" },
     { id: "members", label: "👥 회원관리" },
-    { id: "services", label: "🔓 서비스 접근" },
+    { id: "coins", label: "🪙 코인 지급" },
     { id: "banned", label: "🚫 악성 유저" },
   ];
 
@@ -958,7 +1182,7 @@ export default function AdminPage() {
       <div className="mx-auto max-w-6xl px-4 py-6">
         {tab === "dashboard" && <DashboardTab token={token} toast={addToast} />}
         {tab === "members" && <MembersTab token={token} toast={addToast} />}
-        {tab === "services" && <ServiceAccessTab />}
+        {tab === "coins" && <CoinGrantTab token={token} toast={addToast} />}
         {tab === "banned" && <BannedUsersTab token={token} toast={addToast} />}
       </div>
     </main>
