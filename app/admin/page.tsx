@@ -62,20 +62,29 @@ function fmtNum(n: number) { return n.toLocaleString("ko-KR"); }
 
 /** API 오류 응답에서 사람이 읽을 수 있는 메시지 추출
  * - JSON { message } → 메시지 반환
- * - HTML (<!DOCTYPE …) → "서버 내부 오류" 안내 반환
- * - 기타 텍스트 → 최대 200자 잘라 반환 */
+ * - HTML → Cloudflare에러 텍스트 추출 후 반환 (더이상 메시지 숨기지 않음)
+ * - 기타 텍스트 → 최대 400자 잘라 반환 */
 async function safeErrorMsg(r: Response): Promise<string> {
   let text = "";
   try { text = await r.text(); } catch { return `서버 오류 (HTTP ${r.status})`; }
   if (text.trimStart().startsWith("<")) {
-    // HTML 에러 페이지 (Cloudflare 워커 예외 등)
-    return `서버 내부 오류 (HTTP ${r.status}) — /api/admin/ping 으로 DB 연결 상태를 확인해 주세요.`;
+    // HTML 에러 페이지 — 실제 에러 텍스트 추출
+    const titleMatch = text.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+    const h1Match = text.match(/<h1[^>]*>([^<]{1,200})<\/h1>/i);
+    const bodyText = (h1Match?.[1] || titleMatch?.[1] || "").trim();
+    // Cloudflare 워커 예외 코드 추출 (예: Error 1101)
+    const cfCodeMatch = text.match(/error\s+(\d{4})/i) || text.match(/(Error\s+\d+[^<]{0,60})/i);
+    const cfCode = cfCodeMatch?.[1] || "";
+    if (bodyText || cfCode) {
+      return `[HTTP ${r.status}] ${cfCode ? cfCode + " — " : ""}${bodyText || "Worker exception"}\n※ /api/admin/diag 에서 단계별 진단을 확인하세요.`;
+    }
+    return `[HTTP ${r.status}] Worker/서버 예외 발생 — /api/admin/diag 에서 진단하세요.`;
   }
   try {
     const parsed = JSON.parse(text) as { message?: string };
     if (parsed?.message) return parsed.message;
   } catch { /* JSON 파싱 실패 — 원문 반환 */ }
-  return text.slice(0, 200) || `HTTP ${r.status}`;
+  return text.slice(0, 400) || `HTTP ${r.status}`;
 }
 
 //  Toast 
@@ -204,11 +213,22 @@ function DashboardTab({ token, toast }: { token: string; toast: (msg: string, ty
     <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 space-y-2">
       <p className="text-rose-300 text-sm font-semibold">⚠️ 통계 조회 오류</p>
       <p className="text-rose-200 text-xs break-words whitespace-pre-wrap">{err}</p>
-      <p className="text-slate-400 text-xs">
-        DB 연결 상태 확인:{" "}
+      <div className="flex flex-wrap gap-3 mt-2">
+        <a href="/api/admin/diag" target="_blank" rel="noopener noreferrer"
+          className="text-xs underline text-sky-400 hover:text-sky-300">
+          🔍 /api/admin/diag (단계별 진단)
+        </a>
         <a href="/api/admin/ping" target="_blank" rel="noopener noreferrer"
-          className="underline text-sky-400 hover:text-sky-300">/api/admin/ping</a>
-      </p>
+          className="text-xs underline text-sky-400 hover:text-sky-300">
+          🩺 /api/admin/ping (DB 상태)
+        </a>
+        <button onClick={() => {
+          try { sessionStorage.removeItem("flower_admin_token"); } catch { /* ignore */ }
+          window.location.reload();
+        }} className="text-xs underline text-amber-400 hover:text-amber-300">
+          🔄 로그아웃 후 재로그인
+        </button>
+      </div>
     </div>
   );
   if (!stats) return null;
@@ -459,7 +479,16 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
           <button onClick={() => fetchUsers(searchKw, page)} className="rounded-lg border border-slate-600/40 bg-slate-700/50 px-3 py-2 text-xs text-slate-300 hover:bg-slate-600/50">↻ 새로고침</button>
         </div>
       </div>
-      {err && <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"><b>⚠️ </b>{err}</div>}
+      {err && (
+        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 space-y-2">
+          <p><b>⚠️ </b>{err}</p>
+          <div className="flex flex-wrap gap-3">
+            <a href="/api/admin/diag" target="_blank" rel="noopener noreferrer" className="text-xs underline text-sky-400">🔍 /api/admin/diag 진단</a>
+            <button onClick={() => { try { sessionStorage.removeItem("flower_admin_token"); } catch { /* ignore */ } window.location.reload(); }}
+              className="text-xs underline text-amber-400">🔄 재로그인</button>
+          </div>
+        </div>
+      )}
       {/* 테이블 */}
       <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/60">
         <div className="overflow-x-auto">
@@ -1059,7 +1088,16 @@ function BannedUsersTab({ token, toast }: { token: string; toast: (msg: string, 
         <span className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">제재 <b className="text-white">{users.length}</b>명</span>
       </div>
 
-      {err && <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"><b>⚠️ </b>{err}</div>}
+      {err && (
+        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 space-y-2">
+          <p><b>⚠️ </b>{err}</p>
+          <div className="flex flex-wrap gap-3">
+            <a href="/api/admin/diag" target="_blank" rel="noopener noreferrer" className="text-xs underline text-sky-400">🔍 /api/admin/diag 진단</a>
+            <button onClick={() => { try { sessionStorage.removeItem("flower_admin_token"); } catch { /* ignore */ } window.location.reload(); }}
+              className="text-xs underline text-amber-400">🔄 재로그인</button>
+          </div>
+        </div>
+      )}
 
       {!loading && users.length === 0 && (
         <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 px-5 py-10 text-center text-slate-500 text-sm">

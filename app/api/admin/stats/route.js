@@ -18,8 +18,9 @@ function json(data, status = 200) {
 export async function GET(request) {
   try {
     const token = extractAdminTokenFromRequest(request);
-    if (!(await verifyFlowerAdminToken(token))) {
-      return json({ message: "Unauthorized" }, 401);
+    const tokenValid = await verifyFlowerAdminToken(token);
+    if (!tokenValid) {
+      return json({ message: "Unauthorized — 토큰이 만료됐거나 FLOWER_ADMIN_SECRET이 변경됐습니다. 로그아웃 후 재로그인하세요." }, 401);
     }
 
     await dbConnect();
@@ -88,7 +89,8 @@ export async function GET(request) {
       })),
     });
   } catch (err) {
-    console.error("[admin/stats GET]", err?.message || err);
-    return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
+    const errMsg = String(err?.message || err || "알 수 없는 오류");
+    console.error("[admin/stats GET]", errMsg);
+    return json({ message: `서버 오류: ${errMsg}` }, 500);
   }
 }

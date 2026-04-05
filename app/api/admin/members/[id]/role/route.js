@@ -16,12 +16,14 @@ function json(data, status = 200) {
 }
 
 // PATCH { role: "admin" | "user" }
-export async function PATCH(request, { params }) {
+export async function PATCH(request, context) {
   try {
     const token = extractAdminTokenFromRequest(request);
     if (!(await verifyFlowerAdminToken(token))) return json({ message: "Unauthorized" }, 401);
 
-    const userId = String(params?.id || "").trim();
+    // Next.js 15: params is a Promise
+    const resolvedParams = context?.params ? (typeof context.params.then === "function" ? await context.params : context.params) : {};
+    const userId = String(resolvedParams?.id || "").trim();
     if (!userId || userId.length < 12) return json({ message: "유효하지 않은 사용자 ID입니다." }, 400);
 
     let body;
