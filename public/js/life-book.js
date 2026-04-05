@@ -776,18 +776,6 @@
     });
   }
 
-  window.regenerateLifeBook = function () {
-    if (_generating) {
-      if (!window.confirm('생성이 진행 중입니다.\n중단하고 다시 생성하시겠습니까?')) return;
-      _generating = false;
-    }
-    var profile = window.__cdActiveBirthProfile || {};
-    _lbClearSaved(profile);
-    _chapters = Array(13).fill(null);
-    _currentChapter = 1;
-    _showScreen('lbStartScreen');
-  };
-
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadLifeBookPdf = function () {
     if (!_chapters.some(Boolean)) {
@@ -914,10 +902,6 @@
     }
     if (action === 'downloadLifeBookPdf') {
       window.downloadLifeBookPdf();
-      return;
-    }
-    if (action === 'regenerateLifeBook') {
-      window.regenerateLifeBook();
       return;
     }
     if (action === 'shareLifeBookKakao') {
