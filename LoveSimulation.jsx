@@ -299,6 +299,17 @@ body {
 .cd-chat-wrap {
   width: 100%; max-width: 620px; height: 100vh;
   display: flex; flex-direction: column;
+  margin: 0 auto;
+}
+
+.cd-cursor {
+  display: inline-block;
+  color: var(--gold);
+  animation: cursorBlink 0.55s step-end infinite;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 .cd-chat-header {
   padding: 13px 18px;
@@ -613,39 +624,44 @@ const STAT_META = {
 
 /**
  * 생년월일→년주 천간·지지 계산
- * 기준: 1900년 = 경자년
+ * 기준: 甲子년(4년)을 기점으로 한 올바른 공식
  */
 function calcYearPillar(year) {
-  const stemIdx = ((year - 1900) % 10 + 10) % 10;
-  const branchIdx = ((year - 1900) % 12 + 12) % 12;
+  const stemIdx = ((year - 4) % 10 + 10) % 10;
+  const branchIdx = ((year - 4) % 12 + 12) % 12;
   return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
 }
 
+// 연간(年干) 그룹별 인월(寅月) 시작 월간 오프셋: 甲己→戊(4), 乙庚→庚(6), 丙辛→壬(8), 丁壬→甲(0), 戊癸→丙(2)
+const MONTH_STEM_BASES = [4, 6, 8, 0, 2];
+
 /**
- * 월주: 절입 근사 (월 기준 간단 계산)
- * 월간은 연간 기준으로 결정됨
+ * 월주: 절입 근사 (양력 월 기준)
+ * 월간은 연간 그룹(甲己/乙庚/丙辛/丁壬/戊癸)으로 결정
+ * 월지: 인월(寅=2)이 2월, 자월(子=0)이 12월
  */
 function calcMonthPillar(year, month) {
-  const yearStemIdx = ((year - 1900) % 10 + 10) % 10;
-  // 인월(1월)부터 월간 시작: 연간 기준 오프셋
-  const monthStemBase = [0,2,4,6,8,0,2,4,6,8][yearStemIdx % 10] + (month - 1); 
-  const stemIdx = monthStemBase % 10;
-  // 월지: 인(2)부터 시작
-  const branchIdx = ((month + 1) % 12);
+  const yearStemIdx = ((year - 4) % 10 + 10) % 10;
+  const base = MONTH_STEM_BASES[yearStemIdx % 5];
+  // 인월(month=2)이 기준 → stemIdx = (base + month - 2 + 10) % 10
+  const stemIdx = (base + month - 2 + 10) % 10;
+  // 월지: 1월=丑(1), 2월=寅(2), ..., 12월=子(0)
+  const branchIdx = month % 12;
   return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
 }
 
 /**
- * 일주: 율리우스일수 기반
+ * 일주: 율리우스일수(JDN) 기반 — 표준 그레고리력 JDN 공식
+ * 기준점: JDN+31 이 甲子(0,0)으로 매핑됨 (2000-01-01=庚子 검증됨)
  */
 function calcDayPillar(year, month, day) {
   const a = Math.floor((14 - month) / 12);
-  const y = year - a;
-  const m = month + 12 * a - 2;
+  const y = year + 4800 - a;          // 표준 JDN 공식: +4800 필수
+  const m = month + 12 * a - 3;       // 표준 JDN 공식: -3
   const jd = day + Math.floor((153 * m + 2) / 5) + 365 * y +
     Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-  const stemIdx = ((jd - 10) % 10 + 10) % 10;
-  const branchIdx = ((jd - 10) % 12 + 12) % 12;
+  const stemIdx = ((jd + 31) % 10 + 10) % 10;  // +31: 庚子 기준점 오프셋
+  const branchIdx = ((jd + 31) % 12 + 12) % 12;
   return { stem: STEMS[stemIdx], branch: BRANCHES[branchIdx], stemIdx, branchIdx };
 }
 
@@ -1238,8 +1254,32 @@ export default function LoveSimulation() {
   const [usedScenarios, setUsedScenarios] = useState([]);
   const [toast, setToast] = useState(null);
   const msgEnd = useRef(null);
+  const typingRef = useRef(null);
 
   useEffect(() => { msgEnd.current?.scrollIntoView({ behavior:'smooth' }); }, [messages, busy]);
+
+  // 컴포넌트 언마운트 시 타이핑 인터벌 정리용
+  useEffect(() => {
+    return () => { if (typingRef.current) clearInterval(typingRef.current); };
+  }, []);
+
+  /* 엔피시(NPC) 메시지 타이프라이터 엔피 수신 */
+  function addNpcMsgTyped(text, affinityChange) {
+    const msgId = Date.now() + Math.random();
+    setMessages(prev => [...prev, { role: 'npc', text, affinityChange, msgId, typedLen: 0 }]);
+    if (typingRef.current) clearInterval(typingRef.current);
+    let len = 0;
+    typingRef.current = setInterval(() => {
+      len++;
+      setMessages(prev => prev.map(m =>
+        m.msgId === msgId ? { ...m, typedLen: Math.min(len, m.text.length) } : m
+      ));
+      if (len >= text.length) {
+        clearInterval(typingRef.current);
+        typingRef.current = null;
+      }
+    }, 28);
+  }
 
   function showToast(msg) {
     setToast(msg);
@@ -1308,7 +1348,7 @@ export default function LoveSimulation() {
       setAffinityAnim(true);
       setAffinity(newAff);
       setTimeout(() => setAffinityAnim(false), 600);
-      setMessages(prev => [...prev, { role:'npc', text: reply, affinityChange: delta }]);
+      addNpcMsgTyped(reply, delta);
       setBusy(false);
     }, 700 + Math.random() * 400);
   }
@@ -1348,11 +1388,10 @@ export default function LoveSimulation() {
   /* ── 시나리오 닫기 ── */
   function closeScenario() {
     if (scenResult?.reaction) {
-      setMessages(prev => [...prev, {
-        role:'npc',
-        text: scenResult.reaction.replace(/^"|"$/g, ''),
-        affinityChange: scenResult.baseScore,
-      }]);
+      addNpcMsgTyped(
+        scenResult.reaction.replace(/^"|"$/g, ''),
+        scenResult.baseScore
+      );
     }
     setScenario(null);
     setScenResult(null);
@@ -1618,7 +1657,11 @@ export default function LoveSimulation() {
                 ))}
               </div>
 
-              <button className="cd-start-btn" onClick={() => setScreen('chat')}>
+              <button className="cd-start-btn" onClick={() => {
+                setScreen('chat');
+                // 화면 렌더 후 인사말 타이핑 시작
+                setTimeout(() => addNpcMsgTyped(persona.greeting, 0), 120);
+              }}>
                 ✦ 운명의 만남을 시작하다 ✦
               </button>
             </div>
@@ -1656,10 +1699,18 @@ export default function LoveSimulation() {
 
             <div className="cd-messages">
               {messages.map((m, i) => (
-                <div key={i} className={`cd-msg ${m.role}`}>
+                <div key={m.msgId ?? i} className={`cd-msg ${m.role}`}>
                   {m.role === 'npc' && <p className="cd-msg-sender">{persona.name}</p>}
-                  <div className="cd-bubble">{m.text}</div>
-                  {m.role === 'npc' && m.affinityChange !== 0 && (
+                  <div className="cd-bubble">
+                    {m.typedLen !== undefined
+                      ? <>
+                          {m.text.slice(0, m.typedLen)}
+                          {m.typedLen < m.text.length && <span className="cd-cursor">▋</span>}
+                        </>
+                      : m.text
+                    }
+                  </div>
+                  {m.role === 'npc' && m.affinityChange !== 0 && m.typedLen === m.text?.length && (
                     <p className="cd-msg-meta">
                       <span className={`cd-aff-delta ${m.affinityChange > 0 ? 'pos' : 'neg'}`}>
                         {m.affinityChange > 0 ? '+' : ''}{m.affinityChange} 호감도
