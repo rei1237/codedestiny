@@ -177,7 +177,7 @@
     var analysis = snap.analysis || snap.saju || {};
     if (analysis.elementWeights) {
       var w = analysis.elementWeights;
-      lines.push('\n【오행(五行) 분포 — 퀀텀 명리 천기】');
+      lines.push('\n【오행(五行) 분포 — 퀀텀 명리 엔진】');
       lines.push('목(木): ' + (w.wood || 0) + '% | 화(火): ' + (w.fire || 0) + '% | 토(土): ' + (w.earth || 0) + '% | 금(金): ' + (w.metal || 0) + '% | 수(水): ' + (w.water || 0) + '%');
       // 최강/최약 오행
       var elArr = [['목(木)',w.wood||0],['화(火)',w.fire||0],['토(土)',w.earth||0],['금(金)',w.metal||0],['수(水)',w.water||0]];
@@ -456,6 +456,37 @@
     return null;
   }
 
+  /* ── localStorage 저장/복원 ── */
+  var _LB_STORE_VER = 'lb_v1_';
+
+  function _lbMakeKey(profile) {
+    var b = (profile && profile.birth) || {};
+    return _LB_STORE_VER + (b.year || '0') + '_' + (b.month || '0') + '_' + (b.day || '0') + '_' + ((profile && profile.gender) || 'u');
+  }
+
+  function _lbSaveResult(profile) {
+    try {
+      localStorage.setItem(_lbMakeKey(profile), JSON.stringify({
+        chapters: _chapters,
+        name: (profile && profile.name) || '사용자',
+        birth: (profile && profile.birth) || {},
+        gender: (profile && profile.gender) || '',
+        savedAt: new Date().toISOString()
+      }));
+    } catch (e) { /* 용량 초과 또는 브라우저 제한 */ }
+  }
+
+  function _lbLoadSaved(profile) {
+    try {
+      var raw = localStorage.getItem(_lbMakeKey(profile));
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function _lbClearSaved(profile) {
+    try { localStorage.removeItem(_lbMakeKey(profile)); } catch (e) {}
+  }
+
   window.openLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) {
@@ -472,6 +503,35 @@
     // 복구된 프로필이 있으면 window에 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
+    }
+
+    // 저장된 데이터 복원 시도
+    var saved = _lbLoadSaved(profile);
+    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
+      _chapters = saved.chapters;
+      _currentChapter = 1;
+      _showScreen('lbResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      var nameEl = _qs('lbResultName');
+      var dateEl = _qs('lbResultDate');
+      if (nameEl) nameEl.textContent = '📜 ' + (saved.name || '사용자') + '님의 인생의 책';
+      if (dateEl) {
+        var b = saved.birth || {};
+        var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' +
+          (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
+          (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
+      }
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      try {
+        modal.setAttribute('aria-hidden', 'false');
+        var closeBtn2 = modal.querySelector('.lb-modal__close');
+        if (closeBtn2) setTimeout(function () { closeBtn2.focus(); }, 60);
+      } catch (_) {}
+      return;
     }
 
     _chapters = Array(13).fill(null);
@@ -684,8 +744,9 @@
         if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
         if (dateEl) {
           var b = prof.birth || {};
-          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
+          dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
         }
+        _lbSaveResult(prof);
         return;
       }
 

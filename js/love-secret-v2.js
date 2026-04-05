@@ -199,6 +199,51 @@
       var currentAge = new Date().getFullYear() - birth.year + 1;
       lines.push('\n현재 나이: ' + currentAge + '세 (만 ' + (currentAge - 1) + '세)');
     }
+    /* ── 신살(神殺) 계산 ─────────────────────────────────────── */
+    if (G && G.d && G.d.g && G.d.j) {
+      var _ss_day = G.d.g + G.d.j;
+      var _ss_jArr = [G.y && G.y.j, G.m && G.m.j, G.d && G.d.j, G.h && G.h.j];
+      var _ss_jPos = ['년지','월지','일지','시지'];
+      var _ss_list = [];
+      // 도화살: 子午卯酉
+      var _ss_tao = ['子','午','卯','酉'];
+      var _ss_taoPos = _ss_jArr.reduce(function(a,b,i){if(b&&_ss_tao.indexOf(b)>=0)a.push(_ss_jPos[i]);return a;},[]);
+      if (_ss_taoPos.length > 0) _ss_list.push('도화살(桃花殺)['+_ss_taoPos.join(',')+'] — 이성을 끌어당기는 매력의 별. 인기와 이성 인연이 끊이지 않음');
+      // 홍염살: 甲午·丙寅·丁未·戊辰·庚戌·辛酉·壬子
+      var _ss_hong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
+      if (_ss_hong.indexOf(_ss_day) >= 0) _ss_list.push('홍염살(紅艶殺)[일주 '+_ss_day+'] — 타고난 치명적 색기와 강렬한 이성 흡인력. 이 일주 자체가 섹시한 카리스마를 타고남. 의도치 않아도 이성에게 강렬한 인상을 줌');
+      // 역마살: 寅申巳亥
+      var _ss_yem = ['寅','申','巳','亥'];
+      var _ss_yemPos = _ss_jArr.reduce(function(a,b,i){if(b&&_ss_yem.indexOf(b)>=0)a.push(_ss_jPos[i]);return a;},[]);
+      if (_ss_yemPos.length > 0) _ss_list.push('역마살(驛馬殺)['+_ss_yemPos.join(',')+'] — 이동·변화·역동성의 별. 연애에서 자유와 변화를 중시함');
+      // 화개살: 辰戌丑未
+      var _ss_hwa = ['辰','戌','丑','未'];
+      var _ss_hwaPos = _ss_jArr.reduce(function(a,b,i){if(b&&_ss_hwa.indexOf(b)>=0)a.push(_ss_jPos[i]);return a;},[]);
+      if (_ss_hwaPos.length > 0) _ss_list.push('화개살(華蓋殺)['+_ss_hwaPos.join(',')+'] — 예술·영성·고독의 별. 깊이 있는 내면 교감을 중시함');
+      // 괴강살
+      var _ss_goe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
+      if (_ss_goe.indexOf(_ss_day) >= 0) _ss_list.push('괴강살(魁罡殺)[일주 '+_ss_day+'] — 강인한 리더십과 불굴의 의지. 연애에서도 주도적이고 극단적 성향');
+      // 간여지동
+      var _ss_gyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
+      if (_ss_gyn.indexOf(_ss_day) >= 0) _ss_list.push('간여지동(干與支同)[일주 '+_ss_day+'] — 겉과 속이 일치하는 강한 자아. 자신의 방식에 확신이 강하고 주체적');
+      // 양인살: 甲→卯, 丙→午, 戊→午, 庚→酉, 壬→子
+      var _ss_yang = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
+      if (_ss_yang[G.d.g] && G.d.j === _ss_yang[G.d.g]) _ss_list.push('양인살(羊刃殺)[일주 '+_ss_day+'] — 날카로운 집중력과 극단의 에너지');
+      // 천을귀인
+      var _ss_ul = {'甲':['丑','未'],'戊':['丑','未'],'庚':['丑','未'],'乙':['子','申'],'己':['子','申'],'丙':['亥','酉'],'丁':['亥','酉'],'辛':['寅','午'],'壬':['巳','卯'],'癸':['巳','卯']};
+      if (_ss_ul[G.d.g]) {
+        var _ss_ulSet = _ss_ul[G.d.g];
+        var _ss_ulPos = _ss_jArr.reduce(function(a,b,i){if(b&&_ss_ulSet.indexOf(b)>=0)a.push(_ss_jPos[i]);return a;},[]);
+        if (_ss_ulPos.length > 0) _ss_list.push('천을귀인(天乙貴人)['+_ss_ulPos.join(',')+'] — 위기에 귀인이 나타나는 길성. 보호와 조력의 별');
+      }
+      lines.push('\n【신살(神殺) 분석】');
+      if (_ss_list.length > 0) {
+        _ss_list.forEach(function(s){ lines.push('• ' + s); });
+        lines.push('※ AI 분석 필수: 위 신살들이 이 사람의 연애 매력·관계 패턴에 실질적으로 어떻게 발현되는지 반드시 구체적으로 서술할 것. 특히 홍염살 보유 일주는 해당 일주 자체가 타고난 이성 끌림이 강함을 명시할 것.');
+      } else {
+        lines.push('• 해당 신살 없음 — 순수 오행 매력의 소유자. 신살이 아닌 오행 에너지 자체로 매력이 발현됨.');
+      }
+    }
     return lines.join('\n');
   }
 
@@ -259,15 +304,33 @@
   window.openLoveSecretModal = function () {
     var modal = _qs('loveSecretModal');
     if (!modal) return;
-    var hasData = !!(
-      window.__cdActiveBirthProfile &&
-      window.__cdActiveBirthProfile.birth &&
-      window.__cdActiveBirthProfile.birth.year
-    );
+    var profile = window.__cdActiveBirthProfile;
+    var hasData = !!(profile && profile.birth && profile.birth.year);
     if (!hasData) {
       alert('💕 연애 비책을 생성하려면 먼저 사주 계산을 완료해 주세요.\n생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
+
+    // 저장된 데이터 복원 시도
+    var saved = _loadSaved(profile);
+    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
+      _chapters = saved.chapters;
+      _showScreen('lsResultScreen');
+      _updateTocState();
+      _renderChapter(1);
+      _bindToc();
+      _renderResultHeader(saved.name, saved.birth, saved.gender, saved.savedAt ? new Date(saved.savedAt) : null, false);
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      _bindPartnerSection();
+      try {
+        modal.setAttribute('aria-hidden', 'false');
+        var closeBtn2 = modal.querySelector('.ls-modal__close');
+        if (closeBtn2) setTimeout(function () { closeBtn2.focus(); }, 60);
+      } catch (_) {}
+      return;
+    }
+
     _chapters = Array(10).fill(null);
     _showScreen('lsStartScreen');
     modal.style.display = 'flex';

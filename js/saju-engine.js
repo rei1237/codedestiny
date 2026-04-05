@@ -2630,7 +2630,7 @@ function resetEvalDaewunMemo() {
   __evalDaewunMemo.clear();
 }
 
-/* ─ 대운 통합 평가: 퀀텀 명리 천기(조후 우선, 합화 반영) ─ */
+/* ─ 대운 통합 평가: 퀀텀 명리 엔진(조후 우선, 합화 반영) ─ */
 function evalDaewun(ganChar,zhiChar){
   var cacheKey = __evalDaewunContextVersion + '|' + ganChar + '|' + zhiChar;
   if (__evalDaewunMemo.has(cacheKey)) {
@@ -14070,6 +14070,62 @@ function renderSummary(p,johu,natal){
     '#e91e63','rgba(252,228,236,.7)');
 
   /* ───────────────────────────────
+     7-2. 신살(神殺) 분석
+  ─────────────────────────────── */
+  var _sinsalItems = [];
+  var _ssDay = p.d.g + p.d.j;
+  var _ssJArr = [p.y.j, p.m.j, p.d.j, p.h.j];
+  var _ssJLbl = ['년지','월지','일지','시지'];
+  // 도화살: 子午卯酉
+  var _ssTao = ['子','午','卯','酉'];
+  var _ssTaoPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssTao.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
+  if (_ssTaoPos.length > 0) _sinsalItems.push({ icon:'🌸', name:'도화살(桃花殺)', pos:_ssTaoPos.join(', '), desc:'이성을 끌어당기는 매력의 별. '+(_ssTaoPos.indexOf('일지')>=0?'<b>일지 도화</b>는 개인의 이성 매력이 가장 강하게 발현되어 연애 인연이 끊이지 않습니다. ':'')+(_ssTaoPos.indexOf('월지')>=0?'<b>월지 도화</b>는 직업·사회생활에서 이성 인기가 높습니다. ':'')+(_ssTaoPos.indexOf('년지')>=0?'<b>년지 도화</b>는 사회적 인기와 대중적 매력으로 발현됩니다. ':'')+'도화가 강할수록 인기 많고 이성 인연이 많지만, 감정 소모와 구설에 주의가 필요합니다.' });
+  // 홍염살
+  var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
+  if (_ssHong.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'💋', name:'홍염살(紅艶殺)', pos:'일주 '+_ssDay, desc:'타고난 치명적 색기와 이성을 사로잡는 강렬한 매력의 별. <b>'+_ssDay+' 일주 홍염살</b>: 가만히 있어도 이성의 시선이 쏠리는 묘한 카리스마와 섹시함이 있습니다. 의도치 않게 이성 관계가 복잡해질 수 있으며, 이 에너지를 현명하게 관리하는 것이 중요합니다.' });
+  // 역마살
+  var _ssYem = ['寅','申','巳','亥'];
+  var _ssYemPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssYem.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
+  if (_ssYemPos.length > 0) _sinsalItems.push({ icon:'🌪️', name:'역마살(驛馬殺)', pos:_ssYemPos.join(', '), desc:'이동·변화·확장의 별. <b>'+_ssYemPos.join(', ')+'에 역마</b>: 움직이고 변화할 때 운이 열립니다. 연애에서는 자유와 변화를 중시하며, 이동이 잦은 직업이나 해외 활동에서 강점을 발휘합니다.' });
+  // 화개살
+  var _ssHwa = ['辰','戌','丑','未'];
+  var _ssHwaPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssHwa.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
+  if (_ssHwaPos.length > 0) _sinsalItems.push({ icon:'🔮', name:'화개살(華蓋殺)', pos:_ssHwaPos.join(', '), desc:'예술·영성·고독의 별. <b>'+_ssHwaPos.join(', ')+'에 화개</b>: 예술적 재능과 깊은 내면 세계를 가집니다. 종교·철학·예술 분야에 끌리며, 영적 교감과 깊이 있는 대화를 중시합니다.' });
+  // 괴강살
+  var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
+  if (_ssGoe.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'⚔️', name:'괴강살(魁罡殺)', pos:'일주 '+_ssDay, desc:'강인한 리더십과 불굴의 의지. <b>'+_ssDay+' 일주 괴강살</b>: 어떤 역경도 굴복하지 않는 강렬한 에너지를 타고났습니다. 성패가 극단적으로 갈릴 수 있으므로, 이 에너지를 올바른 방향으로 사용하는 것이 핵심입니다.' });
+  // 간여지동
+  var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
+  if (_ssGyn.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'🔥', name:'간여지동(干與支同)', pos:'일주 '+_ssDay, desc:'천간과 지지 오행이 같아 겉과 속이 일치합니다. <b>'+_ssDay+'</b>: 강인한 자아와 일관된 주체성을 가지며 의지가 굳습니다. 고집스럽게 보일 수 있지만 이것이 큰 성취의 원동력이 됩니다.' });
+  // 양인살
+  var _ssYang = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
+  if (p.d.g && _ssYang[p.d.g] && p.d.j === _ssYang[p.d.g]) _sinsalItems.push({ icon:'⚡', name:'양인살(羊刃殺)', pos:'일주 '+_ssDay, desc:'날카롭고 강렬한 에너지의 별. <b>'+_ssDay+' 양인</b>: 집중력과 실행력이 극강하며 한 번 목표를 정하면 끝까지 밀어붙입니다. 강한 에너지를 절제와 방향 설정으로 관리하는 것이 성공의 열쇠입니다.' });
+  // 천을귀인
+  var _ssUl = {'甲':['丑','未'],'戊':['丑','未'],'庚':['丑','未'],'乙':['子','申'],'己':['子','申'],'丙':['亥','酉'],'丁':['亥','酉'],'辛':['寅','午'],'壬':['巳','卯'],'癸':['巳','卯']};
+  if (p.d.g && _ssUl[p.d.g]) {
+    var _ssUlSet = _ssUl[p.d.g];
+    var _ssUlPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssUlSet.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
+    if (_ssUlPos.length > 0) _sinsalItems.push({ icon:'✨', name:'천을귀인(天乙貴人)', pos:_ssUlPos.join(', '), desc:'위기에 귀인이 나타나는 길성(吉星). <b>'+_ssUlPos.join(', ')+'에 천을귀인</b>: 인생의 가장 어려운 순간에 귀인의 도움을 받는 복이 있습니다. 대인관계에서 신뢰를 먼저 쌓으면 귀인이 자연스럽게 나타납니다.' });
+  }
+  var _sinsalBodyHtml = '';
+  if (_sinsalItems.length > 0) {
+    _sinsalBodyHtml = _sinsalItems.map(function(s){
+      return '<div style="margin:6px 0;padding:10px 12px;background:rgba(255,255,255,.6);border-radius:8px;border-left:3px solid #9c27b0">'+
+        '<div style="font-weight:700;font-size:.87rem;color:#6a1b9a;margin-bottom:4px">'+s.icon+' '+s.name+'<span style="font-weight:400;font-size:.79rem;color:#999;margin-left:6px">['+s.pos+']</span></div>'+
+        '<div style="font-size:.83rem;line-height:1.75;color:#444">'+s.desc+'</div>'+
+      '</div>';
+    }).join('');
+  } else {
+    _sinsalBodyHtml = '<div style="font-size:.84rem;line-height:1.78;color:#666">주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 용신 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.</div>';
+  }
+  html+=box('💫 ⑨ 신살(神殺) 분석 — 타고난 특수 에너지',
+    subHead('내 사주의 신살 목록','#6a1b9a')+
+    _sinsalBodyHtml+
+    '<br>'+subHead('신살이란?','#7b1fa2')+
+    '<div style="font-size:.84rem;line-height:1.85;margin-top:4px">신살(神殺)은 사주 지지(地支) 조합에서 발생하는 특수한 에너지 패턴입니다. 길신(吉神)은 능력을 강화하고 귀인 인연을 끌어들이며, 살(殺)은 특정 영역에서 강렬한 에너지를 부여하되 과하면 부작용이 따릅니다. 선천적 운명이 아니라 그 에너지를 어떻게 활용하느냐에 따라 강점이 될 수도, 약점이 될 수도 있습니다.</div>',
+    '#9C27B0','rgba(243,229,245,.7)');
+
+  /* ───────────────────────────────
      8. 건강 & 소울 푸드
   ─────────────────────────────── */
   var stressSign={
@@ -16065,7 +16121,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     if(badEls.length) evalText += '⚠️ <b>기신('+badEls.join(',')+') 기운 포함</b> — 주의가 필요하며 방어적인 태도가 유리합니다. ';
     if(!goodEls.length && !badEls.length) evalText = '🙂 조후나 억부에 큰 치우침이 없는 중립적인 대운입니다. ';
     
-    evalText += '<br><span style="font-size:0.8rem;color:#888;">※ 퀀텀 명리 천기(합화 및 조후 우선)이 반영된 종합 평가입니다.</span>';
+    evalText += '<br><span style="font-size:0.8rem;color:#888;">※ 퀀텀 명리 엔진(합화 및 조후 우선)이 반영된 종합 평가입니다.</span>';
   }
 
   if(ev.hasChungBonus){
@@ -16083,7 +16139,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     buildDwQmSection(gan,zhi)+
 
     '<div style="background:#fff;padding:14px;border-radius:12px;margin-bottom:12px;border:1px solid #FFE0D6">'+
-    '<div style="font-size:.82rem;color:#888;margin-bottom:4px">대운 종합 평가 (퀀텀 명리 천기 반영)</div>'+
+    '<div style="font-size:.82rem;color:#888;margin-bottom:4px">대운 종합 평가 (퀀텀 명리 엔진 반영)</div>'+
     '<div style="font-size:1.15rem;font-weight:700;color:#333;margin-bottom:6px">'+gan+zhi+
     ' <span style="font-size:.85rem;font-weight:400;color:#999">('+gd.n+' '+jd.a+')</span></div>'+
     '<span class="luck-badge '+lbCls+'">'+evaluation+'</span>'+

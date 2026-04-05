@@ -5023,6 +5023,34 @@ function renderQuantumStrategy(p, natal, bazi){
   /* 결과 전역 저장 — renderDaewun/showDwDetail에서 참조 가능 */
   window.G_QUANTUM={keyEvents:keyEvents,facts:facts,actions:actions};
 
+  /* ── 신살(神殺) 계산 ── */
+  var _qSS_day = p.d.g + p.d.j;
+  var _qSS_jArr = [p.y.j, p.m.j, p.d.j, p.h.j];
+  var _qSS_jLbl = ['년지','월지','일지','시지'];
+  var _qSS_items = [];
+  var _qSS_tao = ['子','午','卯','酉'];
+  var _qSS_taoPos = _qSS_jArr.reduce(function(a,b,i){if(b&&_qSS_tao.indexOf(b)>=0)a.push(_qSS_jLbl[i]);return a;},[]);
+  if(_qSS_taoPos.length>0) _qSS_items.push('🌸 <b>도화살</b>['+_qSS_taoPos.join(', ')+'] — 이성을 끌어당기는 매력의 별');
+  var _qSS_hong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
+  if(_qSS_hong.indexOf(_qSS_day)>=0) _qSS_items.push('💋 <b>홍염살</b>[일주 '+_qSS_day+'] — 치명적 색기와 강렬한 이성 흡인력. 이 일주는 타고난 섹시한 카리스마를 지님');
+  var _qSS_yem = ['寅','申','巳','亥'];
+  var _qSS_yemPos = _qSS_jArr.reduce(function(a,b,i){if(b&&_qSS_yem.indexOf(b)>=0)a.push(_qSS_jLbl[i]);return a;},[]);
+  if(_qSS_yemPos.length>0) _qSS_items.push('🌪️ <b>역마살</b>['+_qSS_yemPos.join(', ')+'] — 이동·변화·역동성의 별');
+  var _qSS_hwa = ['辰','戌','丑','未'];
+  var _qSS_hwaPos = _qSS_jArr.reduce(function(a,b,i){if(b&&_qSS_hwa.indexOf(b)>=0)a.push(_qSS_jLbl[i]);return a;},[]);
+  if(_qSS_hwaPos.length>0) _qSS_items.push('🔮 <b>화개살</b>['+_qSS_hwaPos.join(', ')+'] — 예술·영성·고독의 별');
+  var _qSS_goe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
+  if(_qSS_goe.indexOf(_qSS_day)>=0) _qSS_items.push('⚔️ <b>괴강살</b>[일주 '+_qSS_day+'] — 강인한 리더십과 불굴의 의지');
+  var _qSS_gyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
+  if(_qSS_gyn.indexOf(_qSS_day)>=0) _qSS_items.push('🔥 <b>간여지동</b>[일주 '+_qSS_day+'] — 겉과 속이 일치하는 강한 자아');
+  var _qSS_yang = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
+  if(p.d.g&&_qSS_yang[p.d.g]&&p.d.j===_qSS_yang[p.d.g]) _qSS_items.push('⚡ <b>양인살</b>[일주 '+_qSS_day+'] — 날카로운 집중력과 극단의 에너지');
+  var _qSS_ul = {'甲':['丑','未'],'戊':['丑','未'],'庚':['丑','未'],'乙':['子','申'],'己':['子','申'],'丙':['亥','酉'],'丁':['亥','酉'],'辛':['寅','午'],'壬':['巳','卯'],'癸':['巳','卯']};
+  if(p.d.g&&_qSS_ul[p.d.g]){var _qSS_ulSet=_qSS_ul[p.d.g];var _qSS_ulPos=_qSS_jArr.reduce(function(a,b,i){if(b&&_qSS_ulSet.indexOf(b)>=0)a.push(_qSS_jLbl[i]);return a;},[]);if(_qSS_ulPos.length>0)_qSS_items.push('✨ <b>천을귀인</b>['+_qSS_ulPos.join(', ')+'] — 위기에 귀인이 나타나는 길성');}
+  var qSinsalHtml = _qSS_items.length>0
+    ? _qSS_items.map(function(s){return '<div class="qm-action-item"><div class="qm-action-num">★</div><div class="qm-action-text" style="font-size:.84rem;line-height:1.75">'+s+'</div></div>';}).join('')
+    : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">주요 신살 해당 없음 — 순수 오행 에너지로 매력이 발현됩니다.</div></div>';
+
   var html=
     '<div class="qm-wrap">'+
       '<div class="qm-header">'+
@@ -5047,7 +5075,14 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">🔥</span><span class="qm-sec-title s3">팩트 폭행</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">�</span><span class="qm-sec-title s2">신살(神殺) 기운 분석</span></div>'+
+        '<div class="qm-panel">'+
+          qSinsalHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">�🔥</span><span class="qm-sec-title s3">팩트 폭행</span></div>'+
         '<div class="qm-panel">'+
           facts.map(function(f){return '<div class="qm-fact-item"><span class="qm-fact-bullet">▸</span><div class="qm-fact-text">'+f+'</div></div>';}).join('')+
         '</div>'+
