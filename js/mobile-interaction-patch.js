@@ -554,16 +554,21 @@
     // ── 코인/잠금 게이트 체크 ──
     // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
     // 프리뷰 패널에 위임해 정상적인 게이트 흐름을 거치게 한다.
+    // 단, pvw-bypass 속성이 있는 경우(Preview CTA에서 직접 클릭)는 게이트 건너뜀
     if (!window.__cdAdminBypass) {
       var _coinGateTile = null;
       if (origin && typeof origin.closest === 'function') {
         _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
       }
+      // pvw-bypass 설정된 타일은 이미 Preview CTA를 통과한 것이므로 게이트 스킵
+      if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
       if (!_coinGateTile) {
         _coinGateTile = document.querySelector(
           '[data-action="' + rule.action + '"][data-tile-lock-key],' +
           '[data-action="' + rule.action + '"][data-coin-cost]'
         );
+        // fallback으로 찾은 타일도 pvw-bypass 체크
+        if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
       }
       if (_coinGateTile && typeof _coinGateTile.click === 'function') {
         var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
@@ -579,7 +584,12 @@
           }
         }
         if (_needsGate) {
-          // 프리뷰 패널이 인터셉트 → 코인/잠금 UI 표시 후 정상 게이트 처리
+          // 프리뷰 패널 직접 열기 (click 이벤트 경유 시 mobile-patch click handler가
+          // stopPropagation()으로 Preview 패널 handler를 차단하는 문제 우회)
+          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_coinGateTile)) {
+            return true;
+          }
+          // fallback: 직접 click (Preview 패널 미초기화 시)
           _coinGateTile.click();
           return true;
         }

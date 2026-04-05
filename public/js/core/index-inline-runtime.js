@@ -5051,6 +5051,31 @@ function openDestinyFlower(forceRefreshData) {
 }
 
 function openDestinyFlowerStudio() {
+  // ── 코인/잠금 게이트 체크 ──
+  if (!window.__cdAdminBypass) {
+    var _dfSourceLockMap = { saju: 'openDestinyFlowerStudio', astrology: 'openAstrologyFlowerStudio', jamidusu: 'openJamidusuFlowerStudio', sukuyo: 'openSukuyoFlowerStudio' };
+    var _dfActiveSource = (_dfStudioState && _dfStudioState.activeSource) || 'saju';
+    var _dfActionName = _dfSourceLockMap[_dfActiveSource] || 'openDestinyFlowerStudio';
+    var _dfTile = document.querySelector('[data-action="' + _dfActionName + '"][data-tile-lock-key]');
+    if (!_dfTile) _dfTile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
+    if (_dfTile) {
+      var _dfLockKey = _dfTile.getAttribute('data-tile-lock-key');
+      var _dfIsUnlocked = false;
+      try { _dfIsUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[_dfLockKey]); } catch (_) {}
+      if (!_dfIsUnlocked) {
+        try { var _dfLocks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); _dfIsUnlocked = !!_dfLocks[_dfLockKey]; } catch (_) {}
+      }
+      if (!_dfIsUnlocked) {
+        try { var _dfU = readAuthUser && readAuthUser(); var _dfPlan = (_dfU && _dfU.plan) ? String(_dfU.plan) : ''; if (_dfPlan === 'unlimited' || _dfPlan === 'premium') _dfIsUnlocked = true; } catch (_) {}
+      }
+      if (!_dfIsUnlocked) {
+        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_dfTile)) return;
+        _dfTile.click();
+        return;
+      }
+    }
+  }
+  // ── 코인/잠금 게이트 체크 끝 ──
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
   if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) return;
