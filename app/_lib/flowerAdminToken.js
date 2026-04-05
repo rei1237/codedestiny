@@ -6,24 +6,53 @@
  * 환경변수 FLOWER_ADMIN_SECRET 을 반드시 Cloudflare Pages에 설정해야 한다.
  */
 
+import { createHmac, webcrypto as nodeWebCrypto } from "node:crypto";
+
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60; // 8시간
 
 function getSecret() {
   return String(process.env.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
 }
 
+function getWebCrypto() {
+  if (globalThis?.crypto?.subtle) return globalThis.crypto;
+  if (nodeWebCrypto?.subtle) return nodeWebCrypto;
+  return null;
+}
+
+function encodeBase64UrlUtf8(input) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(input, "utf8").toString("base64url");
+  }
+  const base64 = btoa(unescape(encodeURIComponent(input)));
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function decodeBase64UrlUtf8(input) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(input, "base64url").toString("utf8");
+  }
+  const padLen = (4 - (input.length % 4)) % 4;
+  const base64 = (input + "=".repeat(padLen)).replace(/-/g, "+").replace(/_/g, "/");
+  return decodeURIComponent(escape(atob(base64)));
+}
+
 async function hmacSha256Hex(data, secretStr) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secretStr),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const webCrypto = getWebCrypto();
+  if (webCrypto?.subtle) {
+    const key = await webCrypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secretStr),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sig = await webCrypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
+    return Array.from(new Uint8Array(sig))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  return createHmac("sha256", secretStr).update(data, "utf8").digest("hex");
 }
 
 /**
@@ -33,7 +62,7 @@ async function hmacSha256Hex(data, secretStr) {
 export async function generateFlowerAdminToken() {
   const now = Math.floor(Date.now() / 1000);
   const payload = JSON.stringify({ v: 1, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
-  const payloadB64 = Buffer.from(payload).toString("base64url");
+  const payloadB64 = encodeBase64UrlUtf8(payload);
   const sig = await hmacSha256Hex(payloadB64, getSecret());
   return `${payloadB64}.${sig}`;
 }
@@ -62,10 +91,11 @@ export async function verifyFlowerAdminToken(token) {
   if (diff !== 0) return false;
 
   try {
-    const payloadStr = Buffer.from(payloadB64, "base64url").toString("utf8");
+    const payloadStr = decodeBase64UrlUtf8(payloadB64);
     const payload = JSON.parse(payloadStr);
     const now = Math.floor(Date.now() / 1000);
-    return payload && payload.v === 1 && now <= payload.exp;
+    const exp = Number(payload?.exp || 0);
+    return payload && payload.v === 1 && Number.isFinite(exp) && now <= exp;
   } catch {
     return false;
   }
