@@ -42,7 +42,8 @@ export async function GET(request) {
       return json({ message: "Unauthorized" }, 401);
     }
     return json({ ok: true, user: { name: "관리자", role: "admin" } });
-  } catch {
+  } catch (err) {
+    console.error("[admin/auth/me GET]", err?.message || err, err?.stack || "");
     return json({ message: "Unauthorized" }, 401);
   }
 }

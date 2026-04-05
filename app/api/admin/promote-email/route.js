@@ -48,7 +48,7 @@ export async function POST(request) {
     });
   } catch (err) {
     const msg = String(err?.message || err);
-    console.error("[admin/promote-email POST]", msg);
+    console.error("[admin/promote-email POST]", msg, err?.stack || "");
 
     // MongoDB Atlas IP 화이트리스트 미설정 시 발생하는 타임아웃 에러 감지
     const isNetworkErr =

@@ -25,6 +25,25 @@ function getSubtle() {
   throw new Error("Web Crypto API(crypto.subtle)가 현재 런타임에서 사용 불가합니다.");
 }
 
+/**
+ * base64url 인코더/디코더 (Buffer-free)
+ * CF Workers Buffer 폴리필은 "base64url" 인코딩을 완벽히 지원하지 않을 수 있으므로
+ * btoa/atob(Web API 표준) 기반 구현으로 대체.
+ * payload는 JSON.stringify 결과 → ASCII 범위이므로 btoa 안전.
+ */
+function _b64uEncode(asciiStr) {
+  return btoa(asciiStr)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+function _b64uDecode(b64u) {
+  const b64 = b64u.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = (4 - (b64.length % 4)) % 4;
+  return atob(b64 + "=".repeat(padding));
+}
+
 async function hmacSha256Hex(data, secretStr) {
   const subtle = getSubtle();
   const key = await subtle.importKey(
@@ -47,7 +66,7 @@ async function hmacSha256Hex(data, secretStr) {
 export async function generateFlowerAdminToken() {
   const now = Math.floor(Date.now() / 1000);
   const payload = JSON.stringify({ v: 1, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
-  const payloadB64 = Buffer.from(payload).toString("base64url");
+  const payloadB64 = _b64uEncode(payload);
   const sig = await hmacSha256Hex(payloadB64, getSecret());
   return `${payloadB64}.${sig}`;
 }
@@ -76,7 +95,7 @@ export async function verifyFlowerAdminToken(token) {
   if (diff !== 0) return false;
 
   try {
-    const payloadStr = Buffer.from(payloadB64, "base64url").toString("utf8");
+    const payloadStr = _b64uDecode(payloadB64);
     const payload = JSON.parse(payloadStr);
     const now = Math.floor(Date.now() / 1000);
     const exp = Number(payload?.exp || 0);

@@ -55,7 +55,7 @@ export async function GET(request) {
 
     return json({ ok: true, totalCount, filteredCount, count: users.length, users, page, pageSize, totalPages });
   } catch (err) {
-    console.error("[admin/members GET]", err?.message || err);
+    console.error("[admin/members GET]", err?.message || err, err?.stack || "");
     return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
   }
 }

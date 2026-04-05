@@ -3,10 +3,16 @@
 export const runtime = "nodejs";
 
 import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
 import { dbConnect } from "../../../../_lib/dbConnect.js";
 import { getUserModel } from "../../../../_lib/models/UserModel.js";
 import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken.js";
+
+// Web Crypto API — node:crypto default import은 CF Workers에서 불안정하므로 Web API 사용
+function randomHex(byteLength) {
+  const buf = new Uint8Array(byteLength);
+  globalThis.crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 const TOKEN_MAX_AGE_SEC = 8 * 60 * 60; // 8시간
 
@@ -84,7 +90,7 @@ export async function POST(request) {
     }
 
     const token = await generateFlowerAdminToken();
-    const csrf = crypto.randomBytes(24).toString("hex");
+    const csrf = randomHex(24);
 
     const res = new Response(
       JSON.stringify({ ok: true, flow: "done", token }),
@@ -109,7 +115,8 @@ export async function POST(request) {
     );
 
     return res;
-  } catch {
+  } catch (err) {
+    console.error("[admin/auth/login POST]", err?.message || err, err?.stack || "");
     return notFound();
   }
 }

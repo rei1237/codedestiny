@@ -66,7 +66,7 @@ export async function POST(request) {
       user: { _id: String(user._id), name: user.name, email: user.email, points: newPoints },
     });
   } catch (err) {
-    console.error("[admin/members/points POST]", err?.message || err);
+    console.error("[admin/members/points POST]", err?.message || err, err?.stack || "");
     return json({ message: `서버 오류: ${err?.message || "알 수 없는 오류"}` }, 500);
   }
 }
