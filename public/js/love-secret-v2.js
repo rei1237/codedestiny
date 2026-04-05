@@ -145,17 +145,30 @@
     var gender = profile.gender || snap.gender || '';
     var birth = profile.birth || snap.birth || {};
     var lines = [];
+    /* G_PILLARS는 진태양시 보정이 적용된 사주 원국 — 시진 기준으로 사용 */
+    var G = window.G_PILLARS;
+    var _sjMap = {'子':'자시(子,23~1시)','丑':'축시(丑,1~3시)','寅':'인시(寅,3~5시)','卯':'묘시(卯,5~7시)','辰':'진시(辰,7~9시)','巳':'사시(巳,9~11시)','午':'오시(午,11~13시)','未':'미시(未,13~15시)','申':'신시(申,15~17시)','酉':'유시(酉,17~19시)','戌':'술시(戌,19~21시)','亥':'해시(亥,21~23시)'};
     lines.push('【분석 대상 정보】');
     lines.push('이름: ' + name);
     lines.push('성별: ' + (gender === 'F' ? '여성' : gender === 'M' ? '남성' : gender || '미상'));
     if (birth.year) {
       lines.push('생년월일: ' + birth.year + '년 ' + (birth.month || '') + '월 ' + (birth.day || '') + '일');
-      lines.push('출생 시각: ' + (birth.hour !== undefined ? birth.hour + '시 ' : '') + (birth.minute !== undefined ? birth.minute + '분' : ''));
+      /* 시진은 G_PILLARS.h.j(진태양시 보정값) 기준 — 입력 시각과 다를 수 있음 */
+      var _rawT = (birth.hour !== undefined ? String(birth.hour).padStart(2,'0') + '시' : '미상') + (birth.minute !== undefined ? ' ' + String(birth.minute).padStart(2,'0') + '분' : '');
+      var _actualHj = G && G.h && G.h.j;
+      if (_actualHj) {
+        lines.push('출생 시각(입력): ' + _rawT + ' | 명리 계산 시진: ' + (_sjMap[_actualHj] || _actualHj) + ' — 시지: ' + _actualHj + ' [진태양시 보정 적용. AI는 반드시 이 시지를 사주 분석 기준으로 사용할 것]');
+      } else {
+        var _hv = birth.hour !== undefined ? birth.hour : 12;
+        var _hIdx = (_hv === 23 || _hv === 0) ? 0 : Math.floor((_hv + 1) / 2);
+        var _zh12 = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+        var _hj2 = _zh12[_hIdx] || '午';
+        lines.push('출생 시각: ' + _rawT + ' | 시진: ' + (_sjMap[_hj2] || _hj2) + ' — 시지: ' + _hj2);
+      }
     }
     if (profile.location && profile.location.label) {
       lines.push('출생지: ' + profile.location.label);
     }
-    var G = window.G_PILLARS;
     if (G) {
       lines.push('\n【사주 원국(四柱)】');
       if (G.y) lines.push('년주(年柱): ' + (G.y.g || '') + (G.y.j || '') + (G.y.gE ? ' [' + G.y.gE + '/' + G.y.jE + ']' : ''));
@@ -199,6 +212,37 @@
       var currentAge = new Date().getFullYear() - birth.year + 1;
       lines.push('\n현재 나이: ' + currentAge + '세 (만 ' + (currentAge - 1) + '세)');
     }
+    /* ── 세운(歲運) & 월건(月建) ─────────────────────────────── */
+    (function() {
+      var _GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+      var _ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+      var _GE  = {甲:'목',乙:'목',丙:'화',丁:'화',戊:'토',己:'토',庚:'금',辛:'금',壬:'수',癸:'수'};
+      var _ZE  = {子:'수',丑:'토',寅:'목',卯:'목',辰:'토',巳:'화',午:'화',未:'토',申:'금',酉:'금',戌:'토',亥:'수'};
+      /* 五虎遁月法: 연간(年干)에 따른 월간(月干) 기산 인덱스 */
+      var _MGS = {甲:2,己:2,乙:4,庚:4,丙:6,辛:6,丁:8,壬:8,戊:0,癸:0};
+      /* 월지 고정 — 절기 기준 1월=寅 2월=卯 3월=辰 4월=巳 5월=午 6월=未 7월=申 8월=酉 9월=戌 10월=亥 11월=子 12월=丑 */
+      var _MZI = ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+      var _ny = new Date().getFullYear();
+      lines.push('\n【세운(歲運) — 연도별 운 간지】');
+      for (var _sy = _ny - 1; _sy <= _ny + 4; _sy++) {
+        var _sg = _GAN[(_sy - 4 + 400) % 10];
+        var _sj = _ZHI[(_sy - 4 + 480) % 12];
+        lines.push(_sy + '년: ' + _sg + _sj + ' (' + _GE[_sg] + '/' + _ZE[_sj] + ')' + (_sy === _ny ? ' ← 현재 년도' : ''));
+      }
+      lines.push('\n【월건(月建) — ' + _ny + '~' + (_ny + 1) + '년 절기별 월간지】');
+      for (var _yr = _ny; _yr <= _ny + 1; _yr++) {
+        var _yg = _GAN[(_yr - 4 + 400) % 10];
+        var _ms = _MGS[_yg] !== undefined ? _MGS[_yg] : 0;
+        var _row = _yr + '년(' + _yg + _ZHI[(_yr - 4 + 480) % 12] + '): ';
+        for (var _mi = 0; _mi < 12; _mi++) {
+          var _mg = _GAN[(_ms + _mi) % 10];
+          var _mj = _MZI[_mi];
+          _row += (_mi + 1) + '월=' + _mg + _mj + (_mi < 11 ? ' ' : '');
+        }
+        lines.push(_row);
+      }
+      lines.push('※ AI 분석 필수: 위 세운·월건 간지가 사용자의 일주(일간·일지)·용신과 합(合)·충(沖)·생(生)·극(剋) 관계에 있는지 분석하여 연도/월별 연애운 강도를 구체적으로 서술할 것. 현재 년도(← 표시) 기준으로 향후 2년 내 연애 인연이 파동치는 구체적 연월(年月)을 반드시 명시할 것.');
+    })();
     /* ── 신살(神殺) 계산 ─────────────────────────────────────── */
     if (G && G.d && G.d.g && G.d.j) {
       var _ss_day = G.d.g + G.d.j;
