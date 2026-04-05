@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import HPremiumZiweiSection from "./HPremiumZiweiSection";
 
 type LockedSectionProps = {
   title: string;
@@ -392,6 +393,170 @@ export default function KkulkkulManseryukMain() {
         <p className="text-xs text-neutral-600">
           정책 요약: 무료로 지정된 항목 외 기능은 유료이며, 결제 전에는 실제 콘텐츠를 렌더링하지 않습니다.
         </p>
+
+        {/* ─── 프리미엄 운세 컬렉션 ─────────────────────────────────── */}
+        <section
+          id="premium-collection"
+          style={{
+            background: "linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%)",
+            border: "1px solid rgba(251,191,36,0.18)",
+            borderRadius: "24px",
+            overflow: "hidden",
+            boxShadow: "0 12px 50px rgba(99,102,241,0.10), inset 0 1px 0 rgba(255,255,255,0.04)",
+          }}
+        >
+          {/* 섹션 헤더 */}
+          <div style={{
+            padding: "28px 24px 20px",
+            background: "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(99,102,241,0.06) 100%)",
+            borderBottom: "1px solid rgba(251,191,36,0.10)",
+          }}>
+            <p style={{ color: "rgba(251,191,36,0.55)", fontSize: "0.62rem", letterSpacing: "0.32em", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>
+              CODE : DESTINY · PREMIUM COLLECTION
+            </p>
+            <h2 style={{ color: "#fff", fontWeight: 900, fontSize: "clamp(1.3rem,4vw,1.8rem)", lineHeight: 1.25, margin: 0 }}>
+              프리미엄 운세 컬렉션
+            </h2>
+            <p style={{ color: "rgba(167,139,250,0.55)", fontSize: "0.85rem", marginTop: "6px", fontWeight: 300, lineHeight: 1.7 }}>
+              AI 기반 심층 자미두수 분석 · 인생 전략 리포트 시리즈
+            </p>
+          </div>
+
+          {/* 카드 그리드 */}
+          <div style={{ padding: "20px 16px 24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}
+            className="premium-card-grid"
+          >
+            <style>{`
+              @media(max-width:600px){.premium-card-grid{grid-template-columns:1fr!important}}
+              @media(min-width:601px) and (max-width:900px){.premium-card-grid{grid-template-columns:1fr 1fr!important}}
+            `}</style>
+
+            {/* ── 카드 1: H 프리미엄 자미두수 ── */}
+            <a
+              href="#ziwei-premium"
+              onClick={e => { e.preventDefault(); document.getElementById("ziwei-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(10,6,30,0.65)",
+                border: "1.5px solid rgba(167,139,250,0.35)",
+                boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
+                textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(99,102,241,0.28)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(99,102,241,0.15)"; }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,6,30,0.85) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(99,102,241,0.85)", color: "#fff",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>PREMIUM</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>자미두수 · Ziwei Premium</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>H 프리미엄 인생 총론</p>
+                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 12궁 완전 분析 · 상하관계 처세술 · 마스터플랜 카드</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
+                    border: "1px solid rgba(167,139,250,0.38)",
+                    color: "rgba(196,181,253,1)", fontWeight: 700, fontSize: "0.72rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>✦ 지금 분析하기</span>
+                </div>
+              </div>
+            </a>
+
+            {/* ── 카드 2: 인생의 책 ── */}
+            <div
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(4,18,8,0.65)",
+                border: "1.5px solid rgba(52,211,153,0.28)",
+                boxShadow: "0 4px 24px rgba(16,185,129,0.10)",
+                cursor: "default", opacity: 0.85,
+              }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/lifebook.webp" alt="인생의 책"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(4,18,8,0.85) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(16,185,129,0.75)", color: "#fff",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>COMING SOON</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(110,231,183,0.6)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>생애 서사 · Life Story</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>인생의 책</p>
+                <p style={{ color: "rgba(203,213,225,0.5)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>나의 생애 스토리를 AI가 한 권의 책으로 완성하는 프리미엄 경험</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "rgba(16,185,129,0.08)",
+                    border: "1px solid rgba(52,211,153,0.22)",
+                    color: "rgba(110,231,183,0.55)", fontWeight: 600, fontSize: "0.7rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>🔒 준비 중</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 카드 3: 연애 비책 ── */}
+            <div
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(30,4,18,0.65)",
+                border: "1.5px solid rgba(244,114,182,0.28)",
+                boxShadow: "0 4px 24px rgba(236,72,153,0.10)",
+                cursor: "default", opacity: 0.85,
+              }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/lovebible.webp" alt="연애 비책"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,4,18,0.85) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(236,72,153,0.75)", color: "#fff",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>COMING SOON</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(249,168,212,0.6)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>연애 전략 · Love Strategy</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>연애 비책</p>
+                <p style={{ color: "rgba(203,213,225,0.5)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>내 사주에 맞는 연애 전략과 최상의 파트너 유형을 분析하는 비밀 가이드</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "rgba(236,72,153,0.08)",
+                    border: "1px solid rgba(244,114,182,0.22)",
+                    color: "rgba(249,168,212,0.55)", fontWeight: 600, fontSize: "0.7rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>🔒 준비 중</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── H PREMIUM 자미두수 인생 총론 ─── */}
+        <div id="ziwei-premium">
+          <HPremiumZiweiSection />
+        </div>
 
         {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
         <section className="overflow-hidden rounded-3xl border border-rose-300/60 bg-gradient-to-br from-rose-950/90 via-purple-950/90 to-slate-950/90 shadow-2xl shadow-rose-900/30">
