@@ -4,17 +4,9 @@
 # 구형 /insights?topic=XXX 구조를 새 /insights/XXX 경로로 리다이렉트
 # ─────────────────────────────────────────────
 
-# insights 쿼리스트링 → 클린 URL
-/insights?topic=saju            /insights/saju-four-pillars-basics          301
-/insights?topic=tarot           /insights/tarot-major-arcana-symbols         301
-/insights?topic=ziwei           /insights/ziwei-doushu-complete-beginner-guide 301
-/insights?topic=ohang           /insights/five-elements-ohang-complete-guide 301
-/insights?topic=cheongan        /insights/cheongan-jiji-complete-explanation  301
-/insights?topic=goonghap        /insights/goonghap-compatibility-basics-complete 301
-/insights?topic=iljoo           /insights/iljoo-personality-complete-guide-60-pillars 301
-/insights?topic=daewoon         /insights/daewoon-sewoon-reading-complete-guide 301
-/insights?topic=singang         /insights/singang-sinyak-judgment-complete-guide 301
-/insights?topic=yongshin        /insights/yongshin-finding-method-practical-guide 301
+# insights 쿼리스트링 리다이렉트는 Cloudflare Pages _redirects에서 지원되지 않음
+# (쿼리스트링 매칭 미지원: ?topic=XXX 전부 /insights로 인식 → 중복 오류)
+# 구형 클라이언트는 /insights 페이지 자체에서 JS로 처리
 
 # 구형 /blog/* → /insights/*
 /blog/saju-pallja               /insights/saju-pallja-basic-principles-complete-guide  301
