@@ -113,6 +113,22 @@ export function ArticleJsonLd({
   return <StructuredDataScript id="jsonld-article" data={data} />;
 }
 
+export function BreadcrumbJsonLd({ items = [] }) {
+  // items: [{ name, url }]
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+  return <StructuredDataScript id="jsonld-breadcrumb" data={data} />;
+}
+
 export function FaqJsonLd({ faqs = [] }) {
   const normalizedFaqs = Array.isArray(faqs)
     ? faqs

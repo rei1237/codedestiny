@@ -1,0 +1,37 @@
+# Cloudflare Pages _redirects
+# 저장 경로: public/_redirects
+# 쿼리스트링 → 클린 URL 리다이렉트 (301 영구)
+# 구형 /insights?topic=XXX 구조를 새 /insights/XXX 경로로 리다이렉트
+# ─────────────────────────────────────────────
+
+# insights 쿼리스트링 → 클린 URL
+/insights?topic=saju            /insights/saju-four-pillars-basics          301
+/insights?topic=tarot           /insights/tarot-major-arcana-symbols         301
+/insights?topic=ziwei           /insights/ziwei-doushu-complete-beginner-guide 301
+/insights?topic=ohang           /insights/five-elements-ohang-complete-guide 301
+/insights?topic=cheongan        /insights/cheongan-jiji-complete-explanation  301
+/insights?topic=goonghap        /insights/goonghap-compatibility-basics-complete 301
+/insights?topic=iljoo           /insights/iljoo-personality-complete-guide-60-pillars 301
+/insights?topic=daewoon         /insights/daewoon-sewoon-reading-complete-guide 301
+/insights?topic=singang         /insights/singang-sinyak-judgment-complete-guide 301
+/insights?topic=yongshin        /insights/yongshin-finding-method-practical-guide 301
+
+# 구형 /blog/* → /insights/*
+/blog/saju-pallja               /insights/saju-pallja-basic-principles-complete-guide  301
+/blog/ohang                     /insights/five-elements-ohang-complete-guide            301
+/blog/tarot-arcana              /insights/tarot-major-arcana-22-complete-meanings        301
+/blog/ziwei                     /insights/ziwei-doushu-complete-beginner-guide           301
+/blog/cheongan-jiji             /insights/cheongan-jiji-complete-explanation             301
+/blog/singang-sinyak            /insights/singang-sinyak-judgment-complete-guide         301
+/blog/yongshin                  /insights/yongshin-finding-method-practical-guide        301
+/blog/goonghap                  /insights/goonghap-compatibility-basics-complete         301
+/blog/iljoo                     /insights/iljoo-personality-complete-guide-60-pillars    301
+/blog/daewoon-sewoon            /insights/daewoon-sewoon-reading-complete-guide          301
+
+# 샘플 페이지 단축 경로
+/sample/saju                    /sample/saju-result.html         301
+/sample/tarot                   /sample/tarot-result.html        301
+/sample/today                   /sample/today-fortune.html       301
+
+# SPA 폴백 (Next.js가 처리하지 않는 경로)
+# Next.js App Router가 있으므로 아래는 Cloudflare Pages 정적 자산에만 적용

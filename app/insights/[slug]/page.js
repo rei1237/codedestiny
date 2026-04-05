@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getArticleBySlug, getTopicKey } from "../articles";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "../../../lib/seo-metadata";
-import { ArticleJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
+import { ArticleJsonLd, BreadcrumbJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
 
 const InsightArticleCosmicClient = dynamic(() => import("./InsightArticleCosmicClient"), {
   loading: () => (
@@ -96,6 +96,11 @@ export default function InsightArticlePage({ params }) {
 
   return (
     <>
+      <BreadcrumbJsonLd items={[
+        { name: "홈", url: "https://code-destiny.com/" },
+        { name: "인사이트", url: "https://code-destiny.com/insights" },
+        { name: article.title, url: canonicalUrl },
+      ]} />
       <ArticleJsonLd
         url={canonicalUrl}
         title={article.title}

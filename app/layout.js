@@ -1,9 +1,12 @@
 ﻿import "../styles/globals.css";
+import "../styles/disclaimer-banner.css";
+import Script from "next/script";
 import { headers } from "next/headers";
 import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
 import AuthWidget from "./components/AuthWidget";
+import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
@@ -265,6 +268,13 @@ export default async function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body>
+        {/* Google AdSense Auto Ads */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <AppVersionGuard />
         <WebVitalsConsole />
         <ToastProvider />
@@ -302,6 +312,7 @@ export default async function RootLayout({ children }) {
           </a>
           <AuthWidget />
         </header>
+        <DisclaimerBanner />
         <div>{children}</div>
         {!hideFooter && <SiteFooterHub />}
       </body>

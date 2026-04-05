@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>타로 샘플 결과 — 3카드 스프레드 예시 | Code Destiny</title>
+  <meta name="description" content="타로카드 3카드 스프레드 샘플 결과입니다. 과거·현재·미래 포지션별 카드 해석과 종합 메시지를 실제 결과 형태로 무료 제공합니다." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://code-destiny.com/sample/tarot-result.html" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="타로 샘플 결과 — 3카드 스프레드 예시 | Code Destiny" />
+  <meta property="og:description" content="타로카드 과거·현재·미래 3카드 스프레드의 실제 해석 예시를 확인하세요. 대아르카나 기반 종합 리딩 무료 공개." />
+  <meta property="og:url" content="https://code-destiny.com/sample/tarot-result.html" />
+  <meta property="og:site_name" content="Code Destiny" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "타로 샘플 결과 — 3카드 스프레드 예시",
+    "description": "타로카드 3카드 스프레드 샘플. 과거·현재·미래 카드 해석과 종합 메시지 포함.",
+    "author": { "@type": "Organization", "name": "Code Destiny" },
+    "publisher": { "@type": "Organization", "name": "Code Destiny", "url": "https://code-destiny.com" },
+    "datePublished": "2026-04-05",
+    "dateModified": "2026-04-05",
+    "url": "https://code-destiny.com/sample/tarot-result.html",
+    "inLanguage": "ko"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d1a;
+      --card: #14142a;
+      --border: #2a2a4a;
+      --accent: #7c6af7;
+      --accent2: #c084fc;
+      --text: #e2e0f5;
+      --muted: #8884aa;
+      --gold: #f0c040;
+      --green: #4ade80;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; line-height: 1.7; }
+    .disclaimer-bar {
+      background: linear-gradient(90deg, #1e1b4b, #312e81);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px; text-align: center;
+      font-size: 13px; color: #c4b5fd;
+    }
+    nav { background: #11112a; border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+    nav a { color: var(--accent2); text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    nav .logo { font-size: 18px; font-weight: 700; color: var(--text); }
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+    .sample-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124,106,247,0.15); border: 1px solid var(--accent);
+      color: var(--accent2); padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; margin-bottom: 20px;
+    }
+    h1 { font-size: clamp(22px, 4vw, 30px); font-weight: 700; margin-bottom: 8px; }
+    .sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--accent2); border-left: 3px solid var(--accent); padding-left: 12px; }
+    h3 { font-size: 16px; font-weight: 600; margin: 18px 0 8px; color: var(--gold); }
+    p { margin-bottom: 14px; font-size: 15px; }
+    section { margin-bottom: 40px; }
+
+    /* 카드 그리드 */
+    .spread-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px; margin-bottom: 32px;
+    }
+    .tarot-card-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px 20px; text-align: center;
+      position: relative;
+    }
+    .tarot-card-box .position-label {
+      font-size: 11px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 12px;
+    }
+    .card-symbol {
+      width: 90px; height: 120px; margin: 0 auto 16px;
+      background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+      border: 2px solid var(--accent2); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px;
+    }
+    .card-number { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .card-name { font-size: 17px; font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
+    .card-direction { font-size: 12px; color: var(--muted); }
+    .card-direction.reversed { color: #f87171; }
+    .card-keywords { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+    .kw { background: rgba(124,106,247,.15); color: var(--accent2); font-size: 11px; padding: 3px 8px; border-radius: 10px; }
+
+    .result-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 18px; }
+    .result-box .tag { font-size: 12px; color: var(--accent); margin-bottom: 8px; }
+    .result-box .content { font-size: 15px; line-height: 1.8; }
+
+    .message-highlight {
+      background: linear-gradient(135deg, #1e0a3c, #2e1065);
+      border: 1px solid var(--accent2); border-radius: 16px;
+      padding: 28px 24px; margin-bottom: 28px; text-align: center;
+    }
+    .message-highlight .intro { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .message-highlight .msg { font-size: 18px; font-weight: 600; color: var(--gold); line-height: 1.6; }
+
+    .action-list { list-style: none; padding: 0; }
+    .action-list li { padding: 10px 14px 10px 36px; border-radius: 8px; background: rgba(124,106,247,.08); margin-bottom: 8px; position: relative; font-size: 14px; }
+    .action-list li::before { content: '→'; position: absolute; left: 14px; color: var(--accent); }
+
+    .cta-box {
+      background: linear-gradient(135deg, #1e1b4b, #2e1065);
+      border: 1px solid var(--accent); border-radius: 16px;
+      padding: 28px 24px; text-align: center; margin-top: 40px;
+    }
+    .cta-box h3 { color: var(--accent2); margin-bottom: 10px; font-size: 18px; }
+    .cta-box p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .cta-btn { display: inline-block; background: var(--accent); color: #fff; padding: 12px 32px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 20px; text-align: center; font-size: 13px; color: var(--muted); max-width: 860px; margin: 0 auto; }
+    footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+  </style>
+</head>
+<body>
+
+<div class="disclaimer-bar">
+  ⚠️ 본 서비스는 오락 및 참고 목적의 콘텐츠이며, 실제 상담(의료·법률·금융 등)을 대체하지 않습니다.
+</div>
+
+<nav>
+  <a href="/" class="logo">✦ Code Destiny</a>
+  <a href="/">홈으로</a>
+  <a href="/insights">운세 아카이브</a>
+  <a href="/sample/saju-result.html">사주 샘플</a>
+  <a href="/sample/today-fortune.html">오늘 운세 샘플</a>
+</nav>
+
+<div class="container">
+  <div class="sample-badge">🃏 무료 타로 샘플 — 코인 없이 전체 공개</div>
+
+  <h1>타로카드 리딩 결과</h1>
+  <p class="sub">스프레드: 과거·현재·미래 3카드 / 질문 주제: 직업·커리어 방향</p>
+
+  <!-- 핵심 메시지 -->
+  <div class="message-highlight">
+    <div class="intro">🔮 카드가 전하는 핵심 메시지</div>
+    <div class="msg">"완성한 것들 위에 서서, 지금 이 순간의 선택에 집중하세요.<br/>다음 문은 이미 열려 있습니다."</div>
+  </div>
+
+  <!-- 카드 3장 -->
+  <section>
+    <h2>3카드 스프레드</h2>
+    <div class="spread-grid">
+      <!-- 과거 카드 -->
+      <div class="tarot-card-box">
+        <div class="position-label">과거 — 기반 & 원인</div>
+        <div class="card-symbol">🌍</div>
+        <div class="card-number">21번</div>
+        <div class="card-name">세계 (The World)</div>
+        <div class="card-direction">정방향</div>
+        <div class="card-keywords">
+          <span class="kw">완성</span>
+          <span class="kw">성취</span>
+          <span class="kw">사이클 종료</span>
+          <span class="kw">통합</span>
+        </div>
+      </div>
+      <!-- 현재 카드 -->
+      <div class="tarot-card-box" style="border-color: var(--accent); box-shadow: 0 0 20px rgba(124,106,247,.3);">
+        <div class="position-label">현재 — 지금 Energy</div>
+        <div class="card-symbol">⚖️</div>
+        <div class="card-number">11번</div>
+        <div class="card-name">정의 (Justice)</div>
+        <div class="card-direction">정방향</div>
+        <div class="card-keywords">
+          <span class="kw">균형</span>
+          <span class="kw">공정한 판단</span>
+          <span class="kw">책임</span>
+          <span class="kw">결정</span>
+        </div>
+      </div>
+      <!-- 미래 카드 -->
+      <div class="tarot-card-box">
+        <div class="position-label">미래 — 방향 & 가능성</div>
+        <div class="card-symbol">⭐</div>
+        <div class="card-number">17번</div>
+        <div class="card-name">별 (The Star)</div>
+        <div class="card-direction">정방향</div>
+        <div class="card-keywords">
+          <span class="kw">희망</span>
+          <span class="kw">치유</span>
+          <span class="kw">비전 회복</span>
+          <span class="kw">새 출발</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 카드별 해석 -->
+  <section>
+    <h2>카드별 상세 해석</h2>
+
+    <div class="result-box">
+      <div class="tag">① 과거 포지션 — 세계 (The World, 21번) 정방향</div>
+      <div class="content">
+        과거 포지션에 <strong>세계</strong> 카드가 나온 것은 당신이 최근 한 단계를 의미 있게 마무리했다는 신호입니다. 직업적으로는 특정 프로젝트, 역할, 또는 학습의 사이클이 완성되었음을 나타냅니다. 세계 카드는 단순한 종료가 아니라 '완전한 통합'을 의미하므로, 지금까지의 경험에서 쌓은 능력과 지식이 내면에 온전히 흡수되어 있다는 의미입니다.
+        <br/><br/>
+        이 단계를 스스로 충분히 인정하고 다음 여정의 출발점으로 인식하는 것이 중요합니다. 과거를 '아쉬운 끝'으로 보지 말고, 다음 사이클을 위한 단단한 기반으로 바라보세요.
+      </div>
+    </div>
+
+    <div class="result-box">
+      <div class="tag">② 현재 포지션 — 정의 (Justice, 11번) 정방향</div>
+      <div class="content">
+        현재 포지션의 <strong>정의</strong> 카드는 지금 당신에게 가장 중요한 것이 '공정하고 균형 잡힌 결정'임을 알려줍니다. 커리어에서 중요한 선택의 기로에 있거나, 자신의 능력과 외부의 기대 사이에서 균형점을 찾는 시기입니다.
+        <br/><br/>
+        정의 카드는 감정이나 충동보다 사실과 합리적 판단을 우선하라는 메시지를 담고 있습니다. 지금 내려야 할 결정이 있다면, 이미 가진 정보를 체계적으로 정리하고 명확한 기준을 세운 뒤 결정하면 후회가 줄어듭니다. 이 카드는 결과가 공정하게 돌아온다는 긍정적 신호이기도 합니다.
+      </div>
+    </div>
+
+    <div class="result-box">
+      <div class="tag">③ 미래 포지션 — 별 (The Star, 17번) 정방향</div>
+      <div class="content">
+        미래 포지션의 <strong>별</strong> 카드는 앞으로의 방향에서 희망과 치유, 비전의 회복이 기다리고 있음을 보여줍니다. 힘든 과정 이후 맑은 흐름이 찾아오는 카드로, 당신이 지금 올바른 길을 걷고 있다는 확신을 줍니다.
+        <br/><br/>
+        직업적으로는 자신만의 강점을 세상에 내보이는 기회가 생기거나, 오랫동안 꿈꾸던 방향으로 나아갈 수 있는 문이 열리는 시기입니다. 별 카드가 나왔을 때 중요한 것은 '희망을 단순히 꿈꾸는 것'에서 멈추지 말고, 구체적인 행동 계획과 연결하는 것입니다.
+      </div>
+    </div>
+  </section>
+
+  <!-- 종합 메시지 -->
+  <section>
+    <h2>종합 메시지 & 실천 가이드</h2>
+    <div class="result-box">
+      <div class="tag">세 카드의 종합 이야기</div>
+      <div class="content">
+        세계→정의→별의 흐름은 매우 강력하고 긍정적인 서사를 담고 있습니다. 당신은 이미 한 단계를 성공적으로 마쳤고(세계), 지금 그 경험을 바탕으로 균형 잡힌 결정을 해야 하는 순간에 있으며(정의), 앞으로는 새로운 희망과 방향이 펼쳐질 것(별)을 카드가 알려주고 있습니다.
+        <br/><br/>
+        이 리딩의 핵심 메시지는 <strong>'지금의 선택이 중요하다'</strong>는 것입니다. 좋은 미래를 보장하는 마법은 없지만, 지금 명확하고 공정한 기준으로 결정을 내리면 그 다음 단계에서 훨씬 밝은 흐름을 만날 수 있습니다.
+      </div>
+    </div>
+
+    <h3>오늘부터 실천할 행동 가이드</h3>
+    <ul class="action-list">
+      <li>지금 가장 중요한 커리어 선택지를 종이에 적고, 각각의 장단점을 3가지씩 써보세요 (정의 카드)</li>
+      <li>최근 1년간 완성한 성과 3가지를 목록으로 만들고, 스스로 인정하는 시간을 가지세요 (세계 카드)</li>
+      <li>앞으로 1년 안에 이루고 싶은 직업적 목표를 한 문장으로 쓰고, 첫 번째 실행 행동을 정하세요 (별 카드)</li>
+    </ul>
+  </section>
+
+  <div class="cta-box">
+    <h3>나만의 타로 리딩 받기</h3>
+    <p>직접 질문을 입력하고 카드를 뽑아 나만의 해석을 받아보세요.</p>
+    <a href="/" class="cta-btn">타로 리딩 시작하기 →</a>
+  </div>
+</div>
+
+<footer>
+  <p><a href="/">홈</a><a href="/insights">아카이브</a><a href="/contact-us">문의</a><a href="/about">소개</a></p>
+  <p style="margin-top:12px;">
+    본 타로 샘플 결과는 오락 및 자기 성찰 목적으로 제작된 예시입니다.
+    결과는 확정된 미래를 예언하지 않으며, 중요한 결정은 전문가와 상담하세요.
+  </p>
+  <p style="margin-top:8px;">© 2026 Code Destiny. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

@@ -1,10 +1,11 @@
 # robots.txt - Code Destiny
-# Updated: 2026-03-25
+# Updated: 2026-04-05
 # Primary source: app/robots.ts (Next.js generates /robots.txt)
 
 User-agent: *
 Allow: /
 
+# 크롤링 차단 경로
 Disallow: /admin
 Disallow: /_admin
 Disallow: /api
@@ -13,11 +14,21 @@ Disallow: /_lib
 Disallow: /_locale
 Disallow: /login
 Disallow: /signup
+
+# 추적 파라미터가 포함된 URL 차단
 Disallow: /*?utm_
 Disallow: /*?fbclid=
 Disallow: /*?gclid=
 Disallow: /*?session=
 Disallow: /*?token=
+
+# 구형 쿼리스트링 URL 차단 (클린 URL로 대체됨)
+Disallow: /insights?topic=
+
+# AdSense 심사용 콘텐츠 명시적 허용
+Allow: /insights/
+Allow: /sample/
+Allow: /blog/
 
 User-agent: GPTBot
 Disallow: /api
@@ -33,6 +44,9 @@ User-agent: Googlebot
 Allow: /
 
 User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
 Allow: /
 
 User-agent: Bingbot
