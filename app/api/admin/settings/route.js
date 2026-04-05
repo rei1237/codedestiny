@@ -2,6 +2,7 @@
 // PATCH /api/admin/settings — 설정 업데이트
 export const runtime = "nodejs";
 
+import { dbConnect } from "../../../_lib/dbConnect.js";
 import { getSettings, updateSettings } from "../../../_lib/models/AppSettingsModel.js";
 import {
   verifyFlowerAdminToken,
@@ -20,6 +21,7 @@ export async function GET(request) {
     const token = extractAdminTokenFromRequest(request);
     if (!(await verifyFlowerAdminToken(token))) return json({ message: "Unauthorized" }, 401);
 
+    await dbConnect();
     const settings = await getSettings();
     // _id, singletonKey, __v 등 내부 필드 제거
     const { _id, singletonKey, __v, ...clean } = settings;
@@ -40,6 +42,8 @@ export async function PATCH(request) {
     catch { return json({ message: "잘못된 요청 형식입니다." }, 400); }
 
     if (!body || typeof body !== "object") return json({ message: "설정 데이터가 필요합니다." }, 400);
+
+    await dbConnect();
 
     // 허용 필드만 추출 (보안: 임의 DB 필드 수정 방지)
     const ALLOWED = [
@@ -65,7 +69,7 @@ export async function PATCH(request) {
     }
 
     const updated = await updateSettings(patch);
-    const { _id, singletonKey, __v, ...clean } = updated;
+    const { _id, singletonKey, __v, ...clean } = JSON.parse(JSON.stringify(updated));
     return json({ ok: true, settings: clean });
   } catch (err) {
     console.error("[admin/settings PATCH]", err?.message || err, err?.stack || "");

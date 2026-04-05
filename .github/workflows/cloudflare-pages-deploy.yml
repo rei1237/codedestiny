@@ -40,6 +40,7 @@ jobs:
       NAVER_OAUTH_CLIENT_SECRET: ${{ secrets.NAVER_OAUTH_CLIENT_SECRET }}
       KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
       KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      FLOWER_ADMIN_SECRET: ${{ secrets.FLOWER_ADMIN_SECRET }}
       CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME || 'code-destiny' }}
       CF_PAGES_BRANCH: main
     steps:
@@ -99,6 +100,39 @@ jobs:
           if [ -n "${KAKAO_OAUTH_CLIENT_SECRET}" ]; then
             printf '%s\n' "${KAKAO_OAUTH_CLIENT_SECRET}" | npx wrangler secret put KAKAO_OAUTH_CLIENT_SECRET --config wrangler.json
           fi
+          if [ -n "${FLOWER_ADMIN_SECRET}" ]; then
+            printf '%s\n' "${FLOWER_ADMIN_SECRET}" | npx wrangler secret put FLOWER_ADMIN_SECRET --config wrangler.json
+          fi
+
+      # ────────────────────────────────────────────────────────────
+      # Cloudflare Pages 시크릿 동기화
+      # Worker secrets(wrangler secret put)와 Pages secrets는 별도 저장소임.
+      # Pages 프로젝트에도 동일 시크릿을 주입해야 Pages Worker에서 process.env가 동작함.
+      # ────────────────────────────────────────────────────────────
+      - name: Sync secrets to Cloudflare Pages project
+        run: |
+          PAGES_PROJECT="${CF_PAGES_PROJECT_NAME:-code-destiny}"
+          sync_pages_secret() {
+            local key="$1" val="$2"
+            if [ -n "${val}" ]; then
+              printf '%s\n' "${val}" | npx wrangler pages secret put "${key}" --project-name "${PAGES_PROJECT}"
+            fi
+          }
+          sync_pages_secret MONGO_URI         "${MONGO_URI}"
+          sync_pages_secret MONGO_DB_NAME     "${MONGO_DB_NAME}"
+          sync_pages_secret JWT_SECRET        "${JWT_SECRET}"
+          sync_pages_secret GEMINI_API_KEY    "${GEMINI_API_KEY}"
+          sync_pages_secret GOOGLE_API_KEY    "${GOOGLE_API_KEY}"
+          sync_pages_secret ANTHROPIC_API_KEY "${ANTHROPIC_API_KEY}"
+          sync_pages_secret AUTH_API_BASE_URL "${AUTH_API_BASE_URL}"
+          sync_pages_secret AUTH_FRONTEND_BASE_URL "${AUTH_FRONTEND_BASE_URL}"
+          sync_pages_secret GOOGLE_OAUTH_CLIENT_ID     "${GOOGLE_OAUTH_CLIENT_ID}"
+          sync_pages_secret GOOGLE_OAUTH_CLIENT_SECRET "${GOOGLE_OAUTH_CLIENT_SECRET}"
+          sync_pages_secret NAVER_OAUTH_CLIENT_ID      "${NAVER_OAUTH_CLIENT_ID}"
+          sync_pages_secret NAVER_OAUTH_CLIENT_SECRET  "${NAVER_OAUTH_CLIENT_SECRET}"
+          sync_pages_secret KAKAO_OAUTH_CLIENT_ID      "${KAKAO_OAUTH_CLIENT_ID}"
+          sync_pages_secret KAKAO_OAUTH_CLIENT_SECRET  "${KAKAO_OAUTH_CLIENT_SECRET}"
+          sync_pages_secret FLOWER_ADMIN_SECRET        "${FLOWER_ADMIN_SECRET}"
 
       # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
       - name: Build OpenNext (Next + Worker bundle + dist)

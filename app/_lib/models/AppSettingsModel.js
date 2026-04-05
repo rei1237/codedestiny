@@ -62,9 +62,13 @@ export async function getAppSettingsModel() {
       popupContent: { type: String,  default: "" },
       cacheTtlSeconds: { type: Number, default: 300 },
       abuseRules: {
-        bulkQuery:       { enabled: Boolean, windowMinutes: Number, threshold: Number },
-        multiAccount:    { enabled: Boolean },
-        abnormalPayment: { enabled: Boolean, threshold: Number },
+        bulkQuery: {
+          enabled:       { type: Boolean, default: true  },
+          windowMinutes: { type: Number,  default: 10    },
+          threshold:     { type: Number,  default: 50    },
+        },
+        multiAccountDetect:  { type: Boolean, default: true  },
+        abnormalPaymentBlock: { type: Boolean, default: false },
       },
       ipBlockList: [{ ip: String, reason: String, blockedAt: Date }],
     },
@@ -82,8 +86,9 @@ export async function getSettings() {
     doc = await model.create({ singletonKey: "global", ...DEFAULT_SETTINGS });
     doc = doc.toObject();
   }
-  // 기본값 병합 (없는 필드 보완)
-  return { ...DEFAULT_SETTINGS, ...doc };
+  // 기본값 병합 후 BSON ObjectId 등 MongoDB 전용 타입을 plain JSON으로 정규화
+  const merged = { ...DEFAULT_SETTINGS, ...doc };
+  return JSON.parse(JSON.stringify(merged));
 }
 
 export async function updateSettings(patch) {
