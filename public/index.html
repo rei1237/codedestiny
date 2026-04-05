@@ -4161,6 +4161,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <span class="lb-coin-label"><strong>490코인</strong> · 1회 이용 (코인 충전 후 이용 가능)</span>
             </div>
             <p class="lb-storage-notice">💾 <strong>보관 안내</strong> &mdash; 결과독은 이 브라우저(로칼)에만 저장됩니다. 템스트 탭이나 다른 기기에서는 다시 생성해야 합니다. 브라우저 캐시 &middot; 앱 데이터 삭제 시 내용이 영구적으로 사라지므로, 반드시 <strong>PDF로 다운로드</strong>해 보관해 두세요.</p>
+            <!-- 출생지 선택 -->
+            <div class="form-group form-group-surface lb-location-group">
+              <label class="form-label form-label-dark" for="lbBirthCountry">출생지 <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+              <select class="inp form-country-select" id="lbBirthCountry">
+                <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9">대한민국 (서울)</option>
+              </select>
+            </div>
           <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook" data-coin-cost="490">
             <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
             <span class="lb-btn-coin">🪙 490코인</span>
@@ -4372,7 +4379,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
           <p class="ls-start-warning">⚠️ 분석에는 약 2~3분이 소요됩니다. 사주 정보 입력 후 이용 가능합니다.</p>
           <p class="ls-storage-notice">💾 <strong>보관 안내</strong> &mdash; 결과독은 이 브라우저(로칼)에만 저장됩니다. 템스트 탭이나 다른 기기에서는 다시 생성해야 합니다. 브라우저 캐시 &middot; 앱 데이터 삭제 시 내용이 영구적으로 사라지므로, 반드시 <strong>PDF로 다운로드</strong>해 보관해 두세요.</p>
-          <button type="button" class="ls-btn-generate" id="lsGenerateBtn" data-action="generateLoveSecret">
+          <button type="button" class="ls-btn-generate" id="lsGenerateBtn" data-action="lsShowPartnerScreen">
             <span class="ls-btn-icon">♡</span>
             나의 연애 비책 생성하기
             <span class="ls-btn-icon">♡</span>
@@ -4438,6 +4445,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 <option value="11">해시 (21:00~23:00)</option>
               </select>
               <p class="ls-pscreen__hint">시각을 모르셔도 정밀 분석이 가능합니다</p>
+            </div>
+            <div class="ls-pscreen__field">
+              <label class="ls-pscreen__label" for="lsPsBirthCountry">출생지 <span class="ls-pscreen__opt">(선택)</span></label>
+              <select id="lsPsBirthCountry" class="ls-pscreen__select form-country-select">
+                <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9">대한민국 (서울)</option>
+              </select>
+              <p class="ls-pscreen__hint">국가/도시를 선택하면 진태양시가 자동 보정됩니다</p>
             </div>
           </div>
 

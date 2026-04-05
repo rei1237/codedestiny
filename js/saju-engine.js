@@ -2175,6 +2175,45 @@ function populateBirthCountrySelector() {
   if (!found && sel.options.length > 0) sel.selectedIndex = 0;
 }
 
+/* 임의 select 엘리먼트에 출생지 목록 채우기 (모달 전용) */
+window.populateCountrySelectById = function(selId, selectedLabel) {
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  var frag = document.createDocumentFragment();
+  var defTz = '';
+  BIRTH_PLACE_GROUPS.forEach(function(group) {
+    var og = document.createElement('optgroup');
+    og.label = group.label;
+    (group.places || []).forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.tz;
+      opt.textContent = p.label;
+      opt.setAttribute('data-long', String(p.lon));
+      opt.setAttribute('data-lat', String(p.lat));
+      opt.setAttribute('data-tz', String(p.tzOff));
+      opt.setAttribute('data-base-tz', String(p.tzOff));
+      if (p.def) defTz = p.tz;
+      og.appendChild(opt);
+    });
+    frag.appendChild(og);
+  });
+  sel.innerHTML = '';
+  sel.appendChild(frag);
+  var found = false;
+  if (selectedLabel) {
+    for (var i = 0; i < sel.options.length; i++) {
+      if ((sel.options[i].textContent || '').trim() === selectedLabel.trim()) {
+        sel.selectedIndex = i; found = true; break;
+      }
+    }
+  }
+  if (!found && defTz) {
+    for (var j = 0; j < sel.options.length; j++) {
+      if (sel.options[j].value === defTz) { sel.selectedIndex = j; break; }
+    }
+  }
+};
+
 function initSelectors(){
   populateBirthCountrySelector();
 

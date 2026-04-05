@@ -292,17 +292,15 @@
   }
 
   function _collectPartnerData() {
-    var section = _qs('lsPartnerSection');
-    if (!section || !section.classList.contains('open')) return '';
-    var name = (_qs('lsPartnerName') || {}).value || '';
-    var year = parseInt((_qs('lsPartnerYear') || {}).value || '0', 10);
-    var month = parseInt((_qs('lsPartnerMonth') || {}).value || '0', 10);
-    var day = parseInt((_qs('lsPartnerDay') || {}).value || '0', 10);
-    var hourEl = _qs('lsPartnerHour');
+    var name = (_qs('lsPsName') || {}).value || '';
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    var hourEl = _qs('lsPsHour');
     var hourVal = hourEl ? hourEl.value : '';
     var gender = '';
-    var gm = _qs('lsPartnerGenderM');
-    var gf = _qs('lsPartnerGenderF');
+    var gm = _qs('lsPsGenderM');
+    var gf = _qs('lsPsGenderF');
     if (gm && gm.classList.contains('active')) gender = '남성';
     else if (gf && gf.classList.contains('active')) gender = '여성';
     if (!year || !month || !day) return '';
@@ -316,6 +314,33 @@
       lines.push('출생 시각: ' + (hourNames[parseInt(hourVal, 10)] || hourVal + '시'));
     } else {
       lines.push('출생 시각: 미상');
+    }
+    /* 출생지 */
+    var countrySel = _qs('lsPsBirthCountry');
+    if (countrySel && countrySel.selectedIndex >= 0) {
+      var cOpt = countrySel.options[countrySel.selectedIndex];
+      if (cOpt) {
+        var locLabel = (cOpt.textContent || cOpt.text || '').trim();
+        var locLon = parseFloat(cOpt.getAttribute('data-long') || '127.0');
+        var locLat = parseFloat(cOpt.getAttribute('data-lat') || '37.6');
+        var locTzOff = parseFloat(cOpt.getAttribute('data-tz') || '9');
+        var locTz = cOpt.value || 'Asia/Seoul';
+        /* 출생지 기반 진태양시 보정 계산 */
+        var corrNote = '';
+        if (hourVal !== '') {
+          var rawH = parseInt(hourVal, 10) * 2 + 1; /* 시진 중간값 (홀수시) */
+          var stdLon = locTzOff * 15; /* 표준 경선 */
+          var lngOff = Math.round((stdLon - locLon) * 4); /* 경도 보정 분 */
+          var corrMin = rawH * 60 - lngOff;
+          corrMin = ((corrMin % 1440) + 1440) % 1440;
+          var zh12 = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+          var corrJi = zh12[Math.floor(corrMin / 120) % 12] || '';
+          corrNote = ' (진태양시 보정: ' + corrJi + '시)';
+        }
+        lines.push('출생지: ' + locLabel + corrNote);
+        /* AI 계산용 사주 보조 데이터 */
+        lines.push('[상대방 출생지 경도: ' + locLon + ', 위도: ' + locLat + ', 표준시: UTC+' + locTzOff + '] — AI는 위 경도 보정값을 적용하여 상대방 시주(時柱)를 정밀 산출할 것');
+      }
     }
     return lines.join('\n');
   }
@@ -337,8 +362,51 @@
     });
   }
 
+  /* ── 파트너 화면 (lsPartnerScreen) 표시 ── */
+  function _showPartnerScreen() {
+    var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
+    screens.forEach(function(id) {
+      var el = _qs(id);
+      if (el) el.style.display = (id === 'lsPartnerScreen') ? '' : 'none';
+    });
+    /* 파트너 출생지 선택기 초기화 */
+    if (typeof window.populateCountrySelectById === 'function') {
+      window.populateCountrySelectById('lsPsBirthCountry', '대한민국 (서울)');
+    }
+    /* 성별 버튼 이벤트 */
+    var gBtns = document.querySelectorAll('#lsPsGenderM, #lsPsGenderF');
+    Array.prototype.forEach.call(gBtns, function(btn) {
+      btn.onclick = function() {
+        Array.prototype.forEach.call(gBtns, function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      };
+    });
+    /* 기본 성별: 여성 선택 */
+    var gf = _qs('lsPsGenderF');
+    if (gf) gf.classList.add('active');
+    var gm = _qs('lsPsGenderM');
+    if (gm) gm.classList.remove('active');
+  }
+
+  /* 파트너 정보 포함 생성 */
+  window.lsStartWithPartner = function() {
+    var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
+    var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
+    var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
+    if (!year || !month || !day) {
+      alert('상대방 생년월일을 입력해 주세요. (연도·월·일 모두 필요)');
+      return;
+    }
+    window.generateLoveSecret(_collectPartnerData());
+  };
+
+  /* 파트너 없이 생성 */
+  window.lsSkipPartner = function() {
+    window.generateLoveSecret('');
+  };
+
   function _showScreen(id) {
-    var screens = ['lsStartScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
+    var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
       if (el) el.style.display = (screens[i] === id) ? '' : 'none';
@@ -452,7 +520,7 @@
     });
   }
 
-  window.generateLoveSecret = function () {
+  window.generateLoveSecret = function (partnerDataOverride) {
     if (_generating) return;
     var hasData = !!(
       window.__cdActiveBirthProfile &&
@@ -463,7 +531,7 @@
     _generating = true;
     _chapters = Array(10).fill(null);
     var sajuData = _collectSajuData();
-    var partnerData = _collectPartnerData();
+    var partnerData = (typeof partnerDataOverride === 'string') ? partnerDataOverride : _collectPartnerData();
     _showScreen('lsLoadingScreen');
     var progressBar = _qs('lsProgressBar');
     var progressText = _qs('lsProgressText');
@@ -613,6 +681,9 @@
     if (!btn) return;
     var action = btn.getAttribute('data-action');
     if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
+    if (action === 'lsShowPartnerScreen')  { _showPartnerScreen(); return; }
+    if (action === 'lsStartWithPartner')   { window.lsStartWithPartner(); return; }
+    if (action === 'lsSkipPartner')        { window.lsSkipPartner(); return; }
     if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
     if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
     if (action === 'regenerateLoveSecret') { window.regenerateLoveSecret(); return; }

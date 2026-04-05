@@ -429,6 +429,22 @@
       if (!y || !m || !d) return null;
       var hourEl = document.getElementById('birthHour');
       var minEl = document.getElementById('birthMinute');
+      /* 출생지: 모달 전용 선택기를 우선, 없으면 메인 폼 선택기 사용 */
+      var locationData = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+      var countrySel = document.getElementById('lbBirthCountry') || document.getElementById('birthCountry');
+      if (countrySel && countrySel.selectedIndex >= 0) {
+        var opt = countrySel.options[countrySel.selectedIndex];
+        if (opt) {
+          locationData = {
+            label: (opt.textContent || opt.text || '').trim(),
+            lng: parseFloat(opt.getAttribute('data-long') || '127.0'),
+            lat: parseFloat(opt.getAttribute('data-lat') || '37.6'),
+            tz: opt.value || 'Asia/Seoul',
+            tzOffset: parseFloat(opt.getAttribute('data-tz') || '9'),
+            baseTzOffset: parseFloat(opt.getAttribute('data-base-tz') || '9')
+          };
+        }
+      }
       return {
         name: (nameEl && nameEl.value.trim()) || '사용자',
         gender: isFemale ? 'F' : 'M',
@@ -437,7 +453,7 @@
           hour: hourEl ? Number(hourEl.value) : 12,
           minute: minEl ? Number(minEl.value) : 0
         },
-        location: { label: '대한민국 (서울)' }
+        location: locationData
       };
     } catch (_) { return null; }
   }
@@ -540,6 +556,13 @@
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
+    /* 출생지 선택기 초기화 */
+    if (typeof window.populateCountrySelectById === 'function') {
+      var locLabel = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.location && window.__cdActiveBirthProfile.location.label)
+        ? window.__cdActiveBirthProfile.location.label : '대한민국 (서울)';
+      window.populateCountrySelectById('lbBirthCountry', locLabel);
+    }
+
     try {
       modal.setAttribute('aria-hidden', 'false');
       var closeBtn = modal.querySelector('.lb-modal__close');
@@ -611,6 +634,28 @@
     // 복구된 프로필 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
+    }
+
+    /* 모달 출생지 선택기 값으로 위치 재설정 */
+    var lbCountrySel = document.getElementById('lbBirthCountry');
+    if (lbCountrySel && lbCountrySel.selectedIndex >= 0) {
+      var _selOpt = lbCountrySel.options[lbCountrySel.selectedIndex];
+      if (_selOpt) {
+        var _newLoc = {
+          label: (_selOpt.textContent || _selOpt.text || '').trim(),
+          lng: parseFloat(_selOpt.getAttribute('data-long') || '127.0'),
+          lat: parseFloat(_selOpt.getAttribute('data-lat') || '37.6'),
+          tz: _selOpt.value || 'Asia/Seoul',
+          tzOffset: parseFloat(_selOpt.getAttribute('data-tz') || '9'),
+          baseTzOffset: parseFloat(_selOpt.getAttribute('data-base-tz') || '9')
+        };
+        profile.location = _newLoc;
+        if (window.__cdActiveBirthProfile) window.__cdActiveBirthProfile.location = _newLoc;
+        /* 선택된 위치로 사주 원국 재계산 */
+        if (typeof window.computeProfileForModal === 'function') {
+          window.computeProfileForModal(profile);
+        }
+      }
     }
 
     _generating = true;
