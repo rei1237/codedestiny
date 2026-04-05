@@ -4230,18 +4230,18 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div id="lbChapterContent" class="lb-chapter-content">
             <!-- JS가 렌더링 -->
           </div>
-        </div>
 
-        <!-- 에러 화면 -->
-        <div id="lbErrorScreen" class="lb-error-screen" style="display:none;">
-          <div class="lb-error-icon">⚠️</div>
-          <p id="lbErrorMsg" class="lb-error-msg"></p>
-          <button type="button" class="lb-btn-retry" data-action="generateLifeBook">다시 시도</button>
+          <!-- 마무리 배너 (챕터 13 완성 후 표시) -->
+          <div id="lbEpilogueBanner" class="lb-epilogue-banner" style="display:none;" aria-live="polite">
+            <div class="lb-epilogue-deco" aria-hidden="true">📜 ✦ 🌟</div>
+            <p class="lb-epilogue-title">당신의 인생 설계도가 완성되었습니다</p>
+            <p class="lb-epilogue-msg">하늘이 처음부터 당신 편이었습니다.<br>이 책에 담긴 지혜가 당신의 삶에 풍요와 행복, 그리고 빛나는 인연을 불러오기를<br>진심으로 기원합니다 🙏✨</p>
+            <div class="lb-epilogue-actions">
+              <button type="button" class="lb-btn-kakao" data-action="shareLifeBookKakao">💬 공유하기</button>
+              <button type="button" class="lb-btn-regen" data-action="regenerateLifeBook">🔄 다시 분석하기</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <!-- 연애 비책 모달 -->
     <div id="loveSecretModal" class="ls-modal" role="dialog" aria-modal="true" aria-label="연애 비책" style="display:none;">
       <div class="ls-modal__overlay" data-action="closeLoveSecretModal"></div>
       <div class="ls-modal__panel">
@@ -4457,18 +4457,18 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div id="lsChapterContent" class="ls-chapter-content">
             <!-- JS가 렌더링 -->
           </div>
-        </div>
 
-        <!-- 에러 화면 -->
-        <div id="lsErrorScreen" class="ls-error-screen" style="display:none;">
-          <div class="ls-error-icon">⚠️</div>
-          <p id="lsErrorMsg" class="ls-error-msg"></p>
-          <button type="button" class="ls-btn-retry" data-action="generateLoveSecret">다시 시도</button>
+          <!-- 마무리 배너 (챕터 10 완성 후 표시) -->
+          <div id="lsEpilogueBanner" class="ls-epilogue-banner" style="display:none;" aria-live="polite">
+            <div class="ls-epilogue-deco" aria-hidden="true">💕 ✦ 💕</div>
+            <p class="ls-epilogue-title">당신의 사랑 이야기는 이제 시작입니다</p>
+            <p class="ls-epilogue-msg">하늘이 당신에게 새겨준 사랑의 지도를 손에 쥔 지금,<br>앞으로의 모든 인연이 당신에게 빛나는 행복이 되기를 온 마음으로 빕니다 💖</p>
+            <div class="ls-epilogue-actions">
+              <button type="button" class="ls-btn-kakao" data-action="shareLoveSecretKakao">💬 공유하기</button>
+              <button type="button" class="ls-btn-regen" data-action="regenerateLoveSecret">🔄 다시 분석하기</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    </div>
 
 
     

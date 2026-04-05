@@ -540,6 +540,9 @@
           (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '') +
           (savedDate ? ' · 💾 ' + savedDate + ' 저장' : '');
       }
+      // 저장된 결과 복원 시 마무리 배너 표시
+      var lbEpBannerSaved = _qs('lbEpilogueBanner');
+      if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       try {
@@ -792,6 +795,9 @@
           dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' 생 · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · 🗓️ ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
         }
         _lbSaveResult(prof);
+        // 마무리 배너 표시
+        var lbEpBanner = _qs('lbEpilogueBanner');
+        if (lbEpBanner) lbEpBanner.style.display = '';
         return;
       }
 

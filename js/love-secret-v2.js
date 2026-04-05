@@ -432,6 +432,9 @@
       _renderChapter(1);
       _bindToc();
       _renderResultHeader(saved.name, saved.birth, saved.gender, saved.savedAt ? new Date(saved.savedAt) : null, false);
+      // 저장된 결과 복원 시 마무리 배너 표시
+      var epBannerSaved = _qs('lsEpilogueBanner');
+      if (epBannerSaved) epBannerSaved.style.display = '';
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
       _bindPartnerSection();
@@ -564,6 +567,9 @@
         var dateEl = _qs('lsResultDate');
         _saveResult(profile);
         _renderResultHeader(profile.name, profile.birth, profile.gender, new Date(), true);
+        // 마무리 배너 표시
+        var epBanner = _qs('lsEpilogueBanner');
+        if (epBanner) epBanner.style.display = '';
         return;
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
