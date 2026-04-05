@@ -611,8 +611,49 @@
       }
       return;
     }
-    var partnerData = _collectPartnerScreenData();
-    _startGeneration(partnerData);
+
+    /* ── 궁합 분석 추가 100코인 차감 ─────────────────────── */
+    var _token = '';
+    try { _token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    if (!_token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2F';
+      }
+      return;
+    }
+
+    (function () {
+      var startBtn = _qs('lsPsStartBtn');
+      if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
+      fetch('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + _token
+        },
+        body: JSON.stringify({ cost: 100, reason: '연애 비책 궁합 분석' })
+      })
+        .then(function (r) {
+          return r.json().then(function (d) { return { ok: r.ok, status: r.status, payload: d }; });
+        })
+        .then(function (res) {
+          if (startBtn) { startBtn.disabled = false; startBtn.textContent = '💑 두 사람의 궁합 포함 분석 시작하기'; }
+          if (res.status === 402 || !res.ok) {
+            var msg = (res.payload && res.payload.message) || '';
+            if (window.confirm('🐷 황금 돼지 코인이 부족해요!\n궁합 분석에는 추가 100코인이 필요합니다.\n\n' + msg + '\n\n충전 창을 여시겠습니까?')) {
+              if (typeof window.openChargeModal === 'function') window.openChargeModal();
+            }
+            return;
+          }
+          /* 코인 차감 성공 → 궁합 포함 생성 시작 */
+          var partnerData = _collectPartnerScreenData();
+          _startGeneration(partnerData);
+        })
+        .catch(function (err) {
+          if (startBtn) { startBtn.disabled = false; startBtn.textContent = '💑 두 사람의 궁합 포함 분석 시작하기'; }
+          window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.\n' + String(err && err.message ? err.message : err));
+        });
+    })();
   };
 
   window.lsSkipPartner = function () {
