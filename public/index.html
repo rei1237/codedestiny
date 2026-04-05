@@ -1045,24 +1045,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 </div>
 
 <div class="wrap">
-  <!-- 테마 토글 스위치 -->
+  <!-- 테마 토글 스위치 → body 직하위로 이동 (contain:layout 영향 회피) -->
   <!-- Divine Focus Overlay -->
 <div class="tarot-focus-overlay" id="tarotFocusOverlay" data-action="exitDivineFocus"></div>
-
-<div class="theme-switch-wrapper">
-  <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline">
-      <input type="checkbox" id="themeCheckbox" />
-      <div class="slider">
-        <span class="nose-hole hole-left"></span>
-        <span class="nose-hole hole-right"></span>
-        <span class="paw-pad pad-1"></span>
-        <span class="paw-pad pad-2"></span>
-        <span class="paw-pad pad-3"></span>
-        <span class="paw-pad pad-4"></span>
-      </div>
-    </label>
-  </div>
 
   <!-- ═══ 입력 페이지 (SEO: Main Content) ═══ -->
   <main id="inputPage" role="main">
@@ -6768,5 +6753,20 @@ if (document.readyState === 'loading') {
   window.addEventListener('resize', updateA4PageCount);
 })();
 </script>
+<!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
+<div class="theme-switch-wrapper">
+  <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
+    <label class="theme-switch theme-switch-inline">
+      <input type="checkbox" id="themeCheckbox" />
+      <div class="slider">
+        <span class="nose-hole hole-left"></span>
+        <span class="nose-hole hole-right"></span>
+        <span class="paw-pad pad-1"></span>
+        <span class="paw-pad pad-2"></span>
+        <span class="paw-pad pad-3"></span>
+        <span class="paw-pad pad-4"></span>
+      </div>
+    </label>
+  </div>
 </body>
 </html>
