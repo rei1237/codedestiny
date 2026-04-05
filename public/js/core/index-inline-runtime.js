@@ -908,6 +908,7 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
+  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   calculate: function() { return __cdEnsureSajuCoreLoaded(); },
