@@ -548,6 +548,14 @@
 
     _showScreen('lbLoadingScreen');
 
+    // requestAnimationFrame으로 로딩 화면 CSS 애니메이션이 확실히 렌더링되도록 보장
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        var loadingEl = _qs('lbLoadingScreen');
+        if (loadingEl) loadingEl.style.display = '';  // CSS flex 재적용
+      });
+    });
+
     var progressBar = _qs('lbProgressBar');
     var progressText = _qs('lbProgressText');
     var chapterMsg = _qs('lbLoadingChapter');

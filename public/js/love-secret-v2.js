@@ -495,7 +495,7 @@
     });
   }
 
-
+  function _showScreen(id) {
     var screens = ['lsStartScreen', 'lsPartnerScreen', 'lsLoadingScreen', 'lsResultScreen', 'lsErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
