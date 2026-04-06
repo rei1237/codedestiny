@@ -749,7 +749,7 @@ router.post("/security/allowed-ip", requireAuth, requireAdmin, async (req, res) 
 });
 
 // -------------------------------------------------------------------------
-// 황금 돼지 코인 지급/차감 API
+// 꽃꽃돼지 코인 지급/차감 API
 // -------------------------------------------------------------------------
 router.post("/members/points", requireAuth, requireAdmin, async (req, res, next) => {
   try {

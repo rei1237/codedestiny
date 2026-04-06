@@ -74,13 +74,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const mergedRoutes = [...ROUTES, ...getAutoIndexedSajuAndPsychRoutes()];
 
   for (const route of mergedRoutes) {
-    addLocalizedEntries(
-      entriesByUrl,
-      route.path,
-      route.changeFrequency,
-      route.priority ?? 0.7,
-      now,
-    );
+    if (route.noLocale) {
+      // .html 정적 파일 등 locale prefix 불필요 경로 — 루트 URL만 추가
+      const url = new URL(route.path, BASE_URL).toString();
+      if (!entriesByUrl.has(url)) {
+        entriesByUrl.set(url, {
+          url,
+          lastModified: now,
+          changeFrequency: route.changeFrequency,
+          priority: route.priority ?? 0.7,
+        });
+      }
+    } else {
+      addLocalizedEntries(
+        entriesByUrl,
+        route.path,
+        route.changeFrequency,
+        route.priority ?? 0.7,
+        now,
+      );
+    }
   }
 
   for (const article of INSIGHT_ARTICLES) {

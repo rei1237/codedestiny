@@ -118,15 +118,15 @@
       </main>
     </div>
 
-    <!-- 황금 돼지 코인 지급 모달 -->
-    <div id="coinModal" class="coin-modal-backdrop" role="dialog" aria-modal="true" aria-label="황금 돼지 코인 지급">
+    <!-- 꽃꽃돼지 코인 지급 모달 -->
+    <div id="coinModal" class="coin-modal-backdrop" role="dialog" aria-modal="true" aria-label="꽃꽃돼지 코인 지급">
       <div class="coin-modal">
-        <h2>🐷 황금 돼지 코인 지급</h2>
+        <h2>🐷 꽃꽃돼지 코인 지급</h2>
         <div class="coin-meta" id="coinModalMeta">-</div>
         <label>코인 수량 <span style="color:#64748b;">(음수 입력 시 차감)</span></label>
         <input id="coinAmount" type="number" placeholder="예: 100 (지급) 또는 -50 (차감)" />
         <label>지급 사유</label>
-        <input id="coinReason" type="text" value="관리자 황금 돼지 코인 지급" />
+        <input id="coinReason" type="text" value="관리자 꽃꽃돼지 코인 지급" />
         <div id="coinModalError" class="coin-modal-error" style="display:none;"></div>
         <div class="coin-modal-actions">
           <button id="coinModalConfirm" type="button" class="cd-btn" style="background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.5);color:#fde68a;">🐷 지급</button>
@@ -154,7 +154,7 @@
         _coinTargetUser = user;
         coinModalMeta.innerHTML = `<strong style="color:#f1f5f9;">${user.name}</strong> <span style="color:#64748b;">(${user.email})</span><br>현재 잔액: <strong style="color:#fbbf24;">${Number(user.points||0).toLocaleString("ko-KR")} 코인</strong>`;
         coinAmount.value = "";
-        coinReason.value = "관리자 황금 돼지 코인 지급";
+        coinReason.value = "관리자 꽃꽃돼지 코인 지급";
         coinModalError.style.display = "none";
         coinModalError.textContent = "";
         coinModal.classList.add("is-open");
@@ -177,7 +177,7 @@
           coinModalError.style.display = "block";
           return;
         }
-        const reason = (coinReason.value || "관리자 황금 돼지 코인 지급").trim();
+        const reason = (coinReason.value || "관리자 꽃꽃돼지 코인 지급").trim();
         coinModalConfirm.disabled = true;
         coinModalConfirm.textContent = "처리 중...";
         coinModalError.style.display = "none";

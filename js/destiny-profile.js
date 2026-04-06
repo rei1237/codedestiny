@@ -211,9 +211,9 @@
         inFlight = false;
         if (res.status === 402) {
           if (typeof window.__cdOpenChargeModal === 'function') {
-            window.alert('황금 돼지 코인이 부족해요. 충전 창을 열겠습니다.');
+            window.alert('꽃꽃돼지 코인이 부족해요. 충전 창을 열겠습니다.');
             window.__cdOpenChargeModal();
-          } else if (window.confirm('황금 돼지 코인이 부족해요. 충전 페이지로 이동하시겠습니까?')) {
+          } else if (window.confirm('꽃꽃돼지 코인이 부족해요. 충전 페이지로 이동하시겠습니까?')) {
             window.location.href = '/points';
           }
           return;

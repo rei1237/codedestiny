@@ -83,7 +83,7 @@ router.get("/pig-coin/balance", async (req, res, next) => {
     }
 
     return res.status(200).json({
-      message: "황금 돼지 코인 잔액을 불러왔습니다.",
+      message: "꽃꽃돼지 코인 잔액을 불러왔습니다.",
       user: {
         id: String(req.auth.userId),
         points: Number(user.points || 0),
@@ -98,7 +98,7 @@ router.post("/pig-coin/charge-simulate", async (req, res, next) => {
   try {
     if (process.env.PIG_COIN_PAYMENT_API_READY !== "true") {
       return res.status(503).json({
-        message: "실제 결제 API 준비 중입니다. 현재는 황금 돼지 코인 충전이 비활성화되어 있습니다.",
+        message: "실제 결제 API 준비 중입니다. 현재는 꽃꽃돼지 코인 충전이 비활성화되어 있습니다.",
         code: "PIG_COIN_CHARGE_DISABLED",
       });
     }
@@ -130,7 +130,7 @@ router.post("/pig-coin/charge-simulate", async (req, res, next) => {
       kind: "charge",
       delta,
       balanceAfter: Number(updatedUser.points || 0),
-      reason: "황금 돼지 코인 충전(결제 API 연동 전 시뮬레이션)",
+      reason: "꽃꽃돼지 코인 충전(결제 API 연동 전 시뮬레이션)",
       featureKey: "pig-coin-charge",
       metadata: {
         source: "fortune.pig-coin.charge-simulate",

@@ -1,0 +1,129 @@
+﻿   ??Next.js 15.5.12
+   - Environments: .env
+   - Experiments (use with caution):
+     쨌 optimizePackageImports
+
+   Creating an optimized production build ...
+ ??Compiled successfully in 14.3s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/179) ...
+   Generating static pages (44/179) 
+   Generating static pages (89/179) 
+   Generating static pages (134/179) 
+ ??Generating static pages (179/179)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                             Size  First Load JS  Revalidate  Expire
+??? /                                                42.2 kB         239 kB
+??? /_not-found                                        286 B         102 kB
+??? /[adminHash]                                       286 B         102 kB
+??? /[adminHash]/[mode]                                55 kB         216 kB
+??? /[adminHash]/api/[...path]                         286 B         102 kB
+??? /[adminHash]/assets/[...path]                      286 B         102 kB
+??? /[adminHash]/content                               286 B         102 kB
+??? /[adminHash]/dashboard                             286 B         102 kB
+??? /[adminHash]/login                                 286 B         102 kB
+??? /[adminHash]/members                               286 B         102 kB
+??? /[adminHash]/revenue                               286 B         102 kB
+??? /[adminHash]/security                              286 B         102 kB
+??? /[adminHash]/settings                              286 B         102 kB
+??? /about                                             286 B         102 kB
+??? /admin                                             52 kB         249 kB
+??? /api/admin/auth/csrf                               286 B         102 kB
+??? /api/admin/auth/login                              286 B         102 kB
+??? /api/admin/auth/logout                             286 B         102 kB
+??? /api/admin/auth/me                                 286 B         102 kB
+??? /api/admin/coin-history                            286 B         102 kB
+??? /api/admin/content                                 286 B         102 kB
+??? /api/admin/content/[id]                            286 B         102 kB
+??? /api/admin/diag                                    286 B         102 kB
+??? /api/admin/entry/password                          286 B         102 kB
+??? /api/admin/fortune-stats                           286 B         102 kB
+??? /api/admin/members                                 286 B         102 kB
+??? /api/admin/members/[id]                            286 B         102 kB
+??? /api/admin/members/[id]/ban                        286 B         102 kB
+??? /api/admin/members/[id]/role                       286 B         102 kB
+??? /api/admin/members/points                          286 B         102 kB
+??? /api/admin/ping                                    286 B         102 kB
+??? /api/admin/promote-email                           286 B         102 kB
+??? /api/admin/settings                                286 B         102 kB
+??? /api/admin/stats                                   286 B         102 kB
+??? /api/admin/users                                   286 B         102 kB
+??? /api/admin/users/[id]                              286 B         102 kB
+??? /api/auth/[...path]                                286 B         102 kB
+??? /api/dev/status                                    286 B         102 kB
+??? /api/dream/psycho-analysis                         286 B         102 kB
+??? /api/geo                                           286 B         102 kB
+??? /api/guardian-avatar                               286 B         102 kB
+??? /api/lifebook/session                              286 B         102 kB
+??? /api/love-saju-pillar                              286 B         102 kB
+??? /api/love-secret/session                           286 B         102 kB
+??? /api/oracle/geomancy                               286 B         102 kB
+??? /api/premium/ziwei-life                            286 B         102 kB
+??? /api/saju-animal                                   286 B         102 kB
+??? /api/subscriptions/daily-fortune                   286 B         102 kB
+??? /api/subscriptions/daily-fortune/unsubscribe       286 B         102 kB
+??? /api/tarot/card-image/[cardId]                     286 B         102 kB
+??? /api/tarot/draw                                    286 B         102 kB
+??? /api/tarot/meta                                    286 B         102 kB
+??? /api/tarot/reading                                 286 B         102 kB
+??? /api/vedic/planets                                 286 B         102 kB
+??? /api/yoga-guru                                     286 B         102 kB
+??? /api/youtube/sats-playlist                         286 B         102 kB
+??? /astrology/cosmic                                  307 B         113 kB
+??? /contact-us                                        286 B         102 kB
+??? /de-de                                             532 B         103 kB
+??? /dev-status                                      1.72 kB         104 kB
+??? /en-us                                             532 B         103 kB
+??? /es-es                                             532 B         103 kB
+??? /faq                                               286 B         102 kB
+??? /fr-fr                                             532 B         103 kB
+??? /hi-in                                             532 B         103 kB
+????/insights                                         123 kB         228 kB
+????/insights/[slug]                                 3.89 kB         128 kB
+??  ??/insights/saju-four-pillars-basics
+??  ??/insights/ten-heavenly-stems-practical
+??  ??/insights/twelve-earthly-branches-and-seasons
+??  ??[+99 more paths]
+??? /ja-jp                                             532 B         103 kB
+??? /login                                           5.26 kB         111 kB
+??? /ms-my                                             532 B         103 kB
+??? /nl-nl                                             532 B         103 kB
+??? /olympus                                         1.29 kB         103 kB
+??? /oracle/hwatu-life                                 307 B         113 kB
+??? /oracle/hwatu-life/play                          6.69 kB         149 kB
+??? /oracle/royal-tea                                  307 B         113 kB
+??? /oracle/sikojen-povailu                            307 B         113 kB
+??? /oracle/sikojen-povailu/play                     14.3 kB         122 kB
+??? /points                                          11.9 kB         117 kB
+??? /privacy-policy                                    286 B         102 kB
+????/robots.txt                                        286 B         102 kB
+????/rss.xml                                           286 B         102 kB          1h      1y
+??? /saju-picture                                    5.91 kB         113 kB
+??? /saju/basic                                        307 B         113 kB
+??? /saju/basic/play                                   170 B         106 kB
+??? /saju/love-simulation                             1.4 kB         103 kB
+??? /signup                                          5.99 kB         111 kB
+????/sitemap.xml                                       286 B         102 kB
+??? /tarot/healing                                     307 B         113 kB
+??? /tarot/love                                        307 B         113 kB
+??? /tarot/mingri                                      307 B         113 kB
+??? /tarot/mingri/play                               2.87 kB         110 kB
+??? /terms-of-service                                  286 B         102 kB
+??? /zh-cn                                             532 B         103 kB
+??? /ziwei/chart                                       307 B         113 kB
++ First Load JS shared by all                         102 kB
+  ??chunks/1255-ad409e5887c155b0.js                  45.7 kB
+  ??chunks/4bd1b696-100b9d70ed4e49c1.js              54.2 kB
+  ??other shared chunks (total)                      2.13 kB
+
+
+? Middleware                                         34.5 kB
+
+?? (Static)   prerendered as static content
+?? (SSG)      prerendered as static HTML (uses generateStaticParams)
+?  (Dynamic)  server-rendered on demand
+

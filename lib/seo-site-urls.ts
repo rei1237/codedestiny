@@ -26,6 +26,8 @@ export type SitemapRouteEntry = {
     | "yearly"
     | "never";
   priority?: number;
+  /** true면 locale prefix를 붙이지 않음 (정적 HTML 파일 등 단일 언어 전용 경로) */
+  noLocale?: boolean;
 };
 
 export const ROUTES: SitemapRouteEntry[] = [
@@ -38,10 +40,10 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/tarot/mingri", changeFrequency: "weekly", priority: 0.88 },
   { path: "/tarot/love", changeFrequency: "weekly", priority: 0.86 },
   { path: "/tarot/healing", changeFrequency: "weekly", priority: 0.86 },
-  { path: "/geomancy-oracle-v4.html", changeFrequency: "weekly", priority: 0.84 },
+  { path: "/geomancy-oracle-v4.html", changeFrequency: "weekly", priority: 0.84, noLocale: true },
   { path: "/oracle/hwatu-life", changeFrequency: "weekly", priority: 0.81 },
   { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.80 },
-  { path: "/royal-tea-oracle.html", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/royal-tea-oracle.html", changeFrequency: "weekly", priority: 0.8, noLocale: true },
   { path: "/saju-picture", changeFrequency: "weekly", priority: 0.8 },
   { path: "/insights/saju-four-pillars-basics", changeFrequency: "monthly", priority: 0.75 },
   { path: "/insights/ten-heavenly-stems-practical", changeFrequency: "monthly", priority: 0.75 },
@@ -67,7 +69,8 @@ export const ROUTES: SitemapRouteEntry[] = [
 export function getAllSitemapUrls(): string[] {
   const urls: string[] = [];
   for (const route of ROUTES) {
-    for (const prefix of LOCALE_PREFIXES) {
+    const prefixes = route.noLocale ? [""] : LOCALE_PREFIXES;
+    for (const prefix of prefixes) {
       const localizedPath = prefix
         ? `${prefix}${route.path === "/" ? "" : route.path}`
         : route.path;

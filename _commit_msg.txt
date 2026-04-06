@@ -1,0 +1,15 @@
+fix(lifebook): 상세 페이지를 코인 결제 이전에 표시 + 생성하기 버그 수정
+
+- [핵심 버그] lbStartScreen div 미닫힘으로 lbLoadingScreen 등이 내부에 중첩되는 HTML 구조 결함 수정
+  생성하기 클릭 시 lbStartScreen을 숨기면 자식인 로딩화면도 함께 숨겨져 생성이 진행 안되는 치명적 버그
+  → </div><!-- /lbStartScreen --> 추가로 형제 구조로 정상화
+
+- [UX] 상세 페이지(모달)를 코인 결제 이전에 표시
+  lifebook-tile의 data-coin-cost="490" 제거 → 타일 클릭 시 프리뷰 패널 → CTA → 모달 직접 오픈
+  코인 게이트를 lbGenerateBtn(나의 인생의 책 생성하기)으로 이동
+
+- [재발 방지] life-book.js에 openLifeBookModal 액션 핸들러 추가
+  generateLifeBook 버튼에 숨김 .tarot-tile__title 스팬으로 확인 다이얼로그 제목 표시
+
+- public/index.html + root index.html + 모든 locale 파일(zh-cn,nl-nl,ms-my,ja-jp,es-es,en-us,hi-in,de-de,fr-fr,static) 동시 반영
+- public/js/life-book.js + js/life-book.js 동시 반영

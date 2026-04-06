@@ -31,7 +31,7 @@ export async function POST(request) {
 
     const userId = String(body?.userId || "").trim();
     const delta = Number(body?.delta ?? body?.amount ?? 0);
-    const reason = String(body?.reason || "관리자 황금 돼지 코인 지급").trim().slice(0, 200);
+    const reason = String(body?.reason || "관리자 꽃꽃돼지 코인 지급").trim().slice(0, 200);
 
     if (!userId) return json({ message: "userId가 필요합니다." }, 400);
     if (!Number.isFinite(delta) || delta === 0) return json({ message: "유효한 코인 수량을 입력해 주세요." }, 400);

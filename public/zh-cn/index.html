@@ -4801,7 +4801,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       return;
     }
 
-    var confirmed = window.confirm('황금 돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
+    var confirmed = window.confirm('꽃꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
     if (consumeInFlight) return;
@@ -4817,7 +4817,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       });
 
       if (result.status === 402) {
-        window.alert('황금 돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+        window.alert('꽃꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
         openChargeModal();
         return;
       }
@@ -4908,7 +4908,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
       } catch (_subErr) {}
       if (userBalance < tileCoinCost) {
-        if (window.confirm('황금 돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
+        if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
           openChargeModal();
         }
         return;
@@ -5028,7 +5028,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         var fname = titleEl ? titleEl.textContent.trim() : '서비스';
         if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
         if (userBalance < tileLockCost) {
-          if (window.confirm('황금 돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
+          if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
             openChargeModal();
           }
           return;

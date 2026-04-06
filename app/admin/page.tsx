@@ -524,7 +524,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
   const [searchInput, setSearchInput] = useState("");
   const [searchKw, setSearchKw] = useState("");
   const [detail, setDetail] = useState<DetailModal>({ user: null, history: [], loading: false });
-  const [coin, setCoin] = useState<CoinModal>({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" });
+  const [coin, setCoin] = useState<CoinModal>({ user: null, amount: "", reason: "관리자 꽃꽃돼지 코인 지급", loading: false, error: "" });
   const [ban, setBan] = useState<BanModal>({ user: null, reason: "", loading: false });
   const [roleModal, setRoleModal] = useState<RoleModal>({ user: null, loading: false });
 
@@ -625,7 +625,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
       setUsers(prev => prev.map(u => u._id === user._id ? { ...u, points: newPoints } : u));
       if (detail.user?._id === user._id) setDetail(p => ({ ...p, user: p.user ? { ...p.user, points: newPoints } : null }));
       toast(`${user.name}님에게 ${delta > 0 ? "+" : ""}${fmtNum(delta)} 코인 ${delta > 0 ? "지급" : "차감"} 완료`, "success");
-      setCoin({ user: null, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" });
+      setCoin({ user: null, amount: "", reason: "관리자 꽃꽃돼지 코인 지급", loading: false, error: "" });
     } catch (e) { setCoin(p => ({ ...p, error: e instanceof Error ? e.message : "요청 오류", loading: false })); }
   };
 
@@ -685,7 +685,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
                   <td className="px-4 py-3 text-right font-semibold text-amber-300">{fmtNum(u.points)}</td>
                   <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-1.5">
-                      <button onClick={() => setCoin({ user: u, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" })}
+                      <button onClick={() => setCoin({ user: u, amount: "", reason: "관리자 꽃꽃돼지 코인 지급", loading: false, error: "" })}
                         className="rounded-lg border border-amber-400/40 bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/25">🐷 코인</button>
                       <button onClick={() => setBan({ user: u, reason: "", loading: false })}
                         className={`rounded-lg border px-2.5 py-1 text-xs font-semibold ${u.status === "banned" ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20" : "border-orange-400/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"}`}>
@@ -786,7 +786,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
                 }`}>
                 {detail.user.role === "admin" ? "👤 관리자 해제" : "👑 관리자 설정"}
               </button>
-              <button onClick={() => { setCoin({ user: detail.user!, amount: "", reason: "관리자 황금 돼지 코인 지급", loading: false, error: "" }); setDetail({ user: null, history: [], loading: false }); }}
+              <button onClick={() => { setCoin({ user: detail.user!, amount: "", reason: "관리자 꽃꽃돼지 코인 지급", loading: false, error: "" }); setDetail({ user: null, history: [], loading: false }); }}
                 className="flex-1 rounded-xl border border-amber-400/45 bg-amber-500/20 py-2.5 text-sm font-bold text-amber-200 hover:bg-amber-500/30">🐷 코인 지급/차감</button>
               <button onClick={() => { setBan({ user: detail.user!, reason: "", loading: false }); setDetail({ user: null, history: [], loading: false }); }}
                 className={`rounded-xl border px-4 py-2.5 text-sm font-bold ${detail.user.status === "banned" ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20" : "border-orange-400/40 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20"}`}>
@@ -862,7 +862,7 @@ function MembersTab({ token, toast }: { token: string; toast: (msg: string, type
           <div className="w-full max-w-sm rounded-2xl border border-amber-400/30 bg-slate-950 p-6" onClick={e => e.stopPropagation()}>
             <div className="mb-4 flex items-center gap-2">
               <span className="text-2xl">🐷</span>
-              <div><h2 className="text-base font-bold text-amber-300">황금 돼지 코인</h2><p className="text-xs text-slate-400">{coin.user.name} ({coin.user.email})</p></div>
+              <div><h2 className="text-base font-bold text-amber-300">꽃꽃돼지 코인</h2><p className="text-xs text-slate-400">{coin.user.name} ({coin.user.email})</p></div>
             </div>
             <p className="mb-4 text-sm text-slate-300">현재 잔액: <span className="font-bold text-amber-300">{fmtNum(coin.user.points)} 코인</span></p>
             <div className="space-y-3 mb-4">
@@ -914,7 +914,7 @@ function CoinGrantTab({ token, toast }: { token: string; toast: (msg: string, ty
   const [searchErr, setSearchErr] = useState("");
   const [selected, setSelected] = useState<AdminUser | null>(null);
   const [amount, setAmount] = useState("");
-  const [reason, setReason] = useState("관리자 황금 돼지 코인 지급");
+  const [reason, setReason] = useState("관리자 꽃꽃돼지 코인 지급");
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
   const [history, setHistory] = useState<PointHistory[]>([]);
