@@ -5,10 +5,11 @@
  * HMAC-SHA256 서명 + 만료 시간 검증으로 위·변조 방지.
  * 환경변수 FLOWER_ADMIN_SECRET 을 반드시 Cloudflare Pages에 설정해야 한다.
  *
- * ★ node:crypto 는 Cloudflare Workers 런타임에서 nodejs_compat 플래그 없이
- *   임포트하면 Error 1101(Worker threw exception)을 유발하므로 사용 금지.
- *   Web Crypto API(globalThis.crypto.subtle)는 Cloudflare Workers / Node.js 18+
- *   모두에서 기본 제공되므로 이쪽만 사용한다.
+ * ★ 런타임 우선순위:
+ *   1) node:crypto createHmac  — nodejs_compat가 활성화된 CF Workers / Node.js 18+ 모두 안정
+ *   2) Web Crypto API (globalThis.crypto.subtle) — 폴백
+ *   node:crypto를 1순위로 쓰면 globalThis.crypto.subtle 가용성 흔들림에 의한
+ *   Error 1101 (Worker threw exception)을 방지할 수 있다.
  */
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60; // 8시간
@@ -17,19 +18,15 @@ function getSecret() {
   return String(process.env.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
 }
 
-/** Web Crypto subtle — Cloudflare Workers(global crypto) 및 Node.js 18+ 모두 대응 */
-function getSubtle() {
+/** Web Crypto subtle — 폴백용 */
+function _getSubtle() {
   if (globalThis?.crypto?.subtle) return globalThis.crypto.subtle;
-  // Bare "crypto" global — Cloudflare Workers 환경
   if (typeof crypto !== "undefined" && crypto?.subtle) return crypto.subtle;
-  throw new Error("Web Crypto API(crypto.subtle)가 현재 런타임에서 사용 불가합니다.");
+  return null;
 }
 
 /**
  * base64url 인코더/디코더 (Buffer-free)
- * CF Workers Buffer 폴리필은 "base64url" 인코딩을 완벽히 지원하지 않을 수 있으므로
- * btoa/atob(Web API 표준) 기반 구현으로 대체.
- * payload는 JSON.stringify 결과 → ASCII 범위이므로 btoa 안전.
  */
 function _b64uEncode(asciiStr) {
   return btoa(asciiStr)
@@ -44,8 +41,21 @@ function _b64uDecode(b64u) {
   return atob(b64 + "=".repeat(padding));
 }
 
+/**
+ * HMAC-SHA256 hex — node:crypto 우선, Web Crypto 폴백
+ * nodejs_compat가 활성화된 CF Workers / Node.js 18+ 모두 안정적으로 동작.
+ */
 async function hmacSha256Hex(data, secretStr) {
-  const subtle = getSubtle();
+  // 1순위: node:crypto (nodejs_compat CF Workers + Node.js 18+)
+  try {
+    const { createHmac } = await import("node:crypto");
+    return createHmac("sha256", secretStr).update(data).digest("hex");
+  } catch {
+    // node:crypto 사용 불가 → Web Crypto 폴백
+  }
+  // 2순위: Web Crypto API
+  const subtle = _getSubtle();
+  if (!subtle) throw new Error("HMAC 서명에 사용할 수 있는 Crypto API가 없습니다. (node:crypto 및 Web Crypto 모두 사용 불가)");
   const key = await subtle.importKey(
     "raw",
     new TextEncoder().encode(secretStr),

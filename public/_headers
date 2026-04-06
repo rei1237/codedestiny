@@ -100,6 +100,43 @@
 
 /*.html
   Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+# ─── fortune 정적 운세 HTML — SEO 명시적 허용 ────────────────
+# NOTE: Cloudflare Pages _headers의 * 는 / 경계를 넘지 않으므로
+#       depth별 규칙을 모두 선언합니다.
+# /fortune/today/rat.html (depth 2)
+/fortune/*
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+/fortune/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+# /fortune/today/rat.html, /fortune/weekly/rat.html (depth 2 sub-dir)
+/fortune/*/*
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+/fortune/*/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+# /fortune/today/sukuyo/1.html (depth 3)
+/fortune/*/*/*
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
+  X-Content-Type-Options: nosniff
+
+/fortune/*/*/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow
   X-Content-Type-Options: nosniff
 
 # ─── API 응답 — 캐시 없음 ─────────────────────────────────────

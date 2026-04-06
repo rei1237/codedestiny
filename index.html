@@ -5321,6 +5321,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           }
           return;
         }
+        // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
+        try {
+          if (isAdminUser()) {
+            unlockedFeatureMap[tileLockKey] = true;
+            saveTileLocks();
+            applyTileLockVisuals();
+            sessionStorage.setItem('cd_pa_' + action, '1');
+            _cdInvokeActionDirect(action, actionNode);
+            return;
+          }
+        } catch (_adminLockErr) {}
         // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
         try {
           var _lockSubUser = readAuthUser();
