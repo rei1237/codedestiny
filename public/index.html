@@ -1857,7 +1857,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         data-tile-lock-key="ziwei-fc"
                         data-tile-lock-cost="400"
                         aria-label="자미두수 명반 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamipremiun.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
@@ -2083,22 +2083,21 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           </style>
           <div class="prem-fortune-grid">
 
-            <!-- ── 카드 1: H 프리미엄 자미두수 (590코인 영구 해금) ── -->
+            <!-- ── 카드 1: H 프리미엄 자미두수 (1회 590코인) ── -->
             <a href="/ziwei/chart"
                data-action="gotoZiweiPremium"
-               data-tile-lock-key="ziwei-premium"
-               data-tile-lock-cost="590"
+               data-coin-cost="590"
                class="prem-card prem-card--ziwei"
                style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(10,6,30,0.65);border:1.5px solid rgba(167,139,250,0.35);box-shadow:0 4px 24px rgba(99,102,241,0.15);text-decoration:none;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
                onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(99,102,241,0.28)'"
                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(99,102,241,0.15)'"
-               aria-label="H 프리미엄 자미두수 인생 총론 — 590코인으로 해금">
+               aria-label="H 프리미엄 자미두수 인생 총론 — 1회 590코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/jami.webp" alt="H 프리미엄 자미두수"
+                <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
                      style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span style="position:absolute;top:10px;right:10px;background:rgba(30,20,60,0.88);color:rgba(251,191,36,1);font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(251,191,36,0.4);">🔒 590코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 590코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(167,139,250,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · Ziwei Premium</p>
@@ -2112,6 +2111,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
             <!-- ── 카드 2: 인생의 책 (490코인 1회) ── -->
             <button type="button"
+                    class="prem-card prem-card--lifebook"
                     data-action="openLifeBookModal"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(4,18,8,0.65);border:1.5px solid rgba(52,211,153,0.35);box-shadow:0 4px 24px rgba(16,185,129,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(16,185,129,0.28)'"
@@ -2122,7 +2122,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                      style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(4,18,8,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(16,185,129,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span style="position:absolute;top:10px;right:10px;background:rgba(10,30,18,0.88);color:rgba(110,231,183,1);font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);">🪙 490코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 490코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(110,231,183,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">생애 서사 · Life Story</p>
@@ -2136,6 +2136,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
             <!-- ── 카드 3: 연애 비책 (290코인 1회) ── -->
             <button type="button"
+                    class="prem-card prem-card--lovesecret"
                     data-action="openLoveSecretModal"
                     data-coin-cost="290"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(30,4,18,0.65);border:1.5px solid rgba(244,114,182,0.35);box-shadow:0 4px 24px rgba(236,72,153,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
@@ -2147,7 +2148,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                      style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(30,4,18,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(236,72,153,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span style="position:absolute;top:10px;right:10px;background:rgba(30,10,18,0.88);color:rgba(249,168,212,1);font-size:0.6rem;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid rgba(244,114,182,0.4);">🪙 290코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 290코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(249,168,212,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">연애 전략 · Love Strategy</p>
@@ -5660,6 +5661,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 (function(){
   'use strict';
   var D={
+    gotoZiweiPremium:{cat:'자미두수 · Ziwei Premium',title:'🌌 H 프리미엄 자미두수 인생 총론',tagline:'중국 황실 비전의 자미두수 명반 완전판 — 12궁 완전 분석으로 당신의 평생 운명 지도를 완성하고 대운 시나리오까지 제시합니다',feats:['12궁 완전 분석 · 명궁·재백궁·관록궁 심층 해독','상하관계 처세술 · 사람을 다루는 지혜 전략','평생 마스터플랜 카드 · 대운·세운 시나리오 제시','1회 590코인 차감 후 심층 분석 결과 제공'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
@@ -5687,10 +5689,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
     '/oracle/sikojen-povailu':{cat:'핀란드 주석점',title:'🐷 핀란드 돼지 주석점',tagline:'녹인 주석을 물에 던지는 순간 올해 운명이 보입니다 — 핀란드 전통 새해 점술을 지금 체험하세요',feats:['핀란드 정통 주석점 의식 시뮬레이션 완전 구현','주석 형태 상징 20가지 즉석 해석','돼지 마스코트 연이와 함께하는 귀여운 운세 리딩','행운·사랑·재물 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fortune/sikojen-povailu/images/piggyfortune.webp'},
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
+    openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'10년 후 내 인생이 어떻게 될지 지금 미리 볼 수 있습니다 — 돈이 들어오는 해와 조심해야 할 해를 미리 아는 것',feats:['사주 팔자 8글자로 평생 운세 흐름 완전 분석','대운 10년 단위로 기회의 해 & 위기의 해 미리 파악','재물이 크게 들어오는 시기 & 피해야 할 시기 정확히 계산','평생 간직할 PDF 저장 가능 프리미엄 리포트'],cost:'🪙 490코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
     openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🪙 100코인',ct:'paid',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jumsung.webp'},
-    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami.webp'},
+    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };
@@ -5814,14 +5817,15 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     _close();
     if(!tile)return;
     var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
-    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0){window.location.href=href;return;}
+    var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
+    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
   }
 
   document.addEventListener('click',function(e){
-    var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile');
+    var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;

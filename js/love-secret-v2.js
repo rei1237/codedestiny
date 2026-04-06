@@ -418,8 +418,50 @@
     if (!modal) return;
     var profile = window.__cdActiveBirthProfile;
     var hasData = !!(profile && profile.birth && profile.birth.year);
+    // ★ 프로필 없으면 DOM 및 localStorage 운명 카드에서 복구 시도
     if (!hasData) {
-      alert('💕 연애 비책을 생성하려면 먼저 사주 계산을 완료해 주세요.\n생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      // DOM 복구
+      try {
+        var _lsDateEl = document.getElementById('birthDate');
+        if (_lsDateEl && _lsDateEl.value) {
+          var _lsParts = _lsDateEl.value.split('-');
+          var _lsY = Number(_lsParts[0]), _lsM = Number(_lsParts[1]), _lsD = Number(_lsParts[2]);
+          if (_lsY && _lsM && _lsD) {
+            var _lsNameEl = document.getElementById('nameInput');
+            var _lsIsFemale = document.querySelector('#btnF.on') !== null;
+            var _lsHourEl = document.getElementById('birthHour');
+            var _lsMinEl = document.getElementById('birthMinute');
+            var _lsCountrySel = document.getElementById('birthCountry');
+            var _lsLocData = { label: '대한민국 (서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+            if (_lsCountrySel && _lsCountrySel.selectedIndex >= 0) {
+              var _lsOpt = _lsCountrySel.options[_lsCountrySel.selectedIndex];
+              if (_lsOpt) { _lsLocData = { label: (_lsOpt.textContent || _lsOpt.text || '').trim(), lng: parseFloat(_lsOpt.getAttribute('data-long') || '127.0'), lat: parseFloat(_lsOpt.getAttribute('data-lat') || '37.6'), tz: _lsOpt.value || 'Asia/Seoul', tzOffset: parseFloat(_lsOpt.getAttribute('data-tz') || '9'), baseTzOffset: parseFloat(_lsOpt.getAttribute('data-base-tz') || '9') }; }
+            }
+            profile = { name: (_lsNameEl && _lsNameEl.value.trim()) || '사용자', gender: _lsIsFemale ? 'F' : 'M', birth: { year: _lsY, month: _lsM, day: _lsD, hour: _lsHourEl ? Number(_lsHourEl.value) : 12, minute: _lsMinEl ? Number(_lsMinEl.value) : 0 }, location: _lsLocData };
+            window.__cdActiveBirthProfile = profile;
+            hasData = true;
+          }
+        }
+      } catch (_lsDomE) {}
+    }
+    if (!hasData) {
+      // localStorage 운명 카드에서 복구
+      try {
+        var _lsDpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _lsDpList = JSON.parse(localStorage.getItem(_lsDpNs + '.list') || '[]');
+        var _lsDpCurrId = localStorage.getItem(_lsDpNs + '.current');
+        var _lsDpMatch = (_lsDpCurrId && _lsDpList.find(function(p){return p.id===_lsDpCurrId;})) || (_lsDpList.length && _lsDpList[0]) || null;
+        if (_lsDpMatch && _lsDpMatch.birth && _lsDpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _lsDpMatch;
+          profile = _lsDpMatch;
+          hasData = true;
+        }
+      } catch (_lsDpE) {}
+    }
+    if (!hasData) {
+      var _lsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      if (_lsFormEl) { try { _lsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+      alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
 

@@ -511,8 +511,24 @@
     }
 
     var profile = _getActiveBirthProfile();
+    // ★ 프로필 없으면 localStorage 운명 카드(Destiny Profile)에서 복구 시도
     if (!profile) {
-      alert('📜 인생의 책을 생성하려면 먼저 사주 계산을 완료해 주세요.\n생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      try {
+        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
+        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
+        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
+        var _dpMatch = (_dpCurrId && _dpList.find(function(p){return p.id===_dpCurrId;})) || (_dpList.length && _dpList[0]) || null;
+        if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
+          window.__cdActiveBirthProfile = _dpMatch;
+          profile = _dpMatch;
+        }
+      } catch (_dpE) {}
+    }
+    if (!profile) {
+      // 입력 폼으로 스크롤 유도
+      var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+      alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
       return;
     }
 

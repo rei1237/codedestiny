@@ -5381,7 +5381,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   document.addEventListener('click',function(e){
-    var tile=e.target.closest('.tarot-tile,.lifebook-tile');
+    var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
