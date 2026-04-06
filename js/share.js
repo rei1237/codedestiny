@@ -669,6 +669,13 @@ function setThemeToggleEnabled(enabled){
     wrap.classList.toggle('theme-toggle-active', !!enabled);
     wrap.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     wrap.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+    // 데스크탑에서 enforceThemeToggleSticky의 인라인 !important 스타일이
+    // CSS 클래스 display:none !important를 가릴 수 있으므로 인라인으로도 직접 제어
+    if(!enabled){
+      wrap.style.setProperty('display', 'none', 'important');
+    } else {
+      wrap.style.removeProperty('display');
+    }
   }
   if(cb){
     cb.disabled = !enabled;
@@ -864,6 +871,8 @@ function applyNeoTexts(){
 function enforceThemeToggleSticky() {
   var wrap = document.querySelector('.theme-switch-wrapper');
   if (!wrap) return;
+  // 숨김 상태(30초 경과 후)에는 위치 강제 설정 불필요 — display:none 유지
+  if (wrap.classList.contains('theme-toggle-hidden')) return;
 
   // Avoid transformed ancestor issues on some mobile browsers.
   if (wrap.parentElement !== document.body) {
