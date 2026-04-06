@@ -61,39 +61,42 @@ export async function GET(request) {
 
     const PointHistory = await getPointHistoryModel();
 
+    // 각 집계를 독립적으로 실행 — 하나가 실패해도 나머지 통계는 정상 반환
+    const safeAgg = async (fn, fallback) => { try { return await fn(); } catch (e) { console.warn("[admin/stats] agg skipped:", e?.message || e); return fallback; } };
+
     const [
       totalUsers, adminUsers, bannedUsers,
       genderAgg, dailyAgg, pointsAgg, recentUsers,
       recentCharges, chargeToday, chargeDailyAgg, recentBanned,
     ] = await Promise.all([
-      User.countDocuments({}),
-      User.countDocuments({ role: "admin" }),
-      User.countDocuments({ status: "banned" }),
-      User.aggregate([{ $group: { _id: "$gender", count: { $sum: 1 } } }]),
-      User.aggregate([
+      safeAgg(() => User.countDocuments({}), 0),
+      safeAgg(() => User.countDocuments({ role: "admin" }), 0),
+      safeAgg(() => User.countDocuments({ status: "banned" }), 0),
+      safeAgg(() => User.aggregate([{ $group: { _id: "$gender", count: { $sum: 1 } } }]), []),
+      safeAgg(() => User.aggregate([
         { $addFields: { _joinedAtSafe: joinedAtExpr } },
         { $match: { _joinedAtSafe: { $gte: thirtyDaysAgo } } },
         { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$_joinedAtSafe" } }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
-      ]),
-      User.aggregate([{ $group: { _id: null, total: { $sum: pointsExpr }, avg: { $avg: pointsExpr } } }]),
-      User.find({}).select("_id name email joinedAt points status").sort({ joinedAt: -1 }).limit(5).lean(),
+      ]), []),
+      safeAgg(() => User.aggregate([{ $group: { _id: null, total: { $sum: pointsExpr }, avg: { $avg: pointsExpr } } }]), []),
+      safeAgg(() => User.find({}).select("_id name email joinedAt points status").sort({ joinedAt: -1 }).limit(5).lean(), []),
 
       // 최근 결제(charge) 5건
-      PointHistory.find({ kind: "charge" })
+      safeAgg(() => PointHistory.find({ kind: "charge" })
         .select("_id userId delta reason createdAt")
         .sort({ createdAt: -1 })
         .limit(5)
-        .lean(),
+        .lean(), []),
 
       // 오늘 총 충전 코인
-      PointHistory.aggregate([
+      safeAgg(() => PointHistory.aggregate([
         { $match: { kind: "charge", createdAt: { $gte: todayStart } } },
         { $group: { _id: null, total: { $sum: "$delta" }, count: { $sum: 1 } } },
-      ]),
+      ]), []),
 
       // 최근 30일 일별 충전 추이
-      PointHistory.aggregate([
+      safeAgg(() => PointHistory.aggregate([
         { $match: { kind: "charge", createdAt: { $gte: thirtyDaysAgo } } },
         {
           $group: {
@@ -103,14 +106,14 @@ export async function GET(request) {
           },
         },
         { $sort: { _id: 1 } },
-      ]),
+      ]), []),
 
       // 최근 정지된 회원 3명
-      User.find({ status: "banned" })
+      safeAgg(() => User.find({ status: "banned" })
         .select("_id name email bannedAt banReason")
         .sort({ bannedAt: -1 })
         .limit(3)
-        .lean(),
+        .lean(), []),
     ]);
 
     const gender = { M: 0, F: 0, OTHER: 0 };

@@ -99,6 +99,17 @@ export async function GET(request) {
     steps.push({ step: 6, name: "aggregate-dateToString", ok: false, error: String(e?.message || e) });
   }
 
+  // ── 6-b. FLOWER_ADMIN_SECRET 설정 여부 경고 ──────────────────────
+  const flowerSecretOk = (process.env.FLOWER_ADMIN_SECRET || "").trim().length > 0;
+  steps.push({
+    step: "6b",
+    name: "flower-admin-secret",
+    ok: flowerSecretOk,
+    detail: flowerSecretOk
+      ? "FLOWER_ADMIN_SECRET 설정됨 — 정상"
+      : "⚠️ FLOWER_ADMIN_SECRET 미설정 — 기본 플레이스홀더 사용 중. Cloudflare Pages 환경변수에 등록하세요.",
+  });
+
   // ── 7. generateFlowerAdminToken ───────────────────────────────────
   let testToken;
   try {

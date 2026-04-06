@@ -4,9 +4,11 @@ export const runtime = "nodejs";
 
 import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken.js";
 
-// server/routes/admin.routes.js DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256 와 동일 값 유지
+// ADMIN_ENTRY_PASSWORD_SHA256 환경변수가 Cloudflare Pages에 설정된 경우 그것을 우선 사용.
+// 없으면 하드코딩된 기본값 폴백 (변경 시 새 해시를 Cloudflare 환경변수로 등록하면 코드 배포 불필요).
 const ADMIN_ENTRY_PASSWORD_SHA256 =
-  "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e";
+  (process.env.ADMIN_ENTRY_PASSWORD_SHA256 || "").trim() ||
+  "1ee604f9280e94b887e2eb8a2c6a1fda6026d7e32301768556ece3b781513290";
 
 // ── 브루트포스 방어: IP당 15분 윈도우에서 최대 5회 실패 허용 ──────────────
 const _loginAttempts = new Map(); // ip -> { count, resetAt }
