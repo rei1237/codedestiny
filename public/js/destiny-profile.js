@@ -147,8 +147,6 @@
     var info = _DP_FEATURE_LOCKS[type];
     if (!info) { cb(); return; }
 
-    if (_dpIsAdminUser()) { cb(); return; }
-
     var plan = _dpGetUserPlan();
     if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
 
