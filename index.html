@@ -1855,7 +1855,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         data-tile-lock-key="ziwei-fc"
                         data-tile-lock-cost="400"
                         aria-label="자미두수 명반 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami2.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
@@ -4014,6 +4014,93 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </section>
 
+    <!-- 자미두수 인생 총람 모달 -->
+    <div id="ziweiBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="자미두수 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeZiweiBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#a78bfa;--lb-accent2:#7c3aed;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">ZIWEI DESTINY BOOK</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">🌌 자미두수 인생 총람</h2>
+          <p class="lb-modal__subtitle">하늘의 별자리가 새긴 당신만의 운명 PDF북</p>
+          <button class="lb-modal__close" data-action="closeZiweiBookModal" aria-label="닫기">✕</button>
+        </div>
+        <div id="zbStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">🌌</div>
+            <h3 class="lb-start__headline">자미두수(紫微斗數) 인생 총람</h3>
+            <p class="lb-start__desc">13챕터 · 하늘이 각인한 천명의 코드부터<br>2026 소한 타이밍 전략까지<br>나만의 자미두수 인생 전서를 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분석 대상 프로필</div>
+            <div id="zbProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">🌌 자미두수 인생 총람 생성하기</button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+        <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">🌌</div>
+            <p class="lb-loading__status" id="zbLoadingStatus">자미두수 명반을 해석하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg"><div class="lb-progress__bar" id="zbProgressBar" style="width:0%"></div></div>
+            <span class="lb-progress__text" id="zbProgressText">0 / 13 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter" id="zbLoadingChapter">
+              <span class="lb-loading__chapter-num" id="zbLoadingChapterNum">Ch.0</span>
+              <span class="lb-loading__chapter-title" id="zbLoadingChapterTitle">준비 중...</span>
+            </div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span id="zbChDot0"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot1"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot2"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot3"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot4"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot5"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot6"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot7"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot8"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot9"  class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot10" class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot11" class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot12" class="lb-ch-dot lb-ch-dot--pending"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="zbMysticQuote">"명궁은 하늘이 이 생에 각인한 첫 번째 별빛이다."</blockquote>
+        </div>
+        <div id="zbResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">🌌</div>
+            <h3 class="lb-result__title">자미두수 인생 총람 완성</h3>
+            <div class="lb-result__meta">
+              <span id="zbResultName" class="lb-result__name"></span>
+              <span id="zbResultDate" class="lb-result__date"></span>
+            </div>
+          </div>
+          <div class="lb-toc" id="zbToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="zbChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" id="zbPdfBtn" onclick="downloadZiweiBookPdf()">📥 PDF로 저장하기</button>
+            <button class="lb-result__close-btn" data-action="closeZiweiBookModal">닫기</button>
+          </div>
+        </div>
+        <div id="zbErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="zbErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="generateZiweiBook(true)">다시 시도</button>
+            <button class="lb-error__close" data-action="closeZiweiBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 인생의 책 모달 -->
     <div id="lifeBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="인생의 책" style="display:none;">
       <div class="lb-modal__overlay" data-action="closeLifeBookModal"></div>
@@ -5397,6 +5484,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script src="/js/life-book.js?v=20260404-v3" defer></script>
+<script src="/js/ziwei-book.js?v=20260610-v1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
@@ -5468,7 +5556,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jumsung.webp'},
-    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami.webp'},
+    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami2.webp'},
+    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'중국 황실이 천 년간 금서(禁書)로 봉인한 자미두수 명반 완전판 — 13챕터 분량의 나만의 인생 총람 PDF북으로 완성합니다',feats:['🌌 Ch.1 명궁 완전 해설 — 천명의 코드','🌙 Ch.2 신궁 심층 분석 — 잠재된 무기','🗺️ Ch.3 12궁 배치 총해설 — 별자리 드라마 지도','⭐ Ch.4 주성 완전 해독 — 14주성의 비밀','👑 Ch.5 관록궁 분석 — 천직과 성공 방정식','💰 Ch.6 재백궁 분석 — 부의 그릇과 재물 법칙','💑 Ch.7 부처궁 분석 — 인연 구조와 파트너 기질','⚔️ Ch.8 살성·화기 — 시련이 숨긴 도약의 설계도','🌊 Ch.9 대한 정밀 분석 — 현재 10년 파노라마','✈️ Ch.10 천이궁·복덕궁 — 이동운과 영적 복덕','📅 Ch.11 2026 소한 로드맵 — 월별 타이밍 전략','🌅 Ch.12 생애 마스터플랜 — 대한별 황금 타이밍','💌 Ch.13 천명 총결산 — 자미두수 거장의 최종 봉서'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jami2.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };
