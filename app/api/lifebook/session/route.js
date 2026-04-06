@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 
+// Next.js 루트 최대 실행 시간 (초) — Vertex AI 장문 생성 대응
+export const maxDuration = 300;
+
+// Vertex AI Express API (API 키 인증, 프로젝트 ID 불필요)
 const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+  "https://aiplatform.googleapis.com/v1/publishers/google/models/{model}:generateContent";
 
 function getLifeBookKey() {
   // VERTEX_API_KEY (대소문자 모두 시도) → 일반 Gemini 키 순서로 fallback
@@ -1070,7 +1074,7 @@ export async function POST(req) {
     const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
     const userPrompt = config.prompt(sajuData);
 
-    const maxOutputTokens = 65536;
+    const maxOutputTokens = 16384;
     const generationConfig = { maxOutputTokens, temperature: 1.0 };
 
     const requestBody = JSON.stringify({
@@ -1087,9 +1091,12 @@ export async function POST(req) {
         await new Promise((r) => setTimeout(r, 2000 * attempt));
       }
       try {
-        response = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
+        response = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
           body: requestBody,
         });
         payload = await response.json().catch(() => ({}));
