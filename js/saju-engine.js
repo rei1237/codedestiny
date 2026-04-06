@@ -9532,53 +9532,53 @@ function renderZiwei(p, natal, targetId) {
       text-align: left;
       border: none;
       background: transparent;
-      padding: 11px 12px;
-      min-height: 44px;
+      padding: 13px 14px 11px;
+      min-height: 54px;
       cursor: pointer;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-      color: #e2e8f0;
-    }
-    .zw-pivot-meta {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      min-width: 0;
+      gap: 8px;
+      color: #e2e8f0;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .zw-pv-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      width: 100%;
+    }
+    .zw-pv-top-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
     .zw-pivot-chip {
-      font-size: 0.68rem;
+      font-size: 0.67rem;
       color: rgba(var(--pivot-rgb, 167,139,250), 1);
       border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.58);
       background: rgba(var(--pivot-rgb, 167,139,250), 0.14);
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 999px;
       font-weight: 800;
       white-space: nowrap;
       width: max-content;
     }
-    .zw-pivot-headline {
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+    .zw-pivot-age-range {
+      font-size: 0.7rem;
+      color: rgba(var(--pivot-rgb, 167,139,250), 0.95);
       font-weight: 800;
-      font-size: 0.92rem;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .zw-pivot-age {
-      font-size: 0.72rem;
-      color: #cbd5e1;
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.11);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.34);
       white-space: nowrap;
-      font-weight: 700;
-    }
-    .zw-pivot-meta-right {
-      display: flex;
-      align-items: center;
-      gap: 7px;
     }
     .zw-pivot-chevron {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -9590,6 +9590,53 @@ function renderZiwei(p, natal, targetId) {
       line-height: 1;
       transform: rotate(0deg);
       transition: transform .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
+      flex-shrink: 0;
+    }
+    .zw-pv-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .zw-pivot-icon-wrap {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.18);
+      border: 1.5px solid rgba(var(--pivot-rgb, 167,139,250), 0.45);
+      box-shadow: 0 0 16px rgba(var(--pivot-rgb, 167,139,250), 0.26);
+    }
+    .zw-pivot-title-stack {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .zw-pivot-palace-label {
+      font-size: 0.96rem;
+      font-weight: 900;
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .zw-pivot-type-tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.63rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.38);
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.12);
+      color: rgba(var(--pivot-rgb, 167,139,250), 0.9);
+      width: max-content;
     }
     .zw-pivot-card.is-open .zw-pivot-chevron {
       transform: rotate(180deg);
@@ -9599,13 +9646,152 @@ function renderZiwei(p, natal, targetId) {
     }
     .zw-pivot-body {
       display: none;
-      padding: 0 12px 12px;
+      padding: 0 13px 14px;
       color: #e2e8f0;
       font-size: 0.84rem;
       line-height: 1.72;
     }
     .zw-pivot-card.is-open .zw-pivot-body {
       display: block;
+    }
+    .zw-pv-section {
+      background: rgba(255,255,255,0.038);
+      border-radius: 9px;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .zw-pv-section-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: rgba(var(--pivot-rgb, 167,139,250), 0.94);
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      letter-spacing: 0.01em;
+    }
+    .zw-pv-star-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .zw-pv-star-tag {
+      font-size: 0.67rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.3);
+      color: #e9d5ff;
+      line-height: 1.45;
+    }
+    .zw-pv-star-tag.chance {
+      background: rgba(74,222,128,0.13);
+      border-color: rgba(74,222,128,0.36);
+      color: #bbf7d0;
+    }
+    .zw-pv-star-tag.crisis {
+      background: rgba(248,113,113,0.13);
+      border-color: rgba(248,113,113,0.36);
+      color: #fecaca;
+    }
+    .zw-pv-strategy-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .zw-pv-strategy-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 0.8rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+    .zw-pv-strategy-num {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.22);
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.5);
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      font-size: 0.65rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 3px;
+    }
+    .zw-pv-risk {
+      background: rgba(248,113,113,0.07);
+      border: 1px solid rgba(248,113,113,0.28);
+      border-radius: 9px;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+    }
+    .zw-pv-risk-title {
+      font-size: 0.71rem;
+      font-weight: 800;
+      color: #fca5a5;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .zw-pv-risk-text {
+      font-size: 0.79rem;
+      color: #fecaca;
+      line-height: 1.62;
+    }
+    .zw-pv-protocol {
+      font-size: 0.77rem;
+      color: #f3e8ff;
+      line-height: 1.6;
+      margin-top: 5px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(248,113,113,0.18);
+    }
+    .zw-pv-oneline {
+      background: linear-gradient(135deg, rgba(var(--pivot-rgb, 167,139,250), 0.12), rgba(var(--pivot-rgb, 167,139,250), 0.06));
+      border-left: 3px solid rgba(var(--pivot-rgb, 167,139,250), 0.7);
+      border-radius: 0 9px 9px 0;
+      padding: 9px 11px;
+      font-size: 0.83rem;
+      color: #f0f9ff;
+      font-style: italic;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+    .zw-pv-score-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .zw-pv-score-bar {
+      flex: 1;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+    .zw-pv-score-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(var(--pivot-rgb, 167,139,250), 0.7), rgba(var(--pivot-rgb, 167,139,250), 1));
+      transition: width 0.6s ease;
+    }
+    .zw-pv-score-val {
+      font-size: 0.68rem;
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      font-weight: 800;
+      white-space: nowrap;
     }
     @media (min-width: 1100px) {
       .zw-dashboard {
@@ -13236,6 +13422,22 @@ function renderZiwei(p, natal, targetId) {
 
             var title = dh.startAge+'~'+dh.endAge+'세 대한: '+dh.palaceName+' 변곡점';
 
+            // 라이프스테이지 맥락 계산
+            var _lsAge = dh.startAge;
+            var _lifeStageInfo = _lsAge < 20
+              ? { stage: '10대 · 청소년기 기초 형성', ctx: '진학·기초역량·자아 발견이 핵심 과제입니다.' }
+              : (_lsAge < 30
+                ? { stage: '20대 · 진입과 실험기', ctx: '첫 직장·연애·독립·자기 정체성 구축이 활발합니다.' }
+                : (_lsAge < 40
+                  ? { stage: '30대 · 기반 확립기', ctx: '커리어 발전·파트너십·자산 기반 형성의 전환점입니다.' }
+                  : (_lsAge < 50
+                    ? { stage: '40대 · 전성기와 재조정', ctx: '역할 정점·최대 책임·번아웃 주의·구조 재편이 필요합니다.' }
+                    : (_lsAge < 60
+                      ? { stage: '50대 · 리밸런싱기', ctx: '축적 결실·하향 선택·2막 설계·관계 재구성이 이뤄집니다.' }
+                      : (_lsAge < 70
+                        ? { stage: '60대 · 수확과 전수기', ctx: '성과 수확·역할 이양·레거시 설계·의미 중심 전환입니다.' }
+                        : { stage: '70대+ · 완성과 유산기', ctx: '삶의 완성·관계 정리·정신적 유산 전승이 중심 과제입니다.' })))));
+
             pivotCandidates.push({
               key: String(dh.idx)+'_'+String(dhOrderIdx),
               type: pivotType,
@@ -13255,7 +13457,9 @@ function renderZiwei(p, natal, targetId) {
               protocol2: protocol2,
               oneLineAdvice: oneLineAdvice,
               score: impactScore,
-              order: dhOrderIdx
+              order: dhOrderIdx,
+              lifeStage: _lifeStageInfo.stage,
+              lifeCtx: _lifeStageInfo.ctx
             });
           });
         }
@@ -13311,42 +13515,90 @@ function renderZiwei(p, natal, targetId) {
 
         var pivotHtml = '';
         var pivotStageLabels = ['초년 변곡점', '중년 변곡점', '후년 변곡점'];
+        var pivotStageEmoji = ['🌱', '🌿', '🌳'];
         selectedPivots.slice(0,3).forEach(function(p, i){
           var bc = p.type==='crisis' ? '#f87171' : (p.type==='chance' ? '#4ade80' : '#a78bfa');
           var bcRgb = p.type==='crisis' ? '248,113,113' : (p.type==='chance' ? '74,222,128' : '167,139,250');
           var stageLabel = pivotStageLabels[i] || ('변곡점 '+(i+1));
+          var stageEmoji = pivotStageEmoji[i] || '✦';
           var cardId = 'zwPivotCard_'+p.key;
-          pivotHtml += '<div class="zw-pivot-card" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
-            +'<button type="button" class="zw-pivot-toggle" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
-              +'<div class="zw-pivot-meta">'
-                +'<span class="zw-pivot-chip">'+stageLabel+'</span>'
-                +'<span class="zw-pivot-headline">'+p.icon+' '+p.title+'</span>'
+          // 궁 이름만 추출 (예: '23~32세 대한: 부처궁 변곡점' → '부처궁')
+          var palaceLabel = p.title.replace(/\d+~\d+세 대한:\s*/, '').replace(/\s*변곡점$/, '');
+          // 단계 유형 아이콘 텍스트
+          var phaseTypeText = p.phaseTheme === '확장' ? '🚀 도약 & 확장 국면' : (p.phaseTheme === '거문 봉인' ? '🛡️ 수호 & 방어 국면' : '🔄 전환 & 재설계 국면');
+          // 강도 백분율 (0~100)
+          var scoreWidth = Math.min(100, Math.round((p.score / 30) * 100));
+          // 주성 태그들
+          var coreStarTags = p.coreStars !== '공궁(空宮)'
+            ? p.coreStars.split(' · ').map(function(s){ return '<span class="zw-pv-star-tag">★ '+s+'</span>'; }).join('')
+            : '<span class="zw-pv-star-tag" style="opacity:0.6;">공궁(空宮)</span>';
+          // 사화 태그들
+          var sihuaTags = '';
+          if (p.sihuaLabel && p.sihuaLabel !== '사화 직접 작용 약함') {
+            p.sihuaLabel.split(' · ').forEach(function(sh){
+              var isHwagi = sh.indexOf('화기') >= 0;
+              sihuaTags += '<span class="zw-pv-star-tag '+(isHwagi ? 'crisis' : 'chance')+'">'+sh+'</span>';
+            });
+          } else {
+            sihuaTags = '<span style="font-size:0.72rem;color:#64748b;">사화 직접 작용 약함</span>';
+          }
+          pivotHtml += '<div class="zw-pivot-card" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'  
+            +'<button type="button" class="zw-pivot-toggle" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'  
+              // 상단 줄: 단계 뱃지 + 나이 범위 + 화살표
+              +'<div class="zw-pv-top">'
+                +'<span class="zw-pivot-chip">'+stageEmoji+' '+stageLabel+'</span>'
+                +'<div class="zw-pv-top-right">'
+                  +'<span class="zw-pivot-age-range">'+p.age+'세</span>'
+                  +'<span class="zw-pivot-chevron" aria-hidden="true">▼</span>'
+                +'</div>'
               +'</div>'
-              +'<span class="zw-pivot-meta-right">'
-                +'<span class="zw-pivot-age">'+p.age+'</span>'
-                +'<span class="zw-pivot-chevron" aria-hidden="true">▼</span>'
-              +'</span>'
+              // 메인 줄: 아이콘 + 궁 이름 + 유형 태그
+              +'<div class="zw-pv-main">'
+                +'<div class="zw-pivot-icon-wrap">'+p.icon+'</div>'
+                +'<div class="zw-pivot-title-stack">'
+                  +'<span class="zw-pivot-palace-label">'+palaceLabel+'</span>'
+                  +'<span class="zw-pivot-type-tag">'+phaseTypeText+'</span>'
+                +'</div>'
+              +'</div>'
+              // 강도 게이지
+              +'<div class="zw-pv-score-bar-wrap">'
+                +'<div class="zw-pv-score-bar"><div class="zw-pv-score-fill" style="width:'+scoreWidth+'%"></div></div>'
+                +'<span class="zw-pv-score-val">변곡 강도 '+scoreWidth+'%</span>'
+              +'</div>'
             +'</button>'
             +'<div id="'+cardId+'" class="zw-pivot-body">'
-              +'<div style="margin-bottom:6px;"><b>대한 흐름:</b> ['+p.period+'] '+p.phaseTheme+'</div>'
-              +'<div style="margin-bottom:6px;"><b>핵심 주성:</b> '+p.coreStars+' / <b>사화:</b> '+p.sihuaLabel+' / <span style="color:#c4b5fd;">'+p.borrowedLabel+'</span></div>'
-              +'<div style="margin-bottom:6px;"><b>성운 항로 | 이 시기 실행 조언</b></div>'
-              +'<div style="margin-bottom:4px;">1) '+p.step1+'</div>'
-              +'<div style="margin-bottom:4px;">2) '+p.step2+'</div>'
-              +'<div style="margin-bottom:6px;">3) '+p.step3+'</div>'
-              +'<div style="margin-bottom:6px;"><b>거문 파동 | 이 시기 주의 조언</b></div>'
-              +'<div style="margin-bottom:4px;">- <b>주의점:</b> '+p.criticalIssue+'</div>'
-              +'<div style="margin-bottom:4px;">- <b>대응법:</b> 1) '+p.protocol1+' 2) '+p.protocol2+'</div>'
-              +'<div style="margin-bottom:2px;">- <b>한 줄 조언:</b> '+p.oneLineAdvice+'</div>'
+              // 섹션 1: 핵심 성계 구성
+              +'<div class="zw-pv-section">'
+                +'<div class="zw-pv-section-title">🌟 핵심 성계 구성</div>'
+                +'<div class="zw-pv-star-tags">'+coreStarTags+'</div>'
+                +'<div class="zw-pv-star-tags">'+sihuaTags+'</div>'
+                +'<div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">'+p.borrowedLabel+'</div>'
+              +'</div>'
+              // 섹션 2: 전략 조언
+              +'<div class="zw-pv-section">'
+                +'<div class="zw-pv-section-title">⚡ '+p.phaseTheme+' 단계 핵심 전략</div>'
+                +'<ul class="zw-pv-strategy-list">'
+                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">1</span><span>'+p.step1+'</span></li>'
+                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">2</span><span>'+p.step2+'</span></li>'
+                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">3</span><span>'+p.step3+'</span></li>'
+                +'</ul>'
+              +'</div>'
+              // 섹션 3: 리스크 경고
+              +'<div class="zw-pv-risk">'
+                +'<div class="zw-pv-risk-title">⚠️ 거문 파동 — 이 시기 주의 조언</div>'
+                +'<div class="zw-pv-risk-text">'+p.criticalIssue+'</div>'
+                +'<div class="zw-pv-protocol">🛡️ 대응 1: '+p.protocol1+'</div>'
+                +'<div class="zw-pv-protocol" style="border-top:none;padding-top:3px;margin-top:2px;">🛡️ 대응 2: '+p.protocol2+'</div>'
+              +'</div>'
+              // 섹션 4: 한 줄 조언
+              +'<div class="zw-pv-oneline">💬 '+p.oneLineAdvice+'</div>'
             +'</div>'
           +'</div>';
         });
 
         var sec_pivot = '<div class="zw-pivot-section">'
           +'<h2 class="zw-pivot-title">🔱 인생의 3대 변곡점</h2>'
-          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영한 3개 카드입니다. 카드를 눌러 해당 시기 맞춤 조언을 확인하세요.</p>'
-          +'<div class="zw-pivot-deck">'+pivotHtml+'</div>'
-        +'</div>';
+          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영합니다. 각 카드를 눌러 해당 시기의 핵심 성계 구성, 단계별 전략, 리스크 대응법을 확인하세요.</p>'
 
         var sec4 = '';
 
