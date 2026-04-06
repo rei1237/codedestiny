@@ -437,8 +437,18 @@ async function handleLogin(request) {
   const isPasswordValid = await bcrypt.compare(sanitized.password, user.passwordHash);
   if (!isPasswordValid) return json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." }, 401);
 
-  const token = signToken(user);
-  return json({ message: "로그인에 성공했습니다.", token, user: normalizeUserResponse(user) }, 200);
+  // 관리자 계정은 결제 테스트를 위해 로그인 시 코인을 99999로 보충
+  let loginUser = user;
+  if (user.role === "admin") {
+    loginUser = await User.findByIdAndUpdate(
+      user._id,
+      { $set: { points: 99999 } },
+      { new: true }
+    ).lean() || user;
+  }
+
+  const token = signToken(loginUser);
+  return json({ message: "로그인에 성공했습니다.", token, user: normalizeUserResponse(loginUser) }, 200);
 }
 
 async function handleMe(request) {
@@ -547,8 +557,17 @@ async function handleOAuthComplete(request) {
 
   try {
     const grantPayload = verifySocialGrant(socialGrant);
-    const user = await User.findById(grantPayload.userId).lean();
+    let user = await User.findById(grantPayload.userId).lean();
     if (!user) return json({ message: "사용자 정보를 찾을 수 없습니다." }, 404);
+
+    // 관리자 계정은 결제 테스트를 위해 로그인 시 코인을 99999로 보충
+    if (user.role === "admin") {
+      user = await User.findByIdAndUpdate(
+        user._id,
+        { $set: { points: 99999 } },
+        { new: true }
+      ).lean() || user;
+    }
 
     const token = signToken(user);
     return json({
