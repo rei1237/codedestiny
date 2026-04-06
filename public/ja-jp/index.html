@@ -1358,6 +1358,22 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                   </div>
                 </button>
 
+
+                <!-- 다마고치 운명의 알 -->
+                <button class="tarot-tile tarot-tile--destiny-egg" type="button"
+                        data-action="openDestinyEggPage"
+                        data-fallback-href="/destiny-egg"
+                        aria-label="다마고치 운명의 알 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/UNSETAMA2.webp" data-img-alt="다마고치 운명의 알 — 나만의 사주 캐릭터 키우기">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🥚</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🥚 운명의 알</span>
+                    <span class="tarot-tile__desc">나만의 운세 다마고치</span>
+                  </div>
+                </button>
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
@@ -5428,6 +5444,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
+    if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
