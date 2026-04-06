@@ -422,15 +422,6 @@ const TAROT_CATS = ['전반','연애','재물','건강','인간관계'];
 const FORTUNE_TYPES = ['사주','자미두수','베다점','숙요점'];
 
 // ══════════════════════════════════════════════════════
-// GACHA RARITIES
-// ══════════════════════════════════════════════════════
-const RARITIES = {
-  common:    { label:'일반',    color:'#9e9e9e', rate:0.65 },
-  rare:      { label:'레어',    color:'#2196f3', rate:0.28 },
-  legendary: { label:'전설',    color:'#ff9800', rate:0.07 },
-};
-
-// ══════════════════════════════════════════════════════
 // CSS
 // ══════════════════════════════════════════════════════
 const CSS = `
@@ -1080,67 +1071,120 @@ ${question?'질문: '+question:''}
 // GACHA TAB
 // ══════════════════════════════════════════════════════
 function GachaTab({ userData, dispatch, theme }) {
-  const { coins=100, collection=[], ilju } = userData;
+  const { collection=[], ilju } = userData;
   const a = ANIMALS[ilju.animal];
   const t = THEME_PALETTE[theme || _currentTheme] || THEME_PALETTE['벚꽃'];
   const [gachaState, setGachaState] = useState('idle'); // idle, shaking, cracking, result
   const [resultAnimal, setResultAnimal] = useState(null);
-  const [resultRarity, setResultRarity] = useState('common');
-  const [multiResults, setMultiResults] = useState(null);
+  const [serverCoins, setServerCoins] = useState(null);
+  const [coinError, setCoinError] = useState('');
+  const GACHA_COST = 50;
 
-  const getAnimalResult = (guaranteeIlju=false) => {
-    if (guaranteeIlju && !collection.find(c=>c.key===ilju.animal)) return { key:ilju.animal, rarity:'rare' };
-    const r = Math.random();
-    const rarity = r < RARITIES.legendary.rate ? 'legendary' : r < RARITIES.legendary.rate+RARITIES.rare.rate ? 'rare' : 'common';
-    const keys = Object.keys(ANIMALS);
-    return { key:keys[Math.floor(Math.random()*keys.length)], rarity };
+  const _getApiBase = () => {
+    if (typeof window !== 'undefined' && window.CODE_DESTINY_API_BASE_URL)
+      return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+    try { const c = localStorage.getItem('fortune_api_base_url'); if (c) return String(c).replace(/\/+$/, ''); } catch {}
+    if (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1'))
+      return 'http://localhost:4000';
+    return typeof location !== 'undefined' ? location.origin : '';
   };
+  const _getToken = () => { try { return localStorage.getItem('fortune_auth_token') || ''; } catch { return ''; } };
 
-  const doPull = async (count=1) => {
-    const cost = count===1?10:90;
-    if (coins < cost) return;
+  useEffect(() => {
+    const token = _getToken();
+    if (!token) return;
+    fetch(_getApiBase() + '/api/fortune/pig-coin/balance', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    }).then(r => r.json()).then(d => {
+      if (typeof d?.user?.points === 'number') setServerCoins(d.user.points);
+    }).catch(() => {});
+  }, []);
+
+  const allKeys = Object.keys(ANIMALS);
+  const collectedKeys = new Set(collection.map(c => c.key));
+  const remaining = allKeys.filter(k => !collectedKeys.has(k));
+  const allCollected = remaining.length === 0;
+
+  const doPull = async () => {
+    const token = _getToken();
+    setCoinError('');
+    if (!token) { setCoinError('로그인 후 이용하실 수 있어요.'); return; }
+    if (allCollected) return;
+    if (serverCoins !== null && serverCoins < GACHA_COST) {
+      setCoinError(`코인이 부족해요. (보유: ${serverCoins.toLocaleString('ko-KR')}, 필요: ${GACHA_COST})`);
+      return;
+    }
     setGachaState('shaking');
-    dispatch({type:'UPDATE',payload:{coins:coins-cost}});
-    setTimeout(()=>setGachaState('cracking'),800);
-    setTimeout(()=>{
-      if (count===1) {
-        const r = getAnimalResult(collection.length===0);
-        setResultAnimal(r.key); setResultRarity(r.rarity);
-        setMultiResults(null);
-        const newCol = [...collection];
-        const existing = newCol.find(c=>c.key===r.key);
-        if (existing) existing.count=(existing.count||1)+1;
-        else newCol.push({...r,count:1});
-        dispatch({type:'UPDATE',payload:{collection:newCol,exp:(userData.exp||0)+20}});
-      } else {
-        const results = Array.from({length:10},(_,i)=>getAnimalResult(i===0&&collection.length===0));
-        setMultiResults(results); setResultAnimal(null);
-        const newCol=[...collection];
-        results.forEach(r=>{ const ex=newCol.find(c=>c.key===r.key); if(ex) ex.count=(ex.count||1)+1; else newCol.push({...r,count:1}); });
-        dispatch({type:'UPDATE',payload:{collection:newCol,exp:(userData.exp||0)+200}});
+    try {
+      const res = await fetch(_getApiBase() + '/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cost: GACHA_COST, reason: '운명의 알 가챠', featureKey: 'destiny-egg-gacha' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGachaState('idle');
+        setCoinError(data?.message || '결제에 실패했어요. 잠시 후 다시 시도해 주세요.');
+        return;
       }
+      const newBalance = typeof data?.user?.points === 'number' ? data.user.points : null;
+      if (newBalance !== null) {
+        setServerCoins(newBalance);
+        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
+      }
+    } catch {
+      setGachaState('idle');
+      setCoinError('네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    setTimeout(() => setGachaState('cracking'), 800);
+    setTimeout(() => {
+      const pool = allKeys.filter(k => !collectedKeys.has(k));
+      const key = pool.length > 0
+        ? pool[Math.floor(Math.random() * pool.length)]
+        : allKeys[Math.floor(Math.random() * allKeys.length)];
+      setResultAnimal(key);
+      const newCol = [...collection];
+      if (!newCol.find(c => c.key === key)) newCol.push({ key, count: 1 });
+      dispatch({ type: 'UPDATE', payload: { collection: newCol, exp: (userData.exp || 0) + 30 } });
       setGachaState('result');
-    },1600);
+    }, 1600);
   };
 
-  const RARITY_COLORS = {common:'#9e9e9e',rare:'#4a90e4',legendary:'#f0a020'};
+  const displayCoins = serverCoins !== null ? serverCoins.toLocaleString('ko-KR') : '—';
 
   return (
     <div style={{padding:'14px 16px 90px',display:'flex',flexDirection:'column',gap:16,alignItems:'center'}}>
       {/* Header */}
       <div style={{textAlign:'center'}}>
         <div style={{fontFamily:"'Cinzel',serif",color:a.hi,fontSize:18,fontWeight:700,letterSpacing:2}}>운명의 가챠</div>
-        <p style={{color:t.textSub,fontSize:12,marginTop:4}}>새로운 운명 정령을 소환해보세요</p>
+        <p style={{color:t.textSub,fontSize:12,marginTop:4}}>새로운 운명 정령을 소환해보세요 · 알 1개당 🪙 {GACHA_COST}</p>
       </div>
-      {/* Coins display */}
+      {/* Server coins display */}
       <div style={{
-        background:`rgba(255,220,80,0.18)`,border:'1.5px solid rgba(240,180,40,0.4)',
+        background:'rgba(255,220,80,0.18)',border:'1.5px solid rgba(240,180,40,0.4)',
         borderRadius:30,padding:'8px 22px',display:'flex',alignItems:'center',gap:8,
         boxShadow:'0 3px 14px rgba(220,160,30,0.12)',
       }}>
-        <span style={{fontSize:20,animation:'coinSpin 2s linear infinite'}}>🪙</span>
-        <span style={{color:'#c88000',fontWeight:800,fontSize:18}}>{coins}</span>
-        <span style={{color:t.textSub,fontSize:12}}>코인</span>
+        <span style={{fontSize:20,animation:'coinSpin 2s linear infinite'}}>🐷</span>
+        <span style={{color:'#c88000',fontWeight:800,fontSize:18}}>{displayCoins}</span>
+        <span style={{color:t.textSub,fontSize:12}}>꽃돼지 코인</span>
+      </div>
+      {/* Error message */}
+      {coinError && (
+        <div style={{
+          background:'rgba(255,80,80,0.1)',border:'1.5px solid rgba(255,80,80,0.3)',
+          borderRadius:16,padding:'10px 16px',color:'#c03030',fontSize:12,fontWeight:600,
+          textAlign:'center',maxWidth:320,width:'100%',
+        }}>{coinError}</div>
+      )}
+      {/* Progress */}
+      <div style={{
+        background:'rgba(255,255,255,0.4)',border:`1px solid ${t.border}`,
+        borderRadius:16,padding:'8px 18px',fontSize:12,color:t.textSub,textAlign:'center',
+      }}>
+        도감 수집 현황: <strong style={{color:a.hi}}>{collection.length}</strong> / {allKeys.length}
+        {allCollected && <span style={{color:'#4caf50',marginLeft:6,fontWeight:700}}>✅ 모두 수집 완료!</span>}
       </div>
       {/* Gacha machine */}
       <div style={{width:200,height:200,position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -1175,44 +1219,36 @@ function GachaTab({ userData, dispatch, theme }) {
             ))}
           </div>
         )}
-        {gachaState==='result' && resultAnimal && !multiResults && (
+        {gachaState==='result' && resultAnimal && (
           <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,animation:'popIn .6s ease'}}>
             <EggSVG animalKey={resultAnimal} size={130} glow={true} theme={theme}/>
             <div style={{
-              padding:'5px 16px',borderRadius:20,fontSize:11,fontWeight:700,
-              background:`rgba(255,255,255,0.7)`,
-              border:`1.5px solid ${RARITY_COLORS[resultRarity]}70`,
-              color:RARITY_COLORS[resultRarity],
+              padding:'5px 16px',borderRadius:20,fontSize:12,fontWeight:700,
+              background:'rgba(255,255,255,0.85)',
+              border:`1.5px solid ${a.c3}70`,
+              color:a.hi,
               boxShadow:`0 2px 10px ${t.shadow}`,
-            }}>✨ {RARITIES[resultRarity].label} · {ANIMALS[resultAnimal].k} {ANIMALS[resultAnimal].e}</div>
+            }}>✨ {ANIMALS[resultAnimal].k} {ANIMALS[resultAnimal].e} 획득!</div>
             <div style={{color:t.textSub,fontSize:12,textAlign:'center',maxWidth:180}}>{ANIMALS[resultAnimal].hatched}</div>
           </div>
         )}
-        {gachaState==='result' && multiResults && (
-          <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,width:'100%',animation:'popIn .6s ease'}}>
-            {multiResults.map((r,i)=>(
-              <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,animation:`slideUp ${.1+i*.05}s ease`}}>
-                <EggSVG animalKey={r.key} size={48} glow={false} theme={theme}/>
-                <div style={{width:4,height:4,borderRadius:'50%',background:RARITY_COLORS[r.rarity]}}/>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-      {/* Pull buttons */}
+      {/* Pull button */}
       {gachaState!=='result' ? (
-        <div style={{display:'flex',gap:10,width:'100%',maxWidth:320}}>
-          <button className="btn" onClick={()=>doPull(1)} disabled={coins<10||gachaState!=='idle'} style={{
-            flex:1,padding:'14px',borderRadius:20,fontSize:14,fontWeight:700,
-            background:`linear-gradient(135deg,${a.c3},${a.c2})`,color:'white',
+        <button className="btn" onClick={doPull}
+          disabled={gachaState!=='idle' || allCollected || (serverCoins !== null && serverCoins < GACHA_COST)}
+          style={{
+            width:'100%',maxWidth:320,padding:'16px',borderRadius:20,fontSize:15,fontWeight:700,
+            background: allCollected
+              ? 'rgba(180,180,180,0.4)'
+              : `linear-gradient(135deg,${a.c3},${a.c2})`,
+            color: allCollected ? t.textSub : 'white',
             boxShadow:`0 6px 22px ${t.shadow}`,
-          }}>🥚 1회 뽑기<br/><span style={{fontSize:11,fontWeight:400,opacity:.8}}>🪙 10</span></button>
-          <button className="btn" onClick={()=>doPull(10)} disabled={coins<90||gachaState!=='idle'} style={{
-            flex:1,padding:'14px',borderRadius:20,fontSize:14,fontWeight:700,
-            background:`linear-gradient(135deg,#f0c020,#f8e060)`,color:'#7a4a00',
-            boxShadow:`0 6px 22px rgba(240,180,30,0.3)`,
-          }}>✨ 10회 뽑기<br/><span style={{fontSize:11,fontWeight:400,opacity:.7}}>🪙 90</span></button>
-        </div>
+          }}>
+          {allCollected
+            ? '🏆 도감 완성!'
+            : <span>🥚 알 뽑기 <span style={{fontSize:12,fontWeight:400,opacity:.85}}>🪙 {GACHA_COST} 꽃돼지 코인</span></span>}
+        </button>
       ) : (
         <button className="btn" onClick={()=>setGachaState('idle')} style={{
           padding:'14px 36px',borderRadius:20,fontSize:14,fontWeight:700,
@@ -1220,16 +1256,19 @@ function GachaTab({ userData, dispatch, theme }) {
           boxShadow:`0 6px 22px ${t.shadow}`,
         }}>한번 더! ✨</button>
       )}
-      {/* Rarity guide */}
-      <div className="glass" style={{width:'100%',maxWidth:320,padding:'16px 18px'}}>
-        <div style={{color:t.textSub,fontSize:10,fontWeight:700,letterSpacing:.5,marginBottom:12}}>확률 안내</div>
-        <div style={{display:'flex',gap:8}}>
-          {Object.entries(RARITIES).map(([k,v])=>(
-            <div key={k} style={{flex:1,textAlign:'center',padding:'10px 4px',background:'rgba(255,255,255,0.5)',borderRadius:14,border:`1px solid ${t.border}`}}>
-              <div style={{color:RARITY_COLORS[k],fontWeight:700,fontSize:13}}>{v.label}</div>
-              <div style={{color:t.textSub,fontSize:10,marginTop:3}}>{Math.round(v.rate*100)}%</div>
-            </div>
-          ))}
+      {/* Info */}
+      <div className="glass" style={{width:'100%',maxWidth:320,padding:'14px 18px'}}>
+        <div style={{color:t.textSub,fontSize:10,fontWeight:700,letterSpacing:.5,marginBottom:10}}>알 뽑기 안내</div>
+        <div style={{display:'flex',flexDirection:'column',gap:7}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,color:t.text,fontSize:12}}>
+            <span>🪙</span><span>1회 뽑기: <strong>50 꽃돼지 코인</strong></span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:8,color:t.text,fontSize:12}}>
+            <span>🚫</span><span>이미 수집한 정령은 다시 나오지 않아요</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:8,color:t.text,fontSize:12}}>
+            <span>🏆</span><span>전체 {allKeys.length}종 수집 시 도감 완성!</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1430,7 +1469,7 @@ export default function App() {
     _currentTheme = themeKey;
     const newUser = {
       ...data, theme:themeKey, coins:100, exp:0, level:0,
-      intimacy:0, collection:[{key:data.ilju.animal,rarity:'rare',count:1}],
+      intimacy:0, collection:[{key:data.ilju.animal,count:1}],
       lastLogin: new Date().toISOString().split('T')[0],
     };
     await Store.set('destiny_egg_v1', newUser);
