@@ -1694,75 +1694,115 @@ function playRelativeMusic(offset) {
 
 function buildTypingLines(courseData) {
   const lines = [];
-  lines.push('수련이 시작됩니다. 몸의 긴장을 놓고, 화면의 유도 문장을 호흡 속도에 맞춰 따라가세요.');
-  lines.push('지금부터 안내 문장은 자동으로 흘러가며, 전체 속도는 선택한 수련 시간에 맞춰 조정됩니다.');
-  lines.push('어깨를 떨어뜨리고 턱에 힘을 풉니다. 코끝으로 들어오는 공기의 결을 조용히 관찰합니다.');
-  lines.push('아래 문장은 수련 내내 이어집니다. 완벽한 동작보다 안정된 호흡의 리듬을 우선하세요.');
+  const meta = courseData?.course_metadata || {};
+  const durationMin = Number(meta.duration_min || selectedDuration || 30);
+  const deityTheme = meta.deity_theme || (durationMin >= 60 ? '시바 신 · Shiva' : '가네샤 신 · Ganesha');
+
+  // ── 오프닝 (9줄) ──
+  lines.push(`✦ ${meta.title || '신성한 요가 수련'} — ${durationMin}분 여정 ✦`);
+  lines.push(`수호신: ${deityTheme}  |  차크라: ${meta.chakra_focus || '전체 에너지 센터'}  |  강도: ${meta.intensity || 'Beginner'}`);
+  lines.push(`집중 부위: ${meta.focus_area || '전신 균형'}  |  지금 이 순간, 수련을 위한 공간을 만듭니다.`);
+  lines.push('수련을 시작합니다. 이루려 하지 마십시오. 지금 이 순간에 존재하는 것만으로 충분합니다.');
+  lines.push('어깨를 뒤로 당겨 내리고, 턱 끝을 살짝 들어올려 목 뒤를 길게 합니다.');
+  lines.push('코끝으로 들어오는 공기의 온도를 느낍니다. 들숨에서 배가 먼저 부풀고, 날숨에서 늑골이 천천히 닫힙니다.');
+  lines.push('발바닥 전체가 대지와 연결됩니다. 지구의 에너지가 발바닥을 통해 척추를 따라 정수리로 오릅니다.');
+  lines.push('지금부터 안내 문장은 수련 전체 시간에 걸쳐 리듬 있게 흘러갑니다. 완벽한 동작보다 호흡을 우선하세요.');
+  lines.push('눈을 반 정도 감고 시선을 부드럽게 내립니다. 이제 시작합니다.');
 
   const steps = Array.isArray(courseData?.sequence) ? courseData.sequence : [];
+  const totalSteps = steps.length || 8;
+
+  // 적응형 사이클 수: 전체 목표 라인수(30분=290, 60분=560)를 스텝 수로 균등 분배
+  const targetLines = durationMin >= 60 ? 560 : 290;
+  const introOutroLines = 14; // 오프닝 9줄 + 클로징 5줄
+  const linesPerStep = Math.max(28, Math.ceil((targetLines - introOutroLines) / totalSteps));
+  const nonCycleLines = 11; // 헤더4 + 지시avg3 + 호흡/집중/주의3 + 마무리2
+  const cyclesNeeded = Math.max(5, Math.ceil((linesPerStep - nonCycleLines) / 5));
+
+  const breathCues = [
+    '들숨 4박 — 멈춤 2박 — 날숨 8박. 날숨을 들숨보다 2배 길게 내뱉습니다.',
+    '코로 깊게 들이마시며 흉곽을 앞·뒤·좌·우 360도 방향으로 팽창시킵니다.',
+    '입을 살짝 열어 "하아..." 소리와 함께 남아있는 긴장을 모두 내보냅니다.',
+    '들숨마다 척추가 하늘을 향해 1mm씩 자라는 것을 세밀하게 상상합니다.',
+    '날숨마다 발바닥을 통해 긴장이 녹아 땅속 깊이 흡수됩니다.',
+    '호흡과 호흡 사이의 고요한 멈춤 — 그 공간에 의식의 중심을 두십시오.',
+  ];
   const mysticAnchors = [
-    '미간 뒤 고요한 빛점에 의식을 머물게 하세요.',
-    '심장 중심에서 따뜻한 파동이 원처럼 퍼진다고 상상하세요.',
-    '내쉬는 숨마다 불필요한 긴장이 발바닥으로 빠져나갑니다.',
-    '들이쉬는 숨마다 척추를 따라 금빛 기운이 위로 오릅니다.'
+    '미간 뒤 아즈나 차크라의 고요한 빛점에 의식을 머물게 하세요.',
+    '심장 중심 아나하타 차크라에서 따뜻한 녹색 파동이 사방으로 퍼집니다.',
+    '내쉬는 숨마다 불필요한 긴장이 발바닥 무라다라 차크라로 빠져나갑니다.',
+    '들이쉬는 숨마다 척추를 따라 황금 쿤달리니 에너지가 머리 정수리로 상승합니다.',
+    '사하스라라 왕관 차크라가 열리며 우주의 순백 빛이 정수리로 쏟아져 내려옵니다.',
+    '스바디스타나 차크라의 주황빛 불꽃이 창의적 생명력 에너지를 깨웁니다.',
+  ];
+  const alignmentCues = [
+    '골반과 늑골 사이 공간을 최대로 늘리고, 어깨는 귀에서 멀리 내립니다.',
+    '무릎이 발끝 방향을 정확히 향하도록 정렬합니다. 관절이 비틀리지 않게 주의하세요.',
+    '코어를 가볍게 활성화합니다 — 배꼽을 척추 방향으로 부드럽게 끌어당기세요.',
+    '턱은 바닥과 평행, 시선(드리쉬티)은 한 점에 부드럽게 고정합니다.',
+    '양쪽 좌골이 바닥을 균일하게 누릅니다. 좌우 무게를 동일하게 배분하세요.',
+    '발의 아치를 들어올려 발목 안쪽이 무너지지 않게 적당한 힘을 유지합니다.',
   ];
 
   steps.forEach((step, idx) => {
-    const stepLabel = `${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'}`;
-    lines.push(stepLabel.trim());
+    // ── 스텝 헤더 (4줄) ──
+    const dur = step.duration_seconds || 30;
+    const durStr = dur >= 60 ? `${Math.floor(dur/60)}분${dur%60 > 0 ? ' '+dur%60+'초' : ''}` : `${dur}초`;
+    lines.push(`━━ ${idx + 1}단계 · ${step.english_name || step.sanskrit_name || 'Yoga Practice'} ━━`);
+    lines.push(`산스크리트: ${step.sanskrit_name || '—'}  |  유형: ${step.type || 'Asana'}  |  유지: ${durStr}`);
+    lines.push(`신체 효과: ${step.benefits_physical || '전신 순환 강화 및 유연성 향상'}`);
+    lines.push(`신화적 의미: ${step.benefits_spiritual || '신성한 에너지와의 합일 — 자아와 우주의 경계가 사라집니다.'}`);
+
+    // ── 전체 지시사항 ──
     if (Array.isArray(step.instructions) && step.instructions.length) {
-      step.instructions.slice(0, 3).forEach((ins) => {
-        lines.push(ins);
-      });
+      step.instructions.forEach((ins) => lines.push(ins));
     }
 
-    const breathGuide = step.breathing_guide || '들이숨 4박, 날숨 6박으로 호흡을 길게 연결하세요.';
-    lines.push(`호흡: ${breathGuide}`);
-    lines.push(`집중: ${mysticAnchors[idx % mysticAnchors.length]}`);
+    // ── 호흡 안내 + 차크라 집중 + 주의사항 ──
+    lines.push(`호흡 안내: ${step.breathing_guide || '들이숨 4박, 날숨 8박으로 호흡을 길게 연결하세요.'}`);
+    lines.push(`에너지 집중: ${mysticAnchors[idx % mysticAnchors.length]}`);
+    if (step.caution) lines.push(`⚠ 주의: ${step.caution}`);
 
-    for (let cycle = 1; cycle <= 4; cycle += 1) {
-      lines.push(`${idx + 1}단계 호흡 사이클 ${cycle}/4 · 들숨에서 몸의 길이를 만들고 날숨에서 긴장을 비워냅니다.`);
-      lines.push(`${idx + 1}단계 미세 정렬 ${cycle}/4 · 골반과 늑골, 어깨선을 같은 축으로 정돈하세요.`);
+    // ── 유도 사이클 (적응형 개수) ──
+    for (let c = 1; c <= cyclesNeeded; c++) {
+      lines.push(`${idx+1}단계 — 호흡 사이클 ${c}/${cyclesNeeded} · 들숨에서 자세를 1% 더 열고, 날숨에서 중력에 완전히 맡기십시오.`);
+      lines.push(`${idx+1}단계 — 정렬 확인 ${c} · ${alignmentCues[(idx + c) % alignmentCues.length]}`);
+      lines.push(`${idx+1}단계 — 내면 집중 ${c} · ${mysticAnchors[(idx + c) % mysticAnchors.length]}`);
+      lines.push(`${idx+1}단계 — 신체 감각 ${c} · 지금 가장 강하게 느껴지는 감각에 의식을 완전히 고정하십시오. 그것이 이 순간 수련의 중심입니다.`);
+      lines.push(`${idx+1}단계 — 호흡 심화 ${c} · ${breathCues[(idx + c) % breathCues.length]}`);
+      // 4사이클마다 중간 점검 (2줄 추가)
+      if (c % 4 === 0) {
+        lines.push(`${idx+1}단계 — ${c}사이클 완료 · 자세에서 잠깐 풀어냅니다. 몸 전체를 스캔하며 긴장이 남은 부위에 의도적으로 호흡을 보냅니다.`);
+        lines.push(`다시 자세로 돌아옵니다. 처음보다 5mm 더 깊이, 더 자연스럽게.`);
+      }
     }
 
-    if (step.breathing_guide) {
-      lines.push(`호흡: ${step.breathing_guide}`);
-    }
-    if (step.caution) {
-      lines.push(`주의: ${step.caution}`);
-    }
-    lines.push('현재 자세를 3호흡 더 유지합니다. 시선은 부드럽게, 목 뒤는 길게 유지합니다.');
-    lines.push('다음 자세로 전환합니다. 이동은 천천히, 관절보다 호흡이 먼저 움직입니다.');
+    // ── 스텝 마무리 (2줄) ──
+    lines.push(`이 자세에서 마지막 3호흡을 완전히 채웁니다. 시선은 부드럽고, 목 뒤는 길게.`);
+    lines.push(`다음 자세로 천천히 이동합니다 — 호흡이 동작을 먼저 이끌게 하십시오.`);
   });
 
+  // ── 클로징 (5줄) ──
   if (courseData?.closing_mantra) {
-    lines.push(`마무리 만트라: ${courseData.closing_mantra}`);
+    lines.push(`✦ 마무리 만트라: ${courseData.closing_mantra}`);
   }
-  lines.push('이제 두 손바닥을 가볍게 비벼 체온을 올립니다. 따뜻해진 손을 눈 위에 올려 잔광을 느껴보세요.');
-  lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 확인해 주세요.');
+  lines.push('두 손바닥을 가볍게 비벼 체온을 올립니다. 따뜻해진 손을 눈 위에 올려 잔광을 느껴보세요.');
+  lines.push('천천히 손을 내려놓습니다. 눈을 감은 채 오늘 수련에서 가장 깊이 남은 감각을 기억합니다.');
+  lines.push('이 수련이 당신의 하루 전체에 스며들 것입니다. 오늘 이 고요함을 간직하십시오.');
+  lines.push('수련이 끝났습니다. 눈을 감고 3번의 호흡으로 심신의 중심을 다시 확인해 주세요.');
   return lines;
 }
 
 function calculateTypingPace() {
-  const totalChars = typingLines.reduce((acc, line) => acc + line.length + 2, 0);
-  if (!totalChars) {
-    return {
-      intervalMs: 36,
-      charsPerTick: 1,
-      linePauseMs: 180
-    };
+  const totalChars = typingLines.reduce((acc, line) => acc + line.length, 0);
+  if (!totalChars || !typingLines.length) {
+    return { intervalMs: 52, charsPerTick: 1, linePauseMs: 3500 };
   }
-
-  const intervalMs = 30;
-  const totalTicks = Math.max(1, Math.floor(typingTotalDurationMs / intervalMs));
-  const charsPerTick = Math.max(1, Math.ceil(totalChars / totalTicks));
-  const linePauseMs = Math.max(60, Math.min(170, Math.floor(typingTotalDurationMs / Math.max(typingLines.length * 16, 1))));
-
-  return {
-    intervalMs,
-    charsPerTick,
-    linePauseMs
-  };
+  const intervalMs = 52; // ms per character — deliberate, contemplative pace
+  const typingTimeMs = totalChars * intervalMs;
+  const remainingMs = typingTotalDurationMs - typingTimeMs;
+  const linePauseMs = Math.max(1800, Math.ceil(remainingMs / typingLines.length));
+  return { intervalMs, charsPerTick: 1, linePauseMs };
 }
 
 function stopTypingFlow() {
