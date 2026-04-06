@@ -5202,6 +5202,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         }
         return;
       }
+      // 관리자 모드: 코인 차감 없이 즉시 실행
+      try {
+        if (isAdminUser()) {
+          sessionStorage.setItem('cd_pa_' + action, '1');
+          _cdInvokeActionDirect(action, actionNode);
+          return;
+        }
+      } catch (_adminErr) {}
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
         var _subUser = readAuthUser();

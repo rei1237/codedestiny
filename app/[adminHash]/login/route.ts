@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { requireAdminSecret } from "../../_admin/requireAdminSecret";
 import { serveAdminFile } from "../../_admin/serveAdminFile";
 
-export async function GET(request: Request, { params }: { params: { adminHash: string } }) {
-  const blocked = await requireAdminSecret(request, params, { requireAuth: false });
+export async function GET(request: Request, { params }: { params: Promise<{ adminHash: string }> }) {
+  const { adminHash } = await params;
+  const blocked = await requireAdminSecret(request, { adminHash }, { requireAuth: false });
   if (blocked) return blocked;
 
   // 로그인 페이지는 “인증 세션 없이도” 보여줄 수 있어야 한다.
