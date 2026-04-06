@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>R=VD 코스믹 소울 명상 — 현실 렌더링 프로토콜</title>
+  <meta name="description" content="R=VD(Realization=Vivid Dream) 공식 기반의 30분·60분 코스믹 명상. 세타파 동기화와 무의식 재프로그래밍으로 성공 현실을 렌더링합니다.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+KR:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #03010F;
+      --deep: #07020E;
+      --void: #000008;
+      --violet: #7B2FBE;
+      --violet-glow: rgba(123,47,190,0.35);
+      --nebula: #A855F7;
+      --nebula-dim: rgba(168,85,247,0.18);
+      --cosmic: #C084FC;
+      --star: #E9D5FF;
+      --gold: #DBA73A;
+      --gold-dim: rgba(219,167,58,0.18);
+      --silver: #94A3B8;
+      --text: #E2D6F5;
+      --phase-col: #A855F7;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;min-height:100%;background:var(--bg);overflow-x:hidden}
+    body{
+      min-height:100dvh;overflow-y:auto;overflow-x:clip;
+      -webkit-overflow-scrolling:touch;
+      font-family:'Noto Serif KR',serif;
+      color:var(--text);position:relative;
+    }
+
+    /* ── Canvas & Nebula ── */
+    #cosmos{position:fixed;inset:0;z-index:0}
+    #nebula{
+      position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 25%,rgba(123,47,190,0.12) 0%,transparent 70%),
+        radial-gradient(ellipse 50% 65% at 85% 75%,rgba(168,85,247,0.08) 0%,transparent 70%),
+        radial-gradient(ellipse 40% 40% at 50% 50%,rgba(3,1,15,0.5) 0%,transparent 80%);
+      transition:background 4s ease;
+    }
+    #nebula.phase-theta{
+      background:
+        radial-gradient(ellipse 70% 55% at 20% 30%,rgba(123,47,190,0.22) 0%,transparent 70%),
+        radial-gradient(ellipse 60% 70% at 80% 70%,rgba(192,132,252,0.14) 0%,transparent 70%),
+        radial-gradient(ellipse 80% 80% at 50% 50%,rgba(3,1,15,0.35) 0%,transparent 80%);
+    }
+    #nebula.phase-render{
+      background:
+        radial-gradient(ellipse 90% 60% at 30% 40%,rgba(123,47,190,0.28) 0%,transparent 70%),
+        radial-gradient(ellipse 70% 80% at 70% 60%,rgba(219,167,58,0.1) 0%,transparent 70%),
+        radial-gradient(ellipse 50% 50% at 50% 50%,rgba(3,1,15,0.2) 0%,transparent 80%);
+    }
+    #nebula.phase-anchor{
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 50%,rgba(219,167,58,0.18) 0%,transparent 70%),
+        radial-gradient(ellipse 60% 60% at 20% 20%,rgba(168,85,247,0.2) 0%,transparent 70%),
+        radial-gradient(ellipse 60% 60% at 80% 80%,rgba(168,85,247,0.2) 0%,transparent 70%);
+    }
+    .vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 95% 95% at 50% 50%,transparent 38%,rgba(0,0,0,0.78) 100%)}
+
+    /* ── Screens ── */
+    .screen{
+      position:relative;z-index:10;width:100%;min-height:100dvh;
+      display:flex;flex-direction:column;align-items:center;
+      justify-content:flex-start;overflow-x:hidden;overflow-y:auto;
+      -webkit-overflow-scrolling:touch;touch-action:pan-y;
+      opacity:1;transition:opacity 1.4s ease;
+    }
+    .screen.out{opacity:0;pointer-events:none}
+    .screen.hidden{display:none}
+
+    /* ════════ LANDING ════════ */
+    #landing{
+      gap:0;padding:0;
+      background:none;
+    }
+
+    /* Hero section */
+    .landing-hero{
+      position:relative;width:100%;
+      height:clamp(280px,50vw,420px);
+      overflow:hidden;flex-shrink:0;
+    }
+    .landing-hero-img{
+      width:100%;height:100%;object-fit:cover;object-position:center 35%;
+      display:block;
+      filter:brightness(0.72) saturate(1.15);
+    }
+    .landing-hero-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(
+        to bottom,
+        rgba(3,1,15,0.28) 0%,
+        rgba(3,1,15,0.1) 45%,
+        rgba(3,1,15,0.85) 85%,
+        rgba(3,1,15,1) 100%
+      );
+    }
+    .landing-hero-formula{
+      position:absolute;
+      bottom:28px;left:50%;transform:translateX(-50%);
+      font-family:'Space Mono',monospace;
+      font-size:clamp(1.5rem,6vw,2.6rem);
+      font-weight:700;
+      color:#fff;
+      letter-spacing:0.08em;
+      text-shadow:0 0 40px rgba(168,85,247,0.8),0 0 80px rgba(123,47,190,0.5);
+      white-space:nowrap;
+      animation:formulaPulse 3s ease-in-out infinite;
+    }
+    @keyframes formulaPulse{
+      0%,100%{text-shadow:0 0 40px rgba(168,85,247,0.8),0 0 80px rgba(123,47,190,0.5)}
+      50%{text-shadow:0 0 60px rgba(219,167,58,0.9),0 0 100px rgba(168,85,247,0.6)}
+    }
+    .landing-hero-badge{
+      position:absolute;top:18px;right:16px;
+      font-family:'Space Mono',monospace;
+      font-size:0.55rem;letter-spacing:0.12em;
+      color:rgba(192,132,252,0.9);
+      background:rgba(3,1,15,0.72);
+      border:1px solid rgba(168,85,247,0.38);
+      padding:5px 10px;border-radius:4px;
+      backdrop-filter:blur(8px);
+    }
+
+    .landing-body{
+      width:100%;max-width:480px;
+      padding:0 20px 40px;
+      display:flex;flex-direction:column;
+      align-items:center;gap:24px;
+      margin:0 auto;
+    }
+
+    .landing-intro{
+      text-align:center;padding-top:20px;
+    }
+    .landing-eyebrow{
+      font-family:'Space Mono',monospace;
+      font-size:0.6rem;letter-spacing:0.55em;
+      color:var(--cosmic);text-transform:uppercase;
+      margin-bottom:12px;opacity:0;animation:fadeUp 1s 0.3s forwards;
+    }
+    .landing-title{
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(2rem,6vw,3.2rem);font-weight:300;
+      line-height:1.1;color:var(--star);
+      opacity:0;animation:fadeUp 1s 0.55s forwards;
+    }
+    .landing-title em{font-style:italic;color:var(--nebula)}
+    .landing-subtitle{
+      font-size:0.84rem;font-weight:300;color:var(--silver);
+      margin-top:12px;line-height:1.95;letter-spacing:0.04em;
+      opacity:0;animation:fadeUp 1s 0.8s forwards;
+    }
+
+    /* Intention selector */
+    .intention-panel{
+      width:100%;
+      background:rgba(7,2,20,0.7);
+      border:1px solid rgba(168,85,247,0.22);
+      border-radius:16px;
+      padding:18px;
+      opacity:0;animation:fadeUp 1s 1s forwards;
+    }
+    .intention-label{
+      font-family:'Space Mono',monospace;
+      font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;
+      color:rgba(192,132,252,0.6);margin-bottom:10px;display:block;
+    }
+    .intention-grid{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:6px;
+    }
+    .intention-btn{
+      background:rgba(123,47,190,0.1);
+      border:1px solid rgba(168,85,247,0.2);
+      border-radius:10px;padding:9px 10px;
+      font-family:'Noto Serif KR',serif;font-size:0.74rem;
+      color:rgba(210,190,245,0.8);cursor:pointer;
+      transition:all 0.22s ease;text-align:left;
+      line-height:1.4;
+    }
+    .intention-btn:hover,.intention-btn.active{
+      background:rgba(123,47,190,0.28);
+      border-color:rgba(168,85,247,0.55);
+      color:var(--star);
+    }
+    .intention-btn strong{display:block;font-size:0.82rem;font-weight:500;margin-bottom:2px}
+    .intention-btn span{font-size:0.66rem;color:rgba(192,132,252,0.6)}
+
+    /* Cards */
+    .cards{
+      width:100%;display:flex;flex-direction:column;gap:12px;
+      opacity:0;animation:fadeUp 1s 1.2s forwards;
+    }
+    .card{
+      width:100%;padding:22px 20px;cursor:pointer;
+      border:1px solid rgba(168,85,247,0.2);
+      background:rgba(7,2,20,0.75);backdrop-filter:blur(20px);
+      border-radius:16px;position:relative;overflow:hidden;
+      transition:transform 0.4s ease,border-color 0.4s,box-shadow 0.4s;
+    }
+    .card::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(123,47,190,0.06) 0%,transparent 60%);
+      opacity:0;transition:opacity 0.4s;
+    }
+    .card:hover{transform:translateY(-4px);border-color:rgba(168,85,247,0.5);box-shadow:0 20px 50px rgba(0,0,0,0.55),0 0 40px rgba(123,47,190,0.12)}
+    .card:hover::before{opacity:1}
+    .card-tag{
+      display:inline-block;
+      font-family:'Space Mono',monospace;
+      font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;
+      color:var(--cosmic);background:rgba(168,85,247,0.1);
+      border:1px solid rgba(168,85,247,0.28);
+      padding:3px 9px;border-radius:4px;margin-bottom:14px;
+    }
+    .card-dur{
+      font-family:'Cormorant Garamond',serif;
+      font-size:3rem;font-weight:300;color:var(--nebula);line-height:1;
+    }
+    .card-dur span{font-size:0.95rem;color:var(--silver);margin-left:3px}
+    .card-title{font-size:0.95rem;font-weight:400;color:var(--text);margin-top:14px;line-height:1.7}
+    .card-desc{font-size:0.75rem;font-weight:300;color:var(--silver);margin-top:8px;line-height:1.95}
+    .card-phases{display:flex;gap:4px;margin-top:20px}
+    .card-phase{height:2px;flex:1;border-radius:1px;opacity:0.4}
+    .card-badge{
+      position:absolute;top:18px;right:18px;
+      font-family:'Space Mono',monospace;font-size:0.55rem;
+      color:var(--gold);background:rgba(219,167,58,0.1);
+      border:1px solid rgba(219,167,58,0.28);
+      padding:4px 8px;border-radius:4px;
+    }
+
+    /* Streak / info row */
+    .landing-meta{
+      width:100%;display:flex;gap:8px;
+      opacity:0;animation:fadeUp 1s 1.4s forwards;
+    }
+    .meta-chip{
+      flex:1;background:rgba(7,2,20,0.6);
+      border:1px solid rgba(168,85,247,0.18);
+      border-radius:10px;padding:10px 10px;text-align:center;
+    }
+    .meta-chip__val{font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--cosmic);font-weight:700}
+    .meta-chip__label{font-size:0.62rem;color:var(--silver);letter-spacing:0.04em;margin-top:2px;display:block}
+
+    /* ════════ MEDITATION ════════ */
+    #meditation{
+      min-height:100dvh;justify-content:flex-start;align-items:stretch;
+      gap:8px;
+      padding-top:calc(8px + env(safe-area-inset-top));
+      padding-left:max(0px,env(safe-area-inset-left));
+      padding-right:max(0px,env(safe-area-inset-right));
+      padding-bottom:max(20px,env(safe-area-inset-bottom));
+    }
+
+    /* Top bar */
+    .top-bar{
+      position:sticky;top:0;z-index:40;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:11px 14px;
+      background:linear-gradient(180deg,rgba(3,1,15,0.94),rgba(3,1,15,0.5));
+      backdrop-filter:blur(12px);
+    }
+    .phase-label{
+      font-family:'Space Mono',monospace;
+      font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;
+      color:var(--phase-col);transition:color 2.5s ease;
+    }
+    .timer{
+      font-family:'Cormorant Garamond',serif;font-size:1.25rem;
+      font-weight:300;color:rgba(148,115,199,0.55);letter-spacing:0.08em;
+    }
+
+    /* Progress bar */
+    .prog-wrap{position:absolute;top:0;left:0;right:0;height:2px}
+    .prog-track{position:absolute;inset:0;background:rgba(255,255,255,0.04)}
+    .prog-fill{
+      position:absolute;top:0;left:0;height:2px;width:0%;
+      background:linear-gradient(90deg,var(--violet),var(--nebula),var(--gold));
+      transition:width 1s linear;
+      box-shadow:0 0 12px var(--nebula);
+    }
+
+    /* Phase badges */
+    .phase-badge{
+      position:sticky;top:45px;z-index:35;
+      margin:0 auto;
+      display:flex;align-items:center;justify-content:center;
+      gap:10px;
+      width:calc(100% - 28px);max-width:360px;
+      padding:8px 14px;border-radius:99px;
+      background:rgba(7,2,20,0.82);
+      border:1px solid rgba(168,85,247,0.28);
+      backdrop-filter:blur(10px);
+      transition:all 0.8s ease;
+    }
+    .phase-badge__icon{font-size:1.1rem}
+    .phase-badge__text{
+      font-family:'Space Mono',monospace;font-size:0.62rem;
+      letter-spacing:0.12em;text-transform:uppercase;color:var(--cosmic);
+      transition:color 0.8s ease;
+    }
+
+    /* Cosmic Orb */
+    .orb-wrap{
+      position:relative;display:flex;align-items:center;justify-content:center;
+      width:180px;height:180px;margin:4px auto 2px;flex-shrink:0;
+    }
+    .ring{
+      position:absolute;border-radius:50%;
+      border:1px solid var(--violet);
+      opacity:0;animation:ringPulse 5.5s ease-out infinite;
+      transition:border-color 3s ease;
+    }
+    .ring-a{width:120px;height:120px;animation-delay:0s}
+    .ring-b{width:154px;height:154px;animation-delay:2.75s}
+    .ring-c{width:178px;height:178px;animation-delay:1.4s;border-style:dashed}
+
+    .orb{
+      width:84px;height:84px;border-radius:50%;
+      position:relative;z-index:2;
+      background:radial-gradient(circle at 38% 34%,
+        rgba(255,255,255,0.1),
+        rgba(168,85,247,0.22) 28%,
+        rgba(123,47,190,0.14) 52%,
+        transparent 74%
+      );
+      border:1px solid rgba(168,85,247,0.3);
+      box-shadow:
+        0 0 40px rgba(123,47,190,0.2),
+        0 0 80px rgba(168,85,247,0.08),
+        inset 0 0 30px rgba(168,85,247,0.1);
+      animation:breathe 19s ease-in-out infinite;
+      transition:box-shadow 3s ease,background 3s ease;
+    }
+    .orb.anchor-phase{
+      background:radial-gradient(circle at 38% 34%,
+        rgba(255,255,255,0.14),
+        rgba(219,167,58,0.25) 28%,
+        rgba(168,85,247,0.15) 52%,
+        transparent 74%);
+      box-shadow:0 0 60px rgba(219,167,58,0.3),0 0 100px rgba(123,47,190,0.15),inset 0 0 40px rgba(219,167,58,0.12);
+    }
+    .orb-rune{
+      position:absolute;font-size:1.4rem;opacity:0.25;
+      animation:runeRotate 60s linear infinite;color:var(--cosmic);
+      top:50%;left:50%;transform:translate(-50%,-50%);
+      transition:opacity 2s ease;
+    }
+    .orb-rune.visible{opacity:0.55}
+
+    /* Frequency meter */
+    .freq-wrap{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:0 14px;flex-shrink:0;
+    }
+    .freq-label{font-size:0.62rem;color:rgba(192,132,252,0.5);letter-spacing:0.08em}
+    .freq-bars{display:flex;gap:3px;align-items:flex-end;height:22px}
+    .freq-bar{
+      width:3px;background:var(--violet);border-radius:2px;
+      animation:freqBeat var(--dur,0.9s) ease-in-out var(--del,0s) infinite alternate;
+      transition:background 2s ease;
+    }
+    @keyframes freqBeat{0%{height:4px;opacity:0.3}100%{height:var(--h,18px);opacity:0.85}}
+    .freq-hz{
+      font-family:'Space Mono',monospace;font-size:0.65rem;
+      color:var(--cosmic);letter-spacing:0.05em;
+    }
+
+    /* Guidance text */
+    .text-wrap{
+      width:100%;max-width:none;padding:0 18px;
+      text-align:center;min-height:120px;
+      display:flex;align-items:flex-start;justify-content:center;
+    }
+    .guidance{
+      font-family:'Noto Serif KR',serif;
+      font-size:clamp(0.95rem,2.3vw,1.18rem);
+      font-weight:300;line-height:2.15;color:var(--text);
+      transition:opacity 0.7s ease;
+    }
+    .cursor{
+      display:inline-block;width:2px;height:1em;
+      background:var(--nebula);margin-left:3px;
+      vertical-align:middle;animation:blink 1.1s step-end infinite;
+    }
+
+    /* Timeline row */
+    .timeline-row{
+      display:flex;align-items:center;padding:0 14px;gap:6px;flex-shrink:0;
+    }
+    .tl-dot{
+      width:8px;height:8px;border-radius:50%;flex-shrink:0;
+      background:var(--violet);opacity:0.35;
+      transition:opacity 0.5s,background 0.5s;
+    }
+    .tl-dot.active{opacity:1;background:var(--nebula);box-shadow:0 0 8px var(--nebula)}
+    .tl-dot.done{opacity:0.6;background:var(--gold)}
+    .tl-label{font-size:0.62rem;color:rgba(192,132,252,0.45);letter-spacing:0.04em}
+
+    /* Music panel */
+    .music-panel{
+      position:relative;top:auto;right:auto;left:auto;
+      width:calc(100% - 28px);max-width:520px;margin:0 auto;
+      border:1px solid rgba(168,85,247,0.22);
+      background:rgba(4,2,14,0.78);backdrop-filter:blur(14px);
+      padding:13px 13px 11px;border-radius:14px;
+      box-shadow:0 14px 38px rgba(0,0,0,0.4),inset 0 0 0 1px rgba(168,85,247,0.04);
+      transition:opacity 0.35s,transform 0.35s;
+    }
+    .music-panel.is-closed{opacity:0;transform:translateY(-6px);pointer-events:none}
+    .music-panel__head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+    .music-panel__title{
+      font-family:'Space Mono',monospace;font-size:0.7rem;
+      letter-spacing:0.12em;color:var(--cosmic);
+    }
+    .music-panel__close{
+      flex-shrink:0;min-width:40px;min-height:40px;
+      border:1px solid rgba(168,85,247,0.28);background:rgba(0,0,0,0.28);
+      color:rgba(210,190,245,0.8);font-size:0.78rem;cursor:pointer;
+      transition:all 0.22s ease;border-radius:8px;
+    }
+    .music-panel__close:hover{border-color:rgba(168,85,247,0.55);color:var(--cosmic);background:rgba(168,85,247,0.08)}
+    .music-panel__row{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+    .music-panel__select{
+      flex:1;min-height:42px;background:rgba(0,0,0,0.35);
+      border:1px solid rgba(168,85,247,0.22);color:var(--text);
+      font-family:'Noto Serif KR',serif;font-size:0.72rem;padding:8px 10px;
+      outline:none;border-radius:8px;
+      color:#e2d6f5;-webkit-text-fill-color:#e2d6f5;color-scheme:dark;
+    }
+    .music-panel__btn{
+      background:none;border:1px solid rgba(168,85,247,0.28);
+      color:rgba(192,132,252,0.82);font-size:0.7rem;
+      min-height:42px;padding:8px 10px;cursor:pointer;
+      transition:all 0.22s ease;border-radius:8px;font-family:inherit;
+    }
+    .music-panel__btn:hover{border-color:rgba(168,85,247,0.55);color:var(--cosmic);background:rgba(168,85,247,0.06)}
+    .music-panel__status{font-size:0.66rem;line-height:1.65;color:rgba(210,190,245,0.7);min-height:1.8em}
+    .yt-player{width:1px;height:1px;opacity:0;pointer-events:none;position:absolute;left:-9999px;top:-9999px}
+
+    .music-opener{
+      position:sticky;top:calc(6px + env(safe-area-inset-top));
+      left:50%;right:auto;transform:translateX(-50%);z-index:45;
+      display:inline-flex;align-items:center;justify-content:center;gap:7px;
+      border:1px solid rgba(168,85,247,0.4);
+      background:linear-gradient(145deg,rgba(7,2,20,0.94),rgba(4,1,14,0.9));
+      color:rgba(192,132,252,0.95);
+      font-family:'Space Mono',monospace;font-size:0.62rem;
+      letter-spacing:0.12em;text-transform:uppercase;
+      min-height:38px;padding:7px 14px;border-radius:999px;
+      box-shadow:0 10px 26px rgba(0,0,0,0.4),inset 0 0 0 1px rgba(168,85,247,0.06);
+      cursor:pointer;
+      transition:transform 0.25s ease,border-color 0.25s ease,box-shadow 0.25s ease;
+      white-space:nowrap;
+    }
+    .music-opener::before{
+      content:'◉';font-size:0.7rem;color:rgba(168,85,247,0.85);
+      text-shadow:0 0 8px rgba(168,85,247,0.4);
+    }
+    .music-opener:hover{
+      transform:translateX(-50%) translateY(-1px);
+      border-color:rgba(192,132,252,0.65);
+      box-shadow:0 14px 30px rgba(0,0,0,0.5),0 0 20px rgba(168,85,247,0.12);
+    }
+
+    /* Controls */
+    .controls{
+      position:static;display:flex;flex-direction:column;gap:8px;
+      align-items:center;width:100%;padding:0 14px;margin-top:2px;
+    }
+    .btn{
+      background:none;border:1px solid rgba(168,85,247,0.22);
+      color:rgba(192,132,252,0.72);font-family:'Noto Serif KR',serif;
+      font-size:0.78rem;font-weight:300;width:100%;min-height:44px;
+      padding:10px 16px;cursor:pointer;letter-spacing:0.12em;
+      transition:all 0.35s ease;border-radius:10px;
+    }
+    .btn:hover{border-color:rgba(168,85,247,0.55);color:var(--cosmic);background:rgba(123,47,190,0.06);box-shadow:0 0 18px rgba(123,47,190,0.08)}
+    .btn-primary{
+      background:linear-gradient(135deg,rgba(123,47,190,0.22),rgba(168,85,247,0.12));
+      border-color:rgba(168,85,247,0.4);color:var(--cosmic);
+    }
+
+    /* ════════ COMPLETION ════════ */
+    #completion{
+      min-height:100dvh;gap:28px;text-align:center;
+      padding:32px 22px;
+      padding-left:max(22px,env(safe-area-inset-left));
+      padding-right:max(22px,env(safe-area-inset-right));
+      padding-bottom:max(32px,env(safe-area-inset-bottom));
+      align-items:center;
+    }
+    .comp-sigil{opacity:0;animation:fadeUp 1s 0.3s forwards}
+    .comp-h{
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(2rem,5vw,3.2rem);font-weight:300;
+      color:var(--star);opacity:0;animation:fadeUp 1s 0.7s forwards;
+    }
+    .comp-p{
+      font-size:0.87rem;font-weight:300;color:var(--silver);
+      line-height:2.3;max-width:380px;opacity:0;animation:fadeUp 1s 1.1s forwards;
+    }
+    .comp-quote{
+      font-family:'Cormorant Garamond',serif;font-style:italic;
+      font-size:1.25rem;color:var(--gold);
+      opacity:0;animation:fadeUp 1s 1.5s forwards;
+      line-height:1.7;max-width:340px;
+    }
+    /* Action Code */
+    .action-code{
+      width:100%;max-width:420px;
+      background:rgba(7,2,20,0.85);
+      border:1px solid rgba(168,85,247,0.25);
+      border-radius:14px;padding:18px;
+      opacity:0;animation:fadeUp 1s 1.9s forwards;
+    }
+    .action-code__label{
+      font-family:'Space Mono',monospace;font-size:0.58rem;
+      letter-spacing:0.16em;text-transform:uppercase;
+      color:rgba(168,85,247,0.5);margin-bottom:10px;display:block;
+    }
+    .action-code__cmd{
+      font-family:'Space Mono',monospace;font-size:0.82rem;
+      color:var(--gold);letter-spacing:0.04em;
+      background:rgba(219,167,58,0.06);border:1px solid rgba(219,167,58,0.18);
+      border-radius:8px;padding:12px 14px;display:block;
+      white-space:pre-wrap;word-break:break-all;
+      line-height:1.65;margin-bottom:12px;
+    }
+    .action-code__desc{font-size:0.78rem;color:var(--silver);line-height:1.85}
+    /* Journal */
+    .journal-panel{
+      width:100%;max-width:420px;
+      background:rgba(7,2,20,0.7);
+      border:1px solid rgba(168,85,247,0.2);
+      border-radius:14px;padding:18px;
+      opacity:0;animation:fadeUp 1s 2.2s forwards;
+    }
+    .journal-panel__label{
+      font-family:'Space Mono',monospace;font-size:0.58rem;
+      letter-spacing:0.16em;text-transform:uppercase;
+      color:rgba(192,132,252,0.5);margin-bottom:12px;display:block;
+    }
+    .journal-textarea{
+      width:100%;background:rgba(3,1,15,0.6);
+      border:1px solid rgba(168,85,247,0.18);border-radius:10px;
+      color:var(--text);font-family:'Noto Serif KR',serif;font-size:0.82rem;
+      padding:12px;line-height:1.85;min-height:80px;resize:vertical;outline:none;
+      transition:border-color 0.22s;
+    }
+    .journal-textarea:focus{border-color:rgba(168,85,247,0.45)}
+    .journal-prompt{font-size:0.78rem;color:rgba(192,132,252,0.7);margin-bottom:8px;line-height:1.65}
+    .journal-save{
+      width:100%;margin-top:8px;background:rgba(123,47,190,0.15);
+      border:1px solid rgba(168,85,247,0.3);border-radius:10px;
+      color:var(--cosmic);font-family:inherit;font-size:0.78rem;
+      min-height:42px;cursor:pointer;letter-spacing:0.08em;
+      transition:all 0.22s ease;
+    }
+    .journal-save:hover{background:rgba(123,47,190,0.28);border-color:rgba(168,85,247,0.55)}
+    /* Stats row */
+    .comp-stats{
+      width:100%;max-width:420px;
+      display:flex;gap:8px;
+      opacity:0;animation:fadeUp 1s 2.5s forwards;
+    }
+    .stat-chip{
+      flex:1;background:rgba(7,2,20,0.7);
+      border:1px solid rgba(168,85,247,0.18);border-radius:12px;
+      padding:12px;text-align:center;
+    }
+    .stat-chip__val{
+      font-family:'Space Mono',monospace;font-size:1.1rem;
+      color:var(--cosmic);font-weight:700;display:block;
+    }
+    .stat-chip__label{font-size:0.62rem;color:var(--silver);margin-top:2px;display:block}
+
+    /* ════════ ANIMATIONS ════════ */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes ringPulse{0%{transform:scale(0.82);opacity:0.35}50%{opacity:0.12}100%{transform:scale(1.95);opacity:0}}
+    @keyframes breathe{
+      0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(123,47,190,0.2),inset 0 0 30px rgba(168,85,247,0.1)}
+      21%{transform:scale(1.24);box-shadow:0 0 65px rgba(123,47,190,0.32),inset 0 0 42px rgba(168,85,247,0.16)}
+      57%{transform:scale(1.24);box-shadow:0 0 65px rgba(123,47,190,0.32),inset 0 0 42px rgba(168,85,247,0.16)}
+    }
+    @keyframes runeRotate{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}
+
+    /* ════════ RESPONSIVE ════════ */
+    @media (min-width:901px) and (min-height:741px) {
+      .screen{position:fixed;inset:0;min-height:auto;justify-content:center}
+      #landing{position:relative;overflow-y:auto;overflow-x:hidden;min-height:100vh}
+      .landing-hero{height:340px}
+      .landing-body{max-width:920px;padding:0 32px 48px;flex-direction:column}
+      .cards{flex-direction:row;gap:24px}
+      .card{flex:1;padding:30px 26px}
+      #meditation{justify-content:center;align-items:center;padding-top:0;gap:12px;padding-bottom:max(0px,env(safe-area-inset-bottom))}
+      .top-bar{position:absolute;top:0;z-index:auto;padding:20px 36px;background:none;backdrop-filter:none}
+      .orb-wrap{width:210px;height:210px;margin-bottom:8px}
+      .ring-a{width:148px;height:148px}.ring-b{width:188px;height:188px}.ring-c{width:208px;height:208px}
+      .orb{width:108px;height:108px}
+      .text-wrap{max-width:580px;padding:0 32px;min-height:140px;align-items:center}
+      .controls{position:absolute;bottom:32px;flex-direction:row;gap:14px;width:auto;padding:0;margin-top:0}
+      .btn{width:auto;padding:10px 24px}
+      .music-panel{position:absolute;top:80px;right:22px;width:300px;margin:0}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Canvas ── -->
+<canvas id="cosmos"></canvas>
+
+<!-- ── Nebula ── -->
+<div id="nebula"></div>
+<div class="vignette"></div>
+
+<!-- ══════════════════════════════════
+     SCREEN: LANDING
+══════════════════════════════════ -->
+<section class="screen" id="landing">
+
+  <div class="landing-hero">
+    <img class="landing-hero-img" src="/fuctionassets/r=vd.webp" alt="R=VD 코스믹 소울 명상 — 보랏빛 성운의 우주">
+    <div class="landing-hero-overlay"></div>
+    <div class="landing-hero-badge">// COSMIC SOUL ARCHITECT</div>
+    <div class="landing-hero-formula">R = VD</div>
+  </div>
+
+  <div class="landing-body">
+    <div class="landing-intro">
+      <p class="landing-eyebrow">Cosmic Soul Meditation · Quantum Reality Protocol</p>
+      <h1 class="landing-title">무의식 DB에<br><em>성공을 배포</em>하다</h1>
+      <p class="landing-subtitle">
+        R=VD — Realization equals Vivid Dream.<br>
+        세타파(4–7Hz)로 무의식의 문을 열고,<br>
+        원하는 현실을 4K 해상도로 렌더링합니다.
+      </p>
+    </div>
+
+    <!-- Streak chips -->
+    <div class="landing-meta" id="metaRow">
+      <div class="meta-chip">
+        <div class="meta-chip__val" id="metaStreak">0</div>
+        <span class="meta-chip__label">연속 일수</span>
+      </div>
+      <div class="meta-chip">
+        <div class="meta-chip__val" id="metaSessions">0</div>
+        <span class="meta-chip__label">총 세션</span>
+      </div>
+      <div class="meta-chip">
+        <div class="meta-chip__val" id="metaMinutes">0</div>
+        <span class="meta-chip__label">총 분</span>
+      </div>
+    </div>
+
+    <!-- Intention selector -->
+    <div class="intention-panel">
+      <span class="intention-label">// 오늘의 명상 의도 선택</span>
+      <div class="intention-grid">
+        <button class="intention-btn active" data-intent="wealth" type="button">
+          <strong>💰 부의 렌더링</strong>
+          <span>재물·성공 현실화</span>
+        </button>
+        <button class="intention-btn" data-intent="clarity" type="button">
+          <strong>🔮 정신 명료화</strong>
+          <span>집중·결단력 회복</span>
+        </button>
+        <button class="intention-btn" data-intent="love" type="button">
+          <strong>💜 관계 인력장</strong>
+          <span>인연·사랑 끌어당기기</span>
+        </button>
+        <button class="intention-btn" data-intent="health" type="button">
+          <strong>🌿 세포 재부팅</strong>
+          <span>건강·에너지 재충전</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Session cards -->
+    <div class="cards">
+      <div class="card" id="card30" role="button" tabindex="0" aria-label="30분 효율 동기화 명상 시작">
+        <div class="card-tag">// VERSION A</div>
+        <div class="card-badge">HIGH EFFICIENCY</div>
+        <div class="card-dur">30<span>min</span></div>
+        <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
+        <p class="card-desc">
+          바쁜 일과 중 강력한 멘탈 튜닝.<br>
+          5단계 [System Reset → Production Deploy]<br>
+          뇌 운영체제를 30분 안에 재시동합니다.
+        </p>
+        <div class="card-phases">
+          <div class="card-phase" style="background:#7B2FBE"></div>
+          <div class="card-phase" style="background:#A855F7"></div>
+          <div class="card-phase" style="background:#C084FC"></div>
+          <div class="card-phase" style="background:#DBA73A"></div>
+          <div class="card-phase" style="background:#A855F7"></div>
+        </div>
+      </div>
+
+      <div class="card" id="card60" role="button" tabindex="0" aria-label="60분 심층 변형 명상 시작">
+        <div class="card-tag">// VERSION B</div>
+        <div class="card-badge" style="border-color:rgba(219,167,58,0.35);color:var(--gold)">DEEP DIVE</div>
+        <div class="card-dur" style="color:var(--gold)">60<span>min</span></div>
+        <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
+        <p class="card-desc">
+          자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
+          7단계 풀 프로토콜로 무의식 뿌리부터<br>
+          새로운 현실 코드를 배포합니다.
+        </p>
+        <div class="card-phases">
+          <div class="card-phase" style="background:#7B2FBE"></div>
+          <div class="card-phase" style="background:#A855F7"></div>
+          <div class="card-phase" style="background:#4A1D96"></div>
+          <div class="card-phase" style="background:#C084FC"></div>
+          <div class="card-phase" style="background:#DBA73A"></div>
+          <div class="card-phase" style="background:#A855F7"></div>
+          <div class="card-phase" style="background:#C084FC"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /landing-body -->
+</section>
+
+<!-- ══════════════════════════════════
+     SCREEN: MEDITATION
+══════════════════════════════════ -->
+<section class="screen hidden" id="meditation">
+
+  <div class="top-bar">
+    <div class="prog-wrap">
+      <div class="prog-track"></div>
+      <div class="prog-fill" id="progFill"></div>
+    </div>
+    <span class="phase-label" id="phaseLabel">SYSTEM RESET</span>
+    <span class="timer" id="timerEl">00:00</span>
+  </div>
+
+  <!-- Phase badge -->
+  <div class="phase-badge" id="phaseBadge">
+    <span class="phase-badge__icon" id="phaseBadgeIcon">⚙️</span>
+    <span class="phase-badge__text" id="phaseBadgeText">INITIALIZING…</span>
+  </div>
+
+  <!-- Music opener button -->
+  <button class="music-opener" id="musicOpener" type="button">Theta Music</button>
+
+  <!-- Music panel -->
+  <div class="music-panel is-closed" id="musicPanel">
+    <div class="music-panel__head">
+      <span class="music-panel__title">// COSMIC LOFI SINGULARITY</span>
+      <button class="music-panel__close" id="musicClose" type="button">✕</button>
+    </div>
+    <div class="music-panel__row">
+      <select class="music-panel__select" id="musicSelect">
+        <option value="theta wave deep meditation lofi">🎵 세타파 딥 명상 로파이</option>
+        <option value="cosmic lofi theta waves 4hz meditation">🌌 코스믹 로파이 4Hz 세타파</option>
+        <option value="deep alpha theta binaural beats focus">🧠 알파/세타 바이노럴 비츠</option>
+        <option value="space ambient lofi meditation relaxation">🚀 우주 앰비언트 로파이</option>
+        <option value="528hz solfeggio healing frequency meditation">✨ 528Hz 솔페지오 힐링</option>
+        <option value="quantum field meditation music 432hz">⚛️ 432Hz 양자장 명상</option>
+        <option value="lofi chill beats deep focus subconscious">💜 딥 포커스 무의식 로파이</option>
+        <option value="neville goddard theta reprogramming sleep">🌙 오토제닉 잠재의식 세션</option>
+      </select>
+      <button class="music-panel__btn" id="musicSearch" type="button">▶ 재생</button>
+      <button class="music-panel__btn" id="musicNext" type="button">⟳</button>
+    </div>
+    <div class="music-panel__status" id="musicStatus">YouTube에서 세타파 음악을 재생합니다</div>
+    <div class="yt-player" id="ytPlayer"></div>
+  </div>
+
+  <!-- Cosmic Orb -->
+  <div class="orb-wrap">
+    <div class="ring ring-c"></div>
+    <div class="ring ring-b"></div>
+    <div class="ring ring-a"></div>
+    <div class="orb" id="meditOrb">
+      <span class="orb-rune" id="orbRune">◈</span>
+    </div>
+  </div>
+
+  <!-- Frequency meter -->
+  <div class="freq-wrap">
+    <span class="freq-label">FREQ</span>
+    <div class="freq-bars" id="freqBars"></div>
+    <span class="freq-hz" id="freqHz">7 Hz</span>
+  </div>
+
+  <!-- Guidance text -->
+  <div class="text-wrap">
+    <p class="guidance" id="guidanceText"><span class="cursor"></span></p>
+  </div>
+
+  <!-- Timeline dots -->
+  <div class="timeline-row" id="timelineRow">
+    <span class="tl-label">단계</span>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-primary" id="btnPause" type="button">일시정지</button>
+    <button class="btn" id="btnStop" type="button">세션 종료</button>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════
+     SCREEN: COMPLETION
+══════════════════════════════════ -->
+<section class="screen hidden" id="completion">
+
+  <div class="comp-sigil" aria-hidden="true">
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="30" stroke="rgba(168,85,247,0.5)" stroke-width="1"/>
+      <circle cx="32" cy="32" r="22" stroke="rgba(168,85,247,0.3)" stroke-width="0.5"/>
+      <path d="M32 8 L36 26 L54 26 L40 37 L45 55 L32 44 L19 55 L24 37 L10 26 L28 26 Z" fill="none" stroke="rgba(219,167,58,0.6)" stroke-width="0.8"/>
+      <circle cx="32" cy="32" r="4" fill="rgba(168,85,247,0.5)"/>
+    </svg>
+  </div>
+
+  <h2 class="comp-h">배포 완료<br><span style="font-size:0.6em;color:var(--nebula)">Production Deployed</span></h2>
+  <p class="comp-p" id="compDesc">
+    세션이 완료되었습니다. 새로운 현실 코드가<br>
+    당신의 무의식 데이터베이스에 커밋되었습니다.
+  </p>
+  <p class="comp-quote" id="compQuote">
+    "원하는 것이 이미 현실이라고 느끼는 그 순간,<br>우주는 그것을 현실로 렌더링하기 시작한다."
+  </p>
+
+  <!-- Action Code -->
+  <div class="action-code">
+    <span class="action-code__label">// One-Line Action Code :: 지금 즉시 실행할 명령</span>
+    <code class="action-code__cmd" id="actionCmd">$ reality.deploy(intention=&apos;wealth&apos;, action=&apos;WRITE_ONE_GOAL_NOW&apos;)</code>
+    <p class="action-code__desc" id="actionDesc">명상이 끝난 지금, 종이에 원하는 것 하나를 현재형으로 적어두세요. <em>"나는 이미 ___이다."</em> 형식으로. 이 한 줄이 현실 배포의 첫 번째 커밋입니다.</p>
+  </div>
+
+  <!-- Cosmic Journal -->
+  <div class="journal-panel">
+    <span class="journal-panel__label">// 코스믹 저널 :: 명상 중 본 비전을 기록하세요</span>
+    <p class="journal-prompt" id="journalPrompt">명상 중 가장 선명하게 느낀 순간이나 이미지를 3줄로 기록해보세요.</p>
+    <textarea class="journal-textarea" id="journalInput" placeholder="오늘 명상에서 본 것, 느낀 것, 깨달은 것…" rows="4"></textarea>
+    <button class="journal-save" id="journalSave" type="button">저장하기 → localStorage</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="comp-stats">
+    <div class="stat-chip">
+      <span class="stat-chip__val" id="statStreak">0</span>
+      <span class="stat-chip__label">연속 일수</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-chip__val" id="statSessions">0</span>
+      <span class="stat-chip__label">총 세션</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-chip__val" id="statMins">0</span>
+      <span class="stat-chip__label">총 분</span>
+    </div>
+  </div>
+
+  <button class="btn" id="btnRestart" type="button" style="margin-top:8px;max-width:360px">다시 시작하기</button>
+  <button class="btn" id="btnBackHome" type="button" style="margin-top:0;max-width:360px;opacity:0.6">← 메인으로 돌아가기</button>
+
+</section>
+
+<!-- ══════════ SCRIPTS ══════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ─── Canvas starfield ─── */
+(function(){
+  var c=document.getElementById('cosmos');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  var stars=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;stars=[];for(var i=0;i<220;i++){stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.2+0.2,a:Math.random(),s:Math.random()*0.008+0.002,hue:Math.random()<0.3?'255,170,255':'210,185,255'});}}
+  resize();window.addEventListener('resize',resize);
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(function(s){s.a+=s.s;if(s.a>1||s.a<0)s.s=-s.s;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba('+s.hue+','+s.a+')';ctx.fill();});requestAnimationFrame(draw);}
+  draw();
+})();
+
+/* ─── State ─── */
+var _mode=null; // '30' or '60'
+var _intent='wealth';
+var _elapsed=0,_totalSecs=0,_running=false,_interval=null;
+var _phaseIdx=0,_typing=false,_typeTimer=null,_pendingText='';
+
+/* ─── Local storage stats ─── */
+var LS_KEY='csm_stats_v1';
+var LS_JOURNAL_KEY='csm_journal_v1';
+function _loadStats(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{sessions:0,minutes:0,streak:0,lastDate:''};}catch(e){return{sessions:0,minutes:0,streak:0,lastDate:''};}}
+function _saveStats(s){try{localStorage.setItem(LS_KEY,JSON.stringify(s));}catch(e){}}
+function _getStreak(s){
+  var today=new Date().toISOString().slice(0,10);
+  var yd=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(s.lastDate===today)return s.streak;
+  if(s.lastDate===yd)return s.streak+1;
+  return 1;
+}
+function _updateMetaDisplay(){
+  var s=_loadStats();
+  var els=['metaStreak','metaSessions','metaMinutes','statStreak','statSessions','statMins'];
+  var vals=[s.streak,s.sessions,s.minutes,s.streak,s.sessions,s.minutes];
+  els.forEach(function(id,i){var el=document.getElementById(id);if(el)el.textContent=vals[i];});
+}
+
+/* ─── Phase data ─── */
+var PHASES_30=[
+  {
+    label:'SYSTEM RESET',icon:'⚙️',
+    colorH:'#7B2FBE',freq:'7 Hz',nebulaClass:'',runeChar:'◈',durMin:3,
+    lines:[
+      '"눈을 감으세요. 지금 이 순간, 당신은 우주의 단 하나뿐인 콘솔입니다."',
+      '"천천히 숨을 들이쉬세요… 4초… 멈추세요… 4초… 내쉬세요… 8초."',
+      '"몸의 모든 긴장이 발끝부터 녹아내립니다. 어깨, 등, 목 — 모든 캐시를 비웁니다."',
+      '"당신의 신경계가 지금 현실이라는 시스템에서 로그아웃됩니다."',
+      '"고요한 우주 정거장의 정적이 당신 주변을 채웁니다. 오직 당신의 숨소리만 존재합니다."',
+    ]
+  },
+  {
+    label:'KERNEL PATCH',icon:'🔮',
+    colorH:'#A855F7',freq:'5 Hz',nebulaClass:'phase-theta',runeChar:'∿',durMin:5,
+    lines:[
+      '"세타파 동기화를 시작합니다. 4초 들이쉬고… 7초 멈추고… 8초 내쉬세요."',
+      '"뇌파가 알파에서 세타 영역으로 내려갑니다. 4Hz… 5Hz… 7Hz…"',
+      '"무의식의 문이 열리기 시작합니다. 황금빛 보랏빛 성운이 당신 앞에 펼쳐집니다."',
+      '"당신은 지금 자신의 운영체제 커널에 직접 접근하고 있습니다."',
+      '"이 고요함 속에서 원하는 모든 것이 가능합니다. 모든 제한은 단지 오래된 코드입니다."',
+    ]
+  },
+  {
+    label:'DATA RENDERING',icon:'🌌',
+    colorH:'#C084FC',freq:'4 Hz',nebulaClass:'phase-render',runeChar:'✦',durMin:12,
+    lines:[
+      '"이제 원하는 미래를 4K 해상도로 렌더링합니다. 당신이 성공한 그날의 아침입니다."',
+      '"눈앞에 보입니다 — 당신의 공간, 당신의 책상, 당신의 손. 모든 것이 선명합니다."',
+      '"냄새를 맡아보세요 — 성공의 아침 커피 향, 신선한 공기, 당신이 이룬 것의 향기."',
+      '"소리가 들립니다 — 당신을 부르는 사람들의 목소리, 알림음, 성취의 소음들."',
+      '"피부로 느끼세요 — 최고급 소재의 감촉, 따뜻한 햇살, 자유로운 몸의 감각."',
+      '"성공의 첫 잔을 들어올립니다. 그 맛 — 달콤하고 묵직하고 진합니다. 당신이 해낸 것의 맛."',
+      '"그 감정을 전신으로 느끼세요. 자랑스러움, 평화, 확신. 지금 이것이 현실입니다."',
+      '"이 장면을 더 선명하게 만드세요. 세부 사항 하나하나를 채워넣으세요."',
+      '"원하는 것이 이미 이루어진 그 상태에서, 당신은 어떻게 느끼고 있나요?"',
+      '"그 감정에 머무르세요. 이것이 R=VD — 비전이 현실화되는 주파수입니다."',
+      '"우주 전체가 이 신호를 수신하고 있습니다. 현실 데이터가 업데이트됩니다."',
+      '"당신의 세포 하나하나에 이 현실이 기록됩니다."',
+    ]
+  },
+  {
+    label:'QUANTUM ANCHORING',icon:'⚡',
+    colorH:'#DBA73A',freq:'6 Hz',nebulaClass:'phase-anchor',runeChar:'☆',durMin:7,
+    lines:[
+      '"이제 이 감정을 당신의 세포에 커밋합니다. 손을 가슴에 올려주세요."',
+      '"오른손을 심장 위에 놓고 느끼세요 — 이미 이루어진 현실의 감정이 심장에서 진동합니다."',
+      '"세 번 깊게 들이쉬면서 이 감정을 더 깊이 각인시킵니다. 하나… 둘… 셋…"',
+      '"이제 이 느낌에 색을 부여하세요. 황금빛? 보랏빛? 그 빛이 전신으로 퍼져나갑니다."',
+      '"이것이 당신의 새로운 기준 상태입니다. 이전의 두려움과 의심은 삭제됩니다."',
+      '"성공한 당신의 모습을 마지막으로 한 번 더 선명하게 봅니다. git commit -m 완료."',
+      '"이 비전을 봉인합니다. 무의식 데이터베이스에 저장이 완료되었습니다."',
+    ]
+  },
+  {
+    label:'PRODUCTION DEPLOY',icon:'🚀',
+    colorH:'#A855F7',freq:'10 Hz',nebulaClass:'',runeChar:'▲',durMin:3,
+    lines:[
+      '"이제 현실 세계로 돌아올 시간입니다. 외부 세계로 시스템을 부팅합니다."',
+      '"손가락과 발가락을 천천히 움직이세요. 현실의 감각이 돌아옵니다."',
+      '"눈꺼풀이 밝아집니다. 빛이 느껴집니다. 새로운 코드가 탑재된 채로 깨어납니다."',
+      '"오늘 이 명상이 당신의 뇌 운영체제에 새로운 현실 코드를 배포했습니다."',
+      '"이제 눈을 뜨세요. 새로운 현실이 시작됩니다. Production Deploy 완료."',
+    ]
+  }
+];
+
+var PHASES_60=[
+  {
+    label:'SYSTEM RESET',icon:'⚙️',
+    colorH:'#7B2FBE',freq:'8 Hz',nebulaClass:'',runeChar:'◈',durMin:5,
+    lines:[
+      '"눈을 감으세요. 지금부터 60분간 당신의 운명이 재프로그래밍됩니다."',
+      '"발끝부터 정수리까지 몸 전체를 스캔합니다. 긴장된 곳은 숨을 내쉬며 해제하세요."',
+      '"어깨를 한 번 들었다 내리고… 턱을 이완시키고… 눈 주위의 긴장을 풀어요."',
+      '"4-7-8 호흡 패턴으로 시작합니다. 4초 들이쉬고… 7초 멈추고… 8초 내쉬세요."',
+      '"몸이 무거워집니다. 당신은 깊은 우주 정거장의 안락한 의자에 앉아 있습니다."',
+    ]
+  },
+  {
+    label:'KERNEL PATCH',icon:'🔮',
+    colorH:'#9333EA',freq:'6 Hz',nebulaClass:'phase-theta',runeChar:'∿',durMin:10,
+    lines:[
+      '"세타파로 진입합니다. 뇌파가 천천히 하강합니다. 8Hz… 7Hz… 6Hz… 4Hz…"',
+      '"무의식의 바다가 눈앞에 펼쳐집니다. 보랏빛 성운이 흐릅니다."',
+      '"이 상태에서 당신은 자신의 운명의 소스코드를 직접 편집할 수 있습니다."',
+      '"지금까지의 두려움, 걱정, 한계 — 이것들은 단지 오래된 if문입니다."',
+      '"새로운 코드를 쓸 준비가 되었습니다. 당신이 진짜 원하는 것은 무엇입니까?"',
+      '"세타 공간에서는 시간이 존재하지 않습니다. 과거와 미래가 동시에 현재입니다."',
+      '"이 무한한 가능성의 장(場)에 당신의 의도를 선명하게 입력하세요."',
+      '"4Hz 세타파가 당신의 무의식 뇌와 직접 통신합니다. 동기화가 완료됩니다."',
+      '"당신은 지금 자신의 운명을 편집하는 편집자입니다. 펜을 들었습니까?"',
+      '"이 공간에서 한없이 안전합니다. 두려워하지 않아도 됩니다."',
+    ]
+  },
+  {
+    label:'IDENTITY RESET',icon:'💫',
+    colorH:'#4A1D96',freq:'4 Hz',nebulaClass:'phase-theta',runeChar:'◯',durMin:10,
+    lines:[
+      '"이제 자아 해체 단계입니다. 당신이 알던 \'나\'의 경계가 흐릿해집니다."',
+      '"나는 누구인가? 이름? 나이? 직업? — 이것들은 임시 변수입니다."',
+      '"본질적인 당신 — 의식 그 자체 — 는 어떤 제한도 없습니다."',
+      '"당신이 지금까지 \'나는 못해\'라고 믿었던 것들을 하나씩 내려놓으세요."',
+      '"그 믿음들이 연기처럼 사라집니다. 사라지는 것을 바라봅니다."',
+      '"\'이렇게 되어야 한다\'는 강박도 놓아주세요. 당신은 이미 충분합니다."',
+      '"자아의 경계가 완전히 녹아 우주와 하나가 됩니다. 당신이 별입니다."',
+      '"이 고요함 속에서 진짜 당신 — 무한한 가능성의 존재 — 가 나타납니다."',
+      '"그 존재로서 새로운 현실을 선택합니다. 어떤 현실을 선택하겠습니까?"',
+      '"선택했습니다. 이제 그 선택이 현실이 됩니다."',
+    ]
+  },
+  {
+    label:'QUANTUM ENTANGLEMENT',icon:'⚛️',
+    colorH:'#6D28D9',freq:'4 Hz',nebulaClass:'phase-render',runeChar:'∞',durMin:15,
+    lines:[
+      '"양자 얽힘 단계입니다. 당신의 의식이 원하는 현실과 얽힙니다."',
+      '"평행 우주 어딘가에, 이미 성공한 당신이 살고 있습니다."',
+      '"그 우주의 당신과 지금 연결됩니다. 주파수를 맞추세요."',
+      '"그 당신은 어떤 표정을 짓고 있나요? 어떤 공간에 있나요?"',
+      '"그 당신의 눈으로 세상을 바라보세요. 모든 것이 다릅니다."',
+      '"아침에 눈을 뜨는 느낌 — 설레고, 감사하고, 충만합니다."',
+      '"당신의 손에 들린 것, 발 밑의 바닥, 주변의 소리들을 느끼세요."',
+      '"이 현실이 점점 선명해집니다. 4K… 8K… 현실보다 더 선명합니다."',
+      '"성공한 당신의 하루를 처음부터 끝까지 경험합니다."',
+      '"아침 루틴, 중요한 회의, 저녁의 성취감 — 모두 경험합니다."',
+      '"이 감정들이 파동처럼 퍼져나갑니다. 세포 단위까지 진동합니다."',
+      '"당신 안에서 무언가가 완전히 달라지는 것을 느낍니까?"',
+      '"이것이 양자 얽힘입니다. 원하는 현실과 당신의 의식이 하나가 되었습니다."',
+      '"이 평행 현실의 당신에게 메시지를 보내세요. 우리는 이미 연결되어 있습니다."',
+      '"R=VD — 비전이 선명할수록 현실화는 가속됩니다. 충분히 선명합니까?"',
+    ]
+  },
+  {
+    label:'DATA RENDERING 4K',icon:'🌌',
+    colorH:'#C084FC',freq:'5 Hz',nebulaClass:'phase-render',runeChar:'✦',durMin:12,
+    lines:[
+      '"이제 원하는 미래를 4K로 초고해상도 렌더링합니다."',
+      '"시각: 그날 아침, 침실 창문으로 들어오는 햇살이 보입니다."',
+      '"청각: 당신이 이룬 것을 축하하는 알림음, 사랑하는 사람의 목소리."',
+      '"촉각: 성공을 상징하는 물건의 무게, 고급 소재의 감촉, 따뜻한 악수."',
+      '"후각: 새 아침의 커피 향, 당신의 공간에서 나는 특유의 냄새."',
+      '"미각: 성공의 축배 — 당신이 해낸 날 마시는 한 모금의 맛."',
+      '"이 다섯 가지 감각을 동시에 느끼세요. 현실보다 선명합니다."',
+      '"이 장면을 스크린샷 찍듯 마음에 저장합니다. 영구 저장됩니다."',
+      '"당신의 삶이 완전히 바뀐 3년 후의 모습을 봅니다."',
+      '"그 당신은 오늘의 이 명상을 기억하고 있습니다 — 전환점으로."',
+      '"지금 이 순간이 그 전환점입니다. 당신은 이미 바뀌고 있습니다."',
+      '"이 비전에 더욱 깊이 들어가세요. 아주 작은 세부사항까지 채우세요."',
+    ]
+  },
+  {
+    label:'QUANTUM ANCHORING',icon:'⚡',
+    colorH:'#DBA73A',freq:'6 Hz',nebulaClass:'phase-anchor',runeChar:'☆',durMin:5,
+    lines:[
+      '"이 모든 감정과 비전을 세포 단위에 커밋합니다."',
+      '"가슴에 손을 올리고 세 번 깊게 들이쉬세요. 이 감정을 심장에 봉인합니다."',
+      '"황금빛 에너지가 척추를 타고 올라와 머리 꼭대기에서 폭발합니다."',
+      '"모든 세포가 새로운 현실의 주파수로 동기화됩니다."',
+      '"git commit -m \'quantum-reality-v2.0\' — 영구 저장되었습니다."',
+    ]
+  },
+  {
+    label:'PRODUCTION DEPLOY',icon:'🚀',
+    colorH:'#A855F7',freq:'12 Hz',nebulaClass:'',runeChar:'▲',durMin:3,
+    lines:[
+      '"60분의 심층 변형이 완료됩니다. 당신의 운명이 재프로그래밍되었습니다."',
+      '"천천히 몸으로 돌아옵니다. 손발을 움직이고, 숨을 깊게 들이쉬세요."',
+      '"눈꺼풀이 밝아집니다. 새로운 운영체제로 부팅됩니다."',
+      '"오늘 이 명상이 당신 인생의 전환점이 될 것입니다."',
+      '"눈을 뜨세요. Production Deploy 완료. 새로운 현실이 시작됩니다."',
+    ]
+  }
+];
+
+var _phases=[];
+var _screens={landing:document.getElementById('landing'),meditation:document.getElementById('meditation'),completion:document.getElementById('completion')};
+var _nebula=document.getElementById('nebula');
+var _orb=document.getElementById('meditOrb');
+var _orbRune=document.getElementById('orbRune');
+var _progFill=document.getElementById('progFill');
+var _phaseLabel=document.getElementById('phaseLabel');
+var _phaseBadge=document.getElementById('phaseBadge');
+var _phaseBadgeIcon=document.getElementById('phaseBadgeIcon');
+var _phaseBadgeText=document.getElementById('phaseBadgeText');
+var _timerEl=document.getElementById('timerEl');
+var _guidanceEl=document.getElementById('guidanceText');
+var _tlRow=document.getElementById('timelineRow');
+var _freqBarsEl=document.getElementById('freqBars');
+var _freqHzEl=document.getElementById('freqHz');
+var _pauseBtn=document.getElementById('btnPause');
+var _stopBtn=document.getElementById('btnStop');
+
+/* ─── Frequency bars ─── */
+function _buildFreqBars(){
+  if(!_freqBarsEl)return;
+  _freqBarsEl.innerHTML='';
+  var heights=[6,10,16,20,18,14,10,7,12,17,22,18,13,8,5];
+  heights.forEach(function(h,i){
+    var b=document.createElement('div');
+    b.className='freq-bar';
+    b.style.setProperty('--h',h+'px');
+    b.style.setProperty('--dur',(0.65+Math.random()*0.5).toFixed(2)+'s');
+    b.style.setProperty('--del',(Math.random()*0.4).toFixed(2)+'s');
+    b.style.height='4px';
+    _freqBarsEl.appendChild(b);
+  });
+}
+_buildFreqBars();
+
+/* ─── Timeline build ─── */
+function _buildTimeline(){
+  if(!_tlRow)return;
+  _tlRow.innerHTML='<span class="tl-label">단계</span>';
+  _phases.forEach(function(p,i){
+    var d=document.createElement('div');
+    d.className='tl-dot';
+    d.setAttribute('title',p.label);
+    _tlRow.appendChild(d);
+  });
+}
+
+function _updateTimeline(idx){
+  var dots=_tlRow?_tlRow.querySelectorAll('.tl-dot'):[];
+  dots.forEach(function(d,i){d.className='tl-dot'+(i===idx?' active':i<idx?' done':'');});
+}
+
+/* ─── Typing effect ─── */
+var _typeIdx=0,_lineQ=[];
+function _typeText(txt,cb){
+  if(_typeTimer)clearTimeout(_typeTimer);
+  _typing=true;
+  if(!_guidanceEl)return;
+  var cursor='<span class="cursor"></span>';
+  var displayed='';
+  var i=0;
+  function tick(){
+    if(i<txt.length){
+      displayed+=txt[i++];
+      _guidanceEl.innerHTML=displayed+cursor;
+      _typeTimer=setTimeout(tick,28+Math.random()*22);
+    }else{
+      _guidanceEl.innerHTML=txt+cursor;
+      _typing=false;
+      if(cb)setTimeout(cb,2400);
+    }
+  }
+  _guidanceEl.innerHTML=cursor;
+  _typeTimer=setTimeout(tick,200);
+}
+
+/* ─── Phase transitions ─── */
+function _applyPhase(p){
+  if(_nebula){_nebula.className=p.nebulaClass||''}
+  if(_orb){
+    _orb.className='orb'+(p.label==='QUANTUM ANCHORING'?' anchor-phase':'');
+    _orb.style.borderColor='rgba('+_hexToRgb(p.colorH)+',0.4)';
+    _orb.style.boxShadow='0 0 50px rgba('+_hexToRgb(p.colorH)+',0.25),inset 0 0 30px rgba('+_hexToRgb(p.colorH)+',0.1)';
+  }
+  var rings=document.querySelectorAll('.ring');
+  rings.forEach(function(r){r.style.borderColor=p.colorH;});
+  if(_phaseLabel)_phaseLabel.textContent=p.label;
+  if(_phaseLabel)_phaseLabel.style.color=p.colorH;
+  if(_phaseBadgeIcon)_phaseBadgeIcon.textContent=p.icon;
+  if(_phaseBadgeText)_phaseBadgeText.textContent='['+p.label+']';
+  if(_phaseBadge)_phaseBadge.style.borderColor='rgba('+_hexToRgb(p.colorH)+',0.4)';
+  if(_orbRune){_orbRune.textContent=p.runeChar;_orbRune.className='orb-rune visible';}
+  if(_freqHzEl)_freqHzEl.textContent=p.freq;
+  var bars=_freqBarsEl?_freqBarsEl.querySelectorAll('.freq-bar'):[];
+  bars.forEach(function(b){b.style.background=p.colorH;});
+}
+
+function _hexToRgb(hex){
+  var r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16):'168,85,247';
+}
+
+/* ─── Line scheduling per phase ─── */
+function _scheduleLines(phaseData,startSec,endSec){
+  var lines=phaseData.lines;
+  var dur=endSec-startSec;
+  var interval=Math.floor(dur/Math.max(lines.length,1));
+  var scheduled=[];
+  lines.forEach(function(line,i){
+    scheduled.push({at:startSec+i*interval,text:line});
+  });
+  return scheduled;
+}
+
+/* ─── Build full schedule ─── */
+var _schedule=[];
+function _buildSchedule(){
+  _schedule=[];
+  var t=0;
+  _phases.forEach(function(p,pi){
+    var start=t;
+    var end=t+p.durMin*60;
+    var items=_scheduleLines(p,start,end);
+    items.forEach(function(it){_schedule.push(Object.assign({phaseIdx:pi},it));});
+    t=end;
+  });
+}
+
+/* ─── Timer ─── */
+function _fmtTime(s){
+  var m=Math.floor(s/60),sec=s%60;
+  return (m<10?'0':'')+m+':'+(sec<10?'0':'')+sec;
+}
+
+var _lastScheduledAt=-1;
+function _tick(){
+  if(!_running)return;
+  _elapsed++;
+  if(_timerEl)_timerEl.textContent=_fmtTime(_elapsed);
+  if(_progFill){var pct=Math.min(100,(_elapsed/_totalSecs)*100);_progFill.style.width=pct+'%';}
+
+  // Phase change
+  var newPhaseIdx=0;
+  var t=0;
+  for(var i=0;i<_phases.length;i++){
+    t+=_phases[i].durMin*60;
+    if(_elapsed<t){newPhaseIdx=i;break;}
+    if(i===_phases.length-1)newPhaseIdx=i;
+  }
+  if(newPhaseIdx!==_phaseIdx){
+    _phaseIdx=newPhaseIdx;
+    _applyPhase(_phases[_phaseIdx]);
+    _updateTimeline(_phaseIdx);
+  }
+
+  // Scheduled lines
+  for(var j=0;j<_schedule.length;j++){
+    var item=_schedule[j];
+    if(item.at>_lastScheduledAt&&item.at<=_elapsed){
+      _lastScheduledAt=item.at;
+      if(!_typing)_typeText(item.text);
+      else{_pendingText=item.text;}
+    }
+  }
+
+  if(_elapsed>=_totalSecs){
+    clearInterval(_interval);
+    _running=false;
+    setTimeout(_showCompletion,800);
+  }
+}
+
+/* ─── Start session ─── */
+function _startSession(mode){
+  _mode=mode;
+  _phases=mode==='60'?PHASES_60:PHASES_30;
+  _totalSecs=parseInt(mode)*60;
+  _elapsed=0;_phaseIdx=0;_lastScheduledAt=-1;_pendingText='';
+  _buildSchedule();
+  _buildTimeline();
+  _showScreen('meditation');
+  _applyPhase(_phases[0]);
+  _updateTimeline(0);
+  _typeText(_phases[0].lines[0]);
+  _running=true;
+  if(_interval)clearInterval(_interval);
+  _interval=setInterval(_tick,1000);
+}
+
+/* ─── Screen transitions ─── */
+function _showScreen(which){
+  Object.keys(_screens).forEach(function(k){
+    var s=_screens[k];
+    if(!s)return;
+    if(k===which){s.classList.remove('hidden');s.classList.remove('out');}
+    else{
+      if(!s.classList.contains('hidden')){
+        s.classList.add('out');
+        setTimeout(function(){s.classList.add('hidden');},700);
+      }
+    }
+  });
+}
+
+/* ─── Completion ─── */
+var ACTION_CODES={
+  wealth:"$ reality.deploy(intention='wealth', action='WRITE_ONE_GOAL_NOW')\n// 지금 바로 원하는 목표를 현재형으로 한 줄 적으세요.",
+  clarity:"$ mind.reboot(mode='clarity', action='LIST_THREE_PRIORITIES')\n// 오늘 반드시 할 3가지를 지금 적고 첫 번째를 시작하세요.",
+  love:"$ attract.field(type='love', action='TEXT_SOMEONE_YOU_APPRECIATE')\n// 지금 감사한 사람에게 짧은 메시지를 보내세요.",
+  health:"$ body.recharge(target='cells', action='DRINK_WATER_BREATHE_DEEP')\n// 지금 물 한 잔을 마시고 깊은 숨을 5번 쉬세요."
+};
+var ACTION_DESCS={
+  wealth:"명상이 끝난 지금이 가장 무의식이 열려있는 상태입니다. 종이나 메모앱에 원하는 것 하나를 \"나는 이미 ___이다.\" 현재형으로 적어두세요. 이 한 줄이 현실 배포의 첫 번째 커밋입니다.",
+  clarity:"세타 상태에서 돌아온 지금, 집중력이 최고조입니다. 오늘 반드시 완수할 3가지를 적고 가장 중요한 것 하나를 지금 당장 시작하세요. 모멘텀이 현실을 만듭니다.",
+  love:"양자 얽힘 상태에서 나온 지금, 인력장이 최대로 열려있습니다. 지금 감사한 사람 한 명에게 진심 어린 짧은 메시지를 보내세요. 사랑을 주는 것이 사랑을 끌어당깁니다.",
+  health:"세포 재충전 명상 직후인 지금, 물 한 잔을 마시고 5번의 깊은 호흡을 하세요. 이 작은 행동이 세포 수준의 변화를 현실로 앵커링합니다."
+};
+var JOURNAL_PROMPTS={
+  wealth:"명상 중 가장 선명하게 본 '성공한 나의 모습'을 3줄로 묘사해보세요. 어디서, 무엇을 하고, 어떤 표정이었나요?",
+  clarity:"명상 중 가장 소중하게 느껴진 아이디어나 인사이트가 있다면 지금 기록해두세요.",
+  love:"명상 중 떠오른 소중한 사람의 얼굴이나 감정이 있다면, 그것을 기록해두세요.",
+  health:"명상 중 느낀 몸의 변화나 에너지의 흐름을 기록해두세요. 어디가 따뜻했나요?"
+};
+
+function _showCompletion(){
+  _showScreen('completion');
+  // Update stats
+  var stats=_loadStats();
+  var today=new Date().toISOString().slice(0,10);
+  stats.sessions++;
+  stats.minutes+=parseInt(_mode||30);
+  stats.streak=_getStreak(stats);
+  stats.lastDate=today;
+  _saveStats(stats);
+  _updateMetaDisplay();
+  var sd=document.getElementById('statStreak');if(sd)sd.textContent=stats.streak;
+  var ss=document.getElementById('statSessions');if(ss)ss.textContent=stats.sessions;
+  var sm=document.getElementById('statMins');if(sm)sm.textContent=stats.minutes;
+  // Action code
+  var cmd=document.getElementById('actionCmd');var desc=document.getElementById('actionDesc');
+  if(cmd)cmd.textContent=ACTION_CODES[_intent]||ACTION_CODES.wealth;
+  if(desc)desc.textContent=ACTION_DESCS[_intent]||ACTION_DESCS.wealth;
+  var jp=document.getElementById('journalPrompt');
+  if(jp)jp.textContent=JOURNAL_PROMPTS[_intent]||JOURNAL_PROMPTS.wealth;
+  // Completion quote based on mode
+  var q=document.getElementById('compQuote');
+  if(q){
+    var quotes={
+      '30':'"원하는 것이 이미 현실이라고 느끼는 그 순간,\n우주는 그것을 현실로 렌더링하기 시작한다."',
+      '60':'"당신의 무의식은 이미 알고 있습니다.\n새로운 현실은 이미 시작되었습니다.\nR = VD."'
+    };
+    q.textContent=quotes[_mode]||quotes['30'];
+  }
+}
+
+/* ─── Controls ─── */
+if(_pauseBtn){
+  _pauseBtn.addEventListener('click',function(){
+    _running=!_running;
+    _pauseBtn.textContent=_running?'일시정지':'재개';
+    if(_running&&!_interval){_interval=setInterval(_tick,1000);}
+    else if(!_running){clearInterval(_interval);_interval=null;}
+  });
+}
+if(_stopBtn){
+  _stopBtn.addEventListener('click',function(){
+    if(!confirm('세션을 종료하겠습니까?'))return;
+    clearInterval(_interval);_running=false;
+    setTimeout(_showCompletion,300);
+  });
+}
+
+/* ─── Card click ─── */
+document.getElementById('card30').addEventListener('click',function(){_startSession('30');});
+document.getElementById('card30').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')_startSession('30');});
+document.getElementById('card60').addEventListener('click',function(){_startSession('60');});
+document.getElementById('card60').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')_startSession('60');});
+
+/* ─── Intention buttons ─── */
+document.querySelectorAll('.intention-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.intention-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    _intent=btn.getAttribute('data-intent')||'wealth';
+  });
+});
+
+/* ─── Restart / Back ─── */
+var restartBtn=document.getElementById('btnRestart');
+var backBtn=document.getElementById('btnBackHome');
+if(restartBtn)restartBtn.addEventListener('click',function(){
+  clearInterval(_interval);_running=false;
+  _elapsed=0;_phaseIdx=0;
+  _showScreen('landing');
+});
+if(backBtn)backBtn.addEventListener('click',function(){
+  clearInterval(_interval);_running=false;
+  window.location.href='/';
+});
+
+/* ─── Journal save ─── */
+var journalSave=document.getElementById('journalSave');
+var journalInput=document.getElementById('journalInput');
+if(journalSave&&journalInput){
+  journalSave.addEventListener('click',function(){
+    var text=journalInput.value.trim();
+    if(!text)return;
+    try{
+      var entries=JSON.parse(localStorage.getItem(LS_JOURNAL_KEY)||'[]');
+      entries.unshift({date:new Date().toISOString(),intent:_intent,mode:_mode,text:text});
+      if(entries.length>50)entries=entries.slice(0,50);
+      localStorage.setItem(LS_JOURNAL_KEY,JSON.stringify(entries));
+      journalSave.textContent='✓ 저장됨';
+      setTimeout(function(){journalSave.textContent='저장하기 → localStorage';},2000);
+    }catch(e){}
+  });
+}
+
+/* ─── Music panel ─── */
+var _ytApiReady=false,_ytPlayer=null,_currentVideoId=null;
+var _musicPanel=document.getElementById('musicPanel');
+var _musicOpener=document.getElementById('musicOpener');
+var _musicClose=document.getElementById('musicClose');
+var _musicSearch=document.getElementById('musicSearch');
+var _musicNext=document.getElementById('musicNext');
+var _musicSelect=document.getElementById('musicSelect');
+var _musicStatus=document.getElementById('musicStatus');
+
+var YT_SEARCH_IDS={
+  'theta wave deep meditation lofi':['jfKfPfyJRdk','5qap5aO4i9A','DWcJFNfaw9c'],
+  'cosmic lofi theta waves 4hz meditation':['WPni755-Krg','KBIoZ4pGVAQ','g4IDjWBRPMY'],
+  'deep alpha theta binaural beats focus':['lE6RYpe9IT0','EEObuDrwGW4','ygEzI7nfRgE'],
+  'space ambient lofi meditation relaxation':['IRzBQl_QDXM','n61ULEU7CO0','hHW1oY26kxQ'],
+  '528hz solfeggio healing frequency meditation':['LiqGtwHMPP8','5_0mxknDhxA','FMMfhvfCj_4'],
+  'quantum field meditation music 432hz':['t3217H8JppI','dIOhS6Mfmxs','kCHhZHLQxAo'],
+  'lofi chill beats deep focus subconscious':['4oStw0r33so','rUxyKA_-grg','YLO7tCdBVrk'],
+  'neville goddard theta reprogramming sleep':['KXdFE2kaTEg','bVj5xCr_pFc','X3UGKIVVJ-o']
+};
+var _vidQueue=[];var _vidIdx=0;
+
+function _loadYouTubeAPI(){
+  if(document.getElementById('yt-api-script'))return;
+  window.onYouTubeIframeAPIReady=function(){_ytApiReady=true;};
+  var s=document.createElement('script');s.id='yt-api-script';
+  s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+}
+
+function _playVideo(videoId){
+  if(!videoId)return;
+  var container=document.getElementById('ytPlayer');
+  if(!container)return;
+  if(_ytPlayer&&_ytApiReady){
+    try{_ytPlayer.loadVideoById(videoId);return;}catch(e){}
+  }
+  container.innerHTML='<iframe width="1" height="1" src="https://www.youtube.com/embed/'+videoId+'?autoplay=1&loop=1&playlist='+videoId+'&controls=0&enablejsapi=1" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="position:absolute;left:-9999px;top:-9999px;"></iframe>';
+  _currentVideoId=videoId;
+}
+
+function _searchAndPlay(){
+  var q=_musicSelect?_musicSelect.value:'theta wave deep meditation lofi';
+  var ids=YT_SEARCH_IDS[q];
+  if(ids&&ids.length){
+    _vidQueue=ids.slice();_vidIdx=0;
+    _playVideo(_vidQueue[0]);
+    if(_musicStatus)_musicStatus.textContent='재생 중: '+_musicSelect.options[_musicSelect.selectedIndex].text;
+  }
+}
+
+function _nextTrack(){
+  if(!_vidQueue.length)return;
+  _vidIdx=(_vidIdx+1)%_vidQueue.length;
+  _playVideo(_vidQueue[_vidIdx]);
+  if(_musicStatus)_musicStatus.textContent='다음 트랙으로 전환됩니다…';
+}
+
+if(_musicOpener)_musicOpener.addEventListener('click',function(){
+  if(_musicPanel){_musicPanel.classList.toggle('is-closed');if(!_musicPanel.classList.contains('is-closed'))_loadYouTubeAPI();}
+});
+if(_musicClose)_musicClose.addEventListener('click',function(){if(_musicPanel)_musicPanel.classList.add('is-closed');});
+if(_musicSearch)_musicSearch.addEventListener('click',_searchAndPlay);
+if(_musicNext)_musicNext.addEventListener('click',_nextTrack);
+
+/* ─── Init stats display ─── */
+_updateMetaDisplay();
+
+})();
+</script>
+</body>
+</html>
