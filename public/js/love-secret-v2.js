@@ -653,6 +653,16 @@
     }
 
     /* ── 궁합 분석 추가 100코인 차감 ─────────────────────── */
+    // 관리자 모드: 코인 차감 없이 즉시 궁합 분석 진행
+    try {
+      var _adminTok = sessionStorage.getItem('flower_admin_token');
+      var _adminUser = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+      if ((_adminUser && _adminUser.role === 'admin') || (_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok))) {
+        var partnerData = _collectPartnerScreenData();
+        _startGeneration(partnerData);
+        return;
+      }
+    } catch (_adminE) {}
     var _token = '';
     try { _token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
     if (!_token) {
