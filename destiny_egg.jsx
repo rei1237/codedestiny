@@ -172,6 +172,30 @@ const THEME_CHAR_MAP = {
   },
 };
 
+// ══════════════════════════════════════════════════════
+// 🎴 SPRITE SHEET CONFIG
+// 각 테마 이미지파일의 그리드 크기 및 상태별 셀 인덱스
+// 탭마다 다른 표정이 나타나도록 (0-indexed, 좌→우, 위→아래)
+// blend:true = 흰 배경 → mix-blend-mode:multiply 로 투명 처리
+// ══════════════════════════════════════════════════════
+const THEME_SPRITE_DATA = {
+  //  6×4 투명 배경, idle=[일반], happy=[행복], angry=[화남], sleep=[수면], eat=[활동]
+  '벚꽃':   { cols:6, rows:4,
+    idle:[0,1,12,18,19], happy:[6,12,18,1,0], angry:[10], sleep:[20,21], eat:[2,3] },
+  //  5×4 투명 배경
+  '마카롱':  { cols:5, rows:4,
+    idle:[0,1,10,19],    happy:[5,10,15,1,0], angry:[8],  sleep:[15,16], eat:[11,17] },
+  //  6×3 흰 배경 (mix-blend-mode:multiply 적용)
+  '딸기':    { cols:6, rows:3, blend:true,
+    idle:[0,1,6,16,17],  happy:[6,12,1,0],    angry:[10], sleep:[13,14], eat:[12,3] },
+  //  6×3 흰 배경 + 영문 라벨 포함 (mix-blend-mode:multiply 적용)
+  '우주':    { cols:6, rows:3, blend:true,
+    idle:[0,1,6,11,16],  happy:[6,12,1,0],    angry:[10], sleep:[13],    eat:[15,12] },
+  //  6×4 투명 배경
+  '검은별':  { cols:6, rows:4,
+    idle:[0,1,12,18,19], happy:[6,12,18,1,0], angry:[10], sleep:[20,21], eat:[2,18] },
+};
+
 // 현재 테마 이름을 전역으로 접근하기 위한 변수 (App에서 주입)
 let _currentTheme = '벚꽃';
 function getTheme() { return THEME_PALETTE[_currentTheme] || THEME_PALETTE['벚꽃']; }
@@ -591,15 +615,27 @@ function SpeechBubble({ text, visible, animalKey }) {
 // ══════════════════════════════════════════════════════
 // CHARACTER DISPLAY (main hero area) — tadagochi 이미지 사용
 // ══════════════════════════════════════════════════════
-function CharacterDisplay({ animalKey, charState, bubble, showBubble, onTap, isEgg, intimacy, theme }) {
+function CharacterDisplay({ animalKey, charState, bubble, showBubble, onTap, isEgg, intimacy, theme, tapIdx=0 }) {
   const a = ANIMALS[animalKey];
   const t = THEME_PALETTE[theme || _currentTheme] || THEME_PALETTE['벚꽃'];
   const stateAnims = { idle:'bob', happy:'bobHappy', angry:'shake', sleep:'bobSleep', eat:'bob' };
   const anim = stateAnims[charState]||'bob';
-  const themeCharImg = getCharImg(theme || _currentTheme, animalKey);
+  const effectiveTheme = theme || _currentTheme;
+  const themeCharImg = getCharImg(effectiveTheme, animalKey);
   const legacyImg = ASSETS.chars[`${animalKey}_${charState}`] || ASSETS.chars[`${animalKey}_idle`];
   const charImgSrc = !isEgg && (legacyImg || themeCharImg);
   const hasBgImg = ASSETS.bg[animalKey];
+
+  // ── 스프라이트 크롭 계산 ──
+  const sd = THEME_SPRITE_DATA[effectiveTheme] || THEME_SPRITE_DATA['벚꽃'];
+  const list = sd[charState] || sd.idle;
+  const spriteIdx = list[tapIdx % list.length];
+  const col = spriteIdx % sd.cols;
+  const row = Math.floor(spriteIdx / sd.cols);
+  // background-size: cols*100% rows*100% → 각 셀이 정확히 160×160
+  const bgSize = `${sd.cols * 100}% ${sd.rows * 100}%`;
+  const bgX = sd.cols <= 1 ? '0%' : `${(col / (sd.cols - 1)) * 100}%`;
+  const bgY = sd.rows <= 1 ? '0%' : `${(row / (sd.rows - 1)) * 100}%`;
 
   return (
     <div onClick={onTap} style={{
@@ -621,9 +657,16 @@ function CharacterDisplay({ animalKey, charState, bubble, showBubble, onTap, isE
         {isEgg ? (
           <EggSVG animalKey={animalKey} size={150} anim={charState==='sleep'?'bobSleep':anim} theme={theme}/>
         ) : charImgSrc ? (
-          <img src={charImgSrc} width={160} height={160} alt={a.k}
-            style={{objectFit:'contain',animation:`${anim} 2.8s ease-in-out infinite`,
-              filter:`drop-shadow(0 10px 32px ${t.shadow})`}}/>
+          <div style={{
+            width:160, height:160,
+            backgroundImage:`url(${charImgSrc})`,
+            backgroundSize:bgSize,
+            backgroundPosition:`${bgX} ${bgY}`,
+            backgroundRepeat:'no-repeat',
+            animation:`${anim} 2.8s ease-in-out infinite`,
+            filter:`drop-shadow(0 10px 32px ${t.shadow})`,
+            ...(sd.blend ? {mixBlendMode:'multiply'} : {}),
+          }}/>
         ) : (
           <div style={{
             width:150,height:150,borderRadius:'50%',
@@ -748,8 +791,10 @@ function HomeTab({ userData, charState, setCharState, bubble, showBubble, setSho
   const expToNext = [100,300,700,1500,9999][Math.min(level,4)];
   const stages = ['알','아기','소년','청년','어른','수호신'];
   const [heartPos, setHeartPos] = useState(null);
+  const [tapIdx, setTapIdx] = useState(0);
 
   const handlePet = () => {
+    setTapIdx(prev => prev + 1);
     setCharState('happy');
     const newInt = Math.min(100, intimacy+5);
     dispatch({type:'UPDATE',payload:{intimacy:newInt,exp:exp+3,coins:coins+(newInt%20===0?5:0)}});
@@ -776,7 +821,7 @@ function HomeTab({ userData, charState, setCharState, bubble, showBubble, setSho
       {/* Character */}
       <div style={{position:'relative',width:'100%'}}>
         <CharacterDisplay animalKey={ilju.animal} charState={charState} bubble={bubble}
-          showBubble={showBubble} onTap={handlePet} isEgg={isEgg} intimacy={intimacy} theme={theme}/>
+          showBubble={showBubble} onTap={handlePet} isEgg={isEgg} intimacy={intimacy} theme={theme} tapIdx={tapIdx}/>
         {heartPos && (
           <div style={{position:'absolute',left:`${heartPos.x}%`,top:'30%',fontSize:22,animation:'heartUp 1.2s ease-out forwards',pointerEvents:'none',zIndex:40}}>💗</div>
         )}
@@ -798,9 +843,9 @@ function HomeTab({ userData, charState, setCharState, bubble, showBubble, setSho
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,width:'100%'}}>
         {[
           {ico:'🫧',lbl:'쓰다듬기',fn:handlePet,col:a.c3},
-          {ico:'🍎',lbl:'먹이주기',fn:()=>{setCharState('eat');setBubble('냠냠~ 맛있어요!');setShowBubble(true);dispatch({type:'UPDATE',payload:{exp:exp+5,coins:coins-2<0?0:coins-2}});setTimeout(()=>{setCharState('idle');setShowBubble(false)},2200);},col:'#54c276'},
-          {ico:'💤',lbl:'재우기',fn:()=>{setCharState('sleep');setBubble('쿨쿨... zzz');setShowBubble(true);setTimeout(()=>{setCharState('idle');setShowBubble(false);},3500);},col:'#7090dc'},
-          {ico:'😠',lbl:'야단치기',fn:()=>{setCharState('angry');setBubble('으악! 주인님 너무해요!');setShowBubble(true);setTimeout(()=>{setCharState('idle');setShowBubble(false);},2000);},col:'#e06060'},
+          {ico:'🍎',lbl:'먹이주기',fn:()=>{setTapIdx(p=>p+1);setCharState('eat');setBubble('냠냠~ 맛있어요!');setShowBubble(true);dispatch({type:'UPDATE',payload:{exp:exp+5,coins:coins-2<0?0:coins-2}});setTimeout(()=>{setCharState('idle');setShowBubble(false)},2200);},col:'#54c276'},
+          {ico:'💤',lbl:'재우기',fn:()=>{setTapIdx(p=>p+1);setCharState('sleep');setBubble('쿨쿨... zzz');setShowBubble(true);setTimeout(()=>{setCharState('idle');setShowBubble(false);},3500);},col:'#7090dc'},
+          {ico:'😠',lbl:'야단치기',fn:()=>{setTapIdx(p=>p+1);setCharState('angry');setBubble('으악! 주인님 너무해요!');setShowBubble(true);setTimeout(()=>{setCharState('idle');setShowBubble(false);},2000);},col:'#e06060'},
         ].map(({ico,lbl,fn,col})=>(
           <button key={lbl} className="btn" onClick={fn} style={{
             padding:'13px 8px',borderRadius:20,
