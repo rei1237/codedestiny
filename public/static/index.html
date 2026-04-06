@@ -4398,7 +4398,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js"></script>
+<script src="/js/love-secret-v2.js?v=20260610-v1" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -4855,14 +4855,24 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         return;
       }
     }
+    // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
+    if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
+      window.openZiweiBookModal();
+      return;
+    }
     // window[action] 함수가 있으면 직접 호출
     if (action && typeof window[action] === 'function') {
       window[action]();
       return;
     }
     // 폴백: perUseApproved 플래그 세팅 후 프로그래매틱 클릭
+    // pvw-bypass를 명시적으로 설정하여 합성 클릭이 프리뷰 패널을 재오픈하지 않도록 방지
     perUseApproved[action] = true;
-    try { actionEl.click(); } catch (_) {}
+    try {
+      actionEl.setAttribute('data-pvw-bypass', '1');
+      actionEl.click();
+      setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
+    } catch (_) {}
     setTimeout(function () { delete perUseApproved[action]; }, 800);
   }
 

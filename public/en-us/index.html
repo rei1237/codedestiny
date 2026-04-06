@@ -4398,7 +4398,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js"></script>
+<script src="/js/love-secret-v2.js?v=20260610-v1" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -4854,6 +4854,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         window.location.href = href;
         return;
       }
+    }
+    // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
+    if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
+      window.openZiweiBookModal();
+      return;
     }
     // window[action] 함수가 있으면 직접 호출
     if (action && typeof window[action] === 'function') {

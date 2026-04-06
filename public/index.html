@@ -1860,7 +1860,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                         data-tile-lock-key="ziwei-fc"
                         data-tile-lock-cost="400"
                         aria-label="자미두수 명반 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami2.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 400코인</span>
@@ -2096,7 +2096,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(99,102,241,0.15)'"
                aria-label="자미두수 인생 총람 PDF북 — 1회 590코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/jami2.webp" alt="자미두수 인생 총람 PDF북"
+                <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -4969,7 +4969,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js"></script>
+<script src="/js/love-secret-v2.js?v=20260610-v1" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -5426,14 +5426,24 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         return;
       }
     }
+    // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
+    if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
+      window.openZiweiBookModal();
+      return;
+    }
     // window[action] 함수가 있으면 직접 호출
     if (action && typeof window[action] === 'function') {
       window[action]();
       return;
     }
     // 폴백: perUseApproved 플래그 세팅 후 프로그래매틱 클릭
+    // pvw-bypass를 명시적으로 설정하여 합성 클릭이 프리뷰 패널을 재오픈하지 않도록 방지
     perUseApproved[action] = true;
-    try { actionEl.click(); } catch (_) {}
+    try {
+      actionEl.setAttribute('data-pvw-bypass', '1');
+      actionEl.click();
+      setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
+    } catch (_) {}
     setTimeout(function () { delete perUseApproved[action]; }, 800);
   }
 
@@ -5793,7 +5803,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 (function(){
   'use strict';
   var D={
-    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'중국 황실이 천 년간 금서(禁書)로 봉인한 자미두수 명반 완전판 — 13챕터 분량의 나만의 인생 총람 PDF북으로 완성합니다',feats:['🌌 Ch.1 명궁 완전 해설 — 천명의 코드','🌙 Ch.2 신궁 심층 분석 — 잠재된 무기','🗺️ Ch.3 12궁 배치 총해설 — 별자리 드라마 지도','⭐ Ch.4 주성 완전 해독 — 14주성의 비밀','👑 Ch.5 관록궁 분석 — 천직과 성공 방정식','💰 Ch.6 재백궁 분석 — 부의 그릇과 재물 법칙','💑 Ch.7 부처궁 분석 — 인연 구조와 파트너 기질','⚔️ Ch.8 살성·화기 — 시련이 숨긴 도약의 설계도','🌊 Ch.9 대한 정밀 분석 — 현재 10년 파노라마','✈️ Ch.10 천이궁·복덕궁 — 이동운과 영적 복덕','📅 Ch.11 2026 소한 로드맵 — 월별 타이밍 전략','🌅 Ch.12 생애 마스터플랜 — 대한별 황금 타이밍','💌 Ch.13 천명 총결산 — 자미두수 거장의 최종 봉서'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jami2.webp'},
+    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'중국 황실이 천 년간 금서(禁書)로 봉인한 자미두수 명반 완전판 — 13챕터 분량의 나만의 인생 총람 PDF북으로 완성합니다',feats:['🌌 Ch.1 명궁 완전 해설 — 천명의 코드','🌙 Ch.2 신궁 심층 분석 — 잠재된 무기','🗺️ Ch.3 12궁 배치 총해설 — 별자리 드라마 지도','⭐ Ch.4 주성 완전 해독 — 14주성의 비밀','👑 Ch.5 관록궁 분석 — 천직과 성공 방정식','💰 Ch.6 재백궁 분석 — 부의 그릇과 재물 법칙','💑 Ch.7 부처궁 분석 — 인연 구조와 파트너 기질','⚔️ Ch.8 살성·화기 — 시련이 숨긴 도약의 설계도','🌊 Ch.9 대한 정밀 분석 — 현재 10년 파노라마','✈️ Ch.10 천이궁·복덕궁 — 이동운과 영적 복덕','📅 Ch.11 2026 소한 로드맵 — 월별 타이밍 전략','🌅 Ch.12 생애 마스터플랜 — 대한별 황금 타이밍','💌 Ch.13 천명 총결산 — 자미두수 거장의 최종 봉서'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
@@ -5825,7 +5835,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🪙 100코인',ct:'paid',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jumsung.webp'},
-    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami2.webp'},
+    openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };

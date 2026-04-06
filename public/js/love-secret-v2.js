@@ -853,6 +853,7 @@
     var btn = target.closest('[data-action]');
     if (!btn) return;
     var action = btn.getAttribute('data-action');
+    if (action === 'openLoveSecretModal')  { window.openLoveSecretModal();  return; }
     if (action === 'closeLoveSecretModal') { window.closeLoveSecretModal(); return; }
     if (action === 'generateLoveSecret')  { window.generateLoveSecret();  return; }
     if (action === 'lsStartWithPartner')  { window.lsStartWithPartner();  return; }
