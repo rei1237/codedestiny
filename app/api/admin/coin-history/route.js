@@ -1,6 +1,7 @@
 // GET /api/admin/coin-history — 전체 코인 이력 조회 (userId, kind, dateRange, page)
 export const runtime = "nodejs";
 
+import mongoose from "mongoose";
 import { dbConnect } from "../../../_lib/dbConnect.js";
 import { getPointHistoryModel } from "../../../_lib/models/PointHistoryModel.js";
 import { getUserModel } from "../../../_lib/models/UserModel.js";
@@ -38,7 +39,6 @@ export async function GET(request) {
     if (kind && VALID_KINDS.includes(kind)) filter.kind = kind;
     if (userId) {
       try {
-        const mongoose = (await import("mongoose")).default;
         filter.userId = new mongoose.Types.ObjectId(userId);
       } catch { return json({ message: "유효하지 않은 userId 형식입니다." }, 400); }
     }

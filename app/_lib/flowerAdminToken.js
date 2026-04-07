@@ -3,14 +3,18 @@
  *
  * 비밀번호 게이트 통과 후 발급되는 단기 관리자 세션 토큰.
  * HMAC-SHA256 서명 + 만료 시간 검증으로 위·변조 방지.
- * 환경변수 FLOWER_ADMIN_SECRET 을 반드시 Cloudflare Pages에 설정해야 한다.
+ * 환경변수 FLOWER_ADMIN_SECRET 을 반드시 Cloudflare Pages/Worker에 설정해야 한다.
  *
  * ★ 런타임 우선순위:
- *   1) node:crypto createHmac  — nodejs_compat가 활성화된 CF Workers / Node.js 18+ 모두 안정
+ *   1) node:crypto createHmac — 정적 import (CF Workers nodejs_compat + Node.js 18+)
+ *      동적 import("node:crypto")는 OpenNext/esbuild 번들 환경에서 Worker 시작 시
+ *      충돌을 일으킬 수 있으므로 dbConnect.js와 동일하게 정적 import 사용.
  *   2) Web Crypto API (globalThis.crypto.subtle) — 폴백
- *   node:crypto를 1순위로 쓰면 globalThis.crypto.subtle 가용성 흔들림에 의한
- *   Error 1101 (Worker threw exception)을 방지할 수 있다.
  */
+
+// ★ 정적 import — 동적 import("node:crypto")는 OpenNext/esbuild 번들에서
+//   비동기 require로 인라인돼 Worker 시작 충돌을 유발할 수 있음 (dbConnect.js 주석 참조)
+import { createHmac as _nodeCrypto_createHmac } from "node:crypto";
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60; // 8시간
 
@@ -42,20 +46,18 @@ function _b64uDecode(b64u) {
 }
 
 /**
- * HMAC-SHA256 hex — node:crypto 우선, Web Crypto 폴백
- * nodejs_compat가 활성화된 CF Workers / Node.js 18+ 모두 안정적으로 동작.
+ * HMAC-SHA256 hex — node:crypto 우선(정적 import), Web Crypto 폴백
  */
 async function hmacSha256Hex(data, secretStr) {
-  // 1순위: node:crypto (nodejs_compat CF Workers + Node.js 18+)
+  // 1순위: node:crypto 정적 import (nodejs_compat CF Workers + Node.js 18+)
   try {
-    const { createHmac } = await import("node:crypto");
-    return createHmac("sha256", secretStr).update(data).digest("hex");
+    return _nodeCrypto_createHmac("sha256", secretStr).update(data).digest("hex");
   } catch {
     // node:crypto 사용 불가 → Web Crypto 폴백
   }
   // 2순위: Web Crypto API
   const subtle = _getSubtle();
-  if (!subtle) throw new Error("HMAC 서명에 사용할 수 있는 Crypto API가 없습니다. (node:crypto 및 Web Crypto 모두 사용 불가)");
+  if (!subtle) throw new Error("HMAC 서명 불가 — node:crypto·Web Crypto 모두 사용 불가");
   const key = await subtle.importKey(
     "raw",
     new TextEncoder().encode(secretStr),
@@ -87,30 +89,32 @@ export async function generateFlowerAdminToken() {
  * @returns {Promise<boolean>}
  */
 export async function verifyFlowerAdminToken(token) {
-  if (!token || typeof token !== "string") return false;
-  const dotIdx = token.lastIndexOf(".");
-  if (dotIdx < 1) return false;
-
-  const payloadB64 = token.slice(0, dotIdx);
-  const sigFromToken = token.slice(dotIdx + 1);
-
-  const expectedSig = await hmacSha256Hex(payloadB64, getSecret());
-
-  // 타이밍-세이프 비교
-  if (expectedSig.length !== sigFromToken.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expectedSig.length; i++) {
-    diff |= expectedSig.charCodeAt(i) ^ sigFromToken.charCodeAt(i);
-  }
-  if (diff !== 0) return false;
-
+  // ★ 외부 예외를 catch해 500 전파 방지 — crypto 실패 시 false(→401) 반환
   try {
+    if (!token || typeof token !== "string") return false;
+    const dotIdx = token.lastIndexOf(".");
+    if (dotIdx < 1) return false;
+
+    const payloadB64 = token.slice(0, dotIdx);
+    const sigFromToken = token.slice(dotIdx + 1);
+
+    const expectedSig = await hmacSha256Hex(payloadB64, getSecret());
+
+    // 타이밍-세이프 비교
+    if (expectedSig.length !== sigFromToken.length) return false;
+    let diff = 0;
+    for (let i = 0; i < expectedSig.length; i++) {
+      diff |= expectedSig.charCodeAt(i) ^ sigFromToken.charCodeAt(i);
+    }
+    if (diff !== 0) return false;
+
     const payloadStr = _b64uDecode(payloadB64);
-    const payload = JSON.parse(payloadStr);
+    const parsed = JSON.parse(payloadStr);
     const now = Math.floor(Date.now() / 1000);
-    const exp = Number(payload?.exp || 0);
-    return payload && payload.v === 1 && Number.isFinite(exp) && now <= exp;
+    const exp = Number(parsed?.exp || 0);
+    return parsed && parsed.v === 1 && Number.isFinite(exp) && now <= exp;
   } catch {
+    // crypto 초기화 실패·parse 오류 등 → 미인증 처리 (500 방지)
     return false;
   }
 }

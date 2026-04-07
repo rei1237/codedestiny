@@ -51,12 +51,19 @@ function clearAttempts(ip) {
 async function verifyAdminEntryPassword(rawInput) {
   const inp = String(rawInput || "");
   if (!inp) return false;
-  const encoded = new TextEncoder().encode(inp);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
-  const hashHex = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashHex === ADMIN_ENTRY_PASSWORD_SHA256;
+  try {
+    const encoded = new TextEncoder().encode(inp);
+    // globalThis 명시 — bare "crypto" 식별자가 ESM 컨텍스트에서 미정의될 수 있음
+    const subtle = globalThis?.crypto?.subtle ?? (typeof crypto !== "undefined" ? crypto?.subtle : null);
+    if (!subtle) return false;
+    const hashBuffer = await subtle.digest("SHA-256", encoded);
+    const hashHex = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex === ADMIN_ENTRY_PASSWORD_SHA256;
+  } catch {
+    return false;
+  }
 }
 
 function notFound() {
