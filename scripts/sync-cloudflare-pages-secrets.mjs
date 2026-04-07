@@ -50,6 +50,8 @@ const SECRET_KEYS = [
   "NAVER_OAUTH_CLIENT_SECRET",
   "KAKAO_OAUTH_CLIENT_ID",
   "KAKAO_OAUTH_CLIENT_SECRET",
+  "KASI_SERVICE_KEY",
+  "KASI_API_BASE_URL",
 ];
 
 function getSecretValue(key) {
