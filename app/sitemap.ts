@@ -48,7 +48,9 @@ function addLocalizedEntries(
   }
 }
 
-function getAutoIndexedSajuAndPsychRoutes() {
+import type { SitemapRouteEntry } from "../lib/seo-site-urls";
+
+function getAutoIndexedSajuAndPsychRoutes(): SitemapRouteEntry[] {
   const keys = Object.keys(SERVICE_MAP || {});
   return keys
     .filter((slug) => {

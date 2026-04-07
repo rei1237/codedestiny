@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 
-const STORAGE_KEY = "destiny_tamagochi_v4";
+const STORAGE_KEY = "destiny_tamagochi_v5";
 const KAKAO_JS_KEY = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY || "";
 const HATCH_THRESHOLD = 10;
 
@@ -29,12 +29,12 @@ const THEMES = {
   blossom: {
     name: "벚꽃",    folder: "벚꽃 컨셉",
     sky: "#87CEEB",  grass: "#7BC67E", accent: "#E8A0BF",
-    egg: "/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃의 알.webp",
+    egg: "/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃의 알.png",
   },
   macaron: {
     name: "마카롱",  folder: "마카롱 컨셉",
     sky: "#91D4FF",  grass: "#81C97B", accent: "#FFD700",
-    egg: "/fuctionassets/tadagochi/마카롱 컨셉/마카롱 알.webp",
+    egg: "/fuctionassets/tadagochi/마카롱 컨셉/마카롱 알.png",
   },
   strawberry: {
     name: "딸기",    folder: "딸기 컨셉",
@@ -43,12 +43,12 @@ const THEMES = {
   },
   space: {
     name: "우주",    folder: "우주 테마",
-    sky: "#7FB9FF",  grass: "#75C280", accent: "#FFD700",
-    egg: "/fuctionassets/tadagochi/우주 테마/우주 컨셉 알.webp",
+    sky: "#0d1b3e",  grass: "#0a2a1a", accent: "#a078ff",
+    egg: "/fuctionassets/tadagochi/우주 테마/우주 컨셉 알.png",
   },
   blackstar: {
     name: "검은별",  folder: "검은 별 컨셉",
-    sky: "#9BBEF2",  grass: "#72BA77", accent: "#FF8C42",
+    sky: "#1c1c2e",  grass: "#1a2a1e", accent: "#FF8C42",
     egg: "/fuctionassets/tadagochi/검은 별 컨셉/검은별 알-Photoroom.png",
   },
   moon: {
@@ -56,45 +56,52 @@ const THEMES = {
     sky: "#1a1a4e",  grass: "#1e3a5a", accent: "#C0C0FF",
     egg: "/fuctionassets/tadagochi/달 컨셉/달 컨셉 알.png",
   },
+  angel: {
+    name: "천사",    folder: "천사 컨셉",
+    sky: "#dff0ff",  grass: "#c8f0d8", accent: "#ffe4f0",
+    egg: "/fuctionassets/tadagochi/천사 컨셉/천사 알-Photoroom.webp",
+  },
 };
 
 const THEME_ALIASES = {
   "벚꽃": "blossom", "마카롱": "macaron", "딸기": "strawberry",
-  "우주": "space",   "검은별": "blackstar", "달": "moon",
+  "우주": "space",   "검은별": "blackstar", "달": "moon", "천사": "angel",
 };
 
 // ── 캐릭터 이미지 파일 매핑 ────────────────────────────────
-// -Photoroom(투명 배경) 파일 우선. 배열에 여러 장 → 감정/상태별로 순환해 모션 표현.
+// Photoroom = 배경제거판, 비-Photoroom .png = 투명배경 PNG. 배열 여러장 = 모션 순환.
 const SHEET_FILES = {
+  // 벚꽃: 투명배경 PNG
   blossom: {
-    rat:     ["벚꽃 컨셉 쥐.webp"],
-    ox:      ["벚꽃 컨셉 소.webp"],
-    tiger:   ["벚꽃 컨셉 호랑이.webp"],
-    rabbit:  ["벚꽃 컨셉 토끼.webp"],
-    dragon:  ["벚꽃 컨셉 용.webp"],
-    snake:   ["벚꽃 컨셉 뱀.webp"],
-    horse:   ["벚꽃 컨셉 말.webp"],
-    goat:    ["벚꽃 컨셉 양.webp"],
-    monkey:  ["벚꽃 컨셉 원숭이.webp"],
-    rooster: ["벚꽃 컨셉 닭.webp"],
-    dog:     ["벚꽃 컨셉 강아지.webp"],
-    pig:     ["벚꽃 컨셉 돼지.webp"],
+    rat:     ["벚꽃 컨셉 쥐.png"],
+    ox:      ["벚꽃 컨셉 소.png"],
+    tiger:   ["벚꽃 컨셉 호랑이.png"],
+    rabbit:  ["벚꽃 컨셉 토끼.png"],
+    dragon:  ["벚꽃 컨셉 용.png"],
+    snake:   ["벚꽃 컨셉 뱀.png"],
+    horse:   ["벚꽃 컨셉 말.png"],
+    goat:    ["벚꽃 컨셉 양.png"],
+    monkey:  ["벚꽃 컨셉 원숭이.png"],
+    rooster: ["벚꽃 컨셉 닭.png"],
+    dog:     ["벚꽃 컨셉 강아지.png"],
+    pig:     ["벚꽃 컨셉 돼지.png"],
   },
+  // 마카롱: 투명배경 PNG
   macaron: {
-    rat:     ["마카롱 컨셉 쥐.webp"],
-    ox:      ["마카롱 컨셉 소.webp"],
-    tiger:   ["마카롱 컨셉 호랑이.webp"],
-    rabbit:  ["마카롱 컨셉 토끼.webp"],
-    dragon:  ["마카롱 컨셉 용.webp"],
-    snake:   ["마카롱 컨셉 뱀.webp"],
-    horse:   ["마카롱 컨셉 말.webp"],
-    goat:    ["마카롱 컨셉 양.webp"],
-    monkey:  ["마카롱 컨셉 원숭이.webp"],
-    rooster: ["마카롱 컨셉 닭.webp"],
-    dog:     ["마카롱 컨셉 강아지.webp"],
-    pig:     ["마카롱 컨셉 돼지.webp"],
+    rat:     ["마카롱 컨셉 쥐.png"],
+    ox:      ["마카롱 컨셉 소.png"],
+    tiger:   ["마카롱 컨셉 호랑이.png"],
+    rabbit:  ["마카롱 컨셉 토끼.png"],
+    dragon:  ["마카롱 컨셉 용.png"],
+    snake:   ["마카롱 컨셉 뱀.png"],
+    horse:   ["마카롱 컨셉 말.png"],
+    goat:    ["마카롱 컨셉 양.png"],
+    monkey:  ["마카롱 컨셉 원숭이.png"],
+    rooster: ["마카롱 컨셉 닭.png"],
+    dog:     ["마카롱 컨셉 강아지.png"],
+    pig:     ["마카롱 컨셉 돼지.png"],
   },
-  // 딸기: 호랑이 2포즈
+  // 딸기: Photoroom 배경제거, 호랑이 2포즈
   strawberry: {
     rat:     ["딸기테마쥐-Photoroom.webp"],
     ox:      ["딸기테마소-Photoroom.webp"],
@@ -109,36 +116,37 @@ const SHEET_FILES = {
     dog:     ["딸기테마개-Photoroom.webp"],
     pig:     ["딸기테마돼지-Photoroom.webp"],
   },
+  // 우주: 투명배경 PNG
   space: {
-    rat:     ["우주 테마 쥐.webp"],
-    ox:      ["우주 테마 소.webp"],
-    tiger:   ["우주 테마 호랑이.webp"],
-    rabbit:  ["우주 테마 토끼.webp"],
-    dragon:  ["우주 테마 용.webp"],
-    snake:   ["우주 테마 뱀.webp"],
-    horse:   ["우주 테마 말.webp"],
-    goat:    ["우주 테마 양.webp"],
-    monkey:  ["우주 테마 원숭이.webp"],
-    rooster: ["우주 테마 닭.webp"],
-    dog:     ["우주 테마 개.webp"],
-    pig:     ["우주 테마 돼지.webp"],
+    rat:     ["우주 테마 쥐.png"],
+    ox:      ["우주 테마 소.png"],
+    tiger:   ["우주 테마 호랑이.png"],
+    rabbit:  ["우주 테마 토끼.png"],
+    dragon:  ["우주 테마 용.png"],
+    snake:   ["우주 테마 뱀.png"],
+    horse:   ["우주 테마 말.png"],
+    goat:    ["우주 테마 양.png"],
+    monkey:  ["우주 테마 원숭이.png"],
+    rooster: ["우주 테마 닭.png"],
+    dog:     ["우주 테마 개.png"],
+    pig:     ["우주 테마 돼지.png"],
   },
-  // 검은별: 쥐 4포즈, 소·뱀·말·돼지 2포즈
+  // 검은별: Photoroom 배경제거, 쥐 4포즈·소·뱀·돼지 2포즈
   blackstar: {
     rat:     ["별 컨셉 쥐1-Photoroom.webp", "별 컨셉 쥐2-Photoroom.webp", "별 컨셉 쥐3-Photoroom.webp", "별 컨셉 쥐4-Photoroom.webp"],
-    ox:      ["별 컨셉 소-Photoroom.webp",  "별 컨셉 소2-Photoroom.webp"],
+    ox:      ["별 컨셉 소-Photoroom.webp",   "별 컨셉 소2-Photoroom.webp"],
     tiger:   ["별 컨셉 호랑이-Photoroom.webp"],
     rabbit:  ["별 컨셉 토끼-Photoroom.webp"],
     dragon:  ["별 컨셉 용-Photoroom.webp"],
-    snake:   ["별 컨셉 뱀-Photoroom.webp",  "별 컨셉 뱀-Photoroom (1).webp"],
+    snake:   ["별 컨셉 뱀-Photoroom.webp",   "별 컨셉 뱀-Photoroom (1).webp"],
     horse:   ["별 컨셉 말2-Photoroom.webp"],
     goat:    ["별 컨셉 양-Photoroom.webp"],
     monkey:  ["별 컨셉 원숭이-Photoroom.webp"],
     rooster: ["별 컨셉 닭-Photoroom.webp"],
     dog:     ["별 컨셉 강아지-Photoroom.webp"],
-    pig:     ["별 컨셉 돼지-Photoroom.webp", "별 컨셉 돼지2-Photoroom.webp"],
+    pig:     ["별 컨셉 돼지-Photoroom.webp",  "별 컨셉 돼지2-Photoroom.webp"],
   },
-  // 달: 명시된 동물은 Photoroom, 번호 파일로 나머지 매핑
+  // 달: Photoroom + 번호 파일
   moon: {
     rat:     ["달 컨셉 쥐-Photoroom.webp"],
     ox:      ["달 컨셉 소-Photoroom.webp"],
@@ -151,23 +159,38 @@ const SHEET_FILES = {
     monkey:  ["image-Photoroom (6).webp"],
     rooster: ["image-Photoroom (7).webp"],
     dog:     ["image-Photoroom (8).webp"],
-    pig:     ["달 컨셉 소-Photoroom.webp"],  // 달 컨셉 돼지 미포함 → 소 이미지 폴백
+    pig:     ["달 컨셉 소-Photoroom.webp"],
+  },
+  // 천사: 투명배경 PNG, 뱀 4포즈!
+  angel: {
+    rat:     ["천사 컨셉 쥐.png"],
+    ox:      ["천사 컨셉 소.png"],
+    tiger:   ["천사 컨셉 호랑이.png"],
+    rabbit:  ["천사 컨셉 토끼.png"],
+    dragon:  ["천사 컨셉 용.png"],
+    snake:   ["천사 컨셉 뱀.png", "천사 컨셉 뱀2.png", "천사 컨셉 뱀3.png", "천사 컨셉 뱀4.png"],
+    horse:   ["천사 컨셉 말.png"],
+    goat:    ["천사 컨셉 양.png"],
+    monkey:  ["천사 컨셉 원숭이.png"],
+    rooster: ["천사 컨셉 닭.png"],
+    dog:     ["천사 컨셉 강아지.png"],
+    pig:     ["천사 컨셉 돼지.png"],
   },
 };
 
 const ANIMAL_EGG_MAP = {
-  rat:     [THEMES.blossom.egg,     THEMES.macaron.egg,     THEMES.blackstar.egg],
-  ox:      [THEMES.macaron.egg,     THEMES.strawberry.egg,  THEMES.space.egg],
-  tiger:   [THEMES.strawberry.egg,  THEMES.blackstar.egg,   THEMES.blossom.egg],
-  rabbit:  [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.macaron.egg],
-  dragon:  [THEMES.space.egg,       THEMES.blackstar.egg,   THEMES.macaron.egg],
-  snake:   [THEMES.blackstar.egg,   THEMES.space.egg,       THEMES.strawberry.egg],
-  horse:   [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.blossom.egg],
-  goat:    [THEMES.macaron.egg,     THEMES.blossom.egg,     THEMES.space.egg],
-  monkey:  [THEMES.blackstar.egg,   THEMES.macaron.egg,     THEMES.space.egg],
-  rooster: [THEMES.macaron.egg,     THEMES.blackstar.egg,   THEMES.blossom.egg],
-  dog:     [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.blackstar.egg],
-  pig:     [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.space.egg],
+  rat:     [THEMES.blossom.egg,     THEMES.macaron.egg,     THEMES.blackstar.egg,  THEMES.angel.egg],
+  ox:      [THEMES.macaron.egg,     THEMES.strawberry.egg,  THEMES.space.egg,      THEMES.angel.egg],
+  tiger:   [THEMES.strawberry.egg,  THEMES.blackstar.egg,   THEMES.blossom.egg,    THEMES.angel.egg],
+  rabbit:  [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.macaron.egg,    THEMES.angel.egg],
+  dragon:  [THEMES.space.egg,       THEMES.blackstar.egg,   THEMES.macaron.egg,    THEMES.angel.egg],
+  snake:   [THEMES.blackstar.egg,   THEMES.moon.egg,        THEMES.strawberry.egg, THEMES.angel.egg],
+  horse:   [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.blossom.egg,    THEMES.space.egg],
+  goat:    [THEMES.macaron.egg,     THEMES.blossom.egg,     THEMES.space.egg,      THEMES.angel.egg],
+  monkey:  [THEMES.blackstar.egg,   THEMES.macaron.egg,     THEMES.space.egg,      THEMES.moon.egg],
+  rooster: [THEMES.macaron.egg,     THEMES.blackstar.egg,   THEMES.blossom.egg,    THEMES.angel.egg],
+  dog:     [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.blackstar.egg,  THEMES.angel.egg],
+  pig:     [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.space.egg,      THEMES.moon.egg],
 };
 
 const HOUR_BRANCHES = [
@@ -245,7 +268,7 @@ function migrateProfileShape(parsed) {
   const ilju    = parsed.ilju || calcIlju(+(parsed?.birthInfo?.year||1990), +(parsed?.birthInfo?.month||1), +(parsed?.birthInfo?.day||1));
   const iljuInfo = parsed.iljuInfo || ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
   const theme    = normalizeThemeKey(parsed.theme, ilju);
-  const seed     = (+(parsed?.birthInfo?.year||0) + +(parsed?.birthInfo?.month||0) + +(parsed?.birthInfo?.day||0) + ilju.stemIdx + ilju.branchIdx) % 3;
+  const seed     = (+(parsed?.birthInfo?.year||0) + +(parsed?.birthInfo?.month||0) + +(parsed?.birthInfo?.day||0) + ilju.stemIdx + ilju.branchIdx) % 4;
   const affection = +(parsed.affection || 0);
   return {
     ...parsed, ilju, iljuInfo, theme,
@@ -323,18 +346,57 @@ function ensureKakao() {
 
 // ── 배경 컴포넌트 ──────────────────────────────────────
 function CloudBackground({ themeKey }) {
-  const theme  = THEMES[themeKey] || THEMES.blossom;
-  const isMoon = themeKey === "moon";
+  const theme      = THEMES[themeKey] || THEMES.blossom;
+  const isMoon     = themeKey === "moon";
+  const isSpace    = themeKey === "space";
+  const isBlackstar = themeKey === "blackstar";
+  const isAngel    = themeKey === "angel";
+  const isDark     = isMoon || isSpace || isBlackstar;
+
+  let bgClass = "ac-bg";
+  if (isMoon)      bgClass += " ac-bg-moon";
+  if (isSpace)     bgClass += " ac-bg-space";
+  if (isBlackstar) bgClass += " ac-bg-dark";
+  if (isAngel)     bgClass += " ac-bg-angel";
+
   return (
-    <div className={`ac-bg${isMoon ? " ac-bg-moon" : ""}`} style={{ ["--sky"]: theme.sky, ["--grass"]: theme.grass }}>
+    <div className={bgClass} style={{ ["--sky"]: theme.sky, ["--grass"]: theme.grass }}>
       <div className="sky-layer" />
-      {isMoon ? (
+      {/* 달 테마: 달 오브 + 별 */}
+      {isMoon && (
         <>
           <div className="moon-orb" />
           <div className="star s1"/><div className="star s2"/><div className="star s3"/>
           <div className="star s4"/><div className="star s5"/><div className="star s6"/>
         </>
-      ) : (
+      )}
+      {/* 우주 테마: 행성 + 다수 별 */}
+      {isSpace && (
+        <>
+          <div className="space-planet p1" /><div className="space-planet p2" />
+          <div className="star s1"/><div className="star s2"/><div className="star s3"/>
+          <div className="star s4"/><div className="star s5"/><div className="star s6"/>
+          <div className="star s7"/><div className="star s8"/><div className="star s9"/>
+        </>
+      )}
+      {/* 검은별 테마: 유성 + 별 */}
+      {isBlackstar && (
+        <>
+          <div className="shooting-star ss1" /><div className="shooting-star ss2" />
+          <div className="star s1"/><div className="star s2"/><div className="star s3"/>
+          <div className="star s4"/><div className="star s5"/><div className="star s6"/>
+          <div className="star s7"/><div className="star s8"/>
+        </>
+      )}
+      {/* 천사 테마: 구름 + 빛나는 광채 */}
+      {isAngel && (
+        <>
+          <div className="angel-ray r1" /><div className="angel-ray r2" /><div className="angel-ray r3" />
+          <div className="cloud c1"/><div className="cloud c2"/>
+        </>
+      )}
+      {/* 기본(벚꽃/마카롱/딸기): 구름 */}
+      {!isDark && !isAngel && (
         <>
           <div className="cloud c1"/><div className="cloud c2"/><div className="cloud c3"/>
         </>
@@ -636,7 +698,7 @@ export default function App() {
     const iljuInfo  = ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
     const theme     = pickTheme(ilju.stemIdx, ilju.branchIdx);
     const hourInfo  = HOUR_BRANCHES.find(h => h.value === birth.hourBranch) || HOUR_BRANCHES[0];
-    const seed      = (y + m + d + ilju.stemIdx + ilju.branchIdx) % 3;
+    const seed      = (y + m + d + ilju.stemIdx + ilju.branchIdx) % 4;
     const eggImg    = getEggByAnimal(iljuInfo.animalKey, seed);
 
     const next = {
@@ -863,12 +925,16 @@ export default function App() {
   if (!profile) return null;
 
   // 메인 화면
+  const isDark  = ["moon","space","blackstar"].includes(themeKey);
+  const isAngelTheme = themeKey === "angel";
+  const themeClass = isDark ? "theme-dark" : isAngelTheme ? "theme-angel" : "";
+
   return (
     <div className="app-shell">
       <style>{CSS}</style>
       <CloudBackground themeKey={themeKey} />
 
-      <section className="main-stage">
+      <section className={`main-stage${themeClass ? " "+themeClass : ""}`}>
         {/* ── 헤더 ── */}
         <header className="top-card">
           <div>
@@ -1027,7 +1093,10 @@ html,body,#__next { margin:0; padding:0; width:100%; min-height:100%; font-famil
 /* ── 배경 ── */
 .ac-bg { position:fixed; inset:0; z-index:-5; }
 .sky-layer { position:absolute; inset:0; background:linear-gradient(180deg,var(--sky) 0%,#d7f2ff 58%,#f5f0e8 100%); }
-.ac-bg-moon .sky-layer { background:linear-gradient(180deg,#0a0a2e 0%,#1a1a4e 50%,#1e3a5a 100%); }
+.ac-bg-moon .sky-layer    { background:linear-gradient(180deg,#0a0a2e 0%,#1a1a4e 50%,#1e3a5a 100%); }
+.ac-bg-space .sky-layer   { background:linear-gradient(180deg,#020818 0%,#0d1b3e 45%,#0a2a1a 100%); }
+.ac-bg-dark .sky-layer    { background:linear-gradient(180deg,#080818 0%,#1c1c2e 50%,#1a2a1e 100%); }
+.ac-bg-angel .sky-layer   { background:linear-gradient(180deg,#e8f4ff 0%,#dff0ff 50%,#f0fff8 100%); }
 
 .cloud { position:absolute; background:rgba(255,255,255,0.92); border-radius:999px; filter:drop-shadow(0 8px 12px rgba(0,0,0,.07)); }
 .cloud:before,.cloud:after { content:''; position:absolute; background:rgba(255,255,255,0.92); border-radius:999px; }
@@ -1040,11 +1109,16 @@ html,body,#__next { margin:0; padding:0; width:100%; min-height:100%; font-famil
 .cloud.c3 { width:130px; height:36px; top:31%; left:-16%; animation:cloudMove 33s linear infinite; animation-delay:-8s; }
 .cloud.c3:before { width:48px; height:48px; left:12px; top:-16px; }
 .cloud.c3:after  { width:58px; height:58px; right:14px; top:-24px; }
+/* 천사 구름은 순백 + 더 크게 */
+.ac-bg-angel .cloud { background:rgba(255,255,255,0.98); filter:drop-shadow(0 8px 28px rgba(200,220,255,.4)); }
+.ac-bg-angel .cloud:before,.ac-bg-angel .cloud:after { background:rgba(255,255,255,0.98); }
 
-/* 달 테마 전용 */
+/* 달 테마 */
 .moon-orb { position:absolute; width:90px; height:90px; border-radius:50%;
   background:radial-gradient(circle at 35% 35%,#fffbe8,#f0e090 60%,#c8a820);
   box-shadow:0 0 48px 24px rgba(240,224,80,.28); top:8%; right:12%; animation:moonGlow 4s ease-in-out infinite; }
+
+/* 별 (달·우주·검은별 공용) */
 .star { position:absolute; background:#fff; border-radius:50%; animation:starTwinkle 2.5s ease-in-out infinite; }
 .star.s1 { width:3px; height:3px; top:12%; left:18%; animation-delay:0s; }
 .star.s2 { width:4px; height:4px; top:18%; left:40%; animation-delay:.6s; }
@@ -1052,11 +1126,45 @@ html,body,#__next { margin:0; padding:0; width:100%; min-height:100%; font-famil
 .star.s4 { width:3px; height:3px; top:22%; left:75%; animation-delay:.3s; }
 .star.s5 { width:5px; height:5px; top:6%;  left:85%; animation-delay:.9s; }
 .star.s6 { width:2px; height:2px; top:28%; left:30%; animation-delay:1.5s; }
+.star.s7 { width:4px; height:4px; top:15%; left:55%; animation-delay:2s; }
+.star.s8 { width:3px; height:3px; top:32%; left:88%; animation-delay:.4s; }
+.star.s9 { width:2px; height:2px; top:5%;  left:72%; animation-delay:1.8s; }
+/* 우주: 파란 별빛 */
+.ac-bg-space .star { background:#a8c8ff; }
+/* 검은별: 황금 별빛 */
+.ac-bg-dark .star  { background:#ffd060; }
+
+/* 우주 행성 */
+.space-planet { position:absolute; border-radius:50%; }
+.space-planet.p1 { width:52px; height:52px; top:7%; right:8%;
+  background:radial-gradient(circle at 35% 30%,#8855ff,#4422aa);
+  box-shadow:0 0 28px 12px rgba(136,85,255,.4); animation:moonGlow 6s ease-in-out infinite; }
+.space-planet.p2 { width:28px; height:28px; top:22%; right:18%;
+  background:radial-gradient(circle at 40% 35%,#ff8844,#aa4422);
+  box-shadow:0 0 18px 8px rgba(255,136,68,.35); animation:moonGlow 8s ease-in-out infinite reverse; }
+
+/* 검은별 유성 */
+.shooting-star { position:absolute; height:2px; border-radius:2px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#ffd060,rgba(255,255,255,0)); }
+.shooting-star.ss1 { width:80px; top:14%; left:-10%; animation:shootingStar 5s linear infinite; animation-delay:0s; }
+.shooting-star.ss2 { width:60px; top:26%; left:-8%; animation:shootingStar 7s linear infinite; animation-delay:2.5s; }
+
+/* 천사 광채 */
+.angel-ray { position:absolute; top:0; left:50%; width:2px; border-radius:2px;
+  background:linear-gradient(180deg,rgba(255,255,220,.9),transparent);
+  transform-origin:top center; animation:angelRay 4s ease-in-out infinite; }
+.angel-ray.r1 { height:42vh; transform:translateX(-120px) rotate(-18deg); animation-delay:0s; }
+.angel-ray.r2 { height:50vh; transform:translateX(0px)    rotate(0deg);   animation-delay:1.3s; }
+.angel-ray.r3 { height:46vh; transform:translateX(120px)  rotate(18deg);  animation-delay:2.6s; }
 
 .grass-layer { position:absolute; left:0; right:0; bottom:0; height:24vh;
   background:var(--grass); border-top-left-radius:42px; border-top-right-radius:42px;
   box-shadow:inset 0 8px 24px rgba(255,255,255,.3); }
-.ac-bg-moon .grass-layer { background:#1a2e42; }
+.ac-bg-moon .grass-layer    { background:#1a2e42; }
+.ac-bg-space .grass-layer   { background:#0a1a0e; border-top:1px solid #1a4a2e; }
+.ac-bg-dark .grass-layer    { background:#0f1a10; }
+.ac-bg-angel .grass-layer   { background:linear-gradient(180deg,#c8f0d8,#a8e8c8);
+  box-shadow:inset 0 12px 32px rgba(200,255,220,.5); }
 
 /* ── 레이아웃 ── */
 .setup-stage,.hatch-stage,.main-stage { max-width:980px; margin:0 auto; padding:20px 16px 88px; }
@@ -1100,6 +1208,17 @@ html,body,#__next { margin:0; padding:0; width:100%; min-height:100%; font-famil
 .affection-badge { font-size:13px; font-weight:700; }
 .hatched-badge { font-size:11px; background:#fff3d4; border:1px solid #e8c45a; border-radius:10px; padding:2px 7px; }
 .egg-badge     { font-size:11px; background:#e8f8ff; border:1px solid #88cce8; border-radius:10px; padding:2px 7px; }
+/* 다크 테마(우주·검은별·달)에서 UI 카드 반전 */
+.theme-dark .top-card  { background:rgba(20,20,40,.88); border-color:#5566aa; color:#e8e8ff; }
+.theme-dark .top-card p { color:#aabbd4; }
+.theme-dark .panel-card { background:rgba(20,20,40,.92); border-color:#4455aa; color:#dde8ff; }
+.theme-dark .panel-card h3 { color:#c0d0ff; }
+.theme-dark .toolbar button { background:#1a1a38; color:#c8d8ff; border-color:#4455aa; }
+.theme-dark .step-card { background:rgba(20,20,40,.92); border-color:#5566aa; color:#e8e8ff; }
+.theme-dark .step-card input { background:#1a1a38; border-color:#5566aa; color:#e8e8ff; }
+/* 천사 테마 */
+.theme-angel .top-card  { background:rgba(255,255,255,.92); border-color:#a8d0ff; }
+.theme-angel .character-zone { background:linear-gradient(180deg,rgba(240,248,255,.7),rgba(220,240,255,.4)); border-color:#a8d0ff; }
 
 /* ── 캐릭터 영역 ── */
 .character-zone { position:relative; min-height:300px; border:3px solid #a68469; border-radius:28px;
@@ -1243,6 +1362,8 @@ html,body,#__next { margin:0; padding:0; width:100%; min-height:100%; font-famil
 @keyframes motionShake  { 0%,100% { transform:translateX(0); } 20% { transform:translateX(-7px); } 40% { transform:translateX(7px); } 60% { transform:translateX(-4px); } 80% { transform:translateX(4px); } }
 @keyframes moonGlow     { 0%,100% { box-shadow:0 0 48px 24px rgba(240,224,80,.28); } 50% { box-shadow:0 0 72px 38px rgba(240,224,80,.44); } }
 @keyframes starTwinkle  { 0%,100% { opacity:.3; transform:scale(.8); } 50% { opacity:1; transform:scale(1.3); } }
+@keyframes shootingStar { 0% { transform:translateX(0) translateY(0) rotate(25deg); opacity:1; } 100% { transform:translateX(130vw) translateY(40vh) rotate(25deg); opacity:0; } }
+@keyframes angelRay     { 0%,100% { opacity:.18; transform-origin:top center; } 50% { opacity:.52; } }
 
 @media (max-width:760px) {
   .hour-grid { grid-template-columns:repeat(2,1fr); }
