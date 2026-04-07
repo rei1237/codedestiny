@@ -525,11 +525,16 @@
       } catch (_dpE) {}
     }
     if (!profile) {
-      // 입력 폼으로 스크롤 유도
-      var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
-      if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-      alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
-      return;
+      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
+      if (window.__cdAdminBypass) {
+        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
+      } else {
+        // 입력 폼으로 스크롤 유도
+        var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+        if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+        alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+        return;
+      }
     }
 
     // 복구된 프로필이 있으면 window에 주입

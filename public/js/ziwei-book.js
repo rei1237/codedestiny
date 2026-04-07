@@ -397,10 +397,15 @@
       } catch (_dpE) {}
     }
     if (!profile) {
-      var _zbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
-      if (_zbFormEl) { try { _zbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-      alert('🌌 자미두수 인생 총람을 생성하려면 생년월일·출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
-      return;
+      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
+      if (window.__cdAdminBypass) {
+        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
+      } else {
+        var _zbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+        if (_zbFormEl) { try { _zbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+        alert('🌌 자미두수 인생 총람을 생성하려면 생년월일·출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+        return;
+      }
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;

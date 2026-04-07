@@ -4719,7 +4719,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/love-secret-v2.js?v=20260407-v2" defer></script>
+<script src="/js/love-secret-v2.js?v=20260408-v3" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -5187,17 +5187,26 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     }
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
-      window.openZiweiBookModal();
+      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+        try { window.openZiweiBookModal(); }
+        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+      });
       return;
     }
     // 명시적 핸들러: openLifeBookModal
     if (action === 'openLifeBookModal' && typeof window.openLifeBookModal === 'function') {
-      window.openLifeBookModal();
+      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+        try { window.openLifeBookModal(); }
+        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+      });
       return;
     }
     // 명시적 핸들러: openLoveSecretModal
     if (action === 'openLoveSecretModal' && typeof window.openLoveSecretModal === 'function') {
-      window.openLoveSecretModal();
+      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+        try { window.openLoveSecretModal(); }
+        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+      });
       return;
     }
     // window[action] 함수가 있으면 직접 호출
@@ -5549,8 +5558,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
-<script src="/js/life-book.js?v=20260407-v5" defer></script>
-<script src="/js/ziwei-book.js?v=20260407-v2" defer></script>
+<script src="/js/life-book.js?v=20260408-v6" defer></script>
+<script src="/js/ziwei-book.js?v=20260408-v3" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
