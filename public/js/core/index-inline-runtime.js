@@ -1075,6 +1075,7 @@ function __cdEnsureSajuCoreLoaded() {
   if (__cdSajuCoreLoadPromise) return __cdSajuCoreLoadPromise;
 
   var chain = [
+    '/js/core/kasi-calendar-service.js?v=20260407-kst-fix',
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
     '/js/saju-engine.js?v=20260329-saju-linkage-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1',

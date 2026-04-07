@@ -24,6 +24,35 @@
     '\u7acb\u6625'
   ];
 
+  // 12중절(中節) 이름 → 월지(月支) 매핑 (한국어 + 한자)
+  // 지지: 子丑寅卯辰巳午未申酉戌亥
+  var _JIEQI_MONTH_BRANCH = {
+    '\uc18c\ud55c': '\u4e11', '\u5c0f\u5bd2': '\u4e11',   // 소한/小寒 → 丑(U+4E11)
+    '\uc785\ucd98': '\u5bc5', '\u7acb\u6625': '\u5bc5',   // 입춘/立春 → 寅(U+5BC5)
+    '\uacbd\uce68': '\u536f', '\u9a5a\u86f0': '\u536f',   // 경칩/驚蟄 → 卯(U+536F)
+    '\uccad\uba85': '\u8fb0', '\u6e05\u660e': '\u8fb0',   // 청명/清明 → 辰(U+8FB0)
+    '\uc785\ud558': '\u5df3', '\u7acb\u590f': '\u5df3',   // 입하/立夏 → 巳(U+5DF3)
+    '\ub9dd\uc885': '\u5348', '\u8292\u7a2e': '\u5348',   // 망종/芒種 → 午(U+5348)
+    '\uc18c\uc11c': '\u672a', '\u5c0f\u6691': '\u672a',   // 소서/小暑 → 未(U+672A)
+    '\uc785\ucd94': '\u7533', '\u7acb\u79cb': '\u7533',   // 입추/立秋 → 申(U+7533)
+    '\ubc31\ub85c': '\u9149', '\u767d\u9732': '\u9149',   // 백로/白露 → 酉(U+9149)
+    '\ud55c\ub85c': '\u620c', '\u5bd2\u9732': '\u620c',   // 한로/寒露 → 戌(U+620C)
+    '\uc785\ub3d9': '\u4ea5', '\u7acb\u51ac': '\u4ea5',   // 입동/立冬 → 亥(U+4EA5)
+    '\ub300\uc124': '\u5b50', '\u5927\u96ea': '\u5b50'    // 대설/大雪 → 子(U+5B50)
+  };
+  // 지지 순서: 子丑寅卯辰巳午未申酉戌亥
+  var _EB = '\u5b50\u4e11\u5bc5\u536f\u8fb0\u5df3\u5348\u672a\u7533\u9149\u620c\u4ea5';
+  // 천간 순서: 甲乙丙丁戊己庚辛壬癸
+  var _HS = '\u7532\u4e59\u4e19\u4e01\u620a\u5df1\u5e9a\u8f9b\u58ec\u7678';
+  // 오자배년법: 年干 → 寅月 시작 천간 인덱스
+  var _YSTEM_YIN_START = {
+    '\u7532': 2, '\u5df1': 2,  // 甲/己 → 丙(idx 2)
+    '\u4e59': 4, '\u5e9a': 4,  // 乙/庚 → 戊(idx 4)
+    '\u4e19': 6, '\u8f9b': 6,  // 丙/辛 → 庚(idx 6) ← 2026 병오년
+    '\u4e01': 8, '\u58ec': 8,  // 丁/壬 → 壬(idx 8)
+    '\u620a': 0, '\u7678': 0   // 戊/癸 → 甲(idx 0)
+  };
+
   var _AUTHORITATIVE_SOLAR_TO_LUNAR = {
     '1997-02-10': { year: 1997, month: 1, day: 3, isLeap: false }
   };
@@ -440,19 +469,29 @@
   }
 
   async function _fetchSolarTerms(year, month, day) {
+    // 연도 전체 절기 조회 우선 시도 (월주 계산에 12개 중절 모두 필요)
+    var yearVariants = [
+      { solYear: year, numOfRows: 30 },
+      { solYear: year }
+    ];
+    for (var k = 0; k < yearVariants.length; k++) {
+      try {
+        var fullRows = await _fetchKasi('get24DivisionsInfo', yearVariants[k]);
+        if (fullRows && fullRows.length >= 12) return fullRows;
+      } catch (e) {}
+    }
+    // 날짜 기반 fallback
     var variants = [
       { solYear: year, solMonth: _pad2(month), solDay: _pad2(day) },
       { solYear: year, solMonth: month, solDay: day },
       { year: year, month: month, day: day }
     ];
-
     for (var i = 0; i < variants.length; i++) {
       try {
         var rows = await _fetchKasi('get24DivisionsInfo', variants[i]);
         if (rows && rows.length) return rows;
       } catch (e) {}
     }
-
     return [];
   }
 
@@ -595,9 +634,12 @@
       Object.keys(table).forEach(function (name) {
         var dt = _solarObjToDate(table[name]);
         if (!dt) return;
+        // lunar-javascript는 절기 시각을 CST(UTC+8) 기준으로 저장하지만
+        // _solarObjToDate는 로컬 시각(KST=UTC+9)으로 해석하므로 1시간 보정 필요
+        var kstDt = new Date(dt.getTime() + 3600 * 1000);
         out.push({
           name: String(name),
-          atLocal: _toIsoLocal(dt),
+          atLocal: _toIsoLocal(kstDt),
           source: 'fallback'
         });
       });
@@ -674,6 +716,53 @@
       }
     }
     return null;
+  }
+
+  /**
+   * 절기 데이터(terms24)와 생년월일시(solarDate)로 정확한 월주(月柱)를 계산한다.
+   * lunar-javascript CST 오차 및 KASI API 부분 조회 문제를 해결하기 위한 핵심 보정 함수.
+   */
+  function _computeMonthGanjiFromTerms(terms, solarDate, yearGanStr) {
+    if (!terms || !terms.length || !solarDate) return null;
+    try {
+      var birthMs = solarDate instanceof Date ? solarDate.getTime() : new Date(solarDate).getTime();
+      if (isNaN(birthMs)) return null;
+
+      var brackets = [];
+      for (var i = 0; i < terms.length; i++) {
+        var t = terms[i];
+        if (!t || !t.atLocal) continue;
+        var n = String(t.name || '').replace(/\([^)]*\)\s*$/, '').trim();
+        var br = _JIEQI_MONTH_BRANCH[n];
+        if (!br) continue;
+        var isoStr = String(t.atLocal).indexOf('T') >= 0
+          ? t.atLocal + '+09:00'
+          : t.atLocal.replace(' ', 'T') + '+09:00';
+        var ms = new Date(isoStr).getTime();
+        if (isNaN(ms)) continue;
+        brackets.push({ ms: ms, branch: br });
+      }
+      if (!brackets.length) return null;
+      brackets.sort(function (a, b) { return a.ms - b.ms; });
+
+      var branch = null;
+      for (var j = 0; j < brackets.length; j++) {
+        if (birthMs >= brackets[j].ms) branch = brackets[j].branch;
+      }
+      if (!branch) return null;
+
+      var yearStem = yearGanStr ? String(yearGanStr).charAt(0) : null;
+      var yinStartIdx = (yearStem && _YSTEM_YIN_START[yearStem] != null) ? _YSTEM_YIN_START[yearStem] : null;
+      if (yinStartIdx == null) return null;
+
+      var brIdx = _EB.indexOf(branch);
+      if (brIdx < 0) return null;
+      var offset = ((brIdx - 2) + 12) % 12;
+      var stemIdx = (yinStartIdx + offset) % 10;
+      return _HS[stemIdx] + branch;
+    } catch (e) {
+      return null;
+    }
   }
 
   function _buildSolarDate(norm, solarFromLunar) {
@@ -762,6 +851,16 @@
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
       }
       var terms = _normalizeTerms(apiTerms, fallbackTerms);
+
+      // 절기 데이터로 월주 보정 (CST/KST 오차 수정 및 KASI 정밀 데이터 우선 적용)
+      if (ganji && ganji.year && terms && terms.length > 0) {
+        var correctedMonth = _computeMonthGanjiFromTerms(terms, solarDate, ganji.year);
+        if (correctedMonth && correctedMonth.length === 2) {
+          ganji.month = correctedMonth;
+          diagnostics.push('month-corrected-by-terms');
+        }
+      }
+
       var ipchun = _extractIpchun(terms);
 
       var context = {
