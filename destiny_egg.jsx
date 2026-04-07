@@ -178,20 +178,28 @@ const SHEET_FILES = {
   },
 };
 
-const ANIMAL_EGG_MAP = {
-  rat:     [THEMES.blossom.egg,     THEMES.macaron.egg,     THEMES.blackstar.egg,  THEMES.angel.egg],
-  ox:      [THEMES.macaron.egg,     THEMES.strawberry.egg,  THEMES.space.egg,      THEMES.angel.egg],
-  tiger:   [THEMES.strawberry.egg,  THEMES.blackstar.egg,   THEMES.blossom.egg,    THEMES.angel.egg],
-  rabbit:  [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.macaron.egg,    THEMES.angel.egg],
-  dragon:  [THEMES.space.egg,       THEMES.blackstar.egg,   THEMES.macaron.egg,    THEMES.angel.egg],
-  snake:   [THEMES.blackstar.egg,   THEMES.moon.egg,        THEMES.strawberry.egg, THEMES.angel.egg],
-  horse:   [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.blossom.egg,    THEMES.space.egg],
-  goat:    [THEMES.macaron.egg,     THEMES.blossom.egg,     THEMES.space.egg,      THEMES.angel.egg],
-  monkey:  [THEMES.blackstar.egg,   THEMES.macaron.egg,     THEMES.space.egg,      THEMES.moon.egg],
-  rooster: [THEMES.macaron.egg,     THEMES.blackstar.egg,   THEMES.blossom.egg,    THEMES.angel.egg],
-  dog:     [THEMES.blossom.egg,     THEMES.strawberry.egg,  THEMES.blackstar.egg,  THEMES.angel.egg],
-  pig:     [THEMES.strawberry.egg,  THEMES.macaron.egg,     THEMES.space.egg,      THEMES.moon.egg],
+// 地支(일주 지지) → 테마: 오행 성질 반영 ─────────────────────────────────
+// 子亥(水)→달, 寅卯(木)→벚꽃, 午巳(火)→딸기/검은별, 丑未(土)→마카롱, 辰申(土金)→우주, 酉(金)→천사, 戌(土)→검은별
+const BRANCH_KEY_THEME = {
+  rat:     "moon",        // 子 水 — 달빛·수면
+  ox:      "macaron",     // 丑 土 — 대지·풍요
+  tiger:   "blossom",    // 寅 木 — 봄·성장
+  rabbit:  "blossom",    // 卯 木 — 벚꽃·감성
+  dragon:  "space",      // 辰 土 — 신비·우주
+  snake:   "blackstar",  // 巳 火 — 검은별·직관
+  horse:   "strawberry", // 午 火 — 열정·여름
+  goat:    "macaron",    // 未 土 — 온화·마카롱
+  monkey:  "space",      // 申 金 — 은하·기민
+  rooster: "angel",      // 酉 金 — 순수·천사
+  dog:     "blackstar",  // 戌 土 — 충직·검은별
+  pig:     "moon",       // 亥 水 — 달·꿈
 };
+
+// 가챠 풀 = 전 테마 알 (7종)
+const GACHA_EGG_POOL = Object.values(THEMES).map(t => t.egg);
+
+// legacy compat: getEggByAnimal에서 사용 (기존 저장 데이터 마이그레이션용)
+const ANIMAL_EGG_MAP = Object.fromEntries(BRANCH_ANIMAL_KEYS.map(k => [k, GACHA_EGG_POOL]));
 
 const HOUR_BRANCHES = [
   { value: "자", label: "자시", icon: "🌙", range: "23-01", hour: 23 },
@@ -236,9 +244,9 @@ const ILJU_MAP = (() => {
   return map;
 })();
 
-function pickTheme(si, bi) {
-  const keys = Object.keys(THEMES);
-  return keys[(si * 7 + bi * 3) % keys.length];
+// 일주 지지 인덱스 → 오행 기반 테마 결정 (si 천간 인덱스는 동점 시 타이브레이킹)
+function pickTheme(_si, bi) {
+  return BRANCH_KEY_THEME[BRANCH_ANIMAL_KEYS[bi % 12]] || "blossom";
 }
 
 function normalizeThemeKey(input, ilju) {
@@ -249,9 +257,10 @@ function normalizeThemeKey(input, ilju) {
   return "blossom";
 }
 
-function getEggByAnimal(animalKey, seed = 0) {
-  const list = ANIMAL_EGG_MAP[animalKey] || [THEMES.blossom.egg];
-  return list[seed % list.length];
+// 일주 동물에 매칭되는 테마 알을 반환 (seed 인자 유지 — 구버전 호출 호환)
+function getEggByAnimal(animalKey) {
+  const themeKey = BRANCH_KEY_THEME[animalKey] || "blossom";
+  return THEMES[themeKey]?.egg || THEMES.blossom.egg;
 }
 
 function getCharImagePath(themeKey, animalKey, frameIndex = 0) {
@@ -268,20 +277,20 @@ function migrateProfileShape(parsed) {
   const ilju    = parsed.ilju || calcIlju(+(parsed?.birthInfo?.year||1990), +(parsed?.birthInfo?.month||1), +(parsed?.birthInfo?.day||1));
   const iljuInfo = parsed.iljuInfo || ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
   const theme    = normalizeThemeKey(parsed.theme, ilju);
-  const seed     = (+(parsed?.birthInfo?.year||0) + +(parsed?.birthInfo?.month||0) + +(parsed?.birthInfo?.day||0) + ilju.stemIdx + ilju.branchIdx) % 4;
   const affection = +(parsed.affection || 0);
+  const matchedEgg = getEggByAnimal(iljuInfo.animalKey);
   return {
     ...parsed, ilju, iljuInfo, theme,
     petName: parsed.petName || `${iljuInfo.animal}이`,
-    eggImage: parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed),
+    eggImage: parsed.eggImage || matchedEgg,
     affection,
     feedBest: +(parsed.feedBest || 0),
     playBest: +(parsed.playBest || 0),
     hatched: parsed.hatched === true || affection >= HATCH_THRESHOLD,
     ownedEggs: Array.isArray(parsed.ownedEggs) && parsed.ownedEggs.length
       ? parsed.ownedEggs
-      : [parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed)],
-    activeEggImage: parsed.activeEggImage || parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed),
+      : [parsed.eggImage || matchedEgg],
+    activeEggImage: parsed.activeEggImage || parsed.eggImage || matchedEgg,
     llmDaily: parsed.llmDaily && typeof parsed.llmDaily === "object"
       ? parsed.llmDaily
       : { date: new Date().toISOString().slice(0,10), used: 0, limit: 3 },
@@ -698,8 +707,7 @@ export default function App() {
     const iljuInfo  = ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
     const theme     = pickTheme(ilju.stemIdx, ilju.branchIdx);
     const hourInfo  = HOUR_BRANCHES.find(h => h.value === birth.hourBranch) || HOUR_BRANCHES[0];
-    const seed      = (y + m + d + ilju.stemIdx + ilju.branchIdx) % 4;
-    const eggImg    = getEggByAnimal(iljuInfo.animalKey, seed);
+    const eggImg    = getEggByAnimal(iljuInfo.animalKey); // 일주 지지 오행에 매칭되는 알
 
     const next = {
       birthInfo: { year: y, month: m, day: d, hourBranch: birth.hourBranch,
@@ -789,7 +797,7 @@ export default function App() {
       if (!res.ok) { setCoinError(data?.message || "코인 차감에 실패했어요."); setGachaLoading(false); return; }
       if (typeof data?.user?.points === "number") setCoinBalance(data.user.points);
 
-      const pool     = Array.from(new Set(Object.values(ANIMAL_EGG_MAP).flat()));
+      const pool     = GACHA_EGG_POOL;
       const owned    = Array.isArray(profile.ownedEggs) ? profile.ownedEggs : [];
       const unowned  = pool.filter(x => !owned.includes(x));
       const src      = unowned.length ? unowned : pool;
