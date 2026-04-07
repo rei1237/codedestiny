@@ -132,6 +132,8 @@ export function middleware(request) {
     return NextResponse.redirect(redirectUrl, 308);
   }
 
+  const rawPath = request.nextUrl.pathname || "/";
+
   // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
 
   /**
@@ -157,7 +159,6 @@ export function middleware(request) {
   }
 
   const requestHeaders = new Headers(request.headers);
-  const rawPath = request.nextUrl.pathname || "/";
   const pathForLocale = rawPath === "" ? "/" : rawPath;
   // Only pass document path to layout: RSC / _next /api must not overwrite x-pathname (breaks / on Workers).
   if (!rawPath.startsWith("/_next") && !rawPath.startsWith("/api")) {
