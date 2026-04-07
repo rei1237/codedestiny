@@ -57,6 +57,46 @@ function getFinishReason(payload) {
   return candidates[0]?.finishReason || "";
 }
 
+function unique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
+function pickLifebookModels() {
+  const configured = String(
+    process.env.LIFEBOOK_GEMINI_MODEL ||
+      process.env.VERTEX_GEMINI_MODEL ||
+      "gemini-2.5-flash"
+  )
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+
+  const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"];
+  return unique([...configured, ...defaults]);
+}
+
+function makeGenerationConfig(model) {
+  const isProModel = /gemini-2\.5-pro/i.test(model);
+  const isThinkingModel = /gemini-2\.5/i.test(model);
+  const generationConfig = {
+    maxOutputTokens: isProModel ? 65536 : 16384,
+    temperature: 1.0,
+  };
+  if (isThinkingModel) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  return generationConfig;
+}
+
+function getApiErrorMessage(status, payload) {
+  return String(payload?.error?.message || `Gemini 요청 실패 (${status})`);
+}
+
+function isQuotaError(status, message) {
+  if (Number(status) === 429) return true;
+  return /quota exceeded|rate limit|resource exhausted|too many requests/i.test(
+    String(message || "")
+  );
+}
+
 const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의 명리학 거장이다. 동양 철학의 정수를 꿰뚫었으며, 사주의 이치를 날카롭고 정확하게 간파한다. 말은 적을지언정 한 마디 한 마디가 비수처럼 핵심을 찌른다.
 
 당신의 문체는 다음과 같다:
@@ -1083,87 +1123,86 @@ export async function POST(req) {
     }
 
     const config = SESSION_CONFIGS[sessionId - 1];
-    const model = String(
-      process.env.LIFEBOOK_GEMINI_MODEL ||
-      process.env.VERTEX_GEMINI_MODEL ||
-      "gemini-2.5-pro"
-    ).trim();
+    const modelCandidates = pickLifebookModels();
 
     const userPrompt = config.prompt(sajuData);
 
-    // gemini-2.5 계열은 thinkingConfig 지원
-    const isThinkingModel = /gemini-2\.5/.test(model);
-    const maxOutputTokens = 65536;
-    const generationConfig = { maxOutputTokens, temperature: 1.0 };
-    if (isThinkingModel) {
-      generationConfig.thinkingConfig = { thinkingBudget: 0 };
-    }
-
-    const requestPayload = JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-      generationConfig,
-    });
-
     let lastError = null;
+    let lastErrorStatus = 502;
 
-    // ─── 1단계: Gemini API 키 순차 시도 ───────────────────────────
-    const geminiEndpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
-    for (const key of geminiKeys) {
-      try {
-        const response = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: requestPayload,
-        });
+    // ─── 1단계: Gemini API 키 + 모델 폴백 순차 시도 ────────────────
+    for (const model of modelCandidates) {
+      const geminiEndpoint = GEMINI_ENDPOINT.replace(
+        "{model}",
+        encodeURIComponent(model)
+      );
+      const requestPayload = JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: makeGenerationConfig(model),
+      });
 
-        const payload = await response.json().catch(() => ({}));
+      for (const key of geminiKeys) {
+        try {
+          const response = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: requestPayload,
+          });
 
-        if (!response.ok) {
-          lastError = new Error(
-            payload?.error?.message || `Gemini 요청 실패 (${response.status})`
-          );
-          // 429(쿼터) / 5xx는 다음 키 시도, 4xx(키 오류 등)는 건너뜀
-          continue;
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            const errMsg = getApiErrorMessage(response.status, payload);
+            if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
+            lastError = new Error(errMsg);
+            continue;
+          }
+
+          const text = parseText(payload);
+          const finishReason = getFinishReason(payload);
+
+          if (!text) {
+            lastError = new Error("모델 응답이 비어 있습니다.");
+            continue;
+          }
+
+          // 최소 길이 검증 (200자 미만은 불완전 응답)
+          if (text.length < 200) {
+            lastError = new Error(`모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.`);
+            continue;
+          }
+
+          const suffix =
+            finishReason === "MAX_TOKENS"
+              ? "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*"
+              : "";
+
+          return NextResponse.json({
+            ok: true,
+            text: text + suffix,
+            sessionId,
+            title: config.title,
+            emoji: config.emoji,
+            model,
+            truncated: finishReason === "MAX_TOKENS",
+          });
+        } catch (e) {
+          lastError = e;
         }
-
-        const text = parseText(payload);
-        const finishReason = getFinishReason(payload);
-
-        if (!text) {
-          lastError = new Error("모델 응답이 비어 있습니다.");
-          continue;
-        }
-
-        // 최소 길이 검증 (200자 미만은 불완전 응답)
-        if (text.length < 200) {
-          lastError = new Error(`모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.`);
-          continue;
-        }
-
-        const suffix = finishReason === "MAX_TOKENS"
-          ? "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*"
-          : "";
-
-        return NextResponse.json({
-          ok: true,
-          text: text + suffix,
-          sessionId,
-          title: config.title,
-          emoji: config.emoji,
-          model,
-          truncated: finishReason === "MAX_TOKENS",
-        });
-      } catch (e) {
-        lastError = e;
       }
     }
 
     // ─── 2단계: Vertex AI Express API 폴백 (vertex_api_key) ───────
     if (vertexKey) {
       // Vertex AI Express는 최신 stable 모델만 지원하므로 안전한 이름 사용
-      const vertexModel = /gemini-2\.5/.test(model) ? "gemini-2.5-flash" : "gemini-2.0-flash";
+      const vertexModel = "gemini-2.5-flash";
       const vertexEndpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(vertexModel));
+      const requestPayload = JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: makeGenerationConfig(vertexModel),
+      });
       try {
         const response = await fetch(vertexEndpoint, {
           method: "POST",
@@ -1177,9 +1216,9 @@ export async function POST(req) {
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          lastError = new Error(
-            payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`
-          );
+          const errMsg = payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`;
+          if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
+          lastError = new Error(errMsg);
         } else {
           const text = parseText(payload);
           if (text && text.length >= 200) {
@@ -1199,9 +1238,14 @@ export async function POST(req) {
       }
     }
 
+    const defaultMessage = "챕터 생성에 실패했습니다.";
+    const finalMessage = String(lastError?.message || defaultMessage);
+    const quotaHelp =
+      "현재 API 키에서 사용 가능한 모델 쿼터가 부족합니다. 환경변수 LIFEBOOK_GEMINI_MODEL을 gemini-2.5-flash로 설정하거나 결제/쿼터를 확인해 주세요.";
+
     return NextResponse.json(
-      { ok: false, message: String(lastError?.message || "챕터 생성에 실패했습니다.") },
-      { status: 502 }
+      { ok: false, message: lastErrorStatus === 429 ? `${finalMessage}\n${quotaHelp}` : finalMessage },
+      { status: lastErrorStatus }
     );
   } catch (e) {
     return NextResponse.json(
