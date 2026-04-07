@@ -144,6 +144,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Cross-origin requests: SW가 인터셉트하면 CORS 오류(TypeError: Failed to fetch)가 발생하므로
+  // 동일 출처가 아닌 요청은 브라우저 기본 처리로 넘긴다.
+  if (!isSameOrigin) return;
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
