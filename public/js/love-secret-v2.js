@@ -211,9 +211,67 @@
         lines.push('용신: ' + (Array.isArray(GP.yongshin) ? GP.yongshin.join(', ') : GP.yongshin));
       }
     }
+    // ─── 신살(神殺) 계산 — AI가 직접 계산하면 오류가 생기므로 정확한 결과를 명시 ───
+    if (G && G.d) {
+      var _ssDay = (G.d.g || '') + (G.d.j || '');
+      var _ssJArr = [G.y && G.y.j, G.m && G.m.j, G.d.j, G.h && G.h.j];
+      var _sinsalNames = [];
+      // 홍염살 — 일주 기준 (甲午 丙寅 丁未 戊辰 庚戌 辛酉 壬子)
+      var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
+      if (_ssHong.indexOf(_ssDay) >= 0) _sinsalNames.push('홍염살(紅艶殺)[일주 '+_ssDay+']');
+      // 괴강살 — 일주 기준 (庚辰 庚戌 壬辰 壬戌 戊戌)
+      var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
+      if (_ssGoe.indexOf(_ssDay) >= 0) _sinsalNames.push('괴강살(魁罡殺)[일주 '+_ssDay+']');
+      // 양인살 — 양간(甲丙戊庚壬)에만 존재. 음간(乙丁己辛癸)은 해당 없음
+      var _ssYangMap = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
+      if (G.d.g && _ssYangMap[G.d.g] && G.d.j === _ssYangMap[G.d.g]) _sinsalNames.push('양인살(羊刃殺)[일주 '+_ssDay+']');
+      // 도화살 — 지지 子午卯酉
+      var _ssTao = ['子','午','卯','酉'];
+      var _taoPos = _ssJArr.filter(function(b){return b&&_ssTao.indexOf(b)>=0;});
+      if (_taoPos.length > 0) _sinsalNames.push('도화살(桃花殺)');
+      // 역마살 — 지지 寅申巳亥
+      var _ssYem = ['寅','申','巳','亥'];
+      var _yemPos = _ssJArr.filter(function(b){return b&&_ssYem.indexOf(b)>=0;});
+      if (_yemPos.length > 0) _sinsalNames.push('역마살(驛馬殺)');
+      // 화개살 — 지지 辰戌丑未
+      var _ssHwa = ['辰','戌','丑','未'];
+      var _hwaPos = _ssJArr.filter(function(b){return b&&_ssHwa.indexOf(b)>=0;});
+      if (_hwaPos.length > 0) _sinsalNames.push('화개살(華蓋殺)');
+      // 간여지동
+      var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
+      if (_ssGyn.indexOf(_ssDay) >= 0) _sinsalNames.push('간여지동(干與支同)[일주 '+_ssDay+']');
+      lines.push('\n【신살(神殺) 계산 결과 — 정확한 로직으로 도출】');
+      if (_sinsalNames.length > 0) {
+        lines.push('보유 신살: ' + _sinsalNames.join(', '));
+      } else {
+        lines.push('보유 신살: 없음 (주요 신살에 해당하지 않는 순수 오행 에너지의 사주)');
+      }
+      lines.push('※ 주의: 위 목록에 없는 신살(예: 辛酉 양인살, 辛酉 괴강살 등)은 존재하지 않으므로 언급하지 말 것');
+    }
     var GD = window.G_DAEWUN || window.G_DAEUN;
+    // G_DAEWUN 없으면 Solar 라이브러리로 직접 계산 (성별 방향 포함)
+    if ((!GD || !GD.length) && birth.year && typeof Solar !== 'undefined') {
+      try {
+        var _dwSolar = Solar.fromYmdHms(birth.year, birth.month || 1, birth.day || 1, birth.hour || 12, birth.minute || 0, 0);
+        var _dwBazi = _dwSolar.getLunar().getEightChar();
+        var _dwGenderNum = (gender === 'M') ? 1 : 0;
+        var _dwYun = _dwBazi.getYun(_dwGenderNum);
+        var _dwList = _dwYun.getDaYun();
+        GD = [];
+        for (var _dwi = 1; _dwi < _dwList.length; _dwi++) {
+          var _dw2 = _dwList[_dwi];
+          var _gz2 = _dw2.getGanZhi ? _dw2.getGanZhi() : [];
+          var _ag2 = _dw2.getStartAge ? _dw2.getStartAge() : 0;
+          if (_gz2 && _gz2.length >= 2 && _ag2 > 0) {
+            GD.push({age:_ag2, g:_gz2[0], j:_gz2[1]});
+          }
+        }
+        if (GD.length > 0) window.G_DAEWUN = GD;
+      } catch(_dwErr) { GD = null; }
+    }
     if (GD && Array.isArray(GD) && GD.length) {
-      lines.push('\n【대운(大運) 흐름】');
+      lines.push('\n【대운(大運) 흐름 — 성별 방향 반영 (양남음녀 순행, 음남양녀 역행)】');
+      lines.push('성별: ' + (gender === 'M' ? '남성' : '여성'));
       for (var di = 0; di < Math.min(GD.length, 10); di++) {
         var dw = GD[di];
         if (dw) lines.push((dw.age || '') + '세: ' + (dw.g || '') + (dw.j || '') + (dw.gE ? ' [' + dw.gE + ']' : ''));

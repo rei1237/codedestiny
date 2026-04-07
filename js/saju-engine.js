@@ -16333,6 +16333,7 @@ function renderDaewun(bazi){
     var yun=bazi.getYun(GENDER==='M'?1:0);
     var list=yun.getDaYun();
     var h='';
+    var _dwGlobalArr=[];
     list.forEach(function(dw,idx){
       if(idx===0)return;
       var gz=dw.getGanZhi();if(!gz||gz.length<2)return;
@@ -16340,6 +16341,7 @@ function renderDaewun(bazi){
       var age=dw.getStartAge();
       if(!age||age<=0)return;
       var gd=GAN[g]||{e:'metal',n:'?'},jd=JI[j]||{e:'water',a:'?'};
+      _dwGlobalArr.push({age:age,g:g,j:j,gE:gd.e,jE:jd.e});
       var ev=evalDaewun(g,j);
       var qBadge=getDwQmBadge(g,j);
 
@@ -16376,6 +16378,7 @@ function renderDaewun(bazi){
         '</div>';
     });
     document.getElementById('dwGrid').innerHTML=h||'<p style="font-size:.83rem;color:#999">대운 데이터 없음</p>';
+    if(_dwGlobalArr.length>0)window.G_DAEWUN=_dwGlobalArr;
     renderLifeGraph(bazi);
   }catch(err){console.error('대운 오류',err);}
 }
