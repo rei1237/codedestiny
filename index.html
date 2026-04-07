@@ -4048,7 +4048,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <div class="lb-start__hero">
             <div class="lb-start__icon" aria-hidden="true">🌌</div>
             <h3 class="lb-start__headline">자미두수(紫微斗數) 인생 총람</h3>
-            <p class="lb-start__desc">13챕터 · 하늘이 각인한 천명의 코드부터<br>2026 소한 타이밍 전략까지<br>나만의 자미두수 인생 전서를 생성합니다</p>
+            <p class="lb-start__desc">복잡한 부가 화면 없이<br>자미두수 핵심 명반을 정리해<br>최종 PDF 인생 전서를 생성합니다</p>
           </div>
           <div class="lb-start__profile-box">
             <div class="lb-start__profile-label">분석 대상 프로필</div>
@@ -5176,6 +5176,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
+    // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
+    try {
+      var _pvwOverlay = document.getElementById('tilePvwOverlay');
+      if (_pvwOverlay) _pvwOverlay.classList.remove('pvw-open');
+      document.body.style.overflow = '';
+    } catch (_) {}
     if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
     // <a href> 타일: href 경로로 직접 이동
     if (actionEl && actionEl.tagName === 'A') {
@@ -5630,7 +5636,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/jami.webp'},
-    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'중국 황실이 천 년간 금서(禁書)로 봉인한 자미두수 명반 완전판 — 13챕터 분량의 나만의 인생 총람 PDF북으로 완성합니다',feats:['🌌 Ch.1 명궁 완전 해설 — 천명의 코드','🌙 Ch.2 신궁 심층 분석 — 잠재된 무기','🗺️ Ch.3 12궁 배치 총해설 — 별자리 드라마 지도','⭐ Ch.4 주성 완전 해독 — 14주성의 비밀','👑 Ch.5 관록궁 분석 — 천직과 성공 방정식','💰 Ch.6 재백궁 분석 — 부의 그릇과 재물 법칙','💑 Ch.7 부처궁 분석 — 인연 구조와 파트너 기질','⚔️ Ch.8 살성·화기 — 시련이 숨긴 도약의 설계도','🌊 Ch.9 대한 정밀 분석 — 현재 10년 파노라마','✈️ Ch.10 천이궁·복덕궁 — 이동운과 영적 복덕','📅 Ch.11 2026 소한 로드맵 — 월별 타이밍 전략','🌅 Ch.12 생애 마스터플랜 — 대한별 황금 타이밍','💌 Ch.13 천명 총결산 — 자미두수 거장의 최종 봉서'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
+    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'자미두수 핵심 명반을 정리해 완성본 PDF로 제공하는 프리미엄 리포트입니다.',feats:['📄 핵심 명반 분석 결과를 최종 PDF 한 권으로 생성','💾 생성된 PDF는 즉시 저장 및 재다운로드 가능','🎯 복잡한 부가 요소 없이 리포트 생성·보관에 집중'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };
@@ -5761,7 +5767,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   }
 
   document.addEventListener('click',function(e){
-    var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile');
+    var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');

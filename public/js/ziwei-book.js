@@ -357,9 +357,6 @@
       '<p class="zb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
       '</div>' +
       '<div class="zb-chapter-body">' + _md2html(data) + '</div>' +
-      '<div class="zb-chapter-pdf-row" style="margin-top:16px;text-align:right;">' +
-      '<button type="button" onclick="downloadZiweiChapterPdf(' + ch + ')" style="background:rgba(124,58,237,0.15);border:1px solid rgba(167,139,250,0.45);color:#c4b5fd;font-size:0.78rem;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;">📥 Ch.' + ch + ' PDF 저장</button>' +
-      '</div>' +
       '</div>';
     content.scrollTop = 0;
   }
