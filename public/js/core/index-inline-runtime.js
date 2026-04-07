@@ -1316,6 +1316,13 @@ window.openNevilleMeditationPage = function() {
     console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
   }
 };
+window.openDestinyEggPage = function() {
+  try {
+    window.location.assign('/destiny-egg');
+  } catch (err) {
+    console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
+  }
+};
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
