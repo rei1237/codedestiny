@@ -537,9 +537,12 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 데이터 복원 시도
+    // 저장된 데이터 복원 시도 (에러 메시지만 있는 캐시는 무효 처리)
     var saved = _lbLoadSaved(profile);
-    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
+    var hasValidCache = saved && saved.chapters && saved.chapters.some(function(c) {
+      return typeof c === 'string' && c.trim().length > 0 && !/^⚠️/.test(c.trim());
+    });
+    if (hasValidCache) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('lbResultScreen');
