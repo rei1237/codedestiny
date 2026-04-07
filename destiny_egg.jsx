@@ -66,6 +66,14 @@ const THEMES = {
   },
 };
 
+const THEME_ALIASES = {
+  "벚꽃": "blossom",
+  "마카롱": "macaron",
+  "딸기": "strawberry",
+  "우주": "space",
+  "검은별": "blackstar",
+};
+
 const SPRITE_LAYOUT = {
   blossom: {
     cols: 6,
@@ -304,11 +312,81 @@ function pickTheme(stemIdx, branchIdx) {
   return keys[(stemIdx * 7 + branchIdx * 3) % keys.length];
 }
 
+function normalizeThemeKey(input, ilju) {
+  const raw = String(input || "").trim();
+  if (THEMES[raw]) return raw;
+  if (THEME_ALIASES[raw]) return THEME_ALIASES[raw];
+  if (ilju && Number.isFinite(ilju.stemIdx) && Number.isFinite(ilju.branchIdx)) {
+    return pickTheme(ilju.stemIdx, ilju.branchIdx);
+  }
+  return "blossom";
+}
+
+function migrateProfileShape(parsed) {
+  if (!parsed || typeof parsed !== "object") return null;
+  const ilju = parsed.ilju || calcIlju(Number(parsed?.birthInfo?.year || 1990), Number(parsed?.birthInfo?.month || 1), Number(parsed?.birthInfo?.day || 1));
+  const iljuInfo = parsed.iljuInfo || ILJU_ANIMAL_MAP[ilju.ilju] || ILJU_ANIMAL_MAP["갑자"];
+  const theme = normalizeThemeKey(parsed.theme, ilju);
+  const seed = (Number(parsed?.birthInfo?.year || 0) + Number(parsed?.birthInfo?.month || 0) + Number(parsed?.birthInfo?.day || 0) + ilju.stemIdx + ilju.branchIdx) % 3;
+  return {
+    ...parsed,
+    ilju,
+    iljuInfo,
+    theme,
+    petName: parsed.petName || `${iljuInfo.animal}이`,
+    eggImage: parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed),
+    affection: Number(parsed.affection || 0),
+    feedBest: Number(parsed.feedBest || 0),
+    playBest: Number(parsed.playBest || 0),
+    ownedEggs: Array.isArray(parsed.ownedEggs) && parsed.ownedEggs.length ? parsed.ownedEggs : [parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed)],
+    activeEggImage: parsed.activeEggImage || parsed.eggImage || getEggByAnimal(iljuInfo.animalKey, seed),
+    llmDaily: parsed.llmDaily && typeof parsed.llmDaily === "object"
+      ? parsed.llmDaily
+      : { date: new Date().toISOString().slice(0, 10), used: 0, limit: 3 },
+  };
+}
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function normalizeDailyQuota(raw) {
+  const today = getTodayKey();
+  if (!raw || typeof raw !== "object") return { date: today, used: 0, limit: 3 };
+  if (raw.date !== today) return { date: today, used: 0, limit: 3 };
+  return { date: today, used: Number(raw.used || 0), limit: 3 };
+}
+
+function getApiBase() {
+  if (typeof window !== "undefined" && window.CODE_DESTINY_API_BASE_URL) {
+    return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, "");
+  }
+  try {
+    const v = localStorage.getItem("fortune_api_base_url");
+    if (v) return String(v).replace(/\/+$/, "");
+  } catch {}
+  if (typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    return "http://localhost:4000";
+  }
+  return typeof location !== "undefined" ? location.origin : "";
+}
+
+function getAuthToken() {
+  try {
+    return localStorage.getItem("fortune_auth_token") || "";
+  } catch {
+    return "";
+  }
+}
+
 function getSheetPath(themeKey, animalKey, variantIndex = 0) {
-  const files = SHEET_FILES[themeKey]?.[animalKey] || [];
+  const safeTheme = normalizeThemeKey(themeKey, null);
+  const files = SHEET_FILES[safeTheme]?.[animalKey] || [];
   const safe = Math.min(Math.max(variantIndex, 0), files.length - 1);
   const file = files[safe] || files[0];
-  return `/fuctionassets/tadagochi/${THEMES[themeKey].folder}/${file}`;
+  if (!file) return "";
+  const raw = `/fuctionassets/tadagochi/${THEMES[safeTheme].folder}/${file}`;
+  return encodeURI(raw);
 }
 
 function getVariantIndex(themeKey, animalKey, state) {
@@ -432,22 +510,39 @@ function CloudBackground({ themeKey }) {
 }
 
 function CharacterSprite({ themeKey, animalKey, state }) {
-  const layout = SPRITE_LAYOUT[themeKey] || SPRITE_LAYOUT.blossom;
+  const safeTheme = normalizeThemeKey(themeKey, null);
+  const layout = SPRITE_LAYOUT[safeTheme] || SPRITE_LAYOUT.blossom;
   const frameList = layout.states[state] || layout.states.idle;
   const [frameIdx, setFrameIdx] = useState(0);
-  const variantIdx = getVariantIndex(themeKey, animalKey, state);
-  const imagePath = getSheetPath(themeKey, animalKey, variantIdx);
+  const [imageFailed, setImageFailed] = useState(false);
+  const variantIdx = getVariantIndex(safeTheme, animalKey, state);
+  const imagePath = getSheetPath(safeTheme, animalKey, variantIdx);
 
   useEffect(() => {
     const timer = setInterval(() => setFrameIdx((p) => (p + 1) % frameList.length), 520);
     return () => clearInterval(timer);
   }, [frameList.length]);
 
+  useEffect(() => {
+    if (!imagePath) {
+      setImageFailed(true);
+      return;
+    }
+    const probe = new Image();
+    probe.onload = () => setImageFailed(false);
+    probe.onerror = () => setImageFailed(true);
+    probe.src = imagePath;
+  }, [imagePath]);
+
   const idx = frameList[frameIdx];
   const col = idx % layout.cols;
   const row = Math.floor(idx / layout.cols);
   const x = layout.cols <= 1 ? 0 : (col / (layout.cols - 1)) * 100;
   const y = layout.rows <= 1 ? 0 : (row / (layout.rows - 1)) * 100;
+
+  if (imageFailed) {
+    return <div className="sprite-fallback">{ANIMALS[animalKey]?.emoji || "🐣"}</div>;
+  }
 
   return (
     <div
@@ -601,35 +696,50 @@ export default function App() {
   const [petName, setPetName] = useState("");
   const [profile, setProfile] = useState(null);
   const [mood, setMood] = useState("normal");
-  const [panel, setPanel] = useState("fortune");
+  const [panel, setPanel] = useState("chat");
   const [bubble, setBubble] = useState("");
+  const [idlePose, setIdlePose] = useState("idle");
   const typedBubble = useTypingText(bubble, 20);
 
-  const [fortuneMain, setFortuneMain] = useState(Object.keys(FORTUNE_CATEGORIES)[0]);
-  const [fortuneSub, setFortuneSub] = useState(FORTUNE_CATEGORIES[Object.keys(FORTUNE_CATEGORIES)[0]].sub[0]);
-  const [fortuneMode, setFortuneMode] = useState("saju");
   const [fortuneResult, setFortuneResult] = useState("");
-  const [fortuneLoading, setFortuneLoading] = useState(false);
-  const [fortuneCtx, setFortuneCtx] = useState("");
 
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [chatLoading, setChatLoading] = useState(false);
 
-  const [calendarPreview, setCalendarPreview] = useState("");
+  const [coinBalance, setCoinBalance] = useState(null);
+  const [coinError, setCoinError] = useState("");
+  const [gachaLoading, setGachaLoading] = useState(false);
+  const [gachaResult, setGachaResult] = useState("");
   const shareRef = useRef(null);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw);
+      const parsed = migrateProfileShape(JSON.parse(raw));
+      if (!parsed) return;
       setProfile(parsed);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
       setPhase("main");
       setBubble(`${parsed.petName}: 오늘도 반가워! ${ANIMALS[parsed.iljuInfo.animalKey].cry}`);
       setChatMessages([{ role: "pet", text: `${parsed.petName} 왔어! 오늘도 같이 운세 보자.` }]);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+    const token = getAuthToken();
+    if (!token) return;
+    fetch(getApiBase() + "/api/fortune/pig-coin/balance", {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.user?.points === "number") setCoinBalance(d.user.points);
+      })
+      .catch(() => {});
+  }, [profile]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -642,15 +752,25 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const seq = ["idle", "happy", "excited", "surprised", "eating", "worried", "dance"];
+    let i = 0;
+    const timer = setInterval(() => {
+      i = (i + 1) % seq.length;
+      setIdlePose(seq[i]);
+    }, 2600);
+    return () => clearInterval(timer);
+  }, []);
+
   const spriteState = useMemo(() => {
     if (mood === "sleepy") return "sleep";
     if (mood === "happy") return "happy";
     if (mood === "excited") return "dance";
     if (mood === "worried") return "sad";
-    return "idle";
-  }, [mood]);
+    return idlePose;
+  }, [mood, idlePose]);
 
-  const themeKey = profile?.theme || "blossom";
+  const themeKey = normalizeThemeKey(profile?.theme, profile?.ilju);
   const currentTheme = THEMES[themeKey] || THEMES.blossom;
 
   function saveProfile(next) {
@@ -680,9 +800,12 @@ export default function App() {
       theme,
       petName: petName.trim() || `${iljuInfo.animal}이`,
       eggImage: getEggByAnimal(iljuInfo.animalKey, seed),
+      activeEggImage: getEggByAnimal(iljuInfo.animalKey, seed),
+      ownedEggs: [getEggByAnimal(iljuInfo.animalKey, seed)],
       affection: 0,
       feedBest: 0,
       playBest: 0,
+      llmDaily: { date: getTodayKey(), used: 0, limit: 3 },
     };
 
     saveProfile(next);
@@ -705,87 +828,67 @@ export default function App() {
     setTimeout(() => setMood("normal"), 2200);
   }
 
-  async function loadServiceContext(mode) {
-    if (!profile) return "없음";
-    try {
-      if (mode === "vedic") {
-        const res = await fetch("/api/vedic/planets", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: profile.birthInfo.year,
-            month: profile.birthInfo.month,
-            day: profile.birthInfo.day,
-            hour: profile.birthInfo.hour,
-            minute: 0,
-            timezone: 9,
-          }),
-        });
-        const d = await res.json();
-        if (!d?.ok) return "베다 행성 데이터 없음";
-        return `Sun:${d.planets?.Sun?.toFixed?.(2)} Moon:${d.planets?.Moon?.toFixed?.(2)} Jupiter:${d.planets?.Jupiter?.toFixed?.(2)} Saturn:${d.planets?.Saturn?.toFixed?.(2)}`;
-      }
-
-      if (mode === "solar") {
-        const res = await fetch(`/api/astro/solar-terms?year=${profile.birthInfo.year}&all24=true`);
-        const d = await res.json();
-        if (!d?.ok) return "절기 데이터 없음";
-        const nearest = (d.terms || []).slice(0, 6).map((x) => `${x.name}:${x.kstMonth}/${x.kstDay}`).join(", ");
-        return `절기스냅샷 ${nearest}`;
-      }
-
-      if (mode === "tarot") {
-        const drawRes = await fetch("/api/tarot/draw", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spreadType: "one_card" }),
-        });
-        const draw = await drawRes.json();
-        if (!draw?.ok || !draw.cards?.length) return "타로 카드 없음";
-
-        const readingRes = await fetch("/api/tarot/reading", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ category: "general", spreadType: draw.spreadType || "one_card", cards: draw.cards }),
-        });
-        const reading = await readingRes.json();
-        if (!reading?.ok) return "타로 리딩 실패";
-
-        const story = reading.reading?.story || "";
-        const advice = reading.reading?.advice || "";
-        return `카드:${reading.cards?.[0]?.nameKr || reading.cards?.[0]?.name || "-"} | ${story} ${advice}`;
-      }
-
-      return "사주/자미두수/숙요 프롬프트 확장 모드";
-    } catch {
-      return "연동 데이터 로드 실패";
+  function consumeDailyLlm() {
+    if (!profile) return { ok: false, remain: 0 };
+    const daily = normalizeDailyQuota(profile.llmDaily);
+    if (daily.used >= daily.limit) {
+      return { ok: false, remain: 0 };
     }
+    const nextDaily = { ...daily, used: daily.used + 1 };
+    saveProfile({ ...profile, llmDaily: nextDaily });
+    return { ok: true, remain: nextDaily.limit - nextDaily.used };
   }
 
-  async function handleFortune() {
-    if (!profile || fortuneLoading) return;
-    setFortuneLoading(true);
-    setFortuneResult("");
+  async function drawEggGacha() {
+    if (!profile || gachaLoading) return;
+    setGachaLoading(true);
+    setCoinError("");
+    setGachaResult("");
+
+    const token = getAuthToken();
+    if (!token) {
+      setCoinError("로그인 후 이용할 수 있어요.");
+      setGachaLoading(false);
+      return;
+    }
+
+    const COST = 50;
+    if (typeof coinBalance === "number" && coinBalance < COST) {
+      setCoinError(`꽃돼지 코인이 부족해요. (보유 ${coinBalance})`);
+      setGachaLoading(false);
+      return;
+    }
 
     try {
-      const context = await loadServiceContext(fortuneMode);
-      setFortuneCtx(context);
-
-      if (fortuneMode === "tarot" && context.startsWith("카드:")) {
-        setFortuneResult(context);
-        bumpMood("excited", `${profile.petName}: 타로까지 같이 봤어! 🔮`, 2);
+      const consumeRes = await fetch(getApiBase() + "/api/fortune/pig-coin/consume", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ cost: COST, reason: "다마고치 알 가챠", featureKey: "destiny-egg-gacha" }),
+      });
+      const consume = await consumeRes.json();
+      if (!consumeRes.ok) {
+        setCoinError(consume?.message || "코인 차감에 실패했어요.");
+        setGachaLoading(false);
         return;
       }
 
-      const prompt = buildFortunePrompt(fortuneMode, fortuneMain, fortuneSub, profile, context);
-      const system = `너는 code-destiny 멀티 운세 어시스턴트다. 응답은 너무 짧지 않게, 실전 행동 조언 중심으로 작성.`;
-      const text = await askAi(system, prompt);
-      setFortuneResult(text);
-      bumpMood("excited", `${profile.petName}: 연동 운세 분석 완료!`, 2);
+      if (typeof consume?.user?.points === "number") setCoinBalance(consume.user.points);
+
+      const pool = Object.values(ANIMAL_EGG_MAP).flat();
+      const uniquePool = Array.from(new Set(pool));
+      const owned = Array.isArray(profile.ownedEggs) ? profile.ownedEggs : [];
+      const unowned = uniquePool.filter((x) => !owned.includes(x));
+      const nextEgg = (unowned.length ? unowned : uniquePool)[Math.floor(Math.random() * (unowned.length ? unowned.length : uniquePool.length))];
+      const nextOwned = owned.includes(nextEgg) ? owned : [...owned, nextEgg];
+
+      const next = { ...profile, ownedEggs: nextOwned, activeEggImage: nextEgg, eggImage: nextEgg };
+      saveProfile(next);
+      setGachaResult(unowned.length ? "새로운 알 스킨 획득!" : "중복 알이지만 코인 보너스 경험치 획득!");
+      bumpMood("excited", `${profile.petName}: 새 알이다! 너무 귀여워 🥚`, 2);
     } catch {
-      setFortuneResult("오늘은 1) 아침 정리 2) 오후 집중 3) 저녁 회복 루틴이 핵심이야. 작은 결정은 빠르게, 큰 결정은 밤에 미루는 게 좋아. 행운 아이템은 노란 노트, 피해야 할 행동은 즉흥 소비야.");
+      setCoinError("네트워크 오류로 가챠에 실패했어요.");
     } finally {
-      setFortuneLoading(false);
+      setGachaLoading(false);
     }
   }
 
@@ -794,12 +897,21 @@ export default function App() {
     const text = chatInput.trim();
     setChatInput("");
     setChatMessages((p) => [...p, { role: "me", text }]);
+
+    const quota = consumeDailyLlm();
+    if (!quota.ok) {
+      setChatMessages((p) => [...p, { role: "pet", text: "오늘의 운세 대화 3회를 모두 사용했어. 내일 다시 보자!" }]);
+      return;
+    }
+
     setChatLoading(true);
 
     try {
       const system = buildChatSystemPrompt(profile.iljuInfo, profile.petName);
-      const answer = await askAi(system, text);
+      const userPrompt = `질문: ${text}\n\n다음 형식으로 답해줘:\n1) 오늘 운세 핵심\n2) 지금 바로 할 행동 2개\n3) 조심할 포인트 1개\n4) 행운 아이템 1개`;
+      const answer = await askAi(system, userPrompt);
       setChatMessages((p) => [...p, { role: "pet", text: answer }]);
+      setFortuneResult(answer);
       if (/(슬프|걱정|힘들|불안)/.test(answer)) setMood("worried");
       else if (/(축하|좋아|행운|신나|최고)/.test(answer)) setMood("happy");
       else setMood("normal");
@@ -835,7 +947,7 @@ export default function App() {
           content: {
             title: `${profile.petName}의 운세 다마고치`,
             description: desc,
-            imageUrl: profile.eggImage || THEMES.blossom.egg,
+            imageUrl: profile.activeEggImage || profile.eggImage || THEMES.blossom.egg,
             link: { mobileWebUrl: url, webUrl: url },
           },
           buttons: [{ title: "나도 해보기", link: { mobileWebUrl: url, webUrl: url } }],
@@ -943,49 +1055,16 @@ export default function App() {
         </div>
 
         <nav className="toolbar">
-          <button onClick={() => setPanel("fortune")}>🔮 오늘의 운세</button>
-          <button onClick={() => setPanel("chat")}>💬 대화하기</button>
-          <button onClick={() => setPanel("feed")}>🍎 먹이주기</button>
-          <button onClick={() => setPanel("play")}>🎵 놀아주기</button>
-          <button onClick={() => setPanel("calendar")}>📅 운세 달력</button>
+          <button onClick={() => setPanel("chat")}>💬 운세 대화</button>
+          <button onClick={() => setPanel("gacha")}>🥚 알 가챠</button>
           <button onClick={() => setPanel("profile")}>⚙️ 내 정보</button>
         </nav>
 
         <div className="panel-card">
-          {panel === "fortune" && (
-            <div>
-              <h3>통합 운세 센터</h3>
-
-              <div className="mode-row">
-                {["saju", "ziwei", "vedic", "sukyo", "solar", "tarot"].map((m) => (
-                  <button key={m} className={fortuneMode === m ? "on" : ""} onClick={() => setFortuneMode(m)}>{m}</button>
-                ))}
-              </div>
-
-              <div className="tabs-row">
-                {Object.keys(FORTUNE_CATEGORIES).map((k) => (
-                  <button key={k} className={fortuneMain === k ? "on" : ""} onClick={() => { setFortuneMain(k); setFortuneSub(FORTUNE_CATEGORIES[k].sub[0]); }}>
-                    {FORTUNE_CATEGORIES[k].icon} {k}
-                  </button>
-                ))}
-              </div>
-
-              <div className="sub-grid">
-                {FORTUNE_CATEGORIES[fortuneMain].sub.map((s) => (
-                  <button key={s} className={fortuneSub === s ? "on" : ""} onClick={() => setFortuneSub(s)}>{s}</button>
-                ))}
-              </div>
-
-              <button className="ac-btn" onClick={handleFortune} disabled={fortuneLoading}>{fortuneLoading ? "연동 분석 중..." : "운세 보기"}</button>
-
-              {fortuneCtx ? <p className="service-ctx">연동 데이터: {fortuneCtx}</p> : null}
-              {fortuneResult ? <p className="fortune-result">{fortuneResult}</p> : null}
-            </div>
-          )}
-
           {panel === "chat" && (
             <div>
-              <h3>수호동물 대화</h3>
+              <h3>수호동물 운세 대화 (하루 3회)</h3>
+              <p className="quota">남은 횟수: {Math.max(0, (normalizeDailyQuota(profile.llmDaily).limit - normalizeDailyQuota(profile.llmDaily).used))} / 3</p>
               <div className="chat-box">
                 {chatMessages.map((m, i) => (
                   <div key={i} className={`msg ${m.role}`}>
@@ -996,45 +1075,38 @@ export default function App() {
                 {chatLoading && <div className="msg pet"><span>{profile.petName}</span><p>...</p></div>}
               </div>
               <div className="chat-input-row">
-                <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="오늘 고민이나 질문을 입력" />
+                <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="궁금한 운세를 질문해줘" />
                 <button onClick={sendChat}>보내기</button>
               </div>
+              {fortuneResult ? <p className="fortune-result">{fortuneResult}</p> : null}
             </div>
           )}
 
-          {panel === "feed" && (
-            <FeedGame
-              onEnd={(score) => {
-                const reward = Math.floor(score / 10);
-                const next = { ...profile, affection: profile.affection + reward, feedBest: Math.max(profile.feedBest || 0, score) };
-                saveProfile(next);
-                bumpMood("happy", `${profile.petName}: 냠냠! 점수 ${score}점, 호감도 +${reward}`, reward);
-              }}
-            />
-          )}
-
-          {panel === "play" && (
-            <ReactionGame
-              onEnd={(score) => {
-                const reward = Math.floor(score / 8);
-                const next = { ...profile, affection: profile.affection + reward, playBest: Math.max(profile.playBest || 0, score) };
-                saveProfile(next);
-                bumpMood("excited", `${profile.petName}: 놀이 완료! ${score}점, 호감도 +${reward}`, reward);
-              }}
-            />
-          )}
-
-          {panel === "calendar" && (
+          {panel === "gacha" && (
             <div>
-              <h3>월별 운세 달력</h3>
-              <FortuneCalendar
-                ilju={profile.ilju}
-                onSelect={(d, icon, score) => {
-                  const tone = score < 24 ? "무리한 결정은 미루고" : "새로운 시도를 하기에";
-                  setCalendarPreview(`${d}일 ${icon} · ${tone} 좋은 흐름이야.`);
-                }}
-              />
-              {calendarPreview ? <p className="fortune-result">{calendarPreview}</p> : null}
+              <h3>꽃돼지 코인 알 가챠</h3>
+              <p className="gacha-balance">현재 코인: {coinBalance == null ? "-" : coinBalance}</p>
+              <button className="ac-btn" disabled={gachaLoading} onClick={drawEggGacha}>
+                {gachaLoading ? "가챠 중..." : "알 뽑기 (50 코인)"}
+              </button>
+              {coinError ? <p className="error-msg">{coinError}</p> : null}
+              {gachaResult ? <p className="fortune-result">{gachaResult}</p> : null}
+
+              <h4 className="egg-title">보유 알 디자인</h4>
+              <div className="egg-grid">
+                {(profile.ownedEggs || []).map((egg, idx) => (
+                  <button
+                    key={`${egg}-${idx}`}
+                    className={`egg-item ${profile.activeEggImage === egg ? "on" : ""}`}
+                    onClick={() => {
+                      const next = { ...profile, activeEggImage: egg, eggImage: egg };
+                      saveProfile(next);
+                    }}
+                  >
+                    <img src={egg} alt={`egg-${idx}`} />
+                  </button>
+                ))}
+              </div>
 
               <div className="share-row">
                 <button className="ac-btn" onClick={downloadShareCard}>이미지 저장</button>
@@ -1052,8 +1124,7 @@ export default function App() {
                 <li>일주: {profile.iljuInfo.ilju} ({profile.iljuInfo.animal})</li>
                 <li>오행: {profile.iljuInfo.element}</li>
                 <li>성격: {profile.iljuInfo.personality}</li>
-                <li>먹이주기 최고점: {profile.feedBest || 0}</li>
-                <li>놀아주기 최고점: {profile.playBest || 0}</li>
+                <li>보유 알 디자인: {(profile.ownedEggs || []).length}개</li>
                 <li>호감도 단계: {profile.affection > 180 ? "단짝" : profile.affection > 70 ? "친구" : "낯선이"}</li>
               </ul>
               <button className="ac-btn danger" onClick={() => { localStorage.removeItem(STORAGE_KEY); location.reload(); }}>처음부터 다시</button>
@@ -1063,7 +1134,7 @@ export default function App() {
 
         <div className="share-card" ref={shareRef}>
           <h4>Animal Crossing Destiny Passport</h4>
-          <img src={profile.eggImage} alt="egg" className="share-egg" />
+          <img src={profile.activeEggImage || profile.eggImage} alt="egg" className="share-egg" />
           <div className="share-char"><CharacterSprite themeKey={themeKey} animalKey={profile.iljuInfo.animalKey} state="happy" /></div>
           <p>{profile.iljuInfo.ilju} {profile.iljuInfo.animal} · {profile.iljuInfo.element}</p>
           <p className="small">{fortuneResult || "오늘은 작은 행동 하나가 큰 흐름을 만든다."}</p>
@@ -1127,6 +1198,7 @@ html, body, #__next { margin:0; padding:0; width:100%; min-height:100%; font-fam
 
 .character-zone { position:relative; min-height:300px; border:3px solid #a68469; border-radius:28px; padding:16px; background:linear-gradient(180deg, rgba(255,255,255,.52), rgba(255,255,255,.24)); display:grid; place-items:center; margin-bottom:10px; cursor:pointer; }
 .sprite { width:min(58vw, 240px); aspect-ratio:1/1; background-repeat:no-repeat; image-rendering:auto; filter:drop-shadow(0 12px 24px rgba(0,0,0,.2)); animation:charBob 2.8s ease-in-out infinite; }
+.sprite-fallback { width:min(58vw, 240px); aspect-ratio:1/1; display:grid; place-items:center; font-size:84px; border-radius:22px; background:radial-gradient(circle at 35% 30%, #fff7e8, #ffe6c5 60%, #ffd7a8 100%); border:2px dashed #c8a88a; animation:charBob 2.8s ease-in-out infinite; }
 .speech { margin-top:10px; background:#fff; border:3px solid var(--ink); border-radius:22px; padding:10px 16px; max-width:690px; line-height:1.55; box-shadow:0 8px 20px rgba(61,43,31,.15); }
 
 .toolbar { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
@@ -1154,6 +1226,14 @@ html, body, #__next { margin:0; padding:0; width:100%; min-height:100%; font-fam
 .chat-input-row { margin-top:8px; display:flex; gap:6px; }
 .chat-input-row input { flex:1; border:2px solid #b79374; border-radius:14px; padding:10px; }
 .chat-input-row button { border:2px solid var(--ink); border-radius:14px; background:#ffe1c5; font-weight:700; padding:0 12px; }
+.quota { margin:0 0 8px; font-size:12px; color:#6d4d33; background:#fff6e8; border:2px solid #e2c4a2; border-radius:12px; padding:6px 10px; }
+.gacha-balance { margin:0 0 8px; font-size:13px; color:#5f412a; }
+.error-msg { margin-top:8px; font-size:12px; color:#b43a2f; background:#ffe7e5; border:2px solid #f0b7b2; border-radius:12px; padding:8px 10px; }
+.egg-title { margin:12px 0 6px; font-family:'Jua', sans-serif; }
+.egg-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:6px; }
+.egg-item { border:2px solid #c8a88c; border-radius:12px; background:#fffaf2; padding:6px; cursor:pointer; }
+.egg-item img { width:100%; height:54px; object-fit:contain; display:block; }
+.egg-item.on { border-color:#ff8c42; box-shadow:0 0 0 2px rgba(255,140,66,.25) inset; }
 
 .calendar-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; }
 .cell { min-height:58px; border:2px solid #c8a88c; border-radius:12px; background:#fffaf2; display:grid; place-items:center; cursor:pointer; }
@@ -1188,9 +1268,10 @@ html, body, #__next { margin:0; padding:0; width:100%; min-height:100%; font-fam
 @keyframes starPulse { from { transform:scale(1); } to { transform:scale(1.12); } }
 
 @media (max-width: 760px) {
-  .toolbar { grid-template-columns:repeat(2,1fr); }
+  .toolbar { grid-template-columns:repeat(3,1fr); }
   .sub-grid { grid-template-columns:1fr; }
   .hour-grid { grid-template-columns:repeat(2,1fr); }
   .share-row { flex-direction:column; }
+  .egg-grid { grid-template-columns:repeat(3,1fr); }
 }
 `;
