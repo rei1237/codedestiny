@@ -166,9 +166,10 @@ function PasswordGate({ onAuth }: { onAuth: (token: string) => void }) {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: v }),
       });
+      if (res.status >= 500) { setErr("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."); return; }
       if (!res.ok) { setErr("비밀번호가 올바르지 않습니다."); return; }
       const data = await res.json() as { adminToken?: string };
-      if (!data.adminToken) { setErr("토큰 발급 실패. 다시 시도해 주세요."); return; }
+      if (!data.adminToken) { setErr("토큰 발급 실패. 잠시 후 다시 시도해 주세요."); return; }
       try { sessionStorage.setItem(FLOWER_TOKEN_KEY, data.adminToken); } catch { /* ignore */ }
       onAuth(data.adminToken);
     } catch { setErr("요청 중 오류가 발생했습니다."); }

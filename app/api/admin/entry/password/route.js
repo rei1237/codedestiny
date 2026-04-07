@@ -8,7 +8,7 @@ import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken.js";
 // 없으면 하드코딩된 기본값 폴백 (변경 시 새 해시를 Cloudflare 환경변수로 등록하면 코드 배포 불필요).
 const ADMIN_ENTRY_PASSWORD_SHA256 =
   (process.env.ADMIN_ENTRY_PASSWORD_SHA256 || "").trim() ||
-  "1ee604f9280e94b887e2eb8a2c6a1fda6026d7e32301768556ece3b781513290";
+  "6d01b565ddc7827808cacaeabdb3bdecb787ab342bb0a57ebcc05e173cef747b";
 
 // ── 브루트포스 방어: IP당 15분 윈도우에서 최대 5회 실패 허용 ──────────────
 const _loginAttempts = new Map(); // ip -> { count, resetAt }
@@ -106,7 +106,16 @@ export async function POST(request) {
     clearAttempts(ip); // 성공 시 카운터 초기화
 
     // 서명된 단기 세션 토큰 발급 — 클라이언트가 sessionStorage에 보관
-    const adminToken = await generateFlowerAdminToken();
+    let adminToken;
+    try {
+      adminToken = await generateFlowerAdminToken();
+    } catch (tokenErr) {
+      console.error("[admin/entry/password] 토큰 발급 오류:", tokenErr);
+      return new Response(JSON.stringify({ message: "토큰 발급 실패" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      });
+    }
 
     return new Response(JSON.stringify({ ok: true, adminToken, nextUrl: "/admin" }), {
       status: 200,
