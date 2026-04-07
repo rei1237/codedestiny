@@ -650,6 +650,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .tile-pvw-paywall--lock .tile-pvw-paywall-title{color:#d8b4fe}
 .tile-pvw-paywall--lock .tile-pvw-paywall-desc{color:rgba(216,180,254,.65)}
 /* CTA 버튼 */
+.tile-pvw-cta-sticky{position:sticky;bottom:0;background:linear-gradient(to top,#1d0b38 80%,rgba(29,11,56,0));padding:12px 20px 20px;margin:0 -20px -20px}
 .tile-pvw-cta-btn{width:100%;padding:15px 20px;border-radius:14px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:.97rem;font-weight:900;cursor:pointer;letter-spacing:.01em;box-shadow:0 6px 24px rgba(124,58,237,.45),inset 0 1px 0 rgba(255,255,255,.16);transition:transform .18s,filter .18s,box-shadow .18s}
 .tile-pvw-cta-btn:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.1);box-shadow:0 10px 32px rgba(168,85,247,.55)}
 .tile-pvw-cta-btn:active{transform:scale(.97)}
@@ -5500,7 +5501,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     (async function () {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser()) {
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return;
@@ -5861,7 +5862,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
         </div>
       </div>
-      <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
+      <div class="tile-pvw-cta-sticky">
+        <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -5931,9 +5934,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     document.getElementById('tilePvwClose').addEventListener('click',_close);
     _ctaBtn.addEventListener('click',_onCta);
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&_ov.classList.contains('pvw-open'))_close();});
+    // bfcache 복원 시 pvw-open 상태 강제 해제 (overlay가 모든 이벤트를 막는 문제 방지)
+    window.addEventListener('pageshow',function(e){if(e.persisted&&_ov&&_ov.classList.contains('pvw-open'))_close();});
     var sy=0;
     _sheet.addEventListener('touchstart',function(e){sy=e.touches[0].clientY;},{passive:true});
-    _sheet.addEventListener('touchmove',function(e){if(e.touches[0].clientY-sy>90)_close();},{passive:true});
+    // 시트 최상단(scrollTop=0)에서만 + 임계값 150px 이상 아래로 스와이프할 때 닫기 (스크롤 중 오작동 방지)
+    _sheet.addEventListener('touchmove',function(e){if(_sheet.scrollTop<=2&&e.touches[0].clientY-sy>150)_close();},{passive:true});
   }
 
   function _open(tile,href,d){

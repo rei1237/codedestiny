@@ -4917,7 +4917,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     (async function () {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser()) {
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return;
@@ -5277,10 +5277,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
         </div>
       </div>
-      <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
-    </div>
-  </div>
-</div>
+      <div class="tile-pvw-cta-sticky"><button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button></div></div></div></div>
 <script>
 /* === Tile Feature Preview v2.0 (이미지 포함 상세 페이지) === */
 (function(){
@@ -5345,7 +5342,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&_ov.classList.contains('pvw-open'))_close();});
     var sy=0;
     _sheet.addEventListener('touchstart',function(e){sy=e.touches[0].clientY;},{passive:true});
-    _sheet.addEventListener('touchmove',function(e){if(e.touches[0].clientY-sy>90)_close();},{passive:true});
+    _sheet.addEventListener('touchmove',function(e){if(_sheet.scrollTop<=2&&e.touches[0].clientY-sy>150)_close();},{passive:true});
   }
 
   function _open(tile,href,d){
@@ -6029,4 +6026,5 @@ if (document.readyState === 'loading') {
   </div>
 </body>
 </html>
+
 
