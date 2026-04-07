@@ -1,30 +1,45 @@
 import { NextResponse } from "next/server";
 
-// Next.js 루트 최대 실행 시간 (초) — Vertex AI 장문 생성 대응
+// Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
 
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
-function getLifeBookKey() {
-  // VERTEX_API_KEY (대소문자 모두 시도) → 일반 Gemini 키 순서로 fallback
-  const candidates = [
-    process.env.VERTEX_API_KEY,
-    process.env.vertex_api_key,
-    process.env.LIFEBOOK_API_KEY,
+// Vertex AI Express API — vertex_api_key용 (x-goog-api-key 헤더 방식)
+const VERTEX_ENDPOINT =
+  "https://aiplatform.googleapis.com/v1/publishers/google/models/{model}:generateContent";
+
+/**
+ * 사용 가능한 Gemini API 키 목록 반환 (love-secret 패턴 동일)
+ * → 환경변수에 등록된 모든 키를 순서대로 시도
+ */
+function pickGeminiKeys() {
+  return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
     process.env.GOOGLE_API_KEY_3,
-  ];
-  for (const k of candidates) {
-    const v = String(k || "").trim();
-    if (v) return v;
-  }
-  return null;
+  ]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+}
+
+/**
+ * Vertex AI Express API 키 (vertex_api_key / VERTEX_API_KEY)
+ * Gemini 키가 모두 실패했을 때 폴백으로 사용
+ */
+function pickVertexKey() {
+  return [
+    process.env.VERTEX_API_KEY,
+    process.env.vertex_api_key,
+    process.env.LIFEBOOK_API_KEY,
+  ]
+    .map((v) => String(v || "").trim())
+    .find(Boolean) || null;
 }
 
 function parseText(payload) {
@@ -1057,10 +1072,12 @@ export async function POST(req) {
       );
     }
 
-    const apiKey = getLifeBookKey();
-    if (!apiKey) {
+    const geminiKeys = pickGeminiKeys();
+    const vertexKey = pickVertexKey();
+
+    if (!geminiKeys.length && !vertexKey) {
       return NextResponse.json(
-        { ok: false, message: "Gemini API 키가 설정되지 않았습니다. GEMINI_API_KEY 또는 GOOGLE_API_KEY 환경변수를 확인해 주세요." },
+        { ok: false, message: "서버 Gemini API 키가 설정되지 않았습니다. GEMINI_API_KEY 환경변수를 확인해 주세요." },
         { status: 500 }
       );
     }
@@ -1069,101 +1086,123 @@ export async function POST(req) {
     const model = String(
       process.env.LIFEBOOK_GEMINI_MODEL ||
       process.env.VERTEX_GEMINI_MODEL ||
-      "gemini-2.5-pro-preview-05-06"
+      "gemini-2.5-pro"
     ).trim();
-    const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model)) + "?key=" + encodeURIComponent(apiKey);
+
     const userPrompt = config.prompt(sajuData);
 
+    // gemini-2.5 계열은 thinkingConfig 지원
+    const isThinkingModel = /gemini-2\.5/.test(model);
     const maxOutputTokens = 65536;
     const generationConfig = { maxOutputTokens, temperature: 1.0 };
+    if (isThinkingModel) {
+      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
 
-    const requestBody = JSON.stringify({
+    const requestPayload = JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents: [{ role: "user", parts: [{ text: userPrompt }] }],
       generationConfig,
     });
 
-    // 재시도 로직 — 서버 오류(5xx)는 최대 2회 재시도, 2초 간격
-    let response, payload;
-    const MAX_RETRIES = 2;
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      if (attempt > 0) {
-        await new Promise((r) => setTimeout(r, 2000 * attempt));
-      }
+    let lastError = null;
+
+    // ─── 1단계: Gemini API 키 순차 시도 ───────────────────────────
+    const geminiEndpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
+    for (const key of geminiKeys) {
       try {
-        response = await fetch(endpoint, {
+        const response = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: requestBody,
+          headers: { "Content-Type": "application/json" },
+          body: requestPayload,
         });
-        payload = await response.json().catch(() => ({}));
-        if (response.ok || response.status < 500) break; // 성공 또는 클라이언트 오류
-      } catch (fetchErr) {
-        payload = {};
-        if (attempt === MAX_RETRIES) {
-          return NextResponse.json(
-            { ok: false, message: String(fetchErr?.message || "네트워크 오류") },
-            { status: 502 }
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          lastError = new Error(
+            payload?.error?.message || `Gemini 요청 실패 (${response.status})`
           );
+          // 429(쿼터) / 5xx는 다음 키 시도, 4xx(키 오류 등)는 건너뜀
+          continue;
         }
-      }
-    }
 
-    try {
-      if (!response.ok) {
-        const errMsg = payload?.error?.message || `API 요청 실패 (${response.status})`;
-        return NextResponse.json(
-          { ok: false, message: errMsg },
-          { status: 502 }
-        );
-      }
+        const text = parseText(payload);
+        const finishReason = getFinishReason(payload);
 
-      const text = parseText(payload);
-      const finishReason = getFinishReason(payload);
+        if (!text) {
+          lastError = new Error("모델 응답이 비어 있습니다.");
+          continue;
+        }
 
-      if (!text) {
-        return NextResponse.json(
-          { ok: false, message: "모델 응답이 비어 있습니다." },
-          { status: 502 }
-        );
-      }
+        // 최소 길이 검증 (200자 미만은 불완전 응답)
+        if (text.length < 200) {
+          lastError = new Error(`모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.`);
+          continue;
+        }
 
-      // 최소 길이 검증 — 5,000자 기대, 200자 미만은 불완전 응답으로 처리
-      if (text.length < 200) {
-        return NextResponse.json(
-          { ok: false, message: `모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.` },
-          { status: 502 }
-        );
-      }
+        const suffix = finishReason === "MAX_TOKENS"
+          ? "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*"
+          : "";
 
-      if (finishReason === "MAX_TOKENS") {
         return NextResponse.json({
           ok: true,
-          text: text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달하여 일부 생략되었을 수 있습니다.*",
+          text: text + suffix,
           sessionId,
           title: config.title,
           emoji: config.emoji,
           model,
-          truncated: true,
+          truncated: finishReason === "MAX_TOKENS",
         });
+      } catch (e) {
+        lastError = e;
       }
-
-      return NextResponse.json({
-        ok: true,
-        text,
-        sessionId,
-        title: config.title,
-        emoji: config.emoji,
-        model,
-      });
-    } catch (e) {
-      return NextResponse.json(
-        { ok: false, message: String(e?.message || "챕터 생성에 실패했습니다.") },
-        { status: 502 }
-      );
     }
+
+    // ─── 2단계: Vertex AI Express API 폴백 (vertex_api_key) ───────
+    if (vertexKey) {
+      // Vertex AI Express는 최신 stable 모델만 지원하므로 안전한 이름 사용
+      const vertexModel = /gemini-2\.5/.test(model) ? "gemini-2.5-flash" : "gemini-2.0-flash";
+      const vertexEndpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(vertexModel));
+      try {
+        const response = await fetch(vertexEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": vertexKey,
+          },
+          body: requestPayload,
+        });
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          lastError = new Error(
+            payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`
+          );
+        } else {
+          const text = parseText(payload);
+          if (text && text.length >= 200) {
+            return NextResponse.json({
+              ok: true,
+              text,
+              sessionId,
+              title: config.title,
+              emoji: config.emoji,
+              model: vertexModel,
+            });
+          }
+          lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
+        }
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    return NextResponse.json(
+      { ok: false, message: String(lastError?.message || "챕터 생성에 실패했습니다.") },
+      { status: 502 }
+    );
   } catch (e) {
     return NextResponse.json(
       { ok: false, message: String(e?.message || "요청 처리에 실패했습니다.") },
