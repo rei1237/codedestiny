@@ -24,18 +24,23 @@ const GAN_NAMES = {
   임:"임수(壬水)", 계:"계수(癸水)",
 };
 const STEM_TRAITS = {
-  갑:["리더십","직진형","단호한"],   을:["섬세함","배려심","감성적"],
-  병:["활발함","솔직함","열정적"],   정:["따뜻함","헌신적","로맨틱"],
-  무:["신중함","믿음직한","책임감"], 기:["살뜰함","현실적","다정함"],
-  경:["강직함","원칙주의","냉철한"], 신:["섬세함","완벽주의","예민한"],
-  임:["자유로움","유연함","탐구적"], 계:["내면적","직관적","감수성"],
+  갑:["리더십","직진형","단호한","성장형"],   을:["섬세함","배려심","감성적","유연함"],
+  병:["활발함","솔직함","열정적","화끈함"],   정:["따뜻함","헌신적","로맨틱","섬세함"],
+  무:["신중함","믿음직한","책임감","안정적"], 기:["살뜰함","현실적","다정함","살갑함"],
+  경:["강직함","원칙주의","냉철한","냉정함"], 신:["섬세함","완벽주의","예민한","깔끔함"],
+  임:["자유로움","유연함","탐구적","흐르는"],  계:["내면적","직관적","감수성","신비로움"],
 };
 const IDEAL_SPOTS = {
-  갑:"활동적인 아웃도어",     을:"조용한 카페나 플로리스트",
-  병:"루프탑 바나 야경 명소", 정:"감성 레스토랑이나 캔들 무드",
-  무:"자연 속 캠핑",           기:"맛집 탐방이나 재래시장",
-  경:"스포츠 활동이나 경쟁적 게임", 신:"아트 갤러리나 독립 서점",
-  임:"여행이나 드라이브",     계:"집에서 영화감상 or 인디 공연",
+  갑:"자연 속 트레킹이나 아웃도어 활동",
+  을:"조용한 카페나 꽃집, 소규모 공방",
+  병:"루프탑 바나 야경 명소, 활기찬 파티",
+  정:"감성 레스토랑이나 캔들 무드 카페",
+  무:"자연 속 캠핑, 시골 드라이브",
+  기:"맛집 탐방이나 재래시장, 집밥",
+  경:"스포츠 활동이나 경쟁적 보드게임",
+  신:"아트 갤러리나 독립 서점, 와인바",
+  임:"여행이나 드라이브, 새벽 바다",
+  계:"집에서 영화감상, 인디 공연, 조용한 술자리",
 };
 const DM_EMOJI = {
   갑:"🌲", 을:"🌸", 병:"☀️", 정:"🕯️", 무:"⛰️",
@@ -44,6 +49,50 @@ const DM_EMOJI = {
 const SCEN_EMOJIS = { 목:"🌿✨", 화:"🔥💫", 토:"🌙🍂", 금:"⚔️💎", 수:"🌊🌌" };
 const FAV_TASTE   = { 목:"신맛", 화:"쓴맛", 토:"단맛", 금:"매운맛", 수:"짠맛" };
 const DOHWA_ZHI   = new Set(["子","午","卯","酉"]);
+
+/* ── 십신(十神) 계산 ── */
+const GAN_YANG = new Set(['甲','丙','戊','庚','壬']); // 양간
+// 상생: 내가 생하는 오행
+const EL_GENERATES = { 목:'화', 화:'토', 토:'금', 금:'수', 수:'목' };
+// 상극: 내가 극하는 오행
+const EL_CONTROLS  = { 목:'토', 화:'금', 토:'수', 금:'목', 수:'화' };
+
+function getSipsin(dayGan, targetGan) {
+  const dayEl  = GAN_ELEMENT[dayGan];
+  const tarEl  = GAN_ELEMENT[targetGan];
+  if (!dayEl || !tarEl) return '비견';
+  const daYin = !GAN_YANG.has(dayGan);
+  const taYin = !GAN_YANG.has(targetGan);
+  const same  = daYin === taYin;
+  if (dayEl === tarEl) return same ? '비견' : '겁재';
+  if (EL_GENERATES[dayEl] === tarEl) return same ? '식신' : '상관';
+  if (EL_CONTROLS[dayEl]  === tarEl) return same ? '편재' : '정재';
+  if (EL_CONTROLS[tarEl]  === dayEl) return same ? '편관' : '정관';
+  return same ? '편인' : '정인';
+}
+
+/* 일간 기준 주요 십신 타입 (천간 4개 기준) */
+function getMainSipsin(dayGan, allGans) {
+  const counts = {};
+  allGans.filter(g => g !== dayGan).forEach(g => {
+    const ss = getSipsin(dayGan, g);
+    counts[ss] = (counts[ss] || 0) + 1;
+  });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || '비견';
+}
+
+const SIPSIN_TRAITS = {
+  비견: ["독립적","자존심 강함","경쟁심"],
+  겁재: ["기복 있음","카리스마","승부욕"],
+  식신: ["재치 있음","말이 많음","유머러스"],
+  상관: ["표현력 강함","창의적","반골기질"],
+  편재: ["활동적","화끈함","재물감각"],
+  정재: ["현실적","성실함","안정추구"],
+  편관: ["강압적","카리스마","츤데레"],
+  정관: ["원칙주의","신뢰","예의바름"],
+  편인: ["독특함","직감적","내면적"],
+  정인: ["배려깊음","사색적","엄마같은 면모"],
+};
 
 // lunar-javascript – CommonJS 모듈이므로 require 사용
 let _Solar = null;
@@ -129,6 +178,17 @@ export async function POST(request) {
 
     const initialAffinity = 10 + Math.round((fiveElements[yongshin] || 0) / 5);
 
+    // 십신 계산
+    const mainSipsin = getMainSipsin(dg, [yg, mg, tg]);
+    const sipsinTraits = SIPSIN_TRAITS[mainSipsin] || [];
+
+    // 사주 성격 요약 (system prompt 주입용)
+    const sajuPersonaSummary = `${name}은(는) ${GAN_NAMES[dayMasterGanKr]}을 일간으로 가진 사람으로, ` +
+      `오행 성향은 ${dayMasterElement} 기운이 강하다. ` +
+      `주요 십신은 ${mainSipsin}으로, ${(sipsinTraits).join(', ')} 특성을 보인다. ` +
+      `용신은 ${yongshin}이고, 이상형 데이트 장소는 ${IDEAL_SPOTS[dayMasterGanKr] || '분위기 좋은 카페'}를 선호한다. ` +
+      `MBTI는 ${mbti}형에 가깝다.`;
+
     return NextResponse.json({
       pillars: {
         year:  { gan:yg, zhi:yz, ganKr:GAN_KR[yg]||yg,  zhiKr:ZHI_KR[yz]||yz,  text:yg+yz  },
@@ -147,6 +207,9 @@ export async function POST(request) {
       coreTraits,
       yongshin,
       initialAffinity,
+      mainSipsin,
+      sipsinTraits,
+      sajuPersonaSummary,
       specialStars:     dohwa ? ["도화살"] : [],
       idealDateSpot:    IDEAL_SPOTS[dayMasterGanKr] || "분위기 좋은 카페",
       favTaste:         FAV_TASTE[dayMasterElement] || "단맛",

@@ -355,6 +355,39 @@ body {
   border-radius: 2px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
 }
 
+/* ── 사주 에너지 & 상태 표시줄 ── */
+.cd-status-bar {
+  padding: 7px 18px 9px;
+  background: rgba(7,7,26,0.88); backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+}
+.cd-status-item {
+  flex: 1; display: flex; flex-direction: column; gap: 2px;
+}
+.cd-status-label {
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;
+  display: flex; justify-content: space-between;
+}
+.cd-status-track { height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+.cd-status-fill { height: 100%; border-radius: 2px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+.cd-aff-stage {
+  font-size: 10px; color: var(--rose); text-align: right;
+  letter-spacing: 0.05em;
+}
+
+/* ── 지문(내레이션) 박스 ── */
+.cd-narrative {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; color: rgba(200,190,220,0.75);
+  line-height: 1.9; margin-bottom: 12px; font-style: italic;
+  padding: 10px 14px;
+  background: rgba(100,60,120,0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(200,169,110,0.08);
+}
+
+
 .cd-messages {
   flex: 1; overflow-y: auto; padding: 20px 18px;
   display: flex; flex-direction: column; gap: 16px;
@@ -654,7 +687,10 @@ function apiDataToPersona(data) {
     greeting:      data.greeting,
     scenarioEmoji: data.scenarioEmoji,
     dmEmoji:       data.dmEmoji,
-    pillars:       data.pillars,   // 사주 팔자 원문 저장
+    pillars:       data.pillars,
+    mainSipsin:    data.mainSipsin,
+    sipsinTraits:  data.sipsinTraits,
+    sajuPersonaSummary: data.sajuPersonaSummary,
     id: `npc_${Date.now()}`,
   };
 }
@@ -785,6 +821,72 @@ const NPC_RESPONSES = {
   },
 };
 
+/* ═══════════════════════════════════════════════
+   ── 십신별 특수 이벤트 반응 ──
+═══════════════════════════════════════════════ */
+
+const SIPSIN_JEALOUSY = {
+  편관: (name) => `"잠깐만— (상대방을 데리고 자리를 피하며) 이 사람 나랑 같이 온 거야. 다음에는 그냥 지나쳐줘."`,
+  정관: (name) => `"(당황한 기색을 숨기며, 예의바르게) 죄송하지만 지금 데이트 중입니다. 양해해 주시겠어요?"`,
+  식신: (name) => `"오~ 번호를요? (웃으며 ${name}을 바라보며) 미안한데, 이 사람이 내 사람이라서요~ 하하."`,
+  상관: (name) => `"(직접적으로) 우리 데이트 중이에요. 그냥 가주시면 좋겠는데요?"`,
+  정인: (name) => `"(속으로는 질투가 끓어오르지만 표정을 관리하며) 괜찮아, 그럴 수도 있지. 근데…나는 좀 속상해."`,
+  편인: (name) => `"(말없이 ${name}의 팔을 살짝 잡으며) …가자."`,
+  비견: (name) => `"(눈빛이 날카로워지며) 뭐야, 내 앞에서 번호를 물어봐? 솔직히 좀 기분 나쁜데."`,
+  겁재: (name) => `"(자존심이 상했지만 쿨한 척하며) 아, 뭐 번호는 줄 수 있지. 근데 ${name}이 원하면 얘기 달라."`,
+  편재: (name) => `"어— (쾌활하게 웃으며) 내가 먼저 찜한 거야. 타이밍 아쉽네요~ 다음에."`,
+  정재: (name) => `"(조금 긴장하며) 지금 함께 있는 분인데요. (${name}에게 귓속말로) 어떡하지?"`,
+};
+
+const SIPSIN_BILL_REACTION = {
+  편재: (name) => `"(먼저 카드를 꺼내며) 이거 내가 낼게. 이런 거 내는 게 좋아."`,
+  정재: (name) => `"(영수증을 꼼꼼히 보며) 우리 반반으로 하자. 아니면 내가 낼까? 아직 어색하잖아."`,
+  비견: (name) => `"(자존심을 걸며) 아니, 내가 낼게. 다음에 ${name}이 내."`,
+  겁재: (name) => `"내가 낸다고. 이런 거 지면 안 되지— 농담이야. 그냥 내고 싶어서."`,
+  식신: (name) => `"(웃으며 배를 잡으며) 나 이거 진짜 맛있었어. 내가 부를게~ 다음엔 ${name}이 내는 거로."`,
+  상관: (name) => `"(카드를 꺼내면서) 내가 낼게. 이런 거 따지는 거 좀 별로야, 솔직히."`,
+  정관: (name) => `"(조용히 카드를 낸다) 오늘은 내가 낼게. 다음엔 ${name}이 준비해줘."`,
+  편관: (name) => `"(단호하게) 내가 낸다. 끝."`,
+  정인: (name) => `"(${name}이 카드를 꺼내기 전에 먼저 결제하며) 괜찮아, 내가 낼게. 오늘 즐거웠어."`,
+  편인: (name) => `"(조용히 카드를 내밀며) …그냥 내가 낼게. 어색하게 따지지 말자."`,
+};
+
+const SIPSIN_DRUNK_REVEAL = {
+  갑: (name) => `"…나 사실 처음부터 ${name}이 좋았어. 직진이 내 스타일이라서— 오늘 말하려고 했어, 진짜로."`,
+  을: (name) => `"(호기심 가득한 눈빛으로) 나 ${name}한테 사실 많이 의지하고 싶었어. 혼자 다 하는 척하는데 피곤하거든."`,
+  병: (name) => `"야 진짜야— (신나서) 나 오늘 진짜 즐거웠어. 너랑 있으면 세상이 더 예쁘잖아, 진짜로!"`,
+  정: (name) => `"(눈이 촉촉해지면서) 있잖아, 나… ${name}이 소중해. 잃고 싶지 않아. 그게 다야."`,
+  무: (name) => `"(무거운 말을 꺼내며) 나 쉽게 사람 안 믿는데, 너는 달라. 시간이 지날수록 더."`,
+  기: (name) => `"(뭔가 고백하려다 웃으며) 야, 나 사실 ${name}이 옆에 있으면 편해. 그게 제일 무서운 거야."`,
+  경: (name) => `"(평소보다 솔직해지며) 나 원래 이런 말 못 하는데— 좋아해. 짧게 말하는 편이라서."`,
+  신: (name) => `"(살짝 눈물이 맺히며) 사실 나 외로웠어. ${name} 알아줬으면 했는데— 이제 말했으니까 됐어."`,
+  임: (name) => `"(바람처럼 흘려보내던 말들이 쏟아지며) 나 사실 ${name}이랑 계속 있고 싶어. 흘러가기 싫다, 오늘만큼은."`,
+  계: (name) => `"(작은 목소리로) …나 사실 ${name}이 많이 마음에 걸려. 아무한테도 이런 말 못 했는데."`,
+};
+
+function getSipsinJealousy(persona) {
+  const fn = SIPSIN_JEALOUSY[persona.mainSipsin] || SIPSIN_JEALOUSY['정관'];
+  return fn(persona.name);
+}
+function getSipsinBillReaction(persona) {
+  const fn = SIPSIN_BILL_REACTION[persona.mainSipsin] || SIPSIN_BILL_REACTION['정관'];
+  return fn(persona.name);
+}
+function getSipsinDrunkReveal(persona) {
+  const fn = SIPSIN_DRUNK_REVEAL[persona.dayMasterKan] || SIPSIN_DRUNK_REVEAL['갑'];
+  return fn('당신');
+}
+
+/* 호감도 단계 레이블 */
+function affinityLabel(val) {
+  if (val < 15)  return '낯선 사이';
+  if (val < 30)  return '조심스러운 호기심';
+  if (val < 50)  return '설레는 만남';
+  if (val < 70)  return '서로를 알아가는 중';
+  if (val < 85)  return '특별한 인연';
+  return '운명의 상대';
+}
+
 function getNPCResponse(stem, mood, affinityChange) {
   const stemSafe = Object.keys(NPC_RESPONSES).includes(stem) ? stem : '갑';
   const moodSafe = Object.keys(NPC_RESPONSES[stemSafe]).includes(mood) ? mood : '냉담함';
@@ -886,9 +988,107 @@ const SCENARIO_DB = [
       { id:'c3', text:'(폰 보며) 오늘 날씨 진짜 좋았네. 내일은 비 온대.', element:'금', risk:'HIGH', reaction: (name) => `"…그래. (말 없이 다시 걷기 시작)"`, score:-4 },
     ],
   },
+  /* ── 신규: 갑작스러운 비 ── */
+  {
+    backgroundEmoji: '🌧️☂️',
+    type: '갑작스러운 비',
+    narrative: '갑자기 굵은 빗방울이 쏟아지기 시작했다. 우산이 하나뿐이다. 당신과 그 사람 사이의 거리가 어색하게 좁혀진다.',
+    situationDescription: '예고 없이 쏟아지는 빗속, 작은 우산 하나. 어깨가 맞닿을 것 같은 거리에 두 사람이 선다.',
+    npcDialogue: (name) => `"어… 우산이 하나밖에 없네. (잠시 망설이다 우산을 ${name} 쪽으로 더 기울이며) 이쪽이 더 맞아?"`,
+    choices: [
+      { id:'c1', text:'(살짝 어깨를 붙이며) 같이 쓰면 되잖아. 이 정도면 충분해.', element:'수', risk:'LOW', reaction: (name) => `"…(말없이 우산을 더 기울이며) 그래, 충분해. 오히려 좋다."`, score:+10 },
+      { id:'c2', text:'나는 좀 젖어도 돼. 네가 더 써.', element:'목', risk:'LOW', reaction: (name) => `"그런 말 왜 해. (단호하게 같이 들어오라는 듯 당기며) 같이 써."`, score:+8 },
+      { id:'c3', text:'(떨어져 서며) 어, 나 이쪽이 더 편해. 조금만 걸어가면 카페 있잖아.', element:'금', risk:'HIGH', reaction: (name) => `"…그래, 카페 가자. (조금 멀어진 거리를 느끼며)"`, score:-2 },
+      { id:'c4', text:'(우산을 통째로 내어주며) 네가 써. 나는 비 맞는 거 좋아해서.', element:'화', risk:'MEDIUM', reaction: (name) => `"바보야. (황당하다가 결국 웃으며 같이 들어와서) 같이 쓰자, 진짜."`, score:+6 },
+    ],
+  },
+  /* ── 신규: 영화관 취향 갈등 ── */
+  {
+    backgroundEmoji: '🎬🍿',
+    type: '영화관 취향 배틀',
+    narrative: '팝콘 냄새가 가득한 영화관 로비. 두 사람이 다른 영화를 가리키고 있다. 어떤 선택을 해야 할까.',
+    situationDescription: '당신은 지금 팝콘 냄새가 가득한 영화관 로비에 서 있습니다. 상대방이 당신을 빤히 바라보며 말합니다.',
+    npcDialogue: (name) => `"나는 이 공포영화 보고 싶은데, ${name}은 좀 다른 거 보고 싶어했지? 어떡하지?"`,
+    choices: [
+      { id:'c1', text:'네가 보고 싶은 거 봐. 나는 옆에 있을게.', element:'토', risk:'LOW', reaction: (name) => `"진짜? …(살짝 놀라며) 그럼 내가 오히려 미안하잖아. 고마워, 그냥 나 무서우면 잡아."`, score:+9 },
+      { id:'c2', text:'(다른 걸 추천하며) 이건 어때? 둘 다 볼 거 같아서.', element:'목', risk:'LOW', reaction: (name) => `"오, 이거— 사실 나도 궁금했는데. ${name} 눈치 빠르다."`, score:+7 },
+      { id:'c3', text:'나는 내가 보고 싶은 거 볼게. 우린 따로 봐도 되잖아.', element:'금', risk:'HIGH', reaction: (name) => `"…그래도 되는데, 같이 보고 싶었는데. (실망한 기색)"`, score:-4 },
+      { id:'c4', text:'공포 영화 나도 좋아. 무서울 때 잡아줘.', element:'화', risk:'MEDIUM', reaction: (name) => `"ㅋㅋㅋ 그런 속셈이야? (웃으며) 좋아, 나도 잡아줄게."`, score:+8 },
+    ],
+  },
+  /* ── 신규: 깜짝 기념일 선물 ── */
+  {
+    backgroundEmoji: '🎁🌹',
+    type: '기념일 깜짝 이벤트',
+    narrative: '갑자기 작은 리본이 달린 선물 박스가 당신 앞에 놓인다. 상대방이 수줍게 웃으며 말한다.',
+    situationDescription: '기대하지 않았던 순간, 상대방이 작은 선물 박스를 내밀며 조심스럽게 웃는다. 당신의 반응이 오늘의 분위기를 가를 것이다.',
+    npcDialogue: (name) => `"사실 오늘… (선물을 내밀며) 준비했어. 별거 아닌데 ${name}한테 주고 싶었어."`,
+    choices: [
+      { id:'c1', text:'(천천히 열어보며) 어떻게 알았어? 내가 좋아하는 거잖아.', element:'수', risk:'LOW', reaction: (name) => `"(환하게 웃으며) 기억해뒀어. ${name} 말 다 듣거든."`, score:+12 },
+      { id:'c2', text:'나도 뭔가 주고 싶었는데, 이렇게 먼저 줘버리면 어떡해.', element:'목', risk:'LOW', reaction: (name) => `"다음엔 ${name}이 줘. 그걸로 충분해."`, score:+9 },
+      { id:'c3', text:'(선물을 받으며) 어, 고마워. (바로 가방에 넣으려 하며)', element:'금', risk:'HIGH', reaction: (name) => `"…지금 열어봐도 되는데. (살짝 서운한 표정)"`, score:-3 },
+      { id:'c4', text:'(포장 보며 장난치듯) 폭탄 아니지? 열어봐도 돼?', element:'화', risk:'MEDIUM', reaction: (name) => `"ㅋㅋ 터진다, 진짜로. 빨리 열어봐."`, score:+6 },
+    ],
+  },
+  /* ── 신규: 계산서 배틀 ── */
+  {
+    backgroundEmoji: '💳🍽️',
+    type: '계산서 배틀',
+    narrative: '맛있는 저녁 식사가 끝났다. 직원이 계산서를 테이블에 놓는 순간, 두 사람의 손이 동시에 움직인다.',
+    situationDescription: '맛있는 식사가 끝나고 계산서가 테이블 위에 놓였다. 상대방이 카드를 꺼내려 한다.',
+    npcDialogue: (name) => `"(카드를 꺼내며) 오늘은 내가 낼게. ${name}이 골라준 식당이니까."`,
+    choices: [
+      { id:'c1', text:'(상대방 카드를 살짝 막으며) 이번엔 내가 낼게. 다음에 네가 내.'  , element:'화', risk:'LOW', reaction: (name) => `"(잠시 눈싸움하다 웃으며) …그래, 다음엔 내가 낸다. 꼭."`, score:+9 },
+      { id:'c2', text:'반반으로 하자. 그게 제일 편하잖아.'                               , element:'금', risk:'MEDIUM', reaction: (name) => `"현실적이다 ㅋㅋ. 뭐, 그러자. 근데 다음엔 내가 낼게."`, score:+3 },
+      { id:'c3', text:'(엉거주춤하며) 어… 어떻게 하지. (망설이다 결국 상대방이 내도록)', element:'토', risk:'HIGH', reaction: (name) => `"(계산하면서) 괜찮아, 근데 다음엔 ${name}이 내줘."`, score:+1 },
+      { id:'c4', text:'(먼저 자리에서 일어나 계산대로 가며) 먼저 계산할게!'              , element:'목', risk:'LOW', reaction: (name) => `"어! 야— (쫓아오며) 진짜 빠르다. 고마워, 다음엔 꼭."`, score:+8 },
+    ],
+  },
+  /* ── 신규: 길거리 방해꾼 ── */
+  {
+    backgroundEmoji: '🚶‍♂️💔',
+    type: '방해자의 등장',
+    narrative: '데이트 도중 갑자기 낯선 사람이 다가와 번호를 물어본다. 당신과 상대방, 그리고 낯선 이 사이에 어색한 공기가 흐른다.',
+    situationDescription: '모든 것이 완벽한 데이트 중, 갑자기 낯선 사람이 다가와 상대방에게 번호를 요청한다. 상대방은 당신의 눈치를 본다.',
+    npcDialogue: (name) => `"(당황한 눈빛으로 ${name}을 바라보며) 어떡하지…?"`,
+    choices: [
+      { id:'c1', text:'(자연스럽게 상대방 곁에 서며) 죄송한데, 우리 데이트 중이에요.', element:'금', risk:'LOW', reaction: (name, p) => `"(낯선 사람이 떠난 뒤, 소리 없이 웃으며) 고마워. 그 말 해줄 것 같았어— ${name} 믿을 만해."`, score:+11 },
+      { id:'c2', text:'(상대방에게 소곤소곤) 네가 알아서 해도 돼. 나 괜찮아.', element:'수', risk:'MEDIUM', reaction: (name) => `"…괜찮은 거야? 솔직히 조금은 아쉬웠는데. (작게 웃으며) 그냥 봐주는 건가."`, score:-1 },
+      { id:'c3', text:'(시선을 피하며 폰만 본다)', element:'토', risk:'HIGH', reaction: (name) => `"(혼자 상황을 정리하고 나서) 어, 뭐야 갑자기. …불편했어?"`, score:-5 },
+      { id:'c4', text:'(손을 살짝 잡으며) 우리 가자.', element:'화', risk:'LOW', reaction: (name) => `"(잠깐 굳다가 미소 지으며) …그래. 어디 가?"`, score:+12 },
+    ],
+  },
+  /* ── 신규: 과거의 그림자 (전 애인 조우) ── */
+  {
+    backgroundEmoji: '😬👤',
+    type: '과거의 그림자',
+    narrative: '데이트 중 상대방이 갑자기 발걸음을 멈췄다. 저 멀리서 누군가와 눈이 마주쳤다. 그 사람의 표정이 복잡하게 흔들린다.',
+    situationDescription: '당신과의 산책 도중, 상대방이 갑자기 굳는다. 시선을 따라가 보니 낯선 사람—아마도 전 연인인 것 같다.',
+    npcDialogue: (name) => `"(작은 목소리로) 어…저기 잠깐. 미안, ${name} 잠깐 기다려줄 수 있어?"`,
+    choices: [
+      { id:'c1', text:'(부드럽게) 괜찮아. 나 여기 있을게.', element:'토', risk:'LOW', reaction: (name) => `"(잠깐 대화 후 돌아오며) 고마워. 기다려줘서. 뭔가 ${name}이 있어서 더 편하게 말할 수 있었어."`, score:+8 },
+      { id:'c2', text:'(아무 말 없이 자연스럽게 옆에 서 있는다)', element:'수', risk:'LOW', reaction: (name) => `"(짧게 눈을 맞추며) 아무것도 묻지 않아줘서 고마워. 이야기하고 싶을 때 할게."`, score:+9 },
+      { id:'c3', text:'(시큰둥하게) 오래 걸려? 나 잠깐 저기 카페 가 있을게.', element:'금', risk:'HIGH', reaction: (name) => `"아… 알겠어. (혼자 상황을 정리하며 씁쓸해지는 표정)"`, score:-4 },
+      { id:'c4', text:'괜찮아? 얼굴이 좀 굳었는데. 걱정되네.', element:'목', risk:'LOW', reaction: (name) => `"(고마운 듯 작게 웃으며) 응, 괜찮아. 그냥 잠깐 이상했어. ${name} 덕분에 괜찮아졌어."`, score:+7 },
+    ],
+  },
+  /* ── 신규: 취중 진담 ── */
+  {
+    backgroundEmoji: '🍶🌙',
+    type: '취중 진담',
+    narrative: '데이트의 마지막 코스인 조용한 술자리. 분위기가 무르익었고, 상대방의 눈이 평소보다 조금 촉촉해 보인다.',
+    situationDescription: '날이 저물고 조명이 낮아진 조용한 술집. 분위기가 무르익을수록 상대방의 말이 조금씩 솔직해지기 시작한다.',
+    npcDialogue: (name) => `"사실… 나 오늘 ${name}한테 하고 싶은 말 있었어. (술잔을 내려놓으며) 이거 마저 마시면 말할 수 있을 것 같아."`,
+    choices: [
+      { id:'c1', text:'(잔을 살짝 밀어주며) 마셔. 나 들을게.', element:'수', risk:'LOW', reaction: (name, p) => `"…(조금 취한 눈으로 웃으며) 고마워. 있잖아— 솔직히 말하면, 난 ${name}이 특별해."`, score:+11 },
+      { id:'c2', text:'말 안 해도 돼. 그냥 지금 이 순간 좋아.', element:'토', risk:'LOW', reaction: (name) => `"(조용히 고개 끄덕이며) 나도. …이 순간 기억해둘게."`, score:+10 },
+      { id:'c3', text:'(장난처럼) 술김에 하는 말은 안 믿어~ 내일 다시 해.', element:'화', risk:'MEDIUM', reaction: (name) => `"ㅋㅋ 냉정하다. 알겠어, 내일 해줄게— 근데 진심이야."`, score:+5 },
+      { id:'c4', text:'어, 나도 졸린데. 오늘 일찍 마무리하자.', element:'금', risk:'HIGH', reaction: (name) => `"(할 말을 삼키며) …그래, 그러자. (오늘은 조용히 마무리되는 밤)"`, score:-6 },
+    ],
+  },
 ];
 
-// 랜덤 시나리오 (중복 최소화)
+// 랜덤 시나리오 (중복 최소화) 
 function getNextScenario(usedIndices) {
   const available = SCENARIO_DB.map((_, i) => i).filter(i => !usedIndices.includes(i));
   if (available.length === 0) return { scenario: SCENARIO_DB[Math.floor(Math.random() * SCENARIO_DB.length)], idx: 0 };
@@ -1269,9 +1469,20 @@ export default function LoveSimulation() {
     else if (baseScore < 0) newMood = '냉담함';
     setMood(newMood);
 
-    const reaction = typeof choice.reaction === 'function'
-      ? choice.reaction(persona.name)
-      : choice.reaction;
+    // 특수 시나리오 십신 반응 주입
+    let reaction;
+    const scenType = scenario?.type || '';
+    if (scenType === '방해자의 등장' && choice.score > 0) {
+      reaction = getSipsinJealousy(persona);
+    } else if (scenType === '계산서 배틀' && choice.score > 0) {
+      reaction = getSipsinBillReaction(persona);
+    } else if (scenType === '취중 진담' && choice.score > 0) {
+      reaction = getSipsinDrunkReveal(persona);
+    } else {
+      reaction = typeof choice.reaction === 'function'
+        ? choice.reaction(persona.name)
+        : choice.reaction;
+    }
 
     setScenResult({ reaction, baseScore, isHit });
     setScenPhase('result');
@@ -1323,18 +1534,21 @@ export default function LoveSimulation() {
 
             <div className="cd-portal-logo">💕</div>
             <h1 className="cd-portal-title">LOVE CODE</h1>
-            <p className="cd-portal-sub">사주로 읽는 그 사람의 내면 · 데이트 시뮬레이션으로 연애 미리보기</p>
+            <p className="cd-portal-sub">
+              생년월일로 사주를 분석해 그 사람의 본성과 연애 패턴을 읽는다<br/>
+              <span style={{ fontSize:'12px', opacity: 0.7 }}>오행 · 십신 · 캐릭터 AI 기반 연애 시뮬레이션</span>
+            </p>
 
             {/* 탭 */}
             <div className="lc-tabs" style={{ width:'100%', maxWidth:520 }}>
               <button className={`lc-tab${tab==='preset'?' active':''}`} onClick={() => setTab('preset')}>
-                💕 케이스 선택
+                💕 운명 캐릭터
               </button>
               <button className={`lc-tab${tab==='match'?' active':''}`} onClick={() => { setTab('match'); setMatchResults(null); }}>
-                🔮 사주 매칭
+                🔮 나의 운명
               </button>
               <button className={`lc-tab${tab==='custom'?' active':''}`} onClick={() => setTab('custom')}>
-                ✦ 직접 입력
+                ✦ 상대방 분석
               </button>
             </div>
 
@@ -1444,12 +1658,15 @@ export default function LoveSimulation() {
             {/* ── 직접 입력 탭 ── */}
             {tab === 'custom' && (
               <div className="cd-form-card">
+                <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
+                  ✦ 상대방의 생년월일을 입력해 사주 페르소나를 분석합니다 ✦
+                </p>
                 <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
                   <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
-                    💙 남성
+                    💙 남성 분석
                   </button>
                   <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
-                    💕 여성
+                    💕 여성 분석
                   </button>
                 </div>
                 <div className="cd-form-group">
@@ -1487,7 +1704,7 @@ export default function LoveSimulation() {
                 <button className="cd-fate-btn"
                   onClick={submitCustom}
                   disabled={!form.name || !form.year || !form.month || !form.day || loadingPersona}>
-                  {loadingPersona ? '사주 계산 중…' : '✦ 사주 분석 시작 ✦'}
+                  {loadingPersona ? '✦ 사주 분석 중…' : '✦ 사주 페르소나 깨우기 ✦'}
                 </button>
               </div>
             )}
@@ -1499,7 +1716,7 @@ export default function LoveSimulation() {
           <div className="cd-screen" style={{ paddingTop: 40, paddingBottom: 40 }}>
             <div className="cd-awakening">
               <p style={{ fontSize:11, color:'var(--gold)', letterSpacing:'0.25em', textAlign:'center', marginBottom:24 }}>
-                {persona.gender === '여' ? '✦ HEROINE AWAKENED ✦' : '✦ CHARACTER AWAKENED ✦'}
+                {persona.gender === '여' ? '✦ 사주 페르소나 분석 완료 ✦' : '✦ 사주 캐릭터 깨어남 ✦'}
               </p>
 
               <div className="cd-avatar-wrap">
@@ -1507,12 +1724,20 @@ export default function LoveSimulation() {
                 <div className="cd-avatar-ring" />
                 <div className="cd-avatar-ring2" />
                 {persona.specialStars?.length > 0 && (
-                  <div className="cd-score-badge">도화</div>
+                  <div className="cd-score-badge">도화살</div>
                 )}
               </div>
 
               <h2 className="cd-char-name">{persona.name}</h2>
               <p className="cd-char-sub">{persona.dayMaster} · {persona.mbti}</p>
+              {persona.mainSipsin && (
+                <p style={{ textAlign:'center', fontSize:12, color:'var(--gold)', marginBottom:12, letterSpacing:'0.1em' }}>
+                  주성(主星): <span style={{ color:'var(--rose)' }}>{persona.mainSipsin}</span>
+                  {persona.sipsinTraits?.length > 0 && (
+                    <span style={{ color:'var(--text-dim)' }}> · {persona.sipsinTraits.join(' · ')}</span>
+                  )}
+                </p>
+              )}
 
               <div className="cd-traits">
                 {(persona.coreTraits || []).map((t, i) => (
@@ -1560,14 +1785,14 @@ export default function LoveSimulation() {
                 <p className="cd-synastry-label">✦ 첫 만남 호감도 ✦</p>
                 <p className="cd-synastry-score">{persona.initialAffinity ?? 10}%</p>
                 <p className="cd-synastry-detail">
-                  용신({persona.yongshin}) · 이상형 장소: {persona.tastes?.idealDateSpot}
+                  용신({persona.yongshin}) 에너지 · 이상형: {persona.tastes?.idealDateSpot}
                   {persona.tastes?.favTaste && ` · ${persona.tastes.favTaste} 선호`}
                 </p>
               </div>
 
               {/* 오행 분포 미리보기 */}
               <div className="cd-stats-card" style={{ marginBottom: 20 }}>
-                <p className="cd-stats-title">오행 분포</p>
+                <p className="cd-stats-title">오행 에너지 분포</p>
                 {Object.entries(persona.fiveElements || {}).map(([el, val]) => (
                   <div key={el} className="cd-stat-row">
                     <span className="cd-stat-label">{el}</span>
@@ -1582,9 +1807,15 @@ export default function LoveSimulation() {
                 ))}
               </div>
 
+              {/* 사주 페르소나 요약 */}
+              {persona.sajuPersonaSummary && (
+                <div className="cd-narrative" style={{ width:'100%', maxWidth:480, marginBottom:18 }}>
+                  ✦ {persona.sajuPersonaSummary}
+                </div>
+              )}
+
               <button className="cd-start-btn" onClick={() => {
                 setScreen('chat');
-                // 중복 방지: greetingShownRef가 false일 때만 인사말 출력
                 setTimeout(() => {
                   if (!greetingShownRef.current) {
                     greetingShownRef.current = true;
@@ -1605,16 +1836,17 @@ export default function LoveSimulation() {
               <div className="cd-hdr-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
               <div className="cd-hdr-info">
                 <p className="cd-hdr-name">{persona.name}</p>
-                <p className="cd-hdr-mood">{MOOD_EMOJI[mood] || ''} {mood} · {persona.dayMaster}</p>
+                <p className="cd-hdr-mood">{MOOD_EMOJI[mood] || ''} {mood} · {persona.dayMaster}{persona.mainSipsin ? ` · ${persona.mainSipsin}형` : ''}</p>
               </div>
               <button className="cd-event-btn" onClick={triggerScenario} disabled={busy}>
                 🎲 데이트 이벤트
               </button>
             </div>
 
+            {/* ── 호감도 바 ── */}
             <div className="cd-affinity-bar">
               <div className="cd-aff-top">
-                <span>호감도</span>
+                <span>💕 호감도</span>
                 <span className="cd-aff-num" style={{
                   transition:'color 0.3s',
                   color: affinityAnim ? 'var(--gold-bright)' : 'var(--gold)',
@@ -1624,6 +1856,35 @@ export default function LoveSimulation() {
               </div>
               <div className="cd-aff-track">
                 <div className="cd-aff-fill" style={{ width:`${affinity}%` }} />
+              </div>
+              <div className="cd-aff-stage">{affinityLabel(affinity)}</div>
+            </div>
+
+            {/* ── 사주 에너지 상태 바 ── */}
+            <div className="cd-status-bar">
+              <div className="cd-status-item">
+                <div className="cd-status-label">
+                  <span>⚡ 사주 에너지</span>
+                  <span style={{ color:`var(--${EL_CLASS[persona.yongshin] || 'water'}-c)` }}>{persona.yongshin}({persona.fiveElements?.[persona.yongshin] || 0}%)</span>
+                </div>
+                <div className="cd-status-track">
+                  <div className="cd-status-fill" style={{
+                    width:`${persona.fiveElements?.[persona.yongshin] || 0}%`,
+                    background:`var(--${EL_CLASS[persona.yongshin] || 'water'}-c)`,
+                  }} />
+                </div>
+              </div>
+              <div className="cd-status-item">
+                <div className="cd-status-label">
+                  <span>🌙 기분 게이지</span>
+                  <span>{MOOD_EMOJI[mood] || ''} {mood}</span>
+                </div>
+                <div className="cd-status-track">
+                  <div className="cd-status-fill" style={{
+                    width: mood==='기쁨'?'90%': mood==='설렘'?'70%': mood==='슬픔'?'40%': mood==='화남'?'20%': '50%',
+                    background: mood==='기쁨'?'#5BA87A': mood==='설렘'?'#f9a8d4': mood==='화남'?'#C84B2A': mood==='슬픔'?'#8CA0B8': 'rgba(255,255,255,0.3)',
+                  }} />
+                </div>
               </div>
             </div>
 
@@ -1688,6 +1949,10 @@ export default function LoveSimulation() {
                 {scenPhase === 'event' && (
                   <>
                     <p className="cd-scene-type">✦ {scenario.type} ✦</p>
+                    {/* 웹소설 지문 (narrative) */}
+                    {scenario.narrative && (
+                      <p className="cd-narrative">{scenario.narrative}</p>
+                    )}
                     <p className="cd-scene-desc">{scenario.situationDescription}</p>
                     <div className="cd-scene-dialogue">
                       <span className="cd-scene-who">{persona.name} ·</span>

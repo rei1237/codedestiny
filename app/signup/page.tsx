@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { showToast } from "../components/Toast";
 
 declare global {
@@ -86,13 +86,15 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState<SignupFormState>(INITIAL_FORM);
-  const [loading, setLoading] = useState(false);
+  // loading=true 초기값: SSR과 클라이언트 초기 렌더 모두 스피너를 표시해 hydration mismatch + form flash 방지
+  const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
   const authCheckOnceRef = useRef(false);
+  const submitAbortRef = useRef<AbortController | null>(null);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
@@ -164,36 +166,34 @@ export default function SignupPage() {
       <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
     ) : null;
 
-  // 1단계: 첫 페인트 전 즉시 오버레이 상태 설정 — form flash 방지
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return;
+  // 마운트 직후 인증 상태 판별
+  useEffect(() => {
+    if (authCheckOnceRef.current) return;
+    authCheckOnceRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant")) {
-      setLoading(true);
+    const hasSocialGrant = !!params.get("social_grant");
+    const hasSocialError = !!params.get("social_error");
+
+    if (hasSocialGrant) return;
+
+    if (hasSocialError) {
+      setLoading(false);
       return;
     }
-    if (!params.get("social_error")) {
-      const token = localStorage.getItem("fortune_auth_token");
-      if (token) setIsRedirecting(true);
-    }
-  }, []);
 
-  // 2단계: 이미 로그인된 사용자 → 홈으로 리다이렉트 (정리 함수로 타이머 누수 방지)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (authCheckOnceRef.current) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant")) return;
     const token = localStorage.getItem("fortune_auth_token");
-    if (!token) return;
-    authCheckOnceRef.current = true;
-    const timer = setTimeout(() => router.replace("/"), 400);
-    return () => clearTimeout(timer);
+    if (token) {
+      setIsRedirecting(true);
+      const timer = setTimeout(() => router.replace("/"), 400);
+      return () => clearTimeout(timer);
+    }
+
+    setLoading(false);
   }, [router]);
 
-  // 3단계: 소셜 OAuth 그랜트 처리 (AbortController로 언마운트 안전 처리)
+  // 소셜 OAuth 그랜트 처리
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (socialCompleteOnceRef.current) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -203,25 +203,25 @@ export default function SignupPage() {
     if (!socialGrant && !socialError) return;
 
     if (socialError) {
-      socialCompleteOnceRef.current = true;
-      setLoading(false);
-      setError("소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      if (!socialCompleteOnceRef.current) {
+        socialCompleteOnceRef.current = true;
+        setLoading(false);
+        setError("소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      }
       return;
     }
 
     if (!socialGrant) return;
 
     socialCompleteOnceRef.current = true;
-    setLoading(true);
 
     const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     fetch(socialCompleteEndpoint, {
       method: "POST",
       signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ socialGrant }),
     })
       .then(async (response) => {
@@ -248,14 +248,21 @@ export default function SignupPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
-        if (e?.name === "AbortError") return;
+        if (e?.name === "AbortError") {
+          setError("소셜 회원가입 요청이 시간 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
         setError(e.message || "소셜 회원가입 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
+        clearTimeout(timeoutId);
         setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [router, socialCompleteEndpoint]);
 
   const startSocialSignup = (provider: SocialProvider) => {
@@ -312,9 +319,15 @@ export default function SignupPage() {
 
     setLoading(true);
 
+    if (submitAbortRef.current) submitAbortRef.current.abort();
+    const controller = new AbortController();
+    submitAbortRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
         },
@@ -357,9 +370,16 @@ export default function SignupPage() {
       setIsRedirecting(true);
       setTimeout(() => router.replace("/"), 700);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      const isAbort = e instanceof Error && e.name === "AbortError";
+      if (isAbort) {
+        setError("요청이 시간 초과되었습니다. 네트워크를 확인하고 잠시 후 다시 시도해 주세요.");
+      } else {
+        const msg = e instanceof Error ? e.message : "";
+        setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      }
     } finally {
+      clearTimeout(timeoutId);
+      submitAbortRef.current = null;
       setLoading(false);
     }
   };

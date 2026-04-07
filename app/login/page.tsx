@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { showToast } from "../components/Toast";
 
@@ -77,13 +77,15 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
-  const [loading, setLoading] = useState(false);
+  // loading=true 초기값: SSR과 클라이언트 초기 렌더 모두 스피너를 표시해 hydration mismatch + form flash 방지
+  const [loading, setLoading] = useState(true);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
   const authCheckOnceRef = useRef(false);
+  const submitAbortRef = useRef<AbortController | null>(null);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
@@ -148,37 +150,38 @@ export default function LoginPage() {
     }
   };
 
-  // 1단계: 첫 페인트 전 즉시 오버레이 상태 설정 — form flash 방지
-  useLayoutEffect(() => {
-    if (typeof window === "undefined") return;
+  // 마운트 직후 인증 상태 판별 (loading=true 초기값 → 폼 표시 또는 리다이렉트 결정)
+  useEffect(() => {
+    if (authCheckOnceRef.current) return;
+    authCheckOnceRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant")) {
-      // 소셜 처리 중 — 오버레이 즉시 표시
-      setLoading(true);
+    const hasSocialGrant = !!params.get("social_grant");
+    const hasSocialError = !!params.get("social_error");
+
+    // 소셜 그랜트: 아래 별도 effect가 처리 — loading 유지
+    if (hasSocialGrant) return;
+
+    // 소셜 에러: 폼 표시
+    if (hasSocialError) {
+      setLoading(false);
       return;
     }
-    if (!params.get("social_error")) {
-      const token = localStorage.getItem("fortune_auth_token");
-      if (token) setIsRedirecting(true);
-    }
-  }, []);
 
-  // 2단계: 이미 로그인된 사용자 → 홈으로 리다이렉트 (정리 함수로 타이머 누수 방지)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (authCheckOnceRef.current) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant")) return;
+    // 이미 로그인된 사용자: 홈으로 리다이렉트
     const token = localStorage.getItem("fortune_auth_token");
-    if (!token) return;
-    authCheckOnceRef.current = true;
-    const timer = setTimeout(() => router.replace("/"), 400);
-    return () => clearTimeout(timer);
+    if (token) {
+      setIsRedirecting(true);
+      const timer = setTimeout(() => router.replace("/"), 400);
+      return () => clearTimeout(timer);
+    }
+
+    // 미로그인: 폼 표시
+    setLoading(false);
   }, [router]);
 
-  // 3단계: 소셜 OAuth 그랜트 처리 (AbortController로 언마운트 안전 처리)
+  // 소셜 OAuth 그랜트 처리 (AbortController로 언마운트 안전 처리)
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (socialCompleteOnceRef.current) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -188,25 +191,26 @@ export default function LoginPage() {
     if (!socialGrant && !socialError) return;
 
     if (socialError) {
-      socialCompleteOnceRef.current = true;
-      setLoading(false);
-      setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      if (!socialCompleteOnceRef.current) {
+        socialCompleteOnceRef.current = true;
+        setLoading(false);
+        setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      }
       return;
     }
 
     if (!socialGrant) return;
 
     socialCompleteOnceRef.current = true;
-    setLoading(true);
+    // loading은 이미 true(초기값) → 별도 set 불필요
 
     const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     fetch(socialCompleteEndpoint, {
       method: "POST",
       signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ socialGrant }),
     })
       .then(async (response) => {
@@ -233,14 +237,21 @@ export default function LoginPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
-        if (e?.name === "AbortError") return;
+        if (e?.name === "AbortError") {
+          setError("소셜 로그인 요청이 시간 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
         setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
+        clearTimeout(timeoutId);
         setLoading(false);
       });
 
-    return () => controller.abort();
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [router, socialCompleteEndpoint]);
 
   const startSocialLogin = (provider: SocialProvider) => {
@@ -280,9 +291,16 @@ export default function LoginPage() {
 
     setLoading(true);
 
+    // 기존 진행 중인 요청이 있으면 취소
+    if (submitAbortRef.current) submitAbortRef.current.abort();
+    const controller = new AbortController();
+    submitAbortRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
         },
@@ -324,9 +342,16 @@ export default function LoginPage() {
       setIsRedirecting(true);
       setTimeout(() => router.replace(loginDest), 600);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      const isAbort = e instanceof Error && e.name === "AbortError";
+      if (isAbort) {
+        setError("요청이 시간 초과되었습니다. 네트워크를 확인하고 잠시 후 다시 시도해 주세요.");
+      } else {
+        const msg = e instanceof Error ? e.message : "";
+        setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      }
     } finally {
+      clearTimeout(timeoutId);
+      submitAbortRef.current = null;
       setLoading(false);
     }
   };

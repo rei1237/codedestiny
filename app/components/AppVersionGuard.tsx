@@ -19,9 +19,24 @@ export default function AppVersionGuard() {
 
       if (savedVersion === APP_VERSION) return;
 
+      // 버전 갱신 시 인증 상태는 반드시 보존 — 사용자가 로그아웃되지 않게 함
+      const AUTH_KEYS_TO_PRESERVE = ["fortune_auth_token", "fortune_auth_user"];
+      const preserved: Array<[string, string]> = [];
+      for (const key of AUTH_KEYS_TO_PRESERVE) {
+        try {
+          const val = window.localStorage.getItem(key);
+          if (val) preserved.push([key, val]);
+        } catch {}
+      }
+
       try {
         window.localStorage.clear();
       } catch {}
+
+      // 인증 키 즉시 복원
+      for (const [key, val] of preserved) {
+        try { window.localStorage.setItem(key, val); } catch {}
+      }
 
       try {
         window.sessionStorage.clear();
