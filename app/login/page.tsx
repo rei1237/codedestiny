@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { showToast } from "../components/Toast";
 
@@ -83,6 +83,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
+  const authCheckOnceRef = useRef(false);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
@@ -100,8 +101,8 @@ export default function LoginPage() {
     return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
   }, []);
 
-  const endpoint = `${apiBase}/api/auth/login`;
-  const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
+  const endpoint = useMemo(() => `${apiBase}/api/auth/login`, [apiBase]);
+  const socialCompleteEndpoint = useMemo(() => `${apiBase}/api/auth/oauth/complete`, [apiBase]);
 
   const onChange = <K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -147,18 +148,35 @@ export default function LoginPage() {
     }
   };
 
-  // 이미 로그인된 사용자 → 홈으로 리다이렉트 (로딩 오버레이 표시 후 이동)
-  useEffect(() => {
+  // 1단계: 첫 페인트 전 즉시 오버레이 상태 설정 — form flash 방지
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant")) return; // 소셜 연동 콜백은 제외
-    const token = localStorage.getItem("fortune_auth_token");
-    if (token) {
-      setIsRedirecting(true);
-      setTimeout(() => router.replace("/"), 400);
+    if (params.get("social_grant")) {
+      // 소셜 처리 중 — 오버레이 즉시 표시
+      setLoading(true);
+      return;
     }
+    if (!params.get("social_error")) {
+      const token = localStorage.getItem("fortune_auth_token");
+      if (token) setIsRedirecting(true);
+    }
+  }, []);
+
+  // 2단계: 이미 로그인된 사용자 → 홈으로 리다이렉트 (정리 함수로 타이머 누수 방지)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (authCheckOnceRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("social_grant")) return;
+    const token = localStorage.getItem("fortune_auth_token");
+    if (!token) return;
+    authCheckOnceRef.current = true;
+    const timer = setTimeout(() => router.replace("/"), 400);
+    return () => clearTimeout(timer);
   }, [router]);
 
+  // 3단계: 소셜 OAuth 그랜트 처리 (AbortController로 언마운트 안전 처리)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (socialCompleteOnceRef.current) return;
@@ -167,12 +185,11 @@ export default function LoginPage() {
     const socialGrant = params.get("social_grant");
     const socialError = params.get("social_error");
 
-    if (!socialGrant && !socialError) {
-      return;
-    }
+    if (!socialGrant && !socialError) return;
 
     if (socialError) {
       socialCompleteOnceRef.current = true;
+      setLoading(false);
       setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
@@ -182,8 +199,11 @@ export default function LoginPage() {
     socialCompleteOnceRef.current = true;
     setLoading(true);
 
+    const controller = new AbortController();
+
     fetch(socialCompleteEndpoint, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -213,11 +233,14 @@ export default function LoginPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
+        if (e?.name === "AbortError") return;
         setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
         setLoading(false);
       });
+
+    return () => controller.abort();
   }, [router, socialCompleteEndpoint]);
 
   const startSocialLogin = (provider: SocialProvider) => {
@@ -327,7 +350,7 @@ export default function LoginPage() {
             </div>
             <div className="text-center">
               <p className="text-base font-bold tracking-wide text-white">
-                {isRedirecting ? '별빛 여정으로 이동 중...' : '별빛 로그인 포틸을 열고 있습니다'}
+                {isRedirecting ? '별빛 여정으로 이동 중...' : '별빛 로그인 포털을 열고 있습니다'}
               </p>
               <p className="mt-1 text-sm text-indigo-200/60">잠시만 기다려 주세요...</p>
             </div>
