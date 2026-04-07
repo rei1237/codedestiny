@@ -189,12 +189,8 @@ export default function LoginPage() {
     socialCompleteOnceRef.current = true;
     setLoading(true);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
     fetch(socialCompleteEndpoint, {
       method: "POST",
-      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ socialGrant }),
     })
@@ -222,21 +218,11 @@ export default function LoginPage() {
         router.replace(nextPath);
       })
       .catch((e: Error) => {
-        if (e?.name === "AbortError") {
-          setError("소셜 로그인 요청이 시간 초과되었습니다. 잠시 후 다시 시도해 주세요.");
-          return;
-        }
         setError(e.message || "소셜 로그인 처리 중 오류가 발생했습니다.");
       })
       .finally(() => {
-        clearTimeout(timeoutId);
         setLoading(false);
       });
-
-    return () => {
-      clearTimeout(timeoutId);
-      controller.abort();
-    };
   }, [router, socialCompleteEndpoint]);
 
   const startSocialLogin = (provider: SocialProvider) => {
