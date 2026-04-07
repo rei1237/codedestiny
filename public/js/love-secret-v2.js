@@ -631,6 +631,10 @@
     }
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
     if (!hasData) { alert('사주 계산을 먼저 완료해 주세요.'); return; }
+    // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
+    if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
+      try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
+    }
     _cachedSajuData = _collectSajuData();
     _chapters = Array(11).fill(null);
     _showScreen('lsPartnerScreen');

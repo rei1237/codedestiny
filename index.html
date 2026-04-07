@@ -4073,19 +4073,19 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             </div>
           </div>
           <div class="lb-loading__dots-wrap">
-            <span id="zbChDot0"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot1"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot2"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot3"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot4"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot5"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot6"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot7"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot8"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot9"  class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot10" class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot11" class="lb-ch-dot lb-ch-dot--pending"></span>
-            <span id="zbChDot12" class="lb-ch-dot lb-ch-dot--pending"></span>
+            <span id="zbChDot0"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="1"  title="Ch.1 명궁"></span>
+            <span id="zbChDot1"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="2"  title="Ch.2 신궁"></span>
+            <span id="zbChDot2"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="3"  title="Ch.3 12궁 배치"></span>
+            <span id="zbChDot3"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="4"  title="Ch.4 주성 해독"></span>
+            <span id="zbChDot4"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="5"  title="Ch.5 관록궁"></span>
+            <span id="zbChDot5"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="6"  title="Ch.6 재백궁"></span>
+            <span id="zbChDot6"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="7"  title="Ch.7 부처궁"></span>
+            <span id="zbChDot7"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="8"  title="Ch.8 살성·화기"></span>
+            <span id="zbChDot8"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="9"  title="Ch.9 대한 분석"></span>
+            <span id="zbChDot9"  class="lb-ch-dot lb-ch-dot--pending" data-zbch="10" title="Ch.10 천이궁·복덕궁"></span>
+            <span id="zbChDot10" class="lb-ch-dot lb-ch-dot--pending" data-zbch="11" title="Ch.11 2026 소한"></span>
+            <span id="zbChDot11" class="lb-ch-dot lb-ch-dot--pending" data-zbch="12" title="Ch.12 생애 마스터플랜"></span>
+            <span id="zbChDot12" class="lb-ch-dot lb-ch-dot--pending" data-zbch="13" title="Ch.13 천명 총결산"></span>
           </div>
           <blockquote class="lb-loading__mystic" id="zbMysticQuote">"명궁은 하늘이 이 생에 각인한 첫 번째 별빛이다."</blockquote>
         </div>
@@ -4719,7 +4719,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/love-secret-v2.js?v=20260610-v1" defer></script>
+<script src="/js/love-secret-v2.js?v=20260407-v2" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -5319,6 +5319,11 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       if (!perUseApproved[action]) {
         // .tarot-tile / .prem-card / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('prem-card') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
+          // 관리자 모드: preview 패널 없이 직접 처리
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+            _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+            return;
+          }
           // Preview 인터셉터로 위임 (이벤트 계속 전파)
         } else {
           _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
@@ -5544,8 +5549,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
-<script src="/js/life-book.js?v=20260407-v4" defer></script>
-<script src="/js/ziwei-book.js?v=20260610-v1" defer></script>
+<script src="/js/life-book.js?v=20260407-v5" defer></script>
+<script src="/js/ziwei-book.js?v=20260407-v2" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
@@ -6836,3 +6841,4 @@ if (document.readyState === 'loading') {
     </label>
   </div></body>
 </html>
+

@@ -28,6 +28,7 @@ const __lazyActionLoaders = {
       __loadScriptOnce('/js/animal-totem-experience.js')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-picture')),
+  openDestinyEggPage: () => Promise.resolve(window.location.assign('/destiny-egg')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),

@@ -682,6 +682,10 @@
 
     _generating = true;
     _chapters = Array(13).fill(null);
+    // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
+    if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
+      try { window.computeProfileForModal(profile); } catch (_cpE) {}
+    }
     var sajuData = _collectSajuData();
 
     // 사주 데이터가 최소한으로 채워졌는지 확인
@@ -861,7 +865,7 @@
 
     // PDF용 HTML 생성
     var bodyHtml = '';
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 13; i++) {
       if (!_chapters[i]) continue;
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
