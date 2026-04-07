@@ -52,7 +52,8 @@ function createOfflineFallback(request) {
     );
   }
 
-  return new Response('', { status: 204, statusText: 'offline_empty' });
+  // ★ 204 No Content は body 不可 (Fetch spec) → null body を使用
+  return new Response(null, { status: 204, statusText: 'offline_empty' });
 }
 
 async function safeNetworkFetch(request, options, fallbackStatusText) {
@@ -85,6 +86,12 @@ self.addEventListener('fetch', event => {
     isSameOrigin &&
     (pathname === '/manifest.json' || pathname === '/manifest-samba.json')
   ) {
+    return;
+  }
+
+  // /admin/* — 관리자 패널은 SW 캐싱을 완전히 우회해 항상 서버에서 직접 응답 받음
+  // (SW 인터셉트로 인한 프로미스 reject → 네트워크 에러 방지)
+  if (isSameOrigin && pathname.startsWith('/admin')) {
     return;
   }
 

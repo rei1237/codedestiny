@@ -1,5 +1,5 @@
 ﻿/* ─── 공유하기 함수 ─── */
-var APP_VERSION = '2026-03-23-v2-cachefix1';
+var APP_VERSION = '2026-04-07-v1-swfix';
 var APP_VERSION_KEY = 'app_version';
 
 function runNuclearVersionGuard() {
