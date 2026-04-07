@@ -77,14 +77,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
-  // loading=true 초기값: SSR과 클라이언트 초기 렌더 모두 스피너를 표시해 hydration mismatch + form flash 방지
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
-  const authCheckOnceRef = useRef(false);
   const submitAbortRef = useRef<AbortController | null>(null);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
@@ -150,37 +148,27 @@ export default function LoginPage() {
     }
   };
 
-  // 마운트 직후 인증 상태 판별 (loading=true 초기값 → 폼 표시 또는 리다이렉트 결정)
+  // 마운트 직후: 이미 로그인된 사용자 → 홈으로 리다이렉트
+  // 소셜 그랜트가 있는 URL의 경우는 이 effect에서 처리하지 않음 (socialEffect가 담당)
   useEffect(() => {
-    if (authCheckOnceRef.current) return;
-    authCheckOnceRef.current = true;
-
     const params = new URLSearchParams(window.location.search);
-    const hasSocialGrant = !!params.get("social_grant");
-    const hasSocialError = !!params.get("social_error");
+    if (params.get("social_grant") || params.get("social_error")) return;
 
-    // 소셜 그랜트: 아래 별도 effect가 처리 — loading 유지
-    if (hasSocialGrant) return;
-
-    // 소셜 에러: 폼 표시
-    if (hasSocialError) {
-      setLoading(false);
-      return;
+    let token = "";
+    try {
+      token = localStorage.getItem("fortune_auth_token") || "";
+    } catch {
+      // localStorage 접근 실패 시 무시 (부라우저링 등 예외 케이스)
     }
 
-    // 이미 로그인된 사용자: 홈으로 리다이렉트
-    const token = localStorage.getItem("fortune_auth_token");
-    if (token) {
-      setIsRedirecting(true);
-      const timer = setTimeout(() => router.replace("/"), 400);
-      return () => clearTimeout(timer);
-    }
+    if (!token) return;
 
-    // 미로그인: 폼 표시
-    setLoading(false);
+    setIsRedirecting(true);
+    const timer = setTimeout(() => router.replace("/"), 400);
+    return () => clearTimeout(timer);
   }, [router]);
 
-  // 소셜 OAuth 그랜트 처리 (AbortController로 언마운트 안전 처리)
+  // 소셜 OAuth 그랜트 처리 (네트워크 호출 중복 방지: socialCompleteOnceRef)
   useEffect(() => {
     if (socialCompleteOnceRef.current) return;
 
@@ -191,18 +179,15 @@ export default function LoginPage() {
     if (!socialGrant && !socialError) return;
 
     if (socialError) {
-      if (!socialCompleteOnceRef.current) {
-        socialCompleteOnceRef.current = true;
-        setLoading(false);
-        setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-      }
+      socialCompleteOnceRef.current = true;
+      setError("소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
 
     if (!socialGrant) return;
 
     socialCompleteOnceRef.current = true;
-    // loading은 이미 true(초기값) → 별도 set 불필요
+    setLoading(true);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);

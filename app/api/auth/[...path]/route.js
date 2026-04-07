@@ -366,6 +366,7 @@ async function findOrCreateSocialUser(provider, profile) {
     birthTime: "00:00",
     gender: "OTHER",
     role: "user",
+    points: 50,
     joinedAt: new Date(),
     localAuth: { enabled: false, activatedAt: null },
     socialAccounts: { [provider]: { id: profile.providerId, connectedAt: new Date() } },
@@ -412,6 +413,7 @@ async function handleRegister(request) {
     birthTime: sanitized.birthTime,
     gender: sanitized.gender,
     role: "user",
+    points: 50,
     joinedAt: new Date(),
     localAuth: { enabled: true, activatedAt: new Date() },
   });

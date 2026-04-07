@@ -86,14 +86,12 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export default function SignupPage() {
   const router = useRouter();
   const [form, setForm] = useState<SignupFormState>(INITIAL_FORM);
-  // loading=true 초기값: SSR과 클라이언트 초기 렌더 모두 스피너를 표시해 hydration mismatch + form flash 방지
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
-  const authCheckOnceRef = useRef(false);
   const submitAbortRef = useRef<AbortController | null>(null);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
@@ -166,30 +164,16 @@ export default function SignupPage() {
       <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
     ) : null;
 
-  // 마운트 직후 인증 상태 판별
+  // 마운트 직후 인증 상태 판별 (이미 로그인된 경우 리다이렉트)
   useEffect(() => {
-    if (authCheckOnceRef.current) return;
-    authCheckOnceRef.current = true;
-
     const params = new URLSearchParams(window.location.search);
-    const hasSocialGrant = !!params.get("social_grant");
-    const hasSocialError = !!params.get("social_error");
-
-    if (hasSocialGrant) return;
-
-    if (hasSocialError) {
-      setLoading(false);
-      return;
-    }
-
-    const token = localStorage.getItem("fortune_auth_token");
-    if (token) {
-      setIsRedirecting(true);
-      const timer = setTimeout(() => router.replace("/"), 400);
-      return () => clearTimeout(timer);
-    }
-
-    setLoading(false);
+    if (params.get("social_grant") || params.get("social_error")) return;
+    let token = "";
+    try { token = localStorage.getItem("fortune_auth_token") || ""; } catch {}
+    if (!token) return;
+    setIsRedirecting(true);
+    const timer = setTimeout(() => router.replace("/"), 400);
+    return () => clearTimeout(timer);
   }, [router]);
 
   // 소셜 OAuth 그랜트 처리
@@ -203,17 +187,15 @@ export default function SignupPage() {
     if (!socialGrant && !socialError) return;
 
     if (socialError) {
-      if (!socialCompleteOnceRef.current) {
-        socialCompleteOnceRef.current = true;
-        setLoading(false);
-        setError("소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-      }
+      socialCompleteOnceRef.current = true;
+      setError("소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       return;
     }
 
     if (!socialGrant) return;
 
     socialCompleteOnceRef.current = true;
+    setLoading(true);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
