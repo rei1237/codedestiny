@@ -541,11 +541,14 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 데이터 복원 시도 (에러 메시지만 있는 캐시는 무효 처리)
+    // 저장된 데이터 복원 시도 — 유효 챕터가 10개 이상이고 각 500자 이상이어야 복원
     var saved = _lbLoadSaved(profile);
-    var hasValidCache = saved && saved.chapters && saved.chapters.some(function(c) {
-      return typeof c === 'string' && c.trim().length > 0 && !/^⚠️/.test(c.trim());
-    });
+    var _savedValidCount = saved && saved.chapters
+      ? saved.chapters.filter(function(c) {
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+        }).length
+      : 0;
+    var hasValidCache = _savedValidCount >= 10;
     if (hasValidCache) {
       _chapters = saved.chapters;
       _currentChapter = 1;
@@ -799,11 +802,16 @@
         _mysticTimer = null;
         _generating = false;
 
-        // 전체 실패 체크
-        var allFailed = _chapters.every(function (c) { return !c || /^⚠️/.test(c); });
-        if (allFailed) {
+        // 유효 챕터 수 체크 — 500자 이상, ⚠️ 없는 챕터가 10개 미만이면 실패 처리
+        var _validCount = _chapters.filter(function(c) {
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+        }).length;
+        if (_validCount < 10) {
           var errEl = _qs('lbErrorMsg');
-          if (errEl) errEl.textContent = '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.';
+          if (errEl) errEl.textContent = _validCount === 0
+            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 다시 시도해 주세요.';
+          _lbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('lbErrorScreen');
           return;
         }
@@ -831,11 +839,17 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
 
       _fetchChapter(idx).then(function (data) {
-        if (data && data.ok && data.text) {
+        var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
+        if (data && data.ok && _text.length >= 500) {
           _chapters[idx] = data.text;
         } else {
           _failCount++;
-          var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+          var msg;
+          if (data && data.ok && _text.length > 0 && _text.length < 500) {
+            msg = '챕터 내용이 너무 짧습니다 (' + _text.length + '자). API가 불완전한 응답을 반환했습니다.';
+          } else {
+            msg = (data && data.message) ? data.message : '알 수 없는 오류';
+          }
           console.warn('[인생의 책] Chapter ' + (idx + 1) + ' 실패:', msg);
           _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 해당 챕터를 개별적으로 재시도하거나, 처음부터 다시 생성해 주세요.';
         }
@@ -856,8 +870,11 @@
 
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadLifeBookPdf = function () {
-    if (!_chapters.some(Boolean)) {
-      alert('먼저 인생의 책을 생성해 주세요.');
+    var _validPdfCount = _chapters.filter(function(c) {
+      return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+    }).length;
+    if (_validPdfCount === 0) {
+      alert('인생의 책이 아직 생성되지 않았거나 내용이 비어 있습니다. 먼저 생성해 주세요.');
       return;
     }
 

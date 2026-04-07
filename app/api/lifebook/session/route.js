@@ -1130,6 +1130,14 @@ export async function POST(req) {
         );
       }
 
+      // 최소 길이 검증 — 5,000자 기대, 200자 미만은 불완전 응답으로 처리
+      if (text.length < 200) {
+        return NextResponse.json(
+          { ok: false, message: `모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.` },
+          { status: 502 }
+        );
+      }
+
       if (finishReason === "MAX_TOKENS") {
         return NextResponse.json({
           ok: true,
