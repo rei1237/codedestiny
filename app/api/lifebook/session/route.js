@@ -1117,7 +1117,7 @@ export async function POST(req) {
 
     if (!geminiKeys.length && !vertexKey) {
       return NextResponse.json(
-        { ok: false, message: "서버 Gemini API 키가 설정되지 않았습니다. GEMINI_API_KEY 환경변수를 확인해 주세요." },
+        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_API_KEY 또는 GEMINI_API_KEY 환경변수를 확인해 주세요." },
         { status: 500 }
       );
     }
@@ -1130,7 +1130,52 @@ export async function POST(req) {
     let lastError = null;
     let lastErrorStatus = 502;
 
-    // ─── 1단계: Gemini API 키 + 모델 폴백 순차 시도 ────────────────
+    // ─── 1단계: Vertex AI Express API 우선 시도 (vertex_api_key) ───
+    if (vertexKey) {
+      // Vertex AI Express는 최신 stable 모델만 우선 시도
+      const vertexModel = "gemini-2.5-flash";
+      const vertexEndpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(vertexModel));
+      const requestPayload = JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: makeGenerationConfig(vertexModel),
+      });
+      try {
+        const response = await fetch(vertexEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": vertexKey,
+          },
+          body: requestPayload,
+        });
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const errMsg = payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`;
+          if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
+          lastError = new Error(errMsg);
+        } else {
+          const text = parseText(payload);
+          if (text && text.length >= 200) {
+            return NextResponse.json({
+              ok: true,
+              text,
+              sessionId,
+              title: config.title,
+              emoji: config.emoji,
+              model: vertexModel,
+            });
+          }
+          lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
+        }
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    // ─── 2단계: Gemini API 키 + 모델 폴백 순차 시도 ────────────────
     for (const model of modelCandidates) {
       const geminiEndpoint = GEMINI_ENDPOINT.replace(
         "{model}",
@@ -1190,51 +1235,6 @@ export async function POST(req) {
         } catch (e) {
           lastError = e;
         }
-      }
-    }
-
-    // ─── 2단계: Vertex AI Express API 폴백 (vertex_api_key) ───────
-    if (vertexKey) {
-      // Vertex AI Express는 최신 stable 모델만 지원하므로 안전한 이름 사용
-      const vertexModel = "gemini-2.5-flash";
-      const vertexEndpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(vertexModel));
-      const requestPayload = JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: makeGenerationConfig(vertexModel),
-      });
-      try {
-        const response = await fetch(vertexEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": vertexKey,
-          },
-          body: requestPayload,
-        });
-
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          const errMsg = payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`;
-          if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
-          lastError = new Error(errMsg);
-        } else {
-          const text = parseText(payload);
-          if (text && text.length >= 200) {
-            return NextResponse.json({
-              ok: true,
-              text,
-              sessionId,
-              title: config.title,
-              emoji: config.emoji,
-              model: vertexModel,
-            });
-          }
-          lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
-        }
-      } catch (e) {
-        lastError = e;
       }
     }
 
