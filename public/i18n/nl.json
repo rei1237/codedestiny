@@ -1,0 +1,68 @@
+{
+  "_comment": "Code Destiny — Dutch premium localization (nl.json)",
+  "_version": "1.0.0",
+
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Oosterse Wijsheid × AI-Analyse",
+    "subtitle": "3.000 jaar Chinese numerologie, ontcijferd door moderne AI",
+    "trustBadge": "Meer dan 100.000 zoekers in 80+ landen vertrouwen ons"
+  },
+
+  "terms": {
+    "사주": "Vier Pijlers van het Lot",
+    "사주팔자": "Vier Pijlers (Ba Zi)",
+    "용신": "Dominant Element (Evenwichtspivot)",
+    "격국": "Centraal Levensarchetyp",
+    "대운": "Decennium Lotscyclus",
+    "세운": "Jaarlijkse Fortunacyclus",
+    "천간": "Hemelse Stam",
+    "지지": "Aardse Tak",
+    "오행": "Vijf Elementen",
+    "음양": "Yin en Yang",
+    "자미두수": "Purperen Ster Astrologie (Zi Wei Dou Shu)",
+    "숙요점": "Orakel van de 27 Maanhuizen",
+    "명리학": "Lotanalysewetenschap",
+    "궁합": "Kosmische Compatibiliteit",
+    "운명의꽃": "Lotsbloemarchetyp",
+    "타로": "Tarot",
+    "신살": "Karmische Indicatoren",
+    "공망": "Lege Tak (Karmisch Blind Punt)"
+  },
+
+  "premium": {
+    "reportTitle": "Jouw Lotsplan",
+    "reportSubtitle": "Een Premium Levensanalyse aangedreven door Oosterse Meta-Psychologie en AI",
+    "intro": "Dit rapport is geen simpele voorspelling van je toekomst - het is een nauwkeurig, data-gedreven blauwdruk van de energetische architectuur die jouw bestaan vormgeeft. Met meer dan 3.000 jaar oosterse kosmologische wijsheid en geavanceerde AI worden jouw Vier Pijlers van het Lot ontcijferd om de onzichtbare krachten te onthullen die jouw sterke punten, schaduwen en meest lumineuze potentieel regeren. Dit is jouw persoonlijke handboek om de Decennium Lotscycli te navigeren met helderheid en intentie.",
+    "cta": "Ontgrendel Je Volledige Lotsplan",
+    "priceDisplay": "Vanaf €2,90",
+    "guarantee": "30 Dagen Tevredenheidsgarantie"
+  },
+
+  "trust": {
+    "headline": "Waarom Meer dan 100.000 Mensen Code Destiny Vertrouwen",
+    "badges": [
+      { "icon": "🌍", "label": "Mondiale Community", "value": "+100.000 gebruikers in 80+ landen" },
+      { "icon": "🔒", "label": "SSL-Beveiligd", "value": "256-bits encryptie · Veilige betalingen" },
+      { "icon": "⭐", "label": "Beoordeling", "value": "4,9/5 gemiddeld" },
+      { "icon": "🌐", "label": "Talen", "value": "10 talen beschikbaar" },
+      { "icon": "💳", "label": "Veilige Betaling", "value": "Stripe-gecertificeerd · Alle kaarten" },
+      { "icon": "🔄", "label": "Garantie", "value": "30-Daagse Terugbetaling" }
+    ]
+  },
+
+  "footer": {
+    "tagline": "Oude wijsheid, moderne precisie.",
+    "about": "Code Destiny is een AI-aangedreven lotsanalyseplatform dat meer dan 3.000 jaar oosterse kosmologische systemen combineert met moderne kunstmatige intelligentie. Beschikbaar in 10 talen, gratis te gebruiken.",
+    "links": {
+      "privacy": "Privacybeleid",
+      "terms": "Servicevoorwaarden",
+      "refund": "Terugbetalingsbeleid",
+      "about": "Over Ons",
+      "faq": "FAQ",
+      "contact": "Contact"
+    },
+    "refundPolicy": "Premium Munten (digitale tegoeden) zijn terugbetaalbaar binnen 14 dagen na aankoop als ze ongebruikt zijn, conform de consumentenbeschermingswet.",
+    "copyright": "© 2025 Code Destiny. Alle rechten voorbehouden. Uitsluitend voor entertainment en zelfreflectie, geen vervanging voor professioneel advies."
+  }
+}

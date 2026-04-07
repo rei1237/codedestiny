@@ -1,0 +1,72 @@
+{
+  "_comment": "Code Destiny — Spanish premium localization (es.json)",
+  "_version": "1.0.0",
+
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Sabiduría Oriental × Análisis IA",
+    "subtitle": "3.000 años de numerología china, descifrados por IA moderna",
+    "trustBadge": "Más de 100.000 buscadores en 80+ países confían en nosotros"
+  },
+
+  "terms": {
+    "사주": "Cuatro Pilares del Destino",
+    "사주팔자": "Cuatro Pilares (Ba Zi)",
+    "용신": "Elemento Dominante (Pivote de Equilibrio)",
+    "격국": "Arquetipo Central de Vida",
+    "대운": "Ciclo Decenal del Destino",
+    "세운": "Ciclo Anual de Fortuna",
+    "천간": "Tallo Celestial",
+    "지지": "Rama Terrestre",
+    "오행": "Cinco Elementos",
+    "음양": "Yin y Yang",
+    "자미두수": "Astrología Estrella Púrpura (Zi Wei Dou Shu)",
+    "숙요점": "Oráculo de las 27 Mansiones Lunares",
+    "명리학": "Ciencia del Análisis del Destino",
+    "궁합": "Compatibilidad Cósmica",
+    "운명의꽃": "Arquetipo Floral del Destino",
+    "타로": "Tarot",
+    "신살": "Indicadores Kármicos",
+    "공망": "Rama Vacía (Punto Ciego Kármico)"
+  },
+
+  "premium": {
+    "reportTitle": "Tu Plano del Destino",
+    "reportSubtitle": "Un Análisis de Vida Premium impulsado por la Metapsicología Oriental e IA",
+    "intro": "Este informe no es una simple predicción de tu futuro — es un plano preciso y basado en datos de la arquitectura energética que moldea tu existencia. Combinando más de 3.000 años de sabiduría cosmológica oriental con inteligencia artificial avanzada, tus Cuatro Pilares del Destino son descifrados para revelar las fuerzas invisibles que gobiernan tus fortalezas, tus sombras y tu potencial más luminoso. Este es tu manual personal para navegar los Ciclos Decenales del Destino con claridad e intención.",
+    "dominantElement": {
+      "label": "Tu Elemento Dominante (Pivote de Equilibrio)",
+      "description": "El Elemento Dominante — conocido en el chino clásico como 用神 — es la única llave energética que equilibra y activa toda tu estructura del destino. Cuando alineas tu entorno, relaciones y decisiones con este elemento, el impulso natural de tu carta se acelera. La desalineación crea fricción. No es superstición; es la calibración precisa de tu plano energético."
+    },
+    "cta": "Desbloquea Tu Plano del Destino Completo",
+    "priceDisplay": "Desde €2,90",
+    "guarantee": "Garantía de satisfacción de 30 días"
+  },
+
+  "trust": {
+    "headline": "Por Qué Más de 100.000 Personas Confían en Code Destiny",
+    "badges": [
+      { "icon": "🌍", "label": "Comunidad Global", "value": "+100.000 usuarios en 80+ países" },
+      { "icon": "🔒", "label": "SSL Seguro", "value": "Cifrado de 256 bits · Pagos seguros" },
+      { "icon": "⭐", "label": "Valoración", "value": "4,9/5 de media" },
+      { "icon": "🌐", "label": "Idiomas", "value": "10 idiomas disponibles" },
+      { "icon": "💳", "label": "Pago Seguro", "value": "Certificado Stripe · Tarjetas principales" },
+      { "icon": "🔄", "label": "Garantía", "value": "Devolución en 30 días" }
+    ]
+  },
+
+  "footer": {
+    "tagline": "Sabiduría antigua, precisión moderna.",
+    "about": "Code Destiny es una plataforma de análisis de destino y fortuna impulsada por IA que combina más de 3.000 años de sistemas cosmológicos orientales con inteligencia artificial moderna. Disponible en 10 idiomas, gratis para usar.",
+    "links": {
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio",
+      "refund": "Política de Reembolso",
+      "about": "Sobre Nosotros",
+      "faq": "Preguntas Frecuentes",
+      "contact": "Contacto"
+    },
+    "refundPolicy": "Las Monedas Premium (créditos digitales) son reembolsables dentro de los 14 días posteriores a la compra si no se han utilizado, conforme a la ley de protección al consumidor.",
+    "copyright": "© 2025 Code Destiny. Todos los derechos reservados. Solo para entretenimiento y autorreflexión, no sustituye al asesoramiento profesional."
+  }
+}

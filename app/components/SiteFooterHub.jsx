@@ -524,8 +524,22 @@ export default function SiteFooterHub() {
           <p style={{ margin: "0 0 4px" }}>
             © 2026 Code Destiny. All rights reserved.
           </p>
-          <p style={{ margin: 0 }}>
+          <p style={{ margin: "0 0 4px" }}>
             🐷 꿀꿀 만세력 — 사주 · 타로 · 운세 · 궁합 플랫폼
+          </p>
+          <p style={{ margin: 0, fontSize: "11px", color: "#1e293b" }}>
+            English&nbsp;
+            <a href={`${ORIGIN}/en-us`} style={{ color: "#334155", textDecoration: "none" }}>→ en</a>
+            &nbsp;·&nbsp;
+            <a href={`${ORIGIN}/ja-jp`} style={{ color: "#334155", textDecoration: "none" }}>日本語</a>
+            &nbsp;·&nbsp;
+            <a href={`${ORIGIN}/zh-cn`} style={{ color: "#334155", textDecoration: "none" }}>中文</a>
+            &nbsp;·&nbsp;
+            <a href={`${ORIGIN}/es-es`} style={{ color: "#334155", textDecoration: "none" }}>Español</a>
+            &nbsp;·&nbsp;
+            <a href={`${ORIGIN}/fr-fr`} style={{ color: "#334155", textDecoration: "none" }}>Français</a>
+            &nbsp;·&nbsp;
+            <a href={`${ORIGIN}/de-de`} style={{ color: "#334155", textDecoration: "none" }}>Deutsch</a>
           </p>
         </div>
       </div>

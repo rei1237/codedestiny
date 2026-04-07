@@ -1,0 +1,171 @@
+{
+  "_comment": "Code Destiny — English premium localization (en.json)",
+  "_version": "1.0.0",
+
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Eastern Meta-Psychology · Decoded",
+    "subtitle": "Where ancient wisdom meets modern AI",
+    "trustBadge": "Trusted by 100,000+ seekers across 80+ countries"
+  },
+
+  "terms": {
+    "사주": "Four Pillars of Destiny",
+    "사주팔자": "Four Pillars of Destiny (Ba Zi)",
+    "용신": "Dominant Element (Lucky Pivot)",
+    "격국": "Core Life Archetype",
+    "대운": "Decade Cycle of Fate",
+    "세운": "Annual Cycle of Fortune",
+    "천간": "Heavenly Stem",
+    "지지": "Earthly Branch",
+    "오행": "Five Elements",
+    "음양": "Yin & Yang",
+    "자미두수": "Zi Wei Dou Shu (Purple Star Astrology)",
+    "숙요점": "27 Lunar Mansions Oracle",
+    "명리학": "Destiny Analysis Science",
+    "궁합": "Cosmic Compatibility",
+    "운명의꽃": "Destiny Flower Archetype",
+    "타로": "Tarot",
+    "신살": "Karmic Indicators",
+    "공망": "Void Branch (Karmic Blindspot)",
+    "일주": "Day Pillar (Core Self)",
+    "월주": "Month Pillar (Potential)",
+    "년주": "Year Pillar (Ancestry)",
+    "시주": "Hour Pillar (Legacy)"
+  },
+
+  "premium": {
+    "reportTitle": "Your Destiny Blueprint",
+    "reportSubtitle": "A Premium Life Analysis Powered by Eastern Meta-Psychology & AI",
+    "intro": "This report is not a mere prediction of your future — it is a precise, data-driven blueprint of the energetic architecture that shapes your existence. Drawing from over 3,000 years of Eastern cosmological wisdom, your Four Pillars of Destiny (Ba Zi) are decoded through the lens of advanced AI to reveal the invisible forces that govern your strengths, your shadows, and your most luminous potential. Consider this your personal manual for navigating the Decade Cycles of Fate with clarity and intention.",
+    "dominantElement": {
+      "label": "Your Dominant Element (Lucky Pivot)",
+      "description": "The Dominant Element — known in classical Chinese as 用神 (Yòng Shén) — is the single energetic key that balances and activates your entire destiny structure. When you align your environment, relationships, and decisions with this element, the natural momentum of your chart accelerates. Misalignment creates friction. This is not superstition; it is the precise calibration of your energetic blueprint."
+    },
+    "coreArchetype": {
+      "label": "Your Core Life Archetype",
+      "description": "The Core Archetype (格局, Gé Jú) is the structural signature of your destiny — the 'pattern' that defines how your energy expresses itself in the world. Like a musical key that sets the tone for every note, your archetype reveals the domain in which you are most naturally powerful, and the conditions under which your talents fully crystallize."
+    },
+    "decadeCycle": {
+      "label": "Decade Cycle of Fate",
+      "description": "The Decade Cycle of Fate (大運, Dà Yùn) describes the 10-year energetic climates you move through across your lifetime. Unlike a simple 'lucky or unlucky' binary, each cycle shifts the entire resonance field of your chart — unlocking new potential, or revealing karmic lessons that must be integrated. Understanding your current and upcoming cycles gives you a profound strategic advantage."
+    },
+    "compatibility": {
+      "label": "Cosmic Compatibility Analysis",
+      "description": "True compatibility transcends personality types. The Cosmic Compatibility reading examines the Five Elements interaction between two destiny charts to reveal the fundamental energetic contract between two people — where you amplify each other, where friction will predictably arise, and how to navigate it with grace."
+    },
+    "cta": "Unlock Your Full Destiny Blueprint",
+    "priceDisplay": "From $39",
+    "guarantee": "30-day satisfaction guarantee"
+  },
+
+  "services": {
+    "saju": {
+      "name": "Four Pillars of Destiny",
+      "short": "Saju Reading",
+      "description": "The original Eastern Meta-Psychology system. Your birthdate encodes a precise cosmic signature — four pillars, eight characters, infinite depth.",
+      "badge": "Most Popular"
+    },
+    "tarot": {
+      "name": "AI Tarot Guidance",
+      "short": "AI Tarot",
+      "description": "Ancient archetypal wisdom amplified by artificial intelligence. Each reading reflects your unique energetic field."
+    },
+    "ziwei": {
+      "name": "Zi Wei Dou Shu (Purple Star Astrology)",
+      "short": "Star Chart",
+      "description": "The imperial star-mapping system of ancient China — 144 life palaces, 108 stars — a full-spectrum destiny panorama.",
+      "badge": "Deep Dive"
+    },
+    "astrology": {
+      "name": "Cosmic Astrology",
+      "short": "Vedic & Western",
+      "description": "A fusion of Vedic Jyotish and Western astrology, providing multi-tradition planetary alignment insights."
+    },
+    "destinyFlower": {
+      "name": "Destiny Flower Archetype",
+      "short": "Destiny Flower",
+      "description": "Your soul's blossoming pattern — a poetic yet precise archetype derived from your elemental destiny signature."
+    },
+    "compatibility": {
+      "name": "Cosmic Compatibility",
+      "short": "Compatibility",
+      "description": "Beyond Myers-Briggs — a Five Elements-based compatibility analysis that reveals the deep energetic contract between you and others."
+    }
+  },
+
+  "trust": {
+    "headline": "Why 100,000+ People Trust Code Destiny",
+    "badges": [
+      { "icon": "🌍", "label": "Global Community", "value": "100,000+ users in 80+ countries" },
+      { "icon": "🔒", "label": "SSL Secure", "value": "256-bit encrypted · Safe payments" },
+      { "icon": "⭐", "label": "Satisfaction", "value": "4.9/5 average rating" },
+      { "icon": "🌐", "label": "Languages", "value": "10 languages · Always available" },
+      { "icon": "💳", "label": "Secure Checkout", "value": "Stripe-verified · All major cards" },
+      { "icon": "🔄", "label": "Guarantee", "value": "30-day money-back promise" }
+    ]
+  },
+
+  "footer": {
+    "tagline": "Ancient wisdom, modern precision.",
+    "about": "Code Destiny is an AI-powered fortune & destiny analysis platform combining 3,000+ years of Eastern cosmological systems with modern artificial intelligence. Available in 10 languages, free to use.",
+    "sections": {
+      "services": "Services",
+      "resources": "Resources",
+      "legal": "Legal",
+      "support": "Support"
+    },
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy",
+      "about": "About Us",
+      "faq": "FAQ",
+      "contact": "Contact Us"
+    },
+    "refundPolicy": "Digital service coins (premium credits) are refundable within 14 days of purchase if unused, in accordance with consumer protection law. Used credits are non-refundable. Contact support for assistance.",
+    "copyright": "© 2025 Code Destiny. All rights reserved. For entertainment & self-reflection purposes only — not a substitute for professional advice."
+  },
+
+  "pricing": {
+    "currencies": {
+      "KRW": { "symbol": "₩", "rate": 1, "format": "₩{amount}" },
+      "USD": { "symbol": "$", "rate": 0.00074, "format": "${amount}" },
+      "EUR": { "symbol": "€", "rate": 0.00068, "format": "€{amount}" },
+      "JPY": { "symbol": "¥", "rate": 0.11, "format": "¥{amount}" },
+      "CNY": { "symbol": "¥", "rate": 0.0053, "format": "¥{amount}" },
+      "GBP": { "symbol": "£", "rate": 0.00058, "format": "£{amount}" },
+      "AUD": { "symbol": "A$", "rate": 0.0012, "format": "A${amount}" },
+      "CAD": { "symbol": "C$", "rate": 0.0010, "format": "C${amount}" },
+      "INR": { "symbol": "₹", "rate": 0.062, "format": "₹{amount}" },
+      "SGD": { "symbol": "S$", "rate": 0.00099, "format": "S${amount}" },
+      "MYR": { "symbol": "RM", "rate": 0.0035, "format": "RM{amount}" }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10 premium fortune readings",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35 premium readings + full destiny report",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "Premium",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80 readings + lifetime access features",
+        "popular": false
+      }
+    ]
+  }
+}

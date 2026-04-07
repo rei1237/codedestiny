@@ -2,6 +2,40 @@ import { NextResponse } from "next/server";
 
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
+
+/**
+ * Accept-Language → locale slug 매핑
+ * 브라우저 언어 감지 후 해당 경로로 자동 리다이렉트
+ */
+const ACCEPT_LANG_MAP = [
+  { prefix: "ja", slug: "/ja-jp" },
+  { prefix: "zh", slug: "/zh-cn" },
+  { prefix: "hi", slug: "/hi-in" },
+  { prefix: "es", slug: "/es-es" },
+  { prefix: "fr", slug: "/fr-fr" },
+  { prefix: "de", slug: "/de-de" },
+  { prefix: "nl", slug: "/nl-nl" },
+  { prefix: "ms", slug: "/ms-my" },
+  { prefix: "en", slug: "/en-us" },
+];
+/** 이미 로케일 prefix 하에 있는 경로인지 확인 */
+const LOCALE_SLUGS = new Set(ACCEPT_LANG_MAP.map((l) => l.slug));
+function getLocaleSlugFromAcceptLang(acceptLang) {
+  if (!acceptLang) return null;
+  // e.g. "ja-JP,ja;q=0.9,en;q=0.8" → ["ja-JP","ja","en"]
+  const langs = acceptLang
+    .split(",")
+    .map((s) => s.split(";")[0].trim().toLowerCase())
+    .filter(Boolean);
+  for (const lang of langs) {
+    // ko → 한국어이면 리다이렉트 불필요
+    if (lang.startsWith("ko")) return null;
+    for (const entry of ACCEPT_LANG_MAP) {
+      if (lang.startsWith(entry.prefix)) return entry.slug;
+    }
+  }
+  return null;
+}
 const SEO_PUBLIC_PATHS = new Set([
   "/robots.txt",
   "/sitemap.xml",
@@ -99,6 +133,28 @@ export function middleware(request) {
   }
 
   // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
+
+  /**
+   * Accept-Language 자동 리다이렉트:
+   * 루트(/) 방문 시 브라우저 언어가 비한국어이면 해당 로케일 경로로 301 리다이렉트.
+   * - 이미 로케일 경로 하에 있으면 스킵 (무한루프 방지)
+   * - 쿠키 `cd_locale_ack=1` 이 있으면 스킵 (사용자가 언어 선택했을 때 세팅)
+   */
+  const isLocaleRoot = LOCALE_SLUGS.has(rawPath.replace(/\/$/, "")) ||
+    [...LOCALE_SLUGS].some((s) => rawPath.startsWith(s + "/"));
+  if (!isLocaleRoot && (rawPath === "/" || rawPath === "")) {
+    const localeAck = request.cookies.get("cd_locale_ack");
+    if (!localeAck) {
+      const acceptLang = request.headers.get("accept-language") || "";
+      const targetSlug = getLocaleSlugFromAcceptLang(acceptLang);
+      if (targetSlug) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = targetSlug;
+        // 307 Temporary: SEO 관점에서 한국어가 기본 canonical이므로 임시 리다이렉트
+        return NextResponse.redirect(redirectUrl, 307);
+      }
+    }
+  }
 
   const requestHeaders = new Headers(request.headers);
   const rawPath = request.nextUrl.pathname || "/";

@@ -6291,6 +6291,12 @@ function cdAllowGoogleTranslateForContent() {
 }
 
 function changeLanguage(langCode, btn) {
+  // cd-lang-native.js 가 로드되면 해당 함수가 window.changeLanguage 를 덮어씀.
+  // 이 기본 구현은 native 모드 파일 로드 전 또는 폴백으로만 실행됨.
+  if (window.__cdNativeLangBound) {
+    // 네이티브 모드 활성: 이미 이벤트 위임으로 처리됨 — 중복 실행 방지
+    return;
+  }
   __cdCancelLangWrapHide();
 
   var btns = document.querySelectorAll('.lang-btn');

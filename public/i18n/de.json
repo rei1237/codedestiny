@@ -1,0 +1,72 @@
+{
+  "_comment": "Code Destiny — German premium localization (de.json)",
+  "_version": "1.0.0",
+
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Östliche Weisheit × KI-Analyse",
+    "subtitle": "3.000 Jahre chinesische Numerologie, entschlüsselt durch moderne KI",
+    "trustBadge": "Über 100.000 Suchende in 80+ Ländern vertrauen uns"
+  },
+
+  "terms": {
+    "사주": "Vier Säulen des Schicksals",
+    "사주팔자": "Vier Säulen (Ba Zi)",
+    "용신": "Dominantes Element (Gleichgewichts-Pivot)",
+    "격국": "Zentrales Lebens-Archetyp",
+    "대운": "Dekaden-Schicksalszyklus",
+    "세운": "Jährlicher Glückszyklus",
+    "천간": "Himmlischer Stamm",
+    "지지": "Irdischer Zweig",
+    "오행": "Fünf Elemente",
+    "음양": "Yin und Yang",
+    "자미두수": "Purpurstern-Astrologie (Zi Wei Dou Shu)",
+    "숙요점": "Orakel der 27 Mondstationen",
+    "명리학": "Schicksalsanalyse-Wissenschaft",
+    "궁합": "Kosmische Kompatibilität",
+    "운명의꽃": "Schicksals-Blumen-Archetyp",
+    "타로": "Tarot",
+    "신살": "Karmische Indikatoren",
+    "공망": "Leerer Zweig (Karmischer Blinde Fleck)"
+  },
+
+  "premium": {
+    "reportTitle": "Dein Schicksals-Bauplan",
+    "reportSubtitle": "Eine Premium-Lebensanalyse, angetrieben durch Östliche Meta-Psychologie und KI",
+    "intro": "Dieser Bericht ist keine bloße Vorhersage deiner Zukunft — er ist ein präziser, datenbasierter Bauplan der energetischen Architektur, die deine Existenz prägt. Mit über 3.000 Jahren östlicher kosmologischer Weisheit und fortschrittlicher KI werden deine Vier Säulen des Schicksals entschlüsselt, um die unsichtbaren Kräfte zu enthüllen, die deine Stärken, Schatten und dein leuchtendstes Potenzial regieren. Dies ist dein persönliches Handbuch, um die Dekaden-Schicksalszyklen mit Klarheit und Absicht zu navigieren.",
+    "dominantElement": {
+      "label": "Dein Dominantes Element (Gleichgewichts-Pivot)",
+      "description": "Das Dominante Element — im klassischen Chinesisch als 用神 bekannt — ist der einzige energetische Schluessel, der deine gesamte Schicksalsstruktur ausbalanciert und aktiviert. Wenn du deine Umgebung, Beziehungen und Entscheidungen mit diesem Element ausrichtest, beschleunigt sich der natuerliche Schwung deines Lebensplans. Falsche Ausrichtung erzeugt Reibung. Dies ist kein Aberglaube; es ist die praeziese Kalibrierung deines energetischen Bauplans."
+    },
+    "cta": "Deinen Vollstaendigen Schicksals-Bauplan Freischalten",
+    "priceDisplay": "Ab 2,90€",
+    "guarantee": "30-Tage-Zufriedenheitsgarantie"
+  },
+
+  "trust": {
+    "headline": "Warum Über 100.000 Menschen Code Destiny Vertrauen",
+    "badges": [
+      { "icon": "🌍", "label": "Globale Community", "value": "+100.000 Nutzer in 80+ Ländern" },
+      { "icon": "🔒", "label": "SSL-Sicher", "value": "256-Bit-Verschlüsselung · Sichere Zahlung" },
+      { "icon": "⭐", "label": "Bewertung", "value": "4,9/5 Durchschnittsbewertung" },
+      { "icon": "🌐", "label": "Sprachen", "value": "10 Sprachen verfügbar" },
+      { "icon": "💳", "label": "Sicheres Checkout", "value": "Stripe-zertifiziert · Alle Karten" },
+      { "icon": "🔄", "label": "Garantie", "value": "30-Tage-Rückgabe" }
+    ]
+  },
+
+  "footer": {
+    "tagline": "Antike Weisheit, moderne Präzision.",
+    "about": "Code Destiny ist eine KI-gestützte Schicksals- und Fortunanalyse-Plattform, die über 3.000 Jahre östlicher kosmologischer Systeme mit moderner künstlicher Intelligenz verbindet. In 10 Sprachen verfügbar, kostenlos nutzbar.",
+    "links": {
+      "privacy": "Datenschutzrichtlinie",
+      "terms": "Nutzungsbedingungen",
+      "refund": "Rückerstattungsrichtlinie",
+      "about": "Über uns",
+      "faq": "FAQ",
+      "contact": "Kontakt"
+    },
+    "refundPolicy": "Premium-Münzen (digitale Guthaben) sind innerhalb von 14 Tagen nach dem Kauf erstattungsfähig, sofern unbenutzt, gemäß Verbraucherschutzgesetz.",
+    "copyright": "© 2025 Code Destiny. Alle Rechte vorbehalten. Nur zur Unterhaltung und Selbstreflexion, kein Ersatz für professionelle Beratung."
+  }
+}

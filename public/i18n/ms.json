@@ -1,0 +1,68 @@
+{
+  "_comment": "Code Destiny — Malay premium localization (ms.json)",
+  "_version": "1.0.0",
+
+  "brand": {
+    "name": "Code Destiny",
+    "tagline": "Kebijaksanaan Timur × Analisis AI",
+    "subtitle": "3,000 tahun numerologi China, ditafsir oleh AI moden",
+    "trustBadge": "Lebih 100,000 pengguna di 80+ negara mempercayai kami"
+  },
+
+  "terms": {
+    "사주": "Empat Tiang Nasib",
+    "사주팔자": "Empat Tiang (Ba Zi)",
+    "용신": "Elemen Dominan (Pivot Keseimbangan)",
+    "격국": "Arkitaip Kehidupan Teras",
+    "대운": "Kitaran Nasib Dekad",
+    "세운": "Kitaran Tahunan Tuah",
+    "천간": "Batang Syurga",
+    "지지": "Cabang Bumi",
+    "오행": "Lima Elemen",
+    "음양": "Yin dan Yang",
+    "자미두수": "Astrologi Bintang Ungu (Zi Wei Dou Shu)",
+    "숙요점": "Oracle 27 Rumah Bulan",
+    "명리학": "Sains Analisis Nasib",
+    "궁합": "Keserasian Kosmik",
+    "운명의꽃": "Arkitaip Bunga Nasib",
+    "타로": "Tarot",
+    "신살": "Penunjuk Karmik",
+    "공망": "Cabang Kosong (Titik Buta Karmik)"
+  },
+
+  "premium": {
+    "reportTitle": "Pelan Nasib Anda",
+    "reportSubtitle": "Analisis Kehidupan Premium didorong oleh Metapsikologi Timur dan AI",
+    "intro": "Laporan ini bukan sekadar ramalan masa depan anda — ia adalah pelan tepat berasaskan data tentang seni bina tenaga yang membentuk kewujudan anda. Menggabungkan lebih 3,000 tahun kebijaksanaan kosmologi Timur dengan kecerdasan buatan canggih, Empat Tiang Nasib anda ditafsir untuk mendedahkan kuasa-kuasa tersembunyi yang mengawal kekuatan, bayangan dan potensi paling bercahaya anda. Ini adalah panduan peribadi anda untuk mengemudi Kitaran Nasib Dekad dengan kejelasan dan niat.",
+    "cta": "Buka Kunci Pelan Nasib Penuh Anda",
+    "priceDisplay": "Dari RM10",
+    "guarantee": "Jaminan kepuasan 30 hari"
+  },
+
+  "trust": {
+    "headline": "Mengapa Lebih 100,000 Orang Mempercayai Code Destiny",
+    "badges": [
+      { "icon": "🌍", "label": "Komuniti Global", "value": "+100,000 pengguna di 80+ negara" },
+      { "icon": "🔒", "label": "SSL Selamat", "value": "Penyulitan 256-bit · Pembayaran selamat" },
+      { "icon": "⭐", "label": "Penilaian", "value": "Purata 4.9/5" },
+      { "icon": "🌐", "label": "Bahasa", "value": "10 bahasa tersedia" },
+      { "icon": "💳", "label": "Pembayaran Selamat", "value": "Disahkan Stripe · Semua kad utama" },
+      { "icon": "🔄", "label": "Jaminan", "value": "Bayaran balik 30 hari" }
+    ]
+  },
+
+  "footer": {
+    "tagline": "Kebijaksanaan purba, ketepatan moden.",
+    "about": "Code Destiny ialah platform analisis nasib dan tuah berkuasa AI yang menggabungkan lebih 3,000 tahun sistem kosmologi Timur dengan kecerdasan buatan moden. Tersedia dalam 10 bahasa, percuma untuk digunakan.",
+    "links": {
+      "privacy": "Dasar Privasi",
+      "terms": "Terma Perkhidmatan",
+      "refund": "Dasar Bayaran Balik",
+      "about": "Tentang Kami",
+      "faq": "Soalan Lazim",
+      "contact": "Hubungi Kami"
+    },
+    "refundPolicy": "Syiling Premium (kredit digital) boleh dikembalikan dalam masa 14 hari selepas pembelian jika tidak digunakan, mengikut undang-undang perlindungan pengguna.",
+    "copyright": "© 2025 Code Destiny. Hak cipta terpelihara. Untuk hiburan dan refleksi diri sahaja, bukan pengganti nasihat profesional."
+  }
+}
