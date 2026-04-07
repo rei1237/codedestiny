@@ -11,25 +11,8 @@ function runNuclearVersionGuard() {
   }
   if (saved === APP_VERSION) return;
 
-  try { localStorage.clear(); } catch (e) {}
-  try { sessionStorage.clear(); } catch (e) {}
-
-  var swTask = Promise.resolve();
-  try {
-    if ('serviceWorker' in navigator) {
-      swTask = navigator.serviceWorker.getRegistrations().then(function(regs) {
-        return Promise.all(regs.map(function(reg) {
-          try { return reg.unregister(); } catch (err) { return Promise.resolve(false); }
-        }));
-      });
-    }
-  } catch (e) {}
-
-  swTask.finally(function() {
-    try { localStorage.setItem(APP_VERSION_KEY, APP_VERSION); } catch (e) {}
-    try { window.location.reload(true); }
-    catch (e) { window.location.reload(); }
-  });
+  // 인증 안정성 우선: 전체 스토리지 삭제/강제 리로드는 수행하지 않습니다.
+  try { localStorage.setItem(APP_VERSION_KEY, APP_VERSION); } catch (e) {}
 }
 
 runNuclearVersionGuard();
