@@ -65,7 +65,6 @@ function getFrontendBaseUrl() {
     process.env.SITE_BASE_URL,
     process.env.CODE_DESTINY_API_URL,
     process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
-    process.env.NEXT_PUBLIC_API_BASE_URL,
     "http://localhost:3000",
   ];
 
@@ -82,7 +81,6 @@ function getApiBaseUrl(request) {
     process.env.AUTH_API_BASE_URL,
     process.env.CODE_DESTINY_API_URL,
     process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
-    process.env.NEXT_PUBLIC_API_BASE_URL,
     request.nextUrl.origin,
   ];
 

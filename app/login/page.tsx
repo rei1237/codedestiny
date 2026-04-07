@@ -43,6 +43,12 @@ const INITIAL_FORM: LoginFormState = {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function normalizeApiBase(rawBase: string | undefined | null) {
+  const value = String(rawBase || "").trim();
+  if (!value) return "";
+  return value.replace(/\/+$/, "");
+}
+
 function sanitizeNextPath(rawNext: string | null) {
   if (!rawNext) return null;
   if (!rawNext.startsWith("/") || rawNext.startsWith("//")) return null;
@@ -80,15 +86,18 @@ export default function LoginPage() {
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
     if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        const localExplicit = normalizeApiBase(
+          process.env.NEXT_PUBLIC_API_BASE_URL || window.CODE_DESTINY_API_BASE_URL,
+        );
+        if (localExplicit) return localExplicit;
         return "http://localhost:4000";
       }
-      return window.location.origin;
+      // Auth APIs run on this Next.js origin in production; prefer same-origin to avoid cross-origin drift.
+      return normalizeApiBase(window.location.origin);
     }
-    return "http://localhost:4000";
+    return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
   }, []);
 
   const endpoint = `${apiBase}/api/auth/login`;
