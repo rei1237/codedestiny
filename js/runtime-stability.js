@@ -117,8 +117,14 @@
       try {
         var src = e && e.target && e.target.src ? e.target.src : '';
         var tag = e && e.target && e.target.tagName ? String(e.target.tagName).toUpperCase() : '';
+        var pageRoot = '';
+        try { pageRoot = String(location.origin || '') + '/'; } catch (__) { pageRoot = ''; }
         if (src) {
-          if (tag === 'IMG') console.warn('[runtime-stability] image load error:', src);
+          if (tag === 'IMG') {
+            // Some themes probe the page root as an image URL; ignore this noisy false-positive.
+            if (src === pageRoot) return;
+            console.warn('[runtime-stability] image load error:', src);
+          }
           else if (tag === 'AUDIO' || tag === 'SOURCE') console.warn('[runtime-stability] audio load error:', src);
           else console.error('[runtime-stability] script load error:', src);
         } else {
