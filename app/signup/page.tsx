@@ -92,26 +92,22 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
-  const submitAbortRef = useRef<AbortController | null>(null);
   const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
     if (typeof window !== "undefined") {
+      if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        const localExplicit = normalizeApiBase(
-          process.env.NEXT_PUBLIC_API_BASE_URL || window.CODE_DESTINY_API_BASE_URL,
-        );
-        if (localExplicit) return localExplicit;
         return "http://localhost:4000";
       }
-      // Auth APIs run on this Next.js origin in production; prefer same-origin to avoid cross-origin drift.
-      return normalizeApiBase(window.location.origin);
+      return window.location.origin;
     }
-    return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
+    return "http://localhost:4000";
   }, []);
 
-  const endpoint = useMemo(() => `${apiBase}/api/auth/register`, [apiBase]);
-  const socialCompleteEndpoint = useMemo(() => `${apiBase}/api/auth/oauth/complete`, [apiBase]);
+  const endpoint = `${apiBase}/api/auth/register`;
+  const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
 
   const persistAuth = (token?: string, user?: SignupResult["user"]) => {
     if (token) {
@@ -287,15 +283,9 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    if (submitAbortRef.current) submitAbortRef.current.abort();
-    const controller = new AbortController();
-    submitAbortRef.current = controller;
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
         },
@@ -338,16 +328,9 @@ export default function SignupPage() {
       setIsRedirecting(true);
       setTimeout(() => router.replace("/"), 700);
     } catch (e) {
-      const isAbort = e instanceof Error && e.name === "AbortError";
-      if (isAbort) {
-        setError("요청이 시간 초과되었습니다. 네트워크를 확인하고 잠시 후 다시 시도해 주세요.");
-      } else {
-        const msg = e instanceof Error ? e.message : "";
-        setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
-      }
+      const msg = e instanceof Error ? e.message : "";
+      setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
-      clearTimeout(timeoutId);
-      submitAbortRef.current = null;
       setLoading(false);
     }
   };
