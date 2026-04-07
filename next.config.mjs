@@ -95,7 +95,7 @@ const nextConfig = {
         // 나머지 API는 Express 백엔드로 프록시
         { source: '/api/payments/:path*', destination: apiTarget + '/api/payments/:path*' },
         { source: '/api/fortune/:path*', destination: apiTarget + '/api/fortune/:path*' },
-        { source: '/api/kasi/:path*', destination: apiTarget + '/api/kasi/:path*' },
+        // /api/kasi/calendar 는 app/api/kasi/calendar/route.js (Next.js App Router)로 처리 — 리라이트 제거
         { source: '/api/health', destination: apiTarget + '/api/health' },
       ],
     };
