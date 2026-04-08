@@ -5625,7 +5625,8 @@ function calcAstroApiChartOrThrow(year, month, day, localHour, lat, lon, tz, hou
   var hs = houseSystem || (window.ASTRO_HOUSE_SYSTEM || 'P');
   var chart = AstroEngine.calcAll(year, month, day, localHour, lat, lon, tz, { houseSystem: hs });
   var mode = chart && chart.natal && chart.natal.meta ? chart.natal.meta.precisionMode : 'unknown';
-  if (mode !== 'swisseph') {
+  // legacy-fallback(Jean Meeus 기반)도 허용 — SwissEph WASM 미로드 시에도 천문 계산 진행
+  if (mode !== 'swisseph' && mode !== 'legacy-fallback') {
     throw new Error('SwissEph API 결과가 준비되지 않았습니다. precisionMode=' + mode);
   }
   return chart;

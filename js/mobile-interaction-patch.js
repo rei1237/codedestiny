@@ -496,7 +496,9 @@
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
-    openOlympusOracleModal: ['js/olympus-oracle.js']
+    openOlympusOracleModal: ['js/olympus-oracle.js'],
+    openLoveSecretModal: ['js/love-secret-v2.js'],
+    openLifeBookModal: ['js/life-book.js?v=20260407-v7']
   };
 
   function normalizeScriptSrc(src) {

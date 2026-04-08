@@ -909,6 +909,8 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260407-v7'); },
+  openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   calculate: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1077,7 +1079,7 @@ function __cdEnsureSajuCoreLoaded() {
   var chain = [
     '/js/core/kasi-calendar-service.js?v=20260407-kst-fix',
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260329-saju-linkage-fix1',
+    '/js/saju-engine.js?v=20260409-astro-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1',
     '/js/core/saju/modalProfileState.js?v=20260326-modaldeps1',
     '/js/core/saju/reportDashboard.js?v=20260329-saju-rpt3',
@@ -5636,7 +5638,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
 
   var chain = [
     '/js/compat-llm-prompts.js?v=20260321-llm5-sukuyo',
-    '/js/saju-engine.js?v=20260329-saju-linkage-fix1',
+    '/js/saju-engine.js?v=20260409-astro-fix1',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1'
   ];
 
