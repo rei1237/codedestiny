@@ -23,7 +23,12 @@ try {
 const router = express.Router();
 const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
-const DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256 = "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e";
+const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
+  // 현재 운영 비밀번호: angta!7989
+  "29034f32ce15fe7e459fc1ab512847643b068dd2d297c7ce5ff77eac516fc09b",
+  // 이전 비밀번호(kangta!7989) 임시 호환
+  "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e",
+];
 
 function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -33,15 +38,16 @@ function verifyAdminEntryPassword(rawInput) {
   const input = String(rawInput || "");
   if (!input) return false;
 
-  // 운영 중 값 꼬임으로 인한 진입 실패를 막기 위해 초기 비밀번호 해시를 고정값으로 사용한다.
-  const expectedHex = DEFAULT_ADMIN_ENTRY_PASSWORD_SHA256;
-  if (!/^[a-f0-9]{64}$/.test(expectedHex)) return false;
-
   const inputHex = crypto.createHash("sha256").update(input, "utf8").digest("hex");
-  const expectedBuf = Buffer.from(expectedHex, "hex");
   const inputBuf = Buffer.from(inputHex, "hex");
-  if (expectedBuf.length !== inputBuf.length) return false;
-  return crypto.timingSafeEqual(expectedBuf, inputBuf);
+
+  for (const expectedHex of ADMIN_ENTRY_PASSWORD_SHA256_LIST) {
+    if (!/^[a-f0-9]{64}$/.test(expectedHex)) continue;
+    const expectedBuf = Buffer.from(expectedHex, "hex");
+    if (expectedBuf.length !== inputBuf.length) continue;
+    if (crypto.timingSafeEqual(expectedBuf, inputBuf)) return true;
+  }
+  return false;
 }
 
 function getCookieValue(req, cookieName) {
