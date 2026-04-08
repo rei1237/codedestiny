@@ -908,6 +908,7 @@ var __cdLazyActionLoaders = {
   openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260408-v3'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260407-v7'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
@@ -1381,6 +1382,8 @@ function __cdInvokeAction(action, actionEl, event) {
           window.LuckSyncDiary.open();
         } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
           window.LuckSyncDiary.close();
+        } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
+          window.openZiweiBookModal();
         }
         return;
       }

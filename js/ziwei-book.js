@@ -854,4 +854,7 @@
     }
   });
 
+  // mobile-interaction-patch LAZY_LOAD_ACTIONS 호환: window.gotoZiweiPremium 래퍼
+  window.gotoZiweiPremium = function() { window.openZiweiBookModal(); };
+
 })();

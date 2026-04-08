@@ -5468,27 +5468,68 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
     }
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
-    if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openZiweiBookModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'gotoZiweiPremium') {
+      if (typeof window.openZiweiBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openZiweiBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        // ziwei-book.js lazy load 후 재호출
+        (function() {
+          var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
+          var _zbLoadFn = function() {
+            var s = document.querySelector('script[src*="ziwei-book.js"]');
+            if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+              return Promise.resolve();
+            }
+            return new Promise(function(res, rej) {
+              var el = document.createElement('script');
+              el.src = '/js/ziwei-book.js?v=20260408-v3';
+              el.onload = function() { el.dataset.loaded = '1'; res(); };
+              el.onerror = rej;
+              document.head.appendChild(el);
+            });
+          };
+          (_zbLoader ? _zbLoader() : _zbLoadFn()).then(function() {
+            if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
+          }).catch(function(e) { console.error('[prem-card ziwei]', e); });
+        })();
+      }
       return;
     }
     // 명시적 핸들러: openLifeBookModal
-    if (action === 'openLifeBookModal' && typeof window.openLifeBookModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openLifeBookModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'openLifeBookModal') {
+      if (typeof window.openLifeBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openLifeBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        var _lbLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openLifeBookModal'];
+        if (_lbLoader) {
+          _lbLoader().then(function() {
+            if (typeof window.openLifeBookModal === 'function') window.openLifeBookModal();
+          }).catch(function(e) { console.error('[prem-card lifebook]', e); });
+        }
+      }
       return;
     }
     // 명시적 핸들러: openLoveSecretModal
-    if (action === 'openLoveSecretModal' && typeof window.openLoveSecretModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openLoveSecretModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'openLoveSecretModal') {
+      if (typeof window.openLoveSecretModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openLoveSecretModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        var _lsLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openLoveSecretModal'];
+        if (_lsLoader) {
+          _lsLoader().then(function() {
+            if (typeof window.openLoveSecretModal === 'function') window.openLoveSecretModal();
+          }).catch(function(e) { console.error('[prem-card lovesecret]', e); });
+        }
+      }
       return;
     }
     // window[action] 함수가 있으면 직접 호출

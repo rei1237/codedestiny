@@ -498,7 +498,8 @@
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js'],
-    openLifeBookModal: ['js/life-book.js?v=20260407-v7']
+    openLifeBookModal: ['js/life-book.js?v=20260407-v7'],
+    gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3']
   };
 
   function normalizeScriptSrc(src) {
