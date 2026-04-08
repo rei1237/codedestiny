@@ -7,51 +7,51 @@
 
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
-    '🌌 명궁(命宮) 완전 해설 — 영혼의 아키타입과 천명',
-    '🌙 신궁(身宮) 심층 분석 — 빛과 그림자의 본체',
-    '🎭 12궁 배치 완전 해독 — 황실이 비장한 인생 지도',
-    '☀️ 주성(主星) 완전 심층 해독 — 운명에 새긴 별의 이름',
-    '💼 관록궁(官祿宮) 완전 분석 — 천직과 성공의 방정식',
-    '💰 재백궁(財帛宮) 완전 분석 — 부의 그릇과 재물 법칙',
-    '💑 부처궁(夫妻宮) 완전 분석 — 운명의 반려자와 사랑 지도',
-    '⚔️ 살성(殺星)과 화성(化星) — 도전이 기회가 되는 순간',
-    '🌊 대한(大限) 정밀 분석 — 인생의 파도와 운명 시나리오',
-    '🔮 천이궁·복덕궁 — 이동·해외·영적 복의 그릇',
-    '📅 2026 소한(小限) 로드맵 — 올해의 행동 지침',
-    '🌅 생애 마스터플랜 — 대한별 황금 타이밍 전략',
-    '💌 천명 총결산 — 황실이 봉인한 당신의 운명 비전',
+    '🌌 내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독',
+    '🌟 내면의 본체 — 신궁(身宮) 심층 분석과 잠재 무기',
+    '🌙 무의식의 도화지 — 복덕궁(福德宮)으로 읽는 행복의 설계도',
+    '🌍 세상이라는 무대 — 천이궁(遷移宮)과 퍼스널 브랜딩',
+    '👑 커리어와 성취 — 관록궁(官祿宮)의 천직 방정식',
+    '💰 재화와 자산의 흐름 — 재백궁(財帛宮)의 부의 법칙',
+    '💑 파트너십과 로맨스 — 부처궁(夫妻宮)의 인연 구조',
+    '🤝 팀워크와 네트워크 — 교우궁(交友宮)의 인적 자원 법칙',
+    '🏠 공간과 환경 — 전택궁(田宅宮)의 환경심리학',
+    '💪 신체 에너지와 바이오리듬 — 질액궁(疾厄宮)의 건강 설계',
+    '🌊 10년의 메가 트렌드 — 대한(大限) 분석과 전 생애 파노라마',
+    '📅 올해의 마이크로 전술 — 2026 유년(流年)·유월(流月) 로드맵',
+    '🌅 인생 설계도 총결산 — 자미두수 거장의 마스터플랜 봉서',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '명궁 주성·보성·살성 완전 해독 — 타고난 기질과 천명의 원점',
-    '신궁 주성·내면 심성·진짜 욕구와 잠재된 무기',
-    '12궁 전체 배치 — 각궁의 주성·화록·화권·화과·화기 흐름',
-    '자미·천부·태양·태음·천기·무곡·천동·염정·탐랑·거문·천상·천량·칠살·파군',
-    '관록궁 주성·보성·화록·화권으로 읽는 직업 적성과 성공 공식',
-    '재백궁 주성·보성·화록·화기로 읽는 재물 그릇과 돈을 부르는 법칙',
-    '부처궁 주성·도화성계·연애 패턴과 운명의 파트너 기질',
-    '경양·타라·지공·지겁·천형·천요 — 살성이 만드는 도전과 기회의 역설',
-    '대한 10년 단위 흐름 — 현재 대한 심층 분석과 전 생애 파노라마',
-    '천이궁 이동·해외운, 복덕궁 정신·영적 복덕과 인생의 진정한 행복 그릇',
-    '2026 소한 12궁 순행 — 재물·사업·연애·건강·이동 타이밍 로드맵',
-    '전 생애 대한별 황금 타이밍 — 도전의 해와 수호의 해를 구분하라',
-    '명궁·신궁·관록궁·재백궁 4대궁 총결산 · 황실 비전 최종 처세 전략',
+    '명궁 주성·사화 완전 해독 — 타고난 캐릭터 아키타입·삼방사정·페르소나 스위칭 전략',
+    '신궁 심층 분석 — 내면의 본체·잠재 무기·명궁과의 통합으로 완성되는 진짜 자아',
+    '복덕궁 주성 분석 — 행복 DNA·스트레스 패턴·심상화 마인드 트레이닝',
+    '천이궁 주성 분석 — 사회적 페르소나·퍼스널 브랜딩·외부 활동 황금 타이밍',
+    '관록궁 주성 분석 — 업무 성향 DNA·천직 영역·오피스 심리학·커리어 도약 타이밍',
+    '재백궁 주성 분석 — 재물 그릇·수입 파이프라인·파재성 역이용·황금 타이밍',
+    '부처궁 주성 분석 — 이상형 아키타입·투사 패턴·바운더리 설정·인연 타이밍',
+    '교우궁 주성 분석 — 귀인 구별법·에너지 뱀파이어 차단·위임과 아웃소싱 전략',
+    '전택궁 주성 분석 — 공간 심리학·인테리어 무드·미니멀리즘 정리법·자산 전략',
+    '질액궁 주성 분석 — 오행 체질·스트레스 신체화 패턴·라이프스타일 의학 가이드',
+    '현재 대한 완전 해독 — 상승장/하락장 전략 + 전 생애 파노라마 + 황금 대한 지목',
+    '2026 소한 완전 해독 — Go/Hold/Retreat 판정 · 분기별·월별 마이크로 전술 로드맵',
+    '13챕터 총결산 — 3가지 핵심 비책 · Master Habit · 거장의 천명 봉서(封書)',
   ];
 
   var LOADING_MSGS = [
-    '명궁(命宮) 좌표를 탐색하고 주성의 기운을 해독하는 중...',
-    '신궁(身宮) 내면의 별자리를 읽고 잠재 에너지를 분석하는 중...',
-    '12궁 전체 배치와 화록·화권·화과·화기 흐름을 매핑하는 중...',
-    '자미·천부·태양·태음 주성의 천명 코드를 해독하는 중...',
-    '관록궁의 천직 좌표와 성공 방정식을 계산하는 중...',
-    '재백궁의 부(富)의 그릇과 재물 법칙을 탐색하는 중...',
-    '부처궁의 인연 구조와 운명의 파트너 기질을 분석하는 중...',
-    '살성과 화성의 역학 — 도전이 기회가 되는 순간을 포착하는 중...',
-    '대한(大限) 10년 흐름과 현재 대한을 정밀 분석하는 중...',
-    '천이궁·복덕궁의 이동운과 영적 복덕을 해독하는 중...',
-    '2026 소한(小限) 12궁 로드맵을 작성하는 중...',
-    '전 생애 대한별 황금 타이밍 마스터플랜을 조망하는 중...',
-    '천명 총결산 — 황실이 봉인한 비전의 최종章을 집필하는 중...',
+    '명궁(命宮) 주성의 캐릭터 아키타입을 해독하는 중...',
+    '신궁(身宮) 내면의 본체와 잠재 무기를 분석하는 중...',
+    '복덕궁(福德宮)의 행복 DNA와 심상화 코드를 분석하는 중...',
+    '천이궁(遷移宮)의 퍼스널 브랜드 기운을 탐색하는 중...',
+    '관록궁(官祿宮)의 천직 방정식을 계산하는 중...',
+    '재백궁(財帛宮)의 재물 그릇과 부의 흐름을 읽는 중...',
+    '부처궁(夫妻宮)의 인연 구조와 사랑의 거울을 해독하는 중...',
+    '교우궁(交友宮)의 귀인 지도와 네트워크 전략을 탐색하는 중...',
+    '전택궁(田宅宮)의 공간 에너지와 자산 라인을 분석하는 중...',
+    '질액궁(疾厄宮)의 신체 에너지 바이오리듬을 해독하는 중...',
+    '대한(大限) 10년 흐름과 전 생애 파노라마를 펼치는 중...',
+    '2026 소한(小限) 월별 마이크로 전술을 로드맵으로 구성하는 중...',
+    '인생 설계도 총결산 — 거장의 마스터플랜 봉서를 집필하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -394,8 +394,9 @@
       } catch (_dpE) {}
     }
     if (!profile) {
+      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
       if (window.__cdAdminBypass) {
-        // 관리자 바이패스 모드: 시작 화면으로 진행 가능
+        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
       } else {
         var _zbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
         if (_zbFormEl) { try { _zbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
@@ -434,7 +435,7 @@
       return;
     }
 
-    _chapters = Array(13).fill(null);
+    _chapters = Array(12).fill(null);
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
@@ -519,6 +520,20 @@
       try { window.computeProfileForModal(profile); } catch (_cpE) {}
     }
     var ziweiData = _collectZiweiData();
+    // 서버 계산을 위한 생년월일 파라미터 추출
+    var _zbProfile = (function () {
+      var _p = window.__cdActiveBirthProfile || {};
+      var _s = window.__destinyFlowerSajuSnapshot || {};
+      var _b = _p.birth || _s.birth || {};
+      return {
+        birthYear:  _b.year  || 0,
+        birthMonth: _b.month || 0,
+        birthDay:   _b.day   || 0,
+        birthHour:  (_b.hour !== undefined && _b.hour !== null) ? _b.hour : -1,
+        gender: _p.gender || _s.gender || '',
+        name:   _p.name   || _s.name   || '사용자',
+      };
+    })();
 
     if (!ziweiData || ziweiData.length < 20) {
       _generating = false;
@@ -562,11 +577,11 @@
     if (chDots[0]) chDots[0].classList.add('zb-ch-dot--active');
 
     function _setProgress(done) {
-      var pct = (done / 13) * 100;
+      var pct = (done / 12) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
       if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
+      if (chapterMsg && done >= 12) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-zbch'));
@@ -589,7 +604,16 @@
         fetch('/api/ziwei-book/session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: idx + 1, ziweiData: ziweiData }),
+          body: JSON.stringify({
+            sessionId:   idx + 1,
+            ziweiData:   ziweiData,
+            birthYear:   _zbProfile.birthYear,
+            birthMonth:  _zbProfile.birthMonth,
+            birthDay:    _zbProfile.birthDay,
+            birthHour:   _zbProfile.birthHour,
+            gender:      _zbProfile.gender,
+            name:        _zbProfile.name,
+          }),
         })
           .then(function (res) {
             if (!res.ok) return res.json().catch(function () { return {}; }).then(function (e) {
@@ -659,7 +683,7 @@
     var issued = new Date().toLocaleDateString('ko-KR');
 
     var bodyHtml = '';
-    for (var i = 0; i < 13; i++) {
+      for (var i = 0; i < 13; i++) {
       if (!_chapters[i]) continue;
       bodyHtml +=
         '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
