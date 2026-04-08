@@ -31,7 +31,34 @@
     "일주": "Day Pillar (Core Self)",
     "월주": "Month Pillar (Potential)",
     "년주": "Year Pillar (Ancestry)",
-    "시주": "Hour Pillar (Legacy)"
+    "시주": "Hour Pillar (Legacy)",
+    "자수": "Midnight Abyss (Rat·Water)",
+    "축토": "Iron Bedrock (Ox·Earth)",
+    "인목": "Sovereign Surge (Tiger·Wood)",
+    "묘목": "Dawn Canopy (Rabbit·Wood)",
+    "진토": "Celestial Throne (Dragon·Earth)",
+    "사화": "Hidden Ember (Snake·Fire)",
+    "오화": "Solar Blaze (Horse·Fire)",
+    "미토": "Pastoral Sanctuary (Goat·Earth)",
+    "신금": "Mercurial Edge (Monkey·Metal)",
+    "유금": "Crescent Steel (Rooster·Metal)",
+    "술토": "Guardian Threshold (Dog·Earth)",
+    "해수": "Primordial Spring (Boar·Water)"
+  },
+
+  "branches": {
+    "자수": { "label": "Midnight Abyss", "animal": "Rat · Water (子水)", "essence": "The Rat navigates the darkest waters with uncanny precision — resourceful, adaptable, and inexhaustibly deep. Midnight Abyss energy excels in hidden intelligence, financial acuity, and finding paths where none are visible." },
+    "축토": { "label": "Iron Bedrock", "animal": "Ox · Earth (丑土)", "essence": "The Ox endures what others cannot. Iron Bedrock represents immovable patience, the slow accumulation of power, and the quiet dignity of those who build empires through persistence rather than brilliance." },
+    "인목": { "label": "Sovereign Surge", "animal": "Tiger · Wood (寅木)", "essence": "The Tiger rules the primordial forest. Sovereign Surge energy is the archetype of commanding authority, fierce protectiveness, and upward momentum that cannot be held back — leadership by nature, not by choice." },
+    "묘목": { "label": "Dawn Canopy", "animal": "Rabbit · Wood (卯木)", "essence": "The Rabbit holds the energy of first light — gentle yet irresistible. Dawn Canopy represents social grace, artistic sensitivity, and the rare ability to flourish through softness rather than force." },
+    "진토": { "label": "Celestial Throne", "animal": "Dragon · Earth (辰土)", "essence": "The Dragon is the only mythic being among the twelve — celestial by nature, transformative by design. Celestial Throne energy radiates divine authority, and those who carry it are often perceived as extraordinary without knowing why." },
+    "사화": { "label": "Hidden Ember", "animal": "Snake · Fire (巳火)", "essence": "The Snake does not announce itself. Hidden Ember is the energy of deep wisdom accumulated in silence — mystical intelligence, slow-burning intensity, and the power of knowing more than you reveal." },
+    "오화": { "label": "Solar Blaze", "animal": "Horse · Fire (午火)", "essence": "The Horse is noon-sun energy — peak radiance, unrestrained momentum, passionate freedom. Solar Blaze personalities are magnetic, dynamic, and at their most powerful when running toward something they love." },
+    "미토": { "label": "Pastoral Sanctuary", "animal": "Goat · Earth (未土)", "essence": "The Goat carries the gentle magic of abundance without aggression — nurturing, harmonious, and deeply creative. Pastoral Sanctuary energy builds beautiful, lasting things and creates spaces where others feel safe." },
+    "신금": { "label": "Mercurial Edge", "animal": "Monkey · Metal (申金)", "essence": "The Monkey is the trickster-savant of the zodiac — brilliant, quick-witted, and endlessly adaptable. Mercurial Edge energy thrives in complexity, innovation, and situations that require both sharp intellect and flexible strategy." },
+    "유금": { "label": "Crescent Steel", "animal": "Rooster · Metal (酉金)", "essence": "The Rooster is precision incarnate — the herald of dawn, the keeper of punctuality. Crescent Steel energy manifests as disciplined excellence, refined discernment, and the rare gift of seeing what is truly valuable." },
+    "술토": { "label": "Guardian Threshold", "animal": "Dog · Earth (戌土)", "essence": "The Dog holds the most sacred post — guardian of the gate, keeper of loyalty. Guardian Threshold energy is the bedrock of trustworthiness, fierce protection of what matters, and unwavering moral integrity." },
+    "해수": { "label": "Primordial Spring", "animal": "Boar · Water (亥水)", "essence": "The Boar is the great generous current — primal, abundant, and wholly sincere. Primordial Spring energy carries the gift of limitless vitality and the deep well that never runs dry for those who remain pure in heart." }
   },
 
   "premium": {

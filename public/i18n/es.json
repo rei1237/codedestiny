@@ -27,7 +27,19 @@
     "운명의꽃": "Arquetipo Floral del Destino",
     "타로": "Tarot",
     "신살": "Indicadores Kármicos",
-    "공망": "Rama Vacía (Punto Ciego Kármico)"
+    "공망": "Rama Vacía (Punto Ciego Kármico)",
+    "자수": "Abismo Medianoche (Rata·Agua)",
+    "축토": "Roca de Hierro (Buey·Tierra)",
+    "인목": "Impulso Soberano (Tigre·Madera)",
+    "묘목": "Dosel del Alba (Conejo·Madera)",
+    "진토": "Trono Celestial (Dragón·Tierra)",
+    "사화": "Brasa Oculta (Serpiente·Fuego)",
+    "오화": "Llamarada Solar (Caballo·Fuego)",
+    "미토": "Santuario Pastoral (Cabra·Tierra)",
+    "신금": "Filo Mercurial (Mono·Metal)",
+    "유금": "Acero del Alba (Gallo·Metal)",
+    "술토": "Umbral Guardián (Perro·Tierra)",
+    "해수": "Manantial Primordial (Cerdo·Agua)"
   },
 
   "premium": {
