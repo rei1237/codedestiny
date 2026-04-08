@@ -36,37 +36,37 @@ const THEMES = {
   blossom: {
     name: "벚꽃",    folder: "벚꽃 컨셉",
     sky: "#87CEEB",  grass: "#7BC67E", accent: "#E8A0BF",
-    egg: "/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png",
+    egg: "/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃의 알.webp",
   },
   macaron: {
     name: "마카롱",  folder: "마카롱 컨셉",
     sky: "#91D4FF",  grass: "#81C97B", accent: "#FFD700",
-    egg: "/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 알.png",
+    egg: "/fuctionassets/tadagochi/마카롱 컨셉/마카롱 알.webp",
   },
   strawberry: {
     name: "딸기",    folder: "딸기 컨셉",
     sky: "#A3D8FF",  grass: "#7BC67E", accent: "#FF8C42",
-    egg: "/fuctionassets/tadagochi-local/딸기 컨셉/딸기 알-Photoroom.webp",
+    egg: "/fuctionassets/tadagochi/딸기 컨셉/딸기 알.webp",
   },
   space: {
     name: "우주",    folder: "우주 테마",
     sky: "#0d1b3e",  grass: "#0a2a1a", accent: "#a078ff",
-    egg: "/fuctionassets/tadagochi-local/우주 테마/우주 컨셉 알.png",
+    egg: "/fuctionassets/tadagochi/우주 테마/우주 컨셉 알.webp",
   },
   blackstar: {
     name: "검은별",  folder: "검은 별 컨셉",
     sky: "#1c1c2e",  grass: "#1a2a1e", accent: "#FF8C42",
-    egg: "/fuctionassets/tadagochi-local/검은 별 컨셉/검은별 알-Photoroom.png",
+    egg: "/fuctionassets/tadagochi/검은 별 컨셉/검은별 알-Photoroom.png",
   },
   moon: {
     name: "달",      folder: "달 컨셉",
     sky: "#1a1a4e",  grass: "#1e3a5a", accent: "#C0C0FF",
-    egg: "/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 알.png",
+    egg: "/fuctionassets/tadagochi/달 컨셉/달 컨셉 알.png",
   },
   angel: {
     name: "천사",    folder: "천사 컨셉",
     sky: "#dff0ff",  grass: "#c8f0d8", accent: "#ffe4f0",
-    egg: "/fuctionassets/tadagochi-local/천사 컨셉/천사 알-Photoroom.webp",
+    egg: "/fuctionassets/tadagochi/천사 컨셉/천사 알-Photoroom.webp",
   },
 };
 
@@ -377,15 +377,50 @@ function getPoseCoords(sheet, poseName) {
   return map[poseName] || [0, 0];
 }
 
+function buildFilenameVariants(fileName) {
+  const set = new Set([fileName]);
+  const dePhoto = fileName
+    .replace(/-Photoroom/gi, "")
+    .replace(/\s+Photoroom/gi, "")
+    .replace(/\s*\(1\)/g, "");
+  set.add(dePhoto);
+  set.add(dePhoto.replace(/\.png$/i, ".webp"));
+  set.add(dePhoto.replace(/\.webp$/i, ".png"));
+  set.add(fileName.replace(/\.png$/i, ".webp"));
+  set.add(fileName.replace(/\.webp$/i, ".png"));
+  return Array.from(set).filter(Boolean);
+}
+
+function buildAssetCandidates(folder, fileName) {
+  const bases = ["/fuctionassets/tadagochi", "/fuctionassets/tadagochi-local"];
+  const names = buildFilenameVariants(fileName);
+  const out = [];
+  const dedupe = new Set();
+  for (const base of bases) {
+    for (const name of names) {
+      const encoded = encodeURI(`${base}/${folder}/${name}`);
+      if (!dedupe.has(encoded)) {
+        dedupe.add(encoded);
+        out.push(encoded);
+      }
+    }
+  }
+  return out;
+}
+
 // ── 시트 배열 조회 (테마+동물 → url 포함 시트 배열) ──────────────────────────
 function getAnimalSheets(themeKey, animalKey) {
   const safe   = normalizeThemeKey(themeKey, null) || "blossom";
   const folder = THEMES[safe]?.folder || "벚꽃 컨셉";
   const defs   = SPRITE_SHEETS[safe]?.[animalKey] || SPRITE_SHEETS.blossom?.[animalKey] || [];
-  return defs.map(s => ({
-    ...s,
-    url: encodeURI(`/fuctionassets/tadagochi-local/${folder}/${s.f}`),
-  }));
+  return defs.map(s => {
+    const candidates = buildAssetCandidates(folder, s.f);
+    return {
+      ...s,
+      url: candidates[0],
+      bgImage: candidates.map(u => `url("${u}")`).join(", "),
+    };
+  });
 }
 
 // ── 액션 시퀀스 빌드 ──────────────────────────────────────────────────────────
@@ -773,7 +808,7 @@ function vibrate(ms = 20) {
 
 // 이미지 로드 실패 시 벚꽃 알 폴백
 function imgFail(e) {
-  const fallback = "/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png";
+  const fallback = "/fuctionassets/tadagochi/벚꽃 컨셉/벚꽃의 알.webp";
   if (e.currentTarget.src !== fallback) {
     e.currentTarget.src = fallback;
   }
@@ -857,7 +892,7 @@ function CharacterSprite({ themeKey, animalKey, action = "idle", size = 240 }) {
       className={`sprite-bg ${animClass}`}
       style={{
         width: `min(${size}px,58vw)`, height: `min(${size}px,58vw)`,
-        backgroundImage: `url('${sh.url}')`,
+        backgroundImage: sh.bgImage || `url('${sh.url}')`,
         backgroundSize: `${sh.c * 100}% ${sh.r * 100}%`,
         backgroundPosition: `${xPct}% ${yPct}%`,
         backgroundRepeat: "no-repeat",

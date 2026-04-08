@@ -241,9 +241,10 @@ export default async function RootLayout({ children }) {
   const locale = detectLocaleFromPath(requestPath);
   const normalizedPath = normalizePathname(requestPath);
   const routeBasePath = stripLocalePrefix(normalizedPath);
+  const isDestinyEggStandalone = routeBasePath === "/destiny-egg";
   const canonicalLocalePath = locale.slug ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}` : routeBasePath;
   const canonicalHref = new URL(canonicalLocalePath, CANONICAL_ORIGIN).toString();
-  const hideFooter = false;
+  const hideFooter = isDestinyEggStandalone;
   const hreflangLinks = buildHreflangAlternates(requestPath);
   const jsonLd = buildJsonLd({ locale, canonicalHref });
 
@@ -278,41 +279,45 @@ export default async function RootLayout({ children }) {
         <AppVersionGuard />
         <WebVitalsConsole />
         <ToastProvider />
-        {/* 전역 인증 상태 헤더 */}
-        <header
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 16px",
-            height: "52px",
-            background: "rgba(7, 11, 31, 0.88)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
-          }}
-        >
-          <a
-            href="/"
-            style={{
-              fontWeight: 900,
-              fontSize: "16px",
-              letterSpacing: "-0.02em",
-              background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              textDecoration: "none",
-            }}
-          >
-            ✦ Code Destiny
-          </a>
-          <AuthWidget />
-        </header>
-        <DisclaimerBanner />
+        {!isDestinyEggStandalone && (
+          <>
+            {/* 전역 인증 상태 헤더 */}
+            <header
+              style={{
+                position: "sticky",
+                top: 0,
+                zIndex: 50,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 16px",
+                height: "52px",
+                background: "rgba(7, 11, 31, 0.88)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
+              }}
+            >
+              <a
+                href="/"
+                style={{
+                  fontWeight: 900,
+                  fontSize: "16px",
+                  letterSpacing: "-0.02em",
+                  background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  textDecoration: "none",
+                }}
+              >
+                ✦ Code Destiny
+              </a>
+              <AuthWidget />
+            </header>
+            <DisclaimerBanner />
+          </>
+        )}
         <div>{children}</div>
         {!hideFooter && <SiteFooterHub />}
       </body>

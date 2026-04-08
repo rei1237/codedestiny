@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 
-const DestinyEgg = dynamic(() => import('../../destiny_egg'), { ssr: false });
+const NintendoTamagotchiUI = dynamic(() => import('../components/tadagochi/NintendoTamagotchiUI'), { ssr: false });
 
 export default function DestinyEggPage() {
   useEffect(() => {
@@ -31,6 +31,11 @@ export default function DestinyEggPage() {
     };
   }, []);
 
-  return <DestinyEgg />;
+  return (
+    <NintendoTamagotchiUI
+      imagePath="/fuctionassets/tadagochi/검은 별 컨셉/별 컨셉 강아지.webp"
+      petName="Destiny Buddy"
+    />
+  );
 }
 
