@@ -641,27 +641,33 @@ export default function KkulkkulManseryukMain() {
               </div>
             </a>
 
-            {/* ── 카드: 베다 점성술 프리미엄 (COMING SOON) ── */}
-            <div
+            {/* ── 카드: 베다 점성술 프리미엄 ── */}
+            <a
+              href="#veda-premium"
+              onClick={e => { e.preventDefault(); document.getElementById("veda-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
                 background: "rgba(15,10,3,0.65)",
                 border: "1.5px solid rgba(251,146,60,0.28)",
                 boxShadow: "0 4px 24px rgba(234,88,12,0.08)",
-                cursor: "default", opacity: 0.82,
+                textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "pointer",
               }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(234,88,12,0.24)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(234,88,12,0.08)"; }}
             >
               <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/veda.webp" alt="베다 점성술 프리미엄"
+                <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
                   style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(15,10,3,0.90) 0%, transparent 55%)" }} />
                 <span style={{
                   position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(234,88,12,0.75)", color: "#fff",
+                  background: "rgba(234,88,12,0.9)", color: "#fff",
                   fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
                   padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>COMING SOON</span>
+                }}>PREMIUM</span>
               </div>
               <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <p style={{ color: "rgba(253,186,116,0.60)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>베다 점성술 · Vedic Astrology Premium</p>
@@ -670,14 +676,14 @@ export default function KkulkkulManseryukMain() {
                 <div style={{ marginTop: "auto", paddingTop: "10px" }}>
                   <span style={{
                     display: "inline-block",
-                    background: "rgba(234,88,12,0.08)",
-                    border: "1px solid rgba(251,146,60,0.22)",
-                    color: "rgba(253,186,116,0.55)", fontWeight: 600, fontSize: "0.72rem",
+                    background: "linear-gradient(135deg, rgba(234,88,12,0.24), rgba(253,186,116,0.12))",
+                    border: "1px solid rgba(251,146,60,0.45)",
+                    color: "rgba(253,186,116,1)", fontWeight: 700, fontSize: "0.72rem",
                     padding: "6px 14px", borderRadius: "10px",
-                  }}>🔒 준비 중</span>
+                  }}>✦ 1회 290코인</span>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
         </section>
 
