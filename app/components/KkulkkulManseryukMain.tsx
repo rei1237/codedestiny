@@ -628,7 +628,7 @@ export default function KkulkkulManseryukMain() {
               <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>숙요점 · Moonlight Strategy</p>
                 <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>달빛 전략 리포트</p>
-                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 27수 완전 分析 · 6대 관계 역학 · 달의 주기 전략</p>
+                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 27수 완전 분석 · 6대 관계 역학 · 달의 주기 전략</p>
                 <div style={{ marginTop: "auto", paddingTop: "10px" }}>
                   <span style={{
                     display: "inline-block",

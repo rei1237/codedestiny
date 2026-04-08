@@ -5043,7 +5043,7 @@ function ChapterYunnyeonCalendar({ step, result, onRequest }: {
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 rounded-2xl flex items-center justify-center text-2xl" style={{ width: "52px", height: "52px", background: "rgba(14,165,233,0.10)", border: "1px solid rgba(56,189,248,0.28)" }}>📅</div>
           <div>
-            <p className="uppercase tracking-[0.2em] font-medium" style={{ color: "rgba(56,189,248,0.62)", fontSize: "0.65rem" }}>유년 · 유월 分析 · Unlock</p>
+            <p className="uppercase tracking-[0.2em] font-medium" style={{ color: "rgba(56,189,248,0.62)", fontSize: "0.65rem" }}>유년 · 유월 분석 · Unlock</p>
             <p className="font-bold tracking-[0.04em] text-white" style={{ fontSize: "1.05rem", marginTop: "2px" }}>올해의 마이크로 전술</p>
           </div>
         </div>
@@ -5213,7 +5213,7 @@ function ChapterTreeNode({ step, result, onRequest }: {
         <div className="absolute inset-0 flex items-center justify-center text-3xl">🌳</div>
       </div>
       <div className="text-center">
-        <p className="font-bold tracking-[0.22em]" style={{ color: "rgba(196,181,253,0.9)", fontSize: "0.85rem" }}>수직 관계망 分析 중</p>
+        <p className="font-bold tracking-[0.22em]" style={{ color: "rgba(196,181,253,0.9)", fontSize: "0.85rem" }}>수직 관계망 분석 중</p>
         <p className="mt-2" style={{ color: "rgba(148,163,184,0.5)", fontSize: "0.75rem" }}>부모궁·자녀궁 에너지를 인터랙티브 트리로 구성합니다…</p>
       </div>
     </div>
@@ -5243,7 +5243,7 @@ function ChapterTreeNode({ step, result, onRequest }: {
         <div className="px-6 pt-7 pb-4" style={{ borderBottom: "1px solid rgba(139,92,246,0.09)", background: "linear-gradient(135deg, rgba(109,40,217,0.08) 0%, rgba(99,102,241,0.04) 100%)" }}>
           <p className="uppercase tracking-[0.25em] font-medium" style={{ color: "rgba(196,181,253,0.6)", fontSize: "0.68rem" }}>수직 관계망 · VERTICAL NETWORK</p>
           <h3 className="mt-2 font-black text-white" style={{ fontSize: "clamp(1.4rem,3.5vw,1.9rem)", lineHeight: 1.3 }}>상하관계와 처세술</h3>
-          <p className="mt-1.5 font-light" style={{ color: "rgba(196,181,253,0.5)", fontSize: "0.88rem" }}>각 노드를 클릭하면 상세 分析을 볼 수 있습니다</p>
+          <p className="mt-1.5 font-light" style={{ color: "rgba(196,181,253,0.5)", fontSize: "0.88rem" }}>각 노드를 클릭하면 상세 분석을 볼 수 있습니다</p>
         </div>
 
         {/* ── 트리 다이어그램 ── */}
@@ -5363,7 +5363,7 @@ function ChapterTreeNode({ step, result, onRequest }: {
       <div className="px-6 py-5">
         <button type="button" onClick={onRequest} className="w-full rounded-2xl px-6 py-4 font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
           style={{ background: "linear-gradient(135deg, #1e0a3c 0%, #5b21b6 50%, #7c3aed 100%)", boxShadow: "0 8px 28px rgba(139,92,246,0.30)", letterSpacing: "0.08em", fontSize: "0.95rem" }}>
-          🌳 수직 관계망 分析 열기
+          🌳 수직 관계망 분석 열기
         </button>
       </div>
     </div>
@@ -6487,7 +6487,7 @@ export default function HPremiumZiweiSection() {
         <div className="flex items-center gap-3 mt-2">
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(99,179,237,0.4))" }} />
           <span className="text-xs font-bold tracking-[0.22em] uppercase"
-            style={{ color: "rgba(99,179,237,0.55)" }}>심화 分析 · 대한 Mega Trend</span>
+            style={{ color: "rgba(99,179,237,0.55)" }}>심화 분석 · 대한 Mega Trend</span>
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(99,179,237,0.4), transparent)" }} />
         </div>
         <ChapterDaehanMegaTrend
@@ -6496,10 +6496,10 @@ export default function HPremiumZiweiSection() {
           onRequest={handleChapterDaehan}
         />
 
-        {/* ── 심화 分析 · 유년 마이크로 전술 ───────────────────────── */}
+        {/* ── 심화 분석 · 유년 마이크로 전술 ───────────────────────── */}
         <div className="flex items-center gap-3 mt-2">
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(56,189,248,0.38))" }} />
-          <span className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: "rgba(56,189,248,0.55)" }}>심화 分析 · 유년 Micro Tactics</span>
+          <span className="text-xs font-bold tracking-[0.22em] uppercase" style={{ color: "rgba(56,189,248,0.55)" }}>심화 분석 · 유년 Micro Tactics</span>
           <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(56,189,248,0.38), transparent)" }} />
         </div>
         <ChapterYunnyeonCalendar
