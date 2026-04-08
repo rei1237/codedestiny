@@ -190,6 +190,15 @@ export async function POST(request) {
       );
     }
 
+    // KASI 서비스 키 미설정 시 클라이언트가 조용히 로컬 폴백을 쓰도록 200 빈 응답 반환
+    // (maintenance 토스트 없이 lunar-javascript 로컬 계산으로 자동 전환됨)
+    if (!KASI_SERVICE_KEY) {
+      return NextResponse.json(
+        { ok: true, method, rows: [], cache: { hit: false, layer: "none" }, fallbackRecommended: true },
+        { status: 200 },
+      );
+    }
+
     const key    = _cacheKey(method, params);
     const cached = _getCache(key);
     if (cached) {
