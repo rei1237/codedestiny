@@ -554,7 +554,7 @@ export default function KkulkkulManseryukMain() {
                     border: "1px solid rgba(251,191,36,0.45)",
                     color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.72rem",
                     padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 지금 분析하기</span>
+                  }}>✦ 1회 390코인</span>
                 </div>
               </div>
             </a>
@@ -636,54 +636,48 @@ export default function KkulkkulManseryukMain() {
                     border: "1px solid rgba(125,211,252,0.38)",
                     color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.72rem",
                     padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 지금 分析하기</span>
+                  }}>✦ 1회 390코인</span>
                 </div>
               </div>
             </a>
 
-            {/* ── 카드: 베다 점성술 프리미엄 ── */}
-            <a
-              href="#veda-premium"
-              onClick={e => { e.preventDefault(); document.getElementById("veda-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+            {/* ── 카드: 베다 점성술 프리미엄 (COMING SOON) ── */}
+            <div
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
-                background: "rgba(4,3,15,0.70)",
-                border: "1.5px solid rgba(212,160,23,0.42)",
-                boxShadow: "0 4px 24px rgba(212,160,23,0.10)",
-                textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                cursor: "pointer",
+                background: "rgba(15,10,3,0.65)",
+                border: "1.5px solid rgba(251,146,60,0.28)",
+                boxShadow: "0 4px 24px rgba(234,88,12,0.08)",
+                cursor: "default", opacity: 0.82,
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(212,160,23,0.28)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(212,160,23,0.10)"; }}
             >
               <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/premium veda.jpg" alt="베다 점성술 프리미엄"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(4,3,15,0.88) 0%, transparent 60%)" }} />
+                <img src="/fuctionassets/veda.webp" alt="베다 점성술 프리미엄"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(15,10,3,0.90) 0%, transparent 55%)" }} />
                 <span style={{
                   position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(180,120,10,0.90)", color: "#fff",
+                  background: "rgba(234,88,12,0.75)", color: "#fff",
                   fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
                   padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>PREMIUM</span>
+                }}>COMING SOON</span>
               </div>
               <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(212,160,23,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>베다 점성술 · Jyotish Master</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>Karmic Blueprint</p>
-                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>12챕터 · Lahiri 사이드리얼 · 카르마 청사진</p>
+                <p style={{ color: "rgba(253,186,116,0.60)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>베다 점성술 · Vedic Astrology Premium</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>🪷 베다 인생 총람 리포트</p>
+                <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도</p>
                 <div style={{ marginTop: "auto", paddingTop: "10px" }}>
                   <span style={{
                     display: "inline-block",
-                    background: "linear-gradient(135deg, rgba(100,60,5,0.3), rgba(60,30,80,0.2))",
-                    border: "1px solid rgba(212,160,23,0.45)",
-                    color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.72rem",
+                    background: "rgba(234,88,12,0.08)",
+                    border: "1px solid rgba(251,146,60,0.22)",
+                    color: "rgba(253,186,116,0.55)", fontWeight: 600, fontSize: "0.72rem",
                     padding: "6px 14px", borderRadius: "10px",
-                  }}>🕉️ 카르마 청사진</span>
+                  }}>🔒 준비 중</span>
                 </div>
               </div>
-            </a>
+            </div>
           </div>
         </section>
 
