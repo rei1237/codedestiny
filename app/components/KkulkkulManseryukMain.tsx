@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import HPremiumZiweiSection from "./HPremiumZiweiSection";
+import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
+import HPremiumAstrologySection from "./HPremiumAstrologySection";
+import HPremiumVedicSection from "./HPremiumVedicSection";
 
 type LockedSectionProps = {
   title: string;
@@ -423,12 +426,11 @@ export default function KkulkkulManseryukMain() {
           </div>
 
           {/* 카드 그리드 */}
-          <div style={{ padding: "20px 16px 24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}
+          <div style={{ padding: "20px 16px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}
             className="premium-card-grid"
           >
             <style>{`
               @media(max-width:600px){.premium-card-grid{grid-template-columns:1fr!important}}
-              @media(min-width:601px) and (max-width:900px){.premium-card-grid{grid-template-columns:1fr 1fr!important}}
             `}</style>
 
             {/* ── 카드 1: H 프리미엄 자미두수 ── */}
@@ -513,7 +515,51 @@ export default function KkulkkulManseryukMain() {
               </div>
             </div>
 
-            {/* ── 카드 3: 연애 비책 ── */}
+            {/* ── 카드 3: 점성술 프리미엄 리포트 ── */}
+            <a
+              href="#astrology-premium"
+              onClick={e => { e.preventDefault(); document.getElementById("astrology-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(7,4,25,0.65)",
+                border: "1.5px solid rgba(251,191,36,0.35)",
+                boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
+                textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(251,191,36,0.28)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(251,191,36,0.12)"; }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,4,25,0.85) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(251,191,36,0.85)", color: "#1a1200",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>PREMIUM</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(253,230,138,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>점성술 · Astrology Premium</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>점성술 프리미엄 리포트</p>
+                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>12챕터 · ASC/Sun/Moon 입체 분析 · 서양 열대황도 전문 엔진 · AI 심층 해석</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(253,230,138,0.12))",
+                    border: "1px solid rgba(251,191,36,0.45)",
+                    color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.72rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>✦ 지금 분析하기</span>
+                </div>
+              </div>
+            </a>
+
+            {/* ── 카드 4: 연애 비책 ── */}
             <div
               style={{
                 display: "flex", flexDirection: "column",
@@ -550,12 +596,115 @@ export default function KkulkkulManseryukMain() {
                 </div>
               </div>
             </div>
+
+            {/* ── 카드 4: 숙요점 프리미엄 ── */}
+            <a
+              href="#sukuyo-premium"
+              onClick={e => { e.preventDefault(); document.getElementById("sukuyo-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(2,8,23,0.65)",
+                border: "1.5px solid rgba(125,211,252,0.35)",
+                boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
+                textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(14,165,233,0.28)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(14,165,233,0.12)"; }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(2,8,23,0.88) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(14,165,233,0.85)", color: "#fff",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>PREMIUM</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>숙요점 · Moonlight Strategy</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>달빛 전략 리포트</p>
+                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 27수 완전 分析 · 6대 관계 역학 · 달의 주기 전략</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, rgba(2,44,84,0.3), rgba(30,27,75,0.2))",
+                    border: "1px solid rgba(125,211,252,0.38)",
+                    color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.72rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>✦ 지금 分析하기</span>
+                </div>
+              </div>
+            </a>
+
+            {/* ── 카드: 베다 점성술 프리미엄 ── */}
+            <a
+              href="#veda-premium"
+              onClick={e => { e.preventDefault(); document.getElementById("veda-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              style={{
+                display: "flex", flexDirection: "column",
+                borderRadius: "18px", overflow: "hidden",
+                background: "rgba(4,3,15,0.70)",
+                border: "1.5px solid rgba(212,160,23,0.42)",
+                boxShadow: "0 4px 24px rgba(212,160,23,0.10)",
+                textDecoration: "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(212,160,23,0.28)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(212,160,23,0.10)"; }}
+            >
+              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
+                <img src="/fuctionassets/premium veda.jpg" alt="베다 점성술 프리미엄"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(4,3,15,0.88) 0%, transparent 60%)" }} />
+                <span style={{
+                  position: "absolute", top: "10px", left: "10px",
+                  background: "rgba(180,120,10,0.90)", color: "#fff",
+                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
+                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
+                }}>PREMIUM</span>
+              </div>
+              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ color: "rgba(212,160,23,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>베다 점성술 · Jyotish Master</p>
+                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>Karmic Blueprint</p>
+                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>12챕터 · Lahiri 사이드리얼 · 카르마 청사진</p>
+                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
+                  <span style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, rgba(100,60,5,0.3), rgba(60,30,80,0.2))",
+                    border: "1px solid rgba(212,160,23,0.45)",
+                    color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.72rem",
+                    padding: "6px 14px", borderRadius: "10px",
+                  }}>🕉️ 카르마 청사진</span>
+                </div>
+              </div>
+            </a>
           </div>
         </section>
 
         {/* ─── H PREMIUM 자미두수 인생 총론 ─── */}
         <div id="ziwei-premium">
           <HPremiumZiweiSection />
+        </div>
+
+        {/* ─── 점성술 프리미엄 리포트 ─── */}
+        <div id="astrology-premium">
+          <HPremiumAstrologySection />
+        </div>
+
+        {/* ─── 숙요점 달빛 전략 리포트 ─── */}
+        <div id="sukuyo-premium">
+          <HPremiumSukuyoSection />
+        </div>
+
+        {/* ─── 베다 점성술 프리미엄 — Karmic Blueprint ─── */}
+        <div id="veda-premium">
+          <HPremiumVedicSection />
         </div>
 
         {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
