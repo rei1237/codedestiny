@@ -268,18 +268,9 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
       <p id="today-info" style="text-align:center;font-size:10.5px;color:var(--text3);letter-spacing:.04em;padding-bottom:.8rem"></p>
     </div>
 
-    <!-- ─── ITEMS TAB ─── -->
+    <!-- ─── ITEMS TAB (가챠) ─── -->
     <div class="tab" id="tab-items">
-      <div style="text-align:center;margin-bottom:.85rem;padding-top:.2rem">
-        <div class="section-title" style="justify-content:center">✦ 오늘의 행운 아이템</div>
-        <p style="font-size:11px;color:var(--text3)">운세를 확인하면 아이템이 나타나요</p>
-      </div>
-      <div id="items-list">
-        <div style="text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px">
-          <div style="font-size:36px;margin-bottom:.8rem">🔮</div>
-          먼저 운세를 확인해보세요
-        </div>
-      </div>
+      <div id="gacha-ui"></div>
     </div>
 
     <!-- ─── INTIMACY TAB ─── -->
@@ -308,7 +299,7 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
     </button>
     <button class="nb" id="nb-items" onclick="switchTab('items')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-      행운템
+      가챠
     </button>
     <button class="nb" id="nb-intimacy" onclick="switchTab('intimacy')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -358,12 +349,50 @@ const ANIM_MAP = {
 };
 const TODAY = () => new Date().toISOString().split('T')[0];
 
+// ─── 가챠 아이템 풀 ────────────────────────────
+const GACHA_COST = 5;
+const GACHA_POOL = [
+  // ★★★★ 레전더리 (5%)
+  {grade:4,emoji:'🐉',name:'황룡 비늘',  category:'레전더리',desc:'황룡의 힘이 깃든 최강의 부적',    effect:'모든 운 대폭 상승'},
+  {grade:4,emoji:'⭐',name:'황금 별자리', category:'레전더리',desc:'별들의 총집합 에너지',            effect:'소원 성취 극대화'},
+  {grade:4,emoji:'🌈',name:'무지개 수정', category:'레전더리',desc:'7색 에너지의 집결체',            effect:'전체 운 최대 상승'},
+  {grade:4,emoji:'🦋',name:'황금 나비',   category:'레전더리',desc:'변화와 성공의 최고 상징',        effect:'큰 변화 · 행운 초대'},
+  // ★★★ 에픽 (15%)
+  {grade:3,emoji:'💎',name:'다이아원석',  category:'에픽',desc:'강력한 재물 끌어당기는 원석',       effect:'재물운 강력 상승'},
+  {grade:3,emoji:'🌙',name:'월광 수정',   category:'에픽',desc:'달의 신비로운 에너지를 담은 수정',  effect:'직관력 및 사랑운 상승'},
+  {grade:3,emoji:'🔮',name:'예언 구슬',   category:'에픽',desc:'미래를 보는 신비한 힘이 깃든 구슬', effect:'판단력 및 직관 강화'},
+  {grade:3,emoji:'🌺',name:'오색 연꽃',   category:'에픽',desc:'신성한 연꽃의 정화 에너지',        effect:'심신 정화 · 건강운 상승'},
+  {grade:3,emoji:'🏮',name:'황금 등불',   category:'에픽',desc:'어둠을 밝히는 번영의 등불',         effect:'직업운 · 명예 상승'},
+  // ★★ 레어 (30%)
+  {grade:2,emoji:'🌊',name:'용왕 구슬',   category:'레어',desc:'깊은 바다의 지혜가 담긴 구슬',    effect:'지혜와 통찰력 강화'},
+  {grade:2,emoji:'🌸',name:'복숭아 꽃잎', category:'레어',desc:'연애운을 강화하는 신비한 꽃잎',   effect:'사랑의 인연 강화'},
+  {grade:2,emoji:'💫',name:'유성 조각',   category:'레어',desc:'소원을 들어주는 유성의 파편',      effect:'소원 성취 기운 상승'},
+  {grade:2,emoji:'🐠',name:'행운 물고기', category:'레어',desc:'풍요와 번영을 상징하는 물고기',   effect:'재물과 번영 기운 상승'},
+  {grade:2,emoji:'🌿',name:'비취 구슬',   category:'레어',desc:'건강과 장수의 기운이 담긴 비취',  effect:'건강운 상승'},
+  {grade:2,emoji:'🎴',name:'봉황 부채',   category:'레어',desc:'봉황의 기운을 담은 행운 부채',    effect:'귀인 만남 · 기회 증가'},
+  // ★ 커먼 (50%)
+  {grade:1,emoji:'🌹',name:'빨간 장미',   category:'커먼',desc:'사랑의 기운을 담은 장미',          effect:'연애 에너지 소폭 상승'},
+  {grade:1,emoji:'🍀',name:'네잎 클로버', category:'커먼',desc:'행운의 상징 네잎 클로버',          effect:'전체 행운 소폭 상승'},
+  {grade:1,emoji:'🕯️',name:'백색 양초',   category:'커먼',desc:'마음을 정화하는 흰 양초',          effect:'집중력 상승'},
+  {grade:1,emoji:'🌸',name:'벚꽃 잎',     category:'커먼',desc:'새로운 시작을 알리는 꽃잎',        effect:'새로운 기회 기운'},
+  {grade:1,emoji:'🐟',name:'붉은 물고기', category:'커먼',desc:'번영의 기운을 담은 붉은 물고기',   effect:'번영 에너지 소폭 상승'},
+  {grade:1,emoji:'🌙',name:'달빛 돌',     category:'커먼',desc:'달의 고요한 에너지를 담은 돌',     effect:'직관 소폭 강화'},
+  {grade:1,emoji:'🍵',name:'향기 녹차',   category:'커먼',desc:'마음의 평화를 주는 녹차',          effect:'스트레스 해소'},
+  {grade:1,emoji:'🌿',name:'로즈마리',    category:'커먼',desc:'기억력과 집중력을 높이는 허브',    effect:'학업운 소폭 상승'},
+  {grade:1,emoji:'💐',name:'들꽃 다발',   category:'커먼',desc:'자연의 따뜻한 축복',              effect:'긍정 에너지 충전'},
+  {grade:1,emoji:'🌱',name:'새싹 씨앗',   category:'커먼',desc:'새로운 시작의 가능성 씨앗',        effect:'성장 기운 상승'},
+];
+const GACHA_GRADE_NAMES  = {4:'레전더리 ✦✦✦✦', 3:'에픽 ✦✦✦', 2:'레어 ✦✦', 1:'커먼 ✦'};
+const GACHA_GRADE_COLORS = {4:'#ffdd44', 3:'#c060ff', 2:'#4488ff', 1:'#88cc88'};
+
 let STATE = {
   coins: 0, intimacy: 0, totalReadings: 0,
   checkedIn: false, checkinDate: '',
   lastFortune: null, luckyItems: null,
   cat: '전체', tab: 'fortune',
-  questsDone: []
+  questsDone: [],
+  gachaHistory: [],
+  serverCoins: null,
 };
 
 function getLevel(pts) {
@@ -388,6 +417,54 @@ function loadState() {
       Object.assign(STATE, d);
     }
   } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+//  꽃돼지 코인 서버 연동
+// ═══════════════════════════════════════════
+function getAuthToken() {
+  const cookie = document.cookie.split(';').map(c => c.trim());
+  for (const c of cookie) {
+    if (c.startsWith('fortune_auth_token=')) {
+      try { return decodeURIComponent(c.slice('fortune_auth_token='.length)); } catch { return c.slice('fortune_auth_token='.length); }
+    }
+  }
+  return localStorage.getItem('fortune_auth_token') || null;
+}
+
+async function syncPigCoinBalance() {
+  const token = getAuthToken();
+  if (!token) return;
+  try {
+    const res = await fetch('/api/fortune/pig-coin/balance', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.ok && typeof d.user?.points === 'number') {
+      STATE.serverCoins = d.user.points;
+      updateUI();
+    }
+  } catch(e) {}
+}
+
+async function earnCheckinCoinsServer() {
+  const token = getAuthToken();
+  if (!token) return false;
+  try {
+    const res = await fetch('/api/fortune/pig-coin/earn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ reason: '포춘텔러 피쉬 일일 출석' })
+    });
+    const d = await res.json();
+    if (typeof d.user?.points === 'number') {
+      STATE.serverCoins = d.user.points;
+    }
+    return !!d.ok;
+  } catch(e) {
+    return false;
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -685,33 +762,158 @@ function shareResult() {
 }
 
 // ═══════════════════════════════════════════
-//  ITEMS TAB
+//  ITEMS TAB (가챠 시스템)
 // ═══════════════════════════════════════════
-function updateItemsTab() {
-  if (!STATE.luckyItems || !STATE.luckyItems.length) return;
-  const colors = [
-    'rgba(155,115,255,0.18)','rgba(65,45,160,0.16)','rgba(185,145,25,0.14)','rgba(30,130,185,0.14)'
-  ];
-  const borders = [
-    'rgba(155,115,255,0.32)','rgba(105,80,215,0.28)','rgba(195,155,35,0.28)','rgba(50,145,215,0.28)'
-  ];
-  document.getElementById('items-list').innerHTML = `
-    <div style="margin-bottom:.65rem">
-      ${STATE.luckyItems.map((it,i) => `
-        <div class="gc" style="border-color:${borders[i%4]};background:linear-gradient(135deg,rgba(14,18,50,0.92),${colors[i%4]});display:flex;align-items:flex-start;gap:12px;margin-bottom:8px">
-          <div style="font-size:28px;flex-shrink:0;width:44px;text-align:center;margin-top:2px">${it.emoji}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:9px;letter-spacing:.15em;color:var(--text3);margin-bottom:3px">${it.category||''}</div>
-            <div style="font-size:14px;font-weight:700;color:rgba(225,205,170,0.92);margin-bottom:4px">${it.name}</div>
-            <div style="font-size:11.5px;color:rgba(180,160,215,0.6);line-height:1.6;margin-bottom:5px">${it.desc}</div>
-            <div style="display:inline-flex;align-items:center;gap:4px;background:rgba(50,30,90,0.5);border-radius:12px;padding:3px 9px;border:1px solid rgba(120,90,195,0.25)">
-              <span style="font-size:9.5px;color:rgba(165,145,220,0.55)">효과</span>
-              <span style="font-size:10px;font-weight:600;color:rgba(210,190,255,0.85)">${it.effect||''}</span>
-            </div>
-          </div>
-        </div>`).join('')}
+function rollGacha() {
+  const r = Math.random() * 100;
+  let grade;
+  if (r < 5) grade = 4;
+  else if (r < 20) grade = 3;
+  else if (r < 50) grade = 2;
+  else grade = 1;
+  const pool = GACHA_POOL.filter(i => i.grade === grade);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function getDisplayCoins() {
+  // 로그인된 경우 꽃돼지 서버 코인 우선, 없으면 로컬 코인
+  return STATE.serverCoins !== null ? STATE.serverCoins : STATE.coins;
+}
+
+async function doGachaRoll() {
+  const avail = getDisplayCoins();
+  if (avail < GACHA_COST) {
+    showToast(`코인이 부족해요! 출석 체크로 코인을 모아보세요 🥺`);
+    return;
+  }
+
+  const token = getAuthToken();
+  if (token && STATE.serverCoins !== null && STATE.serverCoins >= GACHA_COST) {
+    // 서버(꽃돼지) 코인 차감
+    try {
+      const res = await fetch('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ cost: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha' })
+      });
+      const d = await res.json();
+      if (!d.ok) { showToast(d.message || '코인 차감 실패'); return; }
+      STATE.serverCoins = d.user.points;
+    } catch(e) {
+      showToast('서버 연결 실패. 로컬 코인으로 진행합니다.');
+      if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요 🥺`); return; }
+      STATE.coins -= GACHA_COST;
+      saveState();
+    }
+  } else {
+    // 로컬 코인 차감
+    if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요! 출석 체크로 코인을 모아보세요 🥺`); return; }
+    STATE.coins -= GACHA_COST;
+    saveState();
+  }
+
+  const result = rollGacha();
+  if (!STATE.gachaHistory) STATE.gachaHistory = [];
+  STATE.gachaHistory.unshift({ ...result, date: new Date().toLocaleString('ko-KR', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) });
+  if (STATE.gachaHistory.length > 20) STATE.gachaHistory = STATE.gachaHistory.slice(0, 20);
+  saveState();
+  updateUI();
+  showGachaResult(result);
+  renderItemsTab();
+}
+
+function showGachaResult(it) {
+  const col = GACHA_GRADE_COLORS[it.grade];
+  const gradeName = GACHA_GRADE_NAMES[it.grade];
+  const stars = '★'.repeat(it.grade) + '☆'.repeat(4 - it.grade);
+
+  document.getElementById('result-inner').innerHTML = `
+    <div style="text-align:center;margin-bottom:.9rem">
+      <div style="font-size:10px;letter-spacing:.22em;color:${col};margin-bottom:6px;text-shadow:0 0 8px ${col}60">${gradeName}</div>
+      <div style="font-size:60px;line-height:1.1;margin-bottom:.4rem;filter:drop-shadow(0 0 18px ${col}99)">${it.emoji}</div>
+      <div style="font-family:'Noto Serif KR',serif;font-size:20px;font-weight:700;color:${col};margin-bottom:4px;text-shadow:0 0 10px ${col}80">${it.name}</div>
+      <div style="font-size:15px;letter-spacing:3px;color:${col};margin-bottom:.5rem">${stars}</div>
+      <div style="display:inline-block;background:rgba(10,8,30,0.8);border:1px solid ${col}55;border-radius:10px;padding:.55rem 1rem;font-size:12px;color:rgba(230,210,175,0.85);line-height:1.65">${it.desc}</div>
+    </div>
+    <div style="text-align:center;background:rgba(20,10,50,0.7);border:1px solid ${col}40;border-radius:8px;padding:.6rem .9rem;margin-bottom:.9rem">
+      <div style="font-size:9.5px;color:var(--text3);margin-bottom:3px">✦ 아이템 효과</div>
+      <div style="font-size:13px;font-weight:700;color:${col}">${it.effect}</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeResult()" style="flex:1;padding:9px;border-radius:20px;border:1px solid rgba(120,90,185,0.35);background:rgba(22,14,52,0.65);color:rgba(190,165,240,0.72);font-size:12px" onmouseenter="this.style.background='rgba(35,22,75,0.8)'" onmouseleave="this.style.background='rgba(22,14,52,0.65)'">닫기</button>
+      <button onclick="closeResult();switchTab('items')" style="flex:1;padding:9px;border-radius:20px;border:1px solid ${col}66;background:linear-gradient(135deg,rgba(60,35,8,0.65),rgba(40,20,4,0.85));color:${col};font-size:12px">✦ 보관함 보기</button>
     </div>
   `;
+  const rc = document.getElementById('result-card');
+  rc.style.animation = 'none'; void rc.offsetWidth;
+  rc.style.animation = 'card-in .5s cubic-bezier(.34,1.56,.64,1) forwards';
+  document.getElementById('result-overlay').style.display = 'flex';
+}
+
+function renderItemsTab() {
+  const avail = getDisplayCoins();
+  const isLoggedIn = STATE.serverCoins !== null;
+  const history = STATE.gachaHistory || [];
+
+  const gradeCount = {1:0,2:0,3:0,4:0};
+  history.forEach(h => { if (gradeCount[h.grade] !== undefined) gradeCount[h.grade]++; });
+
+  document.getElementById('gacha-ui').innerHTML = `
+    <div style="text-align:center;margin-bottom:.75rem;padding-top:.3rem">
+      <div class="section-title" style="justify-content:center">🎰 행운 아이템 가챠</div>
+      <p style="font-size:11.5px;color:var(--text3);margin-bottom:.3rem">랜덤 행운 아이템 뽑기 · 1회 <span style="color:var(--gold2);font-weight:700">🪙${GACHA_COST}코인</span></p>
+      ${isLoggedIn
+        ? `<div style="font-size:10.5px;color:rgba(100,220,100,0.7);margin-bottom:.2rem">꽃꽃돼지 코인 잔액: <span style="color:var(--gold2);font-weight:700">🪙${STATE.serverCoins}</span></div>`
+        : `<div style="font-size:10px;color:var(--text3)">로컬 코인: 🪙${STATE.coins} · <a href="/login" style="color:rgba(160,130,240,0.7);text-decoration:none">로그인</a>하면 꽃꽃돼지 코인과 연동돼요</div>`
+      }
+    </div>
+
+    <!-- 뽑기 버튼 -->
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="position:relative;width:130px;height:130px;margin:0 auto .8rem;cursor:pointer" onclick="doGachaRoll()">
+        <div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(200,160,40,0.5);background:radial-gradient(circle at 35% 30%,rgba(80,50,120,0.9),rgba(20,10,50,0.97));display:flex;align-items:center;justify-content:center;font-size:54px;box-shadow:0 0 28px rgba(150,100,255,0.35),inset 0 0 20px rgba(100,60,200,0.2);transition:all .18s" onmouseenter="this.style.boxShadow='0 0 42px rgba(200,160,50,0.6),inset 0 0 28px rgba(150,100,255,0.3)'" onmouseleave="this.style.boxShadow='0 0 28px rgba(150,100,255,0.35),inset 0 0 20px rgba(100,60,200,0.2)'">🎰</div>
+      </div>
+      <button onclick="doGachaRoll()" style="padding:11px 34px;border-radius:22px;border:1.5px solid rgba(200,155,35,0.55);background:linear-gradient(135deg,rgba(80,52,8,0.75),rgba(50,30,4,0.9));color:rgba(245,210,95,.95);font-size:13.5px;font-weight:700;letter-spacing:.06em;box-shadow:0 0 16px rgba(200,150,30,0.25);transition:all .2s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">✦ 뽑기 (🪙${GACHA_COST})</button>
+    </div>
+
+    <!-- 등급 확률 -->
+    <div class="gc" style="margin-bottom:.8rem;padding:.75rem .9rem">
+      <div style="font-size:9.5px;letter-spacing:.18em;color:var(--text3);margin-bottom:.6rem">✦ 등급 확률</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">
+        ${[[4,'#ffdd44','레전더리','5%'],[3,'#c060ff','에픽','15%'],[2,'#4488ff','레어','30%'],[1,'#88cc88','커먼','50%']].map(([g,c,n,p])=>`
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(10,8,30,0.6);border:1px solid ${c}33;border-radius:6px;padding:.4rem .6rem">
+            <span style="font-size:9px;color:${c};min-width:48px;font-weight:700">${n}</span>
+            <span style="font-size:10px;color:rgba(200,180,240,.65);flex:1">${'★'.repeat(Number(g))}</span>
+            <span style="font-size:10px;color:${c};font-weight:700">${p}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- 뽑기 이력 -->
+    <div class="gc" style="margin-bottom:.85rem;padding:.75rem .9rem">
+      <div style="font-size:9.5px;letter-spacing:.18em;color:var(--text3);margin-bottom:.6rem">✦ 보관함 (최근 ${history.length}개)</div>
+      ${history.length === 0
+        ? `<div style="text-align:center;padding:1.4rem;color:var(--text3);font-size:12px">뽑기 이력이 없어요<br><span style="font-size:11px;opacity:.6">첫 뽑기에 도전해보세요!</span></div>`
+        : history.map(h => {
+            const c = GACHA_GRADE_COLORS[h.grade];
+            return `<div style="display:flex;align-items:center;gap:8px;padding:.38rem 0;border-bottom:1px solid rgba(115,78,195,0.1)">
+              <span style="font-size:20px">${h.emoji}</span>
+              <div style="flex:1;min-width:0">
+                <span style="font-size:11.5px;color:${c};font-weight:600">${h.name}</span>
+                <span style="font-size:10px;color:var(--text3);margin-left:5px">${GACHA_GRADE_NAMES[h.grade]?.split(' ')[0]}</span>
+              </div>
+              <span style="font-size:9.5px;color:var(--text3);white-space:nowrap">${h.date||''}</span>
+            </div>`;
+          }).join('')
+      }
+    </div>
+    <div style="padding-bottom:.8rem"></div>
+  `;
+}
+
+function updateItemsTab() {
+  // 운세 확인 후 구 로직 호환용 — 탭이 열려 있을 때만 갱신
+  if (STATE.tab === 'items') renderItemsTab();
 }
 
 // ═══════════════════════════════════════════
@@ -739,7 +941,7 @@ function renderIntimacy() {
     <div class="gc" style="margin-bottom:.85rem">
       <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.65rem">나의 기록</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
-        ${[['총 운세','#f0be38',STATE.totalReadings+'회'],['보유 코인','#a075ee','🪙'+STATE.coins],['친밀도','#78c8f0',STATE.intimacy+'점']].map(([l,c,v])=>`
+        ${[['총 운세','#f0be38',STATE.totalReadings+'회'],['보유 코인','#a075ee','🪙'+getDisplayCoins()],['친밀도','#78c8f0',STATE.intimacy+'점']].map(([l,c,v])=>`
           <div style="text-align:center;background:rgba(10,8,32,0.7);border-radius:8px;padding:.65rem .2rem">
             <div style="font-size:18px;font-weight:700;color:${c};margin-bottom:3px">${v}</div>
             <div style="font-size:10px;color:var(--text3)">${l}</div>
@@ -771,8 +973,9 @@ function renderRewards() {
   document.getElementById('rewards-content').innerHTML = `
     <div class="gc" style="border-color:var(--border2);text-align:center;margin-bottom:.85rem;padding:1.2rem">
       <div style="font-size:32px;margin-bottom:.4rem">🪙</div>
-      <div style="font-size:28px;font-weight:700;color:var(--gold2);margin-bottom:4px">${STATE.coins}</div>
-      <div style="font-size:10.5px;color:var(--text3)">보유 코인</div>
+      <div style="font-size:28px;font-weight:700;color:var(--gold2);margin-bottom:4px">${getDisplayCoins()}</div>
+      <div style="font-size:10.5px;color:var(--text3)">${STATE.serverCoins !== null ? '꽃꽃돼지 코인 잔액' : '로컬 코인 잔액'}</div>
+      ${STATE.serverCoins === null ? `<div style="font-size:10px;color:rgba(160,130,240,0.6);margin-top:3px"><a href="/login" style="color:rgba(160,130,240,0.7);text-decoration:none">로그인</a>하면 꽃꽃돼지 코인과 연동돼요</div>` : ''}
     </div>
 
     <div class="gc" style="margin-bottom:.85rem">
@@ -832,12 +1035,21 @@ function doCheckin() {
   if (STATE.checkedIn) return;
   STATE.checkedIn = true;
   STATE.checkinDate = TODAY();
-  STATE.coins = (STATE.coins||0) + 5;
+  STATE.coins = (STATE.coins||0) + GACHA_COST;
   STATE.intimacy = (STATE.intimacy||0) + 5;
   saveState();
   updateUI();
   renderRewards();
-  showToast('🪙 +5 코인 획득! 오늘도 행운이 가득하길 ✦');
+  showToast('🪙 +5 코인! 꽃꽃돼지 코인과 연동 중... ✦');
+
+  // 서버(꽃돼지 코인) 반영
+  earnCheckinCoinsServer().then(ok => {
+    if (ok) {
+      updateUI();
+      showToast('🪙 +5 꽃꽃돼지 코인 지급 완료! ✦');
+    }
+    renderRewards();
+  });
 }
 
 function spendCoins(c) {
@@ -853,7 +1065,11 @@ function spendCoins(c) {
 //  UI UPDATE
 // ═══════════════════════════════════════════
 function updateUI() {
-  document.getElementById('coin-display').textContent = '🪙 ' + STATE.coins;
+  const disp = getDisplayCoins();
+  document.getElementById('coin-display').textContent = '🪙 ' + disp;
+  document.getElementById('coin-display').title = STATE.serverCoins !== null
+    ? `꽃꽃돼지 코인: ${STATE.serverCoins}`
+    : `로컬 코인: ${STATE.coins}`;
   const lv = getLevel(STATE.intimacy);
   const badge = document.getElementById('lv-badge');
   badge.textContent = lv.lv;
@@ -877,7 +1093,7 @@ function switchTab(tab) {
   document.getElementById('nb-' + tab).classList.add('on');
   if (tab === 'intimacy') renderIntimacy();
   if (tab === 'rewards') renderRewards();
-  if (tab === 'items') updateItemsTab();
+  if (tab === 'items') renderItemsTab();
 }
 
 function showToast(msg) {
@@ -896,6 +1112,8 @@ function showToast(msg) {
 loadState();
 renderCats();
 updateUI();
+// 꽃돼지 코인 서버 잔액 동기화 (로그인 시)
+syncPigCoinBalance();
 </script>
 </body>
 </html>
