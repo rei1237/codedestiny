@@ -435,7 +435,7 @@
       return;
     }
 
-    _chapters = Array(12).fill(null);
+    _chapters = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
