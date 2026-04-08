@@ -18,6 +18,9 @@ export async function POST() {
     },
   });
 
+  // flower_admin_token: 현행 관리자 인증 쿠키
+  res.headers.append("Set-Cookie", "flower_admin_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
+  // 레거시 쿠키 정리
   res.headers.append("Set-Cookie", "fortune_auth_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
   res.headers.append("Set-Cookie", "fortune_csrf_token=; Path=/; Max-Age=0; SameSite=Lax");
   res.headers.append("Set-Cookie", "fortune_auth_role=; Path=/; Max-Age=0; SameSite=Lax");
