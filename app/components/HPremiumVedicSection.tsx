@@ -232,22 +232,71 @@ function PDFDownloadButton({
         const r = chapters[m.num].result!;
         return { chapter: m.num, title: m.title, subtitle: m.subtitle, icon: m.icon, text: r.text, sections: r.sections };
       });
-      const chartSummary = chart ? {
-        lagna: chart.lagna,
-        moonNakshatra: chart.moonNakshatra,
-        atmakaraka: chart.atmakaraka,
-        vimshottariDasha: chart.vimshottariDasha,
-        yogas: chart.yogas,
-        ayanamsa: chart.ayanamsa,
-      } : undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
+      if (!pdfModule) {
+        throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
+      }
 
-      const res = await fetch("/api/premium/vedic-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chapters: chaptersData, chart: chartSummary, userName, birthDate }),
+      const { pdf, Document, Page, Text, View, StyleSheet } = pdfModule;
+      const styles = StyleSheet.create({
+        page: {
+          fontFamily: "Helvetica",
+          backgroundColor: "#07091a",
+          color: "#e2e8f0",
+          padding: 34,
+        },
+        coverTitle: { fontSize: 24, fontWeight: "bold", color: "#d4a017", textAlign: "center", marginBottom: 8 },
+        coverSub: { fontSize: 11, color: "#a78bfa", textAlign: "center", marginBottom: 4 },
+        coverMeta: { fontSize: 10, color: "#94a3b8", textAlign: "center", marginBottom: 2 },
+        divider: { borderBottomWidth: 1, borderBottomColor: "#1e2a4a", marginVertical: 14 },
+        chapterTitle: { fontSize: 16, fontWeight: "bold", color: "#f8fafc", marginBottom: 4, marginTop: 12 },
+        chapterSub: { fontSize: 10, color: "#93c5fd", marginBottom: 8 },
+        sectionTitle: { fontSize: 12, fontWeight: "bold", color: "#d4a017", marginBottom: 4, marginTop: 8 },
+        body: { fontSize: 10, color: "#cbd5e1", lineHeight: 1.7, marginBottom: 6 },
       });
-      if (!res.ok) throw new Error("PDF 생성 실패");
-      const blob = await res.blob();
+
+      const chartInfo = chart
+        ? [
+            `라그나: ${chart.lagna.signSanskrit} ${chart.lagna.degree}°`,
+            `달 낙샤트라: ${chart.moonNakshatra.ko}(${chart.moonNakshatra.name}) pada${chart.moonNakshatra.pada}`,
+            `아트마카라카: ${chart.atmakaraka.nameKo}`,
+            `현재 대운: ${chart.vimshottariDasha.current?.planet ?? "-"}`,
+          ]
+        : [];
+
+      const doc = (
+        <Document>
+          <Page size="A4" style={styles.page}>
+            <Text style={styles.coverTitle}>Karmic Blueprint</Text>
+            <Text style={styles.coverSub}>CODE : DESTINY · VEDIC PREMIUM REPORT</Text>
+            {birthDate ? <Text style={styles.coverMeta}>출생일: {birthDate}</Text> : null}
+            {userName ? <Text style={styles.coverMeta}>이름: {userName}</Text> : null}
+            {chartInfo.map((line: string, i: number) => (
+              <Text key={`chart-${i}`} style={styles.coverMeta}>{line}</Text>
+            ))}
+            <View style={styles.divider} />
+
+            {chaptersData.map((ch, idx: number) => (
+              <View key={`ch-${ch.chapter}-${idx}`}>
+                <Text style={styles.chapterTitle}>{ch.icon} Chapter {String(ch.chapter).padStart(2, "0")} · {ch.title}</Text>
+                <Text style={styles.chapterSub}>{ch.subtitle}</Text>
+                {Array.isArray(ch.sections) && ch.sections.length > 0
+                  ? ch.sections.map((sec: { title: string; body: string }, sIdx: number) => (
+                      <View key={`sec-${ch.chapter}-${sIdx}`}>
+                        <Text style={styles.sectionTitle}>{sec.title}</Text>
+                        <Text style={styles.body}>{sec.body || ""}</Text>
+                      </View>
+                    ))
+                  : <Text style={styles.body}>{ch.text || ""}</Text>}
+                <View style={styles.divider} />
+              </View>
+            ))}
+          </Page>
+        </Document>
+      );
+
+      const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = `vedic-karmic-blueprint-${Date.now()}.pdf`;
