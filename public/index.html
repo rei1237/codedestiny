@@ -2163,55 +2163,64 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               </div>
             </button>
 
-            <!-- ── 카드 2: 인생의 책 (490코인 1회) ── -->
+            <!-- ── 카드 2: 점성술 프리미엄 (400코인 영구 해금) ── -->
             <button type="button"
-                    class="prem-card prem-card--lifebook"
-                    data-action="openLifeBookModal"
-                    data-coin-cost="490"
-                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(4,18,8,0.65);border:1.5px solid rgba(52,211,153,0.35);box-shadow:0 4px 24px rgba(16,185,129,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(16,185,129,0.28)'"
-                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(16,185,129,0.12)'"
-                    aria-label="인생의 책 — 490코인으로 운명 전서 열기">
+                    class="prem-card prem-card--astro"
+                    data-action="gotoAstrologyPremium"
+                    data-coin-cost="400"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
+                    aria-label="점성술 코즈믹 차트 프리미엄 — 400코인 영구 해금">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/lifebook.webp" alt="인생의 책"
-                     style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(4,18,8,0.85) 0%,transparent 60%);"></div>
-                <span style="position:absolute;top:10px;left:10px;background:rgba(16,185,129,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 490코인</span>
+                <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,4,25,0.88) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(251,191,36,0.90);color:#1a1200;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">해금 400코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-                <p style="color:rgba(110,231,183,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">생애 서사 · Life Story</p>
-                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">인생의 책</p>
-                <p style="color:rgba(203,213,225,0.55);font-size:0.78rem;line-height:1.7;margin:0;">핵심 명반 리포트 생성 · 최종 PDF 저장 · 언제든 재다운로드</p>
+                <p style="color:rgba(253,230,138,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Cosmic Chart Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✨ 점성술 코즈믹 차트</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  ☀ 태양·달·상승궁 3각 에너지 완전 분석<br>
+                  🪐 12하우스 영역별 재물·사랑·직업 운세<br>
+                  🌌 행성 트랜지트 내 인생 영향 계산<br>
+                  🔒 400코인 한 번으로 평생 무제한 이용
+                </p>
                 <div style="margin-top:auto;padding-top:10px;">
-                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));border:1px solid rgba(52,211,153,0.38);color:rgba(110,231,183,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">📜 나의 운명 전서 열기</span>
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(253,230,138,0.1));border:1px solid rgba(251,191,36,0.45);color:rgba(253,230,138,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 코즈믹 차트 열기</span>
                 </div>
               </div>
             </button>
 
-            <!-- ── 카드 3: 연애 비책 (290코인 1회) ── -->
+            <!-- ── 카드 3: 숙요점 프리미엄 (400코인 영구 해금) ── -->
             <button type="button"
-                    class="prem-card prem-card--lovesecret"
-                    data-action="openLoveSecretModal"
-                    data-coin-cost="290"
-                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(30,4,18,0.65);border:1.5px solid rgba(244,114,182,0.35);box-shadow:0 4px 24px rgba(236,72,153,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(236,72,153,0.28)'"
-                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(236,72,153,0.12)'"
-                    aria-label="연애 비책 — 290코인으로 사랑의 지도 열기">
+                    class="prem-card prem-card--sukuyo"
+                    data-action="gotoSukuyoPremium"
+                    data-coin-cost="400"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
+                    aria-label="숙요점 프리미엄 궁합 분석 — 400코인 영구 해금">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/lovebible.webp" alt="연애 비책"
-                     style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(30,4,18,0.85) 0%,transparent 60%);"></div>
-                <span style="position:absolute;top:10px;left:10px;background:rgba(236,72,153,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 290코인</span>
+                <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(2,8,23,0.90) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(14,165,233,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">해금 400코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-                <p style="color:rgba(249,168,212,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">연애 전략 · Love Strategy</p>
-                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">연애 비책</p>
-                <p style="color:rgba(203,213,225,0.65);font-size:0.78rem;line-height:1.6;margin:0;">"왜 나는 항상 같은 패턴의 연애를 반복할까?" — 일주·도화살·관성으로 밝히는 나만의 연애 DNA, 11챕터 완전 분석</p>
-                <p style="color:rgba(249,168,212,0.75);font-size:0.67rem;margin:5px 0 0;letter-spacing:0.02em;">💑 상대방 궁합 추가 시 +100코인</p>
-                <div style="margin-top:auto;padding-top:8px;">
-                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(244,114,182,0.1));border:1px solid rgba(244,114,182,0.38);color:rgba(249,168,212,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">💕 나의 연애 비책 열기</span>
+                <p style="color:rgba(125,211,252,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">💫 숙요점(宿曜占) 궁합 분석</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  🌙 에도 막부가 금서로 지정한 27수 비전<br>
+                  💑 소울메이트 vs 독성 관계 정밀 판별<br>
+                  ⭐ 재물·건강·수명 전반 1:1 정밀 리딩<br>
+                  🔒 400코인 한 번으로 평생 무제한 이용
+                </p>
+                <div style="margin-top:auto;padding-top:10px;">
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
                 </div>
               </div>
             </button>
@@ -5555,6 +5564,40 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
       return;
     }
+    // 알려진 액션 별칭: gotoAstrologyPremium → openAstroModal
+    if (action === 'gotoAstrologyPremium') {
+      if (typeof window.openAstroModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openAstroModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro]', e); }
+        });
+      } else {
+        var _apLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openAstroModal'];
+        if (_apLoader) {
+          _apLoader().then(function() {
+            if (typeof window.openAstroModal === 'function') window.openAstroModal();
+          }).catch(function(e) { console.error('[prem-card astro]', e); });
+        }
+      }
+      return;
+    }
+    // 알려진 액션 별칭: gotoSukuyoPremium → openSukuyoModal
+    if (action === 'gotoSukuyoPremium') {
+      if (typeof window.openSukuyoModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openSukuyoModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
+        });
+      } else {
+        var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openSukuyoModal'];
+        if (_spLoader) {
+          _spLoader().then(function() {
+            if (typeof window.openSukuyoModal === 'function') window.openSukuyoModal();
+          }).catch(function(e) { console.error('[prem-card sukuyo]', e); });
+        }
+      }
+      return;
+    }
     // 명시적 핸들러: gotoVedicPremium (베다 점성술 — 오픈 시 활성화)
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicPremiumModal === 'function') {
@@ -5970,6 +6013,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   'use strict';
   var D={
     gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'자미두수 핵심 명반을 정리해 완성본 PDF로 제공하는 프리미엄 리포트입니다.',feats:['📄 핵심 명반 분석 결과를 최종 PDF 한 권으로 생성','💾 생성된 PDF는 즉시 저장 및 재다운로드 가능','🎯 복잡한 부가 요소 없이 리포트 생성·보관에 집중'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
+    gotoAstrologyPremium:{cat:'점성술 · Cosmic Chart Premium',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴을 완전 해독합니다.',feats:['☀ 태양·달·상승궁 3각 에너지 완전 분석','🪐 12하우스 영역별 재물·사랑·직업 운세 파악','🌌 지금 행성 트랜지트가 내 인생에 미치는 영향 계산','🔒 400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
+    gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','🔒 400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
     gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'준비 중',ct:'paid',img:'/fuctionassets/veda.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
