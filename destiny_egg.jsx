@@ -610,8 +610,7 @@ function FeedGame({ onEnd }) {
 // ══════════════════════════════════════════════════════
 export default function App() {
   const [phase,   setPhase]   = useState("setup");
-  const [step,    setStep]    = useState(0);
-  const [birth,   setBirth]   = useState({ year: "", month: "", day: "", hourBranch: "" });
+  const [birth,   setBirth]   = useState({ dateStr: "", hourBranch: "" });
   const [petName, setPetName] = useState("");
   const [profile, setProfile] = useState(null);
   const [mood,    setMood]    = useState("normal");
@@ -634,22 +633,68 @@ export default function App() {
   const [gachaResult,  setGachaResult]  = useState("");
   const shareRef = useRef(null);
 
-  // ── 저장 프로필 로드 ────────────────────────────────
+  // ── 저장 프로필 로드 + 사주 프로필 자동연동 ────────────────────────────────
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = migrateProfileShape(JSON.parse(raw));
-      if (!parsed) return;
-      setProfile(parsed);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-      setPhase("main");
-      if (parsed.hatched) {
-        setBubble(`${parsed.petName}: 오늘도 반가워! ${ANIMALS[parsed.iljuInfo.animalKey].cry}`);
-        setChatMessages([{ role: "pet", text: `${parsed.petName} 왔어! 오늘도 같이 운세 보자.` }]);
-      } else {
-        setBubble("알이 두근두근... 탭해서 친밀도를 높여봐! 🥚");
+      if (raw) {
+        const parsed = migrateProfileShape(JSON.parse(raw));
+        if (parsed) {
+          setProfile(parsed);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          setPhase("main");
+          if (parsed.hatched) {
+            setBubble(`${parsed.petName}: 오늘도 반가워! ${ANIMALS[parsed.iljuInfo.animalKey].cry}`);
+            setChatMessages([{ role: "pet", text: `${parsed.petName} 왔어! 오늘도 같이 운세 보자.` }]);
+          } else {
+            setBubble("알이 두근두근... 탭해서 친밀도를 높여봐! 🥚");
+          }
+          return;
+        }
       }
+      // 저장된 다마고치 없음 → fortune_auth_user에서 자동 생성 시도
+      const authRaw = localStorage.getItem("fortune_auth_user");
+      if (!authRaw) return;
+      const user = JSON.parse(authRaw);
+      if (!user.birthDate) return;
+      const [y, m, d] = user.birthDate.split("-").map(Number);
+      if (!y || !m || !d) return;
+      // 시간 → 12지지 변환
+      let hourBranch = "자";
+      if (user.birthTime) {
+        const hh = parseInt(user.birthTime.split(":")[0], 10);
+        const found = HOUR_BRANCHES.find(hb =>
+          hb.value === "자" ? (hh >= 23 || hh < 1) : (hh >= hb.hour && hh < hb.hour + 2)
+        );
+        if (found) hourBranch = found.value;
+      }
+      // birth 상태 자동 채움 (입력 폼 표시용)
+      setBirth({ dateStr: user.birthDate, hourBranch });
+      // 자동 다마고치 생성
+      const ilju     = calcIlju(y, m, d);
+      const iljuInfo = ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
+      const theme    = pickTheme(ilju.stemIdx, ilju.branchIdx);
+      const hourInfo = HOUR_BRANCHES.find(h => h.value === hourBranch) || HOUR_BRANCHES[0];
+      const eggImg   = getEggByAnimal(iljuInfo.animalKey);
+      const autoName = user.name ? `${iljuInfo.animal}(${user.name})` : `${iljuInfo.animal}이`;
+      const next = {
+        birthInfo: { year: y, month: m, day: d, hourBranch: hourInfo.value,
+          hourLabel: `${hourInfo.label} (${hourInfo.range}시)`, hour: hourInfo.hour },
+        ilju, iljuInfo, theme,
+        petName: autoName,
+        eggImage: eggImg, activeEggImage: eggImg, ownedEggs: [eggImg],
+        affection: 0, feedBest: 0, playBest: 0, hatched: false,
+        llmDaily: { date: getTodayKey(), used: 0, limit: 3 },
+      };
+      setProfile(next);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      setBubble("운명의 알이 나타났습니다! 탭해서 친밀도를 올려보세요 🥚");
+      setPhase("hatching");
+      setTimeout(() => {
+        setPhase("main");
+        setBubble("알이 두근두근... 탭해서 친밀도를 높여봐! 🥚");
+        setChatMessages([{ role: "pet", text: "...(알 안에서 뭔가 움직이는 소리가 들린다)" }]);
+      }, 2800);
     } catch {}
   }, []);
 
@@ -700,8 +745,11 @@ export default function App() {
 
   // ── 셋업 완료 ──────────────────────────────────────
   function finishSetup() {
-    const y = +birth.year, m = +birth.month, d = +birth.day;
-    if (!y || !m || !d || !birth.hourBranch) return;
+    const dateStr = birth.dateStr;
+    if (!dateStr || !birth.hourBranch) return;
+    const parts = dateStr.split("-").map(Number);
+    const y = parts[0], m = parts[1], d = parts[2];
+    if (!y || !m || !d) return;
 
     const ilju      = calcIlju(y, m, d);
     const iljuInfo  = ILJU_MAP[ilju.ilju] || ILJU_MAP["갑자"];
@@ -867,48 +915,35 @@ export default function App() {
           <h1>운세 다마고치</h1>
           <p>생년월일 + 태어난 시간으로 수호동물 알을 만들어요</p>
 
-          {step === 0 && (
-            <div className="step-card slide-in">
-              <h3>수호동물 이름</h3>
-              <input value={petName} onChange={e => setPetName(e.target.value)} placeholder="예: 서연이" />
-              <button className="ac-btn" onClick={() => setStep(1)}>Next</button>
+          <div className="step-card slide-in">
+            <h3>수호동물 정보 입력</h3>
+            <label style={{display:"block",marginBottom:"0.35rem",fontSize:"0.82rem",color:"#888"}}>생년월일 (생년월일시 한번에 입력)</label>
+            <input
+              type="date"
+              value={birth.dateStr}
+              onChange={e => setBirth(p => ({ ...p, dateStr: e.target.value }))}
+              style={{width:"100%",marginBottom:"1.1rem",padding:"0.5rem 0.75rem",borderRadius:"0.6rem",border:"1px solid #ccc",fontSize:"1rem"}}
+            />
+            <label style={{display:"block",marginBottom:"0.35rem",fontSize:"0.82rem",color:"#888"}}>태어난 시간대 (12지지)</label>
+            <div className="hour-grid">
+              {HOUR_BRANCHES.map(h => (
+                <button key={h.value} className={`hour-btn ${birth.hourBranch === h.value ? "on" : ""}`}
+                  onClick={() => setBirth(p => ({ ...p, hourBranch: h.value }))}>
+                  <strong>{h.icon} {h.label}</strong><small>{h.range}시</small>
+                </button>
+              ))}
             </div>
-          )}
-          {step === 1 && (
-            <div className="step-card slide-in">
-              <h3>태어난 연도</h3>
-              <input type="number" value={birth.year} onChange={e => setBirth(p => ({ ...p, year: e.target.value }))} />
-              <button className="ac-btn" onClick={() => setStep(2)}>Next</button>
-            </div>
-          )}
-          {step === 2 && (
-            <div className="step-card slide-in">
-              <h3>태어난 월</h3>
-              <input type="number" value={birth.month} onChange={e => setBirth(p => ({ ...p, month: e.target.value }))} />
-              <button className="ac-btn" onClick={() => setStep(3)}>Next</button>
-            </div>
-          )}
-          {step === 3 && (
-            <div className="step-card slide-in">
-              <h3>태어난 일</h3>
-              <input type="number" value={birth.day} onChange={e => setBirth(p => ({ ...p, day: e.target.value }))} />
-              <button className="ac-btn" onClick={() => setStep(4)}>Next</button>
-            </div>
-          )}
-          {step === 4 && (
-            <div className="step-card slide-in">
-              <h3>태어난 시간대 (12지지)</h3>
-              <div className="hour-grid">
-                {HOUR_BRANCHES.map(h => (
-                  <button key={h.value} className={`hour-btn ${birth.hourBranch === h.value ? "on" : ""}`}
-                    onClick={() => setBirth(p => ({ ...p, hourBranch: h.value }))}>
-                    <strong>{h.icon} {h.label}</strong><small>{h.range}시</small>
-                  </button>
-                ))}
-              </div>
-              <button className="ac-btn" disabled={!birth.hourBranch} onClick={finishSetup}>운명의 알 생성 🥚</button>
-            </div>
-          )}
+            <label style={{display:"block",marginTop:"1rem",marginBottom:"0.35rem",fontSize:"0.82rem",color:"#888"}}>수호동물 이름 (선택)</label>
+            <input
+              value={petName}
+              onChange={e => setPetName(e.target.value)}
+              placeholder="예: 서연이"
+              style={{width:"100%",marginBottom:"1.1rem",padding:"0.5rem 0.75rem",borderRadius:"0.6rem",border:"1px solid #ccc",fontSize:"1rem"}}
+            />
+            <button className="ac-btn" disabled={!birth.dateStr || !birth.hourBranch} onClick={finishSetup}>
+              운명의 알 생성 🥚
+            </button>
+          </div>
         </section>
       </div>
     );
