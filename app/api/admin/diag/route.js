@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 
 import { dbConnect } from "../../../_lib/dbConnect.js";
 import { getUserModel } from "../../../_lib/models/UserModel.js";
-import { verifyFlowerAdminToken, generateFlowerAdminToken } from "../../../_lib/flowerAdminToken.js";
+import { verifyFlowerAdminToken, generateFlowerAdminToken, extractAdminTokenFromRequest } from "../../../_lib/flowerAdminToken.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -160,6 +160,52 @@ export async function GET(request) {
     } catch (e) {
       steps.push({ step: 10, name: "verify-provided-token", ok: false, error: String(e?.message || e) });
     }
+  }
+
+  // ── 11. 쿠키 토큰 검증 ───────────────────────────────────────────
+  const cookieHeader = request.headers.get("cookie") || "";
+  const cookieMatch = cookieHeader.match(/(?:^|;\s*)flower_admin_token=([^;]+)/);
+  if (cookieMatch) {
+    const cookieToken = (() => { try { return decodeURIComponent(cookieMatch[1]); } catch { return cookieMatch[1]; } })();
+    try {
+      const valid = await verifyFlowerAdminToken(cookieToken);
+      steps.push({
+        step: 11,
+        name: "verify-cookie-token",
+        ok: valid,
+        detail: { valid, tokenPreview: cookieToken.slice(0, 12) + "…" },
+        note: valid
+          ? "쿠키 토큰 정상 — 재로그인 없이도 API 인증 통과 가능."
+          : "쿠키 토큰 검증 실패 — 브라우저에서 /admin/login으로 재로그인 필요.",
+      });
+    } catch (e) {
+      steps.push({ step: 11, name: "verify-cookie-token", ok: false, error: String(e?.message || e) });
+    }
+  } else {
+    steps.push({ step: 11, name: "verify-cookie-token", ok: false, detail: { note: "flower_admin_token 쿠키 없음 — 로그인 필요" } });
+  }
+
+  // ── 12. extractAdminTokenFromRequest 통합 테스트 ─────────────────
+  try {
+    const extracted = extractAdminTokenFromRequest(request);
+    const valid = extracted ? await verifyFlowerAdminToken(extracted) : false;
+    steps.push({
+      step: 12,
+      name: "extract-and-verify",
+      ok: valid,
+      detail: {
+        tokenSource: extracted ? (authHeader.startsWith("Bearer ") && authHeader.slice(7).trim() ? "Bearer-header" : "cookie") : "none",
+        tokenFound: Boolean(extracted),
+        valid,
+      },
+      note: valid
+        ? "✅ API 인증 완전 정상 — 관리자 API 모두 작동해야 합니다."
+        : extracted
+          ? "❌ 토큰 추출됐으나 검증 실패 — FLOWER_ADMIN_SECRET 재설정 후 재로그인"
+          : "❌ 토큰 없음 — /admin/login에서 재로그인 필요",
+    });
+  } catch (e) {
+    steps.push({ step: 12, name: "extract-and-verify", ok: false, error: String(e?.message || e) });
   }
 
   const allOk = steps.every((s) => s.ok !== false);

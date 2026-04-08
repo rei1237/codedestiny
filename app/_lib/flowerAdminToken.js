@@ -117,8 +117,13 @@ export async function verifyFlowerAdminToken(token) {
  * @returns {string}
  */
 export function extractAdminTokenFromRequest(request) {
+  // Authorization: Bearer <token> — Bearer가 비어있으면 쿠키 폴백으로 진행
   const auth = request.headers.get("authorization") || "";
-  if (auth.startsWith("Bearer ")) return auth.slice(7).trim();
+  if (auth.startsWith("Bearer ")) {
+    const bearerToken = auth.slice(7).trim();
+    if (bearerToken) return bearerToken; // 실제 토큰이 있을 때만 반환
+    // 빈 Bearer → 쿠키에서 시도
+  }
 
   const xat = request.headers.get("x-admin-token") || "";
   if (xat) return xat.trim();
