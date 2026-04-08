@@ -219,9 +219,6 @@ export async function POST(request) {
     const status =
       Number.isFinite(err?.status) && err.status >= 400 ? err.status : 503;
     const isUpstream = status >= 500;
-    const message = isUpstream
-      ? "한국천문연 API 서버 점검 중입니다. 잠시 후 다시 시도해 주세요."
-      : (err?.message || "KASI 요청 파라미터를 확인해 주세요.");
 
     console.error("[api/kasi/calendar]", {
       status,
@@ -229,15 +226,21 @@ export async function POST(request) {
       resultCode: err?.resultCode || null,
     });
 
+    // 업스트림(KASI 외부 서버) 장애는 200 + 빈 rows 반환 → client가 조용히 로컬 폴백 사용
+    // (maintenance 토스트 없이 lunar-javascript 로컬 계산으로 자동 전환)
+    if (isUpstream) {
+      return NextResponse.json(
+        { ok: true, method: "", rows: [], fallbackRecommended: true },
+        { status: 200 },
+      );
+    }
+
     return NextResponse.json(
       {
         ok: false,
-        maintenance: isUpstream,
-        fallbackRecommended: isUpstream,
-        message,
-        detail: err?.message || null,
+        message: err?.message || "KASI 요청 파라미터를 확인해 주세요.",
       },
-      { status },
+      { status: 400 },
     );
   }
 }
