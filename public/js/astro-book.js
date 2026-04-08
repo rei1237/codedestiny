@@ -370,7 +370,7 @@
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분析 중...';
       _fetchChapter(idx).then(function(data) {
         if (data&&data.ok&&data.text) { _chapters[idx]=data.text; }
-        else { _failCount++; var msg=(data&&data.message)?data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분析을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
+        else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분析을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
         _setProgress(idx+1);
         generateNext(idx+1);
       });

@@ -5,12 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { href: "/admin", label: "대시보드", icon: "📊", exact: true },
-  { href: "/admin/users", label: "유저 관리", icon: "👥" },
-  { href: "/admin/content", label: "콘텐츠 관리", icon: "📝" },
-  { href: "/admin/coins", label: "코인 이력", icon: "🪙" },
-  { href: "/admin/audit", label: "감사 로그", icon: "📋" },
-  { href: "/admin/settings", label: "시스템 설정", icon: "⚙️" },
+  { href: "/admin/users", label: "가입자 관리", icon: "👥" },
 ];
 
 export function AdminSidebar() {

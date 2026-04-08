@@ -1,17 +1,7 @@
-import { NextResponse } from "next/server";
+import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
 
-import sampleData from "../../../../server/data/tarot-cards.sample.json";
-import dbData from "../../../../server/data/tarot-cards.db.json";
+export const runtime = "nodejs";
 
-const { getEngineMeta, initFromPreloadedData } = require("../../../../server/services/tarot-engine.service");
-
-export async function GET() {
-  try {
-    initFromPreloadedData(dbData, sampleData);
-    const engine = getEngineMeta();
-    return NextResponse.json({ ok: true, engine });
-  } catch (error) {
-    console.error("[tarot/meta]", error);
-    return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
-  }
+export async function GET(request) {
+  return proxyLegacyApi(request);
 }
