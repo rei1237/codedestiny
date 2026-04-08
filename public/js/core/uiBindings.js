@@ -12,6 +12,12 @@ if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'funct
   };
 }
 
+if (typeof window !== 'undefined' && typeof window.openFortuneTellerFishPage !== 'function') {
+  window.openFortuneTellerFishPage = function openFortuneTellerFishPage() {
+    window.location.assign('/fortune-teller-fish.html');
+  };
+}
+
 const __lazyActionLoaders = {
   checkPrivacyAndCalculate: () => __ensureSajuCoreScripts(),
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
@@ -29,6 +35,7 @@ const __lazyActionLoaders = {
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-picture')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/destiny-egg')),
+  openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
