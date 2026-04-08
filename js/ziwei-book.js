@@ -460,7 +460,7 @@
   function _prefillProfileInfo(profile) {
     if (!profile) return;
     var b = profile.birth || {};
-    var infoEl = _qs('zbProfileInfo');
+    var infoEl = _qs('zbProfileSummary');
     if (infoEl && b.year) {
       infoEl.textContent =
         (profile.name || '사용자') + ' · ' +
