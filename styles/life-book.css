@@ -1053,6 +1053,60 @@
   background: rgba(239, 68, 68, 0.35);
 }
 
+/* ── 마무리 배너 ── */
+.lb-epilogue-banner {
+  margin: 28px 0 8px;
+  padding: 32px 24px 28px;
+  background: linear-gradient(135deg, rgba(10, 20, 50, 0.78) 0%, rgba(30, 58, 138, 0.52) 55%, rgba(10, 20, 50, 0.78) 100%);
+  border: 1px solid rgba(147, 197, 253, 0.32);
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 4px 28px rgba(99, 102, 241, 0.14);
+  animation: lbEpilogueFadeIn 0.8s ease both;
+}
+@keyframes lbEpilogueFadeIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lb-epilogue-deco {
+  font-size: 1.4rem;
+  letter-spacing: .35em;
+  color: #bfdbfe;
+  margin-bottom: 14px;
+}
+.lb-epilogue-title {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #e0f2fe;
+  margin: 0 0 10px;
+  letter-spacing: .02em;
+}
+.lb-epilogue-msg {
+  font-size: 0.92rem;
+  color: rgba(224, 242, 254, 0.88);
+  line-height: 1.75;
+  margin: 0 0 22px;
+}
+.lb-epilogue-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.lb-btn-regen {
+  border: 1px solid rgba(147, 197, 253, 0.38);
+  border-radius: 10px;
+  padding: 10px 20px;
+  background: rgba(30, 58, 138, 0.28);
+  color: #e0f2fe;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.lb-btn-regen:hover { background: rgba(30, 58, 138, 0.5); }
+
 /* ── 반응형 ─────────────────────────────────── */
 
 /* ── 599px 이하: 모달 풀스크린 ── */
@@ -1425,89 +1479,10 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   모바일 최적화 — 터치·스크롤·안전 영역 강화
+   모바일 최적화 패치 (2026-04)
 ═══════════════════════════════════════════════════════ */
 
-/* 스크롤 연결고리 차단: 모달 내 스크롤이 배경 페이지로 전파되지 않도록 */
-.lb-modal__panel {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* 결과 화면 스크롤 영역 */
-.lb-result-screen {
-  overscroll-behavior: contain;
-}
-
-/* TOC 스크롤 — 가로 스크롤 스냅 지원 */
-.lb-toc {
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-}
-.lb-toc-item {
-  scroll-snap-align: start;
-}
-
-/* 챕터 본문 스크롤 영역 */
-.lb-ch-content {
-  overscroll-behavior: contain;
-}
-
-/* 터치 피드백 — 버튼 및 인터랙티브 요소 */
-.lb-btn-generate:active,
-.lb-btn-retry:active,
-.lb-btn-pdf:active,
-.lb-btn-kakao:active {
-  transform: scale(0.97);
-  opacity: 0.88;
-}
-
-.lb-toc-item {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.lb-toc-item:active {
-  background: rgba(186,134,255,0.25);
-}
-
-/* lifebook-tile 터치 강화 */
-.lifebook-tile {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.lifebook-tile:active .lifebook-tile__inner {
-  opacity: 0.88;
-  transform: scale(0.985);
-}
-
-/* 챕터 wrap 최대 너비 및 읽기 편의 */
-.lb-chapter-body {
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-/* 모바일에서 MD 인용구 패딩 조정 */
-@media (max-width: 480px) {
-  .lb-md-blockquote {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-  }
-  .lb-toc {
-    padding: 6px 10px;
-  }
-  /* 로딩 신비 문구 줄바꿈 방지 */
-  .lb-mystic-quote {
-    font-size: 0.8rem;
-    line-height: 1.6;
-  }
-}
-
-
-/* =======================================================
-   모바일 최적화 패치 (2026-04)
-======================================================= */
-
-/* 터치 피드백 개선 */
+/* 먹싄 노드리기 + 터치 피드백 */
 .lb-toc-item,
 .lb-btn-generate,
 .lb-btn-retry,
@@ -1521,24 +1496,87 @@
 }
 
 /* 모달 오버스크롤 차단 */
-.lb-modal-wrap { overscroll-behavior: contain; }
-.lb-reader-body { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
-.lb-toc-list { overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+.lb-modal-wrap {
+  overscroll-behavior: contain;
+}
+.lb-reader-body {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.lb-toc-list {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
 
 @media (max-width: 540px) {
-  .lb-modal { border-radius: 14px 14px 0 0; max-height: 96dvh; max-height: 96vh; }
-  .lb-modal-header { padding: 12px 14px 10px; }
-  .lb-modal-title { font-size: 1rem; }
-  .lb-toc-item { min-height: 46px; padding: 10px 12px; font-size: 0.82rem; }
-  .lb-toc-item .lb-chapter-num { font-size: 0.7rem; }
-  .lb-btn-generate { font-size: 0.92rem; padding: 14px 20px; width: 100%; }
-  .lb-reader-body { padding: 14px 14px 60px; font-size: 0.88rem; line-height: 1.8; }
-  .lb-chapter-title { font-size: 1.1rem; }
-  .lb-loading-screen { padding: 24px 16px; }
-  .lb-loading-quote { font-size: 0.82rem; padding: 0 8px; }
-  .lifebook-tile__coin-badge { font-size: 0.72rem; padding: 3px 8px; }
-  .lifebook-tile__title { font-size: 1.1rem; }
-  .lifebook-tile__desc { font-size: 0.78rem; line-height: 1.55; }
+  /* 모늬 라운드 + 내부 패딩 */
+  .lb-modal {
+    border-radius: 14px 14px 0 0;
+    max-height: 96dvh;
+    max-height: 96vh; /* dvh fallback */
+  }
+  /* 헤더 */
+  .lb-modal-header {
+    padding: 12px 14px 10px;
+  }
+  .lb-modal-title {
+    font-size: 1rem;
+  }
+  /* TOC 아이템 터치 대역 48px */
+  .lb-toc-item {
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+  .lb-toc-item .lb-chapter-num {
+    font-size: 0.7rem;
+  }
+  /* 생성 버튼 */
+  .lb-btn-generate {
+    font-size: 0.92rem;
+    padding: 14px 20px;
+    width: 100%;
+  }
+  /* 리더 콘텐츠 */
+  .lb-reader-body {
+    padding: 14px 14px 60px;
+    font-size: 0.88rem;
+    line-height: 1.8;
+  }
+  /* 리더 내 제목 */
+  .lb-chapter-title {
+    font-size: 1.1rem;
+  }
+  /* 브레드크럼 */
+  .lb-loading-screen {
+    padding: 24px 16px;
+  }
+  .lb-loading-quote {
+    font-size: 0.82rem;
+    padding: 0 8px;
+  }
+  /* 타일 내 코인 배지 가독성 */
+  .lifebook-tile__coin-badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+  .lifebook-tile__title {
+    font-size: 1.1rem;
+  }
+  .lifebook-tile__desc {
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+  /* 마케팅 페이지 모바일 */
+  .lb-marketing-hero {
+    padding: 20px 14px;
+  }
+  .lb-marketing-title {
+    font-size: 1.2rem;
+  }
+  .lb-sample-section {
+    padding: 12px 14px;
+  }
 }
 
 @media (max-width: 360px) {
