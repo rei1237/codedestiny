@@ -530,14 +530,6 @@ function getEggByAnimal(animalKey) {
   return THEMES[themeKey]?.egg || THEMES.blossom.egg;
 }
 
-function getCharImagePath(themeKey, animalKey) {
-  const safeTheme = normalizeThemeKey(themeKey, null);
-  const file = SHEET_FILES[safeTheme]?.[animalKey];
-  if (!file) return "";
-  const folder = THEMES[safeTheme]?.folder || "벚꽃 컨셉";
-  return encodeURI(`/fuctionassets/tadagochi-local/${folder}/${file}`);
-}
-
 function migrateProfileShape(parsed) {
   if (!parsed || typeof parsed !== "object") return null;
   const ilju    = parsed.ilju || calcIlju(+(parsed?.birthInfo?.year||1990), +(parsed?.birthInfo?.month||1), +(parsed?.birthInfo?.day||1));
@@ -739,6 +731,55 @@ const MOOD_EMOJI = {
   peek:"👀", nap:"😴", celebrate:"🎉", angry_idle:"😤",
 };
 
+// ── 8비트 효과음 시스템 (Web Audio API) ──────────────────────────────────────
+const _audioCtxRef = { current: null };
+function playBlip(type = "tap") {
+  if (typeof window === "undefined") return;
+  try {
+    if (!_audioCtxRef.current) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      _audioCtxRef.current = new Ctx();
+    }
+    const ctx = _audioCtxRef.current;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    // [주파수, 파형, 지속ms]
+    const presets = {
+      tap:    [[660,"square",.04],[880,"square",.03]],
+      happy:  [[523,"sine",.07],[659,"sine",.07],[784,"sine",.11]],
+      care:   [[440,"triangle",.09],[550,"triangle",.08]],
+      lvlup:  [[440,"sine",.07],[554,"sine",.07],[659,"sine",.07],[880,"sine",.14]],
+      sad:    [[330,"square",.14],[220,"square",.18]],
+      ding:   [[1047,"sine",.06],[1319,"sine",.09]],
+    };
+    const seq = presets[type] || presets.tap;
+    let t = ctx.currentTime + 0.01;
+    for (const [freq, waveType, dur] of seq) {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = waveType; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.09, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.start(t); osc.stop(t + dur + 0.01);
+      t += dur * 0.78;
+    }
+  } catch { /* 사운드 실패는 무시 */ }
+}
+
+// 모바일 햅틱 진동 (ms)
+function vibrate(ms = 20) {
+  try { navigator?.vibrate?.(ms); } catch {}
+}
+
+// 이미지 로드 실패 시 벚꽃 알 폴백
+function imgFail(e) {
+  const fallback = "/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png";
+  if (e.currentTarget.src !== fallback) {
+    e.currentTarget.src = fallback;
+  }
+  e.currentTarget.onerror = null;
+}
+
 // ── 스탯 기반 주변 행동 선택 ──────────────────────────────────────────────────
 // 배고픔/기분/에너지에 따라 어울리는 행동 풀을 가중치로 합산해 랜덤 선택
 function pickAmbientAction(stats) {
@@ -850,7 +891,7 @@ function EggDisplay({ profile, isHatching, onTap, cooldownRemain, dailyTapsLeft 
         role="button"
         aria-label="알을 탭해서 친밀도를 올려보세요"
       >
-        <img src={eggSrc} alt="운명의 알" className="egg-main-img" />
+        <img src={eggSrc} alt="운명의 알" className="egg-main-img" onError={imgFail} />
 
         {/* 부화 균열 오버레이 */}
         {isHatching && (
@@ -1224,6 +1265,7 @@ export default function App() {
     const cdMs = (stats.eggTapCooldown || 0) + EGG_TAP_COOLDOWN_MIN * 60000;
     if (now < cdMs) {
       const mins = Math.ceil((cdMs - now) / 60000);
+      playBlip("sad");
       setBubble(`🥚 ${mins}분 후에 다시 탭할 수 있어요!`);
       return;
     }
@@ -1231,10 +1273,12 @@ export default function App() {
     const tapDate   = stats.eggTapDate || today;
     const tapsToday = tapDate === today ? (stats.eggTapsToday || 0) : 0;
     if (tapsToday >= EGG_MAX_DAILY_TAPS) {
+      playBlip("sad");
       setBubble(`오늘은 ${EGG_MAX_DAILY_TAPS}번 모두 탭했어요. 내일 또 돌봐주세요 🌙`);
       return;
     }
 
+    playBlip("tap"); vibrate(25);
     const newAff = (profile.affection || 0) + 1;
     const newStats = { ...stats, eggTapCooldown: now, eggTapDate: today, eggTapsToday: tapsToday + 1 };
     const next = { ...profile, affection: newAff, stats: newStats };
@@ -1258,6 +1302,7 @@ export default function App() {
   // ── 부화 애니메이션 시퀀스 ────────────────────────────
   function triggerHatch(currentProfile) {
     setIsHatching(true);
+    playBlip("lvlup"); vibrate([50, 30, 80]);
     setBubble("💥 부화하고 있어――!!!");
 
     setTimeout(() => {
@@ -1300,8 +1345,9 @@ export default function App() {
     if (!profile?.hatched) return;
     const stats = profile.stats || getDefaultStats();
     const cdMin = cooldownRemainMin((stats.feedCooldown || 0) + FEED_COOLDOWN_MIN * 60000);
-    if (cdMin > 0) { setBubble(`아직 안 배고파! ${cdMin}분 뒤에 줘~ 😊`); return; }
-    if ((stats.hunger ?? 80) > 85) { setBubble("배 완전 불러! 나중에 줘~ 😄"); return; }
+    if (cdMin > 0) { playBlip("sad"); setBubble(`아직 안 배고파! ${cdMin}분 뒤에 줘~ 😊`); return; }
+    if ((stats.hunger ?? 80) > 85) { playBlip("sad"); setBubble("배 완전 불러! 나중에 줘~ 😄"); return; }
+    playBlip("care"); vibrate(20);
     const newStats = { ...stats, hunger: Math.min(100, (stats.hunger ?? 80) + 30), feedCooldown: Date.now() };
     const newAff   = Math.min(999, (profile.affection || 0) + 3);
     saveProfile({ ...profile, affection: newAff, stats: newStats });
@@ -1315,8 +1361,9 @@ export default function App() {
     if (!profile?.hatched) return;
     const stats = profile.stats || getDefaultStats();
     const cdMin = cooldownRemainMin((stats.playCooldown || 0) + PLAY_COOLDOWN_MIN * 60000);
-    if (cdMin > 0) { setBubble(`잠깐 쉴게... ${cdMin}분 뒤에 놀자~`); return; }
-    if ((stats.energy ?? 100) < 20) { setBubble("너무 피곤해! 먼저 재워줘 💤"); return; }
+    if (cdMin > 0) { playBlip("sad"); setBubble(`잠깐 쉴게... ${cdMin}분 뒤에 놀자~`); return; }
+    if ((stats.energy ?? 100) < 20) { playBlip("sad"); setBubble("너무 피곤해! 먼저 재워줘 💤"); return; }
+    playBlip("happy"); vibrate(30);
     const newStats = {
       ...stats,
       mood:   Math.min(100, (stats.mood   ?? 70 ) + 30),
@@ -1335,7 +1382,8 @@ export default function App() {
     if (!profile?.hatched) return;
     const stats = profile.stats || getDefaultStats();
     const cdMin = cooldownRemainMin((stats.petCooldown || 0) + PET_COOLDOWN_MIN * 60000);
-    if (cdMin > 0) { setBubble(`간지러워! ${cdMin}분 뒤에 다시~`); return; }
+    if (cdMin > 0) { playBlip("sad"); setBubble(`간지러워! ${cdMin}분 뒤에 다시~`); return; }
+    playBlip("ding"); vibrate(15);
     const newStats = { ...stats, mood: Math.min(100, (stats.mood ?? 70) + 15), petCooldown: Date.now() };
     const newAff   = Math.min(999, (profile.affection || 0) + 2);
     saveProfile({ ...profile, affection: newAff, stats: newStats });
@@ -1349,8 +1397,9 @@ export default function App() {
     if (!profile?.hatched) return;
     const stats = profile.stats || getDefaultStats();
     const cdMin = cooldownRemainMin((stats.napCooldown || 0) + NAP_COOLDOWN_MIN * 60000);
-    if (cdMin > 0) { setBubble(`이미 잘 쉬었어! ${cdMin}분 뒤에~`); return; }
-    if ((stats.energy ?? 100) > 75) { setBubble("별로 안 피곤해~ 좀 더 놀자!"); return; }
+    if (cdMin > 0) { playBlip("sad"); setBubble(`이미 잘 쉬었어! ${cdMin}분 뒤에~`); return; }
+    if ((stats.energy ?? 100) > 75) { playBlip("sad"); setBubble("별로 안 피곤해~ 좀 더 놀자!"); return; }
+    playBlip("tap"); vibrate(15);
     const newStats = { ...stats, energy: Math.min(100, (stats.energy ?? 100) + 40), napCooldown: Date.now() };
     const newAff   = Math.min(999, (profile.affection || 0) + 2);
     saveProfile({ ...profile, affection: newAff, stats: newStats });
@@ -1493,7 +1542,7 @@ export default function App() {
             {setupPreview && (
               <div className="setup-preview-card">
                 <div className="setup-preview-left">
-                  <img src={setupPreview.eggSrc} alt="예측 알" className="setup-preview-egg" />
+                  <img src={setupPreview.eggSrc} alt="예측 알" className="setup-preview-egg" onError={imgFail} />
                   <div className="setup-preview-theme-badge"
                     style={{ background: setupPreview.theme?.accent || "#c8a88c" }}>
                     {setupPreview.theme?.name} 테마
@@ -1550,7 +1599,7 @@ export default function App() {
         <CloudBackground themeKey={profile.theme} />
         <section className="hatch-stage">
           <div className="egg-rise">
-            <img src={profile.eggImage} alt="egg" className="egg-img" />
+            <img src={profile.eggImage} alt="egg" className="egg-img" onError={imgFail} />
           </div>
           <div className="speech intro-speech">{typedBubble || "운명의 알이 나타났습니다!"}</div>
         </section>
@@ -1597,7 +1646,7 @@ export default function App() {
                 <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",width:280,height:280}}>
                   <div className="gacha-ring" />
                   <div className="gacha-ring2" />
-                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-egg-spin" alt="gacha egg" />}
+                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-egg-spin" alt="gacha egg" onError={imgFail} />}
                 </div>
               </div>
             )}
@@ -1608,7 +1657,7 @@ export default function App() {
                   <div className="gacha-burst-lines">
                     {[...Array(8)].map((_,i) => <span key={i} />)}
                   </div>
-                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-egg-crack" alt="cracking egg" />}
+                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-egg-crack" alt="cracking egg" onError={imgFail} />}
                 </div>
               </div>
             )}
@@ -1618,7 +1667,7 @@ export default function App() {
                   <div className="gacha-sparkles">
                     {["⭐","✨","🌟","💫","⭐","✨","🌟","💫"].map((s,i) => <span key={i}>{s}</span>)}
                   </div>
-                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-reveal-egg" alt="egg reveal" />}
+                  {gachaRevealEgg && <img src={gachaRevealEgg} className="gacha-reveal-egg" alt="egg reveal" onError={imgFail} />}
                 </div>
                 {gachaIsNew
                   ? <div className="gacha-new-badge">NEW! ✨ 새 알 획득!</div>
@@ -1822,7 +1871,7 @@ export default function App() {
                       <button key={`${egg}-${idx}`}
                         className={`egg-item ${profile.activeEggImage === egg ? "on" : ""}`}
                         onClick={() => saveProfile({ ...profile, activeEggImage: egg, eggImage: egg })}>
-                        <img src={egg} alt={`egg-${idx}`} />
+                        <img src={egg} alt={`egg-${idx}`} onError={imgFail} />
                       </button>
                     ))}
                   </div>
@@ -1882,7 +1931,7 @@ export default function App() {
         {/* 공유 카드 (오프스크린) */}
         <div className="share-card" ref={shareRef}>
           <h4>Destiny Tamagotchi Passport</h4>
-          <img src={profile.activeEggImage || profile.eggImage} alt="egg" className="share-egg" />
+          <img src={profile.activeEggImage || profile.eggImage} alt="egg" className="share-egg" onError={imgFail} />
           {profile.hatched && (
             <div className="share-char">
               <CharacterSprite themeKey={themeKey} animalKey={profile.iljuInfo.animalKey} action="happy" size={120} />
@@ -1901,12 +1950,28 @@ export default function App() {
 //  CSS — Nintendo / Animal Crossing 완전 리스타일
 // ══════════════════════════════════════════════════════
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&family=Gugi&display=swap');
 :root { --cream:#F5F0E8; --ink:#2a1a0e; --ink2:#6a4a2e; --carrot:#FF7B2C; --star:#FFD700; --pink:#FF69A0; --panel-bg:rgba(255,250,242,0.97); }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body,#__next{margin:0;padding:0;width:100%;height:100%;font-family:'Noto Sans KR',sans-serif;color:var(--ink);}
 /* ── App shell: 전체화면 게임 결계 ── */
-.app-shell{position:fixed;inset:0;overflow:hidden;background:#1a0a05;}
+.app-shell{position:fixed;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#2d1a08,#0e0604);}
+/* ── 데스크탑: 게임기 기기 쉘 ── */
+@media(min-width:580px){
+  .app-shell{display:flex;align-items:center;justify-content:center;}
+  .game-frame{
+    height:min(820px,95dvh) !important;
+    border-radius:38px !important;
+    border:6px solid rgba(255,255,255,.18) !important;
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,.06),
+      0 0 0 9px rgba(0,0,0,.55),
+      0 0 0 14px rgba(255,255,255,.06),
+      inset 0 2px 8px rgba(255,255,255,.12),
+      0 40px 100px rgba(0,0,0,.8) !important;
+    overflow:hidden !important;
+  }
+}
 /* ── 배경 ── */
 .ac-bg{position:absolute;inset:0;z-index:0;}
 .sky-layer{position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#d7f2ff 58%,#f5f5e8 100%);}
@@ -1947,7 +2012,7 @@ html,body,#__next{margin:0;padding:0;width:100%;height:100%;font-family:'Noto Sa
 /* ─ 상단 HUD ─ */
 .game-hud{flex-shrink:0;padding:10px 14px 8px;background:rgba(255,250,242,0.94);border-bottom:3px solid var(--ink);display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 .hud-left{display:flex;flex-direction:column;gap:1px;}
-.hud-name{font-family:'Jua',sans-serif;font-size:19px;color:var(--ink);line-height:1.1;}
+.hud-name{font-family:'Gugi','Jua',sans-serif;font-size:18px;color:var(--ink);line-height:1.1;letter-spacing:.02em;}
 .hud-ilju{font-size:11px;color:#8a6040;opacity:.9;}
 .hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
 .hud-aff{font-size:14px;font-weight:900;color:#e8505a;}
@@ -1988,9 +2053,9 @@ html,body,#__next{margin:0;padding:0;width:100%;height:100%;font-family:'Noto Sa
 .theme-dark .speech{background:#1e1e3c;color:#d8e8ff;border-color:#5566cc;box-shadow:0 6px 0 #2233aa;}
 /* ─ 케어 독 ─ */
 .care-dock{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
-.care-btn{border:3px solid var(--ink);border-radius:16px;padding:9px 2px 7px;font-family:'Jua',sans-serif;font-size:11px;cursor:pointer;background:#fff9ee;box-shadow:0 5px 0 var(--ink);display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .08s ease,box-shadow .08s ease;}
+.care-btn{border:3px solid var(--ink);border-radius:20px;padding:10px 2px 8px;font-family:'Jua',sans-serif;font-size:11px;cursor:pointer;background:linear-gradient(180deg,#fffdf0,#ffeece);box-shadow:0 6px 0 var(--ink),inset 0 2px 4px rgba(255,255,255,.85);display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .1s cubic-bezier(.25,.46,.45,.94),box-shadow .1s ease;}
 .care-btn span{font-size:20px;line-height:1.1;}
-.care-btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink);}
+.care-btn:active{transform:translateY(5px) scale(0.97);box-shadow:0 1px 0 var(--ink),inset 0 2px 4px rgba(0,0,0,.12);}
 .care-btn.care-cd{opacity:.5;background:#eee;box-shadow:0 5px 0 #aaa;border-color:#aaa;}
 .care-btn.care-urgent{background:#ffe0e0;border-color:#cc3333;box-shadow:0 5px 0 #aa2222;animation:motionShake .5s ease-in-out 3;}
 .theme-dark .care-btn{background:#1a1a3a;color:#c0d0ff;border-color:#5566cc;box-shadow:0 5px 0 #334488;}
@@ -2170,7 +2235,8 @@ html,body,#__next{margin:0;padding:0;width:100%;height:100%;font-family:'Noto Sa
 @keyframes eggRise{0%{transform:translateY(80px) scale(.7);opacity:0;}70%{transform:translateY(-10px) scale(1.08);opacity:1;}100%{transform:translateY(0) scale(1);opacity:1;}}
 @keyframes eggWiggle{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-6deg);}75%{transform:rotate(6deg);}}
 @keyframes eggIdle{0%,100%{transform:translateY(0) rotate(0deg);}30%{transform:translateY(-6px) rotate(-3deg);}70%{transform:translateY(-4px) rotate(3deg);}}
-@keyframes eggTap{0%{transform:scale(1);}50%{transform:scale(1.16) rotate(-4deg);}100%{transform:scale(1);}}
+@keyframes eggTap{0%{transform:scale(1);}35%{transform:scale(1.18) rotate(-5deg);}65%{transform:scale(1.06) rotate(3deg);}82%{transform:scale(1.02) rotate(-1deg);}100%{transform:scale(1);}}
+@keyframes motionSpring{0%{transform:scale(1);}20%{transform:scale(1.14);}45%{transform:scale(0.94);}65%{transform:scale(1.06);}82%{transform:scale(0.98);}100%{transform:scale(1);}}
 @keyframes eggCrack{0%,100%{transform:rotate(-4deg) scale(.98);}50%{transform:rotate(4deg) scale(1.04);}}
 @keyframes tapHintBounce{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-5px);}}
 @keyframes crackAppear{from{opacity:0;transform:scaleY(0);}to{opacity:1;transform:scaleY(1);}}
