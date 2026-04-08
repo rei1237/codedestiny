@@ -37,6 +37,11 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function AdminDashboard() {
   const { showToast } = useToast();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -45,9 +50,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function load() {
       try {
-        const token = getToken();
         const res = await fetch("/api/admin/stats", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeaders(),
+          credentials: "include",
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));

@@ -44,6 +44,11 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function AuditPage() {
   const { showToast } = useToast();
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -58,7 +63,6 @@ export default function AuditPage() {
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getToken();
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(PAGE_SIZE),
@@ -66,7 +70,8 @@ export default function AuditPage() {
         ...(filterType && { targetType: filterType }),
       });
       const res = await fetch(`/api/admin/audit?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("API 오류");
       const data = await res.json();

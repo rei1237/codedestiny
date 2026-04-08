@@ -5,7 +5,10 @@ export const runtime = "nodejs";
 
 import { dbConnect } from "../../../_lib/dbConnect.js";
 import { getUserModel } from "../../../_lib/models/UserModel.js";
-import { verifyFlowerAdminToken } from "../../../_lib/flowerAdminToken.js";
+import {
+  verifyFlowerAdminToken,
+  extractAdminTokenFromRequest,
+} from "../../../_lib/flowerAdminToken.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -14,22 +17,9 @@ function json(data, status = 200) {
   });
 }
 
-function extractToken(request) {
-  const auth = request.headers.get("authorization") || "";
-  if (auth.startsWith("Bearer ")) return auth.slice(7).trim();
-  const xat = request.headers.get("x-admin-token") || "";
-  if (xat) return xat.trim();
-  const cookieHeader = request.headers.get("cookie") || "";
-  const match = cookieHeader.match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
-  if (match) {
-    try { return decodeURIComponent(match[1]); } catch { return match[1]; }
-  }
-  return "";
-}
-
 export async function GET(request) {
   try {
-    const token = extractToken(request);
+    const token = extractAdminTokenFromRequest(request);
     if (!(await verifyFlowerAdminToken(token))) {
       return json({ message: "Unauthorized" }, 401);
     }

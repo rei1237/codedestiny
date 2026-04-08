@@ -43,6 +43,14 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders(extra?: Record<string, string>) {
+  const token = getToken();
+  return {
+    ...(extra || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export default function ContentPage() {
   const { showToast } = useToast();
   const [items, setItems] = useState<Content[]>([]);
@@ -72,7 +80,6 @@ export default function ContentPage() {
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getToken();
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(PAGE_SIZE),
@@ -80,7 +87,8 @@ export default function ContentPage() {
         ...(filterCat && { category: filterCat }),
       });
       const res = await fetch(`/api/admin/content?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("API 오류");
       const data = await res.json();
@@ -125,7 +133,6 @@ export default function ContentPage() {
     setFormLoading(true);
     setFormError("");
     try {
-      const token = getToken();
       const payload = {
         category: formData.category,
         subcategory: formData.subcategory.trim(),
@@ -142,7 +149,8 @@ export default function ContentPage() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -162,10 +170,10 @@ export default function ContentPage() {
     if (!deleteModal.item) return;
     setDeleteLoading(true);
     try {
-      const token = getToken();
       const res = await fetch(`/api/admin/content/${deleteModal.item._id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "삭제 실패");

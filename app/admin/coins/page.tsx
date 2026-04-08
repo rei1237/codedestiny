@@ -30,6 +30,11 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders() {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function CoinsPage() {
   const { showToast } = useToast();
   const [records, setRecords] = useState<CoinRecord[]>([]);
@@ -45,7 +50,6 @@ export default function CoinsPage() {
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getToken();
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(PAGE_SIZE),
@@ -55,7 +59,8 @@ export default function CoinsPage() {
         ...(dateTo && { dateTo }),
       });
       const res = await fetch(`/api/admin/coin-history?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("API 오류");
       const data = await res.json();

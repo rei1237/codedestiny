@@ -21,6 +21,14 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders(extra?: Record<string, string>) {
+  const token = getToken();
+  return {
+    ...(extra || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 function fmtDate(v?: string) {
   if (!v) return "-";
   const d = new Date(v);
@@ -72,7 +80,6 @@ export default function UsersPage() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getToken();
       const params = new URLSearchParams({
         page: String(page),
         pageSize: String(PAGE_SIZE),
@@ -81,7 +88,8 @@ export default function UsersPage() {
         ...(filterRole && { role: filterRole }),
       });
       const res = await fetch(`/api/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       if (!res.ok) throw new Error("API 오류");
       const data = await res.json();
@@ -103,12 +111,12 @@ export default function UsersPage() {
     if (!statusModal.user) return;
     setActionLoading(true);
     try {
-      const token = getToken();
       const body: Record<string, string> = { status: statusModal.targetStatus };
       if (statusModal.targetStatus === "banned") body.banReason = statusModal.banReason;
       const res = await fetch(`/api/admin/users/${statusModal.user._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify(body),
       });
       const data = await res.json();
@@ -127,10 +135,10 @@ export default function UsersPage() {
     if (!deleteModal.user) return;
     setActionLoading(true);
     try {
-      const token = getToken();
       const res = await fetch(`/api/admin/users/${deleteModal.user._id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "오류");
@@ -157,10 +165,10 @@ export default function UsersPage() {
     }
     setActionLoading(true);
     try {
-      const token = getToken();
       const res = await fetch("/api/admin/members/points", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({ userId: coinModal.user._id, delta, reason: coinModal.reason || "관리자 수동 지급" }),
       });
       const data = await res.json();

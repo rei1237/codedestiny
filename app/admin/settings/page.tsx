@@ -19,6 +19,14 @@ function getToken() {
   try { return sessionStorage.getItem("flower_admin_token") || ""; } catch { return ""; }
 }
 
+function authHeaders(extra?: Record<string, string>) {
+  const token = getToken();
+  return {
+    ...(extra || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export default function SettingsPage() {
   const { showToast } = useToast();
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -31,9 +39,9 @@ export default function SettingsPage() {
     async function load() {
       setLoading(true);
       try {
-        const token = getToken();
         const res = await fetch("/api/admin/settings", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeaders(),
+          credentials: "include",
         });
         if (!res.ok) throw new Error("설정을 불러오지 못했습니다.");
         const data = await res.json();
@@ -62,10 +70,10 @@ export default function SettingsPage() {
     setConfirmOpen(false);
     setSaving(true);
     try {
-      const token = getToken();
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify(pendingSettings),
       });
       const data = await res.json();
