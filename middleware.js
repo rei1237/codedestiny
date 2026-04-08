@@ -122,6 +122,16 @@ export function middleware(request) {
     return NextResponse.rewrite(url);
   }
 
+  // Admin route protection: /admin/* (except /admin/login) requires flower_admin_token cookie
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+    const tokenCookie = request.cookies.get("flower_admin_token")?.value;
+    if (!tokenCookie) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   const rawHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
   const host = rawHost.toLowerCase().split(":")[0];
 

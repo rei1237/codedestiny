@@ -42,14 +42,22 @@ export async function GET(request) {
     const pageSize = Math.min(Math.max(Number(url.searchParams.get("pageSize") || "50"), 10), 200);
     const page = Math.max(Number(url.searchParams.get("page") || "1"), 1);
     const skip = (page - 1) * pageSize;
+    const statusFilter = url.searchParams.get("status") || "";
+    const roleFilter = url.searchParams.get("role") || "";
+
+    const VALID_STATUS = ["active", "banned", "suspended"];
+    const VALID_ROLES = ["user", "admin"];
 
     const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const filter = search
-      ? { $or: [
-          { name: { $regex: safeSearch, $options: "i" } },
-          { email: { $regex: safeSearch, $options: "i" } },
-        ] }
-      : {};
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+      ];
+    }
+    if (statusFilter && VALID_STATUS.includes(statusFilter)) filter.status = statusFilter;
+    if (roleFilter && VALID_ROLES.includes(roleFilter)) filter.role = roleFilter;
 
     const [totalCount, filteredCount, users] = await Promise.all([
       User.countDocuments({}),

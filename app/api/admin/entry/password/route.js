@@ -8,7 +8,7 @@ import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken.js";
 // 없으면 하드코딩된 기본값 폴백 (변경 시 새 해시를 Cloudflare 환경변수로 등록하면 코드 배포 불필요).
 const ADMIN_ENTRY_PASSWORD_SHA256 =
   (process.env.ADMIN_ENTRY_PASSWORD_SHA256 || "").trim() ||
-  "6d01b565ddc7827808cacaeabdb3bdecb787ab342bb0a57ebcc05e173cef747b";
+  "f76a173ef47f93eec43168e10fc32dcbefb2d32200c44cbd33e4f0324437fb4e";
 
 // ── 브루트포스 방어: IP당 15분 윈도우에서 최대 5회 실패 허용 ──────────────
 const _loginAttempts = new Map(); // ip -> { count, resetAt }

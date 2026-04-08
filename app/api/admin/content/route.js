@@ -7,6 +7,7 @@ import {
   verifyFlowerAdminToken,
   extractAdminTokenFromRequest,
 } from "../../../_lib/flowerAdminToken.js";
+import { writeAuditLog } from "../../../_lib/models/AuditLogModel.js";
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -99,6 +100,15 @@ export async function POST(request) {
       sortOrder: Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
       isActive: Boolean(isActive),
       metadata: metadata || undefined,
+    });
+
+    await writeAuditLog({
+      adminId: "admin",
+      adminEmail: "admin",
+      action: "content_create",
+      targetType: "content",
+      targetId: String(item._id),
+      after: { category, title: title.trim() },
     });
 
     return json({ ok: true, item: item.toObject() }, 201);
