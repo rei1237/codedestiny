@@ -5,7 +5,6 @@ import { useState } from "react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -13,26 +12,27 @@ export default function AdminLoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!email.trim() || !password) {
-      setError("이메일과 비밀번호를 입력하세요.");
+    if (!password) {
+      setError("비밀번호를 입력하세요.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/auth/login", {
+      const res = await fetch("/api/admin/entry/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        body: JSON.stringify({ password }),
         credentials: "include",
       });
-      const data = await res.json();
+      let data: Record<string, unknown> = {};
+      try { data = await res.json(); } catch {}
       if (!res.ok) {
-        setError(data?.message || "로그인에 실패했습니다.");
+        setError("비밀번호가 올바르지 않습니다.");
         return;
       }
-      // token도 sessionStorage에 저장 (API 호출 시 사용)
-      if (data?.token) {
-        try { sessionStorage.setItem("flower_admin_token", data.token); } catch {}
+      // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에도 저장
+      if (data?.adminToken) {
+        try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
       }
       router.push("/admin");
       router.refresh();
@@ -59,24 +59,14 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">이메일</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="username"
-                placeholder="admin@example.com"
-                className="w-full bg-[#1e1e2e] border border-[#313145] rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors"
-              />
-            </div>
-            <div>
               <label className="block text-xs text-slate-400 mb-1">비밀번호</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder="관리자 비밀번호 입력"
+                autoFocus
                 className="w-full bg-[#1e1e2e] border border-[#313145] rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500 transition-colors"
               />
             </div>
@@ -92,7 +82,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="mt-2 w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
             >
-              {loading ? "로그인 중..." : "로그인"}
+              {loading ? "확인 중..." : "입장"}
             </button>
           </form>
         </div>

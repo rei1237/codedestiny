@@ -117,9 +117,15 @@ export async function POST(request) {
       });
     }
 
+    // flower_admin_token 쿠키를 설정해 레이아웃/미들웨어 인증 체크를 통과하게 함 (8시간 유효)
+    const cookieMaxAge = 8 * 3600;
     return new Response(JSON.stringify({ ok: true, adminToken, nextUrl: "/admin" }), {
       status: 200,
-      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "Set-Cookie": `flower_admin_token=${encodeURIComponent(adminToken)}; HttpOnly; Path=/; Max-Age=${cookieMaxAge}; SameSite=Lax`,
+      },
     });
   } catch {
     return notFound();

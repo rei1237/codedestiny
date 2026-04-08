@@ -62,6 +62,11 @@ export default function UsersPage() {
     open: false, user: null,
   });
 
+  // 코인 지급 모달
+  const [coinModal, setCoinModal] = useState<{
+    open: boolean; user: User | null; amount: string; reason: string;
+  }>({ open: false, user: null, amount: "", reason: "" });
+
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchUsers = useCallback(async () => {
@@ -132,6 +137,39 @@ export default function UsersPage() {
       showToast("회원이 삭제되었습니다.", "success");
       setDeleteModal({ open: false, user: null });
       fetchUsers();
+    } catch (err: unknown) {
+      showToast((err as Error).message, "error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleCoinGrant() {
+    if (!coinModal.user) return;
+    const delta = parseInt(coinModal.amount, 10);
+    if (isNaN(delta) || delta === 0) {
+      showToast("올바른 코인 수량을 입력하세요.", "error");
+      return;
+    }
+    if (Math.abs(delta) > 1_000_000) {
+      showToast("1회 최대 ±1,000,000 코인까지 가능합니다.", "error");
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const token = getToken();
+      const res = await fetch("/api/admin/members/points", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: coinModal.user._id, delta, reason: coinModal.reason || "관리자 수동 지급" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "오류");
+      const sign = delta > 0 ? "+" : "";
+      showToast(`${coinModal.user.name}에게 ${sign}${delta.toLocaleString()} 코인 처리 완료.`, "success");
+      // 로컬 상태 즉시 반영
+      setUsers((prev) => prev.map((u) => u._id === coinModal.user!._id ? { ...u, points: u.points + delta } : u));
+      setCoinModal({ open: false, user: null, amount: "", reason: "" });
     } catch (err: unknown) {
       showToast((err as Error).message, "error");
     } finally {
@@ -221,7 +259,13 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-300">{u.points.toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap">
+                      <button
+                        onClick={() => setCoinModal({ open: true, user: u, amount: "", reason: "" })}
+                        className="px-2 py-1 text-xs bg-amber-600/20 text-amber-400 hover:bg-amber-600/40 rounded transition-colors border border-amber-600/30"
+                      >
+                        코인
+                      </button>
                       {u.status !== "banned" && u.role !== "admin" && (
                         <button
                           onClick={() => setStatusModal({ open: true, user: u, targetStatus: "banned", banReason: "" })}
@@ -312,6 +356,63 @@ export default function UsersPage() {
                     ? "bg-red-600 hover:bg-red-500 text-white"
                     : "bg-emerald-600 hover:bg-emerald-500 text-white"
                 }`}
+              >
+                {actionLoading ? "처리 중..." : "확인"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 코인 지급/차감 모달 */}
+      {coinModal.open && coinModal.user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setCoinModal({ open: false, user: null, amount: "", reason: "" })}
+          />
+          <div className="relative bg-[#1e1e2e] border border-[#313145] rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
+            <h3 className="text-base font-semibold text-white mb-1">코인 지급 / 차감</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              {coinModal.user.name}
+              <span className="ml-1 text-slate-500">({coinModal.user.email})</span>
+              <span className="ml-2 text-amber-400">현재 {coinModal.user.points.toLocaleString()} 코인</span>
+            </p>
+            <div className="flex flex-col gap-3 mb-5">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">
+                  코인 수량 <span className="text-slate-500">(음수 입력 시 차감)</span>
+                </label>
+                <input
+                  type="number"
+                  value={coinModal.amount}
+                  onChange={(e) => setCoinModal((s) => ({ ...s, amount: e.target.value }))}
+                  placeholder="예: 100 또는 -50"
+                  className="w-full bg-[#13131f] border border-[#2a2a3e] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">사유</label>
+                <input
+                  type="text"
+                  value={coinModal.reason}
+                  onChange={(e) => setCoinModal((s) => ({ ...s, reason: e.target.value }))}
+                  placeholder="관리자 수동 지급"
+                  className="w-full bg-[#13131f] border border-[#2a2a3e] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setCoinModal({ open: false, user: null, amount: "", reason: "" })}
+                className="px-4 py-2 rounded-lg text-sm text-slate-300 bg-[#2a2a3e] hover:bg-[#333355] transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleCoinGrant}
+                disabled={actionLoading || !coinModal.amount}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {actionLoading ? "처리 중..." : "확인"}
               </button>
