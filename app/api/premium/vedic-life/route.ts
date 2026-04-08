@@ -813,6 +813,43 @@ function parseSections(text: string): { title:string; body:string }[] {
   });
 }
 
+function buildFallbackChapterText(ch: number, c: VedicChart, reason?: string): string {
+  const meta = VEDIC_CHAPTER_META[ch - 1] ?? { title: `챕터 ${ch}`, subtitle: "베다 프리미엄" };
+  const moon = c.planets.Moon;
+  const sun = c.planets.Sun;
+  const saturn = c.planets.Saturn;
+  const currentDasha = c.vimshottariDasha.current;
+  const antar = c.vimshottariDasha.antar;
+  const yogaList = c.yogas.map((y) => y.nameKo).join(", ") || "핵심 요가 없음";
+
+  return `[시스템 안내]
+AI 서버 상태로 인해 기본 베다 리포트 템플릿으로 생성되었습니다.${reason ? ` (원인: ${reason})` : ""}
+
+## 1. ${meta.title} 핵심 요약
+라그나 ${c.lagna.signKo}(${c.lagna.signSanskrit})를 기준으로, 현재 차트는 ${moon?.nameKo ?? "달"}의 정서 흐름과 ${sun?.nameKo ?? "태양"}의 의지 축이 균형을 만드는 구조입니다.
+현재 대운은 ${currentDasha?.planet ?? "-"}, 세운은 ${antar?.planet ?? "-"}으로 표시되며, 이는 장기 목표를 재정렬하고 일상의 실행력을 점검하기 좋은 타이밍을 시사합니다.
+
+## 2. 강점과 기회 포인트
+검출된 요가: ${yogaList}
+이 조합은 학습-실행-회고 루틴을 반복할수록 성과가 누적되는 타입입니다. 특히 10하우스(사회적 역할)와 9하우스(철학/가치) 연결이 강화될수록 커리어/브랜딩 품질이 좋아집니다.
+
+## 3. 주의할 리스크와 보정 전략
+${saturn?.nameKo ?? "토성"}이 관여하는 책임/지연 이슈는 과로 또는 결정 피로로 나타나기 쉽습니다.
+이번 주에는 "할 일 축소 → 우선순위 1개 집중 → 완료 기록"의 3단계를 적용해 리스크를 줄이세요.
+
+## 4. 7일 실행 루틴 (실전 우파야)
+1) 월: 수면/감정 기록 10분
+2) 화: 고강도 작업 1개 완수
+3) 수: 커뮤니케이션 정리(메일/메시지)
+4) 목: 장기 목표 재점검
+5) 금: 관계/협업 감사 표현
+6) 토: 정리·정돈 및 지출 점검
+7) 일: 다음 주 계획 3줄 작성
+
+## 5. 오늘의 운명 선언문
+"나는 ${c.lagna.signSanskrit} 라그나의 흐름을 따라, 두려움보다 실행을 선택하고, 매일의 루틴으로 카르마를 성장 에너지로 전환한다."`;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // POST 핸들러
 // ─────────────────────────────────────────────────────────────────
@@ -841,8 +878,27 @@ export async function POST(req: NextRequest) {
 
     // 2) AI 텍스트 생성
     const prompt = buildPrompt(chapter, chart);
-    const text   = await callGemini(prompt);
-    const sections = parseSections(text);
+    let text = "";
+    let sections: { title:string; body:string }[] = [];
+    let usedFallback = false;
+    let fallbackReason = "";
+
+    try {
+      text = await callGemini(prompt);
+      sections = parseSections(text);
+      if (!sections.length) {
+        usedFallback = true;
+        fallbackReason = "AI 응답 섹션 파싱 실패";
+        text = buildFallbackChapterText(chapter, chart, fallbackReason);
+        sections = parseSections(text);
+      }
+    } catch (aiErr: unknown) {
+      usedFallback = true;
+      fallbackReason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
+      console.warn("[api/premium/vedic-life] fallback:", fallbackReason);
+      text = buildFallbackChapterText(chapter, chart, fallbackReason);
+      sections = parseSections(text);
+    }
 
     return NextResponse.json({
       ok: true,
@@ -851,6 +907,8 @@ export async function POST(req: NextRequest) {
       chapterMeta: VEDIC_CHAPTER_META[chapter - 1],
       text,
       sections,
+      usedFallback,
+      fallbackReason: usedFallback ? fallbackReason : undefined,
     });
 
   } catch (err: unknown) {

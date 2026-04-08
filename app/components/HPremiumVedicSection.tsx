@@ -419,7 +419,7 @@ export default function HPremiumVedicSection() {
 
       {/* ── 헤더 */}
       <div style={{ padding:"26px 22px 18px", background:"linear-gradient(135deg,rgba(212,160,23,0.10) 0%,rgba(99,102,241,0.06) 100%)", borderBottom:"1px solid rgba(212,160,23,0.10)", display:"flex", alignItems:"center", gap:16, flexWrap:"wrap" }}>
-        <img src="/fuctionassets/premium veda.jpg" alt="베다 점성술 프리미엄" style={{ width:70, height:70, borderRadius:16, objectFit:"cover", boxShadow:"0 4px 20px rgba(212,160,23,0.35)", flexShrink:0, border:"1.5px solid rgba(212,160,23,0.4)" }} />
+        <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄" style={{ width:70, height:70, borderRadius:16, objectFit:"cover", boxShadow:"0 4px 20px rgba(212,160,23,0.35)", flexShrink:0, border:"1.5px solid rgba(212,160,23,0.4)" }} />
         <div>
           <p style={{ color:"rgba(212,160,23,0.60)", fontSize:"0.62rem", letterSpacing:"0.30em", fontWeight:700, textTransform:"uppercase", marginBottom:5 }}>CODE : DESTINY · JYOTISH MASTER</p>
           <h2 style={{ color:"#fff", fontWeight:900, fontSize:"clamp(1.2rem,3.5vw,1.65rem)", lineHeight:1.25, margin:0 }}>
