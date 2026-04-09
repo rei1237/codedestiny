@@ -30,6 +30,11 @@ interface ChapterResult {
 type ChapterStep = "idle" | "loading" | "done" | "error";
 interface ChapterState { step: ChapterStep; result: ChapterResult | null; }
 
+type PremiumSectionProps = {
+  showIntro?: boolean;
+  onStartGeneration?: () => void;
+};
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타 (UI 표시용)
 // ─────────────────────────────────────────────────────────────────
@@ -304,7 +309,10 @@ function ChapterCard({
 // ─────────────────────────────────────────────────────────────────
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
-export default function HPremiumAstrologySection() {
+export default function HPremiumAstrologySection({
+  showIntro = false,
+  onStartGeneration,
+}: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 점성술 프리미엄");
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
@@ -428,6 +436,61 @@ export default function HPremiumAstrologySection() {
   };
 
   const doneCount = Object.values(chapters).filter(c => c.step === "done").length;
+
+  if (showIntro) {
+    return (
+      <section style={{
+        background:"linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%)",
+        border:"1px solid rgba(251,191,36,0.18)",
+        borderRadius:24, overflow:"hidden",
+        boxShadow:"0 12px 50px rgba(251,191,36,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
+      }}>
+        <div style={{ position:"relative", overflow:"hidden", borderBottom:"1px solid rgba(251,191,36,0.12)" }}>
+          <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 소개" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.36 }} />
+          <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(7,9,26,0.55) 0%, rgba(7,9,26,0.96) 100%)" }} />
+          <div style={{ position:"absolute", left:20, right:20, bottom:20 }}>
+            <p style={{ color:"rgba(251,191,36,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>ASTROLOGY PREMIUM · DETAIL INTRO</p>
+            <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>점성술 프리미엄 리포트</h3>
+            <p style={{ color:"rgba(203,213,225,0.75)", fontSize:"0.88rem", margin:0, lineHeight:1.8 }}>ASC/Sun/Moon 기반 12챕터 분석을 먼저 확인하고, 원할 때 PDF 생성 단계로 진입하세요.</p>
+          </div>
+        </div>
+
+        <div style={{ padding:"18px 18px 22px" }}>
+          <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.72rem", letterSpacing:"0.18em", margin:"0 0 10px" }}>리포트 목차 미리보기 (12 CHAPTERS)</p>
+          <div style={{ display:"grid", gap:8 }}>
+            {CHAPTER_META.map((ch) => (
+              <div key={ch.num} style={{ borderRadius:12, border:"1px solid rgba(251,191,36,0.18)", background:"rgba(15,23,42,0.35)", padding:"10px 12px" }}>
+                <p style={{ margin:0, color:"rgba(253,230,138,0.9)", fontSize:"0.82rem", fontWeight:700 }}>
+                  {ch.icon} CHAPTER {ch.num}. {ch.title}
+                </p>
+                <p style={{ margin:"4px 0 0", color:"rgba(148,163,184,0.75)", fontSize:"0.74rem" }}>{ch.subtitle}</p>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => onStartGeneration?.()}
+            style={{
+              marginTop:14,
+              width:"100%",
+              borderRadius:12,
+              padding:"14px",
+              background:"linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #b45309 100%)",
+              border:"none",
+              color:"#fff",
+              fontWeight:900,
+              fontSize:"0.96rem",
+              letterSpacing:"0.05em",
+              cursor:"pointer",
+              boxShadow:"0 4px 20px rgba(251,191,36,0.3)",
+            }}
+          >
+            프리미엄 PDF 리포트 생성하기
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section style={{

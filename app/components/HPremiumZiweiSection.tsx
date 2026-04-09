@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   RadarChart,
   Radar,
@@ -5770,7 +5770,15 @@ function ChapterMasterPlan({ step, result, onRequest }: {
   );
 }
 // ─────────────────────────────────────────────────────────────────
-export default function HPremiumZiweiSection() {
+type PremiumSectionProps = {
+  showIntro?: boolean;
+  onStartGeneration?: () => void;
+};
+
+export default function HPremiumZiweiSection({
+  showIntro = false,
+  onStartGeneration,
+}: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 자미두수 프리미엄");
   const [step, setStep] = useState<"intro" | "form" | "loading" | "result">("intro");
   const [birthYear, setBirthYear] = useState("");
@@ -5812,6 +5820,7 @@ export default function HPremiumZiweiSection() {
   const [chMasterResult, setChMasterResult] = useState<MasterPlanResult | null>(null);
   const [chapterError, setChapterError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
+  const prevShowIntroRef = useRef(showIntro);
 
   type ChapterStepState = "idle" | "loading" | "done";
 
@@ -5987,6 +5996,21 @@ export default function HPremiumZiweiSection() {
     }
   }
 
+  const handleIntroEntry = () => {
+    if (showIntro) {
+      onStartGeneration?.();
+      return;
+    }
+    setStep("form");
+  };
+
+  useEffect(() => {
+    if (prevShowIntroRef.current && !showIntro && step === "intro") {
+      setStep("form");
+    }
+    prevShowIntroRef.current = showIntro;
+  }, [showIntro, step]);
+
   // ── Intro 카드 ──────────────────────────────────────────────────
   const introView = (
     <>
@@ -6069,7 +6093,7 @@ export default function HPremiumZiweiSection() {
         {/* CTA 버튼 */}
         <button
           type="button"
-          onClick={() => setStep("form")}
+          onClick={handleIntroEntry}
           className="mt-7 w-full rounded-2xl px-6 py-4 font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
           style={{
             background: "linear-gradient(135deg, #6d28d9 0%, #4338ca 50%, #7c3aed 100%)",
@@ -6078,7 +6102,7 @@ export default function HPremiumZiweiSection() {
             fontSize: "0.97rem",
           }}
         >
-          ✦ 나의 별자리 캐릭터 찾기
+          {showIntro ? "프리미엄 PDF 리포트 생성하기" : "✦ 나의 별자리 캐릭터 찾기"}
         </button>
         <p className="mt-3 text-center text-xs tracking-[0.08em] text-indigo-400/50">
           생년월일 입력만으로 시작합니다 · 무료 체험
@@ -6553,10 +6577,10 @@ export default function HPremiumZiweiSection() {
         style={{ background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.5), transparent)" }}
       />
 
-      {step === "intro" && introView}
-      {step === "form" && formView}
-      {step === "loading" && <ConstellationLoader />}
-      {step === "result" && resultView}
+      {(showIntro || step === "intro") && introView}
+      {!showIntro && step === "form" && formView}
+      {!showIntro && step === "loading" && <ConstellationLoader />}
+      {!showIntro && step === "result" && resultView}
 
       {/* 하단 장식 라인 */}
       <div

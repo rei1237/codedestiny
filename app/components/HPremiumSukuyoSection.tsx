@@ -40,6 +40,11 @@ interface ChapterState {
   result: ChapterResult | null;
 }
 
+type PremiumSectionProps = {
+  showIntro?: boolean;
+  onStartGeneration?: () => void;
+};
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타데이터
 // ─────────────────────────────────────────────────────────────────
@@ -623,7 +628,10 @@ function SukuyoHero({ sukuyo }: { sukuyo: SukuyoInfo }) {
 // ─────────────────────────────────────────────────────────────────
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
-export default function HPremiumSukuyoSection() {
+export default function HPremiumSukuyoSection({
+  showIntro = false,
+  onStartGeneration,
+}: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 숙요 프리미엄");
   const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "", hour: "12" });
   const [sukuyo, setSukuyo] = useState<SukuyoInfo | null>(null);
@@ -888,6 +896,62 @@ export default function HPremiumSukuyoSection() {
   }, [sukuyo, chapters, birthDate]);
 
   const doneCount = chapters.filter((c) => c.step === "done").length;
+
+  if (showIntro) {
+    return (
+      <section
+        style={{
+          width: "100%",
+          maxWidth: 820,
+          margin: "0 auto",
+          padding: "0 0 24px",
+          fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif",
+        }}
+      >
+        <div style={{ borderRadius: 24, overflow: "hidden", border: "1px solid rgba(125,211,252,0.25)", background: "linear-gradient(145deg, rgba(2,8,23,0.96) 0%, rgba(15,23,42,0.86) 100%)" }}>
+          <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 소개" style={{ width: "100%", maxHeight: 280, objectFit: "cover", opacity: 0.42 }} />
+          <div style={{ padding: "18px 18px 22px" }}>
+            <p style={{ color: "rgba(125,211,252,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>MOONLIGHT STRATEGY · DETAIL INTRO</p>
+            <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>숙요점 달빛 전략 리포트</h3>
+            <p style={{ color: "rgba(186,230,253,0.72)", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>
+              27수 별자리 흐름을 13개 챕터로 먼저 확인하고, 버튼 클릭 시 PDF 생성 단계로 진입합니다.
+            </p>
+
+            <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+              {CHAPTER_META.map((ch) => (
+                <div key={ch.num} style={{ borderRadius: 12, border: "1px solid rgba(125,211,252,0.2)", background: "rgba(2,12,30,0.55)", padding: "10px 12px" }}>
+                  <p style={{ margin: 0, color: "rgba(125,211,252,0.94)", fontSize: "0.82rem", fontWeight: 700 }}>
+                    {ch.icon} CHAPTER {ch.num}. {ch.title}
+                  </p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(148,163,184,0.76)", fontSize: "0.74rem" }}>{ch.subtitle}</p>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onStartGeneration?.()}
+              style={{
+                marginTop: 14,
+                width: "100%",
+                padding: "14px 0",
+                borderRadius: 14,
+                border: "1px solid rgba(125,211,252,0.5)",
+                background: "linear-gradient(135deg, rgba(2,44,84,0.9) 0%, rgba(30,27,75,0.9) 100%)",
+                color: "rgba(125,211,252,0.98)",
+                fontSize: "0.96rem",
+                fontWeight: 800,
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+              }}
+            >
+              프리미엄 PDF 리포트 생성하기
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // ─── 입력 폼 ─────────────────────────────────────────────────────
   const inputForm = (

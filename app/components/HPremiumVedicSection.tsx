@@ -28,6 +28,11 @@ interface ChapterResult { chapter:number; chapterMeta:ChapterMeta; text:string; 
 type ChapterStep = "idle"|"loading"|"done"|"error";
 interface ChapterState { step:ChapterStep; result:ChapterResult|null; }
 
+type PremiumSectionProps = {
+  showIntro?: boolean;
+  onStartGeneration?: () => void;
+};
+
 // ─────────────────────────────────────────────────────────────────
 // 챕터 메타
 // ─────────────────────────────────────────────────────────────────
@@ -345,7 +350,10 @@ function PDFDownloadButton({
 // ─────────────────────────────────────────────────────────────────
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
-export default function HPremiumVedicSection() {
+export default function HPremiumVedicSection({
+  showIntro = false,
+  onStartGeneration,
+}: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
@@ -435,6 +443,50 @@ export default function HPremiumVedicSection() {
   };
   const doneCount = Object.values(chapters).filter(c=>c.step==="done").length;
   const birthDate = (birthYear&&birthMonth&&birthDay) ? `${birthYear}.${birthMonth}.${birthDay}` : undefined;
+
+  if (showIntro) {
+    return (
+      <section style={{ background:"linear-gradient(145deg,#04030f 0%,#080b1e 50%,#040310 100%)", border:"1px solid rgba(212,160,23,0.20)", borderRadius:24, overflow:"hidden", boxShadow:"0 12px 50px rgba(212,160,23,0.06),inset 0 1px 0 rgba(255,255,255,0.03)" }}>
+        <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄 소개" style={{ width:"100%", maxHeight:280, objectFit:"cover", opacity:0.44 }} />
+        <div style={{ padding:"18px 18px 22px" }}>
+          <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>JYOTISH MASTER · DETAIL INTRO</p>
+          <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>Karmic Blueprint</h3>
+          <p style={{ color:"rgba(203,213,225,0.72)", fontSize:"0.88rem", lineHeight:1.8, margin:0 }}>
+            베다 점성술 12챕터 카테고리를 먼저 확인하고, 버튼 클릭 시 PDF 리포트 생성을 시작합니다.
+          </p>
+          <div style={{ display:"grid", gap:8, marginTop:12 }}>
+            {CHAPTER_META.map((ch) => (
+              <div key={ch.num} style={{ borderRadius:12, border:"1px solid rgba(212,160,23,0.2)", background:"rgba(4,3,15,0.65)", padding:"10px 12px" }}>
+                <p style={{ margin:0, color:"rgba(253,230,138,0.92)", fontSize:"0.82rem", fontWeight:700 }}>
+                  {ch.icon} CHAPTER {ch.num}. {ch.title}
+                </p>
+                <p style={{ margin:"4px 0 0", color:"rgba(148,163,184,0.76)", fontSize:"0.74rem" }}>{ch.subtitle}</p>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => onStartGeneration?.()}
+            style={{
+              marginTop:14,
+              width:"100%",
+              borderRadius:11,
+              padding:"14px",
+              fontSize:"0.96rem",
+              fontWeight:900,
+              background:"linear-gradient(135deg,#d4a017,#8b6914)",
+              border:"none",
+              color:"#1a0f00",
+              cursor:"pointer",
+              letterSpacing:"0.08em",
+            }}
+          >
+            프리미엄 PDF 리포트 생성하기
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section style={{ background:"linear-gradient(145deg,#04030f 0%,#080b1e 50%,#040310 100%)", border:"1px solid rgba(212,160,23,0.20)", borderRadius:24, overflow:"hidden", boxShadow:"0 12px 50px rgba(212,160,23,0.06),inset 0 1px 0 rgba(255,255,255,0.03)" }}>
