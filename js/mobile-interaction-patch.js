@@ -314,6 +314,42 @@
         '.tarot-tile--vedic-fc .tarot-tile__desc',
         '.tarot-tile--vedic-fc .tarot-tile__body'
       ].join(',')
+    },
+    {
+      action: 'gotoZiweiPremium',
+      cardSelector: '.prem-card--ziwei',
+      targetSelector: [
+        '[data-action="gotoZiweiPremium"]',
+        '.prem-card--ziwei',
+        '.prem-card--ziwei img'
+      ].join(',')
+    },
+    {
+      action: 'gotoAstrologyPremium',
+      cardSelector: '.prem-card--astro',
+      targetSelector: [
+        '[data-action="gotoAstrologyPremium"]',
+        '.prem-card--astro',
+        '.prem-card--astro img'
+      ].join(',')
+    },
+    {
+      action: 'gotoSukuyoPremium',
+      cardSelector: '.prem-card--sukuyo',
+      targetSelector: [
+        '[data-action="gotoSukuyoPremium"]',
+        '.prem-card--sukuyo',
+        '.prem-card--sukuyo img'
+      ].join(',')
+    },
+    {
+      action: 'gotoVedicPremium',
+      cardSelector: '.prem-card--veda',
+      targetSelector: [
+        '[data-action="gotoVedicPremium"]',
+        '.prem-card--veda',
+        '.prem-card--veda img'
+      ].join(',')
     }
   ];
   var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
@@ -499,7 +535,10 @@
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js'],
     openLifeBookModal: ['js/life-book.js?v=20260407-v7'],
-    gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3']
+    gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3'],
+    gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
+    gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260409-v1'],
+    gotoVedicPremium: ['js/vedic-book.js?v=20260409-v1']
   };
 
   function normalizeScriptSrc(src) {
@@ -592,9 +631,9 @@
           if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_coinGateTile)) {
             return true;
           }
-          // fallback: 직접 click (Preview 패널 미초기화 시)
-          _coinGateTile.click();
-          return true;
+          // Preview helper가 없으면 여기서 소비하지 말고 전역 클릭 핸들러로 위임한다.
+          // (직접 click 재호출은 같은 capture 경로를 재진입시켜 무반응 루프를 만들 수 있음)
+          return false;
         }
       }
     }

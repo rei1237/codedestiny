@@ -40,7 +40,11 @@ const __lazyActionLoaders = {
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'),
-  openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js')
+  openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=20260408-v3'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1')
 };
 
 function __ensureSajuCoreScripts() {
