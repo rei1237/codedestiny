@@ -446,25 +446,6 @@ export default function KkulkkulManseryukMain() {
           정책 요약: 무료로 지정된 항목 외 기능은 유료이며, 결제 전에는 실제 콘텐츠를 렌더링하지 않습니다.
         </p>
 
-        {/* ─── 프리미엄 운세 컬렉션 헤더 ─────────────────────────────── */}
-        <div style={{
-          padding: "24px 20px 18px",
-          background: "linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%)",
-          border: "1px solid rgba(251,191,36,0.18)",
-          borderRadius: "20px",
-          boxShadow: "0 8px 32px rgba(99,102,241,0.10)",
-        }}>
-          <p style={{ color: "rgba(251,191,36,0.55)", fontSize: "0.62rem", letterSpacing: "0.32em", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>
-            CODE : DESTINY · PREMIUM COLLECTION
-          </p>
-          <h2 style={{ color: "#fff", fontWeight: 900, fontSize: "clamp(1.2rem,4vw,1.7rem)", lineHeight: 1.25, margin: 0 }}>
-            프리미엄 운세 컬렉션
-          </h2>
-          <p style={{ color: "rgba(167,139,250,0.55)", fontSize: "0.82rem", marginTop: "6px", fontWeight: 300, lineHeight: 1.7 }}>
-            카드를 눌러 내 운명을 심층 분석해보세요
-          </p>
-        </div>
-
         {/* ─── 1. 자미두수 프리미엄 ─── */}
         <div style={{
           background: "linear-gradient(145deg, rgb(10,6,30) 0%, rgb(18,12,48) 100%)",
