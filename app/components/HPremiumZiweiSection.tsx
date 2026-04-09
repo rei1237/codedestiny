@@ -5380,6 +5380,192 @@ const MASTER_TABS = [
   { key: "masterHabit"   as const, qKey: "habitQuote"  as const, label: "마스터 해빗", icon: "🎯" },
 ] as const;
 
+// ─────────────────────────────────────────────────────────────────
+// 자미두수 PDF 다운로드 버튼
+// ─────────────────────────────────────────────────────────────────
+function ZiweiPDFButton({
+  result,
+  ch2Result, ch3Result, ch4Result, ch5Result,
+  ch6Result, ch7Result, ch8Result, ch9Result,
+  ch10Result, ch11Result, ch12Result,
+  chDaehanResult, chYunResult, chTreeResult, chMasterResult,
+  birthYear, birthMonth, birthDay,
+}: {
+  result: AnalysisResult | null;
+  ch2Result: Chapter2Result | null;
+  ch3Result: Chapter3Result | null;
+  ch4Result: Chapter4Result | null;
+  ch5Result: Chapter5Result | null;
+  ch6Result: Chapter6Result | null;
+  ch7Result: Chapter7Result | null;
+  ch8Result: Chapter8Result | null;
+  ch9Result: Chapter9Result | null;
+  ch10Result: Chapter10Result | null;
+  ch11Result: Chapter11Result | null;
+  ch12Result: Chapter12Result | null;
+  chDaehanResult: DaehanResult | null;
+  chYunResult: YunnyeonResult | null;
+  chTreeResult: TreeNodeResult | null;
+  chMasterResult: MasterPlanResult | null;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
+}) {
+  const [loading, setLoading] = React.useState(false);
+  const [pdfError, setPdfError] = React.useState("");
+
+  const handleDownload = async () => {
+    if (!result) return;
+    setLoading(true);
+    setPdfError("");
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
+      if (!pdfModule) throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
+
+      const { pdf, Document, Page, Text, View, StyleSheet } = pdfModule;
+
+      const styles = StyleSheet.create({
+        page: { fontFamily: "Helvetica", backgroundColor: "#07091a", color: "#e2e8f0", padding: 32 },
+        coverTitle: { fontSize: 22, fontWeight: "bold", color: "#a78bfa", textAlign: "center", marginBottom: 6 },
+        coverSub: { fontSize: 10, color: "rgba(251,191,36,0.9)", textAlign: "center", marginBottom: 3, letterSpacing: 2 },
+        coverMeta: { fontSize: 9, color: "#94a3b8", textAlign: "center", marginBottom: 2 },
+        divider: { borderBottomWidth: 1, borderBottomColor: "#1e2a4a", marginVertical: 12 },
+        chapterTitle: { fontSize: 14, fontWeight: "bold", color: "#c4b5fd", marginBottom: 3, marginTop: 10 },
+        chapterSub: { fontSize: 9, color: "#93c5fd", marginBottom: 6 },
+        sectionTitle: { fontSize: 11, fontWeight: "bold", color: "rgba(251,191,36,0.9)", marginBottom: 3, marginTop: 7 },
+        body: { fontSize: 9, color: "#cbd5e1", lineHeight: 1.75, marginBottom: 5 },
+        badge: { fontSize: 8, color: "rgba(167,139,250,0.7)", marginBottom: 10, textAlign: "center", letterSpacing: 1.5 },
+      });
+
+      const birthDate = `${birthYear}년 ${birthMonth}월 ${birthDay}일`;
+
+      // 완성된 챕터들 수집
+      const sections: Array<{ icon: string; title: string; subtitle: string; body: string }> = [];
+
+      if (result.chapter1.archetype) {
+        sections.push({ icon: "🌌", title: "Chapter 01 · 영혼의 아키타입", subtitle: "타고난 캐릭터와 존재 방식", body: result.chapter1.archetype });
+      }
+      if (result.chapter1.shadow) {
+        sections.push({ icon: "🌓", title: "빛과 그림자", subtitle: "천재성과 맹점 분석", body: result.chapter1.shadow });
+      }
+      if (result.chapter1.persona) {
+        sections.push({ icon: "🔄", title: "페르소나 스위칭 개운법", subtitle: "일상 루틴과 전략", body: result.chapter1.persona });
+      }
+      if (ch2Result?.chapter2) {
+        sections.push({ icon: "✨", title: "Chapter 02 · 행복과 스트레스", subtitle: "복덕궁 분석", body: ch2Result.chapter2.fullText || ch2Result.chapter2.happiness });
+      }
+      if (ch3Result?.chapter3) {
+        sections.push({ icon: "🎭", title: "Chapter 03 · 사회적 페르소나", subtitle: "천이궁 분석", body: ch3Result.chapter3.fullText || ch3Result.chapter3.persona });
+      }
+      if (ch4Result?.chapter4) {
+        sections.push({ icon: "💼", title: "Chapter 04 · 커리어 코드", subtitle: "관록궁 분석", body: ch4Result.chapter4.fullText || ch4Result.chapter4.drive });
+      }
+      if (ch5Result?.chapter5) {
+        sections.push({ icon: "💰", title: "Chapter 05 · 재물 흐름", subtitle: "재백궁 분석", body: ch5Result.chapter5.fullText || ch5Result.chapter5.wealth });
+      }
+      if (ch6Result?.chapter6) {
+        sections.push({ icon: "💕", title: "Chapter 06 · 연애와 파트너십", subtitle: "부처궁 분석", body: ch6Result.chapter6.fullText || ch6Result.chapter6.attraction });
+      }
+      if (ch7Result?.chapter7) {
+        sections.push({ icon: "🤝", title: "Chapter 07 · 인간관계 네트워크", subtitle: "교우궁/형제궁 분석", body: ch7Result.chapter7.fullText || ch7Result.chapter7.terrain });
+      }
+      if (ch8Result?.chapter8) {
+        sections.push({ icon: "🏠", title: "Chapter 08 · 공간 에너지", subtitle: "전택궁 분석", body: ch8Result.chapter8.fullText || ch8Result.chapter8.asset });
+      }
+      if (ch9Result?.chapter9) {
+        sections.push({ icon: "🌿", title: "Chapter 09 · 건강 코드", subtitle: "질액궁 분석", body: ch9Result.chapter9.fullText || ch9Result.chapter9.constitution });
+      }
+      if (ch10Result?.chapter10) {
+        sections.push({ icon: "🎨", title: "Chapter 10 · 창의력과 자녀", subtitle: "자녀궁 분석", body: ch10Result.chapter10.fullText || ch10Result.chapter10.source });
+      }
+      if (ch11Result?.chapter11) {
+        sections.push({ icon: "🌳", title: "Chapter 11 · 뿌리와 원가족", subtitle: "부모궁 분석", body: ch11Result.chapter11.fullText || ch11Result.chapter11.parentEnergy });
+      }
+      if (ch12Result?.chapter12) {
+        sections.push({ icon: "✨", title: "Chapter 12 · 운명의 총체", subtitle: "종합 분석", body: ch12Result.chapter12.fullText || ch12Result.chapter12.coreTheme });
+      }
+      if (chTreeResult?.chapter15) {
+        sections.push({ icon: "🌿", title: "Chapter 12 · 상하관계 처세술", subtitle: "부모궁/자녀궁 분석", body: chTreeResult.chapter15.fullText || chTreeResult.chapter15.superior });
+      }
+      if (chDaehanResult?.chapter13) {
+        sections.push({ icon: "📅", title: "심화 분석 · 대한 10년 메가트렌드", subtitle: "대운 분석", body: chDaehanResult.chapter13.fullText || chDaehanResult.chapter13.season });
+      }
+      if (chYunResult?.yunnyeon) {
+        sections.push({ icon: "🗓️", title: "심화 분석 · 유년 마이크로 전술", subtitle: "유년/유월 분석", body: chYunResult.yunnyeon.fullText || chYunResult.yunnyeon.annual });
+      }
+      if (chMasterResult?.chapter16) {
+        sections.push({ icon: "🌟", title: "Chapter 13 · 인생 설계도 총결산", subtitle: "마스터플랜", body: chMasterResult.chapter16.energyBalance + "\n\n" + chMasterResult.chapter16.deepAdvice + "\n\n" + chMasterResult.chapter16.masterHabit });
+      }
+
+      const doc = (
+        <Document>
+          <Page size="A4" style={styles.page}>
+            <Text style={styles.badge}>CODE : DESTINY · ZIWEI PREMIUM REPORT</Text>
+            <Text style={styles.coverTitle}>자미두수 인생 총론</Text>
+            <Text style={styles.coverSub}>H PREMIUM · ZIWEI DOUSHU LIFE ANALYSIS</Text>
+            <Text style={styles.coverMeta}>출생일: {birthDate}</Text>
+            <Text style={styles.coverMeta}>캐릭터: {result.character.emoji} {result.character.title}</Text>
+            <Text style={styles.coverMeta}>명궁: {result.palace.mingong.name} · 신궁: {result.palace.shingong.name}</Text>
+            <View style={styles.divider} />
+
+            {sections.map((sec, i) => (
+              <View key={`sec-${i}`} wrap={false}>
+                <Text style={styles.chapterTitle}>{sec.icon} {sec.title}</Text>
+                <Text style={styles.chapterSub}>{sec.subtitle}</Text>
+                <Text style={styles.body}>{sec.body || ""}</Text>
+                <View style={styles.divider} />
+              </View>
+            ))}
+          </Page>
+        </Document>
+      );
+
+      const blob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ziwei-life-report-${birthYear}${birthMonth}${birthDay}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!result) return null;
+
+  return (
+    <div className="mt-6 px-2 text-center">
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={loading}
+        className="inline-flex items-center gap-2 rounded-2xl px-7 py-3.5 text-sm font-bold text-white transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
+        style={{
+          background: loading
+            ? "rgba(100,80,200,0.35)"
+            : "linear-gradient(135deg, #4c1d95 0%, #5b21b6 40%, #7c3aed 100%)",
+          boxShadow: loading ? "none" : "0 6px 24px rgba(109,40,217,0.45)",
+          letterSpacing: "0.06em",
+        }}
+      >
+        {loading ? "📄 PDF 생성 중…" : "📥 자미두수 리포트 PDF 다운로드"}
+      </button>
+      {pdfError && (
+        <p className="mt-2 text-xs text-rose-300/80">⚠ {pdfError}</p>
+      )}
+      <p className="mt-2 text-xs text-indigo-400/45 tracking-[0.05em]">
+        완성된 챕터를 포함한 자미두수 인생 총론 PDF를 저장합니다
+      </p>
+    </div>
+  );
+}
+
 /* html2canvas를 런타임에 동적 임포트하여 SSR 오류 방지 */
 async function captureAndDownload(elementId: string, filename: string) {
   // html2canvas를 dynamic import로 로드
@@ -6519,6 +6705,29 @@ export default function HPremiumZiweiSection() {
           step={chMasterStep}
           result={chMasterResult}
           onRequest={handleChapterMaster}
+        />
+
+        {/* PDF 다운로드 */}
+        <ZiweiPDFButton
+          result={result}
+          ch2Result={ch2Result}
+          ch3Result={ch3Result}
+          ch4Result={ch4Result}
+          ch5Result={ch5Result}
+          ch6Result={ch6Result}
+          ch7Result={ch7Result}
+          ch8Result={ch8Result}
+          ch9Result={ch9Result}
+          ch10Result={ch10Result}
+          ch11Result={ch11Result}
+          ch12Result={ch12Result}
+          chDaehanResult={chDaehanResult}
+          chYunResult={chYunResult}
+          chTreeResult={chTreeResult}
+          chMasterResult={chMasterResult}
+          birthYear={birthYear}
+          birthMonth={birthMonth}
+          birthDay={birthDay}
         />
 
         {/* 다시 분析 */}
