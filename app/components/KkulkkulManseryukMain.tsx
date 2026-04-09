@@ -446,305 +446,216 @@ export default function KkulkkulManseryukMain() {
           정책 요약: 무료로 지정된 항목 외 기능은 유료이며, 결제 전에는 실제 콘텐츠를 렌더링하지 않습니다.
         </p>
 
-        {/* ─── 프리미엄 운세 컬렉션 ─────────────────────────────────── */}
-        <section
-          id="premium-collection"
-          style={{
-            background: "linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%)",
-            border: "1px solid rgba(251,191,36,0.18)",
-            borderRadius: "24px",
-            overflow: "hidden",
-            boxShadow: "0 12px 50px rgba(99,102,241,0.10), inset 0 1px 0 rgba(255,255,255,0.04)",
-          }}
-        >
-          {/* 섹션 헤더 */}
-          <div style={{
-            padding: "28px 24px 20px",
-            background: "linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(99,102,241,0.06) 100%)",
-            borderBottom: "1px solid rgba(251,191,36,0.10)",
-          }}>
-            <p style={{ color: "rgba(251,191,36,0.55)", fontSize: "0.62rem", letterSpacing: "0.32em", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>
-              CODE : DESTINY · PREMIUM COLLECTION
-            </p>
-            <h2 style={{ color: "#fff", fontWeight: 900, fontSize: "clamp(1.3rem,4vw,1.8rem)", lineHeight: 1.25, margin: 0 }}>
-              프리미엄 운세 컬렉션
-            </h2>
-            <p style={{ color: "rgba(167,139,250,0.55)", fontSize: "0.85rem", marginTop: "6px", fontWeight: 300, lineHeight: 1.7 }}>
-              AI 기반 심층 자미두수 분석 · 인생 전략 리포트 시리즈
-            </p>
-          </div>
+        {/* ─── 프리미엄 운세 컬렉션 헤더 ─────────────────────────────── */}
+        <div style={{
+          padding: "24px 20px 18px",
+          background: "linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%)",
+          border: "1px solid rgba(251,191,36,0.18)",
+          borderRadius: "20px",
+          boxShadow: "0 8px 32px rgba(99,102,241,0.10)",
+        }}>
+          <p style={{ color: "rgba(251,191,36,0.55)", fontSize: "0.62rem", letterSpacing: "0.32em", fontWeight: 700, textTransform: "uppercase", marginBottom: "6px" }}>
+            CODE : DESTINY · PREMIUM COLLECTION
+          </p>
+          <h2 style={{ color: "#fff", fontWeight: 900, fontSize: "clamp(1.2rem,4vw,1.7rem)", lineHeight: 1.25, margin: 0 }}>
+            프리미엄 운세 컬렉션
+          </h2>
+          <p style={{ color: "rgba(167,139,250,0.55)", fontSize: "0.82rem", marginTop: "6px", fontWeight: 300, lineHeight: 1.7 }}>
+            카드를 눌러 내 운명을 심층 분석해보세요
+          </p>
+        </div>
 
-          {/* 카드 그리드 */}
-          <div style={{ padding: "20px 16px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}
-            className="premium-card-grid"
+        {/* ─── 1. 자미두수 프리미엄 ─── */}
+        <div style={{
+          background: "linear-gradient(145deg, rgb(10,6,30) 0%, rgb(18,12,48) 100%)",
+          border: "1.5px solid rgba(167,139,250,0.35)",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setOpenPremSection(p => p === 'ziwei' ? null : 'ziwei')}
+            style={{
+              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
+              gap: "16px", padding: "0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left",
+            }}
           >
-            <style>{`
-              @media(max-width:600px){.premium-card-grid{grid-template-columns:1fr!important}}
-            `}</style>
-
-            {/* ── 카드 1: H 프리미엄 자미두수 ── */}
-            <a
-              href="#ziwei-premium"
-              onClick={e => { e.preventDefault(); handleOpenPremSection('ziwei'); }}
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(10,6,30,0.65)",
-                border: "1.5px solid rgba(167,139,250,0.35)",
-                boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
-                textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                cursor: "pointer",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(99,102,241,0.28)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(99,102,241,0.15)"; }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,6,30,0.85) 0%, transparent 60%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(99,102,241,0.85)", color: "#fff",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>PREMIUM</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>자미두수 · Ziwei Premium</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>H 프리미엄 인생 총론</p>
-                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 12궁 완전 분析 · 상하관계 처세술 · 마스터플랜 카드</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
-                    border: "1px solid rgba(167,139,250,0.38)",
-                    color: "rgba(196,181,253,1)", fontWeight: 700, fontSize: "0.72rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 지금 분析하기</span>
-                </div>
-              </div>
-            </a>
-
-            {/* ── 카드 2: 인생의 책 ── */}
-            <div
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(4,18,8,0.65)",
-                border: "1.5px solid rgba(52,211,153,0.28)",
-                boxShadow: "0 4px 24px rgba(16,185,129,0.10)",
-                cursor: "default", opacity: 0.85,
-              }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/lifebook.webp" alt="인생의 책"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(4,18,8,0.85) 0%, transparent 60%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(16,185,129,0.75)", color: "#fff",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>COMING SOON</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(110,231,183,0.6)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>생애 서사 · Life Story</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>인생의 책</p>
-                <p style={{ color: "rgba(203,213,225,0.5)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>나의 생애 스토리를 AI가 한 권의 책으로 완성하는 프리미엄 경험</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "rgba(16,185,129,0.08)",
-                    border: "1px solid rgba(52,211,153,0.22)",
-                    color: "rgba(110,231,183,0.55)", fontWeight: 600, fontSize: "0.7rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>🔒 준비 중</span>
-                </div>
-              </div>
+            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
+              <img src="/fuctionassets/jamipremiun.webp" alt="H 프리미엄 자미두수"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(10,6,30))" }} />
+              <span style={{
+                position: "absolute", top: "8px", left: "8px",
+                background: "rgba(99,102,241,0.9)", color: "#fff",
+                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
+                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
+              }}>PREMIUM</span>
             </div>
-
-            {/* ── 카드 3: 점성술 프리미엄 리포트 ── */}
-            <a
-              href="#astrology-premium"
-              onClick={e => { e.preventDefault(); handleOpenPremSection('astrology'); }}
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(7,4,25,0.65)",
-                border: "1.5px solid rgba(251,191,36,0.35)",
-                boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
-                textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                cursor: "pointer",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(251,191,36,0.28)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(251,191,36,0.12)"; }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(7,4,25,0.85) 0%, transparent 60%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(251,191,36,0.85)", color: "#1a1200",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>PREMIUM</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(253,230,138,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>점성술 · Astrology Premium</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>점성술 프리미엄 리포트</p>
-                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>12챕터 · ASC/Sun/Moon 입체 분析 · 서양 열대황도 전문 엔진 · AI 심층 해석</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(253,230,138,0.12))",
-                    border: "1px solid rgba(251,191,36,0.45)",
-                    color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.72rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 1회 390코인</span>
-                </div>
-              </div>
-            </a>
-
-            {/* ── 카드 4: 연애 비책 ── */}
-            <div
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(30,4,18,0.65)",
-                border: "1.5px solid rgba(244,114,182,0.28)",
-                boxShadow: "0 4px 24px rgba(236,72,153,0.10)",
-                cursor: "default", opacity: 0.85,
-              }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/lovebible.webp" alt="연애 비책"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(30,4,18,0.85) 0%, transparent 60%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(236,72,153,0.75)", color: "#fff",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>COMING SOON</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(249,168,212,0.6)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>연애 전략 · Love Strategy</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>연애 비책</p>
-                <p style={{ color: "rgba(203,213,225,0.5)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>내 사주에 맞는 연애 전략과 최상의 파트너 유형을 분析하는 비밀 가이드</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "rgba(236,72,153,0.08)",
-                    border: "1px solid rgba(244,114,182,0.22)",
-                    color: "rgba(249,168,212,0.55)", fontWeight: 600, fontSize: "0.7rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>🔒 준비 중</span>
-                </div>
-              </div>
+            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
+              <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>H 프리미엄 인생 총론</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 12궁 완전 분析 · 상하관계 처세술</p>
+              <span style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
+                border: "1px solid rgba(167,139,250,0.45)",
+                color: "rgba(196,181,253,1)", fontWeight: 700, fontSize: "0.7rem",
+                padding: "5px 13px", borderRadius: "10px",
+              }}>{openPremSection === 'ziwei' ? '▲ 접기' : '✦ 지금 분析하기'}</span>
             </div>
+          </button>
+          {openPremSection === 'ziwei' && (
+            <div style={{ borderTop: "1px solid rgba(167,139,250,0.2)" }}>
+              <HPremiumZiweiSection />
+            </div>
+          )}
+        </div>
 
-            {/* ── 카드 4: 숙요점 프리미엄 ── */}
-            <a
-              href="#sukuyo-premium"
-              onClick={e => { e.preventDefault(); handleOpenPremSection('sukuyo'); }}
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(2,8,23,0.65)",
-                border: "1.5px solid rgba(125,211,252,0.35)",
-                boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
-                textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                cursor: "pointer",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(14,165,233,0.28)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(14,165,233,0.12)"; }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(2,8,23,0.88) 0%, transparent 60%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(14,165,233,0.85)", color: "#fff",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>PREMIUM</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>숙요점 · Moonlight Strategy</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>달빛 전략 리포트</p>
-                <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>13챕터 · 27수 완전 분석 · 6대 관계 역학 · 달의 주기 전략</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "linear-gradient(135deg, rgba(2,44,84,0.3), rgba(30,27,75,0.2))",
-                    border: "1px solid rgba(125,211,252,0.38)",
-                    color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.72rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 1회 390코인</span>
-                </div>
-              </div>
-            </a>
+        {/* ─── 2. 점성술 프리미엄 ─── */}
+        <div style={{
+          background: "linear-gradient(145deg, rgb(7,4,25) 0%, rgb(20,14,5) 100%)",
+          border: "1.5px solid rgba(251,191,36,0.35)",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setOpenPremSection(p => p === 'astrology' ? null : 'astrology')}
+            style={{
+              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
+              gap: "16px", padding: "0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
+              <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(7,4,25))" }} />
+              <span style={{
+                position: "absolute", top: "8px", left: "8px",
+                background: "rgba(251,191,36,0.9)", color: "#1a1200",
+                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
+                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
+              }}>PREMIUM</span>
+            </div>
+            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
+              <p style={{ color: "rgba(253,230,138,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>점성술 · Astrology Premium</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>점성술 프리미엄 리포트</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>12챕터 · ASC/Sun/Moon 입체 분析 · AI 심층 해석</p>
+              <span style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(253,230,138,0.12))",
+                border: "1px solid rgba(251,191,36,0.5)",
+                color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.7rem",
+                padding: "5px 13px", borderRadius: "10px",
+              }}>{openPremSection === 'astrology' ? '▲ 접기' : '✦ 1회 390코인'}</span>
+            </div>
+          </button>
+          {openPremSection === 'astrology' && (
+            <div style={{ borderTop: "1px solid rgba(251,191,36,0.18)" }}>
+              <HPremiumAstrologySection />
+            </div>
+          )}
+        </div>
 
-            {/* ── 카드: 베다 점성술 프리미엄 ── */}
-            <a
-              href="#veda-premium"
-              onClick={e => { e.preventDefault(); handleOpenPremSection('veda'); }}
-              style={{
-                display: "flex", flexDirection: "column",
-                borderRadius: "18px", overflow: "hidden",
-                background: "rgba(15,10,3,0.65)",
-                border: "1.5px solid rgba(251,146,60,0.28)",
-                boxShadow: "0 4px 24px rgba(234,88,12,0.08)",
-                textDecoration: "none",
-                transition: "transform 0.2s, box-shadow 0.2s",
-                cursor: "pointer",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 36px rgba(234,88,12,0.24)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "none"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(234,88,12,0.08)"; }}
-            >
-              <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", overflow: "hidden" }}>
-                <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(15,10,3,0.90) 0%, transparent 55%)" }} />
-                <span style={{
-                  position: "absolute", top: "10px", left: "10px",
-                  background: "rgba(234,88,12,0.9)", color: "#fff",
-                  fontSize: "0.55rem", fontWeight: 800, letterSpacing: "0.14em",
-                  padding: "3px 8px", borderRadius: "20px", textTransform: "uppercase",
-                }}>PREMIUM</span>
-              </div>
-              <div style={{ padding: "14px 14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                <p style={{ color: "rgba(253,186,116,0.60)", fontSize: "0.6rem", letterSpacing: "0.18em", textTransform: "uppercase", margin: 0 }}>베다 점성술 · Vedic Astrology Premium</p>
-                <p style={{ color: "#fff", fontWeight: 800, fontSize: "0.95rem", margin: 0, lineHeight: 1.3 }}>🪷 베다 인생 총람 리포트</p>
-                <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.78rem", lineHeight: 1.7, margin: 0 }}>인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도</p>
-                <div style={{ marginTop: "auto", paddingTop: "10px" }}>
-                  <span style={{
-                    display: "inline-block",
-                    background: "linear-gradient(135deg, rgba(234,88,12,0.24), rgba(253,186,116,0.12))",
-                    border: "1px solid rgba(251,146,60,0.45)",
-                    color: "rgba(253,186,116,1)", fontWeight: 700, fontSize: "0.72rem",
-                    padding: "6px 14px", borderRadius: "10px",
-                  }}>✦ 1회 290코인</span>
-                </div>
-              </div>
-            </a>
-          </div>
-        </section>
+        {/* ─── 3. 숙요점 프리미엄 ─── */}
+        <div style={{
+          background: "linear-gradient(145deg, rgb(2,8,23) 0%, rgb(4,16,38) 100%)",
+          border: "1.5px solid rgba(125,211,252,0.35)",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setOpenPremSection(p => p === 'sukuyo' ? null : 'sukuyo')}
+            style={{
+              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
+              gap: "16px", padding: "0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
+              <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(2,8,23))" }} />
+              <span style={{
+                position: "absolute", top: "8px", left: "8px",
+                background: "rgba(14,165,233,0.9)", color: "#fff",
+                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
+                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
+              }}>PREMIUM</span>
+            </div>
+            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
+              <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>숙요점 · Moonlight Strategy</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>달빛 전략 리포트</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 27수 완전 분析 · 달의 주기 전략</p>
+              <span style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(30,27,75,0.2))",
+                border: "1px solid rgba(125,211,252,0.42)",
+                color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.7rem",
+                padding: "5px 13px", borderRadius: "10px",
+              }}>{openPremSection === 'sukuyo' ? '▲ 접기' : '✦ 1회 300코인'}</span>
+            </div>
+          </button>
+          {openPremSection === 'sukuyo' && (
+            <div style={{ borderTop: "1px solid rgba(14,165,233,0.18)" }}>
+              <HPremiumSukuyoSection />
+            </div>
+          )}
+        </div>
 
-        {/* ─── 프리미엄 섹션 : 카드 클릭 시 조건부 렌더링 ─── */}
-        {openPremSection && (
-          <div id="prem-active-section">
-            {openPremSection === 'ziwei' && <HPremiumZiweiSection />}
-            {openPremSection === 'astrology' && <HPremiumAstrologySection />}
-            {openPremSection === 'sukuyo' && <HPremiumSukuyoSection />}
-            {openPremSection === 'veda' && <HPremiumVedicSection />}
-          </div>
-        )}
+        {/* ─── 4. 베다 점성술 프리미엄 ─── */}
+        <div style={{
+          background: "linear-gradient(145deg, rgb(15,10,3) 0%, rgb(30,18,6) 100%)",
+          border: "1.5px solid rgba(251,146,60,0.35)",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(234,88,12,0.10)",
+        }}>
+          <button
+            type="button"
+            onClick={() => setOpenPremSection(p => p === 'veda' ? null : 'veda')}
+            style={{
+              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
+              gap: "16px", padding: "0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
+              <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(15,10,3))" }} />
+              <span style={{
+                position: "absolute", top: "8px", left: "8px",
+                background: "rgba(234,88,12,0.9)", color: "#fff",
+                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
+                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
+              }}>PREMIUM</span>
+            </div>
+            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
+              <p style={{ color: "rgba(253,186,116,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>베다 점성술 · Vedic Astrology Premium</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>🪷 베다 인생 총람 리포트</p>
+              <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>조티쉬 베다 점성술 · 라그나·나크샤트라 평생 운명 지도</p>
+              <span style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, rgba(234,88,12,0.22), rgba(253,186,116,0.12))",
+                border: "1px solid rgba(251,146,60,0.5)",
+                color: "rgba(253,186,116,1)", fontWeight: 700, fontSize: "0.7rem",
+                padding: "5px 13px", borderRadius: "10px",
+              }}>{openPremSection === 'veda' ? '▲ 접기' : '✦ 1회 300코인'}</span>
+            </div>
+          </button>
+          {openPremSection === 'veda' && (
+            <div style={{ borderTop: "1px solid rgba(234,88,12,0.18)" }}>
+              <HPremiumVedicSection />
+            </div>
+          )}
+        </div>
 
         {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
         <section className="overflow-hidden rounded-3xl border border-rose-300/60 bg-gradient-to-br from-rose-950/90 via-purple-950/90 to-slate-950/90 shadow-2xl shadow-rose-900/30">
