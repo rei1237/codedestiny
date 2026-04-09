@@ -764,14 +764,18 @@
 
     /** 챕터 fetch (60초 타임아웃 포함) */
     function _fetchChapter(idx) {
+      var _lbAuthToken = '';
+      try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
         var timeoutId = setTimeout(function () {
           resolve({ ok: false, message: '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.' });
         }, 60000);
 
+        var _lbHeaders = { 'Content-Type': 'application/json' };
+        if (_lbAuthToken) _lbHeaders['Authorization'] = 'Bearer ' + _lbAuthToken;
         fetch('/api/lifebook/session', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _lbHeaders,
           body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
         })
           .then(function (res) {
@@ -1002,12 +1006,17 @@
       } catch (_) {}
 
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
-      if (!window.__cdAdminBypass && _lbCoinCost > 0 && typeof window._cdCoinGatePerUse === 'function') {
+      if (window.__cdAdminBypass) {
+        // 관리자 바이패스: 코인 차감 없이 즉시 실행
+        window.generateLifeBook();
+      } else if (typeof window._cdCoinGatePerUse === 'function') {
+        // 코인 게이트 통과 후 생성
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
           window.generateLifeBook();
         });
       } else {
-        window.generateLifeBook();
+        // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
+        window.alert('결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.');
       }
       return;
     }

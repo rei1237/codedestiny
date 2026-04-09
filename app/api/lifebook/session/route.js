@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
 // Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
@@ -1095,6 +1096,28 @@ ${d}`,
 ];
 export async function POST(req) {
   try {
+    // ── JWT 인증 검증 (결제 없이 API 직접 호출 차단) ──
+    const authHeader = req.headers.get("Authorization") || "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+    if (!bearerToken) {
+      return NextResponse.json(
+        { ok: false, message: "로그인이 필요한 서비스입니다." },
+        { status: 401 }
+      );
+    }
+    try {
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) throw new Error("JWT_SECRET not configured");
+      jwt.verify(bearerToken, jwtSecret);
+    } catch (_jwtErr) {
+      return NextResponse.json(
+        { ok: false, message: "인증에 실패했습니다. 다시 로그인해 주세요." },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const sessionId = Number(body?.sessionId || 0);
     const sajuData = String(body?.sajuData || "").trim();

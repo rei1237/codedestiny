@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
 
   /* 모바일 터치: 손가락 미세 움직임 허용 (36px ≈ 2.5mm, 스크롤 시 탭 오인 방지) */
@@ -534,7 +534,7 @@
     openKemetModal: ['js/oracle-kcg.js'],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     openLoveSecretModal: ['js/love-secret-v2.js'],
-    openLifeBookModal: ['js/life-book.js?v=20260409-v8'],
+    openLifeBookModal: ['js/life-book.js?v=20260410-v2'],
     gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3'],
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260409-v1'],
