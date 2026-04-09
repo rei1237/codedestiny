@@ -9694,18 +9694,18 @@ function renderZiwei(p, natal, targetId) {
       background: rgba(126, 34, 206, 0.35);
     }
     .zw-pivot-body {
-      display: none;
+      display: none !important;
       padding: 0 14px 16px;
       color: #e2e8f0;
       font-size: 0.84rem;
       line-height: 1.72;
     }
     .zw-pivot-card.is-open .zw-pivot-body {
-      display: block;
-      animation: zwPivotBodyIn .26s cubic-bezier(.22,1,.36,1) both;
+      display: block !important;
+      animation: zwPivotBodyIn .32s cubic-bezier(.22,1,.36,1) both;
     }
     @keyframes zwPivotBodyIn {
-      from { opacity: 0; transform: translateY(-8px); }
+      from { opacity: 0; transform: translateY(-10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .zw-pv-section {
@@ -13585,6 +13585,7 @@ function renderZiwei(p, natal, targetId) {
         var pivotStageEmoji = ['🌱', '🌿', '🌳'];
         var pivotStageNums = ['①', '②', '③'];
         selectedPivots.slice(0,3).forEach(function(p, i){
+          var isDefaultOpen = (i === 0);
           var bc = p.type==='crisis' ? '#f87171' : (p.type==='chance' ? '#4ade80' : '#a78bfa');
           var bcRgb = p.type==='crisis' ? '248,113,113' : (p.type==='chance' ? '74,222,128' : '167,139,250');
           var stageLabel = pivotStageLabels[i] || ('변곡점 '+(i+1));
@@ -13611,8 +13612,8 @@ function renderZiwei(p, natal, targetId) {
           } else {
             sihuaTags = '<span style="font-size:0.72rem;color:#64748b;">사화 직접 작용 약함</span>';
           }
-          pivotHtml += '<div class="zw-pivot-card" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
-            +'<button type="button" class="zw-pivot-toggle" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
+          pivotHtml += '<div class="zw-pivot-card'+(isDefaultOpen ? ' is-open' : '')+'" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
+            +'<button type="button" class="zw-pivot-toggle" aria-expanded="'+(isDefaultOpen ? 'true' : 'false')+'" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
               // 상단 줄: 순번 + 단계 뱃지 + 나이 범위 + 화살표
               +'<div class="zw-pv-top">'
                 +'<div style="display:flex;align-items:center;gap:7px;">'
@@ -13729,6 +13730,18 @@ function renderZiwei(p, natal, targetId) {
         var wrapper = document.getElementById(targetPanelId);
         if (!wrapper) return;
         wrapper.innerHTML = panelHtml;
+
+        // 첫 번째 변곡점 카드 자동 오픈 (UX: 내용이 있음을 즉시 인지)
+        setTimeout(function() {
+          var deck = wrapper.querySelector('.zw-pivot-deck');
+          if (!deck) return;
+          var firstCard = deck.querySelector('.zw-pivot-card');
+          if (firstCard && !firstCard.classList.contains('is-open')) {
+            firstCard.classList.add('is-open');
+            var firstBtn = firstCard.querySelector('.zw-pivot-toggle');
+            if (firstBtn) firstBtn.setAttribute('aria-expanded', 'true');
+          }
+        }, 120);
 
         if (typeof window._drawZwWuXingConstellation !== 'function') {
           window._drawZwWuXingConstellation = function(canvas, values) {
