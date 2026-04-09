@@ -675,6 +675,16 @@ function setupFeatureCodeSplit() {
     return null;
   };
 
+  // 운명의 알(다마고치) 타일 — /tadagochi.html 으로 직접 이동
+  window.openDestinyEggPage = function openDestinyEggPage() {
+    window.location.href = '/tadagochi.html';
+  };
+
+  // 포춘텔러 물고기 타일 — /fortune-teller-fish.html 으로 직접 이동
+  window.openFortuneTellerFishPage = function openFortuneTellerFishPage() {
+    window.location.href = '/fortune-teller-fish.html';
+  };
+
   __scheduleIdle(() => {
     if (!__canWarmupHeavyFeature()) return;
     ensure('physiognomy').catch(() => {});
