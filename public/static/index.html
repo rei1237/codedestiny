@@ -4471,6 +4471,167 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </div>
 
+    <!-- 숙요점 프리미엄 모달 -->
+    <div id="sukuyoBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="숙요점 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeSukuyoBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#7dd3fc;--lb-accent2:#0284c7;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">SUKUYO 宿曜占 PREMIUM</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">💫 숙요점 인생 총람</h2>
+          <p class="lb-modal__subtitle">불교 밀교 비전 27수 기반 13챕터 달빛 운명 리포트</p>
+          <button class="lb-modal__close" data-action="closeSukuyoBookModal" aria-label="닫기">✕</button>
+        </div>
+        <div id="skStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">💫</div>
+            <h3 class="lb-start__headline">숙요점(宿曜占) 인생 총람</h3>
+            <p class="lb-start__desc">에도 막부가 금지했던 27수 비전으로<br>당신의 달빛 운명 코드를 완전 해독해<br>13챕터 인생 총람을 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">💫 숙요점 인생 총람 생성하기</button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+        <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">💫</div>
+            <p class="lb-loading__status" id="skLoadingChapter">탄생 숙요(宿曜)의 원형 코드를 해독하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg"><div class="lb-progress__bar" id="skProgressBar" style="width:0%"></div></div>
+            <span class="lb-progress__text" id="skProgressText">0 / 13 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter"><span class="lb-loading__chapter-num" id="skLoadingChapterNum">Chapter 1</span></div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="1" title="Ch.1 영혼의 원형"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="2" title="Ch.2 감정의 조수간만"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="3" title="Ch.3 페르소나와 브랜딩"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="4" title="Ch.4 자산의 중력"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="5" title="Ch.5 보이지 않는 톱니바퀴"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="6" title="Ch.6 관계의 정밀 레이더"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="7" title="Ch.7 파괴적 혁신"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="8" title="Ch.8 조화로운 성장"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="9" title="Ch.9 정서적 유대"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="10" title="Ch.10 운명적 거리"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="11" title="Ch.11 달의 주기"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="12" title="Ch.12 관계 연금술"></span>
+            <span class="lb-ch-dot sk-ch-dot lb-ch-dot--pending" data-skch="13" title="Ch.13 영혼의 마스터플랜"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="skMysticQuote">"숙요(宿曜)는 달이 하늘을 여행하며 만나는 27개의 별자리 여관입니다."</blockquote>
+        </div>
+        <div id="skResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">💫</div>
+            <h3 class="lb-result__title">숙요점 인생 총람 완성</h3>
+            <div class="lb-result__meta"><span id="skResultName" class="lb-result__name"></span><span id="skResultDate" class="lb-result__date"></span></div>
+          </div>
+          <div class="lb-toc" id="skToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="skChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" id="skPdfBtn" onclick="downloadSukuyoBookPdf()">📥 PDF로 저장하기</button>
+            <button class="lb-result__close-btn" data-action="closeSukuyoBookModal">닫기</button>
+          </div>
+        </div>
+        <div id="skErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="skErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="generateSukuyoBook()">다시 시도</button>
+            <button class="lb-error__close" data-action="closeSukuyoBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 베다 점성술 프리미엄 모달 -->
+    <div id="vedicBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="베다 점성술 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeVedicBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#fb923c;--lb-accent2:#c2410c;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">VEDIC JYOTISH PREMIUM</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">🪷 베다 인생 총람</h2>
+          <p class="lb-modal__subtitle">인도 조티쉬(Jyotish) 기반 12챕터 카르마 운명 리포트</p>
+          <button class="lb-modal__close" data-action="closeVedicBookModal" aria-label="닫기">✕</button>
+        </div>
+        <div id="vdStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">🪷</div>
+            <h3 class="lb-start__headline">베다 점성술(Jyotish) 인생 총람</h3>
+            <p class="lb-start__desc">5000년 인도 베다 점성술로<br>카르마 운명 코드와 다샤 전략을 분析해<br>12챕터 인생 총람을 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="vdProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">🪷 베다 인생 총람 생성하기</button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+        <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
+            <p class="lb-loading__status" id="vdLoadingChapter">라그나(Lagna)와 아트마카라카의 영혼 목적을 해독하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg"><div class="lb-progress__bar" id="vdProgressBar" style="width:0%"></div></div>
+            <span class="lb-progress__text" id="vdProgressText">0 / 12 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter"><span class="lb-loading__chapter-num" id="vdLoadingChapterNum">Chapter 1</span></div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="1" title="Ch.1 라그나 &amp; 아트마카라카"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="2" title="Ch.2 나크샤트라 달 운명 지도"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="3" title="Ch.3 다샤 인생 계절 전략"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="4" title="Ch.4 다나 요가 번영"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="5" title="Ch.5 카르마 &amp; 천직"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="6" title="Ch.6 나밤샤 D9"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="7" title="Ch.7 관계 궁합 분析"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="8" title="Ch.8 인연 카르믹 계약"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="9" title="Ch.9 건강 &amp; 아유르베다"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="10" title="Ch.10 요가 &amp; 재능"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="11" title="Ch.11 우파야 정화"></span>
+            <span class="lb-ch-dot vd-ch-dot lb-ch-dot--pending" data-vdch="12" title="Ch.12 마스터플랜"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="vdMysticQuote">"베다 점성술(Jyotish)은 빛의 과학 — 신의 눈으로 운명을 읽는 지혜입니다."</blockquote>
+        </div>
+        <div id="vdResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">🪷</div>
+            <h3 class="lb-result__title">베다 인생 총람 완성</h3>
+            <div class="lb-result__meta"><span id="vdResultName" class="lb-result__name"></span><span id="vdResultDate" class="lb-result__date"></span></div>
+          </div>
+          <div class="lb-toc" id="vdToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="vdChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" id="vdPdfBtn" onclick="downloadVedicBookPdf()">📥 PDF로 저장하기</button>
+            <button class="lb-result__close-btn" data-action="closeVedicBookModal">닫기</button>
+          </div>
+        </div>
+        <div id="vdErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="vdErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="generateVedicBook()">다시 시도</button>
+            <button class="lb-error__close" data-action="closeVedicBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 인생의 책 모달 -->
     <div id="lifeBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="인생의 책" style="display:none;">
       <div class="lb-modal__overlay" data-action="closeLifeBookModal"></div>

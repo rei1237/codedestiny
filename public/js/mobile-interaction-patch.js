@@ -536,7 +536,7 @@
     openLoveSecretModal: ['js/love-secret-v2.js'],
     openLifeBookModal: ['js/life-book.js?v=20260410-v2'],
     gotoZiweiPremium: ['js/ziwei-book.js?v=20260408-v3'],
-    gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
+    gotoAstrologyPremium: ['js/astro-book.js?v=20260410-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260409-v1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260409-v1']
   };

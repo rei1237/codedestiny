@@ -458,6 +458,22 @@ function parseSections(text: string): { title: string; body: string }[] {
 }
 
 // 
+// 정적 폴백 텍스트 빌더 (Gemini 실패 시)
+// 
+function buildFallbackChapterText(sukuyo: SukuyoCalcResult, chapterNum: number): string {
+  const meta = CHAPTER_META[chapterNum - 1];
+  const t = sukuyo.traits;
+  const mansionFull = `${sukuyo.mansion}숙(${sukuyo.mansionCh}宿)`;
+  return `## ${meta.icon} ${meta.title}\n### ${meta.subtitle}\n\n` +
+    `**${mansionFull}의 핵심 본질**\n\n${t.core}\n\n` +
+    `**삶의 만트라**\n\n${t.mantra}\n\n` +
+    `**직업 코드**\n\n${t.work}\n\n` +
+    `**사랑 코드**\n\n${t.love}\n\n` +
+    `**재물 코드**\n\n${t.wealth}\n\n` +
+    `---\n*💡 AI 분析 서비스가 일시적으로 응답하지 않아 기본 데이터를 표시합니다. 챕터를 다시 불러오려면 재시도 버튼을 사용하세요.*`;
+}
+
+// 
 // POST 핸들러
 // 
 export async function POST(req: NextRequest) {
@@ -475,12 +491,29 @@ export async function POST(req: NextRequest) {
 
     // 서비스 숙요 엔진으로 계산
     const sukuyo = calcSukuyoForServer(year, month, day, hour);
+    const chapterMeta = CHAPTER_META[chapter - 1];
 
     // 챕터별 Gemini 콘텐츠 생성
     const prompt = buildSukuyoPrompt(sukuyo, year, chapter);
-    const rawText = await callGemini(prompt);
+    let rawText = "";
+    let usedFallback = false;
+    let fallbackReason = "";
+
+    try {
+      rawText = await callGemini(prompt);
+      if (!rawText) {
+        usedFallback = true;
+        fallbackReason = "Gemini가 빈 응답을 반환했습니다.";
+        rawText = buildFallbackChapterText(sukuyo, chapter);
+      }
+    } catch (aiErr: unknown) {
+      usedFallback = true;
+      fallbackReason = aiErr instanceof Error ? aiErr.message : "Gemini 호출 실패";
+      console.warn("[api/premium/sukuyo-life] fallback:", fallbackReason);
+      rawText = buildFallbackChapterText(sukuyo, chapter);
+    }
+
     const sections = parseSections(rawText);
-    const chapterMeta = CHAPTER_META[chapter - 1];
 
     return NextResponse.json({
       ok: true,
@@ -506,6 +539,8 @@ export async function POST(req: NextRequest) {
       text: rawText,
       sections,
       chapterMeta,
+      usedFallback,
+      fallbackReason: usedFallback ? fallbackReason : undefined,
     });
   } catch (err) {
     console.error("[sukuyo-life]", err);
