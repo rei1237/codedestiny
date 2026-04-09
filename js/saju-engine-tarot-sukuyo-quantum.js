@@ -3883,6 +3883,13 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
 
   // ── 유명인 선택 → 숙요 궁합 계산 및 배지 표시 ──────────────────
   window._szPickCeleb = function(myIdx, celeb) {
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(50, '숙요점 유명인 궁합', function() { window._szPickCelebCore(myIdx, celeb); });
+      return;
+    }
+    window._szPickCelebCore(myIdx, celeb);
+  };
+  window._szPickCelebCore = function(myIdx, celeb) {
     var badge = document.getElementById('szCelebBadge');
     if (!badge) return;
 
@@ -4314,6 +4321,13 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
   }
 
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
+      if (typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(50, '숙요점 궁합 분석', function() { window._triggerSynergyCheckCore(myIdx, myMansionName); });
+        return;
+      }
+      window._triggerSynergyCheckCore(myIdx, myMansionName);
+  };
+  window._triggerSynergyCheckCore = function(myIdx, myMansionName) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
       if (window._sy3Running) return;
       window._sy3Running = true;

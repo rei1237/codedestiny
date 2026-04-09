@@ -69,12 +69,10 @@
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
-  /* ── 프로필 카드 운세 선택 모달: 코인 잠금 설정 ── */
+  /* ── 프로필 카드 운세 선택 모달: 코인 잠금 설정 ──
+     기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
+     심화/궁합 기능은 _cdCoinGatePerUse(50, ...) 로 1회 50코인 차감. ── */
   var _DP_FEATURE_LOCKS = {
-    sukuyo:  { key: 'sukuyo-fc',  cost: 400, name: '숙요점' },
-    ziwei:   { key: 'ziwei-fc',   cost: 400, name: '자미두수' },
-    astro:   { key: 'astro-fc',   cost: 400, name: '점성술' },
-    vedic:   { key: 'vedic-fc',   cost: 300, name: '베다점' },
     olympus: { key: 'olympus-fc', cost: 300, name: '올림푸스 신탁' },
     flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] },
   };
@@ -97,6 +95,56 @@
       localStorage.setItem('cd_tile_locks', JSON.stringify(parsed));
     } catch (e) {}
   }
+
+  /**
+   * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
+   * @param {number} cost   차감 코인 수
+   * @param {string} reason 기능명 (알림 문구용)
+   * @param {Function} cb   성공 시 호출할 콜백
+   */
+  window._cdCoinGatePerUse = function(cost, reason, cb) {
+    var plan = '';
+    try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
+    if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
+    try { if (sessionStorage.getItem('flower_admin_token')) { cb(); return; } } catch(_) {}
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) window.location.href = '/login?next=%2F';
+      return;
+    }
+    var balance = 0;
+    try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
+    if (balance < cost) {
+      if (typeof window.__cdOpenChargeModal === 'function') {
+        window.alert('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 창을 열겠습니다.');
+        window.__cdOpenChargeModal();
+      } else if (window.confirm('🪙 ' + reason + '\n\n' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n충전 페이지로 이동하시겠습니까?')) {
+        window.location.href = '/points';
+      }
+      return;
+    }
+    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) return;
+    fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ cost: cost, reason: reason })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.status === 402 || !res.ok) {
+        var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
+        if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
+        else if (window.confirm(msg + '\n충전 페이지로 이동하시겠습니까?')) window.location.href = '/points';
+        return;
+      }
+      var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
+      try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
+      cb();
+    })
+    .catch(function(e) { console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); });
+  };
 
   function _dpGetAuthToken() {
     try { return localStorage.getItem('fortune_auth_token') || ''; } catch (e) { return ''; }
@@ -1298,11 +1346,11 @@
       + '<div class="dp-fsel-ask">어떤 운세를 보시겠습니까?</div>'
       + '<div class="dp-fsel-btns">'
         + '<button class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('sukuyo-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--sukuyo' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'💫') + '</span><span class="dp-fsel-btn-label">숙요점' + (lk?'<span class="dp-fsel-btn-cost"> 400코인</span>':'') + '</span></button>'; })()
-        + (function(){ var lk=_dpIsFeatureLocked('ziwei-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--ziwei' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌌') + '</span><span class="dp-fsel-btn-label">자미두수' + (lk?'<span class="dp-fsel-btn-cost"> 400코인</span>':'') + '</span></button>'; })()
-        + (function(){ var lk=_dpIsFeatureLocked('astro-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--astro' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'✨') + '</span><span class="dp-fsel-btn-label">점성술' + (lk?'<span class="dp-fsel-btn-cost"> 400코인</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
         + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 300코인</span>':'') + '</span></button>'; })()
-        + (function(){ var lk=_dpIsFeatureLocked('vedic-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--vedic' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🪐') + '</span><span class="dp-fsel-btn-label">베다점' + (lk?'<span class="dp-fsel-btn-cost"> 300코인</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
       + '</div>'

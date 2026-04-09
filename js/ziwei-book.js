@@ -485,7 +485,6 @@
   /* ─────────────── 생성 로직 ─────────────── */
   window.generateZiweiBook = function () {
     if (_generating) return;
-
     var profile = _getActiveBirthProfile();
     if (!profile) {
       alert('사주/자미두수 계산을 먼저 완료해 주세요.');

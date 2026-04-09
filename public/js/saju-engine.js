@@ -7228,8 +7228,18 @@ function renderAstroInsight() {
       return { relType: rel, loveDesc: love, busDesc: busi, spiritDesc: spirit };
     }
 
-    /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
+    /* ── 화면인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
+        /* 50코인 퍼유즈 게이트 */
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
+            window._astroPickCelebCore(name, birth, hour);
+          });
+          return;
+        }
+        window._astroPickCelebCore(name, birth, hour);
+    };
+    window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
         if (!resultDiv) return;
         resultDiv.style.display = 'block';
@@ -7431,6 +7441,16 @@ function renderAstroInsight() {
 
     /* ── 💑 직접 입력 시나스트리 계산 함수 ── */
     window._astroDirectSynastry = function() {
+        /* 50코인 퍼유즈 게이트 */
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
+            window._astroDirectSynastryCore();
+          });
+          return;
+        }
+        window._astroDirectSynastryCore();
+    };
+    window._astroDirectSynastryCore = function() {
         var resultDiv = document.getElementById('asDirectResult');
         if (!resultDiv) return;
 
@@ -11105,6 +11125,13 @@ function renderZiwei(p, natal, targetId) {
     };
 
     window._runZwCompatibility = function() {
+      if (typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(50, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
+        return;
+      }
+      window._runZwCompatibilityCore();
+    };
+    window._runZwCompatibilityCore = function() {
       var dateEl = document.getElementById('zwCompatBirthDate');
       var timeEl = document.getElementById('zwCompatBirthTime');
       var cityEl = document.getElementById('zwCompatBirthCity');
@@ -13568,12 +13595,6 @@ function renderZiwei(p, natal, targetId) {
               +'</div>'
             +'</button>'
             +'<div id="'+cardId+'" class="zw-pivot-body">'
-              // 라이프스테이지 뱃지
-              +'<div class="zw-pv-section" style="background:rgba(var(--pivot-rgb,167,139,250),0.055);border-color:rgba(var(--pivot-rgb,167,139,250),0.18);">'
-                +'<div class="zw-pv-section-title">📅 라이프스테이지 맥락</div>'
-                +'<div style="font-size:0.83rem;font-weight:800;color:rgba(var(--pivot-rgb,167,139,250),0.96);margin-bottom:3px;">'+p.lifeStage+'</div>'
-                +'<div style="font-size:0.76rem;color:#94a3b8;line-height:1.55;">'+p.lifeCtx+'</div>'
-              +'</div>'
               // 섹션 1: 핵심 성계 구성
               +'<div class="zw-pv-section">'
                 +'<div class="zw-pv-section-title">🌟 핵심 성계 구성</div>'

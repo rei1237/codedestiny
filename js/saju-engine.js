@@ -7230,6 +7230,16 @@ function renderAstroInsight() {
 
     /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
+        /* 50코인 퍼유즈 게이트 */
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
+            window._astroPickCelebCore(name, birth, hour);
+          });
+          return;
+        }
+        window._astroPickCelebCore(name, birth, hour);
+    };
+    window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
         if (!resultDiv) return;
         resultDiv.style.display = 'block';
@@ -7431,6 +7441,16 @@ function renderAstroInsight() {
 
     /* ── 💑 직접 입력 시나스트리 계산 함수 ── */
     window._astroDirectSynastry = function() {
+        /* 50코인 퍼유즈 게이트 */
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
+            window._astroDirectSynastryCore();
+          });
+          return;
+        }
+        window._astroDirectSynastryCore();
+    };
+    window._astroDirectSynastryCore = function() {
         var resultDiv = document.getElementById('asDirectResult');
         if (!resultDiv) return;
 
@@ -11105,6 +11125,13 @@ function renderZiwei(p, natal, targetId) {
     };
 
     window._runZwCompatibility = function() {
+      if (typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(50, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
+        return;
+      }
+      window._runZwCompatibilityCore();
+    };
+    window._runZwCompatibilityCore = function() {
       var dateEl = document.getElementById('zwCompatBirthDate');
       var timeEl = document.getElementById('zwCompatBirthTime');
       var cityEl = document.getElementById('zwCompatBirthCity');
