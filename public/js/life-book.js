@@ -655,18 +655,6 @@
   window.generateLifeBook = function () {
     if (_generating) return;
 
-    // ── 로그인 상태 확인 (API 401 사전 방지) ──
-    if (!window.__cdAdminBypass) {
-      var _lbAuthCheck = '';
-      try { _lbAuthCheck = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-      if (!_lbAuthCheck) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n인생의 책 생성은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?')) {
-          window.location.href = '/login?next=%2F';
-        }
-        return;
-      }
-    }
-
     var profile = _getActiveBirthProfile();
     if (!profile) {
       alert('사주 계산을 먼저 완료해 주세요.');
@@ -781,14 +769,9 @@
           resolve({ ok: false, message: '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.' });
         }, 60000);
 
-        var _lbAuthToken = '';
-        try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
         fetch('/api/lifebook/session', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + _lbAuthToken
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
         })
           .then(function (res) {
@@ -807,17 +790,6 @@
             clearTimeout(timeoutId);
             resolve({ ok: false, message: String(err && err.message ? err.message : err) });
           });
-      });
-    }
-
-    /** 짧은 응답/실패 시 챕터별 재시도 */
-    function _fetchChapterWithRetry(idx, retriesLeft) {
-      return _fetchChapter(idx).then(function (data) {
-        var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
-        var _ok = !!(data && data.ok && _text.length >= 500);
-        if (_ok) return data;
-        if (retriesLeft > 0) return _fetchChapterWithRetry(idx, retriesLeft - 1);
-        return data;
       });
     }
 
@@ -866,7 +838,7 @@
 
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
 
-      _fetchChapterWithRetry(idx, 1).then(function (data) {
+      _fetchChapter(idx).then(function (data) {
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
         if (data && data.ok && _text.length >= 500) {
           _chapters[idx] = data.text;
@@ -1019,7 +991,7 @@
       return;
     }
     if (action === 'generateLifeBook') {
-      // 주 코인 게이트(data-coin-cost 클릭 핸들러)에서 이미 승인된 경우
+      // 코인 게이트 통과 후 생성 시작
       var _cdPaKey = 'cd_pa_generateLifeBook';
       try {
         if (sessionStorage.getItem(_cdPaKey) === '1') {
@@ -1028,24 +1000,12 @@
           return;
         }
       } catch (_) {}
+
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
-      if (!window.__cdAdminBypass && _lbCoinCost > 0) {
-        if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
-            window.generateLifeBook();
-          });
-        } else {
-          // _cdCoinGatePerUse 미로드 시: 로그인 체크 후 generateLifeBook 호출
-          var _fbToken = '';
-          try { _fbToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
-          if (!_fbToken) {
-            if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n인생의 책 생성은 로그인 후 이용할 수 있습니다.\n로그인 페이지로 이동하시겠습니까?')) {
-              window.location.href = '/login?next=%2F';
-            }
-            return;
-          }
+      if (!window.__cdAdminBypass && _lbCoinCost > 0 && typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
           window.generateLifeBook();
-        }
+        });
       } else {
         window.generateLifeBook();
       }
