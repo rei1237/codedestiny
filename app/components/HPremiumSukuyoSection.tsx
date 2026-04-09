@@ -42,7 +42,8 @@ interface ChapterState {
 
 type PremiumSectionProps = {
   showIntro?: boolean;
-  onStartGeneration?: () => void;
+  onStartGeneration?: () => void | Promise<void>;
+  generationLoading?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -631,6 +632,7 @@ function SukuyoHero({ sukuyo }: { sukuyo: SukuyoInfo }) {
 export default function HPremiumSukuyoSection({
   showIntro = false,
   onStartGeneration,
+  generationLoading = false,
 }: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 숙요 프리미엄");
   const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "", hour: "12" });
@@ -931,21 +933,23 @@ export default function HPremiumSukuyoSection({
             <button
               type="button"
               onClick={() => onStartGeneration?.()}
+              disabled={generationLoading}
               style={{
                 marginTop: 14,
                 width: "100%",
                 padding: "14px 0",
                 borderRadius: 14,
-                border: "1px solid rgba(125,211,252,0.5)",
-                background: "linear-gradient(135deg, rgba(2,44,84,0.9) 0%, rgba(30,27,75,0.9) 100%)",
-                color: "rgba(125,211,252,0.98)",
+                border: generationLoading ? "1px solid rgba(100,116,139,0.3)" : "1px solid rgba(125,211,252,0.5)",
+                background: generationLoading ? "rgba(20,30,50,0.6)" : "linear-gradient(135deg, rgba(2,44,84,0.9) 0%, rgba(30,27,75,0.9) 100%)",
+                color: generationLoading ? "rgba(148,163,184,0.5)" : "rgba(125,211,252,0.98)",
                 fontSize: "0.96rem",
                 fontWeight: 800,
                 letterSpacing: "0.1em",
-                cursor: "pointer",
+                cursor: generationLoading ? "wait" : "pointer",
+                opacity: generationLoading ? 0.72 : 1,
               }}
             >
-              프리미엄 PDF 리포트 생성하기
+              {generationLoading ? "코인 확인 중…" : "프리미엄 PDF 리포트 생성하기"}
             </button>
           </div>
         </div>

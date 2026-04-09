@@ -30,7 +30,8 @@ interface ChapterState { step:ChapterStep; result:ChapterResult|null; }
 
 type PremiumSectionProps = {
   showIntro?: boolean;
-  onStartGeneration?: () => void;
+  onStartGeneration?: () => void | Promise<void>;
+  generationLoading?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -353,6 +354,7 @@ function PDFDownloadButton({
 export default function HPremiumVedicSection({
   showIntro = false,
   onStartGeneration,
+  generationLoading = false,
 }: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
@@ -467,6 +469,7 @@ export default function HPremiumVedicSection({
           <button
             type="button"
             onClick={() => onStartGeneration?.()}
+            disabled={generationLoading}
             style={{
               marginTop:14,
               width:"100%",
@@ -474,14 +477,15 @@ export default function HPremiumVedicSection({
               padding:"14px",
               fontSize:"0.96rem",
               fontWeight:900,
-              background:"linear-gradient(135deg,#d4a017,#8b6914)",
+              background: generationLoading ? "rgba(50,35,10,0.6)" : "linear-gradient(135deg,#d4a017,#8b6914)",
               border:"none",
-              color:"#1a0f00",
-              cursor:"pointer",
+              color: generationLoading ? "rgba(148,163,184,0.5)" : "#1a0f00",
+              cursor: generationLoading ? "wait" : "pointer",
               letterSpacing:"0.08em",
+              opacity: generationLoading ? 0.72 : 1,
             }}
           >
-            프리미엄 PDF 리포트 생성하기
+            {generationLoading ? "코인 확인 중…" : "프리미엄 PDF 리포트 생성하기"}
           </button>
         </div>
       </section>

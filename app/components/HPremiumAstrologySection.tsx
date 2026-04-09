@@ -32,7 +32,8 @@ interface ChapterState { step: ChapterStep; result: ChapterResult | null; }
 
 type PremiumSectionProps = {
   showIntro?: boolean;
-  onStartGeneration?: () => void;
+  onStartGeneration?: () => void | Promise<void>;
+  generationLoading?: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -312,6 +313,7 @@ function ChapterCard({
 export default function HPremiumAstrologySection({
   showIntro = false,
   onStartGeneration,
+  generationLoading = false,
 }: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 점성술 프리미엄");
   // 입력 폼
@@ -330,6 +332,79 @@ export default function HPremiumAstrologySection({
   const [calcError, setCalcError] = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+
+  const handleDownloadAstroPDF = useCallback(async () => {
+    const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
+    if (doneChapters.length === 0) { setPdfError("먼저 쳭터를 하나 이상 생성해 주세요."); return; }
+    setPdfLoading(true); setPdfError("");
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
+      if (!pdfModule) throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
+      const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
+      try {
+        Font.register({
+          family: "NanumGothic",
+          src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
+        });
+      } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
+      const styles = StyleSheet.create({
+        page: { fontFamily: "NanumGothic", backgroundColor: "#07091a", color: "#e2e8f0", padding: 38 },
+        coverTitle: { fontSize: 24, fontWeight: "bold", color: "#fbbf24", textAlign: "center", marginBottom: 8 },
+        coverSub: { fontSize: 11, color: "#a78bfa", textAlign: "center", marginBottom: 4 },
+        divider: { borderBottomWidth: 1, borderBottomColor: "#1e2a4a", marginVertical: 14 },
+        chapterTitle: { fontSize: 16, fontWeight: "bold", color: "#f8fafc", marginBottom: 4, marginTop: 14 },
+        chapterSub: { fontSize: 10, color: "#fde68a", marginBottom: 8 },
+        sectionTitle: { fontSize: 12, fontWeight: "bold", color: "#fbbf24", marginBottom: 4, marginTop: 10 },
+        body: { fontSize: 10, color: "#cbd5e1", lineHeight: 1.8, marginBottom: 6 },
+      });
+      const chartLines: string[] = chart ? [
+        `ASC: ${chart.ascendant?.signKo ?? "-"} ${chart.ascendant?.degree ?? ""}\u00b0`,
+        `\u2600\ufe0f \ud0dc양: ${chart.planets?.Sun?.signKo ?? "-"} | \ud83c\udf19 달: ${chart.planets?.Moon?.signKo ?? "-"}`,
+      ] : [];
+      const MyDoc = (
+        <Document>
+          <Page size="A4" style={styles.page}>
+            <Text style={styles.coverTitle}>점성술 프리미엄 리포트</Text>
+            <Text style={styles.coverSub}>CODE : DESTINY \u00b7 ASTROLOGY PREMIUM</Text>
+            {chartLines.map((l: string, i: number) => <Text key={i} style={styles.coverSub}>{l}</Text>)}
+            <View style={styles.divider} />
+            {doneChapters.map((ch, idx: number) => {
+              const r = chapters[ch.num].result!;
+              return (
+                <View key={`ch-${ch.num}-${idx}`}>
+                  <Text style={styles.chapterTitle}>{ch.icon} Chapter {String(ch.num).padStart(2, "0")} \u00b7 {ch.title}</Text>
+                  <Text style={styles.chapterSub}>{ch.subtitle}</Text>
+                  {r.sections.length > 0
+                    ? r.sections.map((sec: { title: string; body: string }, si: number) => (
+                        <View key={si}>
+                          <Text style={styles.sectionTitle}>{sec.title}</Text>
+                          <Text style={styles.body}>{sec.body ?? ""}</Text>
+                        </View>
+                      ))
+                    : <Text style={styles.body}>{r.text ?? ""}</Text>}
+                  <View style={styles.divider} />
+                </View>
+              );
+            })}
+          </Page>
+        </Document>
+      );
+      const blob = await pdf(MyDoc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `점성술_프리미엄_${birthYear}-${birthMonth}-${birthDay}.pdf`;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    } catch (e) {
+      setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [chapters, chart, birthYear, birthMonth, birthDay]);
 
   const postAstroJson = useCallback(async (path: string, payload: unknown) => {
     const controller = new AbortController();
@@ -470,22 +545,24 @@ export default function HPremiumAstrologySection({
           <button
             type="button"
             onClick={() => onStartGeneration?.()}
+            disabled={generationLoading}
             style={{
               marginTop:14,
               width:"100%",
               borderRadius:12,
               padding:"14px",
-              background:"linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #b45309 100%)",
+              background: generationLoading ? "rgba(60,50,20,0.5)" : "linear-gradient(135deg, #f59e0b 0%, #d97706 55%, #b45309 100%)",
               border:"none",
-              color:"#fff",
+              color: generationLoading ? "rgba(148,163,184,0.5)" : "#fff",
               fontWeight:900,
               fontSize:"0.96rem",
               letterSpacing:"0.05em",
-              cursor:"pointer",
-              boxShadow:"0 4px 20px rgba(251,191,36,0.3)",
+              cursor: generationLoading ? "wait" : "pointer",
+              boxShadow: generationLoading ? "none" : "0 4px 20px rgba(251,191,36,0.3)",
+              opacity: generationLoading ? 0.72 : 1,
             }}
           >
-            프리미엄 PDF 리포트 생성하기
+            {generationLoading ? "코인 확인 중…" : "프리미엄 PDF 리포트 생성하기"}
           </button>
         </div>
       </section>
@@ -675,8 +752,30 @@ export default function HPremiumAstrologySection({
                   onGenerate={() => handleGenerateChapter(meta.num)}
                 />
               ))}
-            </div>
-          </>
+            </div>            {/* ── PDF 다운로드 ── */}
+            {doneCount > 0 && (
+              <div style={{ marginTop:20, padding:"16px", borderRadius:14, background:"rgba(7,9,26,0.8)", border:"1px solid rgba(251,191,36,0.22)", textAlign:"center" }}>
+                <p style={{ color:"rgba(251,191,36,0.65)", fontSize:"0.68rem", letterSpacing:"0.18em", textTransform:"uppercase", margin:"0 0 10px" }}>ASTROLOGY PREMIUM PDF</p>
+                <button
+                  onClick={handleDownloadAstroPDF}
+                  disabled={pdfLoading}
+                  style={{
+                    display:"inline-flex", alignItems:"center", gap:8,
+                    borderRadius:12, padding:"12px 28px", fontSize:"0.9rem", fontWeight:800,
+                    background: pdfLoading ? "rgba(100,116,139,0.3)" : "linear-gradient(135deg,#f59e0b,#d97706)",
+                    border:"1px solid rgba(251,191,36,0.4)",
+                    color: pdfLoading ? "rgba(148,163,184,0.5)" : "#fff",
+                    cursor: pdfLoading ? "not-allowed" : "pointer",
+                    boxShadow: !pdfLoading ? "0 4px 20px rgba(251,191,36,0.25)" : "none",
+                    transition:"all 0.2s",
+                  }}
+                >
+                  {pdfLoading ? "\ud83d\udcc4 PDF 생성 중…" : `\ud83d\udce5 PDF 다운로드 (${doneCount}/12쳭터)`}
+                </button>
+                {pdfError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.78rem", marginTop:8 }}>⚠ {pdfError}</p>}
+                <p style={{ color:"rgba(148,163,184,0.45)", fontSize:"0.7rem", marginTop:6 }}>\uc644\ub8cc\ub41c {doneCount}\uac1c \ucced\ud130\ub97c \ud3ec\ud568\ud55c \uc810\uc131\uc220 PDF \ub9ac\ud3ec\ud2b8\ub97c \uc0dd\uc131\ud569\ub2c8\ub2e4</p>
+              </div>
+            )}          </>
         )}
       </div>
     </section>

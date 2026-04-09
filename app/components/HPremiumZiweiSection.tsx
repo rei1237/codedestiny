@@ -5772,12 +5772,14 @@ function ChapterMasterPlan({ step, result, onRequest }: {
 // ─────────────────────────────────────────────────────────────────
 type PremiumSectionProps = {
   showIntro?: boolean;
-  onStartGeneration?: () => void;
+  onStartGeneration?: () => void | Promise<void>;
+  generationLoading?: boolean;
 };
 
 export default function HPremiumZiweiSection({
   showIntro = false,
   onStartGeneration,
+  generationLoading = false,
 }: PremiumSectionProps) {
   console.log("섹션 렌더링 시작: 자미두수 프리미엄");
   const [step, setStep] = useState<"intro" | "form" | "loading" | "result">("intro");
@@ -6094,15 +6096,18 @@ export default function HPremiumZiweiSection({
         <button
           type="button"
           onClick={handleIntroEntry}
+          disabled={generationLoading}
           className="mt-7 w-full rounded-2xl px-6 py-4 font-bold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
           style={{
-            background: "linear-gradient(135deg, #6d28d9 0%, #4338ca 50%, #7c3aed 100%)",
-            boxShadow: "0 8px 32px rgba(109,40,217,0.4)",
+            background: generationLoading ? "rgba(50,40,70,0.5)" : "linear-gradient(135deg, #6d28d9 0%, #4338ca 50%, #7c3aed 100%)",
+            boxShadow: generationLoading ? "none" : "0 8px 32px rgba(109,40,217,0.4)",
             letterSpacing: "0.08em",
             fontSize: "0.97rem",
+            cursor: generationLoading ? "wait" : undefined,
+            opacity: generationLoading ? 0.72 : undefined,
           }}
         >
-          {showIntro ? "프리미엄 PDF 리포트 생성하기" : "✦ 나의 별자리 캐릭터 찾기"}
+          {generationLoading ? "코인 확인 중…" : showIntro ? "프리미엄 PDF 리포트 생성하기" : "✦ 나의 별자리 캐릭터 찾기"}
         </button>
         <p className="mt-3 text-center text-xs tracking-[0.08em] text-indigo-400/50">
           생년월일 입력만으로 시작합니다 · 무료 체험

@@ -306,28 +306,53 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
-  const handleOpenPremSection = async (key: PremiumServiceKey) => {
-    if (premiumGateLoading) return;
-
+  const handleOpenPremSection = (key: PremiumServiceKey) => {
     if (openPremSection === key) {
       setOpenPremSection(null);
       setPremiumFlowStage('intro');
       setPremiumGateError('');
       return;
     }
-
     console.log(`클릭됨: ${key} 프리미엄 섹션`);
-    setPremiumGateError('');
-    setPremiumGateLoading(key);
-    const passed = await runPremiumIntroGate(key);
-    setPremiumGateLoading(null);
-    if (!passed) return;
-
     setOpenPremSection(key);
     setPremiumFlowStage('intro');
+    setPremiumGateError('');
     setTimeout(() => {
       document.getElementById('prem-active-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
+  };
+
+  const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
+    if (premiumGateLoading) return;
+    const passed = await runPremiumIntroGate(service);
+    if (!passed) return;
+    // premiumDivinationPack 소지자는 코인 차감 없이 바로 생성 진입
+    if (unlockedFeatures.premiumDivinationPack) {
+      setPremiumFlowStage('generate');
+      return;
+    }
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) return;
+    const cost = PREMIUM_SERVICE_COST[service];
+    setPremiumGateLoading(service);
+    try {
+      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cost, reason: `${service} 프리미엄 PDF 생성` }),
+      });
+      if (res.status === 402) { setShowRechargeModal(true); return; }
+      if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
+      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      setCurrentCoins(newPoints);
+      saveUserPoints(newPoints);
+      setPremiumFlowStage('generate');
+    } catch (e) {
+      console.error('[handleStartPremiumGeneration]', e);
+      setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setPremiumGateLoading(null);
+    }
   };
 
   useEffect(() => {
@@ -583,12 +608,10 @@ export default function KkulkkulManseryukMain() {
           <button
             type="button"
             onClick={() => handleOpenPremSection('ziwei')}
-            disabled={premiumGateLoading === 'ziwei'}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: premiumGateLoading === 'ziwei' ? 'wait' : "pointer", textAlign: "left",
-              opacity: premiumGateLoading === 'ziwei' ? 0.72 : 1,
+              cursor: "pointer", textAlign: "left",
             }}
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
@@ -612,14 +635,15 @@ export default function KkulkkulManseryukMain() {
                 border: "1px solid rgba(167,139,250,0.45)",
                 color: "rgba(196,181,253,1)", fontWeight: 700, fontSize: "0.7rem",
                 padding: "5px 13px", borderRadius: "10px",
-              }}>{premiumGateLoading === 'ziwei' ? '권한 확인 중…' : openPremSection === 'ziwei' ? '▲ 접기' : '✦ 소개 보기'}</span>
+              }}>{openPremSection === 'ziwei' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
           {openPremSection === 'ziwei' && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(167,139,250,0.2)" }}>
               <HPremiumZiweiSection
                 showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => setPremiumFlowStage('generate')}
+                onStartGeneration={() => handleStartPremiumGeneration('ziwei')}
+                generationLoading={premiumGateLoading === 'ziwei'}
               />
             </div>
           )}
@@ -639,12 +663,10 @@ export default function KkulkkulManseryukMain() {
           <button
             type="button"
             onClick={() => handleOpenPremSection('astrology')}
-            disabled={premiumGateLoading === 'astrology'}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: premiumGateLoading === 'astrology' ? 'wait' : "pointer", textAlign: "left",
-              opacity: premiumGateLoading === 'astrology' ? 0.72 : 1,
+              cursor: "pointer", textAlign: "left",
             }}
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
@@ -668,14 +690,15 @@ export default function KkulkkulManseryukMain() {
                 border: "1px solid rgba(251,191,36,0.5)",
                 color: "rgba(253,230,138,1)", fontWeight: 700, fontSize: "0.7rem",
                 padding: "5px 13px", borderRadius: "10px",
-              }}>{premiumGateLoading === 'astrology' ? '권한 확인 중…' : openPremSection === 'astrology' ? '▲ 접기' : '✦ 소개 보기'}</span>
+              }}>{openPremSection === 'astrology' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
           {openPremSection === 'astrology' && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(251,191,36,0.18)" }}>
               <HPremiumAstrologySection
                 showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => setPremiumFlowStage('generate')}
+                onStartGeneration={() => handleStartPremiumGeneration('astrology')}
+                generationLoading={premiumGateLoading === 'astrology'}
               />
             </div>
           )}
@@ -695,12 +718,10 @@ export default function KkulkkulManseryukMain() {
           <button
             type="button"
             onClick={() => handleOpenPremSection('sukuyo')}
-            disabled={premiumGateLoading === 'sukuyo'}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: premiumGateLoading === 'sukuyo' ? 'wait' : "pointer", textAlign: "left",
-              opacity: premiumGateLoading === 'sukuyo' ? 0.72 : 1,
+              cursor: "pointer", textAlign: "left",
             }}
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
@@ -724,14 +745,15 @@ export default function KkulkkulManseryukMain() {
                 border: "1px solid rgba(125,211,252,0.42)",
                 color: "rgba(125,211,252,1)", fontWeight: 700, fontSize: "0.7rem",
                 padding: "5px 13px", borderRadius: "10px",
-              }}>{premiumGateLoading === 'sukuyo' ? '권한 확인 중…' : openPremSection === 'sukuyo' ? '▲ 접기' : '✦ 소개 보기'}</span>
+              }}>{openPremSection === 'sukuyo' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
           {openPremSection === 'sukuyo' && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(14,165,233,0.18)" }}>
               <HPremiumSukuyoSection
                 showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => setPremiumFlowStage('generate')}
+                onStartGeneration={() => handleStartPremiumGeneration('sukuyo')}
+                generationLoading={premiumGateLoading === 'sukuyo'}
               />
             </div>
           )}
@@ -751,12 +773,10 @@ export default function KkulkkulManseryukMain() {
           <button
             type="button"
             onClick={() => handleOpenPremSection('veda')}
-            disabled={premiumGateLoading === 'veda'}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
-              cursor: premiumGateLoading === 'veda' ? 'wait' : "pointer", textAlign: "left",
-              opacity: premiumGateLoading === 'veda' ? 0.72 : 1,
+              cursor: "pointer", textAlign: "left",
             }}
           >
             <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
@@ -780,14 +800,15 @@ export default function KkulkkulManseryukMain() {
                 border: "1px solid rgba(251,146,60,0.5)",
                 color: "rgba(253,186,116,1)", fontWeight: 700, fontSize: "0.7rem",
                 padding: "5px 13px", borderRadius: "10px",
-              }}>{premiumGateLoading === 'veda' ? '권한 확인 중…' : openPremSection === 'veda' ? '▲ 접기' : '✦ 소개 보기'}</span>
+              }}>{openPremSection === 'veda' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
           {openPremSection === 'veda' && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(234,88,12,0.18)" }}>
               <HPremiumVedicSection
                 showIntro={premiumFlowStage === 'intro'}
-                onStartGeneration={() => setPremiumFlowStage('generate')}
+                onStartGeneration={() => handleStartPremiumGeneration('veda')}
+                generationLoading={premiumGateLoading === 'veda'}
               />
             </div>
           )}
