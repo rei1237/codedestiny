@@ -1189,6 +1189,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                       location.reload();
                     });
                   }
+                  // 관리자 세션 확인 → __cdAdminBypass 즉시 활성화
+                  try { window.__cdAdminBypass = true; } catch (_abpErr) {}
                 }
                 return;
               }
@@ -1196,6 +1198,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               var n = '사용자', p = 0, r = 'user';
               try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) {}
               var isAdm = r === 'admin' || _adminTokValid;
+              // 관리자 여부에 따른 __cdAdminBypass 동기 업데이트
+              if (isAdm) { try { window.__cdAdminBypass = true; } catch (_abpErr) {} }
               __cdRenderAuthSummary(n, p, isAdm);
 
               fetch('/api/payments/me', {
@@ -2229,7 +2233,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                     class="prem-card prem-card--veda"
                     data-action="gotoVedicPremium"
                     data-coin-cost="290"
-                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.28);box-shadow:0 4px 24px rgba(234,88,12,0.08);text-align:left;padding:0;"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.28);box-shadow:0 4px 24px rgba(234,88,12,0.08);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.08)'"
                     aria-label="베다 점성술 프리미엄 리포트 — 1회 290코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
@@ -5864,12 +5870,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro]', e); }
         });
       } else {
-        var _apLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoAstrologyPremium'];
-        if (_apLoader) {
-          _apLoader().then(function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
-          }).catch(function(e) { console.error('[prem-card astro]', e); });
-        }
+        (function() {
+          var _apLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoAstrologyPremium'];
+          var _apLoadFn = function() {
+            var s=document.querySelector('script[src*="astro-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/astro-book.js?v=20260409-v1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_apLoader?_apLoader():_apLoadFn()).then(function(){
+            if(typeof window.openAstroBookModal==='function')window.openAstroBookModal();
+          }).catch(function(e){console.error('[prem-card astro]',e);});
+        })();
       }
       return;
     }
@@ -5881,12 +5892,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
-        var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
-        if (_spLoader) {
-          _spLoader().then(function() {
-            if (typeof window.openSukuyoBookModal === 'function') window.openSukuyoBookModal();
-          }).catch(function(e) { console.error('[prem-card sukuyo]', e); });
-        }
+        (function() {
+          var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
+          var _spLoadFn = function() {
+            var s=document.querySelector('script[src*="sukuyo-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260409-v1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_spLoader?_spLoader():_spLoadFn()).then(function(){
+            if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
+          }).catch(function(e){console.error('[prem-card sukuyo]',e);});
+        })();
       }
       return;
     }
@@ -5898,12 +5914,17 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
-        var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
-        if (_vdLoader) {
-          _vdLoader().then(function() {
-            if (typeof window.openVedicBookModal === 'function') window.openVedicBookModal();
-          }).catch(function(e) { console.error('[prem-card vedic]', e); });
-        }
+        (function() {
+          var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
+          var _vdLoadFn = function() {
+            var s=document.querySelector('script[src*="vedic-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260409-v1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
+            if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
+          }).catch(function(e){console.error('[prem-card vedic]',e);});
+        })();
       }
       return;
     }
@@ -6506,6 +6527,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
+    // 관리자 추가 확인: __cdAdminBypass 미설정 시 localStorage/sessionStorage 직접 체크
+    try{var _pu=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');if(_pu&&_pu.role==='admin')return;}catch(_pvwAdmErr){}
+    try{var _pt=sessionStorage.getItem('flower_admin_token');if(_pt&&/^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_pt))return;}catch(_pvwAdmErr2){}
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
