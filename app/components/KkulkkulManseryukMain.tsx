@@ -5,7 +5,47 @@ import dynamic from "next/dynamic";
 import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
 import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
-const HPremiumZiweiSection = dynamic(() => import("./HPremiumZiweiSection"), { ssr: false, loading: () => null });
+const HPremiumZiweiSection = dynamic(() => import("./HPremiumZiweiSection"), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        minHeight: 260,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(145deg, #0f0c29 0%, #1a1040 30%, #0d1035 60%, #0a0a2e 100%)",
+        borderRadius: "24px",
+        border: "1px solid rgba(167,139,250,0.2)",
+        boxShadow: "0 25px 60px rgba(67,56,202,0.25)",
+        gap: 14,
+      }}
+    >
+      <div style={{ position: "relative", width: 52, height: 52 }}>
+        <div style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          border: "2px solid rgba(251,191,36,0.3)",
+          animation: "spin 1.2s linear infinite",
+        }} />
+        <div style={{
+          position: "absolute", inset: 8, borderRadius: "50%",
+          border: "2px solid rgba(167,139,250,0.35)",
+          animation: "spin 1.8s linear infinite reverse",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, display: "flex",
+          alignItems: "center", justifyContent: "center",
+          fontSize: "1.4rem",
+        }}>✦</div>
+      </div>
+      <p style={{ color: "rgba(167,139,250,0.75)", fontSize: "0.88rem", letterSpacing: "0.12em", margin: 0 }}>
+        자미두수 인생 총론 로딩 중…
+      </p>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </div>
+  ),
+});
 
 type LockedSectionProps = {
   title: string;
