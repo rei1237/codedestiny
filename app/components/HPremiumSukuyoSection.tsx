@@ -631,6 +631,7 @@ export default function HPremiumSukuyoSection() {
   );
   const [generating, setGenerating] = useState(false);
   const [initLoading, setInitLoading] = useState(false);
+  const [initError, setInitError] = useState("");
   const [allGenerating, setAllGenerating] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
@@ -644,22 +645,30 @@ export default function HPremiumSukuyoSection() {
   const handleInitSukuyo = useCallback(async () => {
     if (!isValidDate) return;
     setInitLoading(true);
+    setInitError("");
     try {
-      const res = await fetch("/api/premium/sukuyo-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          year: parseInt(birthDate.year),
-          month: parseInt(birthDate.month),
-          day: parseInt(birthDate.day),
-          hour: parseInt(birthDate.hour) || 12,
-          chapter: 1,
-        }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 28000);
+      let res: Response;
+      try {
+        res = await fetch("/api/premium/sukuyo-life", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            year: parseInt(birthDate.year),
+            month: parseInt(birthDate.month),
+            day: parseInt(birthDate.day),
+            hour: parseInt(birthDate.hour) || 12,
+            chapter: 1,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const data = await res.json();
       if (data.ok && data.sukuyo) {
         setSukuyo(data.sukuyo);
-        // 챕터 1은 바로 받은 결과로 채움
         setChapters((prev) => {
           const next = [...prev];
           next[0] = {
@@ -674,9 +683,15 @@ export default function HPremiumSukuyoSection() {
           return next;
         });
         setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+      } else {
+        setInitError(data.error || "숙요 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       }
-    } catch {
-      // ignore
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") {
+        setInitError("요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+      } else {
+        setInitError(e instanceof Error ? e.message : "네트워크 오류가 발생했습니다.");
+      }
     } finally {
       setInitLoading(false);
     }
@@ -798,12 +813,19 @@ export default function HPremiumSukuyoSection() {
 
     // 동적 import로 @react-pdf/renderer 로드
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfModule = await import(/* webpackIgnore: true */ "@react-pdf/renderer" as any).catch(() => null);
+    const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
     if (!pdfModule) { alert("PDF 라이브러리를 로드할 수 없습니다."); return; }
-    const { pdf, Document, Page, Text, View, StyleSheet } = pdfModule;
+    const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
+    // 한글 렌더링을 위한 나눔고딕 폰트 등록
+    try {
+      Font.register({
+        family: "NanumGothic",
+        src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
+      });
+    } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
     const styles = StyleSheet.create({
       page: {
-        fontFamily: "Helvetica",
+        fontFamily: "NanumGothic",
         backgroundColor: "#0a0f1e",
         color: "#e2e8f0",
         padding: 40,
@@ -1056,6 +1078,11 @@ export default function HPremiumSukuyoSection() {
       >
         {initLoading ? "🌙 달의 지도를 펼치는 중..." : "✦ 숙요 분석 시작하기"}
       </button>
+      {initError && (
+        <p style={{ marginTop: 10, color: "rgba(251,113,133,0.9)", fontSize: "0.85rem", textAlign: "center" }}>
+          ⚠ {initError}
+        </p>
+      )}
     </div>
   );
 

@@ -6,6 +6,9 @@ import {
   type SukuyoCalcResult,
 } from "@/lib/sukuyo-engine-server";
 
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
 // 
 // 챕터 메타
 // 

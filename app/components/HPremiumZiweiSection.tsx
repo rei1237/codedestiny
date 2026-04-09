@@ -5423,10 +5423,17 @@ function ZiweiPDFButton({
       const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
       if (!pdfModule) throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
 
-      const { pdf, Document, Page, Text, View, StyleSheet } = pdfModule;
+      const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
+      // 한글 렌더링을 위한 나눔고딕 폰트 등록
+      try {
+        Font.register({
+          family: "NanumGothic",
+          src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
+        });
+      } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
 
       const styles = StyleSheet.create({
-        page: { fontFamily: "Helvetica", backgroundColor: "#07091a", color: "#e2e8f0", padding: 32 },
+        page: { fontFamily: "NanumGothic", backgroundColor: "#07091a", color: "#e2e8f0", padding: 32 },
         coverTitle: { fontSize: 22, fontWeight: "bold", color: "#a78bfa", textAlign: "center", marginBottom: 6 },
         coverSub: { fontSize: 10, color: "rgba(251,191,36,0.9)", textAlign: "center", marginBottom: 3, letterSpacing: 2 },
         coverMeta: { fontSize: 9, color: "#94a3b8", textAlign: "center", marginBottom: 2 },
