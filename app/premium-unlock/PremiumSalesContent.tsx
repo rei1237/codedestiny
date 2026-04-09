@@ -6,7 +6,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import OhangRadarChart from "../components/OhangRadarChart";
+import dynamic from "next/dynamic";
+const OhangRadarChart = dynamic(() => import("../components/OhangRadarChart"), { ssr: false, loading: () => null });
 
 /* ─────────────────────────────────────────
    애니메이션 헬퍼

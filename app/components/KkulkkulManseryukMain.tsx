@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import HPremiumZiweiSection from "./HPremiumZiweiSection";
+import dynamic from "next/dynamic";
 import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
 import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
+const HPremiumZiweiSection = dynamic(() => import("./HPremiumZiweiSection"), { ssr: false, loading: () => null });
 
 type LockedSectionProps = {
   title: string;

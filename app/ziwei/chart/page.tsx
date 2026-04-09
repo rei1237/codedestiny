@@ -1,4 +1,4 @@
-import HPremiumZiweiSection from "../../components/HPremiumZiweiSection";
+import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 
 export const metadata = {
   title: "H 프리미엄 자미두수 인생 총론 | Code Destiny",
@@ -10,5 +10,5 @@ export const metadata = {
 };
 
 export default function ZiweiChartPage() {
-  return <HPremiumZiweiSection />;
+  return <ZiweiChartClientLoader />;
 }

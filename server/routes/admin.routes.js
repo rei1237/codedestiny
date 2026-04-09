@@ -1058,4 +1058,69 @@ router.post("/members/points/flower", requireFlowerAdmin, async (req, res, next)
   }
 });
 
+// ─── flower-admin: settings GET/PATCH ────────────────────────────────────────
+// Next.js app/api/admin/settings → Express /api/admin/settings/flower
+
+let _appSettingsModel = null;
+async function getAppSettingsModel() {
+  if (_appSettingsModel) return _appSettingsModel;
+  const schema = new mongoose.Schema({
+    _id: String,
+    maintenanceMode: { type: Boolean, default: false },
+    maintenanceMessage: { type: String, default: "" },
+    newUserCoins: { type: Number, default: 100 },
+    popupEnabled: { type: Boolean, default: false },
+    popupTitle: { type: String, default: "" },
+    popupContent: { type: String, default: "" },
+    cacheTtlSeconds: { type: Number, default: 300 },
+  }, { _id: false, strict: false });
+  _appSettingsModel = mongoose.models.app_settings || mongoose.model("app_settings", schema, "app_settings");
+  return _appSettingsModel;
+}
+
+async function getSettings() {
+  const AppSettings = await getAppSettingsModel();
+  let doc = await AppSettings.findById("global").lean();
+  if (!doc) doc = {};
+  return doc;
+}
+
+async function updateSettings(patch) {
+  const AppSettings = await getAppSettingsModel();
+  const doc = await AppSettings.findByIdAndUpdate(
+    "global",
+    { $set: patch },
+    { upsert: true, new: true }
+  ).lean();
+  return doc;
+}
+
+router.get("/settings/flower", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const settings = await getSettings();
+    return res.json({ ok: true, settings });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch("/settings/flower", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const patch = {};
+    if (typeof body.maintenanceMode === "boolean") patch.maintenanceMode = body.maintenanceMode;
+    if (typeof body.maintenanceMessage === "string") patch.maintenanceMessage = String(body.maintenanceMessage).slice(0, 500);
+    if (body.newUserCoins !== undefined) patch.newUserCoins = Math.max(0, Number(body.newUserCoins || 0));
+    if (typeof body.popupEnabled === "boolean") patch.popupEnabled = body.popupEnabled;
+    if (typeof body.popupTitle === "string") patch.popupTitle = String(body.popupTitle).slice(0, 120);
+    if (typeof body.popupContent === "string") patch.popupContent = String(body.popupContent).slice(0, 5000);
+    if (body.cacheTtlSeconds !== undefined) patch.cacheTtlSeconds = Math.max(0, Number(body.cacheTtlSeconds || 0));
+
+    const updated = await updateSettings(patch);
+    return res.json({ ok: true, settings: updated });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 module.exports = router;

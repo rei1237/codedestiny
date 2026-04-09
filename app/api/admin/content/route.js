@@ -1,31 +1,5 @@
-﻿import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
-
+import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
 export const runtime = "nodejs";
-
-export async function GET(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function POST(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function PUT(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function PATCH(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function DELETE(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function OPTIONS(request) {
-  return proxyLegacyApi(request);
-}
-
-export async function HEAD(request) {
-  return proxyLegacyApi(request);
-}
+const h = (r) => proxyLegacyApi(r);
+export function GET() { return new Response(null, { status: 405 }); }
+export { h as POST, h as PUT, h as PATCH, h as DELETE };
