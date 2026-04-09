@@ -517,15 +517,71 @@ const SPRITE_CFG = {
 };
 // state → [{col,row}] — 여러 항목이면 슬라이드쇼
 const SPRITE_FRAME_MAP = {
-  idle:    [{c:0,r:0}],                               // Front Sit (기본)
-  happy:   [{c:0,r:1}],                               // Happy/Love
-  sad:     [{c:1,r:1}],                               // Sad
-  scared:  [{c:2,r:1}],                               // Surprised
-  angry:   [{c:4,r:1}],                               // Grumpy/Angry
-  run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:0,r:2}],// Walk × 3 + Jump
-  sleep:   [{c:1,r:2}],                               // Sleep
-  study:   [{c:5,r:1},{c:2,r:2}],                    // Curious → Read
-  special: [{c:5,r:2},{c:0,r:1}],                    // SPECIAL → Happy
+
+  //  space (우주/달밤): 어두운 배경, 초승달 수면 프레임 포함 
+  space: {
+    idle:    [{c:0,r:0},{c:4,r:2}],              // 정면 서기 + 옆앉기
+    happy:   [{c:0,r:1}],                         // 하트 행복
+    sad:     [{c:1,r:1}],                         // 눈물 슬픔
+    scared:  [{c:2,r:1}],                         // 놀람/공포
+    angry:   [{c:4,r:1}],                         // 분노
+    run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:5,r:0}], // 걷기3 + 점프
+    sleep:   [{c:3,r:1},{c:1,r:2}],              // 달 위 수면  ZZZ 수면
+    study:   [{c:5,r:1},{c:2,r:2}],              // 호기심  독서
+    special: [{c:0,r:2},{c:5,r:2},{c:3,r:2}],   // 점프2 + 특별빛 + 놀기
+  },
+
+  //  cherry (벚꽃): 분홍 봄 테마 
+  cherry: {
+    idle:    [{c:0,r:0},{c:4,r:2}],
+    happy:   [{c:0,r:1}],
+    sad:     [{c:1,r:1}],
+    scared:  [{c:2,r:1}],
+    angry:   [{c:4,r:1}],
+    run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:5,r:0}],
+    sleep:   [{c:3,r:1},{c:1,r:2}],
+    study:   [{c:5,r:1},{c:2,r:2}],
+    special: [{c:0,r:2},{c:5,r:2},{c:3,r:2}],
+  },
+
+  //  star (별): 골드/별빛 테마 
+  star: {
+    idle:    [{c:0,r:0},{c:4,r:2}],
+    happy:   [{c:0,r:1}],
+    sad:     [{c:1,r:1}],
+    scared:  [{c:2,r:1}],
+    angry:   [{c:4,r:1}],
+    run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:5,r:0}],
+    sleep:   [{c:3,r:1},{c:1,r:2}],
+    study:   [{c:5,r:1},{c:2,r:2}],
+    special: [{c:0,r:2},{c:5,r:2},{c:3,r:2}],
+  },
+
+  //  strawberry (딸기): 빨강/딸기 테마 
+  strawberry: {
+    idle:    [{c:0,r:0},{c:4,r:2}],
+    happy:   [{c:0,r:1}],
+    sad:     [{c:1,r:1}],
+    scared:  [{c:2,r:1}],
+    angry:   [{c:4,r:1}],
+    run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:5,r:0}],
+    sleep:   [{c:3,r:1},{c:1,r:2}],
+    study:   [{c:5,r:1},{c:2,r:2}],
+    special: [{c:0,r:2},{c:5,r:2},{c:3,r:2}],
+  },
+
+  //  angel (천사): 화이트/천사 날개 테마 
+  angel: {
+    idle:    [{c:0,r:0},{c:4,r:2}],
+    happy:   [{c:0,r:1}],
+    sad:     [{c:1,r:1}],
+    scared:  [{c:2,r:1}],
+    angry:   [{c:4,r:1}],
+    run:     [{c:1,r:0},{c:2,r:0},{c:3,r:0},{c:5,r:0}],
+    sleep:   [{c:3,r:1},{c:1,r:2}],
+    study:   [{c:5,r:1},{c:2,r:2}],
+    special: [{c:0,r:2},{c:5,r:2},{c:3,r:2}],
+  },
 };
 
 // ══════════════════════════════════════════════════════
@@ -771,7 +827,7 @@ function setState(name, durationMs=0){
 
   // Frame cycling — 스프라이트 분리됐으면 매핑, 아니면 기존 방식
   const cfg = SPRITE_CFG[G.theme];
-  const mapping = SPRITE_FRAME_MAP[name];
+  const mapping = (SPRITE_FRAME_MAP[G.theme] || SPRITE_FRAME_MAP.space)?.[name];
   if(G.spriteFrames && cfg && mapping){
     // 해당 상태의 프레임 URL 배열 구성
     G.frames = mapping.map(({c,r})=>{
