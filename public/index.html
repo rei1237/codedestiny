@@ -6482,6 +6482,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           else if(action==='openLoveSecretModal')_premDesc='290코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 내 진짜 이상형·매력 포인트·피해야 할 관계 유형까지 모두 담겨 있습니다.';
           else if(action==='gotoZiweiPremium')_premDesc='590코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
           else if(action==='gotoAstrologyPremium')_premDesc='400코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
+          else if(action==='gotoSukuyoPremium')_premDesc='300코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
+          else if(action==='gotoVedicPremium')_premDesc='300코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
           else _premDesc='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
@@ -6489,6 +6491,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           if(action==='openLifeBookModal')_ctaBtnLabel='📜 나의 인생 전서 지금 열기';
           else if(action==='openLoveSecretModal')_ctaBtnLabel='💕 나의 연애 비책 지금 열기';
           else if(action==='gotoZiweiPremium')_ctaBtnLabel='🌌 자미두수 PDF 지금 생성하기';
+          else if(action==='gotoAstrologyPremium')_ctaBtnLabel='✨ 코즈믹 차트 PDF 지금 생성하기';
+          else if(action==='gotoSukuyoPremium')_ctaBtnLabel='💫 숙요점 PDF 지금 생성하기';
+          else if(action==='gotoVedicPremium')_ctaBtnLabel='🪷 베다 운명서 PDF 지금 생성하기';
           else _ctaBtnLabel='🪙 '+coinCost+'코인으로 시작하기';
           _ctaBtn.textContent=_ctaBtnLabel;
         }

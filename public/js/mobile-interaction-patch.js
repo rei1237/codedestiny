@@ -602,15 +602,15 @@
       if (origin && typeof origin.closest === 'function') {
         _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
       }
-      // pvw-bypass 설정된 타일은 이미 Preview CTA를 통과한 것이므로 게이트 스킵
-      if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
+      // pvw-bypass 설정된 타일은 Preview CTA를 통과한 것이므로 index.html 코인게이트로 위임
+      if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) return false;
       if (!_coinGateTile) {
         _coinGateTile = document.querySelector(
           '[data-action="' + rule.action + '"][data-tile-lock-key],' +
           '[data-action="' + rule.action + '"][data-coin-cost]'
         );
         // fallback으로 찾은 타일도 pvw-bypass 체크
-        if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
+        if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) return false;
       }
       if (_coinGateTile && typeof _coinGateTile.click === 'function') {
         var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
@@ -964,9 +964,13 @@
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
       if (Date.now() < suppressClickUntil && rule) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
+        // pvw-bypass가 설정된 합성 클릭(Preview CTA → tile.click())은 억제하지 않고 코인게이트로 위임
+        var _pvwBypassEl = typeof event.target.closest === 'function' && event.target.closest('[data-pvw-bypass]');
+        if (!_pvwBypassEl) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
       }
 
       if (!rule) return;
