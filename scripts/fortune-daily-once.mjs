@@ -17,6 +17,8 @@ const root = path.join(__dirname, '..');
 
 const force = process.env.FORTUNE_FORCE === '1' || process.env.FORTUNE_FORCE === 'true';
 const scheduled = process.env.FORTUNE_SCHEDULED === '1';
+const retentionDaysRaw = Number(process.env.FORTUNE_RETENTION_DAYS || '45');
+const retentionDays = Number.isFinite(retentionDaysRaw) && retentionDaysRaw > 0 ? Math.floor(retentionDaysRaw) : 45;
 
 function resolveDateStr() {
   const explicit = process.env.FORTUNE_DATE?.trim();
@@ -37,13 +39,47 @@ function resolveDateStr() {
 const dateStr = resolveDateStr();
 
 const dailyPath = path.join(root, 'fortune', 'data', `daily-${dateStr}.json`);
+const dailyPublicPath = path.join(root, 'public', 'fortune', 'data', `daily-${dateStr}.json`);
 
-if (!force && fs.existsSync(dailyPath)) {
+function parseYmd(ymd) {
+  const m = String(ymd).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+}
+
+function pruneOldDailyFiles(baseDir, keepDays, todayYmd) {
+  if (!fs.existsSync(baseDir)) return { scanned: 0, deleted: 0 };
+  const today = parseYmd(todayYmd);
+  if (!today) return { scanned: 0, deleted: 0 };
+  const cutoffMs = today.getTime() - (keepDays - 1) * 24 * 60 * 60 * 1000;
+  const names = fs.readdirSync(baseDir);
+  let scanned = 0;
+  let deleted = 0;
+  for (const name of names) {
+    const m = name.match(/^daily-(\d{4}-\d{2}-\d{2})\.json$/);
+    if (!m) continue;
+    scanned += 1;
+    const dt = parseYmd(m[1]);
+    if (!dt) continue;
+    if (dt.getTime() < cutoffMs) {
+      const filePath = path.join(baseDir, name);
+      try {
+        fs.unlinkSync(filePath);
+        deleted += 1;
+      } catch {
+        // keep going; missing permissions or race should not abort daily generation
+      }
+    }
+  }
+  return { scanned, deleted };
+}
+
+if (!force && fs.existsSync(dailyPath) && fs.existsSync(dailyPublicPath)) {
   try {
-    const raw = fs.readFileSync(dailyPath, 'utf8');
-    const j = JSON.parse(raw);
-    if (j && j.date === dateStr) {
-      console.log('[fortune-daily-once] Skip: already have daily package for', dateStr, '→', dailyPath);
+    const rootJson = JSON.parse(fs.readFileSync(dailyPath, 'utf8'));
+    const publicJson = JSON.parse(fs.readFileSync(dailyPublicPath, 'utf8'));
+    if (rootJson && publicJson && rootJson.date === dateStr && publicJson.date === dateStr) {
+      console.log('[fortune-daily-once] Skip: already have daily package for', dateStr, '→', dailyPath, 'and', dailyPublicPath);
       process.exit(0);
     }
   } catch {
@@ -57,8 +93,19 @@ const r = spawnSync(process.execPath, [path.join(__dirname, 'gen-daily.mjs')], {
   env: {
     ...process.env,
     FORTUNE_DATE: dateStr,
-    FORTUNE_IDEMPOTENT: '1',
+    FORTUNE_IDEMPOTENT: force ? '0' : '1',
   },
 });
+
+if ((r.status ?? 1) === 0) {
+  const roots = [
+    path.join(root, 'fortune', 'data'),
+    path.join(root, 'public', 'fortune', 'data'),
+  ];
+  for (const baseDir of roots) {
+    const stat = pruneOldDailyFiles(baseDir, retentionDays, dateStr);
+    console.log('[fortune-daily-once] prune', baseDir, 'scanned=', stat.scanned, 'deleted=', stat.deleted, 'retentionDays=', retentionDays);
+  }
+}
 
 process.exit(r.status === null ? 1 : r.status);

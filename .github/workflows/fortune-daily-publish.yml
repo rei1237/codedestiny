@@ -44,7 +44,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           DATE_KST=$(node --input-type=module -e "import { kstYmdToday } from './scripts/lib/fortune-date.mjs'; console.log(kstYmdToday())")
-          git add fortune/data/
+          git add -A fortune/data/ public/fortune/data/
           if git diff --staged --quiet; then
             echo "No fortune data changes (already generated for ${DATE_KST} or skip)."
             exit 0

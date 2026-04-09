@@ -1,5 +1,7 @@
 /**
- * 매일 운세 생성 (프롬프트 v3) → fortune/data/daily-YYYY-MM-DD.json
+ * 매일 운세 생성 (프롬프트 v3) →
+ * - fortune/data/daily-YYYY-MM-DD.json
+ * - public/fortune/data/daily-YYYY-MM-DD.json
  * 날짜: FORTUNE_DATE 또는 --date=, 기본 KST 오늘
  */
 import fs from 'fs';
@@ -17,19 +19,33 @@ const root = path.join(__dirname, '..');
 
 const dateStr = parseFortuneDate(process.argv);
 
-const outDir = path.join(root, 'fortune', 'data');
-const outFile = path.join(outDir, `daily-${dateStr}.json`);
-fs.mkdirSync(outDir, { recursive: true });
+const outDirs = [
+  path.join(root, 'fortune', 'data'),
+  path.join(root, 'public', 'fortune', 'data'),
+];
+const outFiles = outDirs.map((outDir) => path.join(outDir, `daily-${dateStr}.json`));
+for (const outDir of outDirs) fs.mkdirSync(outDir, { recursive: true });
 
-if (process.env.FORTUNE_IDEMPOTENT === '1' && fs.existsSync(outFile)) {
+function isValidDailyFile(filePath, expectedDate) {
+  if (!fs.existsSync(filePath)) return false;
   try {
-    const j = JSON.parse(fs.readFileSync(outFile, 'utf8'));
-    if (j && j.date === dateStr) {
-      console.log('[gen-daily] Skip (idempotent, same date):', outFile);
-      process.exit(0);
-    }
+    const j = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return !!(j && j.date === expectedDate);
   } catch {
-    console.warn('[gen-daily] Existing file invalid, will regenerate:', outFile);
+    return false;
+  }
+}
+
+if (process.env.FORTUNE_IDEMPOTENT === '1') {
+  const allValid = outFiles.every((filePath) => isValidDailyFile(filePath, dateStr));
+  if (allValid) {
+    console.log('[gen-daily] Skip (idempotent, same date):', outFiles.join(', '));
+    process.exit(0);
+  }
+  for (const filePath of outFiles) {
+    if (!isValidDailyFile(filePath, dateStr)) {
+      console.warn('[gen-daily] Missing/invalid output, will regenerate:', filePath);
+    }
   }
 }
 
@@ -45,7 +61,9 @@ const this_month = `${y}-${String(m).padStart(2, '0')}`;
 const this_year = y;
 const next_year = y + 1;
 const WEEK_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const WEEK_KR = ['일', '월', '화', '수', '목', '금', '토'];
 const varaEn = WEEK_EN[solar.getWeek()];
+const weekdayKr = WEEK_KR[solar.getWeek()];
 const generated_at = kstIsoNow();
 const { moonSignEn, moonPhaseLabel, newMoonYmd, fullMoonYmd } = moonSkyForDate(y, m, d);
 
@@ -67,6 +85,19 @@ const panchTithi = hashPick(dateStr + '|tith', [
 ]);
 const panchYoga = hashPick(dateStr + '|yoga', ['Siddha', 'Vaidhriti', 'Shubha', 'Vriddhi', 'Dhruva']);
 const panchKarana = hashPick(dateStr + '|kar', ['Bava', 'Balava', 'Kaulava', 'Taitila', 'Gara']);
+
+const SEO_THEME_PAIRS = [
+  { kr: '연애운', en: 'love luck' },
+  { kr: '금전운', en: 'money luck' },
+  { kr: '직장운', en: 'career luck' },
+  { kr: '건강운', en: 'health luck' },
+  { kr: '인간관계운', en: 'relationship luck' },
+  { kr: '행운 포인트', en: 'daily luck points' },
+];
+const selectedSeoTheme = hashPick(dateStr + '|seo-theme', SEO_THEME_PAIRS);
+const SEO_THEME_KR = selectedSeoTheme.kr;
+const SEO_THEME_EN = selectedSeoTheme.en;
+const homeEntryUrl = `https://code-destiny.com/?utm_source=daily_fortune&utm_medium=json&utm_campaign=${dateStr}`;
 
 const L = ['kr', 'en', 'jp', 'cn', 'fr', 'nl', 'vi', 'ms'];
 
@@ -515,6 +546,21 @@ const payload = {
   date: dateStr,
   generated_at,
   prompt_version: 'v3.0',
+  daily_editorial: {
+    intro_kr: `${dateStr} (${weekdayKr}) 오늘의 운세 핵심은 "${SEO_THEME_KR}"입니다. 달의 흐름(${moonPhaseLabel})을 따라 작은 루틴을 지키면 복이 크게 자랍니다.`,
+    intro_en: `${dateStr} daily fortune focuses on ${SEO_THEME_EN}. With the ${moonPhaseLabel} rhythm, small routines can create meaningful luck.`,
+    home_cta_kr: '오늘의 운세 전체 해석과 무료 사주/타로/점성술은 홈페이지에서 확인하세요.',
+    home_cta_url: homeEntryUrl,
+  },
+  daily_seo: {
+    title_kr: `${dateStr} 오늘의 운세 | ${SEO_THEME_KR} 총정리`,
+    description_kr: `${dateStr} (${weekdayKr}) 오늘의 운세를 사주·점성술·자미두수·숙요·베다 관점으로 통합 분석했습니다. ${SEO_THEME_KR} 포인트와 홈에서 바로 이어지는 무료 분석 링크를 제공합니다.`,
+    title_en: `${dateStr} Daily Fortune | ${SEO_THEME_EN} guide`,
+    description_en: `${dateStr} daily fortune with integrated Saju, Astrology, Zi Wei, Sukuyo, and Vedic insights. Includes ${SEO_THEME_EN} and direct homepage entry links.`,
+    canonical_like: `https://code-destiny.com/fortune/data/daily-${dateStr}.json`,
+    keywords_kr: ['오늘의 운세', dateStr, SEO_THEME_KR, '무료 운세', '사주', '점성술', '숙요', '자미두수', '베다점'],
+    keywords_en: ['daily fortune', dateStr, SEO_THEME_EN, 'free horoscope', 'saju', 'astrology', 'sukuyo', 'zi wei', 'vedic'],
+  },
   ziwei_today: {
     solar_date: dateStr,
     lunar_date: lunarStr,
@@ -528,14 +574,14 @@ const payload = {
   sukuyo_meta: {
     solar_date: dateStr,
     today_mansion: {
-      name_kr: '방수(房宿)',
+      name_kr: '방숙(房宿)',
       name_en: 'Room Mansion',
       element: '火',
       energy_kr: '따뜻한 기운이 관계와 집안을 부드럽게 이어 줍니다. 급한 결정은 피하고, 한 박자 쉬어 가세요.',
     },
-    this_month_dominant: '실수(室宿)',
-    this_year_dominant: '규수(奎宿)',
-    next_year_dominant: '정수(井宿)',
+    this_month_dominant: '실숙(室宿)',
+    this_year_dominant: '규숙(奎宿)',
+    next_year_dominant: '정숙(井宿)',
   },
   panchanga_today: {
     solar_date: dateStr,
@@ -582,5 +628,7 @@ const payload = {
   vedic: mkVedic(),
 };
 
-fs.writeFileSync(outFile, JSON.stringify(payload, null, 2), 'utf8');
-console.log('Wrote', outFile);
+for (const outFile of outFiles) {
+  fs.writeFileSync(outFile, JSON.stringify(payload, null, 2), 'utf8');
+  console.log('Wrote', outFile);
+}
