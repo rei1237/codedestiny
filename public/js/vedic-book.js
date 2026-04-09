@@ -198,7 +198,8 @@
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
     var profile=_getActiveBirthProfile();
     if(!profile){
-      if(!window.__cdAdminBypass){
+      var _vdIsAdmin=window.__cdAdminBypass||(typeof window.isAdminUser==='function'&&window.isAdminUser());
+      if(!_vdIsAdmin){
         var formEl=document.getElementById('birthDate')||document.getElementById('run-btn');
         if(formEl){try{formEl.scrollIntoView({behavior:'smooth',block:'center'});}catch(_){}}
         alert('🪷 베다 점성술 인생 총람을 생성하려면 생년월일·출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
