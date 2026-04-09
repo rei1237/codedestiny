@@ -9523,8 +9523,8 @@ function renderZiwei(p, natal, targetId) {
     .zw-pivot-deck {
       position: relative;
       z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
     .zw-pivot-card {
@@ -9575,6 +9575,34 @@ function renderZiwei(p, natal, targetId) {
       align-items: center;
       gap: 6px;
       flex-shrink: 0;
+    }
+    .zw-pv-num-badge {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(var(--pivot-rgb, 167,139,250), 0.22);
+      border: 1.5px solid rgba(var(--pivot-rgb, 167,139,250), 0.6);
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      font-size: 0.78rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .zw-pv-tap-hint {
+      flex-shrink: 0;
+      font-size: 0.62rem;
+      color: rgba(var(--pivot-rgb, 167,139,250), 0.55);
+      font-weight: 700;
+      margin-left: auto;
+      white-space: nowrap;
+      transition: opacity .2s;
+    }
+    .zw-pivot-card.is-open .zw-pv-tap-hint {
+      opacity: 0;
+      pointer-events: none;
     }
     .zw-pivot-chip {
       font-size: 0.67rem;
@@ -9667,13 +9695,18 @@ function renderZiwei(p, natal, targetId) {
     }
     .zw-pivot-body {
       display: none;
-      padding: 0 13px 14px;
+      padding: 0 14px 16px;
       color: #e2e8f0;
       font-size: 0.84rem;
       line-height: 1.72;
     }
     .zw-pivot-card.is-open .zw-pivot-body {
       display: block;
+      animation: zwPivotBodyIn .26s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes zwPivotBodyIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .zw-pv-section {
       background: rgba(255,255,255,0.038);
@@ -9998,9 +10031,6 @@ function renderZiwei(p, natal, targetId) {
       }
       .zw-persona-wuxing-right {
         min-height: 240px;
-      }
-      .zw-pivot-deck {
-        grid-template-columns: 1fr;
       }
       .zw-compat-ref-summary {
         font-size: 0.88rem;
@@ -13526,29 +13556,40 @@ function renderZiwei(p, natal, targetId) {
           }
         }
 
-        if (typeof window._toggleZwPivotCard !== 'function') {
-          window._toggleZwPivotCard = function(btn, bodyId) {
-            var body = document.getElementById(bodyId);
-            if (!body) return;
-            var expanded = body.style.display !== 'none';
-            var nextExpanded = !expanded;
-            body.style.display = nextExpanded ? 'block' : 'none';
-            if (btn) {
-              btn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
-              var card = btn.closest ? btn.closest('.zw-pivot-card') : null;
-              if (card && card.classList) card.classList.toggle('is-open', nextExpanded);
-            }
-          };
-        }
+        // 토글 함수: 재정의 허용(accordion 갱신 위해 매번 업데이트)
+        window._toggleZwPivotCard = function(btn, bodyId) {
+          var card = btn.closest ? btn.closest('.zw-pivot-card') : null;
+          if (!card) return;
+          var wasOpen = card.classList.contains('is-open');
+          // 아코디언: 동일 deck 내 열린 카드 모두 닫기
+          var deck = card.closest ? card.closest('.zw-pivot-deck') : null;
+          var scope = deck || document;
+          var openCards = scope.querySelectorAll('.zw-pivot-card.is-open');
+          for (var oi = 0; oi < openCards.length; oi++) {
+            openCards[oi].classList.remove('is-open');
+            var ob = openCards[oi].querySelector('.zw-pivot-toggle');
+            if (ob) ob.setAttribute('aria-expanded', 'false');
+          }
+          // 현재 카드 토글
+          if (!wasOpen) {
+            card.classList.add('is-open');
+            btn.setAttribute('aria-expanded', 'true');
+            setTimeout(function() {
+              try { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(e) {}
+            }, 60);
+          }
+        };
 
         var pivotHtml = '';
         var pivotStageLabels = ['초년 변곡점', '중년 변곡점', '후년 변곡점'];
         var pivotStageEmoji = ['🌱', '🌿', '🌳'];
+        var pivotStageNums = ['①', '②', '③'];
         selectedPivots.slice(0,3).forEach(function(p, i){
           var bc = p.type==='crisis' ? '#f87171' : (p.type==='chance' ? '#4ade80' : '#a78bfa');
           var bcRgb = p.type==='crisis' ? '248,113,113' : (p.type==='chance' ? '74,222,128' : '167,139,250');
           var stageLabel = pivotStageLabels[i] || ('변곡점 '+(i+1));
           var stageEmoji = pivotStageEmoji[i] || '✦';
+          var stageNum = pivotStageNums[i] || (i+1)+'';
           var cardId = 'zwPivotCard_'+p.key;
           // 궁 이름만 추출 (예: '23~32세 대한: 부처궁 변곡점' → '부처궁')
           var palaceLabel = p.title.replace(/\d+~\d+세 대한:\s*/, '').replace(/\s*변곡점$/, '');
@@ -13572,9 +13613,12 @@ function renderZiwei(p, natal, targetId) {
           }
           pivotHtml += '<div class="zw-pivot-card" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'  
             +'<button type="button" class="zw-pivot-toggle" aria-expanded="false" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'  
-              // 상단 줄: 단계 뱃지 + 나이 범위 + 화살표
+              // 상단 줄: 순번 + 단계 뱃지 + 나이 범위 + 화살표
               +'<div class="zw-pv-top">'
-                +'<span class="zw-pivot-chip">'+stageEmoji+' '+stageLabel+'</span>'
+                +'<div style="display:flex;align-items:center;gap:7px;">'
+                  +'<span class="zw-pv-num-badge">'+stageNum+'</span>'
+                  +'<span class="zw-pivot-chip">'+stageEmoji+' '+stageLabel+'</span>'
+                +'</div>'
                 +'<div class="zw-pv-top-right">'
                   +'<span class="zw-pivot-age-range">'+p.age+'세</span>'
                   +'<span class="zw-pivot-chevron" aria-hidden="true">▼</span>'
@@ -13587,6 +13631,7 @@ function renderZiwei(p, natal, targetId) {
                   +'<span class="zw-pivot-palace-label">'+palaceLabel+'</span>'
                   +'<span class="zw-pivot-type-tag">'+phaseTypeText+'</span>'
                 +'</div>'
+                +'<span class="zw-pv-tap-hint" aria-hidden="true">탭해서 보기</span>'
               +'</div>'
               // 강도 게이지
               +'<div class="zw-pv-score-bar-wrap">'
@@ -13626,7 +13671,11 @@ function renderZiwei(p, natal, targetId) {
 
         var sec_pivot = '<div class="zw-pivot-section">'
           +'<h2 class="zw-pivot-title">🔱 인생의 3대 변곡점</h2>'
-          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영합니다. 각 카드를 눌러 해당 시기의 핵심 성계 구성, 단계별 전략, 리스크 대응법을 확인하세요.</p>'
+          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영합니다. 카드를 하나씩 눌러 해당 시기의 핵심 성계 구성, 단계별 전략, 리스크 대응법을 확인하세요.</p>'
+          +'<div class="zw-pivot-deck">'
+          + pivotHtml
+          +'</div>'
+          +'</div>';
 
         var sec4 = '';
 
