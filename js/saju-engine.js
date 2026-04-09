@@ -13632,7 +13632,7 @@ function renderZiwei(p, natal, targetId) {
                   +'<span class="zw-pivot-palace-label">'+palaceLabel+'</span>'
                   +'<span class="zw-pivot-type-tag">'+phaseTypeText+'</span>'
                 +'</div>'
-                +'<span class="zw-pv-tap-hint" aria-hidden="true">탭해서 보기</span>'
+                +'<span class="zw-pv-tap-hint" aria-hidden="true">클릭해서 펼치기</span>'
               +'</div>'
               // 강도 게이지
               +'<div class="zw-pv-score-bar-wrap">'
