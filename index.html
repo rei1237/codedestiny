@@ -2089,44 +2089,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
 
-        <!-- ══════════════════════════════════════
-             프리미엄 운세 컬렉션
-        ══════════════════════════════════════ -->
-        <section id="premium-fortune-collection" style="
-          background: linear-gradient(145deg, #07091a 0%, #0c0f24 50%, #070916 100%);
-          border: 1px solid rgba(251,191,36,0.18);
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: 0 12px 50px rgba(99,102,241,0.10), inset 0 1px 0 rgba(255,255,255,0.04);
-          margin: 8px 0 4px;
-        " aria-label="프리미엄 운세 컬렉션">
-
-          <!-- 헤더 -->
-          <div style="
-            padding: 28px 24px 20px;
-            background: linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(99,102,241,0.06) 100%);
-            border-bottom: 1px solid rgba(251,191,36,0.10);
-          ">
-            <p style="color:rgba(251,191,36,0.55);font-size:0.62rem;letter-spacing:0.32em;font-weight:700;text-transform:uppercase;margin:0 0 6px;">
-              CODE : DESTINY · PREMIUM COLLECTION
-            </p>
-            <h2 style="color:#fff;font-weight:900;font-size:clamp(1.3rem,4vw,1.8rem);line-height:1.25;margin:0;">
-              프리미엄 운세 컬렉션
-            </h2>
-            <p style="color:rgba(167,139,250,0.55);font-size:0.85rem;margin-top:6px;font-weight:300;line-height:1.7;">
-              AI 기반 심층 자미두수 분석 · 인생 전략 리포트 시리즈
-            </p>
-          </div>
-
-          <!-- 카드 그리드 -->
-          <style>
-            .prem-fortune-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 16px 24px;}
-            @media(max-width:600px){.prem-fortune-grid{grid-template-columns:1fr!important}}
-            @media(min-width:601px) and (max-width:900px){.prem-fortune-grid{grid-template-columns:1fr 1fr!important}}
-          </style>
-          <div class="prem-fortune-grid">
-
-            <!-- ── 카드 1: 자미두수 인생 총람 PDF북 (1회 590코인) ── -->
+        <!-- ── 1. H 프리미엄 자미두수 ── -->
+        <section style="background:linear-gradient(145deg,#0a061e 0%,#120c30 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="H 프리미엄 자미두수">
             <button type="button"
                data-action="gotoZiweiPremium"
                data-coin-cost="590"
@@ -2156,8 +2120,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 </div>
               </div>
             </button>
+        </section><!-- /자미두수 -->
 
-            <!-- ── 카드 2: 점성술 프리미엄 (400코인 영구 해금) ── -->
+        <!-- ── 2. 점성술 프리미엄 ── -->
+        <section style="background:linear-gradient(145deg,#070419 0%,#140e05 100%);border:1.5px solid rgba(251,191,36,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(251,191,36,0.12);margin:0;" aria-label="점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--astro"
                     data-action="gotoAstrologyPremium"
@@ -2187,8 +2153,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 </div>
               </div>
             </button>
+        </section><!-- /점성술 -->
 
-            <!-- ── 카드 3: 숙요점 프리미엄 (300코인 1회) ── -->
+        <!-- ── 3. 숙요점 프리미엄 ── -->
+        <section style="background:linear-gradient(145deg,#020817 0%,#041026 100%);border:1.5px solid rgba(125,211,252,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(14,165,233,0.12);margin:0;" aria-label="숙요점 프리미엄">
             <button type="button"
                     class="prem-card prem-card--sukuyo"
                     data-action="gotoSukuyoPremium"
@@ -2218,8 +2186,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 </div>
               </div>
             </button>
+        </section><!-- /숙요점 -->
 
-            <!-- ── 카드 4: 베다 점성술 프리미엄 (300코인 1회) ── -->
+        <!-- ── 4. 베다 점성술 프리미엄 ── -->
+        <section style="background:linear-gradient(145deg,#0f0a03 0%,#1e1206 100%);border:1.5px solid rgba(251,146,60,0.45);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(234,88,12,0.14);margin:0;" aria-label="베다 점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--veda"
                     data-action="gotoVedicPremium"
@@ -2249,9 +2219,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                 </div>
               </div>
             </button>
-
-          </div><!-- /prem-fortune-grid -->
-        </section><!-- /premium-fortune-collection -->
+        </section><!-- /베다 점성술 -->
 
 
     </div>
