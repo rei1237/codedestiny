@@ -265,9 +265,22 @@
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
       }
-      state.canvasLoop = global.requestAnimationFrame(tick);
+      /* TASK5: 탭 비활성 시 RAF 중단으로 CPU/배터리 절약 */
+      if (document.hidden) {
+        state.canvasLoop = null;
+      } else {
+        state.canvasLoop = global.requestAnimationFrame(tick);
+      }
     }
     stopCanvas();
+    /* TASK5: visibilitychange 리스너 — 탭 복귀 시 루프 재개 */
+    if (state._visibilityHandler) {
+      document.removeEventListener('visibilitychange', state._visibilityHandler);
+    }
+    state._visibilityHandler = function() {
+      if (!document.hidden && !state.canvasLoop) tick();
+    };
+    document.addEventListener('visibilitychange', state._visibilityHandler);
     tick();
   }
 
@@ -275,6 +288,10 @@
     if (state.canvasLoop) {
       global.cancelAnimationFrame(state.canvasLoop);
       state.canvasLoop = null;
+    }
+    if (state._visibilityHandler) {
+      document.removeEventListener('visibilitychange', state._visibilityHandler);
+      state._visibilityHandler = null;
     }
   }
 

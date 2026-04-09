@@ -71,6 +71,8 @@ body:not(.neo-mode) .cosmic-star {
 	animation: cosmic-star-shine 2.5s ease-in-out infinite;
 	opacity: 0.7;
 	box-shadow: 0 0 6px #b8d2ff;
+	/* TASK5: GPU layer - scale/opacity animation */
+	will-change: transform, opacity;
 }
 body:not(.neo-mode) .cosmic-star--pink {
 	background: #ffc8e0;
