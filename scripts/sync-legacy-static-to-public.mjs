@@ -172,15 +172,34 @@ const localeLandingDirs = [
 ];
 const publicIndex = resolve(publicDir, "index.html");
 if (existsSync(publicIndex)) {
+  // Strip all leading UTF-8 BOMs (EF BB BF) to prevent double-BOM quirks-mode regression.
+  // A BOM before <!DOCTYPE html> causes browsers to misidentify the DOCTYPE and enter quirks
+  // mode, which breaks Google Translate's DOM rewriting (garbled strings on language switch).
+  let indexBuf = readFileSync(publicIndex);
+  let bomStart = 0;
+  while (
+    bomStart + 2 < indexBuf.length &&
+    indexBuf[bomStart] === 0xef &&
+    indexBuf[bomStart + 1] === 0xbb &&
+    indexBuf[bomStart + 2] === 0xbf
+  ) {
+    bomStart += 3;
+  }
+  if (bomStart > 0) {
+    indexBuf = indexBuf.subarray(bomStart);
+    writeFileSync(publicIndex, indexBuf);
+    console.log(`[sync-legacy-static-to-public] Stripped ${bomStart} BOM byte(s) from public/index.html`);
+  }
+
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
-  cpSync(publicIndex, resolve(staticDir, "index.html"), { force: true });
+  writeFileSync(resolve(staticDir, "index.html"), indexBuf);
   console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
 
   for (const loc of localeLandingDirs) {
     const locDir = resolve(publicDir, loc);
     mkdirSync(locDir, { recursive: true });
-    cpSync(publicIndex, resolve(locDir, "index.html"), { force: true });
+    writeFileSync(resolve(locDir, "index.html"), indexBuf);
   }
   console.log(
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,
