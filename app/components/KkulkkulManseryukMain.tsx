@@ -150,6 +150,7 @@ export default function KkulkkulManseryukMain() {
   const [currentCoins, setCurrentCoins] = useState(0);
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
+  const [openPremSection, setOpenPremSection] = useState<string | null>(null);
   const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({
     allPaidSaju: false,
     rpgCharacter: false,
@@ -240,6 +241,13 @@ export default function KkulkkulManseryukMain() {
       console.error('[usePaidFeatureOnce]', e);
       alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
+  };
+
+  const handleOpenPremSection = (key: string) => {
+    setOpenPremSection(key);
+    setTimeout(() => {
+      document.getElementById('prem-active-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
   };
 
   useEffect(() => {
@@ -477,7 +485,7 @@ export default function KkulkkulManseryukMain() {
             {/* ── 카드 1: H 프리미엄 자미두수 ── */}
             <a
               href="#ziwei-premium"
-              onClick={e => { e.preventDefault(); document.getElementById("ziwei-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              onClick={e => { e.preventDefault(); handleOpenPremSection('ziwei'); }}
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
@@ -559,7 +567,7 @@ export default function KkulkkulManseryukMain() {
             {/* ── 카드 3: 점성술 프리미엄 리포트 ── */}
             <a
               href="#astrology-premium"
-              onClick={e => { e.preventDefault(); document.getElementById("astrology-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              onClick={e => { e.preventDefault(); handleOpenPremSection('astrology'); }}
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
@@ -641,7 +649,7 @@ export default function KkulkkulManseryukMain() {
             {/* ── 카드 4: 숙요점 프리미엄 ── */}
             <a
               href="#sukuyo-premium"
-              onClick={e => { e.preventDefault(); document.getElementById("sukuyo-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              onClick={e => { e.preventDefault(); handleOpenPremSection('sukuyo'); }}
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
@@ -685,7 +693,7 @@ export default function KkulkkulManseryukMain() {
             {/* ── 카드: 베다 점성술 프리미엄 ── */}
             <a
               href="#veda-premium"
-              onClick={e => { e.preventDefault(); document.getElementById("veda-premium")?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+              onClick={e => { e.preventDefault(); handleOpenPremSection('veda'); }}
               style={{
                 display: "flex", flexDirection: "column",
                 borderRadius: "18px", overflow: "hidden",
@@ -728,25 +736,15 @@ export default function KkulkkulManseryukMain() {
           </div>
         </section>
 
-        {/* ─── H PREMIUM 자미두수 인생 총론 ─── */}
-        <div id="ziwei-premium">
-          <HPremiumZiweiSection />
-        </div>
-
-        {/* ─── 점성술 프리미엄 리포트 ─── */}
-        <div id="astrology-premium">
-          <HPremiumAstrologySection />
-        </div>
-
-        {/* ─── 숙요점 달빛 전략 리포트 ─── */}
-        <div id="sukuyo-premium">
-          <HPremiumSukuyoSection />
-        </div>
-
-        {/* ─── 베다 점성술 프리미엄 — Karmic Blueprint ─── */}
-        <div id="veda-premium">
-          <HPremiumVedicSection />
-        </div>
+        {/* ─── 프리미엄 섹션 : 카드 클릭 시 조건부 렌더링 ─── */}
+        {openPremSection && (
+          <div id="prem-active-section">
+            {openPremSection === 'ziwei' && <HPremiumZiweiSection />}
+            {openPremSection === 'astrology' && <HPremiumAstrologySection />}
+            {openPremSection === 'sukuyo' && <HPremiumSukuyoSection />}
+            {openPremSection === 'veda' && <HPremiumVedicSection />}
+          </div>
+        )}
 
         {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
         <section className="overflow-hidden rounded-3xl border border-rose-300/60 bg-gradient-to-br from-rose-950/90 via-purple-950/90 to-slate-950/90 shadow-2xl shadow-rose-900/30">
