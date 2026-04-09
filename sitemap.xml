@@ -1,80 +1,200 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://code-destiny.com/</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights?topic=saju</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights?topic=tarot</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights?topic=sukuyo</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights?topic=vedic</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights?topic=astrology</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights?topic=ziwei</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/tarot</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/dream</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/saju</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/contact-us</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/de-de</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -110,7 +230,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -122,7 +242,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -134,7 +254,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -188,7 +308,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -200,7 +320,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -266,7 +386,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -320,7 +440,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -338,19 +458,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -362,19 +482,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -422,7 +542,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -446,7 +566,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -524,122 +644,217 @@
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/de-de/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/de-de/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/de-de/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/de-de/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -675,7 +890,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -687,7 +902,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -699,7 +914,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -753,7 +968,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -765,7 +980,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -831,7 +1046,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -885,7 +1100,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -903,19 +1118,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -927,19 +1142,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -987,7 +1202,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1011,7 +1226,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1089,120 +1304,205 @@
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/en-us/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en-us/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/en-us/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/en-us/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1238,7 +1538,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1250,7 +1550,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1262,7 +1562,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1316,7 +1616,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1328,7 +1628,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1394,7 +1694,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1448,7 +1748,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1466,19 +1766,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1490,19 +1790,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1550,7 +1850,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1574,7 +1874,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1652,130 +1952,235 @@
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/es-es/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/es-es/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/es-es/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/es-es/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1811,7 +2216,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1823,7 +2228,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1835,7 +2240,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1889,7 +2294,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1901,7 +2306,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -1967,7 +2372,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2021,7 +2426,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2039,19 +2444,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2063,19 +2468,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2123,7 +2528,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2147,7 +2552,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2225,120 +2630,205 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fr-fr/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/fr-fr/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/fr-fr/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2374,7 +2864,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2386,7 +2876,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2398,7 +2888,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2452,7 +2942,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2464,7 +2954,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2530,7 +3020,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2584,7 +3074,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2602,19 +3092,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2626,19 +3116,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2686,7 +3176,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2710,7 +3200,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2788,81 +3278,121 @@
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/hi-in/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/hi-in/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/hi-in/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/hi-in/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2898,7 +3428,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2910,7 +3440,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2922,7 +3452,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2976,7 +3506,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -2988,7 +3518,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3054,7 +3584,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3108,7 +3638,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3126,19 +3656,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3150,19 +3680,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3210,7 +3740,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3234,7 +3764,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3312,52 +3842,97 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3393,7 +3968,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3405,7 +3980,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3417,7 +3992,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3471,7 +4046,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3483,7 +4058,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3549,7 +4124,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3603,7 +4178,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3621,19 +4196,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3645,19 +4220,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3705,7 +4280,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3729,7 +4304,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3807,126 +4382,211 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja-jp/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/ja-jp/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ja-jp/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3962,7 +4622,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3974,7 +4634,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -3986,7 +4646,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4040,7 +4700,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4052,7 +4712,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4118,7 +4778,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4172,7 +4832,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4190,19 +4850,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4214,19 +4874,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4274,7 +4934,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4298,7 +4958,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4376,120 +5036,205 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ms-my/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ms-my/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/ms-my/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/ms-my/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4525,7 +5270,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4537,7 +5282,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4549,7 +5294,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4603,7 +5348,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4615,7 +5360,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4681,7 +5426,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4735,7 +5480,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4753,19 +5498,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4777,19 +5522,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4837,7 +5582,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4861,7 +5606,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -4939,177 +5684,307 @@
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/nl-nl/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/nl-nl/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/nl-nl/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/rss.xml</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.2</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/about</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/animal/mbti</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/animal/physio</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/animal/totem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/astrology/cosmic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/contact-us</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/dream/psycho</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/dream/tarot</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/faq</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/flower/astrology</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/flower/destiny</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/flower/jamidusu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/flower/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/adsense-ready-content-checklist</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5145,7 +6020,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/astrology-vs-saju-differences</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5157,7 +6032,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/byeongo-year-reorder-signals</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5169,7 +6044,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/copyright-safe-writing-for-fortune</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5223,7 +6098,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/saju-four-pillars-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5235,7 +6110,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/structured-data-for-fortune-sites</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5301,7 +6176,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/sukuyo-lunar-mansion-primer</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5355,7 +6230,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/tarot-major-arcana-symbols</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5373,19 +6248,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/tarot-reversed-card-framework</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/tarot-spread-design-principles</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/ten-gods-beginner-map</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5397,19 +6272,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/ten-heavenly-stems-practical</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/twelve-earthly-branches-and-seasons</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/vedic-astrology-navamsa-basics</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5457,7 +6332,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/yongshin-how-to-think</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5481,7 +6356,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/insights/ziwei-doushu-stars-intro</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -5559,2383 +6434,116 @@
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/login</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/oracle/hwatu</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/oracle/juyuk</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/oracle/kemet</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/oracle/sukuyo</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/points</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/privacy-policy</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/saju/basic</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/signup</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/tarot/healing</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/tarot/love</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/tarot/mingri</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/tarot/reunion</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/tarot/self-esteem</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh-cn/tarot/year</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/terms-of-service</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
-  
+  <url>
+    <loc>https://code-destiny.com/zh-cn/vedic/jyotish</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://code-destiny.com/zh-cn/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/chart</loc>
-    <lastmod>2026-04-04</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>
-
-  <!-- ── 샘플 결과 페이지 (무료·코인 불필요) ── -->
-  
-  
-  
-
-  <!-- ── AdSense 최적화 블로그 10대 핵심 글 ── -->
-  <url>
-    <loc>https://code-destiny.com/insights/saju-pallja-basic-principles-complete-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/five-elements-ohang-complete-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-doushu-complete-beginner-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/cheongan-jiji-complete-explanation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/singang-sinyak-judgment-complete-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/yongshin-finding-method-practical-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/goonghap-compatibility-basics-complete</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/iljoo-personality-complete-guide-60-pillars</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/daewoon-sewoon-reading-complete-guide</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Blog Articles -->
-  <url>
-    <loc>https://code-destiny.com/blog/</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/saju-basics.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/ohang-five-elements.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/tarot-major-arcana.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/ilju-personality.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/yongshin-guide.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/daewoon-sewoon.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/goonghap-guide.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/tarot-spread-howto.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/ziwei-intro.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/blog/saju-career.html</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/famous/</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/rat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ox</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/tiger</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/rabbit</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/dragon</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/snake</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/horse</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/goat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/monkey</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/rooster</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/dog</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/pig</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/aries</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/taurus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/gemini</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/cancer</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/leo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/virgo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/libra</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/scorpio</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sagittarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/capricorn</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/aquarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/pisces</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/mesha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/vrishabha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/mithuna</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/karka</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/simha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/kanya</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/tula</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/vrishchika</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/dhanu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/makara</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/kumbha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/vedic/meena</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/mingong</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/hyeongje</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/bubu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/janyeo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/jeonaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/noebok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/chunyi</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/jilaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/jaeback</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/gwanllok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/bokdeok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/ziwei/bumo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/1</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/2</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/3</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/4</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/5</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/6</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/7</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/8</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/9</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/10</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/11</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/12</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/13</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/14</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/15</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/16</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/17</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/18</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/19</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/20</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/21</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/22</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/23</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/24</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/25</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/26</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/today/sukuyo/27</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/rat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ox</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/tiger</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/rabbit</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/dragon</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/snake</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/horse</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/goat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/monkey</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/rooster</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/dog</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/pig</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/aries</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/taurus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/gemini</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/cancer</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/leo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/virgo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/libra</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/scorpio</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sagittarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/capricorn</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/aquarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/pisces</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/mesha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/vrishabha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/mithuna</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/karka</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/simha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/kanya</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/tula</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/vrishchika</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/dhanu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/makara</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/kumbha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/vedic/meena</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/mingong</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/hyeongje</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/bubu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/janyeo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/jeonaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/noebok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/chunyi</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/jilaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/jaeback</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/gwanllok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/bokdeok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/ziwei/bumo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/1</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/2</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/3</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/4</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/5</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/6</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/7</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/8</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/9</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/10</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/11</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/12</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/13</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/14</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/15</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/16</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/17</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/18</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/19</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/20</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/21</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/22</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/23</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/24</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/25</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/26</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/tomorrow/sukuyo/27</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/rat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ox</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/tiger</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/rabbit</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/dragon</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/snake</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/horse</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/goat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/monkey</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/rooster</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/dog</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/pig</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/aries</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/taurus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/gemini</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/cancer</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/leo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/virgo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/libra</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/scorpio</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sagittarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/capricorn</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/aquarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/pisces</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/mesha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/vrishabha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/mithuna</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/karka</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/simha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/kanya</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/tula</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/vrishchika</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/dhanu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/makara</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/kumbha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/vedic/meena</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/mingong</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/hyeongje</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/bubu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/janyeo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/jeonaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/noebok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/chunyi</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/jilaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/jaeback</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/gwanllok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/bokdeok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/ziwei/bumo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/1</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/2</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/3</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/4</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/5</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/6</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/7</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/8</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/9</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/10</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/11</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/12</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/13</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/14</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/15</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/16</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/17</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/18</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/19</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/20</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/21</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/22</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/23</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/24</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/25</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/26</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/weekly/sukuyo/27</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/rat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ox</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/tiger</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/rabbit</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/dragon</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/snake</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/horse</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/goat</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/monkey</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/rooster</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/dog</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/pig</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/aries</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/taurus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/gemini</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/cancer</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/leo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/virgo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/libra</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/scorpio</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sagittarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/capricorn</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/aquarius</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/pisces</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/mesha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/vrishabha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/mithuna</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/karka</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/simha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/kanya</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/tula</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/vrishchika</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/dhanu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/makara</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/kumbha</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/vedic/meena</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/mingong</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/hyeongje</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/bubu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/janyeo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/jeonaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/noebok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/chunyi</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/jilaek</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/jaeback</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/gwanllok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/bokdeok</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/ziwei/bumo</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.72</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/1</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/2</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/3</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/4</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/5</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/6</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/7</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/8</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/9</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/10</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/11</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/12</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/13</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/14</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/15</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/16</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/17</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/18</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/19</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/20</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/21</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/22</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/23</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/24</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/25</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/26</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fortune/monthly/sukuyo/27</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.70</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/oracle/hwatu-life</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/oracle/royal-tea</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/oracle/sikojen-povailu</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/saju/love-simulation</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/saju-picture</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/de-de/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/en-us/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/es-es/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/fr-fr/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/hi-in/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ja-jp/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/ms-my/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/nl-nl/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/zh-cn/olympus</loc>
-    <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
 </urlset>

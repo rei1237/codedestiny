@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           "/*?gclid=",
           "/*?session=",
           "/*?token=",
+          "/*.json$",
         ],
       },
       // 공개 API는 봇 직접 접근 불필요

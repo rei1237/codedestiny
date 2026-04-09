@@ -15,6 +15,44 @@ const TOPIC_META = {
   ziwei: { color: "#c084fc", symbol: "✵", label: "자미두수" },
 };
 
+const TOPIC_SEO_META = {
+  all: {
+    title: "운세 인사이트 아카이브 — 사주·타로·자미두수 핵심 원리 무료 학습 | Code Destiny",
+    description:
+      "사주명리학·타로·자미두수·숙요점·베다점성술의 핵심 원리를 무료로 읽는 운세 지식 아카이브. 입문부터 실전까지 26편 이상의 깊이 있는 해설을 지금 바로 확인하세요.",
+  },
+  saju: {
+    title: "사주팔자 완전 해설 | 명리학 기초부터 대운까지 — 코드 데스티니",
+    description:
+      "사주팔자란 무엇인가. 천간·지지·60갑자·신강신약·용신·대운의 원리를 알기 쉽게 해설합니다. 코드 데스티니 꿀꿀 만세력.",
+  },
+  tarot: {
+    title: "타로 카드 완전 가이드 | 대·소 아르카나 78장 해석 — 코드 데스티니",
+    description:
+      "타로 카드 78장의 의미와 스프레드 방법. 연애운·재물운·취업운별 타로 리딩 가이드. 코드 데스티니 꿀꿀 만세력.",
+  },
+  astrology: {
+    title: "서양 점성술 완전 가이드 | 12궁·행성·하우스 — 코드 데스티니",
+    description:
+      "서양 점성술의 12별자리·행성 배치·하우스 해석법. 출생 차트 읽는 법과 트랜지트 분석. 코드 데스티니 꿀꿀 만세력.",
+  },
+  ziwei: {
+    title: "자미두수 완전 해설 | 12궁 명반 읽는 법 — 코드 데스티니",
+    description:
+      "자미두수(紫微斗數) 명궁·명반 보는 법. 주성·보성·살성 완전 해설. 중국 황실 점성술의 비밀. 코드 데스티니.",
+  },
+  sukuyo: {
+    title: "숙요점 완전 가이드 | 27수 달별자리 운명 — 코드 데스티니",
+    description:
+      "숙요점(宿曜占) 27수 달별자리로 보는 운명. 에도시대 금서로 지정된 동양 최고 비전 점술. 코드 데스티니.",
+  },
+  vedic: {
+    title: "베다 점성술 완전 가이드 | 조티쉬·나크샤트라 — 코드 데스티니",
+    description:
+      "인도 베다 점성술(Jyotish) 라그나·나크샤트라·다샤로 보는 운명 지도. 코드 데스티니 꿀꿀 만세력.",
+  },
+};
+
 const CATEGORY_META = {
   "사주 기초": { color: "#ff6b9d", symbol: "☽" },
   "사주 심화": { color: "#ff8c42", symbol: "☀" },
@@ -33,6 +71,47 @@ function getCardMeta(article) {
   return CATEGORY_META[article?.category] || { color: "#6b7280", symbol: "✦" };
 }
 
+function upsertMetaTag(selector, attrs, content) {
+  if (typeof document === "undefined" || !content) return;
+  let tag = document.head.querySelector(selector);
+  if (!tag) {
+    tag = document.createElement("meta");
+    Object.entries(attrs).forEach(([key, value]) => tag.setAttribute(key, value));
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("content", content);
+}
+
+function upsertCanonical(url) {
+  if (typeof document === "undefined") return;
+  let link = document.head.querySelector('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", url);
+}
+
+function applyTopicMeta(topicKey) {
+  if (typeof document === "undefined") return;
+  const safeKey = TOPIC_SEO_META[topicKey] ? topicKey : "all";
+  const meta = TOPIC_SEO_META[safeKey];
+  const targetUrl =
+    safeKey === "all"
+      ? "https://code-destiny.com/insights"
+      : `https://code-destiny.com/insights?topic=${encodeURIComponent(safeKey)}`;
+
+  document.title = meta.title;
+  upsertMetaTag('meta[name="description"]', { name: "description" }, meta.description);
+  upsertMetaTag('meta[property="og:title"]', { property: "og:title" }, meta.title);
+  upsertMetaTag('meta[property="og:description"]', { property: "og:description" }, meta.description);
+  upsertMetaTag('meta[property="og:url"]', { property: "og:url" }, targetUrl);
+  upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title" }, meta.title);
+  upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description" }, meta.description);
+  upsertCanonical(targetUrl);
+}
+
 export default function InsightsCosmicClient({ initialTopic = "all" }) {
   const searchParams = useSearchParams();
   const [topic, setTopic] = useState(safeTopic(initialTopic));
@@ -42,6 +121,10 @@ export default function InsightsCosmicClient({ initialTopic = "all" }) {
     const queryTopic = searchParams?.get("topic");
     setTopic(safeTopic(queryTopic || initialTopic));
   }, [initialTopic, searchParams]);
+
+  useEffect(() => {
+    applyTopicMeta(topic);
+  }, [topic]);
 
   const filteredArticles = useMemo(() => {
     if (topic === "all") return INSIGHT_ARTICLES;

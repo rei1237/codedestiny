@@ -5,25 +5,34 @@
  * if the rewrite is bypassed; metadata matches the public canonical.
  */
 export const metadata = {
-  title: "꿀꿀 만세력 — 무료 사주 타로 운세 궁합 점성술 플랫폼",
+  title: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
   description:
-    "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합을 제공하는 운세 플랫폼. 꿀꿀 만세력에서 나만의 운명 지도를 확인하세요.",
+    "생년월일로 보는 무료 사주팔자·타로 리딩·오늘의 운세. 자미두수·점성술·숙요점·궁합·신년운세·토정비결·꿈해몽·대운 분석까지. 코드 데스티니(Code Destiny) 꿀꿀 만세력 — 동서양 운세 무료 통합 플랫폼.",
   alternates: {
     canonical: "https://code-destiny.com/",
   },
   openGraph: {
     type: "website",
     url: "https://code-destiny.com/",
-    title: "꿀꿀 만세력 — 무료 사주 타로 운세 궁합 점성술 플랫폼",
+    title: "무료 사주팔자·타로·오늘의 운세 | 코드 데스티니",
     description:
-      "무료 사주팔자·AI 타로·자미두수·점성술·숙요점·궁합을 제공하는 운세 플랫폼.",
-    siteName: "Code Destiny — 꿀꿀 만세력",
+      "생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.",
+    siteName: "코드 데스티니 꿀꿀 만세력",
     locale: "ko_KR",
+    images: [
+      {
+        url: "https://code-destiny.com/icons/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "코드 데스티니 꿀꿀 만세력",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "꿀꿀 만세력 — 무료 사주 타로 운세 궁합 점성술 플랫폼",
-    description: "무료 사주·AI 타로·자미두수·점성술·숙요점·궁합 운세 플랫폼",
+    title: "코드 데스티니 — 무료 사주·타로·운세",
+    description: "무료 사주팔자·타로·궁합·신년운세 통합 — 코드 데스티니(Code Destiny)",
+    images: ["https://code-destiny.com/icons/og-image.png"],
   },
 };
 

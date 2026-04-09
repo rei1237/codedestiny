@@ -3479,6 +3479,57 @@ var _dfStudioState = {
   linkedSources: {}
 };
 
+var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
+var _dfOriginalTitle = null;
+
+function _dfCaptureOriginalTitle() {
+  if (!_dfOriginalTitle) {
+    _dfOriginalTitle = document.title || '';
+  }
+}
+
+function _dfApplyStudioTitle() {
+  _dfCaptureOriginalTitle();
+  document.title = _DF_STUDIO_TITLE;
+}
+
+function _dfRestoreOriginalTitle() {
+  if (_dfOriginalTitle) {
+    document.title = _dfOriginalTitle;
+  }
+}
+
+function _dfMaybeRestoreTitleAfterNavigation() {
+  var overlay = document.getElementById('destinyFlowerStudioOverlay');
+  if (!overlay || overlay.style.display === 'none' || !overlay.classList.contains('is-show')) {
+    _dfRestoreOriginalTitle();
+  }
+}
+
+function _dfBindTitleRestoreGuards() {
+  if (window.__dfTitleRestoreGuardsBound) return;
+  window.__dfTitleRestoreGuardsBound = true;
+
+  window.addEventListener('hashchange', _dfMaybeRestoreTitleAfterNavigation, true);
+  window.addEventListener('popstate', _dfMaybeRestoreTitleAfterNavigation, true);
+
+  if (window.history && !window.history.__dfTitleWrapped) {
+    window.history.__dfTitleWrapped = true;
+    var originalPushState = window.history.pushState;
+    var originalReplaceState = window.history.replaceState;
+    window.history.pushState = function() {
+      var result = originalPushState.apply(this, arguments);
+      _dfMaybeRestoreTitleAfterNavigation();
+      return result;
+    };
+    window.history.replaceState = function() {
+      var result = originalReplaceState.apply(this, arguments);
+      _dfMaybeRestoreTitleAfterNavigation();
+      return result;
+    };
+  }
+}
+
 function _dfToArray(v) {
   return Array.isArray(v) ? v.filter(function(item) { return !!item; }) : [];
 }
@@ -5058,6 +5109,8 @@ function openDestinyFlower(forceRefreshData) {
 }
 
 function openDestinyFlowerStudio() {
+  _dfCaptureOriginalTitle();
+  _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
   if (!window.__cdAdminBypass) {
     // 현재 활성 소스(saju/astrology/jamidusu/sukuyo)에 맞는 타일 및 lock key 동적 결정
@@ -5202,6 +5255,7 @@ function openDestinyFlowerStudio() {
   overlay.scrollTop = 0;
   if (sheet) sheet.scrollTop = 0;
   _dfSetBodyLock(true);
+  _dfApplyStudioTitle();
   requestAnimationFrame(function() {
     overlay.classList.add('is-show');
   });
@@ -5265,10 +5319,12 @@ function setDestinyFlowerSourceTab(source) {
 function closeDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
+  _dfRestoreOriginalTitle();
   overlay.classList.remove('is-show');
   setTimeout(function() {
     if (!overlay.classList.contains('is-show')) {
       overlay.style.display = 'none';
+      _dfRestoreOriginalTitle();
     }
   }, 220);
   _dfSetBodyLock(false);

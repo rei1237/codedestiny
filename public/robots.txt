@@ -19,6 +19,7 @@ Disallow: /*?fbclid=
 Disallow: /*?gclid=
 Disallow: /*?session=
 Disallow: /*?token=
+Disallow: /*.json$
 
 User-agent: GPTBot
 Disallow: /api

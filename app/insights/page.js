@@ -16,13 +16,57 @@ const _META = {
   keywords: ["사주 基礎", "타로 해석", "자미두수", "숙요점", "베다 점성술", "명리학 아카이브"],
 };
 
-export const dynamic = "force-static";
+const META_MAP = {
+  saju: {
+    title: "사주팔자 완전 해설 | 명리학 기초부터 대운까지 — 코드 데스티니",
+    description:
+      "사주팔자란 무엇인가. 천간·지지·60갑자·신강신약·용신·대운의 원리를 알기 쉽게 해설합니다. 코드 데스티니 꿀꿀 만세력.",
+  },
+  tarot: {
+    title: "타로 카드 완전 가이드 | 대·소 아르카나 78장 해석 — 코드 데스티니",
+    description:
+      "타로 카드 78장의 의미와 스프레드 방법. 연애운·재물운·취업운별 타로 리딩 가이드. 코드 데스티니 꿀꿀 만세력.",
+  },
+  astrology: {
+    title: "서양 점성술 완전 가이드 | 12궁·행성·하우스 — 코드 데스티니",
+    description:
+      "서양 점성술의 12별자리·행성 배치·하우스 해석법. 출생 차트 읽는 법과 트랜지트 분석. 코드 데스티니 꿀꿀 만세력.",
+  },
+  ziwei: {
+    title: "자미두수 완전 해설 | 12궁 명반 읽는 법 — 코드 데스티니",
+    description:
+      "자미두수(紫微斗數) 명궁·명반 보는 법. 주성·보성·살성 완전 해설. 중국 황실 점성술의 비밀. 코드 데스티니.",
+  },
+  sukuyo: {
+    title: "숙요점 완전 가이드 | 27수 달별자리 운명 — 코드 데스티니",
+    description:
+      "숙요점(宿曜占) 27수 달별자리로 보는 운명. 에도시대 금서로 지정된 동양 최고 비전 점술. 코드 데스티니.",
+  },
+  vedic: {
+    title: "베다 점성술 완전 가이드 | 조티쉬·나크샤트라 — 코드 데스티니",
+    description:
+      "인도 베다 점성술(Jyotish) 라그나·나크샤트라·다샤로 보는 운명 지도. 코드 데스티니 꿀꿀 만세력.",
+  },
+};
 
-export function generateMetadata() {
-  return generatePageMetadata(_META);
+export const dynamic = "force-dynamic";
+
+export function generateMetadata({ searchParams }) {
+  const topic = String(searchParams?.topic || "").trim().toLowerCase();
+  const topicMeta = META_MAP[topic];
+  if (!topicMeta) {
+    return generatePageMetadata(_META);
+  }
+
+  return generatePageMetadata({
+    ..._META,
+    title: topicMeta.title,
+    description: topicMeta.description,
+  });
 }
 
-export default function InsightsIndexPage() {
+export default function InsightsIndexPage({ searchParams }) {
+  const initialTopic = String(searchParams?.topic || "all").trim().toLowerCase();
   const insightsHubJsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -39,7 +83,7 @@ export default function InsightsIndexPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: insightsHubJsonLd }} />
-      <InsightsCosmicClient />
+      <InsightsCosmicClient initialTopic={initialTopic} />
     </>
   );
 }

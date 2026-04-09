@@ -22,8 +22,7 @@ Disallow: /*?gclid=
 Disallow: /*?session=
 Disallow: /*?token=
 
-# 구형 쿼리스트링 URL 차단 (클린 URL로 대체됨)
-Disallow: /insights?topic=
+Disallow: /*.json$
 
 # AdSense 심사용 콘텐츠 명시적 허용
 Allow: /insights/
