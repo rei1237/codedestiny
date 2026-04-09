@@ -523,6 +523,15 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
+/* [UX FIX] 인라인 개인정보 동의 체크박스 */
+.privacy-inline-consent{display:flex;align-items:center;gap:8px;margin:10px 0 8px;padding:10px 14px;border-radius:10px;background:rgba(124,58,237,.10);border:1px solid rgba(124,58,237,.25);cursor:pointer;font-size:.85rem;color:rgba(220,200,255,.85);line-height:1.4;user-select:none}
+.privacy-inline-consent input[type="checkbox"]{width:18px;height:18px;accent-color:#a855f7;flex-shrink:0;cursor:pointer}
+.privacy-inline-consent a{color:#c084fc;text-decoration:underline}
+/* [UX FIX] 로딩 스피너 — 사주 분석 중 */
+.loading-spinner{display:none;align-items:center;justify-content:center;gap:10px;margin:14px 0;font-size:.92rem;color:rgba(200,170,255,.8);font-weight:600}
+.loading-spinner--visible{display:flex}
+.loading-spinner::before{content:'';display:block;width:22px;height:22px;border:3px solid rgba(168,85,247,.25);border-top-color:#a855f7;border-radius:50%;animation:cdSpin .8s linear infinite;flex-shrink:0}
+@keyframes cdSpin{to{transform:rotate(360deg)}}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
 .cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
   </style>
@@ -1089,8 +1098,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
             srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
         </div>
-        <h1>연이의 꿀꿀 운세 플랫폼</h1>
-        <p>타고난 운명의 지도를 펼쳐보세요</p>
+        <h1>생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
+        <p>사주팔자 · 타로 · 점성술 · 자미두수 — 동서양 운세 통합</p>
       </div>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
@@ -1327,6 +1336,13 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <button id="dpSaveBtn" class="dp-save-btn" data-action="dpSaveProfile">
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
+      <!-- [UX FIX] 개인정보 동의 인라인 체크박스 — 페이지 로드 시 모달 표시 금지 -->
+      <label class="privacy-inline-consent" id="privacyConsentLabel">
+        <input type="checkbox" id="privacyConsentCheck" aria-required="true">
+        <span>개인정보 수집·이용에 동의합니다 (<a href="/privacy-policy" target="_blank" rel="noopener">전문 보기</a>)</span>
+      </label>
+      <!-- [UX FIX] 분석 중 로딩 스피너 -->
+      <div class="loading-spinner" id="sajuLoadingSpinner" aria-live="polite" aria-label="분석 중">운명을 해석하는 중...</div>
       <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
     </section><!-- /section.card.input-section -->
 
@@ -4799,6 +4815,28 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
+
+<!-- [UX FIX] PWA 자동 배너 — 30초 + 스크롤 50% AND 조건 충족 시 표시 -->
+<div id="pwa-auto-banner" style="
+  position:fixed;bottom:0;left:0;right:0;z-index:10001;
+  background:linear-gradient(135deg,rgba(79,27,148,.97),rgba(50,15,100,.97));
+  border-top:1px solid rgba(168,85,247,.4);
+  padding:14px 20px;display:none;align-items:center;gap:12px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 -4px 24px rgba(0,0,0,.5);
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.22,1,.36,1);
+">
+  <span style="font-size:1.4rem;flex-shrink:0">🔮</span>
+  <span style="flex:1;font-size:.88rem;color:#e9d5ff;font-weight:600;line-height:1.4">홈 화면에 추가하면 더 빠르게 운세를 볼 수 있어요!</span>
+  <button onclick="handlePwaInstall();document.getElementById('pwa-auto-banner').style.display='none';"
+    style="flex-shrink:0;padding:8px 16px;border-radius:999px;border:none;background:#a855f7;color:#fff;font-weight:700;font-size:.82rem;cursor:pointer">설치</button>
+  <button onclick="document.getElementById('pwa-auto-banner').style.display='none';"
+    aria-label="닫기"
+    style="flex-shrink:0;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);font-size:.8rem;cursor:pointer">✕</button>
+</div>
+<style>
+#pwa-auto-banner.pwa-auto-banner--visible{display:flex;transform:translateY(0)}
+</style>
 <script src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>

@@ -329,6 +329,29 @@ function handleFavoriteAdd() {
   showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
 }
 
+// [UX FIX] PWA 팝업 조건: 30초 + 스크롤 50% AND 충족 시만 자동 표시
+var _pwaBannerCond = { timer: false, scroll: false, prompted: false };
+function _maybeTriggerPwaBanner() {
+  if (_pwaBannerCond.prompted || !_pwaBannerCond.timer || !_pwaBannerCond.scroll) return;
+  if (!_pwaPrompt || _pwaInstalled) return;
+  _pwaBannerCond.prompted = true;
+  var banner = document.getElementById('pwa-auto-banner');
+  if (banner) banner.classList.add('pwa-auto-banner--visible');
+}
+setTimeout(function() {
+  _pwaBannerCond.timer = true;
+  _maybeTriggerPwaBanner();
+}, 30000);
+window.addEventListener('scroll', function _pwaScrollCheck() {
+  var scrolled = window.scrollY + window.innerHeight;
+  var total = document.documentElement.scrollHeight;
+  if (total > 0 && scrolled / total >= 0.5) {
+    _pwaBannerCond.scroll = true;
+    _maybeTriggerPwaBanner();
+    window.removeEventListener('scroll', _pwaScrollCheck);
+  }
+}, { passive: true });
+
 window.addEventListener('beforeinstallprompt', function(e) {
   // 이벤트를 보관해 사용자 버튼 설치 흐름에서 재사용합니다.
   _pwaPrompt = e;

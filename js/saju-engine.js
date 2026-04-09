@@ -908,7 +908,7 @@ function onLibReady(){
   var btn=document.getElementById('run-btn');
   if (btn) {
     btn.disabled=false;
-    btn.textContent='🐷 사주 분석하기';
+    btn.textContent='무료로 사주 보기 →';
     /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
     btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
   }
@@ -3282,11 +3282,23 @@ async function consumeFortunePointAfterCalculation(){
 }
 
 async function checkPrivacyAndCalculate() {
-  if (sessionStorage.getItem('privacyAgreed') === 'true') {
-    await startSajuCalculationFlow();
-  } else {
-    document.getElementById('privacy-modal-overlay').classList.add('show');
+  // [UX FIX] 팝업 모달 → 인라인 체크박스 확인
+  var chk = document.getElementById('privacyConsentCheck');
+  if (chk && !chk.checked) {
+    var lbl = document.getElementById('privacyConsentLabel');
+    if (lbl) {
+      lbl.style.borderColor = '#ef4444';
+      lbl.style.background = 'rgba(239,68,68,.12)';
+      lbl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(function() {
+        lbl.style.borderColor = '';
+        lbl.style.background = '';
+      }, 2000);
+    }
+    return;
   }
+  sessionStorage.setItem('privacyAgreed', 'true');
+  await startSajuCalculationFlow();
 }
 
 function closePrivacyModal() {
@@ -3315,12 +3327,16 @@ async function startSajuCalculationFlow() {
   if (!canProceed) return;
 
   // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
+  var _spinner = document.getElementById('sajuLoadingSpinner');
+  if (_spinner) _spinner.classList.add('loading-spinner--visible');
   try {
     await calculate();
   } catch (calcErr) {
     console.error('[saju] calculate flow failed', calcErr);
+    if (_spinner) _spinner.classList.remove('loading-spinner--visible');
     return;
   }
+  if (_spinner) _spinner.classList.remove('loading-spinner--visible');
 
   var resultPage = document.getElementById('resultPage');
   var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');

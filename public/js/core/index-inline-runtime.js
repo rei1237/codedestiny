@@ -5521,13 +5521,15 @@ if (document.readyState === 'loading') {
     _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
     _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
     _dfBindBloomingInteractions();
-    _dfRunIntroBloom();
+    // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
+    // _dfRunIntroBloom();
   }, { once: true });
 } else {
   _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
   _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
   _dfBindBloomingInteractions();
-  _dfRunIntroBloom();
+  // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
+  // _dfRunIntroBloom();
 }
 
 if (!window.__destinyFlowerEscBound) {
