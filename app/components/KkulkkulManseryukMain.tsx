@@ -165,6 +165,8 @@ export default function KkulkkulManseryukMain() {
   const [premiumFlowStage, setPremiumFlowStage] = useState<PremiumFlowStage>("intro");
   const [premiumGateLoading, setPremiumGateLoading] = useState<PremiumServiceKey | null>(null);
   const [premiumGateError, setPremiumGateError] = useState("");
+  // 한시 디버그 상태: 카드 클릭 증명 + 강제 UI 노출
+  const [debugClickedCard, setDebugClickedCard] = useState<PremiumServiceKey | null>(null);
   const [unlockedFeatures, setUnlockedFeatures] = useState<Record<UnlockKey, boolean>>({
     allPaidSaju: false,
     rpgCharacter: false,
@@ -307,30 +309,35 @@ export default function KkulkkulManseryukMain() {
   };
 
   const handleOpenPremSection = (key: PremiumServiceKey) => {
+    // [DEBUG] 카드 클릭 증명 ─ 여기까지 도달되었으면 콘솔에 출력됨
+    console.log('[DEBUG] 카드 클릭됨:', key);
+    setDebugClickedCard(key);
     if (openPremSection === key) {
       setOpenPremSection(null);
+      setDebugClickedCard(null);
       setPremiumFlowStage('intro');
       setPremiumGateError('');
+      console.log('[DEBUG] 섹션 접기 완료:', key);
       return;
     }
-    console.log(`클릭됨: ${key} 프리미엄 섹션`);
     setOpenPremSection(key);
     setPremiumFlowStage('intro');
     setPremiumGateError('');
+    console.log('[DEBUG] 섹션 상태 변경 완료:', key, '/ stage: intro');
     setTimeout(() => {
       document.getElementById('prem-active-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
   };
 
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
+    // [DEBUG] API 완전 BYPASS ─ 코인/권한 참조 없이 바로 generate 진입 (Silent Freeze 원인 고립용)
+    console.log('[DEBUG] 생성 CTA 클릭됨 - API bypass 모드:', service);
+    setPremiumFlowStage('generate');
+    /* ─── PRODUCTION 코인 차감 로직 (현재디버그 중 주석 처리) ───
     if (premiumGateLoading) return;
     const passed = await runPremiumIntroGate(service);
     if (!passed) return;
-    // premiumDivinationPack 소지자는 코인 차감 없이 바로 생성 진입
-    if (unlockedFeatures.premiumDivinationPack) {
-      setPremiumFlowStage('generate');
-      return;
-    }
+    if (unlockedFeatures.premiumDivinationPack) { setPremiumFlowStage('generate'); return; }
     const token = localStorage.getItem('fortune_auth_token');
     if (!token) return;
     const cost = PREMIUM_SERVICE_COST[service];
@@ -353,6 +360,7 @@ export default function KkulkkulManseryukMain() {
     } finally {
       setPremiumGateLoading(null);
     }
+    ─── END PRODUCTION */
   };
 
   useEffect(() => {
@@ -360,6 +368,11 @@ export default function KkulkkulManseryukMain() {
     const timer = setTimeout(() => setSparkleTarget(null), 1100);
     return () => clearTimeout(timer);
   }, [sparkleTarget]);
+
+  // [DEBUG] openPremSection 상태가 변경될 때마다 콘솔 출력
+  useEffect(() => {
+    console.log('[DEBUG] 섹션 상태 변경 완료:', openPremSection ?? 'null', '/ stage:', premiumFlowStage);
+  }, [openPremSection, premiumFlowStage]);
 
   useEffect(() => {
     // Keep touch listeners passive so premium card taps never compete with scroll gestures.
@@ -595,9 +608,15 @@ export default function KkulkkulManseryukMain() {
             ⚠ {premiumGateError}
           </p>
         ) : null}
+        {/* [DEBUG] 클릭 상태 시각화 배너 */}
+        {debugClickedCard && (
+          <div style={{ background:'rgba(239,68,68,0.12)', border:'2px solid #ef4444', borderRadius:12, padding:'10px 16px', fontSize:'0.82rem', fontWeight:700, color:'#ef4444' }}>
+            [DEBUG] 마지막 클릭: {debugClickedCard} | openPremSection: {openPremSection ?? 'null'} | stage: {premiumFlowStage}
+          </div>
+        )}
         <div style={{
           background: "linear-gradient(145deg, rgb(10,6,30) 0%, rgb(18,12,48) 100%)",
-          border: "1.5px solid rgba(167,139,250,0.35)",
+          border: debugClickedCard === 'ziwei' ? "4px solid #ef4444" : "1.5px solid rgba(167,139,250,0.35)",
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
@@ -638,7 +657,7 @@ export default function KkulkkulManseryukMain() {
               }}>{openPremSection === 'ziwei' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
-          {openPremSection === 'ziwei' && (
+          {(openPremSection === 'ziwei' || debugClickedCard === 'ziwei') && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(167,139,250,0.2)" }}>
               <HPremiumZiweiSection
                 showIntro={premiumFlowStage === 'intro'}
@@ -652,7 +671,7 @@ export default function KkulkkulManseryukMain() {
         {/* ─── 2. 점성술 프리미엄 ─── */}
         <div style={{
           background: "linear-gradient(145deg, rgb(7,4,25) 0%, rgb(20,14,5) 100%)",
-          border: "1.5px solid rgba(251,191,36,0.35)",
+          border: debugClickedCard === 'astrology' ? "4px solid #ef4444" : "1.5px solid rgba(251,191,36,0.35)",
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
@@ -693,7 +712,7 @@ export default function KkulkkulManseryukMain() {
               }}>{openPremSection === 'astrology' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
-          {openPremSection === 'astrology' && (
+          {(openPremSection === 'astrology' || debugClickedCard === 'astrology') && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(251,191,36,0.18)" }}>
               <HPremiumAstrologySection
                 showIntro={premiumFlowStage === 'intro'}
@@ -707,7 +726,7 @@ export default function KkulkkulManseryukMain() {
         {/* ─── 3. 숙요점 프리미엄 ─── */}
         <div style={{
           background: "linear-gradient(145deg, rgb(2,8,23) 0%, rgb(4,16,38) 100%)",
-          border: "1.5px solid rgba(125,211,252,0.35)",
+          border: debugClickedCard === 'sukuyo' ? "4px solid #ef4444" : "1.5px solid rgba(125,211,252,0.35)",
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
@@ -748,7 +767,7 @@ export default function KkulkkulManseryukMain() {
               }}>{openPremSection === 'sukuyo' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
-          {openPremSection === 'sukuyo' && (
+          {(openPremSection === 'sukuyo' || debugClickedCard === 'sukuyo') && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(14,165,233,0.18)" }}>
               <HPremiumSukuyoSection
                 showIntro={premiumFlowStage === 'intro'}
@@ -762,7 +781,7 @@ export default function KkulkkulManseryukMain() {
         {/* ─── 4. 베다 점성술 프리미엄 ─── */}
         <div style={{
           background: "linear-gradient(145deg, rgb(15,10,3) 0%, rgb(30,18,6) 100%)",
-          border: "1.5px solid rgba(251,146,60,0.35)",
+          border: debugClickedCard === 'veda' ? "4px solid #ef4444" : "1.5px solid rgba(251,146,60,0.35)",
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(234,88,12,0.10)",
@@ -803,7 +822,7 @@ export default function KkulkkulManseryukMain() {
               }}>{openPremSection === 'veda' ? '▲ 접기' : '✦ 소개 보기'}</span>
             </div>
           </button>
-          {openPremSection === 'veda' && (
+          {(openPremSection === 'veda' || debugClickedCard === 'veda') && (
             <div id="prem-active-section" style={{ borderTop: "1px solid rgba(234,88,12,0.18)" }}>
               <HPremiumVedicSection
                 showIntro={premiumFlowStage === 'intro'}

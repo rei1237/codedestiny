@@ -634,7 +634,7 @@ export default function HPremiumSukuyoSection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
-  console.log("섹션 렌더링 시작: 숙요 프리미엄");
+  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 숙요 프리미엄");
   const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "", hour: "12" });
   const [sukuyo, setSukuyo] = useState<SukuyoInfo | null>(null);
   const [chapters, setChapters] = useState<ChapterState[]>(

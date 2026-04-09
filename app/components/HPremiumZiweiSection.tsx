@@ -5781,7 +5781,7 @@ export default function HPremiumZiweiSection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
-  console.log("섹션 렌더링 시작: 자미두수 프리미엄");
+  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 자미두수 프리미엄");
   const [step, setStep] = useState<"intro" | "form" | "loading" | "result">("intro");
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");

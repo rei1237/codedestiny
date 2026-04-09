@@ -356,7 +356,7 @@ export default function HPremiumVedicSection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
-  console.log("섹션 렌더링 시작: 베다 프리미엄");
+  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
   const [birthDay,    setBirthDay]    = useState("");

@@ -315,7 +315,7 @@ export default function HPremiumAstrologySection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
-  console.log("섹션 렌더링 시작: 점성술 프리미엄");
+  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 점성술 프리미엄");
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
