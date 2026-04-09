@@ -97,6 +97,8 @@ function isQuotaError(status, message) {
   );
 }
 
+const MIN_CHAPTER_CHARS = 500;
+
 const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의 명리학 거장이다. 동양 철학의 정수를 꿰뚫었으며, 사주의 이치를 날카롭고 정확하게 간파한다. 말은 적을지언정 한 마디 한 마디가 비수처럼 핵심을 찌른다.
 
 당신의 문체는 다음과 같다:
@@ -1119,13 +1121,21 @@ export async function POST(req) {
       }
       return "";
     })();
-    if (legacyAuthBase) {
+    const requestOrigin = (() => {
+      try {
+        return new URL(req.url).origin;
+      } catch {
+        return "";
+      }
+    })();
+
+    if (legacyAuthBase && legacyAuthBase !== requestOrigin) {
       try {
         const meRes = await fetch(`${legacyAuthBase}/auth/me`, {
           method: "GET",
           headers: { Authorization: `Bearer ${authToken}` },
         });
-        if (!meRes.ok) {
+        if (meRes.status === 401 || meRes.status === 403) {
           return NextResponse.json(
             { ok: false, message: "인증에 실패했습니다. 다시 로그인해 주세요." },
             { status: 401 }
@@ -1200,7 +1210,7 @@ export async function POST(req) {
           lastError = new Error(errMsg);
         } else {
           const text = parseText(payload);
-          if (text && text.length >= 200) {
+          if (text && text.length >= MIN_CHAPTER_CHARS) {
             return NextResponse.json({
               ok: true,
               text,
@@ -1254,8 +1264,8 @@ export async function POST(req) {
             continue;
           }
 
-          // 최소 길이 검증 (200자 미만은 불완전 응답)
-          if (text.length < 200) {
+          // 최소 길이 검증 (클라이언트 기준과 동일)
+          if (text.length < MIN_CHAPTER_CHARS) {
             lastError = new Error(`모델 응답이 너무 짧습니다 (${text.length}자). 재시도해 주세요.`);
             continue;
           }
