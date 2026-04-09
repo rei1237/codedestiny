@@ -9,6 +9,7 @@ const rateLimit = require("express-rate-limit");
 const User = require("../models/User");
 const AdminAuditLog = require("../models/AdminAuditLog");
 const { requireAuth, requireAdmin } = require("../middleware/auth.middleware");
+const { requireFlowerAdmin } = require("../middleware/flower-admin.middleware");
 
 // 2FA/TOTP
 let otplib = null;
@@ -895,6 +896,162 @@ router.delete("/users/:userId", requireAuth, requireAdmin, async (req, res, next
     return res.status(200).json({
       message: "사용자를 삭제했습니다.",
       userId,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// flower_admin_token 기반 관리자 API
+// CF Workers → proxyLegacyApi 로 포워딩되는 요청을 처리.
+// fortune_auth_token 대신 flower_admin_token 쿠키/Bearer 검증.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /api/admin/users — 회원 목록 (꽃 관리자 토큰)
+router.get("/users/flower-list", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const page     = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 20)));
+    const search   = String(req.query.search || "").trim();
+    const status   = String(req.query.status || "").trim();
+    const role     = String(req.query.role || "").trim();
+
+    const query = {};
+    if (search) {
+      const re = new RegExp(String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      query.$or = [{ name: re }, { email: re }];
+    }
+    if (status) query.status = status;
+    if (role)   query.role = role;
+
+    const [users, totalCount] = await Promise.all([
+      User.find(query)
+        .select("_id name email joinedAt role status points lastLoginAt banReason")
+        .sort({ joinedAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    return res.json({
+      ok: true,
+      users: (users || []).map((u) => ({
+        _id: String(u._id),
+        name: u.name || "",
+        email: u.email || "",
+        joinedAt: u.joinedAt || null,
+        role: u.role || "user",
+        status: u.status || "active",
+        points: Number(u.points || 0),
+        lastLoginAt: u.lastLoginAt || null,
+        banReason: u.banReason || "",
+      })),
+      totalCount,
+      page,
+      pageSize,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// PATCH /api/admin/users/:id — 상태/역할 변경 (꽃 관리자 토큰)
+router.patch("/users/:id/flower", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const userId = String(req.params.id || "").trim();
+    if (!userId) return res.status(400).json({ ok: false, message: "userId required" });
+
+    const body = req.body || {};
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ ok: false, message: "User not found" });
+
+    if (typeof body.status === "string") {
+      const next2 = body.status.trim();
+      if (!["active", "banned", "suspended"].includes(next2)) {
+        return res.status(400).json({ ok: false, message: "Invalid status" });
+      }
+      user.status = next2;
+      user.banReason = next2 === "banned" ? String(body.banReason || "").slice(0, 300) : "";
+    }
+    if (typeof body.role === "string") {
+      const nextRole = body.role.trim();
+      if (!["user", "admin"].includes(nextRole)) {
+        return res.status(400).json({ ok: false, message: "Invalid role" });
+      }
+      user.role = nextRole;
+    }
+    await user.save();
+
+    return res.json({
+      ok: true,
+      user: {
+        _id: String(user._id),
+        name: user.name || "",
+        email: user.email || "",
+        joinedAt: user.joinedAt || null,
+        role: user.role || "user",
+        status: user.status || "active",
+        points: Number(user.points || 0),
+        lastLoginAt: user.lastLoginAt || null,
+        banReason: user.banReason || "",
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// DELETE /api/admin/users/:id — 유저 삭제 (꽃 관리자 토큰)
+router.delete("/users/:id/flower", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const userId = String(req.params.id || "").trim();
+    if (!userId) return res.status(400).json({ ok: false, message: "userId required" });
+    const user = await User.findById(userId).lean();
+    if (!user) return res.status(404).json({ ok: false, message: "User not found" });
+    if (user.role === "admin") return res.status(400).json({ ok: false, message: "Admin user cannot be deleted" });
+    await User.deleteOne({ _id: userId });
+    return res.json({ ok: true });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// POST /api/admin/members/points/flower — 코인 지급/차감 (꽃 관리자 토큰)
+router.post("/members/points/flower", requireFlowerAdmin, async (req, res, next) => {
+  try {
+    const body     = req.body || {};
+    const userId   = String(body.userId || "").trim();
+    const delta    = Number(body.delta ?? body.amount ?? 0);
+    const reason   = String(body.reason || "Admin manual adjustment").slice(0, 200);
+    const MAX_DELTA = 1000000;
+
+    if (!userId) return res.status(400).json({ ok: false, message: "userId required" });
+    if (!Number.isFinite(delta) || delta === 0) return res.status(400).json({ ok: false, message: "Invalid delta" });
+    if (Math.abs(delta) > MAX_DELTA) return res.status(400).json({ ok: false, message: "Delta too large" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ ok: false, message: "User not found" });
+
+    const nextPoints = Math.max(0, Number(user.points || 0) + delta);
+    user.points = nextPoints;
+    await user.save();
+
+    const PointHistory = require("../models/PointHistory");
+    await PointHistory.create({
+      userId: user._id, kind: "adjust", delta, balanceAfter: nextPoints,
+      reason, metadata: { source: "admin-panel-flower" },
+    }).catch(() => {});
+
+    return res.json({
+      ok: true,
+      user: {
+        _id: String(user._id),
+        name: user.name || "",
+        email: user.email || "",
+        points: nextPoints,
+      },
     });
   } catch (error) {
     return next(error);

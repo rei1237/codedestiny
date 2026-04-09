@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import * as Astronomy from "astronomy-engine";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -18,17 +18,17 @@ const ZODIAC_KO = [
 const ZODIAC_EMOJI = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
 const HOUSE_KO = ["1","2","3","4","5","6","7","8","9","10","11","12"];
 
-const PLANET_BODIES: Record<string, Astronomy.Body> = {
-  Sun:     Astronomy.Body.Sun,
-  Moon:    Astronomy.Body.Moon,
-  Mercury: Astronomy.Body.Mercury,
-  Venus:   Astronomy.Body.Venus,
-  Mars:    Astronomy.Body.Mars,
-  Jupiter: Astronomy.Body.Jupiter,
-  Saturn:  Astronomy.Body.Saturn,
-  Uranus:  Astronomy.Body.Uranus,
-  Neptune: Astronomy.Body.Neptune,
-  Pluto:   Astronomy.Body.Pluto,
+const PLANET_BODIES: Record<string, Body> = {
+  Sun:     Body.Sun,
+  Moon:    Body.Moon,
+  Mercury: Body.Mercury,
+  Venus:   Body.Venus,
+  Mars:    Body.Mars,
+  Jupiter: Body.Jupiter,
+  Saturn:  Body.Saturn,
+  Uranus:  Body.Uranus,
+  Neptune: Body.Neptune,
+  Pluto:   Body.Pluto,
 };
 
 const nd = (d: number) => ((d % 360) + 360) % 360;
@@ -45,9 +45,9 @@ function julianDay(yr: number, mo: number, dy: number, hr: number): number {
   );
 }
 
-function getTropicalLon(body: Astronomy.Body, date: Date): number {
-  const vec = Astronomy.GeoVector(body, date, false);
-  const ecl = Astronomy.Ecliptic(vec);
+function getTropicalLon(body: Body, date: Date): number {
+  const vec = GeoVector(body, date, false);
+  const ecl = Ecliptic(vec);
   return nd(ecl.elon);
 }
 

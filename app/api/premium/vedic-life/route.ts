@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import * as Astronomy from "astronomy-engine";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -81,16 +81,16 @@ function lahiriAyanamsa(jd: number): number {
   return ((22.460148 + 1.396468*T + 0.000308*T*T) % 360 + 360) % 360;
 }
 
-const BODY_MAP: Record<string, Astronomy.Body> = {
-  Sun: Astronomy.Body.Sun, Moon: Astronomy.Body.Moon,
-  Mercury: Astronomy.Body.Mercury, Venus: Astronomy.Body.Venus,
-  Mars: Astronomy.Body.Mars, Jupiter: Astronomy.Body.Jupiter,
-  Saturn: Astronomy.Body.Saturn,
+const BODY_MAP: Record<string, Body> = {
+  Sun: Body.Sun, Moon: Body.Moon,
+  Mercury: Body.Mercury, Venus: Body.Venus,
+  Mars: Body.Mars, Jupiter: Body.Jupiter,
+  Saturn: Body.Saturn,
 };
 
-function tropicalLon(body: Astronomy.Body, date: Date): number {
-  const vec = Astronomy.GeoVector(body, date, false);
-  const ecl = Astronomy.Ecliptic(vec);
+function tropicalLon(body: Body, date: Date): number {
+  const vec = GeoVector(body, date, false);
+  const ecl = Ecliptic(vec);
   return nd(ecl.elon);
 }
 

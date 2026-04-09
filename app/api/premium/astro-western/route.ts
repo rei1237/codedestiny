@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import * as Astronomy from "astronomy-engine";
+﻿import { NextRequest, NextResponse } from "next/server";
+import { Body, Ecliptic, GeoVector } from "astronomy-engine";
 
 // ─────────────────────────────────────────────────────────────────
 // 서양 점성술 열대황도 계산 API
@@ -17,17 +17,17 @@ const ZODIAC_KO = [
 ];
 const ZODIAC_EMOJI = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
 
-const PLANET_BODIES: Record<string, Astronomy.Body> = {
-  Sun:     Astronomy.Body.Sun,
-  Moon:    Astronomy.Body.Moon,
-  Mercury: Astronomy.Body.Mercury,
-  Venus:   Astronomy.Body.Venus,
-  Mars:    Astronomy.Body.Mars,
-  Jupiter: Astronomy.Body.Jupiter,
-  Saturn:  Astronomy.Body.Saturn,
-  Uranus:  Astronomy.Body.Uranus,
-  Neptune: Astronomy.Body.Neptune,
-  Pluto:   Astronomy.Body.Pluto,
+const PLANET_BODIES: Record<string, Body> = {
+  Sun:     Body.Sun,
+  Moon:    Body.Moon,
+  Mercury: Body.Mercury,
+  Venus:   Body.Venus,
+  Mars:    Body.Mars,
+  Jupiter: Body.Jupiter,
+  Saturn:  Body.Saturn,
+  Uranus:  Body.Uranus,
+  Neptune: Body.Neptune,
+  Pluto:   Body.Pluto,
 };
 
 const nd = (d: number) => ((d % 360) + 360) % 360;
@@ -40,9 +40,9 @@ function julianDay(yr: number, mo: number, dy: number, hr: number): number {
   return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + dy + B - 1524.5 + hr / 24;
 }
 
-function getTropicalLongitude(body: Astronomy.Body, date: Date): number {
-  const vec = Astronomy.GeoVector(body, date, false);
-  const ecl = Astronomy.Ecliptic(vec);
+function getTropicalLongitude(body: Body, date: Date): number {
+  const vec = GeoVector(body, date, false);
+  const ecl = Ecliptic(vec);
   return nd(ecl.elon);
 }
 
