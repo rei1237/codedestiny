@@ -769,9 +769,14 @@
           resolve({ ok: false, message: '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.' });
         }, 60000);
 
+        var _lbAuthToken = '';
+        try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
         fetch('/api/lifebook/session', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + _lbAuthToken
+          },
           body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
         })
           .then(function (res) {
@@ -991,8 +996,14 @@
       return;
     }
     if (action === 'generateLifeBook') {
-      // 코인 게이트 통과 후 window[action]() 직접 호출 또는 이 경로로 도달
-      window.generateLifeBook();
+      var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
+      if (!window.__cdAdminBypass && _lbCoinCost > 0 && typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
+          window.generateLifeBook();
+        });
+      } else {
+        window.generateLifeBook();
+      }
       return;
     }
     if (action === 'downloadLifeBookPdf') {

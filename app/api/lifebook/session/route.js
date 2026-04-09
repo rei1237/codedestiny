@@ -1095,6 +1095,48 @@ ${d}`,
 ];
 export async function POST(req) {
   try {
+    // ─── 인증 검증: Authorization Bearer 토큰 필수 ───
+    const authHeader = req.headers.get("authorization") || "";
+    const authToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!authToken) {
+      return NextResponse.json(
+        { ok: false, message: "로그인이 필요합니다." },
+        { status: 401 }
+      );
+    }
+
+    // legacy auth backend 토큰 유효성 검증
+    const legacyAuthBase = (() => {
+      for (const v of [
+        process.env.AUTH_API_BASE_URL,
+        process.env.CODE_DESTINY_API_URL,
+        process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
+      ]) {
+        const s = String(v || "").trim();
+        if (s) {
+          try { return new URL(s).origin; } catch {}
+        }
+      }
+      return "";
+    })();
+    if (legacyAuthBase) {
+      try {
+        const meRes = await fetch(`${legacyAuthBase}/auth/me`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (!meRes.ok) {
+          return NextResponse.json(
+            { ok: false, message: "인증에 실패했습니다. 다시 로그인해 주세요." },
+            { status: 401 }
+          );
+        }
+      } catch {
+        // auth API 일시 장애 시 fail-open: 1차 방어는 클라이언트 코인 게이트
+      }
+    }
+    // ─── 인증 검증 끝 ───
+
     const body = await req.json().catch(() => ({}));
     const sessionId = Number(body?.sessionId || 0);
     const sajuData = String(body?.sajuData || "").trim();
