@@ -320,8 +320,14 @@ async function callGemini(prompt: string): Promise<string> {
   const models = pickGeminiModels();
   if (!keys.length) return "";
 
+  let attempts = 0;
+  const maxAttempts = 4;
+
   for (const model of models) {
+    if (attempts >= maxAttempts) break;
     for (const key of keys) {
+      if (attempts >= maxAttempts) break;
+      attempts += 1;
       try {
         const url = GEMINI_ENDPOINT.replace("{model}", model) + `?key=${key}`;
         const res = await fetch(url, {
@@ -336,7 +342,7 @@ async function callGemini(prompt: string): Promise<string> {
               topP: 0.95,
             },
           }),
-          signal: AbortSignal.timeout(55_000),
+          signal: AbortSignal.timeout(18_000),
         });
         if (!res.ok) continue;
         const data = await res.json();

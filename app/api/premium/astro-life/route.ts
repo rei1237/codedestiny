@@ -213,10 +213,16 @@ function parseGeminiText(payload: unknown): string {
 async function callGemini(prompt: string): Promise<string> {
   const keys   = pickGeminiKeys();
   const models = pickGeminiModels();
-  if (!keys.length) throw new Error("No Gemini API key configured");
+  if (!keys.length) return "";
+
+  let attempts = 0;
+  const maxAttempts = 4;
 
   for (const model of models) {
+    if (attempts >= maxAttempts) break;
     for (const key of keys) {
+      if (attempts >= maxAttempts) break;
+      attempts += 1;
       try {
         const url = GEMINI_ENDPOINT.replace("{model}", model) + `?key=${key}`;
         const res = await fetch(url, {
@@ -231,7 +237,7 @@ async function callGemini(prompt: string): Promise<string> {
               topP: 0.95,
             },
           }),
-          signal: AbortSignal.timeout(60_000),
+          signal: AbortSignal.timeout(18_000),
         });
         if (!res.ok) continue;
         const data = await res.json();
@@ -240,7 +246,20 @@ async function callGemini(prompt: string): Promise<string> {
       } catch { /* try next */ }
     }
   }
-  throw new Error("All Gemini keys/models exhausted");
+  return "";
+}
+
+function buildFallbackChapterText(chapter: number, chart: ChartData): string {
+  const meta = CHAPTER_META[chapter - 1] || { title: `챕터 ${chapter}`, subtitle: "점성술 프리미엄" };
+  return [
+    `${meta.title}`,
+    ``,
+    `태양: ${chart.planets.Sun?.signKo || "미확인"} ${chart.planets.Sun?.house || "-"}H`,
+    `달: ${chart.planets.Moon?.signKo || "미확인"} ${chart.planets.Moon?.house || "-"}H`,
+    `상승궁: ${chart.ascendant?.signKo || "미확인"}`,
+    ``,
+    `AI 응답이 지연되어 차트 핵심값 기반 요약을 먼저 제공합니다. 잠시 후 다시 시도하면 심층 본문이 채워집니다.`,
+  ].join("\n");
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -693,7 +712,10 @@ export async function POST(req: NextRequest) {
 
     // 2) AI 텍스트 생성
     const prompt = buildPrompt(chapter, chart);
-    const text   = await callGemini(prompt);
+    let text = await callGemini(prompt);
+    if (!text.trim()) {
+      text = buildFallbackChapterText(chapter, chart);
+    }
 
     // 3) 섹션 파싱
     const sections = parseSections(text);

@@ -147,6 +147,7 @@ function saveUserPoints(points: number) {
 }
 
 export default function KkulkkulManseryukMain() {
+  console.log("섹션 렌더링 시작: KkulkkulManseryukMain");
   const [currentCoins, setCurrentCoins] = useState(0);
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
@@ -244,7 +245,9 @@ export default function KkulkkulManseryukMain() {
   };
 
   const handleOpenPremSection = (key: string) => {
-    setOpenPremSection(key);
+    const next = key || null;
+    console.log(`클릭됨: ${next ?? 'close'} 프리미엄 섹션`);
+    setOpenPremSection(next);
     setTimeout(() => {
       document.getElementById('prem-active-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 60);
@@ -453,10 +456,13 @@ export default function KkulkkulManseryukMain() {
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(99,102,241,0.15)",
+          position: "relative",
+          zIndex: 20,
+          pointerEvents: "auto",
         }}>
           <button
             type="button"
-            onClick={() => setOpenPremSection(p => p === 'ziwei' ? null : 'ziwei')}
+            onClick={() => handleOpenPremSection(openPremSection === 'ziwei' ? '' : 'ziwei')}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -501,10 +507,13 @@ export default function KkulkkulManseryukMain() {
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(251,191,36,0.12)",
+          position: "relative",
+          zIndex: 20,
+          pointerEvents: "auto",
         }}>
           <button
             type="button"
-            onClick={() => setOpenPremSection(p => p === 'astrology' ? null : 'astrology')}
+            onClick={() => handleOpenPremSection(openPremSection === 'astrology' ? '' : 'astrology')}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -549,10 +558,13 @@ export default function KkulkkulManseryukMain() {
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(14,165,233,0.12)",
+          position: "relative",
+          zIndex: 20,
+          pointerEvents: "auto",
         }}>
           <button
             type="button"
-            onClick={() => setOpenPremSection(p => p === 'sukuyo' ? null : 'sukuyo')}
+            onClick={() => handleOpenPremSection(openPremSection === 'sukuyo' ? '' : 'sukuyo')}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",
@@ -597,10 +609,13 @@ export default function KkulkkulManseryukMain() {
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(234,88,12,0.10)",
+          position: "relative",
+          zIndex: 20,
+          pointerEvents: "auto",
         }}>
           <button
             type="button"
-            onClick={() => setOpenPremSection(p => p === 'veda' ? null : 'veda')}
+            onClick={() => handleOpenPremSection(openPremSection === 'veda' ? '' : 'veda')}
             style={{
               width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
               gap: "16px", padding: "0", background: "transparent", border: "none",

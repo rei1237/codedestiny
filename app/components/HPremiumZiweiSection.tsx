@@ -5771,6 +5771,7 @@ function ChapterMasterPlan({ step, result, onRequest }: {
 }
 // ─────────────────────────────────────────────────────────────────
 export default function HPremiumZiweiSection() {
+  console.log("섹션 렌더링 시작: 자미두수 프리미엄");
   const [step, setStep] = useState<"intro" | "form" | "loading" | "result">("intro");
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
@@ -5809,344 +5810,126 @@ export default function HPremiumZiweiSection() {
   const [chTreeResult, setChTreeResult] = useState<TreeNodeResult | null>(null);
   const [chMasterStep, setChMasterStep] = useState<"idle" | "loading" | "done">("idle");
   const [chMasterResult, setChMasterResult] = useState<MasterPlanResult | null>(null);
+  const [chapterError, setChapterError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
 
-  async function handleChapter2() {
-    setCh2Step("loading");
+  type ChapterStepState = "idle" | "loading" | "done";
+
+  const buildZiweiPayload = (chapter: number) => ({
+    birthYear: Number(birthYear),
+    birthMonth: Number(birthMonth),
+    birthDay: Number(birthDay),
+    birthHour: unknownHour ? 12 : Number(birthHour),
+    chapter,
+  });
+
+  async function requestZiweiChapter<T>(chapter: number): Promise<T> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
     try {
       const res = await fetch("/api/premium/ziwei-life", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 2,
-        }),
+        body: JSON.stringify(buildZiweiPayload(chapter)),
+        signal: controller.signal,
       });
-      const data: Chapter2Result = await res.json();
-      setCh2Result(data);
-      setCh2Step("done");
-    } catch {
-      setCh2Step("idle");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || `챕터 ${chapter} 분석에 실패했습니다.`);
+      }
+      return data as T;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
-  async function handleChapter3() {
-    setCh3Step("loading");
+  async function loadChapter<T>(
+    chapter: number,
+    name: string,
+    setChapterStep: React.Dispatch<React.SetStateAction<ChapterStepState>>,
+    setChapterResult: React.Dispatch<React.SetStateAction<T | null>>,
+  ) {
+    console.log(`클릭됨: ${name}`);
+    setChapterError("");
+    setChapterStep("loading");
     try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 3,
-        }),
-      });
-      const data: Chapter3Result = await res.json();
-      setCh3Result(data);
-      setCh3Step("done");
-    } catch {
-      setCh3Step("idle");
+      const data = await requestZiweiChapter<T>(chapter);
+      setChapterResult(data);
+      setChapterStep("done");
+    } catch (e: unknown) {
+      setChapterStep("idle");
+      setChapterError(e instanceof Error ? e.message : "챕터 분석 중 오류가 발생했습니다.");
     }
   }
 
-  async function handleChapter4() {
-    setCh4Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 4,
-        }),
-      });
-      const data: Chapter4Result = await res.json();
-      setCh4Result(data);
-      setCh4Step("done");
-    } catch {
-      setCh4Step("idle");
-    }
+  function handleChapter2() {
+    return loadChapter<Chapter2Result>(2, "자미두수 챕터 2", setCh2Step, setCh2Result);
   }
 
-  async function handleChapter5() {
-    setCh5Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 5,
-        }),
-      });
-      const data: Chapter5Result = await res.json();
-      setCh5Result(data);
-      setCh5Step("done");
-    } catch {
-      setCh5Step("idle");
-    }
+  function handleChapter3() {
+    return loadChapter<Chapter3Result>(3, "자미두수 챕터 3", setCh3Step, setCh3Result);
   }
 
-  async function handleChapter6() {
-    setCh6Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 6,
-        }),
-      });
-      const data: Chapter6Result = await res.json();
-      setCh6Result(data);
-      setCh6Step("done");
-    } catch {
-      setCh6Step("idle");
-    }
+  function handleChapter4() {
+    return loadChapter<Chapter4Result>(4, "자미두수 챕터 4", setCh4Step, setCh4Result);
   }
 
-  async function handleChapter7() {
-    setCh7Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 7,
-        }),
-      });
-      const data: Chapter7Result = await res.json();
-      setCh7Result(data);
-      setCh7Step("done");
-    } catch {
-      setCh7Step("idle");
-    }
+  function handleChapter5() {
+    return loadChapter<Chapter5Result>(5, "자미두수 챕터 5", setCh5Step, setCh5Result);
   }
 
-  async function handleChapter8() {
-    setCh8Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 8,
-        }),
-      });
-      const data: Chapter8Result = await res.json();
-      setCh8Result(data);
-      setCh8Step("done");
-    } catch {
-      setCh8Step("idle");
-    }
+  function handleChapter6() {
+    return loadChapter<Chapter6Result>(6, "자미두수 챕터 6", setCh6Step, setCh6Result);
   }
 
-  async function handleChapter9() {
-    setCh9Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 9,
-        }),
-      });
-      const data: Chapter9Result = await res.json();
-      setCh9Result(data);
-      setCh9Step("done");
-    } catch {
-      setCh9Step("idle");
-    }
+  function handleChapter7() {
+    return loadChapter<Chapter7Result>(7, "자미두수 챕터 7", setCh7Step, setCh7Result);
   }
 
-  async function handleChapter10() {
-    setCh10Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 10,
-        }),
-      });
-      const data: Chapter10Result = await res.json();
-      setCh10Result(data);
-      setCh10Step("done");
-    } catch {
-      setCh10Step("idle");
-    }
+  function handleChapter8() {
+    return loadChapter<Chapter8Result>(8, "자미두수 챕터 8", setCh8Step, setCh8Result);
   }
 
-  async function handleChapter11() {
-    setCh11Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 11,
-        }),
-      });
-      const data: Chapter11Result = await res.json();
-      setCh11Result(data);
-      setCh11Step("done");
-    } catch {
-      setCh11Step("idle");
-    }
+  function handleChapter9() {
+    return loadChapter<Chapter9Result>(9, "자미두수 챕터 9", setCh9Step, setCh9Result);
   }
 
-  async function handleChapter12() {
-    setCh12Step("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 12,
-        }),
-      });
-      const data: Chapter12Result = await res.json();
-      setCh12Result(data);
-      setCh12Step("done");
-    } catch {
-      setCh12Step("idle");
-    }
+  function handleChapter10() {
+    return loadChapter<Chapter10Result>(10, "자미두수 챕터 10", setCh10Step, setCh10Result);
   }
 
-  async function handleChapterDaehan() {
-    setChDaehanStep("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 13,
-        }),
-      });
-      const data: DaehanResult = await res.json();
-      setChDaehanResult(data);
-      setChDaehanStep("done");
-    } catch {
-      setChDaehanStep("idle");
-    }
+  function handleChapter11() {
+    return loadChapter<Chapter11Result>(11, "자미두수 챕터 11", setCh11Step, setCh11Result);
   }
 
-  async function handleChapterYunnyeon() {
-    setChYunStep("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 14,
-        }),
-      });
-      const data: YunnyeonResult = await res.json();
-      setChYunResult(data);
-      setChYunStep("done");
-    } catch {
-      setChYunStep("idle");
-    }
+  function handleChapter12() {
+    return loadChapter<Chapter12Result>(12, "자미두수 챕터 12", setCh12Step, setCh12Result);
   }
 
-  async function handleChapterTree() {
-    setChTreeStep("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 15,
-        }),
-      });
-      const data: TreeNodeResult = await res.json();
-      setChTreeResult(data);
-      setChTreeStep("done");
-    } catch {
-      setChTreeStep("idle");
-    }
+  function handleChapterDaehan() {
+    return loadChapter<DaehanResult>(13, "자미두수 챕터 13", setChDaehanStep, setChDaehanResult);
   }
 
-  async function handleChapterMaster() {
-    setChMasterStep("loading");
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-          chapter: 16,
-        }),
-      });
-      const data: MasterPlanResult = await res.json();
-      setChMasterResult(data);
-      setChMasterStep("done");
-    } catch {
-      setChMasterStep("idle");
-    }
+  function handleChapterYunnyeon() {
+    return loadChapter<YunnyeonResult>(14, "자미두수 챕터 14", setChYunStep, setChYunResult);
+  }
+
+  function handleChapterTree() {
+    return loadChapter<TreeNodeResult>(15, "자미두수 챕터 15", setChTreeStep, setChTreeResult);
+  }
+
+  function handleChapterMaster() {
+    return loadChapter<MasterPlanResult>(16, "자미두수 챕터 16", setChMasterStep, setChMasterResult);
   }
 
   async function handleAnalyze() {
+    console.log("클릭됨: 자미두수 초기 분석");
     if (!birthYear || !birthMonth || !birthDay) {
       setErrorMsg("생년월일을 모두 입력해 주세요.");
       return;
     }
     setErrorMsg("");
+    setChapterError("");
     setStep("loading");
 
     try {
@@ -6432,6 +6215,12 @@ export default function HPremiumZiweiSection() {
 
       {/* 분석 섹션들 */}
       <div className="px-5 pb-8 space-y-3">
+        {chapterError ? (
+          <p className="rounded-xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-xs text-rose-300 tracking-[0.05em]">
+            {chapterError}
+          </p>
+        ) : null}
+
         <SectionCard index={0} title="영혼의 아키타입" icon="🌌">
           <div className="mt-3">{renderTextBlock(result.chapter1.archetype)}</div>
         </SectionCard>

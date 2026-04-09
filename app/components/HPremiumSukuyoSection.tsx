@@ -624,6 +624,7 @@ function SukuyoHero({ sukuyo }: { sukuyo: SukuyoInfo }) {
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
 export default function HPremiumSukuyoSection() {
+  console.log("섹션 렌더링 시작: 숙요 프리미엄");
   const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "", hour: "12" });
   const [sukuyo, setSukuyo] = useState<SukuyoInfo | null>(null);
   const [chapters, setChapters] = useState<ChapterState[]>(
@@ -633,8 +634,29 @@ export default function HPremiumSukuyoSection() {
   const [initLoading, setInitLoading] = useState(false);
   const [initError, setInitError] = useState("");
   const [allGenerating, setAllGenerating] = useState(false);
+  const [requestError, setRequestError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
+
+  const postSukuyoJson = useCallback(async (payload: unknown) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
+    try {
+      const res = await fetch("/api/premium/sukuyo-life", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "숙요 요청 처리 중 오류가 발생했습니다.");
+      }
+      return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }, []);
 
   const isValidDate =
     birthDate.year.length === 4 &&
@@ -643,31 +665,20 @@ export default function HPremiumSukuyoSection() {
 
   // 숙요 초기화 (챕터 없이 숙요 정보만)
   const handleInitSukuyo = useCallback(async () => {
+    console.log("클릭됨: 숙요 초기 분석");
     if (!isValidDate) return;
     setInitLoading(true);
     setInitError("");
+    setRequestError("");
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 28000);
-      let res: Response;
-      try {
-        res = await fetch("/api/premium/sukuyo-life", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: parseInt(birthDate.year),
-            month: parseInt(birthDate.month),
-            day: parseInt(birthDate.day),
-            hour: parseInt(birthDate.hour) || 12,
-            chapter: 1,
-          }),
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-      const data = await res.json();
-      if (data.ok && data.sukuyo) {
+      const data = await postSukuyoJson({
+        year: parseInt(birthDate.year),
+        month: parseInt(birthDate.month),
+        day: parseInt(birthDate.day),
+        hour: parseInt(birthDate.hour) || 12,
+        chapter: 1,
+      });
+      if (data.sukuyo) {
         setSukuyo(data.sukuyo);
         setChapters((prev) => {
           const next = [...prev];
@@ -690,17 +701,21 @@ export default function HPremiumSukuyoSection() {
       if (e instanceof Error && e.name === "AbortError") {
         setInitError("요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
       } else {
-        setInitError(e instanceof Error ? e.message : "네트워크 오류가 발생했습니다.");
+        const message = e instanceof Error ? e.message : "네트워크 오류가 발생했습니다.";
+        setInitError(message);
+        setRequestError(message);
       }
     } finally {
       setInitLoading(false);
     }
-  }, [birthDate, isValidDate]);
+  }, [birthDate, isValidDate, postSukuyoJson]);
 
   // 단일 챕터 생성
   const handleChapterRequest = useCallback(
     async (chapter: number) => {
+      console.log(`클릭됨: 숙요 챕터 ${chapter}`);
       if (!sukuyo) return;
+      setRequestError("");
       const idx = chapter - 1;
       setChapters((prev) => {
         const next = [...prev];
@@ -708,19 +723,14 @@ export default function HPremiumSukuyoSection() {
         return next;
       });
       try {
-        const res = await fetch("/api/premium/sukuyo-life", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: parseInt(birthDate.year),
-            month: parseInt(birthDate.month),
-            day: parseInt(birthDate.day),
-            hour: parseInt(birthDate.hour) || 12,
-            chapter,
-          }),
+        const data = await postSukuyoJson({
+          year: parseInt(birthDate.year),
+          month: parseInt(birthDate.month),
+          day: parseInt(birthDate.day),
+          hour: parseInt(birthDate.hour) || 12,
+          chapter,
         });
-        const data = await res.json();
-        if (data.ok) {
+        {
           setChapters((prev) => {
             const next = [...prev];
             next[idx] = {
@@ -734,10 +744,9 @@ export default function HPremiumSukuyoSection() {
             };
             return next;
           });
-        } else {
-          throw new Error(data.error);
         }
-      } catch {
+      } catch (e: unknown) {
+        setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
           const next = [...prev];
           next[idx] = { step: "error", result: null };
@@ -745,13 +754,15 @@ export default function HPremiumSukuyoSection() {
         });
       }
     },
-    [sukuyo, birthDate]
+    [sukuyo, birthDate, postSukuyoJson]
   );
 
   // 전체 생성 (순차)
   const handleGenerateAll = useCallback(async () => {
+    console.log("클릭됨: 숙요 전체 챕터 생성");
     if (!sukuyo || allGenerating) return;
     setAllGenerating(true);
+    setRequestError("");
     for (let ch = 2; ch <= 13; ch++) {
       const idx = ch - 1;
       if (chapters[idx].step === "done") continue;
@@ -761,19 +772,14 @@ export default function HPremiumSukuyoSection() {
         return next;
       });
       try {
-        const res = await fetch("/api/premium/sukuyo-life", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            year: parseInt(birthDate.year),
-            month: parseInt(birthDate.month),
-            day: parseInt(birthDate.day),
-            hour: parseInt(birthDate.hour) || 12,
-            chapter: ch,
-          }),
+        const data = await postSukuyoJson({
+          year: parseInt(birthDate.year),
+          month: parseInt(birthDate.month),
+          day: parseInt(birthDate.day),
+          hour: parseInt(birthDate.hour) || 12,
+          chapter: ch,
         });
-        const data = await res.json();
-        if (data.ok) {
+        {
           setChapters((prev) => {
             const next = [...prev];
             next[idx] = {
@@ -787,14 +793,9 @@ export default function HPremiumSukuyoSection() {
             };
             return next;
           });
-        } else {
-          setChapters((prev) => {
-            const next = [...prev];
-            next[idx] = { step: "error", result: null };
-            return next;
-          });
         }
-      } catch {
+      } catch (e: unknown) {
+        setRequestError(e instanceof Error ? e.message : "전체 생성 중 오류가 발생했습니다.");
         setChapters((prev) => {
           const next = [...prev];
           next[idx] = { step: "error", result: null };
@@ -803,7 +804,7 @@ export default function HPremiumSukuyoSection() {
       }
     }
     setAllGenerating(false);
-  }, [sukuyo, allGenerating, chapters, birthDate]);
+  }, [sukuyo, allGenerating, chapters, birthDate, postSukuyoJson]);
 
   // PDF 다운로드 (텍스트 기반 간이)
   const handleDownloadPDF = useCallback(async () => {
@@ -959,6 +960,12 @@ export default function HPremiumSukuyoSection() {
           새겨진 27수의 비밀을 해독합니다
         </p>
       </div>
+
+      {requestError ? (
+        <p style={{ color: "rgba(251,113,133,0.9)", fontSize: "0.82rem", marginTop: 10 }}>
+          ⚠ {requestError}
+        </p>
+      ) : null}
 
       {/* 특징 배지 */}
       <div

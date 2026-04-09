@@ -430,16 +430,23 @@ function parseText(p: unknown): string {
 }
 async function callGemini(prompt: string): Promise<string> {
   const keys = pickKeys(); const models = pickModels();
-  if (!keys.length) throw new Error("Gemini API key not configured");
-  for (const model of models) for (const key of keys) {
+  if (!keys.length) return "";
+  let attempts = 0;
+  const maxAttempts = 4;
+  for (const model of models) {
+    if (attempts >= maxAttempts) break;
+    for (const key of keys) {
+      if (attempts >= maxAttempts) break;
+      attempts += 1;
     try {
-      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:8192,topK:40,topP:0.95} }), signal:AbortSignal.timeout(90_000) });
+      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:8192,topK:40,topP:0.95} }), signal:AbortSignal.timeout(20_000) });
       if (!res.ok) continue;
       const data = await res.json(); const text = parseText(data);
       if (text) return text;
     } catch { /* next */ }
+    }
   }
-  throw new Error("All Gemini keys/models exhausted");
+  return "";
 }
 
 // ─────────────────────────────────────────────────────────────────

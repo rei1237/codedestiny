@@ -305,6 +305,7 @@ function ChapterCard({
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
 export default function HPremiumAstrologySection() {
+  console.log("섹션 렌더링 시작: 점성술 프리미엄");
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
@@ -320,9 +321,31 @@ export default function HPremiumAstrologySection() {
   );
   const [calcError, setCalcError] = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
+  const [requestError, setRequestError] = useState("");
+
+  const postAstroJson = useCallback(async (path: string, payload: unknown) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
+    try {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "요청 처리 중 오류가 발생했습니다.");
+      }
+      return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }, []);
 
   // 차트 계산 (chapter 0 으로 호출해 계산만)
   const handleCalcChart = useCallback(async () => {
+    console.log("클릭됨: 점성술 차트 계산");
     const y = parseInt(birthYear,  10);
     const m = parseInt(birthMonth, 10);
     const d = parseInt(birthDay,   10);
@@ -331,21 +354,15 @@ export default function HPremiumAstrologySection() {
       setCalcError("올바른 날짜를 입력해 주세요."); return;
     }
     setCalcError("");
+    setRequestError("");
     setCalcLoading(true);
     try {
-      // astro-western으로 차트만 계산
-      const res = await fetch("/api/premium/astro-western", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          year:y, month:m, day:d,
-          hour:  parseInt(birthHour,   10),
-          minute:parseInt(birthMinute, 10),
-          timezone: parseFloat(timezone),
-        }),
+      const data = await postAstroJson("/api/premium/astro-western", {
+        year:y, month:m, day:d,
+        hour:  parseInt(birthHour,   10),
+        minute:parseInt(birthMinute, 10),
+        timezone: parseFloat(timezone),
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "차트 계산 실패");
       setChart({
         planets:   data.planets,
         ascendant: data.ascendant,
@@ -357,44 +374,44 @@ export default function HPremiumAstrologySection() {
       // 상태 초기화
       setChapters(Object.fromEntries(CHAPTER_META.map(meta => [meta.num, { step:"idle", result:null }])));
     } catch (e: unknown) {
-      setCalcError(e instanceof Error ? e.message : "차트 계산 중 오류");
+      const message = e instanceof Error ? e.message : "차트 계산 중 오류";
+      setCalcError(message);
+      setRequestError(message);
     } finally {
       setCalcLoading(false);
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, postAstroJson]);
 
   // 챕터 생성
   const handleGenerateChapter = useCallback(async (chNum: number) => {
+    console.log(`클릭됨: 점성술 챕터 ${chNum}`);
+    setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));
     try {
-      const res = await fetch("/api/premium/astro-life", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          year:   parseInt(birthYear,  10),
-          month:  parseInt(birthMonth, 10),
-          day:    parseInt(birthDay,   10),
-          hour:   parseInt(birthHour,  10),
-          minute: parseInt(birthMinute,10),
-          timezone: parseFloat(timezone),
-          chapter: chNum,
-        }),
+      const data = await postAstroJson("/api/premium/astro-life", {
+        year:   parseInt(birthYear,  10),
+        month:  parseInt(birthMonth, 10),
+        day:    parseInt(birthDay,   10),
+        hour:   parseInt(birthHour,  10),
+        minute: parseInt(birthMinute,10),
+        timezone: parseFloat(timezone),
+        chapter: chNum,
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || "생성 실패");
       setChapters(prev => ({
         ...prev,
         [chNum]: { step:"done", result: { chapter:chNum, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } },
       }));
       // 차트 최신화 (astro-life에서도 계산 결과가 옴)
       if (data.chart && !chart) setChart(data.chart);
-    } catch {
+    } catch (e: unknown) {
+      setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev => ({ ...prev, [chNum]: { step:"error", result:null } }));
     }
-  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart]);
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, postAstroJson]);
 
   // 전체 챕터 순차 생성
   const handleGenerateAll = useCallback(async () => {
+    console.log("클릭됨: 점성술 전체 챕터 생성");
     for (const meta of CHAPTER_META) {
       await handleGenerateChapter(meta.num);
     }
@@ -532,6 +549,9 @@ export default function HPremiumAstrologySection() {
             </div>
             {calcError && (
               <p style={{ color:"rgba(252,165,165,0.9)", fontSize:"0.82rem", marginTop:10 }}>⚠ {calcError}</p>
+            )}
+            {requestError && (
+              <p style={{ color:"rgba(252,165,165,0.9)", fontSize:"0.82rem", marginTop:8 }}>⚠ {requestError}</p>
             )}
             <button
               onClick={handleCalcChart}

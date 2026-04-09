@@ -346,6 +346,7 @@ function PDFDownloadButton({
 // 메인 컴포넌트
 // ─────────────────────────────────────────────────────────────────
 export default function HPremiumVedicSection() {
+  console.log("섹션 렌더링 시작: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
   const [birthDay,    setBirthDay]    = useState("");
@@ -361,44 +362,62 @@ export default function HPremiumVedicSection() {
   );
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
+  const [requestError, setRequestError] = useState("");
+
+  const postVedicJson = useCallback(async (payload: unknown) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
+    try {
+      const res = await fetch("/api/premium/vedic-life", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "베다 요청 처리 중 오류가 발생했습니다.");
+      }
+      return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }, []);
 
   // 차트 미리 계산 (chapter 1 분析으로 대체)
   const handleCalcChart = useCallback(async () => {
+    console.log("클릭됨: 베다 차트 계산");
     const y=parseInt(birthYear,10), m=parseInt(birthMonth,10), d=parseInt(birthDay,10);
     if (!y||!m||!d){ setCalcError("생년월일을 입력해 주세요."); return; }
     if (y<1900||y>2100||m<1||m>12||d<1||d>31){ setCalcError("올바른 날짜를 입력해 주세요."); return; }
-    setCalcError(""); setCalcLoading(true);
+    setCalcError(""); setRequestError(""); setCalcLoading(true);
     try {
-      const res = await fetch("/api/premium/vedic-life", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ year:y, month:m, day:d, hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:1 }),
-      });
-      const data = await res.json();
-      if (!res.ok||!data.ok) throw new Error(data.error||"차트 계산 실패");
+      const data = await postVedicJson({ year:y, month:m, day:d, hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:1 });
       setChart(data.chart);
       setChapters(prev => ({ ...prev, 1: { step:"done", result:{ chapter:1, chapterMeta:data.chapterMeta, text:data.text, sections:data.sections } } }));
     } catch (e: unknown) {
-      setCalcError(e instanceof Error ? e.message : "차트 계산 중 오류");
+      const message = e instanceof Error ? e.message : "차트 계산 중 오류";
+      setCalcError(message);
+      setRequestError(message);
     } finally { setCalcLoading(false); }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon]);
+  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson]);
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
+    console.log(`클릭됨: 베다 챕터 ${chNum}`);
+    setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     try {
-      const res = await fetch("/api/premium/vedic-life", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ year:parseInt(birthYear,10), month:parseInt(birthMonth,10), day:parseInt(birthDay,10), hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:chNum }),
-      });
-      const data = await res.json();
-      if (!res.ok||!data.ok) throw new Error(data.error||"생성 실패");
+      const data = await postVedicJson({ year:parseInt(birthYear,10), month:parseInt(birthMonth,10), day:parseInt(birthDay,10), hour:parseInt(birthHour,10), minute:parseInt(birthMinute,10), timezone:parseFloat(timezone), lat:parseFloat(lat), lon:parseFloat(lon), chapter:chNum });
       setChapters(prev=>({...prev,[chNum]:{step:"done",result:{chapter:chNum,chapterMeta:data.chapterMeta,text:data.text,sections:data.sections}}}));
       if (data.chart&&!chart) setChart(data.chart);
-    } catch {
+    } catch (e: unknown) {
+      setRequestError(e instanceof Error ? e.message : "챕터 생성 중 오류가 발생했습니다.");
       setChapters(prev=>({...prev,[chNum]:{step:"error",result:null}}));
     }
-  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart]);
+  }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart,postVedicJson]);
 
   const handleGenerateAll = useCallback(async () => {
+    console.log("클릭됨: 베다 전체 챕터 생성");
     // 현재 스냅샷 기준으로 미완료된 챕터만 순차 생성
     const pending = CHAPTER_META.filter(m => chapters[m.num]?.step !== "done");
     for (const meta of pending) {
@@ -462,6 +481,7 @@ export default function HPremiumVedicSection() {
               <div><span style={labelStyle}>경도</span><input style={inputStyle} type="number" placeholder="126.9780" step={0.01} value={lon} onChange={e=>setLon(e.target.value)} /></div>
             </div>
             {calcError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {calcError}</p>}
+            {requestError && <p style={{ color:"rgba(252,165,165,0.85)", fontSize:"0.8rem", marginBottom:10 }}>⚠ {requestError}</p>}
             <button
               onClick={handleCalcChart}
               disabled={calcLoading}
