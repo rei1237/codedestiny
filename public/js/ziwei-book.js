@@ -300,6 +300,10 @@
     } catch (e) { return null; }
   }
 
+  function _zbClearSaved(profile) {
+    try { localStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
+  }
+
   /* ─────────────── 화면 전환 ─────────────── */
   function _showScreen(id) {
     var screens = ['zbStartScreen', 'zbLoadingScreen', 'zbResultScreen', 'zbErrorScreen'];
@@ -409,9 +413,14 @@
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 저장된 결과 복원 시도
+    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 500자+, ⚠️ 없음)이어야 복원
     var saved = _zbLoadSaved(profile);
-    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
+    var _savedValidCount = saved && saved.chapters
+      ? saved.chapters.filter(function(c) {
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+        }).length
+      : 0;
+    if (_savedValidCount >= 10) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('zbResultScreen');
@@ -436,7 +445,7 @@
       return;
     }
 
-    _chapters = Array(12).fill(null);
+    _chapters = Array(13).fill(null);
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
@@ -559,11 +568,11 @@
     _mysticTimer = setInterval(function () {
       _mqIdx = (_mqIdx + 1) % MYSTIC_QUOTES.length;
       if (mysticEl) {
-        mysticEl.classList.add('zb-fade-out');
+        mysticEl.classList.add('lb-fade-out');
         setTimeout(function () {
           if (mysticEl) {
             mysticEl.textContent = MYSTIC_QUOTES[_mqIdx];
-            mysticEl.classList.remove('zb-fade-out');
+            mysticEl.classList.remove('lb-fade-out');
           }
         }, 420);
       }
@@ -577,11 +586,11 @@
     if (chDots[0]) chDots[0].classList.add('zb-ch-dot--active');
 
     function _setProgress(done) {
-      var pct = (done / 12) * 100;
+      var pct = (done / 13) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
       if (progressText) progressText.textContent = done + ' / 13 챕터 완성';
       if (chapterMsg && done < 13) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
-      if (chapterMsg && done >= 12) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
+      if (chapterMsg && done >= 13) chapterMsg.textContent = '자미두수 인생 총람이 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent = done < 13 ? 'Chapter ' + (done + 1) : '✦ 완성 ✦';
       Array.prototype.forEach.call(chDots, function (d) {
         var ch = Number(d.getAttribute('data-zbch'));
@@ -597,13 +606,17 @@
     _setProgress(0);
 
     function _fetchChapter(idx) {
+      var _zbAuthToken = '';
+      try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
         var timeoutId = setTimeout(function () {
           resolve({ ok: false, message: '응답 시간 초과 (60초).' });
         }, 60000);
+        var _zbHeaders = { 'Content-Type': 'application/json' };
+        if (_zbAuthToken) _zbHeaders['Authorization'] = 'Bearer ' + _zbAuthToken;
         fetch('/api/ziwei-book/session', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _zbHeaders,
           body: JSON.stringify({
             sessionId:   idx + 1,
             ziweiData:   ziweiData,
@@ -630,10 +643,15 @@
     (function generateNext(idx) {
       if (idx >= 13) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
-        var allFailed = _chapters.every(function (c) { return !c || /^⚠️/.test(c); });
-        if (allFailed) {
+        var _validCount = _chapters.filter(function(c) {
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+        }).length;
+        if (_validCount < 10) {
           var errEl = _qs('zbErrorMsg');
-          if (errEl) errEl.textContent = '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.';
+          if (errEl) errEl.textContent = _validCount === 0
+            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
+            : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 다시 시도해 주세요.';
+          _zbClearSaved(window.__cdActiveBirthProfile || {});
           _showScreen('zbErrorScreen');
           return;
         }
@@ -656,7 +674,8 @@
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
-        if (data && data.ok && data.text) {
+        var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
+      if (data && data.ok && _zbText.length >= 500) {
           _chapters[idx] = data.text;
         } else {
           _failCount++;
