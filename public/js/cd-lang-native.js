@@ -1,14 +1,18 @@
 /**
- * cd-lang-native.js  v3.0.0 — Hybrid: 네이티브 라우팅 + Google Translate + 초월 번역
+ * cd-lang-native.js  v4.0.0 — GT-First + Custom Trans + Currency
  * ──────────────────────────────────────────────────────────────────────
- * 동작 원리:
- *  1. 언어 버튼 클릭 → 해당 로케일 경로(/en-us, /ja-jp, …)로 navigate
- *     + googtrans 쿠키 설정 → 페이지 로드 후 Google Translate 자동 적용
- *  2. 로케일 페이지 진입 시:
- *     a. public/i18n/{lang}.json에서 용어 사전 fetch
- *     b. 핵심 동양 용어를 notranslate span으로 교체 (초월 번역)
- *     c. Google Translate 로드 → 나머지 한국어 자동 번역
- *  3. /api/geo로 국가 감지 → 각국 통화로 가격 표시
+ * 동작 순서:
+ *  1. Google Translate 즉시 로드 → 페이지 전체 번역 (notranslate 제외)
+ *  2. .custom-trans[data-key] 요소 → i18n JSON 초월 번역 (GT 이후 오버라이드)
+ *  3. [data-krw] 요소 → /api/geo 국가별 통화 변환
+ *
+ * 초월 번역 마크업 예시 (GT가 이 요소를 건너뜀):
+ *   <span class="custom-trans" data-key="사주">사주</span>
+ *   → /i18n/{lang}.json 의 terms["사주"] 값으로 대체
+ *
+ * 통화 변환 마크업:
+ *   <span class="pf-coin-note" data-krw="5000" data-label="영구 해금">영구 해금 · 약 5,000원</span>
+ *   <span class="golden-grain-package__price" data-krw="9900">₩9,900</span>
  *
  * 지원 언어 (10개): ko, en, ja, zh-CN, hi, es, fr, de, nl, ms
  * ──────────────────────────────────────────────────────────────────────
@@ -16,7 +20,7 @@
 (function () {
   'use strict';
 
-  /* ── 1. 언어코드 ↔ 로케일 슬러그 매핑 ─────────────────────── */
+  /* ── 1. 매핑 테이블 ─────────────────────────────────────────── */
   var LANG_TO_SLUG = {
     'ko':    '',
     'en':    'en-us',
@@ -123,53 +127,57 @@
     }
   }
 
-  /* ── 6. Google Translate 로드 및 언어 설정 ─────────────────── */
-  function ensureGoogleTranslate(langCode) {
-    // googleTranslateElementInit 등록 (아직 없으면)
-    if (!window.googleTranslateElementInit) {
-      window.googleTranslateElementInit = function () {
-        if (!window.google || !window.google.translate) return;
-        if (window.__cdGTInited) return;
-        window.__cdGTInited = true;
+  /* ── 6. Google Translate — 콜백 사전 정의 후 즉시 로드 ──────── */
+  // ★ googleTranslateElementInit 은 GT 스크립트 삽입 전에 반드시 정의되어야 함
+  if (!window.googleTranslateElementInit) {
+    window.googleTranslateElementInit = function () {
+      if (!window.google || !window.google.translate) return;
+      if (window.__cdGTInited) return;
+      window.__cdGTInited = true;
+      try {
         new window.google.translate.TranslateElement({
           pageLanguage: 'ko',
           includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
-          autoDisplay: false
+          autoDisplay: false,
+          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
         }, 'google_translate_element');
-      };
+      } catch (e) {}
+      // GT 위젯 초기화 완료 후 언어 select 설정
+      var lang = detectCurrentLang();
+      if (lang !== 'ko') _scheduleGTLangSelect(lang, 60);
+    };
+  }
+
+  function loadGoogleTranslate(langCode) {
+    if (window.__cdGTScriptLoaded) {
+      // 이미 로드된 경우: 언어 select만 재설정
+      if (langCode && langCode !== 'ko') _scheduleGTLangSelect(langCode, 30);
+      return;
     }
-    // 스크립트 중복 로드 방지
-    if (window.__cdGTScriptLoaded) return;
     window.__cdGTScriptLoaded = true;
     var s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.async = true;
     s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    s.async = true;
     s.onerror = function () { window.__cdGTScriptLoaded = false; };
     document.head.appendChild(s);
-
-    // GT 로드 후 언어 자동 적용 (select 변경)
-    if (langCode && langCode !== 'ko') {
-      _scheduleGTLangSelect(langCode, 40);
-    }
   }
 
   function _setGTCookie(langCode) {
     if (!langCode || langCode === 'ko') return;
     var gtCode = LANG_TO_GT[langCode] || langCode;
-    var cookieValue = '/ko/' + gtCode;
-    var host = window.location.hostname;
+    var val = '/ko/' + gtCode;
     var exp = 'expires=Fri, 31 Dec 9999 23:59:59 GMT';
-    document.cookie = 'googtrans=' + cookieValue + '; ' + exp + '; path=/; SameSite=Lax';
+    var host = window.location.hostname;
+    document.cookie = 'googtrans=' + val + '; ' + exp + '; path=/; SameSite=Lax';
     if (host) {
-      document.cookie = 'googtrans=' + cookieValue + '; ' + exp + '; domain=' + host + '; path=/; SameSite=Lax';
-      document.cookie = 'googtrans=' + cookieValue + '; ' + exp + '; domain=.' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + val + '; ' + exp + '; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + val + '; ' + exp + '; domain=.' + host + '; path=/; SameSite=Lax';
     }
   }
 
   function _clearGTCookie() {
-    var host = window.location.hostname;
     var exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    var host = window.location.hostname;
     document.cookie = 'googtrans=; ' + exp + '; path=/;';
     if (host) {
       document.cookie = 'googtrans=; ' + exp + '; domain=' + host + '; path=/;';
@@ -180,10 +188,10 @@
   function _scheduleGTLangSelect(langCode, maxAttempts) {
     var gtCode = LANG_TO_GT[langCode] || langCode;
     var attempts = 0;
-    var max = typeof maxAttempts === 'number' ? maxAttempts : 40;
+    var max = typeof maxAttempts === 'number' ? maxAttempts : 50;
     function trySelect() {
       var sel = document.querySelector('.goog-te-combo');
-      if (sel) {
+      if (sel && sel.value !== gtCode) {
         sel.value = gtCode;
         try {
           sel.dispatchEvent(new Event('change', { bubbles: true }));
@@ -196,10 +204,19 @@
       }
       if (++attempts < max) setTimeout(trySelect, 200);
     }
-    trySelect();
+    setTimeout(trySelect, 300);
   }
 
-  /* ── 7. 초월 번역 — i18n JSON 용어 사전 오버라이드 ─────────── */
+  /* ── 7. 초월 번역 — .custom-trans[data-key] 요소만 대상 ──────
+   *
+   * ▸ DOM 전체 텍스트 노드를 쪼개지 않음 → GT가 전체 페이지를 정상 번역
+   * ▸ 명시적으로 class="custom-trans" + data-key 를 지정한 요소만 처리
+   * ▸ notranslate 클래스를 자동 추가 → GT가 이 요소를 건너뜀
+   * ▸ GT 로드 후 500ms 지연 → GT 번역 완료 시점 이후 오버라이드
+   *
+   * 마크업 예:
+   *   <span class="custom-trans" data-key="사주">사주</span>
+   * ─────────────────────────────────────────────────────────── */
   var _termCache = {};
 
   function fetchTerms(langCode) {
@@ -216,85 +233,44 @@
       .catch(function () { return {}; });
   }
 
-  function applyTermOverrides(terms) {
+  function applyCustomTrans(terms) {
     if (!terms || typeof terms !== 'object') return;
-    // 길이 내림차순 정렬 (긴 구문 우선)
-    var keys = Object.keys(terms).sort(function (a, b) { return b.length - a.length; });
-    if (!keys.length) return;
-
-    var walker = document.createTreeWalker(
-      document.body,
-      // NodeFilter.SHOW_TEXT = 4
-      4,
-      {
-        acceptNode: function (node) {
-          var p = node.parentNode;
-          if (!p) return 2; // FILTER_REJECT
-          var tag = (p.tagName || '').toLowerCase();
-          if (tag === 'script' || tag === 'style' || tag === 'noscript') return 2;
-          if (p.getAttribute && p.getAttribute('data-cd-override')) return 2;
-          if (p.classList && p.classList.contains('notranslate')) return 2;
-          // skip if already translated by GT (has font wrappers inside)
-          if (tag === 'font') return 2;
-          return 1; // FILTER_ACCEPT
-        }
-      },
-      false
-    );
-
-    var nodes = [];
-    while (walker.nextNode()) {
-      var nv = walker.currentNode.nodeValue;
-      if (nv && nv.trim()) nodes.push(walker.currentNode);
+    var els = document.querySelectorAll('.custom-trans');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      // GT가 이 요소를 번역하지 않도록 notranslate 강제 추가
+      el.classList.add('notranslate');
+      var key = el.getAttribute('data-key');
+      if (key && terms[key]) {
+        el.textContent = terms[key];
+        el.setAttribute('title', key); // hover 시 원문 확인
+      }
     }
+  }
 
-    nodes.forEach(function (textNode) {
-      var text = textNode.nodeValue;
-      var hasMatch = keys.some(function (k) { return text.indexOf(k) !== -1; });
-      if (!hasMatch) return;
-
-      // 단계적 교체 (여러 용어 처리)
-      var parts = [text];
-      keys.forEach(function (key) {
-        var val = terms[key];
-        if (!val) return;
-        var newParts = [];
-        parts.forEach(function (part) {
-          if (typeof part !== 'string') { newParts.push(part); return; }
-          var seg = part;
-          var idx = seg.indexOf(key);
-          while (idx !== -1) {
-            if (idx > 0) newParts.push(seg.substring(0, idx));
-            var span = document.createElement('span');
-            span.className = 'notranslate';
-            span.setAttribute('data-cd-override', '1');
-            span.setAttribute('title', key); // 원문 표시 (hover)
-            span.textContent = val;
-            newParts.push(span);
-            seg = seg.substring(idx + key.length);
-            idx = seg.indexOf(key);
-          }
-          if (seg) newParts.push(seg);
-        });
-        parts = newParts;
-      });
-
-      var hasSpan = parts.some(function (p) { return typeof p !== 'string'; });
-      if (!hasSpan) return;
-
-      var frag = document.createDocumentFragment();
-      parts.forEach(function (p) {
-        frag.appendChild(typeof p === 'string' ? document.createTextNode(p) : p);
-      });
-      if (textNode.parentNode) textNode.parentNode.replaceChild(frag, textNode);
+  // 동적 렌더링 대응: MutationObserver
+  function _observeCustomTrans(terms) {
+    if (!window.MutationObserver || window.__cdCustomTransObserver) return;
+    window.__cdCustomTransObserver = new MutationObserver(function (mutations) {
+      var needsApply = false;
+      for (var i = 0; i < mutations.length; i++) {
+        var addedNodes = mutations[i].addedNodes;
+        for (var j = 0; j < addedNodes.length; j++) {
+          var node = addedNodes[j];
+          if (node.nodeType !== 1) continue;
+          if (node.classList && node.classList.contains('custom-trans')) { needsApply = true; break; }
+          if (node.querySelector && node.querySelector('.custom-trans')) { needsApply = true; break; }
+        }
+        if (needsApply) break;
+      }
+      if (needsApply) applyCustomTrans(terms);
     });
+    window.__cdCustomTransObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   /* ── 8. 국가별 통화 변환 ────────────────────────────────────── */
   function applyCurrencyConversion() {
-    // 이미 적용됐으면 스킵
     if (window.__cdCurrencyApplied) return;
-    // 캐시 확인
     try {
       var cached = sessionStorage.getItem('cd_currency');
       if (cached) { _doApplyCurrency(cached); return; }
@@ -324,8 +300,8 @@
     noteEls.forEach(function (el) {
       var krw = parseInt(el.getAttribute('data-krw') || '0', 10);
       if (!krw) return;
-      var label = el.getAttribute('data-label') || '영구 해금';
-      el.textContent = label + ' · ≈ ' + fmt(krw);
+      var label = el.getAttribute('data-label') || '';
+      el.textContent = (label ? label + ' · ≈ ' : '') + fmt(krw);
     });
 
     // golden-grain 패키지 가격: data-krw 속성으로 변환
@@ -336,13 +312,13 @@
       el.textContent = fmt(krw);
     });
 
-    // window.formatWon 오버라이드 → 동적으로 렌더되는 ChargeModal 가격에도 적용
+    // window.formatWon 전역 오버라이드 → 동적 ChargeModal 가격에도 적용
     window.__cdCurrencyFmt = fmt;
     window.formatWon = function (value) {
       return fmt(Number(value) || 0);
     };
 
-    // MutationObserver: 이후 동적으로 추가되는 가격 요소도 변환
+    // MutationObserver: 동적으로 추가되는 가격 요소도 변환
     if (typeof MutationObserver !== 'undefined' && !window.__cdCurrencyObserver) {
       window.__cdCurrencyObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (m) {
@@ -390,12 +366,15 @@
       var wrap = document.getElementById('langWrap');
       if (wrap) wrap.classList.remove('open');
       if (langCode !== 'ko') {
-        // 초월 번역 먼저, 그 뒤 GT 로드
+        // ① GT 먼저 로드 (전체 번역)
+        loadGoogleTranslate(langCode);
+        // ② .custom-trans 요소에만 초월 번역 (GT 완료 후 오버라이드)
         fetchTerms(langCode).then(function (terms) {
-          applyTermOverrides(terms);
-          ensureGoogleTranslate(langCode);
+          setTimeout(function () { applyCustomTrans(terms); }, 500);
+          _observeCustomTrans(terms);
         });
-        setTimeout(applyCurrencyConversion, 600);
+        // ③ 국가별 통화 변환
+        setTimeout(applyCurrencyConversion, 1000);
       }
       return;
     }
@@ -405,12 +384,9 @@
     window.location.href = targetPath;
   }
 
-  /* ── 10. 기존 changeLanguage 오버라이드 ────────────────────── */
+  /* ── 10. 전역 오버라이드 ───────────────────────────────────── */
   window.changeLanguage = nativeChangeLanguage;
   window.__cdNativeLangBound = true;
-  // GT 비활성화 플래그 해제 (이전 버전과의 호환성)
-  window.__cdGoogleTranslateScriptRequested = false;
-  window.__cdGoogleTranslateInited = false;
 
   /* ── 11. 초기화 ─────────────────────────────────────────────── */
   function init() {
@@ -433,19 +409,23 @@
       }, true);
     }
 
-    // 비한국어 로케일 페이지: 초월 번역 → Google Translate → 통화 변환
+    // 비한국어 로케일 페이지: GT 먼저 → 초월 번역(.custom-trans만) → 통화 변환
     if (lang !== 'ko') {
       // googtrans 쿠키 보장 (직접 URL 접근 시)
       _setGTCookie(lang);
 
-      // 초월 번역 먼저 적용, 완료 후 GT 로드
+      // ① Google Translate 즉시 로드 → 전체 페이지 번역
+      loadGoogleTranslate(lang);
+
+      // ② i18n 사전 fetch → .custom-trans[data-key] 요소에만 초월 번역 오버라이드
+      //    GT가 어느 정도 진행된 후 적용 (500ms 지연)
       fetchTerms(lang).then(function (terms) {
-        applyTermOverrides(terms);
-        ensureGoogleTranslate(lang);
+        setTimeout(function () { applyCustomTrans(terms); }, 500);
+        _observeCustomTrans(terms);
       });
 
-      // IP 기반 통화 변환 (별도 타이밍)
-      setTimeout(applyCurrencyConversion, 800);
+      // ③ 국가 감지 → 통화 변환
+      setTimeout(applyCurrencyConversion, 1200);
     }
   }
 
