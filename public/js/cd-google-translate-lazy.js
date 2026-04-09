@@ -4,19 +4,30 @@
   var loaded = false;
 
   function loadTranslate() {
-    if (loaded) return;
+    // cd-lang-native.js v4+가 이미 GT를 로드한 경우 중복 로드 방지
+    if (loaded || window.__cdGTScriptLoaded) return;
     loaded = true;
+    window.__cdGTScriptLoaded = true;
 
-    // 일부 로케일 HTML에 있던 inline cleanup 호출을 안전하게 대체합니다.
-    // cleanup이 없으면 아무 영향이 없습니다.
-    if (typeof cleanup === 'function') cleanup();
+    // googleTranslateElementInit이 아직 없으면 기본 등록
+    if (!window.googleTranslateElementInit) {
+      window.googleTranslateElementInit = function () {
+        if (!window.google || !window.google.translate) return;
+        if (window.__cdGTInited) return;
+        window.__cdGTInited = true;
+        new window.google.translate.TranslateElement({
+          pageLanguage: 'ko',
+          includedLanguages: 'ko,en,ja,zh-CN,zh-TW,fr,es,hi,de,nl,ms',
+          autoDisplay: false
+        }, 'google_translate_element');
+      };
+    }
 
     var s = document.createElement('script');
     s.type = 'text/javascript';
     s.async = true;
-    s.defer = true;
     s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    s.onerror = function () { loaded = false; };
+    s.onerror = function () { loaded = false; window.__cdGTScriptLoaded = false; };
     document.head.appendChild(s);
   }
 
