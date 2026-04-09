@@ -395,7 +395,8 @@
     }
     if (!profile) {
       // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
-      if (window.__cdAdminBypass) {
+      var _zbIsAdmin = window.__cdAdminBypass || (typeof window.isAdminUser === 'function' && window.isAdminUser());
+      if (_zbIsAdmin) {
         // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
       } else {
         var _zbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
