@@ -909,9 +909,6 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260408-v3'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260409-v1'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260409-v1'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260407-v7'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
@@ -1321,6 +1318,30 @@ window.openNevilleMeditationPage = function() {
     window.location.href = '/neville-meditation.html';
   } catch (err) {
     console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
+  }
+};
+
+window.openFortuneTellerFishPage = function() {
+  try {
+    window.location.href = '/fortune-teller-fish.html';
+  } catch (err) {
+    console.error('[index-inline-runtime] openFortuneTellerFishPage failed:', err);
+  }
+};
+
+window.openSajuAnimalPage = function() {
+  try {
+    window.location.href = '/saju-picture';
+  } catch (err) {
+    console.error('[index-inline-runtime] openSajuAnimalPage failed:', err);
+  }
+};
+
+window.openTadagochiPage = function() {
+  try {
+    window.location.href = '/tadagochi.html';
+  } catch (err) {
+    console.error('[index-inline-runtime] openTadagochiPage failed:', err);
   }
 };
 
@@ -5063,6 +5084,7 @@ function openDestinyFlower(forceRefreshData) {
 function openDestinyFlowerStudio() {
   // ── 코인/잠금 게이트 체크 ──
   if (!window.__cdAdminBypass) {
+    // 현재 활성 소스(saju/astrology/jamidusu/sukuyo)에 맞는 타일 및 lock key 동적 결정
     var _dfSourceLockMap = { saju: 'openDestinyFlowerStudio', astrology: 'openAstrologyFlowerStudio', jamidusu: 'openJamidusuFlowerStudio', sukuyo: 'openSukuyoFlowerStudio' };
     var _dfActiveSource = (_dfStudioState && _dfStudioState.activeSource) || 'saju';
     var _dfActionName = _dfSourceLockMap[_dfActiveSource] || 'openDestinyFlowerStudio';
@@ -6295,7 +6317,6 @@ function changeLanguage(langCode, btn) {
   // cd-lang-native.js 가 로드되면 해당 함수가 window.changeLanguage 를 덮어씀.
   // 이 기본 구현은 native 모드 파일 로드 전 또는 폴백으로만 실행됨.
   if (window.__cdNativeLangBound) {
-    // 네이티브 모드 활성: 이미 이벤트 위임으로 처리됨 — 중복 실행 방지
     return;
   }
   __cdCancelLangWrapHide();

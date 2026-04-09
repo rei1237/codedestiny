@@ -1416,6 +1416,38 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
                     <span class="tarot-tile__desc">생년월일 기반 수호 동물</span>
                   </div>
                 </button>
+
+                <!-- 포춘텔러 물고기 -->
+                <button class="tarot-tile tarot-tile--fortune-fish" type="button"
+                        data-action="openFortuneTellerFishPage"
+                        data-fallback-href="/fortune-teller-fish.html"
+                        aria-label="포춘텔러 물고기 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/fortuneteller%20fish.webp" data-img-alt="포춘텔러 물고기 — 손바닥 위 붉은 물고기의 운명 리딩">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐟</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🐟 포춘텔러 물고기</span>
+                    <span class="tarot-tile__desc">손바닥 위 물고기의 운명 리딩</span>
+                  </div>
+                </button>
+
+                <!-- 타다고치: 운명의 알 -->
+                <button class="tarot-tile tarot-tile--tadagochi" type="button"
+                        data-action="openTadagochiPage"
+                        data-fallback-href="/tadagochi.html"
+                        aria-label="운세다마 운명의 알 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/fortuneteller%20fish.webp" data-img-alt="운세다마 운명의 알 — 사주로 깨우는 12간지 가상 펫">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🥚</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🥚 운세다마</span>
+                    <span class="tarot-tile__desc">사주로 깨우는 운명의 알</span>
+                  </div>
+                </button>
               </div><!-- /feat-collection__grid -->
             </div><!-- /feat-collection--animal -->
 
@@ -2130,55 +2162,88 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               </div>
             </button>
 
-            <!-- ── 카드 2: 인생의 책 (490코인 1회) ── -->
+            <!-- ── 카드 2: 점성술 프리미엄 (1회 390코인) ── -->
             <button type="button"
-                    class="prem-card prem-card--lifebook"
-                    data-action="openLifeBookModal"
-                    data-coin-cost="490"
-                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(4,18,8,0.65);border:1.5px solid rgba(52,211,153,0.35);box-shadow:0 4px 24px rgba(16,185,129,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(16,185,129,0.28)'"
-                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(16,185,129,0.12)'"
-                    aria-label="인생의 책 — 490코인으로 운명 전서 열기">
+                    class="prem-card prem-card--astro"
+                    data-action="gotoAstrologyPremium"
+                    data-coin-cost="390"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
+                    aria-label="점성술 코즈믹 차트 프리미엄 — 1회 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/lifebook.webp" alt="인생의 책"
-                     style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(4,18,8,0.85) 0%,transparent 60%);"></div>
-                <span style="position:absolute;top:10px;left:10px;background:rgba(16,185,129,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 490코인</span>
+                <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,4,25,0.88) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(251,191,36,0.90);color:#1a1200;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 390코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-                <p style="color:rgba(110,231,183,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">생애 서사 · Life Story</p>
-                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">인생의 책</p>
-                <p style="color:rgba(203,213,225,0.55);font-size:0.78rem;line-height:1.7;margin:0;">핵심 명반 리포트 생성 · 최종 PDF 저장 · 언제든 재다운로드</p>
+                <p style="color:rgba(253,230,138,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Cosmic Chart Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">✨ 점성술 코즈믹 차트</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  ☀ 태양·달·상승궁 3각 에너지 완전 분석<br>
+                  🪐 12하우스 영역별 재물·사랑·직업 운세<br>
+                  🌌 행성 트랜지트 내 인생 영향 계산<br>
+                  🔒 1회 390코인
+                </p>
                 <div style="margin-top:auto;padding-top:10px;">
-                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));border:1px solid rgba(52,211,153,0.38);color:rgba(110,231,183,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">📜 나의 운명 전서 열기</span>
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(253,230,138,0.1));border:1px solid rgba(251,191,36,0.45);color:rgba(253,230,138,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 코즈믹 차트 열기</span>
                 </div>
               </div>
             </button>
 
-            <!-- ── 카드 3: 연애 비책 (290코인 1회) ── -->
+                <!-- ── 카드 3: 숙요점 프리미엄 (1회 390코인) ── -->
             <button type="button"
-                    class="prem-card prem-card--lovesecret"
-                    data-action="openLoveSecretModal"
-                    data-coin-cost="290"
-                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(30,4,18,0.65);border:1.5px solid rgba(244,114,182,0.35);box-shadow:0 4px 24px rgba(236,72,153,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(236,72,153,0.28)'"
-                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(236,72,153,0.12)'"
-                    aria-label="연애 비책 — 290코인으로 사랑의 지도 열기">
+                    class="prem-card prem-card--sukuyo"
+                    data-action="gotoSukuyoPremium"
+                  data-coin-cost="390"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
+                  aria-label="숙요점 프리미엄 궁합 분석 — 1회 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/lovebible.webp" alt="연애 비책"
-                     style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
-                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(30,4,18,0.85) 0%,transparent 60%);"></div>
-                <span style="position:absolute;top:10px;left:10px;background:rgba(236,72,153,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(2,8,23,0.90) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(14,165,233,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 390코인</span>
+              </div>
+              <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+                <p style="color:rgba(125,211,252,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">💫 숙요점(宿曜占) 궁합 분석</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  🌙 에도 막부가 금서로 지정한 27수 비전<br>
+                  💑 소울메이트 vs 독성 관계 정밀 판별<br>
+                  ⭐ 재물·건강·수명 전반 1:1 정밀 리딩<br>
+                  🔒 1회 390코인
+                </p>
+                <div style="margin-top:auto;padding-top:10px;">
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
+                </div>
+              </div>
+            </button>
+
+            <!-- ── 카드 4: 베다 점성술 프리미엄 (1회 290코인) ── -->
+            <button type="button"
+                    class="prem-card prem-card--veda"
+                    data-action="gotoVedicPremium"
+                    data-coin-cost="290"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.28);box-shadow:0 4px 24px rgba(234,88,12,0.08);text-align:left;padding:0;"
+                    aria-label="베다 점성술 프리미엄 리포트 — 1회 290코인">
+              <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+                <img src="/fuctionassets/premium%20veda.webp" alt="베다 점성술 프리미엄"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(15,10,3,0.90) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(234,88,12,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
                 <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 290코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
-                <p style="color:rgba(249,168,212,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">연애 전략 · Love Strategy</p>
-                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">연애 비책</p>
-                <p style="color:rgba(203,213,225,0.65);font-size:0.78rem;line-height:1.6;margin:0;">"왜 나는 항상 같은 패턴의 연애를 반복할까?" — 일주·도화살·관성으로 밝히는 나만의 연애 DNA, 11챕터 완전 분석</p>
-                <p style="color:rgba(249,168,212,0.75);font-size:0.67rem;margin:5px 0 0;letter-spacing:0.02em;">💑 상대방 궁합 추가 시 +100코인</p>
-                <div style="margin-top:auto;padding-top:8px;">
-                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(244,114,182,0.1));border:1px solid rgba(244,114,182,0.38);color:rgba(249,168,212,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">💕 나의 연애 비책 열기</span>
+                <p style="color:rgba(253,186,116,0.60);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">베다 점성술 · Vedic Astrology Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🪷 베다 인생 총람 리포트</p>
+                <p style="color:rgba(203,213,225,0.50);font-size:0.78rem;line-height:1.7;margin:0;">인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도</p>
+                <div style="margin-top:auto;padding-top:10px;">
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.24),rgba(253,186,116,0.12));border:1px solid rgba(251,146,60,0.45);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 리포트 열기</span>
                 </div>
               </div>
             </button>
@@ -4302,6 +4367,298 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       </div>
     </div>
 
+    <!-- 프리미엄 점성술 인생 총람 모달 -->
+    <div id="astroBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="프리미엄 점성술 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeAstroBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#fbbf24;--lb-accent2:#d97706;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">ASTRO DESTINY BOOK</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">⭐ 프리미엄 점성술 인생 총람</h2>
+          <p class="lb-modal__subtitle">별자리·하우스·행성이 새긴 당신만의 운명 리포트</p>
+          <button class="lb-modal__close" data-action="closeAstroBookModal" aria-label="닫기">✕</button>
+        </div>
+        <!-- 시작 화면 -->
+        <div id="abStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">⭐</div>
+            <h3 class="lb-start__headline">서양 점성술 인생 총람</h3>
+            <p class="lb-start__desc">출생 차트(Natal Chart)를 기반으로<br>12챕터 심층 인생 전서를 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="abStartBtn" onclick="window.generateAstroBook&&window.generateAstroBook()">
+            ⭐ 점성술 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 HTML 저장 가능</p>
+        </div>
+        <!-- 로딩 화면 -->
+        <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">⭐</div>
+            <p class="lb-loading__status" id="abLoadingChapter">출생 차트를 계산하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg">
+              <div class="lb-progress__bar" id="abProgressBar" style="width:0%"></div>
+            </div>
+            <span class="lb-progress__text" id="abProgressText">0 / 12 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter">
+              <span class="lb-loading__chapter-num" id="abLoadingChapterNum">Ch.1</span>
+            </div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="1"  title="Ch.1 페르소나"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="2"  title="Ch.2 감정의 뿌리"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="3"  title="Ch.3 인지 체계"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="4"  title="Ch.4 욕망의 미학"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="5"  title="Ch.5 추진력"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="6"  title="Ch.6 행운의 좌표"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="7"  title="Ch.7 업보의 한계"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="8"  title="Ch.8 세대적 변화"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="9"  title="Ch.9 영혼의 나침반"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="10" title="Ch.10 시냅스트리"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="11" title="Ch.11 컴포지트"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending ab-ch-dot" data-abch="12" title="Ch.12 마스터플랜"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="abMysticQuote">
+            "별들은 강요하지 않습니다. 다만 당신이 놓친 가능성을 비추어줄 뿐."
+          </blockquote>
+        </div>
+        <!-- 결과 화면 -->
+        <div id="abResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">⭐</div>
+            <h3 class="lb-result__title">점성술 인생 총람 완성</h3>
+            <div class="lb-result__meta">
+              <span id="abResultName" class="lb-result__name"></span>
+              <span id="abResultDate" class="lb-result__date"></span>
+            </div>
+          </div>
+          <div class="lb-toc" id="abToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="abChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" onclick="window.downloadAstroBookPdf&&window.downloadAstroBookPdf()">
+              📥 HTML로 저장하기
+            </button>
+            <button class="lb-result__close-btn" data-action="closeAstroBookModal">닫기</button>
+          </div>
+        </div>
+        <!-- 오류 화면 -->
+        <div id="abErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="abErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="window.generateAstroBook&&window.generateAstroBook()">다시 시도</button>
+            <button class="lb-error__close" data-action="closeAstroBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프리미엄 숙요점 인생 총람 모달 -->
+    <div id="sukuyoBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="프리미엄 숙요 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeSukuyoBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#7dd3fc;--lb-accent2:#0ea5e9;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">SUKUYO DESTINY BOOK</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">🌙 프리미엄 숙요 인생 총람</h2>
+          <p class="lb-modal__subtitle">달이 머문 27수(宿)가 새긴 당신만의 운명 리포트</p>
+          <button class="lb-modal__close" data-action="closeSukuyoBookModal" aria-label="닫기">✕</button>
+        </div>
+        <!-- 시작 화면 -->
+        <div id="skStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">🌙</div>
+            <h3 class="lb-start__headline">숙요점(宿曜占) 인생 총람</h3>
+            <p class="lb-start__desc">달이 머문 별자리(숙)를 기반으로<br>13챕터 심층 인생 전서를 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="skStartBtn" onclick="window.generateSukuyoBook&&window.generateSukuyoBook()">
+            🌙 숙요 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 HTML 저장 가능</p>
+        </div>
+        <!-- 로딩 화면 -->
+        <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">🌙</div>
+            <p class="lb-loading__status" id="skLoadingChapter">달의 숙(宿)을 계산하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg">
+              <div class="lb-progress__bar" id="skProgressBar" style="width:0%"></div>
+            </div>
+            <span class="lb-progress__text" id="skProgressText">0 / 13 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter">
+              <span class="lb-loading__chapter-num" id="skLoadingChapterNum">Ch.1</span>
+            </div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="1"  title="Ch.1 영혼의 원형"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="2"  title="Ch.2 감정의 조수간만"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="3"  title="Ch.3 페르소나"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="4"  title="Ch.4 자산의 중력"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="5"  title="Ch.5 보이지 않는 톱니바퀴"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="6"  title="Ch.6 관계 레이더"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="7"  title="Ch.7 파괴적 혁신"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="8"  title="Ch.8 조화로운 성장"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="9"  title="Ch.9 정서적 유대"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="10" title="Ch.10 운명적 거리"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="11" title="Ch.11 달의 주기"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="12" title="Ch.12 관계 정화"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending sk-ch-dot" data-skch="13" title="Ch.13 마스터플랜"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="skMysticQuote">
+            "달이 머문 별자리가 당신의 감정 지문을 새깁니다."
+          </blockquote>
+        </div>
+        <!-- 결과 화면 -->
+        <div id="skResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">🌙</div>
+            <h3 class="lb-result__title">숙요 인생 총람 완성</h3>
+            <div class="lb-result__meta">
+              <span id="skResultName" class="lb-result__name"></span>
+              <span id="skResultDate" class="lb-result__date"></span>
+            </div>
+          </div>
+          <div class="lb-toc" id="skToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="skChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" onclick="window.downloadSukuyoBookPdf&&window.downloadSukuyoBookPdf()">
+              📥 HTML로 저장하기
+            </button>
+            <button class="lb-result__close-btn" data-action="closeSukuyoBookModal">닫기</button>
+          </div>
+        </div>
+        <!-- 오류 화면 -->
+        <div id="skErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="skErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="window.generateSukuyoBook&&window.generateSukuyoBook()">다시 시도</button>
+            <button class="lb-error__close" data-action="closeSukuyoBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 프리미엄 베다 점성술 인생 총람 모달 -->
+    <div id="vedicBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="프리미엄 베다 점성술 인생 총람" style="display:none;">
+      <div class="lb-modal__overlay" data-action="closeVedicBookModal"></div>
+      <div class="lb-modal__panel" style="--lb-accent:#fb923c;--lb-accent2:#ea580c;">
+        <div class="lb-modal__header">
+          <div class="lb-modal__header-deco" aria-hidden="true">
+            <span class="lb-header-star">✦</span>
+            <span class="lb-header-title-en">VEDIC JYOTISH BOOK</span>
+            <span class="lb-header-star">✦</span>
+          </div>
+          <h2 class="lb-modal__title">🪷 프리미엄 베다 인생 총람</h2>
+          <p class="lb-modal__subtitle">인도 조티쉬(Jyotish) 기반 12챕터 카르마 운명 리포트</p>
+          <button class="lb-modal__close" data-action="closeVedicBookModal" aria-label="닫기">✕</button>
+        </div>
+        <!-- 시작 화면 -->
+        <div id="vdStartScreen" class="lb-screen lb-screen--start">
+          <div class="lb-start__hero">
+            <div class="lb-start__icon" aria-hidden="true">🪷</div>
+            <h3 class="lb-start__headline">베다 점성술(Jyotish) 인생 총람</h3>
+            <p class="lb-start__desc">라그나·다샤·나크샤트라를 기반으로<br>12챕터 카르마 운명 전서를 생성합니다</p>
+          </div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="vdProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          </div>
+          <button class="lb-start__cta" id="vdStartBtn" onclick="window.generateVedicBook&&window.generateVedicBook()">
+            🪷 베다 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 HTML 저장 가능</p>
+        </div>
+        <!-- 로딩 화면 -->
+        <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
+          <div class="lb-loading__top">
+            <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
+            <p class="lb-loading__status" id="vdLoadingChapter">라그나와 아트마카라카를 계산하는 중...</p>
+          </div>
+          <div class="lb-progress__wrap">
+            <div class="lb-progress__bar-bg">
+              <div class="lb-progress__bar" id="vdProgressBar" style="width:0%"></div>
+            </div>
+            <span class="lb-progress__text" id="vdProgressText">0 / 12 챕터</span>
+          </div>
+          <div class="lb-loading__chapter-wrap">
+            <div class="lb-loading__chapter">
+              <span class="lb-loading__chapter-num" id="vdLoadingChapterNum">Ch.1</span>
+            </div>
+          </div>
+          <div class="lb-loading__dots-wrap">
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="1"  title="Ch.1 라그나"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="2"  title="Ch.2 나크샤트라"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="3"  title="Ch.3 다샤"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="4"  title="Ch.4 부와 번영"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="5"  title="Ch.5 카르마와 천직"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="6"  title="Ch.6 나밤샤"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="7"  title="Ch.7 관계의 거울"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="8"  title="Ch.8 카르믹 계약"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="9"  title="Ch.9 생명력"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="10" title="Ch.10 요가"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="11" title="Ch.11 우파야"></span>
+            <span class="lb-ch-dot lb-ch-dot--pending vd-ch-dot" data-vdch="12" title="Ch.12 마스터플랜"></span>
+          </div>
+          <blockquote class="lb-loading__mystic" id="vdMysticQuote">
+            "베다 점성술(Jyotish)은 빛의 과학 — 신의 눈으로 운명을 읽는 지혜입니다."
+          </blockquote>
+        </div>
+        <!-- 결과 화면 -->
+        <div id="vdResultScreen" class="lb-screen lb-screen--result" style="display:none;">
+          <div class="lb-result__header">
+            <div class="lb-result__symbol" aria-hidden="true">🪷</div>
+            <h3 class="lb-result__title">베다 인생 총람 완성</h3>
+            <div class="lb-result__meta">
+              <span id="vdResultName" class="lb-result__name"></span>
+              <span id="vdResultDate" class="lb-result__date"></span>
+            </div>
+          </div>
+          <div class="lb-toc" id="vdToc" role="navigation" aria-label="챕터 목차"></div>
+          <div class="lb-result__content" id="vdChapterContent"></div>
+          <div class="lb-result__actions">
+            <button class="lb-result__pdf-btn" onclick="window.downloadVedicBookPdf&&window.downloadVedicBookPdf()">
+              📥 HTML로 저장하기
+            </button>
+            <button class="lb-result__close-btn" data-action="closeVedicBookModal">닫기</button>
+          </div>
+        </div>
+        <!-- 오류 화면 -->
+        <div id="vdErrorScreen" class="lb-screen lb-screen--error" style="display:none;">
+          <div class="lb-error__icon" aria-hidden="true">⚠️</div>
+          <h3 class="lb-error__title">생성 중 오류가 발생했습니다</h3>
+          <p class="lb-error__msg" id="vdErrorMsg">잠시 후 다시 시도해 주세요.</p>
+          <div class="lb-error__actions">
+            <button class="lb-error__retry" onclick="window.generateVedicBook&&window.generateVedicBook()">다시 시도</button>
+            <button class="lb-error__close" data-action="closeVedicBookModal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 인생의 책 모달 -->
     <div id="lifeBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="인생의 책" style="display:none;">
       <div class="lb-modal__overlay" data-action="closeLifeBookModal"></div>
@@ -4900,10 +5257,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script src="/js/mobile-interaction-patch.js" defer></script>
+<script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260407-kst-fix"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260409-premium-fix1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -5435,27 +5792,119 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       }
     }
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
-    if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openZiweiBookModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'gotoZiweiPremium') {
+      if (typeof window.openZiweiBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openZiweiBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        // ziwei-book.js lazy load 후 재호출
+        (function() {
+          var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
+          var _zbLoadFn = function() {
+            var s = document.querySelector('script[src*="ziwei-book.js"]');
+            if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+              return Promise.resolve();
+            }
+            return new Promise(function(res, rej) {
+              var el = document.createElement('script');
+              el.src = '/js/ziwei-book.js?v=20260408-v3';
+              el.onload = function() { el.dataset.loaded = '1'; res(); };
+              el.onerror = rej;
+              document.head.appendChild(el);
+            });
+          };
+          (_zbLoader ? _zbLoader() : _zbLoadFn()).then(function() {
+            if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
+          }).catch(function(e) { console.error('[prem-card ziwei]', e); });
+        })();
+      }
       return;
     }
     // 명시적 핸들러: openLifeBookModal
-    if (action === 'openLifeBookModal' && typeof window.openLifeBookModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openLifeBookModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'openLifeBookModal') {
+      if (typeof window.openLifeBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openLifeBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        var _lbLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openLifeBookModal'];
+        if (_lbLoader) {
+          _lbLoader().then(function() {
+            if (typeof window.openLifeBookModal === 'function') window.openLifeBookModal();
+          }).catch(function(e) { console.error('[prem-card lifebook]', e); });
+        }
+      }
       return;
     }
     // 명시적 핸들러: openLoveSecretModal
-    if (action === 'openLoveSecretModal' && typeof window.openLoveSecretModal === 'function') {
-      (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-        try { window.openLoveSecretModal(); }
-        catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-      });
+    if (action === 'openLoveSecretModal') {
+      if (typeof window.openLoveSecretModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openLoveSecretModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
+        });
+      } else {
+        var _lsLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['openLoveSecretModal'];
+        if (_lsLoader) {
+          _lsLoader().then(function() {
+            if (typeof window.openLoveSecretModal === 'function') window.openLoveSecretModal();
+          }).catch(function(e) { console.error('[prem-card lovesecret]', e); });
+        }
+      }
+      return;
+    }
+    // 프리미엄 점성술 → astro-book.js 모달
+    if (action === 'gotoAstrologyPremium') {
+      if (typeof window.openAstroBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openAstroBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro]', e); }
+        });
+      } else {
+        var _apLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoAstrologyPremium'];
+        if (_apLoader) {
+          _apLoader().then(function() {
+            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
+          }).catch(function(e) { console.error('[prem-card astro]', e); });
+        }
+      }
+      return;
+    }
+    // 프리미엄 숙요점 → sukuyo-book.js 모달
+    if (action === 'gotoSukuyoPremium') {
+      if (typeof window.openSukuyoBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openSukuyoBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
+        });
+      } else {
+        var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
+        if (_spLoader) {
+          _spLoader().then(function() {
+            if (typeof window.openSukuyoBookModal === 'function') window.openSukuyoBookModal();
+          }).catch(function(e) { console.error('[prem-card sukuyo]', e); });
+        }
+      }
+      return;
+    }
+    // 프리미엄 베다점 → vedic-book.js 모달
+    if (action === 'gotoVedicPremium') {
+      if (typeof window.openVedicBookModal === 'function') {
+        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
+          try { window.openVedicBookModal(); }
+          catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
+        });
+      } else {
+        var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
+        if (_vdLoader) {
+          _vdLoader().then(function() {
+            if (typeof window.openVedicBookModal === 'function') window.openVedicBookModal();
+          }).catch(function(e) { console.error('[prem-card vedic]', e); });
+        }
+      }
       return;
     }
     // window[action] 함수가 있으면 직접 호출
@@ -5809,6 +6258,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script src="/js/life-book.js?v=20260407-v7" defer></script>
 <script src="/js/ziwei-book.js?v=20260408-v3" defer></script>
+<script src="/js/astro-book.js?v=20260409-v1" defer></script>
+<script src="/js/sukuyo-book.js?v=20260409-v1" defer></script>
+<script src="/js/vedic-book.js?v=20260409-v1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
@@ -5854,6 +6306,9 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   'use strict';
   var D={
     gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람 PDF북',tagline:'자미두수 핵심 명반을 정리해 완성본 PDF로 제공하는 프리미엄 리포트입니다.',feats:['📄 핵심 명반 분석 결과를 최종 PDF 한 권으로 생성','💾 생성된 PDF는 즉시 저장 및 재다운로드 가능','🎯 복잡한 부가 요소 없이 리포트 생성·보관에 집중'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
+    gotoAstrologyPremium:{cat:'점성술 · Cosmic Chart Premium',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴을 완전 해독합니다.',feats:['☀ 태양·달·상승궁 3각 에너지 완전 분석','🪐 12하우스 영역별 재물·사랑·직업 운세 파악','🌌 지금 행성 트랜지트가 내 인생에 미치는 영향 계산','🔒 400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 400코인',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
+    gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','🔒 1회 390코인'],cost:'🪙 1회 390코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
+    gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'🪙 1회 290코인',ct:'paid',img:'/fuctionassets/premium%20veda.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
@@ -5863,6 +6318,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openPhysiognomyApp:{cat:'AI · 동물 관상',title:'🎭 AI 동물 관상',tagline:'셀카 한 장이면 됩니다 — 이 얼굴이 돈 버는 관상인지 사랑받는 관상인지 AI가 즉시 판독합니다',feats:['AI가 내 얼굴에서 관상 포인트 정밀 분석','내 얼굴이 닮은 동물 토템 & 숨겨진 성격 파악','재물운·연애운·귀인운 얼굴에서 직접 분석','셀카 업로드 1번으로 완전 무료 즉시 결과'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20animal.webp'},
     openMbtiModal:{cat:'MBTI · 연애 궁합',title:'🦁 MBTI 동물 궁합',tagline:'내 MBTI와 가장 잘 맞는 사람이 누구인지 — 이 조합이 실제로 결혼까지 가는지 지금 바로 확인하세요',feats:['MBTI 16유형 연애 궁합 완전 분석','왜 저 MBTI에 끌리면서도 싸우게 되는지 설명','내 연애 패턴의 진짜 문제점 & 해결책 제시','완전 무료 — 즉시 결과 제공'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20face.webp'},
     openAnimalTotemModal:{cat:'토템 · 수호 동물',title:'🧸 애니멀 토템',tagline:'지금 이 순간 나에게 가장 필요한 메시지를 수호 동물이 보내고 있습니다 — 당신은 아직 못 들었을 뿐',feats:['샤머닉 전통 수호 동물 카드 정밀 리딩','오늘 반드시 들어야 할 경고 & 행운 메시지','지금 내가 해야 할 것과 피해야 할 것 분석','고화질 수호 동물 카드 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/animaltotem.webp'},
+    openFortuneTellerFishPage:{cat:'포춘텔러 · 물고기 점술',title:'🐟 포춘텔러 물고기',tagline:'손바닥 위 붉은 셀로판 물고기가 움직이는 방향으로 오늘의 운명을 예언합니다 — 당신의 기운은 어느 쪽인가요?',feats:['포춘텔러 물고기 7가지 움직임 정밀 리딩','오늘의 기운·애정·재물·건강 종합 운세 해석','움직임 패턴 기반 오늘 해야 할 것&피해야 할 것','완전 무료 — 즉시 물고기 반응 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/fortuneteller%20fish.webp'},
+    openTadagochiPage:{cat:'운세다마 · 운명의 알',title:'🥚 운세다마',tagline:'내 사주 오행으로 태어나는 나만의 12간지 가상 펫 — 알을 깨우고 돌봐주세요!',feats:['사주 출생연도·오행 기반 나만의 띠 동물 생성','9가지 상태(행복·슬픔·화남·수면·달리기·공부 등) 애니메이션','3×7 스프라이트 시트 상태별 프레임 정밀 분할','오늘의 운명 카드 뽑기 & 행운 포인트 적용'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/fortuneteller%20fish.webp'},
     openSajuAnimalPage:{cat:'사주 · 수호 동물 아트',title:'🐲 사주 가디언 아트',tagline:'내 생년월일로 찾는 수호 동물 — 12지신 중 누가 지금 나를 지키고 있는지 알고 계세요?',feats:['사주 8글자 기반 나만의 수호 동물 정확하게 매핑','12지신 + 천간으로 만드는 나만의 캐릭터','AI 생성 나만의 가디언 아트 즉시 제공','완전 무료 — 고화질 결과 이미지 저장 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/Who%20am%20I%20with%20saju.webp'},
     openCosmicSoulMeditation:{cat:'R=VD · 코스믹 소울 명상',title:'🌌 코스믹 소울 명상',tagline:'세타파 동기화로 무의식 DB에 성공 코드를 배포 — R=VD 공식 기반 30·60분 현실 렌더링 프로토콜',feats:['세타파(4-7Hz) 동기화 → 무의식 커널 직접 편집','5단계 Vibe Coding 로직: Reset→Patch→Render→Anchor→Deploy','30분 효율 동기화 & 60분 심층 자아 해체 버전 선택','부의·명료화·사랑·건강 4가지 맞춤 의도 설정','연속 일수·세션 횟수·코스믹 저널 저장 기능 포함'],cost:'🪙 200코인',ct:'paid',img:'/fuctionassets/r=vd.webp'},
     openNevilleMeditationPage:{cat:'네빌 명상 · 현실창조',title:'🧘 네빌 명상 실습',tagline:'이 명상을 3일 연속으로 하면 원하는 현실이 바뀌기 시작합니다 — 네빌 고다드의 검증된 기법',feats:['네빌 고다드가 실제 사용한 의식 명상 기법','원하는 것을 이미 가진 것처럼 느끼는 감각 훈련','부정적 신념 패턴을 즉시 해체하는 기법 적용','30분 완전 가이드 세션으로 처음도 쉽게'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/meditation.webp'},
@@ -5876,7 +6333,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
     openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'타짜가 뒤집는 화투패에 오늘의 운명이 숨어 있습니다 — 12달 꽃패로 보는 직설 운세',feats:['한국 전통 화투패 12달 운세 완전 리딩','월별 꽃패 상징 심층 해석 — 재물·사랑·시험','타짜식 직설 화법으로 꾸밈없는 운세 제공','완전 무료 — 지금 내 패를 뒤집어 보세요'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/tazza.webp'},
     openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'파라오들이 전쟁·혼인·국가 대사를 결정할 때 물었던 그 신탁 — 오늘 당신의 차례입니다',feats:['고대 이집트 47개 신 오라클 카드 리딩','오늘의 질문에 직접 답하는 신탁 메시지 제공','재물·사랑·진로 방향 신비로운 방식으로 해석','고대 케멧 신비주의 아트 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/egypt.webp'},
     openJuyukModal:{cat:'주역 64괘 · 거북점',title:'☯️ 주역 거북점',tagline:'공자도 매일 괘를 뽑았습니다 — 3000년 검증된 64괘가 지금 내가 내려야 할 결정을 말해줍니다',feats:['64괘 중 오늘 내 상황에 정확히 맞는 괘 자동 매핑','한자 원문 + 현대어 해석 동시 제공','진퇴를 결정해야 할 때 명확한 방향 제시','거북이 등 문양 전통 점술 의식 체험'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/juyuk.webp'},
-    openSukuyoModal:{cat:'숙요점 · 금서 궁합 분석',title:'💫 숙요점(宿曜占)',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다',feats:['불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','400코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 해금 400코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
+    openSukuyoModal:{cat:'숙요점 · 금서 궁합 분석',title:'💫 숙요점(宿曜占)',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다',feats:['불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','1회 390코인'],cost:'🪙 1회 390코인',ct:'paid',img:'/fuctionassets/sukyo.webp'},
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',title:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',title:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',title:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎을 읽었습니다 — 왕실의 찻잎 문양이 오늘의 운명을 말합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/london.webp'},
@@ -5990,7 +6447,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
           var _premDesc='';
           if(action==='openLifeBookModal')_premDesc='490코인으로 평생 보관할 나만의 운명 전서를 완성하세요. 대운 흐름·재물 시기·대인 관계 전략이 13챕터에 걸쳐 펼쳐집니다.';
           else if(action==='openLoveSecretModal')_premDesc='290코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 내 진짜 이상형·매력 포인트·피해야 할 관계 유형까지 모두 담겨 있습니다.';
-          else if(action==='gotoZiweiPremium')_premDesc='590코인으로 자미두수 핵심 명반을 분석해 최종 PDF 완성본을 생성합니다.';
+          else if(action==='gotoZiweiPremium')_premDesc='490코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분석 PDF를 완성합니다.';
           else _premDesc='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
