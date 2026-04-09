@@ -40,6 +40,15 @@ function reportCriticalError(message, error) {
   console.error(`[SW] ${message}`, error);
 }
 
+self.addEventListener('error', event => {
+  reportCriticalError('Unhandled runtime error', event && (event.error || event.message));
+});
+
+self.addEventListener('unhandledrejection', event => {
+  reportCriticalError('Unhandled promise rejection', event && event.reason);
+  if (event && typeof event.preventDefault === 'function') event.preventDefault();
+});
+
 function createOfflineFallback(request) {
   if (request.mode === 'navigate' || request.destination === 'document') {
     return new Response(

@@ -149,6 +149,7 @@ function saveUserPoints(points: number) {
 export default function KkulkkulManseryukMain() {
   console.log("섹션 렌더링 시작: KkulkkulManseryukMain");
   const [currentCoins, setCurrentCoins] = useState(0);
+  const [globalRuntimeError, setGlobalRuntimeError] = useState("");
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
   const [openPremSection, setOpenPremSection] = useState<string | null>(null);
@@ -171,6 +172,18 @@ export default function KkulkkulManseryukMain() {
     loveSimulation: 0,
   });
 
+  async function fetchJsonWithTimeout(url: string, init: RequestInit, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...init, signal: controller.signal });
+      const data = await res.json().catch(() => ({}));
+      return { res, data };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
     const token = localStorage.getItem('fortune_auth_token');
@@ -184,12 +197,11 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     try {
-      const res = await fetch('/api/fortune/pig-coin/consume', {
+      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ cost, reason: `${key} 해금` }),
       });
-      const data = await res.json();
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
@@ -221,12 +233,11 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     try {
-      const res = await fetch('/api/fortune/pig-coin/consume', {
+      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ cost, reason: `${key} 이용` }),
       });
-      const data = await res.json();
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
@@ -260,6 +271,25 @@ export default function KkulkkulManseryukMain() {
   }, [sparkleTarget]);
 
   useEffect(() => {
+    const onGlobalError = (event: ErrorEvent) => {
+      console.error('[KkulkkulManseryukMain][error]', event.error || event.message);
+      setGlobalRuntimeError('일시적 오류가 감지되었습니다. 기능은 계속 사용하실 수 있습니다.');
+      setTimeout(() => setGlobalRuntimeError(''), 3500);
+    };
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('[KkulkkulManseryukMain][unhandledrejection]', event.reason);
+      setGlobalRuntimeError('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      setTimeout(() => setGlobalRuntimeError(''), 3500);
+    };
+    window.addEventListener('error', onGlobalError);
+    window.addEventListener('unhandledrejection', onUnhandledRejection);
+    return () => {
+      window.removeEventListener('error', onGlobalError);
+      window.removeEventListener('unhandledrejection', onUnhandledRejection);
+    };
+  }, []);
+
+  useEffect(() => {
     // 1) localStorage에서 즉시 표시
     try {
       const raw = localStorage.getItem('fortune_auth_user');
@@ -287,6 +317,11 @@ export default function KkulkkulManseryukMain() {
     <main className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="rounded-3xl border border-amber-200 bg-white/90 p-6 shadow-lg backdrop-blur-sm">
+          {globalRuntimeError ? (
+            <p className="mb-3 rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+              ⚠ {globalRuntimeError}
+            </p>
+          ) : null}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-700">꿀꿀 만세력</p>
