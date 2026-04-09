@@ -35,6 +35,19 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    ".open-next",
+    "build",
+    "out",
+    "dist",
+    "_scripts-archive",
+    "**/_tmp_*.mjs",
+    "**/_tmp_*.cjs",
+    "**/_test*.mjs",
+    "**/_fix_*.mjs",
+    "**/_patch_*.mjs",
+    "**/_verify_*.mjs",
+    "**/_sync_*.mjs"
   ]
 }

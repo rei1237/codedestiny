@@ -179,24 +179,6 @@ body{
 }
 
 /* ── FAQ 섹션 ── */
-/* ─── 정적 콘텐츠 FAQ (details/summary) ─── */
-.fe-static-content details.fe-faq-item{
-  background:rgba(255,255,255,.03);border:1px solid rgba(167,139,250,.15);
-  border-radius:10px;margin-bottom:8px;overflow:hidden;
-}
-.fe-static-content details.fe-faq-item summary{
-  padding:11px 14px;font-size:.82rem;font-weight:700;
-  color:rgba(232,224,240,.8);cursor:pointer;list-style:none;
-  -webkit-tap-highlight-color:transparent;
-}
-.fe-static-content details.fe-faq-item summary::-webkit-details-marker{display:none;}
-.fe-static-content details.fe-faq-item[open] summary{color:#c4b5fd;}
-.fe-faq-answer{
-  padding:10px 14px 12px;font-size:.8rem;line-height:1.75;
-  color:rgba(203,195,227,.7);word-break:keep-all;
-  border-top:1px solid rgba(167,139,250,.1);
-}
-/* ─── 기존 JS-driven FAQ ─── */
 .fe-faq{margin-bottom:20px;}
 .fe-faq-title{
   font-size:1rem;font-weight:900;color:#c084fc;

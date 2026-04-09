@@ -73,6 +73,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const entriesByUrl = new Map<string, SitemapEntry>();
 
+  const INSIGHTS_TOPIC_URLS = [
+    "https://code-destiny.com/insights?topic=saju",
+    "https://code-destiny.com/insights?topic=tarot",
+    "https://code-destiny.com/insights?topic=astrology",
+    "https://code-destiny.com/insights?topic=ziwei",
+    "https://code-destiny.com/insights?topic=sukuyo",
+    "https://code-destiny.com/insights?topic=vedic",
+  ];
+
   const mergedRoutes = [...ROUTES, ...getAutoIndexedSajuAndPsychRoutes()];
 
   for (const route of mergedRoutes) {
@@ -109,6 +118,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       0.75,
       toLastModified(article?.updatedAt, now),
     );
+  }
+
+  for (const url of INSIGHTS_TOPIC_URLS) {
+    if (!entriesByUrl.has(url)) {
+      entriesByUrl.set(url, {
+        url,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.8,
+      });
+    }
   }
 
   // ── 운세 정적 HTML 페이지 (fortune static pages) ──

@@ -102,6 +102,13 @@
 
   function extractSukuyoSummary(date) {
     try {
+      const normalizeMansionKr = (value) => {
+        const src = String(value || "").trim();
+        if (!src) return "미확인";
+        return src
+          .replace(/([가-힣])수\(/g, "$1숙(")
+          .replace(/([가-힣])수$/g, "$1숙");
+      };
       let lunarObj = null;
       if (window.KasiEngine && typeof window.KasiEngine.solarToLunar === "function") {
         lunarObj = window.KasiEngine.solarToLunar(date);
@@ -109,7 +116,7 @@
       if (!lunarObj || typeof window.calcSukuyoData !== "function") return { ok: false, summary: "숙요 엔진 로드 필요" };
       const s = window.calcSukuyoData(lunarObj);
       if (!s) return { ok: false, summary: "숙요 계산 실패" };
-      const mansion = s.mansion_name || s.mansion || "미확인";
+      const mansion = normalizeMansionKr(s.mansion_name || s.mansion || "미확인");
       const guardian = s.guardian_animal || "미확인";
       return { ok: true, summary: `${mansion}, 수호동물 ${guardian}` };
     } catch (_) {

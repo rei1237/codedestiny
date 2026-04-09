@@ -721,6 +721,10 @@
   /**
    * 절기 데이터(terms24)와 생년월일시(solarDate)로 정확한 월주(月柱)를 계산한다.
    * lunar-javascript CST 오차 및 KASI API 부분 조회 문제를 해결하기 위한 핵심 보정 함수.
+   * @param {Array} terms - terms24 배열 ({name, atLocal, source} 형태)
+   * @param {Date} solarDate - 생년월일시 (JS Date, 로컬 KST)
+   * @param {string} yearGanStr - 年柱 간지 문자열 (예: '丙午', 첫 글자가 天干)
+   * @returns {string|null} 월주 간지 2글자 (예: '庚寅') 또는 null
    */
   function _computeMonthGanjiFromTerms(terms, solarDate, yearGanStr) {
     if (!terms || !terms.length || !solarDate) return null;
@@ -728,13 +732,16 @@
       var birthMs = solarDate instanceof Date ? solarDate.getTime() : new Date(solarDate).getTime();
       if (isNaN(birthMs)) return null;
 
+      // 12중절만 필터링하여 정렬
       var brackets = [];
       for (var i = 0; i < terms.length; i++) {
         var t = terms[i];
         if (!t || !t.atLocal) continue;
+        // "(전년)" 등의 접미사 제거 후 매핑 조회
         var n = String(t.name || '').replace(/\([^)]*\)\s*$/, '').trim();
         var br = _JIEQI_MONTH_BRANCH[n];
         if (!br) continue;
+        // atLocal을 KST(+09:00)로 파싱하여 UTC ms 획득
         var isoStr = String(t.atLocal).indexOf('T') >= 0
           ? t.atLocal + '+09:00'
           : t.atLocal.replace(' ', 'T') + '+09:00';
@@ -745,16 +752,19 @@
       if (!brackets.length) return null;
       brackets.sort(function (a, b) { return a.ms - b.ms; });
 
+      // 생시 이전 마지막 중절 찾기
       var branch = null;
       for (var j = 0; j < brackets.length; j++) {
         if (birthMs >= brackets[j].ms) branch = brackets[j].branch;
       }
       if (!branch) return null;
 
+      // 오자배년법: 年干으로 寅月 시작 천간 인덱스 결정
       var yearStem = yearGanStr ? String(yearGanStr).charAt(0) : null;
       var yinStartIdx = (yearStem && _YSTEM_YIN_START[yearStem] != null) ? _YSTEM_YIN_START[yearStem] : null;
       if (yinStartIdx == null) return null;
 
+      // 寅(index 2)로부터의 오프셋으로 월간(月干) 계산
       var brIdx = _EB.indexOf(branch);
       if (brIdx < 0) return null;
       var offset = ((brIdx - 2) + 12) % 12;
@@ -853,6 +863,7 @@
       var terms = _normalizeTerms(apiTerms, fallbackTerms);
 
       // 절기 데이터로 월주 보정 (CST/KST 오차 수정 및 KASI 정밀 데이터 우선 적용)
+      // terms24에 12중절이 충분하면 ganji.month를 정확한 값으로 덮어씀
       if (ganji && ganji.year && terms && terms.length > 0) {
         var correctedMonth = _computeMonthGanjiFromTerms(terms, solarDate, ganji.year);
         if (correctedMonth && correctedMonth.length === 2) {

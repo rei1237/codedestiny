@@ -7230,7 +7230,7 @@ function renderAstroInsight() {
       return { relType: rel, loveDesc: love, busDesc: busi, spiritDesc: spirit };
     }
 
-    /* ── 화면인 선택 → 시나스트리 결과 계산 ── */
+    /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
         /* 50코인 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
@@ -13614,8 +13614,8 @@ function renderZiwei(p, natal, targetId) {
           } else {
             sihuaTags = '<span style="font-size:0.72rem;color:#64748b;">사화 직접 작용 약함</span>';
           }
-          pivotHtml += '<div class="zw-pivot-card'+(isDefaultOpen ? ' is-open' : '')+'" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'  
-            +'<button type="button" class="zw-pivot-toggle" aria-expanded="'+(isDefaultOpen ? 'true' : 'false')+'" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'  
+          pivotHtml += '<div class="zw-pivot-card'+(isDefaultOpen ? ' is-open' : '')+'" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
+            +'<button type="button" class="zw-pivot-toggle" aria-expanded="'+(isDefaultOpen ? 'true' : 'false')+'" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
               // 상단 줄: 순번 + 단계 뱃지 + 나이 범위 + 화살표
               +'<div class="zw-pv-top">'
                 +'<div style="display:flex;align-items:center;gap:7px;">'

@@ -602,9 +602,8 @@
       } catch (_oLsDpE) {}
     }
     if (!hasData) {
-      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
       if (window.__cdAdminBypass) {
-        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
+        // 관리자 바이패스 모드: 시작 화면으로 진행 가능
       } else {
         var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
         if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }

@@ -1,0 +1,178 @@
+/* ============================================================
+   DisclaimerBanner.css
+   저장 경로: styles/disclaimer-banner.css
+   글로벌 CSS에 @import 또는 app/layout.js에 import 추가
+   ============================================================ */
+
+/* ── 면책 조항 배너 (헤더 바로 아래 삽입) ── */
+.cd-disclaimer-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 20px;
+  background: linear-gradient(90deg, #1a1040 0%, #2a1060 50%, #1a1040 100%);
+  border-bottom: 1px solid rgba(124, 106, 247, 0.35);
+  font-size: 13px;
+  line-height: 1.5;
+  color: #c4b5fd;
+  position: relative;
+  z-index: 900;
+  /* 신비로운 글로우 */
+  box-shadow: 0 1px 12px rgba(124, 106, 247, 0.12);
+}
+
+.cd-disclaimer-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  filter: drop-shadow(0 0 4px rgba(192, 132, 252, 0.6));
+}
+
+.cd-disclaimer-text {
+  flex: 1;
+  text-align: center;
+}
+
+.cd-disclaimer-text strong {
+  color: #e9d5ff;
+  font-weight: 600;
+}
+
+.cd-disclaimer-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid rgba(124, 106, 247, 0.4);
+  color: #a78bfa;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+  line-height: 1.6;
+}
+
+.cd-disclaimer-close:hover {
+  background: rgba(124, 106, 247, 0.2);
+  color: #e9d5ff;
+}
+
+/* ── Footer 법적 고지 영역 ── */
+.cd-footer-legal {
+  border-top: 1px solid rgba(42, 42, 74, 0.8);
+  margin-top: 32px;
+  padding-top: 24px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.cd-footer-legal p {
+  margin: 0 0 8px;
+}
+
+.cd-footer-legal a {
+  color: #6b7280;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cd-footer-legal a:hover {
+  color: #a78bfa;
+}
+
+.cd-footer-legal .legal-highlight {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* ── 프리미엄 콘텐츠 미리보기 잠금 오버레이 ── */
+.cd-preview-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 미리보기 본문 영역 (300자+ 표시 보장) */
+.cd-preview-body {
+  position: relative;
+}
+
+/* 페이드아웃 효과 */
+.cd-preview-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(13, 13, 26, 0.5) 40%,
+    rgba(13, 13, 26, 0.95) 80%,
+    rgb(13, 13, 26) 100%
+  );
+  pointer-events: none;
+}
+
+/* 잠금 오버레이 */
+.cd-lock-overlay {
+  background: rgba(13, 13, 26, 0.96);
+  border: 1px solid rgba(42, 42, 74, 0.8);
+  border-radius: 0 0 14px 14px;
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.cd-lock-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.5));
+}
+
+.cd-lock-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e0f5;
+  margin-bottom: 6px;
+}
+
+.cd-lock-desc {
+  font-size: 13px;
+  color: #8884aa;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.cd-lock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #7c6af7, #9c30dc);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(124, 106, 247, 0.4);
+}
+
+.cd-lock-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* 반응형 */
+@media (max-width: 640px) {
+  .cd-disclaimer-bar {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .cd-disclaimer-text {
+    text-align: left;
+  }
+}
