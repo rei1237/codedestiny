@@ -1021,26 +1021,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <div class="neo-glitch-layer"></div>
 </div>
 
-<!-- 개인정보 수집 동의 모달 -->
-<div id="privacy-modal-overlay">
-  <div class="privacy-modal-card">
-    <div class="privacy-title">
-      <span>📜</span>
-      개인정보 수집 및 이용 동의
-    </div>
-    <div class="privacy-content">
-      <p><strong>수집 항목:</strong> 생년월일, 출생시간, 성별 (사주 및 만세력 계산을 위한 필수 정보)</p>
-      <p><strong>수집 및 이용 목적:</strong> 개인 맞춤형 사주, 자미두수, 주역점 및 운세 결과 제공</p>
-      <p><strong>보유 및 이용 기간:</strong> 본 서비스는 입력하신 정보를 서버에 저장하지 않으며, 페이지를 새로고침하거나 닫을 경우 즉시 파기됩니다. (단, 로컬 스토리지를 이용한 저장 시 브라우저 삭제 전까지 보관될 수 있습니다.)</p>
-      <p class="privacy-content-note">사용자는 동의를 거부할 권리가 있으나, 거부 시 운세 풀이 서비스 이용이 제한됩니다.</p>
-    </div>
-    <div class="privacy-btns">
-      <button class="btn-cancel" data-action="closePrivacyModal">취소</button>
-      <button class="btn-agree" data-action="agreeAndCalculate">동의하고 결과 보기</button>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ 사주 풀이 로딩 애니메이션 (만세력) ═══ -->
 
 <div id="sajuLoaderOverlay">
@@ -1336,20 +1316,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <button id="dpSaveBtn" class="dp-save-btn" data-action="dpSaveProfile">
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
-      <!-- [UX FIX] 개인정보 동의 인라인 체크박스 — 페이지 로드 시 모달 표시 금지 -->
-      <label class="privacy-inline-consent" id="privacyConsentLabel">
-        <input type="checkbox" id="privacyConsentCheck" aria-required="true">
-        <span>개인정보 수집·이용에 동의합니다 (<a href="/privacy-policy" target="_blank" rel="noopener">전문 보기</a>)</span>
-      </label>
       <!-- [UX FIX] 분석 중 로딩 스피너 -->
       <div class="loading-spinner" id="sajuLoadingSpinner" aria-live="polite" aria-label="분석 중">운명을 해석하는 중...</div>
       <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
     </section><!-- /section.card.input-section -->
-
-    <div class="post-saju-services-intro" role="note" aria-live="polite">
-      <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
-      <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
-    </div>
 
     <!-- ═══ 부가 기능 카드 그리드 ═══ -->
     <div class="feature-card-grid">

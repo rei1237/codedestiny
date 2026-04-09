@@ -3282,27 +3282,13 @@ async function consumeFortunePointAfterCalculation(){
 }
 
 async function checkPrivacyAndCalculate() {
-  // [UX FIX] 팝업 모달 → 인라인 체크박스 확인
-  var chk = document.getElementById('privacyConsentCheck');
-  if (chk && !chk.checked) {
-    var lbl = document.getElementById('privacyConsentLabel');
-    if (lbl) {
-      lbl.style.borderColor = '#ef4444';
-      lbl.style.background = 'rgba(239,68,68,.12)';
-      lbl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      setTimeout(function() {
-        lbl.style.borderColor = '';
-        lbl.style.background = '';
-      }, 2000);
-    }
-    return;
-  }
   sessionStorage.setItem('privacyAgreed', 'true');
   await startSajuCalculationFlow();
 }
 
 function closePrivacyModal() {
-  document.getElementById('privacy-modal-overlay').classList.remove('show');
+  var modal = document.getElementById('privacy-modal-overlay');
+  if (modal) modal.classList.remove('show');
 }
 
 async function agreeAndCalculate() {

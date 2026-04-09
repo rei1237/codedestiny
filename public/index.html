@@ -1025,26 +1025,6 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   <div class="neo-glitch-layer"></div>
 </div>
 
-<!-- 개인정보 수집 동의 모달 -->
-<div id="privacy-modal-overlay">
-  <div class="privacy-modal-card">
-    <div class="privacy-title">
-      <span>📜</span>
-      개인정보 수집 및 이용 동의
-    </div>
-    <div class="privacy-content">
-      <p><strong>수집 항목:</strong> 생년월일, 출생시간, 성별 (사주 및 만세력 계산을 위한 필수 정보)</p>
-      <p><strong>수집 및 이용 목적:</strong> 개인 맞춤형 사주, 자미두수, 주역점 및 운세 결과 제공</p>
-      <p><strong>보유 및 이용 기간:</strong> 본 서비스는 입력하신 정보를 서버에 저장하지 않으며, 페이지를 새로고침하거나 닫을 경우 즉시 파기됩니다. (단, 로컬 스토리지를 이용한 저장 시 브라우저 삭제 전까지 보관될 수 있습니다.)</p>
-      <p class="privacy-content-note">사용자는 동의를 거부할 권리가 있으나, 거부 시 운세 풀이 서비스 이용이 제한됩니다.</p>
-    </div>
-    <div class="privacy-btns">
-      <button class="btn-cancel" data-action="closePrivacyModal">취소</button>
-      <button class="btn-agree" data-action="agreeAndCalculate">동의하고 결과 보기</button>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ 사주 풀이 로딩 애니메이션 (만세력) ═══ -->
 
 <div id="sajuLoaderOverlay">
@@ -1340,20 +1320,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
       <button id="dpSaveBtn" class="dp-save-btn" data-action="dpSaveProfile">
         ✦ 이 정보를 나의 운명 카드에 저장
       </button>
-      <!-- [UX FIX] 개인정보 동의 인라인 체크박스 — 페이지 로드 시 모달 표시 금지 -->
-      <label class="privacy-inline-consent" id="privacyConsentLabel">
-        <input type="checkbox" id="privacyConsentCheck" aria-required="true">
-        <span>개인정보 수집·이용에 동의합니다 (<a href="/privacy-policy" target="_blank" rel="noopener">전문 보기</a>)</span>
-      </label>
       <!-- [UX FIX] 분석 중 로딩 스피너 -->
       <div class="loading-spinner" id="sajuLoadingSpinner" aria-live="polite" aria-label="분석 중">운명을 해석하는 중...</div>
       <button class="btn-main" id="run-btn" data-action="checkPrivacyAndCalculate" disabled>🔄 라이브러리 로딩 중...</button>
     </section><!-- /section.card.input-section -->
-
-    <div class="post-saju-services-intro" role="note" aria-live="polite">
-      <strong>✨ 사주 팔자 이외의 신비한 운세 서비스</strong>
-      <span>아래에는 AI 동물 관상, MBTI 동물 궁합, 타로, 화투점 등 다양한 운세 콘텐츠가 준비되어 있어요. 스크롤하며 원하는 서비스로 편하게 이어서 즐겨보세요.</span>
-    </div>
 
     <!-- ═══ 부가 기능 카드 그리드 ═══ -->
     <div class="feature-card-grid">
@@ -3857,7 +3827,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="pf-card__price">
                 <span class="pf-coin-icon" aria-hidden="true"></span>
                 <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
+                <span class="pf-coin-note" data-krw="5000" data-label="영구 해금">영구 해금 · 약 5,000원</span>
               </div>
               <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">
                 지금 열람하기 →
@@ -3887,7 +3857,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="pf-card__price">
                 <span class="pf-coin-icon" aria-hidden="true"></span>
                 <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
+                <span class="pf-coin-note" data-krw="5000" data-label="영구 해금">영구 해금 · 약 5,000원</span>
               </div>
               <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">
                 지금 열람하기 →
@@ -3917,7 +3887,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <div class="pf-card__price">
                 <span class="pf-coin-icon" aria-hidden="true"></span>
                 <span class="pf-coin-amount">50코인</span>
-                <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
+                <span class="pf-coin-note" data-krw="5000" data-label="영구 해금">영구 해금 · 약 5,000원</span>
               </div>
               <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">
                 지금 열람하기 →
@@ -4802,7 +4772,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
               <span class="lb-coin-icon">🪙</span>
               <span class="lb-coin-label"><strong>490코인</strong> · 1회 이용 (코인 충전 후 이용 가능)</span>
             </div>
-          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook">
+          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook" data-coin-cost="490">
             <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
             <span class="lb-btn-coin">🪙 490코인</span>
             나의 인생의 책 생성하기 →
@@ -5312,6 +5282,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <script data-cd-noncritical-src="/js/iching-modal.js?v=20260321-sukuyo-scroll2"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
+<script data-cd-noncritical-src="/js/cd-google-translate-lazy.js" data-cd-skip-save-data="1"></script>
 <script data-cd-noncritical-src="/js/cd-lang-native.js"></script>
 
 <!-- 관상 분석 스크립트는 mobile-performance-bootstrap에서 필요 시 로드 -->
@@ -5435,8 +5406,12 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   ];
 
   function formatWon(value) {
+    // cd-lang-native.js가 통화 변환 시 window.formatWon을 오버라이드함
+    if (window.__cdCurrencyFmt) return window.__cdCurrencyFmt(Number(value) || 0);
     return (Number(value) || 0).toLocaleString('ko-KR') + '원';
   }
+  // 전역 노출 (cd-lang-native.js에서 오버라이드 가능하도록)
+  window.formatWon = formatWon;
 
   function getSelectedPackage() {
     for (var i = 0; i < goldenPackages.length; i += 1) {
@@ -5619,7 +5594,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
         '    <span class="golden-grain-package__coin">+' + baseCoins.toLocaleString('ko-KR') + '코인 <svg class="gg-star-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="#d97706" aria-hidden="true" style="display:inline-block;vertical-align:-2px;margin-left:2px;flex-shrink:0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg></span>',
         '  </span>',
         '  <span class="golden-grain-package__meta">',
-        '    <span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span>',
+        '    <span class="golden-grain-package__price" data-krw="' + pkg.price + '">' + formatWon(pkg.price) + '</span>',
         '    <span class="golden-grain-package__total">총 ' + totalCoins.toLocaleString('ko-KR') + '코인</span>',
         '  </span>',
         bonusHTML,
