@@ -1350,6 +1350,53 @@ export async function POST(req) {
     const models = pickZiweiModels();
     let lastError = null;
 
+    // Vertex AI 우선 시도 (고품질·장문 출력 우선)
+    if (vertexKey) {
+      for (const model of models) {
+        const endpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(model));
+        const generationConfig = makeGenerationConfig(model);
+        const requestBody = JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig,
+        });
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": vertexKey,
+            },
+            body: requestBody,
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (response.ok) {
+            const text = parseText(payload);
+            const finishReason = getFinishReason(payload);
+            if (text) {
+              return NextResponse.json({
+                ok: true,
+                text: finishReason === "MAX_TOKENS"
+                  ? text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달했을 수 있습니다.*"
+                  : text,
+                sessionId,
+                title: config.title,
+                emoji: config.emoji,
+                model: `vertex/${model}`,
+                truncated: finishReason === "MAX_TOKENS",
+              });
+            }
+          }
+          lastError = getApiErrorMessage(response.status, payload);
+        } catch (fetchErr) {
+          lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
+        }
+      }
+    }
+
+    // Gemini 폴백
     for (const apiKey of geminiKeys) {
       for (const model of models) {
         const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
@@ -1400,47 +1447,6 @@ export async function POST(req) {
           } catch (fetchErr) {
             lastError = String(fetchErr?.message || "네트워크 오류");
           }
-        }
-      }
-    }
-
-    if (vertexKey) {
-      for (const model of models) {
-        const endpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(model));
-        const generationConfig = makeGenerationConfig(model);
-        const requestBody = JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig,
-        });
-
-        try {
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": vertexKey,
-            },
-            body: requestBody,
-          });
-          const payload = await response.json().catch(() => ({}));
-
-          if (response.ok) {
-            const text = parseText(payload);
-            if (text) {
-              return NextResponse.json({
-                ok: true,
-                text,
-                sessionId,
-                title: config.title,
-                emoji: config.emoji,
-                model: `vertex/${model}`,
-              });
-            }
-          }
-          lastError = getApiErrorMessage(response.status, payload);
-        } catch (fetchErr) {
-          lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
         }
       }
     }
