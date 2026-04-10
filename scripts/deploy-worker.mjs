@@ -60,6 +60,38 @@ if (!existsSync(workerConfig)) {
   process.exit(1);
 }
 
+// Guardrail: avoid hitting Cloudflare API with known oversize bundles.
+const sizeCheck = isWindows
+  ? spawnSync("node", ["scripts/verify-worker-size-budget.mjs"], {
+      stdio: "inherit",
+      shell: false,
+      cwd: rootDir,
+      env: process.env,
+    })
+  : spawnSync("node", ["scripts/verify-worker-size-budget.mjs"], {
+      stdio: "inherit",
+      shell: false,
+      cwd: rootDir,
+      env: process.env,
+    });
+
+if (sizeCheck.error) {
+  console.error("[deploy-worker] Failed to run size budget check:", sizeCheck.error.message);
+  process.exit(1);
+}
+
+const sizeCheckStatus = typeof sizeCheck.status === "number" ? sizeCheck.status : 1;
+if (sizeCheckStatus === 2) {
+  console.warn(
+    "[deploy-worker] Worker deploy skipped: bundle exceeds free-plan budget. " +
+      "Reduce runtime bundle size or upgrade plan to avoid Cloudflare API failure (10027).",
+  );
+  process.exit(0);
+}
+if (sizeCheckStatus !== 0) {
+  process.exit(sizeCheckStatus);
+}
+
 const workerName =
   process.env.CF_WORKER_NAME ||
   process.env.CLOUDFLARE_WORKER_NAME ||

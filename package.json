@@ -25,6 +25,7 @@
     "secrets:cf:pages": "node scripts/sync-cloudflare-pages-secrets.mjs",
     "sanitize:cf-env": "node scripts/sanitize-open-next-env.mjs",
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
+    "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
     "verify:entry-encoding": "node scripts/verify-entry-encoding.mjs",
     "perf:psi": "node scripts/measure-psi.mjs",
     "perf:psi:before": "node scripts/measure-psi.mjs --out reports/psi-before.json",
