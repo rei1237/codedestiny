@@ -307,12 +307,12 @@
 
     if (_mysticTimer) clearInterval(_mysticTimer);
     var _mqIdx=0;
-    if (mysticEl) { mysticEl.textContent=MYSTIC_QUOTES[0]; mysticEl.classList.remove('zb-fade-out'); }
+    if (mysticEl) { mysticEl.textContent=MYSTIC_QUOTES[0]; mysticEl.classList.remove('lb-fade-out'); }
     _mysticTimer = setInterval(function(){
       _mqIdx=(_mqIdx+1)%MYSTIC_QUOTES.length;
       if (mysticEl) {
-        mysticEl.classList.add('zb-fade-out');
-        setTimeout(function(){ if(mysticEl){ mysticEl.textContent=MYSTIC_QUOTES[_mqIdx]; mysticEl.classList.remove('zb-fade-out'); } },420);
+        mysticEl.classList.add('lb-fade-out');
+        setTimeout(function(){ if(mysticEl){ mysticEl.textContent=MYSTIC_QUOTES[_mqIdx]; mysticEl.classList.remove('lb-fade-out'); } },420);
       }
     },3600);
 
