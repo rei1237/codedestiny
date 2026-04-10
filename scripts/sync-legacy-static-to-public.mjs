@@ -122,6 +122,13 @@ function syncStylesDir() {
 const rootIndexPath = resolve(rootDir, "index.html");
 const publicIndexPath = resolve(publicDir, "index.html");
 
+function applyLocaleSeoMeta(indexHtml, localePath) {
+  const canonicalUrl = `https://code-destiny.com${localePath}`;
+  return indexHtml
+    .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);
+}
+
 if (!existsSync(publicDir)) {
   mkdirSync(publicDir, { recursive: true });
 }
@@ -196,10 +203,12 @@ if (existsSync(publicIndex)) {
   writeFileSync(resolve(staticDir, "index.html"), indexBuf);
   console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
 
+  const baseIndexHtml = indexBuf.toString("utf8");
   for (const loc of localeLandingDirs) {
     const locDir = resolve(publicDir, loc);
     mkdirSync(locDir, { recursive: true });
-    writeFileSync(resolve(locDir, "index.html"), indexBuf);
+    const localeIndexHtml = applyLocaleSeoMeta(baseIndexHtml, `/${loc}`);
+    writeFileSync(resolve(locDir, "index.html"), Buffer.from(localeIndexHtml, "utf8"));
   }
   console.log(
     `[sync-legacy-static-to-public] Locale landing pages: /${localeLandingDirs.join(", /")}/index.html`,

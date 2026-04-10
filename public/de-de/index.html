@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -19,7 +19,7 @@
 <link rel="sitemap" type="application/xml" title="Sitemap" href="https://code-destiny.com/sitemap.xml">
 
 <!-- ═══ SEO: Canonical & Hreflang (public/static/index.html 과 동일 — sync 시 복사됨) ═══ -->
-<link rel="canonical" href="https://code-destiny.com/">
+<link rel="canonical" href="https://code-destiny.com/de-de">
 <link rel="alternate" hreflang="ko" href="https://code-destiny.com/">
 <link rel="alternate" hreflang="en" href="https://code-destiny.com/en-us">
 <link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja-jp">
@@ -51,7 +51,7 @@
 <meta property="og:site_name" content="코드 데스티니 꿀꿀 만세력">
 <meta property="og:title" content="무료 사주팔자·타로·오늘의 운세 | 코드 데스티니">
 <meta property="og:description" content="생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.">
-<meta property="og:url" content="https://code-destiny.com/">
+<meta property="og:url" content="https://code-destiny.com/de-de">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="og:locale:alternate" content="ja_JP">
@@ -520,6 +520,7 @@ background-size:200% 100%!important;animation:cd-lib-shimmer 1.5s infinite!impor
 border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 @keyframes cd-lib-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cd-reduced-motion *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 
   <!-- ════════════════════════════════════════════════════════
@@ -527,11 +528,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
-
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
     <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260329-datefix3">
+    <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1"></noscript>
+    <link rel="preload" as="style" href="/styles/main-glass.css?v=20260328-animaluxfix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1"></noscript>
+    <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260329-datefix3" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/mobile-ux.css?v=20260329-datefix3"></noscript>
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
@@ -1088,9 +1091,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig.webp"
-            srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
+          <picture>
+            <source
+              srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+              sizes="(max-width: 768px) 88px, 130px"
+              type="image/webp">
+            <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig-130.webp"
+              width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
+          </picture>
         </div>
         <h1>생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
         <p>사주팔자 · 타로 · 점성술 · 자미두수 — 동서양 운세 통합</p>
@@ -1280,8 +1288,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
-        <label class="form-label">생년월일</label>
-        <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
+        <label class="form-label" for="birthDate">생년월일</label>
+        <input class="inp" type="date" id="birthDate" aria-label="생년월일" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
         <div class="form-radio-row">
           <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
@@ -1293,15 +1301,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="form-group">
         <label class="form-label">출생 시간</label>
         <div class="row2">
-          <select class="inp" id="birthHour"></select>
-          <select class="inp" id="birthMinute"></select>
+          <label for="birthHour" class="sr-only">출생 시(시간)</label>
+          <select class="inp" id="birthHour" aria-label="출생 시(시간)"></select>
+          <label for="birthMinute" class="sr-only">출생 분(분)</label>
+          <select class="inp" id="birthMinute" aria-label="출생 분(분)"></select>
         </div>
       </div>
       
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
-        <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
-        <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
+        <label class="form-label form-label-dark" for="birthCountry">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <select class="inp form-country-select" id="birthCountry" aria-label="출생 국가" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
         
@@ -1666,6 +1676,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__desc">12개월 연간 운세</span>
               </div>
             </button>
+
+            <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
+               aria-label="이직 운명의 카드 타로 시작">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=20260411-ijik1" data-img-alt="이직 운명의 카드 — 7카드 커리어 스프레드">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=20260411-ijik1" alt="이직 운명의 카드 — 7카드 커리어 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
+                <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">💼 이직 운명의 카드</span>
+                <span class="tarot-tile__desc">7카드 커리어 스프레드</span>
+              </div>
+            </a>
 
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
@@ -4286,9 +4309,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🌌 자미두수 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4307,11 +4327,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🌅 총결산 — 거장의 마스터플랜 봉서</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">
-            🌌 자미두수 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+
+        <!-- 로딩 화면 -->
         <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🌌</div>
@@ -4420,9 +4437,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4437,14 +4451,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>🧭 Lunar Nodes — 영혼의 나침반</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🔮 시냅스트리 — 관계의 심리적 투사</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>⭕ 컴포지트 — 우리라는 독립적 운명</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 &amp; 개운법</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 & 개운법</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
-            ✨ 점성술 코즈믹 차트 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+
+        <!-- 로딩 화면 -->
         <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">✨</div>
@@ -4552,32 +4563,26 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             💫 숙요점 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.1</span><span>🌑 영혼의 원형 — 숙요별이 새긴 운명 코드</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.2</span><span>🌊 감정의 조수간만 — 달의 정서 파동</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 기억되는 방식</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 당신을 기억하는 방식</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.4</span><span>💰 자산의 중력 — 달빛 부의 전략</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.5</span><span>⚙️ 보이지 않는 톱니바퀴 — 협력 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.6</span><span>📡 관계의 정밀 레이더 — 6대 숙요 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.7</span><span>💥 파괴적 혁신 — 위기를 기회로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.8</span><span>🌿 조화로운 성장 — 공간과 환경의 법칙</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>❤️ 정서적 유대 — 깊은 연결과 감정 지능</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 밸런스</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 뱀파이어</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>🌙 달의 주기 — 월령 에너지 사이클</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 독소를 황금으로</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 인연의 독소를 황금으로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🗺️ 영혼의 마스터플랜 — 10년 로드맵</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+
+        <!-- 로딩 화면 -->
         <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">💫</div>
@@ -4685,9 +4690,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🪷 베다 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4705,11 +4707,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>🌟 마스터플랜 — 북극성 인생 선언문</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
-            🪷 베다 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
@@ -5536,39 +5536,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function requestAdminFlowerEntry() {
-    var password = window.prompt('관리자 꽃 진입 비밀번호를 입력해 주세요.');
-    if (password === null) return;
-    password = String(password || '').trim();
-    if (!password) {
-      window.alert('비밀번호를 입력해 주세요.');
-      return;
-    }
-
-    try {
-      var response = await fetch('/api/admin/entry/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: password }),
-      });
-
-      if (!response.ok) {
-        window.alert('비밀번호가 일치하지 않습니다.');
-        return;
-      }
-
-      var payload = {};
-      try { payload = await response.json(); } catch (_e) {}
-
-      // 서명된 관리자 세션 토큰을 sessionStorage에 보관 (탭 닫으면 자동 소멸)
-      var adminToken = (payload && payload.adminToken) ? String(payload.adminToken) : '';
-      if (adminToken) {
-        try { sessionStorage.setItem('flower_admin_token', adminToken); } catch (_e2) {}
-      }
-
-      window.location.href = '/admin';
-    } catch (_e) {
-      window.alert('관리자 진입 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-    }
+    window.location.href = '/admin/login';
   }
 
   function getAuthToken() {
@@ -5894,6 +5862,43 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  function _cdZiweiTrace(stage, payload) { /* suppressed */ }
+  window.__cdZiweiTrace = _cdZiweiTrace;
+
+  function _cdGetZiweiProfileCandidate() {
+    try {
+      var p = window.__cdActiveBirthProfile;
+      if (p && p.birth && p.birth.year) return p;
+      var s = window.__destinyFlowerSajuSnapshot;
+      if (s && s.birth && s.birth.year) return s;
+      var dateEl = document.getElementById('birthDate');
+      if (!dateEl || !dateEl.value) return null;
+      var parts = String(dateEl.value).split('-');
+      if (parts.length < 3) return null;
+      var y = Number(parts[0]);
+      var m = Number(parts[1]);
+      var d = Number(parts[2]);
+      if (!y || !m || !d) return null;
+      var hourEl = document.getElementById('birthHour');
+      var minEl = document.getElementById('birthMinute');
+      var nameEl = document.getElementById('nameInput');
+      var isFemale = document.querySelector('#btnF.on') !== null;
+      return {
+        name: (nameEl && nameEl.value && nameEl.value.trim()) || '사용자',
+        gender: isFemale ? 'F' : 'M',
+        birth: {
+          year: y,
+          month: m,
+          day: d,
+          hour: hourEl ? Number(hourEl.value) : 12,
+          minute: minEl ? Number(minEl.value) : 0
+        }
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
@@ -5913,33 +5918,64 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
-      if (typeof window.openZiweiBookModal === 'function') {
-        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openZiweiBookModal(); }
-          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-        });
-      } else {
-        // ziwei-book.js lazy load 후 재호출
-        (function() {
-          var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
-          var _zbLoadFn = function() {
-            var s = document.querySelector('script[src*="ziwei-book.js"]');
-            if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
-              return Promise.resolve();
+      var _profileCandidate = _cdGetZiweiProfileCandidate();
+      _cdZiweiTrace('CLICK', {
+        action: action,
+        hasProfile: !!(_profileCandidate && _profileCandidate.birth),
+      });
+
+      var _invokeZiwei = function() {
+        try {
+          if (typeof window.openZiweiBookModal === 'function') {
+            _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
+            window.openZiweiBookModal(_profileCandidate || null);
+            return true;
+          }
+        } catch (e) {
+          _cdZiweiTrace('FUNCTION_CALL_ERROR', { message: e && e.message ? e.message : String(e) });
+        }
+        return false;
+      };
+
+      if (_invokeZiwei()) return;
+
+      // ziwei-book.js lazy load 후 재호출 (레이스 컨디션 방지)
+      (function() {
+        var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
+        var _zbLoadFn = function() {
+          var s = document.querySelector('script[src*="ziwei-book.js"]');
+          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+            _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
+            return Promise.resolve();
+          }
+          return new Promise(function(res, rej) {
+            var el = document.createElement('script');
+            el.src = '/js/ziwei-book.js?v=20260411-zfix1';
+            el.defer = true;
+            el.onload = function() {
+              el.dataset.loaded = '1';
+              _cdZiweiTrace('JS_LOADED', { via: 'dynamic-script' });
+              res();
+            };
+            el.onerror = function(err) {
+              _cdZiweiTrace('JS_LOAD_ERROR', {});
+              rej(err);
+            };
+            document.head.appendChild(el);
+          });
+        };
+        (_zbLoader ? _zbLoader() : _zbLoadFn())
+          .then(function() {
+            _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
+            if (!_invokeZiwei()) {
+              _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
             }
-            return new Promise(function(res, rej) {
-              var el = document.createElement('script');
-              el.src = '/js/ziwei-book.js?v=20260411-zfix1';
-              el.onload = function() { el.dataset.loaded = '1'; res(); };
-              el.onerror = rej;
-              document.head.appendChild(el);
-            });
-          };
-          (_zbLoader ? _zbLoader() : _zbLoadFn()).then(function() {
-            if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
-          }).catch(function(e) { console.error('[prem-card ziwei]', e); });
-        })();
-      }
+          })
+          .catch(function(e) {
+            _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
+            console.error('[prem-card ziwei]', e);
+          });
+      })();
       return;
     }
     // 명시적 핸들러: openLifeBookModal
@@ -6481,6 +6517,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/life-book.js?v=20260410-v2" defer></script>
 <script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
@@ -7804,9 +7842,9 @@ if (document.readyState === 'loading') {
 <!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline">
-      <input type="checkbox" id="themeCheckbox" />
-      <div class="slider">
+    <label class="theme-switch theme-switch-inline" for="themeCheckbox">
+      <input type="checkbox" id="themeCheckbox" aria-label="테마 전환" />
+      <div class="slider" aria-hidden="true">
         <span class="nose-hole hole-left"></span>
         <span class="nose-hole hole-right"></span>
         <span class="paw-pad pad-1"></span>
