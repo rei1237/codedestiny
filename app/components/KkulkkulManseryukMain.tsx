@@ -840,6 +840,8 @@ export default function KkulkkulManseryukMain() {
             <img
               src="/fuctionassets/lovesimulation.webp"
               alt="LOVE CODE 사주 연애 시뮬레이션"
+              width={1200}
+              height={800}
               className="w-full object-cover"
               style={{ display: 'block' }}
             />

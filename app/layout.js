@@ -275,7 +275,7 @@ export default async function RootLayout({ children }) {
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
         <AppVersionGuard />
         <WebVitalsConsole />
@@ -314,8 +314,8 @@ export default async function RootLayout({ children }) {
           </a>
           <AuthWidget />
         </header>
-        <DisclaimerBanner />
         <div>{children}</div>
+        <DisclaimerBanner />
         {!hideFooter && <SiteFooterHub />}
       </body>
     </html>
