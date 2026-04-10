@@ -381,12 +381,16 @@
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
       '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
       bodyHtml+'</body></html>';
-    var blob=new Blob([fullHtml],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');a.href=url;
-    var fname=(profile.name||'사용자')+'_베다_인생_총람_'+new Date().toLocaleDateString('ko-KR').replace(/[\.\/]/g,'').trim()+'.html';
-    a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(url);},5000);
+    var win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) {
+      alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
+      return;
+    }
+    win.document.open();
+    win.document.write(fullHtml);
+    win.document.close();
+    win.focus();
+    setTimeout(function () { try { win.print(); } catch (_) {} }, 1200);
   };
 
   document.addEventListener('click',function(e){
