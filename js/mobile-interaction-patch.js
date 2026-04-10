@@ -732,6 +732,18 @@
       return true;
     }
 
+    // 프리미엄 4종 코인 타일은 여기서 합성 click으로 소비하지 않고,
+    // 전역 클릭 핸들러로 넘겨 Preview/게이트를 정상 경유시킨다.
+    var isPremGateAction = (
+      action === 'gotoZiweiPremium'
+      || action === 'gotoAstrologyPremium'
+      || action === 'gotoSukuyoPremium'
+      || action === 'gotoVedicPremium'
+    );
+    if (isPremGateAction && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
+      return false;
+    }
+
     // Let the global data-action binder handle generic actions.
     if (typeof actionEl.click === 'function') {
       actionEl.click();

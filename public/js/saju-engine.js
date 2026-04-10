@@ -1,4 +1,4 @@
-﻿/* 사주 엔진 코어 (1/4). 이어서: js/saju-engine-tarot-sukuyo-quantum.js → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js */
+/* 사주 엔진 코어 (1/4). 이어서: js/saju-engine-tarot-sukuyo-quantum.js → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js */
 /* ═══════════════════════════════════════
    STEP 1: CDN 폴백 라이브러리 로딩
 ═══════════════════════════════════════ */
@@ -18796,4 +18796,3 @@ function showQuantumResult() {
       setTimeout(() => { dBoard.classList.add('show'); }, 100);
   }
 }
-

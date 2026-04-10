@@ -5937,8 +5937,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
     try {
       var _pvwOverlay = document.getElementById('tilePvwOverlay');
-      if (_pvwOverlay) _pvwOverlay.classList.remove('pvw-open');
+      if (_pvwOverlay) {
+        _pvwOverlay.classList.remove('pvw-open');
+        _pvwOverlay.classList.remove('pvw-prem');
+      }
       document.body.style.overflow = '';
+      document.body.classList.remove('lb-modal-open');
     } catch (_) {}
     if(action==='toggleRptCard'){if(typeof window.toggleReportFeatureCard==='function')window.toggleReportFeatureCard(actionEl);return;}
     // <a href> 타일: href 경로로 직접 이동
@@ -6790,6 +6794,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function _close(){
     if(_ov){_ov.classList.remove('pvw-open');_ov.classList.remove('pvw-prem');}
+    try {
+      document.body.style.overflow='';
+      document.body.classList.remove('lb-modal-open');
+    } catch(_) {}
     _pendingTile=null;_pendingHref=null;
   }
 
@@ -6827,9 +6835,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
     if (!key || !D[key]) return false;
-    if (!_ov) _init();
-    _open(tile, href, D[key]);
-    return true;
+    try {
+      if (!_ov) _init();
+      if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
+      _open(tile, href, D[key]);
+      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
+    } catch (err) {
+      console.error('[tile-preview] open failed:', err);
+      return false;
+    }
   };
 
   if(document.readyState==='loading'){

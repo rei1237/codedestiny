@@ -261,12 +261,13 @@ body.lb-modal-open {
   position: fixed;
   inset: 0;
   z-index: 100120;
+  /* 모바일: 단색 배경으로 하단 콘텐츠 완전 차단 */
   background: #08041a;
   font-family: 'Gowun Dodum', 'Noto Serif KR', sans-serif;
 }
 
 .lb-modal__overlay {
-  display: none;
+  display: none; /* 모바일: 패널이 풀스크린이므로 오버레이 숨김 */
   position: absolute;
   inset: 0;
   background: rgba(5, 0, 20, 0.88);
@@ -275,6 +276,7 @@ body.lb-modal-open {
   cursor: pointer;
 }
 
+/* 모바일: 패널 = 전체화면 */
 .lb-modal__panel {
   position: fixed;
   inset: 0;
@@ -292,6 +294,7 @@ body.lb-modal-open {
   -webkit-overflow-scrolling: touch;
 }
 
+/* 데스크톱: 가운데 카드 스타일 */
 @media (min-width: 620px) {
   .lb-modal {
     display: flex;
