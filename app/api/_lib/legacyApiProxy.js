@@ -11,21 +11,66 @@ function normalizeBaseUrl(rawValue) {
   }
 }
 
-function getLegacyApiBase() {
-  // AUTH_API_BASE_URL 만 사용: CODE_DESTINY_API_URL 등 프론트엔드 도메인 변수를
-  // fallback으로 사용하면 동일 도메인 루프 오류가 발생하므로 제거함.
-  const normalized = normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
-  return normalized;
+function isLocalHostName(hostname) {
+  const normalized = String(hostname || "").toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1";
+}
+
+function parseUrlSafe(rawValue) {
+  try {
+    return new URL(String(rawValue || ""));
+  } catch {
+    return null;
+  }
+}
+
+function isEquivalentOrigin(a, b) {
+  const urlA = parseUrlSafe(a);
+  const urlB = parseUrlSafe(b);
+  if (!urlA || !urlB) return false;
+
+  const sameProtocol = urlA.protocol === urlB.protocol;
+  const samePort = urlA.port === urlB.port;
+  const sameHost = urlA.hostname === urlB.hostname;
+  if (sameProtocol && samePort && sameHost) return true;
+
+  // localhost, 127.0.0.1, ::1 은 개발환경에서 같은 로컬 호스트로 취급
+  if (!sameProtocol || !samePort) return false;
+  return isLocalHostName(urlA.hostname) && isLocalHostName(urlB.hostname);
+}
+
+function resolveLegacyApiBase(request) {
+  const incomingUrl = new URL(request.url);
+  const incomingOrigin = incomingUrl.origin.replace(/\/$/, "");
+  const configuredBase = normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
+
+  if (!configuredBase) {
+    if (isLocalHostName(incomingUrl.hostname) && incomingUrl.port !== "4000") {
+      return "http://localhost:4000";
+    }
+    return "";
+  }
+
+  if (!isEquivalentOrigin(incomingOrigin, configuredBase)) {
+    return configuredBase;
+  }
+
+  // 로컬에서 AUTH_API_BASE_URL이 현재 Next origin으로 잘못 설정된 경우 자동 보정
+  if (isLocalHostName(incomingUrl.hostname) && incomingUrl.port !== "4000") {
+    return "http://localhost:4000";
+  }
+
+  return "";
 }
 
 export async function proxyLegacyApi(request) {
-  const base = getLegacyApiBase();
+  const base = resolveLegacyApiBase(request);
   if (!base) {
     return NextResponse.json(
       {
         ok: false,
         error: "legacy_api_base_missing",
-        message: "AUTH_API_BASE_URL or CODE_DESTINY_API_URL must be configured.",
+        message: "AUTH_API_BASE_URL must be configured to external API host (example: http://localhost:4000).",
       },
       { status: 503 },
     );
@@ -33,7 +78,7 @@ export async function proxyLegacyApi(request) {
 
   const incomingUrl = new URL(request.url);
   const incomingOrigin = incomingUrl.origin.replace(/\/$/, "");
-  if (incomingOrigin === base) {
+  if (isEquivalentOrigin(incomingOrigin, base)) {
     return NextResponse.json(
       {
         ok: false,
@@ -77,7 +122,7 @@ export async function proxyLegacyApi(request) {
  * @param {(path: string) => string} rewriteFn - pathname 변환 함수
  */
 export async function proxyLegacyApiWithRewrite(request, rewriteFn) {
-  const base = getLegacyApiBase();
+  const base = resolveLegacyApiBase(request);
   if (!base) {
     return new Response(
       JSON.stringify({ ok: false, error: "legacy_api_base_missing" }),
@@ -86,6 +131,17 @@ export async function proxyLegacyApiWithRewrite(request, rewriteFn) {
   }
 
   const incomingUrl = new URL(request.url);
+  if (isEquivalentOrigin(incomingUrl.origin.replace(/\/$/, ""), base)) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: "legacy_api_base_loop",
+        message: "Legacy API base resolves to current origin. Please set AUTH_API_BASE_URL to external API host.",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const newPath = rewriteFn(incomingUrl.pathname);
   const upstream = `${base}${newPath}${incomingUrl.search}`;
 
