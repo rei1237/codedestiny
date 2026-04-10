@@ -10,6 +10,8 @@ import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
+export const dynamic = "force-dynamic";
+
 const CANONICAL_ORIGIN = "https://code-destiny.com";
 const LOCALES = [
   { key: "ko-KR", slug: "", htmlLang: "ko", label: "Korean" },
