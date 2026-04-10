@@ -8,6 +8,7 @@ const {
   createSelfEsteemLevelupReading,
   createYearlyFromThreeCardReading,
   createYearlyTwelveCardReading,
+  createJobChangeTarotReading,
   getCardImageSourcesById,
   getEngineMeta,
   normalizeSpreadType,
@@ -235,6 +236,33 @@ router.post("/reading", (req, res, next) => {
         cards: cardsForUi,
         reading: reading.reading,
         isSelfEsteemReading: true,
+      });
+    }
+
+    if (spreadType === "job_change_seven_card" && drawnCards.length === 7) {
+      const reading = createJobChangeTarotReading({ drawnCards });
+
+      const cardsForUi = reading.cardReadings.map((item) => ({
+        cardId: item.cardId,
+        name: item.name,
+        nameKr: item.nameKr,
+        position: item.position,
+        orientation: item.orientation,
+        imageKey: item.imageKey,
+        imageUrl: item.imageUrl,
+        imageCandidates: item.imageCandidates,
+        proxyImageUrl: item.proxyImageUrl,
+        localImageUrl: item.localImageUrl,
+        keywords: item.keywords,
+      }));
+
+      return res.status(200).json({
+        ok: true,
+        category: reading.category,
+        spreadType: reading.spreadType,
+        cards: cardsForUi,
+        reading: reading.reading,
+        isJobChangeReading: true,
       });
     }
 

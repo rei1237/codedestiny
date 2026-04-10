@@ -86,6 +86,18 @@ const SPREAD_CONFIG = {
     cardCount: 3,
     labels: ["base_energy", "challenge_opportunity", "outcome_advice"],
   },
+  job_change_seven_card: {
+    cardCount: 7,
+    labels: [
+      "calling",          // 나의 천직
+      "happy_direction",  // 행복한 직업의 방향
+      "inner_vocation",   // 내면의 소명
+      "life_after_move",  // 이직 이후의 삶
+      "action_steps",     // 현실화를 위한 행동
+      "let_go",           // 포기해야 할 것
+      "overall_advice",   // 전체적인 조언
+    ],
+  },
 };
 
 const SPREAD_ALIASES = {
@@ -95,6 +107,7 @@ const SPREAD_ALIASES = {
   selfEsteemLevelupFiveCard: "self_esteem_levelup_five_card",
   yearlyTwelveCard: "yearly_twelve_card",
   yearlyThreeCard: "yearly_three_card",
+  jobChangeSevenCard: "job_change_seven_card",
 };
 
 let cachedCards = null;
@@ -2109,6 +2122,91 @@ function createYearlyTwelveCardReading({ drawnCards }) {
   };
 }
 
+function createJobChangeTarotReading({ drawnCards }) {
+  if (!Array.isArray(drawnCards) || drawnCards.length !== 7) {
+    throw new Error("이직 타로 리딩에는 7장의 카드가 필요합니다.");
+  }
+
+  const lookup = buildCardLookup();
+  const cardReadings = drawnCards.map((picked) => {
+    const card = lookup.get(picked.cardId);
+    if (!card) throw new Error(`카드 ID를 찾을 수 없습니다: ${picked.cardId}`);
+    const interpretation = selectInterpretation(card, picked.orientation, "career");
+    const keywords =
+      picked.orientation === "upright"
+        ? card.keywords?.upright || []
+        : card.keywords?.reversed || [];
+    const { imageUrl, imageCandidates, proxyImageUrl, localImageUrl } = buildTarotImageSources(card.name, card.id);
+    return {
+      ...picked,
+      name: card.name,
+      nameKr: card.nameKr || card.name,
+      interpretation,
+      keywords: Array.isArray(keywords) ? keywords : [],
+      suit: card.suit,
+      arcanaType: card.arcanaType,
+      imageUrl,
+      imageCandidates,
+      proxyImageUrl,
+      localImageUrl,
+    };
+  });
+
+  const byPos = {};
+  cardReadings.forEach((r) => { byPos[r.position] = r; });
+
+  const c1 = byPos.calling;
+  const c2 = byPos.happy_direction;
+  const c3 = byPos.inner_vocation;
+  const c4 = byPos.life_after_move;
+  const c5 = byPos.action_steps;
+  const c6 = byPos.let_go;
+  const c7 = byPos.overall_advice;
+
+  const majorCount = cardReadings.filter((r) => r.arcanaType === "Major").length;
+  const positiveSignal = cardReadings.filter((r) => r.orientation === "upright").length;
+
+  const opening = majorCount >= 3
+    ? "메이저 아르카나가 다수 등장해 이 이직 고민이 단순한 직업 변경이 아닌 인생 전환의 핵심 갈림길임을 강조합니다."
+    : "이번 7카드는 이직을 둘러싼 현실적 흐름과 내면의 나침반을 함께 읽어냅니다.";
+
+  const positiveNote = positiveSignal >= 5
+    ? "전반적으로 긍정 에너지가 강해, 솔직한 실행 의지만 더하면 이직이 실제 변화로 연결될 가능성이 높습니다."
+    : positiveSignal >= 3
+    ? "긍정과 점검이 균형을 이루는 흐름이에요. 신중하게 준비하되 결정을 무기한 미루지 마세요."
+    : "여러 카드가 재정비 신호를 보내고 있어요. 지금은 계획을 세우고 내부를 안정화한 뒤 이직을 추진하는 것이 유리합니다.";
+
+  function getPositionMeaning(card, posLabel) {
+    if (!card) return "";
+    const interp = card.interpretation || `${card.nameKr || card.name}가 이 자리에서 중요한 메시지를 전달합니다.`;
+    const orientTail = card.orientation === "reversed"
+      ? "지금은 방향을 재점검하는 시간이 필요합니다."
+      : "이 흐름을 믿고 한 걸음 실행으로 옮겨보세요.";
+    return `${interp} ${orientTail}`;
+  }
+
+  const stage1Summary = `[나의 천직과 진로] ${opening} 카드 1—'${cardLabel(c1)}'는 ${getPositionMeaning(c1, "calling")} 카드 2—'${cardLabel(c2)}'는 ${getPositionMeaning(c2, "happy_direction")} 카드 3—'${cardLabel(c3)}'는 ${getPositionMeaning(c3, "inner_vocation")}`;
+
+  const stage2Summary = `[이직 이후 삶과 실천] 카드 4—'${cardLabel(c4)}'는 이직 후 삶에 대해 이렇게 말합니다: ${getPositionMeaning(c4, "life_after_move")} 카드 5—'${cardLabel(c5)}'는 현실화를 위한 행동으로 ${getPositionMeaning(c5, "action_steps")}`;
+
+  const stage3Summary = `[포기와 조언] 카드 6—'${cardLabel(c6)}'는 포기해야 할 것에 대해 ${getPositionMeaning(c6, "let_go")} 카드 7—'${cardLabel(c7)}'는 전체 조언으로 ${getPositionMeaning(c7, "overall_advice")}`;
+
+  const finalAdvice = `✦ 종합 메시지\n${positiveNote}\n\n이직을 결심할 때 가장 중요한 것은 경제적 조건보다 '내가 어떤 환경에서 활성화되는가'를 파악하는 일입니다. 7장의 카드가 그 나침반 역할을 해주었으니, 오늘 리딩을 기록해 두고 30일 뒤 다시 돌아보세요. 행동 하나가 흐름을 만듭니다.`;
+
+  return {
+    spreadType: "job_change_seven_card",
+    category: "career",
+    cardReadings,
+    reading: {
+      stage1: stage1Summary,
+      stage2: stage2Summary,
+      stage3: stage3Summary,
+      finalAdvice,
+      fullText: `${stage1Summary}\n\n${stage2Summary}\n\n${stage3Summary}\n\n${finalAdvice}`,
+    },
+  };
+}
+
 module.exports = {
   drawCards,
   createReading,
@@ -2118,6 +2216,7 @@ module.exports = {
   createSelfEsteemLevelupReading,
   createYearlyFromThreeCardReading,
   createYearlyTwelveCardReading,
+  createJobChangeTarotReading,
   getCardImageSourcesById,
   getEngineMeta,
   normalizeCategory,
