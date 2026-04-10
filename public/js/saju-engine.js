@@ -4406,6 +4406,91 @@ function renderManse(p){
   if (manseSk) manseSk.setAttribute('hidden', '');
 }
 
+function renderTsSinsalBox(p) {
+  var el = document.getElementById('tsSinsalBox');
+  if (!el) return;
+  /* ── 십이운성 계산 ── */
+  var T12_ORDER = ['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+  var T12_EMO   = {'장생':'🌱','목욕':'🌊','관대':'👑','건록':'💪','제왕':'🏆','쇠':'🍂','병':'🤧','사':'☁️','묘':'🪦','절':'🌫️','태':'🥚','양':'🌸'};
+  var ZODIAC    = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var T12_START = {'甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'};
+  var YANG_S    = {'甲':1,'丙':1,'戊':1,'庚':1,'壬':1};
+  function _t12(ds, br) {
+    if (!ds || !br || !T12_START[ds]) return null;
+    var si = ZODIAC.indexOf(T12_START[ds]), bi = ZODIAC.indexOf(br);
+    if (si < 0 || bi < 0) return null;
+    var step = YANG_S[ds] ? ((bi-si+12)%12) : ((si-bi+12)%12);
+    return T12_ORDER[step] || null;
+  }
+  var pillars = [
+    {label:'년주', stem:p.y.g, branch:p.y.j},
+    {label:'월주', stem:p.m.g, branch:p.m.j},
+    {label:'일주', stem:p.d.g, branch:p.d.j},
+    {label:'시주', stem:p.h.g, branch:p.h.j}
+  ];
+  var twelveHtml = pillars.map(function(row) {
+    var star = _t12(p.d.g, row.branch);
+    var em = star ? (T12_EMO[star]||'•') : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(140,80,180,.12)">'
+      +'<span style="font-size:.82rem;color:#6a1b9a">'+row.label+' <b style="color:#333;letter-spacing:1px">'+(row.stem||'?')+(row.branch||'?')+'</b></span>'
+      +'<span style="font-size:.82rem">'+(star ? em+' <b style="color:#4a148c">'+star+'</b>' : '<span style="color:#bbb">-</span>')+'</span>'
+      +'</div>';
+  }).join('');
+
+  /* ── 신살 계산 (인접 기둥 기준) ── */
+  var qJ = [p.y.j, p.m.j, p.d.j, p.h.j];
+  var qL = ['년지','월지','일지','시지'];
+  var qPairs = [[0,1],[1,2],[2,3]];
+  var sinsal = [];
+  function qHit(map) {
+    var out = [];
+    qPairs.forEach(function(pr) {
+      var a = qJ[pr[0]], b = qJ[pr[1]];
+      if (!a || !b) return;
+      if (map[a+b] || map[b+a]) out.push(qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')');
+    });
+    return out;
+  }
+  var flowerSet = {'子':1,'午':1,'卯':1,'酉':1};
+  qPairs.forEach(function(pr) {
+    var a = qJ[pr[0]], b = qJ[pr[1]];
+    if (flowerSet[a] && flowerSet[b]) sinsal.push({icon:'🌸',name:'곤랑도화',pos:qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')'});
+  });
+  qHit({'子午':1,'丑未':1,'寅申':1,'卯酉':1,'辰戌':1,'巳亥':1}).forEach(function(v){ sinsal.push({icon:'⚡',name:'충살',pos:v}); });
+  qHit({'子未':1,'丑午':1,'寅酉':1,'卯申':1,'辰亥':1,'巳戌':1}).forEach(function(v){ sinsal.push({icon:'🌀',name:'원진살',pos:v}); });
+  qHit({'子未':1,'丑午':1,'寅巳':1,'卯辰':1,'申亥':1,'酉戌':1}).forEach(function(v){ sinsal.push({icon:'🗡️',name:'해살',pos:v}); });
+  qHit({'子酉':1,'卯午':1,'辰丑':1,'未戌':1,'寅亥':1,'巳申':1}).forEach(function(v){ sinsal.push({icon:'💥',name:'파살',pos:v}); });
+  qHit({'子酉':1,'午卯':1,'寅未':1,'申丑':1,'亥辰':1,'巳戌':1}).forEach(function(v){ sinsal.push({icon:'👁️',name:'귀문관살',pos:v}); });
+  var horseSet = {'寅':1,'申':1,'巳':1,'亥':1};
+  qPairs.forEach(function(pr) {
+    var a = qJ[pr[0]], b = qJ[pr[1]];
+    if (horseSet[a] && horseSet[b]) sinsal.push({icon:'🐎',name:'역마살',pos:qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')'});
+  });
+  if (p.d.g && {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'}[p.d.g] === p.d.j) sinsal.push({icon:'⚔️',name:'양인살',pos:'일주 '+(p.d.g+p.d.j)});
+  if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(p.d.g+p.d.j) >= 0) sinsal.push({icon:'💖',name:'홍염살',pos:'일주 '+(p.d.g+p.d.j)});
+
+  var sinsalHtml;
+  if (!sinsal.length) {
+    sinsalHtml = '<div style="color:#aaa;font-size:.82rem;padding:4px 0">인접 기둥 기준 주요 신살 없음</div>';
+  } else {
+    sinsalHtml = sinsal.slice(0, 12).map(function(item) {
+      return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(140,80,180,.12)">'
+        +'<span style="font-size:.95rem">'+item.icon+'</span>'
+        +'<span style="font-size:.82rem"><b style="color:#8e24aa">'+item.name+'</b>&nbsp;<span style="color:#666">'+item.pos+'</span></span>'
+        +'</div>';
+    }).join('');
+  }
+
+  el.innerHTML =
+    '<div style="margin-top:14px;border-radius:12px;background:linear-gradient(135deg,rgba(243,229,245,.85),rgba(237,231,246,.9));padding:14px 16px;border-left:4px solid #8e24aa">'
+    +'<div style="font-weight:700;color:#6a1b9a;font-size:.93rem;margin-bottom:4px">✨ 십이운성 · 신살 빠른 확인</div>'
+    +'<div style="font-size:.78rem;color:#9e6cb8;margin-bottom:10px">일간(日干) 기준 · 인접 기둥 간 신살만 표시</div>'
+    +'<div style="margin-bottom:12px">'+twelveHtml+'</div>'
+    +'<div style="font-weight:600;color:#8e24aa;font-size:.85rem;margin:8px 0 6px">신살(神殺)</div>'
+    +sinsalHtml
+    +'</div>';
+}
+
 function renderTenshin(p){
   var tsSet=new Set();
   var dg=p.d.g;
@@ -4423,6 +4508,7 @@ function renderTenshin(p){
       '</div>';
   });
   document.getElementById('tsGrid').innerHTML=h;
+  renderTsSinsalBox(p);
 }
 
 function renderJohu(johu) {
