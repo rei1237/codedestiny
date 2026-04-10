@@ -391,6 +391,10 @@
       hasArgProfile: !!(profileArg && profileArg.birth),
       hasGlobalProfile: !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth)
     });
+    try {
+      var pvw = document.getElementById('tilePvwOverlay');
+      if (pvw) pvw.classList.remove('pvw-open');
+    } catch (_) {}
     if (profileArg && profileArg.birth && profileArg.birth.year) {
       try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
     }
@@ -424,6 +428,8 @@
       } else {
         _trace('OPEN_MODAL_NO_PROFILE', {});
         modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.pointerEvents = 'auto';
         document.body.style.overflow = 'hidden';
         try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
         _showScreen('zbNoProfileScreen');
@@ -461,6 +467,8 @@
       var epBanner = _qs('zbEpilogueBanner');
       if (epBanner) epBanner.style.display = '';
       modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.pointerEvents = 'auto';
       document.body.style.overflow = 'hidden';
       try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
       return;
@@ -470,6 +478,8 @@
     _currentChapter = 1;
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.pointerEvents = 'auto';
     document.body.style.overflow = 'hidden';
     _trace('OPEN_MODAL_READY', {
       profileName: profile && profile.name ? profile.name : '사용자',
@@ -930,7 +940,7 @@
     if (!btn) return;
     var action = btn.getAttribute('data-action');
 
-    if (action === 'gotoZiweiPremium' || action === 'openZiweiBookModal') {
+    if (action === 'openZiweiBookModal') {
       window.openZiweiBookModal();
       return;
     }

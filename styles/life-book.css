@@ -254,7 +254,7 @@
 .lb-modal {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: 100120;
   display: flex;
   align-items: stretch;
   justify-content: center;
