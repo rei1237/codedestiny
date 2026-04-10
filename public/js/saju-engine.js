@@ -4409,86 +4409,215 @@ function renderManse(p){
 function renderTsSinsalBox(p) {
   var el = document.getElementById('tsSinsalBox');
   if (!el) return;
-  /* ── 십이운성 계산 ── */
   var T12_ORDER = ['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
-  var T12_EMO   = {'장생':'🌱','목욕':'🌊','관대':'👑','건록':'💪','제왕':'🏆','쇠':'🍂','병':'🤧','사':'☁️','묘':'🪦','절':'🌫️','태':'🥚','양':'🌸'};
-  var ZODIAC    = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var T12_EMO = {'장생':'🌱','목욕':'🌊','관대':'👑','건록':'💪','제왕':'🏆','쇠':'🍂','병':'🤒','사':'🌙','묘':'⚰️','절':'✂️','태':'🥚','양':'👶'};
+  var ZODIAC = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   var T12_START = {'甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'};
-  var YANG_S    = {'甲':1,'丙':1,'戊':1,'庚':1,'壬':1};
+  var YANG_S = {'甲':1,'丙':1,'戊':1,'庚':1,'壬':1};
+
   function _t12(ds, br) {
     if (!ds || !br || !T12_START[ds]) return null;
-    var si = ZODIAC.indexOf(T12_START[ds]), bi = ZODIAC.indexOf(br);
+    var si = ZODIAC.indexOf(T12_START[ds]);
+    var bi = ZODIAC.indexOf(br);
     if (si < 0 || bi < 0) return null;
-    var step = YANG_S[ds] ? ((bi-si+12)%12) : ((si-bi+12)%12);
+    var step = YANG_S[ds] ? ((bi - si + 12) % 12) : ((si - bi + 12) % 12);
     return T12_ORDER[step] || null;
   }
-  var pillars = [
-    {label:'년주', stem:p.y.g, branch:p.y.j},
-    {label:'월주', stem:p.m.g, branch:p.m.j},
-    {label:'일주', stem:p.d.g, branch:p.d.j},
-    {label:'시주', stem:p.h.g, branch:p.h.j}
-  ];
-  var twelveHtml = pillars.map(function(row) {
-    var star = _t12(p.d.g, row.branch);
-    var em = star ? (T12_EMO[star]||'•') : '';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(140,80,180,.12)">'
-      +'<span style="font-size:.82rem;color:#6a1b9a">'+row.label+' <b style="color:#333;letter-spacing:1px">'+(row.stem||'?')+(row.branch||'?')+'</b></span>'
-      +'<span style="font-size:.82rem">'+(star ? em+' <b style="color:#4a148c">'+star+'</b>' : '<span style="color:#bbb">-</span>')+'</span>'
-      +'</div>';
-  }).join('');
 
-  /* ── 신살 계산 (인접 기둥 기준) ── */
+  var twelveDetail = {
+    '장생':'새롭게 에너지가 태동하는 단계. 시작, 회복, 배움의 운이 붙는 시기입니다.',
+    '목욕':'감정과 매력이 크게 드러나는 단계. 인간관계 변화가 빠르게 일어납니다.',
+    '관대':'사회성이 확장되고 존재감이 커지는 단계. 평판과 대외활동에 유리합니다.',
+    '건록':'실행력과 생존력이 강해지는 단계. 실전 성과를 만들기 좋은 흐름입니다.',
+    '제왕':'기세가 가장 강한 정점. 리더십, 추진력, 결단이 극대화됩니다.',
+    '쇠':'무리하면 손실이 나는 단계. 속도 조절과 체력 관리가 중요합니다.',
+    '병':'컨디션과 집중력이 흔들리기 쉬운 단계. 보수적 운영이 안전합니다.',
+    '사':'하강 마무리 단계. 집착보다 정리와 재정렬이 성과를 높입니다.',
+    '묘':'과거 패턴을 정리하는 단계. 숨고르기와 내면 재정비에 유리합니다.',
+    '절':'기존 흐름이 끊기는 전환점. 과감한 리셋이 필요한 타이밍입니다.',
+    '태':'새싹이 준비되는 잠복 단계. 기초체력과 기반 구축이 핵심입니다.',
+    '양':'출발 직전의 성장 단계. 지원과 도움을 받으며 판을 키워야 합니다.'
+  };
+
+  var sinsalDetail = {
+    '천을귀인':'어려운 순간 도와주는 귀인운. 인맥/조력/구조 신호가 강해집니다.',
+    '곤랑도화':'이성/대중 매력 상승. 주목도와 감정 자극이 커지므로 경계도 필요합니다.',
+    '충살':'충돌/변동/이동 신호. 변화는 크지만 방향만 맞으면 돌파력이 됩니다.',
+    '원진살':'감정 꼬임과 오해가 생기기 쉬움. 말의 톤과 타이밍 관리가 핵심입니다.',
+    '해살':'관계 피로와 잔손실 신호. 약속, 문서, 건강 루틴을 보수적으로 관리하세요.',
+    '파살':'계획 파손/변경이 잦은 운. 플랜B와 예비 자원을 확보하면 피해를 줄일 수 있습니다.',
+    '귀문관살':'직관과 몰입은 강하지만 예민함도 커짐. 과해석을 줄이고 사실 검증이 필요합니다.',
+    '역마살':'이동/변화/확장 운. 여행, 이직, 영업, 새로운 판 개척에 강점이 드러납니다.',
+    '양인살':'자기주장/결단이 강해짐. 카리스마는 장점, 독단은 리스크가 됩니다.',
+    '홍염살':'매혹과 호감도가 상승. 관계의 진정성과 경계선을 함께 챙겨야 안정적입니다.'
+  };
+
+  var pillars = [
+    { label:'년주', stem:p.y.g, branch:p.y.j },
+    { label:'월주', stem:p.m.g, branch:p.m.j },
+    { label:'일주', stem:p.d.g, branch:p.d.j },
+    { label:'시주', stem:p.h.g, branch:p.h.j }
+  ];
+
+  var twelveItems = [];
+  pillars.forEach(function(row) {
+    var star = _t12(p.d.g, row.branch);
+    if (!star) return;
+    twelveItems.push({
+      key: star,
+      name: star,
+      icon: T12_EMO[star] || '✨',
+      pos: row.label + ' ' + (row.stem || '?') + (row.branch || '?'),
+      desc: twelveDetail[star] || '해당 운성의 상세 해석입니다.'
+    });
+  });
+
   var qJ = [p.y.j, p.m.j, p.d.j, p.h.j];
   var qL = ['년지','월지','일지','시지'];
   var qPairs = [[0,1],[1,2],[2,3]];
-  var sinsal = [];
-  function qHit(map) {
-    var out = [];
+  var sinsalItems = [];
+  var sinsalDup = {};
+
+  function _pushSinsal(name, icon, pos) {
+    var key = name + '|' + pos;
+    if (sinsalDup[key]) return;
+    sinsalDup[key] = 1;
+    sinsalItems.push({
+      key: name,
+      name: name,
+      icon: icon,
+      pos: pos,
+      desc: sinsalDetail[name] || '신살 상세 해석입니다.'
+    });
+  }
+
+  function _qHit(name, icon, map) {
     qPairs.forEach(function(pr) {
       var a = qJ[pr[0]], b = qJ[pr[1]];
       if (!a || !b) return;
-      if (map[a+b] || map[b+a]) out.push(qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')');
+      if (map[a+b] || map[b+a]) _pushSinsal(name, icon, qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')');
     });
-    return out;
   }
+
   var flowerSet = {'子':1,'午':1,'卯':1,'酉':1};
   qPairs.forEach(function(pr) {
     var a = qJ[pr[0]], b = qJ[pr[1]];
-    if (flowerSet[a] && flowerSet[b]) sinsal.push({icon:'🌸',name:'곤랑도화',pos:qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')'});
+    if (flowerSet[a] && flowerSet[b]) _pushSinsal('곤랑도화', '🌸', qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')');
   });
-  qHit({'子午':1,'丑未':1,'寅申':1,'卯酉':1,'辰戌':1,'巳亥':1}).forEach(function(v){ sinsal.push({icon:'⚡',name:'충살',pos:v}); });
-  qHit({'子未':1,'丑午':1,'寅酉':1,'卯申':1,'辰亥':1,'巳戌':1}).forEach(function(v){ sinsal.push({icon:'🌀',name:'원진살',pos:v}); });
-  qHit({'子未':1,'丑午':1,'寅巳':1,'卯辰':1,'申亥':1,'酉戌':1}).forEach(function(v){ sinsal.push({icon:'🗡️',name:'해살',pos:v}); });
-  qHit({'子酉':1,'卯午':1,'辰丑':1,'未戌':1,'寅亥':1,'巳申':1}).forEach(function(v){ sinsal.push({icon:'💥',name:'파살',pos:v}); });
-  qHit({'子酉':1,'午卯':1,'寅未':1,'申丑':1,'亥辰':1,'巳戌':1}).forEach(function(v){ sinsal.push({icon:'👁️',name:'귀문관살',pos:v}); });
+
+  _qHit('충살', '⚡', {'子午':1,'丑未':1,'寅申':1,'卯酉':1,'辰戌':1,'巳亥':1});
+  _qHit('원진살', '🌀', {'子未':1,'丑午':1,'寅酉':1,'卯申':1,'辰亥':1,'巳戌':1});
+  _qHit('해살', '🗡️', {'子未':1,'丑午':1,'寅巳':1,'卯辰':1,'申亥':1,'酉戌':1});
+  _qHit('파살', '💥', {'子酉':1,'卯午':1,'辰丑':1,'未戌':1,'寅亥':1,'巳申':1});
+  _qHit('귀문관살', '👁️', {'子酉':1,'午卯':1,'寅未':1,'申丑':1,'亥辰':1,'巳戌':1});
+
   var horseSet = {'寅':1,'申':1,'巳':1,'亥':1};
   qPairs.forEach(function(pr) {
     var a = qJ[pr[0]], b = qJ[pr[1]];
-    if (horseSet[a] && horseSet[b]) sinsal.push({icon:'🐎',name:'역마살',pos:qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')'});
+    if (horseSet[a] && horseSet[b]) _pushSinsal('역마살', '🐎', qL[pr[0]]+'-'+qL[pr[1]]+'('+a+b+')');
   });
-  if (p.d.g && {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'}[p.d.g] === p.d.j) sinsal.push({icon:'⚔️',name:'양인살',pos:'일주 '+(p.d.g+p.d.j)});
-  if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(p.d.g+p.d.j) >= 0) sinsal.push({icon:'💖',name:'홍염살',pos:'일주 '+(p.d.g+p.d.j)});
 
-  var sinsalHtml;
-  if (!sinsal.length) {
-    sinsalHtml = '<div style="color:#aaa;font-size:.82rem;padding:4px 0">인접 기둥 기준 주요 신살 없음</div>';
-  } else {
-    sinsalHtml = sinsal.slice(0, 12).map(function(item) {
-      return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(140,80,180,.12)">'
-        +'<span style="font-size:.95rem">'+item.icon+'</span>'
-        +'<span style="font-size:.82rem"><b style="color:#8e24aa">'+item.name+'</b>&nbsp;<span style="color:#666">'+item.pos+'</span></span>'
-        +'</div>';
+  if (p.d.g && {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'}[p.d.g] === p.d.j) {
+    _pushSinsal('양인살', '⚔️', '일주 ' + (p.d.g + p.d.j));
+  }
+  if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(p.d.g + p.d.j) >= 0) {
+    _pushSinsal('홍염살', '💖', '일주 ' + (p.d.g + p.d.j));
+  }
+
+  var nobleMap = {
+    '甲':['丑','未'], '戊':['丑','未'],
+    '乙':['子','申'], '己':['子','申'],
+    '丙':['亥','酉'], '丁':['亥','酉'],
+    '庚':['午','寅'], '辛':['午','寅'],
+    '壬':['巳','卯'], '癸':['巳','卯']
+  };
+  var noble = nobleMap[p.d.g] || [];
+  [1,3].forEach(function(idx) {
+    var br = qJ[idx];
+    if (!br) return;
+    if (noble.indexOf(br) >= 0) _pushSinsal('천을귀인', '🕊️', qL[idx]+'('+br+')');
+  });
+
+  function _renderCards(items, kind, emptyText) {
+    if (!items.length) return '<div class="ts2-empty">'+emptyText+'</div>';
+    return items.map(function(it) {
+      return '<button type="button" class="ts2-card" data-kind="'+kind+'" data-key="'+it.key+'" data-pos="'+it.pos+'">'
+        +'<div class="ts2-card-emoji">'+it.icon+'</div>'
+        +'<div class="ts2-card-title">'+it.name+'</div>'
+        +'<div class="ts2-card-sub">'+it.pos+'</div>'
+        +'<div class="ts2-card-link">자세히 보기</div>'
+      +'</button>';
     }).join('');
   }
 
-  el.innerHTML =
-    '<div style="margin-top:14px;border-radius:12px;background:linear-gradient(135deg,rgba(243,229,245,.85),rgba(237,231,246,.9));padding:14px 16px;border-left:4px solid #8e24aa">'
-    +'<div style="font-weight:700;color:#6a1b9a;font-size:.93rem;margin-bottom:4px">✨ 십이운성 · 신살 빠른 확인</div>'
-    +'<div style="font-size:.78rem;color:#9e6cb8;margin-bottom:10px">일간(日干) 기준 · 인접 기둥 간 신살만 표시</div>'
-    +'<div style="margin-bottom:12px">'+twelveHtml+'</div>'
-    +'<div style="font-weight:600;color:#8e24aa;font-size:.85rem;margin:8px 0 6px">신살(神殺)</div>'
-    +sinsalHtml
-    +'</div>';
+  el.innerHTML = ''
+    + '<section class="ts2-wrap">'
+      + '<div class="ts2-head">'
+        + '<h3 class="ts2-title">🌱 십이운성(十二運星)</h3>'
+        + '<p class="ts2-sub">일간(日干)을 기준으로 12단계 생장 주기를 읽습니다.</p>'
+      + '</div>'
+      + '<div class="ts2-guide">'
+        + '<div class="ts2-guide-title">십이운성이란 무엇인가?</div>'
+        + '<p>십이운성은 기운이 태어나고(장생) 성장하고(건록·제왕) 쇠퇴하고(쇠·병·사) 다시 전환되는(절·태·양) 에너지 사이클입니다. 같은 사주라도 어느 운성에 놓였는지에 따라 표현 방식과 타이밍 전략이 달라집니다.</p>'
+      + '</div>'
+      + '<div class="ts2-grid">' + _renderCards(twelveItems, 'twelve', '표시 가능한 십이운성이 없습니다.') + '</div>'
+    + '</section>'
+    + '<section class="ts2-wrap ts2-wrap--sinsal">'
+      + '<div class="ts2-head">'
+        + '<h3 class="ts2-title">🧿 신살(神殺)</h3>'
+        + '<p class="ts2-sub">인접 기둥 기준으로 작동하는 핵심 신호를 분리 표시합니다.</p>'
+      + '</div>'
+      + '<div class="ts2-grid">' + _renderCards(sinsalItems.slice(0, 16), 'sinsal', '인접 기둥 기준 주요 신살이 없습니다.') + '</div>'
+    + '</section>'
+    + '<div class="ts2-modal" id="ts2Modal" hidden>'
+      + '<div class="ts2-modal-backdrop" data-close="1"></div>'
+      + '<div class="ts2-modal-panel">'
+        + '<button type="button" class="ts2-modal-close" data-close="1">✕</button>'
+        + '<div class="ts2-modal-kicker" id="ts2ModalKicker"></div>'
+        + '<h4 class="ts2-modal-title" id="ts2ModalTitle"></h4>'
+        + '<p class="ts2-modal-pos" id="ts2ModalPos"></p>'
+        + '<div class="ts2-modal-body" id="ts2ModalBody"></div>'
+      + '</div>'
+    + '</div>';
+
+  var twelveByKey = {};
+  twelveItems.forEach(function(it) { if (!twelveByKey[it.key]) twelveByKey[it.key] = it; });
+  var sinsalByKey = {};
+  sinsalItems.forEach(function(it) { if (!sinsalByKey[it.key]) sinsalByKey[it.key] = it; });
+
+  var modal = document.getElementById('ts2Modal');
+  var modalKicker = document.getElementById('ts2ModalKicker');
+  var modalTitle = document.getElementById('ts2ModalTitle');
+  var modalPos = document.getElementById('ts2ModalPos');
+  var modalBody = document.getElementById('ts2ModalBody');
+
+  function openModal(kind, key, pos) {
+    var base = kind === 'twelve' ? twelveByKey[key] : sinsalByKey[key];
+    if (!base || !modal) return;
+    modalKicker.textContent = kind === 'twelve' ? '십이운성 상세 해설' : '신살 상세 해설';
+    modalTitle.textContent = base.icon + ' ' + base.name;
+    modalPos.textContent = pos || base.pos || '';
+    modalBody.innerHTML = '<p>' + (base.desc || '') + '</p>';
+    modal.removeAttribute('hidden');
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.setAttribute('hidden', '');
+  }
+
+  el.onclick = function(evt) {
+    var target = evt.target;
+    if (!target) return;
+    var closeBtn = target.closest('[data-close="1"]');
+    if (closeBtn) {
+      closeModal();
+      return;
+    }
+    var card = target.closest('.ts2-card');
+    if (!card) return;
+    openModal(card.getAttribute('data-kind'), card.getAttribute('data-key'), card.getAttribute('data-pos'));
+  };
 }
 
 function renderTenshin(p){
