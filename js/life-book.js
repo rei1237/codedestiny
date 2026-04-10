@@ -76,6 +76,15 @@
   var _generating = false;
   var _currentChapter = 1;
   var _mysticTimer = null;
+  var _activeRequestController = null;
+  var _cancelGeneration = false;
+
+  function _abortActiveRequest() {
+    if (_activeRequestController) {
+      try { _activeRequestController.abort(); } catch (_) {}
+      _activeRequestController = null;
+    }
+  }
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
@@ -602,6 +611,9 @@
   window.closeLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) return;
+    _cancelGeneration = true;
+    _generating = false;
+    _abortActiveRequest();
     if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
     modal.style.display = 'none';
     document.body.style.overflow = '';
@@ -688,6 +700,7 @@
     }
 
     _generating = true;
+    _cancelGeneration = false;
     _chapters = Array(13).fill(null);
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
@@ -767,8 +780,24 @@
       var _lbAuthToken = '';
       try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
       return new Promise(function (resolve) {
+        var _settled = false;
+        var _abortMsg = '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.';
+        var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        if (_controller) _activeRequestController = _controller;
+
+        function _done(payload) {
+          if (_settled) return;
+          _settled = true;
+          clearTimeout(timeoutId);
+          if (_activeRequestController === _controller) _activeRequestController = null;
+          resolve(payload);
+        }
+
         var timeoutId = setTimeout(function () {
-          resolve({ ok: false, message: '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.' });
+          if (_controller) {
+            try { _controller.abort(); } catch (_) {}
+          }
+          _done({ ok: false, message: _abortMsg });
         }, 60000);
 
         var _lbHeaders = { 'Content-Type': 'application/json' };
@@ -777,6 +806,7 @@
           method: 'POST',
           headers: _lbHeaders,
           body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData }),
+          signal: _controller ? _controller.signal : undefined,
         })
           .then(function (res) {
             if (!res.ok) {
@@ -787,12 +817,14 @@
             return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
           })
           .then(function (data) {
-            clearTimeout(timeoutId);
-            resolve(data);
+            _done(data);
           })
           .catch(function (err) {
-            clearTimeout(timeoutId);
-            resolve({ ok: false, message: String(err && err.message ? err.message : err) });
+            if (err && err.name === 'AbortError') {
+              _done({ ok: false, message: _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg });
+              return;
+            }
+            _done({ ok: false, message: String(err && err.message ? err.message : err) });
           });
       });
     }
@@ -801,6 +833,10 @@
 
     // 챕터 순차 생성
     (function generateNext(idx) {
+      if (_cancelGeneration) {
+        if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
+        return;
+      }
       if (idx >= 13) {
         clearInterval(_mysticTimer);
         _mysticTimer = null;
@@ -811,13 +847,7 @@
           return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length;
         if (_validCount < 10) {
-          var errEl = _qs('lbErrorMsg');
-          if (errEl) errEl.textContent = _validCount === 0
-            ? '모든 챕터 생성에 실패했습니다. API 키 설정 또는 네트워크를 확인해 주세요.\n잠시 후 다시 시도해 주세요.'
-            : '챕터 생성이 불완전합니다 (성공 ' + _validCount + '/13). 다시 시도해 주세요.';
-          _lbClearSaved(window.__cdActiveBirthProfile || {});
-          _showScreen('lbErrorScreen');
-          return;
+          console.warn('[인생의 책] 일부 챕터가 불완전합니다. PDF는 생성 가능합니다. 성공:', _validCount, '/13');
         }
 
         _showScreen('lbResultScreen');
@@ -843,6 +873,7 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
 
       _fetchChapter(idx).then(function (data) {
+        if (_cancelGeneration) return;
         var _text = data && typeof data.text === 'string' ? data.text.trim() : '';
         if (data && data.ok && _text.length >= 500) {
           _chapters[idx] = data.text;
@@ -874,10 +905,10 @@
 
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadLifeBookPdf = function () {
-    var _validPdfCount = _chapters.filter(function(c) {
-      return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
-    }).length;
-    if (_validPdfCount === 0) {
+    var _hasAnyChapter = _chapters.some(function(c) {
+      return typeof c === 'string' && c.trim().length > 0;
+    });
+    if (!_hasAnyChapter) {
       alert('인생의 책이 아직 생성되지 않았거나 내용이 비어 있습니다. 먼저 생성해 주세요.');
       return;
     }

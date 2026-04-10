@@ -71,6 +71,15 @@
   var _quoteTimer = null;
   var _heartTimer = null;
   var _quoteIdx = 0;
+  var _activeRequestController = null;
+  var _cancelGeneration = false;
+
+  function _abortActiveRequest() {
+    if (_activeRequestController) {
+      try { _activeRequestController.abort(); } catch (_) {}
+      _activeRequestController = null;
+    }
+  }
 
   /* ── localStorage 저장/복원 ──────────────────────────────── */
   var _STORE_VER = 'ls_v1_';
@@ -625,6 +634,10 @@
   window.closeLoveSecretModal = function () {
     var modal = _qs('loveSecretModal');
     if (!modal) return;
+    _cancelGeneration = true;
+    _generating = false;
+    _abortActiveRequest();
+    _stopLoadingAnimation();
     modal.style.display = 'none';
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
@@ -782,6 +795,7 @@
 
   function _startGeneration(partnerData) {
     _generating = true;
+    _cancelGeneration = false;
     _showScreen('lsLoadingScreen');
     _startLoadingAnimation();
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -805,7 +819,55 @@
         : '연애 비책을 집필하는 중입니다';
     }
 
+    function _fetchChapter(idx) {
+      return new Promise(function (resolve) {
+        var _settled = false;
+        var _abortMsg = '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.';
+        var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+        if (_controller) _activeRequestController = _controller;
+
+        function _done(payload) {
+          if (_settled) return;
+          _settled = true;
+          clearTimeout(timeoutId);
+          if (_activeRequestController === _controller) _activeRequestController = null;
+          resolve(payload);
+        }
+
+        var timeoutId = setTimeout(function () {
+          if (_controller) {
+            try { _controller.abort(); } catch (_) {}
+          }
+          _done({ ok: false, message: _abortMsg });
+        }, 60000);
+
+        fetch('/api/love-secret/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
+          signal: _controller ? _controller.signal : undefined,
+        })
+          .then(function (res) {
+            if (!res.ok) {
+              return res.json().catch(function () { return {}; }).then(function (e) {
+                return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
+              });
+            }
+            return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+          })
+          .then(function (data) { _done(data); })
+          .catch(function (err) {
+            if (err && err.name === 'AbortError') {
+              _done({ ok: false, message: _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg });
+              return;
+            }
+            _done({ ok: false, message: String(err && err.message ? err.message : err) });
+          });
+      });
+    }
+
     (function generateNext(idx) {
+      if (_cancelGeneration) return;
       if (idx >= 11) {
         _generating = false;
         _stopLoadingAnimation();
@@ -819,13 +881,8 @@
         return;
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
-      fetch('/api/love-secret/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
+      _fetchChapter(idx).then(function (data) {
+          if (_cancelGeneration) return;
           _chapters[idx] = (data && data.ok && data.text)
             ? data.text
             : '⚠️ 이 챕터의 분석을 불러오는 데 실패했습니다.\n\n' + (data && data.message ? data.message : '알 수 없는 오류');
