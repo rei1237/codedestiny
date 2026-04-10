@@ -926,7 +926,7 @@ body {
 [data-collection-open="false"] .fc-toggle-hint__arrow {
 	animation: fc-arrowNudge 1.25s ease-in-out infinite;
 }
-.fc-toggle-hint__text::after {
+.fc-toggle-hint__text {
 	font-weight: 700;
 	letter-spacing: 0.03em;
 }
@@ -972,12 +972,6 @@ body {
 /* 열린 상태: 힌트 텍스트 변경 & 화살표 회전 */
 [data-collection-open="true"] .fc-toggle-hint__arrow {
 	transform: rotate(180deg);
-}
-[data-collection-open="true"] .fc-toggle-hint__text::after {
-	content: "닫기";
-}
-[data-collection-open="false"] .fc-toggle-hint__text::after {
-	content: "눌러서 열기";
 }
 @media (prefers-reduced-motion: reduce) {
 	[data-collection-open="false"] .fc-toggle-btn::after,

@@ -182,6 +182,39 @@ function cdSaveCurrentLang(langCode) {
   return normalized;
 }
 
+var __cdCollectionToggleHintTextByLang = {
+  ko: { open: '눌러서 열기', close: '닫기' },
+  en: { open: 'Tap to open', close: 'Close' },
+  ja: { open: 'タップして開く', close: '閉じる' },
+  'zh-CN': { open: '点击展开', close: '收起' },
+  hi: { open: 'खोलने के लिए टैप करें', close: 'बंद करें' },
+  es: { open: 'Toca para abrir', close: 'Cerrar' },
+  fr: { open: 'Touchez pour ouvrir', close: 'Fermer' },
+  de: { open: 'Zum Oeffnen tippen', close: 'Schliessen' },
+  nl: { open: 'Tik om te openen', close: 'Sluiten' },
+  ms: { open: 'Ketuk untuk buka', close: 'Tutup' }
+};
+
+function cdGetCollectionToggleHintCopy(langCode) {
+  var normalized = cdNormalizeLang(langCode || cdGetCurrentLang());
+  return __cdCollectionToggleHintTextByLang[normalized] || __cdCollectionToggleHintTextByLang.ko;
+}
+
+function cdApplyCollectionToggleHintTexts(langCode) {
+  var copy = cdGetCollectionToggleHintCopy(langCode);
+  var collections = document.querySelectorAll('[data-collection-open]');
+  for (var i = 0; i < collections.length; i++) {
+    var collection = collections[i];
+    var isOpen = collection.getAttribute('data-collection-open') === 'true';
+    var hintText = collection.querySelector('.fc-toggle-hint__text');
+    if (hintText) {
+      hintText.textContent = isOpen ? copy.close : copy.open;
+    }
+  }
+}
+
+window.cdApplyCollectionToggleHintTexts = cdApplyCollectionToggleHintTexts;
+
 var __cdLocalePrefixMap = {
   en: '/en-us',
   ja: '/ja-jp',
@@ -353,6 +386,7 @@ function initTranslateLangUI() {
         fallbackToCookieReload: true
       });
       cdRetargetLocaleSensitiveLinks();
+      cdApplyCollectionToggleHintTexts(lang);
       startHideTimer();
       
       // 카드 닫기
@@ -545,12 +579,14 @@ if (document.readyState === 'loading') {
     try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
     cdSaveCurrentLang(cdGetCurrentLang());
     cdRetargetLocaleSensitiveLinks();
+    cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
   });
 } else {
   cdInstallGoogleTranslateBannerGuard();
   try { initTranslateLangUI(); } catch (err) { console.warn('[translate-ui] init failed:', err); }
   cdSaveCurrentLang(cdGetCurrentLang());
   cdRetargetLocaleSensitiveLinks();
+  cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
 }
 
 function initPerformanceDiagnosisObservers() {
@@ -1562,6 +1598,9 @@ function __cdBindGlobalActionsFallback() {
 
       collection.setAttribute('data-collection-open', String(newState));
       actionEl.setAttribute('aria-expanded', String(newState));
+      if (typeof window.cdApplyCollectionToggleHintTexts === 'function') {
+        window.cdApplyCollectionToggleHintTexts(cdGetCurrentLang());
+      }
 
       document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
         detail: { targetId: targetId, isOpen: newState }
@@ -6372,9 +6411,11 @@ function changeLanguage(langCode, btn) {
   if (applyPromise && typeof applyPromise.then === 'function') {
     applyPromise.then(function() {
       cdAllowGoogleTranslateForContent();
+      cdApplyCollectionToggleHintTexts(langCode);
     });
   } else {
     cdAllowGoogleTranslateForContent();
+    cdApplyCollectionToggleHintTexts(langCode);
   }
 
   if (langCode === 'ko') {

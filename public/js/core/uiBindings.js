@@ -422,6 +422,9 @@ export function bindGlobalActions(root) {
 
       collection.setAttribute('data-collection-open', String(newState));
       actionEl.setAttribute('aria-expanded', String(newState));
+      if (typeof window !== 'undefined' && typeof window.cdApplyCollectionToggleHintTexts === 'function') {
+        window.cdApplyCollectionToggleHintTexts(typeof window.cdGetCurrentLang === 'function' ? window.cdGetCurrentLang() : null);
+      }
       actionEl.setAttribute('aria-label',
         actionEl.getAttribute('aria-label')
           ? actionEl.getAttribute('aria-label').replace(/열기|닫기/, newState ? '닫기' : '열기')
