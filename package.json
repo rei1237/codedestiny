@@ -76,6 +76,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.12",
+    "lighthouse": "^13.1.0",
     "postcss": "^8.4.39",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.4",

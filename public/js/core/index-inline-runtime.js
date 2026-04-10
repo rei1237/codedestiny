@@ -909,9 +909,6 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=20260410-v1'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=20260410-v1'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=20260410-v1'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
@@ -1380,12 +1377,6 @@ function __cdInvokeAction(action, actionEl, event) {
           window.LuckSyncDiary.close();
         } else if (action === 'gotoZiweiPremium' && typeof window.openZiweiBookModal === 'function') {
           window.openZiweiBookModal();
-        } else if (action === 'gotoAstrologyPremium' && typeof window.openAstroBookModal === 'function') {
-          window.openAstroBookModal();
-        } else if (action === 'gotoSukuyoPremium' && typeof window.openSukuyoBookModal === 'function') {
-          window.openSukuyoBookModal();
-        } else if (action === 'gotoVedicPremium' && typeof window.openVedicBookModal === 'function') {
-          window.openVedicBookModal();
         }
         return;
       }
