@@ -11,7 +11,7 @@
     '🎭 페르소나와 브랜딩 — 세상이 당신을 기억하는 방식',
     '💰 자산의 중력 — 부를 끌어당기는 달빛 전략',
     '⚙️ 보이지 않는 톱니바퀴 — 성공 뒤에 숨겨진 협력 역학',
-    '📡 관계의 정밀 레이더 — 6대 숙요 관계 역학 완전 분析',
+    '📡 관계의 정밀 레이더 — 6대 숙요 관계 역학 완전 분석',
     '💥 파괴적 혁신 — 위기를 기회로 전환하는 달빛 전략',
     '🌿 조화로운 성장 — 나를 살리는 공간과 환경의 법칙',
     '❤️ 정서적 유대 — 깊은 연결을 만드는 감정 지능',
@@ -27,7 +27,7 @@
     '숙요 퍼스널 브랜드 코드·그림자 페르소나 극복·30일 브랜딩 실행 플랜',
     '숙요 재물 코드·달의 상승기 투자 원칙·재물 파괴 패턴 차단',
     '조직 내 역할·협력 시너지·마찰 포인트 달빛 해결법',
-    '성·친·화·쇠·괴·살 6대 관계 역학 완전 분析',
+    '성·친·화·쇠·괴·살 6대 관계 역학 완전 분석',
     '쇠괴 에너지 위기 전략·달빛 혁신법·역경을 성장 자원으로',
     '공간 에너지·환경 심리학·건강 루틴·달월령 생활 설계',
     '깊은 감정 연결·공감 지능·정서적 유대 강화법',
@@ -39,13 +39,13 @@
 
   var LOADING_MSGS = [
     '탄생 숙요(宿曜)의 원형 코드를 해독하는 중...',
-    '달의 삭망 주기와 정서 파동을 분析하는 중...',
+    '달의 삭망 주기와 정서 파동을 분석하는 중...',
     '숙요 페르소나와 브랜딩 코드를 구성하는 중...',
     '숙요 재물 코드와 달빛 자산 전략을 설계하는 중...',
-    '협력 역학과 보이지 않는 톱니바퀴를 분析하는 중...',
+    '협력 역학과 보이지 않는 톱니바퀴를 분석하는 중...',
     '6대 숙요 관계 역학 레이더를 구축하는 중...',
     '파괴적 혁신과 달빛 위기 전략을 설계하는 중...',
-    '조화로운 성장을 위한 공간·환경 법칙을 분析하는 중...',
+    '조화로운 성장을 위한 공간·환경 법칙을 분석하는 중...',
     '정서적 유대와 감정 지능 지도를 그리는 중...',
     '운명적 거리와 귀인 레이더를 설정하는 중...',
     '달의 27주기 에너지 사이클을 로드맵화하는 중...',
@@ -72,6 +72,22 @@
   var _mysticTimer = null;
 
   function _qs(id) { return document.getElementById(id); }
+
+  function _applySukuyoTheme(modal) {
+    if (!modal || !modal.style) return;
+    modal.style.setProperty('--lb-void', '#020b16');
+    modal.style.setProperty('--lb-deep', '#031226');
+    modal.style.setProperty('--lb-dark', '#0a1b35');
+    modal.style.setProperty('--lb-surface', '#102848');
+    modal.style.setProperty('--lb-border-bright', 'rgba(125, 211, 252, 0.5)');
+    modal.style.setProperty('--lb-gold', '#67e8f9');
+    modal.style.setProperty('--lb-gold-dim', 'rgba(103, 232, 249, 0.64)');
+    modal.style.setProperty('--lb-amethyst', '#38bdf8');
+    modal.style.setProperty('--lb-violet', '#0ea5e9');
+    modal.style.setProperty('--lb-lilac', '#bae6fd');
+    modal.style.setProperty('--lb-glow-violet', 'rgba(14, 165, 233, 0.45)');
+    modal.style.setProperty('--lb-glow-gold', 'rgba(103, 232, 249, 0.36)');
+  }
 
   function _escHtml(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -192,6 +208,7 @@
   window.openSukuyoBookModal = function(){
     var modal=_qs('sukuyoBookModal');
     if(!modal){console.error('[숙요점 프리미엄] sukuyoBookModal 요소를 찾을 수 없습니다.');return;}
+    _applySukuyoTheme(modal);
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
@@ -282,7 +299,7 @@
       var pct=(done/13)*100;
       if(progressBar)progressBar.style.width=pct+'%';
       if(progressText)progressText.textContent=done+' / 13 챕터 완성';
-      if(chapterMsg&&done<13)chapterMsg.textContent=LOADING_MSGS[done]||'분析 중...';
+      if(chapterMsg&&done<13)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=13)chapterMsg.textContent='숙요점 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<13?'Chapter '+(done+1):'✦ 완성 ✦';
       Array.prototype.forEach.call(chDots,function(d){
@@ -324,10 +341,10 @@
         _skSaveResult(prof);
         return;
       }
-      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분析 중...';
+      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
         if(data&&data.ok&&data.text){_chapters[idx]=data.text;}
-        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분析을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
+        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[숙요] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
         _setProgress(idx+1);
         generateNext(idx+1);
       });

@@ -31,22 +31,22 @@
     '외행성의 혁신 에너지·세대적 사명·창의적 발상법',
     '노드 축의 진화 방향·전생 패턴 극복·영혼 목적지',
     '관계 투사 패턴·파트너십 조건·비폭력 대화법',
-    '공동 에너지 분析·우리만의 독립적 운명 설계',
+    '공동 에너지 분석·우리만의 독립적 운명 설계',
     '차트 전체 요약·단 하나의 마스터 해빗·개운 루틴·인생 조언',
   ];
 
   var LOADING_MSGS = [
     '상승궁(ASC)·태양·달의 3각 에너지를 결합하는 중...',
-    '달의 무의식 안전가옥과 4하우스 그림자를 분析하는 중...',
+    '달의 무의식 안전가옥과 4하우스 그림자를 분석하는 중...',
     '수성의 사고 지도와 커뮤니케이션 전략을 구성하는 중...',
     '금성의 욕망 코드와 풍요 블록을 해독하는 중...',
     '화성의 추진 엔진과 에너지 관리 전략을 설계하는 중...',
     '목성의 황금 통로와 행운 좌표를 탐색하는 중...',
-    '토성의 업보와 카르마 마스터의 길을 분析하는 중...',
-    '외행성의 혁신 에너지와 세대적 사명을 분析하는 중...',
+    '토성의 업보와 카르마 마스터의 길을 분석하는 중...',
+    '외행성의 혁신 에너지와 세대적 사명을 분석하는 중...',
     '노드 축의 영혼 목적지와 진화 방향을 읽는 중...',
     '관계의 심리적 투사 패턴을 파악하는 중...',
-    '우리라는 독립적 운명의 에너지를 분析하는 중...',
+    '우리라는 독립적 운명의 에너지를 분석하는 중...',
     '별들의 마스터플랜과 개운 루틴을 총결산하는 중...',
   ];
 
@@ -73,6 +73,22 @@
   var _mysticTimer = null;
 
   function _qs(id) { return document.getElementById(id); }
+
+  function _applyAstroTheme(modal) {
+    if (!modal || !modal.style) return;
+    modal.style.setProperty('--lb-void', '#050914');
+    modal.style.setProperty('--lb-deep', '#0a1226');
+    modal.style.setProperty('--lb-dark', '#101b35');
+    modal.style.setProperty('--lb-surface', '#1a2347');
+    modal.style.setProperty('--lb-border-bright', 'rgba(250, 204, 21, 0.48)');
+    modal.style.setProperty('--lb-gold', '#fde68a');
+    modal.style.setProperty('--lb-gold-dim', 'rgba(253, 230, 138, 0.68)');
+    modal.style.setProperty('--lb-amethyst', '#fbbf24');
+    modal.style.setProperty('--lb-violet', '#1d4ed8');
+    modal.style.setProperty('--lb-lilac', '#fef3c7');
+    modal.style.setProperty('--lb-glow-violet', 'rgba(29, 78, 216, 0.42)');
+    modal.style.setProperty('--lb-glow-gold', 'rgba(250, 204, 21, 0.42)');
+  }
 
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -225,6 +241,7 @@
   window.openAstroBookModal = function() {
     var modal = _qs('astroBookModal');
     if (!modal) { console.error('[점성술 코즈믹 차트] astroBookModal 요소를 찾을 수 없습니다.'); return; }
+    _applyAstroTheme(modal);
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile = _getActiveBirthProfile();
     if (!profile) {
@@ -324,7 +341,7 @@
       var pct=(done/12)*100;
       if (progressBar) progressBar.style.width=pct+'%';
       if (progressText) progressText.textContent=done+' / 12 챕터 완성';
-      if (chapterMsg&&done<12) chapterMsg.textContent=LOADING_MSGS[done]||'분析 중...';
+      if (chapterMsg&&done<12) chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if (chapterMsg&&done>=12) chapterMsg.textContent='점성술 코즈믹 차트가 완성되었습니다 ✦';
       if (chapterNumEl) chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';
       Array.prototype.forEach.call(chDots, function(d){
@@ -374,10 +391,10 @@
         _abSaveResult(prof);
         return;
       }
-      if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분析 중...';
+      if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data) {
         if (data&&data.ok&&data.text) { _chapters[idx]=data.text; }
-        else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분析을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
+        else { _failCount++; var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류'; console.warn('[점성술] Chapter '+(idx+1)+' 실패:',msg); _chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.'; }
         _setProgress(idx+1);
         generateNext(idx+1);
       });
@@ -414,7 +431,7 @@
       '</style></head><body>' +
       '<div class="cover"><p class="cover-badge">✨ COSMIC CHART PREMIUM</p>' +
       '<h1 class="cover-title">점성술 코즈믹 차트</h1>' +
-      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">열대황도 행성 배치 기반 12챕터 인생 분析 리포트</p>' +
+      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">열대황도 행성 배치 기반 12챕터 인생 분석 리포트</p>' +
       '<div style="width:60px;height:1px;background:rgba(253,230,138,0.4);margin:0 auto 20px;"></div>' +
       '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 코즈믹 차트</p>' +
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +

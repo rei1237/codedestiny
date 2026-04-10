@@ -7,12 +7,12 @@
 
   var CHAPTER_TITLES = [
     '🕉️ 라그나와 영혼의 목적 — Lagna & Atmakaraka',
-    '🌙 나크샤트라 — 무의식의 27가지 빛, Moon Nakshatra 심층 분析',
+    '🌙 나크샤트라 — 무의식의 27가지 빛, Moon Nakshatra 심층 분석',
     '⏳ 다샤 — 인생의 웅장한 계절, Vimshottari Dasha 전략',
     '💰 부와 번영의 정렬 — Artha & 2·11하우스 다나 요가',
     '👑 카르마와 천직 — Dharma & 10하우스 · D9 · D10',
     '💎 나밤샤 — 영혼의 성숙도, D9 숨겨진 잠재력',
-    '🔮 관계의 거울 — 아슈타 쿠타(Ashta Koota) 궁합 분析',
+    '🔮 관계의 거울 — 아슈타 쿠타(Ashta Koota) 궁합 분석',
     '💞 인연의 깊이와 카르믹 계약 — 7하우스 · 금성/화성',
     '🌿 생명력과 정화 — Health 6·8·12하우스 · 아유르베다',
     '✨ 요가 — 특별한 축복의 조합, 차트의 천부적 재능',
@@ -25,11 +25,11 @@
     '달 나크샤트라의 원형 에너지·무의식 패턴·27수 달빛 운명 지도',
     '빔쇼타리 다샤 현재 대운·세운 전략·인생의 황금기와 시련기 파악',
     '2하우스·11하우스·다나 요가로 보는 재물 구조와 번영 전략',
-    '10하우스 카르마 스타나·D10 차트·발리비 다샤마 직업 운명 분析',
-    'D9(나밤샤) 영혼의 진짜 저력·중년 이후 운명적 전환점 분析',
+    '10하우스 카르마 스타나·D10 차트·발리비 다샤마 직업 운명 분석',
+    'D9(나밤샤) 영혼의 진짜 저력·중년 이후 운명적 전환점 분석',
     '달 나크샤트라 기반 아슈타 쿠타 8항목 궁합·관계 갈등 패턴',
     '7하우스·금성·화성으로 읽는 인연의 색깔·카르믹 관계 패턴',
-    '6·8·12하우스 건강·장수·정화·아유르베다 타입 분析',
+    '6·8·12하우스 건강·장수·정화·아유르베다 타입 분석',
     '차트에서 검출된 요가(Yoga) 완전 해석·천부적 재능 발굴',
     '우파야(Upaya) 행성별 정화·만트라·요일 의례·카르마 해소법',
     '차트 전체 총결산·단 하나의 마스터 해빗·북극성 인생 선언문',
@@ -39,12 +39,12 @@
     '라그나(Lagna)와 아트마카라카의 영혼 목적을 해독하는 중...',
     '달 나크샤트라(Nakshatra) 27수 운명 지도를 펼치는 중...',
     '빔쇼타리 다샤(Vimshottari Dasha) 인생 계절 전략을 설계하는 중...',
-    '다나 요가·2·11하우스 부와 번영의 정렬을 분析하는 중...',
+    '다나 요가·2·11하우스 부와 번영의 정렬을 분석하는 중...',
     '카르마 스타나·D10 천직 방정식을 탐색하는 중...',
-    '나밤샤(Navamsa) D9 영혼의 성숙도와 잠재력을 분析하는 중...',
+    '나밤샤(Navamsa) D9 영혼의 성숙도와 잠재력을 분석하는 중...',
     '아슈타 쿠타(Ashta Koota) 8항목 궁합을 계산하는 중...',
-    '7하우스·금성·화성 인연의 카르믹 패턴을 분析하는 중...',
-    '6·8·12하우스 건강 & 아유르베다 타입을 분析하는 중...',
+    '7하우스·금성·화성 인연의 카르믹 패턴을 분석하는 중...',
+    '6·8·12하우스 건강 & 아유르베다 타입을 분석하는 중...',
     '요가(Yoga) 조합·천부적 재능을 검출하는 중...',
     '우파야(Upaya) 행성 에너지 정화 비책을 설계하는 중...',
     '베다 마스터플랜과 북극성 선언문을 총결산하는 중...',
@@ -71,6 +71,22 @@
   var _mysticTimer = null;
 
   function _qs(id){return document.getElementById(id);}
+
+  function _applyVedicTheme(modal){
+    if(!modal||!modal.style)return;
+    modal.style.setProperty('--lb-void','#120904');
+    modal.style.setProperty('--lb-deep','#1d1206');
+    modal.style.setProperty('--lb-dark','#2a1708');
+    modal.style.setProperty('--lb-surface','#3a200c');
+    modal.style.setProperty('--lb-border-bright','rgba(251, 146, 60, 0.5)');
+    modal.style.setProperty('--lb-gold','#fdba74');
+    modal.style.setProperty('--lb-gold-dim','rgba(253, 186, 116, 0.66)');
+    modal.style.setProperty('--lb-amethyst','#fb923c');
+    modal.style.setProperty('--lb-violet','#ea580c');
+    modal.style.setProperty('--lb-lilac','#ffedd5');
+    modal.style.setProperty('--lb-glow-violet','rgba(234, 88, 12, 0.46)');
+    modal.style.setProperty('--lb-glow-gold','rgba(251, 146, 60, 0.4)');
+  }
 
   function _escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -196,6 +212,7 @@
   window.openVedicBookModal = function(){
     var modal=_qs('vedicBookModal');
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
+    _applyVedicTheme(modal);
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
@@ -290,7 +307,7 @@
       var pct=(done/12)*100;
       if(progressBar)progressBar.style.width=pct+'%';
       if(progressText)progressText.textContent=done+' / 12 챕터 완성';
-      if(chapterMsg&&done<12)chapterMsg.textContent=LOADING_MSGS[done]||'분析 중...';
+      if(chapterMsg&&done<12)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=12)chapterMsg.textContent='베다 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';
       Array.prototype.forEach.call(chDots,function(d){
@@ -340,10 +357,10 @@
         _vdSaveResult(prof);
         return;
       }
-      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분析 중...';
+      if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
       _fetchChapter(idx).then(function(data){
         if(data&&data.ok&&data.text){_chapters[idx]=data.text;}
-        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분析을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
+        else{_failCount++;var msg=(data&&(data.error||data.message))?data.error||data.message:'알 수 없는 오류';console.warn('[베다] Chapter '+(idx+1)+' 실패:',msg);_chapters[idx]='⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: '+msg+'\n\n잠시 후 다시 시도해 주세요.';}
         _setProgress(idx+1);
         generateNext(idx+1);
       });
