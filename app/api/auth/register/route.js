@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  connectDB,
+  dbConnect,
   User,
   bcrypt,
   signToken,
@@ -57,7 +57,7 @@ export async function POST(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const existing = await User.findOne({ email: sanitized.email })
       .select("+passwordHash")

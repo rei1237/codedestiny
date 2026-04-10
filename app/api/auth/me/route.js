@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  connectDB,
+  dbConnect,
   User,
   verifyToken,
   normalizeUser,
@@ -29,7 +29,7 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const user = await User.findById(payload.userId).lean();
     if (!user) {

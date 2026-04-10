@@ -1,13 +1,14 @@
 /**
  * 네이티브 인증 헬퍼 — Cloudflare Workers (open-next) 환경에서 직접 MongoDB + JWT 사용
- * proxyLegacyApi 루프 우회용 네이티브 구현 레이어
+ * proxyLegacyApi 루프 우회용 네이티브 구현 레이어.
+ * app/api/_lib의 자급자족형 유틸만 사용 (server/ 임포트 없음).
  */
-import connectDB from "../../../../server/config/db.js";
-import User from "../../../../server/models/User.js";
+import { dbConnect } from "../../_lib/dbConnect.js";
+import AppUser from "../../_lib/AppUser.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-export { connectDB, User, bcrypt };
+export { dbConnect, AppUser as User, bcrypt };
 
 /** JWT 서명 */
 export function signToken(user) {
