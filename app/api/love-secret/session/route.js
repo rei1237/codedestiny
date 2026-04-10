@@ -142,7 +142,7 @@ ${d}`,
   },
   {
     id: 3,
-    emoji: "�",
+    emoji: "💞",
     title: "두 사람의 사주 궁합: 우리는 운명인가",
     prompt: (d, p) => {
       const hasPartner = !!p;

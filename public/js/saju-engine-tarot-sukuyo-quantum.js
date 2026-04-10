@@ -5089,14 +5089,14 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">�</span><span class="qm-sec-title s2">신살(神殺) 기운 분석</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">🧿</span><span class="qm-sec-title s2">신살(神殺) 기운 분석</span></div>'+
         '<div class="qm-panel">'+
           qSinsalHtml+
         '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">�🔥</span><span class="qm-sec-title s3">팩트 폭행</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">💥🔥</span><span class="qm-sec-title s3">팩트 폭행</span></div>'+
         '<div class="qm-panel">'+
           facts.map(function(f){return '<div class="qm-fact-item"><span class="qm-fact-bullet">▸</span><div class="qm-fact-text">'+f+'</div></div>';}).join('')+
         '</div>'+
