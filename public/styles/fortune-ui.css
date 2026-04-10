@@ -1090,6 +1090,10 @@ input:checked + .slider .paw-pad {
 .ts2-modal-title{font-size:1.05rem;color:#5b21b6;font-weight:900;margin-top:4px;line-height:1.35;padding-right:28px}
 .ts2-modal-pos{font-size:.78rem;color:#6b7280;margin-top:6px}
 .ts2-modal-body p{font-size:.9rem;line-height:1.75;color:#374151;margin-top:10px}
+.ts2-modal-list{display:grid;gap:8px;margin-top:10px}
+.ts2-modal-row{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:#faf5ff;border:1px solid rgba(139,92,246,.14)}
+.ts2-modal-row b{font-size:.76rem;color:#6d28d9;line-height:1.45}
+.ts2-modal-row span{font-size:.85rem;line-height:1.65;color:#374151}
 .ts-card{background:linear-gradient(135deg,#FFFBF8,#FFF8F5);border:2px solid #FFE8E0;
   border-radius:14px;padding:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
 .ts-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom, var(--pink), var(--pink-l));opacity:0;transition:opacity 0.3s;}
