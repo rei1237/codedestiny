@@ -22,10 +22,10 @@ const targetFiles = [
 
 const requiredMarkers = [
   '.prem-card>div:first-child *{pointer-events:none}',
-  'data-action="gotoZiweiPremium"',
-  'data-action="gotoAstrologyPremium"',
-  'data-action="gotoSukuyoPremium"',
-  'data-action="gotoVedicPremium"',
+  'onclick="openZiweiBookModal()"',
+  'onclick="openAstroBookModal()"',
+  'onclick="openSukuyoBookModal()"',
+  'onclick="openVedicBookModal()"',
   '/fuctionassets/jamipremiun.webp',
   '/fuctionassets/premiumstar.webp',
   '/fuctionassets/sukyo_premium.webp',
