@@ -381,6 +381,7 @@ img[width][height]{height:auto}
 .tarot-tile--tileLocked .tarot-tile__lock-icon{display:flex}
 .tarot-tile--sikojen-fc .tarot-tile__img-wrap{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(255,236,208,.95) 0%,rgba(254,215,170,.82) 52%,rgba(253,186,116,.72) 100%)}
 .tarot-tile--sikojen-fc .tarot-tile__img{width:min(100%,240px);height:100%;object-fit:contain;object-position:center bottom;padding:8px 10px 0;filter:drop-shadow(0 6px 14px rgba(120,53,15,.28)) saturate(1.06)}
+.prem-card>div:first-child *{pointer-events:none}
 [data-fortune-result],.fortune-result,.destiny-result,.oracle-result,#fortuneResult,#result{min-height:320px;content-visibility:auto;contain-intrinsic-size:auto 320px}
 button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1930,12 +1931,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 베다 점성술 (Jyotish) -->
                 <button class="tarot-tile tarot-tile--vedic-fc" type="button"
                         data-action="navigateToVedic"
-                        data-tile-lock-key="vedic-fc"
-                        data-tile-lock-cost="300"
                         aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 300코인</span>
+                    <span class="tarot-tile__coin-badge">✨ 무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🪐 베다 점성술</span>
@@ -2110,15 +2109,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--ziwei"
                     data-action="gotoZiweiPremium"
-                    data-coin-cost="590"
+                    data-coin-cost="50"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    aria-label="자미두수 인생 총람 PDF북 — 1회 590코인">
+                    aria-label="자미두수 궁합 분析 — 1회 50코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 590코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">궁합 1회 50코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(167,139,250,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · 紫微斗數 · Ziwei Premium</p>
@@ -2141,17 +2140,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--astro"
                     data-action="gotoAstrologyPremium"
-                    data-coin-cost="400"
+                    data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
-                    aria-label="점성술 코즈믹 차트 프리미엄 — 1회 400코인">
+                    aria-label="점성술 궁합 분析 — 1회 50코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(7,4,25,0.88) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(251,191,36,0.90);color:#1a1200;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 400코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">궁합 1회 50코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(253,230,138,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">점성술 · Cosmic Chart Premium</p>
@@ -2160,7 +2159,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   ☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析<br>
                   🪐 12하우스 영역별 재물·사랑·직업·카르마 운세<br>
                   🌌 노드 축 영혼 목적지 + 행성 트랜지트 영향 계산<br>
-                  ✨ 1회 400코인 — 12챕터 분析 후 PDF 즉시 저장
+                  ✨ 1회 50코인 — 12챕터 분析 후 PDF 즉시 저장
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(253,230,138,0.1));border:1px solid rgba(251,191,36,0.45);color:rgba(253,230,138,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✨ 나의 코즈믹 차트 생성하기</span>
@@ -2174,17 +2173,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--sukuyo"
                     data-action="gotoSukuyoPremium"
-                    data-coin-cost="300"
+                    data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
-                    aria-label="숙요점 프리미엄 궁합 분석 — 1회 300코인">
+                    aria-label="숙요점 프리미엄 궁합 분석 — 궁합 1회 50코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(2,8,23,0.90) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(14,165,233,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 300코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">궁합 1회 50코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(125,211,252,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">숙요점 · 宿曜占 Premium</p>
@@ -2193,7 +2192,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌙 에도 막부가 금서로 지정한 27수 비전<br>
                   💑 소울메이트 vs 독성 관계 정밀 판별<br>
                   ⭐ 재물·건강·수명 전반 1:1 정밀 리딩<br>
-                  💫 1회 300코인으로 숙요 궁합 정밀 분석
+                  💫 1회 50코인으로 숙요 궁합 정밀 분析
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
@@ -2207,17 +2206,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--veda"
                     data-action="gotoVedicPremium"
-                    data-coin-cost="300"
+                    data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.14)'"
-                    aria-label="베다 점성술 프리미엄 리포트 — 1회 300코인">
+                    aria-label="베다 점성술 궁합 분析 — 1회 50코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(15,10,3,0.90) 0%,transparent 55%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(234,88,12,0.90);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
-                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">1회 300코인</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">궁합 1회 50코인</span>
               </div>
               <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
                 <p style="color:rgba(253,186,116,0.70);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">베다 점성술 · Vedic Astrology Premium</p>
@@ -2226,7 +2225,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌟 인도 고대 조티쉬 베다 점성술 정밀 분석<br>
                   🌙 라그나·달 배치·나크샤트라 전생 업장 해독<br>
                   💫 27 나크샤트라로 보는 평생 운명 지도<br>
-                  🪐 1회 300코인으로 베다 운명 완전 해석
+                  🪐 1회 50코인으로 베다 운명 완전 해석
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.2),rgba(251,146,60,0.1));border:1px solid rgba(251,146,60,0.50);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 운명 열기</span>
@@ -6440,10 +6439,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 (function(){
   'use strict';
   var D={
-    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람',tagline:'자미두수 12궁 13챕터 AI 심층 분析 — 명궁 캐릭터·천직·재물·인연·건강·대한·소한 완전 해독 후 PDF로 즉시 다운로드합니다.',feats:['🌌 13챕터 · 12궁 완전 분析 · 상하관계 처세술','🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵','📖 AI 심층 분析 완성본 즉시 PDF 저장 · 마스터플랜 봉서'],cost:'1회 590코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
-    gotoAstrologyPremium:{cat:'점성술 · Cosmic Chart Premium',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반 12챕터 정밀 분析 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴을 완전 해독하고 PDF로 저장합니다.',feats:['☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析','🪐 12하우스 영역별 재물·사랑·직업·카르마 운세 파악','🌌 노드 축 영혼 목적지 + 행성 트랜지트 영향 계산','✨ 1회 400코인 — 12챕터 분析 완료 후 PDF 즉시 저장'],cost:'✨ 1회 400코인',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
-    gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','🔒 400코인 단 한 번 결제로 평생 무제한 이용'],cost:'💫 1회 300코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
-    gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'🪐 1회 300코인',ct:'paid',img:'/fuctionassets/premium veda.webp'},
+    gotoZiweiPremium:{cat:'자미두수 · 紫微斗數 · Ziwei Premium',title:'🌌 紫微 인생 총람',tagline:'자미두수 12궁 13챕터 AI 심층 분析 — 명궁 캐릭터·천직·재물·인연·건강·대한·소한 완전 해독 후 PDF로 즉시 다운로드합니다.',feats:['🌌 13챕터 · 12궁 완전 분析 · 상하관계 처세술','🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵','📖 AI 심층 분析 완성본 즉시 PDF 저장 · 마스터플랜 봉서'],cost:'궁합 1회 50코인',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
+    gotoAstrologyPremium:{cat:'점성술 · Cosmic Chart Premium',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반 12챕터 정밀 분析 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴을 완전 해독하고 PDF로 저장합니다.',feats:['☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析','🪐 12하우스 영역별 재물·사랑·직업·카르마 운세 파악','🌌 노드 축 영혼 목적지 + 행성 트랜지트 영향 계산','✨ 궁합 1회 50코인 — 12챕터 분析 완료 후 PDF 즉시 저장'],cost:'✨ 궁합 1회 50코인',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
+    gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','� 궁합 1회 50코인 — 지금 바로 이용 가능'],cost:'💫 궁합 1회 50코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
+    gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'🪐 궁합 1회 50코인',ct:'paid',img:'/fuctionassets/premium veda.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
@@ -6479,7 +6478,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🪙 100코인',ct:'paid',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','300코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 300코인',ct:'paid',img:'/fuctionassets/veda.webp'},
+    navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
   };
 
@@ -6582,10 +6581,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _premDesc='';
           if(action==='openLifeBookModal')_premDesc='490코인으로 평생 보관할 나만의 운명 전서를 완성하세요. 대운 흐름·재물 시기·대인 관계 전략이 13챕터에 걸쳐 펼쳐집니다.';
           else if(action==='openLoveSecretModal')_premDesc='290코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 내 진짜 이상형·매력 포인트·피해야 할 관계 유형까지 모두 담겨 있습니다.';
-          else if(action==='gotoZiweiPremium')_premDesc='590코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
-          else if(action==='gotoAstrologyPremium')_premDesc='400코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
-          else if(action==='gotoSukuyoPremium')_premDesc='300코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
-          else if(action==='gotoVedicPremium')_premDesc='300코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
+          else if(action==='gotoZiweiPremium')_premDesc='50코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
+          else if(action==='gotoAstrologyPremium')_premDesc='50코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
+          else if(action==='gotoSukuyoPremium')_premDesc='50코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
+          else if(action==='gotoVedicPremium')_premDesc='50코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
           else _premDesc='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
@@ -6638,6 +6637,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
+    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
