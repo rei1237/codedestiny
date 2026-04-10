@@ -808,6 +808,14 @@
     if (!root || root.__cdTouchBridgeBound) return;
     root.__cdTouchBridgeBound = true;
 
+    function __cdRafBatch(readPhase, writePhase) {
+      var readResult = null;
+      if (typeof readPhase === 'function') readResult = readPhase();
+      requestAnimationFrame(function () {
+        if (typeof writePhase === 'function') writePhase(readResult);
+      });
+    }
+
     root.addEventListener('touchstart', function (event) {
       var pt = getPoint(event);
       if (pt) lastTouchStart = { x: pt.x, y: pt.y };
@@ -860,27 +868,34 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-          if (ruleFromPoint) {
-            var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          }
-          if (!ruleFromPoint) {
+          __cdRafBatch(function () {
+            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
             var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var actionEl = actionFromTarget || actionFromPoint;
-            if (invokeDataActionFallback(actionEl, event)) {
+            var elAtPoint = actionFromPointEl || document.body;
+            return {
+              ruleFromPoint: ruleFromPoint,
+              actionEl: actionFromTarget || actionFromPoint,
+              elAtPoint: elAtPoint
+            };
+          }, function (state) {
+            if (!state) return;
+            if (state.ruleFromPoint) {
+              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
+              if (handledRule) {
+                event.preventDefault();
+                event.stopPropagation();
+                suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+                return;
+              }
+            }
+            if (invokeDataActionFallback(state.actionEl, event)) {
               event.preventDefault();
               event.stopPropagation();
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             }
-          }
+          });
         }
       }
     }, { passive: false, capture: true });
@@ -935,27 +950,34 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY) {
-          var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
-          if (ruleFromPoint) {
-            var elAtPoint = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
-            var handled = invokeBusinessAction(ruleFromPoint, elAtPoint || document.body, event);
-            if (handled) {
-              event.preventDefault();
-              event.stopPropagation();
-              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
-            }
-          }
-          if (!ruleFromPoint) {
+          __cdRafBatch(function () {
+            var ruleFromPoint = findRuleFromPoint(pt.x, pt.y) || findRuleFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromTarget = findDataActionElement(event.target);
             var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromPoint = findDataActionElement(actionFromPointEl);
-            var actionEl = actionFromTarget || actionFromPoint;
-            if (invokeDataActionFallback(actionEl, event)) {
+            var elAtPoint = actionFromPointEl || document.body;
+            return {
+              ruleFromPoint: ruleFromPoint,
+              actionEl: actionFromTarget || actionFromPoint,
+              elAtPoint: elAtPoint
+            };
+          }, function (state) {
+            if (!state) return;
+            if (state.ruleFromPoint) {
+              var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
+              if (handledRule) {
+                event.preventDefault();
+                event.stopPropagation();
+                suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+                return;
+              }
+            }
+            if (invokeDataActionFallback(state.actionEl, event)) {
               event.preventDefault();
               event.stopPropagation();
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             }
-          }
+          });
         }
       }
     }, { passive: false, capture: true });

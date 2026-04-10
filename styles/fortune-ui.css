@@ -9967,6 +9967,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         touch-action: manipulation; -webkit-tap-highlight-color: transparent;
         transition: box-shadow 0.3s, border-color 0.3s, transform 0.15s;
         position: relative; overflow: hidden;
+        will-change: transform, opacity;
         box-shadow:
           0 0 18px rgba(255,215,0,0.42),
           0 0 38px rgba(180,100,255,0.22),
@@ -9975,7 +9976,7 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           inset 0 -1px 0 rgba(255,215,0,0.1),
           0 4px 28px rgba(0,0,0,0.7);
         text-shadow: 0 0 8px rgba(255,220,0,1), 0 0 22px rgba(255,215,0,0.75), 0 0 48px rgba(255,200,0,0.38);
-        animation: dpSaveStarPulse 2.2s ease-in-out infinite;
+        animation: dpSaveStarPulseGPU 2.2s ease-in-out infinite;
       }
       .dp-save-btn:hover {
         transform: translateY(-2px) scale(1.012);
@@ -9996,24 +9997,14 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           0 2px 12px rgba(0,0,0,0.6);
         border-color: rgba(255,215,0,0.8);
       }
-      @keyframes dpSaveStarPulse {
+      @keyframes dpSaveStarPulseGPU {
         0%, 100% {
-          box-shadow:
-            0 0 18px rgba(255,215,0,0.42),
-            0 0 38px rgba(180,100,255,0.22),
-            0 0 70px rgba(255,215,0,0.1),
-            inset 0 1px 0 rgba(255,255,255,0.18),
-            0 4px 28px rgba(0,0,0,0.7);
+          transform: translate3d(0,0,0) scale(1);
           border-color: rgba(255,215,0,0.72);
         }
         50% {
-          box-shadow:
-            0 0 30px rgba(255,215,0,0.72),
-            0 0 60px rgba(180,100,255,0.42),
-            0 0 100px rgba(255,215,0,0.22),
-            inset 0 1px 0 rgba(255,255,255,0.22),
-            0 4px 28px rgba(0,0,0,0.7);
-          border-color: rgba(255,215,0,0.95);
+          transform: translate3d(0,-1px,0) scale(1.01);
+          border-color: rgba(255,215,0,0.92);
         }
       }
       /* 별빛 광택 스위프 효과 */
@@ -10046,9 +10037,10 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         );
         transform: translate(-50%, -50%);
         pointer-events: none;
-        animation: dpSavePulse 2.5s ease-in-out infinite;
+        will-change: transform, opacity;
+        animation: dpSaveGlowPulseGPU 2.5s ease-in-out infinite;
       }
-      @keyframes dpSavePulse {
+      @keyframes dpSaveGlowPulseGPU {
         0%,100% { opacity: 0.55; transform: translate(-50%,-50%) scale(0.85); }
         50%     { opacity: 1;    transform: translate(-50%,-50%) scale(1.15); }
       }

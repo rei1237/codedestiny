@@ -879,6 +879,7 @@ body {
 	justify-content: center;
 	gap: 6px;
 	position: relative;
+	isolation: isolate;
 	width: fit-content;
 	margin: 12px auto 0;
 	padding: 6px 14px;
@@ -892,6 +893,17 @@ body {
 	font-size: 0.75rem;
 	letter-spacing: 0.06em;
 	transition: color 0.2s, transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.fc-toggle-hint::after {
+	content: '';
+	position: absolute;
+	inset: -2px;
+	border-radius: inherit;
+	pointer-events: none;
+	opacity: 0;
+	transform: scale(0.98);
+	background: radial-gradient(circle at 50% 50%, rgba(253,230,138,0.28), rgba(253,230,138,0) 65%);
+	will-change: transform, opacity;
 }
 .feat-collection--animal .fc-toggle-hint { color: rgba(167, 243, 208, 0.7); }
 .feat-collection--oracle .fc-toggle-hint { color: rgba(253, 224, 71, 0.7); }
@@ -909,7 +921,10 @@ body {
 	box-shadow: 0 8px 24px rgba(157, 23, 77, 0.28), 0 0 0 1px rgba(251,207,232,0.22) inset;
 }
 [data-collection-open="false"] .fc-toggle-hint {
-	animation: fc-tapBeacon 2.2s ease-in-out infinite;
+	animation: fc-tapBeacon-gpu 2.2s ease-in-out infinite;
+}
+[data-collection-open="false"] .fc-toggle-hint::after {
+	animation: fc-tapBeacon-glow 2.2s ease-in-out infinite;
 }
 [data-collection-open="false"] .feat-collection--cosmic .fc-toggle-hint {
 	animation-name: fc-tapBeacon-cosmic;
@@ -938,34 +953,28 @@ body {
 	45% { transform: translateY(1px); }
 	60% { transform: translateY(4px); }
 }
-@keyframes fc-tapBeacon {
-	0%, 100% {
-		transform: translateY(0);
-		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255,255,255,0.05) inset;
-	}
-	50% {
-		transform: translateY(-1px);
-		box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 18px rgba(253, 230, 138, 0.18);
-	}
+@keyframes fc-tapBeacon-gpu {
+	0%, 100% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(0, -1px, 0); }
+}
+@keyframes fc-tapBeacon-glow {
+	0%, 100% { opacity: 0.18; transform: scale(0.98); }
+	50% { opacity: 0.48; transform: scale(1.03); }
 }
 @keyframes fc-tapBeacon-cosmic {
 	0%, 100% {
-		transform: translateY(0);
-		box-shadow: 0 8px 24px rgba(76, 29, 149, 0.3), 0 0 0 1px rgba(196,181,253,0.2) inset;
+		transform: translate3d(0, 0, 0);
 	}
 	50% {
-		transform: translateY(-1px);
-		box-shadow: 0 12px 30px rgba(76, 29, 149, 0.4), 0 0 0 1px rgba(196,181,253,0.36) inset, 0 0 22px rgba(167, 139, 250, 0.28);
+		transform: translate3d(0, -1px, 0);
 	}
 }
 @keyframes fc-tapBeacon-flower {
 	0%, 100% {
-		transform: translateY(0);
-		box-shadow: 0 8px 24px rgba(157, 23, 77, 0.28), 0 0 0 1px rgba(251,207,232,0.22) inset;
+		transform: translate3d(0, 0, 0);
 	}
 	50% {
-		transform: translateY(-1px);
-		box-shadow: 0 12px 30px rgba(157, 23, 77, 0.38), 0 0 0 1px rgba(251,207,232,0.35) inset, 0 0 22px rgba(244, 114, 182, 0.28);
+		transform: translate3d(0, -1px, 0);
 	}
 }
 

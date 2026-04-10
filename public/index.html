@@ -520,6 +520,7 @@ background-size:200% 100%!important;animation:cd-lib-shimmer 1.5s infinite!impor
 border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 @keyframes cd-lib-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cd-reduced-motion *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 
   <!-- ════════════════════════════════════════════════════════
@@ -527,11 +528,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1">
-
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1">
     <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260329-datefix3">
+    <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260329-date-mobilefix1"></noscript>
+    <link rel="preload" as="style" href="/styles/main-glass.css?v=20260328-animaluxfix1" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/main-glass.css?v=20260328-animaluxfix1"></noscript>
+    <link rel="preload" as="style" href="/styles/mobile-ux.css?v=20260329-datefix3" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/mobile-ux.css?v=20260329-datefix3"></noscript>
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
@@ -1088,9 +1091,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
-          <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig.webp"
-            srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w" sizes="(max-width: 768px) 88px, 130px"
-            width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
+          <picture>
+            <source
+              srcset="/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w"
+              sizes="(max-width: 768px) 88px, 130px"
+              type="image/webp">
+            <img id="honeypigLogo" class="honeypig-logo-icon" src="/icons/honeypig-130.webp"
+              width="130" height="130" alt="꿀꿀 연이 로고" loading="eager" fetchpriority="high" data-lcp-candidate="1" decoding="async">
+          </picture>
         </div>
         <h1>생년월일 하나로, 나의 운명 지도를 펼쳐보세요</h1>
         <p>사주팔자 · 타로 · 점성술 · 자미두수 — 동서양 운세 통합</p>
@@ -1280,8 +1288,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           autocomplete="name" inputmode="text" enterkeyhint="next">
       </div>
       <div class="form-group">
-        <label class="form-label">생년월일</label>
-        <input class="inp" type="date" id="birthDate" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
+        <label class="form-label" for="birthDate">생년월일</label>
+        <input class="inp" type="date" id="birthDate" aria-label="생년월일" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"
           autocomplete="bday" inputmode="numeric">
         <div class="form-radio-row">
           <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"> 양력</label>
@@ -1293,15 +1301,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="form-group">
         <label class="form-label">출생 시간</label>
         <div class="row2">
-          <select class="inp" id="birthHour"></select>
-          <select class="inp" id="birthMinute"></select>
+          <label for="birthHour" class="sr-only">출생 시(시간)</label>
+          <select class="inp" id="birthHour" aria-label="출생 시(시간)"></select>
+          <label for="birthMinute" class="sr-only">출생 분(분)</label>
+          <select class="inp" id="birthMinute" aria-label="출생 분(분)"></select>
         </div>
       </div>
       
       <!-- [NEW] 장소 및 시간 보정 기능 -->
       <div class="form-group form-group-surface">
-        <label class="form-label form-label-dark">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
-        <select class="inp form-country-select" id="birthCountry" data-change-action="updateCorrectedTimePreview">
+        <label class="form-label form-label-dark" for="birthCountry">출생 국가 (장소) <span class="form-label-hint">*서머타임 및 경도 보정 자동 적용</span></label>
+        <select class="inp form-country-select" id="birthCountry" aria-label="출생 국가" data-change-action="updateCorrectedTimePreview">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected>출생지를 불러오는 중...</option>
         </select>
         
@@ -7836,9 +7846,9 @@ if (document.readyState === 'loading') {
 <!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline">
-      <input type="checkbox" id="themeCheckbox" />
-      <div class="slider">
+    <label class="theme-switch theme-switch-inline" for="themeCheckbox">
+      <input type="checkbox" id="themeCheckbox" aria-label="테마 전환" />
+      <div class="slider" aria-hidden="true">
         <span class="nose-hole hole-left"></span>
         <span class="nose-hole hole-right"></span>
         <span class="paw-pad pad-1"></span>

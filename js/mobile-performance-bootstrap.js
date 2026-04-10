@@ -213,15 +213,21 @@ function __applyResponsiveSrcsetHints(img) {
   var srcsetHints = {
     '/icons/honeypig.webp': {
       srcset: '/icons/honeypig-96.webp 96w, /icons/honeypig-130.webp 130w, /icons/honeypig.webp 512w',
-      sizes: '(max-width: 768px) 88px, 130px'
+      sizes: '(max-width: 768px) 88px, 130px',
+      width: 130,
+      height: 130
     },
     '/icons/samba.webp': {
       srcset: '/icons/samba-96.webp 96w, /icons/samba-130.webp 130w, /icons/samba.webp 512w',
-      sizes: '(max-width: 768px) 88px, 130px'
+      sizes: '(max-width: 768px) 88px, 130px',
+      width: 130,
+      height: 130
     },
     '/fuctionassets/flower.webp': {
       srcset: '/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w',
-      sizes: '(max-width: 768px) 86vw, 420px'
+      sizes: '(max-width: 768px) 86vw, 420px',
+      width: 420,
+      height: 315
     }
   };
 
@@ -248,16 +254,27 @@ function __applyResponsiveSrcsetHints(img) {
   if ((cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') && !img.getAttribute('srcset')) {
     img.setAttribute('srcset', srcsetHints['/icons/honeypig.webp'].srcset);
     img.setAttribute('sizes', srcsetHints['/icons/honeypig.webp'].sizes);
+    byPath = srcsetHints['/icons/honeypig.webp'];
   }
 
   if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
     img.setAttribute('srcset', srcsetHints['/icons/samba.webp'].srcset);
     img.setAttribute('sizes', srcsetHints['/icons/samba.webp'].sizes);
+    byPath = srcsetHints['/icons/samba.webp'];
   }
 
   if (id === 'dfStudioImage' && !img.getAttribute('srcset')) {
     img.setAttribute('srcset', srcsetHints['/fuctionassets/flower.webp'].srcset);
     img.setAttribute('sizes', srcsetHints['/fuctionassets/flower.webp'].sizes);
+    byPath = srcsetHints['/fuctionassets/flower.webp'];
+  }
+
+  if (byPath && (!img.getAttribute('width') || !img.getAttribute('height'))) {
+    img.setAttribute('width', String(byPath.width));
+    img.setAttribute('height', String(byPath.height));
+    if (!img.style.aspectRatio) {
+      img.style.aspectRatio = byPath.width + ' / ' + byPath.height;
+    }
   }
 
   img.dataset.responsiveHintReady = '1';

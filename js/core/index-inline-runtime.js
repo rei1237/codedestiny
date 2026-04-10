@@ -1299,33 +1299,7 @@ function __cdWarmupSajuInputsIfNeeded() {
       el.removeAttribute('disabled');
     } catch (e) {}
   });
-
-  var hourSel = document.getElementById('birthHour');
-  var minuteSel = document.getElementById('birthMinute');
-  var countrySel = document.getElementById('birthCountry');
-  if (!hourSel || !minuteSel || !countrySel) return;
-
-  var looksUninitialized = hourSel.options.length === 0 || minuteSel.options.length === 0 || countrySel.options.length <= 1;
-  if (!looksUninitialized) {
-    window.__cdSajuInputWarmupDone = 1;
-    return;
-  }
-
-  if (window.__cdSajuInputWarmupRequested === 1) return;
-  window.__cdSajuInputWarmupRequested = 1;
-
-  var loadCore = function() {
-    __cdEnsureSajuCoreLoaded().catch(function(err) {
-      console.error('[index-inline-runtime] saju warmup failed:', err);
-      window.__cdSajuInputWarmupRequested = 0;
-    });
-  };
-
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(loadCore, { timeout: 1200 });
-  } else {
-    setTimeout(loadCore, 200);
-  }
+  window.__cdSajuInputWarmupDone = 1;
 }
 
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
@@ -1364,7 +1338,6 @@ if (document.readyState === 'loading') {
     });
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
-    setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
   }, { once: true });
 } else {
   __cdEnsureDestinyProfileLoaded().catch(function(err) {
@@ -1372,7 +1345,6 @@ if (document.readyState === 'loading') {
   });
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
-  setTimeout(__cdWarmupSajuInputsIfNeeded, 900);
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
