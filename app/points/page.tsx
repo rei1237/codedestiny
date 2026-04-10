@@ -862,18 +862,19 @@ export default function PointsPage() {
 
   /* ── API 기본 URL ─────────────────────────────────────────────── */
   const apiBase = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
     if (typeof window !== "undefined") {
       if (window.CODE_DESTINY_API_BASE_URL) return window.CODE_DESTINY_API_BASE_URL;
       if (
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1"
       ) {
-        return "http://localhost:4000";
+        // 로컬 개발: env 또는 로컬 Express 서버
+        return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
       }
+      // 프로덕션: same-origin 우선 (CORS 오류 방지)
       return window.location.origin;
     }
-    return "http://localhost:4000";
+    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
   }, []);
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
