@@ -23,6 +23,14 @@ function runOnce() {
   });
 }
 
+function runSizeBudgetGuard() {
+  return spawnSync("node", ["scripts/verify-worker-size-budget.mjs"], {
+    shell: false,
+    env: process.env,
+    encoding: "utf8",
+  });
+}
+
 function printResultOutput(result) {
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
@@ -40,6 +48,24 @@ function isRetryable(result) {
 for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
   if (attempt > 1) {
     console.log(`[opennext-deploy-retry] Retry ${attempt}/${maxAttempts}`);
+  }
+
+  const sizeGuard = runSizeBudgetGuard();
+  if (sizeGuard.error) {
+    console.error("[opennext-deploy-retry] Failed to run size budget check:", sizeGuard.error.message);
+    process.exit(1);
+  }
+
+  printResultOutput(sizeGuard);
+  const sizeStatus = typeof sizeGuard.status === "number" ? sizeGuard.status : 1;
+  if (sizeStatus === 2) {
+    console.warn(
+      "[opennext-deploy-retry] Deploy skipped: Worker bundle exceeds free-plan budget (3MiB).",
+    );
+    process.exit(0);
+  }
+  if (sizeStatus !== 0) {
+    process.exit(sizeStatus);
   }
 
   const result = runOnce();
