@@ -5939,6 +5939,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openZiweiBookModal === 'function') {
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
+            try {
+              var _zbm = document.getElementById('ziweiBookModal');
+              if (_zbm) {
+                if (_zbm.parentNode !== document.body) document.body.appendChild(_zbm);
+                _zbm.style.display = 'flex';
+                _zbm.style.visibility = 'visible';
+                _zbm.style.pointerEvents = 'auto';
+                _zbm.style.opacity = '1';
+                _zbm.style.zIndex = '100120';
+              }
+              document.body.style.overflow = 'hidden';
+              document.body.classList.add('lb-modal-open');
+            } catch (_) {}
             return true;
           }
         } catch (e) {
@@ -6153,7 +6166,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (window.__cdAdminBypass || isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser() || !!sessionStorage.getItem('flower_admin_token')) {
           // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 전파
           window.__cdAdminBypass = true;
           sessionStorage.setItem('cd_pa_' + action, '1');
@@ -6269,9 +6282,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
-    // .prem-card도 Preview 패널을 통해 처리 (coin gate는 CTA 클릭 후 처리)
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) return;
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 기본적으로 Preview 패널이 처리
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
+      // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
+      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
+        _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+      }
+      return;
+    }
     // 터치 해제 위치가 타일 영역 내인지 확인
     var t = event.changedTouches && event.changedTouches[0];
     if (__cdLastTouch.moved) return;
@@ -6299,7 +6317,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
@@ -6790,7 +6808,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    if(window.__cdAdminBypass)return;
+    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
