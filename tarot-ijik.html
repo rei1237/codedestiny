@@ -573,7 +573,7 @@ body {
   z-index: 1;
 }
 
-.card-back-face:not(.card-wrap.flipped .card-back-face):hover {
+.card-wrap:not(.flipped):hover .card-back-face {
   border-color: rgba(212,160,23,0.8);
   background: linear-gradient(160deg, #150840 0%, #2a1560 50%, #0d0428 100%);
 }
@@ -1187,7 +1187,17 @@ body {
 <!-- ──────────── SCRIPT ──────────── -->
 <script>
 const TAROT_SPREAD_TYPE = 'job_change_seven_card';
-const TAROT_API_BASE = '/api/tarot';
+const TAROT_API_TIMEOUT_MS = 12000;
+
+const TAROT_LOCAL_BASE = '/tarot-cards/';
+const TAROT_CARD_IMAGE_BY_ID = {
+  M00: 'thefool.jpeg', M01: 'themagician.jpeg', M02: 'thehighpriestess.jpeg', M03: 'theempress.jpeg',
+  M04: 'theemperor.jpeg', M05: 'thehierophant.jpeg', M06: 'TheLovers.jpg', M07: 'thechariot.jpeg',
+  M08: 'thestrength.jpeg', M09: 'thehermit.jpeg', M10: 'wheeloffortune.jpeg', M11: 'justice.jpeg',
+  M12: 'thehangedman.jpeg', M13: 'death.jpeg', M14: 'temperance.jpeg', M15: 'thedevil.jpeg',
+  M16: 'thetower.jpeg', M17: 'thestar.jpeg', M18: 'themoon.jpeg', M19: 'thesun.jpeg',
+  M20: 'judgement.jpeg', M21: 'theworld.jpeg',
+};
 
 const POSITIONS = [
   {label:'나의 천직', q:'나는 어떤 일/직업을 선택해야 할까?'},
@@ -1202,6 +1212,206 @@ const POSITIONS = [
 let drawnCards = [];
 let flippedCount = 0;
 let isDeckReady = false;
+
+const JOB_CHANGE_POSITIONS = [
+  'calling',
+  'happy_direction',
+  'inner_vocation',
+  'life_after_move',
+  'action_steps',
+  'let_go',
+  'overall_advice',
+];
+
+const LOCAL_JOB_CHANGE_DECK = [
+  { cardId: 'M00', name: 'The Fool', nameKr: '바보' },
+  { cardId: 'M01', name: 'The Magician', nameKr: '마법사' },
+  { cardId: 'M02', name: 'The High Priestess', nameKr: '여사제' },
+  { cardId: 'M03', name: 'The Empress', nameKr: '여황제' },
+  { cardId: 'M04', name: 'The Emperor', nameKr: '황제' },
+  { cardId: 'M05', name: 'The Hierophant', nameKr: '교황' },
+  { cardId: 'M06', name: 'The Lovers', nameKr: '연인' },
+  { cardId: 'M07', name: 'The Chariot', nameKr: '전차' },
+  { cardId: 'M08', name: 'Strength', nameKr: '힘' },
+  { cardId: 'M09', name: 'The Hermit', nameKr: '은둔자' },
+  { cardId: 'M10', name: 'Wheel of Fortune', nameKr: '운명의 수레바퀴' },
+  { cardId: 'M11', name: 'Justice', nameKr: '정의' },
+  { cardId: 'M14', name: 'Temperance', nameKr: '절제' },
+  { cardId: 'M16', name: 'The Tower', nameKr: '탑' },
+  { cardId: 'M17', name: 'The Star', nameKr: '별' },
+  { cardId: 'M19', name: 'The Sun', nameKr: '태양' },
+];
+
+function normalizeApiBase(raw) {
+  return String(raw || '').trim().replace(/\/+$/, '');
+}
+
+function getRuntimeEnvApiBase() {
+  try {
+    if (typeof process !== 'undefined' && process && process.env) {
+      const envBase = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.CLOUDFLARE_API_BASE_URL || process.env.API_BASE_URL;
+      if (envBase) return normalizeApiBase(envBase);
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    try {
+      if (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL) {
+        return normalizeApiBase(window.__ENV__.NEXT_PUBLIC_API_BASE_URL);
+      }
+      if (window.__CF_PAGES_API_BASE_URL) {
+        return normalizeApiBase(window.__CF_PAGES_API_BASE_URL);
+      }
+      const meta = document.querySelector('meta[name="code-destiny-api-base"]');
+      if (meta && meta.content) return normalizeApiBase(meta.content);
+    } catch (e2) {}
+  }
+
+  return '';
+}
+
+function getTarotApiBase() {
+  const runtimeBase = getRuntimeEnvApiBase();
+  if (runtimeBase) return runtimeBase;
+
+  if (typeof window !== 'undefined') {
+    if (window.CODE_DESTINY_API_BASE_URL) return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
+    try {
+      const custom = localStorage.getItem('fortune_api_base_url');
+      if (custom) return normalizeApiBase(custom);
+    } catch (e) {}
+
+    const host = String(location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:3000';
+    if (host === 'api.code-destiny.com') return location.origin || '';
+    if (host.endsWith('.pages.dev')) return 'https://code-destiny.com';
+  }
+
+  return 'https://code-destiny.com';
+}
+
+function buildTarotApiBaseCandidates() {
+  const out = [];
+  const seen = Object.create(null);
+  function add(raw) {
+    let normalized = String(raw || '').trim();
+    if (!normalized) normalized = '';
+    else normalized = normalized.replace(/\/+$/, '');
+    if (seen[normalized]) return;
+    seen[normalized] = true;
+    out.push(normalized);
+  }
+
+  add('');
+  if (typeof window !== 'undefined') {
+    const sameOrigin = String(location.origin || '').replace(/\/+$/, '');
+    if (sameOrigin) add(sameOrigin);
+  }
+
+  add(getRuntimeEnvApiBase());
+  add(getTarotApiBase());
+
+  if (typeof window !== 'undefined') {
+    const host = String(location.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') {
+      add('http://localhost:3000');
+      add('http://localhost:4000');
+    }
+    if (host !== 'code-destiny.com' && host !== 'www.code-destiny.com') add('https://code-destiny.com');
+  } else {
+    add('http://localhost:3000');
+    add('http://localhost:4000');
+  }
+
+  return out;
+}
+
+function postJsonWithTimeout(url, body) {
+  const supportsAbort = typeof AbortController === 'function';
+  if (!supportsAbort) {
+    return Promise.race([
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        cache: 'no-store',
+      }),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Tarot API timeout')), TAROT_API_TIMEOUT_MS);
+      }),
+    ]);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TAROT_API_TIMEOUT_MS);
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+    cache: 'no-store',
+    signal: controller.signal,
+  })
+    .catch((error) => {
+      if (error && error.name === 'AbortError') throw new Error('Tarot API timeout');
+      throw error;
+    })
+    .finally(() => clearTimeout(timeoutId));
+}
+
+async function callTarotApi(endpoint, payload) {
+  const bases = buildTarotApiBaseCandidates();
+  const body = JSON.stringify(payload || {});
+  let lastError = null;
+
+  for (const base of bases) {
+    const url = (base ? `${base}/api/tarot/` : '/api/tarot/') + endpoint;
+    try {
+      const resp = await postJsonWithTimeout(url, body);
+      if (!resp.ok) throw new Error(`Tarot API HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (!data || data.ok === false) throw new Error('Invalid Tarot API response');
+      return data;
+    } catch (error) {
+      lastError = error;
+      console.error('[tarot-ijik] tarot api failed', { endpoint, base: base || '(relative)', error });
+    }
+  }
+
+  throw lastError || new Error('Tarot API request failed');
+}
+
+function pickLocalJobChangeCards() {
+  const deck = LOCAL_JOB_CHANGE_DECK.slice();
+  const out = [];
+  for (let i = 0; i < JOB_CHANGE_POSITIONS.length; i++) {
+    if (!deck.length) break;
+    const pickIndex = Math.floor(Math.random() * deck.length);
+    const picked = deck.splice(pickIndex, 1)[0];
+    out.push({
+      ...picked,
+      position: JOB_CHANGE_POSITIONS[i],
+      orientation: Math.random() < 0.74 ? 'upright' : 'reversed',
+      localImageUrl: TAROT_CARD_IMAGE_BY_ID[picked.cardId] ? `${TAROT_LOCAL_BASE}${TAROT_CARD_IMAGE_BY_ID[picked.cardId]}` : '',
+    });
+  }
+  return out;
+}
+
+function createLocalJobChangeReading(cards) {
+  const lines = [];
+  for (let i = 0; i < POSITIONS.length; i++) {
+    const pos = POSITIONS[i];
+    const card = cards[i] || {};
+    const cardName = card.nameKr || card.name || `카드 ${i + 1}`;
+    const tone = card.orientation === 'reversed'
+      ? '조급한 결정보다는 리스크 점검과 순서 정리가 우선입니다.'
+      : '실행 우선순위를 분명히 하면 기회가 실제 결과로 연결됩니다.';
+    lines.push(`${i + 1}. ${pos.label} - ${cardName}${card.orientation === 'reversed' ? ' (역)' : ''}`);
+    lines.push(`${tone}`);
+  }
+  lines.push('총평: 이번 리딩은 이직 자체보다 준비의 정확도가 성패를 가른다고 말합니다. 정보 수집, 타이밍, 실행 계획 3가지를 먼저 고정하세요.');
+  return lines.join('\n\n');
+}
 
 // ─── STARS GENERATION ───
 function generateStars() {
@@ -1233,6 +1443,8 @@ function resolveCardImage(card) {
     ...(Array.isArray(card.imageCandidates) ? card.imageCandidates : []),
     card.proxyImageUrl,
     card.localImageUrl,
+    card.cardId ? `/api/tarot/card-image/${encodeURIComponent(card.cardId)}` : '',
+    card.cardId && TAROT_CARD_IMAGE_BY_ID[card.cardId] ? `${TAROT_LOCAL_BASE}${TAROT_CARD_IMAGE_BY_ID[card.cardId]}` : '',
   ];
   for (const src of candidates) {
     if (typeof src === 'string' && src.trim()) return src.trim();
@@ -1247,13 +1459,7 @@ async function initDeckFromApi() {
   msg.textContent = '무료 타로 엔진에서 7장을 준비하는 중입니다...';
   btn.disabled = true;
   try {
-    const resp = await fetch(`${TAROT_API_BASE}/draw`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ spreadType: TAROT_SPREAD_TYPE }),
-    });
-    if (!resp.ok) throw new Error(`draw failed: ${resp.status}`);
-    const data = await resp.json();
+    const data = await callTarotApi('draw', { spreadType: TAROT_SPREAD_TYPE });
     const cards = Array.isArray(data?.cards) ? data.cards : [];
     if (cards.length !== 7) throw new Error('drawn card count mismatch');
     drawnCards = cards;
@@ -1261,7 +1467,13 @@ async function initDeckFromApi() {
     msg.textContent = '카드를 클릭하여 한 장씩 뽑아보세요 ✦';
   } catch (error) {
     console.error('[tarot-ijik] draw failed', error);
-    msg.textContent = '카드 준비에 실패했습니다. 다시 뽑기를 눌러 재시도해주세요.';
+    drawnCards = pickLocalJobChangeCards();
+    isDeckReady = drawnCards.length === 7;
+    if (isDeckReady) {
+      msg.textContent = '오프라인 폴백 덱으로 전환되었습니다. 카드를 뽑아 리딩을 계속할 수 있어요.';
+    } else {
+      msg.textContent = '카드 준비에 실패했습니다. 다시 뽑기를 눌러 재시도해주세요.';
+    }
   }
 }
 
@@ -1369,24 +1581,18 @@ async function getReading() {
       orientation: c.orientation,
     }));
 
-    const resp = await fetch(`${TAROT_API_BASE}/reading`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        category: 'career',
-        spreadType: TAROT_SPREAD_TYPE,
-        cards: cardsPayload,
-      })
+    const data = await callTarotApi('reading', {
+      category: 'career',
+      spreadType: TAROT_SPREAD_TYPE,
+      cards: cardsPayload,
     });
-    if (!resp.ok) throw new Error(`reading failed: ${resp.status}`);
-    const data = await resp.json();
     const reading = data?.reading || {};
     textEl.textContent = reading.fullText || [reading.stage1, reading.stage2, reading.stage3, reading.finalAdvice].filter(Boolean).join('\n\n') || '해석 결과를 불러오지 못했습니다.';
     btn.textContent = '✦ 해석 완료';
   } catch (e) {
-    textEl.textContent = '해석을 불러오는 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
-    btn.disabled = false;
-    btn.textContent = '✦ AI 타로 해석 받기 ✦';
+    console.error('[tarot-ijik] reading failed', e);
+    textEl.textContent = createLocalJobChangeReading(drawnCards);
+    btn.textContent = '✦ 로컬 해석 완료';
   }
 }
 
