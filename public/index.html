@@ -6154,13 +6154,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
         if (window.__cdAdminBypass || isAdminUser()) {
-          // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 짧게 전파
+          // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 전파
           window.__cdAdminBypass = true;
-          setTimeout(function () {
-            try {
-              if (window.__cdAdminBypass === true) window.__cdAdminBypass = false;
-            } catch (_) {}
-          }, 2500);
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return;
@@ -6274,19 +6269,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 기본적으로 Preview 패널이 처리
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
-      // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 모달 경로로 이동
-      if (actionNode.classList.contains('prem-card')) {
-        try {
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
-            _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-            return;
-          }
-        } catch (_) {}
-      }
-      return;
-    }
+    // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
+    // .prem-card도 Preview 패널을 통해 처리 (coin gate는 CTA 클릭 후 처리)
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) return;
     // 터치 해제 위치가 타일 영역 내인지 확인
     var t = event.changedTouches && event.changedTouches[0];
     if (__cdLastTouch.moved) return;
@@ -6310,16 +6295,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // 프리뷰 카드(.tarot/.lifebook/.lovebible/.prem-card)는 상세페이지를 먼저 연다.
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
-          // 관리자 모드의 prem-card는 상세 프리뷰를 건너뛰고 즉시 모달 경로로 이동
-          if (actionNode.classList.contains('prem-card')) {
-            try {
-              if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
-                _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-                return;
-              }
-            } catch (_) {}
+        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
+        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+          // 관리자 모드: preview 패널 없이 직접 처리
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+            _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+            return;
           }
           // Preview 인터셉터로 위임 (이벤트 계속 전파)
         } else {
@@ -6808,13 +6790,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    // 관리자 모드에서 프리미엄 카드(.prem-card)는 상세 프리뷰를 건너뛰고
-    // 코인 게이트 핸들러의 관리자 바이패스 경로로 즉시 모달을 연다.
-    if (tile.classList.contains('prem-card')) {
-      try {
-        if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) return;
-      } catch (_) {}
-    }
+    if(window.__cdAdminBypass)return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
