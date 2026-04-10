@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -632,6 +632,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-sheet{position:relative;width:min(500px,100%);max-height:88vh;overflow-y:auto;background:linear-gradient(175deg,#130a2a 0%,#1d0b38 55%,#0e0420 100%);border:1px solid rgba(180,120,255,.22);border-bottom:none;border-radius:24px 24px 0 0;box-shadow:0 -14px 60px rgba(0,0,0,.65),0 0 0 1px rgba(200,150,255,.06);transform:translateY(110%);transition:transform .38s cubic-bezier(.34,1.32,.64,1);scrollbar-width:none;-ms-overflow-style:none}
 .tile-pvw-sheet::-webkit-scrollbar{display:none}
 .tile-pvw-overlay.pvw-open .tile-pvw-sheet{transform:translateY(0)}
+/* prem-card 전체화면 모드 */
+.tile-pvw-overlay.pvw-prem{align-items:stretch}
+.tile-pvw-overlay.pvw-prem .tile-pvw-sheet{width:100%;max-height:100dvh;min-height:100dvh;border-radius:0;overflow-y:auto}
+.tile-pvw-overlay.pvw-prem .tile-pvw-hero{border-radius:0;height:280px}
+.tile-pvw-overlay.pvw-prem .tile-pvw-hero--prem{height:320px}
+.tile-pvw-overlay.pvw-prem .tile-pvw-handle{display:none}
 /* 드래그 핸들 (hero 위에 겹침) */
 .tile-pvw-handle{width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.25);position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3}
 /* 닫기 버튼 */
@@ -6645,6 +6651,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!_ov)return;
     _pendingTile=tile;
     _pendingHref=href||null;
+    _ov.classList.toggle('pvw-prem',!!tile.classList.contains('prem-card'));
     var action=tile.getAttribute('data-action')||'';
 
     // 카테고리 & 비용 배지
@@ -6755,7 +6762,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function _close(){
-    if(_ov)_ov.classList.remove('pvw-open');
+    if(_ov){_ov.classList.remove('pvw-open');_ov.classList.remove('pvw-prem');}
     _pendingTile=null;_pendingHref=null;
   }
 
