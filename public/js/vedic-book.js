@@ -196,11 +196,12 @@
   window.openVedicBookModal = function(){
     var modal=_qs('vedicBookModal');
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
+    var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
       var _vdIsAdmin=window.__cdAdminBypass||(typeof window.isAdminUser==='function'&&window.isAdminUser());
       if(!_vdIsAdmin){
-        modal.style.display='flex';
+        modal.style.display='flex'; modal.style.zIndex='100120';
         document.body.style.overflow='hidden';
         try{modal.setAttribute('aria-hidden','false');}catch(_){}
         _showScreen('vdNoProfileScreen');
@@ -217,14 +218,14 @@
       var nameEl=_qs('vdResultName'),dateEl=_qs('vdResultDate');
       if(nameEl)nameEl.textContent='🪷 '+(saved.name||'사용자')+'님의 베다 인생 총람';
       if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
-      modal.style.display='flex';document.body.style.overflow='hidden';
+      modal.style.display='flex'; modal.style.zIndex='100120';document.body.style.overflow='hidden';
       try{modal.setAttribute('aria-hidden','false');}catch(_){}
       return;
     }
     _chapters=Array(12).fill(null);
     _currentChapter=1;
     _showScreen('vdStartScreen');
-    modal.style.display='flex';
+    modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillVedicProfile(profile);

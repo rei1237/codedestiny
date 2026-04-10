@@ -192,11 +192,12 @@
   window.openSukuyoBookModal = function(){
     var modal=_qs('sukuyoBookModal');
     if(!modal){console.error('[숙요점 프리미엄] sukuyoBookModal 요소를 찾을 수 없습니다.');return;}
+    var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
       var _skIsAdmin=window.__cdAdminBypass||(typeof window.isAdminUser==='function'&&window.isAdminUser());
       if(!_skIsAdmin){
-        modal.style.display='flex';
+        modal.style.display='flex'; modal.style.zIndex='100120';
         document.body.style.overflow='hidden';
         try{modal.setAttribute('aria-hidden','false');}catch(_){}
         _showScreen('skNoProfileScreen');
@@ -213,14 +214,14 @@
       var nameEl=_qs('skResultName'),dateEl=_qs('skResultDate');
       if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 인생 총람';
       if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
-      modal.style.display='flex'; document.body.style.overflow='hidden';
+      modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
       try{modal.setAttribute('aria-hidden','false');}catch(_){}
       return;
     }
     _chapters=Array(13).fill(null);
     _currentChapter=1;
     _showScreen('skStartScreen');
-    modal.style.display='flex';
+    modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillSukuyoProfile(profile);

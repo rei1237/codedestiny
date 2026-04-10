@@ -2121,7 +2121,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
             <button type="button"
                     class="prem-card prem-card--ziwei"
-                    data-action="gotoZiweiPremium"
+                    onclick="openZiweiBookModal()"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     aria-label="자미두수 궁합 분析 — 1회 50코인">
@@ -2152,7 +2152,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#070419 0%,#140e05 100%);border:1.5px solid rgba(251,191,36,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(251,191,36,0.12);margin:0;" aria-label="점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--astro"
-                    data-action="gotoAstrologyPremium"
+                    onclick="openAstroBookModal()"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
@@ -2185,7 +2185,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#020817 0%,#041026 100%);border:1.5px solid rgba(125,211,252,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(14,165,233,0.12);margin:0;" aria-label="숙요점 프리미엄">
             <button type="button"
                     class="prem-card prem-card--sukuyo"
-                    data-action="gotoSukuyoPremium"
+                    onclick="openSukuyoBookModal()"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
@@ -2218,7 +2218,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#0f0a03 0%,#1e1206 100%);border:1.5px solid rgba(251,146,60,0.45);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(234,88,12,0.14);margin:0;" aria-label="베다 점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--veda"
-                    data-action="gotoVedicPremium"
+                    onclick="openVedicBookModal()"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
@@ -5951,7 +5951,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _abScr = document.querySelector('script[src*="astro-book.js"]');
         if (!_abScr) {
           var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260410-v1';
+          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
           _abEl2.onload = function() {
             if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
           };
@@ -5977,7 +5977,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _spLoadFn = function() {
             var s=document.querySelector('script[src*="sukuyo-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260409-v1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
             if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
@@ -5999,7 +5999,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _vdLoadFn = function() {
             var s=document.querySelector('script[src*="vedic-book.js"]');
             if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260409-v1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
             if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
@@ -6448,9 +6448,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/life-book.js?v=20260410-v2" defer></script>
 <script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
-<script src="/js/astro-book.js?v=20260410-v1" defer></script>
-<script src="/js/sukuyo-book.js?v=20260409-v1" defer></script>
-<script src="/js/vedic-book.js?v=20260409-v1" defer></script>
+<script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
+<script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
+<script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
