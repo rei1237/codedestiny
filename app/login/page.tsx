@@ -3,18 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { showToast } from "../components/Toast";
 
 declare global {
   interface Window {
     CODE_DESTINY_API_BASE_URL?: string;
   }
 }
-
-type LoginFormState = {
-  email: string;
-  password: string;
-};
 
 type LoginResult = {
   message?: string;
@@ -35,13 +29,6 @@ type LoginResult = {
 };
 
 type SocialProvider = "google" | "naver" | "kakao";
-
-const INITIAL_FORM: LoginFormState = {
-  email: "",
-  password: "",
-};
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeApiBase(rawBase: string | undefined | null) {
   const value = String(rawBase || "").trim();
@@ -76,14 +63,11 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export default function LoginPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState<LoginFormState>(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
-  const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
 
   const apiBase = useMemo(() => {
     if (typeof window !== "undefined") {
@@ -97,40 +81,7 @@ export default function LoginPage() {
     return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
   }, []);
 
-  const endpoint = `${apiBase}/api/auth/login`;
   const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
-
-  const onChange = <K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  // 실시간 필드 유효성
-  const fieldValid = useMemo(
-    () => ({
-      email: emailRegex.test(form.email.trim()),
-      password: form.password.length >= 8,
-    }),
-    [form],
-  );
-
-  const markTouched = (field: string) =>
-    setFieldTouched((prev) => ({ ...prev, [field]: true }));
-
-  const ib = (field: keyof typeof fieldValid) => {
-    const base =
-      "w-full rounded-xl border bg-slate-950/30 px-3.5 py-2.5 text-sm text-slate-100 " +
-      "placeholder:text-slate-300/45 outline-none transition-all duration-300 focus:ring-2 ";
-    if (!fieldTouched[field])
-      return base + "border-violet-200/20 focus:border-violet-300/70 focus:ring-violet-400/50";
-    if (fieldValid[field])
-      return base + "border-emerald-400/55 focus:border-emerald-400/70 focus:ring-emerald-400/30";
-    return base + "border-rose-400/55 focus:border-rose-400/70 focus:ring-rose-400/30";
-  };
-
-  const fe = (field: keyof typeof fieldValid, msg: string) =>
-    fieldTouched[field] && !fieldValid[field] ? (
-      <p className="mt-1.5 text-[11px] font-medium text-rose-300/90">⚠️ {msg}</p>
-    ) : null;
 
   const persistAuth = (token?: string, user?: LoginResult["user"]) => {
     if (token) {
@@ -201,8 +152,6 @@ export default function LoginPage() {
         }
 
         persistAuth(payload.token, payload.user);
-        setSuccess(payload.message || "소셜 로그인에 성공했습니다.");
-
         const nextFromQuery = sanitizeNextPath(params.get("next"));
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
 
@@ -224,89 +173,12 @@ export default function LoginPage() {
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
     setError("");
-    setSuccess("");
     setSocialLoading(provider);
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = sanitizeNextPath(params.get("next")) || "/";
     const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?flow=login&next=${encodeURIComponent(nextPath)}`;
     window.location.href = startUrl;
-  };
-
-  const validate = () => {
-    if (!emailRegex.test(form.email.trim())) {
-      return "이메일 형식이 올바르지 않습니다.";
-    }
-
-    if (form.password.length < 8) {
-      return "비밀번호를 다시 확인해 주세요.";
-    }
-
-    return "";
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setSuccess("");
-
-    const validationMessage = validate();
-    if (validationMessage) {
-      setError(validationMessage);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-        }),
-      });
-
-      const payload = await parseJsonResponse<LoginResult & {
-        errors?: string[];
-      }>(response);
-
-      if (!response.ok) {
-        if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-          setError(payload.errors.join(" "));
-        } else if (response.status === 503) {
-          setError("서버가 준비 중입니다. 잠시 후 다시 시도해 주세요.");
-        } else {
-          setError(payload.message || "로그인에 실패했습니다.");
-        }
-        return;
-      }
-
-      persistAuth(payload.token, payload.user);
-      const name = payload.user?.name ?? "님";
-      const pts = payload.user?.points ?? 0;
-      try { sessionStorage.setItem('fortune_just_logged_in', name); } catch (_) {}
-      showToast(`✦ ${name}님, 환영합니다! 잔여 포인트: ${pts}P`, "success");
-      setForm(INITIAL_FORM);
-      setFieldTouched({});
-
-      const nextValue =
-        typeof window !== "undefined"
-          ? new URLSearchParams(window.location.search).get("next")
-          : null;
-      const resolvedNext = sanitizeNextPath(nextValue);
-      const loginDest = resolvedNext ?? (payload.user?.role === "admin" ? "/admin" : "/");
-      setIsRedirecting(true);
-      setTimeout(() => router.replace(loginDest), 600);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      setError(msg || "서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -347,51 +219,13 @@ export default function LoginPage() {
               </p>
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">별빛 로그인 포털</h1>
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
-                관리자 모드와 회원 전용 기능 접근을 위해 로그인해 주세요.
+                아이디/비밀번호 로그인은 종료되었으며, 아래 소셜 계정으로만 로그인할 수 있습니다.
               </p>
             </header>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">이메일</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => onChange("email", e.target.value)}
-                  onBlur={() => markTouched("email")}
-                  placeholder="you@example.com"
-                  className={ib("email")}
-                  autoComplete="email"
-                />
-                {fe("email", "올바른 이메일 형식을 입력해 주세요.")}
-              </div>
-
-              <div>
-                <span className="mb-1.5 block text-xs font-semibold tracking-wide text-violet-100/85">비밀번호</span>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => onChange("password", e.target.value)}
-                  onBlur={() => markTouched("password")}
-                  placeholder="비밀번호"
-                  className={ib("password")}
-                  autoComplete="current-password"
-                />
-                {fe("password", "비밀번호를 다시 확인해 주세요.")}
-              </div>
-
-              {error ? (
-                <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-gradient-to-r from-violet-600/70 via-fuchsia-600/70 to-indigo-600/70 px-4 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_8px_30px_rgba(76,29,149,.35)] transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "인증 중..." : "로그인"}
-              </button>
-            </form>
+            {error ? (
+              <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
+            ) : null}
 
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-violet-100/20" />
@@ -404,7 +238,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => startSocialLogin("google")}
                 disabled={loading || socialLoading !== null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
                 {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 계속하기"}
@@ -414,7 +248,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => startSocialLogin("naver")}
                 disabled={loading || socialLoading !== null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
                 {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 계속하기"}
@@ -424,7 +258,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => startSocialLogin("kakao")}
                 disabled={loading || socialLoading !== null}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
                 {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 계속하기"}
@@ -432,7 +266,7 @@ export default function LoginPage() {
             </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
-              계정이 없다면{" "}
+              회원가입도 소셜 계정으로 진행됩니다. {" "}
               <Link href="/signup" className="font-semibold text-violet-200 underline decoration-violet-300/70 underline-offset-4 hover:text-violet-100">
                 회원가입
               </Link>
