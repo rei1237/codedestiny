@@ -14592,6 +14592,14 @@ function renderSummary(p,johu,natal){
     });
     return _uniqList(pos);
   }
+
+  function _isAdjacentIdx(a, b) {
+    return Math.abs((a || 0) - (b || 0)) === 1;
+  }
+
+  function _adjacentPairLabel(i, j) {
+    return _ssJLbl[i] + '(' + _ssJArr[i] + ')↔' + _ssJLbl[j] + '(' + _ssJArr[j] + ')';
+  }
   var _triadGroups = [
     ['申','子','辰'],
     ['亥','卯','未'],
@@ -14609,8 +14617,8 @@ function renderSummary(p,johu,natal){
 
   function _collectRuleHit(starMap, label) {
     var baseList = [
-      { branch:p.d.j, label:'일지' },
-      { branch:p.y.j, label:'년지' }
+      { branch:p.d.j, label:'일지', idx:2 },
+      { branch:p.y.j, label:'년지', idx:0 }
     ];
     var hitPos = [];
     var ruleLines = [];
@@ -14620,12 +14628,12 @@ function renderSummary(p,johu,natal){
       var target = starMap[gIdx];
       if (!target) return;
       var pos = _ssJArr.reduce(function(acc, b, idx) {
-        if (b === target) acc.push(_ssJLbl[idx]);
+        if (b === target && _isAdjacentIdx(base.idx, idx)) acc.push(_ssJLbl[idx]);
         return acc;
       }, []);
       if (pos.length) {
         hitPos = hitPos.concat(pos);
-        ruleLines.push(base.label+' '+base.branch+'군 기준 '+label+' 지지 '+target+' 일치('+pos.join(', ')+')');
+        ruleLines.push(base.label+' '+base.branch+'군 기준 '+label+' 지지 '+target+' 인접 일치('+pos.join(', ')+')');
       }
     });
     return {
@@ -14720,7 +14728,7 @@ function renderSummary(p,johu,natal){
   if (p.d.g && _ssUl[p.d.g]) {
     var _ssUlSet = _ssUl[p.d.g];
     var _ssUlPos = _ssJArr.reduce(function(a, b, i) {
-      if (b && _ssUlSet.indexOf(b) >= 0) a.push(_ssJLbl[i]);
+      if (b && _ssUlSet.indexOf(b) >= 0 && _isAdjacentIdx(2, i)) a.push(_ssJLbl[i]);
       return a;
     }, []);
     if (_ssUlPos.length > 0) {
@@ -14728,7 +14736,7 @@ function renderSummary(p,johu,natal){
         icon:'✨',
         name:'천을귀인(天乙貴人)',
         pos:_uniqList(_ssUlPos).join(', '),
-        rule:'일간 '+p.d.g+'의 귀인 지지('+_ssUlSet.join(',')+') 일치',
+        rule:'일간 '+p.d.g+'의 귀인 지지('+_ssUlSet.join(',')+')가 일지 인접 기둥에 일치',
         desc:'위기 시 조력자와 해결 실마리가 들어오는 길성입니다. 평소 신뢰를 쌓을수록 귀인운 체감이 커집니다.'
       });
     }
@@ -14737,15 +14745,21 @@ function renderSummary(p,johu,natal){
   /* 특수 도화/형살: 사주 팔자 전체 교차 판정 */
   var _flowerSet = ['子','午','卯','酉'];
   var _flowerPos = [];
-  _ssJArr.forEach(function(b, idx) {
-    if (_flowerSet.indexOf(b) >= 0) _flowerPos.push(_ssJLbl[idx]);
-  });
-  if (_flowerPos.length >= 3) {
+  var _flowerAdjRule = [];
+  for (var _fi = 0; _fi < _ssJArr.length - 1; _fi++) {
+    var _fbA = _ssJArr[_fi];
+    var _fbB = _ssJArr[_fi + 1];
+    if (_flowerSet.indexOf(_fbA) >= 0 && _flowerSet.indexOf(_fbB) >= 0) {
+      _flowerPos.push(_ssJLbl[_fi], _ssJLbl[_fi + 1]);
+      _flowerAdjRule.push(_adjacentPairLabel(_fi, _fi + 1) + ' 도화 연접');
+    }
+  }
+  if (_flowerAdjRule.length > 0) {
     _pushSinsalItem({
       icon:'🌊',
       name:'곤랑도화(滾浪桃花)',
       pos:_uniqList(_flowerPos).join(', '),
-      rule:'지지 4기둥 중 도화 지지(子午卯酉) '+_flowerPos.length+'개 중첩',
+      rule:_uniqList(_flowerAdjRule).join(' / '),
       desc:'도화 기운이 과다 중첩된 형식입니다. 대인 매력과 화제성이 크지만 관계 경계·소문 관리가 특히 중요합니다.'
     });
   }
@@ -14755,7 +14769,7 @@ function renderSummary(p,johu,natal){
       icon:'🌊',
       name:'곤랑도화(滾浪桃花)',
       pos:_uniqList(['일지','시지']).join(', '),
-      rule:'일지('+p.d.j+')·시지('+p.h.j+') 모두 도화 지지, 이지동궁',
+      rule:'일지('+p.d.j+')·시지('+p.h.j+') 인접 도화 연접',
       desc:'일시축 도화 결합으로 감정·관계 이벤트가 빠르게 발생하기 쉬운 배치입니다.'
     });
   }
@@ -14765,11 +14779,11 @@ function renderSummary(p,johu,natal){
   var _nacheRule = [];
   if (p.d.j && _nachePair[p.d.j]) {
     var _nacheTarget = _nachePair[p.d.j];
-    ['년지','월지','시지'].forEach(function(lbl, idx) {
-      var src = [p.y.j, p.m.j, p.h.j][idx];
+    ['월지','시지'].forEach(function(lbl, idx) {
+      var src = [p.m.j, p.h.j][idx];
       if (src === _nacheTarget) {
         _nachePos.push(lbl);
-        _nacheRule.push('일지 '+p.d.j+'의 상응 도화 '+_nacheTarget+'가 '+lbl+'에 존재');
+        _nacheRule.push('일지 '+p.d.j+'와 인접한 '+lbl+'에 상응 도화 '+_nacheTarget+' 성립');
       }
     });
   }
@@ -14796,11 +14810,11 @@ function renderSummary(p,johu,natal){
   var _gokgakPos = [];
   var _gokgakRule = [];
   if (p.d.j && _gokgakPair[p.d.j]) {
-    ['년지','월지','시지'].forEach(function(lbl, idx) {
-      var src = [p.y.j, p.m.j, p.h.j][idx];
+    ['월지','시지'].forEach(function(lbl, idx) {
+      var src = [p.m.j, p.h.j][idx];
       if (_gokgakPair[p.d.j].indexOf(src) >= 0) {
         _gokgakPos.push(lbl);
-        _gokgakRule.push('일지 '+p.d.j+'와 '+lbl+' '+src+'의 곡각 조합 성립');
+        _gokgakRule.push('일지 '+p.d.j+'와 인접 '+lbl+' '+src+'의 곡각 조합 성립');
       }
     });
   }
@@ -14816,16 +14830,15 @@ function renderSummary(p,johu,natal){
 
   function _allBranchPairs() {
     var out = [];
-    for (var i = 0; i < _ssJArr.length; i++) {
-      for (var j = i + 1; j < _ssJArr.length; j++) {
-        if (!_ssJArr[i] || !_ssJArr[j]) continue;
-        out.push({
-          a: _ssJArr[i],
-          b: _ssJArr[j],
-          la: _ssJLbl[i],
-          lb: _ssJLbl[j]
-        });
-      }
+    for (var i = 0; i < _ssJArr.length - 1; i++) {
+      var j = i + 1;
+      if (!_ssJArr[i] || !_ssJArr[j]) continue;
+      out.push({
+        a: _ssJArr[i],
+        b: _ssJArr[j],
+        la: _ssJLbl[i],
+        lb: _ssJLbl[j]
+      });
     }
     return out;
   }
@@ -14918,6 +14931,62 @@ function renderSummary(p,johu,natal){
     });
   }
 
+  /* 해살 */
+  var _haeMap = {'子未':1,'丑午':1,'寅巳':1,'卯辰':1,'申亥':1,'酉戌':1};
+  var _haeRule = [];
+  var _haePos = [];
+  _pairList.forEach(function(pr) {
+    if (_hasPair(pr.a, pr.b, _haeMap)) {
+      _haePos.push(pr.la, pr.lb);
+      _haeRule.push(pr.la+' '+pr.a+' · '+pr.lb+' '+pr.b+' 해살 조합');
+    }
+  });
+  if (_haeRule.length) {
+    _pushSinsalItem({
+      icon:'🌫️',
+      name:'해살(害煞)',
+      pos:_uniqList(_haePos).join(', '),
+      rule:_uniqList(_haeRule).join(' / '),
+      desc:'표면 충돌보다 숨은 소모가 커지기 쉬운 배치입니다. 관계/업무 경계를 명확히 하는 것이 좋습니다.'
+    });
+  }
+
+  /* 파살 */
+  var _paMap = {'子酉':1,'卯午':1,'辰丑':1,'未戌':1,'寅亥':1,'巳申':1};
+  var _paRule = [];
+  var _paPos = [];
+  _pairList.forEach(function(pr) {
+    if (_hasPair(pr.a, pr.b, _paMap)) {
+      _paPos.push(pr.la, pr.lb);
+      _paRule.push(pr.la+' '+pr.a+' · '+pr.lb+' '+pr.b+' 파살 조합');
+    }
+  });
+  if (_paRule.length) {
+    _pushSinsalItem({
+      icon:'🪓',
+      name:'파살(破煞)',
+      pos:_uniqList(_paPos).join(', '),
+      rule:_uniqList(_paRule).join(' / '),
+      desc:'기존 구조를 깨고 재편하는 힘이 강한 배치입니다. 변경은 작게 나눠 단계적으로 적용하는 것이 안전합니다.'
+    });
+  }
+
+  /* 자형(自刑) */
+  var _selfPenalty = {'辰':1,'午':1,'酉':1,'亥':1};
+  for (var _si = 0; _si < _ssJArr.length - 1; _si++) {
+    var _sa = _ssJArr[_si];
+    var _sb = _ssJArr[_si + 1];
+    if (_sa && _sb && _sa === _sb && _selfPenalty[_sa]) {
+      _pushSinsalItem({
+        icon:'🪢',
+        name:'자형살(自刑煞)',
+        pos:_uniqList([_ssJLbl[_si], _ssJLbl[_si + 1]]).join(', '),
+        rule:_adjacentPairLabel(_si, _si + 1)+' 동일 지지 자형('+_sa+')',
+        desc:'완벽주의·자기압박이 강해지는 패턴입니다. 휴식 규칙과 목표 분할로 에너지 누수를 막는 것이 중요합니다.'
+      });
+    }
+  }
+
   /* 망신/고신/과숙: 일지+년지 그룹 동시 조회 */
   var _groupTargets = {
     0: { m:'亥', g:'寅', gw:'戌' },
@@ -14928,8 +14997,8 @@ function renderSummary(p,johu,natal){
 
   function _collectByBaseGroup(targetKey, title, icon, desc) {
     var bases = [
-      { label:'일지', branch:p.d.j },
-      { label:'년지', branch:p.y.j }
+      { label:'일지', branch:p.d.j, idx:2 },
+      { label:'년지', branch:p.y.j, idx:0 }
     ];
     var pos = [];
     var rule = [];
@@ -14938,9 +15007,9 @@ function renderSummary(p,johu,natal){
       if (gIdx < 0 || !_groupTargets[gIdx]) return;
       var target = _groupTargets[gIdx][targetKey];
       _ssJArr.forEach(function(b, idx) {
-        if (b === target) {
+        if (b === target && _isAdjacentIdx(base.idx, idx)) {
           pos.push(_ssJLbl[idx]);
-          rule.push(base.label+' '+base.branch+'군 기준 '+title+' 지지 '+target+'가 '+_ssJLbl[idx]+'에 위치');
+          rule.push(base.label+' '+base.branch+'군 기준 '+title+' 지지 '+target+'가 인접 '+_ssJLbl[idx]+'에 위치');
         }
       });
     });
@@ -14964,6 +15033,20 @@ function renderSummary(p,johu,natal){
   var _hasXuHai = _ssJArr.indexOf('戌') >= 0 || _ssJArr.indexOf('亥') >= 0;
   if (_hasChenSi && _hasXuHai) {
     var _trmPos = [];
+    var _trmRule = [];
+    for (var _ti = 0; _ti < _ssJArr.length - 1; _ti++) {
+      var _ta = _ssJArr[_ti];
+      var _tb = _ssJArr[_ti + 1];
+      var _aChen = (_ta === '辰' || _ta === '巳');
+      var _aXu = (_ta === '戌' || _ta === '亥');
+      var _bChen = (_tb === '辰' || _tb === '巳');
+      var _bXu = (_tb === '戌' || _tb === '亥');
+      if ((_aChen && _bXu) || (_aXu && _bChen)) {
+        _trmPos.push(_ssJLbl[_ti], _ssJLbl[_ti + 1]);
+        _trmRule.push(_adjacentPairLabel(_ti, _ti + 1) + ' 천라지망 인접 성립');
+      }
+    }
+    if (_trmRule.length > 0) {
     _ssJArr.forEach(function(b, idx) {
       if (['辰','巳','戌','亥'].indexOf(b) >= 0) _trmPos.push(_ssJLbl[idx]);
     });
@@ -14971,9 +15054,10 @@ function renderSummary(p,johu,natal){
       icon:'🕸️',
       name:'천라지망(天羅地網)',
       pos:_uniqList(_trmPos).join(', '),
-      rule:'천라(辰巳) + 지망(戌亥) 지지 동시 존재',
+      rule:_uniqList(_trmRule).join(' / '),
       desc:'생각이 얽히고 결정이 늦어질 수 있는 배치입니다. 우선순위 3개 규칙으로 의사결정을 단순화하세요.'
     });
+    }
   }
 
   /* 백호대살, 십악대패: 일주 고정 목록 */
