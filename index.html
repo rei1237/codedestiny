@@ -4791,7 +4791,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <span class="lb-coin-icon">🪙</span>
               <span class="lb-coin-label"><strong>490코인</strong> · 1회 이용 (코인 충전 후 이용 가능)</span>
             </div>
-          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook">
+          <button type="button" class="lb-btn-generate" id="lbGenerateBtn" data-action="generateLifeBook" data-coin-cost="490">
             <span class="tarot-tile__title" style="display:none;">📜 인생의 책</span>
             <span class="lb-btn-coin">🪙 490코인</span>
             나의 인생의 책 생성하기 →
@@ -5426,6 +5426,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function formatWon(value) {
     return (Number(value) || 0).toLocaleString('ko-KR') + '원';
   }
+  window.formatWon = formatWon;
 
   function getSelectedPackage() {
     for (var i = 0; i < goldenPackages.length; i += 1) {
