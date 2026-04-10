@@ -1,13 +1,12 @@
 ﻿import "../styles/globals.css";
 import "../styles/disclaimer-banner.css";
-import Script from "next/script";
 import { headers } from "next/headers";
-import WebVitalsConsole from "./components/WebVitalsConsole";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
 import AuthWidget from "./components/AuthWidget";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
+import DeferredAdsense from "./components/DeferredAdsense";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
 export const dynamic = "force-dynamic";
@@ -236,6 +235,12 @@ export const viewport = {
 };
 
 export default async function RootLayout({ children }) {
+  let DevWebVitalsConsole = null;
+  if (process.env.NODE_ENV !== "production") {
+    const mod = await import("./components/WebVitalsConsole");
+    DevWebVitalsConsole = mod.default;
+  }
+
   const headerStore = await headers();
   const requestPath = normalizePathname(
     headerStore.get("x-pathname") || headerStore.get("next-url") || "/",
@@ -270,15 +275,10 @@ export default async function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body>
-        {/* Google AdSense Auto Ads */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828"
-          crossOrigin="anonymous"
-          strategy="lazyOnload"
-        />
+        {/* Google AdSense Auto Ads - defer after interaction/idle to protect mobile LCP/TBT */}
+        <DeferredAdsense />
         <AppVersionGuard />
-        <WebVitalsConsole />
+        {DevWebVitalsConsole ? <DevWebVitalsConsole /> : null}
         <ToastProvider />
         {/* 전역 인증 상태 헤더 */}
         <header

@@ -5907,6 +5907,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  function _cdForcePremiumModalVisible(modalId) {
+    try {
+      var _modal = document.getElementById(modalId);
+      if (_modal) {
+        if (_modal.parentNode !== document.body) document.body.appendChild(_modal);
+        _modal.style.display = 'flex';
+        _modal.style.visibility = 'visible';
+        _modal.style.pointerEvents = 'auto';
+        _modal.style.opacity = '1';
+        _modal.style.zIndex = '100120';
+      }
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+    } catch (_) {}
+  }
+
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
@@ -6041,7 +6057,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); }
+          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -6051,12 +6067,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _abEl2 = document.createElement('script');
           _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
           _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           };
           document.head.appendChild(_abEl2);
         } else {
           setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           }, 500);
         }
       }
@@ -6066,7 +6082,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); }
+          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -6078,7 +6094,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
           }).catch(function(e){console.error('[prem-card sukuyo]',e);});
         })();
       }
@@ -6088,7 +6104,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); }
+          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -6100,7 +6116,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }
