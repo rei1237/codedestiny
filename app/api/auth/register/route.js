@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import {
-  dbConnect,
-  User,
-  bcrypt,
-  signToken,
-  normalizeUser,
-} from "../_lib/nativeAuthHelpers.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { getUserModel } from "@/app/_lib/models/UserModel";
 
 export const runtime = "nodejs";
 
@@ -13,6 +9,22 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 const VALID_GENDERS = ["M", "F", "OTHER"];
+
+function signToken(user) {
+  return jwt.sign(
+    { userId: String(user._id), email: user.email, role: user.role },
+    process.env.JWT_SECRET || "dev-secret",
+    { expiresIn: process.env.JWT_EXPIRES_IN || "7d", issuer: "code-destiny-api" },
+  );
+}
+
+function normalizeUser(user) {
+  return {
+    id: String(user._id), name: user.name, email: user.email,
+    birthDate: user.birthDate, birthTime: user.birthTime, gender: user.gender,
+    role: user.role, points: user.points, joinedAt: user.joinedAt,
+  };
+}
 
 function validatePayload(body) {
   const errors = [];
@@ -30,100 +42,51 @@ function validatePayload(body) {
   if (!birthTimeRegex.test(birthTime)) errors.push("태어난 시간 형식은 HH:mm 이어야 합니다.");
   if (!VALID_GENDERS.includes(gender)) errors.push("성별은 M, F, OTHER 중 하나여야 합니다.");
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-    sanitized: { name, email, password, birthDate, birthTime, gender },
-  };
+  return { isValid: errors.length === 0, errors, sanitized: { name, email, password, birthDate, birthTime, gender } };
 }
 
 export async function POST(request) {
   try {
     let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { message: "요청 본문이 올바른 JSON이 아닙니다." },
-        { status: 400 },
-      );
+    try { body = await request.json(); } catch {
+      return NextResponse.json({ message: "요청 본문이 올바른 JSON이 아닙니다." }, { status: 400 });
     }
 
     const { isValid, errors, sanitized } = validatePayload(body);
     if (!isValid) {
-      return NextResponse.json(
-        { message: "입력값 유효성 검증에 실패했습니다.", errors },
-        { status: 400 },
-      );
+      return NextResponse.json({ message: "입력값 유효성 검증에 실패했습니다.", errors }, { status: 400 });
     }
 
-    await dbConnect();
+    const User = await getUserModel();
 
-    const existing = await User.findOne({ email: sanitized.email })
-      .select("+passwordHash")
-      .lean();
-
+    const existing = await User.findOne({ email: sanitized.email }).select("+passwordHash").lean();
     if (existing) {
       const canUpgradeToLocal = existing.localAuth?.enabled === false;
       if (!canUpgradeToLocal) {
-        return NextResponse.json(
-          { message: "이미 가입된 이메일입니다." },
-          { status: 409 },
-        );
+        return NextResponse.json({ message: "이미 가입된 이메일입니다." }, { status: 409 });
       }
-      // 소셜 계정에 로컬 로그인 추가
       const passwordHash = await bcrypt.hash(sanitized.password, 12);
       const updated = await User.findByIdAndUpdate(
         existing._id,
-        {
-          $set: {
-            name: sanitized.name,
-            passwordHash,
-            birthDate: sanitized.birthDate,
-            birthTime: sanitized.birthTime,
-            gender: sanitized.gender,
-            localAuth: { enabled: true, activatedAt: new Date() },
-          },
-        },
+        { $set: { name: sanitized.name, passwordHash, birthDate: sanitized.birthDate, birthTime: sanitized.birthTime, gender: sanitized.gender, localAuth: { enabled: true, activatedAt: new Date() } } },
         { new: true },
       ).lean();
-
       const token = signToken(updated);
-      return NextResponse.json({
-        message: "소셜 계정에 로컬 로그인 수단이 추가되었습니다.",
-        token,
-        user: normalizeUser(updated),
-      });
+      return NextResponse.json({ message: "소셜 계정에 로컬 로그인 수단이 추가되었습니다.", token, user: normalizeUser(updated) });
     }
 
     const passwordHash = await bcrypt.hash(sanitized.password, 12);
     const created = await User.create({
-      name: sanitized.name,
-      email: sanitized.email,
-      passwordHash,
-      birthDate: sanitized.birthDate,
-      birthTime: sanitized.birthTime,
-      gender: sanitized.gender,
-      role: "user",
-      points: 50,
-      joinedAt: new Date(),
-      localAuth: { enabled: true, activatedAt: new Date() },
+      name: sanitized.name, email: sanitized.email, passwordHash,
+      birthDate: sanitized.birthDate, birthTime: sanitized.birthTime,
+      gender: sanitized.gender, role: "user", points: 50,
+      joinedAt: new Date(), localAuth: { enabled: true, activatedAt: new Date() },
     });
 
     const token = signToken(created);
-    return NextResponse.json(
-      {
-        message: "회원가입이 완료되었습니다.",
-        token,
-        user: normalizeUser(created),
-      },
-      { status: 201 },
-    );
+    return NextResponse.json({ message: "회원가입이 완료되었습니다.", token, user: normalizeUser(created) }, { status: 201 });
   } catch (err) {
     console.error("[api/auth/register]", err);
-    return NextResponse.json(
-      { message: "서버 오류가 발생했습니다." },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "서버 오류가 발생했습니다." }, { status: 500 });
   }
 }
