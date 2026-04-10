@@ -32,6 +32,8 @@ jobs:
       GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      AUTH_URL: ${{ secrets.AUTH_URL }}
+      AUTH_TRUST_HOST: ${{ secrets.AUTH_TRUST_HOST }}
       AUTH_API_BASE_URL: ${{ secrets.AUTH_API_BASE_URL }}
       AUTH_FRONTEND_BASE_URL: ${{ secrets.AUTH_FRONTEND_BASE_URL }}
       GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
@@ -79,6 +81,12 @@ jobs:
           if [ -n "${AUTH_API_BASE_URL}" ]; then
             printf '%s\n' "${AUTH_API_BASE_URL}" | npx wrangler secret put AUTH_API_BASE_URL --config wrangler.json
           fi
+          if [ -n "${AUTH_URL}" ]; then
+            printf '%s\n' "${AUTH_URL}" | npx wrangler secret put AUTH_URL --config wrangler.json
+          fi
+          if [ -n "${AUTH_TRUST_HOST}" ]; then
+            printf '%s\n' "${AUTH_TRUST_HOST}" | npx wrangler secret put AUTH_TRUST_HOST --config wrangler.json
+          fi
           if [ -n "${AUTH_FRONTEND_BASE_URL}" ]; then
             printf '%s\n' "${AUTH_FRONTEND_BASE_URL}" | npx wrangler secret put AUTH_FRONTEND_BASE_URL --config wrangler.json
           fi
@@ -124,6 +132,8 @@ jobs:
           sync_pages_secret GEMINI_API_KEY    "${GEMINI_API_KEY}"
           sync_pages_secret GOOGLE_API_KEY    "${GOOGLE_API_KEY}"
           sync_pages_secret ANTHROPIC_API_KEY "${ANTHROPIC_API_KEY}"
+          sync_pages_secret AUTH_URL "${AUTH_URL}"
+          sync_pages_secret AUTH_TRUST_HOST "${AUTH_TRUST_HOST}"
           sync_pages_secret AUTH_API_BASE_URL "${AUTH_API_BASE_URL}"
           sync_pages_secret AUTH_FRONTEND_BASE_URL "${AUTH_FRONTEND_BASE_URL}"
           sync_pages_secret GOOGLE_OAUTH_CLIENT_ID     "${GOOGLE_OAUTH_CLIENT_ID}"

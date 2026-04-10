@@ -42,7 +42,11 @@ function isEquivalentOrigin(a, b) {
 function resolveLegacyApiBase(request) {
   const incomingUrl = new URL(request.url);
   const incomingOrigin = incomingUrl.origin.replace(/\/$/, "");
-  const configuredBase = normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
+  const configuredBase = normalizeBaseUrl(
+    process.env.AUTH_API_BASE_URL
+    || process.env.CODE_DESTINY_API_URL
+    || process.env.AUTH_URL,
+  );
 
   if (!configuredBase) {
     if (isLocalHostName(incomingUrl.hostname) && incomingUrl.port !== "4000") {
@@ -70,7 +74,7 @@ export async function proxyLegacyApi(request) {
       {
         ok: false,
         error: "legacy_api_base_missing",
-        message: "AUTH_API_BASE_URL must be configured to external API host (example: http://localhost:4000).",
+        message: "AUTH_API_BASE_URL must be configured to API origin host (example: http://localhost:4000 or https://api.example.com).",
       },
       { status: 503 },
     );

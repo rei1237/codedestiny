@@ -170,6 +170,10 @@ export function middleware(request) {
 
   const requestHeaders = new Headers(request.headers);
   const pathForLocale = rawPath === "" ? "/" : rawPath;
+  const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const forwardedProto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "https";
+  requestHeaders.set("x-forwarded-host", forwardedHost);
+  requestHeaders.set("x-forwarded-proto", forwardedProto);
   // Only pass document path to layout: RSC / _next /api must not overwrite x-pathname (breaks / on Workers).
   if (!rawPath.startsWith("/_next") && !rawPath.startsWith("/api")) {
     requestHeaders.set("x-pathname", pathForLocale);
