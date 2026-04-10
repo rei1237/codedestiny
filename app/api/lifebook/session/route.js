@@ -20,6 +20,7 @@ function pickGeminiKeys() {
   return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
+    process.env.LIFEBOOK_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,

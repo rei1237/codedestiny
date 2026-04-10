@@ -132,6 +132,28 @@
 
   function _qs(id) { return document.getElementById(id); }
 
+  function _buildApiCandidates(pathname) {
+    var _path = String(pathname || '');
+    if (_path.charAt(0) !== '/') _path = '/' + _path;
+    var _bases = [
+      '',
+      (typeof window !== 'undefined' && window.__CD_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.__AUTH_API_BASE_URL) || '',
+      (typeof window !== 'undefined' && window.location && window.location.origin) || ''
+    ];
+    var _seen = {};
+    var _urls = [];
+    for (var i = 0; i < _bases.length; i++) {
+      var _base = String(_bases[i] || '').trim();
+      var _url = _base ? (_base.replace(/\/+$/, '') + _path) : _path;
+      if (_seen[_url]) continue;
+      _seen[_url] = true;
+      _urls.push(_url);
+    }
+    return _urls.length ? _urls : [_path];
+  }
+
   function _escHtml(s) {
     return String(s || '')
       .replace(/&/g, '&amp;')
@@ -822,47 +844,81 @@
     function _fetchChapter(idx) {
       return new Promise(function (resolve) {
         var _settled = false;
-        var _abortMsg = '응답 시간 초과 (60초). 네트워크 상태를 확인해 주세요.';
-        var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
-        if (_controller) _activeRequestController = _controller;
+        var _abortMsg = '응답 시간 초과 (45초). 네트워크 상태를 확인해 주세요.';
+        var _endpoints = _buildApiCandidates('/api/love-secret/session');
+        var _attemptPlan = [];
+        var _lastMsg = '';
+
+        for (var _ei = 0; _ei < _endpoints.length; _ei++) {
+          for (var _ri = 0; _ri < 2; _ri++) {
+            _attemptPlan.push({ url: _endpoints[_ei], retry: _ri + 1 });
+          }
+        }
 
         function _done(payload) {
           if (_settled) return;
           _settled = true;
-          clearTimeout(timeoutId);
-          if (_activeRequestController === _controller) _activeRequestController = null;
+          _abortActiveRequest();
           resolve(payload);
         }
 
-        var timeoutId = setTimeout(function () {
-          if (_controller) {
-            try { _controller.abort(); } catch (_) {}
+        function _runAttempt(at) {
+          if (_cancelGeneration) {
+            _done({ ok: false, message: '사용자가 생성을 중단했습니다.' });
+            return;
           }
-          _done({ ok: false, message: _abortMsg });
-        }, 60000);
+          if (at >= _attemptPlan.length) {
+            _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
+            return;
+          }
 
-        fetch('/api/love-secret/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
-          signal: _controller ? _controller.signal : undefined,
-        })
-          .then(function (res) {
-            if (!res.ok) {
-              return res.json().catch(function () { return {}; }).then(function (e) {
-                return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
-              });
+          var _plan = _attemptPlan[at];
+          var _controller = (typeof AbortController === 'function') ? new AbortController() : null;
+          if (_controller) _activeRequestController = _controller;
+
+          var timeoutId = setTimeout(function () {
+            if (_controller) {
+              try { _controller.abort(); } catch (_) {}
             }
-            return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+          }, 45000);
+
+          fetch(_plan.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: idx + 1, sajuData: sajuData, partnerData: partnerData || '' }),
+            signal: _controller ? _controller.signal : undefined,
           })
-          .then(function (data) { _done(data); })
-          .catch(function (err) {
-            if (err && err.name === 'AbortError') {
-              _done({ ok: false, message: _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg });
-              return;
-            }
-            _done({ ok: false, message: String(err && err.message ? err.message : err) });
-          });
+            .then(function (res) {
+              if (!res.ok) {
+                return res.json().catch(function () { return {}; }).then(function (e) {
+                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
+                });
+              }
+              return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
+            })
+            .then(function (data) {
+              clearTimeout(timeoutId);
+              if (_activeRequestController === _controller) _activeRequestController = null;
+              if (data && data.ok) {
+                _done(data);
+                return;
+              }
+              _lastMsg = (data && data.message) ? data.message : 'API 응답 실패';
+              _runAttempt(at + 1);
+            })
+            .catch(function (err) {
+              clearTimeout(timeoutId);
+              if (_activeRequestController === _controller) _activeRequestController = null;
+              if (err && err.name === 'AbortError') {
+                _lastMsg = _cancelGeneration ? '사용자가 생성을 중단했습니다.' : _abortMsg;
+              } else {
+                _lastMsg = String(err && err.message ? err.message : err);
+              }
+              _runAttempt(at + 1);
+            });
+        }
+
+        _runAttempt(0);
       });
     }
 
