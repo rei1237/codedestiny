@@ -5785,6 +5785,47 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  function _cdZiweiTrace(stage, payload) {
+    try {
+      console.log('[ZiweiPremium][Flow] ' + stage, payload || {});
+    } catch (_) {}
+  }
+  window.__cdZiweiTrace = _cdZiweiTrace;
+
+  function _cdGetZiweiProfileCandidate() {
+    try {
+      var p = window.__cdActiveBirthProfile;
+      if (p && p.birth && p.birth.year) return p;
+      var s = window.__destinyFlowerSajuSnapshot;
+      if (s && s.birth && s.birth.year) return s;
+      var dateEl = document.getElementById('birthDate');
+      if (!dateEl || !dateEl.value) return null;
+      var parts = String(dateEl.value).split('-');
+      if (parts.length < 3) return null;
+      var y = Number(parts[0]);
+      var m = Number(parts[1]);
+      var d = Number(parts[2]);
+      if (!y || !m || !d) return null;
+      var hourEl = document.getElementById('birthHour');
+      var minEl = document.getElementById('birthMinute');
+      var nameEl = document.getElementById('nameInput');
+      var isFemale = document.querySelector('#btnF.on') !== null;
+      return {
+        name: (nameEl && nameEl.value && nameEl.value.trim()) || '사용자',
+        gender: isFemale ? 'F' : 'M',
+        birth: {
+          year: y,
+          month: m,
+          day: d,
+          hour: hourEl ? Number(hourEl.value) : 12,
+          minute: minEl ? Number(minEl.value) : 0
+        }
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
@@ -5804,33 +5845,64 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
-      if (typeof window.openZiweiBookModal === 'function') {
-        (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openZiweiBookModal(); }
-          catch(e) { document.body.style.overflow = ''; console.error('[prem-card]', e); }
-        });
-      } else {
-        // ziwei-book.js lazy load 후 재호출
-        (function() {
-          var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
-          var _zbLoadFn = function() {
-            var s = document.querySelector('script[src*="ziwei-book.js"]');
-            if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
-              return Promise.resolve();
+      var _profileCandidate = _cdGetZiweiProfileCandidate();
+      _cdZiweiTrace('CLICK', {
+        action: action,
+        hasProfile: !!(_profileCandidate && _profileCandidate.birth),
+      });
+
+      var _invokeZiwei = function() {
+        try {
+          if (typeof window.openZiweiBookModal === 'function') {
+            _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
+            window.openZiweiBookModal(_profileCandidate || null);
+            return true;
+          }
+        } catch (e) {
+          _cdZiweiTrace('FUNCTION_CALL_ERROR', { message: e && e.message ? e.message : String(e) });
+        }
+        return false;
+      };
+
+      if (_invokeZiwei()) return;
+
+      // ziwei-book.js lazy load 후 재호출 (레이스 컨디션 방지)
+      (function() {
+        var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
+        var _zbLoadFn = function() {
+          var s = document.querySelector('script[src*="ziwei-book.js"]');
+          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+            _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
+            return Promise.resolve();
+          }
+          return new Promise(function(res, rej) {
+            var el = document.createElement('script');
+            el.src = '/js/ziwei-book.js?v=20260410-v2';
+            el.defer = true;
+            el.onload = function() {
+              el.dataset.loaded = '1';
+              _cdZiweiTrace('JS_LOADED', { via: 'dynamic-script' });
+              res();
+            };
+            el.onerror = function(err) {
+              _cdZiweiTrace('JS_LOAD_ERROR', {});
+              rej(err);
+            };
+            document.head.appendChild(el);
+          });
+        };
+        (_zbLoader ? _zbLoader() : _zbLoadFn())
+          .then(function() {
+            _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
+            if (!_invokeZiwei()) {
+              _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
             }
-            return new Promise(function(res, rej) {
-              var el = document.createElement('script');
-              el.src = '/js/ziwei-book.js?v=20260410-v2';
-              el.onload = function() { el.dataset.loaded = '1'; res(); };
-              el.onerror = rej;
-              document.head.appendChild(el);
-            });
-          };
-          (_zbLoader ? _zbLoader() : _zbLoadFn()).then(function() {
-            if (typeof window.openZiweiBookModal === 'function') window.openZiweiBookModal();
-          }).catch(function(e) { console.error('[prem-card ziwei]', e); });
-        })();
-      }
+          })
+          .catch(function(e) {
+            _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
+            console.error('[prem-card ziwei]', e);
+          });
+      })();
       return;
     }
     // 명시적 핸들러: openLifeBookModal
@@ -6372,6 +6444,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/life-book.js?v=20260410-v2" defer></script>
 <script src="/js/ziwei-book.js?v=20260410-v2" defer></script>
 <script src="/js/astro-book.js?v=20260410-v1" defer></script>

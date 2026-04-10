@@ -80,6 +80,16 @@
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
 
+  function _trace(stage, payload) {
+    try {
+      if (typeof window.__cdZiweiTrace === 'function') {
+        window.__cdZiweiTrace(stage, payload || {});
+      } else {
+        console.log('[ZiweiPremium][Flow] ' + stage, payload || {});
+      }
+    } catch (_) {}
+  }
+
   function _escHtml(s) {
     return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
@@ -376,9 +386,18 @@
   }
 
   /* ─────────────── 모달 열기/닫기 ─────────────── */
-  window.openZiweiBookModal = function () {
+  window.openZiweiBookModal = function (profileArg) {
+    _trace('FUNCTION_ENTER_OPEN_MODAL', {
+      hasArgProfile: !!(profileArg && profileArg.birth),
+      hasGlobalProfile: !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth)
+    });
+    if (profileArg && profileArg.birth && profileArg.birth.year) {
+      try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
+    }
+
     var modal = _qs('ziweiBookModal');
     if (!modal) {
+      _trace('FLOW_ABORT_NO_MODAL', {});
       console.error('[자미두수 인생 총람] ziweiBookModal 요소를 찾을 수 없습니다.');
       return;
     }
@@ -403,6 +422,7 @@
       if (_zbIsAdmin) {
         // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
       } else {
+        _trace('OPEN_MODAL_NO_PROFILE', {});
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
@@ -451,6 +471,10 @@
     _showScreen('zbStartScreen');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    _trace('OPEN_MODAL_READY', {
+      profileName: profile && profile.name ? profile.name : '사용자',
+      birthYear: profile && profile.birth ? profile.birth.year : null
+    });
 
     // 출생지 선택기 초기화
     if (typeof window.populateCountrySelectById === 'function') {
@@ -496,8 +520,11 @@
   /* ─────────────── 생성 로직 ─────────────── */
   window.generateZiweiBook = function () {
     if (_generating) return;
+    _trace('PDF_GENERATION_START', { phase: 'chapter-generation-requested' });
+
     var profile = _getActiveBirthProfile();
     if (!profile) {
+      _trace('FLOW_ABORT_NO_PROFILE_FOR_GENERATE', {});
       alert('사주/자미두수 계산을 먼저 완료해 주세요.');
       return;
     }
@@ -545,8 +572,15 @@
       };
     })();
 
+    _trace('DATA_RECEIVED', {
+      hasProfile: !!(_zbProfile.birthYear && _zbProfile.birthMonth && _zbProfile.birthDay),
+      birthYear: _zbProfile.birthYear,
+      gender: _zbProfile.gender || ''
+    });
+
     if (!ziweiData || ziweiData.length < 20) {
       _generating = false;
+      _trace('FLOW_ABORT_ZIWEI_DATA_MISSING', { length: ziweiData ? ziweiData.length : 0 });
       alert('자미두수 데이터를 불러오지 못했습니다. 생년월일을 입력하고 사주 분석을 먼저 실행해 주세요.');
       return;
     }
@@ -647,6 +681,7 @@
         var _validCount = _chapters.filter(function(c) {
           return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length;
+        _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 10) {
           var errEl = _qs('zbErrorMsg');
           if (errEl) errEl.textContent = _validCount === 0
@@ -678,9 +713,11 @@
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
       if (data && data.ok && _zbText.length >= 500) {
           _chapters[idx] = data.text;
+          _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
         } else {
           _failCount++;
           var msg = (data && data.message) ? data.message : '알 수 없는 오류';
+          _trace('CHAPTER_DATA_FAILED', { chapter: idx + 1, message: msg });
           console.warn('[자미두수 인생 총람] Chapter ' + (idx + 1) + ' 실패:', msg);
           _chapters[idx] = '⚠️ **이 챕터의 분석을 불러오는 데 실패했습니다.**\n\n오류: ' + msg + '\n\n잠시 후 다시 시도해 주세요.';
         }
@@ -692,11 +729,38 @@
 
   /* ─────────────── PDF 다운로드 ─────────────── */
   window.downloadZiweiBookPdf = function () {
+    _trace('PDF_DOWNLOAD_REQUESTED', {});
+
+    var _hasHtml2Canvas = typeof window.html2canvas === 'function';
+    var _hasJsPdf = !!(window.jspdf && window.jspdf.jsPDF);
+    _trace('LIB_CHECK', {
+      html2canvas: _hasHtml2Canvas,
+      jsPDF: _hasJsPdf
+    });
+
     if (!_chapters.some(Boolean)) {
+      _trace('FLOW_ABORT_NO_CHAPTERS_FOR_PDF', {});
       alert('먼저 자미두수 인생 총람을 생성해 주세요.');
       return;
     }
     var profile = window.__cdActiveBirthProfile || {};
+    if (!profile.birth || !profile.birth.year) {
+      _trace('FLOW_ABORT_PROFILE_INCOMPLETE_FOR_PDF', {
+        hasBirth: !!profile.birth
+      });
+      alert('출생 정보가 부족하여 PDF를 만들 수 없습니다. 다시 시도해 주세요.');
+      return;
+    }
+
+    var _validPdfChapterCount = _chapters.filter(function(c) {
+      return typeof c === 'string' && c.trim().length >= 50;
+    }).length;
+    if (_validPdfChapterCount === 0) {
+      _trace('FLOW_ABORT_PDF_DATA_EMPTY', {});
+      alert('PDF로 내보낼 분석 데이터가 없습니다. 다시 생성해 주세요.');
+      return;
+    }
+
     var name = (profile.name || '사용자') + '님의 자미두수 인생 총람';
     var birth = profile.birth || {};
     var birthStr = [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + (birth.day ? '일' : '');
@@ -778,6 +842,7 @@
 
     var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
+      _trace('PDF_WINDOW_BLOCKED', {});
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
@@ -785,7 +850,12 @@
     win.document.write(fullHtml);
     win.document.close();
     win.focus();
+    _trace('PDF_WINDOW_OPENED', { chapterCount: _validPdfChapterCount });
+    try {
+      alert('PDF 인쇄 창이 열렸습니다. 저장 또는 인쇄를 진행해 주세요.');
+    } catch (_) {}
     setTimeout(function () { try { win.print(); } catch (_) {} }, 1200);
+    _trace('PDF_PRINT_TRIGGERED', {});
   };
 
   /* ─────────────── 챕터별 PDF 다운로드 ─────────────── */
