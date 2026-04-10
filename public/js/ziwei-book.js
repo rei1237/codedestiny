@@ -306,7 +306,7 @@
 
   /* ─────────────── 화면 전환 ─────────────── */
   function _showScreen(id) {
-    var screens = ['zbStartScreen', 'zbLoadingScreen', 'zbResultScreen', 'zbErrorScreen'];
+    var screens = ['zbNoProfileScreen', 'zbStartScreen', 'zbLoadingScreen', 'zbResultScreen', 'zbErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
       if (el) el.style.display = (screens[i] === id) ? '' : 'none';
@@ -403,9 +403,10 @@
       if (_zbIsAdmin) {
         // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
       } else {
-        var _zbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
-        if (_zbFormEl) { try { _zbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-        alert('🌌 자미두수 인생 총람을 생성하려면 생년월일·출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
+        _showScreen('zbNoProfileScreen');
         return;
       }
     }
