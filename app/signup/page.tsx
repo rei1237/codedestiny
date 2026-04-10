@@ -19,6 +19,8 @@ type SignupFormState = {
   birthDate: string;
   birthTime: string;
   gender: "M" | "F" | "OTHER";
+  agreeTerms: boolean;
+  agreePrivacy: boolean;
 };
 
 type SignupResult = {
@@ -49,6 +51,8 @@ const INITIAL_FORM: SignupFormState = {
   birthDate: "",
   birthTime: "",
   gender: "OTHER",
+  agreeTerms: false,
+  agreePrivacy: false,
 };
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,6 +139,8 @@ export default function SignupPage() {
         form.passwordConfirm.length > 0 && form.password === form.passwordConfirm,
       birthDate: !!form.birthDate,
       birthTime: !!form.birthTime,
+      agreeTerms: form.agreeTerms,
+      agreePrivacy: form.agreePrivacy,
     }),
     [form],
   );
@@ -265,6 +271,14 @@ export default function SignupPage() {
 
     if (!form.birthTime) {
       return "태어난 시간을 입력해 주세요.";
+    }
+
+    if (!form.agreeTerms) {
+      return "이용약관에 동의해 주세요.";
+    }
+
+    if (!form.agreePrivacy) {
+      return "개인정보 처리방침에 동의해 주세요.";
     }
 
     return "";
@@ -493,14 +507,87 @@ export default function SignupPage() {
                 <p className="text-xs text-fuchsia-100/90">신규 가입 시 <strong>50P</strong>가 무료 지급됩니다!</p>
               </div>
 
+              {/* 약관 동의 */}
+              <div className="space-y-2.5 rounded-2xl border border-violet-300/15 bg-violet-900/20 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/70">약관 동의</p>
+
+                {/* 전체 동의 */}
+                <label className="group flex cursor-pointer items-center gap-3 rounded-xl border border-violet-300/20 bg-violet-400/10 px-3.5 py-2.5 transition-colors hover:bg-violet-400/15">
+                  <input
+                    type="checkbox"
+                    checked={form.agreeTerms && form.agreePrivacy}
+                    onChange={(e) => {
+                      onChange("agreeTerms", e.target.checked);
+                      onChange("agreePrivacy", e.target.checked);
+                    }}
+                    className="h-4 w-4 shrink-0 cursor-pointer appearance-none rounded border border-violet-300/50 bg-slate-900/40 checked:border-violet-400 checked:bg-violet-500 transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400/40
+                    [&:checked]:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22><polyline points=%221.5,5 4,8 8.5,2%22 stroke=%22white%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>')]
+                    [&:checked]:bg-center [&:checked]:bg-no-repeat [&:checked]:bg-[length:75%]"
+                  />
+                  <span className="text-sm font-semibold text-violet-100">전체 동의 (필수 항목 모두 포함)</span>
+                </label>
+
+                <div className="ml-1 space-y-2 border-l border-violet-300/15 pl-3">
+                  {/* 이용약관 동의 */}
+                  <label className="group flex cursor-pointer items-start gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      checked={form.agreeTerms}
+                      onChange={(e) => onChange("agreeTerms", e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer appearance-none rounded border border-violet-300/50 bg-slate-900/40 checked:border-violet-400 checked:bg-violet-500 transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400/40
+                      [&:checked]:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22><polyline points=%221.5,5 4,8 8.5,2%22 stroke=%22white%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>')]
+                      [&:checked]:bg-center [&:checked]:bg-no-repeat [&:checked]:bg-[length:75%]"
+                    />
+                    <span className="flex flex-wrap items-center gap-x-1.5 text-sm text-violet-100/90">
+                      <span className="text-rose-300 text-[10px] font-bold tracking-wide">[필수]</span>
+                      <span>이용약관에 동의합니다</span>
+                      <Link
+                        href="/terms-of-service"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-medium text-violet-300/80 underline underline-offset-2 hover:text-violet-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        보기 ↗
+                      </Link>
+                    </span>
+                  </label>
+
+                  {/* 개인정보 처리방침 동의 */}
+                  <label className="group flex cursor-pointer items-start gap-3 py-1">
+                    <input
+                      type="checkbox"
+                      checked={form.agreePrivacy}
+                      onChange={(e) => onChange("agreePrivacy", e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer appearance-none rounded border border-violet-300/50 bg-slate-900/40 checked:border-violet-400 checked:bg-violet-500 transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400/40
+                      [&:checked]:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22><polyline points=%221.5,5 4,8 8.5,2%22 stroke=%22white%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>')]
+                      [&:checked]:bg-center [&:checked]:bg-no-repeat [&:checked]:bg-[length:75%]"
+                    />
+                    <span className="flex flex-wrap items-center gap-x-1.5 text-sm text-violet-100/90">
+                      <span className="text-rose-300 text-[10px] font-bold tracking-wide">[필수]</span>
+                      <span>개인정보 처리방침에 동의합니다</span>
+                      <Link
+                        href="/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-medium text-violet-300/80 underline underline-offset-2 hover:text-violet-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        보기 ↗
+                      </Link>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               {error ? (
                 <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
               ) : null}
 
               <button
                 type="submit"
-                disabled={loading}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-gradient-to-r from-violet-600/70 via-fuchsia-600/70 to-indigo-600/70 px-4 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_8px_30px_rgba(76,29,149,.35)] transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={loading || !form.agreeTerms || !form.agreePrivacy}
+                className="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-violet-200/45 bg-gradient-to-r from-violet-600/70 via-fuchsia-600/70 to-indigo-600/70 px-4 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_8px_30px_rgba(76,29,149,.35)] transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "별빛 정보를 수집하는 중..." : "회원가입하고 운세 시작하기"}
               </button>
@@ -544,8 +631,8 @@ export default function SignupPage() {
               </button>
             </div>
 
-            <footer className="mt-5 text-center text-xs text-violet-100/65">
-              API Endpoint: <span className="font-mono text-violet-200/90">{endpoint}</span>
+            <footer className="mt-5 text-center text-xs text-violet-100/50">
+              회원가입 시 입력하신 정보는 운세 서비스 제공 목적으로만 사용됩니다.
             </footer>
           </section>
         </div>
