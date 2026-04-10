@@ -12,16 +12,10 @@ function normalizeBaseUrl(rawValue) {
 }
 
 function getLegacyApiBase() {
-  const candidates = [
-    process.env.AUTH_API_BASE_URL,
-    process.env.CODE_DESTINY_API_URL,
-    process.env.NEXT_PUBLIC_CODE_DESTINY_API_URL,
-  ];
-  for (const candidate of candidates) {
-    const normalized = normalizeBaseUrl(candidate);
-    if (normalized) return normalized;
-  }
-  return "";
+  // AUTH_API_BASE_URL 만 사용: CODE_DESTINY_API_URL 등 프론트엔드 도메인 변수를
+  // fallback으로 사용하면 동일 도메인 루프 오류가 발생하므로 제거함.
+  const normalized = normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
+  return normalized;
 }
 
 export async function proxyLegacyApi(request) {

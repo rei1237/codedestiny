@@ -6,13 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // CF Workers 번들 크기 최적화: Node.js 전용 패키지를 서버 번들에서 제외
+  // CF Workers 번들 크기 최적화: 순수 네이티브 애드온만 제외
+  // mongoose/bcryptjs/mongodb는 auth 네이티브 라우트에서 직접 사용하므로 번들에 포함
   serverExternalPackages: [
     '@react-pdf/renderer',
-    'mongoose',
-    'mongodb',
     'bcrypt',
-    'bcryptjs',
     'nodemailer',
     'node-cron',
     'otplib',
@@ -26,10 +24,7 @@ const nextConfig = {
       config.externals = [
         ...existing,
         /^@react-pdf(\/.*)?$/,
-        'mongoose',
-        'mongodb',
         'bcrypt',
-        'bcryptjs',
         'nodemailer',
         'node-cron',
         'otplib',
