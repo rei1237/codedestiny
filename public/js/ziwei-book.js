@@ -84,8 +84,6 @@
     try {
       if (typeof window.__cdZiweiTrace === 'function') {
         window.__cdZiweiTrace(stage, payload || {});
-      } else {
-        console.log('[ZiweiPremium][Flow] ' + stage, payload || {});
       }
     } catch (_) {}
   }

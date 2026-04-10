@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -2131,7 +2131,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
             <button type="button"
                     class="prem-card prem-card--ziwei"
-                    onclick="openZiweiBookModal()"
+                    data-action="gotoZiweiPremium"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     aria-label="자미두수 궁합 분析 — 1회 50코인">
@@ -2162,7 +2162,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#070419 0%,#140e05 100%);border:1.5px solid rgba(251,191,36,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(251,191,36,0.12);margin:0;" aria-label="점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--astro"
-                    onclick="openAstroBookModal()"
+                    data-action="gotoAstrologyPremium"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
@@ -2195,7 +2195,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#020817 0%,#041026 100%);border:1.5px solid rgba(125,211,252,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(14,165,233,0.12);margin:0;" aria-label="숙요점 프리미엄">
             <button type="button"
                     class="prem-card prem-card--sukuyo"
-                    onclick="openSukuyoBookModal()"
+                    data-action="gotoSukuyoPremium"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
@@ -2228,7 +2228,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section style="background:linear-gradient(145deg,#0f0a03 0%,#1e1206 100%);border:1.5px solid rgba(251,146,60,0.45);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(234,88,12,0.14);margin:0;" aria-label="베다 점성술 프리미엄">
             <button type="button"
                     class="prem-card prem-card--veda"
-                    onclick="openVedicBookModal()"
+                    data-action="gotoVedicPremium"
                     data-coin-cost="50"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
