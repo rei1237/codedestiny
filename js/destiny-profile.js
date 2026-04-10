@@ -713,6 +713,17 @@
     };
   }
 
+  function _resolveVedicProfileCandidate() {
+    var cur = DPStorage.current();
+    if (cur && cur.birth) return cur;
+    var list = DPStorage.list();
+    if (!Array.isArray(list) || list.length === 0) return null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].birth) return list[i];
+    }
+    return list[0] || null;
+  }
+
   function _fortuneStartMessage(profileName, type) {
     var safeName = _esc(profileName || '');
     if (type === 'saju')   return '✦ ' + safeName + ' · 사주 풀이를 시작합니다';
@@ -1511,18 +1522,26 @@
             _olympusCommitProfile(payload);
           });
       } else if (type === 'vedic') {
-        var pVedic = DPStorage.current();
+        var pVedic = _resolveVedicProfileCandidate();
         if (!pVedic || !pVedic.birth) {
           _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
           return;
+        }
+        if (pVedic.id) {
+          try { DPStorage.setCurrent(pVedic.id); } catch (e0) {}
         }
         var forVedic = _normalizeProfileForVedic(pVedic);
         try {
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+          window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        window.location.href = '/vedic-astrology.html';
+        if (typeof cdResolveLocalizedFeatureHref === 'function') {
+          window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
+        } else {
+          window.location.href = '/vedic-astrology.html';
+        }
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
