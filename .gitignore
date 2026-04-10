@@ -54,3 +54,7 @@ audit_phase1/
 
 # one-time patch/fix scripts archive (not needed in repo)
 _scripts-archive/
+
+# Google Cloud service account keys (NEVER commit)
+key/
+*.json.key

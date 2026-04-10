@@ -46,6 +46,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google-cloud/vertexai": "^1.11.0",
     "@react-pdf/renderer": "^4.4.0",
     "astronomy-engine": "^2.1.19",
     "bcrypt": "^6.0.0",

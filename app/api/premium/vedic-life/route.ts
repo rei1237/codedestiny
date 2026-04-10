@@ -1,5 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { Body, Ecliptic, GeoVector } from "astronomy-engine";
+import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -429,6 +430,13 @@ function parseText(p: unknown): string {
   return "";
 }
 async function callGemini(prompt: string): Promise<string> {
+  // ─── Vertex AI 우선 시도 ──────────────────────────────────────
+  try {
+    const vtxt = await callVertexGemini(prompt, { temperature: 0.92, maxOutputTokens: 8192 });
+    if (vtxt) return vtxt;
+  } catch { /* Vertex 실패 → API 키 폴백 */ }
+
+  // ─── GEMINI API 키 폴백 ──────────────────────────────────────
   const keys = pickKeys(); const models = pickModels();
   if (!keys.length) return "";
   let attempts = 0;
