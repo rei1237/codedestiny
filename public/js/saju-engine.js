@@ -14358,6 +14358,63 @@ function renderSummary(p,johu,natal){
     '</div>',
     '#7c3aed','rgba(237,233,254,.7)');
 
+  /* 보유 십성 바로 아래: 십이운성·신살 핵심 요약 */
+  var _quickTwelveOrder = ['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+  var _quickZodiacOrder = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var _quickTwelveStart = {'甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅','己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'};
+  var _quickYangStem = {'甲':1,'丙':1,'戊':1,'庚':1,'壬':1};
+  var _quickPillar = [
+    { label:'년주', stem:p.y.g, branch:p.y.j },
+    { label:'월주', stem:p.m.g, branch:p.m.j },
+    { label:'일주', stem:p.d.g, branch:p.d.j },
+    { label:'시주', stem:p.h.g, branch:p.h.j }
+  ];
+  function _quickCalcTwelve(dayStem, branch) {
+    if (!dayStem || !branch || !_quickTwelveStart[dayStem]) return null;
+    var sIdx = _quickZodiacOrder.indexOf(_quickTwelveStart[dayStem]);
+    var bIdx = _quickZodiacOrder.indexOf(branch);
+    if (sIdx < 0 || bIdx < 0) return null;
+    var step = _quickYangStem[dayStem] ? ((bIdx - sIdx + 12) % 12) : ((sIdx - bIdx + 12) % 12);
+    return _quickTwelveOrder[step] || null;
+  }
+  var _quickTwelveLines = _quickPillar.map(function(row) {
+    var star = _quickCalcTwelve(p.d.g, row.branch);
+    return row.label+' '+(row.stem||'?')+(row.branch||'?')+' · '+(star || '계산불가');
+  });
+
+  var _qJ = [p.y.j, p.m.j, p.d.j, p.h.j];
+  var _qL = ['년지','월지','일지','시지'];
+  var _qPairs = [[0,1],[1,2],[2,3]];
+  function _qHit(map) {
+    var out = [];
+    _qPairs.forEach(function(pr) {
+      var a = _qJ[pr[0]], b = _qJ[pr[1]];
+      if (!a || !b) return;
+      if (map[a+b] || map[b+a]) out.push(_qL[pr[0]]+'-'+_qL[pr[1]]+'('+a+b+')');
+    });
+    return out;
+  }
+  var _quickItems = [];
+  var _flowerSetQ = {'子':1,'午':1,'卯':1,'酉':1};
+  _qPairs.forEach(function(pr) {
+    var a = _qJ[pr[0]], b = _qJ[pr[1]];
+    if (_flowerSetQ[a] && _flowerSetQ[b]) _quickItems.push('곤랑도화: '+_qL[pr[0]]+'-'+_qL[pr[1]]+'('+a+b+')');
+  });
+  _qHit({'子午':1,'丑未':1,'寅申':1,'卯酉':1,'辰戌':1,'巳亥':1}).forEach(function(v){ _quickItems.push('충살: '+v); });
+  _qHit({'子未':1,'丑午':1,'寅酉':1,'卯申':1,'辰亥':1,'巳戌':1}).forEach(function(v){ _quickItems.push('원진살: '+v); });
+  _qHit({'子未':1,'丑午':1,'寅巳':1,'卯辰':1,'申亥':1,'酉戌':1}).forEach(function(v){ _quickItems.push('해살: '+v); });
+  _qHit({'子酉':1,'卯午':1,'辰丑':1,'未戌':1,'寅亥':1,'巳申':1}).forEach(function(v){ _quickItems.push('파살: '+v); });
+  if (p.d.g && {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'}[p.d.g] === p.d.j) _quickItems.push('양인살: 일주 '+(p.d.g+p.d.j));
+  if (['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'].indexOf(p.d.g+p.d.j) >= 0) _quickItems.push('홍염살: 일주 '+(p.d.g+p.d.j));
+  if (! _quickItems.length) _quickItems.push('인접 기둥 기준 주요 신살 없음');
+
+  html+=box('✨ ⑤-1 십성 연동: 십이운성·신살 빠른 확인',
+    subHead('십이운성(일간 기준)','#6a1b9a')+
+    li(_quickTwelveLines)+
+    '<br>'+subHead('신살(인접 기둥 기준)','#8e24aa')+
+    li(_quickItems.slice(0, 12)),
+    '#8e24aa','rgba(243,229,245,.72)');
+
   /* ───────────────────────────────
      5. 성격·기질 심층 분석
   ─────────────────────────────── */
