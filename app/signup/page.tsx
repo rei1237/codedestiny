@@ -65,6 +65,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
 
@@ -166,8 +168,15 @@ export default function SignupPage() {
       });
   }, [router, socialCompleteEndpoint]);
 
+  const hasRequiredConsents = agreePrivacy && agreeTerms;
+
   const startSocialSignup = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
+
+    if (!hasRequiredConsents) {
+      setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");
+      return;
+    }
 
     setError("");
     setSocialLoading(provider);
@@ -231,11 +240,73 @@ export default function SignupPage() {
               <div className="h-px flex-1 bg-violet-100/20" />
             </div>
 
+            <section className="legal-consent-space mb-5" aria-label="회원가입 필수 동의">
+              <div className="legal-consent-head">
+                <p className="legal-consent-kicker">MANDATORY LEGAL CONSENT</p>
+                <h2 className="legal-consent-title">회원가입 전 정책 전문 확인</h2>
+                <p className="legal-consent-desc">아래 본문을 확인한 뒤 필수 동의 항목을 체크해야 소셜 회원가입이 활성화됩니다.</p>
+              </div>
+
+              <div className="legal-docs-grid">
+                <article className="legal-doc-card" aria-label="개인정보처리방침 전문">
+                  <div className="legal-doc-head">
+                    <strong>개인정보처리방침 Privacy Policy</strong>
+                  </div>
+                  <div className="legal-frame-wrap">
+                    <iframe
+                      title="개인정보처리방침 전문"
+                      src="/privacy-policy"
+                      className="legal-iframe"
+                      loading="lazy"
+                    />
+                  </div>
+                  <label className="legal-check-row" htmlFor="agree-privacy-policy">
+                    <input
+                      id="agree-privacy-policy"
+                      type="checkbox"
+                      checked={agreePrivacy}
+                      onChange={(e) => setAgreePrivacy(e.target.checked)}
+                    />
+                    <span>[필수] 개인정보처리방침 전문을 읽고 동의합니다.</span>
+                  </label>
+                </article>
+
+                <article className="legal-doc-card" aria-label="이용약관 전문">
+                  <div className="legal-doc-head">
+                    <strong>이용약관 Terms of Service</strong>
+                  </div>
+                  <div className="legal-frame-wrap">
+                    <iframe
+                      title="이용약관 전문"
+                      src="/terms-of-service"
+                      className="legal-iframe"
+                      loading="lazy"
+                    />
+                  </div>
+                  <label className="legal-check-row" htmlFor="agree-terms-of-service">
+                    <input
+                      id="agree-terms-of-service"
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                    />
+                    <span>[필수] 이용약관 전문을 읽고 동의합니다.</span>
+                  </label>
+                </article>
+              </div>
+
+              <p className="legal-consent-state" role="status" aria-live="polite">
+                {hasRequiredConsents
+                  ? "필수 동의가 완료되었습니다. 이제 소셜 회원가입을 진행할 수 있습니다."
+                  : "필수 동의 2건을 모두 체크하면 소셜 회원가입 버튼이 활성화됩니다."}
+              </p>
+            </section>
+
             <div className="space-y-2.5">
               <button
                 type="button"
                 onClick={() => startSocialSignup("google")}
-                disabled={loading || socialLoading !== null}
+                disabled={loading || socialLoading !== null || !hasRequiredConsents}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
@@ -245,7 +316,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => startSocialSignup("naver")}
-                disabled={loading || socialLoading !== null}
+                disabled={loading || socialLoading !== null || !hasRequiredConsents}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
@@ -255,7 +326,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => startSocialSignup("kakao")}
-                disabled={loading || socialLoading !== null}
+                disabled={loading || socialLoading !== null || !hasRequiredConsents}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
@@ -272,6 +343,117 @@ export default function SignupPage() {
           </section>
         </div>
       </div>
+
+      <style jsx>{`
+        .legal-consent-space {
+          border: 1px solid rgba(167, 139, 250, 0.4);
+          border-radius: 1rem;
+          padding: 0.9rem;
+          background:
+            radial-gradient(circle at 12% 18%, rgba(167, 139, 250, 0.22), transparent 40%),
+            radial-gradient(circle at 82% 20%, rgba(56, 189, 248, 0.18), transparent 42%),
+            linear-gradient(140deg, rgba(15, 23, 42, 0.62), rgba(49, 46, 129, 0.45));
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 36px rgba(15, 23, 42, 0.35);
+        }
+
+        .legal-consent-head {
+          margin-bottom: 0.75rem;
+        }
+
+        .legal-consent-kicker {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          color: rgba(196, 181, 253, 0.9);
+          margin-bottom: 0.35rem;
+        }
+
+        .legal-consent-title {
+          font-size: 1rem;
+          line-height: 1.35;
+          color: rgba(255, 255, 255, 0.95);
+          font-weight: 700;
+        }
+
+        .legal-consent-desc {
+          margin-top: 0.25rem;
+          font-size: 12px;
+          line-height: 1.5;
+          color: rgba(224, 231, 255, 0.82);
+        }
+
+        .legal-docs-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+        }
+
+        .legal-doc-card {
+          border-radius: 0.8rem;
+          overflow: hidden;
+          border: 1px solid rgba(148, 163, 184, 0.35);
+          background: linear-gradient(180deg, rgba(2, 6, 23, 0.68), rgba(15, 23, 42, 0.55));
+        }
+
+        .legal-doc-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.55rem 0.7rem;
+          font-size: 12px;
+          color: rgba(233, 213, 255, 0.96);
+          border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+          background: linear-gradient(90deg, rgba(91, 33, 182, 0.35), rgba(30, 64, 175, 0.35));
+        }
+
+        .legal-frame-wrap {
+          position: relative;
+          height: 210px;
+          background: rgba(248, 250, 252, 0.98);
+        }
+
+        .legal-iframe {
+          width: 100%;
+          height: 100%;
+          border: 0;
+          background: #fff;
+        }
+
+        .legal-check-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.55rem;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.92);
+          padding: 0.65rem 0.7rem 0.75rem;
+          line-height: 1.45;
+        }
+
+        .legal-check-row input {
+          margin-top: 2px;
+          inline-size: 16px;
+          block-size: 16px;
+          accent-color: #a78bfa;
+          flex-shrink: 0;
+        }
+
+        .legal-consent-state {
+          margin-top: 0.7rem;
+          border-radius: 0.7rem;
+          border: 1px solid rgba(165, 180, 252, 0.35);
+          background: rgba(67, 56, 202, 0.2);
+          padding: 0.55rem 0.65rem;
+          font-size: 12px;
+          line-height: 1.5;
+          color: rgba(238, 242, 255, 0.95);
+        }
+
+        @media (min-width: 768px) {
+          .legal-docs-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+      `}</style>
     </main>
   );
 }
