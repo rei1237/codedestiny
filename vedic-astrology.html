@@ -2139,9 +2139,9 @@ function initVedicPage(){
   vedicInitLanguageBridge();
   let profile=null;
   try{ profile=_readProfileFromStorage(); }catch(e){}
-  if(!profile){ showPage('input'); _prefillVedicInput(); return; }
+  if(!profile){ showPage('input'); return; }
   profile=normalizeProfileForVedic(profile)||profile;
-  if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); _prefillVedicInput(); return; }
+  if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); return; }
   doCalculateFromProfile(profile);
 }
 
