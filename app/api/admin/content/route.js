@@ -1,4 +1,4 @@
-import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
+import { proxyLegacyApi } from "../../_lib/legacyApiProxy";
 export const runtime = "nodejs";
 const h = (r) => proxyLegacyApi(r);
 export function GET() { return new Response(null, { status: 405 }); }

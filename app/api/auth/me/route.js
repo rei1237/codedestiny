@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { getUserModel } from "@/app/_lib/models/UserModel";
+import { getUserModel } from "../../../_lib/models/UserModel";
 
 export const runtime = "nodejs";
 

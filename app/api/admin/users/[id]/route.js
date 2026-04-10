@@ -1,4 +1,4 @@
-import { proxyLegacyApiWithRewrite } from "@/app/api/_lib/legacyApiProxy";
+import { proxyLegacyApiWithRewrite } from "../../../_lib/legacyApiProxy";
 
 export const runtime = "nodejs";
 

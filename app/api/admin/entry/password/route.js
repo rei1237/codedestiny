@@ -1,5 +1,5 @@
-﻿import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
-import { generateFlowerAdminToken } from "@/app/_lib/flowerAdminToken";
+import { proxyLegacyApi } from "../../../_lib/legacyApiProxy";
+import { generateFlowerAdminToken } from "../../../../_lib/flowerAdminToken";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 

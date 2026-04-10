@@ -1,8 +1,8 @@
-﻿import { proxyLegacyApi } from "@/app/api/_lib/legacyApiProxy";
-import { POST as loginPost } from "@/app/api/auth/login/route";
-import { POST as registerPost } from "@/app/api/auth/register/route";
-import { GET as meGet } from "@/app/api/auth/me/route";
-import { POST as logoutPost } from "@/app/api/auth/logout/route";
+import { proxyLegacyApi } from "../../_lib/legacyApiProxy";
+import { POST as loginPost } from "../login/route";
+import { POST as registerPost } from "../register/route";
+import { GET as meGet } from "../me/route";
+import { POST as logoutPost } from "../logout/route";
 
 export const runtime = "nodejs";
 

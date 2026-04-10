@@ -4,7 +4,7 @@ import {
   calcRelationType,
   MANSIONS_27,
   type SukuyoCalcResult,
-} from "@/lib/sukuyo-engine-server";
+} from "../../../../lib/sukuyo-engine-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
