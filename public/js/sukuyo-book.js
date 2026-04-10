@@ -199,6 +199,7 @@
       if(!_skIsAdmin){
         modal.style.display='flex'; modal.style.zIndex='100120';
         document.body.style.overflow='hidden';
+        document.body.classList.add('lb-modal-open');
         try{modal.setAttribute('aria-hidden','false');}catch(_){}
         _showScreen('skNoProfileScreen');
         return;
@@ -215,6 +216,7 @@
       if(nameEl) nameEl.textContent='💫 '+(saved.name||'사용자')+'님의 숙요점 인생 총람';
       if(dateEl){var b=saved.birth||{};var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):'';dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':'');}
       modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
+      document.body.classList.add('lb-modal-open');
       try{modal.setAttribute('aria-hidden','false');}catch(_){}
       return;
     }
@@ -223,6 +225,7 @@
     _showScreen('skStartScreen');
     modal.style.display='flex'; modal.style.zIndex='100120';
     document.body.style.overflow='hidden';
+    document.body.classList.add('lb-modal-open');
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillSukuyoProfile(profile);
   };
@@ -243,6 +246,7 @@
     if(_mysticTimer){clearInterval(_mysticTimer);_mysticTimer=null;}
     modal.style.display='none';
     document.body.style.overflow='';
+    document.body.classList.remove('lb-modal-open');
     try{modal.setAttribute('aria-hidden','true');}catch(_){}
   };
 

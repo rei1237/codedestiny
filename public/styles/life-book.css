@@ -250,32 +250,39 @@
   .lifebook-tile__title { font-size: 1.35rem; }
 }
 
+/* ── iOS 스크롤 잠금 ── */
+body.lb-modal-open {
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
 /* ── 모달 ─────────────────────────────────── */
 .lb-modal {
   position: fixed;
   inset: 0;
   z-index: 100120;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
+  background: #08041a;
   font-family: 'Gowun Dodum', 'Noto Serif KR', sans-serif;
 }
 
 .lb-modal__overlay {
+  display: none;
   position: absolute;
   inset: 0;
-  background: rgba(5, 0, 20, 0.82);
-  backdrop-filter: blur(6px);
+  background: rgba(5, 0, 20, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
 }
 
 .lb-modal__panel {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 760px;
+  height: 100%;
   background:
     radial-gradient(ellipse at 50% 0%, rgba(100, 50, 220, 0.18) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 100%, rgba(70, 20, 180, 0.12) 0%, transparent 55%),
@@ -283,15 +290,27 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  border-left: 1px solid rgba(139, 92, 246, 0.22);
-  border-right: 1px solid rgba(139, 92, 246, 0.22);
 }
 
-@media (min-width: 741px) {
+@media (min-width: 620px) {
+  .lb-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
+  .lb-modal__overlay {
+    display: block;
+  }
   .lb-modal__panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    max-width: 760px;
+    max-height: calc(100vh - 60px);
     border-radius: 24px;
-    margin: 20px;
-    max-height: calc(100vh - 40px);
+    margin: 30px;
     border: 1px solid rgba(155, 100, 255, 0.32);
     box-shadow:
       0 0 0 1px rgba(200, 160, 255, 0.08),
@@ -1695,6 +1714,56 @@
   text-align: center;
   margin: 0;
   line-height: 1.5;
+}
+
+/* ── 시작화면 챕터 미리보기 목록 ── */
+.lb-start__chapters {
+  margin: 4px 0 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(139,92,246,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.lb-start__ch-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(167,139,250,0.6);
+  padding: 10px 14px 6px;
+  border-bottom: 1px solid rgba(139,92,246,0.12);
+}
+
+.lb-start__ch-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 210px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lb-start__ch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(139,92,246,0.08);
+  font-size: 0.8rem;
+  color: rgba(203,213,225,0.75);
+  line-height: 1.45;
+}
+
+.lb-start__ch-item:last-child { border-bottom: none; }
+
+.lb-start__ch-num {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(167,139,250,0.5);
+  min-width: 22px;
+  padding-top: 2px;
+  flex-shrink: 0;
 }
 
 /* ── 로딩 화면 ── */

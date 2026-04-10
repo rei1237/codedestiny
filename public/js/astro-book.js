@@ -232,6 +232,7 @@
       if (!_abIsAdmin) {
         modal.style.display = 'flex'; modal.style.zIndex='100120';
         document.body.style.overflow = 'hidden';
+        document.body.classList.add('lb-modal-open');
         try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
         _showScreen('abNoProfileScreen');
         return;
@@ -250,6 +251,7 @@
       if (nameEl) nameEl.textContent = '✨ '+(saved.name||'사용자')+'님의 점성술 코즈믹 차트';
       if (dateEl) { var b=saved.birth||{}; var sd=saved.savedAt?new Date(saved.savedAt).toLocaleDateString('ko-KR'):''; dateEl.textContent=[b.year,b.month,b.day].filter(Boolean).join('.')+(sd?' · 💾 '+sd+' 저장':''); }
       modal.style.display='flex'; modal.style.zIndex='100120'; document.body.style.overflow='hidden';
+      document.body.classList.add('lb-modal-open');
       try { modal.setAttribute('aria-hidden','false'); } catch(_){}
       return;
     }
@@ -258,6 +260,7 @@
     _showScreen('abStartScreen');
     modal.style.display = 'flex'; modal.style.zIndex='100120';
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('lb-modal-open');
     try { modal.setAttribute('aria-hidden','false'); var closeBtn=modal.querySelector('.lb-modal__close'); if(closeBtn) setTimeout(function(){closeBtn.focus();},60); } catch(_){}
     _prefillAstroProfile(profile);
   };
@@ -278,6 +281,7 @@
     if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer=null; }
     modal.style.display = 'none';
     document.body.style.overflow = '';
+    document.body.classList.remove('lb-modal-open');
     try { modal.setAttribute('aria-hidden','true'); } catch(_){}
   };
 
