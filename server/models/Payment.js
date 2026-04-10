@@ -48,6 +48,29 @@ const paymentSchema = new mongoose.Schema({
     default: "pending",
     index: true,
   },
+  failureCode: {
+    type: String,
+    trim: true,
+    maxlength: 80,
+  },
+  failureMessage: {
+    type: String,
+    trim: true,
+    maxlength: 500,
+  },
+  failureStage: {
+    type: String,
+    trim: true,
+    maxlength: 80,
+  },
+  lastErrorAt: {
+    type: Date,
+  },
+  confirmAttempts: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   paidAt: {
     type: Date,
   },

@@ -48,6 +48,21 @@ type ConfirmResponse = {
     id: string;
     points: number;
   };
+  payment?: PaymentHistoryItem;
+};
+
+type PaymentHistoryItem = {
+  id: string;
+  impUid?: string;
+  merchantUid?: string;
+  paymentAmount: number;
+  chargedPoints: number;
+  paymentMethod: string;
+  status: "pending" | "success" | "failed" | "cancelled";
+  paidAt?: string;
+  approvalNumber?: string | null;
+  receiptUrl?: string | null;
+  cancelledAt?: string | null;
 };
 
 /* ── 프로필 구독 타입 ───────────────────────────────────────── */
@@ -81,6 +96,7 @@ type MeResponse = {
     email: string;
     points: number;
   };
+  payments?: PaymentHistoryItem[];
 };
 
 type PendingOrder = {
@@ -88,6 +104,14 @@ type PendingOrder = {
   paymentAmount: number;
   chargePoints: number;
   paymentMethod: string;
+};
+
+type PaymentFailureReportPayload = {
+  merchantUid?: string;
+  impUid?: string;
+  reasonCode: string;
+  reasonMessage: string;
+  paymentMethod?: string;
 };
 
 type PortOnePaymentResponse = {
@@ -215,6 +239,26 @@ function formatPoints(points: number) {
 
 function formatWon(amount: number) {
   return `${Number(amount || 0).toLocaleString("ko-KR")}원`;
+}
+
+function formatDateTime(raw?: string | null) {
+  if (!raw) return "-";
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) return "-";
+  return dt.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function mapPaymentStatusLabel(status: string) {
+  if (status === "success") return { label: "결제완료", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+  if (status === "cancelled") return { label: "취소완료", cls: "bg-neutral-100 text-neutral-700 border-neutral-300" };
+  if (status === "failed") return { label: "실패", cls: "bg-rose-100 text-rose-700 border-rose-300" };
+  return { label: "대기", cls: "bg-amber-100 text-amber-700 border-amber-300" };
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -891,6 +935,8 @@ export default function PointsPage() {
     "신비로운 기운으로 결제를 연결 중입니다...",
   );
   const [showStarBurst, setShowStarBurst] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -950,6 +996,13 @@ export default function PointsPage() {
 
       const points = Number(payload.user?.points || 0);
       persistUserPoints(points);
+
+      const normalizedPayments = Array.isArray(payload.payments)
+        ? payload.payments
+            .filter((entry) => entry && typeof entry === "object")
+            .slice(0, 10)
+        : [];
+      setPaymentHistory(normalizedPayments);
 
       if (payload.user) {
         setAuthUser((prev) => ({
@@ -1054,6 +1107,25 @@ export default function PointsPage() {
     [apiBase, token],
   );
 
+  const reportPaymentFailureToServer = useCallback(
+    async (payload: PaymentFailureReportPayload) => {
+      if (!token) return;
+      try {
+        await fetch(`${apiBase}/api/payments/report-failure`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        // 실패 보고는 보조 경로이므로 UI 흐름을 막지 않는다.
+      }
+    },
+    [apiBase, token],
+  );
+
   /* ── 결제 성공 후 처리 ─────────────────────────────────────────── */
   const handleConfirmSuccess = useCallback(
     async (result: ConfirmResponse, fromRedirect = false) => {
@@ -1070,6 +1142,55 @@ export default function PointsPage() {
       await fetchMyPointState(token);
     },
     [fetchMyPointState, persistUserPoints, pushToast, token],
+  );
+
+  const requestCancelPayment = useCallback(
+    async (payment: PaymentHistoryItem) => {
+      if (!token) return;
+
+      const ok = window.confirm(
+        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 코인이 있으면 취소가 제한될 수 있습니다.`,
+      );
+      if (!ok) return;
+
+      setCancelingPaymentId(payment.id);
+      try {
+        const response = await fetch(`${apiBase}/api/payments/cancel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            impUid: payment.impUid,
+            merchantUid: payment.merchantUid,
+            reason: "사용자 취소 요청",
+          }),
+        });
+
+        const payload = await safeParseJson<{
+          message?: string;
+          user?: { points: number };
+          payment?: PaymentHistoryItem;
+        }>(response);
+
+        if (!response.ok) {
+          throw new Error(payload.message || "결제 취소에 실패했습니다.");
+        }
+
+        if (typeof payload.user?.points === "number") {
+          persistUserPoints(Number(payload.user.points));
+        }
+
+        await fetchMyPointState(token);
+        pushToast("success", payload.message || "결제가 취소되었습니다.");
+      } catch (error: unknown) {
+        pushToast("error", getErrorMessage(error, "결제 취소 처리 중 오류가 발생했습니다."));
+      } finally {
+        setCancelingPaymentId(null);
+      }
+    },
+    [apiBase, fetchMyPointState, persistUserPoints, pushToast, token],
   );
 
   /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
@@ -1101,10 +1222,17 @@ export default function PointsPage() {
         await handleConfirmSuccess(result, true);
       })
       .catch((error) => {
+        reportPaymentFailureToServer({
+          merchantUid: merchantUidFromQuery || pending?.merchantUid,
+          impUid,
+          reasonCode: "redirect_confirm_failed",
+          reasonMessage: getErrorMessage(error, "모바일 결제 복귀 검증에 실패했습니다."),
+          paymentMethod: pending?.paymentMethod,
+        });
         pushToast("error", getErrorMessage(error, "모바일 결제 검증에 실패했습니다."));
       })
       .finally(() => setIsProcessing(false));
-  }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, token, pushToast]);
+  }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, token, pushToast, reportPaymentFailureToServer]);
 
   /* ── 결제 시작 ─────────────────────────────────────────────────── */
   const startPayment = async () => {
@@ -1179,6 +1307,13 @@ export default function PointsPage() {
             const message = mapPaymentErrorMessage(
               rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
             );
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp?.imp_uid,
+              reasonCode: "client_cancel_or_fail",
+              reasonMessage: message,
+              paymentMethod: selectedMethod,
+            });
             pushToast("error", message);
             setIsProcessing(false);
             resolve();
@@ -1198,6 +1333,13 @@ export default function PointsPage() {
             await handleConfirmSuccess(result);
             setIsMethodModalOpen(false);
           } catch (error: unknown) {
+            reportPaymentFailureToServer({
+              merchantUid: order.merchantUid,
+              impUid: rsp.imp_uid,
+              reasonCode: "confirm_failed",
+              reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
+              paymentMethod: selectedMethod,
+            });
             pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
           } finally {
             setIsProcessing(false);
@@ -1206,6 +1348,11 @@ export default function PointsPage() {
         });
       });
     } catch (error: unknown) {
+      reportPaymentFailureToServer({
+        reasonCode: "prepare_or_sdk_failed",
+        reasonMessage: getErrorMessage(error, "결제를 시작하지 못했습니다."),
+        paymentMethod: selectedMethod,
+      });
       setIsProcessing(false);
       pushToast("error", getErrorMessage(error, "결제를 시작하지 못했습니다."));
     }
@@ -1412,6 +1559,70 @@ export default function PointsPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-[20px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.88)] p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="font-bold text-[#5C3A1E]">최근 결제 내역</h3>
+            <span className="text-[11px] font-semibold text-[#8A6020]">승인번호 / 주문번호 / 영수증</span>
+          </div>
+
+          {paymentHistory.length === 0 ? (
+            <p className="text-sm text-[#7A5230]">아직 결제 내역이 없습니다.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {paymentHistory.map((payment) => {
+                const statusMeta = mapPaymentStatusLabel(payment.status);
+                const canCancel = payment.status === "success";
+                return (
+                  <div
+                    key={payment.id}
+                    className="rounded-[14px] border border-[#EFDCA8] bg-white/90 p-3.5"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-[#5C3A1E]">
+                        {formatWon(payment.paymentAmount)} · {formatPoints(payment.chargedPoints)}
+                      </p>
+                      <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${statusMeta.cls}`}>
+                        {statusMeta.label}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
+                      <p>결제시각: {formatDateTime(payment.paidAt || payment.cancelledAt)}</p>
+                      <p>결제수단: {payment.paymentMethod || "-"}</p>
+                      <p>승인번호: {payment.approvalNumber || "-"}</p>
+                      <p>주문번호: {payment.merchantUid || "-"}</p>
+                    </div>
+
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                      {payment.receiptUrl ? (
+                        <a
+                          href={payment.receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center rounded-lg border border-[#D9C07A] bg-[#FFF8E2] px-2.5 py-1 text-[11.5px] font-bold text-[#7A5230] hover:bg-[#FFF2CC]"
+                        >
+                          영수증 보기
+                        </a>
+                      ) : (
+                        <span className="text-[11px] text-[#9B7040]">영수증 URL 미제공</span>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={!canCancel || cancelingPaymentId === payment.id}
+                        onClick={() => requestCancelPayment(payment)}
+                        className="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11.5px] font-bold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* ⑤ 결제 실패 안내 */}

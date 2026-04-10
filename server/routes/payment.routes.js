@@ -4,12 +4,16 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 const Payment = require("../models/Payment");
 const PointHistory = require("../models/PointHistory");
+const PaymentFailureLog = require("../models/PaymentFailureLog");
 const { requireAuth } = require("../middleware/auth.middleware");
 const {
   validatePointChargePayload,
   resolveChargePointsByAmount,
 } = require("../utils/validation");
-const { fetchPortOnePayment } = require("../services/portone.service");
+const {
+  fetchPortOnePayment,
+  cancelPortOnePayment,
+} = require("../services/portone.service");
 
 const router = express.Router();
 
@@ -50,6 +54,17 @@ function parseCustomDataUserId(customData) {
 function formatPaymentResponse(payment) {
   if (!payment) return null;
 
+  const approvalNumber = String(
+    payment?.rawPortOne?.apply_num
+    || payment?.rawPortOne?.apply_num_vbank
+    || "",
+  ).trim() || null;
+  const receiptUrl = String(payment?.rawPortOne?.receipt_url || "").trim() || null;
+  const cancelAmount = Number(payment?.rawPortOne?.cancel_amount || 0);
+  const cancelledAt = payment?.rawPortOne?.cancelled_at
+    ? toDateFromUnixSeconds(payment.rawPortOne.cancelled_at)
+    : null;
+
   return {
     id: String(payment._id),
     impUid: payment.impUid,
@@ -59,7 +74,69 @@ function formatPaymentResponse(payment) {
     paymentMethod: payment.paymentMethod,
     status: payment.status,
     paidAt: payment.paidAt,
+    failureCode: payment.failureCode,
+    failureMessage: payment.failureMessage,
+    failureStage: payment.failureStage,
+    lastErrorAt: payment.lastErrorAt,
+    approvalNumber,
+    receiptUrl,
+    cancelAmount,
+    cancelledAt,
   };
+}
+
+function getRequestMeta(req) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const ip = forwarded || req.ip || req.socket?.remoteAddress || "unknown";
+  const userAgent = String(req.headers["user-agent"] || "").slice(0, 300);
+  const requestId = String(req.headers["x-request-id"] || req.headers["cf-ray"] || "").slice(0, 120);
+  return { ip, userAgent, requestId };
+}
+
+function summarizePayload(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const clone = { ...payload };
+  if (clone.card_number) clone.card_number = "[redacted]";
+  if (clone.customer_uid) clone.customer_uid = "[redacted]";
+  return clone;
+}
+
+async function writeFailureLog(params = {}) {
+  const {
+    req,
+    userId,
+    impUid,
+    merchantUid,
+    source,
+    stage,
+    code,
+    message,
+    status,
+    expectedAmount,
+    clientAmount,
+    portOneAmount,
+    portOneStatus,
+    payload,
+    rawPortOne,
+  } = params;
+
+  await PaymentFailureLog.create({
+    userId: userId && mongoose.Types.ObjectId.isValid(String(userId)) ? userId : undefined,
+    impUid,
+    merchantUid,
+    source: source || "system",
+    stage: stage || "unknown",
+    code,
+    message,
+    status,
+    expectedAmount,
+    clientAmount,
+    portOneAmount,
+    portOneStatus,
+    requestMeta: req ? getRequestMeta(req) : undefined,
+    payload: summarizePayload(payload),
+    rawPortOne,
+  }).catch(() => {});
 }
 
 async function getUserPoints(userId) {
@@ -75,7 +152,12 @@ async function markPaymentFailure(paymentRecord, patch = {}) {
       status: patch.status || "failed",
       paymentMethod: patch.paymentMethod || paymentRecord.paymentMethod || "unknown",
       rawPortOne: patch.rawPortOne,
+      failureCode: patch.failureCode,
+      failureMessage: patch.failureMessage,
+      failureStage: patch.failureStage,
+      lastErrorAt: new Date(),
     },
+    ...(patch.incrementAttempt ? { $inc: { confirmAttempts: 1 } } : {}),
   }).catch(() => {});
 }
 
@@ -129,8 +211,32 @@ async function settlePaymentByImpUid({
   merchantUidHint,
   source,
   strictAmountMatch,
+  req,
 }) {
-  const portOnePayment = await fetchPortOnePayment(impUid);
+  let portOnePayment;
+  try {
+    portOnePayment = await fetchPortOnePayment(impUid);
+  } catch (error) {
+    await writeFailureLog({
+      req,
+      userId: requestedUserId,
+      impUid,
+      merchantUid: merchantUidHint,
+      source,
+      stage: "portone_fetch",
+      code: "portone_fetch_failed",
+      message: error?.message || "포트원 결제 조회 실패",
+      status: 502,
+      payload: req?.body,
+    });
+
+    return {
+      ok: false,
+      status: 502,
+      message: "포트원 결제 조회에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    };
+  }
+
   const portOneStatus = String(portOnePayment.status || "").toLowerCase();
   const portOneAmount = Number(portOnePayment.amount);
   const merchantUid = String(portOnePayment.merchant_uid || merchantUidHint || "").trim();
@@ -144,6 +250,20 @@ async function settlePaymentByImpUid({
     : (requestedUserId ? String(requestedUserId) : customDataUserId);
 
   if (!ownerUserId || !mongoose.Types.ObjectId.isValid(ownerUserId)) {
+    await writeFailureLog({
+      req,
+      userId: requestedUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "owner_resolve",
+      code: "owner_not_found",
+      message: "결제 소유 사용자 정보를 확인할 수 없습니다.",
+      status: 400,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
+    });
+
     return {
       ok: false,
       status: 400,
@@ -152,6 +272,20 @@ async function settlePaymentByImpUid({
   }
 
   if (requestedUserId && String(requestedUserId) !== ownerUserId) {
+    await writeFailureLog({
+      req,
+      userId: requestedUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "owner_mismatch",
+      code: "forbidden_owner_mismatch",
+      message: "본인 결제 건만 처리할 수 있습니다.",
+      status: 403,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
+    });
+
     return {
       ok: false,
       status: 403,
@@ -195,6 +329,26 @@ async function settlePaymentByImpUid({
       status: "failed",
       paymentMethod,
       rawPortOne: portOnePayment,
+      failureCode: "invalid_portone_amount",
+      failureMessage: "포트원 결제 금액 정보가 올바르지 않습니다.",
+      failureStage: "amount_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_validate",
+      code: "invalid_portone_amount",
+      message: "포트원 결제 금액 정보가 올바르지 않습니다.",
+      status: 400,
+      expectedAmount,
+      portOneAmount,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
     });
 
     return {
@@ -214,6 +368,26 @@ async function settlePaymentByImpUid({
       status: "failed",
       paymentMethod,
       rawPortOne: portOnePayment,
+      failureCode: "client_amount_mismatch",
+      failureMessage: "결제 위변조가 감지되었습니다. 금액이 일치하지 않습니다.",
+      failureStage: "amount_match",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_match",
+      code: "client_amount_mismatch",
+      message: "결제 위변조가 감지되었습니다. 금액이 일치하지 않습니다.",
+      status: 400,
+      clientAmount: Number(requestedAmount),
+      portOneAmount,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
     });
 
     return {
@@ -229,6 +403,26 @@ async function settlePaymentByImpUid({
     await markPaymentFailure(paymentRecord, {
       status: "failed",
       paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "server_amount_mismatch",
+      failureMessage: "서버 주문 금액과 실제 결제 금액이 일치하지 않습니다.",
+      failureStage: "amount_match",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_match",
+      code: "server_amount_mismatch",
+      message: "서버 주문 금액과 실제 결제 금액이 일치하지 않습니다.",
+      status: 400,
+      expectedAmount: Number(paymentRecord.paymentAmount),
+      portOneAmount,
+      payload: req?.body,
       rawPortOne: portOnePayment,
     });
 
@@ -247,6 +441,25 @@ async function settlePaymentByImpUid({
     await markPaymentFailure(paymentRecord, {
       status: failedStatus,
       paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "payment_not_paid",
+      failureMessage: "결제가 완료되지 않은 상태입니다.",
+      failureStage: "status_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "status_validate",
+      code: "payment_not_paid",
+      message: "결제가 완료되지 않은 상태입니다.",
+      status: 400,
+      portOneStatus: portOneStatus || "unknown",
+      payload: req?.body,
       rawPortOne: portOnePayment,
     });
 
@@ -267,6 +480,26 @@ async function settlePaymentByImpUid({
       status: "failed",
       paymentMethod,
       rawPortOne: portOnePayment,
+      failureCode: "charge_policy_invalid",
+      failureMessage: error.message || "충전 포인트 정책 검증에 실패했습니다.",
+      failureStage: "policy_validate",
+      incrementAttempt: true,
+    });
+
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "policy_validate",
+      code: "charge_policy_invalid",
+      message: error.message || "충전 포인트 정책 검증에 실패했습니다.",
+      status: 400,
+      expectedAmount,
+      portOneAmount,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
     });
 
     return {
@@ -276,54 +509,31 @@ async function settlePaymentByImpUid({
     };
   }
 
-  const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
+  const ownerExists = await User.exists({ _id: ownerUserId });
+  if (!ownerExists) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod,
+      rawPortOne: portOnePayment,
+      failureCode: "user_not_found",
+      failureMessage: "포인트를 충전할 사용자를 찾을 수 없습니다.",
+      failureStage: "user_lookup",
+      incrementAttempt: true,
+    });
 
-  const finalizedPayment = await Payment.findOneAndUpdate(
-    {
-      _id: paymentRecord._id,
-      status: { $ne: "success" },
-    },
-    {
-      $set: {
-        userId: ownerUserId,
-        impUid,
-        merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
-        paymentAmount: portOneAmount,
-        expectedChargedPoints: chargedPoints,
-        chargedPoints,
-        paymentMethod,
-        status: "success",
-        paidAt,
-        source,
-        rawPortOne: portOnePayment,
-      },
-    },
-    { new: true },
-  ).lean();
-
-  if (!finalizedPayment) {
-    const latestPayment = await Payment.findById(paymentRecord._id).lean();
-    return {
-      ok: true,
-      idempotent: true,
-      user: {
-        id: ownerUserId,
-        points: await getUserPoints(ownerUserId),
-      },
-      payment: formatPaymentResponse(latestPayment),
-    };
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(
-    ownerUserId,
-    { $inc: { points: chargedPoints } },
-    { new: true, projection: { points: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    await Payment.findByIdAndUpdate(finalizedPayment._id, {
-      $set: { status: "failed" },
-    }).catch(() => {});
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "user_lookup",
+      code: "user_not_found",
+      message: "포인트를 충전할 사용자를 찾을 수 없습니다.",
+      status: 404,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
+    });
 
     return {
       ok: false,
@@ -332,35 +542,242 @@ async function settlePaymentByImpUid({
     };
   }
 
-  await PointHistory.create({
-    userId: ownerUserId,
-    kind: "charge",
-    delta: chargedPoints,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason: "포인트 충전",
-    paymentId: finalizedPayment._id,
-    impUid,
-    merchantUid: finalizedPayment.merchantUid,
-    metadata: {
-      source,
-      paymentAmount: portOneAmount,
-      paymentMethod,
-    },
-  }).catch(() => {});
+  const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
 
-  return {
-    ok: true,
-    idempotent: false,
-    user: {
-      id: ownerUserId,
-      points: Number(updatedUser.points || 0),
-    },
-    payment: formatPaymentResponse(finalizedPayment),
+  const runSettlementWithoutTransaction = async () => {
+    const finalizedPayment = await Payment.findOneAndUpdate(
+      {
+        _id: paymentRecord._id,
+        status: { $ne: "success" },
+      },
+      {
+        $set: {
+          userId: ownerUserId,
+          impUid,
+          merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
+          paymentAmount: portOneAmount,
+          expectedChargedPoints: chargedPoints,
+          chargedPoints,
+          paymentMethod,
+          status: "success",
+          paidAt,
+          source,
+          rawPortOne: portOnePayment,
+          failureCode: null,
+          failureMessage: null,
+          failureStage: null,
+        },
+        $inc: { confirmAttempts: 1 },
+      },
+      { new: true },
+    ).lean();
+
+    if (!finalizedPayment) {
+      const latestPayment = await Payment.findById(paymentRecord._id).lean();
+      return {
+        ok: true,
+        idempotent: true,
+        user: {
+          id: ownerUserId,
+          points: await getUserPoints(ownerUserId),
+        },
+        payment: formatPaymentResponse(latestPayment),
+      };
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      ownerUserId,
+      { $inc: { points: chargedPoints } },
+      { new: true, projection: { points: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      await Payment.findByIdAndUpdate(finalizedPayment._id, {
+        $set: {
+          status: "failed",
+          failureCode: "user_not_found",
+          failureMessage: "포인트를 충전할 사용자를 찾을 수 없습니다.",
+          failureStage: "user_update",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+
+      return {
+        ok: false,
+        status: 404,
+        message: "포인트를 충전할 사용자를 찾을 수 없습니다.",
+      };
+    }
+
+    await PointHistory.create({
+      userId: ownerUserId,
+      kind: "charge",
+      delta: chargedPoints,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason: "포인트 충전",
+      paymentId: finalizedPayment._id,
+      impUid,
+      merchantUid: finalizedPayment.merchantUid,
+      metadata: {
+        source,
+        paymentAmount: portOneAmount,
+        paymentMethod,
+      },
+    }).catch(() => {});
+
+    return {
+      ok: true,
+      idempotent: false,
+      user: {
+        id: ownerUserId,
+        points: Number(updatedUser.points || 0),
+      },
+      payment: formatPaymentResponse(finalizedPayment),
+    };
   };
+
+  const runSettlementWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let txResult = null;
+
+    try {
+      await session.withTransaction(async () => {
+        const finalizedPayment = await Payment.findOneAndUpdate(
+          {
+            _id: paymentRecord._id,
+            status: { $ne: "success" },
+          },
+          {
+            $set: {
+              userId: ownerUserId,
+              impUid,
+              merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
+              paymentAmount: portOneAmount,
+              expectedChargedPoints: chargedPoints,
+              chargedPoints,
+              paymentMethod,
+              status: "success",
+              paidAt,
+              source,
+              rawPortOne: portOnePayment,
+              failureCode: null,
+              failureMessage: null,
+              failureStage: null,
+            },
+            $inc: { confirmAttempts: 1 },
+          },
+          { new: true, session },
+        ).lean();
+
+        if (!finalizedPayment) {
+          const latestPayment = await Payment.findById(paymentRecord._id).session(session).lean();
+          txResult = {
+            ok: true,
+            idempotent: true,
+            user: {
+              id: ownerUserId,
+              points: await getUserPoints(ownerUserId),
+            },
+            payment: formatPaymentResponse(latestPayment),
+          };
+          return;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+          ownerUserId,
+          { $inc: { points: chargedPoints } },
+          { new: true, projection: { points: 1 }, session },
+        ).lean();
+
+        if (!updatedUser) {
+          throw new Error("user_not_found");
+        }
+
+        await PointHistory.create([
+          {
+            userId: ownerUserId,
+            kind: "charge",
+            delta: chargedPoints,
+            balanceAfter: Number(updatedUser.points || 0),
+            reason: "포인트 충전",
+            paymentId: finalizedPayment._id,
+            impUid,
+            merchantUid: finalizedPayment.merchantUid,
+            metadata: {
+              source,
+              paymentAmount: portOneAmount,
+              paymentMethod,
+            },
+          },
+        ], { session });
+
+        txResult = {
+          ok: true,
+          idempotent: false,
+          user: {
+            id: ownerUserId,
+            points: Number(updatedUser.points || 0),
+          },
+          payment: formatPaymentResponse(finalizedPayment),
+        };
+      });
+
+      return txResult;
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  let settlementResult;
+  try {
+    settlementResult = await runSettlementWithTransaction();
+  } catch (error) {
+    const txUnsupported = /Transaction numbers are only allowed|replica set|Transaction .* not supported/i.test(String(error?.message || ""));
+    if (!txUnsupported) throw error;
+    settlementResult = await runSettlementWithoutTransaction();
+  }
+
+  if (!settlementResult?.ok) {
+    await writeFailureLog({
+      req,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "settlement",
+      code: "settlement_failed",
+      message: settlementResult?.message || "결제 정산에 실패했습니다.",
+      status: settlementResult?.status || 500,
+      expectedAmount,
+      portOneAmount,
+      payload: req?.body,
+      rawPortOne: portOnePayment,
+    });
+    return settlementResult;
+  }
+
+  return settlementResult;
 }
 
 router.post("/webhook", async (req, res, next) => {
   try {
+    const expectedWebhookToken = String(process.env.PORTONE_WEBHOOK_TOKEN || "").trim();
+    if (expectedWebhookToken) {
+      const suppliedWebhookToken = String(req.headers["x-cd-webhook-token"] || "").trim();
+      if (suppliedWebhookToken !== expectedWebhookToken) {
+        await writeFailureLog({
+          req,
+          source: "webhook",
+          stage: "webhook_auth",
+          code: "invalid_webhook_token",
+          message: "웹훅 인증 토큰이 일치하지 않습니다.",
+          status: 401,
+          payload: req.body,
+        });
+        return res.status(401).json({ message: "유효하지 않은 웹훅 요청입니다." });
+      }
+    }
+
     const impUid = String(
       req.body?.imp_uid
       || req.body?.impUid
@@ -376,6 +793,15 @@ router.post("/webhook", async (req, res, next) => {
     ).trim();
 
     if (!impUid) {
+      await writeFailureLog({
+        req,
+        source: "webhook",
+        stage: "payload_validate",
+        code: "missing_imp_uid",
+        message: "웹훅 본문에 imp_uid가 필요합니다.",
+        status: 400,
+        payload: req.body,
+      });
       return res.status(400).json({ message: "웹훅 본문에 imp_uid가 필요합니다." });
     }
 
@@ -384,6 +810,7 @@ router.post("/webhook", async (req, res, next) => {
       merchantUidHint: merchantUid || undefined,
       source: "webhook",
       strictAmountMatch: false,
+      req,
     });
 
     if (!settled.ok) {
@@ -399,6 +826,15 @@ router.post("/webhook", async (req, res, next) => {
       payment: settled.payment,
     });
   } catch (error) {
+    await writeFailureLog({
+      req,
+      source: "webhook",
+      stage: "webhook_exception",
+      code: "webhook_exception",
+      message: error?.message || "웹훅 처리 중 오류가 발생했습니다.",
+      status: 500,
+      payload: req.body,
+    });
     return next(error);
   }
 });
@@ -413,6 +849,16 @@ router.post("/prepare", async (req, res, next) => {
       : Number(req.body?.chargePoints);
 
     if (!Number.isInteger(paymentAmount) || paymentAmount <= 0) {
+      await writeFailureLog({
+        req,
+        userId: req.auth.userId,
+        source: "prepare",
+        stage: "payload_validate",
+        code: "invalid_payment_amount",
+        message: "결제 금액(paymentAmount)은 양의 정수여야 합니다.",
+        status: 400,
+        payload: req.body,
+      });
       return res.status(400).json({ message: "결제 금액(paymentAmount)은 양의 정수여야 합니다." });
     }
 
@@ -420,6 +866,16 @@ router.post("/prepare", async (req, res, next) => {
       requestedChargePoints !== undefined
       && (!Number.isInteger(requestedChargePoints) || requestedChargePoints <= 0)
     ) {
+      await writeFailureLog({
+        req,
+        userId: req.auth.userId,
+        source: "prepare",
+        stage: "payload_validate",
+        code: "invalid_charge_points",
+        message: "충전 포인트(chargePoints)는 양의 정수여야 합니다.",
+        status: 400,
+        payload: req.body,
+      });
       return res.status(400).json({ message: "충전 포인트(chargePoints)는 양의 정수여야 합니다." });
     }
 
@@ -452,6 +908,16 @@ router.post("/prepare", async (req, res, next) => {
       },
     });
   } catch (error) {
+    await writeFailureLog({
+      req,
+      userId: req.auth?.userId,
+      source: "prepare",
+      stage: "prepare_exception",
+      code: "prepare_exception",
+      message: error?.message || "결제 준비 처리 중 오류가 발생했습니다.",
+      status: 500,
+      payload: req.body,
+    });
     return next(error);
   }
 });
@@ -488,6 +954,19 @@ router.post("/confirm", async (req, res, next) => {
     }
 
     if (!isValid) {
+      await writeFailureLog({
+        req,
+        userId: req.auth.userId,
+        impUid: String(req.body?.impUid || req.body?.paymentId || "").trim() || undefined,
+        merchantUid: String(req.body?.merchantUid || req.body?.merchant_uid || "").trim() || undefined,
+        source: "confirm",
+        stage: "payload_validate",
+        code: "invalid_confirm_payload",
+        message: "결제 요청 형식이 올바르지 않습니다.",
+        status: 400,
+        payload: { ...req.body, errors },
+      });
+
       return res.status(400).json({
         message: "결제 요청 형식이 올바르지 않습니다.",
         errors,
@@ -503,6 +982,7 @@ router.post("/confirm", async (req, res, next) => {
       merchantUidHint: sanitized.merchantUid,
       source: "confirm",
       strictAmountMatch: true,
+      req,
     });
 
     if (!settled.ok) {
@@ -525,11 +1005,314 @@ router.post("/confirm", async (req, res, next) => {
     });
   } catch (error) {
     if (error && error.code === 11000) {
+      await writeFailureLog({
+        req,
+        userId: req.auth?.userId,
+        source: "confirm",
+        stage: "dedupe",
+        code: "duplicate_payment_key",
+        message: "이미 등록된 주문번호 또는 결제 고유 ID입니다.",
+        status: 409,
+        payload: req.body,
+      });
       return res.status(409).json({ message: "이미 등록된 주문번호 또는 결제 고유 ID입니다." });
     }
 
+    await writeFailureLog({
+      req,
+      userId: req.auth?.userId,
+      source: "confirm",
+      stage: "confirm_exception",
+      code: "confirm_exception",
+      message: error?.message || "결제 확인 처리 중 오류가 발생했습니다.",
+      status: 500,
+      payload: req.body,
+    });
     return next(error);
   }
+});
+
+router.post("/cancel", async (req, res, next) => {
+  try {
+    const impUid = String(req.body?.impUid || req.body?.imp_uid || "").trim() || undefined;
+    const merchantUid = String(req.body?.merchantUid || req.body?.merchant_uid || "").trim() || undefined;
+    const reason = String(req.body?.reason || "고객 요청 환불").trim().slice(0, 120);
+    const requestedCancelAmountRaw = req.body?.cancelAmount ?? req.body?.amount;
+    const requestedCancelAmount =
+      requestedCancelAmountRaw === undefined || requestedCancelAmountRaw === null
+        ? undefined
+        : Number(requestedCancelAmountRaw);
+
+    if (!impUid && !merchantUid) {
+      await writeFailureLog({
+        req,
+        userId: req.auth.userId,
+        source: "confirm",
+        stage: "cancel_payload",
+        code: "missing_cancel_key",
+        message: "impUid 또는 merchantUid 중 하나는 필요합니다.",
+        status: 400,
+        payload: req.body,
+      });
+      return res.status(400).json({ message: "impUid 또는 merchantUid 중 하나는 필요합니다." });
+    }
+
+    if (
+      requestedCancelAmount !== undefined
+      && (!Number.isInteger(requestedCancelAmount) || requestedCancelAmount <= 0)
+    ) {
+      return res.status(400).json({ message: "cancelAmount는 양의 정수여야 합니다." });
+    }
+
+    const paymentRecord = await findPaymentRecord(impUid, merchantUid);
+    if (!paymentRecord) {
+      return res.status(404).json({ message: "결제 정보를 찾을 수 없습니다." });
+    }
+
+    if (String(paymentRecord.userId) !== String(req.auth.userId)) {
+      await writeFailureLog({
+        req,
+        userId: req.auth.userId,
+        impUid,
+        merchantUid,
+        source: "confirm",
+        stage: "cancel_owner",
+        code: "forbidden_owner_mismatch",
+        message: "본인 결제 건만 취소할 수 있습니다.",
+        status: 403,
+        payload: req.body,
+      });
+      return res.status(403).json({ message: "본인 결제 건만 취소할 수 있습니다." });
+    }
+
+    if (paymentRecord.status === "cancelled") {
+      return res.status(200).json({
+        message: "이미 취소된 결제입니다.",
+        idempotent: true,
+        payment: formatPaymentResponse(paymentRecord),
+      });
+    }
+
+    if (paymentRecord.status !== "success") {
+      return res.status(400).json({ message: "결제 완료 건만 취소할 수 있습니다." });
+    }
+
+    const paidAmount = Number(paymentRecord.paymentAmount || 0);
+    if (requestedCancelAmount !== undefined && requestedCancelAmount > paidAmount) {
+      return res.status(400).json({ message: "취소 요청 금액이 결제 금액을 초과합니다." });
+    }
+
+    const pointsToRollback = Number(
+      paymentRecord.chargedPoints || paymentRecord.expectedChargedPoints || 0,
+    );
+
+    const user = await User.findById(req.auth.userId).select("points").lean();
+    if (!user) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    if (pointsToRollback > 0 && Number(user.points || 0) < pointsToRollback) {
+      return res.status(409).json({
+        message: "이미 사용된 코인이 있어 자동 환불할 수 없습니다. 고객센터로 문의해 주세요.",
+      });
+    }
+
+    const canceledPortOne = await cancelPortOnePayment({
+      impUid: paymentRecord.impUid || impUid,
+      merchantUid: paymentRecord.merchantUid || merchantUid,
+      reason,
+      amount: requestedCancelAmount,
+      checksum: paidAmount > 0 ? paidAmount : undefined,
+    });
+
+    const updateResult = await (async () => {
+      const runWithoutTransaction = async () => {
+        const canceledPayment = await Payment.findByIdAndUpdate(
+          paymentRecord._id,
+          {
+            $set: {
+              status: "cancelled",
+              rawPortOne: canceledPortOne,
+              paymentMethod: normalizePaymentMethod(
+                canceledPortOne?.pay_method || paymentRecord.paymentMethod,
+              ),
+              failureCode: null,
+              failureMessage: null,
+              failureStage: null,
+            },
+          },
+          { new: true },
+        ).lean();
+
+        let updatedPoints = Number(user.points || 0);
+        if (pointsToRollback > 0) {
+          const updatedUser = await User.findByIdAndUpdate(
+            req.auth.userId,
+            { $inc: { points: -pointsToRollback } },
+            { new: true, projection: { points: 1 } },
+          ).lean();
+          updatedPoints = Number(updatedUser?.points || 0);
+
+          await PointHistory.create({
+            userId: req.auth.userId,
+            kind: "deduct",
+            delta: -pointsToRollback,
+            balanceAfter: updatedPoints,
+            reason: "결제 취소(환불)로 포인트 회수",
+            paymentId: paymentRecord._id,
+            impUid: paymentRecord.impUid,
+            merchantUid: paymentRecord.merchantUid,
+            metadata: {
+              source: "cancel",
+              cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
+            },
+          }).catch(() => {});
+        }
+
+        return { canceledPayment, updatedPoints };
+      };
+
+      const runWithTransaction = async () => {
+        const session = await mongoose.startSession();
+        let txPayload = null;
+
+        try {
+          await session.withTransaction(async () => {
+            const canceledPayment = await Payment.findByIdAndUpdate(
+              paymentRecord._id,
+              {
+                $set: {
+                  status: "cancelled",
+                  rawPortOne: canceledPortOne,
+                  paymentMethod: normalizePaymentMethod(
+                    canceledPortOne?.pay_method || paymentRecord.paymentMethod,
+                  ),
+                  failureCode: null,
+                  failureMessage: null,
+                  failureStage: null,
+                },
+              },
+              { new: true, session },
+            ).lean();
+
+            let updatedPoints = Number(user.points || 0);
+            if (pointsToRollback > 0) {
+              const updatedUser = await User.findByIdAndUpdate(
+                req.auth.userId,
+                { $inc: { points: -pointsToRollback } },
+                { new: true, projection: { points: 1 }, session },
+              ).lean();
+              updatedPoints = Number(updatedUser?.points || 0);
+
+              await PointHistory.create([
+                {
+                  userId: req.auth.userId,
+                  kind: "deduct",
+                  delta: -pointsToRollback,
+                  balanceAfter: updatedPoints,
+                  reason: "결제 취소(환불)로 포인트 회수",
+                  paymentId: paymentRecord._id,
+                  impUid: paymentRecord.impUid,
+                  merchantUid: paymentRecord.merchantUid,
+                  metadata: {
+                    source: "cancel",
+                    cancelAmount: Number(canceledPortOne?.cancel_amount || requestedCancelAmount || paidAmount || 0),
+                  },
+                },
+              ], { session });
+            }
+
+            txPayload = { canceledPayment, updatedPoints };
+          });
+          return txPayload;
+        } finally {
+          await session.endSession();
+        }
+      };
+
+      try {
+        return await runWithTransaction();
+      } catch (error) {
+        const txUnsupported = /Transaction numbers are only allowed|replica set|Transaction .* not supported/i.test(String(error?.message || ""));
+        if (!txUnsupported) throw error;
+        return runWithoutTransaction();
+      }
+    })();
+
+    return res.status(200).json({
+      message: "결제가 취소되었습니다.",
+      idempotent: false,
+      user: {
+        id: String(req.auth.userId),
+        points: Number(updateResult?.updatedPoints || 0),
+      },
+      payment: formatPaymentResponse(updateResult?.canceledPayment),
+    });
+  } catch (error) {
+    await writeFailureLog({
+      req,
+      userId: req.auth?.userId,
+      impUid: String(req.body?.impUid || req.body?.imp_uid || "").trim() || undefined,
+      merchantUid: String(req.body?.merchantUid || req.body?.merchant_uid || "").trim() || undefined,
+      source: "confirm",
+      stage: "cancel_exception",
+      code: "cancel_exception",
+      message: error?.message || "결제 취소 처리 중 오류가 발생했습니다.",
+      status: 500,
+      payload: req.body,
+    });
+    return next(error);
+  }
+});
+
+router.post("/report-failure", async (req, res) => {
+  const merchantUid = String(req.body?.merchantUid || req.body?.merchant_uid || "").trim() || undefined;
+  const impUid = String(req.body?.impUid || req.body?.paymentId || "").trim() || undefined;
+  const reasonCode = String(req.body?.reasonCode || "client_failure").trim().slice(0, 80);
+  const reasonMessage = String(req.body?.reasonMessage || "결제가 사용자 측에서 완료되지 않았습니다.").trim().slice(0, 500);
+
+  const payment = await findPaymentRecord(impUid, merchantUid);
+  if (payment && String(payment.userId) !== String(req.auth.userId)) {
+    await writeFailureLog({
+      req,
+      userId: req.auth.userId,
+      impUid,
+      merchantUid,
+      source: "client",
+      stage: "report_failure",
+      code: "forbidden_owner_mismatch",
+      message: "본인 결제 건만 실패 보고할 수 있습니다.",
+      status: 403,
+      payload: req.body,
+    });
+    return res.status(403).json({ message: "본인 결제 건만 실패 보고할 수 있습니다." });
+  }
+
+  if (payment && payment.status !== "success") {
+    await markPaymentFailure(payment, {
+      status: reasonCode === "cancelled" ? "cancelled" : "failed",
+      paymentMethod: payment.paymentMethod,
+      failureCode: reasonCode,
+      failureMessage: reasonMessage,
+      failureStage: "client_report",
+      incrementAttempt: false,
+    });
+  }
+
+  await writeFailureLog({
+    req,
+    userId: req.auth.userId,
+    impUid,
+    merchantUid,
+    source: "client",
+    stage: "client_report",
+    code: reasonCode,
+    message: reasonMessage,
+    status: 200,
+    payload: req.body,
+  });
+
+  return res.status(200).json({ ok: true, message: "결제 실패 보고가 기록되었습니다." });
 });
 
 router.get("/me", async (req, res, next) => {
