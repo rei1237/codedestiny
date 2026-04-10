@@ -57,3 +57,17 @@
 - 반영 후 `npm run verify:locale-main-sync`를 실행해 프리미엄 메인 핵심 마커(액션, 이미지, 클릭 스루 CSS) 누락 여부를 자동 검증한다.
 - `npm run build` 및 `npm run build:cf`에는 위 검증이 포함되어야 하며, 검증 실패 상태에서 배포를 진행하지 않는다.
 - 커밋 시에는 기능과 직접 관련된 로케일 파일만 포함하고 임시/진단 파일은 제외한다.
+
+## Rule 5
+실서비스에서 구 스크립트가 남아 기능 업데이트(특히 사주 엔진/신살/십이운성)가 누락되지 않도록, 런타임 및 코어 스크립트의 캐시 무효화 버전을 항상 동기화하고 자동 검증을 통과해야 한다.
+
+적용 범위:
+- `js/core/index-inline-runtime.js`, `public/js/core/index-inline-runtime.js`의 `/js/saju-engine.js?v=...` 로더
+- `index.html`, `public/index.html`, `public/static/index.html`, `public/{locale}/index.html`의 `index-inline-runtime.js?v=...`
+- Cloudflare Pages 배포 전 빌드 검증 단계
+
+실행 원칙:
+- 사주 코어(`js/saju-engine*.js`, `js/core/saju/*.js`) 수정 시 `saju-engine.js?v=...` 쿼리를 반드시 갱신한다.
+- 런타임 엔트리 쿼리(`index-inline-runtime.js?v=...`)는 루트/정적/로케일 HTML 전체에서 동일 값으로 유지한다.
+- 배포 전 `npm run verify:runtime-cache-sync`를 통과하지 못하면 커밋/배포를 진행하지 않는다.
+- `build`, `build:cf` 스크립트에 위 검증을 포함해 자동으로 차단되게 유지한다.
