@@ -1,8 +1,5 @@
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifyFlowerAdminToken } from "../_lib/flowerAdminToken.js";
-import { AdminSidebar } from "./components/AdminSidebar";
-import { ToastProvider } from "./components/ToastProvider";
 
 export const metadata = {
   title: "관리자 패널 — Code Destiny",
@@ -17,27 +14,12 @@ export default async function AdminLayout({
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") || "";
 
-  // 로그인 페이지는 인증 체크 없이 그대로 렌더링
+  // 로그인 화면만 유지하고 나머지 관리자 화면은 비활성화한다.
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get("flower_admin_token")?.value ?? "";
-
-  const valid = token ? await verifyFlowerAdminToken(token) : false;
-  if (!valid) {
-    redirect("/admin/login");
-  }
-
-  return (
-    <ToastProvider>
-      <div className="flex min-h-screen bg-[#0d0d1a] text-white">
-        <AdminSidebar />
-        <main className="flex-1 overflow-auto">{children}</main>
-      </div>
-    </ToastProvider>
-  );
+  redirect("/");
 }
 
 

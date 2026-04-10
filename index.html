@@ -5458,39 +5458,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function requestAdminFlowerEntry() {
-    var password = window.prompt('관리자 꽃 진입 비밀번호를 입력해 주세요.');
-    if (password === null) return;
-    password = String(password || '').trim();
-    if (!password) {
-      window.alert('비밀번호를 입력해 주세요.');
-      return;
-    }
-
-    try {
-      var response = await fetch('/api/admin/entry/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: password }),
-      });
-
-      if (!response.ok) {
-        window.alert('비밀번호가 일치하지 않습니다.');
-        return;
-      }
-
-      var payload = {};
-      try { payload = await response.json(); } catch (_e) {}
-
-      // 서명된 관리자 세션 토큰을 sessionStorage에 보관 (탭 닫으면 자동 소멸)
-      var adminToken = (payload && payload.adminToken) ? String(payload.adminToken) : '';
-      if (adminToken) {
-        try { sessionStorage.setItem('flower_admin_token', adminToken); } catch (_e2) {}
-      }
-
-      window.location.href = '/admin';
-    } catch (_e) {
-      window.alert('관리자 진입 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-    }
+    window.location.href = '/admin/login';
   }
 
   function getAuthToken() {

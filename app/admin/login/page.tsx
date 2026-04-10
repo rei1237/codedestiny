@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
       if (data?.adminToken) {
         try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
       }
-      router.push("/admin");
+      router.push("/");
       router.refresh();
     } catch {
       setError("네트워크 오류가 발생했습니다.");
