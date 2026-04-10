@@ -146,6 +146,7 @@ declare global {
 ══════════════════════════════════════════════════════════════════ */
 
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
+const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
 
 /* 꿀 구독 시스템 플랜 정의 */
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -1300,6 +1301,10 @@ export default function PointsPage() {
           paymentMethod: selectedMethod,
         },
       };
+
+      if (PORTONE_NOTICE_URL) {
+        requestData.notice_url = PORTONE_NOTICE_URL;
+      }
 
       await new Promise<void>((resolve) => {
         window.IMP!.request_pay(requestData, async (rsp: PortOnePaymentResponse) => {
