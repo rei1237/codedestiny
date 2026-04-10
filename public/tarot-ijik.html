@@ -721,12 +721,15 @@ body {
   color: #03010f;
   background: linear-gradient(135deg, #e8c44a 0%, #d4a017 100%);
   border: none;
-  padding: 15px 40px;
+  padding: 14px 40px;
   border-radius: 50px;
   cursor: pointer;
   letter-spacing: 2px;
   transition: all 0.3s;
   box-shadow: 0 4px 24px rgba(212,160,23,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .btn-read:hover:not(:disabled) {
@@ -982,7 +985,11 @@ body {
     ✦ &nbsp; 카드 뽑기 시작 &nbsp; ✦
   </button>
 
-  <p style="margin-top:20px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
+  <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 AI 해석 1회 · 50코인</span>
+  </div>
+
+  <p style="margin-top:12px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
     카드를 한 장씩 클릭하여 운명을 확인하세요
   </p>
 </section>
@@ -1178,7 +1185,8 @@ body {
   <div class="action-area">
     <div class="status-msg" id="statusMsg">카드를 클릭하여 한 장씩 뽑아보세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
-      ✦ &nbsp; AI 타로 해석 받기 &nbsp; ✦
+      <div>✦ &nbsp; AI 타로 해석 받기 &nbsp; ✦</div>
+      <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">🪙 50코인 차감</div>
     </button>
     <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 뽑기</button>
     <button class="btn-reset" onclick="goToLanding()" style="border-color:rgba(124,58,237,0.2);color:rgba(124,58,237,0.5);">
@@ -1509,7 +1517,7 @@ async function initDeckFromApi() {
   isDeckReady = false;
   const msg = document.getElementById('statusMsg');
   const btn = document.getElementById('readBtn');
-  msg.textContent = '무료 타로 엔진에서 7장을 준비하는 중입니다...';
+  msg.textContent = '타로 엔진에서 7장을 준비하는 중입니다...';
   btn.disabled = true;
   try {
     const data = await callTarotApi('draw', { spreadType: TAROT_SPREAD_TYPE });
@@ -1527,6 +1535,54 @@ async function initDeckFromApi() {
     } else {
       msg.textContent = '카드 준비에 실패했습니다. 다시 뽑기를 눌러 재시도해주세요.';
     }
+  }
+}
+
+// ─── COIN GATE (1회 50코인) ───
+async function ijikCoinGate(cost, reason) {
+  var plan = '';
+  try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
+  if (plan === 'unlimited' || plan === 'premium') return true;
+  try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch(_) {}
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=' + encodeURIComponent(location.pathname);
+    }
+    return false;
+  }
+  var balance = 0;
+  try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
+  if (balance < cost) {
+    if (window.confirm('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 페이지로 이동하시겠습니까?')) {
+      window.location.href = '/points';
+    }
+    return false;
+  }
+  if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+    return false;
+  }
+  try {
+    const resp = await fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ cost: cost, reason: reason })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      window.alert((data && data.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+      if (resp.status === 402 || resp.status === 403) window.location.href = '/points';
+      return false;
+    }
+    var nb = (data && data.user && typeof data.user.points === 'number') ? data.user.points : Math.max(0, balance - cost);
+    try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
+    if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
+    return true;
+  } catch(e) {
+    console.error('[tarot-ijik coin-gate]', e);
+    window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
   }
 }
 
@@ -1622,7 +1678,14 @@ async function resetSpread() {
 async function getReading() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
-  btn.textContent = '해석 중...';
+
+  const gateOk = await ijikCoinGate(50, '이직 타로 리딩');
+  if (!gateOk) {
+    btn.disabled = false;
+    return;
+  }
+
+  btn.innerHTML = '<div>해석 중...</div>';
 
   const section = document.getElementById('readingSection');
   const textEl = document.getElementById('readingText');
@@ -1656,13 +1719,13 @@ async function getReading() {
     const rawText = reading.fullText || [reading.stage1, reading.stage2, reading.stage3, reading.finalAdvice].filter(Boolean).join('\n\n') || '해석 결과를 불러오지 못했습니다.';
     textEl.textContent = '';
     await typeWriteText(textEl, rawText);
-    btn.textContent = '✦ 해석 완료';
+    btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
     console.error('[tarot-ijik] reading failed', e);
     const localText = createLocalJobChangeReading(drawnCards);
     textEl.textContent = '';
     await typeWriteText(textEl, localText);
-    btn.textContent = '✦ 해석 완료';
+    btn.innerHTML = '<div>✦ 해석 완료</div>';
   }
 }
 
