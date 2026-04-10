@@ -2176,6 +2176,8 @@ function createJobChangeTarotReading({ drawnCards }) {
     ? "긍정과 점검이 균형을 이루는 흐름이에요. 신중하게 준비하되 결정을 무기한 미루지 마세요."
     : "여러 카드가 재정비 신호를 보내고 있어요. 지금은 계획을 세우고 내부를 안정화한 뒤 이직을 추진하는 것이 유리합니다.";
 
+  const MIN_SECTION_CHARS = 500;
+
   function getPositionMeaning(card, posLabel) {
     if (!card) return "";
     const interp = card.interpretation || `${card.nameKr || card.name}가 이 자리에서 중요한 메시지를 전달합니다.`;
@@ -2185,13 +2187,55 @@ function createJobChangeTarotReading({ drawnCards }) {
     return `${interp} ${orientTail}`;
   }
 
-  const stage1Summary = `[나의 천직과 진로] ${opening} 카드 1—'${cardLabel(c1)}'는 ${getPositionMeaning(c1, "calling")} 카드 2—'${cardLabel(c2)}'는 ${getPositionMeaning(c2, "happy_direction")} 카드 3—'${cardLabel(c3)}'는 ${getPositionMeaning(c3, "inner_vocation")}`;
+  function keywordsSummary(card) {
+    if (!card || !Array.isArray(card.keywords) || !card.keywords.length) {
+      return "핵심 키워드: 흐름 파악, 우선순위 정렬, 실행 루틴 고정";
+    }
+    return `핵심 키워드: ${card.keywords.slice(0, 5).join(", ")}`;
+  }
 
-  const stage2Summary = `[이직 이후 삶과 실천] 카드 4—'${cardLabel(c4)}'는 이직 후 삶에 대해 이렇게 말합니다: ${getPositionMeaning(c4, "life_after_move")} 카드 5—'${cardLabel(c5)}'는 현실화를 위한 행동으로 ${getPositionMeaning(c5, "action_steps")}`;
+  function ensureMinSectionLength(baseText, relatedCards, sectionName) {
+    let text = String(baseText || "").trim();
+    const cards = Array.isArray(relatedCards) ? relatedCards.filter(Boolean) : [];
 
-  const stage3Summary = `[포기와 조언] 카드 6—'${cardLabel(c6)}'는 포기해야 할 것에 대해 ${getPositionMeaning(c6, "let_go")} 카드 7—'${cardLabel(c7)}'는 전체 조언으로 ${getPositionMeaning(c7, "overall_advice")}`;
+    const cardExpansions = cards.map((card) => {
+      return `${cardLabel(card)} 카드의 확장 해석: ${card.interpretation || "현재 단계에서 자신의 패턴을 객관적으로 점검해야 합니다."} ${keywordsSummary(card)}. 이 신호는 단순한 기분 문제가 아니라, 실제 업무환경과 역할 적합도를 다시 측정하라는 의미입니다.`;
+    });
 
-  const finalAdvice = `✦ 종합 메시지\n${positiveNote}\n\n이직을 결심할 때 가장 중요한 것은 경제적 조건보다 '내가 어떤 환경에서 활성화되는가'를 파악하는 일입니다. 7장의 카드가 그 나침반 역할을 해주었으니, 오늘 리딩을 기록해 두고 30일 뒤 다시 돌아보세요. 행동 하나가 흐름을 만듭니다.`;
+    const commonExpansions = [
+      "실행 전략: 이번 리딩은 감정적 결론보다 데이터 기반 판단을 권합니다. 채용 공고 10건을 비교해 공통 요구 역량을 추출하고, 본인의 강점과 간극을 3가지 항목으로 명확히 적어 보세요.",
+      "리스크 관리: 연봉, 업무 범위, 조직 문화, 성장 경로를 각각 분리해 점검해야 합니다. 하나의 조건만 보고 이동하면 초기 만족감은 높아도 중장기 적합도가 떨어질 수 있습니다.",
+      "행동 지침: 이번 주 안에 이력서 1차 업데이트, 포트폴리오 보완, 네트워킹 연락 2건까지 완료해 보세요. 작은 실행이 쌓이면 불안은 줄고 의사결정 정확도는 높아집니다.",
+      "정서 관리: 이직 고민에서 가장 흔한 함정은 자기비난과 조급함입니다. 카드는 속도를 늦추라는 뜻이 아니라, 순서를 정밀하게 맞추라는 신호입니다."
+    ];
+
+    let i = 0;
+    while (text.length < MIN_SECTION_CHARS) {
+      const fromCards = cardExpansions.length ? cardExpansions[i % cardExpansions.length] : "";
+      const fromCommon = commonExpansions[i % commonExpansions.length];
+      const line = fromCards
+        ? `${sectionName} 보강 해석: ${fromCards} ${fromCommon}`
+        : `${sectionName} 보강 해석: ${fromCommon}`;
+      text += `\n\n${line}`;
+      i += 1;
+      if (i > 16) break;
+    }
+
+    return text;
+  }
+
+  const stage1Base = `[나의 천직과 진로]\n${opening}\n\n카드 1 '${cardLabel(c1)}'의 메시지: ${getPositionMeaning(c1, "calling")}\n${keywordsSummary(c1)}\n\n카드 2 '${cardLabel(c2)}'의 메시지: ${getPositionMeaning(c2, "happy_direction")}\n${keywordsSummary(c2)}\n\n카드 3 '${cardLabel(c3)}'의 메시지: ${getPositionMeaning(c3, "inner_vocation")}\n${keywordsSummary(c3)}\n\n이 세 카드는 직업 선택의 기준을 '즉시 보상'이 아니라 '지속 가능한 몰입'으로 재정렬하라고 말합니다. 지금 단계에서는 내가 잘하는 일, 오래 해도 소모되지 않는 일, 시장에서 가치로 환산되는 일을 분리해서 정리하는 과정이 핵심입니다.`;
+
+  const stage2Base = `[이직 이후 삶과 실천]\n카드 4 '${cardLabel(c4)}'는 이직 이후의 라이프스타일과 정서적 변화를 보여줍니다: ${getPositionMeaning(c4, "life_after_move")}\n${keywordsSummary(c4)}\n\n카드 5 '${cardLabel(c5)}'는 결심을 현실로 바꾸는 행동 계획을 제시합니다: ${getPositionMeaning(c5, "action_steps")}\n${keywordsSummary(c5)}\n\n핵심은 막연한 기대가 아니라 실행 가능한 루틴입니다. 지원 일정, 역량 보완 일정, 면접 준비 일정을 분리하고, 최소 2주 단위로 체크포인트를 만드는 방식이 실제 전환 확률을 높입니다. 이 파트는 '언젠가'가 아니라 '이번 주 무엇을 할지'를 확정하라는 신호입니다.`;
+
+  const stage3Base = `[포기와 조언]\n카드 6 '${cardLabel(c6)}'는 성공적인 이직을 위해 내려놓아야 할 습관과 집착을 지적합니다: ${getPositionMeaning(c6, "let_go")}\n${keywordsSummary(c6)}\n\n카드 7 '${cardLabel(c7)}'는 전체 방향성에 대한 최종 조언입니다: ${getPositionMeaning(c7, "overall_advice")}\n${keywordsSummary(c7)}\n\n이 조합은 '무엇을 더할지'만큼 '무엇을 버릴지'가 중요하다고 강조합니다. 과거의 실패 기억, 비교 습관, 완벽주의 지연을 줄여야 다음 기회를 실제 성과로 연결할 수 있습니다. 선택의 질은 정보량이 아니라 결단 이후의 실행 일관성에서 결정됩니다.`;
+
+  const finalAdviceBase = `✦ 종합 메시지\n${positiveNote}\n\n이직을 결심할 때 가장 중요한 것은 경제적 조건 하나가 아니라, 성장 가능성·역할 적합도·생활 리듬의 균형을 동시에 맞추는 일입니다. 7장의 카드는 당신이 지금 감정적으로 흔들리는 단계가 아니라 전략을 세울 수 있는 단계에 들어섰음을 보여줍니다. 오늘 리딩 내용을 기록해 30일 실행 계획으로 전환하고, 매주 점검 지표를 통해 보완해 나가세요. 행동 하나가 흐름을 만들고, 그 흐름이 결국 커리어의 방향을 바꿉니다.`;
+
+  const stage1Summary = ensureMinSectionLength(stage1Base, [c1, c2, c3], "1단계");
+  const stage2Summary = ensureMinSectionLength(stage2Base, [c4, c5], "2단계");
+  const stage3Summary = ensureMinSectionLength(stage3Base, [c6, c7], "3단계");
+  const finalAdvice = ensureMinSectionLength(finalAdviceBase, cardReadings, "종합 조언");
 
   return {
     spreadType: "job_change_seven_card",

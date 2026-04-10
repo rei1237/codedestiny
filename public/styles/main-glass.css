@@ -390,6 +390,7 @@ body {
 	z-index: 1;
 	overflow: hidden;
 	border-radius: inherit;
+	animation: tarotCosmosDrift 16s ease-in-out infinite alternate;
 }
 .fc-star {
 	position: absolute;
@@ -548,6 +549,11 @@ body {
 	0%, 100% { opacity: 0.85; }
 	50% { opacity: 1; }
 }
+@keyframes tarotCosmosDrift {
+	0% { transform: translate3d(0, 0, 0); }
+	50% { transform: translate3d(-8px, 5px, 0); }
+	100% { transform: translate3d(10px, -6px, 0); }
+}
 @media (prefers-reduced-motion: reduce) {
 	.fc-star,
 	.tarot-collection__cosmos .tc-star { animation: none; opacity: 0.9; }
@@ -662,6 +668,44 @@ body {
 .tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
 .tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
 .tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
+
+.tarot-tile--ijik {
+	border-color: rgba(129, 79, 245, 0.45);
+	box-shadow: 0 10px 26px rgba(66, 38, 140, 0.3), 0 0 0 1px rgba(129, 79, 245, 0.18) inset;
+}
+.tarot-tile--ijik .tarot-tile__img-wrap {
+	background:
+		radial-gradient(circle at 20% 14%, rgba(167, 139, 250, 0.32), transparent 44%),
+		radial-gradient(circle at 82% 80%, rgba(56, 189, 248, 0.22), transparent 54%),
+		linear-gradient(165deg, rgba(18, 12, 42, 0.96) 0%, rgba(20, 26, 56, 0.92) 58%, rgba(14, 24, 50, 0.95) 100%);
+}
+.tarot-tile--ijik .tarot-tile__img-wrap::before {
+	content: "";
+	position: absolute;
+	inset: -25%;
+	pointer-events: none;
+	z-index: 1;
+	background:
+		radial-gradient(circle at 34% 40%, rgba(248, 250, 252, 0.28), transparent 36%),
+		radial-gradient(circle at 74% 58%, rgba(196, 181, 253, 0.24), transparent 34%);
+	animation: ijikNebulaDrift 9s ease-in-out infinite alternate;
+}
+.tarot-tile--ijik .tarot-tile__img {
+	position: relative;
+	z-index: 2;
+	object-position: center 36%;
+	filter: saturate(1.05) contrast(1.02);
+	transition: transform 0.28s ease, filter 0.28s ease;
+}
+.tarot-tile--ijik:hover .tarot-tile__img {
+	transform: scale(1.04);
+	filter: saturate(1.12) contrast(1.05);
+}
+@keyframes ijikNebulaDrift {
+	0% { transform: translate3d(-4%, -3%, 0) scale(1); opacity: 0.55; }
+	50% { transform: translate3d(4%, 2%, 0) scale(1.06); opacity: 0.9; }
+	100% { transform: translate3d(2%, -2%, 0) scale(1.02); opacity: 0.65; }
+}
 /* 공사 중 스티커 (베다점 등) */
 .tarot-tile__sticker {
 	position: absolute;
