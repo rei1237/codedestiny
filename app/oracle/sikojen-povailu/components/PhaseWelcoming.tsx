@@ -81,15 +81,26 @@ export function PhaseWelcoming() {
         </h1>
 
         {/* 한글 인사말 */}
-        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-rose-600 mb-7 sm:mb-8" style={{ fontFamily: "'Jua', serif" }}>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-rose-600 mb-4 sm:mb-5" style={{ fontFamily: "'Jua', serif" }}>
           어서 오세요 🌸
         </p>
 
         {/* 부제목 */}
-        <p className="text-sm sm:text-base md:text-lg text-rose-700 mb-10 sm:mb-12 leading-relaxed font-medium">
+        <p className="text-sm sm:text-base md:text-lg text-rose-700 mb-6 leading-relaxed font-medium">
           연이와 함께하는<br />
           마법의 돼지점에 오신 것을 환영합니다 ✨
         </p>
+
+        {/* 핀란드 주석점 소개 카드 */}
+        <div className="w-full max-w-sm mx-auto mb-8 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-pink-200 shadow-lg p-4 text-left">
+          <p className="text-xs font-bold text-pink-500 mb-2 text-center tracking-wider">🇫🇮 SIKOJEN POVAILU — 핀란드 전통 주석점이란?</p>
+          <ul className="space-y-1.5 text-xs text-rose-700">
+            <li className="flex gap-2 items-start"><span>🔥</span><span>핀란드에서 수백 년 이어온 <strong>새해 주석 주조 점술</strong></span></li>
+            <li className="flex gap-2 items-start"><span>💧</span><span>녹인 주석을 차가운 물에 던져 <strong>굳은 형태로 운명을 읽어요</strong></span></li>
+            <li className="flex gap-2 items-start"><span>✨</span><span><strong>20가지 형태</strong> — 각각 고유한 의미와 연이의 메시지가 담겨 있어요</span></li>
+            <li className="flex gap-2 items-start"><span>🐷</span><span>귀여운 마스코트 <strong>연이</strong>가 당신의 주석점을 함께 해석해 드려요!</span></li>
+          </ul>
+        </div>
 
         {/* "내 주석점 보기" 버튼 */}
         <button

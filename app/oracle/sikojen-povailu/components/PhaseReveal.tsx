@@ -108,6 +108,27 @@ export function PhaseReveal() {
             </p>
           </div>
 
+          {/* 럭키 정보 섹션 */}
+          <div className="relative z-10 mb-6 grid grid-cols-2 gap-3">
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl border-2 border-amber-200 p-3 text-center">
+              <p className="text-xs font-bold text-amber-600 mb-1">🍀 럭키 넘버</p>
+              <p className="text-2xl font-bold text-amber-800">{selectedShape.lucky_number}</p>
+            </div>
+            <div className="bg-gradient-to-br from-pink-50 to-rose-100 rounded-xl border-2 border-rose-200 p-3 text-center">
+              <p className="text-xs font-bold text-rose-600 mb-1">🎨 럭키 컬러</p>
+              <p className="text-xs font-semibold text-rose-800 leading-tight">{selectedShape.lucky_color}</p>
+            </div>
+          </div>
+
+          {/* 연이의 한마디 */}
+          <div className="relative z-10 mb-6 bg-gradient-to-r from-pink-100 to-rose-50 rounded-2xl border-2 border-pink-300 p-4 flex gap-3 items-start">
+            <span className="text-2xl flex-shrink-0">🐷</span>
+            <div>
+              <p className="text-xs font-bold text-pink-600 mb-1">연이의 한마디</p>
+              <p className="text-sm text-rose-700 leading-relaxed">{selectedShape.yeon_message}</p>
+            </div>
+          </div>
+
           {/* 액션 버튼 - 영혼의 그림자 읽기 */}
           <div className="relative z-10 flex flex-col gap-3">
             <button
@@ -143,7 +164,7 @@ export function PhaseReveal() {
               className="rounded-full shadow-lg border-4 border-pink-200 transform hover:scale-110 transition-transform"
             />
             <div className="absolute -top-6 -left-20 bg-pink-100/90 backdrop-blur-sm border-2 border-pink-300 rounded-2xl px-3 py-2 text-pink-700 font-bold text-xs whitespace-nowrap shadow-lg">
-              정말 좋은 형태예요!
+              {selectedShape.yeon_message.split(' ').slice(0, 4).join(' ')}... 🐷
             </div>
           </div>
         </div>
