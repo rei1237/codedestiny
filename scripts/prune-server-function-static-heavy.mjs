@@ -4,10 +4,7 @@ import { resolve } from "node:path";
 const rootDir = process.cwd();
 const serverPublicDir = resolve(rootDir, ".open-next", "server-functions", "default", "public");
 
-const pruneTargets = [
-  "tadagochi.html",
-  "fuctionassets/tadagochi-local",
-];
+const pruneTargets = [];
 
 let removed = 0;
 for (const rel of pruneTargets) {

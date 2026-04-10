@@ -14453,50 +14453,260 @@ function renderSummary(p,johu,natal){
     '#e91e63','rgba(252,228,236,.7)');
 
   /* ───────────────────────────────
-     7-2. 신살(神殺) 분석
+     7-2. 십이운성(十二運星) + 신살(神殺) 정밀 분석
   ─────────────────────────────── */
-  var _sinsalItems = [];
   var _ssDay = p.d.g + p.d.j;
   var _ssJArr = [p.y.j, p.m.j, p.d.j, p.h.j];
   var _ssJLbl = ['년지','월지','일지','시지'];
-  // 도화살: 子午卯酉
-  var _ssTao = ['子','午','卯','酉'];
-  var _ssTaoPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssTao.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
-  if (_ssTaoPos.length > 0) _sinsalItems.push({ icon:'🌸', name:'도화살(桃花殺)', pos:_ssTaoPos.join(', '), desc:'이성을 끌어당기는 매력의 별. '+(_ssTaoPos.indexOf('일지')>=0?'<b>일지 도화</b>는 개인의 이성 매력이 가장 강하게 발현되어 연애 인연이 끊이지 않습니다. ':'')+(_ssTaoPos.indexOf('월지')>=0?'<b>월지 도화</b>는 직업·사회생활에서 이성 인기가 높습니다. ':'')+(_ssTaoPos.indexOf('년지')>=0?'<b>년지 도화</b>는 사회적 인기와 대중적 매력으로 발현됩니다. ':'')+'도화가 강할수록 인기 많고 이성 인연이 많지만, 감정 소모와 구설에 주의가 필요합니다.' });
+  var _branchKo = {'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};
+
+  function _uniqList(arr) {
+    var out = [];
+    (arr || []).forEach(function(v) {
+      if (!v) return;
+      if (out.indexOf(v) === -1) out.push(v);
+    });
+    return out;
+  }
+
+  /* 일간 기준 십이운성: 장생점 + 음양 순역행 계산 */
+  var _twelveOrder = ['장생','목욕','관대','건록','제왕','쇠','병','사','묘','절','태','양'];
+  var _zodiacOrder = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var _twelveStart = {
+    '甲':'亥','乙':'午','丙':'寅','丁':'酉','戊':'寅',
+    '己':'酉','庚':'巳','辛':'子','壬':'申','癸':'卯'
+  };
+  var _yangStem = {'甲':1,'丙':1,'戊':1,'庚':1,'壬':1};
+  var _twelveMeta = {
+    '장생':{energy:'발아',desc:'새로운 기운이 태동하는 시기입니다. 시작·학습·인맥 확장에 유리합니다.',tip:'작게 시작해도 꾸준히 키우면 큰 성과로 연결됩니다.'},
+    '목욕':{energy:'정비',desc:'감수성과 표현력이 강해지는 구간입니다. 이미지·브랜딩 관리가 중요합니다.',tip:'감정 기복이 커질 수 있어 휴식 루틴을 먼저 고정하세요.'},
+    '관대':{energy:'성장',desc:'책임과 역할이 커지는 단계입니다. 실무 역량을 빠르게 축적할 수 있습니다.',tip:'성과를 문서화하면 다음 기회를 더 쉽게 잡습니다.'},
+    '건록':{energy:'안정',desc:'자기 기반이 단단해지는 구간입니다. 직업·재정의 구조를 세우기 좋습니다.',tip:'고정 수입/고정 루틴을 만들어 체력을 아끼세요.'},
+    '제왕':{energy:'피크',desc:'영향력과 추진력이 정점에 가까운 단계입니다. 주도권을 잡기 좋습니다.',tip:'확장과 동시에 리스크 관리 기준을 반드시 함께 두세요.'},
+    '쇠':{energy:'전환',desc:'외적 확장보다 내실 점검이 필요한 구간입니다. 효율 재정비에 강합니다.',tip:'불필요한 일과 관계를 정리하면 운의 소모를 줄일 수 있습니다.'},
+    '병':{energy:'완급',desc:'과로·과속을 경계해야 하는 단계입니다. 체력·멘탈 관리가 핵심입니다.',tip:'속도를 늦추는 결정이 오히려 장기 성과를 높입니다.'},
+    '사':{energy:'정리',desc:'끝맺음과 재배치의 에너지가 강합니다. 과거 프로젝트 정리에 좋습니다.',tip:'미완료 과제를 정리하면 새 기회를 받을 공간이 생깁니다.'},
+    '묘':{energy:'축적',desc:'보이지 않는 준비와 축적의 구간입니다. 내공을 쌓기에 유리합니다.',tip:'겉 성과보다 시스템/실력 축적에 집중하세요.'},
+    '절':{energy:'리셋',desc:'관성에서 벗어나 새 판을 짜야 하는 시기입니다. 방향 전환이 유효합니다.',tip:'익숙함을 버리고 핵심 목표를 다시 정의하세요.'},
+    '태':{energy:'구상',desc:'가능성이 움트는 단계입니다. 기획·연구·연습에 강한 운입니다.',tip:'아이디어를 기록하고 작은 실험으로 검증하세요.'},
+    '양':{energy:'준비',desc:'실행 직전의 준비 구간입니다. 인프라·협업 구조를 맞추기 좋습니다.',tip:'출시 전 체크리스트를 정교하게 만들면 성공률이 올라갑니다.'}
+  };
+
+  function _calcTwelveStar(dayStem, targetBranch) {
+    if (!dayStem || !targetBranch || !_twelveStart[dayStem]) return null;
+    var start = _twelveStart[dayStem];
+    var startIdx = _zodiacOrder.indexOf(start);
+    var targetIdx = _zodiacOrder.indexOf(targetBranch);
+    if (startIdx < 0 || targetIdx < 0) return null;
+    var dir = _yangStem[dayStem] ? 1 : -1;
+    var step = dir > 0
+      ? ((targetIdx - startIdx + 12) % 12)
+      : ((startIdx - targetIdx + 12) % 12);
+    return {
+      star: _twelveOrder[step],
+      step: step,
+      start: start,
+      dir: dir
+    };
+  }
+
+  var _twelveTargets = [
+    { key:'y', label:'년주', stem:p.y.g, branch:p.y.j },
+    { key:'m', label:'월주', stem:p.m.g, branch:p.m.j },
+    { key:'d', label:'일주', stem:p.d.g, branch:p.d.j },
+    { key:'h', label:'시주', stem:p.h.g, branch:p.h.j }
+  ];
+  var _twelveRows = '';
+  var _twelveCounts = {};
+
+  _twelveTargets.forEach(function(row) {
+    var calc = _calcTwelveStar(p.d.g, row.branch);
+    if (!calc || !calc.star) return;
+    var meta = _twelveMeta[calc.star] || { energy:'기본', desc:'해석 정보가 준비 중입니다.', tip:'핵심 루틴을 유지하세요.' };
+    _twelveCounts[calc.star] = (_twelveCounts[calc.star] || 0) + 1;
+    _twelveRows +=
+      '<details style="margin:6px 0;padding:0;border:1px solid #e9d9ff;border-radius:11px;background:rgba(255,255,255,.74)">'+
+        '<summary style="cursor:pointer;list-style:none;padding:10px 12px;font-size:.84rem;font-weight:700;color:#4a2973;display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+          '<span>'+row.label+' '+(row.stem||'?')+(row.branch||'?')+' ('+(_branchKo[row.branch]||row.branch)+') · '+calc.star+'</span>'+
+          '<span style="font-size:.76rem;color:#8a61b4;background:#f5ecff;padding:2px 8px;border-radius:999px">'+meta.energy+'</span>'+
+        '</summary>'+
+        '<div style="padding:0 12px 12px 12px;font-size:.82rem;line-height:1.78;color:#4d4d4d">'+
+          '<div style="margin-bottom:6px">'+meta.desc+'</div>'+
+          '<div style="color:#6a1b9a"><b>활용 팁</b>: '+meta.tip+'</div>'+
+          '<div style="margin-top:6px;color:#777;font-size:.76rem">판정근거: 일간 '+(p.d.g||'?')+'의 장생 시작점 '+calc.start+' ('+(_branchKo[calc.start]||calc.start)+') 기준 '+(calc.dir>0?'순행':'역행')+'</div>'+
+        '</div>'+
+      '</details>';
+  });
+
+  var _twelveTop = Object.keys(_twelveCounts).sort(function(a,b){return (_twelveCounts[b]||0)-(_twelveCounts[a]||0);})[0];
+  var _twelveSummary = _twelveTop
+    ? ('가장 강하게 드러나는 운성은 <b>'+_twelveTop+'</b> ('+_twelveCounts[_twelveTop]+'개)입니다. 운성은 고정 길흉이 아니라 에너지 운용 방식입니다.')
+    : '십이운성 계산 데이터가 부족합니다.';
+
+  html+=box('🪐 ⑨ 십이운성(十二運星) 정밀 진단 — 주별 에너지 단계',
+    '<div style="font-size:.84rem;line-height:1.8;color:#4a2973">'+
+      '<div style="margin-bottom:6px">일간 <b>'+(p.d.g||'?')+'</b> 기준으로 년·월·일·시 지지를 순역행 계산하여 십이운성을 도출했습니다.</div>'+
+      '<div style="padding:8px 10px;border-radius:10px;background:rgba(106,27,154,.08);border:1px solid rgba(106,27,154,.18)">'+_twelveSummary+'</div>'+
+    '</div>'+
+    '<div style="margin-top:8px">'+(_twelveRows || '<div style="font-size:.84rem;color:#666">표시 가능한 운성 데이터가 없습니다.</div>')+'</div>',
+    '#6a1b9a','rgba(243,229,245,.7)');
+
+  /* 신살(神殺): 삼합군 기준 도화/역마/화개 + 일주/일간 기반 특수 신살 */
+  var _sinsalItems = [];
+  var _triadGroups = [
+    ['申','子','辰'],
+    ['亥','卯','未'],
+    ['寅','午','戌'],
+    ['巳','酉','丑']
+  ];
+
+  function _triadIndex(branch) {
+    if (!branch) return -1;
+    for (var i = 0; i < _triadGroups.length; i++) {
+      if (_triadGroups[i].indexOf(branch) >= 0) return i;
+    }
+    return -1;
+  }
+
+  function _collectRuleHit(starMap, label) {
+    var baseList = [
+      { branch:p.d.j, label:'일지' },
+      { branch:p.y.j, label:'년지' }
+    ];
+    var hitPos = [];
+    var ruleLines = [];
+    baseList.forEach(function(base) {
+      var gIdx = _triadIndex(base.branch);
+      if (gIdx < 0) return;
+      var target = starMap[gIdx];
+      if (!target) return;
+      var pos = _ssJArr.reduce(function(acc, b, idx) {
+        if (b === target) acc.push(_ssJLbl[idx]);
+        return acc;
+      }, []);
+      if (pos.length) {
+        hitPos = hitPos.concat(pos);
+        ruleLines.push(base.label+' '+base.branch+'군 기준 '+label+' 지지 '+target+' 일치('+pos.join(', ')+')');
+      }
+    });
+    return {
+      pos: _uniqList(hitPos),
+      rule: _uniqList(ruleLines)
+    };
+  }
+
+  var _taoHit = _collectRuleHit(['酉','子','卯','午'], '도화');
+  if (_taoHit.pos.length > 0) {
+    _sinsalItems.push({
+      icon:'🌸',
+      name:'도화살(桃花殺)',
+      pos:_taoHit.pos.join(', '),
+      rule:_taoHit.rule.join(' / '),
+      desc:'대인 매력과 주목도가 높아지는 별입니다. 인연 기회가 늘어나는 대신 감정 소모와 구설 관리가 중요합니다.'
+    });
+  }
+
+  var _yemHit = _collectRuleHit(['寅','巳','申','亥'], '역마');
+  if (_yemHit.pos.length > 0) {
+    _sinsalItems.push({
+      icon:'🌪️',
+      name:'역마살(驛馬殺)',
+      pos:_yemHit.pos.join(', '),
+      rule:_yemHit.rule.join(' / '),
+      desc:'이동·변화·확장 운이 강합니다. 새로운 환경에서 성과가 잘 나며, 루틴 관리가 안정성을 만듭니다.'
+    });
+  }
+
+  var _hwaHit = _collectRuleHit(['辰','未','戌','丑'], '화개');
+  if (_hwaHit.pos.length > 0) {
+    _sinsalItems.push({
+      icon:'🔮',
+      name:'화개살(華蓋殺)',
+      pos:_hwaHit.pos.join(', '),
+      rule:_hwaHit.rule.join(' / '),
+      desc:'예술성·철학성·집중력이 강해집니다. 혼자 깊이 파는 연구·창작 작업에서 강점을 발휘합니다.'
+    });
+  }
+
   // 홍염살
   var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
-  if (_ssHong.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'💋', name:'홍염살(紅艶殺)', pos:'일주 '+_ssDay, desc:'타고난 치명적 색기와 이성을 사로잡는 강렬한 매력의 별. <b>'+_ssDay+' 일주 홍염살</b>: 가만히 있어도 이성의 시선이 쏠리는 묘한 카리스마와 섹시함이 있습니다. 의도치 않게 이성 관계가 복잡해질 수 있으며, 이 에너지를 현명하게 관리하는 것이 중요합니다.' });
-  // 역마살
-  var _ssYem = ['寅','申','巳','亥'];
-  var _ssYemPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssYem.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
-  if (_ssYemPos.length > 0) _sinsalItems.push({ icon:'🌪️', name:'역마살(驛馬殺)', pos:_ssYemPos.join(', '), desc:'이동·변화·확장의 별. <b>'+_ssYemPos.join(', ')+'에 역마</b>: 움직이고 변화할 때 운이 열립니다. 연애에서는 자유와 변화를 중시하며, 이동이 잦은 직업이나 해외 활동에서 강점을 발휘합니다.' });
-  // 화개살
-  var _ssHwa = ['辰','戌','丑','未'];
-  var _ssHwaPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssHwa.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
-  if (_ssHwaPos.length > 0) _sinsalItems.push({ icon:'🔮', name:'화개살(華蓋殺)', pos:_ssHwaPos.join(', '), desc:'예술·영성·고독의 별. <b>'+_ssHwaPos.join(', ')+'에 화개</b>: 예술적 재능과 깊은 내면 세계를 가집니다. 종교·철학·예술 분야에 끌리며, 영적 교감과 깊이 있는 대화를 중시합니다.' });
+  if (_ssHong.indexOf(_ssDay) >= 0) {
+    _sinsalItems.push({
+      icon:'💋',
+      name:'홍염살(紅艶殺)',
+      pos:'일주 '+_ssDay,
+      rule:'일주 고정 규칙('+_ssDay+') 해당',
+      desc:'강한 이성 흡인력과 이미지 영향력을 뜻합니다. 관계 경계를 명확히 하면 큰 장점으로 작동합니다.'
+    });
+  }
+
   // 괴강살
   var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
-  if (_ssGoe.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'⚔️', name:'괴강살(魁罡殺)', pos:'일주 '+_ssDay, desc:'강인한 리더십과 불굴의 의지. <b>'+_ssDay+' 일주 괴강살</b>: 어떤 역경도 굴복하지 않는 강렬한 에너지를 타고났습니다. 성패가 극단적으로 갈릴 수 있으므로, 이 에너지를 올바른 방향으로 사용하는 것이 핵심입니다.' });
+  if (_ssGoe.indexOf(_ssDay) >= 0) {
+    _sinsalItems.push({
+      icon:'⚔️',
+      name:'괴강살(魁罡殺)',
+      pos:'일주 '+_ssDay,
+      rule:'일주 고정 규칙('+_ssDay+') 해당',
+      desc:'극한 상황 돌파력과 리더십이 강합니다. 원칙을 너무 강하게 밀기보다 협업 균형을 챙기면 성취가 커집니다.'
+    });
+  }
+
   // 간여지동
   var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
-  if (_ssGyn.indexOf(_ssDay) >= 0) _sinsalItems.push({ icon:'🔥', name:'간여지동(干與支同)', pos:'일주 '+_ssDay, desc:'천간과 지지 오행이 같아 겉과 속이 일치합니다. <b>'+_ssDay+'</b>: 강인한 자아와 일관된 주체성을 가지며 의지가 굳습니다. 고집스럽게 보일 수 있지만 이것이 큰 성취의 원동력이 됩니다.' });
+  if (_ssGyn.indexOf(_ssDay) >= 0) {
+    _sinsalItems.push({
+      icon:'🔥',
+      name:'간여지동(干與支同)',
+      pos:'일주 '+_ssDay,
+      rule:'일간·일지 동기 오행 구조('+_ssDay+')',
+      desc:'겉과 속의 일치도가 높고 추진 에너지가 선명합니다. 고집이 강해질 때는 피드백 루프를 의도적으로 두는 것이 좋습니다.'
+    });
+  }
+
   // 양인살
   var _ssYang = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
-  if (p.d.g && _ssYang[p.d.g] && p.d.j === _ssYang[p.d.g]) _sinsalItems.push({ icon:'⚡', name:'양인살(羊刃殺)', pos:'일주 '+_ssDay, desc:'날카롭고 강렬한 에너지의 별. <b>'+_ssDay+' 양인</b>: 집중력과 실행력이 극강하며 한 번 목표를 정하면 끝까지 밀어붙입니다. 강한 에너지를 절제와 방향 설정으로 관리하는 것이 성공의 열쇠입니다.' });
+  if (p.d.g && _ssYang[p.d.g] && p.d.j === _ssYang[p.d.g]) {
+    _sinsalItems.push({
+      icon:'⚡',
+      name:'양인살(羊刃殺)',
+      pos:'일주 '+_ssDay,
+      rule:'일간 '+p.d.g+'의 양인 지지 '+_ssYang[p.d.g]+' 일치',
+      desc:'실행력·집중력이 매우 강한 별입니다. 속도 조절과 분노 관리가 함께 되면 큰 리더십으로 연결됩니다.'
+    });
+  }
+
   // 천을귀인
   var _ssUl = {'甲':['丑','未'],'戊':['丑','未'],'庚':['丑','未'],'乙':['子','申'],'己':['子','申'],'丙':['亥','酉'],'丁':['亥','酉'],'辛':['寅','午'],'壬':['巳','卯'],'癸':['巳','卯']};
   if (p.d.g && _ssUl[p.d.g]) {
     var _ssUlSet = _ssUl[p.d.g];
-    var _ssUlPos = _ssJArr.reduce(function(a,b,i){if(b&&_ssUlSet.indexOf(b)>=0)a.push(_ssJLbl[i]);return a;},[]);
-    if (_ssUlPos.length > 0) _sinsalItems.push({ icon:'✨', name:'천을귀인(天乙貴人)', pos:_ssUlPos.join(', '), desc:'위기에 귀인이 나타나는 길성(吉星). <b>'+_ssUlPos.join(', ')+'에 천을귀인</b>: 인생의 가장 어려운 순간에 귀인의 도움을 받는 복이 있습니다. 대인관계에서 신뢰를 먼저 쌓으면 귀인이 자연스럽게 나타납니다.' });
+    var _ssUlPos = _ssJArr.reduce(function(a, b, i) {
+      if (b && _ssUlSet.indexOf(b) >= 0) a.push(_ssJLbl[i]);
+      return a;
+    }, []);
+    if (_ssUlPos.length > 0) {
+      _sinsalItems.push({
+        icon:'✨',
+        name:'천을귀인(天乙貴人)',
+        pos:_uniqList(_ssUlPos).join(', '),
+        rule:'일간 '+p.d.g+'의 귀인 지지('+_ssUlSet.join(',')+') 일치',
+        desc:'위기 시 조력자와 해결 실마리가 들어오는 길성입니다. 평소 신뢰를 쌓을수록 귀인운 체감이 커집니다.'
+      });
+    }
   }
   var _sinsalBodyHtml = '';
   if (_sinsalItems.length > 0) {
-    _sinsalBodyHtml = _sinsalItems.map(function(s){
-      return '<div style="margin:6px 0;padding:10px 12px;background:rgba(255,255,255,.6);border-radius:8px;border-left:3px solid #9c27b0">'+
-        '<div style="font-weight:700;font-size:.87rem;color:#6a1b9a;margin-bottom:4px">'+s.icon+' '+s.name+'<span style="font-weight:400;font-size:.79rem;color:#999;margin-left:6px">['+s.pos+']</span></div>'+
-        '<div style="font-size:.83rem;line-height:1.75;color:#444">'+s.desc+'</div>'+
-      '</div>';
+    _sinsalBodyHtml = _sinsalItems.map(function(s) {
+      return '<details style="margin:6px 0;padding:0;border:1px solid #e7d6f7;border-radius:10px;background:rgba(255,255,255,.7)">'+
+        '<summary style="cursor:pointer;list-style:none;padding:10px 12px;font-weight:700;font-size:.86rem;color:#6a1b9a;display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+          '<span>'+s.icon+' '+s.name+'</span>'+
+          '<span style="font-weight:500;font-size:.75rem;color:#8f7aa8;background:#f4eefe;padding:2px 8px;border-radius:999px">'+s.pos+'</span>'+
+        '</summary>'+
+        '<div style="padding:0 12px 12px 12px;font-size:.83rem;line-height:1.78;color:#444">'+
+          '<div style="margin-bottom:6px">'+s.desc+'</div>'+
+          '<div style="font-size:.76rem;color:#777"><b>판정근거</b>: '+(s.rule || '-')+'</div>'+
+        '</div>'+
+      '</details>';
     }).join('');
   } else {
     _sinsalBodyHtml = '<div style="font-size:.84rem;line-height:1.78;color:#666">주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 용신 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.</div>';

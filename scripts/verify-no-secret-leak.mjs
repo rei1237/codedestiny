@@ -9,9 +9,7 @@ const scanRoots = [
   resolve(root, ".next", "static"),
 ];
 
-// Files known to contain base64-encoded binary data that produce false positives
-// (e.g., strings that coincidentally match the AIza Google API key pattern).
-const SKIP_FILE_NAMES = new Set(["tadagochi.html"]);
+const SKIP_FILE_NAMES = new Set();
 
 const textExtensions = new Set([
   ".js",
