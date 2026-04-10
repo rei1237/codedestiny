@@ -393,7 +393,15 @@
     });
     try {
       var pvw = document.getElementById('tilePvwOverlay');
-      if (pvw) pvw.classList.remove('pvw-open');
+      if (pvw) {
+        pvw.classList.remove('pvw-open');
+        pvw.style.opacity = '0';
+        pvw.style.pointerEvents = 'none';
+        pvw.style.visibility = 'hidden';
+        setTimeout(function() {
+          try { pvw.style.opacity=''; pvw.style.pointerEvents=''; pvw.style.visibility=''; } catch(_) {}
+        }, 400);
+      }
     } catch (_) {}
     if (profileArg && profileArg.birth && profileArg.birth.year) {
       try { window.__cdActiveBirthProfile = profileArg; } catch (_) {}
@@ -430,6 +438,7 @@
         modal.style.display = 'flex';
         modal.style.visibility = 'visible';
         modal.style.pointerEvents = 'auto';
+        modal.style.zIndex = '100120';
         document.body.style.overflow = 'hidden';
         try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
         _showScreen('zbNoProfileScreen');
@@ -469,6 +478,7 @@
       modal.style.display = 'flex';
       modal.style.visibility = 'visible';
       modal.style.pointerEvents = 'auto';
+      modal.style.zIndex = '100120';
       document.body.style.overflow = 'hidden';
       try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
       return;
@@ -480,6 +490,7 @@
     modal.style.display = 'flex';
     modal.style.visibility = 'visible';
     modal.style.pointerEvents = 'auto';
+    modal.style.zIndex = '100120';
     document.body.style.overflow = 'hidden';
     _trace('OPEN_MODAL_READY', {
       profileName: profile && profile.name ? profile.name : '사용자',
