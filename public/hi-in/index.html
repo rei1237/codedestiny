@@ -680,7 +680,33 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-cta-btn--lock:hover{box-shadow:0 10px 32px rgba(147,51,234,.55)}
 </style>
 <!-- Google AdSense Auto Ads -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828" crossorigin="anonymous"></script>
+<!-- Google AdSense Auto Ads (deferred for mobile stability/perf) -->
+<script>
+(function(){
+  var loaded = false;
+  function injectAds(){
+    if (loaded) return;
+    loaded = true;
+    var s = document.createElement('script');
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+    s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9863227498729828';
+    s.setAttribute('data-cd-adsense','1');
+    document.head.appendChild(s);
+    window.removeEventListener('pointerdown', injectAds, true);
+    window.removeEventListener('touchstart', injectAds, true);
+    window.removeEventListener('keydown', injectAds, true);
+    window.removeEventListener('scroll', injectAds, true);
+  }
+  var idleId;
+  if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(injectAds, { timeout: 6000 });
+  else idleId = window.setTimeout(injectAds, 5000);
+  window.addEventListener('pointerdown', injectAds, true);
+  window.addEventListener('touchstart', injectAds, true);
+  window.addEventListener('keydown', injectAds, true);
+  window.addEventListener('scroll', injectAds, true);
+})();
+</script>
 <!-- PERF: reduced-motion detect -->
 <script>(function(){try{if((window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
@@ -6524,7 +6550,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script src="/js/life-book.js?v=20260410-v2" defer></script>
 <script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
