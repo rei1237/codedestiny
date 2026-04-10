@@ -14553,6 +14553,45 @@ function renderSummary(p,johu,natal){
 
   /* 신살(神殺): 삼합군 기준 도화/역마/화개 + 일주/일간 기반 특수 신살 */
   var _sinsalItems = [];
+  var _ssGArr = [p.y.g, p.m.g, p.d.g, p.h.g];
+  var _ssGLbl = ['년간','월간','일간','시간'];
+
+  function _pushSinsalItem(item) {
+    if (!item || !item.name) return;
+    var i;
+    for (i = 0; i < _sinsalItems.length; i++) {
+      if (_sinsalItems[i].name === item.name) {
+        var prevPos = (_sinsalItems[i].pos || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+        var nextPos = (item.pos || '').split(',').map(function(s){return s.trim();}).filter(Boolean);
+        var mergedPos = _uniqList(prevPos.concat(nextPos));
+        _sinsalItems[i].pos = mergedPos.join(', ');
+        _sinsalItems[i].rule = _sinsalItems[i].rule
+          ? (_sinsalItems[i].rule + ' / ' + (item.rule || '-'))
+          : (item.rule || '-');
+        if (item.desc && _sinsalItems[i].desc.indexOf(item.desc) < 0) {
+          _sinsalItems[i].desc += ' ' + item.desc;
+        }
+        return;
+      }
+    }
+    _sinsalItems.push(item);
+  }
+
+  function _findBranchPositions(target) {
+    var pos = [];
+    _ssJArr.forEach(function(b, idx) {
+      if (b === target) pos.push(_ssJLbl[idx]);
+    });
+    return _uniqList(pos);
+  }
+
+  function _findStemPositions(target) {
+    var pos = [];
+    _ssGArr.forEach(function(g, idx) {
+      if (g === target) pos.push(_ssGLbl[idx]);
+    });
+    return _uniqList(pos);
+  }
   var _triadGroups = [
     ['申','子','辰'],
     ['亥','卯','未'],
@@ -14597,7 +14636,7 @@ function renderSummary(p,johu,natal){
 
   var _taoHit = _collectRuleHit(['酉','子','卯','午'], '도화');
   if (_taoHit.pos.length > 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'🌸',
       name:'도화살(桃花殺)',
       pos:_taoHit.pos.join(', '),
@@ -14608,7 +14647,7 @@ function renderSummary(p,johu,natal){
 
   var _yemHit = _collectRuleHit(['寅','巳','申','亥'], '역마');
   if (_yemHit.pos.length > 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'🌪️',
       name:'역마살(驛馬殺)',
       pos:_yemHit.pos.join(', '),
@@ -14619,7 +14658,7 @@ function renderSummary(p,johu,natal){
 
   var _hwaHit = _collectRuleHit(['辰','未','戌','丑'], '화개');
   if (_hwaHit.pos.length > 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'🔮',
       name:'화개살(華蓋殺)',
       pos:_hwaHit.pos.join(', '),
@@ -14631,7 +14670,7 @@ function renderSummary(p,johu,natal){
   // 홍염살
   var _ssHong = ['甲午','丙寅','丁未','戊辰','庚戌','辛酉','壬子'];
   if (_ssHong.indexOf(_ssDay) >= 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'💋',
       name:'홍염살(紅艶殺)',
       pos:'일주 '+_ssDay,
@@ -14643,7 +14682,7 @@ function renderSummary(p,johu,natal){
   // 괴강살
   var _ssGoe = ['庚辰','庚戌','壬辰','壬戌','戊戌'];
   if (_ssGoe.indexOf(_ssDay) >= 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'⚔️',
       name:'괴강살(魁罡殺)',
       pos:'일주 '+_ssDay,
@@ -14655,7 +14694,7 @@ function renderSummary(p,johu,natal){
   // 간여지동
   var _ssGyn = ['甲寅','乙卯','丙午','丁巳','戊辰','戊戌','己丑','己未','庚申','辛酉','壬子','癸亥'];
   if (_ssGyn.indexOf(_ssDay) >= 0) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'🔥',
       name:'간여지동(干與支同)',
       pos:'일주 '+_ssDay,
@@ -14667,7 +14706,7 @@ function renderSummary(p,johu,natal){
   // 양인살
   var _ssYang = {'甲':'卯','丙':'午','戊':'午','庚':'酉','壬':'子'};
   if (p.d.g && _ssYang[p.d.g] && p.d.j === _ssYang[p.d.g]) {
-    _sinsalItems.push({
+    _pushSinsalItem({
       icon:'⚡',
       name:'양인살(羊刃殺)',
       pos:'일주 '+_ssDay,
@@ -14685,7 +14724,7 @@ function renderSummary(p,johu,natal){
       return a;
     }, []);
     if (_ssUlPos.length > 0) {
-      _sinsalItems.push({
+      _pushSinsalItem({
         icon:'✨',
         name:'천을귀인(天乙貴人)',
         pos:_uniqList(_ssUlPos).join(', '),
@@ -14693,6 +14732,271 @@ function renderSummary(p,johu,natal){
         desc:'위기 시 조력자와 해결 실마리가 들어오는 길성입니다. 평소 신뢰를 쌓을수록 귀인운 체감이 커집니다.'
       });
     }
+  }
+
+  /* 특수 도화/형살: 사주 팔자 전체 교차 판정 */
+  var _flowerSet = ['子','午','卯','酉'];
+  var _flowerPos = [];
+  _ssJArr.forEach(function(b, idx) {
+    if (_flowerSet.indexOf(b) >= 0) _flowerPos.push(_ssJLbl[idx]);
+  });
+  if (_flowerPos.length >= 3) {
+    _pushSinsalItem({
+      icon:'🌊',
+      name:'곤랑도화(滾浪桃花)',
+      pos:_uniqList(_flowerPos).join(', '),
+      rule:'지지 4기둥 중 도화 지지(子午卯酉) '+_flowerPos.length+'개 중첩',
+      desc:'도화 기운이 과다 중첩된 형식입니다. 대인 매력과 화제성이 크지만 관계 경계·소문 관리가 특히 중요합니다.'
+    });
+  }
+
+  if (_flowerSet.indexOf(p.d.j) >= 0 && _flowerSet.indexOf(p.h.j) >= 0 && p.d.j !== p.h.j) {
+    _pushSinsalItem({
+      icon:'🌊',
+      name:'곤랑도화(滾浪桃花)',
+      pos:_uniqList(['일지','시지']).join(', '),
+      rule:'일지('+p.d.j+')·시지('+p.h.j+') 모두 도화 지지, 이지동궁',
+      desc:'일시축 도화 결합으로 감정·관계 이벤트가 빠르게 발생하기 쉬운 배치입니다.'
+    });
+  }
+
+  var _nachePair = {'子':'午','午':'子','卯':'酉','酉':'卯'};
+  var _nachePos = [];
+  var _nacheRule = [];
+  if (p.d.j && _nachePair[p.d.j]) {
+    var _nacheTarget = _nachePair[p.d.j];
+    ['년지','월지','시지'].forEach(function(lbl, idx) {
+      var src = [p.y.j, p.m.j, p.h.j][idx];
+      if (src === _nacheTarget) {
+        _nachePos.push(lbl);
+        _nacheRule.push('일지 '+p.d.j+'의 상응 도화 '+_nacheTarget+'가 '+lbl+'에 존재');
+      }
+    });
+  }
+  if (_nachePos.length > 0) {
+    _pushSinsalItem({
+      icon:'🪞',
+      name:'나체도화(裸體桃花)',
+      pos:_uniqList(['일지'].concat(_nachePos)).join(', '),
+      rule:_uniqList(_nacheRule).join(' / '),
+      desc:'일지 도화가 직접 충응하는 구조입니다. 매력 노출이 강해지는 대신 사생활 이슈·관계 피로를 관리해야 합니다.'
+    });
+  }
+
+  var _gokgakPair = {
+    '子':['卯','酉'],
+    '午':['卯','酉'],
+    '卯':['子','午'],
+    '酉':['子','午'],
+    '寅':['巳'],
+    '巳':['寅'],
+    '申':['亥'],
+    '亥':['申']
+  };
+  var _gokgakPos = [];
+  var _gokgakRule = [];
+  if (p.d.j && _gokgakPair[p.d.j]) {
+    ['년지','월지','시지'].forEach(function(lbl, idx) {
+      var src = [p.y.j, p.m.j, p.h.j][idx];
+      if (_gokgakPair[p.d.j].indexOf(src) >= 0) {
+        _gokgakPos.push(lbl);
+        _gokgakRule.push('일지 '+p.d.j+'와 '+lbl+' '+src+'의 곡각 조합 성립');
+      }
+    });
+  }
+  if (_gokgakPos.length > 0) {
+    _pushSinsalItem({
+      icon:'🦴',
+      name:'곡각살(曲脚煞)',
+      pos:_uniqList(['일지'].concat(_gokgakPos)).join(', '),
+      rule:_uniqList(_gokgakRule).join(' / '),
+      desc:'일지와 타 지지의 비틀림 조합으로 기복이 커질 수 있는 형식입니다. 무리한 속도전보다 리스크 분산이 중요합니다.'
+    });
+  }
+
+  function _allBranchPairs() {
+    var out = [];
+    for (var i = 0; i < _ssJArr.length; i++) {
+      for (var j = i + 1; j < _ssJArr.length; j++) {
+        if (!_ssJArr[i] || !_ssJArr[j]) continue;
+        out.push({
+          a: _ssJArr[i],
+          b: _ssJArr[j],
+          la: _ssJLbl[i],
+          lb: _ssJLbl[j]
+        });
+      }
+    }
+    return out;
+  }
+
+  function _hasPair(a, b, map) {
+    var key = a + b;
+    var rkey = b + a;
+    return !!map[key] || !!map[rkey];
+  }
+
+  var _pairList = _allBranchPairs();
+
+  /* 육충 */
+  var _chungMap = {'子午':1,'丑未':1,'寅申':1,'卯酉':1,'辰戌':1,'巳亥':1};
+  var _chungRule = [];
+  var _chungPos = [];
+  _pairList.forEach(function(pr) {
+    if (_hasPair(pr.a, pr.b, _chungMap)) {
+      _chungPos.push(pr.la, pr.lb);
+      _chungRule.push(pr.la+' '+pr.a+' ↔ '+pr.lb+' '+pr.b+' 육충');
+    }
+  });
+  if (_chungRule.length) {
+    _pushSinsalItem({
+      icon:'💥',
+      name:'충살(沖煞)',
+      pos:_uniqList(_chungPos).join(', '),
+      rule:_uniqList(_chungRule).join(' / '),
+      desc:'기운 충돌이 강해 변화·이동·관계 재편이 자주 생길 수 있습니다. 큰 결정은 분할 실행이 유리합니다.'
+    });
+  }
+
+  /* 원진 */
+  var _wonjinMap = {'子未':1,'丑午':1,'寅酉':1,'卯申':1,'辰亥':1,'巳戌':1};
+  var _wonjinRule = [];
+  var _wonjinPos = [];
+  _pairList.forEach(function(pr) {
+    if (_hasPair(pr.a, pr.b, _wonjinMap)) {
+      _wonjinPos.push(pr.la, pr.lb);
+      _wonjinRule.push(pr.la+' '+pr.a+' ↔ '+pr.lb+' '+pr.b+' 원진');
+    }
+  });
+  if (_wonjinRule.length) {
+    _pushSinsalItem({
+      icon:'🧿',
+      name:'원진살(怨嗔煞)',
+      pos:_uniqList(_wonjinPos).join(', '),
+      rule:_uniqList(_wonjinRule).join(' / '),
+      desc:'가까운 관계에서 서운함·오해가 누적되기 쉬운 배치입니다. 감정 기록과 정기 대화가 해소에 효과적입니다.'
+    });
+  }
+
+  /* 귀문관 */
+  var _gwimunMap = {'子酉':1,'卯申':1,'寅未':1,'丑午':1,'辰亥':1,'巳戌':1};
+  var _gwimunRule = [];
+  var _gwimunPos = [];
+  _pairList.forEach(function(pr) {
+    if (_hasPair(pr.a, pr.b, _gwimunMap)) {
+      _gwimunPos.push(pr.la, pr.lb);
+      _gwimunRule.push(pr.la+' '+pr.a+' + '+pr.lb+' '+pr.b+' 귀문관 조합');
+    }
+  });
+  if (_gwimunRule.length) {
+    _pushSinsalItem({
+      icon:'🕯️',
+      name:'귀문관살(鬼門關煞)',
+      pos:_uniqList(_gwimunPos).join(', '),
+      rule:_uniqList(_gwimunRule).join(' / '),
+      desc:'감수성과 직관이 예민해지는 구조입니다. 몰입력은 강점이지만 수면·정신 에너지 관리가 중요합니다.'
+    });
+  }
+
+  /* 형살 */
+  var _hyungPairs = {'子卯':1,'卯子':1,'寅巳':1,'巳申':1,'寅申':1,'丑戌':1,'戌未':1,'丑未':1};
+  var _hyungRule = [];
+  var _hyungPos = [];
+  _pairList.forEach(function(pr) {
+    if (_hyungPairs[pr.a + pr.b]) {
+      _hyungPos.push(pr.la, pr.lb);
+      _hyungRule.push(pr.la+' '+pr.a+' · '+pr.lb+' '+pr.b+' 형살 패턴');
+    }
+  });
+  if (_hyungRule.length) {
+    _pushSinsalItem({
+      icon:'⛓️',
+      name:'형살(刑煞)',
+      pos:_uniqList(_hyungPos).join(', '),
+      rule:_uniqList(_hyungRule).join(' / '),
+      desc:'압박 상황에서 자기비판·긴장이 커질 수 있습니다. 일정/규칙을 단순화하면 소모를 줄일 수 있습니다.'
+    });
+  }
+
+  /* 망신/고신/과숙: 일지+년지 그룹 동시 조회 */
+  var _groupTargets = {
+    0: { m:'亥', g:'寅', gw:'戌' },
+    1: { m:'申', g:'巳', gw:'丑' },
+    2: { m:'巳', g:'申', gw:'辰' },
+    3: { m:'寅', g:'亥', gw:'未' }
+  };
+
+  function _collectByBaseGroup(targetKey, title, icon, desc) {
+    var bases = [
+      { label:'일지', branch:p.d.j },
+      { label:'년지', branch:p.y.j }
+    ];
+    var pos = [];
+    var rule = [];
+    bases.forEach(function(base) {
+      var gIdx = _triadIndex(base.branch);
+      if (gIdx < 0 || !_groupTargets[gIdx]) return;
+      var target = _groupTargets[gIdx][targetKey];
+      _ssJArr.forEach(function(b, idx) {
+        if (b === target) {
+          pos.push(_ssJLbl[idx]);
+          rule.push(base.label+' '+base.branch+'군 기준 '+title+' 지지 '+target+'가 '+_ssJLbl[idx]+'에 위치');
+        }
+      });
+    });
+    if (rule.length) {
+      _pushSinsalItem({
+        icon:icon,
+        name:title,
+        pos:_uniqList(pos).join(', '),
+        rule:_uniqList(rule).join(' / '),
+        desc:desc
+      });
+    }
+  }
+
+  _collectByBaseGroup('m','망신살(亡身煞)','🛫','활동 반경이 커지며 급한 판단이 늘기 쉬운 구조입니다. 이동·계약·발언 전 재확인 루틴이 중요합니다.');
+  _collectByBaseGroup('g','고신살(孤神煞)','🌙','독립·고독 성향이 강해지는 별입니다. 집중력은 강점이지만 관계 단절을 막기 위해 의도적 소통이 필요합니다.');
+  _collectByBaseGroup('gw','과숙살(寡宿煞)','🪶','감정 표현이 절제되고 거리감이 생기기 쉬운 배치입니다. 관계에서는 의사표현을 한 단계 더 구체화하세요.');
+
+  /* 천라지망 */
+  var _hasChenSi = _ssJArr.indexOf('辰') >= 0 || _ssJArr.indexOf('巳') >= 0;
+  var _hasXuHai = _ssJArr.indexOf('戌') >= 0 || _ssJArr.indexOf('亥') >= 0;
+  if (_hasChenSi && _hasXuHai) {
+    var _trmPos = [];
+    _ssJArr.forEach(function(b, idx) {
+      if (['辰','巳','戌','亥'].indexOf(b) >= 0) _trmPos.push(_ssJLbl[idx]);
+    });
+    _pushSinsalItem({
+      icon:'🕸️',
+      name:'천라지망(天羅地網)',
+      pos:_uniqList(_trmPos).join(', '),
+      rule:'천라(辰巳) + 지망(戌亥) 지지 동시 존재',
+      desc:'생각이 얽히고 결정이 늦어질 수 있는 배치입니다. 우선순위 3개 규칙으로 의사결정을 단순화하세요.'
+    });
+  }
+
+  /* 백호대살, 십악대패: 일주 고정 목록 */
+  var _baekhoDays = ['甲辰','乙未','丙戌','丁丑','戊辰','壬戌','癸丑'];
+  if (_baekhoDays.indexOf(_ssDay) >= 0) {
+    _pushSinsalItem({
+      icon:'🐯',
+      name:'백호대살(白虎大煞)',
+      pos:'일주 '+_ssDay,
+      rule:'백호대살 일주 고정 규칙('+_ssDay+')',
+      desc:'승부욕과 위기 돌파력이 크게 작동하는 형식입니다. 고위험 의사결정은 안전장치를 먼저 배치하는 것이 중요합니다.'
+    });
+  }
+
+  var _sipakDays = ['甲辰','甲戌','乙巳','丙申','丁亥','戊戌','己丑','庚辰','辛巳','壬申','癸亥'];
+  if (_sipakDays.indexOf(_ssDay) >= 0) {
+    _pushSinsalItem({
+      icon:'⚠️',
+      name:'십악대패(十惡大敗)',
+      pos:'일주 '+_ssDay,
+      rule:'십악대패 일주 고정 규칙('+_ssDay+')',
+      desc:'재정·계약·신뢰 영역에서 손실 리스크 관리가 특히 필요한 배치입니다. 문서 증빙과 분산 원칙을 강화하세요.'
+    });
   }
   var _sinsalBodyHtml = '';
   if (_sinsalItems.length > 0) {
