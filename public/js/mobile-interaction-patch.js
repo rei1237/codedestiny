@@ -597,7 +597,13 @@
     // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
     // 프리뷰 패널에 위임해 정상적인 게이트 흐름을 거치게 한다.
     // 단, pvw-bypass 속성이 있는 경우(Preview CTA에서 직접 클릭)는 게이트 건너뜀
-    if (!window.__cdAdminBypass) {
+    var _isAdminBypass = false;
+    try {
+      _isAdminBypass = !!(window.__cdAdminBypass || (typeof window.isAdminUser === 'function' && window.isAdminUser()));
+    } catch (_) {
+      _isAdminBypass = !!window.__cdAdminBypass;
+    }
+    if (!_isAdminBypass) {
       var _coinGateTile = null;
       if (origin && typeof origin.closest === 'function') {
         _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
