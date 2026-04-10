@@ -102,7 +102,13 @@
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
-  window._cdCoinGatePerUse = function(cost, reason, cb) {
+  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
+    // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
+    if (window._cdCoinGatePerUseInFlight) {
+      window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
+      if (typeof onCancel === 'function') onCancel();
+      return;
+    }
     var plan = '';
     try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
     if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
@@ -111,11 +117,13 @@
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
       if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) window.location.href = '/login?next=%2F';
+      if (typeof onCancel === 'function') onCancel();
       return;
     }
     var balance = 0;
     try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
     if (balance < cost) {
+      if (typeof onCancel === 'function') onCancel();
       if (typeof window.__cdOpenChargeModal === 'function') {
         window.alert('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 창을 열겠습니다.');
         window.__cdOpenChargeModal();
@@ -124,7 +132,11 @@
       }
       return;
     }
-    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) return;
+    if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+      if (typeof onCancel === 'function') onCancel();
+      return;
+    }
+    window._cdCoinGatePerUseInFlight = true;
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -132,10 +144,12 @@
     })
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
+      window._cdCoinGatePerUseInFlight = false;
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
         else if (window.confirm(msg + '\n충전 페이지로 이동하시겠습니까?')) window.location.href = '/points';
+        if (typeof onCancel === 'function') onCancel();
         return;
       }
       var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
@@ -143,7 +157,7 @@
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       cb();
     })
-    .catch(function(e) { console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {

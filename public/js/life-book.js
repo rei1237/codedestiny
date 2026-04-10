@@ -995,24 +995,24 @@
       return;
     }
     if (action === 'generateLifeBook') {
-      // 코인 게이트 통과 후 생성 시작
-      var _cdPaKey = 'cd_pa_generateLifeBook';
-      try {
-        if (sessionStorage.getItem(_cdPaKey) === '1') {
-          sessionStorage.removeItem(_cdPaKey);
-          window.generateLifeBook();
-          return;
-        }
-      } catch (_) {}
-
+      // 이미 생성 중이면 코인 차감 전에 즉시 차단
+      if (_generating) {
+        window.alert('인생의 책이 이미 생성 중입니다. 잠시만 기다려 주세요.');
+        return;
+      }
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
       if (window.__cdAdminBypass) {
         // 관리자 바이패스: 코인 차감 없이 즉시 실행
         window.generateLifeBook();
       } else if (typeof window._cdCoinGatePerUse === 'function') {
-        // 코인 게이트 통과 후 생성
+        // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
+        btn.disabled = true;
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {
+          btn.disabled = false;
           window.generateLifeBook();
+        }, function () {
+          // 취소 또는 오류 시 버튼 복원
+          btn.disabled = false;
         });
       } else {
         // 결제 확인 모듈 미로드 — 결제 없이 생성 불가
