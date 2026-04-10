@@ -41,6 +41,7 @@
   transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   text-align: left;
   font-family: 'Gowun Dodum', 'Noto Serif KR', serif;
+  contain: layout paint style;
 }
 
 /* Hide the <img> inside — we use CSS background-image now */
@@ -103,6 +104,13 @@
 @keyframes lb-float {
   0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
   50% { transform: translateY(-10px) rotate(12deg); opacity: 0.75; }
+}
+
+@media (max-width: 768px) {
+  .lb-p {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 /* 내부 레이아웃 — 포스터형: 배지 상단, 텍스트 하단 */
