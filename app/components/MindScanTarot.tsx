@@ -8,7 +8,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // --- TYPES ---
 
@@ -81,6 +81,14 @@ function buildReadingPlainText(reading: ReadingResult) {
     "[마무리]",
     reading.closing,
   ].join("\n");
+}
+
+function getNextTargetFromMaps(mainMap: Record<string, number>, subMap: Record<string, number>) {
+  for (const p of POSITIONS) {
+    if (!(p.id in mainMap)) return p.id;
+    if (!(p.id in subMap)) return p.id + SUB_SUFFIX;
+  }
+  return null;
 }
 
 // --- POSITIONS ---
@@ -389,7 +397,7 @@ function ShuffleStage({ deck, drawn, drawnSub, nextTarget, onDraw, visualCue, im
   return (
     <motion.div
       key="shuffle"
-      className="flex flex-col items-center min-h-screen px-4"
+      className="flex flex-col items-center min-h-[100dvh] px-4"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -30 }}
       transition={{ duration: 0.4 }}
     >
@@ -422,6 +430,30 @@ function ShuffleStage({ deck, drawn, drawnSub, nextTarget, onDraw, visualCue, im
                 <motion.div className="w-1.5 h-1.5 rounded-full"
                   animate={{ backgroundColor: isSub2 ? "rgb(139,92,246)" : nextTarget === p.id + SUB_SUFFIX ? "rgb(196,181,253)" : "rgba(139,92,246,0.2)" }}
                 />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={`${GLASS} w-full max-w-3xl px-4 py-3 mb-4`}>
+        <div className="flex items-center justify-between gap-2 mb-2.5 flex-wrap">
+          <p className="text-[11px] text-purple-200/85">실시간 배치 진행</p>
+          <p className="text-[11px] text-purple-300/70">{Object.keys(drawn).length + Object.keys(drawnSub).length} / 10 장</p>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          {POSITIONS.map((p) => {
+            const hasMain = p.id in drawn;
+            const hasSub = p.id in drawnSub;
+            const activeMain = nextTarget === p.id;
+            const activeSub = nextTarget === p.id + SUB_SUFFIX;
+            return (
+              <div key={`preview_${p.id}`} className="rounded-xl border border-white/10 bg-black/20 px-2.5 py-2">
+                <p className="text-[10px] text-purple-200/80">{p.label}</p>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span className={`inline-block w-2 h-2 rounded-full ${hasMain ? "bg-purple-300" : activeMain ? "bg-pink-300" : "bg-purple-900/40"}`} />
+                  <span className={`inline-block w-2 h-2 rounded-full ${hasSub ? "bg-indigo-300" : activeSub ? "bg-violet-200" : "bg-indigo-900/40"}`} />
+                </div>
               </div>
             );
           })}
@@ -502,7 +534,7 @@ function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readi
   return (
     <motion.div
       key="spread"
-      className="flex flex-col items-center justify-center min-h-screen px-4 py-10"
+      className="flex flex-col items-center justify-center min-h-[100dvh] px-4 py-10"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
     >
       <div className="text-center mb-6">
@@ -698,7 +730,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
   return (
     <motion.div
       key="intro"
-      className="flex flex-col items-center justify-center min-h-screen px-6 py-16 text-center"
+      className="flex flex-col items-center justify-center min-h-[100dvh] px-6 py-16 text-center"
       initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -24 }}
       transition={{ duration: 0.6 }}
     >
@@ -784,18 +816,39 @@ export default function MindScanTarot() {
   const [impactPulse, setImpactPulse] = useState(0);
   const [shareMessage, setShareMessage] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
+  const drawBusyRef = useRef(false);
+  const drawnRef = useRef<Record<string, number>>({});
+  const drawnSubRef = useRef<Record<string, number>>({});
+  const usedIdsRef = useRef<Set<number>>(new Set());
 
   const nextTarget = useCallback((): string | null => {
-    for (const p of POSITIONS) {
-      if (!(p.id in drawn)) return p.id;
-      if (!(p.id in drawnSub)) return p.id + SUB_SUFFIX;
-    }
-    return null;
+    return getNextTargetFromMaps(drawn, drawnSub);
   }, [drawn, drawnSub]);
 
+  useEffect(() => {
+    drawnRef.current = drawn;
+    drawnSubRef.current = drawnSub;
+    usedIdsRef.current = usedIds;
+  }, [drawn, drawnSub, usedIds]);
+
+  useEffect(() => {
+    if (stage !== "shuffle") return;
+    if (Object.keys(drawn).length === POSITIONS.length && Object.keys(drawnSub).length === POSITIONS.length) {
+      const t = window.setTimeout(() => setStage("spread"), 420);
+      return () => window.clearTimeout(t);
+    }
+  }, [drawn, drawnSub, stage]);
+
   const handleDraw = useCallback((deckId: number) => {
-    if (usedIds.has(deckId)) return;
-    const target = nextTarget();
+    if (drawBusyRef.current) return;
+    drawBusyRef.current = true;
+    window.setTimeout(() => {
+      drawBusyRef.current = false;
+    }, 140);
+
+    const usedNow = usedIdsRef.current;
+    if (usedNow.has(deckId)) return;
+    const target = getNextTargetFromMaps(drawnRef.current, drawnSubRef.current);
     if (!target) return;
     const now = Date.now();
     setVisualCue({ id: now, kind: "swish", label: "슥 - 카드 스치기" });
@@ -805,20 +858,21 @@ export default function MindScanTarot() {
     }, 250);
     window.setTimeout(() => setVisualCue(null), 780);
 
-    const newUsed = new Set([...usedIds, deckId]);
+    const newUsed = new Set([...usedNow, deckId]);
     setUsedIds(newUsed);
+    usedIdsRef.current = newUsed;
 
     if (target.endsWith(SUB_SUFFIX)) {
       const posId = target.replace(SUB_SUFFIX, "");
-      const newSub = { ...drawnSub, [posId]: deckId };
+      const newSub = { ...drawnSubRef.current, [posId]: deckId };
       setDrawnSub(newSub);
-      if (Object.keys(drawn).length === POSITIONS.length && Object.keys(newSub).length === POSITIONS.length) {
-        setTimeout(() => setStage("spread"), 600);
-      }
+      drawnSubRef.current = newSub;
     } else {
-      setDrawn((prev) => ({ ...prev, [target]: deckId }));
+      const newMain = { ...drawnRef.current, [target]: deckId };
+      setDrawn(newMain);
+      drawnRef.current = newMain;
     }
-  }, [usedIds, nextTarget, drawn, drawnSub]);
+  }, []);
 
   const handleFlip = useCallback((id: string) => {
     setFlipped((prev) => new Set([...prev, id]));
@@ -968,7 +1022,7 @@ export default function MindScanTarot() {
   }, [reading]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden"
+    <div className="relative overflow-hidden min-h-[100dvh] h-[100dvh]"
       style={{ background: "linear-gradient(135deg,#060918 0%,#0d0b2a 40%,#140827 70%,#06091a 100%)" }}
     >
       <div className="fixed inset-0 pointer-events-none" aria-hidden="true"
