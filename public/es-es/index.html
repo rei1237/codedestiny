@@ -376,6 +376,8 @@ img[width][height]{height:auto}
 .tarot-tile__img-wrap{position:relative}
 .tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:.7rem;font-weight:900;line-height:1;letter-spacing:.03em;white-space:nowrap;background:rgba(10,5,30,.88);color:#ede9fe;border:1px solid rgba(160,120,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(120,80,220,.12);pointer-events:none}.tarot-tile__coin-badge::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1px solid rgba(255,200,50,.6);box-shadow:0 0 7px rgba(255,195,40,.65),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}.tarot-tile__coin-badge--free::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#d1fae5 0%,#6ee7b7 50%,#059669 100%);border:1px solid rgba(110,231,183,.55);box-shadow:0 0 5px rgba(52,211,153,.35);flex-shrink:0}
 .tarot-tile__coin-badge--free{background:rgba(4,28,20,.92);border-color:rgba(52,211,153,.48);color:#34d399;font-weight:900}
+.tarot-tile__coin-badge--compat{top:36px;background:rgba(45,20,8,.9);border-color:rgba(251,191,36,.55);color:#fde68a;box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(180,120,30,.14)}
+.tarot-tile__coin-badge--compat::before{background:radial-gradient(circle at 33% 28%,#fff7da 0%,#fbbf24 52%,#b45309 100%);border-color:rgba(251,191,36,.58);box-shadow:0 0 7px rgba(245,158,11,.55),inset 0 1px 2px rgba(255,255,220,.45)}
 .tarot-tile__coin-badge--lock{background:rgba(10,5,30,.84);border-color:rgba(170,130,255,.52);color:#f1edff;box-shadow:0 2px 10px rgba(0,0,0,.48),0 0 0 1px rgba(160,100,255,.1)}
 .tarot-tile__lock-icon{position:absolute;bottom:8px;right:8px;z-index:5;width:28px;height:28px;border-radius:50%;background:rgba(10,5,30,.85);border:1.5px solid rgba(180,130,255,.45);display:none;align-items:center;justify-content:center;font-size:.85rem;line-height:1;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:none}
 .tarot-tile--tileLocked .tarot-tile__lock-icon{display:flex}
@@ -1718,6 +1720,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </a>
 
+            <!-- [기능 연결부] 속마음 알아보기 타로 → /tarot/mindscan -->
+            <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan"
+               aria-label="상대방의 정확한 속마음 알아보기 타로 시작">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp" data-img-alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp" alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
+                <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">🔮 속마음 알아보기</span>
+                <span class="tarot-tile__desc">10카드 십자 스프레드</span>
+              </div>
+            </a>
+
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
@@ -1825,11 +1841,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">✨ 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
-                    <span class="tarot-tile__desc">27수 별자리 운명</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -1956,11 +1973,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                         aria-label="점성술 코즈믹 차트 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
-                    <span class="tarot-tile__coin-badge">✨ 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
-                    <span class="tarot-tile__desc">태양 · 달 · 상승궁</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -1971,11 +1989,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge">✨ 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
-                    <span class="tarot-tile__desc">12궁 명반 운명 지도</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -1985,11 +2004,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                         aria-label="베다 점성술 보기">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
-                    <span class="tarot-tile__coin-badge">✨ 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🪐 베다 점성술</span>
-                    <span class="tarot-tile__desc">Jyotish · 낙샤트라·다샤</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -2243,7 +2263,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌙 에도 막부가 금서로 지정한 27수 비전<br>
                   💑 소울메이트 vs 독성 관계 정밀 판별<br>
                   ⭐ 재물·건강·수명 전반 1:1 정밀 리딩<br>
-                  💫 390코인 — 숙요 궁합 정밀 분析
+                  💫 390코인으로 숙요 궁합 정밀 분析
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
@@ -2276,7 +2296,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌟 인도 고대 조티쉬 베다 점성술 정밀 분석<br>
                   🌙 라그나·달 배치·나크샤트라 전생 업장 해독<br>
                   💫 27 나크샤트라로 보는 평생 운명 지도<br>
-                  🪐 390코인 — 베다 운명 완전 해석
+                  🪐 390코인으로 베다 운명 완전 해석
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.2),rgba(251,146,60,0.1));border:1px solid rgba(251,146,60,0.50);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 운명 열기</span>
@@ -4355,6 +4375,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🌅 총결산 — 거장의 마스터플랜 봉서</span></li>
             </ul>
           </div>
+        </div>
 
         <!-- 로딩 화면 -->
         <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
@@ -4457,43 +4478,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <h3 class="lb-start__headline">점성술 코즈믹 차트 인생 리포트</h3>
             <p class="lb-start__desc">실제 행성 좌표를 기반으로<br>12하우스 완전 분析 후<br>12챕터 심층 인생 리포트를 생성합니다</p>
           </div>
-                    <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">💫 본인 정보</div>
-            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-
-          <!-- 상대방 정보 입력 폼 -->
-          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
-            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
-            <div class="lb-start__partner-fields">
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
-              </div>
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
-                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
-                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="row2">
-                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
-                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="toggle-wrap">
-                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
-                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💞 숙요 궁합 인생 총람 생성하기
+          <button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
+            ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
           <div class="lb-start__chapters">
@@ -4513,6 +4503,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 & 개운법</span></li>
             </ul>
           </div>
+        </div>
 
         <!-- 로딩 화면 -->
         <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
@@ -4615,11 +4606,42 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <p class="lb-start__desc">에도 막부가 금지했던 27수 비전으로<br>당신의 달빛 운명 코드를 완전 해독해<br>13챕터 인생 총람을 생성합니다</p>
           </div>
           <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div class="lb-start__profile-label">💫 본인 정보</div>
             <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
+
+          <!-- 상대방 정보 입력 폼 -->
+          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
+            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
+            <div class="lb-start__partner-fields">
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
+              </div>
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
+                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
+                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="row2">
+                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
+                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="toggle-wrap">
+                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
+                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
+            💞 숙요 궁합 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
           <div class="lb-start__chapters">
@@ -4640,6 +4662,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🗺️ 영혼의 마스터플랜 — 10년 로드맵</span></li>
             </ul>
           </div>
+        </div>
 
         <!-- 로딩 화면 -->
         <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
@@ -5958,6 +5981,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  function _cdForcePremiumModalVisible(modalId) {
+    try {
+      var _modal = document.getElementById(modalId);
+      if (_modal) {
+        if (_modal.parentNode !== document.body) document.body.appendChild(_modal);
+        _modal.style.display = 'flex';
+        _modal.style.visibility = 'visible';
+        _modal.style.pointerEvents = 'auto';
+        _modal.style.opacity = '1';
+        _modal.style.zIndex = '100120';
+      }
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+    } catch (_) {}
+  }
+
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
@@ -5992,6 +6031,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openZiweiBookModal === 'function') {
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
+            try {
+              var _zbm = document.getElementById('ziweiBookModal');
+              if (_zbm) {
+                if (_zbm.parentNode !== document.body) document.body.appendChild(_zbm);
+                _zbm.style.display = 'flex';
+                _zbm.style.visibility = 'visible';
+                _zbm.style.pointerEvents = 'auto';
+                _zbm.style.opacity = '1';
+                _zbm.style.zIndex = '100120';
+              }
+              document.body.style.overflow = 'hidden';
+              document.body.classList.add('lb-modal-open');
+            } catch (_) {}
             return true;
           }
         } catch (e) {
@@ -6079,7 +6131,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); }
+          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
@@ -6089,12 +6141,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _abEl2 = document.createElement('script');
           _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
           _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           };
           document.head.appendChild(_abEl2);
         } else {
           setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           }, 500);
         }
       }
@@ -6104,7 +6156,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); }
+          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
@@ -6116,7 +6168,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
           }).catch(function(e){console.error('[prem-card sukuyo]',e);});
         })();
       }
@@ -6126,7 +6178,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); }
+          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
@@ -6138,7 +6190,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
           };
           (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
           }).catch(function(e){console.error('[prem-card vedic]',e);});
         })();
       }
@@ -6206,7 +6258,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (window.__cdAdminBypass || isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser() || !!sessionStorage.getItem('flower_admin_token')) {
           // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 전파
           window.__cdAdminBypass = true;
           sessionStorage.setItem('cd_pa_' + action, '1');
@@ -6322,9 +6374,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
-    // .prem-card도 Preview 패널을 통해 처리 (coin gate는 CTA 클릭 후 처리)
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) return;
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 기본적으로 Preview 패널이 처리
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
+      // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
+      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
+        _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+      }
+      return;
+    }
     // 터치 해제 위치가 타일 영역 내인지 확인
     var t = event.changedTouches && event.changedTouches[0];
     if (__cdLastTouch.moved) return;
@@ -6352,7 +6409,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
@@ -6774,10 +6831,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _premDesc='';
           if(action==='openLifeBookModal')_premDesc='490코인으로 평생 보관할 나만의 운명 전서를 완성하세요. 대운 흐름·재물 시기·대인 관계 전략이 13챕터에 걸쳐 펼쳐집니다.';
           else if(action==='openLoveSecretModal')_premDesc='290코인으로 내 사주에 숨겨진 연애 코드를 해독하세요. 내 진짜 이상형·매력 포인트·피해야 할 관계 유형까지 모두 담겨 있습니다.';
-          else if(action==='gotoZiweiPremium')_premDesc='590코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
-          else if(action==='gotoAstrologyPremium')_premDesc='390코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
-          else if(action==='gotoSukuyoPremium')_premDesc='390코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
-          else if(action==='gotoVedicPremium')_premDesc='390코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
+          else if(action==='gotoZiweiPremium')_premDesc='50코인으로 자미두수 명궁·신궁·사화를 서버 직접 계산, 13챕터 심층 인생 분析 PDF를 완성합니다.';
+          else if(action==='gotoAstrologyPremium')_premDesc='50코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
+          else if(action==='gotoSukuyoPremium')_premDesc='50코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
+          else if(action==='gotoVedicPremium')_premDesc='50코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
           else _premDesc='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
@@ -6843,7 +6900,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    if(window.__cdAdminBypass)return;
+    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
