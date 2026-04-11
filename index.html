@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -4463,12 +4463,43 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <h3 class="lb-start__headline">점성술 코즈믹 차트 인생 리포트</h3>
             <p class="lb-start__desc">실제 행성 좌표를 기반으로<br>12하우스 완전 분析 후<br>12챕터 심층 인생 리포트를 생성합니다</p>
           </div>
-          <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">분析 대상 프로필</div>
-            <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+                    <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">💫 본인 정보</div>
+            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-          <button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
-            ✨ 점성술 코즈믹 차트 생성하기
+
+          <!-- 상대방 정보 입력 폼 -->
+          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
+            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
+            <div class="lb-start__partner-fields">
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
+              </div>
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
+                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
+                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="row2">
+                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
+                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="toggle-wrap">
+                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
+                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
+            💞 숙요 궁합 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
         </div>
