@@ -16,6 +16,7 @@ function pickGeminiKeys() {
   return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
+    process.env.LIFEBOOK_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
@@ -1375,7 +1376,7 @@ export async function POST(req) {
           if (response.ok) {
             const text = parseText(payload);
             const finishReason = getFinishReason(payload);
-            if (text) {
+            if (text && text.length >= 200) {
               return NextResponse.json({
                 ok: true,
                 text: finishReason === "MAX_TOKENS"
@@ -1388,8 +1389,12 @@ export async function POST(req) {
                 truncated: finishReason === "MAX_TOKENS",
               });
             }
+            lastError = "Vertex AI 응답이 비어 있거나 너무 짧습니다.";
+          } else {
+            const errMsg = getApiErrorMessage(response.status, payload);
+            if (isQuotaError(response.status, errMsg)) { lastError = errMsg; break; }
+            lastError = errMsg;
           }
-          lastError = getApiErrorMessage(response.status, payload);
         } catch (fetchErr) {
           lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
         }
@@ -1397,56 +1402,52 @@ export async function POST(req) {
     }
 
     // Gemini 폴백
-    for (const apiKey of geminiKeys) {
-      for (const model of models) {
-        const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
-        const generationConfig = makeGenerationConfig(model);
-        const requestBody = JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig,
-        });
+    for (const model of models) {
+      const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
+      const generationConfig = makeGenerationConfig(model);
+      const requestBody = JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig,
+      });
 
-        for (let attempt = 0; attempt <= 1; attempt++) {
-          if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
-          try {
-            const response = await fetch(endpoint, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": apiKey,
-              },
-              body: requestBody,
-            });
-            const payload = await response.json().catch(() => ({}));
+      for (const apiKey of geminiKeys) {
+        try {
+          const response = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: requestBody,
+          });
+          const payload = await response.json().catch(() => ({}));
 
-            if (response.ok) {
-              const text = parseText(payload);
-              const finishReason = getFinishReason(payload);
-              if (text) {
-                return NextResponse.json({
-                  ok: true,
-                  text: finishReason === "MAX_TOKENS"
-                    ? text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달했을 수 있습니다.*"
-                    : text,
-                  sessionId,
-                  title: config.title,
-                  emoji: config.emoji,
-                  model,
-                  truncated: finishReason === "MAX_TOKENS",
-                });
-              }
+          if (response.ok) {
+            const text = parseText(payload);
+            const finishReason = getFinishReason(payload);
+            if (text && text.length >= 200) {
+              return NextResponse.json({
+                ok: true,
+                text: finishReason === "MAX_TOKENS"
+                  ? text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달했을 수 있습니다.*"
+                  : text,
+                sessionId,
+                title: config.title,
+                emoji: config.emoji,
+                model,
+                truncated: finishReason === "MAX_TOKENS",
+              });
             }
-
-            const errMsg = getApiErrorMessage(response.status, payload);
-            if (isQuotaError(response.status, errMsg)) {
-              lastError = errMsg;
-              break;
-            }
-            lastError = errMsg;
-          } catch (fetchErr) {
-            lastError = String(fetchErr?.message || "네트워크 오류");
+            lastError = "Gemini 응답이 비어 있거나 너무 짧습니다.";
+            continue;
           }
+
+          const errMsg = getApiErrorMessage(response.status, payload);
+          if (isQuotaError(response.status, errMsg)) {
+            lastError = errMsg;
+            break;
+          }
+          lastError = errMsg;
+        } catch (fetchErr) {
+          lastError = String(fetchErr?.message || "네트워크 오류");
         }
       }
     }

@@ -816,7 +816,7 @@
       '.cover-subtitle{font-size:1.1rem;color:#a78bfa;margin:0 0 16px;}' +
       '.cover-deco-line{width:80px;height:1px;background:rgba(167,139,250,0.4);margin:0 auto 24px;}' +
       '.cover-name{font-size:1.6rem;color:#fde68a;margin:0 0 8px;}' +
-      '.cover-info{font-size:0.9rem;color:#94a3b8;margin:0 0 8px;}' +
+      '.cover-info{font-size:0.9rem;color:#c9d4e0;margin:0 0 8px;}' +
       '.cover-deco{font-size:1.5rem;color:#7c3aed;letter-spacing:0.3em;margin-top:40px;}' +
       '.toc{padding:48px 56px;page-break-after:always;}' +
       '.toc-title{font-size:1.4rem;color:#4c0d9f;margin-bottom:32px;border-bottom:2px solid #7c3aed;padding-bottom:12px;}' +
@@ -903,14 +903,16 @@
       '</div>';
     var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
       '<meta charset="UTF-8">' +
+      '<meta name="color-scheme" content="light">' +
       '<title>' + _escHtml(CHAPTER_TITLES[idx]) + '</title>' +
       '<style>' +
       '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#fff;margin:0;padding:0;}' +
+      ':root{color-scheme:light;}' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
       '.cover-line{background:linear-gradient(135deg,#060312,#120828);color:#fff;padding:28px 48px;display:flex;justify-content:space-between;align-items:center;}' +
       '.cover-line .cl-badge{font-size:0.7rem;letter-spacing:0.18em;color:#c4b5fd;text-transform:uppercase;}' +
       '.cover-line .cl-name{font-size:0.9rem;color:#fde68a;}' +
-      '.cover-line .cl-issued{font-size:0.8rem;color:#94a3b8;}' +
+      '.cover-line .cl-issued{font-size:0.8rem;color:#c9d4e0;}' +
       '.chapter{padding:52px 60px;}' +
       '.chapter-header{border-bottom:2px solid #ede9fe;margin-bottom:36px;padding-bottom:26px;}' +
       '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#7c3aed;text-transform:uppercase;display:block;margin-bottom:10px;}' +
