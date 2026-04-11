@@ -81,20 +81,6 @@ function shouldRedirectToCanonical(host) {
   return host.endsWith(".pages.dev");
 }
 
-function getForcedAuthHostProto() {
-  try {
-    const authUrl = String(process.env.AUTH_URL || "").trim();
-    if (!authUrl) return null;
-    const parsed = new URL(authUrl);
-    return {
-      host: parsed.host,
-      proto: parsed.protocol.replace(":", "") || "https",
-    };
-  } catch {
-    return null;
-  }
-}
-
 export function middleware(request) {
   const { pathname, search } = request.nextUrl;
   const ua = request.headers.get("user-agent") || "";
@@ -184,9 +170,8 @@ export function middleware(request) {
 
   const requestHeaders = new Headers(request.headers);
   const pathForLocale = rawPath === "" ? "/" : rawPath;
-  const forcedAuth = rawPath.startsWith("/api/auth") ? getForcedAuthHostProto() : null;
-  const forwardedHost = forcedAuth?.host || request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
-  const forwardedProto = forcedAuth?.proto || request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "https";
+  const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const forwardedProto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "https";
   requestHeaders.set("x-forwarded-host", forwardedHost);
   requestHeaders.set("x-forwarded-proto", forwardedProto);
   // Only pass document path to layout: RSC / _next /api must not overwrite x-pathname (breaks / on Workers).

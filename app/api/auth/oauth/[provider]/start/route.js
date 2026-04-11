@@ -7,14 +7,24 @@ export const runtime = "nodejs";
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 
 function getFrontendBaseUrl(request) {
-  if (process.env.AUTH_FRONTEND_BASE_URL) return process.env.AUTH_FRONTEND_BASE_URL;
+  if (process.env.AUTH_FRONTEND_BASE_URL) {
+    try {
+      return new URL(process.env.AUTH_FRONTEND_BASE_URL).origin;
+    } catch {
+      // fallthrough
+    }
+  }
   const url = new URL(request.url);
   return url.origin;
 }
 
 function getApiBaseUrl(request) {
   if (process.env.AUTH_API_BASE_URL && !isSameOrigin(process.env.AUTH_API_BASE_URL, request)) {
-    return process.env.AUTH_API_BASE_URL.replace(/\/$/, "");
+    try {
+      return new URL(process.env.AUTH_API_BASE_URL).origin;
+    } catch {
+      // fallthrough
+    }
   }
   const url = new URL(request.url);
   return url.origin;
