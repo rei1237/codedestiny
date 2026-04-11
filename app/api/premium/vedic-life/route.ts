@@ -114,6 +114,17 @@ function calcSiderealAscendant(jd: number, lat: number, lon: number, ay: number)
   return nd(tropAsc - ay);
 }
 
+// ★ 역행(Retrograde) 감지 — 1일 전후 열대황경도 비교
+function checkRetrogradeVedic(body: Body, date: Date): boolean {
+  const prev = new Date(date.getTime() - 86400000);
+  const lonPrev = tropicalLon(body, prev);
+  const lonCurr = tropicalLon(body, date);
+  let delta = lonCurr - lonPrev;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return delta < 0;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 베다 차트 타입
 // ─────────────────────────────────────────────────────────────────
@@ -347,7 +358,7 @@ function buildVedicChart(year:number, month:number, day:number, hour:number, min
       signName: RASHI_NAMES[pSignIdx], signSanskrit: RASHI_SANSKRIT[pSignIdx],
       signKo: RASHI_KO[pSignIdx], signEmoji: RASHI_EMOJI[pSignIdx],
       degree: Math.round(pDeg*10)/10, house, dignity: calcDignity(pName, pSignIdx),
-      isRetrograde: false,
+      isRetrograde: BODY_MAP[pName] ? checkRetrogradeVedic(BODY_MAP[pName], date) : false,
       nakshatra: nak.nakshatra.name, nakshatraKo: nak.nakshatra.ko,
       nakshatraPada: nak.pada, nakshatraLord: nak.nakshatra.lord,
     };
@@ -491,7 +502,8 @@ function baseData(c: VedicChart): string {
   const p = c.planets;
   const fmt = (n:string) => {
     const pl = p[n]; if (!pl) return "";
-    return `▸ ${pl.nameKo}: ${pl.signEmoji}${pl.signSanskrit} ${pl.degree}° / ${pl.house}하우스 / ${pl.nakshatraKo} pada${pl.nakshatraPada} (${pl.dignity})`;
+    const rx = pl.isRetrograde ? " ℞(역행)" : "";
+    return `▸ ${pl.nameKo}${rx}: ${pl.signEmoji}${pl.signSanskrit} ${pl.degree}° / ${pl.house}하우스 / ${pl.nakshatraKo} pada${pl.nakshatraPada} (${pl.dignity})`;
   };
   return `[베다 점성술 출생 차트 — Lahiri 사이드리얼 기준, 아야남샤 ${c.ayanamsa}°]
 ▸ 라그나(Lagna): ${c.lagna.signEmoji}${c.lagna.signSanskrit} ${c.lagna.degree}°

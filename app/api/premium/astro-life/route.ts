@@ -87,6 +87,34 @@ function calcNorthNode(jd: number): number {
   return nd(125.044555 - 1934.1361849 * T + 0.0020754 * T * T);
 }
 
+// ★ MC(중천, Medium Coeli) 정확 계산 — RAMC 기반 황도 자오선 교점
+// ASC+270 근사 방식 대비 극지방 등에서 정확도가 높음
+function calcMidheaven(jd: number, lon: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const theta0 = nd(
+    280.46061837 +
+    360.98564736629 * (jd - 2451545.0) +
+    0.000387933 * T * T -
+    (T * T * T) / 38710000
+  );
+  const ramc = nd(theta0 + lon); // RAMC = 지방항성시(LST)
+  const eps = 23.4392911 - 0.013004167 * T;
+  const ramcR = ramc * Math.PI / 180;
+  const epsR  = eps  * Math.PI / 180;
+  return nd(Math.atan2(Math.sin(ramcR), Math.cos(ramcR) * Math.cos(epsR)) * 180 / Math.PI);
+}
+
+// ★ 역행(Retrograde) 감지 — 1일 전·후 황도경도 비교
+function checkRetrograde(body: Body, date: Date): boolean {
+  const prev = new Date(date.getTime() - 86400000);
+  const lonPrev = getTropicalLon(body, prev);
+  const lonCurr = getTropicalLon(body, date);
+  let delta = lonCurr - lonPrev;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return delta < 0;
+}
+
 function wholeSignHouse(planetLon: number, ascLon: number): number {
   const ascSign = Math.floor(nd(ascLon) / 30);
   const pSign   = Math.floor(nd(planetLon) / 30);
@@ -127,6 +155,7 @@ function calcAspects(lons: Record<string, number>): AspectInfo[] {
 interface PlanetInfo {
   sign: string; signKo: string; signEmoji: string;
   degree: number; longitude: number; house: number;
+  retrograde: boolean;
 }
 
 interface ChartData {
@@ -157,11 +186,15 @@ function buildChartData(
   const nnLon = calcNorthNode(jd);
   const snLon = nd(nnLon + 180);
   const ascLon = calcAscendant(jd, lat, lon);
-  const mcLon  = nd(ascLon + 270);
+  // ★ MC: ASC+270 근사값 → 정확한 RAMC 기반 황도 자오선 교점 계산
+  const mcLon = calcMidheaven(jd, lon);
 
   const planets: Record<string, PlanetInfo> = {};
+  // ★ 역행 감지: 태양/달은 역행하지 않으므로 제외
+  const NO_RETROGRADE = new Set(["Sun", "Moon"]);
   for (const [name, lv] of Object.entries(rawLons)) {
-    planets[name] = { ...zodiacOf(lv), house: wholeSignHouse(lv, ascLon) };
+    const isRx = NO_RETROGRADE.has(name) ? false : checkRetrograde(PLANET_BODIES[name], utcDate);
+    planets[name] = { ...zodiacOf(lv), house: wholeSignHouse(lv, ascLon), retrograde: isRx };
   }
 
   const lonForAspects: Record<string, number> = {};
@@ -170,11 +203,11 @@ function buildChartData(
 
   return {
     planets,
-    ascendant: { ...zodiacOf(ascLon), longitude: Math.round(ascLon * 10) / 10 },
-    midheaven: { ...zodiacOf(mcLon),  longitude: Math.round(mcLon  * 10)  / 10 },
+    ascendant: { ...zodiacOf(ascLon), longitude: Math.round(ascLon * 10) / 10, retrograde: false },
+    midheaven: { ...zodiacOf(mcLon),  longitude: Math.round(mcLon  * 10)  / 10, retrograde: false },
     aspects,
-    northNode: { ...zodiacOf(nnLon), house: wholeSignHouse(nnLon, ascLon) },
-    southNode: { ...zodiacOf(snLon), house: wholeSignHouse(snLon, ascLon) },
+    northNode: { ...zodiacOf(nnLon), house: wholeSignHouse(nnLon, ascLon), retrograde: false },
+    southNode: { ...zodiacOf(snLon), house: wholeSignHouse(snLon, ascLon), retrograde: false },
   };
 }
 
@@ -310,7 +343,8 @@ const CHAPTER_META = [
 // 행성 요약 텍스트 생성 헬퍼
 // ─────────────────────────────────────────────────────────────────
 function fmtPlanet(p: PlanetInfo, name: string): string {
-  return `${name}: ${p.signEmoji}${p.signKo} ${p.degree}° / ${p.house}하우스`;
+  const rx = p.retrograde ? " ℞(역행)" : "";
+  return `${name}${rx}: ${p.signEmoji}${p.signKo} ${p.degree}° / ${p.house}하우스`;
 }
 
 function fmtAspects(aspects: AspectInfo[], filter: string[]): string {

@@ -81,6 +81,28 @@ function calcNorthNode(jd: number): number {
   return nn;
 }
 
+// ★ MC(중천) 정확 계산 — RAMC 기반
+function calcMidheaven(jd: number, lon: number): number {
+  const T = (jd - 2451545.0) / 36525;
+  const theta0 = nd(280.46061837 + 360.98564736629 * (jd - 2451545.0) + 0.000387933 * T * T - T * T * T / 38710000);
+  const ramc = nd(theta0 + lon);
+  const eps = 23.4392911 - 0.013004167 * T;
+  const ramcR = ramc * Math.PI / 180;
+  const epsR  = eps  * Math.PI / 180;
+  return nd(Math.atan2(Math.sin(ramcR), Math.cos(ramcR) * Math.cos(epsR)) * 180 / Math.PI);
+}
+
+// ★ 역행(Retrograde) 감지
+function checkRetrograde(body: Body, date: Date): boolean {
+  const prev = new Date(date.getTime() - 86400000);
+  const lonPrev = getTropicalLongitude(body, prev);
+  const lonCurr = getTropicalLongitude(body, date);
+  let delta = lonCurr - lonPrev;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return delta < 0;
+}
+
 // 전체 황궁(Whole Sign) 하우스 계산
 function getWholeSignHouse(planetLon: number, ascLon: number): number {
   const ascSign = Math.floor(nd(ascLon) / 30);
@@ -166,18 +188,24 @@ export async function POST(request: NextRequest) {
 
     // 어센던트
     const ascLon = calcAscendant(jd, lat, lon);
-    const mcLon  = nd(ascLon + 270); // MC ≈ ASC + 270 (whole sign approximate)
+    // ★ MC: ASC+270 근사값 → RAMC 기반 정확 계산
+    const mcLon  = calcMidheaven(jd, lon);
 
-    // 별자리 + 하우스 매핑
+    // 별자리 + 하우스 매핑 (역행 포함)
+    const NO_RETROGRADE = new Set(["Sun", "Moon", "NorthNode", "SouthNode"]);
     const planets: Record<string, {
       sign: string; signKo: string; signEmoji: string;
       degree: number; longitude: number; house: number;
+      retrograde: boolean;
     }> = {};
 
     for (const [name, lonVal] of Object.entries(rawLongitudes)) {
+      const isRx = NO_RETROGRADE.has(name) ? false
+        : PLANET_BODIES[name] ? checkRetrograde(PLANET_BODIES[name], utcDate) : false;
       planets[name] = {
         ...getZodiacInfo(lonVal),
         house: getWholeSignHouse(lonVal, ascLon),
+        retrograde: isRx,
       };
     }
 
