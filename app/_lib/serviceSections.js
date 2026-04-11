@@ -19,6 +19,7 @@ export const SERVICE_SECTIONS = [
       { href: "/tarot/self-esteem", title: "자존감 레벨업", desc: "5카드 성장 퀘스트" },
       { href: "/tarot/reunion", title: "재회운 타로", desc: "5카드 재회 흐름" },
       { href: "/tarot/year", title: "십이지신 천운", desc: "12개월 연간 운세" },
+      { href: "/tarot/crystal-soul", title: "원석 소울 타로", desc: "크리스탈 에너지 리딩 · 50코인" },
     ],
   },
   {
