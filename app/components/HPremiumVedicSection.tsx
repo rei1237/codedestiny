@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -356,6 +356,9 @@ export default function HPremiumVedicSection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
+  const createEmptyChapters = () =>
+    Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
+
   console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
@@ -368,11 +371,35 @@ export default function HPremiumVedicSection({
 
   const [chart,    setChart]    = useState<VedicChart|null>(null);
   const [chapters, setChapters] = useState<Record<number,ChapterState>>(
-    () => Object.fromEntries(CHAPTER_META.map(m=>[m.num,{step:"idle",result:null}]))
+    () => createEmptyChapters()
   );
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
+
+  const resetVedicState = useCallback((resetInputs = false) => {
+    setChart(null);
+    setChapters(createEmptyChapters());
+    setCalcError("");
+    setCalcLoading(false);
+    setRequestError("");
+    if (resetInputs) {
+      setBirthYear("");
+      setBirthMonth("");
+      setBirthDay("");
+      setBirthHour("12");
+      setBirthMinute("0");
+      setTimezone("9");
+      setLat("37.5665");
+      setLon("126.9780");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showIntro) {
+      resetVedicState(false);
+    }
+  }, [showIntro, resetVedicState]);
 
   const postVedicJson = useCallback(async (payload: unknown) => {
     const controller = new AbortController();
@@ -570,7 +597,7 @@ export default function HPremiumVedicSection({
                   ✦ 전체 생성 (12챕터)
                 </button>
                 <button
-                  onClick={()=>{ setChart(null); setChapters(Object.fromEntries(CHAPTER_META.map(m=>[m.num,{step:"idle",result:null}]))); }}
+                  onClick={()=>{ resetVedicState(true); }}
                   style={{ borderRadius:10, padding:"7px 14px", fontSize:"0.72rem", fontWeight:600, background:"rgba(100,116,139,0.15)", border:"1px solid rgba(100,116,139,0.25)", color:"rgba(148,163,184,0.8)", cursor:"pointer" }}
                 >
                   🔄 초기화

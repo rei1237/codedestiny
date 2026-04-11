@@ -1,5 +1,5 @@
 ﻿"use client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -315,6 +315,9 @@ export default function HPremiumAstrologySection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
+  const createEmptyChapters = () =>
+    Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
+
   console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 점성술 프리미엄");
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
@@ -327,13 +330,37 @@ export default function HPremiumAstrologySection({
   // 상태
   const [chart,    setChart]    = useState<ChartData | null>(null);
   const [chapters, setChapters] = useState<Record<number, ChapterState>>(
-    () => Object.fromEntries(CHAPTER_META.map(m => [m.num, { step:"idle", result:null }]))
+    () => createEmptyChapters()
   );
   const [calcError, setCalcError] = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+
+  const resetAstrologyState = useCallback((resetInputs = false) => {
+    setChart(null);
+    setChapters(createEmptyChapters());
+    setCalcError("");
+    setCalcLoading(false);
+    setRequestError("");
+    setPdfLoading(false);
+    setPdfError("");
+    if (resetInputs) {
+      setBirthYear("");
+      setBirthMonth("");
+      setBirthDay("");
+      setBirthHour("12");
+      setBirthMinute("0");
+      setTimezone("9");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showIntro) {
+      resetAstrologyState(false);
+    }
+  }, [showIntro, resetAstrologyState]);
 
   const handleDownloadAstroPDF = useCallback(async () => {
     const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
@@ -455,7 +482,7 @@ export default function HPremiumAstrologySection({
         southNode: data.planets?.SouthNode ?? data.ascendant,
       });
       // 상태 초기화
-      setChapters(Object.fromEntries(CHAPTER_META.map(meta => [meta.num, { step:"idle", result:null }])));
+      setChapters(createEmptyChapters());
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "차트 계산 중 오류";
       setCalcError(message);
@@ -718,7 +745,7 @@ export default function HPremiumAstrologySection({
             <ChartSummary chart={chart} />
             <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
               <button
-                onClick={() => { setChart(null); setChapters(Object.fromEntries(CHAPTER_META.map(m => [m.num, { step:"idle", result:null }]))); }}
+                onClick={() => { resetAstrologyState(true); }}
                 style={{
                   borderRadius:10, padding:"8px 18px", fontSize:"0.82rem", fontWeight:700,
                   background:"rgba(100,116,139,0.25)", border:"1px solid rgba(100,116,139,0.3)",

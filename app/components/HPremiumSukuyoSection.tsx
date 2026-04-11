@@ -1,5 +1,5 @@
 ﻿"use client";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // 타입 정의
@@ -635,7 +635,21 @@ export default function HPremiumSukuyoSection({
   generationLoading = false,
 }: PremiumSectionProps) {
   console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 숙요 프리미엄");
-  const [birthDate, setBirthDate] = useState({ year: "", month: "", day: "", hour: "12" });
+  const DEFAULT_BIRTH_FORM = {
+    year: "",
+    month: "",
+    day: "",
+    hour: "12",
+    minute: "0",
+    timezone: "9",
+    lat: "37.5665",
+    lon: "126.9780",
+  };
+
+  const [birthDate, setBirthDate] = useState(DEFAULT_BIRTH_FORM);
+  const [partnerBirthDate, setPartnerBirthDate] = useState(DEFAULT_BIRTH_FORM);
+  const [partnerName, setPartnerName] = useState("");
+  const [partnerGender, setPartnerGender] = useState<"F" | "M">("F");
   const [sukuyo, setSukuyo] = useState<SukuyoInfo | null>(null);
   const [chapters, setChapters] = useState<ChapterState[]>(
     CHAPTER_META.map(() => ({ step: "idle" as ChapterStep, result: null }))
@@ -647,6 +661,67 @@ export default function HPremiumSukuyoSection({
   const [requestError, setRequestError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
+
+  const parseNumberOr = useCallback((value: string, fallback: number, min?: number, max?: number) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    let v = Math.trunc(n);
+    if (typeof min === "number") v = Math.max(min, v);
+    if (typeof max === "number") v = Math.min(max, v);
+    return v;
+  }, []);
+
+  const parseHour = useCallback((value: string) => parseNumberOr(value, 12, 0, 23), [parseNumberOr]);
+
+  const partnerDateFilled =
+    partnerBirthDate.year.length > 0 ||
+    partnerBirthDate.month.length > 0 ||
+    partnerBirthDate.day.length > 0;
+
+  const isValidDate =
+    birthDate.year.length === 4 &&
+    birthDate.month !== "" &&
+    birthDate.day !== "";
+
+  const isValidPartnerDate =
+    !partnerDateFilled ||
+    (partnerBirthDate.year.length === 4 && partnerBirthDate.month !== "" && partnerBirthDate.day !== "");
+
+  const buildSukuyoPayload = useCallback((chapter: number) => {
+    const payload: Record<string, unknown> = {
+      year: parseNumberOr(birthDate.year, 1990),
+      month: parseNumberOr(birthDate.month, 1, 1, 12),
+      day: parseNumberOr(birthDate.day, 1, 1, 31),
+      hour: parseHour(birthDate.hour),
+      minute: parseNumberOr(birthDate.minute, 0, 0, 59),
+      timezone: Number.isFinite(Number(birthDate.timezone)) ? Number(birthDate.timezone) : 9,
+      lat: Number.isFinite(Number(birthDate.lat)) ? Number(birthDate.lat) : 37.5665,
+      lon: Number.isFinite(Number(birthDate.lon)) ? Number(birthDate.lon) : 126.9780,
+      chapter,
+    };
+
+    if (isValidPartnerDate && partnerDateFilled) {
+      payload.partnerYear = parseNumberOr(partnerBirthDate.year, 1990);
+      payload.partnerMonth = parseNumberOr(partnerBirthDate.month, 1, 1, 12);
+      payload.partnerDay = parseNumberOr(partnerBirthDate.day, 1, 1, 31);
+      payload.partnerHour = parseHour(partnerBirthDate.hour);
+      payload.partnerName = partnerName.trim();
+      payload.partnerGender = partnerGender;
+    }
+
+    return payload;
+  }, [birthDate, isValidPartnerDate, partnerDateFilled, partnerBirthDate, partnerName, partnerGender, parseHour, parseNumberOr]);
+
+  useEffect(() => {
+    if (showIntro) {
+      setSukuyo(null);
+      setChapters(CHAPTER_META.map(() => ({ step: "idle" as ChapterStep, result: null })));
+      setInitError("");
+      setRequestError("");
+      setAllGenerating(false);
+      setInitLoading(false);
+    }
+  }, [showIntro]);
 
   const postSukuyoJson = useCallback(async (payload: unknown) => {
     const controller = new AbortController();
@@ -668,26 +743,15 @@ export default function HPremiumSukuyoSection({
     }
   }, []);
 
-  const isValidDate =
-    birthDate.year.length === 4 &&
-    birthDate.month !== "" &&
-    birthDate.day !== "";
-
   // 숙요 초기화 (챕터 없이 숙요 정보만)
   const handleInitSukuyo = useCallback(async () => {
     console.log("클릭됨: 숙요 초기 분석");
-    if (!isValidDate) return;
+    if (!isValidDate || !isValidPartnerDate) return;
     setInitLoading(true);
     setInitError("");
     setRequestError("");
     try {
-      const data = await postSukuyoJson({
-        year: parseInt(birthDate.year),
-        month: parseInt(birthDate.month),
-        day: parseInt(birthDate.day),
-        hour: parseInt(birthDate.hour) || 12,
-        chapter: 1,
-      });
+      const data = await postSukuyoJson(buildSukuyoPayload(1));
       if (data.sukuyo) {
         setSukuyo(data.sukuyo);
         setChapters((prev) => {
@@ -718,7 +782,7 @@ export default function HPremiumSukuyoSection({
     } finally {
       setInitLoading(false);
     }
-  }, [birthDate, isValidDate, postSukuyoJson]);
+  }, [buildSukuyoPayload, isValidDate, isValidPartnerDate, postSukuyoJson]);
 
   // 단일 챕터 생성
   const handleChapterRequest = useCallback(
@@ -733,13 +797,7 @@ export default function HPremiumSukuyoSection({
         return next;
       });
       try {
-        const data = await postSukuyoJson({
-          year: parseInt(birthDate.year),
-          month: parseInt(birthDate.month),
-          day: parseInt(birthDate.day),
-          hour: parseInt(birthDate.hour) || 12,
-          chapter,
-        });
+        const data = await postSukuyoJson(buildSukuyoPayload(chapter));
         {
           setChapters((prev) => {
             const next = [...prev];
@@ -764,7 +822,7 @@ export default function HPremiumSukuyoSection({
         });
       }
     },
-    [sukuyo, birthDate, postSukuyoJson]
+    [buildSukuyoPayload, sukuyo, postSukuyoJson]
   );
 
   // 전체 생성 (순차)
@@ -782,13 +840,7 @@ export default function HPremiumSukuyoSection({
         return next;
       });
       try {
-        const data = await postSukuyoJson({
-          year: parseInt(birthDate.year),
-          month: parseInt(birthDate.month),
-          day: parseInt(birthDate.day),
-          hour: parseInt(birthDate.hour) || 12,
-          chapter: ch,
-        });
+        const data = await postSukuyoJson(buildSukuyoPayload(ch));
         {
           setChapters((prev) => {
             const next = [...prev];
@@ -814,7 +866,7 @@ export default function HPremiumSukuyoSection({
       }
     }
     setAllGenerating(false);
-  }, [sukuyo, allGenerating, chapters, birthDate, postSukuyoJson]);
+  }, [buildSukuyoPayload, sukuyo, allGenerating, chapters, postSukuyoJson]);
 
   // PDF 다운로드 (텍스트 기반 간이)
   const handleDownloadPDF = useCallback(async () => {
@@ -1081,30 +1133,15 @@ export default function HPremiumSukuyoSection({
             textAlign: "center",
           }}
         >
-          🌙 생년월일을 입력하세요
+          🌙 본인 출생 정보
         </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr 1fr",
-            gap: 8,
-          }}
-        >
-          {[
-            { key: "year", placeholder: "출생 연도", maxLength: 4 },
-            { key: "month", placeholder: "월", maxLength: 2 },
-            { key: "day", placeholder: "일", maxLength: 2 },
-            { key: "hour", placeholder: "시", maxLength: 2 },
-          ].map(({ key, placeholder, maxLength }) => (
+        <div style={{ display: "grid", gap: 10, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 8 }}>
             <input
-              key={key}
               type="number"
-              placeholder={placeholder}
-              maxLength={maxLength}
-              value={birthDate[key as keyof typeof birthDate]}
-              onChange={(e) =>
-                setBirthDate((prev) => ({ ...prev, [key]: e.target.value }))
-              }
+              placeholder="출생 연도"
+              value={birthDate.year}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, year: e.target.value }))}
               style={{
                 background: "rgba(2,12,30,0.8)",
                 border: "1px solid rgba(125,211,252,0.2)",
@@ -1118,8 +1155,269 @@ export default function HPremiumSukuyoSection({
                 boxSizing: "border-box",
               }}
             />
-          ))}
+            <input
+              type="number"
+              placeholder="월"
+              value={birthDate.month}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, month: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="일"
+              value={birthDate.day}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, day: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            <input
+              type="number"
+              placeholder="시(0-23)"
+              value={birthDate.hour}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, hour: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="분"
+              value={birthDate.minute}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, minute: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="UTC(+9)"
+              value={birthDate.timezone}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, timezone: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <input
+              type="number"
+              step="0.0001"
+              placeholder="위도"
+              value={birthDate.lat}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, lat: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              step="0.0001"
+              placeholder="경도"
+              value={birthDate.lon}
+              onChange={(e) => setBirthDate((prev) => ({ ...prev, lon: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(125,211,252,0.2)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
         </div>
+
+        <p
+          style={{
+            fontSize: "0.78rem",
+            letterSpacing: "0.12em",
+            color: "rgba(167,139,250,0.75)",
+            marginTop: 16,
+            marginBottom: 12,
+            textAlign: "center",
+          }}
+        >
+          👥 상대 정보 (선택)
+        </p>
+        <div style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <input
+              type="text"
+              placeholder="상대 이름"
+              value={partnerName}
+              onChange={(e) => setPartnerName(e.target.value)}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <select
+              value={partnerGender}
+              onChange={(e) => setPartnerGender((e.target.value as "F" | "M") || "F")}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            >
+              <option value="F">여성</option>
+              <option value="M">남성</option>
+            </select>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8 }}>
+            <input
+              type="number"
+              placeholder="상대 출생 연도"
+              value={partnerBirthDate.year}
+              onChange={(e) => setPartnerBirthDate((prev) => ({ ...prev, year: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="월"
+              value={partnerBirthDate.month}
+              onChange={(e) => setPartnerBirthDate((prev) => ({ ...prev, month: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="일"
+              value={partnerBirthDate.day}
+              onChange={(e) => setPartnerBirthDate((prev) => ({ ...prev, day: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+            <input
+              type="number"
+              placeholder="시"
+              value={partnerBirthDate.hour}
+              onChange={(e) => setPartnerBirthDate((prev) => ({ ...prev, hour: e.target.value }))}
+              style={{
+                background: "rgba(2,12,30,0.8)",
+                border: "1px solid rgba(167,139,250,0.28)",
+                borderRadius: 10,
+                padding: "10px 8px",
+                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                textAlign: "center",
+                outline: "none",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+        </div>
+
         <p
           style={{
             marginTop: 8,
@@ -1128,31 +1426,36 @@ export default function HPremiumSukuyoSection({
             textAlign: "center",
           }}
         >
-          시는 24시 기준. 모르는 경우 12 입력
+          상대 정보는 선택 입력입니다. 입력 시 연/월/일은 모두 채워야 합니다.
         </p>
       </div>
 
       <button
         type="button"
         onClick={handleInitSukuyo}
-        disabled={!isValidDate || initLoading}
+        disabled={!isValidDate || !isValidPartnerDate || initLoading}
         style={{
           width: "100%",
           padding: "16px 0",
           borderRadius: 14,
-          border: isValidDate ? "1px solid rgba(125,211,252,0.5)" : "1px solid rgba(255,255,255,0.1)",
-          background: isValidDate
+          border: isValidDate && isValidPartnerDate ? "1px solid rgba(125,211,252,0.5)" : "1px solid rgba(255,255,255,0.1)",
+          background: isValidDate && isValidPartnerDate
             ? "linear-gradient(135deg, rgba(2,44,84,0.9) 0%, rgba(30,27,75,0.9) 100%)"
             : "rgba(255,255,255,0.04)",
-          color: isValidDate ? "rgba(125,211,252,0.95)" : "rgba(255,255,255,0.3)",
+          color: isValidDate && isValidPartnerDate ? "rgba(125,211,252,0.95)" : "rgba(255,255,255,0.3)",
           fontSize: "0.98rem",
           fontWeight: 700,
           letterSpacing: "0.12em",
-          cursor: isValidDate ? "pointer" : "not-allowed",
+          cursor: isValidDate && isValidPartnerDate ? "pointer" : "not-allowed",
         }}
       >
         {initLoading ? "🌙 달의 지도를 펼치는 중..." : "✦ 숙요 분석 시작하기"}
       </button>
+      {!isValidPartnerDate && (
+        <p style={{ marginTop: 10, color: "rgba(251,113,133,0.9)", fontSize: "0.82rem", textAlign: "center" }}>
+          ⚠ 상대 정보는 연/월/일을 모두 입력해야 반영됩니다.
+        </p>
+      )}
       {initError && (
         <p style={{ marginTop: 10, color: "rgba(251,113,133,0.9)", fontSize: "0.85rem", textAlign: "center" }}>
           ⚠ {initError}
