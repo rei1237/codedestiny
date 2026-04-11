@@ -171,11 +171,11 @@
   }
 
   function _abSaveResult(profile) {
-    try { localStorage.setItem(_abMakeKey(profile), JSON.stringify({ chapters:_chapters, name:(profile&&profile.name)||'사용자', birth:(profile&&profile.birth)||{}, gender:(profile&&profile.gender)||'', savedAt:new Date().toISOString() })); } catch(_) {}
+    try { sessionStorage.setItem(_abMakeKey(profile), JSON.stringify({ chapters:_chapters, name:(profile&&profile.name)||'사용자', birth:(profile&&profile.birth)||{}, gender:(profile&&profile.gender)||'', savedAt:new Date().toISOString() })); } catch(_) {}
   }
 
   function _abLoadSaved(profile) {
-    try { var raw = localStorage.getItem(_abMakeKey(profile)); return raw ? JSON.parse(raw) : null; } catch(_) { return null; }
+    try { var raw = sessionStorage.getItem(_abMakeKey(profile)); return raw ? JSON.parse(raw) : null; } catch(_) { return null; }
   }
 
   function _showScreen(id) {

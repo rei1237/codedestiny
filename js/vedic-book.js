@@ -156,8 +156,8 @@
 
   var _VD_STORE_VER='vd_v1_';
   function _vdMakeKey(p){var b=(p&&p.birth)||{};return _VD_STORE_VER+(b.year||'0')+'_'+(b.month||'0')+'_'+(b.day||'0')+'_'+((p&&p.gender)||'u');}
-  function _vdSaveResult(p){try{localStorage.setItem(_vdMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
-  function _vdLoadSaved(p){try{var raw=localStorage.getItem(_vdMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
+  function _vdSaveResult(p){try{sessionStorage.setItem(_vdMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
+  function _vdLoadSaved(p){try{var raw=sessionStorage.getItem(_vdMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
   function _showScreen(id){
     var screens=['vdNoProfileScreen','vdStartScreen','vdLoadingScreen','vdResultScreen','vdErrorScreen'];

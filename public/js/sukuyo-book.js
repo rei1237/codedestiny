@@ -152,8 +152,8 @@
 
   var _SK_STORE_VER='sk_v1_';
   function _skMakeKey(p){var b=(p&&p.birth)||{};return _SK_STORE_VER+(b.year||'0')+'_'+(b.month||'0')+'_'+(b.day||'0')+'_'+((p&&p.gender)||'u');}
-  function _skSaveResult(p){try{localStorage.setItem(_skMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
-  function _skLoadSaved(p){try{var raw=localStorage.getItem(_skMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
+  function _skSaveResult(p){try{sessionStorage.setItem(_skMakeKey(p),JSON.stringify({chapters:_chapters,name:(p&&p.name)||'사용자',birth:(p&&p.birth)||{},gender:(p&&p.gender)||'',savedAt:new Date().toISOString()}));}catch(_){}}
+  function _skLoadSaved(p){try{var raw=sessionStorage.getItem(_skMakeKey(p));return raw?JSON.parse(raw):null;}catch(_){return null;}}
 
   function _showScreen(id){
     var screens=['skNoProfileScreen','skStartScreen','skLoadingScreen','skResultScreen','skErrorScreen'];
@@ -245,6 +245,8 @@
     document.body.classList.add('lb-modal-open');
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillSukuyoProfile(profile);
+    _populatePartnerSelects();
+    _bindPartnerGenderToggle();
   };
 
   function _prefillSukuyoProfile(profile){
@@ -255,6 +257,63 @@
       infoEl.textContent=(profile.name||'사용자')+' · '+(profile.gender==='F'?'여성':profile.gender==='M'?'남성':'')+' · '+b.year+'년 '+(b.month||'')+'월 '+(b.day||'')+'일 '+(b.hour!==undefined?b.hour+'시':'')+(b.minute&&b.minute>0?' '+b.minute+'분':'')+'생';
       infoEl.style.display='';
     }
+  }
+
+  var _partnerSelectsPopulated=false;
+  function _populatePartnerSelects(){
+    if(_partnerSelectsPopulated)return;
+    _partnerSelectsPopulated=true;
+    var hourSel=document.getElementById('skPartnerHour');
+    var minSel=document.getElementById('skPartnerMinute');
+    if(hourSel&&hourSel.options.length<=1){
+      var hourLabels=['자시(0시)','축시(1시)','인시(2시)','묘시(3시)','진시(4시)','사시(5시)','오시(6시)','미시(7시)','신시(8시)','유시(9시)','술시(10시)','해시(11시)'];
+      for(var h=0;h<24;h++){
+        var opt=document.createElement('option');
+        opt.value=String(h);
+        opt.textContent=h+'시'+(h<12?'  ('+hourLabels[h]+')':'');
+        hourSel.appendChild(opt);
+      }
+    }
+    if(minSel&&minSel.options.length<=1){
+      for(var m=0;m<60;m+=5){
+        var mopt=document.createElement('option');
+        mopt.value=String(m);
+        mopt.textContent=(m<10?'0':'')+m+'분';
+        minSel.appendChild(mopt);
+      }
+    }
+  }
+
+  function _bindPartnerGenderToggle(){
+    var btnF=document.getElementById('skPartnerGenderF');
+    var btnM=document.getElementById('skPartnerGenderM');
+    if(!btnF||!btnM||btnF._skBound)return;
+    btnF._skBound=true;
+    btnF.addEventListener('click',function(){btnF.classList.add('on');btnM.classList.remove('on');});
+    btnM.addEventListener('click',function(){btnM.classList.add('on');btnF.classList.remove('on');});
+  }
+
+  function _readPartnerData(){
+    var nameEl=document.getElementById('skPartnerName');
+    var dateEl=document.getElementById('skPartnerBirthDate');
+    var hourEl=document.getElementById('skPartnerHour');
+    var minEl=document.getElementById('skPartnerMinute');
+    var calTypeEls=document.querySelectorAll('[name="skPartnerCalType"]');
+    var genderF=document.getElementById('skPartnerGenderF');
+    var calType='solar';
+    for(var i=0;i<calTypeEls.length;i++){if(calTypeEls[i].checked){calType=calTypeEls[i].value;break;}}
+    var dateVal=dateEl?dateEl.value:'';
+    var parts=dateVal?dateVal.split('-'):[];
+    return {
+      name:(nameEl&&nameEl.value.trim())||'',
+      year:parts[0]?Number(parts[0]):null,
+      month:parts[1]?Number(parts[1]):null,
+      day:parts[2]?Number(parts[2]):null,
+      hour:hourEl&&hourEl.value!==''?Number(hourEl.value):null,
+      minute:minEl&&minEl.value!==''?Number(minEl.value):null,
+      gender:(genderF&&genderF.classList.contains('on'))?'F':'M',
+      calType:calType
+    };
   }
 
   window.closeSukuyoBookModal = function(){
@@ -279,6 +338,7 @@
     _chapters=Array(13).fill(null);
     _showScreen('skLoadingScreen');
 
+    var partner=_readPartnerData();
     var progressBar=_qs('skProgressBar'),progressText=_qs('skProgressText');
     var chapterMsg=_qs('skLoadingChapter'),chapterNumEl=_qs('skLoadingChapterNum');
     var mysticEl=_qs('skMysticQuote');
@@ -318,7 +378,16 @@
         var tid=setTimeout(function(){resolve({ok:false,message:'응답 시간 초과 (60초).'});},60000);
         fetch('/api/premium/sukuyo-life',{
           method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1})
+          body:JSON.stringify({year:b.year,month:b.month,day:b.day,hour:b.hour!==undefined?b.hour:12,chapter:idx+1,
+            partnerName:partner.name||undefined,
+            partnerYear:partner.year||undefined,
+            partnerMonth:partner.month||undefined,
+            partnerDay:partner.day||undefined,
+            partnerHour:partner.hour!==null?partner.hour:undefined,
+            partnerMinute:partner.minute!==null?partner.minute:undefined,
+            partnerGender:partner.gender||undefined,
+            partnerCalType:partner.calType||undefined
+          })
         })
         .then(function(res){return res.ok?res.json():res.json().catch(function(){return{};}).then(function(e){return{ok:false,message:(e&&e.message)||'HTTP '+res.status};});})
         .then(function(data){clearTimeout(tid);resolve(data);})

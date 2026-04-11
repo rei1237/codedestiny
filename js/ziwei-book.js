@@ -291,7 +291,7 @@
 
   function _zbSaveResult(profile) {
     try {
-      localStorage.setItem(_zbMakeKey(profile), JSON.stringify({
+      sessionStorage.setItem(_zbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
@@ -303,13 +303,13 @@
 
   function _zbLoadSaved(profile) {
     try {
-      var raw = localStorage.getItem(_zbMakeKey(profile));
+      var raw = sessionStorage.getItem(_zbMakeKey(profile));
       return raw ? JSON.parse(raw) : null;
     } catch (e) { return null; }
   }
 
   function _zbClearSaved(profile) {
-    try { localStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
+    try { sessionStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
   }
 
   /* ─────────────── 화면 전환 ─────────────── */

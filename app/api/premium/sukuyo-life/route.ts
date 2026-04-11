@@ -115,13 +115,34 @@ async function callGemini(prompt: string): Promise<string> {
 // 
 // 프롬프트 빌더 (엔진 traits 데이터 적극 활용)
 // 
+type PartnerCtx = {
+  sukuyo: SukuyoCalcResult;
+  name: string;
+  year: number;
+  gender: string;
+} | null;
+
 function buildSukuyoPrompt(
   sukuyo: SukuyoCalcResult,
   birthYear: number,
-  chapterNum: number
+  chapterNum: number,
+  partner: PartnerCtx = null
 ): string {
   const t = sukuyo.traits;
   const mansionFull = `${sukuyo.mansion}숙(${sukuyo.mansionCh}宿)`;
+
+  const partnerBlock = partner ? (() => {
+    const pt = partner.sukuyo.traits;
+    const pMansionFull = `${partner.sukuyo.mansion}숙(${partner.sukuyo.mansionCh}宿)`;
+    const rel = calcRelationType(sukuyo.mansionIdx, partner.sukuyo.mansionIdx);
+    return `\n\n[궁합 상대방 숙요 데이터 — 핵심 궁합 분析 요소]
+상대방: ${partner.name || '상대방'} (${partner.gender === 'F' ? '여성' : '남성'}, ${partner.year}년생)
+상대 숙요: ${pMansionFull} (${partner.sukuyo.mansionEn})
+상대 본질: ${pt.core}
+상대 사랑 코드: ${pt.love}
+두 사람 숙요 관계: ${rel.rel} — ${rel.desc}
+궁합 해설: 본인(${mansionFull})과 상대(${pMansionFull})의 에너지 역학을 중심으로 궁합을 심층 분析할 것`;
+  })() : '';
 
   const baseCtx = `[숙요점 원본 엔진 데이터]
 탄생 숙요: ${mansionFull} (${sukuyo.mansionEn})  인덱스 ${sukuyo.mansionIdx + 1}/27
@@ -137,7 +158,7 @@ function buildSukuyoPrompt(
 삶의 만트라(mantra): ${t.mantra}
 직업 코드(work): ${t.work}
 사랑 코드(love): ${t.love}
-재물 코드(wealth): ${t.wealth}`;
+재물 코드(wealth): ${t.wealth}${partnerBlock}`;
 
   const styleGuide = `[작성 스타일]
 화법: "달빛 전략의 마스터"로서 고수의 품격과 따뜻한 통찰을 겸비한 존댓말
@@ -503,12 +524,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "invalid chapter" }, { status: 400 });
     }
 
+    // 파트너 데이터 처리
+    const partnerYear   = body.partnerYear   ? Number(body.partnerYear)   : null;
+    const partnerMonth  = body.partnerMonth  ? Number(body.partnerMonth)  : null;
+    const partnerDay    = body.partnerDay    ? Number(body.partnerDay)    : null;
+    const partnerHour   = body.partnerHour  != null ? Number(body.partnerHour) : 12;
+    const partnerName   = typeof body.partnerName === 'string' ? body.partnerName.trim() : '';
+    const partnerGender = typeof body.partnerGender === 'string' ? body.partnerGender : 'F';
+
+    let partner: PartnerCtx = null;
+    if (partnerYear && partnerMonth && partnerDay) {
+      const partnerSukuyo = calcSukuyoForServer(partnerYear, partnerMonth, partnerDay, partnerHour);
+      partner = { sukuyo: partnerSukuyo, name: partnerName || '상대방', year: partnerYear, gender: partnerGender };
+    }
+
     // 서비스 숙요 엔진으로 계산
     const sukuyo = calcSukuyoForServer(year, month, day, hour);
     const chapterMeta = CHAPTER_META[chapter - 1];
 
     // 챕터별 Gemini 콘텐츠 생성
-    const prompt = buildSukuyoPrompt(sukuyo, year, chapter);
+    const prompt = buildSukuyoPrompt(sukuyo, year, chapter, partner);
     let rawText = "";
     let usedFallback = false;
     let fallbackReason = "";

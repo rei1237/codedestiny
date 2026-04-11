@@ -291,7 +291,7 @@
 
   function _zbSaveResult(profile) {
     try {
-      localStorage.setItem(_zbMakeKey(profile), JSON.stringify({
+      sessionStorage.setItem(_zbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
@@ -303,13 +303,13 @@
 
   function _zbLoadSaved(profile) {
     try {
-      var raw = localStorage.getItem(_zbMakeKey(profile));
+      var raw = sessionStorage.getItem(_zbMakeKey(profile));
       return raw ? JSON.parse(raw) : null;
     } catch (e) { return null; }
   }
 
   function _zbClearSaved(profile) {
-    try { localStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
+    try { sessionStorage.removeItem(_zbMakeKey(profile)); } catch (e) {}
   }
 
   /* ─────────────── 화면 전환 ─────────────── */
@@ -804,10 +804,12 @@
 
     var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
       '<meta charset="UTF-8">' +
+      '<meta name="color-scheme" content="light">' +
       '<title>' + _escHtml(name) + '</title>' +
       '<style>' +
       '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#fff;margin:0;padding:0;}' +
+      ':root{color-scheme:light;}' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a2e;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#060312 0%,#120828 50%,#060312 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#c4b5fd;margin-bottom:16px;text-transform:uppercase;}' +
       '.cover-title{font-size:2.8rem;font-weight:700;margin:0 0 12px;color:#f5f0ff;letter-spacing:0.05em;}' +
