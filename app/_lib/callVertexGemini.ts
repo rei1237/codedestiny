@@ -19,16 +19,74 @@ import { createSign } from "node:crypto";
 let _cachedToken = "";
 let _tokenExpiry = 0;
 
+type VertexServiceAccount = {
+  client_email?: string;
+  private_key?: string;
+  project_id?: string;
+};
+
+function parseServiceAccountFromEnv(): VertexServiceAccount | null {
+  const rawJson = String(
+    process.env.VERTEX_SA_JSON ||
+      process.env.GCP_SERVICE_ACCOUNT_JSON ||
+      process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
+      "",
+  ).trim();
+
+  const rawJsonBase64 = String(
+    process.env.VERTEX_SA_JSON_BASE64 ||
+      process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64 ||
+      process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64 ||
+      "",
+  ).trim();
+
+  let jsonText = rawJson;
+  if (!jsonText && rawJsonBase64) {
+    try {
+      jsonText = Buffer.from(rawJsonBase64, "base64").toString("utf8").trim();
+    } catch {
+      jsonText = "";
+    }
+  }
+
+  if (!jsonText) return null;
+
+  try {
+    const parsed = JSON.parse(jsonText) as VertexServiceAccount;
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveVertexServiceAccount(): {
+  email: string;
+  privateKey: string;
+  projectFromJson: string;
+} {
+  const sa = parseServiceAccountFromEnv();
+
+  const email = String(
+    sa?.client_email || process.env.VERTEX_SA_CLIENT_EMAIL || "",
+  ).trim();
+
+  const privateKey = String(
+    sa?.private_key || process.env.VERTEX_SA_PRIVATE_KEY || "",
+  )
+    .replace(/\\n/g, "\n")
+    .trim();
+
+  const projectFromJson = String(sa?.project_id || "").trim();
+  return { email, privateKey, projectFromJson };
+}
+
 async function getVertexAccessToken(): Promise<string> {
   const now = Date.now();
   if (_cachedToken && now < _tokenExpiry - 60_000) return _cachedToken;
 
-  const email  = (process.env.VERTEX_SA_CLIENT_EMAIL  || "").trim();
-  const rawKey = (process.env.VERTEX_SA_PRIVATE_KEY   || "")
-    .replace(/\\n/g, "\n")
-    .trim();
+  const { email, privateKey } = resolveVertexServiceAccount();
 
-  if (!email || !rawKey) throw new Error("VERTEX_SA 자격증명 미설정");
+  if (!email || !privateKey) throw new Error("VERTEX_SA 자격증명(JSON/ENV) 미설정");
 
   const nowSec = Math.floor(now / 1000);
   const header  = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
@@ -43,7 +101,7 @@ async function getVertexAccessToken(): Promise<string> {
   const sigInput = `${header}.${payload}`;
   const signer = createSign("RSA-SHA256");
   signer.update(sigInput);
-  const sig = signer.sign(rawKey, "base64url");
+  const sig = signer.sign(privateKey, "base64url");
   const jwt = `${sigInput}.${sig}`;
 
   const res = await fetch("https://oauth2.googleapis.com/token", {
@@ -106,7 +164,8 @@ export async function callVertexGemini(
   prompt: string,
   genConfig?: VertexGenConfig,
 ): Promise<string> {
-  const project  = (process.env.VERTEX_PROJECT_ID || "vertex-492922").trim();
+  const { projectFromJson } = resolveVertexServiceAccount();
+  const project  = (process.env.VERTEX_PROJECT_ID || projectFromJson || "vertex-492922").trim();
   const location = (process.env.VERTEX_LOCATION   || "us-central1").trim();
   const models   = process.env.VERTEX_MODELS
     ? process.env.VERTEX_MODELS.split(",").map((s) => s.trim()).filter(Boolean)

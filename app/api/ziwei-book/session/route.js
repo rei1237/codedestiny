@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Solar } from "lunar-javascript";
+import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 
 // Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
@@ -7,10 +8,6 @@ export const maxDuration = 300;
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
-// Vertex AI Express API — vertex_api_key용 (x-goog-api-key 헤더 방식)
-const VERTEX_ENDPOINT =
-  "https://aiplatform.googleapis.com/v1/publishers/google/models/{model}:generateContent";
 
 function pickGeminiKeys() {
   return [
@@ -24,16 +21,6 @@ function pickGeminiKeys() {
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);
-}
-
-function pickVertexKey() {
-  return [
-    process.env.VERTEX_API_KEY,
-    process.env.vertex_api_key,
-    process.env.LIFEBOOK_API_KEY,
-  ]
-    .map((v) => String(v || "").trim())
-    .find(Boolean) || null;
 }
 
 function parseText(payload) {
@@ -1347,58 +1334,32 @@ export async function POST(req) {
     const config = SESSION_CONFIGS[sessionId - 1];
     const userPrompt = config.prompt(ziweiData);
     const geminiKeys = pickGeminiKeys();
-    const vertexKey = pickVertexKey();
     const models = pickZiweiModels();
     let lastError = null;
 
-    // Vertex AI 우선 시도 (고품질·장문 출력 우선)
-    if (vertexKey) {
-      for (const model of models) {
-        const endpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(model));
-        const generationConfig = makeGenerationConfig(model);
-        const requestBody = JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig,
+    // Vertex AI 우선 시도 (서비스계정 JSON 인증)
+    try {
+      const vertexPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
+      const vtxt = await callVertexGemini(vertexPrompt, {
+        temperature: 1.0,
+        maxOutputTokens: 16384,
+      });
+      if (vtxt && vtxt.length >= 200) {
+        return NextResponse.json({
+          ok: true,
+          text: vtxt,
+          sessionId,
+          title: config.title,
+          emoji: config.emoji,
+          model: "vertex/service-account",
+          truncated: false,
         });
-
-        try {
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": vertexKey,
-            },
-            body: requestBody,
-          });
-          const payload = await response.json().catch(() => ({}));
-
-          if (response.ok) {
-            const text = parseText(payload);
-            const finishReason = getFinishReason(payload);
-            if (text && text.length >= 200) {
-              return NextResponse.json({
-                ok: true,
-                text: finishReason === "MAX_TOKENS"
-                  ? text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달했을 수 있습니다.*"
-                  : text,
-                sessionId,
-                title: config.title,
-                emoji: config.emoji,
-                model: `vertex/${model}`,
-                truncated: finishReason === "MAX_TOKENS",
-              });
-            }
-            lastError = "Vertex AI 응답이 비어 있거나 너무 짧습니다.";
-          } else {
-            const errMsg = getApiErrorMessage(response.status, payload);
-            if (isQuotaError(response.status, errMsg)) { lastError = errMsg; break; }
-            lastError = errMsg;
-          }
-        } catch (fetchErr) {
-          lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
-        }
       }
+      if (vtxt && vtxt.length > 0 && vtxt.length < 200) {
+        lastError = "Vertex AI 응답이 비어 있거나 너무 짧습니다.";
+      }
+    } catch (fetchErr) {
+      lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
     }
 
     // Gemini 폴백
