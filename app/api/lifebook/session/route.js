@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 
 // Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
@@ -7,10 +8,6 @@ export const maxDuration = 300;
 // Gemini API (Google AI Studio) — API 키 인증, v1beta
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-
-// Vertex AI Express API — vertex_api_key용 (x-goog-api-key 헤더 방식)
-const VERTEX_ENDPOINT =
-  "https://aiplatform.googleapis.com/v1/publishers/google/models/{model}:generateContent";
 
 /**
  * 사용 가능한 Gemini API 키 목록 반환 (love-secret 패턴 동일)
@@ -30,18 +27,19 @@ function pickGeminiKeys() {
     .filter(Boolean);
 }
 
-/**
- * Vertex AI Express API 키 (vertex_api_key / VERTEX_API_KEY)
- * Gemini 키가 모두 실패했을 때 폴백으로 사용
- */
-function pickVertexKey() {
+function hasVertexServiceAccountCreds() {
   return [
-    process.env.VERTEX_API_KEY,
-    process.env.vertex_api_key,
-    process.env.LIFEBOOK_API_KEY,
+    process.env.VERTEX_SA_JSON,
+    process.env.GCP_SERVICE_ACCOUNT_JSON,
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
+    process.env.VERTEX_SA_JSON_BASE64,
+    process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64,
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64,
+    process.env.VERTEX_SA_CLIENT_EMAIL,
+    process.env.VERTEX_SA_PRIVATE_KEY,
   ]
     .map((v) => String(v || "").trim())
-    .find(Boolean) || null;
+    .some(Boolean);
 }
 
 function parseText(payload) {
@@ -97,6 +95,22 @@ function isQuotaError(status, message) {
   return /quota exceeded|rate limit|resource exhausted|too many requests/i.test(
     String(message || "")
   );
+}
+
+function isTokenLimitError(status, message) {
+  const s = Number(status);
+  if (s === 400 || s === 413) {
+    return /token|context length|prompt too long|input is too long|max input|too many tokens/i.test(
+      String(message || "")
+    );
+  }
+  return false;
+}
+
+function compactPromptText(text, maxLen = 12000) {
+  const t = String(text || "").trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
 }
 
 const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의 명리학 거장이다. 동양 철학의 정수를 꿰뚫었으며, 사주의 이치를 날카롭고 정확하게 간파한다. 말은 적을지언정 한 마디 한 마디가 비수처럼 핵심을 찌른다.
@@ -1137,11 +1151,11 @@ export async function POST(req) {
     }
 
     const geminiKeys = pickGeminiKeys();
-    const vertexKey = pickVertexKey();
+    const hasVertexCred = hasVertexServiceAccountCreds();
 
-    if (!geminiKeys.length && !vertexKey) {
+    if (!geminiKeys.length && !hasVertexCred) {
       return NextResponse.json(
-        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_API_KEY 또는 GEMINI_API_KEY 환경변수를 확인해 주세요." },
+        { ok: false, message: "서버 API 키가 설정되지 않았습니다. VERTEX_SA_JSON(또는 VERTEX_SA_CLIENT_EMAIL/PRIVATE_KEY) 또는 GEMINI_API_KEY 환경변수를 확인해 주세요." },
         { status: 500 }
       );
     }
@@ -1154,49 +1168,28 @@ export async function POST(req) {
     let lastError = null;
     let lastErrorStatus = 502;
 
-    // ─── 1단계: Vertex AI Express API 우선 시도 (vertex_api_key) ───
-    if (vertexKey) {
-      // Vertex AI Express는 최신 stable 모델만 우선 시도
-      const vertexModel = "gemini-2.5-flash";
-      const vertexEndpoint = VERTEX_ENDPOINT.replace("{model}", encodeURIComponent(vertexModel));
-      const requestPayload = JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: makeGenerationConfig(vertexModel),
+    // ─── 1단계: Vertex AI 서비스계정(JSON/분리형) 우선 시도 ───
+    try {
+      const vertexPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
+      const text = await callVertexGemini(vertexPrompt, {
+        temperature: 1.0,
+        maxOutputTokens: 16384,
       });
-      try {
-        const response = await fetch(vertexEndpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": vertexKey,
-          },
-          body: requestPayload,
+      if (text && text.length >= 200) {
+        return NextResponse.json({
+          ok: true,
+          text,
+          sessionId,
+          title: config.title,
+          emoji: config.emoji,
+          model: "vertex/service-account",
         });
-
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          const errMsg = payload?.error?.message || `Vertex AI 요청 실패 (${response.status})`;
-          if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
-          lastError = new Error(errMsg);
-        } else {
-          const text = parseText(payload);
-          if (text && text.length >= 200) {
-            return NextResponse.json({
-              ok: true,
-              text,
-              sessionId,
-              title: config.title,
-              emoji: config.emoji,
-              model: vertexModel,
-            });
-          }
-          lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
-        }
-      } catch (e) {
-        lastError = e;
       }
+      if (text && text.length > 0 && text.length < 200) {
+        lastError = new Error("Vertex AI 응답이 비어 있거나 너무 짧습니다.");
+      }
+    } catch (e) {
+      lastError = e;
     }
 
     // ─── 2단계: Gemini API 키 + 모델 폴백 순차 시도 ────────────────
@@ -1224,6 +1217,42 @@ export async function POST(req) {
           if (!response.ok) {
             const errMsg = getApiErrorMessage(response.status, payload);
             if (isQuotaError(response.status, errMsg)) lastErrorStatus = 429;
+
+            if (isTokenLimitError(response.status, errMsg)) {
+              try {
+                const compactPayload = JSON.stringify({
+                  systemInstruction: {
+                    parts: [{ text: "핵심 명리 근거를 유지하면서 불필요한 수사를 줄여 완결된 한국어 보고서를 작성하세요." }],
+                  },
+                  contents: [{ role: "user", parts: [{ text: compactPromptText(userPrompt) }] }],
+                  generationConfig: makeGenerationConfig(model),
+                });
+                const compactRes = await fetch(`${geminiEndpoint}?key=${encodeURIComponent(key)}`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: compactPayload,
+                });
+                const compactJson = await compactRes.json().catch(() => ({}));
+                if (compactRes.ok) {
+                  const compactText = parseText(compactJson);
+                  if (compactText && compactText.length >= 200) {
+                    return NextResponse.json({
+                      ok: true,
+                      text: compactText,
+                      sessionId,
+                      title: config.title,
+                      emoji: config.emoji,
+                      model,
+                      compactMode: true,
+                      truncated: getFinishReason(compactJson) === "MAX_TOKENS",
+                    });
+                  }
+                }
+              } catch {
+                // compact retry failed; continue fallback chain
+              }
+            }
+
             lastError = new Error(errMsg);
             continue;
           }

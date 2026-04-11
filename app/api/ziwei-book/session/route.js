@@ -77,6 +77,22 @@ function isQuotaError(status, message) {
   );
 }
 
+function isTokenLimitError(status, message) {
+  const s = Number(status);
+  if (s === 400 || s === 413) {
+    return /token|context length|prompt too long|input is too long|max input|too many tokens/i.test(
+      String(message || "")
+    );
+  }
+  return false;
+}
+
+function compactPromptText(text, maxLen = 12000) {
+  const t = String(text || "").trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
+}
+
 
 // ─────────────────────────────────────────────────────────────────
 // 자미두수 서버 계산 엔진 — lunar-javascript 기반 정확 계산
@@ -1406,6 +1422,47 @@ export async function POST(req) {
             lastError = errMsg;
             break;
           }
+
+          if (isTokenLimitError(response.status, errMsg)) {
+            try {
+              const compactBody = JSON.stringify({
+                systemInstruction: {
+                  parts: [{ text: "핵심 자미두수 근거를 유지하면서 완결된 한국어 보고서를 간결하게 작성하세요." }],
+                },
+                contents: [{ role: "user", parts: [{ text: compactPromptText(userPrompt) }] }],
+                generationConfig,
+              });
+
+              const compactResponse = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: compactBody,
+              });
+              const compactPayload = await compactResponse.json().catch(() => ({}));
+
+              if (compactResponse.ok) {
+                const compactText = parseText(compactPayload);
+                const compactFinishReason = getFinishReason(compactPayload);
+                if (compactText && compactText.length >= 200) {
+                  return NextResponse.json({
+                    ok: true,
+                    text: compactFinishReason === "MAX_TOKENS"
+                      ? compactText + "\n\n---\n> ⚠️ *요약 모드로 생성되어 일부 내용이 축약되었습니다.*"
+                      : compactText,
+                    sessionId,
+                    title: config.title,
+                    emoji: config.emoji,
+                    model,
+                    compactMode: true,
+                    truncated: compactFinishReason === "MAX_TOKENS",
+                  });
+                }
+              }
+            } catch {
+              // compact retry failed; continue fallback chain
+            }
+          }
+
           lastError = errMsg;
         } catch (fetchErr) {
           lastError = String(fetchErr?.message || "네트워크 오류");

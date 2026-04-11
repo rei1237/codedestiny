@@ -50,7 +50,7 @@ function pickGeminiKeys(): string[] {
 
 function pickGeminiModels(): string[] {
   const env = String(process.env.PSYCHO_ANALYSIS_GEMINI_MODEL ?? "").trim();
-  const base = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+  const base = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
   return env ? [env, ...base] : base;
 }
 
@@ -67,7 +67,7 @@ function parseGeminiText(payload: unknown): string {
 async function callGemini(prompt: string): Promise<string> {
   // ─── Vertex AI 우선 시도 ──────────────────────────────────────
   try {
-    const vtxt = await callVertexGemini(prompt, { temperature: 0.88, maxOutputTokens: 8192 });
+    const vtxt = await callVertexGemini(prompt, { temperature: 0.88, maxOutputTokens: 16384 });
     if (vtxt) return vtxt;
   } catch { /* Vertex 실패 → API 키 폴백 */ }
 
@@ -93,7 +93,7 @@ async function callGemini(prompt: string): Promise<string> {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.88,
-              maxOutputTokens: 4096,
+              maxOutputTokens: 16384,
               topK: 40,
               topP: 0.95,
             },

@@ -80,6 +80,11 @@ function resolveVertexServiceAccount(): {
   return { email, privateKey, projectFromJson };
 }
 
+function inferProjectIdFromServiceAccountEmail(email: string): string {
+  const m = String(email || "").trim().match(/@([a-z0-9-]+)\.iam\.gserviceaccount\.com$/i);
+  return m?.[1] ? m[1].trim() : "";
+}
+
 async function getVertexAccessToken(): Promise<string> {
   const now = Date.now();
   if (_cachedToken && now < _tokenExpiry - 60_000) return _cachedToken;
@@ -148,6 +153,13 @@ function parseVertexText(payload: unknown): string {
   return "";
 }
 
+function getVertexFinishReason(payload: unknown): string {
+  const p = payload as {
+    candidates?: { finishReason?: string }[];
+  };
+  return String(p?.candidates?.[0]?.finishReason || "").trim();
+}
+
 export interface VertexGenConfig {
   temperature?: number;
   maxOutputTokens?: number;
@@ -164,12 +176,42 @@ export async function callVertexGemini(
   prompt: string,
   genConfig?: VertexGenConfig,
 ): Promise<string> {
-  const { projectFromJson } = resolveVertexServiceAccount();
-  const project  = (process.env.VERTEX_PROJECT_ID || projectFromJson || "vertex-492922").trim();
+  const saResolved = resolveVertexServiceAccount();
+  const inferredProject = inferProjectIdFromServiceAccountEmail(saResolved.email);
+  const envProject = (
+    process.env.VERTEX_PROJECT_ID ||
+    process.env.GOOGLE_CLOUD_PROJECT ||
+    process.env.GCP_PROJECT ||
+    process.env.GCLOUD_PROJECT ||
+    process.env.GOOGLE_PROJECT_ID ||
+    ""
+  ).trim();
+  const project = (
+    saResolved.projectFromJson ||
+    inferredProject ||
+    envProject ||
+    ""
+  ).trim();
   const location = (process.env.VERTEX_LOCATION   || "us-central1").trim();
   const models   = process.env.VERTEX_MODELS
     ? process.env.VERTEX_MODELS.split(",").map((s) => s.trim()).filter(Boolean)
     : DEFAULT_VERTEX_MODELS;
+
+  if (!project) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[Vertex] 프로젝트 ID를 확인할 수 없어 GEMINI_API_KEY 폴백");
+    }
+    return "";
+  }
+
+  if (
+    process.env.NODE_ENV !== "production" &&
+    envProject &&
+    (saResolved.projectFromJson || inferredProject) &&
+    envProject !== project
+  ) {
+    console.warn(`[Vertex] VERTEX_PROJECT_ID(${envProject}) 대신 서비스계정 프로젝트(${project})를 사용합니다.`);
+  }
 
   let token: string;
   try {
@@ -222,8 +264,11 @@ export async function callVertexGemini(
       if (!res.ok) continue; // 다음 모델 시도
 
       const data = await res.json();
+      const finishReason = getVertexFinishReason(data);
       const text = parseVertexText(data);
       if (text) {
+        // 출력 토큰 상한으로 잘린 응답은 상위 Gemini 키 폴백으로 넘긴다.
+        if (finishReason === "MAX_TOKENS") continue;
         if (process.env.NODE_ENV !== "production") {
           console.log(`[Vertex] 성공 (${model}) — ${text.length}자`);
         }

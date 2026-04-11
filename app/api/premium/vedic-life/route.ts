@@ -423,7 +423,7 @@ export const VEDIC_CHAPTER_META = [
 // ─────────────────────────────────────────────────────────────────
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 function pickKeys() { return [process.env.GEMINI_API_KEY,process.env.GOOGLE_API_KEY,process.env.GEMINI_API_KEY_2,process.env.GOOGLE_API_KEY_2,process.env.GEMINI_API_KEY_3,process.env.GOOGLE_API_KEY_3].map(v=>String(v||"").trim()).filter(Boolean); }
-function pickModels() { return ["gemini-2.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite"]; }
+function pickModels() { return ["gemini-2.5-flash","gemini-2.5-pro","gemini-2.0-flash","gemini-2.0-flash-lite"]; }
 function parseText(p: unknown): string {
   const pp = p as {candidates?:{content?:{parts?:{text?:string}[]}}[]};
   for (const c of pp?.candidates??[]) for (const pt of c?.content?.parts??[]) if (pt?.text?.trim()) return pt.text.trim();
@@ -432,7 +432,7 @@ function parseText(p: unknown): string {
 async function callGemini(prompt: string): Promise<string> {
   // ─── Vertex AI 우선 시도 ──────────────────────────────────────
   try {
-    const vtxt = await callVertexGemini(prompt, { temperature: 0.92, maxOutputTokens: 8192 });
+    const vtxt = await callVertexGemini(prompt, { temperature: 0.92, maxOutputTokens: 16384 });
     if (vtxt) return vtxt;
   } catch { /* Vertex 실패 → API 키 폴백 */ }
 
@@ -447,7 +447,7 @@ async function callGemini(prompt: string): Promise<string> {
       if (attempts >= maxAttempts) break;
       attempts += 1;
     try {
-      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:8192,topK:40,topP:0.95} }), signal:AbortSignal.timeout(20_000) });
+      const res = await fetch(GEMINI_URL.replace("{model}",model)+`?key=${key}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0.92,maxOutputTokens:16384,topK:40,topP:0.95} }), signal:AbortSignal.timeout(20_000) });
       if (!res.ok) continue;
       const data = await res.json(); const text = parseText(data);
       if (text) return text;
