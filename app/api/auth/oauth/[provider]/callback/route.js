@@ -7,28 +7,70 @@ export const runtime = "nodejs";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
 
-function getFrontendBaseUrl(request) {
-  if (process.env.AUTH_FRONTEND_BASE_URL) {
-    try {
-      return new URL(process.env.AUTH_FRONTEND_BASE_URL).origin;
-    } catch {
-      // fallthrough
-    }
+function normalizeBaseUrl(rawValue) {
+  const value = String(rawValue || "").trim();
+  if (!value) return "";
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
   }
-  const url = new URL(request.url);
-  return url.origin;
+}
+
+function isLocalHostName(hostname) {
+  const normalized = String(hostname || "").toLowerCase();
+  return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "::1";
+}
+
+function parseUrlSafe(rawValue) {
+  try {
+    return new URL(String(rawValue || ""));
+  } catch {
+    return null;
+  }
+}
+
+function isEquivalentOrigin(a, b) {
+  const urlA = parseUrlSafe(a);
+  const urlB = parseUrlSafe(b);
+  if (!urlA || !urlB) return false;
+
+  const sameProtocol = urlA.protocol === urlB.protocol;
+  const samePort = urlA.port === urlB.port;
+  const sameHost = urlA.hostname === urlB.hostname;
+  if (sameProtocol && samePort && sameHost) return true;
+
+  if (!sameProtocol || !samePort) return false;
+  return isLocalHostName(urlA.hostname) && isLocalHostName(urlB.hostname);
+}
+
+function getRequestOrigin(request) {
+  const reqUrl = new URL(request.url);
+  const forwardedHostRaw = request.headers.get("x-forwarded-host") || "";
+  const forwardedProtoRaw = request.headers.get("x-forwarded-proto") || "";
+
+  const forwardedHost = forwardedHostRaw.split(",")[0].trim();
+  const forwardedProto = forwardedProtoRaw.split(",")[0].trim();
+
+  if (forwardedHost) {
+    const protocol = forwardedProto || reqUrl.protocol.replace(":", "") || "https";
+    return `${protocol}://${forwardedHost}`;
+  }
+
+  return reqUrl.origin;
+}
+
+function getFrontendBaseUrl(request) {
+  const fromEnv = normalizeBaseUrl(process.env.AUTH_FRONTEND_BASE_URL);
+  if (fromEnv) return fromEnv;
+  return getRequestOrigin(request);
 }
 
 function getApiBaseUrl(request) {
-  if (process.env.AUTH_API_BASE_URL) {
-    try {
-      const authBase = new URL(process.env.AUTH_API_BASE_URL);
-      const reqUrl = new URL(request.url);
-      if (authBase.origin !== reqUrl.origin) return authBase.origin;
-    } catch { /* fallthrough */ }
-  }
-  const url = new URL(request.url);
-  return url.origin;
+  const requestOrigin = getRequestOrigin(request);
+  const fromEnv = normalizeBaseUrl(process.env.AUTH_API_BASE_URL);
+  if (fromEnv && !isEquivalentOrigin(fromEnv, requestOrigin)) return fromEnv;
+  return requestOrigin;
 }
 
 function buildProviderConfig(provider, apiBase) {
@@ -205,6 +247,8 @@ export async function GET(request, { params }) {
     const user = await findOrCreateSocialUser(providerKey, socialProfile);
 
     const flow = statePayload.flow === "signup" ? "signup" : "login";
+    const frontendBaseFromState = normalizeBaseUrl(statePayload.frontendBase);
+    const frontendBase = frontendBaseFromState || getFrontendBaseUrl(request);
     const redirectPath = `/${flow}`;
     const nextPath = statePayload.nextPath || "/";
 

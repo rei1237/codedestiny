@@ -42,6 +42,10 @@ function sanitizeNextPath(rawNext: string | null) {
   return rawNext;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   const rawText = await response.text();
   if (!rawText) return {} as T;
@@ -69,19 +73,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const socialCompleteOnceRef = useRef(false);
 
-  const apiBase = useMemo(() => {
+  const authApiBase = useMemo(() => {
     if (typeof window !== "undefined") {
-      if (window.CODE_DESTINY_API_BASE_URL) return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL);
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
+        return normalizeApiBase(window.CODE_DESTINY_API_BASE_URL)
+          || normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL)
+          || window.location.origin;
       }
-      // 프로덕션: same-origin 우선 (CORS 오류 방지)
+      // OAuth 라우트는 Next 앱 same-origin 우선으로 고정해 host mismatch를 방지한다.
       return window.location.origin;
     }
     return normalizeApiBase(process.env.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000";
   }, []);
 
-  const socialCompleteEndpoint = `${apiBase}/api/auth/oauth/complete`;
+  const socialCompleteEndpoint = `${authApiBase}/api/auth/oauth/complete`;
 
   const persistAuth = (token?: string, user?: LoginResult["user"]) => {
     if (token) {
@@ -136,11 +141,40 @@ export default function LoginPage() {
     socialCompleteOnceRef.current = true;
     setLoading(true);
 
-    fetch(socialCompleteEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ socialGrant }),
-    })
+    (async () => {
+      let response: Response | null = null;
+      let lastFetchError: Error | null = null;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const nextResponse = await fetch(socialCompleteEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ socialGrant }),
+          });
+
+          if (nextResponse.status >= 500 && attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+
+          response = nextResponse;
+          break;
+        } catch (err) {
+          lastFetchError = err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
+          if (attempt === 0) {
+            await sleep(250);
+            continue;
+          }
+        }
+      }
+
+      if (!response) {
+        throw (lastFetchError || new Error("소셜 로그인 처리 중 오류가 발생했습니다."));
+      }
+
+      return response;
+    })()
       .then(async (response) => {
         const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
 
@@ -177,7 +211,7 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = sanitizeNextPath(params.get("next")) || "/";
-    const startUrl = `${apiBase}/api/auth/oauth/${provider}/start?flow=login&next=${encodeURIComponent(nextPath)}`;
+    const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?flow=login&next=${encodeURIComponent(nextPath)}`;
     window.location.href = startUrl;
   };
 
