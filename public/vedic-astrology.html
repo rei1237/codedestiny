@@ -2094,6 +2094,18 @@ function _hasAnyBirth(p){
 }
 function _repairProfile(profile){
   if(!profile)return null;
+  if(profile.birth&&typeof profile.birthDate==='string'&&(profile.birth.year==null||profile.birth.month==null||profile.birth.day==null)){
+    var bdParts=profile.birthDate.split(/[-/]/);
+    if(bdParts.length>=3){
+      if(profile.birth.year==null)profile.birth.year=parseInt(bdParts[0],10);
+      if(profile.birth.month==null)profile.birth.month=parseInt(bdParts[1],10);
+      if(profile.birth.day==null)profile.birth.day=parseInt(bdParts[2],10);
+    }else if(bdParts.length===1&&bdParts[0].length>=8){
+      if(profile.birth.year==null)profile.birth.year=parseInt(bdParts[0].slice(0,4),10);
+      if(profile.birth.month==null)profile.birth.month=parseInt(bdParts[0].slice(4,6),10);
+      if(profile.birth.day==null)profile.birth.day=parseInt(bdParts[0].slice(6,8),10);
+    }
+  }
   if(!profile.birth&&(profile.birthYear!=null||profile.birthMonth!=null||profile.birthDay!=null)){
     profile={ id:profile.id,name:profile.name,gender:profile.gender,location:profile.location,birth:{ year:profile.birthYear,month:profile.birthMonth,day:profile.birthDay,hour:profile.birthHour,minute:profile.birthMinute } };
   }

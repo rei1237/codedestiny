@@ -683,10 +683,27 @@
   /** 베다점 등 외부로 넘길 때 location/birth null 보정 (서울 기본값) */
   function _normalizeProfileForVedic(profile) {
     if (!profile) return profile;
+    var parsedBirth = null;
+    if (typeof profile.birthDate === 'string') {
+      var dparts = profile.birthDate.split(/[-/]/);
+      if (dparts.length >= 3) {
+        parsedBirth = {
+          year: parseInt(dparts[0], 10),
+          month: parseInt(dparts[1], 10),
+          day: parseInt(dparts[2], 10)
+        };
+      } else if (dparts.length === 1 && dparts[0].length >= 8) {
+        parsedBirth = {
+          year: parseInt(dparts[0].slice(0, 4), 10),
+          month: parseInt(dparts[0].slice(4, 6), 10),
+          day: parseInt(dparts[0].slice(6, 8), 10)
+        };
+      }
+    }
     var b = profile.birth || {
-      year: profile.birthYear,
-      month: profile.birthMonth,
-      day: profile.birthDay,
+      year: profile.birthYear != null ? profile.birthYear : (parsedBirth && parsedBirth.year),
+      month: profile.birthMonth != null ? profile.birthMonth : (parsedBirth && parsedBirth.month),
+      day: profile.birthDay != null ? profile.birthDay : (parsedBirth && parsedBirth.day),
       hour: profile.birthHour,
       minute: profile.birthMinute,
       calType: profile.calType
@@ -702,18 +719,23 @@
       }
     }
     var l = profile.location || {};
-    var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : 37.5665;
-    var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : 126.978);
-    var tzHours = (typeof l.baseTzOffset === 'number' && !isNaN(l.baseTzOffset)) ? l.baseTzOffset
-      : ((typeof l.tzOffset === 'number' && !isNaN(l.tzOffset)) ? (Math.abs(l.tzOffset) <= 24 ? l.tzOffset : l.tzOffset / 60) : 9);
+    var latNum = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : parseFloat(l.lat);
+    var lngNum = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng
+      : ((typeof l.lon === 'number' && !isNaN(l.lon)) ? l.lon : (parseFloat(l.lng) || parseFloat(l.lon)));
+    var baseTzNum = (typeof l.baseTzOffset === 'number' && !isNaN(l.baseTzOffset)) ? l.baseTzOffset : parseFloat(l.baseTzOffset);
+    var tzOffsetNum = (typeof l.tzOffset === 'number' && !isNaN(l.tzOffset)) ? l.tzOffset : parseFloat(l.tzOffset);
+    var lat = (typeof latNum === 'number' && !isNaN(latNum)) ? latNum : 37.5665;
+    var lng = (typeof lngNum === 'number' && !isNaN(lngNum)) ? lngNum : 126.978;
+    var tzHours = (typeof baseTzNum === 'number' && !isNaN(baseTzNum)) ? baseTzNum
+      : ((typeof tzOffsetNum === 'number' && !isNaN(tzOffsetNum)) ? (Math.abs(tzOffsetNum) <= 24 ? tzOffsetNum : tzOffsetNum / 60) : 9);
     return {
       id: profile.id,
       name: profile.name,
       gender: profile.gender,
       birth: {
-        year: b.year,
-        month: b.month,
-        day: b.day,
+        year: parseInt(b.year, 10),
+        month: parseInt(b.month, 10),
+        day: parseInt(b.day, 10),
         hour: b.hour != null ? b.hour : 12,
         minute: b.minute != null ? b.minute : 0,
         calType: b.calType || 'solar'
@@ -732,7 +754,11 @@
 
   function _resolveVedicProfileCandidate() {
     function hasBirth(p) {
-      return !!(p && p.birth && p.birth.year != null && p.birth.month != null && p.birth.day != null);
+      if (!(p && p.birth)) return false;
+      var by = parseInt(p.birth.year, 10);
+      var bm = parseInt(p.birth.month, 10);
+      var bd = parseInt(p.birth.day, 10);
+      return !isNaN(by) && !isNaN(bm) && !isNaN(bd);
     }
     function hasTime(p) {
       return !!(p && p.birth && p.birth.hour != null && p.birth.minute != null);
