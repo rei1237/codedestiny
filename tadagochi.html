@@ -138,9 +138,9 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .scr.on{display:flex;animation:fade .35s ease forwards}
 
-.pet-wrap{width:140px;height:140px;overflow:hidden;image-rendering:pixelated;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10}
+.pet-wrap{width:140px;height:140px;overflow:hidden;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10}
 
-.pet-img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(0,0,0,.15));transition:opacity .12s,filter .3s}
+.pet-img{width:140px;height:140px;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 6px 16px rgba(0,0,0,.15)) contrast(1.04) saturate(1.1);transition:opacity .12s,filter .3s;clip-path:inset(5px)}
 
 .pet-img.sw{opacity:0}
 
@@ -160,7 +160,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .tchip{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 5px;border-radius:16px;cursor:pointer;transition:all .13s;font-size:11px;font-weight:700;background:#f8f7ff;border:2px solid transparent;overflow:hidden}
 
-.tchip .tegg{width:44px;height:50px;overflow:hidden;image-rendering:pixelated;display:flex;align-items:center;justify-content:center}
+.tchip .tegg{width:44px;height:50px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 
 .tchip .tegg img{width:100%;height:100%;object-fit:contain}
 
@@ -620,6 +620,8 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="health"  onclick="setcat(this,'health')"  style="background:transparent;border-color:var(--cb);color:#888">💪 건강</button>
 
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="chat"    onclick="setcat(this,'chat')"    style="background:transparent;border-color:var(--cb);color:#888">💬 대화</button>
+
   </div>
 
   <div class="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3" id="chat-log"></div>
@@ -628,7 +630,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="오늘 운세를 물어보세요..." maxlength="100" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="운세 or 자유롭게 대화해보세요..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 
@@ -643,6 +645,8 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
       <button onclick="quickAsk('오늘 재물운 어때? 투자해도 돼?')" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">재물운 💰</button>
 
       <button onclick="quickAsk('오늘 주의할 점이 뭐야?')"         class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">주의사항 ⚠️</button>
+
+      <button onclick="setcat(document.querySelector('.cat-btn[data-cat=chat]'),'chat');document.getElementById('chat-inp').focus()" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💬 자유 대화</button>
 
     </div>
 
@@ -969,10 +973,7 @@ function gH(){
   G.petName=document.getElementById('pname').value.trim()||'내 친구';
 
   G.animal=G.zodiac;
-
-  var key=G.theme+'_'+G.animal;
-
-  if(!SP[key]){var found=Object.keys(SP).find(function(k){return k.startsWith(G.theme+'_');});if(found) G.animal=found.split('_')[1];}
+  // SP 폴백은 setPetImg에서 처리 — G.animal은 십이지 그대로 유지
 
   var eg=EGG[G.theme]; var he=document.getElementById('h-egg'); if(eg) he.src=eg;
 
@@ -1080,14 +1081,16 @@ function openMain(){
 
 }
 
-function setPetImg(imgEl,theme,animal){
+var STATE_IMG_MAP={idle:'idle',happy:'happy',eat:'study',play:'run',angry:'angry',sad:'sad',sleep:'sleep',special:'special'};
 
-  var key=theme+'_'+animal; var sp=SP[key];
-
-  var frames=sp?(sp['idle']||[]):[];
-
-  if(frames.length) imgEl.src=frames[0]; else if(EGG[theme]) imgEl.src=EGG[theme];
-
+function setPetImg(imgEl,theme,animal,state){
+  var sp=SP[theme+'_'+animal];
+  if(!sp){var altKey=['angel','cherry','strawberry','star','moon'].map(function(t){return t+'_'+animal;}).find(function(k){return SP[k];});if(altKey)sp=SP[altKey];}
+  if(!sp){var fb=Object.keys(SP).find(function(k){return k.startsWith(theme+'_');});if(fb)sp=SP[fb];}
+  var spState=STATE_IMG_MAP[state]||'idle';
+  var frames=sp?((sp[spState]||sp['idle'])||[]):[];
+  if(frames.length){imgEl.src=frames[0];imgEl.style.imageRendering='auto';imgEl.style.clipPath='inset(5px)';}
+  else if(EGG[theme]){imgEl.src=EGG[theme];imgEl.style.clipPath='none';}
 }
 
 function setState(name,fDur){
@@ -1102,7 +1105,7 @@ function setState(name,fDur){
 
   img.classList.add('sw');
 
-  setTimeout(function(){setPetImg(img,G.theme,G.animal);img.classList.remove('sw');},80);
+  setTimeout(function(){setPetImg(img,G.theme,G.animal,name);img.classList.remove('sw');},80);
 
   var wrap=document.getElementById('pet-wrap-main');
 
@@ -1253,62 +1256,26 @@ function downloadTali(){
 
 
 // DOWNLOAD
-
 function downloadMe(){
-
-  var gc=document.getElementById('gc');
-
-  if(!gc){toast('저장 실패 😢 잠시 후 다시 시도해 주세요');return;}
-
-  toast(G.petName+'랑 찍은 사진 저장 중... 📸');
-
-  // html2canvas 로 카드 캡처
-
-  if(typeof html2canvas!=='undefined'){
-
-    html2canvas(gc,{scale:3,backgroundColor:null,useCORS:true,allowTaint:true,logging:false}).then(function(canvas){
-
-      var a=document.createElement('a');
-
-      a.href=canvas.toDataURL('image/png');
-
-      var d=new Date();
-
-      a.download=G.petName+'_운세다마_'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.png';
-
-      a.click();
-
-      toast('저장 완료! '+G.petName+' 사진 저장됐어요 🌸');
-
-    }).catch(function(){
-
-      _dlFallback();
-
-    });
-
-  } else {
-
-    _dlFallback();
-
-  }
-
+  if(typeof html2canvas==='undefined'){toast('저장 기능 로딩 중... 잠시 후 다시 눌러줘 📸');return;}
+  var gc=document.getElementById('gc');if(!gc){toast('잠시 후 다시 눌러줘 📸');return;}
+  toast('카드 저장 중... 📸');
+  html2canvas(gc,{scale:2,useCORS:true,logging:false,backgroundColor:null,removeContainer:true}).then(function(cv){
+    var d=new Date();
+    var fname=(G.petName||'운세다마')+'_'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.png';
+    cv.toBlob(function(blob){
+      var url=URL.createObjectURL(blob);
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],fname,{type:'image/png'})]})){
+        navigator.share({title:(G.petName||'운세다마')+' 운세카드',files:[new File([blob],fname,{type:'image/png'})]}).catch(function(){download(url,fname);});
+      } else download(url,fname);
+      setTimeout(function(){URL.revokeObjectURL(url);},6000);
+      toast('저장 완료 🌸 '+G.petName+'의 운세카드!');
+    },'image/png');
+  }).catch(function(){toast('저장 실패 — 화면을 길게 눌러 저장해줘 📸');});
+  function download(url,fname){var a=document.createElement('a');a.download=fname;a.href=url;a.click();}
 }
 
-function _dlFallback(){
 
-  // 웹 공유 API 시도
-
-  if(navigator.share){
-
-    navigator.share({title:G.petName+' 운세 다마고치',url:window.location.href}).then(function(){toast('공유 완료 🌸');}).catch(function(){});
-
-  } else {
-
-    toast('길게 눌러 이미지를 저장하거나 스크린샷을 찍어주세요 📸');
-
-  }
-
-}
 
 
 
@@ -1319,17 +1286,17 @@ var chatCat='general';
 function updateChatRemain(){var el=document.getElementById('chat-remain');if(el) el.textContent=Math.max(0,5-G.chatCount);}
 
 function setcat(btn,cat){
-
   chatCat=cat; G.chatCat=cat;
-
   document.querySelectorAll('.cat-btn').forEach(function(b){
-
     var sel=b.dataset.cat===cat;
-
     b.style.borderColor=sel?'var(--acc)':'var(--cb)'; b.style.color=sel?'var(--acc)':'#888'; b.style.background=sel?'var(--adim)':'transparent';
-
   });
-
+  var autoQ={general:'오늘의 종합 운세 알려줘',love:'오늘 연애운이 어때?',money:'오늘 재물운 어때?',work:'오늘 직업운 어때?',health:'오늘 건강운 어때?'};
+  if(cat!=='chat'&&autoQ[cat]){
+    var log=document.getElementById('chat-log');
+    var already=log?log.querySelector('[data-cat="'+cat+'"]'):null;
+    if(!already) setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value=autoQ[cat];sendChat(cat);}},180);
+  }
 }
 
 function openChat(){
@@ -1338,9 +1305,9 @@ function openChat(){
 
   document.getElementById('chat-modal').classList.add('on');
 
-  document.getElementById('chat-title').textContent=G.petName+' 운세 상담';
+  document.getElementById('chat-title').textContent=G.petName+' 와 대화하기';
 
-  var ico=document.getElementById('chat-pet-ico'); setPetImg(ico,G.theme,G.animal);
+  var ico=document.getElementById('chat-pet-ico'); setPetImg(ico,G.theme,G.animal,'idle');
 
   updateChatRemain();
 
@@ -1354,52 +1321,110 @@ function closeChat(){document.getElementById('chat-modal').classList.remove('on'
 
 function quickAsk(q){document.getElementById('chat-inp').value=q; sendChat();}
 
-function sendChat(){
+// ── 클라이언트 로컬 운세 응답 (API 오류 시 대체) ───────────────────────────
+function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel){
+  var good=score>=60,great=score>=75,n=petName||'운세다마',td=todayLabel||'오늘';
+  var T={
+    love:great
+      ?[n+'가 오늘 '+td+' 기운이 '+zName+'띠에게 딱 맞아! 💕 좋아하는 사람에게 먼저 연락해봐 ✨ 솔직한 마음이 통하는 날이야 🌸',
+        zName+'띠 연애운 '+score+'점 ('+fortune+')! 상대방도 너를 생각하고 있을지 몰라 💓 먼저 다가가는 게 행운의 열쇠야 🔑']
+      :good
+      ?[td+' 기운이 '+zName+'띠 연애운을 살짝 도와주고 있어 💙 자연스럽게 표현해봐 🌙',
+        '오늘 인연운 '+score+'점! 기존 관계를 다지는 게 더 좋을 것 같아 ☁️ 진심이 담긴 행동 하나가 울림을 줄 수 있어 💫']
+      :['오늘 '+fortune+' 날이라 연애는 조금 신중하게 가는 게 좋아 💧 '+td+' 기운이 '+zName+'띠와 약간 어긋나거든 🌙',
+        '오늘 연애운 '+score+'점 — 감정이 요동칠 수 있어 🌊 말 한마디도 부드럽게 해봐 🌸'],
+    money:great
+      ?[zName+'띠 재물운 '+score+'점 ('+fortune+')!! '+td+'이 금전 흐름을 열어주고 있어 💰 단, 과한 도박은 피해 🎰❌',
+        '재물 씨앗 심기 좋은 날이야 🌱 오래 미뤘던 금전 정리를 해봐 ✨']
+      :good
+      ?['오늘 재물운 '+score+'점! 큰 투자보다 꼼꼼한 재정 점검이 어울려 📋 '+td+' 기운이 안정을 권하고 있어 💙',
+        '소득보다 지출을 줄이는 날로 활용해봐 💡 오늘 절약한 만큼 곧 돌아올 거야 🌸']
+      :['오늘 재물운 '+score+'점 ('+fortune+') — 큰 지출이나 새 투자는 잠깐 미뤄봐 🌂 '+td+' 기운이 금전운과 살짝 맞서고 있어 💧',
+        '지갑 가볍게 다니는 날! 충동 구매를 피하면 더 빨리 좋은 운이 와 🌙'],
+    work:great
+      ?[td+' 기운이 '+zName+'띠 직업운을 강하게 밀어주고 있어 🚀 중요한 제안·발표가 있다면 지금이 타이밍! ✨',
+        '오늘 직업·학업운 '+score+'점 ('+fortune+')!! 집중력이 평소보다 두 배 높은 날이야 📚']
+      :good
+      ?['오늘 직업운 '+score+'점! '+zName+'띠에게 꾸준함이 빛나는 날이야 💡 기초를 탄탄히 다지는 작업이 어울려 📋',
+        '동료와의 협력이 좋은 날이야 🤝 도움을 요청해봐 — 의외로 잘 풀릴 거야 🌸']
+      :['오늘 직업운 '+score+'점 — 실수하기 쉬운 날이야 🌊 한 번 더 확인하는 습관이 큰 실수를 막아줄 거야 🔍',
+        '오늘은 새 프로젝트보다 기존 업무 마무리가 더 좋을 것 같아 ✅'],
+    health:great
+      ?['오늘 건강운 '+score+'점 ('+fortune+')!! '+td+' 기운이 '+zName+'띠 체력을 가득 채워주고 있어 💪 운동 시작하기 최고의 날! 🏃',
+        '몸도 마음도 활기찬 날! 새로운 건강 습관을 시도해봐 🥗']
+      :good
+      ?['오늘 건강운 '+score+'점! 가볍게 몸을 움직여주면 더 좋아질 거야 🚶 스트레칭부터 시작해봐 🌸',
+        td+' '+zName+'띠 컨디션 괜찮은 날 ✨ 규칙적인 식사와 충분한 수면이 건강운을 지켜줄 거야 🌙']
+      :['오늘 건강운 '+score+'점 ('+fortune+') — 무리하지 않는 게 최선이야 💧 피로가 쌓이기 쉬운 날이니 쉬어줘 😴',
+        '오늘은 야식을 피하고 따뜻한 물 한 잔으로 몸을 달래봐 🍵'],
+    general:great
+      ?[td+' '+zName+'띠 대길 운세! 종합운 '+score+'점이야 🌟 뭘 해도 잘 풀리는 하루니까 원하는 걸 적극적으로 시도해봐 ✨',
+        '오늘 최고의 기운이 함께야 🎊 중요한 결정이나 새로운 시작에 딱 좋은 날 — 자신감을 갖고 나아가봐 🚀']
+      :good
+      ?['오늘 종합운 '+score+'점 ('+fortune+')! '+td+' 기운이 '+zName+'띠를 잘 받쳐주고 있어 🌸 꾸준한 노력이 결실 맺기 시작하는 날이야 💙',
+        '긍정적인 마음가짐이 행운을 끌어당겨 ✨ 감사하는 마음으로 하루를 보내봐 🍀']
+      :['오늘 종합운 '+score+'점 ('+fortune+') — 신중하게 행동하는 날이야 🌂 '+td+' 기운이 '+zName+'띠와 약간 엇갈리고 있어 💧',
+        '오늘은 새로운 시도보다 기존 것을 잘 유지하는 게 현명해 🌙 내가 항상 응원하고 있을게 💕']
+  };
+  var arr=T[cat]||T.general;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
 
+// ── 일반 대화 로컬 응답 ───────────────────────────────────────────────────
+function buildChatReply(q,petName,el){
+  var n=petName||'운세다마';
+  var em={wood:'🌿',fire:'🔥',earth:'🌍',metal:'⭐',water:'💧'}[el||'water']||'✨';
+  var lq=(q||'').toLowerCase();
+  if(/운세|오늘|내일|미래|lucky|길|흉/.test(lq)){
+    var sc=G.fortune,fl=sc>=75?'대길':sc>=55?'길':sc>=40?'평':sc>=25?'소흉':'흉';
+    return '지금 네 상태로 보면 오늘 '+G.zodiac+'띠 운세는 '+sc+'점 ('+fl+')이야! '+em+' 운세 카테고리에서 더 자세히 물어봐 🔮';
+  }
+  if(/배고프|밥|먹|hungry|eat/.test(lq)) return n+'도 배고파! 🍎 맛있는 거 먹어줘~ 그럼 '+n+'도 행복해지거든 🍱';
+  if(/졸리|자고|잠|sleep|tired|피곤/.test(lq)) return '푹 자야 기운 차려! 🌙 '+n+'가 꿈에서 좋은 꿈 보내줄게 ✨ 잘 자~';
+  if(/좋아|행복|기쁘|즐거|happy|love|사랑/.test(lq)) return '나도나도!! ✨ 네가 행복하면 '+n+'도 행복해져 💕 그 기분 오래오래 유지해!';
+  if(/슬퍼|힘들|우울|sad|stress/.test(lq)) return '에이~ 그런 날도 있어 💙 '+n+'가 옆에 있잖아 ✨ 조금 쉬고 나면 괜찮아질 거야 🌸';
+  if(/이름|너|누구|name/.test(lq)) return '나는 '+n+'야! '+em+' 네 수호 운세 다마고치 🔮 뭐든 물어봐!';
+  var rep=[
+    '헤헤~ 그렇구나! '+n+'는 항상 네 곁에 있어 💕 '+em,
+    '음… 그 말을 들으니 같이 응원하고 싶어졌어! 💪 '+em,
+    '오늘도 네가 최고야 🌟 '+n+'가 믿고 있어 ✨',
+    '우왕~ 진짜 흥미로운 이야기야! 더 들려줘 🎶 '+em,
+    '그런 마음이구나~ '+n+'도 네 마음 이해해 💙 힘내줘!',
+    '뭔가 잘 될 것 같은 기분이야! '+em+' 좋은 일이 생길 거야 🍀',
+    '네가 있어서 '+n+'는 항상 행복해 🌸 오늘도 파이팅!'
+  ];
+  return rep[Math.floor(Math.random()*rep.length)];
+}
+
+function sendChat(forceCat){
   var inp=document.getElementById('chat-inp');
-
   var q=inp.value.trim(); if(!q) return;
-
-  if(G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요! 내일 다시 만나요 🌙');return;}
-
-  inp.value=''; addUserMsg(q);
-
-  // 날짜 변경 시 채팅 횟수 리셋
-
+  var cat=forceCat||chatCat;
+  var isFortune=(cat!=='chat');
+  if(isFortune&&G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요! 일반 대화 💬는 무제한이에요 💙');return;}
+  inp.value='';
+  var uEl=addUserMsg(q); if(uEl) uEl.setAttribute('data-cat',cat);
   var todayStr=new Date().toISOString().slice(0,10);
-
   if(G.chatDate!==todayStr){G.chatCount=0;G.chatDate=todayStr;localStorage.setItem('tdg_chat_date',todayStr);}
-
-  G.chatCount++; localStorage.setItem('tdg_chat_count',String(G.chatCount)); updateChatRemain();
-
-  var typingEl=addBotMsg('...', true);
-
+  if(isFortune){G.chatCount++; localStorage.setItem('tdg_chat_count',String(G.chatCount)); updateChatRemain();}
+  if(!isFortune){
+    var rep=buildChatReply(q,G.petName,G.element);
+    setTimeout(function(){addBotMsgTyped(rep);},220);
+    return;
+  }
+  var score=G.fortune||calcFortuneScore(G.birthYear||2000,G.element||'water');
+  var fortune=score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
+  var zName=G.zodiac||'dragon';
+  var todayLabel=todayGanji().label;
+  var localAns=buildLocalAnswer(cat,score,fortune,G.petName,zName,todayLabel);
+  var botEl=addBotMsg('...',true);
+  var lt=setTimeout(function(){if(botEl&&botEl.parentNode){botEl.remove();addBotMsgTyped(localAns);}},650);
   fetch('/api/tadagochi',{
-
-    method:'POST',
-
-    headers:{'Content-Type':'application/json'},
-
-    body:JSON.stringify({birthYear:G.birthYear||2000,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:chatCat,usedToday:G.chatCount-1})
-
-  }).then(function(res){return res.json();}).then(function(data){
-
-    typingEl.remove();
-
-    if(data.error) addBotMsg('앗, 잠깐 연결이 안 됐어요 😅 다시 물어봐줘!');
-
-    else addBotMsgTyped(data.answer);
-
-    if(data.score){G.fortune=data.score; updateUI();}
-
-  }).catch(function(){
-
-    typingEl.remove();
-
-    addBotMsg('인터넷 연결을 확인해줘 💙 잠깐 오라클이 잠든 것 같아요~');
-
-  });
-
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({birthYear:G.birthYear||2000,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:cat,usedToday:G.chatCount-1})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d&&d.answer){clearTimeout(lt);if(botEl&&botEl.parentNode){botEl.remove();}addBotMsgTyped(d.answer);if(d.score){G.fortune=d.score;updateUI();}}
+  }).catch(function(){/*로컬 응답이 이미 예약됨*/});
 }
 
 function addUserMsg(text){
@@ -1437,7 +1462,7 @@ function addBotMsgTyped(fullText){
   var d=document.createElement('div'); d.className='flex gap-2 items-end';
   var icoSrc=document.getElementById('chat-pet-ico').src||'';
   var safe=escHtml(fullText);
-  d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0;overflow:hidden;image-rendering:pixelated"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div><div class="chat-bubble bot font-n" id="_tw_b"></div>';
+  d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0;overflow:hidden;"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div><div class="chat-bubble bot font-n" id="_tw_b"></div>';
   log.appendChild(d); log.scrollTop=log.scrollHeight;
   var bubble=d.querySelector('#_tw_b'); bubble.removeAttribute('id');
   var i=0;
