@@ -67,6 +67,23 @@ if (result.error) {
   console.error(`[build-cloudflare] Failed to start build command: ${result.error.message}`);
 }
 
+// OpenNext 빌드 성공 시 handler.mjs 추가 minification (minifyIdentifiers: true)
+// OpenNext 자체는 minifyIdentifiers 를 생략하므로 여기서 보완한다.
+if (result.status === 0) {
+  const minifyCmd = isWindows ? "cmd.exe" : "node";
+  const minifyArgs = isWindows
+    ? ["/d", "/s", "/c", "node scripts/minify-handler.mjs"]
+    : ["scripts/minify-handler.mjs"];
+  const minifyResult = spawnSync(minifyCmd, minifyArgs, {
+    stdio: "inherit",
+    shell: false,
+    env: { ...process.env },
+  });
+  if (minifyResult.error) {
+    console.warn(`[build-cloudflare] minify-handler failed to start: ${minifyResult.error.message}`);
+  }
+}
+
 if (typeof result.status === "number") {
   process.exit(result.status);
 }

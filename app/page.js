@@ -2,8 +2,7 @@
 
 /**
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
- * if the rewrite is bypassed; metadata matches the public canonical.
- */
+ * if the rewrite is bypassed; metadata matches the public canonical.\n */
 export const metadata = {
   title: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
   description:
