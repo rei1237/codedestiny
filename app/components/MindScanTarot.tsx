@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 // --- TYPES ---
 
-type Stage = "intro" | "shuffle" | "spread";
+type Stage = "intro" | "shuffle" | "spread" | "result";
 
 interface CrossPosition {
   id: string;
@@ -515,26 +515,19 @@ interface SpreadViewProps {
   flipped: Set<string>;
   onFlip: (id: string) => void;
   onGenerateReading: () => void;
-  reading: ReadingResult | null;
   readingLoading: boolean;
   readingError: string;
   paymentError: string;
   paymentDone: boolean;
   visualCue: VisualCue | null;
-  onSaveImage: () => void;
-  onSavePdf: () => void;
-  onShare: () => void;
-  onCopyText: () => void;
-  shareMessage: string;
-  reportRef: React.RefObject<HTMLDivElement>;
 }
 
-function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, reading, readingLoading, readingError, paymentError, paymentDone, visualCue, onSaveImage, onSavePdf, onShare, onCopyText, shareMessage, reportRef }: SpreadViewProps) {
+function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readingLoading, readingError, paymentError, paymentDone, visualCue }: SpreadViewProps) {
   const allFlipped = POSITIONS.every((p) => flipped.has(p.id));
   return (
     <motion.div
       key="spread"
-      className="flex flex-col items-center justify-center min-h-[100dvh] px-4 py-10"
+      className="flex flex-col items-center min-h-[100dvh] px-4 py-10"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
     >
       <div className="text-center mb-6">
@@ -593,7 +586,7 @@ function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readi
       <AnimatePresence>
         {allFlipped && (
           <motion.div
-            className={`mt-6 ${GLASS} ${GLOW_PUR} px-8 py-5 text-center max-w-sm`}
+            className={`mt-6 ${GLASS} ${GLOW_PUR} px-8 py-5 text-center max-w-sm w-full`}
             initial={{ opacity: 0, scale: 0.88, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 220, damping: 20 }}
@@ -605,13 +598,18 @@ function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readi
             </p>
             <button
               type="button"
-              className="mt-4 rounded-full px-5 py-2 text-xs font-bold tracking-wider bg-purple-600 hover:bg-purple-500 transition-colors disabled:opacity-60"
+              className="mt-4 w-full rounded-full px-5 py-3 text-sm font-bold tracking-wider bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(168,85,247,0.4)]"
               onClick={onGenerateReading}
               disabled={readingLoading}
             >
-              {readingLoading ? "리딩 생성 중..." : paymentDone ? "심층 해석 다시 생성" : `대한민국 최고 타로 마스터 해석 받기 (${MINDSCAN_READING_COST}코인)`}
+              {readingLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full" />
+                  리딩 생성 중...
+                </span>
+              ) : paymentDone ? "심층 해석 다시 생성" : `타로 마스터 심층 해석 받기 (${MINDSCAN_READING_COST}코인)`}
             </button>
-            <p className="mt-2 text-[11px] text-amber-200/80">최초 해석 생성 시 {MINDSCAN_READING_COST}코인이 차감됩니다.</p>
+            <p className="mt-2 text-[10px] text-amber-200/70">최초 해석 생성 시 {MINDSCAN_READING_COST}코인이 차감됩니다.</p>
             {paymentError ? (
               <p className="mt-2 text-[11px] text-rose-300/90">{paymentError}</p>
             ) : null}
@@ -621,90 +619,6 @@ function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readi
           </motion.div>
         )}
       </AnimatePresence>
-
-      {reading ? (
-        <motion.section
-          ref={reportRef}
-          className={`mt-8 w-full max-w-5xl ${GLASS} p-5 sm:p-7`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-            <h3 className="text-lg sm:text-xl font-bold text-white">최종 심층 타로 리딩</h3>
-            <span className="text-[11px] text-purple-300/65">
-              소스: {reading.source === "gemini" ? "Gemini API" : "Local Deep Engine"}
-            </span>
-          </div>
-
-          <p className="text-sm sm:text-[15px] text-purple-100/85 leading-relaxed whitespace-pre-wrap">
-            {reading.intro}
-          </p>
-
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            <button
-              type="button"
-              onClick={onSaveImage}
-              className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-emerald-300/35 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-100 transition-colors"
-            >
-              결과 이미지 저장
-            </button>
-            <button
-              type="button"
-              onClick={onSavePdf}
-              className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-sky-300/35 bg-sky-500/15 hover:bg-sky-500/25 text-sky-100 transition-colors"
-            >
-              PDF 저장
-            </button>
-            <button
-              type="button"
-              onClick={onShare}
-              className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-fuchsia-300/35 bg-fuchsia-500/15 hover:bg-fuchsia-500/25 text-fuchsia-100 transition-colors"
-            >
-              공유하기
-            </button>
-            <button
-              type="button"
-              onClick={onCopyText}
-              className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-amber-300/35 bg-amber-500/15 hover:bg-amber-500/25 text-amber-100 transition-colors"
-            >
-              텍스트 복사
-            </button>
-          </div>
-          {shareMessage ? <p className="mt-2 text-xs text-purple-200/75">{shareMessage}</p> : null}
-
-          <div className="mt-6 space-y-5">
-            {reading.sections.map((section) => (
-              <article key={section.slot} className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-5">
-                <h4 className="text-base sm:text-lg font-semibold text-purple-100">
-                  {section.slot}번 구역. {section.title}
-                </h4>
-                {(section.mainCardName || section.subCardName) && (
-                  <p className="mt-1 text-xs text-purple-300/75">
-                    메인: {section.mainCardName || "-"} / 보조: {section.subCardName || "-"}
-                  </p>
-                )}
-                <p className="mt-3 text-sm sm:text-[15px] text-purple-100/90 leading-8 whitespace-pre-wrap">
-                  {section.content}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          {reading.masterAdvice ? (
-            <article className="mt-7 rounded-2xl border border-purple-200/25 bg-gradient-to-br from-purple-500/15 via-pink-500/10 to-transparent p-5 sm:p-6">
-              <h4 className="text-base sm:text-lg font-semibold text-purple-100">마스터의 조언</h4>
-              <p className="mt-3 text-sm sm:text-[15px] text-purple-50/90 leading-8 whitespace-pre-wrap">
-                {reading.masterAdvice}
-              </p>
-            </article>
-          ) : null}
-
-          <p className="mt-6 text-sm sm:text-[15px] text-purple-100/85 leading-relaxed whitespace-pre-wrap">
-            {reading.closing}
-          </p>
-        </motion.section>
-      ) : null}
 
       <AnimatePresence>
         {visualCue ? (
@@ -724,7 +638,175 @@ function SpreadView({ drawn, drawnSub, flipped, onFlip, onGenerateReading, readi
   );
 }
 
-// --- INTRO ---
+// --- RESULT VIEW ---
+
+interface ResultViewProps {
+  reading: ReadingResult;
+  onRestart: () => void;
+  onSaveImage: () => void;
+  onSavePdf: () => void;
+  onShare: () => void;
+  onCopyText: () => void;
+  shareMessage: string;
+  reportRef: React.RefObject<HTMLDivElement>;
+}
+
+const SLOT_ICONS = ["🧠", "🎭", "👁", "💬", "💜"];
+
+function ResultView({ reading, onRestart, onSaveImage, onSavePdf, onShare, onCopyText, shareMessage, reportRef }: ResultViewProps) {
+  return (
+    <motion.div
+      key="result"
+      className="min-h-[100dvh] w-full px-4 py-10 flex flex-col items-center"
+      initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.55 }}
+    >
+      {/* Header */}
+      <div className="w-full max-w-3xl text-center mb-8">
+        <motion.p
+          className="text-[10px] tracking-[0.5em] text-purple-400/80 uppercase mb-2"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}
+        >
+          Mind Scan Tarot · 심층 해석 완료
+        </motion.p>
+        <motion.h2
+          className="text-2xl sm:text-3xl font-bold text-white leading-tight"
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        >
+          상대방의{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-fuchsia-400">
+            진심이 열렸습니다
+          </span>
+        </motion.h2>
+        <motion.div
+          className="mt-2 flex items-center justify-center gap-2"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+        >
+          <span className="inline-block w-6 h-px bg-purple-500/40" />
+          <span className="text-xs text-purple-300/55">{reading.persona}</span>
+          <span className="inline-block w-6 h-px bg-purple-500/40" />
+        </motion.div>
+      </div>
+
+      <div ref={reportRef} className="w-full max-w-3xl space-y-5">
+        {/* Intro */}
+        <motion.div
+          className={`${GLASS} ${GLOW_PUR} p-5 sm:p-7`}
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">🔮</span>
+            <h3 className="text-base font-bold text-purple-100 tracking-wide">타로 마스터의 도입</h3>
+          </div>
+          <p className="text-sm sm:text-[15px] text-purple-100/85 leading-8 whitespace-pre-wrap">{reading.intro}</p>
+        </motion.div>
+
+        {/* Sections */}
+        {reading.sections.map((section, i) => (
+          <motion.article
+            key={section.slot}
+            className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-5 sm:p-6"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.07 }}
+          >
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-2xl mt-0.5 shrink-0">{SLOT_ICONS[i] ?? "✦"}</span>
+              <div>
+                <h4 className="text-base sm:text-lg font-semibold text-purple-100 leading-snug">
+                  {section.slot}. {section.title}
+                </h4>
+                {(section.mainCardName || section.subCardName) && (
+                  <p className="mt-1 text-[11px] text-purple-400/80">
+                    메인 카드: <span className="text-purple-200">{section.mainCardName || "-"}</span>
+                    <span className="mx-1.5 text-purple-600">·</span>
+                    보조 카드: <span className="text-purple-200">{section.subCardName || "-"}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+            <p className="text-sm sm:text-[15px] text-purple-100/88 leading-8 whitespace-pre-wrap pl-0 sm:pl-9">
+              {section.content}
+            </p>
+          </motion.article>
+        ))}
+
+        {/* Master Advice */}
+        {reading.masterAdvice ? (
+          <motion.article
+            className="rounded-2xl border border-purple-400/25 bg-gradient-to-br from-purple-600/15 via-fuchsia-600/10 to-transparent p-5 sm:p-7"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">✨</span>
+              <h4 className="text-base sm:text-lg font-bold text-purple-100">마스터의 종합 조언</h4>
+            </div>
+            <p className="text-sm sm:text-[15px] text-purple-50/90 leading-8 whitespace-pre-wrap">
+              {reading.masterAdvice}
+            </p>
+          </motion.article>
+        ) : null}
+
+        {/* Closing */}
+        <motion.div
+          className={`${GLASS} p-5 sm:p-6 text-center`}
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.72 }}
+        >
+          <p className="text-[10px] tracking-[0.4em] text-purple-400/65 uppercase mb-2">Closing Message</p>
+          <p className="text-sm sm:text-[15px] text-purple-100/85 leading-8 whitespace-pre-wrap">{reading.closing}</p>
+          <p className="mt-3 text-[10px] text-purple-500/50 tracking-widest">
+            소스: {reading.source === "gemini" ? "Gemini AI" : "Local Deep Engine"}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Action buttons */}
+      <motion.div
+        className="mt-8 w-full max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-2.5"
+        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+      >
+        <button
+          type="button"
+          onClick={onSaveImage}
+          className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-emerald-400/30 bg-emerald-500/12 hover:bg-emerald-500/22 text-emerald-100 transition-colors"
+        >
+          📷 이미지 저장
+        </button>
+        <button
+          type="button"
+          onClick={onSavePdf}
+          className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-sky-400/30 bg-sky-500/12 hover:bg-sky-500/22 text-sky-100 transition-colors"
+        >
+          📄 PDF 저장
+        </button>
+        <button
+          type="button"
+          onClick={onShare}
+          className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-fuchsia-400/30 bg-fuchsia-500/12 hover:bg-fuchsia-500/22 text-fuchsia-100 transition-colors"
+        >
+          🔗 공유하기
+        </button>
+        <button
+          type="button"
+          onClick={onCopyText}
+          className="rounded-xl px-3.5 py-2.5 text-xs font-semibold tracking-wide border border-amber-400/30 bg-amber-500/12 hover:bg-amber-500/22 text-amber-100 transition-colors"
+        >
+          📋 텍스트 복사
+        </button>
+      </motion.div>
+      {shareMessage ? (
+        <p className="mt-2 text-xs text-purple-200/75 text-center">{shareMessage}</p>
+      ) : null}
+
+      <motion.button
+        type="button"
+        onClick={onRestart}
+        className="mt-8 mb-12 px-8 py-3 rounded-full border border-purple-500/35 text-purple-300/80 text-sm font-semibold tracking-wide hover:bg-purple-500/15 hover:text-purple-100 transition-all"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
+      >
+        🔄 처음부터 다시 하기
+      </motion.button>
+    </motion.div>
+  );
+}
 
 function IntroStage({ onStart }: { onStart: () => void }) {
   return (
@@ -947,6 +1029,7 @@ export default function MindScanTarot() {
         throw new Error("해석 결과 형식이 올바르지 않습니다.");
       }
       setReading(data as ReadingResult);
+      setStage("result");
     } catch (error) {
       setReadingError(error instanceof Error ? error.message : "해석 생성 중 오류가 발생했습니다.");
     } finally {
@@ -1022,7 +1105,7 @@ export default function MindScanTarot() {
   }, [reading]);
 
   return (
-    <div className="relative overflow-hidden min-h-[100dvh] h-[100dvh]"
+    <div className="relative min-h-[100dvh]"
       style={{ background: "linear-gradient(135deg,#060918 0%,#0d0b2a 40%,#140827 70%,#06091a 100%)" }}
     >
       <div className="fixed inset-0 pointer-events-none" aria-hidden="true"
@@ -1053,12 +1136,29 @@ export default function MindScanTarot() {
                 flipped={flipped}
                 onFlip={handleFlip}
                 onGenerateReading={handleGenerateReading}
-                reading={reading}
                 readingLoading={readingLoading}
                 readingError={readingError}
                 paymentError={paymentError}
                 paymentDone={paymentDone}
                 visualCue={visualCue}
+              />
+            )}
+            {stage === "result" && reading && (
+              <ResultView
+                key="result"
+                reading={reading}
+                onRestart={() => {
+                  setStage("intro");
+                  setDrawn({});
+                  setDrawnSub({});
+                  setUsedIds(new Set());
+                  setFlipped(new Set());
+                  setReading(null);
+                  setPaymentDone(false);
+                  setReadingError("");
+                  setPaymentError("");
+                  setShareMessage("");
+                }}
                 onSaveImage={handleSaveImage}
                 onSavePdf={handleSavePdf}
                 onShare={handleShare}
