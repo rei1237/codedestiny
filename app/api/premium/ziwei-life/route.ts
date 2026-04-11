@@ -10,6 +10,68 @@ import { callVertexGemini } from "@/app/_lib/callVertexGemini";
 const ZHI_LIST = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
 const GAN_LIST = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
 
+// ── 전통 廟旺平利陷 고전 밝기 테이블 (saju-engine.js ZW_CLASSICAL_STATE 동기화) ────
+const ZW_CLASSICAL_STATE: Record<string, Record<string, string>> = {
+  "자미":{"子":"평","丑":"묘","寅":"왕","卯":"왕","辰":"묘","巳":"평","午":"묘","未":"묘","申":"평","酉":"평","戌":"묘","亥":"평"},
+  "천기":{"子":"평","丑":"함","寅":"왕","卯":"왕","辰":"평","巳":"리","午":"함","未":"평","申":"묘","酉":"왕","戌":"평","亥":"묘"},
+  "태양":{"子":"함","丑":"함","寅":"묘","卯":"묘","辰":"왕","巳":"왕","午":"묘","未":"왕","申":"평","酉":"함","戌":"함","亥":"함"},
+  "무곡":{"子":"묘","丑":"왕","寅":"리","卯":"평","辰":"묘","巳":"평","午":"평","未":"평","申":"왕","酉":"묘","戌":"함","亥":"리"},
+  "천동":{"子":"왕","丑":"함","寅":"평","卯":"묘","辰":"함","巳":"평","午":"함","未":"묘","申":"평","酉":"평","戌":"리","亥":"왕"},
+  "염정":{"子":"평","丑":"평","寅":"묘","卯":"평","辰":"묘","巳":"함","午":"묘","未":"묘","申":"묘","酉":"평","戌":"평","亥":"평"},
+  "천부":{"子":"묘","丑":"묘","寅":"왕","卯":"평","辰":"묘","巳":"평","午":"묘","未":"묘","申":"왕","酉":"평","戌":"묘","亥":"평"},
+  "태음":{"子":"왕","丑":"묘","寅":"리","卯":"평","辰":"함","巳":"함","午":"함","未":"평","申":"평","酉":"묘","戌":"묘","亥":"왕"},
+  "탐랑":{"子":"왕","丑":"평","寅":"묘","卯":"리","辰":"평","巳":"묘","午":"왕","未":"평","申":"묘","酉":"묘","戌":"평","亥":"묘"},
+  "거문":{"子":"왕","丑":"묘","寅":"평","卯":"함","辰":"함","巳":"묘","午":"함","未":"묘","申":"묘","酉":"평","戌":"함","亥":"묘"},
+  "천상":{"子":"묘","丑":"묘","寅":"왕","卯":"평","辰":"왕","巳":"리","午":"묘","未":"묘","申":"왕","酉":"평","戌":"묘","亥":"평"},
+  "천량":{"子":"평","丑":"묘","寅":"묘","卯":"묘","辰":"묘","巳":"평","午":"묘","未":"함","申":"묘","酉":"평","戌":"묘","亥":"함"},
+  "칠살":{"子":"묘","丑":"평","寅":"묘","卯":"평","辰":"왕","巳":"평","午":"묘","未":"왕","申":"묘","酉":"평","戌":"묘","亥":"평"},
+  "파군":{"子":"왕","丑":"함","寅":"묘","卯":"함","辰":"묘","巳":"함","午":"왕","未":"함","申":"함","酉":"함","戌":"묘","亥":"리"},
+  "좌보":{"子":"왕","丑":"묘","寅":"왕","卯":"묘","辰":"묘","巳":"리","午":"왕","未":"묘","申":"왕","酉":"리","戌":"왕","亥":"리"},
+  "우필":{"子":"왕","丑":"묘","寅":"왕","卯":"리","辰":"왕","巳":"리","午":"왕","未":"묘","申":"왕","酉":"리","戌":"묘","亥":"리"},
+  "문창":{"子":"리","丑":"왕","寅":"묘","卯":"왕","辰":"왕","巳":"왕","午":"리","未":"왕","申":"묘","酉":"왕","戌":"리","亥":"왕"},
+  "문곡":{"子":"리","丑":"왕","寅":"묘","卯":"왕","辰":"리","巳":"왕","午":"리","未":"왕","申":"리","酉":"왕","戌":"리","亥":"왕"},
+  "녹존":{"子":"묘","丑":"왕","寅":"리","卯":"왕","辰":"리","巳":"리","午":"왕","未":"왕","申":"리","酉":"왕","戌":"리","亥":"리"},
+  "천괴":{"子":"평","丑":"평","寅":"왕","卯":"평","辰":"평","巳":"평","午":"왕","未":"평","申":"왕","酉":"평","戌":"평","亥":"평"},
+  "천월":{"子":"평","丑":"평","寅":"평","卯":"평","辰":"평","巳":"평","午":"평","未":"리","申":"묘","酉":"리","戌":"평","亥":"평"},
+  "천마":{"子":"왕","丑":"리","寅":"묘","卯":"리","辰":"왕","巳":"리","午":"묘","未":"리","申":"왕","酉":"리","戌":"묘","亥":"리"},
+  "경양":{"子":"리","丑":"리","寅":"왕","卯":"묘","辰":"왕","巳":"리","午":"리","未":"리","申":"왕","酉":"묘","戌":"묘","亥":"리"},
+  "타라":{"子":"리","丑":"리","寅":"리","卯":"왕","辰":"묘","巳":"함","午":"리","未":"리","申":"함","酉":"리","戌":"왕","亥":"리"},
+  "화성":{"子":"리","丑":"왕","寅":"왕","卯":"리","辰":"왕","巳":"리","午":"리","未":"평","申":"왕","酉":"함","戌":"왕","亥":"리"},
+  "영성":{"子":"리","丑":"리","寅":"묘","卯":"묘","辰":"왕","巳":"리","午":"리","未":"리","申":"왕","酉":"함","戌":"왕","亥":"리"},
+  "지공":{"子":"리","丑":"리","寅":"리","卯":"왕","辰":"묘","巳":"묘","午":"리","未":"리","申":"리","酉":"왕","戌":"묘","亥":"왕"},
+  "지겁":{"子":"리","丑":"리","寅":"리","卯":"리","辰":"리","巳":"평","午":"리","未":"리","申":"리","酉":"왕","戌":"묘","亥":"왕"},
+};
+
+// 고전 밝기 조회 함수 (廟旺平利陷)
+function getStarBrightness(starName: string, zhiName: string): string {
+  const norm = (s: string) => {
+    if (s === "약" || s === "이" || s === "한" || s === "불" || s === "득") return "리";
+    return s;
+  };
+  const raw = (ZW_CLASSICAL_STATE[starName] ?? {})[zhiName] ?? "평";
+  return norm(raw);
+}
+
+// 밝기 → 기호 변환
+function brightnessSymbol(br: string): string {
+  const map: Record<string, string> = { 묘: "◎묘", 왕: "○왕", 평: "▲평", 리: "△리", 함: "X함" };
+  return map[br] ?? "▲평";
+}
+
+// 사화(四化) 조견표 (saju-engine.js sihuaMap 동기화)
+const SIHUA_MAP: Record<string, Record<string, string>> = {
+  "甲": { "염정": "화록", "파군": "화권", "무곡": "화과", "태양": "화기" },
+  "乙": { "천기": "화록", "천량": "화권", "자미": "화과", "태음": "화기" },
+  "丙": { "천동": "화록", "천기": "화권", "문창": "화과", "염정": "화기" },
+  "丁": { "태음": "화록", "천동": "화권", "천기": "화과", "거문": "화기" },
+  "戊": { "탐랑": "화록", "태음": "화권", "우필": "화과", "천기": "화기" },
+  "己": { "무곡": "화록", "탐랑": "화권", "천량": "화과", "문곡": "화기" },
+  "庚": { "태양": "화록", "무곡": "화권", "태음": "화과", "천동": "화기" },
+  "辛": { "거문": "화록", "태양": "화권", "문곡": "화과", "문창": "화기" },
+  "壬": { "천량": "화록", "자미": "화권", "좌보": "화과", "무곡": "화기" },
+  "癸": { "파군": "화록", "거문": "화권", "태음": "화과", "탐랑": "화기" },
+};
+
 const STAR_CHARACTER_MAP: Record<string, { title: string; subtitle: string; emoji: string }> = {
   "자미": { title: "타고난 제왕", subtitle: "모든 별의 중심에 선 황제의 카리스마", emoji: "👑" },
   "천기": { title: "신의 전략가", subtitle: "우주의 패턴을 읽는 천재적 두뇌", emoji: "🧠" },
@@ -112,7 +174,10 @@ function calcZiweiStarsServer(year: number, month: number, day: number, hour: nu
       gongGan[ZHI_LIST[z]] = GAN_LIST[(inStart + ((z - 2 + 12) % 12)) % 10];
     }
     const mgGan = gongGan[ZHI_LIST[mengIdx]] || yearGan;
-    const wVal = Math.min(5, Math.max(1, (sMap[mgGan] || 1) + (bMap[mengIdx] || 1)));
+    // ★ 핵심 버그 수정: 기존 Math.min/max(clamp)는 잘못된 命局 계산을 낳음.
+    // saju-engine.js와 동일하게 5 초과 시 5를 빼는 순환 모듈(wrap-around) 사용.
+    let wVal = (sMap[mgGan] || 1) + (bMap[mengIdx] || 1);
+    if (wVal > 5) wVal -= 5;
     const juMap: Record<number, number> = { 1: 3, 2: 4, 3: 2, 4: 6, 5: 5 };
     const ju = juMap[wVal] || 4;
 
@@ -190,6 +255,71 @@ function calcZiweiStarsServer(year: number, month: number, day: number, hour: nu
     if (yearGan in yangMap) { badStars[yangMap[yearGan]].push("경양"); badStars[tuoMap[yearGan]].push("타라"); }
     badStars[(11 - hourIdx + 12) % 12].push("지공");
     badStars[(11 + hourIdx) % 12].push("지겁");
+    // ★ 화성/영성 추가 (saju-engine.js hlStart 동기화)
+    const hlStart: Record<string, { h: number; l: number }> = {
+      "寅": { h: 1, l: 3 }, "午": { h: 1, l: 3 }, "戌": { h: 1, l: 3 },
+      "申": { h: 2, l: 10 }, "子": { h: 2, l: 10 }, "辰": { h: 2, l: 10 },
+      "巳": { h: 3, l: 10 }, "酉": { h: 3, l: 10 }, "丑": { h: 3, l: 10 },
+      "亥": { h: 9, l: 10 }, "卯": { h: 9, l: 10 }, "未": { h: 9, l: 10 },
+    };
+    if (yearZhi in hlStart) {
+      const huoPos = (hlStart[yearZhi].h + hourIdx) % 12;
+      const lingPos = (hlStart[yearZhi].l + hourIdx) % 12;
+      badStars[huoPos].push("화성");
+      badStars[lingPos].push("영성");
+    }
+
+    // ── 사화(四化) 계산 ────────────────────────────────────────
+    const curSihua = SIHUA_MAP[yearGan] ?? {};
+    // 각 star→sihua 타입 매핑 (별이 어느 궁에 있는지 포함)
+    const sihuaInfo: { starName: string; sihuaType: string; palaceIdx: number; palaceName: string }[] = [];
+    for (const [starName, sihuaType] of Object.entries(curSihua)) {
+      for (let si = 0; si < 12; si++) {
+        if (mainStars[si].includes(starName) || auxStars[si].includes(starName)) {
+          sihuaInfo.push({ starName, sihuaType, palaceIdx: si, palaceName: ZHI_LIST[si] });
+          break;
+        }
+      }
+    }
+
+    // ── 단일 궁용 별 이름+밝기 변환 ──────────────────────────
+    // 형식: "자미(◎화록)" — AI 프롬프트에서 정확한 분석을 가능하게 함
+    function fmtMain(palIdx: number): string[] {
+      const zhi = ZHI_LIST[palIdx];
+      return mainStars[palIdx].map(s => {
+        const br = getStarBrightness(s, zhi);
+        const sh = curSihua[s] ?? "";
+        return `${s}(${brightnessSymbol(br)}${sh ? " " + sh : ""})`;
+      });
+    }
+    function fmtAux(palIdx: number): string[] {
+      const zhi = ZHI_LIST[palIdx];
+      return auxStars[palIdx].map(s => {
+        const br = getStarBrightness(s, zhi);
+        const sh = curSihua[s] ?? "";
+        return `${s}(${brightnessSymbol(br)}${sh ? " " + sh : ""})`;
+      });
+    }
+    function fmtBad(palIdx: number): string[] {
+      const zhi = ZHI_LIST[palIdx];
+      return badStars[palIdx].map(s => {
+        const br = getStarBrightness(s, zhi);
+        return `${s}(${brightnessSymbol(br)})`;
+      });
+    }
+
+    // 사화 요약 문자열 (프롬프트에 포함용)
+    const sihuaSummary = sihuaInfo.length
+      ? sihuaInfo.map(x => `${x.starName}→${x.sihuaType}(${ZHI_LIST[x.palaceIdx]}궁위치)`).join(", ")
+      : "해당없음";
+
+    // 12궁 전체 명반 컨텍스트 — 밝기·사화 포함 (Gemini 프롬프트 삽입용)
+    const fullChartContext = Array.from({ length: 12 }, (_, i) => {
+      const main = fmtMain(i).join(", ") || "-";
+      const aux = fmtAux(i).join(", ");
+      const bad = fmtBad(i).join(", ");
+      return `${PALACE_NAMES_KR[i]}(${ZHI_LIST[i]}): 주성[${main}]${aux ? ` 보성[${aux}]` : ""}${bad ? ` 흉성[${bad}]` : ""}`;
+    }).join("\n");
 
     return {
       mingongStars: mainStars[mengIdx],
@@ -241,6 +371,8 @@ function calcZiweiStarsServer(year: number, month: number, day: number, hour: nu
       gyoWuIdx,
       hyungjeIdx,
       yearGan,
+      sihuaSummary,
+      fullChartContext,
     };
   } catch {
     return {
@@ -258,6 +390,7 @@ function calcZiweiStarsServer(year: number, month: number, day: number, hour: nu
       bumoIdx: 1, bumoStars: [], bumoAux: [], bumoBad: [],
       mingongIdx: 0, shingongIdx: 1, bokdeokgongIdx: 2, cheonigongIdx: 6,
       gwanrokgongIdx: 4, jaebaekkongIdx: 8, bucheoIdx: 10, gyoWuIdx: 5, hyungjeIdx: 11, yearGan: "甲",
+      sihuaSummary: "해당없음", fullChartContext: "",
     };
   }
 }
@@ -390,9 +523,15 @@ function buildChapter1Prompt(opts: {
   mingongPalace: string;
   shingongPalace: string;
   birthYear: number;
+  fullChartContext?: string;
+  sihuaSummary?: string;
 }) {
   const mingongDesc = opts.mingongStars.map((s) => STAR_CHARACTER_MAP[s]?.subtitle || s).join(", ");
   const shingongDesc = opts.shingongStars.map((s) => STAR_CHARACTER_MAP[s]?.subtitle || s).join(", ");
+
+  const chartSection = opts.fullChartContext
+    ? `\n[12궁 전체 명반 — 별이름(밝기 ◎묘/○왕/▲평/△리/X함 · 사화) 포함]\n${opts.fullChartContext}\n[사화(四化) 요약] ${opts.sihuaSummary ?? "해당없음"}\n`
+    : "";
 
   return `당신은 최고의 자미두수 명리 심리 분석가입니다. 아래 사용자의 자미두수 명반 데이터를 바탕으로 챕터 1: 내 인생의 주인공 캐릭터를 총 3,000자 이상의 심층 분석 리포트로 작성하세요. 반드시 한국어로 작성하고, 존댓말을 사용하세요.
 
@@ -402,7 +541,7 @@ function buildChapter1Prompt(opts: {
 - 명궁(命宮) 위치: ${opts.mingongPalace} / 주성: ${opts.mingongStars.join(", ")} (${mingongDesc})
 - 신궁(身宮) 위치: ${opts.shingongPalace} / 주성: ${opts.shingongStars.join(", ")} (${shingongDesc})
 - 출생년도: ${opts.birthYear}년
-
+${chartSection}
 [작성 목차 - 각 섹션 제목을 명확히 표기하세요]
 
 ## 1. 영혼의 아키타입 (약 1,000자)
@@ -2753,6 +2892,8 @@ ${monthLines}
     mingongPalace: mingongPalaceName,
     shingongPalace: shingongPalaceName,
     birthYear,
+    fullChartContext: starResult.fullChartContext,
+    sihuaSummary: starResult.sihuaSummary,
   });
 
   const rawText = await callGemini(prompt);
