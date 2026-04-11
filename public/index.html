@@ -8031,19 +8031,13 @@ if (document.readyState === 'loading') {
 </script>
 <!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
 <div class="theme-switch-wrapper">
-  <span id="themeToggleLabel" class="theme-toggle-label">🌸 꽃돼지 연이 모드</span>
-    <label class="theme-switch theme-switch-inline" for="themeCheckbox">
-      <input type="checkbox" id="themeCheckbox" aria-label="테마 전환" />
-      <div class="slider" aria-hidden="true">
-        <span class="nose-hole hole-left"></span>
-        <span class="nose-hole hole-right"></span>
-        <span class="paw-pad pad-1"></span>
-        <span class="paw-pad pad-2"></span>
-        <span class="paw-pad pad-3"></span>
-        <span class="paw-pad pad-4"></span>
-      </div>
-    </label>
-  </div>
+  <span id="themeToggleLabel" class="theme-toggle-label" aria-live="polite">🌸 꽃돼지 연이 모드</span>
+  <input type="checkbox" id="themeCheckbox" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이  백사자 쌈바 모드 전환" />
+  <label class="theme-switch-pill" for="themeCheckbox" aria-hidden="true">
+    <span class="tsp-option tsp-pig"><span aria-hidden="true">🌸</span><span class="tsp-name">연이</span></span>
+    <span class="tsp-option tsp-lion"><span aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
+  </label>
+</div>
 <!-- ─── PERF: lazy modal mount helper (TASK 3) ─── -->
 <script>
 /* lazyOpenModal: 최초 클릭 시 <template>에서 DOM을 삽입한 뒤 기존 열기 함수 호출

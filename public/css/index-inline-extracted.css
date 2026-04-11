@@ -177,106 +177,123 @@ img.img-fallback-broken {
 }
 
 
+/* ═══════════ 꽃돼지/백사자 모드 토글 피ꞵ ═══════════ */
 .theme-switch-wrapper {
   position: fixed !important;
   left: auto;
-  right: max(12px, env(safe-area-inset-right, 0px));
-  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
   transform: none;
   z-index: 2147483000;
   display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: calc(100vw - 20px);
+  gap: 0;
   pointer-events: auto;
   isolation: isolate;
-  background: var(--card-bg, rgba(255, 255, 255, 0.85));
-  padding: 8px 16px;
-  border-radius: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  backdrop-filter: blur(8px);
-  margin-bottom: 0;
-  transition: background 0.4s ease, border-color 0.4s ease;
-  border: 1px solid var(--border-color, rgba(255,183,178,.3));
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
-
-.theme-switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+/* 스크린리더용 라이브 리전 - 시각적 숨김 */
+.theme-toggle-label {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
-.theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+/* 체크박스 시각적 숨김 (접근성 유지) */
+.tsw-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
-.slider {
-  position: absolute;
+/* 슬라이딩 필 토글 */
+.theme-switch-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.5px solid rgba(255, 183, 178, 0.5);
+  box-shadow: 0 4px 22px rgba(255, 105, 135, 0.16), 0 2px 8px rgba(0,0,0,0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #FFE0E6;
-  transition: .4s ease-in-out;
-  border-radius: 34px;
-  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  position: relative;
 }
-.slider::before {
-  content: "";
+.tsp-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 14px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+  width: 76px;
+  justify-content: center;
+  transition: color 0.35s ease;
+  pointer-events: none;
+}
+.tsp-name { pointer-events: none; }
+.tsp-pig  { color: #ff527a; }
+.tsp-lion { color: #c0c0c0; }
+/* 슬라이딩 썸 */
+.theme-switch-pill::before {
+  content: '';
   position: absolute;
-  height: 26px;
-  width: 36px;
+  top: 4px;
   left: 4px;
   bottom: 4px;
-  background-color: #FFB6C1;
-  transition: .4s ease-in-out;
-  border-radius: 13px;
-  z-index: 2;
+  width: 76px;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #ffb3c8 0%, #ff85a3 100%);
+  box-shadow: 0 2px 10px rgba(255, 100, 130, 0.3);
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.38s ease,
+              box-shadow 0.38s ease;
 }
-.nose-hole {
-  position: absolute;
-  width: 6px;
-  height: 10px;
-  background-color: #FF85A2;
-  border-radius: 50%;
-  top: 12px;
-  transition: .4s ease-in-out;
-  z-index: 3;
+/* 체크됨 = 백사자 쌈바 모드 */
+#themeCheckbox:checked + .theme-switch-pill::before {
+  transform: translateX(76px);
+  background: linear-gradient(135deg, #38384a 0%, #24242e 100%);
+  box-shadow: 0 2px 14px rgba(255, 215, 0, 0.28);
 }
-.hole-left { left: 14px; }
-.hole-right { left: 24px; }
-
-.paw-pad {
-  position: absolute;
-  background-color: var(--point-color, #FFD700);
-  border-radius: 50%;
-  opacity: 0;
-  transition: .4s ease-in-out;
-  z-index: 3;
-  transform: scale(0);
+#themeCheckbox:checked + .theme-switch-pill .tsp-pig  { color: #999; }
+#themeCheckbox:checked + .theme-switch-pill .tsp-lion { color: #FFD700; }
+/* 키보드 포커스 링 */
+.tsw-input:focus-visible + .theme-switch-pill {
+  outline: 2.5px solid #ff527a;
+  outline-offset: 3px;
 }
-.pad-1 { width: 5px; height: 6px; top: 8px; left: 30px; transform-origin: bottom center; }
-.pad-2 { width: 6px; height: 7px; top: 5px; left: 36px; transform-origin: bottom center; }
-.pad-3 { width: 6px; height: 7px; top: 5px; left: 43px; transform-origin: bottom center; }
-.pad-4 { width: 5px; height: 6px; top: 8px; left: 49px; transform-origin: bottom center; }
-
-input:checked + .slider {
-  background-color: #3F3F42;
+body.neo-mode .tsw-input:focus-visible + .theme-switch-pill {
+  outline-color: #FFD700;
 }
-input:checked + .slider::before {
-  transform: translateX(26px);
-  width: 22px;
-  height: 16px;
-  bottom: 4px;
-  border-radius: 10px 10px 15px 15px;
-  background-color: var(--point-color, #FFD700);
-}
-input:checked + .slider .nose-hole {
-  opacity: 0;
-  transform: translateX(26px) scale(0);
-}
-input:checked + .slider .paw-pad {
-  opacity: 1;
-  transform: scale(1);
+/* 백사자 모드 - 필 다크 스타일 */
+body.neo-mode .theme-switch-pill {
+  background: rgba(22, 22, 34, 0.96);
+  border-color: rgba(255, 215, 0, 0.22);
+  box-shadow: 0 4px 22px rgba(255, 215, 0, 0.12), 0 2px 8px rgba(0,0,0,0.5);
 }
 
 /* ─── Divine Focus Mode (Tarot) ─── */

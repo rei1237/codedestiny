@@ -691,11 +691,9 @@ function setThemeToggleEnabled(enabled){
 
 function scheduleThemeToggleAutoDisable(){
   setThemeToggleEnabled(true);
+  // 자동 숨김 제거 — 항상 표시 유지
   if(_themeToggleHideTimer) clearTimeout(_themeToggleHideTimer);
-  _themeToggleHideTimer = setTimeout(function(){
-    _themeToggleHideTimer = null;
-    setThemeToggleEnabled(false);
-  }, 30000); // 로딩 후 30초 지나면 꽃돼지/백사자 토글 비활성화
+  _themeToggleHideTimer = null;
 }
 
 function isHomePageVisible(){
@@ -750,8 +748,9 @@ function toggleNeoMode(){
   // Body-wide glitch animation can override transform styles on many UI nodes.
   
   var cb = document.getElementById('themeCheckbox');
-  if(cb && cb.checked !== NEO_MODE) {
-    cb.checked = NEO_MODE;
+  if(cb) {
+    if(cb.checked !== NEO_MODE) cb.checked = NEO_MODE;
+    cb.setAttribute('aria-checked', NEO_MODE ? 'true' : 'false');
   }
 
   var neoIcon = document.getElementById('neoLionIcon');
@@ -923,6 +922,7 @@ window.addEventListener('load',function(){
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
     if(NEO_MODE) document.body.classList.add('neo-mode');
     themeCb.checked = NEO_MODE;
+    themeCb.setAttribute('aria-checked', NEO_MODE ? 'true' : 'false');
   }
   applyPwaThemeAssets(NEO_MODE);
   var pwaLabel = document.getElementById('pwaInstallLabel');
