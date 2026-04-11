@@ -254,11 +254,23 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 <canvas id="particle-canvas"></canvas>
 
+<!-- 로그인 게이트 오버레이 -->
+<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a1040 0%,#2d1060 50%,#0d1a3e 100%);align-items:center;justify-content:center;padding:24px;">
+  <div style="max-width:340px;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:36px 28px 32px;text-align:center;backdrop-filter:blur(16px);">
+    <div style="font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite">🐣</div>
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif">운세다마고치</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6;font-family:'Noto Sans KR',sans-serif">로그인하면 나만의 다마고치를<br>키울 수 있어요 🌸</div>
+    <a href="/login?redirect=/tadagochi" style="display:block;padding:14px 0;border-radius:99px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-weight:900;font-size:15px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 18px rgba(167,139,250,.4)">로그인하기</a>
+    <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/login?redirect=/tadagochi" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
+  </div>
+</div>
+
 <div class="card" id="gc">
 
 <div class="top-strip"></div>
 
 <button class="dl-btn" id="dl-btn" style="display:none" onclick="downloadMe()"><span class="dl-icon">📸</span><span>카드 저장</span></button>
+<button id="reset-btn" style="display:none;position:absolute;top:14px;left:14px;z-index:50;padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);font-size:11px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;backdrop-filter:blur(8px)" onclick="resetPet()">🔄 다시 시작</button>
 
 
 
@@ -728,7 +740,7 @@ const TDUR={happy:2500,angry:2500,sleep:0,special:3500};
 
 
 
-const G={scr:'title',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,chatCount:0,chatDate:'',chatCat:'general'};
+const G={scr:'title',userId:null,userName:'',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,chatCount:0,chatDate:'',chatCat:'general'};
 
 
 
@@ -852,59 +864,76 @@ function calcFortuneScore(birthYear,element){
 
 
 
-function init(){
-
+function initUI(){
   const gj=todayGanji();
-
   const el=document.getElementById('today-ganji'); if(el) el.textContent=gj.label;
-
   ['moon','strawberry','cherry','star','angel'].forEach(function(t){
-
     var el2=document.getElementById('te-'+t); if(el2&&EGG[t]) el2.src=EGG[t];
-
-    if(t==='moon' && document.getElementById('t-egg')) document.getElementById('t-egg').src=EGG[t]||'';
-
+    if(t==='moon'&&document.getElementById('t-egg')) document.getElementById('t-egg').src=EGG[t]||'';
   });
-
   var firstEgg=Object.keys(EGG)[0];
-
-  if(firstEgg && document.getElementById('t-egg') && !document.getElementById('t-egg').src.includes('base64'))
-
+  if(firstEgg&&document.getElementById('t-egg')&&!document.getElementById('t-egg').src.includes('base64'))
     document.getElementById('t-egg').src=EGG[firstEgg];
-
   var bg=document.getElementById('star-bg');
-
   for(var i=0;i<30;i++){var s=document.createElement('div');var sz=1+Math.random()*2.5;var delay=Math.random()*3;var dur=1.8+Math.random()*3;s.style.cssText='position:absolute;border-radius:50%;background:var(--c2);width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;animation:twinkle '+dur+'s '+delay+'s ease-in-out infinite';bg.appendChild(s);}
-
   document.getElementById('s-title').addEventListener('click',function(e){if(e.target.tagName!=='BUTTON')gS();});
-
   document.getElementById('by').addEventListener('input',onY);
-
   document.getElementById('pname').addEventListener('input',chk);
-
-  var chatDate=localStorage.getItem('tdg_chat_date')||'';
-
-  var today2=new Date().toDateString();
-
-  G.chatDate=today2;
-
-  if(chatDate===today2){G.chatCount=parseInt(localStorage.getItem('tdg_chat_count')||'0');}
-
-  else{G.chatCount=0; localStorage.setItem('tdg_chat_date',today2); localStorage.setItem('tdg_chat_count','0');}
-
-  updateChatRemain();
-
-  var saved=tryLoadState();
-
-  if(saved) restoreAndStart();
-
 }
 
-function tryLoadState(){try{var s=localStorage.getItem('tdg_state');return s?JSON.parse(s):null;}catch(e){return null;}}
+function init(){
+  initUI();
+  // 로그인 확인 후 서버 펫 데이터 로드
+  fetch('/api/auth/me').then(function(r){return r.json();}).then(function(userData){
+    if(!userData||!userData.user){
+      // 미로그인 → 게이트 표시
+      var gate=document.getElementById('login-gate');
+      if(gate){gate.style.display='flex';}
+      return;
+    }
+    G.userId=userData.user.id;
+    G.userName=userData.user.name||'';
+    // 오늘 채팅 카운트 (서버 펫에서 복원)
+    var today2=new Date().toDateString();
+    G.chatDate=today2;
+    // 서버에서 펫 상태 로드
+    fetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
+      updateChatRemain();
+      if(petRes&&petRes.pet&&petRes.pet.animal){
+        // 저장된 펫 복원
+        var s=petRes.pet;
+        Object.assign(G,s);
+        // 채팅 카운트 오늘 날짜 확인
+        if(G.chatDate!==today2){G.chatCount=0;G.chatDate=today2;}
+        applyElement(G.element);
+        openMain();
+      }
+      // 없으면 타이틀 화면 유지 (새 펫 생성)
+    }).catch(function(){updateChatRemain();});
+  }).catch(function(){
+    // 네트워크 오류 → 게이트 표시
+    var gate=document.getElementById('login-gate');
+    if(gate){gate.style.display='flex';}
+  });
+}
 
-function saveState(){try{localStorage.setItem('tdg_state',JSON.stringify({petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear}));}catch(e){}}
+function saveState(){
+  if(!G.userId){return;} // 미로그인이면 저장 안함
+  var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,chatCount:G.chatCount,chatDate:G.chatDate};
+  fetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
+}
 
-function restoreAndStart(){var s=tryLoadState();if(!s||!s.animal)return;Object.assign(G,s);applyElement(G.element);openMain();}
+function resetPet(){
+  if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
+  fetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
+    G.userId=G.userId; // 유저 ID는 유지
+    Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
+    if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
+    if(G.nTick){clearInterval(G.nTick);G.nTick=null;}
+    show('s-setup');
+    toast('새 친구를 만들어봐 🐣');
+  }).catch(function(){toast('오류가 발생했어요. 다시 시도해줘');});
+}
 
 
 
@@ -1072,6 +1101,7 @@ function openMain(){
   document.getElementById('md').textContent=G.day+'일차 · '+todayGanji().label;
 
   var dlBtn=document.getElementById('dl-btn'); if(dlBtn) dlBtn.style.display='flex';
+  var rb=document.getElementById('reset-btn');if(rb)rb.style.display='';
 
   show('s-main'); setState('idle'); updateUI(); saveState();
 
@@ -1406,7 +1436,7 @@ function sendChat(forceCat){
   var uEl=addUserMsg(q); if(uEl) uEl.setAttribute('data-cat',cat);
   var todayStr=new Date().toISOString().slice(0,10);
   if(G.chatDate!==todayStr){G.chatCount=0;G.chatDate=todayStr;localStorage.setItem('tdg_chat_date',todayStr);}
-  if(isFortune){G.chatCount++; localStorage.setItem('tdg_chat_count',String(G.chatCount)); updateChatRemain();}
+  if(isFortune){G.chatCount++; updateChatRemain();}
   if(!isFortune){
     var rep=buildChatReply(q,G.petName,G.element);
     setTimeout(function(){addBotMsgTyped(rep);},220);

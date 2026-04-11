@@ -55,6 +55,8 @@ export async function getUserModel() {
       },
       has_started_paid_service: { type: Boolean, default: false, index: true },
       first_service_access_date: { type: Date, default: null },
+      // 다마고치 펫 (계정당 1마리)
+      tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },
     },
     { timestamps: true },
   );
