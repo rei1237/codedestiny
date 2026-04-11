@@ -75,11 +75,60 @@ function ensureLongText(text, slotRule, mainCardName, subCardName) {
   return t;
 }
 
+// ── 타로 카드 의미 DB (로컬 폴백용) ──────────────────────────────────────────
+const MAJOR_ARCANA_MEANINGS = {
+  "The Fool":           { energy: "새로운 시작·순수함", inner: "두근거리지만 표현 방법을 못 찾은 순수한 상태", style: "설레지만 조심스러운" },
+  "The Magician":       { energy: "의지·집중·능력", inner: "좋은 인상을 주려 최선을 다하지만 내면에서 자기 검열 작동", style: "인상 관리 중" },
+  "The High Priestess": { energy: "직관·비밀·내면", inner: "많은 감정을 담아두고 있지만 쉽게 드러내지 않음", style: "신비로운 거리두기" },
+  "The Empress":        { energy: "풍요·돌봄·감수성", inner: "상대를 감싸고 싶지만 먼저 다가가는 것이 두려움", style: "따뜻하지만 의존 경계" },
+  "The Emperor":        { energy: "권위·안정·통제", inner: "관계의 주도권을 갖고 싶지만 감정 표현에 서툼", style: "강인해 보이지만 내심 불안" },
+  "The Hierophant":     { energy: "전통·신뢰·약속", inner: "관계를 진지하게 보며 확실한 약속을 원함", style: "진중하고 공식적" },
+  "The Lovers":         { energy: "선택·유대·감정", inner: "당신에게 강한 감정이 있지만 선택 앞에서 흔들림", style: "감정적·결정 어려움" },
+  "The Chariot":        { energy: "의지·전진·결단", inner: "목표를 향해 돌진하지만 감정은 뒤에 숨겨둠", style: "행동적·감정 억제" },
+  "Strength":           { energy: "용기·인내·내적 힘", inner: "상처받을까 두렵지만 관계를 포기하고 싶지 않음", style: "조용하지만 강한 의지" },
+  "The Hermit":         { energy: "성찰·고독·지혜", inner: "혼자 감정을 정리하는 중. 아직 외부 표현 준비 안 됨", style: "내향적·신중" },
+  "Wheel of Fortune":   { energy: "변화·흐름·운명", inner: "상황이 바뀔 것을 기대하며 관망 중", style: "기회를 보는 현실주의" },
+  "Justice":            { energy: "균형·책임·진실", inner: "관계의 공정함을 따지며 손해 보지 않으려 함", style: "이성적·판단 우선" },
+  "The Hanged Man":     { energy: "희생·기다림·관점 전환", inner: "당장 행동하기 어렵지만 스스로 결론을 유예 중", style: "수동적이지만 내면 깊음" },
+  "Death":              { energy: "전환·끝·변화", inner: "낡은 감정의 정리와 새 관계로의 이행 기로에 섬", style: "단호하지만 이별이 두려움" },
+  "Temperance":         { energy: "조화·절제·통합", inner: "감정과 이성 사이에서 균형을 찾으려 노력 중", style: "온건하고 신중" },
+  "The Devil":          { energy: "집착·욕망·속박", inner: "끊고 싶지만 끊기 어려운 감정적 집착이 있음", style: "강한 끌림·자기 통제 어려움" },
+  "The Tower":          { energy: "충격·붕괴·각성", inner: "예상치 못한 감정 변화로 혼란스러운 상태", style: "불안정·감정 폭발 위험" },
+  "The Star":           { energy: "희망·치유·기대", inner: "당신에게 좋은 감정을 품고 있으며 회복 중", style: "긍정적·기대 가득" },
+  "The Moon":           { energy: "환상·불안·잠재의식", inner: "감정이 불명확하고 자신도 자기 마음을 잘 모르는 상태", style: "혼란스럽고 감정 기복 있음" },
+  "The Sun":            { energy: "기쁨·활력·성공", inner: "당신을 생각하면 즐겁고 자연스럽게 밝아짐", style: "솔직하고 에너지 넘침" },
+  "Judgement":          { energy: "부활·결단·평가", inner: "관계를 재평가하며 새로운 결정을 내리려는 내면 준비 중", style: "결단력 있음·자기 성찰 중" },
+  "The World":          { energy: "완성·성취·통합", inner: "감정이 성숙하게 완결되어 있으며 다음 단계 준비됨", style: "여유롭고 자신감 있음" },
+};
+
+const SUIT_MEANINGS = {
+  Wands:     { energy: "열정·의지·창의", inner: "에너지 넘치지만 충동적 표출 자제 중", style: "행동 지향적이나 감정 표현 어색" },
+  Cups:      { energy: "감정·직관·관계", inner: "깊은 감정의 흐름, 상처받을까 조심스러움", style: "감정 풍부하지만 표현 조심" },
+  Swords:    { energy: "이성·분석·갈등", inner: "관계를 머릿속으로 분석하며 결론 못 내림", style: "이성적·감정 직접 표현 불편" },
+  Pentacles: { energy: "안정·현실·신뢰", inner: "실질적 신뢰 확인 원함, 천천히 확실하게", style: "현실적·확인 후 행동" },
+};
+
+function getCardMeaning(cardId) {
+  const id = Number(cardId);
+  if (!Number.isFinite(id)) return { energy: "신비로운 에너지", inner: "내면 깊은 감정", style: "복합적" };
+  const norm = ((id % 78) + 78) % 78;
+  if (norm < 22) {
+    const name = MAJOR_ARCANA[norm];
+    return MAJOR_ARCANA_MEANINGS[name] || { energy: "대 아르카나 에너지", inner: "심층 심리", style: "강렬한" };
+  }
+  const minor = norm - 22;
+  const suit = SUITS[Math.floor(minor / 14)] || "Cups";
+  return SUIT_MEANINGS[suit] || { energy: "소 아르카나 에너지", inner: "일상적 감정", style: "현실적" };
+}
+
+// ── LOCAL SECTION BUILDER ─────────────────────────────────────────────────────
 function buildLocalSection(slot, rule, pair) {
   const mainCardName = cardNameFromId(pair.mainCardId);
   const subCardName = cardNameFromId(pair.subCardId);
 
-  const base = `이 구역은 ${rule}을 읽는 핵심 축입니다. 메인 카드 ${mainCardName}는 상대의 중심 정서를, 보조 카드 ${subCardName}는 그 정서가 표면으로 올라오거나 억눌리는 방식을 보여 줍니다. 지금 상대의 내면은 단순한 감정 기복이 아니라, 관계의 안정성과 자기 보호 본능이 동시에 작동하는 복합 상태에 가깝습니다. 겉으로는 단정하고 이성적인 태도를 보일 수 있지만, 무의식 층에서는 당신과의 연결을 잃고 싶지 않다는 긴장감이 반복적으로 올라옵니다. 특히 최근에는 사소한 사건 하나를 크게 해석하며 스스로의 마음을 점검하는 경향이 강해졌고, 그래서 행동은 느려져도 감정 자체는 오히려 더 진해지는 모습이 관찰됩니다.\n\n두 사람 사이 에너지 흐름을 보면, 당신 쪽에서 먼저 온기와 명확성을 주었을 때 상대의 경계가 빠르게 완화되는 패턴이 있습니다. 반대로 확인을 재촉하거나 결론을 서두르면 상대는 다시 침묵과 거리두기로 회귀합니다. 이는 애정이 약해서가 아니라, 관계를 잘못 다뤘을 때 잃을 것을 크게 상상하는 불안이 작동하기 때문입니다. 따라서 지금의 해법은 상대의 속도를 존중하면서도, 당신의 마음을 부드럽고 분명한 언어로 반복 전달하는 것입니다. 그렇게 하면 상대는 자신이 안전하다고 느끼는 순간, 지금보다 훨씬 솔직하고 깊은 방식으로 진심을 표현할 가능성이 높습니다.`;
+  const mainM = getCardMeaning(pair.mainCardId);
+  const subM = getCardMeaning(pair.subCardId);
+  const base = `이 구역은 "${rule}"을 읽는 핵심 축입니다. 메인 카드 ${mainCardName}(${mainM.energy})는 상대의 현재 지배적 에너지를 담고 있으며, 보조 카드 ${subCardName}(${subM.energy})는 그 에너지가 실제 행동과 감정 표현 방식으로 어떻게 변환되는지를 보여 줍니다.\n\n지금 상대의 내면 상태는 "${mainM.inner}"에 가깝습니다. 겉으로는 ${mainM.style} 모습을 보이지만, 무의식 층에서는 당신과의 연결을 잃고 싶지 않다는 긴장감이 반복적으로 올라옵니다. 보조 흐름인 ${subCardName}의 에너지(${subM.energy})는 이 감정이 현실에서 어떻게 표출되는지를 조율하는 역할을 합니다. 즉 상대는 "${subM.inner}"라는 방어 패턴을 통해 감정을 관리하며, 표면적으로는 ${subM.style} 태도를 취합니다.\n\n두 사람 사이 에너지 흐름을 보면, 당신 쪽에서 먼저 온기와 명확성을 주었을 때 상대의 경계가 빠르게 완화되는 패턴이 있습니다. 반대로 확인을 재촉하거나 결론을 서두르면 상대는 다시 침묵과 거리두기로 회귀합니다. 이는 애정이 약해서가 아니라, 관계를 잘못 다뤘을 때 잃을 것을 크게 상상하는 불안이 작동하기 때문입니다. 따라서 지금의 해법은 ${mainCardName}가 상징하는 에너지의 밝은 면을 이끌어 내면서, 상대가 자신의 속도로 감정을 꺼낼 수 있는 환경을 만들어 주는 것입니다.`;
 
   return {
     slot,
