@@ -1661,6 +1661,22 @@ function __cdBindAnimalTotemTileDirect() {
     try {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
+      // ── 코인 게이트 체크 ──
+      if (!window.__cdAdminBypass) {
+        var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
+        var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
+        if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
+          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
+          if (typeof window._cdCoinGatePerUse === 'function') {
+            window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
+            return;
+          }
+        }
+      }
+      // ── 코인 게이트 통과 ──
+      _doOpenTotem();
+    } catch (err) { console.error('[totem] openTotemModal error:', err); }
+    function _doOpenTotem() {
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       if (typeof window.openAnimalTotemModal === 'function') {
         raf(function() {
@@ -1678,7 +1694,7 @@ function __cdBindAnimalTotemTileDirect() {
           })
           .catch(function(err) { console.error('[totem] load failed:', err); });
       });
-    } catch (err) { console.error('[totem] openTotemModal error:', err); }
+    }
   }
 
   function isTotemTile(el) {
