@@ -5414,6 +5414,16 @@ function ZiweiPDFButton({
   const [loading, setLoading] = React.useState(false);
   const [pdfError, setPdfError] = React.useState("");
 
+  function toPdfParagraphs(text: string): string[] {
+    if (!text) return [];
+    const chunks = String(text)
+      .replace(/\r\n/g, "\n")
+      .split(/\n\s*\n+/)
+      .map((v) => v.trim())
+      .filter(Boolean);
+    return chunks.length ? chunks : [String(text).trim()];
+  }
+
   const handleDownload = async () => {
     if (!result) return;
     setLoading(true);
@@ -5424,16 +5434,18 @@ function ZiweiPDFButton({
       if (!pdfModule) throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
 
       const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
+      let useNanum = false;
       // 한글 렌더링을 위한 나눔고딕 폰트 등록
       try {
         Font.register({
           family: "NanumGothic",
           src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
         });
+        useNanum = true;
       } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
 
       const styles = StyleSheet.create({
-        page: { fontFamily: "NanumGothic", backgroundColor: "#07091a", color: "#e2e8f0", padding: 32 },
+        page: { fontFamily: useNanum ? "NanumGothic" : "Helvetica", backgroundColor: "#07091a", color: "#e2e8f0", padding: 32 },
         coverTitle: { fontSize: 22, fontWeight: "bold", color: "#a78bfa", textAlign: "center", marginBottom: 6 },
         coverSub: { fontSize: 10, color: "rgba(251,191,36,0.9)", textAlign: "center", marginBottom: 3, letterSpacing: 2 },
         coverMeta: { fontSize: 9, color: "#94a3b8", textAlign: "center", marginBottom: 2 },
@@ -5442,6 +5454,7 @@ function ZiweiPDFButton({
         chapterSub: { fontSize: 9, color: "#93c5fd", marginBottom: 6 },
         sectionTitle: { fontSize: 11, fontWeight: "bold", color: "rgba(251,191,36,0.9)", marginBottom: 3, marginTop: 7 },
         body: { fontSize: 9, color: "#cbd5e1", lineHeight: 1.75, marginBottom: 5 },
+        bodyParagraph: { fontSize: 9, color: "#cbd5e1", lineHeight: 1.75, marginBottom: 6 },
         badge: { fontSize: 8, color: "rgba(167,139,250,0.7)", marginBottom: 10, textAlign: "center", letterSpacing: 1.5 },
       });
 
@@ -5517,10 +5530,12 @@ function ZiweiPDFButton({
             <View style={styles.divider} />
 
             {sections.map((sec, i) => (
-              <View key={`sec-${i}`} wrap={false}>
+              <View key={`sec-${i}`}>
                 <Text style={styles.chapterTitle}>{sec.icon} {sec.title}</Text>
                 <Text style={styles.chapterSub}>{sec.subtitle}</Text>
-                <Text style={styles.body}>{sec.body || ""}</Text>
+                {toPdfParagraphs(sec.body || "").map((p, pIdx) => (
+                  <Text key={`sec-${i}-p-${pIdx}`} style={styles.bodyParagraph}>{p}</Text>
+                ))}
                 <View style={styles.divider} />
               </View>
             ))}
@@ -5538,7 +5553,8 @@ function ZiweiPDFButton({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (e) {
-      setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
+      const detail = e instanceof Error ? e.message : "알 수 없는 오류";
+      setPdfError(`PDF 생성 실패: ${detail}. 잠시 후 다시 시도해 주세요.`);
     } finally {
       setLoading(false);
     }
