@@ -105,18 +105,49 @@ export async function POST(request) {
 카테고리: ${cat}
 사용자 질문에 위 사주 정보를 바탕으로 구체적인 운세 조언을 한국어로 답해줘.`;
 
+    // 로컬 폴백 생성기 (API 키 없거나 API 실패 시 사용)
+    function buildLocalAnswer(cat, score, fortune, petName, zName, today) {
+      const good = score >= 60;
+      const great = score >= 75;
+      const bad = score < 40;
+      const name = petName || "운세다마";
+      const tables = {
+        love: great
+          ? [`${name}가 느끼기엔 오늘 ${today}일 기운이 ${zName}띠에게 딱 맞아! 💕 좋아하는 사람에게 먼저 연락해봐 — 좋은 반응이 올 가능성이 높아 ✨ 오늘은 솔직한 마음이 통하는 날이야 🌸`, `${zName}띠 오늘 연애운 ${score}점 (${fortune})! 상대방도 너를 생각하고 있을지 몰라 💓 먼저 다가가는 게 행운의 열쇠야 🔑`]
+          : good
+          ? [`${today}일 기운이 ${zName}띠 연애운을 살짝 도와주고 있어 💙 너무 서두르지 말고 자연스럽게 표현해봐 🌙 오늘은 내 마음에 솔직해지는 연습도 좋아 🌸`, `오늘 인연운 ${score}점! 새 만남보다는 기존 관계를 다지는 게 더 좋을 것 같아 ☁️ 진심을 담은 작은 행동 하나가 큰 울림을 줄 수 있어 💫`]
+          : [`오늘 ${fortune} 날이라 연애는 조금 신중하게 가는 게 좋아 💧 ${today}일 기운이 ${zName}띠와 약간 어긋나거든 🌙 너무 앞서 나가지 말고 상대방의 반응을 지켜봐 🍃`, `오늘 연애운 ${score}점 — 감정이 요동칠 수 있어 🌊 오해가 생기기 쉬우니 말 한마디도 부드럽게 해봐 🌸`],
+        money: great
+          ? [`${zName}띠 오늘 재물운 ${score}점 (${fortune})!! ${today}일이 너에게 금전 흐름을 열어주고 있어 💰 작은 지출도 좋은 인연이 되는 날 — 단, 과한 도박은 피해 🎰❌`, `오늘은 재물 씨앗 심기 좋은 날이야 🌱 소액 저축을 시작하거나 오래 미뤘던 금전 정리를 해봐 ✨ ${fortune} 기운이 뒤를 받쳐줄게 💫`]
+          : good
+          ? [`오늘 재물운 ${score}점! 큰 투자보다는 꼼꼼한 재정 점검이 더 어울리는 날이야 📋 ${today}일 기운이 ${zName}띠에게 안정을 권하고 있어 💙`, `소득보다 지출을 줄이는 날로 활용해봐 💡 오늘 절약한 만큼 곧 다른 형태로 돌아올 거야 🌸`]
+          : [`오늘 재물운 ${score}점 (${fortune}) — 큰 지출이나 새 투자는 잠깐 미뤄봐 🌂 ${today}일 기운이 ${zName}띠 금전운과 살짝 맞서고 있거든 💧 오늘은 현금 흐름을 지키는 것만으로 충분해 🍃`, `지갑 가볍게 다니는 날! 충동 구매를 피하면 다음 좋은 운이 더 빨리 와 🌙`],
+        work: great
+          ? [`${today}일 기운이 ${zName}띠 직업운을 강하게 밀어주고 있어 🚀 지금이 중요한 제안 / 발표 / 면접 타이밍이야 ✨ 자신감 200%로 나가봐 — 결과가 좋을 거야 🌟`, `오늘 직업·학업운 ${score}점 (${fortune})!! 집중력이 평소보다 두 배 높아지는 날이야 📚 오래 미뤄둔 과제를 지금 처리해 🎯`]
+          : good
+          ? [`오늘 직업운 ${score}점! ${zName}띠에게 꾸준함이 빛나는 날이야 💡 화려한 성과보다 기초를 탄탄히 다지는 작업이 더 어울려 📋`, `동료와의 협력이 좋은 날이야 🤝 혼자 끙끙 앓지 말고 도움을 요청해봐 — 의외로 잘 풀릴 거야 🌸`]
+          : [`오늘 직업운 ${score}점 — 실수하기 쉬운 날이야 🌊 한 번 더 확인하는 습관이 큰 실수를 막아줄 거야 🔍 ${today}일 기운이 ${zName}띠에게 차분함을 요청하고 있어 🍃`, `오늘은 새 프로젝트 시작보다는 기존 업무를 마무리하는 게 더 좋을 것 같아 ✅`],
+        health: great
+          ? [`오늘 건강운 ${score}점 (${fortune})!! ${today}일 기운이 ${zName}띠의 체력을 가득 채워주고 있어 💪 오늘 운동을 시작하거나 건강 루틴을 만들기엔 최고의 날이야 🏃`, `몸도 마음도 활기찬 날! 새로운 식단이나 건강 습관을 시도해봐 🥗 지금 시작하면 오래 지속될 거야 🌟`]
+          : good
+          ? [`오늘 건강운 ${score}점! 가볍게 몸을 움직여주면 더 좋아질 거야 🚶 스트레칭이나 짧은 산책부터 시작해봐 🌸`, `${today}일 ${zName}띠 컨디션 괜찮은 날 ✨ 규칙적인 식사와 충분한 수면이 건강운을 지켜줄 거야 🌙`]
+          : [`오늘 건강운 ${score}점 (${fortune}) — 무리하지 않는 게 최선이야 💧 피로가 쌓이기 쉬운 날이니 충분히 쉬어줘 😴 ${today}일 기운이 ${zName}띠에게 휴식을 권하고 있거든 🍃`, `오늘은 과식이나 야식을 피하고 따뜻한 물 한 잔으로 몸을 달래봐 🍵`],
+        general: great
+          ? [`${today}일 ${zName}띠 오늘 대길 운세! 종합운 ${score}점이야 🌟 뭘 해도 잘 풀리는 하루니까 원하는 걸 적극적으로 시도해봐 ✨ 내가 옆에서 행운을 보내줄게 💫`, `오늘 최고의 기운이 함께야 🎊 중요한 결정이나 새로운 시작에 딱 좋은 날 — 자신감을 갖고 나아가봐 🚀`]
+          : good
+          ? [`오늘 종합운 ${score}점 (${fortune})! ${today}일 기운이 ${zName}띠를 잘 받쳐주고 있어 🌸 꾸준히 노력한 것들이 조금씩 결실 맺기 시작하는 날이야 💙`, `긍정적인 마음가짐이 오늘의 행운을 끌어당겨 ✨ 감사하는 마음으로 하루를 보내봐 — 더 좋은 일이 생길 거야 🍀`]
+          : [`오늘 종합운 ${score}점 (${fortune}) — 신중하게 행동하는 날이야 🌂 ${today}일 기운이 ${zName}띠와 약간 엇갈리고 있어 💧 하지만 조심하면 무탈하게 넘어갈 수 있어 🍃`, `오늘은 새로운 시도보다 기존 것을 잘 유지하는 게 더 현명해 🌙 내가 항상 응원하고 있을게 💕`],
+      };
+      const arr = tables[cat] || tables.general;
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
     const keys = pickGeminiKeys();
     if (!keys.length) {
-      // API 키 없을 때 간단 로컬 답변
-      const fallbacks = {
-        love:   [`오늘 ${fortune} 운세야! ${score >= 50 ? "새로운 인연이 올 수 있어 ✨" : "조용히 내 마음을 돌보는 날이야 💙"}`, `${zName}띠는 오늘 ${today.gan}${today.ji}일과 ${score >= 60 ? "잘 어울려! 고백해도 좋아 💕" : "조금 어긋나. 서두르지 않는 게 좋아 🌸"}`],
-        money:  [`오늘 재물운은 ${score}점! ${score >= 60 ? "작은 투자나 저축을 시작해봐 💰" : "큰 지출은 잠깐 미뤄봐 🌙"}`],
-        work:   [`오늘 직업운 ${score}점! ${score >= 60 ? "집중력이 좋은 날이야. 중요한 업무를 처리해 📚" : "꼼꼼히 확인하고 실수를 줄여봐 💡"}`],
-        health: [`오늘 건강운 ${score}점! ${score >= 60 ? "활동적으로 움직이면 좋아 🏃" : "무리하지 말고 충분히 쉬어 💤"}`],
-        general:[`오늘 종합운세 ${score}점 (${fortune})! ${score >= 60 ? "적극적으로 행동하면 좋은 결과가 있어 🌟" : "신중하게 행동하면 무사히 넘어갈 수 있어 🍀"}`],
-      };
-      const arr = fallbacks[category] || fallbacks.general;
-      return NextResponse.json({ answer: arr[Math.floor(Math.random() * arr.length)], score, fortune, today: `${today.gan}${today.ji}` });
+      return NextResponse.json({
+        answer: buildLocalAnswer(category, score, fortune, petName, zName, `${today.gan}${today.ji}`),
+        score, fortune, today: `${today.gan}${today.ji}`
+      });
     }
 
     const model = "gemini-2.0-flash";
@@ -147,7 +178,10 @@ export async function POST(request) {
       } catch (e) { lastErr = e.message; }
     }
 
-    return NextResponse.json({ error: lastErr || "Gemini 연결 실패", score, fortune, today: `${today.gan}${today.ji}` }, { status: 502 });
+    return NextResponse.json({
+      answer: buildLocalAnswer(category, score, fortune, petName, zName, `${today.gan}${today.ji}`),
+      score, fortune, today: `${today.gan}${today.ji}`
+    });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

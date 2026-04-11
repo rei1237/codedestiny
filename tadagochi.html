@@ -114,15 +114,17 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 .ff-back{transform:rotateY(180deg);border:2px solid rgba(255,255,255,.7)}
 .zbadge{padding:12px 16px;border-radius:15px;background:var(--adim);border:1.5px solid var(--cb);text-align:center;min-height:50px;display:flex;align-items:center;justify-content:center}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--cb);border-radius:2px}
-.dl-btn{position:absolute;top:14px;right:14px;z-index:50;background:rgba(255,255,255,.88);border:1.5px solid var(--cb);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--acc);cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;gap:4px;transition:all .13s}
-.dl-btn:active{transform:scale(.93)}
+.dl-btn{position:absolute;top:12px;right:12px;z-index:50;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:99px;cursor:pointer;transition:all .2s;border:none;font-family:'Noto Sans KR';font-size:12px;font-weight:800;background:linear-gradient(135deg,var(--c2),var(--c3));color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15),0 0 0 2px rgba(255,255,255,.4);letter-spacing:-.2px;white-space:nowrap}
+.dl-btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.2),0 0 0 2px rgba(255,255,255,.5)}
+.dl-btn:active{transform:scale(.94);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.dl-btn .dl-icon{font-size:14px;line-height:1}
 </style>
 </head>
 <body>
 <canvas id="particle-canvas"></canvas>
 <div class="card" id="gc">
 <div class="top-strip"></div>
-<button class="dl-btn" id="dl-btn" style="display:none" onclick="downloadMe()">⬇️ 저장</button>
+<button class="dl-btn" id="dl-btn" style="display:none" onclick="downloadMe()"><span class="dl-icon">📸</span><span>카드 저장</span></button>
 
 <!-- TITLE -->
 <div id="s-title" class="scr on items-center justify-center gap-5 px-8 pb-8 pt-10">
@@ -344,12 +346,14 @@ const GEN_CYCLE={wood:['water','wood'],fire:['wood','fire'],earth:['fire','earth
 const CLAW={wood:'metal',fire:'water',earth:'wood',metal:'fire',water:'earth'};
 
 const ST={
-  idle:   {an:'animate-idle',  badge:'😌 대기 중',     flt:'',                               d:['지금 뭐 할까요? ☁️','오늘도 함께해서 좋아요 🌸','조용히 쉬고 있어요 💤','배고프다...🍎']},
-  happy:  {an:'animate-happy', badge:'😊 기분 좋아요',  flt:'',                               d:['기분이 너무 좋아요! 🌟','헤헤~ 행복해요 ✨','오늘 기분 최고예요 🎀']},
-  angry:  {an:'animate-angry', badge:'😤 배고파요!',    flt:'drop-shadow(0 0 7px #fca5a5)',   d:['배고파요... 밥 줘요 🍎','으음... 배가 고파요','조금 더 관심 가져줘요...']},
-  sad:    {an:'animate-sad',   badge:'🥺 슬퍼요',      flt:'saturate(.6) brightness(.9)',    d:['훌쩍... 슬퍼요 💧','위로해 줘요...','조금 외로워요 🌧']},
-  sleep:  {an:'animate-sleep', badge:'💤 자는 중',     flt:'brightness(.72) saturate(.45)',  d:['zZzZ... 💤','스르르... 잠이 와요 😪','꿈에서 만나요 🌙']},
-  special:{an:'animate-special',badge:'🌟 행운이에요!', flt:'drop-shadow(0 0 12px gold)',     d:['오늘 정말 좋은 날이에요!! 🌟','최고의 하루예요!! ✨','LUCKY DAY!! 🎊']},
+  idle:   {an:'animate-idle',  badge:'😌 대기 중',      flt:'',                                          d:['지금 뭐 할까요? ☁️','오늘도 함께해서 좋아요 🌸','조용히 쉬고 있어요 💤','배고프다...🍎']},
+  happy:  {an:'animate-happy', badge:'😊 기분 좋아요',   flt:'',                                          d:['기분이 너무 좋아요! 🌟','헤헤~ 행복해요 ✨','오늘 기분 최고예요 🎀']},
+  eat:    {an:'animate-happy', badge:'😋 냠냠 먹어요!',  flt:'drop-shadow(0 0 6px #fcd34d)',              d:['냠냠~ 맛있어요! 🍎','배가 불러오고 있어요 😊','맛있다 맛있어~ 🍱','힘이 불끈 솟아요 💪']},
+  play:   {an:'animate-happy', badge:'🎉 신나게 놀아요', flt:'drop-shadow(0 0 6px #a78bfa)',              d:['같이 놀아요! 🎮','너무 신나요!! ✨','최고예요 🌟','야호~ 재밌다!! 🎊']},
+  angry:  {an:'animate-angry', badge:'😤 배고파요!',     flt:'drop-shadow(0 0 7px #fca5a5)',              d:['배고파요... 밥 줘요 🍎','으음... 배가 고파요','조금 더 관심 가져줘요...']},
+  sad:    {an:'animate-sad',   badge:'🥺 슬퍼요',       flt:'saturate(.6) brightness(.9)',               d:['훌쩍... 슬퍼요 💧','위로해 줘요...','조금 외로워요 🌧']},
+  sleep:  {an:'animate-sleep', badge:'💤 자는 중',      flt:'brightness(.72) saturate(.45)',             d:['zZzZ... 💤','스르르... 잠이 와요 😪','꿈에서 만나요 🌙']},
+  special:{an:'animate-special',badge:'🌟 행운이에요!',  flt:'drop-shadow(0 0 12px gold)',                d:['오늘 정말 좋은 날이에요!! 🌟','최고의 하루예요!! ✨','LUCKY DAY!! 🎊']},
 };
 const TDUR={happy:2500,angry:2500,sleep:0,special:3500};
 
@@ -576,8 +580,8 @@ function spawnNote(){if(G.scr!=='main'||G.sleeping) return;var nn=['♪','♫','
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(function(){t.classList.remove('on');},2300);}
 function act(a){
   if(G.scr!=='main') return;
-  if(a==='feed'){if(G.sleeping){toast('자고 있어요 💤');return;}G.hunger=Math.min(100,G.hunger+28);updateUI();setState('happy');spawnE('🍎');toast(G.petName+' 냠냠 맛있다 🍎');saveState();}
-  else if(a==='play'){if(G.sleeping){toast('자고 있어요 💤');return;}G.happy=Math.min(100,G.happy+24);G.energy=Math.max(0,G.energy-10);updateUI();setState('happy');['🎉','✨','🌟'].forEach(function(e,i){setTimeout(function(){spawnE(e);},i*120);});toast('같이 놀아요! 🎮');saveState();}
+  if(a==='feed'){if(G.sleeping){toast('자고 있어요 💤');return;}G.hunger=Math.min(100,G.hunger+28);updateUI();setState('eat');spawnE('🍎');toast(G.petName+' 냠냠 맛있다 🍎');saveState();}
+  else if(a==='play'){if(G.sleeping){toast('자고 있어요 💤');return;}G.happy=Math.min(100,G.happy+24);G.energy=Math.max(0,G.energy-10);updateUI();setState('play');['🎉','✨','🌟','💫'].forEach(function(e,i){setTimeout(function(){spawnE(e);},i*120);});toast('같이 놀아요! 🎮');saveState();}
   else if(a==='sleep'){G.sleeping=!G.sleeping;if(G.sleeping){setState('sleep');toast('잘 자요~ 💤');}else{setState('happy');toast('일어났어요! ☀️');}document.getElementById('slp-em').textContent=G.sleeping?'🌅':'😴';document.getElementById('slp-lb').textContent=G.sleeping?'깨우기':'재우기';updateUI();saveState();}
   else if(a==='chat') openChat();
   else if(a==='talisman') openTali();
@@ -619,7 +623,32 @@ function downloadTali(){
 
 // DOWNLOAD
 function downloadMe(){
-  toast('브라우저 메뉴 → "페이지 공유/저장" 을 이용해 주세요 📥');
+  var gc=document.getElementById('gc');
+  if(!gc){toast('저장 실패 😢 잠시 후 다시 시도해 주세요');return;}
+  toast(G.petName+'랑 찍은 사진 저장 중... 📸');
+  // html2canvas 로 카드 캡처
+  if(typeof html2canvas!=='undefined'){
+    html2canvas(gc,{scale:3,backgroundColor:null,useCORS:true,allowTaint:true,logging:false}).then(function(canvas){
+      var a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png');
+      var d=new Date();
+      a.download=G.petName+'_운세다마_'+d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0')+'.png';
+      a.click();
+      toast('저장 완료! '+G.petName+' 사진 저장됐어요 🌸');
+    }).catch(function(){
+      _dlFallback();
+    });
+  } else {
+    _dlFallback();
+  }
+}
+function _dlFallback(){
+  // 웹 공유 API 시도
+  if(navigator.share){
+    navigator.share({title:G.petName+' 운세 다마고치',url:window.location.href}).then(function(){toast('공유 완료 🌸');}).catch(function(){});
+  } else {
+    toast('길게 눌러 이미지를 저장하거나 스크린샷을 찍어주세요 📸');
+  }
 }
 
 // CHAT
@@ -648,6 +677,9 @@ function sendChat(){
   var q=inp.value.trim(); if(!q) return;
   if(G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요! 내일 다시 만나요 🌙');return;}
   inp.value=''; addUserMsg(q);
+  // 날짜 변경 시 채팅 횟수 리셋
+  var todayStr=new Date().toISOString().slice(0,10);
+  if(G.chatDate!==todayStr){G.chatCount=0;G.chatDate=todayStr;localStorage.setItem('tdg_chat_date',todayStr);}
   G.chatCount++; localStorage.setItem('tdg_chat_count',String(G.chatCount)); updateChatRemain();
   var typingEl=addBotMsg('...', true);
   fetch('/api/tadagochi',{
