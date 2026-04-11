@@ -25,6 +25,15 @@ function pickGeminiApiKeys(): string[] {
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
     process.env.GOOGLE_API_KEY_3,
+    process.env.GEMINIF_API_KEY1,
+    process.env.GEMINIF_API_KEY2,
+    process.env.GEMINIF_API_KEY3,
+    process.env.GEMINIF_API_KEY4,
+    process.env.GEMINIF_API_KEY5,
+    process.env.GEMINIF_API_KEY6,
+    process.env.GEMINIF_API_KEY7,
+    process.env.GEMINIF_API_KEY8,
+    process.env.GEMINIF_API_KEY9,
   ];
   return candidates.map((v) => String(v || "").trim()).filter(Boolean);
 }
