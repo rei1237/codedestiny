@@ -3079,6 +3079,7 @@ function renderRomance(r,chart,ins){
 function renderCompatInput(){
   return detailHeader('👫','궁합 계산기','Ashtakoot Milan · 8 Koota')+`
   <div class="sage-text reveal" style="margin-bottom:16px">아쉬타쿠타 밀란(Ashtakoot Milan)은 두 영혼의 달 낙샤트라를 8가지 기준으로 분석하여 36점 만점으로 궁합을 측정하는 베다 점성술의 핵심 결혼 궁합 시스템입니다.</div>
+  <div class="sage-text reveal" style="margin-bottom:10px;color:#fde68a">🔒 궁합 계산은 1회 50코인이 차감됩니다. (기본 명반 계산은 무료)</div>
   <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
     <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -3099,12 +3100,73 @@ function renderCompatInput(){
       <div><label>위도</label><input id="c-lat" value="37.5665"></div>
       <div><label>경도</label><input id="c-lon" value="126.978"></div>
     </div>
-    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기</button>
+    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (50코인)</button>
   </div>
   <div id="compat-result"></div>`;
 }
 
-function doCompatCalc(){
+async function _vedicCompatCoinGate(cost, reason){
+  var plan = '';
+  try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
+  if (plan === 'unlimited' || plan === 'premium') return true;
+  try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch(_) {}
+
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
+    }
+    return false;
+  }
+
+  var balance = 0;
+  try {
+    var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
+    balance = Number(_u2 && _u2.points) || 0;
+  } catch(_) {}
+
+  if (balance < cost) {
+    if (window.confirm('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 페이지로 이동하시겠습니까?')) {
+      window.location.href = '/points';
+    }
+    return false;
+  }
+
+  if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+    return false;
+  }
+
+  try {
+    var resp = await fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ cost: cost, reason: reason })
+    });
+    var data = await resp.json();
+    if (!resp.ok) {
+      window.alert((data && data.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+      if (resp.status === 402 || resp.status === 403) window.location.href = '/points';
+      return false;
+    }
+    var nb = (data && data.user && typeof data.user.points === 'number') ? data.user.points : Math.max(0, balance - cost);
+    try {
+      var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
+      _u3.points = nb;
+      localStorage.setItem('fortune_auth_user', JSON.stringify(_u3));
+    } catch(_) {}
+    if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
+    return true;
+  } catch(e) {
+    console.error('[vedic compat coin-gate]', e);
+    window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+}
+
+async function doCompatCalc(){
+  var ok = await _vedicCompatCoinGate(50, '베다점 궁합 계산');
+  if (!ok) return;
   const f2={
     name:document.getElementById('c-name').value||'이름없음',
     gender:document.getElementById('c-gender').value,
