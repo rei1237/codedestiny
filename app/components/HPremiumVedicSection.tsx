@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -51,6 +51,8 @@ const CHAPTER_META: ChapterMeta[] = [
   { num:11, title:"우파야 — 운명을 바꾸는 실천",     subtitle:"행성 에너지 정화 비책",              icon:"🙏" },
   { num:12, title:"마스터플랜 — 카르마를 넘어선 자유", subtitle:"총결산 & 북극성 선언",              icon:"🌟" },
 ];
+
+const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
 
 // ─────────────────────────────────────────────────────────────────
 // 로더
@@ -376,6 +378,7 @@ export default function HPremiumVedicSection({
   const [calcError,   setCalcError]   = useState("");
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const storageReadyRef = useRef(false);
 
   const resetVedicState = useCallback((resetInputs = false) => {
     setChart(null);
@@ -392,8 +395,83 @@ export default function HPremiumVedicSection({
       setTimezone("9");
       setLat("37.5665");
       setLon("126.9780");
+      try {
+        localStorage.removeItem(VEDIC_STORAGE_KEY);
+      } catch {
+        // ignore storage cleanup errors
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (showIntro) return;
+    try {
+      const raw = localStorage.getItem(VEDIC_STORAGE_KEY);
+      if (!raw) {
+        storageReadyRef.current = true;
+        return;
+      }
+      const saved = JSON.parse(raw) as {
+        birthYear?: string;
+        birthMonth?: string;
+        birthDay?: string;
+        birthHour?: string;
+        birthMinute?: string;
+        timezone?: string;
+        lat?: string;
+        lon?: string;
+        chart?: VedicChart | null;
+        chapters?: Record<number, ChapterState>;
+      };
+
+      if (saved.birthYear) setBirthYear(saved.birthYear);
+      if (saved.birthMonth) setBirthMonth(saved.birthMonth);
+      if (saved.birthDay) setBirthDay(saved.birthDay);
+      if (saved.birthHour) setBirthHour(saved.birthHour);
+      if (saved.birthMinute) setBirthMinute(saved.birthMinute);
+      if (saved.timezone) setTimezone(saved.timezone);
+      if (saved.lat) setLat(saved.lat);
+      if (saved.lon) setLon(saved.lon);
+      if (saved.chart) setChart(saved.chart);
+      if (saved.chapters) {
+        const normalized = Object.fromEntries(
+          CHAPTER_META.map((meta) => {
+            const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
+            return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
+          })
+        ) as Record<number, ChapterState>;
+        setChapters(normalized);
+      }
+    } catch {
+      // ignore broken snapshots
+    } finally {
+      storageReadyRef.current = true;
+    }
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (showIntro) return;
+    if (!storageReadyRef.current) return;
+    try {
+      localStorage.setItem(
+        VEDIC_STORAGE_KEY,
+        JSON.stringify({
+          birthYear,
+          birthMonth,
+          birthDay,
+          birthHour,
+          birthMinute,
+          timezone,
+          lat,
+          lon,
+          chart,
+          chapters,
+        })
+      );
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, lat, lon, chart, chapters, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -402,23 +480,30 @@ export default function HPremiumVedicSection({
   }, [showIntro, resetVedicState]);
 
   const postVedicJson = useCallback(async (payload: unknown) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 65000);
-    try {
-      const res = await fetch("/api/premium/vedic-life", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "베다 요청 처리 중 오류가 발생했습니다.");
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 65000);
+      try {
+        const res = await fetch("/api/premium/vedic-life", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.error || "베다 요청 처리 중 오류가 발생했습니다.");
+        }
+        return data;
+      } catch (e) {
+        lastError = e;
+        if (attempt === 2) break;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return data;
-    } finally {
-      clearTimeout(timeoutId);
     }
+    throw lastError instanceof Error ? lastError : new Error("베다 요청 처리 중 오류가 발생했습니다.");
   }, []);
 
   // 차트 미리 계산 (chapter 1 분析으로 대체)

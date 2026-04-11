@@ -1,5 +1,5 @@
 ﻿"use client";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 // ─────────────────────────────────────────────────────────────────
 // 타입
@@ -53,6 +53,8 @@ const CHAPTER_META: ChapterMeta[] = [
   { num: 11, title: "컴포지트 — 우리라는 운명",   subtitle: "궁합 2: 합산 차트",                  icon: "⭕" },
   { num: 12, title: "별들의 마스터플랜",           subtitle: "총결산 및 개운법",                   icon: "✨" },
 ];
+
+const ASTROLOGY_STORAGE_KEY = "premium:astrology:session:v1";
 
 // ─────────────────────────────────────────────────────────────────
 // 로더
@@ -337,6 +339,7 @@ export default function HPremiumAstrologySection({
   const [requestError, setRequestError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const storageReadyRef = useRef(false);
 
   const resetAstrologyState = useCallback((resetInputs = false) => {
     setChart(null);
@@ -353,8 +356,77 @@ export default function HPremiumAstrologySection({
       setBirthHour("12");
       setBirthMinute("0");
       setTimezone("9");
+      try {
+        localStorage.removeItem(ASTROLOGY_STORAGE_KEY);
+      } catch {
+        // ignore storage cleanup errors
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (showIntro) return;
+    try {
+      const raw = localStorage.getItem(ASTROLOGY_STORAGE_KEY);
+      if (!raw) {
+        storageReadyRef.current = true;
+        return;
+      }
+      const saved = JSON.parse(raw) as {
+        birthYear?: string;
+        birthMonth?: string;
+        birthDay?: string;
+        birthHour?: string;
+        birthMinute?: string;
+        timezone?: string;
+        chart?: ChartData | null;
+        chapters?: Record<number, ChapterState>;
+      };
+
+      if (saved.birthYear) setBirthYear(saved.birthYear);
+      if (saved.birthMonth) setBirthMonth(saved.birthMonth);
+      if (saved.birthDay) setBirthDay(saved.birthDay);
+      if (saved.birthHour) setBirthHour(saved.birthHour);
+      if (saved.birthMinute) setBirthMinute(saved.birthMinute);
+      if (saved.timezone) setTimezone(saved.timezone);
+      if (saved.chart) setChart(saved.chart);
+      if (saved.chapters) {
+        const normalized = Object.fromEntries(
+          CHAPTER_META.map((meta) => {
+            const state = saved.chapters?.[meta.num] ?? { step: "idle" as ChapterStep, result: null };
+            return [meta.num, state.step === "loading" ? { step: "idle" as ChapterStep, result: state.result ?? null } : state];
+          })
+        ) as Record<number, ChapterState>;
+        setChapters(normalized);
+      }
+    } catch {
+      // ignore broken snapshots
+    } finally {
+      storageReadyRef.current = true;
+    }
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (showIntro) return;
+    if (!storageReadyRef.current) return;
+    try {
+      localStorage.setItem(
+        ASTROLOGY_STORAGE_KEY,
+        JSON.stringify({
+          birthYear,
+          birthMonth,
+          birthDay,
+          birthHour,
+          birthMinute,
+          timezone,
+          chart,
+          chapters,
+        })
+      );
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [birthYear, birthMonth, birthDay, birthHour, birthMinute, timezone, chart, chapters, showIntro]);
 
   useEffect(() => {
     if (showIntro) {
@@ -434,23 +506,30 @@ export default function HPremiumAstrologySection({
   }, [chapters, chart, birthYear, birthMonth, birthDay]);
 
   const postAstroJson = useCallback(async (path: string, payload: unknown) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 65000);
-    try {
-      const res = await fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "요청 처리 중 오류가 발생했습니다.");
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 65000);
+      try {
+        const res = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.error || "요청 처리 중 오류가 발생했습니다.");
+        }
+        return data;
+      } catch (e) {
+        lastError = e;
+        if (attempt === 2) break;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return data;
-    } finally {
-      clearTimeout(timeoutId);
     }
+    throw lastError instanceof Error ? lastError : new Error("요청 처리 중 오류가 발생했습니다.");
   }, []);
 
   // 차트 계산 (chapter 0 으로 호출해 계산만)
@@ -522,10 +601,11 @@ export default function HPremiumAstrologySection({
   // 전체 챕터 순차 생성
   const handleGenerateAll = useCallback(async () => {
     console.log("클릭됨: 점성술 전체 챕터 생성");
-    for (const meta of CHAPTER_META) {
+    const pending = CHAPTER_META.filter((meta) => chapters[meta.num]?.step !== "done");
+    for (const meta of pending) {
       await handleGenerateChapter(meta.num);
     }
-  }, [handleGenerateChapter]);
+  }, [chapters, handleGenerateChapter]);
 
   const inputStyle: React.CSSProperties = {
     background:"rgba(7,9,26,0.8)", border:"1px solid rgba(251,191,36,0.25)",

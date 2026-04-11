@@ -5792,6 +5792,8 @@ type PremiumSectionProps = {
   generationLoading?: boolean;
 };
 
+const ZIWEI_STORAGE_KEY = "premium:ziwei:session:v1";
+
 export default function HPremiumZiweiSection({
   showIntro = false,
   onStartGeneration,
@@ -5839,6 +5841,7 @@ export default function HPremiumZiweiSection({
   const [chapterError, setChapterError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
   const prevShowIntroRef = useRef(showIntro);
+  const storageReadyRef = useRef(false);
 
   type ChapterStepState = "idle" | "loading" | "done";
 
@@ -5851,23 +5854,30 @@ export default function HPremiumZiweiSection({
   });
 
   async function requestZiweiChapter<T>(chapter: number): Promise<T> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 65000);
-    try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildZiweiPayload(chapter)),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data?.error) {
-        throw new Error(data?.error || `챕터 ${chapter} 분석에 실패했습니다.`);
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 65000);
+      try {
+        const res = await fetch("/api/premium/ziwei-life", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildZiweiPayload(chapter)),
+          signal: controller.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.error) {
+          throw new Error(data?.error || `챕터 ${chapter} 분석에 실패했습니다.`);
+        }
+        return data as T;
+      } catch (e) {
+        lastError = e;
+        if (attempt === 2) break;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return data as T;
-    } finally {
-      clearTimeout(timeoutId);
     }
+    throw lastError instanceof Error ? lastError : new Error(`챕터 ${chapter} 분석에 실패했습니다.`);
   }
 
   async function loadChapter<T>(
@@ -5960,21 +5970,32 @@ export default function HPremiumZiweiSection({
     setStep("loading");
 
     try {
-      const res = await fetch("/api/premium/ziwei-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          birthYear: Number(birthYear),
-          birthMonth: Number(birthMonth),
-          birthDay: Number(birthDay),
-          birthHour: unknownHour ? 12 : Number(birthHour),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || "분석 오류");
+      let data: AnalysisResult | null = null;
+      let lastError: unknown = null;
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+          const res = await fetch("/api/premium/ziwei-life", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              birthYear: Number(birthYear),
+              birthMonth: Number(birthMonth),
+              birthDay: Number(birthDay),
+              birthHour: unknownHour ? 12 : Number(birthHour),
+            }),
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error((errData as { error?: string }).error || "분석 오류");
+          }
+          data = (await res.json()) as AnalysisResult;
+          break;
+        } catch (e) {
+          lastError = e;
+          if (attempt === 2) throw lastError;
+        }
       }
-      const data: AnalysisResult = await res.json();
+      if (!data) throw new Error("분석 오류");
       setResult(data);
       setCh2Step("idle");
       setCh2Result(null);
@@ -6028,6 +6049,154 @@ export default function HPremiumZiweiSection({
     }
     prevShowIntroRef.current = showIntro;
   }, [showIntro, step]);
+
+  useEffect(() => {
+    if (showIntro) return;
+    try {
+      const raw = localStorage.getItem(ZIWEI_STORAGE_KEY);
+      if (!raw) {
+        storageReadyRef.current = true;
+        return;
+      }
+      const saved = JSON.parse(raw) as {
+        step?: "intro" | "form" | "loading" | "result";
+        birthYear?: string;
+        birthMonth?: string;
+        birthDay?: string;
+        birthHour?: string;
+        unknownHour?: boolean;
+        result?: AnalysisResult | null;
+        chapterError?: string;
+        ch2?: { step: "idle" | "loading" | "done"; result: Chapter2Result | null };
+        ch3?: { step: "idle" | "loading" | "done"; result: Chapter3Result | null };
+        ch4?: { step: "idle" | "loading" | "done"; result: Chapter4Result | null };
+        ch5?: { step: "idle" | "loading" | "done"; result: Chapter5Result | null };
+        ch6?: { step: "idle" | "loading" | "done"; result: Chapter6Result | null };
+        ch7?: { step: "idle" | "loading" | "done"; result: Chapter7Result | null };
+        ch8?: { step: "idle" | "loading" | "done"; result: Chapter8Result | null };
+        ch9?: { step: "idle" | "loading" | "done"; result: Chapter9Result | null };
+        ch10?: { step: "idle" | "loading" | "done"; result: Chapter10Result | null };
+        ch11?: { step: "idle" | "loading" | "done"; result: Chapter11Result | null };
+        ch12?: { step: "idle" | "loading" | "done"; result: Chapter12Result | null };
+        chDaehan?: { step: "idle" | "loading" | "done"; result: DaehanResult | null };
+        chYun?: { step: "idle" | "loading" | "done"; result: YunnyeonResult | null };
+        chTree?: { step: "idle" | "loading" | "done"; result: TreeNodeResult | null };
+        chMaster?: { step: "idle" | "loading" | "done"; result: MasterPlanResult | null };
+      };
+      const norm = (s?: "idle" | "loading" | "done") => (s === "loading" ? "idle" : s ?? "idle");
+
+      if (saved.birthYear) setBirthYear(saved.birthYear);
+      if (saved.birthMonth) setBirthMonth(saved.birthMonth);
+      if (saved.birthDay) setBirthDay(saved.birthDay);
+      if (saved.birthHour) setBirthHour(saved.birthHour);
+      if (typeof saved.unknownHour === "boolean") setUnknownHour(saved.unknownHour);
+      if (saved.result) setResult(saved.result);
+      if (saved.chapterError) setChapterError(saved.chapterError);
+
+      if (saved.ch2) { setCh2Step(norm(saved.ch2.step)); setCh2Result(saved.ch2.result ?? null); }
+      if (saved.ch3) { setCh3Step(norm(saved.ch3.step)); setCh3Result(saved.ch3.result ?? null); }
+      if (saved.ch4) { setCh4Step(norm(saved.ch4.step)); setCh4Result(saved.ch4.result ?? null); }
+      if (saved.ch5) { setCh5Step(norm(saved.ch5.step)); setCh5Result(saved.ch5.result ?? null); }
+      if (saved.ch6) { setCh6Step(norm(saved.ch6.step)); setCh6Result(saved.ch6.result ?? null); }
+      if (saved.ch7) { setCh7Step(norm(saved.ch7.step)); setCh7Result(saved.ch7.result ?? null); }
+      if (saved.ch8) { setCh8Step(norm(saved.ch8.step)); setCh8Result(saved.ch8.result ?? null); }
+      if (saved.ch9) { setCh9Step(norm(saved.ch9.step)); setCh9Result(saved.ch9.result ?? null); }
+      if (saved.ch10) { setCh10Step(norm(saved.ch10.step)); setCh10Result(saved.ch10.result ?? null); }
+      if (saved.ch11) { setCh11Step(norm(saved.ch11.step)); setCh11Result(saved.ch11.result ?? null); }
+      if (saved.ch12) { setCh12Step(norm(saved.ch12.step)); setCh12Result(saved.ch12.result ?? null); }
+      if (saved.chDaehan) { setChDaehanStep(norm(saved.chDaehan.step)); setChDaehanResult(saved.chDaehan.result ?? null); }
+      if (saved.chYun) { setChYunStep(norm(saved.chYun.step)); setChYunResult(saved.chYun.result ?? null); }
+      if (saved.chTree) { setChTreeStep(norm(saved.chTree.step)); setChTreeResult(saved.chTree.result ?? null); }
+      if (saved.chMaster) { setChMasterStep(norm(saved.chMaster.step)); setChMasterResult(saved.chMaster.result ?? null); }
+
+      if (saved.step && saved.step !== "loading") {
+        setStep(saved.step);
+      } else if (saved.result) {
+        setStep("result");
+      }
+    } catch {
+      // ignore broken snapshots
+    } finally {
+      storageReadyRef.current = true;
+    }
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (showIntro) return;
+    if (!storageReadyRef.current) return;
+    try {
+      localStorage.setItem(
+        ZIWEI_STORAGE_KEY,
+        JSON.stringify({
+          step,
+          birthYear,
+          birthMonth,
+          birthDay,
+          birthHour,
+          unknownHour,
+          result,
+          chapterError,
+          ch2: { step: ch2Step, result: ch2Result },
+          ch3: { step: ch3Step, result: ch3Result },
+          ch4: { step: ch4Step, result: ch4Result },
+          ch5: { step: ch5Step, result: ch5Result },
+          ch6: { step: ch6Step, result: ch6Result },
+          ch7: { step: ch7Step, result: ch7Result },
+          ch8: { step: ch8Step, result: ch8Result },
+          ch9: { step: ch9Step, result: ch9Result },
+          ch10: { step: ch10Step, result: ch10Result },
+          ch11: { step: ch11Step, result: ch11Result },
+          ch12: { step: ch12Step, result: ch12Result },
+          chDaehan: { step: chDaehanStep, result: chDaehanResult },
+          chYun: { step: chYunStep, result: chYunResult },
+          chTree: { step: chTreeStep, result: chTreeResult },
+          chMaster: { step: chMasterStep, result: chMasterResult },
+        })
+      );
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [
+    showIntro,
+    step,
+    birthYear,
+    birthMonth,
+    birthDay,
+    birthHour,
+    unknownHour,
+    result,
+    chapterError,
+    ch2Step,
+    ch2Result,
+    ch3Step,
+    ch3Result,
+    ch4Step,
+    ch4Result,
+    ch5Step,
+    ch5Result,
+    ch6Step,
+    ch6Result,
+    ch7Step,
+    ch7Result,
+    ch8Step,
+    ch8Result,
+    ch9Step,
+    ch9Result,
+    ch10Step,
+    ch10Result,
+    ch11Step,
+    ch11Result,
+    ch12Step,
+    ch12Result,
+    chDaehanStep,
+    chDaehanResult,
+    chYunStep,
+    chYunResult,
+    chTreeStep,
+    chTreeResult,
+    chMasterStep,
+    chMasterResult,
+  ]);
 
   // ── Intro 카드 ──────────────────────────────────────────────────
   const introView = (

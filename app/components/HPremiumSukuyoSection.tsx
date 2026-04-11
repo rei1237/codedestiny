@@ -65,6 +65,8 @@ const CHAPTER_META: ChapterMeta[] = [
   { num: 13, title: "영혼의 마스터플랜",     subtitle: "달빛 전략가의 10년 로드맵",         icon: "🗺️" },
 ];
 
+const SUKUYO_STORAGE_KEY = "premium:sukuyo:session:v1";
+
 // ─────────────────────────────────────────────────────────────────
 // 유틸
 // ─────────────────────────────────────────────────────────────────
@@ -661,6 +663,7 @@ export default function HPremiumSukuyoSection({
   const [requestError, setRequestError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
   const pdfBtnRef = useRef<HTMLButtonElement>(null);
+  const storageReadyRef = useRef(false);
 
   const parseNumberOr = useCallback((value: string, fallback: number, min?: number, max?: number) => {
     const n = Number(value);
@@ -713,6 +716,61 @@ export default function HPremiumSukuyoSection({
   }, [birthDate, isValidPartnerDate, partnerDateFilled, partnerBirthDate, partnerName, partnerGender, parseHour, parseNumberOr]);
 
   useEffect(() => {
+    if (showIntro) return;
+    try {
+      const raw = localStorage.getItem(SUKUYO_STORAGE_KEY);
+      if (!raw) {
+        storageReadyRef.current = true;
+        return;
+      }
+      const saved = JSON.parse(raw) as {
+        birthDate?: typeof DEFAULT_BIRTH_FORM;
+        partnerBirthDate?: typeof DEFAULT_BIRTH_FORM;
+        partnerName?: string;
+        partnerGender?: "F" | "M";
+        sukuyo?: SukuyoInfo | null;
+        chapters?: ChapterState[];
+      };
+
+      if (saved.birthDate) setBirthDate({ ...DEFAULT_BIRTH_FORM, ...saved.birthDate });
+      if (saved.partnerBirthDate) setPartnerBirthDate({ ...DEFAULT_BIRTH_FORM, ...saved.partnerBirthDate });
+      if (saved.partnerName) setPartnerName(saved.partnerName);
+      if (saved.partnerGender === "F" || saved.partnerGender === "M") setPartnerGender(saved.partnerGender);
+      if (saved.sukuyo) setSukuyo(saved.sukuyo);
+      if (Array.isArray(saved.chapters) && saved.chapters.length === CHAPTER_META.length) {
+        const normalized = saved.chapters.map((c) =>
+          c.step === "loading" ? { step: "idle" as ChapterStep, result: c.result ?? null } : c
+        );
+        setChapters(normalized);
+      }
+    } catch {
+      // ignore broken snapshots
+    } finally {
+      storageReadyRef.current = true;
+    }
+  }, [showIntro]);
+
+  useEffect(() => {
+    if (showIntro) return;
+    if (!storageReadyRef.current) return;
+    try {
+      localStorage.setItem(
+        SUKUYO_STORAGE_KEY,
+        JSON.stringify({
+          birthDate,
+          partnerBirthDate,
+          partnerName,
+          partnerGender,
+          sukuyo,
+          chapters,
+        })
+      );
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [birthDate, partnerBirthDate, partnerName, partnerGender, sukuyo, chapters, showIntro]);
+
+  useEffect(() => {
     if (showIntro) {
       setSukuyo(null);
       setChapters(CHAPTER_META.map(() => ({ step: "idle" as ChapterStep, result: null })));
@@ -724,23 +782,30 @@ export default function HPremiumSukuyoSection({
   }, [showIntro]);
 
   const postSukuyoJson = useCallback(async (payload: unknown) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 65000);
-    try {
-      const res = await fetch("/api/premium/sukuyo-life", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "숙요 요청 처리 중 오류가 발생했습니다.");
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 65000);
+      try {
+        const res = await fetch("/api/premium/sukuyo-life", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.error || "숙요 요청 처리 중 오류가 발생했습니다.");
+        }
+        return data;
+      } catch (e) {
+        lastError = e;
+        if (attempt === 2) break;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      return data;
-    } finally {
-      clearTimeout(timeoutId);
     }
+    throw lastError instanceof Error ? lastError : new Error("숙요 요청 처리 중 오류가 발생했습니다.");
   }, []);
 
   // 숙요 초기화 (챕터 없이 숙요 정보만)
