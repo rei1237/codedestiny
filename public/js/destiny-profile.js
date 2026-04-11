@@ -1587,13 +1587,24 @@
         try {
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+          sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
+          localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
+          window.__cdActiveBirthProfile = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        if (typeof cdResolveLocalizedFeatureHref === 'function') {
-          window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
-        } else {
-          window.location.href = '/vedic-astrology.html';
+        var _vdTarget = '/vedic-astrology.html?from=profile-card';
+        try {
+          if (typeof cdResolveLocalizedFeatureHref === 'function') {
+            _vdTarget = cdResolveLocalizedFeatureHref(_vdTarget, (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
+          }
+        } catch (_) {
+          _vdTarget = '/vedic-astrology.html?from=profile-card';
+        }
+        try {
+          window.location.assign(_vdTarget);
+        } catch (_) {
+          window.location.href = '/vedic-astrology.html?from=profile-card';
         }
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
