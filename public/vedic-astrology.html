@@ -1954,8 +1954,25 @@ ${manglikInfo}`;
 
 // ─── PROFILE 정규화 (지역/생일 null 시 서울·기본값 적용, tz = 시간 단위 UTC 오프셋) ─
 function normalizeProfileForVedic(profile){
-  if(!profile||!profile.birth)return profile;
-  const b=profile.birth;
+  if(!profile)return profile;
+  const b=profile.birth||{
+    year:profile.birthYear,
+    month:profile.birthMonth,
+    day:profile.birthDay,
+    hour:profile.birthHour,
+    minute:profile.birthMinute,
+    calType:profile.calType
+  };
+  if(!b||((b.year==null||b.year==='')&&(b.month==null||b.month==='')&&(b.day==null||b.day==='')))return profile;
+  if((b.hour==null||b.hour==='')&&profile.birthHour!=null&&profile.birthHour!=='')b.hour=profile.birthHour;
+  if((b.minute==null||b.minute==='')&&profile.birthMinute!=null&&profile.birthMinute!=='')b.minute=profile.birthMinute;
+  if((b.hour==null||b.hour==='')&&typeof profile.birthTime==='string'){
+    var _tp=profile.birthTime.split(':');
+    if(_tp.length>=2){
+      b.hour=parseInt(_tp[0],10);
+      b.minute=(b.minute==null||b.minute==='')?parseInt(_tp[1],10):b.minute;
+    }
+  }
   const l=profile.location||{};
   const lat=typeof l.lat==='number'&&!isNaN(l.lat)?l.lat:(parseFloat(l.lat)||37.5665);
   const lng=typeof l.lng==='number'&&!isNaN(l.lng)?l.lng:(typeof l.lon==='number'&&!isNaN(l.lon)?l.lon:(parseFloat(l.lng)||parseFloat(l.lon)||126.978));
@@ -2094,6 +2111,15 @@ function _repairProfile(profile){
     profile.birth=profile.birth||{ year:y,month:m,day:d,hour:hr,minute:min };
   }
   const b=profile.birth||{};
+  if((b.hour==null||b.hour==='')&&profile.birthHour!=null&&profile.birthHour!=='')b.hour=profile.birthHour;
+  if((b.minute==null||b.minute==='')&&profile.birthMinute!=null&&profile.birthMinute!=='')b.minute=profile.birthMinute;
+  if((b.hour==null||b.hour===''||b.minute==null||b.minute==='')&&typeof profile.birthTime==='string'){
+    var _timeParts=profile.birthTime.split(':');
+    if(_timeParts.length>=2){
+      if(b.hour==null||b.hour==='')b.hour=parseInt(_timeParts[0],10);
+      if(b.minute==null||b.minute==='')b.minute=parseInt(_timeParts[1],10);
+    }
+  }
   if(b.year==null||b.year==='')b.year=1990;
   if(b.month==null||b.month==='')b.month=1;
   if(b.day==null||b.day==='')b.day=1;

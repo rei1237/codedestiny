@@ -682,8 +682,25 @@
   ────────────────────────────────────────── */
   /** 베다점 등 외부로 넘길 때 location/birth null 보정 (서울 기본값) */
   function _normalizeProfileForVedic(profile) {
-    if (!profile || !profile.birth) return profile;
-    var b = profile.birth;
+    if (!profile) return profile;
+    var b = profile.birth || {
+      year: profile.birthYear,
+      month: profile.birthMonth,
+      day: profile.birthDay,
+      hour: profile.birthHour,
+      minute: profile.birthMinute,
+      calType: profile.calType
+    };
+    if (!b || (b.year == null && b.month == null && b.day == null && profile.birthDate == null)) return profile;
+    if ((b.hour == null || b.hour === '') && profile.birthHour != null && profile.birthHour !== '') b.hour = profile.birthHour;
+    if ((b.minute == null || b.minute === '') && profile.birthMinute != null && profile.birthMinute !== '') b.minute = profile.birthMinute;
+    if ((b.hour == null || b.hour === '' || b.minute == null || b.minute === '') && typeof profile.birthTime === 'string') {
+      var tparts = profile.birthTime.split(':');
+      if (tparts.length >= 2) {
+        if (b.hour == null || b.hour === '') b.hour = parseInt(tparts[0], 10);
+        if (b.minute == null || b.minute === '') b.minute = parseInt(tparts[1], 10);
+      }
+    }
     var l = profile.location || {};
     var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : 37.5665;
     var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : 126.978);
@@ -714,14 +731,24 @@
   }
 
   function _resolveVedicProfileCandidate() {
-    var cur = DPStorage.current();
-    if (cur && cur.birth) return cur;
+    function hasBirth(p) {
+      return !!(p && p.birth && p.birth.year != null && p.birth.month != null && p.birth.day != null);
+    }
+    function hasTime(p) {
+      return !!(p && p.birth && p.birth.hour != null && p.birth.minute != null);
+    }
+    var cur = _normalizeProfileForVedic(DPStorage.current());
+    if (hasBirth(cur)) return cur;
     var list = DPStorage.list();
     if (!Array.isArray(list) || list.length === 0) return null;
+    var firstBirth = null;
     for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].birth) return list[i];
+      var normalized = _normalizeProfileForVedic(list[i]);
+      if (!hasBirth(normalized)) continue;
+      if (!firstBirth) firstBirth = normalized;
+      if (hasTime(normalized)) return normalized;
     }
-    return list[0] || null;
+    return firstBirth;
   }
 
   function _fortuneStartMessage(profileName, type) {
@@ -1090,9 +1117,9 @@
 
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
   window.dpGetDataForVedic = function() {
-    var p = DPStorage.current();
-    if (p && p.birth) return p;
-    return readFormData();
+    var p = _resolveVedicProfileCandidate();
+    if (p && p.birth) return _normalizeProfileForVedic(p);
+    return _normalizeProfileForVedic(readFormData());
   };
 
   function _dpBuildSajuAnalysisSnapshot() {

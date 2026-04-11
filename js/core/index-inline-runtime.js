@@ -5772,7 +5772,57 @@ function closeSukuyoModal() {
 }
 
 function navigateToVedic() {
+  function normalizeVedicProfile(profile) {
+    if (!profile) return null;
+    var b = profile.birth || {
+      year: profile.birthYear,
+      month: profile.birthMonth,
+      day: profile.birthDay,
+      hour: profile.birthHour,
+      minute: profile.birthMinute,
+      calType: profile.calType
+    };
+    if (!b || (b.year == null && b.month == null && b.day == null)) return null;
+    if ((b.hour == null || b.hour === '') && profile.birthHour != null && profile.birthHour !== '') b.hour = profile.birthHour;
+    if ((b.minute == null || b.minute === '') && profile.birthMinute != null && profile.birthMinute !== '') b.minute = profile.birthMinute;
+    if ((b.hour == null || b.hour === '' || b.minute == null || b.minute === '') && typeof profile.birthTime === 'string') {
+      var tparts = profile.birthTime.split(':');
+      if (tparts.length >= 2) {
+        if (b.hour == null || b.hour === '') b.hour = parseInt(tparts[0], 10);
+        if (b.minute == null || b.minute === '') b.minute = parseInt(tparts[1], 10);
+      }
+    }
+    var l = profile.location || {};
+    var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : parseFloat(l.lat);
+    var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : (parseFloat(l.lng) || parseFloat(l.lon)));
+    var tzHours = (typeof l.baseTzOffset === 'number' && !isNaN(l.baseTzOffset)) ? l.baseTzOffset
+      : ((typeof l.tzOffset === 'number' && !isNaN(l.tzOffset)) ? (Math.abs(l.tzOffset) <= 24 ? l.tzOffset : l.tzOffset / 60) : 9);
+    return {
+      id: profile.id,
+      name: profile.name,
+      gender: profile.gender,
+      birth: {
+        year: b.year,
+        month: b.month,
+        day: b.day,
+        hour: b.hour != null ? b.hour : 12,
+        minute: b.minute != null ? b.minute : 0,
+        calType: b.calType || 'solar'
+      },
+      location: {
+        label: l.label || '대한민국 (서울)',
+        tz: l.tz || 'Asia/Seoul',
+        lat: (!isNaN(lat) ? lat : 37.5665),
+        lng: (!isNaN(lng) ? lng : 126.978),
+        tzOffset: tzHours,
+        baseTzOffset: tzHours,
+        dstMinutes: l.dstMinutes
+      }
+    };
+  }
+
   var profile = typeof window.dpGetDataForVedic === 'function' ? window.dpGetDataForVedic() : null;
+  profile = normalizeVedicProfile(profile);
   if (!profile) {
     try {
       var listRaw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
@@ -5780,8 +5830,14 @@ function navigateToVedic() {
       if (listRaw) {
         var arr = JSON.parse(listRaw);
         if (Array.isArray(arr) && arr.length) {
-          profile = currentId ? arr.find(function(p) { return p.id === currentId; }) : null;
-          if (!profile) profile = arr[0];
+          var currentProfile = currentId ? arr.find(function(p) { return p.id === currentId; }) : null;
+          profile = normalizeVedicProfile(currentProfile);
+          if (!profile) {
+            for (var i = 0; i < arr.length; i++) {
+              profile = normalizeVedicProfile(arr[i]);
+              if (profile) break;
+            }
+          }
         }
       }
     } catch (e) {}
@@ -5790,6 +5846,7 @@ function navigateToVedic() {
     try {
       sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
       localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
+      window.FORTUNE_APP_VEDIC_PAYLOAD = profile;
     } catch (e) {}
   }
   window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
