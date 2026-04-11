@@ -6249,6 +6249,43 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return true;
   }
 
+  var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
+
+  async function _cdConfirmMembershipStart(action, contentTitle) {
+    if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
+      return true;
+    }
+    if (sessionStorage.getItem('cd_membership_service_started') === '1') return true;
+
+    if (!window.confirm(__cdMembershipConsentMessage)) return false;
+
+    try {
+      var r = await fetchJsonWithAuth('/api/fortune/pig-coin/profile-subscription/start-service', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: action || 'membership-content',
+          contentTitle: contentTitle || '멤버십 전용 콘텐츠',
+          legalVersion: '2026-04-11'
+        }),
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+        } else {
+          window.alert((r.payload && r.payload.message) || '동의 기록 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+        return false;
+      }
+      sessionStorage.setItem('cd_membership_service_started', '1');
+      return true;
+    } catch (_e) {
+      window.alert('동의 기록 저장 중 오류가 발생했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+  }
+
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
     if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return;
@@ -6277,6 +6314,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _subUser = readAuthUser();
         var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
         if (_subPlan === 'unlimited' || _subPlan === 'premium') {
+          var _subTitleEl = actionNode.querySelector('.tarot-tile__title');
+          var _subContentTitle = _subTitleEl ? _subTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+          var _consentOk = await _cdConfirmMembershipStart(action, _subContentTitle);
+          if (!_consentOk) return;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
           return;
@@ -6455,6 +6496,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _lockSubUser = readAuthUser();
           var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
           if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
+            var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
+            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+            var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
+            if (!_lockConsentOk) return;
             unlockedFeatureMap[tileLockKey] = true;
             saveTileLocks();
             applyTileLockVisuals();

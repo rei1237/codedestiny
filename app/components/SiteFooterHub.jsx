@@ -493,12 +493,14 @@ export default function SiteFooterHub() {
           <div style={{...REFUND_BOX, marginTop: "12px"}}>
             <p style={REFUND_HEAD}>구독형 요금제 환불 기준</p>
             <p style={REFUND_SUMMARY}>
-              구독 코인은 요금제 선택 즉시 차감되며, 전자상거래 등에서의 소비자보호에 관한 법률 및
-              콘텐츠산업 진흥법에 따른 디지털 콘텐츠 환불 정책이 적용됩니다.
+              구독 코인은 요금제 선택 즉시 차감되며, 멤버십 전용 콘텐츠 이용 시 디지털 콘텐츠 서비스 개시로
+              처리됩니다. 관련 환불은 전자상거래법 및 콘텐츠산업 관련 법령을 기준으로 심사됩니다.
             </p>
             <ul style={REFUND_RULES}>
-              <li style={REFUND_RULE_ITEM}>구독 시작 후 <strong>7일 이내</strong>이며, 구독 혜택(해금 콘텐츠 열람, 추가 프로필 생성, AI 리딩 등)을 <strong>전혀 이용하지 않은 경우</strong>에 한해 코인 전액 환원이 가능합니다.</li>
-              <li style={REFUND_RULE_ITEM}>구독 기간 중 해금 콘텐츠 이용, 프로필 생성, AI 해석 실행 등 혜택을 1회라도 사용한 경우, 사용일수 비례 공제 후 잔여분만 환원됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>구독 시작 후 <strong>7일 이내</strong>라도 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면 서비스 이용이 개시된 것으로 보며, 단순 변심 전액 환불은 제한됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>위 이용 기록이 있는 경우 환불은 이용 횟수·이용 기간·제공 혜택·결제대행 수수료 등 관련 기준을 반영해 공제 후 잔여분만 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>콘텐츠 진입 시 노출되는 확인 팝업에서 <strong>[확인]</strong>을 누른 행위는 서비스 개시 및 환불 제한 조건에 대한 전자적 동의로 간주됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>무료 체험 기간 중 멤버십 전용 콘텐츠를 이용한 뒤 유료로 자동 전환된 경우, 이미 서비스가 개시된 것으로 보아 전환 직후 환불이 제한될 수 있습니다.</li>
               <li style={REFUND_RULE_ITEM}>자동 갱신으로 차감된 코인은 갱신일로부터 <strong>24시간 이내</strong>에 미사용 상태인 경우에만 취소 및 환원 신청이 가능합니다.</li>
               <li style={REFUND_RULE_ITEM}>구독 기간이 만료되었거나 이미 갱신이 완료된 회차분은 환원 대상에서 제외됩니다.</li>
               <li style={REFUND_RULE_ITEM}>이벤트·프로모션 할인가로 구독한 경우, 환원 금액은 실제 차감된 코인 기준으로 산정됩니다.</li>

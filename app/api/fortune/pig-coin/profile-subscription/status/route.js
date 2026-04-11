@@ -31,7 +31,7 @@ export async function GET(request) {
 
   try {
     const User = await getUserModel();
-    const user = await User.findById(userId).select("points profileSubscription").lean();
+    const user = await User.findById(userId).select("points profileSubscription has_started_paid_service first_service_access_date").lean();
     if (!user) return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
 
     const sub    = user.profileSubscription || {};
@@ -90,6 +90,8 @@ export async function GET(request) {
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
+      hasStartedPaidService: !!user.has_started_paid_service,
+      firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
     });
   } catch (err) {
     console.error("[profile-subscription/status] error:", err);

@@ -46,7 +46,7 @@ export default function TermsOfServicePage() {
         이용약관 (Terms of Service)
       </h1>
       <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-        시행일: 2026-03-16 / Effective Date: 2026-03-16
+        시행일: 2026-04-11 / Effective Date: 2026-04-11
       </p>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
@@ -135,7 +135,43 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 약관 변경 / Changes to Terms</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 구독형 디지털 콘텐츠 환불 및 청약철회 제한 / Subscription Refund and Withdrawal Limits</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          구독 서비스 가입 후 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면,
+          전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호의
+          디지털 콘텐츠 서비스 개시로 간주됩니다.
+          In such cases, the digital content service is deemed to have started under applicable law.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          따라서 구독 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며,
+          이용 횟수, 이용 기간, 제공된 혜택, 결제대행 수수료 등 합리적 공제 기준을 반영한 잔여분만 환불됩니다.
+          Full refund may be restricted once usage starts, and only the refundable remainder may be returned.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          멤버십 전용 콘텐츠 진입 시 표시되는 안내 팝업에서 확인 버튼을 누르는 행위는,
+          서비스 이용 개시 및 환불 제한 조건에 대한 전자적 동의로 간주됩니다.
+          Pressing Confirm in the notice popup constitutes explicit electronic consent.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          회사는 분쟁 예방과 법령 준수를 위해 팝업 확인 시각, 콘텐츠 식별 정보, 계정 식별자, 접속 기록 등
+          필요한 범위의 로그를 보관할 수 있습니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 자동 결제 전환 / Free Trial and Auto-Renewal Conversion</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우,
+          이후 유료 전환(자동 결제 포함) 직후에는 단순 변심에 의한 즉시 환불이 제한될 수 있습니다.
+          If service use starts during the free trial, immediate post-conversion refund may be restricted.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          다만 강행규정에 따라 환불이 필요한 경우에는 관계 법령 및 결제대행사 정책에 따라 처리합니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>13. 약관 변경 / Changes to Terms</h2>
         <p style={{ lineHeight: 1.75 }}>
           약관이 변경될 경우 시행일과 주요 변경사항을 서비스 내 공지합니다. 변경 후 서비스를 계속 이용하면 개정 약관에 동의한 것으로 간주됩니다.
           Material changes will be announced with a reasonable prior notice period when required.
@@ -143,7 +179,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 준거법 및 관할 / Governing Law and Jurisdiction</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>14. 준거법 및 관할 / Governing Law and Jurisdiction</h2>
         <p style={{ lineHeight: 1.75 }}>
           본 약관은 대한민국 법령을 준거법으로 하며, 관련 분쟁은 관련 법령에 따른 관할 법원에 제기합니다.
           These Terms are governed by the laws of the Republic of Korea.
@@ -151,7 +187,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>13. 문의 / Contact</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>15. 문의 / Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
           서비스명: Code Destiny
           <br />

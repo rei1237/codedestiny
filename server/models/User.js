@@ -113,6 +113,11 @@ const userSchema = new mongoose.Schema({
     expiresAt:  { type: Date, default: null },
     firstSubAt: { type: Date, default: null },
   },
+  // 구독형 디지털 콘텐츠 서비스 개시 기록
+  // - 멤버십 전용 콘텐츠 열람 확인 팝업의 [확인] 클릭 시 true
+  // - 환불 분쟁 대응용 최초 개시 시각 보관
+  has_started_paid_service: { type: Boolean, default: false, index: true },
+  first_service_access_date: { type: Date, default: null },
 }, {
   timestamps: true,
 });

@@ -239,7 +239,7 @@ const PROFILE_SUB_PLANS = {
 router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
   try {
     const user = await User.findById(req.auth.userId)
-      .select("points profileSubscription")
+      .select("points profileSubscription has_started_paid_service first_service_access_date")
       .lean();
     if (!user) return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
 
@@ -303,6 +303,85 @@ router.get("/pig-coin/profile-subscription/status", async (req, res, next) => {
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
+      hasStartedPaidService: !!user.has_started_paid_service,
+      firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/* POST /api/fortune/pig-coin/profile-subscription/start-service
+   body: { action?: string, contentTitle?: string, legalVersion?: string }
+   - 멤버십 전용 콘텐츠 열람 전 확인 팝업 [확인] 동의 및 서비스 개시 기록
+*/
+router.post("/pig-coin/profile-subscription/start-service", async (req, res, next) => {
+  try {
+    const action = String(req.body?.action || "membership-content")
+      .trim()
+      .slice(0, 80);
+    const contentTitle = String(req.body?.contentTitle || "멤버십 전용 콘텐츠")
+      .trim()
+      .slice(0, 120);
+    const legalVersion = String(req.body?.legalVersion || "2026-04-11")
+      .trim()
+      .slice(0, 20);
+
+    const now = new Date();
+    const user = await User.findById(req.auth.userId)
+      .select("profileSubscription has_started_paid_service first_service_access_date points")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "사용자 정보를 찾을 수 없습니다." });
+    }
+
+    const tier = String(user.profileSubscription?.tier || "free");
+    if (tier === "free") {
+      return res.status(403).json({ message: "구독 사용자만 이용할 수 있습니다." });
+    }
+
+    const alreadyStarted = !!user.has_started_paid_service;
+    let startedAt = user.first_service_access_date ? new Date(user.first_service_access_date) : null;
+
+    if (!alreadyStarted) {
+      const updated = await User.findOneAndUpdate(
+        { _id: req.auth.userId, has_started_paid_service: { $ne: true } },
+        {
+          $set: {
+            has_started_paid_service: true,
+            first_service_access_date: now,
+          },
+        },
+        { new: true, projection: { points: 1, first_service_access_date: 1 } },
+      ).lean();
+
+      if (updated?.first_service_access_date) {
+        startedAt = new Date(updated.first_service_access_date);
+      }
+    }
+
+    await PointHistory.create({
+      userId: req.auth.userId,
+      kind: "adjust",
+      delta: 0,
+      balanceAfter: Number(user.points || 0),
+      reason: "멤버십 전용 콘텐츠 열람 동의 및 서비스 개시 기록",
+      featureKey: "profile-subscription-service-start",
+      metadata: {
+        action,
+        contentTitle,
+        legalVersion,
+        acknowledgedAt: now.toISOString(),
+      },
+    }).catch(() => {});
+
+    return res.status(200).json({
+      ok: true,
+      started: true,
+      alreadyStarted,
+      hasStartedPaidService: true,
+      firstServiceAccessDate: startedAt ? startedAt.toISOString() : now.toISOString(),
     });
   } catch (error) {
     return next(error);
