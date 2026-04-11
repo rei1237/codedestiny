@@ -14,6 +14,10 @@ const GEMINI_ENDPOINT =
  * → 환경변수에 등록된 모든 키를 순서대로 시도
  */
 function pickGeminiKeys() {
+  const extra = String(process.env.GEMINI_API_KEYS || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
   return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
@@ -22,6 +26,12 @@ function pickGeminiKeys() {
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
     process.env.GOOGLE_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GOOGLE_API_KEY_4,
+    process.env.GEMINI_API_KEY_CF,
+    process.env.GOOGLE_API_KEY_CF,
+    process.env.LIFEBOOK_API_KEY_CF,
+    ...extra,
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);
@@ -71,7 +81,7 @@ function pickLifebookModels() {
     .map((v) => v.trim())
     .filter(Boolean);
 
-  const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"];
+  const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
   return unique([...configured, ...defaults]);
 }
 

@@ -422,8 +422,26 @@ export const VEDIC_CHAPTER_META = [
 // Gemini API
 // ─────────────────────────────────────────────────────────────────
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
-function pickKeys() { return [process.env.GEMINI_API_KEY,process.env.GOOGLE_API_KEY,process.env.GEMINI_API_KEY_2,process.env.GOOGLE_API_KEY_2,process.env.GEMINI_API_KEY_3,process.env.GOOGLE_API_KEY_3].map(v=>String(v||"").trim()).filter(Boolean); }
-function pickModels() { return ["gemini-2.5-flash","gemini-2.5-pro","gemini-2.0-flash","gemini-2.0-flash-lite"]; }
+function pickKeys() {
+  const extra = String(process.env.GEMINI_API_KEYS || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GOOGLE_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+    process.env.GOOGLE_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GOOGLE_API_KEY_4,
+    process.env.GEMINI_API_KEY_CF,
+    process.env.GOOGLE_API_KEY_CF,
+    ...extra,
+  ].map(v=>String(v||"").trim()).filter(Boolean);
+}
+function pickModels() { return ["gemini-2.5-flash","gemini-2.0-flash","gemini-2.0-flash-lite"]; }
 function parseText(p: unknown): string {
   const pp = p as {candidates?:{content?:{parts?:{text?:string}[]}}[]};
   for (const c of pp?.candidates??[]) for (const pt of c?.content?.parts??[]) if (pt?.text?.trim()) return pt.text.trim();

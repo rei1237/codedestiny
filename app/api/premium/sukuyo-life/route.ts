@@ -36,6 +36,10 @@ const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
 function pickGeminiKeys(): string[] {
+  const extra = String(process.env.GEMINI_API_KEYS || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
   return [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
@@ -43,6 +47,11 @@ function pickGeminiKeys(): string[] {
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
     process.env.GOOGLE_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GOOGLE_API_KEY_4,
+    process.env.GEMINI_API_KEY_CF,
+    process.env.GOOGLE_API_KEY_CF,
+    ...extra,
   ]
     .map((v) => String(v ?? "").trim())
     .filter(Boolean);
@@ -50,7 +59,7 @@ function pickGeminiKeys(): string[] {
 
 function pickGeminiModels(): string[] {
   const env = String(process.env.PSYCHO_ANALYSIS_GEMINI_MODEL ?? "").trim();
-  const base = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
+  const base = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
   return env ? [env, ...base] : base;
 }
 
