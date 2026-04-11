@@ -180,35 +180,17 @@ img.img-fallback-broken {
 /* ═══════════ 꽃돼지/백사자 모드 토글 피ꞵ ═══════════ */
 .theme-switch-wrapper {
   position: fixed !important;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
   left: auto;
-  right: max(14px, env(safe-area-inset-right, 0px));
-  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  top: auto;
   transform: none;
   z-index: 2147483000;
-  display: flex;
-  align-items: center;
-  gap: 0;
   pointer-events: auto;
   isolation: isolate;
-  background: transparent;
-  padding: 0;
-  border: none;
-  box-shadow: none;
-  backdrop-filter: none;
 }
-/* 스크린리더용 라이브 리전 - 시각적 숨김 */
-.theme-toggle-label {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0 0 0 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-/* 체크박스 시각적 숨김 (접근성 유지) */
+/* visually hidden – accessible */
+.theme-toggle-label,
 .tsw-input {
   position: absolute !important;
   width: 1px !important;
@@ -216,84 +198,130 @@ img.img-fallback-broken {
   padding: 0 !important;
   margin: -1px !important;
   overflow: hidden !important;
-  clip: rect(0 0 0 0) !important;
+  clip: rect(0,0,0,0) !important;
   white-space: nowrap !important;
   border: 0 !important;
 }
-/* 슬라이딩 필 토글 */
+/* pill container */
 .theme-switch-pill {
+  --seg: 80px;
+  --pad: 4px;
   display: inline-flex;
   align-items: center;
-  padding: 4px;
+  padding: var(--pad);
   border-radius: 100px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1.5px solid rgba(255, 183, 178, 0.5);
-  box-shadow: 0 4px 22px rgba(255, 105, 135, 0.16), 0 2px 8px rgba(0,0,0,0.07);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-  position: relative;
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid rgba(255,160,182,0.5);
+  box-shadow:
+    0 8px 32px rgba(255,80,130,0.15),
+    0 2px 10px rgba(0,0,0,0.06),
+    inset 0 1px 0 #fff;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  transition:
+    transform 0.2s cubic-bezier(0.4,0,0.2,1),
+    background 0.42s ease,
+    border-color 0.42s ease,
+    box-shadow 0.42s ease;
 }
+.theme-switch-pill:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 44px rgba(255,80,130,0.2),
+    0 4px 14px rgba(0,0,0,0.08),
+    inset 0 1px 0 #fff;
+}
+.theme-switch-pill:active {
+  transform: translateY(0) scale(0.97);
+}
+/* segment cells */
 .tsp-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 7px 14px;
-  border-radius: 100px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
   position: relative;
   z-index: 1;
-  width: 76px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  transition: color 0.35s ease;
+  gap: 5px;
+  width: var(--seg, 80px);
+  padding: 9px 0;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  white-space: nowrap;
   pointer-events: none;
+  transition: color 0.38s ease;
 }
+.tsp-icon { font-size: 1.05rem; line-height: 1; pointer-events: none; }
 .tsp-name { pointer-events: none; }
-.tsp-pig  { color: #ff527a; }
-.tsp-lion { color: #c0c0c0; }
-/* 슬라이딩 썸 */
+.tsp-pig  { color: #e0305f; }
+.tsp-lion { color: #a8a8b8; }
+/* sliding thumb */
 .theme-switch-pill::before {
   content: '';
   position: absolute;
-  top: 4px;
-  left: 4px;
-  bottom: 4px;
-  width: 76px;
+  top: var(--pad, 4px);
+  bottom: var(--pad, 4px);
+  left: var(--pad, 4px);
+  width: var(--seg, 80px);
   border-radius: 100px;
-  background: linear-gradient(135deg, #ffb3c8 0%, #ff85a3 100%);
-  box-shadow: 0 2px 10px rgba(255, 100, 130, 0.3);
-  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-              background 0.38s ease,
-              box-shadow 0.38s ease;
+  background: linear-gradient(140deg, #ffe0ec 0%, #ffb0cc 50%, #ff82ae 100%);
+  box-shadow:
+    0 4px 14px rgba(255,90,145,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+  pointer-events: none;
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.42s ease,
+    box-shadow 0.42s ease;
 }
-/* 체크됨 = 백사자 쌈바 모드 */
+/* ── CHECKED = 백사자 쌈바 mode ── */
+#themeCheckbox:checked + .theme-switch-pill {
+  background: rgba(10,10,18,0.97);
+  border-color: rgba(255,215,0,0.3);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.5),
+    0 2px 10px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+#themeCheckbox:checked + .theme-switch-pill:hover {
+  box-shadow:
+    0 14px 44px rgba(255,215,0,0.14),
+    0 4px 16px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
 #themeCheckbox:checked + .theme-switch-pill::before {
-  transform: translateX(76px);
-  background: linear-gradient(135deg, #38384a 0%, #24242e 100%);
-  box-shadow: 0 2px 14px rgba(255, 215, 0, 0.28);
+  transform: translateX(var(--seg, 80px));
+  background: linear-gradient(140deg, #26263a 0%, #1b1b2c 50%, #10101e 100%);
+  box-shadow:
+    0 4px 18px rgba(255,215,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.07);
 }
-#themeCheckbox:checked + .theme-switch-pill .tsp-pig  { color: #999; }
+#themeCheckbox:checked + .theme-switch-pill .tsp-pig  { color: rgba(255,255,255,0.2); }
 #themeCheckbox:checked + .theme-switch-pill .tsp-lion { color: #FFD700; }
-/* 키보드 포커스 링 */
+/* focus ring */
 .tsw-input:focus-visible + .theme-switch-pill {
-  outline: 2.5px solid #ff527a;
+  outline: 2.5px solid #e0305f;
   outline-offset: 3px;
 }
 body.neo-mode .tsw-input:focus-visible + .theme-switch-pill {
   outline-color: #FFD700;
 }
-/* 백사자 모드 - 필 다크 스타일 */
+/* js-class fallback for neo-mode pill */
 body.neo-mode .theme-switch-pill {
-  background: rgba(22, 22, 34, 0.96);
-  border-color: rgba(255, 215, 0, 0.22);
-  box-shadow: 0 4px 22px rgba(255, 215, 0, 0.12), 0 2px 8px rgba(0,0,0,0.5);
+  background: rgba(10,10,18,0.97);
+  border-color: rgba(255,215,0,0.3);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.5),
+    0 2px 10px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* ─── Divine Focus Mode (Tarot) ─── */
