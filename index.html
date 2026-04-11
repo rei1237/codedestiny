@@ -1748,6 +1748,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </a>
 
+            <!-- [기능 연결부] 천체의 선율 → /celestial-harmony.html -->
+            <a class="tarot-tile tarot-tile--celestial-harmony" href="/celestial-harmony.html"
+               data-action="openCelestialHarmony"
+               data-coin-cost="100"
+               aria-label="천체의 선율 타로 리딩 시작">
+              <div class="tarot-tile__img-wrap" data-img-src="/images/Celestial%20Harmony.webp" data-img-alt="천체의 선율 — 행성 11카드 심층 타로 리딩">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/images/Celestial%20Harmony.webp" alt="천체의 선율 — 행성 11카드 심층 타로 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
+                <span class="tarot-tile__badge tarot-tile__badge--new">CELESTIAL</span>
+                <span class="tarot-tile__coin-badge">1회 100코인</span>
+              </div>
+              <div class="tarot-tile__body">
+                <span class="tarot-tile__title">✨ 천체의 선율</span>
+                <span class="tarot-tile__desc">행성 11카드 코즈믹 리딩</span>
+              </div>
+            </a>
+
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
@@ -6716,6 +6732,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','완전 무료 — 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
     openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'헤어진 그 사람 진짜 돌아올 수 있을까 — 5장의 타로가 재회 가능성을 직접 말합니다',feats:['재회 가능성을 직접 분석 & 수치로 제시','그 사람이 지금 나를 어떻게 생각하는지 리딩','재회를 위한 최적 타이밍 & 구체적 행동 전략','이별 원인 분석 후 실전 재회 어드바이스 제공'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
     openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
+    openCelestialHarmony:{cat:'코즈믹 타로 · 천체의 선율',title:'✨ 천체의 선율',tagline:'행성의 상징성과 타로 아르카나를 1:1로 결합한 11카드 리딩으로, 당신의 성향·감정·재정·관계까지 정밀 해석합니다.',feats:['태양~명왕성 질문축 기반 11포지션 정밀 해석','각 카드별 핵심 통찰·패턴·실행 조언·확언 제공','마지막 황금빛 카드로 전체 흐름 통합 정리','힐링·응원 메시지로 오늘의 실천 방향 제시'],cost:'🪙 100코인',ct:'paid',img:'/images/Celestial%20Harmony.webp'},
     openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'동양 명리학과 서양 타로가 동시에 같은 답을 가리킬 때 — 그것이 진짜 운명의 방향입니다',feats:['78장 타로 + 사주 명리학 프레임 교차 분석','사주와 타로가 동시에 가리키는 핵심 메시지 추출','지금 내 상황에 꼭 맞는 카드 배열 선택','AI 심층 리딩으로 구체적인 방향 제시'],cost:'30코인',ct:'paid',img:'/fuctionassets/ai%20tarrot.webp'},
     openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'타짜가 뒤집는 화투패에 오늘의 운명이 숨어 있습니다 — 12달 꽃패로 보는 직설 운세',feats:['한국 전통 화투패 12달 운세 완전 리딩','월별 꽃패 상징 심층 해석 — 재물·사랑·시험','타짜식 직설 화법으로 꾸밈없는 운세 제공','완전 무료 — 지금 내 패를 뒤집어 보세요'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/tazza.webp'},
     openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'파라오들이 전쟁·혼인·국가 대사를 결정할 때 물었던 그 신탁 — 오늘 당신의 차례입니다',feats:['고대 이집트 47개 신 오라클 카드 리딩','오늘의 질문에 직접 답하는 신탁 메시지 제공','재물·사랑·진로 방향 신비로운 방식으로 해석','고대 케멧 신비주의 아트 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/egypt.webp'},

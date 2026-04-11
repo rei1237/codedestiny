@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>천체의 선율 | Celestial Harmony</title>
+  <style>
+    :root {
+      --bg-0: #080a1e;
+      --bg-1: #111633;
+      --gold-0: #f5d06f;
+      --gold-1: #b98624;
+      --ink-0: #f7f2e8;
+      --ink-1: #ccb98f;
+      --panel: rgba(13, 17, 42, 0.86);
+      --line: rgba(226, 188, 104, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
+      color: var(--ink-0);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(106, 83, 194, 0.24), transparent 42%),
+        radial-gradient(circle at 78% 16%, rgba(240, 181, 77, 0.2), transparent 40%),
+        linear-gradient(160deg, var(--bg-0), var(--bg-1));
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+    .wrap {
+      width: min(1080px, 94vw);
+      margin: 0 auto;
+      padding: 26px 0 64px;
+    }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(25, 23, 51, 0.88), rgba(11, 14, 36, 0.92));
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+      animation: fadeUp 0.7s ease-out;
+    }
+    .hero img {
+      width: 100%;
+      height: min(300px, 42vw);
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-body { padding: 20px 22px 24px; }
+    .eyebrow {
+      color: var(--ink-1);
+      letter-spacing: 0.12em;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 8px 0 8px;
+      font-size: clamp(1.6rem, 2.7vw, 2.3rem);
+      color: var(--gold-0);
+      text-shadow: 0 0 24px rgba(214, 167, 70, 0.42);
+    }
+    .lead { margin: 0; color: #e5d8b9; }
+    .toolbar {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button {
+      border: 1px solid rgba(226, 188, 104, 0.56);
+      border-radius: 999px;
+      background: linear-gradient(120deg, #2c2350, #4b3678);
+      color: #fff4d7;
+      padding: 11px 18px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button:disabled { opacity: 0.65; cursor: not-allowed; }
+    .board {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: var(--panel);
+      min-height: 148px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .card h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      color: #f3dd9f;
+    }
+    .card .q {
+      margin: 4px 0 8px;
+      color: #ddd0b0;
+      font-size: 0.92rem;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(245, 208, 111, 0.14);
+      border: 1px solid rgba(245, 208, 111, 0.35);
+      color: #f6dd9a;
+      font-size: 0.82rem;
+    }
+    .results {
+      margin-top: 20px;
+      display: none;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .result-item {
+      border: 1px solid rgba(226, 188, 104, 0.28);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(7, 10, 30, 0.88);
+    }
+    .result-item h4 { margin: 0 0 10px; color: #f5dc9d; }
+    .result-item p { margin: 0 0 9px; }
+    .result-item strong { color: #f0d389; }
+    .golden {
+      margin-top: 20px;
+      display: none;
+      border-radius: 18px;
+      border: 1px solid rgba(245, 208, 111, 0.72);
+      padding: 20px;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255, 230, 153, 0.21), transparent 48%),
+        linear-gradient(145deg, rgba(93, 59, 14, 0.44), rgba(24, 16, 36, 0.9));
+      box-shadow: 0 18px 50px rgba(214, 167, 70, 0.22);
+    }
+    .golden h3 {
+      margin: 0 0 8px;
+      color: #ffeaad;
+      font-size: 1.26rem;
+    }
+    .notice { margin-top: 12px; color: #d2c299; font-size: 0.9rem; }
+    .muted { opacity: 0.86; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 680px) {
+      .hero-body { padding: 16px; }
+      .card { min-height: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <img src="/images/Celestial%20Harmony.webp" alt="Celestial Harmony tarot visual" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
+      <div class="hero-body">
+        <div class="eyebrow">Celestial Harmony Tarot Master</div>
+        <h1>천체의 선율 11카드 리딩</h1>
+        <p class="lead">행성 11축 질문에 타로를 대응시켜 깊이 있는 해석을 제공합니다. 마지막에는 황금빛 통합 카드로 흐름을 정리하고, 힐링과 응원 메시지를 전합니다.</p>
+        <div class="toolbar">
+          <button id="drawBtn">카드 배치하기</button>
+          <button id="readBtn" disabled>Gemini 상세 리딩 받기</button>
+          <button id="resetBtn">다시 시작</button>
+        </div>
+        <p class="notice">이 서비스는 메인에서 1회 100코인 결제 후 이용됩니다.</p>
+      </div>
+    </section>
+
+    <section id="board" class="board"></section>
+    <section id="results" class="results"></section>
+    <section id="golden" class="golden"></section>
+  </main>
+
+  <script>
+    (function () {
+      var PLANETS = [
+        { name: "태양", symbol: "☉", question: "다른 사람들이 나에게서 가장 먼저 알아보는 것은 무엇인가" },
+        { name: "수성", symbol: "☿", question: "나는 다른 사람들과 어떻게 지적으로 교류하는가" },
+        { name: "금성", symbol: "♀", question: "나는 내 삶에서 다른 사람들을 어떻게 사랑하는가" },
+        { name: "지구", symbol: "⊕", question: "무엇이 나를 안정적인 사람으로 만드는가" },
+        { name: "달", symbol: "☽", question: "내가 가장 강하게 느끼는 감정은 무엇인가" },
+        { name: "화성", symbol: "♂", question: "나는 대립이나 갈등 상황에 어떻게 대처하는가" },
+        { name: "목성", symbol: "♃", question: "나는 재정적인 삶을 어떻게 관리하는가" },
+        { name: "토성", symbol: "♄", question: "나는 어떻게 더 규율을 잘 지킬 수 있는가" },
+        { name: "천왕성", symbol: "♅", question: "내 삶에서 나를 옭아매는 제약은 무엇인가" },
+        { name: "해왕성", symbol: "♆", question: "나는 어떻게 무조건적인 사랑을 보여줄 수 있는가" },
+        { name: "명왕성", symbol: "♇", question: "내 삶에서 변형하고 탈바꿈해야 할 것은 무엇인가" }
+      ];
+
+      var MAJOR = [
+        { n: "바보", en: "The Fool", r: "0" }, { n: "마법사", en: "The Magician", r: "I" },
+        { n: "여사제", en: "The High Priestess", r: "II" }, { n: "여황제", en: "The Empress", r: "III" },
+        { n: "황제", en: "The Emperor", r: "IV" }, { n: "교황", en: "The Hierophant", r: "V" },
+        { n: "연인", en: "The Lovers", r: "VI" }, { n: "전차", en: "The Chariot", r: "VII" },
+        { n: "힘", en: "Strength", r: "VIII" }, { n: "은둔자", en: "The Hermit", r: "IX" },
+        { n: "운명의 바퀴", en: "Wheel of Fortune", r: "X" }, { n: "정의", en: "Justice", r: "XI" },
+        { n: "매달린 자", en: "The Hanged Man", r: "XII" }, { n: "죽음", en: "Death", r: "XIII" },
+        { n: "절제", en: "Temperance", r: "XIV" }, { n: "악마", en: "The Devil", r: "XV" },
+        { n: "탑", en: "The Tower", r: "XVI" }, { n: "별", en: "The Star", r: "XVII" },
+        { n: "달", en: "The Moon", r: "XVIII" }, { n: "태양", en: "The Sun", r: "XIX" },
+        { n: "심판", en: "Judgement", r: "XX" }, { n: "세계", en: "The World", r: "XXI" }
+      ];
+
+      var drawBtn = document.getElementById("drawBtn");
+      var readBtn = document.getElementById("readBtn");
+      var resetBtn = document.getElementById("resetBtn");
+      var board = document.getElementById("board");
+      var results = document.getElementById("results");
+      var golden = document.getElementById("golden");
+
+      var spread = [];
+      var goldenCard = null;
+
+      function shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = a[i];
+          a[i] = a[j];
+          a[j] = t;
+        }
+        return a;
+      }
+
+      function renderSpread() {
+        board.innerHTML = spread.map(function (item, idx) {
+          return "<article class=\"card\" style=\"animation-delay:" + (idx * 0.03).toFixed(2) + "s\">"
+            + "<h3>카드 " + (idx + 1) + " - " + item.planet.symbol + " " + item.planet.name + "</h3>"
+            + "<p class=\"q\">" + item.planet.question + "</p>"
+            + "<span class=\"pill\">" + item.tarot.r + " " + item.tarot.n + " · " + item.tarot.en + "</span>"
+            + "</article>";
+        }).join("");
+      }
+
+      function renderResult(result) {
+        var perCard = Array.isArray(result?.perCard) ? result.perCard : [];
+        results.style.display = "grid";
+        results.innerHTML = perCard.map(function (item) {
+          return "<article class=\"result-item\">"
+            + "<h4>" + item.idx + ". " + (item.planet || "") + " - " + (item.cardName || "") + "</h4>"
+            + "<p><strong>질문</strong> " + (item.question || "") + "</p>"
+            + "<p><strong>핵심 해석</strong> " + (item.core || "") + "</p>"
+            + "<p><strong>패턴 분석</strong> " + (item.patterns || "") + "</p>"
+            + "<p><strong>실행 조언</strong> " + (item.advice || "") + "</p>"
+            + "<p><strong>오늘의 행동</strong> " + (item.action || "") + "</p>"
+            + "<p><strong>확언</strong> " + (item.affirmation || "") + "</p>"
+            + "</article>";
+        }).join("");
+
+        var g = result?.finalGolden || {};
+        golden.style.display = "block";
+        golden.innerHTML = ""
+          + "<h3>" + (g.title || "황금빛 통합 카드") + "</h3>"
+          + "<p class=\"pill\">" + (g.goldenCard || "") + "</p>"
+          + "<p><strong>전체 흐름 요약</strong> " + (g.summary || "") + "</p>"
+          + "<p><strong>톤앤매너 정리</strong> " + (g.toneManner || "") + "</p>"
+          + "<p><strong>힐링 메시지</strong> " + (g.healing || "") + "</p>"
+          + "<p><strong>응원 메시지</strong> " + (g.encouragement || "") + "</p>";
+      }
+
+      drawBtn.addEventListener("click", function () {
+        var deck = shuffle(MAJOR);
+        spread = PLANETS.map(function (planet, i) {
+          return { planet: planet, tarot: deck[i] };
+        });
+        goldenCard = deck[11] || deck[0];
+        renderSpread();
+        readBtn.disabled = false;
+        results.style.display = "none";
+        results.innerHTML = "";
+        golden.style.display = "none";
+        golden.innerHTML = "";
+      });
+
+      readBtn.addEventListener("click", async function () {
+        if (!spread.length) return;
+        readBtn.disabled = true;
+        readBtn.textContent = "Gemini가 심층 리딩 중...";
+
+        try {
+          var cards = spread.map(function (s, idx) {
+            return {
+              idx: idx + 1,
+              planet: s.planet.name,
+              symbol: s.planet.symbol,
+              question: s.planet.question,
+              tarot: s.tarot
+            };
+          });
+
+          var response = await fetch("/api/celestial-harmony", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cards: cards, goldenCard: goldenCard })
+          });
+          var payload = await response.json();
+          if (!payload?.ok || !payload?.result) {
+            throw new Error(payload?.message || "리딩 생성 실패");
+          }
+          renderResult(payload.result);
+        } catch (error) {
+          window.alert("리딩 생성 중 오류가 발생했습니다: " + (error?.message || "unknown"));
+        } finally {
+          readBtn.disabled = false;
+          readBtn.textContent = "Gemini 상세 리딩 받기";
+        }
+      });
+
+      resetBtn.addEventListener("click", function () {
+        spread = [];
+        goldenCard = null;
+        board.innerHTML = "";
+        results.style.display = "none";
+        results.innerHTML = "";
+        golden.style.display = "none";
+        golden.innerHTML = "";
+        readBtn.disabled = true;
+      });
+    })();
+  </script>
+</body>
+</html>
