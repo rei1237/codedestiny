@@ -663,13 +663,13 @@ body.lb-modal-open {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1.5px solid rgba(124,58,237,0.35);
+  border: 1.5px solid rgba(140,90,255,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.62rem;
-  color: rgba(167,139,250,0.45);
-  background: rgba(16,8,48,0.6);
+  color: rgba(196,168,255,0.7);
+  background: rgba(20,10,56,0.75);
   transition: all 0.4s ease;
   font-family: 'Gowun Dodum', serif;
 }
@@ -1882,19 +1882,23 @@ body.lb-modal-open {
 }
 
 .lb-loading__symbol {
-  font-size: 3rem;
+  font-size: 3.2rem;
   line-height: 1;
   animation: lb-pulse 2.2s ease-in-out infinite;
-  filter: drop-shadow(0 0 20px rgba(124,58,237,0.55));
+  filter:
+    drop-shadow(0 0 28px rgba(138,78,255,0.75))
+    drop-shadow(0 0 12px rgba(245,200,80,0.5));
 }
 
 .lb-loading__status {
-  font-size: 0.92rem;
-  color: var(--lb-gold, #f5d78e);
+  font-size: 0.96rem;
+  color: #ffe394;
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.03em;
-  text-shadow: 0 0 16px rgba(245,200,80,0.4);
+  text-shadow:
+    0 0 20px rgba(255,210,60,0.75),
+    0 1px 4px rgba(0,0,0,0.5);
   min-height: 1.4em;
 }
 
@@ -1908,8 +1912,8 @@ body.lb-modal-open {
 }
 
 .lb-progress__bar-bg {
-  height: 5px;
-  background: rgba(109,40,217,0.18);
+  height: 6px;
+  background: rgba(109,40,217,0.32);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1917,16 +1921,18 @@ body.lb-modal-open {
 .lb-progress__bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #7c3aed, var(--lb-gold, #f5d78e));
+  background: linear-gradient(90deg, #8b5cf6, #fbbf24, #ffe394);
   border-radius: 999px;
   transition: width 0.7s ease;
-  box-shadow: 0 0 8px rgba(245,200,80,0.4);
+  box-shadow: 0 0 12px rgba(251,191,36,0.55), 0 0 4px rgba(139,92,246,0.4);
 }
 
 .lb-progress__text {
-  font-size: 0.8rem;
-  color: #7c6fa0;
+  font-size: 0.82rem;
+  color: #c4aeed;
+  font-weight: 600;
   text-align: right;
+  text-shadow: 0 0 8px rgba(164,144,240,0.35);
 }
 
 .lb-loading__chapter-wrap {
@@ -1940,23 +1946,26 @@ body.lb-modal-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(124,58,237,0.1);
-  border: 1px solid rgba(167,139,250,0.2);
+  background: rgba(124,58,237,0.22);
+  border: 1px solid rgba(167,139,250,0.45);
   border-radius: 20px;
-  padding: 6px 16px;
+  padding: 7px 18px;
+  box-shadow: 0 2px 18px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .lb-loading__chapter-num {
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
   letter-spacing: 0.14em;
-  color: var(--lb-amethyst, #a78bfa);
+  color: #fad55c;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(250,196,40,0.6);
 }
 
 .lb-loading__chapter-title {
-  font-size: 0.88rem;
-  color: var(--lb-lilac, #c4b5fd);
+  font-size: 0.9rem;
+  color: rgba(242,234,255,0.97);
+  font-weight: 500;
   min-height: 1.3em;
 }
 
@@ -1969,21 +1978,23 @@ body.lb-modal-open {
 }
 
 .lb-ch-dot--pending {
-  opacity: 0.4;
+  opacity: 0.52;
 }
 
 .lb-loading__mystic {
-  font-size: 0.82rem;
-  color: rgba(196,181,253,0.8);
+  font-size: 0.84rem;
+  color: rgba(228,214,255,0.96);
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.65;
   text-align: center;
   max-width: 320px;
   margin: 0;
-  background: rgba(124,58,237,0.08);
-  border: 1px solid rgba(196,181,253,0.18);
+  background: rgba(124,58,237,0.16);
+  border: 1px solid rgba(196,181,253,0.35);
   border-radius: 12px;
-  padding: 10px 16px;
+  padding: 11px 18px;
+  box-shadow: 0 2px 18px rgba(124,58,237,0.14);
+  text-shadow: 0 1px 6px rgba(80,40,160,0.4);
 }
 
 /* ── 결과 화면 ── */
