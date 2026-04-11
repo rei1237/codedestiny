@@ -4,9 +4,9 @@ export const SERVICE_SECTIONS = [
     title: "핵심 운세",
     items: [
       { href: "/saju/basic", title: "사주 만세력", desc: "오행·십성 기반 명식 해석" },
-      { href: "/ziwei/chart", title: "자미두수 명반", desc: "12궁 운명 지도 분석" },
-      { href: "/astrology/cosmic", title: "점성술 코즈믹", desc: "태양·달·상승궁 해석" },
-      { href: "/vedic/jyotish", title: "베다 점성술", desc: "낙샤트라·다샤 흐름" },
+      { href: "/ziwei/chart", title: "자미두수 명반", desc: "기본 서비스 무료 · 궁합 50코인" },
+      { href: "/astrology/cosmic", title: "점성술 코즈믹", desc: "기본 서비스 무료 · 궁합 50코인" },
+      { href: "/vedic/jyotish", title: "베다 점성술", desc: "기본 서비스 무료 · 궁합 50코인" },
     ],
   },
   {
@@ -29,7 +29,7 @@ export const SERVICE_SECTIONS = [
       { href: "/oracle/hwatu-life", title: "화투 인생 패 테스트", desc: "타짜 컨셉 7문항 심리테스트" },
       { href: "/oracle/kemet", title: "고대 이집트 신탁", desc: "케멧 오라클 리딩" },
       { href: "/oracle/juyuk", title: "주역 거북점", desc: "64괘 상징 해석" },
-      { href: "/oracle/sukuyo", title: "숙요점", desc: "27수 별자리 운명" },
+      { href: "/oracle/sukuyo", title: "숙요점", desc: "기본 서비스 무료 · 궁합 50코인" },
       { href: "/oracle/rune", title: "스톤헨지 룬 오라클", desc: "고대 룬 상징 리딩" },
       { href: "/geomancy-oracle-v4.html", title: "지오맨시 흙점", desc: "대지의 징후 16행 신탁" },
       { href: "/royal-tea-oracle.html", title: "타세오그래피 찻잎 점", desc: "런던 로열 컵 문양 리딩" },
