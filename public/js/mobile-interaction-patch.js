@@ -538,7 +538,8 @@
     gotoZiweiPremium: ['js/ziwei-book.js?v=20260410-v2'],
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260410-v1'],
-    gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1']
+    gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1'],
+    openSibylModal: ['js/sibyl-system.js?v=20260414']
   };
 
   function normalizeScriptSrc(src) {

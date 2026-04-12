@@ -947,6 +947,7 @@ var __cdLazyActionLoaders = {
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
+  openSibylModal: function() { return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260414'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1679,44 +1680,18 @@ function __cdBindAnimalTotemTileDirect() {
       if (!window.__cdAdminBypass) {
         var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
         var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
-        if (_coinCost > 0 && _tile) {
-          if (!_tile.getAttribute('data-pvw-bypass')) {
-            // [1] pvw-bypass 없음: Preview Panel 표시 후 무조건 차단
-            // _cdOpenTilePreview 반환값(rAF 타이밍 버그로 항상 false)에 무관하게 return
-            if (typeof window._cdOpenTilePreview === 'function') {
-              window._cdOpenTilePreview(_tile);
-            }
-            return; // 코인 없이는 절대 열지 않음
-          }
-          // [2] pvw-bypass 있음: Preview CTA 클릭 후 → 반드시 코인 차감
+        if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
+          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
           if (typeof window._cdCoinGatePerUse === 'function') {
             window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
-          } else {
-            // destiny-profile.js 미로드 시 직접 로드 후 재시도
-            loadScriptOnce('/js/destiny-profile.js')
-              .then(function() {
-                if (typeof window._cdCoinGatePerUse === 'function') {
-                  window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
-                } else {
-                  window.alert('결제 시스템을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
-                }
-              })
-              .catch(function() {
-                window.alert('결제 시스템을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
-              });
+            return;
           }
-          return; // 코인 차감 결과에서만 열림 — 여기서 반드시 차단
         }
       }
-      // ── 코인 게이트 불필요 (admin bypass 또는 coin cost = 0) ──
+      // ── 코인 게이트 통과 ──
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
     function _doOpenTotem() {
-      // Preview Panel이 열려 있으면 닫기
-      try {
-        var _pvwOv = document.getElementById('tilePvwOverlay');
-        if (_pvwOv) { _pvwOv.classList.remove('pvw-open'); _pvwOv.classList.remove('pvw-prem'); }
-      } catch (_) {}
       var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
       if (typeof window.openAnimalTotemModal === 'function') {
         raf(function() {

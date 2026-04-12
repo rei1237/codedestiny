@@ -262,6 +262,7 @@ export default async function RootLayout({ children }) {
     "/methodology",
   ].some((prefix) => routeBasePath === prefix || routeBasePath.startsWith(`${prefix}/`));
   const shouldLoadAdsense = !isTrustDocRoute;
+  const isFullscreenRoute = routeBasePath === "/saju/love-simulation";
 
   const headerNavItems = [
     { href: "/", label: "홈" },
@@ -303,6 +304,7 @@ export default async function RootLayout({ children }) {
         {DevWebVitalsConsole ? <DevWebVitalsConsole /> : null}
         <ToastProvider />
         {/* 전역 인증 상태 헤더 */}
+        {!isFullscreenRoute && (
         <header
           style={{
             position: "sticky",
@@ -336,6 +338,8 @@ export default async function RootLayout({ children }) {
           </Link>
           <AuthWidget />
         </header>
+        )}
+        {!isFullscreenRoute && (
         <nav
           aria-label="주요 내비게이션"
           style={{
@@ -373,9 +377,10 @@ export default async function RootLayout({ children }) {
             </Link>
           ))}
         </nav>
+        )}
         <div>{children}</div>
         <DisclaimerBanner />
-        {!hideFooter && <SiteFooterHub />}
+        {!hideFooter && !isFullscreenRoute && <SiteFooterHub />}
       </body>
     </html>
   );
