@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
 import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
+import HPremiumNamingSection from "./HPremiumNamingSection";
 const HPremiumZiweiSection = dynamic(() => import("./HPremiumZiweiSection"), {
   ssr: false,
   loading: () => (
@@ -127,7 +128,7 @@ type UnlockKey =
   | "premiumDivinationPack";
 
 type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
-type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda";
+type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
@@ -135,6 +136,7 @@ const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   astrology: 390,
   sukuyo: 300,
   veda: 300,
+  naming: 700,
 };
 
 const FREE_FEATURES = [
@@ -330,9 +332,46 @@ export default function KkulkkulManseryukMain() {
   };
 
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
-    // [DEBUG] API 완전 BYPASS ─ 코인/권한 참조 없이 바로 generate 진입 (Silent Freeze 원인 고립용)
-    console.log('[DEBUG] 생성 CTA 클릭됨 - API bypass 모드:', service);
-    setPremiumFlowStage('generate');
+    if (service !== 'naming') {
+      // [DEBUG] 기존 프리미엄 섹션은 현재 bypass 모드 유지
+      console.log('[DEBUG] 생성 CTA 클릭됨 - API bypass 모드:', service);
+      setPremiumFlowStage('generate');
+      return;
+    }
+
+    if (premiumGateLoading) return;
+    const passed = await runPremiumIntroGate(service);
+    if (!passed) return;
+
+    if (unlockedFeatures.premiumDivinationPack) {
+      setPremiumFlowStage('generate');
+      return;
+    }
+
+    const token = localStorage.getItem('fortune_auth_token');
+    if (!token) return;
+
+    const cost = PREMIUM_SERVICE_COST[service];
+    setPremiumGateLoading(service);
+    try {
+      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성` }),
+      });
+      if (res.status === 402) { setShowRechargeModal(true); return; }
+      if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
+      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+      setCurrentCoins(newPoints);
+      saveUserPoints(newPoints);
+      setPremiumFlowStage('generate');
+    } catch (e) {
+      console.error('[handleStartPremiumGeneration:naming]', e);
+      setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setPremiumGateLoading(null);
+    }
+
     /* ─── PRODUCTION 코인 차감 로직 (현재디버그 중 주석 처리) ───
     if (premiumGateLoading) return;
     const passed = await runPremiumIntroGate(service);
@@ -828,6 +867,61 @@ export default function KkulkkulManseryukMain() {
                 showIntro={premiumFlowStage === 'intro'}
                 onStartGeneration={() => handleStartPremiumGeneration('veda')}
                 generationLoading={premiumGateLoading === 'veda'}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* ─── 5. 명운 작명 프리미엄 ─── */}
+        <div style={{
+          background: "linear-gradient(145deg, rgb(8,12,24) 0%, rgb(26,20,8) 100%)",
+          border: debugClickedCard === 'naming' ? "4px solid #ef4444" : "1.5px solid rgba(212,175,55,0.38)",
+          borderRadius: "20px",
+          overflow: "hidden",
+          boxShadow: "0 4px 24px rgba(212,175,55,0.12)",
+          position: "relative",
+          zIndex: 20,
+          pointerEvents: "auto",
+        }}>
+          <button
+            type="button"
+            onClick={() => handleOpenPremSection('naming')}
+            style={{
+              width: "100%", display: "flex", flexDirection: "row", alignItems: "center",
+              gap: "16px", padding: "0", background: "transparent", border: "none",
+              cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <div style={{ position: "relative", width: "130px", minWidth: "130px", aspectRatio: "4/3", flexShrink: 0 }}>
+              <img src="/fuctionassets/naming.webp" alt="명운 작명 프리미엄"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, rgb(8,12,24))" }} />
+              <span style={{
+                position: "absolute", top: "8px", left: "8px",
+                background: "rgba(212,175,55,0.95)", color: "#0f172a",
+                fontSize: "0.5rem", fontWeight: 800, letterSpacing: "0.14em",
+                padding: "2px 7px", borderRadius: "20px", textTransform: "uppercase",
+              }}>PREMIUM</span>
+            </div>
+            <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
+              <p style={{ color: "rgba(245,226,122,0.75)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>명운 · Naming Premium</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>사주 프리미엄 작명</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>서비스 만세력 엔진 연동 · 용신 보완 작명 · 코인 게이트 700</p>
+              <span style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.12))",
+                border: "1px solid rgba(212,175,55,0.55)",
+                color: "rgba(245,226,122,1)", fontWeight: 700, fontSize: "0.7rem",
+                padding: "5px 13px", borderRadius: "10px",
+              }}>{openPremSection === 'naming' ? '▲ 접기' : '✦ 소개 보기'}</span>
+            </div>
+          </button>
+          {(openPremSection === 'naming' || debugClickedCard === 'naming') && (
+            <div id="prem-active-section" style={{ borderTop: "1px solid rgba(212,175,55,0.22)" }}>
+              <HPremiumNamingSection
+                showIntro={premiumFlowStage === 'intro'}
+                onStartGeneration={() => handleStartPremiumGeneration('naming')}
+                generationLoading={premiumGateLoading === 'naming'}
               />
             </div>
           )}
