@@ -903,7 +903,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
-<script>(function(){try{if((window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
+<script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
 <body>
 <script>
@@ -4606,7 +4606,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="sibyl-entry-tile" role="button" tabindex="0" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">
         <div class="sibyl-entry-inner">
         <div class="sibyl-entry-img-col">
-          <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="200" height="260">
+          <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="320" height="420">
           <div class="sibyl-entry-img-labels">
             <span class="sibyl-img-label sibyl-img-label--free">일부 무료</span>
             <span class="sibyl-img-label sibyl-img-label--paid">심층 리포트<br>100코인</span>
@@ -6075,8 +6075,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         
         <!-- Header -->
         <header class="astral-header">
-            <h1 class="astral-title">ASTRAL TOTEM</h1>
-            <p class="astral-subtitle">너의 영혼이 깃든 동물을 찾아라</p>
+          <h1 class="astral-title">ESFJ와 다른 MBTI 궁합</h1>
+          <p class="astral-subtitle" id="mbtiSelectionGuideMain">본캐 MBTI를 먼저 선택해 주세요</p>
+          <p class="astral-subtitle" id="mbtiSelectionGuideSub">GOOD, SOSO, BAD 색상으로 궁합 힌트를 먼저 볼 수 있어요.</p>
+          <div class="mbti-legend" aria-label="궁합 색상 범례">
+            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--good"></i>GOOD</span>
+            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--soso"></i>SOSO</span>
+            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--bad"></i>BAD</span>
+          </div>
         </header>
 
         <!-- Selection Grid -->
@@ -6106,7 +6112,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <div class="token-cross">✕</div>
                 <div id="token2" class="mini-token empty">?</div>
             </div>
-            <button class="ritual-btn" data-action="revealAstralSynergy">영혼의 공명 확인하기</button>
+          <button class="ritual-btn" data-action="revealAstralSynergy">궁합 보기</button>
         </div>
 
         <!-- Result Modal (Inner Layer) -->
@@ -7162,7 +7168,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/life-book.js?v=20260410-v2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260414" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/ziwei-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/astro-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
