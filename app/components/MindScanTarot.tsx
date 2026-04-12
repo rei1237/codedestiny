@@ -25,6 +25,7 @@ const POSITIONS: TarotPos[] = [
 
 const DECK_SIZE = 78;
 const GRID_COUNT = 24;
+const MINDSCAN_COIN_COST = 50;
 
 const MAJOR = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor",
   "The Hierophant","The Lovers","The Chariot","Strength","The Hermit","Wheel of Fortune",
@@ -602,6 +603,76 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     try { await navigator.clipboard.writeText(buildText()); showMsg("텍스트 복사됨!"); } catch { showMsg("공유 실패"); }
   }, [reading, buildText]);
 
+  const handleKakaoShare = useCallback(async () => {
+    const currentUrl = typeof window !== "undefined"
+      ? window.location.href
+      : "https://code-destiny.com/tarot/mindscan";
+    const shareTitle = "속마음 타로 리딩";
+    const shortIntro = String(reading?.intro || "")
+      .replace(/\s+/g, " ")
+      .slice(0, 90);
+    const shareDesc = shortIntro || "상대방의 속마음을 깊이 읽어주는 마인드 스캔 타로";
+
+    try {
+      const kakao = (window as Window & {
+        Kakao?: {
+          isInitialized?: () => boolean;
+          Share?: {
+            sendDefault: (payload: {
+              objectType: "feed";
+              content: {
+                title: string;
+                description: string;
+                imageUrl: string;
+                link: { mobileWebUrl: string; webUrl: string };
+              };
+              buttons?: Array<{
+                title: string;
+                link: { mobileWebUrl: string; webUrl: string };
+              }>;
+            }) => void;
+          };
+        };
+      }).Kakao;
+
+      if (kakao?.isInitialized?.() && kakao?.Share?.sendDefault) {
+        kakao.Share.sendDefault({
+          objectType: "feed",
+          content: {
+            title: shareTitle,
+            description: shareDesc,
+            imageUrl: "https://code-destiny.com/fuctionassets/mindscantaro.webp",
+            link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
+          },
+          buttons: [{
+            title: "리딩 확인하기",
+            link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
+          }],
+        });
+        showMsg("카카오톡 공유 창을 열었어요!");
+        return;
+      }
+
+      const fallbackUrl =
+        `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(currentUrl)}` +
+        `&text=${encodeURIComponent(`${shareTitle}\n${shareDesc}`)}`;
+      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+      showMsg("카카오 공유 링크를 열었어요!");
+    } catch {
+      try {
+        await navigator.clipboard.writeText(`${shareTitle}\n${shareDesc}\n${currentUrl}`);
+        showMsg("카카오 공유 대체로 링크를 복사했어요!");
+      } catch {
+        showMsg("카카오 공유를 열지 못했습니다.");
+      }
+    }
+  }, [reading, showMsg]);
+
+  const handleGoHome = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.location.assign("/");
+  }, []);
+
   const handleCopy = useCallback(async () => {
     try { await navigator.clipboard.writeText(buildText()); showMsg("클립보드에 복사됨!"); }
     catch { showMsg("복사 실패"); }
@@ -756,6 +827,8 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             { label: "📷 이미지 저장", fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
             { label: "🔗 공유",       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
             { label: "📋 텍스트 복사", fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
+            { label: "💛 카카오톡 공유", fn: handleKakaoShare, cls: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100 hover:bg-yellow-300/22" },
+            { label: "🏠 홈화면 바로가기", fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
           ].map(b => (
             <button key={b.label} type="button" onClick={b.fn}
               className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border transition-colors ${b.cls}`}>
@@ -840,7 +913,6 @@ export default function MindScanTarot() {
     }
   }, [pickRound, mainPicks, subPicks]);
 
-  // Free reading — no coin gate
   const handleGenerateReading = useCallback(async () => {
     if (readingLoading || reading) return;
     const pairs = POSITIONS.map((pos, idx) => ({
@@ -854,6 +926,43 @@ export default function MindScanTarot() {
     setReadingLoading(true);
     setReadingError("");
     try {
+      const authToken = typeof window !== "undefined"
+        ? localStorage.getItem("fortune_auth_token")
+        : "";
+
+      if (!authToken) {
+        setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+        if (typeof window !== "undefined") {
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          window.setTimeout(() => {
+            window.location.href = `/login?next=${next}`;
+          }, 600);
+        }
+        return;
+      }
+
+      const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          cost: MINDSCAN_COIN_COST,
+          reason: "마인드 스캔 타로 이용",
+          featureKey: "tarot-mindscan",
+        }),
+      });
+      const consumeData = await consumeRes.json().catch(() => ({}));
+      if (consumeRes.status === 402) {
+        setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
+        return;
+      }
+      if (!consumeRes.ok) {
+        setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+        return;
+      }
+
       const res = await fetch("/api/tarot/mindscan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
