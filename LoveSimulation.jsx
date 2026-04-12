@@ -663,6 +663,215 @@ body {
 .lc-match-pct.high { color:#f9a8d4; }
 .lc-match-pct.mid  { color:#fcd34d; }
 .lc-match-pct.low  { color:#c4a0bf; }
+
+/* ── 내 사주 설정 화면 ── */
+.lc-self-header {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(18px, 4vw, 28px); color: #93c5fd;
+  letter-spacing: 0.2em; text-align: center; margin-bottom: 6px;
+  text-shadow: 0 0 40px rgba(100,180,255,0.35);
+}
+.lc-self-sub {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 13px; color: var(--text-dim); text-align: center;
+  margin-bottom: 30px; letter-spacing: 0.1em;
+}
+.lc-self-setup {
+  width: 100%; max-width: 460px;
+  background: linear-gradient(160deg, rgba(20,30,60,0.65), rgba(10,15,30,0.75));
+  border: 1px solid rgba(100,180,255,0.22);
+  border-radius: 22px; padding: 32px 28px;
+  backdrop-filter: blur(20px); position: relative;
+}
+.lc-self-setup::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 22px;
+  background: linear-gradient(135deg, rgba(100,180,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.lc-self-avatar-preview {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1A2A40, #04040F);
+  border: 2px solid rgba(100,180,255,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+  box-shadow: 0 0 50px rgba(100,180,255,0.22), inset 0 0 30px rgba(0,0,0,0.5);
+  margin: 0 auto 18px;
+  animation: float 4s ease-in-out infinite;
+  transition: transform 0.3s;
+}
+@keyframes avatarReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) rotate(-14deg);
+    filter: blur(16px) brightness(2.1);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.16) rotate(2deg);
+    filter: blur(0) brightness(1.35);
+  }
+  70% { transform: scale(0.94) rotate(-1deg); }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+    filter: blur(0) brightness(1);
+  }
+}
+@keyframes particleBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1); }
+}
+@keyframes runeReveal {
+  from { opacity: 0; transform: translateY(8px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.lc-avatar-birth-anim {
+  position: relative;
+  animation: avatarReveal 1.15s cubic-bezier(0.16,1,0.3,1) both;
+}
+.lc-avatar-particle {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(147,197,253,0.95) 0%, rgba(147,197,253,0.05) 72%);
+  box-shadow: 0 0 16px rgba(147,197,253,0.6);
+  pointer-events: none;
+  animation: particleBurst 1s ease-out forwards;
+}
+.lc-pillar-reveal {
+  animation: runeReveal 0.5s ease-out both;
+}
+.lc-self-result {
+  margin-top: 20px;
+  background: rgba(100,180,255,0.06);
+  border: 1px solid rgba(100,180,255,0.2);
+  border-radius: 16px; padding: 18px 20px;
+  text-align: center;
+  animation: awaken 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.lc-self-result-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 17px; color: #93c5fd; margin-bottom: 4px;
+}
+.lc-self-result-sub {
+  font-size: 12px; color: var(--text-dim); margin-bottom: 12px;
+}
+.lc-self-traits {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; margin-bottom: 14px;
+}
+.lc-self-trait {
+  padding: 4px 12px;
+  border: 1px solid rgba(100,180,255,0.25); border-radius: 20px;
+  font-size: 11px; color: rgba(147,197,253,0.85);
+  background: rgba(100,180,255,0.07);
+}
+.lc-self-pillars {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin: 10px 0;
+}
+.lc-self-pillar {
+  background: rgba(100,180,255,0.06); border-radius: 8px;
+  padding: 8px 4px; border: 1px solid rgba(100,180,255,0.15);
+  text-align: center;
+}
+.lc-continue-btn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, rgba(100,140,255,0.3), rgba(120,80,200,0.3));
+  border: 1px solid rgba(100,180,255,0.45);
+  border-radius: 10px; color: #93c5fd;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 15px; letter-spacing: 0.18em;
+  cursor: pointer; margin-top: 18px;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.lc-continue-btn:hover { box-shadow: 0 0 36px rgba(100,180,255,0.3); transform: translateY(-2px); }
+.lc-skip-btn {
+  margin-top: 12px; background: transparent; border: none;
+  color: rgba(196,160,191,0.55); font-family:'Noto Serif KR',serif;
+  font-size: 12px; cursor: pointer; letter-spacing: 0.08em;
+  padding: 6px 0; display: block; width: 100%; text-align: center;
+  transition: color 0.25s;
+}
+.lc-skip-btn:hover { color: var(--text-dim); }
+
+/* ── 두 아바타 대면 (awakening) ── */
+.lc-versus-wrap {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; max-width: 640px; margin-bottom: 18px;
+}
+.lc-versus-side {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.lc-versus-avatar {
+  width: 76px; height: 76px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  animation: awaken 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.lc-versus-avatar.mine {
+  background: radial-gradient(circle at 35% 35%, #1A2A40, #04040F);
+  border: 2px solid rgba(100,180,255,0.55);
+  box-shadow: 0 0 36px rgba(100,180,255,0.2);
+}
+.lc-versus-avatar.npc {
+  background: radial-gradient(circle at 35% 35%, #2A1A30, #04040F);
+  border: 2px solid var(--gold-dim);
+  box-shadow: 0 0 36px rgba(200,169,110,0.2);
+}
+.lc-versus-name { font-size: 13px; font-weight: 700; text-align: center; }
+.lc-versus-name.mine { color: #93c5fd; }
+.lc-versus-name.npc  { color: var(--gold); }
+.lc-versus-dm { font-size: 10px; color: var(--text-dim); text-align: center; }
+.lc-vs-sep {
+  flex-shrink: 0;
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 14px; color: rgba(200,169,110,0.55);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.lc-compat-block {
+  width: 100%; max-width: 640px;
+  background: linear-gradient(135deg, rgba(100,180,255,0.08), rgba(192,50,74,0.08));
+  border: 1px solid rgba(100,180,255,0.22);
+  border-radius: 16px; padding: 16px 20px;
+  text-align: center; margin-bottom: 20px;
+}
+.lc-compat-num {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 44px; line-height: 1;
+  background: linear-gradient(135deg, #93c5fd 0%, #f9a8d4 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lc-compat-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.12em; }
+.lc-compat-desc  { font-size: 12px; color: var(--rose); margin-top: 8px; }
+/* 내 아바타 미니 뱃지 (chat header) */
+.lc-my-mini {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(30,50,80,0.8);
+  border: 1px solid rgba(100,180,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+/* portal에 내 사주 배너 */
+.lc-my-banner {
+  width: 100%; max-width: 560px;
+  background: rgba(100,180,255,0.06);
+  border: 1px solid rgba(100,180,255,0.2);
+  border-radius: 14px; padding: 12px 18px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.lc-my-banner-edit {
+  margin-left: auto; background: transparent; border: none;
+  color: rgba(147,197,253,0.5); font-size: 11px; cursor: pointer;
+  letter-spacing: 0.06em; font-family:'Noto Serif KR',serif;
+  padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(100,180,255,0.18);
+  transition: all 0.2s;
+}
+.lc-my-banner-edit:hover { color: #93c5fd; border-color: rgba(100,180,255,0.4); }
 `;
 
 /* ═══════════════════════════════════════════════
@@ -1528,9 +1737,40 @@ const NEBULAE = [
    ── 메인 컴포넌트 ──
 ═══════════════════════════════════════════════ */
 
+/* ── 사주 오행 궁합 점수 계산 ──
+   두 일간 오행 간 상생·상극 기반 퍼센트 반환
+─────────────────────────────────────────────── */
+function computeRealSynastry(myP, npcP) {
+  if (!myP || !npcP) return null;
+  const myEl  = myP.dayMasterElement  || Object.keys(EL_CLASS).find(k => EL_CLASS[k] === (myP.dayMasterElement))  || null;
+  const npcEl = npcP.dayMasterElement || null;
+  if (!myEl || !npcEl) return null;
+  const raw = elemHarmony(myEl, npcEl); // 최대 12
+  const pct = Math.min(99, Math.round(raw / 12 * 100));
+  const label =
+    pct >= 85 ? '운명의 상대 ✦' :
+    pct >= 70 ? '강한 상성' :
+    pct >= 55 ? '좋은 인연' :
+    pct >= 40 ? '보통 궁합' :
+    '성장형 인연';
+  const desc =
+    pct >= 85 ? `${myEl}과 ${npcEl}의 에너지가 완전 공명합니다` :
+    pct >= 70 ? `${myEl}이 ${npcEl}을 이끌어 시너지를 만듭니다` :
+    pct >= 55 ? `두 오행이 서로 균형을 잡아갑니다` :
+    pct >= 40 ? `차이를 통해 서로 성장하는 인연입니다` :
+    `충돌하지만 극복하면 깊어지는 관계입니다`;
+  return { pct, label, desc, myEl, npcEl };
+}
+
 export default function LoveSimulation() {
-  const [screen, setScreen] = useState('portal'); // portal | awakening | chat
+  const [screen, setScreen] = useState('self'); // self | portal | awakening | chat
   const [tab, setTab] = useState('preset');        // preset | match | custom
+  // 내 사주 아바타
+  const [myPersona, setMyPersona] = useState(null);
+  const [myForm, setMyForm] = useState({ name:'', year:'', month:'', day:'', sinju:0, noTime:false });
+  const [myGender, setMyGender] = useState('여');
+  const [myLoadingPersona, setMyLoadingPersona] = useState(false);
+  const [avatarRevealing, setAvatarRevealing] = useState(false);
   const [npcGender, setNpcGender] = useState('\ub0a8');  // \ub0a8 | \uc5ec
   const [form, setForm] = useState({ name:'', year:'', month:'', day:'', sinju: 0, noTime:false });
   const [matchForm, setMatchForm] = useState({ year:'', month:'', day:'' });
@@ -1597,6 +1837,27 @@ export default function LoveSimulation() {
     setTimeout(() => setToast(null), 2800);
   }
 
+  /* ── 내 사주 분석 → myPersona 생성 ── */
+  async function loadMyPersonaData() {
+    const { name, year, month, day, sinju, noTime } = myForm;
+    if (!name || !year || !month || !day) return;
+    const hour = noTime ? 12 : (SINJU_OPTIONS[sinju]?.hour ?? 12);
+    setMyLoadingPersona(true);
+    try {
+      const data = await fetchSajuPillar({ name, gender: myGender, year: Number(year), month: Number(month), day: Number(day), hour });
+      const p = apiDataToPersona(data);
+      setMyPersona(p);
+      setAvatarRevealing(true);
+      setTimeout(() => setAvatarRevealing(false), 1400);
+      // 매칭 탭을 위해 matchForm 자동 채움
+      setMatchForm({ year: String(year), month: String(month), day: String(day) });
+    } catch (e) {
+      showToast('내 사주 계산 중 오류가 발생했어요.');
+    } finally {
+      setMyLoadingPersona(false);
+    }
+  }
+
   /* ── API 호출 후 게임 시작 ── */
   async function loadAndStartGame({ name, gender, year, month, day, hour, presetEmoji }) {
     setLoadingPersona(true);
@@ -1632,8 +1893,13 @@ export default function LoveSimulation() {
   }
 
   function startGame(p) {
+    // 내 사주가 있으면 실제 오행 궁합 기반 초기 호감도 산정
+    const syn = computeRealSynastry(myPersona, p);
+    const base = syn
+      ? Math.min(45, Math.max(6, Math.round((p.initialAffinity * 0.55) + (syn.pct * 0.18))))
+      : p.initialAffinity;
     setPersona(p);
-    setAffinity(p.initialAffinity);
+    setAffinity(base);
     setMood('설렘');
     setMessages([]);
     setUsedScenarios([]);
@@ -1784,6 +2050,141 @@ export default function LoveSimulation() {
         {/* Toast */}
         {toast && <div className="cd-toast">{toast}</div>}
 
+        {/* ══ SELF SETUP — 내 사주 입력 ══ */}
+        {screen === 'self' && (
+          <div className="cd-screen px-4 py-10 md:px-8">
+            {/* 별빛 아이콘 */}
+            <div style={{ fontSize:52, marginBottom:12, animation:'float 4s ease-in-out infinite',
+              filter:'drop-shadow(0 0 28px rgba(100,180,255,0.6))' }}>🌟</div>
+            <h1 className="lc-self-header">나의 사주 아바타</h1>
+            <p className="lc-self-sub">
+              먼저 나의 생년월일로 사주를 분석해 나만의 아바타를 생성합니다<br/>
+              <span style={{fontSize:11, opacity:0.6}}>오행 · 일간 · 십신 기반 개성 분석</span>
+            </p>
+
+            <div className="lc-self-setup">
+              {/* 내 성별 토글 */}
+              <div className="lc-gender-toggle" style={{marginBottom:20}}>
+                <button className={`lc-gender-btn${myGender==='여'?' active-f':''}`}
+                  onClick={() => setMyGender('여')}>💕 여성</button>
+                <button className={`lc-gender-btn${myGender==='남'?' active-m':''}`}
+                  onClick={() => setMyGender('남')}>💙 남성</button>
+              </div>
+
+              <div className="cd-form-group">
+                <label className="cd-form-label">나의 이름</label>
+                <input className="cd-input" placeholder="이름을 입력하세요"
+                  value={myForm.name}
+                  onChange={e => setMyForm({...myForm, name: e.target.value})} />
+              </div>
+
+              <div className="cd-form-group">
+                <label className="cd-form-label">나의 생년월일</label>
+                <div className="cd-input-row" style={{marginBottom:8}}>
+                  <input className="cd-input" placeholder="년도 (예: 1998)"
+                    value={myForm.year}
+                    onChange={e => setMyForm({...myForm, year: e.target.value})} />
+                  <input className="cd-input" placeholder="월 (1-12)"
+                    value={myForm.month}
+                    onChange={e => setMyForm({...myForm, month: e.target.value})} />
+                </div>
+                <input className="cd-input" placeholder="일 (1-31)"
+                  value={myForm.day}
+                  onChange={e => setMyForm({...myForm, day: e.target.value})} />
+              </div>
+
+              <div className="cd-form-group">
+                <label className="cd-form-label">태어난 시간 (생시)</label>
+                <select className="cd-input" disabled={myForm.noTime}
+                  value={myForm.sinju}
+                  onChange={e => setMyForm({...myForm, sinju: Number(e.target.value)})}
+                  style={{opacity: myForm.noTime ? 0.4 : 1}}>
+                  {SINJU_OPTIONS.map((s,i) => (
+                    <option key={s.kr} value={i}>{s.label}</option>
+                  ))}
+                </select>
+                <label className="cd-check-label">
+                  <input type="checkbox" checked={myForm.noTime}
+                    onChange={e => setMyForm({...myForm, noTime: e.target.checked})} />
+                  태어난 시간을 모릅니다
+                </label>
+              </div>
+
+              {/* 분석 버튼 */}
+              <button className="cd-fate-btn"
+                style={{background:'linear-gradient(135deg, rgba(50,80,180,0.8), rgba(100,50,160,0.8))'}}
+                disabled={!myForm.name || !myForm.year || !myForm.month || !myForm.day || myLoadingPersona}
+                onClick={async () => {
+                  await loadMyPersonaData();
+                }}>
+                {myLoadingPersona ? '✦ 내 사주 분석 중…' : '🌟 내 사주 아바타 생성'}
+              </button>
+
+              {/* 생성 완료 미리보기 */}
+              {myPersona && (
+                <div className="lc-self-result">
+                  <div className={`lc-self-avatar-preview${avatarRevealing ? ' lc-avatar-birth-anim' : ''}`}>
+                    {DM_EMOJI[myPersona.dayMasterKan] || '🌟'}
+                    {avatarRevealing && [
+                      { tx:'-72px', ty:'-54px', d:'0ms' },
+                      { tx:'12px',  ty:'-78px', d:'70ms' },
+                      { tx:'76px',  ty:'-30px', d:'130ms' },
+                      { tx:'72px',  ty:'34px',  d:'190ms' },
+                      { tx:'-10px', ty:'80px',  d:'240ms' },
+                      { tx:'-76px', ty:'24px',  d:'300ms' },
+                    ].map((pt, idx) => (
+                      <span
+                        key={`pt-${idx}`}
+                        className="lc-avatar-particle"
+                        style={{ '--tx': pt.tx, '--ty': pt.ty, animationDelay: pt.d }}
+                      />
+                    ))}
+                  </div>
+                  <p className="lc-self-result-title">{myPersona.name}</p>
+                  <p className="lc-self-result-sub">
+                    {myPersona.dayMaster} · {myPersona.mbti}
+                    {myPersona.mainSipsin && <span style={{color:'var(--rose)'}}> · {myPersona.mainSipsin}</span>}
+                  </p>
+                  <div className="lc-self-traits">
+                    {(myPersona.coreTraits||[]).slice(0,4).map(t => (
+                      <span key={t} className="lc-self-trait">{t}</span>
+                    ))}
+                  </div>
+                  {/* 내 사주 팔자 */}
+                  {myPersona.pillars && (
+                    <div className="lc-self-pillars">
+                      {[{l:'年',p:myPersona.pillars.year},{l:'月',p:myPersona.pillars.month},{l:'日',p:myPersona.pillars.day},{l:'時',p:myPersona.pillars.hour}].map(({l,p}) => (
+                        <div key={l} className="lc-self-pillar lc-pillar-reveal" style={{ animationDelay: avatarRevealing ? `${({ '年': 0, '月': 80, '日': 160, '時': 240 }[l])}ms` : '0ms' }}>
+                          <p style={{fontSize:9, color:'rgba(100,180,255,0.6)', marginBottom:3}}>{l}柱</p>
+                          <p style={{fontSize:17, fontWeight:700, color:'#93c5fd', lineHeight:1}}>{p?.gan||'?'}</p>
+                          <p style={{fontSize:17, fontWeight:700, color:'#f9a8d4', lineHeight:1.2}}>{p?.zhi||'?'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {myPersona.sajuPersonaSummary && (
+                    <p style={{fontSize:12, color:'var(--text-dim)', lineHeight:1.7, marginTop:12, fontStyle:'italic'}}>
+                      ✦ {myPersona.sajuPersonaSummary}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* 다음 단계 버튼 */}
+              <button className="lc-continue-btn"
+                disabled={!myPersona && !myLoadingPersona && false}
+                onClick={() => setScreen('portal')}>
+                {myPersona ? `${myPersona.name}의 운명 탐색 →` : '건너뛰기 →'}
+              </button>
+              {!myPersona && (
+                <button className="lc-skip-btn" onClick={() => setScreen('portal')}>
+                  내 사주 없이 시작하기
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ══ PORTAL ══ */}
         {screen === 'portal' && (
           <div className="cd-screen px-4 py-10 md:px-8">
@@ -1797,6 +2198,22 @@ export default function LoveSimulation() {
               생년월일로 사주를 분석해 그 사람의 본성과 연애 패턴을 읽는다<br/>
               <span style={{ fontSize:'12px', opacity: 0.7 }}>오행 · 십신 · 캐릭터 AI 기반 연애 시뮬레이션</span>
             </p>
+
+            {/* ── 내 사주 배너 (myPersona가 있을 때) ── */}
+            {myPersona && (
+              <div className="lc-my-banner w-full max-w-[560px]">
+                <div style={{fontSize:28}}>{DM_EMOJI[myPersona.dayMasterKan] || '🌟'}</div>
+                <div style={{flex:1}}>
+                  <p style={{fontSize:12, color:'#93c5fd', fontWeight:700, marginBottom:2}}>{myPersona.name}</p>
+                  <p style={{fontSize:11, color:'var(--text-dim)'}}>
+                    {myPersona.dayMaster} · {myPersona.mbti}
+                    {myPersona.mainSipsin && <span style={{color:'var(--rose)'}}> · {myPersona.mainSipsin}</span>}
+                    <span style={{marginLeft:6, color:'rgba(100,180,255,0.5)'}}>내 사주 연동 중</span>
+                  </p>
+                </div>
+                <button className="lc-my-banner-edit" onClick={() => setScreen('self')}>수정</button>
+              </div>
+            )}
 
             {/* 탭 */}
             <div className="lc-tabs w-full max-w-[560px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
@@ -1978,14 +2395,46 @@ export default function LoveSimulation() {
                 {persona.gender === '여' ? '✦ 사주 페르소나 분석 완료 ✦' : '✦ 사주 캐릭터 깨어남 ✦'}
               </p>
 
-              <div className="cd-avatar-wrap">
-                <div className="cd-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
-                <div className="cd-avatar-ring" />
-                <div className="cd-avatar-ring2" />
-                {persona.specialStars?.length > 0 && (
-                  <div className="cd-score-badge">도화살</div>
-                )}
-              </div>
+              {myPersona ? (() => {
+                const syn = computeRealSynastry(myPersona, persona);
+                return (
+                  <>
+                    <div className="lc-versus-wrap">
+                      <div className="lc-versus-side">
+                        <div className="lc-versus-avatar mine">{DM_EMOJI[myPersona.dayMasterKan] || '🌟'}</div>
+                        <p className="lc-versus-name mine">{myPersona.name}</p>
+                        <p className="lc-versus-dm">{myPersona.dayMaster} · {myPersona.mainSipsin || '나'}</p>
+                      </div>
+                      <div className="lc-vs-sep">
+                        <span>VS</span>
+                        <span style={{fontSize:18, color:'rgba(200,169,110,0.45)'}}>✦</span>
+                      </div>
+                      <div className="lc-versus-side">
+                        <div className="lc-versus-avatar npc">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
+                        <p className="lc-versus-name npc">{persona.name}</p>
+                        <p className="lc-versus-dm">{persona.dayMaster} · {persona.mainSipsin || '상대'}</p>
+                      </div>
+                    </div>
+
+                    {syn && (
+                      <div className="lc-compat-block">
+                        <p className="lc-compat-num">{syn.pct}%</p>
+                        <p className="lc-compat-label">실시간 오행 궁합 · {syn.label}</p>
+                        <p className="lc-compat-desc">{syn.myEl} ↔ {syn.npcEl} · {syn.desc}</p>
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
+                <div className="cd-avatar-wrap">
+                  <div className="cd-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
+                  <div className="cd-avatar-ring" />
+                  <div className="cd-avatar-ring2" />
+                  {persona.specialStars?.length > 0 && (
+                    <div className="cd-score-badge">도화살</div>
+                  )}
+                </div>
+              )}
 
               <h2 className="cd-char-name">{persona.name}</h2>
               <p className="cd-char-sub">{persona.dayMaster} · {persona.mbti}</p>
@@ -2092,6 +2541,11 @@ export default function LoveSimulation() {
         {screen === 'chat' && persona && (
           <div className="cd-chat-wrap w-full max-w-none" style={{height:'100dvh'}}>
             <div className="cd-chat-header border-b border-rose-200/10 bg-black/35">
+              {myPersona && (
+                <div className="lc-my-mini" title={`${myPersona.name} · 나`}>
+                  {DM_EMOJI[myPersona.dayMasterKan] || '🌟'}
+                </div>
+              )}
               <div className="cd-hdr-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
               <div className="cd-hdr-info">
                 <p className="cd-hdr-name">{persona.name}</p>
