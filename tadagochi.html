@@ -8,7 +8,16 @@
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
-<title>운세 다마 🔮</title>
+<title>Fortune Tama - 운세 다마고치</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest-tadagochi.json">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fortune Tama">
+<link rel="apple-touch-icon" href="/icons/fortune-tama-180.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -246,6 +255,11 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .dl-btn .dl-icon{font-size:14px;line-height:1}
 
+@keyframes tama-shimmer{0%{transform:translateX(-120%)}60%,100%{transform:translateX(200%)}}
+.pwa-shimmer{animation:tama-shimmer 2.8s ease-in-out infinite}
+@keyframes tama-pulse{0%,100%{box-shadow:0 0 14px rgba(251,191,36,.25),0 4px 16px rgba(0,0,0,.28)}50%{box-shadow:0 0 28px rgba(251,191,36,.55),0 4px 16px rgba(0,0,0,.28)}}
+.pwa-btn-glow{animation:tama-pulse 2s ease-in-out infinite}
+
 </style>
 
 </head>
@@ -307,6 +321,36 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
     </div>
 
     <button onclick="gS()" class="btn-acc w-52 mt-1 rounded-2xl">▶ 게임 시작</button>
+
+    <!-- PWA 설치 버튼 -->
+    <div id="pwa-install-wrap" class="flex flex-col items-center gap-2">
+
+      <!-- Android/Chrome: beforeinstallprompt -->
+      <button id="pwa-btn" onclick="installPWA()"
+        class="hidden pwa-btn-glow relative w-52 overflow-hidden rounded-2xl py-3.5 px-5 font-n text-sm font-black tracking-tight text-amber-200 transition-transform duration-150 active:scale-95"
+        style="background:linear-gradient(135deg,#1e1454 0%,#2e1880 50%,#0f1640 100%);border:1.5px solid rgba(251,191,36,0.55)">
+        <div class="pwa-shimmer pointer-events-none absolute inset-0 w-2/5 bg-gradient-to-r from-transparent via-amber-100/15 to-transparent"></div>
+        <span class="relative z-10 flex items-center justify-center gap-2">
+          <img src="/icons/fortune-tama-96.png" class="h-5 w-5 rounded-full object-contain" alt="" onerror="this.style.display='none'">
+          <span>앱으로 설치하기</span>
+          <span class="text-xs opacity-75">✨</span>
+        </span>
+      </button>
+
+      <!-- iOS Safari 힌트 -->
+      <button id="ios-pwa-btn" onclick="document.getElementById('ios-pwa-tip').classList.toggle('hidden')"
+        class="hidden items-center gap-1.5 font-n text-xs font-bold transition-opacity hover:opacity-80"
+        style="color:var(--acc);opacity:.45;background:none;border:none;cursor:pointer;display:none">
+        <span>📲</span><span>iPhone에 추가하는 방법</span>
+      </button>
+
+      <div id="ios-pwa-tip" class="hidden w-52 rounded-2xl px-4 py-3 font-n text-xs text-center leading-relaxed"
+        style="background:rgba(30,20,84,0.07);border:1.5px solid rgba(251,191,36,0.22);color:var(--text)">
+        Safari 하단 <strong>공유 버튼(⎙)</strong> 탭 →<br>
+        <strong>"홈 화면에 추가"</strong> 선택 🏠
+      </div>
+
+    </div>
 
     <p class="font-n text-xs" style="color:var(--acc);opacity:.3">화면을 탭해도 시작할 수 있어요</p>
 
@@ -1555,6 +1599,53 @@ function addBotMsgTyped(fullText){
 
 
 document.addEventListener('DOMContentLoaded',init);
+
+// ── PWA 설치 로직 ──
+var _pwaPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaPrompt = e;
+  var btn = document.getElementById('pwa-btn');
+  if (btn) btn.classList.remove('hidden');
+});
+
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('pwa-btn');
+  if (btn) btn.style.display = 'none';
+  _pwaPrompt = null;
+});
+
+function installPWA() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(function(r) {
+    if (r.outcome === 'accepted') {
+      var btn = document.getElementById('pwa-btn');
+      if (btn) btn.style.display = 'none';
+    }
+    _pwaPrompt = null;
+  });
+}
+
+// iOS Safari 힌트
+(function() {
+  var isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  var isStandalone = navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    var b = document.getElementById('ios-pwa-btn');
+    if (b) { b.style.display = 'flex'; }
+  }
+})();
+
+// Service Worker 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/tadagochi-sw.js', { scope: '/' })
+      .then(function(reg) { console.log('[FortuneTama SW]', reg.scope); })
+      .catch(function(e)  { console.warn('[FortuneTama SW] failed', e); });
+  });
+}
 
 </script>
 
