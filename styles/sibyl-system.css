@@ -93,21 +93,24 @@
   align-items: stretch;
   position: relative;
   z-index: 3;
-  min-height: 240px;
+  min-height: 280px;
 }
 
 /* Left: Image Column */
 .sibyl-entry-img-col {
-  flex: 0 0 200px;
+  flex: 0 0 220px;
   position: relative;
   overflow: hidden;
+  align-self: stretch;
 }
 
 @media (max-width: 480px) {
-  .sibyl-entry-img-col { flex: 0 0 150px; }
+  .sibyl-entry-img-col { flex: 0 0 160px; }
 }
 
 .sibyl-entry-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;

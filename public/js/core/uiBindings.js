@@ -51,7 +51,10 @@ const __lazyActionLoaders = {
   gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=20260408-v3'),
   gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
   gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1')
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1'),
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260414'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260410-v2'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix'),
 };
 
 function __ensureSajuCoreScripts() {
