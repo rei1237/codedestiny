@@ -269,7 +269,7 @@
 
     if (btn) btn.classList.add('heating');
     if (barWrap) barWrap.style.display = 'block';
-    if (ring) { ring.classList.remove('animate'); void ring.offsetWidth; ring.classList.add('animate'); }
+    if (ring) { ring.classList.remove('animate'); requestAnimationFrame(function(){requestAnimationFrame(function(){ring.classList.add('animate');});}); }
 
     _playGong(0.3);
 

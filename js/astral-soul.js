@@ -433,9 +433,8 @@ function updateRitualBar() {
     // Show/Hide Bar Logic with Animation
     if (selectedTotems.length > 0) {
         bar.style.display = 'flex'; // Ensure visible
-        // Force reflow for transition
-        void bar.offsetWidth;
-        bar.classList.add('active');
+        // double-rAF: display 적용 후 다음 프레임에서 transition 트리거 (void offsetWidth 제거)
+        requestAnimationFrame(function () { requestAnimationFrame(function () { bar.classList.add('active'); }); });
         if (container) container.classList.add('ritual-bar-visible');
     } else {
         bar.classList.remove('active');

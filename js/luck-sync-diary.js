@@ -1641,8 +1641,7 @@
         ballEl.style.boxShadow  = '0 0 30px ' + e.neon + '88, 0 0 60px ' + e.color + '44';
         ballEl.style.color = '#fff';
         ballEl.classList.remove('lsd-result-ball-pop', 'animate-bounce');
-        void ballEl.offsetWidth;
-        ballEl.classList.add('lsd-result-ball-pop', 'animate-bounce');
+        requestAnimationFrame(function(){requestAnimationFrame(function(){ballEl.classList.add('lsd-result-ball-pop', 'animate-bounce');});});
       }
       if (emojiEl) emojiEl.textContent = item.emoji;
       if (nameEl)  nameEl.textContent  = item.name;

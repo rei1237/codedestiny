@@ -315,7 +315,7 @@
         var wasDone=d.classList.contains('zb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done',ch<=done);
         d.classList.toggle('zb-ch-dot--active',ch===done+1&&done<12);
-        if(!wasDone&&ch<=done){d.style.animation='none';void d.offsetWidth;d.style.animation='';}
+        if(!wasDone&&ch<=done){d.style.animation='none';requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});}
       });
     }
 

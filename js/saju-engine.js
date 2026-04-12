@@ -17586,9 +17586,10 @@ function toggleYear(el, event){
   if(isOpen){
     // 닫기: 현재 실제 높이를 먼저 확정(transition 없이)한 후 0으로
     sub.style.maxHeight = sub.scrollHeight + 'px';
-    sub.offsetHeight; // reflow 강제
-    sub.style.maxHeight = '0';
-    el.classList.remove('open');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      sub.style.maxHeight = '0';
+      el.classList.remove('open');
+    });});
   } else {
     // 열기: 실제 scrollHeight로 설정
     el.classList.add('open');

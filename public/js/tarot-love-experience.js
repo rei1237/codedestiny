@@ -552,8 +552,7 @@
     var el = byId("tarotLoveSubtitle");
     if (!el) return;
     el.style.animation = "none";
-    el.offsetHeight;
-    el.style.animation = "subtitleFadeIn 1.2s ease 0.3s both";
+    requestAnimationFrame(function () { requestAnimationFrame(function () { el.style.animation = "subtitleFadeIn 1.2s ease 0.3s both"; }); });
   }
 
   function closeTarotLoveModal() {

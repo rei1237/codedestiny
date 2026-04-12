@@ -46,9 +46,8 @@
     var panel = getHealingPanel();
     if (!panel) return;
     panel.classList.remove("is-sun-flash");
-    // reflow to restart animation reliably
-    panel.offsetHeight;
-    panel.classList.add("is-sun-flash");
+    // double-rAF: classList.remove 반영 후 add → 강제 reflow 없이 animation restart
+    requestAnimationFrame(function () { requestAnimationFrame(function () { panel.classList.add("is-sun-flash"); }); });
     setTimeout(function () {
       try { panel.classList.remove("is-sun-flash"); } catch (e) {}
     }, 650);
@@ -839,8 +838,7 @@
     var gaugeFill = byId("tarotHealingRecoveryGaugeFill");
     if (gaugeFill) {
       gaugeFill.classList.remove("is-filled");
-      gaugeFill.offsetHeight;
-      gaugeFill.classList.add("is-filled");
+      requestAnimationFrame(function () { requestAnimationFrame(function () { gaugeFill.classList.add("is-filled"); }); });
     }
 
     callTarotApi("reading", {

@@ -789,8 +789,7 @@
         d.classList.toggle('lb-ch-dot--active', ch === done + 1 && done < 13);
         if (!wasDone && ch <= done) {
           d.style.animation = 'none';
-          void d.offsetWidth;
-          d.style.animation = '';
+          requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});
         }
       });
     }
