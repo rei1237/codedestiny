@@ -346,12 +346,39 @@
 <link rel="preload" as="image" href="/icons/samba.webp">
 <link rel="preconnect" href="https://developers.kakao.com">
 <link rel="dns-prefetch" href="//t1.kakaocdn.net">
-<!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
+<script>
+(function(){
+  var loaded = false;
+  function injectFont(href) {
+    if (!href) return;
+    if (document.querySelector('link[data-cd-font-src="' + href + '"]')) return;
+    var ln = document.createElement('link');
+    ln.rel = 'stylesheet';
+    ln.href = href;
+    ln.setAttribute('data-cd-font-src', href);
+    document.head.appendChild(ln);
+  }
+  function loadFonts() {
+    if (loaded) return;
+    loaded = true;
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
+    window.removeEventListener('pointerdown', loadFonts, true);
+    window.removeEventListener('touchstart', loadFonts, true);
+    window.removeEventListener('keydown', loadFonts, true);
+    window.removeEventListener('scroll', loadFonts, true);
+  }
+  window.addEventListener('pointerdown', loadFonts, true);
+  window.addEventListener('touchstart', loadFonts, true);
+  window.addEventListener('keydown', loadFonts, true);
+  window.addEventListener('scroll', loadFonts, true);
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') loadFonts();
+  }, { once: true });
+})();
+</script>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
-<!-- 보조 폰트(한국 세리프·데코)는 저우선순위 로드 -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
@@ -550,7 +577,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
   <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged1">
-  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260411-foucfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=20260411-foucfix2" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2"></noscript>
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260413-m1">
 
@@ -559,44 +586,44 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/animations.css" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/animations.css" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260316" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
-  <link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=20260317" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=20260411-foucfix2" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
-  <link rel="stylesheet" href="/styles/sibyl-system.css?v=20260414" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=20260414" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260414"></noscript>
-  <link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=20260405-epilogue" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
-  <link rel="stylesheet" href="/css/entertain-system.css" media="print" onload="this.media='all'">
+  <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -867,13 +894,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     window.removeEventListener('keydown', injectAds, true);
     window.removeEventListener('scroll', injectAds, true);
   }
-  var idleId;
-  if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(injectAds, { timeout: 6000 });
-  else idleId = window.setTimeout(injectAds, 5000);
   window.addEventListener('pointerdown', injectAds, true);
   window.addEventListener('touchstart', injectAds, true);
   window.addEventListener('keydown', injectAds, true);
   window.addEventListener('scroll', injectAds, true);
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') injectAds();
+  }, { once: true });
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
