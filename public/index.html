@@ -525,58 +525,78 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 
+  <script>
+  (function () {
+    var nav = navigator || {};
+    var conn = nav.connection || nav.mozConnection || nav.webkitConnection || {};
+    var ua = String(nav.userAgent || '').toLowerCase();
+    var mem = Number(nav.deviceMemory || 0);
+    var cores = Number(nav.hardwareConcurrency || 0);
+    var et = String(conn.effectiveType || '').toLowerCase();
+    var lowEndAndroid = ua.indexOf('android') !== -1 && (
+      conn.saveData ||
+      (mem > 0 && mem <= 4) ||
+      (cores > 0 && cores <= 4) ||
+      et === 'slow-2g' || et === '2g' || et === '3g'
+    );
+    if (lowEndAndroid) {
+      document.documentElement.classList.add('cd-mobile-lite');
+      window.__cdMobileLite = 1;
+    }
+  })();
+  </script>
+
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2">
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260411-foucfix1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260411-foucfix2">
+  <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged1">
+  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260411-foucfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2"></noscript>
+  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260413-m1">
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/animations.css" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
-  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
-  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
   <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
-  <link rel="preload" as="style" href="/styles/sibyl-system.css?v=20260414" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/life-book.css?v=20260411-foucfix2" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
+  <link rel="preload" as="style" href="/styles/sibyl-system.css?v=20260414" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260414"></noscript>
-  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260405-epilogue" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260405-epilogue" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
-  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="/css/entertain-system.css" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -5984,7 +6004,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" defer></script>
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -7059,11 +7079,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script src="/js/mobile-performance-bootstrap.js" defer></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js" data-cd-mobile-delay="1"></script>
 <script src="/js/io-image-lazy-loader.js" defer></script>
 <script src="/js/noncritical-defer-loader.js" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script src="/js/runtime-stability.js" defer></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
@@ -7071,14 +7091,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script src="/js/life-book.js?v=20260410-v2" defer></script>
-<script src="/js/sibyl-system.js?v=20260414" defer></script>
-<script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
-<script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
-<script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
-<script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
+<script data-cd-noncritical-src="/js/life-book.js?v=20260410-v2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260414" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/astro-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/vedic-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
