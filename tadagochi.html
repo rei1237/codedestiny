@@ -31,21 +31,21 @@ tailwind.config={theme:{extend:{
 
   keyframes:{
 
-    'idle':{'0%,100%':{transform:'translateY(0) scale(1)'},'50%':{transform:'translateY(-9px) scale(1.025)'}},
+    'idle':{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-3px)'}},
 
-    'happy':{'0%,100%':{transform:'scale(1) rotate(0)'},'20%':{transform:'scale(1.18) rotate(-8deg)'},'40%':{transform:'scale(1.18) rotate(8deg)'},'60%':{transform:'scale(1.22) rotate(-6deg)'},'80%':{transform:'scale(1.22) rotate(6deg)'}},
+    'happy':{'0%,100%':{transform:'translateY(0) scale(1)'},'50%':{transform:'translateY(-5px) scale(1.03)'}},
 
     'angry':{'0%,100%':{transform:'translateX(0) rotate(0)'},'15%':{transform:'translateX(-7px) rotate(-4deg)'},'30%':{transform:'translateX(7px) rotate(4deg)'},'45%':{transform:'translateX(-5px)'},'60%':{transform:'translateX(5px)'},'75%':{transform:'translateX(-3px)'}},
 
     'sad':{'0%,100%':{transform:'translateY(0) rotate(0)'},'25%':{transform:'translateY(4px) rotate(-2.5deg)'},'75%':{transform:'translateY(2px) rotate(2deg)'}},
 
-    'sleep':{'0%,100%':{transform:'translateY(0) rotate(0) scale(1)'},'50%':{transform:'translateY(5px) rotate(2deg) scale(.97)'}},
+    'sleep':{'0%,100%':{transform:'translateY(0) rotate(0deg)'},'50%':{transform:'translateY(3px) rotate(1.5deg)'}},
 
     'special':{'0%':{transform:'scale(1) rotate(0)',filter:'drop-shadow(0 0 8px gold)'},'20%':{transform:'scale(1.2) rotate(5deg)',filter:'drop-shadow(0 0 16px #f0f)'},'40%':{transform:'scale(1.1) rotate(-5deg)',filter:'drop-shadow(0 0 12px #0ff)'},'60%':{transform:'scale(1.25) rotate(3deg)',filter:'drop-shadow(0 0 20px gold)'},'80%':{transform:'scale(1.15) rotate(-3deg)',filter:'drop-shadow(0 0 10px #0f0)'},'100%':{transform:'scale(1) rotate(0)',filter:'drop-shadow(0 0 8px gold)'}},
 
-    'eat':{'0%,100%':{transform:'translateY(0) scale(1)'},'25%':{transform:'translateY(5px) scale(.97)'},'55%':{transform:'translateY(-4px) scale(1.03)'},'80%':{transform:'translateY(2px) scale(.99)'}},
+    'eat':{'0%,100%':{transform:'translateY(0) scale(1)'},'30%':{transform:'translateY(-6px) scale(1.05)'},'65%':{transform:'translateY(-3px) scale(1.02)'}},
 
-    'play':{'0%,100%':{transform:'translateY(0) scaleY(1)'},'25%':{transform:'translateY(-16px) scaleY(1.05)'},'60%':{transform:'translateY(-7px) scaleY(.97)'},'80%':{transform:'translateY(-2px)'}},
+    'play':{'0%,100%':{transform:'translateY(0)'},'45%':{transform:'translateY(-5px)'}},
 
     'float':{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-8px)'}},
 
@@ -79,21 +79,21 @@ tailwind.config={theme:{extend:{
 
   animation:{
 
-    'idle':'idle 3.2s ease-in-out infinite',
+    'idle':'idle 3.5s ease-in-out infinite',
 
-    'happy':'happy .5s ease-in-out infinite',
+    'happy':'happy 1.4s ease-in-out infinite',
 
     'angry':'angry .38s ease-in-out infinite',
 
     'sad':'sad 2.8s ease-in-out infinite',
 
-    'sleep':'sleep 4.5s ease-in-out infinite',
+    'sleep':'sleep 5s ease-in-out infinite',
 
     'special':'special .8s ease-in-out infinite',
 
-    'eat':'eat .65s ease-in-out infinite',
+    'eat':'eat 1.0s ease-in-out infinite',
 
-    'play':'play .42s ease-in-out infinite',
+    'play':'play 1.1s ease-in-out infinite',
 
     'float':'float 3s ease-in-out infinite',
 
@@ -825,7 +825,7 @@ const ST={
 
 };
 
-const TDUR={happy:2500,angry:2500,sleep:0,special:3500};
+const TDUR={happy:2500,angry:2500,sleep:0,special:3500,eat:2200};
 
 
 
@@ -970,10 +970,22 @@ function initUI(){
   document.getElementById('pname').addEventListener('input',chk);
 }
 
+function getTodayKey(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function normalizeDayKey(v){
+  if(!v) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  var d=new Date(v);
+  if(isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0,10);
+}
+
 function init(){
   initUI();
   // 로그인 확인 후 서버 펫 데이터 로드
-  fetch('/api/auth/me').then(function(r){return r.json();}).then(function(userData){
+  fetch('/api/auth/me',{credentials:'include'}).then(function(r){return r.json();}).then(function(userData){
     if(!userData||!userData.user){
       // 미로그인 → 게이트 표시
       var gate=document.getElementById('login-gate');
@@ -983,18 +995,24 @@ function init(){
     G.userId=userData.user.id;
     G.userName=userData.user.name||'';
     // 오늘 채팅 카운트 (서버 펫에서 복원)
-    var today2=new Date().toDateString();
+    var today2=getTodayKey();
     G.chatDate=today2;
     // 서버에서 펫 상태 로드
-    fetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
+    fetch('/api/tadagochi/pet',{credentials:'include'}).then(function(r){return r.json();}).then(function(petRes){
       updateChatRemain();
-      if(petRes&&petRes.pet&&petRes.pet.animal){
+      var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
+      if(hasSavedPet){
         // 저장된 펫 복원
         var s=petRes.pet;
+        if(!s.animal&&s.zodiac) s.animal=s.zodiac;
+        if(!s.theme) s.theme='moon';
+        if(!s.element) s.element='water';
         Object.assign(G,s);
         // 채팅 카운트 오늘 날짜 확인
-        if(G.chatDate!==today2){G.chatCount=0;G.chatDate=today2;}
-        applyElement(G.element);
+        var loadedDay=normalizeDayKey(G.chatDate);
+        if(loadedDay!==today2){G.chatCount=0;G.chatDate=today2;}
+        else{G.chatDate=loadedDay;}
+        applyElement(G.element||'water');
         openMain();
       }
       // 없으면 타이틀 화면 유지 (새 펫 생성)
@@ -1008,13 +1026,13 @@ function init(){
 
 function saveState(){
   if(!G.userId){return;} // 미로그인이면 저장 안함
-  var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,chatCount:G.chatCount,chatDate:G.chatDate};
-  fetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
+  var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
+  fetch('/api/tadagochi/pet',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
 }
 
 function resetPet(){
   if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
-  fetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
+  fetch('/api/tadagochi/pet',{method:'DELETE',credentials:'include'}).then(function(){
     G.userId=G.userId; // 유저 ID는 유지
     Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
     if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
@@ -1311,7 +1329,7 @@ function act(a){
 
   if(a==='feed'){if(G.sleeping){toast('자고 있어요 💤');return;}G.hunger=Math.min(100,G.hunger+28);updateUI();setState('eat');spawnE('🍎');toast(G.petName+' 냠냠 맛있다 🍎');saveState();}
 
-  else if(a==='play'){if(G.sleeping){toast('자고 있어요 💤');return;}G.happy=Math.min(100,G.happy+24);G.energy=Math.max(0,G.energy-10);updateUI();setState('play');['🎉','✨','🌟','💫'].forEach(function(e,i){setTimeout(function(){spawnE(e);},i*120);});toast('같이 놀아요! 🎮');saveState();}
+  else if(a==='play'){if(G.sleeping){toast('자고 있어요 💤');return;}G.happy=Math.min(100,G.happy+24);G.energy=Math.max(0,G.energy-10);updateUI();setState('play');['🎉','✨','🌟','💫'].forEach(function(e,i){setTimeout(function(){spawnE(e);},i*120);});setTimeout(function(){if(G.state==='play'){setState('happy');['🌟','✨','🎀'].forEach(function(e,i){setTimeout(function(){spawnE(e);},i*100);});}},2800);toast('같이 놀아요! 🎮');saveState();}
 
   else if(a==='sleep'){G.sleeping=!G.sleeping;if(G.sleeping){setState('sleep');toast('잘 자요~ 💤');}else{setState('happy');toast('일어났어요! ☀️');}document.getElementById('slp-em').textContent=G.sleeping?'🌅':'😴';document.getElementById('slp-lb').textContent=G.sleeping?'깨우기':'재우기';updateUI();saveState();}
 
@@ -1642,8 +1660,8 @@ function sendChat(forceCat){
   if(isFortune&&G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요! 일반 대화 💬는 무제한이에요 💙');return;}
   inp.value='';
   var uEl=addUserMsg(q); if(uEl) uEl.setAttribute('data-cat',cat);
-  var todayStr=new Date().toISOString().slice(0,10);
-  if(G.chatDate!==todayStr){G.chatCount=0;G.chatDate=todayStr;localStorage.setItem('tdg_chat_date',todayStr);}
+  var todayStr=getTodayKey();
+  if(normalizeDayKey(G.chatDate)!==todayStr){G.chatCount=0;G.chatDate=todayStr;}
   if(isFortune){G.chatCount++; updateChatRemain();}
   if(!isFortune){
     var rep=buildChatReply(q,G.petName,G.element);

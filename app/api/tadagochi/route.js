@@ -351,15 +351,16 @@ function buildLocal({cat, saju, ziwei, astro, tarot, petName}) {
   const name = petName||"운세다마";
   const sc   = saju?.score||50;
   const ft   = saju?.fortune||"평";
+  const isSingleDomain = cat === "saju" || cat === "ziwei" || cat === "astrology" || cat === "tarot";
   const catLbl = {love:"연애운",money:"재물운",work:"직업운",health:"건강운",general:"종합운세",
     general_today:"오늘의 운세",general_love:"연애운",general_money:"재물운",
     general_good:"좋은 부분",general_caution:"주의할 점"}[cat]||"운세";
   const emo = {love:"💕",money:"💰",work:"📚",health:"💪",general:"🔮",
     general_today:"🌟",general_love:"💕",general_money:"💰",general_good:"✨",general_caution:"⚠️"}[cat]||"✨";
   const level = sc>=75?"대길이야! 정말 좋은 기운이야":sc>=55?"길운이 함께하는 하루야":sc>=40?"평온하게 흘러가는 날이야":"조금 신중하게 가면 좋은 날이야";
-  const tarotHint = tarot ? `${tarot.name}(${tarot.orientation}) 카드가 나왔어, ${tarot.catMeaning}` : "";
+  const tarotHint = (cat === "tarot" || !isSingleDomain) && tarot ? `${tarot.name}(${tarot.orientation}) 카드가 나왔어, ${tarot.catMeaning}` : "";
   const zNote = (() => {
-    if (!ziwei) return "";
+    if (!(cat === "ziwei" || !isSingleDomain) || !ziwei) return "";
     const p = {love:ziwei.fuQi,money:ziwei.caiBo,work:ziwei.guanLu,health:ziwei.jiE,
       general_love:ziwei.fuQi,general_money:ziwei.caiBo}[cat]||ziwei.mingGong;
     if (!p?.stars) return "";
@@ -390,6 +391,18 @@ function buildLocalFull({saju, ziwei, astro, tarot, tarotLove, tarotMoney, petNa
   const venSign = astro?.venus?.sign||"";
   const jupSign = astro?.jupiter?.sign||"";
   return `🌟 오늘의 운세\n오늘 ${an}띠인 너에게 ${lvl} 사주의 흐름이 오늘 하루를 이끌어주고 있어. 적극적인 마음가짐이 기운을 배로 높여줄 거야. ${name}가 응원할게 💕\n\n💕 연애운\n오늘 인연의 기운${zLove?` — ${zLove} 별의 에너지가 감정선을 자극하고 있어`:"이 살짝 움직이고 있어"}. ${venSign?`금성이 ${venSign}에 있어서 `:""}감정을 솔직하게 표현하는 날이야. ${tarotLove?tarotLove.name+"("+tarotLove.orientation+") 카드가 나왔어, "+tarotLove.catMeaning+".":""} 마음을 열면 더 가까워질 수 있어 💕\n\n💰 재물운\n재물 흐름은 ${good?"오늘 긍정적인 신호가 보여":"조금 소극적으로 관리하는 게 좋아"}. ${jupSign?`목성이 ${jupSign}에 있어서 `:""}${good?"새로운 수입 기회를 놓치지 마":"큰 지출보다 꼼꼼한 재정 점검이 어울려"}. ${tarotMoney?tarotMoney.name+"("+tarotMoney.orientation+") 카드가 — "+tarotMoney.catMeaning+".":""} ${name}가 현명한 선택을 도와줄게 💰\n\n✨ 좋은 부분\n오늘 너의 ${sunSign?sunSign+" 태양 에너지가":"사주 에너지가"} 가장 빛나는 건 집중력과 직관력이야. ${zMing?`명궁의 ${zMing}이 배짱과 추진력을 더해주고 있어`:"내면의 힘이 특히 강한 날이야"}. 새로운 아이디어나 중요한 결정을 내리기에 딱 좋은 타이밍이니 자신감을 가져봐 ✨\n\n⚠️ 주의할 점\n오늘 ${moonSign?moonSign+" 달의 기운":"감정의 흐름"} 때문에 감정적인 말실수나 충동적인 결정을 조심해야 해. 중요한 계약이나 큰 금전 거래는 한 번 더 확인하는 게 안전해. ${saju.day.unseong==="병"||saju.day.unseong==="사"?"오늘 일주 기운이 약간 눌려 있으니 체력 관리도 신경 써줘":"무리한 일정보다 여유를 두는 게 현명해"}. ${name}가 항상 곁에서 지켜볼게 🛡️`;
+}
+
+function isCategoryPure(cat, text) {
+  if (!text) return false;
+  const forbidden = {
+    saju: /(자미두수|명궁|부처궁|재백궁|점성술|행성|하우스|타로|카드|ziwei|astrology|tarot)/i,
+    ziwei: /(사주|일간|십성|십이운성|점성술|행성|하우스|타로|카드|saju|astrology|tarot)/i,
+    astrology: /(사주|일간|십성|십이운성|자미두수|명궁|부처궁|재백궁|타로|카드|saju|ziwei|tarot)/i,
+    tarot: /(사주|일간|십성|십이운성|자미두수|명궁|부처궁|재백궁|점성술|행성|하우스|saju|ziwei|astrology)/i,
+  };
+  if (!forbidden[cat]) return true;
+  return !forbidden[cat].test(text);
 }
 
 // ─── 7. POST 핸들러 ──────────────────────────────────────────────────────────
@@ -480,7 +493,7 @@ export async function POST(request) {
 타로(오늘): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}
 타로(연애): ${tarotLove.name}(${tarotLove.orientation}) — ${tarotLove.catMeaning}
 타로(재물): ${tarotMoney.name}(${tarotMoney.orientation}) — ${tarotMoney.catMeaning}`;
-      const aiRes = await callGemini(fullPrompt, 1200);
+      const aiRes = await callGemini(fullPrompt, 2000);
       return NextResponse.json({
         answer: aiRes || buildLocalFull({saju, ziwei, astro, tarot, tarotLove, tarotMoney, petName, animalKr2}),
         score: saju.score, fortune: saju.fortune, today: saju.today,
@@ -544,6 +557,50 @@ export async function POST(request) {
       work:"커리어 성장과 관록궁을 결합해 직업 흐름을 정확히 읽는 직업 전문 코치",
       health:"기운의 흐름을 체질·오행과 연결해 몸의 신호를 읽는 한의학 기반 전문가",
     }[cat]||"통합 운세 마스터";
+
+    // ─── 카테고리 전용 데이터 섹션 (해당 점술 데이터만 포함) ─────────────────
+    let dataSection;
+    if (cat === "saju") {
+      dataSection = `[사주팔자 전용 데이터 — 사주 관점만으로 해석]
+사주 연주: ${saju.year.gan}${saju.year.ji}년(${animalKr}띠) | 월주: ${saju.month.gan}${saju.month.ji} | 일주: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) | 시주: ${saju.hour.gan}${saju.hour.ji}
+일간 오행: ${EL_KR[saju.day.el]||saju.day.el} | 십이운성: ${saju.day.unseong}(${US_SCORE[saju.day.unseong]||50}점)
+십성(일간 기준): 연주 ${saju.sipseong.year} | 월주 ${saju.sipseong.month} | 시주 ${saju.sipseong.hour}
+오늘 일진: ${saju.today} | 종합 운세 ${saju.score}점(${saju.fortune})
+※ 사주 데이터만 사용해 해석. 자미두수·점성술·타로 언급 금지.`;
+    } else if (cat === "ziwei") {
+      dataSection = `[자미두수 전용 데이터 — 자미두수 관점만으로 해석]
+명궁(命宮 — 운명·성격): 주성 ${ziwei?.mingGong?.stars||"없음"}${ziwei?.mingGong?.hualu?" 화록✅":""}${ziwei?.mingGong?.huaji?" 화기⚠️":""}
+부처궁(夫妻宮 — 연애·배우자): 주성 ${ziwei?.fuQi?.stars||"없음"}${ziwei?.fuQi?.hualu?" 화록✅":""}${ziwei?.fuQi?.huaji?" 화기⚠️":""}
+재백궁(財帛宮 — 재물): 주성 ${ziwei?.caiBo?.stars||"없음"}${ziwei?.caiBo?.hualu?" 화록✅":""}${ziwei?.caiBo?.huaji?" 화기⚠️":""}
+관록궁(官祿宮 — 직업): 주성 ${ziwei?.guanLu?.stars||"없음"}${ziwei?.guanLu?.hualu?" 화록✅":""}${ziwei?.guanLu?.huaji?" 화기⚠️":""}
+질액궁(疾厄宮 — 건강): 주성 ${ziwei?.jiE?.stars||"없음"}
+사화: 화록→${ziwei?.sihua?.["록"]?.palaceName||"없음"} | 화권→${ziwei?.sihua?.["권"]?.palaceName||"없음"} | 화과→${ziwei?.sihua?.["과"]?.palaceName||"없음"} | 화기→${ziwei?.sihua?.["기"]?.palaceName||"없음"}
+※ 자미두수 데이터만 사용해 해석. 사주·점성술·타로 언급 금지.`;
+    } else if (cat === "astrology") {
+      dataSection = `[서양 점성술 전용 데이터 — 점성술 관점만으로 해석]
+${astro ? `태양(Sun — 자아·에너지): ${astro.sun.sign} ${astro.sun.deg}°
+달(Moon — 감정·무의식): ${astro.moon.sign} ${astro.moon.deg}°
+ASC(상승궁 — 외향적 자아): ${astro.asc.sign} | MC(중천 — 커리어): ${astro.mc.sign}
+금성(Venus — 사랑·아름다움): ${astro.venus.sign}(${astro.venus.house})
+화성(Mars — 행동·에너지): ${astro.mars.sign}(${astro.mars.house})
+목성(Jupiter — 행운·확장): ${astro.jupiter.sign}(${astro.jupiter.house})
+토성(Saturn — 제약·성장): ${astro.saturn.sign}(${astro.saturn.house})` : "점성술 계산 불가"}
+※ 점성술 행성·하우스 데이터만 사용해 해석. 사주·자미두수·타로 언급 금지.`;
+    } else if (cat === "tarot") {
+      dataSection = `[타로 전용 데이터 — 타로 관점만으로 해석]
+타로 1(아침/과거): ${tarot.name}(${tarot.orientation}) — 키워드: ${tarot.keywords} | 오늘 의미: ${tarot.catMeaning}
+타로 2(오후/현재): ${tarot2?.name||""}(${tarot2?.orientation||""}) — 키워드: ${tarot2?.keywords||""} | 의미: ${tarot2?.catMeaning||""}
+타로 3(저녁/미래): ${tarot3?.name||""}(${tarot3?.orientation||""}) — 키워드: ${tarot3?.keywords||""} | 의미: ${tarot3?.catMeaning||""}
+※ 타로 3장 데이터만 사용해 해석. 사주·자미두수·점성술 언급 금지.`;
+    } else {
+      // 종합 카테고리 (love/money/work/health/general_*): 전체 시스템 활용
+      dataSection = `[통합 실계산 데이터 — 수치 나열 금지, 이야기로 녹여서 활용]
+사주 일간: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) 십이운성 ${saju.day.unseong} / 오늘 운세 ${saju.score}점(${saju.fortune})
+자미두수 ${catPalKr}: 주성 ${zPal?.stars||"없음"}${zPal?.hualu?" 화록✅":""}${zPal?.huaji?" 화기⚠️":""}
+점성술: ${astroDetail}
+${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}\n타로 2(오후): ${tarot2.name}(${tarot2.orientation}) — ${tarot2.catMeaning}\n타로 3(저녁): ${tarot3?tarot3.name+"("+tarot3.orientation+") — "+tarot3.catMeaning:""}`:"타로: "+tarot.name+"("+tarot.orientation+") — "+tarot.catMeaning}`;
+    }
+
     const prompt =
 `너는 '${petName||"운세다마"}'. [${expertPersona}] 페르소나를 가진 신비로운 수호 다마고치야.
 이 사용자는 ${animalKr}띠로, ${animalTrait}을 가진 특별한 존재야. 그 띠의 성격과 강점을 반영해서 조언해줘.
@@ -554,26 +611,23 @@ export async function POST(request) {
 
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr}띠(${saju.year.gan}${saju.year.ji}년)
 
-[실계산 데이터 — 수치 나열 금지, 이야기로 녹여서 활용]
-사주 일간: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) 십이운성 ${saju.day.unseong} / 오늘 운세 ${saju.score}점(${saju.fortune})
-자미두수 ${catPalKr}: 주성 ${zPal?.stars||"없음"}${zPal?.hualu?" 화록✅":""}${zPal?.huaji?" 화기⚠️":""}
-점성술: ${astroDetail}
-${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}\n타로 2(오후): ${tarot2.name}(${tarot2.orientation}) — ${tarot2.catMeaning}\n타로 3(저녁): ${tarot3?tarot3.name+"("+tarot3.orientation+") — "+tarot3.catMeaning:""}`:"타로: "+tarot.name+"("+tarot.orientation+") — "+tarot.catMeaning}
+${dataSection}
 
 질문: ${question||"오늘 "+catKr+" 알려줘"}
 (답변은 300자 이상 자연스러운 문장만. 반드시 충분히 구체적으로.)`;
 
     const ai = await callGemini(prompt, 700);
-    const answer = ai || buildLocal({cat, saju, ziwei, astro, tarot, petName});
+    const answer = (ai && isCategoryPure(cat, ai)) ? ai : buildLocal({cat, saju, ziwei, astro, tarot, petName});
+    const domainOnly = cat === "saju" || cat === "ziwei" || cat === "astrology" || cat === "tarot";
 
     return NextResponse.json({
       answer,
       score: saju.score,
       fortune: saju.fortune,
       today: saju.today,
-      tarot: {name:tarot.name, id:tarot.id, orientation:tarot.orientation, keywords:tarot.keywords, catMeaning:tarot.catMeaning, isMajor:tarot.isMajor},
-      ziweiPalace: zPal ? {name:zPal.name, stars:zPal.stars} : null,
-      astroSummary: astro ? `☀️ ${astro.sun.sign} 🌙 ${astro.moon.sign} ASC ${astro.asc.sign}` : null,
+      tarot: (cat === "tarot" || !domainOnly) ? {name:tarot.name, id:tarot.id, orientation:tarot.orientation, keywords:tarot.keywords, catMeaning:tarot.catMeaning, isMajor:tarot.isMajor} : null,
+      ziweiPalace: (cat === "ziwei" || !domainOnly) && zPal ? {name:zPal.name, stars:zPal.stars} : null,
+      astroSummary: (cat === "astrology" || !domainOnly) && astro ? `☀️ ${astro.sun.sign} 🌙 ${astro.moon.sign} ASC ${astro.asc.sign}` : null,
     });
   } catch (e) {
     return NextResponse.json({error:e.message}, {status:500});
