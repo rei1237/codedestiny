@@ -855,7 +855,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
-<script>(function(){try{if((window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
+<script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
 <body>
 <script>
