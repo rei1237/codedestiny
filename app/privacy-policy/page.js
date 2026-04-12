@@ -57,9 +57,9 @@ export default function PrivacyPolicyPage() {
           and how you can exercise your rights.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          운영자(개인정보처리자): 꽃돼지 연이
+          운영자(개인정보처리자): Code Destiny
           <br />
-          Operator / Data Controller: 꽃돼지 연이
+          Operator / Data Controller: Code Destiny
         </p>
       </section>
 
@@ -158,7 +158,7 @@ export default function PrivacyPolicyPage() {
           <br />
           사이트: https://code-destiny.com
           <br />
-          운영자: 꽃돼지 연이
+          운영자: Code Destiny
           <br />
           개인정보 보호 문의 이메일: seongbae555@gmail.com
           <br />
