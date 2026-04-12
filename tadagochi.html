@@ -1576,8 +1576,10 @@ function quickAsk(q){document.getElementById('chat-inp').value=q; sendChat();}
 function quickCat(cat,q){document.getElementById('chat-inp').value=q; sendChat(cat);}
 
 // ── 클라이언트 로컬 운세 응답 (API 오류 시 대체) ───────────────────────────
-function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel){
+function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel,question){
   var good=score>=60,great=score>=75,n=petName||'운세다마',td=todayLabel||'오늘';
+  var q=(question||'');
+  var focus=/재물|돈|수입|지출|투자|금전/.test(q)?'money':/연애|사랑|인연|이별|재회|썸/.test(q)?'love':/직장|직업|회사|이직|면접|합격|업무|커리어|사업/.test(q)?'work':/건강|몸|체력|수면|피로|운동|식습관|멘탈|마음/.test(q)?'health':'general';
   var T={
     love:great
       ?[n+'가 오늘 '+td+' 기운이 '+zName+'띠에게 딱 맞아! 💕 좋아하는 사람에게 먼저 연락해봐 ✨ 솔직한 마음이 통하는 날이야 🌸',
@@ -1652,6 +1654,23 @@ function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel){
       :['타로가 오늘 신중함을 권하고 있어 🃏 카드가 보여주는 현재 에너지는 잠시 멈추고 생각하라는 신호야. 충동적인 결정보다 차분한 숙고가 더 좋은 결과를 낼 거야 💧',
         '오늘 카드 배열이 전환점을 암시해 🌙 현재는 어렵게 느껴져도 이 과정이 더 큰 성장을 위한 준비야. 카드는 내일의 좋은 흐름을 약속하고 있어 — 오늘 하루만 버텨줘! 🃏']
   };
+  if(cat==='saju'){
+    var msgSaju={money:'사주 재물운 기준으로 보면 오늘은 지출 통제가 핵심이야 💰 큰 결정보다 현금흐름을 먼저 점검해봐 📿',love:'사주 연애운 기준으로 오늘은 감정 표현 타이밍이 좋아 💕 서두르지 말고 진심을 분명히 전해봐 📿',work:'사주 직업운 기준으로 오늘은 우선순위 1개를 먼저 끝내는 게 성과를 키워줘 📚',health:'사주 건강운 기준으로 오늘은 과로를 피하고 수면 리듬을 지키는 게 좋아 💪',general:'사주 전반운 기준으로 오늘은 속도보다 방향을 정확히 잡는 게 중요해 📿'}[focus];
+    return (great?'오늘 사주 기운이 매우 강해 ✨ ':'오늘 사주 흐름을 보면 차분히 가면 좋아 🌙 ')+msgSaju+' '+n+'가 응원할게 💕';
+  }
+  if(cat==='ziwei'){
+    var msgZiwei={money:'자미두수 재백궁 흐름상 오늘은 리스크 분산이 유리해 💰',love:'자미두수 부처궁 흐름상 대화의 온도를 낮추면 관계가 안정돼 💕',work:'자미두수 관록궁 흐름상 마감 전 점검이 성과를 키워줘 📚',health:'자미두수 질액궁 흐름상 무리한 일정은 줄이는 게 좋아 💪',general:'자미두수 명궁 흐름상 오늘은 중심을 지키는 선택이 유리해 🌌'}[focus];
+    return msgZiwei+' '+n+'가 옆에서 길을 밝혀줄게 🌌';
+  }
+  if(cat==='astrology'){
+    var msgAstro={money:'점성술 금전 흐름상 과신보다 계획적인 소비가 좋아 💰',love:'점성술 연애 흐름상 금성 에너지가 감정 표현을 도와줘 💕',work:'점성술 커리어 흐름상 핵심 과업을 먼저 처리하면 운이 붙어 📚',health:'점성술 건강 흐름상 휴식 리듬을 지키면 컨디션이 올라와 💪',general:'점성술 전반 흐름상 오늘은 균형 잡힌 선택이 핵심이야 ⭐'}[focus];
+    return msgAstro+' '+n+'가 별처럼 지켜볼게 ⭐';
+  }
+  if(cat==='tarot'){
+    var msgTarot={money:'타로 재물 관점에서는 욕심보다 안정이 답이야 💰',love:'타로 연애 관점에서는 솔직함과 경청이 관계를 살려줘 💕',work:'타로 직업 관점에서는 미루던 한 가지를 오늘 끝내봐 📚',health:'타로 건강 관점에서는 회복 루틴이 중요해 💪',general:'타로 전반 관점에서는 성급함보다 균형이 필요해 🃏'}[focus];
+    return msgTarot+' '+n+'가 카드 흐름으로 응원할게 🃏';
+  }
+
   var arr=T[cat]||T.general;
   return arr[Math.floor(Math.random()*arr.length)];
 }
@@ -1737,7 +1756,7 @@ function sendChat(forceCat){
   var fortune=score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
   var zName=G.zodiac||'dragon';
   var todayLabel=todayGanji().label;
-  var localAns=buildLocalAnswer(cat,score,fortune,G.petName,zName,todayLabel);
+  var localAns=buildLocalAnswer(cat,score,fortune,G.petName,zName,todayLabel,q);
 
   // 로딩 메시지 표시
   var LOAD_TEXT={

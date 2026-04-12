@@ -347,15 +347,27 @@ async function callGemini(prompt, maxTokens) {
 }
 
 // ─── 6. 로컬 폴백 답변 ───────────────────────────────────────────────────────
-function buildLocal({cat, saju, ziwei, astro, tarot, petName}) {
+function buildLocal({cat, saju, ziwei, astro, tarot, petName, question}) {
   const name = petName||"운세다마";
   const sc   = saju?.score||50;
   const ft   = saju?.fortune||"평";
   const isSingleDomain = cat === "saju" || cat === "ziwei" || cat === "astrology" || cat === "tarot";
+  const q = String(question || "");
+  const focus = /(재물|돈|수입|지출|투자|금전)/.test(q)
+    ? "money"
+    : /(연애|사랑|인연|이별|재회|썸)/.test(q)
+      ? "love"
+      : /(직장|직업|회사|이직|면접|합격|업무|커리어|사업)/.test(q)
+        ? "work"
+        : /(건강|몸|체력|수면|피로|운동|식습관|마음|멘탈)/.test(q)
+          ? "health"
+          : "general";
   const catLbl = {love:"연애운",money:"재물운",work:"직업운",health:"건강운",general:"종합운세",
+    saju:"사주",ziwei:"자미두수",astrology:"점성술",tarot:"타로",
     general_today:"오늘의 운세",general_love:"연애운",general_money:"재물운",
     general_good:"좋은 부분",general_caution:"주의할 점"}[cat]||"운세";
   const emo = {love:"💕",money:"💰",work:"📚",health:"💪",general:"🔮",
+    saju:"📿",ziwei:"🌌",astrology:"⭐",tarot:"🃏",
     general_today:"🌟",general_love:"💕",general_money:"💰",general_good:"✨",general_caution:"⚠️"}[cat]||"✨";
   const level = sc>=75?"대길이야! 정말 좋은 기운이야":sc>=55?"길운이 함께하는 하루야":sc>=40?"평온하게 흘러가는 날이야":"조금 신중하게 가면 좋은 날이야";
   const tarotHint = (cat === "tarot" || !isSingleDomain) && tarot ? `${tarot.name}(${tarot.orientation}) 카드가 나왔어, ${tarot.catMeaning}` : "";
@@ -372,6 +384,55 @@ function buildLocal({cat, saju, ziwei, astro, tarot, petName}) {
     : cat==="general_good"
     ? `새로운 시작이나 창의적인 활동, 소통에서 좋은 에너지가 나오는 날이야! ${sc>=55?"적극적으로 나아가봐 🌸":"차분하게 하나씩 해나가봐 💙"}`
     : sc>=55?`좋은 흐름을 타고 원하는 대로 나아가봐 🌸`:"오늘 하루 차분하게 보내면 금세 좋아질 거야 💙";
+
+  if (cat === "saju") {
+    const topic = {money:"재물",love:"연애",work:"직업",health:"건강",general:"전반"}[focus];
+    const sajuAdvice = {
+      money:"사주 재물 관점에서는 큰 지출보다 현금흐름 점검이 유리해.",
+      love:"사주 연애 관점에서는 감정을 또렷하게 전하는 게 좋아.",
+      work:"사주 직업 관점에서는 우선순위 1개를 먼저 끝내면 흐름이 살아나.",
+      health:"사주 건강 관점에서는 과로를 줄이고 수면 리듬을 지키는 게 핵심이야.",
+      general:"사주 전반 관점에서는 오늘은 속도보다 방향을 정확히 잡는 게 중요해."
+    }[focus];
+    return `${emo} 오늘 ${catLbl} ${topic} 해석이야. ${name}의 일간과 일진 흐름을 보면 ${level}. ${sajuAdvice} ${name}가 끝까지 응원할게 💕`;
+  }
+
+  if (cat === "ziwei") {
+    const topic = {money:"재물",love:"연애",work:"직업",health:"건강",general:"전반"}[focus];
+    const ziweiAdvice = {
+      money:"자미두수 재백궁 관점에서는 리스크 분산이 유리해.",
+      love:"자미두수 부처궁 관점에서는 대화의 온도를 낮추면 관계가 안정돼.",
+      work:"자미두수 관록궁 관점에서는 마감 전 점검이 성과를 키워줘.",
+      health:"자미두수 질액궁 관점에서는 무리한 일정을 줄이는 게 좋아.",
+      general:"자미두수 명궁 관점에서는 오늘은 중심을 지키는 선택이 유리해."
+    }[focus];
+    return `${emo} 오늘 ${catLbl} ${topic} 해석이야. ${name}의 궁위 흐름을 보면 ${level}. ${ziweiAdvice} ${name}가 길을 밝혀줄게 💕`;
+  }
+
+  if (cat === "astrology") {
+    const topic = {money:"재물",love:"연애",work:"직업",health:"건강",general:"전반"}[focus];
+    const astroAdvice = {
+      money:"점성술 금전 관점에서는 과신을 줄이고 지출 계획을 먼저 세워봐.",
+      love:"점성술 연애 관점에서는 금성 흐름을 타서 진심을 부드럽게 전달해봐.",
+      work:"점성술 커리어 관점에서는 핵심 과업을 먼저 끝내면 운이 붙어.",
+      health:"점성술 건강 관점에서는 달의 리듬을 따라 휴식을 우선해.",
+      general:"점성술 전반 관점에서는 오늘은 속도보다 균형이 핵심이야."
+    }[focus];
+    return `${emo} 오늘 ${catLbl} ${topic} 해석이야. ${name}의 행성 흐름을 보면 ${level}. ${astroAdvice} ${name}가 별처럼 지켜볼게 💕`;
+  }
+
+  if (cat === "tarot") {
+    const topic = {money:"재물",love:"연애",work:"직업",health:"건강",general:"전반"}[focus];
+    const tarotAdvice = {
+      money:"타로 재물 관점에서는 욕심보다 안정 선택이 유리해.",
+      love:"타로 연애 관점에서는 솔직함과 경청이 관계를 살려줘.",
+      work:"타로 직업 관점에서는 미루던 한 가지를 오늘 끝내는 게 좋아.",
+      health:"타로 건강 관점에서는 회복 루틴을 지키면 컨디션이 올라와.",
+      general:"타로 전반 관점에서는 성급함보다 균형 잡힌 선택이 필요해."
+    }[focus];
+    return `${emo} 오늘 ${catLbl} ${topic} 해석이야. ${name}의 카드 흐름을 보면 ${level}. ${tarotAdvice} ${name}가 끝까지 응원할게 💕`;
+  }
+
   return `${emo} 오늘 ${catLbl}! ${name}의 사주를 보니 ${level}. ${zNote}${tarotHint?tarotHint+". ":""} ${advice} ${name}가 항상 응원할게 💕`;
 }
 
@@ -617,7 +678,16 @@ ${dataSection}
 (답변은 300자 이상 자연스러운 문장만. 반드시 충분히 구체적으로.)`;
 
     const ai = await callGemini(prompt, 700);
-    const answer = (ai && isCategoryPure(cat, ai)) ? ai : buildLocal({cat, saju, ziwei, astro, tarot, petName});
+    let answer = ai;
+    if (!answer || !isCategoryPure(cat, answer)) {
+      const strictPrompt = `${prompt}\n\n[중요 재지시]\n- 이번 답변은 반드시 '${catKr}' 관점만 사용.\n- 다른 점술 체계 언급 금지.\n- 300자 이상, 이야기체.`;
+      const aiRetry = await callGemini(strictPrompt, 700);
+      if (aiRetry && isCategoryPure(cat, aiRetry)) {
+        answer = aiRetry;
+      } else {
+        answer = buildLocal({cat, saju, ziwei, astro, tarot, petName, question});
+      }
+    }
     const domainOnly = cat === "saju" || cat === "ziwei" || cat === "astrology" || cat === "tarot";
 
     return NextResponse.json({
