@@ -130,13 +130,15 @@ function _initSelectorsManually() {
     var hSel = document.getElementById('birthHour');
     var mSel = document.getElementById('birthMinute');
     if (hSel && mSel) {
+      var prevH = hSel.value; // 사용자가 이미 선택한 값 보존
+      var prevM = mSel.value;
       // 시간 선택지 생성
       var hBuf = '';
       for (var h = 0; h < 24; h++) {
         hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
       }
       hSel.innerHTML = hBuf;
-      hSel.value = '12';
+      hSel.value = (prevH !== '' && prevH !== null) ? prevH : '12';
       
       // 분 선택지 생성
       var mBuf = '';
@@ -144,7 +146,7 @@ function _initSelectorsManually() {
         mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
       }
       mSel.innerHTML = mBuf;
-      mSel.value = '0';
+      mSel.value = (prevM !== '' && prevM !== null) ? prevM : '0';
       
       console.log('[saju-bootstrap] 매뉴얼 초기화 완료');
     } else {

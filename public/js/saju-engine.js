@@ -2240,14 +2240,16 @@ function initSelectors(){
 
   var hSel=document.getElementById('birthHour'),mSel=document.getElementById('birthMinute');
   if (hSel && mSel) {
+    var prevH = hSel.value; // 사용자가 이미 선택한 값 보존 (HTML 사전 로드 시)
+    var prevM = mSel.value;
     var hBuf = '';
     for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
     hSel.innerHTML = hBuf;
-    hSel.value = '12';
+    hSel.value = (prevH !== '' && prevH !== null) ? prevH : '12';
     var mBuf = '';
     for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
     mSel.innerHTML = mBuf;
-    mSel.value = '0';
+    mSel.value = (prevM !== '' && prevM !== null) ? prevM : '0';
   }
 
   var ch=document.getElementById('compatBirthHour');
@@ -3421,8 +3423,10 @@ async function calculate(){
   var calType = 'solar';
   for(var i=0; i<calTypeBtns.length; i++) { if(calTypeBtns[i].checked) { calType = calTypeBtns[i].value; break; } }
 
-  var hour=parseInt(document.getElementById('birthHour').value)||12;
-  var minute=parseInt(document.getElementById('birthMinute').value)||0;
+  var _hRaw=parseInt(document.getElementById('birthHour').value,10);
+  var hour=isNaN(_hRaw)?12:_hRaw;
+  var _mRaw=parseInt(document.getElementById('birthMinute').value,10);
+  var minute=isNaN(_mRaw)?0:_mRaw;
 
   var countrySel = document.getElementById('birthCountry');
   var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
@@ -16138,7 +16142,8 @@ async function runCompat(){
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
 
-  var hour=parseInt(document.getElementById('compatBirthHour').value)||12;
+  var _chRaw=parseInt(document.getElementById('compatBirthHour').value,10);
+  var hour=isNaN(_chRaw)?12:_chRaw;
   var minute=parseInt(document.getElementById('compatBirthMinute').value)||0;
 
   var actualDateInfo = await getActualSolarDateWithContext(bd, compatCalType, {
