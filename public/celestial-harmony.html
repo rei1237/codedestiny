@@ -3,324 +3,353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>천체의 선율 | Celestial Harmony</title>
+  <title>천체의 선율 | Celestial Harmony Tarot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-0: #080a1e;
-      --bg-1: #111633;
-      --gold-0: #f5d06f;
-      --gold-1: #b98624;
-      --ink-0: #f7f2e8;
-      --ink-1: #ccb98f;
-      --panel: rgba(13, 17, 42, 0.86);
-      --line: rgba(226, 188, 104, 0.35);
-    }
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
     body {
+      font-family: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+      background: #03060f;
       margin: 0;
-      font-family: "Noto Serif KR", "Nanum Myeongjo", serif;
-      color: var(--ink-0);
-      background:
-        radial-gradient(circle at 20% 10%, rgba(106, 83, 194, 0.24), transparent 42%),
-        radial-gradient(circle at 78% 16%, rgba(240, 181, 77, 0.2), transparent 40%),
-        linear-gradient(160deg, var(--bg-0), var(--bg-1));
-      min-height: 100vh;
-      line-height: 1.65;
     }
-    .wrap {
-      width: min(1080px, 94vw);
-      margin: 0 auto;
-      padding: 26px 0 64px;
+    #starsBg {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
     }
-    .hero {
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      overflow: hidden;
-      background: linear-gradient(145deg, rgba(25, 23, 51, 0.88), rgba(11, 14, 36, 0.92));
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
-      animation: fadeUp 0.7s ease-out;
+    .star { position: absolute; border-radius: 50%; background: #fff; }
+    .nebula {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      pointer-events: none; z-index: 0;
     }
-    .hero img {
-      width: 100%;
-      height: min(300px, 42vw);
-      object-fit: cover;
-      display: block;
-      border-bottom: 1px solid var(--line);
+    .p-sun     { --pc:#f59e0b; --pb:#78350f; --pg:rgba(245,158,11,.5);  --pbg:linear-gradient(145deg,#1c1208,#3d2806); }
+    .p-mercury { --pc:#94a3b8; --pb:#1e293b; --pg:rgba(148,163,184,.4); --pbg:linear-gradient(145deg,#0d1117,#1e293b); }
+    .p-venus   { --pc:#fb7185; --pb:#4c0519; --pg:rgba(251,113,133,.5); --pbg:linear-gradient(145deg,#200008,#4c0519); }
+    .p-earth   { --pc:#38bdf8; --pb:#0c4a6e; --pg:rgba(56,189,248,.5);  --pbg:linear-gradient(145deg,#050e1c,#0c4a6e); }
+    .p-moon    { --pc:#a5b4fc; --pb:#1e1b4b; --pg:rgba(165,180,252,.5); --pbg:linear-gradient(145deg,#090818,#1e1b4b); }
+    .p-mars    { --pc:#f87171; --pb:#450a0a; --pg:rgba(248,113,113,.5); --pbg:linear-gradient(145deg,#160303,#450a0a); }
+    .p-jupiter { --pc:#fb923c; --pb:#431407; --pg:rgba(251,146,60,.5);  --pbg:linear-gradient(145deg,#180500,#431407); }
+    .p-saturn  { --pc:#bef264; --pb:#1a2e05; --pg:rgba(190,242,100,.4); --pbg:linear-gradient(145deg,#0a1302,#1a2e05); }
+    .p-uranus  { --pc:#5eead4; --pb:#042f2e; --pg:rgba(94,234,212,.5);  --pbg:linear-gradient(145deg,#010f0e,#042f2e); }
+    .p-neptune { --pc:#60a5fa; --pb:#1e3a8a; --pg:rgba(96,165,250,.5);  --pbg:linear-gradient(145deg,#030826,#1e3a8a); }
+    .p-pluto   { --pc:#c084fc; --pb:#2e1065; --pg:rgba(192,132,252,.5); --pbg:linear-gradient(145deg,#0d0318,#2e1065); }
+    .planet-card {
+      background: var(--pbg);
+      border: 1px solid color-mix(in srgb, var(--pc) 38%, transparent);
+      border-radius: 16px;
+      transition: transform .35s ease, box-shadow .35s ease;
     }
-    .hero-body { padding: 20px 22px 24px; }
-    .eyebrow {
-      color: var(--ink-1);
-      letter-spacing: 0.12em;
-      font-size: 0.78rem;
-      text-transform: uppercase;
+    .planet-card:hover {
+      transform: translateY(-7px);
+      box-shadow: 0 22px 50px var(--pg), 0 0 0 1px color-mix(in srgb,var(--pc) 55%,transparent);
     }
-    h1 {
-      margin: 8px 0 8px;
-      font-size: clamp(1.6rem, 2.7vw, 2.3rem);
-      color: var(--gold-0);
-      text-shadow: 0 0 24px rgba(214, 167, 70, 0.42);
+    .planet-sym     { color: var(--pc); }
+    .planet-lbl     { color: color-mix(in srgb,var(--pc) 92%,white); }
+    .planet-pill    { background:color-mix(in srgb,var(--pc) 11%,transparent); border:1px solid color-mix(in srgb,var(--pc) 34%,transparent); color:var(--pc); }
+    .planet-sec-ln  { border-color:color-mix(in srgb,var(--pc) 28%,transparent); }
+    .planet-heading { color:color-mix(in srgb,var(--pc) 85%,white); }
+    .golden-card {
+      position: relative; border-radius: 20px; overflow: hidden;
+      background: linear-gradient(145deg,#130900,#2b1300,#130900);
+      border: 1px solid rgba(245,158,11,.45);
+      box-shadow: 0 0 70px rgba(245,158,11,.18), 0 32px 80px rgba(0,0,0,.65);
     }
-    .lead { margin: 0; color: #e5d8b9; }
-    .toolbar {
-      margin-top: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+    .golden-card::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at 50% 0%,rgba(253,230,138,.07),transparent 60%);
+      pointer-events:none;
     }
-    button {
-      border: 1px solid rgba(226, 188, 104, 0.56);
-      border-radius: 999px;
-      background: linear-gradient(120deg, #2c2350, #4b3678);
-      color: #fff4d7;
-      padding: 11px 18px;
-      cursor: pointer;
-      font-weight: 700;
+    .golden-inner-border {
+      position:absolute; inset:0; border-radius:20px; pointer-events:none;
+      border:1px solid transparent;
+      background: linear-gradient(#130900,#130900) padding-box,
+                  linear-gradient(135deg,#f59e0b,#fde68a,#d97706,#fbbf24,#f59e0b) border-box;
     }
-    button:disabled { opacity: 0.65; cursor: not-allowed; }
-    .board {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+    .shimmer-gold {
+      background: linear-gradient(90deg,#d97706 0%,#fde68a 40%,#f59e0b 60%,#d97706 100%);
+      background-size:200% auto;
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      animation:shimmer 4s linear infinite;
     }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      background: var(--panel);
-      min-height: 148px;
-      animation: fadeUp 0.5s ease both;
+    .cosmic-divider {
+      flex:1; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(120,100,170,.55) 35%,rgba(120,100,170,.55) 65%,transparent);
     }
-    .card h3 {
-      margin: 0 0 4px;
-      font-size: 1rem;
-      color: #f3dd9f;
+    .ld span {
+      display:inline-block; width:9px; height:9px; border-radius:50%;
+      background:#f59e0b; margin:0 3px; animation:ldot 1.4s ease-in-out infinite;
     }
-    .card .q {
-      margin: 4px 0 8px;
-      color: #ddd0b0;
-      font-size: 0.92rem;
-    }
-    .pill {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(245, 208, 111, 0.14);
-      border: 1px solid rgba(245, 208, 111, 0.35);
-      color: #f6dd9a;
-      font-size: 0.82rem;
-    }
-    .results {
-      margin-top: 20px;
-      display: none;
-      gap: 14px;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    }
-    .result-item {
-      border: 1px solid rgba(226, 188, 104, 0.28);
-      border-radius: 14px;
-      padding: 14px;
-      background: rgba(7, 10, 30, 0.88);
-    }
-    .result-item h4 { margin: 0 0 10px; color: #f5dc9d; }
-    .result-item p { margin: 0 0 9px; }
-    .result-item strong { color: #f0d389; }
-    .golden {
-      margin-top: 20px;
-      display: none;
-      border-radius: 18px;
-      border: 1px solid rgba(245, 208, 111, 0.72);
-      padding: 20px;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255, 230, 153, 0.21), transparent 48%),
-        linear-gradient(145deg, rgba(93, 59, 14, 0.44), rgba(24, 16, 36, 0.9));
-      box-shadow: 0 18px 50px rgba(214, 167, 70, 0.22);
-    }
-    .golden h3 {
-      margin: 0 0 8px;
-      color: #ffeaad;
-      font-size: 1.26rem;
-    }
-    .notice { margin-top: 12px; color: #d2c299; font-size: 0.9rem; }
-    .muted { opacity: 0.86; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @media (max-width: 680px) {
-      .hero-body { padding: 16px; }
-      .card { min-height: 130px; }
-    }
+    .ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+    .rt { line-height:1.95; letter-spacing:.01em; color:rgba(255,255,255,.78); font-size:.875rem; word-break:keep-all; }
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#060810}::-webkit-scrollbar-thumb{background:#2d2550;border-radius:4px}
+    @keyframes twinkle  { 0%,100%{opacity:.18;transform:scale(.8)} 50%{opacity:.9;transform:scale(1.45)} }
+    @keyframes shimmer  { from{background-position:-200% center} to{background-position:200% center} }
+    @keyframes ldot     { 0%,80%,100%{transform:scale(.5);opacity:.35} 40%{transform:scale(1);opacity:1} }
+    @keyframes orbitRing{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes fadeRise { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes boardIn  { from{opacity:0;transform:scale(.95) translateY(14px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    @keyframes pulseG   { 0%,100%{box-shadow:0 0 28px rgba(245,158,11,.22)} 50%{box-shadow:0 0 58px rgba(245,158,11,.65)} }
+    @keyframes heroIn   { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+    .board-in  { animation:boardIn  .5s ease-out both; }
+    .fade-rise { animation:fadeRise .6s ease-out both; }
+    .hero-in   { animation:heroIn   .7s ease-out both; }
+    .pulse-gold{ animation:pulseG   3s  ease-in-out infinite; }
   </style>
 </head>
-<body>
-  <main class="wrap">
-    <section class="hero">
-      <img src="/images/Celestial%20Harmony.webp" alt="Celestial Harmony tarot visual" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
-      <div class="hero-body">
-        <div class="eyebrow">Celestial Harmony Tarot Master</div>
-        <h1>천체의 선율 11카드 리딩</h1>
-        <p class="lead">행성 11축 질문에 타로를 대응시켜 깊이 있는 해석을 제공합니다. 마지막에는 황금빛 통합 카드로 흐름을 정리하고, 힐링과 응원 메시지를 전합니다.</p>
-        <div class="toolbar">
-          <button id="drawBtn">카드 배치하기</button>
-          <button id="readBtn" disabled>Gemini 상세 리딩 받기</button>
-          <button id="resetBtn">다시 시작</button>
+<body class="text-gray-100 min-h-screen">
+  <div id="starsBg"></div>
+  <div class="nebula" style="width:650px;height:650px;top:-120px;left:-160px;background:radial-gradient(circle,rgba(90,60,200,.11),transparent 70%);"></div>
+  <div class="nebula" style="width:500px;height:500px;top:35%;right:-80px;background:radial-gradient(circle,rgba(28,80,220,.09),transparent 70%);"></div>
+  <div class="nebula" style="width:700px;height:700px;bottom:0;left:15%;background:radial-gradient(circle,rgba(160,40,200,.07),transparent 70%);"></div>
+
+  <main class="relative z-10 max-w-5xl mx-auto px-4 py-8 pb-28">
+
+    <!-- HERO -->
+    <section class="mb-12 hero-in">
+      <div class="rounded-2xl overflow-hidden"
+           style="background:linear-gradient(145deg,rgba(9,7,26,.97),rgba(4,5,18,.98));border:1px solid rgba(110,75,200,.28);box-shadow:0 32px 80px rgba(0,0,0,.78);">
+        <div class="relative overflow-hidden" style="height:min(280px,40vw);">
+          <img src="/images/Celestial%20Harmony.webp" alt="Celestial Harmony"
+               class="w-full h-full object-cover"
+               onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
+          <div class="absolute inset-0" style="background:linear-gradient(to bottom,rgba(0,0,0,.04),rgba(4,5,18,.95));"></div>
+          <div class="absolute bottom-5 right-6 pointer-events-none opacity-35">
+            <div class="relative w-20 h-20">
+              <div class="absolute inset-0 rounded-full border border-amber-400/50" style="animation:orbitRing 20s linear infinite;"></div>
+              <div class="absolute rounded-full border border-violet-400/35" style="inset:5px;animation:orbitRing 13s linear infinite reverse;"></div>
+              <div class="absolute rounded-full border border-cyan-400/25" style="inset:11px;animation:orbitRing 8s linear infinite;"></div>
+              <div class="absolute inset-0 flex items-center justify-center"><span style="color:#f5d06f;font-size:1.1rem;">✦</span></div>
+            </div>
+          </div>
         </div>
-        <p class="notice">이 서비스는 메인에서 1회 100코인 결제 후 이용됩니다.</p>
+        <div class="p-6 md:p-9">
+          <p class="text-amber-400/55 text-xs tracking-widest uppercase font-mono mb-3">✦ Celestial Harmony &middot; 11 Planetary Tarot Master Reading ✦</p>
+          <h1 class="shimmer-gold font-bold mb-4" style="font-size:clamp(1.9rem,4vw,3.2rem);line-height:1.22;">
+            천체의 선율<br>
+            <span style="font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;">11행성 타로 마스터 리딩</span>
+          </h1>
+          <p class="text-amber-100/68 text-sm md:text-base leading-relaxed max-w-2xl mb-2">
+            태양계 11개 행성의 에너지가 타로의 상징과 공명하여, 당신 삶의 모든 영역을 우주적 시각으로 심층 해석합니다.
+            각 행성은 인간의 의식&middot;무의식&middot;영혼 깊은 곳에서 작동하는 원형 에너지를 담고 있습니다.
+          </p>
+          <p class="text-amber-100/38 text-xs">마지막 <span style="color:rgba(245,208,111,.65);">황금 통합 카드</span>가 11개 행성의 에너지를 하나의 우주적 흐름으로 통합합니다.</p>
+          <div class="flex flex-wrap gap-3 mt-7">
+            <button id="drawBtn" style="background:linear-gradient(120deg,#5b21b6,#7c3aed);border:1px solid rgba(167,139,250,.45);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#ede9fe;transition:all .3s;font-family:inherit;">✨ 카드 배치하기</button>
+            <button id="readBtn" disabled style="background:linear-gradient(120deg,#92400e,#d97706);border:1px solid rgba(245,158,11,.4);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#fef3c7;transition:all .3s;font-family:inherit;opacity:.4;">🔮 심층 리딩 받기</button>
+            <button id="resetBtn" style="background:transparent;border:1px solid rgba(255,255,255,.2);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:rgba(255,255,255,.6);transition:all .3s;font-family:inherit;">&#8635; 다시 시작</button>
+          </div>
+          <p class="mt-5 text-amber-200/28 text-xs">&#x1F4AB; 메인에서 1회 100코인 결제 후 이용됩니다.</p>
+        </div>
       </div>
     </section>
 
-    <section id="board" class="board"></section>
-    <section id="results" class="results"></section>
-    <section id="golden" class="golden"></section>
+    <!-- 11행성 카드 그리드 -->
+    <section id="boardSec" style="display:none;">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="cosmic-divider"></div>
+        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; 11 행성 배치 &#x2B21;</span>
+        <div class="cosmic-divider"></div>
+      </div>
+      <div id="board" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-12"></div>
+    </section>
+
+    <!-- 로딩 -->
+    <section id="loadSec" class="py-20 text-center" style="display:none;">
+      <div class="inline-block relative mb-8">
+        <div class="w-24 h-24 rounded-full border border-amber-400/22" style="animation:orbitRing 7s linear infinite;"></div>
+        <div class="absolute rounded-full border border-violet-400/28" style="inset:16px;animation:orbitRing 5s linear infinite reverse;"></div>
+        <div class="absolute inset-0 flex items-center justify-center"><span style="color:#f5d06f;font-size:1.8rem;">&#x2726;</span></div>
+      </div>
+      <div class="ld mb-5"><span></span><span></span><span></span></div>
+      <p style="color:rgba(253,230,138,.88);font-size:1.1rem;font-weight:700;margin-bottom:.5rem;">우주의 에너지를 수신 중&#8230;</p>
+      <p id="loadMsg" style="color:rgba(255,255,255,.45);font-size:.875rem;">Gemini AI가 각 행성의 에너지를 심층 해석하고 있습니다</p>
+    </section>
+
+    <!-- 리딩 결과 -->
+    <section id="resSec" style="display:none;">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="cosmic-divider"></div>
+        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; 행성별 심층 타로 리딩 &#x2B21;</span>
+        <div class="cosmic-divider"></div>
+      </div>
+      <div id="resCon" class="space-y-12"></div>
+    </section>
+
+    <!-- 황금 통합 카드 -->
+    <section id="goldSec" class="mt-16" style="display:none;">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="cosmic-divider"></div>
+        <span style="color:rgba(245,208,111,.78);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;font-family:monospace;padding:0 1rem;white-space:nowrap;">&#x2726; 황금 통합 카드 &#x2726;</span>
+        <div class="cosmic-divider"></div>
+      </div>
+      <div id="goldCon"></div>
+    </section>
+
   </main>
 
   <script>
-    (function () {
-      var PLANETS = [
-        { name: "태양", symbol: "☉", question: "다른 사람들이 나에게서 가장 먼저 알아보는 것은 무엇인가" },
-        { name: "수성", symbol: "☿", question: "나는 다른 사람들과 어떻게 지적으로 교류하는가" },
-        { name: "금성", symbol: "♀", question: "나는 내 삶에서 다른 사람들을 어떻게 사랑하는가" },
-        { name: "지구", symbol: "⊕", question: "무엇이 나를 안정적인 사람으로 만드는가" },
-        { name: "달", symbol: "☽", question: "내가 가장 강하게 느끼는 감정은 무엇인가" },
-        { name: "화성", symbol: "♂", question: "나는 대립이나 갈등 상황에 어떻게 대처하는가" },
-        { name: "목성", symbol: "♃", question: "나는 재정적인 삶을 어떻게 관리하는가" },
-        { name: "토성", symbol: "♄", question: "나는 어떻게 더 규율을 잘 지킬 수 있는가" },
-        { name: "천왕성", symbol: "♅", question: "내 삶에서 나를 옭아매는 제약은 무엇인가" },
-        { name: "해왕성", symbol: "♆", question: "나는 어떻게 무조건적인 사랑을 보여줄 수 있는가" },
-        { name: "명왕성", symbol: "♇", question: "내 삶에서 변형하고 탈바꿈해야 할 것은 무엇인가" }
-      ];
-
-      var MAJOR = [
-        { n: "바보", en: "The Fool", r: "0" }, { n: "마법사", en: "The Magician", r: "I" },
-        { n: "여사제", en: "The High Priestess", r: "II" }, { n: "여황제", en: "The Empress", r: "III" },
-        { n: "황제", en: "The Emperor", r: "IV" }, { n: "교황", en: "The Hierophant", r: "V" },
-        { n: "연인", en: "The Lovers", r: "VI" }, { n: "전차", en: "The Chariot", r: "VII" },
-        { n: "힘", en: "Strength", r: "VIII" }, { n: "은둔자", en: "The Hermit", r: "IX" },
-        { n: "운명의 바퀴", en: "Wheel of Fortune", r: "X" }, { n: "정의", en: "Justice", r: "XI" },
-        { n: "매달린 자", en: "The Hanged Man", r: "XII" }, { n: "죽음", en: "Death", r: "XIII" },
-        { n: "절제", en: "Temperance", r: "XIV" }, { n: "악마", en: "The Devil", r: "XV" },
-        { n: "탑", en: "The Tower", r: "XVI" }, { n: "별", en: "The Star", r: "XVII" },
-        { n: "달", en: "The Moon", r: "XVIII" }, { n: "태양", en: "The Sun", r: "XIX" },
-        { n: "심판", en: "Judgement", r: "XX" }, { n: "세계", en: "The World", r: "XXI" }
-      ];
-
-      var drawBtn = document.getElementById("drawBtn");
-      var readBtn = document.getElementById("readBtn");
-      var resetBtn = document.getElementById("resetBtn");
-      var board = document.getElementById("board");
-      var results = document.getElementById("results");
-      var golden = document.getElementById("golden");
-
-      var spread = [];
-      var goldenCard = null;
-
-      function shuffle(arr) {
-        var a = arr.slice();
-        for (var i = a.length - 1; i > 0; i--) {
-          var j = Math.floor(Math.random() * (i + 1));
-          var t = a[i];
-          a[i] = a[j];
-          a[j] = t;
-        }
-        return a;
-      }
-
-      function renderSpread() {
-        board.innerHTML = spread.map(function (item, idx) {
-          return "<article class=\"card\" style=\"animation-delay:" + (idx * 0.03).toFixed(2) + "s\">"
-            + "<h3>카드 " + (idx + 1) + " - " + item.planet.symbol + " " + item.planet.name + "</h3>"
-            + "<p class=\"q\">" + item.planet.question + "</p>"
-            + "<span class=\"pill\">" + item.tarot.r + " " + item.tarot.n + " · " + item.tarot.en + "</span>"
-            + "</article>";
-        }).join("");
-      }
-
-      function renderResult(result) {
-        var perCard = Array.isArray(result?.perCard) ? result.perCard : [];
-        results.style.display = "grid";
-        results.innerHTML = perCard.map(function (item) {
-          return "<article class=\"result-item\">"
-            + "<h4>" + item.idx + ". " + (item.planet || "") + " - " + (item.cardName || "") + "</h4>"
-            + "<p><strong>질문</strong> " + (item.question || "") + "</p>"
-            + "<p><strong>핵심 해석</strong> " + (item.core || "") + "</p>"
-            + "<p><strong>패턴 분석</strong> " + (item.patterns || "") + "</p>"
-            + "<p><strong>실행 조언</strong> " + (item.advice || "") + "</p>"
-            + "<p><strong>오늘의 행동</strong> " + (item.action || "") + "</p>"
-            + "<p><strong>확언</strong> " + (item.affirmation || "") + "</p>"
-            + "</article>";
-        }).join("");
-
-        var g = result?.finalGolden || {};
-        golden.style.display = "block";
-        golden.innerHTML = ""
-          + "<h3>" + (g.title || "황금빛 통합 카드") + "</h3>"
-          + "<p class=\"pill\">" + (g.goldenCard || "") + "</p>"
-          + "<p><strong>전체 흐름 요약</strong> " + (g.summary || "") + "</p>"
-          + "<p><strong>톤앤매너 정리</strong> " + (g.toneManner || "") + "</p>"
-          + "<p><strong>힐링 메시지</strong> " + (g.healing || "") + "</p>"
-          + "<p><strong>응원 메시지</strong> " + (g.encouragement || "") + "</p>";
-      }
-
-      drawBtn.addEventListener("click", function () {
-        var deck = shuffle(MAJOR);
-        spread = PLANETS.map(function (planet, i) {
-          return { planet: planet, tarot: deck[i] };
-        });
-        goldenCard = deck[11] || deck[0];
-        renderSpread();
-        readBtn.disabled = false;
-        results.style.display = "none";
-        results.innerHTML = "";
-        golden.style.display = "none";
-        golden.innerHTML = "";
-      });
-
-      readBtn.addEventListener("click", async function () {
-        if (!spread.length) return;
-        readBtn.disabled = true;
-        readBtn.textContent = "Gemini가 심층 리딩 중...";
-
-        try {
-          var cards = spread.map(function (s, idx) {
-            return {
-              idx: idx + 1,
-              planet: s.planet.name,
-              symbol: s.planet.symbol,
-              question: s.planet.question,
-              tarot: s.tarot
-            };
-          });
-
-          var response = await fetch("/api/celestial-harmony", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cards: cards, goldenCard: goldenCard })
-          });
-          var payload = await response.json();
-          if (!payload?.ok || !payload?.result) {
-            throw new Error(payload?.message || "리딩 생성 실패");
-          }
-          renderResult(payload.result);
-        } catch (error) {
-          window.alert("리딩 생성 중 오류가 발생했습니다: " + (error?.message || "unknown"));
-        } finally {
-          readBtn.disabled = false;
-          readBtn.textContent = "Gemini 상세 리딩 받기";
-        }
-      });
-
-      resetBtn.addEventListener("click", function () {
-        spread = [];
-        goldenCard = null;
-        board.innerHTML = "";
-        results.style.display = "none";
-        results.innerHTML = "";
-        golden.style.display = "none";
-        golden.innerHTML = "";
-        readBtn.disabled = true;
-      });
-    })();
+  (function () {
+    'use strict';
+    var starsBg = document.getElementById('starsBg');
+    for (var si = 0; si < 230; si++) {
+      var s = document.createElement('div');
+      s.className = 'star';
+      var sz = Math.random() * 2.3 + 0.4;
+      s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;left:' + (Math.random()*100) + '%;top:' + (Math.random()*100) + '%;opacity:' + (Math.random()*.6+.15) + ';animation:twinkle ' + (Math.random()*4+2.5) + 's ease-in-out ' + (Math.random()*7) + 's infinite;';
+      starsBg.appendChild(s);
+    }
+    var PLANETS = [
+      { name:'태양',   symbol:'&#x2609;', en:'Sun',     key:'sun',     question:'다른 사람들이 나에게서 가장 먼저 알아보는 것은 무엇인가', energy:'정체성·자기표현·생명력의 축' },
+      { name:'수성',   symbol:'&#x263F;', en:'Mercury', key:'mercury', question:'나는 다른 사람들과 어떻게 지적으로 교류하는가', energy:'소통·지성·학습·언어의 축' },
+      { name:'금성',   symbol:'&#x2640;', en:'Venus',   key:'venus',   question:'나는 내 삶에서 다른 사람들을 어떻게 사랑하는가', energy:'사랑·아름다움·가치·쾌락의 축' },
+      { name:'지구',   symbol:'&#x2295;', en:'Earth',   key:'earth',   question:'무엇이 나를 안정적인 사람으로 만드는가', energy:'물질·안정·현실기반·뿌리의 축' },
+      { name:'달',     symbol:'&#x263D;', en:'Moon',    key:'moon',    question:'내가 가장 강하게 느끼는 감정은 무엇인가', energy:'감정·직관·무의식·내면리듬의 축' },
+      { name:'화성',   symbol:'&#x2642;', en:'Mars',    key:'mars',    question:'나는 대립이나 갈등 상황에 어떻게 대처하는가', energy:'의지·열정·행동·용기의 축' },
+      { name:'목성',   symbol:'&#x2643;', en:'Jupiter', key:'jupiter', question:'나는 재정적인 삶을 어떻게 관리하는가', energy:'풍요·확장·신뢰·철학의 축' },
+      { name:'토성',   symbol:'&#x2644;', en:'Saturn',  key:'saturn',  question:'나는 어떻게 더 규율을 잘 지킬 수 있는가', energy:'규율·카르마·한계·지혜의 축' },
+      { name:'천왕성', symbol:'&#x26E2;', en:'Uranus',  key:'uranus',  question:'내 삶에서 나를 옭아매는 제약은 무엇인가', energy:'혁신·해방·예측불허·변혁의 축' },
+      { name:'해왕성', symbol:'&#x2646;', en:'Neptune', key:'neptune', question:'나는 어떻게 무조건적인 사랑을 보여줄 수 있는가', energy:'영성·꿈·환상·연민의 축' },
+      { name:'명왕성', symbol:'&#x2647;', en:'Pluto',   key:'pluto',   question:'내 삶에서 변형하고 탈바꿈해야 할 것은 무엇인가', energy:'변환·소멸·재탄생·심층무의식의 축' }
+    ];
+    var MAJOR = [
+      {n:'바보',en:'The Fool',r:'0'},{n:'마법사',en:'The Magician',r:'I'},{n:'여사제',en:'The High Priestess',r:'II'},{n:'여황제',en:'The Empress',r:'III'},
+      {n:'황제',en:'The Emperor',r:'IV'},{n:'교황',en:'The Hierophant',r:'V'},{n:'연인',en:'The Lovers',r:'VI'},{n:'전차',en:'The Chariot',r:'VII'},
+      {n:'힘',en:'Strength',r:'VIII'},{n:'은둔자',en:'The Hermit',r:'IX'},{n:'운명의 바퀴',en:'Wheel of Fortune',r:'X'},{n:'정의',en:'Justice',r:'XI'},
+      {n:'매달린 자',en:'The Hanged Man',r:'XII'},{n:'죽음',en:'Death',r:'XIII'},{n:'절제',en:'Temperance',r:'XIV'},{n:'악마',en:'The Devil',r:'XV'},
+      {n:'탑',en:'The Tower',r:'XVI'},{n:'별',en:'The Star',r:'XVII'},{n:'달',en:'The Moon',r:'XVIII'},{n:'태양',en:'The Sun',r:'XIX'},
+      {n:'심판',en:'Judgement',r:'XX'},{n:'세계',en:'The World',r:'XXI'}
+    ];
+    var $draw=$('#drawBtn'),$read=$('#readBtn'),$reset=$('#resetBtn');
+    var $boardSec=$('#boardSec'),$board=$('#board');
+    var $loadSec=$('#loadSec'),$loadMsg=$('#loadMsg');
+    var $resSec=$('#resSec'),$resCon=$('#resCon');
+    var $goldSec=$('#goldSec'),$goldCon=$('#goldCon');
+    function $(id){return document.getElementById(id);}
+    $draw=$('#drawBtn');$read=$('#readBtn');$reset=$('#resetBtn');
+    $boardSec=$('#boardSec');$board=$('#board');
+    $loadSec=$('#loadSec');$loadMsg=$('#loadMsg');
+    $resSec=$('#resSec');$resCon=$('#resCon');
+    $goldSec=$('#goldSec');$goldCon=$('#goldCon');
+    var spread=[],goldenCard=null;
+    function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function rfld(label,txt,hcls){if(!txt)return '';return '<div style="margin-bottom:1.25rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
+    function bfld(label,txt,hcls){if(!txt)return '';return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
+    function gfld(label,txt){if(!txt)return '';return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(245,158,11,.18);border-radius:14px;padding:1.25rem;"><h4 style="color:rgba(245,208,111,.75);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.75rem;">'+label+'</h4><p class="rt" style="color:rgba(253,230,138,.78);">'+esc(txt)+'</p></div>';}
+    function renderBoard(){
+      $boardSec.style.display='block';
+      $board.innerHTML=spread.map(function(item,idx){
+        var pk='p-'+item.planet.key,dl=(idx*.055).toFixed(2)+'s';
+        return '<article class="planet-card '+pk+' p-4 board-in" style="animation-delay:'+dl+';">'+
+          '<div class="flex items-center justify-between mb-3"><span class="planet-sym" style="font-size:2.3rem;line-height:1;font-weight:300;">'+item.planet.symbol+'</span><span style="color:rgba(255,255,255,.22);font-size:.68rem;font-family:monospace;">'+String(idx+1).padStart(2,'0')+'</span></div>'+
+          '<h3 class="planet-lbl" style="font-weight:700;font-size:1rem;margin:0 0 2px;">'+item.planet.name+'</h3>'+
+          '<p style="color:rgba(255,255,255,.3);font-size:.7rem;margin:0 0 10px;">'+item.planet.en+'</p>'+
+          '<hr class="planet-sec-ln" style="border:0;border-top:1px solid;margin-bottom:10px;">'+
+          '<p style="color:rgba(255,255,255,.56);font-size:.7rem;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">'+item.planet.question+'</p>'+
+          '<span class="planet-pill" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:600;"><span>'+item.tarot.r+'</span><span style="color:rgba(255,255,255,.7);">'+item.tarot.n+'</span></span>'+
+          '</article>';
+      }).join('');
+    }
+    function renderResults(result){
+      var perCard=Array.isArray(result&&result.perCard)?result.perCard:[];
+      $resSec.style.display='block';
+      $resCon.innerHTML=perCard.map(function(item,idx){
+        var p=PLANETS[idx]||{},pk='p-'+(p.key||'sun'),sp=spread[idx];
+        var cn=item.cardName||(sp?(sp.tarot.r+' '+sp.tarot.n):'');
+        var dl=(idx*.09).toFixed(2)+'s';
+        return '<article class="planet-card fade-rise '+pk+'" style="border-radius:20px;overflow:hidden;animation-delay:'+dl+';">'+
+          '<div style="background:rgba(0,0,0,.38);padding:1.25rem 1.5rem;">'+
+            '<div class="flex items-start gap-4">'+
+              '<div style="flex-shrink:0;width:4rem;height:4rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);">'+
+                '<span class="planet-sym" style="font-size:2rem;">'+esc(p.symbol||'')+'</span>'+
+              '</div>'+
+              '<div style="flex:1;min-width:0;">'+
+                '<p style="color:rgba(255,255,255,.3);font-size:.68rem;font-family:monospace;margin-bottom:3px;">행성 '+String(idx+1).padStart(2,'0')+' &middot; '+esc(p.en||'')+' &middot; '+esc(p.energy||'')+'</p>'+
+                '<h3 class="planet-lbl" style="font-size:1.3rem;font-weight:700;margin-bottom:4px;">'+esc(p.name||item.planet||'')+'</h3>'+
+                '<p style="color:rgba(255,255,255,.52);font-size:.85rem;line-height:1.6;">'+esc(item.question||p.question||'')+'</p>'+
+              '</div>'+
+              '<div style="flex-shrink:0;text-align:right;margin-left:.5rem;">'+
+                '<p style="color:rgba(255,255,255,.28);font-size:.68rem;margin-bottom:2px;">타로 카드</p>'+
+                '<p class="planet-lbl" style="font-size:.85rem;font-weight:700;">'+esc(cn)+'</p>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          '<div style="padding:1.5rem;">'+
+            rfld('&#x1F31F; 핵심 해석',item.core,'planet-heading')+
+            rfld('&#x1F504; 패턴 분석',item.patterns,'planet-heading')+
+            rfld('&#x26A1; 에너지 리딩',item.energyReading,'planet-heading')+
+            rfld('&#x1F311; 내면 성장 (그림자 작업)',item.shadowWork,'planet-heading')+
+            rfld('&#x1F4A1; 실행 조언',item.advice,'planet-heading')+
+            '<div class="grid sm:grid-cols-2 gap-3" style="margin-top:.5rem;">'+
+              bfld('&#x26A1; 오늘의 행동',item.action,'planet-heading')+
+              bfld('&#x2728; 확언',item.affirmation,'planet-heading')+
+            '</div>'+
+          '</div>'+
+        '</article>';
+      }).join('');
+    }
+    function renderGolden(g){
+      if(!g)return;
+      $goldSec.style.display='block';
+      $goldCon.innerHTML='<div class="golden-card fade-rise" style="padding:2.5rem 2rem;">'+
+        '<div class="golden-inner-border"></div>'+
+        '<div style="position:relative;z-index:1;">'+
+          '<div style="text-align:center;margin-bottom:2rem;">'+
+            '<p style="color:rgba(245,158,11,.5);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-family:monospace;margin-bottom:.75rem;">&#x2726; Final Synthesis &middot; Golden Card &#x2726;</p>'+
+            '<h3 class="shimmer-gold" style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:1rem;line-height:1.25;">'+esc(g.title||'황금빛 통합 카드')+'</h3>'+
+            '<div class="pulse-gold" style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.5rem;border-radius:999px;font-size:.9rem;font-weight:700;background:linear-gradient(135deg,rgba(245,158,11,.16),rgba(253,230,138,.07));border:1px solid rgba(245,158,11,.38);">'+
+              '<span style="color:#f5d06f;font-size:1rem;">&#x2B50;</span>'+
+              '<span style="color:rgba(253,230,138,.9);">'+esc(g.goldenCard||'')+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div class="grid md:grid-cols-2 gap-4">'+
+            gfld('&#x1F30C; 전체 흐름 요약',g.summary)+
+            gfld('&#x1F3AD; 리딩 톤 &amp; 매너',g.toneManner)+
+            gfld('&#x1F4AB; 치유 메시지',g.healing)+
+            gfld('&#x1F31F; 응원 메시지',g.encouragement)+
+            (g.cosmicMessage?gfld('&#x1FA90; 우주적 메시지',g.cosmicMessage):'')+
+            (g.manifestation?gfld('&#x2728; 현현 가이드',g.manifestation):'')+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }
+    function readBtnOn(on){$read.disabled=!on;$read.style.opacity=on?'1':'.4';$read.style.cursor=on?'pointer':'not-allowed';}
+    $draw.addEventListener('click',function(){
+      var deck=shuffle(MAJOR);
+      spread=PLANETS.map(function(pl,i){return{planet:pl,tarot:deck[i]};});
+      goldenCard=deck[11]||deck[0];
+      renderBoard();readBtnOn(true);
+      $resSec.style.display='none';$resCon.innerHTML='';
+      $goldSec.style.display='none';$goldCon.innerHTML='';
+      setTimeout(function(){$boardSec.scrollIntoView({behavior:'smooth',block:'start'});},80);
+    });
+    $read.addEventListener('click',async function(){
+      if(!spread.length||$read.disabled)return;
+      readBtnOn(false);
+      $loadSec.style.display='block';$resSec.style.display='none';$goldSec.style.display='none';
+      setTimeout(function(){$loadSec.scrollIntoView({behavior:'smooth'});},80);
+      var msgs=['태양의 황금빛 에너지를 분석 중&#8230;','수성의 지적 파동을 해독 중&#8230;','금성의 사랑 에너지를 채널링 중&#8230;','달의 무의식 깊은 곳을 탐색 중&#8230;','화성의 의지 흐름을 읽는 중&#8230;','목성의 풍요 코드를 해석 중&#8230;','토성의 카르마 패턴을 인식 중&#8230;','천왕성의 혁신 신호를 수신 중&#8230;','우주의 깊은 지혜를 통합 중&#8230;'];
+      var mi=0,mt=setInterval(function(){mi=(mi+1)%msgs.length;$loadMsg.innerHTML=msgs[mi];},2800);
+      try{
+        var cards=spread.map(function(sp,idx){return{idx:idx+1,planet:sp.planet.name,symbol:sp.planet.symbol,en:sp.planet.en,energy:sp.planet.energy,question:sp.planet.question,tarot:sp.tarot};});
+        var res=await fetch('/api/celestial-harmony',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:cards,goldenCard:goldenCard})});
+        var payload=await res.json();
+        clearInterval(mt);$loadSec.style.display='none';
+        if(!payload||!payload.ok||!payload.result)throw new Error((payload&&payload.message)||'리딩 생성 실패');
+        renderResults(payload.result);renderGolden(payload.result.finalGolden);
+        setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
+      }catch(err){clearInterval(mt);$loadSec.style.display='none';window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));}
+      finally{readBtnOn(true);}
+    });
+    $reset.addEventListener('click',function(){
+      spread=[];goldenCard=null;
+      $boardSec.style.display='none';$board.innerHTML='';
+      $resSec.style.display='none';$resCon.innerHTML='';
+      $goldSec.style.display='none';$goldCon.innerHTML='';
+      $loadSec.style.display='none';readBtnOn(false);
+    });
+  }());
   </script>
 </body>
 </html>
