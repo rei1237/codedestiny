@@ -12,6 +12,12 @@ if (typeof window !== 'undefined' && typeof window.openSajuAnimalPage !== 'funct
   };
 }
 
+if (typeof window !== 'undefined' && typeof window.openDestinyEggPage !== 'function') {
+  window.openDestinyEggPage = function openDestinyEggPage() {
+    window.location.assign('/tadagochi.html');
+  };
+}
+
 if (typeof window !== 'undefined' && typeof window.openFortuneTellerFishPage !== 'function') {
   window.openFortuneTellerFishPage = function openFortuneTellerFishPage() {
     window.location.assign('/fortune-teller-fish.html');
@@ -34,6 +40,7 @@ const __lazyActionLoaders = {
       __loadScriptOnce('/js/animal-totem-experience.js')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-picture')),
+  openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi.html')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
