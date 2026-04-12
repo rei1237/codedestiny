@@ -7322,7 +7322,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!_ov) _init();
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, D[key]);
-      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
+      // _open 내부에서 requestAnimationFrame으로 pvw-open 클래스를 추가하므로
+      // 즉시 classList.contains('pvw-open')는 항상 false가 된다.
+      // _open이 예외 없이 호출됐으면 Preview가 열릴 것이므로 true 반환.
+      return true;
     } catch (err) {
       console.error('[tile-preview] open failed:', err);
       return false;
