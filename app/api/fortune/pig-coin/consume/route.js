@@ -2,11 +2,13 @@
 import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../_lib/models/PointHistoryModel";
+import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../_lib/flowerAdminToken";
 
 export const runtime = "nodejs";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 50;
 const PIG_COIN_MAX_COST = 50000;
+const ADMIN_VIRTUAL_COINS = 9999999;
 
 function verifyToken(request) {
   const authHeader = request.headers.get("Authorization") || "";
@@ -19,12 +21,31 @@ function verifyToken(request) {
   }
 }
 
+async function isAdminRequest(request, payload) {
+  if (payload?.role === "admin") return true;
+
+  if (payload?.userId) {
+    try {
+      const User = await getUserModel();
+      const user = await User.findById(payload.userId).select("role").lean();
+      if (user?.role === "admin") return true;
+    } catch {
+      // DB 조회 실패 시 아래 토큰 검증으로 폴백
+    }
+  }
+
+  const adminToken = extractAdminTokenFromRequest(request);
+  if (!adminToken) return false;
+  return verifyFlowerAdminToken(adminToken);
+}
+
 export async function POST(request) {
   const payload = verifyToken(request);
-  if (!payload) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
+  const adminMode = await isAdminRequest(request, payload);
+  if (!payload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
-  const userId = payload.userId;
-  if (!userId) return NextResponse.json({ ok: false }, { status: 401 });
+  const userId = payload?.userId;
+  if (!userId && !adminMode) return NextResponse.json({ ok: false }, { status: 401 });
 
   let body;
   try { body = await request.json(); } catch { body = {}; }
@@ -40,6 +61,16 @@ export async function POST(request) {
 
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+
+  if (adminMode) {
+    return NextResponse.json({
+      ok: true,
+      adminBypass: true,
+      message: "관리자 모드: 코인이 차감되지 않았습니다.",
+      requiredCoins: cost,
+      user: { id: userId ? String(userId) : "admin-session", points: ADMIN_VIRTUAL_COINS },
+    });
+  }
 
   try {
     const User = await getUserModel();

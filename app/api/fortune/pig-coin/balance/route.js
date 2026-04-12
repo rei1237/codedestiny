@@ -1,8 +1,10 @@
 ﻿import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../_lib/models/UserModel";
+import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../_lib/flowerAdminToken";
 
 export const runtime = "nodejs";
+const ADMIN_VIRTUAL_COINS = 9999999;
 
 function verifyToken(request) {
   const authHeader = request.headers.get("Authorization") || "";
@@ -15,12 +17,40 @@ function verifyToken(request) {
   }
 }
 
+async function isAdminRequest(request, payload) {
+  if (payload?.role === "admin") return true;
+
+  if (payload?.userId) {
+    try {
+      const User = await getUserModel();
+      const user = await User.findById(payload.userId).select("role").lean();
+      if (user?.role === "admin") return true;
+    } catch {
+      // DB 조회 실패 시 아래 토큰 검증으로 폴백
+    }
+  }
+
+  const adminToken = extractAdminTokenFromRequest(request);
+  if (!adminToken) return false;
+  return verifyFlowerAdminToken(adminToken);
+}
+
 export async function GET(request) {
   const payload = verifyToken(request);
-  if (!payload) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
+  const adminMode = await isAdminRequest(request, payload);
+  if (!payload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
-  const userId = payload.userId;
-  if (!userId) return NextResponse.json({ ok: false }, { status: 401 });
+  const userId = payload?.userId;
+  if (!userId && !adminMode) return NextResponse.json({ ok: false }, { status: 401 });
+
+  if (adminMode) {
+    return NextResponse.json({
+      ok: true,
+      adminBypass: true,
+      message: "관리자 모드: 가상 무제한 코인 잔액입니다.",
+      user: { id: userId ? String(userId) : "admin-session", points: ADMIN_VIRTUAL_COINS },
+    });
+  }
 
   try {
     const User = await getUserModel();

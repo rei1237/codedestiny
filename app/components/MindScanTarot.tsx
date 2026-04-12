@@ -27,6 +27,29 @@ const DECK_SIZE = 78;
 const GRID_COUNT = 24;
 const MINDSCAN_COIN_COST = 50;
 
+function isAdminSessionClient() {
+  try {
+    const raw = localStorage.getItem("fortune_auth_user");
+    const user = raw ? JSON.parse(raw) : null;
+    if (String(user?.role || "").toLowerCase() === "admin") return true;
+  } catch (_) {}
+
+  try {
+    const roleMatch = document.cookie.match(/(?:^|;\s*)fortune_auth_role=([^;]+)/);
+    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
+  } catch (_) {}
+
+  try {
+    if (sessionStorage.getItem("flower_admin_token")) return true;
+  } catch (_) {}
+
+  try {
+    if (localStorage.getItem("flower_admin_token")) return true;
+  } catch (_) {}
+
+  return false;
+}
+
 const MAJOR = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor",
   "The Hierophant","The Lovers","The Chariot","Strength","The Hermit","Wheel of Fortune",
   "Justice","The Hanged Man","Death","Temperance","The Devil","The Tower","The Star",
@@ -929,8 +952,9 @@ export default function MindScanTarot() {
       const authToken = typeof window !== "undefined"
         ? localStorage.getItem("fortune_auth_token")
         : "";
+      const adminMode = typeof window !== "undefined" ? isAdminSessionClient() : false;
 
-      if (!authToken) {
+      if (!authToken && !adminMode) {
         setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
         if (typeof window !== "undefined") {
           const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -941,12 +965,16 @@ export default function MindScanTarot() {
         return;
       }
 
+      const consumeHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (authToken) {
+        consumeHeaders.Authorization = `Bearer ${authToken}`;
+      }
+
       const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: consumeHeaders,
         body: JSON.stringify({
           cost: MINDSCAN_COIN_COST,
           reason: "마인드 스캔 타로 이용",
