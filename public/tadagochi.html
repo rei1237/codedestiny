@@ -272,6 +272,22 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 @keyframes tama-pulse{0%,100%{box-shadow:0 0 14px rgba(251,191,36,.25),0 4px 16px rgba(0,0,0,.28)}50%{box-shadow:0 0 28px rgba(251,191,36,.55),0 4px 16px rgba(0,0,0,.28)}}
 .pwa-btn-glow{animation:tama-pulse 2s ease-in-out infinite}
 
+/* 상태 이모지 오버레이 */
+#pet-status-overlay{position:absolute;top:-12px;left:50%;transform:translateX(-50%);display:flex;gap:4px;pointer-events:none;z-index:15;opacity:0;transition:opacity .35s}
+#pet-status-overlay.vis{opacity:1}
+#pet-status-overlay .si{font-size:20px;line-height:1;display:none}
+#pet-status-overlay .si.on{display:block}
+@keyframes sto-hunger{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-5px) scale(1.18)}70%{transform:translateY(-2px) scale(1.06)}}
+@keyframes sto-sad{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-9deg) scale(.95)}75%{transform:rotate(9deg) scale(.95)}}
+@keyframes sto-energy{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(.82) translateY(3px)}}
+@keyframes sto-happy{0%,100%{transform:scale(1)}50%{transform:scale(1.22) translateY(-4px)}}
+@keyframes sto-angry{0%,100%{transform:rotate(0)}20%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}80%{transform:rotate(-8deg)}}
+.si-hunger{animation:sto-hunger .9s ease-in-out infinite}
+.si-sad{animation:sto-sad 1.6s ease-in-out infinite}
+.si-energy{animation:sto-energy 2.2s ease-in-out infinite}
+.si-happy{animation:sto-happy 1.2s ease-in-out infinite}
+.si-angry{animation:sto-angry .55s ease-in-out infinite}
+
 </style>
 
 </head>
@@ -569,10 +585,17 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="stbadge font-n" id="stchip">😌 대기 중</div>
 
-    <div id="pet-wrap-main" class="pet-wrap animate-idle" style="filter:drop-shadow(0 5px 14px rgba(0,0,0,.13))">
-
-      <img id="pet" src="" alt="" class="pet-img">
-
+    <div class="relative flex items-center justify-center">
+      <div id="pet-status-overlay">
+        <span class="si si-hunger" id="si-hunger">🍔</span>
+        <span class="si si-sad"    id="si-sad">😢</span>
+        <span class="si si-energy" id="si-energy">💤</span>
+        <span class="si si-happy"  id="si-happy">🌟</span>
+        <span class="si si-angry"  id="si-angry">💢</span>
+      </div>
+      <div id="pet-wrap-main" class="pet-wrap animate-idle" style="filter:drop-shadow(0 5px 14px rgba(0,0,0,.13))">
+        <img id="pet" src="" alt="" class="pet-img">
+      </div>
     </div>
 
     <div class="zzz" id="zzz">💤</div>
@@ -1005,7 +1028,12 @@ function init(){
 function saveState(){
   if(!G.userId){return;} // 미로그인이면 저장 안함
   var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
-  fetch('/api/tadagochi/pet',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
+  fetch('/api/tadagochi/pet',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
+    if(r&&r.status===401){
+      var gate=document.getElementById('login-gate');
+      if(gate){gate.style.display='flex';}
+    }
+  }).catch(function(){});
 }
 
 function resetPet(){
@@ -1228,22 +1256,36 @@ function getConceptAssetUrl(theme,animal){
   return base+'/'+encodeURIComponent(fileName);
 }
 
-function setPetImg(imgEl,theme,animal,state){
-  var conceptUrl=getConceptAssetUrl(theme,animal);
-  if(conceptUrl){
-    imgEl.src=conceptUrl;
-    imgEl.style.imageRendering='auto';
-    imgEl.style.clipPath='none';
-    return;
-  }
+function getSpriteFrame(theme,animal,state){
   var sp=SP[theme+'_'+animal];
   if(!sp){var altKey=['angel','cherry','strawberry','star','moon'].map(function(t){return t+'_'+animal;}).find(function(k){return SP[k];});if(altKey)sp=SP[altKey];}
   if(!sp){var fb=Object.keys(SP).find(function(k){return k.startsWith(theme+'_');});if(fb)sp=SP[fb];}
   var spState=STATE_IMG_MAP[state]||'idle';
   var frames=sp?((sp[spState]||sp['idle'])||[]):[];
-  if(frames.length){imgEl.src=frames[0];imgEl.style.imageRendering='auto';imgEl.style.clipPath='inset(5px)';}
+  return frames.length?frames[0]:null;
+}
+
+function applySpriteFallback(imgEl,theme,animal,state){
+  var frame=getSpriteFrame(theme,animal,state);
+  if(frame){imgEl.src=frame;imgEl.style.imageRendering='auto';imgEl.style.clipPath='inset(5px)';}
   else if(theme&&animal){imgEl.src=FALLBACK_PET_IMAGE;imgEl.style.imageRendering='auto';imgEl.style.clipPath='none';}
   else if(EGG[theme]){imgEl.src=EGG[theme];imgEl.style.clipPath='none';}
+}
+
+function setPetImg(imgEl,theme,animal,state){
+  var conceptUrl=getConceptAssetUrl(theme,animal);
+  imgEl.onerror=null;
+  if(conceptUrl){
+    imgEl.onerror=function(){
+      imgEl.onerror=null;
+      applySpriteFallback(imgEl,theme,animal,state);
+    };
+    imgEl.src=conceptUrl;
+    imgEl.style.imageRendering='auto';
+    imgEl.style.clipPath='none';
+    return;
+  }
+  applySpriteFallback(imgEl,theme,animal,state);
 }
 
 function setState(name,fDur){
@@ -1280,6 +1322,29 @@ function setState(name,fDur){
 
   if(dur>0) G.stTimer=setTimeout(function(){if(G.state===name) setState(autoState());},dur);
 
+  updateStatusOverlay();
+
+}
+
+function updateStatusOverlay(){
+  var ov=document.getElementById('pet-status-overlay'); if(!ov)return;
+  var hunger=G.hunger||0, happy=G.happy||0, energy=G.energy||0, state=G.state||'idle';
+
+  var showHunger  = hunger<35  && !G.sleeping && state!=='eat';
+  var showSad     = (happy<30 || state==='sad') && !G.sleeping;
+  var showEnergy  = energy<25  && !G.sleeping && state!=='sleep';
+  var showHappy   = happy>80   && state==='happy';
+  var showAngry   = state==='angry';
+
+  function si(id,on){var el=document.getElementById(id);if(el)el.classList.toggle('on',on);}
+  si('si-hunger', showHunger);
+  si('si-sad',    showSad && !showAngry);
+  si('si-energy', showEnergy);
+  si('si-happy',  showHappy);
+  si('si-angry',  showAngry);
+
+  var any=showHunger||showSad||showEnergy||showHappy||showAngry;
+  ov.classList.toggle('vis', any && !G.sleeping);
 }
 
 function autoState(){if(G.sleeping) return 'sleep';if(G.hunger<20) return 'angry';if(G.energy<20) return 'sad';if(G.happy>78) return 'happy';if(G.happy<28) return 'sad';return 'idle';}
@@ -1313,6 +1378,8 @@ function updateUI(){
   var fl=G.fortune>=75?'대길':G.fortune>=55?'길':G.fortune>=40?'평':G.fortune>=25?'소흉':'흉';
 
   document.getElementById('fortune-label').textContent=fl;
+
+  updateStatusOverlay();
 
 }
 
@@ -1512,8 +1579,11 @@ function addLoadingMsg(text){
 }
 
 function requestFortuneApi(category, question, usedToday){
+  var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+  var tm=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
   return fetch('/api/tadagochi',{
-    method:'POST',headers:{'Content-Type':'application/json'},
+    method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    signal:ctrl?ctrl.signal:undefined,
     body:JSON.stringify({
       birthYear:G.birthYear||2000,
       birthMonth:G.birthMonth||6,
@@ -1526,7 +1596,18 @@ function requestFortuneApi(category, question, usedToday){
       category:category,
       usedToday:usedToday
     })
-  }).then(function(r){return r.json();});
+  }).then(function(r){
+    return r.text().then(function(txt){
+      var data={};
+      try{data=txt?JSON.parse(txt):{};}catch(_e){data={error:'invalid_json'};}
+      if(!r.ok){data.error=data.error||('HTTP_'+r.status);data.status=r.status;}
+      return data;
+    });
+  }).catch(function(){
+    return {error:'network_error'};
+  }).finally(function(){
+    if(tm){clearTimeout(tm);}
+  });
 }
 
 function addCategoryTabsMsg(tabItems){
@@ -1917,6 +1998,12 @@ function addBotMsgTyped(fullText){
 
 
 document.addEventListener('DOMContentLoaded',init);
+
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden'){saveState();}
+});
+
+window.addEventListener('pagehide',function(){saveState();});
 
 // ── PWA 설치 로직 ──
 var _pwaPrompt = null;
