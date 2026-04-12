@@ -62,10 +62,11 @@ body {
 
 .cd-screen {
   position: relative; z-index: 10;
-  min-height: 100vh;
+  height: 100%; overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  align-items: center; justify-content: flex-start;
   padding: 24px 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cd-portal-logo {
@@ -298,7 +299,9 @@ body {
 
 /* ── CHAT ── */
 .cd-chat-wrap {
-  width: 100%; max-width: 620px; height: 100vh;
+  width: 100%; max-width: 620px;
+  /* 100dvh: 모바일 소프트 키보드가 올라와도 정확한 화면 높이 */
+  height: 100dvh; height: 100vh;
   display: flex; flex-direction: column;
   margin: 0 auto;
 }
@@ -389,9 +392,14 @@ body {
 
 
 .cd-messages {
-  flex: 1; overflow-y: auto; padding: 20px 18px;
+  flex: 1;
+  /* min-height:0 없으면 flex item이 컨텐츠 높이를 유지하려 해서 overflow scroll 미동작 */
+  min-height: 0;
+  overflow-y: auto; padding: 20px 18px;
   display: flex; flex-direction: column; gap: 16px;
   scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
 }
 .cd-msg { max-width: 78%; animation: msgIn 0.35s cubic-bezier(0.16,1,0.3,1) both; }
 @keyframes msgIn {
@@ -465,6 +473,9 @@ body {
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 .cd-scenario-card {
   width: 100%; max-width: 500px;
+  /* 작은 화면에서 카드가 잘리지 않도록 최대 높이 + 내부 스크롤 */
+  max-height: calc(100dvh - 48px); max-height: calc(100vh - 48px);
+  display: flex; flex-direction: column;
   background: linear-gradient(160deg, rgba(10,10,30,0.98), rgba(6,6,20,0.98));
   border: 1px solid var(--border); border-radius: 22px; overflow: hidden;
   animation: slideup 0.45s cubic-bezier(0.16,1,0.3,1) both;
@@ -482,7 +493,13 @@ body {
   position: absolute; inset: 0;
   background: radial-gradient(circle at 50% 60%, rgba(200,169,110,0.12), transparent 70%);
 }
-.cd-scene-body { padding: 20px 22px; }
+.cd-scene-body {
+  padding: 20px 22px;
+  /* 선택지가 많을 때 시나리오 카드 내부 스크롤 */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .cd-scene-type { font-size: 10px; color: var(--gold); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px; }
 .cd-scene-desc {
   font-family: 'Cormorant Garamond', serif;
@@ -1746,7 +1763,7 @@ export default function LoveSimulation() {
   return (
     <>
       <style>{STYLES}</style>
-      <div className="cd-app fixed inset-0 z-[60] h-screen w-screen overflow-hidden bg-[#050108]">
+      <div className="cd-app fixed inset-0 z-[60] h-screen w-screen bg-[#050108]" style={{overflow:'hidden'}}>
 
         {/* 별 배경 */}
         <div className="cd-stars">
@@ -2073,7 +2090,7 @@ export default function LoveSimulation() {
 
         {/* ══ CHAT ══ */}
         {screen === 'chat' && persona && (
-          <div className="cd-chat-wrap h-screen w-screen max-w-none">
+          <div className="cd-chat-wrap w-full max-w-none" style={{height:'100dvh'}}>
             <div className="cd-chat-header border-b border-rose-200/10 bg-black/35">
               <div className="cd-hdr-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
               <div className="cd-hdr-info">
