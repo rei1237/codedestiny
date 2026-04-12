@@ -25,6 +25,14 @@ type DrawnCard = {
   orientation?: string;
 };
 
+type MingriTarotProps = {
+  initialMode?: TarotMode;
+  initialCategory?: TarotCategory;
+  lockCategory?: boolean;
+  heading?: string;
+  subtitle?: string;
+};
+
 const CATEGORY_OPTIONS: Array<{ value: TarotCategory; label: string }> = [
   { value: "love", label: "연애/애정" },
   { value: "reunion", label: "재회운" },
@@ -45,10 +53,16 @@ function cardImageUrl(cardId: string) {
   return `/api/tarot/card-image/${encodeURIComponent(cardId)}`;
 }
 
-export default function MingriTarot() {
+export default function MingriTarot({
+  initialMode = "one",
+  initialCategory = "love",
+  lockCategory = false,
+  heading = "명리학 AI 타로",
+  subtitle = "기존 iframe 모달과 분리된 독립 페이지 버전입니다. 카드를 뽑고, 해석 API를 바로 조회합니다.",
+}: MingriTarotProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<TarotMode>("one");
-  const [category, setCategory] = useState<TarotCategory>("love");
+  const [mode, setMode] = useState<TarotMode>(initialMode);
+  const [category, setCategory] = useState<TarotCategory>(initialCategory);
   const [cards, setCards] = useState<DrawnCard[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -123,7 +137,7 @@ export default function MingriTarot() {
       <div className="mx-auto max-w-3xl space-y-5">
         <section className="rounded-2xl border border-violet-500/30 bg-violet-950/35 p-5">
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-xl font-semibold">명리학 AI 타로</h1>
+            <h1 className="text-xl font-semibold">{heading}</h1>
             <button
               type="button"
               onClick={() => router.push("/")}
@@ -132,9 +146,7 @@ export default function MingriTarot() {
               홈으로
             </button>
           </div>
-          <p className="mt-2 text-sm text-slate-300">
-            기존 iframe 모달과 분리된 독립 페이지 버전입니다. 카드를 뽑고, 해석 API를 바로 조회합니다.
-          </p>
+          <p className="mt-2 text-sm text-slate-300">{subtitle}</p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <label className="flex flex-col gap-1 text-sm">
@@ -154,6 +166,7 @@ export default function MingriTarot() {
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as TarotCategory)}
+                disabled={lockCategory}
               >
                 {CATEGORY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>

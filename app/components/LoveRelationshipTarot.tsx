@@ -15,6 +15,7 @@ type DrawnCard = {
 const SPREAD_TYPE = "relationship_six_card";
 const CATEGORY = "love";
 const CARD_COUNT = 6;
+const LOVE_RELATIONSHIP_COIN_COST = 50;
 
 const POSITION_LABELS: Record<string, string> = {
   position_1: "내가 보는 상대",
@@ -33,6 +34,28 @@ function safeCardName(card?: DrawnCard, idx?: number) {
   const title = (card?.nameKr || card?.name || "").trim();
   if (title) return title;
   return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
+}
+
+function isAdminSessionClient() {
+  if (typeof window === "undefined") return false;
+  try {
+    const userRaw = localStorage.getItem("cd_user");
+    if (userRaw) {
+      const user = JSON.parse(userRaw);
+      if (String(user?.role || "").toLowerCase() === "admin") return true;
+    }
+  } catch {}
+  try {
+    const roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
+    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
+  } catch {}
+  try {
+    if (sessionStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  try {
+    if (localStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  return false;
 }
 
 export default function LoveRelationshipTarot() {
@@ -79,6 +102,50 @@ export default function LoveRelationshipTarot() {
     setLoading(true);
     setError("");
     try {
+      const authToken = typeof window !== "undefined"
+        ? localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken")
+        : "";
+      const adminMode = typeof window !== "undefined" ? isAdminSessionClient() : false;
+
+      if (!authToken && !adminMode) {
+        setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+        if (typeof window !== "undefined") {
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          window.setTimeout(() => {
+            window.location.href = `/login?next=${next}`;
+          }, 600);
+        }
+        return;
+      }
+
+      if (!adminMode) {
+        const consumeHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (authToken) {
+          consumeHeaders.Authorization = `Bearer ${authToken}`;
+        }
+
+        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+          method: "POST",
+          headers: consumeHeaders,
+          body: JSON.stringify({
+            cost: LOVE_RELATIONSHIP_COIN_COST,
+            reason: "우리는 무슨 사이 타로 이용",
+            featureKey: "tarot-love-relationship",
+          }),
+        });
+        const consumeData = await consumeRes.json().catch(() => ({}));
+        if (consumeRes.status === 402) {
+          setError(`코인이 부족합니다. ${LOVE_RELATIONSHIP_COIN_COST}코인이 필요합니다.`);
+          return;
+        }
+        if (!consumeRes.ok) {
+          setError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+          return;
+        }
+      }
+
       const payloadCards = cards.map((c) => ({
         cardId: c.cardId,
         position: c.position,

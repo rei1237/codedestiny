@@ -203,7 +203,7 @@ const ACTION_MAP: Record<string, string> = {
   "/animal/physio":"openPhysiognomyApp", "/animal/mbti":"openMbtiModal",
   "/animal/totem":"openAnimalTotemModal", "/animal/saju-picture":"openSajuAnimalPage",
   "/tarot/self-esteem":"openTarotSelfEsteemModal",
-  "/tarot/reunion":"openTarotReunionModal", "/tarot/year":"openTarotYearFortuneModal",
+  "/tarot/reunion":"/tarot/reunion/play", "/tarot/year":"openTarotYearFortuneModal",
   "/oracle/hwatu":"openHwatuModal", "/oracle/kemet":"openKemetModal",
   "/oracle/juyuk":"openJuyukModal", "/oracle/sukuyo":"openSukuyoModal",
   "/vedic/jyotish":"navigateToVedic",
@@ -213,7 +213,7 @@ const ACTION_MAP: Record<string, string> = {
   /* ── 추가된 서비스 ── */
   "/tarot/healing":"openTarotHealingModal",
   "/tarot/mingri":"/tarot/mingri/play",
-  "/tarot/love":"openTarotLoveModal",
+  "/tarot/love":"/tarot/love/play",
   "/saju/basic":"/saju/basic/play",
   "/ziwei/chart":"openZiweiModal",
   "/astrology/cosmic":"openAstroModal",

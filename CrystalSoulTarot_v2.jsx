@@ -97,6 +97,28 @@ const CARD_KR = {
   "Queen of Pentacles":"펜타클 여왕","King of Pentacles":"펜타클 킹",
 };
 
+function isAdminSessionClient(){
+  if (typeof window === "undefined") return false;
+  try {
+    const userRaw = localStorage.getItem("cd_user");
+    if (userRaw) {
+      const user = JSON.parse(userRaw);
+      if (String(user?.role || "").toLowerCase() === "admin") return true;
+    }
+  } catch {}
+  try {
+    const roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
+    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
+  } catch {}
+  try {
+    if (sessionStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  try {
+    if (localStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  return false;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // GLOBAL CSS
 // ═══════════════════════════════════════════════════════════════
@@ -719,6 +741,13 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
 
   const handlePay = useCallback(async()=>{
     setPayError("");setPaying(true);
+    const adminMode = isAdminSessionClient();
+    if (adminMode) {
+      setPaid(true);
+      doFetch();
+      setPaying(false);
+      return;
+    }
     const token=localStorage.getItem("fortune_auth_token")||localStorage.getItem("cdToken")||"";
     if(!token){
       setPayError("로그인이 필요합니다.");
