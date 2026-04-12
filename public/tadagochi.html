@@ -1213,7 +1213,8 @@ function openMain(){
 
 }
 
-var STATE_IMG_MAP={idle:'idle',happy:'happy',eat:'study',play:'run',angry:'angry',sad:'sad',sleep:'sleep',special:'special'};
+var STATE_IMG_MAP={idle:'idle',happy:'happy',eat:'study',play:'run',angry:'angry',sad:'sad',sleep:'sleep',special:'special',wake:'happy'};
+var FALLBACK_PET_IMAGE='/fuctionassets/UNSETAMA2.webp';
 
 function setPetImg(imgEl,theme,animal,state){
   var sp=SP[theme+'_'+animal];
@@ -1222,6 +1223,7 @@ function setPetImg(imgEl,theme,animal,state){
   var spState=STATE_IMG_MAP[state]||'idle';
   var frames=sp?((sp[spState]||sp['idle'])||[]):[];
   if(frames.length){imgEl.src=frames[0];imgEl.style.imageRendering='auto';imgEl.style.clipPath='inset(5px)';}
+  else if(theme&&animal){imgEl.src=FALLBACK_PET_IMAGE;imgEl.style.imageRendering='auto';imgEl.style.clipPath='none';}
   else if(EGG[theme]){imgEl.src=EGG[theme];imgEl.style.clipPath='none';}
 }
 
