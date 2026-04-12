@@ -330,9 +330,38 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   <div class="flex flex-col gap-2">
 
-    <label class="font-n text-xs font-bold uppercase tracking-widest" style="color:var(--acc);opacity:.5">🗓 출생연도</label>
+    <label class="font-n text-xs font-bold uppercase tracking-widest" style="color:var(--acc);opacity:.5">🗓 생년월일 &amp; 태어난 시</label>
 
-    <input id="by" type="number" placeholder="예: 1998" min="1900" max="2026" class="inp">
+    <div class="flex gap-2">
+      <input id="by" type="number" placeholder="연도(예: 1998)" min="1900" max="2026" class="inp" style="flex:3" oninput="onY()">
+      <select id="bm" class="inp" style="flex:2">
+        <option value="">월</option>
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+      <select id="bd" class="inp" style="flex:2">
+        <option value="">일</option>
+        <script>for(var _d=1;_d<=31;_d++){document.write('<option value="'+_d+'">'+_d+'일</option>');}</script>
+      </select>
+    </div>
+
+    <select id="bh" class="inp">
+      <option value="">태어난 시 (모르면 선택 안 해도 됩니다)</option>
+      <option value="0">자시 (23~01시, 밤 11시~새벽 1시)</option>
+      <option value="2">축시 (01~03시)</option>
+      <option value="4">인시 (03~05시)</option>
+      <option value="6">묘시 (05~07시)</option>
+      <option value="8">진시 (07~09시)</option>
+      <option value="10">사시 (09~11시)</option>
+      <option value="12">오시 (11~13시, 정오)</option>
+      <option value="14">미시 (13~15시)</option>
+      <option value="16">신시 (15~17시)</option>
+      <option value="18">유시 (17~19시)</option>
+      <option value="20">술시 (19~21시)</option>
+      <option value="22">해시 (21~23시)</option>
+    </select>
 
     <div id="zb" class="zbadge"><span class="font-n text-sm" style="color:#bbb">연도를 입력하면 띠가 나타납니다</span></div>
 
@@ -740,7 +769,7 @@ const TDUR={happy:2500,angry:2500,sleep:0,special:3500};
 
 
 
-const G={scr:'title',userId:null,userName:'',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,chatCount:0,chatDate:'',chatCat:'general'};
+const G={scr:'title',userId:null,userName:'',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,birthMonth:6,birthDay:15,birthHour:12,chatCount:0,chatDate:'',chatCat:'general'};
 
 
 
@@ -1000,6 +1029,10 @@ function gH(){
   if(!G.zodiac||!G.theme) return;
 
   G.petName=document.getElementById('pname').value.trim()||'내 친구';
+
+  var bm=document.getElementById('bm'); if(bm&&bm.value) G.birthMonth=parseInt(bm.value)||6;
+  var bd=document.getElementById('bd'); if(bd&&bd.value) G.birthDay=parseInt(bd.value)||15;
+  var bh=document.getElementById('bh'); if(bh&&bh.value!=='') G.birthHour=parseInt(bh.value)||12;
 
   G.animal=G.zodiac;
   // SP 폴백은 setPetImg에서 처리 — G.animal은 십이지 그대로 유지
@@ -1451,9 +1484,25 @@ function sendChat(forceCat){
   var lt=setTimeout(function(){if(botEl&&botEl.parentNode){botEl.remove();addBotMsgTyped(localAns);}},650);
   fetch('/api/tadagochi',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({birthYear:G.birthYear||2000,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:cat,usedToday:G.chatCount-1})
+    body:JSON.stringify({birthYear:G.birthYear||2000,birthMonth:G.birthMonth||6,birthDay:G.birthDay||15,birthHour:G.birthHour||12,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:cat,usedToday:G.chatCount-1})
   }).then(function(r){return r.json();}).then(function(d){
-    if(d&&d.answer){clearTimeout(lt);if(botEl&&botEl.parentNode){botEl.remove();}addBotMsgTyped(d.answer);if(d.score){G.fortune=d.score;updateUI();}}
+    if(d&&d.answer){
+      clearTimeout(lt);
+      if(botEl&&botEl.parentNode){botEl.remove();}
+      addBotMsgTyped(d.answer);
+      if(d.score){G.fortune=d.score;updateUI();}
+      // 타로·자미두수·점성술 배지 렌더링
+      var extras=[];
+      if(d.tarot) extras.push('🃏 <strong>'+escHtml(d.tarot.name)+'</strong> ('+escHtml(d.tarot.orientation)+') — '+escHtml(d.tarot.catMeaning));
+      if(d.ziweiPalace&&d.ziweiPalace.stars) extras.push('🌌 자미: '+escHtml(d.ziweiPalace.name)+' 주성 <strong>'+escHtml(d.ziweiPalace.stars)+'</strong>');
+      if(d.astroSummary) extras.push('⭐ '+escHtml(d.astroSummary));
+      if(extras.length>0){
+        var log=document.getElementById('chat-log');
+        var bd2=document.createElement('div'); bd2.className='flex justify-start mt-1';
+        bd2.innerHTML='<div class="chat-bubble bot font-n" style="font-size:0.75rem;opacity:0.82;background:var(--adim);color:var(--acc)">'+extras.join('<br>')+'</div>';
+        log.appendChild(bd2); log.scrollTop=log.scrollHeight;
+      }
+    }
   }).catch(function(){/*로컬 응답이 이미 예약됨*/});
 }
 
