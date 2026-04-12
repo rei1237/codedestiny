@@ -20,6 +20,9 @@ const localePrefixes = [
   "/ms-my",
 ];
 
+// robots.txt에서 차단하는 인증 페이지는 sitemap에서 제외해 색인 충돌을 방지한다.
+const sitemapExcludedPaths = new Set(["/login", "/signup"]);
+
 const coreRoutes = [
   { path: "/", changefreq: "weekly", priority: 1.0 },
   { path: "/insights", changefreq: "weekly", priority: 0.9 },
@@ -112,7 +115,7 @@ function buildLocalizedPath(prefix, path) {
 }
 
 function main() {
-  const routeEntries = buildRoutes();
+  const routeEntries = buildRoutes().filter((route) => !sitemapExcludedPaths.has(route.path));
   const entryMap = new Map();
 
   for (const route of routeEntries) {
