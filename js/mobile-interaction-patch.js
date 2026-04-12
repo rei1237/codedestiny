@@ -350,6 +350,18 @@
         '.prem-card--veda',
         '.prem-card--veda img'
       ].join(',')
+    },
+    {
+      action: 'openSibylModal',
+      cardSelector: '#sibylSystemSection .sibyl-entry-tile',
+      targetSelector: [
+        '[data-action="openSibylModal"]',
+        '#sibylSystemSection .sibyl-entry-tile',
+        '#sibylSystemSection .sibyl-entry-inner',
+        '#sibylSystemSection .sibyl-entry-img-col',
+        '#sibylSystemSection .sibyl-entry-img',
+        '#sibylSystemSection .sibyl-entry-content'
+      ].join(',')
     }
   ];
   var FEATURE_ACTION_SET = RULES.reduce(function(acc, rule) {
@@ -539,7 +551,7 @@
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260410-v1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1'],
-    openSibylModal: ['js/sibyl-system.js?v=20260414']
+    openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
   };
 
   function normalizeScriptSrc(src) {

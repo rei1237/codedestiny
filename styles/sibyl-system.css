@@ -93,19 +93,20 @@
   align-items: stretch;
   position: relative;
   z-index: 3;
-  min-height: 280px;
+  min-height: 380px;
 }
 
 /* Left: Image Column */
 .sibyl-entry-img-col {
-  flex: 0 0 220px;
+  flex: 0 0 320px;
   position: relative;
   overflow: hidden;
   align-self: stretch;
 }
 
 @media (max-width: 480px) {
-  .sibyl-entry-img-col { flex: 0 0 160px; }
+  .sibyl-entry-inner { min-height: 320px; }
+  .sibyl-entry-img-col { flex: 0 0 220px; }
 }
 
 .sibyl-entry-img {

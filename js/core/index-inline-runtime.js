@@ -948,7 +948,11 @@ var __cdLazyActionLoaders = {
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
   openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js'); },
   openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=20260410-v2'); },
-  openSibylModal: function() { return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260414'); },
+  openSibylModal: function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(function() {
+      if (typeof window.openSibylModal === 'function') window.openSibylModal();
+    });
+  },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   checkPrivacyAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
   agreeAndCalculate: function() { return __cdEnsureSajuCoreLoaded(); },
