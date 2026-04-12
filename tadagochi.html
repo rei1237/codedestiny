@@ -1216,7 +1216,26 @@ function openMain(){
 var STATE_IMG_MAP={idle:'idle',happy:'happy',eat:'study',play:'run',angry:'angry',sad:'sad',sleep:'sleep',special:'special',wake:'happy'};
 var FALLBACK_PET_IMAGE='/fuctionassets/UNSETAMA2.webp';
 
+var THEME_CONCEPT_KR={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'별 컨셉',angel:'천사 컨셉'};
+var ZODIAC_ANIMAL_KR={rat:'쥐',cow:'소',tiger:'호랑이',rabbit:'토끼',dragon:'용',snake:'뱀',horse:'말',sheep:'양',monkey:'원숭이',chicken:'닭',dog:'강아지',pig:'돼지'};
+
+function getConceptAssetUrl(theme,animal){
+  var concept=THEME_CONCEPT_KR[theme];
+  var animalKr=ZODIAC_ANIMAL_KR[animal];
+  if(!concept||!animalKr) return null;
+  var base='/fuctionassets/'+encodeURIComponent('다마고치 에셋')+'/'+encodeURIComponent(concept);
+  var fileName=concept+' '+animalKr+'.jpg';
+  return base+'/'+encodeURIComponent(fileName);
+}
+
 function setPetImg(imgEl,theme,animal,state){
+  var conceptUrl=getConceptAssetUrl(theme,animal);
+  if(conceptUrl){
+    imgEl.src=conceptUrl;
+    imgEl.style.imageRendering='auto';
+    imgEl.style.clipPath='none';
+    return;
+  }
   var sp=SP[theme+'_'+animal];
   if(!sp){var altKey=['angel','cherry','strawberry','star','moon'].map(function(t){return t+'_'+animal;}).find(function(k){return SP[k];});if(altKey)sp=SP[altKey];}
   if(!sp){var fb=Object.keys(SP).find(function(k){return k.startsWith(theme+'_');});if(fb)sp=SP[fb];}
