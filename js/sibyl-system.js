@@ -361,18 +361,28 @@
     svgEl.innerHTML = svgContent;
   }
 
-  /* 비겁 과다 경보 메시지 — G_POWER + G_NATAL 기반 스마트 판정 */
+  /* 비겁 과다 경보 — 일간 천간 직접 추출, G_POWER 의존 제거 */
   function _buildSmartWarning(pillars, dominant, counts, dist) {
     var power = window.G_POWER;
-    /* 일간 원소 → 비겁 원소 = dayEl,  재성 원소 = 극(克)의 대상 */
     var KE_LOCAL = { wood:'earth', fire:'metal', earth:'water', metal:'wood', water:'fire' };
-    var dayEl = (power && power.dayEl) || _dominantEl(dist);
+    /* ① 일간 원소: 천간에서 직접 계산 (G_POWER 미로딩 시에도 정확) */
+    var dayGan = pillars && pillars.d && pillars.d.g;
+    var dayEl = (dayGan && GAN_EL[dayGan]) || (power && power.dayEl) || 'water';
     var jaeEl = KE_LOCAL[dayEl];
     var total = dist.total || 1;
     var bijabPct = Math.round((dist[dayEl] || 0) / total * 100);
     var jaeCount = jaeEl ? (dist[jaeEl] || 0) : 0;
     var jaePct   = Math.round(jaeCount / total * 100);
-    var isStrong = power ? power.isStrong : false;
+    /* ② 신강/신약: G_POWER 우선, 없으면 생아+비겁 원소 비율 계산 */
+    var isStrong;
+    if (power && typeof power.isStrong === 'boolean') {
+      isStrong = power.isStrong;
+    } else {
+      var PAIEL_W = { wood:'water', fire:'wood', earth:'fire', metal:'earth', water:'metal' };
+      var parElW = PAIEL_W[dayEl];
+      var friendW = (dist[dayEl] || 0) + (parElW ? (dist[parElW] || 0) : 0);
+      isStrong = (friendW * 2 >= total);
+    }
     var bc = (counts['비견'] || 0) + (counts['겁재'] || 0);
     /* 비겁 과다: G_POWER.isStrong + 원소 비율 25% 이상 OR 십성 카운트 3개 이상 */
     if ((isStrong && bijabPct >= 25) || bc >= BIJAB_WARN_THRESHOLD) {
@@ -407,18 +417,26 @@
     var tenNature = (dominant && TENSTAR_NATURE[dominant]) || TENSTAR_NATURE['편재'];
     var power = window.G_POWER;
     var KE_LOCAL = { wood:'earth', fire:'metal', earth:'water', metal:'wood', water:'fire' };
-    var dayEl = (power && power.dayEl) || _dominantEl(dist);
+    /* 일간 원소 직접 추출 */
+    var dayEl = (dayGan && GAN_EL[dayGan]) || (power && power.dayEl) || 'water';
     var jaeEl = KE_LOCAL[dayEl];
     var total = dist.total || 1;
     var bijabPct = Math.round((dist[dayEl] || 0) / total * 100);
     var jaePct = jaeEl ? Math.round((dist[jaeEl] || 0) / total * 100) : 0;
-    var isStrong = power ? power.isStrong : null;
+    /* 신강/신약 fallback */
+    var isStrong;
+    if (power && typeof power.isStrong === 'boolean') {
+      isStrong = power.isStrong;
+    } else {
+      var PAIEL_N = { wood:'water', fire:'wood', earth:'fire', metal:'earth', water:'metal' };
+      var parElN = PAIEL_N[dayEl];
+      var friendCntN = (dist[dayEl] || 0) + (parElN ? (dist[parElN] || 0) : 0);
+      isStrong = (friendCntN * 2 >= total);
+    }
     var powerScore = power ? (power.score || 0) : 0;
-    var powerLabel = isStrong === true
-      ? '신강(身强) ' + powerScore + '점 — 일간 에너지 과잉, 설기(泄氣)·억제 필요'
-      : isStrong === false
-        ? '신약(身弱) ' + powerScore + '점 — 일간 에너지 부족, 생조(生助) 필요'
-        : '분석 중…';
+    var powerLabel = isStrong
+      ? '신강(身强)' + (powerScore ? ' ' + powerScore + '점' : '') + ' — 일간 에너지 과잉, 설기(泄氣)·억제 필요'
+      : '신약(身弱)' + (powerScore ? ' ' + powerScore + '점' : '') + ' — 일간 에너지 부족, 생조(生助) 필요';
     var bc = (counts['비견'] || 0) + (counts['겁재'] || 0);
     var html = '';
 
@@ -441,33 +459,144 @@
       + '</div>';
 
     /* ■ Block 3: 억부 진단 */
+    var kwanStarCount = (counts['편관'] || 0) + (counts['정관'] || 0);
     html += '<div class="sb-nature-block">'
       + '<div class="sb-nature-tag">■ POWER SCAN — 억부(抑扶) 진단</div>'
       + '<div class="sb-nature-power">▶ ' + powerLabel + '</div>';
-    if (isStrong === true && bijabPct >= 25) {
+    if (isStrong && bijabPct >= 25) {
       html += '<p class="sb-nature-body sb-nature-alert">⚠ 일간 과강 경보: 동류 원소 비중 ' + bijabPct + '%.'
         + (jaePct < 15
           ? ' 재성(' + (EL_KR[jaeEl] || '') + ') ' + jaePct + '% — 재물·현실 감각·이성 에너지가 심각하게 취약합니다. 강한 자아가 현실 감각보다 앞서면, 능력 대비 경제적 성과가 구조적으로 저하됩니다.'
           : ' 강한 독립 에너지가 협력 기반 업무에서 반복 마찰을 일으킵니다. 의도적 협력 훈련 없이 리더십을 발휘하면 팀이 아니라 적을 만드는 구조입니다.')
         + '</p>';
-    } else if (isStrong === false) {
-      html += '<p class="sb-nature-body">일간이 약한 구조입니다. 주도적 실행보다 전문성 심화와 지원 기반 구축이 우선입니다. 무리한 독립 창업보다 조직 내 전문직에서 역량을 먼저 검증하는 것이 장기 안전 전략입니다.</p>';
+    } else if (!isStrong) {
+      if (kwanStarCount >= 2) {
+        html += '<p class="sb-nature-body sb-nature-alert">⚠ 관성(官星) 과압 구조: 편관이 ' + kwanStarCount + '개 이상 집중되어 일간을 지속적으로 제압합니다. '
+          + '외부 권위에 대한 과도한 압박, 만성 긴장, 자기비판 반복이 내면에 누적됩니다. '
+          + '이 에너지를 방치하면 번아웃 → 갑작스러운 이탈 → 사회적 고립 순서로 진행됩니다. '
+          + '관인상생(官印相生) — 인성(印星)이 관성의 압박을 지식·자격으로 승화하는 구조를 만드는 것이 유일한 출구입니다.</p>';
+      } else {
+        html += '<p class="sb-nature-body">신약(身弱) 구조. 주도적 실행보다 전문성 심화와 지원 기반 구축이 우선 전략입니다. 무리한 독립 창업보다 조직 내 전문직에서 역량을 검증한 뒤 독립하는 것이 장기 안전입니다.</p>';
+      }
     } else {
       html += '<p class="sb-nature-body">오행 균형이 비교적 양호합니다. 대운·세운의 변화에 따라 전략을 유연하게 조정하십시오.</p>';
     }
     html += '</div>';
 
     /* ■ Block 4: 시스템 어드바이저리 (유료 유도) */
+    var yr0 = new Date().getFullYear();
+    var YRNAME0 = { 2025:'을사(乙巳)', 2026:'병오(丙午)', 2027:'정미(丁未)', 2028:'무신(戊申)', 2029:'기유(己酉)', 2030:'경술(庚戌)' };
+    var yrLabel0 = (YRNAME0[yr0] || yr0 + '년');
+    var GAN_CHONG0 = { '甲':'庚','庚':'甲','乙':'辛','辛':'乙','丙':'壬','壬':'丙','丁':'癸','癸':'丁' };
+    var YEAR_GAN0 = { 2025:'乙', 2026:'丙', 2027:'丁', 2028:'戊', 2029:'己', 2030:'庚' };
+    var yearGan0 = YEAR_GAN0[yr0] || '丙';
+    var hasGanChong0 = dayGan && GAN_CHONG0[yearGan0] === dayGan;
+    var ctaExtra = hasGanChong0
+      ? '특히 ' + yr0 + ' ' + yrLabel0 + ' 세운 천간(' + yearGan0 + ')이 당신의 일간(' + dayGan + ')과 <strong>직격 천간 충</strong>을 이루고 있습니다. 이 해에 진로·관계·정체성의 근본적 재편이 일어날 가능성이 높습니다. '
+      : '';
     html += '<div class="sb-nature-block sb-nature-block--cta">'
       + '<div class="sb-nature-tag">■ SYSTEM ADVISORY — 분석 심화 안내</div>'
-      + '<p class="sb-nature-body">위 데이터는 사주 원국의 <strong>정적 구조 분석</strong>에 해당합니다. 실제 삶의 궤적은 <strong>현재 어느 대운에 위치하는지</strong>에 따라 완전히 달라집니다. '
-      + '현재 운세 흐름, <strong>10년 위험 계수 그래프</strong>, '
-      + '직업 전환 최적 타이밍, 관계 리스크 경고, 개운 처방전은 '
-      + '<em class="sb-nature-hl">DOMINATOR REPORT</em>에서만 열람됩니다. '
-      + '당신이 지금 서 있는 대운의 위치와 앞으로 3년의 변곡점을 확인하십시오.</p>'
+      + '<p class="sb-nature-body">' + ctaExtra
+      + '위 데이터는 원국의 <strong>정적 구조 분석</strong>입니다. 실제 운명은 <strong>현재 어느 대운에 위치하는지</strong>에 따라 완전히 달라집니다. '
+      + '<strong>10년 위험 계수 그래프</strong>, 직업 전환 최적 타이밍, 관계 리스크, '
+      + '개운 처방전은 <em class="sb-nature-hl">DOMINATOR REPORT</em>에서만 열람됩니다.</p>'
       + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (100코인) 으로 전체 리포트 열람</div>'
       + '</div>';
 
+    return html;
+  }
+
+  /* ── YEAR PULSE — 세운 충형 에너지 스캔 ── */
+  var YEAR_GAN_TBL = { 2024:'甲', 2025:'乙', 2026:'丙', 2027:'丁', 2028:'戊', 2029:'己', 2030:'庚', 2031:'辛', 2032:'壬', 2033:'癸' };
+  var YEAR_ZHI_TBL = { 2024:'辰', 2025:'巳', 2026:'午', 2027:'未', 2028:'申', 2029:'酉', 2030:'戌', 2031:'亥', 2032:'子', 2033:'丑' };
+  var YEAR_NAME_TBL = { 2024:'갑진', 2025:'을사', 2026:'병오', 2027:'정미', 2028:'무신', 2029:'기유', 2030:'경술', 2031:'신해', 2032:'임자', 2033:'계축' };
+  var ZHI_CHONG_TBL = { '子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳' };
+  var ZHI_HE6_TBL = { '子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午' };
+  var GAN_CHONG_TBL = { '甲':'庚','庚':'甲','乙':'辛','辛':'乙','丙':'壬','壬':'丙','丁':'癸','癸':'丁' };
+  var BANHE_SETS = [[['寅','午','戌'],'화(火)局'],[['申','子','辰'],'수(水)局'],[['亥','卯','未'],'목(木)局'],[['巳','酉','丑'],'금(金)局']];
+
+  function _buildYearPulseHTML(pillars) {
+    if (!pillars || !pillars.d) return '';
+    var yr = new Date().getFullYear();
+    var yg = YEAR_GAN_TBL[yr]; var yz = YEAR_ZHI_TBL[yr]; var yn = YEAR_NAME_TBL[yr];
+    if (!yg || !yz) return '';
+    var dg = pillars.d.g; var dj = pillars.d.j;
+    var mj = pillars.m && pillars.m.j;
+    var yj_g = pillars.y && pillars.y.j;
+    var signals = [];
+    /* 천간 충 */
+    if (GAN_CHONG_TBL[yg] === dg) {
+      var ts = null; try { ts = _calcTenStar(dg, yg); } catch(e) {}
+      signals.push({ lv:'danger', msg:'⚡ ' + yr + ' ' + yn + '년 — 세운 천간(' + yg + ')이 일간(' + dg + ')과 <strong>직격 천간 충</strong>. [' + (ts || '충') + '] 진로·정체성·핵심 관계에 근본적 흔들림이 발생합니다. 기존 안정 기반(직장·파트너십·거주지)에 예측 불가 균열 가능성.' });
+    }
+    /* 일지 충 */
+    if (ZHI_CHONG_TBL[yz] === dj) {
+      signals.push({ lv:'danger', msg:'⚡ 일지(' + dj + ')·세운지(' + yz + ') <strong>지지 충</strong>. 배우자·감정 기반·건강(심신)에 직접 충격 에너지가 유입됩니다. 이별, 이사, 수술 이벤트 발생 가능성 증가.' });
+    }
+    /* 월지 충 */
+    if (mj && ZHI_CHONG_TBL[yz] === mj) {
+      signals.push({ lv:'warn', msg:'▲ 월지(' + mj + ')·세운지(' + yz + ') 충. 직업·재정 기반에 변동 에너지 유입. 이직·전직·사업 재편 가능성 상승.' });
+    }
+    /* 연지 충 */
+    if (yj_g && ZHI_CHONG_TBL[yz] === yj_g) {
+      signals.push({ lv:'warn', msg:'▲ 연지(' + yj_g + ')·세운지(' + yz + ') 충. 가족·뿌리·고향과 연관된 변화 에너지 감지.' });
+    }
+    /* 일지 합 → 귀인 */
+    if (ZHI_HE6_TBL[yz] === dj) {
+      signals.push({ lv:'ok', msg:'✦ 세운지(' + yz + ')·일지(' + dj + ') 육합(六合). ' + yr + '년 귀인·파트너십 형성 에너지 상승. 중요한 인연이 열릴 수 있습니다.' });
+    }
+    /* 반합 */
+    BANHE_SETS.forEach(function(g) {
+      var trio = g[0]; var nm = g[1];
+      if (trio.indexOf(yz) >= 0 && (trio.indexOf(dj) >= 0 || trio.indexOf(mj) >= 0)) {
+        var effMap = { '화(火)局':'재성(財星) 활성화 — 재물·명예 기회 유입.', '수(水)局':'비겁 강화 — 독립 의지 상승, 협력 마찰 증가.', '목(木)局':'식상 폭발 — 창작·표현·자녀 에너지 급증.', '금(金)局':'인성 강화 — 학문·자격·귀인 지원 증폭.' };
+        signals.push({ lv:'info', msg:'◈ 세운지(' + yz + ')와 명식이 <strong>' + nm + '</strong> 형성. ' + (effMap[nm] || '') });
+      }
+    });
+    if (!signals.length) {
+      signals.push({ lv:'neutral', msg:'▷ ' + yr + ' ' + yn + '년 — 명식에 직격 충형 없음. 일간 에너지 보존 상태. 내공 축적 적기.' });
+    }
+    var html = '<div class="sb-nature-block sb-ypulse-block">';
+    html += '<div class="sb-nature-tag">■ YEAR PULSE — ' + yr + ' ' + yn + '년 세운 충격 스캔</div>';
+    signals.forEach(function(s) {
+      html += '<div class="sb-ypulse-row sb-ypulse-' + s.lv + '">' + s.msg + '</div>';
+    });
+    html += '<div class="sb-ypulse-cta">&#9660; 세운 위기 완화 전략·3년 변곡점·개운 처방은 <strong>DOMINATOR REPORT</strong>에서만 확인됩니다.</div>';
+    html += '</div>';
+    return html;
+  }
+
+  /* ── INNER PALACE SCAN — 일지(日支) 비밀궁 분석 ── */
+  var DAY_BRANCH_ORACLE = {
+    '子':{ code:'AQUA_SEED_v1', title:'자수(子水) — 시작의 원점', oracle:'가장 순수한 시작 에너지. 잠재력은 무한하지만 방향 없이는 증발합니다. 내면의 깊은 지성은 구조를 스스로 만들어야만 외부 세계와 연결됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 파트너가 경쟁자가 될 수 있음. 독립적 파트너 선호 필연.' },
+    '丑':{ code:'EARTH_VAULT_v2', title:'축토(丑土) — 봉인된 보고(寶庫)', oracle:'닫힌 금고. 표면은 둔하지만 내부에 황금 맥이 흐릅니다. 열리는 데 시간이 걸리지만, 한 번 개방되면 막을 수 없습니다.', spouse:'배우자궁 에너지: 관성+비겁+인성 혼재 → 헌신-갈등 주기 반복.' },
+    '寅':{ code:'WOOD_IGNITION_v3', title:'인목(寅木) — 점화의 씨앗', oracle:'봄의 첫 파열. 강렬한 시작 에너지가 항상 폭발을 준비합니다. 시작은 훌륭하지만 완주 본능을 별도로 키워야 합니다.', spouse:'배우자궁 에너지: 식상+재성+관성 혼재 → 활발하지만 제어 어려운 파트너.' },
+    '卯':{ code:'SOFT_BLADE_v4', title:'묘목(卯木) — 조용한 날(刃)', oracle:'보이지 않게 날카로운 목 에너지. 타인의 감정을 정확히 수신하는 이 안테나가 무기가 되거나 상처가 됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 독립적이고 경쟁적인 파트너.' },
+    '辰':{ code:'DRAGON_VAULT_v5', title:'진토(辰土) — 용의 창고(水庫)', oracle:'모든 오행을 저장하는 수고(水庫). 표면은 土이지만 내부에 水·木·土가 공존합니다. 이 복잡한 내면이 창의적 탄력성과 예측 불가한 심리 변동을 동시에 만듭니다. 압박이 강할수록 내면에서 무언가 폭발합니다.', spouse:'배우자궁 에너지: 편관+상관+겁재 혼재 → 통제-자유 갈등 구조 내재.' },
+    '巳':{ code:'FIRE_CIRCUIT_v6', title:'사화(巳火) — 기폭 회로', oracle:'봉인된 화기가 폭발 직전 상태. 표현 채널만 확보되면 불길처럼 번집니다. 통제 없는 열정은 모든 것을 태울 수 있습니다.', spouse:'배우자궁 에너지: 재성+관성+인성 혼재 → 능력 있는 파트너, 소유욕 충돌.' },
+    '午':{ code:'SOLAR_PEAK_v7', title:'오화(午火) — 태양의 정점', oracle:'최고조의 빛. 화려하지만 빠르게 소진됩니다. 무대 없이는 에너지가 내부로 향해 자기파괴적이 됩니다.', spouse:'배우자궁 에너지: 재성+편관+정재 혼재 → 화려하지만 변덕스러운 파트너 인연.' },
+    '未':{ code:'EARTH_DUSK_v8', title:'미토(未土) — 여름의 황혼', oracle:'풍요롭지만 소진된 에너지. 주는 데 익숙하지만 받는 法을 배우지 않으면 에너지 고갈이 반복됩니다.', spouse:'배우자궁 에너지: 관성+상관+재성 혼재 → 섬세하고 감성적인 파트너, 독립성 요구.' },
+    '申':{ code:'METAL_ZERO_v9', title:'신금(申金) — 냉각의 칼', oracle:'감정 없이 상황을 해부하는 냉정한 분석 에너지. 이 냉정함이 문제 해결의 무기이자, 타인과의 감정 연결을 끊는 장벽입니다.', spouse:'배우자궁 에너지: 인성+비겁+관성 혼재 → 지적이고 독립적인 파트너.' },
+    '酉':{ code:'PURE_EDGE_v10', title:'유금(酉金) — 순수한 날끝', oracle:'불순물을 허용하지 않는 완벽주의 에너지. 탁월한 완성도를 만들지만, 기준 차이로 인한 실망과 고립이 반복됩니다.', spouse:'배우자궁 에너지: 비겁 계열 → 서로 독립을 추구하는 파트너 구조.' },
+    '戌':{ code:'FIRE_TOMB_v11', title:'술토(戌土) — 화의 무덤', oracle:'화기의 창고이자 무덤. 평시에는 잠재력이 숨어 과소평가받지만, 폭발하면 걷잡을 수 없습니다.', spouse:'배우자궁 에너지: 관성+인성+재성 혼재 → 능력 있고 신뢰할 수 있는 파트너.' },
+    '亥':{ code:'DEEP_CIRCUIT_v12', title:'해수(亥水) — 심층 회로', oracle:'가장 깊은 수(水)의 근원. 무한한 잠재력이 보이지 않는 곳에 있습니다. 직관이 뛰어나지만 깊은 내향성으로 이 능력을 세상과 연결하는 것이 영구 과제입니다.', spouse:'배우자궁 에너지: 비겁+식신 계열 → 자유롭고 창의적인 파트너, 구속 거부.' }
+  };
+
+  function _buildDayBranchScan(pillars) {
+    if (!pillars || !pillars.d) return '';
+    var dj = pillars.d.j;
+    var info = DAY_BRANCH_ORACLE[dj];
+    if (!info) return '';
+    var html = '<div class="sb-nature-block sb-dbs-block">';
+    html += '<div class="sb-nature-tag">■ INNER PALACE SCAN — 일지(日支) ' + dj + ' 비밀궁 분석</div>';
+    html += '<div class="sb-dbs-header">';
+    html += '<span class="sb-dbs-chip">SOUL CHIP: ' + info.code + '</span>';
+    html += '<span class="sb-dbs-title">' + info.title + '</span>';
+    html += '</div>';
+    html += '<p class="sb-nature-body">' + info.oracle + '</p>';
+    html += '<div class="sb-nature-row"><span class="sb-nature-key">배우자궁</span><span class="sb-nature-val sb-nature-val--warn">' + info.spouse + '</span></div>';
+    html += '<div class="sb-dbs-cta">&#9660; 현재 운에서 이 에너지가 어떻게 발동하는지, 인연·직업 최적 타이밍은 <strong>DOMINATOR REPORT</strong>에서 확인하세요.</div>';
+    html += '</div>';
     return html;
   }
 
@@ -614,9 +743,14 @@
       risk: risk, counts: counts
     };
 
-    // Nature analysis (1000자+ 성향 분석 렌더)
+    // Nature + Year Pulse + Inner Palace 전체 렌더
     var natSec = _q('sbNatureSection');
-    if (natSec) natSec.innerHTML = _buildNatureAnalysis(pillars || window.G_PILLARS, dist, dominant, counts);
+    if (natSec) {
+      var p0 = pillars || window.G_PILLARS;
+      natSec.innerHTML = _buildNatureAnalysis(p0, dist, dominant, counts)
+        + _buildYearPulseHTML(p0)
+        + _buildDayBranchScan(p0);
+    }
 
     var freeSec = _q('sbFreeSection');
     if (freeSec) freeSec.classList.remove('sb-hidden');
