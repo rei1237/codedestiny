@@ -621,31 +621,31 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       color: #d5e9ff;
     }
   </style>
+
 <style id="premium-vvip-collection-theme">
   /* ═══════════════════════════════════════════════
      VVIP 프리미엄 블랙카드 컬렉션 — 블랙 & 골드 테마
   ═══════════════════════════════════════════════ */
   #premiumVvipCollection {
     background:
-      radial-gradient(ellipse at 20% 10%, rgba(180, 140, 30, 0.13) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba(160, 110, 20, 0.11) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 10%, rgba(180,140,30,0.13) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(160,110,20,0.11) 0%, transparent 50%),
       linear-gradient(160deg, #0a0a0a 0%, #111008 40%, #0d0b00 70%, #050505 100%);
-    border: 1px solid rgba(212, 175, 55, 0.38);
+    border: 1px solid rgba(212,175,55,0.38);
     box-shadow:
-      0 0 0 1px rgba(212, 175, 55, 0.12),
-      0 30px 80px rgba(0, 0, 0, 0.85),
-      inset 0 1px 0 rgba(255, 215, 80, 0.12),
-      inset 0 -1px 0 rgba(180, 140, 30, 0.06);
+      0 0 0 1px rgba(212,175,55,0.12),
+      0 30px 80px rgba(0,0,0,0.85),
+      inset 0 1px 0 rgba(255,215,80,0.12),
+      inset 0 -1px 0 rgba(180,140,30,0.06);
   }
   #premiumVvipCollection .feat-collection__header {
-    background: linear-gradient(180deg, rgba(30, 24, 4, 0.55) 0%, rgba(10, 8, 0, 0.25) 100%);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+    background: linear-gradient(180deg, rgba(30,24,4,0.55) 0%, rgba(10,8,0,0.25) 100%);
+    border-bottom: 1px solid rgba(212,175,55,0.18);
   }
   .pvc-crown-icon {
-    color: #d4af37;
+    color: #d4af37 !important;
     font-size: 2.1rem !important;
-    text-shadow: 0 0 18px rgba(212, 175, 55, 0.7), 0 0 40px rgba(180, 130, 20, 0.4);
-    filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.5));
+    text-shadow: 0 0 18px rgba(212,175,55,0.7), 0 0 40px rgba(180,130,20,0.4);
   }
   .pvc-header-badge {
     display: inline-block;
@@ -656,156 +656,74 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     font-weight: 900;
     letter-spacing: 0.18em;
     color: #0a0800;
-    background: linear-gradient(90deg, #c8960c, #d4af37, #f0d060, #d4af37, #c8960c);
+    background: linear-gradient(90deg,#c8960c,#d4af37,#f0d060,#d4af37,#c8960c);
     background-size: 200% 100%;
     animation: pvcBadgeShimmer 3s linear infinite;
-    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.5);
+    box-shadow: 0 2px 12px rgba(212,175,55,0.5);
   }
   @keyframes pvcBadgeShimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0%  { background-position: 200% 0; }
+    100%{ background-position: -200% 0; }
   }
   .pvc-title {
-    background: linear-gradient(135deg, #f0d060 0%, #d4af37 40%, #fff8dc 60%, #d4af37 80%, #c8960c 100%);
+    background: linear-gradient(135deg,#f0d060 0%,#d4af37 40%,#fff8dc 60%,#d4af37 80%,#c8960c 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.35));
+    filter: drop-shadow(0 2px 6px rgba(212,175,55,0.35));
   }
-  .pvc-subtitle {
-    color: rgba(212, 175, 55, 0.82) !important;
-    font-style: italic;
-  }
-  .pvc-lede {
-    color: rgba(240, 220, 150, 0.72) !important;
-  }
+  .pvc-subtitle  { color: rgba(212,175,55,0.82) !important; font-style: italic; }
+  .pvc-lede      { color: rgba(240,220,150,0.72) !important; }
   .pvc-featureline {
-    border-color: rgba(212, 175, 55, 0.35) !important;
-    background: rgba(20, 16, 0, 0.55) !important;
-    color: rgba(240, 210, 100, 0.9) !important;
+    border-color: rgba(212,175,55,0.35) !important;
+    background: rgba(20,16,0,0.55) !important;
+    color: rgba(240,210,100,0.9) !important;
     letter-spacing: 0.02em;
   }
-  .pvc-divline {
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent) !important;
-  }
-  .pvc-gem {
-    color: #d4af37 !important;
-    text-shadow: 0 0 10px rgba(212, 175, 55, 0.55) !important;
-  }
-  .pvc-arrow {
-    color: #d4af37 !important;
-    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5) !important;
-  }
-  .pvc-peek-gem {
-    color: #d4af37 !important;
-    text-shadow: 0 0 10px rgba(212, 175, 55, 0.55) !important;
-  }
-  /* 파티클 골드 오브 */
+  .pvc-divline  { background: linear-gradient(90deg,transparent,rgba(212,175,55,0.8),transparent) !important; }
+  .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
+  .pvc-arrow    { color: #d4af37 !important; text-shadow: 0 0 8px  rgba(212,175,55,0.5)  !important; }
+  .pvc-peek-gem { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
+  /* 골드 오브 배경 파티클 */
   .pvc-gold-orb {
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
+    position: absolute; border-radius: 50%; pointer-events: none;
     animation: pvcOrbFloat 8s ease-in-out infinite;
   }
   .pvc-gold-orb--1 {
-    width: 140px; height: 140px;
-    top: -30px; left: -40px;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.12), transparent 70%);
+    width:140px; height:140px; top:-30px; left:-40px;
+    background: radial-gradient(circle,rgba(212,175,55,0.12),transparent 70%);
     animation-delay: 0s;
   }
   .pvc-gold-orb--2 {
-    width: 100px; height: 100px;
-    bottom: -20px; right: -20px;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.09), transparent 70%);
+    width:100px; height:100px; bottom:-20px; right:-20px;
+    background: radial-gradient(circle,rgba(212,175,55,0.09),transparent 70%);
     animation-delay: -4s;
   }
   @keyframes pvcOrbFloat {
-    0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
-    50% { transform: translateY(-12px) scale(1.05); opacity: 1; }
+    0%,100%{ transform:translateY(0) scale(1);    opacity:0.6; }
+    50%    { transform:translateY(-12px) scale(1.05); opacity:1; }
   }
-  /* 카드 타일 — 블랙/골드 */
-  .pvc-tile {
-    background: linear-gradient(160deg, #111008 0%, #0d0b00 55%, #090808 100%) !important;
-    border: 1px solid rgba(212, 175, 55, 0.28) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(212, 175, 55, 0.1) !important;
-    transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s !important;
-    position: relative;
-    overflow: hidden;
-  }
-  .pvc-tile:hover,
-  .pvc-tile:focus-visible {
-    transform: translateY(-3px) scale(1.02) !important;
-    border-color: rgba(212, 175, 55, 0.65) !important;
-    box-shadow: 0 8px 36px rgba(0, 0, 0, 0.75), 0 0 18px rgba(212, 175, 55, 0.22), inset 0 1px 0 rgba(212, 175, 55, 0.2) !important;
-  }
-  .pvc-tile-glow {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .pvc-tile .tarot-tile__img-wrap,
-  .pvc-tile .tarot-tile__body {
-    position: relative;
-    z-index: 1;
-  }
-  .pvc-badge {
-    background: linear-gradient(90deg, #8a6800, #d4af37, #f0d060, #d4af37, #8a6800) !important;
-    background-size: 200% 100% !important;
-    animation: pvcBadgeShimmer 3s linear infinite !important;
-    color: #0a0800 !important;
-    border: none !important;
-    font-weight: 900 !important;
-    letter-spacing: 0.08em !important;
-  }
-  .pvc-badge--lock {
-    background: linear-gradient(90deg, #1a1200, #3a2800, #5a3c00, #3a2800, #1a1200) !important;
-    color: #d4af37 !important;
-    border: 1px solid rgba(212, 175, 55, 0.5) !important;
-    animation: none !important;
-  }
-  .pvc-tile-title {
-    background: linear-gradient(135deg, #f0d060, #d4af37, #c8960c) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-    font-weight: 900 !important;
-  }
-  .pvc-tile .tarot-tile__desc {
-    color: rgba(212, 175, 55, 0.65) !important;
-    font-size: 0.78rem;
-  }
-  /* 올림푸스 와이드 로우 */
-  .pvc-olympus-row {
-    padding: 0 16px 16px;
-  }
-  .pvc-tile-wide {
-    width: 100%;
+  /* 프리미엄 카드 그리드 — 1열 세로 배치 */
+  .pvc-prem-grid {
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center;
+    flex-direction: column;
     gap: 14px;
+    padding: 0 16px 16px !important;
   }
-  .pvc-tile-wide .tarot-tile__img-wrap {
-    width: 90px !important;
-    flex-shrink: 0;
-    border-radius: 10px;
-    overflow: hidden;
+  /* 각 prem-card 섹션 래퍼의 기존 인라인 스타일 위에 골드 테두리 오버레이 */
+  .pvc-prem-grid > section {
+    border-radius: 18px !important;
+    border-width: 1.5px !important;
+    transition: transform 0.22s, box-shadow 0.22s;
+    outline: 1px solid rgba(212,175,55,0.1);
   }
-  .pvc-tile-wide .tarot-tile__body {
-    flex: 1;
-    text-align: left;
-    padding: 8px 0 !important;
-  }
-  /* 그리드 */
-  .pvc-grid {
-    padding: 0 16px 4px !important;
+  .pvc-prem-grid > section:hover {
+    transform: translateY(-3px);
+    outline-color: rgba(212,175,55,0.35);
   }
   /* reduced-motion */
   @media (prefers-reduced-motion: reduce) {
     .pvc-header-badge { animation: none; background-position: 0 0; }
-    .pvc-badge { animation: none !important; background-position: 0 0 !important; }
     .pvc-gold-orb { animation: none; }
   }
 </style>
@@ -1994,7 +1912,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
                 <p class="feat-collection__lede">질문 하나를 올리면 동서양 상징 해석을 교차해 오늘의 결론을 또렷하게 정리해 드립니다.</p>
-                <p class="feat-collection__featureline">화투점 · 이집트 신탁 · 주역 64괘 · 숙요 · 룬 · 지오맨시 흙점 · 홍차점 · 데스티니 포커</p>
+                <p class="feat-collection__featureline">화투점 · 이집트 신탁 · 주역 64괘 · 룬 · 지오맨시 흙점 · 홍차점 · 데스티니 포커</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -2051,22 +1969,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">☯️ 주역 거북점</span>
                     <span class="tarot-tile__desc">64괘 · 3000년 지혜</span>
-                  </div>
-                </button>
-
-                <!-- 숙요점 -->
-                <button class="tarot-tile tarot-tile--sukuyo-fc" type="button"
-                        data-action="openSukuyoModal"
-                        aria-label="숙요점 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
-                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -2152,137 +2054,109 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           </div><!-- /fg-group__cards --></section><!-- /fg-group--oracle -->
 
         <!-- ══════════════════════════════════════
-             GROUP: VVIP 프리미엄 — 블랙카드 리딩
+             GROUP: 코즈믹 & 별자리
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--premium-vvip" aria-labelledby="fgTitlePremiumVvip">
+        <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
           <div class="fg-group__cards">
 
-            <div class="feat-collection feat-collection--premium-vvip" id="premiumVvipCollection" data-collection-open="false">
-              <div class="feat-collection__cosmos pvc-particles" aria-hidden="true">
+            <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="false">
+              <div class="feat-collection__cosmos" aria-hidden="true">
                 <span class="fc-star fc-star--1"></span>
                 <span class="fc-star fc-star--2"></span>
                 <span class="fc-star fc-star--3"></span>
                 <span class="fc-star fc-star--4"></span>
                 <span class="fc-star fc-star--5"></span>
                 <span class="fc-star fc-star--6"></span>
-                <span class="pvc-gold-orb pvc-gold-orb--1" aria-hidden="true"></span>
-                <span class="pvc-gold-orb pvc-gold-orb--2" aria-hidden="true"></span>
               </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 블랙카드 컬렉션 열기">
-                <div class="feat-collection__icon pvc-crown-icon" aria-hidden="true">♛</div>
-                <div class="pvc-header-badge" aria-hidden="true">VVIP · PREMIUM</div>
-                <h3 class="feat-collection__title pvc-title">프리미엄 정밀 운명 분석</h3>
-                <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 동서양 최고 정밀 명반</p>
-                <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 프리미엄 명반을 한 곳에서. PDF 리포트로 저장되는 VVIP 전용 운명 분석 컬렉션입니다.</p>
-                <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 12궁 명반 &nbsp;·&nbsp; 숙요점 27수 &nbsp;·&nbsp; 베다 점성술 &nbsp;·&nbsp; 서양 점성술 코즈믹 ✦</p>
+              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="cosmicCollection" aria-expanded="false" aria-label="코즈믹 &amp; 별자리 컬렉션 열기">
+                <div class="feat-collection__icon" aria-hidden="true">🌌</div>
+                <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
+                <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
+                <p class="feat-collection__lede">행성, 별자리, 궁성 데이터를 연결해 성향과 타이밍을 한 번에 읽는 우주형 리딩 컬렉션입니다.</p>
+                <p class="feat-collection__featureline">서양 점성술 · 자미두수 · 베다 점성술 · 올림푸스 별자리 신탁</p>
                 <div class="feat-collection__divider" aria-hidden="true">
-                  <span class="fc-div-gem pvc-gem">◆</span>
-                  <span class="fc-div-line pvc-divline"></span>
-                  <span class="fc-div-gem pvc-gem">✦</span>
-                  <span class="fc-div-line pvc-divline"></span>
-                  <span class="fc-div-gem pvc-gem">◆</span>
+                  <span class="fc-div-gem">✦</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">◈</span>
+                  <span class="fc-div-line"></span>
+                  <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow pvc-arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
               </button>
               <div class="fc-closed-peek" aria-hidden="true">
-                <span class="fc-closed-peek__gem pvc-peek-gem">◆</span><span class="fc-closed-peek__gem pvc-peek-gem">✦</span><span class="fc-closed-peek__gem pvc-peek-gem">◆</span>
+                <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
               </div>
 
-              <div class="feat-collection__grid feat-collection__grid--2col pvc-grid">
+              <div class="feat-collection__grid feat-collection__grid--2col">
 
-                <!-- 자미두수 12궁 명반 -->
-                <button class="tarot-tile tarot-tile--ziwei-fc pvc-tile" type="button"
-                        data-action="openZiweiModal"
-                        aria-label="자미두수 명반 시작">
-                  <div class="pvc-tile-glow" aria-hidden="true"></div>
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
-                    <span class="tarot-tile__badge pvc-badge">ELITE</span>
+                <!-- 점성술 코즈믹 차트 -->
+                <button class="tarot-tile tarot-tile--astro-fc" type="button"
+                        data-action="openAstroModal"
+                        aria-label="점성술 코즈믹 차트 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title pvc-tile-title">🌌 자미두수(紫微)</span>
-                    <span class="tarot-tile__desc">12궁 명반 · PDF 리포트</span>
+                    <span class="tarot-tile__title">✨ 점성술 코즈믹</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
-                <!-- 숙요점 27수 -->
-                <button class="tarot-tile tarot-tile--sukuyo-fc pvc-tile" type="button"
-                        data-action="openSukuyoModal"
-                        aria-label="숙요점 시작">
-                  <div class="pvc-tile-glow" aria-hidden="true"></div>
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
-                    <span class="tarot-tile__badge pvc-badge">ELITE</span>
+                <!-- 자미두수 12궁 명반 -->
+                <button class="tarot-tile tarot-tile--ziwei-fc" type="button"
+                        data-action="openZiweiModal"
+                        aria-label="자미두수 명반 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 — 12궁 명반 운명 분석">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title pvc-tile-title">💫 숙요점(宿曜占)</span>
-                    <span class="tarot-tile__desc">27수 밀교 명반 · PDF 리포트</span>
+                    <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
                 <!-- 베다 점성술 (Jyotish) -->
-                <button class="tarot-tile tarot-tile--vedic-fc pvc-tile" type="button"
+                <button class="tarot-tile tarot-tile--vedic-fc" type="button"
                         data-action="navigateToVedic"
                         aria-label="베다 점성술 보기">
-                  <div class="pvc-tile-glow" aria-hidden="true"></div>
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/veda.webp" data-img-alt="베다 점성술 — Jyotish 별자리·낙샤트라·다샤">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🪐</span></div>
-                    <span class="tarot-tile__badge pvc-badge">ELITE</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title pvc-tile-title">🪐 베다 점성술</span>
-                    <span class="tarot-tile__desc">Jyotish 낙샤트라 · PDF 리포트</span>
+                    <span class="tarot-tile__title">🪐 베다 점성술</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
-                <!-- 점성술 코즈믹 차트 -->
-                <button class="tarot-tile tarot-tile--astro-fc pvc-tile" type="button"
-                        data-action="openAstroModal"
-                        aria-label="점성술 코즈믹 차트 시작">
-                  <div class="pvc-tile-glow" aria-hidden="true"></div>
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jumsung.webp" data-img-alt="점성술 코즈믹 차트 — 태양·달·상승궁">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
-                    <span class="tarot-tile__badge pvc-badge">ELITE</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title pvc-tile-title">✨ 점성술 코즈믹</span>
-                    <span class="tarot-tile__desc">태양·달·상승궁 · PDF 리포트</span>
-                  </div>
-                </button>
 
-              </div><!-- /feat-collection__grid -->
-
-              <!-- 올림푸스 신탁은 별도 코즈믹 섹션으로 이동 -->
-              <div class="pvc-olympus-row">
-                <button class="tarot-tile tarot-tile--olympus-oracle pvc-tile-wide" type="button"
+                <!-- 올림푸스 별자리 신탁 -->
+                <button class="tarot-tile tarot-tile--olympus-oracle" type="button"
                         data-action="openOlympusOracleModal"
                         data-tile-lock-key="olympus-fc"
                         data-tile-lock-cost="100"
                         aria-label="올림푸스 별자리 신탁 열기">
-                  <div class="pvc-tile-glow" aria-hidden="true"></div>
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/olympus.webp" data-img-alt="올림푸스 별자리 신탁 — 12 신의 신탁으로 보는 나의 별자리">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">⚡</span></div>
-                    <span class="tarot-tile__badge pvc-badge pvc-badge--lock">EXCLUSIVE</span>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 100코인</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title pvc-tile-title">⚡ 올림푸스 신탁</span>
-                    <span class="tarot-tile__desc">12신 · 별자리 운명 판독 · VVIP 전용</span>
+                    <span class="tarot-tile__title">⚡ 올림푸스 신탁</span>
+                    <span class="tarot-tile__desc">12신 · 별자리 운명 판독</span>
                   </div>
                 </button>
-              </div><!-- /pvc-olympus-row -->
 
-            </div><!-- /feat-collection--premium-vvip -->
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--cosmic -->
 
-          </div><!-- /fg-group__cards --></section><!-- /fg-group--premium-vvip -->
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--cosmic -->
 
         <!-- ══════════════════════════════════════
              GROUP: 운명의 꽃 & 해몽
@@ -2423,6 +2297,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
 
+
+        <!-- ══════════════════════════════════════
+             GROUP: VVIP 프리미엄 — PDF 운명 분석
+        ══════════════════════════════════════ -->
+        <section class="fg-group fg-group--premium-vvip" aria-labelledby="fgTitlePremiumVvip">
+          <div class="fg-group__cards">
+
+            <div class="feat-collection feat-collection--premium-vvip" id="premiumVvipCollection" data-collection-open="false">
+              <div class="feat-collection__cosmos pvc-particles" aria-hidden="true">
+                <span class="fc-star fc-star--1"></span>
+                <span class="fc-star fc-star--2"></span>
+                <span class="fc-star fc-star--3"></span>
+                <span class="fc-star fc-star--4"></span>
+                <span class="fc-star fc-star--5"></span>
+                <span class="fc-star fc-star--6"></span>
+                <span class="pvc-gold-orb pvc-gold-orb--1" aria-hidden="true"></span>
+                <span class="pvc-gold-orb pvc-gold-orb--2" aria-hidden="true"></span>
+              </div>
+              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 PDF 컬렉션 열기">
+                <div class="feat-collection__icon pvc-crown-icon" aria-hidden="true">♛</div>
+                <div class="pvc-header-badge" aria-hidden="true">VVIP · PREMIUM</div>
+                <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
+                <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
+                <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
+                <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
+                <div class="feat-collection__divider" aria-hidden="true">
+                  <span class="fc-div-gem pvc-gem">◆</span>
+                  <span class="fc-div-line pvc-divline"></span>
+                  <span class="fc-div-gem pvc-gem">✦</span>
+                  <span class="fc-div-line pvc-divline"></span>
+                  <span class="fc-div-gem pvc-gem">◆</span>
+                </div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow pvc-arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+              </button>
+              <div class="fc-closed-peek" aria-hidden="true">
+                <span class="fc-closed-peek__gem pvc-peek-gem">◆</span><span class="fc-closed-peek__gem pvc-peek-gem">✦</span><span class="fc-closed-peek__gem pvc-peek-gem">◆</span>
+              </div>
+
+              <div class="feat-collection__grid pvc-prem-grid">
         <!-- ── 1. 자미두수 프리미엄 ── -->
         <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
             <button type="button"
@@ -2552,6 +2465,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
         </section><!-- /베다 점성술 -->
+
+              </div><!-- /feat-collection__grid -->
+            </div><!-- /feat-collection--premium-vvip -->
+
+          </div><!-- /fg-group__cards --></section><!-- /fg-group--premium-vvip -->
+
 
 
     </div>
