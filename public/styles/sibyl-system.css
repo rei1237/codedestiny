@@ -1570,6 +1570,18 @@
   transition: background 0.2s, border-color 0.2s;
 }
 .sb-close-btn:hover { background: rgba(0,200,255,0.18); border-color: var(--sb-cyan); }
+.sb-back-btn {
+  position: absolute; top: 14px; left: 16px;
+  height: 32px; padding: 0 12px;
+  background: rgba(0,200,255,0.08);
+  border: 1px solid rgba(0,200,255,0.3);
+  border-radius: 6px;
+  color: var(--sb-cyan); font-size: 0.78rem; font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  z-index: 30; letter-spacing: 0.04em;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sb-back-btn:hover { background: rgba(0,200,255,0.18); border-color: var(--sb-cyan); }
 
 .sb-header__grid {
   position: absolute; inset: 0;

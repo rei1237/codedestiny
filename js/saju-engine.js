@@ -1586,6 +1586,27 @@ window.computeProfileForModal = function(profile) {
         bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
         bazi.getDayGan   = function() { return _gj.iljin[0]; };
         bazi.getDayZhi   = function() { return _gj.iljin[1]; };
+        /* ── 시주(時柱): KasiEngine 보정 일간 기준으로 재계산 ─────────────
+           Solar 라이브러리의 getTimeGan/Zhi는 내부 일간 기준으로 이미
+           캐싱되어 있어 KasiEngine이 일주를 바꿔도(야자시 등) 시간(時干)이
+           틀릴 수 있으므로, 보정된 일간(_gj.iljin[0])으로 직접 재계산한다.
+        ─────────────────────────────────────────────────────────────── */
+        (function() {
+          var _TIME_ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+          var _GAN_10   = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+          // 일간별 子時 시간(時干) 인덱스 (오호원두법)
+          var _HOUR_GAN_START = {'甲':0,'己':0,'乙':2,'庚':2,'丙':4,'辛':4,'丁':6,'壬':6,'戊':8,'癸':8};
+          var corrDayGan = _gj.iljin[0];
+          var startIdx = _HOUR_GAN_START[corrDayGan];
+          if (startIdx != null) {
+            // 시지 인덱스: 23시→子(0), 0-0:59→子(0), 1-2:59→丑(1), …
+            var zhiIdx = (corrH === 23) ? 0 : Math.floor((corrH + 1) / 2) % 12;
+            var ganIdx = (startIdx + zhiIdx) % 10;
+            var _hg = _GAN_10[ganIdx], _hz = _TIME_ZHI[zhiIdx];
+            bazi.getTimeGan = function() { return _hg; };
+            bazi.getTimeZhi = function() { return _hz; };
+          }
+        })();
       }
     } catch(e) {}
 

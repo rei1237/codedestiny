@@ -47,7 +47,7 @@ async function callGeminiDirect(apiKey, prompt) {
   const url = GEMINI_ENDPOINT.replace('{model}', model) + `?key=${apiKey}`;
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 16384, temperature: 1.0 },
+    generationConfig: { maxOutputTokens: 32768, temperature: 1.0 },
   };
   const res = await fetch(url, {
     method: 'POST',

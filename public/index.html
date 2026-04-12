@@ -665,6 +665,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     0%  { background-position: 200% 0; }
     100%{ background-position: -200% 0; }
   }
+  /* 닫힌 상태에서 shimmer 중단 — CPU 절약 */
+  [data-collection-open="false"] #premiumVvipCollection .pvc-header-badge {
+    animation: none;
+    background-position: 0% 0;
+  }
   .pvc-title {
     background: linear-gradient(135deg,#f0d060 0%,#d4af37 40%,#fff8dc 60%,#d4af37 80%,#c8960c 100%);
     -webkit-background-clip: text;
@@ -684,9 +689,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
   .pvc-arrow    { color: #d4af37 !important; text-shadow: 0 0 8px  rgba(212,175,55,0.5)  !important; }
   .pvc-peek-gem { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
-  /* 골드 오브 배경 파티클 */
+  /* 골드 오브 배경 파티클 — GPU 레이어 승격 */
   .pvc-gold-orb {
     position: absolute; border-radius: 50%; pointer-events: none;
+    will-change: transform, opacity;
     animation: pvcOrbFloat 8s ease-in-out infinite;
   }
   .pvc-gold-orb--1 {
@@ -700,17 +706,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     animation-delay: -4s;
   }
   @keyframes pvcOrbFloat {
-    0%,100%{ transform:translateY(0) scale(1);    opacity:0.6; }
-    50%    { transform:translateY(-12px) scale(1.05); opacity:1; }
+    0%,100%{ transform:translateY(0) scale(1);       opacity:0.6; }
+    50%    { transform:translateY(-12px) scale(1.05); opacity:1;   }
   }
-  /* 프리미엄 카드 그리드 — 1열 세로 배치 */
-  .pvc-prem-grid {
+
+  /* ─── 그리드 표시/숨김 — 토글 상태 연동 핵심 수정 ─── */
+  /* 닫힌 상태: 명시적 숨김 (기존 display:flex!important 버그 수정) */
+  [data-collection-open="false"] #premiumVvipCollection .feat-collection__grid {
+    display: none;
+  }
+  /* 열린 상태: flex 복원 (base rule의 display:grid 재정의) */
+  [data-collection-open="true"] #premiumVvipCollection .feat-collection__grid {
     display: flex !important;
+    animation: fc-grid-reveal 0.35s ease both;
+  }
+
+  /* 프리미엄 카드 그리드 — 1열 세로 배치 + 레이아웃 격리 */
+  .pvc-prem-grid {
+    display: flex;
     flex-direction: column;
     gap: 14px;
-    padding: 0 16px 16px !important;
+    padding: 0 16px 16px;
+    contain: layout paint;
   }
-  /* 각 prem-card 섹션 래퍼의 기존 인라인 스타일 위에 골드 테두리 오버레이 */
+  /* 각 prem-card 섹션 래퍼 골드 테두리 오버레이 */
   .pvc-prem-grid > section {
     border-radius: 18px !important;
     border-width: 1.5px !important;
@@ -721,10 +740,30 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     transform: translateY(-3px);
     outline-color: rgba(212,175,55,0.35);
   }
+
+  /* 닫힌 상태 골드 glow 애니메이션 (yellow → gold 톤 오버라이드) */
+  [data-collection-open="false"].feat-collection--premium-vvip {
+    animation-name: fc-closedGlow-premium-vvip;
+  }
+  @keyframes fc-closedGlow-premium-vvip {
+    0%,100%{ box-shadow:0 0 0 1px rgba(212,175,55,0.15) inset, 0 8px 32px rgba(0,0,0,0.28); }
+    50%    { box-shadow:0 0 0 1px rgba(212,175,55,0.38) inset, 0 8px 32px rgba(0,0,0,0.28), 0 0 18px rgba(212,175,55,0.08); }
+  }
+
+  /* 모바일/터치: 닫힌 상태 orb 애니메이션 정지 */
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    [data-collection-open="false"] #premiumVvipCollection .pvc-gold-orb {
+      animation: none !important;
+    }
+  }
   /* reduced-motion */
   @media (prefers-reduced-motion: reduce) {
-    .pvc-header-badge { animation: none; background-position: 0 0; }
-    .pvc-gold-orb { animation: none; }
+    .pvc-header-badge,
+    .pvc-gold-orb,
+    [data-collection-open="false"].feat-collection--premium-vvip {
+      animation: none !important;
+    }
+    .pvc-header-badge { background-position: 0 0; }
   }
 </style>
 <style id="lsd-styles-placeholder">
@@ -4491,7 +4530,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="sibyl-entry-tile" role="button" tabindex="0" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">
         <div class="sibyl-entry-inner">
         <div class="sibyl-entry-img-col">
-          <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="140" height="180">
+          <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="200" height="260">
           <div class="sibyl-entry-img-labels">
             <span class="sibyl-img-label sibyl-img-label--free">일부 무료</span>
             <span class="sibyl-img-label sibyl-img-label--paid">심층 리포트<br>100코인</span>
@@ -4522,6 +4561,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="sb-panel">
         <div class="sb-header">
           <div class="sb-header__grid" aria-hidden="true"></div>
+          <button class="sb-back-btn" onclick="window.closeSibylModal()" aria-label="뒤로 가기">← 뒤로</button>
           <button class="sb-close-btn" onclick="window.closeSibylModal()" aria-label="닫기">✕</button>
           <div class="sb-header__logo">
             <div class="sb-logo-hex">
@@ -7322,10 +7362,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!_ov) _init();
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, D[key]);
-      // _open 내부에서 requestAnimationFrame으로 pvw-open 클래스를 추가하므로
-      // 즉시 classList.contains('pvw-open')는 항상 false가 된다.
-      // _open이 예외 없이 호출됐으면 Preview가 열릴 것이므로 true 반환.
-      return true;
+      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
     } catch (err) {
       console.error('[tile-preview] open failed:', err);
       return false;
