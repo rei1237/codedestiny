@@ -12,7 +12,7 @@
  * 사용 예시:
  *   <FortunePageSEO
  *     title="무료 사주 기본 풀이"
- *     description="생년월일·시간으로 보는 정확한 사주팔자 분석."
+ *     description="생년월일·시간으로 보는 심층 사주팔자 분석."
  *     path="/saju/basic"
  *     keywords={["무료 사주", "사주팔자"]}
  *     featureList={["사주팔자 기초 분석", "오행 균형 해석"]}

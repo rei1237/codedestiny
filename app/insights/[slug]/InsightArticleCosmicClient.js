@@ -18,7 +18,7 @@ function buildTarotImageUrl(cardId) {
   return `/api/tarot/card-image/${encodeURIComponent(safeId)}`;
 }
 
-export default function InsightArticleCosmicClient({ article, topic, relatedArticles }) {
+export default function InsightArticleCosmicClient({ article, topic, relatedArticles, faqItems = [] }) {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -103,6 +103,16 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
     const topicLabel = topic?.label ? ` (${topic.label})` : "";
     return `${article.category}${topicLabel} · 업데이트 ${article.updatedAt}`;
   }, [article.category, article.updatedAt, topic?.label]);
+
+  const authorName = useMemo(
+    () => String(article?.author?.name || "꽃돼지 연이"),
+    [article?.author?.name],
+  );
+
+  const references = useMemo(
+    () => (Array.isArray(article?.references) ? article.references : []),
+    [article?.references],
+  );
 
   const breadcrumbItems = useMemo(() => [
     { label: '홈', href: '/' },
@@ -227,13 +237,65 @@ export default function InsightArticleCosmicClient({ article, topic, relatedArti
             boxShadow: "0 14px 28px rgba(4, 10, 28, 0.36)",
           }}
         >
+          <p
+            style={{
+              margin: "0 0 10px",
+              fontSize: "0.82rem",
+              color: "#f8eecb",
+              letterSpacing: "0.02em",
+            }}
+          >
+            작성자 {authorName} · 최종 수정일 {article.updatedAt}
+          </p>
           <p style={{ margin: 0, lineHeight: 1.78, color: "#e2e8f0", wordBreak: "keep-all" }}>
             꽃돼지 연이는 감성의 결을 깊게 읽지만, 동시에 백사자 쌈바의 추진력으로 해석을 행동으로 바꾸는
             작성자입니다. Code: Destiny에서는 사주, 운세, 타로, 명리학 데이터를 바탕으로 지금 필요한 선택지를
             선명하게 제시합니다. 꿀꿀 사주·꿀꿀 운세·꿀꿀 만세력의 흐름을 통해 신비로운 통찰을 현실적인 계획으로
             연결합니다.
           </p>
+          <p style={{ margin: "10px 0 0", lineHeight: 1.7, color: "#cbd5e1", fontSize: "0.88rem" }}>
+            저자 프로필: <Link href={article?.author?.profileUrl || "/about"} style={{ color: "#f0d080" }}>소개 페이지 보기</Link>
+          </p>
         </section>
+
+        <section className="ins-related" aria-label="참고자료 및 작성 기준">
+          <h3>참고자료</h3>
+          {references.length > 0 ? (
+            <ul className="ins-reference-list">
+              {references.map((item, index) => (
+                <li key={`${item.title}-${index}`}>
+                  {item.url ? (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                      {item.title}
+                    </a>
+                  ) : (
+                    <span>{item.title}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="ins-reference-empty">현재 문서에 별도 참고자료 링크는 표기되지 않았습니다.</p>
+          )}
+          <p className="ins-methodology-note">{article.methodologyNote}</p>
+          <p className="ins-methodology-note">
+            작성 기준 및 면책 고지: <Link href="/methodology" style={{ color: "#f0d080" }}>방법론 안내 보기</Link>
+          </p>
+        </section>
+
+        {Array.isArray(faqItems) && faqItems.length > 0 && (
+          <section className="ins-related" aria-label="자주 묻는 질문">
+            <h2 className="ins-faq-title">자주 묻는 질문</h2>
+            <div className="ins-faq-list">
+              {faqItems.map((item, index) => (
+                <article key={`${item.question}-${index}`} className="ins-faq-item">
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         {relatedArticles.length > 0 && (
           <section className="ins-related">

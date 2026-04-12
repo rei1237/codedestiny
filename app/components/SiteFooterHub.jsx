@@ -18,9 +18,8 @@ const NAV_SECTIONS = [
       { href: "/tarot/healing", text: "힐링 타로", badge: "인기" },
       { href: "/tarot/mingri", text: "명리학 AI 타로" },
       { href: "/tarot/love", text: "연애 관계 타로" },
-      { href: "/tarot/self-esteem", text: "자존감 타로" },
-      { href: "/tarot/reunion", text: "재회운 타로" },
-      { href: "/tarot/year", text: "십이지신 연간 타로" },
+      { href: "/tarot/mindscan", text: "마인드스캔 타로" },
+      { href: "/tarot/crystal-soul", text: "크리스탈 소울 타로" },
     ],
   },
   {
@@ -28,49 +27,27 @@ const NAV_SECTIONS = [
     emoji: "🌟",
     links: [
       { href: "/saju/basic", text: "사주 풀이", badge: "핵심" },
+      { href: "/saju/love-simulation", text: "사주 궁합 시뮬레이션" },
       { href: "/ziwei/chart", text: "자미두수 명반" },
       { href: "/astrology/cosmic", text: "코즈믹 점성술" },
-      { href: "/vedic/jyotish", text: "베다 점성술" },
     ],
   },
   {
     label: "🃏 오라클 · 신탁",
     emoji: "🃏",
     links: [
-      { href: "/oracle/hwatu", text: "화투점" },
       { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
-      { href: "/oracle/kemet", text: "이집트 신탁" },
-      { href: "/oracle/juyuk", text: "주역 64괘" },
-      { href: "/oracle/sukuyo", text: "숙요점 27수" },
       { href: "/oracle/royal-tea", text: "타세오그래피 찻잎 점" },
       { href: "/oracle/sikojen-povailu", text: "핀란드 주석점" },
     ],
   },
   {
-    label: "🐾 동물 · 관상",
-    emoji: "🐾",
+    label: "📚 콘텐츠 허브",
+    emoji: "📚",
     links: [
-      { href: "/animal/physio", text: "AI 동물 관상" },
-      { href: "/animal/mbti", text: "MBTI 동물 궁합" },
-      { href: "/animal/totem", text: "애니멀 토템 리딩" },
-    ],
-  },
-  {
-    label: "🌸 운명의 꽃",
-    emoji: "🌸",
-    links: [
-      { href: "/flower/destiny", text: "운명의 꽃 사주" },
-      { href: "/flower/astrology", text: "꽃 점성술" },
-      { href: "/flower/jamidusu", text: "꽃 자미두수" },
-      { href: "/flower/sukuyo", text: "꽃 숙요점" },
-    ],
-  },
-  {
-    label: "💭 꿈 해몽 · 심리",
-    emoji: "💭",
-    links: [
-      { href: "/dream/tarot", text: "꿈 타로" },
-      { href: "/dream/psycho", text: "꿈 심리 분석" },
+      { href: "/insights", text: "인사이트 허브" },
+      { href: "/high-value", text: "가이드 아카이브" },
+      { href: "/methodology", text: "작성 방법론" },
     ],
   },
 ];

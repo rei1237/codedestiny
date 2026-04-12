@@ -12,6 +12,7 @@
 import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "cd_disclaimer_dismissed";
+const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function DisclaimerBanner({ dismissible = true, className = "" }) {
   const [visible, setVisible] = useState(false);
@@ -22,15 +23,17 @@ export default function DisclaimerBanner({ dismissible = true, className = "" })
       return;
     }
     try {
-      const dismissed = sessionStorage.getItem(STORAGE_KEY);
-      if (!dismissed) setVisible(true);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const dismissedAt = raw ? Number(raw) : 0;
+      const valid = Number.isFinite(dismissedAt) && dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_TTL_MS;
+      if (!valid) setVisible(true);
     } catch {
       setVisible(true);
     }
   }, [dismissible]);
 
   function handleDismiss() {
-    try { sessionStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch { /* ignore */ }
     setVisible(false);
   }
 

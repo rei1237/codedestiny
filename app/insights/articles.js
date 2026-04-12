@@ -2864,9 +2864,56 @@ const NON_ESSENTIAL_CATEGORIES = new Set([
   "법률/운영",
 ]);
 
+const DEFAULT_ARTICLE_AUTHOR = {
+  name: "꽃돼지 연이",
+  role: "명리학 연구자 · 운세 콘텐츠 에디터",
+  profileUrl: "/about",
+};
+
+function normalizeArticleMeta(article) {
+  const existingAuthor = article?.author;
+  const author =
+    existingAuthor && typeof existingAuthor === "object"
+      ? {
+          ...DEFAULT_ARTICLE_AUTHOR,
+          ...existingAuthor,
+          name: String(existingAuthor.name || DEFAULT_ARTICLE_AUTHOR.name),
+          role: String(existingAuthor.role || DEFAULT_ARTICLE_AUTHOR.role),
+          profileUrl: String(existingAuthor.profileUrl || DEFAULT_ARTICLE_AUTHOR.profileUrl),
+        }
+      : { ...DEFAULT_ARTICLE_AUTHOR };
+
+  const references = Array.isArray(article?.references)
+    ? article.references
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const title = String(item.title || "").trim();
+          const url = String(item.url || "").trim();
+          if (!title) return null;
+          return {
+            title,
+            ...(url ? { url } : {}),
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  const methodologyNote = String(
+    article?.methodologyNote ||
+      "본 콘텐츠는 전통 해석 체계와 편집 가이드를 바탕으로 작성되며, 결과는 자기성찰 및 참고 목적입니다.",
+  );
+
+  return {
+    ...article,
+    author,
+    references,
+    methodologyNote,
+  };
+}
+
 export const INSIGHT_ARTICLES = RAW_INSIGHT_ARTICLES.filter(
   (article) => !NON_ESSENTIAL_CATEGORIES.has(article.category),
-);
+).map(normalizeArticleMeta);
 
 export function getArticleBySlug(slug) {
   return INSIGHT_ARTICLES.find((article) => article.slug === slug) || null;

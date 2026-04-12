@@ -1,4 +1,5 @@
 import nextDynamic from "next/dynamic";
+import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 
 const InsightsCosmicClient = nextDynamic(() => import("./InsightsCosmicClient"), {
@@ -83,6 +84,21 @@ export default function InsightsIndexPage({ searchParams }) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: insightsHubJsonLd }} />
+      <div style={{ maxWidth: "980px", margin: "0 auto", padding: "10px 16px 0" }}>
+        <nav aria-label="breadcrumb" style={{ fontSize: "0.88rem", color: "#cbd5e1" }}>
+          <Link href="/" style={{ color: "#f8eecb" }}>홈</Link>
+          <span style={{ margin: "0 6px" }}>/</span>
+          <span>인사이트</span>
+        </nav>
+        <nav aria-label="인사이트 카테고리 바로가기" style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
+          <Link href="/insights?topic=saju" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>사주</Link>
+          <Link href="/insights?topic=tarot" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>타로</Link>
+          <Link href="/insights?topic=astrology" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>점성술</Link>
+          <Link href="/insights?topic=ziwei" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>자미두수</Link>
+          <Link href="/insights?topic=sukuyo" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>숙요점</Link>
+          <Link href="/insights?topic=vedic" style={{ color: "#dbe5ff", textDecoration: "none", border: "1px solid rgba(148,163,184,0.28)", borderRadius: "999px", padding: "5px 10px", fontSize: "0.84rem" }}>베다점성술</Link>
+        </nav>
+      </div>
       <InsightsCosmicClient initialTopic={initialTopic} />
     </>
   );

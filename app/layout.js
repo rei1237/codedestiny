@@ -1,6 +1,7 @@
 ﻿import "../styles/globals.css";
 import "../styles/disclaimer-banner.css";
 import { headers } from "next/headers";
+import Link from "next/link";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
 import AuthWidget from "./components/AuthWidget";
@@ -155,7 +156,7 @@ export const metadata = {
     "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
     "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
     // 무료 + 정확도 의도 키워드 (사람들이 선호하는 검색어)
-    "ai 사주", "ai 타로", "사주풀이", "정확한 사주",
+    "ai 사주", "ai 타로", "사주풀이", "심층 사주",
     // 영어 검색어
     "free tarot", "free horoscope", "free fortune telling", "accurate horoscope",
     "saju", "horoscope", "astrology", "fortune telling",
@@ -250,6 +251,27 @@ export default async function RootLayout({ children }) {
   const routeBasePath = stripLocalePrefix(normalizedPath);
   const canonicalLocalePath = locale.slug ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}` : routeBasePath;
   const canonicalHref = new URL(canonicalLocalePath, CANONICAL_ORIGIN).toString();
+  const isTrustDocRoute = [
+    "/high-value",
+    "/insights",
+    "/faq",
+    "/about",
+    "/contact-us",
+    "/privacy-policy",
+    "/terms-of-service",
+    "/methodology",
+  ].some((prefix) => routeBasePath === prefix || routeBasePath.startsWith(`${prefix}/`));
+  const shouldLoadAdsense = !isTrustDocRoute;
+
+  const headerNavItems = [
+    { href: "/", label: "홈" },
+    { href: "/insights", label: "인사이트" },
+    { href: "/high-value", label: "가치 문서" },
+    { href: "/high-value/category/ultimate-guide", label: "가이드" },
+    { href: "/high-value/category/informational-article", label: "정보글" },
+    { href: "/high-value/category/faq-page", label: "FAQ" },
+    { href: "/methodology", label: "방법론" },
+  ];
   const hideFooter = false;
   const hreflangLinks = buildHreflangAlternates(requestPath);
   const jsonLd = buildJsonLd({ locale, canonicalHref });
@@ -276,7 +298,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         {/* Google AdSense Auto Ads - defer after interaction/idle to protect mobile LCP/TBT */}
-        <DeferredAdsense />
+        {shouldLoadAdsense ? <DeferredAdsense /> : null}
         <AppVersionGuard />
         {DevWebVitalsConsole ? <DevWebVitalsConsole /> : null}
         <ToastProvider />
@@ -297,7 +319,7 @@ export default async function RootLayout({ children }) {
             borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
           }}
         >
-          <a
+          <Link
             href="/"
             style={{
               fontWeight: 900,
@@ -311,9 +333,46 @@ export default async function RootLayout({ children }) {
             }}
           >
             ✦ Code Destiny
-          </a>
+          </Link>
           <AuthWidget />
         </header>
+        <nav
+          aria-label="주요 내비게이션"
+          style={{
+            position: "sticky",
+            top: "52px",
+            zIndex: 45,
+            display: "flex",
+            gap: "8px",
+            alignItems: "center",
+            overflowX: "auto",
+            whiteSpace: "nowrap",
+            padding: "8px 12px",
+            borderBottom: "1px solid rgba(124, 58, 237, 0.16)",
+            background: "rgba(10, 14, 37, 0.88)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+          }}
+        >
+          {headerNavItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                textDecoration: "none",
+                color: "#dbe5ff",
+                border: "1px solid rgba(148,163,184,0.25)",
+                borderRadius: "999px",
+                padding: "5px 12px",
+                fontSize: "0.85rem",
+                lineHeight: 1.2,
+                background: "rgba(15,23,42,0.7)",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         <div>{children}</div>
         <DisclaimerBanner />
         {!hideFooter && <SiteFooterHub />}

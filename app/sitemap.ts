@@ -82,6 +82,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "https://code-destiny.com/insights?topic=vedic",
   ];
 
+  const TRUST_AND_METHOD_URLS = [
+    "https://code-destiny.com/about",
+    "https://code-destiny.com/contact-us",
+    "https://code-destiny.com/privacy-policy",
+    "https://code-destiny.com/terms-of-service",
+    "https://code-destiny.com/methodology",
+  ];
+
   const mergedRoutes = [...ROUTES, ...getAutoIndexedSajuAndPsychRoutes()];
 
   for (const route of mergedRoutes) {
@@ -127,6 +135,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: now,
         changeFrequency: "weekly",
         priority: 0.8,
+      });
+    }
+  }
+
+  for (const url of TRUST_AND_METHOD_URLS) {
+    if (!entriesByUrl.has(url)) {
+      entriesByUrl.set(url, {
+        url,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.86,
       });
     }
   }
