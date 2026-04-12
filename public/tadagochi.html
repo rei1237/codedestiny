@@ -701,17 +701,15 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   <div class="flex gap-2 px-4 py-2 shrink-0 overflow-x-auto" style="scrollbar-width:none">
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="general"   onclick="setcat(this,'general')"   style="background:var(--adim);border-color:var(--acc);color:var(--acc)">🔮 종합</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="general"   onclick="setcat(this,'general')"   style="background:transparent;border-color:var(--cb);color:#888">🔮 종합</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="saju"      onclick="setcat(this,'saju')"      style="background:transparent;border-color:var(--cb);color:#888">📿 사주</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="saju"      onclick="setcat(this,'saju')"      style="background:var(--adim);border-color:var(--acc);color:var(--acc)">📿 사주</button>
 
     <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="ziwei"     onclick="setcat(this,'ziwei')"     style="background:transparent;border-color:var(--cb);color:#888">🌌 자미두수</button>
 
     <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="astrology" onclick="setcat(this,'astrology')" style="background:transparent;border-color:var(--cb);color:#888">⭐ 점성술</button>
 
     <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="tarot"     onclick="setcat(this,'tarot')"     style="background:transparent;border-color:var(--cb);color:#888">🃏 타로</button>
-
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="chat"      onclick="setcat(this,'chat')"      style="background:transparent;border-color:var(--cb);color:#888">💬 대화</button>
 
   </div>
 
@@ -721,34 +719,14 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="운세 or 자유롭게 대화해보세요..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 
     </div>
 
-    <div class="flex gap-1.5 mt-2 overflow-x-auto" style="scrollbar-width:none">
-
-      <button onclick="quickCat('general_full','전체 종합 운세 알려줘')"            class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">✨ 전체종합</button>
-
-      <button onclick="quickCat('love','오늘 연애운 자세히 알려줘')"                class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💕 연애운</button>
-
-      <button onclick="quickCat('money','오늘 재물운과 금전 조언 알려줘')"          class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💰 재물운</button>
-
-      <button onclick="quickCat('general_today','오늘 하루 전체 운세 알려줘')"      class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">🌟 오늘운세</button>
-
-      <button onclick="quickCat('work','오늘 직업·직장 운세 알려줘')"              class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💼 직업운</button>
-
-      <button onclick="quickCat('health','오늘 건강운 알려줘')"                    class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💪 건강운</button>
-
-      <button onclick="quickCat('general_caution','오늘 인간관계와 주의할 점 알려줘')" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">👥 인간관계</button>
-
-      <button onclick="quickCat('tarot','타로 카드로 오늘 운세 봐줘')"             class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">🃏 타로</button>
-
-      <button onclick="quickCat('saju','사주로 오늘 운세 봐줘')"                   class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">📿 사주</button>
-
-      <button onclick="setcat(document.querySelector('.cat-btn[data-cat=chat]'),'chat');document.getElementById('chat-inp').focus()" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💬 자유 대화</button>
-
+    <div class="font-n mt-2 px-1" style="font-size:11px;color:var(--acc);opacity:.6">
+      상단에서 종합/사주/자미두수/점성술/타로를 고른 뒤 질문해줘. 종합은 API 기반 4개 카테고리 탭 결과로 보여줄게.
     </div>
 
   </div>
@@ -1455,10 +1433,29 @@ function downloadMe(){
 // CHAT
 
 var chatCat='general';
+var _lastPromptCat='';
 
 function updateChatRemain(){var el=document.getElementById('chat-remain');if(el) el.textContent=Math.max(0,5-G.chatCount);}
 
 var _reqId=0; // 중복 응답 방지용 요청 ID
+
+function askCategoryQuestion(cat){
+  var catLabel={general:'종합',saju:'사주',ziwei:'자미두수',astrology:'점성술',tarot:'타로'}[cat]||'운세';
+  var suggest={
+    general:'예: 오늘 전체 흐름을 종합으로 자세히 알려줘',
+    saju:'예: 오늘 이직운이 어떤지 사주로 봐줘',
+    ziwei:'예: 오늘 인간관계 흐름을 자미두수로 알려줘',
+    astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',
+    tarot:'예: 오늘 중요한 선택을 타로로 봐줘'
+  };
+  if(cat==='general') addBotMsg('종합으로 뭘 물어볼거야? 🔮 사주·자미두수·점성술·타로를 각각 API로 분석해서 탭으로 정리해줄게.');
+  else addBotMsg(catLabel+'로 뭘 물어볼거야? 🔮 원하는 내용을 구체적으로 말해주면 정확히 봐줄게.');
+  var inp=document.getElementById('chat-inp');
+  if(inp){
+    inp.placeholder=suggest[cat]||'궁금한 내용을 입력해줘...';
+    inp.focus();
+  }
+}
 
 function setcat(btn,cat){
   chatCat=cat; G.chatCat=cat;
@@ -1466,38 +1463,9 @@ function setcat(btn,cat){
     var sel=b.dataset.cat===cat;
     b.style.borderColor=sel?'var(--acc)':'var(--cb)'; b.style.color=sel?'var(--acc)':'#888'; b.style.background=sel?'var(--adim)':'transparent';
   });
-  if(cat==='general'){
-    var log=document.getElementById('chat-log');
-    if(log.querySelector('.general-picker')) return; // 이미 피커가 있으면 중복 방지
-    var icoSrc=document.getElementById('chat-pet-ico').src||'';
-    var pk=document.createElement('div'); pk.className='flex gap-2 items-start general-picker';
-    pk.innerHTML='<div style="width:28px;height:28px;flex-shrink:0;margin-top:2px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
-      +'<div class="chat-bubble bot font-n" style="max-width:calc(100% - 40px)">'
-      +'<div style="margin-bottom:8px;font-size:0.82rem">🔮 어떤 방식으로 오늘 종합 운세를 볼까? 원하는 방법을 골라봐!</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:6px">'
-      +'<button onclick="pickGeneral(\'general_full\')" style="background:var(--acc);color:white;border:none;cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">✨ 전체 종합</button>'
-      +'<button onclick="pickGeneral(\'saju\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">📿 사주</button>'
-      +'<button onclick="pickGeneral(\'ziwei\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">🌌 자미두수</button>'
-      +'<button onclick="pickGeneral(\'astrology\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">⭐ 점성술</button>'
-      +'<button onclick="pickGeneral(\'tarot\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">🃏 타로</button>'
-      +'</div></div>';
-    log.appendChild(pk); log.scrollTop=log.scrollHeight;
-    return;
-  }
-  var autoQ={
-    saju:'사주로 오늘 운세 봐줘',
-    ziwei:'자미두수로 오늘 운세 봐줘',
-    astrology:'점성술로 오늘 운세 봐줘',
-    tarot:'타로로 오늘 운세 봐줘',
-    love:'오늘 연애운이 어때?',
-    money:'오늘 재물운 어때?',
-    work:'오늘 직업운 어때?',
-    health:'오늘 건강운 어때?'
-  };
-  if(autoQ[cat]){
-    var log2=document.getElementById('chat-log');
-    var alreadyEl=log2?log2.querySelector('[data-cat="'+cat+'"]'):null;
-    if(!alreadyEl) setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value=autoQ[cat];sendChat(cat);}},180);
+  if(_lastPromptCat!==cat){
+    _lastPromptCat=cat;
+    askCategoryQuestion(cat);
   }
 }
 
@@ -1522,6 +1490,65 @@ function addLoadingMsg(text){
   log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 }
 
+function requestFortuneApi(category, question, usedToday){
+  return fetch('/api/tadagochi',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      birthYear:G.birthYear||2000,
+      birthMonth:G.birthMonth||6,
+      birthDay:G.birthDay||15,
+      birthHour:G.birthHour||12,
+      element:G.element||'water',
+      zodiac:G.zodiac,
+      petName:G.petName,
+      question:question,
+      category:category,
+      usedToday:usedToday
+    })
+  }).then(function(r){return r.json();});
+}
+
+function addCategoryTabsMsg(tabItems){
+  var log=document.getElementById('chat-log');
+  var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  var wrap=document.createElement('div');
+  wrap.className='flex gap-2 items-start';
+  var tabs=tabItems.filter(function(t){return t&&t.answer;});
+  if(!tabs.length){
+    addBotMsg('종합 결과를 가져오지 못했어. 잠시 후 다시 시도해줘 💧');
+    return;
+  }
+  var tabId='fort_tabs_'+Date.now();
+  var btns=tabs.map(function(t,idx){
+    var isOn=idx===0;
+    return '<button data-tab-btn="'+tabId+'" data-key="'+t.key+'" onclick="switchFortuneTab(\''+tabId+'\',\''+t.key+'\')" style="padding:5px 10px;border-radius:999px;border:1px solid '+(isOn?'var(--acc)':'var(--cb)')+';background:'+(isOn?'var(--adim)':'transparent')+';color:'+(isOn?'var(--acc)':'#777')+';font-size:11px;font-weight:700;white-space:nowrap">'+t.label+'</button>';
+  }).join('');
+  var panes=tabs.map(function(t,idx){
+    return '<div data-tab-pane="'+tabId+'" data-key="'+t.key+'" style="display:'+(idx===0?'block':'none')+';border-radius:12px;border:1px solid var(--cb);background:#fff;padding:10px 12px;line-height:1.65;font-size:12.5px;color:var(--fg)">'+escHtml(t.answer)+'</div>';
+  }).join('');
+  wrap.innerHTML=''
+    +'<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+    +'<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:8px">'
+    +'<div style="font-size:11px;color:var(--acc);font-weight:700">종합 API 분석 결과</div>'
+    +'<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">'+btns+'</div>'
+    +panes
+    +'</div>';
+  log.appendChild(wrap);
+  log.scrollTop=log.scrollHeight;
+}
+
+function switchFortuneTab(tabId,key){
+  var btns=document.querySelectorAll('[data-tab-btn="'+tabId+'"]');
+  btns.forEach(function(b){
+    var on=b.getAttribute('data-key')===key;
+    b.style.borderColor=on?'var(--acc)':'var(--cb)';
+    b.style.background=on?'var(--adim)':'transparent';
+    b.style.color=on?'var(--acc)':'#777';
+  });
+  var panes=document.querySelectorAll('[data-tab-pane="'+tabId+'"]');
+  panes.forEach(function(p){p.style.display=p.getAttribute('data-key')===key?'block':'none';});
+}
+
 function openChat(){
 
   if(G.scr!=='main') return;
@@ -1536,7 +1563,10 @@ function openChat(){
 
   var log=document.getElementById('chat-log');
 
-  if(log.children.length===0) addBotMsg('안녕! 나 '+G.petName+'야 🔮 오늘 '+todayGanji().label+' 기운을 읽어볼게! 뭐든 물어봐 ✨');
+  if(log.children.length===0){
+    addBotMsg('안녕! 나 '+G.petName+'야 🔮 상단 탭에서 종합/사주/자미두수/점성술/타로를 고르면 먼저 질문을 물어볼게 ✨');
+    setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general');
+  }
 
 }
 
@@ -1656,18 +1686,53 @@ function sendChat(forceCat){
   var inp=document.getElementById('chat-inp');
   var q=inp.value.trim(); if(!q) return;
   var cat=forceCat||chatCat;
-  var isFortune=(cat!=='chat');
-  if(isFortune&&G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요! 일반 대화 💬는 무제한이에요 💙');return;}
+  var isFortune=true;
+  if(isFortune&&G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요. 내일 다시 물어봐줘 💙');return;}
   inp.value='';
   var uEl=addUserMsg(q); if(uEl) uEl.setAttribute('data-cat',cat);
   var todayStr=getTodayKey();
   if(normalizeDayKey(G.chatDate)!==todayStr){G.chatCount=0;G.chatDate=todayStr;}
   if(isFortune){G.chatCount++; updateChatRemain();}
-  if(!isFortune){
-    var rep=buildChatReply(q,G.petName,G.element);
-    setTimeout(function(){addBotMsgTyped(rep);},220);
+
+  var thisReq = ++_reqId;
+
+  if(cat==='general'){
+    var generalLoading=addLoadingMsg('종합 운세 분석 중... 사주·자미두수·점성술·타로 API를 순차 정리하고 있어 🔮');
+    var bundle=[
+      {key:'saju',label:'📿 사주',question:q+' (사주 관점으로 상세 풀이)'},
+      {key:'ziwei',label:'🌌 자미두수',question:q+' (자미두수 관점으로 상세 풀이)'},
+      {key:'astrology',label:'⭐ 점성술',question:q+' (점성술 관점으로 상세 풀이)'},
+      {key:'tarot',label:'🃏 타로',question:q+' (타로 관점으로 상세 풀이)'}
+    ];
+    Promise.allSettled(bundle.map(function(it){
+      return requestFortuneApi(it.key,it.question,G.chatCount-1).then(function(d){
+        return {key:it.key,label:it.label,data:d};
+      });
+    })).then(function(results){
+      if(thisReq!==_reqId) return;
+      if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
+      var tabItems=[];
+      var scores=[];
+      results.forEach(function(r){
+        if(r.status!=='fulfilled') return;
+        var p=r.value;
+        var ans=p.data&&p.data.answer;
+        if(ans) tabItems.push({key:p.key,label:p.label,answer:ans});
+        if(p.data&&typeof p.data.score==='number') scores.push(p.data.score);
+      });
+      if(scores.length){
+        G.fortune=Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length);
+        updateUI();
+      }
+      addCategoryTabsMsg(tabItems);
+    }).catch(function(){
+      if(thisReq!==_reqId) return;
+      if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
+      addBotMsg('종합 API 호출 중 오류가 발생했어. 잠시 후 다시 시도해줘 💧');
+    });
     return;
   }
+
   var score=G.fortune||calcFortuneScore(G.birthYear||2000,G.element||'water');
   var fortune=score>=75?'대길':score>=55?'길':score>=40?'평':score>=25?'소흉':'흉';
   var zName=G.zodiac||'dragon';
@@ -1676,7 +1741,6 @@ function sendChat(forceCat){
 
   // 로딩 메시지 표시
   var LOAD_TEXT={
-    general_full:'전체 종합 운세 계산 중... 사주·자미두수·점성술·타로를 모두 분석하고 있어 🔮 잠시만 기다려줘!',
     saju:'사주팔자 깊이 분석 중 📿 잠시만 기다려줘!',
     ziwei:'자미두수 궁위 배치 계산 중 🌌 잠시만 기다려줘!',
     astrology:'행성·트랜짓 분석 중 ⭐ 잠시만 기다려줘!',
@@ -1685,17 +1749,13 @@ function sendChat(forceCat){
   var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addBotMsg('...',true);
 
   // general_full은 타임아웃 없음(오래 걸려도 기다림), 그 외는 2.5초 후 로컬 폴백
-  var thisReq = ++_reqId;
-  var lt = (cat==='general_full') ? null : setTimeout(function(){
+  var lt = setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
     addBotMsgTyped(localAns);
   }, 2500);
 
-  fetch('/api/tadagochi',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({birthYear:G.birthYear||2000,birthMonth:G.birthMonth||6,birthDay:G.birthDay||15,birthHour:G.birthHour||12,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:cat,usedToday:G.chatCount-1})
-  }).then(function(r){return r.json();}).then(function(d){
+  requestFortuneApi(cat,q,G.chatCount-1).then(function(d){
     if(thisReq!==_reqId) return; // stale 응답 무시
     if(lt) clearTimeout(lt);
     if(botEl&&botEl.parentNode){botEl.remove();}

@@ -45,7 +45,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
   }
   // 허용 필드만 저장 (보안)
-  const allowed = ["petName","animal","zodiac","element","theme","day","hunger","happy","energy","fortune","sleeping","birthYear","chatCount","chatDate","createdAt"];
+  const allowed = ["petName","animal","zodiac","element","theme","day","hunger","happy","energy","fortune","sleeping","birthYear","birthMonth","birthDay","birthHour","chatCount","chatDate","createdAt"];
   const petData = {};
   for (const k of allowed) {
     if (body[k] !== undefined) petData[k] = body[k];
