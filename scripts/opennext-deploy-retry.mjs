@@ -59,10 +59,10 @@ for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
   printResultOutput(sizeGuard);
   const sizeStatus = typeof sizeGuard.status === "number" ? sizeGuard.status : 1;
   if (sizeStatus === 2) {
-    console.warn(
-      "[opennext-deploy-retry] Deploy skipped: Worker bundle exceeds free-plan budget (3MiB).",
+    console.error(
+      "[opennext-deploy-retry] Deploy BLOCKED: Worker bundle (gzip estimate) exceeds free-plan budget.",
     );
-    process.exit(0);
+    process.exit(1);
   }
   if (sizeStatus !== 0) {
     process.exit(sizeStatus);

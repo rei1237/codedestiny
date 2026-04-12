@@ -8,9 +8,8 @@
  * 사용: node scripts/minify-handler.mjs
  */
 
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { spawnSync } from "node:child_process";
 
 const rootDir = process.cwd();
 const handlerPath = resolve(rootDir, ".open-next", "server-functions", "default", "handler.mjs");
@@ -23,35 +22,35 @@ if (!existsSync(handlerPath)) {
 const beforeBytes = statSync(handlerPath).size;
 console.log(`[minify-handler] Before: ${(beforeBytes / 1024 / 1024).toFixed(2)} MiB`);
 
-// esbuild --bundle=false: 이미 번들된 파일을 minify만 진행 (재번들 없음).
+// esbuild API를 직접 사용 (shell 명령 대신 — Windows 경로 공백 문제 회피).
+// bundle=false: 이미 번들된 파일을 minify만 진행 (재번들 없음).
 // minifyIdentifiers: true 를 추가하여 OpenNext가 건너뛴 식별자 축약을 적용한다.
-const isWindows = process.platform === "win32";
-const cmd = isWindows ? "cmd.exe" : "node";
-const args = isWindows
-  ? [
-      "/d", "/s", "/c",
-      `npx esbuild "${handlerPath}" --bundle=false --minify --format=esm --platform=neutral --allow-overwrite --outfile="${handlerPath}"`,
-    ]
-  : [
-      "node_modules/.bin/esbuild",
-      handlerPath,
-      "--bundle=false",
-      "--minify",
-      "--format=esm",
-      "--platform=neutral",
-      `--allow-overwrite`,
-      `--outfile=${handlerPath}`,
-    ];
-
-const result = spawnSync(cmd, args, { stdio: "inherit", shell: false });
-
-if (result.error) {
-  console.warn(`[minify-handler] esbuild spawn error: ${result.error.message}`);
-  process.exit(0); // non-fatal — wrangler still does its own minification pass
+let build;
+try {
+  ({ build } = await import("esbuild"));
+} catch {
+  console.warn("[minify-handler] esbuild not available — skipping identifier minification.");
+  process.exit(0);
 }
 
-if (result.status !== 0) {
-  console.warn(`[minify-handler] esbuild exited with status ${result.status} — skipping.`);
+try {
+  const result = await build({
+    entryPoints: [handlerPath],
+    bundle: false,
+    minify: true,
+    format: "esm",
+    platform: "neutral",
+    allowOverwrite: true,
+    outfile: handlerPath,
+    legalComments: "none",
+  });
+
+  if (result.errors && result.errors.length > 0) {
+    console.warn("[minify-handler] esbuild reported errors — skipping.");
+    process.exit(0);
+  }
+} catch (err) {
+  console.warn(`[minify-handler] esbuild failed: ${err.message} — skipping.`);
   process.exit(0);
 }
 

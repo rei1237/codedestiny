@@ -82,11 +82,12 @@ if (sizeCheck.error) {
 
 const sizeCheckStatus = typeof sizeCheck.status === "number" ? sizeCheck.status : 1;
 if (sizeCheckStatus === 2) {
-  console.warn(
-    "[deploy-worker] Worker deploy skipped: bundle exceeds free-plan budget. " +
-      "Reduce runtime bundle size or upgrade plan to avoid Cloudflare API failure (10027).",
+  console.error(
+    "[deploy-worker] Worker deploy BLOCKED: bundle (gzip estimate) exceeds free-plan budget. " +
+      "Reduce runtime bundle size or upgrade to Workers Paid plan (10 MiB limit).",
   );
-  process.exit(0);
+  // exit 1 so CI (continue-on-error: true) correctly marks this step as failed.
+  process.exit(1);
 }
 if (sizeCheckStatus !== 0) {
   process.exit(sizeCheckStatus);

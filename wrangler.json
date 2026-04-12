@@ -9,5 +9,6 @@
   },
   "compatibility_date": "2026-03-14",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true
+  "workers_dev": true,
+  "minify": true
 }
