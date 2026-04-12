@@ -4489,8 +4489,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <!-- 시빌라 사주 시스템 섹션 -->
     <section class="saju-section-wrap" id="sibylSystemSection">
       <div class="sibyl-entry-tile" role="button" tabindex="0" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">
+        <div class="sibyl-entry-inner">
         <div class="sibyl-entry-img-col">
           <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="140" height="180">
+          <div class="sibyl-entry-img-labels">
+            <span class="sibyl-img-label sibyl-img-label--free">일부 무료</span>
+            <span class="sibyl-img-label sibyl-img-label--paid">심층 리포트<br>100코인</span>
+          </div>
         </div>
         <div class="sibyl-entry-content">
           <div class="sibyl-entry-header">
@@ -4510,11 +4515,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="sibyl-entry-cta-note">✨ 기본 분석 무료</span>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- 시빌라 사주 시스템 모달 -->
-    <div id="sibylModal" class="sb-modal" role="dialog" aria-modal="true" aria-label="시빌라 사주 시스템">
+        </div><!-- /sibyl-entry-inner -->
       <div class="sb-overlay" onclick="window.closeSibylModal()"></div>
       <div class="sb-panel">
         <div class="sb-header">
@@ -4647,6 +4648,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <div class="sb-apt-tenstar" id="sbSectorTenstar">주도 십성: ?</div>
               </div>
             </div>
+            <div id="sbNatureSection" class="sb-nature-section"></div>
             <div id="sbCautionArea" class="sb-caution-area sb-hidden">
               <div id="sbCautionText" class="sb-caution-text"></div>
             </div>
