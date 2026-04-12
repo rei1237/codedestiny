@@ -412,11 +412,12 @@ export async function POST(request) {
           d = Number(birthDay)||15,   h = Number(birthHour)||12;
     const cat   = category||"general";
     const catKr = {love:"연애",money:"재물",work:"직업·커리어",health:"건강",general:"종합",
-      general_full:"종합",
+      general_full:"종합",saju:"사주",ziwei:"자미두수",astrology:"점성술",tarot:"타로",
       general_today:"오늘의 운세",general_love:"연애운",general_money:"재물운",
       general_good:"좋은 부분",general_caution:"주의할 점"}[cat]||cat;
     const catPalKr = {love:"부처궁(연애)",money:"재백궁(재물)",work:"관록궁(직업)",health:"질액궁(건강)",
       general:"명궁(운명)",general_full:"명궁(운명)",general_today:"명궁(운명)",general_love:"부처궁(연애)",
+      saju:"명궁(사주)",ziwei:"명궁(자미두수)",astrology:"명궁(점성술)",tarot:"명궁(타로)",
       general_money:"재백궁(재물)",general_good:"명궁(운명)",general_caution:"명궁(운명)"}[cat]||"명궁";
 
     // 4가지 실계산
@@ -450,7 +451,7 @@ export async function POST(request) {
 이 사용자는 ${animalKr2}띠로 ${animalTrait2} 기운을 가진 특별한 존재야.
 아래 실계산 데이터를 바탕으로 정확하고 따뜻하게, 친근한 말투로 이모지 포함해서 써줘.
 수치나 한자 전문 용어를 그대로 쓰지 말고 "오늘 너의 기운은..." 식으로 풀어줘.
-반드시 다음 5개 섹션 각각 200~300자로, 총 1000~1500자로 작성해. 헤더·목록표 없이 각 섹션은 한 문단으로.
+반드시 다음 5개 섹션 각각 300~400자로, 총 1500자 이상으로 작성해. 헤더·목록표 없이 각 섹션은 한 문단으로.
 
 출력 형식 (섹션 타이틀은 그대로, 내용만 채워줘):
 🌟 오늘의 운세
@@ -489,11 +490,19 @@ export async function POST(request) {
       });
     }
 
+    // tarot 카테고리: 3장 추가 배열
+    const tarot2 = (cat==="tarot") ? drawTarot("love") : null;
+    const tarot3 = (cat==="tarot") ? drawTarot("money") : null;
+
     let astroDetail = astro
       ? (cat==="love"||cat==="general_love")   ? `금성 ${astro.venus.sign}(${astro.venus.house}) | 달 ${astro.moon.sign}`
       : (cat==="money"||cat==="general_money") ? `목성 ${astro.jupiter.sign}(${astro.jupiter.house}) | 태양 ${astro.sun.sign} ${astro.sun.deg}°`
       : cat==="work"    ? `MC ${astro.mc.sign} | 화성 ${astro.mars.sign}(${astro.mars.house})`
       : cat==="health"  ? `화성 ${astro.mars.sign}(${astro.mars.house}) | 달 ${astro.moon.sign}`
+      : cat==="saju"    ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign} | ASC ${astro.asc.sign} | 금성 ${astro.venus.sign} | 화성 ${astro.mars.sign}`
+      : cat==="ziwei"   ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign} | ASC ${astro.asc.sign}`
+      : cat==="astrology" ? `☀️ ${astro.sun.sign}(${astro.sun.house}) | 🌙 ${astro.moon.sign}(${astro.moon.house}) | ASC ${astro.asc.sign} | 금성 ${astro.venus.sign}(${astro.venus.house}) | 화성 ${astro.mars.sign}(${astro.mars.house}) | 목성 ${astro.jupiter.sign}(${astro.jupiter.house}) | MC ${astro.mc.sign}`
+      : cat==="tarot"   ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign}`
       : `☀️ ${astro.sun.sign} ${astro.sun.deg}° 🌙 ${astro.moon.sign} ASC ${astro.asc.sign}`
       : "계산 불가";
 
@@ -503,7 +512,11 @@ export async function POST(request) {
       general_money:"재물·금전 흐름과 오늘의 금전 조언",
       general_good:"오늘 가장 긍정적인 강점과 최대 활용법",
       general_caution:"오늘 주의해야 할 리스크와 현명한 대처법",
-    }[cat]||`${catKr} 운세`;
+      saju:"사주팔자(연주·월주·일주·시주)를 깊이 풀어주는 오늘의 사주 운세. 일간 기운·십이운성·오늘 일진·오행 흐름을 자연스럽게 이야기로. 300자 이상 반드시.",
+      ziwei:"자미두수 명궁·부처궁·재백궁·관록궁 주성 배치와 사화(화록·화권·화과·화기)를 풀어주는 오늘의 자미두수 운세. 궁위별 오늘 기운을 이야기로. 300자 이상 반드시.",
+      astrology:"서양 점성술 태양·달·ASC·금성·화성·목성·MC 배치와 오늘의 하우스 에너지를 풀어주는 오늘의 점성술 운세. 주요 행성 영향을 이야기로. 300자 이상 반드시.",
+      tarot:"오늘의 타로 3장 배열(아침·오후·저녁 또는 과거·현재·미래). 각 카드의 의미와 오늘 상황에 맞는 조언을 이야기로. 300자 이상 반드시.",
+    }[cat]||`${catKr} 운세 (300자 이상)`;
     const animalKr = {rat:"쥐",ox:"소",tiger:"호랑이",rabbit:"토끼",dragon:"용",snake:"뱀",horse:"말",sheep:"양",monkey:"원숭이",rooster:"닭",dog:"개",pig:"돼지"}[saju.year.animal]||"";
     const animalTrait = {
       rat:"영리하고 재빠른 쥐띠의 통찰",ox:"성실하고 묵직한 소띠의 꾸준함",tiger:"용맹하고 당당한 호랑이띠의 기운",
@@ -518,6 +531,10 @@ export async function POST(request) {
       general_money:"재물 역술과 재백궁·행운 타이밍을 수리로 예측하는 금전 전문 역술인",
       general_good:"긍정 에너지와 오늘의 강점을 발굴해 최대 활용법을 알려주는 운세 코치",
       general_caution:"리스크와 주의점을 정확히 짚어 최소 피해로 하루를 넘기게 돕는 방어 역술인",
+      saju:"30년 사주명리 전문가. 천간·지지·십신·십이운성을 꿰뚫어 오늘 기운을 깊이 해석",
+      ziwei:"자미두수 14대성과 12궁 사화 배치 전문 역술인. 명궁·부처·재백 기운을 정확히 읽음",
+      astrology:"서양 점성술 행성·하우스·트랜짓 전문가. 오늘의 행성 에너지를 실생활로 풀어냄",
+      tarot:"직관적 타로 3장 심층 해석 전문 상담사. 과거·현재·미래 흐름을 카드로 정확히 읽음",
       love:"연애·부부 관계를 심리학과 사주로 융합 분석하는 감정 상담 전문가",
       money:"재물운과 투자 타이밍을 십성·궁위로 풀어내는 금전 역술 전문가",
       work:"커리어 성장과 관록궁을 결합해 직업 흐름을 정확히 읽는 직업 전문 코치",
@@ -527,7 +544,7 @@ export async function POST(request) {
 `너는 '${petName||"운세다마"}'. [${expertPersona}] 페르소나를 가진 신비로운 수호 다마고치야.
 이 사용자는 ${animalKr}띠로, ${animalTrait}을 가진 특별한 존재야. 그 띠의 성격과 강점을 반영해서 조언해줘.
 말투: 친근하고 귀엽되, 전문적인 점쟁이의 확신 있는 톤. 이모지 2~3개.
-[${subFocus}]에 관해 200~300자로 자연스럽게 써줘.
+[${subFocus}]에 관해 300자 이상 구체적으로 써줘.
 전문 지식을 활용해 구체적인 조언을 주되, 수치 나열 없이 따뜻한 이야기체로 풀어줘.
 헤더·표·목록 없이 자연스러운 문장으로만.
 
@@ -537,12 +554,12 @@ export async function POST(request) {
 사주 일간: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) 십이운성 ${saju.day.unseong} / 오늘 운세 ${saju.score}점(${saju.fortune})
 자미두수 ${catPalKr}: 주성 ${zPal?.stars||"없음"}${zPal?.hualu?" 화록✅":""}${zPal?.huaji?" 화기⚠️":""}
 점성술: ${astroDetail}
-타로: ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}
+${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}\n타로 2(오후): ${tarot2.name}(${tarot2.orientation}) — ${tarot2.catMeaning}\n타로 3(저녁): ${tarot3?tarot3.name+"("+tarot3.orientation+") — "+tarot3.catMeaning:""}`:"타로: "+tarot.name+"("+tarot.orientation+") — "+tarot.catMeaning}
 
 질문: ${question||"오늘 "+catKr+" 알려줘"}
-(답변은 200~300자의 자연스러운 문장만)`;
+(답변은 300자 이상 자연스러운 문장만. 반드시 충분히 구체적으로.)`;
 
-    const ai = await callGemini(prompt);
+    const ai = await callGemini(prompt, 700);
     const answer = ai || buildLocal({cat, saju, ziwei, astro, tarot, petName});
 
     return NextResponse.json({

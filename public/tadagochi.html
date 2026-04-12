@@ -689,17 +689,17 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   <div class="flex gap-2 px-4 py-2 shrink-0 overflow-x-auto" style="scrollbar-width:none">
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="general" onclick="setcat(this,'general')" style="background:var(--adim);border-color:var(--acc);color:var(--acc)">🔮 종합</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="general"   onclick="setcat(this,'general')"   style="background:var(--adim);border-color:var(--acc);color:var(--acc)">🔮 종합</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="love"    onclick="setcat(this,'love')"    style="background:transparent;border-color:var(--cb);color:#888">💕 연애</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="saju"      onclick="setcat(this,'saju')"      style="background:transparent;border-color:var(--cb);color:#888">📿 사주</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="money"   onclick="setcat(this,'money')"   style="background:transparent;border-color:var(--cb);color:#888">💰 재물</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="ziwei"     onclick="setcat(this,'ziwei')"     style="background:transparent;border-color:var(--cb);color:#888">🌌 자미두수</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="work"    onclick="setcat(this,'work')"    style="background:transparent;border-color:var(--cb);color:#888">📚 직업</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="astrology" onclick="setcat(this,'astrology')" style="background:transparent;border-color:var(--cb);color:#888">⭐ 점성술</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="health"  onclick="setcat(this,'health')"  style="background:transparent;border-color:var(--cb);color:#888">💪 건강</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="tarot"     onclick="setcat(this,'tarot')"     style="background:transparent;border-color:var(--cb);color:#888">🃏 타로</button>
 
-    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="chat"    onclick="setcat(this,'chat')"    style="background:transparent;border-color:var(--cb);color:#888">💬 대화</button>
+    <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="chat"      onclick="setcat(this,'chat')"      style="background:transparent;border-color:var(--cb);color:#888">💬 대화</button>
 
   </div>
 
@@ -717,13 +717,15 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-1.5 mt-2 overflow-x-auto" style="scrollbar-width:none">
 
-      <button onclick="quickAsk('오늘의 종합 운세 알려줘')"        class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">오늘 운세는?</button>
+      <button onclick="pickGeneral('general_full')"        class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">✨ 전체종합</button>
 
-      <button onclick="quickAsk('오늘 연애운이 어때?')"            class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">연애운 💕</button>
+      <button onclick="pickGeneral('saju')"                class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">📿 사주</button>
 
-      <button onclick="quickAsk('오늘 재물운 어때? 투자해도 돼?')" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">재물운 💰</button>
+      <button onclick="pickGeneral('ziwei')"               class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">🌌 자미두수</button>
 
-      <button onclick="quickAsk('오늘 주의할 점이 뭐야?')"         class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">주의사항 ⚠️</button>
+      <button onclick="pickGeneral('astrology')"           class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">⭐ 점성술</button>
+
+      <button onclick="pickGeneral('tarot')"               class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">🃏 타로</button>
 
       <button onclick="setcat(document.querySelector('.cat-btn[data-cat=chat]'),'chat');document.getElementById('chat-inp').focus()" class="font-n text-[11px] px-2.5 py-1 rounded-full border shrink-0" style="background:var(--adim);border-color:var(--cb);color:var(--acc)">💬 자유 대화</button>
 
@@ -1405,6 +1407,8 @@ var chatCat='general';
 
 function updateChatRemain(){var el=document.getElementById('chat-remain');if(el) el.textContent=Math.max(0,5-G.chatCount);}
 
+var _reqId=0; // 중복 응답 방지용 요청 ID
+
 function setcat(btn,cat){
   chatCat=cat; G.chatCat=cat;
   document.querySelectorAll('.cat-btn').forEach(function(b){
@@ -1413,16 +1417,58 @@ function setcat(btn,cat){
   });
   if(cat==='general'){
     var log=document.getElementById('chat-log');
-    var already=log?log.querySelector('[data-cat="general_full"]'):null;
-    if(!already){setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value='오늘 종합 운세 전체 알려줘';sendChat('general_full');}},180);}
+    if(log.querySelector('.general-picker')) return; // 이미 피커가 있으면 중복 방지
+    var icoSrc=document.getElementById('chat-pet-ico').src||'';
+    var pk=document.createElement('div'); pk.className='flex gap-2 items-start general-picker';
+    pk.innerHTML='<div style="width:28px;height:28px;flex-shrink:0;margin-top:2px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+      +'<div class="chat-bubble bot font-n" style="max-width:calc(100% - 40px)">'
+      +'<div style="margin-bottom:8px;font-size:0.82rem">🔮 어떤 방식으로 오늘 종합 운세를 볼까? 원하는 방법을 골라봐!</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      +'<button onclick="pickGeneral(\'general_full\')" style="background:var(--acc);color:white;border:none;cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">✨ 전체 종합</button>'
+      +'<button onclick="pickGeneral(\'saju\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">📿 사주</button>'
+      +'<button onclick="pickGeneral(\'ziwei\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">🌌 자미두수</button>'
+      +'<button onclick="pickGeneral(\'astrology\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">⭐ 점성술</button>'
+      +'<button onclick="pickGeneral(\'tarot\')" style="background:var(--adim);color:var(--acc);border:1px solid var(--acc);cursor:pointer;border-radius:20px;padding:5px 12px;font-size:0.75rem;font-weight:700">🃏 타로</button>'
+      +'</div></div>';
+    log.appendChild(pk); log.scrollTop=log.scrollHeight;
     return;
   }
-  var autoQ={love:'오늘 연애운이 어때?',money:'오늘 재물운 어때?',work:'오늘 직업운 어때?',health:'오늘 건강운 어때?'};
+  var autoQ={
+    saju:'사주로 오늘 운세 봐줘',
+    ziwei:'자미두수로 오늘 운세 봐줘',
+    astrology:'점성술로 오늘 운세 봐줘',
+    tarot:'타로로 오늘 운세 봐줘',
+    love:'오늘 연애운이 어때?',
+    money:'오늘 재물운 어때?',
+    work:'오늘 직업운 어때?',
+    health:'오늘 건강운 어때?'
+  };
   if(autoQ[cat]){
-    var log=document.getElementById('chat-log');
-    var already=log?log.querySelector('[data-cat="'+cat+'"]'):null;
-    if(!already) setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value=autoQ[cat];sendChat(cat);}},180);
+    var log2=document.getElementById('chat-log');
+    var alreadyEl=log2?log2.querySelector('[data-cat="'+cat+'"]'):null;
+    if(!alreadyEl) setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value=autoQ[cat];sendChat(cat);}},180);
   }
+}
+
+function pickGeneral(subCat){
+  var log=document.getElementById('chat-log');
+  var pk=log.querySelector('.general-picker');
+  if(pk) pk.remove();
+  var q={general_full:'전체 종합 운세 알려줘',saju:'사주로 오늘 운세 봐줘',ziwei:'자미두수로 오늘 운세 봐줘',astrology:'점성술로 오늘 운세 봐줘',tarot:'타로로 오늘 운세 봐줘'}[subCat]||'오늘 운세 알려줘';
+  var inp=document.getElementById('chat-inp'); if(inp) inp.value=q;
+  sendChat(subCat);
+}
+
+function addLoadingMsg(text){
+  var log=document.getElementById('chat-log');
+  var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  var d=document.createElement('div'); d.className='flex gap-2 items-start';
+  d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+    +'<div class="chat-bubble bot font-n" style="display:flex;flex-direction:column;gap:6px">'
+    +'<div style="font-size:0.78rem;font-weight:700;color:var(--acc)">'+escHtml(text)+'</div>'
+    +'<div style="display:flex;gap:5px;align-items:center"><span class="animate-bounce" style="animation-delay:0s;font-size:1rem;color:var(--acc)">•</span><span class="animate-bounce" style="animation-delay:.2s;font-size:1rem;color:var(--acc)">•</span><span class="animate-bounce" style="animation-delay:.4s;font-size:1rem;color:var(--acc)">•</span></div>'
+    +'</div>';
+  log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 }
 
 function openChat(){
@@ -1490,7 +1536,39 @@ function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel){
       ?['오늘 종합운 '+score+'점 ('+fortune+')! '+td+' 기운이 '+zName+'띠를 잘 받쳐주고 있어 🌸 꾸준한 노력이 결실 맺기 시작하는 날이야 💙',
         '긍정적인 마음가짐이 행운을 끌어당겨 ✨ 감사하는 마음으로 하루를 보내봐 🍀']
       :['오늘 종합운 '+score+'점 ('+fortune+') — 신중하게 행동하는 날이야 🌂 '+td+' 기운이 '+zName+'띠와 약간 엇갈리고 있어 💧',
-        '오늘은 새로운 시도보다 기존 것을 잘 유지하는 게 현명해 🌙 내가 항상 응원하고 있을게 💕']
+        '오늘은 새로운 시도보다 기존 것을 잘 유지하는 게 현명해 🌙 내가 항상 응원하고 있을게 💕'],
+    saju:great
+      ?[zName+'띠 사주 대길 '+score+'점! 오늘 일간 기운이 최고로 강해서 무엇이든 잘 풀려. 사주팔자가 딱 맞아 떨어지는 날이야 📿 새로운 시도에 망설이지 마!',
+        '오늘 일진이 '+zName+'띠 사주와 완벽하게 조화를 이루고 있어 ✨ 하려는 일이 있다면 지금 바로 실행해봐 — 사주가 응원하고 있으니까!']
+      :good
+      ?['사주로 보면 오늘 '+zName+'띠 일간 에너지가 안정적이야 📿 오행의 흐름이 원활해서 꾸준히 하는 일은 좋은 성과를 내기 좋은 날이야. 무리 없이 차근차근!',
+        '오늘 일주 기운이 나쁘지 않아 🌸 십이운성이 활성화 단계라서 시작과 추진에 도움이 돼. 망설이기보다 한 발 앞으로 내딛어봐 — 사주가 지켜보고 있어!']
+      :['오늘 사주 기운이 조금 눌려 있어 💧 일간이 약한 날이라 무리하기보다 기존 일을 마무리하는 게 현명해. 내일이면 기운이 다시 살아나니 오늘은 충전하는 날로!',
+        '사주입장에서 오늘은 잠시 쉬어가는 날이야 🌙 십이운성 흐름상 새 도전보다 기존 것을 다지는 게 맞아. '+petName+'가 항상 곁에서 응원하고 있을게 💕'],
+    ziwei:great
+      ?[zName+'띠 자미두수 대길 '+score+'점! 명궁에 강한 주성이 자리잡고 있어 오늘 운기가 최고야 🌌 부처궁과 재백궁의 기운도 화록이 들어 연애와 재물 모두 좋아!',
+        '자미두수로 보면 오늘 명궁 에너지가 최고조야 🌟 관록궁의 기운도 탄탄해서 직업·목표 달성에 딱 좋은 날이야. 목표를 향해 과감하게 나아가봐!']
+      :good
+      ?['자미두수 명궁 기운이 안정적이야 🌌 오늘 부처궁에 길성이 들어와서 대인관계와 인연 운이 특히 좋아. 중요한 사람과의 만남을 미루지 마!',
+        '궁위 배치가 오늘 '+zName+'띠에게 유리하게 작용하고 있어 💫 재백궁에 좋은 기운이 흘러서 금전적인 소득 기회가 생길 수 있어. 눈 크게 뜨고 기회 잡아봐!']
+      :['자미두수로 보면 오늘 명궁이 약간 눌려 있어 💧 화기가 걸린 궁에서 서두르면 역풍이 올 수 있어. 오늘은 차분하게 지내는 게 최선이야 🌙',
+        '오늘 궁위 흐름이 약한 편이야 — 크게 벌이기보다 내부 정비하는 날로 활용해봐 🌌 자미두수 기운이 회복되면 더 큰 기회가 찾아올 거야. 잠깐만 기다려!'],
+    astrology:great
+      ?['점성술로 보면 오늘 태양이 강한 하우스에 자리잡아 '+zName+'띠에게 최고의 기운을 쏟아붓고 있어 ⭐ 달과 금성도 조화로워서 감정과 인간관계가 매우 원활해!',
+        '행성 트랜짓이 완벽하게 정렬된 날이야 ✨ 목성이 행운의 하우스를 자극해서 기회가 곳곳에 열려 있어. 자신감을 갖고 원하는 걸 향해 나아가봐 — 별이 응원하고 있어!']
+      :good
+      ?['오늘 점성술 기운이 안정적이야 ⭐ 달이 우호적 위치에 있어 감정 기복이 적고 차분한 하루를 보낼 수 있어. 중요한 대화나 결정을 오늘 해봐 — 별이 지지해줄 거야!',
+        '태양과 달의 조화가 좋은 날이야 🌟 금성 에너지가 인간관계를 도와주고 있어서 새로운 만남이나 기존 관계 개선에 좋아. 먼저 다가가봐!']
+      :['오늘 화성이 까다로운 각도에 있어 충동적인 행동을 조심해야 해 ⭐ 달도 감정적으로 불안정할 수 있으니 중요한 결정은 잠깐 미뤄봐. 별이 회복되면 더 좋은 때가 와!',
+        '점성술 기운이 살짝 긴장된 날이야 💧 하우스 배치가 실수를 유발하기 쉬운 패턴이라 꼼꼼하게 확인하는 습관이 중요해. 오늘 하루만 조심하면 내일은 훨씬 좋아!'],
+    tarot:great
+      ?['타로 카드가 오늘 대길 에너지를 보내고 있어! 🃏 첫 번째 카드는 강한 긍정의 신호, 두 번째는 기회가 열리는 흐름, 세 번째는 좋은 결실을 암시해 ✨ 오늘 믿음을 갖고 앞으로 나아가봐!',
+        '3장 카드가 모두 좋은 에너지야 🌟 과거의 노력이 지금 빛을 내고, 현재는 최고의 기회, 미래는 원하는 방향으로 흐르고 있어. 두려움 없이 행동해봐! 🃏']
+      :good
+      ?['타로가 오늘 긍정적인 흐름을 보여주고 있어 🃏 현재 위치에서 한 걸음만 더 나아가면 원하는 결과에 가까워져. 카드가 용기를 내라고 말하고 있어 ✨',
+        '오늘 카드 배열이 좋아 💫 과거의 선택이 옳았음을 카드가 확인해주고 있어. 현재 상황을 믿고 꾸준히 가면 좋은 미래가 열릴 거야 — 타로가 약속해! 🃏']
+      :['타로가 오늘 신중함을 권하고 있어 🃏 카드가 보여주는 현재 에너지는 잠시 멈추고 생각하라는 신호야. 충동적인 결정보다 차분한 숙고가 더 좋은 결과를 낼 거야 💧',
+        '오늘 카드 배열이 전환점을 암시해 🌙 현재는 어렵게 느껴져도 이 과정이 더 큰 성장을 위한 준비야. 카드는 내일의 좋은 흐름을 약속하고 있어 — 오늘 하루만 버텨줘! 🃏']
   };
   var arr=T[cat]||T.general;
   return arr[Math.floor(Math.random()*arr.length)];
@@ -1543,22 +1621,39 @@ function sendChat(forceCat){
   var zName=G.zodiac||'dragon';
   var todayLabel=todayGanji().label;
   var localAns=buildLocalAnswer(cat,score,fortune,G.petName,zName,todayLabel);
-  var botEl=addBotMsg('...',true);
-  var lt=setTimeout(function(){if(botEl&&botEl.parentNode){botEl.remove();addBotMsgTyped(localAns);}},650);
+
+  // 로딩 메시지 표시
+  var LOAD_TEXT={
+    general_full:'전체 종합 운세 계산 중... 사주·자미두수·점성술·타로를 모두 분석하고 있어 🔮 잠시만 기다려줘!',
+    saju:'사주팔자 깊이 분석 중 📿 잠시만 기다려줘!',
+    ziwei:'자미두수 궁위 배치 계산 중 🌌 잠시만 기다려줘!',
+    astrology:'행성·트랜짓 분석 중 ⭐ 잠시만 기다려줘!',
+    tarot:'타로 카드 3장 배열 중 🃏 잠시만 기다려줘!'
+  };
+  var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addBotMsg('...',true);
+
+  // general_full은 타임아웃 없음(오래 걸려도 기다림), 그 외는 2.5초 후 로컬 폴백
+  var thisReq = ++_reqId;
+  var lt = (cat==='general_full') ? null : setTimeout(function(){
+    if(thisReq!==_reqId) return;
+    if(botEl&&botEl.parentNode){botEl.remove();}
+    addBotMsgTyped(localAns);
+  }, 2500);
+
   fetch('/api/tadagochi',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({birthYear:G.birthYear||2000,birthMonth:G.birthMonth||6,birthDay:G.birthDay||15,birthHour:G.birthHour||12,element:G.element||'water',zodiac:G.zodiac,petName:G.petName,question:q,category:cat,usedToday:G.chatCount-1})
   }).then(function(r){return r.json();}).then(function(d){
+    if(thisReq!==_reqId) return; // stale 응답 무시
+    if(lt) clearTimeout(lt);
+    if(botEl&&botEl.parentNode){botEl.remove();}
     if(d&&d.answer){
-      clearTimeout(lt);
-      if(botEl&&botEl.parentNode){botEl.remove();}
       if(d.isFullReport){
         addFullReportMsg(d.answer);
       } else {
         addBotMsgTyped(d.answer);
       }
       if(d.score){G.fortune=d.score;updateUI();}
-      // 운세 뱃지 (심플) — 종합 전체 리포트 제외
       if(!d.isFullReport&&(d.tarot||d.ziweiPalace||d.astroSummary)){
         var log=document.getElementById('chat-log');
         var bd2=document.createElement('div'); bd2.className='flex justify-start mt-1 pl-9';
@@ -1569,8 +1664,15 @@ function sendChat(forceCat){
         bd2.innerHTML='<div class="flex flex-wrap gap-1">'+pills.map(function(p){return '<span class="font-n" style="font-size:0.68rem;padding:2px 8px;border-radius:10px;background:var(--adim);color:var(--acc);opacity:0.72;border:1px solid rgba(var(--acc),0.3)">'+p+'</span>';}).join('')+'</div>';
         log.appendChild(bd2); log.scrollTop=log.scrollHeight;
       }
+    } else {
+      addBotMsgTyped(localAns);
     }
-  }).catch(function(){/*로컬 응답이 이미 예약됨*/});
+  }).catch(function(){
+    if(thisReq!==_reqId) return;
+    if(lt) clearTimeout(lt);
+    if(botEl&&botEl.parentNode){botEl.remove();}
+    addBotMsgTyped(localAns);
+  });
 }
 
 function addUserMsg(text){
