@@ -15,6 +15,10 @@ const SPREAD_POSITIONS = {
     "position_6",
   ],
   healing_rising_four_card: ["hidden_truth", "embrace_pain", "silver_lining", "step_forward"],
+  three_card_cause_process_outcome: ["cause", "process", "outcome"],
+  reunion_lighthouse_five_card: ["past_bond", "their_now", "outside_factor", "their_heart", "reunion_outcome"],
+  self_esteem_levelup_five_card: ["past_debuff", "inner_monster", "current_damage", "mind_shield", "levelup_mastery"],
+  job_change_tarot_four_card: ["current_state", "challenge", "resource", "outcome"],
   yearly_three_card: ["year_overview", "year_challenge", "year_advice"],
   yearly_twelve_card: [
     "jan",

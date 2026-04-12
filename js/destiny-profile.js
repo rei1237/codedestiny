@@ -113,6 +113,9 @@
     try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
     if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
     try { if (sessionStorage.getItem('flower_admin_token')) { cb(); return; } } catch(_) {}
+    try { if (localStorage.getItem('flower_admin_token')) { cb(); return; } } catch(_) {}
+    try { var _cdAdmU = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); if (_cdAdmU && String(_cdAdmU.role || '').toLowerCase() === 'admin') { cb(); return; } } catch(_) {}
+    try { var _cdAltU = JSON.parse(localStorage.getItem('cd_user') || 'null'); if (_cdAltU && String(_cdAltU.role || '').toLowerCase() === 'admin') { cb(); return; } } catch(_) {}
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
