@@ -641,21 +641,15 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-yellow-400 opacity-50"></div>
 
-    <div class="font-n text-xs font-bold tracking-[.3em] mb-2 opacity-50" style="color:#92400e">영험한 오늘의 부적</div>
+    <div class="font-n text-xs font-bold tracking-[.3em] mb-2 opacity-50" style="color:#92400e">오늘의 행운 아이템</div>
 
-    <div class="pet-wrap mx-auto mb-3 rounded-full" style="background:rgba(251,191,36,.15);border:2px solid rgba(251,191,36,.3)"><img id="tali-pet" src="" class="pet-img" style="animation:none"></div>
+    <div id="tali-svg-wrap" class="mx-auto mb-3" style="width:112px;height:112px"></div>
 
-    <div class="font-g text-3xl font-bold mb-1" id="tali-title" style="color:#92400e">행운 가득</div>
+    <div class="font-g text-xl font-bold mb-1" id="tali-item-name" style="color:#92400e"></div>
 
-    <div class="font-n text-sm mb-3" id="tali-subtitle" style="color:#b45309"></div>
+    <div class="font-n text-sm mb-2" id="tali-subtitle" style="color:#b45309"></div>
 
-    <div class="font-n text-xs leading-relaxed px-2 mb-4" id="tali-desc" style="color:#78350f;opacity:.8"></div>
-
-    <div class="flex items-center justify-center gap-2 mb-4">
-
-      <div class="font-n text-lg font-black" id="tali-score-display" style="color:#d97706"></div>
-
-    </div>
+    <div class="font-n text-xs leading-relaxed px-2 mb-4" id="tali-desc" style="color:#78350f;opacity:.85"></div>
 
     <div class="font-n text-[10px] opacity-30 mb-3" style="color:#78350f" id="tali-date"></div>
 
@@ -1294,46 +1288,65 @@ function act(a){
 
 
 
-// TALISMAN
-
-var TALI_DATA={
-
-  great:{title:'대길(大吉) 부적',sub:'최고의 행운이 깃든 날',desc:'오늘은 하늘이 돕는 날이에요. 새로운 시작, 중요한 결정 모두 최적입니다.',phrases:['행운 가득 ✨','복이 넘쳐요 🌟','만사형통 🎊']},
-
-  good: {title:'길(吉) 부적',sub:'맑고 밝은 기운의 날',desc:'긍정적인 에너지가 가득한 날이에요. 하려는 일이 잘 풀릴 거예요.',phrases:['좋은 일 있어요 🌸','작은 행운 💫','순풍이 불어요 🍀']},
-
-  mid:  {title:'평(平) 부적',sub:'안정되고 고요한 날',desc:'무난하고 평화로운 하루예요. 서두르지 않으면 큰 탈 없이 지나갑니다.',phrases:['평온한 하루 🌤️','차분하게 💙','하나씩 차근차근 📝']},
-
-  bad:  {title:'소흉 방어 부적',sub:'액운을 막아주는 날',desc:'조금 조심하면 문제없어요. 이 부적이 나쁜 기운을 막아줄 거예요.',phrases:['액운 타파! 🛡️','무사히 지나가요','조심 또 조심 🌂']},
-
-  worst:{title:'대흉 방어 부적',sub:'강한 보호가 필요한 날',desc:'힘든 날이지만 이 부적이 함께해요. 조용히 쉬고 내일을 기약하세요.',phrases:['강한 보호막 🔮','견뎌낼 수 있어요 💪','내일은 좋은 날! 🌈']},
-
+// TALISMAN — SVG 행운 아이템
+var _ELEM_COL={wood:['#16a34a','#bbf7d0'],fire:['#dc2626','#fecaca'],earth:['#d97706','#fde68a'],metal:['#4b5563','#e5e7eb'],water:['#2563eb','#bfdbfe']};
+function _makeLuckySvg(score,element){
+  var ec=_ELEM_COL[element]||_ELEM_COL.water; var c1=ec[0],c2=ec[1];
+  if(score>=80)return'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><radialGradient id="lcg"><stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="'+c1+'"/></radialGradient></defs>'
+    +'<polygon points="15,62 30,27 50,46 70,27 85,62" fill="url(#lcg)" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round"/>'
+    +'<rect x="12" y="60" width="76" height="15" rx="5" fill="#f59e0b"/>'
+    +'<circle cx="50" cy="46" r="6" fill="'+c1+'"/><circle cx="30" cy="27" r="4" fill="'+c1+'"/><circle cx="70" cy="27" r="4" fill="'+c1+'"/>'
+    +'<text x="50" y="88" text-anchor="middle" font-size="9" font-weight="bold" fill="#92400e">대길 (大吉)</text>'
+    +'</svg>';
+  if(score>=60)return'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><linearGradient id="lgg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="'+c2+'"/><stop offset="100%" stop-color="'+c1+'"/></linearGradient></defs>'
+    +'<polygon points="50,8 78,35 68,77 32,77 22,35" fill="url(#lgg)" stroke="'+c1+'" stroke-width="1.5" stroke-linejoin="round"/>'
+    +'<polygon points="50,8 78,35 50,28" fill="white" opacity="0.3"/>'
+    +'<polygon points="32,77 68,77 50,90" fill="'+c1+'" opacity="0.6"/>'
+    +'<text x="50" y="100" text-anchor="middle" font-size="9" font-weight="bold" fill="'+c1+'">길 (吉)</text>'
+    +'</svg>';
+  if(score>=40)return'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><radialGradient id="lcoin"><stop offset="0%" stop-color="'+c2+'"/><stop offset="80%" stop-color="'+c1+'"/></radialGradient></defs>'
+    +'<circle cx="50" cy="50" r="38" fill="url(#lcoin)" stroke="'+c1+'" stroke-width="3"/>'
+    +'<circle cx="50" cy="50" r="30" fill="none" stroke="'+c2+'" stroke-width="1.5" opacity="0.5"/>'
+    +'<text x="50" y="57" text-anchor="middle" font-size="26" font-weight="bold" fill="white">福</text>'
+    +'<text x="50" y="80" text-anchor="middle" font-size="9" font-weight="bold" fill="white">평 (平)</text>'
+    +'</svg>';
+  if(score>=25)return'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><linearGradient id="lsg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="'+c2+'"/><stop offset="100%" stop-color="'+c1+'"/></linearGradient></defs>'
+    +'<path d="M50,10 L83,28 L83,57 Q83,80 50,93 Q17,80 17,57 L17,28 Z" fill="url(#lsg)" stroke="'+c1+'" stroke-width="2"/>'
+    +'<path d="M50,22 L71,36 L71,57 Q71,74 50,83 Q29,74 29,57 L29,36 Z" fill="none" stroke="white" stroke-width="1" opacity="0.4"/>'
+    +'<text x="50" y="62" text-anchor="middle" font-size="24" font-weight="bold" fill="white">守</text>'
+    +'</svg>';
+  return'<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><radialGradient id="lmg"><stop offset="0%" stop-color="'+c2+'"/><stop offset="100%" stop-color="'+c1+'"/></radialGradient></defs>'
+    +'<circle cx="45" cy="48" r="32" fill="url(#lmg)"/>'
+    +'<circle cx="57" cy="40" r="23" fill="#1e1b4b" opacity="0.85"/>'
+    +'<text x="34" y="88" text-anchor="middle" font-size="8" font-weight="bold" fill="'+c1+'">달의 수호</text>'
+    +'</svg>';
+}
+var _LUCK_ITEMS={great:'황금 왕관',good:'행운의 수정',mid:'복 동전',bad:'수호 방패',worst:'달의 수호부'};
+var _LUCK_DESCS={
+  great:'하늘이 가장 강하게 돕는 날이에요. 새로운 시작, 중요한 결정—지금이 딱입니다. 황금빛 에너지가 오늘 하루를 빛나게 해줄 거예요.',
+  good:'맑고 투명한 행운이 당신 곁에 있어요. 하려는 일이 술술 풀리는 날이니 용기 있게 나아가 보세요.',
+  mid:'안정적이고 평화로운 하루예요. 행운 동전이 고요한 기운을 지켜줘요. 서두르지 않으면 큰 탈 없이 지나갑니다.',
+  bad:'방패가 나쁜 기운으로부터 지켜줄 거예요. 차분하게 움직이면 무사히 지나갑니다. 걱정 말고 조심조심 한 걸음씩요.',
+  worst:'힘든 날이지만 달이 옆에서 지켜봐 줘요. 오늘은 조용히 쉬고 내일을 기약하세요. 어둠 뒤엔 반드시 빛이 와요.',
 };
-
-function getTaliData(score){if(score>=80) return TALI_DATA.great;if(score>=60) return TALI_DATA.good;if(score>=40) return TALI_DATA.mid;if(score>=25) return TALI_DATA.bad;return TALI_DATA.worst;}
-
+function _luckKey(s){return s>=80?'great':s>=60?'good':s>=40?'mid':s>=25?'bad':'worst';}
 function openTali(){
-
-  var td=getTaliData(G.fortune);
-
-  var phrase=td.phrases[Math.floor(Math.random()*td.phrases.length)];
-
-  document.getElementById('tali-title').textContent=phrase;
-
-  document.getElementById('tali-subtitle').textContent=td.sub;
-
-  document.getElementById('tali-desc').textContent=td.desc;
-
-  document.getElementById('tali-score-display').textContent='오늘 운세 '+Math.round(G.fortune)+'점 ('+td.title.split(' ')[0]+')';
-
+  var elem=G.element||'water';
+  var score=Math.round(G.fortune||50);
+  var key=_luckKey(score);
+  var scoreLabel={great:'대길(大吉)',good:'길(吉)',mid:'평(平)',bad:'소흉',worst:'대흉'}[key];
+  document.getElementById('tali-svg-wrap').innerHTML=_makeLuckySvg(score,elem);
+  document.getElementById('tali-item-name').textContent=_LUCK_ITEMS[key];
+  document.getElementById('tali-subtitle').textContent='오늘 운세 '+score+'점 · '+scoreLabel;
+  document.getElementById('tali-desc').textContent=_LUCK_DESCS[key];
   var today=new Date(); document.getElementById('tali-date').textContent=today.getFullYear()+'.'+(today.getMonth()+1)+'.'+today.getDate()+' '+todayGanji().label;
-
-  var tPet=document.getElementById('tali-pet'); setPetImg(tPet,G.theme,G.animal);
-
   document.getElementById('tali-modal').classList.add('on');
-
-  spawnParticles(G.element||'water');
-
+  spawnParticles(elem);
 }
 
 function closeTali(e){if(e&&e.target!==document.getElementById('tali-modal')) return; document.getElementById('tali-modal').classList.remove('on');}
@@ -1398,8 +1411,14 @@ function setcat(btn,cat){
     var sel=b.dataset.cat===cat;
     b.style.borderColor=sel?'var(--acc)':'var(--cb)'; b.style.color=sel?'var(--acc)':'#888'; b.style.background=sel?'var(--adim)':'transparent';
   });
-  var autoQ={general:'오늘의 종합 운세 알려줘',love:'오늘 연애운이 어때?',money:'오늘 재물운 어때?',work:'오늘 직업운 어때?',health:'오늘 건강운 어때?'};
-  if(cat!=='chat'&&autoQ[cat]){
+  if(cat==='general'){
+    var log=document.getElementById('chat-log');
+    var already=log?log.querySelector('[data-cat="general_full"]'):null;
+    if(!already){setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value='오늘 종합 운세 전체 알려줘';sendChat('general_full');}},180);}
+    return;
+  }
+  var autoQ={love:'오늘 연애운이 어때?',money:'오늘 재물운 어때?',work:'오늘 직업운 어때?',health:'오늘 건강운 어때?'};
+  if(autoQ[cat]){
     var log=document.getElementById('chat-log');
     var already=log?log.querySelector('[data-cat="'+cat+'"]'):null;
     if(!already) setTimeout(function(){var inp=document.getElementById('chat-inp');if(inp){inp.value=autoQ[cat];sendChat(cat);}},180);
@@ -1533,17 +1552,21 @@ function sendChat(forceCat){
     if(d&&d.answer){
       clearTimeout(lt);
       if(botEl&&botEl.parentNode){botEl.remove();}
-      addBotMsgTyped(d.answer);
+      if(d.isFullReport){
+        addFullReportMsg(d.answer);
+      } else {
+        addBotMsgTyped(d.answer);
+      }
       if(d.score){G.fortune=d.score;updateUI();}
-      // 타로·자미두수·점성술 배지 렌더링
-      var extras=[];
-      if(d.tarot) extras.push('🃏 <strong>'+escHtml(d.tarot.name)+'</strong> ('+escHtml(d.tarot.orientation)+') — '+escHtml(d.tarot.catMeaning));
-      if(d.ziweiPalace&&d.ziweiPalace.stars) extras.push('🌌 자미: '+escHtml(d.ziweiPalace.name)+' 주성 <strong>'+escHtml(d.ziweiPalace.stars)+'</strong>');
-      if(d.astroSummary) extras.push('⭐ '+escHtml(d.astroSummary));
-      if(extras.length>0){
+      // 운세 뱃지 (심플) — 종합 전체 리포트 제외
+      if(!d.isFullReport&&(d.tarot||d.ziweiPalace||d.astroSummary)){
         var log=document.getElementById('chat-log');
-        var bd2=document.createElement('div'); bd2.className='flex justify-start mt-1';
-        bd2.innerHTML='<div class="chat-bubble bot font-n" style="font-size:0.75rem;opacity:0.82;background:var(--adim);color:var(--acc)">'+extras.join('<br>')+'</div>';
+        var bd2=document.createElement('div'); bd2.className='flex justify-start mt-1 pl-9';
+        var pills=[];
+        if(d.tarot) pills.push('🃏 '+escHtml(d.tarot.name));
+        if(d.ziweiPalace&&d.ziweiPalace.stars) pills.push('🌌 '+escHtml(d.ziweiPalace.stars.split(',')[0].trim()||d.ziweiPalace.name));
+        if(d.astroSummary) pills.push(escHtml(d.astroSummary));
+        bd2.innerHTML='<div class="flex flex-wrap gap-1">'+pills.map(function(p){return '<span class="font-n" style="font-size:0.68rem;padding:2px 8px;border-radius:10px;background:var(--adim);color:var(--acc);opacity:0.72;border:1px solid rgba(var(--acc),0.3)">'+p+'</span>';}).join('')+'</div>';
         log.appendChild(bd2); log.scrollTop=log.scrollHeight;
       }
     }
@@ -1579,6 +1602,47 @@ function addBotMsg(text,isTyping){
 }
 
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function addFullReportMsg(fullText){
+  var log=document.getElementById('chat-log');
+  var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  // 섹션 파싱: 이모지 헤더로 분리
+  var SECTION_HEADS=['🌟 오늘의 운세','💕 연애운','💰 재물운','✨ 좋은 부분','⚠️ 주의할 점'];
+  var SECTION_COLORS={'🌟':'#7c3aed','💕':'#db2777','💰':'#d97706','✨':'#059669','⚠️':'#dc2626'};
+  // 섹션별 분리 시도
+  var sections=[];
+  var remaining=fullText;
+  SECTION_HEADS.forEach(function(hd,i){
+    var idx=remaining.indexOf(hd);
+    if(idx>=0){
+      var nextIdx=remaining.length;
+      for(var j=i+1;j<SECTION_HEADS.length;j++){var ni=remaining.indexOf(SECTION_HEADS[j],idx+hd.length);if(ni>0){nextIdx=ni;break;}}
+      sections.push({head:hd,body:remaining.slice(idx+hd.length,nextIdx).trim()});
+    }
+  });
+  // 파싱 실패 시 plain text로
+  if(sections.length===0){
+    var d=document.createElement('div'); d.className='flex gap-2 items-start';
+    d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+      +'<div class="chat-bubble bot font-n" style="white-space:pre-wrap">'+escHtml(fullText)+'</div>';
+    log.appendChild(d); log.scrollTop=log.scrollHeight; return;
+  }
+  // 카드 래퍼
+  var wrap=document.createElement('div'); wrap.className='flex gap-2 items-start';
+  var petDiv='<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>';
+  var cardsHtml='<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:8px;">';
+  sections.forEach(function(s){
+    var emo=s.head.charAt(0)+s.head.charAt(1);
+    var col=SECTION_COLORS[emo.trim()]||'var(--acc)';
+    cardsHtml+='<div style="border-radius:12px;border:1px solid '+col+'33;background:'+col+'0d;padding:10px 12px;">'
+      +'<div class="font-n" style="font-size:0.8rem;font-weight:700;color:'+col+';margin-bottom:4px;">'+escHtml(s.head)+'</div>'
+      +'<div class="font-n" style="font-size:0.78rem;line-height:1.6;color:var(--fg)">'+escHtml(s.body)+'</div>'
+      +'</div>';
+  });
+  cardsHtml+='</div>';
+  wrap.innerHTML=petDiv+cardsHtml;
+  log.appendChild(wrap); log.scrollTop=log.scrollHeight;
+}
 
 function addBotMsgTyped(fullText){
   var log=document.getElementById('chat-log');
