@@ -177,18 +177,18 @@ img.img-fallback-broken {
 }
 
 
-/* ═══════════ 꽃돼지/백사자 모드 토글 피ꞵ ═══════════ */
+/* ═══════════ 꽃돼지 ↔ 백사자 모드 토글 ═══════════ */
 .theme-switch-wrapper {
   position: fixed !important;
-  right: max(16px, env(safe-area-inset-right, 0px));
-  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
   left: auto;
   top: auto;
-  transform: none;
   z-index: 2147483000;
   pointer-events: auto;
   isolation: isolate;
 }
+.theme-switch-wrapper.theme-toggle-hidden { display: none !important; }
 /* visually hidden – accessible */
 .theme-toggle-label,
 .tsw-input {
@@ -204,42 +204,39 @@ img.img-fallback-broken {
 }
 /* pill container */
 .theme-switch-pill {
-  --seg: 80px;
+  --seg: 78px;
   --pad: 4px;
   display: inline-flex;
   align-items: center;
   padding: var(--pad);
   border-radius: 100px;
   position: relative;
-  overflow: hidden;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  background: rgba(255,255,255,0.92);
-  border: 1.5px solid rgba(255,160,182,0.5);
+  background: linear-gradient(145deg, rgba(255,228,238,0.97) 0%, rgba(255,248,252,0.97) 100%);
+  border: 1.5px solid rgba(255,130,165,0.45);
   box-shadow:
-    0 8px 32px rgba(255,80,130,0.15),
-    0 2px 10px rgba(0,0,0,0.06),
-    inset 0 1px 0 #fff;
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+    0 6px 24px rgba(255,80,130,0.18),
+    0 2px 8px rgba(0,0,0,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
   transition:
-    transform 0.2s cubic-bezier(0.4,0,0.2,1),
-    background 0.42s ease,
-    border-color 0.42s ease,
-    box-shadow 0.42s ease;
+    background 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease,
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .theme-switch-pill:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.025);
   box-shadow:
-    0 14px 44px rgba(255,80,130,0.2),
-    0 4px 14px rgba(0,0,0,0.08),
-    inset 0 1px 0 #fff;
+    0 12px 36px rgba(255,80,130,0.26),
+    0 4px 12px rgba(0,0,0,0.09),
+    inset 0 1px 0 rgba(255,255,255,0.95);
 }
-.theme-switch-pill:active {
-  transform: translateY(0) scale(0.97);
-}
+.theme-switch-pill:active { transform: translateY(0) scale(0.965); }
 /* segment cells */
 .tsp-option {
   position: relative;
@@ -247,22 +244,26 @@ img.img-fallback-broken {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  width: var(--seg, 80px);
-  padding: 9px 0;
+  gap: 4px;
+  width: var(--seg, 78px);
+  padding: 8px 2px;
   border-radius: 100px;
-  font-size: 0.82rem;
+  font-size: 0.79rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
-  transition: color 0.38s ease;
+  transition: color 0.4s ease, opacity 0.4s ease;
 }
-.tsp-icon { font-size: 1.05rem; line-height: 1; pointer-events: none; }
+.tsp-icon {
+  font-size: 1.02rem; line-height: 1; pointer-events: none;
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
+}
 .tsp-name { pointer-events: none; }
-.tsp-pig  { color: #e0305f; }
-.tsp-lion { color: #a8a8b8; }
+.tsp-pig  { color: #c81e50; }
+.tsp-lion { color: rgba(100, 82, 72, 0.38); }
 /* sliding thumb */
 .theme-switch-pill::before {
   content: '';
@@ -270,59 +271,57 @@ img.img-fallback-broken {
   top: var(--pad, 4px);
   bottom: var(--pad, 4px);
   left: var(--pad, 4px);
-  width: var(--seg, 80px);
+  width: var(--seg, 78px);
   border-radius: 100px;
-  background: linear-gradient(140deg, #ffe0ec 0%, #ffb0cc 50%, #ff82ae 100%);
+  background: linear-gradient(145deg, #ffc8e0 0%, #ff9dc0 42%, #ff75a8 100%);
   box-shadow:
-    0 4px 14px rgba(255,90,145,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.75);
+    0 3px 14px rgba(255,80,130,0.42),
+    inset 0 1px 0 rgba(255,255,255,0.82),
+    inset 0 -1px 0 rgba(200,50,90,0.14);
   pointer-events: none;
   transition:
-    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
-    background 0.42s ease,
-    box-shadow 0.42s ease;
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.45s ease,
+    box-shadow 0.45s ease;
 }
 /* ── CHECKED = 백사자 쌈바 mode ── */
 #themeCheckbox:checked + .theme-switch-pill {
-  background: rgba(10,10,18,0.97);
-  border-color: rgba(255,215,0,0.3);
+  background: linear-gradient(145deg, rgba(7,5,18,0.98) 0%, rgba(16,11,30,0.98) 100%);
+  border-color: rgba(255,198,0,0.42);
   box-shadow:
-    0 8px 32px rgba(0,0,0,0.5),
-    0 2px 10px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.05);
+    0 6px 28px rgba(0,0,0,0.58),
+    0 0 0 1px rgba(255,198,0,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 #themeCheckbox:checked + .theme-switch-pill:hover {
   box-shadow:
-    0 14px 44px rgba(255,215,0,0.14),
-    0 4px 16px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
-#themeCheckbox:checked + .theme-switch-pill::before {
-  transform: translateX(var(--seg, 80px));
-  background: linear-gradient(140deg, #26263a 0%, #1b1b2c 50%, #10101e 100%);
-  box-shadow:
-    0 4px 18px rgba(255,215,0,0.25),
+    0 12px 42px rgba(255,198,0,0.2),
+    0 6px 18px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,198,0,0.25),
     inset 0 1px 0 rgba(255,255,255,0.07);
 }
-#themeCheckbox:checked + .theme-switch-pill .tsp-pig  { color: rgba(255,255,255,0.2); }
+#themeCheckbox:checked + .theme-switch-pill::before {
+  transform: translateX(var(--seg, 78px));
+  background: linear-gradient(145deg, #1e1640 0%, #140f2c 52%, #0c0820 100%);
+  box-shadow:
+    0 3px 18px rgba(255,198,0,0.32),
+    0 0 10px rgba(255,170,0,0.18),
+    inset 0 1px 0 rgba(255,210,80,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.4);
+}
+#themeCheckbox:checked + .theme-switch-pill .tsp-pig  { color: rgba(255,150,150,0.2); }
+#themeCheckbox:checked + .theme-switch-pill .tsp-pig .tsp-icon { transform: scale(0.88); }
 #themeCheckbox:checked + .theme-switch-pill .tsp-lion { color: #FFD700; }
+#themeCheckbox:checked + .theme-switch-pill .tsp-lion .tsp-icon {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 5px rgba(255,210,0,0.65));
+}
 /* focus ring */
 .tsw-input:focus-visible + .theme-switch-pill {
-  outline: 2.5px solid #e0305f;
+  outline: 2.5px solid #d4245a;
   outline-offset: 3px;
 }
-body.neo-mode .tsw-input:focus-visible + .theme-switch-pill {
-  outline-color: #FFD700;
-}
-/* js-class fallback for neo-mode pill */
-body.neo-mode .theme-switch-pill {
-  background: rgba(10,10,18,0.97);
-  border-color: rgba(255,215,0,0.3);
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.5),
-    0 2px 10px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
+body.neo-mode .tsw-input:focus-visible + .theme-switch-pill { outline-color: #FFD700; }
 
 /* ─── Divine Focus Mode (Tarot) ─── */
 .tarot-focus-overlay {

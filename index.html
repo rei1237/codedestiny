@@ -8000,6 +8000,42 @@ if (document.readyState === 'loading') {
     <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
   </label>
 </div>
+<script>
+/* ── 꽃돼지/백사자 테마 토글 ── */
+(function () {
+  var NEO_KEY = 'fortuneThemeModeStateV1';
+  var cb = document.getElementById('themeCheckbox');
+  var lbl = document.getElementById('themeToggleLabel');
+
+  function applyTheme(isNeo, persist) {
+    if (isNeo) {
+      document.body.classList.add('neo-mode');
+      if (cb) { cb.checked = true; cb.setAttribute('aria-checked', 'true'); }
+      if (lbl) lbl.textContent = '🦁 백사자 쌈바 모드';
+    } else {
+      document.body.classList.remove('neo-mode');
+      if (cb) { cb.checked = false; cb.setAttribute('aria-checked', 'false'); }
+      if (lbl) lbl.textContent = '🌸 꽃돼지 연이 모드';
+    }
+    if (persist) {
+      try { localStorage.setItem(NEO_KEY, isNeo ? 'neo' : 'pig'); } catch (_) {}
+    }
+  }
+
+  /* 저장된 상태 복원 */
+  var saved;
+  try { saved = localStorage.getItem(NEO_KEY); } catch (_) {}
+  var initNeo = saved === 'neo' || (saved === null && !!window.__INITIAL_THEME_NEO__);
+  applyTheme(initNeo, false);
+
+  /* 체크박스 change 이벤트 */
+  if (cb) {
+    cb.addEventListener('change', function () {
+      applyTheme(cb.checked, true);
+    });
+  }
+})();
+</script>
 <!-- ─── PERF: lazy modal mount helper (TASK 3) ─── -->
 <script>
 /* lazyOpenModal: 최초 클릭 시 <template>에서 DOM을 삽입한 뒤 기존 열기 함수 호출
