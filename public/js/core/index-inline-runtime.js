@@ -1330,6 +1330,20 @@ window.openNevilleMeditationPage = function() {
     console.error('[index-inline-runtime] openNevilleMeditationPage failed:', err);
   }
 };
+window.openCosmicSoulMeditation = function() {
+  try {
+    window.location.href = '/cosmic-soul-meditation.html';
+  } catch (err) {
+    console.error('[index-inline-runtime] openCosmicSoulMeditation failed:', err);
+  }
+};
+window.openYogaGuru = function() {
+  try {
+    window.location.href = '/yoga-guru.html';
+  } catch (err) {
+    console.error('[index-inline-runtime] openYogaGuru failed:', err);
+  }
+};
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {

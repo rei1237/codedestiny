@@ -657,6 +657,32 @@
       }
     }
 
+    if (rule.action === 'openCosmicSoulMeditation') {
+      try {
+        window.location.href = '/cosmic-soul-meditation.html';
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] cosmic soul meditation navigation failed:', err);
+        var fallbackHref2 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/cosmic-soul-meditation.html';
+        if (fallbackHref2) {
+          try { window.location.assign(fallbackHref2); return true; } catch (_) {}
+        }
+      }
+    }
+
+    if (rule.action === 'openYogaGuru') {
+      try {
+        window.location.href = '/yoga-guru.html';
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] yoga guru navigation failed:', err);
+        var fallbackHref3 = (origin && origin.getAttribute && origin.getAttribute('data-fallback-href')) || '/yoga-guru.html';
+        if (fallbackHref3) {
+          try { window.location.assign(fallbackHref3); return true; } catch (_) {}
+        }
+      }
+    }
+
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
