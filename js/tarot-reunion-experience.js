@@ -872,6 +872,14 @@
 
   function showTarotReunionFinalReading() {
     if (state.revealedCount < 5 || !state.cards.length) return;
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(50, '재회운 타로 리딩', _runTarotReunionFinalReading);
+      return;
+    }
+    _runTarotReunionFinalReading();
+  }
+
+  function _runTarotReunionFinalReading() {
     var drawnForApi = state.cards.map(function (c) {
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });

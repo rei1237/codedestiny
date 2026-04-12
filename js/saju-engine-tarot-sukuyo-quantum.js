@@ -951,7 +951,6 @@ function flipTarotSpreadCard(index) {
     if (guideEl) guideEl.textContent = '세 장의 카드가 모두 드러났습니다. 통합 리딩을 시작합니다.';
     var finalBtn = document.getElementById('tarotFinalBtn');
     if (finalBtn) finalBtn.disabled = false;
-    setTimeout(showTarotFinalInterpretation, 900);
   }
 }
 
@@ -980,6 +979,14 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(30, '명리학 3카드 타로 리딩', _runShowTarotFinalInterpretation);
+    return;
+  }
+  _runShowTarotFinalInterpretation();
+}
+
+function _runShowTarotFinalInterpretation() {
   var cardsData = tarotThreeCardState.cards;
   var labels = getTarotSpreadLabels(curTarotCat);
   var msgEl = document.getElementById('tarotRitualMsg');
@@ -1043,6 +1050,14 @@ function startTarotReading() {
   }
   if(isReading) return;
   if (!isTarotModalActive()) return;
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(30, '명리학 원카드 타로 리딩', _runStartTarotReading);
+    return;
+  }
+  _runStartTarotReading();
+}
+
+function _runStartTarotReading() {
   invalidateTarotFlow();
   isReading = true;
   

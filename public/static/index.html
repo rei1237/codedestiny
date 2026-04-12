@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -332,7 +332,9 @@
 <link id="pwa-apple-icon" rel="apple-touch-icon" sizes="180x180" href="/icons/honeypig-180.png">
 <!-- PWA 테마 초기화: 인라인으로 처리 (HTTP 요청 1건 제거) -->
 <script>
-(function(){try{var isNeo=localStorage.getItem('fortuneThemeModeStateV1')==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=1.0.1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
+(function(){try{
+var _th=localStorage.getItem('fortuneThemeModeStateV1');document.documentElement.classList.add(_th==='neo'?'theme-neo':'theme-pig');
+var isNeo=_th==='neo';window.__INITIAL_THEME_NEO__=isNeo;if(!isNeo)return;var m=document.getElementById('pwa-manifest');if(m)m.setAttribute('href','/manifest-samba.json?v=1.0.1');var f=document.getElementById('pwa-favicon');if(f){f.setAttribute('href','/icons/samba.webp');f.setAttribute('type','image/webp');f.setAttribute('sizes','192x192');}var a=document.getElementById('pwa-apple-icon');if(a)a.setAttribute('href','/icons/samba.webp');}catch(_){window.__INITIAL_THEME_NEO__=false;}})();
 </script>
 <meta name="theme-color" content="#FFD700">
 <meta name="mobile-web-app-capable" content="yes">
@@ -359,9 +361,13 @@
        ★ CRITICAL CSS — 인라인 (렌더블로킹 CSS 전면 제거를 위한 ATF 필수 스타일)
        ════════════════════════════════════════════════════════ -->
   <style id="cd-critical">
+/* Theme CSS variables \u2014 ATF bootstrap; fortune-ui.css\ub97c \ube44\ub3d9\uae30\ub85c \uc804\ud658\ud574\ub3c4 FOUC \uc5c6\uc74c */
+:root{--bg-color:#FFF5F8;--text-main:#4A4A4A;--point-color:#FF85A2;--card-bg:#fff;--card-glass:rgba(255,255,255,.86);--border-color:#FFE0E6;--radius-lg:20px;--spacing-md:16px;--radius:16px;--shadow:0 4px 20px rgba(255,139,167,.13)}
+.theme-pig{--bg-color:#FFF9F9;--card-bg:#FFFFFF;--card-glass:rgba(255,255,255,.86);--text-main:#4A4A4A;--point-color:#FF85A2;--border-color:#FFE0E6}
+.theme-neo{--bg-color:#1A1A1B;--card-bg:#2D2D30;--card-glass:rgba(45,45,48,.82);--text-main:#E1E1E1;--point-color:#FFD700;--border-color:#3F3F42}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
-body{margin:0;padding:0;background:#020617;color:#f8fafc;font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;padding:0;background:var(--bg-color,#FFF5F8);color:var(--text-main,#4A4A4A);font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 img{max-width:100%;display:block}
 img[width][height]{height:auto}
 .wrap{max-width:960px;margin:0 auto;padding:0 16px 32px}
@@ -528,21 +534,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/globals.css">
-  <link rel="stylesheet" href="/styles/layout.css">
-    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2">
-    <link rel="stylesheet" href="/styles/main-glass.css?v=20260411-foucfix1">
-    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260411-foucfix2">
+  <!-- core-ui.css: globals + browser-compat + main-glass + mobile-ux → merged -->
+  <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged1">
+  <!-- fortune-ui.css: 481.9KB u2192 u be44동기 (CSS vars 인라인으로 FOUC 없음) -->
+  <link rel="preload" as="style" href="/styles/fortune-ui.css?v=20260411-foucfix2" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2"></noscript>
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
-
   <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
@@ -1777,7 +1779,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 우리는 무슨 사이? → openTarotLoveModal() -->
             <button class="tarot-tile tarot-tile--love" type="button"
                     data-action="openTarotLoveModal"
-                    data-coin-cost="50"
                     aria-label="우리는 무슨 사이? 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/tarolove.webp" data-img-alt="우리는 무슨 사이? — 6카드 관계 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💕</span></div>
@@ -1823,7 +1824,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 재회운 타로 → openTarotReunionModal() -->
             <button class="tarot-tile tarot-tile--reunion" type="button"
                     data-action="openTarotReunionModal"
-                    data-coin-cost="50"
                     aria-label="재회운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/reunion.webp" data-img-alt="별 헤는 밤바다 재회운 타로 — 5카드 스프레드">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌊</span></div>
@@ -1839,7 +1839,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 십이지신 천운 타로 → openTarotYearFortuneModal() -->
             <button class="tarot-tile tarot-tile--year" type="button"
                     data-action="openTarotYearFortuneModal"
-                    data-coin-cost="30"
                     aria-label="십이지신 천운 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/12animals.webp" data-img-alt="십이지신 천운 타로 — 재물·연애·인간관계 월별 운세">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐲</span></div>
@@ -1896,7 +1895,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 천체의 선율 → /celestial-harmony.html -->
             <a class="tarot-tile tarot-tile--celestial-harmony" href="/celestial-harmony.html"
                data-action="openCelestialHarmony"
-               data-coin-cost="100"
                aria-label="천체의 선율 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/images/Celestial%20Harmony.webp" data-img-alt="천체의 선율 — 행성 11카드 심층 타로 리딩">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/images/Celestial%20Harmony.webp" alt="천체의 선율 — 행성 11카드 심층 타로 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
@@ -1912,7 +1910,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
-                    data-coin-cost="30"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
@@ -5742,7 +5739,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" defer></script>
+<!-- love-secret-v2.js: 49.8KB feature script -> noncritical -->
+<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>

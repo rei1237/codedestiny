@@ -446,6 +446,15 @@
       '</div>';
     }
     function readBtnOn(on){$read.disabled=!on;$read.style.opacity=on?'1':'.4';$read.style.cursor=on?'pointer':'not-allowed';}
+    function _chCoinGate(onOk,onCancel){
+      if(typeof window._cdCoinGatePerUse==='function'){window._cdCoinGatePerUse(100,'천체의 선율 코즈믹 리딩',onOk,onCancel);return;}
+      var tk=localStorage.getItem('fortune_auth_token');
+      if(!tk){alert('로그인이 필요한 기능입니다.');if(onCancel)onCancel();return;}
+      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk},body:JSON.stringify({amount:100,reason:'천체의 선율 코즈믹 리딩'})})
+        .then(function(r){return r.json();})
+        .then(function(d){if(d&&d.ok){onOk();}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
+        .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();});
+    }
     $draw.addEventListener('click',function(){
       var deck=shuffle(MAJOR);
       spread=PLANETS.map(function(pl,i){return{planet:pl,tarot:deck[i]};});
@@ -455,23 +464,25 @@
       $goldSec.style.display='none';$goldCon.innerHTML='';
       setTimeout(function(){$boardSec.scrollIntoView({behavior:'smooth',block:'start'});},80);
     });
-    $read.addEventListener('click',async function(){
+    $read.addEventListener('click',function(){
       if(!spread.length||$read.disabled)return;
       readBtnOn(false);
-      $loadSec.style.display='block';$resSec.style.display='none';$goldSec.style.display='none';
-      setTimeout(function(){$loadSec.scrollIntoView({behavior:'smooth'});},80);
-      var msgs=['태양의 황금빛 에너지를 분석 중&#8230;','수성의 지적 파동을 해독 중&#8230;','금성의 사랑 에너지를 채널링 중&#8230;','달의 무의식 깊은 곳을 탐색 중&#8230;','화성의 의지 흐름을 읽는 중&#8230;','목성의 풍요 코드를 해석 중&#8230;','토성의 카르마 패턴을 인식 중&#8230;','천왕성의 혁신 신호를 수신 중&#8230;','우주의 깊은 지혜를 통합 중&#8230;'];
-      var mi=0,mt=setInterval(function(){mi=(mi+1)%msgs.length;$loadMsg.innerHTML=msgs[mi];},2800);
-      try{
-        var cards=spread.map(function(sp,idx){return{idx:idx+1,planet:sp.planet.name,symbol:sp.planet.symbol,en:sp.planet.en,energy:sp.planet.energy,question:sp.planet.question,tarot:sp.tarot};});
-        var res=await fetch('/api/celestial-harmony',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:cards,goldenCard:goldenCard})});
-        var payload=await res.json();
-        clearInterval(mt);$loadSec.style.display='none';
-        if(!payload||!payload.ok||!payload.result)throw new Error((payload&&payload.message)||'리딩 생성 실패');
-        renderResults(payload.result);renderGolden(payload.result.finalGolden);
-        setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
-      }catch(err){clearInterval(mt);$loadSec.style.display='none';window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));}
-      finally{readBtnOn(true);}
+      _chCoinGate(async function(){
+        $loadSec.style.display='block';$resSec.style.display='none';$goldSec.style.display='none';
+        setTimeout(function(){$loadSec.scrollIntoView({behavior:'smooth'});},80);
+        var msgs=['태양의 황금빛 에너지를 분석 중&#8230;','수성의 지적 파동을 해독 중&#8230;','금성의 사랑 에너지를 채널링 중&#8230;','달의 무의식 깊은 곳을 탐색 중&#8230;','화성의 의지 흐름을 읽는 중&#8230;','목성의 풍요 코드를 해석 중&#8230;','토성의 카르마 패턴을 인식 중&#8230;','천왕성의 혁신 신호를 수신 중&#8230;','우주의 깊은 지혜를 통합 중&#8230;'];
+        var mi=0,mt=setInterval(function(){mi=(mi+1)%msgs.length;$loadMsg.innerHTML=msgs[mi];},2800);
+        try{
+          var cards=spread.map(function(sp,idx){return{idx:idx+1,planet:sp.planet.name,symbol:sp.planet.symbol,en:sp.planet.en,energy:sp.planet.energy,question:sp.planet.question,tarot:sp.tarot};});
+          var res=await fetch('/api/celestial-harmony',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cards:cards,goldenCard:goldenCard})});
+          var payload=await res.json();
+          clearInterval(mt);$loadSec.style.display='none';
+          if(!payload||!payload.ok||!payload.result)throw new Error((payload&&payload.message)||'리딩 생성 실패');
+          renderResults(payload.result);renderGolden(payload.result.finalGolden);
+          setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},80);
+        }catch(err){clearInterval(mt);$loadSec.style.display='none';window.alert('리딩 생성 중 오류가 발생했습니다: '+((err&&err.message)||'unknown'));}
+        finally{readBtnOn(true);}
+      },function(){readBtnOn(true);});
     });
     $reset.addEventListener('click',function(){
       spread=[];goldenCard=null;

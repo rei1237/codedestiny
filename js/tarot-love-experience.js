@@ -738,7 +738,14 @@
 
   function showTarotLoveFinalReading() {
     if (state.revealedCount < 6 || !state.cards.length) return;
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(50, '우리는 무슨 사이? 타로 리딩', _runTarotLoveFinalReading);
+      return;
+    }
+    _runTarotLoveFinalReading();
+  }
 
+  function _runTarotLoveFinalReading() {
     var drawnForApi = state.cards.map(function (c) {
       return {
         cardId: c.cardId,

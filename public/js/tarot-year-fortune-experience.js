@@ -470,6 +470,14 @@
   }
 
   function startTarotYearFortuneReading() {
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(30, '십이지신 천운 타로', _runTarotYearFortuneReading);
+      return;
+    }
+    _runTarotYearFortuneReading();
+  }
+
+  function _runTarotYearFortuneReading() {
     var intro = byId("tarotYearFortuneIntroStage");
     var draw = byId("tarotYearFortuneDrawStage");
     var result = byId("tarotYearFortuneResultStage");
