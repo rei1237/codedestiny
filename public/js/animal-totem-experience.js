@@ -508,6 +508,9 @@
       var essence = takeSentences(entry.layered_reading.essence, maxSentences);
       var message = takeSentences(entry.layered_reading.direct_message, maxSentences);
       var advices = state.mode === "one" ? (entry.layered_reading.daily_actions || []).slice(0, 5).map(function(v) { return takeSentences(v, 1); }) : shortenAdvice(entry.layered_reading.daily_actions);
+      var shadowWarning = entry.layered_reading.shadow_warning || "";
+      var affirmation = entry.layered_reading.affirmation || "";
+      var journaling = entry.layered_reading.journaling || [];
       p.innerHTML =
         /* 결과 카드 아래 해석은 호흡감 있는 짧은 문단으로 구성해 읽기 피로를 줄입니다. */
         '<div class="totem-guidance-aura" style="--aura-color:' + (entry.animal.color_theme.glow || "#facc15") + ';"></div>' +
@@ -518,7 +521,10 @@
         '<section class="totem-guidance-section"><h4>수호의 본질</h4><p>' + essence + "</p></section>" +
         '<section class="totem-guidance-section"><h4>오늘의 속삭임</h4><p>' + message + "</p></section>" +
         '<section class="totem-guidance-section"><h4>작은 실천</h4><ul>' + advices.map(function(v) { return "<li>" + v + "</li>"; }).join("") + "</ul></section>" +
-        '<details class="totem-ritual-toggle"><summary>짧은 치유 리추얼</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>";
+        (affirmation ? '<div class="totem-affirmation-banner"><span class="totem-affirmation-icon" aria-hidden="true">✨</span><p class="totem-affirmation-text">' + affirmation + '</p></div>' : '') +
+        (shadowWarning ? '<div class="totem-shadow-caution"><span class="totem-shadow-icon" aria-hidden="true">🌑</span><p class="totem-shadow-text">' + shadowWarning + '</p></div>' : '') +
+        '<details class="totem-ritual-toggle"><summary>짧은 치유 리추얼</summary><p>' + takeSentences(entry.layered_reading.ritual, state.mode === "one" ? 3 : 2) + "</p></details>" +
+        (journaling.length ? '<details class="totem-ritual-toggle totem-journal-toggle"><summary>🖊 성찰 저널 질문</summary><ul class="totem-journal-list">' + journaling.map(function(q) { return '<li>' + q + '</li>'; }).join("") + '</ul></details>' : '');
       refs.readingPanels.appendChild(p);
     });
   }
