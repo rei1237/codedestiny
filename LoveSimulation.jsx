@@ -525,6 +525,22 @@ body {
 .cd-el-badge.earth { background: rgba(184,148,58,0.2); color: var(--earth-c); }
 .cd-el-badge.metal { background: rgba(140,160,184,0.2); color: var(--metal-c); }
 
+.cd-atmo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cd-atmo-chip {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  border: 1px solid rgba(249,168,212,0.22);
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: rgba(255,255,255,0.03);
+}
+
 .cd-result { padding: 22px; text-align: center; }
 .cd-critical {
   font-size: 12px; color: var(--gold);
@@ -734,17 +750,40 @@ const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','�
 // 사용자 입력 키워드 → 호감도 판정
 const POSITIVE_KEYWORDS = ['좋아','예뻐','멋있','대단','칭찬','귀엽','재밌','보고싶','설레','맞아','진짜','완전','최고','ㅋㅋ','😊','❤️','💕','🥰'];
 const NEGATIVE_KEYWORDS = ['싫어','별로','무섭','촌스','지루','답답','이상','아니','그냥','모르','어색','피곤','🙄','😒'];
+const EMPATHY_KEYWORDS = ['괜찮아','미안','고생','힘들','이해','들어줄게','천천히','걱정','괜히','상처'];
+const AGGRESSIVE_KEYWORDS = ['닥쳐','꺼져','짜증','병신','미쳤','최악','한심','개같','fuck','shit'];
+const ROMANCE_NICKNAMES = ['자기야','자기','애기','우리','오빠','누나','공주','왕자'];
 
 function analyzeUserInput(text, persona) {
-  const lower = text.toLowerCase();
+  const raw = String(text || '').trim();
+  const lower = raw.toLowerCase();
   let score = 0;
+
   POSITIVE_KEYWORDS.forEach(k => { if (lower.includes(k)) score += 2; });
   NEGATIVE_KEYWORDS.forEach(k => { if (lower.includes(k)) score -= 2; });
+
+  EMPATHY_KEYWORDS.forEach(k => { if (lower.includes(k)) score += 2; });
+  AGGRESSIVE_KEYWORDS.forEach(k => { if (lower.includes(k)) score -= 4; });
+
+  ROMANCE_NICKNAMES.forEach(k => {
+    if (lower.includes(k)) score += (persona?.initialAffinity || 0) > 35 ? 2 : 1;
+  });
+
+  // 존중 화법은 정관/정인 성향에게 특히 가산
+  const politeStyle = /(요\b|습니다|해요|괜찮으|고마워요|미안해요)/.test(lower);
+  if (politeStyle) {
+    const sipsin = persona?.mainSipsin;
+    score += (sipsin === '정관' || sipsin === '정인') ? 2 : 1;
+  }
+
+  // 한두 단어 답변은 몰입감 저하로 약한 감점
+  if (raw.length > 0 && raw.length < 4) score -= 1;
+
   // 용신 오행 키워드 보너스
   const elKeywords = { 목:'자연|산|나무|꽃|초록', 화:'불|열정|뜨거|핫|에너지', 토:'안정|집|따뜻|믿음|편안', 금:'멋있|강해|냉철|날카|미래', 수:'자유|여행|바다|흐름|직관' };
-  const yonkw = elKeywords[persona.yongshin] || '';
+  const yonkw = elKeywords[persona?.yongshin] || '';
   yonkw.split('|').forEach(k => { if (lower.includes(k)) score += 3; });
-  return Math.max(-5, Math.min(5, score));
+  return Math.max(-8, Math.min(8, score));
 }
 
 // 일간별 NPC 응답 패턴
@@ -892,6 +931,176 @@ function getNPCResponse(stem, mood, affinityChange) {
   const moodSafe = Object.keys(NPC_RESPONSES[stemSafe]).includes(mood) ? mood : '냉담함';
   const pool = NPC_RESPONSES[stemSafe][moodSafe];
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function buildFinalEnding({ persona, affinity, scenarioHistory }) {
+  const totalDelta = scenarioHistory.reduce((acc, cur) => acc + (cur.delta || 0), 0);
+  const hitCount = scenarioHistory.filter((x) => x.isHit).length;
+  const highRiskCount = scenarioHistory.filter((x) => x.risk === 'HIGH').length;
+  const placeCount = [...new Set(scenarioHistory.map((x) => x.type))].length;
+
+  const arcScore = Math.max(0, Math.min(100,
+    Math.round((affinity * 0.55) + ((totalDelta + 30) * 0.55) + (hitCount * 4) - (highRiskCount * 2))
+  ));
+
+  let endingTier = 'bittersweet';
+  if (arcScore >= 92 && affinity >= 90 && hitCount >= 4) endingTier = 'mythic';
+  else if (arcScore >= 84 && affinity >= 82) endingTier = 'fated';
+  else if (arcScore >= 75) endingTier = 'deep';
+  else if (arcScore >= 65) endingTier = 'steady';
+  else if (arcScore >= 55) endingTier = 'wavering';
+  else if (arcScore >= 43) endingTier = 'bittersweet';
+  else if (arcScore >= 30) endingTier = 'drift';
+  else endingTier = 'closed';
+
+  const endingMap = {
+    mythic: {
+      title: '서사시 엔딩',
+      line: `${persona.name}와 당신은 서로를 각성시키는 동반자로 진화했습니다.`,
+      fate: '연애를 넘어 인생 파트너십으로 확장되는 강한 인연입니다.',
+      color: 'text-fuchsia-100',
+    },
+    fated: {
+      title: '운명 결속 엔딩',
+      line: `${persona.name}와 당신은 서로의 결핍을 채우는 궁합으로 깊게 결속됩니다.`,
+      fate: '썸을 넘어 진지한 연인 단계로 빠르게 진입할 가능성이 높습니다.',
+      color: 'text-rose-200',
+    },
+    deep: {
+      title: '심연 공명 엔딩',
+      line: `${persona.name}와 당신은 감정의 결을 깊게 이해하며 밀도를 쌓아갑니다.`,
+      fate: '강한 신뢰를 기반으로 한 깊은 관계로 이어질 확률이 높습니다.',
+      color: 'text-amber-100',
+    },
+    steady: {
+      title: '장기 연애 엔딩',
+      line: `${persona.name}와 당신은 속도보다 신뢰를 선택하며 안정적인 관계를 만듭니다.`,
+      fate: '자주 부딪히더라도 대화로 복구 가능한 건강한 인연입니다.',
+      color: 'text-amber-200',
+    },
+    wavering: {
+      title: '진동 엔딩',
+      line: `${persona.name}와 당신은 끌림과 망설임 사이를 오가며 리듬을 찾는 중입니다.`,
+      fate: '한 번의 깊은 대화가 관계 방향을 결정할 수 있습니다.',
+      color: 'text-cyan-100',
+    },
+    bittersweet: {
+      title: '미완의 계절 엔딩',
+      line: `${persona.name}와 당신은 강한 끌림은 있었지만 리듬 차이를 완전히 좁히진 못했습니다.`,
+      fate: '좋은 기억으로 남거나, 시간 후 재회 가능성이 있는 인연입니다.',
+      color: 'text-indigo-200',
+    },
+    drift: {
+      title: '엇갈린 궤도 엔딩',
+      line: `${persona.name}와 당신은 감정의 타이밍이 자주 어긋나며 거리가 벌어졌습니다.`,
+      fate: '지금은 인연을 놓아주는 편이 서로에게 더 나은 결말일 수 있습니다.',
+      color: 'text-slate-200',
+    },
+    closed: {
+      title: '종장 엔딩',
+      line: `${persona.name}와 당신의 이야기는 이번 장에서 조용히 닫혔습니다.`,
+      fate: '관계를 멈추고 자신을 회복하는 선택이 필요한 시기입니다.',
+      color: 'text-zinc-300',
+    },
+  };
+
+  const selected = endingMap[endingTier];
+  return {
+    ...selected,
+    score: affinity,
+    arcScore,
+    hitCount,
+    totalDelta,
+    highRiskCount,
+    placeCount,
+  };
+}
+
+const SCENE_ATMOSPHERE = {
+  '카페 데이트': {
+    visual: '노을 카페 · 창가 잔광',
+    sound: 'vinyl_jazz, cup_clink, soft_chatter',
+    bg: 'linear-gradient(160deg, rgba(52,24,66,0.92), rgba(30,14,42,0.9))',
+  },
+  '공원 산책': {
+    visual: '벚꽃 산책로 · 저녁 바람',
+    sound: 'petal_wind, footstep_gravel, dusk_birds',
+    bg: 'linear-gradient(160deg, rgba(36,62,56,0.92), rgba(22,30,46,0.9))',
+  },
+  '저녁 식사': {
+    visual: '도심 레스토랑 · 금빛 조명',
+    sound: 'cutlery, lounge_piano, low_ambience',
+    bg: 'linear-gradient(160deg, rgba(54,30,32,0.95), rgba(28,16,24,0.9))',
+  },
+  '영화 관람': {
+    visual: '엔딩 크레딧 · 잔광',
+    sound: 'film_theme, projector_hum, popcorn_crisp',
+    bg: 'linear-gradient(160deg, rgba(20,24,44,0.95), rgba(8,12,24,0.92))',
+  },
+  '드라이브': {
+    visual: '야간 도로 · 네온 반사',
+    sound: 'night_drive, radio_lofi, city_passby',
+    bg: 'linear-gradient(160deg, rgba(16,28,52,0.95), rgba(8,12,24,0.92))',
+  },
+  '전시회': {
+    visual: '화이트 큐브 · 정적 공명',
+    sound: 'gallery_reverb, soft_step, distant_whisper',
+    bg: 'linear-gradient(160deg, rgba(44,42,62,0.93), rgba(24,22,36,0.92))',
+  },
+  '야외 나들이': {
+    visual: '능선 전망 · 맑은 공기',
+    sound: 'mountain_wind, fabric_rustle, breath_sync',
+    bg: 'linear-gradient(160deg, rgba(32,58,48,0.93), rgba(16,28,34,0.92))',
+  },
+  '해질녘 산책': {
+    visual: '매직 아워 · 주황빛 거리',
+    sound: 'sunset_city, distant_laughter, slow_steps',
+    bg: 'linear-gradient(160deg, rgba(72,38,44,0.94), rgba(28,14,22,0.92))',
+  },
+  '갑작스러운 비': {
+    visual: '빗소리 골목 · 한 우산',
+    sound: 'rain_soft, umbrella_tap, wet_street',
+    bg: 'linear-gradient(160deg, rgba(20,30,52,0.95), rgba(10,16,28,0.93))',
+  },
+  '영화관 취향 배틀': {
+    visual: '극장 로비 · 팝콘 향',
+    sound: 'cinema_hall, trailer_bass, ticket_beep',
+    bg: 'linear-gradient(160deg, rgba(44,18,36,0.95), rgba(20,10,22,0.93))',
+  },
+  '기념일 깜짝 이벤트': {
+    visual: '리본 선물 · 손끝 떨림',
+    sound: 'ribbon_rustle, heart_beat, warm_pad',
+    bg: 'linear-gradient(160deg, rgba(68,22,42,0.95), rgba(26,10,22,0.93))',
+  },
+  '계산서 배틀': {
+    visual: '테이블 위 카드 · 눈빛 전쟁',
+    sound: 'card_slide, table_hum, quiet_laugh',
+    bg: 'linear-gradient(160deg, rgba(52,28,34,0.95), rgba(24,14,20,0.93))',
+  },
+  '방해자의 등장': {
+    visual: '거리 교차점 · 긴장 정적',
+    sound: 'street_murmur, sudden_silence, heartbeat_low',
+    bg: 'linear-gradient(160deg, rgba(46,18,28,0.95), rgba(20,10,18,0.93))',
+  },
+  '과거의 그림자': {
+    visual: '옛 기억의 잔상 · 멈춘 발걸음',
+    sound: 'memory_echo, city_lowpass, slowed_breath',
+    bg: 'linear-gradient(160deg, rgba(26,24,44,0.95), rgba(16,12,22,0.93))',
+  },
+  '취중 진담': {
+    visual: '늦은 바 · 낮은 조도',
+    sound: 'ice_clink, bar_roomtone, confessional_piano',
+    bg: 'linear-gradient(160deg, rgba(50,24,40,0.95), rgba(18,10,18,0.93))',
+  },
+};
+
+function getScenarioAtmosphere(sc) {
+  if (!sc) return null;
+  return SCENE_ATMOSPHERE[sc.type] || {
+    visual: '심야 데이트 · 미지의 기류',
+    sound: 'night_ambience, soft_piano, pulse',
+    bg: 'linear-gradient(160deg, rgba(18,14,28,0.95), rgba(10,8,16,0.92))',
+  };
 }
 
 /* ═══════════════════════════════════════════════
@@ -1320,12 +1529,16 @@ export default function LoveSimulation() {
   const [scenPhase, setScenPhase] = useState('event');
   const [scenResult, setScenResult] = useState(null);
   const [usedScenarios, setUsedScenarios] = useState([]);
+  const [scenarioHistory, setScenarioHistory] = useState([]);
+  const [endingResult, setEndingResult] = useState(null);
+  const [endingOpen, setEndingOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const msgEnd = useRef(null);
   const typingRef = useRef(null);
   const greetingShownRef = useRef(false);
   const [loadingPersona, setLoadingPersona] = useState(false);
   const [matchLoading, setMatchLoading] = useState(false);
+  const scenarioAtmosphere = scenario ? getScenarioAtmosphere(scenario) : null;
 
   useEffect(() => { msgEnd.current?.scrollIntoView({ behavior:'smooth' }); }, [messages, busy]);
 
@@ -1407,6 +1620,9 @@ export default function LoveSimulation() {
     setMood('설렘');
     setMessages([]);
     setUsedScenarios([]);
+    setScenarioHistory([]);
+    setEndingResult(null);
+    setEndingOpen(false);
     setScreen('awakening');
   }
 
@@ -1469,6 +1685,18 @@ export default function LoveSimulation() {
     else if (baseScore < 0) newMood = '냉담함';
     setMood(newMood);
 
+    setScenarioHistory((prev) => [
+      ...prev,
+      {
+        type: scenario?.type || '일반 이벤트',
+        choiceText: choice.text,
+        delta: baseScore,
+        isHit,
+        risk: choice.risk || 'MEDIUM',
+        element: choice.element,
+      },
+    ]);
+
     // 특수 시나리오 십신 반응 주입
     let reaction;
     const scenType = scenario?.type || '';
@@ -1498,13 +1726,27 @@ export default function LoveSimulation() {
     }
     setScenario(null);
     setScenResult(null);
+    if (scenarioHistory.length >= 8) {
+      setTimeout(() => openEndingReport(), 280);
+    }
+  }
+
+  function openEndingReport() {
+    if (!persona) return;
+    const result = buildFinalEnding({
+      persona,
+      affinity,
+      scenarioHistory,
+    });
+    setEndingResult(result);
+    setEndingOpen(true);
   }
 
   /* ─── RENDER ─── */
   return (
     <>
       <style>{STYLES}</style>
-      <div className="cd-app">
+      <div className="cd-app fixed inset-0 z-[60] h-screen w-screen overflow-hidden bg-[#050108]">
 
         {/* 별 배경 */}
         <div className="cd-stars">
@@ -1527,20 +1769,20 @@ export default function LoveSimulation() {
 
         {/* ══ PORTAL ══ */}
         {screen === 'portal' && (
-          <div className="cd-screen" style={{ paddingTop: 40, paddingBottom: 40 }}>
+          <div className="cd-screen px-4 py-10 md:px-8">
             <div className="lc-banner">
               <img src="/fuctionassets/lovesimulation.webp" alt="LOVE CODE 사주 연애 시뮬레이션" />
             </div>
 
             <div className="cd-portal-logo">💕</div>
             <h1 className="cd-portal-title">LOVE CODE</h1>
-            <p className="cd-portal-sub">
+            <p className="cd-portal-sub max-w-2xl rounded-2xl border border-rose-200/10 bg-black/20 px-4 py-3 backdrop-blur-sm">
               생년월일로 사주를 분석해 그 사람의 본성과 연애 패턴을 읽는다<br/>
               <span style={{ fontSize:'12px', opacity: 0.7 }}>오행 · 십신 · 캐릭터 AI 기반 연애 시뮬레이션</span>
             </p>
 
             {/* 탭 */}
-            <div className="lc-tabs" style={{ width:'100%', maxWidth:520 }}>
+            <div className="lc-tabs w-full max-w-[560px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
               <button className={`lc-tab${tab==='preset'?' active':''}`} onClick={() => setTab('preset')}>
                 💕 운명 캐릭터
               </button>
@@ -1587,7 +1829,7 @@ export default function LoveSimulation() {
 
             {/* ── 사주 매칭 탭 ── */}
             {tab === 'match' && (
-              <div className="cd-form-card" style={{ maxWidth:500 }}>
+              <div className="cd-form-card w-full max-w-[560px] rounded-3xl border border-rose-200/15 bg-black/30 shadow-[0_24px_80px_rgba(236,72,153,0.12)]">
                 <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
                   ✦ 내 생년월일을 입력하면 가장 잘 맞는 상대를 찾아드려요 ✦
                 </p>
@@ -1657,7 +1899,7 @@ export default function LoveSimulation() {
 
             {/* ── 직접 입력 탭 ── */}
             {tab === 'custom' && (
-              <div className="cd-form-card">
+              <div className="cd-form-card w-full max-w-[560px] rounded-3xl border border-rose-200/15 bg-black/30 shadow-[0_24px_80px_rgba(236,72,153,0.12)]">
                 <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
                   ✦ 상대방의 생년월일을 입력해 사주 페르소나를 분석합니다 ✦
                 </p>
@@ -1713,8 +1955,8 @@ export default function LoveSimulation() {
 
         {/* ══ AWAKENING ══ */}
         {screen === 'awakening' && persona && (
-          <div className="cd-screen" style={{ paddingTop: 40, paddingBottom: 40 }}>
-            <div className="cd-awakening">
+          <div className="cd-screen px-4 py-10 md:px-8">
+            <div className="cd-awakening w-full max-w-[760px] rounded-3xl border border-rose-200/10 bg-black/25 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.45)] backdrop-blur-md md:p-8">
               <p style={{ fontSize:11, color:'var(--gold)', letterSpacing:'0.25em', textAlign:'center', marginBottom:24 }}>
                 {persona.gender === '여' ? '✦ 사주 페르소나 분석 완료 ✦' : '✦ 사주 캐릭터 깨어남 ✦'}
               </p>
@@ -1831,8 +2073,8 @@ export default function LoveSimulation() {
 
         {/* ══ CHAT ══ */}
         {screen === 'chat' && persona && (
-          <div className="cd-chat-wrap">
-            <div className="cd-chat-header">
+          <div className="cd-chat-wrap h-screen w-screen max-w-none">
+            <div className="cd-chat-header border-b border-rose-200/10 bg-black/35">
               <div className="cd-hdr-avatar">{DM_EMOJI[persona.dayMasterKan] || '✨'}</div>
               <div className="cd-hdr-info">
                 <p className="cd-hdr-name">{persona.name}</p>
@@ -1841,10 +2083,18 @@ export default function LoveSimulation() {
               <button className="cd-event-btn" onClick={triggerScenario} disabled={busy}>
                 🎲 데이트 이벤트
               </button>
+              <button
+                className="cd-event-btn"
+                onClick={openEndingReport}
+                disabled={scenarioHistory.length < 4}
+                title={scenarioHistory.length < 4 ? '이벤트 4개 이상 진행 후 확인 가능' : '최종 결말 확인'}
+              >
+                📖 결말 보기
+              </button>
             </div>
 
             {/* ── 호감도 바 ── */}
-            <div className="cd-affinity-bar">
+            <div className="cd-affinity-bar border-b border-rose-200/10 bg-black/35">
               <div className="cd-aff-top">
                 <span>💕 호감도</span>
                 <span className="cd-aff-num" style={{
@@ -1857,11 +2107,14 @@ export default function LoveSimulation() {
               <div className="cd-aff-track">
                 <div className="cd-aff-fill" style={{ width:`${affinity}%` }} />
               </div>
-              <div className="cd-aff-stage">{affinityLabel(affinity)}</div>
+              <div className="cd-aff-stage flex items-center justify-between">
+                <span>{affinityLabel(affinity)}</span>
+                <span>챕터 {scenarioHistory.length} / 8</span>
+              </div>
             </div>
 
             {/* ── 사주 에너지 상태 바 ── */}
-            <div className="cd-status-bar">
+            <div className="cd-status-bar border-b border-rose-200/10 bg-black/35">
               <div className="cd-status-item">
                 <div className="cd-status-label">
                   <span>⚡ 사주 에너지</span>
@@ -1888,7 +2141,10 @@ export default function LoveSimulation() {
               </div>
             </div>
 
-            <div className="cd-messages">
+            <div className="cd-messages bg-gradient-to-b from-black/10 via-black/20 to-black/50">
+              <p className="mx-auto mb-1 w-fit rounded-full border border-rose-200/10 bg-black/30 px-4 py-1 text-xs tracking-[0.18em] text-rose-100/70">
+                CHAPTER LOG · 선택이 인연의 결말을 바꿉니다
+              </p>
               {messages.map((m, i) => (
                 <div key={m.msgId ?? i} className={`cd-msg ${m.role}`}>
                   {m.role === 'npc' && <p className="cd-msg-sender">{persona.name}</p>}
@@ -1918,7 +2174,7 @@ export default function LoveSimulation() {
               <div ref={msgEnd} />
             </div>
 
-            <div className="cd-input-area">
+            <div className="cd-input-area border-t border-rose-200/10 bg-black/40">
               <textarea
                 className="cd-textarea"
                 placeholder={`${persona.name}에게 말을 건네보세요...`}
@@ -1938,7 +2194,7 @@ export default function LoveSimulation() {
         {scenario && (
           <div className="cd-overlay">
             <div className="cd-scenario-card">
-              <div className="cd-scene-bg">
+              <div className="cd-scene-bg" style={{ background: scenarioAtmosphere?.bg }}>
                 <div className="cd-scene-glow" />
                 <span style={{ position:'relative', filter:'drop-shadow(0 0 20px rgba(200,169,110,0.6))' }}>
                   {scenario.backgroundEmoji}
@@ -1949,6 +2205,12 @@ export default function LoveSimulation() {
                 {scenPhase === 'event' && (
                   <>
                     <p className="cd-scene-type">✦ {scenario.type} ✦</p>
+                    {scenarioAtmosphere && (
+                      <div className="cd-atmo">
+                        <span className="cd-atmo-chip">📍 {scenarioAtmosphere.visual}</span>
+                        <span className="cd-atmo-chip">🎧 {scenarioAtmosphere.sound}</span>
+                      </div>
+                    )}
                     {/* 웹소설 지문 (narrative) */}
                     {scenario.narrative && (
                       <p className="cd-narrative">{scenario.narrative}</p>
@@ -1995,6 +2257,82 @@ export default function LoveSimulation() {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ ENDING REPORT OVERLAY ══ */}
+        {endingOpen && endingResult && (
+          <div className="cd-overlay">
+            <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-rose-200/20 bg-gradient-to-b from-[#150918]/95 via-[#0d0518]/95 to-[#050108]/95 shadow-[0_30px_120px_rgba(244,114,182,0.2)]">
+              <div className="border-b border-rose-200/15 bg-black/25 px-6 py-5">
+                <p className="text-xs tracking-[0.24em] text-rose-100/70">LOVE NOVEL ENDING REPORT</p>
+                <h3 className={`mt-2 text-2xl font-semibold tracking-[0.06em] ${endingResult.color}`}>
+                  {endingResult.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-rose-50/85">{endingResult.line}</p>
+              </div>
+
+              <div className="grid gap-4 px-6 py-5 md:grid-cols-5">
+                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
+                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">서사 점수</p>
+                  <p className="mt-2 text-3xl font-semibold text-fuchsia-200">{endingResult.arcScore}</p>
+                </div>
+                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
+                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">최종 호감도</p>
+                  <p className="mt-2 text-3xl font-semibold text-rose-200">{endingResult.score}</p>
+                </div>
+                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
+                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">크리티컬 히트</p>
+                  <p className="mt-2 text-3xl font-semibold text-amber-200">{endingResult.hitCount}</p>
+                </div>
+                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
+                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">고위험 선택</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-200">{endingResult.highRiskCount}</p>
+                </div>
+                <div className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-center">
+                  <p className="text-[11px] tracking-[0.14em] text-rose-100/60">데이트 장소</p>
+                  <p className="mt-2 text-3xl font-semibold text-emerald-200">{endingResult.placeCount}</p>
+                </div>
+              </div>
+
+              <div className="px-6 pb-4">
+                <p className="rounded-xl border border-rose-200/10 bg-black/20 p-4 text-sm leading-7 text-rose-50/80">
+                  {endingResult.fate}
+                </p>
+              </div>
+
+              <div className="max-h-64 overflow-y-auto border-t border-rose-200/10 px-6 py-4">
+                <p className="mb-3 text-xs tracking-[0.16em] text-rose-100/60">선택 로그</p>
+                <div className="space-y-2">
+                  {scenarioHistory.slice(-8).map((item, idx) => (
+                    <div key={`${item.type}_${idx}`} className="rounded-lg border border-rose-200/10 bg-black/20 px-3 py-2 text-sm">
+                      <p className="text-rose-100/85">[{item.type}] {item.choiceText}</p>
+                      <p className="mt-1 text-xs text-rose-100/60">
+                        {item.element} · {item.risk} · {item.isHit ? '용신 공명' : '일반 반응'} · {item.delta > 0 ? '+' : ''}{item.delta}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-rose-200/10 px-6 py-4">
+                <button
+                  className="rounded-lg border border-rose-200/20 px-4 py-2 text-sm text-rose-100/80 transition hover:bg-rose-300/10"
+                  onClick={() => setEndingOpen(false)}
+                >
+                  채팅으로 돌아가기
+                </button>
+                <button
+                  className="rounded-lg bg-rose-500/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-400"
+                  onClick={() => {
+                    setEndingOpen(false);
+                    setScreen('portal');
+                  }}
+                >
+                  새 인연 시작하기
+                </button>
               </div>
             </div>
           </div>
