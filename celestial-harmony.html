@@ -95,6 +95,110 @@
     .fade-rise { animation:fadeRise .6s ease-out both; }
     .hero-in   { animation:heroIn   .7s ease-out both; }
     .pulse-gold{ animation:pulseG   3s  ease-in-out infinite; }
+
+    /* ── Planetary Spread Layout ── */
+    .spread-label {
+      text-align:center; color:rgba(180,160,120,.55);
+      font-size:.6rem; letter-spacing:.25em; text-transform:uppercase;
+      font-family:monospace; margin-bottom:.75rem;
+    }
+    .spread-grid {
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap:12px 10px;
+      max-width:420px;
+      margin:0 auto;
+    }
+    /* 행 1: col 1~2 (center-right) */
+    .spread-pos-1 { grid-column:1; grid-row:1; }
+    .spread-pos-2 { grid-column:2; grid-row:1; }
+    /* 행 2: col 1~3 */
+    .spread-pos-3 { grid-column:1; grid-row:2; }
+    .spread-pos-4 { grid-column:2; grid-row:2; }
+    .spread-pos-5 { grid-column:3; grid-row:2; }
+    /* 행 3: col 1~3 */
+    .spread-pos-6 { grid-column:1; grid-row:3; }
+    .spread-pos-7 { grid-column:2; grid-row:3; }
+    .spread-pos-8 { grid-column:3; grid-row:3; }
+    /* 행 4: col 1~2 */
+    .spread-pos-9  { grid-column:1; grid-row:4; }
+    .spread-pos-10 { grid-column:2; grid-row:4; }
+    /* 행 5: col 2 (center) */
+    .spread-pos-11 { grid-column:2; grid-row:5; }
+
+    /* 타로 카드 */
+    .tarot-card {
+      position:relative;
+      aspect-ratio:2/3;
+      border-radius:12px;
+      overflow:hidden;
+      background:linear-gradient(160deg,#0d1235 0%,#07092b 50%,#0a0d2e 100%);
+      border:1px solid rgba(180,150,80,.35);
+      box-shadow:0 4px 20px rgba(0,0,0,.5), inset 0 0 30px rgba(10,15,60,.5);
+      cursor:pointer;
+      transition:transform .3s ease, box-shadow .3s ease;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+    .tarot-card::before {
+      content:'';
+      position:absolute; inset:4px;
+      border-radius:9px;
+      border:1px solid rgba(180,150,80,.15);
+      pointer-events:none;
+    }
+    .tarot-card:hover {
+      transform:translateY(-5px) scale(1.04);
+      box-shadow:0 12px 35px rgba(0,0,0,.6), 0 0 20px var(--pg,rgba(180,150,80,.3));
+    }
+    .tarot-card--revealed {
+      background:var(--pbg,linear-gradient(160deg,#0d1235,#07092b));
+      border-color:color-mix(in srgb, var(--pc,#c8a84b) 45%, transparent);
+    }
+    .tarot-card--revealed::before {
+      border-color:color-mix(in srgb, var(--pc,#c8a84b) 20%, transparent);
+    }
+    .tarot-card__mandala {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      pointer-events:none; opacity:.12;
+    }
+    .tarot-card__mandala svg { width:80%; height:80%; }
+    .tarot-card__symbol {
+      position:relative; z-index:1;
+      font-size:clamp(2rem,8vw,2.8rem);
+      line-height:1;
+      color:#c8a84b;
+      text-shadow:0 0 18px rgba(200,168,75,.7), 0 0 40px rgba(200,168,75,.3);
+      font-weight:300;
+    }
+    .tarot-card--revealed .tarot-card__symbol { color:var(--pc,#c8a84b); text-shadow:0 0 18px var(--pg,rgba(200,168,75,.7)); }
+    .tarot-card__num {
+      position:absolute; bottom:7px; left:0; right:0;
+      text-align:center; font-size:.55rem; font-family:monospace;
+      color:rgba(200,168,75,.4); letter-spacing:.1em;
+    }
+    .tarot-card--revealed .tarot-card__num { color:color-mix(in srgb,var(--pc,#c8a84b) 45%,transparent); }
+    .tarot-card__arcana {
+      position:relative; z-index:1;
+      margin-top:4px; font-size:.5rem;
+      color:rgba(200,168,75,.65); letter-spacing:.06em; text-align:center;
+      max-width:80%;
+    }
+    .tarot-card--revealed .tarot-card__arcana { color:color-mix(in srgb,var(--pc,#c8a84b) 75%,white); }
+    .tarot-card__planet-name {
+      position:absolute; top:8px; left:0; right:0;
+      text-align:center; font-size:.5rem; font-family:monospace;
+      color:rgba(200,168,75,.38); letter-spacing:.08em;
+    }
+    .tarot-card--revealed .tarot-card__planet-name { color:color-mix(in srgb,var(--pc,#c8a84b) 45%,transparent); }
+
+    @media(max-width:400px){
+      .spread-grid{ max-width:320px; gap:8px 7px; }
+      .tarot-card__symbol{ font-size:1.7rem; }
+    }
   </style>
 </head>
 <body class="text-gray-100 min-h-screen">
@@ -148,10 +252,11 @@
     <section id="boardSec" style="display:none;">
       <div class="flex items-center gap-3 mb-6">
         <div class="cosmic-divider"></div>
-        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; 11 행성 배치 &#x2B21;</span>
+        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; PLANETARY SPREAD &#x2B21;</span>
         <div class="cosmic-divider"></div>
       </div>
-      <div id="board" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-12"></div>
+      <p class="spread-label">카드를 클릭하여, 운명을 읽어보세요</p>
+      <div id="board" class="spread-grid mb-12"></div>
     </section>
 
     <!-- 로딩 -->
@@ -220,36 +325,62 @@
       {n:'탑',en:'The Tower',r:'XVI'},{n:'별',en:'The Star',r:'XVII'},{n:'달',en:'The Moon',r:'XVIII'},{n:'태양',en:'The Sun',r:'XIX'},
       {n:'심판',en:'Judgement',r:'XX'},{n:'세계',en:'The World',r:'XXI'}
     ];
-    var $draw=$('#drawBtn'),$read=$('#readBtn'),$reset=$('#resetBtn');
-    var $boardSec=$('#boardSec'),$board=$('#board');
-    var $loadSec=$('#loadSec'),$loadMsg=$('#loadMsg');
-    var $resSec=$('#resSec'),$resCon=$('#resCon');
-    var $goldSec=$('#goldSec'),$goldCon=$('#goldCon');
     function $(id){return document.getElementById(id);}
-    $draw=$('#drawBtn');$read=$('#readBtn');$reset=$('#resetBtn');
-    $boardSec=$('#boardSec');$board=$('#board');
-    $loadSec=$('#loadSec');$loadMsg=$('#loadMsg');
-    $resSec=$('#resSec');$resCon=$('#resCon');
-    $goldSec=$('#goldSec');$goldCon=$('#goldCon');
+    var $draw=$('drawBtn'),$read=$('readBtn'),$reset=$('resetBtn');
+    var $boardSec=$('boardSec'),$board=$('board');
+    var $loadSec=$('loadSec'),$loadMsg=$('loadMsg');
+    var $resSec=$('resSec'),$resCon=$('resCon');
+    var $goldSec=$('goldSec'),$goldCon=$('goldCon');
     var spread=[],goldenCard=null;
+    /* 행성 스프레드 포지션 매핑 (이미지 기준)
+       Row1: [1=명왕성, 2=지구]
+       Row2: [3=해왕성, 4=달, 5=수성]
+       Row3: [6=천왕성, 7=태양, 8=금성]
+       Row4: [9=토성, 10=화성]
+       Row5: [11=목성]  */
+    var SPREAD_ORDER=[10,3,1,4,2,8,0,5,7,9,6]; // PLANETS index → position 1..11
+
     function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
     function rfld(label,txt,hcls){if(!txt)return '';return '<div style="margin-bottom:1.25rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
     function bfld(label,txt,hcls){if(!txt)return '';return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1rem;"><h4 class="'+hcls+'" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;">'+label+'</h4><p class="rt">'+esc(txt)+'</p></div>';}
     function gfld(label,txt){if(!txt)return '';return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(245,158,11,.18);border-radius:14px;padding:1.25rem;"><h4 style="color:rgba(245,208,111,.75);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.75rem;">'+label+'</h4><p class="rt" style="color:rgba(253,230,138,.78);">'+esc(txt)+'</p></div>';}
+
+    function mandalaPath(){
+      /* 간단한 동심원 + 별 SVG */
+      return '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">'+
+        '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width=".6" opacity=".6"/>'+
+        '<circle cx="50" cy="50" r="28" stroke="currentColor" stroke-width=".5" opacity=".5"/>'+
+        '<circle cx="50" cy="50" r="16" stroke="currentColor" stroke-width=".4" opacity=".4"/>'+
+        '<line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" stroke-width=".4" opacity=".3"/>'+
+        '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width=".4" opacity=".3"/>'+
+        '<line x1="22" y1="22" x2="78" y2="78" stroke="currentColor" stroke-width=".3" opacity=".2"/>'+
+        '<line x1="78" y1="22" x2="22" y2="78" stroke="currentColor" stroke-width=".3" opacity=".2"/>'+
+      '</svg>';
+    }
+
     function renderBoard(){
       $boardSec.style.display='block';
-      $board.innerHTML=spread.map(function(item,idx){
-        var pk='p-'+item.planet.key,dl=(idx*.055).toFixed(2)+'s';
-        return '<article class="planet-card '+pk+' p-4 board-in" style="animation-delay:'+dl+';">'+
-          '<div class="flex items-center justify-between mb-3"><span class="planet-sym" style="font-size:2.3rem;line-height:1;font-weight:300;">'+item.planet.symbol+'</span><span style="color:rgba(255,255,255,.22);font-size:.68rem;font-family:monospace;">'+String(idx+1).padStart(2,'0')+'</span></div>'+
-          '<h3 class="planet-lbl" style="font-weight:700;font-size:1rem;margin:0 0 2px;">'+item.planet.name+'</h3>'+
-          '<p style="color:rgba(255,255,255,.3);font-size:.7rem;margin:0 0 10px;">'+item.planet.en+'</p>'+
-          '<hr class="planet-sec-ln" style="border:0;border-top:1px solid;margin-bottom:10px;">'+
-          '<p style="color:rgba(255,255,255,.56);font-size:.7rem;line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">'+item.planet.question+'</p>'+
-          '<span class="planet-pill" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:600;"><span>'+item.tarot.r+'</span><span style="color:rgba(255,255,255,.7);">'+item.tarot.n+'</span></span>'+
-          '</article>';
-      }).join('');
+      /* SPREAD_ORDER[i] = PLANETS 배열 인덱스, 위치 순서로 나열 */
+      var cells=[];
+      for(var pos=0;pos<11;pos++){
+        var pi=SPREAD_ORDER[pos];
+        var item=spread[pi];
+        var pk='p-'+item.planet.key;
+        var dl=(pos*.06).toFixed(2)+'s';
+        cells.push(
+          '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+' board-in" '+
+            'style="animation-delay:'+dl+';" '+
+            'data-planet-idx="'+pi+'" aria-label="'+esc(item.planet.name)+' 카드">'+
+            '<div class="tarot-card__mandala" aria-hidden="true" style="color:var(--pc);">'+mandalaPath()+'</div>'+
+            '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+'</p>'+
+            '<span class="tarot-card__symbol">'+item.planet.symbol+'</span>'+
+            '<p class="tarot-card__arcana">'+esc(item.tarot.r)+' '+esc(item.tarot.n)+'</p>'+
+            '<p class="tarot-card__num">'+String(pos+1).padStart(2,'0')+'</p>'+
+          '</article>'
+        );
+      }
+      $board.innerHTML=cells.join('');
     }
     function renderResults(result){
       var perCard=Array.isArray(result&&result.perCard)?result.perCard:[];
