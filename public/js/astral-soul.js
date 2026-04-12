@@ -101,6 +101,8 @@ const ASTRAL_DATA = {
 
 let selectedTotems = [];
 let __mbtiBodyLocked = false;
+let mbtiPickStep = 0;
+let mbtiCompatibilityMap = null;
 
 const RITUAL_PHASE_TIMINGS = {
     init: 100,
@@ -119,21 +121,21 @@ function setTokenBorderColor(tokenEl, code) {
 
 function setRitualButtonReady(btn) {
     btn.disabled = false;
-    btn.innerHTML = '✨ 궁합 확인';
+    btn.innerHTML = '궁합 보기';
     btn.removeEventListener('click', revealAstralSynergy);
     btn.addEventListener('click', revealAstralSynergy);
-    btn.style.background = 'linear-gradient(90deg, #D4AF37 0%, #FDB931 100%)';
-    btn.style.color = '#000';
+    btn.style.background = '#17181c';
+    btn.style.color = '#fff';
     btn.style.cursor = 'pointer';
     btn.style.opacity = '1';
 }
 
 function setRitualButtonPending(btn) {
     btn.disabled = true;
-    btn.innerHTML = `${selectedTotems.length}/2 선택됨`;
+    btn.innerHTML = selectedTotems.length === 0 ? '본캐를 먼저 선택하세요' : '부캐를 선택하면 궁합 보기 가능';
     btn.removeEventListener('click', revealAstralSynergy);
-    btn.style.background = 'rgba(255,255,255,0.1)';
-    btn.style.color = 'rgba(255,255,255,0.3)';
+    btn.style.background = '#d7d9de';
+    btn.style.color = '#8f949f';
     btn.style.cursor = 'not-allowed';
     btn.style.opacity = '0.7';
 }
@@ -310,6 +312,82 @@ function bindTotemCardEvents(card, code) {
     }
 }
 
+function buildMbtiCompatibilityMap() {
+    const map = {};
+    const codes = Object.keys(ASTRAL_DATA);
+    const goodThreshold = 72;
+    const badThreshold = 42;
+
+    for (let i = 0; i < codes.length; i++) {
+        const base = codes[i];
+        map[base] = { good: [], soso: [], bad: [] };
+        for (let j = 0; j < codes.length; j++) {
+            const target = codes[j];
+            if (base === target) {
+                map[base].soso.push(target);
+                continue;
+            }
+            const score = getPairScore(base, target);
+            if (score >= goodThreshold) map[base].good.push(target);
+            else if (score <= badThreshold) map[base].bad.push(target);
+            else map[base].soso.push(target);
+        }
+    }
+
+    return map;
+}
+
+function applyCompatibilityPalette(baseCode) {
+    const cards = document.querySelectorAll('.totem-card');
+    cards.forEach((card) => {
+        card.classList.remove('totem-card--good', 'totem-card--soso', 'totem-card--bad');
+        card.classList.add('totem-card--soso');
+    });
+
+    if (!baseCode) return;
+    if (!mbtiCompatibilityMap) mbtiCompatibilityMap = buildMbtiCompatibilityMap();
+    const map = mbtiCompatibilityMap[baseCode];
+    if (!map) return;
+
+    map.good.forEach((code) => {
+        const node = document.querySelector(`.totem-card[data-code="${code}"]`);
+        if (!node) return;
+        node.classList.remove('totem-card--soso', 'totem-card--bad');
+        node.classList.add('totem-card--good');
+    });
+    map.bad.forEach((code) => {
+        const node = document.querySelector(`.totem-card[data-code="${code}"]`);
+        if (!node) return;
+        node.classList.remove('totem-card--soso', 'totem-card--good');
+        node.classList.add('totem-card--bad');
+    });
+}
+
+function updateSelectionGuide() {
+    const titleEl = document.querySelector('.astral-title');
+    const guideMain = document.getElementById('mbtiSelectionGuideMain');
+    const guideSub = document.getElementById('mbtiSelectionGuideSub');
+    if (!guideMain || !guideSub) return;
+
+    if (selectedTotems.length === 0) {
+        if (titleEl) titleEl.textContent = 'MBTI 궁합표';
+        guideMain.textContent = '본캐 MBTI를 먼저 선택해 주세요';
+        guideSub.textContent = 'GOOD, SOSO, BAD 색상으로 궁합 힌트를 먼저 볼 수 있어요.';
+        return;
+    }
+
+    if (selectedTotems.length === 1) {
+        if (titleEl) titleEl.textContent = `${selectedTotems[0]}와 다른 MBTI 궁합`;
+        guideMain.textContent = `본캐 ${selectedTotems[0]} 선택 완료`;
+        guideSub.textContent = '부캐 MBTI를 선택하면 궁합 보기 버튼이 활성화됩니다.';
+        return;
+    }
+
+    if (titleEl) titleEl.textContent = `${selectedTotems[0]}와 ${selectedTotems[1]} 궁합 결과`;
+    guideMain.textContent = `본캐 ${selectedTotems[0]}, 부캐 ${selectedTotems[1]}`;
+    guideSub.textContent = '궁합 보기 버튼을 눌러 결과를 확인하세요.';
+}
+
 function bindMbtiDetailEvents(sheet, code, isSelected) {
     const closeBtn = sheet.querySelector('.mbti-sheet-close');
     if (closeBtn) {
@@ -365,7 +443,7 @@ function openMbtiModal() {
                     : code.includes('NT') ? 'nt'
                     : code.includes('SJ') ? 'sj'
                     : 'sp';
-                card.className = 'totem-card totem-card--' + temperament;
+                card.className = 'totem-card totem-card--soso totem-card--' + temperament;
         card.setAttribute('data-code', code);
         card.setAttribute('role', 'button');
         card.setAttribute('tabindex', '0');
@@ -376,7 +454,7 @@ function openMbtiModal() {
                         <div class="totem-code">${item.code}</div>
                         <div class="totem-title">${item.title}</div>
                         <button class="totem-info-btn" type="button" title="상세보기" aria-label="${item.code} 상세 보기">
-                            <span class="totem-info-glyph">✧</span>
+                            <span class="totem-info-glyph">i</span>
                         </button>
         `;
         bindTotemCardEvents(card, code);
@@ -384,6 +462,8 @@ function openMbtiModal() {
     });
     
     resetSelection();
+    applyCompatibilityPalette('');
+    updateSelectionGuide();
     
     // Reset Ritual Stage if exists
     const ritualStage = document.getElementById('astralRitualStage');
@@ -402,24 +482,50 @@ function closeMbtiModal() {
 }
 
 function selectTotem(card, code) {
-    if (selectedTotems.includes(code)) {
-        selectedTotems = selectedTotems.filter(c => c !== code);
+    const currentIdx = selectedTotems.indexOf(code);
+
+    if (currentIdx !== -1) {
+        selectedTotems.splice(currentIdx, 1);
         card.classList.remove('selected');
-    } else {
-        if (selectedTotems.length < 2) {
-            selectedTotems.push(code);
-            card.classList.add('selected');
+        if (selectedTotems.length === 0) {
+            mbtiPickStep = 0;
+            applyCompatibilityPalette('');
         } else {
-            // Remove the first one
-            const first = selectedTotems.shift();
-            const firstCard = document.querySelector(`.totem-card[data-code="${first}"]`);
-            if(firstCard) firstCard.classList.remove('selected');
-            
-            selectedTotems.push(code);
-            card.classList.add('selected');
+            mbtiPickStep = 1;
+            applyCompatibilityPalette(selectedTotems[0]);
         }
+        updateSelectionGuide();
+        updateRitualBar();
+        return;
     }
-    
+
+    if (selectedTotems.length === 0) {
+        selectedTotems.push(code);
+        card.classList.add('selected');
+        mbtiPickStep = 1;
+        applyCompatibilityPalette(code);
+        updateSelectionGuide();
+        updateRitualBar();
+        return;
+    }
+
+    if (selectedTotems.length === 1) {
+        selectedTotems.push(code);
+        card.classList.add('selected');
+        mbtiPickStep = 2;
+        updateSelectionGuide();
+        updateRitualBar();
+        return;
+    }
+
+    const oldSecond = selectedTotems[1];
+    const oldSecondCard = document.querySelector(`.totem-card[data-code="${oldSecond}"]`);
+    if (oldSecondCard) oldSecondCard.classList.remove('selected');
+
+    selectedTotems[1] = code;
+    card.classList.add('selected');
+    mbtiPickStep = 2;
+    updateSelectionGuide();
     updateRitualBar();
 }
 
@@ -533,8 +639,11 @@ function selectTotemFromDetail(code) {
 
 function resetSelection() {
     selectedTotems = [];
+    mbtiPickStep = 0;
     updateRitualBar();
     document.querySelectorAll('.totem-card').forEach(c => c.classList.remove('selected'));
+    applyCompatibilityPalette('');
+    updateSelectionGuide();
     
     // UI Reset
     document.getElementById('astralGrid').style.display = 'grid';
@@ -630,7 +739,7 @@ function createSynergyResultHeader(c1, c2) {
     col1.appendChild(createNode('div', 'res-token-animal', c1.animal));
     col1.appendChild(createNode('div', 'res-token-code', c1.code));
 
-    const vs = createNode('div', 'res-token-vs', '⚔️');
+    const vs = createNode('div', 'res-token-vs', 'X');
 
     const col2 = createNode('div', 'res-token-col');
     col2.appendChild(createNode('div', 'res-token-animal', c2.animal));
@@ -641,12 +750,10 @@ function createSynergyResultHeader(c1, c2) {
     tokenRow.appendChild(col2);
     header.appendChild(tokenRow);
 
-    header.appendChild(createNode('h2', 'res-title res-title--bright', 'SOUL RESONANCE'));
+    header.appendChild(createNode('h2', 'res-title res-title--bright', `${c1.code}와 다른 MBTI 궁합`));
 
     const mbtiBadge = createNode('div', 'res-mbti res-mbti--badge');
-    mbtiBadge.appendChild(document.createTextNode(`${c1.title} `));
-    mbtiBadge.appendChild(createNode('span', 'res-and', 'AND'));
-    mbtiBadge.appendChild(document.createTextNode(` ${c2.title}`));
+    mbtiBadge.appendChild(document.createTextNode(`본캐 ${c1.code}, 부캐 ${c2.code}`));
     header.appendChild(mbtiBadge);
 
     return header;
@@ -654,17 +761,17 @@ function createSynergyResultHeader(c1, c2) {
 
 function createSynergyKeywordBox(title) {
     const box = createNode('div', 'synergy-box synergy-box--premium');
-    box.appendChild(createNode('div', 'res-label res-label--center', 'CONNECTION KEYWORD'));
+    box.appendChild(createNode('div', 'res-label res-label--center', '핵심 케미 요약'));
     box.appendChild(createNode('div', 'res-text res-text--keyword', `"${title}"`));
     return box;
 }
 
 function createSynergySectionGrid(synergy) {
     const grid = createNode('div', 'res-grid-stack');
-    grid.appendChild(createSynergySection('stats', '📊', '역학 관계 스탯', createSynergyStatsBody(synergy.statsItems)));
-    grid.appendChild(createSynergySection('light', '☀️', '빛의 공명 (시너지)', synergy.pros));
-    grid.appendChild(createSynergySection('shadow', '🌑', '그림자 충돌 (갈등 요소)', synergy.cons));
-    grid.appendChild(createSynergySection('key', '💡', '관계를 위한 마스터키', synergy.advice));
+    grid.appendChild(createSynergySection('stats', '📊', '궁합 점수', createSynergyStatsBody(synergy.statsItems)));
+    grid.appendChild(createSynergySection('light', '🟢', 'GOOD 포인트', synergy.pros));
+    grid.appendChild(createSynergySection('shadow', '🔴', '주의 포인트', synergy.cons));
+    grid.appendChild(createSynergySection('key', '🟡', '관계 유지 팁', synergy.advice));
     return grid;
 }
 
@@ -674,11 +781,11 @@ function showSynergyResult() {
     
     const resLayer = document.getElementById('astralResult');
     
-    // Set Back Button to Home
+    // Set Back Button to Selection
     const backBtn = resLayer.querySelector('.back-btn');
     backBtn.removeEventListener('click', closeMbtiModal);
     backBtn.addEventListener('click', closeMbtiModal);
-    backBtn.innerHTML = "🏠 메인화면";
+    backBtn.innerHTML = "← 다시 선택하기";
 
     const resContent = document.getElementById('astralResultContent');
     const synergy = getSynergyText(c1, c2);
@@ -690,7 +797,7 @@ function showSynergyResult() {
     fragment.appendChild(createSynergyKeywordBox(synergy.title));
     fragment.appendChild(createSynergySectionGrid(synergy));
 
-    const resetBtn = createNode('button', 'ritual-btn ritual-btn--reset', '↻ Realign Totems');
+    const resetBtn = createNode('button', 'ritual-btn ritual-btn--reset', '다른 조합 다시 보기');
     resetBtn.type = 'button';
     fragment.appendChild(resetBtn);
     fragment.appendChild(createNode('div', 'res-spacer'));
@@ -711,6 +818,20 @@ function getMbtiColor(id) {
     return '#8B5CF6';
 }
 
+function getPairScore(code1, code2) {
+    if (code1 === code2) return 66;
+    let score = 50;
+    for (let i = 0; i < 4; i++) {
+        if (code1[i] === code2[i]) score += 8;
+    }
+    if (code1[0] !== code2[0]) score += 4;
+    if (code1[2] === code2[2]) score += 6;
+    if (code1[3] !== code2[3]) score += 4;
+    if (score > 95) score = 95;
+    if (score < 30) score = 30;
+    return score;
+}
+
 function getSynergyText(t1, t2) {
     // Calculate difference vector
     let same = [];
@@ -723,7 +844,7 @@ function getSynergyText(t1, t2) {
     let title, pros, cons, advice, statsItems;
     
     // Create Dynamic Stats
-    const matchScore = Math.floor(Math.random() * (98 - 70 + 1)) + 70; // 70~98%
+    const matchScore = getPairScore(t1.code, t2.code);
     const empathyScore = t1.code[2] === t2.code[2] ? '★★★★★' : '★★★☆☆';
     const actionScore = t1.code[3] === t2.code[3] ? '★★★★★' : '★★★☆☆';
     const convoScore = t1.code[1] === t2.code[1] ? '★★★★☆' : '★★☆☆☆';
