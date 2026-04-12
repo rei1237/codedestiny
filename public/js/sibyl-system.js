@@ -399,6 +399,7 @@
     var coeff = _aptCoeff(dominant, counts);
 
     _t('sbAptCoeff', coeff);
+    _t('sbAptMetric', coeff);
     _t('sbSectorName', secData.sector);
     _t('sbSectorJobs', secData.jobs);
     _t('sbSectorTenstar', '주도 십성: ' + dominant);

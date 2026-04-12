@@ -1551,3 +1551,234 @@
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .sb-panel { padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   HTML CLASS ALIASES — 모달 HTML 클래스명과 CSS 정의 불일치 해소
+   (Modal HTML uses different naming than the original CSS design)
+════════════════════════════════════════════════════════════════ */
+
+/* ── 모달 헤더 ── */
+.sb-close-btn {
+  position: absolute; top: 14px; right: 16px;
+  width: 32px; height: 32px;
+  background: rgba(0,200,255,0.08);
+  border: 1px solid rgba(0,200,255,0.3);
+  border-radius: 50%;
+  color: var(--sb-cyan); font-size: 0.9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 30;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sb-close-btn:hover { background: rgba(0,200,255,0.18); border-color: var(--sb-cyan); }
+
+.sb-header__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+.sb-header__logo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.sb-logo-hex {
+  width: 44px; height: 50px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(135deg, var(--sb-cyan), var(--sb-blue));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+.sb-logo-img { width: 100%; height: 100%; object-fit: cover; }
+.sb-header__text { flex: 1; }
+.sb-system-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 0.58rem; color: var(--sb-cyan); letter-spacing: 0.15em;
+  text-transform: uppercase; opacity: 0.7; margin-bottom: 2px;
+}
+.sb-title {
+  font-family: 'Courier New', monospace;
+  font-size: 1.3rem; font-weight: 900; color: #fff;
+  letter-spacing: 0.12em; text-shadow: 0 0 20px rgba(0,240,255,0.6); line-height: 1.1;
+}
+.sb-subtitle {
+  font-family: 'Courier New', monospace;
+  font-size: 0.62rem; color: var(--sb-text-dim);
+  letter-spacing: 0.1em; line-height: 1.4; margin-top: 2px;
+}
+.sb-profile-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.sb-profile-badge {
+  font-family: 'Courier New', monospace;
+  font-size: 0.55rem; color: var(--sb-text-dim); letter-spacing: 0.15em;
+  text-transform: uppercase; border: 1px solid rgba(0,200,255,0.15); padding: 2px 6px; border-radius: 2px;
+}
+
+/* ── No Profile BEM 하위 클래스 ── */
+.sb-no-profile__icon { font-size: 2.5rem; margin-bottom: 14px; filter: grayscale(1) opacity(0.5); }
+.sb-no-profile__msg {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem; color: var(--sb-text); font-weight: 700; margin-bottom: 8px;
+}
+.sb-no-profile__sub { font-size: 0.7rem; color: var(--sb-text-dim); line-height: 1.7; }
+
+/* ── 스캔 섹션 ── */
+.sb-scan-dot {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--sb-cyan);
+  margin-right: 6px; vertical-align: middle;
+  animation: sb-pulse-dot 1.2s ease-in-out infinite;
+}
+.sb-scan-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.sb-scan-row .sb-scan-label {
+  position: static; right: auto; bottom: auto;
+  width: 130px; flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem; color: var(--sb-text-dim); letter-spacing: 0.1em;
+}
+.sb-scan-bar {
+  flex: 1; height: 5px;
+  background: rgba(0,50,100,0.5); border-radius: 99px;
+  overflow: hidden; border: 1px solid rgba(0,200,255,0.1);
+}
+.sb-scan-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--sb-blue), var(--sb-cyan));
+  box-shadow: 0 0 8px rgba(0,240,255,0.5);
+  border-radius: 99px; width: 0%;
+  transition: width 2.5s ease-out;
+}
+.sb-scan-fill--danger { background: linear-gradient(to right, #cc001a, #ff2143); box-shadow: 0 0 8px rgba(255,33,67,0.5); }
+.sb-scan-fill--green  { background: linear-gradient(to right, #00a832, #39ff14); box-shadow: 0 0 8px rgba(57,255,20,0.5); }
+.sb-scan-fill--hue    { background: linear-gradient(to right, var(--sb-blue), var(--sb-cyan), #7b00ff); }
+.sb-scan-pct {
+  font-family: 'Courier New', monospace; font-size: 0.6rem;
+  color: var(--sb-cyan); width: 30px; text-align: right; flex-shrink: 0;
+}
+
+/* ── 무료 섹션 — 사주 원국 ── */
+.sb-pillars-wrap {
+  background: rgba(0,15,40,0.7); border: 1px solid rgba(0,200,255,0.18);
+  border-radius: 8px; padding: 14px; margin-bottom: 14px;
+}
+.sb-pillars-title {
+  font-family: 'Courier New', monospace;
+  font-size: 0.62rem; color: var(--sb-cyan); letter-spacing: 0.2em;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.sb-pillars-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sb-pillar-item {
+  background: rgba(0,20,50,0.6); border: 1px solid rgba(0,200,255,0.2);
+  border-radius: 6px; padding: 8px; text-align: center;
+}
+.sb-pillar-item--day { border-color: rgba(0,240,255,0.5); background: rgba(0,30,70,0.8); }
+.sb-pillar-ji { font-size: 1.2rem; color: var(--sb-cyan); font-weight: 700; line-height: 1.2; }
+
+/* ── 오행 분포 ── */
+.sb-destiny-hue-wrap {
+  background: linear-gradient(135deg, rgba(0,15,35,0.9), rgba(0,10,25,0.95));
+  border: 1px solid rgba(0,200,255,0.2); border-radius: 8px; padding: 16px; margin-bottom: 14px;
+}
+.sb-ohaeng-bar {
+  flex: 1; height: 8px; background: rgba(0,30,60,0.6);
+  border-radius: 99px; overflow: hidden;
+}
+.sb-ohaeng-fill { height: 100%; border-radius: 99px; transition: width 1.2s ease-out; width: 0%; }
+.sb-ohaeng-fill--wood  { background: linear-gradient(to right, #1a6600, #39ff14); }
+.sb-ohaeng-fill--fire  { background: linear-gradient(to right, #c02200, #ff6a00); }
+.sb-ohaeng-fill--earth { background: linear-gradient(to right, #8b6914, #ffd700); }
+.sb-ohaeng-fill--metal { background: linear-gradient(to right, #4a6080, #c8e0ff); }
+.sb-ohaeng-fill--water { background: linear-gradient(to right, #005080, #00bfff); }
+.sb-hue-swatch-row { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+
+/* ── 적성 섹션 ── */
+.sb-aptitude-wrap {
+  background: rgba(0,10,30,0.7); border: 1px solid rgba(0,200,255,0.2);
+  border-radius: 8px; padding: 14px; margin-bottom: 14px;
+}
+.sb-apt-card { display: flex; flex-direction: column; gap: 10px; }
+.sb-apt-coeff-row {
+  display: flex; align-items: baseline; gap: 4px;
+  padding: 8px 10px; background: rgba(0,30,80,0.3); border-radius: 6px;
+}
+.sb-apt-coeff-label {
+  font-family: 'Courier New', monospace; font-size: 0.58rem;
+  color: var(--sb-text-dim); letter-spacing: 0.1em; flex: 1;
+}
+.sb-apt-coeff-value {
+  font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 900;
+  color: var(--sb-cyan); text-shadow: 0 0 12px rgba(0,240,255,0.6);
+  animation: sb-count-glow 2s ease-in-out infinite alternate;
+}
+.sb-apt-coeff-max { font-family: 'Courier New', monospace; font-size: 0.6rem; color: var(--sb-text-dim); }
+.sb-apt-sector-badge {
+  padding: 10px; background: rgba(0,30,80,0.5); border-radius: 6px;
+  border-left: 3px solid var(--sb-cyan);
+  font-family: 'Courier New', monospace; font-size: 0.9rem; font-weight: 700;
+  color: var(--sb-cyan); letter-spacing: 0.05em;
+}
+.sb-apt-jobs { font-size: 0.72rem; color: var(--sb-text); line-height: 1.5; margin-top: 4px; }
+.sb-apt-tenstar {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px; background: rgba(0,200,255,0.08);
+  border: 1px solid rgba(0,200,255,0.2); border-radius: 3px;
+  font-family: 'Courier New', monospace; font-size: 0.58rem;
+  color: var(--sb-text-dim); width: fit-content;
+}
+
+/* ── 경고/메트릭 영역 ── */
+.sb-caution-area { margin-bottom: 14px; }
+.sb-metrics-preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.sb-metric-wrap {
+  background: rgba(0,15,40,0.7); border: 1px solid rgba(0,200,255,0.18);
+  border-radius: 6px; padding: 12px 10px; text-align: center;
+}
+.sb-metric-card-label {
+  font-family: 'Courier New', monospace; font-size: 0.55rem;
+  color: var(--sb-text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+}
+.sb-metric-card-sub { font-size: 0.58rem; color: var(--sb-text-dim); margin-top: 3px; }
+
+/* ── 잠금 오버레이 ── */
+.sb-lock-icon { font-size: 2.4rem; margin-bottom: 10px; position: relative; z-index: 1; }
+.sb-lock-desc {
+  font-size: 0.72rem; color: var(--sb-text); line-height: 1.7;
+  margin-bottom: 10px; position: relative; z-index: 1;
+}
+.sb-lock-cost {
+  font-family: 'Courier New', monospace; font-size: 0.78rem;
+  color: var(--sb-cyan); font-weight: 700; letter-spacing: 0.1em;
+  margin-bottom: 16px; position: relative; z-index: 1;
+}
+.sb-unlock-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px;
+  background: linear-gradient(135deg, rgba(0,240,255,0.18), rgba(0,80,200,0.18));
+  border: 1.5px solid var(--sb-cyan); border-radius: 6px;
+  font-family: 'Courier New', monospace; font-size: 0.78rem; font-weight: 700;
+  color: var(--sb-cyan); letter-spacing: 0.1em; cursor: pointer;
+  transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+  position: relative; z-index: 1; text-transform: uppercase;
+}
+.sb-unlock-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0,240,255,0.30), rgba(0,80,200,0.28));
+  box-shadow: 0 0 24px rgba(0,240,255,0.35), 0 0 60px rgba(0,100,255,0.15);
+  transform: translateY(-1px);
+}
+.sb-unlock-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 생성 중 진행바 ── */
+.sb-gen-bar {
+  width: 100%; max-width: 280px; height: 4px;
+  background: rgba(0,50,100,0.5); border-radius: 99px; overflow: hidden;
+}
+
+/* ── 리포트·개운 섹션 ── */
+.sb-report-section { margin-bottom: 18px; }
+.sb-report-title {
+  font-family: 'Courier New', monospace; font-size: 0.72rem; font-weight: 700;
+  color: var(--sb-cyan); letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,200,255,0.15);
+}
+.sb-report-chapters { display: flex; flex-direction: column; }
+.sb-remedy-section {
+  background: rgba(0,50,10,0.2); border: 1px solid rgba(57,255,20,0.2);
+  border-radius: 8px; padding: 14px 16px; margin-top: 18px;
+}
