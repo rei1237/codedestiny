@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Divya Yoga — Sacred Practice Portal</title>
 <script src="/js/inline/api-base-init.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-void: #05030f;
@@ -568,17 +568,17 @@
     letter-spacing: 0.01em;
   }
   .auto-guide-wrap {
-    border: 1px solid rgba(212,168,67,0.23);
+    border: 1px solid rgba(212,168,67,0.18);
     border-radius: 18px;
     background:
-      radial-gradient(ellipse 62% 46% at 50% 0%, rgba(245,224,144,0.09), transparent 72%),
-      linear-gradient(160deg, rgba(4,4,13,0.8), rgba(18,8,30,0.9));
+      radial-gradient(ellipse 70% 60% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 68%),
+      linear-gradient(160deg, rgba(2,3,14,0.88), rgba(10,6,24,0.94));
     overflow: hidden;
     position: relative;
-    min-height: min(72vh, 760px);
+    min-height: min(64vh, 640px);
     display: flex;
     flex-direction: column;
-    box-shadow: inset 0 0 0 1px rgba(245,224,144,0.04), 0 16px 40px rgba(0,0,0,0.35);
+    box-shadow: inset 0 0 0 1px rgba(245,224,144,0.03), 0 20px 50px rgba(0,0,0,0.4);
   }
   .auto-guide-wrap::before {
     content: '';
@@ -635,68 +635,45 @@
     to { width: 100%; }
   }
   .typing-console {
-    border: 1px solid rgba(212,168,67,0.23);
-    border-radius: 16px;
-    background:
-      radial-gradient(ellipse 85% 68% at 50% 6%, rgba(212,168,67,0.1), rgba(5,3,12,0.88) 72%),
-      linear-gradient(180deg, rgba(7,10,22,0.74), rgba(5,3,12,0.86));
-    min-height: 52vh;
+    border: none;
+    border-radius: 0;
+    background: none;
+    min-height: 0;
     max-height: none;
     flex: 1;
-    overflow-y: auto;
-    padding: 26px 24px 22px;
-    color: #f3e7cb;
-    font-family: 'Noto Serif KR', serif;
+    overflow: hidden;
+    padding: 44px 32px;
+    color: #f5e8d0;
+    font-family: 'Cormorant Garamond', 'Lora', serif;
     font-weight: 300;
-    font-size: clamp(1.02rem, 2.1vw, 1.28rem);
-    line-height: 2.08;
-    letter-spacing: 0.018em;
-    text-shadow: 0 0 16px rgba(212,168,67,0.16);
-    white-space: pre-wrap;
+    font-style: italic;
+    font-size: clamp(1.22rem, 3vw, 1.7rem);
+    line-height: 2.0;
+    letter-spacing: 0.025em;
+    text-align: center;
+    white-space: pre-line;
     margin: 0;
     position: relative;
     z-index: 2;
-    -webkit-overflow-scrolling: touch;
-    transition: opacity 0.45s ease, filter 0.45s ease;
+    text-shadow: 0 0 28px rgba(212,168,67,0.2);
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 1.1s ease, transform 1.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .typing-console::before {
-    content: 'ॐ Guided Sutra Stream';
-    display: block;
-    margin-bottom: 14px;
+  .typing-console.guide-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .typing-console.is-complete {
     font-family: 'Cinzel', serif;
-    font-size: 0.64rem;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: rgba(232,221,191,0.58);
-    border-bottom: 1px solid rgba(212,168,67,0.16);
-    padding-bottom: 11px;
-  }
-  .typing-console .cursor {
-    display: inline-block;
-    width: 2px;
-    height: 1.06em;
-    margin-left: 3px;
-    background: var(--gold-bright);
-    vertical-align: -0.12em;
-    animation: typeCursorBlink 1.06s steps(2, start) infinite;
-    box-shadow: 0 0 10px rgba(212,168,67,0.38);
-  }
-  .typing-console.is-complete .cursor {
-    background: rgba(45,191,189,0.92);
-    box-shadow: 0 0 10px rgba(45,191,189,0.42);
-  }
-  .typing-console.is-transitioning {
-    opacity: 0.78;
-    filter: saturate(0.92) blur(0.2px);
-  }
-  .typing-console::-webkit-scrollbar { width: 8px; }
-  .typing-console::-webkit-scrollbar-track {
-    background: rgba(6,4,16,0.6);
-    border-radius: 999px;
-  }
-  .typing-console::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(212,168,67,0.62), rgba(107,63,160,0.62));
-    border-radius: 999px;
+    font-style: normal;
+    font-size: clamp(0.95rem, 2vw, 1.15rem);
+    letter-spacing: 0.18em;
+    color: var(--teal-bright);
+    text-shadow: 0 0 18px rgba(45,191,189,0.3);
   }
   @keyframes typeCursorBlink {
     0%, 49% { opacity: 1; }
@@ -1395,6 +1372,7 @@ let sacredAudioContext = null;
 let sacredAudioNodes = null;
 let musicPlaying = false;
 let typingJob = null;
+let fadeFlowTO = null;
 let typingLines = [];
 let typingLineIdx = 0;
 let typingCharIdx = 0;
@@ -1402,7 +1380,7 @@ let typingPauseMode = false;
 let typingCharIntervalMs = 36;
 let typingTotalDurationMs = 0;
 let typingCharsPerTick = 1;
-let typingLinePauseMs = 180;
+let typingLinePauseMs = 3200;
 
 function resolveApiBase() {
   const fromEnv = window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL
@@ -1794,22 +1772,22 @@ function buildTypingLines(courseData) {
 }
 
 function calculateTypingPace() {
-  const totalChars = typingLines.reduce((acc, line) => acc + line.length, 0);
-  if (!totalChars || !typingLines.length) {
-    return { intervalMs: 52, charsPerTick: 1, linePauseMs: 3500 };
+  if (!typingLines.length) {
+    return { intervalMs: 0, charsPerTick: 1, linePauseMs: 3200 };
   }
-  const intervalMs = 52; // ms per character — deliberate, contemplative pace
-  const typingTimeMs = totalChars * intervalMs;
-  const remainingMs = typingTotalDurationMs - typingTimeMs;
-  const linePauseMs = Math.max(1800, Math.ceil(remainingMs / typingLines.length));
-  return { intervalMs, charsPerTick: 1, linePauseMs };
+  // 각 줄: fade-in(1.1s) + hold + fade-out(0.7s)
+  const fadeInMs = 1100;
+  const fadeOutMs = 700;
+  const overheadPerLine = fadeInMs + fadeOutMs;
+  const totalOverhead = overheadPerLine * typingLines.length;
+  const holdTimeTotal = typingTotalDurationMs - totalOverhead;
+  const linePauseMs = Math.max(2200, Math.ceil(holdTimeTotal / typingLines.length));
+  return { intervalMs: 0, charsPerTick: 1, linePauseMs };
 }
 
 function stopTypingFlow() {
-  if (typingJob) {
-    clearInterval(typingJob);
-    typingJob = null;
-  }
+  if (typingJob) { clearInterval(typingJob); typingJob = null; }
+  if (fadeFlowTO) { clearTimeout(fadeFlowTO); fadeFlowTO = null; }
 }
 
 function resetTypingFlow() {
@@ -1819,50 +1797,64 @@ function resetTypingFlow() {
   typingPauseMode = false;
   const out = document.getElementById('typingConsole');
   if (out) {
-    out.classList.remove('is-complete');
-    out.classList.remove('is-transitioning');
+    out.classList.remove('is-complete', 'is-transitioning', 'guide-visible');
+    out.style.transition = 'none';
+    out.style.opacity = '0';
+    out.style.transform = 'translateY(14px)';
     out.textContent = '';
   }
 }
 
-function typingTick() {
+function scheduleFadeStep() {
   const out = document.getElementById('typingConsole');
-  if (!out) {
-    stopTypingFlow();
+  if (!out) return;
+
+  if (typingPauseMode) {
+    fadeFlowTO = setTimeout(scheduleFadeStep, 400);
     return;
   }
-  if (typingPauseMode) return;
+
   if (typingLineIdx >= typingLines.length) {
-    stopTypingFlow();
-    out.classList.add('is-complete');
-    out.innerHTML = `${escapeHtml(out.textContent)}\n\n✦ 여정이 마무리되었습니다.<span class="cursor">|</span>`;
+    // 완료 처리: fade-out 후 완료 텍스트
+    out.style.transition = 'opacity 0.9s ease, transform 0.9s ease';
+    out.classList.remove('guide-visible');
+    fadeFlowTO = setTimeout(() => {
+      out.classList.add('is-complete');
+      out.textContent = '✦ 수련이 완성되었습니다 ✦';
+      out.style.transform = 'translateY(14px)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        out.style.transition = 'opacity 1.4s ease, transform 1.4s ease';
+        out.classList.add('guide-visible');
+      }));
+    }, 900);
     return;
   }
 
-  const currentLine = typingLines[typingLineIdx];
-  if (typingCharIdx < currentLine.length) {
-    const nextChunk = currentLine.slice(typingCharIdx, typingCharIdx + typingCharsPerTick);
-    out.textContent += nextChunk;
-    typingCharIdx += nextChunk.length;
-    out.scrollTop = out.scrollHeight;
-    return;
-  }
+  const text = typingLines[typingLineIdx];
 
-  out.textContent += '\n\n';
-  out.classList.add('is-transitioning');
-  typingLineIdx += 1;
-  typingCharIdx = 0;
-  typingPauseMode = true;
-  setTimeout(() => {
-    out.classList.remove('is-transitioning');
-    typingPauseMode = false;
-  }, typingLinePauseMs);
+  // 1단계: 현재 텍스트 fade-out
+  out.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+  out.classList.remove('guide-visible');
+
+  fadeFlowTO = setTimeout(() => {
+    out.textContent = text;
+    out.style.transform = 'translateY(14px)';
+    // 2단계: 새 텍스트 fade-in
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      out.style.transition = 'opacity 1.1s ease, transform 1.1s ease';
+      out.classList.add('guide-visible');
+    }));
+    typingLineIdx++;
+    // 3단계: hold 후 다음 줄
+    fadeFlowTO = setTimeout(scheduleFadeStep, typingLinePauseMs);
+  }, 700);
 }
 
 function startTypingFlow() {
   if (!typingLines.length) return;
   stopTypingFlow();
-  typingJob = setInterval(typingTick, typingCharIntervalMs);
+  typingLineIdx = 0;
+  fadeFlowTO = setTimeout(scheduleFadeStep, 600);
 }
 
 function selectDuration(btn, duration) {
@@ -2178,8 +2170,6 @@ function renderCourse(data) {
   typingLines = buildTypingLines(data);
   typingTotalDurationMs = Math.max(60 * 1000, durationMin * 60 * 1000);
   const typingPace = calculateTypingPace();
-  typingCharIntervalMs = typingPace.intervalMs;
-  typingCharsPerTick = typingPace.charsPerTick;
   typingLinePauseMs = typingPace.linePauseMs;
   resetTypingFlow();
   startTypingFlow();
