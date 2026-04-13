@@ -1517,6 +1517,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               var n = '사용자', p = 0, r = 'user';
               try { var u = JSON.parse(us || '{}'); n = u.name || n; p = Number(u.points || 0); r = u.role || 'user'; } catch (_) {}
               var isAdm = r === 'admin' || _adminTokValid;
+              if (isAdm) p = 9999;
               __cdRenderAuthSummary(n, p, isAdm);
 
               fetch('/api/payments/me', {
@@ -1529,6 +1530,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 })
                 .then(function (payload) {
                   var nextPoints = Number((((payload || {}).user || {}).points) || 0);
+                  if (isAdm) nextPoints = 9999;
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
@@ -6236,6 +6238,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var user = readAuthUser();
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
+    if (isAdminUser()) userBalance = 9999;
   }
 
   function saveBalance() {
@@ -6398,7 +6401,33 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function updateBadge() {
     var el = document.getElementById('goldenGrainBalanceText');
+    if (isAdminUser()) userBalance = 9999;
     if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
+  }
+
+  
+  function _cdShowCoinDeductNotice(cost, balance, reason) {
+    var amount = Number(cost);
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    var remain = Number(balance);
+    if (!Number.isFinite(remain) || remain < 0) remain = 0;
+    var detail = reason ? String(reason) : '유료 기능';
+    try {
+      var old = document.getElementById('cdCoinDeductToast');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+    } catch (_) {}
+    var toast = document.createElement('div');
+    toast.id = 'cdCoinDeductToast';
+    toast.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;background:#0f172a;color:#f8fafc;border:1px solid rgba(148,163,184,.45);border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px rgba(2,6,23,.45);font-size:13px;line-height:1.45;max-width:min(92vw,460px);text-align:left;';
+    toast.innerHTML = '<div style="font-weight:700;margin-bottom:3px;">코인 차감 완료</div>'
+      + '<div>🪙 ' + detail + ' 이용으로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>이 차감되었습니다.</div>'
+      + '<div style="margin-top:3px;opacity:.92;">현재 표시 잔액: <strong>' + remain.toLocaleString('ko-KR') + '코인</strong></div>';
+    document.body.appendChild(toast);
+    setTimeout(function () {
+      try {
+        if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+      } catch (_) {}
+    }, 2600);
   }
 
   function openChargeModal() {
@@ -6487,6 +6516,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
+      _cdShowCoinDeductNotice(cost, userBalance, '유료 섹션 잠금 해제');
+      if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
       UnlockButton(button);
@@ -6803,16 +6834,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         return;
       }
-      // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
-      try {
-        var _subUser = readAuthUser();
-        var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
-        if ((_subPlan === 'unlimited' || _subPlan === 'premium') && !(typeof isAdminUser === 'function' && isAdminUser())) {
-          sessionStorage.setItem('cd_pa_' + action, '1');
-          _cdInvokeActionDirect(action, actionNode);
-          return;
-        }
-      } catch (_subErr) {}
       // 프리미엄 북 액션: 운명 카드(프로필) 사전 체크 — 코인 차감 전에 검사 (코인 손실 방지)
       if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium') {
         var _cgProfile = null;
@@ -6862,6 +6883,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         saveBalance();
         updateBadge();
+        _cdShowCoinDeductNotice(tileCoinCost, userBalance, fname);
+        if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
       } catch (e) {
@@ -6960,19 +6983,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           return;
         }
-        // 프리미엄 구독 플랜 보유자: 코인 없이 영구 해금
-        try {
-          var _lockSubUser = readAuthUser();
-          var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
-          if ((_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') && !(typeof isAdminUser === 'function' && isAdminUser())) {
-            unlockedFeatureMap[tileLockKey] = true;
-            saveTileLocks();
-            applyTileLockVisuals();
-            sessionStorage.setItem('cd_pa_' + action, '1');
-            _cdInvokeActionDirect(action, actionNode);
-            return;
-          }
-        } catch (_lockSubErr) {}
         var titleEl = actionNode.querySelector('.tarot-tile__title');
         var fname = titleEl ? titleEl.textContent.trim() : '서비스';
         if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
@@ -7001,6 +7011,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           saveBalance();
           updateBadge();
+          _cdShowCoinDeductNotice(tileLockCost, userBalance, fname + ' 영구 해금');
+          if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
           unlockedFeatureMap[tileLockKey] = true;
           saveTileLocks();
           applyTileLockVisuals();
@@ -7074,6 +7086,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window.__cdSetGoldenBalance = function (points) {
     var next = Number(points);
     if (!Number.isFinite(next) || next < 0) return;
+    if (isAdminUser()) next = 9999;
     userBalance = next;
     saveBalance();
     updateBadge();
@@ -7358,9 +7371,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if(_pvwHasSub){
           if(_paywallIcon)_paywallIcon.textContent='✅';
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 영구 해금 가능';
-          if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 영구 해금됩니다!';
+          if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 상태가 확인되었습니다. 결제는 코인 정책에 따라 진행됩니다.';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
-          _ctaBtn.textContent='✅ 구독으로 영구 해금';
+          _ctaBtn.textContent='✅ 구독 상태 확인됨';
         } else {
           if(_paywallIcon)_paywallIcon.textContent='🔒';
           if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
