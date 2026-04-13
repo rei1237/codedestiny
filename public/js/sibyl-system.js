@@ -852,7 +852,7 @@
         if (freshBal >= 0) {
           window.userBalance = freshBal;
           if (freshBal < 100) {
-            if (confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + freshBal + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
+            if (confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + freshBal + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
               if (typeof window.openChargeModal === 'function') window.openChargeModal();
             }
             if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
@@ -868,7 +868,7 @@
         var _u = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
         var balance = typeof window.userBalance === 'number' ? window.userBalance : (_u.points || 0);
         if (balance < 100) {
-          if (confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
+          if (confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
             if (typeof window.openChargeModal === 'function') window.openChargeModal();
           }
           if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }

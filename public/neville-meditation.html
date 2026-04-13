@@ -696,7 +696,7 @@
   var pts = 0;
   try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
   if (pts < COST) {
-    window.alert('🐷 꽃꽃돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
+    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
     window.history.back();
     return;
   }
@@ -707,7 +707,7 @@
   }).then(function(r) {
     return r.json().then(function(d) {
       if (r.status === 402 || !r.ok) {
-        window.alert('🐷 꽃꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+        window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
         window.history.back();
         return;
       }

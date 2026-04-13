@@ -59,7 +59,7 @@ export async function GET(request) {
 
     return NextResponse.json({
       ok: true,
-      message: "꽃꽃돼지 코인 잔액을 불러왔습니다.",
+      message: "꽃돼지 코인 잔액을 불러왔습니다.",
       user: { id: String(userId), points: Number(user.points || 0) },
     });
   } catch (err) {

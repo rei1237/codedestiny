@@ -320,7 +320,6 @@ export default function HPremiumAstrologySection({
   const createEmptyChapters = () =>
     Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
 
-  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 점성술 프리미엄");
   // 입력 폼
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
@@ -534,7 +533,6 @@ export default function HPremiumAstrologySection({
 
   // 차트 계산 (chapter 0 으로 호출해 계산만)
   const handleCalcChart = useCallback(async () => {
-    console.log("클릭됨: 점성술 차트 계산");
     const y = parseInt(birthYear,  10);
     const m = parseInt(birthMonth, 10);
     const d = parseInt(birthDay,   10);
@@ -573,7 +571,7 @@ export default function HPremiumAstrologySection({
 
   // 챕터 생성
   const handleGenerateChapter = useCallback(async (chNum: number) => {
-    console.log(`클릭됨: 점성술 챕터 ${chNum}`);
+
     setRequestError("");
     setChapters(prev => ({ ...prev, [chNum]: { step:"loading", result:null } }));
     try {
@@ -600,7 +598,7 @@ export default function HPremiumAstrologySection({
 
   // 전체 챕터 순차 생성
   const handleGenerateAll = useCallback(async () => {
-    console.log("클릭됨: 점성술 전체 챕터 생성");
+
     const pending = CHAPTER_META.filter((meta) => chapters[meta.num]?.step !== "done");
     for (const meta of pending) {
       await handleGenerateChapter(meta.num);

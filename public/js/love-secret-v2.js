@@ -794,7 +794,7 @@
           if (startBtn) { startBtn.disabled = false; startBtn.textContent = '💑 두 사람의 궁합 포함 분석 시작하기'; }
           if (res.status === 402 || !res.ok) {
             var msg = (res.payload && res.payload.message) || '';
-            if (window.confirm('🐷 꽃꽃돼지 코인이 부족해요!\n궁합 분석에는 추가 100코인이 필요합니다.\n\n' + msg + '\n\n충전 창을 여시겠습니까?')) {
+            if (window.confirm('🐷 꽃돼지 코인이 부족해요!\n궁합 분석에는 추가 100코인이 필요합니다.\n\n' + msg + '\n\n충전 창을 여시겠습니까?')) {
               if (typeof window.openChargeModal === 'function') window.openChargeModal();
             }
             return;

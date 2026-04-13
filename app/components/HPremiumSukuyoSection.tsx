@@ -636,7 +636,6 @@ export default function HPremiumSukuyoSection({
   onStartGeneration,
   generationLoading = false,
 }: PremiumSectionProps) {
-  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 숙요 프리미엄");
   const DEFAULT_BIRTH_FORM = {
     year: "",
     month: "",
@@ -810,7 +809,6 @@ export default function HPremiumSukuyoSection({
 
   // 숙요 초기화 (챕터 없이 숙요 정보만)
   const handleInitSukuyo = useCallback(async () => {
-    console.log("클릭됨: 숙요 초기 분석");
     if (!isValidDate || !isValidPartnerDate) return;
     setInitLoading(true);
     setInitError("");
@@ -852,7 +850,6 @@ export default function HPremiumSukuyoSection({
   // 단일 챕터 생성
   const handleChapterRequest = useCallback(
     async (chapter: number) => {
-      console.log(`클릭됨: 숙요 챕터 ${chapter}`);
       if (!sukuyo) return;
       setRequestError("");
       const idx = chapter - 1;
@@ -892,7 +889,6 @@ export default function HPremiumSukuyoSection({
 
   // 전체 생성 (순차)
   const handleGenerateAll = useCallback(async () => {
-    console.log("클릭됨: 숙요 전체 챕터 생성");
     if (!sukuyo || allGenerating) return;
     setAllGenerating(true);
     setRequestError("");

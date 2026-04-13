@@ -64,7 +64,7 @@ function LockedSection({
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "꽃꽃돼지 코인으로 운명 확인하기",
+  buttonLabel = "꽃돼지 코인으로 운명 확인하기",
   children,
 }: LockedSectionProps) {
   if (isUnlocked) {
@@ -520,7 +520,7 @@ export default function KkulkkulManseryukMain() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-700">꿀꿀 만세력</p>
-              <h1 className="mt-2 text-3xl font-black leading-tight">꽃꽃돼지 코인 운명 상점</h1>
+              <h1 className="mt-2 text-3xl font-black leading-tight">꽃돼지 코인 운명 상점</h1>
               <p className="mt-2 text-sm text-neutral-700">
                 무료는 즉시 노출, 유료는 코인으로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
               </p>
@@ -530,7 +530,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold text-amber-800">현재 잔액</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
                 <span aria-hidden="true">🐷</span>
-                <span>꽃꽃돼지 코인 {currentCoins}</span>
+                <span>꽃돼지 코인 {currentCoins}</span>
               </p>
             </div>
           </div>
@@ -658,7 +658,7 @@ export default function KkulkkulManseryukMain() {
                   onClick={() => usePaidFeatureOnce(item.key, 50)}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  꽃꽃돼지 코인으로 운명 확인하기
+                  꽃돼지 코인으로 운명 확인하기
                 </button>
 
                 {perUseCount[item.key] > 0 ? (
@@ -1015,7 +1015,7 @@ export default function KkulkkulManseryukMain() {
               <div>
                 <p className="text-xs text-rose-300/70">1회 이용 요금</p>
                 <p className="text-xl font-extrabold text-amber-300">
-                  🐷 꽃꽃돼지 코인 100
+                  🐷 꽃돼지 코인 100
                 </p>
               </div>
               <button

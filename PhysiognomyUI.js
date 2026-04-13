@@ -709,7 +709,7 @@ window.switchMode = async function(mode) {
       var balance = Number((userObj && userObj.points) || 0);
       var COMPAT_COST = 50;
       if (balance < COMPAT_COST) {
-        if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n관상 궁합 이용: ' + COMPAT_COST + '코인 필요\n현재 보유: ' + balance + '코인\n충전 창을 여시겠습니까?')) {
+        if (window.confirm('꽃돼지 코인이 부족해요 🐷\n관상 궁합 이용: ' + COMPAT_COST + '코인 필요\n현재 보유: ' + balance + '코인\n충전 창을 여시겠습니까?')) {
           if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
         }
         return;
@@ -726,7 +726,7 @@ window.switchMode = async function(mode) {
         var data = {};
         try { data = await resp.json(); } catch (_e) {}
         if (resp.status === 402) {
-          if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n충전 창을 여시겠습니까?')) {
+          if (window.confirm('꽃돼지 코인이 부족해요 🐷\n충전 창을 여시겠습니까?')) {
             if (typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
           }
           return;

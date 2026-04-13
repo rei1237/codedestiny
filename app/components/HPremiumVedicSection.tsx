@@ -396,7 +396,6 @@ export default function HPremiumVedicSection({
   const createEmptyChapters = () =>
     Object.fromEntries(CHAPTER_META.map((m) => [m.num, { step: "idle" as ChapterStep, result: null }]));
 
-  console.log("[DEBUG] 섹션 컴포넌트 내부 진입 성공: 베다 프리미엄");
   const [birthYear,   setBirthYear]   = useState("");
   const [birthMonth,  setBirthMonth]  = useState("");
   const [birthDay,    setBirthDay]    = useState("");
@@ -566,7 +565,6 @@ export default function HPremiumVedicSection({
 
   // 차트 미리 계산 (chapter 1 분析으로 대체)
   const handleCalcChart = useCallback(async () => {
-    console.log("클릭됨: 베다 차트 계산");
     const y=parseInt(birthYear,10), m=parseInt(birthMonth,10), d=parseInt(birthDay,10);
     if (!y||!m||!d){ setCalcError("생년월일을 입력해 주세요."); return; }
     if (y<1900||y>2100||m<1||m>12||d<1||d>31){ setCalcError("올바른 날짜를 입력해 주세요."); return; }
@@ -583,7 +581,7 @@ export default function HPremiumVedicSection({
   }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,postVedicJson]);
 
   const handleGenerateChapter = useCallback(async (chNum:number) => {
-    console.log(`클릭됨: 베다 챕터 ${chNum}`);
+
     setRequestError("");
     setChapters(prev=>({...prev,[chNum]:{step:"loading",result:null}}));
     try {
@@ -597,8 +595,7 @@ export default function HPremiumVedicSection({
   }, [birthYear,birthMonth,birthDay,birthHour,birthMinute,timezone,lat,lon,chart,postVedicJson]);
 
   const handleGenerateAll = useCallback(async () => {
-    console.log("클릭됨: 베다 전체 챕터 생성");
-    // 현재 스냅샷 기준으로 미완료된 챕터만 순차 생성
+    // 현재 스냅샷 기준으로 미완료된 챘터만 순차 생성
     const pending = CHAPTER_META.filter(m => chapters[m.num]?.step !== "done");
     for (const meta of pending) {
       await handleGenerateChapter(meta.num);
