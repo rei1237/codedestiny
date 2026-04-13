@@ -9,6 +9,9 @@
 		text-size-adjust: 100%;
 		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
 		-webkit-overflow-scrolling: touch;
+		/* 스크롤 시 GPU 레이어 전환에 의한 안티앨리어싱 변화 방지 */
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 	@media (prefers-reduced-motion: no-preference) {
 		html {
