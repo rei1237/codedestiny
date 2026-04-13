@@ -1465,7 +1465,7 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 100코인</span>':'') + '</span></button>'; })()
+        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
@@ -1571,6 +1571,11 @@
         if (pAstro) _toast(_fortuneStartMessage(pAstro.name, 'astro'), 'success');
         if (typeof openAstroModal === 'function') openAstroModal();
       } else if (type === 'olympus') {
+        // Safety net: enforce lock gate even if this branch is called directly.
+        if (_DP_FEATURE_LOCKS.olympus && _dpIsFeatureLocked(_DP_FEATURE_LOCKS.olympus.key)) {
+          _dpGateLockFeature('olympus', function() { _runFortuneType('olympus'); });
+          return;
+        }
         var pOlympus = DPStorage.current();
         if (!pOlympus || !pOlympus.birth) {
           _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필이 필요합니다.', 'warn');
@@ -1629,10 +1634,18 @@
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
+          sessionStorage.setItem('FORTUNE_APP_VEDIC_FROM_PROFILE', '1');
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
           window.__cdActiveBirthProfile = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
+        // Use the shared navigation path first; this keeps profile payload and localization handling consistent.
+        if (typeof window.navigateToVedic === 'function') {
+          try {
+            window.navigateToVedic();
+            return;
+          } catch (_) {}
+        }
         var _vdTarget = '/vedic-astrology.html?from=profile-card';
         try {
           if (typeof cdResolveLocalizedFeatureHref === 'function') {
