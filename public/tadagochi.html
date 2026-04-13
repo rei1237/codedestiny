@@ -1342,6 +1342,9 @@ function setPetImg(imgEl,theme,animal,state){
   var reqId=String(Date.now())+Math.random().toString(16).slice(2);
   imgEl.dataset.reqId=reqId;
   imgEl.onerror=null;
+  // 즉시 base64 fallback 세팅 → 이미지가 항상 보임
+  var eggSrc=EGG[theme]||EGG.moon||FALLBACK_PET_IMAGE;
+  imgEl.src=eggSrc; imgEl.style.imageRendering='auto'; imgEl.style.clipPath='none';
   if(candidates.length){
     var tryIdx=0;
     var tryLoad=function(){
