@@ -398,10 +398,12 @@ img[width][height]{height:auto}
 .logo-area h1{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:800;color:#f4eeff;margin:.5rem 0}
 .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-top:6px}
 @keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
+@-webkit-keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
 @keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
+@-webkit-keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
 .pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:154px;position:relative;padding-bottom:16px}
-.pig-svg-wrap::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:84px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(160,90,255,0.55) 0%,transparent 70%);animation:pig-shadow-anim 3.2s ease-in-out infinite;will-change:transform,opacity;pointer-events:none}
-.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover;animation:pig-float 3.2s ease-in-out infinite;will-change:transform}
+.pig-svg-wrap::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:84px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(160,90,255,0.55) 0%,transparent 70%);animation:pig-shadow-anim 3.2s ease-in-out infinite;-webkit-animation:pig-shadow-anim 3.2s ease-in-out infinite;will-change:transform,opacity;pointer-events:none}
+.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover;animation:pig-float 3.2s ease-in-out infinite;-webkit-animation:pig-float 3.2s ease-in-out infinite;will-change:transform}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
 .tarot-tile__img-wrap{position:relative}
 .tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:.7rem;font-weight:900;line-height:1;letter-spacing:.03em;white-space:nowrap;background:rgba(10,5,30,.88);color:#ede9fe;border:1px solid rgba(160,120,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(120,80,220,.12);pointer-events:none}.tarot-tile__coin-badge::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1px solid rgba(255,200,50,.6);box-shadow:0 0 7px rgba(255,195,40,.65),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}.tarot-tile__coin-badge--free::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#d1fae5 0%,#6ee7b7 50%,#059669 100%);border:1px solid rgba(110,231,183,.55);box-shadow:0 0 5px rgba(52,211,153,.35);flex-shrink:0}
@@ -429,14 +431,15 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
 .admin-badge__crown{font-style:normal;font-size:.9rem}
 .admin-badge__text{font-size:.76rem;font-weight:900;background:linear-gradient(90deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.cd-user-card{position:relative;overflow:hidden;margin-top:20px;padding:22px 18px 18px;border-radius:22px;background:linear-gradient(145deg,rgba(12,4,32,0.97),rgba(25,8,58,0.93));border:1px solid rgba(140,90,255,0.22);box-shadow:0 0 50px rgba(90,40,180,0.18),0 14px 44px rgba(0,0,0,0.52),inset 0 1px 0 rgba(180,130,255,0.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;width:100%}
+.cd-user-card{position:relative;overflow:hidden;margin-top:20px;padding:22px 18px 18px;border-radius:22px;background:linear-gradient(145deg,rgba(12,4,32,0.99),rgba(25,8,58,0.98));border:1px solid rgba(140,90,255,0.22);box-shadow:0 0 50px rgba(90,40,180,0.18),0 14px 44px rgba(0,0,0,0.52),inset 0 1px 0 rgba(180,130,255,0.12);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;width:100%}
 .cd-user-card::before{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:220px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(130,60,240,0.22),transparent 70%);pointer-events:none}
 .cd-user-card::after{content:'';position:absolute;bottom:-20%;left:15%;width:160px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(60,120,255,0.12),transparent 70%);pointer-events:none}
-.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0;will-change:transform,opacity}
+.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;-webkit-animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0;will-change:transform,opacity;isolation:isolate}
 @keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
-.cd-user-card__avatar{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#d8b4fe,#8b5cf6 55%,#3b0764 100%);border:2px solid rgba(200,150,255,0.45);box-shadow:0 0 22px rgba(160,100,255,0.55),inset 0 2px 8px rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3s ease-in-out infinite}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}
-.cd-user-card__avatar-ring{position:absolute;inset:-9px;border-radius:50%;border:1.5px solid transparent;border-top-color:rgba(200,150,255,0.75);border-right-color:rgba(200,150,255,0.3);animation:cdAvatarSpin 4s linear infinite;will-change:transform}
-@keyframes cdAvatarSpin{to{transform:rotate(360deg)}}
+@-webkit-keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
+.cd-user-card__avatar{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#d8b4fe,#8b5cf6 55%,#3b0764 100%);border:2px solid rgba(200,150,255,0.45);box-shadow:0 0 22px rgba(160,100,255,0.55),inset 0 2px 8px rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3s ease-in-out infinite;-webkit-animation:cdAvatarGlow 3s ease-in-out infinite;will-change:box-shadow;isolation:isolate}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}@-webkit-keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}
+.cd-user-card__avatar-ring{position:absolute;inset:-9px;border-radius:50%;border:1.5px solid transparent;border-top-color:rgba(200,150,255,0.75);border-right-color:rgba(200,150,255,0.3);animation:cdAvatarSpin 4s linear infinite;-webkit-animation:cdAvatarSpin 4s linear infinite;will-change:transform;isolation:isolate}
+@keyframes cdAvatarSpin{to{transform:rotate(360deg)}}@-webkit-keyframes cdAvatarSpin{to{transform:rotate(360deg)}}
 .cd-user-card__initial{font-size:1.5rem;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.7);line-height:1}
 .cd-user-card__info{display:flex;flex-direction:column;gap:2px;align-items:center}
 .cd-user-card__greeting{font-size:.75rem;color:rgba(190,160,255,0.72);font-weight:600;letter-spacing:.06em}
@@ -542,7 +545,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
-.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:layout style;will-change:auto}
+.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
   </style>
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
   <style id="cd-perf">
@@ -956,19 +959,49 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 })();
 </script>
 
-<!-- iOS/Android: CSS animation freeze recovery on visibility restore -->
+<!-- iOS/Android: CSS animation freeze recovery (visibilitychange + pageshow + focus + scroll) -->
 <script>(function(){
-  var ANIM_SEL=['.cosmic-star','.cosmic-star-flower','.logo-star-flower','.cd-user-star','.cd-user-card__avatar-ring','.cd-user-card__avatar','.admin-badge','.golden-grain-badge__coin','.honeypig-logo-icon','.neo-logo-icon'].join(',');
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState!=='visible')return;
-    var els=document.querySelectorAll(ANIM_SEL);
+  var SEL='.cosmic-star,.cosmic-star-flower,.logo-star-flower,.cd-user-star,.cd-user-card__avatar-ring,.cd-user-card__avatar,.admin-badge,.honeypig-logo-icon,.neo-logo-icon';
+  function restartAll(){
+    var els=document.querySelectorAll(SEL);
     if(!els.length)return;
-    /* animation-name을 한 틱 동안 none으로 바꿔서 iOS freeze 강제 해제 */
-    els.forEach(function(el){el.style.animationName='none';});
-    requestAnimationFrame(function(){
-      els.forEach(function(el){el.style.animationName='';});
+    /* Step1: pause at current frame */
+    els.forEach(function(el){
+      el.style.WebkitAnimationPlayState='paused';
+      el.style.animationPlayState='paused';
     });
+    /* Step2: force reflow so browser registers the pause */
+    void document.body.offsetWidth;
+    /* Step3: double-rAF + timeout — iOS needs at least 2 frames before resume */
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        setTimeout(function(){
+          els.forEach(function(el){
+            el.style.WebkitAnimationPlayState='';
+            el.style.animationPlayState='';
+          });
+        },32);
+      });
+    });
+  }
+  /* tab/app switch */
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible')restartAll();
   });
+  /* BFCache restore (iOS back/forward) */
+  window.addEventListener('pageshow',function(e){
+    if(e.persisted)restartAll();
+  });
+  /* lock screen return / focus regain */
+  window.addEventListener('focus',function(){
+    setTimeout(restartAll,80);
+  });
+  /* iOS sometimes freezes after fast scroll — restart once after scroll settles */
+  var _st;
+  window.addEventListener('scroll',function(){
+    clearTimeout(_st);
+    _st=setTimeout(restartAll,400);
+  },{passive:true});
 })();</script>
 
 <!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
