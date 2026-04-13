@@ -806,28 +806,6 @@
   async function _unlockDominator() {
     var btn = _q('sbUnlockBtn');
     if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
-
-    /* ── 관리자 모드 우회: flower_admin_token 검증 ── */
-    try {
-      var _adminTok = sessionStorage.getItem('flower_admin_token');
-      var _isAdmin = !!(_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok));
-      if (_isAdmin) {
-        var lockEl0 = _q('sbLockOverlay');
-        if (lockEl0) lockEl0.classList.add('sb-hidden');
-        var genEl0 = _q('sbGenerating');
-        if (genEl0) genEl0.classList.remove('sb-hidden');
-        try {
-          await _generateDominatorReport();
-        } catch(e) {
-          console.error('[SibylSystem] Admin report generation error:', e);
-          var errState0 = _q('sbErrorState');
-          if (errState0) errState0.classList.remove('sb-hidden');
-          if (genEl0) genEl0.classList.add('sb-hidden');
-        }
-        return;
-      }
-    } catch(e) {}
-
     // Auth check
     var _authToken = '';
     try {

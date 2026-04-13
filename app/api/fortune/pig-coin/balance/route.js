@@ -4,7 +4,7 @@ import { getUserModel } from "../../../../_lib/models/UserModel";
 import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../_lib/flowerAdminToken";
 
 export const runtime = "nodejs";
-const ADMIN_VIRTUAL_COINS = 9999999;
+const ADMIN_VIRTUAL_COINS = 9999;
 
 function verifyToken(request) {
   const authHeader = request.headers.get("Authorization") || "";
@@ -57,7 +57,7 @@ export async function GET(request) {
         ok: true,
         adminMode: true,
         message: "관리자 코인이 9999로 재설정되었습니다.",
-        user: { id: String(userId), points: Number(updatedAdmin.points || ADMIN_VIRTUAL_COINS) },
+        user: { id: String(userId), points: ADMIN_VIRTUAL_COINS },
       });
     }
 

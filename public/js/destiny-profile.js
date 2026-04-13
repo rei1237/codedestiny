@@ -164,13 +164,6 @@
       if (typeof onCancel === 'function') onCancel();
       return;
     }
-    var plan = '';
-    try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
-    if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
-    try { if (sessionStorage.getItem('flower_admin_token')) { cb(); return; } } catch(_) {}
-    try { if (localStorage.getItem('flower_admin_token')) { cb(); return; } } catch(_) {}
-    try { var _cdAdmU = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); if (_cdAdmU && String(_cdAdmU.role || '').toLowerCase() === 'admin') { cb(); return; } } catch(_) {}
-    try { var _cdAltU = JSON.parse(localStorage.getItem('cd_user') || 'null'); if (_cdAltU && String(_cdAltU.role || '').toLowerCase() === 'admin') { cb(); return; } } catch(_) {}
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
@@ -240,17 +233,6 @@
       localStorage.setItem('fortune_auth_user', JSON.stringify(u));
     } catch (e) {}
   }
-
-  function _dpIsAdminUser() {
-    try {
-      var raw = localStorage.getItem('fortune_auth_user');
-      var u = raw && JSON.parse(raw);
-      if (u && u.role === 'admin') return true;
-      try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch (_) {}
-    } catch (e) {}
-    return false;
-  }
-
   function _dpGetUserPlan() {
     try {
       var raw = localStorage.getItem('fortune_auth_user');
@@ -267,10 +249,6 @@
   function _dpGateLockFeature(type, cb) {
     var info = _DP_FEATURE_LOCKS[type];
     if (!info) { cb(); return; }
-
-    var plan = _dpGetUserPlan();
-    if (plan === 'unlimited' || plan === 'premium') { cb(); return; }
-
     if (!_dpIsFeatureLocked(info.key)) { cb(); return; }
 
     var token = _dpGetAuthToken();
