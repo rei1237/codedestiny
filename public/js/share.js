@@ -710,6 +710,22 @@ function reactivateThemeToggleFromHome(){
   scheduleThemeToggleAutoDisable();
 }
 
+function ensureThemeToggleCriticalStyles(){
+  if(document.getElementById('cdThemeToggleCriticalStyle')) return;
+  var style = document.createElement('style');
+  style.id = 'cdThemeToggleCriticalStyle';
+  style.textContent = ''
+    + '.theme-toggle-label,.tsw-input{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}'
+    + '.theme-switch-pill{--seg:80px;--pad:4px;display:inline-flex;align-items:center;padding:var(--pad);border-radius:100px;position:relative;overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;background:rgba(255,255,255,.92);border:1.5px solid rgba(255,160,182,.5);box-shadow:0 8px 32px rgba(255,80,130,.15),0 2px 10px rgba(0,0,0,.06),inset 0 1px 0 #fff;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);}'
+    + '.tsp-option{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;width:var(--seg,80px);padding:9px 0;border-radius:100px;font-size:.82rem;font-weight:800;line-height:1;white-space:nowrap;pointer-events:none;}'
+    + '.tsp-icon{font-size:1.05rem;line-height:1;pointer-events:none;}.tsp-name{pointer-events:none;}.tsp-pig{color:#e0305f;}.tsp-lion{color:#a8a8b8;}'
+    + '.theme-switch-pill::before{content:"";position:absolute;top:var(--pad,4px);bottom:var(--pad,4px);left:var(--pad,4px);width:var(--seg,80px);border-radius:100px;background:linear-gradient(140deg,#ffe0ec 0%,#ffb0cc 50%,#ff82ae 100%);box-shadow:0 4px 14px rgba(255,90,145,.35),inset 0 1px 0 rgba(255,255,255,.75);pointer-events:none;transition:transform .42s cubic-bezier(.34,1.56,.64,1);}'
+    + '#themeCheckbox:checked + .theme-switch-pill{background:rgba(10,10,18,.97);border-color:rgba(255,215,0,.3);box-shadow:0 8px 32px rgba(0,0,0,.5),0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);}'
+    + '#themeCheckbox:checked + .theme-switch-pill::before{transform:translateX(var(--seg,80px));background:linear-gradient(140deg,#26263a 0%,#1b1b2c 50%,#10101e 100%);box-shadow:0 4px 18px rgba(255,215,0,.25),inset 0 1px 0 rgba(255,255,255,.07);}'
+    + '#themeCheckbox:checked + .theme-switch-pill .tsp-pig{color:rgba(255,255,255,.2);}#themeCheckbox:checked + .theme-switch-pill .tsp-lion{color:#ffd700;}';
+  document.head.appendChild(style);
+}
+
 var NEO_TITLES={
   '사주 명식 (四柱命式)':'사주 명식 — 운명 회로도',
   '핵심 십성 (十星) — 탭하면 상세 분석!':'핵심 십성 — 당신의 심리 코드',
@@ -896,6 +912,7 @@ function enforceThemeToggleSticky() {
 }
 
 window.addEventListener('load',function(){
+  ensureThemeToggleCriticalStyles();
   var bootThemeNeo = (typeof window.__INITIAL_THEME_NEO__ === 'boolean')
     ? window.__INITIAL_THEME_NEO__
     : readThemeModeState();
