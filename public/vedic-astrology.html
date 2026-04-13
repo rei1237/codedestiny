@@ -2145,17 +2145,28 @@ function _readProfileFromStorage(){
   var raw;
   if(typeof localStorage!=='undefined'){
     raw=localStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD');
-    if(raw){ try{ profile=JSON.parse(raw); }catch(_){}
-      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){ localStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); return _repairProfile(profile); }
+    if(raw){ try{ profile=JSON.parse(raw); }catch(_){ }
+      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){
+        localStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD');
+        profile=_repairProfile(profile);
+        if(_hasValidBirth(profile)) return profile;
+      }
     }
   }
   if(typeof sessionStorage!=='undefined'){
     raw=sessionStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD');
-    if(raw){ try{ profile=JSON.parse(raw); }catch(_){}
-      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){ sessionStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); return _repairProfile(profile); }
+    if(raw){ try{ profile=JSON.parse(raw); }catch(_){ }
+      if(profile&&(profile.birth||profile.birthYear!=null||profile.birthDate)){
+        sessionStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD');
+        profile=_repairProfile(profile);
+        if(_hasValidBirth(profile)) return profile;
+      }
     }
   }
-  if(typeof window!=='undefined'&&window.FORTUNE_APP_VEDIC_PAYLOAD)return _repairProfile(window.FORTUNE_APP_VEDIC_PAYLOAD);
+  if(typeof window!=='undefined'&&window.FORTUNE_APP_VEDIC_PAYLOAD){
+    profile=_repairProfile(window.FORTUNE_APP_VEDIC_PAYLOAD);
+    if(_hasValidBirth(profile)) return profile;
+  }
   if(typeof localStorage!=='undefined'){
     const listRaw=localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
     const currentId=localStorage.getItem('FORTUNE_APP_USER_PROFILES.current');

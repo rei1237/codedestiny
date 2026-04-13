@@ -1579,7 +1579,9 @@
           });
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
-        if (!pVedic || !pVedic.birth) {
+        var _vb = pVedic && pVedic.birth ? pVedic.birth : null;
+        var _hasVedicBirth = !!(_vb && _vb.year != null && _vb.month != null && _vb.day != null && _vb.year !== '' && _vb.month !== '' && _vb.day !== '');
+        if (!pVedic || !_hasVedicBirth) {
           _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
           return;
         }
