@@ -334,8 +334,6 @@ body {
 
 /* ─── Hero / Logo area ─── */
 .logo-area {
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
 	border-radius: 24px;
 	margin-bottom: 16px;
 	padding: 40px 16px 36px;
@@ -398,8 +396,6 @@ body {
 
 /* ─── Input section (form card) ─── */
 .card.input-section {
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
 	border-radius: 22px;
 	padding: 24px 16px;
 	margin-bottom: 20px;
@@ -512,9 +508,7 @@ body {
 /* overflow-x: hidden만 유지 (가로 넘침 방지), overflow-y: visible로 메인 페이지 스크롤 방해 방지 */
 .feat-collection,
 .tarot-collection {
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
-	contain: layout paint style;
+	contain: layout paint;
 	content-visibility: auto;
 	contain-intrinsic-size: 420px;
 	border-radius: 22px;

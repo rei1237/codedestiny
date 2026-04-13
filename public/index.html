@@ -349,6 +349,7 @@
 <!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
 <script>
 (function(){
+  var loaded = false;
   function injectFont(href) {
     if (!href) return;
     if (document.querySelector('link[data-cd-font-src="' + href + '"]')) return;
@@ -358,39 +359,26 @@
     ln.setAttribute('data-cd-font-src', href);
     document.head.appendChild(ln);
   }
-  /* ── 기본 폰트(Noto Sans KR): DOMContentLoaded 즉시 로드 → FOUT 방지 ── */
-  var primaryUrl = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap';
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ injectFont(primaryUrl); }, { once: true });
-  } else {
-    injectFont(primaryUrl);
+  function loadFonts() {
+    if (loaded) return;
+    loaded = true;
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
+    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
+    window.removeEventListener('pointerdown', loadFonts, true);
+    window.removeEventListener('touchstart', loadFonts, true);
+    window.removeEventListener('keydown', loadFonts, true);
+    window.removeEventListener('scroll', loadFonts, true);
   }
-  /* ── 장식 폰트: 첫 사용자 인터랙션 또는 유휴 시 지연 로드 ── */
-  var decorLoaded = false;
-  function loadDecorFonts() {
-    if (decorLoaded) return;
-    decorLoaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
-    window.removeEventListener('pointerdown', loadDecorFonts, true);
-    window.removeEventListener('touchstart', loadDecorFonts, true);
-    window.removeEventListener('keydown', loadDecorFonts, true);
-    window.removeEventListener('scroll', loadDecorFonts, true);
-  }
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(loadDecorFonts, { timeout: 3000 });
-  } else {
-    setTimeout(loadDecorFonts, 2000);
-  }
-  window.addEventListener('pointerdown', loadDecorFonts, true);
-  window.addEventListener('touchstart', loadDecorFonts, true);
-  window.addEventListener('keydown', loadDecorFonts, true);
-  window.addEventListener('scroll', loadDecorFonts, true);
+  window.addEventListener('pointerdown', loadFonts, true);
+  window.addEventListener('touchstart', loadFonts, true);
+  window.addEventListener('keydown', loadFonts, true);
+  window.addEventListener('scroll', loadFonts, true);
   document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') loadDecorFonts();
+    if (document.visibilityState === 'hidden') loadFonts();
   }, { once: true });
 })();
 </script>
-<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"></noscript>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
@@ -594,7 +582,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged1">
+  <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged2">
   <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
   <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260413-m1">
 
@@ -6007,7 +5995,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   </footer>
 
 <script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
-<script src="/js/mobile-interaction-patch.js?v=20260413-premium-fix2" defer></script>
+<script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script defer src="/js/core/index-inline-runtime.js?v=20260411-saju-sinsal-v7"></script>

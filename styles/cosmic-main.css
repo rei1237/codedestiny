@@ -210,7 +210,7 @@ body .wrap { position: relative; z-index: 1; }
 /* 카드 안쪽만 그라데이션 밤하늘 + 핑크 포인트 */
 body:not(.neo-mode) .logo-area {
 	position: relative;
-	overflow: hidden;
+	overflow: clip;
 	background: linear-gradient(165deg,
 		#1e1a32 0%,
 		#252040 25%,
@@ -314,7 +314,7 @@ body:not(.neo-mode) .logo-area .auth-quick-links {
 /* ─── Zone 1: 로고/히어로 — 백사자 스타일 다크+골드 (neo 전용) ─── */
 body.neo-mode .logo-area {
 	position: relative;
-	overflow: hidden;
+	overflow: clip;
 	background:
 		radial-gradient(ellipse at 22% -5%,  rgba(255, 215, 0, 0.12) 0%, transparent 50%),
 		radial-gradient(ellipse at 78% 105%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
