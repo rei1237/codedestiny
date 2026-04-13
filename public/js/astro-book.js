@@ -242,6 +242,7 @@
     var modal = _qs('astroBookModal');
     if (!modal) { console.error('[점성술 코즈믹 차트] astroBookModal 요소를 찾을 수 없습니다.'); return; }
     _applyAstroTheme(modal);
+    if (modal.style.display === 'flex') return;
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile = _getActiveBirthProfile();
     if (!profile) {

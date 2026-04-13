@@ -1396,6 +1396,13 @@ function __cdInvokeAction(action, actionEl, event) {
     var hasFn = typeof window[action] === 'function';
     if (!loader || hasFn || out !== undefined) return;
 
+    // prem-gate 4종: 코인 차감 후 _cdInvokeActionDirect가 처리하므로
+    // 타일 최초 클릭 시 여기서 lazy-load/재호출 중복 방지
+    if (!hasFn && actionEl && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
+      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' ||
+          action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') return;
+    }
+
     if (!__cdLazyActionState[action]) {
       __cdLazyActionState[action] = loader().catch(function(err) {
         console.error('[index-inline-runtime] lazy action load failed:', action, err);

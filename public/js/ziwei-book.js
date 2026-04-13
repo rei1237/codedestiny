@@ -411,6 +411,10 @@
       console.error('[자미두수 인생 총람] ziweiBookModal 요소를 찾을 수 없습니다.');
       return;
     }
+    if (modal.style.display === 'flex') {
+      _trace('FLOW_SKIP_ALREADY_OPEN', {});
+      return;
+    }
 
     var profile = _getActiveBirthProfile();
     // 프로필 없으면 localStorage 운명 카드에서 복구
