@@ -839,48 +839,7 @@ function normalizeLegacyFuctionAssetImagePaths() {
   }, { minBatch: 8, maxBatch: 30, budgetMs: 6 });
 }
 
-function __cdSortAnimalCollectionTitlesDesc() {
-  var collection = document.getElementById('animalCollection');
-  if (!collection || collection.dataset.cdTitleSortedDesc === '1') return;
-
-  var grid = collection.querySelector('.feat-collection__grid');
-  if (!grid) return;
-
-  var tiles = [];
-  for (var i = 0; i < grid.children.length; i++) {
-    var child = grid.children[i];
-    if (child && child.classList && child.classList.contains('tarot-tile')) {
-      tiles.push(child);
-    }
-  }
-  if (!tiles.length) return;
-
-  var lang = (document.documentElement && document.documentElement.lang) || 'ko';
-  var collator = (typeof Intl !== 'undefined' && typeof Intl.Collator === 'function')
-    ? new Intl.Collator(lang, { numeric: true, sensitivity: 'base' })
-    : null;
-
-  function getTitleText(tile) {
-    var titleEl = tile ? tile.querySelector('.tarot-tile__title') : null;
-    var raw = titleEl && titleEl.textContent ? titleEl.textContent : '';
-    return raw.replace(/\s+/g, ' ').trim();
-  }
-
-  tiles.sort(function(a, b) {
-    var aTitle = getTitleText(a);
-    var bTitle = getTitleText(b);
-    if (collator) return collator.compare(bTitle, aTitle);
-    return bTitle.localeCompare(aTitle);
-  });
-
-  var fragment = document.createDocumentFragment();
-  tiles.forEach(function(tile) { fragment.appendChild(tile); });
-  grid.appendChild(fragment);
-  collection.dataset.cdTitleSortedDesc = '1';
-}
-
 function initFeatureCardBindings() {
-  __cdSortAnimalCollectionTitlesDesc();
   __cdScheduleIdleTask(function() {
     normalizeLegacyFuctionAssetImagePaths();
     bindFeatureCardVisualActions();
@@ -1188,7 +1147,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=20260414-v3')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -5168,21 +5127,29 @@ function _dfResolveLockTileBySource(source) {
   return tile;
 }
 
-function _dfRequireSourceCoinPayment(source, onPass) {
-  var tile = _dfResolveLockTileBySource(source);
+function _dfIsLockTileUnlocked(tile) {
   if (!tile) return true;
   var lockKey = tile.getAttribute('data-tile-lock-key');
   if (!lockKey) return true;
-  var cost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-  if (!(cost > 0)) cost = 50;
-  var sourceMeta = _DF_SOURCE_META[_dfNormalizeSource(source)] || _DF_SOURCE_META.saju;
-  var reason = (sourceMeta.labelKo || '운명의 꽃') + ' 운명의 꽃 아틀리에 결제';
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(cost, reason, function() {
-      if (typeof onPass === 'function') onPass();
-    });
-    return false;
+  var isUnlocked = false;
+  try { isUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[lockKey]); } catch (_) {}
+  if (!isUnlocked) {
+    try { var locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); isUnlocked = !!locks[lockKey]; } catch (_) {}
   }
+  if (!isUnlocked) {
+    try {
+      var user = readAuthUser && readAuthUser();
+      var plan = (user && user.plan) ? String(user.plan) : '';
+      if (plan === 'unlimited' || plan === 'premium') isUnlocked = true;
+    } catch (_) {}
+  }
+  return isUnlocked;
+}
+
+function _dfEnsureSourceUnlocked(source) {
+  var tile = _dfResolveLockTileBySource(source);
+  if (!tile) return true;
+  if (_dfIsLockTileUnlocked(tile)) return true;
   if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
     return false;
   }
@@ -5240,12 +5207,12 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
-function openDestinyFlowerStudio(source, gatePassed) {
+function openDestinyFlowerStudio(source) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
-  var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function() { openDestinyFlowerStudio(requestedSource, true); })) {
+  var requestedSource = _dfNormalizeSource(source || 'saju');
+  if (!_dfEnsureSourceUnlocked(requestedSource)) {
     return;
   }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
@@ -5390,9 +5357,9 @@ function _dfGetNoBirthMessage(source) {
   return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
 }
 
-function setDestinyFlowerSourceTab(source, gatePassed) {
+function setDestinyFlowerSourceTab(source) {
   var normalized = _dfNormalizeSource(source);
-  if (!gatePassed && !_dfRequireSourceCoinPayment(normalized, function() { setDestinyFlowerSourceTab(normalized, true); })) {
+  if (!_dfEnsureSourceUnlocked(normalized)) {
     return _dfStudioState.selection || null;
   }
   normalized = _dfSetActiveSource(normalized);
@@ -6696,5 +6663,4 @@ window.addEventListener('load', function() {
     }
   }
 })();
-
 

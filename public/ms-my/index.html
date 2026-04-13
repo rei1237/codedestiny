@@ -6018,7 +6018,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
   </footer>
 
-<script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/destiny-profile.js?v=20260414-v3" data-cd-mobile-delay="1"></script>
 <script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
@@ -6899,6 +6899,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     })();
   }
 
+  // 프리뷰 CTA에서도 동일 코인게이트 경로를 재사용할 수 있도록 전역 노출
+  window.__cdPremCardCoinGate = function(event, actionNode, action, tileCoinCost) {
+    _cdRunPerUseCoinGate(event || null, actionNode, action, Number(tileCoinCost || 0));
+  };
+
   var __cdLastTouch = { x: 0, y: 0, t: 0, moved: false };
   document.addEventListener('touchstart', function (event) {
     var t = event.touches && event.touches[0];
@@ -7411,6 +7416,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
+    var _action=tile.getAttribute('data-action')||'';
+    if(_pvwCoinCost>0&&_action&&typeof window.__cdPremCardCoinGate==='function'){
+      window.__cdPremCardCoinGate(null,tile,_action,_pvwCoinCost);
+      return;
+    }
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
@@ -8551,4 +8561,5 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </script>
 </body>
 </html>
+
 
