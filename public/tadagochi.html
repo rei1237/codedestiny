@@ -135,7 +135,7 @@ tailwind.config={theme:{extend:{
 
 body{min-height:100vh;touch-action:manipulation;font-family:'Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .6s;position:relative;overflow:hidden}
 
-:root{--c1:#ddd6fe;--c2:#a78bfa;--c3:#7c3aed;--bg1:#fdf4ff;--bg2:#ede9fe;--cb:#e9d5ff;--acc:#7c3aed;--al:#a78bfa;--adim:#f5f3ff;--text:#4c1d95}
+:root{--c1:#ddd6fe;--c2:#a78bfa;--c3:#7c3aed;--bg1:#fff;--bg2:#fff;--cb:#e9d5ff;--acc:#7c3aed;--al:#a78bfa;--adim:#f5f3ff;--text:#4c1d95}
 
 .e-wood{--c1:#bbf7d0;--c2:#4ade80;--c3:#15803d;--bg1:#f0fdf4;--bg2:#dcfce7;--cb:#bbf7d0;--acc:#166534;--al:#4ade80;--adim:#f0fdf4;--text:#14532d}
 
@@ -151,7 +151,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 #particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
 
-.card{width:min(400px,100vw);height:min(780px,100vh);background:linear-gradient(175deg,rgba(255,255,255,.98),rgba(255,255,255,.93));border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);z-index:1;transition:box-shadow .4s}
+.card{width:min(400px,100vw);height:min(780px,100vh);background:#fff;border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);z-index:1;transition:box-shadow .4s}
 
 .top-strip{position:absolute;top:0;left:0;right:0;height:3.5px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));background-size:200%;animation:bar 2.5s linear infinite;z-index:100}
 
@@ -159,9 +159,9 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .scr.on{display:flex;animation:fade .35s ease forwards}
 
-.pet-wrap{width:140px;height:140px;overflow:hidden;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10}
+.pet-wrap{width:140px;height:140px;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10;background:#fff}
 
-.pet-img{width:140px;height:140px;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 6px 16px rgba(0,0,0,.15)) contrast(1.04) saturate(1.1);transition:opacity .12s,filter .3s;clip-path:inset(5px)}
+.pet-img{width:140px;height:140px;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 6px 16px rgba(0,0,0,.12));transition:opacity .12s,filter .3s}
 
 .pet-img.sw{opacity:0}
 
@@ -1121,7 +1121,7 @@ function gH(){
   G.animal=normalizeAnimalKey(G.zodiac);
   // G.animal은 십이지 그대로 유지
 
-  var eg=EGG[G.theme]; var he=document.getElementById('h-egg'); if(eg) he.src=eg;
+  var eg=EGG[G.theme]||EGG.moon; var he=document.getElementById('h-egg'); if(eg) he.src=eg;
 
   G.hatch=0; document.getElementById('h-bar').style.width='0%'; document.getElementById('h-pct').textContent='0%';
 
@@ -1623,13 +1623,13 @@ function askCategoryQuestion(cat){
   }
 }
 
-function setcat(btn,cat){
+function setcat(btn,cat,silent){
   chatCat=cat; G.chatCat=cat;
   document.querySelectorAll('.cat-btn').forEach(function(b){
     var sel=b.dataset.cat===cat;
     b.style.borderColor=sel?'var(--acc)':'var(--cb)'; b.style.color=sel?'var(--acc)':'#888'; b.style.background=sel?'var(--adim)':'transparent';
   });
-  if(_lastPromptCat!==cat){
+  if(!silent && _lastPromptCat!==cat){
     _lastPromptCat=cat;
     askCategoryQuestion(cat);
   }
@@ -1749,7 +1749,7 @@ function openChat(){
 
   if(log.children.length===0){
     addBotMsg('안녕! 나 '+G.petName+'야 🔮 상단 탭에서 종합/사주/자미두수/점성술/타로를 고르면 먼저 질문을 물어볼게 ✨');
-    setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general');
+    setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general',true);
   }
 
 }
