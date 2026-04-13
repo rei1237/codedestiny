@@ -736,7 +736,7 @@ function fcToggle(btn) {
     if (card.classList.contains('feature-card--face') && openByAction('openPhysiognomyApp')) { return; }
     if (card.classList.contains('feature-card--animal') && openByAction('openMbtiModal')) { return; }
     if (card.classList.contains('feature-card--tarot-love') && openByAction('openTarotLoveModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-healing') && openByAction('openTarotHealingModal')) { return; }
+    if (card.classList.contains('feature-card--tarot-healing') && openByAction('openTarotHealingPage')) { return; }
     if (card.classList.contains('feature-card--tarot-self-esteem') && openByAction('openTarotSelfEsteemModal')) { return; }
     if (card.classList.contains('feature-card--tarot-reunion') && openByAction('openTarotReunionModal')) { return; }
     if (card.classList.contains('feature-card--tarot-year') && openByAction('openTarotYearFortuneModal')) { return; }
@@ -769,7 +769,7 @@ function bindFeatureCardVisualActions() {
     { cardClass: 'feature-card--face', action: 'openPhysiognomyApp' },
     { cardClass: 'feature-card--animal', action: 'openMbtiModal' },
     { cardClass: 'feature-card--tarot-love', action: 'openTarotLoveModal' },
-    { cardClass: 'feature-card--tarot-healing', action: 'openTarotHealingModal' },
+    { cardClass: 'feature-card--tarot-healing', action: 'openTarotHealingPage' },
     { cardClass: 'feature-card--tarot-self-esteem', action: 'openTarotSelfEsteemModal' },
     { cardClass: 'feature-card--tarot-reunion', action: 'openTarotReunionModal' },
     { cardClass: 'feature-card--tarot-year', action: 'openTarotYearFortuneModal' },
@@ -942,7 +942,7 @@ var __cdLazyActionLoaders = {
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
-  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'); },
+  openTarotHealingPage: function() { try { window.location.assign('/tarot/healing'); } catch(e) { window.open('/tarot/healing', '_self'); } return Promise.resolve(); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
@@ -5893,6 +5893,39 @@ function navigateToVedic() {
     } catch (e) {}
   }
   window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
+}
+
+function navigateToZiweiChart() {
+  // 메인 화면 운명 카드 프로필에서 생년월일 추출
+  var profile = null;
+  try {
+    var listRaw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.list');
+    var currentId = localStorage.getItem('FORTUNE_APP_USER_PROFILES.current');
+    if (listRaw) {
+      var arr = JSON.parse(listRaw);
+      if (Array.isArray(arr) && arr.length) {
+        var cur = currentId ? arr.find(function(p) { return p.id === currentId; }) : null;
+        profile = cur || arr[0] || null;
+        if (profile && (!profile.birth || profile.birth.year == null)) profile = null;
+      }
+    }
+  } catch (e) {}
+  // 운명 카드 프로필이 있으면 /ziwei/chart 입력 폼 자동 세팅 후 이동
+  if (profile && profile.birth) {
+    try {
+      var b = profile.birth;
+      var preSession = {
+        step: 'form',
+        birthYear: String(b.year || ''),
+        birthMonth: String(b.month || ''),
+        birthDay: String(b.day || ''),
+        birthHour: String(b.hour != null ? b.hour : 12),
+        unknownHour: false
+      };
+      localStorage.setItem('premium:ziwei:session:v1', JSON.stringify(preSession));
+    } catch (e) {}
+  }
+  window.location.href = '/ziwei/chart';
 }
 
 function openGeomancyOracle() {

@@ -215,7 +215,7 @@ const ACTION_MAP: Record<string, string> = {
   "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
   /* ── 추가된 서비스 ── */
-  "/tarot/healing":"openTarotHealingModal",
+  "/tarot/healing":"/tarot/healing",
   "/tarot/mingri":"openTarotModal",
   "/tarot/love":"openTarotLoveModal",
   "/saju/basic":"/",
@@ -227,7 +227,17 @@ const ACTION_MAP: Record<string, string> = {
   "/astrology/cosmic":"openAstroModal",
   "/oracle/hwatu-life":"/oracle/hwatu-life/play",
   "/oracle/sikojen-povailu":"/oracle/sikojen-povailu/play",
-  "/oracle/royal-tea":"/royal-tea-oracle.html",
+  "/oracle/royal-tea":"openRoyalTeaOracle",
+};
+
+const PAID_SLUG_META: Record<string, { coins: string }> = {
+  "/tarot/mingri": { coins: "30코인" },
+  "/tarot/love": { coins: "50코인" },
+  "/tarot/reunion": { coins: "50코인" },
+  "/tarot/year": { coins: "30코인" },
+  "/oracle/royal-tea": { coins: "30코인" },
+  "/saju/lifebook": { coins: "490코인" },
+  "/saju/love-secret": { coins: "290코인" },
 };
 
 /* Particle positions for the 5 floating items */
@@ -250,6 +260,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const runHref = action
     ? (action.startsWith('/') ? action : `/?action=${encodeURIComponent(action)}`)
     : "/";
+  const paidMeta = PAID_SLUG_META[basePath];
+  const isPaidFeature = !!paidMeta;
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -572,7 +584,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             fontFamily:"'Noto Sans KR',sans-serif",
           }}>
             <span style={{ fontSize:"1.1rem" }}>{cfg.icon}</span>
-            <span>기능 바로 실행</span>
+            <span>{isPaidFeature ? `유료 기능 실행 · ${paidMeta.coins}` : "기능 바로 실행"}</span>
           </Link>
           <Link href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
@@ -585,6 +597,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             관련 인사이트 보기
           </Link>
         </div>
+
+        {isPaidFeature && (
+          <p style={{
+            marginTop:"10px", marginBottom:0,
+            fontSize:"0.78rem", lineHeight:1.6, textAlign:"center",
+            color:"rgba(248,250,252,0.78)",
+          }}>
+            유료 기능입니다. 바로가기를 누르면 메인 화면에서 코인 게이트가 먼저 표시됩니다.
+          </p>
+        )}
 
         {/* SEO text */}
         {service?.seoText && (

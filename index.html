@@ -1837,9 +1837,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
 
-            <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
+                <!-- [기능 연결부] 힐링 타로 → openTarotHealingPage() -->
             <button class="tarot-tile tarot-tile--healing" type="button"
-                    data-action="openTarotHealingModal"
+                  data-action="openTarotHealingPage"
                     aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — Sun &amp; Light 4카드 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☀️</span></div>
@@ -2212,6 +2212,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
                     <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
+                  </div>
+                </button>
+
+                <!-- 자미두수 심화 분석 (H 프리미엄) -->
+                <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
+                        data-action="navigateToZiweiChart"
+                        aria-label="자미두수 심화 분석 열기">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌟</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--ziwei">심화</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">🌟 자미두수 심화</span>
+                    <span class="tarot-tile__desc">16챕터 인생 전략 · 명궁 완전 해독</span>
                   </div>
                 </button>
 
@@ -7252,7 +7267,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openNevilleMeditationPage:{cat:'네빌 명상 · 현실창조',title:'🧘 네빌 명상 실습',tagline:'이 명상을 3일 연속으로 하면 원하는 현실이 바뀌기 시작합니다 — 네빌 고다드의 검증된 기법',feats:['네빌 고다드가 실제 사용한 의식 명상 기법','원하는 것을 이미 가진 것처럼 느끼는 감각 훈련','부정적 신념 패턴을 즉시 해체하는 기법 적용','30분 완전 가이드 세션으로 처음도 쉽게'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/meditation.webp'},
     openYogaGuru:{cat:'인도 요가 · 에너지 정화',title:'🪷 Divya Yoga',tagline:'인도 요기들이 4000년간 비밀로 간직한 에너지 정화 루틴 — 막힌 운을 뚫는 차크라 활성화',feats:['사주·별자리 기반 나만의 에너지 타입 정확히 파악','맞춤 아사나로 지금 막혀 있는 기운 즉시 해소','차크라 활성화로 운의 흐름을 바꾸는 명상','인도 전통 요기 감성 완전 가이드 세션'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/india.webp'},
     openTarotLoveModal:{cat:'타로 · 관계 리딩',title:'💕 우리는 무슨 사이?',tagline:'그 사람이 나한테 진심인지 아닌지 — 6장의 타로가 지금 바로 답을 줍니다',feats:['그 사람의 현재 감정 상태 직접 리딩','우리가 실제로 사귈 수 있는 가능성 분석','커플·짝사랑·이별·재회 모든 상황 완전 적용','지금 내가 해야 할 구체적인 행동 가이드'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/tarolove.webp'},
-    openTarotHealingModal:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 무료 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
+    openTarotHealingPage:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 무료 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
     openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','완전 무료 — 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
     openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'헤어진 그 사람 진짜 돌아올 수 있을까 — 5장의 타로가 재회 가능성을 직접 말합니다',feats:['재회 가능성을 직접 분석 & 수치로 제시','그 사람이 지금 나를 어떻게 생각하는지 리딩','재회를 위한 최적 타이밍 & 구체적 행동 전략','이별 원인 분석 후 실전 재회 어드바이스 제공'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
     openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
@@ -7273,7 +7288,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
+    navigateToZiweiChart:{cat:'자미두수 심화 · 16챕터 인생 전략',title:'🌟 자미두수 심화',tagline:'자미두수 12궁 완전 해독 — 명궁부터 마스터플랜까지 16챕터로 당신의 운명 전략을 완성합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 완전 분析','관록궁·재백궁·부처궁 총망라 인생 전략','대한·유년 타이밍 분析으로 기회의 시기 파악','완전 무료 — 생년월일 입력 후 즉시 분析'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
+    navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분析','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'},
     openSibylModal:{cat:'시빌라 사주 시스템',title:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (100코인)'],cost:'✨ 기본 무료 · 도미네이터 100코인',ct:'free',img:'/fuctionassets/sybila.webp'}
   };
