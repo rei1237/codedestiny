@@ -107,7 +107,7 @@ export default function AboutPage() {
           {[
             ["서비스명", "Code Destiny — 꿀꿀 만세력"],
             ["사이트 주소", "https://code-destiny.com"],
-            ["운영 주체", "코드 데스티니 (대표: 박병하)"],
+            ["운영 주체", "코드 데스티니"],
             ["사업자등록번호", "372-23-02329"],
             ["서비스 개시", "2024년"],
             ["주요 제공 서비스", "사주풀이, 타로, 점성술, 자미두수, 숙요점, 동물관상, 꿈 해몽, 궁합 등 20종 이상"],
@@ -194,7 +194,7 @@ export default function AboutPage() {
           서비스에 대한 문의, 오류 신고, 저작권 관련 사항은 아래 이메일로 연락주시면 빠르게 답변드립니다.
         </p>
         <p style={{ ...P, marginTop: "12px" }}>
-          <strong style={{ color: "#a78bfa" }}>운영자:</strong> 꽃돼지 연이 (박병하)<br />
+          <strong style={{ color: "#a78bfa" }}>운영자:</strong> 꽃돼지 연이<br />
           <strong style={{ color: "#a78bfa" }}>이메일:</strong>{" "}
           <a href="mailto:seongbae555@gmail.com" style={{ color: "#4ecdc4" }}>seongbae555@gmail.com</a><br />
           <strong style={{ color: "#a78bfa" }}>문의 페이지:</strong>{" "}

@@ -412,7 +412,7 @@ export default function SiteFooterHub() {
           <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
             본 서비스는 <strong style={{ color: "#94a3b8" }}>Google AdSense</strong> 등 제3자 광고를 노출할 수 있으며,
             광고 수익은 전적으로 서비스 품질 유지 및 신규 기능 개발에 재투자됩니다.
-            운영 주체: 코드 데스티니 (대표 박병하 · 사업자등록번호 372-23-02329) |
+            운영 주체: 코드 데스티니 (사업자등록번호 372-23-02329) |
             이메일: seongbae555@gmail.com
           </p>
           <nav aria-label="서비스 소개 링크" style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px" }}>
@@ -445,7 +445,7 @@ export default function SiteFooterHub() {
           <h3 style={BUSINESS_TITLE}>사업자 정보 및 코인 환불 정책</h3>
           <ul style={BUSINESS_LIST}>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스니티 (Code Destiny)</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> 박병하</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> 코드 데스티니</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
           </ul>
