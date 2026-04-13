@@ -1763,7 +1763,7 @@ function computeRealSynastry(myP, npcP) {
 }
 
 export default function LoveSimulation() {
-  const [screen, setScreen] = useState('self'); // self | portal | awakening | chat
+  const [screen, setScreen] = useState('portal'); // self | portal | awakening | chat
   const [tab, setTab] = useState('preset');        // preset | match | custom
   // 내 사주 아바타
   const [myPersona, setMyPersona] = useState(null);
@@ -2195,8 +2195,8 @@ export default function LoveSimulation() {
             <div className="cd-portal-logo">💕</div>
             <h1 className="cd-portal-title">LOVE CODE</h1>
             <p className="cd-portal-sub max-w-2xl rounded-2xl border border-rose-200/10 bg-black/20 px-4 py-3 backdrop-blur-sm">
-              생년월일로 사주를 분석해 그 사람의 본성과 연애 패턴을 읽는다<br/>
-              <span style={{ fontSize:'12px', opacity: 0.7 }}>오행 · 십신 · 캐릭터 AI 기반 연애 시뮬레이션</span>
+              시뮬레이션할 상대방의 생년월일로 성격 · 연애 패턴을 분석해 가상 연애를 시작합니다<br/>
+              <span style={{ fontSize:'12px', opacity: 0.7 }}>상대방 오행 · 십신 · 캐릭터 AI 기반 가상 연애 시뮬레이션</span>
             </p>
 
             {/* ── 내 사주 배너 (myPersona가 있을 때) ── */}
@@ -2221,10 +2221,10 @@ export default function LoveSimulation() {
                 💕 운명 캐릭터
               </button>
               <button className={`lc-tab${tab==='match'?' active':''}`} onClick={() => { setTab('match'); setMatchResults(null); }}>
-                🔮 나의 운명
+                🔮 궁합별 추천
               </button>
               <button className={`lc-tab${tab==='custom'?' active':''}`} onClick={() => setTab('custom')}>
-                ✦ 상대방 분석
+                ✦ 상대방 직접 입력
               </button>
             </div>
 
@@ -2265,14 +2265,14 @@ export default function LoveSimulation() {
             {tab === 'match' && (
               <div className="cd-form-card w-full max-w-[560px] rounded-3xl border border-rose-200/15 bg-black/30 shadow-[0_24px_80px_rgba(236,72,153,0.12)]">
                 <p style={{ fontSize:13, color:'var(--rose)', marginBottom:18, textAlign:'center', letterSpacing:'0.08em' }}>
-                  ✦ 내 생년월일을 입력하면 가장 잘 맞는 상대를 찾아드려요 ✦
+                  ✦ 나의 생년월일로 충합도가 가장 높은 시뮬레이션 상대를 추천해 드립니다 ✦
                 </p>
                 <div className="lc-gender-toggle" style={{ marginBottom:16 }}>
                   <button className={`lc-gender-btn${npcGender==='남'?' active-m':''}`} onClick={() => setNpcGender('남')}>
-                    💙 남성에서 찾기
+                    💙 남성 시뮬레이션 상대
                   </button>
                   <button className={`lc-gender-btn${npcGender==='여'?' active-f':''}`} onClick={() => setNpcGender('여')}>
-                    💕 여성에서 찾기
+                    💕 여성 시뮬레이션 상대
                   </button>
                 </div>
                 <div className="cd-form-group">
