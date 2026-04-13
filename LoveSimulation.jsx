@@ -1763,13 +1763,14 @@ function computeRealSynastry(myP, npcP) {
 }
 
 export default function LoveSimulation() {
-  const [screen, setScreen] = useState('portal'); // self | portal | awakening | chat
+  const [screen, setScreen] = useState('self'); // self | portal | awakening | chat
   const [tab, setTab] = useState('preset');        // preset | match | custom
   // 내 사주 아바타
   const [myPersona, setMyPersona] = useState(null);
   const [myForm, setMyForm] = useState({ name:'', year:'', month:'', day:'', sinju:0, noTime:false });
   const [myGender, setMyGender] = useState('여');
   const [myLoadingPersona, setMyLoadingPersona] = useState(false);
+  const [autoLoadingMyPersona, setAutoLoadingMyPersona] = useState(false);
   const [avatarRevealing, setAvatarRevealing] = useState(false);
   const [npcGender, setNpcGender] = useState('\ub0a8');  // \ub0a8 | \uc5ec
   const [form, setForm] = useState({ name:'', year:'', month:'', day:'', sinju: 0, noTime:false });
@@ -1803,6 +1804,45 @@ export default function LoveSimulation() {
   useEffect(() => {
     return () => { if (typingRef.current) clearInterval(typingRef.current); };
   }, []);
+
+  // 마운트 시 프로필 카드(localStorage)에서 내 사주 자동 로드
+  useEffect(() => {
+    async function autoLoadFromProfile() {
+      try {
+        const ns = 'FORTUNE_APP_USER_PROFILES';
+        const list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
+        const currId = localStorage.getItem(ns + '.current');
+        const profile = (currId && list.find(p => p.id === currId)) || list[0] || null;
+        if (!profile || !profile.birth || !profile.birth.year) return;
+        const b = profile.birth;
+        const genderKr = profile.gender === 'F' ? '여' : '남';
+        const hour = b.hour != null ? b.hour : 12;
+        // 가장 가까운 생시 인덱스 찾기
+        const sinIdx = SINJU_OPTIONS.reduce((best, s, i) =>
+          Math.abs(s.hour - hour) < Math.abs(SINJU_OPTIONS[best].hour - hour) ? i : best, 0);
+        const formData = {
+          name: profile.name || '사용자',
+          year: String(b.year), month: String(b.month), day: String(b.day),
+          sinju: sinIdx, noTime: b.hour == null,
+        };
+        setMyForm(formData);
+        setMyGender(genderKr);
+        setAutoLoadingMyPersona(true);
+        try {
+          const apiHour = formData.noTime ? 12 : (SINJU_OPTIONS[sinIdx]?.hour ?? hour);
+          const data = await fetchSajuPillar({ name: formData.name, gender: genderKr, year: b.year, month: b.month, day: b.day, hour: apiHour });
+          const p = apiDataToPersona(data);
+          setMyPersona(p);
+          setMatchForm({ year: String(b.year), month: String(b.month), day: String(b.day) });
+          setScreen('portal');
+        } catch (_) {
+          // API 실패 시 self 화면 유지 (수동 재시도 가능)
+        }
+        setAutoLoadingMyPersona(false);
+      } catch (_) {}
+    }
+    autoLoadFromProfile();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 채팅 메시지 3개마다 자동으로 데이트 이벤트 발생
   useEffect(() => {
@@ -1894,9 +1934,10 @@ export default function LoveSimulation() {
 
   function startGame(p) {
     // 내 사주가 있으면 실제 오행 궁합 기반 초기 호감도 산정
+    // syn.pct(0~99): 오행 궁합 %, NPC initialAffinity와 블렌딩
     const syn = computeRealSynastry(myPersona, p);
     const base = syn
-      ? Math.min(45, Math.max(6, Math.round((p.initialAffinity * 0.55) + (syn.pct * 0.18))))
+      ? Math.min(60, Math.max(5, Math.round((p.initialAffinity * 0.35) + (syn.pct * 0.45))))
       : p.initialAffinity;
     setPersona(p);
     setAffinity(base);
@@ -2056,13 +2097,28 @@ export default function LoveSimulation() {
             {/* 별빛 아이콘 */}
             <div style={{ fontSize:52, marginBottom:12, animation:'float 4s ease-in-out infinite',
               filter:'drop-shadow(0 0 28px rgba(100,180,255,0.6))' }}>🌟</div>
-            <h1 className="lc-self-header">나의 사주 아바타</h1>
+            <h1 className="lc-self-header">나의 사주 입력</h1>
             <p className="lc-self-sub">
-              먼저 나의 생년월일로 사주를 분석해 나만의 아바타를 생성합니다<br/>
-              <span style={{fontSize:11, opacity:0.6}}>오행 · 일간 · 십신 기반 개성 분석</span>
+              내 생년월일로 사주를 분석해 상대방과의 <strong style={{color:'#93c5fd'}}>궁합 점수</strong>를 계산합니다<br/>
+              <span style={{fontSize:11, opacity:0.7}}>오행 궁합이 높을수록 초기 호감도가 높게 시작됩니다</span><br/>
+              <span style={{fontSize:10, opacity:0.5}}>미입력 시 기본 초기 점수가 적용됩니다</span>
             </p>
 
-            <div className="lc-self-setup">
+            {/* 자동 로딩 중 표시 */}
+            {autoLoadingMyPersona && (
+              <div style={{
+                width:'100%', maxWidth:460, textAlign:'center',
+                padding:'28px 20px', background:'rgba(100,180,255,0.06)',
+                border:'1px solid rgba(100,180,255,0.22)', borderRadius:16,
+                marginBottom:16,
+              }}>
+                <div style={{fontSize:32, marginBottom:12, animation:'float 4s ease-in-out infinite'}}>🌟</div>
+                <p style={{color:'#93c5fd', fontSize:14, letterSpacing:'0.1em'}}>프로필 카드에서 사주 자동 계산 중…</p>
+                <p style={{color:'var(--text-dim)', fontSize:11, marginTop:6}}>잠시만 기다려 주세요</p>
+              </div>
+            )}
+
+            <div className="lc-self-setup" style={{opacity: autoLoadingMyPersona ? 0.35 : 1, pointerEvents: autoLoadingMyPersona ? 'none' : 'auto'}}>
               {/* 내 성별 토글 */}
               <div className="lc-gender-toggle" style={{marginBottom:20}}>
                 <button className={`lc-gender-btn${myGender==='여'?' active-f':''}`}
@@ -2172,13 +2228,13 @@ export default function LoveSimulation() {
 
               {/* 다음 단계 버튼 */}
               <button className="lc-continue-btn"
-                disabled={!myPersona && !myLoadingPersona && false}
+                disabled={myLoadingPersona}
                 onClick={() => setScreen('portal')}>
-                {myPersona ? `${myPersona.name}의 운명 탐색 →` : '건너뛰기 →'}
+                {myPersona ? `✦ ${myPersona.name}의 운명 탐색하기 →` : '상대방 선택하러 가기 →'}
               </button>
               {!myPersona && (
                 <button className="lc-skip-btn" onClick={() => setScreen('portal')}>
-                  내 사주 없이 시작하기
+                  건너뛰기 (궁합 계산 없이 기본 점수로 시작)
                 </button>
               )}
             </div>
@@ -2195,8 +2251,19 @@ export default function LoveSimulation() {
             <div className="cd-portal-logo">💕</div>
             <h1 className="cd-portal-title">LOVE CODE</h1>
             <p className="cd-portal-sub max-w-2xl rounded-2xl border border-rose-200/10 bg-black/20 px-4 py-3 backdrop-blur-sm">
-              시뮬레이션할 상대방의 생년월일로 성격 · 연애 패턴을 분석해 가상 연애를 시작합니다<br/>
-              <span style={{ fontSize:'12px', opacity: 0.7 }}>상대방 오행 · 십신 · 캐릭터 AI 기반 가상 연애 시뮬레이션</span>
+              상대방의 생년월일로 성격 · 연애 패턴을 분석해 가상 연애를 시작합니다<br/>
+              <span style={{ fontSize:'12px', opacity: 0.7 }}>상대방 오행 · 십신 기반 AI 캐릭터 생성</span>
+              {myPersona && (
+                <span style={{ display:'block', fontSize:'11px', color:'#93c5fd', marginTop:4, opacity:0.85 }}>
+                  ✦ 내 사주 연동됨 — 오행 궁합으로 초기 호감도가 결정됩니다
+                </span>
+              )}
+              {!myPersona && (
+                <span style={{ display:'block', fontSize:'11px', color:'rgba(249,168,212,0.55)', marginTop:4 }}>
+                  내 사주 미입력 · 기본 초기 점수 적용 ·{' '}
+                  <button onClick={() => setScreen('self')} style={{ background:'none', border:'none', color:'#93c5fd', cursor:'pointer', fontSize:'11px', padding:0, textDecoration:'underline' }}>입력하러 가기</button>
+                </span>
+              )}
             </p>
 
             {/* ── 내 사주 배너 (myPersona가 있을 때) ── */}
@@ -2208,7 +2275,7 @@ export default function LoveSimulation() {
                   <p style={{fontSize:11, color:'var(--text-dim)'}}>
                     {myPersona.dayMaster} · {myPersona.mbti}
                     {myPersona.mainSipsin && <span style={{color:'var(--rose)'}}> · {myPersona.mainSipsin}</span>}
-                    <span style={{marginLeft:6, color:'rgba(100,180,255,0.5)'}}>내 사주 연동 중</span>
+                    <span style={{marginLeft:6, color:'rgba(100,180,255,0.5)'}}>✦ 프로필 자동 연동</span>
                   </p>
                 </div>
                 <button className="lc-my-banner-edit" onClick={() => setScreen('self')}>수정</button>
