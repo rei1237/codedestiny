@@ -604,7 +604,13 @@
 
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
-    if (shouldSkipDuplicateAction(rule.action)) return true;
+    // Preview CTA에서 data-pvw-bypass로 재클릭되는 경우는 정상 후속 플로우이므로
+    // dedupe에 걸리지 않게 해야 프리미엄 액션이 무반응으로 소모되지 않는다.
+    var _fromPreviewBypass = false;
+    if (origin && typeof origin.closest === 'function') {
+      _fromPreviewBypass = !!origin.closest('[data-pvw-bypass]');
+    }
+    if (!_fromPreviewBypass && shouldSkipDuplicateAction(rule.action)) return true;
 
     // ── 코인/잠금 게이트 체크 ──
     // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
