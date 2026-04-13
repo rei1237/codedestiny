@@ -23,6 +23,9 @@
 		background: #020617;
 		color: #f8fafc;
 		font-family: var(--font-noto-sans-kr, "Noto Sans KR"), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		font-synthesis: none;
 		-webkit-overflow-scrolling: touch;
 		overscroll-behavior-y: none;
 		touch-action: pan-y;

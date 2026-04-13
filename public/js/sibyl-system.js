@@ -829,27 +829,53 @@
     } catch(e) {}
 
     // Auth check
+    var _authToken = '';
     try {
-      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      if (!token) {
+      _authToken = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token') || '';
+      if (!_authToken) {
         alert('🔒 로그인이 필요합니다. 로그인 후 이용해 주세요.');
         if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
         return;
       }
     } catch(e) {}
 
-    // Balance check
+    // Balance check — API로 최신 잔액 우선 확인
+    var _balanceOk = false;
     try {
-      var _u = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-      var balance = typeof window.userBalance === 'number' ? window.userBalance : (_u.points || 0);
-      if (balance < 100) {
-        if (confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
-          if (typeof window.openChargeModal === 'function') window.openChargeModal();
+      var balRes = await fetch('/api/fortune/pig-coin/balance', {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + _authToken }
+      });
+      if (balRes.ok) {
+        var balData = await balRes.json().catch(function(){return {};});
+        var freshBal = typeof balData?.user?.points === 'number' ? Number(balData.user.points) : -1;
+        if (freshBal >= 0) {
+          window.userBalance = freshBal;
+          if (freshBal < 100) {
+            if (confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + freshBal + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
+              if (typeof window.openChargeModal === 'function') window.openChargeModal();
+            }
+            if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+            return;
+          }
+          _balanceOk = true;
         }
-        if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
-        return;
       }
     } catch(e) {}
+    // API 잔액 확인 실패 시 로컬 캐시 폴백
+    if (!_balanceOk) {
+      try {
+        var _u = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
+        var balance = typeof window.userBalance === 'number' ? window.userBalance : (_u.points || 0);
+        if (balance < 100) {
+          if (confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
+            if (typeof window.openChargeModal === 'function') window.openChargeModal();
+          }
+          if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+          return;
+        }
+      } catch(e) {}
+    }
 
     // Confirm
     if (!confirm('🪙 시빌라 도미네이터 리포트\n100코인이 차감됩니다. 진행하시겠습니까?\n(현재 진행 중인 사주 분석 기반 20,000자+ 전문 리포트)')) {
@@ -859,7 +885,7 @@
 
     // Consume coins
     try {
-      var token2 = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
+      var token2 = _authToken;
       var consumeRes = await fetch('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token2 },
@@ -959,7 +985,9 @@
     var stageTimer = setInterval(_advanceStage, 2000);
 
     try {
-      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
+      // 관리자 토큰을 일반 인증 토큰의 폴백으로 사용 (관리자 모드 지원)
+      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token')
+        || sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token') || '';
       var response = await fetch('/api/sibyl/report', {
         method: 'POST',
         headers: {

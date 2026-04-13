@@ -551,7 +551,7 @@
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260410-v1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1'],
-    openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
+    openSibylModal: ['js/sibyl-system.js?v=20260414-coinfix1']
   };
 
   function normalizeScriptSrc(src) {
