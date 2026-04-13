@@ -14,6 +14,7 @@ const notoSansKR = Noto_Sans_KR({
 import Link from "next/link";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
+import InternalLinksHub from "./components/InternalLinksHub";
 import AuthWidget from "./components/AuthWidget";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
@@ -142,102 +143,116 @@ function buildJsonLd({ locale, canonicalHref }) {
   });
 }
 
-export const metadata = {
-  metadataBase: new URL("https://code-destiny.com"),
-  applicationName: "꿀꿀 만세력",
-  title: {
-    default: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
-    template: "%s | 꿀꿀 만세력",
-  },
-  description:
-    "생년월일로 보는 무료 사주팔자·타로 리딩·오늘의 운세. 자미두수·점성술·숙요점·궁합·신년운세·토정비결·꿈해몽·대운 분석까지. 코드 데스티니(Code Destiny) 꿀꿀 만세력 — 동서양 운세 무료 통합 플랫폼.",
-  creator: "Code Destiny",
-  publisher: "Code Destiny",
-  category: "Fortune & Astrology",
-  classification: "Fortune telling, astrology, saju, tarot",
-  referrer: "origin-when-cross-origin",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  keywords: [
-    // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
-    "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
-    "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
-    // 무료 + 정확도 의도 키워드 (사람들이 선호하는 검색어)
-    "ai 사주", "ai 타로", "사주풀이", "심층 사주",
-    // 영어 검색어
-    "free tarot", "free horoscope", "free fortune telling", "accurate horoscope",
-    "saju", "horoscope", "astrology", "fortune telling",
-    "zi wei dou shu", "vedic astrology", "jyotish", "I Ching",
-    ...SEO_CORE_KEYWORDS,
-  ],
-  alternates: {
-    // canonical은 RootLayout에서 pathname 기반으로 동적 생성됨 — 여기서는 hreflang 언어 대안만 선언
-    languages: {
-      ko: "https://code-destiny.com/",
-      en: "https://code-destiny.com/en-us",
-      ja: "https://code-destiny.com/ja-jp",
-      "zh-CN": "https://code-destiny.com/zh-cn",
-      hi: "https://code-destiny.com/hi-in",
-      es: "https://code-destiny.com/es-es",
-      fr: "https://code-destiny.com/fr-fr",
-      de: "https://code-destiny.com/de-de",
-      nl: "https://code-destiny.com/nl-nl",
-      ms: "https://code-destiny.com/ms-my",
-      "x-default": "https://code-destiny.com/",
+export async function generateMetadata() {
+  const headerStore = await headers();
+  const requestPath = normalizePathname(
+    headerStore.get("x-pathname") || headerStore.get("next-url") || "/",
+  );
+  const locale = detectLocaleFromPath(requestPath);
+  const routeBasePath = stripLocalePrefix(normalizePathname(requestPath));
+  const canonicalLocalePath = locale.slug
+    ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}`
+    : routeBasePath;
+  const canonicalHref = new URL(canonicalLocalePath, CANONICAL_ORIGIN).toString();
+
+  return {
+    metadataBase: new URL("https://code-destiny.com"),
+    applicationName: "꿀꿀 만세력",
+    title: {
+      default: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
+      template: "%s | 꿀꿀 만세력",
     },
-  },
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
-    url: "https://code-destiny.com",
-    siteName: "코드 데스티니 꿀꿀 만세력",
-    title: "무료 사주팔자·타로·오늘의 운세 | 코드 데스티니",
-    description: "생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.",
-    images: [
-      {
-        url: "https://code-destiny.com/icons/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "코드 데스티니 꿀꿀 만세력",
-      },
+    description:
+      "생년월일로 보는 무료 사주팔자·타로 리딩·오늘의 운세. 자미두수·점성술·숙요점·궁합·신년운세·토정비결·꿈해몽·대운 분석까지. 코드 데스티니(Code Destiny) 꿀꿀 만세력 — 동서양 운세 무료 통합 플랫폼.",
+    creator: "Code Destiny",
+    publisher: "Code Destiny",
+    category: "Fortune & Astrology",
+    classification: "Fortune telling, astrology, saju, tarot",
+    referrer: "origin-when-cross-origin",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    keywords: [
+      // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
+      "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
+      "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
+      // 무료 + 정확도 의도 키워드 (사람들이 선호하는 검색어)
+      "ai 사주", "ai 타로", "사주풀이", "심층 사주",
+      // 영어 검색어
+      "free tarot", "free horoscope", "free fortune telling", "accurate horoscope",
+      "saju", "horoscope", "astrology", "fortune telling",
+      "zi wei dou shu", "vedic astrology", "jyotish", "I Ching",
+      ...SEO_CORE_KEYWORDS,
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "코드 데스티니 — 무료 사주·타로·운세",
-    description: "무료 사주팔자·타로·궁합·신년운세 통합 — 코드 데스티니(Code Destiny)",
-    images: ["https://code-destiny.com/icons/og-image.png"],
-  },
-  verification: {
-    google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,
-    yandex: process.env.NEXT_PUBLIC_SITE_VERIFY_YANDEX || undefined,
-    other: {
-      "naver-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_NAVER || undefined,
-      "msvalidate.01": process.env.NEXT_PUBLIC_SITE_VERIFY_BING || undefined,
-      "baidu-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_BAIDU || undefined,
+    alternates: {
+      // 페이지별 generateMetadata가 canonical을 오버라이드하며, 없는 페이지는 여기서 동적 생성된 값이 적용됨
+      canonical: canonicalHref,
+      languages: {
+        ko: "https://code-destiny.com/",
+        en: "https://code-destiny.com/en-us",
+        ja: "https://code-destiny.com/ja-jp",
+        "zh-CN": "https://code-destiny.com/zh-cn",
+        hi: "https://code-destiny.com/hi-in",
+        es: "https://code-destiny.com/es-es",
+        fr: "https://code-destiny.com/fr-fr",
+        de: "https://code-destiny.com/de-de",
+        nl: "https://code-destiny.com/nl-nl",
+        ms: "https://code-destiny.com/ms-my",
+        "x-default": "https://code-destiny.com/",
+      },
     },
-  },
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    googleBot: {
+    openGraph: {
+      type: "website",
+      locale: "ko_KR",
+      alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
+      url: "https://code-destiny.com",
+      siteName: "코드 데스티니 꿀꿀 만세력",
+      title: "무료 사주팔자·타로·오늘의 운세 | 코드 데스티니",
+      description: "생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.",
+      images: [
+        {
+          url: "https://code-destiny.com/icons/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: "코드 데스티니 꿀꿀 만세력",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "코드 데스티니 — 무료 사주·타로·운세",
+      description: "무료 사주팔자·타로·궁합·신년운세 통합 — 코드 데스티니(Code Destiny)",
+      images: ["https://code-destiny.com/icons/og-image.png"],
+    },
+    verification: {
+      google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,
+      yandex: process.env.NEXT_PUBLIC_SITE_VERIFY_YANDEX || undefined,
+      other: {
+        "naver-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_NAVER || undefined,
+        "msvalidate.01": process.env.NEXT_PUBLIC_SITE_VERIFY_BING || undefined,
+        "baidu-site-verification": process.env.NEXT_PUBLIC_SITE_VERIFY_BAIDU || undefined,
+      },
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
-  },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/icons/honeypig.webp",
-  },
-};
+    icons: {
+      icon: "/favicon.ico",
+      apple: "/icons/honeypig.webp",
+    },
+  };
+}
 
 export const viewport = {
   width: "device-width",
@@ -292,7 +307,7 @@ export default async function RootLayout({ children }) {
       <head>
         {/* 성능: 외부 오리진 사전 연결 (next/font 자체호스팅으로 fonts.googleapis/gstatic 불필요) */}
         <link rel="preconnect" href="https://code-destiny.com" />
-        <link rel="canonical" href={canonicalHref} />
+        {/* canonical은 generateMetadata()에서 단일 출력 — JSX 중복 제거 */}
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         {hreflangLinks.map((link) => (
           <link key={link.hrefLang} rel="alternate" hrefLang={link.hrefLang} href={link.href} />
@@ -388,6 +403,7 @@ export default async function RootLayout({ children }) {
         )}
         <div>{children}</div>
         <DisclaimerBanner />
+        {!isFullscreenRoute && <InternalLinksHub />}
         {!hideFooter && !isFullscreenRoute && <SiteFooterHub />}
       </body>
     </html>

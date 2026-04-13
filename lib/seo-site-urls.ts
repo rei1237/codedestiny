@@ -31,49 +31,45 @@ export type SitemapRouteEntry = {
 };
 
 export const ROUTES: SitemapRouteEntry[] = [
-  /** Legacy home shell (canonical URL is /; /static/index.html → 308 to /). */
-  { path: "/", changeFrequency: "weekly", priority: 1.0 },
-  { path: "/insights", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/high-value", changeFrequency: "weekly", priority: 0.88 },
-  { path: "/high-value/complete-guide-to-saju", changeFrequency: "monthly", priority: 0.82 },
-  { path: "/high-value/how-tarot-actually-works", changeFrequency: "monthly", priority: 0.82 },
-  { path: "/high-value/understanding-your-destiny", changeFrequency: "monthly", priority: 0.82 },
-  { path: "/high-value/what-your-birth-date-says-about-you", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/high-value/top-10-signs-of-compatibility", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/high-value/common-user-questions-faq", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/high-value/category/ultimate-guide", changeFrequency: "monthly", priority: 0.78 },
-  { path: "/high-value/category/informational-article", changeFrequency: "monthly", priority: 0.78 },
-  { path: "/high-value/category/faq-page", changeFrequency: "monthly", priority: 0.78 },
-  { path: "/saju/basic", changeFrequency: "weekly", priority: 0.9 },
-  { path: "/ziwei/chart", changeFrequency: "weekly", priority: 0.88 },
-  { path: "/astrology/cosmic", changeFrequency: "weekly", priority: 0.88 },
-  { path: "/tarot/mingri", changeFrequency: "weekly", priority: 0.88 },
-  { path: "/tarot/love", changeFrequency: "weekly", priority: 0.86 },
-  { path: "/tarot/healing", changeFrequency: "weekly", priority: 0.86 },
-  { path: "/geomancy-oracle-v4.html", changeFrequency: "weekly", priority: 0.84, noLocale: true },
-  { path: "/oracle/hwatu-life", changeFrequency: "weekly", priority: 0.81 },
-  { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.80 },
-  { path: "/royal-tea-oracle.html", changeFrequency: "weekly", priority: 0.8, noLocale: true },
-  { path: "/saju-picture", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/insights/saju-four-pillars-basics", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/ten-heavenly-stems-practical", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/twelve-earthly-branches-and-seasons", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/ten-gods-beginner-map", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/yongshin-how-to-think", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/tarot-major-arcana-symbols", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/tarot-reversed-card-framework", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/tarot-spread-design-principles", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/astrology-vs-saju-differences", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/sukuyo-lunar-mansion-primer", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/vedic-astrology-navamsa-basics", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/ziwei-doushu-stars-intro", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/insights/astrology-houses-quick-guide", changeFrequency: "monthly", priority: 0.75 },
-  { path: "/about", changeFrequency: "monthly", priority: 0.8 },
-  { path: "/points", changeFrequency: "weekly", priority: 0.5 },
-  { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.5 },
-  { path: "/terms-of-service", changeFrequency: "yearly", priority: 0.5 },
-  { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/contact-us", changeFrequency: "yearly", priority: 0.55 },
+  // ── 홈 (최우선) ──────────────────────────────────────────────
+  { path: "/", changeFrequency: "daily", priority: 1.0 },
+
+  // ── 핵심 서비스 (직접 사용자 inflow) ─────────────────────────
+  { path: "/saju/basic",       changeFrequency: "weekly", priority: 0.95 },
+  { path: "/tarot/mingri",     changeFrequency: "weekly", priority: 0.93 },
+  { path: "/ziwei/chart",      changeFrequency: "weekly", priority: 0.92 },
+  { path: "/astrology/cosmic", changeFrequency: "weekly", priority: 0.92 },
+  { path: "/tarot/love",       changeFrequency: "weekly", priority: 0.90 },
+  { path: "/tarot/healing",    changeFrequency: "weekly", priority: 0.90 },
+  { path: "/oracle/hwatu-life",      changeFrequency: "weekly", priority: 0.88 },
+  { path: "/oracle/sikojen-povailu", changeFrequency: "weekly", priority: 0.87 },
+  { path: "/saju-picture",           changeFrequency: "weekly", priority: 0.86 },
+  { path: "/geomancy-oracle-v4.html", changeFrequency: "weekly", priority: 0.85, noLocale: true },
+  { path: "/royal-tea-oracle.html",   changeFrequency: "weekly", priority: 0.84, noLocale: true },
+
+  // ── 콘텐츠 허브 ───────────────────────────────────────────────
+  { path: "/insights",    changeFrequency: "weekly", priority: 0.90 },
+  { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
+
+  // ── High-Value 개별 문서 ──────────────────────────────────────
+  { path: "/high-value/complete-guide-to-saju",               changeFrequency: "monthly", priority: 0.82 },
+  { path: "/high-value/how-tarot-actually-works",              changeFrequency: "monthly", priority: 0.82 },
+  { path: "/high-value/understanding-your-destiny",            changeFrequency: "monthly", priority: 0.82 },
+  { path: "/high-value/what-your-birth-date-says-about-you",   changeFrequency: "monthly", priority: 0.80 },
+  { path: "/high-value/top-10-signs-of-compatibility",         changeFrequency: "monthly", priority: 0.80 },
+  { path: "/high-value/common-user-questions-faq",             changeFrequency: "monthly", priority: 0.80 },
+  { path: "/high-value/category/ultimate-guide",               changeFrequency: "monthly", priority: 0.78 },
+  { path: "/high-value/category/informational-article",        changeFrequency: "monthly", priority: 0.78 },
+  { path: "/high-value/category/faq-page",                     changeFrequency: "monthly", priority: 0.78 },
+
+  // ── 신뢰 & 정책 문서 ────────────────────────────────────────
+  { path: "/about",            changeFrequency: "monthly", priority: 0.80 },
+  { path: "/methodology",      changeFrequency: "monthly", priority: 0.78 },
+  { path: "/faq",              changeFrequency: "monthly", priority: 0.70 },
+  { path: "/contact-us",       changeFrequency: "yearly",  priority: 0.55 },
+  { path: "/privacy-policy",   changeFrequency: "yearly",  priority: 0.50 },
+  { path: "/terms-of-service", changeFrequency: "yearly",  priority: 0.50 },
+  { path: "/points",           changeFrequency: "weekly",  priority: 0.50 },
 ];
 
 export function getAllSitemapUrls(): string[] {
