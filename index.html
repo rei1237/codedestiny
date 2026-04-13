@@ -5751,6 +5751,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _tok = sessionStorage.getItem('flower_admin_token');
         if (_tok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tok)) return true;
       } catch (_ss) {}
+      try {
+        var _tokLs = localStorage.getItem('flower_admin_token');
+        if (_tokLs && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tokLs)) return true;
+      } catch (_ls) {}
+      try {
+        var _cookie = String(document.cookie || '');
+        var _m = _cookie.match(/(?:^|;\s*)flower_admin_token=([^;]+)/);
+        var _tokCk = _m ? decodeURIComponent(_m[1]) : '';
+        if (_tokCk && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_tokCk)) return true;
+      } catch (_ck) {}
     } catch (_e) {}
     return false;
   }
@@ -5759,6 +5769,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var user = readAuthUser();
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
+    if (isAdminUser()) userBalance = 9999;
+    try { window.__cdAdminBypass = !!isAdminUser(); } catch (_) {}
   }
 
   function saveBalance() {
@@ -5922,6 +5934,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var primary = await fetchJsonWithAuth('/api/fortune/pig-coin/balance', { method: 'GET' });
       if (primary.ok && primary.payload && primary.payload.user && typeof primary.payload.user.points === 'number') {
         userBalance = Number(primary.payload.user.points || 0);
+        if (isAdminUser()) userBalance = 9999;
         saveBalance();
         updateBadge();
       }
@@ -5933,6 +5946,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function updateBadge() {
+    if (isAdminUser()) userBalance = 9999;
+    try { window.__cdAdminBypass = !!isAdminUser(); } catch (_) {}
     var el = document.getElementById('goldenGrainBalanceText');
     if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
   }

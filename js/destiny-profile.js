@@ -151,6 +151,37 @@
     } catch (_) {}
   }
 
+  var _CD_ADMIN_VIRTUAL_COINS = 9999;
+  var _CD_ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
+
+  function _cdReadCookie(name) {
+    try {
+      var m = String(document.cookie || '').match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function _cdIsAdminLikeUser() {
+    try {
+      var rawUser = localStorage.getItem('fortune_auth_user') || '';
+      if (rawUser) {
+        var user = JSON.parse(rawUser);
+        if (user && user.role === 'admin') return true;
+      }
+    } catch (_) {}
+    try {
+      var sTok = sessionStorage.getItem('flower_admin_token') || '';
+      if (_CD_ADMIN_TOKEN_RE.test(String(sTok))) return true;
+    } catch (_) {}
+    try {
+      var lTok = localStorage.getItem('flower_admin_token') || '';
+      if (_CD_ADMIN_TOKEN_RE.test(String(lTok))) return true;
+    } catch (_) {}
+    return _CD_ADMIN_TOKEN_RE.test(_cdReadCookie('flower_admin_token'));
+  }
+
   /**
    * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
    * @param {number} cost   차감 코인 수
@@ -164,6 +195,27 @@
       if (typeof onCancel === 'function') onCancel();
       return;
     }
+    var now = Date.now();
+    var dedupeKey = String(reason || '') + '|' + String(cost || 0);
+    var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
+    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 1200)) {
+      return;
+    }
+    dedupeMap[dedupeKey] = now;
+
+    var isAdminLike = _cdIsAdminLikeUser();
+    if (isAdminLike) {
+      try {
+        var _adminUserRaw = localStorage.getItem('fortune_auth_user') || 'null';
+        var _adminUser = JSON.parse(_adminUserRaw) || {};
+        _adminUser.points = _CD_ADMIN_VIRTUAL_COINS;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(_adminUser));
+      } catch (_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(_CD_ADMIN_VIRTUAL_COINS);
+      cb();
+      return;
+    }
+
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     if (!token) {
