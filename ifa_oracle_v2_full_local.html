@@ -414,12 +414,44 @@ function setPhase(text){el("phase").textContent=text;}
 function ensureIfaCoinGate(){
   return new Promise((resolve)=>{
     if (IFA_COIN_COST <= 0) { resolve(true); return; }
-    if (typeof window._cdCoinGatePerUse !== "function") { resolve(true); return; }
-    try{
-      window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); });
-    }catch(_e){
-      resolve(false);
+    if (typeof window._cdCoinGatePerUse === "function") {
+      try{
+        window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); });
+      }catch(_e){ resolve(false); }
+      return;
     }
+    // fallback: destiny-profile.js 미로드 환경에서 직접 처리
+    var tk = '';
+    try { tk = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!tk) {
+      alert('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.');
+      resolve(false); return;
+    }
+    var bal = 0;
+    try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); bal = Number(_u && _u.points) || 0; } catch(_) {}
+    if (bal < IFA_COIN_COST) {
+      alert('🪙 IFÀ 오라클 리딩\n\n' + IFA_COIN_COST + '코인이 필요합니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n코인 충전 후 다시 시도해 주세요.');
+      resolve(false); return;
+    }
+    if (!confirm('🪙 IFÀ 오라클 리딩\n\n이용할 때마다 ' + IFA_COIN_COST + '코인이 차감됩니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+      resolve(false); return;
+    }
+    fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk},
+      body: JSON.stringify({cost: IFA_COIN_COST, reason: 'IFÀ 오라클 리딩'})
+    })
+    .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
+    .then(function(res){
+      if (res.ok) {
+        try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u2.points = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, bal - IFA_COIN_COST); localStorage.setItem('fortune_auth_user', JSON.stringify(_u2)); } catch(_) {}
+        resolve(true);
+      } else {
+        alert((res.data && res.data.message) || '코인 차감에 실패했습니다.');
+        resolve(false);
+      }
+    })
+    .catch(function(){ alert('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); resolve(false); });
   });
 }
 
