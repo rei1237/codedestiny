@@ -3,7 +3,7 @@
  * Provides offline support and caching for the Fortune Tama PWA
  */
 
-const CACHE_NAME = 'fortune-tama-v2';
+const CACHE_NAME = 'fortune-tama-v3';
 
 const PRECACHE_URLS = [
   '/tadagochi.html',
