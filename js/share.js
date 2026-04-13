@@ -728,7 +728,7 @@ var NEO_TITLES={
   '오늘의 머큐리 진 로드 맵':'당일 머큐리 진 로드 맵'
 };
 
-function toggleNeoMode(){
+function toggleNeoMode(nextMode){
   var cbLock = document.getElementById('themeCheckbox');
   if(cbLock && cbLock.disabled) return;
   if(_themeToggleInFlight) return;
@@ -739,7 +739,7 @@ function toggleNeoMode(){
     _themeToggleInFlight = false;
   }, 460);
 
-  NEO_MODE=!NEO_MODE;
+  NEO_MODE = (typeof nextMode === 'boolean') ? nextMode : !NEO_MODE;
   writeThemeModeState(NEO_MODE);
   var body=document.body;
   runThemeTransitionFx();
@@ -917,7 +917,7 @@ window.addEventListener('load',function(){
         themeCb.checked = NEO_MODE;
         return;
       }
-      toggleNeoMode();
+      toggleNeoMode(!!themeCb.checked);
     });
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
     if(NEO_MODE) document.body.classList.add('neo-mode');
