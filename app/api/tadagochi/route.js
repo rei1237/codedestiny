@@ -321,7 +321,11 @@ function drawTarot(category) {
 }
 
 // ─── 5. Gemini 호출 ───────────────────────────────────────────────────────────
-async function callGemini(prompt, maxTokens) {
+async function callGemini(prompt, opts = {}) {
+  const maxTokens = Number(opts.maxTokens || opts.maxOutputTokens || 650);
+  const temperature = typeof opts.temperature === "number" ? opts.temperature : 0.88;
+  const topP = typeof opts.topP === "number" ? opts.topP : 0.95;
+  const topK = typeof opts.topK === "number" ? opts.topK : 40;
   const keys = pickGeminiKeys();
   const ep   = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
   for (const key of keys) {
@@ -330,7 +334,7 @@ async function callGemini(prompt, maxTokens) {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
           contents:[{role:"user",parts:[{text:prompt}]}],
-          generationConfig:{maxOutputTokens:maxTokens||650,temperature:0.88},
+          generationConfig:{maxOutputTokens:maxTokens, temperature, topP, topK},
           safetySettings:[
             {category:"HARM_CATEGORY_HARASSMENT",threshold:"BLOCK_NONE"},
             {category:"HARM_CATEGORY_HATE_SPEECH",threshold:"BLOCK_NONE"},
@@ -344,6 +348,22 @@ async function callGemini(prompt, maxTokens) {
     } catch {}
   }
   return null;
+}
+
+function isDetailedEnough(text, minChars = 260) {
+  const t = String(text || "").replace(/\s+/g, "");
+  return t.length >= minChars;
+}
+
+function buildDetailedOutputGuide(catKr) {
+  return `출력 규칙(반드시 지켜):
+1) 첫 문장은 핵심 결론 1줄로 시작.
+2) 아래 5개 블록을 반드시 이 순서로 작성.
+[핵심흐름] [왜 이런 흐름인지] [시간대별 포인트(오전/오후/저녁)] [지금 당장 할 행동 3가지] [피해야 할 행동 2가지]
+3) 각 블록은 2~4문장으로 구체적으로 작성.
+4) '좋다/나쁘다' 같은 추상어만 쓰지 말고, 질문 상황에 맞는 구체 행동/타이밍/대화 문장 예시를 포함.
+5) 전체 분량은 최소 420자 이상.
+6) ${catKr} 관점에서만 해석하고, 다른 체계 이름은 언급하지 마.`;
 }
 
 // ─── 6. 로컬 폴백 답변 ───────────────────────────────────────────────────────
@@ -478,7 +498,9 @@ export async function POST(request) {
     if (typeof usedToday === "number" && usedToday >= 5) {
       return NextResponse.json({error:"오늘 운세 질문 횟수(5회)를 모두 사용했어요! 내일 다시 만나요 🌙"}, {status:429});
     }
-    if (!birthYear || !question) {
+    const safeQuestion = String(question || "").trim().slice(0, 420);
+
+    if (!birthYear || !safeQuestion) {
       return NextResponse.json({error:"필수 파라미터가 없습니다."}, {status:400});
     }
 
@@ -554,7 +576,11 @@ export async function POST(request) {
 타로(오늘): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}
 타로(연애): ${tarotLove.name}(${tarotLove.orientation}) — ${tarotLove.catMeaning}
 타로(재물): ${tarotMoney.name}(${tarotMoney.orientation}) — ${tarotMoney.catMeaning}`;
-      const aiRes = await callGemini(fullPrompt, 2000);
+      let aiRes = await callGemini(fullPrompt, { maxTokens: 2600, temperature: 0.9 });
+      if (!isDetailedEnough(aiRes, 650)) {
+        const reprompt = `${fullPrompt}\n\n[강화 지시]\n- 각 섹션을 더 구체적으로 확장해 최소 350자 수준으로 작성.\n- 질문자가 바로 실행할 수 있는 행동과 시간대를 더 명확히 제시.`;
+        aiRes = await callGemini(reprompt, { maxTokens: 2800, temperature: 0.9 }) || aiRes;
+      }
       return NextResponse.json({
         answer: aiRes || buildLocalFull({saju, ziwei, astro, tarot, tarotLove, tarotMoney, petName, animalKr2}),
         score: saju.score, fortune: saju.fortune, today: saju.today,
@@ -575,7 +601,7 @@ export async function POST(request) {
       : cat==="health"  ? `화성 ${astro.mars.sign}(${astro.mars.house}) | 달 ${astro.moon.sign}`
       : cat==="saju"    ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign} | ASC ${astro.asc.sign} | 금성 ${astro.venus.sign} | 화성 ${astro.mars.sign}`
       : cat==="ziwei"   ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign} | ASC ${astro.asc.sign}`
-      : cat==="astrology" ? `☀️ ${astro.sun.sign}(${astro.sun.house}) | 🌙 ${astro.moon.sign}(${astro.moon.house}) | ASC ${astro.asc.sign} | 금성 ${astro.venus.sign}(${astro.venus.house}) | 화성 ${astro.mars.sign}(${astro.mars.house}) | 목성 ${astro.jupiter.sign}(${astro.jupiter.house}) | MC ${astro.mc.sign}`
+      : cat==="astrology" ? `☀️ ${astro.sun.sign} ${astro.sun.deg}° | 🌙 ${astro.moon.sign} ${astro.moon.deg}° | ASC ${astro.asc.sign} | 금성 ${astro.venus.sign}(${astro.venus.house}) | 화성 ${astro.mars.sign}(${astro.mars.house}) | 목성 ${astro.jupiter.sign}(${astro.jupiter.house}) | MC ${astro.mc.sign}`
       : cat==="tarot"   ? `☀️ ${astro.sun.sign} | 🌙 ${astro.moon.sign}`
       : `☀️ ${astro.sun.sign} ${astro.sun.deg}° 🌙 ${astro.moon.sign} ASC ${astro.asc.sign}`
       : "계산 불가";
@@ -662,6 +688,8 @@ ASC(상승궁 — 외향적 자아): ${astro.asc.sign} | MC(중천 — 커리어
 ${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) — ${tarot.catMeaning}\n타로 2(오후): ${tarot2.name}(${tarot2.orientation}) — ${tarot2.catMeaning}\n타로 3(저녁): ${tarot3?tarot3.name+"("+tarot3.orientation+") — "+tarot3.catMeaning:""}`:"타로: "+tarot.name+"("+tarot.orientation+") — "+tarot.catMeaning}`;
     }
 
+    const detailGuide = buildDetailedOutputGuide(catKr);
+
     const prompt =
 `너는 '${petName||"운세다마"}'. [${expertPersona}] 페르소나를 가진 신비로운 수호 다마고치야.
 이 사용자는 ${animalKr}띠로, ${animalTrait}을 가진 특별한 존재야. 그 띠의 성격과 강점을 반영해서 조언해줘.
@@ -670,19 +698,21 @@ ${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) �
 전문 지식을 활용해 구체적인 조언을 주되, 수치 나열 없이 따뜻한 이야기체로 풀어줘.
 헤더·표·목록 없이 자연스러운 문장으로만.
 
+${detailGuide}
+
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr}띠(${saju.year.gan}${saju.year.ji}년)
 
 ${dataSection}
 
-질문: ${question||"오늘 "+catKr+" 알려줘"}
-(답변은 300자 이상 자연스러운 문장만. 반드시 충분히 구체적으로.)`;
+질문: ${safeQuestion||"오늘 "+catKr+" 알려줘"}
+(답변은 충분히 길고 구체적으로. 질문 상황에 바로 적용 가능한 행동 지침 포함.)`;
 
-    const ai = await callGemini(prompt, 700);
+    const ai = await callGemini(prompt, { maxTokens: 1400, temperature: 0.9 });
     let answer = ai;
-    if (!answer || !isCategoryPure(cat, answer)) {
-      const strictPrompt = `${prompt}\n\n[중요 재지시]\n- 이번 답변은 반드시 '${catKr}' 관점만 사용.\n- 다른 점술 체계 언급 금지.\n- 300자 이상, 이야기체.`;
-      const aiRetry = await callGemini(strictPrompt, 700);
-      if (aiRetry && isCategoryPure(cat, aiRetry)) {
+    if (!answer || !isCategoryPure(cat, answer) || !isDetailedEnough(answer, 300)) {
+      const strictPrompt = `${prompt}\n\n[중요 재지시]\n- 이번 답변은 반드시 '${catKr}' 관점만 사용.\n- 다른 점술 체계 언급 금지.\n- 최소 420자 이상.\n- '지금 당장 할 행동 3가지'와 '피해야 할 행동 2가지'를 반드시 구체적으로 포함.`;
+      const aiRetry = await callGemini(strictPrompt, { maxTokens: 1600, temperature: 0.86 });
+      if (aiRetry && isCategoryPure(cat, aiRetry) && isDetailedEnough(aiRetry, 300)) {
         answer = aiRetry;
       } else {
         answer = buildLocal({cat, saju, ziwei, astro, tarot, petName, question});

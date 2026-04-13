@@ -219,21 +219,21 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .tali-card{background:linear-gradient(145deg,#fff8e1,#fef3c7,#fffde7);border:3px solid #fbbf24;border-radius:28px;padding:28px 22px;width:min(310px,90%);text-align:center;box-shadow:0 12px 40px rgba(251,191,36,.3),0 0 0 1px rgba(251,191,36,.1);animation:pulse-glow 1.8s ease-in-out infinite;position:relative;overflow:hidden}
 
-.chat-modal{position:absolute;inset:0;z-index:200;display:none;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));border-radius:32px}
+.chat-modal{position:absolute;inset:0;z-index:200;display:none;flex-direction:column;background:#b2c7d9;border-radius:32px}
 
 .chat-modal.on{display:flex;animation:slide-up .4s ease forwards}
 
-.chat-bubble{max-width:82%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.55;word-break:break-word}
+.chat-bubble{max-width:78%;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.52;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,.08)}
 
-.chat-bubble.user{background:var(--c2);color:#fff;border-radius:18px 18px 4px 18px;margin-left:auto}
+.chat-bubble.user{background:#fee500;color:#1f1f1f;border-radius:14px 3px 14px 14px;margin-left:auto}
 
-.chat-bubble.bot{background:rgba(255,255,255,.88);border:1.5px solid var(--cb);color:var(--text);border-radius:18px 18px 18px 4px}
+.chat-bubble.bot{background:#fff;border:1px solid rgba(0,0,0,.06);color:#222;border-radius:3px 14px 14px 14px}
 
-.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.9);padding:10px 12px}
+.chat-input-wrap{border-top:1px solid #d3d8de;background:#eef1f5;padding:10px}
 
-.chat-input{flex:1;border:1.5px solid var(--cb);border-radius:99px;padding:10px 16px;font-family:'Noto Sans KR';font-size:14px;background:var(--adim);outline:none;transition:border .2s;color:#333}
+.chat-input{flex:1;border:1px solid #d7dbe2;border-radius:22px;padding:10px 14px;font-family:'Noto Sans KR';font-size:14px;background:#fff;outline:none;transition:border .2s;color:#222}
 
-.chat-input:focus{border-color:var(--acc)}
+.chat-input:focus{border-color:#9ea7b3}
 
 .btn-acc{padding:14px;border-radius:16px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--c2),var(--c3));color:#fff;font-family:'Noto Sans KR';font-size:15px;font-weight:900;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .13s;letter-spacing:-.2px}
 
@@ -738,19 +738,19 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   </div>
 
-  <div class="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3" id="chat-log"></div>
+  <div class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2" id="chat-log"></div>
 
   <div class="chat-input-wrap shrink-0">
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="상황을 구체적으로 적어줘. 한 번에 깊게 분석해줄게..." maxlength="280" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 
     </div>
 
-    <div class="font-n mt-2 px-1" style="font-size:11px;color:var(--acc);opacity:.6">
+    <div id="chat-helper" class="font-n mt-2 px-1" style="font-size:11px;color:#52606d;opacity:.9">
       상단에서 종합/사주/자미두수/점성술/타로를 고른 뒤 질문해줘. 종합은 API 기반 4개 카테고리 탭 결과로 보여줄게.
     </div>
 
@@ -1739,13 +1739,18 @@ function askCategoryQuestion(cat){
     astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',
     tarot:'예: 오늘 중요한 선택을 타로로 봐줘'
   };
-  if(cat==='general') addBotMsg('종합으로 뭘 물어볼거야? 🔮 사주·자미두수·점성술·타로를 각각 API로 분석해서 탭으로 정리해줄게.');
-  else addBotMsg(catLabel+'로 뭘 물어볼거야? 🔮 원하는 내용을 구체적으로 말해주면 정확히 봐줄게.');
+  if(cat==='general') setChatHelper('종합 분석 모드야. 한 번 물어보면 사주·자미두수·점성술·타로를 나눠서 깊게 답해줄게.');
+  else setChatHelper(catLabel+' 모드야. 상황을 구체적으로 적어주면 훨씬 정밀하게 답할 수 있어.');
   var inp=document.getElementById('chat-inp');
   if(inp){
     inp.placeholder=suggest[cat]||'궁금한 내용을 입력해줘...';
     inp.focus();
   }
+}
+
+function setChatHelper(text){
+  var el=document.getElementById('chat-helper');
+  if(el) el.textContent=text||'';
 }
 
 function setcat(btn,cat,silent){
@@ -1783,7 +1788,7 @@ function addLoadingMsg(text){
 
 function requestFortuneApi(category, question, usedToday){
   var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
-  var tm=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
+  var tm=ctrl?setTimeout(function(){ctrl.abort();},30000):null;
   return apiFetch('/api/tadagochi',{
     method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
     signal:ctrl?ctrl.signal:undefined,
@@ -1797,7 +1802,8 @@ function requestFortuneApi(category, question, usedToday){
       petName:G.petName,
       question:question,
       category:category,
-      usedToday:usedToday
+      usedToday:usedToday,
+      detailLevel:'high'
     })
   }).then(function(r){
     return r.text().then(function(txt){
@@ -1873,8 +1879,9 @@ function openChat(){
   var log=document.getElementById('chat-log');
 
   if(log.children.length===0){
-    addBotMsg('안녕! 나 '+G.petName+'야 🔮 상단 탭에서 종합/사주/자미두수/점성술/타로를 고르면 먼저 질문을 물어볼게 ✨');
+    addBotMsg('안녕, '+G.petName+'야. 궁금한 상황을 바로 물어봐줘.');
     setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general',true);
+    setChatHelper('종합 분석 모드야. 한 번 물어보면 사주·자미두수·점성술·타로를 나눠서 깊게 답해줄게.');
   }
 
 }
@@ -2076,12 +2083,12 @@ function sendChat(forceCat){
   };
   var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addBotMsg('...',true);
 
-  // general_full은 타임아웃 없음(오래 걸려도 기다림), 그 외는 2.5초 후 로컬 폴백
+  // 상세 응답 강화를 위해 API 대기 시간을 늘리고, 로컬 폴백을 늦춘다.
   var lt = setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
     addBotMsgTyped(localAns);
-  }, 2500);
+  }, 6000);
 
   requestFortuneApi(cat,q,G.chatCount-1).then(function(d){
     if(thisReq!==_reqId) return; // stale 응답 무시
