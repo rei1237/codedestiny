@@ -1,6 +1,16 @@
 ﻿import "../styles/globals.css";
 import "../styles/disclaimer-banner.css";
+import { Noto_Sans_KR } from "next/font/google";
 import { headers } from "next/headers";
+
+const notoSansKR = Noto_Sans_KR({
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-noto-sans-kr",
+  preload: false,
+  adjustFontFallback: true,
+});
 import Link from "next/link";
 import AppVersionGuard from "./components/AppVersionGuard";
 import SiteFooterHub from "./components/SiteFooterHub";
@@ -278,11 +288,9 @@ export default async function RootLayout({ children }) {
   const jsonLd = buildJsonLd({ locale, canonicalHref });
 
   return (
-    <html lang={locale.htmlLang}>
+    <html lang={locale.htmlLang} className={notoSansKR.variable}>
       <head>
-        {/* 성능: 외부 오리진 사전 연결 */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* 성능: 외부 오리진 사전 연결 (next/font 자체호스팅으로 fonts.googleapis/gstatic 불필요) */}
         <link rel="preconnect" href="https://code-destiny.com" />
         <link rel="canonical" href={canonicalHref} />
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
