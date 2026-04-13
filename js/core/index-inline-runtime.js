@@ -839,7 +839,48 @@ function normalizeLegacyFuctionAssetImagePaths() {
   }, { minBatch: 8, maxBatch: 30, budgetMs: 6 });
 }
 
+function __cdSortAnimalCollectionTitlesDesc() {
+  var collection = document.getElementById('animalCollection');
+  if (!collection || collection.dataset.cdTitleSortedDesc === '1') return;
+
+  var grid = collection.querySelector('.feat-collection__grid');
+  if (!grid) return;
+
+  var tiles = [];
+  for (var i = 0; i < grid.children.length; i++) {
+    var child = grid.children[i];
+    if (child && child.classList && child.classList.contains('tarot-tile')) {
+      tiles.push(child);
+    }
+  }
+  if (!tiles.length) return;
+
+  var lang = (document.documentElement && document.documentElement.lang) || 'ko';
+  var collator = (typeof Intl !== 'undefined' && typeof Intl.Collator === 'function')
+    ? new Intl.Collator(lang, { numeric: true, sensitivity: 'base' })
+    : null;
+
+  function getTitleText(tile) {
+    var titleEl = tile ? tile.querySelector('.tarot-tile__title') : null;
+    var raw = titleEl && titleEl.textContent ? titleEl.textContent : '';
+    return raw.replace(/\s+/g, ' ').trim();
+  }
+
+  tiles.sort(function(a, b) {
+    var aTitle = getTitleText(a);
+    var bTitle = getTitleText(b);
+    if (collator) return collator.compare(bTitle, aTitle);
+    return bTitle.localeCompare(aTitle);
+  });
+
+  var fragment = document.createDocumentFragment();
+  tiles.forEach(function(tile) { fragment.appendChild(tile); });
+  grid.appendChild(fragment);
+  collection.dataset.cdTitleSortedDesc = '1';
+}
+
 function initFeatureCardBindings() {
+  __cdSortAnimalCollectionTitlesDesc();
   __cdScheduleIdleTask(function() {
     normalizeLegacyFuctionAssetImagePaths();
     bindFeatureCardVisualActions();
