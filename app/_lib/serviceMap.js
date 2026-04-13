@@ -30,7 +30,7 @@ export const SERVICE_MAP = {
     ],
   },
   "tarot/solar": {
-    componentKey: "solarOracleTarot",
+    componentKey: "sunHealingTarot",
     title: "태양의 화답 - Solar Oracle 카드 리딩",
     h1: "태양의 화답 - Solar Oracle 카드 리딩",
     description:

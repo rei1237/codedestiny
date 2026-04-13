@@ -13,9 +13,6 @@ const SERVICE_COMPONENT_LOADERS = {
   sunHealingTarot: dynamic(() => import("../../components/SunHealingTarot"), {
     loading: () => <ServiceRenderSkeleton />,
   }),
-  solarOracleTarot: dynamic(() => import("../../components/SolarOracleTarot"), {
-    loading: () => <ServiceRenderSkeleton />,
-  }),
   mingriTarot: dynamic(() => import("../../components/MingriTarot"), {
     loading: () => <ServiceRenderSkeleton />,
   }),
