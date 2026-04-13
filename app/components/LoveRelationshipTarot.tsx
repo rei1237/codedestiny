@@ -111,8 +111,15 @@ export default function LoveRelationshipTarot() {
       const authToken = typeof window !== "undefined"
         ? localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken")
         : "";
+      const flowerAdminToken = typeof window !== "undefined"
+        ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+        : "";
+      const adminTestTier = typeof window !== "undefined"
+        ? String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase()
+        : "";
+      const isFlowerAdminMode = !!flowerAdminToken;
 
-      if (!authToken) {
+      if (!authToken && !isFlowerAdminMode) {
         setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
         if (typeof window !== "undefined") {
           const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -127,7 +134,11 @@ export default function LoveRelationshipTarot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          ...(flowerAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
+            ? { "x-admin-subscription-tier": adminTestTier }
+            : {}),
         },
         body: JSON.stringify({
           cost: LOVE_RELATIONSHIP_COIN_COST,

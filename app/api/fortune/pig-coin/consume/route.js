@@ -1,49 +1,40 @@
-﻿import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../_lib/models/PointHistoryModel";
-import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../_lib/flowerAdminToken";
+import { ADMIN_VIRTUAL_COINS, isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 50;
 const PIG_COIN_MAX_COST = 50000;
-function verifyToken(request) {
-  const authHeader = request.headers.get("Authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  if (!token) return null;
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
-  } catch {
-    return null;
-  }
+const SUBSCRIPTION_FREE_LIMIT = {
+  standard: 30,
+  premium: 50,
+  vvip: 100,
+};
+
+function getAdminTestTier(request) {
+  const raw = String(request.headers.get("x-admin-subscription-tier") || "").trim().toLowerCase();
+  if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
+  return "";
 }
 
-async function isAdminRequest(request, payload) {
-  if (payload?.role === "admin") return true;
-
-  if (payload?.userId) {
-    try {
-      const User = await getUserModel();
-      const user = await User.findById(payload.userId).select("role").lean();
-      if (user?.role === "admin") return true;
-    } catch {
-      // DB 조회 실패 시 아래 토큰 검증으로 폴백
-    }
-  }
-
-  const adminToken = extractAdminTokenFromRequest(request);
-  if (!adminToken) return false;
-  return verifyFlowerAdminToken(adminToken);
+function getSubscriptionFreeLimit(user) {
+  const tier = String(user?.profileSubscription?.tier || "free");
+  const expiresAtRaw = user?.profileSubscription?.expiresAt;
+  const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
+  if (!expiresAt || Number.isNaN(expiresAt.getTime())) return 0;
+  if (expiresAt.getTime() <= Date.now()) return 0;
+  return Number(SUBSCRIPTION_FREE_LIMIT[tier] || 0);
 }
 
 export async function POST(request) {
-  const payload = verifyToken(request);
-  const adminMode = await isAdminRequest(request, payload);
+  const payload = verifyJwtFromRequest(request);
+  const adminMode = await isAdminRequest(request);
   if (!payload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
   const userId = payload?.userId;
-  if (!userId) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
+  if (!userId && !adminMode) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   let body;
   try { body = await request.json(); } catch { body = {}; }
@@ -60,8 +51,52 @@ export async function POST(request) {
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
 
+  if (adminMode) {
+    const adminTestTier = getAdminTestTier(request);
+    const freeLimit = adminTestTier ? Number(SUBSCRIPTION_FREE_LIMIT[adminTestTier] || 0) : 0;
+    const subscriptionFree = freeLimit > 0 && cost <= freeLimit;
+    return NextResponse.json({
+      ok: true,
+      adminMode: true,
+      adminTestTier: adminTestTier || null,
+      subscriptionFree,
+      freeLimit,
+      message: subscriptionFree
+        ? `관리자 테스트(${adminTestTier}) 기준으로 ${cost.toLocaleString("ko-KR")}코인 서비스가 무료 처리되었습니다.`
+        : `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다. (관리자 프리패스)`,
+      requiredCoins: cost,
+      user: { id: String(userId || "flower-admin"), points: ADMIN_VIRTUAL_COINS },
+    });
+  }
+
   try {
     const User = await getUserModel();
+    const user = await User.findById(userId).select("points profileSubscription").lean();
+    if (!user) {
+      return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    const freeLimit = getSubscriptionFreeLimit(user);
+    if (freeLimit > 0 && cost <= freeLimit) {
+      getPointHistoryModel().then(PH => PH.create({
+        userId,
+        kind: "adjust",
+        delta: 0,
+        balanceAfter: Number(user.points || 0),
+        reason: `${reason} (구독 무료 사용)`,
+        featureKey,
+        metadata: { source: "fortune.pig-coin.consume", subscriptionFree: true, freeLimit, requestedCost: cost },
+      })).catch(() => {});
+
+      return NextResponse.json({
+        ok: true,
+        subscriptionFree: true,
+        message: `구독 혜택으로 ${cost.toLocaleString("ko-KR")}코인 서비스가 무료 처리되었습니다.`,
+        requiredCoins: cost,
+        user: { id: String(userId), points: Number(user.points || 0) },
+      });
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, points: { $gte: cost } },
       { $inc: { points: -cost } },
@@ -96,21 +131,21 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
-  return proxyLegacyApi(request);
+  return NextResponse.json({ ok: false, message: "허용되지 않은 메서드입니다." }, { status: 405 });
 }
 
 export async function PATCH(request) {
-  return proxyLegacyApi(request);
+  return NextResponse.json({ ok: false, message: "허용되지 않은 메서드입니다." }, { status: 405 });
 }
 
 export async function DELETE(request) {
-  return proxyLegacyApi(request);
+  return NextResponse.json({ ok: false, message: "허용되지 않은 메서드입니다." }, { status: 405 });
 }
 
 export async function OPTIONS(request) {
-  return proxyLegacyApi(request);
+  return NextResponse.json({ ok: true }, { status: 200 });
 }
 
 export async function HEAD(request) {
-  return proxyLegacyApi(request);
+  return new Response(null, { status: 200 });
 }

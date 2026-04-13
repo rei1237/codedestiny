@@ -1,43 +1,17 @@
-import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../../_lib/models/PointHistoryModel";
-import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../../_lib/flowerAdminToken";
+import { isAdminRequest, verifyJwtFromRequest } from "../../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
 function verifyToken(request) {
-  const authHeader = request.headers.get("Authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  if (!token) return null;
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
-  } catch {
-    return null;
-  }
-}
-
-async function isAdminRequest(request, payload) {
-  if (payload?.role === "admin") return true;
-
-  if (payload?.userId) {
-    try {
-      const User = await getUserModel();
-      const user = await User.findById(payload.userId).select("role").lean();
-      if (user?.role === "admin") return true;
-    } catch {
-      // DB 조회 실패 시 아래 토큰 검증으로 폴백
-    }
-  }
-
-  const adminToken = extractAdminTokenFromRequest(request);
-  if (!adminToken) return false;
-  return verifyFlowerAdminToken(adminToken);
+  return verifyJwtFromRequest(request);
 }
 
 export async function POST(request) {
   const jwtPayload = verifyToken(request);
-  const adminMode = await isAdminRequest(request, jwtPayload);
+  const adminMode = await isAdminRequest(request);
   if (!jwtPayload?.userId && !adminMode) {
     return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
   }
@@ -65,7 +39,7 @@ export async function POST(request) {
     }
 
     const tier = String(user.profileSubscription?.tier || "free");
-    if (tier === "free") {
+    if (tier === "free" && !adminMode) {
       return NextResponse.json({ ok: false, message: "구독 사용자만 이용할 수 있습니다." }, { status: 403 });
     }
 

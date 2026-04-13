@@ -131,6 +131,7 @@ type UnlockKey =
 type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
 type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
+const ADMIN_VIRTUAL_COINS = 9999;
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   ziwei: 390,
@@ -152,26 +153,32 @@ const FREE_FEATURES = [
 function isAdminSessionClient(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const raw = localStorage.getItem('fortune_auth_user');
-    const user = raw ? JSON.parse(raw) : null;
-    if (String(user?.role || '').toLowerCase() === 'admin') return true;
-  } catch (_) {}
-  try {
-    const raw = localStorage.getItem('cd_user');
-    const user = raw ? JSON.parse(raw) : null;
-    if (String(user?.role || '').toLowerCase() === 'admin') return true;
-  } catch (_) {}
-  try {
-    const roleMatch = document.cookie.match(/(?:^|;\s*)fortune_auth_role=([^;]+)/);
-    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === 'admin') return true;
+    if (localStorage.getItem('flower_admin_token')) return true;
   } catch (_) {}
   try {
     if (sessionStorage.getItem('flower_admin_token')) return true;
   } catch (_) {}
-  try {
-    if (localStorage.getItem('flower_admin_token')) return true;
-  } catch (_) {}
   return false;
+}
+
+function getFlowerAdminTokenClient(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    const token = sessionStorage.getItem('flower_admin_token');
+    if (token) return String(token);
+  } catch (_) {}
+  try {
+    const token = localStorage.getItem('flower_admin_token');
+    if (token) return String(token);
+  } catch (_) {}
+  return '';
+}
+
+function getFlowerAdminTestTierClient(): '' | 'standard' | 'premium' | 'vvip' {
+  if (typeof window === 'undefined') return '';
+  const raw = String(localStorage.getItem('flower_admin_test_tier') || '').toLowerCase();
+  if (raw === 'standard' || raw === 'premium' || raw === 'vvip') return raw;
+  return '';
 }
 
 function saveUserPoints(points: number) {
@@ -190,6 +197,7 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
 export default function KkulkkulManseryukMain() {
   console.log("섹션 렌더링 시작: KkulkkulManseryukMain");
   const [currentCoins, setCurrentCoins] = useState(0);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
@@ -234,19 +242,22 @@ export default function KkulkkulManseryukMain() {
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token && !isAdminUser) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return;
     }
-    if (currentCoins < cost) {
-      setShowRechargeModal(true);
-      return;
-    }
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ cost, reason: `${key} 해금` }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
@@ -271,19 +282,22 @@ export default function KkulkkulManseryukMain() {
 
   const usePaidFeatureOnce = async (key: PerUseKey, cost: number) => {
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token && !isAdminUser) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return;
     }
-    if (currentCoins < cost) {
-      setShowRechargeModal(true);
-      return;
-    }
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ cost, reason: `${key} 이용` }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
@@ -306,20 +320,27 @@ export default function KkulkkulManseryukMain() {
 
   const runPremiumIntroGate = async (service: PremiumServiceKey) => {
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token && !isAdminUser) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
       return false;
     }
 
-    if (unlockedFeatures.premiumDivinationPack) {
+    if (isAdminUser || unlockedFeatures.premiumDivinationPack) {
       return true;
     }
 
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/balance', {
         method: 'GET',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { ...authHeaders },
       });
       if (!res.ok) {
         throw new Error(data?.message || '잔액 확인에 실패했습니다.');
@@ -330,7 +351,7 @@ export default function KkulkkulManseryukMain() {
       saveUserPoints(points);
 
       const required = PREMIUM_SERVICE_COST[service] ?? 0;
-      if (points < required) {
+      if (!isAdminUser && points < required) {
         setShowRechargeModal(true);
         return false;
       }
@@ -370,20 +391,27 @@ export default function KkulkkulManseryukMain() {
     const passed = await runPremiumIntroGate(service);
     if (!passed) return;
 
-    if (unlockedFeatures.premiumDivinationPack) {
+    if (isAdminUser || unlockedFeatures.premiumDivinationPack) {
       setPremiumFlowStage('generate');
       return;
     }
 
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) return;
+    if (!token && !isAdminUser) return;
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
 
     const cost = PREMIUM_SERVICE_COST[service];
     setPremiumGateLoading(service);
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성` }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
@@ -450,24 +478,38 @@ export default function KkulkkulManseryukMain() {
     try {
       const raw = localStorage.getItem('fortune_auth_user');
       const user = raw ? JSON.parse(raw) : {};
-      if (typeof user?.points === 'number') setCurrentCoins(user.points);
+      const admin = isAdminSessionClient();
+      setIsAdminUser(admin);
+      if (admin) {
+        setCurrentCoins(ADMIN_VIRTUAL_COINS);
+        saveUserPoints(ADMIN_VIRTUAL_COINS);
+      } else if (typeof user?.points === 'number') {
+        setCurrentCoins(user.points);
+      }
     } catch (_) {}
     // 2) API로 실제 잔액 동기화
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) return;
+    if (!token && !isAdminSessionClient()) return;
+    const adminToken = getFlowerAdminTokenClient();
+    const adminTestTier = getFlowerAdminTestTierClient();
+    const authHeaders = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+    };
     fetch('/api/fortune/pig-coin/balance', {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { ...authHeaders },
     })
       .then((r) => r.json())
       .then((d) => {
         if (d?.user?.points !== undefined) {
-          const pts = Number(d.user.points);
+          const pts = isAdminUser ? ADMIN_VIRTUAL_COINS : Number(d.user.points);
           setCurrentCoins(pts);
           saveUserPoints(pts);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [isAdminUser]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">
@@ -491,7 +533,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold text-amber-800">현재 잔액</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
                 <span aria-hidden="true">🐷</span>
-                <span>꽃꽃돼지 코인 {currentCoins}</span>
+                <span>꽃꽃돼지 코인 {isAdminUser ? ADMIN_VIRTUAL_COINS : currentCoins}</span>
               </p>
             </div>
           </div>
@@ -514,7 +556,7 @@ export default function KkulkkulManseryukMain() {
           title="사주 확장 콘텐츠 전체 해금"
           description="무료 항목을 제외한 사주 확장 서비스 전체를 한 번에 해금합니다."
           cost={700}
-          isUnlocked={unlockedFeatures.allPaidSaju}
+          isUnlocked={isAdminUser || unlockedFeatures.allPaidSaju}
           onUnlock={() =>
             unlockByCoins("allPaidSaju", 700, ["rpgCharacter", "travelDestiny", "healthReport", "sajuDiary", "secretHouseEpisodes"])
           }
@@ -530,7 +572,7 @@ export default function KkulkkulManseryukMain() {
             title="RPG 캐릭터 리포트"
             description="사주 기반 능력치/직업/성장 루트를 RPG 캐릭터처럼 분석합니다."
             cost={50}
-            isUnlocked={unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
+            isUnlocked={isAdminUser || unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("rpgCharacter", 50)}
           >
             <p className="text-sm text-neutral-700">전투 타입, 성장 타입, 파티 궁합이 공개되었습니다.</p>
@@ -540,7 +582,7 @@ export default function KkulkkulManseryukMain() {
             title="사주로 보는 여행지"
             description="오행 밸런스에 맞춘 여행지/계절/테마를 제안합니다."
             cost={100}
-            isUnlocked={unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
+            isUnlocked={isAdminUser || unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("travelDestiny", 100)}
           >
             <p className="text-sm text-neutral-700">당신의 운을 살리는 여행지 3곳과 피해야 할 시즌이 열렸습니다.</p>
@@ -550,7 +592,7 @@ export default function KkulkkulManseryukMain() {
             title="명리 헬스 리포트"
             description="오행 건강 경향, 루틴, 식습관 가이드를 제공합니다."
             cost={100}
-            isUnlocked={unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
+            isUnlocked={isAdminUser || unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("healthReport", 100)}
           >
             <p className="text-sm text-neutral-700">체질 관리 포인트와 일상 루틴 추천이 활성화되었습니다.</p>
@@ -560,7 +602,7 @@ export default function KkulkkulManseryukMain() {
             title="사주 다이어리"
             description="일간 운세 기록, 감정 로그, 월별 회고 기능을 해금합니다."
             cost={200}
-            isUnlocked={unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
+            isUnlocked={isAdminUser || unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("sajuDiary", 200)}
           >
             <p className="text-sm text-neutral-700">오늘 기록 템플릿과 월간 리포트 생성이 열렸습니다.</p>
@@ -570,7 +612,7 @@ export default function KkulkkulManseryukMain() {
             title="시크릿 하우스 전체 에피소드"
             description="연애 시뮬레이션 전체 분기 스토리를 자유 열람합니다."
             cost={100}
-            isUnlocked={unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
+            isUnlocked={isAdminUser || unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("secretHouseEpisodes", 100)}
           >
             <p className="text-sm text-neutral-700">모든 에피소드/멀티 엔딩/숨겨진 루트가 열렸습니다.</p>
@@ -580,7 +622,7 @@ export default function KkulkkulManseryukMain() {
             title="프리미엄 점술 패키지"
             description="자미두수, 점성술, 숙요점, 베다점 전체 기능을 패키지로 해금합니다."
             cost={300}
-            isUnlocked={unlockedFeatures.premiumDivinationPack}
+            isUnlocked={isAdminUser || unlockedFeatures.premiumDivinationPack}
             onUnlock={() => unlockByCoins("premiumDivinationPack", 300)}
           >
             <ul className="list-disc pl-5 text-sm text-neutral-700">

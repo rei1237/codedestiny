@@ -1,8 +1,7 @@
-﻿import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../../_lib/models/PointHistoryModel";
-import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../../_lib/flowerAdminToken";
+import { ADMIN_VIRTUAL_COINS, isAdminRequest, verifyJwtFromRequest } from "../../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -12,38 +11,19 @@ const PROFILE_SUB_PLANS = {
   vvip:     { name: "VVIP 꿀단지", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
 };
 
-function verifyToken(request) {
-  const authHeader = request.headers.get("Authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  if (!token) return null;
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
-  } catch {
-    return null;
-  }
+function getAdminTestTier(request) {
+  const raw = String(request.headers.get("x-admin-subscription-tier") || "").trim().toLowerCase();
+  if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
+  return "";
 }
 
-async function isAdminRequest(request, payload) {
-  if (payload?.role === "admin") return true;
-
-  if (payload?.userId) {
-    try {
-      const User = await getUserModel();
-      const user = await User.findById(payload.userId).select("role").lean();
-      if (user?.role === "admin") return true;
-    } catch {
-      // DB 조회 실패 시 아래 토큰 검증으로 폴백
-    }
-  }
-
-  const adminToken = extractAdminTokenFromRequest(request);
-  if (!adminToken) return false;
-  return verifyFlowerAdminToken(adminToken);
+function verifyToken(request) {
+  return verifyJwtFromRequest(request);
 }
 
 export async function GET(request) {
   const jwtPayload = verifyToken(request);
-  const adminMode = await isAdminRequest(request, jwtPayload);
+  const adminMode = await isAdminRequest(request);
   if (!jwtPayload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
   const userId = jwtPayload?.userId;
@@ -57,13 +37,32 @@ export async function GET(request) {
     const sub    = user.profileSubscription || {};
     const tier   = sub.tier || "free";
     const expAt  = sub.expiresAt || null;
-    const points = Number(user.points || 0);
+    const points = adminMode ? ADMIN_VIRTUAL_COINS : Number(user.points || 0);
     const plan   = PROFILE_SUB_PLANS[tier];
     const now    = new Date();
 
     let effectiveTier  = "free";
     let effectiveExpAt = expAt ? new Date(expAt) : null;
     let autoRenewed    = false;
+    const adminTestTier = adminMode ? getAdminTestTier(request) : "";
+
+    if (adminMode && adminTestTier) {
+      const adminPlan = PROFILE_SUB_PLANS[adminTestTier];
+      return NextResponse.json({
+        ok: true,
+        tier: adminTestTier,
+        isActive: true,
+        expiresAt: null,
+        profileLimit: adminPlan?.profileLimit ?? 1,
+        points,
+        lowBalanceWarning: false,
+        autoRenewed: false,
+        adminMode: true,
+        adminTestTier,
+        hasStartedPaidService: true,
+        firstServiceAccessDate: null,
+      });
+    }
 
     if (tier !== "free" && effectiveExpAt) {
       if (effectiveExpAt > now) {
@@ -110,6 +109,8 @@ export async function GET(request) {
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
+      adminMode,
+      adminTestTier: adminTestTier || null,
       hasStartedPaidService: !!user.has_started_paid_service,
       firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
     });

@@ -22,6 +22,19 @@ type AuthUser = {
   points?: number;
 };
 
+const ADMIN_VIRTUAL_COINS = 9999;
+
+function isFlowerAdminSessionClient(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (localStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  try {
+    if (sessionStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  return false;
+}
+
 function readAuthUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem("fortune_auth_user");
@@ -71,6 +84,8 @@ export default function AuthWidget() {
   if (!mounted) return null;
 
   if (user) {
+    const adminMode = isFlowerAdminSessionClient();
+    const displayPoints = adminMode ? ADMIN_VIRTUAL_COINS : (user.points ?? 0);
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm text-violet-200/80 max-w-[120px] truncate">
@@ -89,7 +104,7 @@ export default function AuthWidget() {
           className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
           title="포인트 충전/내역"
         >
-          ✦ {(user.points ?? 0).toLocaleString()}P
+          ✦ {displayPoints.toLocaleString()}P
         </Link>
         <button
           type="button"

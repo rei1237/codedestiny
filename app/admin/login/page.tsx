@@ -33,6 +33,7 @@ export default function AdminLoginPage() {
       // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에도 저장
       if (data?.adminToken) {
         try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
+        try { localStorage.setItem("flower_admin_token", String(data.adminToken)); } catch {}
       }
       router.push("/");
       router.refresh();

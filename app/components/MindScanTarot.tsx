@@ -930,8 +930,15 @@ export default function MindScanTarot() {
       const authToken = typeof window !== "undefined"
         ? localStorage.getItem("fortune_auth_token")
         : "";
+      const flowerAdminToken = typeof window !== "undefined"
+        ? (sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "")
+        : "";
+      const adminTestTier = typeof window !== "undefined"
+        ? String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase()
+        : "";
+      const isFlowerAdminMode = !!flowerAdminToken;
 
-      if (!authToken) {
+      if (!authToken && !isFlowerAdminMode) {
         setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
         if (typeof window !== "undefined") {
           const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -946,7 +953,11 @@ export default function MindScanTarot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          ...(flowerAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
+            ? { "x-admin-subscription-tier": adminTestTier }
+            : {}),
         },
         body: JSON.stringify({
           cost: MINDSCAN_COIN_COST,

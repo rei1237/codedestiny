@@ -67,6 +67,7 @@ type PaymentHistoryItem = {
 
 /* ── 프로필 구독 타입 ───────────────────────────────────────── */
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
+type AdminTestTier = "off" | "standard" | "premium" | "vvip";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
@@ -218,6 +219,46 @@ const POINT_PACKAGES: PointPackage[] = [
   { id: "goldVault",      title: "황금 돼지 금고",         amount: 59000,  points: 880  },
   { id: "emperorReserve", title: "황금 돼지 제왕 보물고",  amount: 119000, points: 2000 },
 ];
+
+const ADMIN_VIRTUAL_COINS = 9999;
+
+function isFlowerAdminSessionClient(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (localStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  try {
+    if (sessionStorage.getItem("flower_admin_token")) return true;
+  } catch {}
+  return false;
+}
+
+function getFlowerAdminTokenClient(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const token = localStorage.getItem("flower_admin_token");
+    if (token) return token;
+  } catch {}
+  try {
+    const token = sessionStorage.getItem("flower_admin_token");
+    if (token) return token;
+  } catch {}
+  return "";
+}
+
+function readAdminTestTierClient(): AdminTestTier {
+  if (typeof window === "undefined") return "off";
+  try {
+    const raw = String(localStorage.getItem("flower_admin_test_tier") || "off").toLowerCase();
+    if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
+  } catch {}
+  return "off";
+}
+
+function saveAdminTestTierClient(tier: AdminTestTier) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("flower_admin_test_tier", tier);
+}
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
   { id: "kakao",         label: "카카오페이",             logo: "🟨", desc: "간편 결제",          group: "domestic" },
@@ -374,11 +415,17 @@ function SubscriptionSection({
   currentPoints,
   onSubscribe,
   isProcessing,
+  isFlowerAdminMode,
+  adminTestTier,
+  onChangeAdminTestTier,
 }: {
   subscription:  SubscriptionStatus;
   currentPoints: number;
   onSubscribe:   (plan: SubscriptionPlan) => void;
   isProcessing:  boolean;
+  isFlowerAdminMode: boolean;
+  adminTestTier: AdminTestTier;
+  onChangeAdminTestTier: (tier: AdminTestTier) => void;
 }) {
   const tierLabel: Record<SubscriptionTier, string> = {
     free:     "무료 플랜",
@@ -491,6 +538,42 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>갱신은 언제든 <strong>수동으로도 가능</strong>하며, 갱신 시 30일이 추가됩니다.</li>
           </ul>
         </div>
+
+        {isFlowerAdminMode && (
+          <div className="mb-4 rounded-[14px] border border-violet-300 bg-violet-50 px-4 py-3">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
+              <span aria-hidden="true">🧪</span> 관리자 구독 티어 테스트 모드
+            </p>
+            <p className="mt-1 text-[11.5px] text-violet-700">
+              아래 티어를 선택하면 유료 기능 결제 시 무료 한도(30/50/100코인)가 해당 티어 기준으로 시뮬레이션됩니다.
+            </p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {([
+                { id: "off", label: "해제" },
+                { id: "standard", label: "스탠다드 꿀" },
+                { id: "premium", label: "프리미엄 꿀" },
+                { id: "vvip", label: "VVIP 꿀단지" },
+              ] as Array<{ id: AdminTestTier; label: string }>).map((mode) => {
+                const active = adminTestTier === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => onChangeAdminTestTier(mode.id)}
+                    className={[
+                      "rounded-full px-3 py-1.5 text-[11.5px] font-bold transition",
+                      active
+                        ? "bg-violet-600 text-white shadow-[0_4px_12px_rgba(124,58,237,0.35)]"
+                        : "bg-white text-violet-700 ring-1 ring-violet-300 hover:bg-violet-100",
+                    ].join(" ")}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -940,6 +1023,7 @@ export default function PointsPage() {
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
+  const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -997,7 +1081,9 @@ export default function PointsPage() {
         throw new Error(payload.message || "포인트 정보를 불러오지 못했습니다.");
       }
 
-      const points = Number(payload.user?.points || 0);
+      const nextUser = payload.user;
+      const adminMode = isFlowerAdminSessionClient();
+      const points = adminMode ? ADMIN_VIRTUAL_COINS : Number(nextUser?.points || 0);
       persistUserPoints(points);
 
       const normalizedPayments = Array.isArray(payload.payments)
@@ -1007,12 +1093,12 @@ export default function PointsPage() {
         : [];
       setPaymentHistory(normalizedPayments);
 
-      if (payload.user) {
+      if (nextUser) {
         setAuthUser((prev) => ({
           ...(prev || {}),
-          id: payload.user!.id,
-          name: payload.user!.name,
-          email: payload.user!.email,
+          id: nextUser.id,
+          name: nextUser.name,
+          email: nextUser.email,
           points,
         }));
       }
@@ -1024,6 +1110,8 @@ export default function PointsPage() {
   useEffect(() => {
     const savedToken = localStorage.getItem("fortune_auth_token");
     const rawUser = localStorage.getItem("fortune_auth_user");
+    const adminMode = isFlowerAdminSessionClient();
+    if (adminMode) setAdminTestTier(readAdminTestTierClient());
 
     if (!savedToken) {
       router.replace("/login?next=%2Fpoints");
@@ -1036,12 +1124,21 @@ export default function PointsPage() {
       try {
         const parsed = JSON.parse(rawUser) as AuthUser;
         setAuthUser(parsed);
-        if (typeof parsed.points === "number") setCurrentPoints(parsed.points);
+        if (adminMode) {
+          setCurrentPoints(ADMIN_VIRTUAL_COINS);
+        } else if (typeof parsed.points === "number") {
+          setCurrentPoints(parsed.points);
+        }
       } catch { /* noop */ }
     }
 
     setIsBooting(false);
   }, [router]);
+
+  useEffect(() => {
+    if (!isFlowerAdminSessionClient()) return;
+    saveAdminTestTierClient(adminTestTier);
+  }, [adminTestTier]);
 
   /* ── 부팅 후 포인트 로드 ───────────────────────────────────────── */
   useEffect(() => {
@@ -1055,8 +1152,13 @@ export default function PointsPage() {
   /* ── 구독 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
     if (isBooting || !token) return;
+    const flowerAdminToken = getFlowerAdminTokenClient();
+    const adminHeaders = flowerAdminToken ? {
+      "x-admin-token": flowerAdminToken,
+      ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
+    } : {};
     fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/status`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, ...adminHeaders },
     })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => {
@@ -1070,7 +1172,7 @@ export default function PointsPage() {
         });
       })
       .catch(() => {});
-  }, [isBooting, token, apiBase]);
+  }, [isBooting, token, apiBase, adminTestTier]);
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
@@ -1367,11 +1469,14 @@ export default function PointsPage() {
 
   /* ── 구독 결제 핸들러 ───────────────────────────────────────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
-    if (!token || !authUser) {
+    const isFlowerAdmin = isFlowerAdminSessionClient();
+    const flowerAdminToken = getFlowerAdminTokenClient();
+
+    if ((!token && !isFlowerAdmin) || !authUser) {
       router.replace("/login?next=%2Fpoints");
       return;
     }
-    if (currentPoints < plan.coins) {
+    if (!isFlowerAdmin && currentPoints < plan.coins) {
       pushToast("error", `코인이 부족합니다. ${plan.coins}코인 필요 (보유: ${currentPoints}코인)`);
       return;
     }
@@ -1380,7 +1485,12 @@ export default function PointsPage() {
     try {
       const res = await fetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/subscribe`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
+        },
         body:    JSON.stringify({ tier: plan.id }),
       });
       const data = await safeParseJson<{
@@ -1523,6 +1633,9 @@ export default function PointsPage() {
           currentPoints={currentPoints}
           onSubscribe={handleSubscribe}
           isProcessing={isProcessing}
+          isFlowerAdminMode={isFlowerAdminSessionClient()}
+          adminTestTier={adminTestTier}
+          onChangeAdminTestTier={setAdminTestTier}
         />
 
         {/* ④ 섹션 구분선 */}
