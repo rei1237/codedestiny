@@ -54,6 +54,41 @@ const CHAPTER_META: ChapterMeta[] = [
 
 const VEDIC_STORAGE_KEY = "premium:vedic:session:v1";
 
+/** 사용자 프로필 스토리지에서 베다 점성술 입력값 읽기 */
+function readVedicProfile(): { year: string; month: string; day: string; hour: string; minute: string; lat: string; lon: string; timezone: string } | null {
+  try {
+    for (const store of [sessionStorage, localStorage] as Storage[]) {
+      const raw = store.getItem("FORTUNE_APP_VEDIC_PAYLOAD");
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p?.birth?.year) return {
+          year: String(p.birth.year), month: String(p.birth.month ?? 1),
+          day: String(p.birth.day ?? 1), hour: String(p.birth.hour ?? 12),
+          minute: String(p.birth.minute ?? 0),
+          lat: p.location?.lat != null ? String(p.location.lat) : "37.5665",
+          lon: p.location?.lng != null ? String(p.location.lng) : "126.9780",
+          timezone: p.location?.tzOffset != null ? String(p.location.tzOffset) : "9",
+        };
+      }
+    }
+    const listRaw = localStorage.getItem("FORTUNE_APP_USER_PROFILES.list");
+    const currentId = localStorage.getItem("FORTUNE_APP_USER_PROFILES.current");
+    if (listRaw) {
+      const list = JSON.parse(listRaw) as { id?: string; birth?: { year?: number; month?: number; day?: number; hour?: number; minute?: number }; location?: { lat?: number; lng?: number; tzOffset?: number } }[];
+      const profile = (currentId ? list.find((p) => p.id === currentId) : undefined) ?? list[0];
+      if (profile?.birth?.year) return {
+        year: String(profile.birth.year), month: String(profile.birth.month ?? 1),
+        day: String(profile.birth.day ?? 1), hour: String(profile.birth.hour ?? 12),
+        minute: String(profile.birth.minute ?? 0),
+        lat: profile.location?.lat != null ? String(profile.location.lat) : "37.5665",
+        lon: profile.location?.lng != null ? String(profile.location.lng) : "126.9780",
+        timezone: profile.location?.tzOffset != null ? String(profile.location.tzOffset) : "9",
+      };
+    }
+  } catch (_) {}
+  return null;
+}
+
 // ─────────────────────────────────────────────────────────────────
 // 로더
 // ─────────────────────────────────────────────────────────────────
@@ -379,6 +414,7 @@ export default function HPremiumVedicSection({
   const [calcLoading, setCalcLoading] = useState(false);
   const [requestError, setRequestError] = useState("");
   const storageReadyRef = useRef(false);
+  const autoComputeRef = useRef(false);
 
   const resetVedicState = useCallback((resetInputs = false) => {
     setChart(null);
@@ -408,6 +444,19 @@ export default function HPremiumVedicSection({
     try {
       const raw = localStorage.getItem(VEDIC_STORAGE_KEY);
       if (!raw) {
+        // 저장된 세션 없으면 사용자 프로필 스토리지에서 폴백 로드
+        const profile = readVedicProfile();
+        if (profile) {
+          setBirthYear(profile.year);
+          setBirthMonth(profile.month);
+          setBirthDay(profile.day);
+          setBirthHour(profile.hour);
+          setBirthMinute(profile.minute);
+          setTimezone(profile.timezone);
+          setLat(profile.lat);
+          setLon(profile.lon);
+          autoComputeRef.current = true;
+        }
         storageReadyRef.current = true;
         return;
       }
@@ -478,6 +527,15 @@ export default function HPremiumVedicSection({
       resetVedicState(false);
     }
   }, [showIntro, resetVedicState]);
+
+  // 프로필에서 자동 로드된 경우 즉시 계산
+  useEffect(() => {
+    if (showIntro) return;
+    if (!autoComputeRef.current) return;
+    if (!birthYear || !birthMonth || !birthDay) return;
+    autoComputeRef.current = false;
+    handleCalcChart();
+  }, [showIntro, birthYear, birthMonth, birthDay, handleCalcChart]);
 
   const postVedicJson = useCallback(async (payload: unknown) => {
     let lastError: unknown = null;

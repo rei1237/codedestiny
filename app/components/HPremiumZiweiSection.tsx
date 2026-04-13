@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 // ─── 자미두수 로컬 계산 엔진 ────────────────────────────────────────────────
 
@@ -493,7 +493,46 @@ interface FormState {
   birthHour: string; unknownHour: boolean; name: string; gender: "M" | "F";
 }
 
-export default function HPremiumZiweiSection() {
+interface HPremiumZiweiSectionProps {
+  showIntro?: boolean;
+  onStartGeneration?: () => void | Promise<void>;
+  generationLoading?: boolean;
+}
+
+/** 사용자 프로필 스토리지에서 생년월일 읽기 */
+function readBirthFromProfile(): { year: string; month: string; day: string; hour: string; name: string; gender: "M" | "F" } | null {
+  try {
+    for (const store of [sessionStorage, localStorage] as Storage[]) {
+      const raw = store.getItem("FORTUNE_APP_VEDIC_PAYLOAD");
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p?.birth?.year) return {
+          year: String(p.birth.year), month: String(p.birth.month ?? 1),
+          day: String(p.birth.day ?? 1), hour: String(p.birth.hour ?? 12),
+          name: p.name || "", gender: (p.gender === "F" ? "F" : "M") as "M" | "F",
+        };
+      }
+    }
+    const listRaw = localStorage.getItem("FORTUNE_APP_USER_PROFILES.list");
+    const currentId = localStorage.getItem("FORTUNE_APP_USER_PROFILES.current");
+    if (listRaw) {
+      const list = JSON.parse(listRaw) as { id?: string; birth?: { year?: number; month?: number; day?: number; hour?: number }; name?: string; gender?: string }[];
+      const profile = (currentId ? list.find((p) => p.id === currentId) : undefined) ?? list[0];
+      if (profile?.birth?.year) return {
+        year: String(profile.birth.year), month: String(profile.birth.month ?? 1),
+        day: String(profile.birth.day ?? 1), hour: String(profile.birth.hour ?? 12),
+        name: profile.name || "", gender: (profile.gender === "F" ? "F" : "M") as "M" | "F",
+      };
+    }
+  } catch (_) {}
+  return null;
+}
+
+export default function HPremiumZiweiSection({
+  showIntro = false,
+  onStartGeneration,
+  generationLoading = false,
+}: HPremiumZiweiSectionProps = {}) {
   const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState<FormState>({
     birthYear: "", birthMonth: "", birthDay: "", birthHour: "12",
@@ -504,10 +543,24 @@ export default function HPremiumZiweiSection() {
   const [savedYear, setSavedYear] = useState(1990);
   const [activeChapter, setActiveChapter] = useState(0);
   const [progress, setProgress] = useState(0);
+  const autoComputeRef = useRef(false);
 
   // 저장된 세션 불러오기
   useEffect(() => {
     try {
+      // 1. 캐시된 결과 복원 (최우선)
+      const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
+      if (cached) {
+        const c = JSON.parse(cached);
+        if (c.result && c.name) {
+          setResult(c.result);
+          setSavedName(c.name);
+          setSavedYear(c.year || 1990);
+          setStep("result");
+          return;
+        }
+      }
+      // 2. 저장된 세션 복원
       const raw = localStorage.getItem(ZIWEI_SESSION_KEY);
       if (raw) {
         const s = JSON.parse(raw);
@@ -522,18 +575,22 @@ export default function HPremiumZiweiSection() {
             name: s.name || "",
             gender: s.gender || "M",
           }));
+          return; // 세션 있으면 프로필 폴백 불필요
         }
       }
-      // 캐시된 결과 복원
-      const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
-      if (cached) {
-        const c = JSON.parse(cached);
-        if (c.result && c.name) {
-          setResult(c.result);
-          setSavedName(c.name);
-          setSavedYear(c.year || 1990);
-          setStep("result");
-        }
+      // 3. 프로필 스토리지 폴백: 세션 없을 때 사용자 프로필에서 생년월일 로드
+      const profile = readBirthFromProfile();
+      if (profile) {
+        setForm(f => ({
+          ...f,
+          birthYear: profile.year,
+          birthMonth: profile.month,
+          birthDay: profile.day,
+          birthHour: profile.hour,
+          name: profile.name,
+          gender: profile.gender,
+        }));
+        autoComputeRef.current = true;
       }
     } catch (_) {}
   }, []);
@@ -583,6 +640,14 @@ export default function HPremiumZiweiSection() {
     }, 1800);
   }, [form]);
 
+  // 프로필에서 자동 로드된 경우 즉시 계산
+  useEffect(() => {
+    if (!autoComputeRef.current) return;
+    if (!form.birthYear || !form.birthMonth || !form.birthDay) return;
+    autoComputeRef.current = false;
+    handleCompute();
+  }, [form.birthYear, form.birthMonth, form.birthDay, handleCompute]);
+
   // ── 스타일 공통 ──
   const rootBg: React.CSSProperties = {
     minHeight: "100dvh",
@@ -590,6 +655,38 @@ export default function HPremiumZiweiSection() {
     color: "#f0eeff",
     fontFamily: "'Pretendard','Noto Sans KR',sans-serif",
   };
+
+  // ── INTRO 화면 ──
+  if (showIntro) {
+    return (
+      <section style={{ background: "linear-gradient(145deg,#07041a 0%,#0e0830 100%)", borderRadius: 24, overflow: "hidden" }}>
+        <img src="/fuctionassets/jamigod.webp" alt="자미두수 프리미엄 소개" style={{ width: "100%", maxHeight: 280, objectFit: "cover", opacity: 0.44 }} />
+        <div style={{ padding: "18px 18px 22px" }}>
+          <p style={{ color: "rgba(167,139,250,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>ZIWEI PREMIUM · 로컬 완전 계산</p>
+          <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>자미두수(紫微斗數) 심화 분析</h3>
+          <p style={{ color: "rgba(196,181,253,0.72)", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>
+            16챕터 자미두수 완전 분析 · 12궁 명반 · 대한 사화 배치 · 브라우저 로컬 계산
+          </p>
+          <button
+            type="button"
+            onClick={() => onStartGeneration?.()}
+            disabled={generationLoading}
+            style={{
+              marginTop: 14, width: "100%", borderRadius: 11, padding: "14px",
+              fontSize: "0.96rem", fontWeight: 900,
+              background: generationLoading ? "rgba(30,20,60,0.6)" : "linear-gradient(135deg,#5b21b6,#7c3aed)",
+              border: "none",
+              color: generationLoading ? "rgba(148,163,184,0.5)" : "#fff",
+              cursor: generationLoading ? "wait" : "pointer",
+              letterSpacing: "0.08em", opacity: generationLoading ? 0.72 : 1,
+            }}
+          >
+            {generationLoading ? "코인 확인 중…" : "자미두수 심화 분析 시작하기"}
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   // ── FORM 화면 ──
   if (step === "form") {
