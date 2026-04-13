@@ -6222,7 +6222,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var user = readAuthUser();
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
-    if (isAdminUser()) userBalance = 9999;
   }
 
   function saveBalance() {
@@ -6353,8 +6352,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return { ok: false, status: 401, payload: { message: '濡쒓렇?몄씠 ?꾩슂?⑸땲??' } };
     }
 
+    var adminToken = '';
+    try {
+      adminToken = sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token') || '';
+    } catch (_e) {}
+    var adminTestTier = '';
+    try {
+      adminTestTier = String(localStorage.getItem('flower_admin_test_tier') || '').toLowerCase();
+    } catch (_e) {}
+
     var headers = Object.assign({}, (init && init.headers) || {}, {
       Authorization: 'Bearer ' + token,
+      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      ...((adminToken && (adminTestTier === 'standard' || adminTestTier === 'premium' || adminTestTier === 'vvip'))
+        ? { 'x-admin-subscription-tier': adminTestTier }
+        : {}),
     });
     if (init && init.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
@@ -6385,7 +6397,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function updateBadge() {
     var el = document.getElementById('goldenGrainBalanceText');
-    if (isAdminUser()) userBalance = 9999;
     if (el) el.textContent = '蹂댁쑀 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 肄붿씤';
   }
 

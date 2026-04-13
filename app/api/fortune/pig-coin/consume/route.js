@@ -51,7 +51,7 @@ export async function POST(request) {
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
 
-  if (adminMode) {
+  if (adminMode && !userId) {
     const adminTestTier = getAdminTestTier(request);
     const freeLimit = adminTestTier ? Number(SUBSCRIPTION_FREE_LIMIT[adminTestTier] || 0) : 0;
     const subscriptionFree = freeLimit > 0 && cost <= freeLimit;

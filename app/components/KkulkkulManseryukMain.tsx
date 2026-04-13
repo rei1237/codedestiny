@@ -131,7 +131,6 @@ type UnlockKey =
 type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes" | "premiumTarot" | "loveSimulation";
 type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
-const ADMIN_VIRTUAL_COINS = 9999;
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   ziwei: 390,
@@ -326,7 +325,7 @@ export default function KkulkkulManseryukMain() {
       return false;
     }
 
-    if (isAdminUser || unlockedFeatures.premiumDivinationPack) {
+    if (unlockedFeatures.premiumDivinationPack) {
       return true;
     }
 
@@ -351,7 +350,7 @@ export default function KkulkkulManseryukMain() {
       saveUserPoints(points);
 
       const required = PREMIUM_SERVICE_COST[service] ?? 0;
-      if (!isAdminUser && points < required) {
+      if (points < required) {
         setShowRechargeModal(true);
         return false;
       }
@@ -391,7 +390,7 @@ export default function KkulkkulManseryukMain() {
     const passed = await runPremiumIntroGate(service);
     if (!passed) return;
 
-    if (isAdminUser || unlockedFeatures.premiumDivinationPack) {
+    if (unlockedFeatures.premiumDivinationPack) {
       setPremiumFlowStage('generate');
       return;
     }
@@ -480,10 +479,7 @@ export default function KkulkkulManseryukMain() {
       const user = raw ? JSON.parse(raw) : {};
       const admin = isAdminSessionClient();
       setIsAdminUser(admin);
-      if (admin) {
-        setCurrentCoins(ADMIN_VIRTUAL_COINS);
-        saveUserPoints(ADMIN_VIRTUAL_COINS);
-      } else if (typeof user?.points === 'number') {
+      if (typeof user?.points === 'number') {
         setCurrentCoins(user.points);
       }
     } catch (_) {}
@@ -503,7 +499,7 @@ export default function KkulkkulManseryukMain() {
       .then((r) => r.json())
       .then((d) => {
         if (d?.user?.points !== undefined) {
-          const pts = isAdminUser ? ADMIN_VIRTUAL_COINS : Number(d.user.points);
+          const pts = Number(d.user.points);
           setCurrentCoins(pts);
           saveUserPoints(pts);
         }
@@ -533,7 +529,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold text-amber-800">현재 잔액</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
                 <span aria-hidden="true">🐷</span>
-                <span>꽃꽃돼지 코인 {isAdminUser ? ADMIN_VIRTUAL_COINS : currentCoins}</span>
+                <span>꽃꽃돼지 코인 {currentCoins}</span>
               </p>
             </div>
           </div>
@@ -556,7 +552,7 @@ export default function KkulkkulManseryukMain() {
           title="사주 확장 콘텐츠 전체 해금"
           description="무료 항목을 제외한 사주 확장 서비스 전체를 한 번에 해금합니다."
           cost={700}
-          isUnlocked={isAdminUser || unlockedFeatures.allPaidSaju}
+          isUnlocked={unlockedFeatures.allPaidSaju}
           onUnlock={() =>
             unlockByCoins("allPaidSaju", 700, ["rpgCharacter", "travelDestiny", "healthReport", "sajuDiary", "secretHouseEpisodes"])
           }
@@ -572,7 +568,7 @@ export default function KkulkkulManseryukMain() {
             title="RPG 캐릭터 리포트"
             description="사주 기반 능력치/직업/성장 루트를 RPG 캐릭터처럼 분석합니다."
             cost={50}
-            isUnlocked={isAdminUser || unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
+            isUnlocked={unlockedFeatures.rpgCharacter || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("rpgCharacter", 50)}
           >
             <p className="text-sm text-neutral-700">전투 타입, 성장 타입, 파티 궁합이 공개되었습니다.</p>
@@ -580,9 +576,8 @@ export default function KkulkkulManseryukMain() {
 
           <LockedSection
             title="사주로 보는 여행지"
-            description="오행 밸런스에 맞춘 여행지/계절/테마를 제안합니다."
             cost={100}
-            isUnlocked={isAdminUser || unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
+            isUnlocked={unlockedFeatures.travelDestiny || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("travelDestiny", 100)}
           >
             <p className="text-sm text-neutral-700">당신의 운을 살리는 여행지 3곳과 피해야 할 시즌이 열렸습니다.</p>
@@ -590,9 +585,8 @@ export default function KkulkkulManseryukMain() {
 
           <LockedSection
             title="명리 헬스 리포트"
-            description="오행 건강 경향, 루틴, 식습관 가이드를 제공합니다."
             cost={100}
-            isUnlocked={isAdminUser || unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
+            isUnlocked={unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("healthReport", 100)}
           >
             <p className="text-sm text-neutral-700">체질 관리 포인트와 일상 루틴 추천이 활성화되었습니다.</p>
@@ -600,9 +594,8 @@ export default function KkulkkulManseryukMain() {
 
           <LockedSection
             title="사주 다이어리"
-            description="일간 운세 기록, 감정 로그, 월별 회고 기능을 해금합니다."
             cost={200}
-            isUnlocked={isAdminUser || unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
+            isUnlocked={unlockedFeatures.sajuDiary || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("sajuDiary", 200)}
           >
             <p className="text-sm text-neutral-700">오늘 기록 템플릿과 월간 리포트 생성이 열렸습니다.</p>
@@ -610,9 +603,8 @@ export default function KkulkkulManseryukMain() {
 
           <LockedSection
             title="시크릿 하우스 전체 에피소드"
-            description="연애 시뮬레이션 전체 분기 스토리를 자유 열람합니다."
             cost={100}
-            isUnlocked={isAdminUser || unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
+            isUnlocked={unlockedFeatures.secretHouseEpisodes || unlockedFeatures.allPaidSaju}
             onUnlock={() => unlockByCoins("secretHouseEpisodes", 100)}
           >
             <p className="text-sm text-neutral-700">모든 에피소드/멀티 엔딩/숨겨진 루트가 열렸습니다.</p>
@@ -620,9 +612,8 @@ export default function KkulkkulManseryukMain() {
 
           <LockedSection
             title="프리미엄 점술 패키지"
-            description="자미두수, 점성술, 숙요점, 베다점 전체 기능을 패키지로 해금합니다."
             cost={300}
-            isUnlocked={isAdminUser || unlockedFeatures.premiumDivinationPack}
+            isUnlocked={unlockedFeatures.premiumDivinationPack}
             onUnlock={() => unlockByCoins("premiumDivinationPack", 300)}
           >
             <ul className="list-disc pl-5 text-sm text-neutral-700">

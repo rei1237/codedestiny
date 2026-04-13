@@ -13,7 +13,7 @@ export async function GET(request) {
   if (!userId && !adminMode) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   try {
-    if (adminMode) {
+    if (adminMode && !userId) {
       return NextResponse.json({
         ok: true,
         adminMode: true,
