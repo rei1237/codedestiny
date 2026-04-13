@@ -5113,19 +5113,59 @@ function openSukuyoFlower() {
   return openDestinyFlower(false);
 }
 
+function _dfResolveLockTileBySource(source) {
+  var normalized = _dfNormalizeSource(source);
+  var sourceLockMap = {
+    saju: 'openDestinyFlowerStudio',
+    astrology: 'openAstrologyFlowerStudio',
+    jamidusu: 'openJamidusuFlowerStudio',
+    sukuyo: 'openSukuyoFlowerStudio'
+  };
+  var actionName = sourceLockMap[normalized] || 'openDestinyFlowerStudio';
+  var tile = document.querySelector('[data-action="' + actionName + '"][data-tile-lock-key]');
+  if (!tile) tile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
+  return tile;
+}
+
+function _dfIsLockTileUnlocked(tile) {
+  if (!tile) return true;
+  var lockKey = tile.getAttribute('data-tile-lock-key');
+  if (!lockKey) return true;
+  var isUnlocked = false;
+  try { isUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[lockKey]); } catch (_) {}
+  if (!isUnlocked) {
+    try { var locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); isUnlocked = !!locks[lockKey]; } catch (_) {}
+  }
+  if (!isUnlocked) {
+    try {
+      var user = readAuthUser && readAuthUser();
+      var plan = (user && user.plan) ? String(user.plan) : '';
+      if (plan === 'unlimited' || plan === 'premium') isUnlocked = true;
+    } catch (_) {}
+  }
+  return isUnlocked;
+}
+
+function _dfEnsureSourceUnlocked(source) {
+  var tile = _dfResolveLockTileBySource(source);
+  if (!tile) return true;
+  if (_dfIsLockTileUnlocked(tile)) return true;
+  if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
+    return false;
+  }
+  return false;
+}
+
 function openAstrologyFlowerStudio() {
-  _dfSetActiveSource('astrology');
-  return openDestinyFlowerStudio();
+  return openDestinyFlowerStudio('astrology');
 }
 
 function openJamidusuFlowerStudio() {
-  _dfSetActiveSource('jamidusu');
-  return openDestinyFlowerStudio();
+  return openDestinyFlowerStudio('jamidusu');
 }
 
 function openSukuyoFlowerStudio() {
-  _dfSetActiveSource('sukuyo');
-  return openDestinyFlowerStudio();
+  return openDestinyFlowerStudio('sukuyo');
 }
 
 function openDestinyFlower(forceRefreshData) {
@@ -5167,32 +5207,15 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
-function openDestinyFlowerStudio() {
+function openDestinyFlowerStudio(source) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
-  // 현재 활성 소스(saju/astrology/jamidusu/sukuyo)에 맞는 타일 및 lock key 동적 결정
-  var _dfSourceLockMap = { saju: 'openDestinyFlowerStudio', astrology: 'openAstrologyFlowerStudio', jamidusu: 'openJamidusuFlowerStudio', sukuyo: 'openSukuyoFlowerStudio' };
-  var _dfActiveSource = (_dfStudioState && _dfStudioState.activeSource) || 'saju';
-  var _dfActionName = _dfSourceLockMap[_dfActiveSource] || 'openDestinyFlowerStudio';
-  var _dfTile = document.querySelector('[data-action="' + _dfActionName + '"][data-tile-lock-key]');
-  if (!_dfTile) _dfTile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
-  if (_dfTile) {
-    var _dfLockKey = _dfTile.getAttribute('data-tile-lock-key');
-    var _dfIsUnlocked = false;
-    try { _dfIsUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[_dfLockKey]); } catch (_) {}
-    if (!_dfIsUnlocked) {
-      try { var _dfLocks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); _dfIsUnlocked = !!_dfLocks[_dfLockKey]; } catch (_) {}
-    }
-    if (!_dfIsUnlocked) {
-      try { var _dfU = readAuthUser && readAuthUser(); var _dfPlan = (_dfU && _dfU.plan) ? String(_dfU.plan) : ''; if (_dfPlan === 'unlimited' || _dfPlan === 'premium') _dfIsUnlocked = true; } catch (_) {}
-    }
-    if (!_dfIsUnlocked) {
-      if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_dfTile)) return;
-      _dfTile.click();
-      return;
-    }
+  var requestedSource = _dfNormalizeSource(source || 'saju');
+  if (!_dfEnsureSourceUnlocked(requestedSource)) {
+    return;
   }
+  var _dfActiveSource = _dfSetActiveSource(requestedSource);
   // ── 코인/잠금 게이트 체크 끝 ──
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
@@ -5335,7 +5358,11 @@ function _dfGetNoBirthMessage(source) {
 }
 
 function setDestinyFlowerSourceTab(source) {
-  var normalized = _dfSetActiveSource(source);
+  var normalized = _dfNormalizeSource(source);
+  if (!_dfEnsureSourceUnlocked(normalized)) {
+    return _dfStudioState.selection || null;
+  }
+  normalized = _dfSetActiveSource(normalized);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var isStudioOpen = overlay && overlay.style.display !== 'none';
   var selection = _dfGetUnifiedSelection(normalized, false);
