@@ -2289,19 +2289,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
-
-                <!-- 자미두수 심화 분析 (H 프리미엄) -->
-                <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
-                        data-action="navigateToZiweiChart"
-                        aria-label="자미두수 심화 분析 열기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌟</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--ziwei">심화</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                <!-- 자미두수 심화 (영구 해금) -->
+                <button class="tarot-tile tarot-tile--ziwei-premium-fc" type="button"
+                        data-action="gotoZiweiPremium"
+                        data-coin-cost="500"
+                        aria-label="자미두수 심화 시작 (영구 해금 500코인)">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 — 16챕터 인생 전략 명궁 완전 해독">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌌</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">심화</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 영구 해금 500코인</span>
                   </div>
                   <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🌟 자미두수 심화</span>
-                    <span class="tarot-tile__desc">16챕터 인생 전략 · 명궁 완전 해독</span>
+                    <span class="tarot-tile__title">🌌 자미두수 심화</span>
+                    <span class="tarot-tile__desc">16챕터 인생 전략  명궁 완전 해독</span>
                   </div>
                 </button>
 
@@ -8561,5 +8561,6 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </script>
 </body>
 </html>
+
 
 
