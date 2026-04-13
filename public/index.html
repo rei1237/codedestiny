@@ -7455,6 +7455,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var _premAct=tile.getAttribute('data-action');
       if(_premAct){window.__cdPremCardCoinGate(_premAct,tile,_pvwCoinCost);return;}
     }
+    var _freeAct=tile.getAttribute('data-action');
+    if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);

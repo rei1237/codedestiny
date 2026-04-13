@@ -424,27 +424,6 @@ export default function KkulkkulManseryukMain() {
       setPremiumGateLoading(null);
     }
   };
-    setPremiumGateLoading(service);
-    try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ cost, reason: `${service} 프리미엄 PDF 생성` }),
-      });
-      if (res.status === 402) { setShowRechargeModal(true); return; }
-      if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
-      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
-      setCurrentCoins(newPoints);
-      saveUserPoints(newPoints);
-      setPremiumFlowStage('generate');
-    } catch (e) {
-      console.error('[handleStartPremiumGeneration]', e);
-      setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    } finally {
-      setPremiumGateLoading(null);
-    }
-    ─── END PRODUCTION */
-  };
 
   useEffect(() => {
     if (!sparkleTarget) return;
