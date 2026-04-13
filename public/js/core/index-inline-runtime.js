@@ -5168,21 +5168,24 @@ function _dfResolveLockTileBySource(source) {
   return tile;
 }
 
-function _dfRequireSourceCoinPayment(source, onPass) {
+function _dfIsLockTileUnlocked(tile) {
+  if (!tile) return true;
+  var lockKey = tile.getAttribute('data-tile-lock-key');
+  if (!lockKey) return true;
+  var isUnlocked = false;
+  try { isUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[lockKey]); } catch (_) {}
+  if (!isUnlocked) {
+    try { var locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); isUnlocked = !!locks[lockKey]; } catch (_) {}
+  }
+  return isUnlocked;
+}
+
+function _dfEnsureSourceUnlocked(source) {
   var tile = _dfResolveLockTileBySource(source);
   if (!tile) return true;
   var lockKey = tile.getAttribute('data-tile-lock-key');
   if (!lockKey) return true;
-  var cost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-  if (!(cost > 0)) cost = 50;
-  var sourceMeta = _DF_SOURCE_META[_dfNormalizeSource(source)] || _DF_SOURCE_META.saju;
-  var reason = (sourceMeta.labelKo || '운명의 꽃') + ' 운명의 꽃 아틀리에 결제';
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(cost, reason, function() {
-      if (typeof onPass === 'function') onPass();
-    });
-    return false;
-  }
+  if (_dfIsLockTileUnlocked(tile)) return true;
   if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
     return false;
   }
@@ -5240,12 +5243,12 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
-function openDestinyFlowerStudio(source, gatePassed) {
+function openDestinyFlowerStudio(source) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function() { openDestinyFlowerStudio(requestedSource, true); })) {
+  if (!_dfEnsureSourceUnlocked(requestedSource)) {
     return;
   }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
@@ -5390,9 +5393,9 @@ function _dfGetNoBirthMessage(source) {
   return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
 }
 
-function setDestinyFlowerSourceTab(source, gatePassed) {
+function setDestinyFlowerSourceTab(source) {
   var normalized = _dfNormalizeSource(source);
-  if (!gatePassed && !_dfRequireSourceCoinPayment(normalized, function() { setDestinyFlowerSourceTab(normalized, true); })) {
+  if (!_dfEnsureSourceUnlocked(normalized)) {
     return _dfStudioState.selection || null;
   }
   normalized = _dfSetActiveSource(normalized);

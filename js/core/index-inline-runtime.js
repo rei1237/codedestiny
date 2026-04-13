@@ -5177,13 +5177,6 @@ function _dfIsLockTileUnlocked(tile) {
   if (!isUnlocked) {
     try { var locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); isUnlocked = !!locks[lockKey]; } catch (_) {}
   }
-  if (!isUnlocked) {
-    try {
-      var user = readAuthUser && readAuthUser();
-      var plan = (user && user.plan) ? String(user.plan) : '';
-      if (plan === 'unlimited' || plan === 'premium') isUnlocked = true;
-    } catch (_) {}
-  }
   return isUnlocked;
 }
 
