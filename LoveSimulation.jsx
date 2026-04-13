@@ -1742,8 +1742,15 @@ const NEBULAE = [
 ─────────────────────────────────────────────── */
 function computeRealSynastry(myP, npcP) {
   if (!myP || !npcP) return null;
-  const myEl  = myP.dayMasterElement  || Object.keys(EL_CLASS).find(k => EL_CLASS[k] === (myP.dayMasterElement))  || null;
-  const npcEl = npcP.dayMasterElement || null;
+  const resolveElement = (p) => {
+    if (!p) return null;
+    if (p.dayMasterElement && EL_CLASS[p.dayMasterElement]) return p.dayMasterElement;
+    const stemIdx = STEMS.indexOf(p.dayMasterKan);
+    if (stemIdx >= 0) return STEM_ELEMENTS[stemIdx] || null;
+    return null;
+  };
+  const myEl = resolveElement(myP);
+  const npcEl = resolveElement(npcP);
   if (!myEl || !npcEl) return null;
   const raw = elemHarmony(myEl, npcEl); // 최대 12
   const pct = Math.min(99, Math.round(raw / 12 * 100));
@@ -1760,6 +1767,39 @@ function computeRealSynastry(myP, npcP) {
     pct >= 40 ? `차이를 통해 서로 성장하는 인연입니다` :
     `충돌하지만 극복하면 깊어지는 관계입니다`;
   return { pct, label, desc, myEl, npcEl };
+}
+
+function computeInitialAffinityFromSyn(myPersona, npcPersona) {
+  const syn = computeRealSynastry(myPersona, npcPersona);
+  if (!syn) return null;
+  const base = Math.round((npcPersona.initialAffinity * 0.2) + (syn.pct * 0.65) + (syn.pct >= 80 ? 5 : 0));
+  return {
+    syn,
+    base: Math.max(10, Math.min(72, base)),
+  };
+}
+
+function computeImmersiveDelta({ rawDelta, text, mood, affinity, synPct, comboStreak }) {
+  let tuned = rawDelta;
+  if (String(text || '').trim().length >= 16 && rawDelta > 0) tuned += 1;
+  if (mood === '설렘' && rawDelta > 0) tuned += 1;
+  if (mood === '화남' && rawDelta < 0) tuned -= 1;
+  if (affinity >= 75 && rawDelta > 0) tuned += 1;
+  if (synPct >= 80 && rawDelta > 0) tuned += 1;
+  if (rawDelta >= 3 && comboStreak >= 1) tuned += 1;
+  if (rawDelta <= -3 && comboStreak >= 2) tuned -= 1;
+  return Math.max(-10, Math.min(10, tuned));
+}
+
+function computeScenarioScore({ choice, persona, mood, affinity, synPct, comboStreak }) {
+  let score = choice?.score || 0;
+  if (choice?.element === persona?.yongshin) score += 5;
+  if (synPct >= 80 && score > 0) score += 1;
+  if (mood === '설렘' && score > 0) score += 1;
+  if (mood === '화남' && score < 0) score -= 1;
+  if ((choice?.risk || 'MEDIUM') === 'HIGH' && affinity < 35) score -= 1;
+  if (comboStreak >= 2 && score > 0) score += 1;
+  return Math.max(-10, Math.min(14, score));
 }
 
 export default function LoveSimulation() {
@@ -1791,6 +1831,8 @@ export default function LoveSimulation() {
   const [endingResult, setEndingResult] = useState(null);
   const [endingOpen, setEndingOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [liveSynastry, setLiveSynastry] = useState(null);
+  const [comboStreak, setComboStreak] = useState(0);
   const msgEnd = useRef(null);
   const typingRef = useRef(null);
   const greetingShownRef = useRef(false);
@@ -1877,6 +1919,13 @@ export default function LoveSimulation() {
     setTimeout(() => setToast(null), 2800);
   }
 
+  function ensureMyPersonaReady() {
+    if (myPersona) return true;
+    showToast('내 사주를 먼저 분석한 뒤 궁합 체크 후 시뮬레이션을 시작할 수 있어요.');
+    setScreen('self');
+    return false;
+  }
+
   /* ── 내 사주 분석 → myPersona 생성 ── */
   async function loadMyPersonaData() {
     const { name, year, month, day, sinju, noTime } = myForm;
@@ -1916,6 +1965,7 @@ export default function LoveSimulation() {
 
   /* ── 프리셋 선택 ── */
   function selectPreset(preset) {
+    if (!ensureMyPersonaReady()) return;
     const gdr = preset.gender || '남';
     loadAndStartGame({
       name: preset.name, gender: gdr,
@@ -1926,6 +1976,7 @@ export default function LoveSimulation() {
 
   /* ── 직접 입력 ── */
   function submitCustom() {
+    if (!ensureMyPersonaReady()) return;
     const { name, year, month, day, sinju, noTime } = form;
     if (!name || !year || !month || !day) return;
     const hour = noTime ? 12 : (SINJU_OPTIONS[sinju]?.hour ?? 12);
@@ -1933,14 +1984,20 @@ export default function LoveSimulation() {
   }
 
   function startGame(p) {
-    // 내 사주가 있으면 실제 오행 궁합 기반 초기 호감도 산정
-    // syn.pct(0~99): 오행 궁합 %, NPC initialAffinity와 블렌딩
-    const syn = computeRealSynastry(myPersona, p);
-    const base = syn
-      ? Math.min(60, Math.max(5, Math.round((p.initialAffinity * 0.35) + (syn.pct * 0.45))))
-      : p.initialAffinity;
+    if (!myPersona) {
+      ensureMyPersonaReady();
+      return;
+    }
+    const opening = computeInitialAffinityFromSyn(myPersona, p);
+    if (!opening) {
+      showToast('궁합 계산 정보가 부족해요. 내 사주를 다시 분석해 주세요.');
+      setScreen('self');
+      return;
+    }
     setPersona(p);
-    setAffinity(base);
+    setLiveSynastry(opening.syn);
+    setAffinity(opening.base);
+    setComboStreak(0);
     setMood('설렘');
     setMessages([]);
     setUsedScenarios([]);
@@ -1959,8 +2016,17 @@ export default function LoveSimulation() {
     setBusy(true);
 
     // 입력 분석
-    const delta = analyzeUserInput(txt, persona);
+    const rawDelta = analyzeUserInput(txt, persona);
+    const delta = computeImmersiveDelta({
+      rawDelta,
+      text: txt,
+      mood,
+      affinity,
+      synPct: liveSynastry?.pct || 50,
+      comboStreak,
+    });
     const newAff = Math.max(0, Math.min(100, affinity + delta));
+    setComboStreak((prev) => (delta > 0 ? prev + 1 : delta < 0 ? 0 : prev));
 
     // 감정 업데이트
     let newMood = mood;
@@ -1999,9 +2065,17 @@ export default function LoveSimulation() {
   function handleChoice(choice) {
     const yon = persona.yongshin;
     const isHit = choice.element === yon;
-    const baseScore = isHit ? choice.score + 5 : choice.score;
+    const baseScore = computeScenarioScore({
+      choice,
+      persona,
+      mood,
+      affinity,
+      synPct: liveSynastry?.pct || 50,
+      comboStreak,
+    });
     const newAff = Math.max(0, Math.min(100, affinity + baseScore));
     setAffinity(newAff);
+    setComboStreak((prev) => (baseScore > 0 ? prev + 1 : baseScore < 0 ? 0 : prev));
 
     let newMood = mood;
     if (baseScore >= 6) newMood = '기쁨';
@@ -2018,6 +2092,7 @@ export default function LoveSimulation() {
         isHit,
         risk: choice.risk || 'MEDIUM',
         element: choice.element,
+        moodAtChoice: mood,
       },
     ]);
 
@@ -2234,7 +2309,7 @@ export default function LoveSimulation() {
               </button>
               {!myPersona && (
                 <button className="lc-skip-btn" onClick={() => setScreen('portal')}>
-                  건너뛰기 (궁합 계산 없이 기본 점수로 시작)
+                  프로필 자동 연동이 안 되면 내 사주를 먼저 생성해 주세요
                 </button>
               )}
             </div>
@@ -2259,8 +2334,8 @@ export default function LoveSimulation() {
                 </span>
               )}
               {!myPersona && (
-                <span style={{ display:'block', fontSize:'11px', color:'rgba(249,168,212,0.55)', marginTop:4 }}>
-                  내 사주 미입력 · 기본 초기 점수 적용 ·{' '}
+                <span style={{ display:'block', fontSize:'11px', color:'rgba(249,168,212,0.75)', marginTop:4 }}>
+                  내 사주 미입력 · 시뮬레이션 시작 잠금 ·{' '}
                   <button onClick={() => setScreen('self')} style={{ background:'none', border:'none', color:'#93c5fd', cursor:'pointer', fontSize:'11px', padding:0, textDecoration:'underline' }}>입력하러 가기</button>
                 </span>
               )}
@@ -2312,7 +2387,10 @@ export default function LoveSimulation() {
                 </div>
                 <div className="lc-preset-grid">
                   {(npcGender === '여' ? FEMALE_PRESETS : MALE_PRESETS).map((p) => (
-                    <div key={p.name} className={`lc-preset-card${loadingPersona?' lc-preset-loading':''}`} onClick={() => !loadingPersona && selectPreset(p)}>
+                    <div
+                      key={p.name}
+                      className={`lc-preset-card${(loadingPersona || !myPersona) ? ' lc-preset-loading' : ''}`}
+                      onClick={() => !loadingPersona && selectPreset(p)}>
                       <div className="lc-preset-emoji">{p.emoji}</div>
                       <div className="lc-preset-name">{p.name}</div>
                       <div className="lc-preset-dm">{p.desc}</div>
@@ -2324,6 +2402,11 @@ export default function LoveSimulation() {
                 </div>
                 {loadingPersona && (
                   <p style={{ textAlign:'center', color:'var(--gold)', fontSize:13, marginTop:12 }}>✦ 사주 계산 중…</p>
+                )}
+                {!myPersona && (
+                  <p style={{ textAlign:'center', color:'rgba(249,168,212,0.8)', fontSize:12, marginTop:12 }}>
+                    내 사주 선분석 후 궁합 체크가 완료되어야 시작할 수 있습니다.
+                  </p>
                 )}
               </>
             )}
@@ -2378,7 +2461,7 @@ export default function LoveSimulation() {
                       const rank = ['✦','◈','◇','○'][i] || '·';
                       const pctClass = m.matchPct >= 70 ? 'high' : m.matchPct >= 50 ? 'mid' : 'low';
                       return (
-                        <div key={m.name} className="lc-match-card" onClick={() => selectPreset(m)} style={{ marginBottom:10 }}>
+                        <div key={m.name} className="lc-match-card" onClick={() => selectPreset(m)} style={{ marginBottom:10, opacity: myPersona ? 1 : 0.55 }}>
                           <span className="lc-match-rank">{rank}</span>
                           <div style={{ flex:1 }}>
                             <p style={{ fontSize:15, color:'var(--gold)', fontWeight:700, marginBottom:3 }}>
@@ -2446,8 +2529,8 @@ export default function LoveSimulation() {
                 </div>
                 <button className="cd-fate-btn"
                   onClick={submitCustom}
-                  disabled={!form.name || !form.year || !form.month || !form.day || loadingPersona}>
-                  {loadingPersona ? '✦ 사주 분석 중…' : '✦ 사주 페르소나 깨우기 ✦'}
+                  disabled={!myPersona || !form.name || !form.year || !form.month || !form.day || loadingPersona}>
+                  {loadingPersona ? '✦ 사주 분석 중…' : !myPersona ? '✦ 내 사주 먼저 분석 필요 ✦' : '✦ 사주 페르소나 깨우기 ✦'}
                 </button>
               </div>
             )}
@@ -2557,8 +2640,8 @@ export default function LoveSimulation() {
               </div>
 
               <div className="cd-synastry">
-                <p className="cd-synastry-label">✦ 첫 만남 호감도 ✦</p>
-                <p className="cd-synastry-score">{persona.initialAffinity ?? 10}%</p>
+                <p className="cd-synastry-label">✦ 궁합 반영 첫 만남 호감도 ✦</p>
+                <p className="cd-synastry-score">{affinity ?? persona.initialAffinity ?? 10}%</p>
                 <p className="cd-synastry-detail">
                   용신({persona.yongshin}) 에너지 · 이상형: {persona.tastes?.idealDateSpot}
                   {persona.tastes?.favTaste && ` · ${persona.tastes.favTaste} 선호`}
