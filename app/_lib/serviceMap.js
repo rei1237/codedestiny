@@ -29,23 +29,6 @@ export const SERVICE_MAP = {
       "healing tarot spread",
     ],
   },
-  "tarot/solar": {
-    componentKey: "sunHealingTarot",
-    title: "태양의 화답 - Solar Oracle 카드 리딩",
-    h1: "태양의 화답 - Solar Oracle 카드 리딩",
-    description:
-      "태양의 상징을 담은 오라클 카드로 현재의 감정, 방향, 회복 메시지를 읽는 코즈믹 리딩 서비스.",
-    seoText:
-      "Solar Oracle 리딩은 태양의 상징과 메시지를 바탕으로 지금 필요한 통찰과 행동 힌트를 제공합니다.",
-    ogImage: "https://code-destiny.com/icons/honeypig.webp",
-    keywords: [
-      "Solar Oracle",
-      "태양 오라클",
-      "카드 리딩",
-      "코즈믹 타로",
-      "solar oracle reading",
-    ],
-  },
   "tarot/mingri": {
     component: FeatureLandingPage,
     title: "명리학 AI 타로 - 78장 유니버설 덱 리딩",

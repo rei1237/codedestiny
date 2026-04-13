@@ -57,9 +57,9 @@ type ReadingSection = {
 
 const SPREAD_TYPE = "healing_rising_four_card" as const;
 const SPREAD_CARD_COUNT = 4 as const;
-const CHAR_DELAY_MS = 11;
+const CHAR_DELAY_MS = 40;
 const SECTION_GAP_MS = 800;
-const INITIAL_TEXT_BURST_CHARS = 34;
+const INITIAL_TEXT_BURST_CHARS = 18;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";

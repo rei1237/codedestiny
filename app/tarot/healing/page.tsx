@@ -1,5 +1,4 @@
-import TarotHealingClient from "./TarotHealingClient";
-import FortunePageSEO from "../../components/FortunePageSEO";
+import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
@@ -17,28 +16,14 @@ export function generateMetadata() {
   return generatePageMetadata(META);
 }
 
-const FAQS = [
-  {
-    question: "따뜻한 태양 회복 타로는 어떤 분에게 적합한가요?",
-    answer:
-      "마음이 지치거나 에너지가 소진됐을 때, 혹은 다시 시작할 힘이 필요할 때 힐링 타로를 이용하면 효과적입니다.",
-  },
-  {
-    question: "4카드 힐링 스프레드는 어떻게 구성되나요?",
-    answer:
-      "과거의 상처(1), 현재의 에너지(2), 회복의 방향(3), 오늘의 선물(4) 순서로 4장의 카드를 읽습니다.",
-  },
-  {
-    question: "타로 결과는 얼마나 정확한가요?",
-    answer:
-      "타로는 심리적 자기 탐색 도구입니다. 단정적 예언이 아닌, 지금의 내면 흐름을 읽는 참고 자료로 활용하세요.",
-  },
-];
+const HEALING_SERVICE = {
+  h1: "따뜻한 태양 회복 타로",
+  title: "따뜻한 태양 회복 타로 - 4카드 힐링 스프레드",
+  description:
+    "햇살 같은 손길에 마음을 어루만지고 다시 일어설 힘을 찾아가는 4카드 타로 리딩. 무료 힐링 타로로 오늘의 회복 에너지를 확인하세요.",
+  landingPoints: ["4카드 힐링 스프레드", "오늘의 회복 에너지 리딩", "과거·현재·방향·선물 카드 해석"],
+};
 
 export default function SunHealingTarotPage() {
-  return (
-    <FortunePageSEO {...META} faqs={FAQS} hideHeader>
-      <TarotHealingClient />
-    </FortunePageSEO>
-  );
+  return <FeatureLandingPage service={HEALING_SERVICE} />;
 }

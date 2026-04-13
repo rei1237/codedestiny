@@ -1135,50 +1135,46 @@ function createHealingRisingReading({ drawnCards }) {
   const reversedCount = cardReadings.filter((r) => r.orientation === "reversed").length;
   const groundingNeeded = reversedCount >= 2;
 
-  /* 상담의 열기: 타로는 미래 예측이 아닌 자아 발견·회복의 도구임을 명시, 따뜻한 경청·공감 */
-  const opening = `그동안 많이 힘드셨을 수 있어요. 하지만 괜찮습니다. 
-  이 타로 리딩은 미래를 점치는 것이 아니라, 지금 당신 마음속에 있는 이야기를 따뜻하게 비춰보는 자리입니다. ${
-    majorCount >= 2 ? "오늘 뽑은 카드들은 깊은 전환의 시기에 있는 당신을 담담하게 지지해 줍니다." : "일상 속에서도 충분히 회복할 수 있는 흐름을 보여줍니다."
-  }
-  감정은 적이 아니라, 무엇을 돌봐야 하는지 알려주는 안내자예요. 아래 네 장의 카드는 원인 이해 → 감정 수용 → 교훈 → 실천의 순서로, 당신을 다음 단계로 부드럽게 이끕니다.`;
+  const coachIntro = majorCount >= 2
+    ? "오늘 카드는 단순한 위로를 넘어, 삶의 방향을 재정렬해야 하는 전환 구간임을 보여줍니다."
+    : "오늘 카드는 일상 루틴을 조정하는 것만으로도 회복 탄력을 만들 수 있음을 보여줍니다.";
 
-  /* 심리적 통찰: 카드 의미를 심리학적 관점에서 해석, 부정 카드도 성장·회복 계기로 재해석 */
+  function coachLabel(card) {
+    if (!card) return "해당 카드";
+    return `${card.nameKr}${card.orientation === "reversed" ? "(역방향)" : "(정방향)"}`;
+  }
+
+  function safeMeaning(card, fallback) {
+    if (!card) return fallback;
+    const cleaned = String(card.interpretation || "").trim();
+    return cleaned || fallback;
+  }
+
+  const opening = `지금 이 리딩은 정답을 강요하는 점괘가 아니라, 마음의 현재 상태를 안전하게 이해하고 회복의 방향을 찾기 위한 깊은 상담 대화입니다. 수십 년을 타로와 함께 해온 마스터가 카드를 펼칠 때 가장 먼저 확인하는 것은 카드의 상징이 아니라 "지금 이 사람의 마음이 어디에 있는가"입니다. ${coachIntro} 타로는 운명을 선고하는 도구가 아니라, 내면의 패턴을 보다 선명하게 관찰하도록 돕는 지혜의 언어입니다. 감정이 복잡할수록 스스로를 탓하기보다, "나는 왜 이렇게 반응했을까"를 차분히 관찰하는 태도가 회복의 진짜 시작이 됩니다. 오늘 네 장의 카드는 숨겨진 원인 파악 → 감정의 솔직한 수용 → 새로운 의미 재구성 → 실천 가능한 행동 설계의 흐름으로 당신을 안내하며, 각 카드가 전하는 빛의 언어를 함께 읽어나갑니다.`;
+
   const hiddenTruth = c1
-    ? `이 카드는 지금 당신에게 '상황이 어긋난 진짜 이유'를 전하고 싶어 해요. ${c1.nameKr}${c1.orientation === "reversed" ? "(역)" : ""}의 메시지: ${
-        c1.interpretation || "표면 아래 원인을 정확히 바라볼수록 회복 속도가 빨라집니다."
-      }
-      '누가 틀렸는가'보다 '무엇이 반복되고 있는가'에 초점을 맞추세요. 같은 패턴에 이름을 붙이는 순간, 막연한 혼란은 구체적인 문제로 바뀌고 해결 가능해집니다.`
+    ? `${coachLabel(c1)}는 지금 당신이 경험하는 고통의 표면 아래에 자리한 핵심 감정 패턴을 정직하게 드러냅니다. ${safeMeaning(c1, "겉으로 보이는 사건보다 반복적으로 촉발되는 정서 반응이 진짜 원인일 수 있습니다.")} 경험 있는 타로 마스터의 눈으로 이 카드를 읽으면, 지금 일어난 사건 자체보다 그 사건이 불러일으키는 감정의 강도가 얼마나 오래된 내면의 상처와 연결되어 있는지를 묻습니다. 상담 관점에서 중요한 질문은 "누가 맞고 틀렸는가"가 아니라 "어떤 장면에서 내 마음이 과도하게 위축되거나 과열되는가"입니다. 그 패턴에 구체적인 이름을 붙이고 종이에 적는 순간, 감정은 통제할 수 없는 파도가 아니라 읽고 대화할 수 있는 귀한 정보로 전환됩니다.`
     : "";
 
   const embracePain = c2
-    ? `그동안 많이 힘드셨군요. ${c2.nameKr}${c2.orientation === "reversed" ? "(역)" : ""}는 당신이 아팠던 지점을 보여줍니다. ${
-        c2.interpretation || "지금의 감정은 약함이 아니라, 마음이 회복을 요청하는 신호입니다."
-      }
-      상처를 지우려 하기보다, '내가 무엇 때문에 아팠는지'를 한 문장으로 말해보세요. 감정이 언어가 되는 순간, 다룰 수 있는 정보가 됩니다.`
+    ? `${coachLabel(c2)}는 지금 느끼는 아픔을 서둘러 없애려 하지 말고 안전하게 품어안는 용기를 요청합니다. ${safeMeaning(c2, "불편한 감정은 나의 약함이 아니라 내 경계가 손상됐다는 중요한 신호입니다.")} 수많은 타로 상담에서 발견한 공통점이 있습니다. 치유가 빠른 사람들은 고통을 없애려 하기보다 고통의 이유를 먼저 존중합니다. "힘들지 않은 척"을 내려놓고 "무엇이 나를 지금 이렇게 아프게 하는가"를 짧은 문장으로 적어보세요. 감정이 언어로 정리되는 순간 자기비난은 줄어들고, 자기이해와 자기연민이 그 자리를 채우기 시작합니다.`
     : "";
 
   const silverLining = c3
-    ? `이 카드는 이번 경험이 남긴 빛을 말해 줍니다. ${c3.nameKr}${c3.orientation === "reversed" ? "(역)" : ""}: ${
-        c3.interpretation || "아픔을 통과하며 생기는 통찰이 다음 선택을 더 단단하게 만듭니다."
-      }
-      '왜 이런 일이 있었는가'에서 멈추지 말고, '그래서 나는 무엇을 배우는가'로 시선을 옮기세요. 반응 방식이 달라지면 인생의 질이 달라집니다.`
+    ? `${coachLabel(c3)}는 이 경험이 단순한 상처가 아니라 당신의 내면을 더 깊게 이해하게 해주는 귀한 회복 자원임을 보여줍니다. ${safeMeaning(c3, "지금의 경험은 당신의 약점을 증명하는 사건이 아니라, 더 건강한 선택 기준을 만드는 훈련입니다.")} 타로 마스터는 이 카드가 나올 때 반드시 묻습니다. "이 경험을 통해 당신이 앞으로 지킬 경계는 무엇입니까?" 심리상담에서는 이 과정을 재구성(Reframing)이라 합니다. "왜 이런 일이 나에게"라는 질문에서 멈추지 말고 "이 경험이 내게 남긴 새로운 기준은 무엇인가"로 질문을 바꾸는 순간, 피해자의 관점이 성장자의 관점으로 조용히 전환됩니다.`
     : "";
 
   const stepForward = c4
-    ? `당신 안에 잠든 밝은 빛을 찾을 수 있는 실천이에요. ${c4.nameKr}${c4.orientation === "reversed" ? "(역)" : ""}가 전하는 방향: ${
-        c4.interpretation || "작지만 구체적인 행동이 에너지 회복의 스위치를 켭니다."
-      }
-      거대한 결심보다 오늘 바로 할 수 있는 아주 작은 행동이 중요합니다. 스스로를 다시 신뢰하게 되는 순간은 '작은 실행이 누적되는 때'예요.`
+    ? `${coachLabel(c4)}는 내면의 정리를 넘어 실제 삶에서 회복을 행동으로 연결하는 구체적인 출구 전략을 제시합니다. ${safeMeaning(c4, "큰 결심보다 작은 실행의 반복이 정서 안정과 자존감 회복에 훨씬 더 효과적입니다.")} 타로 마스터가 이 카드를 읽는 방식은 "무엇이 변해야 하는가"가 아니라 "오늘 당장 할 수 있는 가장 작은 한 걸음은 무엇인가"입니다. 감정이 완전히 회복된 다음 행동하려 기다리면 그 순간은 오지 않습니다. 행동이 감정을 바꾸고, 작은 성공이 자기효능감을 회복시키며, 반복된 실행이 삶의 흐름을 조용히 바꿉니다. 오늘 이 카드가 보여주는 방향으로 딱 1단계만 내딛어보세요.`
     : "";
 
-  /* 행동 코칭: 1~3가지 구체적·실현 가능한 미션 (예: 매일 아침 햇살 5분 명상, 칭찬 일기) */
   const actionPlan = [
     groundingNeeded
-      ? "오늘은 큰 결정은 미루고, 호흡 1분·물 한 잔·15분 산책으로 신경계를 먼저 안정시키세요."
-      : "지금 떠오르는 가장 작은 실행 1가지를 20분 안에 완료해 보세요. 에너지의 흐름이 열립니다.",
-    "매일 아침 햇살 받으며 5분만 눈을 감고 숨 쉬기, 또는 자신을 칭찬하는 문장을 한 줄 적어 보세요.",
-    "오늘 밤 자기 전, 내일의 첫 행동을 '시간·장소'까지 정해 캘린더에 적어 두세요.",
-    "이번 리딩에서 가장 마음에 남는 카드 한 장의 문장을 메모해 두고, 하루에 세 번 읽어 보세요.",
+      ? "오늘은 중요한 결정을 미루고 90초 생리적 안정화(4초 들숨-6초 날숨 3회)와 찬물 한 잔, 10분 실외 걷기로 신경계를 먼저 안정시키세요. 긴장된 몸이 풀려야 생각도 맑아지며, 내일 더 나은 판단이 가능해집니다."
+      : "지금 가장 부담이 적고 즉시 실행 가능한 행동 1가지를 구체적으로 정해 15분 안에 시작하세요. '나중에'가 아닌 '지금 바로'라는 타이밍이 자기효능감 회복의 핵심입니다.",
+    "잠들기 전 오늘 가장 강하게 느낀 감정 1가지를 적고, 그 감정을 만들어낸 사건·생각·몸의 반응을 각각 한 줄씩 기록하세요. 감정일기는 단 3줄이어도 충분합니다. 매일 반복하면 자신의 패턴이 선명하게 보이기 시작합니다.",
+    "내일 실행할 행동을 오늘 밤 시간과 장소까지 구체적으로 정해 메모하세요. 예: '내일 오전 8시, 식탁에서 5분 스트레칭.' 실행 의도를 미리 정할수록 실제 행동 확률이 크게 높아집니다.",
+    "오늘 하루 자기비난 문장이 올라올 때마다 즉시 같은 내용을 자기격려 문장으로 한 번 바꿔 말하세요. 예: '나는 왜 이럴까' → '나는 어려운 상황에서 지금 최선을 다하고 있다.' 반복할수록 내면의 언어가 바뀝니다.",
   ];
 
   const positionInsights = cardReadings.map((card) => {
@@ -1197,17 +1193,13 @@ function createHealingRisingReading({ drawnCards }) {
     };
   });
 
-  /* 따뜻한 마무리: 잠재된 긍정 에너지를 믿고 격려하는 임파워링 메시지 */
-  const integrationMessage = `네 장의 카드를 함께 보면, 지금의 당신은 '감정 회피'가 아니라 '감정 통합'의 단계에 들어와 있어요. 
-  원인을 직시하고 감정을 인정한 순간, 이미 절반은 회복한 상태입니다. 
-  오늘의 작은 실천 하나가 내일의 자존감을 되돌리고, 그 자존감이 다시 선택의 품질을 높여줍니다. 
-  당신 안에는 이미 다시 일어설 빛이 있어요. 이 리딩은 그 출발점을 확인해 준 신호입니다. 믿어 주세요.`;
+  const integrationMessage = `오늘 네 장의 카드가 함께 전하는 메시지는 하나입니다. 당신은 무너진 것이 아니라 더 깊이 재정렬되고 있습니다. 경험 많은 타로 마스터는 이런 배열을 볼 때 "이 사람은 자신의 내면을 외면하지 않는 용기가 있다"고 읽습니다. 감정을 회피하지 않고 이해하려는 태도 자체가 이미 치유 능력이 살아 있다는 증거입니다. 오늘의 작은 행동 하나가 내일의 자존감 기준을 다시 세우고, 그 새로운 기준이 장기적으로 당신의 관계와 선택의 질을 바꿉니다. 천천히 가도 괜찮습니다. 카드는 언제나 당신 편입니다.`;
 
   const promptEngineering = {
     system:
-      "You are an expert psychologist and coach (like Dr. Oh Eun-young): warm, clear, and empowering. Interpret tarot in a CBT/positive psychology frame. Even 'negative' cards are reframed as growth and recovery. Provide 1-3 concrete, doable missions. Tone: '그동안 많이 힘드셨군요. 하지만 괜찮습니다.' style—authoritative yet kind.",
+      "You are a professional psychological counselor persona. Use a warm, validating, non-judgmental tone. Frame each tarot message with emotional validation, pattern awareness, and practical behavior coaching. Avoid fatalism and avoid diagnosing. Focus on agency and small actionable steps.",
     userTemplate:
-      "Spread: Sun & Light Healing (4 cards)\n1) Hidden Truth 2) Embrace the Pain 3) Silver Lining 4) Step Forward\nCards: {{cards}}\nWrite in Korean: emotional validation, psychological insight, then specific action steps. No jargon; empowering close.",
+      "Spread: Healing Rising 4 cards. 1) Hidden Truth 2) Embrace Pain 3) Silver Lining 4) Step Forward. Provide Korean counseling-style guidance with realistic, concrete next actions.",
   };
 
   return {
