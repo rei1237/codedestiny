@@ -663,9 +663,9 @@ export default function HPremiumZiweiSection({
         <img src="/fuctionassets/jamigod.webp" alt="자미두수 프리미엄 소개" style={{ width: "100%", maxHeight: 280, objectFit: "cover", opacity: 0.44 }} />
         <div style={{ padding: "18px 18px 22px" }}>
           <p style={{ color: "rgba(167,139,250,0.7)", fontSize: "0.66rem", letterSpacing: "0.28em", margin: 0 }}>ZIWEI PREMIUM · 로컬 완전 계산</p>
-          <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>자미두수(紫微斗數) 심화 분析</h3>
+          <h3 style={{ color: "#fff", fontWeight: 900, fontSize: "1.5rem", margin: "8px 0 6px" }}>자미두수(紫微斗數) 심화 분석</h3>
           <p style={{ color: "rgba(196,181,253,0.72)", fontSize: "0.88rem", lineHeight: 1.8, margin: 0 }}>
-            16챕터 자미두수 완전 분析 · 12궁 명반 · 대한 사화 배치 · 브라우저 로컬 계산
+            16챕터 자미두수 완전 분석 · 12궁 명반 · 대한 사화 배치 · 브라우저 로컬 계산
           </p>
           <button
             type="button"
@@ -681,7 +681,7 @@ export default function HPremiumZiweiSection({
               letterSpacing: "0.08em", opacity: generationLoading ? 0.72 : 1,
             }}
           >
-            {generationLoading ? "코인 확인 중…" : "자미두수 심화 분析 시작하기"}
+            {generationLoading ? "코인 확인 중…" : "자미두수 심화 분석 시작하기"}
           </button>
         </div>
       </section>
@@ -699,7 +699,7 @@ export default function HPremiumZiweiSection({
         }}>
           <img
             src="/fuctionassets/jamigod.webp"
-            alt="자미두수 심화 분析"
+            alt="자미두수 심화 분석"
             style={{
               position: "absolute", inset: 0, width: "100%", height: "100%",
               objectFit: "cover", objectPosition: "center top",
@@ -713,7 +713,7 @@ export default function HPremiumZiweiSection({
           <div style={{ position: "relative", zIndex: 2, padding: "36px 24px 0", textAlign: "center" }}>
             <div style={{ fontSize: "2.6rem", filter: "drop-shadow(0 0 24px rgba(167,139,250,0.8))" }}>🌌</div>
             <h1 style={{ color: "#f5f3ff", fontSize: "1.25rem", fontWeight: 900, margin: "8px 0 4px", letterSpacing: "0.04em" }}>
-              자미두수(紫微斗數) 심화 분析
+              자미두수(紫微斗數) 심화 분석
             </h1>
             <p style={{ color: "rgba(196,181,253,0.8)", fontSize: "0.82rem", margin: 0 }}>
               16챕터 · 12궁 완전 해독 · 로컬 계산 · 완전 무료
@@ -803,7 +803,7 @@ export default function HPremiumZiweiSection({
               boxShadow: "0 12px 32px rgba(91,33,182,0.5)",
               letterSpacing: "0.03em",
             }}>
-              🌌 자미두수 심화 분析 시작
+              🌌 자미두수 심화 분석 시작
             </button>
             <p style={{ color: "rgba(196,181,253,0.4)", fontSize: "0.72rem", textAlign: "center", marginTop: "12px" }}>
               모든 계산은 브라우저 내에서 로컬로 처리됩니다 · 완전 무료
@@ -819,7 +819,7 @@ export default function HPremiumZiweiSection({
     const msgs = [
       "명궁(命宮) 주성을 탐색하는 중...", "신궁(身宮) 배치를 계산하는 중...",
       "12궁 주성을 배치하는 중...", "사화(四化) 변환 코드를 해독하는 중...",
-      "대한(大限) 10년 흐름을 펼치는 중...", "16챕터 심층 분析을 완성하는 중...",
+      "대한(大限) 10년 흐름을 펼치는 중...", "16챕터 심층 분석을 완성하는 중...",
     ];
     const msgIdx = Math.floor((progress / 100) * msgs.length);
     return (
@@ -873,7 +873,7 @@ export default function HPremiumZiweiSection({
           <img src="/fuctionassets/jamigod.webp" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", opacity: 0.35, mixBlendMode: "luminosity" }}/>
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent,rgba(7,4,26,0.9))" }}/>
           <div style={{ position: "relative", zIndex: 2, padding: "28px 20px 0", textAlign: "center" }}>
-            <p style={{ color: "#c4b5fd", fontSize: "0.78rem", margin: "0 0 4px" }}>🌌 자미두수 심화 분析 — {savedName}님</p>
+            <p style={{ color: "#c4b5fd", fontSize: "0.78rem", margin: "0 0 4px" }}>🌌 자미두수 심화 분석 — {savedName}님</p>
             <p style={{ color: "rgba(196,181,253,0.6)", fontSize: "0.73rem", margin: 0 }}>
               명궁({ZHI[result.mingIdx]}) · {mingPalace.mainStars.join("·") || "공궁"} &nbsp;|&nbsp;
               신궁({ZHI[result.shenIdx]}) · {shenPalaceObj?.mainStars.join("·") || "공궁"} &nbsp;|&nbsp;
@@ -948,7 +948,7 @@ export default function HPremiumZiweiSection({
           <button
             onClick={() => { setStep("form"); setResult(null); setActiveChapter(0); try { sessionStorage.removeItem(RESULT_CACHE_KEY); } catch(_){} }}
             style={{ width: "100%", marginTop: "12px", padding: "12px", borderRadius: "12px", background: "transparent", border: "1px solid rgba(196,181,253,0.2)", color: "rgba(196,181,253,0.55)", fontSize: "0.83rem", cursor: "pointer" }}>
-            🔄 다른 사람으로 다시 분析
+            🔄 다른 사람으로 다시 분석
           </button>
         </div>
       </div>
