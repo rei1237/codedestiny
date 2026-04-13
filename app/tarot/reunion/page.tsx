@@ -1,7 +1,7 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 
 const SERVICE = {
-  h1: "재회운 타로 - 5카드 등대 스프레드",
+  h1: "🌊 재회운 타로",
   description:
     "관계의 재접점 가능성과 감정 흐름을 읽는 재회운 타로. 지금의 거리감과 다음 신호를 점검해 보세요.",
   ogImage: "https://code-destiny.com/fuctionassets/reunion.webp",
@@ -11,7 +11,7 @@ const SERVICE = {
 };
 
 export const metadata = {
-  title: "재회운 타로 - 감정 흐름 리딩 | Code Destiny",
+  title: "🌊 재회운 타로 - 5카드 등대 스프레드 | Code Destiny",
   description:
     "재회 가능성과 관계 회복 흐름을 타로 카드로 점검하고 실전 조언을 확인하세요.",
 };

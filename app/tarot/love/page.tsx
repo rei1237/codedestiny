@@ -1,7 +1,7 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 
 const SERVICE = {
-  h1: "우리는 무슨 사이? - 6카드 연애 관계 타로",
+  h1: "💕 우리는 무슨 사이?",
   description:
     "내가 보는 상대, 상대의 시선, 관계를 막는 요인과 예상 결과까지 6카드 스프레드로 확인하는 연애 타로 리딩.",
   ogImage: "https://code-destiny.com/fuctionassets/tarolove.webp",
@@ -11,7 +11,7 @@ const SERVICE = {
 };
 
 export const metadata = {
-  title: "우리는 무슨 사이? 연애 타로 - 6카드 관계 스프레드 | Code Destiny",
+  title: "💕 우리는 무슨 사이? - 6카드 연애 관계 타로 | Code Destiny",
   description:
     "내가 보는 상대, 상대의 시선, 관계를 막는 요인과 예상 결과까지 6카드 스프레드로 확인하세요.",
 };

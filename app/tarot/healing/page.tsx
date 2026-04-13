@@ -19,7 +19,7 @@ export function generateMetadata() {
 
 const FAQS = [
   {
-    question: "태양 회복 타로는 어떤 분에게 적합한가요?",
+    question: "따뜻한 태양 회복 타로는 어떤 분에게 적합한가요?",
     answer:
       "마음이 지치거나 에너지가 소진됐을 때, 혹은 다시 시작할 힘이 필요할 때 힐링 타로를 이용하면 효과적입니다.",
   },

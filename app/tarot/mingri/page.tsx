@@ -1,7 +1,7 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 
 const SERVICE = {
-  h1: "명리학 AI 타로 - 78장 유니버설 덱 리딩",
+  h1: "🔮 명리학 타로",
   description:
     "연애, 재회, 사업, 건강 등 고민 카테고리에 맞춰 원카드 또는 3카드 명리학 타로 해석을 제공합니다.",
   ogImage: "https://code-destiny.com/fuctionassets/ai%20tarrot.webp",
@@ -11,7 +11,7 @@ const SERVICE = {
 };
 
 export const metadata = {
-  title: "명리학 AI 타로 - 78장 유니버설 덱 리딩 | Code Destiny",
+  title: "🔮 명리학 타로 - 78장 유니버설 덱 리딩 | Code Destiny",
   description:
     "연애, 재회, 사업, 건강 등 고민 카테고리에 맞춰 원카드 또는 3카드 명리학 타로 해석을 제공합니다.",
 };

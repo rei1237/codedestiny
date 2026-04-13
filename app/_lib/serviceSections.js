@@ -1,9 +1,19 @@
 export const SERVICE_SECTIONS = [
   {
-    id: "core",
-    title: "핵심 운세",
+    id: "saju",
+    title: "사주 & 명리",
     items: [
-      { href: "/saju/basic", title: "사주 만세력", desc: "오행·십성 기반 명식 해석" },
+      { href: "/saju/basic", title: "🌸 사주 만세력 기본 해석", desc: "오행·십성 기반 명식 분석 · 무료" },
+      { href: "/saju/sibyl", title: "⚡ 시빌라 시스템", desc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료" },
+      { href: "/saju/lifebook", title: "📜 인생의 책", desc: "프리미엄 사주 심층 분석 · 490코인" },
+      { href: "/saju/love-secret", title: "💕 연애 비책", desc: "사주 기반 연애 전략 · 290코인" },
+      { href: "/saju/love-simulation", title: "💕 LOVE CODE", desc: "사주 연애 시뮬레이션 · 무료" },
+    ],
+  },
+  {
+    id: "core",
+    title: "동서양 명리",
+    items: [
       { href: "/ziwei/chart", title: "자미두수 명반", desc: "기본 서비스 무료 · 궁합 50코인" },
       { href: "/astrology/cosmic", title: "점성술 코즈믹", desc: "기본 서비스 무료 · 궁합 50코인" },
       { href: "/vedic/jyotish", title: "베다 점성술", desc: "기본 서비스 무료 · 궁합 50코인" },
@@ -13,13 +23,16 @@ export const SERVICE_SECTIONS = [
     id: "tarot",
     title: "타로 리딩",
     items: [
-      { href: "/tarot/mingri", title: "명리학 AI 타로", desc: "원카드·3카드 리딩" },
-      { href: "/tarot/love", title: "우리는 무슨 사이", desc: "6카드 관계 스프레드" },
-      { href: "/tarot/healing", title: "따뜻한 태양 회복", desc: "4카드 힐링 리딩" },
-      { href: "/tarot/self-esteem", title: "자존감 레벨업", desc: "5카드 성장 퀘스트" },
-      { href: "/tarot/reunion", title: "재회운 타로", desc: "5카드 재회 흐름" },
-      { href: "/tarot/year", title: "십이지신 천운", desc: "12개월 연간 운세" },
-      { href: "/tarot/crystal-soul", title: "원석 소울 타로", desc: "크리스탈 에너지 리딩 · 50코인" },
+      { href: "/tarot/mingri", title: "🔮 명리학 타로", desc: "78장 유니버설 덱 리딩 · 30코인" },
+      { href: "/tarot/love", title: "💕 우리는 무슨 사이?", desc: "6카드 연애 관계 리딩 · 50코인" },
+      { href: "/tarot/healing", title: "☀ 따뜻한 태양 회복 타로", desc: "4카드 회복 스프레드 · 무료" },
+      { href: "/tarot/self-esteem", title: "✨ 자존감 레벨업", desc: "5카드 RPG 퀘스트 · 무료" },
+      { href: "/tarot/reunion", title: "🌊 재회운 타로", desc: "5카드 등대 스프레드 · 50코인" },
+      { href: "/tarot/year", title: "십이지신 천운(天運)", desc: "12개월 연간 운세 · 30코인" },
+      { href: "/tarot/crystal-soul/", title: "💎 원석 소울 타로", desc: "크리스탈 에너지 리딩 · 50코인" },
+      { href: "/tarot/mindscan/", title: "🔮 속마음 알아보기", desc: "10카드 십자 스프레드 · 50코인" },
+      { href: "/celestial-harmony.html", title: "✨ 천체의 선율", desc: "행성 11카드 코즈믹 리딩 · 100코인" },
+      { href: "/tarot-ijik.html", title: "💼 이직 운명의 카드", desc: "7카드 커리어 스프레드 · 50코인" },
     ],
   },
   {
