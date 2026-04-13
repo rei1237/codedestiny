@@ -531,7 +531,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <link rel="stylesheet" href="/styles/globals.css">
   <link rel="stylesheet" href="/styles/layout.css">
     <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
-    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260414-togglefix1">
+    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2">
     <link rel="stylesheet" href="/styles/main-glass.css?v=20260411-foucfix1">
     <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260411-foucfix2">
 
@@ -1265,6 +1265,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 .then(function (payload) {
                   var nextPoints = Number((((payload || {}).user || {}).points) || 0);
                   if (isAdm) nextPoints = 9999;
+                  if (isAdm) nextPoints = 9999;
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
@@ -1953,7 +1954,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <section class="fg-group fg-group--cosmic" aria-labelledby="fgTitleCosmic">
           <div class="fg-group__cards">
 
-            <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="false">
+            <div class="feat-collection feat-collection--cosmic" id="cosmicCollection" data-collection-open="true">
               <div class="feat-collection__cosmos" aria-hidden="true">
                 <span class="fc-star fc-star--1"></span>
                 <span class="fc-star fc-star--2"></span>
@@ -1962,7 +1963,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="fc-star fc-star--5"></span>
                 <span class="fc-star fc-star--6"></span>
               </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="cosmicCollection" aria-expanded="false" aria-label="코즈믹 &amp; 별자리 컬렉션 열기">
+              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="cosmicCollection" aria-expanded="true" aria-label="코즈믹 &amp; 별자리 컬렉션 열기">
                 <div class="feat-collection__icon" aria-hidden="true">🌌</div>
                 <h3 class="feat-collection__title">코즈믹 &amp; 별자리 컬렉션</h3>
                 <p class="feat-collection__subtitle">별들이 새긴 당신의 우주적 운명 지도</p>
@@ -2015,6 +2016,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 </button>
 
                 <!-- 자미두수 심화 (영구 해금) -->
+                                <!-- 자미두수 심화 (영구 해금) -->
                 <button class="tarot-tile tarot-tile--ziwei-premium-fc" type="button"
                         data-action="gotoZiweiPremium"
                         data-coin-cost="500"
@@ -5733,6 +5735,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
     if (isAdminUser()) userBalance = 9999;
+    if (isAdminUser()) userBalance = 9999;
   }
 
   function saveBalance() {
@@ -5899,30 +5902,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
   }
 
-  function _cdShowCoinDeductNotice(cost, balance, reason) {
-    var amount = Number(cost);
-    if (!Number.isFinite(amount) || amount <= 0) return;
-    var remain = Number(balance);
-    if (!Number.isFinite(remain) || remain < 0) remain = 0;
-    var detail = reason ? String(reason) : '유료 기능';
-    try {
-      var old = document.getElementById('cdCoinDeductToast');
-      if (old && old.parentNode) old.parentNode.removeChild(old);
-    } catch (_) {}
-    var toast = document.createElement('div');
-    toast.id = 'cdCoinDeductToast';
-    toast.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;background:#0f172a;color:#f8fafc;border:1px solid rgba(148,163,184,.45);border-radius:14px;padding:12px 14px;box-shadow:0 12px 32px rgba(2,6,23,.45);font-size:13px;line-height:1.45;max-width:min(92vw,460px);text-align:left;';
-    toast.innerHTML = '<div style="font-weight:700;margin-bottom:3px;">코인 차감 완료</div>'
-      + '<div>🪙 ' + detail + ' 이용으로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>이 차감되었습니다.</div>'
-      + '<div style="margin-top:3px;opacity:.92;">현재 표시 잔액: <strong>' + remain.toLocaleString('ko-KR') + '코인</strong></div>';
-    document.body.appendChild(toast);
-    setTimeout(function () {
-      try {
-        if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
-      } catch (_) {}
-    }, 2600);
-  }
-
   function openChargeModal() {
     var modal = document.getElementById('goldenGrainChargeModal');
     if (!modal) return;
@@ -6007,7 +5986,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
-      _cdShowCoinDeductNotice(cost, userBalance, '유료 섹션 잠금 해제');
       if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
@@ -6433,7 +6411,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         saveBalance();
         updateBadge();
-        _cdShowCoinDeductNotice(tileCoinCost, userBalance, fname);
         if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
@@ -6562,7 +6539,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           saveBalance();
           updateBadge();
-          _cdShowCoinDeductNotice(tileLockCost, userBalance, fname + ' 영구 해금');
           if (isAdminUser()) setTimeout(function(){ void syncBalanceFromServer(); }, 120);
           unlockedFeatureMap[tileLockKey] = true;
           saveTileLocks();
