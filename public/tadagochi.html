@@ -159,7 +159,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .scr.on{display:flex;animation:fade .35s ease forwards}
 
-.pet-wrap{width:140px;height:140px;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10;background:#fff}
+.pet-wrap{width:140px;height:140px;image-rendering:crisp-edges;display:flex;align-items:center;justify-content:center;position:relative;z-index:10;background:transparent}
 
 .pet-img{width:140px;height:140px;object-fit:contain;image-rendering:auto;filter:drop-shadow(0 6px 16px rgba(0,0,0,.12));transition:opacity .12s,filter .3s}
 
@@ -1395,7 +1395,17 @@ function renderSpriteSheetFrame(url,state,onDone,onError){
     var w=im.naturalWidth||0;
     var h=im.naturalHeight||0;
     if(!w||!h){onError();return;}
-    if(w<=h*1.3){onDone(url);return;}
+    if(w<=h*1.3){
+      try{
+        var cv0=document.createElement('canvas');
+        cv0.width=w;cv0.height=h;
+        var cx0=cv0.getContext('2d');
+        cx0.drawImage(im,0,0,w,h);
+        stripFlatBgFromCanvas(cx0,w,h);
+        onDone(cv0.toDataURL('image/png'));
+      }catch(_ce){onDone(url);}
+      return;
+    }
     var frameCount=Math.max(1,Math.round(w/h));
     var frameW=Math.floor(w/frameCount);
     var frameH=h;
