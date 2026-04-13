@@ -6232,6 +6232,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   function loadBalance() {
+    if (typeof isAdminUser === 'function' && isAdminUser()) {
+      userBalance = 9999;
+      syncAuthUserPoints(9999);
+      return;
+    }
     var user = readAuthUser();
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
@@ -6379,6 +6384,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   }
 
   async function syncBalanceFromServer() {
+    if (typeof isAdminUser === 'function' && isAdminUser()) {
+      userBalance = 9999;
+      syncAuthUserPoints(9999);
+      updateBadge();
+      return;
+    }
     if (!hasAuthToken() || syncInFlight) return;
     syncInFlight = true;
     try {
