@@ -1265,6 +1265,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 .then(function (payload) {
                   var nextPoints = Number((((payload || {}).user || {}).points) || 0);
                   if (isAdm) nextPoints = 9999;
+                  if (isAdm) nextPoints = 9999;
                   if (!Number.isFinite(nextPoints) || nextPoints < 0) return;
 
                   try {
@@ -2222,6 +2223,61 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             </button>
         </section><!-- /자미두수 -->
 
+        <div class="feat-collection feat-collection--premium-vvip" id="premiumVvipCollection" data-collection-open="false">
+          <div class="feat-collection__cosmos" aria-hidden="true">
+            <span class="fc-star"></span><span class="fc-star"></span><span class="fc-star"></span>
+          </div>
+          <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="프리미엄 컬렉션 열기">
+            <div class="feat-collection__icon" aria-hidden="true">💎</div>
+            <h3 class="feat-collection__title">프리미엄 컬렉션</h3>
+            <p class="feat-collection__subtitle">프리미엄 운세 기능을 한 번에 모아보세요</p>
+            <p class="feat-collection__lede">자미두수 · 점성술 · 숙요 · 베다 · 작명 프리미엄 PDF 생성 기능을 한 곳에서 이용할 수 있습니다.</p>
+            <p class="feat-collection__featureline">자미두수 PDF · 점성술 PDF · 숙요 PDF · 베다 PDF · 작명 리포트</p>
+            <div class="feat-collection__divider" aria-hidden="true">
+              <span class="fc-div-gem">✦</span>
+              <span class="fc-div-line"></span>
+              <span class="fc-div-gem">◈</span>
+              <span class="fc-div-line"></span>
+              <span class="fc-div-gem">✦</span>
+            </div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▼</span><span class="fc-toggle-hint__text"></span></div>
+          </button>
+          <div class="fc-closed-peek" aria-hidden="true">
+            <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+          </div>
+          <div class="feat-collection__grid" data-grid="premiumVvipCollection">
+
+        <!-- ── 1. 자미두수 프리미엄 ── -->
+        <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
+            <button type="button"
+                    class="prem-card prem-card--ziwei"
+                    data-action="gotoZiweiPremium"
+                    data-coin-cost="500"
+                    style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    aria-label="자미두수 인생 총람 — 500코인">
+              <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+                <img src="/fuctionassets/jamigod.webp" alt="자미두수 인생 총람 PDF"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">500코인</span>
+              </div>
+              <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+                <p style="color:rgba(167,139,250,0.65);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">자미두수 · 紫微斗數 · Ziwei Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">🌌 紫微 인생 총람 PDF북</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  🌌 13챕터 · 12궁 완전 분석 AI 심층 인생 총람<br>
+                  👑 천직·재물·인연·건강·교우·처세술 완전 해독<br>
+                  🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵<br>
+                  📖 생성 즉시 PDF 저장 · 마스터플랜 봉서
+                </p>
+                <div style="margin-top:auto;padding-top:10px;">
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(167,139,250,0.12));border:1px solid rgba(167,139,250,0.38);color:rgba(196,181,253,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">🌌 자미두수 인생 총람 PDF 생성하기</span>
+                </div>
+              </div>
+            </button>
+        </section><!-- /자미두수 -->
+
         <!-- ── 2. 점성술 프리미엄 ── -->
         <section style="background:linear-gradient(145deg,#070419 0%,#140e05 100%);border:1.5px solid rgba(251,191,36,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(251,191,36,0.12);margin:0;" aria-label="점성술 프리미엄">
             <button type="button"
@@ -2320,6 +2376,42 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
         </section><!-- /베다 점성술 -->
+
+        <!-- ── 5. 명운 작명 프리미엄 ── -->
+        <section style="background:linear-gradient(145deg,#080c18 0%,#1f1608 100%);border:1.5px solid rgba(212,175,55,0.42);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(212,175,55,0.14);margin:0;" aria-label="명운 작명 프리미엄">
+            <button type="button"
+                    class="prem-card prem-card--naming"
+                    data-action="gotoNamingPremium"
+                    data-coin-cost="700"
+                    style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(8,12,24,0.68);border:1.5px solid rgba(212,175,55,0.42);box-shadow:0 4px 24px rgba(212,175,55,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
+                    onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(212,175,55,0.28)'"
+                    onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(212,175,55,0.14)'"
+                    aria-label="명운 프리미엄 작명 — 700코인">
+              <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+                <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명"
+                     style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
+                <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(8,12,24,0.90) 0%,transparent 55%);"></div>
+                <span style="position:absolute;top:10px;left:10px;background:rgba(212,175,55,0.95);color:#0f172a;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
+                <span class="tarot-tile__coin-badge" style="left:auto;right:10px;top:10px;">700코인</span>
+              </div>
+              <div style="padding:14px 14px 16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+                <p style="color:rgba(245,226,122,0.72);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;margin:0;">명운 · Naming Premium</p>
+                <p style="color:#fff;font-weight:800;font-size:0.95rem;margin:0;line-height:1.3;">📛 명운(命運) 사주 프리미엄 작명</p>
+                <p style="color:rgba(203,213,225,0.55);font-size:0.75rem;line-height:1.6;margin:0;">
+                  🧰 서비스 만세력 기반 오행·십신 정밀 반영<br>
+                  🧬 자원오행·발음오행·81수리·태양 합격 워터마크<br>
+                  🎴 이름 추천 카드 + 상세 근거 리딩 제공<br>
+                  🪙 700코인 — 프리미엄 작명 리포트
+                </p>
+                <div style="margin-top:auto;padding-top:10px;">
+                  <span style="display:inline-block;background:linear-gradient(135deg,rgba(212,175,55,0.2),rgba(245,226,122,0.1));border:1px solid rgba(212,175,55,0.50);color:rgba(245,226,122,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">📛 나만의 작명 리포트 시작하기</span>
+                </div>
+              </div>
+            </button>
+        </section><!-- /명운 작명 -->
+
+          </div><!-- /feat-collection__grid -->
+        </div><!-- /feat-collection--premium-vvip -->
 
 
     </div>
@@ -5708,6 +5800,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var points = Number(user && user.points);
     userBalance = Number.isFinite(points) && points >= 0 ? points : 0;
     if (isAdminUser()) userBalance = 9999;
+    if (isAdminUser()) userBalance = 9999;
   }
 
   function saveBalance() {
@@ -5870,6 +5963,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function updateBadge() {
     var el = document.getElementById('goldenGrainBalanceText');
+    if (isAdminUser()) userBalance = 9999;
     if (el) el.textContent = '보유 ' + Number(userBalance || 0).toLocaleString('ko-KR') + ' 코인';
   }
 
@@ -6199,6 +6293,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       }
       return;
     }
+    // 핸들러 연동: gotoNamingPremium → 명운 작명 페이지
+    if (action === 'gotoNamingPremium') {
+      try {
+        window.location.assign('/myungwun_final.html');
+      } catch (e) {
+        window.location.href = '/myungwun_final.html';
+      }
+      return;
+    }
     // window[action] 함수가 있으면 직접 호출
     if (action && typeof window[action] === 'function') {
       window[action]();
@@ -6266,7 +6369,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
       // 프리미엄 북 액션: 운명 카드(프로필) 사전 체크 — 코인 차감 전에 검사 (코인 손실 방지)
-      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') {
+      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium') {
         var _cgProfile = null;
         try {
           var _cgNs = 'FORTUNE_APP_USER_PROFILES';
@@ -6515,6 +6618,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window.__cdSetGoldenBalance = function (points) {
     var next = Number(points);
     if (!Number.isFinite(next) || next < 0) return;
+    if (isAdminUser()) next = 9999;
     userBalance = next;
     saveBalance();
     updateBadge();
@@ -6629,6 +6733,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     gotoAstrologyPremium:{cat:'점성술 · Cosmic Chart Premium',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반 12챕터 정밀 분析 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴을 완전 해독하고 PDF로 저장합니다.',feats:['☀ 태양·달·상승궁 3각 에너지 + 차트 룰러 완전 분析','🪐 12하우스 영역별 재물·사랑·직업·카르마 운세 파악','🌌 노드 축 영혼 목적지 + 행성 트랜지트 영향 계산','✨ 390코인 — 12챕터 분析 완료 후 PDF 즉시 저장'],cost:'✨ 390코인',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
     gotoSukuyoPremium:{cat:'숙요점 · 宿曜占 Premium',title:'💫 숙요점(宿曜占) 궁합 분석',tagline:'에도 막부가 민간 사용을 금지했던 27수 궁합 분석법 — 이 별이 맞으면 이혼율이 극히 낮아집니다.',feats:['🌙 불교 밀교 비전 27수로 궁합의 진짜 상성 완전 분석','💑 생년월일만으로 진짜 소울메이트 vs 독성 관계 판별','⭐ 재물·건강·수명 전반에 걸친 1:1 정밀 운세 리딩','💫 390코인 — 지금 바로 이용 가능'],cost:'💫 390코인',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
     gotoVedicPremium:{cat:'베다 점성술 · Vedic Astrology Premium',title:'🪷 베다 인생 총람 리포트',tagline:'인도 고대 조티쉬 베다 점성술 — 라그나·달 배치·나크샤트라로 보는 평생 운명 지도.',feats:['🪷 라그나·달·태양 3축 완전 분석','🌙 나크샤트라(27수) 별 운명 해석','📅 다샤 주기별 운세 예측 · 생애 흐름 총람','🔮 까르마 패턴 · 해탈 지점 분석'],cost:'🪐 390코인',ct:'paid',img:'/fuctionassets/premium veda.webp'},
+    gotoNamingPremium:{cat:'명운 · Naming Premium',title:'📛 명운(命運) 사주 프리미엄 작명',tagline:'서비스 만세력 결과를 바탕으로 오행·십신·수리를 반영한 이름을 추천합니다.',feats:['서비스 만세력 기반 사주 요소 정밀 반영','자원오행·발음오행·81수리·태양 합격 워터마크','이름 카드와 상세 근거 리딩 제공','700코인 프리미엄 작명 리포트'],cost:'🪙 700코인',ct:'paid',img:'/fuctionassets/naming.webp'},
     openDestinyFlowerStudio:{cat:'운명의 꽃 · 통합 아틀리에',title:'🌸 운명의 꽃 아틀리에',tagline:'사주·점성술·자미두수·숙요 결과를 소스별로 전환하며 지금의 개화 테마를 확인합니다.',feats:['4개 운세 소스 탭 전환(사주·점성술·자미두수·숙요)','소스별 핵심 배지·꽃 서사·키워드 자동 구성','팔레트/꽃말/관계·커리어 가이드 패널 제공','프롬프트 생성·기록 저장·요약 복사·카카오 공유 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower.webp'},
     openAstrologyFlowerStudio:{cat:'점성술 · 꽃 아틀리에',title:'✨ 점성술 꽃',tagline:'태양궁 중심으로 꽃을 매핑하고, 상승궁·달궁은 분위기와 해석을 보강해 보여줍니다.',feats:['태양궁 기반 운명꽃 선택','상승궁·달궁 보조 시그널 반영','별자리 3축 요약과 성운 테마 시각화','프롬프트/저장/공유 도구 동일 지원'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/flower2.webp'},
     openJamidusuFlowerStudio:{cat:'자미두수 · 꽃 아틀리에',title:'🌺 자미두수 꽃',tagline:'명궁·주성·밝기 정보를 바탕으로 자미두수 전용 꽃과 테마를 산출합니다.',feats:['주요 주성 규칙 기반 꽃 매칭','명궁 힌트와 결합한 해석 패널','밝기(묘·왕·평·함 등) 강도 반영','자미두수 서사·요약·프롬프트 자동 생성'],cost:'🔒 해금 50코인',ct:'paid',img:'/fuctionassets/jami.webp'},
@@ -6772,6 +6877,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           else if(action==='gotoAstrologyPremium')_premDesc='390코인으로 열대황도 행성 배치를 계산, 12하우스 12챕터 코즈믹 차트 인생 리포트 PDF를 완성합니다.';
           else if(action==='gotoSukuyoPremium')_premDesc='390코인으로 에도 막부가 금지했던 진귀한 27수 숙요점 — 13챕터 궁합·재물·수명 완전 분析 PDF를 완성합니다.';
           else if(action==='gotoVedicPremium')_premDesc='390코인으로 인도 고대 조티쉬 베다 점성술 — 라그나·나크샤트라·다샤 주기로 평생 운명 12챕터 PDF를 완성합니다.';
+          else if(action==='gotoNamingPremium')_premDesc='700코인으로 서비스 만세력 기반 사주를 정밀 반영해 오행·십신·수리까지 맞춘 프리미엄 작명 리포트를 제공합니다.';
           else _premDesc='이용할 때마다 코인이 차감됩니다. 코인이 부족하면 충전이 필요합니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
@@ -6782,6 +6888,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           else if(action==='gotoAstrologyPremium')_ctaBtnLabel='✨ 코즈믹 차트 PDF 지금 생성하기';
           else if(action==='gotoSukuyoPremium')_ctaBtnLabel='💫 숙요점 PDF 지금 생성하기';
           else if(action==='gotoVedicPremium')_ctaBtnLabel='🪷 베다 운명서 PDF 지금 생성하기';
+          else if(action==='gotoNamingPremium')_ctaBtnLabel='📛 명운 프리미엄 작명 시작하기';
           else _ctaBtnLabel='🪙 '+coinCost+'코인으로 시작하기';
           _ctaBtn.textContent=_ctaBtnLabel;
         }

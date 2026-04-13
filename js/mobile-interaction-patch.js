@@ -352,6 +352,15 @@
       ].join(',')
     },
     {
+      action: 'gotoNamingPremium',
+      cardSelector: '.prem-card--naming',
+      targetSelector: [
+        '[data-action="gotoNamingPremium"]',
+        '.prem-card--naming',
+        '.prem-card--naming img'
+      ].join(',')
+    },
+    {
       action: 'openSibylModal',
       cardSelector: '#sibylSystemSection .sibyl-entry-tile',
       targetSelector: [
@@ -782,6 +791,7 @@
       || action === 'gotoAstrologyPremium'
       || action === 'gotoSukuyoPremium'
       || action === 'gotoVedicPremium'
+      || action === 'gotoNamingPremium'
     );
     if (isPremGateAction && Number(actionEl.getAttribute('data-coin-cost') || 0) > 0) {
       return false;
