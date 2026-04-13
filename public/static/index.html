@@ -2528,11 +2528,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--ziwei"
                     data-action="gotoZiweiPremium"
-                    data-coin-cost="590"
+                    data-coin-cost="50"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     aria-label="?먮??먯닔 ?몄깮 珥앸엺 ??590肄붿씤">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
-                <img src="/fuctionassets/jamipremiun.webp" alt="?먮??먯닔 ?몄깮 珥앸엺 PDF遺?
+                <img src="/fuctionassets/jamigod.webp" alt="?먮??먯닔 ?몄깮 珥앸엺 PDF遺?
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
                 <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,6,30,0.85) 0%,transparent 60%);"></div>
                 <span style="position:absolute;top:10px;left:10px;background:rgba(99,102,241,0.85);color:#fff;font-size:0.55rem;font-weight:800;letter-spacing:0.14em;padding:3px 8px;border-radius:20px;text-transform:uppercase;">PREMIUM</span>
@@ -6589,66 +6589,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
     }
-    // ?뚮젮吏??≪뀡 蹂꾩묶: gotoZiweiPremium ??openZiweiBookModal
+    // 알려진 액션 별칭: gotoZiweiPremium → /ziwei/chart
     if (action === 'gotoZiweiPremium') {
-      var _profileCandidate = _cdGetZiweiProfileCandidate();
-      _cdZiweiTrace('CLICK', {
-        action: action,
-        hasProfile: !!(_profileCandidate && _profileCandidate.birth),
-      });
-
-      var _invokeZiwei = function() {
-        try {
-          if (typeof window.openZiweiBookModal === 'function') {
-            _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
-            window.openZiweiBookModal(_profileCandidate || null);
-            return true;
-          }
-        } catch (e) {
-          _cdZiweiTrace('FUNCTION_CALL_ERROR', { message: e && e.message ? e.message : String(e) });
-        }
-        return false;
-      };
-
-      if (_invokeZiwei()) return;
-
-      // ziwei-book.js lazy load ???ы샇異?(?덉씠??而⑤뵒??諛⑹?)
-      (function() {
-        var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
-        var _zbLoadFn = function() {
-          var s = document.querySelector('script[src*="ziwei-book.js"]');
-          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
-            _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
-            return Promise.resolve();
-          }
-          return new Promise(function(res, rej) {
-            var el = document.createElement('script');
-            el.src = '/js/ziwei-book.js?v=20260411-zfix1';
-            el.defer = true;
-            el.onload = function() {
-              el.dataset.loaded = '1';
-              _cdZiweiTrace('JS_LOADED', { via: 'dynamic-script' });
-              res();
-            };
-            el.onerror = function(err) {
-              _cdZiweiTrace('JS_LOAD_ERROR', {});
-              rej(err);
-            };
-            document.head.appendChild(el);
-          });
-        };
-        (_zbLoader ? _zbLoader() : _zbLoadFn())
-          .then(function() {
-            _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
-            if (!_invokeZiwei()) {
-              _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
-            }
-          })
-          .catch(function(e) {
-            _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
-            console.error('[prem-card ziwei]', e);
-          });
-      })();
+      window.location.href = '/ziwei/chart';
       return;
     }
     // 紐낆떆???몃뱾?? openLifeBookModal
@@ -7196,7 +7139,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 (function(){
   'use strict';
   var D={
-    gotoZiweiPremium:{cat:'?먮??먯닔 쨌 榮ュ쒜?쀦빖 쨌 Ziwei Premium',title:'?뙆 榮ュ쒜 ?몄깮 珥앸엺',tagline:'?먮??먯닔 12沅?13梨뺥꽣 AI ?ъ링 遺꾣옄 ??紐낃턿 罹먮┃?걔룹쿇吏겶룹옱臾셋룹씤?걔룰굔媛빧룸??쑣룹냼???꾩쟾 ?대룆 ??PDF濡?利됱떆 ?ㅼ슫濡쒕뱶?⑸땲??',feats:['?뙆 13梨뺥꽣 쨌 12沅??꾩쟾 遺꾣옄 쨌 ?곹븯愿怨?泥섏꽭??,'?뙄 ???鸚㏝솏) 10??留λ씫 + 2026 ?뚰븳 ?꾩닠 濡쒕뱶留?,'?뱰 AI ?ъ링 遺꾣옄 ?꾩꽦蹂?利됱떆 PDF ???쨌 留덉뒪?고뵆??遊됱꽌'],cost:'?뙆 590肄붿씤',ct:'paid',img:'/fuctionassets/jamipremiun.webp'},
+    gotoZiweiPremium:{cat:'자미두수 심화 · 紫微斗數 Deep Dive',title:'🌌 자미두수 심화 16챕터',tagline:'자미두수 12궁 심층 리딩을 16챕터로 확장해 명궁 캐릭터·천직·재물·인연·건강·대한·소한 전략까지 밀도 있게 해석합니다.',feats:['🌌 16챕터 · 12궁 완전 분析 · 상하관계 처세술','🌊 대한(大限) 10년 맥락 + 2026 소한 전술 로드맵','🧭 챕터형 심화 리딩 · 마스터플랜 봉서'],cost:'궁합 1회 50코인',ct:'paid',img:'/fuctionassets/jamigod.webp'},
     gotoAstrologyPremium:{cat:'?먯꽦??쨌 Cosmic Chart Premium',title:'???먯꽦??肄붿쫰誘?李⑦듃',tagline:'?ㅼ젣 ?됱꽦 醫뚰몴 湲곕컲 12梨뺥꽣 ?뺣? 遺꾣옄 ??蹂꾩옄由??깆뿉???덈? 紐?蹂???吏꾩쭨 ?대챸???⑦꽩???꾩쟾 ?대룆?섍퀬 PDF濡???ν빀?덈떎.',feats:['? ?쒖뼇쨌??룹긽?밴턿 3媛??먮꼫吏 + 李⑦듃 猷곕윭 ?꾩쟾 遺꾣옄','?첃 12?섏슦???곸뿭蹂??щЪ쨌?щ옉쨌吏곸뾽쨌移대Ⅴ留??댁꽭 ?뚯븙','?뙆 ?몃뱶 異??곹샎 紐⑹쟻吏 + ?됱꽦 ?몃옖吏???곹뼢 怨꾩궛','??390肄붿씤 ??12梨뺥꽣 遺꾣옄 ?꾨즺 ??PDF 利됱떆 ???],cost:'??390肄붿씤',ct:'paid',img:'/fuctionassets/premiumstar.webp'},
     gotoSukuyoPremium:{cat:'?숈슂??쨌 若욘썫??Premium',title:'?뮟 ?숈슂??若욘썫?? 沅곹빀 遺꾩꽍',tagline:'?먮룄 留됰?媛 誘쇨컙 ?ъ슜??湲덉??덈뜕 27??沅곹빀 遺꾩꽍踰?????蹂꾩씠 留욎쑝硫??댄샎?⑥씠 洹뱁엳 ??븘吏묐땲??',feats:['?뙔 遺덇탳 諛援?鍮꾩쟾 27?섎줈 沅곹빀??吏꾩쭨 ?곸꽦 ?꾩쟾 遺꾩꽍','?뮂 ?앸뀈?붿씪留뚯쑝濡?吏꾩쭨 ?뚯슱硫붿씠??vs ?낆꽦 愿怨??먮퀎','狩??щЪ쨌嫄닿컯쨌?섎챸 ?꾨컲??嫄몄튇 1:1 ?뺣? ?댁꽭 由щ뵫','?뮟 390肄붿씤 ??吏湲?諛붾줈 ?댁슜 媛??],cost:'?뮟 390肄붿씤',ct:'paid',img:'/fuctionassets/sukyo_premium.webp'},
     gotoVedicPremium:{cat:'踰좊떎 ?먯꽦??쨌 Vedic Astrology Premium',title:'?し 踰좊떎 ?몄깮 珥앸엺 由ы룷??,tagline:'?몃룄 怨좊? 議고떚??踰좊떎 ?먯꽦?????쇨렇?샕룸떖 諛곗튂쨌?섑겕?ㅽ듃?쇰줈 蹂대뒗 ?됱깮 ?대챸 吏??',feats:['?し ?쇨렇?샕룸떖쨌?쒖뼇 3異??꾩쟾 遺꾩꽍','?뙔 ?섑겕?ㅽ듃??27?? 蹂??대챸 ?댁꽍','?뱟 ?ㅼ깶 二쇨린蹂??댁꽭 ?덉륫 쨌 ?앹븷 ?먮쫫 珥앸엺','?뵰 源뚮Ⅴ留??⑦꽩 쨌 ?댄깉 吏??遺꾩꽍'],cost:'?첃 390肄붿씤',ct:'paid',img:'/fuctionassets/premium veda.webp'},
@@ -7344,7 +7287,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _premDesc='';
           if(action==='openLifeBookModal')_premDesc='490肄붿씤?쇰줈 ?됱깮 蹂닿????섎쭔???대챸 ?꾩꽌瑜??꾩꽦?섏꽭?? ????먮쫫쨌?щЪ ?쒓린쨌???愿怨??꾨왂??13梨뺥꽣??嫄몄퀜 ?쇱퀜吏묐땲??';
           else if(action==='openLoveSecretModal')_premDesc='290肄붿씤?쇰줈 ???ъ＜???④꺼吏??곗븷 肄붾뱶瑜??대룆?섏꽭?? ??吏꾩쭨 ?댁긽?빧룸ℓ???ъ씤?맞룻뵾?댁빞 ??愿怨??좏삎源뚯? 紐⑤몢 ?닿꺼 ?덉뒿?덈떎.';
-          else if(action==='gotoZiweiPremium')_premDesc='590肄붿씤?쇰줈 ?먮??먯닔 紐낃턿쨌?좉턿쨌?ы솕瑜??쒕쾭 吏곸젒 怨꾩궛, 13梨뺥꽣 ?ъ링 ?몄깮 遺꾣옄 PDF瑜??꾩꽦?⑸땲??';
+          else if(action==='gotoZiweiPremium')_premDesc='50코인으로 자미두수 명궁·신궁·사화를 기반으로 16챕터 심화 인생 전략 리딩을 시작합니다.';
           else if(action==='gotoAstrologyPremium')_premDesc='390肄붿씤?쇰줈 ?대??⑸룄 ?됱꽦 諛곗튂瑜?怨꾩궛, 12?섏슦??12梨뺥꽣 肄붿쫰誘?李⑦듃 ?몄깮 由ы룷??PDF瑜??꾩꽦?⑸땲??';
           else if(action==='gotoSukuyoPremium')_premDesc='390肄붿씤?쇰줈 ?먮룄 留됰?媛 湲덉??덈뜕 吏꾧???27???숈슂????13梨뺥꽣 沅곹빀쨌?щЪ쨌?섎챸 ?꾩쟾 遺꾣옄 PDF瑜??꾩꽦?⑸땲??';
           else if(action==='gotoVedicPremium')_premDesc='390肄붿씤?쇰줈 ?몃룄 怨좊? 議고떚??踰좊떎 ?먯꽦?????쇨렇?샕룸굹?ъ깶?몃씪쨌?ㅼ깶 二쇨린濡??됱깮 ?대챸 12梨뺥꽣 PDF瑜??꾩꽦?⑸땲??';
@@ -7355,7 +7298,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _ctaBtnLabel='';
           if(action==='openLifeBookModal')_ctaBtnLabel='?뱶 ?섏쓽 ?몄깮 ?꾩꽌 吏湲??닿린';
           else if(action==='openLoveSecretModal')_ctaBtnLabel='?뮆 ?섏쓽 ?곗븷 鍮꾩콉 吏湲??닿린';
-          else if(action==='gotoZiweiPremium')_ctaBtnLabel='?뙆 ?먮??먯닔 PDF 吏湲??앹꽦?섍린';
+          else if(action==='gotoZiweiPremium')_ctaBtnLabel='🌌 자미두수 심화 분석 시작하기';
           else if(action==='gotoAstrologyPremium')_ctaBtnLabel='??肄붿쫰誘?李⑦듃 PDF 吏湲??앹꽦?섍린';
           else if(action==='gotoSukuyoPremium')_ctaBtnLabel='?뮟 ?숈슂??PDF 吏湲??앹꽦?섍린';
           else if(action==='gotoVedicPremium')_ctaBtnLabel='?し 踰좊떎 ?대챸??PDF 吏湲??앹꽦?섍린';
