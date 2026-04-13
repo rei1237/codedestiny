@@ -32,4 +32,31 @@
     -webkit-backdrop-filter: none !important;
     filter: none !important;
   }
+
+  /* ── 핵심 브랜드 UI 애니메이션: mobile-lite에서도 반드시 실행 ── */
+  html.cd-mobile-lite .honeypig-logo-icon,
+  html.cd-mobile-lite .neo-logo-icon {
+    animation: pig-float 3.2s ease-in-out infinite !important;
+    -webkit-animation: pig-float 3.2s ease-in-out infinite !important;
+  }
+  html.cd-mobile-lite .pig-svg-wrap::after {
+    animation: pig-shadow-anim 3.2s ease-in-out infinite !important;
+    -webkit-animation: pig-shadow-anim 3.2s ease-in-out infinite !important;
+  }
+  html.cd-mobile-lite .cd-user-star {
+    animation: cdStarBlink var(--dur, 2s) ease-in-out var(--delay, 0s) infinite !important;
+    -webkit-animation: cdStarBlink var(--dur, 2s) ease-in-out var(--delay, 0s) infinite !important;
+  }
+  html.cd-mobile-lite .cd-user-card__avatar {
+    animation: cdAvatarGlow 3s ease-in-out infinite !important;
+    -webkit-animation: cdAvatarGlow 3s ease-in-out infinite !important;
+  }
+  html.cd-mobile-lite .cd-user-card__avatar-ring {
+    animation: cdAvatarSpin 4s linear infinite !important;
+    -webkit-animation: cdAvatarSpin 4s linear infinite !important;
+  }
+  html.cd-mobile-lite .logo-area::after {
+    animation: starfall 12s linear infinite !important;
+    -webkit-animation: starfall 12s linear infinite !important;
+  }
 }
