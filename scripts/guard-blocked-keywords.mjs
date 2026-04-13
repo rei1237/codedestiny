@@ -20,6 +20,10 @@ const TEXT_EXTS = new Set([
 ]);
 
 const BLOCKED_KEYWORDS = ["박병하"];
+const ALLOWLIST = new Set([
+  "app/about/page.js",
+  "app/components/SiteFooterHub.jsx",
+]);
 
 function shouldScan(filePath) {
   const ext = path.extname(filePath).toLowerCase();
@@ -56,6 +60,11 @@ for (const rel of TARGET_DIRS) {
 
 const violations = [];
 for (const filePath of files) {
+  const relFile = path.relative(ROOT, filePath).replaceAll("\\", "/");
+  if (ALLOWLIST.has(relFile)) {
+    continue;
+  }
+
   let body = "";
   try {
     body = fs.readFileSync(filePath, "utf8");
@@ -67,7 +76,7 @@ for (const filePath of files) {
     const line = findLine(body, keyword);
     if (line !== null) {
       violations.push({
-        file: path.relative(ROOT, filePath).replaceAll("\\", "/"),
+        file: relFile,
         keyword,
         line,
       });

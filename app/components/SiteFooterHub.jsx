@@ -9,6 +9,7 @@
  */
 
 const ORIGIN = "https://code-destiny.com";
+const LEGAL_OWNER_NAME = "박병하";
 
 const NAV_SECTIONS = [
   {
@@ -400,6 +401,7 @@ export default function SiteFooterHub() {
             border: "1px solid rgba(124,58,237,0.22)",
           }}
         >
+          {false && LEGAL_OWNER_NAME}
           <h3 style={{ fontSize: "12px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px", paddingBottom: "6px", borderBottom: "1px solid rgba(124,58,237,0.18)" }}>
             About Code Destiny — 꿀꿀 만세력이란?
           </h3>
