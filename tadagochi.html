@@ -984,10 +984,34 @@ function normalizeDayKey(v){
   return d.toISOString().slice(0,10);
 }
 
+function getAuthToken(){
+  var token='';
+  try{token=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
+  if(token) return token;
+  try{
+    var m=(document.cookie||'').match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
+    if(m&&m[1]) return decodeURIComponent(m[1]);
+  }catch(_e2){}
+  return '';
+}
+
+function withAuthHeaders(headers){
+  var out=Object.assign({},headers||{});
+  var token=getAuthToken();
+  if(token&&!out.Authorization&&!out.authorization) out.Authorization='Bearer '+token;
+  return out;
+}
+
+function apiFetch(url,opts){
+  var options=Object.assign({credentials:'include'},opts||{});
+  options.headers=withAuthHeaders(options.headers||{});
+  return fetch(url,options);
+}
+
 function init(){
   initUI();
   // 로그인 확인 후 서버 펫 데이터 로드
-  fetch('/api/auth/me',{credentials:'include'}).then(function(r){return r.json();}).then(function(userData){
+  apiFetch('/api/auth/me').then(function(r){return r.json();}).then(function(userData){
     if(!userData||!userData.user){
       // 미로그인 → 게이트 표시
       var gate=document.getElementById('login-gate');
@@ -1000,7 +1024,7 @@ function init(){
     var today2=getTodayKey();
     G.chatDate=today2;
     // 서버에서 펫 상태 로드
-    fetch('/api/tadagochi/pet',{credentials:'include'}).then(function(r){return r.json();}).then(function(petRes){
+    apiFetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
       updateChatRemain();
       var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
       if(hasSavedPet){
@@ -1029,7 +1053,7 @@ function init(){
 function saveState(){
   if(!G.userId){return;} // 미로그인이면 저장 안함
   var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
-  fetch('/api/tadagochi/pet',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
+  apiFetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
     if(r&&r.status===401){
       G.userId=null; // 세션 만료 - 저장만 중단, 게임 계속
     }
@@ -1038,7 +1062,7 @@ function saveState(){
 
 function resetPet(){
   if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
-  fetch('/api/tadagochi/pet',{method:'DELETE',credentials:'include'}).then(function(){
+  apiFetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
     G.userId=G.userId; // 유저 ID는 유지
     Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
     if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
@@ -1305,6 +1329,66 @@ function getSpriteFrameIndexByState(state,frameCount){
   return idx;
 }
 
+function stripFlatBgFromCanvas(ctx,w,h){
+  if(!ctx||!w||!h) return;
+  var img=ctx.getImageData(0,0,w,h);
+  var px=img.data;
+  var corner=[
+    0,0,
+    w-1,0,
+    0,h-1,
+    w-1,h-1,
+    Math.max(0,Math.floor(w*0.06)),Math.max(0,Math.floor(h*0.06)),
+    Math.max(0,Math.floor(w*0.94)),Math.max(0,Math.floor(h*0.06)),
+    Math.max(0,Math.floor(w*0.06)),Math.max(0,Math.floor(h*0.94)),
+    Math.max(0,Math.floor(w*0.94)),Math.max(0,Math.floor(h*0.94))
+  ];
+  var br=0,bg=0,bb=0,count=0;
+  for(var i=0;i<corner.length;i+=2){
+    var x=corner[i],y=corner[i+1],p=(y*w+x)*4;
+    br+=px[p];bg+=px[p+1];bb+=px[p+2];count+=1;
+  }
+  if(!count) return;
+  br=Math.round(br/count);bg=Math.round(bg/count);bb=Math.round(bb/count);
+
+  function isBgAtIndex(idx){
+    var r=px[idx],g=px[idx+1],b=px[idx+2],a=px[idx+3];
+    if(a<10) return true;
+    var dr=r-br,dg=g-bg,db=b-bb;
+    var dist=(dr*dr)+(dg*dg)+(db*db);
+    var max=Math.max(r,g,b),min=Math.min(r,g,b);
+    return dist<2600&&(max-min)<50;
+  }
+
+  var seen=new Uint8Array(w*h);
+  var q=[];
+  function push(x,y){
+    var n=y*w+x;
+    if(seen[n]) return;
+    var idx=n*4;
+    if(!isBgAtIndex(idx)) return;
+    seen[n]=1;
+    q.push(n);
+  }
+
+  for(var xx=0;xx<w;xx+=1){push(xx,0);push(xx,h-1);} 
+  for(var yy=0;yy<h;yy+=1){push(0,yy);push(w-1,yy);} 
+
+  while(q.length){
+    var n=q.pop();
+    var x=n%w,y=(n/w)|0;
+    if(x>0) push(x-1,y);
+    if(x<w-1) push(x+1,y);
+    if(y>0) push(x,y-1);
+    if(y<h-1) push(x,y+1);
+  }
+
+  for(var k=0;k<seen.length;k+=1){
+    if(seen[k]) px[k*4+3]=0;
+  }
+  ctx.putImageData(img,0,0);
+}
+
 function renderSpriteSheetFrame(url,state,onDone,onError){
   var im=new Image();
   im.onload=function(){
@@ -1322,6 +1406,7 @@ function renderSpriteSheetFrame(url,state,onDone,onError){
       cv.height=frameH;
       var cx=cv.getContext('2d');
       cx.drawImage(im,idx*frameW,0,frameW,frameH,0,0,frameW,frameH);
+      stripFlatBgFromCanvas(cx,frameW,frameH);
       onDone(cv.toDataURL('image/png'));
     }catch(_e){
       onError();
@@ -1662,7 +1747,7 @@ function addLoadingMsg(text){
 function requestFortuneApi(category, question, usedToday){
   var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
   var tm=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
-  return fetch('/api/tadagochi',{
+  return apiFetch('/api/tadagochi',{
     method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
     signal:ctrl?ctrl.signal:undefined,
     body:JSON.stringify({

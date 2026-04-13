@@ -41,19 +41,26 @@ export async function GET(request) {
   if (!payload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
   const userId = payload?.userId;
-  if (!userId && !adminMode) return NextResponse.json({ ok: false }, { status: 401 });
-
-  if (adminMode) {
-    return NextResponse.json({
-      ok: true,
-      adminBypass: true,
-      message: "관리자 모드: 가상 무제한 코인 잔액입니다.",
-      user: { id: userId ? String(userId) : "admin-session", points: ADMIN_VIRTUAL_COINS },
-    });
-  }
+  if (!userId) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   try {
     const User = await getUserModel();
+    if (adminMode) {
+      const updatedAdmin = await User.findByIdAndUpdate(
+        userId,
+        { $set: { points: ADMIN_VIRTUAL_COINS } },
+        { new: true, projection: { points: 1 } },
+      ).lean();
+      if (!updatedAdmin) return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+
+      return NextResponse.json({
+        ok: true,
+        adminMode: true,
+        message: "관리자 코인이 9999로 재설정되었습니다.",
+        user: { id: String(userId), points: Number(updatedAdmin.points || ADMIN_VIRTUAL_COINS) },
+      });
+    }
+
     const user = await User.findById(userId).select("points").lean();
     if (!user) return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
 

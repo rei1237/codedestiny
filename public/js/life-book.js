@@ -556,15 +556,11 @@
       } catch (_dpE) {}
     }
     if (!profile) {
-      if (window.__cdAdminBypass) {
-        // 관리자 바이패스 모드: 시작 화면으로 진행 가능
-      } else {
-        // 입력 폼으로 스크롤 유도
-        var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
-        if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-        alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
-        return;
-      }
+      // 입력 폼으로 스크롤 유도
+      var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+      alert('📜 인생의 책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      return;
     }
 
     // 복구된 프로필이 있으면 window에 주입
@@ -1085,10 +1081,7 @@
         return;
       }
       var _lbCoinCost = Number(btn.getAttribute('data-coin-cost') || 490);
-      if (window.__cdAdminBypass) {
-        // 관리자 바이패스: 코인 차감 없이 즉시 실행
-        window.generateLifeBook();
-      } else if (typeof window._cdCoinGatePerUse === 'function') {
+      if (typeof window._cdCoinGatePerUse === 'function') {
         // 코인 게이트: 버튼 비활성화로 중복 클릭 방지 후 진행
         btn.disabled = true;
         window._cdCoinGatePerUse(_lbCoinCost, '인생의 책 생성 (13챕터)', function () {

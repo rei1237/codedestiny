@@ -8,8 +8,6 @@ export const runtime = "nodejs";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 50;
 const PIG_COIN_MAX_COST = 50000;
-const ADMIN_VIRTUAL_COINS = 9999999;
-
 function verifyToken(request) {
   const authHeader = request.headers.get("Authorization") || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
@@ -45,7 +43,7 @@ export async function POST(request) {
   if (!payload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
   const userId = payload?.userId;
-  if (!userId && !adminMode) return NextResponse.json({ ok: false }, { status: 401 });
+  if (!userId) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   let body;
   try { body = await request.json(); } catch { body = {}; }
@@ -61,16 +59,6 @@ export async function POST(request) {
 
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
-
-  if (adminMode) {
-    return NextResponse.json({
-      ok: true,
-      adminBypass: true,
-      message: "관리자 모드: 코인이 차감되지 않았습니다.",
-      requiredCoins: cost,
-      user: { id: userId ? String(userId) : "admin-session", points: ADMIN_VIRTUAL_COINS },
-    });
-  }
 
   try {
     const User = await getUserModel();

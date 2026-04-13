@@ -427,21 +427,15 @@
       } catch (_dpE) {}
     }
     if (!profile) {
-      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
-      var _zbIsAdmin = window.__cdAdminBypass || (typeof window.isAdminUser === 'function' && window.isAdminUser());
-      if (_zbIsAdmin) {
-        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
-      } else {
-        _trace('OPEN_MODAL_NO_PROFILE', {});
-        modal.style.display = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.pointerEvents = 'auto';
-        modal.style.zIndex = '100120';
-        document.body.style.overflow = 'hidden';
-        try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
-        _showScreen('zbNoProfileScreen');
-        return;
-      }
+      _trace('OPEN_MODAL_NO_PROFILE', {});
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.pointerEvents = 'auto';
+      modal.style.zIndex = '100120';
+      document.body.style.overflow = 'hidden';
+      try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
+      _showScreen('zbNoProfileScreen');
+      return;
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;

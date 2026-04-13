@@ -1696,15 +1696,13 @@ function __cdBindAnimalTotemTileDirect() {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
       // ── 코인 게이트 체크 ──
-      if (!window.__cdAdminBypass) {
-        var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
-        var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
-        if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
-          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
-          if (typeof window._cdCoinGatePerUse === 'function') {
-            window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
-            return;
-          }
+      var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
+      var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
+      if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
+        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
+        if (typeof window._cdCoinGatePerUse === 'function') {
+          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
+          return;
         }
       }
       // ── 코인 게이트 통과 ──
@@ -5173,28 +5171,26 @@ function openDestinyFlowerStudio() {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
-  if (!window.__cdAdminBypass) {
-    // 현재 활성 소스(saju/astrology/jamidusu/sukuyo)에 맞는 타일 및 lock key 동적 결정
-    var _dfSourceLockMap = { saju: 'openDestinyFlowerStudio', astrology: 'openAstrologyFlowerStudio', jamidusu: 'openJamidusuFlowerStudio', sukuyo: 'openSukuyoFlowerStudio' };
-    var _dfActiveSource = (_dfStudioState && _dfStudioState.activeSource) || 'saju';
-    var _dfActionName = _dfSourceLockMap[_dfActiveSource] || 'openDestinyFlowerStudio';
-    var _dfTile = document.querySelector('[data-action="' + _dfActionName + '"][data-tile-lock-key]');
-    if (!_dfTile) _dfTile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
-    if (_dfTile) {
-      var _dfLockKey = _dfTile.getAttribute('data-tile-lock-key');
-      var _dfIsUnlocked = false;
-      try { _dfIsUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[_dfLockKey]); } catch (_) {}
-      if (!_dfIsUnlocked) {
-        try { var _dfLocks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); _dfIsUnlocked = !!_dfLocks[_dfLockKey]; } catch (_) {}
-      }
-      if (!_dfIsUnlocked) {
-        try { var _dfU = readAuthUser && readAuthUser(); var _dfPlan = (_dfU && _dfU.plan) ? String(_dfU.plan) : ''; if (_dfPlan === 'unlimited' || _dfPlan === 'premium') _dfIsUnlocked = true; } catch (_) {}
-      }
-      if (!_dfIsUnlocked) {
-        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_dfTile)) return;
-        _dfTile.click();
-        return;
-      }
+  // 현재 활성 소스(saju/astrology/jamidusu/sukuyo)에 맞는 타일 및 lock key 동적 결정
+  var _dfSourceLockMap = { saju: 'openDestinyFlowerStudio', astrology: 'openAstrologyFlowerStudio', jamidusu: 'openJamidusuFlowerStudio', sukuyo: 'openSukuyoFlowerStudio' };
+  var _dfActiveSource = (_dfStudioState && _dfStudioState.activeSource) || 'saju';
+  var _dfActionName = _dfSourceLockMap[_dfActiveSource] || 'openDestinyFlowerStudio';
+  var _dfTile = document.querySelector('[data-action="' + _dfActionName + '"][data-tile-lock-key]');
+  if (!_dfTile) _dfTile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
+  if (_dfTile) {
+    var _dfLockKey = _dfTile.getAttribute('data-tile-lock-key');
+    var _dfIsUnlocked = false;
+    try { _dfIsUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[_dfLockKey]); } catch (_) {}
+    if (!_dfIsUnlocked) {
+      try { var _dfLocks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); _dfIsUnlocked = !!_dfLocks[_dfLockKey]; } catch (_) {}
+    }
+    if (!_dfIsUnlocked) {
+      try { var _dfU = readAuthUser && readAuthUser(); var _dfPlan = (_dfU && _dfU.plan) ? String(_dfU.plan) : ''; if (_dfPlan === 'unlimited' || _dfPlan === 'premium') _dfIsUnlocked = true; } catch (_) {}
+    }
+    if (!_dfIsUnlocked) {
+      if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_dfTile)) return;
+      _dfTile.click();
+      return;
     }
   }
   // ── 코인/잠금 게이트 체크 끝 ──

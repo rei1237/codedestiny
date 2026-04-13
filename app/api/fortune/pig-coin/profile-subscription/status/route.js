@@ -5,7 +5,6 @@ import { getPointHistoryModel } from "../../../../../_lib/models/PointHistoryMod
 import { extractAdminTokenFromRequest, verifyFlowerAdminToken } from "../../../../../_lib/flowerAdminToken";
 
 export const runtime = "nodejs";
-const ADMIN_VIRTUAL_COINS = 9999999;
 
 const PROFILE_SUB_PLANS = {
   standard: { name: "스탠다드 꿀",  coins: 115, profileLimit: 3,  durationDays: 30, lowWarnAt: 30 },
@@ -48,23 +47,7 @@ export async function GET(request) {
   if (!jwtPayload && !adminMode) return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
 
   const userId = jwtPayload?.userId;
-  if (!userId && !adminMode) return NextResponse.json({ ok: false }, { status: 401 });
-
-  if (adminMode) {
-    return NextResponse.json({
-      ok: true,
-      adminBypass: true,
-      tier: "vvip",
-      isActive: true,
-      expiresAt: null,
-      profileLimit: 9999,
-      points: ADMIN_VIRTUAL_COINS,
-      lowBalanceWarning: false,
-      autoRenewed: false,
-      hasStartedPaidService: true,
-      firstServiceAccessDate: new Date().toISOString(),
-    });
-  }
+  if (!userId) return NextResponse.json({ ok: false }, { status: 401 });
 
   try {
     const User = await getUserModel();

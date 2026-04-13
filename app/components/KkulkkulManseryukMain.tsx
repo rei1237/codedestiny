@@ -6,6 +6,7 @@ import HPremiumSukuyoSection from "./HPremiumSukuyoSection";
 import HPremiumAstrologySection from "./HPremiumAstrologySection";
 import HPremiumVedicSection from "./HPremiumVedicSection";
 import HPremiumNamingSection from "./HPremiumNamingSection";
+import { showToast } from "./Toast";
 const HPremiumZiweiSection = dynamic(() => import("./HPremiumZiweiSection"), {
   ssr: false,
   loading: () => (
@@ -182,6 +183,10 @@ function saveUserPoints(points: number) {
   } catch (_) {}
 }
 
+function notifyCoinDeducted(cost: number, points: number, label: string) {
+  showToast(`🪙 ${label} 이용으로 ${cost}코인이 차감되었습니다. 남은 코인: ${Number(points).toLocaleString("ko-KR")}`, "info");
+}
+
 export default function KkulkkulManseryukMain() {
   console.log("섹션 렌더링 시작: KkulkkulManseryukMain");
   const [currentCoins, setCurrentCoins] = useState(0);
@@ -227,23 +232,10 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
-    const adminMode = isAdminSessionClient();
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !adminMode) {
+    if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
-      return;
-    }
-    if (adminMode) {
-      // 관리자 모드: 코인 차감 없이 즉시 해금
-      setUnlockedFeatures((prev) => {
-        const next = { ...prev, [key]: true };
-        if (alsoUnlock?.length) {
-          for (const aliasKey of alsoUnlock) next[aliasKey] = true;
-        }
-        return next;
-      });
-      setSparkleTarget(key);
       return;
     }
     if (currentCoins < cost) {
@@ -261,6 +253,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
+      notifyCoinDeducted(cost, newPoints, key);
       setUnlockedFeatures((prev) => {
         const next = { ...prev, [key]: true };
         if (alsoUnlock?.length) {
@@ -276,20 +269,10 @@ export default function KkulkkulManseryukMain() {
   };
 
   const usePaidFeatureOnce = async (key: PerUseKey, cost: number) => {
-    const adminMode = isAdminSessionClient();
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !adminMode) {
+    if (!token) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
-      return;
-    }
-    if (adminMode) {
-      // 관리자 모드: 코인 차감 없이 즉시 사용
-      setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-      setSparkleTarget(key);
-      if (key === 'loveSimulation') {
-        window.location.href = '/saju/love-simulation';
-      }
       return;
     }
     if (currentCoins < cost) {
@@ -307,6 +290,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
+      notifyCoinDeducted(cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
       // 연애 시뮬레이션은 결제 후 전용 페이지로 이동
@@ -320,9 +304,6 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPremiumIntroGate = async (service: PremiumServiceKey) => {
-    const adminMode = isAdminSessionClient();
-    if (adminMode) return true;
-
     const token = localStorage.getItem('fortune_auth_token');
     if (!token) {
       alert('로그인이 필요합니다.');
@@ -385,13 +366,6 @@ export default function KkulkkulManseryukMain() {
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
     if (premiumGateLoading) return;
 
-    // 관리자 모드: 코인 차감 없이 즉시 통과
-    if (isAdminSessionClient()) {
-      console.log('[ADMIN] 프리미엄 서비스 bypass:', service);
-      setPremiumFlowStage('generate');
-      return;
-    }
-
     const passed = await runPremiumIntroGate(service);
     if (!passed) return;
 
@@ -416,6 +390,7 @@ export default function KkulkkulManseryukMain() {
       const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
       setCurrentCoins(newPoints);
       saveUserPoints(newPoints);
+      notifyCoinDeducted(cost, newPoints, `${service} 프리미엄`);
       setPremiumFlowStage('generate');
     } catch (e) {
       console.error('[handleStartPremiumGeneration]', e);

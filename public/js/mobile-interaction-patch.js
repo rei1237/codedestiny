@@ -551,7 +551,7 @@
     gotoAstrologyPremium: ['js/astro-book.js?v=20260409-v1'],
     gotoSukuyoPremium: ['js/sukuyo-book.js?v=20260410-v1'],
     gotoVedicPremium: ['js/vedic-book.js?v=20260410-v1'],
-    openSibylModal: ['js/sibyl-system.js?v=20260414-coinfix1']
+    openSibylModal: ['js/sibyl-system.js?v=20260413-sibylfix1']
   };
 
   function normalizeScriptSrc(src) {
@@ -616,44 +616,42 @@
     // 터치 이벤트가 코인/잠금 게이트를 우회하지 않도록, 해당 속성을 가진 타일은
     // 프리뷰 패널에 위임해 정상적인 게이트 흐름을 거치게 한다.
     // 단, pvw-bypass 속성이 있는 경우(Preview CTA에서 직접 클릭)는 게이트 건너뜀
-    if (!window.__cdAdminBypass) {
-      var _coinGateTile = null;
-      if (origin && typeof origin.closest === 'function') {
-        _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
-      }
-      // pvw-bypass 설정된 타일은 이미 Preview CTA를 통과한 것이므로 게이트 스킵
+    var _coinGateTile = null;
+    if (origin && typeof origin.closest === 'function') {
+      _coinGateTile = origin.closest('[data-tile-lock-key],[data-coin-cost]');
+    }
+    // pvw-bypass 설정된 타일은 이미 Preview CTA를 통과한 것이므로 게이트 스킵
+    if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
+    if (!_coinGateTile) {
+      _coinGateTile = document.querySelector(
+        '[data-action="' + rule.action + '"][data-tile-lock-key],' +
+        '[data-action="' + rule.action + '"][data-coin-cost]'
+      );
+      // fallback으로 찾은 타일도 pvw-bypass 체크
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
-      if (!_coinGateTile) {
-        _coinGateTile = document.querySelector(
-          '[data-action="' + rule.action + '"][data-tile-lock-key],' +
-          '[data-action="' + rule.action + '"][data-coin-cost]'
-        );
-        // fallback으로 찾은 타일도 pvw-bypass 체크
-        if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
+    }
+    if (_coinGateTile && typeof _coinGateTile.click === 'function') {
+      var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
+      var _hasCoinCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0) > 0;
+      var _needsGate = _hasCoinCost; // per-use 코인 타일: 항상 게이트
+      if (!_needsGate && _lockKey) {
+        // 영구 잠금 타일: localStorage에서 해금 여부 확인
+        try {
+          var _locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}');
+          _needsGate = !_locks[_lockKey];
+        } catch (_e) {
+          _needsGate = true;
+        }
       }
-      if (_coinGateTile && typeof _coinGateTile.click === 'function') {
-        var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
-        var _hasCoinCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0) > 0;
-        var _needsGate = _hasCoinCost; // per-use 코인 타일: 항상 게이트
-        if (!_needsGate && _lockKey) {
-          // 영구 잠금 타일: localStorage에서 해금 여부 확인
-          try {
-            var _locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}');
-            _needsGate = !_locks[_lockKey];
-          } catch (_e) {
-            _needsGate = true;
-          }
+      if (_needsGate) {
+        // 프리뷰 패널 직접 열기 (click 이벤트 경유 시 mobile-patch click handler가
+        // stopPropagation()으로 Preview 패널 handler를 차단하는 문제 우회)
+        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_coinGateTile)) {
+          return true;
         }
-        if (_needsGate) {
-          // 프리뷰 패널 직접 열기 (click 이벤트 경유 시 mobile-patch click handler가
-          // stopPropagation()으로 Preview 패널 handler를 차단하는 문제 우회)
-          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_coinGateTile)) {
-            return true;
-          }
-          // Preview helper가 없으면 여기서 소비하지 말고 전역 클릭 핸들러로 위임한다.
-          // (직접 click 재호출은 같은 capture 경로를 재진입시켜 무반응 루프를 만들 수 있음)
-          return false;
-        }
+        // Preview helper가 없으면 여기서 소비하지 말고 전역 클릭 핸들러로 위임한다.
+        // (직접 click 재호출은 같은 capture 경로를 재진입시켜 무반응 루프를 만들 수 있음)
+        return false;
       }
     }
     // ── 코인/잠금 게이트 체크 끝 ──

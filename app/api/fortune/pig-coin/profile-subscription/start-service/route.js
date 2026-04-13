@@ -42,6 +42,10 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
   }
 
+  if (!jwtPayload?.userId) {
+    return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const action = String(body?.action || "membership-content").trim().slice(0, 80);
@@ -51,17 +55,6 @@ export async function POST(request) {
 
     const User = await getUserModel();
     const PointHistory = await getPointHistoryModel();
-
-    if (adminMode) {
-      return NextResponse.json({
-        ok: true,
-        adminBypass: true,
-        started: true,
-        alreadyStarted: true,
-        hasStartedPaidService: true,
-        firstServiceAccessDate: now.toISOString(),
-      });
-    }
 
     const user = await User.findById(jwtPayload.userId)
       .select("profileSubscription has_started_paid_service first_service_access_date points")

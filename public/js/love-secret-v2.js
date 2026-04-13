@@ -633,14 +633,10 @@
       } catch (_oLsDpE) {}
     }
     if (!hasData) {
-      if (window.__cdAdminBypass) {
-        // 관리자 바이패스 모드: 시작 화면으로 진행 가능
-      } else {
-        var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
-        if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-        alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
-        return;
-      }
+      var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
+      if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
+      alert('💕 연애 비책을 생성하려면 생년월일 · 출생 시간을 입력하고 "사주 분석 시작"을 눌러주세요.');
+      return;
     }
     _chapters = Array(11).fill(null);
     _showScreen('lsStartScreen');
@@ -754,19 +750,6 @@
     }
 
     /* ── 궁합 분석 추가 100코인 차감 ─────────────────────── */
-    // 관리자 모드: 코인 차감 없이 즉시 궁합 분석 진행
-    // (isAdmin 판단을 별도 try/catch로 분리하여 _collectPartnerScreenData 예외 시 폴백 방지)
-    var _isAdminForPartner = false;
-    try {
-      var _adminTok = sessionStorage.getItem('flower_admin_token');
-      var _adminUser = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
-      _isAdminForPartner = ((_adminUser && _adminUser.role === 'admin') || (_adminTok && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(_adminTok)));
-    } catch (_adminE) {}
-    if (_isAdminForPartner) {
-      var partnerData = _collectPartnerScreenData();
-      _startGeneration(partnerData);
-      return;
-    }
     var _token = '';
     try { _token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
     if (!_token) {

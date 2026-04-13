@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { showToast } from "./Toast";
 
 type DrawnCard = {
   cardId: string;
@@ -63,35 +64,6 @@ function safeCardName(card?: DrawnCard, idx?: number) {
   return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
 }
 
-function isAdminSessionClient() {
-  if (typeof window === "undefined") return false;
-  try {
-    const userRaw = localStorage.getItem("cd_user");
-    if (userRaw) {
-      const user = JSON.parse(userRaw);
-      if (String(user?.role || "").toLowerCase() === "admin") return true;
-    }
-  } catch {}
-  try {
-    const faRaw = localStorage.getItem("fortune_auth_user");
-    if (faRaw) {
-      const faUser = JSON.parse(faRaw);
-      if (String(faUser?.role || "").toLowerCase() === "admin") return true;
-    }
-  } catch {}
-  try {
-    const roleMatch = document.cookie.match(/(?:^|;\s*)cd_role=([^;]+)/);
-    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
-  } catch {}
-  try {
-    if (sessionStorage.getItem("flower_admin_token")) return true;
-  } catch {}
-  try {
-    if (localStorage.getItem("flower_admin_token")) return true;
-  } catch {}
-  return false;
-}
-
 export default function LoveRelationshipTarot() {
   const router = useRouter();
   const [cards, setCards] = useState<DrawnCard[]>([]);
@@ -139,9 +111,8 @@ export default function LoveRelationshipTarot() {
       const authToken = typeof window !== "undefined"
         ? localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken")
         : "";
-      const adminMode = typeof window !== "undefined" ? isAdminSessionClient() : false;
 
-      if (!authToken && !adminMode) {
+      if (!authToken) {
         setError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
         if (typeof window !== "undefined") {
           const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -152,33 +123,29 @@ export default function LoveRelationshipTarot() {
         return;
       }
 
-      if (!adminMode) {
-        const consumeHeaders: Record<string, string> = {
+      const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+        method: "POST",
+        headers: {
           "Content-Type": "application/json",
-        };
-        if (authToken) {
-          consumeHeaders.Authorization = `Bearer ${authToken}`;
-        }
-
-        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
-          method: "POST",
-          headers: consumeHeaders,
-          body: JSON.stringify({
-            cost: LOVE_RELATIONSHIP_COIN_COST,
-            reason: "우리는 무슨 사이 타로 이용",
-            featureKey: "tarot-love-relationship",
-          }),
-        });
-        const consumeData = await consumeRes.json().catch(() => ({}));
-        if (consumeRes.status === 402) {
-          setError(`코인이 부족합니다. ${LOVE_RELATIONSHIP_COIN_COST}코인이 필요합니다.`);
-          return;
-        }
-        if (!consumeRes.ok) {
-          setError(String(consumeData?.message || "코인 차감에 실패했습니다."));
-          return;
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          cost: LOVE_RELATIONSHIP_COIN_COST,
+          reason: "우리는 무슨 사이 타로 이용",
+          featureKey: "tarot-love-relationship",
+        }),
+      });
+      const consumeData = await consumeRes.json().catch(() => ({}));
+      if (consumeRes.status === 402) {
+        setError(`코인이 부족합니다. ${LOVE_RELATIONSHIP_COIN_COST}코인이 필요합니다.`);
+        return;
       }
+      if (!consumeRes.ok) {
+        setError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+        return;
+      }
+      const remainPoints = Number(consumeData?.user?.points ?? 0);
+      showToast(`🪙 우리는 무슨 사이? 타로 이용으로 ${LOVE_RELATIONSHIP_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
 
       const payloadCards = cards.map((c) => ({
         cardId: c.cardId,

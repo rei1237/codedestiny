@@ -96,6 +96,61 @@
     } catch (e) {}
   }
 
+  function _cdShowCoinDeductNotice(cost, balance, reason) {
+    try {
+      var amount = Number(cost) || 0;
+      var remain = Number(balance);
+      var detail = reason ? String(reason) : '유료 서비스';
+      var root = document.getElementById('cd-coin-notice-root');
+      if (!root) {
+        root = document.createElement('div');
+        root.id = 'cd-coin-notice-root';
+        root.style.position = 'fixed';
+        root.style.top = '74px';
+        root.style.right = '16px';
+        root.style.zIndex = '99999';
+        root.style.display = 'flex';
+        root.style.flexDirection = 'column';
+        root.style.gap = '10px';
+        root.style.pointerEvents = 'none';
+        document.body.appendChild(root);
+      }
+
+      var item = document.createElement('div');
+      item.style.minWidth = '280px';
+      item.style.maxWidth = '390px';
+      item.style.borderRadius = '16px';
+      item.style.border = '1px solid rgba(251,191,36,0.34)';
+      item.style.background = 'linear-gradient(135deg, rgba(51,24,90,0.96), rgba(24,44,92,0.96))';
+      item.style.boxShadow = '0 22px 46px rgba(10,10,30,0.45)';
+      item.style.color = '#fef3c7';
+      item.style.padding = '12px 14px';
+      item.style.fontSize = '13px';
+      item.style.lineHeight = '1.5';
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(-8px) scale(0.97)';
+      item.style.transition = 'opacity 220ms ease, transform 220ms ease';
+      item.style.pointerEvents = 'auto';
+      item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">COIN NOTICE</strong>'
+        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>이 차감되었습니다.</span>'
+        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">남은 코인: ' + (isFinite(remain) ? remain.toLocaleString('ko-KR') : '-') + '</span>';
+
+      root.appendChild(item);
+      requestAnimationFrame(function() {
+        item.style.opacity = '1';
+        item.style.transform = 'translateY(0) scale(1)';
+      });
+
+      setTimeout(function() {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(-6px) scale(0.98)';
+        setTimeout(function() {
+          if (item.parentNode) item.parentNode.removeChild(item);
+        }, 240);
+      }, 3400);
+    } catch (_) {}
+  }
+
   /**
    * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
    * @param {number} cost   차감 코인 수
@@ -158,6 +213,7 @@
       var nb = (res.data && res.data.user && typeof res.data.user.points === 'number') ? res.data.user.points : Math.max(0, balance - cost);
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
+      _cdShowCoinDeductNotice(cost, nb, reason);
       cb();
     })
     .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
@@ -292,6 +348,7 @@
           : Math.max(0, balance - info.cost);
         _dpSaveUserBalance(newBalance);
         if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(newBalance);
+        _cdShowCoinDeductNotice(info.cost, newBalance, info.name + ' 영구 해금');
         _dpSaveFeatureUnlock(info.key);
         if (info.extraUnlockKeys) { for (var _ekI = 0; _ekI < info.extraUnlockKeys.length; _ekI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekI]); }
         window.alert('🎉 ' + info.name + '이(가) 해금되었습니다!');

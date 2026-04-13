@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { showToast } from "./Toast";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 type Stage = "intro" | "picking" | "spread" | "result";
@@ -26,29 +27,6 @@ const POSITIONS: TarotPos[] = [
 const DECK_SIZE = 78;
 const GRID_COUNT = 24;
 const MINDSCAN_COIN_COST = 50;
-
-function isAdminSessionClient() {
-  try {
-    const raw = localStorage.getItem("fortune_auth_user");
-    const user = raw ? JSON.parse(raw) : null;
-    if (String(user?.role || "").toLowerCase() === "admin") return true;
-  } catch (_) {}
-
-  try {
-    const roleMatch = document.cookie.match(/(?:^|;\s*)fortune_auth_role=([^;]+)/);
-    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === "admin") return true;
-  } catch (_) {}
-
-  try {
-    if (sessionStorage.getItem("flower_admin_token")) return true;
-  } catch (_) {}
-
-  try {
-    if (localStorage.getItem("flower_admin_token")) return true;
-  } catch (_) {}
-
-  return false;
-}
 
 const MAJOR = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor",
   "The Hierophant","The Lovers","The Chariot","Strength","The Hermit","Wheel of Fortune",
@@ -952,9 +930,8 @@ export default function MindScanTarot() {
       const authToken = typeof window !== "undefined"
         ? localStorage.getItem("fortune_auth_token")
         : "";
-      const adminMode = typeof window !== "undefined" ? isAdminSessionClient() : false;
 
-      if (!authToken && !adminMode) {
+      if (!authToken) {
         setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
         if (typeof window !== "undefined") {
           const next = encodeURIComponent(window.location.pathname + window.location.search);
@@ -965,33 +942,29 @@ export default function MindScanTarot() {
         return;
       }
 
-      if (!adminMode) {
-        const consumeHeaders: Record<string, string> = {
+      const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+        method: "POST",
+        headers: {
           "Content-Type": "application/json",
-        };
-        if (authToken) {
-          consumeHeaders.Authorization = `Bearer ${authToken}`;
-        }
-
-        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
-          method: "POST",
-          headers: consumeHeaders,
-          body: JSON.stringify({
-            cost: MINDSCAN_COIN_COST,
-            reason: "마인드 스캔 타로 이용",
-            featureKey: "tarot-mindscan",
-          }),
-        });
-        const consumeData = await consumeRes.json().catch(() => ({}));
-        if (consumeRes.status === 402) {
-          setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
-          return;
-        }
-        if (!consumeRes.ok) {
-          setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
-          return;
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          cost: MINDSCAN_COIN_COST,
+          reason: "마인드 스캔 타로 이용",
+          featureKey: "tarot-mindscan",
+        }),
+      });
+      const consumeData = await consumeRes.json().catch(() => ({}));
+      if (consumeRes.status === 402) {
+        setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
+        return;
       }
+      if (!consumeRes.ok) {
+        setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+        return;
+      }
+      const remainPoints = Number(consumeData?.user?.points ?? 0);
+      showToast(`🪙 마인드 스캔 타로 이용으로 ${MINDSCAN_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
 
       const res = await fetch("/api/tarot/mindscan", {
         method: "POST",

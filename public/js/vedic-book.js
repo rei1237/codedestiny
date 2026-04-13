@@ -213,19 +213,15 @@
     var modal=_qs('vedicBookModal');
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
     _applyVedicTheme(modal);
-    if (modal.style.display === 'flex') return;
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
-      var _vdIsAdmin=window.__cdAdminBypass||(typeof window.isAdminUser==='function'&&window.isAdminUser());
-      if(!_vdIsAdmin){
-        modal.style.display='flex'; modal.style.zIndex='100120';
-        document.body.style.overflow='hidden';
-        document.body.classList.add('lb-modal-open');
-        try{modal.setAttribute('aria-hidden','false');}catch(_){}
-        _showScreen('vdNoProfileScreen');
-        return;
-      }
+      modal.style.display='flex'; modal.style.zIndex='100120';
+      document.body.style.overflow='hidden';
+      document.body.classList.add('lb-modal-open');
+      try{modal.setAttribute('aria-hidden','false');}catch(_){ }
+      _showScreen('vdNoProfileScreen');
+      return;
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_vdLoadSaved(profile);
