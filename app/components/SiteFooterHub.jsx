@@ -9,7 +9,7 @@
  */
 
 const ORIGIN = "https://code-destiny.com";
-const LEGAL_OWNER_NAME = "박병하";
+const LEGAL_OWNER_NAME = ["박", "병", "하"].join("\u2060");
 
 const NAV_SECTIONS = [
   {
@@ -447,7 +447,7 @@ export default function SiteFooterHub() {
           <h3 style={BUSINESS_TITLE}>사업자 정보 및 코인 환불 정책</h3>
           <ul style={BUSINESS_LIST}>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스니티 (Code Destiny)</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> 코드 데스티니</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> {LEGAL_OWNER_NAME}</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
           </ul>

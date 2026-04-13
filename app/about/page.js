@@ -63,7 +63,6 @@ const SECTION = {
 
 const H2 = { fontSize: "clamp(1rem,2.5vw,1.2rem)", fontWeight: 700, marginBottom: "10px", color: "#f8fafc" };
 const P  = { lineHeight: 1.88, color: "#dbe5ff", wordBreak: "keep-all", margin: 0 };
-const OWNER_LEGAL_NAME = "박병하";
 
 export default function AboutPage() {
   return (
@@ -191,7 +190,6 @@ export default function AboutPage() {
       {/* ── 문의 / 운영자 ── */}
       <section style={SECTION} aria-labelledby="about-contact">
         <h2 id="about-contact" style={H2}>운영자 및 문의</h2>
-        {false && OWNER_LEGAL_NAME}
         <p style={P}>
           서비스에 대한 문의, 오류 신고, 저작권 관련 사항은 아래 이메일로 연락주시면 빠르게 답변드립니다.
         </p>
