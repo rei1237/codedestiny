@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -562,6 +562,9 @@ background-size:200% 100%!important;animation:cd-lib-shimmer 1.5s infinite!impor
 border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 @keyframes cd-lib-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cd-reduced-motion *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.cd-reduced-motion .cd-user-card__avatar{animation-duration:3s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:3s!important;-webkit-animation-iteration-count:infinite!important}
+.cd-reduced-motion .cd-user-card__avatar-ring{animation-duration:4s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:4s!important;-webkit-animation-iteration-count:infinite!important}
+.cd-reduced-motion .cd-user-star{animation-duration:var(--dur,2s)!important;animation-iteration-count:infinite!important;-webkit-animation-duration:var(--dur,2s)!important;-webkit-animation-iteration-count:infinite!important}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 
@@ -1009,6 +1012,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     clearTimeout(_st);
     _st=setTimeout(restartAll,400);
   },{passive:true});
+  /* expose for post-render wake-up call */
+  window._cdRestartAnims=restartAll;
 })();</script>
 
 <!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
@@ -1437,6 +1442,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '</div>' +
               '</div>';
 
+            /* restart CSS animations after card injection (iOS/reduced-motion freeze guard) */
+            requestAnimationFrame(function(){ if(typeof window._cdRestartAnims==='function') window._cdRestartAnims(); });
+
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
@@ -1487,6 +1495,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>' +
                     '</div>' +
                     '</div>';
+                  /* restart CSS animations after admin card injection */
+                  requestAnimationFrame(function(){ if(typeof window._cdRestartAnims==='function') window._cdRestartAnims(); });
                   var _abtn = document.getElementById('cdAuthLogoutBtn');
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
