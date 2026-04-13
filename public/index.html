@@ -565,6 +565,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .cd-reduced-motion .cd-user-card__avatar{animation-duration:3s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:3s!important;-webkit-animation-iteration-count:infinite!important}
 .cd-reduced-motion .cd-user-card__avatar-ring{animation-duration:4s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:4s!important;-webkit-animation-iteration-count:infinite!important}
 .cd-reduced-motion .cd-user-star{animation-duration:var(--dur,2s)!important;animation-iteration-count:infinite!important;-webkit-animation-duration:var(--dur,2s)!important;-webkit-animation-iteration-count:infinite!important}
+.cd-user-card__avatar,.cd-user-card__avatar-ring,.cd-user-star{animation-play-state:running!important;-webkit-animation-play-state:running!important}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 
@@ -975,22 +976,26 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function restartAll(){
     var els=document.querySelectorAll(SEL);
     if(!els.length)return;
-    /* Step1: pause at current frame */
+    var resumed=false;
+    function resumeAll(){
+      if(resumed)return;
+      resumed=true;
+      els.forEach(function(el){
+        el.style.WebkitAnimationPlayState='running';
+        el.style.animationPlayState='running';
+      });
+    }
+    /* iOS freeze guard: pause+reflow once, then ensure resume with hard timeout fallback */
     els.forEach(function(el){
       el.style.WebkitAnimationPlayState='paused';
       el.style.animationPlayState='paused';
     });
-    /* Step2: force reflow so browser registers the pause */
     void document.body.offsetWidth;
-    /* Step3: double-rAF + timeout — iOS needs at least 2 frames before resume */
+    var hardTimer=setTimeout(resumeAll,220);
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){
-        setTimeout(function(){
-          els.forEach(function(el){
-            el.style.WebkitAnimationPlayState='';
-            el.style.animationPlayState='';
-          });
-        },32);
+        clearTimeout(hardTimer);
+        setTimeout(resumeAll,32);
       });
     });
   }
