@@ -586,8 +586,10 @@
     var name    = (document.getElementById('nameInput') || {}).value || '';
     var bdEl    = document.getElementById('birthDate');
     var bd      = bdEl ? bdEl.value : '';
-    var hour    = parseInt((document.getElementById('birthHour') || {}).value) || 12;
-    var minute  = parseInt((document.getElementById('birthMinute') || {}).value) || 0;
+    var hourRaw = parseInt((document.getElementById('birthHour') || {}).value, 10);
+    var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
+    var hour = (Number.isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
+    var minute = (Number.isFinite(minuteRaw) && minuteRaw >= 0 && minuteRaw <= 59) ? minuteRaw : 0;
     /* 성별: 활성 버튼 우선, 폴백 window._gender, 기본값 'F' */
     var gender  = 'F';
     var btnM = document.getElementById('btnM');
