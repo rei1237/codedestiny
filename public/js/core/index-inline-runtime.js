@@ -1166,7 +1166,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/saju-engine.js?v=20260411-saju-sinsal-v7',
     '/js/saju-engine-tarot-sukuyo-quantum.js?v=20260321-sukuyo-llm-prompt1',
     '/js/core/saju/modalProfileState.js?v=20260326-modaldeps1',
-    '/js/core/saju/reportDashboard.js?v=20260329-saju-rpt3',
+    '/js/core/saju/reportDashboard.js?v=20260414-saju-rpt4',
     '/js/saju-engine-continuation.js?v=20260329-saju-rpt3',
     '/js/entertain-engine.js'
   ];
@@ -6699,5 +6699,4 @@ window.addEventListener('load', function() {
     }
   }
 })();
-
 
