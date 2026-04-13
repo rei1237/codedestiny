@@ -917,8 +917,6 @@ window.addEventListener('load',function(){
         themeCb.checked = NEO_MODE;
         return;
       }
-      // Keep final state stable even when another legacy listener also handles change.
-      NEO_MODE = !themeCb.checked;
       toggleNeoMode();
     });
     document.body.classList.add(NEO_MODE ? 'theme-neo' : 'theme-pig');
