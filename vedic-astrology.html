@@ -2173,13 +2173,34 @@ function _readProfileFromStorage(){
   }
   return null;
 }
+function _fillInputFromProfile(profile){
+  try{
+    var b=(profile&&profile.birth)||{};
+    var l=(profile&&profile.location)||{};
+    function setV(id,v){ var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=String(v); }
+    setV('v_year',b.year);
+    setV('v_month',b.month);
+    setV('v_day',b.day);
+    setV('v_hour',b.hour!=null?b.hour:12);
+    setV('v_minute',b.minute!=null?b.minute:0);
+    var lat=(l.lat!=null&&!isNaN(parseFloat(l.lat)))?l.lat:37.5665;
+    var lng=(l.lng!=null&&!isNaN(parseFloat(l.lng)))?l.lng:(l.lon!=null&&!isNaN(parseFloat(l.lon))?l.lon:126.978);
+    var tz=(l.baseTzOffset!=null&&!isNaN(l.baseTzOffset))?l.baseTzOffset:(l.tzOffset!=null&&!isNaN(l.tzOffset)?l.tzOffset:9);
+    setV('v_lat',lat);
+    setV('v_lon',lng);
+    setV('v_tz',tz);
+  }catch(_){}
+}
+
 function initVedicPage(){
-  vedicInitLanguageBridge();
+  try{ vedicInitLanguageBridge(); }catch(_){}
   let profile=null;
   try{ profile=_readProfileFromStorage(); }catch(e){}
   if(!profile){ showPage('input'); return; }
-  profile=normalizeProfileForVedic(profile)||profile;
+  try{ profile=normalizeProfileForVedic(profile)||profile; }catch(_){}
   if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); return; }
+  // 폼 필드를 먼저 채워 UI 일관성 확보 후 즉시 자동 계산
+  _fillInputFromProfile(profile);
   doCalculateFromProfile(profile);
 }
 
