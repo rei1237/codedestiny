@@ -470,6 +470,15 @@ export default function KkulkkulManseryukMain() {
   }, []);
 
   useEffect(() => {
+    const ADMIN_DISPLAY_COINS = 9999;
+
+    // 0) 관리자 모드: 즉시 9999 고정 표시, API 호출 불필요
+    if (isAdminSessionClient()) {
+      setCurrentCoins(ADMIN_DISPLAY_COINS);
+      saveUserPoints(ADMIN_DISPLAY_COINS);
+      return;
+    }
+
     // 1) localStorage에서 즉시 표시
     try {
       const raw = localStorage.getItem('fortune_auth_user');
@@ -484,6 +493,12 @@ export default function KkulkkulManseryukMain() {
     })
       .then((r) => r.json())
       .then((d) => {
+        // 서버가 adminBypass 반환하면 ADMIN_DISPLAY_COINS 고정
+        if (d?.adminBypass) {
+          setCurrentCoins(ADMIN_DISPLAY_COINS);
+          saveUserPoints(ADMIN_DISPLAY_COINS);
+          return;
+        }
         if (d?.user?.points !== undefined) {
           const pts = Number(d.user.points);
           setCurrentCoins(pts);
