@@ -247,6 +247,18 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
+    // 관리자 모드: API 호출 없이 즉시 해금 (토큰 만료/Bearer 충돌 우회)
+    if (adminToken || isAdminUser) {
+      setCurrentCoins(9999);
+      saveUserPoints(9999);
+      setUnlockedFeatures((prev) => {
+        const next = { ...prev, [key]: true };
+        if (alsoUnlock?.length) for (const aliasKey of alsoUnlock) next[aliasKey] = true;
+        return next;
+      });
+      setSparkleTarget(key);
+      return;
+    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -287,6 +299,15 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
+    // 관리자 모드: API 호출 없이 즉시 회당 사용 처리
+    if (adminToken || isAdminUser) {
+      setCurrentCoins(9999);
+      saveUserPoints(9999);
+      setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+      setSparkleTarget(key);
+      if (key === 'loveSimulation') window.location.href = '/saju/love-simulation';
+      return;
+    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -330,6 +351,12 @@ export default function KkulkkulManseryukMain() {
     }
 
     const adminToken = getFlowerAdminTokenClient();
+    // 관리자 모드: 잔액 API 호출 없이 9999 코인으로 즉시 통과
+    if (adminToken || isAdminUser) {
+      setCurrentCoins(9999);
+      saveUserPoints(9999);
+      return true;
+    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -398,6 +425,13 @@ export default function KkulkkulManseryukMain() {
     const token = localStorage.getItem('fortune_auth_token');
     if (!token && !isAdminUser) return;
     const adminToken = getFlowerAdminTokenClient();
+    // 관리자 모드: consume API 없이 즉시 generate 단계로 이동
+    if (adminToken || isAdminUser) {
+      setCurrentCoins(9999);
+      saveUserPoints(9999);
+      setPremiumFlowStage('generate');
+      return;
+    }
     const adminTestTier = getFlowerAdminTestTierClient();
     const authHeaders = {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -479,11 +513,17 @@ export default function KkulkkulManseryukMain() {
       const user = raw ? JSON.parse(raw) : {};
       const admin = isAdminSessionClient();
       setIsAdminUser(admin);
+      // 관리자 모드: 가상 코인 9999 고정, API 동기화 불필요
+      if (admin) {
+        setCurrentCoins(9999);
+        saveUserPoints(9999);
+        return;
+      }
       if (typeof user?.points === 'number') {
         setCurrentCoins(user.points);
       }
     } catch (_) {}
-    // 2) API로 실제 잔액 동기화
+    // 2) API로 실제 잔액 동기화 (비관리자만)
     const token = localStorage.getItem('fortune_auth_token');
     if (!token && !isAdminSessionClient()) return;
     const adminToken = getFlowerAdminTokenClient();
