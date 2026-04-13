@@ -194,6 +194,7 @@ export default function KkulkkulManseryukMain() {
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [sparkleTarget, setSparkleTarget] = useState<string | null>(null);
   const [openPremSection, setOpenPremSection] = useState<string | null>(null);
+  const [premiumCollectionOpen, setPremiumCollectionOpen] = useState(true);
   const [premiumFlowStage, setPremiumFlowStage] = useState<PremiumFlowStage>("intro");
   const [premiumGateLoading, setPremiumGateLoading] = useState<PremiumServiceKey | null>(null);
   const [premiumGateError, setPremiumGateError] = useState("");
@@ -639,6 +640,49 @@ export default function KkulkkulManseryukMain() {
           정책 요약: 무료로 지정된 항목 외 기능은 유료이며, 결제 전에는 실제 콘텐츠를 렌더링하지 않습니다.
         </p>
 
+        <section
+          style={{
+            background:
+              "radial-gradient(ellipse at 20% 10%, rgba(180,140,30,0.13) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(160,110,20,0.11) 0%, transparent 50%), linear-gradient(160deg, #0a0a0a 0%, #111008 40%, #0d0b00 70%, #050505 100%)",
+            border: "1px solid rgba(212,175,55,0.38)",
+            borderRadius: "22px",
+            boxShadow:
+              "0 0 0 1px rgba(212,175,55,0.12), 0 30px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,215,80,0.12)",
+            overflow: "hidden",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setPremiumCollectionOpen((prev) => !prev)}
+            style={{
+              width: "100%",
+              textAlign: "left",
+              border: "none",
+              background: "linear-gradient(180deg, rgba(30,24,4,0.55) 0%, rgba(10,8,0,0.25) 100%)",
+              color: "#f5e7b2",
+              cursor: "pointer",
+              padding: "18px 16px 16px",
+              borderBottom: premiumCollectionOpen ? "1px solid rgba(212,175,55,0.22)" : "none",
+            }}
+            aria-expanded={premiumCollectionOpen}
+            aria-label="VVIP 프리미엄 PDF 컬렉션 열기/닫기"
+          >
+            <div style={{ fontSize: "0.66rem", fontWeight: 900, letterSpacing: "0.18em", color: "#d4af37" }}>
+              VVIP · PREMIUM COLLECTION
+            </div>
+            <div style={{ marginTop: 5, fontSize: "1.08rem", fontWeight: 900, color: "#fff3c1" }}>
+              프리미엄 PDF 운명 분석 컬렉션
+            </div>
+            <div style={{ marginTop: 6, fontSize: "0.78rem", color: "rgba(240,220,150,0.78)" }}>
+              자미두수 · 점성술 · 숙요점 · 베다 · 명운 작명
+            </div>
+            <div style={{ marginTop: 8, fontSize: "0.82rem", color: "#d4af37", fontWeight: 800 }}>
+              {premiumCollectionOpen ? "▲ 컬렉션 접기" : "▼ 컬렉션 열기"}
+            </div>
+          </button>
+
+          {premiumCollectionOpen ? (
+            <div style={{ display: "grid", gap: 14, padding: "14px" }}>
         {/* ─── 1. 자미두수 프리미엄 ─── */}
         {premiumGateError ? (
           <p className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
@@ -924,6 +968,9 @@ export default function KkulkkulManseryukMain() {
             </div>
           )}
         </div>
+            </div>
+          ) : null}
+        </section>
 
         {/* ─── LOVE CODE 사주 연애 시뮬레이션 (하단 배치) ─── */}
         <section className="overflow-hidden rounded-3xl border border-rose-300/60 bg-gradient-to-br from-rose-950/90 via-purple-950/90 to-slate-950/90 shadow-2xl shadow-rose-900/30">
