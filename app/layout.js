@@ -6,10 +6,9 @@ import { headers } from "next/headers";
 const notoSansKR = Noto_Sans_KR({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
-  display: "block",
+  display: "swap",
   variable: "--font-noto-sans-kr",
-  preload: false,
-  adjustFontFallback: false,
+  preload: true,
 });
 import Link from "next/link";
 import AppVersionGuard from "./components/AppVersionGuard";

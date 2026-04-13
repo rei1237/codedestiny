@@ -376,6 +376,12 @@
   document.addEventListener('visibilitychange', function(){
     if (document.visibilityState === 'hidden') loadFonts();
   }, { once: true });
+  // 유휴 즉시 로드 — 인터랙션 前 폰트 굵음→얇음 플래시 방지
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(loadFonts, { timeout: 2000 });
+  } else {
+    setTimeout(loadFonts, 300);
+  }
 })();
 </script>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
