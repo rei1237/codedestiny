@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IFA Oracle - Sacred Odu Reading</title>
+<style>
+:root{
+  --bg-void:#080503;
+  --bg-earth:#1a0f0a;
+  --mahogany:#2f170f;
+  --terracotta:#8f3f2b;
+  --indigo:#1f2c4d;
+  --chalk:#efe9dc;
+  --gold:#d6a64b;
+  --gold-soft:#b88a36;
+  --text:#ead9b1;
+  --text-dim:#bfae8a;
+  --line:#4f2f1f;
+  --danger:#b24a3c;
+  --ok:#6f9d64;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Georgia,"Times New Roman",serif}
+#app{
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(1200px 600px at 12% -5%, rgba(143,63,43,.25), transparent 62%),
+    radial-gradient(900px 460px at 100% 8%, rgba(31,44,77,.25), transparent 55%),
+    linear-gradient(180deg, #0b0604 0%, #140b07 55%, #0a0503 100%);
+}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.8}
+.shell-grid{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.14;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(214,166,75,.9) 0 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(239,233,220,.9) 0 1px, transparent 1px);
+  background-size:44px 44px,88px 88px;
+  background-position:0 0,22px 22px;
+  mix-blend-mode:screen;
+}
+.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:28px 18px 46px}
+.hero{text-align:center;margin-bottom:18px}
+.hero .over{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim)}
+.hero h1{margin:8px 0 0;font-size:54px;letter-spacing:10px;line-height:1;color:var(--gold);text-shadow:0 0 18px rgba(214,166,75,.22)}
+.hero .sub{margin-top:8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9d8b6a}
+.divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:16px auto}
+.divider .line{height:1px;width:68px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+.divider .gem{color:var(--gold);font-size:12px}
+.opon{
+  width:128px;height:128px;margin:12px auto 12px;position:relative;border-radius:50%;
+  border:1px solid #5c3b22;background:radial-gradient(circle at 50% 50%, rgba(31,44,77,.22), rgba(26,15,10,.78));
+  box-shadow:0 0 0 1px rgba(214,166,75,.16) inset,0 0 24px rgba(214,166,75,.15);
+}
+.opon:before,.opon:after{content:"";position:absolute;inset:15px;border-radius:50%;border:1px solid rgba(214,166,75,.45)}
+.opon:after{inset:33px;border-color:rgba(239,233,220,.3)}
+.opon .cross{position:absolute;inset:0}
+.opon .cross:before,.opon .cross:after{content:"";position:absolute;left:50%;top:6px;bottom:6px;width:1px;background:rgba(214,166,75,.3);transform:translateX(-50%)}
+.opon .cross:after{top:50%;left:6px;right:6px;height:1px;width:auto;transform:none}
+.opon.spin{animation:slowspin 2.1s linear infinite}
+@keyframes slowspin{to{transform:rotate(360deg)}}
+
+.cat-box{
+  margin:14px 0 8px;padding:12px;border:1px solid #5e3d28;border-radius:14px;
+  background:linear-gradient(180deg, rgba(47,23,15,.52), rgba(26,15,10,.78));
+}
+.cat-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c9b89a;text-align:center;margin-bottom:9px}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:420px){.cat-grid{grid-template-columns:1fr}}
+.cat-btn{
+  border:1px solid #725035;background:#1b100b;color:var(--text);padding:10px 10px;border-radius:11px;
+  font-size:13px;letter-spacing:.2px;cursor:pointer;transition:.2s ease all;
+}
+.cat-btn:hover{border-color:var(--gold-soft);transform:translateY(-1px)}
+.cat-btn.active{border-color:var(--gold);background:linear-gradient(180deg,#3e2416,#2b1810);box-shadow:0 0 0 1px rgba(214,166,75,.2) inset}
+
+#phase{text-align:center;min-height:18px;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#b29f7f;margin-top:10px}
+
+.cast-field{
+  margin:14px auto 2px;display:grid;grid-template-columns:74px 74px;grid-auto-rows:42px;gap:10px 60px;justify-content:center;
+  transition:opacity .4s ease;
+}
+.seed-wrap{display:flex;justify-content:center;align-items:center;gap:8px;height:42px}
+.seed{
+  width:15px;height:24px;border-radius:60% 40% 58% 42%/54% 46% 54% 46%;
+  background:radial-gradient(circle at 35% 30%, #f8efdc 0 26%, #d8c3a1 35%, #7a5a3c 100%);
+  border:1px solid #6e4f33;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25) inset,0 2px 6px rgba(0,0,0,.3);
+}
+.seed.double{transform:scale(.95)}
+.seed-flip{animation:flip .35s ease}
+@keyframes flip{0%{transform:translateY(0) scale(1)}40%{transform:translateY(-4px) scale(.75)}100%{transform:translateY(0) scale(1)}}
+
+.reveal{display:none;margin-top:10px}
+.reveal-top{display:flex;justify-content:center;align-items:flex-start;gap:58px;margin-bottom:8px}
+.col{display:flex;flex-direction:column;gap:10px;align-items:center}
+.mark-row{display:flex;justify-content:center;align-items:flex-end;gap:8px;height:52px}
+.mark-single{width:13px;height:52px;border-radius:4px;background:linear-gradient(180deg,#f2d37f,#b68733 70%,#7e561f)}
+.mark-double{width:9px;height:52px;border-radius:4px;background:linear-gradient(180deg,#f8e2ac,#be8f3c 70%,#79531f)}
+.sep{width:1px;background:#402718}
+.odu-name{text-align:center;color:var(--gold);font-size:24px;letter-spacing:4px;text-transform:uppercase}
+.odu-num{text-align:center;color:#bca987;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+
+.action{text-align:center}
+.btn-cast{
+  margin-top:14px;min-width:266px;padding:13px 20px;border-radius:999px;border:1px solid var(--gold);
+  color:var(--gold);background:transparent;font-size:12px;letter-spacing:2.2px;text-transform:uppercase;cursor:pointer;
+  transition:.2s ease all;
+}
+.btn-cast:hover:not(:disabled){background:rgba(214,166,75,.08);transform:translateY(-1px)}
+.btn-cast:disabled{opacity:.4;cursor:not-allowed}
+.mini{display:none;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.mini button{
+  border:1px solid #5f3b24;background:#170d09;color:#c9b89a;padding:9px 14px;border-radius:10px;cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+}
+.mini button:hover{border-color:var(--gold);color:var(--gold)}
+
+.oracle-box{display:none;margin-top:18px}
+.oracle-head{text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c8b796;margin-bottom:10px}
+.oracle-body{
+  border:1px solid #5b3925;border-radius:12px;padding:18px 16px;background:linear-gradient(180deg,rgba(15,9,6,.95),rgba(24,13,9,.92));
+  color:var(--chalk);font-size:14px;line-height:1.88;white-space:pre-wrap;min-height:120px;
+}
+.loading-dot{display:inline-block;width:5px;height:5px;margin:0 2px;border-radius:999px;background:var(--gold);animation:dot 1.4s ease-in-out infinite}
+.loading-dot:nth-child(2){animation-delay:.15s}.loading-dot:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+.footer{text-align:center;margin-top:26px;font-size:10px;letter-spacing:2px;color:#8f7c5c;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="bgCanvas"></canvas>
+  <div class="shell-grid" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="over">House of Orunmila • The Living Ifa Current</div>
+      <h1>IFÀ</h1>
+      <div class="sub">Opele Chain • 256 Odu • Yoruba Wisdom</div>
+    </section>
+
+    <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">✦</span><span class="line"></span></div>
+
+    <div id="opon" class="opon" aria-hidden="true"><div class="cross"></div></div>
+
+    <section class="cat-box" aria-label="운세 카테고리 선택">
+      <div class="cat-title">질문의 길을 선택하세요 • Choose the Path</div>
+      <div class="cat-grid" id="catGrid">
+        <button class="cat-btn active" data-cat="total">🎴 총운</button>
+        <button class="cat-btn" data-cat="love">❤️ 연애/관계</button>
+        <button class="cat-btn" data-cat="wealth">💰 재물/사업</button>
+        <button class="cat-btn" data-cat="health">🌿 건강/내면</button>
+      </div>
+    </section>
+
+    <div id="phase">질문을 품고, 오리샤의 바람을 들으세요</div>
+
+    <section id="castField" class="cast-field" aria-label="오펠레 이킨 패턴"></section>
+
+    <section id="reveal" class="reveal" aria-live="polite">
+      <div id="revealTop" class="reveal-top"></div>
+      <div id="oduName" class="odu-name"></div>
+      <div id="oduNum" class="odu-num"></div>
+    </section>
+
+    <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
+
+    <section class="action">
+      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 • Consult the Oracle</button>
+      <div id="miniBtns" class="mini">
+        <button id="saveBtn" type="button">결과 저장</button>
+        <button id="resetBtn" type="button">새 점괘</button>
+      </div>
+    </section>
+
+    <section id="oracleBox" class="oracle-box" aria-live="polite">
+      <div class="oracle-head">Babalawo Speaks • 바발라워의 전언</div>
+      <div id="oracleBody" class="oracle-body"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+    </section>
+
+    <footer class="footer">Ase • Ori Laye • Orunmila Witnesses Your Path</footer>
+  </main>
+</div>
+
+<script>
+const O = [
+{n:"Ogbe",k:"오그베",e:"빛의 문",py:"Ogbe ni ina, ina ni Ogbe",pm:"불꽃은 길을 열고 길은 다시 불꽃을 낳는다",la:"시작의 용기",rl:"과거의 그림자",m:"오그베의 숨결은 새 문을 밀어 엽니다.",cat:{total:"오늘의 전체 흐름은 '개시(開示)'입니다. 막혔던 문 하나가 뜻밖의 순간에 열립니다.",love:"관계에서는 솔직함이 최고의 부적입니다. 미뤄둔 말 한마디가 사랑의 방향을 바로잡습니다.",wealth:"재물운은 새로운 제안에서 살아납니다. 작은 실험을 과감히 시작하면 수익의 물줄기가 생깁니다.",health:"몸과 마음은 다시 켜지는 등잔 같습니다. 아침 루틴을 단단히 세우면 기력이 되돌아옵니다."}},
+{n:"Oyeku",k:"오예쿠",e:"변환의 밤",py:"Iku ni iya wa o",pm:"끝은 저주가 아니라 재탄생을 품은 어머니",la:"정리와 해방",rl:"붙잡음",m:"오예쿠는 오래된 껍질을 조용히 벗기게 합니다.",cat:{total:"전체 운은 '정리 후 확장'입니다. 내려놓는 만큼 새 기운이 들어옵니다.",love:"연애/관계는 감정의 묵은 먼지를 털어낼 시기입니다. 미련보다 존중이 관계를 살립니다.",wealth:"재물/사업은 불필요한 지출 정리가 핵심입니다. 누수만 막아도 곧 안정이 옵니다.",health:"건강/내면은 깊은 휴식이 약입니다. 수면과 호흡을 정돈하면 멈췄던 회복이 시작됩니다."}},
+{n:"Iwori",k:"이워리",e:"내면의 거울",py:"Ori ni bori ori",pm:"자신의 머리와 영혼이 길의 왕이다",la:"통찰",rl:"자기기만",m:"이워리는 바깥 소음을 잠재우고 안의 목소리를 증폭시킵니다.",cat:{total:"전체 운은 직감이 정답에 가깝습니다. 타인의 속도보다 자신의 리듬을 따르세요.",love:"관계에서는 상대를 해석하기 전에 자신의 두려움을 먼저 읽어야 합니다.",wealth:"재물/사업은 정보 과잉보다 핵심 지표 1~2개에 집중할 때 성과가 납니다.",health:"내면 건강은 기록 습관으로 개선됩니다. 감정 일지를 쓰면 불안의 패턴이 보입니다."}},
+{n:"Odi",k:"오디",e:"보호의 그릇",py:"Odi fere ko soro",pm:"숨은 씨앗은 말없이 자란다",la:"보호",rl:"조급함",m:"오디는 보이지 않는 곳에서 운명의 뿌리를 키웁니다.",cat:{total:"전체 운은 겉으로 느리지만 속은 빠르게 무르익는 시기입니다.",love:"관계는 속도를 줄일수록 깊어집니다. 답을 재촉하지 말고 신뢰를 쌓으세요.",wealth:"사업은 준비 단계의 완성도가 수익률을 좌우합니다. 계약 전 검증이 복을 부릅니다.",health:"건강은 장기 루틴이 정답입니다. 급한 처방보다 꾸준한 수면/영양이 강합니다."}},
+{n:"Irosun",k:"이로순",e:"피의 열기",py:"Eje n sare ninu omo",pm:"뿌리의 힘은 혈맥처럼 흐른다",la:"치유의 열정",rl:"원망",m:"이로순은 감정의 진짜 결을 드러내어 치유를 시작합니다.",cat:{total:"전체 운은 감정이 사건을 이끄는 날입니다. 숨기기보다 건강하게 표현하세요.",love:"연애운은 진실한 대화에서 급상승합니다. 상처를 말할 때 관계가 단단해집니다.",wealth:"재물운은 팀워크와 신뢰 기반 협업에서 살아납니다. 혼자 버티면 효율이 떨어집니다.",health:"혈액순환, 스트레스 관리가 핵심입니다. 몸을 데우고 땀을 내면 막힘이 풀립니다."}},
+{n:"Owonrin",k:"오원린",e:"바람의 전환",py:"Afefe ko mo ona kan",pm:"바람은 하나의 길만 알지 않는다",la:"유연한 적응",rl:"통제 강박",m:"오원린은 우회로 속에 진짜 지름길을 숨겨 둡니다.",cat:{total:"전체 운은 계획 변경이 복이 되는 시기입니다. 우발 변수에 유연하게 반응하세요.",love:"관계는 고정된 기대를 내려놓을 때 따뜻해집니다. 상대를 새롭게 보게 됩니다.",wealth:"재물/사업은 시장 변화 대응력이 수익을 만듭니다. 플랜 B를 빠르게 가동하세요.",health:"몸은 고정 습관보다 상황 맞춤 루틴에 반응합니다. 유연성 운동이 큰 도움을 줍니다."}},
+{n:"Obara",k:"오바라",e:"왕의 품위",py:"Oba lo bi oba",pm:"존귀함은 행동으로 계승된다",la:"리더십",rl:"자만",m:"오바라는 스스로를 귀히 여길 때 길이 응답한다고 말합니다.",cat:{total:"전체 운은 주도권 회복의 흐름입니다. 미뤄둔 결정을 직접 내리세요.",love:"연애/관계는 배려 있는 리더십이 필요합니다. 상대를 이기기보다 이끌어야 합니다.",wealth:"사업운은 브랜딩과 신뢰 자산 강화에 유리합니다. 당신의 이름이 가치가 됩니다.",health:"몸을 왕처럼 대우하세요. 식사/수면의 격을 올리면 컨디션이 급격히 좋아집니다."}},
+{n:"Okanran",k:"오칸란",e:"각성의 칼",py:"Okanran ko nife ole",pm:"게으름과 회피를 신탁은 용납하지 않는다",la:"직면",rl:"회피",m:"오칸란은 진실을 미루는 순간 대가가 커진다고 경고합니다.",cat:{total:"전체 운은 결단이 늦어지면 손실이 커지는 구간입니다. 바로 움직이세요.",love:"관계는 애매함을 끝낼 때 맑아집니다. 말하지 않은 진실을 꺼내세요.",wealth:"재물/사업은 문제 지점을 정확히 도려내야 회복됩니다. 손절과 구조조정이 필요합니다.",health:"통증/피로 신호를 미루지 마세요. 조기 점검이 큰 문제를 막습니다."}},
+{n:"Ogunda",k:"오군다",e:"전사의 철",py:"Ogun loo ran ni lowo",pm:"철은 철을 도와 길을 낸다",la:"개척",rl:"분노",m:"오군다는 멈춘 바퀴를 다시 돌리는 전사의 오두입니다.",cat:{total:"전체 운은 강한 추진력의 시기입니다. 미완의 과제를 밀어붙이세요.",love:"관계에서는 보호 본능을 지혜롭게 써야 합니다. 공격성은 줄이고 확신은 유지하세요.",wealth:"재물/사업은 실행력이 바로 돈입니다. 고민보다 출시, 기획보다 실험이 이깁니다.",health:"근력과 체력을 올리면 멘탈도 함께 올라옵니다. 규칙적인 운동이 곧 부적입니다."}},
+{n:"Osa",k:"오사",e:"번개의 해방",py:"Osa bi ojo lojiji",pm:"예고 없는 비처럼 변화는 갑자기 온다",la:"해방",rl:"저항",m:"오사는 낡은 껍질을 번개로 끊어냅니다.",cat:{total:"전체 운은 급반전의 기운입니다. 놀랄수록 중심을 잡는 사람이 이깁니다.",love:"관계는 갑작스러운 감정 파동이 올 수 있습니다. 즉답보다 하루 숙성이 필요합니다.",wealth:"사업은 변동성이 큰 대신 기회도 큽니다. 리스크 한도만 지키면 수확이 가능합니다.",health:"신경계 안정이 우선입니다. 카페인과 과자극을 줄이면 마음이 고요해집니다."}},
+{n:"Ika",k:"이카",e:"거미의 전략",py:"Alantakun mo ipin re",pm:"거미는 자신의 운명을 알고 그물을 짠다",la:"전략",rl:"충동",m:"이카는 느리지만 정교한 승리를 택하라 말합니다.",cat:{total:"전체 운은 한 수 앞 전략이 빛나는 구간입니다. 지금은 설계가 전진입니다.",love:"관계는 서두르지 않는 이해가 신뢰를 만듭니다. 듣는 힘이 사랑의 힘입니다.",wealth:"재물/사업은 장기 플랜이 유리합니다. 분산과 리밸런싱이 핵심입니다.",health:"건강은 꾸준함이 약입니다. 작아도 끊기지 않는 루틴이 승리합니다."}},
+{n:"Oturupon",k:"오투루폰",e:"역전의 선물",py:"Ibi ti igi ti wole ni ewe moo",pm:"쓰러진 자리에서 새잎이 돋는다",la:"반전",rl:"체념",m:"오투루폰은 실패의 가면 뒤에 선물을 숨겨 둡니다.",cat:{total:"전체 운은 하강 뒤 상승의 곡선입니다. 오늘의 균열이 내일의 문입니다.",love:"관계 갈등은 더 깊은 이해의 문턱일 수 있습니다. 대화 규칙을 새로 세우세요.",wealth:"사업 손실 데이터가 미래 수익의 설계도입니다. 기록과 복기가 돈이 됩니다.",health:"몸의 불편 신호는 방향 수정의 메시지입니다. 생활 패턴을 재배치하세요."}},
+{n:"Otua",k:"오투아",e:"균형의 숨",py:"Otua ni iwontunwonsi",pm:"균형은 모든 제단의 첫 법칙",la:"균형",rl:"치우침",m:"오투아는 양극의 힘을 가운데로 모읍니다.",cat:{total:"전체 운은 균형 회복이 핵심입니다. 일/휴식, 말/침묵의 비율을 조절하세요.",love:"관계는 주고받음의 균형이 필요합니다. 한쪽의 희생은 오래 못 갑니다.",wealth:"재물운은 공격과 수비의 균형에서 안정됩니다. 투기보다 포트폴리오가 답입니다.",health:"몸은 과로와 무기력 양쪽 모두를 경계합니다. 중간 강도의 규칙성이 필요합니다."}},
+{n:"Otura",k:"오투라",e:"진실의 길",py:"Otura lo mo ooto",pm:"진실은 오래 숨겨도 결국 빛난다",la:"정직",rl:"거짓",m:"오투라는 진실 위에 선 선택만이 오래 간다고 말합니다.",cat:{total:"전체 운은 투명성이 곧 보호막입니다. 숨기면 손해가 커집니다.",love:"연애운은 진심 고백에서 열립니다. 애매한 신호를 끝내야 사랑이 움직입니다.",wealth:"사업운은 계약/정산의 투명성이 복을 만듭니다. 숫자를 흐리지 마세요.",health:"건강은 몸의 진실을 인정할 때 개선됩니다. 무시하던 증상을 점검하세요."}},
+{n:"Irete",k:"이레테",e:"긴 생명의 길",py:"Agbalagba lo mo irin ajo",pm:"긴 여행은 꾸준함이 안내한다",la:"지속성",rl:"경솔함",m:"이레테는 오래 가는 힘이 가장 큰 힘이라 가르칩니다.",cat:{total:"전체 운은 장기전에서 유리합니다. 느려도 방향이 맞으면 결국 이깁니다.",love:"관계는 작은 신뢰의 누적이 답입니다. 꾸준한 다정함이 운을 바꿉니다.",wealth:"재물/사업은 장기 프로젝트에 복이 있습니다. 단기 욕심은 줄이세요.",health:"건강은 기본기 회복이 중요합니다. 수면, 물, 걷기부터 다시 세우세요."}},
+{n:"Ose",k:"오세",e:"풍요의 꿀",py:"Ose ni oyin aye",pm:"감사하는 자에게 달콤함이 머문다",la:"풍요",rl:"탐욕",m:"오세는 기쁨과 아름다움이 곧 치유라 말합니다.",cat:{total:"전체 운은 풍요의 진입 구간입니다. 감사가 다음 기회를 부릅니다.",love:"관계는 애정 표현이 복을 키웁니다. 칭찬과 스킨십의 온도를 올리세요.",wealth:"재물운은 매력/브랜딩/콘텐츠 자산이 돈이 되는 흐름입니다.",health:"건강은 즐거움과 회복이 함께 가야 합니다. 억지보다 지속 가능한 기쁨이 답입니다."}},
+{n:"Ofun",k:"오푼",e:"순환의 왕관",py:"Ofun ni ibere ati opin",pm:"끝과 시작은 하나의 고리",la:"재탄생",rl:"과거 집착",m:"오푼은 하나의 장을 닫고 더 큰 장을 여는 오두입니다.",cat:{total:"전체 운은 대전환기입니다. 과거의 옷을 벗어야 새 길이 맞습니다.",love:"관계는 패턴 전환이 필요합니다. 반복된 갈등 규칙을 바꾸면 다시 피어납니다.",wealth:"재물/사업은 리브랜딩, 재출발, 새 파이프라인 구축에 강운이 있습니다.",health:"건강은 오래된 습관을 정리할 때 급격히 좋아집니다. 해로운 루틴을 끝내세요."}}
+];
+
+const CATEGORY_META = {
+  total:{label:"총운",emoji:"🎴"},
+  love:{label:"연애/관계",emoji:"❤️"},
+  wealth:{label:"재물/사업",emoji:"💰"},
+  health:{label:"건강/내면",emoji:"🌿"}
+};
+
+let busy=false;
+let bits=[];
+let selectedCategory="total";
+let audioCtx=null;
+let ambienceTimer=null;
+
+function el(id){return document.getElementById(id);} 
+
+function initCategory(){
+  const buttons=[...document.querySelectorAll(".cat-btn")];
+  buttons.forEach((btn)=>{
+    btn.addEventListener("click",()=>{
+      buttons.forEach((b)=>b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedCategory=btn.dataset.cat;
+      setPhase(`${CATEGORY_META[selectedCategory].emoji} ${CATEGORY_META[selectedCategory].label}의 길을 열 준비가 되었습니다`);
+    });
+  });
+}
+
+function initField(){
+  const field=el("castField");
+  field.innerHTML="";
+  for(let i=0;i<8;i++){
+    const wrap=document.createElement("div");
+    wrap.className="seed-wrap";
+    wrap.id=`seed-${i}`;
+    wrap.innerHTML='<div class="seed" aria-hidden="true"></div>';
+    field.appendChild(wrap);
+  }
+}
+
+function renderBit(i,v){
+  const wrap=el(`seed-${i}`);
+  if(!wrap)return;
+  if(v===0){
+    wrap.innerHTML='<div class="seed seed-flip" aria-hidden="true"></div>';
+  }else{
+    wrap.innerHTML='<div class="seed double seed-flip" aria-hidden="true"></div><div class="seed double seed-flip" aria-hidden="true"></div>';
+  }
+}
+
+function buildPatternDisplay(bitArr){
+  const top=el("revealTop");
+  top.innerHTML="";
+  [bitArr.slice(0,4),bitArr.slice(4,8)].forEach((col,ci)=>{
+    const c=document.createElement("div");
+    c.className="col";
+    col.forEach((v)=>{
+      const row=document.createElement("div");
+      row.className="mark-row";
+      if(v===0){
+        row.innerHTML='<div class="mark-single"></div>';
+      }else{
+        row.innerHTML='<div class="mark-double"></div><div class="mark-double"></div>';
+      }
+      c.appendChild(row);
+    });
+    top.appendChild(c);
+    if(ci===0){const sep=document.createElement("div");sep.className="sep";top.appendChild(sep);} 
+  });
+}
+
+function getContext(){
+  if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+  return audioCtx;
+}
+
+function hitDrum(){
+  try{
+    const c=getContext();
+    const t=c.currentTime;
+    const o=c.createOscillator();
+    const g=c.createGain();
+    const f=c.createBiquadFilter();
+    o.type="triangle";
+    o.frequency.setValueAtTime(180+Math.random()*60,t);
+    o.frequency.exponentialRampToValueAtTime(72,t+.22);
+    f.type="lowpass";
+    f.frequency.value=520;
+    g.gain.setValueAtTime(.22,t);
+    g.gain.exponentialRampToValueAtTime(.001,t+.23);
+    o.connect(f);f.connect(g);g.connect(c.destination);
+    o.start(t);o.stop(t+.24);
+  }catch(_e){}
+}
+
+function sacredBell(){
+  try{
+    const c=getContext();
+    const t=c.currentTime;
+    [392,523,659].forEach((hz,i)=>{
+      const o=c.createOscillator();
+      const g=c.createGain();
+      o.type="sine";
+      o.frequency.value=hz;
+      g.gain.setValueAtTime(.16/(i+1),t);
+      g.gain.exponentialRampToValueAtTime(.001,t+2.3);
+      o.connect(g);g.connect(c.destination);
+      o.start(t);o.stop(t+2.3);
+    });
+  }catch(_e){}
+}
+
+function startAmbience(){
+  if(ambienceTimer)return;
+  try{
+    const c=getContext();
+    let n=0;
+    ambienceTimer=setInterval(()=>{
+      const sr=c.sampleRate;
+      const size=Math.floor(sr*.08);
+      const b=c.createBuffer(1,size,sr);
+      const d=b.getChannelData(0);
+      for(let i=0;i<size;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(size*.26));
+      const src=c.createBufferSource();
+      const bp=c.createBiquadFilter();
+      const g=c.createGain();
+      src.buffer=b;
+      bp.type="bandpass";
+      bp.frequency.value=140+(n%6)*46;
+      bp.Q.value=2.2;
+      g.gain.value=.04;
+      src.connect(bp);bp.connect(g);g.connect(c.destination);
+      src.start();
+      n++;
+    },480);
+  }catch(_e){}
+}
+
+function stopAmbience(){
+  if(ambienceTimer){clearInterval(ambienceTimer);ambienceTimer=null;}
+}
+
+function vib(seq){if(navigator.vibrate)navigator.vibrate(seq);} 
+function wait(ms){return new Promise((r)=>setTimeout(r,ms));}
+
+function setPhase(text){el("phase").textContent=text;}
+
+function getInterp(l,r,cat){
+  const L=O[l],R=O[r];
+  const meta=CATEGORY_META[cat];
+  if(l===r){
+    return `Àṣẹ. ${L.k} Méjì — ${meta.label}의 문이 하나로 합쳐졌습니다.\n\n${L.m}\n\n${meta.emoji} ${L.cat[cat]}\n\n요루바 속담: "${L.py}"\n해석: ${L.pm}\n\n받아들이십시오: ${L.la}\n내려놓으십시오: ${L.rl}`;
+  }
+  return `Àṣẹ. ${L.k}와 ${R.k}가 교차해 ${meta.label}의 신탁을 엽니다.\n\n왼기둥 ${L.k}: ${L.cat[cat]}\n오른기둥 ${R.k}: ${R.cat[cat]}\n\n두 오두의 결합 메시지:\n${L.k}는 ${L.la}로 길을 열고, ${R.k}는 ${R.e}의 방식으로 답을 완성합니다.\n급히 잡으려 하지 말고, 질문의 뿌리를 한 번 더 확인하십시오.\n\n요루바 속담: "${L.py}" / "${R.py}"\n해석: ${L.pm} / ${R.pm}\n\n오늘의 의식 권고:\n1) 질문을 한 줄로 다시 쓰기\n2) 실천 1개를 오늘 바로 실행\n3) 밤에 결과 감정 기록하기`;
+}
+
+async function cast(){
+  if(busy)return;
+  busy=true;
+  startAmbience();
+
+  const castBtn=el("castBtn");
+  castBtn.disabled=true;
+  el("opon").classList.add("spin");
+  el("reveal").style.display="none";
+  el("oracleBox").style.display="none";
+  el("miniBtns").style.display="none";
+  el("castField").style.opacity="1";
+
+  setPhase(`${CATEGORY_META[selectedCategory].emoji} ${CATEGORY_META[selectedCategory].label}의 신탁을 부릅니다...`);
+  vib([70,35,70,35,130]);
+
+  bits=Array.from({length:8},()=>Math.random()<.5?0:1);
+
+  for(let i=0;i<8;i++){
+    await wait(210);
+    hitDrum();
+    vib(16);
+    renderBit(i,bits[i]);
+  }
+
+  await wait(420);
+  sacredBell();
+  vib([100,45,170]);
+  el("opon").classList.remove("spin");
+
+  const L=bits[0]+bits[1]*2+bits[2]*4+bits[3]*8;
+  const R=bits[4]+bits[5]*2+bits[6]*4+bits[7]*8;
+  const left=O[L].n;
+  const right=O[R].n;
+  const name=(L===R)?`${left} Meji`:`${left} ${right}`;
+  const num=L*16+R+1;
+
+  buildPatternDisplay(bits);
+  el("oduName").textContent=name;
+  el("oduNum").textContent=`ODU ${num} / 256 · ${CATEGORY_META[selectedCategory].label}`;
+  el("reveal").style.display="block";
+
+  setPhase("오두가 계시되었습니다 • The Odu has been revealed");
+
+  el("oracleBox").style.display="block";
+  el("oracleBody").innerHTML='<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>';
+  await wait(760);
+  el("oracleBody").textContent=getInterp(L,R,selectedCategory);
+
+  castBtn.textContent="다시 점치기 • Cast Again";
+  castBtn.disabled=false;
+  el("miniBtns").style.display="flex";
+  busy=false;
+}
+
+function resetAll(){
+  busy=false;
+  stopAmbience();
+  setPhase("질문을 품고, 오리샤의 바람을 들으세요");
+  el("castBtn").textContent="운명 확인하기 • Consult the Oracle";
+  el("castBtn").disabled=false;
+  el("reveal").style.display="none";
+  el("oracleBox").style.display="none";
+  el("miniBtns").style.display="none";
+  el("opon").classList.remove("spin");
+  initField();
+}
+
+function saveResult(){
+  const odu=el("oduName").textContent || "Unknown";
+  const num=el("oduNum").textContent || "";
+  const body=el("oracleBody").textContent || "";
+  const cat=`${CATEGORY_META[selectedCategory].emoji} ${CATEGORY_META[selectedCategory].label}`;
+  const txt=`IFA Oracle Reading\n${"=".repeat(36)}\n\nCategory: ${cat}\nOdu: ${odu}\n${num}\nBits: ${bits.join(" ")}\n\n${"-".repeat(36)}\n\n${body}\n\n${"-".repeat(36)}\nAse.`;
+  if(navigator.share){
+    navigator.share({title:`IFA - ${odu}`,text:txt}).catch(()=>download(odu,txt));
+  }else{
+    download(odu,txt);
+  }
+}
+
+function download(name,content){
+  const b=new Blob([content],{type:"text/plain;charset=utf-8"});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement("a");
+  a.href=u;
+  a.download=`ifa-${name.replace(/\s+/g,"-").toLowerCase()}.txt`;
+  a.click();
+  URL.revokeObjectURL(u);
+}
+
+function initBackground(){
+  const canvas=el("bgCanvas");
+  const ctx=canvas.getContext("2d");
+  const points=[];
+
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();
+
+  function spawn(){
+    return {
+      x:Math.random()*canvas.width,
+      y:canvas.height+10,
+      vx:(Math.random()-.5)*.26,
+      vy:-(Math.random()*.45+.14),
+      life:0,
+      max:180+Math.random()*250,
+      s:Math.random()<.2?2:1,
+      a:.14+Math.random()*.25
+    };
+  }
+
+  function frame(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(points.length<52)points.push(spawn());
+    for(let i=points.length-1;i>=0;i--){
+      const p=points[i];
+      p.x+=p.vx;p.y+=p.vy;p.life++;
+      const alpha=p.a*(1-p.life/p.max);
+      if(p.life>=p.max){points.splice(i,1);continue;}
+      ctx.fillStyle=`rgba(214,166,75,${alpha.toFixed(3)})`;
+      ctx.fillRect(Math.round(p.x),Math.round(p.y),p.s,p.s);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+  window.addEventListener("resize",resize);
+}
+
+el("castBtn").addEventListener("click",cast);
+el("resetBtn").addEventListener("click",resetAll);
+el("saveBtn").addEventListener("click",saveResult);
+
+initCategory();
+initField();
+initBackground();
+</script>
+</body>
+</html>
