@@ -395,6 +395,8 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
 .auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(226,232,240,0.8);font-weight:700;font-size:.88rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
 .auth-btn--logout:hover{transform:translateY(-1px);border-color:rgba(255,100,100,0.4);box-shadow:0 6px 18px rgba(200,50,50,0.2),inset 0 1px 0 rgba(255,255,255,0.07);color:#fca5a5}
+.auth-btn--admin-subtest{margin-top:6px;min-height:34px;min-width:0;padding:7px 14px;font-size:.76rem;font-weight:800;letter-spacing:.01em;color:#fde68a;background:linear-gradient(135deg,rgba(72,28,135,.88),rgba(88,28,135,.74));border:1px solid rgba(250,204,21,.42);box-shadow:0 6px 16px rgba(88,28,135,.38),inset 0 1px 0 rgba(255,255,255,.12)}
+.auth-btn--admin-subtest:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(88,28,135,.46),inset 0 1px 0 rgba(255,255,255,.14);filter:brightness(1.06)}
 .admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(30,5,60,0.95),rgba(80,20,10,0.9));border:1px solid rgba(255,180,40,0.55);color:#fde68a;font-size:.82rem;font-weight:800;letter-spacing:.03em;box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:adminBadgePulse 3s ease-in-out infinite;flex-shrink:0}
 @keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
 .admin-badge__crown{font-style:normal;font-size:.9rem}
@@ -1161,6 +1163,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 + '<span class="admin-badge__text">ADMIN</span>'
                 + '</span>'
               : '';
+            var adminSubTestHtml = isAdmin
+              ? '<a href="/points" class="auth-btn auth-btn--admin-subtest" title="관리자 구독 모델 테스트 페이지로 이동">🧪 구독 모델 테스트</a>'
+              : '';
             el.innerHTML =
               '<div class="cd-user-card">' +
               '<span class="cd-user-star" style="width:2px;height:2px;top:14%;left:7%;--dur:2.1s"></span>' +
@@ -1178,6 +1183,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '<div class="cd-user-card__info">' +
               '<span class="cd-user-card__greeting">✦ 안녕하세요</span>' +
               '<span class="cd-user-card__name">' + safeName + ' 님</span>' +
+              adminSubTestHtml +
               '<span class="cd-user-card__tagline">오늘도 운명의 별자리를 탐험해 보세요</span>' +
               '</div>' +
               '<div class="cd-user-card__actions">' +
@@ -1226,6 +1232,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     '<div class="cd-user-card__info">' +
                     '<span class="cd-user-card__greeting">✦ 관리자 세션</span>' +
                     '<span class="cd-user-card__name">ADMIN 님</span>' +
+                    '<a href="/points" class="auth-btn auth-btn--admin-subtest" title="관리자 구독 모델 테스트 페이지로 이동">🧪 구독 모델 테스트</a>' +
                     '<span class="cd-user-card__tagline">코인 차감 테스트 모드 · 표시 잔액 자동 복구</span>' +
                     '</div>' +
                     '<div class="cd-user-card__actions">' +
