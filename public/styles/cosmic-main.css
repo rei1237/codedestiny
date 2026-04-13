@@ -295,6 +295,7 @@ body:not(.neo-mode) .logo-area::after {
 		radial-gradient(1px 1px at 85% 56%, rgba(255,255,255,0.75), transparent);
 	background-size: 100% 33.333%;
 	background-repeat: repeat-y;
+	will-change: transform;
 	animation: starfall 12s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
