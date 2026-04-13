@@ -180,11 +180,16 @@ function geocentricEclipticLon(body, date) {
 router.post("/planets", async (req, res) => {
   try {
     const body   = req.body || {};
-    const year   = parseInt(body.year,   10) || 1990;
-    const month  = parseInt(body.month,  10) || 1;
-    const day    = parseInt(body.day,    10) || 1;
-    const hour   = parseInt(body.hour,   10) || 12;
-    const minute = parseInt(body.minute, 10) || 0;
+    const yearRaw = parseInt(body.year, 10);
+    const monthRaw = parseInt(body.month, 10);
+    const dayRaw = parseInt(body.day, 10);
+    const hourRaw = parseInt(body.hour, 10);
+    const minuteRaw = parseInt(body.minute, 10);
+    const year   = Number.isFinite(yearRaw) ? yearRaw : 1990;
+    const month  = Number.isFinite(monthRaw) ? monthRaw : 1;
+    const day    = Number.isFinite(dayRaw) ? dayRaw : 1;
+    const hour   = Number.isFinite(hourRaw) ? hourRaw : 12;
+    const minute = Number.isFinite(minuteRaw) ? minuteRaw : 0;
     const tz     = parseInt(body.timezone, 10) ?? 9;
 
     const utcHour = hour + minute / 60 - tz;
