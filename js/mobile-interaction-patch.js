@@ -159,10 +159,10 @@
       ].join(',')
     },
     {
-      action: 'openTarotHealingModal',
+      action: 'openTarotHealingPage',
       cardSelector: '.tarot-tile--healing',
       targetSelector: [
-        '[data-action="openTarotHealingModal"]',
+        '[data-action="openTarotHealingPage"]',
         '.tarot-tile--healing',
         '.tarot-tile--healing .tarot-tile__img-wrap',
         '.tarot-tile--healing .tarot-tile__img',
@@ -425,7 +425,7 @@
       if (tile) return tile;
     }
 
-    if (rule.action === 'openTarotHealingModal') {
+    if (rule.action === 'openTarotHealingPage') {
       var tile = origin.closest('.tarot-tile--healing');
       if (tile) return tile;
     }
@@ -539,7 +539,7 @@
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260320-tarot-uifix2'],
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260321-tarot-api-hotfix1'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'],
-    openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
+
     openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
@@ -824,7 +824,7 @@
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingPage"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',
