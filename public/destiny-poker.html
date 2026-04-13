@@ -376,6 +376,11 @@ body::before{
   z-index:200;background:rgba(0,0,0,.7);display:none;
 }
 #fold-modal.show{display:flex;}
+#daily-limit-modal{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:300;background:rgba(0,0,0,.78);
+}
+#daily-limit-modal.show{display:flex;}
 .fold-box{
   background:#100008;border:2px solid var(--crimson-b);padding:2.2rem 2.8rem;
   text-align:center;max-width:420px;animation:warnPop .45s ease;
@@ -760,6 +765,15 @@ body{font-size:15px;}
     <div class="fold-title">⚠ 운명으로부터는 도망칠 수 없다!</div>
     <div class="fold-text" id="fold-text"></div>
     <button class="fold-close" onclick="closeFoldModal()">운명을 받아들이겠습니다</button>
+  </div>
+</div>
+
+<!-- DAILY LIMIT MODAL -->
+<div id="daily-limit-modal">
+  <div class="fold-box" style="border-color:var(--gold);">
+    <div class="fold-title" style="color:var(--gold);">⏳ 오늘의 도전 완료</div>
+    <div class="fold-text">운명의 카지노는 하루에 한 번만 문을 엽니다.<br>내일 다시 돌아오십시오.</div>
+    <button class="fold-close" onclick="closeDailyLimitModal()">알겠습니다</button>
   </div>
 </div>
 
@@ -1854,6 +1868,13 @@ function closeFoldModal(){
 // =============================================
 //  GAME FLOW
 // =============================================
+// ── DAILY LIMIT (1회/일) ──
+function _pokerTodayKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function checkPokerDailyLimit(){return localStorage.getItem('destiny_poker_daily_date')===_pokerTodayKey();}
+function recordPokerDailyPlay(){localStorage.setItem('destiny_poker_daily_date',_pokerTodayKey());}
+function showDailyLimitModal(){document.getElementById('daily-limit-modal').classList.add('show');}
+function closeDailyLimitModal(){document.getElementById('daily-limit-modal').classList.remove('show');showScreen('screen-intro');}
+
 function goToDealer(){
   const v=document.getElementById('name-input').value.trim();
   if(!v){
@@ -1879,6 +1900,8 @@ function pickDealer(id){
 }
 
 function startGame(){
+  if(checkPokerDailyLimit()){sfxClick();showDailyLimitModal();return;}
+  recordPokerDailyPlay();
   const D=DEALER_DATA[G.dealer];
   G.deck=shuffle(makeDeck());
   G.pCards=[];G.dCards=[];
@@ -2457,6 +2480,8 @@ let G4 = {
 };
 
 function startAll4Game(){
+  if(checkPokerDailyLimit()){sfxClick();showDailyLimitModal();return;}
+  recordPokerDailyPlay();
   G4 = {
     name:G.name,
     round:0,
