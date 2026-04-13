@@ -211,7 +211,6 @@ body .wrap { position: relative; z-index: 1; }
 body:not(.neo-mode) .logo-area {
 	position: relative;
 	overflow: hidden;
-	isolation: isolate;
 	background: linear-gradient(165deg,
 		#1e1a32 0%,
 		#252040 25%,
@@ -316,7 +315,6 @@ body:not(.neo-mode) .logo-area .auth-quick-links {
 body.neo-mode .logo-area {
 	position: relative;
 	overflow: hidden;
-	isolation: isolate;
 	background:
 		radial-gradient(ellipse at 22% -5%,  rgba(255, 215, 0, 0.12) 0%, transparent 50%),
 		radial-gradient(ellipse at 78% 105%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
@@ -419,10 +417,7 @@ body.neo-mode .logo-area p {
 body:not(.neo-mode) .card.input-section {
 	position: relative;
 	overflow: hidden;
-	isolation: isolate;
 	background: rgba(255, 250, 253, 0.98) !important;
-	backdrop-filter: blur(14px);
-	-webkit-backdrop-filter: blur(14px);
 	border: 1px solid rgba(255, 182, 193, 0.45) !important;
 	box-shadow:
 		0 10px 32px rgba(255, 182, 193, 0.08),
@@ -511,7 +506,6 @@ body:not(.neo-mode) .card.input-section .fortune-point-notice {
 body.neo-mode .card.input-section {
 	position: relative;
 	overflow: hidden;
-	isolation: isolate;
 	background:
 		radial-gradient(ellipse at 10% 0%,   rgba(255, 215, 0, 0.08) 0%, transparent 50%),
 		radial-gradient(ellipse at 90% 100%, rgba(255, 193, 7, 0.06) 0%, transparent 50%),
