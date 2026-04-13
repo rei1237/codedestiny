@@ -7131,6 +7131,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   };
   window.__cdOpenChargeModal = openChargeModal;
 
+  // prem-card용 코인게이트 직접 호출 (프리뷰 패널 CTA → user-gesture 컨텍스트 유지)
+  window.__cdPremCardCoinGate = function(action, actionNode, coinCost) {
+    if (!action || !actionNode || !(coinCost > 0)) return;
+    _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
+  };
+
   // Auth 상태 재확인 (인라인 스크립트 보조)
   if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();
 
@@ -7444,6 +7450,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
+    // prem-card: CTA 클릭 user-gesture 컨텍스트 안에서 직접 코인게이트 호출 (tile.click() 우회)
+    if(tile.classList.contains('prem-card')&&_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
+      var _premAct=tile.getAttribute('data-action');
+      if(_premAct){window.__cdPremCardCoinGate(_premAct,tile,_pvwCoinCost);return;}
+    }
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
