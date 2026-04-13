@@ -148,6 +148,31 @@ const FREE_FEATURES = [
   "행복한 회복 타로",
 ];
 
+function isAdminSessionClient(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const raw = localStorage.getItem('fortune_auth_user');
+    const user = raw ? JSON.parse(raw) : null;
+    if (String(user?.role || '').toLowerCase() === 'admin') return true;
+  } catch (_) {}
+  try {
+    const raw = localStorage.getItem('cd_user');
+    const user = raw ? JSON.parse(raw) : null;
+    if (String(user?.role || '').toLowerCase() === 'admin') return true;
+  } catch (_) {}
+  try {
+    const roleMatch = document.cookie.match(/(?:^|;\s*)fortune_auth_role=([^;]+)/);
+    if (roleMatch && decodeURIComponent(roleMatch[1]).toLowerCase() === 'admin') return true;
+  } catch (_) {}
+  try {
+    if (sessionStorage.getItem('flower_admin_token')) return true;
+  } catch (_) {}
+  try {
+    if (localStorage.getItem('flower_admin_token')) return true;
+  } catch (_) {}
+  return false;
+}
+
 function saveUserPoints(points: number) {
   try {
     const raw = localStorage.getItem('fortune_auth_user');
@@ -202,10 +227,23 @@ export default function KkulkkulManseryukMain() {
 
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
+    const adminMode = isAdminSessionClient();
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token && !adminMode) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
+      return;
+    }
+    if (adminMode) {
+      // 관리자 모드: 코인 차감 없이 즉시 해금
+      setUnlockedFeatures((prev) => {
+        const next = { ...prev, [key]: true };
+        if (alsoUnlock?.length) {
+          for (const aliasKey of alsoUnlock) next[aliasKey] = true;
+        }
+        return next;
+      });
+      setSparkleTarget(key);
       return;
     }
     if (currentCoins < cost) {
@@ -238,10 +276,20 @@ export default function KkulkkulManseryukMain() {
   };
 
   const usePaidFeatureOnce = async (key: PerUseKey, cost: number) => {
+    const adminMode = isAdminSessionClient();
     const token = localStorage.getItem('fortune_auth_token');
-    if (!token) {
+    if (!token && !adminMode) {
       alert('로그인이 필요합니다.');
       window.location.href = '/login?next=%2F';
+      return;
+    }
+    if (adminMode) {
+      // 관리자 모드: 코인 차감 없이 즉시 사용
+      setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+      setSparkleTarget(key);
+      if (key === 'loveSimulation') {
+        window.location.href = '/saju/love-simulation';
+      }
       return;
     }
     if (currentCoins < cost) {
@@ -272,6 +320,9 @@ export default function KkulkkulManseryukMain() {
   };
 
   const runPremiumIntroGate = async (service: PremiumServiceKey) => {
+    const adminMode = isAdminSessionClient();
+    if (adminMode) return true;
+
     const token = localStorage.getItem('fortune_auth_token');
     if (!token) {
       alert('로그인이 필요합니다.');
@@ -332,14 +383,15 @@ export default function KkulkkulManseryukMain() {
   };
 
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
-    if (service !== 'naming') {
-      // [DEBUG] 기존 프리미엄 섹션은 현재 bypass 모드 유지
-      console.log('[DEBUG] 생성 CTA 클릭됨 - API bypass 모드:', service);
+    if (premiumGateLoading) return;
+
+    // 관리자 모드: 코인 차감 없이 즉시 통과
+    if (isAdminSessionClient()) {
+      console.log('[ADMIN] 프리미엄 서비스 bypass:', service);
       setPremiumFlowStage('generate');
       return;
     }
 
-    if (premiumGateLoading) return;
     const passed = await runPremiumIntroGate(service);
     if (!passed) return;
 
@@ -366,20 +418,12 @@ export default function KkulkkulManseryukMain() {
       saveUserPoints(newPoints);
       setPremiumFlowStage('generate');
     } catch (e) {
-      console.error('[handleStartPremiumGeneration:naming]', e);
+      console.error('[handleStartPremiumGeneration]', e);
       setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setPremiumGateLoading(null);
     }
-
-    /* ─── PRODUCTION 코인 차감 로직 (현재디버그 중 주석 처리) ───
-    if (premiumGateLoading) return;
-    const passed = await runPremiumIntroGate(service);
-    if (!passed) return;
-    if (unlockedFeatures.premiumDivinationPack) { setPremiumFlowStage('generate'); return; }
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token) return;
-    const cost = PREMIUM_SERVICE_COST[service];
+  };
     setPremiumGateLoading(service);
     try {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
