@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IFÀ 오라클 상세 가이드</title>
+<style>
+:root{
+  --bg:#090503;
+  --panel:#140b07;
+  --panel-2:#1c100b;
+  --line:#6a3f24;
+  --gold:#d6a64b;
+  --text:#ece0c6;
+  --muted:#bda883;
+  --accent:#25345e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Georgia,"Times New Roman",serif}
+body{
+  background:
+    radial-gradient(900px 420px at 10% -5%, rgba(214,166,75,.12), transparent 62%),
+    radial-gradient(860px 440px at 100% 10%, rgba(37,52,94,.18), transparent 58%),
+    linear-gradient(180deg,#0a0503 0%,#140a06 52%,#090503 100%);
+}
+.wrap{max-width:880px;margin:0 auto;padding:30px 18px 46px}
+.hero{text-align:center;margin-bottom:18px}
+.hero h1{margin:8px 0 6px;font-size:46px;letter-spacing:4px;color:var(--gold)}
+.hero p{margin:0;color:var(--muted);font-size:15px;line-height:1.7}
+.cta{
+  display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px
+}
+.cta a{
+  text-decoration:none;padding:11px 16px;border-radius:999px;border:1px solid var(--gold);color:var(--gold);font-size:13px;letter-spacing:1.2px
+}
+.cta a.secondary{border-color:#88643b;color:#ccb084}
+.card{
+  background:linear-gradient(180deg,rgba(28,16,11,.92),rgba(20,11,7,.96));
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px 14px;
+  margin-top:14px;
+}
+.card h2{margin:0 0 8px;color:var(--gold);font-size:20px}
+.card p{margin:0;color:var(--text);line-height:1.82;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:8px;margin-top:8px}
+.kv b{color:#dfc78f}
+.footer{text-align:center;color:#8e7958;letter-spacing:1.4px;margin-top:24px;font-size:12px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div style="font-size:12px;letter-spacing:2px;color:#b79f75">Orunmila House Manual</div>
+    <h1>IFÀ 오라클 상세 가이드</h1>
+    <p>
+      Code: Destiny의 IFÀ 오라클은 요루바 전통의 오두(256가지 상징 체계)를
+      디지털 의식 흐름으로 구현한 서비스입니다.
+    </p>
+    <div class="cta">
+      <a href="/ifa_oracle_v2_full_local.html">지금 점치기 (1회 30코인)</a>
+      <a class="secondary" href="/">메인으로 돌아가기</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>무엇을 해석하나요?</h2>
+    <p>
+      질문을 품은 상태에서 오펠레 이킨 패턴(8비트)을 생성하고, 좌/우 4비트 기둥을 각각
+      "원인(뿌리)"과 "결과(표현)"로 읽습니다. 이후 동일 오두 여부, 음/양 분포,
+      카테고리 축(총운/연애/재물/건강)을 합성해 정통 이파식 문장으로 변환합니다.
+    </p>
+  </section>
+
+  <section class="grid">
+    <article class="card">
+      <h2>카테고리 분석</h2>
+      <div class="kv"><b>🎴 총운</b><p>전체 흐름, 전환점, 타이밍 해석</p></div>
+      <div class="kv"><b>❤️ 연애/관계</b><p>정서 유대, 신뢰, 소통의 방향</p></div>
+      <div class="kv"><b>💰 재물/사업</b><p>거래/성과/리스크 관리와 실행성</p></div>
+      <div class="kv"><b>🌿 건강/내면</b><p>회복 리듬, 스트레스 신호, 내면 정렬</p></div>
+    </article>
+
+    <article class="card">
+      <h2>의식 흐름</h2>
+      <div class="kv"><b>1단계</b><p>카테고리 선택과 질문 정렬</p></div>
+      <div class="kv"><b>2단계</b><p>8비트 패턴 생성 (신탁 호출)</p></div>
+      <div class="kv"><b>3단계</b><p>두 기둥 판독 + 합성 해석</p></div>
+      <div class="kv"><b>4단계</b><p>의식 권고/금기/실천 가이드 제시</p></div>
+    </article>
+  </section>
+
+  <section class="card">
+    <h2>요금 정책</h2>
+    <p>
+      IFÀ 오라클 리딩은 1회 실행 기준 30코인입니다.
+      점괘를 다시 뽑아 새로운 결과를 받는 경우, 실행 시점에 동일하게 코인 게이트가 적용됩니다.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>정확도를 높이는 사용 팁</h2>
+    <p>
+      1) 질문을 한 문장으로 좁히세요.
+      2) 결과를 받은 뒤 24시간 안에 행동 1개를 실행하세요.
+      3) 7일 후 같은 질문으로 재확인하면 변화 패턴이 선명해집니다.
+    </p>
+  </section>
+
+  <div class="footer">Ase • Ori Chooses, Orunmila Witnesses</div>
+</main>
+</body>
+</html>

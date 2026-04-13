@@ -50,6 +50,16 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
 .hero .over{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim)}
 .hero h1{margin:8px 0 0;font-size:54px;letter-spacing:10px;line-height:1;color:var(--gold);text-shadow:0 0 18px rgba(214,166,75,.22)}
 .hero .sub{margin-top:8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9d8b6a}
+.hero .guide-link{
+  display:inline-block;
+  margin-top:10px;
+  font-size:12px;
+  color:#d8b56a;
+  text-decoration:none;
+  border-bottom:1px dashed rgba(214,166,75,.45);
+  padding-bottom:2px;
+}
+.hero .guide-link:hover{color:#f1d28f;border-bottom-color:#f1d28f}
 .divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:16px auto}
 .divider .line{height:1px;width:68px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
 .divider .gem{color:var(--gold);font-size:12px}
@@ -124,8 +134,22 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
 .oracle-box{display:none;margin-top:18px}
 .oracle-head{text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c8b796;margin-bottom:10px}
 .oracle-body{
-  border:1px solid #5b3925;border-radius:12px;padding:18px 16px;background:linear-gradient(180deg,rgba(15,9,6,.95),rgba(24,13,9,.92));
-  color:var(--chalk);font-size:14px;line-height:1.88;white-space:pre-wrap;min-height:120px;
+  border:1px solid #6a3f24;
+  border-radius:16px;
+  padding:20px 18px;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(214,166,75,.08), transparent 50%),
+    linear-gradient(180deg,rgba(15,9,6,.96),rgba(24,13,9,.94));
+  color:var(--chalk);
+  font-size:16px;
+  line-height:1.95;
+  letter-spacing:.1px;
+  white-space:pre-wrap;
+  min-height:180px;
+  box-shadow:0 0 0 1px rgba(214,166,75,.12) inset;
+}
+@media (max-width:480px){
+  .oracle-body{font-size:15.5px;line-height:1.9;padding:18px 15px}
 }
 .loading-dot{display:inline-block;width:5px;height:5px;margin:0 2px;border-radius:999px;background:var(--gold);animation:dot 1.4s ease-in-out infinite}
 .loading-dot:nth-child(2){animation-delay:.15s}.loading-dot:nth-child(3){animation-delay:.3s}
@@ -144,6 +168,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
       <div class="over">House of Orunmila • The Living Ifa Current</div>
       <h1>IFÀ</h1>
       <div class="sub">Opele Chain • 256 Odu • Yoruba Wisdom</div>
+      <a class="guide-link" href="/ifa-oracle-about.html" aria-label="이파점 상세 가이드 보기">이파점 상세 가이드 보기</a>
     </section>
 
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">✦</span><span class="line"></span></div>
@@ -173,7 +198,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
 
     <section class="action">
-      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 • Consult the Oracle</button>
+      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (30코인) • Consult the Oracle</button>
       <div id="miniBtns" class="mini">
         <button id="saveBtn" type="button">결과 저장</button>
         <button id="resetBtn" type="button">새 점괘</button>
@@ -217,11 +242,41 @@ const CATEGORY_META = {
   health:{label:"건강/내면",emoji:"🌿"}
 };
 
+const CATEGORY_FOCUS = {
+  total:{
+    axis:"삶의 큰 물줄기",
+    omen:"문턱을 넘는 전환",
+    ritual:"해 뜰 무렵 물 한 잔을 두 손으로 받들고 오늘의 결심 한 줄을 읊으십시오.",
+    taboo:"동시에 여러 결정을 밀어붙이는 분산 행동"
+  },
+  love:{
+    axis:"정서적 유대와 신뢰",
+    omen:"말보다 태도가 운을 부름",
+    ritual:"해 질 무렵 감사한 장면 3가지를 기록해 마음의 제단을 밝히십시오.",
+    taboo:"상대의 침묵을 임의 해석해 단정하기"
+  },
+  wealth:{
+    axis:"흐름, 거래, 책임",
+    omen:"수익은 질서와 증거를 따름",
+    ritual:"금전 항목을 오늘 단 한 번, 정확히 정리하고 누수 하나를 즉시 막으십시오.",
+    taboo:"확인되지 않은 기대수익을 전제로 한 지출"
+  },
+  health:{
+    axis:"리듬, 회복, 내면의 중심",
+    omen:"미세한 신호를 먼저 들은 자가 강해짐",
+    ritual:"잠들기 전 호흡 27회로 맥을 고르고 몸의 감각을 발끝까지 스캔하십시오.",
+    taboo:"통증과 피로를 의지로만 밀어붙이는 태도"
+  }
+};
+
 let busy=false;
 let bits=[];
 let selectedCategory="total";
 let audioCtx=null;
 let ambienceTimer=null;
+let typingRunId=0;
+let lastOracleText="";
+const IFA_COIN_COST=30;
 
 function el(id){return document.getElementById(id);} 
 
@@ -356,17 +411,66 @@ function wait(ms){return new Promise((r)=>setTimeout(r,ms));}
 
 function setPhase(text){el("phase").textContent=text;}
 
+function ensureIfaCoinGate(){
+  return new Promise((resolve)=>{
+    if (IFA_COIN_COST <= 0) { resolve(true); return; }
+    if (typeof window._cdCoinGatePerUse !== "function") { resolve(true); return; }
+    try{
+      window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); });
+    }catch(_e){
+      resolve(false);
+    }
+  });
+}
+
+async function typeOracleText(text){
+  const target=el("oracleBody");
+  const runId=++typingRunId;
+  target.textContent="";
+
+  for(let i=0;i<text.length;i++){
+    if(runId!==typingRunId)return;
+    const ch=text[i];
+    target.textContent+=ch;
+
+    let delay=20+Math.floor(Math.random()*22);
+    if(ch==="."||ch==="!"||ch==="?"||ch===":") delay=170+Math.floor(Math.random()*90);
+    if(ch==="\n") delay=120+Math.floor(Math.random()*60);
+    await wait(delay);
+  }
+}
+
 function getInterp(l,r,cat){
   const L=O[l],R=O[r];
   const meta=CATEGORY_META[cat];
+  const focus=CATEGORY_FOCUS[cat];
+  const leftWeight=(bits[0]+bits[1]+bits[2]+bits[3]);
+  const rightWeight=(bits[4]+bits[5]+bits[6]+bits[7]);
+  const yin=8-(leftWeight+rightWeight);
+  const yang=leftWeight+rightWeight;
+  const balance=Math.abs(yang-yin);
+  const biasText = yang>yin
+    ? "양(동적) 기운이 강해 실행과 결단이 빠르게 작동합니다."
+    : (yang<yin
+      ? "음(수용) 기운이 강해 관찰과 정리가 먼저 복을 부릅니다."
+      : "음양이 균형하여 신중한 실행이 가장 큰 효율을 냅니다.");
+  const timeHint = balance>=4
+    ? "향후 3일은 급물살, 7일 내 첫 결과"
+    : "향후 7일은 정비, 14일 내 선명한 결실";
+
   if(l===r){
-    return `Àṣẹ. ${L.k} Méjì — ${meta.label}의 문이 하나로 합쳐졌습니다.\n\n${L.m}\n\n${meta.emoji} ${L.cat[cat]}\n\n요루바 속담: "${L.py}"\n해석: ${L.pm}\n\n받아들이십시오: ${L.la}\n내려놓으십시오: ${L.rl}`;
+    return `Àṣẹ. ${L.k} Méjì — 하나의 숨, 하나의 칼, 하나의 길이 열렸습니다.\n\n[신탁의 핵심]\n${L.m}\n${meta.emoji} ${L.cat[cat]}\n\n[정통 이파 분석]\n동일 오두 중첩은 의도가 분산되지 않았음을 뜻합니다. 바발라워의 관점에서 이는 질문과 운명의 축이 정렬된 상태입니다.\n해석 축: ${focus.axis}\n징조: ${focus.omen}\n\n[에너지 진단]\n양 기운 ${yang} / 음 기운 ${yin}\n${biasText}\n권장 타이밍: ${timeHint}\n\n[실천 지침]\n1) 오늘 해야 할 핵심 행동 1개만 확정\n2) 확인 가능한 증거(기록/수치/대화)를 남기기\n3) 밤에 결과 감정과 사건을 3줄로 봉인 기록\n\n[의식과 금기]\n의식: ${focus.ritual}\n금기: ${focus.taboo}\n\n요루바 속담: "${L.py}"\n해석: ${L.pm}\n\n받아들이십시오: ${L.la}\n내려놓으십시오: ${L.rl}\n\nOrunmila witnesses your oath. Ase.`;
   }
-  return `Àṣẹ. ${L.k}와 ${R.k}가 교차해 ${meta.label}의 신탁을 엽니다.\n\n왼기둥 ${L.k}: ${L.cat[cat]}\n오른기둥 ${R.k}: ${R.cat[cat]}\n\n두 오두의 결합 메시지:\n${L.k}는 ${L.la}로 길을 열고, ${R.k}는 ${R.e}의 방식으로 답을 완성합니다.\n급히 잡으려 하지 말고, 질문의 뿌리를 한 번 더 확인하십시오.\n\n요루바 속담: "${L.py}" / "${R.py}"\n해석: ${L.pm} / ${R.pm}\n\n오늘의 의식 권고:\n1) 질문을 한 줄로 다시 쓰기\n2) 실천 1개를 오늘 바로 실행\n3) 밤에 결과 감정 기록하기`;
+  return `Àṣẹ. ${L.k}와 ${R.k}가 교차해 ${meta.label}의 제단을 엽니다.\n\n[두 기둥 진단]\n왼기둥 ${L.k} (원인/뿌리): ${L.cat[cat]}\n오른기둥 ${R.k} (결과/표현): ${R.cat[cat]}\n\n[교차 해석]\n${L.k}는 ${L.la}로 문을 열고, ${R.k}는 ${R.e}의 방식으로 현실의 결론을 만들려 합니다.\n즉, '원인에서의 태도'와 '결과에서의 실행'이 서로 맞물릴 때 복이 커집니다.\n${focus.axis} 관점에서 보면, 지금의 운은 ${focus.omen} 패턴으로 움직입니다.\n\n[정통 이파식 세부 판독]\n1) 뿌리 판독: ${L.k}의 과제는 '${L.rl}'를 걷어내는 데 있습니다.\n2) 현상 판독: ${R.k}는 외부 사건을 통해 선택의 대가를 빠르게 보여줍니다.\n3) 합성 판독: 질문의 핵심을 한 줄로 고정하면 오차가 줄고 응답이 선명해집니다.\n\n[에너지 진단]\n왼기둥 양수 ${leftWeight} / 오른기둥 양수 ${rightWeight}\n총 양 기운 ${yang} / 음 기운 ${yin}\n${biasText}\n권장 타이밍: ${timeHint}\n\n[행동 처방]\n1) 지금 당장 실행할 행동 1개\n2) 24시간 내 검증할 증거 1개\n3) 7일간 반복할 루틴 1개\n\n[의식과 금기]\n의식: ${focus.ritual}\n금기: ${focus.taboo}\n\n요루바 속담: "${L.py}" / "${R.py}"\n해석: ${L.pm} / ${R.pm}\n\n결론: 질문의 뿌리를 지키되, 결과의 속도를 두려워하지 마십시오.\nOrunmila hears. Ase.`;
 }
 
 async function cast(){
   if(busy)return;
+  const gateOk=await ensureIfaCoinGate();
+  if(!gateOk){
+    setPhase("의식이 보류되었습니다 • 코인 확인 후 다시 시도해 주세요");
+    return;
+  }
   busy=true;
   startAmbience();
 
@@ -412,7 +516,8 @@ async function cast(){
   el("oracleBox").style.display="block";
   el("oracleBody").innerHTML='<span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>';
   await wait(760);
-  el("oracleBody").textContent=getInterp(L,R,selectedCategory);
+  lastOracleText=getInterp(L,R,selectedCategory);
+  await typeOracleText(lastOracleText);
 
   castBtn.textContent="다시 점치기 • Cast Again";
   castBtn.disabled=false;
@@ -423,8 +528,10 @@ async function cast(){
 function resetAll(){
   busy=false;
   stopAmbience();
+  typingRunId++;
+  lastOracleText="";
   setPhase("질문을 품고, 오리샤의 바람을 들으세요");
-  el("castBtn").textContent="운명 확인하기 • Consult the Oracle";
+  el("castBtn").textContent="운명 확인하기 (30코인) • Consult the Oracle";
   el("castBtn").disabled=false;
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";
@@ -436,7 +543,7 @@ function resetAll(){
 function saveResult(){
   const odu=el("oduName").textContent || "Unknown";
   const num=el("oduNum").textContent || "";
-  const body=el("oracleBody").textContent || "";
+  const body=lastOracleText || el("oracleBody").textContent || "";
   const cat=`${CATEGORY_META[selectedCategory].emoji} ${CATEGORY_META[selectedCategory].label}`;
   const txt=`IFA Oracle Reading\n${"=".repeat(36)}\n\nCategory: ${cat}\nOdu: ${odu}\n${num}\nBits: ${bits.join(" ")}\n\n${"-".repeat(36)}\n\n${body}\n\n${"-".repeat(36)}\nAse.`;
   if(navigator.share){
