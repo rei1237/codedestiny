@@ -251,6 +251,12 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .chat-help{font-size:11px;color:var(--acc);opacity:.62;line-height:1.45;letter-spacing:-.01em}
 
+.cat-btn.is-active{background:var(--acc)!important;border-color:transparent!important;color:#fff!important;box-shadow:0 4px 12px var(--al),0 0 0 1.5px var(--acc)}
+
+@keyframes chat-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.chat-log.chat-enter{animation:chat-enter .28s cubic-bezier(.22,1,.36,1) forwards}
+
 .btn-acc{padding:14px;border-radius:16px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--c2),var(--c3));color:#fff;font-family:'Noto Sans KR';font-size:15px;font-weight:900;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .13s;letter-spacing:-.2px}
 
 .btn-acc:active{transform:scale(.96)}.btn-acc:disabled{opacity:.28;cursor:default}
@@ -1754,7 +1760,7 @@ function downloadMe(){
 // CHAT
 
 var chatCat='general';
-var _lastPromptCat='';
+var _chatCatPlaceholders={general:'예: 오늘 전체적인 흐름이 궁금해',saju:'예: 오늘 이직운이 어떤지 사주로 봐줘',ziwei:'예: 오늘 인간관계 흐름을 자미두수로 알려줘',astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',tarot:'예: 오늘 중요한 선택을 타로로 봐줘'};
 
 function updateChatRemain(){var el=document.getElementById('chat-remain');if(el) el.textContent=Math.max(0,5-G.chatCount);}
 
@@ -1779,14 +1785,30 @@ function askCategoryQuestion(cat){
 }
 
 function setcat(btn,cat,silent){
+  var prev=chatCat;
   chatCat=cat; G.chatCat=cat;
+  // CSS-class active state (clear any residual inline overrides)
   document.querySelectorAll('.cat-btn').forEach(function(b){
-    var sel=b.dataset.cat===cat;
-    b.style.borderColor=sel?'var(--acc)':'var(--cb)'; b.style.color=sel?'var(--acc)':'#888'; b.style.background=sel?'var(--adim)':'transparent';
+    b.classList.toggle('is-active',b.dataset.cat===cat);
+    b.style.background=''; b.style.borderColor=''; b.style.color='';
   });
-  if(!silent && _lastPromptCat!==cat){
-    _lastPromptCat=cat;
+  // Scroll selected chip into view
+  if(btn&&btn.scrollIntoView) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  // Always sync placeholder to selected category
+  var inp=document.getElementById('chat-inp');
+  if(inp) inp.placeholder=_chatCatPlaceholders[cat]||'궁금한 내용을 입력해줘...';
+  // Category changed (non-silent): clear log, animate, show welcome
+  if(!silent&&prev!==cat){
+    var log=document.getElementById('chat-log');
+    if(log){
+      log.innerHTML='';
+      log.classList.remove('chat-enter');
+      void log.offsetWidth;
+      log.classList.add('chat-enter');
+      setTimeout(function(){log.classList.remove('chat-enter');},600);
+    }
     askCategoryQuestion(cat);
+    if(inp) inp.focus();
   }
 }
 
@@ -1943,16 +1965,16 @@ function buildLocalAnswer(cat,score,fortune,petName,zName,todayLabel,question){
   };
 
   var methodByCat={
-    general:'종합 해석은 사주의 기운 흐름, 자미두수의 궁위 성향, 점성술의 시간대 변동, 타로의 선택 메시지를 공통 분모로 압축해 실행형 조언으로 정리했어.',
-    saju:'사주 해석은 일간 강약과 오행 균형 관점에서 오늘의 추진력과 소진 리스크를 함께 본 결과야. 무리해서 한 번에 끝내기보다 순서를 맞춰 가는 쪽이 길하게 작동해.',
-    ziwei:'자미두수 해석은 명궁 중심 안정성, 관록 흐름, 관계 영역의 마찰 가능성을 함께 봤어. 오늘은 큰 확장보다 중심축을 단단히 잡는 선택이 성과로 이어진다.',
-    astrology:'점성술 해석은 시간대별 집중력 변화와 감정 파동을 기준으로 읽었어. 그래서 오전에는 계획 확정, 오후에는 조율과 소통 중심으로 운영하면 효율이 좋다.',
-    tarot:'타로 해석은 현재 카드의 메시지를 행동 지침으로 변환한 결과야. 결론은 성급함을 줄이고, 명확한 한 걸음을 먼저 내딛을 때 다음 카드가 유리하게 열린다는 점이야.'
+    general:'종합 해석은 사주의 기운 흐름, 자미두수의 궁위 성향, 점성술의 시간대 변동, 타로의 선택 메시지를 공통 분모로 압축해 실행형 조언으로 정리했어. 네 가지 시스템이 오늘 날짜에 겹치는 에너지 포인트를 추출해서 핵심 방향으로 요약했으니, 이 방향을 기준으로 오늘 일정의 우선순위를 재정렬하면 효율이 눈에 띄게 올라갈 거야. 각 분야에서 같은 신호가 겹칠수록 신뢰도가 높아지므로, 여러 채널에서 동일한 방향이 반복되면 망설임 없이 움직여도 좋아.',
+    saju:'사주 해석은 일간 강약과 오행 균형 관점에서 오늘의 추진력과 소진 리스크를 함께 본 결과야. 무리해서 한 번에 끝내기보다 순서를 맞춰 가는 쪽이 길하게 작동해. 오늘처럼 일간이 활성화된 날은 에너지가 앞으로 쏠리기 쉬운데, 막힌 구간에서 억지로 밀기보다 방향을 살짝 틀어 흐름을 타는 쪽이 같은 에너지로 훨씬 좋은 결과를 내. 오행상 오늘 지지하는 사람과의 협력이 빠른 돌파구가 될 수 있으니, 가까운 조력자에게 한 번 먼저 연락해봐.',
+    ziwei:'자미두수 해석은 명궁 중심 안정성, 관록 흐름, 관계 영역의 마찰 가능성을 함께 봤어. 오늘은 큰 확장보다 중심축을 단단히 잡는 선택이 성과로 이어진다. 명궁의 보좌성 영향으로 주변 조력이 활성화된 구간이라, 혼자 처리하기 어려운 과제는 오늘 도움을 요청하기 좋은 타이밍이야. 관록궁이 열린 경우 업무 관련 대화는 선제적으로 먼저 꺼내는 쪽이 유리하고, 네트워킹 행동이 예상보다 큰 결과를 가져올 수 있어.',
+    astrology:'점성술 해석은 시간대별 집중력 변화와 감정 파동을 기준으로 읽었어. 오전에는 계획 확정, 오후에는 조율과 소통 중심으로 운영하면 효율이 좋다. 달의 위상이 집중력과 감정 안정성에 영향을 주는 시기라, 중요 결정 전에 1-2분 조용히 정리하는 시간을 갖는 것이 실수를 줄이는 핵심이야. 저녁 시간대에는 자극적인 콘텐츠와 큰 감정 소모를 줄이는 것이 다음날 컨디션에 확실한 차이를 만들어.',
+    tarot:'타로 해석은 현재 카드의 메시지를 행동 지침으로 변환한 결과야. 결론은 성급함을 줄이고, 명확한 한 걸음을 먼저 내딛을 때 다음 카드가 유리하게 열린다는 점이야. 오늘 뽑힌 카드의 위치 에너지는 "준비된 움직임"을 권장하는 패턴이야. 이미 알고 있는 할 일을 미루지 않고 실행하면 카드가 제시한 흐름에 올라타는 가장 빠른 경로가 되고, 역방향 에너지가 있다면 내면 점검 후 재시도가 효과적이야.'
   };
 
   var close='정리하면 오늘 '+zName+'띠의 '+catLabel+' 운세는 "크게 흔들리지 않되, 선택 품질에 따라 결과 차이가 커지는 날"이야. 질문해 준 '+focusLabel+' 주제는 충분히 개선 여지가 있으니, 지금 바로 실행 가능한 한 가지를 정하고 체크해봐. 완료 후 다시 물어보면 다음 단계까지 이어서 코칭해줄게. '+n+'는 단순 위로보다 실제로 도움이 되는 방식으로 끝까지 같이 갈게.';
 
-  return ensureFortuneLength(open+'\n\n'+coreByFocus[focus]+'\n\n'+methodByCat[cat]+'\n\n'+close,300,n,focus);
+  return ensureFortuneLength(open+'\n\n'+coreByFocus[focus]+'\n\n'+methodByCat[cat]+'\n\n'+close,500,n,focus);
 }
 
 // ── 일반 대화 로컬 응답 ───────────────────────────────────────────────────
