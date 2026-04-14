@@ -17,6 +17,9 @@ const {
 const router = express.Router();
 
 const TAROT_GEMINI_MIN_SECTION_CHARS = 500;
+const TAROT_GEMINI_LOVE_MIN_TOTAL_CHARS = 3200;
+const TAROT_GEMINI_LOVE_MIN_SECTION_CHARS = 700;
+const TAROT_GEMINI_LOVE_MIN_POSITION_CHARS = 220;
 
 function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -62,6 +65,149 @@ function buildJobChangeGeminiPrompt({ cards, baseReading }) {
     `stage3: ${safeText(baseReading?.stage3)}`,
     `finalAdvice: ${safeText(baseReading?.finalAdvice)}`,
   ].join("\n");
+}
+
+function buildLoveGeminiPrompt({ cards, baseReading }) {
+  const cardLines = (Array.isArray(cards) ? cards : []).map((card, idx) => {
+    const name = card?.nameKr || card?.name || `카드 ${idx + 1}`;
+    const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
+    const position = card?.position || `position_${idx + 1}`;
+    const interp = safeText(card?.interpretation);
+    const keywords = Array.isArray(card?.keywords) ? card.keywords.slice(0, 6).join(", ") : "";
+    return `${idx + 1}. 위치:${position} / 카드:${name} / 방향:${orientation} / 해석:${interp} / 키워드:${keywords}`;
+  }).join("\n");
+
+  return [
+    "너는 한국어로 상담하는 최고 수준의 연애 심리 상담가이자 타로 마스터다.",
+    "반드시 한국어로만 작성한다.",
+    "톤: 따뜻하지만 단호한 전문가 톤, 모호한 반복 금지.",
+    "요구사항:",
+    "1) overallVibe, deepReading, realityAndFuture를 각각 최소 700자 이상 작성.",
+    "2) positionBreakdown은 6개 항목(title, card, summary)으로 구성하고 summary를 각각 최소 220자 이상 작성.",
+    "3) advice는 최소 8개 문장으로 작성하고 즉시 실행 가능한 행동 조언으로 구성.",
+    "4) 총 글자 수는 최소 3200자 이상.",
+    "5) 연애 전문가 상담처럼 감정 해석 + 관계 구조 진단 + 단계별 실행 플랜을 포함.",
+    "출력은 JSON 객체 하나만 반환. 코드블록 금지.",
+    'JSON 형식: {"overallVibe":"...","deepReading":"...","realityAndFuture":"...","positionBreakdown":[{"title":"...","card":"...","summary":"..."}],"advice":["..."]}',
+    "",
+    "[카드 데이터]",
+    cardLines,
+    "",
+    "[기존 리딩 초안 - 의미 유지 참고]",
+    `overallVibe: ${safeText(baseReading?.overallVibe)}`,
+    `deepReading: ${safeText(baseReading?.deepReading)}`,
+    `realityAndFuture: ${safeText(baseReading?.realityAndFuture)}`,
+  ].join("\n");
+}
+
+function tryParseJsonObject(raw) {
+  const text = safeText(raw);
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (_e) {
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try {
+      return JSON.parse(m[0]);
+    } catch (_e2) {
+      return null;
+    }
+  }
+}
+
+function totalLoveChars(reading) {
+  const main = [reading?.overallVibe, reading?.deepReading, reading?.realityAndFuture].map(safeText).join("\n").length;
+  const positions = (Array.isArray(reading?.positionBreakdown) ? reading.positionBreakdown : []).map((item) => safeText(item?.summary)).join("\n").length;
+  const advice = (Array.isArray(reading?.advice) ? reading.advice : []).map((item) => safeText(item)).join("\n").length;
+  return main + positions + advice;
+}
+
+function buildLoveExpansion(cards) {
+  const lines = (Array.isArray(cards) ? cards : []).map((card, idx) => {
+    const name = safeText(card?.nameKr) || safeText(card?.name) || `카드 ${idx + 1}`;
+    const pos = safeText(card?.position) || `position_${idx + 1}`;
+    const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
+    return `- ${pos}: ${name}(${orientation})의 신호는 감정 단정 대신 사실 확인, 경계 존중, 작은 약속의 반복이 관계 회복의 핵심임을 강조합니다.`;
+  }).join("\n");
+
+  return [
+    "[전문가 보강 코멘트]",
+    "지금 관계는 누가 더 사랑하느냐보다, 서로가 안전하게 표현할 수 있는 대화 구조를 만들 수 있느냐가 핵심입니다.",
+    "감정의 강도만 보지 말고 전달 방식을 조정하면 갈등 소모를 줄이고 신뢰를 빠르게 회복할 수 있습니다.",
+    "관계는 정답이 아니라 리듬 조정입니다. 연락 빈도, 대화 시간대, 갈등 회복 루틴을 합의하면 예측 가능성이 생깁니다.",
+    "카드별 실행 포인트:",
+    lines,
+    "이번 리딩의 본질은 상대를 통제하는 것이 아니라, 내 표현 방식을 더 명료하고 부드럽게 조정하는 것입니다.",
+  ].join("\n");
+}
+
+function normalizeLoveReading(candidate, baseReading, cards) {
+  const base = baseReading && typeof baseReading === "object" ? baseReading : {};
+  const parsed = candidate && typeof candidate === "object" ? candidate : {};
+
+  const overallVibe = ensureMinSectionLength(parsed.overallVibe, TAROT_GEMINI_LOVE_MIN_SECTION_CHARS, base.overallVibe);
+  const deepReading = ensureMinSectionLength(parsed.deepReading, TAROT_GEMINI_LOVE_MIN_SECTION_CHARS, base.deepReading);
+  let realityAndFuture = ensureMinSectionLength(parsed.realityAndFuture, TAROT_GEMINI_LOVE_MIN_SECTION_CHARS, base.realityAndFuture);
+
+  const basePositions = Array.isArray(base.positionBreakdown) ? base.positionBreakdown : [];
+  const rawPositions = Array.isArray(parsed.positionBreakdown) ? parsed.positionBreakdown : [];
+  const positionBreakdown = (rawPositions.length ? rawPositions : basePositions)
+    .slice(0, 6)
+    .map((item, idx) => {
+      const fallback = basePositions[idx] || {};
+      return {
+        title: safeText(item?.title) || safeText(fallback.title) || `포지션 ${idx + 1}`,
+        card: safeText(item?.card) || safeText(fallback.card) || `카드 ${idx + 1}`,
+        summary: ensureMinSectionLength(item?.summary, TAROT_GEMINI_LOVE_MIN_POSITION_CHARS, fallback.summary),
+      };
+    });
+
+  while (positionBreakdown.length < 6) {
+    const idx = positionBreakdown.length;
+    const card = Array.isArray(cards) ? cards[idx] : null;
+    const cardName = safeText(card?.nameKr) || safeText(card?.name) || `카드 ${idx + 1}`;
+    positionBreakdown.push({
+      title: `포지션 ${idx + 1}`,
+      card: cardName,
+      summary: `${cardName}의 흐름은 감정의 결론을 서두르지 말고 사실 확인과 관계 경계 합의를 통해 신뢰를 회복하라는 메시지입니다.`,
+    });
+  }
+
+  let advice = Array.isArray(parsed.advice) ? parsed.advice.map(safeText).filter(Boolean) : [];
+  if (!advice.length && Array.isArray(base.advice)) {
+    advice = base.advice.map(safeText).filter(Boolean);
+  }
+  const seed = [
+    "감정이 올라온 직후 결론을 내리지 말고 10분 텀 후 사실과 해석을 분리해 대화하세요.",
+    "질문은 추궁형 대신 확인형으로 바꿔 방어 반응을 줄이세요.",
+    "이번 주 15분 진심 대화 1회를 미리 예약하세요.",
+    "갈등이 생기면 사람 비난 대신 구조 조정 관점으로 접근하세요.",
+    "연락 빈도보다 반복되는 일관성 신호를 체크하세요.",
+    "속도 차이를 인정하고 중간 리듬을 합의하세요.",
+    "불안한 날엔 관계 결론보다 자기 루틴을 먼저 회복하세요.",
+    "관계 기준 3가지를 글로 정리해 의사결정 기준으로 사용하세요.",
+  ];
+  for (const item of seed) {
+    if (advice.length >= 8) break;
+    advice.push(item);
+  }
+
+  const out = {
+    overallVibe,
+    deepReading,
+    realityAndFuture,
+    positionBreakdown,
+    advice: advice.slice(0, 12),
+  };
+
+  const expansion = buildLoveExpansion(cards);
+  while (totalLoveChars(out) < TAROT_GEMINI_LOVE_MIN_TOTAL_CHARS) {
+    realityAndFuture += `\n\n${expansion}`;
+    out.realityAndFuture = realityAndFuture;
+  }
+
+  return out;
 }
 
 async function createGeminiJobChangeReading({ cards, baseReading }) {
@@ -116,6 +262,35 @@ async function createGeminiJobChangeReading({ cards, baseReading }) {
     finalAdvice,
     fullText: `${stage1}\n\n${stage2}\n\n${stage3}\n\n${finalAdvice}`,
   };
+}
+
+async function createGeminiLoveReading({ cards, baseReading }) {
+  const apiKey = safeText(process.env.GEMINI_API_KEY);
+  if (!apiKey) return null;
+
+  const model = safeText(process.env.TAROT_GEMINI_MODEL) || "gemini-2.0-flash-lite";
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const prompt = buildLoveGeminiPrompt({ cards, baseReading });
+
+  const resp = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.55, maxOutputTokens: 4096 },
+    }),
+  });
+
+  const payload = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    const msg = payload?.error?.message || `Gemini love reading failed (${resp.status})`;
+    throw new Error(msg);
+  }
+
+  const textOut = payload?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") || "";
+  const parsed = tryParseJsonObject(textOut);
+  if (!parsed || typeof parsed !== "object") return null;
+  return normalizeLoveReading(parsed, baseReading, cards);
 }
 
 router.get("/meta", (req, res) => {
@@ -196,12 +371,25 @@ router.post("/reading", async (req, res, next) => {
         keywords: item.keywords,
       }));
 
+      let readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
+      try {
+        const geminiReading = await createGeminiLoveReading({
+          cards: reading.cardReadings,
+          baseReading: reading.reading,
+        });
+        if (geminiReading) {
+          readingForUi = normalizeLoveReading(geminiReading, reading.reading, reading.cardReadings);
+        }
+      } catch (geminiError) {
+        console.error("[tarot][love] Gemini fallback to engine:", geminiError?.message || geminiError);
+      }
+
       return res.status(200).json({
         ok: true,
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: readingForUi,
         isRelationshipReading: true,
       });
     }
@@ -417,6 +605,58 @@ router.post("/reading", async (req, res, next) => {
       spreadType: reading.spreadType,
       cards: cardsForUi,
       reading: textForUi,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/love-reading", async (req, res, next) => {
+  try {
+    const drawnCards = Array.isArray(req.body?.cards) ? req.body.cards : [];
+    if (drawnCards.length !== 6) {
+      return res.status(400).json({
+        ok: false,
+        message: "love-reading은 6장의 카드가 필요합니다.",
+      });
+    }
+
+    const reading = createRelationshipReading({ drawnCards });
+    const cardsForUi = reading.cardReadings.map((item) => ({
+      cardId: item.cardId,
+      name: item.name,
+      nameKr: item.nameKr,
+      position: item.position,
+      orientation: item.orientation,
+      imageKey: item.imageKey,
+      imageUrl: item.imageUrl,
+      imageCandidates: item.imageCandidates,
+      proxyImageUrl: item.proxyImageUrl,
+      localImageUrl: item.localImageUrl,
+      keywords: item.keywords,
+    }));
+
+    let readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
+    try {
+      const geminiReading = await createGeminiLoveReading({
+        cards: reading.cardReadings,
+        baseReading: reading.reading,
+      });
+      if (geminiReading) {
+        readingForUi = normalizeLoveReading(geminiReading, reading.reading, reading.cardReadings);
+      }
+    } catch (geminiError) {
+      console.error("[tarot][love-reading] Gemini fallback to engine:", geminiError?.message || geminiError);
+    }
+
+    return res.status(200).json({
+      ok: true,
+      category: reading.category,
+      spreadType: reading.spreadType,
+      cards: cardsForUi,
+      reading: readingForUi,
+      isRelationshipReading: true,
+      api: "love-reading",
     });
   } catch (error) {
     return next(error);

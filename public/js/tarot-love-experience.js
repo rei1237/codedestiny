@@ -1,7 +1,7 @@
 /**
  * 우리는 무슨 사이? — 6-Card Relationship Spread Experience
  * API: POST /api/tarot/draw (spreadType: relationship_six_card)
- *      POST /api/tarot/reading (category: love, spreadType: relationship_six_card, cards)
+ *      POST /api/tarot/love-reading (cards)
  */
 (function () {
   "use strict";
@@ -826,9 +826,7 @@
       };
     });
 
-    callTarotApi("reading", {
-      category: "love",
-      spreadType: "relationship_six_card",
+    callTarotApi("love-reading", {
       cards: drawnForApi,
     })
       .then(function (data) {

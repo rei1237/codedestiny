@@ -163,12 +163,10 @@ export default function LoveRelationshipTarot() {
         position: c.position,
         orientation: c.orientation,
       }));
-      const res = await fetch("/api/tarot/reading", {
+      const res = await fetch("/api/tarot/love-reading", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category: CATEGORY,
-          spreadType: SPREAD_TYPE,
           cards: payloadCards,
         }),
       });
