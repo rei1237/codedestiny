@@ -24,6 +24,7 @@ const nextConfig = {
       /* ── 2. 내부 링크 오타 / 구 slug 수정 301 ── */
       { source: "/oracle/hwatu", destination: "/oracle/hwatu-life", permanent: true },
       // /tadagochi 는 app/tadagochi/route.js 가 직접 서빙 (리다이렉트 불필요)
+      { source: "/destiny-egg", destination: "/tadagochi", permanent: true },
       { source: "/tadagochi.html", destination: "/tadagochi", permanent: true },
       { source: "/tamagotchi", destination: "/tadagochi", permanent: true },
       { source: "/tamagotchi.html", destination: "/tadagochi", permanent: true },
