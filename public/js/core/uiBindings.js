@@ -44,6 +44,7 @@ const __lazyActionLoaders = {
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
   openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'),
   openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'),
+  openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => __loadScriptOnce('/js/tarot-healing-experience.js?v=20260320-tarot-uifix2'),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'),
   openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'),

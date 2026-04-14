@@ -1400,3 +1400,53 @@
     display: none;
   }
 }
+
+/* ─── Main service tile polish: healing entry card ─── */
+.tarot-tile--healing {
+  position: relative;
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  background: linear-gradient(165deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 247, 237, 0.98) 48%, rgba(255, 237, 213, 0.94) 100%);
+  box-shadow: 0 10px 30px -16px rgba(202, 138, 4, 0.42);
+  transition: transform 0.22s ease, box-shadow 0.24s ease, border-color 0.22s ease;
+}
+
+.tarot-tile--healing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 22% 14%, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 55%);
+}
+
+.tarot-tile--healing .tarot-tile__img-wrap {
+  background: radial-gradient(circle at 72% 20%, rgba(253, 224, 71, 0.34) 0%, rgba(253, 224, 71, 0) 38%), linear-gradient(160deg, rgba(255, 251, 235, 0.96) 0%, rgba(255, 247, 237, 0.96) 100%);
+}
+
+.tarot-tile--healing .tarot-tile__title {
+  letter-spacing: -0.01em;
+  font-weight: 900;
+  color: #7c2d12;
+}
+
+.tarot-tile--healing .tarot-tile__desc {
+  color: #9a3412;
+  font-weight: 700;
+}
+
+.tarot-tile--healing:hover,
+.tarot-tile--healing:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(217, 119, 6, 0.52);
+  box-shadow: 0 16px 34px -18px rgba(234, 179, 8, 0.6), 0 0 0 2px rgba(251, 191, 36, 0.2);
+}
+
+.tarot-tile--healing:focus-visible {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .tarot-tile--healing {
+    box-shadow: 0 8px 20px -14px rgba(217, 119, 6, 0.48);
+  }
+}
