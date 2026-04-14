@@ -165,6 +165,9 @@
 
   function _cdIsAdminLikeUser() {
     try {
+      if (window.__cdAdminBypass) return true;
+    } catch (_) {}
+    try {
       var rawUser = localStorage.getItem('fortune_auth_user') || '';
       if (rawUser) {
         var user = JSON.parse(rawUser);
@@ -227,6 +230,13 @@
     try { var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); balance = Number(_u2 && _u2.points) || 0; } catch(_) {}
     if (balance < cost) {
       if (typeof onCancel === 'function') onCancel();
+      var shortageNow = Date.now();
+      var shortageLastGlobal = Number(window.__cdCoinGateShortagePromptLastAt || 0);
+      if (shortageLastGlobal && (shortageNow - shortageLastGlobal < 1800)) {
+        return;
+      }
+      window.__cdCoinGateShortagePromptLastAt = shortageNow;
+      window.__cdCoinGateShortagePromptLastKey = String(cost || 0) + '|' + String(reason || '');
       if (typeof window.__cdOpenChargeModal === 'function') {
         window.alert('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 창을 열겠습니다.');
         window.__cdOpenChargeModal();
