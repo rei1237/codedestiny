@@ -889,6 +889,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-cta-btn--coin:hover{box-shadow:0 10px 32px rgba(245,158,11,.5)}
 .tile-pvw-cta-btn--lock{background:linear-gradient(135deg,#5b21b6,#7c3aed,#9333ea);box-shadow:0 6px 24px rgba(91,33,182,.48),inset 0 1px 0 rgba(255,255,255,.14)}
 .tile-pvw-cta-btn--lock:hover{box-shadow:0 10px 32px rgba(147,51,234,.55)}
+.tile-pvw-overlay{background:radial-gradient(1100px 420px at 50% -120px,rgba(94,234,212,.16),transparent 62%)}
+.tile-pvw-sheet{background:linear-gradient(176deg,rgba(8,18,36,.94) 0%,rgba(12,26,52,.9) 52%,rgba(6,14,28,.94) 100%);border:1px solid rgba(148,163,184,.3);box-shadow:0 30px 84px rgba(1,8,20,.74),0 0 0 1px rgba(255,255,255,.07) inset;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.tile-pvw-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.12),transparent 32%,transparent 70%,rgba(255,255,255,.06));opacity:.62}
+.tile-pvw-bd{background:rgba(2,8,20,.7);backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%)}
+.tile-pvw-title{font-size:1.44rem;letter-spacing:.01em;color:#ecfeff}
+.tile-pvw-tagline{color:rgba(205,225,245,.9)}
+.tile-pvw-feats li{background:linear-gradient(145deg,rgba(56,189,248,.11),rgba(14,30,58,.22));border-color:rgba(148,163,184,.26);color:#dbeafe}
+.tile-pvw-feats li::before{content:'✧';font-size:.72rem;color:#67e8f9}
+.tile-pvw-paywall{background:linear-gradient(145deg,rgba(251,191,36,.1),rgba(30,58,138,.12));border-color:rgba(251,191,36,.3)}
+.tile-pvw-cta-sticky{background:linear-gradient(to top,rgba(7,17,35,.96) 70%,rgba(7,17,35,0))}
+.tile-pvw-cta-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;border:1px solid rgba(255,255,255,.2)}
+.tile-pvw-cta-btn::before{content:'';width:17px;height:17px;border-radius:999px;border:2px solid rgba(255,255,255,.65);border-right-color:transparent;box-sizing:border-box;display:none}
+.tile-pvw-cta-btn.is-loading{filter:saturate(.85) brightness(.9);cursor:wait;pointer-events:none}
+.tile-pvw-cta-btn.is-loading::before{display:inline-block;animation:tilePvwSpin .76s linear infinite}
+.tile-pvw-cta-meta{min-height:20px;margin-top:10px;font-size:.76rem;color:rgba(216,206,255,.82);text-align:center;letter-spacing:.01em}
+@keyframes tilePvwSpin{to{transform:rotate(360deg)}}
 </style>
 <!-- Google AdSense Auto Ads -->
 <!-- Google AdSense Auto Ads (deferred for mobile stability/perf) -->
@@ -6675,13 +6691,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       })();
     }
 
+    function _cdNotifyPremiumOpenFailed(label) {
+      try {
+        var _msg = (label || '프리미엄') + ' 생성 창을 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        if (typeof window.alert === 'function') window.alert(_msg);
+      } catch (_) {}
+    }
+
     function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
       var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
       if (_loader) return _loader();
       var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
-      if (_existing && (_existing.dataset.loaded === '1' || _existing.readyState === 'complete' || _existing.readyState === 'loaded')) {
-        return Promise.resolve();
-      }
+      // 이미 DOM에 존재하는 스크립트는 load 이벤트를 놓쳤을 수 있으므로 즉시 진행하고 함수 재시도로 보완한다.
+      if (_existing) return Promise.resolve();
       return new Promise(function(resolve, reject) {
         var _target = _existing;
         if (!_target) {
@@ -6735,7 +6757,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
           var s = document.querySelector('script[src*="ziwei-book.js"]');
-          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+          if (s) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
             return Promise.resolve();
           }
@@ -6760,11 +6782,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
             if (!_invokeZiwei()) {
               _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
+              _cdNotifyPremiumOpenFailed('자미두수');
             }
           })
           .catch(function(e) {
             _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
             console.error('[prem-card ziwei]', e);
+            _cdNotifyPremiumOpenFailed('자미두수');
           });
       })();
       return;
@@ -6815,9 +6839,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openAstroBookModal', null, function() {
               console.error('[prem-card astro-book] openAstroBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('점성술');
             });
           })
-          .catch(function(e) { console.error('[prem-card astro-book]', e); });
+          .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
       }
       return;
     }
@@ -6833,9 +6858,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
               console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('숙요점');
             });
           })
-          .catch(function(e) { console.error('[prem-card sukuyo]', e); });
+          .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
       }
       return;
     }
@@ -6851,9 +6877,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openVedicBookModal', null, function() {
               console.error('[prem-card vedic] openVedicBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('베다점');
             });
           })
-          .catch(function(e) { console.error('[prem-card vedic]', e); });
+          .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
       }
       return;
     }
@@ -6921,10 +6948,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
-    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return;
+    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return Promise.resolve(false);
     _cdSafeBlockEvent(event);
-    if (!_cdSetPerUseLoading(actionNode, true)) return;
-    (async function () {
+    if (!_cdSetPerUseLoading(actionNode, true)) return Promise.resolve(false);
+    return (async function () {
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
@@ -6933,14 +6960,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           window.__cdAdminBypass = true;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return;
+          return true;
         }
       } catch (_adminErr) {}
       if (!hasAuthToken()) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
-        return;
+        return false;
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
@@ -6949,7 +6976,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (_subPlan === 'unlimited' || _subPlan === 'premium') {
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return;
+          return true;
         }
       } catch (_subErr) {}
       // 프리미엄 북 액션: 운명 카드(프로필) 사전 체크 — 코인 차감 전에 검사 (코인 손실 방지)
@@ -6966,19 +6993,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (!_cgProfile) {
           // 프로필 없음: 코인 차감 없이 모달 열기 → no-profile 화면 표시
           _cdInvokeActionDirect(action, actionNode);
-          return;
+          return true;
         }
       }
       if (userBalance < tileCoinCost) {
         if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
           openChargeModal();
         }
-        return;
+        return false;
       }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
-      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
-      if (consumeInFlight) return;
+      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return false;
+      if (consumeInFlight) {
+        return false;
+      }
       consumeInFlight = true;
       try {
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -6987,12 +7016,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         });
         if (r.status === 404 || r.status >= 500) {
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
-          return;
+          return false;
         }
-        if (r.status === 402) { openChargeModal(); return; }
+        if (r.status === 402) { openChargeModal(); return false; }
         if (!r.ok) {
           window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
-          return;
+          return false;
         }
         if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
           userBalance = r.payload.user.points;
@@ -7003,9 +7032,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         updateBadge();
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
+        return true;
       } catch (e) {
         console.error('[coin gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return false;
       } finally {
         consumeInFlight = false;
       }
@@ -7071,8 +7102,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
         // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+        // prem-card: Preview 패널 먼저 표시 (desktop & mobile 통일 UX, 합성 클릭 이중 실행 방지)
+        // pvw-bypass 없는 prem-card → 프리뷰 패널 오픈 → CTA → 코인게이트 순서
+        if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
+            _cdSafeBlockEvent(event);
+            return;
+          }
+          // Preview 없는 경우(D 딕셔너리 미등록) 직접 코인게이트로 폴백
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
+        }
+        // .tarot-tile / .lifebook-tile / .lovebible-tile: pvw-bypass 없으면 Preview가 처리
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
           if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
@@ -7255,8 +7297,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   // prem-card용 코인게이트 직접 호출 (프리뷰 패널 CTA → user-gesture 컨텍스트 유지)
   window.__cdPremCardCoinGate = function(action, actionNode, coinCost) {
-    if (!action || !actionNode || !(coinCost > 0)) return;
-    _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
+    if (!action || !actionNode || !(coinCost > 0)) return Promise.resolve(false);
+    return _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
   };
 
   // Auth 상태 재확인 (인라인 스크립트 보조)
@@ -7351,7 +7393,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         </div>
       </div>
       <div class="tile-pvw-cta-sticky">
-        <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
+        <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn"><span id="tilePvwCtaBtnLabel">지금 시작하기 →</span></button>
+        <div class="tile-pvw-cta-meta" id="tilePvwCtaMeta" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -7385,7 +7428,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openTarotHealingPage:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 무료 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
     openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','완전 무료 — 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
     openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'헤어진 그 사람 진짜 돌아올 수 있을까 — 5장의 타로가 재회 가능성을 직접 말합니다',feats:['재회 가능성을 직접 분석 & 수치로 제시','그 사람이 지금 나를 어떻게 생각하는지 리딩','재회를 위한 최적 타이밍 & 구체적 행동 전략','이별 원인 분석 후 실전 재회 어드바이스 제공'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
-    openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/12animals.webp'},
+    openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
     openCelestialHarmony:{cat:'코즈믹 타로 · 천체의 선율',title:'✨ 천체의 선율',tagline:'행성의 상징성과 타로 아르카나를 1:1로 결합한 11카드 리딩으로, 당신의 성향·감정·재정·관계까지 정밀 해석합니다.',feats:['태양~명왕성 질문축 기반 11포지션 정밀 해석','각 카드별 핵심 통찰·패턴·실행 조언·확언 제공','마지막 황금빛 카드로 전체 흐름 통합 정리','힐링·응원 메시지로 오늘의 실천 방향 제시'],cost:'🪙 100코인',ct:'paid',img:'/images/Celestial%20Harmony.webp'},
     openIfaOracle:{cat:'IFÀ 오라클 · 요루바 신탁',title:'🪬 IFÀ 오라클',tagline:'요루바 256 오두 신탁 리딩 — 오린미라의 지혜가 담긴 코드로 오늘의 질문에 직접 답합니다.',feats:['진정한 이파 전승(IFÀ) 시스템 — 256 오두 정통 해석','총운·연애·재물·건강 4가지 컨텍스트 맞춤 리딩','블리윗 음양 에너지 진단 + 실천 지침 포함','실시간 오페레 체인 패드 애니메이션 + 시티스 버전'],cost:'🪙 30코인/회',ct:'paid',img:'/fuctionassets/ifafortune.webp'},
     openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'동양 명리학과 서양 타로가 동시에 같은 답을 가리킬 때 — 그것이 진짜 운명의 방향입니다',feats:['78장 타로 + 사주 명리학 프레임 교차 분석','사주와 타로가 동시에 가리키는 핵심 메시지 추출','지금 내 상황에 꼭 맞는 카드 배열 선택','AI 심층 리딩으로 구체적인 방향 제시'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20tarrot.webp'},
@@ -7409,8 +7452,24 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openSibylModal:{cat:'시빌라 사주 시스템',title:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (100코인)'],cost:'✨ 기본 무료 · 도미네이터 100코인',ct:'free',img:'/fuctionassets/sybila.webp'}
   };
 
-  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
+  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_ctaBtnLabelEl,_ctaMetaEl,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
   var _pendingTile=null,_pendingHref=null;
+  var _ctaLoading=false;
+
+  function _setCtaLabel(text){
+    if(_ctaBtnLabelEl){_ctaBtnLabelEl.textContent=text||'';return;}
+    if(_ctaBtn)_ctaBtn.textContent=text||'';
+  }
+
+  function _setCtaLoading(isLoading,msg){
+    _ctaLoading=!!isLoading;
+    if(_ctaBtn){
+      _ctaBtn.classList.toggle('is-loading',_ctaLoading);
+      _ctaBtn.disabled=_ctaLoading;
+      _ctaBtn.setAttribute('aria-busy',_ctaLoading?'true':'false');
+    }
+    if(_ctaMetaEl)_ctaMetaEl.textContent=msg||'';
+  }
 
   function _init(){
     _ov=document.getElementById('tilePvwOverlay');
@@ -7422,6 +7481,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     _catEl=document.getElementById('tilePvwCat');
     _costEl=document.getElementById('tilePvwCost');
     _ctaBtn=document.getElementById('tilePvwCtaBtn');
+    _ctaBtnLabelEl=document.getElementById('tilePvwCtaBtnLabel');
+    _ctaMetaEl=document.getElementById('tilePvwCtaMeta');
     _heroImg=document.getElementById('tilePvwHeroImg');
     _paywallEl=document.getElementById('tilePvwPaywall');
     _paywallIcon=document.getElementById('tilePvwPaywallIcon');
@@ -7502,7 +7563,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 이용 가능';
           if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 이용 가능합니다!';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
-          _ctaBtn.textContent='✅ 구독으로 바로 시작하기';
+          _setCtaLabel('✅ 구독으로 바로 시작하기');
         } else {
           if(_paywallIcon)_paywallIcon.textContent='🪙';
           if(_paywallTitle)_paywallTitle.textContent='1회 '+coinCost+'코인 · 지금 바로 결과 확인';
@@ -7526,7 +7587,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           else if(action==='gotoVedicPremium')_ctaBtnLabel='🪷 베다 운명서 PDF 지금 생성하기';
           else if(action==='gotoNamingPremium')_ctaBtnLabel='✍️ 명운 프리미엄 작명 시작하기';
           else _ctaBtnLabel='🪙 '+coinCost+'코인으로 시작하기';
-          _ctaBtn.textContent=_ctaBtnLabel;
+          _setCtaLabel(_ctaBtnLabel);
         }
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
@@ -7536,21 +7597,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 영구 해금 가능';
           if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 영구 해금됩니다!';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
-          _ctaBtn.textContent='✅ 구독으로 영구 해금';
+          _setCtaLabel('✅ 구독으로 영구 해금');
         } else {
           if(_paywallIcon)_paywallIcon.textContent='🔒';
           if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
           if(_paywallDesc)_paywallDesc.textContent='한 번 해금하면 계속 이용 가능합니다! 혹은 프리미엄 구독으로도 해금 가능합니다.';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--lock';
-          _ctaBtn.textContent='🔓 '+lockCost+'코인으로 영구 해금';
+          _setCtaLabel('🔓 '+lockCost+'코인으로 영구 해금');
         }
       } else {
         _paywallEl.style.display='none';
         _ctaBtn.className='tile-pvw-cta-btn';
-        _ctaBtn.textContent='지금 시작하기 →';
+        _setCtaLabel('지금 시작하기 →');
       }
     }
 
+    _setCtaLoading(false,'');
     _ov.removeAttribute('style');
     requestAnimationFrame(function(){_ov.classList.add('pvw-open');});
   }
@@ -7561,22 +7623,43 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       document.body.style.overflow='';
       document.body.classList.remove('lb-modal-open');
     } catch(_) {}
+    _setCtaLoading(false,'');
     _pendingTile=null;_pendingHref=null;
   }
 
   function _onCta(){
+    if(_ctaLoading)return;
     var tile=_pendingTile,href=_pendingHref;
-    _close();
     if(!tile)return;
     var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
-    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
-    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
-    // 유료 타일 CTA는 직접 코인게이트를 호출해 합성 click 경로 의존성을 제거한다.
+    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=href;return;}
+    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=_fbHref;return;}
+    // 유료 CTA는 패널을 유지한 채 로딩 상태를 보여주고 코인게이트를 호출한다.
+    // 성공 시 _cdInvokeActionDirect()가 패널을 닫고 각 프리미엄 모달로 이동한다.
     if(_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
       var _paidAct=tile.getAttribute('data-action');
-      if(_paidAct){window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost);return;}
+      if(_paidAct){
+        var _autoPdfAction = _paidAct==='gotoZiweiPremium' || _paidAct==='gotoAstrologyPremium' || _paidAct==='gotoSukuyoPremium' || _paidAct==='gotoVedicPremium';
+        _setCtaLoading(true,'결제 확인 후 챕터 생성 화면으로 이동 중입니다...');
+        try{
+          window.__cdAutoGeneratePremiumBookAction=_paidAct;
+          if(_autoPdfAction)window.__cdAutoDownloadPremiumBookAction=_paidAct;
+        }catch(_){ }
+        Promise.resolve(window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost)).then(function(ok){
+          if(ok)return;
+          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
+          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
+          _setCtaLoading(false,'요청이 취소되었습니다. 다시 시도해 주세요.');
+        }).catch(function(){
+          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
+          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
+          _setCtaLoading(false,'연결 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        });
+        return;
+      }
     }
+    _close();
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
     tile.setAttribute('data-pvw-bypass','1');
@@ -8720,6 +8803,7 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 </script>
 </body>
 </html>
+
 
 
 

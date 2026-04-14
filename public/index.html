@@ -889,17 +889,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-cta-btn--coin:hover{box-shadow:0 10px 32px rgba(245,158,11,.5)}
 .tile-pvw-cta-btn--lock{background:linear-gradient(135deg,#5b21b6,#7c3aed,#9333ea);box-shadow:0 6px 24px rgba(91,33,182,.48),inset 0 1px 0 rgba(255,255,255,.14)}
 .tile-pvw-cta-btn--lock:hover{box-shadow:0 10px 32px rgba(147,51,234,.55)}
-.tile-pvw-overlay{background:radial-gradient(1200px 520px at 50% -120px,rgba(129,140,248,.18),transparent 58%)}
-.tile-pvw-sheet{background:linear-gradient(170deg,rgba(16,10,34,.92) 0%,rgba(24,12,44,.88) 52%,rgba(10,5,24,.92) 100%);border:1px solid rgba(191,157,255,.28);box-shadow:0 26px 80px rgba(2,0,10,.72),0 0 0 1px rgba(255,255,255,.06) inset;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-.tile-pvw-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 28%,transparent 72%,rgba(255,255,255,.08));opacity:.7}
-.tile-pvw-bd{background:rgba(3,2,12,.72);backdrop-filter:blur(9px) saturate(118%);-webkit-backdrop-filter:blur(9px) saturate(118%)}
-.tile-pvw-title{font-size:1.4rem;letter-spacing:.01em}
-.tile-pvw-tagline{color:rgba(220,206,255,.9)}
-.tile-pvw-feats li{background:linear-gradient(145deg,rgba(140,88,255,.1),rgba(32,14,64,.2));border-color:rgba(186,146,255,.2)}
-.tile-pvw-feats li::before{content:'✧';font-size:.72rem}
-.tile-pvw-paywall{background:linear-gradient(145deg,rgba(250,204,21,.08),rgba(99,34,194,.08));border-color:rgba(250,204,21,.24)}
-.tile-pvw-cta-sticky{background:linear-gradient(to top,rgba(17,8,35,.95) 68%,rgba(17,8,35,0))}
-.tile-pvw-cta-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border:1px solid rgba(255,255,255,.14)}
+.tile-pvw-overlay{background:radial-gradient(1100px 420px at 50% -120px,rgba(94,234,212,.16),transparent 62%)}
+.tile-pvw-sheet{background:linear-gradient(176deg,rgba(8,18,36,.94) 0%,rgba(12,26,52,.9) 52%,rgba(6,14,28,.94) 100%);border:1px solid rgba(148,163,184,.3);box-shadow:0 30px 84px rgba(1,8,20,.74),0 0 0 1px rgba(255,255,255,.07) inset;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.tile-pvw-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.12),transparent 32%,transparent 70%,rgba(255,255,255,.06));opacity:.62}
+.tile-pvw-bd{background:rgba(2,8,20,.7);backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%)}
+.tile-pvw-title{font-size:1.44rem;letter-spacing:.01em;color:#ecfeff}
+.tile-pvw-tagline{color:rgba(205,225,245,.9)}
+.tile-pvw-feats li{background:linear-gradient(145deg,rgba(56,189,248,.11),rgba(14,30,58,.22));border-color:rgba(148,163,184,.26);color:#dbeafe}
+.tile-pvw-feats li::before{content:'✧';font-size:.72rem;color:#67e8f9}
+.tile-pvw-paywall{background:linear-gradient(145deg,rgba(251,191,36,.1),rgba(30,58,138,.12));border-color:rgba(251,191,36,.3)}
+.tile-pvw-cta-sticky{background:linear-gradient(to top,rgba(7,17,35,.96) 70%,rgba(7,17,35,0))}
+.tile-pvw-cta-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;border:1px solid rgba(255,255,255,.2)}
 .tile-pvw-cta-btn::before{content:'';width:17px;height:17px;border-radius:999px;border:2px solid rgba(255,255,255,.65);border-right-color:transparent;box-sizing:border-box;display:none}
 .tile-pvw-cta-btn.is-loading{filter:saturate(.85) brightness(.9);cursor:wait;pointer-events:none}
 .tile-pvw-cta-btn.is-loading::before{display:inline-block;animation:tilePvwSpin .76s linear infinite}
@@ -6691,13 +6691,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       })();
     }
 
+    function _cdNotifyPremiumOpenFailed(label) {
+      try {
+        var _msg = (label || '프리미엄') + ' 생성 창을 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        if (typeof window.alert === 'function') window.alert(_msg);
+      } catch (_) {}
+    }
+
     function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
       var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
       if (_loader) return _loader();
       var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
-      if (_existing && (_existing.dataset.loaded === '1' || _existing.readyState === 'complete' || _existing.readyState === 'loaded')) {
-        return Promise.resolve();
-      }
+      // 이미 DOM에 존재하는 스크립트는 load 이벤트를 놓쳤을 수 있으므로 즉시 진행하고 함수 재시도로 보완한다.
+      if (_existing) return Promise.resolve();
       return new Promise(function(resolve, reject) {
         var _target = _existing;
         if (!_target) {
@@ -6751,7 +6757,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
           var s = document.querySelector('script[src*="ziwei-book.js"]');
-          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
+          if (s) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
             return Promise.resolve();
           }
@@ -6776,11 +6782,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
             if (!_invokeZiwei()) {
               _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
+              _cdNotifyPremiumOpenFailed('자미두수');
             }
           })
           .catch(function(e) {
             _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
             console.error('[prem-card ziwei]', e);
+            _cdNotifyPremiumOpenFailed('자미두수');
           });
       })();
       return;
@@ -6831,9 +6839,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openAstroBookModal', null, function() {
               console.error('[prem-card astro-book] openAstroBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('점성술');
             });
           })
-          .catch(function(e) { console.error('[prem-card astro-book]', e); });
+          .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
       }
       return;
     }
@@ -6849,9 +6858,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
               console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('숙요점');
             });
           })
-          .catch(function(e) { console.error('[prem-card sukuyo]', e); });
+          .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
       }
       return;
     }
@@ -6867,9 +6877,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           .then(function() {
             _cdInvokeWithRetry('openVedicBookModal', null, function() {
               console.error('[prem-card vedic] openVedicBookModal missing after load');
+              _cdNotifyPremiumOpenFailed('베다점');
             });
           })
-          .catch(function(e) { console.error('[prem-card vedic]', e); });
+          .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
       }
       return;
     }
