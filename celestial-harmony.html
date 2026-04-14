@@ -446,11 +446,40 @@
       '</div>';
     }
     function readBtnOn(on){$read.disabled=!on;$read.style.opacity=on?'1':'.4';$read.style.cursor=on?'pointer':'not-allowed';}
+    var _CH_ADMIN_TOKEN_RE=/^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
+    function _chIsAdminLikeUser(){
+      try{if(window.__cdAdminBypass)return true;}catch(_){ }
+      try{
+        var rawUser=localStorage.getItem('fortune_auth_user')||'';
+        if(rawUser){
+          var user=JSON.parse(rawUser);
+          if(user&&user.role==='admin')return true;
+        }
+      }catch(_){ }
+      try{
+        var sTok=String(sessionStorage.getItem('flower_admin_token')||'');
+        if(_CH_ADMIN_TOKEN_RE.test(sTok))return true;
+      }catch(_){ }
+      try{
+        var lTok=String(localStorage.getItem('flower_admin_token')||'');
+        if(_CH_ADMIN_TOKEN_RE.test(lTok))return true;
+      }catch(_){ }
+      return false;
+    }
     function _chCoinGate(onOk,onCancel){
+      if(_chIsAdminLikeUser()){onOk();return;}
       if(typeof window._cdCoinGatePerUse==='function'){window._cdCoinGatePerUse(100,'천체의 선율 코즈믹 리딩',onOk,onCancel);return;}
       var tk=localStorage.getItem('fortune_auth_token');
+      var adminTk='';
+      try{adminTk=String(sessionStorage.getItem('flower_admin_token')||localStorage.getItem('flower_admin_token')||'');}catch(_){adminTk='';}
+      if(adminTk&&!_CH_ADMIN_TOKEN_RE.test(adminTk))adminTk='';
+      var adminTier='';
+      try{adminTier=String(localStorage.getItem('flower_admin_test_tier')||'').toLowerCase();}catch(_){adminTier='';}
       if(!tk){alert('로그인이 필요한 기능입니다.');if(onCancel)onCancel();return;}
-      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tk},body:JSON.stringify({amount:100,reason:'천체의 선율 코즈믹 리딩'})})
+      var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
+      if(adminTk)headers['x-admin-token']=adminTk;
+      if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
+      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony'})})
         .then(function(r){return r.json();})
         .then(function(d){if(d&&d.ok){onOk();}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
         .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();});

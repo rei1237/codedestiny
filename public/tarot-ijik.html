@@ -1544,12 +1544,43 @@ async function initDeckFromApi() {
 
 // ─── COIN GATE (1회 50코인) ───
 async function ijikCoinGate(cost, reason) {
+  var _ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
+  var isAdminLike = false;
+  try { if (window.__cdAdminBypass) isAdminLike = true; } catch(_) {}
+  if (!isAdminLike) {
+    try {
+      var _rawAdmin = localStorage.getItem('fortune_auth_user') || '';
+      if (_rawAdmin) {
+        var _adminUser = JSON.parse(_rawAdmin);
+        if (_adminUser && _adminUser.role === 'admin') isAdminLike = true;
+      }
+    } catch(_) {}
+  }
   var plan = '';
   try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
   if (plan === 'unlimited' || plan === 'premium') return true;
-  try { if (sessionStorage.getItem('flower_admin_token')) return true; } catch(_) {}
+  if (!isAdminLike) {
+    try {
+      var _sTok = String(sessionStorage.getItem('flower_admin_token') || '');
+      if (_ADMIN_TOKEN_RE.test(_sTok)) isAdminLike = true;
+    } catch(_) {}
+  }
+  if (!isAdminLike) {
+    try {
+      var _lTok = String(localStorage.getItem('flower_admin_token') || '');
+      if (_ADMIN_TOKEN_RE.test(_lTok)) isAdminLike = true;
+    } catch(_) {}
+  }
+  if (isAdminLike) return true;
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  var adminToken = '';
+  try {
+    var _rawTk = String(sessionStorage.getItem('flower_admin_token') || localStorage.getItem('flower_admin_token') || '');
+    if (_ADMIN_TOKEN_RE.test(_rawTk)) adminToken = _rawTk;
+  } catch(_) {}
+  var adminTier = '';
+  try { adminTier = String(localStorage.getItem('flower_admin_test_tier') || '').toLowerCase(); } catch(_) {}
   if (!token) {
     if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=' + encodeURIComponent(location.pathname);
@@ -1568,10 +1599,15 @@ async function ijikCoinGate(cost, reason) {
     return false;
   }
   try {
+    var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    if (adminToken) headers['x-admin-token'] = adminToken;
+    if (adminToken && (adminTier === 'standard' || adminTier === 'premium' || adminTier === 'vvip')) {
+      headers['x-admin-subscription-tier'] = adminTier;
+    }
     const resp = await fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason })
+      headers: headers,
+      body: JSON.stringify({ cost: cost, amount: cost, reason: reason, featureKey: 'tarot-ijik' })
     });
     const data = await resp.json();
     if (!resp.ok) {
