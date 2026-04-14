@@ -26,10 +26,16 @@
   }
 
   /* ─ 표시 / 숨김 ─ */
-  function showNav () { if (navBar) navBar.classList.add('fsn-visible'); }
+  function showNav () {
+    if (navBar) navBar.classList.add('fsn-visible');
+    var rp = document.getElementById('resultPage');
+    if (rp) rp.style.paddingTop = ((navBar && navBar.offsetHeight) || 44) + 'px';
+  }
   function hideNav () {
     if (navBar) navBar.classList.remove('fsn-visible');
     if (titleEl) titleEl.textContent = '\uc6b4\uba85\uc758 \uc9c0\ub3c4';
+    var rp = document.getElementById('resultPage');
+    if (rp) rp.style.paddingTop = '';
   }
 
   /* ─ 대상 섹션 목록 ─ */
