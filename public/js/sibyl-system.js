@@ -806,12 +806,40 @@
   async function _unlockDominator() {
     var btn = _q('sbUnlockBtn');
     if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
+
+    function _restoreUnlockBtn() {
+      if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+    }
+
+    function _afterPaid() {
+      var lockEl = _q('sbLockOverlay');
+      if (lockEl) lockEl.classList.add('sb-hidden');
+      var genEl = _q('sbGenerating');
+      if (genEl) genEl.classList.remove('sb-hidden');
+
+      _generateDominatorReport().catch(function(e) {
+        console.error('[SibylSystem] Report generation error:', e);
+        var errState = _q('sbErrorState');
+        if (errState) errState.classList.remove('sb-hidden');
+        var genEl2 = _q('sbGenerating');
+        if (genEl2) genEl2.classList.add('sb-hidden');
+      });
+    }
+
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(100, '시빌라 도미네이터 리포트', _afterPaid, _restoreUnlockBtn);
+      return;
+    }
+    _restoreUnlockBtn();
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return;
+
     // Auth check
     try {
       var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
       if (!token) {
         alert('🔒 로그인이 필요합니다. 로그인 후 이용해 주세요.');
-        if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+        _restoreUnlockBtn();
         return;
       }
     } catch(e) {}
@@ -824,14 +852,14 @@
         if (confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
           if (typeof window.openChargeModal === 'function') window.openChargeModal();
         }
-        if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+        _restoreUnlockBtn();
         return;
       }
     } catch(e) {}
 
     // Confirm
     if (!confirm('🪙 시빌라 도미네이터 리포트\n100코인이 차감됩니다. 진행하시겠습니까?\n(현재 진행 중인 사주 분석 기반 20,000자+ 전문 리포트)')) {
-      if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+      _restoreUnlockBtn();
       return;
     }
 
@@ -853,7 +881,7 @@
         } else {
           alert(msg);
         }
-        if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+        _restoreUnlockBtn();
         return;
       }
       var consumeData = await consumeRes.json().catch(function(){return {};});
@@ -868,25 +896,11 @@
       }
     } catch(e) {
       alert('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
-      if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
+      _restoreUnlockBtn();
       return;
     }
 
-    // Show generating state
-    var lockEl = _q('sbLockOverlay');
-    if (lockEl) lockEl.classList.add('sb-hidden');
-    var genEl = _q('sbGenerating');
-    if (genEl) genEl.classList.remove('sb-hidden');
-
-    try {
-      await _generateDominatorReport();
-    } catch(e) {
-      console.error('[SibylSystem] Report generation error:', e);
-      var errState = _q('sbErrorState');
-      if (errState) errState.classList.remove('sb-hidden');
-      var genEl2 = _q('sbGenerating');
-      if (genEl2) genEl2.classList.add('sb-hidden');
-    }
+    _afterPaid();
   }
 
   /* ── 도미네이터 리포트 생성 API 호출 ── */
