@@ -6501,15 +6501,30 @@ window.resetTarotForCategorySelection = resetTarotForCategorySelection;
 function openTarotModal() {
   var overlay = document.getElementById('tarotModalOverlay');
   if (!overlay) return;
-  overlay.style.display = 'block';
-  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
-  if (window._perf && window._perf.lockBody) window._perf.lockBody();
-  else document.body.style.overflow = 'hidden';
-  var w = window.innerWidth || document.documentElement.clientWidth;
-  var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
-  if (req && w > 768) {
-    req.call(overlay).catch(function() {});
+  var showOverlay = function() {
+    overlay.style.display = 'block';
+    if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
+    if (window._perf && window._perf.lockBody) window._perf.lockBody();
+    else document.body.style.overflow = 'hidden';
+    var w = window.innerWidth || document.documentElement.clientWidth;
+    var req = overlay.requestFullscreen || overlay.webkitRequestFullscreen || overlay.mozRequestFullScreen || overlay.msRequestFullscreen;
+    if (req && w > 768) {
+      req.call(overlay).catch(function() {});
+    }
+  };
+
+  // 타로 엔진이 늦게 로드되면 카테고리/카드 클릭이 무반응이 될 수 있어 모달 오픈 전에 보장한다.
+  if (typeof __cdEnsureSajuCoreLoaded === 'function') {
+    __cdEnsureSajuCoreLoaded()
+      .then(showOverlay)
+      .catch(function(err) {
+        console.error('[tarot] core preload failed:', err);
+        showOverlay();
+      });
+    return;
   }
+
+  showOverlay();
 }
 function closeTarotModal() {
   var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
