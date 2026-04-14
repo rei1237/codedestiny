@@ -13,12 +13,17 @@
   var state = {
     cards: [],
     reading: null,
+    hasAccess: false,
+    paymentInFlight: false,
     selectedMonth: null,
     activeCategory: "general",
     monthSpreadCache: {},
     monthCategoryCache: {},
     monthRequestToken: 0
   };
+  var YEAR_COIN_COST = 30;
+  var YEAR_REASON = "십이지신 천운 타로";
+  var YEAR_FEATURE_KEY = "tarot-year-fortune";
   var TAROT_API_TIMEOUT_MS = 9000;
 
   function byId(id) {
@@ -241,6 +246,117 @@
     });
   }
 
+  function getAuthToken() {
+    try {
+      return localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken") || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function showCoinShortage(cost, reason) {
+    try {
+      if (typeof window.__cdOpenChargeModal === "function") {
+        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n코인 충전 창을 엽니다.");
+        window.__cdOpenChargeModal();
+        return;
+      }
+    } catch (e) {}
+    if (window.confirm("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n충전 페이지로 이동할까요?")) {
+      window.location.href = "/points";
+    }
+  }
+
+  function consumeCoinDirect(cost, reason, featureKey) {
+    var token = getAuthToken();
+    if (!token) {
+      if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+        var next = encodeURIComponent(location.pathname + location.search);
+        window.location.href = "/login?next=" + next;
+      }
+      return Promise.resolve(false);
+    }
+
+    return fetch("/api/fortune/pig-coin/consume", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        cost: cost,
+        reason: reason,
+        featureKey: featureKey,
+      }),
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (res.status === 402) {
+            showCoinShortage(cost, reason);
+            return false;
+          }
+          if (!res.ok || data.ok === false) {
+            window.alert(String(data.message || "코인 차감에 실패했습니다."));
+            return false;
+          }
+          return true;
+        });
+      })
+      .catch(function () {
+        window.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        return false;
+      });
+  }
+
+  function rollbackCoinBestEffort(cost, reason, featureKey) {
+    var token = getAuthToken();
+    if (!token) return Promise.resolve(false);
+    return fetch("/api/fortune/pig-coin/earn", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        amount: cost,
+        reason: "자동 복구: " + reason,
+        featureKey: featureKey + "-rollback",
+      }),
+    }).then(function (res) {
+      return !!res && res.ok;
+    }).catch(function () {
+      return false;
+    });
+  }
+
+  function requireYearAccess() {
+    if (state.hasAccess) return Promise.resolve(true);
+    if (state.paymentInFlight) return Promise.resolve(false);
+    state.paymentInFlight = true;
+
+    return new Promise(function (resolve) {
+      function done(ok) {
+        state.paymentInFlight = false;
+        state.hasAccess = !!ok;
+        resolve(!!ok);
+      }
+
+      if (typeof window._cdCoinGatePerUse === "function") {
+        window._cdCoinGatePerUse(
+          YEAR_COIN_COST,
+          YEAR_REASON,
+          function () { done(true); },
+          function () { done(false); }
+        );
+        return;
+      }
+
+      consumeCoinDirect(YEAR_COIN_COST, YEAR_REASON, YEAR_FEATURE_KEY)
+        .then(function (ok) { done(ok); })
+        .catch(function () { done(false); });
+    });
+  }
+
   var TAROT_LOCAL_BASES = ["/tarot-cards/", "/public/tarot-cards/", "tarot-cards/", "public/tarot-cards/"];
   var TAROT_LOCAL_BASE = TAROT_LOCAL_BASES[0];
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
@@ -438,6 +554,8 @@
       if (!overlay) return;
       overlay.style.display = "none";
       overlay.classList.remove("is-open");
+      state.hasAccess = false;
+      state.paymentInFlight = false;
       if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
       else document.body.style.overflow = "";
     } catch (err) {
@@ -449,6 +567,8 @@
   function resetTarotYearFortuneFlow() {
     state.cards = [];
     state.reading = null;
+    state.hasAccess = false;
+    state.paymentInFlight = false;
     state.selectedMonth = null;
     state.activeCategory = "general";
     state.monthSpreadCache = {};
@@ -470,14 +590,18 @@
   }
 
   function startTarotYearFortuneReading() {
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(30, '십이지신 천운 타로', _runTarotYearFortuneReading);
-      return;
-    }
-    _runTarotYearFortuneReading();
+    requireYearAccess().then(function (ok) {
+      if (!ok) return;
+      _runTarotYearFortuneReading();
+    });
   }
 
   function _runTarotYearFortuneReading() {
+    if (!state.hasAccess) {
+      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
+      return;
+    }
+
     var intro = byId("tarotYearFortuneIntroStage");
     var draw = byId("tarotYearFortuneDrawStage");
     var result = byId("tarotYearFortuneResultStage");
@@ -899,7 +1023,7 @@ function updateMonthCategoryPanel(text, cat) {
   }
 
   function showTarotYearFinalReading() {
-    if (!state.cards.length) return;
+    if (!state.cards.length || !state.hasAccess) return;
     var drawnForApi = state.cards.map(function (c) {
       return { cardId: c.cardId, position: c.position, orientation: c.orientation };
     });
@@ -929,8 +1053,20 @@ function updateMonthCategoryPanel(text, cat) {
       })
       .catch(function (err) {
         console.error("Tarot Year reading error:", err);
-        buildClientSideReading();
-        showResultStage({ reading: state.reading });
+        rollbackCoinBestEffort(YEAR_COIN_COST, YEAR_REASON, YEAR_FEATURE_KEY).then(function (rolledBack) {
+          state.hasAccess = false;
+          if (rolledBack) {
+            window.alert("해석 생성 오류가 발생해 결제 코인을 복구했습니다. 다시 시도해 주세요.");
+          } else {
+            window.alert("해석 생성 중 오류가 발생했습니다. 결과 페이지 진입이 차단되었습니다. 잠시 후 다시 시도해 주세요.");
+          }
+          var intro = byId("tarotYearFortuneIntroStage");
+          var draw = byId("tarotYearFortuneDrawStage");
+          var result = byId("tarotYearFortuneResultStage");
+          if (intro) intro.classList.remove("is-active");
+          if (draw) draw.classList.add("is-active");
+          if (result) result.classList.remove("is-active");
+        });
       });
   }
 
@@ -998,6 +1134,10 @@ function updateMonthCategoryPanel(text, cat) {
   function renderTarotYearResult() {
     var r = state.reading;
     if (!r) return;
+    if (!state.hasAccess) {
+      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
+      return;
+    }
 
     var summaryEl = byId("tarotYearSummary");
     if (summaryEl) {

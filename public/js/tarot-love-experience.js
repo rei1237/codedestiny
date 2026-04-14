@@ -18,7 +18,10 @@
   var GUIDE_ORDER = [0, 1, 2, 3, 4, 5];
 
   var refs = {};
-  var state = { cards: [], revealedCount: 0, reading: null };
+  var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false };
+  var LOVE_COIN_COST = 50;
+  var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
+  var LOVE_FEATURE_KEY = "tarot-love-relationship";
   var TAROT_API_TIMEOUT_MS = 12000;
   var RELATIONSHIP_POSITIONS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
   var LOCAL_RELATIONSHIP_DECK = [
@@ -267,6 +270,117 @@
         baseCandidates: bases,
       }, error);
       throw error;
+    });
+  }
+
+  function getAuthToken() {
+    try {
+      return localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken") || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function showCoinShortage(cost, reason) {
+    try {
+      if (typeof window.__cdOpenChargeModal === "function") {
+        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n코인 충전 창을 엽니다.");
+        window.__cdOpenChargeModal();
+        return;
+      }
+    } catch (e) {}
+    if (window.confirm("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n충전 페이지로 이동할까요?")) {
+      window.location.href = "/points";
+    }
+  }
+
+  function consumeCoinDirect(cost, reason, featureKey) {
+    var token = getAuthToken();
+    if (!token) {
+      if (window.confirm("🔒 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
+        var next = encodeURIComponent(location.pathname + location.search);
+        window.location.href = "/login?next=" + next;
+      }
+      return Promise.resolve(false);
+    }
+
+    return fetch("/api/fortune/pig-coin/consume", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        cost: cost,
+        reason: reason,
+        featureKey: featureKey,
+      }),
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          if (res.status === 402) {
+            showCoinShortage(cost, reason);
+            return false;
+          }
+          if (!res.ok || data.ok === false) {
+            window.alert(String(data.message || "코인 차감에 실패했습니다."));
+            return false;
+          }
+          return true;
+        });
+      })
+      .catch(function () {
+        window.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        return false;
+      });
+  }
+
+  function rollbackCoinBestEffort(cost, reason, featureKey) {
+    var token = getAuthToken();
+    if (!token) return Promise.resolve(false);
+    return fetch("/api/fortune/pig-coin/earn", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        amount: cost,
+        reason: "자동 복구: " + reason,
+        featureKey: featureKey + "-rollback",
+      }),
+    }).then(function (res) {
+      return !!res && res.ok;
+    }).catch(function () {
+      return false;
+    });
+  }
+
+  function requireLoveAccess() {
+    if (state.hasAccess) return Promise.resolve(true);
+    if (state.paymentInFlight) return Promise.resolve(false);
+    state.paymentInFlight = true;
+
+    return new Promise(function (resolve) {
+      function done(ok) {
+        state.paymentInFlight = false;
+        state.hasAccess = !!ok;
+        resolve(!!ok);
+      }
+
+      if (typeof window._cdCoinGatePerUse === "function") {
+        window._cdCoinGatePerUse(
+          LOVE_COIN_COST,
+          LOVE_REASON,
+          function () { done(true); },
+          function () { done(false); }
+        );
+        return;
+      }
+
+      consumeCoinDirect(LOVE_COIN_COST, LOVE_REASON, LOVE_FEATURE_KEY)
+        .then(function (ok) { done(ok); })
+        .catch(function () { done(false); });
     });
   }
 
@@ -617,6 +731,8 @@
     if (!overlay) return;
     overlay.style.display = "none";
     overlay.classList.remove("is-open");
+    state.hasAccess = false;
+    state.paymentInFlight = false;
     if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
     else document.body.style.overflow = "";
   }
@@ -625,6 +741,8 @@
     state.cards = [];
     state.revealedCount = 0;
     state.reading = null;
+    state.hasAccess = false;
+    state.paymentInFlight = false;
 
     var intro = byId("tarotLoveIntroStage");
     var draw = byId("tarotLoveDrawStage");
@@ -795,14 +913,18 @@
 
   function showTarotLoveFinalReading() {
     if (state.revealedCount < 6 || !state.cards.length) return;
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(50, '우리는 무슨 사이? 타로 리딩', _runTarotLoveFinalReading);
-      return;
-    }
-    _runTarotLoveFinalReading();
+    requireLoveAccess().then(function (ok) {
+      if (!ok) return;
+      _runTarotLoveFinalReading();
+    });
   }
 
   function _runTarotLoveFinalReading() {
+    if (!state.hasAccess) {
+      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
+      return;
+    }
+
     var normalizedCards = normalizeRelationshipCards(state.cards);
     state.cards = normalizedCards;
     var drawnForApi = normalizedCards.map(function (c) {
@@ -829,18 +951,32 @@
       })
       .catch(function (err) {
         console.error("Tarot Love reading error:", err);
-        state.reading = createLocalRelationshipReading(state.cards);
         var draw = byId("tarotLoveDrawStage");
         var result = byId("tarotLoveResultStage");
+        var container = byId("tarotLoveReadingContent");
         if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        renderTarotLoveResult();
+        if (result) result.classList.remove("is-active");
+        if (draw) draw.classList.add("is-active");
+        if (container) container.innerHTML = "";
+
+        rollbackCoinBestEffort(LOVE_COIN_COST, LOVE_REASON, LOVE_FEATURE_KEY).then(function (rolledBack) {
+          state.hasAccess = false;
+          if (rolledBack) {
+            window.alert("해석 생성 오류가 발생해 결제 코인을 복구했습니다. 다시 시도해 주세요.");
+          } else {
+            window.alert("해석 생성 중 오류가 발생했습니다. 결과 페이지 진입이 차단되었습니다. 잠시 후 다시 시도해 주세요.");
+          }
+        });
       });
   }
 
   function renderTarotLoveResult() {
     var container = byId("tarotLoveReadingContent");
     if (!container || !state.reading) return;
+    if (!state.hasAccess) {
+      container.innerHTML = '<div class="tarot-love-section"><p class="tarot-love-section-text">결제가 확인되지 않아 결과를 표시할 수 없습니다.</p></div>';
+      return;
+    }
 
     var r = state.reading;
     var overallVibe = r.overallVibe != null ? String(r.overallVibe) : "";
