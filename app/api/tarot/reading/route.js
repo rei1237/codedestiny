@@ -15,7 +15,6 @@ function getEngine() {
   return _engine;
 }
 
-const TAROT_GEMINI_MODEL_DEFAULT = "gemini-2.0-flash-lite";
 const LOVE_READING_MIN_TOTAL_CHARS = 3200;
 const LOVE_SECTION_MIN_CHARS = 700;
 const LOVE_POSITION_MIN_CHARS = 220;
@@ -36,55 +35,6 @@ function ensureMinSectionLength(text, minChars, fallbackText) {
   return out;
 }
 
-function toCardLabel(card, idx) {
-  const name = safeText(card?.nameKr) || safeText(card?.name) || `카드 ${idx + 1}`;
-  const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
-  const position = safeText(card?.position) || `position_${idx + 1}`;
-  const interp = safeText(card?.interpretation);
-  const keywordText = Array.isArray(card?.keywords) ? card.keywords.slice(0, 6).join(", ") : "";
-  return `${idx + 1}. 위치:${position} / 카드:${name} / 방향:${orientation} / 해석:${interp} / 키워드:${keywordText}`;
-}
-
-function buildLoveGeminiPrompt({ cards, baseReading }) {
-  const cardLines = (Array.isArray(cards) ? cards : []).map((card, idx) => toCardLabel(card, idx)).join("\n");
-  return [
-    "너는 한국어로 상담하는 최고 수준의 연애 심리 상담가이자 타로 마스터다.",
-    "반드시 한국어로만 작성한다.",
-    "톤: 따뜻하지만 단호한 전문가 톤, 모호한 문장 반복 금지.",
-    "요구사항:",
-    "1) overallVibe, deepReading, realityAndFuture를 각각 최소 700자 이상 작성.",
-    "2) positionBreakdown은 6개 항목(title, card, summary)으로 구성하고 summary를 각각 최소 220자 이상 작성.",
-    "3) advice는 최소 8개 문장으로 작성하고, 각 문장은 즉시 실행 가능한 행동 지침으로 작성.",
-    "4) 총 글자 수가 최소 3200자 이상이 되도록 충분히 상세히 작성.",
-    "5) 실제 상담처럼 감정 해석 + 관계 구조 진단 + 단계별 행동 플랜을 함께 제시.",
-    "출력 형식은 반드시 JSON 객체 하나만 반환. 코드블록 금지.",
-    'JSON 스키마: {"overallVibe":"...","deepReading":"...","realityAndFuture":"...","positionBreakdown":[{"title":"...","card":"...","summary":"..."}],"advice":["..."]}',
-    "",
-    "[카드 데이터]",
-    cardLines,
-    "",
-    "[기존 리딩 초안 - 의미 유지 참고]",
-    `overallVibe: ${safeText(baseReading?.overallVibe)}`,
-    `deepReading: ${safeText(baseReading?.deepReading)}`,
-    `realityAndFuture: ${safeText(baseReading?.realityAndFuture)}`,
-  ].join("\n");
-}
-
-function tryParseJsonObject(raw) {
-  const text = safeText(raw);
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    try {
-      return JSON.parse(match[0]);
-    } catch {
-      return null;
-    }
-  }
-}
 
 function totalLoveReadingChars(reading) {
   const main = [
@@ -189,36 +139,6 @@ function normalizeEnhancedLoveReading(candidate, baseReading, cards) {
   return out;
 }
 
-async function createGeminiRelationshipReading({ cards, baseReading }) {
-  const apiKey = safeText(process.env.GEMINI_API_KEY);
-  if (!apiKey) return null;
-
-  const model = safeText(process.env.TAROT_GEMINI_MODEL) || TAROT_GEMINI_MODEL_DEFAULT;
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const prompt = buildLoveGeminiPrompt({ cards, baseReading });
-
-  const resp = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.55, maxOutputTokens: 4096 },
-    }),
-  });
-
-  const payload = await resp.json().catch(() => null);
-  if (!resp.ok) {
-    const msg = payload?.error?.message || `Gemini relationship reading failed (${resp.status})`;
-    throw new Error(msg);
-  }
-
-  const textOut = payload?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") || "";
-  const parsed = tryParseJsonObject(textOut);
-  if (!parsed || typeof parsed !== "object") return null;
-
-  return normalizeEnhancedLoveReading(parsed, baseReading, cards);
-}
-
 async function runEngineReading(body) {
   const engine = getEngine();
   const spreadType = engine.normalizeSpreadType(body?.spreadType || "one_card");
@@ -245,26 +165,11 @@ async function runEngineReading(body) {
   switch (spreadType) {
     case "relationship_six_card": {
       const relationship = engine.createRelationshipReading({ drawnCards });
-      let readingForUi = normalizeEnhancedLoveReading(
+      const readingForUi = normalizeEnhancedLoveReading(
         relationship.reading,
         relationship.reading,
         relationship.cardReadings,
       );
-      try {
-        const geminiReading = await createGeminiRelationshipReading({
-          cards: relationship.cardReadings,
-          baseReading: relationship.reading,
-        });
-        if (geminiReading) {
-          readingForUi = normalizeEnhancedLoveReading(
-            geminiReading,
-            relationship.reading,
-            relationship.cardReadings,
-          );
-        }
-      } catch (geminiError) {
-        console.error("[tarot][love] Gemini fallback to engine:", geminiError?.message || geminiError);
-      }
       return withQuality(
         readingForUi,
         relationship.cardReadings,

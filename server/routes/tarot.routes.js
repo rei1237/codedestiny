@@ -82,55 +82,6 @@ function buildJobChangeGeminiPrompt({ cards, baseReading }) {
   ].join("\n");
 }
 
-function buildLoveGeminiPrompt({ cards, baseReading }) {
-  const cardLines = (Array.isArray(cards) ? cards : []).map((card, idx) => {
-    const name = card?.nameKr || card?.name || `카드 ${idx + 1}`;
-    const orientation = card?.orientation === "reversed" ? "역방향" : "정방향";
-    const position = card?.position || `position_${idx + 1}`;
-    const interp = safeText(card?.interpretation);
-    const keywords = Array.isArray(card?.keywords) ? card.keywords.slice(0, 6).join(", ") : "";
-    return `${idx + 1}. 위치:${position} / 카드:${name} / 방향:${orientation} / 해석:${interp} / 키워드:${keywords}`;
-  }).join("\n");
-
-  return [
-    "너는 한국어로 상담하는 최고 수준의 연애 심리 상담가이자 타로 마스터다.",
-    "반드시 한국어로만 작성한다.",
-    "톤: 따뜻하지만 단호한 전문가 톤, 모호한 반복 금지.",
-    "요구사항:",
-    "1) overallVibe, deepReading, realityAndFuture를 각각 최소 700자 이상 작성.",
-    "2) positionBreakdown은 6개 항목(title, card, summary)으로 구성하고 summary를 각각 최소 220자 이상 작성.",
-    "3) advice는 최소 8개 문장으로 작성하고 즉시 실행 가능한 행동 조언으로 구성.",
-    "4) 총 글자 수는 최소 3200자 이상.",
-    "5) 연애 전문가 상담처럼 감정 해석 + 관계 구조 진단 + 단계별 실행 플랜을 포함.",
-    "출력은 JSON 객체 하나만 반환. 코드블록 금지.",
-    'JSON 형식: {"overallVibe":"...","deepReading":"...","realityAndFuture":"...","positionBreakdown":[{"title":"...","card":"...","summary":"..."}],"advice":["..."]}',
-    "",
-    "[카드 데이터]",
-    cardLines,
-    "",
-    "[기존 리딩 초안 - 의미 유지 참고]",
-    `overallVibe: ${safeText(baseReading?.overallVibe)}`,
-    `deepReading: ${safeText(baseReading?.deepReading)}`,
-    `realityAndFuture: ${safeText(baseReading?.realityAndFuture)}`,
-  ].join("\n");
-}
-
-function tryParseJsonObject(raw) {
-  const text = safeText(raw);
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch (_e) {
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) return null;
-    try {
-      return JSON.parse(m[0]);
-    } catch (_e2) {
-      return null;
-    }
-  }
-}
-
 function totalLoveChars(reading) {
   const main = [reading?.overallVibe, reading?.deepReading, reading?.realityAndFuture].map(safeText).join("\n").length;
   const positions = (Array.isArray(reading?.positionBreakdown) ? reading.positionBreakdown : []).map((item) => safeText(item?.summary)).join("\n").length;
@@ -279,35 +230,6 @@ async function createGeminiJobChangeReading({ cards, baseReading }) {
   };
 }
 
-async function createGeminiLoveReading({ cards, baseReading }) {
-  const apiKey = safeText(process.env.GEMINI_API_KEY);
-  if (!apiKey) return null;
-
-  const model = safeText(process.env.TAROT_GEMINI_MODEL) || "gemini-2.0-flash-lite";
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const prompt = buildLoveGeminiPrompt({ cards, baseReading });
-
-  const resp = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.55, maxOutputTokens: 4096 },
-    }),
-  });
-
-  const payload = await resp.json().catch(() => null);
-  if (!resp.ok) {
-    const msg = payload?.error?.message || `Gemini love reading failed (${resp.status})`;
-    throw new Error(msg);
-  }
-
-  const textOut = payload?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter(Boolean).join("") || "";
-  const parsed = tryParseJsonObject(textOut);
-  if (!parsed || typeof parsed !== "object") return null;
-  return normalizeLoveReading(parsed, baseReading, cards);
-}
-
 router.get("/meta", (req, res) => {
   return res.status(200).json({
     ok: true,
@@ -386,18 +308,7 @@ router.post("/reading", async (req, res, next) => {
         keywords: item.keywords,
       }));
 
-      let readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
-      try {
-        const geminiReading = await createGeminiLoveReading({
-          cards: reading.cardReadings,
-          baseReading: reading.reading,
-        });
-        if (geminiReading) {
-          readingForUi = normalizeLoveReading(geminiReading, reading.reading, reading.cardReadings);
-        }
-      } catch (geminiError) {
-        console.error("[tarot][love] Gemini fallback to engine:", geminiError?.message || geminiError);
-      }
+      const readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
 
       return res.status(200).json({
         ok: true,
@@ -651,18 +562,7 @@ router.post("/love-reading", async (req, res, next) => {
       keywords: item.keywords,
     }));
 
-    let readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
-    try {
-      const geminiReading = await createGeminiLoveReading({
-        cards: reading.cardReadings,
-        baseReading: reading.reading,
-      });
-      if (geminiReading) {
-        readingForUi = normalizeLoveReading(geminiReading, reading.reading, reading.cardReadings);
-      }
-    } catch (geminiError) {
-      console.error("[tarot][love-reading] Gemini fallback to engine:", geminiError?.message || geminiError);
-    }
+    const readingForUi = normalizeLoveReading(reading.reading, reading.reading, reading.cardReadings);
 
     return res.status(200).json({
       ok: true,
