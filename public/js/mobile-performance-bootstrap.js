@@ -329,17 +329,12 @@ function setupImageOptimization() {
   const viewportH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, 640);
   let highAssigned = 0;
 
-  // ── READ PHASE: getBoundingClientRect 일괄 배치 (write 전 일괄 읽어 layout thrashing 방지) ──
-  const rectCache = new Map();
-  for (let _i = 0; _i < imgs.length; _i++) {
-    try { rectCache.set(imgs[_i], imgs[_i].getBoundingClientRect()); } catch (_) {}
-  }
-
   function isLikelyHeroImage(img) {
     if (!img) return false;
     try {
-      const rect = rectCache.get(img);
+      const rect = img.getBoundingClientRect();
       if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+
       const area = rect.width * rect.height;
       const inOrNearFirstViewport = rect.top < (viewportH * 1.1) && rect.bottom > -20;
       const meaningfulSize = area >= 160 * 120;
@@ -352,8 +347,8 @@ function setupImageOptimization() {
   function isFarBelowFold(img) {
     if (!img) return false;
     try {
-      const rect = rectCache.get(img);
-      return !!(rect && rect.top > (viewportH * 1.8));
+      const rect = img.getBoundingClientRect();
+      return rect.top > (viewportH * 1.8);
     } catch (e) {
       return false;
     }
@@ -594,16 +589,13 @@ function setupLazySectionHydration() {
   }
 
   if (!('IntersectionObserver' in window)) {
-    // READ all display states first, then WRITE (batch reads to avoid per-iteration reflow)
-    const visibleSections = heavyIds.map((id) => {
+    heavyIds.forEach((id) => {
       const section = document.getElementById(id);
-      if (!section) return null;
-      return getComputedStyle(section).display !== 'none' ? section : null;
-    });
-    visibleSections.forEach((section) => {
       if (!section) return;
-      prime(section);
-      hydrate(section);
+      if (getComputedStyle(section).display !== 'none') {
+        prime(section);
+        hydrate(section);
+      }
     });
     return;
   }
@@ -618,16 +610,14 @@ function setupLazySectionHydration() {
     });
   }, { root: null, rootMargin: '280px 0px', threshold: 0.01 });
 
-  // READ all display states at once before io.observe writes
-  const sectionsToObserve = heavyIds.map((id) => {
+  heavyIds.forEach((id) => {
     const section = document.getElementById(id);
-    if (!section) return null;
-    return { section, visible: getComputedStyle(section).display !== 'none' };
-  });
-  sectionsToObserve.forEach((item) => {
-    if (!item) return;
-    io.observe(item.section);
-    if (item.visible) prime(item.section);
+    if (!section) return;
+    io.observe(section);
+
+    if (getComputedStyle(section).display !== 'none') {
+      prime(section);
+    }
   });
 
   const resultPage = document.getElementById('resultPage');

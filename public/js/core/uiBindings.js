@@ -52,7 +52,7 @@ const __lazyActionLoaders = {
   gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=20260409-v1'),
   gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=20260409-v1'),
   gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=20260409-v1'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260414-coinfix1').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=20260413-sibylfix1').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=20260410-v2'),

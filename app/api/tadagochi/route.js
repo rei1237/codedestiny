@@ -492,7 +492,8 @@ export async function POST(request) {
     const body = await request.json();
     const {
       birthYear, birthMonth=6, birthDay=15, birthHour=12,
-      element, zodiac, petName, question, category, usedToday
+      element, zodiac, petName, question, category, usedToday,
+      day, hunger, happy, energy, sleeping, state
     } = body;
 
     if (typeof usedToday === "number" && usedToday >= 5) {
@@ -506,6 +507,19 @@ export async function POST(request) {
 
     const y = Number(birthYear)||1990, m = Number(birthMonth)||6,
           d = Number(birthDay)||15,   h = Number(birthHour)||12;
+    const petDay = Number(day)||1;
+    const petHunger = Number(hunger);
+    const petHappy = Number(happy);
+    const petEnergy = Number(energy);
+    const petSleeping = !!sleeping;
+    const petState = String(state||"idle");
+    const petStateSummary = [
+      `현재 ${petDay}일차`,
+      Number.isFinite(petHunger)?`배고픔 ${Math.max(0,Math.min(100,Math.round(petHunger)))}점`:null,
+      Number.isFinite(petHappy)?`행복 ${Math.max(0,Math.min(100,Math.round(petHappy)))}점`:null,
+      Number.isFinite(petEnergy)?`에너지 ${Math.max(0,Math.min(100,Math.round(petEnergy)))}점`:null,
+      `상태 ${petState}${petSleeping?"(수면중)":""}`,
+    ].filter(Boolean).join(" | ");
     const cat   = category||"general";
     const catKr = {love:"연애",money:"재물",work:"직업·커리어",health:"건강",general:"종합",
       general_full:"종합",saju:"사주",ziwei:"자미두수",astrology:"점성술",tarot:"타로",
@@ -566,6 +580,7 @@ export async function POST(request) {
 (오늘 주의 리스크와 현명한 대처 200~300자)
 
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr2}띠(${saju.year.gan}${saju.year.ji}년)
+[펫 컨디션] ${petStateSummary}
 
 [실계산 데이터 — 이야기로 녹여 활용, 수치 직접 나열 금지]
 사주 일간: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) 십이운성 ${saju.day.unseong} / 오늘 ${saju.score}점(${saju.fortune})
@@ -701,6 +716,7 @@ ${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) �
 ${detailGuide}
 
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr}띠(${saju.year.gan}${saju.year.ji}년)
+[펫 컨디션] ${petStateSummary}
 
 ${dataSection}
 
