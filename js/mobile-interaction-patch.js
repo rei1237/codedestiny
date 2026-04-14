@@ -159,16 +159,30 @@
       ].join(',')
     },
     {
-      action: 'openTarotHealingPage',
+      action: 'openTarotHealingModal',
       cardSelector: '.tarot-tile--healing',
       targetSelector: [
-        '[data-action="openTarotHealingPage"]',
+        '[data-action="openTarotHealingModal"]',
         '.tarot-tile--healing',
         '.tarot-tile--healing .tarot-tile__img-wrap',
         '.tarot-tile--healing .tarot-tile__img',
         '.tarot-tile--healing .tarot-tile__title',
         '.tarot-tile--healing .tarot-tile__desc',
         '.tarot-tile--healing .tarot-tile__body'
+      ].join(',')
+    },
+    {
+      action: 'openRoyalTeaOracle',
+      cardSelector: '.tarot-tile--royal-tea',
+      targetSelector: [
+        '[data-action="openRoyalTeaOracle"]',
+        '.tarot-tile--royal-tea',
+        '.tarot-tile--royal-tea .tarot-tile__img-wrap',
+        '.tarot-tile--royal-tea .tarot-tile__img',
+        '.tarot-tile--royal-tea .tarot-tile__badge',
+        '.tarot-tile--royal-tea .tarot-tile__title',
+        '.tarot-tile--royal-tea .tarot-tile__desc',
+        '.tarot-tile--royal-tea .tarot-tile__body'
       ].join(',')
     },
     {
@@ -434,9 +448,14 @@
       if (tile) return tile;
     }
 
-    if (rule.action === 'openTarotHealingPage') {
+    if (rule.action === 'openTarotHealingModal') {
       var tile = origin.closest('.tarot-tile--healing');
       if (tile) return tile;
+    }
+
+    if (rule.action === 'openRoyalTeaOracle') {
+      var teaTile = origin.closest('.tarot-tile--royal-tea');
+      if (teaTile) return teaTile;
     }
 
     if (rule.action === 'openAnimalTotemModal') {
@@ -545,6 +564,7 @@
     ],
     // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
     // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
+    openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260320-tarot-uifix2'],
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260321-tarot-api-hotfix1'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'],
@@ -709,6 +729,19 @@
       }
     }
 
+    if (rule.action === 'openRoyalTeaOracle') {
+      try {
+        window.location.href = '/royal-tea-oracle.html';
+        return true;
+      } catch (err) {
+        console.error('[mobile-interaction-patch] royal tea navigation failed:', err);
+        var fallbackHref4 = (origin && origin.getAttribute && origin.getAttribute('href')) || '/royal-tea-oracle.html';
+        if (fallbackHref4) {
+          try { window.location.assign(fallbackHref4); return true; } catch (_) {}
+        }
+      }
+    }
+
     dispatchFeatureTapEvent(rule, origin, sourceEvent);
 
     var fn = window[rule.action];
@@ -838,7 +871,7 @@
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',
       '.tarot-tile--sukuyo-fl .tarot-tile__img-wrap, .tarot-tile--sukuyo-fl .tarot-tile__img, .tarot-tile--sukuyo-fl .tarot-tile__badge, .tarot-tile--sukuyo-fl .tarot-tile__body, .tarot-tile--sukuyo-fl .tarot-tile__title, .tarot-tile--sukuyo-fl .tarot-tile__desc,',
       '.tarot-tile--meditation .tarot-tile__img-wrap, .tarot-tile--meditation .tarot-tile__img, .tarot-tile--meditation .tarot-tile__badge, .tarot-tile--meditation .tarot-tile__body, .tarot-tile--meditation .tarot-tile__title, .tarot-tile--meditation .tarot-tile__desc,',
-      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingPage"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"],',
+      '[data-action="openPhysiognomyApp"], [data-action="openHwatuModal"], [data-action="openKemetModal"], [data-action="openDreamModal"], [data-action="openPsychoDreamModal"], [data-action="openTarotHealingModal"], [data-action="openTarotYearFortuneModal"], [data-action="openTarotLoveModal"], [data-action="openTarotSelfEsteemModal"], [data-action="openTarotReunionModal"], [data-action="openRoyalTeaOracle"],',
       '[data-action="openAnimalTotemModal"], [data-action="openSajuAnimalPage"], [data-action="openDestinyFlowerStudio"], [data-action="openAstrologyFlowerStudio"], [data-action="openJamidusuFlowerStudio"], [data-action="openSukuyoFlowerStudio"], [data-action="openNevilleMeditationPage"], [data-action="navigateToVedic"], [data-action="openOlympusOracleModal"], [data-action="openGeomancyOracle"] {',
       '  touch-action: manipulation;',
       '  -webkit-tap-highlight-color: transparent;',

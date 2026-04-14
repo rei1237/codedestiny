@@ -288,14 +288,71 @@
     return out;
   }
 
+  function normalizeRelationshipCard(raw, idx) {
+    var card = raw && typeof raw === "object" ? raw : {};
+    var position = RELATIONSHIP_POSITIONS[idx] || card.position || "position_1";
+    var orientation = card.orientation === "reversed" ? "reversed" : "upright";
+    var cardId = card.cardId || card.id || card.code || "";
+    var name = card.name || card.title || card.enName || "";
+    var nameKr = card.nameKr || card.name_kr || card.krName || card.titleKr || card.title_kr || "";
+
+    if (!cardId) {
+      var found = LOCAL_RELATIONSHIP_DECK.find(function (item) {
+        if (!item) return false;
+        var itemName = String(item.name || "").toLowerCase();
+        var itemNameKr = String(item.nameKr || "").toLowerCase();
+        var srcName = String(name || "").toLowerCase();
+        var srcNameKr = String(nameKr || "").toLowerCase();
+        return (srcName && itemName === srcName) || (srcNameKr && itemNameKr === srcNameKr);
+      });
+      if (found) {
+        cardId = found.cardId;
+        if (!name) name = found.name;
+        if (!nameKr) nameKr = found.nameKr;
+      }
+    }
+
+    if (!cardId) cardId = "M00";
+    if (!name) name = "Tarot Card";
+    if (!nameKr) nameKr = name;
+
+    return {
+      cardId: cardId,
+      position: position,
+      orientation: orientation,
+      name: name,
+      nameKr: nameKr,
+      imageUrl: card.imageUrl || "",
+      imageCandidates: Array.isArray(card.imageCandidates) ? card.imageCandidates : [],
+      proxyImageUrl: card.proxyImageUrl || "",
+      localImageUrl: card.localImageUrl || "",
+    };
+  }
+
+  function normalizeRelationshipCards(cards) {
+    var arr = Array.isArray(cards) ? cards : [];
+    return arr.slice(0, 6).map(function (card, idx) {
+      return normalizeRelationshipCard(card, idx);
+    });
+  }
+
   function createLocalRelationshipReading(cards) {
-    var safeCards = Array.isArray(cards) ? cards : [];
+    var safeCards = normalizeRelationshipCards(cards);
+    var positionFocusMap = {
+      position_1: "내가 상대를 해석하는 프레임이 관계 만족도를 좌우합니다.",
+      position_2: "상대의 표현 속도와 감정의 유무를 분리해서 읽어야 정확합니다.",
+      position_3: "상대가 관계에 붙인 이름보다 반복 행동이 더 중요한 신호입니다.",
+      position_4: "연애 의지는 강도보다 지속성으로 검증됩니다.",
+      position_5: "병목은 감정 부족보다 방식 불일치일 가능성이 큽니다.",
+      position_6: "결말은 고정값이 아니라 지금의 소통 방식에 따라 바뀝니다.",
+    };
     var breakdown = safeCards.map(function (card, idx) {
       var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
       var cardName = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
-      var summary = card.orientation === "reversed"
-        ? "감정이 아직 정리되지 않아 오해가 쌓이기 쉬운 흐름입니다. 지금은 결론을 서두르기보다 사실 확인과 감정 정리를 우선해야 합니다. 상대의 말 한 줄을 단정으로 해석하기보다, 반응의 맥락과 반복 패턴을 함께 보세요."
-        : "서로의 진심이 비교적 선명하게 드러나는 흐름입니다. 작은 신호를 놓치지 않고 일관된 대화를 이어가면 관계는 빠르게 안정될 수 있습니다. 강한 확답보다 작은 약속의 지속성이 관계를 더 단단하게 만듭니다.";
+      var orientSummary = card.orientation === "reversed"
+        ? "역방향 카드이므로 속도를 늦추고 사실 확인 중심으로 대화해야 오해를 줄일 수 있습니다."
+        : "정방향 카드이므로 작은 약속을 꾸준히 지키면 관계 온도가 빠르게 안정됩니다.";
+      var summary = (positionFocusMap[card.position] || "현재 포지션의 신호를 행동으로 옮기는 것이 핵심입니다.") + " " + orientSummary;
       return { title: label, card: cardName, summary: summary };
     });
 
@@ -589,8 +646,9 @@
 
     callTarotApi("draw", { spreadType: "relationship_six_card" })
       .then(function (data) {
-        if (!data.cards || data.cards.length !== 6) throw new Error("Invalid draw");
-        state.cards = data.cards;
+        var normalizedCards = normalizeRelationshipCards(data.cards);
+        if (normalizedCards.length !== 6) throw new Error("Invalid draw");
+        state.cards = normalizedCards;
         state.revealedCount = 0;
 
         intro.classList.remove("is-active");
@@ -610,7 +668,7 @@
         if (p) p.classList.remove("ritual-burst");
         var fallbackCards = createLocalRelationshipCards();
         if (fallbackCards.length === 6) {
-          state.cards = fallbackCards;
+          state.cards = normalizeRelationshipCards(fallbackCards);
           state.revealedCount = 0;
           intro.classList.remove("is-active");
           draw.classList.add("is-active");
@@ -745,7 +803,9 @@
   }
 
   function _runTarotLoveFinalReading() {
-    var drawnForApi = state.cards.map(function (c) {
+    var normalizedCards = normalizeRelationshipCards(state.cards);
+    state.cards = normalizedCards;
+    var drawnForApi = normalizedCards.map(function (c) {
       return {
         cardId: c.cardId,
         position: c.position,
