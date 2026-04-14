@@ -2279,8 +2279,71 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
   }
 
   if (normalizedSpread === "relationship_six_card") {
-    const RELATION_MAIN_MIN_CHARS = 1900; // 기존 900 + 1000
-    const RELATION_POSITION_MIN_CHARS = 1260; // 기존 260 + 1000
+    const RELATION_MAIN_MIN_CHARS = 3000;
+    const RELATION_POSITION_MIN_CHARS = 1450;
+    const RELATION_TOTAL_MIN_CHARS = 18200; // 기존 대비 약 +5000자 수준의 총량 보강 목표
+
+    const relationPartSeeds = {
+      overallVibe: [
+        "관계의 전체 분위기 파트에서는 감정의 크기보다 감정의 관리 방식이 핵심 변수입니다. 같은 호감도라도 확인 대화와 경계 합의가 있는 커플은 안정적으로 성장하고, 추측과 단정이 반복되는 관계는 소모가 빠르게 커집니다.",
+        "전체 흐름을 읽을 때는 사건 하나의 강도보다 반복 패턴을 먼저 보세요. 연락의 규칙성, 갈등 후 회복 속도, 약속 이행률이 누적되면 관계의 체력과 신뢰도가 숫자처럼 드러납니다.",
+        "현재 관계 분위기는 고정된 운명이 아니라 운영 설계의 결과입니다. 대화 시간대, 말의 톤, 기대치 조율을 구조화하면 같은 카드 조합도 더 성숙한 결말로 이동할 수 있습니다.",
+      ],
+      deepReading: [
+        "심층 해석 파트의 핵심은 서로의 심리 언어를 번역하는 것입니다. 한쪽은 확답을 사랑으로 느끼고, 다른 쪽은 안정적 루틴을 사랑으로 느낄 수 있으니, 표현 방식의 차이를 모르면 호감이 있어도 거리감이 커집니다.",
+        "깊은 층위를 분석할 때는 상처 반응을 구분해야 합니다. 회피형 반응과 무관심은 다르고, 불안형 반응과 집착도 다릅니다. 반응의 유형을 분리하면 관계 판단의 정확도가 크게 올라갑니다.",
+        "내면 동기를 읽을 때는 말보다 반복 행동이 더 강한 데이터입니다. 애정 표현의 빈도, 갈등 후 복귀 의지, 책임 회피 여부를 함께 보면 관계의 진짜 깊이를 보다 객관적으로 해석할 수 있습니다.",
+      ],
+      realityAndFuture: [
+        "현실·미래 파트는 낭만보다 운영 전략이 중요합니다. 단기 결말을 예측하는 데 그치지 말고, 갈등 회복 규칙과 경계 문장을 미리 합의하면 3개월 이후의 안정도가 눈에 띄게 달라집니다.",
+        "미래는 감정의 세기보다 일관성의 누적으로 결정됩니다. 연락 리듬, 만남 주기, 책임 분담처럼 반복 가능한 규칙을 만들면 불확실성이 줄고 관계 만족도가 높아집니다.",
+        "현실 병목을 해결할 때는 감정 문제와 구조 문제를 분리하세요. 감정은 공감으로 다루고, 구조는 합의로 다룰 때 관계는 소모적 논쟁에서 벗어나 실제 변화로 연결됩니다.",
+      ],
+      position: [
+        "포지션 해석에서는 카드 상징을 행동 지침으로 번역하는 것이 중요합니다. 해석이 정확해도 실행 문장이 없으면 체감 변화가 작습니다.",
+        "각 포지션은 독립된 의미를 갖지만 서로 연결된 시스템으로도 읽어야 합니다. 한 포지션의 불안이 다른 포지션의 방어를 유발할 수 있으므로, 관계를 단일 사건이 아닌 흐름으로 보세요.",
+        "포지션별 메시지를 일상 행동으로 전환하면 리딩의 효용이 커집니다. 말투 조정, 확인 질문, 일정 합의처럼 작지만 반복 가능한 실행이 실제 결말을 바꿉니다.",
+      ],
+    };
+
+    function ensureRelationshipSection(value, minChars, partKey, fallbackParts) {
+      let out = asText(value);
+      const fallbackSeed = (Array.isArray(fallbackParts) ? fallbackParts : [])
+        .map(asText)
+        .filter(Boolean)
+        .join(" ");
+      const partSeed = (Array.isArray(relationPartSeeds[partKey]) ? relationPartSeeds[partKey] : [])
+        .map(asText)
+        .filter(Boolean);
+
+      if (!out && fallbackSeed) out = fallbackSeed;
+      let cursor = 0;
+      while (out.length < minChars && (fallbackSeed || partSeed.length)) {
+        const tail = partSeed.length ? partSeed[cursor % partSeed.length] : "";
+        const block = [tail, fallbackSeed].map(asText).filter(Boolean).join(" ");
+        if (!block) break;
+        out += `\n\n${block}`;
+        cursor += 1;
+        if (cursor > 80) break;
+      }
+      return out;
+    }
+
+    function relationshipTotalChars(readingObj) {
+      const main = [readingObj?.overallVibe, readingObj?.deepReading, readingObj?.realityAndFuture]
+        .map(asText)
+        .join("\n")
+        .length;
+      const positions = (Array.isArray(readingObj?.positionBreakdown) ? readingObj.positionBreakdown : [])
+        .map((item) => asText(item?.summary))
+        .join("\n")
+        .length;
+      const adviceChars = (Array.isArray(readingObj?.advice) ? readingObj.advice : [])
+        .map(asText)
+        .join("\n")
+        .length;
+      return main + positions + adviceChars;
+    }
 
     const adviceSeed = [
       "상대의 의도를 추측하기보다 확인 질문 1개를 먼저 던져 오해 비용을 줄이세요.",
@@ -2297,9 +2360,10 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       .slice(0, 6)
       .map((item, idx) => {
         const coachTail = "핵심은 상대를 통제하는 것이 아니라 대화의 안전지대와 반복 가능한 약속 구조를 만드는 것입니다.";
+        const positionTail = `${asText(item?.title) || `포지션 ${idx + 1}`} 파트에서는 카드 상징을 실제 행동 문장으로 바꾸는 것이 핵심입니다.`;
         return {
           ...item,
-          summary: ensureMinText(item?.summary, RELATION_POSITION_MIN_CHARS, [cardSummaryLine(idx), coachTail]),
+          summary: ensureRelationshipSection(item?.summary, RELATION_POSITION_MIN_CHARS, "position", [cardSummaryLine(idx), coachTail, positionTail]),
         };
       });
 
@@ -2308,7 +2372,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       positionBreakdown.push({
         title: `포지션 ${idx + 1}`,
         card: safeCards[idx]?.nameKr || safeCards[idx]?.name || `카드 ${idx + 1}`,
-        summary: ensureMinText("", RELATION_POSITION_MIN_CHARS, [cardSummaryLine(idx), "관계를 건강하게 설계하려면 감정 확인과 현실 조율을 같은 비중으로 다뤄야 합니다."]),
+        summary: ensureRelationshipSection("", RELATION_POSITION_MIN_CHARS, "position", [cardSummaryLine(idx), "관계를 건강하게 설계하려면 감정 확인과 현실 조율을 같은 비중으로 다뤄야 합니다."]),
       });
     }
 
@@ -2319,14 +2383,31 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       advice.push(adviceSeed[advice.length % adviceSeed.length]);
     }
 
-    return {
+    const enrichedReading = {
       ...baseReading,
-      overallVibe: ensureMinText(baseReading.overallVibe, RELATION_MAIN_MIN_CHARS, ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
-      deepReading: ensureMinText(baseReading.deepReading, RELATION_MAIN_MIN_CHARS, ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
-      realityAndFuture: ensureMinText(baseReading.realityAndFuture, RELATION_MAIN_MIN_CHARS, ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
+      overallVibe: ensureRelationshipSection(baseReading.overallVibe, RELATION_MAIN_MIN_CHARS, "overallVibe", ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
+      deepReading: ensureRelationshipSection(baseReading.deepReading, RELATION_MAIN_MIN_CHARS, "deepReading", ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
+      realityAndFuture: ensureRelationshipSection(baseReading.realityAndFuture, RELATION_MAIN_MIN_CHARS, "realityAndFuture", ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
       positionBreakdown,
       advice: advice.slice(0, 12),
     };
+
+    const totalExpansionTail = {
+      overallVibe: "전체 분위기 결론: 관계의 질은 감정량보다 운영 방식에서 결정되며, 경청·확인·경계 합의가 핵심입니다.",
+      deepReading: "심층 해석 결론: 서로의 애정 언어와 방어 반응을 구분하면 오해 비용이 줄고 신뢰 복구 속도가 빨라집니다.",
+      realityAndFuture: "현실·미래 결론: 결말은 예언이 아니라 반복 행동의 누적치이며, 일관성 있는 실행이 향후 흐름을 바꿉니다.",
+    };
+
+    let expandCursor = 0;
+    while (relationshipTotalChars(enrichedReading) < RELATION_TOTAL_MIN_CHARS) {
+      enrichedReading.overallVibe += `\n\n${relationPartSeeds.overallVibe[expandCursor % relationPartSeeds.overallVibe.length]} ${totalExpansionTail.overallVibe}`;
+      enrichedReading.deepReading += `\n\n${relationPartSeeds.deepReading[expandCursor % relationPartSeeds.deepReading.length]} ${totalExpansionTail.deepReading}`;
+      enrichedReading.realityAndFuture += `\n\n${relationPartSeeds.realityAndFuture[expandCursor % relationPartSeeds.realityAndFuture.length]} ${totalExpansionTail.realityAndFuture}`;
+      expandCursor += 1;
+      if (expandCursor > 24) break;
+    }
+
+    return enrichedReading;
   }
 
   if (normalizedSpread === "healing_rising_four_card") {
