@@ -2243,6 +2243,239 @@ function createJobChangeTarotReading({ drawnCards }) {
   };
 }
 
+function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
+  const normalizedSpread = normalizeSpreadType(spreadType || "one_card");
+  const baseReading = reading && typeof reading === "object" ? { ...reading } : reading;
+  const safeCards = Array.isArray(cardReadings) ? cardReadings : [];
+
+  function asText(value) {
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function cardSummaryLine(idx) {
+    const card = safeCards[idx];
+    if (!card) return "";
+    const name = card.nameKr || card.name || `카드 ${idx + 1}`;
+    const orientation = card.orientation === "reversed" ? "역방향" : "정방향";
+    const pos = card.position || `position_${idx + 1}`;
+    return `${pos}의 ${name}(${orientation}) 신호를 실전 행동으로 옮기면 체감 변화가 빨라집니다.`;
+  }
+
+  function ensureMinText(value, minChars, fallbackParts) {
+    let out = asText(value);
+    const seed = (Array.isArray(fallbackParts) ? fallbackParts : [])
+      .map(asText)
+      .filter(Boolean)
+      .join(" ");
+    if (!out && seed) out = seed;
+    while (out.length < minChars && seed) {
+      out += `\n\n${seed}`;
+    }
+    return out;
+  }
+
+  if (!baseReading || typeof baseReading !== "object") {
+    return baseReading;
+  }
+
+  if (normalizedSpread === "relationship_six_card") {
+    const adviceSeed = [
+      "상대의 의도를 추측하기보다 확인 질문 1개를 먼저 던져 오해 비용을 줄이세요.",
+      "감정이 올라온 순간 메시지를 보내지 말고 10분 텀 이후 핵심만 전달하세요.",
+      "이번 주 15분 진심 대화 1회를 고정 일정으로 예약해 관계 리듬을 만드세요.",
+      "반복 갈등 주제를 한 문장으로 정의하고, 재발 방지 합의 1개를 만드세요.",
+      "상대 반응의 속도보다 일관성을 기준으로 관계 안정도를 판단하세요.",
+      "내 경계를 지키는 문장을 미리 준비해 과잉 해명을 줄이세요.",
+      "결과 집착이 강한 날엔 관계 판단보다 내 루틴 회복을 우선하세요.",
+      "관계 기준 3가지를 글로 고정해 감정 기복 때 의사결정 기준으로 쓰세요.",
+    ];
+
+    const positionBreakdown = (Array.isArray(baseReading.positionBreakdown) ? baseReading.positionBreakdown : [])
+      .slice(0, 6)
+      .map((item, idx) => {
+        const coachTail = "핵심은 상대를 통제하는 것이 아니라 대화의 안전지대와 반복 가능한 약속 구조를 만드는 것입니다.";
+        return {
+          ...item,
+          summary: ensureMinText(item?.summary, 260, [cardSummaryLine(idx), coachTail]),
+        };
+      });
+
+    while (positionBreakdown.length < 6) {
+      const idx = positionBreakdown.length;
+      positionBreakdown.push({
+        title: `포지션 ${idx + 1}`,
+        card: safeCards[idx]?.nameKr || safeCards[idx]?.name || `카드 ${idx + 1}`,
+        summary: ensureMinText("", 260, [cardSummaryLine(idx), "관계를 건강하게 설계하려면 감정 확인과 현실 조율을 같은 비중으로 다뤄야 합니다."]),
+      });
+    }
+
+    const advice = Array.isArray(baseReading.advice)
+      ? baseReading.advice.map(asText).filter(Boolean)
+      : [];
+    while (advice.length < 8) {
+      advice.push(adviceSeed[advice.length % adviceSeed.length]);
+    }
+
+    return {
+      ...baseReading,
+      overallVibe: ensureMinText(baseReading.overallVibe, 900, ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
+      deepReading: ensureMinText(baseReading.deepReading, 900, ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
+      realityAndFuture: ensureMinText(baseReading.realityAndFuture, 900, ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
+      positionBreakdown,
+      advice: advice.slice(0, 12),
+    };
+  }
+
+  if (normalizedSpread === "healing_rising_four_card") {
+    const plan = Array.isArray(baseReading.actionPlan) ? baseReading.actionPlan.map(asText).filter(Boolean) : [];
+    const healingSeed = [
+      "감정이 격해질 때는 문제 해결보다 신경계 안정 루틴(호흡, 물 한 잔, 자리 이동)을 먼저 실행하세요.",
+      "하루 3줄 감정 기록을 2주 유지해 트리거 패턴을 시각화하세요.",
+      "내일의 회복 행동 1개를 시간·장소·행동 형태로 구체화해 실행 확률을 높이세요.",
+      "자기비난 문장을 자기돌봄 문장으로 치환하는 연습을 하루 3회 반복하세요.",
+      "회복 속도를 타인과 비교하지 말고 어제의 나와 오늘의 나를 비교하세요.",
+      "무리한 결단은 뒤로 미루고 몸과 수면의 안정부터 회복하세요.",
+    ];
+    while (plan.length < 6) plan.push(healingSeed[plan.length % healingSeed.length]);
+
+    return {
+      ...baseReading,
+      opening: ensureMinText(baseReading.opening, 700, ["치유는 고통을 부정하는 과정이 아니라 감정을 안전하게 다루는 기술을 회복하는 과정입니다."]),
+      hiddenTruth: ensureMinText(baseReading.hiddenTruth, 500, [cardSummaryLine(0)]),
+      embracePain: ensureMinText(baseReading.embracePain, 500, [cardSummaryLine(1)]),
+      silverLining: ensureMinText(baseReading.silverLining, 500, [cardSummaryLine(2)]),
+      stepForward: ensureMinText(baseReading.stepForward, 500, [cardSummaryLine(3)]),
+      integrationMessage: ensureMinText(baseReading.integrationMessage, 700, ["작은 회복 행동의 반복이 자기신뢰를 재구축하고 장기적 정서 안정으로 이어집니다."]),
+      actionPlan: plan,
+    };
+  }
+
+  if (normalizedSpread === "reunion_lighthouse_five_card") {
+    const plan = Array.isArray(baseReading.actionPlan) ? baseReading.actionPlan.map(asText).filter(Boolean) : [];
+    const reunionSeed = [
+      "메시지 전송 전 핵심 2문장을 먼저 써서 감정 폭주를 막으세요.",
+      "상대 반응 지연을 거절로 단정하지 말고 관찰 기간을 두세요.",
+      "재회를 원한다면 과거 패턴 중 바꿀 행동 1개를 선행 실행하세요.",
+      "추측 대화를 줄이고 사실 확인 질문 중심으로 대화 구조를 전환하세요.",
+      "결과 집착이 강한 날에는 내 수면·식사 루틴부터 회복하세요.",
+      "재회 여부와 별개로 자기존중 기준을 먼저 문장화해 경계를 지키세요.",
+    ];
+    while (plan.length < 6) plan.push(reunionSeed[plan.length % reunionSeed.length]);
+
+    return {
+      ...baseReading,
+      opening: ensureMinText(baseReading.opening, 550, ["재회 리딩의 핵심은 희망 과장도 단정도 아닌, 감정과 현실을 함께 보는 균형입니다."]),
+      pastBond: ensureMinText(baseReading.pastBond, 380, [cardSummaryLine(0)]),
+      theirNow: ensureMinText(baseReading.theirNow, 380, [cardSummaryLine(1)]),
+      outsideFactor: ensureMinText(baseReading.outsideFactor, 380, [cardSummaryLine(2)]),
+      theirHeart: ensureMinText(baseReading.theirHeart, 380, [cardSummaryLine(3)]),
+      reunionOutcome: ensureMinText(baseReading.reunionOutcome, 420, [cardSummaryLine(4)]),
+      lighthouseGuidance: ensureMinText(baseReading.lighthouseGuidance, 480, ["속도를 늦추고 대화의 구조를 정비할수록 재회 가능성 판단의 정확도가 올라갑니다."]),
+      actionPlan: plan,
+    };
+  }
+
+  if (normalizedSpread === "self_esteem_levelup_five_card") {
+    const plan = Array.isArray(baseReading.actionPlan) ? baseReading.actionPlan.map(asText).filter(Boolean) : [];
+    const selfSeed = [
+      "오늘 한 번은 경계 문장을 사용해 과잉 해명을 멈추세요.",
+      "하루 끝에 '오늘 나를 지킨 장면' 1개를 기록하세요.",
+      "즉답 압박이 올 때 '생각해 보고 답할게요'로 결정권을 회복하세요.",
+      "감정이 흔들리는 날은 해결보다 안정 루틴을 먼저 실행하세요.",
+      "핵심 카드 1장을 메모 첫 줄에 저장해 행동 기준으로 반복 확인하세요.",
+      "자기비난 문장을 자기지지 문장으로 하루 3회 바꿔 말하세요.",
+    ];
+    while (plan.length < 6) plan.push(selfSeed[plan.length % selfSeed.length]);
+
+    return {
+      ...baseReading,
+      opening: ensureMinText(baseReading.opening, 650, ["자존감은 단번에 완성되는 상태가 아니라, 경계를 지키는 선택의 반복으로 강화됩니다."]),
+      pastDebuff: ensureMinText(baseReading.pastDebuff, 360, [cardSummaryLine(0)]),
+      innerMonster: ensureMinText(baseReading.innerMonster, 360, [cardSummaryLine(1)]),
+      currentDamage: ensureMinText(baseReading.currentDamage, 360, [cardSummaryLine(2)]),
+      mindShield: ensureMinText(baseReading.mindShield, 360, [cardSummaryLine(3)]),
+      levelupMastery: ensureMinText(baseReading.levelupMastery, 420, [cardSummaryLine(4)]),
+      levelupGuidance: ensureMinText(baseReading.levelupGuidance, 480, ["작은 자기존중 행동의 누적이 내면 기준을 안정적으로 재구축합니다."]),
+      actionPlan: plan,
+    };
+  }
+
+  if (normalizedSpread === "yearly_twelve_card") {
+    const monthlyReadings = (Array.isArray(baseReading.monthlyReadings) ? baseReading.monthlyReadings : [])
+      .slice(0, 12)
+      .map((item, idx) => ({
+        ...item,
+        flow: ensureMinText(item?.flow, 220, [cardSummaryLine(idx)]),
+        money: ensureMinText(item?.money, 160, ["이달의 재정 전략은 현금흐름을 지키고 검증된 선택을 반복하는 것입니다."]),
+        love: ensureMinText(item?.love, 160, ["이달의 연애 핵심은 표현 강도보다 일관성과 진심의 누적입니다."]),
+        relationship: ensureMinText(item?.relationship, 160, ["이달의 인간관계는 경청과 확인 대화가 갈등 비용을 줄여줍니다."]),
+        exam: ensureMinText(item?.exam, 120, ["학습/자기계발은 짧은 루틴을 매일 반복할 때 성과가 누적됩니다."]),
+      }));
+
+    while (monthlyReadings.length < 12) {
+      const month = monthlyReadings.length + 1;
+      monthlyReadings.push({
+        month,
+        flow: ensureMinText("", 220, ["기본 흐름은 조급함보다 점진적 실행이 유리합니다."]),
+        money: "수입과 지출의 균형을 먼저 점검하세요.",
+        love: "감정 추측보다 사실 확인 대화를 우선하세요.",
+        relationship: "관계는 짧고 정확한 소통에서 회복됩니다.",
+        exam: "짧은 집중 루틴을 반복하세요.",
+      });
+    }
+
+    return {
+      ...baseReading,
+      summary: ensureMinText(baseReading.summary, 700, ["12개월 리딩은 월별 행동 포인트를 누적할 때 실제 체감 변화가 커집니다."]),
+      finalAdvice: ensureMinText(baseReading.finalAdvice, 700, ["월별 메시지를 실행 루틴으로 연결하면 연말에 구조적 성장을 확인할 수 있습니다."]),
+      monthlyReadings,
+    };
+  }
+
+  if (normalizedSpread === "yearly_three_card") {
+    const monthlyReadings = (Array.isArray(baseReading.monthlyReadings) ? baseReading.monthlyReadings : []).map((item, idx) => ({
+      ...item,
+      flow: ensureMinText(item?.flow, 180, [cardSummaryLine(idx % 3)]),
+      money: ensureMinText(item?.money, 140, ["재정은 공격보다 유지 전략이 먼저입니다."]),
+      love: ensureMinText(item?.love, 140, ["연애는 확답 압박보다 정서적 안전지대 형성이 우선입니다."]),
+      relationship: ensureMinText(item?.relationship, 140, ["관계는 반복되는 작은 배려에서 신뢰가 형성됩니다."]),
+    }));
+
+    return {
+      ...baseReading,
+      summary: ensureMinText(baseReading.summary, 700, ["3카드 연간 리딩은 기준-도전-결과의 구조를 월별 행동으로 번역할 때 효과가 큽니다."]),
+      finalAdvice: ensureMinText(baseReading.finalAdvice, 700, ["월별 행동 기준을 미리 적어두면 감정 기복에도 방향을 유지할 수 있습니다."]),
+      monthlyReadings,
+    };
+  }
+
+  if (normalizedSpread === "job_change_seven_card") {
+    return {
+      ...baseReading,
+      stage1: ensureMinText(baseReading.stage1, 850, ["천직 판단은 선호·강점·시장가치의 교집합을 문장화할 때 정확도가 올라갑니다."]),
+      stage2: ensureMinText(baseReading.stage2, 850, ["이직 성공률은 결심 강도보다 주간 실행 루틴과 점검 지표에서 결정됩니다."]),
+      stage3: ensureMinText(baseReading.stage3, 850, ["포기할 습관을 명확히 규정해야 새로운 커리어 패턴이 정착됩니다."]),
+      finalAdvice: ensureMinText(baseReading.finalAdvice, 900, ["30일 행동 계획과 주간 점검 루틴을 연결하면 현실 전환 속도가 빨라집니다."]),
+      fullText: [
+        ensureMinText(baseReading.stage1, 850, ["천직 판단은 선호·강점·시장가치의 교집합을 문장화할 때 정확도가 올라갑니다."]),
+        ensureMinText(baseReading.stage2, 850, ["이직 성공률은 결심 강도보다 주간 실행 루틴과 점검 지표에서 결정됩니다."]),
+        ensureMinText(baseReading.stage3, 850, ["포기할 습관을 명확히 규정해야 새로운 커리어 패턴이 정착됩니다."]),
+        ensureMinText(baseReading.finalAdvice, 900, ["30일 행동 계획과 주간 점검 루틴을 연결하면 현실 전환 속도가 빨라집니다."]),
+      ].join("\n\n"),
+    };
+  }
+
+  if (typeof baseReading.story === "string" || typeof baseReading.advice === "string") {
+    return {
+      ...baseReading,
+      story: ensureMinText(baseReading.story, 1200, ["카드 메시지는 운명 확정이 아니라 현재 선택을 정교화하는 안내 지도입니다.", safeCards.map((_, idx) => cardSummaryLine(idx)).filter(Boolean).join(" ")]),
+      advice: ensureMinText(baseReading.advice, 700, ["오늘은 실행 가능한 행동 1개를 시간·장소·행동 단위로 확정해 즉시 시작하세요."]),
+    };
+  }
+
+  return baseReading;
+}
+
 module.exports = {
   drawCards,
   createReading,
@@ -2257,5 +2490,6 @@ module.exports = {
   getEngineMeta,
   normalizeCategory,
   normalizeSpreadType,
+  enhanceTarotReadingPayload,
   initFromPreloadedData,
 };

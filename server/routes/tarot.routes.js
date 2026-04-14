@@ -12,6 +12,7 @@ const {
   getCardImageSourcesById,
   getEngineMeta,
   normalizeSpreadType,
+  enhanceTarotReadingPayload,
 } = require("../services/tarot-engine.service");
 
 const router = express.Router();
@@ -35,6 +36,20 @@ function ensureMinSectionLength(text, minChars, fallbackText) {
   }
 
   return out;
+}
+
+function applyEngineQuality(spreadType, reading, cardReadings) {
+  try {
+    const enhanced = enhanceTarotReadingPayload({
+      spreadType,
+      reading,
+      cardReadings,
+    });
+    return enhanced || reading;
+  } catch (error) {
+    console.error("[tarot][quality] enhancer fallback:", error?.message || error);
+    return reading;
+  }
 }
 
 function buildJobChangeGeminiPrompt({ cards, baseReading }) {
@@ -389,7 +404,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: readingForUi,
+        reading: applyEngineQuality(reading.spreadType, readingForUi, reading.cardReadings),
         isRelationshipReading: true,
       });
     }
@@ -416,7 +431,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
         isHealingReading: true,
       });
     }
@@ -443,7 +458,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
         isYearlyTwelveCardReading: true,
       });
     }
@@ -470,7 +485,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
         isYearlyThreeCardReading: true,
       });
     }
@@ -497,7 +512,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
         isReunionReading: true,
       });
     }
@@ -524,7 +539,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: reading.reading,
+        reading: applyEngineQuality(reading.spreadType, reading.reading, reading.cardReadings),
         isSelfEsteemReading: true,
       });
     }
@@ -564,7 +579,7 @@ router.post("/reading", async (req, res, next) => {
         category: reading.category,
         spreadType: reading.spreadType,
         cards: cardsForUi,
-        reading: readingForUi,
+        reading: applyEngineQuality(reading.spreadType, readingForUi, reading.cardReadings),
         isJobChangeReading: true,
       });
     }
@@ -604,7 +619,7 @@ router.post("/reading", async (req, res, next) => {
       category: reading.category,
       spreadType: reading.spreadType,
       cards: cardsForUi,
-      reading: textForUi,
+      reading: applyEngineQuality(reading.spreadType, textForUi, reading.cardReadings),
     });
   } catch (error) {
     return next(error);
@@ -654,7 +669,7 @@ router.post("/love-reading", async (req, res, next) => {
       category: reading.category,
       spreadType: reading.spreadType,
       cards: cardsForUi,
-      reading: readingForUi,
+      reading: applyEngineQuality(reading.spreadType, readingForUi, reading.cardReadings),
       isRelationshipReading: true,
       api: "love-reading",
     });

@@ -225,6 +225,23 @@ async function runEngineReading(body) {
   const category = String(body?.category || "general").trim();
   const drawnCards = Array.isArray(body?.cards) ? body.cards : [];
 
+  function withQuality(reading, cardReadings) {
+    try {
+      if (typeof engine.enhanceTarotReadingPayload === "function") {
+        return (
+          engine.enhanceTarotReadingPayload({
+            spreadType,
+            reading,
+            cardReadings,
+          }) || reading
+        );
+      }
+    } catch {
+      // fall through with original reading
+    }
+    return reading;
+  }
+
   switch (spreadType) {
     case "relationship_six_card": {
       const relationship = engine.createRelationshipReading({ drawnCards });
@@ -248,27 +265,47 @@ async function runEngineReading(body) {
       } catch (geminiError) {
         console.error("[tarot][love] Gemini fallback to engine:", geminiError?.message || geminiError);
       }
-      return readingForUi;
+      return withQuality(
+        readingForUi,
+        relationship.cardReadings,
+      );
     }
     case "healing_rising_four_card":
-      return engine.createHealingRisingReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createHealingRisingReading({ drawnCards }).reading,
+        drawnCards,
+      );
     case "reunion_lighthouse_five_card":
-      return engine.createReunionLighthouseReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createReunionLighthouseReading({ drawnCards }).reading,
+        drawnCards,
+      );
     case "self_esteem_levelup_five_card":
-      return engine.createSelfEsteemLevelupReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createSelfEsteemLevelupReading({ drawnCards }).reading,
+        drawnCards,
+      );
     case "yearly_twelve_card":
-      return engine.createYearlyTwelveCardReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createYearlyTwelveCardReading({ drawnCards }).reading,
+        drawnCards,
+      );
     case "yearly_three_card":
-      return engine.createYearlyFromThreeCardReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createYearlyFromThreeCardReading({ drawnCards }).reading,
+        drawnCards,
+      );
     case "job_change_seven_card":
-      return engine.createJobChangeTarotReading({ drawnCards }).reading;
+      return withQuality(
+        engine.createJobChangeTarotReading({ drawnCards }).reading,
+        drawnCards,
+      );
     default: {
       const result = engine.createReading({ category, spreadType, drawnCards });
-      return { story: result.story, advice: result.advice };
+      return withQuality({ story: result.story, advice: result.advice }, result.cardReadings || drawnCards);
     }
   }
 }
-
 // Minimal static fallback - only used if engine catastrophically fails to load
 function buildLocalFallback(body) {
   const spreadType = String(body?.spreadType || "");
