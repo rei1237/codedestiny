@@ -228,6 +228,7 @@ const ACTION_MAP: Record<string, string> = {
   "/oracle/hwatu-life":"/oracle/hwatu-life/play",
   "/oracle/sikojen-povailu":"/oracle/sikojen-povailu/play",
   "/oracle/royal-tea":"openRoyalTeaOracle",
+  "/yoga-guru":"openYogaGuru",
 };
 
 const PAID_SLUG_META: Record<string, { coins: string }> = {
@@ -239,6 +240,7 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/tarot/reunion": { coins: "50코인" },
   "/tarot/year": { coins: "30코인" },
   "/oracle/royal-tea": { coins: "30코인" },
+  "/yoga-guru": { coins: "30코인" },
   "/saju/lifebook": { coins: "490코인" },
   "/saju/love-secret": { coins: "290코인" },
 };
