@@ -302,8 +302,8 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
     <div style="font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite">🐣</div>
     <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif">운세다마고치</div>
     <div style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6;font-family:'Noto Sans KR',sans-serif">로그인하면 나만의 다마고치를<br>키울 수 있어요 🌸</div>
-    <a href="/login?redirect=/tadagochi" style="display:block;padding:14px 0;border-radius:99px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-weight:900;font-size:15px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 18px rgba(167,139,250,.4)">로그인하기</a>
-    <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/login?redirect=/tadagochi" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
+    <a href="/login?next=/tadagochi.html" style="display:block;padding:14px 0;border-radius:99px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-weight:900;font-size:15px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 18px rgba(167,139,250,.4)">로그인하기</a>
+    <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/signup?next=/tadagochi.html" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
   </div>
 </div>
 
@@ -1008,45 +1008,97 @@ function apiFetch(url,opts){
   return fetch(url,options);
 }
 
+var AUTH_SYNC_CHANNEL='code-destiny-auth-sync';
+var _authBC=null;
+
+var _authSyncBusy=false;
+
+function setLoginGateVisible(show){
+  var gate=document.getElementById('login-gate');
+  if(!gate) return;
+  gate.style.display=show?'flex':'none';
+}
+
+function hydratePetFromServerPayload(s){
+  if(!s) return false;
+  if(!s.animal&&s.zodiac) s.animal=s.zodiac;
+  s.animal=normalizeAnimalKey(s.animal||s.zodiac);
+  s.zodiac=normalizeAnimalKey(s.zodiac||s.animal);
+  if(!s.theme) s.theme='moon';
+  if(!s.element) s.element='water';
+  Object.assign(G,s);
+  var today2=getTodayKey();
+  var loadedDay=normalizeDayKey(G.chatDate);
+  if(loadedDay!==today2){G.chatCount=0;G.chatDate=today2;}
+  else{G.chatDate=loadedDay;}
+  applyElement(G.element||'water');
+  return true;
+}
+
+function syncAuthSession(reason){
+  if(_authSyncBusy) return Promise.resolve(false);
+  _authSyncBusy=true;
+  return apiFetch('/api/auth/me',{cache:'no-store'})
+    .then(function(r){if(!r.ok) return null; return r.json();})
+    .then(function(userData){
+      if(!userData||!userData.user){
+        G.userId=null;
+        setLoginGateVisible(true);
+        return false;
+      }
+
+      setLoginGateVisible(false);
+      G.userId=userData.user.id;
+      G.userName=userData.user.name||'';
+
+      return apiFetch('/api/tadagochi/pet',{cache:'no-store'})
+        .then(function(r){if(!r.ok) return {pet:null}; return r.json();})
+        .then(function(petRes){
+          updateChatRemain();
+          var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
+          if(!hasSavedPet) return true;
+          if(!hydratePetFromServerPayload(petRes.pet)) return true;
+
+          if(G.scr!=='main') openMain();
+          else {
+            document.getElementById('mn').textContent=G.petName||'내 친구';
+            updateUI();
+          }
+          return true;
+        });
+    })
+    .catch(function(){
+      if(!G.userId) setLoginGateVisible(true);
+      return false;
+    })
+    .finally(function(){_authSyncBusy=false;});
+}
+
+function setupRealtimeAuthSync(){
+  try{
+    if(typeof BroadcastChannel==='undefined') return;
+    _authBC=new BroadcastChannel(AUTH_SYNC_CHANNEL);
+    _authBC.onmessage=function(ev){
+      var data=ev&&ev.data;
+      if(!data||!data.event) return;
+      if(data.event==='login'||data.event==='logout') syncAuthSession('broadcast');
+    };
+  }catch(_e){}
+}
+
 function init(){
   initUI();
-  // 로그인 확인 후 서버 펫 데이터 로드
-  apiFetch('/api/auth/me').then(function(r){return r.json();}).then(function(userData){
-    if(!userData||!userData.user){
-      // 미로그인 → 게이트 표시
-      var gate=document.getElementById('login-gate');
-      if(gate){gate.style.display='flex';}
-      return;
-    }
-    G.userId=userData.user.id;
-    G.userName=userData.user.name||'';
-    // 오늘 채팅 카운트 (서버 펫에서 복원)
-    var today2=getTodayKey();
-    G.chatDate=today2;
-    // 서버에서 펫 상태 로드
-    apiFetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
-      updateChatRemain();
-      var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
-      if(hasSavedPet){
-        // 저장된 펫 복원
-        var s=petRes.pet;
-        if(!s.animal&&s.zodiac) s.animal=s.zodiac;
-        s.animal=normalizeAnimalKey(s.animal||s.zodiac);
-        s.zodiac=normalizeAnimalKey(s.zodiac||s.animal);
-        if(!s.theme) s.theme='moon';
-        if(!s.element) s.element='water';
-        Object.assign(G,s);
-        // 채팅 카운트 오늘 날짜 확인
-        var loadedDay=normalizeDayKey(G.chatDate);
-        if(loadedDay!==today2){G.chatCount=0;G.chatDate=today2;}
-        else{G.chatDate=loadedDay;}
-        applyElement(G.element||'water');
-        openMain();
-      }
-      // 없으면 타이틀 화면 유지 (새 펫 생성)
-    }).catch(function(){updateChatRemain();});
-  }).catch(function(){
-    // 네트워크 오류 → 타이틀 화면 유지 (게이트 차단 안 함)
+  updateChatRemain();
+  syncAuthSession('init');
+  setupRealtimeAuthSync();
+
+  window.addEventListener('focus',function(){syncAuthSession('focus');});
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible') syncAuthSession('visible');
+  });
+  window.addEventListener('storage',function(e){
+    if(!e) return;
+    if(e.key==='fortune_auth_token'||e.key==='fortune_auth_user') syncAuthSession('storage');
   });
 }
 
@@ -1800,6 +1852,12 @@ function requestFortuneApi(category, question, usedToday){
       element:G.element||'water',
       zodiac:G.zodiac,
       petName:G.petName,
+      day:G.day||1,
+      hunger:G.hunger,
+      happy:G.happy,
+      energy:G.energy,
+      sleeping:!!G.sleeping,
+      state:G.state||'idle',
       question:question,
       category:category,
       usedToday:usedToday,

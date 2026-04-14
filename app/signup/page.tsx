@@ -30,6 +30,8 @@ type SignupResult = {
 
 type SocialProvider = "google" | "naver" | "kakao";
 
+const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
+
 function normalizeApiBase(rawBase: string | undefined | null) {
   const value = String(rawBase || "").trim();
   if (!value) return "";
@@ -44,6 +46,25 @@ function sanitizeNextPath(rawNext: string | null) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function publishAuthSync(event: "login" | "logout", token?: string) {
+  if (typeof window === "undefined") return;
+  const payload = {
+    source: "signup",
+    event,
+    token: token ? "updated" : "none",
+    at: Date.now(),
+  };
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+      channel.postMessage(payload);
+      channel.close();
+    }
+  } catch {
+    // ignore
+  }
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -92,6 +113,7 @@ export default function SignupPage() {
     if (token) {
       localStorage.setItem("fortune_auth_token", token);
       document.cookie = `fortune_auth_token=${encodeURIComponent(token)}; path=/; max-age=604800; samesite=lax`;
+      publishAuthSync("login", token);
     }
 
     if (user) {
