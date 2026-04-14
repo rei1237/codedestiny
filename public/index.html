@@ -6978,25 +6978,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
       if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
-      // 프리미엄 북 액션은 코인 차감 API(await) 이후 user gesture 컨텍스트가 끊길 수 있어
-      // confirm 직후 미리 창을 열어 두고, 실제 PDF 생성 시 해당 창을 재사용한다.
-      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium') {
-        try {
-          if (window._cdPreOpenedBookWin && !window._cdPreOpenedBookWin.closed) {
-            window._cdPreOpenedBookWin.focus();
-          } else {
-            window._cdPreOpenedBookWin = window.open('', '_blank', 'width=900,height=700');
-          }
-        } catch (_) {}
-      }
-      var _cdClosePreOpenedBookWin = function () {
-        if (window._cdPreOpenedBookWin && !window._cdPreOpenedBookWin.closed) {
-          try { window._cdPreOpenedBookWin.close(); } catch (_) {}
-        }
-        window._cdPreOpenedBookWin = null;
-      };
       if (consumeInFlight) {
-        _cdClosePreOpenedBookWin();
         return;
       }
       consumeInFlight = true;
@@ -7006,13 +6988,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           body: JSON.stringify({ cost: tileCoinCost, reason: fname + ' 이용' }),
         });
         if (r.status === 404 || r.status >= 500) {
-          _cdClosePreOpenedBookWin();
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
           return;
         }
-        if (r.status === 402) { _cdClosePreOpenedBookWin(); openChargeModal(); return; }
+        if (r.status === 402) { openChargeModal(); return; }
         if (!r.ok) {
-          _cdClosePreOpenedBookWin();
           window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
           return;
         }
@@ -7026,7 +7006,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
       } catch (e) {
-        _cdClosePreOpenedBookWin();
         console.error('[coin gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       } finally {
