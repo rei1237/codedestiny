@@ -998,21 +998,137 @@
     if (!container || !state.reading) return;
     var r = state.reading;
 
-    var sections = buildResultSections(r);
-    if (!sections.length && Array.isArray(state.cards) && state.cards.length) {
+    if (!r.opening && !r.pastDebuff && (!Array.isArray(r.positionInsights) || !r.positionInsights.length)) {
       state.reading = buildFallbackReading();
       r = state.reading;
-      sections = buildResultSections(r);
-    }
-    if (!sections.length) {
-      container.innerHTML = '<section class="tarot-self-esteem-section"><p class="tarot-self-esteem-section-text">해석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p></section>';
-      return;
     }
 
     container.innerHTML = "";
-    runTypingSequence(container, sections, 0, function () {
-      attachLevelUpOnScroll(container);
+
+    var ICONS = {
+      past_debuff: "🌑",
+      inner_monster: "👁",
+      current_damage: "⚡",
+      mind_shield: "🛡",
+      levelup_mastery: "✨"
+    };
+
+    // Opening banner
+    if (r.opening) {
+      var openDiv = document.createElement("div");
+      openDiv.className = "tse-opening";
+      var openIcon = document.createElement("span");
+      openIcon.className = "tse-opening-icon";
+      openIcon.textContent = "✨";
+      var openP = document.createElement("p");
+      openP.className = "tse-opening-text";
+      openP.textContent = r.opening;
+      openDiv.appendChild(openIcon);
+      openDiv.appendChild(openP);
+      container.appendChild(openDiv);
+    }
+
+    // Per-position insight cards
+    var positions = [
+      { pos: "past_debuff",     num: "1", text: r.pastDebuff,     label: POSITION_LABELS.past_debuff },
+      { pos: "inner_monster",   num: "2", text: r.innerMonster,   label: POSITION_LABELS.inner_monster },
+      { pos: "current_damage",  num: "3", text: r.currentDamage,  label: POSITION_LABELS.current_damage },
+      { pos: "mind_shield",     num: "4", text: r.mindShield,     label: POSITION_LABELS.mind_shield },
+      { pos: "levelup_mastery", num: "5", text: r.levelupMastery, label: POSITION_LABELS.levelup_mastery }
+    ];
+
+    positions.forEach(function (item, idx) {
+      if (!item.text) return;
+      var card = null;
+      (state.cards || []).forEach(function (c) { if (c.position === item.pos) card = c; });
+      var cardName = card ? ((card.nameKr || card.name) + (card.orientation === "reversed" ? " (역)" : "")) : "";
+
+      var insightCard = document.createElement("div");
+      insightCard.className = "tse-insight-card";
+      insightCard.setAttribute("data-pos", item.pos);
+      insightCard.style.animationDelay = (idx * 0.08) + "s";
+
+      var header = document.createElement("div");
+      header.className = "tse-card-header";
+
+      var badge = document.createElement("span");
+      badge.className = "tse-card-badge";
+      badge.textContent = item.num;
+
+      var icon = document.createElement("span");
+      icon.className = "tse-card-icon";
+      icon.textContent = ICONS[item.pos] || "✦";
+
+      var meta = document.createElement("div");
+      meta.className = "tse-card-meta";
+
+      var posLabel = document.createElement("span");
+      posLabel.className = "tse-card-position";
+      posLabel.textContent = item.label;
+      meta.appendChild(posLabel);
+
+      if (cardName) {
+        var nameEl = document.createElement("span");
+        nameEl.className = "tse-card-name";
+        nameEl.textContent = cardName;
+        meta.appendChild(nameEl);
+      }
+
+      header.appendChild(badge);
+      header.appendChild(icon);
+      header.appendChild(meta);
+
+      var body = document.createElement("p");
+      body.className = "tse-card-body";
+      body.textContent = item.text;
+
+      insightCard.appendChild(header);
+      insightCard.appendChild(body);
+      container.appendChild(insightCard);
     });
+
+    // Level Up Guidance
+    if (r.levelupGuidance) {
+      var lvCard = document.createElement("div");
+      lvCard.className = "tse-levelup-card";
+      var lvTitle = document.createElement("p");
+      lvTitle.className = "tse-levelup-title";
+      lvTitle.textContent = "🎮 Level Up 가이드";
+      var lvBody = document.createElement("p");
+      lvBody.className = "tse-levelup-body";
+      lvBody.textContent = r.levelupGuidance;
+      lvCard.appendChild(lvTitle);
+      lvCard.appendChild(lvBody);
+      container.appendChild(lvCard);
+    }
+
+    // Action Quest Plan
+    if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
+      var actionCard = document.createElement("div");
+      actionCard.className = "tse-action-card";
+      var actionTitle = document.createElement("p");
+      actionTitle.className = "tse-action-title";
+      actionTitle.textContent = "⚔️ 오늘의 레벨업 퀘스트";
+      var ul = document.createElement("ul");
+      ul.className = "tse-quest-list";
+      r.actionPlan.forEach(function (itemText, i) {
+        var li = document.createElement("li");
+        li.className = "tse-quest-item";
+        var num = document.createElement("span");
+        num.className = "tse-quest-num";
+        num.textContent = String(i + 1);
+        var text = document.createElement("span");
+        text.textContent = itemText;
+        li.appendChild(num);
+        li.appendChild(text);
+        ul.appendChild(li);
+      });
+      actionCard.appendChild(actionTitle);
+      actionCard.appendChild(ul);
+      container.appendChild(actionCard);
+    }
+
+    attachLevelUpOnScroll(container);
   }
 
   function shareTarotSelfEsteemResult() {

@@ -23,6 +23,17 @@ function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+const SELF_ESTEEM_SECTION_MIN_CHARS = 500;
+
+function ensureSelfEsteemMinLength(text, seed) {
+  let out = safeText(text);
+  if (!out) out = safeText(seed);
+  while (out.length < SELF_ESTEEM_SECTION_MIN_CHARS && seed) {
+    out += "\n\n" + safeText(seed);
+  }
+  return out;
+}
+
 function ensureMinSectionLength(text, minChars, fallbackText) {
   let out = safeText(text);
   const fallback = safeText(fallbackText);
@@ -31,6 +42,50 @@ function ensureMinSectionLength(text, minChars, fallbackText) {
   while (out.length < minChars && fallback) {
     out += `\n\n${fallback}`;
   }
+
+  return out;
+}
+
+function normalizeEnhancedSelfEsteemReading(candidate) {
+  const src = candidate && typeof candidate === "object" ? candidate : {};
+  const fallbackOpening = "이 리딩을 선택한 것 자체가 자신을 돌보려는 강한 의지입니다. 5장의 카드가 당신의 내면 패턴을 정리하고, 회복 가능한 지점을 발견하도록 안내합니다.";
+  const out = {
+    ...src,
+    opening: safeText(src.opening) || fallbackOpening,
+    pastDebuff: ensureSelfEsteemMinLength(
+      src.pastDebuff,
+      "과거의 상처는 당신의 결함이 아니라 생존을 위한 적응의 흔적입니다. 그 패턴을 인식하는 순간 영향력은 줄어들고, 현재의 선택권은 다시 당신에게 돌아옵니다."
+    ),
+    innerMonster: ensureSelfEsteemMinLength(
+      src.innerMonster,
+      "내면의 비판 목소리는 당신을 보호하려는 오래된 습관일 수 있습니다. 그 목소리를 없애기보다 관찰하고 이름 붙이면, 감정의 파도에 휩쓸리지 않고 주도권을 되찾을 수 있습니다."
+    ),
+    currentDamage: ensureSelfEsteemMinLength(
+      src.currentDamage,
+      "눈치 보기와 자기 검열은 에너지를 조용히 소모시킵니다. 지금 손상 지점을 구체적으로 확인하면 회복 우선순위를 세울 수 있고, 작은 실천이 일상을 다시 안정시킵니다."
+    ),
+    mindShield: ensureSelfEsteemMinLength(
+      src.mindShield,
+      "타인의 감정과 내 책임을 분리하는 연습은 강한 마음의 방패가 됩니다. 설명은 하되 과잉 설득을 멈추고, 나를 소진시키지 않는 경계를 반복해 보세요."
+    ),
+    levelupMastery: ensureSelfEsteemMinLength(
+      src.levelupMastery,
+      "자존감의 마스터리는 완벽함이 아니라 반복되는 자기존중 선택입니다. 하루 하나의 작은 선택을 일관되게 지키면, 시간이 지날수록 내면의 안정감이 확실히 커집니다."
+    ),
+    levelupGuidance:
+      safeText(src.levelupGuidance) ||
+      "오늘부터 하나씩 실천하세요. 작은 변화의 누적이 자존감의 체력을 만들고, 그 체력이 관계와 일상의 방향까지 바꿉니다.",
+    positionInsights: Array.isArray(src.positionInsights) ? src.positionInsights : [],
+    actionPlan: Array.isArray(src.actionPlan) && src.actionPlan.length
+      ? src.actionPlan
+      : [
+          "오늘 하루, 한 번은 내 감정을 먼저 확인한 뒤 대답하기",
+          "거절이 필요한 상황에서 짧고 분명하게 경계 표현하기",
+          "잘한 행동 1가지를 기록하고 스스로 인정하기",
+          "타인의 반응을 통제하려는 생각이 들면 숨 고르고 멈추기",
+          "리딩에서 가장 와닿은 문장을 오늘의 기준 문장으로 사용하기",
+        ],
+  };
 
   return out;
 }
@@ -187,7 +242,9 @@ async function runEngineReading(body) {
       );
     case "self_esteem_levelup_five_card":
       return withQuality(
-        engine.createSelfEsteemLevelupReading({ drawnCards }).reading,
+        normalizeEnhancedSelfEsteemReading(
+          engine.createSelfEsteemLevelupReading({ drawnCards }).reading,
+        ),
         drawnCards,
       );
     case "yearly_twelve_card":
@@ -248,16 +305,27 @@ function buildLocalFallback(body) {
     };
   }
   if (spreadType === "self_esteem_levelup_five_card") {
+    const pastDebuffSeed = "과거에 당신의 자존감을 낮추었던 경험들—누군가에게 무시당한 기억, 끊임없이 비교당한 환경, 혹은 완벽하지 않으면 인정받지 못한다고 느꼈던 순간들—이 모두 지금의 당신을 만들어 온 조각들입니다. 카드는 말합니다. 그 경험들은 당신의 결함이 아니라, 당시 당신이 처한 상황에서 살아남기 위해 선택한 적응의 방식이었다고. 눈치를 보는 습관, 확인을 반복하는 불안, 먼저 사과하는 패턴—이것들은 상처의 흔적이지 성격의 결핍이 아닙니다. 지금부터 이 패턴들을 인식하는 것이 첫 번째 레벨업입니다. 과거를 바꿀 수는 없지만, 과거가 현재의 나를 정의하는 힘을 점점 줄여 나갈 수 있습니다. 오늘 이 리딩이 그 시작점이 되어줄 것입니다. 당신이 이 자리에 앉아 내면을 들여다볼 용기를 낸 것 자체가 이미 성장의 증거입니다.";
+    const innerMonsterSeed = "내면의 몬스터는 종종 '나는 충분하지 않아', '이 정도면 됐어', '어차피 나는 안 돼'라는 목소리로 나타납니다. 이 목소리는 외부에서 들어온 판단이 내면화된 것입니다. 카드는 이 몬스터를 억압하거나 없애려 하지 말고, 먼저 인정하라고 말합니다. '아, 지금 그 목소리가 왔구나'라고 관찰하는 순간, 그 목소리는 절반의 힘을 잃습니다. 이 몬스터가 가장 시끄럽게 말하는 상황을 떠올려 보세요. 발표할 때? 거절해야 할 때? 관계에서 먼저 연락할 때? 그 순간이 바로 당신이 경계를 배워야 할 영역입니다. 인정은 동의가 아닙니다. 나에게는 이런 불안이 있고, 그것은 과거 경험에서 왔다—나는 지금 다르게 선택할 수 있다는 인식이 자존감 회복의 핵심 공식입니다.";
+    const currentDamageSeed = "지금 이 순간, 눈치 보는 습관과 자기 검열은 당신의 에너지를 조용히 빼앗고 있습니다. 매일 타인의 반응을 스캔하고, 내 감정보다 분위기를 먼저 읽고, 말하기 전에 여러 번 필터링하는 일—이것들이 반복되면 자연스럽게 지칩니다. 카드는 이 피로가 나약함이 아니라, 지나치게 많은 에너지를 타인 관리에 쓰고 있다는 신호라고 말합니다. 회복의 첫 단계는 이 소진 패턴을 인식하는 것입니다. 하루에 딱 한 번, '오늘 내가 정말 원한 것은 무엇이었나?'를 스스로에게 묻는 연습을 시작해 보세요. 그 질문이 현재의 손상 지점을 회복시키는 단순하지만 강력한 루틴이 됩니다. 완벽한 회복을 기대하지 않아도 됩니다. 방향만 바꾸면 지금부터 달라집니다.";
+    const mindShieldSeed = "타인이 실망하거나 화내는 상황에서도 당신이 흔들리지 않으려면, 가장 먼저 타인의 감정과 내 책임의 경계를 구분하는 연습이 필요합니다. 카드는 당신이 이미 그 방어막을 가지고 있다고 말합니다—다만, 아직 충분히 사용하지 않았을 뿐입니다. 상대가 실망했을 때 내가 잘못해서라는 전제보다 먼저, 이 상황이 실망스럽게 느껴졌을 수 있다고 구분해 보세요. 설명은 하되, 과잉 해명으로 자신을 소진시키지 않아도 됩니다. 마음의 방어막은 벽이 아닙니다. 자신과 타인의 감정 모두를 존중하면서, 내가 통제할 수 없는 타인의 반응에 과잉 책임지지 않는 연습—이것이 진짜 마음의 방패입니다. 오늘 한 번, 상대가 실망했을 때 나는 최선을 다했다고 스스로에게 말해 주세요.";
+    const levelupMasterySeed = "자존감 레벨업의 마스터리는 나를 1순위로 두는 선택을 반복하는 데 있습니다. 한 번에 크게 바뀔 필요는 없습니다. 오늘 하루, 불편해도 솔직하게 NO라고 말한 한 번이 중요합니다. 카드는 말합니다—당신은 타인의 기대를 충족시키기 위해 존재하지 않습니다. 나를 돌보는 것이 이기적인 게 아니라, 나를 소진시키지 않아야 진짜로 타인을 도울 수 있다고. 마스터리는 완벽함이 아니라 일관성입니다. 실패하는 날이 있어도 다음에 다시 선택하면 된다는 유연함이 자존감을 지속 가능하게 만듭니다. 이번 리딩을 계기로, 하루에 하나씩 나를 위한 선택을 늘려 나가세요. 작은 루틴이 쌓여, 6개월 뒤의 나는 지금과 다른 단단함을 가지게 됩니다.";
     return {
-      opening: "이 리딩을 선택한 것 자체가 자신을 돌보려는 의지입니다.",
-      pastDebuff: "과거의 데버프를 인식하는 것만으로도 영향력이 줄어듭니다.",
-      innerMonster: "내면의 몬스터는 인정하고 주도권을 넘기지 않는 것이 핵심입니다.",
-      currentDamage: "손상 지점을 파악한 것 자체가 회복의 시작입니다.",
-      mindShield: "당신에게는 이미 내면의 방어막이 있습니다.",
-      levelupMastery: "어제의 나와 오늘의 나를 비교하는 습관이 레벨업 마스터리입니다.",
-      levelupGuidance: "매일 자신에게 친절한 말 한 마디를 실천하세요.",
+      opening: "자존감 레벨업 타로에 오신 것을 환영합니다. 지금 이 순간 당신이 자신의 내면을 들여다볼 용기를 냈다는 것 자체가 이미 한 단계 성장했다는 증거입니다. 5장의 카드는 당신이 지나온 상처와 그 안에 숨어 있는 힘, 그리고 앞으로 나아갈 방향을 사랑을 담아 안내할 것입니다. 천천히 읽어 주세요. 모든 메시지는 지금의 당신을 위한 것입니다.",
+      pastDebuff: ensureSelfEsteemMinLength("", pastDebuffSeed),
+      innerMonster: ensureSelfEsteemMinLength("", innerMonsterSeed),
+      currentDamage: ensureSelfEsteemMinLength("", currentDamageSeed),
+      mindShield: ensureSelfEsteemMinLength("", mindShieldSeed),
+      levelupMastery: ensureSelfEsteemMinLength("", levelupMasterySeed),
+      levelupGuidance: "5장의 카드가 완성되었습니다. 당신의 자존감 레벨업 퀘스트는 오늘부터 시작됩니다. 과거의 상처를 인식하고, 내면의 목소리와 협상하며, 에너지를 회복하고, 마음의 방패를 세우고, 나를 우선으로 선택하는 연습—이 5가지를 한꺼번에 완벽하게 할 필요는 없습니다. 오늘 하나만 시작하세요. 그것으로 충분합니다. 매일 작은 레벨업이 쌓여 당신은 반드시 변화합니다.",
       positionInsights: [],
-      actionPlan: ["거울 앞에서 '나는 충분히 가치있어'라고 3번 말하세요.", "잘한 것 한 가지를 노트에 적으세요.", "자기 비판이 올라올 때 멈추고 인정하세요."],
+      actionPlan: [
+        "오늘 하루 'NO'라고 말해도 괜찮은 상황 한 가지를 찾아 실행해 보세요.",
+        "타인의 시선 대신 '내가 진짜 원하는 것'을 한 문장으로 적어 보세요.",
+        "눈치 보느라 참았던 감정이 있다면, 오늘 안전한 사람에게 한 번 말해 보세요.",
+        "매일 아침 거울을 보며 '나는 충분히 가치 있어'라고 3번 말해 보세요.",
+        "이 리딩에서 가장 마음에 와닿은 카드 한 장의 메시지를 메모해 두고, 힘들 때 꺼내 읽어 보세요.",
+      ],
     };
   }
   if (spreadType === "yearly_twelve_card") {

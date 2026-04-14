@@ -1171,7 +1171,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <div class="tarot-self-esteem-particles" aria-hidden="true">
     <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
     <span class="particle p4"></span><span class="particle p5"></span><span class="particle p6"></span>
-    <span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span>
+    <span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span><span class="particle p10"></span>
   </div>
   <div id="tarotSelfEsteemLevelUpBanner" class="tarot-self-esteem-levelup-banner" aria-hidden="true">
     <span class="tarot-self-esteem-levelup-text">Level Up!</span>
@@ -7071,8 +7071,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
         // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+        // prem-card: Preview 패널 먼저 표시 (desktop & mobile 통일 UX, 합성 클릭 이중 실행 방지)
+        // pvw-bypass 없는 prem-card → 프리뷰 패널 오픈 → CTA → 코인게이트 순서
+        if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
+          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
+            _cdSafeBlockEvent(event);
+            return;
+          }
+          // Preview 없는 경우(D 딕셔너리 미등록) 직접 코인게이트로 폴백
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
+        }
+        // .tarot-tile / .lifebook-tile / .lovebible-tile: pvw-bypass 없으면 Preview가 처리
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
           if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
