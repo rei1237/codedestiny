@@ -144,6 +144,87 @@ if (document.readyState === 'loading') {
   __cdInitCollectionPerfMetrics();
 }
 
+function __cdEnsureCoinGatePerUse() {
+  if (typeof window._cdCoinGatePerUse === 'function') return;
+
+  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
+    var nCost = Number(cost);
+    if (!Number.isFinite(nCost) || nCost <= 0) {
+      if (typeof cb === 'function') cb();
+      return;
+    }
+
+    if (window._cdCoinGatePerUseInFlight) return;
+
+    var token = '';
+    try {
+      token = localStorage.getItem('fortune_auth_token')
+        || localStorage.getItem('cdToken')
+        || sessionStorage.getItem('fortune_auth_token')
+        || '';
+    } catch (_) {}
+
+    if (!token) {
+      try {
+        if (window.confirm('로그인이 필요한 유료 기능입니다. 로그인 페이지로 이동하시겠습니까?')) {
+          var next = encodeURIComponent(window.location.pathname + (window.location.search || ''));
+          window.location.href = '/login?next=' + next;
+        }
+      } catch (_) {}
+      if (typeof onCancel === 'function') onCancel();
+      return;
+    }
+
+    window._cdCoinGatePerUseInFlight = true;
+    fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ cost: nCost, reason: reason || '유료 기능 이용' })
+    })
+      .then(function(r) {
+        return r.json().catch(function() { return {}; }).then(function(data) {
+          return { ok: r.ok, status: r.status, data: data };
+        });
+      })
+      .then(function(res) {
+        if (!res.ok) {
+          if (res.status === 402) {
+            if (window.confirm('코인이 부족합니다. 충전 페이지로 이동하시겠습니까?')) {
+              window.location.href = '/points';
+            }
+          } else {
+            window.alert((res.data && res.data.message) || '코인 차감에 실패했습니다.');
+          }
+          if (typeof onCancel === 'function') onCancel();
+          return;
+        }
+
+        try {
+          var newBalance = Number(res.data && res.data.user && res.data.user.points);
+          if (Number.isFinite(newBalance)) {
+            var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}') || {};
+            u.points = newBalance;
+            localStorage.setItem('fortune_auth_user', JSON.stringify(u));
+          }
+        } catch (_) {}
+
+        if (typeof cb === 'function') cb();
+      })
+      .catch(function() {
+        window.alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        if (typeof onCancel === 'function') onCancel();
+      })
+      .finally(function() {
+        window._cdCoinGatePerUseInFlight = false;
+      });
+  };
+}
+
+__cdEnsureCoinGatePerUse();
+
 function cdNormalizeLang(langCode) {
   var raw = String(langCode || 'ko').trim();
   if (!raw) return 'ko';
