@@ -149,13 +149,17 @@ const FREE_FEATURES = [
   "행복한 회복 타로",
 ];
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
 function isAdminSessionClient(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    if (localStorage.getItem('flower_admin_token')) return true;
+    const token = String(localStorage.getItem('flower_admin_token') || '');
+    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch (_) {}
   try {
-    if (sessionStorage.getItem('flower_admin_token')) return true;
+    const token = String(sessionStorage.getItem('flower_admin_token') || '');
+    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch (_) {}
   return false;
 }
@@ -164,11 +168,11 @@ function getFlowerAdminTokenClient(): string {
   if (typeof window === 'undefined') return '';
   try {
     const token = sessionStorage.getItem('flower_admin_token');
-    if (token) return String(token);
+    if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch (_) {}
   try {
     const token = localStorage.getItem('flower_admin_token');
-    if (token) return String(token);
+    if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch (_) {}
   return '';
 }
@@ -247,10 +251,8 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: API 호출 없이 즉시 해금 (토큰 만료/Bearer 충돌 우회)
+    // 관리자 모드: API 호출 없이 즉시 해금 (코인 차감 없음)
     if (adminToken || isAdminUser) {
-      setCurrentCoins(9999);
-      saveUserPoints(9999);
       setUnlockedFeatures((prev) => {
         const next = { ...prev, [key]: true };
         if (alsoUnlock?.length) for (const aliasKey of alsoUnlock) next[aliasKey] = true;
@@ -299,10 +301,8 @@ export default function KkulkkulManseryukMain() {
       return;
     }
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: API 호출 없이 즉시 회당 사용 처리
+    // 관리자 모드: API 호출 없이 즉시 회당 사용 처리 (코인 차감 없음)
     if (adminToken || isAdminUser) {
-      setCurrentCoins(9999);
-      saveUserPoints(9999);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
       if (key === 'loveSimulation') window.location.href = '/saju/love-simulation';
@@ -351,10 +351,8 @@ export default function KkulkkulManseryukMain() {
     }
 
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: 잔액 API 호출 없이 9999 코인으로 즉시 통과
+    // 관리자 모드: 잔액 확인 없이 즉시 통과 (코인 차감 없음)
     if (adminToken || isAdminUser) {
-      setCurrentCoins(9999);
-      saveUserPoints(9999);
       return true;
     }
     const adminTestTier = getFlowerAdminTestTierClient();
@@ -425,10 +423,8 @@ export default function KkulkkulManseryukMain() {
     const token = localStorage.getItem('fortune_auth_token');
     if (!token && !isAdminUser) return;
     const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: consume API 없이 즉시 generate 단계로 이동
+    // 관리자 모드: consume API 없이 즉시 generate 단계로 이동 (코인 차감 없음)
     if (adminToken || isAdminUser) {
-      setCurrentCoins(9999);
-      saveUserPoints(9999);
       setPremiumFlowStage('generate');
       return;
     }
@@ -513,17 +509,11 @@ export default function KkulkkulManseryukMain() {
       const user = raw ? JSON.parse(raw) : {};
       const admin = isAdminSessionClient();
       setIsAdminUser(admin);
-      // 관리자 모드: 가상 코인 9999 고정, API 동기화 불필요
-      if (admin) {
-        setCurrentCoins(9999);
-        saveUserPoints(9999);
-        return;
-      }
       if (typeof user?.points === 'number') {
         setCurrentCoins(user.points);
       }
     } catch (_) {}
-    // 2) API로 실제 잔액 동기화 (비관리자만)
+    // 2) API로 실제 잔액 동기화
     const token = localStorage.getItem('fortune_auth_token');
     if (!token && !isAdminSessionClient()) return;
     const adminToken = getFlowerAdminTokenClient();
@@ -545,7 +535,7 @@ export default function KkulkkulManseryukMain() {
         }
       })
       .catch(() => {});
-  }, [isAdminUser]);
+  }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">

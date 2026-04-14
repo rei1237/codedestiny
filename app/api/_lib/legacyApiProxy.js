@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { ADMIN_VIRTUAL_COINS, isAdminRequest, withAdminVirtualPoints } from "./adminAccess";
-import { verifyJwtFromRequest } from "./adminAccess";
 
 function normalizeBaseUrl(rawValue) {
   const value = String(rawValue || "").trim();
@@ -116,31 +114,6 @@ export async function proxyLegacyApi(request) {
   }
 
   const response = await fetch(upstream, init);
-
-  // 관리자 결제 테스트 모드: /api/payments/me 응답의 points를 항상 9999로 고정
-  if (incomingUrl.pathname === "/api/payments/me") {
-    const adminMode = await isAdminRequest(request);
-    const jwtPayload = verifyJwtFromRequest(request);
-    if (adminMode && !jwtPayload?.userId) {
-      const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-      if (contentType.includes("application/json")) {
-        try {
-          const data = await response.clone().json();
-          const patched = {
-            ...data,
-            adminMode: true,
-            user: withAdminVirtualPoints(data?.user, true),
-          };
-          if (patched.user && typeof patched.user === "object") {
-            patched.user.points = ADMIN_VIRTUAL_COINS;
-          }
-          return NextResponse.json(patched, { status: response.status });
-        } catch {
-          // JSON 파싱 실패 시 원본 응답 반환
-        }
-      }
-    }
-  }
 
   return new Response(response.body, {
     status: response.status,

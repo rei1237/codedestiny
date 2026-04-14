@@ -220,8 +220,6 @@ const POINT_PACKAGES: PointPackage[] = [
   { id: "emperorReserve", title: "황금 돼지 제왕 보물고",  amount: 119000, points: 2000 },
 ];
 
-const ADMIN_VIRTUAL_COINS = 9999;
-
 function isFlowerAdminSessionClient(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -1083,7 +1081,7 @@ export default function PointsPage() {
 
       const nextUser = payload.user;
       const adminMode = isFlowerAdminSessionClient();
-      const points = adminMode ? ADMIN_VIRTUAL_COINS : Number(nextUser?.points || 0);
+      const points = Number(nextUser?.points || 0);
       persistUserPoints(points);
 
       const normalizedPayments = Array.isArray(payload.payments)
@@ -1124,9 +1122,7 @@ export default function PointsPage() {
       try {
         const parsed = JSON.parse(rawUser) as AuthUser;
         setAuthUser(parsed);
-        if (adminMode) {
-          setCurrentPoints(ADMIN_VIRTUAL_COINS);
-        } else if (typeof parsed.points === "number") {
+        if (typeof parsed.points === "number") {
           setCurrentPoints(parsed.points);
         }
       } catch { /* noop */ }

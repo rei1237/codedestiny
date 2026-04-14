@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../../_lib/models/PointHistoryModel";
-import { ADMIN_VIRTUAL_COINS, isAdminRequest, verifyJwtFromRequest } from "../../../../_lib/adminAccess";
+import { isAdminRequest, verifyJwtFromRequest } from "../../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -37,7 +37,7 @@ export async function GET(request) {
     const sub    = user.profileSubscription || {};
     const tier   = sub.tier || "free";
     const expAt  = sub.expiresAt || null;
-    const points = adminMode ? ADMIN_VIRTUAL_COINS : Number(user.points || 0);
+    const points = Number(user.points || 0);
     const plan   = PROFILE_SUB_PLANS[tier];
     const now    = new Date();
 
@@ -46,6 +46,7 @@ export async function GET(request) {
     let autoRenewed    = false;
     const adminTestTier = adminMode ? getAdminTestTier(request) : "";
 
+    // 관리자 티어 테스트: 실제 구독 대신 특정 티어로 시뮬레이션 (코인 수동 실제 잔액 유지)
     if (adminMode && adminTestTier) {
       const adminPlan = PROFILE_SUB_PLANS[adminTestTier];
       return NextResponse.json({
@@ -109,8 +110,6 @@ export async function GET(request) {
       points,
       lowBalanceWarning: !!lowBalanceWarning,
       autoRenewed:       !!autoRenewed,
-      adminMode,
-      adminTestTier: adminTestTier || null,
       hasStartedPaidService: !!user.has_started_paid_service,
       firstServiceAccessDate: user.first_service_access_date ? new Date(user.first_service_access_date).toISOString() : null,
     });

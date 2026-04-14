@@ -1,6 +1,6 @@
 ﻿import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../_lib/models/UserModel";
-import { ADMIN_VIRTUAL_COINS, isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
+import { isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -13,13 +13,9 @@ export async function GET(request) {
   if (!userId && !adminMode) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   try {
+    // 관리자 토큰만 있고 실 userId가 없으면 코인 확인 불필요
     if (adminMode && !userId) {
-      return NextResponse.json({
-        ok: true,
-        adminMode: true,
-        message: "관리자 코인이 9999로 재설정되었습니다.",
-        user: { id: String(userId || "flower-admin"), points: ADMIN_VIRTUAL_COINS },
-      });
+      return NextResponse.json({ ok: true, adminMode: true });
     }
 
     const User = await getUserModel();

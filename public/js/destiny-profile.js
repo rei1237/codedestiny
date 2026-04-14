@@ -151,7 +151,6 @@
     } catch (_) {}
   }
 
-  var _CD_ADMIN_VIRTUAL_COINS = 9999;
   var _CD_ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
 
   function _cdReadCookie(name) {
@@ -208,13 +207,6 @@
 
     var isAdminLike = _cdIsAdminLikeUser();
     if (isAdminLike) {
-      try {
-        var _adminUserRaw = localStorage.getItem('fortune_auth_user') || 'null';
-        var _adminUser = JSON.parse(_adminUserRaw) || {};
-        _adminUser.points = _CD_ADMIN_VIRTUAL_COINS;
-        localStorage.setItem('fortune_auth_user', JSON.stringify(_adminUser));
-      } catch (_) {}
-      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(_CD_ADMIN_VIRTUAL_COINS);
       cb();
       return;
     }

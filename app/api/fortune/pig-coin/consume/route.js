@@ -1,7 +1,7 @@
 ﻿import { NextResponse } from "next/server";
 import { getUserModel } from "../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../_lib/models/PointHistoryModel";
-import { ADMIN_VIRTUAL_COINS, isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
+import { isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -12,12 +12,6 @@ const SUBSCRIPTION_FREE_LIMIT = {
   premium: 50,
   vvip: 100,
 };
-
-function getAdminTestTier(request) {
-  const raw = String(request.headers.get("x-admin-subscription-tier") || "").trim().toLowerCase();
-  if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
-  return "";
-}
 
 function getSubscriptionFreeLimit(user) {
   const tier = String(user?.profileSubscription?.tier || "free");
@@ -51,21 +45,13 @@ export async function POST(request) {
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
 
+  // 관리자 모드: 코인 차감 없이 즉시 통과
   if (adminMode && !userId) {
-    const adminTestTier = getAdminTestTier(request);
-    const freeLimit = adminTestTier ? Number(SUBSCRIPTION_FREE_LIMIT[adminTestTier] || 0) : 0;
-    const subscriptionFree = freeLimit > 0 && cost <= freeLimit;
     return NextResponse.json({
       ok: true,
       adminMode: true,
-      adminTestTier: adminTestTier || null,
-      subscriptionFree,
-      freeLimit,
-      message: subscriptionFree
-        ? `관리자 테스트(${adminTestTier}) 기준으로 ${cost.toLocaleString("ko-KR")}코인 서비스가 무료 처리되었습니다.`
-        : `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다. (관리자 프리패스)`,
+      message: "관리자 프리패스로 처리되었습니다.",
       requiredCoins: cost,
-      user: { id: String(userId || "flower-admin"), points: ADMIN_VIRTUAL_COINS },
     });
   }
 
