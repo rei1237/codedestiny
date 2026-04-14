@@ -540,24 +540,126 @@ function normalizeEngineCard(card) {
   };
 }
 
-function callTarotEngine(endpoint, payload) {
-  var base = typeof getFortuneApiBaseUrl === 'function' ? getFortuneApiBaseUrl() : (location.origin || '');
-  var url = (base ? base.replace(/\/+$/, '') : '') + '/api/tarot/' + endpoint;
+function normalizeTarotApiBase(raw) {
+  return String(raw || '').trim().replace(/\/+$/, '');
+}
+
+function buildTarotEngineApiBaseCandidates() {
+  var out = [];
+  var seen = Object.create(null);
+  function add(value) {
+    var normalized = normalizeTarotApiBase(value);
+    if (seen[normalized]) return;
+    seen[normalized] = true;
+    out.push(normalized);
+  }
+
+  add('');
+  if (typeof location !== 'undefined' && location && location.origin) {
+    add(location.origin);
+  }
+
+  if (typeof getFortuneApiBaseUrl === 'function') {
+    try {
+      add(getFortuneApiBaseUrl());
+    } catch (_) {}
+  }
+
+  if (typeof window !== 'undefined') {
+    add(window.CODE_DESTINY_API_BASE_URL);
+    if (window.__ENV__ && window.__ENV__.NEXT_PUBLIC_API_BASE_URL) {
+      add(window.__ENV__.NEXT_PUBLIC_API_BASE_URL);
+    }
+    if (window.__CF_PAGES_API_BASE_URL) {
+      add(window.__CF_PAGES_API_BASE_URL);
+    }
+    var host = String((location && location.hostname) || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') {
+      add('http://localhost:3000');
+      add('http://localhost:4000');
+    }
+    if (host && host !== 'code-destiny.com' && host !== 'www.code-destiny.com') {
+      add('https://code-destiny.com');
+    }
+  }
+
+  return out;
+}
+
+function fetchTarotEngineApi(url, payload) {
+  var body = JSON.stringify(payload || {});
+  var supportsAbort = typeof AbortController === 'function';
+  var timeoutMs = 12000;
+
+  if (!supportsAbort) {
+    return Promise.race([
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body,
+        cache: 'no-store'
+      }),
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('Tarot API timeout')); }, timeoutMs);
+      })
+    ]);
+  }
+
+  var controller = new AbortController();
+  var timeoutId = setTimeout(function () {
+    controller.abort();
+  }, timeoutMs);
+
   return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload || {})
-  }).then(function(res) {
-    if (!res.ok) {
-      throw new Error('Tarot API error: ' + res.status);
+    body: body,
+    cache: 'no-store',
+    signal: controller.signal
+  }).catch(function (error) {
+    if (error && error.name === 'AbortError') {
+      throw new Error('Tarot API timeout');
     }
-    return res.json();
-  }).then(function(data) {
-    if (!data || data.ok === false) {
-      throw new Error('Tarot API returned invalid payload');
-    }
-    return data;
+    throw error;
+  }).finally(function () {
+    clearTimeout(timeoutId);
   });
+}
+
+function callTarotEngine(endpoint, payload) {
+  var bases = buildTarotEngineApiBaseCandidates();
+  var idx = 0;
+  var lastError = null;
+
+  function requestWithBase(base) {
+    var url = (base ? base + '/api/tarot/' : '/api/tarot/') + endpoint;
+    return fetchTarotEngineApi(url, payload)
+      .then(function (res) {
+        if (!res.ok) {
+          throw new Error('Tarot API error: ' + res.status);
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || data.ok === false) {
+          throw new Error('Tarot API returned invalid payload');
+        }
+        return data;
+      });
+  }
+
+  function tryNext() {
+    if (idx >= bases.length) {
+      throw lastError || new Error('Tarot API request failed');
+    }
+    var base = bases[idx++];
+    return requestWithBase(base).catch(function (error) {
+      lastError = error;
+      return tryNext();
+    });
+  }
+
+  return Promise.resolve().then(tryNext);
 }
 
 var TAROT_LOCAL_BASE = '/tarot-cards/';

@@ -19,8 +19,162 @@ const LOVE_READING_MIN_TOTAL_CHARS = 3200;
 const LOVE_SECTION_MIN_CHARS = 700;
 const LOVE_POSITION_MIN_CHARS = 220;
 
+const MAX_PARAGRAPH_REPEAT = 1;
+const MAX_SENTENCE_REPEAT = 1;
+
 function safeText(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function splitParagraphs(text) {
+  return safeText(text)
+    .split(/\n{2,}/)
+    .map((line) => safeText(line))
+    .filter(Boolean);
+}
+
+function splitSentences(text) {
+  const src = safeText(text);
+  if (!src) return [];
+  const normalized = src
+    .replace(/\r\n/g, "\n")
+    .replace(/\n+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!normalized) return [];
+  const parts = normalized.match(/[^.!?。！？\n]+[.!?。！？]?/g);
+  return (parts || [normalized])
+    .map((part) => safeText(part))
+    .filter(Boolean);
+}
+
+function dedupeText(text, options = {}) {
+  const paragraphLimit = Number.isFinite(options.paragraphLimit)
+    ? options.paragraphLimit
+    : MAX_PARAGRAPH_REPEAT;
+  const sentenceLimit = Number.isFinite(options.sentenceLimit)
+    ? options.sentenceLimit
+    : MAX_SENTENCE_REPEAT;
+
+  const paragraphs = splitParagraphs(text);
+  const paragraphSeen = new Map();
+  const dedupedParagraphs = [];
+
+  for (const paragraph of paragraphs) {
+    const key = paragraph.toLowerCase();
+    const count = paragraphSeen.get(key) || 0;
+    if (count >= paragraphLimit) continue;
+    paragraphSeen.set(key, count + 1);
+
+    const sentences = splitSentences(paragraph);
+    const sentenceSeen = new Map();
+    const dedupedSentences = [];
+    for (const sentence of sentences) {
+      const sentenceKey = sentence.toLowerCase();
+      const sentenceCount = sentenceSeen.get(sentenceKey) || 0;
+      if (sentenceCount >= sentenceLimit) continue;
+      sentenceSeen.set(sentenceKey, sentenceCount + 1);
+      dedupedSentences.push(sentence);
+    }
+    if (dedupedSentences.length) {
+      dedupedParagraphs.push(dedupedSentences.join(" "));
+    }
+  }
+
+  return dedupedParagraphs.join("\n\n");
+}
+
+function dedupeStringArray(items) {
+  const out = [];
+  const seen = new Set();
+  for (const item of Array.isArray(items) ? items : []) {
+    const text = dedupeText(item);
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(text);
+  }
+  return out;
+}
+
+function dedupeLoveReadingContent(reading) {
+  const src = reading && typeof reading === "object" ? reading : {};
+  const out = {
+    ...src,
+    overallVibe: dedupeText(src.overallVibe),
+    deepReading: dedupeText(src.deepReading),
+    realityAndFuture: dedupeText(src.realityAndFuture),
+    advice: dedupeStringArray(src.advice),
+  };
+
+  if (Array.isArray(src.positionBreakdown)) {
+    out.positionBreakdown = src.positionBreakdown.map((item) => ({
+      ...item,
+      title: safeText(item?.title),
+      card: safeText(item?.card),
+      summary: dedupeText(item?.summary),
+    }));
+  }
+
+  return out;
+}
+
+function dedupeReunionReadingContent(reading) {
+  const src = reading && typeof reading === "object" ? reading : {};
+  return {
+    ...src,
+    opening: dedupeText(src.opening),
+    pastBond: dedupeText(src.pastBond),
+    theirNow: dedupeText(src.theirNow),
+    outsideFactor: dedupeText(src.outsideFactor),
+    theirHeart: dedupeText(src.theirHeart),
+    reunionOutcome: dedupeText(src.reunionOutcome),
+    lighthouseGuidance: dedupeText(src.lighthouseGuidance),
+    actionPlan: dedupeStringArray(src.actionPlan),
+  };
+}
+
+function dedupeSelfEsteemReadingContent(reading) {
+  const src = reading && typeof reading === "object" ? reading : {};
+  return {
+    ...src,
+    opening: dedupeText(src.opening),
+    pastDebuff: dedupeText(src.pastDebuff),
+    innerMonster: dedupeText(src.innerMonster),
+    currentDamage: dedupeText(src.currentDamage),
+    mindShield: dedupeText(src.mindShield),
+    levelupMastery: dedupeText(src.levelupMastery),
+    levelupGuidance: dedupeText(src.levelupGuidance),
+    actionPlan: dedupeStringArray(src.actionPlan),
+  };
+}
+
+function dedupeReadingPayload(reading, spreadType, category) {
+  const type = String(spreadType || "").trim();
+  const cat = String(category || "").trim().toLowerCase();
+
+  if (type === "relationship_six_card" || cat === "love") {
+    return dedupeLoveReadingContent(reading);
+  }
+  if (type === "reunion_lighthouse_five_card" || cat === "reunion") {
+    return dedupeReunionReadingContent(reading);
+  }
+  if (type === "self_esteem_levelup_five_card") {
+    return dedupeSelfEsteemReadingContent(reading);
+  }
+
+  if (reading && typeof reading === "object") {
+    const out = { ...reading };
+    for (const [key, value] of Object.entries(out)) {
+      if (typeof value === "string") out[key] = dedupeText(value);
+      else if (Array.isArray(value)) out[key] = dedupeStringArray(value);
+    }
+    return out;
+  }
+
+  if (typeof reading === "string") return dedupeText(reading);
+  return reading;
 }
 
 const SELF_ESTEEM_SECTION_MIN_CHARS = 500;
@@ -106,7 +260,7 @@ function totalLoveReadingChars(reading) {
   return main + positions + advice;
 }
 
-function buildLoveFallbackExpansion(cards) {
+function buildLoveFallbackExpansionBlocks(cards) {
   const lines = (Array.isArray(cards) ? cards : []).map((card, idx) => {
     const name = safeText(card?.nameKr) || safeText(card?.name) || `카드 ${idx + 1}`;
     const pos = safeText(card?.position) || `position_${idx + 1}`;
@@ -115,14 +269,26 @@ function buildLoveFallbackExpansion(cards) {
   }).join("\n");
 
   return [
-    "[전문가 보강 코멘트]",
-    "지금 관계에서 가장 중요한 것은 상대의 마음을 단정하기 전에, 서로의 표현 방식과 정서적 안전지대를 먼저 합의하는 것입니다.",
-    "감정은 강도보다 전달 방식에서 갈등이 발생하므로, 질문을 추궁형에서 확인형으로 전환하면 불필요한 방어 반응을 줄일 수 있습니다.",
-    "연애는 정답 찾기가 아니라 리듬 맞추기입니다. 대화 빈도, 연락 시간대, 갈등 시 회복 루틴을 구체적으로 정하면 관계 안정도가 빠르게 올라갑니다.",
-    "카드별 핵심 실행 포인트:",
-    lines,
-    "이번 리딩의 핵심은 상대를 바꾸려는 시도보다, 내 소통 패턴을 더 명료하고 부드럽게 조정하는 데 있습니다. 이 변화가 결국 관계 전체의 결을 바꿉니다.",
-  ].join("\n");
+    [
+      "[전문가 보강 코멘트 A]",
+      "지금 관계에서 가장 중요한 것은 상대의 마음을 단정하기 전에, 서로의 표현 방식과 정서적 안전지대를 먼저 합의하는 것입니다.",
+      "감정은 강도보다 전달 방식에서 갈등이 발생하므로, 질문을 추궁형에서 확인형으로 전환하면 불필요한 방어 반응을 줄일 수 있습니다.",
+      "카드별 핵심 실행 포인트:",
+      lines,
+    ].join("\n"),
+    [
+      "[전문가 보강 코멘트 B]",
+      "연애는 정답 찾기가 아니라 리듬 맞추기입니다. 대화 빈도, 연락 시간대, 갈등 시 회복 루틴을 구체적으로 정하면 관계 안정도가 빠르게 올라갑니다.",
+      "상대를 설득하려고 급히 결론을 내리기보다, 같은 사실을 두 번 확인하는 신중함이 장기적으로 신뢰를 키웁니다.",
+      "이번 리딩의 핵심은 상대를 바꾸려는 시도보다, 내 소통 패턴을 더 명료하고 부드럽게 조정하는 데 있습니다.",
+    ].join("\n"),
+    [
+      "[전문가 보강 코멘트 C]",
+      "관계의 갈등 포인트는 대부분 감정의 부재가 아니라 전달 순서의 문제에서 발생합니다.",
+      "사실 확인 -> 감정 표현 -> 요청 제안의 순서로 대화하면 충돌 가능성을 낮출 수 있습니다.",
+      "작은 약속의 반복 여부를 관찰하면 관계 체력을 더 정확히 진단할 수 있습니다.",
+    ].join("\n"),
+  ];
 }
 
 function normalizeEnhancedLoveReading(candidate, baseReading, cards) {
@@ -185,13 +351,18 @@ function normalizeEnhancedLoveReading(candidate, baseReading, cards) {
     advice,
   };
 
-  const expansion = buildLoveFallbackExpansion(cards);
+  const expansionBlocks = buildLoveFallbackExpansionBlocks(cards);
+  let expansionIdx = 0;
   while (totalLoveReadingChars(out) < LOVE_READING_MIN_TOTAL_CHARS) {
-    realityAndFuture += `\n\n${expansion}`;
+    const block =
+      expansionBlocks[expansionIdx]
+      || `[전문가 보강 코멘트 ${expansionIdx + 1}] 현재 관계의 핵심은 감정의 진위를 추측하기보다, 행동의 일관성과 대화의 안전성을 확인하는 것입니다.`;
+    realityAndFuture += `\n\n${block}`;
     out.realityAndFuture = realityAndFuture;
+    expansionIdx += 1;
   }
 
-  return out;
+  return dedupeLoveReadingContent(out);
 }
 
 async function runEngineReading(body) {
@@ -351,20 +522,43 @@ function buildLocalFallback(body) {
 export async function POST(request) {
   const fallbackClone = request.clone();
   let upstreamResponse = null;
+  const body = await fallbackClone.json().catch(() => ({}));
+  const spreadType = String(body?.spreadType || "").trim();
+  const category = String(body?.category || "general").trim().toLowerCase();
 
   // 1. Try Express server proxy (best quality if available)
   try {
     upstreamResponse = await proxyLegacyApi(request);
-    if (upstreamResponse?.ok) return upstreamResponse;
+    if (upstreamResponse?.ok) {
+      try {
+        const upstreamPayload = await upstreamResponse.clone().json();
+        if (upstreamPayload && typeof upstreamPayload === "object") {
+          const normalizedReading = dedupeReadingPayload(
+            upstreamPayload.reading,
+            spreadType,
+            category,
+          );
+          return NextResponse.json(
+            { ...upstreamPayload, reading: normalizedReading },
+            { status: upstreamResponse.status || 200 },
+          );
+        }
+      } catch {
+        return upstreamResponse;
+      }
+      return upstreamResponse;
+    }
   } catch {
     // fall through to engine
   }
 
-  const body = await fallbackClone.json().catch(() => ({}));
-
   // 2. Use tarot engine directly
   try {
-    const reading = await runEngineReading(body);
+    const reading = dedupeReadingPayload(
+      await runEngineReading(body),
+      spreadType,
+      category,
+    );
     return NextResponse.json(
       { ok: true, reading, source: "engine" },
       { status: 200 }
@@ -374,7 +568,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         ok: true,
-        reading: buildLocalFallback(body),
+        reading: dedupeReadingPayload(buildLocalFallback(body), spreadType, category),
         source: "local-fallback",
         upstreamStatus: upstreamResponse?.status || null,
       },

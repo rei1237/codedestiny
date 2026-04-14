@@ -565,12 +565,12 @@
     ],
     // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
     // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
-    openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=20260320-tarot-uifix2'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260321-tarot-api-hotfix1'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'],
+    openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260320-tarot-uifix2'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
