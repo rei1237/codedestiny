@@ -2212,6 +2212,7 @@ function _fillInputFromProfile(profile){
     setV('v_day',b.day);
     setV('v_hour',b.hour!=null?b.hour:12);
     setV('v_minute',b.minute!=null?b.minute:0);
+    if(profile&&profile.gender){ var genEl=document.getElementById('v_gender'); if(genEl) genEl.value=String(profile.gender); }
     var lat=(l.lat!=null&&!isNaN(parseFloat(l.lat)))?l.lat:37.5665;
     var lng=(l.lng!=null&&!isNaN(parseFloat(l.lng)))?l.lng:(l.lon!=null&&!isNaN(parseFloat(l.lon))?l.lon:126.978);
     var tz=(l.baseTzOffset!=null&&!isNaN(l.baseTzOffset))?l.baseTzOffset:(l.tzOffset!=null&&!isNaN(l.tzOffset)?l.tzOffset:9);
@@ -2223,12 +2224,29 @@ function _fillInputFromProfile(profile){
 
 function initVedicPage(){
   try{ vedicInitLanguageBridge(); }catch(_){}
+  // VEDIC_PAYLOAD 직접 읽기: _readProfileFromStorage가 삭제하기 전에 먼저 확보
+  var _vp=null;
+  try{
+    var _vpRaw=(typeof localStorage!=='undefined'?localStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD'):null)||(typeof sessionStorage!=='undefined'?sessionStorage.getItem('FORTUNE_APP_VEDIC_PAYLOAD'):null);
+    if(_vpRaw){ try{ _vp=JSON.parse(_vpRaw); }catch(_){} }
+    else if(typeof window!=='undefined'&&window.FORTUNE_APP_VEDIC_PAYLOAD){ _vp=window.FORTUNE_APP_VEDIC_PAYLOAD; }
+  }catch(_){}
+  try{ if(typeof localStorage!=='undefined') localStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); }catch(_){}
+  try{ if(typeof sessionStorage!=='undefined') sessionStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD'); }catch(_){}
+  if(_vp){
+    try{ _vp=_repairProfile(_vp); }catch(_){}
+    try{ _vp=normalizeProfileForVedic(_vp)||_vp; }catch(_){}
+    _fillInputFromProfile(_vp);
+    if(_hasValidBirth(_vp)){ doCalculateFromProfile(_vp); return; }
+    // 생년월일 불완전 시 프리필된 폼 표시
+    showPage('input');
+    return;
+  }
   let profile=null;
   try{ profile=_readProfileFromStorage(); }catch(e){}
   if(!profile){ showPage('input'); return; }
   try{ profile=normalizeProfileForVedic(profile)||profile; }catch(_){}
   if(!profile.birth||(profile.birth.year==null&&profile.birth.month==null&&profile.birth.day==null)){ showPage('input'); return; }
-  // 폼 필드를 먼저 채워 UI 일관성 확보 후 즉시 자동 계산
   _fillInputFromProfile(profile);
   doCalculateFromProfile(profile);
 }
