@@ -28,7 +28,7 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/flower/astrology":  { icon:"🌟", badge:"ASTROLOGY",    tag:"점성술 꽃 리포트",       particles:["⭐","✦","🌸","💫","🌟"] },
   "/flower/jamidusu":   { icon:"🪷", badge:"ZIWEI FLOWER", tag:"자미두수 꽃 리포트",     particles:["🌸","✦","💐","🪷","⭐"] },
   "/flower/sukuyo":     { icon:"🌙", badge:"LUNAR FLOWER", tag:"달 위상 꽃 리포트",      particles:["🌙","🌸","✦","🌠","💮"] },
-  "/tarot/self-esteem": { icon:"⚔️", badge:"RPG QUEST",    tag:"5카드 성장 퀘스트",      particles:["✦","⚔️","✨","⭐","✦"] },
+  "/tarot/self-esteem": { icon:"⚔️", badge:"FREE QUEST",   tag:"5카드 성장 퀘스트",      particles:["✦","⚔️","✨","⭐","✦"] },
   "/tarot/reunion":     { icon:"🕯️", badge:"REUNION",      tag:"5카드 등대 스프레드",    particles:["🕯️","✦","💌","🌊","✦"] },
   "/tarot/year":        { icon:"🐉", badge:"12 ZODIAC",    tag:"12개월 운세 타로",       particles:["🐉","⭐","✨","🌙","✦"] },
   "/oracle/hwatu":      { icon:"🎴", badge:"TRADITIONAL",  tag:"전통 화투 운세",          particles:["🌸","🌺","🎴","🍁","🌊"] },
