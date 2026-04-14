@@ -14,6 +14,64 @@ var tried=0;
 var __libReady = false;
 var __libLoading = false;
 var __pendingAutoCalculation = false;
+var __pendingAutoBirthSnapshot = null;
+
+function _captureBirthFormSnapshot() {
+  try {
+    var dateEl = document.getElementById('birthDate');
+    var hourEl = document.getElementById('birthHour');
+    var minuteEl = document.getElementById('birthMinute');
+    var countryEl = document.getElementById('birthCountry');
+    var calType = 'solar';
+    var calTypeBtns = document.getElementsByName('calType');
+    for (var i = 0; i < calTypeBtns.length; i++) {
+      if (calTypeBtns[i].checked) {
+        calType = calTypeBtns[i].value;
+        break;
+      }
+    }
+
+    var hourVal = hourEl ? String(hourEl.value || '').trim() : '';
+    var minuteVal = minuteEl ? String(minuteEl.value || '').trim() : '';
+    var profileBirth = null;
+    try {
+      profileBirth = window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth;
+    } catch (_) {}
+    if (hourVal === '' && profileBirth && profileBirth.hour != null) hourVal = String(profileBirth.hour);
+    if (minuteVal === '' && profileBirth && profileBirth.minute != null) minuteVal = String(profileBirth.minute);
+
+    return {
+      birthDate: dateEl ? String(dateEl.value || '') : '',
+      birthHour: hourVal,
+      birthMinute: minuteVal,
+      birthCountry: countryEl ? String(countryEl.value || '') : '',
+      calType: calType
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+function _applyBirthFormSnapshot(snapshot) {
+  if (!snapshot) return;
+  try {
+    var dateEl = document.getElementById('birthDate');
+    var hourEl = document.getElementById('birthHour');
+    var minuteEl = document.getElementById('birthMinute');
+    var countryEl = document.getElementById('birthCountry');
+    if (dateEl && snapshot.birthDate) dateEl.value = snapshot.birthDate;
+    if (hourEl && snapshot.birthHour !== '') hourEl.value = snapshot.birthHour;
+    if (minuteEl && snapshot.birthMinute !== '') minuteEl.value = snapshot.birthMinute;
+    if (countryEl && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
+
+    if (snapshot.calType) {
+      var calTypeBtns = document.getElementsByName('calType');
+      for (var i = 0; i < calTypeBtns.length; i++) {
+        calTypeBtns[i].checked = (calTypeBtns[i].value === snapshot.calType);
+      }
+    }
+  } catch (_) {}
+}
 
 function _setRunButtonToRetry() {
   var btnEl = document.getElementById('run-btn');
@@ -918,6 +976,8 @@ function onLibReady(){
     setTimeout(function() {
       try {
         if (typeof checkPrivacyAndCalculate === 'function') {
+          _applyBirthFormSnapshot(__pendingAutoBirthSnapshot);
+          __pendingAutoBirthSnapshot = null;
           checkPrivacyAndCalculate();
         }
       } catch (e) {
@@ -3318,6 +3378,7 @@ async function agreeAndCalculate() {
 
 async function startSajuCalculationFlow() {
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
+    __pendingAutoBirthSnapshot = _captureBirthFormSnapshot();
     __pendingAutoCalculation = true;
     if (!__libLoading && !__libReady) {
       retrySajuLibraryLoad();
