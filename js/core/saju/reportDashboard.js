@@ -21,6 +21,19 @@ var REPORT_CARDS = [
   { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:30 }
 ];
 
+var REPORT_CARD_THUMB_BY_ID = {
+  meryok: 'saju.webp',
+  sajuhealth: 'healing.webp',
+  sajuprompt: 'naming.webp',
+  sajurpg: 'godlife.webp',
+  tbal: 'mindscantaro.webp',
+  tetoegen: 'yeon.webp',
+  trip: 'london.webp',
+  vilun: 'sybila.webp',
+  lotto: 'piggyfortune.webp',
+  godlife: 'godlife.webp'
+};
+
 function _rptIsDirectAction(actionName) {
   return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openSibylModal';
 }
@@ -685,6 +698,11 @@ function handleReportThumbError(imgEl) {
       return;
     }
   }
+  if (imgEl.dataset && imgEl.dataset.reportThumbFallbackTried !== '1') {
+    imgEl.dataset.reportThumbFallbackTried = '1';
+    imgEl.src = '/fuctionassets/saju.webp';
+    return;
+  }
   var wrap = imgEl.closest ? imgEl.closest('.rpt-v2-img-wrap') : imgEl.parentNode;
   if (wrap) wrap.style.display = 'none';
 
@@ -829,7 +847,8 @@ function renderReportDashboard() {
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
     b.images.forEach(function(img) {
-      var thumbSrc = '/fuctionassets/' + (img.thumb || (img.id + '.webp'));
+      var thumbFile = img.thumb || REPORT_CARD_THUMB_BY_ID[img.id] || (img.id + '.webp');
+      var thumbSrc = '/fuctionassets/' + thumbFile;
       var tilePriceText = (b.coinCost > 0) ? ('🪙 ' + b.coinCost + '코인') : '무료';
       var tilePriceClass = (b.coinCost > 0) ? 'rpt-v2-price-badge' : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';
