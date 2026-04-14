@@ -6019,7 +6019,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260414-vedic-entry-fix1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260414-vedic-entry-fix3"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6639,6 +6639,59 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
     }
+
+    function _cdInvokeWithRetry(fnName, args, onMissing) {
+      var _tries = 0;
+      (function _tick() {
+        _tries += 1;
+        if (typeof window[fnName] === 'function') {
+          try {
+            window[fnName].apply(window, args || []);
+          } catch (e) {
+            console.error('[prem-card ' + fnName + ']', e);
+          }
+          return;
+        }
+        if (_tries >= 30) {
+          if (typeof onMissing === 'function') onMissing();
+          return;
+        }
+        setTimeout(_tick, 80);
+      })();
+    }
+
+    function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
+      var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
+      if (_loader) return _loader();
+      var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
+      if (_existing && (_existing.dataset.loaded === '1' || _existing.readyState === 'complete' || _existing.readyState === 'loaded')) {
+        return Promise.resolve();
+      }
+      return new Promise(function(resolve, reject) {
+        var _target = _existing;
+        if (!_target) {
+          _target = document.createElement('script');
+          _target.src = scriptSrc;
+          _target.defer = true;
+          document.head.appendChild(_target);
+        }
+        var _done = false;
+        var _ok = function() {
+          if (_done) return;
+          _done = true;
+          try { _target.dataset.loaded = '1'; } catch (_) {}
+          resolve();
+        };
+        var _fail = function(err) {
+          if (_done) return;
+          _done = true;
+          reject(err || new Error('script load failed: ' + scriptSrc));
+        };
+        _target.addEventListener('load', _ok, { once: true });
+        _target.addEventListener('error', _fail, { once: true });
+      });
+    }
+
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
       var _profileCandidate = _cdGetZiweiProfileCandidate();
@@ -6743,20 +6796,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
-        // astro-book.js lazy load 후 재호출
-        var _abScr = document.querySelector('script[src*="astro-book.js"]');
-        if (!_abScr) {
-          var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
-          _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
-          };
-          document.head.appendChild(_abEl2);
-        } else {
-          setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
-          }, 500);
-        }
+        _cdLoadActionScript('gotoAstrologyPremium', 'astro-book.js', '/js/astro-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openAstroBookModal', null, function() {
+              console.error('[prem-card astro-book] openAstroBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card astro-book]', e); });
       }
       return;
     }
@@ -6768,17 +6814,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
-        (function() {
-          var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
-          var _spLoadFn = function() {
-            var s=document.querySelector('script[src*="sukuyo-book.js"]');
-            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
-          };
-          (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
-          }).catch(function(e){console.error('[prem-card sukuyo]',e);});
-        })();
+        _cdLoadActionScript('gotoSukuyoPremium', 'sukuyo-book.js', '/js/sukuyo-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
+              console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card sukuyo]', e); });
       }
       return;
     }
@@ -6790,17 +6832,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
-        (function() {
-          var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
-          var _vdLoadFn = function() {
-            var s=document.querySelector('script[src*="vedic-book.js"]');
-            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
-          };
-          (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
-          }).catch(function(e){console.error('[prem-card vedic]',e);});
-        })();
+        _cdLoadActionScript('gotoVedicPremium', 'vedic-book.js', '/js/vedic-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openVedicBookModal', null, function() {
+              console.error('[prem-card vedic] openVedicBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card vedic]', e); });
       }
       return;
     }

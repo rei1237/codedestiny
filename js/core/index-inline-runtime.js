@@ -5888,6 +5888,12 @@ function closeSukuyoModal() {
 }
 
 function navigateToVedic() {
+  if (typeof window.openFortuneFromProfile === 'function') {
+    try {
+      window.openFortuneFromProfile('vedic');
+      return;
+    } catch (_) {}
+  }
   function normalizeVedicProfile(profile) {
     if (!profile) return null;
     var parsedBirth = null;

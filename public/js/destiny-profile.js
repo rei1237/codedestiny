@@ -1684,6 +1684,9 @@
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
         if (!pVedic || !pVedic.birth) {
+          try { pVedic = _normalizeProfileForVedic(readFormData()); } catch (_) {}
+        }
+        if (!pVedic || !pVedic.birth) {
           _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
           return;
         }
