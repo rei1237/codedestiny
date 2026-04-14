@@ -753,7 +753,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
               </div>
               <h3 className="text-sm font-bold text-purple-100 tracking-wide">타로 마스터의 도입</h3>
             </div>
-            <p className="text-sm text-purple-100/80 leading-7">{reading.intro}</p>
+            <p className="text-[15px] sm:text-base text-purple-100/88 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
           </motion.div>
 
           {/* Sections */}
@@ -781,7 +781,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                   )}
                 </div>
               </div>
-              <p className="text-sm text-purple-100/82 leading-7 sm:pl-12 whitespace-pre-line">{s.content}</p>
+              <p className="text-[15px] sm:text-base text-purple-100/90 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">{s.content}</p>
             </motion.article>
           ))}
 
@@ -799,7 +799,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 </div>
                 <h4 className="text-sm sm:text-base font-bold text-purple-100">마스터의 종합 조언</h4>
               </div>
-              <p className="text-sm text-purple-50/85 leading-7 whitespace-pre-line">{reading.masterAdvice}</p>
+              <p className="text-[15px] sm:text-base text-purple-50/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </motion.article>
           )}
 
@@ -810,7 +810,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             animate={{ opacity: visibleCount >= 11 ? 1 : 0 }}
             transition={{ duration: 0.4 }}>
             <p className="text-[10px] tracking-[0.45em] text-purple-400/45 uppercase mb-3">Closing Message</p>
-            <p className="text-sm text-purple-100/76 leading-7 italic">{reading.closing}</p>
+            <p className="text-[15px] sm:text-base text-purple-100/84 leading-8 tracking-[0.01em] italic">{reading.closing}</p>
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-purple-700/35" />
               <p className="text-[9px] text-purple-500/35 tracking-widest">
@@ -820,6 +820,31 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             </div>
           </motion.div>
         </div>
+
+        {/* Quick actions under result */}
+        <motion.div className="mt-6 w-full max-w-2xl"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: visibleCount >= 12 ? 1 : 0, y: visibleCount >= 12 ? 0 : 8 }}>
+          <div className="rounded-2xl border border-purple-400/18 bg-white/[0.03] p-3 sm:p-4">
+            <p className="text-[11px] text-purple-300/70 mb-3 tracking-[0.24em] uppercase text-center">Result Quick Actions</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-fuchsia-400/35 bg-fuchsia-500/14 text-fuchsia-50 hover:bg-fuchsia-500/24 transition-colors"
+              >
+                🔗 공유하기
+              </button>
+              <button
+                type="button"
+                onClick={handleGoHome}
+                className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-cyan-300/38 bg-cyan-400/14 text-cyan-50 hover:bg-cyan-400/24 transition-colors"
+              >
+                🏠 홈화면 바로가기
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Action buttons */}
         <motion.div className="mt-6 w-full max-w-2xl flex flex-wrap gap-2 justify-center"

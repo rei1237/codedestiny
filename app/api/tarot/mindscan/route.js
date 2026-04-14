@@ -22,6 +22,46 @@ const MAJOR_ARCANA = [
 
 const SUITS = ["Wands", "Cups", "Swords", "Pentacles"];
 const RANKS = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"];
+const SECTION_MIN_CHARS = 850;
+const ESSAY_MIN_CHARS = 1400;
+
+const SLOT_CATEGORY_ENHANCERS = [
+  {
+    category: "심리 상태·최근 고민",
+    focus: "최근 2~4주간 반복된 감정 패턴과 미해결 고민의 축",
+    hiddenSignal: "겉으로는 버티는 척하지만 마음속에서는 확인받고 싶은 욕구",
+    guidance: "질문 공세보다 짧은 공감 문장과 안정적인 리듬의 연락이 효과적",
+    caution: "즉답 강요, 감정 추궁, 비교 발언",
+  },
+  {
+    category: "겉행동 vs 속마음",
+    focus: "표면 행동과 내부 감정의 간극이 생기는 이유",
+    hiddenSignal: "관계 주도권을 잃지 않으려는 방어와 거절 공포의 동시 작동",
+    guidance: "행동보다 맥락을 확인하는 대화로 방어를 낮출 것",
+    caution: "단정형 해석, 과한 테스트성 메시지",
+  },
+  {
+    category: "상대가 보는 당신",
+    focus: "상대의 시선에서 본 당신의 매력·부담 포인트",
+    hiddenSignal: "신뢰와 매력을 동시에 느끼지만 기준이 높아 보인다는 압박",
+    guidance: "완벽함보다 인간적인 틈과 솔직한 감정 공유가 유리",
+    caution: "감정 숨기기, 결과 중심 대화만 반복",
+  },
+  {
+    category: "주변에 말하는 당신",
+    focus: "지인 대화에서 나타나는 당신 서사의 톤과 왜곡 가능성",
+    hiddenSignal: "좋은 인상을 유지하려는 미화와 불안을 합리화하는 축소",
+    guidance: "당사자 대화로 사실을 정교화하고 오해 확산을 미리 차단",
+    caution: "제3자 해석에 과의존, 확인 없는 추정",
+  },
+  {
+    category: "숨긴 의도·최종 진심",
+    focus: "관계의 결론을 미루는 진짜 이유와 최종 선택 조건",
+    hiddenSignal: "원하지만 잃을까 두려워 안전장치를 확인하는 심리",
+    guidance: "명확한 경계와 따뜻함을 동시에 제시하면 결단 가능성 상승",
+    caution: "흑백 논리, 마지막 통보식 압박",
+  },
+];
 
 function pickGeminiKeys() {
   return [
@@ -65,13 +105,14 @@ function cardNameFromId(cardId) {
   return `${rank} of ${suit}`;
 }
 
-function ensureLongText(text, slotRule, mainCardName, subCardName) {
+function ensureLongText(text, slotRule, mainCardName, subCardName, enhancer) {
   let t = String(text || "").trim();
-  if (t.length >= 500) return t;
+  if (t.length >= SECTION_MIN_CHARS) return t;
 
-  const booster = `\n\n지금 이 구역에서 특히 중요하게 보이는 흐름은 상대의 무의식이 ${mainCardName}의 상징을 통해 조심스럽게 드러나고, 보조 흐름인 ${subCardName}가 그 감정의 방향을 현실 행동으로 옮기려 한다는 점입니다. 이는 단순 호감/비호감의 문제가 아니라, 관계에서 상처받을 가능성을 미리 계산하는 방어 심리와도 깊게 연결되어 있습니다. 따라서 당신이 지금 당장 확인하고 싶은 답을 재촉하기보다, 상대가 스스로 안전하다고 느끼는 대화의 리듬을 만들어 주는 것이 핵심입니다. ${slotRule}라는 관점에서 보면 상대는 아직 마음을 완전히 숨기려는 것이 아니라, 말했을 때 관계가 틀어질 수 있다는 두려움을 먼저 관리하고 있습니다. 당신의 입장에서는 답답할 수 있지만, 이 간극은 감정의 부재가 아니라 감정의 과잉에서 오는 신중함일 가능성이 높습니다.`;
+  const category = enhancer?.category || "관계 심층";
+  const booster = `\n\n[카테고리 심층 보강: ${category}]\n이 장면에서 핵심 포인트는 ${enhancer?.focus || slotRule}입니다. 상대의 무의식은 ${mainCardName}의 상징을 통해 미세하게 드러나고, 보조 흐름인 ${subCardName}는 그 감정을 현실의 행동 언어로 번역합니다. 특히 ${enhancer?.hiddenSignal || "확인받고 싶은 욕구"}가 반복 신호로 나타나며, 이는 단순한 호감의 유무보다 관계 안전성 검증 욕구와 직결됩니다.\n\n[실전 적용 가이드]\n지금 단계에서 가장 효과적인 접근은 ${enhancer?.guidance || "속도보다 안정"}입니다. 대화는 질문 1개, 공감 1개, 확인 1개의 3단 리듬으로 운영하면 과부하를 줄일 수 있습니다. 또한 반응이 늦더라도 감정 부재로 단정하지 말고, 상대의 정리 시간을 존중하는 것이 오히려 신뢰 잔고를 높입니다.\n\n[주의 신호]\n${enhancer?.caution || "조급함"}은 관계 회복 탄력을 떨어뜨리는 대표 변수입니다. ${slotRule} 관점에서 보면 상대는 마음을 닫은 것이 아니라 리스크를 관리 중인 상태이므로, 당신의 톤이 안정적일수록 최종 진심은 더 빠르게 수면 위로 올라옵니다.`;
 
-  while (t.length < 500) t += booster;
+  while (t.length < SECTION_MIN_CHARS) t += booster;
   return t;
 }
 
@@ -128,21 +169,22 @@ function buildLocalSection(slot, rule, pair) {
 
   const mainM = getCardMeaning(pair.mainCardId);
   const subM = getCardMeaning(pair.subCardId);
-  const base = `이 구역은 "${rule}"을 읽는 핵심 축입니다. 메인 카드 ${mainCardName}(${mainM.energy})는 상대의 현재 지배적 에너지를 담고 있으며, 보조 카드 ${subCardName}(${subM.energy})는 그 에너지가 실제 행동과 감정 표현 방식으로 어떻게 변환되는지를 보여 줍니다.\n\n지금 상대의 내면 상태는 "${mainM.inner}"에 가깝습니다. 겉으로는 ${mainM.style} 모습을 보이지만, 무의식 층에서는 당신과의 연결을 잃고 싶지 않다는 긴장감이 반복적으로 올라옵니다. 보조 흐름인 ${subCardName}의 에너지(${subM.energy})는 이 감정이 현실에서 어떻게 표출되는지를 조율하는 역할을 합니다. 즉 상대는 "${subM.inner}"라는 방어 패턴을 통해 감정을 관리하며, 표면적으로는 ${subM.style} 태도를 취합니다.\n\n두 사람 사이 에너지 흐름을 보면, 당신 쪽에서 먼저 온기와 명확성을 주었을 때 상대의 경계가 빠르게 완화되는 패턴이 있습니다. 반대로 확인을 재촉하거나 결론을 서두르면 상대는 다시 침묵과 거리두기로 회귀합니다. 이는 애정이 약해서가 아니라, 관계를 잘못 다뤘을 때 잃을 것을 크게 상상하는 불안이 작동하기 때문입니다. 따라서 지금의 해법은 ${mainCardName}가 상징하는 에너지의 밝은 면을 이끌어 내면서, 상대가 자신의 속도로 감정을 꺼낼 수 있는 환경을 만들어 주는 것입니다.`;
+  const enhancer = SLOT_CATEGORY_ENHANCERS[slot - 1] || SLOT_CATEGORY_ENHANCERS[0];
+  const base = `이 구역은 "${rule}"을 읽는 핵심 축이며, 이번 리딩에서는 [${enhancer.category}] 프레임으로 정밀 해석합니다. 메인 카드 ${mainCardName}(${mainM.energy})는 상대의 현재 지배적 정서를, 보조 카드 ${subCardName}(${subM.energy})는 그 정서가 관계 행동으로 변환되는 메커니즘을 보여 줍니다.\n\n지금 상대의 내면 상태는 "${mainM.inner}"에 가깝습니다. 겉으로는 ${mainM.style}로 보일 수 있지만, 무의식 층에서는 당신과의 연결을 잃고 싶지 않은 긴장과 자기보호가 동시에 작동합니다. 보조 흐름 ${subCardName}는 "${subM.inner}" 패턴을 통해 감정 노출을 조절하며, 표면적으로는 ${subM.style} 태도를 띱니다.\n\n특히 ${enhancer.focus}가 강하게 관찰됩니다. 상대는 ${enhancer.hiddenSignal}을 품고 있어, 한 번에 결론을 내리기보다 안전한 신호를 반복 확인하려는 경향을 보입니다. 따라서 두 사람 사이에서 중요한 것은 정답 요구가 아니라, 감정이 다치지 않는 대화 구조를 설계하는 것입니다.\n\n실전에서는 ${enhancer.guidance}가 핵심 대응입니다. 반대로 ${enhancer.caution}은 심리 방어를 증폭시켜 관계 속도를 늦출 수 있으니 피하는 것이 좋습니다. 현재 흐름은 멈춤이 아니라 정교화 단계이며, 당신이 톤을 안정적으로 유지할수록 상대의 최종 진심은 더 분명한 언어로 드러나게 됩니다.`;
 
   return {
     slot,
     title: rule,
     mainCardName,
     subCardName,
-    content: ensureLongText(base, rule, mainCardName, subCardName),
+    content: ensureLongText(base, rule, mainCardName, subCardName, enhancer),
   };
 }
 
 function ensureEssayText(text) {
   let t = String(text || "").trim();
-  const tail = "\n\n결국 사랑의 진실은 누가 먼저 정답을 맞추느냐가 아니라, 누가 먼저 상대의 두려움을 이해하고 품어 주느냐에서 드러납니다. 당신의 다정함이 흔들리지 않는다면, 지금의 정체는 멈춤이 아니라 관계의 결을 더 깊게 다듬는 시간으로 바뀔 것입니다.";
-  while (t.length < 900) t += tail;
+  const tail = "\n\n결국 사랑의 진실은 누가 먼저 정답을 맞추느냐가 아니라, 누가 먼저 상대의 두려움을 이해하고 품어 주느냐에서 드러납니다. 당신의 다정함이 흔들리지 않는다면, 지금의 정체는 멈춤이 아니라 관계의 결을 더 깊게 다듬는 시간으로 바뀔 것입니다. 또한 지금 시기의 대화는 승부가 아니라 조율입니다. 감정의 온도를 낮추지 않으면서도 경계를 존중하는 균형이 쌓일 때, 상대는 스스로 방어를 거두고 진심을 먼저 제안할 가능성이 높아집니다.";
+  while (t.length < ESSAY_MIN_CHARS) t += tail;
   return t;
 }
 
@@ -150,8 +192,11 @@ function buildMasterAdviceEssay(sections) {
   const themes = sections
     .map((s) => `${s.slot}번 구역의 핵심은 ${s.title}`)
     .join(", ");
+  const categorySummary = SLOT_CATEGORY_ENHANCERS
+    .map((c, i) => `${i + 1}구역(${c.category}): ${c.guidance}`)
+    .join(" / ");
 
-  const essay = `당신의 이번 스프레드는 한 사람의 감정이 얼마나 복합적으로 움직이는지, 그리고 관계가 단순한 호감의 직선이 아니라 서로의 상처와 기대가 교차하는 곡선임을 보여 줍니다. ${themes}라는 흐름은 결국 하나의 결론으로 수렴합니다. 상대의 마음은 닫혀 있기보다, 다치지 않기 위해 천천히 열리고 있다는 사실입니다.\n\n지금 당신이 느끼는 답답함은 틀린 감정이 아닙니다. 오히려 사랑을 진지하게 대하고 있다는 증거에 가깝습니다. 다만 이 시기에는 상대의 속도를 무시한 확답 요구보다, 감정을 안전하게 꺼낼 수 있는 환경을 먼저 만드는 태도가 더 큰 힘을 냅니다. 짧지만 분명한 다정함, 감정의 원인을 단정하지 않는 질문, 그리고 상대의 침묵을 거절로 오해하지 않는 인내가 필요합니다.\n\n당신이 해야 할 일은 스스로를 낮추는 것이 아니라, 관계를 성급한 결론으로 몰아붙이지 않는 성숙한 리더십을 발휘하는 것입니다. 그렇게 균형을 잡아 주면 상대는 방어를 풀고, 지금보다 훨씬 솔직한 언어로 마음을 건네게 됩니다.`;
+  const essay = `당신의 이번 스프레드는 한 사람의 감정이 얼마나 복합적으로 움직이는지, 그리고 관계가 단순한 호감의 직선이 아니라 서로의 상처와 기대가 교차하는 곡선임을 보여 줍니다. ${themes}라는 흐름은 결국 하나의 결론으로 수렴합니다. 상대의 마음은 닫혀 있기보다, 다치지 않기 위해 천천히 열리고 있다는 사실입니다.\n\n지금 당신이 느끼는 답답함은 틀린 감정이 아닙니다. 오히려 사랑을 진지하게 대하고 있다는 증거에 가깝습니다. 다만 이 시기에는 상대의 속도를 무시한 확답 요구보다, 감정을 안전하게 꺼낼 수 있는 환경을 먼저 만드는 태도가 더 큰 힘을 냅니다. 짧지만 분명한 다정함, 감정의 원인을 단정하지 않는 질문, 그리고 상대의 침묵을 거절로 오해하지 않는 인내가 필요합니다.\n\n카테고리별 실전 전략을 한 문장으로 요약하면 다음과 같습니다. ${categorySummary}. 이 전략은 관계를 억지로 진전시키는 기술이 아니라, 두 사람의 감정 안전지대를 넓혀 결과적으로 진심 고백이 가능한 바탕을 만드는 방법입니다. 즉 지금 필요한 것은 강한 한 방이 아니라, 작은 신뢰를 반복 적립하는 정교한 운영입니다.\n\n당신이 해야 할 일은 스스로를 낮추는 것이 아니라, 관계를 성급한 결론으로 몰아붙이지 않는 성숙한 리더십을 발휘하는 것입니다. 그렇게 균형을 잡아 주면 상대는 방어를 풀고, 지금보다 훨씬 솔직한 언어로 마음을 건네게 됩니다.`;
 
   return ensureEssayText(essay);
 }
@@ -181,8 +226,9 @@ function buildGeminiPrompt(pairs) {
     "너는 '대한민국 최고의 타로 마스터' 페르소나로 상담한다.",
     "문체는 다정하지만 권위 있고, 공감적 메시지를 반드시 포함한다.",
     "절대 키워드 나열형으로 쓰지 말고, 심리 해석형 서술문으로 작성한다.",
-    "각 구역(section) content는 반드시 500자 이상 한국어로 작성한다.",
-    "masterAdvice는 반드시 수필처럼 유려한 한국어 문체로 900자 이상 작성한다.",
+    "각 구역(section) content는 반드시 850자 이상 한국어로 작성한다.",
+    "masterAdvice는 반드시 수필처럼 유려한 한국어 문체로 1400자 이상 작성한다.",
+    "각 구역에 해당 카테고리별 실전 가이드(추천 접근 1개, 피해야 할 접근 1개)를 반드시 포함한다.",
     "각 구역에서 상대의 무의식, 현재 심리 갈등, 두 사람 사이의 보이지 않는 에너지 흐름을 반드시 다룬다.",
     "반드시 아래 슬롯 규칙을 정확히 적용한다:",
     "1번: 상대방의 심리 상태와 최근의 고민",
@@ -192,7 +238,7 @@ function buildGeminiPrompt(pairs) {
     "5번: 상대방이 숨기고 있는 진짜 의도와 최종 진심",
     "반드시 JSON만 반환한다. 코드펜스 금지.",
     "JSON 스키마:",
-    '{"persona":"대한민국 최고의 타로 마스터","intro":"string","sections":[{"slot":1,"title":"string","mainCardName":"string","subCardName":"string","content":"500자 이상"}],"masterAdvice":"900자 이상 수필체","closing":"string"}',
+    '{"persona":"대한민국 최고의 타로 마스터","intro":"string","sections":[{"slot":1,"title":"string","mainCardName":"string","subCardName":"string","content":"850자 이상"}],"masterAdvice":"1400자 이상 수필체","closing":"string"}',
     "입력 카드:",
     ...lines,
   ].join("\n");
@@ -237,7 +283,8 @@ function normalizeGeminiResult(parsed, pairs, localBase) {
     const mainCardName = String(found?.mainCardName || cardNameFromId(pair.mainCardId));
     const subCardName = String(found?.subCardName || cardNameFromId(pair.subCardId));
     const localSection = localBase.sections[idx];
-    const content = ensureLongText(String(found?.content || localSection?.content || ""), ruleTitle, mainCardName, subCardName);
+    const enhancer = SLOT_CATEGORY_ENHANCERS[idx] || SLOT_CATEGORY_ENHANCERS[0];
+    const content = ensureLongText(String(found?.content || localSection?.content || ""), ruleTitle, mainCardName, subCardName, enhancer);
 
     return {
       slot,
