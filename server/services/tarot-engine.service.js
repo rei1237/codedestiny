@@ -2279,6 +2279,9 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
   }
 
   if (normalizedSpread === "relationship_six_card") {
+    const RELATION_MAIN_MIN_CHARS = 1900; // 기존 900 + 1000
+    const RELATION_POSITION_MIN_CHARS = 1260; // 기존 260 + 1000
+
     const adviceSeed = [
       "상대의 의도를 추측하기보다 확인 질문 1개를 먼저 던져 오해 비용을 줄이세요.",
       "감정이 올라온 순간 메시지를 보내지 말고 10분 텀 이후 핵심만 전달하세요.",
@@ -2296,7 +2299,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
         const coachTail = "핵심은 상대를 통제하는 것이 아니라 대화의 안전지대와 반복 가능한 약속 구조를 만드는 것입니다.";
         return {
           ...item,
-          summary: ensureMinText(item?.summary, 260, [cardSummaryLine(idx), coachTail]),
+          summary: ensureMinText(item?.summary, RELATION_POSITION_MIN_CHARS, [cardSummaryLine(idx), coachTail]),
         };
       });
 
@@ -2305,7 +2308,7 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
       positionBreakdown.push({
         title: `포지션 ${idx + 1}`,
         card: safeCards[idx]?.nameKr || safeCards[idx]?.name || `카드 ${idx + 1}`,
-        summary: ensureMinText("", 260, [cardSummaryLine(idx), "관계를 건강하게 설계하려면 감정 확인과 현실 조율을 같은 비중으로 다뤄야 합니다."]),
+        summary: ensureMinText("", RELATION_POSITION_MIN_CHARS, [cardSummaryLine(idx), "관계를 건강하게 설계하려면 감정 확인과 현실 조율을 같은 비중으로 다뤄야 합니다."]),
       });
     }
 
@@ -2318,9 +2321,9 @@ function enhanceTarotReadingPayload({ spreadType, reading, cardReadings }) {
 
     return {
       ...baseReading,
-      overallVibe: ensureMinText(baseReading.overallVibe, 900, ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
-      deepReading: ensureMinText(baseReading.deepReading, 900, ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
-      realityAndFuture: ensureMinText(baseReading.realityAndFuture, 900, ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
+      overallVibe: ensureMinText(baseReading.overallVibe, RELATION_MAIN_MIN_CHARS, ["관계의 결과는 고정값이 아니라 소통 방식과 경계 조율에 따라 달라집니다."]),
+      deepReading: ensureMinText(baseReading.deepReading, RELATION_MAIN_MIN_CHARS, ["감정 강도보다 전달 방식의 정렬이 관계 안정도와 신뢰를 결정합니다."]),
+      realityAndFuture: ensureMinText(baseReading.realityAndFuture, RELATION_MAIN_MIN_CHARS, ["단기 결론보다 반복 가능한 약속과 행동 일관성이 미래 결말을 바꿉니다."]),
       positionBreakdown,
       advice: advice.slice(0, 12),
     };
