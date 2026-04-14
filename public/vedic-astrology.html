@@ -2219,6 +2219,7 @@ function _fillInputFromProfile(profile){
     setV('v_lat',lat);
     setV('v_lon',lng);
     setV('v_tz',tz);
+    try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
   }catch(_){}
 }
 
@@ -2265,12 +2266,20 @@ document.addEventListener('DOMContentLoaded', function(){
     if(placeSel){
       placeSel.addEventListener('change', function(){
         try{ vedicApplySelectedPlace(); }catch(_){}
+        try{ _syncVedicToProfileCardCompatFields(); }catch(_){}
       });
     }
+    ['v_year','v_month','v_day','v_hour','v_minute','v_gender','v_lat','v_lon','v_tz'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(!el) return;
+      el.addEventListener('input', function(){ try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
+      el.addEventListener('change', function(){ try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
+    });
+    try{ _syncVedicToProfileCardCompatFields(); }catch(_){}
     // If the place list script is slow, try again shortly
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 0);
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 300);
-    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){} }, 1200);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 0);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 300);
+    setTimeout(function(){ try{ vedicInitBirthPlaceSelect(); }catch(_){}; try{ _syncVedicToProfileCardCompatFields(); }catch(_){} }, 1200);
   }catch(_){}
 });
 
@@ -2278,6 +2287,109 @@ document.addEventListener('DOMContentLoaded', function(){
 try{ window.vedicInitBirthPlaceSelect = vedicInitBirthPlaceSelect; }catch(_){}
 try{ window.vedicApplySelectedPlace = vedicApplySelectedPlace; }catch(_){}
 try{ window.runVedicFromInput = runVedicFromInput; }catch(_){}
+
+function _vedicPad2(v){
+  var n=parseInt(v,10);
+  if(!isFinite(n)) n=0;
+  return String(n).padStart(2,'0');
+}
+
+function _syncVedicToProfileCardCompatFields(){
+  try{
+    var host=document.getElementById('page-input')||document.body;
+    function ensure(tag,id,type){
+      var el=document.getElementById(id);
+      if(!el){
+        el=document.createElement(tag);
+        el.id=id;
+        if(type) el.type=type;
+        el.style.display='none';
+        host.appendChild(el);
+      }
+      return el;
+    }
+
+    var y=parseInt((document.getElementById('v_year')||{}).value,10);
+    var m=parseInt((document.getElementById('v_month')||{}).value,10);
+    var d=parseInt((document.getElementById('v_day')||{}).value,10);
+    var h=parseInt((document.getElementById('v_hour')||{}).value,10);
+    var mi=parseInt((document.getElementById('v_minute')||{}).value,10);
+    var tz=parseFloat((document.getElementById('v_tz')||{}).value);
+    var lat=parseFloat((document.getElementById('v_lat')||{}).value);
+    var lon=parseFloat((document.getElementById('v_lon')||{}).value);
+
+    var bd=ensure('input','birthDate','date');
+    if(isFinite(y)&&isFinite(m)&&isFinite(d)&&y>0&&m>=1&&m<=12&&d>=1&&d<=31){
+      bd.value=String(y).padStart(4,'0')+'-'+_vedicPad2(m)+'-'+_vedicPad2(d);
+    }
+
+    var bh=ensure('input','birthHour','number');
+    var bm=ensure('input','birthMinute','number');
+    bh.value=isFinite(h)?String(h):'12';
+    bm.value=isFinite(mi)?String(mi):'0';
+
+    var btnM=ensure('button','btnM');
+    var btnF=ensure('button','btnF');
+    var g=((document.getElementById('v_gender')||{}).value||'M');
+    if(g==='M'){
+      btnM.classList.add('on');
+      btnF.classList.remove('on');
+    }else{
+      btnF.classList.add('on');
+      btnM.classList.remove('on');
+    }
+
+    var countrySel=ensure('select','birthCountry');
+    while(countrySel.options.length) countrySel.remove(0);
+    var opt=document.createElement('option');
+    var placeEl=document.getElementById('v_place');
+    var placeText=(placeEl&&placeEl.options&&placeEl.selectedIndex>=0&&placeEl.options[placeEl.selectedIndex])?placeEl.options[placeEl.selectedIndex].text:'대한민국 (서울)';
+    var placeTz=(placeEl&&placeEl.value)?String(placeEl.value):'Asia/Seoul';
+    opt.value=placeTz;
+    opt.text=placeText;
+    opt.setAttribute('data-long', isFinite(lon)?String(lon):'126.978');
+    opt.setAttribute('data-lat', isFinite(lat)?String(lat):'37.5665');
+    opt.setAttribute('data-tz', isFinite(tz)?String(tz):'9');
+    opt.setAttribute('data-base-tz', isFinite(tz)?String(tz):'9');
+    countrySel.appendChild(opt);
+    countrySel.selectedIndex=0;
+  }catch(_){ }
+}
+
+function _readVedicCompatProfileCardData(){
+  try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
+  try{
+    var bd=(document.getElementById('birthDate')||{}).value||'';
+    if(!bd) return null;
+    var hourRaw=parseInt((document.getElementById('birthHour')||{}).value,10);
+    var minuteRaw=parseInt((document.getElementById('birthMinute')||{}).value,10);
+    var hour=(Number.isFinite(hourRaw)&&hourRaw>=0&&hourRaw<=23)?hourRaw:12;
+    var minute=(Number.isFinite(minuteRaw)&&minuteRaw>=0&&minuteRaw<=59)?minuteRaw:0;
+    var gender='F';
+    var btnM=document.getElementById('btnM');
+    var btnF=document.getElementById('btnF');
+    if(btnM&&btnM.classList.contains('on')) gender='M';
+    else if(btnF&&btnF.classList.contains('on')) gender='F';
+    var countrySel=document.getElementById('birthCountry');
+    var opt=countrySel?countrySel.options[countrySel.selectedIndex]:null;
+    var tz=opt?countrySel.value:'Asia/Seoul';
+    var lng=opt?parseFloat(opt.getAttribute('data-long')||'127'):127.0;
+    var lat=opt?parseFloat(opt.getAttribute('data-lat')||'37.6'):37.6;
+    var tzOff=opt?parseFloat(opt.getAttribute('data-tz')||'9'):9;
+    var baseTzOff=opt?parseFloat(opt.getAttribute('data-base-tz')||String(tzOff)):tzOff;
+    var locationLabel=opt?opt.text:'대한민국 (서울)';
+    var parts=bd.split('-');
+    if(parts.length<3) return null;
+    var year=parseInt(parts[0],10), month=parseInt(parts[1],10), day=parseInt(parts[2],10);
+    return {
+      id:'vedic_manual',
+      name:'(직접 입력)',
+      gender:gender,
+      birth:{ year:year, month:month, day:day, hour:hour, minute:minute, calType:'solar' },
+      location:{ label:locationLabel, tz:tz, lng:lng, lat:lat, tzOffset:baseTzOff, baseTzOffset:baseTzOff }
+    };
+  }catch(_){ return null; }
+}
 
 function _prefillVedicInput(){
   try{
@@ -2291,11 +2403,17 @@ function _prefillVedicInput(){
     var latEl=document.getElementById('v_lat'); if(latEl&&!latEl.value) latEl.value='37.5665';
     var lonEl=document.getElementById('v_lon'); if(lonEl&&!lonEl.value) lonEl.value='126.9780';
     var tzEl=document.getElementById('v_tz'); if(tzEl&&!tzEl.value) tzEl.value='9';
+    try{ _syncVedicToProfileCardCompatFields(); }catch(_){ }
   }catch(_){}
 }
 
 function runVedicFromInput(){
   try{
+    var compatProfile=_readVedicCompatProfileCardData();
+    if(compatProfile&&compatProfile.birth){
+      doCalculateFromProfile(compatProfile);
+      return;
+    }
     var y=parseInt((document.getElementById('v_year')||{}).value,10);
     var m=parseInt((document.getElementById('v_month')||{}).value,10);
     var d=parseInt((document.getElementById('v_day')||{}).value,10);
