@@ -471,7 +471,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <label class="font-n text-xs font-bold uppercase tracking-widest" style="color:var(--acc);opacity:.5">🎨 테마 선택</label>
 
-    <div class="grid grid-cols-5 gap-2">
+    <div class="grid grid-cols-7 gap-2">
 
       <div class="tchip" data-t="moon"       onclick="pT('moon')"      ><div class="tegg"><img id="te-moon"       src=""></div><span style="color:#92400e">🌙달</span></div>
 
@@ -482,6 +482,10 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
       <div class="tchip" data-t="star"       onclick="pT('star')"      ><div class="tegg"><img id="te-star"       src=""></div><span style="color:#92400e">⭐별</span></div>
 
       <div class="tchip" data-t="angel"      onclick="pT('angel')"     ><div class="tegg"><img id="te-angel"      src=""></div><span style="color:#4c1d95">😇천사</span></div>
+
+      <div class="tchip" data-t="macaron"    onclick="pT('macaron')"   ><div class="tegg"><img id="te-macaron"    src=""></div><span style="color:#db2777">🩷마카롱</span></div>
+
+      <div class="tchip" data-t="space"      onclick="pT('space')"     ><div class="tegg"><img id="te-space"      src=""></div><span style="color:#1d4ed8">🚀우주</span></div>
 
     </div>
 
@@ -959,7 +963,7 @@ function calcFortuneScore(birthYear,element){
 function initUI(){
   const gj=todayGanji();
   const el=document.getElementById('today-ganji'); if(el) el.textContent=gj.label;
-  ['moon','strawberry','cherry','star','angel'].forEach(function(t){
+  ['moon','strawberry','cherry','star','angel','macaron','space'].forEach(function(t){
     var el2=document.getElementById('te-'+t); if(el2&&EGG[t]) el2.src=EGG[t];
   });
   // 타이틀 화면 병아리 이미지 (이미 src 고정)
@@ -1318,8 +1322,17 @@ function openMain(){
 }
 
 var FALLBACK_PET_IMAGE='/icons/fortune-tama-96.png';
+// tadagochi-local 배경 제거 알 이미지로 즉시 덮어쓰기
+EGG.moon='/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 알.png';
+EGG.strawberry='/fuctionassets/tadagochi-local/딸기 컨셉/딸기 알-Photoroom.webp';
+EGG.cherry='/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png';
+EGG.star='/fuctionassets/tadagochi-local/검은 별 컨셉/검은별 알-Photoroom.png';
+EGG.angel='/fuctionassets/tadagochi-local/천사 컨셉/천사 알-Photoroom.webp';
+EGG.macaron='/fuctionassets/tadagochi-local/마카롱 컨셉/마카롱 알.png';
+EGG.space='/fuctionassets/tadagochi-local/우주 테마/우주 컨셉 알.png';
 
-var THEME_CONCEPT_KR={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'별 컨셉',angel:'천사 컨셉'};
+var THEME_CONCEPT_KR={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'별 컨셉',angel:'천사 컨셉',macaron:'마카롱 컨셉',space:'우주 테마'};
+var THEME_LOCAL_FOLDER={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'검은 별 컨셉',angel:'천사 컨셉',macaron:'마카롱 컨셉',space:'우주 테마'};
 var ZODIAC_ANIMAL_KR={rat:'쥐',cow:'소',tiger:'호랑이',rabbit:'토끼',dragon:'용',snake:'뱀',horse:'말',sheep:'양',monkey:'원숭이',chicken:'닭',dog:'강아지',pig:'돼지'};
 var ANIMAL_KEY_ALIAS={
   rat:'rat','쥐':'rat',
@@ -1346,15 +1359,33 @@ function getConceptAssetCandidates(theme,animal){
   var animalKey=normalizeAnimalKey(animal);
   var animalKr=ZODIAC_ANIMAL_KR[animalKey];
   if(!concept||!animalKr) return [];
-  var fileName=concept+' '+animalKr+'.jpg';
-  var encodedPath=encodeURIComponent('다마고치 에셋')+'/'+encodeURIComponent(concept)+'/'+encodeURIComponent(fileName);
-  var rawPath='다마고치 에셋/'+concept+'/'+fileName;
-  return [
-    '/fuctionassets/'+encodedPath,
-    '/fuctionassets/'+rawPath,
-    'fuctionassets/'+encodedPath,
-    'fuctionassets/'+rawPath
-  ];
+  var folder=THEME_LOCAL_FOLDER[theme]||concept;
+  var result=[];
+  // 우주 테마: 강아지 → 개
+  var animalKrLocal=(theme==='space'&&animalKey==='dog')?'개':animalKr;
+  var base='/fuctionassets/tadagochi-local/'+folder+'/';
+  var enc='/fuctionassets/tadagochi-local/'+encodeURIComponent(folder)+'/';
+  if(theme==='strawberry'){
+    var fn='딸기테마'+animalKrLocal+'-Photoroom.webp';
+    result.push(base+fn,enc+encodeURIComponent(fn));
+  }else if(theme==='moon'){
+    var fn=concept+' '+animalKrLocal+'-Photoroom.webp';
+    var fn2=concept+' '+animalKrLocal+'.png';
+    result.push(base+fn,enc+encodeURIComponent(fn),base+fn2);
+  }else if(theme==='star'){
+    var fn='별 컨셉 '+animalKrLocal+'-Photoroom.webp';
+    var fn2='별 컨셉 '+animalKrLocal+'.png';
+    result.push(base+fn,enc+encodeURIComponent(fn),base+fn2);
+  }else{
+    var fnPng=concept+' '+animalKrLocal+'.png';
+    var fnWebp=concept+' '+animalKrLocal+'-Photoroom.webp';
+    result.push(base+fnPng,enc+encodeURIComponent(fnPng),base+fnWebp);
+  }
+  // 기존 경로 폴백
+  var oldFn=concept+' '+animalKr+'.jpg';
+  var oldEnc=encodeURIComponent('다마고치 에셋')+'/'+encodeURIComponent(concept)+'/'+encodeURIComponent(oldFn);
+  result.push('/fuctionassets/'+oldEnc,'/fuctionassets/다마고치 에셋/'+concept+'/'+oldFn);
+  return result;
 }
 
 var STATE_TO_SPRITE_SLOT={

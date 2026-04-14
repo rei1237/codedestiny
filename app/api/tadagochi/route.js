@@ -360,9 +360,9 @@ function buildDetailedOutputGuide(catKr) {
 1) 첫 문장은 핵심 결론 1줄로 시작.
 2) 아래 5개 블록을 반드시 이 순서로 작성.
 [핵심흐름] [왜 이런 흐름인지] [시간대별 포인트(오전/오후/저녁)] [지금 당장 할 행동 3가지] [피해야 할 행동 2가지]
-3) 각 블록은 2~4문장으로 구체적으로 작성.
+3) 각 블록은 3~5문장으로 구체적으로 작성. 특히 시간대별 포인트와 할 행동은 상황별 세부 예시 포함.
 4) '좋다/나쁘다' 같은 추상어만 쓰지 말고, 질문 상황에 맞는 구체 행동/타이밍/대화 문장 예시를 포함.
-5) 전체 분량은 최소 420자 이상.
+5) 전체 분량은 최소 500자 이상. 분량을 채우기 위해 의미 없는 반복은 하지 말고 내용을 더 구체화해.
 6) ${catKr} 관점에서만 해석하고, 다른 체계 이름은 언급하지 마.`;
 }
 
@@ -492,7 +492,8 @@ export async function POST(request) {
     const body = await request.json();
     const {
       birthYear, birthMonth=6, birthDay=15, birthHour=12,
-      element, zodiac, petName, question, category, usedToday
+      element, zodiac, petName, question, category, usedToday,
+      day, hunger, happy, energy, sleeping, state
     } = body;
 
     if (typeof usedToday === "number" && usedToday >= 5) {
@@ -506,6 +507,19 @@ export async function POST(request) {
 
     const y = Number(birthYear)||1990, m = Number(birthMonth)||6,
           d = Number(birthDay)||15,   h = Number(birthHour)||12;
+    const petDay = Number(day)||1;
+    const petHunger = Number(hunger);
+    const petHappy = Number(happy);
+    const petEnergy = Number(energy);
+    const petSleeping = !!sleeping;
+    const petState = String(state||"idle");
+    const petStateSummary = [
+      `현재 ${petDay}일차`,
+      Number.isFinite(petHunger)?`배고픔 ${Math.max(0,Math.min(100,Math.round(petHunger)))}%`:null,
+      Number.isFinite(petHappy)?`기쁨 ${Math.max(0,Math.min(100,Math.round(petHappy)))}%`:null,
+      Number.isFinite(petEnergy)?`에너지 ${Math.max(0,Math.min(100,Math.round(petEnergy)))}%`:null,
+      `상태 ${petState}${petSleeping?"(자는중)":""}`,
+    ].filter(Boolean).join(" | ");
     const cat   = category||"general";
     const catKr = {love:"연애",money:"재물",work:"직업·커리어",health:"건강",general:"종합",
       general_full:"종합",saju:"사주",ziwei:"자미두수",astrology:"점성술",tarot:"타로",
@@ -566,6 +580,7 @@ export async function POST(request) {
 (오늘 주의 리스크와 현명한 대처 200~300자)
 
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr2}띠(${saju.year.gan}${saju.year.ji}년)
+[펫상태] ${petStateSummary}
 
 [실계산 데이터 — 이야기로 녹여 활용, 수치 직접 나열 금지]
 사주 일간: ${saju.day.gan}${saju.day.ji}(${EL_KR[saju.day.el]||saju.day.el}) 십이운성 ${saju.day.unseong} / 오늘 ${saju.score}점(${saju.fortune})
@@ -607,19 +622,19 @@ export async function POST(request) {
       : "계산 불가";
 
     const subFocus = {
-      love:"오늘 연애운·인연 흐름·감정 조언. 연애 중이면 관계 깊이, 솔로면 새 인연 가능성. 반드시 연애·사랑 주제만 300자 이상.",
-      money:"오늘 재물운·금전 흐름·투자·지출 조언. 수입·지출·투자 타이밍 중심. 반드시 금전·재물 주제만 300자 이상.",
-      work:"오늘 직업·직장·커리어 운세. 업무 성과·동료 관계·승진·취업 흐름. 반드시 직업·커리어 주제만 300자 이상.",
-      health:"오늘 건강운·체력·정신 에너지 조언. 주의할 신체 부위·회복 방법·활력 관리. 반드시 건강 주제만 300자 이상.",
-      general_today:"오늘 하루 전반적인 기운과 실생활 조언",
-      general_love:"연애·인연 흐름과 오늘의 감정 조언",
-      general_money:"재물·금전 흐름과 오늘의 금전 조언",
-      general_good:"오늘 가장 긍정적인 강점과 최대 활용법",
-      general_caution:"오늘 주의해야 할 인간관계·리스크와 현명한 대처법",
-      saju:"사주팔자(연주·월주·일주·시주)를 깊이 풀어주는 오늘의 사주 운세. 일간 기운·십이운성·오늘 일진·오행 흐름을 자연스럽게 이야기로. 300자 이상 반드시.",
-      ziwei:"자미두수 명궁·부처궁·재백궁·관록궁 주성 배치와 사화(화록·화권·화과·화기)를 풀어주는 오늘의 자미두수 운세. 궁위별 오늘 기운을 이야기로. 300자 이상 반드시.",
-      astrology:"서양 점성술 태양·달·ASC·금성·화성·목성·MC 배치와 오늘의 하우스 에너지를 풀어주는 오늘의 점성술 운세. 주요 행성 영향을 이야기로. 300자 이상 반드시.",
-      tarot:"오늘의 타로 3장 배열(아침·오후·저녁 또는 과거·현재·미래). 각 카드의 의미와 오늘 상황에 맞는 조언을 이야기로. 300자 이상 반드시.",
+      love:"오늘 연애운·인연 흐름·감정 조언. 연애 중이면 관계 온도·갈등 해소·다음 행동, 솔로면 새 인연 시기·장소·접근법. 구체적 대화 예시 1개 이상 포함. 오전·오후·저녁 흐름 각각 서술. 반드시 연애·사랑 주제만 420자 이상.",
+      money:"오늘 재물운·금전 흐름·투자·지출 조언. 수입 기회·지출 주의 포인트·투자 타이밍을 각각 서술. 지금 당장 해야 할 재정 행동 2가지와 피해야 할 행동 1가지 명시. 반드시 금전·재물 주제만 420자 이상.",
+      work:"오늘 직업·직장·커리어 운세. 업무 성과 향상 방법·동료·상사 관계 조율·승진·취업 타이밍 서술. 오전 집중 업무·오후 협업·마무리 시간대별 행동 지침 포함. 반드시 직업·커리어 주제만 420자 이상.",
+      health:"오늘 건강운·체력·정신 에너지 조언. 주의할 신체 부위·증상 신호·회복 방법·활력 보충 루틴을 구체적으로 서술. 아침·점심·저녁 건강 관리 포인트 각각 포함. 반드시 건강 주제만 420자 이상.",
+      general_today:"오늘 하루 전반적인 기운과 실생활 조언. 오전·오후·저녁 시간대별 핵심 포인트와 지금 당장 실천할 행동 2가지 포함. 400자 이상.",
+      general_love:"연애·인연 흐름과 오늘의 감정 조언. 구체적 행동·대화 예시 포함 400자 이상.",
+      general_money:"재물·금전 흐름과 오늘의 금전 조언. 수입·지출·투자 타이밍 포함 400자 이상.",
+      general_good:"오늘 가장 긍정적인 강점과 최대 활용법. 시간대별 포인트 포함 400자 이상.",
+      general_caution:"오늘 주의해야 할 인간관계·리스크와 현명한 대처법. 구체적 상황별 조언 포함 400자 이상.",
+      saju:"사주팔자(연주·월주·일주·시주)를 깊이 풀어주는 오늘의 사주 운세. 일간 기운·십이운성·오늘 일진·오행 흐름을 자연스럽게 이야기로. 시간대별 포인트와 구체 행동 조언 포함 400자 이상 반드시.",
+      ziwei:"자미두수 명궁·부처궁·재백궁·관록궁 주성 배치와 사화(화록·화권·화과·화기)를 풀어주는 오늘의 자미두수 운세. 궁위별 오늘 기운과 실행 조언을 이야기로. 400자 이상 반드시.",
+      astrology:"서양 점성술 태양·달·ASC·금성·화성·목성·MC 배치와 오늘의 하우스 에너지를 풀어주는 오늘의 점성술 운세. 주요 행성 영향과 시간대별 활용법을 이야기로. 400자 이상 반드시.",
+      tarot:"오늘의 타로 3장 배열(아침·오후·저녁 또는 과거·현재·미래). 각 카드의 의미와 오늘 상황에 맞는 조언을 이야기로. 각 카드별 2문장 이상, 총 400자 이상 반드시.",
     }[cat]||`${catKr} 운세 (300자 이상)`;
     const animalKr = {rat:"쥐",ox:"소",tiger:"호랑이",rabbit:"토끼",dragon:"용",snake:"뱀",horse:"말",sheep:"양",monkey:"원숭이",rooster:"닭",dog:"개",pig:"돼지"}[saju.year.animal]||"";
     const animalTrait = {
@@ -701,17 +716,18 @@ ${cat==="tarot"&&tarot2?`타로 1(아침): ${tarot.name}(${tarot.orientation}) �
 ${detailGuide}
 
 [생년월일시] ${y}년 ${m}월 ${d}일 ${h}시생 / ${animalKr}띠(${saju.year.gan}${saju.year.ji}년)
+[펫상태] ${petStateSummary}
 
 ${dataSection}
 
 질문: ${safeQuestion||"오늘 "+catKr+" 알려줘"}
 (답변은 충분히 길고 구체적으로. 질문 상황에 바로 적용 가능한 행동 지침 포함.)`;
 
-    const ai = await callGemini(prompt, { maxTokens: 1400, temperature: 0.9 });
+    const ai = await callGemini(prompt, { maxTokens: 1800, temperature: 0.9 });
     let answer = ai;
-    if (!answer || !isCategoryPure(cat, answer) || !isDetailedEnough(answer, 300)) {
-      const strictPrompt = `${prompt}\n\n[중요 재지시]\n- 이번 답변은 반드시 '${catKr}' 관점만 사용.\n- 다른 점술 체계 언급 금지.\n- 최소 420자 이상.\n- '지금 당장 할 행동 3가지'와 '피해야 할 행동 2가지'를 반드시 구체적으로 포함.`;
-      const aiRetry = await callGemini(strictPrompt, { maxTokens: 1600, temperature: 0.86 });
+    if (!answer || !isCategoryPure(cat, answer) || !isDetailedEnough(answer, 380)) {
+      const strictPrompt = `${prompt}\n\n[중요 재지시]\n- 이번 답변은 반드시 '${catKr}' 관점만 사용.\n- 다른 점술 체계 언급 금지.\n- 최소 500자 이상.\n- '지금 당장 할 행동 3가지'와 '피해야 할 행동 2가지'를 반드시 구체적으로 포함.\n- 오전/오후/저녁 시간대별 포인트를 각각 1~2문장으로 반드시 포함.`;
+      const aiRetry = await callGemini(strictPrompt, { maxTokens: 2200, temperature: 0.86 });
       if (aiRetry && isCategoryPure(cat, aiRetry) && isDetailedEnough(aiRetry, 300)) {
         answer = aiRetry;
       } else {
