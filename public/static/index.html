@@ -6020,7 +6020,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260411-saju-sinsal-v7"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260414-vedic-entry-fix1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -7444,6 +7444,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
+    // prem-card: CTA 클릭 user-gesture 컨텍스트 안에서 직접 코인게이트 호출 (tile.click() 우회)
+    if(tile.classList.contains('prem-card')&&_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
+      var _premAct=tile.getAttribute('data-action');
+      if(_premAct){window.__cdPremCardCoinGate(_premAct,tile,_pvwCoinCost);return;}
+    }
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
     tile.setAttribute('data-pvw-bypass','1');

@@ -6019,7 +6019,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=20260411-saju-sinsal-v7"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=20260414-vedic-entry-fix1"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -6248,13 +6248,33 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var parsed = JSON.parse(saved);
       if (parsed && typeof parsed === 'object') {
         var keys = Object.keys(parsed);
-        for (var i = 0; i < keys.length; i += 1) unlockedFeatureMap[keys[i]] = true;
+        for (var i = 0; i < keys.length; i += 1) {
+          if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+        }
       }
     } catch (_e) {}
   }
 
   function saveTileLocks() {
-    try { localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(unlockedFeatureMap)); } catch (_e) {}
+    try {
+      var merged = Object.create(null);
+      var saved = localStorage.getItem(TILE_LOCKS_KEY);
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var prevKeys = Object.keys(parsed);
+          for (var i = 0; i < prevKeys.length; i += 1) {
+            if (parsed[prevKeys[i]] === true) merged[prevKeys[i]] = true;
+          }
+        }
+      }
+      var nextKeys = Object.keys(unlockedFeatureMap);
+      for (var j = 0; j < nextKeys.length; j += 1) {
+        if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
+      }
+      localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(merged));
+      unlockedFeatureMap = merged;
+    } catch (_e) {}
   }
 
   // 잠금 타일에 시각적 자물쇠 아이콘 표시/제거
@@ -6357,6 +6377,55 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
+  }
+
+  function _cdCollectKnownUnlockKeys() {
+    var map = Object.create(null);
+    for (var i = 0; i < SECTION_GATE_KEYS.length; i += 1) {
+      map[SECTION_GATE_KEYS[i].unlockKey] = true;
+    }
+    var sectionBtns = document.querySelectorAll('[data-action="unlockPremiumFeature"][data-unlock-key]');
+    for (var s = 0; s < sectionBtns.length; s += 1) {
+      var sk = sectionBtns[s].getAttribute('data-unlock-key');
+      if (sk) map[sk] = true;
+    }
+    var tileBtns = document.querySelectorAll('[data-tile-lock-key]');
+    for (var t = 0; t < tileBtns.length; t += 1) {
+      var tk = tileBtns[t].getAttribute('data-tile-lock-key');
+      if (tk) map[tk] = true;
+    }
+    return map;
+  }
+
+  function _cdApplyUnlocksFromPaymentPayload(payload) {
+    var histories = (payload && payload.pointHistories && Array.isArray(payload.pointHistories)) ? payload.pointHistories : [];
+    if (!histories.length) return false;
+    var known = _cdCollectKnownUnlockKeys();
+    var changed = false;
+    for (var i = 0; i < histories.length; i += 1) {
+      var h = histories[i] || {};
+      if (String(h.kind || '') !== 'deduct') continue;
+      var k = String(h.featureKey || '').trim();
+      if (!k || k === 'pig-coin-unlock') continue;
+      if (known[k] && unlockedFeatureMap[k] !== true) {
+        unlockedFeatureMap[k] = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  async function syncUnlocksFromServer() {
+    if (!hasAuthToken()) return;
+    try {
+      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
+      if (!result.ok) return;
+      if (!_cdApplyUnlocksFromPaymentPayload(result.payload)) return;
+      saveTileLocks();
+      applyTileLockVisuals();
+      refreshUnlockButtons();
+      if (typeof applySectionGates === 'function') applySectionGates();
+    } catch (_e) {}
   }
 
   async function fetchJsonWithAuth(path, init) {
@@ -7117,6 +7186,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   refreshUnlockButtons();
   if(typeof applySectionGates==='function')applySectionGates();
   void syncBalanceFromServer();
+  void syncUnlocksFromServer();
 
   window.__cdSetGoldenBalance = function (points) {
     var next = Number(points);

@@ -144,87 +144,6 @@ if (document.readyState === 'loading') {
   __cdInitCollectionPerfMetrics();
 }
 
-function __cdEnsureCoinGatePerUse() {
-  if (typeof window._cdCoinGatePerUse === 'function') return;
-
-  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
-    var nCost = Number(cost);
-    if (!Number.isFinite(nCost) || nCost <= 0) {
-      if (typeof cb === 'function') cb();
-      return;
-    }
-
-    if (window._cdCoinGatePerUseInFlight) return;
-
-    var token = '';
-    try {
-      token = localStorage.getItem('fortune_auth_token')
-        || localStorage.getItem('cdToken')
-        || sessionStorage.getItem('fortune_auth_token')
-        || '';
-    } catch (_) {}
-
-    if (!token) {
-      try {
-        if (window.confirm('로그인이 필요한 유료 기능입니다. 로그인 페이지로 이동하시겠습니까?')) {
-          var next = encodeURIComponent(window.location.pathname + (window.location.search || ''));
-          window.location.href = '/login?next=' + next;
-        }
-      } catch (_) {}
-      if (typeof onCancel === 'function') onCancel();
-      return;
-    }
-
-    window._cdCoinGatePerUseInFlight = true;
-    fetch('/api/fortune/pig-coin/consume', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({ cost: nCost, reason: reason || '유료 기능 이용' })
-    })
-      .then(function(r) {
-        return r.json().catch(function() { return {}; }).then(function(data) {
-          return { ok: r.ok, status: r.status, data: data };
-        });
-      })
-      .then(function(res) {
-        if (!res.ok) {
-          if (res.status === 402) {
-            if (window.confirm('코인이 부족합니다. 충전 페이지로 이동하시겠습니까?')) {
-              window.location.href = '/points';
-            }
-          } else {
-            window.alert((res.data && res.data.message) || '코인 차감에 실패했습니다.');
-          }
-          if (typeof onCancel === 'function') onCancel();
-          return;
-        }
-
-        try {
-          var newBalance = Number(res.data && res.data.user && res.data.user.points);
-          if (Number.isFinite(newBalance)) {
-            var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}') || {};
-            u.points = newBalance;
-            localStorage.setItem('fortune_auth_user', JSON.stringify(u));
-          }
-        } catch (_) {}
-
-        if (typeof cb === 'function') cb();
-      })
-      .catch(function() {
-        window.alert('결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        if (typeof onCancel === 'function') onCancel();
-      })
-      .finally(function() {
-        window._cdCoinGatePerUseInFlight = false;
-      });
-  };
-}
-
-__cdEnsureCoinGatePerUse();
-
 function cdNormalizeLang(langCode) {
   var raw = String(langCode || 'ko').trim();
   if (!raw) return 'ko';
@@ -1061,7 +980,7 @@ var __cdLazyActionLoaders = {
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=20260328-dreamcute-v2').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=20260328-dreamcute-v2'); }); },
-  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi')); },
+  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingPage: function() { try { window.location.assign('/tarot/healing'); } catch(e) { window.open('/tarot/healing', '_self'); } return Promise.resolve(); },
@@ -1474,7 +1393,7 @@ window.openYogaGuru = function() {
 };
 window.openDestinyEggPage = function() {
   try {
-    window.location.href = '/tadagochi';
+    window.location.href = '/tadagochi.html';
   } catch (err) {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
@@ -3657,7 +3576,9 @@ var _dfStudioState = {
   loadingSource: '',
   loadingTasks: {},
   userRequestedLoad: {},
-  linkedSources: {}
+  linkedSources: {},
+  coinGatePassed: false,
+  coinGateInFlight: false
 };
 
 var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
@@ -5249,23 +5170,26 @@ function _dfResolveLockTileBySource(source) {
   return tile;
 }
 
-function _dfIsLockTileUnlocked(tile) {
-  if (!tile) return true;
-  var lockKey = tile.getAttribute('data-tile-lock-key');
-  if (!lockKey) return true;
-  var isUnlocked = false;
-  try { isUnlocked = !!(typeof unlockedFeatureMap !== 'undefined' && unlockedFeatureMap[lockKey]); } catch (_) {}
-  if (!isUnlocked) {
-    try { var locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}'); isUnlocked = !!locks[lockKey]; } catch (_) {}
-  }
-  return isUnlocked;
-}
+function _dfRequireSourceCoinPayment(source, onPass) {
+  if (_dfStudioState.coinGatePassed) return true;
+  if (_dfStudioState.coinGateInFlight) return false;
 
-function _dfEnsureSourceUnlocked(source) {
+  var sourceMeta = _DF_SOURCE_META[_dfNormalizeSource(source)] || _DF_SOURCE_META.saju;
+  var reason = (sourceMeta.labelKo || '운명의 꽃') + ' 운명의 꽃 아틀리에 이용';
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    _dfStudioState.coinGateInFlight = true;
+    window._cdCoinGatePerUse(50, reason, function() {
+      _dfStudioState.coinGateInFlight = false;
+      _dfStudioState.coinGatePassed = true;
+      if (typeof onPass === 'function') onPass();
+    }, function() {
+      _dfStudioState.coinGateInFlight = false;
+    });
+    return false;
+  }
+
   var tile = _dfResolveLockTileBySource(source);
-  if (!tile) return false; // tile 미발견 = 잠김 처리 (bypass 방지)
-  if (_dfIsLockTileUnlocked(tile)) return true;
-  if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
+  if (tile && typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
     return false;
   }
   return false;
@@ -5322,12 +5246,15 @@ function openDestinyFlower(forceRefreshData) {
   return selection;
 }
 
-function openDestinyFlowerStudio(source) {
+function openDestinyFlowerStudio(source, gatePassed) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (!window.__cdAdminBypass && !_dfEnsureSourceUnlocked(requestedSource)) return;
+  if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function() { openDestinyFlowerStudio(requestedSource, true); })) {
+    return;
+  }
+  if (gatePassed) _dfStudioState.coinGatePassed = true;
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   // ── 코인/잠금 게이트 체크 끝 ──
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
@@ -5470,11 +5397,12 @@ function _dfGetNoBirthMessage(source) {
   return '이름과 생년월일 정보를 먼저 입력하면, 나만의 운명의 꽃이 여기에서 피어납니다.';
 }
 
-function setDestinyFlowerSourceTab(source) {
+function setDestinyFlowerSourceTab(source, gatePassed) {
   var normalized = _dfNormalizeSource(source);
-  if (!window.__cdAdminBypass && !_dfEnsureSourceUnlocked(normalized)) {
+  if (!gatePassed && !_dfRequireSourceCoinPayment(normalized, function() { setDestinyFlowerSourceTab(normalized, true); })) {
     return _dfStudioState.selection || null;
   }
+  if (gatePassed) _dfStudioState.coinGatePassed = true;
   normalized = _dfSetActiveSource(normalized);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var isStudioOpen = overlay && overlay.style.display !== 'none';
@@ -5516,6 +5444,8 @@ function setDestinyFlowerSourceTab(source) {
 function closeDestinyFlowerStudio() {
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
+  _dfStudioState.coinGatePassed = false;
+  _dfStudioState.coinGateInFlight = false;
   _dfRestoreOriginalTitle();
   overlay.classList.remove('is-show');
   setTimeout(function() {
@@ -6028,6 +5958,43 @@ function navigateToVedic() {
     };
   }
 
+  function readMainFormProfileFallback() {
+    try {
+      var bdEl = document.getElementById('birthDate');
+      var bd = bdEl ? String(bdEl.value || '').trim() : '';
+      if (!bd) return null;
+      var parts = bd.split('-');
+      if (parts.length < 3) return null;
+      var year = parseInt(parts[0], 10);
+      var month = parseInt(parts[1], 10);
+      var day = parseInt(parts[2], 10);
+      if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
+      var hourRaw = parseInt((document.getElementById('birthHour') || {}).value, 10);
+      var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
+      var hour = (isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
+      var minute = (isFinite(minuteRaw) && minuteRaw >= 0 && minuteRaw <= 59) ? minuteRaw : 0;
+      var gender = 'F';
+      var btnM = document.getElementById('btnM');
+      var btnF = document.getElementById('btnF');
+      if (btnM && btnM.classList.contains('on')) gender = 'M';
+      else if (btnF && btnF.classList.contains('on')) gender = 'F';
+      var countrySel = document.getElementById('birthCountry');
+      var opt = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
+      var tz = opt ? countrySel.value : 'Asia/Seoul';
+      var lng = opt ? parseFloat(opt.getAttribute('data-long') || '127') : 127.0;
+      var lat = opt ? parseFloat(opt.getAttribute('data-lat') || '37.6') : 37.6;
+      var tzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || opt.getAttribute('data-tz') || '9') : 9;
+      var locationLabel = opt ? opt.text : '대한민국 (서울)';
+      return {
+        id: 'vedic_main_form',
+        name: '(메인 입력)',
+        gender: gender,
+        birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: 'solar' },
+        location: { label: locationLabel, tz: tz, lng: lng, lat: lat, tzOffset: tzOff, baseTzOffset: tzOff }
+      };
+    } catch (_) { return null; }
+  }
+
   var profile = typeof window.dpGetDataForVedic === 'function' ? window.dpGetDataForVedic() : null;
   profile = normalizeVedicProfile(profile);
   if (!profile) {
@@ -6048,6 +6015,9 @@ function navigateToVedic() {
         }
       }
     } catch (e) {}
+  }
+  if (!profile) {
+    profile = normalizeVedicProfile(readMainFormProfileFallback());
   }
   if (profile) {
     try {
