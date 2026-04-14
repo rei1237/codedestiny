@@ -151,6 +151,7 @@
     } catch (_) {}
   }
 
+  var _CD_ADMIN_VIRTUAL_COINS = 9999;
   var _CD_ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
 
   function _cdReadCookie(name) {
@@ -207,6 +208,13 @@
 
     var isAdminLike = _cdIsAdminLikeUser();
     if (isAdminLike) {
+      try {
+        var _adminUserRaw = localStorage.getItem('fortune_auth_user') || 'null';
+        var _adminUser = JSON.parse(_adminUserRaw) || {};
+        _adminUser.points = _CD_ADMIN_VIRTUAL_COINS;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(_adminUser));
+      } catch (_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(_CD_ADMIN_VIRTUAL_COINS);
       cb();
       return;
     }
@@ -1675,7 +1683,9 @@
           });
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
-        if (!pVedic || !pVedic.birth) {
+        var _vb = pVedic && pVedic.birth ? pVedic.birth : null;
+        var _hasVedicBirth = !!(_vb && _vb.year != null && _vb.month != null && _vb.day != null && _vb.year !== '' && _vb.month !== '' && _vb.day !== '');
+        if (!pVedic || !_hasVedicBirth) {
           _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
           return;
         }
@@ -1686,13 +1696,32 @@
         try {
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+          sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
+          localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
+          sessionStorage.setItem('FORTUNE_APP_VEDIC_FROM_PROFILE', '1');
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
+          window.__cdActiveBirthProfile = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        if (typeof cdResolveLocalizedFeatureHref === 'function') {
-          window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
-        } else {
-          window.location.href = '/vedic-astrology.html';
+        // Use the shared navigation path first; this keeps profile payload and localization handling consistent.
+        if (typeof window.navigateToVedic === 'function') {
+          try {
+            window.navigateToVedic();
+            return;
+          } catch (_) {}
+        }
+        var _vdTarget = '/vedic-astrology.html?from=profile-card';
+        try {
+          if (typeof cdResolveLocalizedFeatureHref === 'function') {
+            _vdTarget = cdResolveLocalizedFeatureHref(_vdTarget, (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
+          }
+        } catch (_) {
+          _vdTarget = '/vedic-astrology.html?from=profile-card';
+        }
+        try {
+          window.location.assign(_vdTarget);
+        } catch (_) {
+          window.location.href = '/vedic-astrology.html?from=profile-card';
         }
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
