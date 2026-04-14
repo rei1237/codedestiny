@@ -1061,7 +1061,7 @@ var __cdLazyActionLoaders = {
   openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js'); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=20260328-dreamcute-v2').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=20260328-dreamcute-v2'); }); },
-  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
+  openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260320-tarot-uifix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260320-tarot-uifix2'); },
   openTarotHealingPage: function() { try { window.location.assign('/tarot/healing'); } catch(e) { window.open('/tarot/healing', '_self'); } return Promise.resolve(); },
@@ -1474,7 +1474,7 @@ window.openYogaGuru = function() {
 };
 window.openDestinyEggPage = function() {
   try {
-    window.location.href = '/tadagochi.html';
+    window.location.href = '/tadagochi';
   } catch (err) {
     console.error('[index-inline-runtime] openDestinyEggPage failed:', err);
   }
