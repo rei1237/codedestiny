@@ -117,26 +117,40 @@ export async function verifyFlowerAdminToken(token) {
  * @returns {string}
  */
 export function extractAdminTokenFromRequest(request) {
-  // Authorization: Bearer <token> — Bearer가 비어있으면 쿠키 폴백으로 진행
+  const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
+  const xat = request.headers.get("x-admin-token") || "";
+  if (xat && FLOWER_ADMIN_TOKEN_RE.test(String(xat).trim())) return String(xat).trim();
+
+  // Authorization: Bearer <token>
+  // 주의: 일반 JWT Bearer를 관리자 토큰으로 먼저 소모하면
+  // x-admin-token/cookie 관리자 세션 판별이 막히므로, x-admin-token 이후에만 확인한다.
   const auth = request.headers.get("authorization") || "";
   if (auth.startsWith("Bearer ")) {
     const bearerToken = auth.slice(7).trim();
-    if (bearerToken) return bearerToken; // 실제 토큰이 있을 때만 반환
+    if (bearerToken && FLOWER_ADMIN_TOKEN_RE.test(String(bearerToken))) return bearerToken;
     // 빈 Bearer → 쿠키에서 시도
   }
-
-  const xat = request.headers.get("x-admin-token") || "";
-  if (xat) return xat.trim();
 
   // 쿠키 폴백: flower_admin_token (현행) → fortune_auth_token (레거시) 순서로 탐색
   const cookieHeader = request.headers.get("cookie") || "";
   const flowerMatch = cookieHeader.match(/(?:^|;\s*)flower_admin_token=([^;]+)/);
   if (flowerMatch) {
-    try { return decodeURIComponent(flowerMatch[1]); } catch { return flowerMatch[1]; }
+    try {
+      const decoded = decodeURIComponent(flowerMatch[1]);
+      return FLOWER_ADMIN_TOKEN_RE.test(decoded) ? decoded : "";
+    } catch {
+      return FLOWER_ADMIN_TOKEN_RE.test(flowerMatch[1]) ? flowerMatch[1] : "";
+    }
   }
   const legacyMatch = cookieHeader.match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
   if (legacyMatch) {
-    try { return decodeURIComponent(legacyMatch[1]); } catch { return legacyMatch[1]; }
+    try {
+      const decoded = decodeURIComponent(legacyMatch[1]);
+      return FLOWER_ADMIN_TOKEN_RE.test(decoded) ? decoded : "";
+    } catch {
+      return FLOWER_ADMIN_TOKEN_RE.test(legacyMatch[1]) ? legacyMatch[1] : "";
+    }
   }
 
   return "";

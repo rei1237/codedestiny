@@ -13,8 +13,8 @@ export async function GET(request) {
   if (!userId && !adminMode) return NextResponse.json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
 
   try {
-    // 관리자 토큰만 있고 실 userId가 없으면 코인 확인 불필요
-    if (adminMode && !userId) {
+    // 관리자 모드에서는 코인 확인 불필요 (로그인 userId 존재 여부와 무관)
+    if (adminMode) {
       return NextResponse.json({ ok: true, adminMode: true });
     }
 

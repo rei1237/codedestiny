@@ -45,8 +45,8 @@ export async function POST(request) {
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
 
-  // 관리자 모드: 코인 차감 없이 즉시 통과
-  if (adminMode && !userId) {
+  // 관리자 모드: 코인 차감 없이 즉시 통과 (로그인 userId 존재 여부와 무관)
+  if (adminMode) {
     return NextResponse.json({
       ok: true,
       adminMode: true,
