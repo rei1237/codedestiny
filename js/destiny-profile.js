@@ -1697,11 +1697,15 @@
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
+        var _vdTarget = '/vedic-astrology.html';
         if (typeof cdResolveLocalizedFeatureHref === 'function') {
-          window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
-        } else {
-          window.location.href = '/vedic-astrology.html';
+          _vdTarget = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
         }
+        try {
+          var _vp = encodeURIComponent(JSON.stringify(forVedic));
+          _vdTarget += (_vdTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;
+        } catch (_) {}
+        window.location.href = _vdTarget;
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');

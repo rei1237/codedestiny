@@ -2225,6 +2225,31 @@ function _fillInputFromProfile(profile){
 
 function initVedicPage(){
   try{ vedicInitLanguageBridge(); }catch(_){}
+  // URL payload 우선 처리: storage 접근 실패 환경에서도 프로필 카드 진입 보장
+  var _qp=null;
+  try{
+    var _sp=new URLSearchParams(window.location.search||'');
+    var _vpRaw=_sp.get('vp');
+    if(_vpRaw){
+      try{ _qp=JSON.parse(decodeURIComponent(_vpRaw)); }catch(_){ try{ _qp=JSON.parse(_vpRaw); }catch(_){ _qp=null; } }
+      if(_qp){
+        try{ _qp=_repairProfile(_qp); }catch(_){}
+        try{ _qp=normalizeProfileForVedic(_qp)||_qp; }catch(_){}
+        _fillInputFromProfile(_qp);
+        if(_hasValidBirth(_qp)){
+          try{
+            _sp.delete('vp');
+            var _newQ=_sp.toString();
+            history.replaceState(null,'',window.location.pathname+(_newQ?('?'+_newQ):'')+window.location.hash);
+          }catch(_){}
+          doCalculateFromProfile(_qp);
+          return;
+        }
+        showPage('input');
+        return;
+      }
+    }
+  }catch(_){}
   // VEDIC_PAYLOAD 직접 읽기: _readProfileFromStorage가 삭제하기 전에 먼저 확보
   var _vp=null;
   try{

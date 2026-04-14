@@ -6056,7 +6056,14 @@ function navigateToVedic() {
       window.FORTUNE_APP_VEDIC_PAYLOAD = profile;
     } catch (e) {}
   }
-  window.location.href = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
+  var _vedicTarget = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
+  if (profile) {
+    try {
+      var _vp = encodeURIComponent(JSON.stringify(profile));
+      _vedicTarget += (_vedicTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;
+    } catch (_) {}
+  }
+  window.location.href = _vedicTarget;
 }
 
 function navigateToZiweiChart() {
