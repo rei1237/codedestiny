@@ -296,17 +296,6 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 <canvas id="particle-canvas"></canvas>
 
-<!-- 로그인 게이트 오버레이 -->
-<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a1040 0%,#2d1060 50%,#0d1a3e 100%);align-items:center;justify-content:center;padding:24px;">
-  <div style="max-width:340px;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:36px 28px 32px;text-align:center;backdrop-filter:blur(16px);">
-    <div style="font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite">🐣</div>
-    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif">운세다마고치</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6;font-family:'Noto Sans KR',sans-serif">로그인하면 나만의 다마고치를<br>키울 수 있어요 🌸</div>
-    <a href="/login?next=/tadagochi" style="display:block;padding:14px 0;border-radius:99px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-weight:900;font-size:15px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 18px rgba(167,139,250,.4)">로그인하기</a>
-    <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/signup?next=/tadagochi" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
-  </div>
-</div>
-
 <div class="card" id="gc">
 
 <div class="top-strip"></div>
@@ -832,7 +821,7 @@ const TDUR={happy:2500,angry:2500,sleep:0,wake:1800,special:3500,eat:2200};
 
 
 
-const G={scr:'title',userId:null,userName:'',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,birthMonth:6,birthDay:15,birthHour:12,chatCount:0,chatDate:'',chatCat:'general'};
+const G={scr:'title',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,birthMonth:6,birthDay:15,birthHour:12,chatCount:0,chatDate:'',chatCat:'general'};
 
 
 
@@ -984,42 +973,9 @@ function normalizeDayKey(v){
   return d.toISOString().slice(0,10);
 }
 
-function getAuthToken(){
-  var token='';
-  try{token=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
-  if(token) return token;
-  try{
-    var m=(document.cookie||'').match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
-    if(m&&m[1]) return decodeURIComponent(m[1]);
-  }catch(_e2){}
-  return '';
-}
+var TAMA_LOCAL_KEY='fortune_tadagochi_pet_v1';
 
-function withAuthHeaders(headers){
-  var out=Object.assign({},headers||{});
-  var token=getAuthToken();
-  if(token&&!out.Authorization&&!out.authorization) out.Authorization='Bearer '+token;
-  return out;
-}
-
-function apiFetch(url,opts){
-  var options=Object.assign({credentials:'include'},opts||{});
-  options.headers=withAuthHeaders(options.headers||{});
-  return fetch(url,options);
-}
-
-var AUTH_SYNC_CHANNEL='code-destiny-auth-sync';
-var _authBC=null;
-
-var _authSyncBusy=false;
-
-function setLoginGateVisible(show){
-  var gate=document.getElementById('login-gate');
-  if(!gate) return;
-  gate.style.display=show?'flex':'none';
-}
-
-function hydratePetFromServerPayload(s){
+function hydratePetFromStoragePayload(s){
   if(!s) return false;
   if(!s.animal&&s.zodiac) s.animal=s.zodiac;
   s.animal=normalizeAnimalKey(s.animal||s.zodiac);
@@ -1035,93 +991,39 @@ function hydratePetFromServerPayload(s){
   return true;
 }
 
-function syncAuthSession(reason){
-  if(_authSyncBusy) return Promise.resolve(false);
-  _authSyncBusy=true;
-  return apiFetch('/api/auth/me',{cache:'no-store'})
-    .then(function(r){if(!r.ok) return null; return r.json();})
-    .then(function(userData){
-      if(!userData||!userData.user){
-        G.userId=null;
-        setLoginGateVisible(true);
-        return false;
-      }
-
-      setLoginGateVisible(false);
-      G.userId=userData.user.id;
-      G.userName=userData.user.name||'';
-
-      return apiFetch('/api/tadagochi/pet',{cache:'no-store'})
-        .then(function(r){if(!r.ok) return {pet:null}; return r.json();})
-        .then(function(petRes){
-          updateChatRemain();
-          var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
-          if(!hasSavedPet) return true;
-          if(!hydratePetFromServerPayload(petRes.pet)) return true;
-
-          if(G.scr!=='main') openMain();
-          else {
-            document.getElementById('mn').textContent=G.petName||'내 친구';
-            updateUI();
-          }
-          return true;
-        });
-    })
-    .catch(function(){
-      if(!G.userId) setLoginGateVisible(true);
-      return false;
-    })
-    .finally(function(){_authSyncBusy=false;});
-}
-
-function setupRealtimeAuthSync(){
+function loadState(){
+  var raw='';
+  try{raw=localStorage.getItem(TAMA_LOCAL_KEY)||'';}catch(_e){}
+  if(!raw) return false;
   try{
-    if(typeof BroadcastChannel==='undefined') return;
-    _authBC=new BroadcastChannel(AUTH_SYNC_CHANNEL);
-    _authBC.onmessage=function(ev){
-      var data=ev&&ev.data;
-      if(!data||!data.event) return;
-      if(data.event==='login'||data.event==='logout') syncAuthSession('broadcast');
-    };
-  }catch(_e){}
+    var saved=JSON.parse(raw);
+    var hasSavedPet=!!(saved&&(saved.animal||saved.zodiac||saved.petName));
+    if(!hasSavedPet) return false;
+    return hydratePetFromStoragePayload(saved);
+  }catch(_e2){
+    return false;
+  }
 }
 
 function init(){
   initUI();
   updateChatRemain();
-  syncAuthSession('init');
-  setupRealtimeAuthSync();
-
-  window.addEventListener('focus',function(){syncAuthSession('focus');});
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible') syncAuthSession('visible');
-  });
-  window.addEventListener('storage',function(e){
-    if(!e) return;
-    if(e.key==='fortune_auth_token'||e.key==='fortune_auth_user') syncAuthSession('storage');
-  });
+  if(loadState()) openMain();
 }
 
 function saveState(){
-  if(!G.userId){return;} // 미로그인이면 저장 안함
   var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
-  apiFetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
-    if(r&&r.status===401){
-      G.userId=null; // 세션 만료 - 저장만 중단, 게임 계속
-    }
-  }).catch(function(){});
+  try{localStorage.setItem(TAMA_LOCAL_KEY,JSON.stringify(data));}catch(_e){}
 }
 
 function resetPet(){
   if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
-  apiFetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
-    G.userId=G.userId; // 유저 ID는 유지
-    Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
-    if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
-    if(G.nTick){clearInterval(G.nTick);G.nTick=null;}
-    show('s-setup');
-    toast('새 친구를 만들어봐 🐣');
-  }).catch(function(){toast('오류가 발생했어요. 다시 시도해줘');});
+  try{localStorage.removeItem(TAMA_LOCAL_KEY);}catch(_e){}
+  Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
+  if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
+  if(G.nTick){clearInterval(G.nTick);G.nTick=null;}
+  show('s-setup');
+  toast('새 친구를 만들어봐 🐣');
 }
 
 
