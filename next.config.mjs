@@ -23,9 +23,9 @@ const nextConfig = {
 
       /* ── 2. 내부 링크 오타 / 구 slug 수정 301 ── */
       { source: "/oracle/hwatu", destination: "/oracle/hwatu-life", permanent: true },
-      { source: "/tadagochi", destination: "/tadagochi.html", permanent: true },
-      { source: "/tamagotchi", destination: "/tadagochi.html", permanent: true },
-      { source: "/tamagotchi.html", destination: "/tadagochi.html", permanent: true },
+      // /tadagochi 는 app/tadagochi/route.js 가 직접 서빙 (리다이렉트 불필요)
+      { source: "/tamagotchi", destination: "/tadagochi", permanent: true },
+      { source: "/tamagotchi.html", destination: "/tadagochi", permanent: true },
 
       /* ── 3. app route 없는 서비스 → 유사 서비스 임시 302 ── */
       // 동물 관상 (AI 얼굴 분석) → 사주 그림 (가장 유사한 시각 분석 서비스)
