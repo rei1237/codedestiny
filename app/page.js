@@ -1,6 +1,4 @@
-﻿import KkulkkulManseryukMain from "./components/KkulkkulManseryukMain";
-
-/**
+﻿/**
  * "/" serves legacy HTML via next.config rewrites (URL stays /). This App Router page is a fallback
  * if the rewrite is bypassed; metadata matches the public canonical.\n */
 export const metadata = {
@@ -36,6 +34,20 @@ export const metadata = {
 };
 
 export default function Home() {
-  return <KkulkkulManseryukMain />;
+  return (
+    <main style={{ minHeight: "100vh", background: "#05070f" }}>
+      <iframe
+        src="/static/index.html"
+        title="Code Destiny Main Service"
+        style={{
+          width: "100%",
+          height: "100vh",
+          border: 0,
+          display: "block",
+          background: "transparent",
+        }}
+      />
+    </main>
+  );
 }
 
