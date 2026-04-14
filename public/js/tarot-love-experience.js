@@ -22,6 +22,7 @@
   var LOVE_COIN_COST = 50;
   var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
+  var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   var TAROT_API_TIMEOUT_MS = 12000;
   var RELATIONSHIP_POSITIONS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
   var LOCAL_RELATIONSHIP_DECK = [
@@ -281,6 +282,29 @@
     }
   }
 
+  function isLoveAdminLikeUser() {
+    if (typeof window === "undefined") return false;
+    try {
+      if (window.__cdAdminBypass) return true;
+    } catch (e) {}
+    try {
+      var rawUser = localStorage.getItem("fortune_auth_user") || "";
+      if (rawUser) {
+        var parsed = JSON.parse(rawUser);
+        if (parsed && String(parsed.role || "").toLowerCase() === "admin") return true;
+      }
+    } catch (e2) {}
+    try {
+      var sTok = String(sessionStorage.getItem("flower_admin_token") || "");
+      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) return true;
+    } catch (e3) {}
+    try {
+      var lTok = String(localStorage.getItem("flower_admin_token") || "");
+      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) return true;
+    } catch (e4) {}
+    return false;
+  }
+
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
@@ -357,6 +381,11 @@
   }
 
   function requireLoveAccess() {
+    if (isLoveAdminLikeUser()) {
+      state.hasAccess = true;
+      state.paymentInFlight = false;
+      return Promise.resolve(true);
+    }
     if (state.hasAccess) return Promise.resolve(true);
     if (state.paymentInFlight) return Promise.resolve(false);
     state.paymentInFlight = true;
@@ -691,7 +720,11 @@
         frontEl.style.backgroundSize = "cover";
         frontEl.style.backgroundPosition = "center";
       }
-      imgEl.onload = function () {};
+      imgEl.onload = function () {
+        if (frontEl) {
+          frontEl.style.backgroundImage = "none";
+        }
+      };
       imgEl.onerror = tryNext;
       imgEl.src = url;
     }
