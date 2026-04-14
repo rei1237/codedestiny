@@ -223,17 +223,33 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .chat-modal.on{display:flex;animation:slide-up .4s ease forwards}
 
-.chat-bubble{max-width:82%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.55;word-break:break-word}
+.chat-cat-row{display:flex;gap:8px;padding:10px 16px 12px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;scroll-padding-inline:16px}
 
-.chat-bubble.user{background:var(--c2);color:#fff;border-radius:18px 18px 4px 18px;margin-left:auto}
+.chat-cat-row::-webkit-scrollbar{display:none}
 
-.chat-bubble.bot{background:rgba(255,255,255,.88);border:1.5px solid var(--cb);color:var(--text);border-radius:18px 18px 18px 4px}
+.chat-cat-row::after{content:'';flex:0 0 8px}
 
-.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.9);padding:10px 12px}
+.cat-btn{flex-shrink:0}
 
-.chat-input{flex:1;border:1.5px solid var(--cb);border-radius:99px;padding:10px 16px;font-family:'Noto Sans KR';font-size:14px;background:var(--adim);outline:none;transition:border .2s;color:#333}
+.chat-log{padding:14px 16px 18px;gap:10px;background:linear-gradient(180deg,rgba(255,255,255,.44),rgba(255,255,255,.18))}
 
-.chat-input:focus{border-color:var(--acc)}
+.chat-log>div{max-width:100%}
+
+.chat-bubble{max-width:86%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.64;letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.chat-bubble.user{background:var(--c2);color:#fff;border-radius:18px 18px 4px 18px;margin-left:auto;box-shadow:0 6px 14px rgba(0,0,0,.08)}
+
+.chat-bubble.bot{background:rgba(255,255,255,.94);border:1.5px solid var(--cb);color:var(--text);border-radius:18px 18px 18px 4px;box-shadow:0 3px 10px rgba(22,16,60,.05)}
+
+.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:10px 12px 12px}
+
+.chat-input{flex:1;min-width:0;border:1.5px solid var(--cb);border-radius:99px;padding:11px 16px;font-family:'Noto Sans KR';font-size:14px;line-height:1.35;background:var(--adim);outline:none;transition:border .2s,box-shadow .2s;color:#2f2b45}
+
+.chat-input::placeholder{color:#9d97b3}
+
+.chat-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+
+.chat-help{font-size:11px;color:var(--acc);opacity:.62;line-height:1.45;letter-spacing:-.01em}
 
 .btn-acc{padding:14px;border-radius:16px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--c2),var(--c3));color:#fff;font-family:'Noto Sans KR';font-size:15px;font-weight:900;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .13s;letter-spacing:-.2px}
 
@@ -724,7 +740,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   </div>
 
-  <div class="flex gap-2 px-4 py-2 shrink-0 overflow-x-auto" style="scrollbar-width:none">
+  <div class="chat-cat-row shrink-0">
 
     <button class="cat-btn font-n text-xs font-bold px-3 py-1.5 rounded-full border-2 whitespace-nowrap transition-all" data-cat="general"   onclick="setcat(this,'general')"   style="background:transparent;border-color:var(--cb);color:#888">🔮 종합</button>
 
@@ -738,7 +754,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   </div>
 
-  <div class="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3" id="chat-log"></div>
+  <div class="chat-log flex-1 overflow-y-auto flex flex-col" id="chat-log"></div>
 
   <div class="chat-input-wrap shrink-0">
 
@@ -750,7 +766,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     </div>
 
-    <div class="font-n mt-2 px-1" style="font-size:11px;color:var(--acc);opacity:.6">
+    <div class="chat-help font-n mt-2 px-1">
       상단에서 종합/사주/자미두수/점성술/타로를 고른 뒤 질문해줘. 종합은 로컬 계산 4개 카테고리 탭 결과로 보여줄게.
     </div>
 

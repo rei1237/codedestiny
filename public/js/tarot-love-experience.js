@@ -795,9 +795,6 @@
 
   function showTarotLoveFinalReading() {
     if (state.revealedCount < 6 || !state.cards.length) return;
-    var btn = byId("tarotLoveFinalBtn");
-    if (btn && btn.disabled) return; // prevent double-submit
-    if (btn) btn.disabled = true;
     if (typeof window._cdCoinGatePerUse === 'function') {
       window._cdCoinGatePerUse(50, '우리는 무슨 사이? 타로 리딩', _runTarotLoveFinalReading);
       return;
@@ -806,16 +803,6 @@
   }
 
   function _runTarotLoveFinalReading() {
-    // 즉시 결과 스테이지로 전환하고 로딩 상태 표시 (API 응답 대기 중 피드백)
-    var draw = byId("tarotLoveDrawStage");
-    var result = byId("tarotLoveResultStage");
-    var container = byId("tarotLoveReadingContent");
-    if (draw) draw.classList.remove("is-active");
-    if (result) result.classList.add("is-active");
-    if (container) {
-      container.innerHTML = '<div class="tarot-love-loading" style="text-align:center;padding:2rem 1rem;color:var(--love-gold,#d4af7a);font-size:1rem;">🔮 카드의 메시지를 해석하는 중…</div>';
-    }
-
     var normalizedCards = normalizeRelationshipCards(state.cards);
     state.cards = normalizedCards;
     var drawnForApi = normalizedCards.map(function (c) {
@@ -832,11 +819,21 @@
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
         state.reading = data.reading;
+
+        var draw = byId("tarotLoveDrawStage");
+        var result = byId("tarotLoveResultStage");
+        if (draw) draw.classList.remove("is-active");
+        if (result) result.classList.add("is-active");
+
         renderTarotLoveResult();
       })
       .catch(function (err) {
         console.error("Tarot Love reading error:", err);
         state.reading = createLocalRelationshipReading(state.cards);
+        var draw = byId("tarotLoveDrawStage");
+        var result = byId("tarotLoveResultStage");
+        if (draw) draw.classList.remove("is-active");
+        if (result) result.classList.add("is-active");
         renderTarotLoveResult();
       });
   }

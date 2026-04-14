@@ -979,10 +979,7 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(30, '명리학 3카드 타로 리딩', _runShowTarotFinalInterpretation);
-    return;
-  }
+  // 명리학 타로는 무료 전환: 코인 게이트를 거치지 않고 즉시 실행
   _runShowTarotFinalInterpretation();
 }
 
@@ -1050,10 +1047,7 @@ function startTarotReading() {
   }
   if(isReading) return;
   if (!isTarotModalActive()) return;
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(30, '명리학 원카드 타로 리딩', _runStartTarotReading);
-    return;
-  }
+  // 명리학 타로는 무료 전환: 코인 게이트를 거치지 않고 즉시 실행
   _runStartTarotReading();
 }
 
