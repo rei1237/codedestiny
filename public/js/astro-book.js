@@ -434,7 +434,8 @@
       '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
       '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
       bodyHtml+'</body></html>';
-    var win = window.open('', '_blank', 'width=900,height=700');
+    var win = (window._cdPreOpenedBookWin && !window._cdPreOpenedBookWin.closed) ? window._cdPreOpenedBookWin : window.open('', '_blank', 'width=900,height=700');
+    window._cdPreOpenedBookWin = null;
     if (!win) {
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
       return;
