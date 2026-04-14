@@ -44,6 +44,9 @@
 /service-worker.js
   Cache-Control: no-cache, no-store, must-revalidate
 
+/tadagochi-sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 # ─── PWA 매니페스트 — 단기 캐시 ──────────────────────────────
 /manifest.json
   Cache-Control: no-cache, no-store, must-revalidate

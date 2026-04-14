@@ -2261,7 +2261,31 @@ function installPWA() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/tadagochi-sw.js', { scope: '/' })
-      .then(function(reg) { console.log('[FortuneTama SW]', reg.scope); })
+      .then(function(reg) {
+        console.log('[FortuneTama SW]', reg.scope);
+        if (typeof reg.update === 'function') reg.update();
+
+        if (reg.waiting) {
+          reg.waiting.postMessage('SKIP_WAITING');
+        }
+
+        reg.addEventListener('updatefound', function() {
+          var newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+
+        var reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (reloaded) return;
+          reloaded = true;
+          window.location.reload();
+        });
+      })
       .catch(function(e)  { console.warn('[FortuneTama SW] failed', e); });
   });
 }
