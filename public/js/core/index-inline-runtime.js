@@ -5263,7 +5263,7 @@ function _dfIsLockTileUnlocked(tile) {
 
 function _dfEnsureSourceUnlocked(source) {
   var tile = _dfResolveLockTileBySource(source);
-  if (!tile) return true;
+  if (!tile) return false; // tile 미발견 = 잠김 처리 (bypass 방지)
   if (_dfIsLockTileUnlocked(tile)) return true;
   if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
     return false;

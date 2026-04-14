@@ -231,6 +231,10 @@ const ACTION_MAP: Record<string, string> = {
 };
 
 const PAID_SLUG_META: Record<string, { coins: string }> = {
+  "/flower/destiny":   { coins: "50코인" },
+  "/flower/astrology": { coins: "50코인" },
+  "/flower/jamidusu":  { coins: "50코인" },
+  "/flower/sukuyo":    { coins: "50코인" },
   "/tarot/mingri": { coins: "30코인" },
   "/tarot/love": { coins: "50코인" },
   "/tarot/reunion": { coins: "50코인" },
