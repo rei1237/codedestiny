@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type TarotMode = "one" | "three";
@@ -24,6 +24,8 @@ type DrawnCard = {
   position?: string;
   orientation?: string;
 };
+
+type ReadingPayload = Record<string, string | string[]>;
 
 type MingriTarotProps = {
   initialMode?: TarotMode;
@@ -48,6 +50,10 @@ const CATEGORY_OPTIONS: Array<{ value: TarotCategory; label: string }> = [
 function spreadTypeForMode(mode: TarotMode) {
   return mode === "three" ? "three_card_past_present_future" : "one_card";
 }
+
+const ONE_CARD_POSITION = ["현재의 핵심"];
+const THREE_CARD_POSITIONS = ["과거", "현재", "가까운 미래"];
+const READING_CHAR_DELAY_MS = 75;
 
 const TAROT_IMAGE_MAP: Record<string, string> = {
   M00:"thefool.jpeg",M01:"themagician.jpeg",M02:"thehighpriestess.jpeg",M03:"theempress.jpeg",
@@ -80,12 +86,102 @@ function cardImageUrl(cardId: string) {
   return fn ? `/tarot-cards/${fn}` : `/tarot-cards/thefool.jpeg`;
 }
 
+const MAJOR_KR = [
+  "바보", "마법사", "여사제", "여황제", "황제", "교황", "연인", "전차", "힘", "은둔자", "운명의 수레바퀴",
+  "정의", "매달린 사람", "죽음", "절제", "악마", "탑", "별", "달", "태양", "심판", "세계",
+];
+
+const SUIT_KR: Record<string, string> = {
+  W: "완드",
+  C: "컵",
+  S: "소드",
+  P: "펜타클",
+};
+
+const RANK_KR: Record<string, string> = {
+  "01": "에이스",
+  "02": "2",
+  "03": "3",
+  "04": "4",
+  "05": "5",
+  "06": "6",
+  "07": "7",
+  "08": "8",
+  "09": "9",
+  "10": "10",
+  "11": "페이지",
+  "12": "나이트",
+  "13": "퀸",
+  "14": "킹",
+};
+
+function cardNameKr(cardId: string) {
+  const key = String(cardId || "").toUpperCase();
+  if (key.startsWith("M")) {
+    const idx = Number(key.slice(1));
+    return Number.isFinite(idx) && idx >= 0 && idx < MAJOR_KR.length
+      ? MAJOR_KR[idx]
+      : `메이저 ${key.slice(1)}`;
+  }
+  const suit = SUIT_KR[key[0]] || "타로";
+  const rank = RANK_KR[key.slice(1)] || key.slice(1);
+  return `${suit} ${rank}`;
+}
+
+function orientationKr(orientation?: string) {
+  return orientation === "reversed" ? "역방향" : "정방향";
+}
+
+function shuffle<T>(arr: T[]) {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function generateLocalReading(category: TarotCategory, mode: TarotMode, selectedCards: DrawnCard[]): ReadingPayload {
+  const catLabel = CATEGORY_OPTIONS.find((c) => c.value === category)?.label || "일반";
+  const summary = selectedCards
+    .map((card, idx) => `${idx + 1}. ${card.position || `카드 ${idx + 1}`} - ${card.nameKr || card.cardId} (${orientationKr(card.orientation)})`)
+    .join("\n");
+
+  const opening =
+    mode === "three"
+      ? `${catLabel} 이슈를 과거-현재-미래 축으로 점검했습니다. 감정의 원인보다 흐름을 읽는 것이 이번 리딩의 핵심입니다.`
+      : `${catLabel} 이슈의 핵심 에너지를 원카드로 집중 점검했습니다. 지금 가장 중요한 선택 포인트를 먼저 보세요.`;
+
+  const context =
+    category === "love" || category === "reunion"
+      ? "상대를 단정하기보다 대화의 질을 높이는 접근이 관계를 빠르게 안정시킵니다."
+      : category === "wealth" || category === "contract"
+        ? "손익보다 리스크 통제를 먼저 점검하면 결정의 품질이 좋아집니다."
+        : category === "health"
+          ? "속도를 잠시 낮추고 회복 루틴을 구조화하면 불안이 먼저 줄어듭니다."
+          : "지금은 결과 예측보다 실행 가능한 한 걸음을 명확히 잡는 것이 유리합니다.";
+
+  const actionPlan = [
+    "오늘 안에 실행할 1가지 행동을 구체적으로 적고 24시간 안에 완료하세요.",
+    "감정적 해석과 사실 정보를 분리해서 기록해 판단 오류를 줄이세요.",
+    "일주일 뒤 같은 질문으로 재점검해 흐름 변화를 비교하세요.",
+  ];
+
+  return {
+    "리딩 요약": opening,
+    "선택된 카드": summary,
+    "핵심 해석": `${context}\n\n카드들은 공통적으로 "서두르지 말고 핵심 기준을 먼저 세우라"는 메시지를 반복합니다.`,
+    "실전 행동 가이드": actionPlan,
+    "마무리": "이번 결과는 절대 예언이 아니라 현재 선택의 품질을 높이기 위한 참고 가이드입니다.",
+  };
+}
+
 export default function MingriTarot({
   initialMode = "one",
   initialCategory = "love",
   lockCategory = false,
   heading = "명리학 AI 타로",
-  subtitle = "기존 iframe 모달과 분리된 독립 페이지 버전입니다. 카드를 뽑고, 해석 API를 바로 조회합니다.",
+  subtitle = "로컬 전용 리딩 모드입니다. API 호출 없이 브라우저에서 바로 카드를 뽑고 해석합니다.",
 }: MingriTarotProps) {
   const router = useRouter();
   const [mode, setMode] = useState<TarotMode>(initialMode);
@@ -94,11 +190,62 @@ export default function MingriTarot({
   const [revealedCount, setRevealedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [readingRaw, setReadingRaw] = useState<any>(null);
+  const [readingRaw, setReadingRaw] = useState<ReadingPayload | null>(null);
+  const [typedReading, setTypedReading] = useState<Record<string, string>>({});
 
   const spreadType = useMemo(() => spreadTypeForMode(mode), [mode]);
   const requiredRevealCount = mode === "three" ? 3 : 1;
   const canRead = cards.length >= requiredRevealCount && revealedCount >= requiredRevealCount && !loading;
+
+  useEffect(() => {
+    if (!readingRaw) {
+      setTypedReading({});
+      return;
+    }
+
+    const entries = Object.entries(readingRaw)
+      .map(([key, value]) => {
+        const text = Array.isArray(value) ? value.join("\n") : String(value || "");
+        return [key, text] as const;
+      })
+      .filter(([, text]) => text.trim().length > 0);
+
+    if (!entries.length) {
+      setTypedReading({});
+      return;
+    }
+
+    setTypedReading(Object.fromEntries(entries.map(([key]) => [key, ""])));
+
+    let sectionIdx = 0;
+    let charIdx = 0;
+    const timer = window.setInterval(() => {
+      const current = entries[sectionIdx];
+      if (!current) {
+        window.clearInterval(timer);
+        return;
+      }
+      const [key, fullText] = current;
+      const nextChar = fullText.charAt(charIdx);
+
+      if (nextChar) {
+        setTypedReading((prev) => ({
+          ...prev,
+          [key]: (prev[key] || "") + nextChar,
+        }));
+        charIdx += 1;
+        return;
+      }
+
+      sectionIdx += 1;
+      charIdx = 0;
+      if (sectionIdx >= entries.length) {
+        window.clearInterval(timer);
+      }
+    }, READING_CHAR_DELAY_MS);
+
+    return () => window.clearInterval(timer);
+  }, [readingRaw]);
 
   async function startDraw() {
     setLoading(true);
@@ -108,19 +255,16 @@ export default function MingriTarot({
     setRevealedCount(0);
 
     try {
-      const res = await fetch("/api/tarot/draw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spreadType }),
-      });
-      const data = await res.json();
-      if (!res.ok || data?.ok === false) {
-        throw new Error(data?.message || "카드 뽑기 실패");
-      }
-      const nextCards = Array.isArray(data?.cards) ? (data.cards as DrawnCard[]) : [];
-      const sliced = nextCards.slice(0, requiredRevealCount);
-      if (!sliced.length) throw new Error("카드 데이터가 비어 있습니다.");
-      setCards(sliced);
+      const deckIds = shuffle(Object.keys(TAROT_IMAGE_MAP));
+      const positions = mode === "three" ? THREE_CARD_POSITIONS : ONE_CARD_POSITION;
+      const picked = deckIds.slice(0, requiredRevealCount).map((cardId, idx) => ({
+        cardId,
+        nameKr: cardNameKr(cardId),
+        position: positions[idx],
+        orientation: Math.random() < 0.2 ? "reversed" : "upright",
+      }));
+      if (!picked.length) throw new Error("카드 데이터가 비어 있습니다.");
+      setCards(picked);
     } catch (e: any) {
       setError(e?.message || "카드 뽑기 중 오류가 발생했습니다.");
     } finally {
@@ -133,25 +277,11 @@ export default function MingriTarot({
     setLoading(true);
     setError("");
     try {
-      const payloadCards = cards.slice(0, requiredRevealCount).map((c) => ({
-        cardId: c.cardId,
-        position: c.position,
-        orientation: c.orientation,
-      }));
-      const res = await fetch("/api/tarot/reading", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category,
-          spreadType,
-          cards: payloadCards,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data?.ok === false) {
-        throw new Error(data?.message || "해석 생성 실패");
-      }
-      setReadingRaw(data?.reading ?? data);
+      const payloadCards = cards.slice(0, requiredRevealCount);
+      const localReading = generateLocalReading(category, mode, payloadCards);
+      window.setTimeout(() => {
+        setReadingRaw(localReading);
+      }, 320);
     } catch (e: any) {
       setError(e?.message || "해석 생성 중 오류가 발생했습니다.");
     } finally {
@@ -275,15 +405,17 @@ export default function MingriTarot({
         {readingRaw ? (
           <section className="rounded-2xl border border-emerald-600/35 bg-emerald-950/20 p-5">
             <h2 className="mb-3 text-lg font-semibold">명리학 해석 결과</h2>
+            <p className="mb-3 text-xs text-emerald-200/75">텍스트가 천천히 출력됩니다. 잠시 기다려 주세요.</p>
             <div className="space-y-3 text-sm leading-7 text-slate-100">
               {Object.entries(readingRaw).map(([key, value]) => {
                 if (!value) return null;
                 const text = Array.isArray(value) ? value.join("\n") : String(value);
                 if (!text.trim()) return null;
+                const typed = typedReading[key] ?? "";
                 return (
                   <article key={key} className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
                     <h3 className="mb-1 text-sm font-semibold text-emerald-300">{key}</h3>
-                    <pre className="whitespace-pre-wrap font-sans text-sm">{text}</pre>
+                    <pre className="whitespace-pre-wrap font-sans text-sm">{typed || " "}</pre>
                   </article>
                 );
               })}

@@ -216,7 +216,7 @@ const ACTION_MAP: Record<string, string> = {
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
   /* ── 추가된 서비스 ── */
   "/tarot/healing":"/tarot/healing/start",
-  "/tarot/mingri":"openTarotModal",
+  "/tarot/mingri":"/tarot/mingri/play",
   "/tarot/love":"openTarotLoveModal",
   "/saju/basic":"/",
   "/saju/sibyl":"openSibylModal",
@@ -235,7 +235,6 @@ const PAID_SLUG_META: Record<string, { coins: string }> = {
   "/flower/astrology": { coins: "50코인" },
   "/flower/jamidusu":  { coins: "50코인" },
   "/flower/sukuyo":    { coins: "50코인" },
-  "/tarot/mingri": { coins: "30코인" },
   "/tarot/love": { coins: "50코인" },
   "/tarot/reunion": { coins: "50코인" },
   "/tarot/year": { coins: "30코인" },

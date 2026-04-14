@@ -14,7 +14,7 @@ import { HIGH_VALUE_PAGES } from "../high-value/content";
 // ── 인기 서비스 링크 ───────────────────────────────────────────
 const SERVICE_LINKS = [
   { href: "/saju/basic",           label: "사주팔자 기본 풀이",       badge: "무료",    icon: "🌸" },
-  { href: "/tarot/mingri",         label: "명리학 AI 타로",           badge: "30코인",  icon: "🔮" },
+  { href: "/tarot/mingri",         label: "명리학 AI 타로",           badge: "무료",    icon: "🔮" },
   { href: "/tarot/healing",        label: "힐링 타로",                badge: "무료",    icon: "☀" },
   { href: "/ziwei/chart",          label: "자미두수 명반",            badge: "무료",    icon: "⭐" },
   { href: "/astrology/cosmic",     label: "코즈믹 점성술",            badge: "무료",    icon: "🌙" },
