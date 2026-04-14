@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -569,6 +569,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
   <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
+  <link rel="preload" as="style" href="/styles/sibyl-system.css?v=20260415" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
   <link rel="preload" as="style" href="/styles/love-secret.css?v=20260405-epilogue" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
@@ -4273,6 +4275,247 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       </div>
     </section>
 
+    <!-- 시빌라 사주 시스템 섹션 -->
+    <section class="saju-section-wrap" id="sibylSystemSection">
+      <div class="sibyl-entry-tile" role="button" tabindex="0" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">
+        <div class="sibyl-entry-inner">
+        <div class="sibyl-entry-img-col">
+          <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" class="sibyl-entry-img" loading="lazy" width="320" height="420">
+          <div class="sibyl-entry-img-labels">
+            <span class="sibyl-img-label sibyl-img-label--free">일부 무료</span>
+            <span class="sibyl-img-label sibyl-img-label--paid">심층 리포트<br>100코인</span>
+          </div>
+        </div>
+        <div class="sibyl-entry-content">
+          <div class="sibyl-entry-header">
+            <span class="sibyl-entry-badge sibyl-entry-badge--free">FREE ANALYSIS</span>
+            <span class="sibyl-entry-sys-id">SIBYL-v3.14</span>
+          </div>
+          <h2 class="sibyl-entry-title">⚡ 시빌라 시스템</h2>
+          <p class="sibyl-entry-subtitle">사주 팔자 기반 진로 적성 × 운명 위험 계수 분석</p>
+          <div class="sibyl-entry-tags">
+            <span class="sibyl-feat-tag">🎯 데스티니 휴 색채 진단</span>
+            <span class="sibyl-feat-tag">⚙️ 적성 섹터 배정</span>
+            <span class="sibyl-feat-tag">📊 위험 계수 그래프</span>
+            <span class="sibyl-feat-tag sibyl-feat-tag--danger">📋 도미네이터 100코인</span>
+          </div>
+          <div class="sibyl-entry-cta">
+            <button class="sibyl-entry-cta-btn">⚡ SCAN 시작</button>
+            <span class="sibyl-entry-cta-note">✨ 기본 분석 무료</span>
+          </div>
+        </div>
+        </div><!-- /sibyl-entry-inner -->
+      </div><!-- /sibyl-entry-tile -->
+      <div id="sibylModal">
+      <div class="sb-overlay" onclick="window.closeSibylModal()"></div>
+      <div class="sb-panel">
+        <div class="sb-header">
+          <div class="sb-header__grid" aria-hidden="true"></div>
+          <button class="sb-back-btn" onclick="window.closeSibylModal()" aria-label="뒤로 가기">← 뒤로</button>
+          <button class="sb-close-btn" onclick="window.closeSibylModal()" aria-label="닫기">✕</button>
+          <div class="sb-header__logo">
+            <div class="sb-logo-hex">
+              <img src="/fuctionassets/sybila.webp" alt="SIBYL" class="sb-logo-img" loading="lazy">
+            </div>
+            <div class="sb-header__text">
+              <div class="sb-system-tag">SIBYL SYSTEM v3.14 — [ACTIVE]</div>
+              <h2 class="sb-title">⚡ DESTINY SCANNER</h2>
+              <div class="sb-subtitle">사주팔자 기반 진로 적성 × 운명 위험 계수</div>
+            </div>
+          </div>
+          <div class="sb-profile-row">
+            <span class="sb-profile-chip" id="sbProfileChip">대상 프로필 로딩 중…</span>
+            <span class="sb-profile-badge">SCAN TARGET</span>
+          </div>
+        </div>
+        <div id="sbNoProfile" class="sb-no-profile sb-hidden">
+          <div class="sb-no-profile__icon">⚠</div>
+          <div class="sb-no-profile__msg">사주 분석을 먼저 완료해 주세요.</div>
+          <div class="sb-no-profile__sub">생년월일시를 입력 후 사주 분석을 시작하면 시빌라 시스템이 자동으로 데이터를 수집합니다.</div>
+        </div>
+        <div id="sbContentArea">
+          <div id="sb-scan-section" class="sb-scan-section">
+            <div class="sb-scan-title"><span class="sb-scan-dot"></span>SCANNING DESTINY PROFILE…</div>
+            <div class="sb-scan-row">
+              <span class="sb-scan-label">OHAENG DISTRIBUTION</span>
+              <div class="sb-scan-bar"><div id="sbBarOhaeng" class="sb-scan-fill" style="width:0%"></div></div>
+              <span class="sb-scan-pct" id="sbBarOhaengPct">0%</span>
+            </div>
+            <div class="sb-scan-row">
+              <span class="sb-scan-label">TEN-STAR ANALYSIS</span>
+              <div class="sb-scan-bar"><div id="sbBarTenstar" class="sb-scan-fill" style="width:0%"></div></div>
+              <span class="sb-scan-pct" id="sbBarTenstarPct">0%</span>
+            </div>
+            <div class="sb-scan-row">
+              <span class="sb-scan-label">RISK COEFFICIENT</span>
+              <div class="sb-scan-bar"><div id="sbBarRisk" class="sb-scan-fill sb-scan-fill--danger" style="width:0%"></div></div>
+              <span class="sb-scan-pct" id="sbBarRiskPct">0%</span>
+            </div>
+            <div class="sb-scan-row">
+              <span class="sb-scan-label">APTITUDE VECTOR</span>
+              <div class="sb-scan-bar"><div id="sbBarApt" class="sb-scan-fill sb-scan-fill--green" style="width:0%"></div></div>
+              <span class="sb-scan-pct" id="sbBarAptPct">0%</span>
+            </div>
+            <div class="sb-scan-row">
+              <span class="sb-scan-label">DESTINY HUE</span>
+              <div class="sb-scan-bar"><div id="sbBarHue" class="sb-scan-fill sb-scan-fill--hue" style="width:0%"></div></div>
+              <span class="sb-scan-pct" id="sbBarHuePct">0%</span>
+            </div>
+          </div>
+          <div id="sbFreeSection" class="sb-free-section sb-hidden">
+            <div class="sb-pillars-wrap">
+              <div class="sb-pillars-title">사주 원국 (四柱原局)</div>
+              <div class="sb-pillars-grid">
+                <div class="sb-pillar-item">
+                  <div class="sb-pillar-label">연주</div>
+                  <div id="sbPillarYanG" class="sb-pillar-gan">?</div>
+                  <div id="sbPillarYanJ" class="sb-pillar-ji">?</div>
+                </div>
+                <div class="sb-pillar-item">
+                  <div class="sb-pillar-label">월주</div>
+                  <div id="sbPillarMoG" class="sb-pillar-gan">?</div>
+                  <div id="sbPillarMoJ" class="sb-pillar-ji">?</div>
+                </div>
+                <div class="sb-pillar-item sb-pillar-item--day">
+                  <div class="sb-pillar-label">일주</div>
+                  <div id="sbPillarDaG" class="sb-pillar-gan">?</div>
+                  <div id="sbPillarDaJ" class="sb-pillar-ji">?</div>
+                </div>
+                <div class="sb-pillar-item">
+                  <div class="sb-pillar-label">시주</div>
+                  <div id="sbPillarSiG" class="sb-pillar-gan">?</div>
+                  <div id="sbPillarSiJ" class="sb-pillar-ji">?</div>
+                </div>
+              </div>
+            </div>
+            <div class="sb-destiny-hue-wrap">
+              <div class="sb-section-tag">DESTINY HUE — 오행 분포 색채 진단</div>
+              <div class="sb-ohaeng-bars">
+                <div class="sb-ohaeng-row" data-el="wood">
+                  <span class="sb-ohaeng-label">목(木) Wood</span>
+                  <div class="sb-ohaeng-bar"><div id="sbOhaengFill_wood" class="sb-ohaeng-fill sb-ohaeng-fill--wood" style="width:0%"></div></div>
+                  <span class="sb-ohaeng-pct" id="sbOhaengPct_wood">0%</span>
+                </div>
+                <div class="sb-ohaeng-row" data-el="fire">
+                  <span class="sb-ohaeng-label">화(火) Fire</span>
+                  <div class="sb-ohaeng-bar"><div id="sbOhaengFill_fire" class="sb-ohaeng-fill sb-ohaeng-fill--fire" style="width:0%"></div></div>
+                  <span class="sb-ohaeng-pct" id="sbOhaengPct_fire">0%</span>
+                </div>
+                <div class="sb-ohaeng-row" data-el="earth">
+                  <span class="sb-ohaeng-label">토(土) Earth</span>
+                  <div class="sb-ohaeng-bar"><div id="sbOhaengFill_earth" class="sb-ohaeng-fill sb-ohaeng-fill--earth" style="width:0%"></div></div>
+                  <span class="sb-ohaeng-pct" id="sbOhaengPct_earth">0%</span>
+                </div>
+                <div class="sb-ohaeng-row" data-el="metal">
+                  <span class="sb-ohaeng-label">금(金) Metal</span>
+                  <div class="sb-ohaeng-bar"><div id="sbOhaengFill_metal" class="sb-ohaeng-fill sb-ohaeng-fill--metal" style="width:0%"></div></div>
+                  <span class="sb-ohaeng-pct" id="sbOhaengPct_metal">0%</span>
+                </div>
+                <div class="sb-ohaeng-row" data-el="water">
+                  <span class="sb-ohaeng-label">수(水) Water</span>
+                  <div class="sb-ohaeng-bar"><div id="sbOhaengFill_water" class="sb-ohaeng-fill sb-ohaeng-fill--water" style="width:0%"></div></div>
+                  <span class="sb-ohaeng-pct" id="sbOhaengPct_water">0%</span>
+                </div>
+              </div>
+              <div class="sb-hue-result">
+                <div class="sb-hue-swatch-row">
+                  <div id="sbHueSwatch" class="sb-hue-swatch" style="background:#00bfff"></div>
+                  <div>
+                    <div class="sb-hue-name" id="sbHueName">딥 오션 블루 (Deep Ocean Blue) · 수(水)</div>
+                    <div id="sbHueStatus" class="sb-hue-status">▶ 분석 중…</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sb-aptitude-wrap">
+              <div class="sb-section-tag">APTITUDE SECTOR — 진로 적성 배정</div>
+              <div class="sb-apt-card">
+                <div class="sb-apt-coeff-row">
+                  <span class="sb-apt-coeff-label">APTITUDE COEFFICIENT</span>
+                  <span class="sb-apt-coeff-value" id="sbAptCoeff">0</span>
+                  <span class="sb-apt-coeff-max">/999</span>
+                </div>
+                <div class="sb-apt-sector-badge" id="sbSectorName">LOADING…</div>
+                <div class="sb-apt-jobs" id="sbSectorJobs">분석 중…</div>
+                <div class="sb-apt-tenstar" id="sbSectorTenstar">주도 십성: ?</div>
+              </div>
+            </div>
+            <div id="sbNatureSection" class="sb-nature-section"></div>
+            <div id="sbCautionArea" class="sb-caution-area sb-hidden">
+              <div id="sbCautionText" class="sb-caution-text"></div>
+            </div>
+            <div class="sb-metrics-preview">
+              <div class="sb-metric-wrap">
+                <div class="sb-metric-label">現在 위험 계수</div>
+                <div id="sbRiskBasicEl" class="sb-metric-value"><span id="sbRiskBasic">--</span></div>
+                <div class="sb-metric-sub">/100</div>
+              </div>
+              <div class="sb-metric-wrap">
+                <div class="sb-metric-label">적성 계수</div>
+                <div class="sb-metric-value"><span id="sbAptMetric">--</span></div>
+                <div class="sb-metric-sub">/999</div>
+              </div>
+            </div>
+          </div>
+          <div id="sbPremiumSection" class="sb-premium-section">
+            <div id="sbLockOverlay" class="sb-lock-overlay">
+              <div class="sb-lock-icon">🔒</div>
+              <div class="sb-lock-title">DOMINATOR REPORT LOCKED</div>
+              <div class="sb-lock-desc">도미네이터 모드 판정 · 10년 위험 계수 그래프 · 전문 리포트 (20,000자+) · 개운 처방전</div>
+              <div class="sb-lock-cost">100코인으로 영구 해금</div>
+              <button id="sbUnlockBtn" class="sb-unlock-btn" onclick="window._sibylUnlockDominator()">⚡ EXECUTE DOMINATOR — 100코인</button>
+            </div>
+            <div id="sbGenerating" class="sb-generating sb-hidden">
+              <div class="sb-gen-spinner"></div>
+              <div class="sb-gen-title">DOMINATOR EXECUTING…</div>
+              <div class="sb-gen-status" id="sbGenStatus">&gt;&gt; 시스템 초기화 중…</div>
+              <div class="sb-gen-bar"><div id="sbGenBarFill" class="sb-gen-bar-fill" style="width:0%"></div></div>
+            </div>
+            <div id="sbErrorState" class="sb-error-state sb-hidden">
+              <div class="sb-error-icon">⚠</div>
+              <div id="sbErrorMsg" class="sb-error-msg">오류가 발생했습니다.</div>
+              <button class="sb-retry-btn" onclick="window._sibylRetryDominator()">재시도</button>
+            </div>
+            <div id="sbDominatorSection" class="sb-dominator-section sb-hidden">
+              <div id="sbDominatorModeBanner" class="sb-dominator-mode sb-dominator-mode--nle">
+                <div class="sb-dominator-mode-tag">MODE: NON-LETHAL PARALYZER</div>
+                <div class="sb-dominator-mode-title">안정 유지 모드</div>
+                <div class="sb-dominator-mode-desc"></div>
+              </div>
+              <div class="sb-metrics-row">
+                <div class="sb-metric-card">
+                  <div class="sb-metric-card-label">위험 계수</div>
+                  <div id="sbDomRiskEl" class="sb-metric-value sb-metric-value--ok"><span id="sbDomRisk">--</span></div>
+                  <div class="sb-metric-card-sub">/100</div>
+                </div>
+                <div class="sb-metric-card">
+                  <div class="sb-metric-card-label">적성 계수</div>
+                  <div class="sb-metric-value"><span id="sbDomCoeff">--</span></div>
+                  <div class="sb-metric-card-sub">/999</div>
+                </div>
+                <div class="sb-metric-card">
+                  <div class="sb-metric-card-label">주도 십성</div>
+                  <div class="sb-metric-value sb-metric-value--ok"><span id="sbDomSector">--</span></div>
+                </div>
+              </div>
+              <div class="sb-risk-graph-wrap">
+                <div class="sb-risk-graph-title">10년 위험 계수 그래프 (세운 기반)</div>
+                <svg id="sbRiskGraphSVG" class="sb-risk-svg" viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg"></svg>
+              </div>
+              <div class="sb-report-section">
+                <div class="sb-report-title">◆ DOMINATOR REPORT</div>
+                <div id="sbReportChapters" class="sb-report-chapters"></div>
+              </div>
+              <div class="sb-remedy-section">
+                <div class="sb-remedy-title">◆ 개운(開運) 처방전</div>
+                <div id="sbRemedyList" class="sb-remedy-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div><!-- /sibylModal -->
+
     <!-- 자미두수 인생 총람 모달 -->
     <div id="ziweiBookModal" class="lb-modal" role="dialog" aria-modal="true" aria-label="자미두수 인생 총람" style="display:none;">
       <div class="lb-modal__overlay" data-action="closeZiweiBookModal"></div>
@@ -4311,6 +4554,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🌌 자미두수 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+
+        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4329,8 +4575,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🌅 총결산 — 거장의 마스터플랜 봉서</span></li>
             </ul>
           </div>
-
-        <!-- 로딩 화면 -->
+        </div><button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">
+            🌌 자미두수 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+         -->
         <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🌌</div>
@@ -4439,6 +4688,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+
+        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4453,11 +4705,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>🧭 Lunar Nodes — 영혼의 나침반</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🔮 시냅스트리 — 관계의 심리적 투사</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>⭕ 컴포지트 — 우리라는 독립적 운명</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 & 개운법</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 &amp; 개운법</span></li>
             </ul>
           </div>
-
-        <!-- 로딩 화면 -->
+        </div><button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
+            ✨ 점성술 코즈믹 차트 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+         -->
         <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">✨</div>
@@ -4565,26 +4820,32 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             💫 숙요점 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+
+        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.1</span><span>🌑 영혼의 원형 — 숙요별이 새긴 운명 코드</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.2</span><span>🌊 감정의 조수간만 — 달의 정서 파동</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 당신을 기억하는 방식</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 기억되는 방식</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.4</span><span>💰 자산의 중력 — 달빛 부의 전략</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.5</span><span>⚙️ 보이지 않는 톱니바퀴 — 협력 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.6</span><span>📡 관계의 정밀 레이더 — 6대 숙요 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.7</span><span>💥 파괴적 혁신 — 위기를 기회로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.8</span><span>🌿 조화로운 성장 — 공간과 환경의 법칙</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>❤️ 정서적 유대 — 깊은 연결과 감정 지능</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 뱀파이어</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 밸런스</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>🌙 달의 주기 — 월령 에너지 사이클</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 인연의 독소를 황금으로</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 독소를 황금으로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🗺️ 영혼의 마스터플랜 — 10년 로드맵</span></li>
             </ul>
           </div>
-
-        <!-- 로딩 화면 -->
+        </div><button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
+            💫 숙요점 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+         -->
         <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">💫</div>
@@ -4692,6 +4953,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🪷 베다 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+        </div>
+
+        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4709,9 +4973,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>🌟 마스터플랜 — 북극성 인생 선언문</span></li>
             </ul>
           </div>
-        </div>
-
-        <!-- 로딩 화면 -->
+        </div><button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
+            🪷 베다 인생 총람 생성하기
+          </button>
+          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
+         -->
         <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
@@ -5377,7 +5643,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     </div>
   </footer>
 
-<script data-cd-lazy-src="/js/destiny-profile.js" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/destiny-profile.js?v=20260414-v4" data-cd-mobile-delay="1"></script>
 <script src="/js/mobile-interaction-patch.js?v=20260409-premium-fix1" defer></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
@@ -5864,7 +6130,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
-  function _cdZiweiTrace(stage, payload) { /* suppressed */ }
+  function _cdZiweiTrace(stage, payload) {
+    try {
+      console.log('[ZiweiPremium][Flow] ' + stage, payload || {});
+    } catch (_) {}
+  }
   window.__cdZiweiTrace = _cdZiweiTrace;
 
   function _cdGetZiweiProfileCandidate() {
@@ -6526,6 +6796,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/life-book.js?v=20260410-v2" defer></script>
+<script src="/js/sibyl-system.js?v=20260413-sibylfix1" defer></script>
 <script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
@@ -6614,7 +6885,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
-    openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'}
+    openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'},
+    openSibylModal:{cat:'시빌라 사주 시스템',title:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (100코인)'],cost:'✨ 기본 무료 · 도미네이터 100코인',ct:'free',img:'/fuctionassets/sybila.webp'}
   };
 
   var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
