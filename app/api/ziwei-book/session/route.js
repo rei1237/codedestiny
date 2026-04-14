@@ -112,6 +112,63 @@ function compactPromptText(text, maxLen = 12000) {
   return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
 }
 
+const MIN_CHAPTER_CHARS = 5000;
+
+function stripHtmlTags(v) {
+  return String(v || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeStrengthLabel(v) {
+  const s = String(v || "").trim();
+  if (!s) return "평";
+  if (["묘", "왕", "평", "리", "함"].includes(s)) return s;
+  return "평";
+}
+
+function buildStrengthContext(ziweiStructured) {
+  const rows = Array.isArray(ziweiStructured?.palaceStarData)
+    ? ziweiStructured.palaceStarData
+    : [];
+  if (!rows.length) return "";
+
+  const lines = [];
+  lines.push("【기본 자미두수 엔진 강도 데이터(원본)】");
+  lines.push("아래는 기본 자미두수 기능(calcZiweiPalaces)의 궁/별 강도 데이터다. 반드시 이 값을 그대로 근거로 사용하라.");
+
+  for (const row of rows) {
+    const palace = stripHtmlTags(row?.palace || "");
+    const branch = stripHtmlTags(row?.branch || "");
+    if (!palace && !branch) continue;
+
+    const toLine = (label, arr) => {
+      const list = Array.isArray(arr) ? arr : [];
+      if (!list.length) return `${label}: (없음)`;
+      const text = list
+        .map((s) => {
+          const nm = stripHtmlTags(s?.name || "");
+          if (!nm) return "";
+          const st = normalizeStrengthLabel(s?.strength);
+          const borrowed = s?.borrowed ? " (차성)" : "";
+          return `${nm}[강도:${st}]${borrowed}`;
+        })
+        .filter(Boolean)
+        .join(" · ");
+      return `${label}: ${text || "(없음)"}`;
+    };
+
+    lines.push(`- ${palace}[${branch}]`);
+    lines.push(`  ${toLine("주성", row?.stars)}`);
+    lines.push(`  ${toLine("보성", row?.auxStars)}`);
+    lines.push(`  ${toLine("살성", row?.badStars)}`);
+  }
+
+  lines.push("※ 강도 라벨 의미: 묘 > 왕 > 평 > 리 > 함");
+  return lines.join("\n");
+}
+
 
 // ─────────────────────────────────────────────────────────────────
 // 자미두수 서버 계산 엔진 — lunar-javascript 기반 정확 계산
@@ -423,7 +480,13 @@ const SYSTEM_PROMPT = `당신은 수십 년의 실전 내공을 가진 최고의
 
 【핵심 원칙】
 자미두수 정보에서 추출한 실제 명궁·신궁·각 궁의 주성과 화성을 반드시 명시한다.
-구체적 근거 없는 추상적 서술은 거장의 품격을 떨어뜨린다.`;
+구체적 근거 없는 추상적 서술은 거장의 품격을 떨어뜨린다.
+
+【강도 데이터 준수 규칙】
+- 입력에 '기본 자미두수 엔진 강도 데이터(원본)'이 있으면, 각 궁의 별 강도(묘/왕/평/리/함)를 그대로 인용해 해석한다.
+- 강도 데이터에 없는 별/궁을 임의로 만들어내지 않는다.
+- 각 소제목마다 최소 1회 이상 '궁위 + 별 + 강도'를 명시해 근거 기반으로 설명한다.
+- 각 챕터 최종 결과는 반드시 ${MIN_CHAPTER_CHARS}자 이상이어야 한다.`;
 
 const SESSION_CONFIGS = [
   {
@@ -1338,6 +1401,9 @@ export async function POST(req) {
     const birthHour  = (body?.birthHour !== undefined && body?.birthHour !== null) ? Number(body.birthHour) : -1;
     const bodyGender = String(body?.gender || "").trim();
     const bodyName   = String(body?.name   || "사용자").trim();
+    const ziweiStructured = body?.ziweiStructured && typeof body.ziweiStructured === "object"
+      ? body.ziweiStructured
+      : null;
 
     // 생년월일 제공 시 서버에서 자미두수 직접 계산 (정확도 우선)
     let ziweiData = String(body?.ziweiData || "").trim();
@@ -1367,7 +1433,9 @@ export async function POST(req) {
     }
 
     const config = SESSION_CONFIGS[sessionId - 1];
-    const userPrompt = config.prompt(ziweiData);
+    const strengthContext = buildStrengthContext(ziweiStructured);
+    const promptInput = strengthContext ? `${ziweiData}\n\n${strengthContext}` : ziweiData;
+    const userPrompt = config.prompt(promptInput);
     const geminiKeys = pickGeminiKeys();
     const models = pickZiweiModels();
     let lastError = null;
@@ -1379,7 +1447,7 @@ export async function POST(req) {
         temperature: 1.0,
         maxOutputTokens: 16384,
       });
-      if (vtxt && vtxt.length >= 200) {
+      if (vtxt && vtxt.length >= MIN_CHAPTER_CHARS) {
         return NextResponse.json({
           ok: true,
           text: vtxt,
@@ -1390,8 +1458,8 @@ export async function POST(req) {
           truncated: false,
         });
       }
-      if (vtxt && vtxt.length > 0 && vtxt.length < 200) {
-        lastError = "Vertex AI 응답이 비어 있거나 너무 짧습니다.";
+      if (vtxt && vtxt.length > 0 && vtxt.length < MIN_CHAPTER_CHARS) {
+        lastError = `Vertex AI 응답 길이가 기준(${MIN_CHAPTER_CHARS}자)보다 짧습니다.`;
       }
     } catch (fetchErr) {
       lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
@@ -1419,7 +1487,7 @@ export async function POST(req) {
           if (response.ok) {
             const text = parseText(payload);
             const finishReason = getFinishReason(payload);
-            if (text && text.length >= 200) {
+            if (text && text.length >= MIN_CHAPTER_CHARS) {
               return NextResponse.json({
                 ok: true,
                 text: finishReason === "MAX_TOKENS"
@@ -1432,7 +1500,7 @@ export async function POST(req) {
                 truncated: finishReason === "MAX_TOKENS",
               });
             }
-            lastError = "Gemini 응답이 비어 있거나 너무 짧습니다.";
+            lastError = `Gemini 응답 길이가 기준(${MIN_CHAPTER_CHARS}자)보다 짧습니다.`;
             continue;
           }
 
@@ -1462,7 +1530,7 @@ export async function POST(req) {
               if (compactResponse.ok) {
                 const compactText = parseText(compactPayload);
                 const compactFinishReason = getFinishReason(compactPayload);
-                if (compactText && compactText.length >= 200) {
+                if (compactText && compactText.length >= MIN_CHAPTER_CHARS) {
                   return NextResponse.json({
                     ok: true,
                     text: compactFinishReason === "MAX_TOKENS"

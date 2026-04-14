@@ -5,6 +5,8 @@
 (function () {
   'use strict';
 
+  var MIN_CHAPTER_CHARS = 5000;
+
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
     '🌌 내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독',
@@ -458,11 +460,11 @@
       }
     } catch (_) {}
 
-    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 500자+, ⚠️ 없음)이어야 복원
+    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 5000자+, ⚠️ 없음)이어야 복원
     var saved = _zbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters
       ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length
       : 0;
     if (_savedValidCount >= 10) {
@@ -673,6 +675,44 @@
 
     _setProgress(0);
 
+    function _collectZiweiStructuredData() {
+      try {
+        var zd = window._currentZiweiData || null;
+        if (!zd || !Array.isArray(zd.palaceStarData)) return null;
+        return {
+          palaceStarData: zd.palaceStarData.map(function (row) {
+            return {
+              palace: row && row.palace ? String(row.palace) : '',
+              branch: row && row.branch ? String(row.branch) : '',
+              stars: Array.isArray(row && row.stars) ? row.stars.map(function (s) {
+                return {
+                  name: s && s.name ? String(s.name) : '',
+                  strength: s && s.strength ? String(s.strength) : '',
+                  borrowed: !!(s && s.borrowed)
+                };
+              }) : [],
+              auxStars: Array.isArray(row && row.auxStars) ? row.auxStars.map(function (s) {
+                return {
+                  name: s && s.name ? String(s.name) : '',
+                  strength: s && s.strength ? String(s.strength) : '',
+                  borrowed: !!(s && s.borrowed)
+                };
+              }) : [],
+              badStars: Array.isArray(row && row.badStars) ? row.badStars.map(function (s) {
+                return {
+                  name: s && s.name ? String(s.name) : '',
+                  strength: s && s.strength ? String(s.strength) : '',
+                  borrowed: !!(s && s.borrowed)
+                };
+              }) : []
+            };
+          })
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
     function _fetchChapter(idx) {
       var _zbAuthToken = '';
       try { _zbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
@@ -688,6 +728,7 @@
           body: JSON.stringify({
             sessionId:   idx + 1,
             ziweiData:   ziweiData,
+            ziweiStructured: _collectZiweiStructuredData(),
             birthYear:   _zbProfile.birthYear,
             birthMonth:  _zbProfile.birthMonth,
             birthDay:    _zbProfile.birthDay,
@@ -712,7 +753,7 @@
       if (idx >= 13) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 10) {
@@ -744,7 +785,7 @@
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
-      if (data && data.ok && _zbText.length >= 500) {
+      if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
           _chapters[idx] = data.text;
           _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
         } else {
