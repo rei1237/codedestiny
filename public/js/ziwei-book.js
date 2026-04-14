@@ -82,6 +82,26 @@
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
 
+  function _consumeAutoGenerateFlag(actionName) {
+    try {
+      if (window.__cdAutoGeneratePremiumBookAction === actionName) {
+        window.__cdAutoGeneratePremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function _consumeAutoDownloadFlag(actionName) {
+    try {
+      if (window.__cdAutoDownloadPremiumBookAction === actionName) {
+        window.__cdAutoDownloadPremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function _trace(stage, payload) {
     try {
       if (typeof window.__cdZiweiTrace === 'function') {
@@ -387,6 +407,7 @@
 
   /* ─────────────── 모달 열기/닫기 ─────────────── */
   window.openZiweiBookModal = function (profileArg) {
+    var _autoGenerate = _consumeAutoGenerateFlag('gotoZiweiPremium');
     _trace('FUNCTION_ENTER_OPEN_MODAL', {
       hasArgProfile: !!(profileArg && profileArg.birth),
       hasGlobalProfile: !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth)
@@ -467,7 +488,7 @@
           return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
         }).length
       : 0;
-    if (_savedValidCount >= 10) {
+    if (!_autoGenerate && _savedValidCount >= 10) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('zbResultScreen');
@@ -519,6 +540,16 @@
 
     // 프로필 정보 미리 채우기
     _prefillProfileInfo(profile);
+
+    if (_autoGenerate) {
+      setTimeout(function () {
+        try {
+          if (typeof window.generateZiweiBook === 'function') {
+            window.generateZiweiBook();
+          }
+        } catch (_) {}
+      }, 120);
+    }
 
     try {
       modal.setAttribute('aria-hidden', 'false');
@@ -780,6 +811,13 @@
         _zbSaveResult(prof);
         var epBanner = _qs('zbEpilogueBanner');
         if (epBanner) epBanner.style.display = '';
+        if (_consumeAutoDownloadFlag('gotoZiweiPremium')) {
+          setTimeout(function () {
+            try {
+              if (typeof window.downloadZiweiBookPdf === 'function') window.downloadZiweiBookPdf();
+            } catch (_) {}
+          }, 180);
+        }
         return;
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';

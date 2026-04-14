@@ -73,6 +73,26 @@
 
   function _qs(id) { return document.getElementById(id); }
 
+  function _consumeAutoGenerateFlag(actionName) {
+    try {
+      if (window.__cdAutoGeneratePremiumBookAction === actionName) {
+        window.__cdAutoGeneratePremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function _consumeAutoDownloadFlag(actionName) {
+    try {
+      if (window.__cdAutoDownloadPremiumBookAction === actionName) {
+        window.__cdAutoDownloadPremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function _applySukuyoTheme(modal) {
     if (!modal || !modal.style) return;
     modal.style.setProperty('--lb-void', '#020b16');
@@ -206,6 +226,7 @@
   }
 
   window.openSukuyoBookModal = function(){
+    var _autoGenerate = _consumeAutoGenerateFlag('gotoSukuyoPremium');
     var modal=_qs('sukuyoBookModal');
     if(!modal){console.error('[숙요점 프리미엄] sukuyoBookModal 요소를 찾을 수 없습니다.');return;}
     _applySukuyoTheme(modal);
@@ -221,7 +242,7 @@
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_skLoadSaved(profile);
-    if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
+    if(!_autoGenerate&&saved&&saved.chapters&&saved.chapters.some(Boolean)){
       _chapters=saved.chapters;
       _currentChapter=1;
       _showScreen('skResultScreen');
@@ -244,6 +265,13 @@
     _prefillSukuyoProfile(profile);
     _populatePartnerSelects();
     _bindPartnerGenderToggle();
+    if(_autoGenerate){
+      setTimeout(function(){
+        try{
+          if(typeof window.generateSukuyoBook==='function')window.generateSukuyoBook();
+        }catch(_){ }
+      },120);
+    }
   };
 
   function _prefillSukuyoProfile(profile){
@@ -406,6 +434,13 @@
         if(_nameEl)_nameEl.textContent='💫 '+(prof.name||'사용자')+'님의 숙요점 인생 총람';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _skSaveResult(prof);
+        if (_consumeAutoDownloadFlag('gotoSukuyoPremium')) {
+          setTimeout(function(){
+            try {
+              if (typeof window.downloadSukuyoBookPdf === 'function') window.downloadSukuyoBookPdf();
+            } catch (_) {}
+          }, 180);
+        }
         return;
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';

@@ -74,6 +74,26 @@
 
   function _qs(id) { return document.getElementById(id); }
 
+  function _consumeAutoGenerateFlag(actionName) {
+    try {
+      if (window.__cdAutoGeneratePremiumBookAction === actionName) {
+        window.__cdAutoGeneratePremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function _consumeAutoDownloadFlag(actionName) {
+    try {
+      if (window.__cdAutoDownloadPremiumBookAction === actionName) {
+        window.__cdAutoDownloadPremiumBookAction = '';
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function _applyAstroTheme(modal) {
     if (!modal || !modal.style) return;
     modal.style.setProperty('--lb-void', '#050914');
@@ -239,6 +259,7 @@
   }
 
   window.openAstroBookModal = function() {
+    var _autoGenerate = _consumeAutoGenerateFlag('gotoAstrologyPremium');
     var modal = _qs('astroBookModal');
     if (!modal) { console.error('[점성술 코즈믹 차트] astroBookModal 요소를 찾을 수 없습니다.'); return; }
     _applyAstroTheme(modal);
@@ -254,7 +275,7 @@
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile = profile;
     var saved = _abLoadSaved(profile);
-    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
+    if (!_autoGenerate && saved && saved.chapters && saved.chapters.some(Boolean)) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('abResultScreen');
@@ -277,6 +298,13 @@
     document.body.classList.add('lb-modal-open');
     try { modal.setAttribute('aria-hidden','false'); var closeBtn=modal.querySelector('.lb-modal__close'); if(closeBtn) setTimeout(function(){closeBtn.focus();},60); } catch(_){}
     _prefillAstroProfile(profile);
+    if (_autoGenerate) {
+      setTimeout(function(){
+        try {
+          if (typeof window.generateAstroBook === 'function') window.generateAstroBook();
+        } catch (_) {}
+      },120);
+    }
   };
 
   function _prefillAstroProfile(profile) {
@@ -386,6 +414,13 @@
         if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
         if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
         _abSaveResult(prof);
+        if (_consumeAutoDownloadFlag('gotoAstrologyPremium')) {
+          setTimeout(function(){
+            try {
+              if (typeof window.downloadAstroBookPdf === 'function') window.downloadAstroBookPdf();
+            } catch (_) {}
+          }, 180);
+        }
         return;
       }
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';

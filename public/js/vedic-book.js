@@ -72,6 +72,26 @@
 
   function _qs(id){return document.getElementById(id);}
 
+  function _consumeAutoGenerateFlag(actionName){
+    try{
+      if(window.__cdAutoGeneratePremiumBookAction===actionName){
+        window.__cdAutoGeneratePremiumBookAction='';
+        return true;
+      }
+    }catch(_){ }
+    return false;
+  }
+
+  function _consumeAutoDownloadFlag(actionName){
+    try{
+      if(window.__cdAutoDownloadPremiumBookAction===actionName){
+        window.__cdAutoDownloadPremiumBookAction='';
+        return true;
+      }
+    }catch(_){ }
+    return false;
+  }
+
   function _applyVedicTheme(modal){
     if(!modal||!modal.style)return;
     modal.style.setProperty('--lb-void','#120904');
@@ -210,6 +230,7 @@
   }
 
   window.openVedicBookModal = function(){
+    var _autoGenerate=_consumeAutoGenerateFlag('gotoVedicPremium');
     var modal=_qs('vedicBookModal');
     if(!modal){console.error('[베다 점성술 프리미엄] vedicBookModal 요소를 찾을 수 없습니다.');return;}
     _applyVedicTheme(modal);
@@ -225,7 +246,7 @@
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_vdLoadSaved(profile);
-    if(saved&&saved.chapters&&saved.chapters.some(Boolean)){
+    if(!_autoGenerate&&saved&&saved.chapters&&saved.chapters.some(Boolean)){
       _chapters=saved.chapters;
       _currentChapter=1;
       _showScreen('vdResultScreen');
@@ -246,6 +267,13 @@
     document.body.classList.add('lb-modal-open');
     try{modal.setAttribute('aria-hidden','false');var cb=modal.querySelector('.lb-modal__close');if(cb)setTimeout(function(){cb.focus();},60);}catch(_){}
     _prefillVedicProfile(profile);
+    if(_autoGenerate){
+      setTimeout(function(){
+        try{
+          if(typeof window.generateVedicBook==='function')window.generateVedicBook();
+        }catch(_){ }
+      },120);
+    }
   };
 
   // 별칭: openVedicPremiumModal 도 지원
@@ -352,6 +380,13 @@
         if(_nameEl)_nameEl.textContent='🪷 '+(prof.name||'사용자')+'님의 베다 인생 총람';
         if(_dateEl){var _b=prof.birth||{};_dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행';}
         _vdSaveResult(prof);
+        if(_consumeAutoDownloadFlag('gotoVedicPremium')){
+          setTimeout(function(){
+            try{
+              if(typeof window.downloadVedicBookPdf==='function')window.downloadVedicBookPdf();
+            }catch(_){ }
+          },180);
+        }
         return;
       }
       if(chapterMsg)chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
