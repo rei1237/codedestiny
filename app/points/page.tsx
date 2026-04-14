@@ -1080,7 +1080,6 @@ export default function PointsPage() {
       }
 
       const nextUser = payload.user;
-      const adminMode = isFlowerAdminSessionClient();
       const points = Number(nextUser?.points || 0);
       persistUserPoints(points);
 
