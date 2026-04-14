@@ -3830,7 +3830,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="pf-coin-amount">50코인</span>
                 <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
               </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_daewun_v2" data-unlock-cost="50">
                 지금 열람하기 →
               </button>
             </div>
@@ -3860,7 +3860,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="pf-coin-amount">50코인</span>
                 <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
               </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_summary_v2" data-unlock-cost="50">
                 지금 열람하기 →
               </button>
             </div>
@@ -3890,7 +3890,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="pf-coin-amount">50코인</span>
                 <span class="pf-coin-note">영구 해금 · 약 5,000원</span>
               </div>
-              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">
+              <button type="button" class="pf-card__cta" data-action="unlockPremiumFeature" data-unlock-key="section_compat_v2" data-unlock-cost="50">
                 지금 열람하기 →
               </button>
             </div>
@@ -3910,7 +3910,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <p class="cd-section-gate__title">대운 분석 — 프리미엄 콘텐츠</p>
           <p class="cd-section-gate__desc">억부·조후·종격 통합 대운 흐름과 인생 길흉 그래프를 열람하려면 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
-          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_daewun" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_daewun_v2" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
           <div style="font-size: 0.82rem; color: #666; margin-top: 4px; margin-bottom: 16px; line-height: 1.5; padding: 10px 12px; background: rgba(0,0,0,0.02); border-radius: 6px; border-left: 3px solid #bba371; word-break: keep-all;">
@@ -3947,7 +3947,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <p class="cd-section-gate__title">종합 사주 풀이 — 프리미엄 콘텐츠</p>
           <p class="cd-section-gate__desc">A4 20페이지 분량의 성격·진로·연애·건강·재물·귀인·개운 심층 풀이를 열람하려면 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
-          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_summary" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_summary_v2" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
           <div id="summaryArea"></div>
@@ -3979,7 +3979,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <p class="cd-section-gate__title">궁합 분석 — 프리미엄 콘텐츠</p>
           <p class="cd-section-gate__desc">연애·사업·친구 궁합을 사주 기반으로 분석한 결과를 열람하려면 코인이 필요합니다.</p>
           <span class="cd-section-gate__badge">50코인으로 영구 해금</span>
-          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_compat" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
+          <button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="section_compat_v2" data-unlock-cost="50">🪙 50코인으로 잠금 해제</button>
         </div>
         <div class="cd-section-gate__body">
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -5974,7 +5974,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
-  var SECTION_GATE_KEYS=[{gateId:'daewunGate',unlockKey:'section_daewun'},{gateId:'summaryGate',unlockKey:'section_summary'},{gateId:'compatGate',unlockKey:'section_compat'}];
+  var SECTION_GATE_KEYS=[{gateId:'daewunGate',unlockKey:'section_daewun_v2'},{gateId:'summaryGate',unlockKey:'section_summary_v2'},{gateId:'compatGate',unlockKey:'section_compat_v2'}];
   function applySectionGates(){SECTION_GATE_KEYS.forEach(function(sg){var el=document.getElementById(sg.gateId);if(!el)return;if(unlockedFeatureMap[sg.unlockKey]){el.classList.add('cd-section-gate--unlocked');}else{el.classList.remove('cd-section-gate--unlocked');}});}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
