@@ -6081,6 +6081,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY = 'cd_tile_locks';
+  var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -6187,6 +6188,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
         }
       }
+      for (var lsIndex = 0; lsIndex < localStorage.length; lsIndex += 1) {
+        var lsKey = localStorage.key(lsIndex);
+        if (!lsKey || lsKey.indexOf(TILE_UNLOCK_BACKUP_PREFIX) !== 0) continue;
+        var unlockKey = lsKey.slice(TILE_UNLOCK_BACKUP_PREFIX.length);
+        if (unlockKey) unlockedFeatureMap[unlockKey] = true;
+      }
     } catch (_e) {}
   }
 
@@ -6208,6 +6215,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
       }
       localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(merged));
+      var mergedKeys = Object.keys(merged);
+      for (var m = 0; m < mergedKeys.length; m += 1) {
+        if (merged[mergedKeys[m]] === true) {
+          localStorage.setItem(TILE_UNLOCK_BACKUP_PREFIX + mergedKeys[m], '1');
+        }
+      }
       unlockedFeatureMap = merged;
     } catch (_e) {}
   }
