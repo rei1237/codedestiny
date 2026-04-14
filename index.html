@@ -7453,10 +7453,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
-    // prem-card: CTA 클릭 user-gesture 컨텍스트 안에서 직접 코인게이트 호출 (tile.click() 우회)
-    if(tile.classList.contains('prem-card')&&_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
-      var _premAct=tile.getAttribute('data-action');
-      if(_premAct){window.__cdPremCardCoinGate(_premAct,tile,_pvwCoinCost);return;}
+    // For paid tiles, invoke the coin-gate directly to avoid synthetic click edge cases.
+    if(_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
+      var _paidAct=tile.getAttribute('data-action');
+      if(_paidAct){window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost);return;}
     }
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
