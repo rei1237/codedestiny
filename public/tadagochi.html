@@ -219,21 +219,21 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .tali-card{background:linear-gradient(145deg,#fff8e1,#fef3c7,#fffde7);border:3px solid #fbbf24;border-radius:28px;padding:28px 22px;width:min(310px,90%);text-align:center;box-shadow:0 12px 40px rgba(251,191,36,.3),0 0 0 1px rgba(251,191,36,.1);animation:pulse-glow 1.8s ease-in-out infinite;position:relative;overflow:hidden}
 
-.chat-modal{position:absolute;inset:0;z-index:200;display:none;flex-direction:column;background:#b2c7d9;border-radius:32px}
+.chat-modal{position:absolute;inset:0;z-index:200;display:none;flex-direction:column;background:linear-gradient(175deg,var(--bg1),var(--bg2));border-radius:32px}
 
 .chat-modal.on{display:flex;animation:slide-up .4s ease forwards}
 
-.chat-bubble{max-width:78%;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.52;word-break:break-word;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.chat-bubble{max-width:82%;padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.55;word-break:break-word}
 
-.chat-bubble.user{background:#fee500;color:#1f1f1f;border-radius:14px 3px 14px 14px;margin-left:auto}
+.chat-bubble.user{background:var(--c2);color:#fff;border-radius:18px 18px 4px 18px;margin-left:auto}
 
-.chat-bubble.bot{background:#fff;border:1px solid rgba(0,0,0,.06);color:#222;border-radius:3px 14px 14px 14px}
+.chat-bubble.bot{background:rgba(255,255,255,.88);border:1.5px solid var(--cb);color:var(--text);border-radius:18px 18px 18px 4px}
 
-.chat-input-wrap{border-top:1px solid #d3d8de;background:#eef1f5;padding:10px}
+.chat-input-wrap{border-top:1.5px solid var(--cb);background:rgba(255,255,255,.9);padding:10px 12px}
 
-.chat-input{flex:1;border:1px solid #d7dbe2;border-radius:22px;padding:10px 14px;font-family:'Noto Sans KR';font-size:14px;background:#fff;outline:none;transition:border .2s;color:#222}
+.chat-input{flex:1;border:1.5px solid var(--cb);border-radius:99px;padding:10px 16px;font-family:'Noto Sans KR';font-size:14px;background:var(--adim);outline:none;transition:border .2s;color:#333}
 
-.chat-input:focus{border-color:#9ea7b3}
+.chat-input:focus{border-color:var(--acc)}
 
 .btn-acc{padding:14px;border-radius:16px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--c2),var(--c3));color:#fff;font-family:'Noto Sans KR';font-size:15px;font-weight:900;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:all .13s;letter-spacing:-.2px}
 
@@ -295,6 +295,17 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 <body>
 
 <canvas id="particle-canvas"></canvas>
+
+<!-- 로그인 게이트 오버레이 -->
+<div id="login-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#1a1040 0%,#2d1060 50%,#0d1a3e 100%);align-items:center;justify-content:center;padding:24px;">
+  <div style="max-width:340px;width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:36px 28px 32px;text-align:center;backdrop-filter:blur(16px);">
+    <div style="font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite">🐣</div>
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:8px;font-family:'Noto Sans KR',sans-serif">운세다마고치</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:24px;line-height:1.6;font-family:'Noto Sans KR',sans-serif">로그인하면 나만의 다마고치를<br>키울 수 있어요 🌸</div>
+    <a href="/login?redirect=/tadagochi" style="display:block;padding:14px 0;border-radius:99px;background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff;font-weight:900;font-size:15px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 18px rgba(167,139,250,.4)">로그인하기</a>
+    <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/login?redirect=/tadagochi" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
+  </div>
+</div>
 
 <div class="card" id="gc">
 
@@ -727,19 +738,19 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
   </div>
 
-  <div class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2" id="chat-log"></div>
+  <div class="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-3" id="chat-log"></div>
 
   <div class="chat-input-wrap shrink-0">
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="상황을 구체적으로 적어줘. 한 번에 깊게 분석해줄게..." maxlength="280" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 
     </div>
 
-    <div id="chat-helper" class="font-n mt-2 px-1" style="font-size:11px;color:#52606d;opacity:.9">
+    <div class="font-n mt-2 px-1" style="font-size:11px;color:var(--acc);opacity:.6">
       상단에서 종합/사주/자미두수/점성술/타로를 고른 뒤 질문해줘. 종합은 API 기반 4개 카테고리 탭 결과로 보여줄게.
     </div>
 
@@ -821,7 +832,7 @@ const TDUR={happy:2500,angry:2500,sleep:0,wake:1800,special:3500,eat:2200};
 
 
 
-const G={scr:'title',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,birthMonth:6,birthDay:15,birthHour:12,chatCount:0,chatDate:'',chatCat:'general'};
+const G={scr:'title',userId:null,userName:'',theme:null,animal:null,zodiac:null,element:null,petName:'',day:1,hunger:70,happy:80,energy:90,fortune:50,state:'idle',sleeping:false,hatch:0,hAuto:null,gTick:null,nTick:null,stTimer:null,birthYear:0,birthMonth:6,birthDay:15,birthHour:12,chatCount:0,chatDate:'',chatCat:'general'};
 
 
 
@@ -973,57 +984,92 @@ function normalizeDayKey(v){
   return d.toISOString().slice(0,10);
 }
 
-var TAMA_LOCAL_KEY='fortune_tadagochi_pet_v1';
-
-function hydratePetFromStoragePayload(s){
-  if(!s) return false;
-  if(!s.animal&&s.zodiac) s.animal=s.zodiac;
-  s.animal=normalizeAnimalKey(s.animal||s.zodiac);
-  s.zodiac=normalizeAnimalKey(s.zodiac||s.animal);
-  if(!s.theme) s.theme='moon';
-  if(!s.element) s.element='water';
-  Object.assign(G,s);
-  var today2=getTodayKey();
-  var loadedDay=normalizeDayKey(G.chatDate);
-  if(loadedDay!==today2){G.chatCount=0;G.chatDate=today2;}
-  else{G.chatDate=loadedDay;}
-  applyElement(G.element||'water');
-  return true;
+function getAuthToken(){
+  var token='';
+  try{token=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
+  if(token) return token;
+  try{
+    var m=(document.cookie||'').match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
+    if(m&&m[1]) return decodeURIComponent(m[1]);
+  }catch(_e2){}
+  return '';
 }
 
-function loadState(){
-  var raw='';
-  try{raw=localStorage.getItem(TAMA_LOCAL_KEY)||'';}catch(_e){}
-  if(!raw) return false;
-  try{
-    var saved=JSON.parse(raw);
-    var hasSavedPet=!!(saved&&(saved.animal||saved.zodiac||saved.petName));
-    if(!hasSavedPet) return false;
-    return hydratePetFromStoragePayload(saved);
-  }catch(_e2){
-    return false;
-  }
+function withAuthHeaders(headers){
+  var out=Object.assign({},headers||{});
+  var token=getAuthToken();
+  if(token&&!out.Authorization&&!out.authorization) out.Authorization='Bearer '+token;
+  return out;
+}
+
+function apiFetch(url,opts){
+  var options=Object.assign({credentials:'include'},opts||{});
+  options.headers=withAuthHeaders(options.headers||{});
+  return fetch(url,options);
 }
 
 function init(){
   initUI();
-  updateChatRemain();
-  if(loadState()) openMain();
+  // 로그인 확인 후 서버 펫 데이터 로드
+  apiFetch('/api/auth/me').then(function(r){return r.json();}).then(function(userData){
+    if(!userData||!userData.user){
+      // 미로그인 → 게이트 표시
+      var gate=document.getElementById('login-gate');
+      if(gate){gate.style.display='flex';}
+      return;
+    }
+    G.userId=userData.user.id;
+    G.userName=userData.user.name||'';
+    // 오늘 채팅 카운트 (서버 펫에서 복원)
+    var today2=getTodayKey();
+    G.chatDate=today2;
+    // 서버에서 펫 상태 로드
+    apiFetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
+      updateChatRemain();
+      var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
+      if(hasSavedPet){
+        // 저장된 펫 복원
+        var s=petRes.pet;
+        if(!s.animal&&s.zodiac) s.animal=s.zodiac;
+        s.animal=normalizeAnimalKey(s.animal||s.zodiac);
+        s.zodiac=normalizeAnimalKey(s.zodiac||s.animal);
+        if(!s.theme) s.theme='moon';
+        if(!s.element) s.element='water';
+        Object.assign(G,s);
+        // 채팅 카운트 오늘 날짜 확인
+        var loadedDay=normalizeDayKey(G.chatDate);
+        if(loadedDay!==today2){G.chatCount=0;G.chatDate=today2;}
+        else{G.chatDate=loadedDay;}
+        applyElement(G.element||'water');
+        openMain();
+      }
+      // 없으면 타이틀 화면 유지 (새 펫 생성)
+    }).catch(function(){updateChatRemain();});
+  }).catch(function(){
+    // 네트워크 오류 → 타이틀 화면 유지 (게이트 차단 안 함)
+  });
 }
 
 function saveState(){
+  if(!G.userId){return;} // 미로그인이면 저장 안함
   var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
-  try{localStorage.setItem(TAMA_LOCAL_KEY,JSON.stringify(data));}catch(_e){}
+  apiFetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
+    if(r&&r.status===401){
+      G.userId=null; // 세션 만료 - 저장만 중단, 게임 계속
+    }
+  }).catch(function(){});
 }
 
 function resetPet(){
   if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
-  try{localStorage.removeItem(TAMA_LOCAL_KEY);}catch(_e){}
-  Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
-  if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
-  if(G.nTick){clearInterval(G.nTick);G.nTick=null;}
-  show('s-setup');
-  toast('새 친구를 만들어봐 🐣');
+  apiFetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
+    G.userId=G.userId; // 유저 ID는 유지
+    Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
+    if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
+    if(G.nTick){clearInterval(G.nTick);G.nTick=null;}
+    show('s-setup');
+    toast('새 친구를 만들어봐 🐣');
+  }).catch(function(){toast('오류가 발생했어요. 다시 시도해줘');});
 }
 
 
@@ -1220,15 +1266,8 @@ function openMain(){
 }
 
 var FALLBACK_PET_IMAGE='/icons/fortune-tama-96.png';
-// tadagochi-local 배경 제거 알 이미지로 즉시 덮어쓰기
-EGG.moon='/fuctionassets/tadagochi-local/달 컨셉/달 컨셉 알.png';
-EGG.strawberry='/fuctionassets/tadagochi-local/딸기 컨셉/딸기 알-Photoroom.webp';
-EGG.cherry='/fuctionassets/tadagochi-local/벚꽃 컨셉/벚꽃의 알.png';
-EGG.star='/fuctionassets/tadagochi-local/검은 별 컨셉/검은별 알-Photoroom.png';
-EGG.angel='/fuctionassets/tadagochi-local/천사 컨셉/천사 알-Photoroom.webp';
 
 var THEME_CONCEPT_KR={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'별 컨셉',angel:'천사 컨셉'};
-var THEME_LOCAL_FOLDER={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'검은 별 컨셉',angel:'천사 컨셉'};
 var ZODIAC_ANIMAL_KR={rat:'쥐',cow:'소',tiger:'호랑이',rabbit:'토끼',dragon:'용',snake:'뱀',horse:'말',sheep:'양',monkey:'원숭이',chicken:'닭',dog:'강아지',pig:'돼지'};
 var ANIMAL_KEY_ALIAS={
   rat:'rat','쥐':'rat',
@@ -1255,32 +1294,15 @@ function getConceptAssetCandidates(theme,animal){
   var animalKey=normalizeAnimalKey(animal);
   var animalKr=ZODIAC_ANIMAL_KR[animalKey];
   if(!concept||!animalKr) return [];
-  var folder=THEME_LOCAL_FOLDER[theme]||concept;
-  var result=[];
-  var animalKrLocal=animalKr;
-  var base='/fuctionassets/tadagochi-local/'+folder+'/';
-  var enc='/fuctionassets/tadagochi-local/'+encodeURIComponent(folder)+'/';
-  if(theme==='strawberry'){
-    var fn='딸기테마'+animalKrLocal+'-Photoroom.webp';
-    result.push(base+fn,enc+encodeURIComponent(fn));
-  }else if(theme==='moon'){
-    var fn=concept+' '+animalKrLocal+'-Photoroom.webp';
-    var fn2=concept+' '+animalKrLocal+'.png';
-    result.push(base+fn,enc+encodeURIComponent(fn),base+fn2);
-  }else if(theme==='star'){
-    var fn='별 컨셉 '+animalKrLocal+'-Photoroom.webp';
-    var fn2='별 컨셉 '+animalKrLocal+'.png';
-    result.push(base+fn,enc+encodeURIComponent(fn),base+fn2);
-  }else{
-    var fnPng=concept+' '+animalKrLocal+'.png';
-    var fnWebp=concept+' '+animalKrLocal+'-Photoroom.webp';
-    result.push(base+fnPng,enc+encodeURIComponent(fnPng),base+fnWebp);
-  }
-  // 기존 경로 폴백
-  var oldFn=concept+' '+animalKr+'.jpg';
-  var oldEnc=encodeURIComponent('다마고치 에셋')+'/'+encodeURIComponent(concept)+'/'+encodeURIComponent(oldFn);
-  result.push('/fuctionassets/'+oldEnc,'/fuctionassets/다마고치 에셋/'+concept+'/'+oldFn);
-  return result;
+  var fileName=concept+' '+animalKr+'.jpg';
+  var encodedPath=encodeURIComponent('다마고치 에셋')+'/'+encodeURIComponent(concept)+'/'+encodeURIComponent(fileName);
+  var rawPath='다마고치 에셋/'+concept+'/'+fileName;
+  return [
+    '/fuctionassets/'+encodedPath,
+    '/fuctionassets/'+rawPath,
+    'fuctionassets/'+encodedPath,
+    'fuctionassets/'+rawPath
+  ];
 }
 
 var STATE_TO_SPRITE_SLOT={
@@ -1717,18 +1739,13 @@ function askCategoryQuestion(cat){
     astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',
     tarot:'예: 오늘 중요한 선택을 타로로 봐줘'
   };
-  if(cat==='general') setChatHelper('종합 분석 모드야. 한 번 물어보면 사주·자미두수·점성술·타로를 나눠서 깊게 답해줄게.');
-  else setChatHelper(catLabel+' 모드야. 상황을 구체적으로 적어주면 훨씬 정밀하게 답할 수 있어.');
+  if(cat==='general') addBotMsg('종합으로 뭘 물어볼거야? 🔮 사주·자미두수·점성술·타로를 각각 API로 분석해서 탭으로 정리해줄게.');
+  else addBotMsg(catLabel+'로 뭘 물어볼거야? 🔮 원하는 내용을 구체적으로 말해주면 정확히 봐줄게.');
   var inp=document.getElementById('chat-inp');
   if(inp){
     inp.placeholder=suggest[cat]||'궁금한 내용을 입력해줘...';
     inp.focus();
   }
-}
-
-function setChatHelper(text){
-  var el=document.getElementById('chat-helper');
-  if(el) el.textContent=text||'';
 }
 
 function setcat(btn,cat,silent){
@@ -1766,7 +1783,7 @@ function addLoadingMsg(text){
 
 function requestFortuneApi(category, question, usedToday){
   var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
-  var tm=ctrl?setTimeout(function(){ctrl.abort();},30000):null;
+  var tm=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
   return apiFetch('/api/tadagochi',{
     method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
     signal:ctrl?ctrl.signal:undefined,
@@ -1778,16 +1795,9 @@ function requestFortuneApi(category, question, usedToday){
       element:G.element||'water',
       zodiac:G.zodiac,
       petName:G.petName,
-      day:G.day||1,
-      hunger:G.hunger,
-      happy:G.happy,
-      energy:G.energy,
-      sleeping:!!G.sleeping,
-      state:G.state||'idle',
       question:question,
       category:category,
-      usedToday:usedToday,
-      detailLevel:'high'
+      usedToday:usedToday
     })
   }).then(function(r){
     return r.text().then(function(txt){
@@ -1863,9 +1873,8 @@ function openChat(){
   var log=document.getElementById('chat-log');
 
   if(log.children.length===0){
-    addBotMsg('안녕, '+G.petName+'야. 궁금한 상황을 바로 물어봐줘.');
+    addBotMsg('안녕! 나 '+G.petName+'야 🔮 상단 탭에서 종합/사주/자미두수/점성술/타로를 고르면 먼저 질문을 물어볼게 ✨');
     setcat(document.querySelector('.cat-btn[data-cat="general"]'),'general',true);
-    setChatHelper('종합 분석 모드야. 한 번 물어보면 사주·자미두수·점성술·타로를 나눠서 깊게 답해줄게.');
   }
 
 }
@@ -2067,12 +2076,12 @@ function sendChat(forceCat){
   };
   var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addBotMsg('...',true);
 
-  // 상세 응답 강화를 위해 API 대기 시간을 늘리고, 로컬 폴백을 늦춘다.
+  // general_full은 타임아웃 없음(오래 걸려도 기다림), 그 외는 2.5초 후 로컬 폴백
   var lt = setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
     addBotMsgTyped(localAns);
-  }, 6000);
+  }, 2500);
 
   requestFortuneApi(cat,q,G.chatCount-1).then(function(d){
     if(thisReq!==_reqId) return; // stale 응답 무시
@@ -2245,31 +2254,7 @@ function installPWA() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/tadagochi-sw.js', { scope: '/' })
-      .then(function(reg) {
-        console.log('[FortuneTama SW]', reg.scope);
-        if (typeof reg.update === 'function') reg.update();
-
-        if (reg.waiting) {
-          reg.waiting.postMessage('SKIP_WAITING');
-        }
-
-        reg.addEventListener('updatefound', function() {
-          var newWorker = reg.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.postMessage('SKIP_WAITING');
-            }
-          });
-        });
-
-        var reloaded = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (reloaded) return;
-          reloaded = true;
-          window.location.reload();
-        });
-      })
+      .then(function(reg) { console.log('[FortuneTama SW]', reg.scope); })
       .catch(function(e)  { console.warn('[FortuneTama SW] failed', e); });
   });
 }

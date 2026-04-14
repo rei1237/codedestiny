@@ -3,7 +3,7 @@
  * Provides offline support and caching for the Fortune Tama PWA
  */
 
-const CACHE_NAME = 'fortune-tama-v4';
+const CACHE_NAME = 'fortune-tama-v3';
 
 const PRECACHE_URLS = [
   '/tadagochi.html',
@@ -35,13 +35,6 @@ self.addEventListener('activate', (event) => {
       )
     ).then(() => self.clients.claim())
   );
-});
-
-// Allow the page to force immediate activation of a new SW.
-self.addEventListener('message', (event) => {
-  if (event?.data === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
 
 // Fetch: network-first with cache fallback (stale-while-revalidate for icons)
