@@ -545,6 +545,7 @@
     ],
     // NOTE: uiBindings는 `js/...` 경로를 사용합니다. 모바일 patch도 동일 경로로 맞춰
     // 런타임에서 최신 스크립트를 정확히 로드되도록 합니다.
+    openTarotHealingModal: ['js/tarot-healing-experience.js?v=20260320-tarot-uifix2'],
     openTarotLoveModal: ['js/tarot-love-experience.js?v=20260320-tarot-uifix2'],
     openTarotReunionModal: ['js/tarot-reunion-experience.js?v=20260321-tarot-api-hotfix1'],
     openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=20260320-tarot-uifix2'],
