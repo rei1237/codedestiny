@@ -1184,7 +1184,7 @@ function streamRitualText(text, targetId, callback) {
   el.textContent = '';
   var chars = Array.from(raw);
   var i = 0;
-  var speed = 20; // ms
+  var speed = 34; // ms
   var renderedTail = '';
 
   function type() {
@@ -1195,7 +1195,7 @@ function streamRitualText(text, targetId, callback) {
       if (renderedTail === '...') {
         window.__ritualStreamTimers[targetId] = setTimeout(type, 800);
       } else {
-        window.__ritualStreamTimers[targetId] = setTimeout(type, speed + Math.random() * 20);
+        window.__ritualStreamTimers[targetId] = setTimeout(type, speed + Math.random() * 34);
       }
       return;
     }
@@ -1236,7 +1236,7 @@ function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
 
   if (!textEntries.length) { if (onComplete) onComplete(); return; }
 
-  var SPEED = 14; // ms per character
+  var SPEED = 28; // ms per character
   var ti = 0, ci = 0;
 
   function type() {
@@ -1250,7 +1250,7 @@ function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
     if (ci < chars.length) {
       entry.node.textContent += chars[ci++];
       var tail = entry.node.textContent.slice(-3);
-      var delay = (tail === '...') ? 500 : SPEED;
+      var delay = (tail === '...') ? 900 : SPEED;
       window.__ritualStreamTimers[targetId] = setTimeout(type, delay);
     } else {
       ti++;
