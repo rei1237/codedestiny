@@ -5962,15 +5962,32 @@ function closeSukuyoModal() {
 function navigateToVedic() {
   function normalizeVedicProfile(profile) {
     if (!profile) return null;
+    var parsedBirth = null;
+    if (typeof profile.birthDate === 'string') {
+      var dparts = profile.birthDate.split(/[-/]/);
+      if (dparts.length >= 3) {
+        parsedBirth = {
+          year: parseInt(dparts[0], 10),
+          month: parseInt(dparts[1], 10),
+          day: parseInt(dparts[2], 10)
+        };
+      } else if (dparts.length === 1 && dparts[0].length >= 8) {
+        parsedBirth = {
+          year: parseInt(dparts[0].slice(0, 4), 10),
+          month: parseInt(dparts[0].slice(4, 6), 10),
+          day: parseInt(dparts[0].slice(6, 8), 10)
+        };
+      }
+    }
     var b = profile.birth || {
-      year: profile.birthYear,
-      month: profile.birthMonth,
-      day: profile.birthDay,
+      year: profile.birthYear != null ? profile.birthYear : (parsedBirth && parsedBirth.year),
+      month: profile.birthMonth != null ? profile.birthMonth : (parsedBirth && parsedBirth.month),
+      day: profile.birthDay != null ? profile.birthDay : (parsedBirth && parsedBirth.day),
       hour: profile.birthHour,
       minute: profile.birthMinute,
       calType: profile.calType
     };
-    if (!b || (b.year == null && b.month == null && b.day == null)) return null;
+    if (!b || (b.year == null && b.month == null && b.day == null && profile.birthDate == null)) return null;
     if ((b.hour == null || b.hour === '') && profile.birthHour != null && profile.birthHour !== '') b.hour = profile.birthHour;
     if ((b.minute == null || b.minute === '') && profile.birthMinute != null && profile.birthMinute !== '') b.minute = profile.birthMinute;
     if ((b.hour == null || b.hour === '' || b.minute == null || b.minute === '') && typeof profile.birthTime === 'string') {
@@ -5980,6 +5997,10 @@ function navigateToVedic() {
         if (b.minute == null || b.minute === '') b.minute = parseInt(tparts[1], 10);
       }
     }
+    var year = parseInt(b.year, 10);
+    var month = parseInt(b.month, 10);
+    var day = parseInt(b.day, 10);
+    if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
     var l = profile.location || {};
     var lat = (typeof l.lat === 'number' && !isNaN(l.lat)) ? l.lat : parseFloat(l.lat);
     var lng = (typeof l.lng === 'number' && !isNaN(l.lng)) ? l.lng : (typeof l.lon === 'number' && !isNaN(l.lon) ? l.lon : (parseFloat(l.lng) || parseFloat(l.lon)));
@@ -5990,9 +6011,9 @@ function navigateToVedic() {
       name: profile.name,
       gender: profile.gender,
       birth: {
-        year: b.year,
-        month: b.month,
-        day: b.day,
+        year: year,
+        month: month,
+        day: day,
         hour: b.hour != null ? b.hour : 12,
         minute: b.minute != null ? b.minute : 0,
         calType: b.calType || 'solar'
