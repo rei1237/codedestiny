@@ -441,6 +441,23 @@
       window.__cdActiveBirthProfile = profile;
     }
 
+    // 프로필 카드에서 진입했을 때 자미두수 계산 상태를 즉시 동기화
+    try {
+      if (typeof window.computeProfileForModal === 'function') {
+        window.computeProfileForModal(profile);
+      }
+      var pb = (profile && profile.birth) || {};
+      if (!window._currentZiweiData && pb.year && typeof window.calcZiweiPalaces === 'function') {
+        window._currentZiweiData = window.calcZiweiPalaces(
+          Number(pb.year),
+          Number(pb.month || 1),
+          Number(pb.day || 1),
+          Number(pb.hour || 0),
+          Number(pb.minute || 0)
+        );
+      }
+    } catch (_) {}
+
     // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 500자+, ⚠️ 없음)이어야 복원
     var saved = _zbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters

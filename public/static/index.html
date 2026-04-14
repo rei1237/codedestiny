@@ -632,8 +632,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=20260411-foucfix2" data-cd-mobile-delay="1">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2"></noscript>
+  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
   <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=20260415" data-cd-mobile-delay="1">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
   <link data-cd-noncritical-style-src="/styles/love-secret.css?v=20260405-epilogue" data-cd-mobile-delay="1">
@@ -2291,11 +2290,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 자미두수 심화 분析 (H 프리미엄) -->
                 <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
                         data-action="navigateToZiweiChart"
+                        data-tile-lock-key="ziwei-deep"
+                        data-tile-lock-cost="500"
                         aria-label="자미두수 심화 분析 열기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamigod.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌟</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--ziwei">심화</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--lock">🔒 해금 500코인</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌟 자미두수 심화</span>
@@ -6152,6 +6153,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY = 'cd_tile_locks';
+  var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -6249,13 +6251,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var parsed = JSON.parse(saved);
       if (parsed && typeof parsed === 'object') {
         var keys = Object.keys(parsed);
-        for (var i = 0; i < keys.length; i += 1) unlockedFeatureMap[keys[i]] = true;
+        for (var i = 0; i < keys.length; i += 1) {
+          if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+        }
+      }
+      for (var lsIndex = 0; lsIndex < localStorage.length; lsIndex += 1) {
+        var lsKey = localStorage.key(lsIndex);
+        if (!lsKey || lsKey.indexOf(TILE_UNLOCK_BACKUP_PREFIX) !== 0) continue;
+        var unlockKey = lsKey.slice(TILE_UNLOCK_BACKUP_PREFIX.length);
+        if (unlockKey) unlockedFeatureMap[unlockKey] = true;
       }
     } catch (_e) {}
   }
 
   function saveTileLocks() {
-    try { localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(unlockedFeatureMap)); } catch (_e) {}
+    try {
+      var merged = Object.create(null);
+      var saved = localStorage.getItem(TILE_LOCKS_KEY);
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var prevKeys = Object.keys(parsed);
+          for (var i = 0; i < prevKeys.length; i += 1) {
+            if (parsed[prevKeys[i]] === true) merged[prevKeys[i]] = true;
+          }
+        }
+      }
+      var nextKeys = Object.keys(unlockedFeatureMap);
+      for (var j = 0; j < nextKeys.length; j += 1) {
+        if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
+      }
+      localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(merged));
+      var mergedKeys = Object.keys(merged);
+      for (var m = 0; m < mergedKeys.length; m += 1) {
+        if (merged[mergedKeys[m]] === true) {
+          localStorage.setItem(TILE_UNLOCK_BACKUP_PREFIX + mergedKeys[m], '1');
+        }
+      }
+      unlockedFeatureMap = merged;
+    } catch (_e) {}
   }
 
   // 잠금 타일에 시각적 자물쇠 아이콘 표시/제거
@@ -6358,6 +6392,55 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
+  }
+
+  function _cdCollectKnownUnlockKeys() {
+    var map = Object.create(null);
+    for (var i = 0; i < SECTION_GATE_KEYS.length; i += 1) {
+      map[SECTION_GATE_KEYS[i].unlockKey] = true;
+    }
+    var sectionBtns = document.querySelectorAll('[data-action="unlockPremiumFeature"][data-unlock-key]');
+    for (var s = 0; s < sectionBtns.length; s += 1) {
+      var sk = sectionBtns[s].getAttribute('data-unlock-key');
+      if (sk) map[sk] = true;
+    }
+    var tileBtns = document.querySelectorAll('[data-tile-lock-key]');
+    for (var t = 0; t < tileBtns.length; t += 1) {
+      var tk = tileBtns[t].getAttribute('data-tile-lock-key');
+      if (tk) map[tk] = true;
+    }
+    return map;
+  }
+
+  function _cdApplyUnlocksFromPaymentPayload(payload) {
+    var histories = (payload && payload.pointHistories && Array.isArray(payload.pointHistories)) ? payload.pointHistories : [];
+    if (!histories.length) return false;
+    var known = _cdCollectKnownUnlockKeys();
+    var changed = false;
+    for (var i = 0; i < histories.length; i += 1) {
+      var h = histories[i] || {};
+      if (String(h.kind || '') !== 'deduct') continue;
+      var k = String(h.featureKey || '').trim();
+      if (!k || k === 'pig-coin-unlock') continue;
+      if (known[k] && unlockedFeatureMap[k] !== true) {
+        unlockedFeatureMap[k] = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  async function syncUnlocksFromServer() {
+    if (!hasAuthToken()) return;
+    try {
+      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
+      if (!result.ok) return;
+      if (!_cdApplyUnlocksFromPaymentPayload(result.payload)) return;
+      saveTileLocks();
+      applyTileLockVisuals();
+      refreshUnlockButtons();
+      if (typeof applySectionGates === 'function') applySectionGates();
+    } catch (_e) {}
   }
 
   async function fetchJsonWithAuth(path, init) {
@@ -6571,6 +6654,59 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
     }
+
+    function _cdInvokeWithRetry(fnName, args, onMissing) {
+      var _tries = 0;
+      (function _tick() {
+        _tries += 1;
+        if (typeof window[fnName] === 'function') {
+          try {
+            window[fnName].apply(window, args || []);
+          } catch (e) {
+            console.error('[prem-card ' + fnName + ']', e);
+          }
+          return;
+        }
+        if (_tries >= 30) {
+          if (typeof onMissing === 'function') onMissing();
+          return;
+        }
+        setTimeout(_tick, 80);
+      })();
+    }
+
+    function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
+      var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
+      if (_loader) return _loader();
+      var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
+      if (_existing && (_existing.dataset.loaded === '1' || _existing.readyState === 'complete' || _existing.readyState === 'loaded')) {
+        return Promise.resolve();
+      }
+      return new Promise(function(resolve, reject) {
+        var _target = _existing;
+        if (!_target) {
+          _target = document.createElement('script');
+          _target.src = scriptSrc;
+          _target.defer = true;
+          document.head.appendChild(_target);
+        }
+        var _done = false;
+        var _ok = function() {
+          if (_done) return;
+          _done = true;
+          try { _target.dataset.loaded = '1'; } catch (_) {}
+          resolve();
+        };
+        var _fail = function(err) {
+          if (_done) return;
+          _done = true;
+          reject(err || new Error('script load failed: ' + scriptSrc));
+        };
+        _target.addEventListener('load', _ok, { once: true });
+        _target.addEventListener('error', _fail, { once: true });
+      });
+    }
+
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
       var _profileCandidate = _cdGetZiweiProfileCandidate();
@@ -6675,20 +6811,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
-        // astro-book.js lazy load 후 재호출
-        var _abScr = document.querySelector('script[src*="astro-book.js"]');
-        if (!_abScr) {
-          var _abEl2 = document.createElement('script');
-          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
-          _abEl2.onload = function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
-          };
-          document.head.appendChild(_abEl2);
-        } else {
-          setTimeout(function() {
-            if (typeof window.openAstroBookModal === 'function') window.openAstroBookModal();
-          }, 500);
-        }
+        _cdLoadActionScript('gotoAstrologyPremium', 'astro-book.js', '/js/astro-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openAstroBookModal', null, function() {
+              console.error('[prem-card astro-book] openAstroBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card astro-book]', e); });
       }
       return;
     }
@@ -6700,17 +6829,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
-        (function() {
-          var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
-          var _spLoadFn = function() {
-            var s=document.querySelector('script[src*="sukuyo-book.js"]');
-            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
-          };
-          (_spLoader?_spLoader():_spLoadFn()).then(function(){
-            if(typeof window.openSukuyoBookModal==='function')window.openSukuyoBookModal();
-          }).catch(function(e){console.error('[prem-card sukuyo]',e);});
-        })();
+        _cdLoadActionScript('gotoSukuyoPremium', 'sukuyo-book.js', '/js/sukuyo-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
+              console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card sukuyo]', e); });
       }
       return;
     }
@@ -6722,17 +6847,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
-        (function() {
-          var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
-          var _vdLoadFn = function() {
-            var s=document.querySelector('script[src*="vedic-book.js"]');
-            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
-            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
-          };
-          (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
-            if(typeof window.openVedicBookModal==='function')window.openVedicBookModal();
-          }).catch(function(e){console.error('[prem-card vedic]',e);});
-        })();
+        _cdLoadActionScript('gotoVedicPremium', 'vedic-book.js', '/js/vedic-book.js?v=20260411-zfix1')
+          .then(function() {
+            _cdInvokeWithRetry('openVedicBookModal', null, function() {
+              console.error('[prem-card vedic] openVedicBookModal missing after load');
+            });
+          })
+          .catch(function(e) { console.error('[prem-card vedic]', e); });
       }
       return;
     }
@@ -7118,6 +7239,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   refreshUnlockButtons();
   if(typeof applySectionGates==='function')applySectionGates();
   void syncBalanceFromServer();
+  void syncUnlocksFromServer();
 
   window.__cdSetGoldenBalance = function (points) {
     var next = Number(points);
@@ -7130,6 +7252,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     void syncBalanceFromServer();
   };
   window.__cdOpenChargeModal = openChargeModal;
+
+  // prem-card용 코인게이트 직접 호출 (프리뷰 패널 CTA → user-gesture 컨텍스트 유지)
+  window.__cdPremCardCoinGate = function(action, actionNode, coinCost) {
+    if (!action || !actionNode || !(coinCost > 0)) return;
+    _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
+  };
 
   // Auth 상태 재확인 (인라인 스크립트 보조)
   if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();
@@ -7275,7 +7403,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    navigateToZiweiChart:{cat:'자미두수 심화 · 16챕터 인생 전략',title:'🌟 자미두수 심화',tagline:'자미두수 12궁 완전 해독 — 명궁부터 마스터플랜까지 16챕터로 당신의 운명 전략을 완성합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 완전 분析','관록궁·재백궁·부처궁 총망라 인생 전략','대한·유년 타이밍 분析으로 기회의 시기 파악','완전 무료 — 생년월일 입력 후 즉시 분析'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
+    navigateToZiweiChart:{cat:'자미두수 심화 · 16챕터 인생 전략',title:'🌟 자미두수 심화',tagline:'자미두수 12궁 완전 해독 — 명궁부터 마스터플랜까지 16챕터로 당신의 운명 전략을 완성합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 완전 분析','관록궁·재백궁·부처궁 총망라 인생 전략','대한·유년 타이밍 분析으로 기회의 시기 파악','프로필 카드 연동 자동 계산으로 즉시 분析'],cost:'🔒 영구 해금 500코인',ct:'paid',img:'/fuctionassets/jamigod.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'},
     openSibylModal:{cat:'시빌라 사주 시스템',title:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (100코인)'],cost:'✨ 기본 무료 · 도미네이터 100코인',ct:'free',img:'/fuctionassets/sybila.webp'}
@@ -7444,10 +7572,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
-    // prem-card: CTA 클릭 user-gesture 컨텍스트 안에서 직접 코인게이트 호출 (tile.click() 우회)
-    if(tile.classList.contains('prem-card')&&_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
-      var _premAct=tile.getAttribute('data-action');
-      if(_premAct){window.__cdPremCardCoinGate(_premAct,tile,_pvwCoinCost);return;}
+    // 유료 타일 CTA는 직접 코인게이트를 호출해 합성 click 경로 의존성을 제거한다.
+    if(_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
+      var _paidAct=tile.getAttribute('data-action');
+      if(_paidAct){window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost);return;}
     }
     var _freeAct=tile.getAttribute('data-action');
     if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
