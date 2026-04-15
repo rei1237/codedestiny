@@ -158,6 +158,8 @@ const CHAR_TARGETS = {
   },
 };
 
+function removeMechanicalLead(text) {
+
   let out = safeText(text);
   if (!out) return "";
   const patterns = [
@@ -418,7 +420,7 @@ function normalizeEnhancedYearlyReading(candidate) {
     month: Number(item?.month) || (idx + 1),
     flow: dedupeSemanticOverlap(
       dedupeText(
-        toMasterSentence(item?.flow || `${idx + 1}월의 운의 흐름을 따르려면 먼저 당신의 우선순위를 명확히 해야 합니다. 한 달에 한 가지 핵심 목표를 정하면 그 달의 모든 흐름이 당신 쪽으로 열립니다.", 2)
+        toMasterSentence(item?.flow || ((idx + 1) + "월의 운의 흐름을 따르려면 먼저 당신의 우선순위를 명확히 해야 합니다. 한 달에 한 가지 핵심 목표를 정하면 그 달의 모든 흐름이 당신 쪽으로 열립니다."), 2)
       )
     ),
     money: dedupeSemanticOverlap(
@@ -681,7 +683,7 @@ function buildLocalFallback(body) {
       finalAdvice: "매월의 카드 메시지를 따라 작은 결심이 큰 행운으로 이어집니다.",
       monthlyReadings: Array.from({ length: 12 }, (_, i) => ({
         month: i + 1,
-        flow: `${i + 1}월의 흐름을 카드가 안내합니다. 꾸준히 실천하면 결과가 따라옵니다.`,
+        flow: (i + 1) + "월의 흐름을 카드가 안내합니다. 꾸준히 실천하면 결과가 따라옵니다.",
         money: "꾸준한 관리와 현명한 선택이 재물 흐름을 안정시킵니다.",
         love: "진심 어린 표현이 관계를 따뜻하게 만드는 달입니다.",
         relationship: "솔직한 소통이 인간관계를 풍요롭게 합니다.",
