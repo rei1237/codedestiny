@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
+import TermsContent from "../terms-of-service/TermsContent";
 
 declare global {
   interface Window {
@@ -296,65 +298,81 @@ export default function SignupPage() {
               <div className="h-px flex-1 bg-violet-100/20" />
             </div>
 
-            <section className="legal-consent-space mb-5" aria-label="회원가입 필수 동의">
-              <div className="legal-consent-head">
-                <p className="legal-consent-kicker">MANDATORY LEGAL CONSENT</p>
-                <h2 className="legal-consent-title">회원가입 전 정책 전문 확인</h2>
-                <p className="legal-consent-desc">아래 본문을 확인한 뒤 필수 동의 항목을 체크해야 소셜 회원가입이 활성화됩니다.</p>
+            <section className="lc-space mb-5" aria-label="회원가입 필수 동의">
+              <div className="lc-head">
+                <p className="lc-kicker">MANDATORY LEGAL CONSENT</p>
+                <h2 className="lc-title">회원가입 전 정책 전문 확인</h2>
+                <p className="lc-desc">아래 본문을 확인한 뒤 필수 동의 항목을 체크해야 소셜 회원가입이 활성화됩니다.</p>
               </div>
 
-              <div className="legal-docs-grid">
-                <article className="legal-doc-card" aria-label="개인정보처리방침 전문">
-                  <div className="legal-doc-head">
-                    <strong>개인정보처리방침 Privacy Policy</strong>
-                  </div>
-                  <div className="legal-frame-wrap">
-                    <iframe
-                      title="개인정보처리방침 전문"
-                      src="/privacy-policy"
-                      className="legal-iframe"
-                      loading="lazy"
-                    />
-                  </div>
-                  <label className="legal-check-row" htmlFor="agree-privacy-policy">
-                    <input
-                      id="agree-privacy-policy"
-                      type="checkbox"
-                      checked={agreePrivacy}
-                      onChange={(e) => setAgreePrivacy(e.target.checked)}
-                    />
-                    <span>[필수] 개인정보처리방침 전문을 읽고 동의합니다.</span>
-                  </label>
-                </article>
+              {/* 개인정보처리방침 */}
+              <article className="lc-card" aria-label="개인정보처리방침 전문">
+                <div className="lc-card-head">
+                  <span className="lc-card-badge">01</span>
+                  <strong className="lc-card-label">개인정보처리방침 <em>Privacy Policy</em></strong>
+                  <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="lc-card-ext" aria-label="새 탭에서 개인정보처리방침 열기">
+                    ↗
+                  </Link>
+                </div>
+                <div className="lc-scroll-area" role="region" aria-label="개인정보처리방침 본문" tabIndex={0}>
+                  <PrivacyPolicyContent />
+                </div>
+                <label className={`lc-check-row${agreePrivacy ? " lc-check-row--on" : ""}`} htmlFor="agree-privacy-policy">
+                  <span className="lc-checkbox" aria-hidden="true">
+                    {agreePrivacy && (
+                      <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="lc-checkmark">
+                        <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <input
+                    id="agree-privacy-policy"
+                    type="checkbox"
+                    checked={agreePrivacy}
+                    onChange={(e) => setAgreePrivacy(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <span>[필수] 개인정보처리방침 전문을 읽고 동의합니다.</span>
+                </label>
+              </article>
 
-                <article className="legal-doc-card" aria-label="이용약관 전문">
-                  <div className="legal-doc-head">
-                    <strong>이용약관 Terms of Service</strong>
-                  </div>
-                  <div className="legal-frame-wrap">
-                    <iframe
-                      title="이용약관 전문"
-                      src="/terms-of-service"
-                      className="legal-iframe"
-                      loading="lazy"
-                    />
-                  </div>
-                  <label className="legal-check-row" htmlFor="agree-terms-of-service">
-                    <input
-                      id="agree-terms-of-service"
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                    />
-                    <span>[필수] 이용약관 전문을 읽고 동의합니다.</span>
-                  </label>
-                </article>
-              </div>
+              {/* 이용약관 */}
+              <article className="lc-card" aria-label="이용약관 전문">
+                <div className="lc-card-head">
+                  <span className="lc-card-badge">02</span>
+                  <strong className="lc-card-label">이용약관 <em>Terms of Service</em></strong>
+                  <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="lc-card-ext" aria-label="새 탭에서 이용약관 열기">
+                    ↗
+                  </Link>
+                </div>
+                <div className="lc-scroll-area" role="region" aria-label="이용약관 본문" tabIndex={0}>
+                  <TermsContent />
+                </div>
+                <label className={`lc-check-row${agreeTerms ? " lc-check-row--on" : ""}`} htmlFor="agree-terms-of-service">
+                  <span className="lc-checkbox" aria-hidden="true">
+                    {agreeTerms && (
+                      <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="lc-checkmark">
+                        <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <input
+                    id="agree-terms-of-service"
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <span>[필수] 이용약관 전문을 읽고 동의합니다.</span>
+                </label>
+              </article>
 
-              <p className="legal-consent-state" role="status" aria-live="polite">
-                {hasRequiredConsents
-                  ? "필수 동의가 완료되었습니다. 이제 소셜 회원가입을 진행할 수 있습니다."
-                  : "필수 동의 2건을 모두 체크하면 소셜 회원가입 버튼이 활성화됩니다."}
+              <p className="lc-state" role="status" aria-live="polite">
+                {hasRequiredConsents ? (
+                  <><span className="lc-state-dot lc-state-dot--ok" />필수 동의가 완료되었습니다. 이제 소셜 회원가입을 진행할 수 있습니다.</>
+                ) : (
+                  <><span className="lc-state-dot" />필수 동의 2건을 모두 체크하면 소셜 회원가입 버튼이 활성화됩니다.</>
+                )}
               </p>
             </section>
 
@@ -401,113 +419,217 @@ export default function SignupPage() {
       </div>
 
       <style jsx>{`
-        .legal-consent-space {
-          border: 1px solid rgba(167, 139, 250, 0.4);
-          border-radius: 1rem;
-          padding: 0.9rem;
+        /* ── Legal Consent Shell ── */
+        .lc-space {
+          border: 1px solid rgba(167, 139, 250, 0.35);
+          border-radius: 1.1rem;
+          padding: 1rem;
           background:
-            radial-gradient(circle at 12% 18%, rgba(167, 139, 250, 0.22), transparent 40%),
-            radial-gradient(circle at 82% 20%, rgba(56, 189, 248, 0.18), transparent 42%),
-            linear-gradient(140deg, rgba(15, 23, 42, 0.62), rgba(49, 46, 129, 0.45));
-          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 36px rgba(15, 23, 42, 0.35);
+            radial-gradient(circle at 10% 15%, rgba(167, 139, 250, 0.18), transparent 42%),
+            radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.12), transparent 40%),
+            linear-gradient(150deg, rgba(15, 23, 42, 0.65), rgba(49, 46, 129, 0.42));
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 40px rgba(15, 23, 42, 0.38);
+          backdrop-filter: blur(10px);
         }
 
-        .legal-consent-head {
-          margin-bottom: 0.75rem;
-        }
-
-        .legal-consent-kicker {
-          font-size: 11px;
+        /* ── Header ── */
+        .lc-head { margin-bottom: 0.85rem; }
+        .lc-kicker {
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
-          color: rgba(196, 181, 253, 0.9);
-          margin-bottom: 0.35rem;
+          letter-spacing: 0.22em;
+          color: rgba(196, 181, 253, 0.85);
+          margin-bottom: 0.3rem;
         }
-
-        .legal-consent-title {
-          font-size: 1rem;
+        .lc-title {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.96);
           line-height: 1.35;
-          color: rgba(255, 255, 255, 0.95);
-          font-weight: 700;
         }
-
-        .legal-consent-desc {
+        .lc-desc {
           margin-top: 0.25rem;
-          font-size: 12px;
-          line-height: 1.5;
-          color: rgba(224, 231, 255, 0.82);
+          font-size: 11.5px;
+          line-height: 1.55;
+          color: rgba(224, 231, 255, 0.78);
         }
 
-        .legal-docs-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0.75rem;
-        }
-
-        .legal-doc-card {
-          border-radius: 0.8rem;
+        /* ── Card ── */
+        .lc-card {
+          margin-bottom: 0.65rem;
+          border-radius: 0.85rem;
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          background: linear-gradient(180deg, rgba(2, 6, 23, 0.72), rgba(15, 23, 42, 0.58));
           overflow: hidden;
-          border: 1px solid rgba(148, 163, 184, 0.35);
-          background: linear-gradient(180deg, rgba(2, 6, 23, 0.68), rgba(15, 23, 42, 0.55));
         }
 
-        .legal-doc-head {
+        .lc-card-head {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          padding: 0.55rem 0.7rem;
-          font-size: 12px;
-          color: rgba(233, 213, 255, 0.96);
-          border-bottom: 1px solid rgba(148, 163, 184, 0.28);
-          background: linear-gradient(90deg, rgba(91, 33, 182, 0.35), rgba(30, 64, 175, 0.35));
+          gap: 0.5rem;
+          padding: 0.5rem 0.7rem;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+          background: linear-gradient(90deg, rgba(91, 33, 182, 0.32), rgba(30, 64, 175, 0.28));
         }
-
-        .legal-frame-wrap {
-          position: relative;
-          height: 210px;
-          background: rgba(248, 250, 252, 0.98);
-        }
-
-        .legal-iframe {
-          width: 100%;
-          height: 100%;
-          border: 0;
-          background: #fff;
-        }
-
-        .legal-check-row {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.55rem;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.92);
-          padding: 0.65rem 0.7rem 0.75rem;
-          line-height: 1.45;
-        }
-
-        .legal-check-row input {
-          margin-top: 2px;
-          inline-size: 16px;
-          block-size: 16px;
-          accent-color: #a78bfa;
+        .lc-card-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          border: 1px solid rgba(167, 139, 250, 0.5);
+          font-size: 9px;
+          font-weight: 800;
+          color: rgba(196, 181, 253, 0.9);
           flex-shrink: 0;
         }
-
-        .legal-consent-state {
-          margin-top: 0.7rem;
-          border-radius: 0.7rem;
-          border: 1px solid rgba(165, 180, 252, 0.35);
-          background: rgba(67, 56, 202, 0.2);
-          padding: 0.55rem 0.65rem;
+        .lc-card-label {
+          flex: 1;
+          font-size: 11.5px;
+          font-weight: 700;
+          color: rgba(233, 213, 255, 0.95);
+        }
+        .lc-card-label em {
+          font-style: normal;
+          font-weight: 400;
+          color: rgba(196, 181, 253, 0.7);
+          margin-left: 4px;
+        }
+        .lc-card-ext {
           font-size: 12px;
-          line-height: 1.5;
-          color: rgba(238, 242, 255, 0.95);
+          color: rgba(167, 139, 250, 0.7);
+          text-decoration: none;
+          transition: color 0.2s;
+          padding: 2px 4px;
+          border-radius: 4px;
+          flex-shrink: 0;
+        }
+        .lc-card-ext:hover {
+          color: rgba(196, 181, 253, 1);
+          background: rgba(167, 139, 250, 0.12);
         }
 
-        @media (min-width: 768px) {
-          .legal-docs-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
+        /* ── Scrollable Content ── */
+        .lc-scroll-area {
+          height: 200px;
+          overflow-y: auto;
+          padding: 12px 14px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(139, 92, 246, 0.4) transparent;
+        }
+        .lc-scroll-area::-webkit-scrollbar { width: 4px; }
+        .lc-scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .lc-scroll-area::-webkit-scrollbar-thumb {
+          background: rgba(139, 92, 246, 0.35);
+          border-radius: 4px;
+        }
+        .lc-scroll-area:focus-visible {
+          outline: 2px solid rgba(167, 139, 250, 0.5);
+          outline-offset: -2px;
+        }
+
+        /* ── Policy Embed Styles ── */
+        :global(.policy-embed-body) {
+          font-size: 11.5px;
+          line-height: 1.72;
+          color: rgba(226, 232, 240, 0.9);
+        }
+        :global(.policy-embed-date) {
+          font-size: 10.5px;
+          color: rgba(148, 163, 184, 0.8);
+          margin-bottom: 10px;
+        }
+        :global(.policy-embed-section) {
+          margin-bottom: 12px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+        :global(.policy-embed-section:last-child) {
+          border-bottom: none;
+          margin-bottom: 0;
+        }
+        :global(.policy-embed-h3) {
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(196, 181, 253, 0.9);
+          margin-bottom: 5px;
+          letter-spacing: 0.01em;
+        }
+        :global(.policy-embed-body p) {
+          margin-bottom: 5px;
+        }
+        :global(.policy-embed-body p:last-child) {
+          margin-bottom: 0;
+        }
+
+        /* ── Custom Checkbox Row ── */
+        .lc-check-row {
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
+          padding: 0.6rem 0.7rem 0.65rem;
+          font-size: 11.5px;
+          color: rgba(203, 213, 225, 0.88);
+          line-height: 1.45;
+          cursor: pointer;
+          user-select: none;
+          transition: background 0.15s;
+          border-top: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .lc-check-row:hover {
+          background: rgba(139, 92, 246, 0.07);
+        }
+        .lc-check-row--on {
+          color: rgba(233, 213, 255, 0.98);
+        }
+        .lc-checkbox {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
+          height: 18px;
+          border-radius: 5px;
+          border: 1.5px solid rgba(139, 92, 246, 0.55);
+          background: rgba(2, 6, 23, 0.5);
+          flex-shrink: 0;
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .lc-check-row--on .lc-checkbox {
+          border-color: rgba(167, 139, 250, 0.9);
+          background: rgba(109, 40, 217, 0.55);
+        }
+        .lc-checkmark {
+          width: 11px;
+          height: 9px;
+          color: #e9d5ff;
+        }
+
+        /* ── State Bar ── */
+        .lc-state {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+          margin-top: 0.6rem;
+          border-radius: 0.65rem;
+          border: 1px solid rgba(165, 180, 252, 0.28);
+          background: rgba(67, 56, 202, 0.18);
+          padding: 0.5rem 0.65rem;
+          font-size: 11.5px;
+          line-height: 1.5;
+          color: rgba(238, 242, 255, 0.92);
+        }
+        .lc-state-dot {
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: rgba(148, 163, 184, 0.45);
+          flex-shrink: 0;
+        }
+        .lc-state-dot--ok {
+          background: rgba(74, 222, 128, 0.85);
+          box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
         }
       `}</style>
     </main>
