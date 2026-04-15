@@ -471,7 +471,7 @@ export default function PointHistoryPage() {
             <li>• 차감 내역은 서비스 이용 시 자동으로 기록됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
             <li>• 내역 조회는 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
-            <li>• 민원담당자: 박병하 (010-7180-7398) · seongbae555@gmail.com</li>
+            <li>• 민원담당자: 고객센터 · support@codedestiny.me</li>
           </ul>
         </section>
 
