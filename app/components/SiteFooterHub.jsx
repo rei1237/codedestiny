@@ -458,7 +458,7 @@ export default function SiteFooterHub() {
               모든 거래에 대한 책임과 환불, 민원 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
             </p>
             <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.72 }}>
-              민원담당자 : 고객센터 (support@codedestiny.me)
+              민원담당자 : 박병하 (010-7180-7398)
             </p>
           </div>
           <div style={REFUND_BOX}>

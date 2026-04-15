@@ -19,7 +19,7 @@ const TEXT_EXTS = new Set([
   ".yaml",
 ]);
 
-const BLOCKED_KEYWORDS = ["박병하"];
+const BLOCKED_KEYWORDS = [];
 
 function shouldScan(filePath) {
   const ext = path.extname(filePath).toLowerCase();
