@@ -63,7 +63,7 @@ function formatDateTime(raw?: string | null) {
 
 function formatPoints(n: number) {
   const abs = Math.abs(n);
-  return `${abs.toLocaleString("ko-KR")}코인`;
+  return `${abs.toLocaleString("ko-KR")}원`;
 }
 
 function formatWon(n: number) {
@@ -293,11 +293,11 @@ export default function PointHistoryPage() {
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
                 {currentPoints.toLocaleString("ko-KR")}
-                <span className="ml-1.5 text-base font-bold text-amber-800">코인</span>
+                <span className="ml-1.5 text-base font-bold text-amber-800">원</span>
               </span>
             </div>
             <p className="mt-2 text-[11px] text-amber-800 font-semibold">
-              {userName} 님의 실시간 잔여 코인입니다.
+              {userName} 님의 실시간 잔여 포인트입니다.
             </p>
             <p className="mt-1 text-[11px] text-[#9B7040]">
               ⏳ 포인트 충전 소진 기한은 결제한 시점부터 1년 이내까지이며, 미사용한 포인트는 소멸됩니다.
@@ -323,7 +323,7 @@ export default function PointHistoryPage() {
                 <CoinIcon size="sm" />
                 <span className={`text-[18px] font-black leading-none ${item.valcls}`}>
                   {item.value.toLocaleString("ko-KR")}
-                  <span className="ml-1 text-xs font-bold">코인</span>
+                  <span className="ml-1 text-xs font-bold">원</span>
                 </span>
               </div>
               <p className="mt-1 text-[10px] text-neutral-400">최근 20건 기준</p>
@@ -398,6 +398,11 @@ export default function PointHistoryPage() {
                     >
                       <span className="flex-shrink-0 text-xl mt-0.5 leading-none">{kindIcon(entry.kind)}</span>
                       <div className="flex-1 min-w-0">
+                        {/* 날짜 */}
+                        <p className="text-[11px] text-[#9B7040] mb-1 font-medium">
+                          {formatDateTime(entry.createdAt)}
+                        </p>
+                        {/* 상품명 + 금액 */}
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${kl.cls}`}>
@@ -407,17 +412,18 @@ export default function PointHistoryPage() {
                               {entry.reason || (entry.featureKey ? `서비스: ${entry.featureKey}` : "-")}
                             </span>
                           </div>
-                          <span className={`text-[14px] font-black flex-shrink-0 ${dc}`}>
+                          <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
                             {prefix}{formatPoints(entry.delta)}
                           </span>
                         </div>
-                        <div className="mt-1.5 flex items-center justify-between gap-2 flex-wrap">
-                          <p className="text-[11px] text-[#9B7040]">
-                            {formatDateTime(entry.createdAt)}
-                          </p>
-                          <p className="text-[11px] text-[#7A5230]">
-                            잔여 <CoinIcon size="sm" className="inline-block align-middle mr-0.5" />
-                            <span className="font-semibold">{entry.balanceAfter.toLocaleString("ko-KR")}코인</span>
+                        {/* 잔여 포인트 */}
+                        <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
+                          <CoinIcon size="sm" />
+                          <p className="text-[12px] text-[#7A4A00] font-bold">
+                            잔여포인트&nbsp;
+                            <span className="text-[13px] text-[#5C3A1E]">
+                              {entry.balanceAfter.toLocaleString("ko-KR")}원
+                            </span>
                           </p>
                         </div>
                       </div>
@@ -446,7 +452,7 @@ export default function PointHistoryPage() {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-sm font-bold text-[#5C3A1E]">
-                      {formatWon(p.paymentAmount)} · +{formatPoints(p.chargedPoints)}
+                      포인트 {formatWon(p.paymentAmount)} 충전 · +{formatWon(p.chargedPoints)}
                     </p>
                     <span className="rounded-full border px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 border-emerald-300">
                       결제완료
