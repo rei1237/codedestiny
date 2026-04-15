@@ -446,11 +446,21 @@ export default function SiteFooterHub() {
         <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 코인 환불 정책">
           <h3 style={BUSINESS_TITLE}>사업자 정보 및 코인 환불 정책</h3>
           <ul style={BUSINESS_LIST}>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스니티 (Code Destiny)</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스티니 (Code Destiny)</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> {LEGAL_OWNER_NAME}</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>연락처:</span> 010-7180-7398</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>이메일:</span> seongbae555@gmail.com</li>
             <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
           </ul>
+          <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(71,85,105,0.45)" }}>
+            <p style={{ margin: "0 0 6px", fontSize: "12px", color: "#cbd5e1", lineHeight: 1.72, wordBreak: "keep-all" }}>
+              모든 거래에 대한 책임과 환불, 민원 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
+            </p>
+            <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.72 }}>
+              민원담당자 : 박병하 (010-7180-7398)
+            </p>
+          </div>
           <div style={REFUND_BOX}>
             <p style={REFUND_HEAD}>코인 충전형 디지털 운세 서비스 환불 기준</p>
             <p style={REFUND_SUMMARY}>
@@ -468,25 +478,8 @@ export default function SiteFooterHub() {
             <p style={REFUND_NOTICE}>
               본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
             </p>
-          </div>
-          <div style={{...REFUND_BOX, marginTop: "12px"}}>
-            <p style={REFUND_HEAD}>구독형 요금제 환불 기준</p>
-            <p style={REFUND_SUMMARY}>
-              구독 코인은 요금제 선택 즉시 차감되며, 멤버십 전용 콘텐츠 이용 시 디지털 콘텐츠 서비스 개시로
-              처리됩니다. 관련 환불은 전자상거래법 및 콘텐츠산업 관련 법령을 기준으로 심사됩니다.
-            </p>
-            <ul style={REFUND_RULES}>
-              <li style={REFUND_RULE_ITEM}>구독 시작 후 <strong>7일 이내</strong>라도 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면 서비스 이용이 개시된 것으로 보며, 단순 변심 전액 환불은 제한됩니다.</li>
-              <li style={REFUND_RULE_ITEM}>위 이용 기록이 있는 경우 환불은 이용 횟수·이용 기간·제공 혜택·결제대행 수수료 등 관련 기준을 반영해 공제 후 잔여분만 가능합니다.</li>
-              <li style={REFUND_RULE_ITEM}>콘텐츠 진입 시 노출되는 확인 팝업에서 <strong>[확인]</strong>을 누른 행위는 서비스 개시 및 환불 제한 조건에 대한 전자적 동의로 간주됩니다.</li>
-              <li style={REFUND_RULE_ITEM}>무료 체험 기간 중 멤버십 전용 콘텐츠를 이용한 뒤 유료로 자동 전환된 경우, 이미 서비스가 개시된 것으로 보아 전환 직후 환불이 제한될 수 있습니다.</li>
-              <li style={REFUND_RULE_ITEM}>자동 갱신으로 차감된 코인은 갱신일로부터 <strong>24시간 이내</strong>에 미사용 상태인 경우에만 취소 및 환원 신청이 가능합니다.</li>
-              <li style={REFUND_RULE_ITEM}>구독 기간이 만료되었거나 이미 갱신이 완료된 회차분은 환원 대상에서 제외됩니다.</li>
-              <li style={REFUND_RULE_ITEM}>이벤트·프로모션 할인가로 구독한 경우, 환원 금액은 실제 차감된 코인 기준으로 산정됩니다.</li>
-              <li style={REFUND_RULE_ITEM}>환불 신청은 고객센터(문의하기) 또는 고객지원 이메일로 접수하며, 처리까지 영업일 기준 3~10일이 소요됩니다.</li>
-            </ul>
-            <p style={REFUND_NOTICE}>
-              본 구독 환불 정책은 이용약관과 함께 적용되며, 강행규정과 충돌 시 관계 법령이 우선합니다.
+            <p style={{ ...REFUND_NOTICE, color: "#fda4af", marginTop: "8px", fontWeight: 700 }}>
+              환불 처리는 결제 수단(카드)으로만 가능합니다.
             </p>
           </div>
         </section>

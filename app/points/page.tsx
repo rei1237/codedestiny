@@ -164,7 +164,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "30코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "코인 잔액 충분 시 만료 후 자동 갱신",
+      "자동결제 없음 — 포인트 충전 후 수동 갱신",
     ],
   },
   {
@@ -180,7 +180,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "50코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "코인 잔액 충분 시 만료 후 자동 갱신",
+      "자동결제 없음 — 포인트 충전 후 수동 갱신",
     ],
     badge:        "추천",
   },
@@ -197,7 +197,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "100코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "코인 잔액 충분 시 만료 후 자동 갱신",
+      "자동결제 없음 — 포인트 충전 후 수동 갱신",
     ],
     badge:        "VVIP",
   },
@@ -532,8 +532,8 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>구독은 <strong>코인 잔액과 무관하게 30일간 유지</strong>됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>멤버십 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>코인 잔액이 충분하면 만료 시 <strong>자동으로 갱신</strong>됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>갱신은 언제든 <strong>수동으로도 가능</strong>하며, 갱신 시 30일이 추가됩니다.</li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">🚫</span><strong>자동결제(정기결제)는 없습니다.</strong> 포인트를 먼저 충전한 뒤 직접 구독을 활성화해야 이용할 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>만료 후 연장을 원하시면 포인트를 충전하고 <strong>수동으로 갱신</strong>하면 됩니다 (갱신 시 30일 추가).</li>
           </ul>
         </div>
 
@@ -650,8 +650,8 @@ function SubscriptionSection({
             <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-[10.5px] font-bold text-sky-700">
               👨‍👩‍👧 최대 15 프로필 한 구독으로
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10.5px] font-bold text-amber-700">
-              🔄 잔액 충분 시 자동 갱신
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
+              🚫 자동결제 없음 · 수동 갱신
             </span>
           </div>
         </div>
@@ -762,8 +762,8 @@ function SubscriptionSection({
 
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 구독 코인은 즉시 차감되며 <strong>30일간 유효</strong>합니다.</p>
-        <p className="text-[11px] text-amber-700 font-semibold">🔄 코인 잔액이 충분하면 만료 시 자동으로 갱신됩니다.</p>
-        <p className="text-[11px] text-[#9B7040]">🔄 갱신 취소는 언제든 수동으로 가능합니다.</p>
+        <p className="text-[11px] text-rose-600 font-bold">🚫 자동결제(정기결제)는 없습니다. 포인트를 먼저 충전해야 구독을 활성화할 수 있습니다.</p>
+        <p className="text-[11px] text-[#9B7040]">🔄 만료 후 연장은 포인트 충전 후 수동으로 갱신하면 됩니다.</p>
       </div>
     </section>
   );
@@ -1609,12 +1609,20 @@ export default function PointsPage() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center gap-1.5 self-start rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:shadow-[0_4px_14px_rgba(180,130,30,0.22)] hover:-translate-y-0.5 active:scale-[0.97]"
-              >
-                ← 서비스 화면으로
-              </Link>
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/points/history"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-800 shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-amber-100 hover:-translate-y-0.5 active:scale-[0.97]"
+                >
+                  📋 포인트 관리
+                </Link>
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#EDDBA3] bg-white/90 px-4 py-2.5 text-sm font-bold text-[#7A5230] shadow-[0_2px_10px_rgba(180,130,30,0.14)] transition-all hover:bg-[#FFF8E0] hover:shadow-[0_4px_14px_rgba(180,130,30,0.22)] hover:-translate-y-0.5 active:scale-[0.97]"
+                >
+                  ← 서비스 화면으로
+                </Link>
+              </div>
             </div>
           </div>
         </header>
@@ -1622,18 +1630,7 @@ export default function PointsPage() {
         {/* ② 잔액 카드 */}
         <WalletCard name={authUser?.name || "사용자"} points={currentPoints} />
 
-        {/* ③ 프로필 구독 섹션 */}
-        <SubscriptionSection
-          subscription={subscription}
-          currentPoints={currentPoints}
-          onSubscribe={handleSubscribe}
-          isProcessing={isProcessing}
-          isFlowerAdminMode={isFlowerAdminSessionClient()}
-          adminTestTier={adminTestTier}
-          onChangeAdminTestTier={setAdminTestTier}
-        />
-
-        {/* ④ 섹션 구분선 */}
+        {/* ③ 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
@@ -1671,6 +1668,12 @@ export default function PointsPage() {
                 결제 완료 즉시 서버에서 금액 검증 후 코인이 반영됩니다.
                 <span className="mx-1">·</span>
                 황금 돼지 제왕 보물고 (엔페러 리저브)는 코인 효율이 가장 높습니다.
+              </p>
+            </div>
+            <div className="mt-3 flex items-start gap-2 rounded-[14px] border border-rose-100 bg-rose-50/70 px-3.5 py-3">
+              <span className="text-rose-500 flex-shrink-0 mt-0.5">⏳</span>
+              <p className="text-[11px] text-rose-800 leading-relaxed font-semibold">
+                포인트 충전 소진 기한은 결제한 시점부터 1년 이내까지이며, 미사용한 포인트는 소멸됩니다.
               </p>
             </div>
           </div>
