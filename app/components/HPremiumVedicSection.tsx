@@ -267,91 +267,60 @@ function PDFDownloadButton({
 
   const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
 
-  const handleDownload = useCallback(async () => {
+  const handleDownload = useCallback(() => {
     if (doneChapters.length === 0) { setError("먼저 챕터를 하나 이상 생성해 주세요."); return; }
     setLoading(true); setError("");
     try {
-      const chaptersData = doneChapters.map(m => {
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+      const chaptersHtml = doneChapters.map((m, i) => {
         const r = chapters[m.num].result!;
-        return { chapter: m.num, title: m.title, subtitle: m.subtitle, icon: m.icon, text: r.text, sections: r.sections };
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
-      if (!pdfModule) {
-        throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
-      }
-
-      const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
-      // 한글 렌더링을 위한 나눔고딕 폰트 등록
-      try {
-        Font.register({
-          family: "NanumGothic",
-          src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
-        });
-      } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
-      const styles = StyleSheet.create({
-        page: {
-          fontFamily: "NanumGothic",
-          backgroundColor: "#07091a",
-          color: "#e2e8f0",
-          padding: 34,
-        },
-        coverTitle: { fontSize: 24, fontWeight: "bold", color: "#d4a017", textAlign: "center", marginBottom: 8 },
-        coverSub: { fontSize: 11, color: "#a78bfa", textAlign: "center", marginBottom: 4 },
-        coverMeta: { fontSize: 10, color: "#94a3b8", textAlign: "center", marginBottom: 2 },
-        divider: { borderBottomWidth: 1, borderBottomColor: "#1e2a4a", marginVertical: 14 },
-        chapterTitle: { fontSize: 16, fontWeight: "bold", color: "#f8fafc", marginBottom: 4, marginTop: 12 },
-        chapterSub: { fontSize: 10, color: "#93c5fd", marginBottom: 8 },
-        sectionTitle: { fontSize: 12, fontWeight: "bold", color: "#d4a017", marginBottom: 4, marginTop: 8 },
-        body: { fontSize: 10, color: "#cbd5e1", lineHeight: 1.7, marginBottom: 6 },
-      });
-
-      const chartInfo = chart
-        ? [
-            `라그나: ${chart.lagna.signSanskrit} ${chart.lagna.degree}°`,
-            `달 낙샤트라: ${chart.moonNakshatra.ko}(${chart.moonNakshatra.name}) pada${chart.moonNakshatra.pada}`,
-            `아트마카라카: ${chart.atmakaraka.nameKo}`,
-            `현재 대운: ${chart.vimshottariDasha.current?.planet ?? "-"}`,
-          ]
-        : [];
-
-      const doc = (
-        <Document>
-          <Page size="A4" style={styles.page}>
-            <Text style={styles.coverTitle}>Karmic Blueprint</Text>
-            <Text style={styles.coverSub}>CODE : DESTINY · VEDIC PREMIUM REPORT</Text>
-            {birthDate ? <Text style={styles.coverMeta}>출생일: {birthDate}</Text> : null}
-            {userName ? <Text style={styles.coverMeta}>이름: {userName}</Text> : null}
-            {chartInfo.map((line: string, i: number) => (
-              <Text key={`chart-${i}`} style={styles.coverMeta}>{line}</Text>
-            ))}
-            <View style={styles.divider} />
-
-            {chaptersData.map((ch, idx: number) => (
-              <View key={`ch-${ch.chapter}-${idx}`}>
-                <Text style={styles.chapterTitle}>{ch.icon} Chapter {String(ch.chapter).padStart(2, "0")} · {ch.title}</Text>
-                <Text style={styles.chapterSub}>{ch.subtitle}</Text>
-                {Array.isArray(ch.sections) && ch.sections.length > 0
-                  ? ch.sections.map((sec: { title: string; body: string }, sIdx: number) => (
-                      <View key={`sec-${ch.chapter}-${sIdx}`}>
-                        <Text style={styles.sectionTitle}>{sec.title}</Text>
-                        <Text style={styles.body}>{sec.body || ""}</Text>
-                      </View>
-                    ))
-                  : <Text style={styles.body}>{ch.text || ""}</Text>}
-                <View style={styles.divider} />
-              </View>
-            ))}
-          </Page>
-        </Document>
-      );
-
-      const blob = await pdf(doc).toBlob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = `vedic-karmic-blueprint-${Date.now()}.pdf`;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
+        const secHtml = Array.isArray(r.sections) && r.sections.length > 0
+          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+          : `<div class="sec">${nl2p(r.text)}</div>`;
+        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+      }).join("");
+      const chartMeta = chart ? [
+        `라그나: ${chart.lagna?.signSanskrit ?? "-"} ${chart.lagna?.degree ?? ""}°`,
+        `달 낙샤트라: ${chart.moonNakshatra?.ko ?? "-"}`,
+        `아트마카라카: ${chart.atmakaraka?.nameKo ?? "-"}`,
+        `현재 대운: ${chart.vimshottariDasha?.current?.planet ?? "-"}`,
+      ] : [];
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>베다 점성술 Karmic Blueprint</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0}
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:48px 40px;background:linear-gradient(160deg,#07091a 0%,#1a0e00 100%)}
+.cover-badge{font-size:0.65rem;letter-spacing:0.3em;color:rgba(212,160,23,0.7);text-transform:uppercase;margin-bottom:20px}
+.cover-title{font-size:2.4rem;font-weight:700;color:#d4a017;line-height:1.3;margin-bottom:12px}
+.cover-sub{font-size:0.95rem;color:rgba(148,163,184,0.8);letter-spacing:0.08em;margin-bottom:8px}
+.cover-meta{font-size:0.88rem;color:rgba(251,191,36,0.65);margin:4px 0}
+.ch{max-width:760px;margin:0 auto;padding:40px 40px 32px}
+.ch-hdr{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid rgba(212,160,23,0.15)}
+.cn{font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(212,160,23,0.6)}
+.ct{font-size:1.8rem;font-weight:700;color:#f8fafc;margin:10px 0 8px;line-height:1.3}
+.cs{font-size:0.88rem;color:rgba(212,160,23,0.75)}
+.ch-body{color:rgba(203,213,225,0.9);font-size:0.97rem;line-height:2.0}
+.sec{margin-bottom:28px}
+.sh{font-size:1.1rem;font-weight:600;color:#d4a017;margin-bottom:12px;padding-left:12px;border-left:3px solid rgba(212,160,23,0.5)}
+.sb p,.sec p{font-size:0.95rem;line-height:2.0;color:rgba(203,213,225,0.9);margin-bottom:12px}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#07091a!important}.ch{page-break-before:always}.cover{page-break-after:always;min-height:auto;padding:80px 40px}}
+</style></head><body>
+<div class="cover">
+  <p class="cover-badge">CODE : DESTINY · VEDIC PREMIUM REPORT</p>
+  <h1 class="cover-title">🕉️ Karmic Blueprint</h1>
+  <p class="cover-sub">베다 점성술 심층 분석 · Jyotish Astrology</p>
+  ${birthDate ? `<p class="cover-meta">출생일: ${escH(birthDate)}</p>` : ""}
+  ${userName ? `<p class="cover-meta">이름: ${escH(userName)}</p>` : ""}
+  ${chartMeta.map(l => `<p class="cover-meta">${escH(l)}</p>`).join("")}
+</div>
+${chaptersHtml}
+</body></html>`;
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { setError("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
     } catch (e) {
       setError(e instanceof Error ? e.message : "PDF 생성 중 오류");
     } finally { setLoading(false); }

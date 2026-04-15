@@ -277,36 +277,95 @@ export default function HPremiumNamingSection({
     setNames(generateNames(surname, yongshinElement, seed));
   };
 
+  const handlePrintNames = () => {
+    if (names.length === 0) return;
+    const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const cardsHtml = names.map((n, i) => {
+      const c1color = n.c1.o === "목" ? "#4ade80" : n.c1.o === "화" ? "#f87171" : n.c1.o === "토" ? "#fbbf24" : n.c1.o === "금" ? "#c8a85e" : "#60a5fa";
+      const c2color = n.c2.o === "목" ? "#4ade80" : n.c2.o === "화" ? "#f87171" : n.c2.o === "토" ? "#fbbf24" : n.c2.o === "금" ? "#c8a85e" : "#60a5fa";
+      return `<div class="card" style="page-break-inside:avoid">
+  <div class="rank">${i + 1}위</div>
+  <div class="name">${escH(n.name)}</div>
+  <div class="hanja">${escH(n.c1.c)}(${escH(n.c1.m)}) · ${escH(n.c2.c)}(${escH(n.c2.m)})</div>
+  <div class="badges"><span style="color:${c1color};border-color:${c1color}55">${escH(n.c1.o)}</span><span style="color:${c2color};border-color:${c2color}55">${escH(n.c2.o)}</span></div>
+  <div class="meta">원격 ${n.won} · 형격 ${n.hyeong} · 점수 ${n.score}</div>
+</div>`;
+    }).join("");
+    const pillarsLine = analysis ? `년주 ${escH(analysis.pillars.year.gan)}${escH(analysis.pillars.year.zhi)} · 월주 ${escH(analysis.pillars.month.gan)}${escH(analysis.pillars.month.zhi)} · 일주 ${escH(analysis.pillars.day.gan)}${escH(analysis.pillars.day.zhi)} · 시주 ${escH(analysis.pillars.hour.gan)}${escH(analysis.pillars.hour.zhi)}` : "";
+    const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>명운 프리미엄 작명 추천</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0;padding:32px}
+.cover{text-align:center;padding:48px 0 32px}
+.cover-badge{font-size:0.65rem;letter-spacing:0.3em;color:rgba(212,175,55,0.7);text-transform:uppercase;margin-bottom:16px}
+.cover-title{font-size:2rem;font-weight:700;color:#d4af37;margin-bottom:10px}
+.cover-meta{font-size:0.88rem;color:rgba(212,175,55,0.6);margin:4px 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:800px;margin:32px auto 0}
+.card{border-radius:14px;border:1px solid rgba(212,175,55,0.25);background:rgba(2,8,23,0.85);padding:16px;text-align:center}
+.rank{font-size:0.7rem;letter-spacing:0.2em;color:rgba(212,175,55,0.6);margin-bottom:6px}
+.name{font-size:1.6rem;font-weight:700;color:#f5e27a;margin-bottom:6px}
+.hanja{font-size:0.78rem;color:#94a3b8;margin-bottom:10px}
+.badges{display:flex;gap:6px;justify-content:center;margin-bottom:8px}
+.badges span{border-radius:999px;border:1px solid;padding:2px 10px;font-size:0.72rem}
+.meta{font-size:0.72rem;color:rgba(148,163,184,0.6)}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#07091a!important}}
+</style></head><body>
+<div class="cover">
+  <p class="cover-badge">CODE : DESTINY · NAMING PREMIUM</p>
+  <h1 class="cover-title">✨ 명운(明運) 프리미엄 작명 추천</h1>
+  ${pillarsLine ? `<p class="cover-meta">${pillarsLine}</p>` : ""}
+  ${analysis?.yongshin ? `<p class="cover-meta">용신: ${escH(analysis.yongshin)}</p>` : ""}
+</div>
+<div class="grid">${cardsHtml}</div>
+</body></html>`;
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) { alert("팝업이 차단됐습니다. 허용 후 재시도해 주세요."); return; }
+    win.document.open(); win.document.write(fullHtml); win.document.close();
+    win.focus();
+    setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+  };
+
   if (showIntro) {
     return (
-      <section style={{ padding: "26px 22px", color: "#e2e8f0" }}>
-        <div style={{ display: "grid", gap: 16 }}>
-          <img
-            src="/fuctionassets/naming.webp"
-            alt="명운 프리미엄 작명"
-            style={{ width: "100%", borderRadius: 16, border: "1px solid rgba(212,175,55,0.35)", objectFit: "cover", maxHeight: 280 }}
-          />
-          <p style={{ margin: 0, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(212,175,55,0.85)", fontWeight: 700 }}>
-            Naming Premium
-          </p>
-          <h3 style={{ margin: 0, fontSize: "1.35rem", lineHeight: 1.35, color: "#fff", fontWeight: 900 }}>
-            명운(明運) 사주 프리미엄 작명
-          </h3>
-          <p style={{ margin: 0, color: "rgba(226,232,240,0.78)", fontSize: "0.92rem", lineHeight: 1.8 }}>
-            이 기능은 서비스 만세력 엔진 결과를 기준으로 용신을 계산해 이름을 추천합니다. 무료 미리보기는 제공하지 않으며,
-            결과 열람은 코인 게이트를 통과한 뒤 가능합니다.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 999, padding: "7px 14px", background: "rgba(212,175,55,0.14)", border: "1px solid rgba(212,175,55,0.42)", color: "#f5e27a", fontWeight: 800, fontSize: "0.8rem" }}>
-              🐷 이용 코인 700
-            </span>
+      <section style={{ width:"100%", maxWidth:820, margin:"0 auto", padding:"0 0 24px", fontFamily:"'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <div style={{ borderRadius:24, overflow:"hidden", border:"1px solid rgba(212,175,55,0.25)", background:"linear-gradient(145deg, rgba(2,8,23,0.96) 0%, rgba(15,23,42,0.86) 100%)" }}>
+          <img src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명" style={{ width:"100%", maxHeight:260, objectFit:"cover", opacity:0.42 }} />
+          <div style={{ padding:"20px 20px 24px" }}>
+            <p style={{ color:"rgba(212,175,55,0.7)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:0 }}>NAMING PREMIUM · 사주 작명</p>
+            <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.5rem", margin:"8px 0 6px" }}>명운(明運) 사주 프리미엄 작명</h3>
+            <p style={{ color:"rgba(226,232,240,0.72)", fontSize:"0.88rem", lineHeight:1.8, margin:"0 0 16px" }}>
+              출생 사주 기반 용신 오행을 분석하여 원격·형격 수리까지 검증한 9가지 최적 이름을 추천합니다.
+            </p>
+            <div style={{ display:"grid", gap:8, marginBottom:16 }}>
+              {[
+                { icon:"🧮", title:"사주 만세력 기반 용신 분석", desc:"AI 엔진으로 용신 오행 자동 계산" },
+                { icon:"🔢", title:"원격·형격 수리 검증", desc:"81수리 흉수 완전 필터링" },
+                { icon:"☯️", title:"오행 상생 배치", desc:"성씨·이름 오행 상생 원칙 준수" },
+                { icon:"📊", title:"9개 최적 후보 추천", desc:"점수 순 정렬, 한자·뜻 풀이 제공" },
+              ].map((f) => (
+                <div key={f.title} style={{ borderRadius:12, border:"1px solid rgba(212,175,55,0.2)", background:"rgba(2,12,30,0.55)", padding:"10px 12px", display:"flex", alignItems:"flex-start", gap:10 }}>
+                  <span style={{ fontSize:"1.1rem", marginTop:1 }}>{f.icon}</span>
+                  <div>
+                    <p style={{ margin:0, color:"rgba(212,175,55,0.94)", fontSize:"0.82rem", fontWeight:700 }}>{f.title}</p>
+                    <p style={{ margin:"3px 0 0", color:"rgba(148,163,184,0.76)", fontSize:"0.74rem" }}>{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
             <button
               type="button"
-              onClick={onStartGeneration}
+              onClick={() => onStartGeneration?.()}
               disabled={generationLoading}
-              style={{ border: 0, borderRadius: 12, padding: "11px 18px", background: "linear-gradient(135deg,#d4af37,#9f7a1a)", color: "#0b1220", fontWeight: 900, cursor: generationLoading ? "not-allowed" : "pointer", opacity: generationLoading ? 0.6 : 1 }}
+              style={{
+                width:"100%", padding:"14px 0", borderRadius:14,
+                border: generationLoading ? "1px solid rgba(100,116,139,0.3)" : "1px solid rgba(212,175,55,0.5)",
+                background: generationLoading ? "rgba(20,30,50,0.6)" : "linear-gradient(135deg, rgba(45,30,5,0.92) 0%, rgba(20,18,5,0.92) 100%)",
+                color: generationLoading ? "rgba(148,163,184,0.5)" : "rgba(212,175,55,0.98)",
+                fontSize:"0.96rem", fontWeight:800, letterSpacing:"0.1em",
+                cursor: generationLoading ? "wait" : "pointer", opacity: generationLoading ? 0.72 : 1,
+              }}
             >
-              {generationLoading ? "코인 확인 중..." : "700코인으로 작명 시작"}
+              {generationLoading ? "코인 확인 중…" : "프리미엄 작명 시작하기"}
             </button>
           </div>
         </div>
@@ -315,80 +374,95 @@ export default function HPremiumNamingSection({
   }
 
   return (
-    <section style={{ padding: "24px 20px", color: "#e2e8f0" }}>
-      <div style={{ display: "grid", gap: 14 }}>
-        <h3 style={{ margin: 0, fontSize: "1.15rem", color: "#fff", fontWeight: 900 }}>명운 작명 생성</h3>
+    <section style={{ width:"100%", maxWidth:820, margin:"0 auto", padding:"0 0 32px", fontFamily:"'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <div style={{ borderRadius:24, border:"1px solid rgba(212,175,55,0.2)", background:"linear-gradient(145deg, rgba(2,8,23,0.95) 0%, rgba(15,23,42,0.85) 100%)", padding:"28px 24px", display:"grid", gap:20 }}>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 10 }}>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            성씨
-            <select value={surname} onChange={(e) => setSurname(e.target.value)} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }}>
-              {Object.keys(SURNAME_DB).map((sn) => (
-                <option key={sn} value={sn}>{sn}({SURNAME_DB[sn].hanja})</option>
-              ))}
-            </select>
-          </label>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            성별
-            <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }}>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
-            </select>
-          </label>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            출생연
-            <input value={year} onChange={(e) => setYear(e.target.value)} type="number" min={1900} max={2099} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }} />
-          </label>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            월
-            <input value={month} onChange={(e) => setMonth(e.target.value)} type="number" min={1} max={12} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }} />
-          </label>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            일
-            <input value={day} onChange={(e) => setDay(e.target.value)} type="number" min={1} max={31} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }} />
-          </label>
-          <label style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>
-            시(0-23)
-            <input value={hour} onChange={(e) => setHour(e.target.value)} type="number" min={0} max={23} style={{ width: "100%", marginTop: 4, borderRadius: 8, background: "#101827", color: "#e5e7eb", border: "1px solid rgba(148,163,184,0.4)", padding: "8px 10px" }} />
-          </label>
+        {/* 헤더 */}
+        <div>
+          <p style={{ color:"rgba(212,175,55,0.65)", fontSize:"0.66rem", letterSpacing:"0.28em", margin:"0 0 6px", textTransform:"uppercase" }}>NAMING PREMIUM · 사주 작명</p>
+          <h3 style={{ color:"#fff", fontWeight:900, fontSize:"1.3rem", margin:0 }}>명운(明運) 사주 프리미엄 작명</h3>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button type="button" onClick={analyzeSaju} disabled={analyzing} style={{ border: 0, borderRadius: 10, padding: "10px 14px", background: "linear-gradient(135deg,#1d4ed8,#2563eb)", color: "white", fontWeight: 800, cursor: analyzing ? "not-allowed" : "pointer", opacity: analyzing ? 0.6 : 1 }}>
-            {analyzing ? "사주 분석 중..." : "사주 분석"}
+        {/* 입력 폼 */}
+        <div style={{ borderRadius:16, border:"1px solid rgba(212,175,55,0.15)", background:"rgba(2,8,23,0.5)", padding:"18px 16px" }}>
+          <p style={{ color:"rgba(212,175,55,0.7)", fontSize:"0.75rem", fontWeight:700, letterSpacing:"0.12em", margin:"0 0 12px", textTransform:"uppercase" }}>출생 정보 입력</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))", gap:10 }}>
+            {[
+              { label:"성씨", content: <select value={surname} onChange={(e) => setSurname(e.target.value)} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }}>{Object.keys(SURNAME_DB).map((sn) => (<option key={sn} value={sn}>{sn}({SURNAME_DB[sn].hanja})</option>))}</select> },
+              { label:"성별", content: <select value={gender} onChange={(e) => setGender(e.target.value)} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }}><option value="male">남성</option><option value="female">여성</option></select> },
+              { label:"출생연", content: <input value={year} onChange={(e) => setYear(e.target.value)} type="number" min={1900} max={2099} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }} /> },
+              { label:"월", content: <input value={month} onChange={(e) => setMonth(e.target.value)} type="number" min={1} max={12} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }} /> },
+              { label:"일", content: <input value={day} onChange={(e) => setDay(e.target.value)} type="number" min={1} max={31} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }} /> },
+              { label:"시(0-23)", content: <input value={hour} onChange={(e) => setHour(e.target.value)} type="number" min={0} max={23} style={{ width:"100%", marginTop:4, borderRadius:8, background:"rgba(2,8,23,0.9)", color:"#e5e7eb", border:"1px solid rgba(148,163,184,0.3)", padding:"8px 10px", fontSize:"0.85rem" }} /> },
+            ].map(({ label, content }) => (
+              <label key={label} style={{ fontSize:"0.78rem", color:"rgba(148,163,184,0.85)", fontWeight:600 }}>{label}{content}</label>
+            ))}
+          </div>
+        </div>
+
+        {/* 액션 버튼 */}
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <button type="button" onClick={analyzeSaju} disabled={analyzing}
+            style={{ flex:1, minWidth:120, border:0, borderRadius:12, padding:"12px 0", background: analyzing ? "rgba(30,58,138,0.5)" : "linear-gradient(135deg,#1d4ed8,#2563eb)", color:"white", fontWeight:800, fontSize:"0.9rem", cursor: analyzing ? "not-allowed" : "pointer", opacity: analyzing ? 0.65 : 1 }}>
+            {analyzing ? "사주 분석 중…" : "🔮 사주 분석"}
           </button>
-          <button type="button" onClick={makeRecommendations} disabled={!analysis} style={{ border: 0, borderRadius: 10, padding: "10px 14px", background: "linear-gradient(135deg,#d4af37,#9f7a1a)", color: "#0b1220", fontWeight: 900, cursor: !analysis ? "not-allowed" : "pointer", opacity: !analysis ? 0.55 : 1 }}>
-            이름 추천 생성
+          <button type="button" onClick={makeRecommendations} disabled={!analysis}
+            style={{ flex:1, minWidth:120, border:"1px solid rgba(212,175,55,0.4)", borderRadius:12, padding:"12px 0", background: !analysis ? "rgba(20,30,50,0.5)" : "linear-gradient(135deg, rgba(45,30,5,0.92), rgba(20,18,5,0.92))", color: !analysis ? "rgba(148,163,184,0.4)" : "rgba(212,175,55,0.98)", fontWeight:800, fontSize:"0.9rem", cursor: !analysis ? "not-allowed" : "pointer" }}>
+            ✨ 이름 추천 생성
           </button>
         </div>
 
-        {error ? <p style={{ margin: 0, color: "#fda4af", fontSize: "0.85rem" }}>⚠ {error}</p> : null}
+        {error ? <p style={{ margin:0, color:"rgba(252,165,165,0.88)", fontSize:"0.84rem" }}>⚠ {error}</p> : null}
 
+        {/* 사주 분석 결과 */}
         {analysis ? (
-          <div style={{ borderRadius: 12, border: "1px solid rgba(212,175,55,0.24)", background: "rgba(15,23,42,0.55)", padding: "12px 14px" }}>
-            <p style={{ margin: "0 0 8px", fontWeight: 800, color: "#f5e27a", fontSize: "0.85rem" }}>만세력 분석 결과</p>
-            <p style={{ margin: "0 0 8px", fontSize: "0.84rem", color: "#cbd5e1" }}>
-              년주 {analysis.pillars.year.gan}{analysis.pillars.year.zhi} · 월주 {analysis.pillars.month.gan}{analysis.pillars.month.zhi} · 일주 {analysis.pillars.day.gan}{analysis.pillars.day.zhi} · 시주 {analysis.pillars.hour.gan}{analysis.pillars.hour.zhi}
-            </p>
-            <p style={{ margin: 0, fontSize: "0.84rem", color: "#e2e8f0" }}>
-              용신: <strong style={{ color: "#f5e27a" }}>{analysis.yongshin}</strong>
+          <div style={{ borderRadius:14, border:"1px solid rgba(212,175,55,0.22)", background:"rgba(2,8,23,0.55)", padding:"14px 16px" }}>
+            <p style={{ margin:"0 0 10px", fontWeight:800, color:"rgba(212,175,55,0.9)", fontSize:"0.8rem", letterSpacing:"0.15em", textTransform:"uppercase" }}>만세력 분석 결과</p>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:10 }}>
+              {(["year", "month", "day", "hour"] as const).map((k, i) => {
+                const labels = ["년주", "월주", "일주", "시주"];
+                const p = analysis.pillars[k];
+                return (
+                  <span key={k} style={{ borderRadius:10, border:"1px solid rgba(212,175,55,0.2)", background:"rgba(10,20,40,0.7)", padding:"6px 12px", fontSize:"0.82rem", color:"rgba(226,232,240,0.88)" }}>
+                    <span style={{ color:"rgba(212,175,55,0.65)", fontSize:"0.7rem", marginRight:4 }}>{labels[i]}</span>
+                    {p.ganKr || p.gan}{p.zhiKr || p.zhi}
+                  </span>
+                );
+              })}
+            </div>
+            <p style={{ margin:0, fontSize:"0.88rem", color:"#e2e8f0" }}>
+              용신 오행: <strong style={{ color:"#f5e27a", fontSize:"1rem" }}>{analysis.yongshin}</strong>
             </p>
           </div>
         ) : null}
 
+        {/* 추천 이름 목록 */}
         {names.length > 0 ? (
-          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
-            {names.map((n) => (
-              <article key={`${n.name}-${n.c1.c}-${n.c2.c}`} style={{ borderRadius: 12, border: "1px solid rgba(148,163,184,0.25)", background: "rgba(2,6,23,0.65)", padding: "12px 14px" }}>
-                <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 900, color: "#fff" }}>{n.name}</p>
-                <p style={{ margin: "4px 0 8px", fontSize: "0.78rem", color: "#94a3b8" }}>{n.c1.c}({n.c1.m}) · {n.c2.c}({n.c2.m})</p>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                  <span style={{ borderRadius: 999, border: `1px solid ${elementBadgeColor(n.c1.o)}55`, padding: "2px 8px", fontSize: "0.72rem", color: elementBadgeColor(n.c1.o) }}>{n.c1.o}</span>
-                  <span style={{ borderRadius: 999, border: `1px solid ${elementBadgeColor(n.c2.o)}55`, padding: "2px 8px", fontSize: "0.72rem", color: elementBadgeColor(n.c2.o) }}>{n.c2.o}</span>
-                </div>
-                <p style={{ margin: 0, fontSize: "0.75rem", color: "#cbd5e1" }}>원격 {n.won} · 형격 {n.hyeong} · 점수 {n.score}</p>
-              </article>
-            ))}
+          <div style={{ display:"grid", gap:14 }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
+              <p style={{ margin:0, color:"rgba(212,175,55,0.9)", fontSize:"0.8rem", fontWeight:800, letterSpacing:"0.15em", textTransform:"uppercase" }}>추천 이름 {names.length}개</p>
+              <button type="button" onClick={handlePrintNames}
+                style={{ border:"1px solid rgba(212,175,55,0.4)", borderRadius:10, padding:"8px 16px", background:"rgba(45,30,5,0.7)", color:"rgba(212,175,55,0.9)", fontWeight:700, fontSize:"0.82rem", cursor:"pointer" }}>
+                📄 인쇄 / PDF 저장
+              </button>
+            </div>
+            <div style={{ display:"grid", gap:10, gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))" }}>
+              {names.map((n, i) => (
+                <article key={`${n.name}-${n.c1.c}-${n.c2.c}`}
+                  style={{ borderRadius:14, border:"1px solid rgba(212,175,55,0.2)", background:"rgba(2,8,23,0.7)", padding:"14px 16px" }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                    <span style={{ fontSize:"1.4rem", fontWeight:900, color:"#f5e27a" }}>{n.name}</span>
+                    <span style={{ fontSize:"0.68rem", color:"rgba(212,175,55,0.55)", letterSpacing:"0.1em" }}>#{i + 1}</span>
+                  </div>
+                  <p style={{ margin:"0 0 8px", fontSize:"0.78rem", color:"#94a3b8" }}>{n.c1.c}({n.c1.m}) · {n.c2.c}({n.c2.m})</p>
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+                    <span style={{ borderRadius:999, border:`1px solid ${elementBadgeColor(n.c1.o)}55`, padding:"2px 10px", fontSize:"0.72rem", color:elementBadgeColor(n.c1.o) }}>{n.c1.o}</span>
+                    <span style={{ borderRadius:999, border:`1px solid ${elementBadgeColor(n.c2.o)}55`, padding:"2px 10px", fontSize:"0.72rem", color:elementBadgeColor(n.c2.o) }}>{n.c2.o}</span>
+                  </div>
+                  <p style={{ margin:0, fontSize:"0.74rem", color:"rgba(148,163,184,0.65)" }}>원격 {n.won} · 형격 {n.hyeong} · 점수 {n.score}</p>
+                </article>
+              ))}
+            </div>
           </div>
         ) : null}
       </div>

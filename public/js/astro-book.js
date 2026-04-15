@@ -74,26 +74,6 @@
 
   function _qs(id) { return document.getElementById(id); }
 
-  function _consumeAutoGenerateFlag(actionName) {
-    try {
-      if (window.__cdAutoGeneratePremiumBookAction === actionName) {
-        window.__cdAutoGeneratePremiumBookAction = '';
-        return true;
-      }
-    } catch (_) {}
-    return false;
-  }
-
-  function _consumeAutoDownloadFlag(actionName) {
-    try {
-      if (window.__cdAutoDownloadPremiumBookAction === actionName) {
-        window.__cdAutoDownloadPremiumBookAction = '';
-        return true;
-      }
-    } catch (_) {}
-    return false;
-  }
-
   function _applyAstroTheme(modal) {
     if (!modal || !modal.style) return;
     modal.style.setProperty('--lb-void', '#050914');
@@ -259,7 +239,6 @@
   }
 
   window.openAstroBookModal = function() {
-    var _autoGenerate = _consumeAutoGenerateFlag('gotoAstrologyPremium');
     var modal = _qs('astroBookModal');
     if (!modal) { console.error('[점성술 코즈믹 차트] astroBookModal 요소를 찾을 수 없습니다.'); return; }
     _applyAstroTheme(modal);
@@ -275,7 +254,7 @@
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile = profile;
     var saved = _abLoadSaved(profile);
-    if (!_autoGenerate && saved && saved.chapters && saved.chapters.some(Boolean)) {
+    if (saved && saved.chapters && saved.chapters.some(Boolean)) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('abResultScreen');
@@ -298,13 +277,6 @@
     document.body.classList.add('lb-modal-open');
     try { modal.setAttribute('aria-hidden','false'); var closeBtn=modal.querySelector('.lb-modal__close'); if(closeBtn) setTimeout(function(){closeBtn.focus();},60); } catch(_){}
     _prefillAstroProfile(profile);
-    if (_autoGenerate) {
-      setTimeout(function(){
-        try {
-          if (typeof window.generateAstroBook === 'function') window.generateAstroBook();
-        } catch (_) {}
-      },120);
-    }
   };
 
   function _prefillAstroProfile(profile) {
@@ -414,13 +386,6 @@
         if (_nameEl) _nameEl.textContent='✨ '+(prof.name||'사용자')+'님의 점성술 코즈믹 차트';
         if (_dateEl) { var _b=prof.birth||{}; _dateEl.textContent=[_b.year,_b.month,_b.day].filter(Boolean).join('.')+'생 · 🗓️ '+new Date().toLocaleDateString('ko-KR')+' 발행'; }
         _abSaveResult(prof);
-        if (_consumeAutoDownloadFlag('gotoAstrologyPremium')) {
-          setTimeout(function(){
-            try {
-              if (typeof window.downloadAstroBookPdf === 'function') window.downloadAstroBookPdf();
-            } catch (_) {}
-          }, 180);
-        }
         return;
       }
       if (chapterMsg) chapterMsg.textContent=LOADING_MSGS[idx]||'분석 중...';
@@ -433,58 +398,108 @@
     })(0);
   };
 
-  window.downloadAstroBookPdf = function() {
-    if (!_chapters.some(Boolean)) { alert('먼저 점성술 코즈믹 차트를 생성해 주세요.'); return; }
-    var profile=window.__cdActiveBirthProfile||{};
-    var name=(profile.name||'사용자')+'님의 점성술 코즈믹 차트';
-    var birth=profile.birth||{};
-    var issued=new Date().toLocaleDateString('ko-KR');
-    var bodyHtml='';
-    for (var i=0;i<12;i++) {
-      if (!_chapters[i]) continue;
-      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
+  window.downloadAstroBookPdf = function () {
+    if (!_chapters.some(Boolean)) {
+      alert('먼저 점성술 운세 리포트를 생성해 주세요.');
+      return;
     }
-    var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
-      '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +
-      'body{font-family:"Noto Serif KR",serif;color:#0a0820;background:#fff;margin:0;padding:0;}' +
+    var profile = window.__cdActiveBirthProfile || {};
+    var name = (profile.name || '사용자') + '의 점성술 운세 리포트';
+    var birth = profile.birth || {};
+    var birthStr = [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + (birth.day ? '일' : '');
+    var issued = new Date().toLocaleDateString('ko-KR');
+
+    var bodyHtml = '';
+    for (var i = 0; i < 12; i++) {
+      if (!_chapters[i]) continue;
+      bodyHtml +=
+        '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
+        '<div class="chapter-header">' +
+        '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
+        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
+        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
+        '</div>' +
+        '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
+        '</div>';
+    }
+
+    var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
+      '<meta charset="UTF-8">' +
+      '<meta name="color-scheme" content="light">' +
+      '<title>' + _escHtml(name) + '</title>' +
+      '<style>' +
+      '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
+      ':root{color-scheme:light;}' +
+      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a0a;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#060312 0%,#0d0624 50%,#060312 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#fde68a;margin-bottom:16px;text-transform:uppercase;}' +
-      '.cover-title{font-size:2.6rem;font-weight:700;margin:0 0 12px;color:#fff;}' +
-      '.cover-name{font-size:1.6rem;color:#fde68a;margin:8px 0;}' +
-      '.cover-info{font-size:0.9rem;color:#94a3b8;}' +
+      '.cover-title{font-size:2.8rem;font-weight:700;margin:0 0 12px;color:#fff;letter-spacing:0.05em;}' +
+      '.cover-subtitle{font-size:1.1rem;color:#fbbf24;margin:0 0 16px;}' +
+      '.cover-deco-line{width:80px;height:1px;background:rgba(253,230,138,0.4);margin:0 auto 24px;}' +
+      '.cover-name{font-size:1.6rem;color:#fde68a;margin:0 0 8px;}' +
+      '.cover-info{font-size:0.9rem;color:#c9d4e0;margin:0 0 8px;}' +
+      '.cover-deco{font-size:1.5rem;color:#b45309;letter-spacing:0.3em;margin-top:40px;}' +
+      '.toc{padding:48px 56px;page-break-after:always;}' +
+      '.toc-title{font-size:1.4rem;color:#92400e;margin-bottom:32px;border-bottom:2px solid #f59e0b;padding-bottom:12px;}' +
+      '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:0.97rem;}' +
+      '.toc-num{color:#b45309;font-weight:700;min-width:80px;}' +
+      '.toc-main{color:#1c0a00;}' +
+      '.toc-sub{font-size:0.82rem;color:#78350f;margin-top:2px;}' +
       '.chapter{padding:52px 60px;}' +
-      '.chapter-header{border-bottom:2px solid #fde68a;margin-bottom:28px;padding-bottom:20px;}' +
-      '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#b45309;text-transform:uppercase;}' +
-      '.chapter-title{font-size:1.5rem;font-weight:700;color:#1c0a00;margin:8px 0 6px;}' +
-      '.chapter-sub{font-size:0.9rem;color:#78350f;margin:0;}' +
-      'h1,h2,h3,h4{color:#1c0a00;}p{line-height:1.9;color:#1c0a00;}' +
-      'blockquote{border-left:3px solid #fbbf24;padding:8px 16px;background:#fffbeb;margin:16px 0;}' +
-      'strong{color:#92400e;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
+      '.chapter-header{border-bottom:2px solid #fde68a;margin-bottom:36px;padding-bottom:26px;}' +
+      '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#b45309;text-transform:uppercase;display:block;margin-bottom:10px;}' +
+      '.chapter-title{font-size:1.9rem;font-weight:700;color:#1c0a00;margin:0 0 8px;}' +
+      '.chapter-sub{font-size:0.95rem;color:#78350f;margin:0;}' +
+      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d1008;}' +
+      '.zb-md-h1,.zb-md-h2{font-size:1.3rem;font-weight:700;color:#1c0a00;margin:30px 0 13px;border-left:4px solid #f59e0b;padding:6px 12px;background:#fffbeb;}' +
+      '.zb-md-h3{font-size:1.1rem;font-weight:700;color:#78350f;margin:22px 0 9px;border-left:2px solid #fbbf24;padding-left:10px;}' +
+      '.zb-md-h4{font-size:1rem;font-weight:700;color:#92400e;margin:16px 0 6px;}' +
+      '.zb-md-p{margin:0 0 16px;}' +
+      '.zb-md-ul{margin:0 0 16px;padding-left:26px;}' +
+      '.zb-md-li{margin-bottom:8px;line-height:1.8;}' +
+      '.zb-md-hr{border:none;border-top:2px solid #fde68a;margin:28px 0;}' +
+      '.zb-md-blockquote{border-left:4px solid #fbbf24;background:#fffbeb;padding:14px 20px;margin:20px 0;border-radius:0 8px 8px 0;color:#78350f;font-style:italic;font-size:0.97rem;line-height:1.75;}' +
+      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.cover{min-height:auto;padding:80px 60px;}.chapter{padding:52px 60px;}}' +
       '</style></head><body>' +
-      '<div class="cover"><p class="cover-badge">✨ COSMIC CHART PREMIUM</p>' +
-      '<h1 class="cover-title">점성술 코즈믹 차트</h1>' +
-      '<p style="font-size:1rem;color:#fde68a;margin-bottom:20px;">열대황도 행성 배치 기반 12챕터 인생 분석 리포트</p>' +
-      '<div style="width:60px;height:1px;background:rgba(253,230,138,0.4);margin:0 auto 20px;"></div>' +
-      '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 코즈믹 차트</p>' +
-      '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
-      '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
-      bodyHtml+'</body></html>';
-    var win = (window._cdPreOpenedBookWin && !window._cdPreOpenedBookWin.closed) ? window._cdPreOpenedBookWin : window.open('', '_blank', 'width=900,height=700');
-    window._cdPreOpenedBookWin = null;
+      '<div class="cover">' +
+      '<p class="cover-badge">✦ COSMIC CHART PREMIUM</p>' +
+      '<h1 class="cover-title">점성술 운세 리포트</h1>' +
+      '<p class="cover-subtitle">서양 점성술 12궁 기반 운세 분석 리포트</p>' +
+      '<div class="cover-deco-line"></div>' +
+      '<h2 class="cover-name">' + _escHtml(profile.name || '사용자') + ' 님</h2>' +
+      '<p class="cover-info">' + _escHtml(birthStr) + (profile.gender === 'F' ? ' · 여성' : profile.gender === 'M' ? ' · 남성' : '') + '</p>' +
+      '<p class="cover-info">발행일: ' + _escHtml(issued) + '</p>' +
+      '<div class="cover-deco">★ ☽ ✦</div>' +
+      '</div>' +
+      '<div class="toc">' +
+      '<h2 class="toc-title">목차 (Table of Contents)</h2>' +
+      _chapters.map(function (c, i) {
+        if (!c) return '';
+        return '<div class="toc-item">' +
+          '<div><div style="display:flex;gap:8px;align-items:baseline">' +
+          '<span class="toc-num">Chapter ' + (i + 1) + '</span>' +
+          '<span class="toc-main">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>' +
+          '<div style="padding-left:88px"><span class="toc-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</span></div></div>' +
+          '</div>';
+      }).join('') +
+      '</div>' +
+      bodyHtml +
+      '</body></html>';
+
+    var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
-      alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
+      alert('팝업이 차단되어 PDF 생성을 할 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
     win.document.open();
     win.document.write(fullHtml);
     win.document.close();
     win.focus();
+    try { alert('PDF 다운로드 대화 상자가 열립니다. 확인 후 인쇄를 실행해 주세요.'); } catch (_) {}
     setTimeout(function () { try { win.print(); } catch (_) {} }, 1200);
   };
 
-  // 액션 등록
-  var _alEl = document.querySelector('[data-action="closeAstroBookModal"]');
-  document.addEventListener('click', function(e) {
+  document.addEventListener(  document.addEventListener('click', function(e) {
     var el=e.target; if(!el) return;
     var node=el.closest?el.closest('[data-action]'):null; if(!node) return;
     var act=node.getAttribute('data-action');

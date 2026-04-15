@@ -433,70 +433,58 @@ export default function HPremiumAstrologySection({
     }
   }, [showIntro, resetAstrologyState]);
 
-  const handleDownloadAstroPDF = useCallback(async () => {
+  const handleDownloadAstroPDF = useCallback(() => {
     const doneChapters = CHAPTER_META.filter(m => chapters[m.num]?.step === "done");
-    if (doneChapters.length === 0) { setPdfError("먼저 쳭터를 하나 이상 생성해 주세요."); return; }
+    if (doneChapters.length === 0) { setPdfError("먼저 챕터를 하나 이상 생성해 주세요."); return; }
     setPdfLoading(true); setPdfError("");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
-      if (!pdfModule) throw new Error("PDF 라이브러리를 로드할 수 없습니다.");
-      const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
-      try {
-        Font.register({
-          family: "NanumGothic",
-          src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
-        });
-      } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
-      const styles = StyleSheet.create({
-        page: { fontFamily: "NanumGothic", backgroundColor: "#07091a", color: "#e2e8f0", padding: 38 },
-        coverTitle: { fontSize: 24, fontWeight: "bold", color: "#fbbf24", textAlign: "center", marginBottom: 8 },
-        coverSub: { fontSize: 11, color: "#a78bfa", textAlign: "center", marginBottom: 4 },
-        divider: { borderBottomWidth: 1, borderBottomColor: "#1e2a4a", marginVertical: 14 },
-        chapterTitle: { fontSize: 16, fontWeight: "bold", color: "#f8fafc", marginBottom: 4, marginTop: 14 },
-        chapterSub: { fontSize: 10, color: "#fde68a", marginBottom: 8 },
-        sectionTitle: { fontSize: 12, fontWeight: "bold", color: "#fbbf24", marginBottom: 4, marginTop: 10 },
-        body: { fontSize: 10, color: "#cbd5e1", lineHeight: 1.8, marginBottom: 6 },
-      });
-      const chartLines: string[] = chart ? [
-        `ASC: ${chart.ascendant?.signKo ?? "-"} ${chart.ascendant?.degree ?? ""}\u00b0`,
-        `\u2600\ufe0f \ud0dc양: ${chart.planets?.Sun?.signKo ?? "-"} | \ud83c\udf19 달: ${chart.planets?.Moon?.signKo ?? "-"}`,
-      ] : [];
-      const MyDoc = (
-        <Document>
-          <Page size="A4" style={styles.page}>
-            <Text style={styles.coverTitle}>점성술 프리미엄 리포트</Text>
-            <Text style={styles.coverSub}>CODE : DESTINY \u00b7 ASTROLOGY PREMIUM</Text>
-            {chartLines.map((l: string, i: number) => <Text key={i} style={styles.coverSub}>{l}</Text>)}
-            <View style={styles.divider} />
-            {doneChapters.map((ch, idx: number) => {
-              const r = chapters[ch.num].result!;
-              return (
-                <View key={`ch-${ch.num}-${idx}`}>
-                  <Text style={styles.chapterTitle}>{ch.icon} Chapter {String(ch.num).padStart(2, "0")} \u00b7 {ch.title}</Text>
-                  <Text style={styles.chapterSub}>{ch.subtitle}</Text>
-                  {r.sections.length > 0
-                    ? r.sections.map((sec: { title: string; body: string }, si: number) => (
-                        <View key={si}>
-                          <Text style={styles.sectionTitle}>{sec.title}</Text>
-                          <Text style={styles.body}>{sec.body ?? ""}</Text>
-                        </View>
-                      ))
-                    : <Text style={styles.body}>{r.text ?? ""}</Text>}
-                  <View style={styles.divider} />
-                </View>
-              );
-            })}
-          </Page>
-        </Document>
-      );
-      const blob = await pdf(MyDoc).toBlob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `점성술_프리미엄_${birthYear}-${birthMonth}-${birthDay}.pdf`;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+      const chartLine = chart
+        ? `ASC: ${escH(chart.ascendant?.signKo ?? "-")} | ☀️ ${escH(chart.planets?.Sun?.signKo ?? "-")} | 🌙 ${escH(chart.planets?.Moon?.signKo ?? "-")}`
+        : "";
+      const chaptersHtml = doneChapters.map((m, i) => {
+        const r = chapters[m.num].result!;
+        const secHtml = r.sections.length > 0
+          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+          : `<div class="sec">${nl2p(r.text)}</div>`;
+        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(m.icon)} CHAPTER ${m.num}</span><h2 class="ct">${escH(m.title)}</h2><p class="cs">${escH(m.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+      }).join("");
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>점성술 프리미엄 리포트</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0}
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:48px 40px;background:linear-gradient(160deg,#07091a 0%,#0f172a 100%)}
+.cover-badge{font-size:0.65rem;letter-spacing:0.3em;color:rgba(251,191,36,0.7);text-transform:uppercase;margin-bottom:20px}
+.cover-title{font-size:2.4rem;font-weight:700;color:#fbbf24;line-height:1.3;margin-bottom:12px}
+.cover-sub{font-size:0.95rem;color:rgba(167,139,250,0.8);letter-spacing:0.1em;margin-bottom:8px}
+.cover-meta{font-size:0.88rem;color:rgba(148,163,184,0.7);margin:3px 0}
+.cover-chart{margin-top:24px;padding:14px 24px;border-radius:999px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);font-size:0.85rem;color:rgba(253,230,138,0.88);letter-spacing:0.06em}
+.ch{max-width:760px;margin:0 auto;padding:40px 40px 32px}
+.ch-hdr{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid rgba(251,191,36,0.15)}
+.cn{font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(251,191,36,0.6)}
+.ct{font-size:1.8rem;font-weight:700;color:#f8fafc;margin:10px 0 8px;line-height:1.3}
+.cs{font-size:0.88rem;color:rgba(251,191,36,0.75)}
+.ch-body{color:rgba(203,213,225,0.9);font-size:0.97rem;line-height:2.0}
+.sec{margin-bottom:28px}
+.sh{font-size:1.1rem;font-weight:600;color:#fbbf24;margin-bottom:12px;padding-left:12px;border-left:3px solid rgba(251,191,36,0.5)}
+.sb p,.sec p{font-size:0.95rem;line-height:2.0;color:rgba(203,213,225,0.9);margin-bottom:12px}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#07091a!important}.ch{page-break-before:always}.cover{page-break-after:always;min-height:auto;padding:80px 40px}}
+</style></head><body>
+<div class="cover">
+  <p class="cover-badge">CODE : DESTINY · ASTROLOGY PREMIUM REPORT</p>
+  <h1 class="cover-title">✨ 점성술 프리미엄 리포트</h1>
+  <p class="cover-sub">Western Astrology · 서양 점성술 심층 분석</p>
+  <p class="cover-meta">출생일: ${escH(birthYear)}-${escH(birthMonth)}-${escH(birthDay)}</p>
+  ${chartLine ? `<div class="cover-chart">${escH(chartLine)}</div>` : ""}
+</div>
+${chaptersHtml}
+</body></html>`;
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { setPdfError("팝업 차단됨. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
     } catch (e) {
       setPdfError(e instanceof Error ? e.message : "PDF 생성 중 오류가 발생했습니다.");
     } finally {

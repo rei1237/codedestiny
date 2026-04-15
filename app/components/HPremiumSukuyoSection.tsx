@@ -929,85 +929,61 @@ export default function HPremiumSukuyoSection({
     setAllGenerating(false);
   }, [buildSukuyoPayload, sukuyo, allGenerating, chapters, postSukuyoJson]);
 
-  // PDF 다운로드 (텍스트 기반 간이)
-  const handleDownloadPDF = useCallback(async () => {
+  // PDF 다운로드 (인쇄 창 방식)
+  const handleDownloadPDF = useCallback(() => {
     if (!sukuyo) return;
     const doneChapters = chapters.filter((c) => c.step === "done" && c.result);
     if (!doneChapters.length) return;
-
-    // 동적 import로 @react-pdf/renderer 로드
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfModule = await import("@react-pdf/renderer" as any).catch(() => null);
-    if (!pdfModule) { alert("PDF 라이브러리를 로드할 수 없습니다."); return; }
-    const { pdf, Document, Page, Text, View, StyleSheet, Font } = pdfModule;
-    // 한글 렌더링을 위한 나눔고딕 폰트 등록
     try {
-      Font.register({
-        family: "NanumGothic",
-        src: "https://fonts.gstatic.com/s/nanumgothic/v21/PN_3Rfi-oW3hYwmKDpxS7F_z_6Ij4h6Y.woff2",
-      });
-    } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
-    const styles = StyleSheet.create({
-      page: {
-        fontFamily: "NanumGothic",
-        backgroundColor: "#0a0f1e",
-        color: "#e2e8f0",
-        padding: 40,
-      },
-      coverTitle: { fontSize: 26, fontWeight: "bold", color: "#7dd3fc", marginBottom: 8, textAlign: "center" },
-      coverSub: { fontSize: 12, color: "#94a3b8", textAlign: "center", marginBottom: 4 },
-      coverMansion: { fontSize: 16, color: "#fff", textAlign: "center", marginTop: 12, marginBottom: 4 },
-      chapterTitle: { fontSize: 18, fontWeight: "bold", color: "#7dd3fc", marginBottom: 8, marginTop: 24 },
-      sectionTitle: { fontSize: 13, fontWeight: "bold", color: "#bae6fd", marginBottom: 4, marginTop: 14 },
-      bodyText: { fontSize: 10, color: "#cbd5e1", lineHeight: 1.85, marginBottom: 6 },
-      divider: { borderBottomWidth: 1, borderBottomColor: "#1e3a5f", marginVertical: 16 },
-    });
-
-    const MyDoc = (
-      <Document>
-        <Page size="A4" style={styles.page}>
-          {/* 커버 */}
-          <Text style={styles.coverTitle}>숙요점 · Moonlight Strategy Report</Text>
-          <Text style={styles.coverSub}>달빛 전략 심층 분석 · 27수 완전 해석</Text>
-          <Text style={styles.coverMansion}>
-            {sukuyo.icon} {sukuyo.mansion}숙({sukuyo.mansionCh}宿) · {sukuyo.direction}방 · {sukuyo.element}
-          </Text>
-          <Text style={styles.coverSub}>음력 {sukuyo.lunarMonth}월 {sukuyo.lunarDay}일 탄생</Text>
-          <View style={styles.divider} />
-
-          {/* 챕터별 내용 */}
-          {doneChapters.map((cs) => {
-            const r = cs.result!;
-            const meta = CHAPTER_META[r.chapter - 1];
-            return (
-              <View key={r.chapter}>
-                <Text style={styles.chapterTitle}>
-                  {meta.icon} Chapter {String(r.chapter).padStart(2, "0")}. {meta.title}
-                </Text>
-                <Text style={styles.bodyText}>{meta.subtitle}</Text>
-                {r.sections.length > 0
-                  ? r.sections.map((sec, si) => (
-                      <View key={si}>
-                        <Text style={styles.sectionTitle}>{sec.title}</Text>
-                        <Text style={styles.bodyText}>{sec.body}</Text>
-                      </View>
-                    ))
-                  : <Text style={styles.bodyText}>{r.text}</Text>}
-                <View style={styles.divider} />
-              </View>
-            );
-          })}
-        </Page>
-      </Document>
-    );
-
-    const blob = await pdf(MyDoc).toBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `숙요점_달빛전략_${sukuyo.mansion}숙_${birthDate.year}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const escH = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const nl2p = (s: unknown) => String(s ?? "").split(/\n{2,}/).map(p => `<p>${escH(p).replace(/\n/g, "<br/>")}</p>`).join("");
+      const chaptersHtml = doneChapters.map((cs, i) => {
+        const r = cs.result!;
+        const meta = CHAPTER_META[r.chapter - 1];
+        const secHtml = r.sections.length > 0
+          ? r.sections.map(s => `<div class="sec"><h3 class="sh">${escH(s.title)}</h3><div class="sb">${nl2p(s.body)}</div></div>`).join("")
+          : `<div class="sec">${nl2p(r.text)}</div>`;
+        return `<div class="ch" style="page-break-before:${i > 0 ? "always" : "auto"}"><div class="ch-hdr"><span class="cn">${escH(meta.icon)} CHAPTER ${r.chapter}</span><h2 class="ct">${escH(meta.title)}</h2><p class="cs">${escH(meta.subtitle)}</p></div><div class="ch-body">${secHtml}</div></div>`;
+      }).join("");
+      const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>숙요점 달빛 전략 리포트</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#060d1e;color:#e2e8f0}
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:48px 40px;background:linear-gradient(160deg,#060d1e 0%,#0c1a2e 100%)}
+.cover-badge{font-size:0.65rem;letter-spacing:0.3em;color:rgba(125,211,252,0.7);text-transform:uppercase;margin-bottom:20px}
+.cover-title{font-size:2.2rem;font-weight:700;color:#7dd3fc;line-height:1.3;margin-bottom:12px}
+.cover-sub{font-size:0.95rem;color:rgba(148,163,184,0.8);letter-spacing:0.08em;margin-bottom:8px}
+.cover-mansion{font-size:1.5rem;color:#fff;margin:20px 0 8px;font-weight:600}
+.cover-meta{font-size:0.88rem;color:rgba(186,230,253,0.7);margin:3px 0}
+.ch{max-width:760px;margin:0 auto;padding:40px 40px 32px}
+.ch-hdr{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid rgba(125,211,252,0.15)}
+.cn{font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(125,211,252,0.6)}
+.ct{font-size:1.8rem;font-weight:700;color:#f8fafc;margin:10px 0 8px;line-height:1.3}
+.cs{font-size:0.88rem;color:rgba(125,211,252,0.75)}
+.ch-body{color:rgba(203,213,225,0.9);font-size:0.97rem;line-height:2.0}
+.sec{margin-bottom:28px}
+.sh{font-size:1.1rem;font-weight:600;color:#7dd3fc;margin-bottom:12px;padding-left:12px;border-left:3px solid rgba(125,211,252,0.5)}
+.sb p,.sec p{font-size:0.95rem;line-height:2.0;color:rgba(203,213,225,0.9);margin-bottom:12px}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#060d1e!important}.ch{page-break-before:always}.cover{page-break-after:always;min-height:auto;padding:80px 40px}}
+</style></head><body>
+<div class="cover">
+  <p class="cover-badge">CODE : DESTINY · MOONLIGHT STRATEGY REPORT</p>
+  <h1 class="cover-title">🌙 숙요점 달빛 전략 리포트</h1>
+  <p class="cover-sub">27수 별자리 흐름 · 달빛 전략 심층 분석</p>
+  <div class="cover-mansion">${escH(sukuyo.icon)} ${escH(sukuyo.mansion)}숙(${escH(sukuyo.mansionCh)}宿)</div>
+  <p class="cover-meta">${escH(sukuyo.direction)}방 · ${escH(sukuyo.element)}</p>
+  <p class="cover-meta">음력 ${escH(sukuyo.lunarMonth)}월 ${escH(sukuyo.lunarDay)}일 탄생</p>
+</div>
+${chaptersHtml}
+</body></html>`;
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) { alert("팝업이 차단됐습니다. 브라우저 주소창에서 팝업을 허용 후 재시도해 주세요."); return; }
+      win.document.open(); win.document.write(fullHtml); win.document.close();
+      win.focus();
+      setTimeout(() => { try { win.print(); } catch (_) {} }, 1200);
+    } catch (e) {
+      console.error("PDF 생성 오류", e);
+    }
   }, [sukuyo, chapters, birthDate]);
 
   const doneCount = chapters.filter((c) => c.step === "done").length;
