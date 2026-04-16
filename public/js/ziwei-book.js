@@ -5,8 +5,6 @@
 (function () {
   'use strict';
 
-  var MIN_CHAPTER_CHARS = 5000;
-
   /* ─────────────── 챕터 상수 ─────────────── */
   var CHAPTER_TITLES = [
     '🌌 내 인생의 주인공 캐릭터 — 명궁(命宮) 완전 해독',
@@ -81,26 +79,6 @@
 
   /* ─────────────── 유틸 ─────────────── */
   function _qs(id) { return document.getElementById(id); }
-
-  function _consumeAutoGenerateFlag(actionName) {
-    try {
-      if (window.__cdAutoGeneratePremiumBookAction === actionName) {
-        window.__cdAutoGeneratePremiumBookAction = '';
-        return true;
-      }
-    } catch (_) {}
-    return false;
-  }
-
-  function _consumeAutoDownloadFlag(actionName) {
-    try {
-      if (window.__cdAutoDownloadPremiumBookAction === actionName) {
-        window.__cdAutoDownloadPremiumBookAction = '';
-        return true;
-      }
-    } catch (_) {}
-    return false;
-  }
 
   function _trace(stage, payload) {
     try {
@@ -407,7 +385,6 @@
 
   /* ─────────────── 모달 열기/닫기 ─────────────── */
   window.openZiweiBookModal = function (profileArg) {
-    var _autoGenerate = _consumeAutoGenerateFlag('gotoZiweiPremium');
     _trace('FUNCTION_ENTER_OPEN_MODAL', {
       hasArgProfile: !!(profileArg && profileArg.birth),
       hasGlobalProfile: !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth)
@@ -450,45 +427,34 @@
       } catch (_dpE) {}
     }
     if (!profile) {
-      _trace('OPEN_MODAL_NO_PROFILE', {});
-      modal.style.display = 'flex';
-      modal.style.visibility = 'visible';
-      modal.style.pointerEvents = 'auto';
-      modal.style.zIndex = '100120';
-      document.body.style.overflow = 'hidden';
-      try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
-      _showScreen('zbNoProfileScreen');
-      return;
+      // 관리자 바이패스 모드: 프로필 없어도 시작 화면 표시
+      var _zbIsAdmin = window.__cdAdminBypass || (typeof window.isAdminUser === 'function' && window.isAdminUser());
+      if (_zbIsAdmin) {
+        // 빈 프로필로 계속 진행 (시작 화면에서 입력 가능)
+      } else {
+        _trace('OPEN_MODAL_NO_PROFILE', {});
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.pointerEvents = 'auto';
+        modal.style.zIndex = '100120';
+        document.body.style.overflow = 'hidden';
+        try { modal.setAttribute('aria-hidden', 'false'); } catch(_) {}
+        _showScreen('zbNoProfileScreen');
+        return;
+      }
     }
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
     }
 
-    // 프로필 카드에서 진입했을 때 자미두수 계산 상태를 즉시 동기화
-    try {
-      if (typeof window.computeProfileForModal === 'function') {
-        window.computeProfileForModal(profile);
-      }
-      var pb = (profile && profile.birth) || {};
-      if (!window._currentZiweiData && pb.year && typeof window.calcZiweiPalaces === 'function') {
-        window._currentZiweiData = window.calcZiweiPalaces(
-          Number(pb.year),
-          Number(pb.month || 1),
-          Number(pb.day || 1),
-          Number(pb.hour || 0),
-          Number(pb.minute || 0)
-        );
-      }
-    } catch (_) {}
-
-    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 5000자+, ⚠️ 없음)이어야 복원
+    // 저장된 결과 복원 시도 — 유효 챕터 10개 이상(각 500자+, ⚠️ 없음)이어야 복원
     var saved = _zbLoadSaved(profile);
     var _savedValidCount = saved && saved.chapters
       ? saved.chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length
       : 0;
-    if (!_autoGenerate && _savedValidCount >= 10) {
+    if (_savedValidCount >= 10) {
       _chapters = saved.chapters;
       _currentChapter = 1;
       _showScreen('zbResultScreen');
@@ -540,16 +506,6 @@
 
     // 프로필 정보 미리 채우기
     _prefillProfileInfo(profile);
-
-    if (_autoGenerate) {
-      setTimeout(function () {
-        try {
-          if (typeof window.generateZiweiBook === 'function') {
-            window.generateZiweiBook();
-          }
-        } catch (_) {}
-      }, 120);
-    }
 
     try {
       modal.setAttribute('aria-hidden', 'false');
@@ -699,50 +655,12 @@
         d.classList.toggle('zb-ch-dot--done', ch <= done);
         d.classList.toggle('zb-ch-dot--active', ch === done + 1 && done < 13);
         if (!wasDone && ch <= done) {
-          d.style.animation = 'none'; requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});
+          d.style.animation = 'none'; void d.offsetWidth; d.style.animation = '';
         }
       });
     }
 
     _setProgress(0);
-
-    function _collectZiweiStructuredData() {
-      try {
-        var zd = window._currentZiweiData || null;
-        if (!zd || !Array.isArray(zd.palaceStarData)) return null;
-        return {
-          palaceStarData: zd.palaceStarData.map(function (row) {
-            return {
-              palace: row && row.palace ? String(row.palace) : '',
-              branch: row && row.branch ? String(row.branch) : '',
-              stars: Array.isArray(row && row.stars) ? row.stars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : [],
-              auxStars: Array.isArray(row && row.auxStars) ? row.auxStars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : [],
-              badStars: Array.isArray(row && row.badStars) ? row.badStars.map(function (s) {
-                return {
-                  name: s && s.name ? String(s.name) : '',
-                  strength: s && s.strength ? String(s.strength) : '',
-                  borrowed: !!(s && s.borrowed)
-                };
-              }) : []
-            };
-          })
-        };
-      } catch (_) {
-        return null;
-      }
-    }
 
     function _fetchChapter(idx) {
       var _zbAuthToken = '';
@@ -759,7 +677,6 @@
           body: JSON.stringify({
             sessionId:   idx + 1,
             ziweiData:   ziweiData,
-            ziweiStructured: _collectZiweiStructuredData(),
             birthYear:   _zbProfile.birthYear,
             birthMonth:  _zbProfile.birthMonth,
             birthDay:    _zbProfile.birthDay,
@@ -784,7 +701,7 @@
       if (idx >= 13) {
         clearInterval(_mysticTimer); _mysticTimer = null; _generating = false;
         var _validCount = _chapters.filter(function(c) {
-          return typeof c === 'string' && c.trim().length >= MIN_CHAPTER_CHARS && !/^⚠️/.test(c.trim());
+          return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
         }).length;
         _trace('PDF_GENERATION_COMPLETE', { validChapters: _validCount, totalChapters: 13 });
         if (_validCount < 10) {
@@ -811,19 +728,12 @@
         _zbSaveResult(prof);
         var epBanner = _qs('zbEpilogueBanner');
         if (epBanner) epBanner.style.display = '';
-        if (_consumeAutoDownloadFlag('gotoZiweiPremium')) {
-          setTimeout(function () {
-            try {
-              if (typeof window.downloadZiweiBookPdf === 'function') window.downloadZiweiBookPdf();
-            } catch (_) {}
-          }, 180);
-        }
         return;
       }
       if (chapterMsg) chapterMsg.textContent = LOADING_MSGS[idx] || '분석 중...';
       _fetchChapter(idx).then(function (data) {
         var _zbText = data && typeof data.text === 'string' ? data.text.trim() : '';
-      if (data && data.ok && _zbText.length >= MIN_CHAPTER_CHARS) {
+      if (data && data.ok && _zbText.length >= 500) {
           _chapters[idx] = data.text;
           _trace('CHAPTER_DATA_RECEIVED', { chapter: idx + 1, length: _zbText.length });
         } else {
@@ -954,8 +864,7 @@
       bodyHtml +
       '</body></html>';
 
-    var win = (window._cdPreOpenedBookWin && !window._cdPreOpenedBookWin.closed) ? window._cdPreOpenedBookWin : window.open('', '_blank', 'width=900,height=700');
-    window._cdPreOpenedBookWin = null;
+    var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
       _trace('PDF_WINDOW_BLOCKED', {});
       alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');

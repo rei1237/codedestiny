@@ -216,12 +216,15 @@
     var _pvwEl=document.getElementById('tilePvwOverlay');if(_pvwEl){_pvwEl.classList.remove('pvw-open');_pvwEl.style.opacity='0';_pvwEl.style.pointerEvents='none';_pvwEl.style.visibility='hidden';setTimeout(function(){_pvwEl.style.opacity='';_pvwEl.style.pointerEvents='';_pvwEl.style.visibility='';},400);}
     var profile=_getActiveBirthProfile();
     if(!profile){
-      modal.style.display='flex'; modal.style.zIndex='100120';
-      document.body.style.overflow='hidden';
-      document.body.classList.add('lb-modal-open');
-      try{modal.setAttribute('aria-hidden','false');}catch(_){ }
-      _showScreen('vdNoProfileScreen');
-      return;
+      var _vdIsAdmin=window.__cdAdminBypass||(typeof window.isAdminUser==='function'&&window.isAdminUser());
+      if(!_vdIsAdmin){
+        modal.style.display='flex'; modal.style.zIndex='100120';
+        document.body.style.overflow='hidden';
+        document.body.classList.add('lb-modal-open');
+        try{modal.setAttribute('aria-hidden','false');}catch(_){}
+        _showScreen('vdNoProfileScreen');
+        return;
+      }
     }
     if(!window.__cdActiveBirthProfile||!window.__cdActiveBirthProfile.birth) window.__cdActiveBirthProfile=profile;
     var saved=_vdLoadSaved(profile);
@@ -312,7 +315,7 @@
         var wasDone=d.classList.contains('zb-ch-dot--done');
         d.classList.toggle('zb-ch-dot--done',ch<=done);
         d.classList.toggle('zb-ch-dot--active',ch===done+1&&done<12);
-        if(!wasDone&&ch<=done){d.style.animation='none';requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});}
+        if(!wasDone&&ch<=done){d.style.animation='none';void d.offsetWidth;d.style.animation='';}
       });
     }
 
@@ -364,104 +367,51 @@
     })(0);
   };
 
-  window.downloadVedicBookPdf = function () {
-    if (!_chapters.some(Boolean)) {
-      alert('먼저 베다 운세 리포트를 생성해 주세요.');
-      return;
+  window.downloadVedicBookPdf = function(){
+    if(!_chapters.some(Boolean)){alert('먼저 베다 인생 총람을 생성해 주세요.');return;}
+    var profile=window.__cdActiveBirthProfile||{};
+    var name=(profile.name||'사용자')+'님의 베다 인생 총람';
+    var birth=profile.birth||{};
+    var issued=new Date().toLocaleDateString('ko-KR');
+    var bodyHtml='';
+    for(var i=0;i<12;i++){
+      if(!_chapters[i])continue;
+      bodyHtml+='<div class="chapter" style="page-break-before:'+(i>0?'always':'auto')+'"><div class="chapter-header"><span class="chapter-num">Chapter '+(i+1)+'</span><h2 class="chapter-title">'+_escHtml(CHAPTER_TITLES[i])+'</h2><p class="chapter-sub">'+_escHtml(CHAPTER_SUBTITLES[i])+'</p></div><div class="chapter-body">'+_md2html(_chapters[i])+'</div></div>';
     }
-    var profile = window.__cdActiveBirthProfile || {};
-    var name = (profile.name || '사용자') + '의 베다 운세 리포트';
-    var birth = profile.birth || {};
-    var birthStr = [birth.year, birth.month, birth.day].filter(Boolean).join('년 ') + (birth.day ? '일' : '');
-    var issued = new Date().toLocaleDateString('ko-KR');
-
-    var bodyHtml = '';
-    for (var i = 0; i < 12; i++) {
-      if (!_chapters[i]) continue;
-      bodyHtml +=
-        '<div class="chapter" style="page-break-before:' + (i > 0 ? 'always' : 'auto') + '">' +
-        '<div class="chapter-header">' +
-        '<span class="chapter-num">Chapter ' + (i + 1) + '</span>' +
-        '<h2 class="chapter-title">' + _escHtml(CHAPTER_TITLES[i]) + '</h2>' +
-        '<p class="chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</p>' +
-        '</div>' +
-        '<div class="chapter-body">' + _md2html(_chapters[i]) + '</div>' +
-        '</div>';
-    }
-
-    var fullHtml = '<!DOCTYPE html><html lang="ko"><head>' +
-      '<meta charset="UTF-8">' +
-      '<meta name="color-scheme" content="light">' +
-      '<title>' + _escHtml(name) + '</title>' +
-      '<style>' +
-      '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
-      ':root{color-scheme:light;}' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a00;background:#ffffff!important;color-scheme:light;margin:0;padding:0;}' +
+    var fullHtml='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>'+_escHtml(name)+'</title>' +
+      '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap");' +
+      'body{font-family:"Noto Serif KR",serif;color:#0a0820;background:#fff;margin:0;padding:0;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#0f0803 0%,#1e1206 50%,#0f0803 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:0.75rem;letter-spacing:0.2em;color:#fdba74;margin-bottom:16px;text-transform:uppercase;}' +
-      '.cover-title{font-size:2.8rem;font-weight:700;margin:0 0 12px;color:#fff;letter-spacing:0.05em;}' +
-      '.cover-subtitle{font-size:1.1rem;color:#fb923c;margin:0 0 16px;}' +
-      '.cover-deco-line{width:80px;height:1px;background:rgba(253,186,116,0.4);margin:0 auto 24px;}' +
-      '.cover-name{font-size:1.6rem;color:#fdba74;margin:0 0 8px;}' +
-      '.cover-info{font-size:0.9rem;color:#c9d4e0;margin:0 0 8px;}' +
-      '.cover-deco{font-size:1.5rem;color:#c2410c;letter-spacing:0.3em;margin-top:40px;}' +
-      '.toc{padding:48px 56px;page-break-after:always;}' +
-      '.toc-title{font-size:1.4rem;color:#9a3412;margin-bottom:32px;border-bottom:2px solid #fb923c;padding-bottom:12px;}' +
-      '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:0.97rem;}' +
-      '.toc-num{color:#c2410c;font-weight:700;min-width:80px;}' +
-      '.toc-main{color:#1c0a00;}' +
-      '.toc-sub{font-size:0.82rem;color:#9a3412;margin-top:2px;}' +
+      '.cover-title{font-size:2.6rem;font-weight:700;margin:0 0 12px;color:#fff;}' +
+      '.cover-name{font-size:1.6rem;color:#fdba74;margin:8px 0;}' +
+      '.cover-info{font-size:0.9rem;color:#94a3b8;}' +
       '.chapter{padding:52px 60px;}' +
-      '.chapter-header{border-bottom:2px solid #fdba74;margin-bottom:36px;padding-bottom:26px;}' +
-      '.chapter-num{font-size:0.72rem;letter-spacing:0.25em;color:#c2410c;text-transform:uppercase;display:block;margin-bottom:10px;}' +
-      '.chapter-title{font-size:1.9rem;font-weight:700;color:#1c0a00;margin:0 0 8px;}' +
-      '.chapter-sub{font-size:0.95rem;color:#9a3412;margin:0;}' +
-      '.chapter-body{line-height:2.0;font-size:1.0rem;color:#2d1008;}' +
-      '.zb-md-h1,.zb-md-h2{font-size:1.3rem;font-weight:700;color:#1c0a00;margin:30px 0 13px;border-left:4px solid #fb923c;padding:6px 12px;background:#fff7ed;}' +
-      '.zb-md-h3{font-size:1.1rem;font-weight:700;color:#9a3412;margin:22px 0 9px;border-left:2px solid #fdba74;padding-left:10px;}' +
-      '.zb-md-h4{font-size:1rem;font-weight:700;color:#c2410c;margin:16px 0 6px;}' +
-      '.zb-md-p{margin:0 0 16px;}' +
-      '.zb-md-ul{margin:0 0 16px;padding-left:26px;}' +
-      '.zb-md-li{margin-bottom:8px;line-height:1.8;}' +
-      '.zb-md-hr{border:none;border-top:2px solid #fdba74;margin:28px 0;}' +
-      '.zb-md-blockquote{border-left:4px solid #fb923c;background:#fff7ed;padding:14px 20px;margin:20px 0;border-radius:0 8px 8px 0;color:#9a3412;font-style:italic;font-size:0.97rem;line-height:1.75;}' +
-      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.cover{min-height:auto;padding:80px 60px;}.chapter{padding:52px 60px;}}' +
+      '.chapter-header{border-bottom:2px solid #fdba74;margin-bottom:28px;padding-bottom:20px;}' +
+      '.chapter-num{font-size:0.75rem;letter-spacing:0.2em;color:#c2410c;text-transform:uppercase;}' +
+      '.chapter-title{font-size:1.5rem;font-weight:700;color:#1c0a00;margin:8px 0 6px;}' +
+      '.chapter-sub{font-size:0.9rem;color:#c2410c;margin:0;}' +
+      'h1,h2,h3,h4{color:#1c0a00;}p{line-height:1.9;color:#1c0a00;}' +
+      'blockquote{border-left:3px solid #fb923c;padding:8px 16px;background:#fff7ed;margin:16px 0;}' +
+      'strong{color:#9a3412;} ul,ol{padding-left:1.5em;} li{margin-bottom:6px;}' +
       '</style></head><body>' +
-      '<div class="cover">' +
-      '<p class="cover-badge">✦ VEDIC JYOTISH PREMIUM</p>' +
-      '<h1 class="cover-title">베다 운세 리포트</h1>' +
-      '<p class="cover-subtitle">인도 점성술(Jyotish) 기반 12챕터 운세 분석</p>' +
-      '<div class="cover-deco-line"></div>' +
-      '<h2 class="cover-name">' + _escHtml(profile.name || '사용자') + ' 님</h2>' +
-      '<p class="cover-info">' + _escHtml(birthStr) + (profile.gender === 'F' ? ' · 여성' : profile.gender === 'M' ? ' · 남성' : '') + '</p>' +
-      '<p class="cover-info">발행일: ' + _escHtml(issued) + '</p>' +
-      '<div class="cover-deco">★ ☽ ✦</div>' +
-      '</div>' +
-      '<div class="toc">' +
-      '<h2 class="toc-title">목차 (Table of Contents)</h2>' +
-      _chapters.map(function (c, i) {
-        if (!c) return '';
-        return '<div class="toc-item">' +
-          '<div><div style="display:flex;gap:8px;align-items:baseline">' +
-          '<span class="toc-num">Chapter ' + (i + 1) + '</span>' +
-          '<span class="toc-main">' + _escHtml(CHAPTER_TITLES[i]) + '</span></div>' +
-          '<div style="padding-left:88px"><span class="toc-sub">' + _escHtml(CHAPTER_SUBTITLES[i]) + '</span></div></div>' +
-          '</div>';
-      }).join('') +
-      '</div>' +
-      bodyHtml +
-      '</body></html>';
-
+      '<div class="cover"><p class="cover-badge">🪷 VEDIC JYOTISH PREMIUM</p>' +
+      '<h1 class="cover-title">베다 인생 총람</h1>' +
+      '<p style="font-size:1rem;color:#fdba74;margin-bottom:20px;">인도 조티쉬(Jyotish) 기반 12챕터 인생 흐름 리포트</p>' +
+      '<div style="width:60px;height:1px;background:rgba(253,186,116,0.4);margin:0 auto 20px;"></div>' +
+      '<p class="cover-name">'+_escHtml((profile.name||'사용자'))+'님의 베다 차트</p>' +
+      '<p class="cover-info">'+([birth.year,birth.month,birth.day].filter(Boolean).join('년 ')+(birth.day?'일':'')||'생년월일 미상')+'</p>' +
+      '<p class="cover-info" style="margin-top:10px;">🗓️ '+issued+' 발행</p></div>' +
+      bodyHtml+'</body></html>';
     var win = window.open('', '_blank', 'width=900,height=700');
     if (!win) {
-      alert('팝업이 차단되어 PDF 생성을 할 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
+      alert('팝업이 차단되어 PDF 생성 창을 열 수 없습니다.\n브라우저 팝업 허용 후 다시 시도해 주세요.');
       return;
     }
     win.document.open();
     win.document.write(fullHtml);
     win.document.close();
     win.focus();
-    try { alert('PDF 다운로드 대화 상자가 열립니다. 확인 후 인쇄를 실행해 주세요.'); } catch (_) {}
     setTimeout(function () { try { win.print(); } catch (_) {} }, 1200);
   };
 
