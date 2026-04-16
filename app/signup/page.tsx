@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
@@ -90,6 +90,12 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [loginId, setLoginId] = useState("");
+  const [password, setPassword] = useState("");
+  const [birthDate, setBirthDate] = useState("1990-01-01");
+  const [birthTime, setBirthTime] = useState("09:00");
+  const [gender, setGender] = useState<"M" | "F" | "OTHER">("OTHER");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -228,6 +234,66 @@ export default function SignupPage() {
 
   const hasRequiredConsents = agreePrivacy && agreeTerms;
 
+  const handleLocalSignup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading || socialLoading !== null) return;
+
+    if (!hasRequiredConsents) {
+      setError("개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.");
+      return;
+    }
+
+    if (!name.trim() || !loginId.trim() || password.length < 8) {
+      setError("이름, 아이디(이메일), 비밀번호를 확인해 주세요.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const nextPath = sanitizeNextPath(params.get("next")) || "/";
+
+      const response = await fetch(`${authApiBase}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: loginId.trim(),
+          password,
+          birthDate,
+          birthTime,
+          gender,
+          nextPath,
+        }),
+      });
+
+      const payload = await parseJsonResponse<SignupResult & { errors?: string[] }>(response);
+      if (!response.ok) {
+        if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+          throw new Error(payload.errors.join(" "));
+        }
+        throw new Error(payload.message || "회원가입에 실패했습니다.");
+      }
+
+      persistAuth(payload.token, payload.user);
+      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
+
+      if (payload.user?.role === "admin" && resolvedNextPath === "/") {
+        router.replace("/admin");
+        return;
+      }
+
+      router.replace(resolvedNextPath);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "회원가입 처리 중 오류가 발생했습니다.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const startSocialSignup = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
 
@@ -277,7 +343,7 @@ export default function SignupPage() {
               </p>
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">신비로운 별빛 회원가입</h1>
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
-                아이디/비밀번호 회원가입은 종료되었으며, 아래 소셜 계정으로만 회원가입할 수 있습니다.
+                아이디(이메일)/비밀번호 회원가입 또는 소셜 회원가입을 선택할 수 있습니다.
               </p>
               <p className="mt-3 text-sm text-violet-100/75">
                 이미 계정이 있다면{" "}
@@ -291,6 +357,99 @@ export default function SignupPage() {
             {error ? (
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
             ) : null}
+
+            <form className="space-y-3 mb-5" onSubmit={handleLocalSignup}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="signup-name" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">NAME</label>
+                  <input
+                    id="signup-name"
+                    type="text"
+                    autoComplete="name"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    placeholder="이름"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="signup-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">ID / EMAIL</label>
+                  <input
+                    id="signup-id"
+                    type="text"
+                    autoComplete="username"
+                    value={loginId}
+                    onChange={(event) => setLoginId(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    placeholder="test_inicis"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="signup-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
+                  <input
+                    id="signup-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    placeholder="8자 이상"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="signup-birth-date" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">BIRTH DATE</label>
+                  <input
+                    id="signup-birth-date"
+                    type="date"
+                    value={birthDate}
+                    onChange={(event) => setBirthDate(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="signup-birth-time" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">BIRTH TIME</label>
+                  <input
+                    id="signup-birth-time"
+                    type="time"
+                    value={birthTime}
+                    onChange={(event) => setBirthTime(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="signup-gender" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">GENDER</label>
+                  <select
+                    id="signup-gender"
+                    value={gender}
+                    onChange={(event) => setGender(event.target.value as "M" | "F" | "OTHER")}
+                    disabled={loading || socialLoading !== null}
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <option value="OTHER">선택 안 함</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || socialLoading !== null || !hasRequiredConsents}
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "회원가입 중..." : "아이디/비밀번호로 회원가입"}
+              </button>
+            </form>
 
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-violet-100/20" />
@@ -409,7 +568,7 @@ export default function SignupPage() {
             </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
-              로그인도 소셜 계정으로만 지원됩니다. {" "}
+              로그인에서도 아이디/비밀번호 또는 소셜 계정을 사용할 수 있습니다. {" "}
               <Link href="/login" className="font-semibold text-violet-200 underline decoration-violet-300/70 underline-offset-4 hover:text-violet-100">
                 로그인
               </Link>

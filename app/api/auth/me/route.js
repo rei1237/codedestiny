@@ -4,6 +4,9 @@ import { getUserModel } from "../../../_lib/models/UserModel";
 
 export const runtime = "nodejs";
 
+const TEST_INICIS_LOGIN_ID = "test_inicis";
+const TEST_INICIS_POINTS = 9999;
+
 function getToken(request) {
   const authHeader = request.headers.get("authorization") || "";
   if (authHeader.startsWith("Bearer ")) return authHeader.slice(7);
@@ -28,9 +31,17 @@ export async function GET(request) {
     }
 
     const User = await getUserModel();
-    const user = await User.findById(payload.userId).lean();
+    let user = await User.findById(payload.userId).lean();
     if (!user) {
       return NextResponse.json({ message: "사용자 정보를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    if (user.email === TEST_INICIS_LOGIN_ID && Number(user.points) !== TEST_INICIS_POINTS) {
+      user = await User.findByIdAndUpdate(
+        user._id,
+        { $set: { points: TEST_INICIS_POINTS } },
+        { new: true },
+      ).lean() || { ...user, points: TEST_INICIS_POINTS };
     }
 
     return NextResponse.json({

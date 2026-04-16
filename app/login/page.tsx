@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 declare global {
@@ -89,6 +89,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [loginId, setLoginId] = useState("");
+  const [password, setPassword] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string>("");
@@ -226,6 +228,58 @@ export default function LoginPage() {
       });
   }, [router, socialCompleteEndpoint]);
 
+  const handleLocalLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading || socialLoading !== null) return;
+
+    const normalizedId = loginId.trim();
+    if (!normalizedId || password.length < 8) {
+      setError("아이디(이메일)와 비밀번호를 확인해 주세요.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const nextPath = sanitizeNextPath(params.get("next")) || "/";
+
+      const response = await fetch(`${authApiBase}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: normalizedId,
+          password,
+          nextPath,
+        }),
+      });
+
+      const payload = await parseJsonResponse<LoginResult & { errors?: string[] }>(response);
+      if (!response.ok) {
+        if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+          throw new Error(payload.errors.join(" "));
+        }
+        throw new Error(payload.message || "로그인에 실패했습니다.");
+      }
+
+      persistAuth(payload.token, payload.user);
+      const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
+
+      if (payload.user?.role === "admin" && resolvedNextPath === "/") {
+        router.replace("/admin");
+        return;
+      }
+
+      router.replace(resolvedNextPath);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "로그인 처리 중 오류가 발생했습니다.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const startSocialLogin = (provider: SocialProvider) => {
     if (typeof window === "undefined") return;
     setError("");
@@ -275,13 +329,49 @@ export default function LoginPage() {
               </p>
               <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">별빛 로그인 포털</h1>
               <p className="mt-2 text-sm leading-6 text-violet-100/80">
-                아이디/비밀번호 로그인은 종료되었으며, 아래 소셜 계정으로만 로그인할 수 있습니다.
+                아이디(이메일)/비밀번호 또는 소셜 계정으로 로그인할 수 있습니다.
               </p>
             </header>
 
             {error ? (
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
             ) : null}
+
+            <form className="space-y-3" onSubmit={handleLocalLogin}>
+              <div>
+                <label htmlFor="login-id" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">ID / EMAIL</label>
+                <input
+                  id="login-id"
+                  type="text"
+                  autoComplete="username"
+                  value={loginId}
+                  onChange={(event) => setLoginId(event.target.value)}
+                  disabled={loading || socialLoading !== null}
+                  placeholder="test_inicis"
+                  className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+              <div>
+                <label htmlFor="login-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={loading || socialLoading !== null}
+                  placeholder="비밀번호 입력"
+                  className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || socialLoading !== null}
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "로그인 중..." : "아이디/비밀번호로 로그인"}
+              </button>
+            </form>
 
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-violet-100/20" />
@@ -322,7 +412,7 @@ export default function LoginPage() {
             </div>
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
-              회원가입도 소셜 계정으로 진행됩니다. {" "}
+              회원가입에서 아이디/비밀번호 또는 소셜 계정을 선택할 수 있습니다. {" "}
               <Link href="/signup" className="font-semibold text-violet-200 underline decoration-violet-300/70 underline-offset-4 hover:text-violet-100">
                 회원가입
               </Link>
