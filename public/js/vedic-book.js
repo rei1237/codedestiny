@@ -465,7 +465,7 @@
     setTimeout(function () { try { win.print(); } catch (_) {} }, 1200);
   };
 
-  document.addEventListener(  document.addEventListener('click',function(e){
+  document.addEventListener('click',function(e){
     var el=e.target;if(!el)return;
     var node=el.closest?el.closest('[data-action]'):null;if(!node)return;
     var act=node.getAttribute('data-action');
