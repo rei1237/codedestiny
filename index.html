@@ -346,39 +346,12 @@
 <link rel="preload" as="image" href="/icons/samba.webp">
 <link rel="preconnect" href="https://developers.kakao.com">
 <link rel="dns-prefetch" href="//t1.kakaocdn.net">
-<!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
-<script>
-(function(){
-  var loaded = false;
-  function injectFont(href) {
-    if (!href) return;
-    if (document.querySelector('link[data-cd-font-src="' + href + '"]')) return;
-    var ln = document.createElement('link');
-    ln.rel = 'stylesheet';
-    ln.href = href;
-    ln.setAttribute('data-cd-font-src', href);
-    document.head.appendChild(ln);
-  }
-  function loadFonts() {
-    if (loaded) return;
-    loaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
-    window.removeEventListener('pointerdown', loadFonts, true);
-    window.removeEventListener('touchstart', loadFonts, true);
-    window.removeEventListener('keydown', loadFonts, true);
-    window.removeEventListener('scroll', loadFonts, true);
-  }
-  window.addEventListener('pointerdown', loadFonts, true);
-  window.addEventListener('touchstart', loadFonts, true);
-  window.addEventListener('keydown', loadFonts, true);
-  window.addEventListener('scroll', loadFonts, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') loadFonts();
-  }, { once: true });
-})();
-</script>
+<!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<!-- 보조 폰트(한국 세리프·데코)는 저우선순위 로드 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
