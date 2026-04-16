@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 type PointHistoryEntry = {
   id: string;
-  kind: "charge" | "deduct" | "refund" | "adjust";
+  kind: "charge" | "deduct" | "refund" | "adjust" | "share_reward";
   delta: number;
   balanceAfter: number;
   reason: string;
@@ -74,6 +74,7 @@ function kindLabel(kind: PointHistoryEntry["kind"]) {
   if (kind === "charge")  return { text: "충전",  cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
   if (kind === "deduct")  return { text: "차감",  cls: "bg-rose-100 text-rose-700 border-rose-300" };
   if (kind === "refund")  return { text: "환불",  cls: "bg-sky-100 text-sky-700 border-sky-300" };
+  if (kind === "share_reward") return { text: "보상", cls: "bg-cyan-100 text-cyan-700 border-cyan-300" };
   return                         { text: "조정",  cls: "bg-amber-100 text-amber-700 border-amber-300" };
 }
 
@@ -81,17 +82,37 @@ function kindIcon(kind: PointHistoryEntry["kind"]) {
   if (kind === "charge") return "⬆️";
   if (kind === "deduct") return "⬇️";
   if (kind === "refund") return "↩️";
+  if (kind === "share_reward") return "🎁";
   return "⚙️";
 }
 
-function deltaColor(kind: PointHistoryEntry["kind"]) {
-  if (kind === "charge" || kind === "refund") return "text-emerald-700";
-  return "text-rose-600";
+function deltaColor(delta: number) {
+  if (delta > 0) return "text-emerald-700";
+  if (delta < 0) return "text-rose-600";
+  return "text-amber-700";
 }
 
-function deltaPrefix(kind: PointHistoryEntry["kind"]) {
-  if (kind === "charge" || kind === "refund") return "+";
-  return "−";
+function deltaPrefix(delta: number) {
+  if (delta > 0) return "+";
+  if (delta < 0) return "−";
+  return "";
+}
+
+function resolveFeatureName(featureKey?: string) {
+  if (!featureKey) return "";
+  const key = String(featureKey).trim();
+  if (!key) return "";
+
+  const map: Record<string, string> = {
+    "pig-coin-charge": "포인트 충전",
+    "pig-coin-unlock": "유료 콘텐츠 잠금 해제",
+    "profile-subscription": "프로필 구독 결제",
+    "profile-subscription-auto-renew": "프로필 구독 자동 갱신",
+    "profile-subscription-service-start": "멤버십 서비스 시작",
+    "share-reward": "카카오톡 공유 보상",
+  };
+
+  return map[key] || key.replace(/[-_]/g, " ");
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -206,13 +227,25 @@ export default function PointHistoryPage() {
   /* ── 탭 필터링 ─────────────────────────────────────────────── */
   const filteredHistories = useMemo(() => {
     if (activeTab === "all") return histories;
-    if (activeTab === "charge") return histories.filter((h) => h.kind === "charge" || h.kind === "refund");
-    return histories.filter((h) => h.kind === "deduct" || h.kind === "adjust");
+    if (activeTab === "charge") return histories.filter((h) => Number(h.delta || 0) > 0);
+    return histories.filter((h) => Number(h.delta || 0) < 0);
   }, [histories, activeTab]);
 
   /* 요약 통계 */
-  const totalCharged  = useMemo(() => histories.filter((h) => h.kind === "charge" || h.kind === "refund").reduce((s, h) => s + Math.abs(h.delta), 0), [histories]);
-  const totalDeducted = useMemo(() => histories.filter((h) => h.kind === "deduct").reduce((s, h) => s + Math.abs(h.delta), 0), [histories]);
+  const totalCharged = useMemo(
+    () => histories.reduce((s, h) => {
+      const delta = Number(h.delta || 0);
+      return delta > 0 ? s + delta : s;
+    }, 0),
+    [histories],
+  );
+  const totalDeducted = useMemo(
+    () => histories.reduce((s, h) => {
+      const delta = Number(h.delta || 0);
+      return delta < 0 ? s + Math.abs(delta) : s;
+    }, 0),
+    [histories],
+  );
 
   /* ── 부팅 중 ─────────────────────────────────────────────────── */
   if (isBooting) {
@@ -389,8 +422,10 @@ export default function PointHistoryPage() {
               <div className="space-y-2.5">
                 {filteredHistories.map((entry) => {
                   const kl = kindLabel(entry.kind);
-                  const dc = deltaColor(entry.kind);
-                  const prefix = deltaPrefix(entry.kind);
+                  const dc = deltaColor(entry.delta);
+                  const prefix = deltaPrefix(entry.delta);
+                  const featureName = resolveFeatureName(entry.featureKey);
+                  const displayReason = entry.reason || featureName || "-";
                   return (
                     <div
                       key={entry.id}
@@ -409,8 +444,13 @@ export default function PointHistoryPage() {
                               {kl.text}
                             </span>
                             <span className="text-[12px] font-semibold text-[#5C3A1E] line-clamp-1">
-                              {entry.reason || (entry.featureKey ? `서비스: ${entry.featureKey}` : "-")}
+                              {displayReason}
                             </span>
+                            {featureName && featureName !== displayReason && (
+                              <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                                상품명: {featureName}
+                              </span>
+                            )}
                           </div>
                           <span className={`text-[15px] font-black flex-shrink-0 ${dc}`}>
                             {prefix}{formatPoints(entry.delta)}
@@ -475,7 +515,9 @@ export default function PointHistoryPage() {
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
             <li>• 포인트 충전 소진 기한은 <strong>결제한 시점부터 1년 이내</strong>까지이며, 미사용한 포인트는 소멸됩니다.</li>
             <li>• 차감 내역은 서비스 이용 시 자동으로 기록됩니다.</li>
+            <li>• 예시: 9/1 포인트 10,000원 충전 → 9/5 포인트 1,000원 사용(상품명 표기) → 잔여포인트 9,000원으로 계산·표시됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
+            <li>• 미사용 유상 포인트는 전자상거래 관련 법령에 따라 <strong>&#39;7일이내청약철회 가능&#39;</strong> 기준으로 환불 접수할 수 있습니다.</li>
             <li>• 내역 조회는 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (010-7180-7398) · seongbae555@gmail.com</li>
           </ul>

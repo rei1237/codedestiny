@@ -469,6 +469,7 @@ export default function SiteFooterHub() {
             </p>
             <ul style={REFUND_RULES}>
               <li style={REFUND_RULE_ITEM}>충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>미사용 유상 코인은 전자상거래 관련 법령에 따라 &#39;7일이내청약철회 가능&#39; 기준으로 환불 접수할 수 있습니다.</li>
               <li style={REFUND_RULE_ITEM}>결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.</li>
               <li style={REFUND_RULE_ITEM}>부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.</li>
               <li style={REFUND_RULE_ITEM}>환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료·송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.</li>

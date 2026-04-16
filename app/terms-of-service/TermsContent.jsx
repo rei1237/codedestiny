@@ -27,7 +27,7 @@ export default function TermsContent() {
         <p>
           Code Destiny는 사주/타로/운세 기반의 해석 콘텐츠를 제공하며, 서비스 품질 향상을 위해 기능이 추가/변경/중단될 수 있습니다.
         </p>
-        <p>서비스 주소: https://code-destiny.com / 운영자: 꽃돼지 연이</p>
+        <p>서비스 주소: https://code-destiny.com / 운영자: 박병하</p>
       </section>
 
       <section className="policy-embed-section">
@@ -85,6 +85,9 @@ export default function TermsContent() {
           구독 서비스 가입 후 멤버십 전용 콘텐츠를 1회라도 열람하면 디지털 콘텐츠 서비스 개시로 간주됩니다. 따라서 구독 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며, 합리적 공제 기준을 반영한 잔여분만 환불됩니다.
         </p>
         <p>
+          미사용 유상 포인트는 전자상거래 관련 법령에 따라 <strong>&#39;7일이내청약철회 가능&#39;</strong> 기준으로 환불 접수할 수 있습니다.
+        </p>
+        <p>
           멤버십 전용 콘텐츠 진입 시 표시되는 안내 팝업에서 확인 버튼을 누르는 행위는 서비스 이용 개시 및 환불 제한 조건에 대한 전자적 동의로 간주됩니다.
         </p>
       </section>
@@ -115,7 +118,7 @@ export default function TermsContent() {
         <p>
           서비스명: Code Destiny<br />
           사이트: https://code-destiny.com<br />
-          운영자: 꽃돼지 연이<br />
+          운영자: 박병하<br />
           약관 문의: seongbae555@gmail.com
         </p>
       </section>
