@@ -97,19 +97,20 @@ function applyTopicMeta(topicKey) {
   if (typeof document === "undefined") return;
   const safeKey = TOPIC_SEO_META[topicKey] ? topicKey : "all";
   const meta = TOPIC_SEO_META[safeKey];
-  const targetUrl =
+  const canonicalUrl = "https://code-destiny.com/insights";
+  const ogUrl =
     safeKey === "all"
-      ? "https://code-destiny.com/insights"
+      ? canonicalUrl
       : `https://code-destiny.com/insights?topic=${encodeURIComponent(safeKey)}`;
 
   document.title = meta.title;
   upsertMetaTag('meta[name="description"]', { name: "description" }, meta.description);
   upsertMetaTag('meta[property="og:title"]', { property: "og:title" }, meta.title);
   upsertMetaTag('meta[property="og:description"]', { property: "og:description" }, meta.description);
-  upsertMetaTag('meta[property="og:url"]', { property: "og:url" }, targetUrl);
+  upsertMetaTag('meta[property="og:url"]', { property: "og:url" }, ogUrl);
   upsertMetaTag('meta[name="twitter:title"]', { name: "twitter:title" }, meta.title);
   upsertMetaTag('meta[name="twitter:description"]', { name: "twitter:description" }, meta.description);
-  upsertCanonical(targetUrl);
+  upsertCanonical(canonicalUrl);
 }
 
 export default function InsightsCosmicClient({ initialTopic = "all" }) {

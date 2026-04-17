@@ -1,5 +1,5 @@
 # robots.txt - Code Destiny
-# Updated: 2026-03-25
+# Updated: 2026-04-17
 # Primary source: app/robots.ts (Next.js generates /robots.txt)
 # This file is kept in sync as a static fallback.
 
@@ -14,34 +14,15 @@ Disallow: /_lib
 Disallow: /_locale
 Disallow: /login
 Disallow: /signup
-Disallow: /*?utm_
-Disallow: /*?fbclid=
-Disallow: /*?gclid=
 Disallow: /*?session=
 Disallow: /*?token=
+Disallow: /*?auth=
 Disallow: /*.json$
 
 User-agent: GPTBot
-Disallow: /api
-Disallow: /admin
-Disallow: /_admin
+Disallow: /
 
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
 Sitemap: https://code-destiny.com/rss.xml
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Yeti
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
-
-User-agent: NaverBot
-Allow: /

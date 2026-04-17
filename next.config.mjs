@@ -29,28 +29,36 @@ const nextConfig = {
       { source: "/tamagotchi", destination: "/tadagochi", permanent: true },
       { source: "/tamagotchi.html", destination: "/tadagochi", permanent: true },
 
-      /* ── 3. app route 없는 서비스 → 유사 서비스 임시 302 ── */
-      // 동물 관상 (AI 얼굴 분석) → 사주 그림 (가장 유사한 시각 분석 서비스)
-      { source: "/animal/physio", destination: "/saju-picture", permanent: false },
-      // 나머지 animal/* → 홈
-      { source: "/animal/:path*", destination: "/",             permanent: false },
-      // 꿈 해몽 → 홈
-      { source: "/dream/:path*",  destination: "/",             permanent: false },
-      // 운명의 꽃 → 홈
-      { source: "/flower/:path*", destination: "/",             permanent: false },
+      /* ── 3. 삭제/개명된 서비스 경로 → 대표 경로 영구 301 ── */
+      { source: "/animal/physio", destination: "/saju-picture", permanent: true },
+      { source: "/animal/mbti", destination: "/saju-picture", permanent: true },
+      { source: "/animal/totem", destination: "/saju-picture", permanent: true },
+      { source: "/animal/:path*", destination: "/saju-picture", permanent: true },
+      { source: "/dream/:path*",  destination: "/insights", permanent: true },
+      { source: "/flower/:path*", destination: "/high-value", permanent: true },
+      { source: "/vedic/:path*",  destination: "/astrology/cosmic", permanent: true },
 
-      /* ── 4. 베다 점성술 → 서양 점성술 임시 302 ── */
-      { source: "/vedic/:path*",  destination: "/astrology/cosmic", permanent: false },
+      /* ── 4. 미완성/구 오라클 경로 → 현행 오라클 영구 301 ── */
+      { source: "/oracle/kemet",  destination: "/oracle/sikojen-povailu", permanent: true },
+      { source: "/oracle/juyuk",  destination: "/oracle/sikojen-povailu", permanent: true },
+      { source: "/oracle/sukuyo", destination: "/oracle/sikojen-povailu", permanent: true },
+      { source: "/oracle/rune",   destination: "/oracle/sikojen-povailu", permanent: true },
 
-      /* ── 5. 미완성 oracle 경로 임시 302 ── */
-      { source: "/oracle/kemet",  destination: "/oracle/hwatu-life",       permanent: false },
-      { source: "/oracle/juyuk",  destination: "/oracle/hwatu-life",       permanent: false },
-      { source: "/oracle/sukuyo", destination: "/oracle/sikojen-povailu",  permanent: false },
-      { source: "/oracle/rune",   destination: "/oracle/sikojen-povailu",  permanent: false },
+      /* ── 5. locale 경로의 구 URL도 동일하게 301 ── */
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/hwatu", destination: "/:locale/oracle/hwatu-life", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/kemet", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/juyuk", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/sukuyo", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/rune", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/animal/:path*", destination: "/:locale/saju-picture", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/dream/:path*", destination: "/:locale/insights", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/flower/:path*", destination: "/:locale/high-value", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/vedic/:path*", destination: "/:locale/astrology/cosmic", permanent: true },
 
       /* ── 6. HTML → App Route canonical 301 ── */
       // oracle/royal-tea 앱 라우트가 새로 생겼으므로 구 HTML URL 이관
       { source: "/royal-tea-oracle.html", destination: "/oracle/royal-tea", permanent: true },
+      { source: "/royal-tea-oracle", destination: "/oracle/royal-tea", permanent: true },
       // /geomancy-oracle (쿼리 없는 깔끔 URL) → 실제 HTML 파일
       { source: "/geomancy-oracle",       destination: "/geomancy-oracle-v4.html", permanent: true },
     ];

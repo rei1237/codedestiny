@@ -15,42 +15,15 @@ export default function robots(): MetadataRoute.Robots {
           "/_locale",
           "/login",
           "/signup",
-          "/*?utm_",
-          "/*?fbclid=",
-          "/*?gclid=",
-          "/*?session=",
-          "/*?token=",
+          "/*?session=*",
+          "/*?token=*",
+          "/*?auth=*",
           "/*.json$",
         ],
       },
-      // 공개 API는 봇 직접 접근 불필요
       {
         userAgent: "GPTBot",
-        disallow: ["/api", "/admin", "/_admin"],
-      },
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-      },
-      {
-        userAgent: "Mediapartners-Google",
-        allow: "/",
-      },
-      {
-        userAgent: "Bingbot",
-        allow: "/",
-      },
-      {
-        userAgent: "Yeti",
-        allow: "/",
-      },
-      {
-        userAgent: "Baiduspider",
-        allow: "/",
-      },
-      {
-        userAgent: "NaverBot",
-        allow: "/",
+        disallow: "/",
       },
     ],
     sitemap: [

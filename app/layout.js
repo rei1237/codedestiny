@@ -36,19 +36,92 @@ const LOCALES = [
   { key: "ms-MY", slug: "/ms-my", htmlLang: "ms", label: "Malay" },
 ];
 
+const ROUTE_SEO_PROFILES = [
+  {
+    match: /^\/$/,
+    title: "무료 사주팔자 · 자미두수 운세 분석 · AI 타로 | 코드 데스티니",
+    description:
+      "생년월일 기반 무료 사주팔자, 자미두수 운세 분석, AI 타로, 점성술, 궁합을 한곳에서 제공하는 통합 운세 문서 플랫폼입니다.",
+    keywords: ["무료 사주", "자미두수 운세 분석", "AI 타로", "운세"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/saju(\/|$)/,
+    title: "무료 사주 운세 분석 | 코드 데스티니",
+    description:
+      "무료 사주 운세 분석과 대운·세운 흐름, 합충형파해 해석을 구조적으로 제공하는 사주 전문 페이지입니다.",
+    keywords: ["무료 사주", "사주 운세 분석", "합충형파해", "대운"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/ziwei(\/|$)/,
+    title: "자미두수 운세 분석 | 코드 데스티니",
+    description:
+      "명궁·신궁·12궁 기반 자미두수 운세 분석과 사화, 대한 흐름을 깊이 있게 제공하는 자미두수 전문 페이지입니다.",
+    keywords: ["자미두수 운세 분석", "명궁", "신궁", "12궁"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/tarot(\/|$)/,
+    title: "무료 타로 리딩 · 사주 결합 운세 분석 | 코드 데스티니",
+    description:
+      "연애·재회·힐링·연간운 등 다양한 타로 스프레드와 사주 보조 해석을 함께 제공하는 무료 타로 운세 페이지입니다.",
+    keywords: ["무료 타로", "타로 리딩", "사주 결합", "운세 분석"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/astrology(\/|$)/,
+    title: "점성술 차트 · 자미두수 교차 운세 분석 | 코드 데스티니",
+    description:
+      "태양·달·상승궁과 행성 흐름을 기반으로 점성술과 동양 명리 해석을 연결한 운세 분석 페이지입니다.",
+    keywords: ["점성술", "코즈믹 차트", "자미두수 운세 분석", "행성"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/oracle(\/|$)/,
+    title: "오라클 운세 · 무료 사주 연계 해석 | 코드 데스티니",
+    description:
+      "화투점, 찻잎점, 주석점 등 오라클 리딩을 무료 사주 해석과 함께 제공하는 복합 운세 페이지입니다.",
+    keywords: ["오라클", "화투점", "찻잎점", "무료 사주"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+  {
+    match: /^\/(insights|high-value)(\/|$)/,
+    title: "무료 사주 · 자미두수 운세 분석 정보 문서 | 코드 데스티니",
+    description:
+      "무료 사주, 자미두수 운세 분석, 타로, 점성술 관련 장문 가이드와 FAQ를 제공하는 정보성 문서 허브입니다.",
+    keywords: ["무료 사주", "자미두수 운세 분석", "FAQ", "가이드"],
+    image: "https://code-destiny.com/icons/og-image.png",
+  },
+];
+
+function resolveRouteSeo(pathname) {
+  const normalized = normalizePathname(pathname);
+  for (const profile of ROUTE_SEO_PROFILES) {
+    if (profile.match.test(normalized)) return profile;
+  }
+  return ROUTE_SEO_PROFILES[0];
+}
+
 function normalizePathname(input) {
   if (!input) return "/";
 
+  let pathname = "";
+
   try {
     if (input.startsWith("http://") || input.startsWith("https://")) {
-      return new URL(input).pathname || "/";
+      pathname = new URL(input).pathname || "/";
+    } else {
+      pathname = String(input).split("?")[0].split("#")[0] || "/";
     }
   } catch {
     return "/";
   }
 
-  const pathname = input.startsWith("/") ? input : `/${input}`;
-  return pathname || "/";
+  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const compact = withLeadingSlash.replace(/\/{2,}/g, "/");
+  const withoutTrailing = compact.length > 1 ? compact.replace(/\/+$/, "") : compact;
+  return withoutTrailing || "/";
 }
 
 function detectLocaleFromPath(pathname) {
@@ -60,13 +133,17 @@ function detectLocaleFromPath(pathname) {
 }
 
 function stripLocalePrefix(pathname) {
-  const normalized = normalizePathname(pathname).toLowerCase();
+  const normalized = normalizePathname(pathname);
+  const normalizedLower = normalized.toLowerCase();
   for (const locale of LOCALES) {
     if (!locale.slug) continue;
-    if (normalized === locale.slug) return "/";
-    if (normalized.startsWith(`${locale.slug}/`)) return normalized.slice(locale.slug.length) || "/";
+    const localeSlugLower = locale.slug.toLowerCase();
+    if (normalizedLower === localeSlugLower) return "/";
+    if (normalizedLower.startsWith(`${localeSlugLower}/`)) {
+      return normalized.slice(locale.slug.length) || "/";
+    }
   }
-  return normalized || "/";
+  return normalized;
 }
 
 function buildHreflangAlternates(currentPathname) {
@@ -149,6 +226,7 @@ export async function generateMetadata() {
   );
   const locale = detectLocaleFromPath(requestPath);
   const routeBasePath = stripLocalePrefix(normalizePathname(requestPath));
+  const routeSeo = resolveRouteSeo(routeBasePath);
   const canonicalLocalePath = locale.slug
     ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}`
     : routeBasePath;
@@ -158,11 +236,10 @@ export async function generateMetadata() {
     metadataBase: new URL("https://code-destiny.com"),
     applicationName: "꿀꿀 만세력",
     title: {
-      default: "무료 사주팔자 · 타로 · 오늘의 운세 | 코드 데스티니(Code Destiny) 꿀꿀 만세력",
+      default: routeSeo.title,
       template: "%s | 꿀꿀 만세력",
     },
-    description:
-      "생년월일로 보는 무료 사주팔자·타로 리딩·오늘의 운세. 자미두수·점성술·숙요점·궁합·신년운세·토정비결·꿈해몽·대운 분석까지. 코드 데스티니(Code Destiny) 꿀꿀 만세력 — 동서양 운세 무료 통합 플랫폼.",
+    description: routeSeo.description,
     creator: "Code Destiny",
     publisher: "Code Destiny",
     category: "Fortune & Astrology",
@@ -174,6 +251,7 @@ export async function generateMetadata() {
       telephone: false,
     },
     keywords: [
+      ...routeSeo.keywords,
       // 한국어 핵심 (중복 제거: 타로·운세는 SEO_CORE에서 무료 변형으로 커버)
       "무료사주", "타로", "운세", "궁합", "점성술", "자미두수", "주역",
       "숙요점", "동물관상", "MBTI궁합", "해몽", "화투점",
@@ -206,24 +284,24 @@ export async function generateMetadata() {
       type: "website",
       locale: "ko_KR",
       alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
-      url: "https://code-destiny.com",
+      url: canonicalHref,
       siteName: "코드 데스티니 꿀꿀 만세력",
-      title: "무료 사주팔자·타로·오늘의 운세 | 코드 데스티니",
-      description: "생년월일 하나로 사주팔자·타로·자미두수·점성술·궁합·신년운세를 무료로. 코드 데스티니(Code Destiny) 꿀꿀 만세력.",
+      title: routeSeo.title,
+      description: routeSeo.description,
       images: [
         {
-          url: "https://code-destiny.com/icons/og-image.png",
+          url: routeSeo.image,
           width: 1200,
           height: 630,
-          alt: "코드 데스티니 꿀꿀 만세력",
+          alt: routeSeo.title,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "코드 데스티니 — 무료 사주·타로·운세",
-      description: "무료 사주팔자·타로·궁합·신년운세 통합 — 코드 데스티니(Code Destiny)",
-      images: ["https://code-destiny.com/icons/og-image.png"],
+      title: routeSeo.title,
+      description: routeSeo.description,
+      images: [routeSeo.image],
     },
     verification: {
       google: process.env.NEXT_PUBLIC_SITE_VERIFY_GOOGLE || undefined,
@@ -403,7 +481,7 @@ export default async function RootLayout({ children }) {
         <div>{children}</div>
         <DisclaimerBanner />
         {!isFullscreenRoute && <InternalLinksHub />}
-        {!hideFooter && !isFullscreenRoute && <SiteFooterHub />}
+        {!hideFooter && <SiteFooterHub />}
       </body>
     </html>
   );

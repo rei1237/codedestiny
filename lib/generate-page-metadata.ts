@@ -27,8 +27,12 @@ const SITE_ORIGIN =
 
 /** 경로 끝 슬래시를 제거해 canonical 중복 방지 */
 function normalizeCanonicalPath(path: string): string {
-  const clean = path.trim().replace(/\/+$/, "") || "/";
-  return clean === "" ? "/" : clean;
+  const raw = String(path || "").trim();
+  const noQuery = raw.split("?")[0].split("#")[0] || "/";
+  const withLeadingSlash = noQuery.startsWith("/") ? noQuery : `/${noQuery}`;
+  const compact = withLeadingSlash.replace(/\/{2,}/g, "/");
+  const clean = compact.length > 1 ? compact.replace(/\/+$/, "") : compact;
+  return clean || "/";
 }
 
 const LOCALE_PREFIXES: Array<{ prefix: string; hrefLang: string }> = [
