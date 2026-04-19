@@ -15,13 +15,13 @@ export function generateMetadata({ params }) {
   if (!page) {
     return {
       title: "문서를 찾을 수 없습니다 | CODE DESTINY",
-      robots: { index: false, follow: false },
+      robots: { index: false, follow: true },
     };
   }
 
   return generatePageMetadata({
     path: `/high-value/${page.slug}`,
-    title: `${page.title} | CODE DESTINY`,
+    title: `${page.title} | 무료 사주 · 자미두수 운세 분석`,
     description: page.summary,
     keywords: [page.title, page.category, "high value article", "adsense content"],
     updatedAt: page.updatedAt,
@@ -74,7 +74,7 @@ export default function HighValueDetailPage({ params }) {
       <header style={{ marginBottom: "16px" }}>
         <p style={{ margin: 0, fontSize: "12px", color: "#f8eecb" }}>{page.category}</p>
         <h1 style={{ margin: "8px 0 10px", fontSize: "clamp(1.5rem,3.8vw,2.2rem)", color: "#f8fafc", lineHeight: 1.35 }}>
-          {page.title}
+          {page.title} | 무료 사주 · 자미두수 운세 분석
         </h1>
         <p style={{ margin: 0, lineHeight: 1.8, color: "#cbd5e1" }}>{page.summary}</p>
         <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#94a3b8" }}>Updated: {page.updatedAt}</p>

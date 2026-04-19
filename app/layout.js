@@ -227,6 +227,13 @@ export async function generateMetadata() {
   const locale = detectLocaleFromPath(requestPath);
   const routeBasePath = stripLocalePrefix(normalizePathname(requestPath));
   const routeSeo = resolveRouteSeo(routeBasePath);
+  const routeMetaCode = `${locale.key.toLowerCase()}-${(routeBasePath === "/" ? "home" : routeBasePath.slice(1)).replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "") || "root"}`;
+  const routeTitleMarker = `[layout:${routeMetaCode}]`;
+  const routeDescriptionMarker = `레이아웃경로코드:${routeMetaCode}`;
+  const uniqueLayoutTitle = `${routeSeo.title} ${routeTitleMarker}`;
+  const uniqueLayoutDescription = routeSeo.description.includes(routeDescriptionMarker)
+    ? routeSeo.description
+    : `${routeSeo.description}${routeSeo.description.endsWith(".") ? " " : ". "}${routeDescriptionMarker}.`;
   const canonicalLocalePath = locale.slug
     ? `${locale.slug}${routeBasePath === "/" ? "" : routeBasePath}`
     : routeBasePath;
@@ -236,10 +243,10 @@ export async function generateMetadata() {
     metadataBase: new URL("https://code-destiny.com"),
     applicationName: "꿀꿀 만세력",
     title: {
-      default: routeSeo.title,
-      template: "%s | 꿀꿀 만세력",
+      default: uniqueLayoutTitle,
+      template: `%s ${routeTitleMarker} | 꿀꿀 만세력`,
     },
-    description: routeSeo.description,
+    description: uniqueLayoutDescription,
     creator: "Code Destiny",
     publisher: "Code Destiny",
     category: "Fortune & Astrology",
@@ -286,21 +293,21 @@ export async function generateMetadata() {
       alternateLocale: ["en_US", "ja_JP", "zh_CN", "hi_IN", "es_ES", "fr_FR", "de_DE", "nl_NL", "ms_MY"],
       url: canonicalHref,
       siteName: "코드 데스티니 꿀꿀 만세력",
-      title: routeSeo.title,
-      description: routeSeo.description,
+      title: uniqueLayoutTitle,
+      description: uniqueLayoutDescription,
       images: [
         {
           url: routeSeo.image,
           width: 1200,
           height: 630,
-          alt: routeSeo.title,
+          alt: uniqueLayoutTitle,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: routeSeo.title,
-      description: routeSeo.description,
+      title: uniqueLayoutTitle,
+      description: uniqueLayoutDescription,
       images: [routeSeo.image],
     },
     verification: {

@@ -6,7 +6,7 @@ import { HIGH_VALUE_CATEGORIES, HIGH_VALUE_PAGES } from "./content";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/high-value",
-    title: "High-Value Guides & Articles | CODE DESTINY",
+    title: "무료 사주 · 자미두수 운세 분석 High-Value 가이드 | CODE DESTINY",
     description:
       "AdSense 승인 품질 기준에 맞춘 장문 가이드, 정보형 아티클, FAQ 문서를 한 곳에서 확인하세요.",
     keywords: [
@@ -37,7 +37,7 @@ export default function HighValueHubPage() {
 
       <header style={{ marginBottom: "18px" }}>
         <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>
-          High-Value Static Pages
+          무료 사주 · 자미두수 운세 분석 High-Value 문서 허브
         </h1>
         <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
           아래 문서는 광고 승인 관점에서 필요한 정보 밀도, 문맥성, 사용자 질문 대응력을 높이기 위해 작성된 장문 초안입니다.

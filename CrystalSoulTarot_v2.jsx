@@ -762,6 +762,19 @@ function ReadingPhase({ topic, gem, cards, assignments, spreadCards, onReset }){
       setPaying(false);
       return;
     }
+    
+    // 메인 화면에서 이미 코인을 차감한 경우 스킵
+    const coinGatePassed = (()=>{
+      try{return sessionStorage.getItem("crystal-soul-tarot-coin-gate")==="true";}catch{return false;}
+    })();
+    if(coinGatePassed){
+      try{sessionStorage.removeItem("crystal-soul-tarot-coin-gate");}catch(_){}
+      setPaid(true);
+      doFetch();
+      setPaying(false);
+      return;
+    }
+    
     const token=localStorage.getItem("fortune_auth_token")||localStorage.getItem("cdToken")||"";
     const adminToken=(()=>{
       try{

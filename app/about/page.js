@@ -1,9 +1,10 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import { ABOUT_PAGE_COPY } from "../_content/seo-copy";
 
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/about",
-    title: "서비스 소개 — 꿀꿀 만세력 About | Code Destiny",
+    title: "무료 사주 · 자미두수 운세 분석 서비스 소개 | Code Destiny",
     description:
       "Code Destiny(꿀꿀 만세력)는 사주팔자·타로·점성술·자미두수·숙요점 등 20가지 이상의 운세를 무료로 제공하는 AI 운세 플랫폼입니다. 서비스 미션·운영 원칙·운영자 정보·광고 정책을 확인하세요.",
     keywords: [
@@ -91,12 +92,10 @@ export default function AboutPage() {
             marginBottom: "12px",
           }}
         >
-          서비스 소개 — Code Destiny 꿀꿀 만세력
+          {ABOUT_PAGE_COPY.heading}
         </h1>
         <p style={{ ...P, fontSize: "1rem", opacity: 0.88 }}>
-          Code Destiny(꿀꿀 만세력)는 <strong style={{ color: "#a78bfa" }}>사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽</strong> 등
-          다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다.
-          생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.
+          {ABOUT_PAGE_COPY.intro}
         </p>
       </header>
 
@@ -104,15 +103,7 @@ export default function AboutPage() {
       <section style={SECTION} aria-labelledby="about-operator">
         <h2 id="about-operator" style={H2}>운영자 및 서비스 기본 정보</h2>
         <dl style={{ display: "grid", gap: "8px", margin: 0, padding: 0 }}>
-          {[
-            ["서비스명", "Code Destiny — 꿀꿀 만세력"],
-            ["사이트 주소", "https://code-destiny.com"],
-            ["운영 주체", "코드 데스티니"],
-            ["사업자등록번호", "372-23-02329"],
-            ["서비스 개시", "2026년"],
-            ["주요 제공 서비스", "사주풀이, 타로, 점성술, 자미두수, 숙요점, 동물관상, 꿈 해몽, 궁합 등 20종 이상"],
-            ["지원 언어", "한국어·영어·일본어·중국어·힌디어·스페인어·프랑스어·독일어·네덜란드어·말레이어 (10개 언어)"],
-          ].map(([k, v]) => (
+          {ABOUT_PAGE_COPY.operatorRows.map(([k, v]) => (
             <div key={k} style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <dt style={{ color: "#a78bfa", fontWeight: 600, minWidth: "160px", fontSize: "0.9rem" }}>{k}</dt>
               <dd style={{ color: "#dbe5ff", margin: 0, fontSize: "0.9rem" }}>{v}</dd>
@@ -139,18 +130,7 @@ export default function AboutPage() {
       <section style={SECTION} aria-labelledby="about-services">
         <h2 id="about-services" style={H2}>주요 제공 서비스</h2>
         <ul style={{ margin: 0, padding: "0 0 0 18px", display: "grid", gap: "8px" }}>
-          {[
-            "사주팔자 풀이 — 생년월일시 기반 사주 명반·대운·세운 해석 (무료)",
-            "AI 타로 — 힐링·연애·재물·자존감·재회운 등 7가지 테마 타로 (무료)",
-            "자미두수(紫微斗數) — 명반 생성 및 별자리 해석 (무료)",
-            "코즈믹·베다(재티시) 점성술 — 행성 위치 기반 개인화 차트 (무료)",
-            "숙요점(宿曜道) — 27수 음력 기반 점괘 해석 (무료)",
-            "동물 관상·MBTI 궁합 — AI 관상 분석 및 궁합 진단 (무료)",
-            "화투점·거북점·주역 64괘·이집트 신탁 등 오라클 서비스 (무료)",
-            "운명의 꽃 아틀리에 — 사주·점성술·자미두수를 꽃 상징으로 표현 (무료)",
-            "꿈 해몽 · 심리 분석 — 타로+심리학 기반 꿈 해석 (무료)",
-            "인사이트 아카이브 — 사주·타로·명리학 심층 아티클 (무료)",
-          ].map((item) => (
+          {ABOUT_PAGE_COPY.serviceItems.map((item) => (
             <li key={item} style={{ color: "#dbe5ff", fontSize: "0.9rem", lineHeight: 1.7 }}>
               {item}
             </li>
@@ -204,15 +184,7 @@ export default function AboutPage() {
 
       {/* ── 관련 페이지 링크 ── */}
       <nav aria-label="관련 서비스 바로가기" style={{ marginTop: "24px", display: "flex", flexWrap: "wrap", gap: "10px" }}>
-        {[
-          ["/", "홈 — 사주 보기"],
-          ["/insights", "운세 인사이트 아카이브"],
-          ["/methodology", "콘텐츠 방법론/면책 고지"],
-          ["/faq", "자주 묻는 질문 FAQ"],
-          ["/privacy-policy", "개인정보처리방침"],
-          ["/terms-of-service", "이용약관"],
-          ["/contact-us", "문의하기"],
-        ].map(([href, label]) => (
+        {ABOUT_PAGE_COPY.relatedLinks.map(([href, label]) => (
           <a
             key={href}
             href={href}

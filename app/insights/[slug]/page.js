@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getArticleBySlug, getTopicKey } from "../articles";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "../../../lib/seo-metadata";
+import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 import { ArticleJsonLd, BreadcrumbJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
 import InsightArticleCosmicClient from "./InsightArticleCosmicClient";
 
@@ -90,10 +91,11 @@ export function generateStaticParams() {
 export function generateMetadata({ params }) {
   const article = getArticleBySlug(params?.slug);
   if (!article) {
-    return {
+    return withUniqueRouteMetadata("/insights/not-found", {
       title: "인사이트 글을 찾을 수 없습니다 | CODE DESTINY",
-      robots: { index: false, follow: false },
-    };
+      description: "요청한 인사이트 글이 존재하지 않아 404로 연결되는 보조 메타입니다.",
+      robots: { index: false, follow: true },
+    });
   }
 
   const canonicalUrl = toAbsoluteUrl(`/insights/${article.slug}`);
@@ -110,7 +112,7 @@ export function generateMetadata({ params }) {
   const postLang = article.lang ?? 'ko';
   const ogLocale = OG_LOCALE_MAP[postLang] ?? 'ko_KR';
 
-  return {
+  return withUniqueRouteMetadata(`/insights/${article.slug}`, {
     title: `${article.title} - ${article.category} 인사이트 | CODE DESTINY`,
     description: metaDescription,
     keywords: mergeKeywords(article.keywords, SEO_CORE_KEYWORDS),
@@ -141,7 +143,7 @@ export function generateMetadata({ params }) {
       title: article.title,
       description: metaDescription,
     },
-  };
+  }, { variantKey: article.updatedAt || article.slug, inLanguage: postLang });
 }
 
 export default function InsightArticlePage({ params }) {

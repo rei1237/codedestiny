@@ -19,13 +19,13 @@ export function generateMetadata({ params }) {
   if (!category) {
     return {
       title: "카테고리를 찾을 수 없습니다 | CODE DESTINY",
-      robots: { index: false, follow: false },
+      robots: { index: false, follow: true },
     };
   }
 
   return generatePageMetadata({
     path: `/high-value/category/${category.slug}`,
-    title: `${category.name} Articles | CODE DESTINY`,
+    title: `${category.name} | 무료 사주 · 자미두수 운세 분석 문서`,
     description: `${category.name} 카테고리의 고가치 정적 문서를 모아보는 페이지입니다.`,
     keywords: [category.name, "category page", "high value content"],
   });
@@ -56,7 +56,7 @@ export default function HighValueCategoryPage({ params }) {
       </nav>
 
       <header style={{ marginBottom: "16px" }}>
-        <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>{category.name}</h1>
+        <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>무료 사주 · 자미두수 운세 분석 {category.name}</h1>
         <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
           이 카테고리의 고가치 정적 문서를 모아 한눈에 확인할 수 있습니다.
         </p>

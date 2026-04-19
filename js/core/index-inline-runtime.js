@@ -6602,6 +6602,69 @@ function closeTarotModal() {
 // Ensure uiBindings `data-action` routing can always find these handlers on `window`.
 window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
+
+/* ═══════════════════════════════════════════════════════════════
+   세 타로 메인 화면 클릭 시 코인 차감 핸들러
+   이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
+═══════════════════════════════════════════════════════════════ */
+function startIjikTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '이직 타로 리딩', function() {
+      try { sessionStorage.setItem('ijik-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot-ijik.html';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot-ijik.html';
+      }
+      return;
+    }
+    window.location.href = '/tarot-ijik.html';
+  }
+}
+function startMindScanTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '마인드 스캔 타로 이용', function() {
+      try { sessionStorage.setItem('mindscan-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot/mindscan/';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
+      }
+      return;
+    }
+    window.location.href = '/tarot/mindscan/';
+  }
+}
+function startCrystalSoulTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '원석 소울 타로 리딩', function() {
+      try { sessionStorage.setItem('crystal-soul-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot/crystal-soul/';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
+      }
+      return;
+    }
+    window.location.href = '/tarot/crystal-soul/';
+  }
+}
+window.startIjikTarot = startIjikTarot;
+window.startMindScanTarot = startMindScanTarot;
+window.startCrystalSoulTarot = startCrystalSoulTarot;
+
 (function() {
   function onFsChange() {
     var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;

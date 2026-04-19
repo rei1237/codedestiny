@@ -1002,33 +1002,43 @@ export default function MindScanTarot() {
       }
 
       if (!isFlowerAdminMode) {
-        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-            ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
-            ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
-              ? { "x-admin-subscription-tier": adminTestTier }
-              : {}),
-          },
-          body: JSON.stringify({
-            cost: MINDSCAN_COIN_COST,
-            reason: "마인드 스캔 타로 이용",
-            featureKey: "tarot-mindscan",
-          }),
-        });
-        const consumeData = await consumeRes.json().catch(() => ({}));
-        if (consumeRes.status === 402) {
-          setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
-          return;
+        // 메인 화면에서 이미 코인을 차감한 경우 스킵
+        const coinGatePassed = typeof window !== "undefined" 
+          ? sessionStorage.getItem("mindscan-tarot-coin-gate") === "true"
+          : false;
+        
+        if (!coinGatePassed) {
+          const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+              ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
+              ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
+                ? { "x-admin-subscription-tier": adminTestTier }
+                : {}),
+            },
+            body: JSON.stringify({
+              cost: MINDSCAN_COIN_COST,
+              reason: "마인드 스캔 타로 이용",
+              featureKey: "tarot-mindscan",
+            }),
+          });
+          const consumeData = await consumeRes.json().catch(() => ({}));
+          if (consumeRes.status === 402) {
+            setReadingError(`코인이 부족합니다. ${MINDSCAN_COIN_COST}코인이 필요합니다.`);
+            return;
+          }
+          if (!consumeRes.ok) {
+            setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
+            return;
+          }
+          const remainPoints = Number(consumeData?.user?.points ?? 0);
+          showToast(`🪙 마인드 스캔 타로 이용으로 ${MINDSCAN_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+        } else {
+          // 플래그 제거
+          try { sessionStorage.removeItem("mindscan-tarot-coin-gate"); } catch(_) {}
         }
-        if (!consumeRes.ok) {
-          setReadingError(String(consumeData?.message || "코인 차감에 실패했습니다."));
-          return;
-        }
-        const remainPoints = Number(consumeData?.user?.points ?? 0);
-        showToast(`🪙 마인드 스캔 타로 이용으로 ${MINDSCAN_COIN_COST}코인이 차감되었습니다. 남은 코인: ${remainPoints.toLocaleString("ko-KR")}`, "info");
       }
 
       const res = await fetch("/api/tarot/mindscan", {

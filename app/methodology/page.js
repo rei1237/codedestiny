@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../lib/generate-page-metadata";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/methodology",
-    title: "콘텐츠 방법론 및 면책 고지 | CODE DESTINY",
+    title: "무료 사주 · 자미두수 운세 분석 콘텐츠 방법론 | CODE DESTINY",
     description:
       "CODE DESTINY 인사이트의 작성 원칙, 자료 검증 방식, 업데이트 정책, 면책 고지를 안내합니다.",
     keywords: [
@@ -29,7 +29,7 @@ export default function MethodologyPage() {
     <main style={{ maxWidth: "920px", margin: "0 auto", padding: "28px 16px 56px", color: "#e2e8f0" }}>
       <header style={{ marginBottom: "18px" }}>
         <h1 style={{ margin: 0, color: "#f8fafc", lineHeight: 1.35, fontSize: "clamp(1.4rem,3.8vw,2rem)" }}>
-          콘텐츠 방법론 및 면책 고지
+          무료 사주 · 자미두수 운세 분석 콘텐츠 방법론 및 면책 고지
         </h1>
         <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
           이 페이지는 CODE DESTINY 인사이트 콘텐츠가 어떤 기준으로 작성되고, 어떻게 업데이트되는지,

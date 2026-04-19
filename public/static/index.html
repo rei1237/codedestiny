@@ -1985,8 +1985,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
 
-            <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
-               aria-label="이직 운명의 카드 타로 시작">
+            <button class="tarot-tile tarot-tile--ijik" type="button"
+                    data-action="startIjikTarot"
+                    data-coin-cost="50"
+                    data-fallback-href="/tarot-ijik.html"
+                    aria-label="이직 운명의 카드 타로 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=20260411-ijik1" data-img-alt="이직 운명의 카드 — 7카드 커리어 스프레드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=20260411-ijik1" alt="이직 운명의 카드 — 7카드 커리어 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
@@ -1996,11 +1999,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">💼 이직 운명의 카드</span>
                 <span class="tarot-tile__desc">7카드 커리어 스프레드</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 속마음 알아보기 타로 → /tarot/mindscan -->
-            <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
-               aria-label="상대방의 정확한 속마음 알아보기 타로 시작">
+            <button class="tarot-tile tarot-tile--mindscan" type="button"
+                    data-action="startMindScanTarot"
+                    data-coin-cost="50"
+                    data-fallback-href="/tarot/mindscan/"
+                    aria-label="상대방의 정확한 속마음 알아보기 타로 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=20260411-mindscan1" data-img-alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=20260411-mindscan1" alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
@@ -2010,11 +2016,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">🔮 속마음 알아보기</span>
                 <span class="tarot-tile__desc">10카드 십자 스프레드</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
-            <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
-               aria-label="원석 소울 타로 리딩 시작">
+            <button class="tarot-tile tarot-tile--crystal-soul" type="button"
+                    data-action="startCrystalSoulTarot"
+                    data-coin-cost="50"
+                    data-fallback-href="/tarot/crystal-soul/"
+                    aria-label="원석 소울 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=20260411-crystal1" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=20260411-crystal1" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
@@ -2024,7 +2033,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">💎 원석 소울 타로</span>
                 <span class="tarot-tile__desc">크리스탈 에너지 리딩</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 천체의 선율 → /celestial-harmony.html -->
             <a class="tarot-tile tarot-tile--celestial-harmony" href="/celestial-harmony.html"
