@@ -1,5 +1,5 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import { ABOUT_PAGE_COPY } from "../_content/seo-copy";
+import { ABOUT_PAGE_COPY } from "../_content/seo-copy/index";
 
 export function generateMetadata() {
   return generatePageMetadata({
