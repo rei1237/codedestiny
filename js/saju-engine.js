@@ -3761,6 +3761,13 @@ async function calculate(){
   }catch(err){
     console.error(err);
     alert('사주 계산 오류: '+err.message);
+    // 계산 실패 시에도 결과 페이지 표시 (사용자가 에러 메시지 읽고 다시 시도할 수 있도록)
+    try {
+      var _rp = document.getElementById('resultPage');
+      var _ip = document.getElementById('inputPage');
+      if (_rp) _rp.style.display = 'block';
+      if (_ip) _ip.style.display = 'none';
+    } catch (_) {}
   }
 }
 

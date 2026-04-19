@@ -138,7 +138,7 @@ function _initSelectorsManually() {
         hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
       }
       hSel.innerHTML = hBuf;
-      hSel.value = (prevH !== '' && prevH !== null) ? prevH : '12';
+      hSel.value = (prevH !== '' && prevH !== null) ? prevH : '0';
       
       // 분 선택지 생성
       var mBuf = '';
