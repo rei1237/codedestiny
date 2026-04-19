@@ -54,34 +54,16 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ searchParams }) {
   const topic = String(searchParams?.topic || "").trim().toLowerCase();
-  const hasTopicQuery = topic.length > 0;
   const topicMeta = META_MAP[topic];
-
-  const robotsNoindexFollow = {
-    index: false,
-    follow: true,
-    googleBot: { index: false, follow: true, "max-snippet": -1 },
-  };
-
   if (!topicMeta) {
-    const baseMeta = generatePageMetadata({
-      ..._META,
-      variantKey: hasTopicQuery ? `topic-${topic}` : "topic-all",
-    });
-    if (hasTopicQuery && topic !== "all") {
-      return { ...baseMeta, robots: robotsNoindexFollow };
-    }
-    return baseMeta;
+    return generatePageMetadata(_META);
   }
 
-  const pageMeta = generatePageMetadata({
+  return generatePageMetadata({
     ..._META,
     title: topicMeta.title,
     description: topicMeta.description,
-    variantKey: `topic-${topic}`,
   });
-
-  return topic === "all" ? pageMeta : { ...pageMeta, robots: robotsNoindexFollow };
 }
 
 export default function InsightsIndexPage({ searchParams }) {
