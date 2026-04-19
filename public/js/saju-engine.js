@@ -15324,7 +15324,25 @@ async function runCompat(){
     }
     return;
   }
-  
+
+  /* 🔒 사주 궁합 50코인 게이트 */
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '사주 궁합 분석', function() {
+      runCompatCore(compatRunBtn, name, bd, type);
+    }, function() {
+      if (compatRunBtn) {
+        compatRunBtn.disabled = false;
+        compatRunBtn.style.opacity = '';
+      }
+    });
+    return;
+  }
+
+  /* 폴백: 코인 게이트 함수 미로드 시 계속 진행 */
+  runCompatCore(compatRunBtn, name, bd, type);
+}
+
+async function runCompatCore(compatRunBtn, name, bd, type){
   var compatCalBtns = document.getElementsByName('compatCalType');
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
