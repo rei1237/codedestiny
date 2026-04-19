@@ -347,7 +347,7 @@ export default function LoginPage() {
                   value={loginId}
                   onChange={(event) => setLoginId(event.target.value)}
                   disabled={loading || socialLoading !== null}
-                  placeholder="test_inicis"
+                  placeholder=""
                   className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
