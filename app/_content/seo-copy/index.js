@@ -1,1 +1,1 @@
-export * from "../seo-copy.js";
+export * from "./seo-copy.js";
