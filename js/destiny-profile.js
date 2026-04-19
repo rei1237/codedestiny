@@ -159,21 +159,32 @@
    */
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   function _cdIsAdminLikeUser() {
-    try { if (window.__cdAdminBypass) return true; } catch(_) {}
+    // ⚠️ 주의: window.__cdAdminBypass는 절대 신뢰하지 않음 (보안 우회 경로)
     try {
       var rawUser = localStorage.getItem('fortune_auth_user') || '';
       if (rawUser) {
         var parsed = JSON.parse(rawUser);
-        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') return true;
+        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') {
+          // role 체크만 하되, 반드시 유효한 토큰이 있는지 재확인
+          var tok = localStorage.getItem('fortune_auth_token') || '';
+          if (tok && tok.length > 10) return true;
+        }
       }
     } catch(_) {}
     try {
       var sTok = String(sessionStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) return true;
+      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) {
+        // 토큰 형식만으로는 부족함 - 로그인 토큰도 함께 검증
+        var authTok = localStorage.getItem('fortune_auth_token') || '';
+        if (authTok && authTok.length > 10) return true;
+      }
     } catch(_) {}
     try {
       var lTok = String(localStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) return true;
+      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) {
+        var authTok2 = localStorage.getItem('fortune_auth_token') || '';
+        if (authTok2 && authTok2.length > 10) return true;
+      }
     } catch(_) {}
     return false;
   }
@@ -188,7 +199,9 @@
     var now = Date.now();
     var dedupeKey = String(reason || '') + '|' + String(cost || 0);
     var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
-    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 1200)) {
+    // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
+    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
+      if (typeof onCancel === 'function') onCancel();
       return;
     }
     dedupeMap[dedupeKey] = now;

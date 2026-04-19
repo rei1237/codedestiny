@@ -1750,6 +1750,18 @@ function __cdBindAnimalTotemTileDirect() {
           window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
           return;
         }
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+        if (!token) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
       }
       // ── 코인 게이트 통과 ──
       _doOpenTotem();
@@ -3583,7 +3595,8 @@ var _dfStudioState = {
   userRequestedLoad: {},
   linkedSources: {},
   coinGatePassed: false,
-  coinGateInFlight: false
+  coinGateInFlight: false,
+  _coinGatePassToken: null  // 코인 게이트 토큰 (내부 콜백용, 외부 호출 방어)
 };
 
 var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
@@ -5181,15 +5194,27 @@ function _dfRequireSourceCoinPayment(source, onPass) {
 
   var sourceMeta = _DF_SOURCE_META[_dfNormalizeSource(source)] || _DF_SOURCE_META.saju;
   var reason = (sourceMeta.labelKo || '운명의 꽃') + ' 운명의 꽃 아틀리에 이용';
+  
   if (typeof window._cdCoinGatePerUse === 'function') {
     _dfStudioState.coinGateInFlight = true;
+    var passToken = '__dfcp_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     window._cdCoinGatePerUse(50, reason, function() {
       _dfStudioState.coinGateInFlight = false;
+      _dfStudioState._coinGatePassToken = passToken;
       _dfStudioState.coinGatePassed = true;
-      if (typeof onPass === 'function') onPass();
+      if (typeof onPass === 'function') onPass(passToken);
     }, function() {
       _dfStudioState.coinGateInFlight = false;
     });
+    return false;
+  }
+  
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
     return false;
   }
 
@@ -5198,7 +5223,7 @@ function _dfRequireSourceCoinPayment(source, onPass) {
     return false;
   }
   return false;
-}
+
 
 function openAstrologyFlowerStudio() {
   return openDestinyFlowerStudio('astrology');
@@ -5256,10 +5281,22 @@ function openDestinyFlowerStudio(source, gatePassed) {
   _dfBindTitleRestoreGuards();
   // ── 코인/잠금 게이트 체크 ──
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function() { openDestinyFlowerStudio(requestedSource, true); })) {
+  if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function(token) { openDestinyFlowerStudio(requestedSource, token); })) {
     return;
   }
-  if (gatePassed) _dfStudioState.coinGatePassed = true;
+  // ⚠️ 보안: gatePassed는 토큰이어야 함
+  if (gatePassed) {
+    if (typeof gatePassed !== 'string' || !gatePassed.startsWith('__dfcp_')) {
+      console.warn('🔒 코인 게이트 토큰 불일치: 불정상 접근 시도 차단');
+      return;
+    }
+    if (gatePassed !== _dfStudioState._coinGatePassToken) {
+      console.warn('🔒 코인 게이트 토큰 검증 실패');
+      return;
+    }
+    _dfStudioState._coinGatePassToken = null;
+    _dfStudioState.coinGatePassed = true;
+  }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   // ── 코인/잠금 게이트 체크 끝 ──
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
@@ -5404,10 +5441,22 @@ function _dfGetNoBirthMessage(source) {
 
 function setDestinyFlowerSourceTab(source, gatePassed) {
   var normalized = _dfNormalizeSource(source);
-  if (!gatePassed && !_dfRequireSourceCoinPayment(normalized, function() { setDestinyFlowerSourceTab(normalized, true); })) {
+  if (!gatePassed && !_dfRequireSourceCoinPayment(normalized, function(token) { setDestinyFlowerSourceTab(normalized, token); })) {
     return _dfStudioState.selection || null;
   }
-  if (gatePassed) _dfStudioState.coinGatePassed = true;
+  // ⚠️ 보안: gatePassed는 토큰이어야 함
+  if (gatePassed) {
+    if (typeof gatePassed !== 'string' || !gatePassed.startsWith('__dfcp_')) {
+      console.warn('🔒 코인 게이트 토큰 불일치: 탭 전환 차단');
+      return _dfStudioState.selection || null;
+    }
+    if (gatePassed !== _dfStudioState._coinGatePassToken) {
+      console.warn('🔒 코인 게이트 토큰 검증 실패');
+      return _dfStudioState.selection || null;
+    }
+    _dfStudioState._coinGatePassToken = null;
+    _dfStudioState.coinGatePassed = true;
+  }
   normalized = _dfSetActiveSource(normalized);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   var isStudioOpen = overlay && overlay.style.display !== 'none';
@@ -5451,6 +5500,7 @@ function closeDestinyFlowerStudio() {
   if (!overlay) return;
   _dfStudioState.coinGatePassed = false;
   _dfStudioState.coinGateInFlight = false;
+  _dfStudioState._coinGatePassToken = null;  // 토큰도 리셋
   _dfRestoreOriginalTitle();
   overlay.classList.remove('is-show');
   setTimeout(function() {

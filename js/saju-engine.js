@@ -7333,7 +7333,17 @@ function renderAstroInsight() {
           });
           return;
         }
-        window._astroPickCelebCore(name, birth, hour);
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+        if (!token) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
     };
     window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
@@ -7544,7 +7554,17 @@ function renderAstroInsight() {
           });
           return;
         }
-        window._astroDirectSynastryCore();
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+        if (!token) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
     };
     window._astroDirectSynastryCore = function() {
         var resultDiv = document.getElementById('asDirectResult');
@@ -11255,7 +11275,17 @@ function renderZiwei(p, natal, targetId) {
         window._cdCoinGatePerUse(50, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
         return;
       }
-      window._runZwCompatibilityCore();
+      // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+      var token = '';
+      try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+      if (!token) {
+        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+          window.location.href = '/login?next=%2F';
+        }
+        return;
+      }
+      window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
     };
     window._runZwCompatibilityCore = function() {
       var dateEl = document.getElementById('zwCompatBirthDate');
@@ -15338,8 +15368,25 @@ async function runCompat(){
     return;
   }
 
-  /* 폴백: 코인 게이트 함수 미로드 시 계속 진행 */
-  runCompatCore(compatRunBtn, name, bd, type);
+  // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (compatRunBtn) {
+      compatRunBtn.disabled = false;
+      compatRunBtn.style.opacity = '';
+    }
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return;
+  }
+  window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+  if (compatRunBtn) {
+    compatRunBtn.disabled = false;
+    compatRunBtn.style.opacity = '';
+  }
+  return;
 }
 
 async function runCompatCore(compatRunBtn, name, bd, type){
