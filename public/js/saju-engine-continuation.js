@@ -130,6 +130,15 @@ function _initSelectorsManually() {
     var hSel = document.getElementById('birthHour');
     var mSel = document.getElementById('birthMinute');
     if (hSel && mSel) {
+      // 이미 option이 있으면 스킵 (DOM 재생성으로 이벤트 리스너 손상 방지)
+      if (hSel.options.length > 0 && mSel.options.length > 0) {
+        console.log('[saju-bootstrap] 이미 option이 있음, 스킵');
+        // 기본값만 설정 (0 = 자정)
+        hSel.value = hSel.value !== '' ? hSel.value : '0';
+        mSel.value = mSel.value !== '' ? mSel.value : '0';
+        return;
+      }
+      
       var prevH = hSel.value; // 사용자가 이미 선택한 값 보존
       var prevM = mSel.value;
       // 시간 선택지 생성

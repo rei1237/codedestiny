@@ -16801,6 +16801,20 @@ function showDwDetail(age,gan,zhi,evaluation,score){
   })();
 }
 
+function updateSajuTime() {
+  // birthHour 또는 birthMinute 변경 시 호출되는 함수
+  // 시간/분 선택 변경만 감지하고 자동 계산은 하지 않음
+  try {
+    var h = document.getElementById('birthHour');
+    var m = document.getElementById('birthMinute');
+    if (h && m) {
+      console.log('[saju] 시간 업데이트: ' + (h.value || '00') + ':' + (m.value || '00'));
+    }
+  } catch(e) {
+    console.error('[saju] updateSajuTime 오류:', e);
+  }
+}
+
 function toggleYear(el, event){
   if(event) {
     // 모바일에서 스크롤 제스처와 충돌 방지
