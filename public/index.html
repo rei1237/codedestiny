@@ -1119,6 +1119,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <div class="logo-nebula logo-nebula--1"></div>
         <div class="logo-nebula logo-nebula--2"></div>
       </div>
+      <!-- 감성적 꽃돼지/백사자 테마 토글 버튼 -->
+      <button id="themeEmotionToggle" class="theme-emotion-toggle" type="button" aria-label="테마 전환: 꽃돼지/백사자">
+        <span class="toggle-inner">
+          <span class="honeypig-face" aria-hidden="true">🐷</span>
+          <span class="toggle-slider"></span>
+          <span class="lion-face" aria-hidden="true">🦁</span>
+        </span>
+      </button>
       <div class="normal-logo">
         <div class="pig-svg-wrap">
           <picture>
@@ -8212,5 +8220,22 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 };
 </script>
 </body>
+<script>
+// 감성적 테마 토글: 30초 후 자동 사라짐
+window.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('themeEmotionToggle');
+  if (!btn) return;
+  var timer = setTimeout(function() {
+    btn.style.opacity = '0';
+    btn.style.pointerEvents = 'none';
+    setTimeout(function(){ btn.style.display = 'none'; }, 600);
+  }, 30000);
+  btn.addEventListener('click', function() {
+    document.body.classList.toggle('theme-lion');
+    btn.classList.toggle('is-lion');
+    // (실제 테마 전환 로직은 필요시 확장)
+  });
+});
+</script>
 </html>
 
