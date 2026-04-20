@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_API_TOKEN_WORKER: ${{ secrets.CLOUDFLARE_API_TOKEN_WORKER || secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_API_TOKEN_PAGES: ${{ secrets.CLOUDFLARE_API_TOKEN_PAGES || secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CODE_DESTINY_API_URL: ${{ vars.CODE_DESTINY_API_URL || 'https://code-destiny.com' }}
       NEXT_PUBLIC_CODE_DESTINY_API_URL: ${{ vars.NEXT_PUBLIC_CODE_DESTINY_API_URL || 'https://code-destiny.com' }}
@@ -58,59 +59,87 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync Worker AI secrets
+      - name: Preflight Cloudflare Worker token permissions
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          if [ -n "${MONGO_URI}" ]; then
-            printf '%s\n' "${MONGO_URI}" | npx wrangler secret put MONGO_URI --config wrangler.json
+          set -euo pipefail
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN_WORKER (or fallback CLOUDFLARE_API_TOKEN) secret in GitHub Actions."
+            exit 1
           fi
-          if [ -n "${MONGO_DB_NAME}" ]; then
-            printf '%s\n' "${MONGO_DB_NAME}" | npx wrangler secret put MONGO_DB_NAME --config wrangler.json
+
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret in GitHub Actions."
+            exit 1
           fi
-          if [ -n "${JWT_SECRET}" ]; then
-            printf '%s\n' "${JWT_SECRET}" | npx wrangler secret put JWT_SECRET --config wrangler.json
+
+          if ! npx --no-install wrangler whoami > /tmp/wrangler-whoami.log 2>&1; then
+            cat /tmp/wrangler-whoami.log
+            echo "::error::Cloudflare WORKER token check failed. Required token scopes: User > User Details:Read, Account > Workers Scripts:Edit, Account > Account Settings:Read, (Workers custom routes 사용 시) Account > Workers Routes:Edit."
+            exit 1
           fi
-          if [ -n "${GOOGLE_API_KEY}" ]; then
-            printf '%s\n' "${GOOGLE_API_KEY}" | npx wrangler secret put GOOGLE_API_KEY --config wrangler.json
+
+          echo "Cloudflare Worker token preflight passed."
+
+      - name: Preflight Cloudflare Pages token permissions
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN_PAGES (or fallback CLOUDFLARE_API_TOKEN) secret in GitHub Actions."
+            exit 1
           fi
-          if [ -n "${GEMINI_API_KEY}" ]; then
-            printf '%s\n' "${GEMINI_API_KEY}" | npx wrangler secret put GEMINI_API_KEY --config wrangler.json
+
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret in GitHub Actions."
+            exit 1
           fi
-          if [ -n "${ANTHROPIC_API_KEY}" ]; then
-            printf '%s\n' "${ANTHROPIC_API_KEY}" | npx wrangler secret put ANTHROPIC_API_KEY --config wrangler.json
+
+          if ! npx --no-install wrangler whoami > /tmp/wrangler-whoami-pages.log 2>&1; then
+            cat /tmp/wrangler-whoami-pages.log
+            echo "::error::Cloudflare PAGES token check failed. Required token scopes: User > User Details:Read, Account > Cloudflare Pages:Edit, Account > Account Settings:Read."
+            exit 1
           fi
-          if [ -n "${AUTH_API_BASE_URL}" ]; then
-            printf '%s\n' "${AUTH_API_BASE_URL}" | npx wrangler secret put AUTH_API_BASE_URL --config wrangler.json
-          fi
-          if [ -n "${AUTH_URL}" ]; then
-            printf '%s\n' "${AUTH_URL}" | npx wrangler secret put AUTH_URL --config wrangler.json
-          fi
-          if [ -n "${AUTH_TRUST_HOST}" ]; then
-            printf '%s\n' "${AUTH_TRUST_HOST}" | npx wrangler secret put AUTH_TRUST_HOST --config wrangler.json
-          fi
-          if [ -n "${AUTH_FRONTEND_BASE_URL}" ]; then
-            printf '%s\n' "${AUTH_FRONTEND_BASE_URL}" | npx wrangler secret put AUTH_FRONTEND_BASE_URL --config wrangler.json
-          fi
-          if [ -n "${GOOGLE_OAUTH_CLIENT_ID}" ]; then
-            printf '%s\n' "${GOOGLE_OAUTH_CLIENT_ID}" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_ID --config wrangler.json
-          fi
-          if [ -n "${GOOGLE_OAUTH_CLIENT_SECRET}" ]; then
-            printf '%s\n' "${GOOGLE_OAUTH_CLIENT_SECRET}" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_SECRET --config wrangler.json
-          fi
-          if [ -n "${NAVER_OAUTH_CLIENT_ID}" ]; then
-            printf '%s\n' "${NAVER_OAUTH_CLIENT_ID}" | npx wrangler secret put NAVER_OAUTH_CLIENT_ID --config wrangler.json
-          fi
-          if [ -n "${NAVER_OAUTH_CLIENT_SECRET}" ]; then
-            printf '%s\n' "${NAVER_OAUTH_CLIENT_SECRET}" | npx wrangler secret put NAVER_OAUTH_CLIENT_SECRET --config wrangler.json
-          fi
-          if [ -n "${KAKAO_OAUTH_CLIENT_ID}" ]; then
-            printf '%s\n' "${KAKAO_OAUTH_CLIENT_ID}" | npx wrangler secret put KAKAO_OAUTH_CLIENT_ID --config wrangler.json
-          fi
-          if [ -n "${KAKAO_OAUTH_CLIENT_SECRET}" ]; then
-            printf '%s\n' "${KAKAO_OAUTH_CLIENT_SECRET}" | npx wrangler secret put KAKAO_OAUTH_CLIENT_SECRET --config wrangler.json
-          fi
-          if [ -n "${FLOWER_ADMIN_SECRET}" ]; then
-            printf '%s\n' "${FLOWER_ADMIN_SECRET}" | npx wrangler secret put FLOWER_ADMIN_SECRET --config wrangler.json
-          fi
+
+          echo "Cloudflare Pages token preflight passed."
+
+      - name: Sync Worker AI secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          wrangler_cmd() {
+            npx --no-install wrangler "$@"
+          }
+
+          sync_worker_secret() {
+            local key="$1" val="${2:-}"
+            if [ -n "${val}" ]; then
+              printf '%s\n' "${val}" | wrangler_cmd secret put "${key}" --config wrangler.json
+            fi
+          }
+
+          sync_worker_secret MONGO_URI "${MONGO_URI}"
+          sync_worker_secret MONGO_DB_NAME "${MONGO_DB_NAME}"
+          sync_worker_secret JWT_SECRET "${JWT_SECRET}"
+          sync_worker_secret GOOGLE_API_KEY "${GOOGLE_API_KEY}"
+          sync_worker_secret GEMINI_API_KEY "${GEMINI_API_KEY}"
+          sync_worker_secret ANTHROPIC_API_KEY "${ANTHROPIC_API_KEY}"
+          sync_worker_secret AUTH_API_BASE_URL "${AUTH_API_BASE_URL}"
+          sync_worker_secret AUTH_URL "${AUTH_URL}"
+          sync_worker_secret AUTH_TRUST_HOST "${AUTH_TRUST_HOST}"
+          sync_worker_secret AUTH_FRONTEND_BASE_URL "${AUTH_FRONTEND_BASE_URL}"
+          sync_worker_secret GOOGLE_OAUTH_CLIENT_ID "${GOOGLE_OAUTH_CLIENT_ID}"
+          sync_worker_secret GOOGLE_OAUTH_CLIENT_SECRET "${GOOGLE_OAUTH_CLIENT_SECRET}"
+          sync_worker_secret NAVER_OAUTH_CLIENT_ID "${NAVER_OAUTH_CLIENT_ID}"
+          sync_worker_secret NAVER_OAUTH_CLIENT_SECRET "${NAVER_OAUTH_CLIENT_SECRET}"
+          sync_worker_secret KAKAO_OAUTH_CLIENT_ID "${KAKAO_OAUTH_CLIENT_ID}"
+          sync_worker_secret KAKAO_OAUTH_CLIENT_SECRET "${KAKAO_OAUTH_CLIENT_SECRET}"
+          sync_worker_secret FLOWER_ADMIN_SECRET "${FLOWER_ADMIN_SECRET}"
 
       # ────────────────────────────────────────────────────────────
       # Cloudflare Pages 시크릿 동기화
@@ -118,12 +147,19 @@ jobs:
       # Pages 프로젝트에도 동일 시크릿을 주입해야 Pages Worker에서 process.env가 동작함.
       # ────────────────────────────────────────────────────────────
       - name: Sync secrets to Cloudflare Pages project
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
+          set -euo pipefail
+          wrangler_cmd() {
+            npx --no-install wrangler "$@"
+          }
+
           PAGES_PROJECT="${CF_PAGES_PROJECT_NAME:-code-destiny}"
           sync_pages_secret() {
             local key="$1" val="$2"
             if [ -n "${val}" ]; then
-              printf '%s\n' "${val}" | npx wrangler pages secret put "${key}" --project-name "${PAGES_PROJECT}"
+              printf '%s\n' "${val}" | wrangler_cmd pages secret put "${key}" --project-name "${PAGES_PROJECT}"
             fi
           }
           sync_pages_secret MONGO_URI         "${MONGO_URI}"
@@ -146,13 +182,19 @@ jobs:
 
       # .open-next is gitignored — deploy-worker must run build:cf when outputs are missing (see scripts/deploy-worker.mjs).
       - name: Build OpenNext (Next + Worker bundle + dist)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npm run build:cf
 
       # Worker deploy may fail if the API token lacks Zone Workers Routes permission.
       # continue-on-error ensures Pages deploy always runs as the primary publish path.
       - name: Deploy OpenNext Worker (workers.dev + custom domain)
         continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npm run deploy:cf:worker
 
       - name: Deploy Cloudflare Pages (pages.dev parity, same build)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node scripts/deploy-pages.mjs
