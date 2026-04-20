@@ -5275,19 +5275,31 @@ function _dfResolveLockTileBySource(source) {
     jamidusu: 'openJamidusuFlowerStudio',
     sukuyo: 'openSukuyoFlowerStudio'
   };
-  var actionName = sourceLockMap[normalized] || 'openDestinyFlowerStudio';
+  var actionName = sourceLockMap[normalized] || '';
+  if (!actionName) return null;
   var tile = document.querySelector('[data-action="' + actionName + '"][data-tile-lock-key]');
-  if (!tile) tile = document.querySelector('[data-action="openDestinyFlowerStudio"][data-tile-lock-key]');
   return tile;
+}
+
+function _dfIsLockKeyUnlocked(lockKey) {
+  if (!lockKey) return false;
+  try {
+    if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
+      return window.unlockedFeatureMap[lockKey] === true;
+    }
+  } catch (_) {}
+  return false;
 }
 
 function _dfIsSourceUnlocked(source) {
   var tile = _dfResolveLockTileBySource(source);
-  if (!tile) return true;
+  if (!tile) return false;
   var lockKey = tile.getAttribute('data-tile-lock-key') || '';
   var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
   if (!lockKey || lockCost <= 0) return true;
-  return !tile.classList.contains('tarot-tile--tileLocked');
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (tile.classList.contains('tarot-tile--tileUnlocked')) return true;
+  return false;
 }
 
 function _dfRequireSourceCoinPayment(source) {
