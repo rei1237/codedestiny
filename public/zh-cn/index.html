@@ -542,6 +542,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .pf-coin-note{font-size:.74rem;color:rgba(210,190,255,.78);font-weight:500;margin-left:auto}
 .pf-card__cta{width:100%;border:none;border-radius:10px;padding:12px 14px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;letter-spacing:.04em;transition:filter .2s,transform .2s,box-shadow .2s;box-shadow:0 4px 18px rgba(109,40,217,.4),inset 0 1px 0 rgba(255,255,255,.18)}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
+.pf-card__cta.is-loading,.cd-section-gate__btn.is-loading{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:wait;pointer-events:none;filter:saturate(.82) brightness(.9)!important}
+.pf-card__cta.is-loading::before,.cd-section-gate__btn.is-loading::before{content:'';width:14px;height:14px;border-radius:999px;border:2px solid rgba(255,255,255,.78);border-right-color:transparent;display:inline-block;animation:tilePvwSpin .76s linear infinite;box-sizing:border-box;flex-shrink:0}
+.tarot-tile.is-processing,.prem-card.is-processing,.lifebook-tile.is-processing,.lovebible-tile.is-processing{filter:saturate(.78) brightness(.88)}
+.tarot-tile.is-processing .tarot-tile__coin-badge,.prem-card.is-processing .tarot-tile__coin-badge,.lifebook-tile.is-processing .tarot-tile__coin-badge,.lovebible-tile.is-processing .tarot-tile__coin-badge{background:rgba(8,8,26,.95);border-color:rgba(148,163,184,.5);color:#e5e7eb}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
@@ -6459,9 +6463,65 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var key = button.getAttribute('data-unlock-key') || '';
     if (unlockedFeatureMap[key]) {
       button.disabled = true;
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
       button.textContent = '해제 완료 ✅';
       button.style.opacity = '0.86';
       button.style.cursor = 'default';
+    }
+  }
+
+  function _cdSetUnlockButtonLoading(button, isLoading, loadingText) {
+    if (!button) return;
+    var key = button.getAttribute('data-unlock-key') || '';
+    if (isLoading && unlockedFeatureMap[key]) return;
+    if (isLoading) {
+      if (button.dataset.cdUnlockLoading === '1') return;
+      button.dataset.cdUnlockLoading = '1';
+      button.dataset.cdPrevText = button.textContent || '';
+      button.dataset.cdPrevOpacity = button.style.opacity || '';
+      button.dataset.cdPrevCursor = button.style.cursor || '';
+      button.dataset.cdPrevDisabled = button.disabled ? '1' : '0';
+      button.classList.add('is-loading');
+      button.setAttribute('aria-busy', 'true');
+      button.disabled = true;
+      button.style.opacity = '0.92';
+      button.style.cursor = 'wait';
+      button.textContent = loadingText || '해금 처리 중...';
+      return;
+    }
+    if (button.dataset.cdUnlockLoading !== '1') return;
+    if (unlockedFeatureMap[key]) {
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+      delete button.dataset.cdUnlockLoading;
+      delete button.dataset.cdPrevText;
+      delete button.dataset.cdPrevOpacity;
+      delete button.dataset.cdPrevCursor;
+      delete button.dataset.cdPrevDisabled;
+      UnlockButton(button);
+      return;
+    }
+    button.classList.remove('is-loading');
+    button.removeAttribute('aria-busy');
+    button.textContent = button.dataset.cdPrevText || button.textContent || '';
+    button.style.opacity = button.dataset.cdPrevOpacity || '';
+    button.style.cursor = button.dataset.cdPrevCursor || '';
+    button.disabled = button.dataset.cdPrevDisabled === '1';
+    delete button.dataset.cdUnlockLoading;
+    delete button.dataset.cdPrevText;
+    delete button.dataset.cdPrevOpacity;
+    delete button.dataset.cdPrevCursor;
+    delete button.dataset.cdPrevDisabled;
+  }
+
+  function _cdSetUnlockButtonsLoadingByKey(unlockKey, isLoading, loadingText) {
+    if (!unlockKey) return;
+    var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"][data-unlock-key]');
+    for (var i = 0; i < nodes.length; i += 1) {
+      var node = nodes[i];
+      if ((node.getAttribute('data-unlock-key') || '') !== unlockKey) continue;
+      _cdSetUnlockButtonLoading(node, isLoading, loadingText);
     }
   }
 
@@ -6622,7 +6682,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (isAdminUser()) {
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
-      UnlockButton(button);
+      refreshUnlockButtons();
       if(typeof applySectionGates==='function')applySectionGates();
       return;
     }
@@ -6637,6 +6697,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!confirmed) return;
 
     if (consumeInFlight) return;
+    _cdSetUnlockButtonsLoadingByKey(featureKey, true, '해금 처리 중...');
     consumeInFlight = true;
     try {
       var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -6664,7 +6725,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       updateBadge();
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
-      UnlockButton(button);
+      refreshUnlockButtons();
       if(typeof applySectionGates==='function')applySectionGates();
       window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
       // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
@@ -6672,6 +6733,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (error) {
       console.error('[golden-pig-coin] consume failed', error);
     } finally {
+      _cdSetUnlockButtonsLoadingByKey(featureKey, false);
       consumeInFlight = false;
     }
   }
@@ -6997,8 +7059,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (event.cancelable && typeof event.preventDefault === 'function') event.preventDefault();
   }
 
-  function _cdSetPerUseLoading(actionNode, isLoading) {
+  function _cdSetPerUseLoading(actionNode, isLoading, loadingText) {
     if (!actionNode) return true;
+    var badge = actionNode.querySelector('.tarot-tile__coin-badge');
     if (isLoading) {
       if (actionNode.dataset.cdCoinGateBusy === '1') return false;
       actionNode.dataset.cdCoinGateBusy = '1';
@@ -7008,6 +7071,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       actionNode.style.pointerEvents = 'none';
       actionNode.setAttribute('aria-busy', 'true');
       actionNode.classList.add('is-processing');
+      if (badge) {
+        actionNode.dataset.cdPrevBadgeText = badge.textContent || '';
+        badge.textContent = loadingText || '처리 중...';
+      }
       if (typeof actionNode.disabled !== 'undefined') {
         actionNode.dataset.cdPrevDisabled = actionNode.disabled ? '1' : '0';
         actionNode.disabled = true;
@@ -7019,11 +7086,15 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     actionNode.style.pointerEvents = actionNode.dataset.cdPrevPointer || '';
     actionNode.removeAttribute('aria-busy');
     actionNode.classList.remove('is-processing');
+    if (badge && typeof actionNode.dataset.cdPrevBadgeText !== 'undefined') {
+      badge.textContent = actionNode.dataset.cdPrevBadgeText;
+    }
     if (typeof actionNode.disabled !== 'undefined') {
       actionNode.disabled = actionNode.dataset.cdPrevDisabled === '1';
     }
     delete actionNode.dataset.cdPrevOpacity;
     delete actionNode.dataset.cdPrevPointer;
+    delete actionNode.dataset.cdPrevBadgeText;
     delete actionNode.dataset.cdPrevDisabled;
     return true;
   }
@@ -7032,7 +7103,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
     if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return Promise.resolve(false);
     _cdSafeBlockEvent(event);
-    if (!_cdSetPerUseLoading(actionNode, true)) return Promise.resolve(false);
+    if (!_cdSetPerUseLoading(actionNode, true, '결제 처리 중...')) return Promise.resolve(false);
     return (async function () {
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
@@ -7225,8 +7296,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
         // Preview 인터셉터로 위임 (이벤트 계속 전파)
       } else {
+      if (!_cdSetPerUseLoading(actionNode, true, '해금 처리 중...')) return;
       _cdSafeBlockEvent(event);
       (async function () {
+        try {
         if (!hasAuthToken()) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
@@ -7296,6 +7369,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         } finally {
           consumeInFlight = false;
+        }
+        } finally {
+          _cdSetPerUseLoading(actionNode, false);
         }
       })();
       return;
