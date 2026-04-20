@@ -972,6 +972,73 @@ function __cdCallGlobal(fnName) {
   return fn.apply(window, args);
 }
 
+function __cdHasAuthToken() {
+  try {
+    if (typeof window.hasAuthToken === 'function') return !!window.hasAuthToken();
+  } catch (_) {}
+  try {
+    return !!(localStorage.getItem('fortune_auth_token') || '');
+  } catch (_) {}
+  return false;
+}
+
+function __cdIsTileLockUnlocked(actionEl, lockKey) {
+  if (!lockKey) return false;
+  if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
+  try {
+    if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
+      if (window.unlockedFeatureMap[lockKey] === true) return true;
+    }
+  } catch (_) {}
+  try {
+    var authRaw = localStorage.getItem('fortune_auth_user') || '';
+    var auth = authRaw ? JSON.parse(authRaw) : null;
+    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
+    var scope = String(scopeRaw || '').trim().toLowerCase();
+    if (scope) {
+      var scopedKey = 'cd_tile_locks_v2::' + scope;
+      var scopedRaw = localStorage.getItem(scopedKey);
+      if (scopedRaw) {
+        var scopedMap = JSON.parse(scopedRaw);
+        if (scopedMap && scopedMap[lockKey] === true) return true;
+      }
+    }
+  } catch (_) {}
+  try {
+    var legacyRaw = localStorage.getItem('cd_tile_locks');
+    if (legacyRaw) {
+      var legacyMap = JSON.parse(legacyRaw);
+      if (legacyMap && legacyMap[lockKey] === true) return true;
+    }
+  } catch (_) {}
+  return false;
+}
+
+function __cdRequireTileLockGate(actionEl) {
+  if (!actionEl) return true;
+  if (actionEl.getAttribute('data-pvw-bypass')) return true;
+  var lockKey = actionEl.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(actionEl.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return true;
+  if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
+
+  if (typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(actionEl)) return false;
+    } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  window.alert('잠금된 서비스입니다. 해금 후 이용해 주세요.');
+  return false;
+}
+
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },
@@ -1587,6 +1654,7 @@ function __cdInvokeActionWithConfig(action, actionEl, event, args) {
 
 function __cdInvokeAction(action, actionEl, event) {
   if (!action || !actionEl) return;
+  if (!__cdRequireTileLockGate(actionEl)) return;
 
   var args = __cdParseActionArgs(actionEl.getAttribute('data-action-args'));
 
@@ -2067,8 +2135,7 @@ function __cdBindDestinyFlowerTileDirect() {
     lastOpenTime = now;
     var action = actionEl && actionEl.getAttribute('data-action');
     if (!action) return;
-    var fn = window[action];
-    if (typeof fn === 'function') fn();
+    __cdInvokeAction(action, actionEl, null);
   }
 
   function handleClick(ev) {
@@ -5633,8 +5700,37 @@ function _dfIsSourceUnlocked(source) {
   return _dfIsSourcePaidUnlocked(normalized);
 }
 
+function _dfRequirePaidSourceUnlock(source) {
+  var normalized = _dfNormalizeSource(source);
+  var lockTile = _dfResolveLockTileBySource(normalized);
+  if (!lockTile) return true;
+
+  var lockKey = lockTile.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(lockTile.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return true;
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (lockTile.classList && lockTile.classList.contains('tarot-tile--tileUnlocked')) return true;
+
+  if (!lockTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(lockTile)) return false;
+    } catch (_) {}
+  }
+
+  if (!__cdHasAuthToken()) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return false;
+  }
+
+  window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');
+  return false;
+}
+
 function _dfRequireSourceCoinPayment(source) {
   var normalized = _dfNormalizeSource(source);
+  if (!_dfRequirePaidSourceUnlock(normalized)) return false;
   if (_dfIsSourceUnlocked(normalized)) return true;
   var required = _dfGetRequiredSourceForUnlock(normalized);
   var requiredLabel = required ? _dfGetSourceLabel(required) : '이전 단계';
