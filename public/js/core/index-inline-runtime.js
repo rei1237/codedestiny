@@ -6015,8 +6015,8 @@ function closeSukuyoModal() {
 function navigateToVedic() {
   if (typeof window.openFortuneFromProfile === 'function') {
     try {
-      window.openFortuneFromProfile('vedic');
-      return;
+      var bridged = window.openFortuneFromProfile('vedic');
+      if (bridged) return;
     } catch (_) {}
   }
   function normalizeVedicProfile(profile) {
