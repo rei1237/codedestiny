@@ -706,7 +706,7 @@
         <div class="card-tag">// VERSION A</div>
         <div class="card-badge">HIGH EFFICIENCY</div>
         <div class="card-dur">30<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">50 COINS</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 50코인</div>
         <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
         <p class="card-desc">
           바쁜 일과 중 강력한 멘탈 튜닝.<br>
@@ -726,7 +726,7 @@
         <div class="card-tag">// VERSION B</div>
         <div class="card-badge" style="border-color:rgba(219,167,58,0.35);color:var(--gold)">DEEP DIVE</div>
         <div class="card-dur" style="color:var(--gold)">60<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">100 COINS</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 100코인</div>
         <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
         <p class="card-desc">
           자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
@@ -1406,6 +1406,72 @@ function _redirectLoginForMeditation(){
   }
 }
 
+var _cdMeditationPayToastTimer=null;
+
+function _ensureMeditationPaymentUi(){
+  if(document.getElementById('cdMeditationPayUiStyle'))return;
+
+  var style=document.createElement('style');
+  style.id='cdMeditationPayUiStyle';
+  style.textContent=
+    '.cd-mpay-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,6,18,.62);backdrop-filter:blur(2px);z-index:2147483000}'+
+    '.cd-mpay-overlay.is-show{display:flex}'+
+    '.cd-mpay-box{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;background:rgba(6,12,30,.94);border:1px solid rgba(255,255,255,.14);color:#f8fafc;box-shadow:0 20px 48px rgba(0,0,0,.45)}'+
+    '.cd-mpay-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.28);border-top-color:#fbbf24;border-radius:50%;animation:cdMpaySpin .75s linear infinite}'+
+    '.cd-mpay-message{font-size:14px;font-weight:700;letter-spacing:.01em}'+
+    '.cd-mpay-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;pointer-events:none;z-index:2147483001;padding:10px 14px;border-radius:999px;background:rgba(10,25,18,.95);border:1px solid rgba(74,222,128,.4);color:#bbf7d0;font-size:13px;font-weight:700;transition:opacity .2s ease,transform .2s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}'+
+    '.cd-mpay-toast.is-show{opacity:1;transform:translate(-50%,0)}'+
+    '@keyframes cdMpaySpin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(style);
+
+  var overlay=document.createElement('div');
+  overlay.id='cdMeditationPayOverlay';
+  overlay.className='cd-mpay-overlay';
+  overlay.innerHTML=
+    '<div class="cd-mpay-box">'+
+    '<div class="cd-mpay-spinner" aria-hidden="true"></div>'+
+    '<div id="cdMeditationPayMessage" class="cd-mpay-message">코인 결제 처리 중...</div>'+
+    '</div>';
+  document.body.appendChild(overlay);
+
+  var toast=document.createElement('div');
+  toast.id='cdMeditationPayToast';
+  toast.className='cd-mpay-toast';
+  toast.setAttribute('aria-live','polite');
+  document.body.appendChild(toast);
+}
+
+function _showMeditationPaymentUi(message){
+  _ensureMeditationPaymentUi();
+  var overlay=document.getElementById('cdMeditationPayOverlay');
+  var text=document.getElementById('cdMeditationPayMessage');
+  if(text)text.textContent=message||'코인 결제 처리 중...';
+  if(overlay)overlay.classList.add('is-show');
+}
+
+function _hideMeditationPaymentUi(){
+  var overlay=document.getElementById('cdMeditationPayOverlay');
+  if(overlay)overlay.classList.remove('is-show');
+}
+
+function _showMeditationDeductedUi(cost,balanceAfter){
+  _ensureMeditationPaymentUi();
+  var toast=document.getElementById('cdMeditationPayToast');
+  if(!toast)return;
+
+  var msg='🪙 '+Number(cost||0)+'코인 차감 완료';
+  if(typeof balanceAfter==='number'&&Number.isFinite(balanceAfter)){
+    msg+=' · 잔액 '+Number(balanceAfter).toLocaleString('ko-KR')+'코인';
+  }
+  toast.textContent=msg;
+  toast.classList.add('is-show');
+
+  if(_cdMeditationPayToastTimer)clearTimeout(_cdMeditationPayToastTimer);
+  _cdMeditationPayToastTimer=setTimeout(function(){
+    toast.classList.remove('is-show');
+  },2300);
+}
+
 async function _consumeMeditationCoin(cost,reason){
   if(_isAdminMeditationSession())return true;
 
@@ -1422,6 +1488,7 @@ async function _consumeMeditationCoin(cost,reason){
     return false;
   }
 
+  _showMeditationPaymentUi('코인 결제 처리 중...');
   try{
     var r=await fetch('/api/fortune/pig-coin/consume',{
       method:'POST',
@@ -1436,7 +1503,9 @@ async function _consumeMeditationCoin(cost,reason){
       return false;
     }
 
+    var balanceAfter=null;
     if(d&&d.user&&typeof d.user.points==='number'){
+      balanceAfter=d.user.points;
       try{
         var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
         u.points=d.user.points;
@@ -1444,10 +1513,13 @@ async function _consumeMeditationCoin(cost,reason){
       }catch(_){ }
       if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(d.user.points);
     }
+    _showMeditationDeductedUi(cost,balanceAfter);
     return true;
   }catch(_){
     window.alert('코인 차감 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
+  }finally{
+    _hideMeditationPaymentUi();
   }
 }
 
