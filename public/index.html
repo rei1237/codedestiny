@@ -5934,7 +5934,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       for (var i = 0; i < tiles.length; i++) {
         var tile = tiles[i];
         var key = tile.getAttribute('data-tile-lock-key');
+        var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
         var wrap = tile.querySelector('.tarot-tile__img-wrap');
+        var badge = tile.querySelector('.tarot-tile__coin-badge');
         if (!wrap) continue;
         if (!wrap.querySelector('.tarot-tile__lock-icon')) {
           var icon = document.createElement('span');
@@ -5945,8 +5947,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         if (unlockedFeatureMap[key]) {
           tile.classList.remove('tarot-tile--tileLocked');
+          tile.classList.add('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--lock');
+            badge.classList.add('tarot-tile__coin-badge--free');
+            badge.textContent = '해금 완료 ✅';
+            badge.setAttribute('aria-label', '해금 완료');
+          }
         } else {
           tile.classList.add('tarot-tile--tileLocked');
+          tile.classList.remove('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--free');
+            badge.classList.add('tarot-tile__coin-badge--lock');
+            badge.textContent = '🔒 해금 ' + lockCost + '코인';
+            badge.setAttribute('aria-label', '해금 필요');
+          }
         }
       }
     } catch (_e) {}
@@ -6540,6 +6556,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
 
+  function _cdShouldDeferTarotCoinGate(action) {
+    if (!action) return false;
+    return action === 'openTarotLoveModal'
+      || action === 'openTarotHealingModal'
+      || action === 'openTarotSelfEsteemModal'
+      || action === 'openTarotReunionModal'
+      || action === 'openTarotYearFortuneModal'
+      || action === 'openTarotModal'
+      || action === 'startIjikTarot'
+      || action === 'startMindScanTarot'
+      || action === 'startCrystalSoulTarot';
+  }
+
   async function _cdConfirmMembershipStart(action, contentTitle) {
     if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
       return true;
@@ -6592,6 +6621,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           return;
         }
       } catch (_adminErr) {}
+      if (_cdShouldDeferTarotCoinGate(action)) {
+        sessionStorage.setItem('cd_pa_' + action, '1');
+        _cdInvokeActionDirect(action, actionNode);
+        return;
+      }
       if (!hasAuthToken()) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
@@ -7190,7 +7224,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
-        if(_pvwHasSub){
+        var _pvwUnlocked = !!unlockedFeatureMap[lockKey];
+        if(_pvwUnlocked){
+          if(_paywallIcon)_paywallIcon.textContent='✅';
+          if(_paywallTitle)_paywallTitle.textContent='해금 완료';
+          if(_paywallDesc)_paywallDesc.textContent='이미 해금된 콘텐츠입니다. 바로 이용할 수 있어요.';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
+          _ctaBtn.textContent='🌸 해금 완료, 바로 열기';
+        } else if(_pvwHasSub){
           if(_paywallIcon)_paywallIcon.textContent='✅';
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 영구 해금 가능';
           if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 영구 해금됩니다!';
@@ -7240,6 +7281,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7253,6 +7296,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   // 모바일 패치에서 코인/잠금 게이트 필요 시 직접 호출 가능한 전역 함수
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;

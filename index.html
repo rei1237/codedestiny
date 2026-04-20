@@ -6230,19 +6230,35 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       for (var i = 0; i < tiles.length; i++) {
         var tile = tiles[i];
         var key = tile.getAttribute('data-tile-lock-key');
+        var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
         var wrap = tile.querySelector('.tarot-tile__img-wrap');
+        var badge = tile.querySelector('.tarot-tile__coin-badge');
         if (!wrap) continue;
         if (!wrap.querySelector('.tarot-tile__lock-icon')) {
           var icon = document.createElement('span');
           icon.className = 'tarot-tile__lock-icon';
           icon.setAttribute('aria-hidden', 'true');
-          icon.textContent = '?뵏';
+          icon.textContent = 'LOCK';
           wrap.appendChild(icon);
         }
         if (unlockedFeatureMap[key]) {
           tile.classList.remove('tarot-tile--tileLocked');
+          tile.classList.add('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--lock');
+            badge.classList.add('tarot-tile__coin-badge--free');
+            badge.textContent = 'UNLOCKED';
+            badge.setAttribute('aria-label', 'Unlocked');
+          }
         } else {
           tile.classList.add('tarot-tile--tileLocked');
+          tile.classList.remove('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--free');
+            badge.classList.add('tarot-tile__coin-badge--lock');
+            badge.textContent = 'LOCK ' + lockCost + ' COIN';
+            badge.setAttribute('aria-label', 'Locked');
+          }
         }
       }
     } catch (_e) {}
@@ -6878,6 +6894,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           return true;
         }
       } catch (_adminErr) {}
+      if (
+        action === 'openTarotLoveModal'
+        || action === 'openTarotHealingModal'
+        || action === 'openTarotSelfEsteemModal'
+        || action === 'openTarotReunionModal'
+        || action === 'openTarotYearFortuneModal'
+        || action === 'openTarotModal'
+        || action === 'startIjikTarot'
+        || action === 'startMindScanTarot'
+        || action === 'startCrystalSoulTarot'
+      ) {
+        sessionStorage.setItem('cd_pa_' + action, '1');
+        _cdInvokeActionDirect(action, actionNode);
+        return true;
+      }
       if (!hasAuthToken()) {
         if (window.confirm('?뵏 濡쒓렇?몄씠 ?꾩슂???쒕퉬?ㅼ엯?덈떎.\n濡쒓렇?????댁슜??二쇱꽭??')) {
           window.location.href = '/login?next=%2F';
@@ -7494,7 +7525,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
-        if(_pvwHasSub){
+        var _pvwUnlocked = !!unlockedFeatureMap[lockKey];
+        if(_pvwUnlocked){
+          if(_paywallIcon)_paywallIcon.textContent='OK';
+          if(_paywallTitle)_paywallTitle.textContent='Unlocked';
+          if(_paywallDesc)_paywallDesc.textContent='This content is already unlocked. You can open it right now.';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
+          _setCtaLabel('OPEN NOW');
+        } else if(_pvwHasSub){
           if(_paywallIcon)_paywallIcon.textContent='??;
           if(_paywallTitle)_paywallTitle.textContent='?꾨━誘몄뾼 援щ룆 ?곴뎄 ?닿툑 媛??;
           if(_paywallDesc)_paywallDesc.textContent='?꾨━誘몄뾼 援щ룆 以묒씠??肄붿씤 ?놁씠 ?곴뎄 ?닿툑?⑸땲??';
@@ -7573,6 +7611,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(window.__cdAdminBypass)return;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7586,6 +7626,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   // 紐⑤컮???⑥튂?먯꽌 肄붿씤/?좉툑 寃뚯씠???꾩슂 ??吏곸젒 ?몄텧 媛?ν븳 ?꾩뿭 ?⑥닔
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;

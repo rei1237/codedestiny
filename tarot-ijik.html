@@ -1761,14 +1761,7 @@ async function getReading() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
 
-  // 메인 화면에서 이미 코인을 차감한 경우 스킵
-  const coinGatePassed = sessionStorage.getItem('ijik-tarot-coin-gate') === 'true';
-  let gateOk = coinGatePassed;
-  if (!gateOk) {
-    gateOk = await ijikCoinGate(50, '이직 타로 리딩');
-  } else {
-    sessionStorage.removeItem('ijik-tarot-coin-gate');
-  }
+  const gateOk = await ijikCoinGate(50, '이직 타로 리딩');
   if (!gateOk) {
     btn.disabled = false;
     return;

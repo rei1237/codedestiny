@@ -440,10 +440,10 @@ export default function SiteFooterHub() {
           </ul>
           <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(71,85,105,0.45)" }}>
             <p style={{ margin: "0 0 6px", fontSize: "12px", color: "#cbd5e1", lineHeight: 1.72, wordBreak: "keep-all" }}>
-              모든 거래에 대한 책임과 환불, 민원 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
+              모든 거래에 대한 책임과 환불 문의 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
             </p>
             <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.72 }}>
-              민원담당자 : 박병하 (seongbae555@gmail.com)
+              담당자 : 박병하 (seongbae555@gmail.com)
             </p>
           </div>
           <div style={REFUND_BOX}>
