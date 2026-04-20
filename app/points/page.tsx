@@ -147,7 +147,14 @@ declare global {
 ══════════════════════════════════════════════════════════════════ */
 
 const PORTONE_IMP_CODE = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE || "imp00000000";
+// PortOne 관리자 콘솔의 상점/채널 값입니다. V1(IMP.request_pay) 구조를 유지하면서 V2 전환 대비용으로 함께 관리합니다.
+const PORTONE_STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || "";
+const PORTONE_CHANNEL_KEY =
+  process.env.NEXT_PUBLIC_PORTONE_TOSS_CHANNEL_KEY
+  || process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY
+  || "";
 const PORTONE_NOTICE_URL = process.env.NEXT_PUBLIC_PORTONE_NOTICE_URL || "";
+const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 
 /* 꿀 구독 시스템 플랜 정의 */
 const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
@@ -263,7 +270,7 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
   { id: "toss_card",     label: "토스페이먼츠(카드)",     logo: "💳", desc: "국내 카드",           group: "domestic" },
   { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체",          group: "domestic" },
   { id: "naverpay",      label: "네이버페이",             logo: "🟩", desc: "네이버 간편 결제",     group: "domestic" },
-  { id: "card_general",  label: "일반 신용카드",          logo: "💠", desc: "다날/나이스 등",       group: "domestic" },
+  { id: "card_general",  label: "일반 신용카드",          logo: "💠", desc: "토스페이먼츠 일반카드", group: "domestic" },
   { id: "paypal",        label: "PayPal",                 logo: "🅿️", desc: "해외 결제",          group: "global"   },
   { id: "applepay",      label: "Apple Pay",              logo: "🍎", desc: "포트원 지원 PG 기준", group: "global"   },
   { id: "googlepay",     label: "Google Pay",             logo: "🟢", desc: "포트원 지원 PG 기준", group: "global"   },
@@ -377,7 +384,7 @@ function resolvePgConfig(methodId: string) {
     toss_card:     { pg: overrides.toss_card      || "tosspayments",            payMethod: "card"   },
     toss_transfer: { pg: overrides.toss_transfer  || "tosspayments",            payMethod: "trans"  },
     naverpay:      { pg: overrides.naverpay       || "naverpay",                payMethod: "card"   },
-    card_general:  { pg: overrides.card_general   || "html5_inicis.INIpayTest", payMethod: "card"   },
+    card_general:  { pg: overrides.card_general   || "tosspayments",            payMethod: "card"   },
     paypal:        { pg: overrides.paypal         || "paypal",                  payMethod: "paypal" },
     applepay:      { pg: overrides.applepay       || "tosspayments",            payMethod: "card"   },
     googlepay:     { pg: overrides.googlepay      || "tosspayments",            payMethod: "card"   },
@@ -1299,13 +1306,38 @@ export default function PointsPage() {
     if (typeof window === "undefined") return;
 
     const query = new URLSearchParams(window.location.search);
+    const redirectMarked = query.get("portone_redirect");
+    const impSuccess = String(query.get("imp_success") || "").toLowerCase();
     const impUid = query.get("imp_uid");
-    if (!impUid) return;
+
+    if (!impUid && impSuccess !== "false" && !redirectMarked) return;
 
     redirectHandledRef.current = true;
 
     const merchantUidFromQuery = query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
+
+    if (!impUid || impSuccess === "false") {
+      clearPendingOrder();
+
+      const failMessage = mapPaymentErrorMessage(
+        query.get("error_msg") || query.get("errorMsg") || "결제가 취소되었습니다.",
+      );
+
+      reportPaymentFailureToServer({
+        merchantUid: merchantUidFromQuery || pending?.merchantUid,
+        impUid: impUid || undefined,
+        reasonCode: "mobile_redirect_failed",
+        reasonMessage: failMessage,
+        paymentMethod: pending?.paymentMethod,
+      });
+
+      pushToast("error", failMessage);
+      if (window.location.search) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+      return;
+    }
 
     setIsProcessing(true);
     setProcessingText("모바일 결제 복귀 신호를 확인하고 있습니다...");
@@ -1320,6 +1352,9 @@ export default function PointsPage() {
       .then(async (result) => {
         clearPendingOrder();
         await handleConfirmSuccess(result, true);
+        if (window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
       })
       .catch((error) => {
         reportPaymentFailureToServer({
@@ -1330,6 +1365,9 @@ export default function PointsPage() {
           paymentMethod: pending?.paymentMethod,
         });
         pushToast("error", getErrorMessage(error, "모바일 결제 검증에 실패했습니다."));
+        if (window.location.search) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
       })
       .finally(() => setIsProcessing(false));
   }, [confirmPaymentWithServer, handleConfirmSuccess, isBooting, token, pushToast, reportPaymentFailureToServer]);
@@ -1384,15 +1422,25 @@ export default function PointsPage() {
       const pgConfig = resolvePgConfig(selectedMethod);
       window.IMP.init(PORTONE_IMP_CODE);
 
+      // 포트원 콘솔에 등록된 복귀 도메인과 일치해야 모바일 결제 후 복귀 검증이 정상 동작합니다.
+      const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
+      redirectUrl.searchParams.set("portone_redirect", "1");
+
+      const buyerName = authUser.name || "회원";
+      const buyerEmail = authUser.email || "";
+
       const requestData: Record<string, unknown> = {
         pg: pgConfig.pg,
         pay_method: pgConfig.payMethod,
         merchant_uid: order.merchantUid,
         name: order.productName,
         amount: order.paymentAmount,
-        buyer_name: authUser.name || "회원",
-        buyer_email: authUser.email || "",
-        m_redirect_url: `${window.location.origin}/points`,
+        buyer_name: buyerName,
+        buyer_email: buyerEmail,
+        // 토스페이먼츠 권장 고객 식별 파라미터(PortOne V2에서도 동일 의미로 사용)
+        customerName: buyerName,
+        customerEmail: buyerEmail,
+        m_redirect_url: redirectUrl.toString(),
         custom_data: {
           userId: authUser.id,
           packageId: selectedPackage.id,
@@ -1400,6 +1448,14 @@ export default function PointsPage() {
           paymentMethod: selectedMethod,
         },
       };
+
+      if (PORTONE_STORE_ID) {
+        requestData.storeId = PORTONE_STORE_ID;
+      }
+
+      if (PORTONE_CHANNEL_KEY) {
+        requestData.channelKey = PORTONE_CHANNEL_KEY;
+      }
 
       if (PORTONE_NOTICE_URL) {
         requestData.notice_url = PORTONE_NOTICE_URL;

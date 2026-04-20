@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callVertexGemini } from '@/app/_lib/callVertexGemini';
+import { verifyJwtFromRequest, isAdminRequest } from '../../_lib/adminAccess';
+import { verifyAndConsumePoints } from '../../_lib/paymentValidation';
 
 export const maxDuration = 300;
 
@@ -185,10 +187,40 @@ export async function POST(request) {
       return NextResponse.json({ message: '요청 데이터 파싱 실패' }, { status: 400 });
     }
 
-    // Auth check (Bearer token must be present)
-    const authHeader = request.headers.get('Authorization') || '';
-    if (!authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ message: '인증이 필요합니다.' }, { status: 401 });
+    // [보안강화] Senior Security Expert: JWT 및 결제 강제 검증 단계
+    const payload = verifyJwtFromRequest(request);
+    const adminMode = await isAdminRequest(request);
+    
+    // 1. 인증 확인
+    if (!payload && !adminMode) {
+      return NextResponse.json({ message: '인증이 필요하거나 유효하지 않은 토큰입니다.' }, { status: 401 });
+    }
+
+    const userId = payload?.userId;
+    
+    // 2. 결제 검증 및 차감 (관리자 모드가 아닐 때만 수행)
+    if (!adminMode) {
+      const payment = await verifyAndConsumePoints(
+        userId, 
+        100, 
+        'sibyl-report', 
+        '시빌라 도미네이터 리포트 생성'
+      );
+
+      if (!payment.ok) {
+        return NextResponse.json(
+          { 
+            message: payment.message, 
+            requiredCoins: 100,
+            code: payment.status === 402 ? 'INSUFFICIENT_COINS' : 'PAYMENT_ERROR'
+          }, 
+          { status: payment.status || 400 }
+        );
+      }
+      
+      console.log(`[Sibyl API] Payment verified for user ${userId}: ${payment.message}`);
+    } else {
+      console.log(`[Sibyl API] Admin bypass enabled`);
     }
 
     const prompt = buildPrompt(body);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SAJU_BASIC_METHOD_COPY } from "../_content/seo-copy";
 
 export default function SajuBasicPage() {
   return (
@@ -15,6 +16,16 @@ export default function SajuBasicPage() {
           <p>- 오행 균형(목·화·토·금·수)과 과다/부족 경향</p>
           <p>- 십성 흐름과 일상, 관계, 진로에 대한 해석 포인트</p>
           <p>- 출생 시각/출생지 보정을 반영한 명식 기반 분석</p>
+        </section>
+
+        <section className="mt-6 rounded-xl border border-cyan-300/30 bg-cyan-500/10 p-4 text-sm text-cyan-50">
+          <h2 className="text-base font-semibold">{SAJU_BASIC_METHOD_COPY.heading}</h2>
+          <p className="mt-2 leading-7 text-cyan-50/95">
+            {SAJU_BASIC_METHOD_COPY.paragraphs[0]}
+          </p>
+          <p className="mt-2 leading-7 text-cyan-50/95">
+            {SAJU_BASIC_METHOD_COPY.paragraphs[1]}
+          </p>
         </section>
 
         <section className="mt-6 rounded-xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-100">

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ZIWEI_PREMIUM_METHOD_COPY } from "../_content/seo-copy";
 
 // ─── 자미두수 로컬 계산 엔진 ────────────────────────────────────────────────
 
@@ -926,6 +927,35 @@ export default function HPremiumZiweiSection({
               <span style={{ color: "rgba(196,181,253,0.45)", fontSize: "0.72rem" }}>Chapter {activeChapter + 1} / {CHAPTERS.length}</span>
             </div>
             <div>{renderContent(content)}</div>
+
+            <section
+              style={{
+                marginTop: "16px",
+                borderRadius: "12px",
+                border: "1px solid rgba(147,197,253,0.28)",
+                background: "rgba(8, 17, 38, 0.65)",
+                padding: "12px 11px",
+              }}
+              aria-label="자미두수 결과 도출 원리 설명"
+            >
+              <h3
+                style={{
+                  margin: "0 0 6px",
+                  color: "#dbeafe",
+                  fontSize: "0.86rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {ZIWEI_PREMIUM_METHOD_COPY.heading}
+              </h3>
+              <p style={{ margin: "0 0 6px", color: "rgba(219,234,254,0.88)", fontSize: "0.8rem", lineHeight: 1.8 }}>
+                {ZIWEI_PREMIUM_METHOD_COPY.paragraphs[0]}
+              </p>
+              <p style={{ margin: 0, color: "rgba(219,234,254,0.82)", fontSize: "0.8rem", lineHeight: 1.8 }}>
+                {ZIWEI_PREMIUM_METHOD_COPY.paragraphs[1]}
+              </p>
+            </section>
           </div>
 
           {/* 네비게이션 버튼 */}

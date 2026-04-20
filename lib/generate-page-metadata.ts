@@ -35,6 +35,40 @@ function normalizeCanonicalPath(path: string): string {
   return clean || "/";
 }
 
+function normalizeCodeSegment(value: string): string {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+}
+
+function buildRouteMetaCode(path: string, variantKey?: string, inLanguage?: string): string {
+  const normalizedPath = normalizeCodeSegment(path.replace(/\//g, "-")) || "home";
+  const normalizedVariant = normalizeCodeSegment(variantKey || "");
+  const normalizedLang = normalizeCodeSegment(inLanguage || "ko-kr") || "ko-kr";
+  return [normalizedPath, normalizedVariant, normalizedLang].filter(Boolean).join("__");
+}
+
+function appendUniqueTitle(title: string, routeCode: string): string {
+  const marker = `[route:${routeCode}]`;
+  if (title.includes(marker)) return title;
+  return `${title} ${marker}`;
+}
+
+function appendUniqueDescription(description: string, routeCode: string): string {
+  const marker = `경로코드:${routeCode}`;
+  if (description.includes(marker)) return description;
+  const normalized = description.trim();
+  const separator = normalized.endsWith(".") ? " " : ". ";
+  return `${normalized}${separator}${marker}.`;
+}
+
+function normalizeMetaText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 const LOCALE_PREFIXES: Array<{ prefix: string; hrefLang: string }> = [
   { prefix: "", hrefLang: "ko" },
   { prefix: "/en-us", hrefLang: "en" },
@@ -66,6 +100,8 @@ export interface FortunePageMeta {
   updatedAt?: string;
   /** 콘텐츠 언어. 기본값: "ko-KR" */
   inLanguage?: string;
+  /** 같은 path 내 query/topic 등 변형 페이지를 구분하는 키 */
+  variantKey?: string;
 }
 
 /** Next.js generateMetadata()에서 반환할 수 있는 메타데이터 객체를 만든다 */
@@ -79,10 +115,14 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     publishedAt,
     updatedAt,
     inLanguage = "ko-KR",
+    variantKey,
   } = opts;
 
   const canonicalPath = normalizeCanonicalPath(path);
   const canonicalUrl = `${SITE_ORIGIN}${canonicalPath === "/" ? "" : canonicalPath}`;
+  const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
+  const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
+  const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
 
   const ogImage = image || `${SITE_ORIGIN}/icons/honeypig.webp`;
 
@@ -97,8 +137,8 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   languagesMap["x-default"] = canonicalUrl;
 
   return {
-    title,
-    description,
+    title: uniqueTitle,
+    description: uniqueDescription,
     keywords: mergeKeywords([...(keywords ?? [])], SEO_CORE_KEYWORDS),
     alternates: {
       canonical: canonicalUrl,
@@ -108,17 +148,17 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       type: "website" as const,
       locale: inLanguage.replace("-", "_"),
       url: canonicalUrl,
-      title,
-      description,
+      title: uniqueTitle,
+      description: uniqueDescription,
       siteName: "꿀꿀 만세력",
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: uniqueTitle }],
       ...(publishedAt ? { publishedTime: new Date(publishedAt).toISOString() } : {}),
       ...(updatedAt ? { modifiedTime: new Date(updatedAt).toISOString() } : {}),
     },
     twitter: {
       card: "summary_large_image" as const,
-      title,
-      description,
+      title: uniqueTitle,
+      description: uniqueDescription,
       images: [ogImage],
     },
     robots: {
@@ -142,10 +182,14 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
     inLanguage = "ko-KR",
     publishedAt,
     updatedAt,
+    variantKey,
   } = opts;
 
   const canonicalPath = normalizeCanonicalPath(path);
   const url = `${SITE_ORIGIN}${canonicalPath === "/" ? "" : canonicalPath}`;
+  const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
+  const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
+  const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
   const ogImage = image || `${SITE_ORIGIN}/icons/honeypig.webp`;
   const now = new Date().toISOString();
 
@@ -155,8 +199,8 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
       {
         "@type": "SoftwareApplication",
         "@id": `${url}#app`,
-        name: title,
-        description,
+        name: uniqueTitle,
+        description: uniqueDescription,
         url,
         applicationCategory,
         operatingSystem: "Web",
@@ -182,8 +226,8 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
         "@type": "WebPage",
         "@id": `${url}#webpage`,
         url,
-        name: title,
-        description,
+        name: uniqueTitle,
+        description: uniqueDescription,
         inLanguage,
         isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
         potentialAction: { "@type": "ReadAction", target: [url] },
@@ -192,4 +236,58 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
   };
 
   return JSON.stringify(data);
+}
+
+export function withUniqueRouteMetadata(
+  path: string,
+  metadata: Record<string, unknown>,
+  options?: { variantKey?: string; inLanguage?: string },
+) {
+  const canonicalPath = normalizeCanonicalPath(path);
+  const rawTitle = normalizeMetaText(metadata?.title);
+  const rawDescription = normalizeMetaText(metadata?.description);
+  const languageHint =
+    options?.inLanguage ||
+    normalizeMetaText((metadata?.openGraph as Record<string, unknown> | undefined)?.locale).replace("_", "-") ||
+    "ko-KR";
+  const routeMetaCode = buildRouteMetaCode(canonicalPath, options?.variantKey, languageHint);
+
+  const uniqueTitle = rawTitle ? appendUniqueTitle(rawTitle, routeMetaCode) : rawTitle;
+  const uniqueDescription = rawDescription
+    ? appendUniqueDescription(rawDescription, routeMetaCode)
+    : rawDescription;
+
+  const openGraph = (metadata?.openGraph as Record<string, unknown> | undefined) || undefined;
+  const twitter = (metadata?.twitter as Record<string, unknown> | undefined) || undefined;
+  const alternates = (metadata?.alternates as Record<string, unknown> | undefined) || undefined;
+
+  return {
+    ...metadata,
+    ...(uniqueTitle ? { title: uniqueTitle } : {}),
+    ...(uniqueDescription ? { description: uniqueDescription } : {}),
+    openGraph: openGraph
+      ? {
+          ...openGraph,
+          title: appendUniqueTitle(normalizeMetaText(openGraph.title) || uniqueTitle, routeMetaCode),
+          description: appendUniqueDescription(
+            normalizeMetaText(openGraph.description) || uniqueDescription,
+            routeMetaCode,
+          ),
+        }
+      : undefined,
+    twitter: twitter
+      ? {
+          ...twitter,
+          title: appendUniqueTitle(normalizeMetaText(twitter.title) || uniqueTitle, routeMetaCode),
+          description: appendUniqueDescription(
+            normalizeMetaText(twitter.description) || uniqueDescription,
+            routeMetaCode,
+          ),
+        }
+      : undefined,
+    alternates: {
+      ...(alternates || {}),
+      canonical: normalizeMetaText(alternates?.canonical) || toAbsoluteUrl(canonicalPath),
+    },
+  };
 }

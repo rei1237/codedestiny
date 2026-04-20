@@ -1,5 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { proxyLegacyApi } from "../../_lib/legacyApiProxy";
+import { verifyJwtFromRequest, isAdminRequest } from "../../_lib/adminAccess";
+import { verifyAndConsumePoints } from "../../_lib/paymentValidation";
 import { createRequire } from "module";
 
 export const runtime = "nodejs";
@@ -698,6 +700,38 @@ function buildLocalFallback(body) {
 }
 
 export async function POST(request) {
+  // [보안강화] Senior Security Expert: 타로 리딩 권한 및 결제 강제 검증
+  const payload = verifyJwtFromRequest(request);
+  const adminMode = await isAdminRequest(request);
+
+  if (!payload && !adminMode) {
+    return NextResponse.json({ ok: false, message: "인증이 필요합니다." }, { status: 401 });
+  }
+
+  const userId = payload?.userId;
+
+  // 관리자가 아닌 경우 코인 차감 (기본 10코인)
+  if (!adminMode) {
+    const payment = await verifyAndConsumePoints(
+      userId,
+      10,
+      "tarot-reading",
+      "타로 셔플 및 리딩"
+    );
+
+    if (!payment.ok) {
+      return NextResponse.json(
+        { 
+          ok: false, 
+          message: payment.message, 
+          requiredCoins: 10,
+          code: payment.status === 402 ? "INSUFFICIENT_COINS" : "PAYMENT_ERROR"
+        }, 
+        { status: payment.status || 400 }
+      );
+    }
+  }
+
   const fallbackClone = request.clone();
   let upstreamResponse = null;
   const body = await fallbackClone.json().catch(() => ({}));

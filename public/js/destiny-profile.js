@@ -970,11 +970,35 @@
           if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
         }
       }
+      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
 
     /* ③ 성별 동기화 */
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
+    
+    /* ③-2. 성별 버튼 UI 동기화 */
+    var btnF = document.getElementById('btnF');
+    var btnM = document.getElementById('btnM');
+    if (btnF || btnM) {
+      var gender = profile.gender || 'F';
+      if (btnF) {
+        if (gender === 'F') {
+          btnF.classList.add('selected');
+          btnM && btnM.classList.remove('selected');
+        } else {
+          btnF.classList.remove('selected');
+        }
+      }
+      if (btnM) {
+        if (gender === 'M') {
+          btnM.classList.add('selected');
+          btnF && btnF.classList.remove('selected');
+        } else {
+          btnM.classList.remove('selected');
+        }
+      }
+    }
 
     /* ④ 미리보기 갱신 — 예외 처리 강화 */
     try {
@@ -992,11 +1016,18 @@
       console.error('[DP] 시간 보정 미리보기 갱신 실패:', err);
     }
 
-    /* ⑤ 비동기 실행 — RAF + 80ms: DOM 완전 반영 후 계산 */
+    /* ⑤ 비동기 실행 — RAF + 충분한 지연 + 폼 필드 완비 확인 후 계산 */
     requestAnimationFrame(function() {
       setTimeout(function() {
+        /* 폼 필드가 완전히 준비되었는지 확인 */
+        try {
+          var bdVal = document.getElementById('birthDate') ? document.getElementById('birthDate').value : '';
+          var hVal = document.getElementById('birthHour') ? document.getElementById('birthHour').value : '';
+          var mVal = document.getElementById('birthMinute') ? document.getElementById('birthMinute').value : '';
+          console.log('[DP] 폼 필드 검증:', { bd: bdVal, hour: hVal, minute: mVal });
+        } catch (e) {}
         _runSajuWhenReady(60, 250);
-      }, 80);
+      }, 200); /* 80ms → 200ms로 증가: 폼 완전 업데이트 및 이벤트 처리 대기 */
     });
   }
 
@@ -1456,13 +1487,27 @@
     var nameEl = document.getElementById('nameInput');
     if (nameEl) nameEl.value = p.name || '';
     var bdEl = document.getElementById('birthDate');
-    if (bdEl) bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+    if (bdEl) {
+      bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+      try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    }
     var calBtns = document.querySelectorAll('input[name="calType"]');
-    calBtns.forEach(function(btn) { btn.checked = btn.value === (b.calType || 'solar'); });
+    calBtns.forEach(function(btn) {
+      btn.checked = btn.value === (b.calType || 'solar');
+      if (btn.checked) try { btn.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    });
     var hourEl = document.getElementById('birthHour');
     var minEl  = document.getElementById('birthMinute');
-    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
-    if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+    if (hourEl) {
+      var hVal = String((b.hour !== undefined && b.hour !== null) ? b.hour : 12);
+      hourEl.value = hVal;
+      try { hourEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    }
+    if (minEl) {
+      var mVal = String((b.minute !== undefined && b.minute !== null) ? b.minute : 0);
+      minEl.value = mVal;
+      try { minEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    }
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
       var matched = false;
@@ -1477,6 +1522,19 @@
           if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
         }
       }
+      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    }
+
+    // 성별 버튼 UI 동기화 (메인 JS와 동일)
+    var genderBtns = document.querySelectorAll('.gender-btn');
+    if (genderBtns && genderBtns.length) {
+      genderBtns.forEach(function(btn) {
+        if (btn.dataset.gender === (p.gender || 'F')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
     }
     if (window.setGender) window.setGender(p.gender || 'F');
     window._gender = p.gender || 'F';

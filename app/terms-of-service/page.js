@@ -134,8 +134,8 @@ export default function TermsOfServicePage() {
         </p>
       </section>
 
-      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 구독형 디지털 콘텐츠 환불 및 청약철회 제한 / Subscription Refund and Withdrawal Limits</h2>
+      <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 교환/환불(청약철회) 및 구독형 디지털 콘텐츠 환불 제한 / Exchange, Refund and Subscription Withdrawal Limits</h2>
         <p style={{ lineHeight: 1.75 }}>
           구독 서비스 가입 후 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면,
           전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호의

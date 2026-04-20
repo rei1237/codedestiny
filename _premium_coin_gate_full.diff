@@ -1,0 +1,240 @@
+﻿diff --git a/app/components/MindScanTarot.tsx b/app/components/MindScanTarot.tsx
+index 70058cc..abfdc65 100644
+--- a/app/components/MindScanTarot.tsx
++++ b/app/components/MindScanTarot.tsx
+@@ -1002,33 +1002,43 @@ export default function MindScanTarot() {
+       }
+ 
+       if (!isFlowerAdminMode) {
+-        const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
+-          method: "POST",
+-          headers: {
+-            "Content-Type": "application/json",
+-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+-            ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
+-            ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
+-              ? { "x-admin-subscription-tier": adminTestTier }
+-              : {}),
+-          },
+-          body: JSON.stringify({
+-            cost: MINDSCAN_COIN_COST,
+-            reason: "留덉씤???ㅼ틪 ?濡??댁슜",
+-            featureKey: "tarot-mindscan",
+-          }),
+-        });
+-        const consumeData = await consumeRes.json().catch(() => ({}));
+-        if (consumeRes.status === 402) {
+-          setReadingError(`肄붿씤??遺議깊빀?덈떎. ${MINDSCAN_COIN_COST}肄붿씤???꾩슂?⑸땲??`);
+-          return;
+-        }
+-        if (!consumeRes.ok) {
+-          setReadingError(String(consumeData?.message || "肄붿씤 李④컧???ㅽ뙣?덉뒿?덈떎."));
+-          return;
++        // 硫붿씤 ?붾㈃?먯꽌 ?대? 肄붿씤??李④컧??寃쎌슦 ?ㅽ궢
++        const coinGatePassed = typeof window !== "undefined" 
++          ? sessionStorage.getItem("mindscan-tarot-coin-gate") === "true"
++          : false;
++        
++        if (!coinGatePassed) {
++          const consumeRes = await fetch("/api/fortune/pig-coin/consume", {
++            method: "POST",
++            headers: {
++              "Content-Type": "application/json",
++              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
++              ...(validAdminToken ? { "x-admin-token": validAdminToken } : {}),
++              ...(validAdminToken && (adminTestTier === "standard" || adminTestTier === "premium" || adminTestTier === "vvip")
++                ? { "x-admin-subscription-tier": adminTestTier }
++                : {}),
++            },
++            body: JSON.stringify({
++              cost: MINDSCAN_COIN_COST,
++              reason: "留덉씤???ㅼ틪 ?濡??댁슜",
++              featureKey: "tarot-mindscan",
++            }),
++          });
++          const consumeData = await consumeRes.json().catch(() => ({}));
++          if (consumeRes.status === 402) {
++            setReadingError(`肄붿씤??遺議깊빀?덈떎. ${MINDSCAN_COIN_COST}肄붿씤???꾩슂?⑸땲??`);
++            return;
++          }
++          if (!consumeRes.ok) {
++            setReadingError(String(consumeData?.message || "肄붿씤 李④컧???ㅽ뙣?덉뒿?덈떎."));
++            return;
++          }
++          const remainPoints = Number(consumeData?.user?.points ?? 0);
++          showToast(`?첌 留덉씤???ㅼ틪 ?濡??댁슜?쇰줈 ${MINDSCAN_COIN_COST}肄붿씤??李④컧?섏뿀?듬땲?? ?⑥? 肄붿씤: ${remainPoints.toLocaleString("ko-KR")}`, "info");
++        } else {
++          // ?뚮옒洹??쒓굅
++          try { sessionStorage.removeItem("mindscan-tarot-coin-gate"); } catch(_) {}
+         }
+-        const remainPoints = Number(consumeData?.user?.points ?? 0);
+-        showToast(`?첌 留덉씤???ㅼ틪 ?濡??댁슜?쇰줈 ${MINDSCAN_COIN_COST}肄붿씤??李④컧?섏뿀?듬땲?? ?⑥? 肄붿씤: ${remainPoints.toLocaleString("ko-KR")}`, "info");
+       }
+ 
+       const res = await fetch("/api/tarot/mindscan", {
+diff --git a/app/high-value/[slug]/page.js b/app/high-value/[slug]/page.js
+index a2bc320..624540e 100644
+--- a/app/high-value/[slug]/page.js
++++ b/app/high-value/[slug]/page.js
+@@ -15,13 +15,13 @@ export function generateMetadata({ params }) {
+   if (!page) {
+     return {
+       title: "臾몄꽌瑜?李얠쓣 ???놁뒿?덈떎 | CODE DESTINY",
+-      robots: { index: false, follow: false },
++      robots: { index: false, follow: true },
+     };
+   }
+ 
+   return generatePageMetadata({
+     path: `/high-value/${page.slug}`,
+-    title: `${page.title} | CODE DESTINY`,
++    title: `${page.title} | 臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍`,
+     description: page.summary,
+     keywords: [page.title, page.category, "high value article", "adsense content"],
+     updatedAt: page.updatedAt,
+@@ -74,7 +74,7 @@ export default function HighValueDetailPage({ params }) {
+       <header style={{ marginBottom: "16px" }}>
+         <p style={{ margin: 0, fontSize: "12px", color: "#f8eecb" }}>{page.category}</p>
+         <h1 style={{ margin: "8px 0 10px", fontSize: "clamp(1.5rem,3.8vw,2.2rem)", color: "#f8fafc", lineHeight: 1.35 }}>
+-          {page.title}
++          {page.title} | 臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍
+         </h1>
+         <p style={{ margin: 0, lineHeight: 1.8, color: "#cbd5e1" }}>{page.summary}</p>
+         <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#94a3b8" }}>Updated: {page.updatedAt}</p>
+diff --git a/app/high-value/category/[category]/page.js b/app/high-value/category/[category]/page.js
+index 4be5ee6..1c58b6a 100644
+--- a/app/high-value/category/[category]/page.js
++++ b/app/high-value/category/[category]/page.js
+@@ -19,13 +19,13 @@ export function generateMetadata({ params }) {
+   if (!category) {
+     return {
+       title: "移댄뀒怨좊━瑜?李얠쓣 ???놁뒿?덈떎 | CODE DESTINY",
+-      robots: { index: false, follow: false },
++      robots: { index: false, follow: true },
+     };
+   }
+ 
+   return generatePageMetadata({
+     path: `/high-value/category/${category.slug}`,
+-    title: `${category.name} Articles | CODE DESTINY`,
++    title: `${category.name} | 臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍 臾몄꽌`,
+     description: `${category.name} 移댄뀒怨좊━??怨좉?移??뺤쟻 臾몄꽌瑜?紐⑥븘蹂대뒗 ?섏씠吏?낅땲??`,
+     keywords: [category.name, "category page", "high value content"],
+   });
+@@ -56,7 +56,7 @@ export default function HighValueCategoryPage({ params }) {
+       </nav>
+ 
+       <header style={{ marginBottom: "16px" }}>
+-        <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>{category.name}</h1>
++        <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍 {category.name}</h1>
+         <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
+           ??移댄뀒怨좊━??怨좉?移??뺤쟻 臾몄꽌瑜?紐⑥븘 ?쒕늿???뺤씤?????덉뒿?덈떎.
+         </p>
+diff --git a/app/high-value/page.js b/app/high-value/page.js
+index 98e5b3b..80ab1e9 100644
+--- a/app/high-value/page.js
++++ b/app/high-value/page.js
+@@ -6,7 +6,7 @@ import { HIGH_VALUE_CATEGORIES, HIGH_VALUE_PAGES } from "./content";
+ export function generateMetadata() {
+   return generatePageMetadata({
+     path: "/high-value",
+-    title: "High-Value Guides & Articles | CODE DESTINY",
++    title: "臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍 High-Value 媛?대뱶 | CODE DESTINY",
+     description:
+       "AdSense ?뱀씤 ?덉쭏 湲곗???留욎텣 ?λЦ 媛?대뱶, ?뺣낫???꾪떚?? FAQ 臾몄꽌瑜???怨녹뿉???뺤씤?섏꽭??",
+     keywords: [
+@@ -37,7 +37,7 @@ export default function HighValueHubPage() {
+ 
+       <header style={{ marginBottom: "18px" }}>
+         <h1 style={{ margin: 0, fontSize: "clamp(1.4rem,3.6vw,2rem)", color: "#f8fafc" }}>
+-          High-Value Static Pages
++          臾대즺 ?ъ＜ 쨌 ?먮??먯닔 ?댁꽭 遺꾩꽍 High-Value 臾몄꽌 ?덈툕
+         </h1>
+         <p style={{ margin: "10px 0 0", lineHeight: 1.8, color: "#cbd5e1" }}>
+           ?꾨옒 臾몄꽌??愿묎퀬 ?뱀씤 愿?먯뿉???꾩슂???뺣낫 諛?? 臾몃㎘?? ?ъ슜??吏덈Ц ??묐젰???믪씠湲??꾪빐 ?묒꽦???λЦ 珥덉븞?낅땲??
+diff --git a/app/insights/[slug]/page.js b/app/insights/[slug]/page.js
+index 870597c..1450fed 100644
+--- a/app/insights/[slug]/page.js
++++ b/app/insights/[slug]/page.js
+@@ -1,6 +1,7 @@
+ import { notFound } from "next/navigation";
+ import { INSIGHT_ARTICLES, INSIGHT_TOPICS, getArticleBySlug, getTopicKey } from "../articles";
+ import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "../../../lib/seo-metadata";
++import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
+ import { ArticleJsonLd, BreadcrumbJsonLd, FaqJsonLd } from "../../components/SeoJsonLd";
+ import InsightArticleCosmicClient from "./InsightArticleCosmicClient";
+ 
+@@ -90,10 +91,11 @@ export function generateStaticParams() {
+ export function generateMetadata({ params }) {
+   const article = getArticleBySlug(params?.slug);
+   if (!article) {
+-    return {
++    return withUniqueRouteMetadata("/insights/not-found", {
+       title: "?몄궗?댄듃 湲??李얠쓣 ???놁뒿?덈떎 | CODE DESTINY",
+-      robots: { index: false, follow: false },
+-    };
++      description: "?붿껌???몄궗?댄듃 湲??議댁옱?섏? ?딆븘 404濡??곌껐?섎뒗 蹂댁“ 硫뷀??낅땲??",
++      robots: { index: false, follow: true },
++    });
+   }
+ 
+   const canonicalUrl = toAbsoluteUrl(`/insights/${article.slug}`);
+@@ -110,7 +112,7 @@ export function generateMetadata({ params }) {
+   const postLang = article.lang ?? 'ko';
+   const ogLocale = OG_LOCALE_MAP[postLang] ?? 'ko_KR';
+ 
+-  return {
++  return withUniqueRouteMetadata(`/insights/${article.slug}`, {
+     title: `${article.title} - ${article.category} ?몄궗?댄듃 | CODE DESTINY`,
+     description: metaDescription,
+     keywords: mergeKeywords(article.keywords, SEO_CORE_KEYWORDS),
+@@ -141,7 +143,7 @@ export function generateMetadata({ params }) {
+       title: article.title,
+       description: metaDescription,
+     },
+-  };
++  }, { variantKey: article.updatedAt || article.slug, inLanguage: postLang });
+ }
+ 
+ export default function InsightArticlePage({ params }) {
+diff --git a/app/insights/page.js b/app/insights/page.js
+index 45ce730..8161609 100644
+--- a/app/insights/page.js
++++ b/app/insights/page.js
+@@ -54,16 +54,34 @@ export const dynamic = "force-dynamic";
+ 
+ export function generateMetadata({ searchParams }) {
+   const topic = String(searchParams?.topic || "").trim().toLowerCase();
++  const hasTopicQuery = topic.length > 0;
+   const topicMeta = META_MAP[topic];
++
++  const robotsNoindexFollow = {
++    index: false,
++    follow: true,
++    googleBot: { index: false, follow: true, "max-snippet": -1 },
++  };
++
+   if (!topicMeta) {
+-    return generatePageMetadata(_META);
++    const baseMeta = generatePageMetadata({
++      ..._META,
++      variantKey: hasTopicQuery ? `topic-${topic}` : "topic-all",
++    });
++    if (hasTopicQuery && topic !== "all") {
++      return { ...baseMeta, robots: robotsNoindexFollow };
++    }
++    return baseMeta;
+   }
+ 
+-  return generatePageMetadata({
++  const pageMeta = generatePageMetadata({
+     ..._META,
+     title: topicMeta.title,
+     description: topicMeta.description,
++    variantKey: `topic-${topic}`,
+   });
++
++  return topic === "all" ? pageMeta : { ...pageMeta, robots: robotsNoindexFollow };
+ }
+ 
+ export default function InsightsIndexPage({ searchParams }) {

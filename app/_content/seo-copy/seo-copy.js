@@ -37,4 +37,4 @@ export const HOME_FAQ_ITEMS = [
 	},
 ];
 
-export const FAQ_PAGE_COPY = {
+export const FAQ_PAGE_COPY = {};

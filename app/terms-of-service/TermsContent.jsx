@@ -79,8 +79,8 @@ export default function TermsContent() {
         </p>
       </section>
 
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">11. 구독형 디지털 콘텐츠 환불 및 청약철회 제한</h3>
+      <section id="refund-policy" className="policy-embed-section" style={{ scrollMarginTop: "116px" }}>
+        <h3 className="policy-embed-h3">11. 교환/환불(청약철회) 및 구독형 디지털 콘텐츠 환불 제한</h3>
         <p>
           구독 서비스 가입 후 멤버십 전용 콘텐츠를 1회라도 열람하면 디지털 콘텐츠 서비스 개시로 간주됩니다. 따라서 구독 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며, 합리적 공제 기준을 반영한 잔여분만 환불됩니다.
         </p>

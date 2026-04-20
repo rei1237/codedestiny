@@ -802,14 +802,26 @@
     freeSec && freeSec.classList.add('sb-fadein');
   }
 
-  /* ── 코인 차감 후 도미네이터 리포트 호출 ── */
+  /* ── [Senior Expert] 백엔드 강제 차감 연동형 도미네이터 해제 ── */
   async function _unlockDominator() {
     var btn = _q('sbUnlockBtn');
-    if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
+    if (btn) { btn.disabled = true; btn.textContent = '>> AUTHORIZING…'; }
 
     function _restoreUnlockBtn() {
       if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
     }
+
+    // 1. 공용 코인 게이트가 있으면 우선 사용 (기존 호환성)
+    if (typeof window._cdCoinGatePerUse === 'function') {
+      window._cdCoinGatePerUse(100, '시빌라 도미네이터 리포트', function() {
+        _afterPaid();
+      }, _restoreUnlockBtn);
+      return;
+    }
+
+    // 2. 직접 호출 (백엔드에서 차감을 강제하므로 바로 리포트 생성을 시도합니다)
+    // 리포트 생성 API 내부에서 402(잔액부족)가 나오면 모달을 띄웁니다.
+    _afterPaid();
 
     function _afterPaid() {
       var lockEl = _q('sbLockOverlay');
@@ -819,88 +831,60 @@
 
       _generateDominatorReport().catch(function(e) {
         console.error('[SibylSystem] Report generation error:', e);
-        var errState = _q('sbErrorState');
-        if (errState) errState.classList.remove('sb-hidden');
+        _restoreUnlockBtn();
+        
+        // 402 에러(코인 부족) 처리
+        if (e.message && (e.message.indexOf('402') >= 0 || e.message.indexOf('코인') >= 0)) {
+          _showChargeModal(100);
+          var lockEl2 = _q('sbLockOverlay');
+          if (lockEl2) lockEl2.classList.remove('sb-hidden');
+        } else {
+          var errState = _q('sbErrorState');
+          if (errState) errState.classList.remove('sb-hidden');
+        }
+        
         var genEl2 = _q('sbGenerating');
         if (genEl2) genEl2.classList.add('sb-hidden');
       });
     }
+  }
 
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(100, '시빌라 도미네이터 리포트', _afterPaid, _restoreUnlockBtn);
-      return;
-    }
-    _restoreUnlockBtn();
-    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
-    return;
-
-    // Auth check
-    try {
-      var token = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      if (!token) {
-        alert('🔒 로그인이 필요합니다. 로그인 후 이용해 주세요.');
-        _restoreUnlockBtn();
-        return;
-      }
-    } catch(e) {}
-
-    // Balance check
-    try {
-      var _u = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-      var balance = typeof window.userBalance === 'number' ? window.userBalance : (_u.points || 0);
-      if (balance < 100) {
-        if (confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + balance + '코인 / 필요: 100코인\n충전 창을 여시겠습니까?')) {
-          if (typeof window.openChargeModal === 'function') window.openChargeModal();
-        }
-        _restoreUnlockBtn();
-        return;
-      }
-    } catch(e) {}
-
-    // Confirm
-    if (!confirm('🪙 시빌라 도미네이터 리포트\n100코인이 차감됩니다. 진행하시겠습니까?\n(현재 진행 중인 사주 분석 기반 20,000자+ 전문 리포트)')) {
-      _restoreUnlockBtn();
-      return;
+  /* ── 프리미엄 코인 충전 안내 모달 (Senior Design) ── */
+  function _showChargeModal(needed) {
+    var modal = _q('sbChargeModal');
+    if (!modal) {
+      // 모달이 없으면 동적 생성
+      modal = document.createElement('div');
+      modal.id = 'sbChargeModal';
+      modal.className = 'sb-premium-modal sb-hidden';
+      document.body.appendChild(modal);
     }
 
-    // Consume coins
-    try {
-      var token2 = localStorage.getItem('fortune_auth_token') || sessionStorage.getItem('fortune_auth_token');
-      var consumeRes = await fetch('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token2 },
-        body: JSON.stringify({ cost: 100, reason: '시빌라 도미네이터 리포트' })
-      });
-      if (!consumeRes.ok) {
-        var errJson = await consumeRes.json().catch(function(){return {};});
-        var msg = errJson.message || '코인 차감에 실패했습니다.';
-        if (consumeRes.status === 402) {
-          if (confirm('코인이 부족합니다. 충전 창을 여시겠습니까?')) {
-            if (typeof window.openChargeModal === 'function') window.openChargeModal();
-          }
-        } else {
-          alert(msg);
-        }
-        _restoreUnlockBtn();
-        return;
-      }
-      var consumeData = await consumeRes.json().catch(function(){return {};});
-      if (consumeData.user && typeof consumeData.user.points === 'number') {
-        window.userBalance = consumeData.user.points;
-        if (typeof window.saveBalance === 'function') window.saveBalance();
-        if (typeof window.updateBadge === 'function') window.updateBadge();
-      } else {
-        window.userBalance = Math.max(0, (window.userBalance||0) - 100);
-        if (typeof window.saveBalance === 'function') window.saveBalance();
-        if (typeof window.updateBadge === 'function') window.updateBadge();
-      }
-    } catch(e) {
-      alert('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
-      _restoreUnlockBtn();
-      return;
-    }
+    var balance = typeof window.userBalance === 'number' ? window.userBalance : 0;
+    
+    modal.innerHTML = `
+      <div class="sb-pm-overlay"></div>
+      <div class="sb-pm-content">
+        <div class="sb-pm-header">
+          <div class="sb-pm-icon">🪙</div>
+          <div class="sb-pm-title">코인이 부족합니다</div>
+        </div>
+        <div class="sb-pm-body">
+          <p>도미네이터 리포트 열람에는 <strong>${needed}코인</strong>이 필요합니다.</p>
+          <div class="sb-pm-stats">
+            <span>보유 코인: <strong>${balance.toLocaleString()}</strong></span>
+            <span>필요 코인: <strong class="sb-warn">${needed.toLocaleString()}</strong></span>
+          </div>
+          <p class="sb-pm-hint">꽃돼지 코인을 충전하고 당신의 운명 접속 코드를 확인하세요.</p>
+        </div>
+        <div class="sb-pm-footer">
+          <button class="sb-pm-btn sb-pm-btn--charge" onclick="if(window.openChargeModal)window.openChargeModal(); document.getElementById('sbChargeModal').classList.add('sb-hidden');">⚡ 지금 충전하기</button>
+          <button class="sb-pm-btn sb-pm-btn--close" onclick="document.getElementById('sbChargeModal').classList.add('sb-hidden');">닫기</button>
+        </div>
+      </div>
+    `;
 
-    _afterPaid();
+    modal.classList.remove('sb-hidden');
   }
 
   /* ── 도미네이터 리포트 생성 API 호출 ── */

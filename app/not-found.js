@@ -1,4 +1,15 @@
 import Link from "next/link";
+import { withUniqueRouteMetadata } from "../lib/generate-page-metadata";
+
+export const metadata = withUniqueRouteMetadata("/not-found", {
+  title: "404 페이지를 찾을 수 없음 | Code Destiny",
+  description: "요청하신 페이지를 찾을 수 없어 대체 탐색 링크를 안내하는 404 전용 화면입니다.",
+  robots: {
+    index: false,
+    follow: true,
+    googleBot: { index: false, follow: true, "max-snippet": -1 },
+  },
+});
 
 const QUICK_LINKS = [
   { href: "/tarot/mingri", label: "명리 타로", emoji: "🔮" },

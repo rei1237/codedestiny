@@ -1,4 +1,6 @@
-export const metadata = {
+import { withUniqueRouteMetadata } from "../../lib/generate-page-metadata";
+
+export const metadata = withUniqueRouteMetadata("/saju-picture", {
   title: "사주로 보는 나는 무슨 동물? — AI 파스텔 동물 캐릭터 생성 | 꿀꿀 만세력",
   description:
     "생년월일 사주 오행을 분석해 AI가 나만의 파스텔 동물 캐릭터를 그려드려요. 목·화·토·금·수 오행에 따라 토끼, 호랑이, 말, 용 등 나를 닮은 동물을 만나보세요.",
@@ -40,7 +42,7 @@ export const metadata = {
     "사주 분석 동물",
     "꿀꿀 만세력",
   ],
-};
+});
 
 export default function SajuPictureLayout({ children }) {
   return children;
