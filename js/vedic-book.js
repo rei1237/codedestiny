@@ -297,8 +297,12 @@
     },3600);
 
     var chDots=document.querySelectorAll('.vd-ch-dot');
-    Array.prototype.forEach.call(chDots,function(d){d.classList.remove('zb-ch-dot--done','zb-ch-dot--active');});
-    if(chDots[0])chDots[0].classList.add('zb-ch-dot--active');
+    Array.prototype.forEach.call(chDots,function(d){d.classList.remove('zb-ch-dot--done','zb-ch-dot--active','lb-ch-dot--done','lb-ch-dot--active','lb-ch-dot--just-done');});
+    if(chDots[0])chDots[0].classList.add('zb-ch-dot--active','lb-ch-dot--active');
+
+    var chapterWrap = chapterNumEl && chapterNumEl.parentElement && chapterNumEl.parentElement.classList && chapterNumEl.parentElement.classList.contains('lb-loading__chapter')
+      ? chapterNumEl.parentElement
+      : null;
 
     function _setProgress(done){
       var pct=(done/12)*100;
@@ -307,12 +311,30 @@
       if(chapterMsg&&done<12)chapterMsg.textContent=LOADING_MSGS[done]||'분석 중...';
       if(chapterMsg&&done>=12)chapterMsg.textContent='베다 인생 총람이 완성되었습니다 ✦';
       if(chapterNumEl)chapterNumEl.textContent=done<12?'Chapter '+(done+1):'✦ 완성 ✦';
+      if (chapterMsg) {
+        chapterMsg.classList.remove('lb-loading__status--pulse');
+        void chapterMsg.offsetWidth;
+        chapterMsg.classList.add('lb-loading__status--pulse');
+      }
+      if (chapterWrap) {
+        chapterWrap.classList.remove('is-updating');
+        void chapterWrap.offsetWidth;
+        chapterWrap.classList.add('is-updating');
+      }
       Array.prototype.forEach.call(chDots,function(d){
         var ch=Number(d.getAttribute('data-vdch'));
-        var wasDone=d.classList.contains('zb-ch-dot--done');
-        d.classList.toggle('zb-ch-dot--done',ch<=done);
-        d.classList.toggle('zb-ch-dot--active',ch===done+1&&done<12);
-        if(!wasDone&&ch<=done){d.style.animation='none';requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});}
+        var isDone=ch<=done;
+        var isActive=ch===done+1&&done<12;
+        var wasDone=d.classList.contains('zb-ch-dot--done')||d.classList.contains('lb-ch-dot--done');
+        d.classList.toggle('zb-ch-dot--done',isDone);
+        d.classList.toggle('zb-ch-dot--active',isActive);
+        d.classList.toggle('lb-ch-dot--done',isDone);
+        d.classList.toggle('lb-ch-dot--active',isActive);
+        if(!wasDone&&isDone){
+          d.classList.add('lb-ch-dot--just-done');
+          setTimeout(function(){ d.classList.remove('lb-ch-dot--just-done'); }, 760);
+          d.style.animation='none';requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.animation='';});});
+        }
       });
     }
 
