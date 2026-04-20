@@ -178,7 +178,105 @@
     return false;
   }
 
-  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
+  function _cdResolveCoinGateTarget(targetEl) {
+    if (targetEl && typeof targetEl === 'object' && targetEl.nodeType === 1) return targetEl;
+    try {
+      var active = document.activeElement;
+      if (active && active.nodeType === 1 && typeof active.closest === 'function') {
+        var guessed = active.closest('[data-action],[data-coin-cost],button,a');
+        if (guessed) return guessed;
+      }
+    } catch(_) {}
+    return null;
+  }
+
+  function _cdSetCoinGateTargetBusy(targetEl, isBusy, loadingText) {
+    if (!targetEl || typeof targetEl !== 'object' || !targetEl.style) return;
+    var badge = (typeof targetEl.querySelector === 'function')
+      ? targetEl.querySelector('.tarot-tile__coin-badge,.coin-badge,[data-coin-badge]')
+      : null;
+    if (isBusy) {
+      if (targetEl.dataset.cdCgBusyUi === '1') return;
+      targetEl.dataset.cdCgBusyUi = '1';
+      targetEl.dataset.cdCgPrevOpacity = targetEl.style.opacity || '';
+      targetEl.dataset.cdCgPrevPointer = targetEl.style.pointerEvents || '';
+      targetEl.dataset.cdCgPrevCursor = targetEl.style.cursor || '';
+      targetEl.style.opacity = '0.62';
+      targetEl.style.pointerEvents = 'none';
+      targetEl.style.cursor = 'wait';
+      targetEl.setAttribute('aria-busy', 'true');
+      if (typeof targetEl.disabled !== 'undefined') {
+        targetEl.dataset.cdCgPrevDisabled = targetEl.disabled ? '1' : '0';
+        targetEl.disabled = true;
+      }
+      if (badge) {
+        targetEl.dataset.cdCgPrevBadgeText = badge.textContent || '';
+        badge.textContent = loadingText || '결제 처리 중...';
+      }
+      return;
+    }
+    if (targetEl.dataset.cdCgBusyUi !== '1') return;
+    targetEl.style.opacity = targetEl.dataset.cdCgPrevOpacity || '';
+    targetEl.style.pointerEvents = targetEl.dataset.cdCgPrevPointer || '';
+    targetEl.style.cursor = targetEl.dataset.cdCgPrevCursor || '';
+    targetEl.removeAttribute('aria-busy');
+    if (typeof targetEl.disabled !== 'undefined') {
+      targetEl.disabled = targetEl.dataset.cdCgPrevDisabled === '1';
+    }
+    if (badge && typeof targetEl.dataset.cdCgPrevBadgeText !== 'undefined') {
+      badge.textContent = targetEl.dataset.cdCgPrevBadgeText;
+    }
+    delete targetEl.dataset.cdCgBusyUi;
+    delete targetEl.dataset.cdCgPrevOpacity;
+    delete targetEl.dataset.cdCgPrevPointer;
+    delete targetEl.dataset.cdCgPrevCursor;
+    delete targetEl.dataset.cdCgPrevDisabled;
+    delete targetEl.dataset.cdCgPrevBadgeText;
+  }
+
+  function _cdEnsureCoinGateOverlay() {
+    var styleId = 'cdCoinGateBusyOverlayStyle';
+    if (!document.getElementById(styleId)) {
+      var style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = ''
+        + '@keyframes cdCoinGateSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'
+        + '.cd-coin-gate-busy-overlay{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:rgba(8,6,20,0.55);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}'
+        + '.cd-coin-gate-busy-overlay__panel{min-width:220px;max-width:86vw;border-radius:14px;padding:16px 18px;background:linear-gradient(140deg,rgba(31,17,61,0.96),rgba(14,35,74,0.96));border:1px solid rgba(250,204,21,0.4);box-shadow:0 18px 36px rgba(2,6,23,0.45);display:flex;align-items:center;gap:10px;color:#fef3c7;font-size:13px;font-weight:800;letter-spacing:.01em}'
+        + '.cd-coin-gate-busy-overlay__spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.35);border-top-color:#facc15;border-radius:50%;animation:cdCoinGateSpin .7s linear infinite;flex:0 0 auto}';
+      document.head.appendChild(style);
+    }
+    var overlay = document.getElementById('cdCoinGateBusyOverlay');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'cdCoinGateBusyOverlay';
+    overlay.className = 'cd-coin-gate-busy-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = '<div class="cd-coin-gate-busy-overlay__panel" role="status" aria-live="polite"><span class="cd-coin-gate-busy-overlay__spinner" aria-hidden="true"></span><span data-role="coin-gate-text">결제 처리 중...</span></div>';
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function _cdSetCoinGateBusyUi(isBusy, loadingText, targetEl) {
+    var resolvedTarget = _cdResolveCoinGateTarget(targetEl);
+    if (isBusy) {
+      var overlay = _cdEnsureCoinGateOverlay();
+      var textEl = overlay.querySelector('[data-role="coin-gate-text"]');
+      if (textEl) textEl.textContent = loadingText || '결제 처리 중...';
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden', 'false');
+      _cdSetCoinGateTargetBusy(resolvedTarget, true, loadingText || '결제 처리 중...');
+      return;
+    }
+    _cdSetCoinGateTargetBusy(resolvedTarget, false);
+    var existing = document.getElementById('cdCoinGateBusyOverlay');
+    if (existing) {
+      existing.style.display = 'none';
+      existing.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, targetEl) {
     // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
     if (window._cdCoinGatePerUseInFlight) {
       window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
@@ -228,6 +326,8 @@
       if (typeof onCancel === 'function') onCancel();
       return;
     }
+    var busyTarget = _cdResolveCoinGateTarget(targetEl);
+    _cdSetCoinGateBusyUi(true, '결제 처리 중...', busyTarget);
     window._cdCoinGatePerUseInFlight = true;
     fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
@@ -237,6 +337,7 @@
     .then(function(r) { return r.json().then(function(d) { return { status: r.status, ok: r.ok, data: d }; }); })
     .then(function(res) {
       window._cdCoinGatePerUseInFlight = false;
+      _cdSetCoinGateBusyUi(false, '', busyTarget);
       if (res.status === 402 || !res.ok) {
         var msg = (res.data && res.data.message) || '코인 차감에 실패했습니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
@@ -248,9 +349,15 @@
       try { var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; _u3.points = nb; localStorage.setItem('fortune_auth_user', JSON.stringify(_u3)); } catch(_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
       _cdShowCoinDeductNotice(cost, nb, reason);
-      cb();
+      if (typeof cb === 'function') cb();
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) {
+      window._cdCoinGatePerUseInFlight = false;
+      _cdSetCoinGateBusyUi(false, '', busyTarget);
+      console.error('[coin-gate-per-use]', e);
+      window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      if (typeof onCancel === 'function') onCancel();
+    });
   };
 
   function _dpGetAuthToken() {
