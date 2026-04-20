@@ -6228,6 +6228,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (!root) return;
     var chargeButtonLabel = '🛍️ 공식 포인트 충전소로 이동';
     var chargeNotice = '<div class="golden-grain-modal__notice">✅ 결제 완료 건만 정책에 맞춰 즉시 반영됩니다.</div>';
+    var subscriptionPlans = [
+      { id: 'standard', title: '스탠다드 꿀', coins: 115, price: '약 9,900원', free: '30코인 이하 무료' },
+      { id: 'premium', title: '프리미엄 꿀', coins: 360, price: '약 29,900원', free: '50코인 이하 무료' },
+      { id: 'vvip', title: 'VVIP 꿀단지', coins: 700, price: '약 59,000원', free: '100코인 이하 무료' },
+    ];
     var packageItems = goldenPackages.map(function (pkg) {
       var baseCoins = Number(pkg.coins || 0);
       var bonusCoins = Number(pkg.bonus || 0);
@@ -6249,6 +6254,24 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         '</button>'
       ].join('');
     }).join('');
+    var subscriptionItems = subscriptionPlans.map(function (plan) {
+      return [
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid rgba(196,140,20,0.26);border-radius:12px;background:linear-gradient(135deg,#fff9ea,#fff4dc);padding:10px 12px;">',
+        '  <div style="min-width:0;">',
+        '    <div style="font-weight:800;color:#7a4a00;font-size:13px;line-height:1.2;">' + plan.title + '</div>',
+        '    <div style="margin-top:2px;font-size:11px;color:#8a6020;">' + Number(plan.coins).toLocaleString('ko-KR') + '코인 / 30일 · ' + plan.free + '</div>',
+        '    <div style="font-size:10.5px;color:#9b7040;">' + plan.price + ' · 정기결제(자동 갱신) 지원</div>',
+        '  </div>',
+        '  <button type="button" data-action="goSubscriptionPlan" data-plan-id="' + plan.id + '" style="flex-shrink:0;border:0;border-radius:10px;padding:7px 10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:800;font-size:11px;cursor:pointer;">구독 보기</button>',
+        '</div>'
+      ].join('');
+    }).join('');
+    var subscriptionSection = [
+      '<div style="margin-top:10px;border:1px solid rgba(196,140,20,0.22);border-radius:14px;background:rgba(255,247,230,0.78);padding:10px 10px 8px;">',
+      '  <p style="margin:0 0 7px;font-size:11px;font-weight:800;color:#9b6b08;letter-spacing:.02em;">🍯 구독 상품</p>',
+      '  <div style="display:grid;gap:7px;">' + subscriptionItems + '</div>',
+      '</div>'
+    ].join('');
 
     root.innerHTML = [
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
@@ -6260,6 +6283,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       '      <p class="golden-grain-modal__subtitle">동전을 채울수록 보너스가 커져요. 높은 단계일수록 더 많이 드려요.</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
+      subscriptionSection,
       '    <div class="golden-grain-modal__cta">',
       '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
@@ -6440,15 +6464,33 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     animatePiggy();
   }
 
+  function navigateToTopLevel(path) {
+    var target = path || '/points';
+    try {
+      if (window.top && window.top !== window) {
+        window.top.location.href = target;
+        return;
+      }
+    } catch (_e) {}
+    window.location.href = target;
+  }
+
   async function applyCharge() {
     if (!hasAuthToken()) {
       window.alert('로그인이 필요합니다. 로그인 후 공식 포인트 충전소에서 결제를 진행해 주세요.');
-      window.location.href = '/login?next=%2Fpoints';
+      navigateToTopLevel('/login?next=%2Fpoints');
       return;
     }
 
     closeChargeModal();
-    window.location.href = '/points';
+    navigateToTopLevel('/points?entry=golden-charge');
+  }
+
+  function openSubscriptionFromCharge(planId) {
+    closeChargeModal();
+    var target = '/points?focus=subscription';
+    if (planId) target += '&plan=' + encodeURIComponent(String(planId));
+    navigateToTopLevel(target);
   }
 
   async function tryUnlockFeature(button) {
@@ -6826,6 +6868,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return true;
   }
 
+  var __cdCoinGateOverlayDepth = 0;
+  function _cdSetCoinGateOverlay(isOpen, message) {
+    var overlay = document.getElementById('sajuLoaderOverlay');
+    if (!overlay) return;
+    var textNode = document.getElementById('sajuLoadingTxt');
+    if (isOpen) {
+      __cdCoinGateOverlayDepth += 1;
+      if (textNode && message) textNode.textContent = String(message);
+      overlay.style.display = 'grid';
+      overlay.setAttribute('aria-hidden', 'false');
+      return;
+    }
+    __cdCoinGateOverlayDepth = Math.max(0, __cdCoinGateOverlayDepth - 1);
+    if (__cdCoinGateOverlayDepth > 0) return;
+    overlay.style.display = 'none';
+    overlay.setAttribute('aria-hidden', 'true');
+    if (textNode) textNode.textContent = '사주 만세력을 조율하는 중...';
+  }
+
   var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
 
   function _cdShouldDeferTarotCoinGate(action) {
@@ -6946,7 +7007,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
       if (consumeInFlight) return;
       consumeInFlight = true;
+      var _perUseOverlayOpened = false;
       try {
+        _cdSetCoinGateOverlay(true, fname + ' 결제를 확인하고 있습니다...');
+        _perUseOverlayOpened = true;
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
           method: 'POST',
           body: JSON.stringify({
@@ -6977,6 +7041,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         console.error('[coin gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       } finally {
+        if (_perUseOverlayOpened) _cdSetCoinGateOverlay(false);
         consumeInFlight = false;
       }
       } finally {
@@ -7118,7 +7183,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         if (consumeInFlight) return;
         consumeInFlight = true;
+        var _unlockOverlayOpened = false;
         try {
+          _cdSetCoinGateOverlay(true, fname + ' 해금을 진행하고 있습니다...');
+          _unlockOverlayOpened = true;
           var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
             method: 'POST',
             body: JSON.stringify({ cost: tileLockCost, featureKey: tileLockKey, reason: fname + ' 영구 해금' }),
@@ -7145,6 +7213,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           console.error('[tile unlock gate]', e);
           window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         } finally {
+          if (_unlockOverlayOpened) _cdSetCoinGateOverlay(false);
           consumeInFlight = false;
         }
       })();
@@ -7177,6 +7246,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
     if (action === 'confirmGoldenCharge') {
       void applyCharge();
+      return;
+    }
+    if (action === 'goSubscriptionPlan') {
+      openSubscriptionFromCharge(actionNode.getAttribute('data-plan-id') || '');
       return;
     }
     if (action === 'unlockPremiumFeature') {
