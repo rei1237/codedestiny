@@ -133,8 +133,8 @@ function _initSelectorsManually() {
       // 이미 option이 있으면 스킵 (DOM 재생성으로 이벤트 리스너 손상 방지)
       if (hSel.options.length > 0 && mSel.options.length > 0) {
         console.log('[saju-bootstrap] 이미 option이 있음, 스킵');
-        // 기본값만 설정 (0 = 자정)
-        hSel.value = hSel.value !== '' ? hSel.value : '0';
+        // 기본값만 설정 (12 = 정오)
+        hSel.value = hSel.value !== '' ? hSel.value : '12';
         mSel.value = mSel.value !== '' ? mSel.value : '0';
         return;
       }
@@ -147,7 +147,7 @@ function _initSelectorsManually() {
         hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
       }
       hSel.innerHTML = hBuf;
-      hSel.value = (prevH !== '' && prevH !== null) ? prevH : '0';
+      hSel.value = (prevH !== '' && prevH !== null) ? prevH : '12';
       
       // 분 선택지 생성
       var mBuf = '';

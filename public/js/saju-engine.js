@@ -2287,9 +2287,8 @@ function initSelectors(){
         || (window.__destinyFlowerSajuSnapshot && window.__destinyFlowerSajuSnapshot.birth)
         || null;
     } catch (_) {}
-    var now = new Date();
-    var fallbackH = String(now.getHours());
-    var fallbackM = String(now.getMinutes());
+    var fallbackH = '12';
+    var fallbackM = '0';
     var nextH = (prevH !== '' && prevH !== null)
       ? prevH
       : (profileBirth && profileBirth.hour != null ? String(Number(profileBirth.hour)) : fallbackH);
@@ -3484,12 +3483,18 @@ async function calculate(){
   var minuteEl=document.getElementById('birthMinute');
   var _hRaw=parseInt(hourEl ? hourEl.value : '',10);
   var _mRaw=parseInt(minuteEl ? minuteEl.value : '',10);
-  if(isNaN(_hRaw) || _hRaw<0 || _hRaw>23){
+  if(isNaN(_hRaw)){
+    _hRaw = 12;
+    if (hourEl) hourEl.value = '12';
+  }else if(_hRaw<0 || _hRaw>23){
     alert('출생 시간을 정확히 선택해주세요.');
     if(hourEl) hourEl.focus();
     return;
   }
-  if(isNaN(_mRaw) || _mRaw<0 || _mRaw>59){
+  if(isNaN(_mRaw)){
+    _mRaw = 0;
+    if (minuteEl) minuteEl.value = '0';
+  }else if(_mRaw<0 || _mRaw>59){
     alert('출생 분을 정확히 선택해주세요.');
     if(minuteEl) minuteEl.focus();
     return;

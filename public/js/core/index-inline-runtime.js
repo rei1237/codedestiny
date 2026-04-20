@@ -1354,6 +1354,97 @@ function __cdWarmupSajuInputsIfNeeded() {
   window.__cdSajuInputWarmupDone = 1;
 }
 
+function __cdNeedsSajuInputBootstrap() {
+  var hourSel = document.getElementById('birthHour');
+  var minuteSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+  var infoDiv = document.getElementById('timeCorrectionInfo');
+
+  var hourMissing = !!(hourSel && hourSel.options && hourSel.options.length === 0);
+  var minuteMissing = !!(minuteSel && minuteSel.options && minuteSel.options.length === 0);
+  var countryMissing = !!(countrySel && countrySel.options && countrySel.options.length <= 1);
+  var infoBusy = !!(infoDiv && infoDiv.classList && infoDiv.classList.contains('time-correction-info--loading'));
+
+  return hourMissing || minuteMissing || countryMissing || infoBusy;
+}
+
+function __cdRepairSajuInputsFallback() {
+  __cdWarmupSajuInputsIfNeeded();
+
+  var hourSel = document.getElementById('birthHour');
+  var minuteSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+  var infoDiv = document.getElementById('timeCorrectionInfo');
+
+  if (hourSel && hourSel.options && hourSel.options.length === 0) {
+    var hBuf = '';
+    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
+    hourSel.innerHTML = hBuf;
+  }
+  if (minuteSel && minuteSel.options && minuteSel.options.length === 0) {
+    var mBuf = '';
+    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
+    minuteSel.innerHTML = mBuf;
+  }
+
+  if (hourSel) {
+    var hVal = String(hourSel.value || '').trim();
+    if (hVal === '' || isNaN(parseInt(hVal, 10))) hourSel.value = '12';
+  }
+  if (minuteSel) {
+    var mVal = String(minuteSel.value || '').trim();
+    if (mVal === '' || isNaN(parseInt(mVal, 10))) minuteSel.value = '0';
+  }
+
+  if (countrySel && countrySel.options && countrySel.options.length <= 1) {
+    var first = countrySel.options[0] || null;
+    if (!first) {
+      first = document.createElement('option');
+      countrySel.appendChild(first);
+    }
+    first.value = first.value || 'Asia/Seoul';
+    first.textContent = '대한민국 · 서울';
+    first.setAttribute('data-long', first.getAttribute('data-long') || '127.0');
+    first.setAttribute('data-lat', first.getAttribute('data-lat') || '37.6');
+    first.setAttribute('data-tz', first.getAttribute('data-tz') || '9');
+    first.setAttribute('data-base-tz', first.getAttribute('data-base-tz') || first.getAttribute('data-tz') || '9');
+    countrySel.selectedIndex = 0;
+  }
+
+  if (typeof window.updateCorrectedTimePreview === 'function') {
+    try {
+      window.updateCorrectedTimePreview();
+      return;
+    } catch (err) {
+      console.error('[index-inline-runtime] fallback updateCorrectedTimePreview failed:', err);
+    }
+  }
+
+  if (infoDiv) {
+    infoDiv.classList.remove('time-correction-info--loading');
+    infoDiv.setAttribute('aria-busy', 'false');
+    if (!infoDiv.innerHTML || infoDiv.innerHTML.indexOf('불러오는 중') >= 0) {
+      infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br><span style="font-size:0.75rem;">기준 UTC+9, 기본 출생지(서울)로 계산됩니다.</span>';
+    }
+  }
+}
+
+function __cdBootstrapSajuInputsOnLoad() {
+  if (window.__cdSajuBootstrapAttempted === 1) return;
+  if (!__cdNeedsSajuInputBootstrap()) return;
+
+  window.__cdSajuBootstrapAttempted = 1;
+  __cdEnsureSajuCoreLoaded().then(function() {
+    __cdWarmupSajuInputsIfNeeded();
+    if (__cdNeedsSajuInputBootstrap()) {
+      __cdRepairSajuInputsFallback();
+    }
+  }).catch(function(err) {
+    console.error('[index-inline-runtime] saju bootstrap load failed:', err);
+    __cdRepairSajuInputsFallback();
+  });
+}
+
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
 __cdInstallSajuActionStub('checkPrivacyAndCalculate');
 __cdInstallSajuActionStub('agreeAndCalculate');
@@ -1411,6 +1502,7 @@ if (document.readyState === 'loading') {
     });
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
+    __cdBootstrapSajuInputsOnLoad();
   }, { once: true });
 } else {
   __cdEnsureDestinyProfileLoaded().catch(function(err) {
@@ -1418,6 +1510,7 @@ if (document.readyState === 'loading') {
   });
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
+  __cdBootstrapSajuInputsOnLoad();
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
@@ -5197,22 +5290,26 @@ function _dfRequireSourceCoinPayment(source, onPass) {
   
   if (typeof window._cdCoinGatePerUse === 'function') {
     _dfStudioState.coinGateInFlight = true;
+    // 토큰 생성: 콜백에서만 유효
     var passToken = '__dfcp_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     window._cdCoinGatePerUse(50, reason, function() {
       _dfStudioState.coinGateInFlight = false;
-      _dfStudioState._coinGatePassToken = passToken;
+      _dfStudioState._coinGatePassToken = passToken;  // 토큰 설정
       _dfStudioState.coinGatePassed = true;
-      if (typeof onPass === 'function') onPass(passToken);
+      if (typeof onPass === 'function') onPass(passToken);  // 토큰 전달
     }, function() {
       _dfStudioState.coinGateInFlight = false;
     });
     return false;
   }
   
+  // ⚠️ 미로그인 상태 명시적 감지: _cdCoinGatePerUse가 정의되지 않음
+  // 이 함수가 없다는 것은 destiny-profile.js가 로드되지 않았거나 미로그인 상태
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+    // 미로그인 상태 - 로그인 페이지로 강제 리다이렉트
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
@@ -5223,7 +5320,7 @@ function _dfRequireSourceCoinPayment(source, onPass) {
     return false;
   }
   return false;
-
+}
 
 function openAstrologyFlowerStudio() {
   return openDestinyFlowerStudio('astrology');
@@ -5284,17 +5381,18 @@ function openDestinyFlowerStudio(source, gatePassed) {
   if (!gatePassed && !_dfRequireSourceCoinPayment(requestedSource, function(token) { openDestinyFlowerStudio(requestedSource, token); })) {
     return;
   }
-  // ⚠️ 보안: gatePassed는 토큰이어야 함
+  // ⚠️ 보안: gatePassed는 토큰이어야 함 (문자열, 내부 콜백용)
   if (gatePassed) {
     if (typeof gatePassed !== 'string' || !gatePassed.startsWith('__dfcp_')) {
       console.warn('🔒 코인 게이트 토큰 불일치: 불정상 접근 시도 차단');
       return;
     }
+    // 토큰 검증
     if (gatePassed !== _dfStudioState._coinGatePassToken) {
       console.warn('🔒 코인 게이트 토큰 검증 실패');
       return;
     }
-    _dfStudioState._coinGatePassToken = null;
+    _dfStudioState._coinGatePassToken = null;  // 토큰 소비 (일회용)
     _dfStudioState.coinGatePassed = true;
   }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
@@ -5454,7 +5552,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
       console.warn('🔒 코인 게이트 토큰 검증 실패');
       return _dfStudioState.selection || null;
     }
-    _dfStudioState._coinGatePassToken = null;
+    _dfStudioState._coinGatePassToken = null;  // 토큰 소비
     _dfStudioState.coinGatePassed = true;
   }
   normalized = _dfSetActiveSource(normalized);
@@ -6597,6 +6695,69 @@ function closeTarotModal() {
 // Ensure uiBindings `data-action` routing can always find these handlers on `window`.
 window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
+
+/* ═══════════════════════════════════════════════════════════════
+   세 타로 메인 화면 클릭 시 코인 차감 핸들러
+   이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
+═══════════════════════════════════════════════════════════════ */
+function startIjikTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '이직 타로 리딩', function() {
+      try { sessionStorage.setItem('ijik-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot-ijik.html';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot-ijik.html';
+      }
+      return;
+    }
+    window.location.href = '/tarot-ijik.html';
+  }
+}
+function startMindScanTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '마인드 스캔 타로 이용', function() {
+      try { sessionStorage.setItem('mindscan-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot/mindscan/';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot%2Fmindscan%2F';
+      }
+      return;
+    }
+    window.location.href = '/tarot/mindscan/';
+  }
+}
+function startCrystalSoulTarot() {
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, '원석 소울 타로 리딩', function() {
+      try { sessionStorage.setItem('crystal-soul-tarot-coin-gate', 'true'); } catch(_) {}
+      window.location.href = '/tarot/crystal-soul/';
+    });
+  } else {
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2Ftarot%2Fcrystal-soul%2F';
+      }
+      return;
+    }
+    window.location.href = '/tarot/crystal-soul/';
+  }
+}
+window.startIjikTarot = startIjikTarot;
+window.startMindScanTarot = startMindScanTarot;
+window.startCrystalSoulTarot = startCrystalSoulTarot;
+
 (function() {
   function onFsChange() {
     var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;

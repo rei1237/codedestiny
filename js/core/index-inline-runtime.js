@@ -1354,6 +1354,97 @@ function __cdWarmupSajuInputsIfNeeded() {
   window.__cdSajuInputWarmupDone = 1;
 }
 
+function __cdNeedsSajuInputBootstrap() {
+  var hourSel = document.getElementById('birthHour');
+  var minuteSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+  var infoDiv = document.getElementById('timeCorrectionInfo');
+
+  var hourMissing = !!(hourSel && hourSel.options && hourSel.options.length === 0);
+  var minuteMissing = !!(minuteSel && minuteSel.options && minuteSel.options.length === 0);
+  var countryMissing = !!(countrySel && countrySel.options && countrySel.options.length <= 1);
+  var infoBusy = !!(infoDiv && infoDiv.classList && infoDiv.classList.contains('time-correction-info--loading'));
+
+  return hourMissing || minuteMissing || countryMissing || infoBusy;
+}
+
+function __cdRepairSajuInputsFallback() {
+  __cdWarmupSajuInputsIfNeeded();
+
+  var hourSel = document.getElementById('birthHour');
+  var minuteSel = document.getElementById('birthMinute');
+  var countrySel = document.getElementById('birthCountry');
+  var infoDiv = document.getElementById('timeCorrectionInfo');
+
+  if (hourSel && hourSel.options && hourSel.options.length === 0) {
+    var hBuf = '';
+    for (var h = 0; h < 24; h++) hBuf += '<option value="' + h + '">' + (h < 10 ? '0' : '') + h + '시</option>';
+    hourSel.innerHTML = hBuf;
+  }
+  if (minuteSel && minuteSel.options && minuteSel.options.length === 0) {
+    var mBuf = '';
+    for (var m = 0; m < 60; m++) mBuf += '<option value="' + m + '">' + (m < 10 ? '0' : '') + m + '분</option>';
+    minuteSel.innerHTML = mBuf;
+  }
+
+  if (hourSel) {
+    var hVal = String(hourSel.value || '').trim();
+    if (hVal === '' || isNaN(parseInt(hVal, 10))) hourSel.value = '12';
+  }
+  if (minuteSel) {
+    var mVal = String(minuteSel.value || '').trim();
+    if (mVal === '' || isNaN(parseInt(mVal, 10))) minuteSel.value = '0';
+  }
+
+  if (countrySel && countrySel.options && countrySel.options.length <= 1) {
+    var first = countrySel.options[0] || null;
+    if (!first) {
+      first = document.createElement('option');
+      countrySel.appendChild(first);
+    }
+    first.value = first.value || 'Asia/Seoul';
+    first.textContent = '대한민국 · 서울';
+    first.setAttribute('data-long', first.getAttribute('data-long') || '127.0');
+    first.setAttribute('data-lat', first.getAttribute('data-lat') || '37.6');
+    first.setAttribute('data-tz', first.getAttribute('data-tz') || '9');
+    first.setAttribute('data-base-tz', first.getAttribute('data-base-tz') || first.getAttribute('data-tz') || '9');
+    countrySel.selectedIndex = 0;
+  }
+
+  if (typeof window.updateCorrectedTimePreview === 'function') {
+    try {
+      window.updateCorrectedTimePreview();
+      return;
+    } catch (err) {
+      console.error('[index-inline-runtime] fallback updateCorrectedTimePreview failed:', err);
+    }
+  }
+
+  if (infoDiv) {
+    infoDiv.classList.remove('time-correction-info--loading');
+    infoDiv.setAttribute('aria-busy', 'false');
+    if (!infoDiv.innerHTML || infoDiv.innerHTML.indexOf('불러오는 중') >= 0) {
+      infoDiv.innerHTML = '🌍 <b>시간 보정 미리보기</b><br><span style="font-size:0.75rem;">기준 UTC+9, 기본 출생지(서울)로 계산됩니다.</span>';
+    }
+  }
+}
+
+function __cdBootstrapSajuInputsOnLoad() {
+  if (window.__cdSajuBootstrapAttempted === 1) return;
+  if (!__cdNeedsSajuInputBootstrap()) return;
+
+  window.__cdSajuBootstrapAttempted = 1;
+  __cdEnsureSajuCoreLoaded().then(function() {
+    __cdWarmupSajuInputsIfNeeded();
+    if (__cdNeedsSajuInputBootstrap()) {
+      __cdRepairSajuInputsFallback();
+    }
+  }).catch(function(err) {
+    console.error('[index-inline-runtime] saju bootstrap load failed:', err);
+    __cdRepairSajuInputsFallback();
+  });
+}
+
 window.__cdEnsureSajuCoreLoaded = __cdEnsureSajuCoreLoaded;
 __cdInstallSajuActionStub('checkPrivacyAndCalculate');
 __cdInstallSajuActionStub('agreeAndCalculate');
@@ -1411,6 +1502,7 @@ if (document.readyState === 'loading') {
     });
     __cdBindSajuIntentPrefetch();
     __cdWarmupSajuInputsIfNeeded();
+    __cdBootstrapSajuInputsOnLoad();
   }, { once: true });
 } else {
   __cdEnsureDestinyProfileLoaded().catch(function(err) {
@@ -1418,6 +1510,7 @@ if (document.readyState === 'loading') {
   });
   __cdBindSajuIntentPrefetch();
   __cdWarmupSajuInputsIfNeeded();
+  __cdBootstrapSajuInputsOnLoad();
 }
 
 function __cdInvokeActionWithConfig(action, actionEl, event, args) {
