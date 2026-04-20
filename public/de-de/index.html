@@ -1928,12 +1928,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 힐링 타로 → openTarotHealingPage() → /tarot/healing -->
             <button class="tarot-tile tarot-tile--healing" type="button"
                     data-action="openTarotHealingPage"
-                    data-coin-cost="30"
+                    data-coin-cost="0"
                     aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — Sun &amp; Light 4카드 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">☀️</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--healing">HEALING</span>
-                <span class="tarot-tile__coin-badge">1회 30코인</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">☀ 따뜻한 태양 회복 타로</span>
@@ -1944,12 +1944,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 자존감 레벨업 타로 → openTarotSelfEsteemModal() -->
             <button class="tarot-tile tarot-tile--self-esteem" type="button"
                     data-action="openTarotSelfEsteemModal"
-                    data-coin-cost="30"
+                    data-coin-cost="0"
                     aria-label="자존감 레벨업 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jajongam.webp" data-img-alt="자존감 레벨업 — 5카드 RPG 퀘스트 타로">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                 <span class="tarot-tile__badge tarot-tile__badge--levelup">LEVEL UP</span>
-                <span class="tarot-tile__coin-badge">1회 30코인</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">✨ 자존감 레벨업</span>
@@ -2048,11 +2048,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <!-- [기능 연결부] 명리학 타로 → openTarotModal() -->
             <button class="tarot-tile tarot-tile--classic" type="button"
                     data-action="openTarotModal"
-                    data-coin-cost="30"
+                    data-coin-cost="0"
                     aria-label="명리학 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ai%20tarrot.webp" data-img-alt="명리학 타로 — 78장 유니버설 덱 AI 타로 리딩">
                 <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🔮</span></div>
-                <span class="tarot-tile__coin-badge">1회 30코인</span>
+                <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
               </div>
               <div class="tarot-tile__body">
                 <span class="tarot-tile__title">🔮 명리학 타로</span>
@@ -2544,9 +2544,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--ziwei"
                     data-action="gotoZiweiPremium"
-                    data-coin-cost="590"
+              data-coin-cost="590"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    aria-label="자미두수 인생 총람 — 590코인">
+              aria-label="자미두수 인생 총람 — 590코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2575,11 +2575,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--astro"
                     data-action="gotoAstrologyPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
-                    aria-label="점성술 코즈믹 차트 — 390코인">
+              aria-label="점성술 코즈믹 차트 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2608,11 +2608,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--sukuyo"
                     data-action="gotoSukuyoPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
-                    aria-label="숙요점 프리미엄 — 390코인">
+              aria-label="숙요점 프리미엄 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2641,11 +2641,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--veda"
                     data-action="gotoVedicPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.14)'"
-                    aria-label="베다 점성술 인생 총람 — 390코인">
+              aria-label="베다 점성술 인생 총람 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -6977,6 +6977,20 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     setTimeout(function () { delete perUseApproved[action]; }, 800);
   }
 
+  function _cdShouldDeferTarotCoinGate(action) {
+    if (!action) return false;
+    return action === 'openTarotLoveModal'
+      || action === 'openTarotHealingModal'
+      || action === 'openTarotHealingPage'
+      || action === 'openTarotSelfEsteemModal'
+      || action === 'openTarotReunionModal'
+      || action === 'openTarotYearFortuneModal'
+      || action === 'openTarotModal'
+      || action === 'startIjikTarot'
+      || action === 'startMindScanTarot'
+      || action === 'startCrystalSoulTarot';
+  }
+
   function _cdSafeBlockEvent(event) {
     if (!event) return;
     if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
@@ -7031,6 +7045,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           return true;
         }
       } catch (_adminErr) {}
+      if (_cdShouldDeferTarotCoinGate(action)) {
+        sessionStorage.setItem('cd_pa_' + action, '1');
+        _cdInvokeActionDirect(action, actionNode);
+        return true;
+      }
       if (!hasAuthToken()) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
@@ -7493,13 +7512,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openNevilleMeditationPage:{cat:'네빌 명상 · 현실창조',title:'🧘 네빌 명상 실습',tagline:'이 명상을 3일 연속으로 하면 원하는 현실이 바뀌기 시작합니다 — 네빌 고다드의 검증된 기법',feats:['네빌 고다드가 실제 사용한 의식 명상 기법','원하는 것을 이미 가진 것처럼 느끼는 감각 훈련','부정적 신념 패턴을 즉시 해체하는 기법 적용','30분 완전 가이드 세션으로 처음도 쉽게'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/meditation.webp'},
     openYogaGuru:{cat:'인도 요가 · 에너지 정화',title:'🪷 Divya Yoga',tagline:'인도 요기들이 4000년간 비밀로 간직한 에너지 정화 루틴 — 막힌 운을 뚫는 차크라 활성화',feats:['사주·별자리 기반 나만의 에너지 타입 정확히 파악','맞춤 아사나로 지금 막혀 있는 기운 즉시 해소','차크라 활성화로 운의 흐름을 바꾸는 명상','인도 전통 요기 감성 완전 가이드 세션'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/india.webp'},
     openTarotLoveModal:{cat:'타로 · 관계 리딩',title:'💕 우리는 무슨 사이?',tagline:'그 사람이 나한테 진심인지 아닌지 — 6장의 타로가 지금 바로 답을 줍니다',feats:['그 사람의 현재 감정 상태 직접 리딩','우리가 실제로 사귈 수 있는 가능성 분석','커플·짝사랑·이별·재회 모든 상황 완전 적용','지금 내가 해야 할 구체적인 행동 가이드'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/tarolove.webp'},
-    openTarotHealingPage:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 1회 힐링 리딩'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/healing.webp'},
-    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','1회 코인 결제로 지금 내 자존감 레벨 확인'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/jajongam.webp'},
+    openTarotHealingPage:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 1회 힐링 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
+    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','1회 코인 결제로 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
     openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'헤어진 그 사람 진짜 돌아올 수 있을까 — 5장의 타로가 재회 가능성을 직접 말합니다',feats:['재회 가능성을 직접 분석 & 수치로 제시','그 사람이 지금 나를 어떻게 생각하는지 리딩','재회를 위한 최적 타이밍 & 구체적 행동 전략','이별 원인 분석 후 실전 재회 어드바이스 제공'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
     openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
     openCelestialHarmony:{cat:'코즈믹 타로 · 천체의 선율',title:'✨ 천체의 선율',tagline:'행성의 상징성과 타로 아르카나를 1:1로 결합한 11카드 리딩으로, 당신의 성향·감정·재정·관계까지 정밀 해석합니다.',feats:['태양~명왕성 질문축 기반 11포지션 정밀 해석','각 카드별 핵심 통찰·패턴·실행 조언·확언 제공','마지막 황금빛 카드로 전체 흐름 통합 정리','힐링·응원 메시지로 오늘의 실천 방향 제시'],cost:'🪙 100코인',ct:'paid',img:'/images/Celestial%20Harmony.webp'},
     openIfaOracle:{cat:'IFÀ 오라클 · 요루바 신탁',title:'🪬 IFÀ 오라클',tagline:'요루바 256 오두 신탁 리딩 — 오린미라의 지혜가 담긴 코드로 오늘의 질문에 직접 답합니다.',feats:['진정한 이파 전승(IFÀ) 시스템 — 256 오두 정통 해석','총운·연애·재물·건강 4가지 컨텍스트 맞춤 리딩','블리윗 음양 에너지 진단 + 실천 지침 포함','실시간 오페레 체인 패드 애니메이션 + 시티스 버전'],cost:'🪙 30코인/회',ct:'paid',img:'/fuctionassets/ifafortune.webp'},
-    openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'동양 명리학과 서양 타로가 동시에 같은 답을 가리킬 때 — 그것이 진짜 운명의 방향입니다',feats:['78장 타로 + 사주 명리학 프레임 교차 분석','사주와 타로가 동시에 가리키는 핵심 메시지 추출','지금 내 상황에 꼭 맞는 카드 배열 선택','AI 심층 리딩으로 구체적인 방향 제시'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/ai%20tarrot.webp'},
+    openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'동양 명리학과 서양 타로가 동시에 같은 답을 가리킬 때 — 그것이 진짜 운명의 방향입니다',feats:['78장 타로 + 사주 명리학 프레임 교차 분석','사주와 타로가 동시에 가리키는 핵심 메시지 추출','지금 내 상황에 꼭 맞는 카드 배열 선택','AI 심층 리딩으로 구체적인 방향 제시'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20tarrot.webp'},
     openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'타짜가 뒤집는 화투패에 오늘의 운명이 숨어 있습니다 — 12달 꽃패로 보는 직설 운세',feats:['한국 전통 화투패 12달 운세 완전 리딩','월별 꽃패 상징 심층 해석 — 재물·사랑·시험','타짜식 직설 화법으로 꾸밈없는 운세 제공','완전 무료 — 지금 내 패를 뒤집어 보세요'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/tazza.webp'},
     openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'파라오들이 전쟁·혼인·국가 대사를 결정할 때 물었던 그 신탁 — 오늘 당신의 차례입니다',feats:['고대 이집트 47개 신 오라클 카드 리딩','오늘의 질문에 직접 답하는 신탁 메시지 제공','재물·사랑·진로 방향 신비로운 방식으로 해석','고대 케멧 신비주의 아트 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/egypt.webp'},
     openJuyukModal:{cat:'주역 64괘 · 거북점',title:'☯️ 주역 거북점',tagline:'공자도 매일 괘를 뽑았습니다 — 3000년 검증된 64괘가 지금 내가 내려야 할 결정을 말해줍니다',feats:['64괘 중 오늘 내 상황에 정확히 맞는 괘 자동 매핑','한자 원문 + 현대어 해석 동시 제공','진퇴를 결정해야 할 때 명확한 방향 제시','거북이 등 문양 전통 점술 의식 체험'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/juyuk.webp'},

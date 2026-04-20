@@ -1809,6 +1809,26 @@
     }, 350);
   };
 
+  window.openFortuneFromProfile = function(type) {
+    var targetType = type || 'saju';
+    if (typeof window._dpOpenFortuneType !== 'function') return false;
+
+    if (targetType === 'vedic') {
+      var vedicProfile = _resolveVedicProfileCandidate();
+      if (!vedicProfile || !vedicProfile.birth) {
+        try { vedicProfile = _normalizeProfileForVedic(readFormData()); } catch (_) {}
+      }
+      if (!vedicProfile || !vedicProfile.birth) {
+        _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 먼저 입력해 주세요.', 'warn');
+        if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+        return false;
+      }
+    }
+
+    window._dpOpenFortuneType(targetType);
+    return true;
+  };
+
   window.dpScrollToForm = function() {
     var el = document.querySelector('.input-section');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });

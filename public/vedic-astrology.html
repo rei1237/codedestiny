@@ -2360,6 +2360,66 @@ function _readVedicCompatProfileCardData(){
   }catch(_){ return null; }
 }
 
+function _syncVedicProfileToDestinyCard(profile){
+  try{
+    if(!profile||!profile.birth) return;
+    var by=parseInt(profile.birth.year,10);
+    var bm=parseInt(profile.birth.month,10);
+    var bd=parseInt(profile.birth.day,10);
+    if(!isFinite(by)||!isFinite(bm)||!isFinite(bd)) return;
+
+    var bh=parseInt(profile.birth.hour,10);
+    var bmin=parseInt(profile.birth.minute,10);
+    if(!isFinite(bh)) bh=12;
+    if(!isFinite(bmin)) bmin=0;
+
+    var ns='FORTUNE_APP_USER_PROFILES';
+    var keyList=ns+'.list';
+    var keyCurr=ns+'.current';
+    var list=[];
+    try{ list=JSON.parse(localStorage.getItem(keyList)||'[]'); }catch(_){ list=[]; }
+    if(!Array.isArray(list)) list=[];
+
+    var currId=localStorage.getItem(keyCurr)||'';
+    var idx=-1;
+    for(var i=0;i<list.length;i++){
+      if(currId && list[i] && list[i].id===currId){ idx=i; break; }
+    }
+    if(idx<0 && profile.id){
+      for(var j=0;j<list.length;j++){
+        if(list[j] && list[j].id===profile.id){ idx=j; currId=profile.id; break; }
+      }
+    }
+
+    var existing=idx>=0?list[idx]:null;
+    var merged={
+      id:(existing&&existing.id)||((profile.id&&/^dp_/.test(profile.id))?profile.id:('dp_'+Date.now())),
+      name:(existing&&existing.name)||((profile.name&&profile.name!=='(직접 입력)')?profile.name:'베다 입력 프로필'),
+      gender:profile.gender || (existing&&existing.gender) || 'F',
+      birth:{
+        year:by,
+        month:bm,
+        day:bd,
+        hour:bh,
+        minute:bmin,
+        calType:profile.birth.calType || 'solar'
+      },
+      location:Object.assign({}, (existing&&existing.location)||{}, profile.location||{}),
+      updatedAt:new Date().toISOString()
+    };
+
+    if(idx>=0) list[idx]=Object.assign({}, existing, merged);
+    else list.unshift(merged);
+
+    localStorage.setItem(keyList, JSON.stringify(list));
+    localStorage.setItem(keyCurr, merged.id);
+
+    try{
+      window.dispatchEvent(new CustomEvent('destinyProfileChanged', { detail: merged }));
+    }catch(_){ }
+  }catch(_){ }
+}
+
 function _prefillVedicInput(){
   try{
     vedicInitBirthPlaceSelect();
@@ -2380,6 +2440,7 @@ function runVedicFromInput(){
   try{
     var compatProfile=_readVedicCompatProfileCardData();
     if(compatProfile&&compatProfile.birth){
+      _syncVedicProfileToDestinyCard(compatProfile);
       doCalculateFromProfile(compatProfile);
       return;
     }
@@ -2406,6 +2467,7 @@ function runVedicFromInput(){
       birth:{ year:y,month:m,day:d,hour:hr,minute:min },
       location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:'(직접 입력)', tz:'' }
     };
+    _syncVedicProfileToDestinyCard(profile);
     doCalculateFromProfile(profile);
   }catch(e){
     console.error(e);
