@@ -6457,11 +6457,38 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function UnlockButton(button) {
     if (!button) return;
     var key = button.getAttribute('data-unlock-key') || '';
-    if (unlockedFeatureMap[key]) {
+    var unlocked = !!unlockedFeatureMap[key];
+    var card = button.closest ? button.closest('.pf-card') : null;
+    if (card) {
+      var badge = card.querySelector('.pf-card__badge');
+      var note = card.querySelector('.pf-coin-note');
+      if (badge) {
+        if (!badge.getAttribute('data-default-text')) {
+          badge.setAttribute('data-default-text', badge.textContent || '');
+        }
+        badge.textContent = unlocked ? '해금 완료 ✅' : (badge.getAttribute('data-default-text') || '영구 해금');
+      }
+      if (note) {
+        if (!note.getAttribute('data-default-text')) {
+          note.setAttribute('data-default-text', note.textContent || '');
+        }
+        note.textContent = unlocked ? '해금 완료 · 평생 이용 중' : (note.getAttribute('data-default-text') || '영구 해금 · 약 5,000원');
+      }
+    }
+    if (unlocked) {
+      if (!button.getAttribute('data-default-text')) {
+        button.setAttribute('data-default-text', button.textContent || '');
+      }
       button.disabled = true;
       button.textContent = '해제 완료 ✅';
       button.style.opacity = '0.86';
       button.style.cursor = 'default';
+    } else {
+      button.disabled = false;
+      button.style.opacity = '';
+      button.style.cursor = '';
+      var defaultText = button.getAttribute('data-default-text');
+      if (defaultText) button.textContent = defaultText;
     }
   }
 
