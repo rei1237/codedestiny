@@ -66,8 +66,11 @@ const POLICY_LINKS = [
   { href: "/about", text: "서비스 소개" },
   { href: "/faq", text: "FAQ" },
   { href: "/contact-us", text: "문의하기" },
-  { href: "/privacy-policy", text: "개인정보처리방침" },
-  { href: "/terms-of-service", text: "이용약관" },
+];
+
+const LEGAL_LINKS = [
+  { href: "https://code-destiny.com/terms-of-service", text: "이용약관" },
+  { href: "https://code-destiny.com/privacy-policy", text: "개인정보처리방침" },
 ];
 
 // ─── 스타일 상수 ───────────────────────────────────────────────
@@ -313,6 +316,21 @@ const POLICY_LINK = {
   fontSize: "12px",
 };
 
+const LEGAL_ROW = {
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: "6px 14px",
+  marginBottom: "12px",
+};
+
+const LEGAL_LINK_STYLE = {
+  color: "#6b7280",
+  textDecoration: "none",
+  fontSize: "12px",
+  lineHeight: 1.6,
+};
+
 const COPYRIGHT = {
   textAlign: "center",
   fontSize: "12px",
@@ -450,56 +468,6 @@ export default function SiteFooterHub() {
             </p>
           </div>
         </section>
-          {/* 요청 전문을 그대로 푸터에 노출, 기존 FAQ/소개/환불 안내 및 중복 박스 완전 제거 */}
-          <section
-            aria-label="서비스 소개 및 사업자·환불 정책"
-            style={{
-              maxWidth: "860px",
-              margin: "0 auto 28px",
-              padding: "18px 20px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, rgba(30,41,59,0.54), rgba(15,23,42,0.8))",
-              border: "1px solid rgba(124,58,237,0.22)",
-              color: "#dbeafe",
-              fontSize: "14px",
-              lineHeight: 1.8,
-              wordBreak: "keep-all"
-            }}
-          >
-            <pre style={{whiteSpace:'pre-wrap',background:'none',border:'none',margin:0,padding:0,font:'inherit',color:'inherit',lineHeight:1.8}}>
-  About Code Destiny — 꿀꿀 만세력이란?
-  Code Destiny(꿀꿀 만세력)는 사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽 등 다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다. 생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.
-  한국어·영어·일본어·중국어·힌디어·스페인어 등 10개 언어 지원. 모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
-
-  본 서비스는 Google AdSense 등 제3자 광고를 노출할 수 있으며, 광고 수익은 전적으로 서비스 품질 유지 및 신규 기능 개발에 재투자됩니다.
-  운영 주체: 코드 데스티니 (사업자등록번호 372-23-02329) | 이메일: seongbae555@gmail.com
-
-  상호명: 코드 데스티니 (Code Destiny)
-  대표자: 박⁠병⁠하
-  사업자등록번호: 372-23-02329
-  연락처: 010-7180-7398
-  이메일: seongbae555@gmail.com
-  사업장 주소: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호
-  모든 거래에 대한 책임과 환불, 민원 등은 '코드 데스티니(Code Destiny)'에서 진행합니다.
-
-  민원담당자 : 박병하 (seongbae555@gmail.com)
-
-  코인 충전형 디지털 운세 서비스 환불 기준
-
-  코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라 미사용 유상 코인 범위에서만 환불이 가능합니다.
-
-  충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.
-  미사용 유상 코인은 전자상거래 관련 법령에 따라 '7일이내청약철회 가능' 기준으로 환불 접수할 수 있습니다.
-  결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.
-  부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.
-  환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료·송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.
-  타인 명의 결제, 도용 카드 사용, 비정상 다계정 환불 시도, 약관 위반이 확인되면 환불 심사가 보류되거나 제한될 수 있습니다.
-  환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 환급 완료까지 통상 영업일 3~10일이 소요됩니다.
-  본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
-
-  환불 처리는 결제 수단(카드)으로만 가능합니다.
-            </pre>
-          </section>
 
         {/* SEO 텍스트 블록 — 주요 키워드 자연 표현 */}
         <p
@@ -518,52 +486,19 @@ export default function SiteFooterHub() {
           사주풀이·타로·자미두수·베다 점성술·AI 관상·꿈 해몽 등 다양한 서비스를 이용하세요.
         </p>
 
-        <section style={BUSINESS_PANEL} aria-label="사업자 정보 및 코인 환불 정책">
-          <h3 style={BUSINESS_TITLE}>사업자 정보 및 코인 환불 정책</h3>
-          <ul style={BUSINESS_LIST}>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스티니 (Code Destiny)</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> {LEGAL_OWNER_NAME}</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>연락처:</span> 010-7180-7398</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>이메일:</span> seongbae555@gmail.com</li>
-            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
-          </ul>
-          <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(71,85,105,0.45)" }}>
-            <p style={{ margin: "0 0 6px", fontSize: "12px", color: "#cbd5e1", lineHeight: 1.72, wordBreak: "keep-all" }}>
-              모든 거래에 대한 책임과 환불, 민원 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
-            </p>
-            <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.72 }}>
-              민원담당자 : 박병하 (seongbae555@gmail.com)
-            </p>
-          </div>
-          <div style={REFUND_BOX}>
-            <p style={REFUND_HEAD}>코인 충전형 디지털 운세 서비스 환불 기준</p>
-            <p style={REFUND_SUMMARY}>
-              코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라
-              미사용 유상 코인 범위에서만 환불이 가능합니다.
-            </p>
-            <ul style={REFUND_RULES}>
-              <li style={REFUND_RULE_ITEM}>충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.</li>
-              <li style={REFUND_RULE_ITEM}>미사용 유상 코인은 전자상거래 관련 법령에 따라 &#39;7일이내청약철회 가능&#39; 기준으로 환불 접수할 수 있습니다.</li>
-              <li style={REFUND_RULE_ITEM}>결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.</li>
-              <li style={REFUND_RULE_ITEM}>부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.</li>
-              <li style={REFUND_RULE_ITEM}>환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료·송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.</li>
-              <li style={REFUND_RULE_ITEM}>타인 명의 결제, 도용 카드 사용, 비정상 다계정 환불 시도, 약관 위반이 확인되면 환불 심사가 보류되거나 제한될 수 있습니다.</li>
-              <li style={REFUND_RULE_ITEM}>환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 환급 완료까지 통상 영업일 3~10일이 소요됩니다.</li>
-            </ul>
-            <p style={REFUND_NOTICE}>
-              본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
-            </p>
-            <p style={{ ...REFUND_NOTICE, color: "#fda4af", marginTop: "8px", fontWeight: 700 }}>
-              환불 처리는 결제 수단(카드)으로만 가능합니다.
-            </p>
-          </div>
-        </section>
-
         {/* 정책 링크 */}
         <nav aria-label="정책 페이지" style={POLICY_ROW}>
           {POLICY_LINKS.map((link) => (
             <a key={link.href} href={`${ORIGIN}${link.href}`} style={POLICY_LINK}>
+              {link.text}
+            </a>
+          ))}
+        </nav>
+
+        {/* 법적 필수 링크 */}
+        <nav aria-label="법적 고지" style={LEGAL_ROW}>
+          {LEGAL_LINKS.map((link) => (
+            <a key={link.href} href={link.href} style={LEGAL_LINK_STYLE}>
               {link.text}
             </a>
           ))}
