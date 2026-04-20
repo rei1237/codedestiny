@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
+import SubscriptionStatusCard from "./SubscriptionStatusCard";
 
 const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
@@ -169,7 +170,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "30코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없음 — 포인트 충전 후 수동 갱신",
+      "정기결제(자동 갱신) 지원 — 만료 시 자동 연장",
     ],
   },
   {
@@ -185,7 +186,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "50코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없음 — 포인트 충전 후 수동 갱신",
+      "정기결제(자동 갱신) 지원 — 만료 시 자동 연장",
     ],
     badge:        "추천",
   },
@@ -202,7 +203,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "100코인 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
-      "자동결제 없음 — 포인트 충전 후 수동 갱신",
+      "정기결제(자동 갱신) 지원 — 만료 시 자동 연장",
     ],
     badge:        "VVIP",
   },
@@ -538,10 +539,12 @@ function SubscriptionSection({
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-sky-800">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 플랜은 <strong>결제일로부터 30일간 유효</strong>합니다 (기간 기반).</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>구독은 <strong>코인 잔액과 무관하게 30일간 유지</strong>됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>정기결제(자동 갱신)는 만료 시점에 자동으로 처리되며, 갱신 비용은 구독 플랜 기준 코인에서 차감됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>만료 시 잔액이 부족하면 자동 갱신이 실패하고 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>멤버십 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">🚫</span><strong>자동결제(정기결제)는 없습니다.</strong> 포인트를 먼저 충전한 뒤 직접 구독을 활성화해야 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>만료 후 연장을 원하시면 포인트를 충전하고 <strong>수동으로 갱신</strong>하면 됩니다 (갱신 시 30일 추가).</li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">🔁</span><strong>정기결제(자동 갱신) 시스템 운영 중</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>원하실 경우 현재 플랜 카드에서 <strong>즉시 연장(선결제)</strong>도 가능합니다 (갱신 시 30일 추가).</li>
           </ul>
         </div>
 
@@ -659,7 +662,7 @@ function SubscriptionSection({
               👨‍👩‍👧 최대 15 프로필 한 구독으로
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
-              🚫 자동결제 없음 · 수동 갱신
+              🔁 정기결제(자동 갱신) 운영
             </span>
           </div>
         </div>
@@ -748,7 +751,7 @@ function SubscriptionSection({
               <button
                 type="button"
                 onClick={() => onSubscribe(plan)}
-                disabled={isProcessing || !canAfford}
+                disabled={isProcessing || (!isFlowerAdminMode && !canAfford)}
                 className={[
                   "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black text-white shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
@@ -770,8 +773,8 @@ function SubscriptionSection({
 
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 구독 코인은 즉시 차감되며 <strong>30일간 유효</strong>합니다.</p>
-        <p className="text-[11px] text-rose-600 font-bold">🚫 자동결제(정기결제)는 없습니다. 포인트를 먼저 충전해야 구독을 활성화할 수 있습니다.</p>
-        <p className="text-[11px] text-[#9B7040]">🔄 만료 후 연장은 포인트 충전 후 수동으로 갱신하면 됩니다.</p>
+        <p className="text-[11px] text-rose-600 font-bold">🔁 정기결제(자동 갱신) 시스템이 적용되며, 만료 시점에 플랜 코인이 자동 차감됩니다.</p>
+        <p className="text-[11px] text-[#9B7040]">⚠️ 잔액 부족 시 자동 갱신이 실패할 수 있으니 만료 전 코인 잔액을 확인해 주세요.</p>
       </div>
     </section>
   );
@@ -1655,6 +1658,8 @@ export default function PointsPage() {
     );
   }
 
+  const isFlowerAdminMode = isFlowerAdminSessionClient();
+
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <main
@@ -1748,6 +1753,29 @@ export default function PointsPage() {
 
         {/* ② 잔액 카드 */}
         <WalletCard name={authUser?.name || "사용자"} points={currentPoints} />
+
+        {/* ②-1 구독 상태 카드 */}
+        <SubscriptionStatusCard subscription={subscription} />
+
+        {/* ②-2 구독 섹션 구분선 */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-700">
+            꿀 구독 시스템
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
+        </div>
+
+        {/* ②-3 구독 상품 카드 */}
+        <SubscriptionSection
+          subscription={subscription}
+          currentPoints={currentPoints}
+          onSubscribe={handleSubscribe}
+          isProcessing={isProcessing}
+          isFlowerAdminMode={isFlowerAdminMode}
+          adminTestTier={adminTestTier}
+          onChangeAdminTestTier={setAdminTestTier}
+        />
 
         {/* ③ 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">

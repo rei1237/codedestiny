@@ -7345,7 +7345,17 @@ function renderAstroInsight() {
           });
           return;
         }
-        window._astroPickCelebCore(name, birth, hour);
+        // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
+        var token = '';
+        try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+        if (!token) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+          return;
+        }
+        window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
     };
     window._astroPickCelebCore = function(name, birth, hour) {
         var resultDiv = document.getElementById('astroSyResult');
@@ -7560,7 +7570,7 @@ function renderAstroInsight() {
         var token = '';
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
-          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
           }
           return;
@@ -11281,7 +11291,7 @@ function renderZiwei(p, natal, targetId) {
       var token = '';
       try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
       if (!token) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
         return;

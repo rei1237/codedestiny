@@ -137,6 +137,16 @@ export default function TermsOfServicePage() {
       <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 교환/환불(청약철회) 및 구독형 디지털 콘텐츠 환불 제한 / Exchange, Refund and Subscription Withdrawal Limits</h2>
         <p style={{ lineHeight: 1.75 }}>
+          본 서비스의 구독은 30일 주기 정기결제(자동 갱신) 구조로 운영될 수 있으며,
+          서비스 정책에 따라 등록된 결제수단 또는 사전 충전된 유상 포인트에서 차기 이용요금이 자동 결제(또는 자동 차감)될 수 있습니다.
+          Subscription may operate on a 30-day recurring cycle, and renewal fees may be automatically charged according to service policy.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          이용자는 다음 갱신일 전까지 구독 해지(자동 갱신 중단)를 요청할 수 있으며,
+          해지 효력은 원칙적으로 다음 결제주기부터 발생합니다(이미 결제된 당기 이용기간은 별도 약정/법령에 따름).
+          Cancellation before the next renewal takes effect from the following billing cycle in principle.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
           구독 서비스 가입 후 멤버십 전용 콘텐츠(구독 혜택으로 제공되는 유료 콘텐츠 포함)를 1회라도 열람하면,
           전자상거래 등에서의 소비자보호에 관한 법률 제17조 제2항 제5호의
           디지털 콘텐츠 서비스 개시로 간주됩니다.
@@ -146,6 +156,11 @@ export default function TermsOfServicePage() {
           따라서 구독 후 7일 이내라 하더라도 해당 이용 기록이 확인되면 단순 변심에 의한 전액 환불은 제한되며,
           이용 횟수, 이용 기간, 제공된 혜택, 결제대행 수수료 등 합리적 공제 기준을 반영한 잔여분만 환불됩니다.
           Full refund may be restricted once usage starts, and only the refundable remainder may be returned.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          환불이 가능한 경우에도 관계 법령, 결제대행사 정책, 카드사/플랫폼 정책에 따라
+          취소 수수료 또는 이용분 공제가 발생할 수 있으며, 실제 환불 금액/시점은 결제수단별 정산 주기에 따릅니다.
+          Refund amount and timing may vary based on legal requirements and payment processor settlement rules.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           미사용 유상 포인트는 전자상거래 관련 법령에 따라 <strong>&#39;7일이내청약철회 가능&#39;</strong> 기준으로 환불 접수할 수 있습니다.
@@ -162,11 +177,15 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 자동 결제 전환 / Free Trial and Auto-Renewal Conversion</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 정기결제(자동 갱신) 전환 / Free Trial and Recurring Billing Conversion</h2>
         <p style={{ lineHeight: 1.75 }}>
           무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우,
           이후 유료 전환(자동 결제 포함) 직후에는 단순 변심에 의한 즉시 환불이 제한될 수 있습니다.
           If service use starts during the free trial, immediate post-conversion refund may be restricted.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          자동 갱신 여부, 결제 주기, 차기 결제 예정일, 해지 방법 등 핵심 조건은 결제/구독 화면에 고지되며,
+          이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           다만 강행규정에 따라 환불이 필요한 경우에는 관계 법령 및 결제대행사 정책에 따라 처리합니다.

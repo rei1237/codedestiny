@@ -346,39 +346,12 @@
 <link rel="preload" as="image" href="/icons/samba.webp">
 <link rel="preconnect" href="https://developers.kakao.com">
 <link rel="dns-prefetch" href="//t1.kakaocdn.net">
-<!-- 폰트 CSS: 초기 렌더 이후(상호작용/유휴) 지연 로드 -->
-<script>
-(function(){
-  var loaded = false;
-  function injectFont(href) {
-    if (!href) return;
-    if (document.querySelector('link[data-cd-font-src="' + href + '"]')) return;
-    var ln = document.createElement('link');
-    ln.rel = 'stylesheet';
-    ln.href = href;
-    ln.setAttribute('data-cd-font-src', href);
-    document.head.appendChild(ln);
-  }
-  function loadFonts() {
-    if (loaded) return;
-    loaded = true;
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap');
-    injectFont('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap');
-    window.removeEventListener('pointerdown', loadFonts, true);
-    window.removeEventListener('touchstart', loadFonts, true);
-    window.removeEventListener('keydown', loadFonts, true);
-    window.removeEventListener('scroll', loadFonts, true);
-  }
-  window.addEventListener('pointerdown', loadFonts, true);
-  window.addEventListener('touchstart', loadFonts, true);
-  window.addEventListener('keydown', loadFonts, true);
-  window.addEventListener('scroll', loadFonts, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') loadFonts();
-  }, { once: true });
-})();
-</script>
+<!-- 폰트 CSS: 핵심 2패밀리(Noto Sans KR + Cinzel)만 즉시 선언, 나머지는 비동기 후속 로드 -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<!-- 보조 폰트(한국 세리프·데코)는 저우선순위 로드 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet"></noscript>
 <!-- 직접 woff2 프리로드는 locale/weight 매칭이 어긋나 미사용 경고를 유발할 수 있어 제거 -->
 
 
@@ -397,13 +370,8 @@ img[width][height]{height:auto}
 .logo-area{background:rgba(20,8,45,0.92);border-radius:24px;margin-bottom:16px;padding:40px 16px 36px;text-align:center}
 .logo-area h1{font-size:clamp(1.35rem,4.5vw,1.9rem);font-weight:800;color:#f4eeff;margin:.5rem 0}
 .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-top:6px}
-@keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
-@-webkit-keyframes pig-float{0%,100%{transform:translateY(0) scale(1)}45%,55%{transform:translateY(-14px) scale(1.045)}}
-@keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
-@-webkit-keyframes pig-shadow-anim{0%,100%{transform:translateX(-50%) scale(1);opacity:.32}45%,55%{transform:translateX(-50%) scale(.62);opacity:.1}}
-.pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:154px;position:relative;padding-bottom:16px}
-.pig-svg-wrap::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:84px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(160,90,255,0.55) 0%,transparent 70%);animation:pig-shadow-anim 3.2s ease-in-out infinite;-webkit-animation:pig-shadow-anim 3.2s ease-in-out infinite;will-change:transform,opacity;pointer-events:none}
-.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover;animation:pig-float 3.2s ease-in-out infinite;-webkit-animation:pig-float 3.2s ease-in-out infinite;will-change:transform}
+.pig-svg-wrap{display:flex;justify-content:center;align-items:center;min-height:130px}
+.neo-logo-icon,.honeypig-logo-icon{width:130px;height:130px;border-radius:50%;object-fit:cover}
 .feature-card__img-wrap,.tarot-tile__img-wrap{aspect-ratio:4/3;min-height:150px;overflow:hidden}
 .tarot-tile__img-wrap{position:relative}
 .tarot-tile__coin-badge{position:absolute;top:8px;left:8px;z-index:3;display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:.7rem;font-weight:900;line-height:1;letter-spacing:.03em;white-space:nowrap;background:rgba(10,5,30,.88);color:#ede9fe;border:1px solid rgba(160,120,255,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 3px 12px rgba(0,0,0,.55),0 0 0 1px rgba(120,80,220,.12);pointer-events:none}.tarot-tile__coin-badge::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1px solid rgba(255,200,50,.6);box-shadow:0 0 7px rgba(255,195,40,.65),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}.tarot-tile__coin-badge--free::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#d1fae5 0%,#6ee7b7 50%,#059669 100%);border:1px solid rgba(110,231,183,.55);box-shadow:0 0 5px rgba(52,211,153,.35);flex-shrink:0}
@@ -425,28 +393,27 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35);box-shadow:0 4px 18px rgba(124,58,237,0.35)}
 .auth-btn--signup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.5)}
 .auth-btn--login{color:#e2e8f0;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.5)}
-.auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:rgba(226,232,240,0.8);font-weight:700;font-size:.88rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.auth-btn--logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:rgba(226,232,240,0.8);font-weight:700;font-size:.88rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.07);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
 .auth-btn--logout:hover{transform:translateY(-1px);border-color:rgba(255,100,100,0.4);box-shadow:0 6px 18px rgba(200,50,50,0.2),inset 0 1px 0 rgba(255,255,255,0.07);color:#fca5a5}
-.admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(30,5,60,0.95),rgba(80,20,10,0.9));border:1px solid rgba(255,180,40,0.55);color:#fde68a;font-size:.82rem;font-weight:800;letter-spacing:.03em;box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12);animation:adminBadgePulse 3s ease-in-out infinite;flex-shrink:0}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px 5px 8px;border-radius:999px;background:linear-gradient(135deg,rgba(30,5,60,0.95),rgba(80,20,10,0.9));border:1px solid rgba(255,180,40,0.55);color:#fde68a;font-size:.82rem;font-weight:800;letter-spacing:.03em;box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:adminBadgePulse 3s ease-in-out infinite;flex-shrink:0}
 @keyframes adminBadgePulse{0%,100%{box-shadow:0 4px 16px rgba(255,160,20,0.25),inset 0 1px 0 rgba(255,230,130,0.12)}50%{box-shadow:0 4px 24px rgba(255,160,20,0.5),0 0 0 2px rgba(255,180,40,0.25),inset 0 1px 0 rgba(255,230,130,0.18)}}
 .admin-badge__crown{font-style:normal;font-size:.9rem}
 .admin-badge__text{font-size:.76rem;font-weight:900;background:linear-gradient(90deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.cd-user-card{position:relative;margin-top:20px;padding:22px 18px 18px;border-radius:22px;background:linear-gradient(145deg,rgba(12,4,32,0.99),rgba(25,8,58,0.98));border:1px solid rgba(140,90,255,0.22);box-shadow:0 0 50px rgba(90,40,180,0.18),0 14px 44px rgba(0,0,0,0.52),inset 0 1px 0 rgba(180,130,255,0.12);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;width:100%;transform:translateZ(0);-webkit-transform:translateZ(0)}
+.cd-user-card{position:relative;overflow:hidden;margin-top:20px;padding:22px 18px 18px;border-radius:22px;background:linear-gradient(145deg,rgba(12,4,32,0.97),rgba(25,8,58,0.93));border:1px solid rgba(140,90,255,0.22);box-shadow:0 0 50px rgba(90,40,180,0.18),0 14px 44px rgba(0,0,0,0.52),inset 0 1px 0 rgba(180,130,255,0.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;width:100%}
 .cd-user-card::before{content:'';position:absolute;top:-30%;left:50%;transform:translateX(-50%);width:220px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(130,60,240,0.22),transparent 70%);pointer-events:none}
 .cd-user-card::after{content:'';position:absolute;bottom:-20%;left:15%;width:160px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(60,120,255,0.12),transparent 70%);pointer-events:none}
-.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;-webkit-animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0;will-change:transform,opacity;transform:translateZ(0);-webkit-transform:translateZ(0)}
+.cd-user-star{position:absolute;border-radius:50%;background:#fff;animation:cdStarBlink var(--dur,2s) ease-in-out var(--delay,0s) infinite;opacity:0}
 @keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
-@-webkit-keyframes cdStarBlink{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.9;transform:scale(1)}}
-.cd-user-card__avatar{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#d8b4fe,#8b5cf6 55%,#3b0764 100%);border:2px solid rgba(200,150,255,0.45);box-shadow:0 0 22px rgba(160,100,255,0.55),inset 0 2px 8px rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3s ease-in-out infinite;-webkit-animation:cdAvatarGlow 3s ease-in-out infinite;will-change:box-shadow;transform:translateZ(0);-webkit-transform:translateZ(0)}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}@-webkit-keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}
-.cd-user-card__avatar-ring{position:absolute;inset:-10px;border-radius:50%;pointer-events:none;background:conic-gradient(from 0deg,rgba(239,225,255,0.95) 0 14%,rgba(186,146,255,0.12) 14% 28%,rgba(204,170,255,0.9) 28% 38%,rgba(168,119,255,0.1) 38% 52%,rgba(235,212,255,0.88) 52% 65%,rgba(168,119,255,0.08) 65% 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));box-shadow:0 0 12px rgba(185,136,255,0.55);animation:cdAvatarSpin 2.2s linear infinite;-webkit-animation:cdAvatarSpin 2.2s linear infinite;will-change:transform;transform:translateZ(0) rotate(0deg);-webkit-transform:translateZ(0) rotate(0deg)}
-@keyframes cdAvatarSpin{from{transform:translateZ(0) rotate(0deg)}to{transform:translateZ(0) rotate(360deg)}}@-webkit-keyframes cdAvatarSpin{from{-webkit-transform:translateZ(0) rotate(0deg)}to{-webkit-transform:translateZ(0) rotate(360deg)}}
+.cd-user-card__avatar{position:relative;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#d8b4fe,#8b5cf6 55%,#3b0764 100%);border:2px solid rgba(200,150,255,0.45);box-shadow:0 0 22px rgba(160,100,255,0.55),inset 0 2px 8px rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:cdAvatarGlow 3s ease-in-out infinite}@keyframes cdAvatarGlow{0%,100%{box-shadow:0 0 22px rgba(160,100,255,0.5),inset 0 2px 8px rgba(255,255,255,0.18)}50%{box-shadow:0 0 35px rgba(160,100,255,0.85),0 0 55px rgba(120,60,220,0.3),inset 0 2px 8px rgba(255,255,255,0.22)}}
+.cd-user-card__avatar-ring{position:absolute;inset:-9px;border-radius:50%;border:1.5px solid transparent;border-top-color:rgba(200,150,255,0.75);border-right-color:rgba(200,150,255,0.3);animation:cdAvatarSpin 4s linear infinite}
+@keyframes cdAvatarSpin{to{transform:rotate(360deg)}}
 .cd-user-card__initial{font-size:1.5rem;font-weight:900;color:#fff;text-shadow:0 0 12px rgba(255,255,255,0.7);line-height:1}
 .cd-user-card__info{display:flex;flex-direction:column;gap:2px;align-items:center}
 .cd-user-card__greeting{font-size:.75rem;color:rgba(190,160,255,0.72);font-weight:600;letter-spacing:.06em}
 .cd-user-card__name{font-size:1.25rem;font-weight:900;background:linear-gradient(90deg,#e2d9ff,#c084fc,#f0abfc 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em;line-height:1.25}
 .cd-user-card__tagline{font-size:.72rem;color:rgba(180,150,255,0.5);font-weight:500;margin-top:2px}
 .cd-user-card__actions{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:12px;border-top:1px solid rgba(140,90,255,0.15);width:100%}
-.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:999px;border:1px solid rgba(255,200,80,0.28);background:linear-gradient(135deg,rgba(18,8,42,0.96),rgba(30,12,60,0.96));box-shadow:0 8px 32px rgba(0,0,0,0.55),0 0 0 1px rgba(160,100,255,0.12),inset 0 1px 0 rgba(255,220,140,0.14);color:#f0e8ff;font-weight:700;font-size:.84rem;letter-spacing:.01em;z-index:4}
+.golden-grain-badge{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-radius:999px;border:1px solid rgba(255,200,80,0.28);background:linear-gradient(135deg,rgba(18,8,42,0.92),rgba(30,12,60,0.88));box-shadow:0 8px 32px rgba(0,0,0,0.55),0 0 0 1px rgba(160,100,255,0.12),inset 0 1px 0 rgba(255,220,140,0.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#f0e8ff;font-weight:700;font-size:.84rem;letter-spacing:.01em;z-index:4}
 .golden-grain-badge__coin{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff9d6 0%,#ffd14d 46%,#c97a08 100%);border:1.5px solid rgba(255,215,0,0.45);box-shadow:0 0 14px rgba(255,200,50,0.5),inset 0 2px 6px rgba(255,255,200,0.6),0 4px 10px rgba(140,80,8,0.28)}
 .golden-grain-badge__coin::before{content:'';width:14px;height:14px;border-radius:50%;border:2px solid rgba(120,60,5,0.4);box-shadow:inset 0 2px 4px rgba(255,250,200,0.6)}
 .golden-grain-badge__coin::after{content:'';position:absolute;top:6px;left:7px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.75)}
@@ -545,14 +512,7 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @media(max-width:768px){.golden-grain-badge{position:static;width:max-content;margin:12px auto 0}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 #sajuLoaderOverlay{position:fixed;inset:0;z-index:9999;background:#020617;display:none;place-items:center}
-.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
-/* ── starfall: critical-inline 모바일 로드 보장 (cosmic-main.css 지연 전에 실행) ── */
-body:not(.neo-mode) .logo-area{overflow:clip}
-@keyframes starfall{0%{transform:translateY(0)}100%{transform:translateY(33.333%)}}
-@-webkit-keyframes starfall{0%{transform:translateY(0)}100%{transform:translateY(33.333%)}}
-body:not(.neo-mode) .logo-area::after{content:'';position:absolute;left:0;right:0;top:-100%;width:100%;height:300%;pointer-events:none;z-index:0;background-image:radial-gradient(1.5px 1.5px at 8% 2%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 22% 8%,rgba(255,230,250,0.85),transparent),radial-gradient(1.5px 1.5px at 38% 4%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 55% 12%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 72% 3%,rgba(255,220,245,0.9),transparent),radial-gradient(1px 1px at 88% 10%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 15% 18%,rgba(255,240,250,0.7),transparent),radial-gradient(1.5px 1.5px at 45% 22%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 68% 16%,rgba(255,228,248,0.75),transparent),radial-gradient(1.5px 1.5px at 92% 24%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 5% 28%,rgba(255,235,252,0.7),transparent),radial-gradient(1.5px 1.5px at 28% 32%,rgba(255,255,255,0.9),transparent),radial-gradient(1px 1px at 58% 26%,rgba(255,230,250,0.8),transparent),radial-gradient(1px 1px at 82% 30%,rgba(255,245,255,0.75),transparent),radial-gradient(1.5px 1.5px at 12% 38%,rgba(255,255,255,0.8),transparent),radial-gradient(1px 1px at 48% 42%,rgba(255,220,245,0.85),transparent),radial-gradient(1px 1px at 75% 36%,rgba(255,255,255,0.75),transparent),radial-gradient(1.5px 1.5px at 35% 48%,rgba(255,240,255,0.8),transparent),radial-gradient(1px 1px at 65% 52%,rgba(255,255,255,0.85),transparent),radial-gradient(1px 1px at 18% 58%,rgba(255,230,250,0.7),transparent),radial-gradient(1.5px 1.5px at 52% 62%,rgba(255,245,255,0.8),transparent),radial-gradient(1px 1px at 85% 56%,rgba(255,255,255,0.75),transparent);background-size:100% 33.333%;background-repeat:repeat-y;will-change:transform;animation:starfall 12s linear infinite;-webkit-animation:starfall 12s linear infinite}
-body:not(.neo-mode) .logo-area .logo-cosmos,body:not(.neo-mode) .logo-area .normal-logo{position:relative;z-index:1}
-@media(prefers-reduced-motion:reduce){body:not(.neo-mode) .logo-area::after{animation:none;opacity:.6}}
+.cosmic-bg{position:fixed;inset:0;pointer-events:none;z-index:0;contain:strict;will-change:auto}
   </style>
   <!-- ─── PERF: 라이브러리 로딩 스켈레톤 + reduced-motion (TASK 2·5) ─── -->
   <style id="cd-perf">
@@ -562,83 +522,61 @@ background-size:200% 100%!important;animation:cd-lib-shimmer 1.5s infinite!impor
 border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 @keyframes cd-lib-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .cd-reduced-motion *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-.cd-reduced-motion .cd-user-card__avatar{animation-duration:3s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:3s!important;-webkit-animation-iteration-count:infinite!important}
-.cd-reduced-motion .cd-user-card__avatar-ring{animation-duration:4s!important;animation-iteration-count:infinite!important;-webkit-animation-duration:4s!important;-webkit-animation-iteration-count:infinite!important}
-.cd-reduced-motion .cd-user-star{animation-duration:var(--dur,2s)!important;animation-iteration-count:infinite!important;-webkit-animation-duration:var(--dur,2s)!important;-webkit-animation-iteration-count:infinite!important}
-.cd-user-card__avatar,.cd-user-card__avatar-ring,.cd-user-star{animation-play-state:running!important;-webkit-animation-play-state:running!important}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
-
-  <script>
-  (function () {
-    var nav = navigator || {};
-    var conn = nav.connection || nav.mozConnection || nav.webkitConnection || {};
-    var ua = String(nav.userAgent || '').toLowerCase();
-    var mem = Number(nav.deviceMemory || 0);
-    var cores = Number(nav.hardwareConcurrency || 0);
-    var et = String(conn.effectiveType || '').toLowerCase();
-    var lowEndAndroid = ua.indexOf('android') !== -1 && (
-      conn.saveData ||
-      (mem > 0 && mem <= 4) ||
-      (cores > 0 && cores <= 4) ||
-      et === 'slow-2g' || et === '2g' || et === '3g'
-    );
-    if (lowEndAndroid) {
-      document.documentElement.classList.add('cd-mobile-lite');
-      window.__cdMobileLite = 1;
-    }
-  })();
-  </script>
 
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <link rel="stylesheet" href="/styles/core-ui.css?v=20260413-merged2">
-  <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix3">
-  <link rel="stylesheet" href="/styles/mobile-lite.css?v=20260416-anim-fix">
+  <link rel="stylesheet" href="/styles/globals.css">
+  <link rel="stylesheet" href="/styles/layout.css">
+    <link rel="stylesheet" href="/styles/browser-compat.css?v=20260316-browser-compat1">
+    <link rel="stylesheet" href="/styles/fortune-ui.css?v=20260411-foucfix2">
+    <link rel="stylesheet" href="/styles/main-glass.css?v=20260411-foucfix1">
+    <link rel="stylesheet" href="/styles/mobile-ux.css?v=20260411-foucfix2">
 
   <script src="/js/inline/api-base-init.js" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
-  <link data-cd-noncritical-style-src="/styles/animations.css" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/animations.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animations.css"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/cosmic-main.css?v=20260413" data-cd-mobile-delay="1">
-  <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260413"></noscript>
+  <link rel="preload" as="style" href="/styles/cosmic-main.css?v=20260316" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/styles/cosmic-main.css?v=20260316"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=20260317" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/destiny-flower-cosmic.css?v=20260317" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=20260317"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=20260329-openhint1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=20260316-mobile-opt2"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=20260317-luxury-sun"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=20260316-mobile-opt2"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=20260315-mobile-opt1"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=20260315-mobile-opt1"></noscript>
 
-  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-foucfix2">
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=20260415" data-cd-mobile-delay="1">
+  <link rel="stylesheet" href="/styles/life-book.css?v=20260411-loading-ux1">
+  <link rel="preload" as="style" href="/styles/sibyl-system.css?v=20260415" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=20260415"></noscript>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=20260405-epilogue" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/styles/love-secret.css?v=20260405-epilogue" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=20260405-epilogue"></noscript>
 
-  <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1">
+  <link rel="preload" as="style" href="/css/entertain-system.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
   <style id="meditation-collection-theme">
     #meditationCollection {
@@ -683,151 +621,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       color: #d5e9ff;
     }
   </style>
-
-<style id="premium-vvip-collection-theme">
-  /* ═══════════════════════════════════════════════
-     VVIP 프리미엄 블랙카드 컬렉션 — 블랙 & 골드 테마
-  ═══════════════════════════════════════════════ */
-  #premiumVvipCollection {
-    background:
-      radial-gradient(ellipse at 20% 10%, rgba(180,140,30,0.13) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba(160,110,20,0.11) 0%, transparent 50%),
-      linear-gradient(160deg, #0a0a0a 0%, #111008 40%, #0d0b00 70%, #050505 100%);
-    border: 1px solid rgba(212,175,55,0.38);
-    box-shadow:
-      0 0 0 1px rgba(212,175,55,0.12),
-      0 30px 80px rgba(0,0,0,0.85),
-      inset 0 1px 0 rgba(255,215,80,0.12),
-      inset 0 -1px 0 rgba(180,140,30,0.06);
-  }
-  #premiumVvipCollection .feat-collection__header {
-    background: linear-gradient(180deg, rgba(30,24,4,0.55) 0%, rgba(10,8,0,0.25) 100%);
-    border-bottom: 1px solid rgba(212,175,55,0.18);
-  }
-  .pvc-crown-icon {
-    color: #d4af37 !important;
-    font-size: 2.1rem !important;
-    text-shadow: 0 0 18px rgba(212,175,55,0.7), 0 0 40px rgba(180,130,20,0.4);
-  }
-  .pvc-header-badge {
-    display: inline-block;
-    margin: 4px auto 8px;
-    padding: 3px 14px;
-    border-radius: 999px;
-    font-size: 0.62rem;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    color: #0a0800;
-    background: linear-gradient(90deg,#c8960c,#d4af37,#f0d060,#d4af37,#c8960c);
-    background-size: 200% 100%;
-    animation: pvcBadgeShimmer 3s linear infinite;
-    box-shadow: 0 2px 12px rgba(212,175,55,0.5);
-  }
-  @keyframes pvcBadgeShimmer {
-    0%  { background-position: 200% 0; }
-    100%{ background-position: -200% 0; }
-  }
-  /* 닫힌 상태에서 shimmer 중단 — CPU 절약 */
-  [data-collection-open="false"] #premiumVvipCollection .pvc-header-badge {
-    animation: none;
-    background-position: 0% 0;
-  }
-  .pvc-title {
-    background: linear-gradient(135deg,#f0d060 0%,#d4af37 40%,#fff8dc 60%,#d4af37 80%,#c8960c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 2px 6px rgba(212,175,55,0.35));
-  }
-  .pvc-subtitle  { color: rgba(212,175,55,0.82) !important; font-style: italic; }
-  .pvc-lede      { color: rgba(240,220,150,0.72) !important; }
-  .pvc-featureline {
-    border-color: rgba(212,175,55,0.35) !important;
-    background: rgba(20,16,0,0.55) !important;
-    color: rgba(240,210,100,0.9) !important;
-    letter-spacing: 0.02em;
-  }
-  .pvc-divline  { background: linear-gradient(90deg,transparent,rgba(212,175,55,0.8),transparent) !important; }
-  .pvc-gem      { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
-  .pvc-arrow    { color: #d4af37 !important; text-shadow: 0 0 8px  rgba(212,175,55,0.5)  !important; }
-  .pvc-peek-gem { color: #d4af37 !important; text-shadow: 0 0 10px rgba(212,175,55,0.55) !important; }
-  /* 골드 오브 배경 파티클 — GPU 레이어 승격 */
-  .pvc-gold-orb {
-    position: absolute; border-radius: 50%; pointer-events: none;
-    will-change: transform, opacity;
-    animation: pvcOrbFloat 8s ease-in-out infinite;
-  }
-  .pvc-gold-orb--1 {
-    width:140px; height:140px; top:-30px; left:-40px;
-    background: radial-gradient(circle,rgba(212,175,55,0.12),transparent 70%);
-    animation-delay: 0s;
-  }
-  .pvc-gold-orb--2 {
-    width:100px; height:100px; bottom:-20px; right:-20px;
-    background: radial-gradient(circle,rgba(212,175,55,0.09),transparent 70%);
-    animation-delay: -4s;
-  }
-  @keyframes pvcOrbFloat {
-    0%,100%{ transform:translateY(0) scale(1);       opacity:0.6; }
-    50%    { transform:translateY(-12px) scale(1.05); opacity:1;   }
-  }
-
-  /* ─── 그리드 표시/숨김 — 토글 상태 연동 핵심 수정 ─── */
-  /* 닫힌 상태: 명시적 숨김 (기존 display:flex!important 버그 수정) */
-  [data-collection-open="false"] #premiumVvipCollection .feat-collection__grid {
-    display: none;
-  }
-  /* 열린 상태: flex 복원 (base rule의 display:grid 재정의) */
-  [data-collection-open="true"] #premiumVvipCollection .feat-collection__grid {
-    display: flex !important;
-    animation: fc-grid-reveal 0.35s ease both;
-  }
-
-  /* 프리미엄 카드 그리드 — 1열 세로 배치 + 레이아웃 격리 */
-  .pvc-prem-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 0 16px 16px;
-    contain: layout paint;
-  }
-  /* 각 prem-card 섹션 래퍼 골드 테두리 오버레이 */
-  .pvc-prem-grid > section {
-    border-radius: 18px !important;
-    border-width: 1.5px !important;
-    transition: transform 0.22s, box-shadow 0.22s;
-    outline: 1px solid rgba(212,175,55,0.1);
-  }
-  .pvc-prem-grid > section:hover {
-    transform: translateY(-3px);
-    outline-color: rgba(212,175,55,0.35);
-  }
-
-  /* 닫힌 상태 골드 glow 애니메이션 (yellow → gold 톤 오버라이드) */
-  [data-collection-open="false"].feat-collection--premium-vvip {
-    animation-name: fc-closedGlow-premium-vvip;
-  }
-  @keyframes fc-closedGlow-premium-vvip {
-    0%,100%{ box-shadow:0 0 0 1px rgba(212,175,55,0.15) inset, 0 8px 32px rgba(0,0,0,0.28); }
-    50%    { box-shadow:0 0 0 1px rgba(212,175,55,0.38) inset, 0 8px 32px rgba(0,0,0,0.28), 0 0 18px rgba(212,175,55,0.08); }
-  }
-
-  /* 모바일/터치: 닫힌 상태 orb 애니메이션 정지 */
-  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-    [data-collection-open="false"] #premiumVvipCollection .pvc-gold-orb {
-      animation: none !important;
-    }
-  }
-  /* reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    .pvc-header-badge,
-    .pvc-gold-orb,
-    [data-collection-open="false"].feat-collection--premium-vvip {
-      animation: none !important;
-    }
-    .pvc-header-badge { background-position: 0 0; }
-  }
-</style>
 <style id="lsd-styles-placeholder">
 /* Luck-Sync Diary modal styles — injected by luck-sync-diary.js */
 </style>
@@ -889,22 +682,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-cta-btn--coin:hover{box-shadow:0 10px 32px rgba(245,158,11,.5)}
 .tile-pvw-cta-btn--lock{background:linear-gradient(135deg,#5b21b6,#7c3aed,#9333ea);box-shadow:0 6px 24px rgba(91,33,182,.48),inset 0 1px 0 rgba(255,255,255,.14)}
 .tile-pvw-cta-btn--lock:hover{box-shadow:0 10px 32px rgba(147,51,234,.55)}
-.tile-pvw-overlay{background:radial-gradient(1100px 420px at 50% -120px,rgba(94,234,212,.16),transparent 62%)}
-.tile-pvw-sheet{background:linear-gradient(176deg,rgba(8,18,36,.94) 0%,rgba(12,26,52,.9) 52%,rgba(6,14,28,.94) 100%);border:1px solid rgba(148,163,184,.3);box-shadow:0 30px 84px rgba(1,8,20,.74),0 0 0 1px rgba(255,255,255,.07) inset;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.tile-pvw-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.12),transparent 32%,transparent 70%,rgba(255,255,255,.06));opacity:.62}
-.tile-pvw-bd{background:rgba(2,8,20,.7);backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%)}
-.tile-pvw-title{font-size:1.44rem;letter-spacing:.01em;color:#ecfeff}
-.tile-pvw-tagline{color:rgba(205,225,245,.9)}
-.tile-pvw-feats li{background:linear-gradient(145deg,rgba(56,189,248,.11),rgba(14,30,58,.22));border-color:rgba(148,163,184,.26);color:#dbeafe}
-.tile-pvw-feats li::before{content:'✧';font-size:.72rem;color:#67e8f9}
-.tile-pvw-paywall{background:linear-gradient(145deg,rgba(251,191,36,.1),rgba(30,58,138,.12));border-color:rgba(251,191,36,.3)}
-.tile-pvw-cta-sticky{background:linear-gradient(to top,rgba(7,17,35,.96) 70%,rgba(7,17,35,0))}
-.tile-pvw-cta-btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;border:1px solid rgba(255,255,255,.2)}
-.tile-pvw-cta-btn::before{content:'';width:17px;height:17px;border-radius:999px;border:2px solid rgba(255,255,255,.65);border-right-color:transparent;box-sizing:border-box;display:none}
-.tile-pvw-cta-btn.is-loading{filter:saturate(.85) brightness(.9);cursor:wait;pointer-events:none}
-.tile-pvw-cta-btn.is-loading::before{display:inline-block;animation:tilePvwSpin .76s linear infinite}
-.tile-pvw-cta-meta{min-height:20px;margin-top:10px;font-size:.76rem;color:rgba(216,206,255,.82);text-align:center;letter-spacing:.01em}
-@keyframes tilePvwSpin{to{transform:rotate(360deg)}}
 </style>
 <!-- Google AdSense Auto Ads -->
 <!-- Google AdSense Auto Ads (deferred for mobile stability/perf) -->
@@ -925,17 +702,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     window.removeEventListener('keydown', injectAds, true);
     window.removeEventListener('scroll', injectAds, true);
   }
+  var idleId;
+  if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(injectAds, { timeout: 6000 });
+  else idleId = window.setTimeout(injectAds, 5000);
   window.addEventListener('pointerdown', injectAds, true);
   window.addEventListener('touchstart', injectAds, true);
   window.addEventListener('keydown', injectAds, true);
   window.addEventListener('scroll', injectAds, true);
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState === 'hidden') injectAds();
-  }, { once: true });
 })();
 </script>
 <!-- PERF: reduced-motion detect -->
-<script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
+<script>(function(){try{if((window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
 <body>
 <script>
@@ -984,57 +761,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.head.appendChild(st);
 })();
 </script>
-
-<!-- iOS/Android: CSS animation freeze recovery (visibilitychange + pageshow + focus + scroll) -->
-<script>(function(){
-  var SEL='.cosmic-star,.cosmic-star-flower,.logo-star-flower,.cd-user-star,.cd-user-card__avatar-ring,.cd-user-card__avatar,.admin-badge,.honeypig-logo-icon,.neo-logo-icon';
-  function restartAll(){
-    var els=document.querySelectorAll(SEL);
-    if(!els.length)return;
-    var resumed=false;
-    function resumeAll(){
-      if(resumed)return;
-      resumed=true;
-      els.forEach(function(el){
-        el.style.WebkitAnimationPlayState='running';
-        el.style.animationPlayState='running';
-      });
-    }
-    /* iOS freeze guard: pause+reflow once, then ensure resume with hard timeout fallback */
-    els.forEach(function(el){
-      el.style.WebkitAnimationPlayState='paused';
-      el.style.animationPlayState='paused';
-    });
-    void document.body.offsetWidth;
-    var hardTimer=setTimeout(resumeAll,220);
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){
-        clearTimeout(hardTimer);
-        setTimeout(resumeAll,32);
-      });
-    });
-  }
-  /* tab/app switch */
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible')restartAll();
-  });
-  /* BFCache restore (iOS back/forward) */
-  window.addEventListener('pageshow',function(e){
-    if(e.persisted)restartAll();
-  });
-  /* lock screen return / focus regain */
-  window.addEventListener('focus',function(){
-    setTimeout(restartAll,80);
-  });
-  /* iOS sometimes freezes after fast scroll — restart once after scroll settles */
-  var _st;
-  window.addEventListener('scroll',function(){
-    clearTimeout(_st);
-    _st=setTimeout(restartAll,400);
-  },{passive:true});
-  /* expose for post-render wake-up call */
-  window._cdRestartAnims=restartAll;
-})();</script>
 
 <!-- Cosmic background (white mode): nebula gradients + twinkling stars -->
 <div class="cosmic-bg" aria-hidden="true">
@@ -1462,9 +1188,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               '</div>' +
               '</div>';
 
-            /* restart CSS animations after card injection (iOS/reduced-motion freeze guard) */
-            requestAnimationFrame(function(){ if(typeof window._cdRestartAnims==='function') window._cdRestartAnims(); });
-
             var btn = document.getElementById('cdAuthLogoutBtn');
             if (btn) {
               btn.addEventListener('click', function () {
@@ -1515,8 +1238,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                     '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">🔓\u00a0나가기</button>' +
                     '</div>' +
                     '</div>';
-                  /* restart CSS animations after admin card injection */
-                  requestAnimationFrame(function(){ if(typeof window._cdRestartAnims==='function') window._cdRestartAnims(); });
                   var _abtn = document.getElementById('cdAuthLogoutBtn');
                   if (_abtn) {
                     _abtn.addEventListener('click', function () {
@@ -1613,9 +1334,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <label class="form-label">출생 시간</label>
         <div class="row2">
           <label for="birthHour" class="sr-only">출생 시(시간)</label>
-          <select class="inp" id="birthHour" aria-label="출생 시(시간)"><option value="0">00시</option><option value="1">01시</option><option value="2">02시</option><option value="3">03시</option><option value="4">04시</option><option value="5">05시</option><option value="6">06시</option><option value="7">07시</option><option value="8">08시</option><option value="9">09시</option><option value="10">10시</option><option value="11">11시</option><option value="12" selected>12시</option><option value="13">13시</option><option value="14">14시</option><option value="15">15시</option><option value="16">16시</option><option value="17">17시</option><option value="18">18시</option><option value="19">19시</option><option value="20">20시</option><option value="21">21시</option><option value="22">22시</option><option value="23">23시</option></select>
+          <select class="inp" id="birthHour" aria-label="출생 시(시간)" data-change-action="updateSajuTime"></select>
           <label for="birthMinute" class="sr-only">출생 분(분)</label>
-          <select class="inp" id="birthMinute" aria-label="출생 분(분)"><option value="0" selected>00분</option><option value="1">01분</option><option value="2">02분</option><option value="3">03분</option><option value="4">04분</option><option value="5">05분</option><option value="6">06분</option><option value="7">07분</option><option value="8">08분</option><option value="9">09분</option><option value="10">10분</option><option value="11">11분</option><option value="12">12분</option><option value="13">13분</option><option value="14">14분</option><option value="15">15분</option><option value="16">16분</option><option value="17">17분</option><option value="18">18분</option><option value="19">19분</option><option value="20">20분</option><option value="21">21분</option><option value="22">22분</option><option value="23">23분</option><option value="24">24분</option><option value="25">25분</option><option value="26">26분</option><option value="27">27분</option><option value="28">28분</option><option value="29">29분</option><option value="30">30분</option><option value="31">31분</option><option value="32">32분</option><option value="33">33분</option><option value="34">34분</option><option value="35">35분</option><option value="36">36분</option><option value="37">37분</option><option value="38">38분</option><option value="39">39분</option><option value="40">40분</option><option value="41">41분</option><option value="42">42분</option><option value="43">43분</option><option value="44">44분</option><option value="45">45분</option><option value="46">46분</option><option value="47">47분</option><option value="48">48분</option><option value="49">49분</option><option value="50">50분</option><option value="51">51분</option><option value="52">52분</option><option value="53">53분</option><option value="54">54분</option><option value="55">55분</option><option value="56">56분</option><option value="57">57분</option><option value="58">58분</option><option value="59">59분</option></select>
+          <select class="inp" id="birthMinute" aria-label="출생 분(분)" data-change-action="updateSajuTime"></select>
         </div>
       </div>
       
@@ -1686,7 +1407,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
               </button>
               <div class="fc-closed-peek" aria-hidden="true">
                 <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -1758,7 +1479,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <!-- 다마고치 운명의 알 -->
                 <button class="tarot-tile tarot-tile--destiny-egg" type="button"
                         data-action="openDestinyEggPage"
-                        data-fallback-href="/tadagochi"
+                        data-fallback-href="/tadagochi.html"
                         aria-label="다마고치 운명의 알 시작">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/UNSETAMA2.webp" data-img-alt="다마고치 운명의 알 — 나만의 사주 캐릭터 키우기">
                     <img class="tarot-tile__img is-loaded" src="/fuctionassets/UNSETAMA2.webp" alt="다마고치 운명의 알" width="200" height="150" loading="eager" decoding="async">
@@ -1822,7 +1543,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <span class="tc-divider-line"></span>
               <span class="tc-divider-star">✦</span>
             </div>
-            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
           </button>
           <div class="fc-closed-peek" aria-hidden="true">
             <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -1901,7 +1622,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <span class="tc-divider-line"></span>
               <span class="tc-divider-star">✦</span>
             </div>
-            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+            <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
           </button>
           <div class="fc-closed-peek" aria-hidden="true">
             <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -1925,9 +1646,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
 
-            <!-- [기능 연결부] 힐링 타로 → openTarotHealingPage() → /tarot/healing -->
+            <!-- [기능 연결부] 힐링 타로 → openTarotHealingModal() -->
             <button class="tarot-tile tarot-tile--healing" type="button"
-                    data-action="openTarotHealingPage"
+                    data-action="openTarotHealingModal"
                     data-coin-cost="0"
                     aria-label="따뜻한 태양 회복 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/healing.webp" data-img-alt="따뜻한 태양 회복 타로 — Sun &amp; Light 4카드 타로">
@@ -1989,8 +1710,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
 
-            <a class="tarot-tile tarot-tile--ijik" href="/tarot-ijik.html"
-               aria-label="이직 운명의 카드 타로 시작">
+            <button class="tarot-tile tarot-tile--ijik" type="button"
+                    data-action="startIjikTarot"
+                    data-coin-cost="50"
+                    data-fallback-href="/tarot-ijik.html"
+                    aria-label="이직 운명의 카드 타로 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=20260411-ijik1" data-img-alt="이직 운명의 카드 — 7카드 커리어 스프레드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=20260411-ijik1" alt="이직 운명의 카드 — 7카드 커리어 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
@@ -2000,11 +1724,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">💼 이직 운명의 카드</span>
                 <span class="tarot-tile__desc">7카드 커리어 스프레드</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 속마음 알아보기 타로 → /tarot/mindscan -->
-            <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
-               aria-label="상대방의 정확한 속마음 알아보기 타로 시작">
+            <button class="tarot-tile tarot-tile--mindscan" type="button"
+                    data-action="startMindScanTarot"
+                    data-fallback-href="/tarot/mindscan/"
+                    aria-label="상대방의 정확한 속마음 알아보기 타로 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=20260411-mindscan1" data-img-alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=20260411-mindscan1" alt="상대방의 정확한 속마음 알아보기 — 10카드 십자 스프레드" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
@@ -2014,11 +1740,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">🔮 속마음 알아보기</span>
                 <span class="tarot-tile__desc">10카드 십자 스프레드</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
-            <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
-               aria-label="원석 소울 타로 리딩 시작">
+            <button class="tarot-tile tarot-tile--crystal-soul" type="button"
+                    data-action="startCrystalSoulTarot"
+                    data-fallback-href="/tarot/crystal-soul/"
+                    aria-label="원석 소울 타로 리딩 시작">
               <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=20260411-crystal1" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩">
                 <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=20260411-crystal1" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
@@ -2028,7 +1756,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <span class="tarot-tile__title">💎 원석 소울 타로</span>
                 <span class="tarot-tile__desc">크리스탈 에너지 리딩</span>
               </div>
-            </a>
+            </button>
 
             <!-- [기능 연결부] 천체의 선율 → /celestial-harmony.html -->
             <a class="tarot-tile tarot-tile--celestial-harmony" href="/celestial-harmony.html"
@@ -2085,7 +1813,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <h3 class="feat-collection__title">신탁 &amp; 점술 컬렉션</h3>
                 <p class="feat-collection__subtitle">고대의 지혜가 오늘 당신에게 말을 건넵니다</p>
                 <p class="feat-collection__lede">질문 하나를 올리면 동서양 상징 해석을 교차해 오늘의 결론을 또렷하게 정리해 드립니다.</p>
-                <p class="feat-collection__featureline">화투점 · 이집트 신탁 · IFÀ 오라클 · 주역 64괘 · 룬 · 지오맨시 흙점 · 홍차점 · 데스티니 포커</p>
+                <p class="feat-collection__featureline">화투점 · 이집트 신탁 · 주역 64괘 · 숙요 · 룬 · 지오맨시 흙점 · 홍차점 · 데스티니 포커</p>
                 <div class="feat-collection__divider" aria-hidden="true">
                   <span class="fc-div-gem">✦</span>
                   <span class="fc-div-line"></span>
@@ -2093,7 +1821,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
               </button>
               <div class="fc-closed-peek" aria-hidden="true">
                 <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -2130,21 +1858,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   </div>
                 </button>
 
-                <!-- IFA 오라클 -->
-                 <a class="tarot-tile tarot-tile--ifa-fc" href="/ifa_oracle_v2_full_local.html"
-                   data-action="openIfaOracle"
-                   aria-label="이파 오라클 시작">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/ifafortune.webp" data-img-alt="IFÀ 오라클 - 요루바 256 오두 신탁">
-                    <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/ifafortune.webp" alt="IFÀ 오라클 - 요루바 256 오두 신탁" onerror="this.onerror=null;this.src='/fuctionassets/egypt.webp';">
-                    <span class="tarot-tile__badge tarot-tile__badge--new">IFÀ</span>
-                    <span class="tarot-tile__coin-badge">1회 30코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🪬 IFÀ 오라클</span>
-                    <span class="tarot-tile__desc">요루바 256 오두 신탁</span>
-                  </div>
-                </a>
-
                 <!-- 주역 64괘 -->
                 <button class="tarot-tile tarot-tile--juyuk-fc" type="button"
                         data-action="openJuyukModal"
@@ -2157,6 +1870,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">☯️ 주역 거북점</span>
                     <span class="tarot-tile__desc">64괘 · 3000년 지혜</span>
+                  </div>
+                </button>
+
+                <!-- 숙요점 -->
+                <button class="tarot-tile tarot-tile--sukuyo-fc" type="button"
+                        data-action="openSukuyoModal"
+                        aria-label="숙요점 시작">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo.webp" data-img-alt="숙요점 — 불교 밀교 27수 별자리">
+                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">💫</span></div>
+                    <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">기본 무료</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--compat">궁합 50코인</span>
+                  </div>
+                  <div class="tarot-tile__body">
+                    <span class="tarot-tile__title">💫 숙요점(宿曜占)</span>
+                    <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
                   </div>
                 </button>
 
@@ -2269,7 +1998,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
               </button>
               <div class="fc-closed-peek" aria-hidden="true">
                 <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -2305,21 +2034,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title">🌌 자미두수(紫微)</span>
                     <span class="tarot-tile__desc">기본 명반 무료 · 궁합 50코인</span>
-                  </div>
-                </button>
-
-                <!-- 자미두수 심화 분析 (H 프리미엄) -->
-                <button class="tarot-tile tarot-tile--ziwei-deep" type="button"
-                        data-action="navigateToZiweiChart"
-                        aria-label="자미두수 심화 분析 열기">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jami.webp" data-img-alt="자미두수 심화 분析 — 16챕터 인생 총람">
-                    <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🌟</span></div>
-                    <span class="tarot-tile__badge tarot-tile__badge--ziwei">심화</span>
-                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free">무료</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🌟 자미두수 심화</span>
-                    <span class="tarot-tile__desc">16챕터 인생 전략 · 명궁 완전 해독</span>
                   </div>
                 </button>
 
@@ -2389,7 +2103,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   <span class="fc-div-line"></span>
                   <span class="fc-div-gem">✦</span>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
+                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
               </button>
               <div class="fc-closed-peek" aria-hidden="true">
                 <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
@@ -2500,53 +2214,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
           </div><!-- /fg-group__cards --></section><!-- /fg-group--flower -->
 
-
-        <!-- ══════════════════════════════════════
-             GROUP: VVIP 프리미엄 — PDF 운명 분석
-        ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--premium-vvip" aria-labelledby="fgTitlePremiumVvip">
-          <div class="fg-group__cards">
-
-            <div class="feat-collection feat-collection--premium-vvip" id="premiumVvipCollection" data-collection-open="false">
-              <div class="feat-collection__cosmos pvc-particles" aria-hidden="true">
-                <span class="fc-star fc-star--1"></span>
-                <span class="fc-star fc-star--2"></span>
-                <span class="fc-star fc-star--3"></span>
-                <span class="fc-star fc-star--4"></span>
-                <span class="fc-star fc-star--5"></span>
-                <span class="fc-star fc-star--6"></span>
-                <span class="pvc-gold-orb pvc-gold-orb--1" aria-hidden="true"></span>
-                <span class="pvc-gold-orb pvc-gold-orb--2" aria-hidden="true"></span>
-              </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumVvipCollection" aria-expanded="false" aria-label="VVIP 프리미엄 PDF 컬렉션 열기">
-                <div class="feat-collection__icon pvc-crown-icon" aria-hidden="true">♛</div>
-                <div class="pvc-header-badge" aria-hidden="true">VVIP · PREMIUM</div>
-                <h3 class="feat-collection__title pvc-title">프리미엄 PDF 운명 분석</h3>
-                <p class="feat-collection__subtitle pvc-subtitle">극소수만을 위한 정밀 명반 · 즉시 PDF 저장</p>
-                <p class="feat-collection__lede pvc-lede">수천 년 검증된 동서양 4대 비법을 AI와 결합. 생성 즉시 PDF로 저장되는 VVIP 전용 운명 심층 분석 컬렉션입니다.</p>
-                <p class="feat-collection__featureline pvc-featureline">✦ 자미두수 PDF&nbsp;·&nbsp;점성술 PDF&nbsp;·&nbsp;숙요점 PDF&nbsp;·&nbsp;베다 점성술 PDF ✦</p>
-                <div class="feat-collection__divider" aria-hidden="true">
-                  <span class="fc-div-gem pvc-gem">◆</span>
-                  <span class="fc-div-line pvc-divline"></span>
-                  <span class="fc-div-gem pvc-gem">✦</span>
-                  <span class="fc-div-line pvc-divline"></span>
-                  <span class="fc-div-gem pvc-gem">◆</span>
-                </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow pvc-arrow">▾</span><span class="fc-toggle-hint__text"></span></div>
-              </button>
-              <div class="fc-closed-peek" aria-hidden="true">
-                <span class="fc-closed-peek__gem pvc-peek-gem">◆</span><span class="fc-closed-peek__gem pvc-peek-gem">✦</span><span class="fc-closed-peek__gem pvc-peek-gem">◆</span>
-              </div>
-
-              <div class="feat-collection__grid pvc-prem-grid">
         <!-- ── 1. 자미두수 프리미엄 ── -->
         <section style="background:linear-gradient(145deg,#060312 0%,#120828 100%);border:1.5px solid rgba(167,139,250,0.35);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(99,102,241,0.15);margin:0;" aria-label="자미두수 프리미엄">
             <button type="button"
                     class="prem-card prem-card--ziwei"
                     data-action="gotoZiweiPremium"
-                    data-coin-cost="590"
+              data-coin-cost="590"
                     style="display:flex;flex-direction:column;width:100%;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
-                    aria-label="자미두수 인생 총람 — 590코인">
+              aria-label="자미두수 인생 총람 — 590코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2575,11 +2250,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--astro"
                     data-action="gotoAstrologyPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(7,4,25,0.65);border:1.5px solid rgba(251,191,36,0.35);box-shadow:0 4px 24px rgba(251,191,36,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(251,191,36,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(251,191,36,0.12)'"
-                    aria-label="점성술 코즈믹 차트 — 390코인">
+              aria-label="점성술 코즈믹 차트 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2608,11 +2283,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--sukuyo"
                     data-action="gotoSukuyoPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(2,8,23,0.65);border:1.5px solid rgba(125,211,252,0.35);box-shadow:0 4px 24px rgba(14,165,233,0.12);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(14,165,233,0.28)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(14,165,233,0.12)'"
-                    aria-label="숙요점 프리미엄 — 390코인">
+              aria-label="숙요점 프리미엄 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2627,7 +2302,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌙 에도 막부가 금서로 지정한 27수 비전<br>
                   💑 소울메이트 vs 독성 관계 정밀 판별<br>
                   ⭐ 재물·건강·수명 전반 1:1 정밀 리딩<br>
-                  💫 390코인 — 숙요 궁합 정밀 분析
+                  💫 390코인으로 숙요 궁합 정밀 분析
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(14,165,233,0.2),rgba(125,211,252,0.1));border:1px solid rgba(125,211,252,0.45);color:rgba(125,211,252,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 숙요 궁합 열기</span>
@@ -2641,11 +2316,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <button type="button"
                     class="prem-card prem-card--veda"
                     data-action="gotoVedicPremium"
-                    data-coin-cost="390"
+              data-coin-cost="390"
                     style="display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:rgba(15,10,3,0.65);border:1.5px solid rgba(251,146,60,0.45);box-shadow:0 4px 24px rgba(234,88,12,0.14);cursor:pointer;text-align:left;padding:0;transition:transform 0.2s,box-shadow 0.2s;"
                     onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(234,88,12,0.32)'"
                     onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(234,88,12,0.14)'"
-                    aria-label="베다 점성술 인생 총람 — 390코인">
+              aria-label="베다 점성술 인생 총람 — 390코인">
               <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
                 <img src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄"
                      style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;" loading="lazy">
@@ -2660,7 +2335,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                   🌟 인도 고대 조티쉬 베다 점성술 정밀 분석<br>
                   🌙 라그나·달 배치·나크샤트라 전생 업장 해독<br>
                   💫 27 나크샤트라로 보는 평생 운명 지도<br>
-                  🪐 390코인 — 베다 운명 완전 해석
+                  🪐 390코인으로 베다 운명 완전 해석
                 </p>
                 <div style="margin-top:auto;padding-top:10px;">
                   <span style="display:inline-block;background:linear-gradient(135deg,rgba(234,88,12,0.2),rgba(251,146,60,0.1));border:1px solid rgba(251,146,60,0.50);color:rgba(253,186,116,1);font-weight:700;font-size:0.72rem;padding:6px 14px;border-radius:10px;">✦ 나의 베다 운명 열기</span>
@@ -2669,7 +2344,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             </button>
         </section><!-- /베다 점성술 -->
 
-        <!-- ── 5. 명운 작명 프리미엄 ── -->
+        <!-- ── 6. 명운 작명 프리미엄 ── -->
         <section style="background:linear-gradient(145deg,#080c18 0%,#1f1608 100%);border:1.5px solid rgba(212,175,55,0.42);border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(212,175,55,0.14);margin:0;" aria-label="명운 작명 프리미엄">
             <button type="button"
                     class="prem-card prem-card--naming"
@@ -2701,15 +2376,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </button>
         </section><!-- /명운 작명 -->
-
-              </div><!-- /feat-collection__grid -->
-            </div><!-- /feat-collection--premium-vvip -->
-
-          </div><!-- /fg-group__cards --></section><!-- /fg-group--premium-vvip -->
-<!-- premiumVvipCollection-toggle-script -->
-<script>!function(){var C='premiumVvipCollection';function sync(open){var el=document.getElementById(C);if(!el)return;var g=el.querySelector('.feat-collection__grid');if(!g)return;g.style.display=open?'flex':'none';}document.addEventListener('cd:collection-toggle',function(e){if(e.detail&&e.detail.targetId===C)sync(e.detail.isOpen);});function init(){var el=document.getElementById(C);if(!el)return;sync(el.getAttribute('data-collection-open')==='true');}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();}();</script>
-
-
 
     </div>
     <!-- ═══ / 부가 기능 카드 그리드 ═══ -->
@@ -3402,6 +3068,93 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         </div>
       </div>
 
+      <!-- 따뜻한 태양 회복 타로 모달 — 살아있는 빛의 공간 -->
+      <div id="tarotHealingOverlay" class="tarot-healing-overlay" style="display:none;" data-action="closeTarotHealingModal" data-action-self-only="1">
+        <div class="tarot-healing-pulsing-glow" aria-hidden="true"></div>
+        <div class="tarot-healing-sunburst" aria-hidden="true"></div>
+        <div class="tarot-healing-particles" aria-hidden="true">
+          <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span><span class="particle p5"></span>
+          <span class="particle p6"></span><span class="particle p7"></span><span class="particle p8"></span><span class="particle p9"></span><span class="particle p10"></span>
+          <span class="particle p11"></span>
+        </div>
+        <div class="tarot-healing-rising-seeds" aria-hidden="true">
+          <span class="seed s1"></span><span class="seed s2"></span><span class="seed s3"></span><span class="seed s4"></span><span class="seed s5"></span>
+          <span class="seed s6"></span><span class="seed s7"></span><span class="seed s8"></span><span class="seed s9"></span><span class="seed s10"></span>
+        </div>
+        <div class="tarot-healing-shell">
+          <div class="tarot-healing-panel">
+            <button class="tarot-healing-close" type="button" data-action="closeTarotHealingModal" aria-label="따뜻한 태양 회복 타로 닫기">×</button>
+
+            <section id="tarotHealingIntroStage" class="tarot-healing-stage is-active">
+              <div class="tarot-healing-hero tarot-healing-hero--luxury">
+                <div class="tarot-healing-sun-motif" aria-hidden="true">
+                  <span class="sun-aura sun-aura-1"></span>
+                  <span class="sun-aura sun-aura-2"></span>
+                  <span class="sun-aura sun-aura-3"></span>
+                  <svg class="tarot-healing-sun-icon tarot-healing-sun-icon--artistic" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="tarotHealingSunCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#FDE68A"/>
+                        <stop offset="50%" stop-color="#FBBF24"/>
+                        <stop offset="100%" stop-color="#EAB308"/>
+                      </linearGradient>
+                      <filter id="tarotHealingSunGlow">
+                        <feGaussianBlur stdDeviation="0.5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <circle cx="32" cy="32" r="12" fill="url(#tarotHealingSunCoreGrad)" filter="url(#tarotHealingSunGlow)"/>
+                    <circle cx="32" cy="32" r="8" fill="#FEF3C7" opacity="0.9"/>
+                    <path d="M32 4c0-2 4 4 4 4s-2 2-2 2l-2 2M32 60c0 2-4-4-4-4s2-2 2-2l2-2M4 32c2 0-4 4-4 4s2 2 2 2l2 2M60 32c-2 0 4-4 4-4s-2-2-2-2l-2-2M16 16l2 2M46 46l2 2M46 18l2-2M16 48l-2 2" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+                    <path d="M32 8v4M32 52v4M8 32h4M52 32h4M20 20l2.8 2.8M41.2 41.2l2.8 2.8M41.2 22.8l2.8-2.8M20 44l-2.8 2.8" stroke="#FBBF24" stroke-width="1.2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h1 class="tarot-healing-title tarot-healing-title--luxury">따뜻한 태양 회복 타로</h1>
+                <p class="tarot-healing-subtitle tarot-healing-subtitle--luxury">
+                  햇살처럼 포근한 빛으로 마음을 어루만지고, 다시 일어설 힘을 찾아가는 4카드 리딩이에요. 타로는 미래를 점치는 게 아니라, <span class="tarot-healing-highlight">당신 안의 빛</span>을 찾아주는 친구예요.
+                </p>
+                <div class="tarot-healing-invoke-wrap">
+                  <button class="tarot-healing-btn tarot-healing-btn--invoke tarot-healing-btn--luxury tarot-healing-solar-btn" type="button" data-action="startTarotHealingReading">
+                    <svg class="tarot-healing-btn-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <circle cx="12" cy="12" r="4" fill="currentColor"/>
+                      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>햇살의 카드 펼치기</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section id="tarotHealingDrawStage" class="tarot-healing-stage">
+              <h3 class="tarot-healing-draw-header tarot-healing-glow-text">🌱 천천히 심호흡하며, 한 장씩 카드를 열어 보세요 ✨</h3>
+              <div class="tarot-healing-spread-guide" id="tarotHealingSpreadGuide">첫 번째 카드를 열어 보세요.</div>
+              <div id="tarotHealingCardGrid" class="tarot-healing-card-grid"></div>
+              <div class="tarot-healing-final-wrap">
+                <button type="button" class="tarot-healing-final-btn tarot-healing-solar-btn" id="tarotHealingFinalBtn" data-action="showTarotHealingFinalReading" disabled>☀️ 따뜻한 이야기 보기 🌟</button>
+              </div>
+            </section>
+
+            <section id="tarotHealingResultStage" class="tarot-healing-stage">
+              <header class="tarot-healing-reading-header">
+                <h2 class="tarot-healing-reading-title tarot-healing-glow-text">☀️ 따뜻한 태양 회복 타로 결과 ✨</h2>
+              </header>
+              <div id="tarotHealingRecoveryGauge" class="tarot-healing-recovery-gauge" aria-hidden="true">
+                <div class="tarot-healing-recovery-gauge__track">
+                  <div id="tarotHealingRecoveryGaugeFill" class="tarot-healing-recovery-gauge__fill"></div>
+                </div>
+                <p class="tarot-healing-recovery-gauge__label">☀️ 따뜻한 에너지 🌱</p>
+              </div>
+              <div id="tarotHealingReadingContent" class="tarot-healing-reading-content"></div>
+              <div class="tarot-healing-result-actions">
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--share tarot-healing-solar-btn" data-action="shareTarotHealingResult">💬 카카오톡 공유하기 ✨</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="resetTarotHealingFlow">🔄 다시 리딩하기 🌟</button>
+                <button type="button" class="tarot-healing-btn tarot-healing-btn--subtle tarot-healing-solar-btn" data-action="closeTarotHealingModal">🏠 홈화면 바로 가기 ☀️</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
       <!-- 별 헤는 밤바다 재회운 타로 모달 -->
       <div id="tarotReunionOverlay" class="tarot-reunion-overlay" style="display:none;" data-action="closeTarotReunionModal" data-action-self-only="1">
         <div class="tarot-reunion-stars" aria-hidden="true">
@@ -3904,6 +3657,88 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <button class="btn-subscribe neo-only" data-action="subscribeEmailHome">구독하기 🦁</button>
       </div>
     </aside>
+
+    <style> #homeKnowledgeFaqSection{ display:none !important; } </style>
+
+    <section id="homeKnowledgeFaqSection" class="card" aria-labelledby="homeKnowledgeFaqTitle"
+      style="background:linear-gradient(145deg,rgba(4,11,33,.96),rgba(18,24,52,.95));border:1px solid rgba(147,197,253,.26);border-radius:18px;padding:20px 16px 18px;box-shadow:0 14px 34px rgba(2,6,23,.44);margin:0 auto 28px;max-width:1020px;">
+      <h2 id="homeKnowledgeFaqTitle" style="margin:0 0 10px;font-size:1.2rem;font-weight:900;line-height:1.38;color:#f8fafc;letter-spacing:.01em;">
+        사주/자미두수 기초 지식과 실전 FAQ
+      </h2>
+      <p style="margin:0 0 14px;color:rgba(219,234,254,.9);font-size:.87rem;line-height:1.9;word-break:keep-all;">
+        아래 문서는 계산 결과를 더 정확하고 안전하게 읽기 위한 기본 가이드입니다. 단순히 점수나 요약 문장만 보는 대신,
+        합충형파해의 작동 맥락, 대운·세운 타이밍 해석, 명왕이함 같은 심화 개념의 활용법, 출생시간 불확실성 처리 방법을
+        함께 이해하면 결과 활용도가 크게 올라갑니다. 본 섹션은 사용자 안내와 검색엔진 인덱싱을 모두 고려해 본문형 텍스트로
+        공개되어 있으며, 서비스 전반의 해석 원리를 확인하는 기준 문서로 사용됩니다.
+      </p>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);margin-bottom:10px;">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q1. 자미두수란 무엇인가요?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          자미두수(紫微斗數)는 출생 연·월·일·시를 기준으로 12궁의 위치와 주성 배치를 계산해 삶의 영역별 작동 패턴을 해석하는 동양 명리 체계입니다.
+          핵심은 별 하나의 길흉을 단정하는 것이 아니라 명궁·신궁, 삼방사정, 사화(화록·화권·화과·화기)가 시간 축에서 어떻게 상호작용하는지 보는 데 있습니다.
+          따라서 결과를 읽을 때는 "좋다/나쁘다"보다 "어떤 영역에서 어떤 방식으로 에너지가 집중되는가"를 우선 확인해야 합니다.
+          실전에서는 자미두수를 인생의 고정 예언으로 보기보다, 특정 시기의 전략 우선순위와 관계 관리 포인트를 정리하는 분석 프레임으로 활용할 때 가장 높은 효용을 얻을 수 있습니다.
+        </p>
+      </article>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);margin-bottom:10px;">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q2. 사주팔자와 자미두수는 무엇이 다른가요?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          사주팔자는 천간·지지 8글자의 오행 강약, 용신, 합충형파해를 통해 기운의 재료와 구조를 해석하는 체계이고,
+          자미두수는 12궁 배치와 주성 조합을 통해 삶의 무대가 어떤 영역에서 강하게 작동하는지 읽는 체계입니다.
+          같은 출생정보를 사용해도 분석 언어와 초점이 다르기 때문에 결과 문장이 다르게 보일 수 있습니다.
+          일반적으로 사주는 체질·성향·장기 흐름을 깊게 보기에 유리하고, 자미두수는 관계·재물·직업·이동 같은 영역별 타이밍 해석에 강점이 있습니다.
+          두 체계를 함께 보면 단편적 확신을 줄이고, 공통 결론과 보완 결론을 나눠 더 안정적인 의사결정을 설계할 수 있습니다.
+        </p>
+      </article>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);margin-bottom:10px;">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q3. 합충형파해는 결과에서 어떻게 적용되나요?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          합충형파해는 지지 간 상호작용이 만들어내는 결합, 충돌, 긴장, 분리, 소모의 패턴을 뜻하며,
+          반복되는 사건 구조를 설명하는 핵심 도구로 사용됩니다. 예를 들어 합은 협력과 결속 가능성을 높이고,
+          충은 이동·교체·재배치 같은 변화를 촉발하는 경향이 있습니다. 형과 파는 관계 피로와 제도 충돌을,
+          해는 표면에 잘 드러나지 않는 오해와 누적 스트레스를 시사합니다. 다만 같은 충이라도 원국의 강약,
+          대운·세운 시점, 생활 맥락에 따라 결과가 달라지므로 단일 기호만 보고 길흉을 단정하면 오판이 생깁니다.
+          정확한 해석은 반드시 전체 구조와 시간 흐름을 함께 비교해 종합 판단해야 합니다.
+        </p>
+      </article>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);margin-bottom:10px;">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q4. 명왕이함, 명왕성 같은 심화 지표는 어떻게 해석해야 하나요?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          명왕이함이나 명왕성 관련 지표는 학파별 정의 차이가 있지만, 공통적으로 "강한 변화 압력과 재구성 과정"을 설명할 때 활용됩니다.
+          즉 불안 조장용 문구가 아니라, 기존 습관·관계·업무 구조를 점검하고 무엇을 버리고 무엇을 강화할지 판단하는 기준으로 읽어야 합니다.
+          이 지표가 강조되는 시기에는 단기 성과 집착보다 구조 리셋, 경계 설정, 리스크 분산 전략이 중요해집니다.
+          또한 동일 지표라도 개인의 원국 강약과 현재 환경에 따라 작동 방식이 달라지므로, 단일 키워드 예언보다
+          생활 데이터(건강·관계·커리어 지표)와 함께 복기하는 방식이 정확합니다. 서비스는 이를 공포 해석이 아닌 실행 계획 수립 도구로 제공합니다.
+        </p>
+      </article>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);margin-bottom:10px;">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q5. 출생 시간을 모르면 해석을 못 하나요?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          출생 시간은 시주와 궁 배치 정밀도에 영향을 주지만, 시간 정보가 없어도 핵심 분석은 충분히 가능합니다.
+          보통 연·월·일 기반으로 성향, 오행 분포, 장기 흐름을 먼저 해석하고, 시간이 필요한 세부 항목은 복수 시나리오로 분리해 읽습니다.
+          이후 실제 사건 이력(이직, 관계 변화, 건강 이슈 등)과 비교해 시간대를 역보정하면 정확도를 점진적으로 높일 수 있습니다.
+          실무적으로 가장 안전한 방법은 확정 결론과 가변 결론을 구분해 기록하는 것입니다.
+          이렇게 접근하면 과잉 확신을 줄이고, 운세 결과를 검증 가능한 실행 문서로 전환할 수 있습니다.
+        </p>
+      </article>
+
+      <article style="border:1px solid rgba(125,211,252,.24);border-radius:14px;padding:14px 13px;background:rgba(15,23,42,.58);">
+        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.97rem;font-weight:800;line-height:1.5;">Q6. 운세 결과를 현실 의사결정에 적용하는 방법은?</h3>
+        <p style="margin:0;color:rgba(219,234,254,.92);font-size:.83rem;line-height:1.9;word-break:keep-all;">
+          결과를 즉시 믿고 행동하기보다 "기록-실행-복기" 3단계로 쓰는 방식이 가장 안전합니다.
+          먼저 결과를 기간과 영역(관계·재물·직업·건강)별로 나눠 핵심 가설을 적고,
+          다음으로 좋은 신호에는 확장 전략, 경고 신호에는 방어 전략을 각각 1~2개 실행 항목으로 변환합니다.
+          마지막으로 월 단위 복기를 통해 맞은 부분과 빗나간 부분을 분리하면 해석 품질이 빠르게 개선됩니다.
+          특히 의료·법률·투자 같은 고위험 결정은 반드시 전문 자문을 우선하고 운세는 보조 자료로만 활용해야 합니다.
+          이 원칙을 지키면 운세 콘텐츠는 불안 소비가 아니라 자기 이해와 리스크 관리에 실질적인 도움을 주는 참고 문서가 됩니다.
+        </p>
+      </article>
+    </section>
   </main>
 
   <!-- ═══ 결과 페이지 (SEO: Result Content) ═══ -->
@@ -3924,8 +3759,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <h2 id="heroName"></h2>
       <div class="hero-sub" id="heroSub"></div>
     </div>
-
-
 
     <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
     <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
@@ -4601,7 +4434,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="fg-group__cards">
         <a class="lovesim-tile tarot-tile" href="/saju/love-simulation"
            data-action="openLoveSimulation"
-           data-coin-cost="0"
+           data-coin-cost="100"
            aria-label="LOVE CODE 사주 연애 시뮬레이션 시작하기">
           <span class="tarot-tile__title" style="display:none;">💕 LOVE CODE</span>
           <div class="lovesim-tile__bg" aria-hidden="true"></div>
@@ -4616,7 +4449,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           <div class="lovesim-tile__inner">
             <div class="lovesim-tile__label-row">
               <span class="lovesim-tile__label-badge">사주 연애 시뮬레이션</span>
-              <span class="lovesim-tile__coin-badge">완전 무료</span>
+              <span class="lovesim-tile__coin-badge">1회 100코인</span>
             </div>
             <div class="lovesim-tile__body">
               <h2 class="lovesim-tile__title">💕 LOVE CODE</h2>
@@ -4916,9 +4749,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🌌 자미두수 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -4937,11 +4767,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🌅 총결산 — 거장의 마스터플랜 봉서</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="zbStartBtn" onclick="generateZiweiBook()">
-            🌌 자미두수 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="zbLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🌌</div>
@@ -5042,48 +4870,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <h3 class="lb-start__headline">점성술 코즈믹 차트 인생 리포트</h3>
             <p class="lb-start__desc">실제 행성 좌표를 기반으로<br>12하우스 완전 분析 후<br>12챕터 심층 인생 리포트를 생성합니다</p>
           </div>
-                    <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">💫 본인 정보</div>
-            <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
+          <div class="lb-start__profile-box">
+            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div id="abProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
-
-          <!-- 상대방 정보 입력 폼 -->
-          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
-            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
-            <div class="lb-start__partner-fields">
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
-              </div>
-              <div class="form-group sk-partner-field">
-                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
-                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
-                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
-                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="row2">
-                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
-                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
-                </div>
-              </div>
-              <div class="form-group sk-partner-field">
-                <div class="toggle-wrap">
-                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
-                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💞 숙요 궁합 인생 총람 생성하기
+          <button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
+            ✨ 점성술 코즈믹 차트 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -5098,14 +4892,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>🧭 Lunar Nodes — 영혼의 나침반</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🔮 시냅스트리 — 관계의 심리적 투사</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>⭕ 컴포지트 — 우리라는 독립적 운명</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 &amp; 개운법</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>✨ 별들의 마스터플랜 — 총결산 & 개운법</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="abStartBtn" onclick="generateAstroBook()">
-            ✨ 점성술 코즈믹 차트 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="abLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">✨</div>
@@ -5206,39 +4998,65 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <p class="lb-start__desc">에도 막부가 금지했던 27수 비전으로<br>당신의 달빛 운명 코드를 완전 해독해<br>13챕터 인생 총람을 생성합니다</p>
           </div>
           <div class="lb-start__profile-box">
-            <div class="lb-start__profile-label">분析 대상 프로필</div>
+            <div class="lb-start__profile-label">💫 본인 정보</div>
             <div id="skProfileSummary" class="lb-start__profile-content">생년월일을 불러오는 중...</div>
           </div>
+
+          <!-- 상대방 정보 입력 폼 -->
+          <div class="lb-start__profile-box lb-start__partner-box" id="skPartnerFormSection" style="margin-top:12px;">
+            <div class="lb-start__profile-label">💞 상대방 정보 입력</div>
+            <div class="lb-start__partner-fields">
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="text" id="skPartnerName" placeholder="상대방 이름 (선택)" autocomplete="off">
+              </div>
+              <div class="form-group sk-partner-field">
+                <input class="inp sk-partner-inp" type="date" id="skPartnerBirthDate">
+                <div class="form-radio-row sk-partner-radio-row" style="margin-top:8px;">
+                  <label><input type="radio" name="skPartnerCalType" value="solar" checked> 양력</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar"> 음력(평달)</label>
+                  <label><input type="radio" name="skPartnerCalType" value="lunar_leap"> 음력(윤달)</label>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="row2">
+                  <select class="inp sk-partner-inp" id="skPartnerHour"><option value="">시 (모름)</option></select>
+                  <select class="inp sk-partner-inp" id="skPartnerMinute"><option value="">분</option></select>
+                </div>
+              </div>
+              <div class="form-group sk-partner-field">
+                <div class="toggle-wrap">
+                  <button type="button" class="tog-btn on" id="skPartnerGenderF">♀ 여성</button>
+                  <button type="button" class="tog-btn" id="skPartnerGenderM">♂ 남성</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
+            💞 숙요 궁합 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 13챕터 구성</div>
             <ul class="lb-start__ch-list">
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.1</span><span>🌑 영혼의 원형 — 숙요별이 새긴 운명 코드</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.2</span><span>🌊 감정의 조수간만 — 달의 정서 파동</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 기억되는 방식</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.3</span><span>🎭 페르소나와 브랜딩 — 당신을 기억하는 방식</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.4</span><span>💰 자산의 중력 — 달빛 부의 전략</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.5</span><span>⚙️ 보이지 않는 톱니바퀴 — 협력 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.6</span><span>📡 관계의 정밀 레이더 — 6대 숙요 역학</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.7</span><span>💥 파괴적 혁신 — 위기를 기회로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.8</span><span>🌿 조화로운 성장 — 공간과 환경의 법칙</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.9</span><span>❤️ 정서적 유대 — 깊은 연결과 감정 지능</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 밸런스</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.10</span><span>🧭 운명적 거리 — 귀인과 에너지 뱀파이어</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.11</span><span>🌙 달의 주기 — 월령 에너지 사이클</span></li>
-              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 독소를 황금으로</span></li>
+              <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>⚗️ 관계 연금술 — 인연의 독소를 황금으로</span></li>
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.13</span><span>🗺️ 영혼의 마스터플랜 — 10년 로드맵</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="skStartBtn" onclick="generateSukuyoBook()">
-            💫 숙요점 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="skLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">💫</div>
@@ -5346,9 +5164,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             🪷 베다 인생 총람 생성하기
           </button>
           <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-        </div>
-
-        <!-- 로딩 화면
           <div class="lb-start__chapters">
             <div class="lb-start__ch-label">📖 12챕터 구성</div>
             <ul class="lb-start__ch-list">
@@ -5366,11 +5181,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <li class="lb-start__ch-item"><span class="lb-start__ch-num">Ch.12</span><span>🌟 마스터플랜 — 북극성 인생 선언문</span></li>
             </ul>
           </div>
-        </div><button class="lb-start__cta" id="vdStartBtn" onclick="generateVedicBook()">
-            🪷 베다 인생 총람 생성하기
-          </button>
-          <p class="lb-start__note">생성까지 약 5~10분 소요 · 완료 후 PDF 저장 가능</p>
-         -->
+        </div>
+
+        <!-- 로딩 화면 -->
         <div id="vdLoadingScreen" class="lb-screen lb-screen--loading" style="display:none;">
           <div class="lb-loading__top">
             <div class="lb-loading__symbol" aria-hidden="true">🪷</div>
@@ -6016,41 +5829,34 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <p style="font-size: 0.75rem; color: #888; max-width: 90%; line-height: 1.5; margin-bottom: 12px; word-break: keep-all;">
       본 서비스는 이용자의 생년월일, 출생시간, 성별 등의 정보를 원활한 사주 및 운세 결과 제공의 목적으로만 수집·이용하며 목적 달성 혹은 서비스 종료 시 즉시 파기합니다.
     </p>
-    <section aria-label="포트원 심사 필수 정보" style="width:min(980px,92vw);margin:0 auto 14px;padding:14px;border-radius:16px;border:1px solid rgba(183,240,255,.22);background:linear-gradient(145deg,rgba(10,16,42,.72),rgba(7,12,30,.9));box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:left;">
-      <h3 style="margin:0 0 10px;font-size:0.92rem;letter-spacing:.02em;color:#d8f8ff;font-weight:800;">서비스 필수 고지 정보</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;">
-        <section style="padding:11px 12px;border-radius:12px;border:1px solid rgba(151,203,255,.2);background:rgba(8,15,37,.68);">
-          <h4 style="margin:0 0 8px;font-size:0.8rem;color:#b7f0ff;">1) 판매 상품 등록</h4>
-          <ul style="margin:0;padding-left:17px;font-size:0.76rem;line-height:1.62;color:#c9d8ff;">
-            <li>사주 기본 리딩: 무료</li>
-            <li>연애 비밀서 리포트: 1회 290코인</li>
-            <li>라이프북 프리미엄: 1회 490코인</li>
-            <li>자미두수 인생 총람: 1회 590코인</li>
-            <li>명운 프리미엄 작명: 1회 700코인</li>
-          </ul>
-        </section>
-        <section style="padding:11px 12px;border-radius:12px;border:1px solid rgba(151,203,255,.2);background:rgba(8,15,37,.68);">
-          <h4 style="margin:0 0 8px;font-size:0.8rem;color:#b7f0ff;">2) 교환/환불·약관·개인정보</h4>
-          <p style="margin:0 0 8px;font-size:0.75rem;line-height:1.6;color:#c9d8ff;word-break:keep-all;">
-            디지털 콘텐츠 특성상 이용이 시작된 건은 약관 기준에 따라 환불이 제한될 수 있으며,
-            미사용 유상 코인은 7일 이내 청약철회 기준으로 환불 접수할 수 있습니다.
-          </p>
-          <nav aria-label="필수 정책 링크" style="display:flex;flex-wrap:wrap;gap:8px;font-size:0.74rem;">
-            <a href="/terms-of-service#refund-policy" style="color:#b7f0ff;text-decoration:underline;">교환/환불 정책</a>
-            <a href="/terms-of-service" style="color:#b7f0ff;text-decoration:underline;">이용약관</a>
-            <a href="/privacy-policy" style="color:#b7f0ff;text-decoration:underline;">개인정보처리방침</a>
-          </nav>
-        </section>
-        <section style="padding:11px 12px;border-radius:12px;border:1px solid rgba(151,203,255,.2);background:rgba(8,15,37,.68);">
-          <h4 style="margin:0 0 8px;font-size:0.8rem;color:#b7f0ff;">3) 사업자 정보</h4>
-          <ul style="margin:0;padding-left:17px;font-size:0.76rem;line-height:1.62;color:#c9d8ff;word-break:keep-all;">
-            <li>상호: 코드 데스티니 (Code Destiny)</li>
-            <li>대표자명: 박병하</li>
-            <li>사업자번호: 372-23-02329</li>
-            <li>유선번호: 010-7180-7398</li>
-            <li>주소: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
-          </ul>
-        </section>
+    <section aria-label="사업자 정보 및 코인 환불 정책" style="width:min(980px,92vw);margin:0 auto 14px;padding:16px 18px;border-radius:14px;border:1px solid rgba(124,58,237,.28);background:linear-gradient(135deg,rgba(30,41,59,.7),rgba(15,23,42,.92));box-shadow:inset 0 1px 0 rgba(148,163,184,.08);text-align:left;">
+      <h3 style="margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(124,58,237,.18);font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#a78bfa;">사업자 정보 및 코인 환불 정책</h3>
+      <ul style="list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px;">
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;"><strong style="color:#cbd5e1;">상호명:</strong> 코드 데스티니 (Code Destiny)</li>
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;"><strong style="color:#cbd5e1;">대표자:</strong> 박병하</li>
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;"><strong style="color:#cbd5e1;">사업자등록번호:</strong> 372-23-02329</li>
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;"><strong style="color:#cbd5e1;">연락처:</strong> 010-7180-7398</li>
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;"><strong style="color:#cbd5e1;">이메일:</strong> seongbae555@gmail.com</li>
+        <li style="font-size:.76rem;line-height:1.72;color:#94a3b8;word-break:keep-all;"><strong style="color:#cbd5e1;">사업장 주소:</strong> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
+      </ul>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(71,85,105,.5);">
+        <p style="margin:0 0 6px;font-size:.76rem;color:#cbd5e1;line-height:1.72;word-break:keep-all;">모든 거래에 대한 책임과 환불, 민원 등은 <strong style="color:#e2e8f0;">코드 데스티니(Code Destiny)</strong>에서 진행합니다.</p>
+        <p style="margin:0;font-size:.76rem;color:#94a3b8;line-height:1.72;">민원담당자 : 박병하 (seongbae555@gmail.com)</p>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(71,85,105,.65);">
+        <p style="margin:0 0 8px;font-size:.77rem;font-weight:700;color:#fda4af;letter-spacing:.03em;">코인 충전형 디지털 운세 서비스 환불 기준</p>
+        <p style="margin:0 0 8px;font-size:.76rem;color:#cbd5e1;line-height:1.72;word-break:keep-all;">코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라 미사용 유상 코인 범위에서만 환불이 가능합니다.</p>
+        <ul style="margin:0;padding:0 0 0 18px;display:grid;gap:6px;">
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">미사용 유상 코인은 전자상거래 관련 법령에 따라 '7일 이내 청약철회 가능' 기준으로 환불 접수할 수 있습니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료·송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">타인 명의 결제, 도용 카드 사용, 비정상 다계정 환불 시도, 약관 위반이 확인되면 환불 심사가 보류되거나 제한될 수 있습니다.</li>
+          <li style="font-size:.75rem;color:#94a3b8;line-height:1.72;word-break:keep-all;">환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 환급 완료까지 통상 영업일 3~10일이 소요됩니다.</li>
+        </ul>
+        <p style="margin:10px 0 0;font-size:.74rem;color:#fda4af;line-height:1.72;word-break:keep-all;">본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.</p>
+        <p style="margin:8px 0 0;font-size:.74rem;color:#fda4af;line-height:1.72;font-weight:700;word-break:keep-all;">환불 처리는 결제 수단(카드)으로만 가능합니다.</p>
       </div>
     </section>
     <nav aria-label="정책 및 문의 링크" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;font-size:0.82rem;line-height:1.5;">
@@ -6137,7 +5943,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     <button class="ios-modal-close" data-action="closeIosModal">✓ 확인했습니다</button>
   </div>
 </div>
-<script data-cd-noncritical-src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script src="/js/love-secret-v2.js?v=20260407-sinsal-daewun-fix" defer></script>
 <script data-cd-noncritical-src="/js/fate-scroll-reveal.js"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js"></script>
@@ -6149,14 +5955,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         
         <!-- Header -->
         <header class="astral-header">
-          <h1 class="astral-title">ESFJ와 다른 MBTI 궁합</h1>
-          <p class="astral-subtitle" id="mbtiSelectionGuideMain">본캐 MBTI를 먼저 선택해 주세요</p>
-          <p class="astral-subtitle" id="mbtiSelectionGuideSub">GOOD, SOSO, BAD 색상으로 궁합 힌트를 먼저 볼 수 있어요.</p>
-          <div class="mbti-legend" aria-label="궁합 색상 범례">
-            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--good"></i>GOOD</span>
-            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--soso"></i>SOSO</span>
-            <span class="mbti-legend-item"><i class="mbti-legend-swatch mbti-legend-swatch--bad"></i>BAD</span>
-          </div>
+            <h1 class="astral-title">ASTRAL TOTEM</h1>
+            <p class="astral-subtitle">너의 영혼이 깃든 동물을 찾아라</p>
         </header>
 
         <!-- Selection Grid -->
@@ -6186,7 +5986,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                 <div class="token-cross">✕</div>
                 <div id="token2" class="mini-token empty">?</div>
             </div>
-          <button class="ritual-btn" data-action="revealAstralSynergy">궁합 보기</button>
+            <button class="ritual-btn" data-action="revealAstralSynergy">영혼의 공명 확인하기</button>
         </div>
 
         <!-- Result Modal (Inner Layer) -->
@@ -6377,7 +6177,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       for (var i = 0; i < tiles.length; i++) {
         var tile = tiles[i];
         var key = tile.getAttribute('data-tile-lock-key');
+        var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
         var wrap = tile.querySelector('.tarot-tile__img-wrap');
+        var badge = tile.querySelector('.tarot-tile__coin-badge');
         if (!wrap) continue;
         if (!wrap.querySelector('.tarot-tile__lock-icon')) {
           var icon = document.createElement('span');
@@ -6388,8 +6190,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         }
         if (unlockedFeatureMap[key]) {
           tile.classList.remove('tarot-tile--tileLocked');
+          tile.classList.add('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--lock');
+            badge.classList.add('tarot-tile__coin-badge--free');
+            badge.textContent = '해금 완료 ✅';
+            badge.setAttribute('aria-label', '해금 완료');
+          }
         } else {
           tile.classList.add('tarot-tile--tileLocked');
+          tile.classList.remove('tarot-tile--tileUnlocked');
+          if (badge && lockCost > 0) {
+            badge.classList.remove('tarot-tile__coin-badge--free');
+            badge.classList.add('tarot-tile__coin-badge--lock');
+            badge.textContent = '🔒 해금 ' + lockCost + '코인';
+            badge.setAttribute('aria-label', '해금 필요');
+          }
         }
       }
     } catch (_e) {}
@@ -6660,7 +6476,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
-    var confirmed = window.confirm('꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
+    var confirmed = window.confirm('꽃꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
     if (consumeInFlight) return;
@@ -6678,7 +6494,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       });
 
       if (result.status === 402) {
-        window.alert('꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+        window.alert('꽃꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
         openChargeModal();
         return;
       }
@@ -6705,11 +6521,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
-  function _cdZiweiTrace(stage, payload) {
-    try {
-      console.log('[ZiweiPremium][Flow] ' + stage, payload || {});
-    } catch (_) {}
-  }
+  function _cdZiweiTrace(stage, payload) { /* suppressed */ }
   window.__cdZiweiTrace = _cdZiweiTrace;
 
   function _cdGetZiweiProfileCandidate() {
@@ -6746,6 +6558,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     }
   }
 
+  function _cdForcePremiumModalVisible(modalId) {
+    try {
+      var _modal = document.getElementById(modalId);
+      if (_modal) {
+        if (_modal.parentNode !== document.body) document.body.appendChild(_modal);
+        _modal.style.display = 'flex';
+        _modal.style.visibility = 'visible';
+        _modal.style.pointerEvents = 'auto';
+        _modal.style.opacity = '1';
+        _modal.style.zIndex = '100120';
+      }
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('lb-modal-open');
+    } catch (_) {}
+  }
+
   // 코인 차감 후 직접 액션 실행 (actionNode.click() 재호출 방식 대체)
   function _cdInvokeActionDirect(action, actionEl) {
     // 남아있는 프리뷰 오버레이/스크롤 잠금을 먼저 정리해 멈춤 상태를 방지
@@ -6767,65 +6595,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         return;
       }
     }
-
-    function _cdInvokeWithRetry(fnName, args, onMissing) {
-      var _tries = 0;
-      (function _tick() {
-        _tries += 1;
-        if (typeof window[fnName] === 'function') {
-          try {
-            window[fnName].apply(window, args || []);
-          } catch (e) {
-            console.error('[prem-card ' + fnName + ']', e);
-          }
-          return;
-        }
-        if (_tries >= 30) {
-          if (typeof onMissing === 'function') onMissing();
-          return;
-        }
-        setTimeout(_tick, 80);
-      })();
-    }
-
-    function _cdNotifyPremiumOpenFailed(label) {
-      try {
-        var _msg = (label || '프리미엄') + ' 생성 창을 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-        if (typeof window.alert === 'function') window.alert(_msg);
-      } catch (_) {}
-    }
-
-    function _cdLoadActionScript(actionKey, scriptMatch, scriptSrc) {
-      var _loader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[actionKey];
-      if (_loader) return _loader();
-      var _existing = document.querySelector('script[src*="' + scriptMatch + '"]');
-      // 이미 DOM에 존재하는 스크립트는 load 이벤트를 놓쳤을 수 있으므로 즉시 진행하고 함수 재시도로 보완한다.
-      if (_existing) return Promise.resolve();
-      return new Promise(function(resolve, reject) {
-        var _target = _existing;
-        if (!_target) {
-          _target = document.createElement('script');
-          _target.src = scriptSrc;
-          _target.defer = true;
-          document.head.appendChild(_target);
-        }
-        var _done = false;
-        var _ok = function() {
-          if (_done) return;
-          _done = true;
-          try { _target.dataset.loaded = '1'; } catch (_) {}
-          resolve();
-        };
-        var _fail = function(err) {
-          if (_done) return;
-          _done = true;
-          reject(err || new Error('script load failed: ' + scriptSrc));
-        };
-        _target.addEventListener('load', _ok, { once: true });
-        _target.addEventListener('error', _fail, { once: true });
-      });
-    }
-
     // 알려진 액션 별칭: gotoZiweiPremium → openZiweiBookModal
     if (action === 'gotoZiweiPremium') {
       var _profileCandidate = _cdGetZiweiProfileCandidate();
@@ -6839,6 +6608,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if (typeof window.openZiweiBookModal === 'function') {
             _cdZiweiTrace('FUNCTION_CALL', { fn: 'openZiweiBookModal' });
             window.openZiweiBookModal(_profileCandidate || null);
+            try {
+              var _zbm = document.getElementById('ziweiBookModal');
+              if (_zbm) {
+                if (_zbm.parentNode !== document.body) document.body.appendChild(_zbm);
+                _zbm.style.display = 'flex';
+                _zbm.style.visibility = 'visible';
+                _zbm.style.pointerEvents = 'auto';
+                _zbm.style.opacity = '1';
+                _zbm.style.zIndex = '100120';
+              }
+              document.body.style.overflow = 'hidden';
+              document.body.classList.add('lb-modal-open');
+            } catch (_) {}
             return true;
           }
         } catch (e) {
@@ -6854,7 +6636,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var _zbLoader = (window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoZiweiPremium']) || null;
         var _zbLoadFn = function() {
           var s = document.querySelector('script[src*="ziwei-book.js"]');
-          if (s) {
+          if (s && (s.dataset.loaded === '1' || s.readyState === 'complete' || s.readyState === 'loaded')) {
             _cdZiweiTrace('JS_LOADED', { via: 'existing-script' });
             return Promise.resolve();
           }
@@ -6879,13 +6661,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             _cdZiweiTrace('JS_LOADED', { via: _zbLoader ? 'lazy-loader' : 'script-loader' });
             if (!_invokeZiwei()) {
               _cdZiweiTrace('FUNCTION_MISSING_AFTER_LOAD', { fn: 'openZiweiBookModal' });
-              _cdNotifyPremiumOpenFailed('자미두수');
             }
           })
           .catch(function(e) {
             _cdZiweiTrace('FLOW_ABORT', { message: e && e.message ? e.message : String(e) });
             console.error('[prem-card ziwei]', e);
-            _cdNotifyPremiumOpenFailed('자미두수');
           });
       })();
       return;
@@ -6928,18 +6708,24 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoAstrologyPremium') {
       if (typeof window.openAstroBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openAstroBookModal(); }
+          try { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card astro-book]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoAstrologyPremium', 'astro-book.js', '/js/astro-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openAstroBookModal', null, function() {
-              console.error('[prem-card astro-book] openAstroBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('점성술');
-            });
-          })
-          .catch(function(e) { console.error('[prem-card astro-book]', e); _cdNotifyPremiumOpenFailed('점성술'); });
+        // astro-book.js lazy load 후 재호출
+        var _abScr = document.querySelector('script[src*="astro-book.js"]');
+        if (!_abScr) {
+          var _abEl2 = document.createElement('script');
+          _abEl2.src = '/js/astro-book.js?v=20260411-zfix1';
+          _abEl2.onload = function() {
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          };
+          document.head.appendChild(_abEl2);
+        } else {
+          setTimeout(function() {
+            if (typeof window.openAstroBookModal === 'function') { window.openAstroBookModal(); _cdForcePremiumModalVisible('astroBookModal'); }
+          }, 500);
+        }
       }
       return;
     }
@@ -6947,18 +6733,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoSukuyoPremium') {
       if (typeof window.openSukuyoBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openSukuyoBookModal(); }
+          try { window.openSukuyoBookModal(); _cdForcePremiumModalVisible('sukuyoBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card sukuyo]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoSukuyoPremium', 'sukuyo-book.js', '/js/sukuyo-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openSukuyoBookModal', null, function() {
-              console.error('[prem-card sukuyo] openSukuyoBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('숙요점');
-            });
-          })
-          .catch(function(e) { console.error('[prem-card sukuyo]', e); _cdNotifyPremiumOpenFailed('숙요점'); });
+        (function() {
+          var _spLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoSukuyoPremium'];
+          var _spLoadFn = function() {
+            var s=document.querySelector('script[src*="sukuyo-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/sukuyo-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_spLoader?_spLoader():_spLoadFn()).then(function(){
+            if(typeof window.openSukuyoBookModal==='function'){window.openSukuyoBookModal();_cdForcePremiumModalVisible('sukuyoBookModal');}
+          }).catch(function(e){console.error('[prem-card sukuyo]',e);});
+        })();
       }
       return;
     }
@@ -6966,27 +6755,21 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (action === 'gotoVedicPremium') {
       if (typeof window.openVedicBookModal === 'function') {
         (window.requestAnimationFrame || function(fn){setTimeout(fn,0);})(function() {
-          try { window.openVedicBookModal(); }
+          try { window.openVedicBookModal(); _cdForcePremiumModalVisible('vedicBookModal'); }
           catch(e) { document.body.style.overflow = ''; console.error('[prem-card vedic]', e); }
         });
       } else {
-        _cdLoadActionScript('gotoVedicPremium', 'vedic-book.js', '/js/vedic-book.js?v=20260411-zfix1')
-          .then(function() {
-            _cdInvokeWithRetry('openVedicBookModal', null, function() {
-              console.error('[prem-card vedic] openVedicBookModal missing after load');
-              _cdNotifyPremiumOpenFailed('베다점');
-            });
-          })
-          .catch(function(e) { console.error('[prem-card vedic]', e); _cdNotifyPremiumOpenFailed('베다점'); });
-      }
-      return;
-    }
-    // 핸들러 연동: gotoNamingPremium → 명운 작명 페이지
-    if (action === 'gotoNamingPremium') {
-      try {
-        window.location.assign('/myungwun_final.html');
-      } catch (e) {
-        window.location.href = '/myungwun_final.html';
+        (function() {
+          var _vdLoader = window.__cdLazyActionLoaders && window.__cdLazyActionLoaders['gotoVedicPremium'];
+          var _vdLoadFn = function() {
+            var s=document.querySelector('script[src*="vedic-book.js"]');
+            if(s&&(s.dataset.loaded==='1'||s.readyState==='complete'||s.readyState==='loaded'))return Promise.resolve();
+            return new Promise(function(res,rej){var el=document.createElement('script');el.src='/js/vedic-book.js?v=20260411-zfix1';el.onload=function(){el.dataset.loaded='1';res();};el.onerror=rej;document.head.appendChild(el);});
+          };
+          (_vdLoader?_vdLoader():_vdLoadFn()).then(function(){
+            if(typeof window.openVedicBookModal==='function'){window.openVedicBookModal();_cdForcePremiumModalVisible('vedicBookModal');}
+          }).catch(function(e){console.error('[prem-card vedic]',e);});
+        })();
       }
       return;
     }
@@ -7004,20 +6787,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
     } catch (_) {}
     setTimeout(function () { delete perUseApproved[action]; }, 800);
-  }
-
-  function _cdShouldDeferTarotCoinGate(action) {
-    if (!action) return false;
-    return action === 'openTarotLoveModal'
-      || action === 'openTarotHealingModal'
-      || action === 'openTarotHealingPage'
-      || action === 'openTarotSelfEsteemModal'
-      || action === 'openTarotReunionModal'
-      || action === 'openTarotYearFortuneModal'
-      || action === 'openTarotModal'
-      || action === 'startIjikTarot'
-      || action === 'startMindScanTarot'
-      || action === 'startCrystalSoulTarot';
   }
 
   function _cdSafeBlockEvent(event) {
@@ -7057,46 +6826,100 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     return true;
   }
 
+  var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
+
+  function _cdShouldDeferTarotCoinGate(action) {
+    if (!action) return false;
+    return action === 'openTarotLoveModal'
+      || action === 'openTarotHealingModal'
+      || action === 'openTarotSelfEsteemModal'
+      || action === 'openTarotReunionModal'
+      || action === 'openTarotYearFortuneModal'
+      || action === 'openTarotModal'
+      || action === 'startIjikTarot'
+      || action === 'startMindScanTarot'
+      || action === 'startCrystalSoulTarot';
+  }
+
+  async function _cdConfirmMembershipStart(action, contentTitle) {
+    if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
+      return true;
+    }
+    if (sessionStorage.getItem('cd_membership_service_started') === '1') return true;
+
+    if (!window.confirm(__cdMembershipConsentMessage)) return false;
+
+    try {
+      var r = await fetchJsonWithAuth('/api/fortune/pig-coin/profile-subscription/start-service', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: action || 'membership-content',
+          contentTitle: contentTitle || '멤버십 전용 콘텐츠',
+          legalVersion: '2026-04-11'
+        }),
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+        } else {
+          window.alert((r.payload && r.payload.message) || '동의 기록 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+        return false;
+      }
+      sessionStorage.setItem('cd_membership_service_started', '1');
+      return true;
+    } catch (_e) {
+      window.alert('동의 기록 저장 중 오류가 발생했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+  }
+
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
-    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return Promise.resolve(false);
+    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return;
     _cdSafeBlockEvent(event);
-    if (!_cdSetPerUseLoading(actionNode, true)) return Promise.resolve(false);
-    return (async function () {
+    if (!_cdSetPerUseLoading(actionNode, true)) return;
+    (async function () {
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (window.__cdAdminBypass || isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser() || !!sessionStorage.getItem('flower_admin_token')) {
           // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 전파
           window.__cdAdminBypass = true;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       } catch (_adminErr) {}
       if (_cdShouldDeferTarotCoinGate(action)) {
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
-        return true;
+        return;
       }
       if (!hasAuthToken()) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
-        return false;
+        return;
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
         var _subUser = readAuthUser();
         var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
         if (_subPlan === 'unlimited' || _subPlan === 'premium') {
+          var _subTitleEl = actionNode.querySelector('.tarot-tile__title');
+          var _subContentTitle = _subTitleEl ? _subTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+          var _consentOk = await _cdConfirmMembershipStart(action, _subContentTitle);
+          if (!_consentOk) return;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       } catch (_subErr) {}
       // 프리미엄 북 액션: 운명 카드(프로필) 사전 체크 — 코인 차감 전에 검사 (코인 손실 방지)
-      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium') {
+      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') {
         var _cgProfile = null;
         try {
           var _cgNs = 'FORTUNE_APP_USER_PROFILES';
@@ -7109,21 +6932,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (!_cgProfile) {
           // 프로필 없음: 코인 차감 없이 모달 열기 → no-profile 화면 표시
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       }
       if (userBalance < tileCoinCost) {
-        if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
+        if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
           openChargeModal();
         }
-        return false;
+        return;
       }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
-      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return false;
-      if (consumeInFlight) {
-        return false;
-      }
+      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
+      if (consumeInFlight) return;
       consumeInFlight = true;
       try {
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -7136,12 +6957,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         });
         if (r.status === 404 || r.status >= 500) {
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
-          return false;
+          return;
         }
-        if (r.status === 402) { openChargeModal(); return false; }
+        if (r.status === 402) { openChargeModal(); return; }
         if (!r.ok) {
           window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
-          return false;
+          return;
         }
         if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
           userBalance = r.payload.user.points;
@@ -7152,11 +6973,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         updateBadge();
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
-        return true;
       } catch (e) {
         console.error('[coin gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        return false;
       } finally {
         consumeInFlight = false;
       }
@@ -7195,9 +7014,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 터치이고 pvw-bypass 없으면 Preview 패널이 처리
-    // .prem-card도 Preview 패널을 통해 처리 (coin gate는 CTA 클릭 후 처리)
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) return;
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 기본적으로 Preview 패널이 처리
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
+      // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
+      if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
+        _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+      }
+      return;
+    }
     // 터치 해제 위치가 타일 영역 내인지 확인
     var t = event.changedTouches && event.changedTouches[0];
     if (__cdLastTouch.moved) return;
@@ -7222,21 +7046,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
         // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // prem-card: Preview 패널 먼저 표시 (desktop & mobile 통일 UX, 합성 클릭 이중 실행 방지)
-        // pvw-bypass 없는 prem-card → 프리뷰 패널 오픈 → CTA → 코인게이트 순서
-        if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
-          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
-            _cdSafeBlockEvent(event);
-            return;
-          }
-          // Preview 없는 경우(D 딕셔너리 미등록) 직접 코인게이트로 폴백
-          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-          return;
-        }
-        // .tarot-tile / .lifebook-tile / .lovebible-tile: pvw-bypass 없으면 Preview가 처리
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
+        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
@@ -7282,6 +7095,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _lockSubUser = readAuthUser();
           var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
           if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
+            var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
+            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+            var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
+            if (!_lockConsentOk) return;
             unlockedFeatureMap[tileLockKey] = true;
             saveTileLocks();
             applyTileLockVisuals();
@@ -7294,7 +7111,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var fname = titleEl ? titleEl.textContent.trim() : '서비스';
         if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
         if (userBalance < tileLockCost) {
-          if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
+          if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
             openChargeModal();
           }
           return;
@@ -7415,12 +7232,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   };
   window.__cdOpenChargeModal = openChargeModal;
 
-  // prem-card용 코인게이트 직접 호출 (프리뷰 패널 CTA → user-gesture 컨텍스트 유지)
-  window.__cdPremCardCoinGate = function(action, actionNode, coinCost) {
-    if (!action || !actionNode || !(coinCost > 0)) return Promise.resolve(false);
-    return _cdRunPerUseCoinGate(null, actionNode, action, coinCost);
-  };
-
   // Auth 상태 재확인 (인라인 스크립트 보조)
   if (typeof window.__cdUpdateAuthState === 'function') window.__cdUpdateAuthState();
 
@@ -7459,11 +7270,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js" data-cd-mobile-delay="1"></script>
+<script src="/js/mobile-performance-bootstrap.js" defer></script>
 <script src="/js/io-image-lazy-loader.js" defer></script>
 <script src="/js/noncritical-defer-loader.js" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js" data-cd-mobile-delay="1"></script>
+<script src="/js/runtime-stability.js" defer></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
@@ -7471,14 +7282,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 <script data-cd-lazy-src="/lib/ai-engine.js"></script>
 <script data-cd-lazy-src="/js/dream-ledger.js"></script>
 <script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js"></script>
-<script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/life-book.js?v=20260410-v2" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=20260413-sibylfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/ziwei-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/astro-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/sukuyo-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script data-cd-noncritical-src="/js/vedic-book.js?v=20260411-zfix1" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script src="/js/life-book.js?v=20260410-v2" defer></script>
+<script src="/js/ziwei-book.js?v=20260411-zfix1" defer></script>
+<script src="/js/astro-book.js?v=20260411-zfix1" defer></script>
+<script src="/js/sukuyo-book.js?v=20260411-zfix1" defer></script>
+<script src="/js/vedic-book.js?v=20260411-zfix1" defer></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
 <script type="module" src="/js/app.js"></script>
 <script data-cd-noncritical-src="/js/cd-web-vitals-console-gated.js" data-cd-skip-save-data="1" data-cd-mobile-delay="2"></script>
@@ -7513,8 +7323,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         </div>
       </div>
       <div class="tile-pvw-cta-sticky">
-        <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn"><span id="tilePvwCtaBtnLabel">지금 시작하기 →</span></button>
-        <div class="tile-pvw-cta-meta" id="tilePvwCtaMeta" aria-live="polite"></div>
+        <button class="tile-pvw-cta-btn" id="tilePvwCtaBtn">지금 시작하기 →</button>
       </div>
     </div>
   </div>
@@ -7545,12 +7354,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     openNevilleMeditationPage:{cat:'네빌 명상 · 현실창조',title:'🧘 네빌 명상 실습',tagline:'이 명상을 3일 연속으로 하면 원하는 현실이 바뀌기 시작합니다 — 네빌 고다드의 검증된 기법',feats:['네빌 고다드가 실제 사용한 의식 명상 기법','원하는 것을 이미 가진 것처럼 느끼는 감각 훈련','부정적 신념 패턴을 즉시 해체하는 기법 적용','30분 완전 가이드 세션으로 처음도 쉽게'],cost:'🪙 30분 30코인 · 60분 50코인',ct:'paid',img:'/fuctionassets/meditation.webp'},
     openYogaGuru:{cat:'인도 요가 · 에너지 정화',title:'🪷 Divya Yoga',tagline:'인도 요기들이 4000년간 비밀로 간직한 에너지 정화 루틴 — 막힌 운을 뚫는 차크라 활성화',feats:['사주·별자리 기반 나만의 에너지 타입 정확히 파악','맞춤 아사나로 지금 막혀 있는 기운 즉시 해소','차크라 활성화로 운의 흐름을 바꾸는 명상','인도 전통 요기 감성 완전 가이드 세션'],cost:'🪙 30분 30코인 · 60분 50코인',ct:'paid',img:'/fuctionassets/india.webp'},
     openTarotLoveModal:{cat:'타로 · 관계 리딩',title:'💕 우리는 무슨 사이?',tagline:'그 사람이 나한테 진심인지 아닌지 — 6장의 타로가 지금 바로 답을 줍니다',feats:['그 사람의 현재 감정 상태 직접 리딩','우리가 실제로 사귈 수 있는 가능성 분석','커플·짝사랑·이별·재회 모든 상황 완전 적용','지금 내가 해야 할 구체적인 행동 가이드'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/tarolove.webp'},
-    openTarotHealingPage:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 1회 힐링 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
-    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','1회 코인 결제로 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
+    openTarotHealingModal:{cat:'타로 · 힐링',title:'☀ 따뜻한 태양 회복 타로',tagline:'지치고 상처받았다면 — 4장의 태양 카드가 다시 일어서는 방법을 알려줍니다',feats:['지금 내 감정 상처의 정체 & 치유 방향 분석','앞으로 나아가기 위해 진짜 필요한 것 파악','나를 지지하는 에너지와 걸림돌 동시 해석','따뜻한 응원 메시지와 함께하는 무료 힐링 리딩'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/healing.webp'},
+    openTarotSelfEsteemModal:{cat:'타로 · 자존감 퀘스트',title:'✨ 자존감 레벨업',tagline:'내가 왜 항상 눈치를 보고 자신감이 없는지 — RPG 퀘스트 형식으로 5단계 자존감 완전 부활',feats:['5카드 RPG 퀘스트로 자존감 레벨 정확히 파악','내면의 진짜 강점과 숨겨진 내상 동시 분석','지금 당장 실천 가능한 미션 형식 가이드 제공','무료로 지금 내 자존감 레벨 확인'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jajongam.webp'},
     openTarotReunionModal:{cat:'타로 · 재회운',title:'🌊 재회운 타로',tagline:'헤어진 그 사람 진짜 돌아올 수 있을까 — 5장의 타로가 재회 가능성을 직접 말합니다',feats:['재회 가능성을 직접 분석 & 수치로 제시','그 사람이 지금 나를 어떻게 생각하는지 리딩','재회를 위한 최적 타이밍 & 구체적 행동 전략','이별 원인 분석 후 실전 재회 어드바이스 제공'],cost:'🪙 50코인',ct:'paid',img:'/fuctionassets/reunion.webp'},
     openTarotYearFortuneModal:{cat:'십이지신 · 연간 운세',title:'십이지신 천운(天運)',tagline:'올해 어느 달에 돈이 들어오고 언제 사랑이 찾아오는지 — 12달의 흐름을 미리 알면 인생이 달라집니다',feats:['12개월 재물·연애·건강·인간관계 월별 상세 예측','이번 해 절대 놓치면 안 되는 황금 달 파악','조심해야 할 달 & 적극적으로 움직일 달 분석','내 십이지신 수호 기운으로 보는 나만의 천운'],cost:'30코인',ct:'paid',img:'/fuctionassets/12animals.webp'},
     openCelestialHarmony:{cat:'코즈믹 타로 · 천체의 선율',title:'✨ 천체의 선율',tagline:'행성의 상징성과 타로 아르카나를 1:1로 결합한 11카드 리딩으로, 당신의 성향·감정·재정·관계까지 정밀 해석합니다.',feats:['태양~명왕성 질문축 기반 11포지션 정밀 해석','각 카드별 핵심 통찰·패턴·실행 조언·확언 제공','마지막 황금빛 카드로 전체 흐름 통합 정리','힐링·응원 메시지로 오늘의 실천 방향 제시'],cost:'🪙 100코인',ct:'paid',img:'/images/Celestial%20Harmony.webp'},
-    openIfaOracle:{cat:'IFÀ 오라클 · 요루바 신탁',title:'🪬 IFÀ 오라클',tagline:'요루바 256 오두 신탁 리딩 — 오린미라의 지혜가 담긴 코드로 오늘의 질문에 직접 답합니다.',feats:['진정한 이파 전승(IFÀ) 시스템 — 256 오두 정통 해석','총운·연애·재물·건강 4가지 컨텍스트 맞춤 리딩','블리윗 음양 에너지 진단 + 실천 지침 포함','실시간 오페레 체인 패드 애니메이션 + 시티스 버전'],cost:'🪙 30코인/회',ct:'paid',img:'/fuctionassets/ifafortune.webp'},
     openTarotModal:{cat:'명리학 타로',title:'🔮 명리학 타로',tagline:'동양 명리학과 서양 타로가 동시에 같은 답을 가리킬 때 — 그것이 진짜 운명의 방향입니다',feats:['78장 타로 + 사주 명리학 프레임 교차 분석','사주와 타로가 동시에 가리키는 핵심 메시지 추출','지금 내 상황에 꼭 맞는 카드 배열 선택','AI 심층 리딩으로 구체적인 방향 제시'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/ai%20tarrot.webp'},
     openHwatuModal:{cat:'화투점 · 한국 전통',title:'🎴 타짜들의 화투점',tagline:'타짜가 뒤집는 화투패에 오늘의 운명이 숨어 있습니다 — 12달 꽃패로 보는 직설 운세',feats:['한국 전통 화투패 12달 운세 완전 리딩','월별 꽃패 상징 심층 해석 — 재물·사랑·시험','타짜식 직설 화법으로 꾸밈없는 운세 제공','완전 무료 — 지금 내 패를 뒤집어 보세요'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/tazza.webp'},
     openKemetModal:{cat:'이집트 신탁 · 케멧',title:'𓂀 이집트 신탁',tagline:'파라오들이 전쟁·혼인·국가 대사를 결정할 때 물었던 그 신탁 — 오늘 당신의 차례입니다',feats:['고대 이집트 47개 신 오라클 카드 리딩','오늘의 질문에 직접 답하는 신탁 메시지 제공','재물·사랑·진로 방향 신비로운 방식으로 해석','고대 케멧 신비주의 아트 비주얼'],cost:'🪙 30코인',ct:'paid',img:'/fuctionassets/egypt.webp'},
@@ -7563,33 +7371,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     '/destiny-poker.html':{cat:'데스티니 포커',title:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLifeBookModal:{cat:'프리미엄 · 사주 심층 분석',title:'📜 인생의 책',tagline:'10년 후 내 인생이 어떻게 될지 지금 미리 볼 수 있습니다 — 돈이 들어오는 해와 조심해야 할 해를 미리 아는 것',feats:['사주 팔자 8글자로 평생 운세 흐름 완전 분석','대운 10년 단위로 기회의 해 & 위기의 해 미리 파악','재물이 크게 들어오는 시기 & 피해야 할 시기 정확히 계산','평생 간직할 PDF 저장 가능 프리미엄 리포트'],cost:'🪙 490코인',ct:'paid',img:'/fuctionassets/lifebook.webp'},
     openLoveSecretModal:{cat:'프리미엄 · 연애 전략서',title:'💕 연애 비책',tagline:'내가 왜 그 사람에게 계속 끌리는지, 왜 연애가 항상 그 패턴으로 끝나는지 — 사주가 전부 설명합니다',feats:['도화살·홍염살로 내 매력의 실체와 약점 파악','사주로 보는 나의 진짜 이상형 & 실제 잘 맞는 유형','이 사람과 진짜 사귈 수 있는지 사주적 가능성 분석','PDF 저장 가능한 프리미엄 연애 전략서'],cost:'🪙 290코인',ct:'paid',img:'/fuctionassets/lovebible.webp'},
-    openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/lovesimulation.webp'},
+    openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',title:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🪙 100코인',ct:'paid',img:'/fuctionassets/lovesimulation.webp'},
     openAstroModal:{cat:'점성술 · 코즈믹 차트',title:'✨ 점성술 코즈믹 차트',tagline:'실제 행성 좌표 기반으로 계산한 정밀 차트 — 별자리 앱에서 절대 못 본 내 진짜 운명의 패턴',feats:['태양·달·상승궁 3각 에너지 완전 분석','12하우스 영역별 재물·사랑·직업 운세 파악','지금 행성 트랜지트가 내 인생에 미치는 영향 계산','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jumsung.webp'},
     openZiweiModal:{cat:'자미두수 · 진로 적성 특화',title:'🌌 자미두수(紫微)',tagline:'중국 황제들이 세자 교육에 쓴 명리학 — 진로·직업 적성에 특화되어 있어 왜 이 일이 맞는지 즉시 납득됩니다',feats:['자미두수 12궁으로 내 진짜 직업 적성 완전 파악','관록궁·재백궁으로 어떤 분야에서 돈을 버는지 분석','숨겨진 재능과 성공 패턴 완전 해독','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/jami.webp'},
-    navigateToZiweiChart:{cat:'자미두수 심화 · 16챕터 인생 전략',title:'🌟 자미두수 심화',tagline:'자미두수 12궁 완전 해독 — 명궁부터 마스터플랜까지 16챕터로 당신의 운명 전략을 완성합니다',feats:['명궁·신궁 주성 기반 핵심 캐릭터 완전 분析','관록궁·재백궁·부처궁 총망라 인생 전략','대한·유년 타이밍 분析으로 기회의 시기 파악','프로필 카드 연동 자동 계산으로 즉시 분析'],cost:'🔒 영구 해금 500코인',ct:'paid',img:'/fuctionassets/jamigod.webp'},
     navigateToVedic:{cat:'베다 점성술 · Jyotish',title:'🪐 베다 점성술',tagline:'전생 업장이 지금 내 인생에 어떻게 작용하는지 — 5000년 인도 Jyotish 점성술이 카르마를 해독합니다',feats:['Jyotish 라시·낙샤트라로 내 업장 패턴 완전 해독','다샤 기간별로 기회의 시기 & 위기의 시기 미리 파악','왜 계속 같은 실수를 반복하는지 카르마 분석','완전 무료 — 지금 바로 이용 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/veda.webp'},
     openOlympusOracleModal:{cat:'올림푸스 · 별자리 신탁',title:'⚡ 올림푸스 신탁',tagline:'12 올림푸스 신 중 누가 지금 내 편인지 — 내 수호신이 보내는 신탁 메시지를 직접 받으세요',feats:['12 올림푸스 신 중 내 수호신이 누구인지 즉시 파악','수호신이 지금 내 상황에 보내는 신탁 메시지 리딩','별자리 기반 행운·주의 에너지 완전 분석','100코인 단 한 번 결제로 평생 무제한 이용'],cost:'🔒 영구 해금 100코인',ct:'paid',img:'/fuctionassets/olympus.webp'},
     openSibylModal:{cat:'시빌라 사주 시스템',title:'⚡ SIBYL SYSTEM',tagline:'당신의 운명계수를 시스템이 정밀 스캔합니다 — 사주팔자 기반 진로 적성·위험 계수·도미네이터 리포트',feats:['데스티니 휴: 오행 분포 색채 진단','적성 섹터 배정: 격국·십성 기반 최적 직업군','도미네이터 리포트: 위험 계수 10년 그래프','개인 맞춤 개운법 처방전 (100코인)'],cost:'✨ 기본 무료 · 도미네이터 100코인',ct:'free',img:'/fuctionassets/sybila.webp'}
   };
 
-  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_ctaBtnLabelEl,_ctaMetaEl,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
+  var _ov,_sheet,_titleEl,_taglineEl,_featsEl,_catEl,_costEl,_ctaBtn,_heroImg,_paywallEl,_paywallIcon,_paywallTitle,_paywallDesc;
   var _pendingTile=null,_pendingHref=null;
-  var _ctaLoading=false;
-
-  function _setCtaLabel(text){
-    if(_ctaBtnLabelEl){_ctaBtnLabelEl.textContent=text||'';return;}
-    if(_ctaBtn)_ctaBtn.textContent=text||'';
-  }
-
-  function _setCtaLoading(isLoading,msg){
-    _ctaLoading=!!isLoading;
-    if(_ctaBtn){
-      _ctaBtn.classList.toggle('is-loading',_ctaLoading);
-      _ctaBtn.disabled=_ctaLoading;
-      _ctaBtn.setAttribute('aria-busy',_ctaLoading?'true':'false');
-    }
-    if(_ctaMetaEl)_ctaMetaEl.textContent=msg||'';
-  }
 
   function _init(){
     _ov=document.getElementById('tilePvwOverlay');
@@ -7601,8 +7392,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     _catEl=document.getElementById('tilePvwCat');
     _costEl=document.getElementById('tilePvwCost');
     _ctaBtn=document.getElementById('tilePvwCtaBtn');
-    _ctaBtnLabelEl=document.getElementById('tilePvwCtaBtnLabel');
-    _ctaMetaEl=document.getElementById('tilePvwCtaMeta');
     _heroImg=document.getElementById('tilePvwHeroImg');
     _paywallEl=document.getElementById('tilePvwPaywall');
     _paywallIcon=document.getElementById('tilePvwPaywallIcon');
@@ -7683,7 +7472,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 이용 가능';
           if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 이용 가능합니다!';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
-          _setCtaLabel('✅ 구독으로 바로 시작하기');
+          _ctaBtn.textContent='✅ 구독으로 바로 시작하기';
         } else {
           if(_paywallIcon)_paywallIcon.textContent='🪙';
           if(_paywallTitle)_paywallTitle.textContent='1회 '+coinCost+'코인 · 지금 바로 결과 확인';
@@ -7707,32 +7496,38 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           else if(action==='gotoVedicPremium')_ctaBtnLabel='🪷 베다 운명서 PDF 지금 생성하기';
           else if(action==='gotoNamingPremium')_ctaBtnLabel='✍️ 명운 프리미엄 작명 시작하기';
           else _ctaBtnLabel='🪙 '+coinCost+'코인으로 시작하기';
-          _setCtaLabel(_ctaBtnLabel);
+          _ctaBtn.textContent=_ctaBtnLabel;
         }
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
-        if(_pvwHasSub){
+        var _pvwUnlocked = !!unlockedFeatureMap[lockKey];
+        if(_pvwUnlocked){
+          if(_paywallIcon)_paywallIcon.textContent='✅';
+          if(_paywallTitle)_paywallTitle.textContent='해금 완료';
+          if(_paywallDesc)_paywallDesc.textContent='이미 해금된 콘텐츠입니다. 바로 이용할 수 있어요.';
+          _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
+          _ctaBtn.textContent='🌸 해금 완료, 바로 열기';
+        } else if(_pvwHasSub){
           if(_paywallIcon)_paywallIcon.textContent='✅';
           if(_paywallTitle)_paywallTitle.textContent='프리미엄 구독 영구 해금 가능';
           if(_paywallDesc)_paywallDesc.textContent='프리미엄 구독 중이라 코인 없이 영구 해금됩니다!';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--sub';
-          _setCtaLabel('✅ 구독으로 영구 해금');
+          _ctaBtn.textContent='✅ 구독으로 영구 해금';
         } else {
           if(_paywallIcon)_paywallIcon.textContent='🔒';
           if(_paywallTitle)_paywallTitle.textContent='영구 해금: '+lockCost+'코인';
           if(_paywallDesc)_paywallDesc.textContent='한 번 해금하면 계속 이용 가능합니다! 혹은 프리미엄 구독으로도 해금 가능합니다.';
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--lock';
-          _setCtaLabel('🔓 '+lockCost+'코인으로 영구 해금');
+          _ctaBtn.textContent='🔓 '+lockCost+'코인으로 영구 해금';
         }
       } else {
         _paywallEl.style.display='none';
         _ctaBtn.className='tile-pvw-cta-btn';
-        _setCtaLabel('지금 시작하기 →');
+        _ctaBtn.textContent='지금 시작하기 →';
       }
     }
 
-    _setCtaLoading(false,'');
     _ov.removeAttribute('style');
     requestAnimationFrame(function(){_ov.classList.add('pvw-open');});
   }
@@ -7743,45 +7538,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       document.body.style.overflow='';
       document.body.classList.remove('lb-modal-open');
     } catch(_) {}
-    _setCtaLoading(false,'');
     _pendingTile=null;_pendingHref=null;
   }
 
   function _onCta(){
-    if(_ctaLoading)return;
     var tile=_pendingTile,href=_pendingHref;
+    _close();
     if(!tile)return;
     var _pvwCoinCost=Number(tile.getAttribute('data-coin-cost')||0);
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
-    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=href;return;}
-    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){_close();window.location.href=_fbHref;return;}
-    // 유료 CTA는 패널을 유지한 채 로딩 상태를 보여주고 코인게이트를 호출한다.
-    // 성공 시 _cdInvokeActionDirect()가 패널을 닫고 각 프리미엄 모달로 이동한다.
-    if(_pvwCoinCost>0&&typeof window.__cdPremCardCoinGate==='function'){
-      var _paidAct=tile.getAttribute('data-action');
-      if(_paidAct){
-        var _autoPdfAction = _paidAct==='gotoZiweiPremium' || _paidAct==='gotoAstrologyPremium' || _paidAct==='gotoSukuyoPremium' || _paidAct==='gotoVedicPremium';
-        _setCtaLoading(true,'결제 확인 후 챕터 생성 화면으로 이동 중입니다...');
-        try{
-          window.__cdAutoGeneratePremiumBookAction=_paidAct;
-          if(_autoPdfAction)window.__cdAutoDownloadPremiumBookAction=_paidAct;
-        }catch(_){ }
-        Promise.resolve(window.__cdPremCardCoinGate(_paidAct,tile,_pvwCoinCost)).then(function(ok){
-          if(ok)return;
-          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
-          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
-          _setCtaLoading(false,'요청이 취소되었습니다. 다시 시도해 주세요.');
-        }).catch(function(){
-          try{if(window.__cdAutoGeneratePremiumBookAction===_paidAct)window.__cdAutoGeneratePremiumBookAction='';}catch(_){ }
-          try{if(window.__cdAutoDownloadPremiumBookAction===_paidAct)window.__cdAutoDownloadPremiumBookAction='';}catch(_){ }
-          _setCtaLoading(false,'연결 중 오류가 발생했습니다. 다시 시도해 주세요.');
-        });
-        return;
-      }
-    }
-    _close();
-    var _freeAct=tile.getAttribute('data-action');
-    if(_freeAct&&_pvwCoinCost<=0&&_pvwLockCost<=0&&typeof window[_freeAct]==='function'){window[_freeAct]();return;}
+    if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
+    var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
@@ -7790,7 +7557,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   document.addEventListener('click',function(e){
     var tile=e.target.closest('.tarot-tile,.lifebook-tile,.lovebible-tile,.prem-card');
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
-    if(window.__cdAdminBypass)return;
+    if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7804,6 +7573,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   // 모바일 패치에서 코인/잠금 게이트 필요 시 직접 호출 가능한 전역 함수
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
+    var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+    if (lockKey && unlockedFeatureMap[lockKey]) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
@@ -7812,9 +7583,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (!_ov) _init();
       if (!_ov || !_sheet || !_titleEl || !_ctaBtn) return false;
       _open(tile, href, D[key]);
-      // _open()은 rAF로 pvw-open 클래스를 추가하므로 동기 체크는 항상 false.
-      // _open()이 예외 없이 호출됐으면 Preview가 열릴 것이므로 true 반환.
-      return true;
+      return !!(_ov && _ov.classList && _ov.classList.contains('pvw-open'));
     } catch (err) {
       console.error('[tile-preview] open failed:', err);
       return false;
@@ -8865,48 +8634,12 @@ if (document.readyState === 'loading') {
 <!-- 꽃돼지/백사자 모드 토글: body 직하위 배치로 contain:layout 영향 완전 회피 -->
 <div class="theme-switch-wrapper">
   <span id="themeToggleLabel" class="theme-toggle-label" aria-live="polite">🌸 꽃돼지 연이 모드</span>
-  <input type="checkbox" id="themeCheckbox" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이 · 백사자 쌈바 모드 전환" />
+  <input type="checkbox" id="themeCheckbox" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이  백사자 쌈바 모드 전환" />
   <label class="theme-switch-pill" for="themeCheckbox" aria-hidden="true">
     <span class="tsp-option tsp-pig"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name">연이</span></span>
     <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
   </label>
 </div>
-<script>
-/* ── 꽃돼지/백사자 테마 토글 ── */
-(function () {
-  var NEO_KEY = 'fortuneThemeModeStateV1';
-  var cb = document.getElementById('themeCheckbox');
-  var lbl = document.getElementById('themeToggleLabel');
-
-  function applyTheme(isNeo, persist) {
-    if (isNeo) {
-      document.body.classList.add('neo-mode');
-      if (cb) { cb.checked = true; cb.setAttribute('aria-checked', 'true'); }
-      if (lbl) lbl.textContent = '🦁 백사자 쌈바 모드';
-    } else {
-      document.body.classList.remove('neo-mode');
-      if (cb) { cb.checked = false; cb.setAttribute('aria-checked', 'false'); }
-      if (lbl) lbl.textContent = '🌸 꽃돼지 연이 모드';
-    }
-    if (persist) {
-      try { localStorage.setItem(NEO_KEY, isNeo ? 'neo' : 'pig'); } catch (_) {}
-    }
-  }
-
-  /* 저장된 상태 복원 */
-  var saved;
-  try { saved = localStorage.getItem(NEO_KEY); } catch (_) {}
-  var initNeo = saved === 'neo' || (saved === null && !!window.__INITIAL_THEME_NEO__);
-  applyTheme(initNeo, false);
-
-  /* 체크박스 change 이벤트 */
-  if (cb) {
-    cb.addEventListener('change', function () {
-      applyTheme(cb.checked, true);
-    });
-  }
-})();
-</script>
 <!-- ─── PERF: lazy modal mount helper (TASK 3) ─── -->
 <script>
 /* lazyOpenModal: 최초 클릭 시 <template>에서 DOM을 삽입한 뒤 기존 열기 함수 호출
@@ -8922,8 +8655,22 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 };
 </script>
 </body>
+<script>
+// 감성적 테마 토글: 30초 후 자동 사라짐
+window.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('themeEmotionToggle');
+  if (!btn) return;
+  var timer = setTimeout(function() {
+    btn.style.opacity = '0';
+    btn.style.pointerEvents = 'none';
+    setTimeout(function(){ btn.style.display = 'none'; }, 600);
+  }, 30000);
+  btn.addEventListener('click', function() {
+    document.body.classList.toggle('theme-lion');
+    btn.classList.toggle('is-lion');
+    // (실제 테마 전환 로직은 필요시 확장)
+  });
+});
+</script>
 </html>
-
-
-
 

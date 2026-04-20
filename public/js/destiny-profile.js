@@ -159,21 +159,32 @@
    */
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   function _cdIsAdminLikeUser() {
-    try { if (window.__cdAdminBypass) return true; } catch(_) {}
+    // ⚠️ 주의: window.__cdAdminBypass는 절대 신뢰하지 않음 (보안 우회 경로)
     try {
       var rawUser = localStorage.getItem('fortune_auth_user') || '';
       if (rawUser) {
         var parsed = JSON.parse(rawUser);
-        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') return true;
+        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') {
+          // role 체크만 하되, 반드시 유효한 토큰이 있는지 재확인
+          var tok = localStorage.getItem('fortune_auth_token') || '';
+          if (tok && tok.length > 10) return true;
+        }
       }
     } catch(_) {}
     try {
       var sTok = String(sessionStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) return true;
+      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) {
+        // 토큰 형식만으로는 부족함 - 로그인 토큰도 함께 검증
+        var authTok = localStorage.getItem('fortune_auth_token') || '';
+        if (authTok && authTok.length > 10) return true;
+      }
     } catch(_) {}
     try {
       var lTok = String(localStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) return true;
+      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) {
+        var authTok2 = localStorage.getItem('fortune_auth_token') || '';
+        if (authTok2 && authTok2.length > 10) return true;
+      }
     } catch(_) {}
     return false;
   }
@@ -188,7 +199,9 @@
     var now = Date.now();
     var dedupeKey = String(reason || '') + '|' + String(cost || 0);
     var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
-    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 1200)) {
+    // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
+    if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
+      if (typeof onCancel === 'function') onCancel();
       return;
     }
     dedupeMap[dedupeKey] = now;
@@ -1524,20 +1537,30 @@
       }
       try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
-
-    // 성별 버튼 UI 동기화 (메인 JS와 동일)
-    var genderBtns = document.querySelectorAll('.gender-btn');
-    if (genderBtns && genderBtns.length) {
-      genderBtns.forEach(function(btn) {
-        if (btn.dataset.gender === (p.gender || 'F')) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
     if (window.setGender) window.setGender(p.gender || 'F');
     window._gender = p.gender || 'F';
+    /* 성별 버튼 UI 동기화 */
+    var dpBtnF = document.getElementById('btnF');
+    var dpBtnM = document.getElementById('btnM');
+    if (dpBtnF || dpBtnM) {
+      var dpGender = p.gender || 'F';
+      if (dpBtnF) {
+        if (dpGender === 'F') {
+          dpBtnF.classList.add('selected');
+          dpBtnM && dpBtnM.classList.remove('selected');
+        } else {
+          dpBtnF.classList.remove('selected');
+        }
+      }
+      if (dpBtnM) {
+        if (dpGender === 'M') {
+          dpBtnM.classList.add('selected');
+          dpBtnF && dpBtnF.classList.remove('selected');
+        } else {
+          dpBtnM.classList.remove('selected');
+        }
+      }
+    }
     if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
     broadcastProfileChange(p);
