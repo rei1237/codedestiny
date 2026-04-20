@@ -5,7 +5,7 @@
 <script>
 (function(){
   'use strict';
-  var COST = 200, KEY = 'openCosmicSoulMeditation';
+  var KEY = 'openCosmicSoulMeditation';
   try { if (sessionStorage.getItem('flower_admin_token') && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(sessionStorage.getItem('flower_admin_token') || '')) return; } catch(_ae) {}
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
@@ -15,34 +15,6 @@
     } else { window.history.back(); }
     return;
   }
-  var pts = 0;
-  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
-  if (pts < COST) {
-    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
-    window.history.back();
-    return;
-  }
-  fetch('/api/fortune/pig-coin/consume', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ cost: COST, reason: KEY + ' 이용' })
-  }).then(function(r) {
-    return r.json().then(function(d) {
-      if (r.status === 402 || !r.ok) {
-        window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
-        window.history.back();
-        return;
-      }
-      if (d && d.user && typeof d.user.points === 'number') {
-        try {
-          var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
-          u.points = d.user.points;
-          localStorage.setItem('fortune_auth_user', JSON.stringify(u));
-        } catch(e) {}
-        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
-      }
-    });
-  }).catch(function() {});
 })();
 </script>
 
@@ -734,6 +706,7 @@
         <div class="card-tag">// VERSION A</div>
         <div class="card-badge">HIGH EFFICIENCY</div>
         <div class="card-dur">30<span>min</span></div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">50 COINS</div>
         <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
         <p class="card-desc">
           바쁜 일과 중 강력한 멘탈 튜닝.<br>
@@ -753,6 +726,7 @@
         <div class="card-tag">// VERSION B</div>
         <div class="card-badge" style="border-color:rgba(219,167,58,0.35);color:var(--gold)">DEEP DIVE</div>
         <div class="card-dur" style="color:var(--gold)">60<span>min</span></div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">100 COINS</div>
         <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
         <p class="card-desc">
           자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
@@ -1411,6 +1385,72 @@ function _buildSchedule(){
   });
 }
 
+var _sessionBootInFlight=false;
+
+function _isAdminMeditationSession(){
+  try{
+    var adminToken=sessionStorage.getItem('flower_admin_token')||'';
+    return !!(adminToken&&/^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(adminToken));
+  }catch(_){
+    return false;
+  }
+}
+
+function _getMeditationAuthToken(){
+  try{return localStorage.getItem('fortune_auth_token')||'';}catch(_){return '';}
+}
+
+function _redirectLoginForMeditation(){
+  if(window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')){
+    window.location.replace('/login?next='+encodeURIComponent(window.location.pathname));
+  }
+}
+
+async function _consumeMeditationCoin(cost,reason){
+  if(_isAdminMeditationSession())return true;
+
+  var token=_getMeditationAuthToken();
+  if(!token){
+    _redirectLoginForMeditation();
+    return false;
+  }
+
+  var pts=0;
+  try{pts=Number(JSON.parse(localStorage.getItem('fortune_auth_user')||'{}').points||0);}catch(_){pts=0;}
+  if(pts<cost){
+    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 '+cost+'코인 필요 / 현재: '+pts+'코인\n충전 후 이용해 주세요.');
+    return false;
+  }
+
+  try{
+    var r=await fetch('/api/fortune/pig-coin/consume',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({cost:cost,reason:reason})
+    });
+    var d={};
+    try{d=await r.json();}catch(_){d={};}
+
+    if(r.status===402||!r.ok){
+      window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+      return false;
+    }
+
+    if(d&&d.user&&typeof d.user.points==='number'){
+      try{
+        var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
+        u.points=d.user.points;
+        localStorage.setItem('fortune_auth_user',JSON.stringify(u));
+      }catch(_){ }
+      if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(d.user.points);
+    }
+    return true;
+  }catch(_){
+    window.alert('코인 차감 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+}
+
 /* ─── Timer ─── */
 function _fmtTime(s){
   var m=Math.floor(s/60),sec=s%60;
@@ -1456,7 +1496,16 @@ function _tick(){
 }
 
 /* ─── Start session ─── */
-function _startSession(mode){
+async function _startSession(mode){
+  if(_sessionBootInFlight)return;
+  _sessionBootInFlight=true;
+  var cost=mode==='60'?100:50;
+  var paid=await _consumeMeditationCoin(cost,'openCosmicSoulMeditation '+mode+'분 코스');
+  if(!paid){
+    _sessionBootInFlight=false;
+    return;
+  }
+
   _mode=mode;
   _phases=mode==='60'?PHASES_60:PHASES_30;
   _totalSecs=parseInt(mode)*60;
@@ -1470,6 +1519,7 @@ function _startSession(mode){
   _running=true;
   if(_interval)clearInterval(_interval);
   _interval=setInterval(_tick,1000);
+  _sessionBootInFlight=false;
 }
 
 /* ─── Screen transitions ─── */

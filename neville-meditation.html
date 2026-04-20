@@ -680,7 +680,7 @@
 <script>
 (function(){
   'use strict';
-  var COST = 30, KEY = 'openNevilleMeditationPage';
+  var KEY = 'openNevilleMeditationPage';
   // 관리자 패널 로그인: 코인 없이 바로 이용 가능
   try { if (sessionStorage.getItem('flower_admin_token') && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(sessionStorage.getItem('flower_admin_token') || '')) return; } catch(_ae) {}
   var token = '';
@@ -691,30 +691,6 @@
     } else { window.history.back(); }
     return;
   }
-  var pts = 0;
-  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch(e) {}
-  if (pts < COST) {
-    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + COST + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
-    window.history.back();
-    return;
-  }
-  fetch('/api/fortune/pig-coin/consume', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ cost: COST, reason: KEY + ' 이용' })
-  }).then(function(r) {
-    return r.json().then(function(d) {
-      if (r.status === 402 || !r.ok) {
-        window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
-        window.history.back();
-        return;
-      }
-      if (d && d.user && typeof d.user.points === 'number') {
-        try { var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}'); u.points = d.user.points; localStorage.setItem('fortune_auth_user', JSON.stringify(u)); } catch(e) {}
-        if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
-      }
-    });
-  }).catch(function() {});
 })();
 </script>
 
@@ -754,7 +730,7 @@
       <div class="card-corner"></div>
       <div class="card-dur">30<span>분</span></div>
       <div class="card-title">에센셜 명상<br>현실의 즉각적 전환</div>
-      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스</div>
+      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스<br>이용료: 30코인</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7"></div>
@@ -767,7 +743,7 @@
       <div class="card-corner"></div>
       <div class="card-dur">60<span>분</span></div>
       <div class="card-title">마스터 명상<br>의식의 완전한 재편</div>
-      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스</div>
+      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 50코인</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
@@ -1282,6 +1258,7 @@ let ytCurrentPhaseIdx = -1;
 let ytCurrentTrackIdx = 0;
 let ytCurrentTrack = null;
 let musicPanelClosed = false;
+let _sessionBootInFlight = false;
 
 const THETA_PRESETS = {
   mystic: {
@@ -1547,8 +1524,81 @@ function showScreen(id) {
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('out')));
 }
 
+function _isAdminMeditationSession() {
+  try {
+    var adminToken = sessionStorage.getItem('flower_admin_token') || '';
+    return !!(adminToken && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(adminToken));
+  } catch (_) {
+    return false;
+  }
+}
+
+function _getMeditationAuthToken() {
+  try { return localStorage.getItem('fortune_auth_token') || ''; } catch (_) { return ''; }
+}
+
+function _redirectLoginForMeditation() {
+  if (window.confirm('이 서비스는 로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?')) {
+    window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
+  }
+}
+
+async function _consumeMeditationCoin(cost, reason) {
+  if (_isAdminMeditationSession()) return true;
+
+  var token = _getMeditationAuthToken();
+  if (!token) {
+    _redirectLoginForMeditation();
+    return false;
+  }
+
+  var pts = 0;
+  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch (_) { pts = 0; }
+  if (pts < cost) {
+    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + cost + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
+    return false;
+  }
+
+  try {
+    var r = await fetch('/api/fortune/pig-coin/consume', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ cost: cost, reason: reason })
+    });
+    var d = {};
+    try { d = await r.json(); } catch (_) { d = {}; }
+
+    if (r.status === 402 || !r.ok) {
+      window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+      return false;
+    }
+
+    if (d && d.user && typeof d.user.points === 'number') {
+      try {
+        var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+        u.points = d.user.points;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(u));
+      } catch (_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
+    }
+    return true;
+  } catch (_) {
+    window.alert('코인 차감 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+}
+
 /* ═══════════════════════════ START ═══════════════════════════ */
-function startCourse(mins) {
+async function startCourse(mins) {
+  if (_sessionBootInFlight) return;
+  _sessionBootInFlight = true;
+  var cost = Number(mins) >= 60 ? 50 : 30;
+  var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스');
+  if (!paid) {
+    _sessionBootInFlight = false;
+    return;
+  }
+
   stopLoadingMeteors();
   course = COURSES[mins];
   elapsed = 0; msgIdx = 0; paused = false; finished = false;
@@ -1568,6 +1618,7 @@ function startCourse(mins) {
     updateHUD();
     checkMsgs();
     startTicker();
+    _sessionBootInFlight = false;
   }, 1400);
 }
 
