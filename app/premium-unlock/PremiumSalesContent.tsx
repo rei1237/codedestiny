@@ -7,6 +7,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 const OhangRadarChart = dynamic(() => import("../components/OhangRadarChart"), { ssr: false, loading: () => null });
 
 /* ─────────────────────────────────────────
@@ -65,7 +67,7 @@ function StarField() {
 /* ─────────────────────────────────────────
    섹션: 헤드라인 히어로
 ───────────────────────────────────────── */
-function HeroSection({ onCTA }: { onCTA: () => void }) {
+function HeroSection({ onCTA, isProcessing }: { onCTA: () => void; isProcessing: boolean }) {
   return (
     <section className="relative min-h-screen flex items-center justify-center text-center px-4 py-20">
       <div className="max-w-2xl mx-auto">
@@ -119,7 +121,13 @@ function HeroSection({ onCTA }: { onCTA: () => void }) {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="flex flex-col sm:flex-row gap-3 items-center justify-center"
         >
-          <GoldCTAButton onClick={onCTA} size="lg">
+          <GoldCTAButton
+            onClick={onCTA}
+            size="lg"
+            disabled={isProcessing}
+            loading={isProcessing}
+            loadingText="결제 화면으로 이동 중..."
+          >
             🔓 지금 운명을 해금하기 — ₩49,000
           </GoldCTAButton>
           <span className="text-xs text-violet-400/40">· 즉시 발급 · 앱 설치 없음</span>
@@ -523,7 +531,7 @@ function TestimonialsSection() {
 /* ─────────────────────────────────────────
    섹션: 가격 & 최종 CTA
 ───────────────────────────────────────── */
-function PricingCTASection({ onCTA }: { onCTA: () => void }) {
+function PricingCTASection({ onCTA, isProcessing }: { onCTA: () => void; isProcessing: boolean }) {
   const includes = [
     "사주팔자 전체 명조 분석",
     "오행 분포 & 균형 레이더 차트",
@@ -588,7 +596,14 @@ function PricingCTASection({ onCTA }: { onCTA: () => void }) {
               </div>
 
               {/* 메인 CTA */}
-              <GoldCTAButton onClick={onCTA} size="lg" fullWidth>
+              <GoldCTAButton
+                onClick={onCTA}
+                size="lg"
+                fullWidth
+                disabled={isProcessing}
+                loading={isProcessing}
+                loadingText="결제 화면으로 이동 중..."
+              >
                 🔓 지금 당신의 운명을 해금하고<br />
                 <span className="font-normal text-xs opacity-90">미래의 기회를 선점하세요</span>
               </GoldCTAButton>
@@ -615,39 +630,57 @@ function GoldCTAButton({
   onClick,
   size = "md",
   fullWidth = false,
+  disabled = false,
+  loading = false,
+  loadingText = "처리 중...",
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   size?: "md" | "lg";
   fullWidth?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  loadingText?: string;
 }) {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
     <motion.button
       type="button"
+      disabled={disabled}
       onClick={onClick}
-      onHoverStart={() => setIsHovering(true)}
+      onHoverStart={() => {
+        if (!disabled) setIsHovering(true);
+      }}
       onHoverEnd={() => setIsHovering(false)}
-      className={`relative font-bold rounded-2xl overflow-hidden leading-tight ${fullWidth ? "w-full" : ""} ${size === "lg" ? "px-8 py-4 text-base" : "px-6 py-3 text-sm"}`}
+      className={`relative font-bold rounded-2xl overflow-hidden leading-tight transition-opacity ${disabled ? "cursor-not-allowed opacity-75" : ""} ${fullWidth ? "w-full" : ""} ${size === "lg" ? "px-8 py-4 text-base" : "px-6 py-3 text-sm"}`}
       style={{
         background: "linear-gradient(135deg,#c9940f 0%,#e8b828 40%,#f5cc4a 60%,#b8860b 100%)",
         color: "#1a0e00",
-        boxShadow: "0 4px 28px rgba(212,168,67,0.4), 0 2px 8px rgba(0,0,0,0.4)",
+        boxShadow: disabled
+          ? "0 2px 12px rgba(212,168,67,0.2), 0 1px 4px rgba(0,0,0,0.25)"
+          : "0 4px 28px rgba(212,168,67,0.4), 0 2px 8px rgba(0,0,0,0.4)",
       }}
-      whileHover={{ scale: 1.02, boxShadow: "0 6px 36px rgba(212,168,67,0.6), 0 2px 12px rgba(0,0,0,0.4)" }}
-      whileTap={{ scale: 0.98 }}
-      animate={{ boxShadow: ["0 4px 28px rgba(212,168,67,0.35)", "0 4px 40px rgba(212,168,67,0.6)", "0 4px 28px rgba(212,168,67,0.35)"] }}
-      transition={{ boxShadow: { duration: 2.5, repeat: Infinity }, scale: { duration: 0.15 } }}
+      whileHover={disabled ? undefined : { scale: 1.02, boxShadow: "0 6px 36px rgba(212,168,67,0.6), 0 2px 12px rgba(0,0,0,0.4)" }}
+      whileTap={disabled ? undefined : { scale: 0.98 }}
+      animate={disabled ? undefined : { boxShadow: ["0 4px 28px rgba(212,168,67,0.35)", "0 4px 40px rgba(212,168,67,0.6)", "0 4px 28px rgba(212,168,67,0.35)"] }}
+      transition={disabled ? { duration: 0.15 } : { boxShadow: { duration: 2.5, repeat: Infinity }, scale: { duration: 0.15 } }}
     >
       {/* 빛 스위프 효과 */}
       <motion.div
         className="absolute inset-0"
         style={{ background: "linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.4) 50%,transparent 100%)" }}
-        animate={isHovering ? { x: ["-100%", "100%"] } : { x: "-100%" }}
+        animate={isHovering && !disabled ? { x: ["-100%", "100%"] } : { x: "-100%" }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       />
-      <span className="relative z-10">{children}</span>
+      {loading ? (
+        <span className="relative z-10 inline-flex items-center gap-2">
+          <span className="h-4 w-4 rounded-full border-2 border-[#1a0e00]/30 border-t-[#1a0e00] animate-spin" />
+          {loadingText}
+        </span>
+      ) : (
+        <span className="relative z-10">{children}</span>
+      )}
     </motion.button>
   );
 }
@@ -655,7 +688,7 @@ function GoldCTAButton({
 /* ─────────────────────────────────────────
    고정 하단 CTA 바
 ───────────────────────────────────────── */
-function StickyBottomCTA({ onCTA }: { onCTA: () => void }) {
+function StickyBottomCTA({ onCTA, isProcessing }: { onCTA: () => void; isProcessing: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -680,7 +713,13 @@ function StickyBottomCTA({ onCTA }: { onCTA: () => void }) {
               <div className="text-xs font-bold text-white">인생 총운 해금</div>
               <div className="text-[10px] text-amber-400/70">₩49,000 · 즉시 발급</div>
             </div>
-            <GoldCTAButton onClick={onCTA} size="md">
+            <GoldCTAButton
+              onClick={onCTA}
+              size="md"
+              disabled={isProcessing}
+              loading={isProcessing}
+              loadingText="처리 중..."
+            >
               지금 해금하기 🔓
             </GoldCTAButton>
           </div>
@@ -694,9 +733,47 @@ function StickyBottomCTA({ onCTA }: { onCTA: () => void }) {
    메인 내보내기
 ───────────────────────────────────────── */
 export default function PremiumSalesContent() {
+  const router = useRouter();
+  const { isProcessing, startProcessing, stopProcessing } = usePaymentProcessing();
+  const [isCtaPending, setIsCtaPending] = useState(false);
+  const ctaDelayTimerRef = useRef<number | null>(null);
+  const ctaFallbackTimerRef = useRef<number | null>(null);
+
+  const isBusy = isProcessing || isCtaPending;
+
+  useEffect(() => {
+    return () => {
+      if (ctaDelayTimerRef.current) {
+        window.clearTimeout(ctaDelayTimerRef.current);
+      }
+      if (ctaFallbackTimerRef.current) {
+        window.clearTimeout(ctaFallbackTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleCTA = () => {
-    // 실제 결제 페이지로 연결
-    window.location.href = "/points";
+    if (isBusy) return;
+
+    setIsCtaPending(true);
+
+    if (ctaDelayTimerRef.current) {
+      window.clearTimeout(ctaDelayTimerRef.current);
+    }
+    if (ctaFallbackTimerRef.current) {
+      window.clearTimeout(ctaFallbackTimerRef.current);
+    }
+
+    ctaDelayTimerRef.current = window.setTimeout(() => {
+      startProcessing("안전하게 결제를 진행 중입니다.");
+      setIsCtaPending(false);
+      router.push("/points");
+
+      // 드물게 라우팅이 지연되더라도 오버레이 고착을 방지합니다.
+      ctaFallbackTimerRef.current = window.setTimeout(() => {
+        stopProcessing();
+      }, 6000);
+    }, 180);
   };
 
   return (
@@ -704,13 +781,13 @@ export default function PremiumSalesContent() {
       <StarField />
 
       <div className="relative z-10">
-        <HeroSection onCTA={handleCTA} />
+        <HeroSection onCTA={handleCTA} isProcessing={isBusy} />
         <EmpathySection />
         <DifferentiatorSection />
         <SampleChartSection />
         <BenefitsSection onCTA={handleCTA} />
         <TestimonialsSection />
-        <PricingCTASection onCTA={handleCTA} />
+        <PricingCTASection onCTA={handleCTA} isProcessing={isBusy} />
 
         {/* 푸터 안심 구매 */}
         <footer className="text-center py-12 px-4 text-[11px] text-violet-400/30 leading-relaxed">
@@ -719,7 +796,7 @@ export default function PremiumSalesContent() {
         </footer>
       </div>
 
-      <StickyBottomCTA onCTA={handleCTA} />
+      <StickyBottomCTA onCTA={handleCTA} isProcessing={isBusy} />
     </div>
   );
 }

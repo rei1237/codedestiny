@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GalaxiaPayResult } from "./GalaxiaPayModal";
+import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 
 const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
@@ -135,13 +136,6 @@ type ToastItem = {
 
 declare global {
   interface Window {
-    IMP?: {
-      init: (impCode: string) => void;
-      request_pay: (
-        data: Record<string, unknown>,
-        callback: (rsp: PortOnePaymentResponse) => void,
-      ) => void;
-    };
     CODE_DESTINY_API_BASE_URL?: string;
   }
 }
@@ -1032,6 +1026,10 @@ export default function PointsPage() {
   const [processingText, setProcessingText] = useState(
     "신비로운 기운으로 결제를 연결 중입니다...",
   );
+  const {
+    startProcessing: showProcessingOverlay,
+    stopProcessing: hideProcessingOverlay,
+  } = usePaymentProcessing();
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
@@ -1061,6 +1059,20 @@ export default function PointsPage() {
   const dismissToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  useEffect(() => {
+    if (isProcessing) {
+      showProcessingOverlay(processingText);
+      return;
+    }
+    hideProcessingOverlay();
+  }, [hideProcessingOverlay, isProcessing, processingText, showProcessingOverlay]);
+
+  useEffect(() => {
+    return () => {
+      hideProcessingOverlay();
+    };
+  }, [hideProcessingOverlay]);
 
   /* ── 포인트 로컬 동기화 ────────────────────────────────────────── */
   const persistUserPoints = useCallback((points: number) => {
@@ -1941,17 +1953,6 @@ export default function PointsPage() {
               {isProcessing ? "🐷 연결 중..." : "결제를 진행합니다"}
             </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══ 결제 처리 중 오버레이 ════════════════════════════════════ */}
-      {isProcessing && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[rgba(20,10,5,0.65)] backdrop-blur-sm">
-          <div className="rounded-[28px] border border-[#EDDBA3] bg-[#FFF9EC] px-10 py-8 text-center shadow-[0_24px_70px_rgba(80,40,5,0.38)]">
-            <div className="mx-auto mb-3 text-5xl animate-bounce">🐷</div>
-            <p className="font-bold text-[#5C3A1E]">황금 돼지가 코인을 세고 있어요...</p>
-            <p className="mt-1 text-sm text-[#7A5230]">{processingText}</p>
           </div>
         </div>
       )}

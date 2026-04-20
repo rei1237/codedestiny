@@ -7,6 +7,7 @@ import HPremiumVedicSection from "./HPremiumVedicSection";
 import HPremiumNamingSection from "./HPremiumNamingSection";
 import { showToast } from "./Toast";
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
+import { usePaymentProcessing } from "./PaymentProcessingContext";
 
 type LockedSectionProps = {
   title: string;
@@ -99,6 +100,14 @@ const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   naming: 700,
 };
 
+const PREMIUM_SERVICE_LABEL: Record<PremiumServiceKey, string> = {
+  ziwei: "자미두수 프리미엄 리포트",
+  astrology: "점성술 프리미엄 리포트",
+  sukuyo: "숙요점 프리미엄 리포트",
+  veda: "베다 점성술 프리미엄 리포트",
+  naming: "명운 작명 프리미엄 리포트",
+};
+
 const FREE_FEATURES = [
   "기본 만세력: 연/월/일/시 명식표 + 일주 캐릭터 요약",
   "재미 콘텐츠: 매력 테스트, 로또 기능",
@@ -157,6 +166,7 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
 }
 
 export default function KkulkkulManseryukMain() {
+  const { startProcessing, stopProcessing, setProcessingMessage } = usePaymentProcessing();
   const [currentCoins, setCurrentCoins] = useState(0);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
@@ -362,49 +372,58 @@ export default function KkulkkulManseryukMain() {
   const handleStartPremiumGeneration = async (service: PremiumServiceKey) => {
     if (premiumGateLoading) return;
 
-    const passed = await runPremiumIntroGate(service);
-    if (!passed) return;
+    setPremiumGateError('');
+    const premiumLabel = PREMIUM_SERVICE_LABEL[service] ?? '프리미엄 리포트';
+    startProcessing(`${premiumLabel} 결제를 확인 중입니다.`);
 
-    if (unlockedFeatures.premiumDivinationPack) {
-      setPremiumFlowStage('generate');
-      return;
-    }
-
-    const token = localStorage.getItem('fortune_auth_token');
-    if (!token && !isAdminUser) return;
-    const adminToken = getFlowerAdminTokenClient();
-    // 관리자 모드: consume API 없이 즉시 generate 단계로 이동 (코인 차감 없음)
-    if (adminToken || isAdminUser) {
-      setPremiumFlowStage('generate');
-      return;
-    }
-    const adminTestTier = getFlowerAdminTestTierClient();
-    const authHeaders = {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-      ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
-    };
-
-    const cost = PREMIUM_SERVICE_COST[service];
-    setPremiumGateLoading(service);
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId: `premium:${service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
-      });
-      if (res.status === 402) { setShowRechargeModal(true); return; }
-      if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
-      const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
-      setCurrentCoins(newPoints);
-      saveUserPoints(newPoints);
-      notifyCoinDeducted(cost, newPoints, `${service} 프리미엄`);
-      setPremiumFlowStage('generate');
-    } catch (e) {
-      console.error('[handleStartPremiumGeneration]', e);
-      setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      const passed = await runPremiumIntroGate(service);
+      if (!passed) return;
+
+      if (unlockedFeatures.premiumDivinationPack) {
+        setPremiumFlowStage('generate');
+        return;
+      }
+
+      const token = localStorage.getItem('fortune_auth_token');
+      if (!token && !isAdminUser) return;
+      const adminToken = getFlowerAdminTokenClient();
+      // 관리자 모드: consume API 없이 즉시 generate 단계로 이동 (코인 차감 없음)
+      if (adminToken || isAdminUser) {
+        setPremiumFlowStage('generate');
+        return;
+      }
+      const adminTestTier = getFlowerAdminTestTierClient();
+      const authHeaders = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+        ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
+      };
+
+      const cost = PREMIUM_SERVICE_COST[service];
+      setProcessingMessage(`${premiumLabel} 결제를 진행 중입니다.`);
+      setPremiumGateLoading(service);
+      try {
+        const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId: `premium:${service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
+        });
+        if (res.status === 402) { setShowRechargeModal(true); return; }
+        if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }
+        const newPoints = data?.user?.points !== undefined ? Number(data.user.points) : Math.max(0, currentCoins - cost);
+        setCurrentCoins(newPoints);
+        saveUserPoints(newPoints);
+        notifyCoinDeducted(cost, newPoints, `${service} 프리미엄`);
+        setPremiumFlowStage('generate');
+      } catch (e) {
+        console.error('[handleStartPremiumGeneration]', e);
+        setPremiumGateError('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      } finally {
+        setPremiumGateLoading(null);
+      }
     } finally {
-      setPremiumGateLoading(null);
+      stopProcessing();
     }
   };
 

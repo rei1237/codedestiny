@@ -17,6 +17,7 @@ import InternalLinksHub from "./components/InternalLinksHub";
 import AuthWidget from "./components/AuthWidget";
 import DisclaimerBanner from "./components/DisclaimerBanner";
 import { ToastProvider } from "./components/Toast";
+import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import DeferredAdsense from "./components/DeferredAdsense";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 
@@ -405,90 +406,92 @@ export default async function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
       <body>
-        {/* Google AdSense Auto Ads - defer after interaction/idle to protect mobile LCP/TBT */}
-        {shouldLoadAdsense ? <DeferredAdsense /> : null}
-        <AppVersionGuard />
-        {DevWebVitalsConsole ? <DevWebVitalsConsole /> : null}
-        <ToastProvider />
-        {/* 전역 인증 상태 헤더 */}
-        {!isFullscreenRoute && (
-        <header
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 16px",
-            height: "52px",
-            background: "rgba(7, 11, 31, 0.88)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
-          }}
-        >
-          <Link
-            href="/"
+        <PaymentProcessingProvider>
+          {/* Google AdSense Auto Ads - defer after interaction/idle to protect mobile LCP/TBT */}
+          {shouldLoadAdsense ? <DeferredAdsense /> : null}
+          <AppVersionGuard />
+          {DevWebVitalsConsole ? <DevWebVitalsConsole /> : null}
+          <ToastProvider />
+          {/* 전역 인증 상태 헤더 */}
+          {!isFullscreenRoute && (
+          <header
             style={{
-              fontWeight: 900,
-              fontSize: "16px",
-              letterSpacing: "-0.02em",
-              background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              textDecoration: "none",
+              position: "sticky",
+              top: 0,
+              zIndex: 50,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 16px",
+              height: "52px",
+              background: "rgba(7, 11, 31, 0.88)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              borderBottom: "1px solid rgba(124, 58, 237, 0.2)",
             }}
           >
-            ✦ Code Destiny
-          </Link>
-          <AuthWidget />
-        </header>
-        )}
-        {!isFullscreenRoute && (
-        <nav
-          aria-label="주요 내비게이션"
-          style={{
-            position: "sticky",
-            top: "52px",
-            zIndex: 45,
-            display: "flex",
-            gap: "8px",
-            alignItems: "center",
-            overflowX: "auto",
-            whiteSpace: "nowrap",
-            padding: "8px 12px",
-            borderBottom: "1px solid rgba(124, 58, 237, 0.16)",
-            background: "rgba(10, 14, 37, 0.88)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-          }}
-        >
-          {headerNavItems.map((item) => (
             <Link
-              key={item.href}
-              href={item.href}
+              href="/"
               style={{
+                fontWeight: 900,
+                fontSize: "16px",
+                letterSpacing: "-0.02em",
+                background: "linear-gradient(135deg, #a78bfa, #4ecdc4)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
                 textDecoration: "none",
-                color: "#dbe5ff",
-                border: "1px solid rgba(148,163,184,0.25)",
-                borderRadius: "999px",
-                padding: "5px 12px",
-                fontSize: "0.85rem",
-                lineHeight: 1.2,
-                background: "rgba(15,23,42,0.7)",
               }}
             >
-              {item.label}
+              ✦ Code Destiny
             </Link>
-          ))}
-        </nav>
-        )}
-        <div>{children}</div>
-        <DisclaimerBanner />
-        {!isFullscreenRoute && <InternalLinksHub />}
-        {!hideFooter && <SiteFooterHub />}
+            <AuthWidget />
+          </header>
+          )}
+          {!isFullscreenRoute && (
+          <nav
+            aria-label="주요 내비게이션"
+            style={{
+              position: "sticky",
+              top: "52px",
+              zIndex: 45,
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              overflowX: "auto",
+              whiteSpace: "nowrap",
+              padding: "8px 12px",
+              borderBottom: "1px solid rgba(124, 58, 237, 0.16)",
+              background: "rgba(10, 14, 37, 0.88)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+            }}
+          >
+            {headerNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  textDecoration: "none",
+                  color: "#dbe5ff",
+                  border: "1px solid rgba(148,163,184,0.25)",
+                  borderRadius: "999px",
+                  padding: "5px 12px",
+                  fontSize: "0.85rem",
+                  lineHeight: 1.2,
+                  background: "rgba(15,23,42,0.7)",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          )}
+          <div>{children}</div>
+          <DisclaimerBanner />
+          {!isFullscreenRoute && <InternalLinksHub />}
+          {!hideFooter && <SiteFooterHub />}
+        </PaymentProcessingProvider>
       </body>
     </html>
   );
