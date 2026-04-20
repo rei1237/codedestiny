@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
@@ -6032,65 +6032,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var key = button.getAttribute('data-unlock-key') || '';
     if (unlockedFeatureMap[key]) {
       button.disabled = true;
-      button.classList.remove('is-loading');
-      button.removeAttribute('aria-busy');
       button.textContent = '해제 완료 ✅';
       button.style.opacity = '0.86';
       button.style.cursor = 'default';
-    }
-  }
-
-  function _cdSetUnlockButtonLoading(button, isLoading, loadingText) {
-    if (!button) return;
-    var key = button.getAttribute('data-unlock-key') || '';
-    if (isLoading && unlockedFeatureMap[key]) return;
-    if (isLoading) {
-      if (button.dataset.cdUnlockLoading === '1') return;
-      button.dataset.cdUnlockLoading = '1';
-      button.dataset.cdPrevText = button.textContent || '';
-      button.dataset.cdPrevOpacity = button.style.opacity || '';
-      button.dataset.cdPrevCursor = button.style.cursor || '';
-      button.dataset.cdPrevDisabled = button.disabled ? '1' : '0';
-      button.classList.add('is-loading');
-      button.setAttribute('aria-busy', 'true');
-      button.disabled = true;
-      button.style.opacity = '0.92';
-      button.style.cursor = 'wait';
-      button.textContent = loadingText || '해금 처리 중...';
-      return;
-    }
-    if (button.dataset.cdUnlockLoading !== '1') return;
-    if (unlockedFeatureMap[key]) {
-      button.classList.remove('is-loading');
-      button.removeAttribute('aria-busy');
-      delete button.dataset.cdUnlockLoading;
-      delete button.dataset.cdPrevText;
-      delete button.dataset.cdPrevOpacity;
-      delete button.dataset.cdPrevCursor;
-      delete button.dataset.cdPrevDisabled;
-      UnlockButton(button);
-      return;
-    }
-    button.classList.remove('is-loading');
-    button.removeAttribute('aria-busy');
-    button.textContent = button.dataset.cdPrevText || button.textContent || '';
-    button.style.opacity = button.dataset.cdPrevOpacity || '';
-    button.style.cursor = button.dataset.cdPrevCursor || '';
-    button.disabled = button.dataset.cdPrevDisabled === '1';
-    delete button.dataset.cdUnlockLoading;
-    delete button.dataset.cdPrevText;
-    delete button.dataset.cdPrevOpacity;
-    delete button.dataset.cdPrevCursor;
-    delete button.dataset.cdPrevDisabled;
-  }
-
-  function _cdSetUnlockButtonsLoadingByKey(unlockKey, isLoading, loadingText) {
-    if (!unlockKey) return;
-    var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"][data-unlock-key]');
-    for (var i = 0; i < nodes.length; i += 1) {
-      var node = nodes[i];
-      if ((node.getAttribute('data-unlock-key') || '') !== unlockKey) continue;
-      _cdSetUnlockButtonLoading(node, isLoading, loadingText);
     }
   }
 
@@ -6251,7 +6195,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (isAdminUser()) {
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
-      refreshUnlockButtons();
+      UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
       return;
     }
@@ -6262,11 +6206,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       return;
     }
 
-    var confirmed = window.confirm('꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
+    var confirmed = window.confirm('꽃꽃돼지 코인 ' + cost + '코인을 사용하여 해제하시겠습니까?');
     if (!confirmed) return;
 
     if (consumeInFlight) return;
-    _cdSetUnlockButtonsLoadingByKey(featureKey, true, '해금 처리 중...');
     consumeInFlight = true;
     try {
       var result = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -6279,7 +6222,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       });
 
       if (result.status === 402) {
-        window.alert('꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
+        window.alert('꽃꽃돼지 코인이 부족해요. 충전 창으로 이동합니다.');
         openChargeModal();
         return;
       }
@@ -6294,7 +6237,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       updateBadge();
       unlockedFeatureMap[featureKey] = true;
       saveTileLocks();
-      refreshUnlockButtons();
+      UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
       window.alert('잠금이 해제되었습니다. 행운의 문이 열렸어요!');
       // 여기서 '꿀꿀' 사주나 '짤랑' 소리 재생
@@ -6302,7 +6245,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     } catch (error) {
       console.error('[golden-pig-coin] consume failed', error);
     } finally {
-      _cdSetUnlockButtonsLoadingByKey(featureKey, false);
       consumeInFlight = false;
     }
   }
@@ -6581,9 +6523,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (event.cancelable && typeof event.preventDefault === 'function') event.preventDefault();
   }
 
-  function _cdSetPerUseLoading(actionNode, isLoading, loadingText) {
+  function _cdSetPerUseLoading(actionNode, isLoading) {
     if (!actionNode) return true;
-    var badge = actionNode.querySelector('.tarot-tile__coin-badge');
     if (isLoading) {
       if (actionNode.dataset.cdCoinGateBusy === '1') return false;
       actionNode.dataset.cdCoinGateBusy = '1';
@@ -6593,10 +6534,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       actionNode.style.pointerEvents = 'none';
       actionNode.setAttribute('aria-busy', 'true');
       actionNode.classList.add('is-processing');
-      if (badge) {
-        actionNode.dataset.cdPrevBadgeText = badge.textContent || '';
-        badge.textContent = loadingText || '처리 중...';
-      }
       if (typeof actionNode.disabled !== 'undefined') {
         actionNode.dataset.cdPrevDisabled = actionNode.disabled ? '1' : '0';
         actionNode.disabled = true;
@@ -6608,59 +6545,109 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     actionNode.style.pointerEvents = actionNode.dataset.cdPrevPointer || '';
     actionNode.removeAttribute('aria-busy');
     actionNode.classList.remove('is-processing');
-    if (badge && typeof actionNode.dataset.cdPrevBadgeText !== 'undefined') {
-      badge.textContent = actionNode.dataset.cdPrevBadgeText;
-    }
     if (typeof actionNode.disabled !== 'undefined') {
       actionNode.disabled = actionNode.dataset.cdPrevDisabled === '1';
     }
     delete actionNode.dataset.cdPrevOpacity;
     delete actionNode.dataset.cdPrevPointer;
-    delete actionNode.dataset.cdPrevBadgeText;
     delete actionNode.dataset.cdPrevDisabled;
     return true;
   }
 
+  var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
+
+  function _cdShouldDeferTarotCoinGate(action) {
+    if (!action) return false;
+    return action === 'openTarotLoveModal'
+      || action === 'openTarotHealingModal'
+      || action === 'openTarotSelfEsteemModal'
+      || action === 'openTarotReunionModal'
+      || action === 'openTarotYearFortuneModal'
+      || action === 'openTarotModal'
+      || action === 'startIjikTarot'
+      || action === 'startMindScanTarot'
+      || action === 'startCrystalSoulTarot';
+  }
+
+  async function _cdConfirmMembershipStart(action, contentTitle) {
+    if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
+      return true;
+    }
+    if (sessionStorage.getItem('cd_membership_service_started') === '1') return true;
+
+    if (!window.confirm(__cdMembershipConsentMessage)) return false;
+
+    try {
+      var r = await fetchJsonWithAuth('/api/fortune/pig-coin/profile-subscription/start-service', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: action || 'membership-content',
+          contentTitle: contentTitle || '멤버십 전용 콘텐츠',
+          legalVersion: '2026-04-11'
+        }),
+      });
+      if (!r.ok) {
+        if (r.status === 401) {
+          if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+            window.location.href = '/login?next=%2F';
+          }
+        } else {
+          window.alert((r.payload && r.payload.message) || '동의 기록 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+        return false;
+      }
+      sessionStorage.setItem('cd_membership_service_started', '1');
+      return true;
+    } catch (_e) {
+      window.alert('동의 기록 저장 중 오류가 발생했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+      return false;
+    }
+  }
+
   // 회당 코인 차감 공통 로직 (click / touchend 양쪽에서 사용)
   function _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost) {
-    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return Promise.resolve(false);
+    if (!actionNode || actionNode.dataset.cdCoinGateBusy === '1') return;
     _cdSafeBlockEvent(event);
-    if (!_cdSetPerUseLoading(actionNode, true, '결제 처리 중...')) return Promise.resolve(false);
-    return (async function () {
+    if (!_cdSetPerUseLoading(actionNode, true)) return;
+    (async function () {
       try {
       // 관리자 모드: 코인 차감 없이 즉시 실행 (인증 토큰 체크보다 먼저)
       try {
-        if (window.__cdAdminBypass || isAdminUser()) {
+        if (window.__cdAdminBypass || isAdminUser() || !!sessionStorage.getItem('flower_admin_token')) {
           // 하위 모달(openZiweiBookModal 등)에서도 관리자 모드가 인식되도록 전파
           window.__cdAdminBypass = true;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       } catch (_adminErr) {}
       if (_cdShouldDeferTarotCoinGate(action)) {
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
-        return true;
+        return;
       }
       if (!hasAuthToken()) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
           window.location.href = '/login?next=%2F';
         }
-        return false;
+        return;
       }
       // 프리미엄 구독 플랜 보유자: 코인 차감 없이 즉시 실행
       try {
         var _subUser = readAuthUser();
         var _subPlan = (_subUser && _subUser.plan) ? String(_subUser.plan) : '';
         if (_subPlan === 'unlimited' || _subPlan === 'premium') {
+          var _subTitleEl = actionNode.querySelector('.tarot-tile__title');
+          var _subContentTitle = _subTitleEl ? _subTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+          var _consentOk = await _cdConfirmMembershipStart(action, _subContentTitle);
+          if (!_consentOk) return;
           sessionStorage.setItem('cd_pa_' + action, '1');
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       } catch (_subErr) {}
       // 프리미엄 북 액션: 운명 카드(프로필) 사전 체크 — 코인 차감 전에 검사 (코인 손실 방지)
-      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium' || action === 'gotoNamingPremium') {
+      if (action === 'gotoZiweiPremium' || action === 'gotoAstrologyPremium' || action === 'gotoSukuyoPremium' || action === 'gotoVedicPremium') {
         var _cgProfile = null;
         try {
           var _cgNs = 'FORTUNE_APP_USER_PROFILES';
@@ -6673,21 +6660,19 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (!_cgProfile) {
           // 프로필 없음: 코인 차감 없이 모달 열기 → no-profile 화면 표시
           _cdInvokeActionDirect(action, actionNode);
-          return true;
+          return;
         }
       }
       if (userBalance < tileCoinCost) {
-        if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
+        if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileCoinCost + '코인\n충전 창을 여시겠습니까?')) {
           openChargeModal();
         }
-        return false;
+        return;
       }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
-      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return false;
-      if (consumeInFlight) {
-        return false;
-      }
+      if (!window.confirm('🪙 ' + fname + '\n이용에 ' + tileCoinCost + '코인이 필요합니다.\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n진행하시겠습니까?')) return;
+      if (consumeInFlight) return;
       consumeInFlight = true;
       try {
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
@@ -6696,12 +6681,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         });
         if (r.status === 404 || r.status >= 500) {
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
-          return false;
+          return;
         }
-        if (r.status === 402) { openChargeModal(); return false; }
+        if (r.status === 402) { openChargeModal(); return; }
         if (!r.ok) {
           window.alert((r.payload && r.payload.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
-          return false;
+          return;
         }
         if (r.payload && r.payload.user && typeof r.payload.user.points === 'number') {
           userBalance = r.payload.user.points;
@@ -6712,11 +6697,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         updateBadge();
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
-        return true;
       } catch (e) {
         console.error('[coin gate]', e);
         window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-        return false;
       } finally {
         consumeInFlight = false;
       }
@@ -6787,21 +6770,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
         // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // prem-card: Preview 패널 먼저 표시 (desktop & mobile 통일 UX, 합성 클릭 이중 실행 방지)
-        // pvw-bypass 없는 prem-card → 프리뷰 패널 오픈 → CTA → 코인게이트 순서
-        if (actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
-          if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(actionNode)) {
-            _cdSafeBlockEvent(event);
-            return;
-          }
-          // Preview 없는 경우(D 딕셔너리 미등록) 직접 코인게이트로 폴백
-          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
-          return;
-        }
-        // .tarot-tile / .lifebook-tile / .lovebible-tile: pvw-bypass 없으면 Preview가 처리
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-bypass')) {
+        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
-          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser())) {
+          if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
@@ -6823,10 +6795,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
         // Preview 인터셉터로 위임 (이벤트 계속 전파)
       } else {
-      if (!_cdSetPerUseLoading(actionNode, true, '해금 처리 중...')) return;
       _cdSafeBlockEvent(event);
       (async function () {
-        try {
         if (!hasAuthToken()) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
             window.location.href = '/login?next=%2F';
@@ -6849,6 +6819,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           var _lockSubUser = readAuthUser();
           var _lockSubPlan = (_lockSubUser && _lockSubUser.plan) ? String(_lockSubUser.plan) : '';
           if (_lockSubPlan === 'unlimited' || _lockSubPlan === 'premium') {
+            var _lockTitleEl = actionNode.querySelector('.tarot-tile__title');
+            var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
+            var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
+            if (!_lockConsentOk) return;
             unlockedFeatureMap[tileLockKey] = true;
             saveTileLocks();
             applyTileLockVisuals();
@@ -6861,7 +6835,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         var fname = titleEl ? titleEl.textContent.trim() : '서비스';
         if (!window.confirm('🔓 ' + fname + '\n' + tileLockCost + '코인으로 영구 해금하시겠습니까?\n(현재 보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인)\n한 번 해금하면 계속 이용 가능합니다!')) return;
         if (userBalance < tileLockCost) {
-          if (window.confirm('꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
+          if (window.confirm('꽃꽃돼지 코인이 부족해요 🐷\n보유: ' + Number(userBalance).toLocaleString('ko-KR') + '코인 / 필요: ' + tileLockCost + '코인\n충전 창을 여시겠습니까?')) {
             openChargeModal();
           }
           return;
@@ -6896,9 +6870,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         } finally {
           consumeInFlight = false;
-        }
-        } finally {
-          _cdSetPerUseLoading(actionNode, false);
         }
       })();
       return;
