@@ -389,9 +389,9 @@ export default function SiteFooterHub() {
 
         <hr style={DIVIDER} />
 
-        {/* ── About 서비스 소개 스니펫 (AdSense · E-E-A-T 대응) ── */}
+        {/* ── About/사업자/광고/환불/정책 안내 통합: 랜딩/소개에서 삭제된 모든 정보 푸터에 집중 노출 (중복 안내 제거) ── */}
         <section
-          aria-label="서비스 소개"
+          aria-label="서비스 소개 및 사업자·환불 정책"
           style={{
             maxWidth: "860px",
             margin: "0 auto 28px",
@@ -401,29 +401,54 @@ export default function SiteFooterHub() {
             border: "1px solid rgba(124,58,237,0.22)",
           }}
         >
-          {false && LEGAL_OWNER_NAME}
           <h3 style={{ fontSize: "12px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px", paddingBottom: "6px", borderBottom: "1px solid rgba(124,58,237,0.18)" }}>
             About Code Destiny — 꿀꿀 만세력이란?
           </h3>
           <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
-            <strong style={{ color: "#94a3b8" }}>Code Destiny(꿀꿀 만세력)</strong>는 사주팔자·AI 타로·자미두수·코즈믹 점성술·
-            숙요점·동물관상·꿈 해몽 등 다양한 운세 서비스를 제공하는
-            AI 기반 운세 플랫폼입니다. 한국어·영어·일본어·중국어·힌디어·스페인어 등 10개 언어를 지원합니다.
-            모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
+            <strong style={{ color: "#94a3b8" }}>Code Destiny(꿀꿀 만세력)</strong>는 사주팔자·AI 타로·자미두수·점성술·숙요점·동물관상·꿈 해몽 등 다양한 운세·점술 콘텐츠를 제공하는 AI 기반 운세 플랫폼입니다. 생년월일 하나로 폭넓은 해석 경험을 제공하며, 사용자가 자신의 상황을 더 명확히 이해하고 선택을 정리하도록 돕습니다.<br />
+            한국어·영어·일본어·중국어·힌디어·스페인어 등 10개 언어 지원. 모든 결과는 오락·자기성찰 목적이며, 법률·의료·투자 판단을 대체하지 않습니다.
           </p>
           <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#64748b", lineHeight: 1.82, wordBreak: "keep-all" }}>
-            본 서비스는 <strong style={{ color: "#94a3b8" }}>Google AdSense</strong> 등 제3자 광고를 노출할 수 있으며,
-            광고 수익은 전적으로 서비스 품질 유지 및 신규 기능 개발에 재투자됩니다.
-            운영 주체: 코드 데스티니 (사업자등록번호 372-23-02329) |
-            이메일: seongbae555@gmail.com
+            본 서비스는 <strong style={{ color: "#94a3b8" }}>Google AdSense</strong> 등 제3자 광고를 노출할 수 있으며, 광고 수익은 전적으로 서비스 품질 유지 및 신규 기능 개발에 재투자됩니다.<br />
+            운영 주체: 코드 데스티니 (사업자등록번호 372-23-02329) | 이메일: seongbae555@gmail.com
           </p>
-          <nav aria-label="서비스 소개 링크" style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px" }}>
-            <a href={`${ORIGIN}/about`} style={{ color: "#a78bfa", textDecoration: "none", fontSize: "12px", fontWeight: 700 }}>서비스 소개 About →</a>
-            <a href={`${ORIGIN}/faq`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>FAQ</a>
-            <a href={`${ORIGIN}/contact-us`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>문의하기</a>
-            <a href={`${ORIGIN}/privacy-policy`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>개인정보처리방침</a>
-            <a href={`${ORIGIN}/terms-of-service`} style={{ color: "#475569", textDecoration: "none", fontSize: "12px" }}>이용약관</a>
-          </nav>
+          <ul style={{ ...BUSINESS_LIST, marginBottom: "10px" }}>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>상호명:</span> 코드 데스티니 (Code Destiny)</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>대표자:</span> {LEGAL_OWNER_NAME}</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업자등록번호:</span> 372-23-02329</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>연락처:</span> 010-7180-7398</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>이메일:</span> seongbae555@gmail.com</li>
+            <li style={BUSINESS_ITEM}><span style={BUSINESS_KEY}>사업장 주소:</span> 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</li>
+          </ul>
+          <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(71,85,105,0.45)" }}>
+            <p style={{ margin: "0 0 6px", fontSize: "12px", color: "#cbd5e1", lineHeight: 1.72, wordBreak: "keep-all" }}>
+              모든 거래에 대한 책임과 환불, 민원 등은 <strong style={{ color: "#e2e8f0" }}>&#39;코드 데스티니(Code Destiny)&#39;</strong>에서 진행합니다.
+            </p>
+            <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.72 }}>
+              민원담당자 : 박병하 (seongbae555@gmail.com)
+            </p>
+          </div>
+          <div style={REFUND_BOX}>
+            <p style={REFUND_HEAD}>코인 충전형 디지털 운세 서비스 환불 기준</p>
+            <p style={REFUND_SUMMARY}>
+              코인은 서비스 이용권 성격의 선결제 포인트이며, 전자상거래 관련 법령 및 약관에 따라 미사용 유상 코인 범위에서만 환불이 가능합니다.
+            </p>
+            <ul style={REFUND_RULES}>
+              <li style={REFUND_RULE_ITEM}>충전일로부터 7일 이내, 그리고 코인 전량 미사용 상태인 경우에 한해 결제금액 전액 환불이 가능합니다.</li>
+              <li style={REFUND_RULE_ITEM}>미사용 유상 코인은 전자상거래 관련 법령에 따라 &#39;7일이내청약철회 가능&#39; 기준으로 환불 접수할 수 있습니다.</li>
+              <li style={REFUND_RULE_ITEM}>결과 열람, 리딩 실행, AI 해석 생성 등으로 코인이 1회라도 차감된 경우 해당 차감분은 디지털 콘텐츠 제공이 완료된 것으로 보아 환불 대상에서 제외됩니다.</li>
+              <li style={REFUND_RULE_ITEM}>부분 환불은 잔여 유상 코인만 가능하며, 프로모션/이벤트/무상 지급 코인, 만료·소멸된 코인, 보상성 지급분은 환불되지 않습니다.</li>
+              <li style={REFUND_RULE_ITEM}>환불 금액 산정은 최근 충전분 우선 차감 기준을 적용하며, 결제사 수수료·송금 수수료 등 실제 발생비용은 관련 법령 허용 범위 내에서 공제될 수 있습니다.</li>
+              <li style={REFUND_RULE_ITEM}>타인 명의 결제, 도용 카드 사용, 비정상 다계정 환불 시도, 약관 위반이 확인되면 환불 심사가 보류되거나 제한될 수 있습니다.</li>
+              <li style={REFUND_RULE_ITEM}>환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 환급 완료까지 통상 영업일 3~10일이 소요됩니다.</li>
+            </ul>
+            <p style={REFUND_NOTICE}>
+              본 정책은 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
+            </p>
+            <p style={{ ...REFUND_NOTICE, color: "#fda4af", marginTop: "8px", fontWeight: 700 }}>
+              환불 처리는 결제 수단(카드)으로만 가능합니다.
+            </p>
+          </div>
         </section>
 
         {/* SEO 텍스트 블록 — 주요 키워드 자연 표현 */}
