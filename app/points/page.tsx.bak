@@ -1,12 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { GalaxiaPayResult } from "./GalaxiaPayModal";
-
-const GalaxiaPayModal = dynamic(() => import("./GalaxiaPayModal"), { ssr: false });
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -270,15 +266,14 @@ function saveAdminTestTierClient(tier: AdminTestTier) {
 }
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [
-  { id: "kakao",         label: "카카오페이",             logo: "🟨", desc: "간편 결제",              group: "domestic" },
-  { id: "galaxia",       label: "갤럭시아(카드/간편)",    logo: "💳", desc: "카드사 선택 결제",        group: "domestic" },
-  { id: "toss_card",     label: "토스페이먼츠(카드)",     logo: "💠", desc: "국내 카드",               group: "domestic" },
-  { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체",              group: "domestic" },
-  { id: "naverpay",      label: "네이버페이",             logo: "🟩", desc: "네이버 간편 결제",         group: "domestic" },
-  { id: "card_general",  label: "일반 신용카드",          logo: "🔵", desc: "토스페이먼츠 일반카드",    group: "domestic" },
-  { id: "paypal",        label: "PayPal",                 logo: "🅿️", desc: "해외 결제",              group: "global"   },
-  { id: "applepay",      label: "Apple Pay",              logo: "🍎", desc: "포트원 지원 PG 기준",     group: "global"   },
-  { id: "googlepay",     label: "Google Pay",             logo: "🟢", desc: "포트원 지원 PG 기준",     group: "global"   },
+  { id: "kakao",         label: "카카오페이",             logo: "🟨", desc: "간편 결제",          group: "domestic" },
+  { id: "toss_card",     label: "토스페이먼츠(카드)",     logo: "💳", desc: "국내 카드",           group: "domestic" },
+  { id: "toss_transfer", label: "토스페이먼츠(계좌이체)", logo: "🏦", desc: "실시간 이체",          group: "domestic" },
+  { id: "naverpay",      label: "네이버페이",             logo: "🟩", desc: "네이버 간편 결제",     group: "domestic" },
+  { id: "card_general",  label: "일반 신용카드",          logo: "💠", desc: "토스페이먼츠 일반카드", group: "domestic" },
+  { id: "paypal",        label: "PayPal",                 logo: "🅿️", desc: "해외 결제",          group: "global"   },
+  { id: "applepay",      label: "Apple Pay",              logo: "🍎", desc: "포트원 지원 PG 기준", group: "global"   },
+  { id: "googlepay",     label: "Google Pay",             logo: "🟢", desc: "포트원 지원 PG 기준", group: "global"   },
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -384,17 +379,15 @@ function resolvePgConfig(methodId: string) {
     googlepay:     process.env.NEXT_PUBLIC_PORTONE_PG_GOOGLEPAY,
   } as Record<string, string | undefined>;
 
-  const galaxiaMid = process.env.NEXT_PUBLIC_GALAXIA_MID || "";
   const defaults: Record<string, { pg: string; payMethod: string }> = {
-    kakao:         { pg: overrides.kakao         || "kakaopay.TC0ONETIME",                payMethod: "card"   },
-    galaxia:       { pg: galaxiaMid ? `galaxia.${galaxiaMid}` : "galaxia",                payMethod: "card"   },
-    toss_card:     { pg: overrides.toss_card      || "tosspayments",                      payMethod: "card"   },
-    toss_transfer: { pg: overrides.toss_transfer  || "tosspayments",                      payMethod: "trans"  },
-    naverpay:      { pg: overrides.naverpay       || "naverpay",                          payMethod: "card"   },
-    card_general:  { pg: overrides.card_general   || "tosspayments",                      payMethod: "card"   },
-    paypal:        { pg: overrides.paypal         || "paypal",                            payMethod: "paypal" },
-    applepay:      { pg: overrides.applepay       || "tosspayments",                      payMethod: "card"   },
-    googlepay:     { pg: overrides.googlepay      || "tosspayments",                      payMethod: "card"   },
+    kakao:         { pg: overrides.kakao         || "kakaopay.TC0ONETIME",     payMethod: "card"   },
+    toss_card:     { pg: overrides.toss_card      || "tosspayments",            payMethod: "card"   },
+    toss_transfer: { pg: overrides.toss_transfer  || "tosspayments",            payMethod: "trans"  },
+    naverpay:      { pg: overrides.naverpay       || "naverpay",                payMethod: "card"   },
+    card_general:  { pg: overrides.card_general   || "tosspayments",            payMethod: "card"   },
+    paypal:        { pg: overrides.paypal         || "paypal",                  payMethod: "paypal" },
+    applepay:      { pg: overrides.applepay       || "tosspayments",            payMethod: "card"   },
+    googlepay:     { pg: overrides.googlepay      || "tosspayments",            payMethod: "card"   },
   };
   return defaults[methodId] || defaults.card_general;
 }
@@ -1035,8 +1028,6 @@ export default function PointsPage() {
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
-  const [isGalaxiaModalOpen, setIsGalaxiaModalOpen] = useState(false);
-  const [galaxiaMerchantUid, setGalaxiaMerchantUid] = useState("");
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
@@ -1422,15 +1413,6 @@ export default function PointsPage() {
         paymentMethod: selectedMethod,
       });
 
-      /* ── 갤럭시아 선택 시 GalaxiaPayModal로 분기 ── */
-      if (selectedMethod === "galaxia") {
-        setGalaxiaMerchantUid(order.merchantUid);
-        setIsMethodModalOpen(false);
-        setIsProcessing(false);
-        setIsGalaxiaModalOpen(true);
-        return;
-      }
-
       await ensurePortoneSdk();
 
       if (!window.IMP) {
@@ -1535,39 +1517,6 @@ export default function PointsPage() {
       pushToast("error", getErrorMessage(error, "결제를 시작하지 못했습니다."));
     }
   };
-
-  /* ── 갤럭시아 결제 성공 핸들러 ─────────────────────────────────── */
-  const handleGalaxiaSuccess = useCallback(
-    async (res: GalaxiaPayResult) => {
-      setIsGalaxiaModalOpen(false);
-      setIsProcessing(true);
-      setProcessingText("결제 검증 및 포인트 정산을 진행하고 있습니다...");
-      try {
-        const pending = readPendingOrder();
-        const result = await confirmPaymentWithServer({
-          impUid: res.imp_uid!,
-          merchantUid: res.orderId || pending?.merchantUid,
-          paymentAmount: pending?.paymentAmount,
-          chargePoints: pending?.chargePoints,
-          paymentMethod: "galaxia",
-        });
-        clearPendingOrder();
-        await handleConfirmSuccess(result);
-      } catch (error: unknown) {
-        reportPaymentFailureToServer({
-          merchantUid: res.orderId,
-          impUid: res.imp_uid,
-          reasonCode: "galaxia_confirm_failed",
-          reasonMessage: getErrorMessage(error, "갤럭시아 결제 검증에 실패했습니다."),
-          paymentMethod: "galaxia",
-        });
-        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [confirmPaymentWithServer, handleConfirmSuccess, pushToast, reportPaymentFailureToServer],
-  );
 
   /* ── 구독 결제 핸들러 ───────────────────────────────────────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
@@ -1954,30 +1903,6 @@ export default function PointsPage() {
             <p className="mt-1 text-sm text-[#7A5230]">{processingText}</p>
           </div>
         </div>
-      )}
-
-      {/* ══ 갤럭시아 카드 선택 모달 ══════════════════════════════════ */}
-      {isGalaxiaModalOpen && authUser && (
-        <GalaxiaPayModal
-          pkg={selectedPackage}
-          buyerName={authUser.name || "회원"}
-          buyerEmail={authUser.email || ""}
-          orderId={galaxiaMerchantUid}
-          onSuccess={handleGalaxiaSuccess}
-          onFail={(res) => {
-            setIsGalaxiaModalOpen(false);
-            clearPendingOrder();
-            const msg = res.errorMsg
-              ? mapPaymentErrorMessage(res.errorMsg)
-              : "결제가 취소되었습니다. 원하실 때 다시 시도하실 수 있어요.";
-            pushToast("error", msg);
-          }}
-          onClose={() => {
-            setIsGalaxiaModalOpen(false);
-            clearPendingOrder();
-          }}
-          isProcessing={isProcessing}
-        />
       )}
     </main>
   );
