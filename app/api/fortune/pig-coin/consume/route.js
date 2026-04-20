@@ -13,6 +13,8 @@ const SUBSCRIPTION_FREE_LIMIT = {
   vvip: 100,
 };
 
+const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9:_\-.]{8,120}$/;
+
 function getSubscriptionFreeLimit(user) {
   const tier = String(user?.profileSubscription?.tier || "free");
   const expiresAtRaw = user?.profileSubscription?.expiresAt;
@@ -20,6 +22,13 @@ function getSubscriptionFreeLimit(user) {
   if (!expiresAt || Number.isNaN(expiresAt.getTime())) return 0;
   if (expiresAt.getTime() <= Date.now()) return 0;
   return Number(SUBSCRIPTION_FREE_LIMIT[tier] || 0);
+}
+
+function normalizeIdempotencyKey(rawValue) {
+  const key = String(rawValue || "").trim();
+  if (!key) return "";
+  if (!IDEMPOTENCY_KEY_RE.test(key)) return "";
+  return key.slice(0, 120);
 }
 
 export async function POST(request) {
@@ -44,6 +53,8 @@ export async function POST(request) {
 
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
+  const idempotencyKey = normalizeIdempotencyKey(body?.requestId || request.headers.get("x-idempotency-key") || "");
 
   // 관리자 모드: 코인 차감 없이 즉시 통과 (로그인 userId 존재 여부와 무관)
   if (adminMode) {
@@ -57,22 +68,52 @@ export async function POST(request) {
 
   try {
     const User = await getUserModel();
+    const PointHistory = await getPointHistoryModel();
+
+    if (idempotencyKey) {
+      const existing = await PointHistory.findOne({
+        userId,
+        featureKey,
+        kind: { $in: ["deduct", "adjust"] },
+        "metadata.idempotencyKey": idempotencyKey,
+      }).sort({ createdAt: -1 }).lean();
+
+      if (existing) {
+        const existingUser = await User.findById(userId).select("points").lean();
+        const existingPoints = Number(existingUser?.points ?? existing?.balanceAfter ?? 0);
+        return NextResponse.json({
+          ok: true,
+          idempotentReplay: true,
+          subscriptionFree: Boolean(existing?.metadata?.subscriptionFree),
+          message: "이미 처리된 결제 요청입니다.",
+          requiredCoins: cost,
+          user: { id: String(userId), points: existingPoints },
+        });
+      }
+    }
+
     const user = await User.findById(userId).select("points profileSubscription").lean();
     if (!user) {
       return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
     }
 
     const freeLimit = getSubscriptionFreeLimit(user);
-    if (freeLimit > 0 && cost <= freeLimit) {
-      getPointHistoryModel().then(PH => PH.create({
+    if (!forceDeduct && freeLimit > 0 && cost <= freeLimit) {
+      await PointHistory.create({
         userId,
         kind: "adjust",
         delta: 0,
         balanceAfter: Number(user.points || 0),
         reason: `${reason} (구독 무료 사용)`,
         featureKey,
-        metadata: { source: "fortune.pig-coin.consume", subscriptionFree: true, freeLimit, requestedCost: cost },
-      })).catch(() => {});
+        metadata: {
+          source: "fortune.pig-coin.consume",
+          subscriptionFree: true,
+          freeLimit,
+          requestedCost: cost,
+          idempotencyKey: idempotencyKey || undefined,
+        },
+      }).catch(() => {});
 
       return NextResponse.json({
         ok: true,
@@ -93,16 +134,30 @@ export async function POST(request) {
       return NextResponse.json({ ok: false, message: "코인이 부족합니다.", requiredCoins: cost }, { status: 402 });
     }
 
-    // 히스토리 비동기 기록 (실패해도 응답에 영향 없음)
-    getPointHistoryModel().then(PH => PH.create({
-      userId,
-      kind: "deduct",
-      delta: -cost,
-      balanceAfter: Number(updatedUser.points || 0),
-      reason,
-      featureKey,
-      metadata: { source: "fortune.pig-coin.consume" },
-    })).catch(() => {});
+    try {
+      await PointHistory.create({
+        userId,
+        kind: "deduct",
+        delta: -cost,
+        balanceAfter: Number(updatedUser.points || 0),
+        reason,
+        featureKey,
+        metadata: {
+          source: "fortune.pig-coin.consume",
+          idempotencyKey: idempotencyKey || undefined,
+          forceDeduct,
+        },
+      });
+    } catch (historyErr) {
+      console.error("[pig-coin/consume] history write failed, refunding:", historyErr);
+      await User.findByIdAndUpdate(userId, { $inc: { points: cost } }).catch((rollbackErr) => {
+        console.error("[pig-coin/consume] refund rollback failed:", rollbackErr);
+      });
+      return NextResponse.json({
+        ok: false,
+        message: "결제 기록 저장에 실패하여 코인을 복구했습니다. 잠시 후 다시 시도해 주세요.",
+      }, { status: 500 });
+    }
 
     return NextResponse.json({
       ok: true,

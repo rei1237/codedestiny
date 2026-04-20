@@ -6677,7 +6677,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       try {
         var r = await fetchJsonWithAuth('/api/fortune/pig-coin/consume', {
           method: 'POST',
-          body: JSON.stringify({ cost: tileCoinCost, reason: fname + ' 이용' }),
+          body: JSON.stringify({
+            cost: tileCoinCost, reason: fname + ' 이용',
+            forceDeduct: true,
+            requestId: perUseRequestId,
+          }),
         });
         if (r.status === 404 || r.status >= 500) {
           window.alert('에러 발생: 서버 응답이 불안정합니다. 잠시 후 다시 시도해 주세요.');
