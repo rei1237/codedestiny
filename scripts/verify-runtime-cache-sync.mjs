@@ -25,6 +25,10 @@ const runtimeFiles = [
   'public/js/core/index-inline-runtime.js',
 ];
 
+const syncPairs = [
+  ['js/sibyl-system.js', 'public/js/sibyl-system.js'],
+];
+
 const runtimeTagRe = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
 const sibylMarkers = [
@@ -111,6 +115,16 @@ if (sajuVersions.size > 0) {
       console.error(`[runtime-cache-sync] saju loader mismatch: ${rel} has ${v}, expected ${expected}`);
       failed = true;
     }
+  }
+}
+
+for (const [left, right] of syncPairs) {
+  const leftTxt = read(left);
+  const rightTxt = read(right);
+  if (!leftTxt || !rightTxt) continue;
+  if (leftTxt !== rightTxt) {
+    console.error(`[runtime-cache-sync] file sync mismatch: ${left} != ${right}`);
+    failed = true;
   }
 }
 
