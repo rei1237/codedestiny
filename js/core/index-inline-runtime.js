@@ -6012,7 +6012,62 @@ function closeSukuyoModal() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function navigateToVedic() {
+function __cdEnsureCosmicCompatPaid(actionName, onApproved) {
+  if (typeof onApproved !== 'function') return;
+
+  var bypassKey = 'cd_pa_' + actionName;
+  var isApproved = false;
+  try {
+    isApproved = sessionStorage.getItem(bypassKey) === '1';
+  } catch (_) {}
+
+  if (!isApproved) {
+    try {
+      isApproved = !!window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser());
+    } catch (_) {}
+  }
+
+  if (isApproved) {
+    try { sessionStorage.removeItem(bypassKey); } catch (_) {}
+    onApproved();
+    return;
+  }
+
+  var reasonMap = {
+    openAstroModal: '점성술 궁합',
+    openZiweiModal: '자미두수 궁합',
+    navigateToVedic: '베다점 궁합'
+  };
+  var reason = reasonMap[actionName] || '코즈믹 궁합';
+
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    window._cdCoinGatePerUse(50, reason, function() {
+      try { sessionStorage.setItem(bypassKey, '1'); } catch (_) {}
+      onApproved();
+    });
+    return;
+  }
+
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return;
+  }
+
+  window.alert(reason + '은(는) 1회 50코인 결제가 필요합니다. 잠시 후 다시 시도해 주세요.');
+}
+
+function navigateToVedic(_coinApproved) {
+  if (!_coinApproved) {
+    __cdEnsureCosmicCompatPaid('navigateToVedic', function() {
+      navigateToVedic(true);
+    });
+    return;
+  }
+
   if (typeof window.openFortuneFromProfile === 'function') {
     try {
       var bridged = window.openFortuneFromProfile('vedic');
@@ -6204,10 +6259,17 @@ function openGeomancyOracle() {
   window.location.href = cdResolveLocalizedFeatureHref('/geomancy-oracle-v4.html', cdGetCurrentLang());
 }
 
-function openZiweiModal(_retried) {
+function openZiweiModal(_retried, _coinApproved) {
+  if (!_coinApproved) {
+    __cdEnsureCosmicCompatPaid('openZiweiModal', function() {
+      openZiweiModal(false, true);
+    });
+    return;
+  }
+
   if (!_retried && __cdBirthModalDepsMissing()) {
     __cdEnsureBirthModalDepsLoaded()
-      .then(function() { openZiweiModal(true); })
+      .then(function() { openZiweiModal(true, true); })
       .catch(function(err) { console.error('[openZiweiModal] dependency load failed:', err); });
     return;
   }
@@ -6244,7 +6306,14 @@ function closeZiweiModal() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function openAstroModal(_retried) {
+function openAstroModal(_retried, _coinApproved) {
+  if (!_coinApproved) {
+    __cdEnsureCosmicCompatPaid('openAstroModal', function() {
+      openAstroModal(false, true);
+    });
+    return;
+  }
+
   if (!_retried) {
     Promise.resolve()
       .then(function() {
@@ -6256,7 +6325,7 @@ function openAstroModal(_retried) {
           return false;
         });
       })
-      .then(function() { openAstroModal(true); })
+      .then(function() { openAstroModal(true, true); })
       .catch(function(err) { console.error('[openAstroModal] dependency load failed:', err); });
     return;
   }
