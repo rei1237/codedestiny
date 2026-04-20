@@ -802,14 +802,161 @@
     freeSec && freeSec.classList.add('sb-fadein');
   }
 
+  function _getCoinBalanceSnapshot() {
+    try {
+      if (typeof window.userBalance === 'number' && !isNaN(window.userBalance)) {
+        return window.userBalance;
+      }
+      var raw = localStorage.getItem('fortune_auth_user') || sessionStorage.getItem('fortune_auth_user') || '{}';
+      var parsed = JSON.parse(raw);
+      var pts = Number(parsed.points);
+      return isNaN(pts) ? 0 : pts;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  function _ensureSibylPremiumCss() {
+    if (document.getElementById('sbPremiumCssLink')) return;
+    var link = document.createElement('link');
+    link.id = 'sbPremiumCssLink';
+    link.rel = 'stylesheet';
+    link.href = '/css/sibyl-premium.css?v=20260420-payflow1';
+    document.head.appendChild(link);
+  }
+
+  function _ensureSibylPremiumModal() {
+    var modal = _q('sbPremiumPayModal');
+    if (modal) return modal;
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = ''
+      + '<div id="sbPremiumPayModal" class="sb-premium-modal sb-hidden" role="dialog" aria-modal="true" aria-label="시빌라 도미네이터 결제">'
+      + '  <div class="sb-pm-overlay"></div>'
+      + '  <div class="sb-pm-content">'
+      + '    <div class="sb-pm-header">'
+      + '      <div class="sb-pm-icon">⚡</div>'
+      + '      <div class="sb-pm-title">DOMINATOR REPORT 결제</div>'
+      + '    </div>'
+      + '    <div class="sb-pm-body">'
+      + '      시빌라 도미네이터 리포트 실행 시 100코인이 차감됩니다.'
+      + '      <div class="sb-pm-stats">'
+      + '        <div>현재 보유 코인: <strong id="sbPmCoinBalance">0</strong></div>'
+      + '        <div>결제 코인: <strong>100</strong></div>'
+      + '        <div id="sbPmAfterWrap">결제 후 잔액: <strong id="sbPmAfterBalance">0</strong></div>'
+      + '      </div>'
+      + '      <div id="sbPmHint" class="sb-pm-hint">결제 완료 후 즉시 리포트 생성이 시작됩니다.</div>'
+      + '    </div>'
+      + '    <div class="sb-pm-footer">'
+      + '      <button type="button" class="sb-pm-btn sb-pm-btn--charge" id="sbPmChargeBtn">100코인 결제하고 결과 보기</button>'
+      + '      <button type="button" class="sb-pm-btn sb-pm-btn--close" id="sbPmCloseBtn">취소</button>'
+      + '    </div>'
+      + '  </div>'
+      + '</div>';
+
+    modal = wrap.firstElementChild;
+    if (!modal) return null;
+    document.body.appendChild(modal);
+    return modal;
+  }
+
+  function _openSibylPremiumModal() {
+    _ensureSibylPremiumCss();
+    var modal = _ensureSibylPremiumModal();
+    if (!modal) {
+      return Promise.resolve(window.confirm('🪙 시빌라 도미네이터 리포트\n100코인이 차감됩니다. 진행하시겠습니까?'));
+    }
+
+    var cost = 100;
+    var balance = _getCoinBalanceSnapshot();
+    var after = Math.max(0, balance - cost);
+    var chargeBtn = _q('sbPmChargeBtn');
+    var closeBtn = _q('sbPmCloseBtn');
+    var overlay = modal.querySelector('.sb-pm-overlay');
+    var hint = _q('sbPmHint');
+    var afterWrap = _q('sbPmAfterWrap');
+
+    _t('sbPmCoinBalance', String(balance));
+    _t('sbPmAfterBalance', String(after));
+
+    if (hint) {
+      if (balance < cost) {
+        hint.textContent = '코인이 부족합니다. 먼저 충전 후 다시 결제를 진행해 주세요.';
+        hint.classList.add('sb-warn');
+      } else {
+        hint.textContent = '결제 완료 후 즉시 리포트 생성이 시작됩니다.';
+        hint.classList.remove('sb-warn');
+      }
+    }
+    if (afterWrap) {
+      afterWrap.classList.toggle('sb-warn', balance < cost);
+    }
+    if (chargeBtn) {
+      chargeBtn.textContent = balance < cost ? '코인 충전하기' : '100코인 결제하고 결과 보기';
+    }
+
+    modal.classList.remove('sb-hidden');
+
+    return new Promise(function(resolve) {
+      var settled = false;
+
+      function cleanup() {
+        if (overlay) overlay.removeEventListener('click', onCancel);
+        if (closeBtn) closeBtn.removeEventListener('click', onCancel);
+        if (chargeBtn) chargeBtn.removeEventListener('click', onCharge);
+        document.removeEventListener('keydown', onEsc);
+      }
+
+      function finish(ok) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        modal.classList.add('sb-hidden');
+        resolve(ok);
+      }
+
+      function onCancel() {
+        finish(false);
+      }
+
+      function onEsc(e) {
+        if (e.key === 'Escape') finish(false);
+      }
+
+      function onCharge() {
+        if (balance < cost) {
+          if (typeof window.openChargeModal === 'function') {
+            window.openChargeModal();
+          } else {
+            window.alert('코인이 부족합니다. 충전 메뉴에서 코인을 충전해 주세요.');
+          }
+          finish(false);
+          return;
+        }
+        finish(true);
+      }
+
+      if (overlay) overlay.addEventListener('click', onCancel);
+      if (closeBtn) closeBtn.addEventListener('click', onCancel);
+      if (chargeBtn) chargeBtn.addEventListener('click', onCharge);
+      document.addEventListener('keydown', onEsc);
+    });
+  }
+
   /* ── 코인 차감 후 도미네이터 리포트 호출 ── */
   async function _unlockDominator() {
     var btn = _q('sbUnlockBtn');
-    if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
 
     function _restoreUnlockBtn() {
       if (btn) { btn.disabled = false; btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인'; }
     }
+
+    var approved = await _openSibylPremiumModal();
+    if (!approved) {
+      _restoreUnlockBtn();
+      return;
+    }
+    if (btn) { btn.disabled = true; btn.textContent = '>> PROCESSING…'; }
 
     function _afterPaid() {
       var lockEl = _q('sbLockOverlay');
