@@ -172,6 +172,8 @@ export default function LoveRelationshipTarot() {
             cost: LOVE_RELATIONSHIP_COIN_COST,
             reason: "우리는 무슨 사이 타로 이용",
             featureKey: "tarot-love-relationship",
+            forceDeduct: true,
+            requestId: "tarot-love-relationship:req:" + Date.now().toString() + "-" + Math.random().toString(36).slice(2,9),
           }),
         });
         const consumeData = await consumeRes.json().catch(() => ({}));

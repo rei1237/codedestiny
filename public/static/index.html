@@ -6727,6 +6727,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           cost: cost,
           featureKey: featureKey,
           reason: '유료 섹션 잠금 해제 코인 차감',
+          forceDeduct: true,
+          requestId: 'unlock:' + featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
         }),
       });
 

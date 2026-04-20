@@ -227,7 +227,7 @@ export default function KkulkkulManseryukMain() {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${key} 해금` }),
+        body: JSON.stringify({ cost, reason: `${key} 해금`, featureKey: key, forceDeduct: true, requestId: `unlock:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
@@ -274,7 +274,7 @@ export default function KkulkkulManseryukMain() {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${key} 이용` }),
+        body: JSON.stringify({ cost, reason: `${key} 이용`, featureKey: key, forceDeduct: true, requestId: `use:${key}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { alert(data.message || '코인 차감 실패'); return; }
@@ -391,7 +391,7 @@ export default function KkulkkulManseryukMain() {
       const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성` }),
+        body: JSON.stringify({ cost, reason: `${service} 프리미엄 생성`, featureKey: `premium-${service}`, forceDeduct: true, requestId: `premium:${service}:` + Date.now().toString() + "-" + Math.random().toString(36).slice(2, 9) }),
       });
       if (res.status === 402) { setShowRechargeModal(true); return; }
       if (!res.ok) { setPremiumGateError(data.message || '코인 차감 실패'); return; }

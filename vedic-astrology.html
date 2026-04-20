@@ -3352,7 +3352,7 @@ async function _vedicCompatCoinGate(cost, reason){
     var resp = await fetch('/api/fortune/pig-coin/consume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason })
+      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'vedic-per-use', forceDeduct: true, requestId: 'vedic:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9) })
     });
     var data = await resp.json();
     if (!resp.ok) {

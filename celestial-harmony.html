@@ -479,7 +479,7 @@
       var headers={'Content-Type':'application/json','Authorization':'Bearer '+tk};
       if(adminTk)headers['x-admin-token']=adminTk;
       if(adminTk&&(adminTier==='standard'||adminTier==='premium'||adminTier==='vvip'))headers['x-admin-subscription-tier']=adminTier;
-      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony'})})
+      fetch('/api/fortune/pig-coin/consume',{method:'POST',headers:headers,body:JSON.stringify({amount:100,cost:100,reason:'천체의 선율 코즈믹 리딩',featureKey:'tarot-celestial-harmony',forceDeduct:true,requestId:'celestial:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)})})
         .then(function(r){return r.json();})
         .then(function(d){if(d&&d.ok){onOk();}else{alert((d&&d.message)||'코인이 부족합니다.');if(onCancel)onCancel();}})
         .catch(function(){alert('결제 중 오류가 발생했습니다.');if(onCancel)onCancel();});
