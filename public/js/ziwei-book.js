@@ -369,11 +369,6 @@
       '<p class="zb-chapter-sub">' + _escHtml(CHAPTER_SUBTITLES[idx]) + '</p>' +
       '</div>' +
       '<div class="zb-chapter-body">' + _md2html(data) + '</div>' +
-      '<section class="zb-method-note" style="margin-top:16px;padding:12px 13px;border:1px solid rgba(147,197,253,.32);border-radius:12px;background:rgba(8,18,39,.72);">' +
-      '<h3 style="margin:0 0 7px;color:#dbeafe;font-size:.88rem;font-weight:800;line-height:1.5;">결과 도출 원리 안내</h3>' +
-      '<p style="margin:0 0 6px;color:rgba(219,234,254,.88);font-size:.81rem;line-height:1.84;">이 총람은 명궁·신궁과 12궁 배치, 주성 조합, 사화(化祿·化權·化科·化忌), 대한·세운 흐름을 함께 교차 분석해 생성됩니다. 따라서 특정 문장 하나의 길흉보다 궁의 위치 관계와 시간 축 맥락을 함께 확인할수록 해석 정확도가 높아집니다.</p>' +
-      '<p style="margin:0;color:rgba(219,234,254,.82);font-size:.81rem;line-height:1.84;">사주 교차 기준에서는 합충형파해, 명왕이함, 변화 압력 지표를 보조적으로 점검해 반복 패턴과 전환 시점을 해석합니다. 본 문서는 예언이 아니라 전략 참고 자료이며, 의료·법률·투자 같은 고위험 결정은 반드시 전문 자문과 함께 검토해 주세요.</p>' +
-      '</section>' +
       '</div>';
     content.scrollTop = 0;
   }

@@ -3760,25 +3760,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       <div class="hero-sub" id="heroSub"></div>
     </div>
 
-    <section aria-label="운세 결과 해석 원리"
-      style="margin:14px auto 18px;max-width:980px;padding:0 12px;">
-      <div style="border:1px solid rgba(125,211,252,.28);border-radius:16px;background:linear-gradient(150deg,rgba(5,15,34,.9),rgba(14,22,45,.86));padding:14px 13px;box-shadow:0 10px 28px rgba(2,6,23,.36);">
-        <h3 style="margin:0 0 7px;color:#e2e8f0;font-size:.96rem;font-weight:900;line-height:1.46;">결과 도출 원리 안내</h3>
-        <p style="margin:0 0 8px;color:rgba(219,234,254,.9);font-size:.82rem;line-height:1.88;word-break:keep-all;">
-          이 결과는 생년월일시 기반 명식 구조를 계산한 뒤, 오행 분포, 십성 흐름, 대운·세운 시간축, 자미두수 12궁 배치,
-          주성 조합을 교차해 생성됩니다. 즉 단일 문장 점수화가 아니라, 어떤 영역에서 에너지가 강화되거나 충돌하는지 구조적으로 읽는 방식입니다.
-          동일한 충(沖)이라도 원국 강약, 현재 환경, 운의 타이밍에 따라 결과가 달라질 수 있으므로 단편 규칙보다는 맥락 비교가 우선입니다.
-        </p>
-        <p style="margin:0;color:rgba(219,234,254,.84);font-size:.82rem;line-height:1.88;word-break:keep-all;">
-          심화 해석에서는 합충형파해, 명왕이함, 명왕성 계열 변화 압력 지표를 보조적으로 참고해 반복되는 패턴과 전환 시점을 점검합니다.
-          본 페이지의 문장은 확정 예언이 아니라 실행 전략을 돕는 참고 자료이며, 의료·법률·투자 같이 위험이 큰 결정은 반드시 전문가 자문과
-          병행해 판단하시기 바랍니다. 결과를 기록하고 월 단위로 복기하면 해석 활용도와 자기 이해의 정확도가 함께 올라갑니다.
-        </p>
-      </div>
-    </section>
-
-
-
     <!--  오늘의 운명 카드 (Premium Quantum Destiny) -->
     <div class="destiny-section quantum-mode" id="destinySection" style="display:none; margin: 20px 0;">
       <div class="quantum-wrap">
@@ -5788,6 +5769,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY = 'cd_tile_locks';
+  var TILE_UNLOCK_BACKUP_PREFIX = 'cd_unlock_feature_';
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -5885,13 +5867,45 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var parsed = JSON.parse(saved);
       if (parsed && typeof parsed === 'object') {
         var keys = Object.keys(parsed);
-        for (var i = 0; i < keys.length; i += 1) unlockedFeatureMap[keys[i]] = true;
+        for (var i = 0; i < keys.length; i += 1) {
+          if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+        }
+      }
+      for (var lsIndex = 0; lsIndex < localStorage.length; lsIndex += 1) {
+        var lsKey = localStorage.key(lsIndex);
+        if (!lsKey || lsKey.indexOf(TILE_UNLOCK_BACKUP_PREFIX) !== 0) continue;
+        var unlockKey = lsKey.slice(TILE_UNLOCK_BACKUP_PREFIX.length);
+        if (unlockKey) unlockedFeatureMap[unlockKey] = true;
       }
     } catch (_e) {}
   }
 
   function saveTileLocks() {
-    try { localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(unlockedFeatureMap)); } catch (_e) {}
+    try {
+      var merged = Object.create(null);
+      var saved = localStorage.getItem(TILE_LOCKS_KEY);
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          var prevKeys = Object.keys(parsed);
+          for (var i = 0; i < prevKeys.length; i += 1) {
+            if (parsed[prevKeys[i]] === true) merged[prevKeys[i]] = true;
+          }
+        }
+      }
+      var nextKeys = Object.keys(unlockedFeatureMap);
+      for (var j = 0; j < nextKeys.length; j += 1) {
+        if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
+      }
+      localStorage.setItem(TILE_LOCKS_KEY, JSON.stringify(merged));
+      var mergedKeys = Object.keys(merged);
+      for (var m = 0; m < mergedKeys.length; m += 1) {
+        if (merged[mergedKeys[m]] === true) {
+          localStorage.setItem(TILE_UNLOCK_BACKUP_PREFIX + mergedKeys[m], '1');
+        }
+      }
+      unlockedFeatureMap = merged;
+    } catch (_e) {}
   }
 
   // 잠금 타일에 시각적 자물쇠 아이콘 표시/제거
@@ -5994,6 +6008,55 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function refreshUnlockButtons() {
     var nodes = document.querySelectorAll('[data-action="unlockPremiumFeature"]');
     for (var i = 0; i < nodes.length; i += 1) UnlockButton(nodes[i]);
+  }
+
+  function _cdCollectKnownUnlockKeys() {
+    var map = Object.create(null);
+    for (var i = 0; i < SECTION_GATE_KEYS.length; i += 1) {
+      map[SECTION_GATE_KEYS[i].unlockKey] = true;
+    }
+    var sectionBtns = document.querySelectorAll('[data-action="unlockPremiumFeature"][data-unlock-key]');
+    for (var s = 0; s < sectionBtns.length; s += 1) {
+      var sk = sectionBtns[s].getAttribute('data-unlock-key');
+      if (sk) map[sk] = true;
+    }
+    var tileBtns = document.querySelectorAll('[data-tile-lock-key]');
+    for (var t = 0; t < tileBtns.length; t += 1) {
+      var tk = tileBtns[t].getAttribute('data-tile-lock-key');
+      if (tk) map[tk] = true;
+    }
+    return map;
+  }
+
+  function _cdApplyUnlocksFromPaymentPayload(payload) {
+    var histories = (payload && payload.pointHistories && Array.isArray(payload.pointHistories)) ? payload.pointHistories : [];
+    if (!histories.length) return false;
+    var known = _cdCollectKnownUnlockKeys();
+    var changed = false;
+    for (var i = 0; i < histories.length; i += 1) {
+      var h = histories[i] || {};
+      if (String(h.kind || '') !== 'deduct') continue;
+      var k = String(h.featureKey || '').trim();
+      if (!k || k === 'pig-coin-unlock') continue;
+      if (known[k] && unlockedFeatureMap[k] !== true) {
+        unlockedFeatureMap[k] = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  async function syncUnlocksFromServer() {
+    if (!hasAuthToken()) return;
+    try {
+      var result = await fetchJsonWithAuth('/api/payments/me', { method: 'GET' });
+      if (!result.ok) return;
+      if (!_cdApplyUnlocksFromPaymentPayload(result.payload)) return;
+      saveTileLocks();
+      applyTileLockVisuals();
+      refreshUnlockButtons();
+      if (typeof applySectionGates === 'function') applySectionGates();
+    } catch (_e) {}
   }
 
   async function fetchJsonWithAuth(path, init) {
@@ -6820,6 +6883,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   refreshUnlockButtons();
   if(typeof applySectionGates==='function')applySectionGates();
   void syncBalanceFromServer();
+  void syncUnlocksFromServer();
 
   window.__cdSetGoldenBalance = function (points) {
     var next = Number(points);
