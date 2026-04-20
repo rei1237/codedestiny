@@ -27,6 +27,24 @@ const runtimeFiles = [
 
 const runtimeTagRe = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
+const sibylMarkers = [
+  /id=["']sibylSystemSection["']/,
+  /data-action=["']openSibylModal["']/,
+  /id=["']sibylModal["']/,
+];
+const sibylHtmlTargets = new Set([
+  'index.html',
+  'public/static/index.html',
+  'public/en-us/index.html',
+  'public/ja-jp/index.html',
+  'public/zh-cn/index.html',
+  'public/hi-in/index.html',
+  'public/es-es/index.html',
+  'public/fr-fr/index.html',
+  'public/de-de/index.html',
+  'public/nl-nl/index.html',
+  'public/ms-my/index.html',
+]);
 
 let failed = false;
 
@@ -44,6 +62,16 @@ const htmlVersions = new Map();
 for (const rel of htmlTargets) {
   const txt = read(rel);
   if (!txt) continue;
+
+  if (sibylHtmlTargets.has(rel)) {
+    for (const marker of sibylMarkers) {
+      if (!marker.test(txt)) {
+        console.error(`[runtime-cache-sync] sibyl marker missing (${marker}): ${rel}`);
+        failed = true;
+      }
+    }
+  }
+
   const m = txt.match(runtimeTagRe);
   if (!m) {
     console.error(`[runtime-cache-sync] runtime script tag version not found: ${rel}`);

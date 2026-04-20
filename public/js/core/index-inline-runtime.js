@@ -1007,6 +1007,68 @@ var __cdLazyActionLoaders = {
 };
 var __cdLazyActionState = {};
 
+function __cdEnsureSibylSystemEntry() {
+  try {
+    var section = document.getElementById('sibylSystemSection');
+    var modal = document.getElementById('sibylModal');
+
+    if (section) {
+      section.hidden = false;
+      section.removeAttribute('hidden');
+      if (section.style && section.style.display === 'none') section.style.display = '';
+
+      var existingAction = section.querySelector('[data-action="openSibylModal"]');
+      if (!existingAction && modal) {
+        var fallbackTile = document.createElement('button');
+        fallbackTile.type = 'button';
+        fallbackTile.className = 'sibyl-entry-tile sibyl-entry-tile--fallback';
+        fallbackTile.setAttribute('data-action', 'openSibylModal');
+        fallbackTile.setAttribute('aria-label', '시빌라 사주 시스템 열기');
+        fallbackTile.innerHTML = '<span>⚡ SIBYL SYSTEM 복원됨 · 탭하여 열기</span>';
+        section.insertBefore(fallbackTile, section.firstChild || null);
+      }
+      return true;
+    }
+
+    if (!modal) return false;
+
+    var fallbackSection = document.createElement('section');
+    fallbackSection.className = 'saju-section-wrap';
+    fallbackSection.id = 'sibylSystemSection';
+    fallbackSection.innerHTML =
+      '<button type="button" class="sibyl-entry-tile sibyl-entry-tile--fallback" data-action="openSibylModal" aria-label="시빌라 사주 시스템 열기">'
+      + '<span>⚡ SIBYL SYSTEM 복원됨 · 탭하여 열기</span>'
+      + '</button>';
+
+    var anchor = document.getElementById('ziweiBookModal');
+    if (anchor && anchor.parentNode) {
+      anchor.parentNode.insertBefore(fallbackSection, anchor);
+    } else if (modal.parentNode) {
+      modal.parentNode.insertBefore(fallbackSection, modal);
+    } else {
+      document.body.appendChild(fallbackSection);
+    }
+    return true;
+  } catch (e) {
+    console.warn('[SibylGuard] 섹션 복원 실패:', e);
+    return false;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.__cdEnsureSibylSystemEntry = __cdEnsureSibylSystemEntry;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      __cdEnsureSibylSystemEntry();
+    }, { once: true });
+  } else {
+    __cdEnsureSibylSystemEntry();
+  }
+  window.addEventListener('pageshow', function() {
+    __cdEnsureSibylSystemEntry();
+  });
+}
+
 /**
  * INP: 클릭 직후 메인 스레드에서 동기 실행되던 무거운 핸들러(사주/궁합/리딩 등)를
  * setTimeout(0)으로 한 틱 미뤄 다음 페인트·입력 응답을 먼저 처리하게 한다.
