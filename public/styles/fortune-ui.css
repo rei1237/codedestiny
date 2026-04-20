@@ -8501,6 +8501,76 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   background: linear-gradient(135deg, rgba(255, 240, 250, 0.96), rgba(233, 245, 255, 0.9));
   box-shadow: 0 12px 22px rgba(184, 104, 191, 0.22);
 }
+.df-studio-source-tabs .df-source-tab.is-locked {
+  opacity: 0.58 !important;
+  filter: grayscale(0.96) blur(0.3px);
+  border-style: dashed;
+  border-color: rgba(147, 161, 190, 0.44) !important;
+  box-shadow: 0 4px 10px rgba(92, 106, 140, 0.16) !important;
+}
+.df-studio-source-tabs .df-source-tab.is-locked:hover,
+.df-studio-source-tabs .df-source-tab.is-locked:focus-visible {
+  transform: none;
+  box-shadow: 0 4px 10px rgba(92, 106, 140, 0.16) !important;
+  border-color: rgba(147, 161, 190, 0.44) !important;
+}
+.df-studio-source-tabs .df-source-tab.is-locked .df-tab-emoji {
+  position: relative;
+  padding-right: 12px;
+}
+.df-studio-source-tabs .df-source-tab.is-locked .df-tab-emoji::after {
+  content: '🔒';
+  position: absolute;
+  right: -2px;
+  top: -6px;
+  font-size: 0.64rem;
+  line-height: 1;
+}
+.df-studio-source-tabs .df-source-tab.is-locked::after {
+  content: attr(data-df-lock-label);
+  display: block;
+  margin-top: 1px;
+  font-size: 0.62rem;
+  color: rgba(76, 86, 122, 0.92);
+  letter-spacing: 0;
+}
+.df-studio-source-tabs .df-source-tab.is-next-target {
+  border-color: rgba(64, 155, 255, 0.54);
+  box-shadow: 0 0 0 2px rgba(130, 199, 255, 0.16), 0 10px 22px rgba(82, 139, 209, 0.22);
+  animation: dfSourceTabPulse 1.45s ease-in-out infinite;
+}
+.df-studio-source-tabs .df-source-tab.is-unlock-reveal {
+  animation: dfSourceUnlockBloom 0.9s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes dfSourceUnlockBloom {
+  0% {
+    transform: scale(0.95);
+    filter: grayscale(1) blur(0.4px);
+    box-shadow: 0 0 0 rgba(255, 196, 120, 0);
+  }
+  45% {
+    transform: scale(1.05);
+    filter: grayscale(0.15) blur(0);
+    box-shadow: 0 0 0 10px rgba(255, 196, 120, 0.18);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+    box-shadow: 0 12px 22px rgba(184, 104, 191, 0.22);
+  }
+}
+
+@keyframes dfSourceTabPulse {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 2px rgba(130, 199, 255, 0.12), 0 10px 22px rgba(82, 139, 209, 0.2);
+  }
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 4px rgba(130, 199, 255, 0.2), 0 14px 26px rgba(82, 139, 209, 0.28);
+  }
+}
 .df-studio-badges {
   margin: 10px 0 8px;
   display: flex;

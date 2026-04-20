@@ -3635,6 +3635,10 @@ function _dfSetBodyLock(locked) {
 var _DF_STUDIO_HISTORY_KEY = 'destinyFlowerStudioHistory.v1';
 var _DF_STUDIO_HISTORY_LIMIT = 12;
 var _DF_ACTIVE_SOURCE_KEY = 'destinyFlowerActiveSource.v1';
+var _DF_SOURCE_PROGRESS_KEY = 'destinyFlowerSourceProgress.v1';
+var _DF_SOURCE_UNLOCK_MODE_KEY = 'destinyFlowerSourceUnlockMode.v1';
+var _DF_SOURCE_UNLOCK_MODES = { sequential: true, cumulative: true };
+var _DF_SOURCE_UNLOCK_DEFAULT_MODE = 'sequential';
 var _DF_SOURCE_ORDER = ['saju', 'astrology', 'jamidusu', 'sukuyo'];
 var _DF_SOURCE_ALIAS = {
   astro: 'astrology',
@@ -3687,6 +3691,19 @@ var _dfStudioState = {
   loadingTasks: {},
   userRequestedLoad: {},
   linkedSources: {},
+  unlockMode: _DF_SOURCE_UNLOCK_DEFAULT_MODE,
+  sourceProgress: {
+    saju: false,
+    astrology: false,
+    jamidusu: false,
+    sukuyo: false
+  },
+  sourceUnlockCache: {
+    saju: true,
+    astrology: false,
+    jamidusu: false,
+    sukuyo: false
+  },
   coinGatePassed: false,
   coinGateInFlight: false,
   _coinGatePassToken: null  // 코인 게이트 토큰 (내부 콜백용, 외부 호출 방어)
@@ -3768,6 +3785,233 @@ function _dfPersistActiveSource(source) {
   } catch (e) {}
 }
 
+function _dfCreateSourceProgressTemplate() {
+  var template = {};
+  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
+    template[_DF_SOURCE_ORDER[i]] = false;
+  }
+  return template;
+}
+
+function _dfResolveSourceUnlockMode(rawMode) {
+  var mode = String(rawMode || '').trim().toLowerCase();
+  if (_DF_SOURCE_UNLOCK_MODES[mode]) return mode;
+  return _DF_SOURCE_UNLOCK_DEFAULT_MODE;
+}
+
+function _dfLoadSourceUnlockMode() {
+  try {
+    if (typeof window !== 'undefined' && window.__dfSourceUnlockMode) {
+      return _dfResolveSourceUnlockMode(window.__dfSourceUnlockMode);
+    }
+  } catch (_) {}
+  try {
+    return _dfResolveSourceUnlockMode(localStorage.getItem(_DF_SOURCE_UNLOCK_MODE_KEY));
+  } catch (_) {
+    return _DF_SOURCE_UNLOCK_DEFAULT_MODE;
+  }
+}
+
+function _dfPersistSourceProgressState() {
+  try {
+    localStorage.setItem(_DF_SOURCE_UNLOCK_MODE_KEY, _dfResolveSourceUnlockMode(_dfStudioState.unlockMode));
+    localStorage.setItem(_DF_SOURCE_PROGRESS_KEY, JSON.stringify({
+      mode: _dfResolveSourceUnlockMode(_dfStudioState.unlockMode),
+      progress: _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate()
+    }));
+  } catch (_) {}
+}
+
+function _dfLoadSourceProgressState() {
+  var progress = _dfCreateSourceProgressTemplate();
+  var mode = _dfLoadSourceUnlockMode();
+  try {
+    var raw = localStorage.getItem(_DF_SOURCE_PROGRESS_KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        var parsedProgress = (parsed.progress && typeof parsed.progress === 'object') ? parsed.progress : parsed;
+        for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
+          var src = _DF_SOURCE_ORDER[i];
+          progress[src] = parsedProgress[src] === true;
+        }
+        if (parsed.mode) mode = _dfResolveSourceUnlockMode(parsed.mode);
+      }
+    }
+  } catch (_) {}
+  _dfStudioState.unlockMode = _dfResolveSourceUnlockMode(mode);
+  _dfStudioState.sourceProgress = progress;
+  _dfRefreshSourceUnlockCache(true);
+}
+
+function _dfGetRequiredSourceForUnlock(source) {
+  var normalized = _dfNormalizeSource(source);
+  var idx = _DF_SOURCE_ORDER.indexOf(normalized);
+  if (idx <= 0) return null;
+  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
+  for (var i = idx - 1; i >= 0; i -= 1) {
+    var prevSource = _DF_SOURCE_ORDER[i];
+    if (!progress[prevSource]) return prevSource;
+  }
+  return _DF_SOURCE_ORDER[idx - 1] || null;
+}
+
+function _dfGetNextRecommendedSource() {
+  var cache = _dfRefreshSourceUnlockCache();
+  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
+  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
+    var source = _DF_SOURCE_ORDER[i];
+    if (cache[source] && !progress[source]) return source;
+  }
+  return null;
+}
+
+function _dfBuildSourceFlowGuide() {
+  var nextSource = _dfGetNextRecommendedSource();
+  if (!nextSource) return '모든 꽃이 개화되었습니다. 원하는 탭에서 다시 감상해 보세요.';
+  if (nextSource === 'saju') return '다음 단계: 사주 꽃을 먼저 열어 개화를 시작해 보세요.';
+  return '다음 단계: ' + _dfGetSourceLabel(nextSource) + ' 꽃으로 이동해 개화를 이어가세요.';
+}
+
+function _dfIsSourcePaidUnlocked(source) {
+  var normalized = _dfNormalizeSource(source);
+  if (normalized === 'saju') return true;
+  var tile = _dfResolveLockTileBySource(normalized);
+  if (!tile) return false;
+  var lockKey = tile.getAttribute('data-tile-lock-key') || '';
+  var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
+  if (!lockKey || lockCost <= 0) return true;
+  if (_dfIsLockKeyUnlocked(lockKey)) return true;
+  if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
+  return false;
+}
+
+function _dfComputeSourceUnlockCache() {
+  var cache = {
+    saju: true,
+    astrology: false,
+    jamidusu: false,
+    sukuyo: false
+  };
+  var mode = _dfResolveSourceUnlockMode(_dfStudioState.unlockMode);
+  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
+
+  if (mode === 'cumulative') {
+    var completedCount = 0;
+    for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
+      if (progress[_DF_SOURCE_ORDER[i]]) completedCount += 1;
+    }
+    for (var j = 1; j < _DF_SOURCE_ORDER.length && j <= completedCount; j += 1) {
+      cache[_DF_SOURCE_ORDER[j]] = true;
+    }
+  } else {
+    for (var k = 1; k < _DF_SOURCE_ORDER.length; k += 1) {
+      cache[_DF_SOURCE_ORDER[k]] = !!progress[_DF_SOURCE_ORDER[k - 1]];
+    }
+  }
+
+  for (var p = 0; p < _DF_SOURCE_ORDER.length; p += 1) {
+    var src = _DF_SOURCE_ORDER[p];
+    if (_dfIsSourcePaidUnlocked(src)) cache[src] = true;
+  }
+  return cache;
+}
+
+function _dfRefreshSourceUnlockCache(forceRecalc) {
+  if (!forceRecalc && _dfStudioState.sourceUnlockCache) {
+    return _dfStudioState.sourceUnlockCache;
+  }
+  _dfStudioState.sourceUnlockCache = _dfComputeSourceUnlockCache();
+  return _dfStudioState.sourceUnlockCache;
+}
+
+function _dfSyncSourceTabsLockState(options) {
+  var opts = options && typeof options === 'object' ? options : {};
+  var cache = _dfRefreshSourceUnlockCache(true);
+  var tabs = document.querySelectorAll('.df-source-tab[data-df-source-tab]');
+  if (!tabs || !tabs.length) return;
+  var nextSource = _dfGetNextRecommendedSource();
+  var highlightMap = Object.create(null);
+  var highlights = Array.isArray(opts.highlightSources) ? opts.highlightSources : [];
+  for (var h = 0; h < highlights.length; h += 1) {
+    highlightMap[_dfNormalizeSource(highlights[h])] = true;
+  }
+
+  tabs.forEach(function(tab) {
+    var src = _dfNormalizeSource(tab.getAttribute('data-df-source-tab'));
+    var unlocked = cache[src] === true;
+    tab.classList.toggle('is-locked', !unlocked);
+    tab.classList.toggle('is-unlocked', unlocked);
+    tab.classList.toggle('is-next-target', src === nextSource);
+    tab.setAttribute('data-df-unlocked', unlocked ? 'true' : 'false');
+
+    if (!unlocked) {
+      var required = _dfGetRequiredSourceForUnlock(src);
+      var lockLabel = required ? (_dfGetSourceLabel(required) + ' 완료 시 해금') : '해금 조건 필요';
+      tab.setAttribute('aria-disabled', 'true');
+      tab.setAttribute('data-df-lock-label', lockLabel);
+      tab.title = lockLabel;
+    } else {
+      tab.removeAttribute('aria-disabled');
+      tab.removeAttribute('data-df-lock-label');
+      tab.removeAttribute('title');
+    }
+
+    if (highlightMap[src]) {
+      tab.classList.remove('is-unlock-reveal');
+      void tab.offsetWidth;
+      tab.classList.add('is-unlock-reveal');
+      if (tab.__dfUnlockRevealTimer) clearTimeout(tab.__dfUnlockRevealTimer);
+      tab.__dfUnlockRevealTimer = setTimeout(function() {
+        tab.classList.remove('is-unlock-reveal');
+        tab.__dfUnlockRevealTimer = null;
+      }, 960);
+    }
+  });
+}
+
+function _dfMarkSourceCompleted(source, options) {
+  var opts = options && typeof options === 'object' ? options : {};
+  var normalized = _dfNormalizeSource(source);
+  if (_DF_SOURCE_ORDER.indexOf(normalized) < 0) {
+    return { changed: false, newlyUnlocked: [] };
+  }
+
+  if (!_dfStudioState.sourceProgress || typeof _dfStudioState.sourceProgress !== 'object') {
+    _dfStudioState.sourceProgress = _dfCreateSourceProgressTemplate();
+  }
+
+  var before = _dfRefreshSourceUnlockCache(true);
+  var beforeMap = {};
+  for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
+    var src = _DF_SOURCE_ORDER[i];
+    beforeMap[src] = before[src] === true;
+  }
+
+  if (_dfStudioState.sourceProgress[normalized] === true) {
+    _dfSyncSourceTabsLockState();
+    return { changed: false, newlyUnlocked: [] };
+  }
+
+  _dfStudioState.sourceProgress[normalized] = true;
+  _dfPersistSourceProgressState();
+
+  var after = _dfRefreshSourceUnlockCache(true);
+  var newlyUnlocked = [];
+  for (var j = 0; j < _DF_SOURCE_ORDER.length; j += 1) {
+    var sourceName = _DF_SOURCE_ORDER[j];
+    if (after[sourceName] === true && beforeMap[sourceName] !== true) {
+      newlyUnlocked.push(sourceName);
+    }
+  }
+
+  _dfSyncSourceTabsLockState({ highlightSources: newlyUnlocked });
+  if (!opts.silent && newlyUnlocked.length) {
+    _dfSetStudioStatus('✨ ' + _dfGetSourceLabel(newlyUnlocked[0]) + ' 꽃이 새로 열렸습니다.');
+  }
+  return { changed: true, newlyUnlocked: newlyUnlocked };
+}
+
 function _dfSyncSourceTabs(source) {
   var normalized = _dfNormalizeSource(source);
   var tabs = document.querySelectorAll('.df-source-tab[data-df-source-tab]');
@@ -3778,6 +4022,7 @@ function _dfSyncSourceTabs(source) {
     tab.classList.toggle('is-active', active);
     tab.setAttribute('aria-selected', active ? 'true' : 'false');
   });
+  _dfSyncSourceTabsLockState();
 }
 
 function _dfApplySourceBadgeStyles(el, baseClass, source, mainText, subText) {
@@ -3879,6 +4124,7 @@ function _dfGetUnifiedSelection(source, forceRefresh) {
 }
 
 _dfStudioState.activeSource = _dfLoadActiveSource();
+_dfLoadSourceProgressState();
 
 function _dfGetSajuVerdict(selection) {
   if (!selection) return '운명의 꽃 판정을 준비 중입니다.';
@@ -4698,7 +4944,12 @@ function _dfFetchSourceOnDemand(source, options) {
 
 function _dfSetStudioStatus(message, options) {
   var el = document.getElementById('dfStudioStatus');
-  if (el) el.textContent = message || '';
+  var text = message || '';
+  var flowGuide = _dfBuildSourceFlowGuide();
+  if (flowGuide) {
+    text = text ? (text + ' · ' + flowGuide) : flowGuide;
+  }
+  if (el) el.textContent = text;
   if (options && options.showLoadButton) {
     var source = _dfNormalizeSource(options.source || _dfStudioState.activeSource || 'saju');
     var state = _dfGetDataMissingUiState(source);
@@ -5157,6 +5408,7 @@ function _dfRenderHistoryList() {
 
 function _dfApplyStudioSelection(selection) {
   if (!selection || !selection.flower) return;
+  _dfMarkSourceCompleted(selection.source || _dfStudioState.activeSource || 'saju', { silent: true });
   var flower = selection.flower;
   var sourceLabel = selection.source === 'sukuyo'
     ? '숙요점'
@@ -5288,38 +5540,44 @@ function _dfIsLockKeyUnlocked(lockKey) {
       return window.unlockedFeatureMap[lockKey] === true;
     }
   } catch (_) {}
+  try {
+    var authRaw = localStorage.getItem('fortune_auth_user') || '';
+    var auth = authRaw ? JSON.parse(authRaw) : null;
+    var scopeRaw = auth && (auth.id || auth.userId || auth.email || auth.username || auth.loginId);
+    var scope = String(scopeRaw || '').trim().toLowerCase();
+    if (scope) {
+      var scopedKey = 'cd_tile_locks_v2::' + scope;
+      var scopedRaw = localStorage.getItem(scopedKey);
+      if (scopedRaw) {
+        var scopedMap = JSON.parse(scopedRaw);
+        if (scopedMap && scopedMap[lockKey] === true) return true;
+      }
+    }
+  } catch (_) {}
+  try {
+    var legacyRaw = localStorage.getItem('cd_tile_locks');
+    if (legacyRaw) {
+      var legacy = JSON.parse(legacyRaw);
+      if (legacy && legacy[lockKey] === true) return true;
+    }
+  } catch (_) {}
   return false;
 }
 
 function _dfIsSourceUnlocked(source) {
-  var tile = _dfResolveLockTileBySource(source);
-  if (!tile) return false;
-  var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (tile.classList.contains('tarot-tile--tileUnlocked')) return true;
-  return false;
+  var normalized = _dfNormalizeSource(source);
+  var cache = _dfRefreshSourceUnlockCache(true);
+  if (cache[normalized] === true) return true;
+  return _dfIsSourcePaidUnlocked(normalized);
 }
 
 function _dfRequireSourceCoinPayment(source) {
-  if (_dfIsSourceUnlocked(source)) return true;
-
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2F';
-    }
-    return false;
-  }
-
-  var tile = _dfResolveLockTileBySource(source);
-  if (tile && typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(tile)) {
-    return false;
-  }
-
-  window.alert('해당 운명의 꽃은 코인 해금 후 이용할 수 있습니다.');
+  var normalized = _dfNormalizeSource(source);
+  if (_dfIsSourceUnlocked(normalized)) return true;
+  var required = _dfGetRequiredSourceForUnlock(normalized);
+  var requiredLabel = required ? _dfGetSourceLabel(required) : '이전 단계';
+  _dfSetStudioStatus(requiredLabel + '을 먼저 완료하면 ' + _dfGetSourceLabel(normalized) + ' 꽃이 열립니다.');
+  _dfSyncSourceTabsLockState();
   return false;
 }
 
@@ -5378,13 +5636,16 @@ function openDestinyFlowerStudio(source, gatePassed) {
   _dfCaptureOriginalTitle();
   _dfBindTitleRestoreGuards();
   var requestedSource = _dfNormalizeSource(source || (_dfStudioState && _dfStudioState.activeSource) || 'saju');
-  if (!_dfRequireSourceCoinPayment(requestedSource)) {
+  if (gatePassed !== true && !_dfRequireSourceCoinPayment(requestedSource)) {
     return;
   }
   var _dfActiveSource = _dfSetActiveSource(requestedSource);
   var overlay = document.getElementById('destinyFlowerStudioOverlay');
   if (!overlay) return;
-  if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) return;
+  if (overlay.style.display === 'block' && overlay.classList.contains('is-show')) {
+    setDestinyFlowerSourceTab(_dfActiveSource, true);
+    return;
+  }
 
   var sheet = document.getElementById('destinyFlowerStudioSheet');
   try {
@@ -5524,7 +5785,7 @@ function _dfGetNoBirthMessage(source) {
 
 function setDestinyFlowerSourceTab(source, gatePassed) {
   var normalized = _dfNormalizeSource(source);
-  if (!_dfRequireSourceCoinPayment(normalized)) {
+  if (gatePassed !== true && !_dfRequireSourceCoinPayment(normalized)) {
     return _dfStudioState.selection || null;
   }
   normalized = _dfSetActiveSource(normalized);
@@ -5536,6 +5797,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
   if (isStudioOpen) {
     var studioSelection = _dfRefreshStudioForSource(normalized, false);
     if (studioSelection) {
+      _dfMarkSourceCompleted(normalized, { silent: true });
       _dfSetStudioStatus(_dfGetSajuVerdict(studioSelection) + ' 기준으로 탭과 프롬프트를 갱신했습니다.');
     }
   } else {
@@ -5544,6 +5806,7 @@ function setDestinyFlowerSourceTab(source, gatePassed) {
       _dfEnsureCardOpen(card);
       if (selection) {
         _dfAnimateUnifiedCardSwitch(card, selection);
+        _dfMarkSourceCompleted(normalized, { silent: true });
       } else {
         var stage = card.querySelector('.destiny-flower-stage');
         var nameEl = card.querySelector('.destiny-flower-stage__name');
@@ -5747,6 +6010,7 @@ window.copyDestinyFlowerPromptPack = copyDestinyFlowerPromptPack;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
+    _dfSyncSourceTabsLockState();
     _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
     _dfBindBloomingInteractions();
     // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
@@ -5754,6 +6018,7 @@ if (document.readyState === 'loading') {
   }, { once: true });
 } else {
   _dfSyncSourceTabs(_dfStudioState.activeSource || 'saju');
+  _dfSyncSourceTabsLockState();
   _dfSyncSourceStickers(_dfStudioState.activeSource || 'saju');
   _dfBindBloomingInteractions();
   // [UX FIX] 자동 애니메이션 제거 — 버튼 클릭으로만 꽃 아틀리에 진입
