@@ -119,22 +119,29 @@ export async function GET(request) {
   }
 }
 
-export async function PUT(request) {
-  return proxyLegacyApi(request);
+function methodNotAllowed() {
+  return NextResponse.json(
+    { ok: false, message: "지원하지 않는 메서드입니다." },
+    { status: 405, headers: { Allow: "GET" } },
+  );
 }
 
-export async function PATCH(request) {
-  return proxyLegacyApi(request);
+export async function PUT() {
+  return methodNotAllowed();
 }
 
-export async function DELETE(request) {
-  return proxyLegacyApi(request);
+export async function PATCH() {
+  return methodNotAllowed();
 }
 
-export async function OPTIONS(request) {
-  return proxyLegacyApi(request);
+export async function DELETE() {
+  return methodNotAllowed();
 }
 
-export async function HEAD(request) {
-  return proxyLegacyApi(request);
+export async function OPTIONS() {
+  return methodNotAllowed();
+}
+
+export async function HEAD() {
+  return methodNotAllowed();
 }
