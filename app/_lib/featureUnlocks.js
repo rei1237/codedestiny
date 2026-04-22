@@ -7,18 +7,13 @@ export const FLOWER_ROUTE_LOCK_KEY_MAP = Object.freeze({
   "flower/sukuyo": "flower-sukuyo",
 });
 
+// 각 운명의 꽃 기능은 개별 50코인 해금 — flower-fc 교차 alias 제거
 const LOCK_ALIAS_MAP = Object.freeze({
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
-  "flower-fc": ["flower-destiny", "flower-astro", "flower-ziwei", "flower-sukuyo"],
-  "flower-destiny": ["flower-fc"],
-  "flower-astro": ["flower-fc"],
-  "flower-ziwei": ["flower-fc"],
-  "flower-sukuyo": ["flower-fc"],
 });
 
 export const FLOWER_KNOWN_LOCK_KEYS = Object.freeze([
-  "flower-fc",
   "flower-destiny",
   "flower-astro",
   "flower-ziwei",

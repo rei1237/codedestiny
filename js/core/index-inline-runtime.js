@@ -1228,15 +1228,7 @@ function __cdResolveTileLockAliasKeys(lockKey) {
   map[base] = true;
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
-  if (base === 'flower-fc') {
-    map['flower-destiny'] = true;
-    map['flower-astro'] = true;
-    map['flower-ziwei'] = true;
-    map['flower-sukuyo'] = true;
-  }
-  if (base === 'flower-destiny' || base === 'flower-astro' || base === 'flower-ziwei' || base === 'flower-sukuyo') {
-    map['flower-fc'] = true;
-  }
+  // 각 운명의 꽃 기능은 개별 50코인 해금 (flower-fc 교차 alias 제거)
   return Object.keys(map);
 }
 
