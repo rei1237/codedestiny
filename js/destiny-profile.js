@@ -189,6 +189,11 @@
     return '';
   }
 
+  function _dpHasAuthToken() {
+    try { return !!(localStorage.getItem('fortune_auth_token') || ''); } catch (e) {}
+    return false;
+  }
+
   function _dpResolveUnlockAliasKeys(lockKey) {
     var base = String(lockKey || '').trim();
     if (!base) return [];
@@ -212,6 +217,8 @@
   }
 
   function _dpReadTileLockMap() {
+    if (!_dpHasAuthToken()) return Object.create(null);
+
     var merged = Object.create(null);
     try {
       var scopedKey = _dpGetTileLockScopeKey();
@@ -224,18 +231,6 @@
             for (var si = 0; si < scopedKeys.length; si += 1) {
               if (scopedParsed[scopedKeys[si]] === true) merged[scopedKeys[si]] = true;
             }
-          }
-        }
-      }
-    } catch (e) {}
-    try {
-      var legacyRaw = localStorage.getItem('cd_tile_locks');
-      if (legacyRaw) {
-        var legacyParsed = JSON.parse(legacyRaw);
-        if (legacyParsed && typeof legacyParsed === 'object') {
-          var legacyKeys = Object.keys(legacyParsed);
-          for (var li = 0; li < legacyKeys.length; li += 1) {
-            if (legacyParsed[legacyKeys[li]] === true) merged[legacyKeys[li]] = true;
           }
         }
       }
@@ -281,6 +276,8 @@
   }
 
   function _dpIsFeatureLocked(lockKey) {
+    if (!_dpHasAuthToken()) return true;
+
     var map = _dpReadTileLockMap();
     var aliases = _dpResolveUnlockAliasKeys(lockKey);
     var unlocked = false;

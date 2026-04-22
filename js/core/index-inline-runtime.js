@@ -1251,6 +1251,7 @@ function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
 
 function __cdIsTileLockUnlocked(actionEl, lockKey) {
   if (!lockKey) return false;
+  if (!__cdHasAuthToken()) return false;
   if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
   try {
     if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
@@ -1267,15 +1268,9 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
       var scopedRaw = localStorage.getItem(scopedKey);
       if (scopedRaw) {
         var scopedMap = JSON.parse(scopedRaw);
-        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
+        return __cdMapHasTileLockUnlocked(scopedMap, lockKey);
       }
-    }
-  } catch (_) {}
-  try {
-    var legacyRaw = localStorage.getItem('cd_tile_locks');
-    if (legacyRaw) {
-      var legacyMap = JSON.parse(legacyRaw);
-      if (__cdMapHasTileLockUnlocked(legacyMap, lockKey)) return true;
+      return false;
     }
   } catch (_) {}
   return false;
@@ -1287,19 +1282,20 @@ function __cdRequireTileLockGate(actionEl) {
   var lockKey = actionEl.getAttribute('data-tile-lock-key') || '';
   var lockCost = Number(actionEl.getAttribute('data-tile-lock-cost') || 0);
   if (!lockKey || lockCost <= 0) return true;
-  if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
-
-  if (typeof window._cdOpenTilePreview === 'function') {
-    try {
-      if (window._cdOpenTilePreview(actionEl)) return false;
-    } catch (_) {}
-  }
 
   if (!__cdHasAuthToken()) {
     if (window.confirm('🔒 로그인이 필요한 서비스입니다.\\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=%2F';
     }
     return false;
+  }
+
+  if (__cdIsTileLockUnlocked(actionEl, lockKey)) return true;
+
+  if (typeof window._cdOpenTilePreview === 'function') {
+    try {
+      if (window._cdOpenTilePreview(actionEl)) return false;
+    } catch (_) {}
   }
 
   window.alert('잠금된 서비스입니다. 해금 후 이용해 주세요.');

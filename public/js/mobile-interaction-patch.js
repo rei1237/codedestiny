@@ -660,27 +660,15 @@
       // fallback으로 찾은 타일도 pvw-bypass 체크
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     }
-    if (_coinGateTile && typeof _coinGateTile.click === 'function') {
-      var _lockKey = _coinGateTile.getAttribute('data-tile-lock-key');
-      var _hasCoinCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0) > 0;
-      var _needsGate = _hasCoinCost; // per-use 코인 타일: 항상 게이트
-      if (!_needsGate && _lockKey) {
-        // 영구 잠금 타일: localStorage에서 해금 여부 확인
-        try {
-          var _locks = JSON.parse(localStorage.getItem('cd_tile_locks') || '{}');
-          _needsGate = !_locks[_lockKey];
-        } catch (_e) {
-          _needsGate = true;
-        }
-      }
-      if (_needsGate) {
-        // 프리뷰 패널 직접 열기 (click 이벤트 경유 시 mobile-patch click handler가
-        // stopPropagation()으로 Preview 패널 handler를 차단하는 문제 우회)
-        if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_coinGateTile)) {
+    if (_coinGateTile) {
+      if (typeof window.__cdRequireTileLockGate === 'function') {
+        if (!window.__cdRequireTileLockGate(_coinGateTile)) {
           return true;
         }
-        // Preview helper가 없으면 여기서 소비하지 말고 전역 클릭 핸들러로 위임한다.
-        // (직접 click 재호출은 같은 capture 경로를 재진입시켜 무반응 루프를 만들 수 있음)
+      } else if (typeof window._cdOpenTilePreview === 'function' && !_coinGateTile.getAttribute('data-pvw-bypass')) {
+        if (window._cdOpenTilePreview(_coinGateTile)) {
+          return true;
+        }
         return false;
       }
     }
