@@ -37,12 +37,37 @@ export const metadata = withUniqueRouteMetadata("/", {
   },
 });
 
-export default function Home() {
+function serializeSearchParams(searchParams) {
+  if (!searchParams || typeof searchParams !== "object") return "";
+  const query = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (!key) return;
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (typeof entry === "string" && entry.length > 0) query.append(key, entry);
+      });
+      return;
+    }
+    if (typeof value === "string" && value.length > 0) {
+      query.set(key, value);
+    }
+  });
+
+  return query.toString();
+}
+
+export default async function Home({ searchParams }) {
+  const resolvedSearchParams =
+    searchParams && typeof searchParams.then === "function" ? await searchParams : searchParams;
+  const iframeQuery = serializeSearchParams(resolvedSearchParams);
+  const iframeSrc = iframeQuery ? `/static/index.html?${iframeQuery}` : "/static/index.html";
+
   return (
     <main style={{ minHeight: "100vh", background: "#05070f", color: "#e5e7eb" }}>
       <FaqJsonLd faqs={HOME_FAQ_ITEMS} />
       <iframe
-        src="/static/index.html"
+        src={iframeSrc}
         title="Code Destiny Main Service"
         style={{
           width: "100%",

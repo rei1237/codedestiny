@@ -7031,7 +7031,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           body: JSON.stringify({
             cost: tileCoinCost, reason: fname + ' 이용',
             forceDeduct: true,
-            requestId: perUseRequestId,
+            requestId: 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
           }),
         });
         if (r.status === 404 || r.status >= 500) {

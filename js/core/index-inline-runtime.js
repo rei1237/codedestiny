@@ -736,7 +736,7 @@ function fcToggle(btn) {
     if (card.classList.contains('feature-card--face') && openByAction('openPhysiognomyApp')) { return; }
     if (card.classList.contains('feature-card--animal') && openByAction('openMbtiModal')) { return; }
     if (card.classList.contains('feature-card--tarot-love') && openByAction('openTarotLoveModal')) { return; }
-    if (card.classList.contains('feature-card--tarot-healing') && openByAction('openTarotHealingPage')) { return; }
+    if (card.classList.contains('feature-card--tarot-healing') && openByAction('openTarotHealingModal')) { return; }
     if (card.classList.contains('feature-card--tarot-self-esteem') && openByAction('openTarotSelfEsteemModal')) { return; }
     if (card.classList.contains('feature-card--tarot-reunion') && openByAction('openTarotReunionModal')) { return; }
     if (card.classList.contains('feature-card--tarot-year') && openByAction('openTarotYearFortuneModal')) { return; }
@@ -769,7 +769,7 @@ function bindFeatureCardVisualActions() {
     { cardClass: 'feature-card--face', action: 'openPhysiognomyApp' },
     { cardClass: 'feature-card--animal', action: 'openMbtiModal' },
     { cardClass: 'feature-card--tarot-love', action: 'openTarotLoveModal' },
-    { cardClass: 'feature-card--tarot-healing', action: 'openTarotHealingPage' },
+    { cardClass: 'feature-card--tarot-healing', action: 'openTarotHealingModal' },
     { cardClass: 'feature-card--tarot-self-esteem', action: 'openTarotSelfEsteemModal' },
     { cardClass: 'feature-card--tarot-reunion', action: 'openTarotReunionModal' },
     { cardClass: 'feature-card--tarot-year', action: 'openTarotYearFortuneModal' },
@@ -1050,7 +1050,8 @@ var __cdLazyActionLoaders = {
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=20260414-tarot-qualityfix2'); },
-  openTarotHealingPage: function() { try { window.location.assign('/tarot/healing'); } catch(e) { window.open('/tarot/healing', '_self'); } return Promise.resolve(); },
+  openTarotHealingModal: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'); },
+  openTarotHealingPage: function() { return __cdLoadScriptOnce('/js/tarot-healing-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=20260414-tarot-qualityfix2'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=20260414-tarot-qualityfix2'); },
   gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=20260410-v2'); },
