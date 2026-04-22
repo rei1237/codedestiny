@@ -6158,7 +6158,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function getUnlockStorageKey() {
     try {
       var user = readAuthUser();
-      var scopeRaw = (user && (user.id || user.userId || user.email || user.username || user.loginId)) || '';
+      var scopeRaw = (user && (user.id || user.userId || user._id || user.uid || user.email || user.username || user.loginId)) || '';
       var scope = String(scopeRaw || '').trim().toLowerCase();
       if (!scope) return '';
       return TILE_LOCKS_KEY_PREFIX + scope;
@@ -6536,14 +6536,14 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var featureKey = button.getAttribute('data-unlock-key') || '';
     var cost = Number(button.getAttribute('data-unlock-cost') || 10);
 
-    if (unlockedFeatureMap[featureKey]) {
+    if (isTileKeyUnlocked(featureKey)) {
       window.alert('이미 해제된 기능입니다.');
       return;
     }
 
     // 관리자 모드: 코인 차감 없이 즉시 해금
     if (isAdminUser()) {
-      unlockedFeatureMap[featureKey] = true;
+      markUnlockKey(unlockedFeatureMap, featureKey);
       saveTileLocks();
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
@@ -6587,7 +6587,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       userBalance = Number(((result.payload || {}).user || {}).points || userBalance);
       saveBalance();
       updateBadge();
-      unlockedFeatureMap[featureKey] = true;
+      markUnlockKey(unlockedFeatureMap, featureKey);
       saveTileLocks();
       UnlockButton(button);
       if(typeof applySectionGates==='function')applySectionGates();
