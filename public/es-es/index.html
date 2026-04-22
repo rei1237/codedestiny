@@ -6930,6 +6930,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     _cdDispatchSyntheticActionClick();
   }
 
+  // 상세 프리뷰 CTA에서 합성 클릭 대신 코인 게이트를 직접 진입할 수 있는 브릿지
+  window.__cdRunPerUseCoinGateFromTile = function(actionNode) {
+    if (!actionNode) return false;
+    var action = actionNode.getAttribute('data-action') || '';
+    var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
+    if (!action || tileCoinCost <= 0 || action === 'unlockPremiumFeature') return false;
+    _cdRunPerUseCoinGate(null, actionNode, action, tileCoinCost);
+    return true;
+  };
+
   function _cdSafeBlockEvent(event) {
     if (!event) return;
     if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
@@ -7752,6 +7762,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var _pvwLockCost=Number(tile.getAttribute('data-tile-lock-cost')||0);
     if(href&&tile.tagName==='A'&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=href;return;}
     var _fbHref=tile.getAttribute('data-fallback-href');if(_fbHref&&_pvwCoinCost<=0&&_pvwLockCost<=0){window.location.href=_fbHref;return;}
+    if(_pvwCoinCost>0&&typeof window.__cdRunPerUseCoinGateFromTile==='function'){
+      if(window.__cdRunPerUseCoinGateFromTile(tile))return;
+    }
     tile.setAttribute('data-pvw-bypass','1');
     tile.click();
     setTimeout(function(){tile.removeAttribute('data-pvw-bypass');},100);
