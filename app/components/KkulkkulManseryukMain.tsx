@@ -913,7 +913,7 @@ export default function KkulkkulManseryukMain() {
             </div>
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(253,186,116,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>베다 점성술 · Vedic Astrology Premium</p>
-              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>🪷 베다 인생 총람 리포트</p>
+              <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>💰 베다 인생 총람 리포트</p>
               <p style={{ color: "rgba(203,213,225,0.50)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>조티쉬 베다 점성술 · 라그나·나크샤트라 평생 운명 지도</p>
               <span style={{
                 display: "inline-block",
