@@ -11,42 +11,141 @@
   var NS       = 'FORTUNE_APP_USER_PROFILES';
   var KEY_LIST = NS + '.list';
   var KEY_CURR = NS + '.current';
+  var KEY_SCOPE_HINT  = NS + '.scope';
+  var KEY_LEGACY_OWNER = NS + '.legacyOwner';
+  var KEY_LIST_PREFIX = NS + '.list::';
+  var KEY_CURR_PREFIX = NS + '.current::';
+  var _dpScopedStorageReadyScope = '';
+
+  function _dpReadAuthUser() {
+    try {
+      var raw = localStorage.getItem('fortune_auth_user') || '';
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function _dpResolveProfileScope(user) {
+    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
+    var scope = String(scopeRaw || '').trim().toLowerCase();
+    return scope || 'guest';
+  }
+
+  function _dpGetProfileScope() {
+    return _dpResolveProfileScope(_dpReadAuthUser());
+  }
+
+  function _dpGetScopedListKey(scope) {
+    return KEY_LIST_PREFIX + String(scope || 'guest');
+  }
+
+  function _dpGetScopedCurrentKey(scope) {
+    return KEY_CURR_PREFIX + String(scope || 'guest');
+  }
+
+  function _dpReadListByKey(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function _dpMirrorScopedToLegacy(scope) {
+    try {
+      var safeScope = String(scope || 'guest');
+      var listKey = _dpGetScopedListKey(safeScope);
+      var currKey = _dpGetScopedCurrentKey(safeScope);
+      var scopedListRaw = localStorage.getItem(listKey);
+      localStorage.setItem(KEY_LIST, scopedListRaw || '[]');
+      var currId = localStorage.getItem(currKey) || '';
+      if (currId) localStorage.setItem(KEY_CURR, currId);
+      else localStorage.removeItem(KEY_CURR);
+      localStorage.setItem(KEY_SCOPE_HINT, safeScope);
+      localStorage.setItem(KEY_LEGACY_OWNER, safeScope);
+    } catch (e) {}
+  }
+
+  function _dpEnsureScopedStorageReady() {
+    var scope = _dpGetProfileScope();
+    if (_dpScopedStorageReadyScope === scope) return scope;
+
+    try {
+      var listKey = _dpGetScopedListKey(scope);
+      var currKey = _dpGetScopedCurrentKey(scope);
+      var scopedListRaw = localStorage.getItem(listKey);
+
+      if (scopedListRaw == null) {
+        var legacyRaw = localStorage.getItem(KEY_LIST);
+        if (legacyRaw) {
+          var legacyOwner = String(localStorage.getItem(KEY_LEGACY_OWNER) || localStorage.getItem(KEY_SCOPE_HINT) || '').trim().toLowerCase();
+          var canMigrate = (scope === 'guest') || !legacyOwner || legacyOwner === scope;
+          if (canMigrate) {
+            localStorage.setItem(listKey, legacyRaw);
+            var legacyCurr = localStorage.getItem(KEY_CURR) || '';
+            if (legacyCurr) localStorage.setItem(currKey, legacyCurr);
+          }
+        }
+      }
+
+      if (localStorage.getItem(listKey) == null) {
+        localStorage.setItem(listKey, '[]');
+      }
+      _dpMirrorScopedToLegacy(scope);
+    } catch (e) {}
+
+    _dpScopedStorageReadyScope = scope;
+    return scope;
+  }
 
   /* ──────────────────────────────────────────
      1. Storage Module
   ────────────────────────────────────────── */
   var DPStorage = {
     list: function() {
-      try { return JSON.parse(localStorage.getItem(KEY_LIST) || '[]'); }
-      catch(e) { return []; }
+      var scope = _dpEnsureScopedStorageReady();
+      return _dpReadListByKey(_dpGetScopedListKey(scope));
     },
     save: function(profiles) {
-      try { localStorage.setItem(KEY_LIST, JSON.stringify(profiles)); }
+      var scope = _dpEnsureScopedStorageReady();
+      try {
+        localStorage.setItem(_dpGetScopedListKey(scope), JSON.stringify(profiles));
+        _dpMirrorScopedToLegacy(scope);
+      }
       catch(e) {}
     },
     current: function() {
       try {
-        var id = localStorage.getItem(KEY_CURR);
+        var scope = _dpEnsureScopedStorageReady();
+        var id = localStorage.getItem(_dpGetScopedCurrentKey(scope));
         if (!id) return null;
         return DPStorage.list().find(function(p) { return p.id === id; }) || null;
       } catch(e) { return null; }
     },
     setCurrent: function(id) {
-      try { localStorage.setItem(KEY_CURR, id); } catch(e) {}
+      var scope = _dpEnsureScopedStorageReady();
+      try {
+        localStorage.setItem(_dpGetScopedCurrentKey(scope), id || '');
+        _dpMirrorScopedToLegacy(scope);
+      } catch(e) {}
     },
     add: function(profile) {
+      var scope = _dpEnsureScopedStorageReady();
       var list = DPStorage.list();
       profile.id = 'dp_' + Date.now();
       profile.createdAt = new Date().toISOString();
+      profile.ownerScope = scope;
       if (list.length === 0) DPStorage.setCurrent(profile.id);
       list.push(profile);
       DPStorage.save(list);
       return profile;
     },
     remove: function(id) {
+      var scope = _dpEnsureScopedStorageReady();
       var list = DPStorage.list().filter(function(p) { return p.id !== id; });
       DPStorage.save(list);
-      if (localStorage.getItem(KEY_CURR) === id) {
+      if (localStorage.getItem(_dpGetScopedCurrentKey(scope)) === id) {
         DPStorage.setCurrent(list.length ? list[0].id : '');
       }
     },
@@ -381,6 +480,46 @@
     } catch (e) { return ''; }
   }
 
+  function _dpNormalizeTier(tierRaw) {
+    var tier = String(tierRaw || '').trim().toLowerCase();
+    if (tier === 'vip') tier = 'vvip';
+    if (tier === 'unlimited') tier = 'vvip';
+    if (tier === 'pro') tier = 'premium';
+    if (tier === 'basic') tier = 'standard';
+    if (tier !== 'standard' && tier !== 'premium' && tier !== 'vvip') tier = 'free';
+    return tier;
+  }
+
+  function _dpGetTierProfileLimit(tierRaw) {
+    var tier = _dpNormalizeTier(tierRaw);
+    if (tier === 'standard') return 3;
+    if (tier === 'premium') return 7;
+    if (tier === 'vvip') return 15;
+    return 1;
+  }
+
+  function _dpGetTierLabel(tierRaw) {
+    var tier = _dpNormalizeTier(tierRaw);
+    if (tier === 'standard') return '스탠다드';
+    if (tier === 'premium') return '프리미엄';
+    if (tier === 'vvip') return 'VVIP';
+    return '무료';
+  }
+
+  function _dpGetNextTier(tierRaw) {
+    var tier = _dpNormalizeTier(tierRaw);
+    if (tier === 'free') return 'standard';
+    if (tier === 'standard') return 'premium';
+    if (tier === 'premium') return 'vvip';
+    return '';
+  }
+
+  function _dpFormatLimitLabel(limit) {
+    var n = Number(limit);
+    if (!isFinite(n) || n <= 0) return '무제한';
+    return String(Math.floor(n)) + '개';
+  }
+
   /**
    * 프로필 카드 모달 코인 잠금 게이트
    * 이미 해금됐거나 관리자/프리미엄이면 cb() 즉시 호출,
@@ -481,43 +620,94 @@
   }
 
   /* ── 프로필 구독 상태 (로드 후 갱신) ── */
-  var _dpSubTier         = 'free';   // 'free' | 'standard' | 'premium'
+  var _DP_SUB_CACHE_LEGACY_KEY = 'fortune_profile_subscription';
+  var _DP_SUB_CACHE_OWNER_KEY = 'fortune_profile_subscription_owner';
+  var _DP_SUB_CACHE_PREFIX = 'fortune_profile_subscription::';
+
+  var _dpSubTier         = 'free';   // 'free' | 'standard' | 'premium' | 'vvip'
   var _dpSubIsActive     = false;
-  var _dpSubProfileLimit = 1;        // 1 | 3 | Infinity (0 = unlimited)
+  var _dpSubProfileLimit = 1;        // 1 | 3 | 7 | 15
+  var _dpSubScope        = '';
+
+  function _dpGetSubCacheKey() {
+    return _DP_SUB_CACHE_PREFIX + _dpGetProfileScope();
+  }
+
+  function _dpWriteSubCache(tier, isActive, profileLimit, expiresAt) {
+    try {
+      var scope = _dpGetProfileScope();
+      var payload = {
+        tier: _dpNormalizeTier(tier),
+        isActive: !!isActive,
+        profileLimit: profileLimit,
+        expiresAt: expiresAt || null
+      };
+      var raw = JSON.stringify(payload);
+      localStorage.setItem(_dpGetSubCacheKey(), raw);
+      localStorage.setItem(_DP_SUB_CACHE_LEGACY_KEY, raw);
+      localStorage.setItem(_DP_SUB_CACHE_OWNER_KEY, scope);
+    } catch (e) {}
+  }
 
   /** localStorage 캐시에서 구독 상태를 읽어 변수 초기화 */
   function _dpLoadSubCache() {
+    var scope = _dpGetProfileScope();
+    _dpSubScope = scope;
+    _dpSubTier = 'free';
+    _dpSubIsActive = false;
+    _dpSubProfileLimit = 1;
     try {
-      var c = JSON.parse(localStorage.getItem('fortune_profile_subscription') || 'null');
-      if (!c || !c.isActive) return;
-      _dpSubTier         = c.tier         || 'free';
-      _dpSubIsActive     = !!c.isActive;
-      _dpSubProfileLimit = typeof c.profileLimit === 'number' ? (c.profileLimit === 0 ? Infinity : c.profileLimit) : 1;
+      var raw = localStorage.getItem(_dpGetSubCacheKey()) || '';
+      if (!raw) {
+        var legacyRaw = localStorage.getItem(_DP_SUB_CACHE_LEGACY_KEY) || '';
+        var legacyOwner = String(localStorage.getItem(_DP_SUB_CACHE_OWNER_KEY) || '').trim().toLowerCase();
+        if (legacyRaw && (!legacyOwner || legacyOwner === scope || scope === 'guest')) {
+          raw = legacyRaw;
+          localStorage.setItem(_dpGetSubCacheKey(), legacyRaw);
+        }
+      }
+      if (!raw) return;
+
+      var c = JSON.parse(raw);
+      var tier = _dpNormalizeTier(c && c.tier);
+      var active = !!(c && c.isActive) && tier !== 'free';
+      var rawLimit = Number(c && c.profileLimit);
+      var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+
+      _dpSubTier         = tier;
+      _dpSubIsActive     = active;
+      _dpSubProfileLimit = active ? resolvedLimit : 1;
     } catch(e) {}
   }
 
   /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
   function _fetchSubscription() {
     var token = localStorage.getItem('fortune_auth_token');
-    if (!token) return;
+    if (!token) {
+      _dpSubScope = _dpGetProfileScope();
+      _dpSubTier = 'free';
+      _dpSubIsActive = false;
+      _dpSubProfileLimit = 1;
+      _dpUpdateSaveBtn();
+      return;
+    }
     fetch('/api/fortune/pig-coin/profile-subscription/status', {
       headers: { 'Authorization': 'Bearer ' + token }
     })
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(d) {
       if (!d) return;
-      _dpSubTier         = d.tier         || 'free';
-      _dpSubIsActive     = !!d.isActive;
-      var rawLimit       = typeof d.profileLimit === 'number' ? d.profileLimit : 1;
-      _dpSubProfileLimit = rawLimit === 0 ? Infinity : rawLimit;
-      try {
-        localStorage.setItem('fortune_profile_subscription', JSON.stringify({
-          tier:         _dpSubTier,
-          isActive:     _dpSubIsActive,
-          profileLimit: d.profileLimit, // rawNumber (0=무제한)
-          expiresAt:    d.expiresAt || null,
-        }));
-      } catch(e) {}
+      var tier = _dpNormalizeTier(d.tier);
+      var active = !!d.isActive && tier !== 'free';
+      var rawLimit = Number(d.profileLimit);
+      var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+
+      _dpSubTier         = tier;
+      _dpSubIsActive     = active;
+      _dpSubProfileLimit = active ? resolvedLimit : 1;
+      _dpSubScope        = _dpGetProfileScope();
+
+      _dpWriteSubCache(tier, active, resolvedLimit, d.expiresAt || null);
       _dpUpdateSaveBtn();
       renderProfileList();
     })
@@ -526,9 +716,10 @@
 
   /** 현재 플랜에 따른 최대 프로필 수 반환 */
   function _dpGetMaxProfiles() {
-    if (!_dpSubIsActive) _dpLoadSubCache();
-    if (!_dpSubIsActive) return 1;
-    return _dpSubProfileLimit; // Infinity or 3
+    var scope = _dpGetProfileScope();
+    if (_dpSubScope !== scope || !_dpSubIsActive) _dpLoadSubCache();
+    if (_dpSubIsActive) return _dpSubProfileLimit;
+    return _dpGetTierProfileLimit(_dpGetUserPlan());
   }
 
   /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
@@ -547,12 +738,16 @@
       btn.disabled       = true;
       btn.style.opacity  = '0.45';
       btn.style.cursor   = 'not-allowed';
-      if (max <= 1) {
-        btn.textContent = '✦ 무료 플랜 한도 (1개) — 구독 업그레이드';
-        btn.title       = '/points 페이지에서 스탠다드 또는 프리미엄 구독 후 추가 등록 가능합니다.';
+      var activeTier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
+      var nextTier = _dpGetNextTier(activeTier);
+      var limitLabel = _dpFormatLimitLabel(max);
+      if (nextTier) {
+        var nextLimit = _dpFormatLimitLabel(_dpGetTierProfileLimit(nextTier));
+        btn.textContent = '✦ ' + _dpGetTierLabel(activeTier) + ' 한도 (' + limitLabel + ') — ' + _dpGetTierLabel(nextTier) + ' 업그레이드';
+        btn.title = '/points 페이지에서 ' + _dpGetTierLabel(nextTier) + ' 구독 후 프로필 ' + nextLimit + '까지 등록 가능합니다.';
       } else {
-        btn.textContent = '✦ 스탠다드 한도 (3개) — 프리미엄 업그레이드';
-        btn.title       = '/points 페이지에서 프리미엄 구독 후 무제한 등록 가능합니다.';
+        btn.textContent = '✦ 현재 플랜 한도 (' + limitLabel + ') 도달';
+        btn.title = '프로필 저장 한도에 도달했습니다.';
       }
     }
   }
@@ -1250,10 +1445,12 @@
     var _cnt = DPStorage.list().length;
     var _max = _dpGetMaxProfiles();
     if (_cnt >= _max) {
-      if (_max <= 1) {
-        alert('무료 플랜은 프로필 1개까지 저장할 수 있습니다.\n더 많은 프로필이 필요하면 /points 페이지에서 구독을 업그레이드하세요.');
+      var _tier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
+      var _nextTier = _dpGetNextTier(_tier);
+      if (_nextTier) {
+        alert(_dpGetTierLabel(_tier) + ' 플랜은 프로필 ' + _dpFormatLimitLabel(_max) + '까지 저장할 수 있습니다.\n더 많은 생년월일 프로필이 필요하면 /points 페이지에서 ' + _dpGetTierLabel(_nextTier) + ' 구독으로 업그레이드하세요.');
       } else {
-        alert('스탠다드 플랜은 프로필 3개까지 저장할 수 있습니다.\n무제한 프로필이 필요하면 /points 페이지에서 프리미엄 구독으로 업그레이드하세요.');
+        alert('현재 플랜 한도(' + _dpFormatLimitLabel(_max) + ')에 도달했습니다.');
       }
       return;
     }
@@ -1954,6 +2151,8 @@
   function init() {
     /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
+
+    _dpEnsureScopedStorageReady();
 
     renderMasterCard(DPStorage.current());
 
