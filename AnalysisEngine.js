@@ -2010,7 +2010,7 @@ async analyze(landmarksData, expressionData) {
           <!-- 점(痣) 위치별 관상 해석 섹션 -->
           <div style="margin-bottom:15px; background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding:18px; border-radius:12px; border:1px solid #334155; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
             <div style="font-weight:800; font-size:1.05rem; color:#e2e8f0; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              ✨ 점(痣) 위치별 관상 해석 <span style="font-size:0.8rem; color:#94a3b8;">(面痣 十二宮 分析)</span>
+              ✨ 점(痣) 위치별 관상 해석 <span style="font-size:0.8rem; color:#94a3b8;">(面痣 十二宮 분석)</span>
             </div>
             <div style="font-size:0.88rem; color:#94a3b8; margin-bottom:12px; line-height:1.5;">
               전통 관상학의 <b style="color:#fbbf24;">얼굴 12궁(十二宮)</b> 기반 점(痣) 위치 분석 결과,
