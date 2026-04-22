@@ -1044,6 +1044,7 @@
           + '</div>'
         + '</div>'
         + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
+        + '<button class="dp-mc-load-btn" onclick="openFortuneFromProfile(\'vedic\')" style="margin-top:8px;background:linear-gradient(135deg,#2e1a6d,#5b2fb2);border-color:rgba(167,139,250,0.55);touch-action:manipulation">🪐 베다점 바로가기</button>'
       + '</div>';
   }
 
