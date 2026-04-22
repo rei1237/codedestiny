@@ -3998,7 +3998,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
       window._cdCoinGatePerUse(50, '숙요점 유명인 궁합', function() { window._szPickCelebCore(myIdx, celeb); });
       return;
     }
-    window._szPickCelebCore(myIdx, celeb);
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+    if (!token) {
+      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+        window.location.href = '/login?next=%2F';
+      }
+      return;
+    }
+    window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return;
   };
   window._szPickCelebCore = function(myIdx, celeb) {
     var badge = document.getElementById('szCelebBadge');
@@ -4436,7 +4445,16 @@ function renderSukuyo(p, natal, bazi, lunarObj) {
         window._cdCoinGatePerUse(50, '숙요점 궁합 분석', function() { window._triggerSynergyCheckCore(myIdx, myMansionName); });
         return;
       }
-      window._triggerSynergyCheckCore(myIdx, myMansionName);
+      var token = '';
+      try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+      if (!token) {
+        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
+          window.location.href = '/login?next=%2F';
+        }
+        return;
+      }
+      window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
   };
   window._triggerSynergyCheckCore = function(myIdx, myMansionName) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──

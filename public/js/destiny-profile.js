@@ -73,27 +73,150 @@
      기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
      심화/궁합 기능은 _cdCoinGatePerUse(50, ...) 로 1회 50코인 차감. ── */
   var _DP_FEATURE_LOCKS = {
-    olympus: { key: 'olympus-profile-fc', cost: 100, name: '올림푸스 신탁' },
-    flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] },
+    olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
+    flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
   };
+  var _DP_TILE_LOCKS_KEY_PREFIX = 'cd_tile_locks_v2::';
+
+  function _dpGetTileLockScopeKey() {
+    try {
+      var raw = localStorage.getItem('fortune_auth_user') || '';
+      var user = raw ? JSON.parse(raw) : null;
+      var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
+      var scope = String(scopeRaw || '').trim().toLowerCase();
+      if (!scope) return '';
+      return _DP_TILE_LOCKS_KEY_PREFIX + scope;
+    } catch (e) {}
+    return '';
+  }
+
+  function _dpResolveUnlockAliasKeys(lockKey) {
+    var base = String(lockKey || '').trim();
+    if (!base) return [];
+    var map = Object.create(null);
+    map[base] = true;
+
+    if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
+    if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
+
+    if (base === 'flower-fc') {
+      map['flower-destiny'] = true;
+      map['flower-astro'] = true;
+      map['flower-ziwei'] = true;
+      map['flower-sukuyo'] = true;
+    }
+    if (base === 'flower-destiny' || base === 'flower-astro' || base === 'flower-ziwei' || base === 'flower-sukuyo') {
+      map['flower-fc'] = true;
+    }
+
+    return Object.keys(map);
+  }
+
+  function _dpReadTileLockMap() {
+    var merged = Object.create(null);
+    try {
+      var scopedKey = _dpGetTileLockScopeKey();
+      if (scopedKey) {
+        var scopedRaw = localStorage.getItem(scopedKey);
+        if (scopedRaw) {
+          var scopedParsed = JSON.parse(scopedRaw);
+          if (scopedParsed && typeof scopedParsed === 'object') {
+            var scopedKeys = Object.keys(scopedParsed);
+            for (var si = 0; si < scopedKeys.length; si += 1) {
+              if (scopedParsed[scopedKeys[si]] === true) merged[scopedKeys[si]] = true;
+            }
+          }
+        }
+      }
+    } catch (e) {}
+    try {
+      var legacyRaw = localStorage.getItem('cd_tile_locks');
+      if (legacyRaw) {
+        var legacyParsed = JSON.parse(legacyRaw);
+        if (legacyParsed && typeof legacyParsed === 'object') {
+          var legacyKeys = Object.keys(legacyParsed);
+          for (var li = 0; li < legacyKeys.length; li += 1) {
+            if (legacyParsed[legacyKeys[li]] === true) merged[legacyKeys[li]] = true;
+          }
+        }
+      }
+    } catch (e) {}
+
+    var normalized = Object.create(null);
+    var keys = Object.keys(merged);
+    for (var i = 0; i < keys.length; i += 1) {
+      var aliases = _dpResolveUnlockAliasKeys(keys[i]);
+      for (var j = 0; j < aliases.length; j += 1) normalized[aliases[j]] = true;
+    }
+    return normalized;
+  }
+
+  function _dpWriteTileLockMap(map) {
+    var safe = Object.create(null);
+    if (map && typeof map === 'object') {
+      var keys = Object.keys(map);
+      for (var i = 0; i < keys.length; i += 1) {
+        if (map[keys[i]] === true) safe[keys[i]] = true;
+      }
+    }
+
+    try {
+      var scopedKey = _dpGetTileLockScopeKey();
+      if (scopedKey) localStorage.setItem(scopedKey, JSON.stringify(safe));
+    } catch (e) {}
+    try {
+      localStorage.setItem('cd_tile_locks', JSON.stringify(safe));
+    } catch (e) {}
+  }
+
+  function _dpNotifyTileLocksUpdated() {
+    try {
+      window.dispatchEvent(new CustomEvent('cd:tile-locks-updated'));
+    } catch (e) {
+      try {
+        var evt = document.createEvent('Event');
+        evt.initEvent('cd:tile-locks-updated', true, true);
+        window.dispatchEvent(evt);
+      } catch (_) {}
+    }
+  }
 
   function _dpIsFeatureLocked(lockKey) {
-    try {
-      var saved = localStorage.getItem('cd_tile_locks');
-      if (!saved) return true;
-      var parsed = JSON.parse(saved);
-      return !(parsed && parsed[lockKey]);
-    } catch (e) {}
-    return true;
+    var map = _dpReadTileLockMap();
+    var aliases = _dpResolveUnlockAliasKeys(lockKey);
+    var unlocked = false;
+    for (var i = 0; i < aliases.length; i += 1) {
+      if (map[aliases[i]] === true) {
+        unlocked = true;
+        break;
+      }
+    }
+
+    if (!unlocked && String(lockKey || '') === 'flower-fc') {
+      var required = (_DP_FEATURE_LOCKS.flower && _DP_FEATURE_LOCKS.flower.extraUnlockKeys) || [];
+      if (required.length) {
+        unlocked = true;
+        for (var ri = 0; ri < required.length; ri += 1) {
+          if (map[required[ri]] !== true) {
+            unlocked = false;
+            break;
+          }
+        }
+      }
+    }
+    return !unlocked;
   }
 
   function _dpSaveFeatureUnlock(lockKey) {
-    try {
-      var saved = localStorage.getItem('cd_tile_locks');
-      var parsed = (saved && JSON.parse(saved)) || {};
-      parsed[lockKey] = true;
-      localStorage.setItem('cd_tile_locks', JSON.stringify(parsed));
-    } catch (e) {}
+    var map = _dpReadTileLockMap();
+    var aliases = _dpResolveUnlockAliasKeys(lockKey);
+    for (var i = 0; i < aliases.length; i += 1) map[aliases[i]] = true;
+    if (String(lockKey || '') === 'flower-fc') {
+      var extras = (_DP_FEATURE_LOCKS.flower && _DP_FEATURE_LOCKS.flower.extraUnlockKeys) || [];
+      for (var ei = 0; ei < extras.length; ei += 1) map[extras[ei]] = true;
+    }
+    _dpWriteTileLockMap(map);
+    _dpNotifyTileLocksUpdated();
   }
 
   function _cdShowCoinDeductNotice(cost, balance, reason) {
@@ -157,38 +280,6 @@
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
-  var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-  function _cdIsAdminLikeUser() {
-    // ⚠️ 주의: window.__cdAdminBypass는 절대 신뢰하지 않음 (보안 우회 경로)
-    try {
-      var rawUser = localStorage.getItem('fortune_auth_user') || '';
-      if (rawUser) {
-        var parsed = JSON.parse(rawUser);
-        if (parsed && String(parsed.role || '').toLowerCase() === 'admin') {
-          // role 체크만 하되, 반드시 유효한 토큰이 있는지 재확인
-          var tok = localStorage.getItem('fortune_auth_token') || '';
-          if (tok && tok.length > 10) return true;
-        }
-      }
-    } catch(_) {}
-    try {
-      var sTok = String(sessionStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(sTok)) {
-        // 토큰 형식만으로는 부족함 - 로그인 토큰도 함께 검증
-        var authTok = localStorage.getItem('fortune_auth_token') || '';
-        if (authTok && authTok.length > 10) return true;
-      }
-    } catch(_) {}
-    try {
-      var lTok = String(localStorage.getItem('flower_admin_token') || '');
-      if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) {
-        var authTok2 = localStorage.getItem('fortune_auth_token') || '';
-        if (authTok2 && authTok2.length > 10) return true;
-      }
-    } catch(_) {}
-    return false;
-  }
-
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel) {
     // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
     if (window._cdCoinGatePerUseInFlight) {
@@ -205,11 +296,6 @@
       return;
     }
     dedupeMap[dedupeKey] = now;
-
-    if (_cdIsAdminLikeUser()) {
-      if (typeof cb === 'function') cb();
-      return;
-    }
 
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
@@ -1589,7 +1675,7 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('olympus-profile-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
+        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
         + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
