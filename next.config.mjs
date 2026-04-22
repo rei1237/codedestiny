@@ -34,8 +34,8 @@ const nextConfig = {
       { source: "/animal/mbti", destination: "/saju-picture", permanent: true },
       { source: "/animal/totem", destination: "/saju-picture", permanent: true },
       { source: "/animal/:path*", destination: "/saju-picture", permanent: true },
+      { source: "/flower/result", destination: "/flower/destiny", permanent: true },
       { source: "/dream/:path*",  destination: "/insights", permanent: true },
-      { source: "/flower/:path*", destination: "/high-value", permanent: true },
       { source: "/vedic/:path*",  destination: "/astrology/cosmic", permanent: true },
 
       /* ── 4. 미완성/구 오라클 경로 → 현행 오라클 영구 301 ── */
@@ -51,8 +51,8 @@ const nextConfig = {
       { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/sukuyo", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
       { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/oracle/rune", destination: "/:locale/oracle/sikojen-povailu", permanent: true },
       { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/animal/:path*", destination: "/:locale/saju-picture", permanent: true },
+      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/flower/result", destination: "/:locale/flower/destiny", permanent: true },
       { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/dream/:path*", destination: "/:locale/insights", permanent: true },
-      { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/flower/:path*", destination: "/:locale/high-value", permanent: true },
       { source: "/:locale(en-us|ja-jp|zh-cn|hi-in|es-es|fr-fr|de-de|nl-nl|ms-my)/vedic/:path*", destination: "/:locale/astrology/cosmic", permanent: true },
 
       /* ── 6. HTML → App Route canonical 301 ── */

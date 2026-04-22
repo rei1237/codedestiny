@@ -173,7 +173,7 @@
      심화/궁합 기능은 _cdCoinGatePerUse(50, ...) 로 1회 50코인 차감. ── */
   var _DP_FEATURE_LOCKS = {
     olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
-    flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
+    flower:  { key: 'flower-fc',  cost: 50, name: '운명의 꽃 4종 세트', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
   };
   var _DP_TILE_LOCKS_KEY_PREFIX = 'cd_tile_locks_v2::';
 
@@ -427,7 +427,7 @@
       return;
     }
     window._cdCoinGatePerUseInFlight = true;
-    fetch('/api/fortune/pig-coin/consume', {
+    fetch('/api/coins/spend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ cost: cost, reason: reason })
@@ -570,7 +570,7 @@
       var inFlight = false;
       if (inFlight) return;
       inFlight = true;
-      fetch('/api/fortune/pig-coin/consume', {
+      fetch('/api/coins/spend', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1875,7 +1875,7 @@
         + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
+        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 50코인</span>':'') + '</span></button>'; })()
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);

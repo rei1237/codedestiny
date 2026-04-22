@@ -2,6 +2,7 @@
 import { getUserModel } from "../../../../_lib/models/UserModel";
 import { getPointHistoryModel } from "../../../../_lib/models/PointHistoryModel";
 import { isAdminRequest, verifyJwtFromRequest } from "../../../_lib/adminAccess";
+import { resolveUnlockAliasKeys } from "../../../../_lib/featureUnlocks";
 
 export const runtime = "nodejs";
 
@@ -79,6 +80,8 @@ export async function POST(request) {
 
   const reason = String(body?.reason || "유료 섹션 잠금 해제").trim().slice(0, 120);
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
+  const shouldPersistUnlock = featureKey && featureKey !== "pig-coin-unlock";
+  const unlockKeys = shouldPersistUnlock ? resolveUnlockAliasKeys(featureKey) : [];
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
   const idempotencyKey = normalizeIdempotencyKey(body?.requestId || request.headers.get("x-idempotency-key") || "");
   const adminTestTier = adminMode ? getAdminTestTier(request) : "";
@@ -154,6 +157,12 @@ export async function POST(request) {
     }
 
     if (isTestAccountUser(user)) {
+      if (unlockKeys.length) {
+        await User.findByIdAndUpdate(userId, {
+          $addToSet: { unlockedFeatures: { $each: unlockKeys } },
+        }).catch(() => {});
+      }
+
       await PointHistory.create({
         userId,
         kind: "adjust",
@@ -174,12 +183,19 @@ export async function POST(request) {
         testAccountBypass: true,
         message: "테스트 계정 예외가 적용되어 코인 차감 없이 이용됩니다.",
         requiredCoins: cost,
+        unlockKeys,
         user: { id: String(userId), points: Number(user.points || 0) },
       });
     }
 
     const freeLimit = getSubscriptionFreeLimit(user);
     if (!forceDeduct && freeLimit > 0 && cost <= freeLimit) {
+      if (unlockKeys.length) {
+        await User.findByIdAndUpdate(userId, {
+          $addToSet: { unlockedFeatures: { $each: unlockKeys } },
+        }).catch(() => {});
+      }
+
       await PointHistory.create({
         userId,
         kind: "adjust",
@@ -201,13 +217,19 @@ export async function POST(request) {
         subscriptionFree: true,
         message: `구독 혜택으로 ${cost.toLocaleString("ko-KR")}코인 서비스가 무료 처리되었습니다.`,
         requiredCoins: cost,
+        unlockKeys,
         user: { id: String(userId), points: Number(user.points || 0) },
       });
     }
 
+    const updateOps = { $inc: { points: -cost } };
+    if (unlockKeys.length) {
+      updateOps.$addToSet = { unlockedFeatures: { $each: unlockKeys } };
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, points: { $gte: cost } },
-      { $inc: { points: -cost } },
+      updateOps,
       { new: true, projection: { points: 1 } }
     ).lean();
 
@@ -234,6 +256,13 @@ export async function POST(request) {
       await User.findByIdAndUpdate(userId, { $inc: { points: cost } }).catch((rollbackErr) => {
         console.error("[pig-coin/consume] refund rollback failed:", rollbackErr);
       });
+
+      if (unlockKeys.length) {
+        await User.findByIdAndUpdate(userId, {
+          $pull: { unlockedFeatures: { $in: unlockKeys } },
+        }).catch(() => {});
+      }
+
       return NextResponse.json({
         ok: false,
         message: "결제 기록 저장에 실패하여 코인을 복구했습니다. 잠시 후 다시 시도해 주세요.",
@@ -244,6 +273,7 @@ export async function POST(request) {
       ok: true,
       message: `${cost.toLocaleString("ko-KR")} 코인이 차감되었습니다.`,
       requiredCoins: cost,
+      unlockKeys,
       user: { id: String(userId), points: Number(updatedUser.points || 0) },
     });
   } catch (err) {

@@ -1306,6 +1306,190 @@ function __cdRequireTileLockGate(actionEl) {
   return false;
 }
 
+var __cdTileLockServerSyncInFlight = false;
+var __cdTileLockServerSyncDone = false;
+
+function __cdGetAuthTokenForLockSync() {
+  try {
+    return String(localStorage.getItem('fortune_auth_token') || '');
+  } catch (_) {}
+  return '';
+}
+
+function __cdResolveApiBaseForLockSync() {
+  try {
+    if (window.CODE_DESTINY_API_BASE_URL) {
+      return String(window.CODE_DESTINY_API_BASE_URL).replace(/\/+$/, '');
+    }
+  } catch (_) {}
+  try {
+    var custom = localStorage.getItem('fortune_api_base_url');
+    if (custom) return String(custom).replace(/\/+$/, '');
+  } catch (_) {}
+  return window.location.origin;
+}
+
+function __cdGetTileLockScopeStorageKey() {
+  try {
+    var raw = localStorage.getItem('fortune_auth_user') || '';
+    var user = raw ? JSON.parse(raw) : null;
+    var scopeRaw = user && (user.id || user.userId || user.email || user.username || user.loginId);
+    var scope = String(scopeRaw || '').trim().toLowerCase();
+    if (!scope) return '';
+    return 'cd_tile_locks_v2::' + scope;
+  } catch (_) {}
+  return '';
+}
+
+function __cdReadTileLockMapForSync() {
+  var merged = Object.create(null);
+  try {
+    var scopedKey = __cdGetTileLockScopeStorageKey();
+    if (scopedKey) {
+      var scopedRaw = localStorage.getItem(scopedKey);
+      if (scopedRaw) {
+        var scopedMap = JSON.parse(scopedRaw);
+        if (scopedMap && typeof scopedMap === 'object') {
+          var scopedKeys = Object.keys(scopedMap);
+          for (var i = 0; i < scopedKeys.length; i += 1) {
+            if (scopedMap[scopedKeys[i]] === true) merged[scopedKeys[i]] = true;
+          }
+        }
+      }
+    }
+  } catch (_) {}
+
+  try {
+    var legacyRaw = localStorage.getItem('cd_tile_locks');
+    if (legacyRaw) {
+      var legacyMap = JSON.parse(legacyRaw);
+      if (legacyMap && typeof legacyMap === 'object') {
+        var legacyKeys = Object.keys(legacyMap);
+        for (var j = 0; j < legacyKeys.length; j += 1) {
+          if (legacyMap[legacyKeys[j]] === true) merged[legacyKeys[j]] = true;
+        }
+      }
+    }
+  } catch (_) {}
+
+  var normalized = Object.create(null);
+  var keys = Object.keys(merged);
+  for (var k = 0; k < keys.length; k += 1) {
+    var aliases = __cdResolveTileLockAliasKeys(keys[k]);
+    for (var a = 0; a < aliases.length; a += 1) normalized[aliases[a]] = true;
+  }
+  return normalized;
+}
+
+function __cdWriteTileLockMapForSync(mapObj) {
+  var safe = Object.create(null);
+  if (mapObj && typeof mapObj === 'object') {
+    var keys = Object.keys(mapObj);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (mapObj[keys[i]] === true) safe[keys[i]] = true;
+    }
+  }
+
+  try {
+    var scopedKey = __cdGetTileLockScopeStorageKey();
+    if (scopedKey) localStorage.setItem(scopedKey, JSON.stringify(safe));
+  } catch (_) {}
+  try {
+    localStorage.setItem('cd_tile_locks', JSON.stringify(safe));
+  } catch (_) {}
+}
+
+function __cdDispatchTileLockSyncEvent() {
+  try {
+    window.dispatchEvent(new CustomEvent('cd:tile-locks-updated'));
+    return;
+  } catch (_) {}
+  try {
+    var evt = document.createEvent('Event');
+    evt.initEvent('cd:tile-locks-updated', true, true);
+    window.dispatchEvent(evt);
+  } catch (_) {}
+}
+
+function __cdMergeServerUnlockKeys(unlockKeys) {
+  if (!Array.isArray(unlockKeys) || !unlockKeys.length) return false;
+  var localMap = __cdReadTileLockMapForSync();
+  var changed = false;
+
+  for (var i = 0; i < unlockKeys.length; i += 1) {
+    var raw = String(unlockKeys[i] || '').trim();
+    if (!raw) continue;
+    var aliases = __cdResolveTileLockAliasKeys(raw);
+    for (var a = 0; a < aliases.length; a += 1) {
+      if (localMap[aliases[a]] !== true) {
+        localMap[aliases[a]] = true;
+        changed = true;
+      }
+      try {
+        if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
+          window.unlockedFeatureMap[aliases[a]] = true;
+        }
+      } catch (_) {}
+    }
+  }
+
+  if (!changed) return false;
+  __cdWriteTileLockMapForSync(localMap);
+  return true;
+}
+
+function __cdSyncTileLocksFromServer() {
+  var token = __cdGetAuthTokenForLockSync();
+  if (!token || __cdTileLockServerSyncInFlight) return;
+
+  __cdTileLockServerSyncInFlight = true;
+  var url = __cdResolveApiBaseForLockSync() + '/api/flower/unlock/status?all=1';
+
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/json'
+    }
+  }).then(function(response) {
+    return response.json().catch(function() { return {}; });
+  }).then(function(payload) {
+    var keys = [];
+    if (payload && Array.isArray(payload.unlockedFeatures)) keys = payload.unlockedFeatures;
+    if (payload && payload.unlockMap && typeof payload.unlockMap === 'object') {
+      var mapKeys = Object.keys(payload.unlockMap);
+      for (var i = 0; i < mapKeys.length; i += 1) {
+        if (payload.unlockMap[mapKeys[i]] === true) keys.push(mapKeys[i]);
+      }
+    }
+
+    if (__cdMergeServerUnlockKeys(keys)) {
+      __cdDispatchTileLockSyncEvent();
+    }
+  }).catch(function() {
+    // ignore sync failures
+  }).finally(function() {
+    __cdTileLockServerSyncInFlight = false;
+    __cdTileLockServerSyncDone = true;
+  });
+}
+
+function __cdScheduleTileLockServerSync() {
+  if (__cdTileLockServerSyncDone) return;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', __cdSyncTileLocksFromServer, { once: true });
+  } else {
+    __cdSyncTileLocksFromServer();
+  }
+}
+
+__cdScheduleTileLockServerSync();
+
+window.addEventListener('cd:auth-changed', function() {
+  __cdTileLockServerSyncDone = false;
+  __cdSyncTileLocksFromServer();
+});
+
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js'); }); },

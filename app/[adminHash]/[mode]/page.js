@@ -1,6 +1,16 @@
-import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import dynamic from "next/dynamic";
+import jwt from "jsonwebtoken";
 import { getService, SECTION_LABELS } from "../../_lib/serviceMap";
+import { getUserModel } from "../../_lib/models/UserModel";
+import {
+  FLOWER_ROUTE_LOCK_KEY_MAP,
+  FLOWER_UNLOCK_COST,
+  isFlowerRouteSlug,
+  isUnlockSatisfied,
+} from "../../_lib/featureUnlocks";
+import FlowerUnlockGate from "../../components/FlowerUnlockGate";
 import RelatedServices from "../../components/RelatedServices";
 import Breadcrumb from "../../components/Breadcrumb";
 import ServiceRenderSkeleton from "../../components/ServiceRenderSkeleton";
@@ -127,7 +137,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function ServicePage({ params }) {
+export default async function ServicePage({ params }) {
   const slug = `${params.adminHash}/${params.mode}`;
   const service = getService(slug);
 
@@ -142,6 +152,51 @@ export default function ServicePage({ params }) {
   if (!ServiceComponent) {
     notFound();
   }
+
+  async function resolveFlowerAccess(requiredKey) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("fortune_auth_token")?.value || "";
+    if (!token) return { loggedIn: false, hasUnlock: false, points: 0 };
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
+    } catch (_error) {
+      return { loggedIn: false, hasUnlock: false, points: 0 };
+    }
+
+    const User = await getUserModel();
+    const user = await User.findById(payload?.userId)
+      .select("points unlockedFeatures")
+      .lean();
+
+    if (!user) return { loggedIn: false, hasUnlock: false, points: 0 };
+
+    return {
+      loggedIn: true,
+      hasUnlock: isUnlockSatisfied(user.unlockedFeatures, requiredKey),
+      points: Number(user.points || 0),
+    };
+  }
+
+  if (isFlowerRouteSlug(slug)) {
+    const requiredKey = FLOWER_ROUTE_LOCK_KEY_MAP[slug] || "flower-destiny";
+    const access = await resolveFlowerAccess(requiredKey);
+    if (!access.loggedIn) {
+      redirect(`/login?next=${encodeURIComponent(`/${slug}`)}`);
+    }
+    if (!access.hasUnlock) {
+      return (
+        <FlowerUnlockGate
+          slug={slug}
+          featureKey={requiredKey}
+          requiredCoins={FLOWER_UNLOCK_COST}
+          currentPoints={access.points}
+        />
+      );
+    }
+  }
+
   const jsonLd = JSON.stringify(buildServiceJsonLd(slug, service));
   const canonicalUrl = toAbsoluteUrl(`/${slug}`);
   const mergedKeywords = mergeKeywords(service.keywords, SEO_CORE_KEYWORDS);

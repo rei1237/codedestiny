@@ -32,6 +32,7 @@ export async function getUserModel() {
       joinedAt:     { type: Date, default: Date.now },
       role:         { type: String, enum: ["user", "admin"], default: "user" },
       points:       { type: Number, default: 0, min: 0 },
+      unlockedFeatures: { type: [String], default: [] },
       // 계정 상태 (ban 기능)
       status:       { type: String, enum: ["active", "banned", "suspended"], default: "active" },
       banReason:    { type: String, default: "" },
