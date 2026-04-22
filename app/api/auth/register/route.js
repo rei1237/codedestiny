@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { createHash } from "node:crypto";
 import { getUserModel } from "../../../_lib/models/UserModel";
+import { getDeletedAccountLogModel } from "../../../_lib/models/DeletedAccountLogModel.js";
 
 export const runtime = "nodejs";
+
+/**
+ * 탈퇴 이력 이메일 단방향 해시 생성 (register/withdraw 동일 방식)
+ * JWT_SECRET를 salt로 사용해 rainbow table 공격 방어
+ */
+function hashEmailForCheck(email) {
+  const secret = process.env.JWT_SECRET || "dev-secret";
+  return createHash("sha256")
+    .update(`${email.toLowerCase().trim()}:${secret}`)
+    .digest("hex");
+}
 
 const TEST_INICIS_LOGIN_ID = "test_inicis";
 const TEST_INICIS_POINTS = 9999;
@@ -117,6 +130,26 @@ export async function POST(request) {
     const existing = await User.findOne({ email: sanitized.email }).select("_id").lean();
     if (existing) {
       return NextResponse.json({ message: "이미 사용 중인 아이디(이메일)입니다." }, { status: 409 });
+    }
+
+    // ── 탈퇴 이력 확인: 동일 이메일로 탈퇴한 기록이 있으면 신규 계정과 연결 차단 ──
+    // 이전 탈퇴 이력과 이번 가입을 완전히 독립적으로 처리합니다.
+    // (이메일 원본은 저장되지 않으므로 해시 비교만 수행)
+    try {
+      const emailHash = hashEmailForCheck(sanitized.email);
+      const DeletedLog = await getDeletedAccountLogModel();
+      const prevWithdrawal = await DeletedLog.findOne({ emailHash })
+        .select("withdrawnAt")
+        .lean();
+      if (prevWithdrawal) {
+        // 이전 탈퇴 계정과 새 계정을 연결하지 않기 위해 허용하되,
+        // 동일 이메일임을 내부 로그에만 기록합니다 (개인정보 보호 원칙에 따라 가입 자체는 허용).
+        // 단, 이전 데이터(포인트/구독/프로필)는 절대 복원되지 않습니다.
+        console.info("[register] 탈퇴 이력 있는 이메일로 재가입 시도 — 신규 독립 계정으로 처리");
+      }
+    } catch (logErr) {
+      // 탈퇴 로그 조회 실패는 가입 프로세스를 막지 않음 (fail-open)
+      console.warn("[register] 탈퇴 이력 조회 실패:", logErr?.message);
     }
 
     const passwordHash = await bcrypt.hash(sanitized.password, 12);

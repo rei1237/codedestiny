@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import WithdrawModal from "../components/WithdrawModal";
 import type { GalaxiaPayResult } from "./GalaxiaPayModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
@@ -1059,6 +1060,7 @@ export default function PointsPage() {
   const [isGalaxiaModalOpen, setIsGalaxiaModalOpen] = useState(false);
   const [galaxiaMerchantUid, setGalaxiaMerchantUid] = useState("");
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -1923,6 +1925,104 @@ export default function PointsPage() {
             <li>• 카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.</li>
           </ul>
         </section>
+
+        {/* ⑥ 섹션 구분선 — 계정 설정 */}
+        <div className="flex items-center gap-3 px-1 pt-2">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent opacity-40" />
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500">
+            계정 설정
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-400 to-transparent opacity-40" />
+        </div>
+
+        {/* ⑦ 계정 정보 카드 */}
+        <section
+          aria-label="계정 정보"
+          className="rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden"
+        >
+          {/* 헤더 */}
+          <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <div className="flex items-center gap-2">
+              <span className="text-lg" aria-hidden="true">👤</span>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Account</p>
+                <h2 className="text-base font-bold text-slate-700">내 계정 정보</h2>
+              </div>
+            </div>
+          </div>
+
+          {/* 계정 상세 */}
+          <div className="p-5 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">이름</p>
+                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.name || "—"}</p>
+              </div>
+              <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">아이디 (이메일)</p>
+                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.email || "—"}</p>
+              </div>
+              <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">보유 코인</p>
+                <p className="text-sm font-semibold text-amber-700">
+                  ✦ {currentPoints.toLocaleString("ko-KR")}코인
+                </p>
+              </div>
+              <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">구독 플랜</p>
+                <p className="text-sm font-semibold text-slate-700">
+                  {subscription.tier === "free" ? "🆓 무료 플랜"
+                   : subscription.tier === "standard" ? "🍯 스탠다드 꿀"
+                   : subscription.tier === "premium" ? "🌹 프리미엄 꿀"
+                   : subscription.tier === "vvip" ? "👑 VVIP 꿀단지"
+                   : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 위험 구역 구분선 */}
+          <div className="mx-5 border-t border-dashed border-red-200" />
+
+          {/* 위험 구역 */}
+          <div className="p-5">
+            <div className="rounded-[18px] border border-red-200 bg-red-50/60 overflow-hidden">
+              {/* 위험 구역 헤더 */}
+              <div className="px-4 py-3 bg-red-100/70 border-b border-red-200 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                  className="w-4 h-4 text-red-600 flex-shrink-0" aria-hidden="true">
+                  <path fillRule="evenodd"
+                    d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                    clipRule="evenodd" />
+                </svg>
+                <p className="text-[12px] font-extrabold text-red-700 uppercase tracking-wide">위험 구역 — Danger Zone</p>
+              </div>
+
+              <div className="p-4 space-y-3">
+                {/* 경고 안내 */}
+                <div className="text-[12px] text-red-700 leading-relaxed space-y-1">
+                  <p>• 탈퇴 시 보유 코인·구독·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
+                  <p>• 탈퇴 후 <strong>동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.</strong></p>
+                  <p>• 법적 보존 의무에 따라 결제 거래 금액·일시는 5년간 익명화 보관됩니다.</p>
+                </div>
+
+                {/* 탈퇴 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setIsWithdrawOpen(true)}
+                  className="mt-1 inline-flex items-center gap-2 rounded-[12px] border border-red-300 bg-white hover:bg-red-50 px-4 py-2.5 text-sm font-bold text-red-600 transition-all hover:-translate-y-0.5 active:scale-[0.97] shadow-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    strokeWidth={2} stroke="currentColor" className="w-4 h-4" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                  </svg>
+                  회원 탈퇴
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       {/* ══ 결제 수단 선택 모달 ══════════════════════════════════════ */}
@@ -2008,6 +2108,13 @@ export default function PointsPage() {
           </div>
         </div>
       )}
+
+      {/* ══ 회원 탈퇴 모달 ══════════════════════════════════════════ */}
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        hasLocalAuth={true}
+      />
 
       {/* ══ 갤럭시아 카드 선택 모달 ══════════════════════════════════ */}
       {isGalaxiaModalOpen && authUser && (

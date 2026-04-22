@@ -29,6 +29,7 @@
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
     "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
     "verify:entry-encoding": "node scripts/verify-entry-encoding.mjs",
+    "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "seed:inicis-test-account": "node scripts/seed-inicis-test-account.mjs",
     "verify:inicis-local-auth": "node scripts/verify-inicis-local-auth.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",

@@ -34,7 +34,7 @@ export async function getUserModel() {
       points:       { type: Number, default: 0, min: 0 },
       unlockedFeatures: { type: [String], default: [] },
       // 계정 상태 (ban 기능)
-      status:       { type: String, enum: ["active", "banned", "suspended"], default: "active" },
+      status:       { type: String, enum: ["active", "banned", "suspended", "withdrawn"], default: "active" },
       banReason:    { type: String, default: "" },
       bannedAt:     { type: Date, default: null },
       // 마지막 로그인
@@ -58,6 +58,9 @@ export async function getUserModel() {
       first_service_access_date: { type: Date, default: null },
       // 다마고치 펫 (계정당 1마리)
       tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },
+      // 운세 프로필 (생년월일/출생시간/성별 등, 운세 서비스 제공 목적으로만 사용)
+      destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },
+      destinyCurrentProfileId: { type: String, default: "" },
     },
     { timestamps: true },
   );

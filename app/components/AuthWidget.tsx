@@ -92,6 +92,13 @@ export default function AuthWidget() {
         >
           ✦ {displayPoints.toLocaleString()}P
         </Link>
+        <Link
+          href="/points"
+          className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
+          title="계정 설정 · 회원 탈퇴"
+        >
+          내 계정
+        </Link>
         <button
           type="button"
           onClick={handleLogout}
