@@ -6858,15 +6858,34 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       window[action]();
       return;
     }
+
+    function _cdDispatchSyntheticActionClick() {
+      perUseApproved[action] = true;
+      try {
+        actionEl.setAttribute('data-pvw-bypass', '1');
+        actionEl.click();
+        setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
+      } catch (_) {}
+      setTimeout(function () { delete perUseApproved[action]; }, 800);
+    }
+
+    var _lazyActionLoader = action && window.__cdLazyActionLoaders && window.__cdLazyActionLoaders[action];
+    if (typeof _lazyActionLoader === 'function') {
+      _lazyActionLoader().then(function() {
+        if (action && typeof window[action] === 'function') {
+          try { window[action](); return; } catch (e) { console.error('[coin-gate invoke]', e); }
+        }
+        _cdDispatchSyntheticActionClick();
+      }).catch(function(e) {
+        console.error('[coin-gate lazy-load]', action, e);
+        _cdDispatchSyntheticActionClick();
+      });
+      return;
+    }
+
     // 폴백: perUseApproved 플래그 세팅 후 프로그래매틱 클릭
     // pvw-bypass를 명시적으로 설정하여 합성 클릭이 프리뷰 패널을 재오픈하지 않도록 방지
-    perUseApproved[action] = true;
-    try {
-      actionEl.setAttribute('data-pvw-bypass', '1');
-      actionEl.click();
-      setTimeout(function () { try { actionEl.removeAttribute('data-pvw-bypass'); } catch (_) {} }, 200);
-    } catch (_) {}
-    setTimeout(function () { delete perUseApproved[action]; }, 800);
+    _cdDispatchSyntheticActionClick();
   }
 
   function _cdSafeBlockEvent(event) {
@@ -6927,15 +6946,16 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   var __cdMembershipConsentMessage = '이 운세는 구독 혜택으로 제공되는 유료 콘텐츠입니다.\n열람 시 서비스 이용이 시작되어 7일 이내 단순 변심 환불이 제한됩니다.\n계속하시겠습니까?';
 
-  function _cdShouldDeferTarotCoinGate(action) {
+  function _cdShouldDeferTarotCoinGate(action, actionNode) {
     if (!action) return false;
-    return action === 'openTarotLoveModal'
-      || action === 'openTarotHealingModal'
-      || action === 'openTarotSelfEsteemModal'
-      || action === 'openTarotReunionModal'
-      || action === 'openTarotYearFortuneModal'
-      || action === 'openTarotModal'
-      || action === 'startIjikTarot'
+    var isMainTile = !!(actionNode && actionNode.classList && (
+      actionNode.classList.contains('tarot-tile')
+      || actionNode.classList.contains('lifebook-tile')
+      || actionNode.classList.contains('lovebible-tile')
+      || actionNode.classList.contains('prem-card')
+    ));
+    if (isMainTile) return false;
+    return action === 'startIjikTarot'
       || action === 'startMindScanTarot'
       || action === 'startCrystalSoulTarot';
   }
@@ -6992,7 +7012,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           return;
         }
       } catch (_adminErr) {}
-      if (_cdShouldDeferTarotCoinGate(action)) {
+      if (_cdShouldDeferTarotCoinGate(action, actionNode)) {
         sessionStorage.setItem('cd_pa_' + action, '1');
         _cdInvokeActionDirect(action, actionNode);
         return;
@@ -7113,12 +7133,23 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 기본적으로 Preview 패널이 처리
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 Preview 패널 우선 시도
     if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-bypass')) {
       // 관리자 모드의 prem-card는 Preview를 건너뛰고 즉시 PDF 모달 경로로 이동
       if (actionNode.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) {
         _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+        return;
       }
+      var _pvwHandled = false;
+      try {
+        if (typeof window._cdOpenTilePreview === 'function') {
+          _pvwHandled = !!window._cdOpenTilePreview(actionNode);
+        }
+      } catch (_pvwErr) {
+        _pvwHandled = false;
+      }
+      if (_pvwHandled) return;
+      _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
       return;
     }
     // 터치 해제 위치가 타일 영역 내인지 확인
@@ -7144,15 +7175,25 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileCoinCost = Number(actionNode.getAttribute('data-coin-cost') || 0);
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-        // .prem-card는 Preview 패널 없이 직접 코인게이트로 처리
+        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭은 Preview 패널 우선 시도
+        // Preview 미연동 시 코인게이트로 즉시 폴백
         if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-bypass')) {
           // 관리자 모드: preview 패널 없이 직접 처리
           if (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token')) {
             _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
             return;
           }
-          // Preview 인터셉터로 위임 (이벤트 계속 전파)
+          var _clickPreviewHandled = false;
+          try {
+            if (typeof window._cdOpenTilePreview === 'function') {
+              _clickPreviewHandled = !!window._cdOpenTilePreview(actionNode);
+            }
+          } catch (_clickPreviewErr) {
+            _clickPreviewHandled = false;
+          }
+          if (_clickPreviewHandled) return;
+          _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
+          return;
         } else {
           _cdRunPerUseCoinGate(event, actionNode, action, tileCoinCost);
           return;
