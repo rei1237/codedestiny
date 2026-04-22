@@ -13,7 +13,19 @@ const SUBSCRIPTION_FREE_LIMIT = {
   vvip: 100,
 };
 
+const PROFILE_SUB_PLANS = {
+  standard: { name: "스탠다드 꿀", coins: 115, profileLimit: 3, freeLimit: 30 },
+  premium: { name: "프리미엄 꿀", coins: 360, profileLimit: 7, freeLimit: 50 },
+  vvip: { name: "VVIP 꿀단지", coins: 700, profileLimit: 15, freeLimit: 100 },
+};
+
 const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9:_\-.]{8,120}$/;
+
+function getAdminTestTier(request) {
+  const raw = String(request.headers.get("x-admin-subscription-tier") || "").trim().toLowerCase();
+  if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
+  return "";
+}
 
 function getSubscriptionFreeLimit(user) {
   const tier = String(user?.profileSubscription?.tier || "free");
@@ -55,14 +67,44 @@ export async function POST(request) {
   const featureKey = String(body?.featureKey || "pig-coin-unlock").trim().slice(0, 60);
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").toLowerCase() === "true";
   const idempotencyKey = normalizeIdempotencyKey(body?.requestId || request.headers.get("x-idempotency-key") || "");
+  const adminTestTier = adminMode ? getAdminTestTier(request) : "";
 
-  // 관리자 모드: 코인 차감 없이 즉시 통과 (로그인 userId 존재 여부와 무관)
+  // 관리자 모드: 티어 테스트가 선택된 경우 실제 차감 없이 티어 혜택/차감 대상을 시뮬레이션한다.
   if (adminMode) {
+    const plan = adminTestTier ? PROFILE_SUB_PLANS[adminTestTier] : null;
+    const freeLimit = Number(plan?.freeLimit || 0);
+    const profileLimit = Number(plan?.profileLimit || 1);
+    const recommendedCoins = Number(plan?.coins || 0);
+
+    let currentPoints = 0;
+    if (userId) {
+      try {
+        const User = await getUserModel();
+        const user = await User.findById(userId).select("points").lean();
+        currentPoints = Number(user?.points || 0);
+      } catch {
+        currentPoints = 0;
+      }
+    }
+
+    const message = adminTestTier
+      ? `관리자 프리패스 적용 (${plan?.name || adminTestTier}). 시뮬레이션 기준: 무료 한도 ${freeLimit}코인, 프로필 ${profileLimit}개, 기준 코인 ${recommendedCoins}코인.`
+      : "관리자 프리패스로 처리되었습니다. (티어 테스트 미적용)";
+
     return NextResponse.json({
       ok: true,
       adminMode: true,
-      message: "관리자 프리패스로 처리되었습니다.",
+      adminTestTier: adminTestTier || null,
+      simulated: true,
+      subscriptionFree: true,
+      freeLimit,
+      profileLimit,
+      recommendedCoins,
+      simulatedChargeCoins: 0,
+      forceDeduct,
+      message,
       requiredCoins: cost,
+      ...(userId ? { user: { id: String(userId), points: currentPoints } } : {}),
     });
   }
 

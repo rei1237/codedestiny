@@ -226,13 +226,17 @@ const POINT_PACKAGES: PointPackage[] = [
   { id: "emperorReserve", title: "황금 돼지 제왕 보물고",  amount: 119000, points: 2000 },
 ];
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
 function isFlowerAdminSessionClient(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    if (localStorage.getItem("flower_admin_token")) return true;
+    const token = String(localStorage.getItem("flower_admin_token") || "");
+    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch {}
   try {
-    if (sessionStorage.getItem("flower_admin_token")) return true;
+    const token = String(sessionStorage.getItem("flower_admin_token") || "");
+    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return true;
   } catch {}
   return false;
 }
@@ -241,11 +245,11 @@ function getFlowerAdminTokenClient(): string {
   if (typeof window === "undefined") return "";
   try {
     const token = localStorage.getItem("flower_admin_token");
-    if (token) return token;
+    if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch {}
   try {
     const token = sessionStorage.getItem("flower_admin_token");
-    if (token) return token;
+    if (token && FLOWER_ADMIN_TOKEN_RE.test(String(token))) return String(token);
   } catch {}
   return "";
 }
@@ -485,6 +489,10 @@ function SubscriptionSection({
     ? Math.max(0, Math.ceil((new Date(subscription.expiresAt).getTime() - Date.now()) / 86_400_000))
     : null;
 
+  const adminTierPlan = adminTestTier !== "off"
+    ? SUBSCRIPTION_PLANS.find((plan) => plan.id === adminTestTier)
+    : null;
+
   return (
     <section
       aria-label="꿀 구독 시스템"
@@ -554,7 +562,7 @@ function SubscriptionSection({
               <span aria-hidden="true">🧪</span> 관리자 구독 티어 테스트 모드
             </p>
             <p className="mt-1 text-[11.5px] text-violet-700">
-              아래 티어를 선택하면 유료 기능 결제 시 무료 한도(30/50/100코인)가 해당 티어 기준으로 시뮬레이션됩니다.
+              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 구독 상품 기준(프로필 한도/무료 한도/기준 코인)이 해당 티어로 시뮬레이션됩니다.
             </p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {([
@@ -580,6 +588,18 @@ function SubscriptionSection({
                   </button>
                 );
               })}
+            </div>
+            <div className="mt-2.5 rounded-[12px] border border-violet-200 bg-white/85 px-3 py-2 text-[11.5px] text-violet-800">
+              {adminTierPlan ? (
+                <p>
+                  현재 시뮬레이션: <strong>{adminTierPlan.title}</strong>
+                  <span className="mx-1">·</span>프로필 최대 <strong>{adminTierPlan.profileLimit ?? 1}개</strong>
+                  <span className="mx-1">·</span>무료 한도 <strong>{adminTierPlan.freeUpTo ?? 0}코인</strong>
+                  <span className="mx-1">·</span>기준 코인 <strong>{adminTierPlan.coins}코인</strong>
+                </p>
+              ) : (
+                <p>현재 시뮬레이션: 해제 (관리자 프리패스만 적용)</p>
+              )}
             </div>
           </div>
         )}
@@ -1138,8 +1158,7 @@ export default function PointsPage() {
   useEffect(() => {
     const savedToken = localStorage.getItem("fortune_auth_token");
     const rawUser = localStorage.getItem("fortune_auth_user");
-    const adminMode = isFlowerAdminSessionClient();
-    if (adminMode) setAdminTestTier(readAdminTestTierClient());
+    let parsedUser: AuthUser | null = null;
 
     if (!savedToken) {
       router.replace("/login?next=%2Fpoints");
@@ -1151,6 +1170,7 @@ export default function PointsPage() {
     if (rawUser) {
       try {
         const parsed = JSON.parse(rawUser) as AuthUser;
+        parsedUser = parsed;
         setAuthUser(parsed);
         if (typeof parsed.points === "number") {
           setCurrentPoints(parsed.points);
@@ -1158,13 +1178,16 @@ export default function PointsPage() {
       } catch { /* noop */ }
     }
 
+    const isAdminSession = parsedUser?.role === "admin" && isFlowerAdminSessionClient();
+    setAdminTestTier(isAdminSession ? readAdminTestTierClient() : "off");
+
     setIsBooting(false);
   }, [router]);
 
   useEffect(() => {
-    if (!isFlowerAdminSessionClient()) return;
+    if (authUser?.role !== "admin" || !isFlowerAdminSessionClient()) return;
     saveAdminTestTierClient(adminTestTier);
-  }, [adminTestTier]);
+  }, [adminTestTier, authUser]);
 
   /* ── 부팅 후 포인트 로드 ───────────────────────────────────────── */
   useEffect(() => {
@@ -1178,7 +1201,8 @@ export default function PointsPage() {
   /* ── 구독 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
     if (isBooting || !token) return;
-    const flowerAdminToken = getFlowerAdminTokenClient();
+    const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
+    const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
     const adminHeaders = flowerAdminToken ? {
       "x-admin-token": flowerAdminToken,
       ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
@@ -1198,7 +1222,7 @@ export default function PointsPage() {
         });
       })
       .catch(() => {});
-  }, [isBooting, token, apiBase, adminTestTier]);
+  }, [isBooting, token, apiBase, adminTestTier, authUser]);
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
@@ -1586,7 +1610,7 @@ export default function PointsPage() {
 
   /* ── 구독 결제 핸들러 ───────────────────────────────────────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
-    const isFlowerAdmin = isFlowerAdminSessionClient();
+    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
 
     if ((!token && !isFlowerAdmin) || !authUser) {
@@ -1658,7 +1682,7 @@ export default function PointsPage() {
     );
   }
 
-  const isFlowerAdminMode = isFlowerAdminSessionClient();
+  const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
