@@ -1124,6 +1124,83 @@
     };
   }
 
+  function _dpPad2(value) {
+    var n = parseInt(value, 10);
+    if (!isFinite(n)) n = 0;
+    return String(n).padStart(2, '0');
+  }
+
+  function _buildVedicBridgePayload(profile) {
+    var normalized = _normalizeProfileForVedic(profile) || profile || {};
+    var b = normalized.birth || {};
+    var l = normalized.location || {};
+
+    var year = parseInt(b.year, 10);
+    var month = parseInt(b.month, 10);
+    var day = parseInt(b.day, 10);
+    var hour = parseInt(b.hour, 10);
+    var minute = parseInt(b.minute, 10);
+
+    if (!isFinite(year)) year = 1990;
+    if (!isFinite(month)) month = 1;
+    if (!isFinite(day)) day = 1;
+    if (!isFinite(hour)) hour = 12;
+    if (!isFinite(minute)) minute = 0;
+
+    var lat = parseFloat(l.lat);
+    var lng = parseFloat(l.lng);
+    if (!isFinite(lng)) lng = parseFloat(l.lon);
+    if (!isFinite(lat)) lat = 37.5665;
+    if (!isFinite(lng)) lng = 126.978;
+
+    var tzHours = parseFloat(l.baseTzOffset);
+    if (!isFinite(tzHours)) {
+      tzHours = parseFloat(l.tzOffset);
+      if (isFinite(tzHours) && Math.abs(tzHours) > 24) tzHours = tzHours / 60;
+    }
+    if (!isFinite(tzHours)) tzHours = 9;
+
+    var bridge = {
+      id: normalized.id,
+      name: normalized.name,
+      gender: normalized.gender,
+      birth: {
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        calType: b.calType || 'solar'
+      },
+      location: {
+        label: l.label || '대한민국 (서울)',
+        tz: l.tz || 'Asia/Seoul',
+        lat: lat,
+        lng: lng,
+        tzOffset: tzHours,
+        baseTzOffset: tzHours,
+        dstMinutes: l.dstMinutes
+      }
+    };
+
+    bridge.birthYear = year;
+    bridge.birthMonth = month;
+    bridge.birthDay = day;
+    bridge.birthHour = hour;
+    bridge.birthMinute = minute;
+    bridge.calType = bridge.birth.calType;
+    bridge.birthDate = year + '-' + _dpPad2(month) + '-' + _dpPad2(day);
+    bridge.birthTime = _dpPad2(hour) + ':' + _dpPad2(minute);
+    bridge.lat = lat;
+    bridge.lng = lng;
+    bridge.lon = lng;
+    bridge.timezone = tzHours;
+    bridge.tzOffset = tzHours;
+    bridge.baseTzOffset = tzHours;
+
+    return bridge;
+  }
+
   function _resolveVedicProfileCandidate() {
     function hasBirth(p) {
       if (!(p && p.birth)) return false;
@@ -1549,8 +1626,8 @@
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
   window.dpGetDataForVedic = function() {
     var p = _resolveVedicProfileCandidate();
-    if (p && p.birth) return _normalizeProfileForVedic(p);
-    return _normalizeProfileForVedic(readFormData());
+    if (p && p.birth) return _buildVedicBridgePayload(p);
+    return _buildVedicBridgePayload(readFormData());
   };
 
   function _dpBuildSajuAnalysisSnapshot() {
@@ -2033,17 +2110,16 @@
         if (pVedic.id) {
           try { DPStorage.setCurrent(pVedic.id); } catch (e0) {}
         }
-        var forVedic = _normalizeProfileForVedic(pVedic);
+        var forVedic = _buildVedicBridgePayload(pVedic);
         try {
           sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(forVedic));
+          sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
+          localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(forVedic));
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
         var _vdTarget = '/vedic-astrology.html';
-        if (typeof cdResolveLocalizedFeatureHref === 'function') {
-          _vdTarget = cdResolveLocalizedFeatureHref('/vedic-astrology.html', (typeof cdGetCurrentLang === 'function' ? cdGetCurrentLang() : null));
-        }
         try {
           var _vp = encodeURIComponent(JSON.stringify(forVedic));
           _vdTarget += (_vdTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;

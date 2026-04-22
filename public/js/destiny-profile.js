@@ -1649,8 +1649,8 @@
   /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
   window.dpGetDataForVedic = function() {
     var p = _resolveVedicProfileCandidate();
-    if (p && p.birth) return _normalizeProfileForVedic(p);
-    return _normalizeProfileForVedic(readFormData());
+    if (p && p.birth) return _buildVedicBridgePayload(p);
+    return _buildVedicBridgePayload(readFormData());
   };
 
   function _dpBuildSajuAnalysisSnapshot() {

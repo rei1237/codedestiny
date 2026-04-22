@@ -6960,6 +6960,60 @@ function navigateToVedic() {
     };
   }
 
+  function _vedicPad2(value) {
+    var n = parseInt(value, 10);
+    if (!isFinite(n)) n = 0;
+    return String(n).padStart(2, '0');
+  }
+
+  function buildVedicBridgePayload(profile) {
+    var normalized = normalizeVedicProfile(profile);
+    if (!normalized) return null;
+
+    var b = normalized.birth || {};
+    var l = normalized.location || {};
+    var year = parseInt(b.year, 10);
+    var month = parseInt(b.month, 10);
+    var day = parseInt(b.day, 10);
+    var hour = parseInt(b.hour, 10);
+    var minute = parseInt(b.minute, 10);
+    if (!isFinite(year)) year = 1990;
+    if (!isFinite(month)) month = 1;
+    if (!isFinite(day)) day = 1;
+    if (!isFinite(hour)) hour = 12;
+    if (!isFinite(minute)) minute = 0;
+
+    var lat = parseFloat(l.lat);
+    var lng = parseFloat(l.lng);
+    if (!isFinite(lng)) lng = parseFloat(l.lon);
+    if (!isFinite(lat)) lat = 37.5665;
+    if (!isFinite(lng)) lng = 126.978;
+
+    var tzHours = parseFloat(l.baseTzOffset);
+    if (!isFinite(tzHours)) {
+      tzHours = parseFloat(l.tzOffset);
+      if (isFinite(tzHours) && Math.abs(tzHours) > 24) tzHours = tzHours / 60;
+    }
+    if (!isFinite(tzHours)) tzHours = 9;
+
+    normalized.birthYear = year;
+    normalized.birthMonth = month;
+    normalized.birthDay = day;
+    normalized.birthHour = hour;
+    normalized.birthMinute = minute;
+    normalized.calType = normalized.birth && normalized.birth.calType ? normalized.birth.calType : 'solar';
+    normalized.birthDate = year + '-' + _vedicPad2(month) + '-' + _vedicPad2(day);
+    normalized.birthTime = _vedicPad2(hour) + ':' + _vedicPad2(minute);
+    normalized.lat = lat;
+    normalized.lng = lng;
+    normalized.lon = lng;
+    normalized.timezone = tzHours;
+    normalized.tzOffset = tzHours;
+    normalized.baseTzOffset = tzHours;
+
+    return normalized;
+  }
+
   function readMainFormProfileFallback() {
     try {
       var bdEl = document.getElementById('birthDate');
@@ -7022,13 +7076,16 @@ function navigateToVedic() {
     profile = normalizeVedicProfile(readMainFormProfileFallback());
   }
   if (profile) {
+    profile = buildVedicBridgePayload(profile) || profile;
     try {
       sessionStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
       localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(profile));
+      sessionStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(profile));
+      localStorage.setItem('FORTUNE_APP_USER_PROFILE', JSON.stringify(profile));
       window.FORTUNE_APP_VEDIC_PAYLOAD = profile;
     } catch (e) {}
   }
-  var _vedicTarget = cdResolveLocalizedFeatureHref('/vedic-astrology.html', cdGetCurrentLang());
+  var _vedicTarget = '/vedic-astrology.html';
   if (profile) {
     try {
       var _vp = encodeURIComponent(JSON.stringify(profile));
