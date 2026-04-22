@@ -982,12 +982,40 @@ function __cdHasAuthToken() {
   return false;
 }
 
+function __cdResolveTileLockAliasKeys(lockKey) {
+  var base = String(lockKey || '').trim();
+  if (!base) return [];
+  var map = Object.create(null);
+  map[base] = true;
+  if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
+  if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
+  if (base === 'flower-fc') {
+    map['flower-destiny'] = true;
+    map['flower-astro'] = true;
+    map['flower-ziwei'] = true;
+    map['flower-sukuyo'] = true;
+  }
+  if (base === 'flower-destiny' || base === 'flower-astro' || base === 'flower-ziwei' || base === 'flower-sukuyo') {
+    map['flower-fc'] = true;
+  }
+  return Object.keys(map);
+}
+
+function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
+  if (!mapObj || typeof mapObj !== 'object') return false;
+  var aliases = __cdResolveTileLockAliasKeys(lockKey);
+  for (var i = 0; i < aliases.length; i += 1) {
+    if (mapObj[aliases[i]] === true) return true;
+  }
+  return false;
+}
+
 function __cdIsTileLockUnlocked(actionEl, lockKey) {
   if (!lockKey) return false;
   if (actionEl && actionEl.classList && actionEl.classList.contains('tarot-tile--tileUnlocked')) return true;
   try {
     if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
-      if (window.unlockedFeatureMap[lockKey] === true) return true;
+      if (__cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey)) return true;
     }
   } catch (_) {}
   try {
@@ -1000,7 +1028,7 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
       var scopedRaw = localStorage.getItem(scopedKey);
       if (scopedRaw) {
         var scopedMap = JSON.parse(scopedRaw);
-        if (scopedMap && scopedMap[lockKey] === true) return true;
+        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
       }
     }
   } catch (_) {}
@@ -1008,7 +1036,7 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
     var legacyRaw = localStorage.getItem('cd_tile_locks');
     if (legacyRaw) {
       var legacyMap = JSON.parse(legacyRaw);
-      if (legacyMap && legacyMap[lockKey] === true) return true;
+      if (__cdMapHasTileLockUnlocked(legacyMap, lockKey)) return true;
     }
   } catch (_) {}
   return false;
@@ -5667,7 +5695,7 @@ function _dfIsLockKeyUnlocked(lockKey) {
   if (!lockKey) return false;
   try {
     if (window.unlockedFeatureMap && typeof window.unlockedFeatureMap === 'object') {
-      return window.unlockedFeatureMap[lockKey] === true;
+      return __cdMapHasTileLockUnlocked(window.unlockedFeatureMap, lockKey);
     }
   } catch (_) {}
   try {
@@ -5680,7 +5708,7 @@ function _dfIsLockKeyUnlocked(lockKey) {
       var scopedRaw = localStorage.getItem(scopedKey);
       if (scopedRaw) {
         var scopedMap = JSON.parse(scopedRaw);
-        if (scopedMap && scopedMap[lockKey] === true) return true;
+        if (__cdMapHasTileLockUnlocked(scopedMap, lockKey)) return true;
       }
     }
   } catch (_) {}
@@ -5688,7 +5716,7 @@ function _dfIsLockKeyUnlocked(lockKey) {
     var legacyRaw = localStorage.getItem('cd_tile_locks');
     if (legacyRaw) {
       var legacy = JSON.parse(legacyRaw);
-      if (legacy && legacy[lockKey] === true) return true;
+      if (__cdMapHasTileLockUnlocked(legacy, lockKey)) return true;
     }
   } catch (_) {}
   return false;

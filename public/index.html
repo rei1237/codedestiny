@@ -6025,6 +6025,46 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   var unlockedFeatureMap = Object.create(null);
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY_PREFIX = 'cd_tile_locks_v2::';
+  var TILE_LOCK_ALIAS_MAP = {
+    'olympus-profile-fc': ['olympus-fc'],
+    'olympus-fc': ['olympus-profile-fc'],
+    'flower-fc': ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
+    'flower-destiny': ['flower-fc'],
+    'flower-astro': ['flower-fc'],
+    'flower-ziwei': ['flower-fc'],
+    'flower-sukuyo': ['flower-fc']
+  };
+
+  function resolveTileLockAliasKeys(rawKey) {
+    var base = String(rawKey || '').trim();
+    if (!base) return [];
+    var map = Object.create(null);
+    map[base] = true;
+    var aliases = TILE_LOCK_ALIAS_MAP[base] || [];
+    for (var i = 0; i < aliases.length; i += 1) map[aliases[i]] = true;
+    return Object.keys(map);
+  }
+
+  function markUnlockKey(unlockMap, rawKey) {
+    if (!unlockMap || typeof unlockMap !== 'object') return false;
+    var changed = false;
+    var keys = resolveTileLockAliasKeys(rawKey);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (unlockMap[keys[i]] !== true) {
+        unlockMap[keys[i]] = true;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function isTileKeyUnlocked(rawKey) {
+    var keys = resolveTileLockAliasKeys(rawKey);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (unlockedFeatureMap[keys[i]] === true) return true;
+    }
+    return false;
+  }
   var goldenPackages = [
     { id: 'sample', name: '맛보기 한 줌', coins: 30, bonus: 0, price: 3300 },
     { id: 'luckyMeal', name: '행운의 한 끼', coins: 100, bonus: 15, price: 9900 },
@@ -6129,7 +6169,6 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   function clearLegacyUnlockStorage() {
     try {
-      localStorage.removeItem('cd_tile_locks');
       var staleKeys = [];
       for (var lsIndex = 0; lsIndex < localStorage.length; lsIndex += 1) {
         var lsKey = localStorage.key(lsIndex);
@@ -6146,18 +6185,37 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     unlockedFeatureMap = Object.create(null);
     clearLegacyUnlockStorage();
     if (!hasAuthToken()) return;
+    var migratedFromLegacy = false;
     try {
       var scopedKey = getUnlockStorageKey();
-      if (!scopedKey) return;
-      var saved = localStorage.getItem(scopedKey);
-      if (!saved) return;
-      var parsed = JSON.parse(saved);
-      if (!parsed || typeof parsed !== 'object') return;
-      var keys = Object.keys(parsed);
-      for (var i = 0; i < keys.length; i += 1) {
-        if (parsed[keys[i]] === true) unlockedFeatureMap[keys[i]] = true;
+      if (scopedKey) {
+        var saved = localStorage.getItem(scopedKey);
+        if (saved) {
+          var parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            var keys = Object.keys(parsed);
+            for (var i = 0; i < keys.length; i += 1) {
+              if (parsed[keys[i]] === true) markUnlockKey(unlockedFeatureMap, keys[i]);
+            }
+          }
+        }
       }
     } catch (_e) {}
+    try {
+      var legacyRaw = localStorage.getItem('cd_tile_locks');
+      if (legacyRaw) {
+        var legacyParsed = JSON.parse(legacyRaw);
+        if (legacyParsed && typeof legacyParsed === 'object') {
+          var legacyKeys = Object.keys(legacyParsed);
+          for (var li = 0; li < legacyKeys.length; li += 1) {
+            if (legacyParsed[legacyKeys[li]] === true) {
+              if (markUnlockKey(unlockedFeatureMap, legacyKeys[li])) migratedFromLegacy = true;
+            }
+          }
+        }
+      }
+    } catch (_e) {}
+    if (migratedFromLegacy) saveTileLocks();
   }
 
   function saveTileLocks() {
@@ -6172,13 +6230,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         if (parsed && typeof parsed === 'object') {
           var prevKeys = Object.keys(parsed);
           for (var i = 0; i < prevKeys.length; i += 1) {
-            if (parsed[prevKeys[i]] === true) merged[prevKeys[i]] = true;
+            if (parsed[prevKeys[i]] === true) markUnlockKey(merged, prevKeys[i]);
           }
         }
       }
       var nextKeys = Object.keys(unlockedFeatureMap);
       for (var j = 0; j < nextKeys.length; j += 1) {
-        if (unlockedFeatureMap[nextKeys[j]] === true) merged[nextKeys[j]] = true;
+        if (unlockedFeatureMap[nextKeys[j]] === true) markUnlockKey(merged, nextKeys[j]);
       }
       localStorage.setItem(scopedKey, JSON.stringify(merged));
       unlockedFeatureMap = merged;
@@ -6203,7 +6261,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           icon.textContent = '🔒';
           wrap.appendChild(icon);
         }
-        if (unlockedFeatureMap[key]) {
+        if (isTileKeyUnlocked(key)) {
           tile.classList.remove('tarot-tile--tileLocked');
           tile.classList.add('tarot-tile--tileUnlocked');
           if (badge && lockCost > 0) {
@@ -6312,7 +6370,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function UnlockButton(button) {
     if (!button) return;
     var key = button.getAttribute('data-unlock-key') || '';
-    var unlocked = !!unlockedFeatureMap[key];
+    var unlocked = isTileKeyUnlocked(key);
     var card = button.closest ? button.closest('.pf-card') : null;
     if (card) {
       var badge = card.querySelector('.pf-card__badge');
@@ -6367,7 +6425,10 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var tileBtns = document.querySelectorAll('[data-tile-lock-key]');
     for (var t = 0; t < tileBtns.length; t += 1) {
       var tk = tileBtns[t].getAttribute('data-tile-lock-key');
-      if (tk) map[tk] = true;
+      if (tk) {
+        var aliases = resolveTileLockAliasKeys(tk);
+        for (var a = 0; a < aliases.length; a += 1) map[aliases[a]] = true;
+      }
     }
     return map;
   }
@@ -6382,9 +6443,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       if (String(h.kind || '') !== 'deduct') continue;
       var k = String(h.featureKey || '').trim();
       if (!k || k === 'pig-coin-unlock') continue;
-      if (known[k] && unlockedFeatureMap[k] !== true) {
-        unlockedFeatureMap[k] = true;
-        changed = true;
+      var aliases = resolveTileLockAliasKeys(k);
+      for (var ai = 0; ai < aliases.length; ai += 1) {
+        var ak = aliases[ai];
+        if (known[ak] && unlockedFeatureMap[ak] !== true) {
+          markUnlockKey(unlockedFeatureMap, ak);
+          changed = true;
+        }
       }
     }
     return changed;
@@ -7146,7 +7211,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     // ── 영구 해금 타일 게이트 ──
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
-    if (tileLockKey && tileLockCost > 0 && !unlockedFeatureMap[tileLockKey]) {
+    if (tileLockKey && tileLockCost > 0 && !isTileKeyUnlocked(tileLockKey)) {
       // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
       if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-bypass')) {
         // Preview 인터셉터로 위임 (이벤트 계속 전파)
@@ -7162,7 +7227,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         // 관리자 모드: 코인 차감/해금 비용 없이 즉시 실행
         try {
           if (isAdminUser()) {
-            unlockedFeatureMap[tileLockKey] = true;
+            markUnlockKey(unlockedFeatureMap, tileLockKey);
             saveTileLocks();
             applyTileLockVisuals();
             sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7179,7 +7244,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             var _lockContentTitle = _lockTitleEl ? _lockTitleEl.textContent.trim() : '멤버십 전용 콘텐츠';
             var _lockConsentOk = await _cdConfirmMembershipStart(action, _lockContentTitle);
             if (!_lockConsentOk) return;
-            unlockedFeatureMap[tileLockKey] = true;
+            markUnlockKey(unlockedFeatureMap, tileLockKey);
             saveTileLocks();
             applyTileLockVisuals();
             sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7218,7 +7283,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
           }
           saveBalance();
           updateBadge();
-          unlockedFeatureMap[tileLockKey] = true;
+          markUnlockKey(unlockedFeatureMap, tileLockKey);
           saveTileLocks();
           applyTileLockVisuals();
           sessionStorage.setItem('cd_pa_' + action, '1');
@@ -7285,6 +7350,22 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 
   loadBalance();
   loadTileLocks();
+  window.addEventListener('cd:tile-locks-updated', function() {
+    loadTileLocks();
+    applyTileLockVisuals();
+    refreshUnlockButtons();
+    if (typeof applySectionGates === 'function') applySectionGates();
+  });
+  window.addEventListener('storage', function(evt) {
+    if (!evt) return;
+    var k = String(evt.key || '');
+    if (k === 'cd_tile_locks' || (k && k.indexOf(TILE_LOCKS_KEY_PREFIX) === 0)) {
+      loadTileLocks();
+      applyTileLockVisuals();
+      refreshUnlockButtons();
+      if (typeof applySectionGates === 'function') applySectionGates();
+    }
+  });
   // 관리자 모드: 모든 섹션 게이트 + 타일 잠금 자동 해제
   if (isAdminUser()) {
     try {
@@ -7293,7 +7374,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var _adminTiles = document.querySelectorAll('[data-tile-lock-key]');
       for (var _at = 0; _at < _adminTiles.length; _at++) {
         var _atk = _adminTiles[_at].getAttribute('data-tile-lock-key');
-        if (_atk) unlockedFeatureMap[_atk] = true;
+        if (_atk) markUnlockKey(unlockedFeatureMap, _atk);
       }
       // perUse 코인 게이트도 우회 — isAdmin 플래그
       window.__cdAdminBypass = true;
@@ -7590,7 +7671,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       } else if(lockKey&&lockCost>0){
         _paywallEl.style.display='';
         _paywallEl.className='tile-pvw-paywall tile-pvw-paywall--lock';
-        var _pvwUnlocked = !!unlockedFeatureMap[lockKey];
+        var _pvwUnlocked = isTileKeyUnlocked(lockKey);
         if(_pvwUnlocked){
           if(_paywallIcon)_paywallIcon.textContent='✅';
           if(_paywallTitle)_paywallTitle.textContent='해금 완료';
@@ -7648,7 +7729,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     if(!tile||tile.getAttribute('data-pvw-bypass'))return;
     if(tile.classList.contains('prem-card') && (window.__cdAdminBypass || (typeof isAdminUser === 'function' && isAdminUser()) || !!sessionStorage.getItem('flower_admin_token'))) return;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && unlockedFeatureMap[lockKey]) return;
+    if (lockKey && isTileKeyUnlocked(lockKey)) return;
     var action=tile.getAttribute('data-action');
     var href=tile.tagName==='A'?tile.getAttribute('href'):null;
     var key=action||href;
@@ -7663,7 +7744,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   window._cdOpenTilePreview = function(tile) {
     if (!tile) return false;
     var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-    if (lockKey && unlockedFeatureMap[lockKey]) return false;
+    if (lockKey && isTileKeyUnlocked(lockKey)) return false;
     var action = tile.getAttribute('data-action');
     var href = tile.tagName === 'A' ? tile.getAttribute('href') : null;
     var key = action || href;
