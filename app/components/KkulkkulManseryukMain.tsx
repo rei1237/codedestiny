@@ -7,7 +7,7 @@ import HPremiumVedicSection from "./HPremiumVedicSection";
 import HPremiumNamingSection from "./HPremiumNamingSection";
 import { showToast } from "./Toast";
 import HPremiumZiweiBookSection from "./HPremiumZiweiBookSection";
-import { usePaymentProcessing } from "./PaymentProcessingContext";
+import { usePayment } from "../hooks/usePayment";
 
 type LockedSectionProps = {
   title: string;
@@ -166,7 +166,7 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
 }
 
 export default function KkulkkulManseryukMain() {
-  const { startProcessing, stopProcessing, setProcessingMessage } = usePaymentProcessing();
+  const { startPayment, endPayment, setPaymentMessage } = usePayment();
   const [currentCoins, setCurrentCoins] = useState(0);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
@@ -374,7 +374,7 @@ export default function KkulkkulManseryukMain() {
 
     setPremiumGateError('');
     const premiumLabel = PREMIUM_SERVICE_LABEL[service] ?? '프리미엄 리포트';
-    startProcessing(`${premiumLabel} 결제를 확인 중입니다.`);
+    startPayment(`${premiumLabel} 결제를 확인 중입니다.`);
 
     try {
       const passed = await runPremiumIntroGate(service);
@@ -401,7 +401,7 @@ export default function KkulkkulManseryukMain() {
       };
 
       const cost = PREMIUM_SERVICE_COST[service];
-      setProcessingMessage(`${premiumLabel} 결제를 진행 중입니다.`);
+      setPaymentMessage(`${premiumLabel} 결제를 진행 중입니다.`);
       setPremiumGateLoading(service);
       try {
         const { res, data } = await fetchJsonWithTimeout('/api/fortune/pig-coin/consume', {
@@ -423,7 +423,7 @@ export default function KkulkkulManseryukMain() {
         setPremiumGateLoading(null);
       }
     } finally {
-      stopProcessing();
+      endPayment();
     }
   };
 

@@ -144,6 +144,245 @@ if (document.readyState === 'loading') {
   __cdInitCollectionPerfMetrics();
 }
 
+function __cdResolveRequestUrl(input) {
+  try {
+    if (typeof input === 'string') return new URL(input, window.location.origin);
+    if (input && typeof input.url === 'string') {
+      return new URL(input.url, window.location.origin);
+    }
+  } catch (_) {}
+  return null;
+}
+
+function __cdResolveRequestMethod(input, init) {
+  if (init && typeof init.method === 'string' && init.method.trim()) {
+    return String(init.method).toUpperCase();
+  }
+  if (input && typeof input === 'object' && typeof input.method === 'string' && input.method.trim()) {
+    return String(input.method).toUpperCase();
+  }
+  return 'GET';
+}
+
+function __cdShouldTrackPaymentRequest(pathname, method) {
+  if (!pathname) return false;
+  if (method === 'GET' || method === 'HEAD') return false;
+
+  if (pathname.indexOf('/api/premium/') === 0) return true;
+  if (pathname.indexOf('/api/tarot/reading') === 0) return true;
+  if (pathname.indexOf('/api/sibyl/report') === 0) return true;
+  if (pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return true;
+  return false;
+}
+
+function __cdResolvePaymentMessage(pathname) {
+  if (pathname && pathname.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) {
+    return '결제가 진행 중입니다.';
+  }
+  return '운명을 읽어오는 중입니다...';
+}
+
+function __cdEnsurePaymentLoadingStyle() {
+  if (document.getElementById('cdPaymentLoadingStyle')) return;
+  var style = document.createElement('style');
+  style.id = 'cdPaymentLoadingStyle';
+  style.textContent = [
+    '@keyframes cdPaymentSpin {',
+    '  from { transform: rotate(0deg); }',
+    '  to { transform: rotate(360deg); }',
+    '}',
+    '#cdPaymentLoadingOverlay {',
+    '  position: fixed;',
+    '  inset: 0;',
+    '  z-index: 1400;',
+    '  display: none;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  background: rgba(2, 6, 23, 0.58);',
+    '  backdrop-filter: blur(6px);',
+    '  padding: 16px;',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-card {',
+    '  width: min(420px, 100%);',
+    '  border-radius: 20px;',
+    '  border: 1px solid rgba(253, 230, 138, 0.28);',
+    '  background: rgba(2, 6, 23, 0.88);',
+    '  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.42);',
+    '  text-align: center;',
+    '  color: #ffffff;',
+    '  padding: 24px 20px;',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-spinner-wrap {',
+    '  width: 74px;',
+    '  height: 74px;',
+    '  margin: 0 auto 14px;',
+    '  border-radius: 999px;',
+    '  border: 1px solid rgba(253, 230, 138, 0.25);',
+    '  display: grid;',
+    '  place-items: center;',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-spinner {',
+    '  width: 44px;',
+    '  height: 44px;',
+    '  border-radius: 999px;',
+    '  border: 3px solid rgba(251, 191, 36, 0.25);',
+    '  border-top-color: rgba(251, 191, 36, 1);',
+    '  animation: cdPaymentSpin 0.9s linear infinite;',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-title {',
+    '  margin: 0;',
+    '  font-size: 20px;',
+    '  font-weight: 800;',
+    '  letter-spacing: -0.02em;',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-desc {',
+    '  margin: 8px 0 0;',
+    '  font-size: 14px;',
+    '  color: rgba(226, 232, 240, 0.9);',
+    '}',
+    '#cdPaymentLoadingOverlay .cd-payment-status {',
+    '  margin: 12px 0 0;',
+    '  border-radius: 10px;',
+    '  border: 1px solid rgba(255, 255, 255, 0.14);',
+    '  background: rgba(255, 255, 255, 0.07);',
+    '  padding: 8px 10px;',
+    '  color: rgba(254, 243, 199, 0.95);',
+    '  font-size: 13px;',
+    '  font-weight: 600;',
+    '}',
+    '@media (max-width: 480px) {',
+    '  #cdPaymentLoadingOverlay .cd-payment-card { padding: 20px 16px; border-radius: 18px; }',
+    '  #cdPaymentLoadingOverlay .cd-payment-title { font-size: 18px; }',
+    '}'
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
+function __cdEnsurePaymentLoadingOverlay() {
+  var existing = document.getElementById('cdPaymentLoadingOverlay');
+  if (existing) return existing;
+
+  __cdEnsurePaymentLoadingStyle();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'cdPaymentLoadingOverlay';
+  overlay.innerHTML = [
+    '<div class="cd-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
+    '  <div class="cd-payment-spinner-wrap"><div class="cd-payment-spinner"></div></div>',
+    '  <p class="cd-payment-title">운명을 읽어오는 중입니다...</p>',
+    '  <p class="cd-payment-desc">결제가 진행 중입니다.</p>',
+    '  <p class="cd-payment-status" id="cdPaymentLoadingStatus">결제가 진행 중입니다.</p>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function __cdSetPaymentLoadingOverlay(open, message) {
+  if (typeof document === 'undefined') return;
+  var overlay = __cdEnsurePaymentLoadingOverlay();
+  var statusNode = document.getElementById('cdPaymentLoadingStatus');
+  if (statusNode && typeof message === 'string' && message.trim()) {
+    statusNode.textContent = message.trim();
+  }
+  overlay.style.display = open ? 'flex' : 'none';
+}
+
+function __cdInitGlobalPaymentLoading() {
+  if (window.__cdPaymentLoadingInited) return;
+  window.__cdPaymentLoadingInited = true;
+
+  var state = {
+    depth: 0,
+    message: '결제가 진행 중입니다.'
+  };
+
+  function startPayment(message) {
+    if (typeof message === 'string' && message.trim()) {
+      state.message = message.trim();
+    }
+    state.depth += 1;
+    __cdSetPaymentLoadingOverlay(true, state.message);
+  }
+
+  function endPayment() {
+    state.depth = Math.max(0, state.depth - 1);
+    if (state.depth === 0) {
+      __cdSetPaymentLoadingOverlay(false, state.message);
+    }
+  }
+
+  function setPaymentMessage(message) {
+    if (!message || !String(message).trim()) return;
+    state.message = String(message).trim();
+    if (state.depth > 0) {
+      __cdSetPaymentLoadingOverlay(true, state.message);
+    }
+  }
+
+  var api = {
+    startPayment: startPayment,
+    endPayment: endPayment,
+    setPaymentMessage: setPaymentMessage,
+    startProcessing: startPayment,
+    stopProcessing: endPayment,
+    setProcessingMessage: setPaymentMessage
+  };
+
+  try {
+    Object.defineProperty(api, 'isPaymentLoading', {
+      configurable: false,
+      enumerable: true,
+      get: function() {
+        return state.depth > 0;
+      }
+    });
+  } catch (_) {
+    api.isPaymentLoading = false;
+  }
+
+  window.__cdPaymentLoading = api;
+
+  if (window.__cdPaymentFetchPatched || typeof window.fetch !== 'function') return;
+  window.__cdPaymentFetchPatched = true;
+
+  var originalFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    var reqUrl = __cdResolveRequestUrl(input);
+    var reqMethod = __cdResolveRequestMethod(input, init);
+    var pathname = reqUrl ? reqUrl.pathname : '';
+    var shouldTrack = __cdShouldTrackPaymentRequest(pathname, reqMethod);
+
+    if (!shouldTrack) {
+      return originalFetch(input, init);
+    }
+
+    startPayment(__cdResolvePaymentMessage(pathname));
+
+    try {
+      return originalFetch(input, init).then(
+        function(response) {
+          endPayment();
+          return response;
+        },
+        function(error) {
+          endPayment();
+          throw error;
+        }
+      );
+    } catch (error) {
+      endPayment();
+      throw error;
+    }
+  };
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __cdInitGlobalPaymentLoading, { once: true });
+} else {
+  __cdInitGlobalPaymentLoading();
+}
+
 function cdNormalizeLang(langCode) {
   var raw = String(langCode || 'ko').trim();
   if (!raw) return 'ko';

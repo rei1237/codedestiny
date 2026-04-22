@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { usePaymentProcessing } from "../components/PaymentProcessingContext";
+import { usePayment } from "../hooks/usePayment";
 const OhangRadarChart = dynamic(() => import("../components/OhangRadarChart"), { ssr: false, loading: () => null });
 
 /* ─────────────────────────────────────────
@@ -734,12 +734,12 @@ function StickyBottomCTA({ onCTA, isProcessing }: { onCTA: () => void; isProcess
 ───────────────────────────────────────── */
 export default function PremiumSalesContent() {
   const router = useRouter();
-  const { isProcessing, startProcessing, stopProcessing } = usePaymentProcessing();
+  const { isPaymentLoading, startPayment, endPayment } = usePayment();
   const [isCtaPending, setIsCtaPending] = useState(false);
   const ctaDelayTimerRef = useRef<number | null>(null);
   const ctaFallbackTimerRef = useRef<number | null>(null);
 
-  const isBusy = isProcessing || isCtaPending;
+  const isBusy = isPaymentLoading || isCtaPending;
 
   useEffect(() => {
     return () => {
@@ -765,13 +765,13 @@ export default function PremiumSalesContent() {
     }
 
     ctaDelayTimerRef.current = window.setTimeout(() => {
-      startProcessing("안전하게 결제를 진행 중입니다.");
+      startPayment("안전하게 결제를 진행 중입니다.");
       setIsCtaPending(false);
       router.push("/points");
 
       // 드물게 라우팅이 지연되더라도 오버레이 고착을 방지합니다.
       ctaFallbackTimerRef.current = window.setTimeout(() => {
-        stopProcessing();
+        endPayment();
       }, 6000);
     }, 180);
   };

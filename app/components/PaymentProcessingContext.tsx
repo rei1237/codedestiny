@@ -12,17 +12,21 @@ import PaymentProcessingOverlay from "./PaymentProcessingOverlay";
 
 type PaymentProcessingContextValue = {
   isProcessing: boolean;
+  isPaymentLoading: boolean;
   processingMessage: string;
   startProcessing: (message?: string) => void;
   stopProcessing: () => void;
   setProcessingMessage: (message: string) => void;
+  startPayment: (message?: string) => void;
+  endPayment: () => void;
+  setPaymentMessage: (message: string) => void;
 };
 
 type PaymentProcessingProviderProps = {
   children: React.ReactNode;
 };
 
-const DEFAULT_PROCESSING_MESSAGE = "안전하게 결제를 진행 중입니다.";
+const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
 
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
   undefined,
@@ -73,10 +77,14 @@ export function PaymentProcessingProvider({
   const value = useMemo(
     () => ({
       isProcessing,
+      isPaymentLoading: isProcessing,
       processingMessage,
       startProcessing,
       stopProcessing,
       setProcessingMessage,
+      startPayment: startProcessing,
+      endPayment: stopProcessing,
+      setPaymentMessage: setProcessingMessage,
     }),
     [
       isProcessing,
@@ -92,8 +100,8 @@ export function PaymentProcessingProvider({
       {children}
       <PaymentProcessingOverlay
         open={isProcessing}
-        title="결제를 확인하고 있습니다."
-        description="창을 닫거나 새로고침하지 마세요. 중복 결제가 발생할 수 있습니다."
+        title="운명을 읽어오는 중입니다..."
+        description="결제가 진행 중입니다. 잠시만 기다려 주세요."
         statusMessage={processingMessage}
       />
     </PaymentProcessingContext.Provider>
