@@ -8,28 +8,75 @@ export const maxDuration = 300;
 const GEMINI_ENDPOINT =
   'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent';
 
+function unique(values) {
+  return Array.from(new Set(values.filter(Boolean)));
+}
+
 /* ── Gemini 멀티-키 설정 (lifebook 패턴 동일) ── */
 function pickGeminiKeys() {
   const extra = String(process.env.GEMINI_API_KEYS || '')
     .split(',').map(v => v.trim()).filter(Boolean);
-  return [
+  const keys = [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
+    process.env.LIFEBOOK_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GOOGLE_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
     process.env.GOOGLE_API_KEY_3,
+    process.env.GEMINI_API_KEY_4,
+    process.env.GOOGLE_API_KEY_4,
+    process.env.GEMINI_API_KEY_CF,
+    process.env.GOOGLE_API_KEY_CF,
+    process.env.LIFEBOOK_API_KEY_CF,
     process.env.GEMINIF_API_KEY1,
     process.env.GEMINIF_API_KEY2,
     process.env.GEMINIF_API_KEY3,
+    process.env.GEMINIF_API_KEY4,
+    process.env.GEMINIF_API_KEY5,
+    process.env.GEMINIF_API_KEY6,
+    process.env.GEMINIF_API_KEY7,
+    process.env.GEMINIF_API_KEY8,
+    process.env.GEMINIF_API_KEY9,
     ...extra,
   ].map(v => String(v || '').trim()).filter(Boolean);
+  return unique(keys);
+}
+
+function pickSibylModels() {
+  const configured = String(
+    process.env.SIBYL_GEMINI_MODEL ||
+    process.env.LIFEBOOK_GEMINI_MODEL ||
+    process.env.VERTEX_GEMINI_MODEL ||
+    'gemini-2.5-flash'
+  )
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+
+  // 쿼터 소진 시 빠른 회복을 위해 flash 계열 우선, pro는 마지막 시도
+  const defaults = [
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash-002',
+    'gemini-1.5-flash',
+    'gemini-2.5-pro',
+  ];
+
+  return unique([...configured, ...defaults]);
 }
 
 function hasVertexCreds() {
   return [
-    process.env.VERTEX_SA_JSON, process.env.GCP_SERVICE_ACCOUNT_JSON,
-    process.env.VERTEX_SA_JSON_BASE64, process.env.VERTEX_SA_CLIENT_EMAIL,
+    process.env.VERTEX_SA_JSON,
+    process.env.GCP_SERVICE_ACCOUNT_JSON,
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
+    process.env.VERTEX_SA_JSON_BASE64,
+    process.env.GCP_SERVICE_ACCOUNT_JSON_BASE64,
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64,
+    process.env.VERTEX_SA_CLIENT_EMAIL,
+    process.env.VERTEX_SA_PRIVATE_KEY,
   ].map(v => String(v || '').trim()).some(Boolean);
 }
 
@@ -43,13 +90,118 @@ function parseText(payload) {
   return '';
 }
 
+function getFinishReason(payload) {
+  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  return String(candidates[0]?.finishReason || '');
+}
+
+function makeGenerationConfig(model) {
+  const isProModel = /gemini-2\.5-pro/i.test(model);
+  const isThinkingModel = /gemini-2\.5/i.test(model);
+  const generationConfig = {
+    maxOutputTokens: isProModel ? 32768 : 16384,
+    temperature: 0.95,
+  };
+  if (isThinkingModel) generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  return generationConfig;
+}
+
+function getApiErrorMessage(status, payload, model) {
+  return String(payload?.error?.message || `[${model}] Gemini API 오류 ${status}`);
+}
+
+function isQuotaError(status, message) {
+  if (Number(status) === 429) return true;
+  return /quota exceeded|rate limit|resource exhausted|too many requests|free_tier_requests|free_tier_input_token_count|limit:\s*0/i.test(
+    String(message || '')
+  );
+}
+
+function isTokenLimitError(status, message) {
+  const s = Number(status);
+  if (s === 400 || s === 413) {
+    return /token|context length|prompt too long|input is too long|max input|too many tokens/i.test(
+      String(message || '')
+    );
+  }
+  return false;
+}
+
+function compactPromptText(text, maxLen = 12000) {
+  const t = String(text || '').trim();
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
+}
+
+function extractRetryAfterSeconds(message) {
+  const match = String(message || '').match(/retry in\s+([\d.]+)s/i);
+  if (!match?.[1]) return null;
+  const sec = Math.ceil(Number(match[1]));
+  if (!Number.isFinite(sec) || sec <= 0) return null;
+  return sec;
+}
+
+function parseReportJson(rawText) {
+  const cleaned = String(rawText || '')
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1));
+    }
+    throw new Error('JSON 본문을 찾을 수 없습니다.');
+  }
+}
+
+function buildFallbackReport(rawText, riskScore, currentYear) {
+  const baseText = String(rawText || '').trim();
+  const chunks = [];
+  if (baseText) {
+    const step = Math.max(1, Math.ceil(baseText.length / 8));
+    for (let i = 0; i < 8; i += 1) {
+      const slice = baseText.slice(i * step, (i + 1) * step).trim();
+      if (slice) chunks.push(slice);
+    }
+  }
+
+  const chapters = Array.from({ length: 8 }, (_, idx) => ({
+    title: `CHAPTER ${String(idx + 1).padStart(2, '0')} | 시빌라 심층 분석`,
+    content: chunks[idx] || baseText || '분석 결과를 재정리 중입니다. 잠시 후 다시 시도해 주세요.',
+  }));
+
+  return {
+    dominatorMode: (riskScore >= 70 ? 'dd' : riskScore >= 40 ? 'le' : 'nle'),
+    riskScores: Array.from({ length: 10 }, (_, i) => {
+      const seed = Number(riskScore || 30);
+      return Math.max(5, Math.min(95, seed + (i * 3 - 5)));
+    }),
+    chapters,
+    summary: `${currentYear}년 기준 시빌라 시스템 심층 리포트가 생성되었습니다.`,
+  };
+}
+
+function isHighQualityReport(reportData) {
+  const chapters = Array.isArray(reportData?.chapters) ? reportData.chapters : [];
+  if (chapters.length < 8) return false;
+  return chapters.every(ch =>
+    typeof ch?.title === 'string' && ch.title.trim() &&
+    typeof ch?.content === 'string' && ch.content.trim().length >= 800
+  );
+}
+
 /* ── 직접 Gemini API 호출 ── */
-async function callGeminiDirect(apiKey, prompt) {
-  const model = 'gemini-2.0-flash';
+async function callGeminiDirect(apiKey, prompt, model) {
   const url = GEMINI_ENDPOINT.replace('{model}', model) + `?key=${apiKey}`;
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens: 32768, temperature: 1.0 },
+    generationConfig: makeGenerationConfig(model),
   };
   const res = await fetch(url, {
     method: 'POST',
@@ -58,10 +210,15 @@ async function callGeminiDirect(apiKey, prompt) {
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = String(payload?.error?.message || `Gemini API 오류 ${res.status}`);
-    throw new Error(msg);
+    const msg = getApiErrorMessage(res.status, payload, model);
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
   }
-  return parseText(payload);
+  return {
+    text: parseText(payload),
+    finishReason: getFinishReason(payload),
+  };
 }
 
 /* ── 사주 텍스트 포맷터 ── */
@@ -226,59 +383,112 @@ export async function POST(request) {
     const prompt = buildPrompt(body);
     let rawText = null;
     let lastError = null;
+    let quotaFailure = false;
+    const keys = pickGeminiKeys();
+    const models = pickSibylModels();
+    const vertexAvailable = hasVertexCreds();
 
-    // 1. Vertex AI (서비스 계정 자격증명이 있을 때)
-    if (hasVertexCreds()) {
-      try {
-        rawText = await callVertexGemini(prompt);
-      } catch (e) {
-        lastError = e;
-        console.warn('[Sibyl API] Vertex failed, trying direct API keys:', e.message || e);
+    // 1. Direct Gemini API key 우선 (보유 키를 최우선 사용)
+    if (keys.length) {
+
+      outer: for (const model of models) {
+        for (const key of keys) {
+          try {
+            const result = await callGeminiDirect(key, prompt, model);
+            if (!result?.text) {
+              lastError = new Error(`[${model}] 응답 본문이 비어 있습니다.`);
+              continue;
+            }
+
+            if (result.finishReason === 'MAX_TOKENS' && result.text.length < 8000) {
+              lastError = new Error(`[${model}] 출력 토큰이 잘려 리포트 분량이 부족합니다.`);
+              continue;
+            }
+
+            rawText = result.text;
+            break outer;
+          } catch (e) {
+            lastError = e;
+            if (isQuotaError(e?.status, e?.message)) {
+              quotaFailure = true;
+            }
+
+            if (isTokenLimitError(e?.status, e?.message)) {
+              try {
+                const compactPrompt = compactPromptText(prompt);
+                const compactResult = await callGeminiDirect(key, compactPrompt, model);
+                if (compactResult?.text) {
+                  rawText = compactResult.text;
+                  break outer;
+                }
+              } catch (compactError) {
+                lastError = compactError;
+              }
+            }
+
+            console.warn(`[Sibyl API] Key/model rotation (${model}) —`, e.message || e);
+          }
+        }
       }
     }
 
-    // 2. Direct Gemini API key fallback
-    if (!rawText) {
-      const keys = pickGeminiKeys();
-      if (!keys.length) {
-        return NextResponse.json({ message: 'AI 서비스 키가 구성되지 않았습니다.' }, { status: 503 });
+    // 2. Direct 경로가 실패했을 때 Vertex AI 폴백
+    if (!rawText && vertexAvailable) {
+      try {
+        rawText = await callVertexGemini(prompt, {
+          temperature: 0.95,
+          maxOutputTokens: 16384,
+        });
+      } catch (e) {
+        lastError = e;
+        console.warn('[Sibyl API] Vertex fallback failed after key rotation:', e.message || e);
       }
-      for (const key of keys) {
-        try {
-          rawText = await callGeminiDirect(key, prompt);
-          if (rawText) break;
-        } catch (e) {
-          lastError = e;
-          console.warn('[Sibyl API] Key rotation —', e.message || e);
-        }
-      }
+    }
+
+    if (!rawText && !keys.length && !vertexAvailable) {
+      return NextResponse.json({ message: 'AI 서비스 키 또는 Vertex 자격증명이 구성되지 않았습니다.' }, { status: 503 });
     }
 
     if (!rawText) {
       const errMsg = lastError?.message || 'AI 생성 실패';
       console.error('[Sibyl API] All keys failed:', errMsg);
+      if (quotaFailure || isQuotaError(lastError?.status, errMsg)) {
+        const retryAfter = extractRetryAfterSeconds(errMsg);
+        const headers = retryAfter ? { 'Retry-After': String(retryAfter) } : undefined;
+        return NextResponse.json(
+          {
+            message: 'AI 리포트 생성에 실패했습니다: Gemini 쿼터가 초과되었습니다. 잠시 후 재시도하거나 Vertex 서비스 계정/유료 API 키를 설정해 주세요. 원인: ' + errMsg,
+            code: 'AI_QUOTA_EXCEEDED',
+            retryAfterSeconds: retryAfter || null,
+          },
+          { status: 429, headers }
+        );
+      }
       return NextResponse.json({ message: 'AI 리포트 생성에 실패했습니다: ' + errMsg }, { status: 502 });
     }
 
     // Parse JSON from response
     let reportData = null;
     try {
-      // Strip markdown fences if present
-      const cleaned = rawText
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/i, '')
-        .replace(/\s*```$/i, '')
-        .trim();
-      reportData = JSON.parse(cleaned);
+      reportData = parseReportJson(rawText);
     } catch (parseErr) {
-      console.error('[Sibyl API] JSON parse failed, returning raw text');
-      // Fallback: wrap raw text in a single chapter
-      reportData = {
-        dominatorMode: (body.riskScore >= 70 ? 'dd' : body.riskScore >= 40 ? 'le' : 'nle'),
-        riskScores: Array.from({ length: 10 }, (_, i) => Math.min(95, (body.riskScore || 30) + (i * 3 - 5))),
-        chapters: [{ title: '도미네이터 리포트', content: rawText }],
-        summary: '시빌라 시스템 리포트가 생성되었습니다.'
-      };
+      console.error('[Sibyl API] JSON parse failed, building structured fallback:', parseErr?.message || parseErr);
+      reportData = buildFallbackReport(rawText, body.riskScore, body.currentYear || new Date().getFullYear());
+    }
+
+    if (!isHighQualityReport(reportData)) {
+      const rebuilt = buildFallbackReport(rawText, body.riskScore, body.currentYear || new Date().getFullYear());
+      if (isHighQualityReport(rebuilt)) {
+        reportData = rebuilt;
+      } else {
+        return NextResponse.json(
+          {
+            message: 'AI 리포트 생성은 완료됐지만 품질 기준(8개 챕터/충분한 분량)에 미달했습니다. 잠시 후 다시 시도해 주세요.',
+            code: 'AI_REPORT_QUALITY_LOW',
+          },
+          { status: 502 }
+        );
+      }
     }
 
     return NextResponse.json(reportData, {
