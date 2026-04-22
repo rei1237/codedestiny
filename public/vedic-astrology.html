@@ -480,18 +480,74 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 <div style="position:fixed;top:-20%;left:-20%;width:140%;height:140%;background:radial-gradient(ellipse at 30% 25%,rgba(88,28,135,0.4) 0%,transparent 55%),radial-gradient(ellipse at 70% 75%,rgba(6,182,212,0.15) 0%,transparent 50%);pointer-events:none;z-index:0"></div>
 
 <div id="app" style="position:relative;z-index:1">
-  <!-- PAGE: INPUT (입력폼 제거) -->
+  <!-- PAGE: INPUT (프로필 없이 직접 입력) -->
   <div id="page-input" class="page active">
     <div style="padding-top:40px;text-align:center;margin-bottom:18px">
       <div style="font-size:40px;margin-bottom:8px">🪐</div>
       <h1 style="font-size:22px;color:var(--gold);margin-bottom:6px">베다 점성술</h1>
       <p style="font-size:12px;color:var(--text3)">Jyotish · 별들의 지혜</p>
     </div>
-    <div class="glass" style="padding:20px 16px;margin-bottom:12px;text-align:center">
-      <div class="section-head" style="margin-bottom:10px">입력폼이 제거되었습니다</div>
-      <div style="color:var(--text2);font-size:14px;line-height:1.8">
-        베다점은 메인의 프로필 카드에서만 진입할 수 있습니다.<br>
-        프로필 카드의 생년월일/시간/장소 정보가 자동 적용됩니다.
+    <div class="glass" style="padding:18px 16px;margin-bottom:12px">
+      <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_year">연도</label>
+          <input id="v_year" inputmode="numeric" placeholder="예: 1994">
+        </div>
+        <div>
+          <label for="v_month">월</label>
+          <input id="v_month" inputmode="numeric" placeholder="1~12">
+        </div>
+        <div>
+          <label for="v_day">일</label>
+          <input id="v_day" inputmode="numeric" placeholder="1~31">
+        </div>
+        <div>
+          <label for="v_gender">성별</label>
+          <select id="v_gender">
+            <option value="M">남성</option>
+            <option value="F">여성</option>
+          </select>
+        </div>
+        <div>
+          <label for="v_hour">시</label>
+          <input id="v_hour" inputmode="numeric" placeholder="0~23">
+        </div>
+        <div>
+          <label for="v_minute">분</label>
+          <input id="v_minute" inputmode="numeric" placeholder="0~59">
+        </div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="section-head" style="margin-bottom:10px">장소 · 시간대</div>
+      <div style="margin-bottom:10px">
+        <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
+        <select id="v_place" style="width:100%">
+          <option value="" selected>장소를 선택하세요</option>
+          <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
+        </select>
+        <div style="margin-top:6px;color:var(--text3);font-size:12px;line-height:1.5">
+          메인과 동일한 장소 목록이 로드되면 자동으로 확장됩니다.
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label for="v_lat">위도 (lat)</label>
+          <input id="v_lat" inputmode="decimal" placeholder="예: 37.5665">
+        </div>
+        <div>
+          <label for="v_lon">경도 (lon)</label>
+          <input id="v_lon" inputmode="decimal" placeholder="예: 126.9780">
+        </div>
+        <div style="grid-column:1 / -1">
+          <label for="v_tz">타임존 오프셋 (UTC 기준, 시간 단위)</label>
+          <input id="v_tz" inputmode="decimal" placeholder="예: 9 (한국), -5 (뉴욕)">
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn-primary" id="v_run_btn" type="button">우주의 기운 확인하기 🔯</button>
+      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">
+        프로필 카드 없이도 바로 계산합니다. (API가 실패하면 로컬 계산으로 자동 전환됩니다.)
       </div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
