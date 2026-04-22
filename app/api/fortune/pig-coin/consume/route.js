@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 50;
 const PIG_COIN_MAX_COST = 50000;
+const TEST_INICIS_LOGIN_ID = "test_inicis";
 const SUBSCRIPTION_FREE_LIMIT = {
   standard: 30,
   premium: 50,
@@ -20,6 +21,13 @@ const PROFILE_SUB_PLANS = {
 };
 
 const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9:_\-.]{8,120}$/;
+
+const TEST_ACCOUNT_LOGIN_IDS = new Set(
+  String(process.env.TEST_ACCOUNT_LOGIN_IDS || TEST_INICIS_LOGIN_ID)
+    .split(",")
+    .map((v) => String(v || "").trim().toLowerCase())
+    .filter(Boolean)
+);
 
 function getAdminTestTier(request) {
   const raw = String(request.headers.get("x-admin-subscription-tier") || "").trim().toLowerCase();
@@ -41,6 +49,12 @@ function normalizeIdempotencyKey(rawValue) {
   if (!key) return "";
   if (!IDEMPOTENCY_KEY_RE.test(key)) return "";
   return key.slice(0, 120);
+}
+
+function isTestAccountUser(user) {
+  const email = String(user?.email || "").trim().toLowerCase();
+  if (!email) return false;
+  return TEST_ACCOUNT_LOGIN_IDS.has(email);
 }
 
 export async function POST(request) {
@@ -134,9 +148,34 @@ export async function POST(request) {
       }
     }
 
-    const user = await User.findById(userId).select("points profileSubscription").lean();
+    const user = await User.findById(userId).select("points profileSubscription email").lean();
     if (!user) {
       return NextResponse.json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    if (isTestAccountUser(user)) {
+      await PointHistory.create({
+        userId,
+        kind: "adjust",
+        delta: 0,
+        balanceAfter: Number(user.points || 0),
+        reason: `${reason} (테스트 계정 예외)` ,
+        featureKey,
+        metadata: {
+          source: "fortune.pig-coin.consume",
+          testAccountBypass: true,
+          requestedCost: cost,
+          idempotencyKey: idempotencyKey || undefined,
+        },
+      }).catch(() => {});
+
+      return NextResponse.json({
+        ok: true,
+        testAccountBypass: true,
+        message: "테스트 계정 예외가 적용되어 코인 차감 없이 이용됩니다.",
+        requiredCoins: cost,
+        user: { id: String(userId), points: Number(user.points || 0) },
+      });
     }
 
     const freeLimit = getSubscriptionFreeLimit(user);
