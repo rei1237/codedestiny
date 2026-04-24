@@ -39,12 +39,12 @@ type PremiumSectionProps = {
 // ─────────────────────────────────────────────────────────────────
 const CHAPTER_META: ChapterMeta[] = [
   { num:1,  title:"라그나와 영혼의 목적",           subtitle:"Lagna & Atmakaraka",                icon:"🕉️" },
-  { num:2,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분析",           icon:"🌙" },
+  { num:2,  title:"나크샤트라 — 무의식의 27가지 빛", subtitle:"Moon Nakshatra 심층 분석",           icon:"🌙" },
   { num:3,  title:"다샤 — 인생의 웅장한 계절",       subtitle:"Vimshottari Dasha 전략",             icon:"⏳" },
   { num:4,  title:"부와 번영의 정렬",                subtitle:"Artha & 2·11하우스 다나 요가",       icon:"💰" },
   { num:5,  title:"카르마와 천직",                   subtitle:"Dharma & 10하우스 · D9 · D10",      icon:"👑" },
   { num:6,  title:"나밤샤 — 영혼의 성숙도",           subtitle:"D9 숨겨진 잠재력",                  icon:"💎" },
-  { num:7,  title:"관계의 거울 — 아슈타 쿠타",       subtitle:"Ashta Koota 궁합 분析",             icon:"🔮" },
+  { num:7,  title:"관계의 거울 — 아슈타 쿠타",       subtitle:"Ashta Koota 궁합 분석",             icon:"🔮" },
   { num:8,  title:"인연의 깊이와 카르믹 계약",       subtitle:"7하우스 · 금성/화성",               icon:"💞" },
   { num:9,  title:"생명력과 정화",                   subtitle:"Health 6·8·12하우스 · 아유르베다",   icon:"🌿" },
   { num:10, title:"요가 — 특별한 축복의 조합",       subtitle:"차트의 천부적 재능과 치트키",        icon:"✨" },
@@ -210,7 +210,7 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
           )}
           {state.step==="idle" && (
             <button onClick={onGenerate} style={{ borderRadius:9, padding:"5px 15px", fontSize:"0.73rem", fontWeight:800, background:"linear-gradient(135deg,#d4a017,#b5850e)", border:"none", color:"#1a0f00", cursor:"pointer", transition:"opacity 0.2s" }}>
-              ✦ 분析
+              ✦ 분석
             </button>
           )}
           {state.step==="loading" && (
@@ -224,7 +224,7 @@ function ChapterCard({ meta, state, onGenerate }: { meta:ChapterMeta; state:Chap
         </div>
       </div>
       {/* 로딩 */}
-      {state.step==="loading" && <OmLoader message={`챕터 ${meta.num}: ${meta.title} 분析 중`} />}
+      {state.step==="loading" && <OmLoader message={`챕터 ${meta.num}: ${meta.title} 분석 중`} />}
       {/* 에러 */}
       {state.step==="error" && (
         <div style={{ padding:"14px 16px" }}>
@@ -326,9 +326,36 @@ ${chaptersHtml}
     } finally { setLoading(false); }
   }, [doneChapters, chapters, chart, userName, birthDate]);
 
+  // 모바일 스크롤 중 오작동 방지: touchmove 감지 시 클릭 방지
+  const btnRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    let moved = false;
+    const handleTouchStart = () => { moved = false; };
+    const handleTouchMove = () => { moved = true; };
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      return true;
+    };
+    btn.addEventListener('touchstart', handleTouchStart);
+    btn.addEventListener('touchmove', handleTouchMove);
+    btn.addEventListener('touchend', handleTouchEnd, { passive: false });
+    return () => {
+      btn.removeEventListener('touchstart', handleTouchStart);
+      btn.removeEventListener('touchmove', handleTouchMove);
+      btn.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   return (
     <div style={{ textAlign:"center" }}>
       <button
+        ref={btnRef}
         onClick={handleDownload}
         disabled={loading || doneChapters.length === 0}
         style={{
@@ -532,7 +559,7 @@ export default function HPremiumVedicSection({
     throw lastError instanceof Error ? lastError : new Error("베다 요청 처리 중 오류가 발생했습니다.");
   }, []);
 
-  // 차트 미리 계산 (chapter 1 분析으로 대체)
+  // 차트 미리 계산 (chapter 1 분석으로 대체)
   const handleCalcChart = useCallback(async () => {
     const y=parseInt(birthYear,10), m=parseInt(birthMonth,10), d=parseInt(birthDay,10);
     if (!y||!m||!d){ setCalcError("생년월일을 입력해 주세요."); return; }
@@ -644,7 +671,7 @@ export default function HPremiumVedicSection({
             🕉️ Karmic Blueprint
           </h2>
           <p style={{ color:"rgba(167,139,250,0.65)", fontSize:"0.84rem", marginTop:5, fontWeight:300, lineHeight:1.6 }}>
-            베다 점성술 프리미엄 리포트 · AI 12챕터 주티쉬 분析 · Lahiri 사이드리얼 엔진
+            베다 점성술 프리미엄 리포트 · AI 12챕터 주티쉬 분석 · Lahiri 사이드리얼 엔진
           </p>
         </div>
         {doneCount > 0 && (
@@ -696,7 +723,7 @@ export default function HPremiumVedicSection({
             {/* 전체 생성 버튼 */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, flexWrap:"wrap", gap:10 }}>
               <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.82rem", fontWeight:700 }}>
-                🕉️ 챕터 분析 ({doneCount}/12)
+                🕉️ 챕터 분석 ({doneCount}/12)
               </p>
               <div style={{ display:"flex", gap:8 }}>
                 <button
@@ -726,7 +753,7 @@ export default function HPremiumVedicSection({
                 <p style={{ color:"rgba(212,160,23,0.7)", fontSize:"0.72rem", letterSpacing:"0.18em", textTransform:"uppercase", marginBottom:10, textAlign:"center" }}>KARMIC BLUEPRINT PDF</p>
                 <p style={{ color:"rgba(203,213,225,0.65)", fontSize:"0.82rem", lineHeight:1.7, marginBottom:14, textAlign:"center" }}>
                   완성된 챕터를 고급스러운 베다 점성술 PDF 리포트로 다운로드하세요.<br/>
-                  목차 · 12챕터 분析 · 요가 해설 · 수료증이 포함됩니다.
+                  목차 · 12챕터 분석 · 요가 해설 · 수료증이 포함됩니다.
                 </p>
                 <PDFDownloadButton chapters={chapters} chart={chart} birthDate={birthDate} />
               </div>
