@@ -1,4 +1,4 @@
-﻿function __cdPushPerfMetric(name, value, detail) {
+function __cdPushPerfMetric(name, value, detail) {
   try {
     var root = window.__cdPerfMetrics = window.__cdPerfMetrics || {
       lcp: null,
@@ -2379,8 +2379,8 @@ function __cdBindAnimalTotemTileDirect() {
   var sel = '.tarot-tile--animal-totem, [data-action="openAnimalTotemModal"]';
   var touchStart = null;
   var lastTouchStart = null;
-  /* 모바일: 스크롤 시 미세 움직임 허용 (36px ≈ 2.5mm, Apple HIG 권장 24px보다 여유) */
-  var TAP_THRESH = 36;
+  /* 모바일: 스크롤 시 미세 움직임 허용 (10px로 축소하여 스크롤 오동작 방지) */
+  var TAP_THRESH = 10;
 
   function loadScriptOnce(src) {
     return new Promise(function(resolve, reject) {
@@ -2562,7 +2562,7 @@ function __cdBindDestinyFlowerTileDirect() {
   var touchStart = null;
   var lastTouchStart = null;
   var lastOpenTime = 0;
-  var TAP_THRESH = 36;
+  var TAP_THRESH = 10;
   var DEBOUNCE_MS = 400;
 
   function isFlowerTile(el) {

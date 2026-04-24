@@ -1,9 +1,9 @@
-﻿(function () {
+(function () {
   'use strict';
 
-  /* 모바일 터치: 손가락 미세 움직임 허용 (36px ≈ 2.5mm, 스크롤 시 탭 오인 방지) */
-  var TAP_MAX_DX = 36;
-  var TAP_MAX_DY = 36;
+  /* 모바일 터치: 손가락 미세 움직임 허용 (10px로 축소하여 스크롤 오동작 방지) */
+  var TAP_MAX_DX = 10;
+  var TAP_MAX_DY = 10;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
   var suppressClickUntil = 0;
