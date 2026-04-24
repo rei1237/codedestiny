@@ -1382,100 +1382,112 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         <!-- ══════════════════════════════════════
              GROUP: 프리미엄 PDF 컬렉션
         ══════════════════════════════════════ -->
-        <section class="fg-group fg-group--premium" aria-labelledby="fgTitlePremium">
-          <div class="fg-group__cards">
-            <div class="feat-collection feat-collection--premium" id="premiumCollection" data-collection-open="false">
-              <div class="feat-collection__cosmos" aria-hidden="true">
-                <span class="fc-star fc-star--1"></span>
-                <span class="fc-star fc-star--2"></span>
-                <span class="fc-star fc-star--3"></span>
-                <span class="fc-star fc-star--4"></span>
-                <span class="fc-star fc-star--5"></span>
-                <span class="fc-star fc-star--6"></span>
+        <!-- [LEGACY RESTORE: 9106880] 프리미엄 PDF 컬렉션 섹션 시작 -->
+        <section class="df-studio-section" aria-label="운명의 꽃 아틀리에 프리미엄 PDF 컬렉션">
+          <div class="df-studio-card">
+            <header class="df-studio-header">
+              <p class="df-studio-kicker">&' Destiny Flower Atelier &'</p>
+              <h2 id="dfStudioTitle" class="df-studio-title"><span class="df-title-emoji">🌸</span> 운명의 꽃 아틀리에</h2>
+              <p id="dfStudioSourceDesc" class="df-studio-source-desc">사주의 일간·월령·오행 균형을 바탕으로, 지금 당신의 기운과 가장 공명하는 개화 결을 보여줍니다.</p>
+            </header>
+            <div class="df-studio-main">
+              <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
+              <div class="df-studio-visual">
+                <img id="dfStudioImage" class="io-lazy-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='32' viewBox='0 0 42 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%231a1630'/%3E%3Cstop offset='1' stop-color='%23272545'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='42' height='32' fill='url(%23g)'/%3E%3C/svg%3E" data-lazy-src="/fuctionassets/flower.webp" data-lazy-srcset="/fuctionassets/flower-320.webp 320w, /fuctionassets/flower.webp 420w" sizes="(max-width: 768px) 86vw, 420px" alt="운명의 꽃 아틀리에 프리뷰" loading="lazy" decoding="async" fetchpriority="low" width="420" height="320">
               </div>
-              <button class="feat-collection__header fc-toggle-btn" data-action="toggleCollection" data-target="premiumCollection" aria-expanded="false" aria-label="프리미엄 PDF 컬렉션 열기">
-                <div class="feat-collection__icon" aria-hidden="true">💎</div>
-                <h3 class="feat-collection__title">프리미엄 PDF 컬렉션</h3>
-                <p class="feat-collection__subtitle">AI가 완성하는 인생 리포트, PDF로 소장하세요</p>
-                <p class="feat-collection__lede">자미두수, 점성술, 숙요점, 베다, 명운 작명까지 — 인생의 모든 챕터를 한 번에 깊이 있게 분석합니다.</p>
-                <p class="feat-collection__featureline">자미두수 인생 총람 · 점성술 코즈믹 차트 · 숙요점 궁합 · 베다 인생 리포트 · 명운 작명</p>
-                <div class="feat-collection__divider" aria-hidden="true">
-                  <span class="fc-div-gem">✦</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">◈</span>
-                  <span class="fc-div-line"></span>
-                  <span class="fc-div-gem">✦</span>
+              <article class="df-studio-insight">
+                <h3 id="dfStudioName">연꽃</h3>
+                <p id="dfStudioLatin" class="df-studio-latin">Nelumbo nucifera</p>
+                <p id="dfStudioDayMasterBadge" class="df-studio-daymaster">일간 판독 대기</p>
+                <p id="dfStudioSymbolism" class="df-studio-symbolism">사주로 볼 때 당신의 꽃은 연꽃이며, 탁함 속에서도 투명하게 피어나는 재생의 상징을 지닙니다.</p>
+                <p id="dfStudioKeywords" class="df-studio-keywords">saju verdict • rebirth • purity • flow</p>
+              </article>
+            </div>
+            <section class="df-studio-panels" aria-label="운명의 꽃 해석 패널">
+              <article class="df-panel">
+                <h4>🎨 퍼스널 컬러 팔레트</h4>
+                <div class="df-palette-row">
+                  <span id="dfStudioPrimaryDot" class="df-palette-dot"></span>
+                  <p id="dfStudioPrimaryText">Primary #f472b6</p>
                 </div>
-                <div class="fc-toggle-hint" aria-hidden="true"><span class="fc-toggle-hint__arrow">▾</span><span class="fc-toggle-hint__text">눌러서 열기</span></div>
-              </button>
-              <div class="fc-closed-peek" aria-hidden="true">
-                <span class="fc-closed-peek__gem">✦</span><span class="fc-closed-peek__gem">◈</span><span class="fc-closed-peek__gem">✦</span>
+                <div class="df-palette-row">
+                  <span id="dfStudioSecondaryDot" class="df-palette-dot"></span>
+                  <p id="dfStudioSecondaryText">Secondary #22d3ee</p>
+                </div>
+              </article>
+              <article class="df-panel">
+                <h4>✨ 입자 무드</h4>
+                <p id="dfStudioParticle">petal 기반의 부드러운 확산 무드가 권장됩니다.</p>
+              </article>
+              <article class="df-panel">
+                <h4>🌱 오늘의 가드닝 한 줄</h4>
+                <p id="dfStudioGuidance">작은 루틴을 한 가지 더하는 순간, 꽃은 가장 빠르게 개화합니다.</p>
+              </article>
+              <article class="df-panel">
+                <h4>📋 꽃 데이터 시트</h4>
+                <p id="dfStudioDataSummary">일간-환경 개화 시나리오를 정리하고 있습니다.</p>
+                <p id="dfStudioDataRitual">일상 실천 루틴을 계산 중입니다.</p>
+                <p id="dfStudioDataThemes">관계/일/회복 테마를 분석 중입니다.</p>
+                <ul id="dfStudioSourceMatrix" class="df-panel-list" aria-label="소스별 생태 해석 항목">
+                  <li>🪨 토양의 성분: 분석 대기</li>
+                  <li>🌱 뿌리의 깊이: 분석 대기</li>
+                  <li>🧪 가드너의 영양제: 분석 대기</li>
+                </ul>
+              </article>
+              <article class="df-panel df-panel--wide">
+                <h4>📔 정원사의 관찰 일지</h4>
+                <p id="dfStudioJournal">정원의 미세한 결을 읽어 오늘의 개화 흐름을 기록하고 있습니다.</p>
+              </article>
+              <article class="df-panel">
+                <h4>🔮 비밀 레시피</h4>
+                <p id="dfStudioRecipe">지금의 꽃이 잘 피도록 구체적인 행동 레시피를 정교화해 안내합니다.</p>
+              </article>
+              <article class="df-panel">
+                <h4>💐 운명의 꽃말</h4>
+                <p id="dfStudioFlowerLanguage">이 시기만의 꽃말을 해석하고 있습니다.</p>
+              </article>
+              <article class="df-panel">
+                <h4>🌈 시너지 팔레트</h4>
+                <p id="dfStudioSynergy">함께 배치하면 좋은 컬러와 소재를 계산 중입니다.</p>
+              </article>
+              <article class="df-panel df-panel--wide df-panel--gardener">
+                <h4>🌿 이 꽃을 위한 가드너의 한 마디</h4>
+                <p id="dfStudioGardenerWord">오늘의 정원은 작은 루틴 하나로도 충분히 환해질 수 있습니다.</p>
+              </article>
+              <article class="df-panel df-panel--prompt">
+                <h4>🖼️ AI 꽃 아트 프롬프트</h4>
+                <p id="dfStudioPromptGuide" class="df-studio-prompt-guide">운세별 상징 꽃을 톤앤매너에 맞춰 이미지로 그릴 수 있도록 프롬프트를 자동 생성합니다.</p>
+                <label class="df-studio-prompt-label" for="dfStudioArtPrompt">메인 프롬프트</label>
+                <textarea id="dfStudioArtPrompt" class="df-studio-promptbox" rows="7" readonly aria-label="AI 꽃 일러스트 메인 프롬프트"></textarea>
+                <label class="df-studio-prompt-label" for="dfStudioNegativePrompt">네거티브 프롬프트</label>
+                <textarea id="dfStudioNegativePrompt" class="df-studio-promptbox is-negative" rows="4" readonly aria-label="AI 꽃 일러스트 네거티브 프롬프트"></textarea>
+                <div class="df-studio-prompt-tools">
+                  <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerArtPrompt">메인 프롬프트 복사</button>
+                  <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerPromptPack">프롬프트 세트 복사</button>
+                </div>
+                <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower">🤖 AI에게 물어보러 가기</button>
+              </article>
+            </section>
+            <section class="df-studio-history" aria-label="운명의 꽃 기록 보관함">
+              <div class="df-studio-history-head">
+                <h4>📚 나의 개화 기록</h4>
+                <div class="df-studio-history-tools">
+                  <button class="df-studio-chip" type="button" data-action="saveDestinyFlowerSnapshot">💾 저장</button>
+                  <button class="df-studio-chip" type="button" data-action="shareDestinyFlowerSnapshot">📤 카카오 공유</button>
+                  <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerSummary">📋 요약 복사</button>
+                  <button class="df-studio-chip df-studio-chip--danger" type="button" data-action="clearDestinyFlowerSnapshots">🗑️ 전체 삭제</button>
+                </div>
               </div>
-              <div class="feat-collection__grid">
-                <!-- 자미두수 프리미엄 -->
-                <button type="button" class="tarot-tile tarot-tile--premium-ziwei" data-action="gotoZiweiPremium" data-coin-cost="590" aria-label="자미두수 인생 총람 PDF북">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/jamipremiun.webp" data-img-alt="자미두수 인생 총람 PDF북">
-                    <img class="tarot-tile__img" src="/fuctionassets/jamipremiun.webp" alt="자미두수 인생 총람 PDF북" loading="lazy">
-                    <span class="tarot-tile__badge tarot-tile__badge--premium">PREMIUM</span>
-                    <span class="tarot-tile__coin-badge">590코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🌌 자미두수 인생 총람</span>
-                    <span class="tarot-tile__desc">13챕터 · 12궁 완전 분석 PDF</span>
-                  </div>
-                </button>
-                <!-- 점성술 프리미엄 -->
-                <button type="button" class="tarot-tile tarot-tile--premium-astro" data-action="gotoAstrologyPremium" data-coin-cost="390" aria-label="점성술 코즈믹 차트 PDF">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/premiumstar.webp" data-img-alt="점성술 프리미엄 리포트">
-                    <img class="tarot-tile__img" src="/fuctionassets/premiumstar.webp" alt="점성술 프리미엄 리포트" loading="lazy">
-                    <span class="tarot-tile__badge tarot-tile__badge--premium">PREMIUM</span>
-                    <span class="tarot-tile__coin-badge">390코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">✨ 점성술 코즈믹 차트</span>
-                    <span class="tarot-tile__desc">12하우스 · 트랜지트 PDF</span>
-                  </div>
-                </button>
-                <!-- 숙요점 프리미엄 -->
-                <button type="button" class="tarot-tile tarot-tile--premium-sukuyo" data-action="gotoSukuyoPremium" data-coin-cost="390" aria-label="숙요점 프리미엄 PDF">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/sukyo_premium.webp" data-img-alt="숙요점 프리미엄 PDF">
-                    <img class="tarot-tile__img" src="/fuctionassets/sukyo_premium.webp" alt="숙요점 프리미엄 PDF" loading="lazy">
-                    <span class="tarot-tile__badge tarot-tile__badge--premium">PREMIUM</span>
-                    <span class="tarot-tile__coin-badge">390코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">💫 숙요점 궁합 리포트</span>
-                    <span class="tarot-tile__desc">27수 궁합 · 정밀 PDF</span>
-                  </div>
-                </button>
-                <!-- 베다 점성술 프리미엄 -->
-                <button type="button" class="tarot-tile tarot-tile--premium-veda" data-action="gotoVedicPremium" data-coin-cost="390" aria-label="베다 점성술 인생 총람 PDF">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/premium veda.webp" data-img-alt="베다 점성술 프리미엄 PDF">
-                    <img class="tarot-tile__img" src="/fuctionassets/premium veda.webp" alt="베다 점성술 프리미엄 PDF" loading="lazy">
-                    <span class="tarot-tile__badge tarot-tile__badge--premium">PREMIUM</span>
-                    <span class="tarot-tile__coin-badge">390코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">🪐 베다 인생 총람</span>
-                    <span class="tarot-tile__desc">조티쉬 · 나크샤트라 PDF</span>
-                  </div>
-                </button>
-                <!-- 명운 작명 프리미엄 -->
-                <button type="button" class="tarot-tile tarot-tile--premium-naming" data-action="gotoNamingPremium" data-coin-cost="700" aria-label="명운 프리미엄 작명 PDF">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/naming.webp" data-img-alt="명운 프리미엄 작명 PDF">
-                    <img class="tarot-tile__img" src="/fuctionassets/naming.webp" alt="명운 프리미엄 작명 PDF" loading="lazy">
-                    <span class="tarot-tile__badge tarot-tile__badge--premium">PREMIUM</span>
-                    <span class="tarot-tile__coin-badge">700코인</span>
-                  </div>
-                  <div class="tarot-tile__body">
-                    <span class="tarot-tile__title">✍️ 명운 프리미엄 작명</span>
-                    <span class="tarot-tile__desc">AI 사주 기반 작명 PDF</span>
-                  </div>
-                </button>
-              </div>
+              <p id="dfStudioStatus" class="df-studio-status" aria-live="polite">🌸 아직 저장된 개화 기록이 없습니다.</p>
+              <div id="dfStudioHistoryList" class="df-studio-history-list" role="list"></div>
+            </section>
+            <div class="df-studio-actions">
+              <button class="df-studio-btn df-studio-btn--secondary" type="button" data-action="closeDestinyFlowerStudio">✕ 닫기</button>
+              <button class="df-studio-btn df-studio-btn--primary" type="button" data-action="goHomeFromDestinyFlower">🏠 홈화면으로 바로가기</button>
             </div>
           </div>
         </section>
+        <!-- [LEGACY RESTORE: 9106880] 프리미엄 PDF 컬렉션 섹션 끝 -->
 
         <!-- ══════════════════════════════════════
              GROUP: 동물 & 관상
