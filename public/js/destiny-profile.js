@@ -1178,52 +1178,54 @@
       el.innerHTML =
         '<div class="dp-mc-glow"></div>'
         + '<div class="dp-mc-stars" aria-hidden="true"></div>'
-        + '<svg class="dp-mc-flower" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:rgba(255,215,0,0.6)">'
-          + '<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="0.5"/>'
-          + '<circle cx="60" cy="60" r="32" stroke="currentColor" stroke-width="0.4"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(30 60 60)"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(60 60 60)"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(90 60 60)"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(120 60 60)"/>'
-          + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(150 60 60)"/>'
-          + '<circle cx="60" cy="60" r="4" fill="currentColor" opacity="0.6"/>'
-        + '</svg>'
-        + '<div class="dp-mc-inner">'
-          + '<div class="dp-mc-header">'
-            + '<div class="dp-mc-avatar">✨</div>'
-            + '<div class="dp-mc-identity">'
-              + '<div class="dp-mc-label">✦ MY DESTINY CARD</div>'
-              + '<div class="dp-mc-name">' + _esc(profile.name) + '</div>'
-              + '<div class="dp-mc-birth" style="color:rgba(255,215,0,0.8);">📋 생년월일 정보 없음</div>'
-              + '<div style="margin-top:4px;">'
-                + (profile.gender === 'M'
+        + '<svg class="dp-mc-flower" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:rgba(255,215,0,0.6)">' +
+          '<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="0.5"/>' +
+          '<circle cx="60" cy="60" r="32" stroke="currentColor" stroke-width="0.4"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(30 60 60)"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(60 60 60)"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(90 60 60)"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(120 60 60)"/>' +
+          '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4" transform="rotate(150 60 60)"/>' +
+          '<circle cx="60" cy="60" r="4" fill="currentColor" opacity="0.6"/>' +
+        '</svg>' +
+        '<div class="dp-mc-inner">' +
+          '<div class="dp-mc-header">' +
+            '<div class="dp-mc-avatar">✨</div>' +
+            '<div class="dp-mc-identity">' +
+              '<div class="dp-mc-label">✦ MY DESTINY CARD</div>' +
+              '<div class="dp-mc-name">' + _esc(profile.name) + '</div>' +
+              '<div class="dp-mc-birth" style="color:rgba(255,215,0,0.8);">📋 생년월일 정보 없음</div>' +
+              '<div style="margin-top:4px;">' +
+                (profile.gender === 'M'
                   ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
                   : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
               + '</div>'
             + '</div>'
-            + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">'
-              + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
-            + '</button>'
+            + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>' +
+            '</button>'
           + '</div>'
-          + '<div class="dp-mc-divider"></div>'
-          + '<div class="dp-mc-info">'
-            + '<div class="dp-mc-info-item dp-mc-info-item--wide">'
-              + '<span class="dp-mc-info-label">'
-                + '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
-                + '상태'
-              + '</span>'
-              + '<span class="dp-mc-info-val" style="color:rgba(255,215,0,0.9);">📝 정보 추가 필요</span>'
-            + '</div>'
-          + '</div>'
-          + (function() {
+          + '<div class="dp-mc-divider"></div>' +
+          '<div class="dp-mc-info">' +
+            '<div class="dp-mc-info-item dp-mc-info-item--wide">' +
+              '<span class="dp-mc-info-label">' +
+                '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>' +
+                '상태'
+              + '</span>' +
+              '<span class="dp-mc-info-val" style="color:rgba(255,215,0,0.9);">📝 정보 추가 필요</span>' +
+            '</div>' +
+          '</div>' +
+          (function() {
               if (!_dpIsAdmin()) {
                 return '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;opacity:0.5;">생년월일 정보가 필요합니다</button>';
               }
-              return '<div style="display:flex;gap:8px;margin-top:12px;">'
-                + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;flex:1;">✦ 이 프로필로 운세 보기</button>'
-                + '<button class="dp-mc-load-btn" onclick="dpClearBirthInfo(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.4);padding:10px;font-size:0.9rem;" title="생년월일 추가">➕</button>'
-                + '</div>';
+              // 관리자 모드: 프로필 삭제/생성 모두 허용
+              return '<div style="display:flex;gap:8px;margin-top:12px;">' +
+                '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation;flex:1;">✦ 이 프로필로 운세 보기</button>' +
+                '<button class="dp-mc-load-btn" onclick="dpClearBirthInfo(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.4);padding:10px;font-size:0.9rem;" title="생년월일 추가">➕</button>' +
+                '<button class="dp-mc-load-btn" onclick="dpDeleteProfile(\'' + profile.id + '\')" style="touch-action:manipulation;flex:0;width:48px;background:rgba(248,113,113,0.2);color:#f87171;border:1px solid rgba(248,113,113,0.4);padding:10px;font-size:0.9rem;" title="프로필 삭제">🗑️</button>' +
+                '</div>';
             })()
         + '</div>';
       return;
@@ -1744,7 +1746,8 @@
           var pname = safe.name || '이름 없음';
           var isActive = safe.id === currId;
           /* ★ 현재 프로필 인덱스가 제한을 초과하면 사용 불가 표시 */
-          var isExceedingLimit = idx >= maxProfiles && !isActive && !_dpIsAdmin();
+          var isAdmin = _dpIsAdmin();
+          var isExceedingLimit = idx >= maxProfiles && !isActive && !isAdmin;
           
           /* 생년월일이 없는 경우: 특별 렌더링 */
           if (!b || !b.year) {
@@ -1768,7 +1771,7 @@
                   + '<div class="dp-li-meta" style="color:rgba(255,215,0,0.8);">📋 생년월일 정보 없음</div>'
                 + '</div>'
               + '</div>'
-              + (list.length > 1
+              + ((isAdmin || list.length > 1)
                 ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
                 : '')
               + '</div>';
@@ -1812,7 +1815,7 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
-            + (list.length > 1
+            + ((isAdmin || list.length > 1)
               ? '<button class="dp-li-del" onclick="event.stopPropagation();dpDeleteProfile(\'' + pid + '\')" aria-label="삭제">✕</button>'
               : '')
             + '</div>';
@@ -1867,7 +1870,8 @@
       adminMode: window.__cdAdminBypass,
       authUser: localStorage.getItem('fortune_auth_user')
     });
-    if (_cnt >= _max) {
+    // 관리자 모드일 때는 프로필 개수 제한 없음
+    if (!isAdmin && _cnt >= _max) {
       var _tier = _dpSubIsActive ? _dpSubTier : _dpNormalizeTier(_dpGetUserPlan());
       var _nextTier = _dpGetNextTier(_tier);
       if (_nextTier) {
@@ -1960,8 +1964,10 @@
 
   window.dpDeleteProfile = function(id) {
     /* ★ 마지막 프로필(1개)은 삭제 불가; 초과 프로필은 무료/유료 모두 삭제 허용 */
+    var isAdmin = _dpIsAdmin();
     var _profiles = DPStorage.list();
-    if (_profiles.length <= 1) {
+    // 관리자 모드일 때는 마지막 1개도 삭제 허용
+    if (!isAdmin && _profiles.length <= 1) {
       alert('마지막 프로필은 삭제할 수 없습니다.\n프로필을 모두 비울 수 없습니다.');
       return;
     }
