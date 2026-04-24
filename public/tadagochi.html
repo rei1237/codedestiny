@@ -670,7 +670,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="abtn" id="asleep" onclick="act('sleep')"><span class="ai" id="slp-em">😴</span><span class="al" id="slp-lb">재우기</span></div>
 
-    <div class="abtn" onclick="act('chat')"    ><span class="ai">💬</span><span class="al">점보기</span></div>
+    <div class="abtn" onclick="act('chat')"    ><span class="ai">💬</span><span class="al">일일 운세 보기</span></div>
 
     <div class="abtn" onclick="act('talisman')"><span class="ai">🧧</span><span class="al">부적</span></div>
 
@@ -738,7 +738,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex-1 min-w-0">
 
-      <div class="font-g text-base font-bold truncate" id="chat-title" style="color:var(--acc)">운세 상담</div>
+      <div class="font-g text-base font-bold truncate" id="chat-title" style="color:var(--acc)">일일 운세 상담</div>
 
       <div class="font-n text-[11px]" style="color:var(--acc);opacity:.5">오늘 남은 운세 <span id="chat-remain" class="font-black">5</span>회</div>
 
@@ -766,7 +766,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
     <div class="flex gap-2 items-center">
 
-      <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
+      <input id="chat-inp" class="chat-input" placeholder="오늘의 일일 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
       <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
 

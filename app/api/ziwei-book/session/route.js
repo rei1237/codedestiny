@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { Solar } from "lunar-javascript";
-import { callVertexGemini } from "@/app/_lib/callVertexGemini";
+import { callVertexGemini } from "@/app/_lib/callVertexGemini"; // Importing the callVertexGemini function
 
 // Next.js 루트 최대 실행 시간 (초) — 13챕터 장문 생성 대응
 export const maxDuration = 300;
@@ -9,12 +9,12 @@ export const maxDuration = 300;
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 
-function pickGeminiKeys() {
+function pickGeminiKeys() { // Function to pick Gemini keys
   const extra = String(process.env.GEMINI_API_KEYS || "")
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
-  return [
+  return [ // Returning the keys
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_API_KEY,
     process.env.LIFEBOOK_API_KEY,
@@ -40,7 +40,7 @@ function pickGeminiKeys() {
   ]
     .map((v) => String(v || "").trim())
     .filter(Boolean);
-}
+} // End of pickGeminiKeys function
 
 function parseText(payload) {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
@@ -50,16 +50,16 @@ function parseText(payload) {
     }
   }
   return "";
-}
+} // End of parseText function
 
 function getFinishReason(payload) {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   return candidates[0]?.finishReason || "";
-}
+} // End of getFinishReason function
 
 function unique(values) {
   return Array.from(new Set(values.filter(Boolean)));
-}
+} // End of unique function
 
 function pickZiweiModels() {
   const configured = String(
@@ -72,7 +72,7 @@ function pickZiweiModels() {
     .filter(Boolean);
   const defaults = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"];
   return unique([...configured, ...defaults]);
-}
+} // End of pickZiweiModels function
 
 function makeGenerationConfig(model) {
   const isProModel = /gemini-2\.5-pro/i.test(model);
@@ -83,18 +83,18 @@ function makeGenerationConfig(model) {
   };
   if (isThinkingModel) generationConfig.thinkingConfig = { thinkingBudget: 0 };
   return generationConfig;
-}
+} // End of makeGenerationConfig function
 
 function getApiErrorMessage(status, payload) {
   return String(payload?.error?.message || `Gemini 요청 실패 (${status})`);
-}
+} // End of getApiErrorMessage function
 
 function isQuotaError(status, message) {
   if (Number(status) === 429) return true;
   return /quota exceeded|rate limit|resource exhausted|too many requests/i.test(
     String(message || "")
   );
-}
+} // End of isQuotaError function
 
 function isTokenLimitError(status, message) {
   const s = Number(status);
@@ -104,13 +104,13 @@ function isTokenLimitError(status, message) {
     );
   }
   return false;
-}
+} // End of isTokenLimitError function
 
 function compactPromptText(text, maxLen = 12000) {
   const t = String(text || "").trim();
   if (t.length <= maxLen) return t;
   return `${t.slice(0, maxLen)}\n\n[요약 모드: 토큰 제한으로 후반부 데이터가 축약되었습니다.]`;
-}
+} // End of compactPromptText function
 
 const MIN_CHAPTER_CHARS = 5000;
 
@@ -119,14 +119,14 @@ function stripHtmlTags(v) {
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
+} // End of stripHtmlTags function
 
 function normalizeStrengthLabel(v) {
   const s = String(v || "").trim();
   if (!s) return "평";
   if (["묘", "왕", "평", "리", "함"].includes(s)) return s;
   return "평";
-}
+} // End of normalizeStrengthLabel function
 
 function buildStrengthContext(ziweiStructured) {
   const rows = Array.isArray(ziweiStructured?.palaceStarData)
@@ -167,7 +167,7 @@ function buildStrengthContext(ziweiStructured) {
 
   lines.push("※ 강도 라벨 의미: 묘 > 왕 > 평 > 리 > 함");
   return lines.join("\n");
-}
+} // End of buildStrengthContext function
 
 
 // ─────────────────────────────────────────────────────────────────
@@ -198,6 +198,7 @@ const SIHUA_TABLE = {
   壬: { rec:"천량", pow:"자미", sci:"좌보", bad:"무곡" },
   癸: { rec:"파군", pow:"거문", sci:"태음", bad:"탐랑" },
 };
+// End of SIHUA_TABLE
 
 // 명국 시작 나이 (수2국=2, 목3국=3, 금4국=4, 토5국=5, 화6국=6)
 const JU_NAMES = { 2:"水2局", 3:"木3局", 4:"金4局", 5:"土5局", 6:"火6局" };
@@ -1436,11 +1437,8 @@ export async function POST(req) {
     const strengthContext = buildStrengthContext(ziweiStructured);
     const promptInput = strengthContext ? `${ziweiData}\n\n${strengthContext}` : ziweiData;
     const userPrompt = config.prompt(promptInput);
-    const geminiKeys = pickGeminiKeys();
-    const models = pickZiweiModels();
+    // Vertex AI만 사용, 실패 시 바로 에러 반환
     let lastError = null;
-
-    // Vertex AI 우선 시도 (서비스계정 JSON 인증)
     try {
       const vertexPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
       const vtxt = await callVertexGemini(vertexPrompt, {
@@ -1460,105 +1458,15 @@ export async function POST(req) {
       }
       if (vtxt && vtxt.length > 0 && vtxt.length < MIN_CHAPTER_CHARS) {
         lastError = `Vertex AI 응답 길이가 기준(${MIN_CHAPTER_CHARS}자)보다 짧습니다.`;
+      } else if (!vtxt) {
+        lastError = "Vertex AI 응답이 비어 있습니다.";
       }
     } catch (fetchErr) {
       lastError = String(fetchErr?.message || "Vertex 네트워크 오류");
     }
 
-    // Gemini 폴백
-    for (const model of models) {
-      const endpoint = GEMINI_ENDPOINT.replace("{model}", encodeURIComponent(model));
-      const generationConfig = makeGenerationConfig(model);
-      const requestBody = JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig,
-      });
-
-      for (const apiKey of geminiKeys) {
-        try {
-          const response = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: requestBody,
-          });
-          const payload = await response.json().catch(() => ({}));
-
-          if (response.ok) {
-            const text = parseText(payload);
-            const finishReason = getFinishReason(payload);
-            if (text && text.length >= MIN_CHAPTER_CHARS) {
-              return NextResponse.json({
-                ok: true,
-                text: finishReason === "MAX_TOKENS"
-                  ? text + "\n\n---\n> ⚠️ *이 챕터의 내용이 최대 출력 길이에 도달했을 수 있습니다.*"
-                  : text,
-                sessionId,
-                title: config.title,
-                emoji: config.emoji,
-                model,
-                truncated: finishReason === "MAX_TOKENS",
-              });
-            }
-            lastError = `Gemini 응답 길이가 기준(${MIN_CHAPTER_CHARS}자)보다 짧습니다.`;
-            continue;
-          }
-
-          const errMsg = getApiErrorMessage(response.status, payload);
-          if (isQuotaError(response.status, errMsg)) {
-            lastError = errMsg;
-            break;
-          }
-
-          if (isTokenLimitError(response.status, errMsg)) {
-            try {
-              const compactBody = JSON.stringify({
-                systemInstruction: {
-                  parts: [{ text: "핵심 자미두수 근거를 유지하면서 완결된 한국어 보고서를 간결하게 작성하세요." }],
-                },
-                contents: [{ role: "user", parts: [{ text: compactPromptText(userPrompt) }] }],
-                generationConfig,
-              });
-
-              const compactResponse = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: compactBody,
-              });
-              const compactPayload = await compactResponse.json().catch(() => ({}));
-
-              if (compactResponse.ok) {
-                const compactText = parseText(compactPayload);
-                const compactFinishReason = getFinishReason(compactPayload);
-                if (compactText && compactText.length >= MIN_CHAPTER_CHARS) {
-                  return NextResponse.json({
-                    ok: true,
-                    text: compactFinishReason === "MAX_TOKENS"
-                      ? compactText + "\n\n---\n> ⚠️ *요약 모드로 생성되어 일부 내용이 축약되었습니다.*"
-                      : compactText,
-                    sessionId,
-                    title: config.title,
-                    emoji: config.emoji,
-                    model,
-                    compactMode: true,
-                    truncated: compactFinishReason === "MAX_TOKENS",
-                  });
-                }
-              }
-            } catch {
-              // compact retry failed; continue fallback chain
-            }
-          }
-
-          lastError = errMsg;
-        } catch (fetchErr) {
-          lastError = String(fetchErr?.message || "네트워크 오류");
-        }
-      }
-    }
-
     return NextResponse.json(
-      { ok: false, message: lastError || "챕터 생성에 실패했습니다. API 키를 확인해 주세요." },
+      { ok: false, message: lastError || "Vertex AI 챕터 생성에 실패했습니다. 서비스 계정 및 프로젝트 설정을 확인해 주세요." },
       { status: 502 }
     );
   } catch (e) {

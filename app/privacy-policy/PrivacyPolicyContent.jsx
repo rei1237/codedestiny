@@ -26,7 +26,10 @@ export default function PrivacyPolicyContent() {
       <section className="policy-embed-section">
         <h3 className="policy-embed-h3">3. 수집하는 정보 항목 / Categories of Data We Process</h3>
         <p>
-          입력 정보(예: 생년월일, 출생시간, 성별), 접속기기 정보(IP, 브라우저/OS, 언어, 접속시간), 로그 정보, 쿠키/로컬스토리지 식별자, 문의 시 제공되는 이메일 및 메시지 내용이 포함될 수 있습니다. We do not intentionally collect sensitive personal data beyond what is required for the fortune analysis experience.
+          <strong>운세 서비스 제공을 위한 필수 정보:</strong> 생년월일, 출생시간, 성별. 이 정보는 사주·자미두수·타로·주역 등 개인 맞춤형 운세 결과 산정 목적에만 사용되며, 서버에 안전하게 저장됩니다. 해당 정보는 운세 풍이 이외의 다른 목적(ex: 마케팅, 제3자 판매 등)으로 이용하지 않습니다.
+        </p>
+        <p>
+          추가 수집 항목: 접속기기 정보(IP, 브라우저/OS, 언어, 접속시간), 로그 정보, 쿠키/로컈스토리지 식별자, 문의 시 제공되는 이메일 및 메시지 내용이 포함될 수 있습니다. We do not intentionally collect sensitive personal data beyond what is required for the fortune analysis experience.
         </p>
       </section>
 
@@ -57,7 +60,10 @@ export default function PrivacyPolicyContent() {
       <section className="policy-embed-section">
         <h3 className="policy-embed-h3">7. 보유기간 및 파기 / Retention and Deletion</h3>
         <p>
-          개인정보는 수집 목적 달성 시 지체 없이 삭제하며, 관련 법령이 보관을 요구하는 경우 해당 기간 동안 안전하게 보관 후 파기합니다. 예시: 소비자 불만/분쟁 처리 기록(최대 3년), 접속 로그(최대 3개월).
+          운세 서비스 제공을 위해 수집한 생년월일·출생시간·성별 정보는 회원 탈퇴 또는 이용자의 당 정보 삭제 요청 시 지체 없이 삭제됩니다. 해당 정보는 운세 풍이 목적 이외에는 사용되지 않습니다.
+        </p>
+        <p>
+          그 외 개인정보는 수집 목적 달성 시 지체 없이 삭제하며, 관련 법령이 보관을 요구하는 경우 해당 기간 동안 안전하게 보관 후 파기합니다. 예시: 소비자 불만/분쟁 처리 기록(최대 3년), 접속 로그(최대 3개월).
         </p>
       </section>
 

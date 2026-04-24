@@ -749,7 +749,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(167,139,250,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>자미두수 · Ziwei Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>H 프리미엄 인생 총론</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 12궁 완전 분析 · 상하관계 처세술</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 12궁 완전 분석 · 상하관계 처세술</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.12))",
@@ -804,7 +804,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(253,230,138,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>점성술 · Astrology Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>점성술 프리미엄 리포트</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>12챕터 · ASC/Sun/Moon 입체 분析 · AI 심층 해석</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>12챕터 · ASC/Sun/Moon 입체 분석 · AI 심층 해석</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(253,230,138,0.12))",
@@ -859,7 +859,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(125,211,252,0.65)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>숙요점 · Moonlight Strategy</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>달빛 전략 리포트</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 27수 완전 분析 · 달의 주기 전략</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>13챕터 · 27수 완전 분석 · 달의 주기 전략</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(14,165,233,0.18), rgba(30,27,75,0.2))",

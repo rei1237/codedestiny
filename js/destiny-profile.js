@@ -112,6 +112,7 @@
       try {
         localStorage.setItem(_dpGetScopedListKey(scope), JSON.stringify(profiles));
         _dpMirrorScopedToLegacy(scope);
+        _dpSyncToServerDebounced();
       }
       catch(e) {}
     },
@@ -128,6 +129,7 @@
       try {
         localStorage.setItem(_dpGetScopedCurrentKey(scope), id || '');
         _dpMirrorScopedToLegacy(scope);
+        _dpSyncToServerDebounced();
       } catch(e) {}
     },
     add: function(profile) {
@@ -156,6 +158,59 @@
       DPStorage.save(list);
     }
   };
+
+  /* ──────────────────────────────────────────
+     1-S. 서버 동기화 (로그인 상태 전용)
+     생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 저장됩니다.
+  ────────────────────────────────────────── */
+  function _dpGetAuthToken() {
+    try { return localStorage.getItem('fortune_auth_token') || ''; } catch(e) { return ''; }
+  }
+
+  var _dpSyncTimer = null;
+  function _dpSyncToServerDebounced() {
+    if (_dpSyncTimer) clearTimeout(_dpSyncTimer);
+    _dpSyncTimer = setTimeout(function() {
+      _dpSyncTimer = null;
+      _dpSyncToServer();
+    }, 400);
+  }
+
+  function _dpSyncToServer() {
+    var token = _dpGetAuthToken();
+    if (!token) return;
+    var scope = _dpGetProfileScope();
+    var profiles = _dpReadListByKey(_dpGetScopedListKey(scope));
+    var currentId = '';
+    try { currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || ''; } catch(e) {}
+    fetch('/api/user/destiny-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ action: 'sync', profiles: profiles, currentId: currentId })
+    }).catch(function() {});
+  }
+
+  function _dpLoadFromServer(callback) {
+    var token = _dpGetAuthToken();
+    if (!token) { if (callback) callback(false); return; }
+    fetch('/api/user/destiny-profiles', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(res) { return res.ok ? res.json() : null; })
+    .then(function(data) {
+      if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
+      var scope = _dpGetProfileScope();
+      var listKey = _dpGetScopedListKey(scope);
+      var currKey = _dpGetScopedCurrentKey(scope);
+      try {
+        localStorage.setItem(listKey, JSON.stringify(data.profiles));
+        if (data.currentId) localStorage.setItem(currKey, data.currentId);
+        _dpMirrorScopedToLegacy(scope);
+      } catch(e) {}
+      if (callback) callback(true);
+    })
+    .catch(function() { if (callback) callback(false); });
+  }
 
   function _isMobileViewport() {
     try {
@@ -1535,7 +1590,7 @@
     renderProfileList();
     broadcastProfileChange(saved);
     _dpUpdateSaveBtn();
-    _toast('귀사는 귀중한 개인정보를 수집하지 않으며, 생년월일 정보는 오직 고객님의 로컬 데이터(기기 브라우저)에만 저장됩니다.', 'privacy');
+    _toast('생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.', 'privacy');
   };
 
   window.dpOpenList = function() {
@@ -2228,6 +2283,16 @@
     _dpEnsureScopedStorageReady();
 
     renderMasterCard(DPStorage.current());
+
+    /* 로그인 상태이면 서버에서 최신 프로필 동기화 */
+    if (_dpGetAuthToken()) {
+      _dpLoadFromServer(function(loaded) {
+        if (loaded) {
+          renderMasterCard(DPStorage.current());
+          renderProfileList();
+        }
+      });
+    }
 
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
