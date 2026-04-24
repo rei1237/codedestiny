@@ -1,3 +1,13 @@
+// 베다점 진입 시 자동 실행 보장
+if (window.gotoVedicPremium) {
+  var _origGotoVedic = window.gotoVedicPremium;
+  window.gotoVedicPremium = function() {
+    _origGotoVedic();
+    setTimeout(function(){
+      if (window.tryAutoFillFromDestinyProfile) window.tryAutoFillFromDestinyProfile();
+    }, 400);
+  };
+}
 /* ═══════════════════════════════════════════════════════════════
    Destiny Profile Manager  ·  v1.0
    Deep Space & Sacred Gold — 생년월일 & 장소 기반 시차 보정 프로필
