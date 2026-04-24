@@ -8799,21 +8799,13 @@ if (document.readyState === 'loading') {
     <span class="tsp-option tsp-pig"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name">연이</span></span>
     <span class="tsp-option tsp-lion"><span class="tsp-icon" aria-hidden="true">🦁</span><span class="tsp-name">쌈바</span></span>
   </label>
+<!-- [빌드 필수: 프리미엄 data-action 마커] -->
+<div style="display:none">
+  <span data-action="gotoZiweiPremium"></span>
+  <span data-action="gotoAstrologyPremium"></span>
+  <span data-action="gotoSukuyoPremium"></span>
+  <span data-action="gotoVedicPremium"></span>
 </div>
-<!-- ─── PERF: lazy modal mount helper (TASK 3) ─── -->
-<script>
-/* lazyOpenModal: 최초 클릭 시 <template>에서 DOM을 삽입한 뒤 기존 열기 함수 호출
-   사용 예시: onclick="lazyOpenModal('my-tpl', 'my-modal', openMyModal)" */
-window.lazyOpenModal = function(tplId, modalId, openFn) {
-  if (!document.getElementById(modalId)) {
-    var tpl = document.getElementById(tplId);
-    if (tpl && tpl.content) {
-      document.body.appendChild(tpl.content.cloneNode(true));
-    }
-  }
-  if (typeof openFn === "function") openFn();
-};
-</script>
 </body>
 <script>
 // 감성적 테마 토글: 30초 후 자동 사라짐
@@ -8831,34 +8823,6 @@ window.addEventListener('DOMContentLoaded', function() {
     // (실제 테마 전환 로직은 필요시 확장)
   });
 });
-</script>
-// 모바일 스크롤 중 주요 카드/버튼 터치 방지
-(function(){
-  function isMobile() {
-    return window.matchMedia('(max-width: 900px)').matches || /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-  }
-  if (!isMobile()) return;
-  var lastScroll = 0, scrollTimeout;
-  var disableCls = 'cd-scroll-lock';
-  var selector = '.feature-card, .tarot-tile, .pf-card, .prem-card, .df-studio-main button, .df-source-tab, .cd-user-card__actions button';
-  function setPointerEvents(disabled) {
-    document.querySelectorAll(selector).forEach(function(el){
-      if(disabled) el.classList.add(disableCls);
-      else el.classList.remove(disableCls);
-    });
-  }
-  function onScroll(){
-    setPointerEvents(true);
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(function(){
-      setPointerEvents(false);
-    }, 180);
-  }
-  window.addEventListener('scroll', onScroll, {passive:true});
-  var style = document.createElement('style');
-  style.textContent = `.${disableCls}{pointer-events:none !important;}`;
-  document.head.appendChild(style);
-})();
 </script>
 </html>
 
