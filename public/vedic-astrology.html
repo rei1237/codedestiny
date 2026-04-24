@@ -574,6 +574,64 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 
 <script src="js/compat-llm-prompts.js?v=20260321-llm4"></script>
 <script>
+// 프로필 카드 → 베다점 자동 연동
+function tryAutoFillFromDestinyProfile() {
+  try {
+    var user = null;
+    try { user = JSON.parse(localStorage.getItem('fortune_auth_user')||'{}'); } catch(e) {}
+    var scope = (user && user.id) ? user.id : 'guest';
+    var raw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.current::' + scope);
+    var listRaw = localStorage.getItem('FORTUNE_APP_USER_PROFILES.list::' + scope);
+    var list = listRaw ? JSON.parse(listRaw) : [];
+    var profile = null;
+    if (raw) {
+      var id = raw;
+      profile = list.find(function(p){ return p.id === id; });
+    } else if (list.length) {
+      profile = list[0];
+    }
+    if (!profile || !profile.birth || !profile.location) return;
+    // 입력란 자동 채우기
+    var b = profile.birth, l = profile.location;
+    if (b.year) document.getElementById('v_year').value = b.year;
+    if (b.month) document.getElementById('v_month').value = b.month;
+    if (b.day) document.getElementById('v_day').value = b.day;
+    if (b.hour !== undefined) document.getElementById('v_hour').value = b.hour;
+    if (b.minute !== undefined) document.getElementById('v_minute').value = b.minute;
+    if (profile.gender) document.getElementById('v_gender').value = profile.gender;
+    if (l.lat !== undefined) document.getElementById('v_lat').value = l.lat;
+    if (l.lng !== undefined) document.getElementById('v_lon').value = l.lng;
+    if (l.tzOffset !== undefined) document.getElementById('v_tz').value = l.tzOffset;
+    // 장소 select도 맞추기
+    var sel = document.getElementById('v_place');
+    if (sel && l.label) {
+      for (var i=0; i<sel.options.length; ++i) {
+        if (sel.options[i].textContent === l.label || sel.options[i].value === l.tz) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    // 모든 필수 정보가 있으면 자동 실행
+    setTimeout(function() {
+      var y = document.getElementById('v_year').value;
+      var m = document.getElementById('v_month').value;
+      var d = document.getElementById('v_day').value;
+      var h = document.getElementById('v_hour').value;
+      var min = document.getElementById('v_minute').value;
+      var lat = document.getElementById('v_lat').value;
+      var lon = document.getElementById('v_lon').value;
+      var tz = document.getElementById('v_tz').value;
+      if (y && m && d && h !== '' && min !== '' && lat && lon && tz) {
+        var btn = document.getElementById('v_run_btn');
+        if (btn) btn.click();
+      }
+    }, 300);
+  } catch (e) { /* 무시 */ }
+}
+document.addEventListener('DOMContentLoaded', tryAutoFillFromDestinyProfile);
+</script>
+<script>
 (function(){
   if(typeof Math!=='object'||typeof Date!=='function'||typeof JSON!=='object'){
     document.addEventListener('DOMContentLoaded',function(){
